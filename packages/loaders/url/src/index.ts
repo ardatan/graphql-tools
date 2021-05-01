@@ -1,6 +1,15 @@
 /* eslint-disable no-case-declarations */
 /// <reference lib="dom" />
-import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo, Kind, parse, buildASTSchema } from 'graphql';
+import {
+  print,
+  IntrospectionOptions,
+  DocumentNode,
+  GraphQLResolveInfo,
+  Kind,
+  parse,
+  buildASTSchema,
+  ExecutionResult,
+} from 'graphql';
 import {
   AsyncExecutor,
   Executor,
@@ -17,7 +26,7 @@ import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
 import { SubschemaConfig } from '@graphql-tools/delegate';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
-import { createClient } from 'graphql-ws';
+import { ClientOptions, createClient } from 'graphql-ws';
 import WebSocket from 'isomorphic-ws';
 import syncFetch from 'sync-fetch';
 import isPromise from 'is-promise';
@@ -26,6 +35,7 @@ import FormData from 'form-data';
 import 'eventsource/lib/eventsource-polyfill';
 import { Subscription, SubscriptionOptions } from 'sse-z';
 import { URL } from 'url';
+import { ConnectionParamsOptions, SubscriptionClient as LegacySubscriptionClient } from 'subscriptions-transport-ws';
 
 export type AsyncFetchFn = typeof import('cross-fetch').fetch;
 export type SyncFetchFn = (input: RequestInfo, init?: RequestInit) => SyncResponse;
@@ -86,6 +96,10 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
    * Use SSE for subscription instead of WebSocket
    */
   useSSEForSubscription?: boolean;
+  /**
+   * Use legacy web socket protocol `graphql-ws` instead of the more current standard `graphql-transport-ws`
+   */
+  useWebSocketLegacyProtocol?: boolean;
   /**
    * Additional options to pass to the constructor of the underlying EventSource instance.
    */
@@ -254,7 +268,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return executor;
   }
 
-  buildWSSubscriber(pointer: string, webSocketImpl: typeof WebSocket): Subscriber {
+  buildWSSubscriber(
+    pointer: string,
+    webSocketImpl: typeof WebSocket,
+    connectionParams: ClientOptions['connectionParams']
+  ): Subscriber {
     const WS_URL = switchProtocols(pointer, {
       https: 'wss',
       http: 'ws',
@@ -262,6 +280,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     const subscriptionClient = createClient({
       url: WS_URL,
       webSocketImpl,
+      connectionParams,
     });
     return async ({ document, variables }: { document: DocumentNode; variables: any }) => {
       const query = print(document);
@@ -279,6 +298,33 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
           };
         },
       });
+    };
+  }
+
+  buildWSLegacySubscriber(
+    pointer: string,
+    webSocketImpl: typeof WebSocket,
+    connectionParams: ConnectionParamsOptions
+  ): Subscriber {
+    const WS_URL = switchProtocols(pointer, {
+      https: 'wss',
+      http: 'ws',
+    });
+    const subscriptionClient = new LegacySubscriptionClient(
+      WS_URL,
+      {
+        connectionParams,
+      },
+      webSocketImpl
+    );
+
+    return async <TReturn, TArgs>({ document, variables }: { document: DocumentNode; variables: TArgs }) => {
+      return observableToAsyncIterable(
+        subscriptionClient.request({
+          query: document,
+          variables,
+        })
+      ) as AsyncIterator<ExecutionResult<TReturn>>;
     };
   }
 
@@ -413,7 +459,12 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       subscriber = this.buildSSESubscriber(pointer, options.eventSourceOptions);
     } else {
       const webSocketImpl = await this.getWebSocketImpl(options, asyncImport);
-      subscriber = this.buildWSSubscriber(pointer, webSocketImpl);
+
+      if (options.useWebSocketLegacyProtocol) {
+        subscriber = this.buildWSLegacySubscriber(pointer, webSocketImpl, { headers });
+      } else {
+        subscriber = this.buildWSSubscriber(pointer, webSocketImpl, { headers });
+      }
     }
 
     return {
@@ -448,7 +499,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       subscriber = this.buildSSESubscriber(pointer, options.eventSourceOptions);
     } else {
       const webSocketImpl = this.getWebSocketImpl(options, syncImport);
-      subscriber = this.buildWSSubscriber(pointer, webSocketImpl);
+      if (options.useWebSocketLegacyProtocol) {
+        subscriber = this.buildWSLegacySubscriber(pointer, webSocketImpl, { headers });
+      } else {
+        subscriber = this.buildWSSubscriber(pointer, webSocketImpl, { headers });
+      }
     }
 
     return {
