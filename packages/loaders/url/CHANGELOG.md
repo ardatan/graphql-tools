@@ -1,5 +1,13 @@
 # @graphql-tools/url-loader
 
+## 6.9.0
+
+### Minor Changes
+
+- 854ce659: - Added support for legacy ws protocol
+  - Ensured that headers are passed into ws connection params
+- 947ccee8: feat(url-loader): ability to provide custom subscriptionsEndpoint
+
 ## 6.8.3
 
 ### Patch Changes
