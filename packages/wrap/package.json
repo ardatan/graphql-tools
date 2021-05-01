@@ -29,7 +29,7 @@
     "@graphql-tools/schema": "^7.1.4",
     "@graphql-tools/utils": "^7.8.1",
     "tslib": "~2.2.0",
-    "value-or-promise": "~1.0.5"
+    "value-or-promise": "1.0.6"
   },
   "publishConfig": {
     "access": "public",
