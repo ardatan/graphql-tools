@@ -1,5 +1,14 @@
 # @graphql-tools/delegate
 
+## 7.1.5
+
+### Patch Changes
+
+- 22a9f3da: fix(deps): follow package conventions on when to pin
+- Updated dependencies [22a9f3da]
+  - @graphql-tools/batch-execute@7.1.2
+  - @graphql-tools/schema@7.1.5
+
 ## 7.1.4
 
 ### Patch Changes

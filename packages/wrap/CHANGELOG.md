@@ -1,5 +1,14 @@
 # @graphql-tools/wrap
 
+## 7.0.8
+
+### Patch Changes
+
+- 22a9f3da: fix(deps): follow package conventions on when to pin
+- Updated dependencies [22a9f3da]
+  - @graphql-tools/delegate@7.1.5
+  - @graphql-tools/schema@7.1.5
+
 ## 7.0.7
 
 ### Patch Changes
