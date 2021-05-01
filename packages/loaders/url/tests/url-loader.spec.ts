@@ -12,6 +12,7 @@ import { join } from 'path';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { Server as WSServer } from 'ws';
 import http from 'http';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
 
 const SHOULD_NOT_GET_HERE_ERROR = 'SHOULD_NOT_GET_HERE';
 
@@ -333,7 +334,7 @@ input TestInput {
       expect(result.document).toBeDefined();
       expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
     })
-    it('should handle subscriptions', async (done) => {
+    it('should handle subscriptions - new protocol', async (done) => {
       const testUrl = 'http://localhost:8081/graphql';
       const { schema } = await loader.load(testUrl, {
         customFetch: async () => ({
@@ -397,6 +398,68 @@ input TestInput {
         httpServer.close(done);
       });
 
+    });
+    it('should handle subscriptions - legacy protocol', async (done) => {
+      const testUrl = 'http://localhost:8081/graphql';
+      const { schema } = await loader.load(testUrl, {
+        customFetch: async () => ({
+          json: async () => ({
+            data: introspectionFromSchema(testSchema),
+          })
+        }) as any,
+        useWebSocketLegacyProtocol: true,
+      });
+
+      const httpServer = http.createServer(function weServeSocketsOnly(_, res) {
+        res.writeHead(404);
+        res.end();
+      });
+
+
+      httpServer.listen(8081);
+
+      const subscriptionServer = SubscriptionServer.create(
+        {
+          schema: testSchema,
+          execute,
+          subscribe,
+        },
+        {
+          server: httpServer,
+          path: '/graphql',
+        },
+      );
+
+      const asyncIterator = await subscribe({
+        schema,
+        document: parse(/* GraphQL */`
+          subscription TestMessage {
+            testMessage {
+              number
+            }
+          }
+        `),
+        contextValue: {},
+      }) as AsyncIterableIterator<ExecutionResult>;
+
+      expect(asyncIterator['errors']).toBeFalsy();
+      expect(asyncIterator['errors']?.length).toBeFalsy();
+
+
+      // eslint-disable-next-line no-inner-declarations
+      async function getNextResult() {
+        const result = await asyncIterator.next();
+        expect(result?.done).toBeFalsy();
+        return result?.value?.data?.testMessage?.number;
+      }
+
+      expect(await getNextResult()).toBe(0);
+      expect(await getNextResult()).toBe(1);
+      expect(await getNextResult()).toBe(2);
+
+      await asyncIterator.return();
+      subscriptionServer.close();
+      httpServer.close(done);
     });
     it('should handle multipart requests', async () => {
       let server = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker, method: 'POST' });
