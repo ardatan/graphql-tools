@@ -318,13 +318,13 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       webSocketImpl
     );
 
-    return async ({ document, variables }: { document: DocumentNode; variables: any }) => {
+    return async <TReturn, TArgs>({ document, variables }: { document: DocumentNode; variables: TArgs }) => {
       return observableToAsyncIterable(
         subscriptionClient.request({
           query: document,
           variables,
         })
-      ) as AsyncIterator<ExecutionResult<any>>;
+      ) as AsyncIterator<ExecutionResult<TReturn>>;
     };
   }
 
