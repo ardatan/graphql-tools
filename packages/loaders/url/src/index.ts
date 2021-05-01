@@ -4,7 +4,6 @@ import {
   print,
   IntrospectionOptions,
   DocumentNode,
-  GraphQLResolveInfo,
   Kind,
   parse,
   buildASTSchema,
@@ -21,9 +20,10 @@ import {
   SingleFileOptions,
   observableToAsyncIterable,
   isAsyncIterable,
+  ExecutionParams,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
-import { fetch as crossFetch } from 'cross-fetch';
+import { fetch as crossFetch, Headers } from 'cross-fetch';
 import { SubschemaConfig } from '@graphql-tools/delegate';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
@@ -45,12 +45,17 @@ export type SyncResponse = Omit<Response, 'json' | 'text'> & {
 };
 export type FetchFn = AsyncFetchFn | SyncFetchFn;
 
-type Headers = Record<string, string> | Array<Record<string, string>>;
+type Headers =
+  | Record<string, string>
+  | Array<Record<string, string>>
+  | ((
+      executionParams: ExecutionParams
+    ) => Array<Record<string, string>> | Record<string, string>);
 
 type BuildExecutorOptions<TFetchFn = FetchFn> = {
   pointer: string;
   fetch: TFetchFn;
-  extraHeaders: any;
+  extraHeaders: Headers;
   defaultMethod: 'GET' | 'POST';
   useGETForQueries: boolean;
   multipart?: boolean;
@@ -205,11 +210,8 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     const executor = ({
       document,
       variables,
-    }: {
-      document: DocumentNode;
-      variables: any;
-      info: GraphQLResolveInfo;
-    }) => {
+      ...rest
+    }: ExecutionParams) => {
       let method = defaultMethod;
       if (useGETForQueries) {
         method = 'GET';
@@ -221,6 +223,12 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
           }
         }
       }
+
+      const headers = this.getHeadersFromOptions(extraHeaders, {
+        document,
+        variables,
+        ...rest,
+      });
 
       let fetchResult: SyncResponse | Promise<Response>;
       const query = print(document);
@@ -236,7 +244,10 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
           const finalUrl = urlObj.toString().replace(dummyHostname, '');
           fetchResult = fetch(finalUrl, {
             method: 'GET',
-            headers: extraHeaders,
+            headers: {
+              accept: 'application/json',
+              ...headers,
+            },
           });
           break;
         case 'POST':
@@ -246,7 +257,8 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
                 method: 'POST',
                 body: form as any,
                 headers: {
-                  ...extraHeaders,
+                  accept: 'application/json',
+                  ...headers,
                 },
               })
             );
@@ -258,8 +270,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
                 variables,
               }),
               headers: {
+                accept: 'application/json',
                 'content-type': 'application/json',
-                ...extraHeaders,
+                ...headers,
               },
             });
           }
@@ -277,7 +290,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   buildWSSubscriber(
     subscriptionsEndpoint: string,
     webSocketImpl: typeof WebSocket,
-    connectionParams: ClientOptions['connectionParams']
+    connectionParams?: ClientOptions['connectionParams']
   ): Subscriber {
     const WS_URL = switchProtocols(subscriptionsEndpoint, {
       https: 'wss',
@@ -310,7 +323,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   buildWSLegacySubscriber(
     subscriptionsEndpoint: string,
     webSocketImpl: typeof WebSocket,
-    connectionParams: ConnectionParamsOptions
+    connectionParams?: ConnectionParamsOptions
   ): Subscriber {
     const WS_URL = switchProtocols(subscriptionsEndpoint, {
       https: 'wss',
@@ -324,7 +337,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       webSocketImpl
     );
 
-    return async <TReturn, TArgs>({ document, variables }: { document: DocumentNode; variables: TArgs }) => {
+    return async <TReturn, TArgs>({ document, variables }: ExecutionParams<TArgs>) => {
       return observableToAsyncIterable(
         subscriptionClient.request({
           query: document,
@@ -396,9 +409,12 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return async ? crossFetch : syncFetch;
   }
 
-  private getHeadersFromOptions(customHeaders: Headers) {
+  private getHeadersFromOptions(customHeaders: Headers, executionParams: ExecutionParams): Record<string, string> {
     let headers = {};
     if (customHeaders) {
+      if (typeof customHeaders === 'function') {
+        customHeaders = customHeaders(executionParams);
+      }
       if (Array.isArray(customHeaders)) {
         headers = customHeaders.reduce((prev: any, v: any) => ({ ...prev, ...v }), {});
       } else if (typeof customHeaders === 'object') {
@@ -439,21 +455,15 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
 
   async getExecutorAndSubscriberAsync(
     pointer: SchemaPointerSingle,
-    options: LoadFromUrlOptions
+    options: LoadFromUrlOptions = {}
   ): Promise<{ executor: AsyncExecutor; subscriber: Subscriber }> {
-    const fetch = await this.getFetch(options?.customFetch, asyncImport, true);
-    const headers = this.getHeadersFromOptions(options?.headers);
-    const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'POST');
-
-    const extraHeaders = {
-      accept: 'application/json',
-      ...headers,
-    };
+    const fetch = await this.getFetch(options.customFetch, asyncImport, true);
+    const defaultMethod = this.getDefaultMethodFromOptions(options.method, 'POST');
 
     const executor = this.buildExecutor({
       pointer,
       fetch,
-      extraHeaders,
+      extraHeaders: options.headers,
       defaultMethod,
       useGETForQueries: options.useGETForQueries,
       multipart: options.multipart,
@@ -466,11 +476,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       subscriber = this.buildSSESubscriber(subscriptionsEndpoint, options.eventSourceOptions);
     } else {
       const webSocketImpl = await this.getWebSocketImpl(options, asyncImport);
-
+      const connectionParams = () => ({ headers: this.getHeadersFromOptions(options.headers, {} as any) });
       if (options.useWebSocketLegacyProtocol) {
-        subscriber = this.buildWSLegacySubscriber(subscriptionsEndpoint, webSocketImpl, { headers });
+        subscriber = this.buildWSLegacySubscriber(subscriptionsEndpoint, webSocketImpl, connectionParams);
       } else {
-        subscriber = this.buildWSSubscriber(subscriptionsEndpoint, webSocketImpl, { headers });
+        subscriber = this.buildWSSubscriber(subscriptionsEndpoint, webSocketImpl, connectionParams);
       }
     }
 
@@ -485,18 +495,12 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     options: LoadFromUrlOptions
   ): { executor: SyncExecutor; subscriber: Subscriber } {
     const fetch = this.getFetch(options?.customFetch, syncImport, false);
-    const headers = this.getHeadersFromOptions(options?.headers);
     const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'POST');
-
-    const extraHeaders = {
-      accept: 'application/json',
-      ...headers,
-    };
 
     const executor = this.buildExecutor({
       pointer,
       fetch,
-      extraHeaders,
+      extraHeaders: options.headers,
       defaultMethod,
       useGETForQueries: options.useGETForQueries,
     });
@@ -507,10 +511,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       subscriber = this.buildSSESubscriber(subscriptionsEndpoint, options.eventSourceOptions);
     } else {
       const webSocketImpl = this.getWebSocketImpl(options, syncImport);
+      const connectionParams = () => ({ headers: this.getHeadersFromOptions(options.headers, {} as any) });
       if (options.useWebSocketLegacyProtocol) {
-        subscriber = this.buildWSLegacySubscriber(subscriptionsEndpoint, webSocketImpl, { headers });
+        subscriber = this.buildWSLegacySubscriber(subscriptionsEndpoint, webSocketImpl, connectionParams);
       } else {
-        subscriber = this.buildWSSubscriber(subscriptionsEndpoint, webSocketImpl, { headers });
+        subscriber = this.buildWSSubscriber(subscriptionsEndpoint, webSocketImpl, connectionParams);
       }
     }
 
@@ -540,7 +545,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
 
   async handleSDLAsync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {
     const fetch = await this.getFetch(options?.customFetch, asyncImport, true);
-    const headers = this.getHeadersFromOptions(options?.headers);
+    const headers = this.getHeadersFromOptions(options?.headers, {} as any);
     const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'GET');
     const response = await fetch(pointer, {
       method: defaultMethod,
@@ -559,7 +564,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
 
   handleSDLSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Source {
     const fetch = this.getFetch(options?.customFetch, syncImport, false);
-    const headers = this.getHeadersFromOptions(options?.headers);
+    const headers = this.getHeadersFromOptions(options?.headers, {} as any);
     const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'GET');
     const response = fetch(pointer, {
       method: defaultMethod,
