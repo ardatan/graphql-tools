@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 /// <reference lib="dom" />
-import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo, Kind, parse, buildASTSchema } from 'graphql';
+import { print, IntrospectionOptions, DocumentNode, GraphQLResolveInfo, Kind, parse, buildASTSchema, ExecutionResult } from 'graphql';
 import {
   AsyncExecutor,
   Executor,
@@ -26,6 +26,7 @@ import FormData from 'form-data';
 import 'eventsource/lib/eventsource-polyfill';
 import { Subscription, SubscriptionOptions } from 'sse-z';
 import { URL } from 'url';
+import { SubscriptionClient as LegacySubscriptionClient} from 'subscriptions-transport-ws'
 
 export type AsyncFetchFn = typeof import('cross-fetch').fetch;
 export type SyncFetchFn = (input: RequestInfo, init?: RequestInit) => SyncResponse;
@@ -86,6 +87,10 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
    * Use SSE for subscription instead of WebSocket
    */
   useSSEForSubscription?: boolean;
+  /**
+   * Use legacy web socket protocol `graphql-ws` instead of the more current standard `graphql-transport-ws`
+   */
+  useWebSocketLegacyProtocol?: boolean;
   /**
    * Additional options to pass to the constructor of the underlying EventSource instance.
    */
@@ -282,6 +287,29 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     };
   }
 
+  buildWSLegacySubscriber(pointer: string, webSocketImpl: typeof WebSocket, headers: Record<string,string>): Subscriber {
+    const WS_URL = switchProtocols(pointer, {
+      https: 'wss',
+      http: 'ws',
+    });
+    const subscriptionClient = new LegacySubscriptionClient(WS_URL, {
+      connectionParams: () => {
+        return {
+          headers
+        }
+      }
+    }, webSocketImpl);
+
+    return async ({ document, variables }: { document: DocumentNode; variables: any }) => {
+      return observableToAsyncIterable(
+        subscriptionClient.request({
+          query: document,
+          variables,
+        })
+      ) as AsyncIterator<ExecutionResult<any>>;
+    };
+  }
+
   buildSSESubscriber(pointer: string, eventSourceOptions?: SubscriptionOptions['eventSourceOptions']): Subscriber {
     return async ({ document, variables }: { document: DocumentNode; variables: any }) => {
       const query = print(document);
@@ -413,7 +441,12 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       subscriber = this.buildSSESubscriber(pointer, options.eventSourceOptions);
     } else {
       const webSocketImpl = await this.getWebSocketImpl(options, asyncImport);
-      subscriber = this.buildWSSubscriber(pointer, webSocketImpl);
+
+      if(options.useWebSocketLegacyProtocol){
+        subscriber = this.buildWSLegacySubscriber(pointer, webSocketImpl, headers);
+      } else {
+        subscriber = this.buildWSSubscriber(pointer, webSocketImpl);
+      }
     }
 
     return {
@@ -448,7 +481,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       subscriber = this.buildSSESubscriber(pointer, options.eventSourceOptions);
     } else {
       const webSocketImpl = this.getWebSocketImpl(options, syncImport);
-      subscriber = this.buildWSSubscriber(pointer, webSocketImpl);
+      if(options.useWebSocketLegacyProtocol){
+        subscriber = this.buildWSLegacySubscriber(pointer, webSocketImpl, headers);
+      } else {
+        subscriber = this.buildWSSubscriber(pointer, webSocketImpl);
+      }
     }
 
     return {
