@@ -7,7 +7,7 @@ import {
   Kind,
   parse,
   buildASTSchema,
-  ExecutionResult,
+  GraphQLError,
 } from 'graphql';
 import {
   AsyncExecutor,
@@ -21,6 +21,7 @@ import {
   observableToAsyncIterable,
   isAsyncIterable,
   ExecutionParams,
+  mapAsyncIterator,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch, Headers } from 'cross-fetch';
@@ -36,6 +37,9 @@ import 'eventsource/lib/eventsource-polyfill';
 import { Subscription, SubscriptionOptions } from 'sse-z';
 import { URL } from 'url';
 import { ConnectionParamsOptions, SubscriptionClient as LegacySubscriptionClient } from 'subscriptions-transport-ws';
+import AbortController from 'abort-controller';
+import { meros } from 'meros';
+import { merge, set } from 'lodash';
 
 export type AsyncFetchFn = typeof import('cross-fetch').fetch;
 export type SyncFetchFn = (input: RequestInfo, init?: RequestInit) => SyncResponse;
@@ -66,6 +70,23 @@ export type SyncImportFn<T = unknown> = (moduleName: string) => T;
 
 const asyncImport: AsyncImportFn = (moduleName: string) => import(moduleName);
 const syncImport: SyncImportFn = (moduleName: string) => require(moduleName);
+
+
+
+interface ExecutionResult<TData = { [key: string]: any }, TExtensions = { [key: string]: any }> {
+  errors?: ReadonlyArray<GraphQLError>;
+  data?: TData | null;
+  extensions?: TExtensions;
+}
+
+interface ExecutionPatchResult<TData = { [key: string]: any }, TExtensions = { [key: string]: any }> {
+  errors?: ReadonlyArray<GraphQLError>;
+  data?: TData | null;
+  path?: ReadonlyArray<string | number>;
+  label?: string;
+  hasNext: boolean;
+  extensions?: TExtensions;
+}
 
 /**
  * Additional options for loading from a URL
@@ -212,6 +233,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       variables,
       ...rest
     }: ExecutionParams) => {
+      const controller = new AbortController();
       let method = defaultMethod;
       if (useGETForQueries) {
         method = 'GET';
@@ -244,6 +266,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
           const finalUrl = urlObj.toString().replace(dummyHostname, '');
           fetchResult = fetch(finalUrl, {
             method: 'GET',
+            credentials: 'include',
             headers: {
               accept: 'application/json',
               ...headers,
@@ -255,31 +278,73 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
             fetchResult = this.createFormDataFromVariables({ query, variables }).then(form =>
               (fetch as AsyncFetchFn)(HTTP_URL, {
                 method: 'POST',
+                credentials: 'include',
                 body: form as any,
                 headers: {
                   accept: 'application/json',
                   ...headers,
                 },
+                signal: controller.signal,
               })
             );
           } else {
             fetchResult = fetch(HTTP_URL, {
               method: 'POST',
+              credentials: 'include',
               body: JSON.stringify({
                 query,
                 variables,
               }),
               headers: {
-                accept: 'application/json',
+                accept: 'application/json, multipart/mixed',
                 'content-type': 'application/json',
                 ...headers,
               },
+              signal: controller.signal,
             });
           }
           break;
       }
       if (isPromise(fetchResult)) {
-        return fetchResult.then(res => res.json());
+        return fetchResult.then(async res => {
+          const response: ExecutionResult = {};
+          const maybeStream = await meros<ExecutionPatchResult>(res);
+          if (isAsyncIterable(maybeStream)) {
+            const mappedAsyncIterator = mapAsyncIterator(maybeStream, part => {
+              if (part.json) {
+                const chunk = part.body;
+                if (chunk.path) {
+                  if (chunk.data) {
+                    const path: Array<string | number> = ['data'];
+                    merge(response, set({}, path.concat(chunk.path), chunk.data));
+                  }
+
+                  if (chunk.errors) {
+                    response.errors = (response.errors || []).concat(chunk.errors);
+                  }
+                } else {
+                  if (chunk.data) {
+                    response.data = chunk.data;
+                  }
+                  if (chunk.errors) {
+                    response.errors = chunk.errors;
+                  }
+                }
+                return response;
+              }
+            });
+            const oldReturnFn =
+              mappedAsyncIterator.return.bind(mappedAsyncIterator) ||
+              (() => Promise.resolve({ value: undefined, done: true }));
+            mappedAsyncIterator.return = (...args) => {
+              controller.abort();
+              return oldReturnFn(...args);
+            };
+            return mappedAsyncIterator;
+          } else {
+            return maybeStream.json();
+          }
+        });
       }
       return fetchResult.json();
     };
