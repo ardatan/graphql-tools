@@ -1,4 +1,6 @@
-import { ExecutionResult, GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from 'graphql';
+
+import { ExecutionResult, AsyncExecutionResult } from '@graphql-tools/utils';
 
 export type IMockFn = () => unknown;
 export type IScalarMock = unknown | IMockFn;
@@ -212,5 +214,8 @@ export interface IMockServer {
    * @param query GraphQL query to execute
    * @param vars Variables
    */
-  query: (query: string, vars?: Record<string, any>) => Promise<ExecutionResult>;
+  query: (
+    query: string,
+    vars?: Record<string, any>
+  ) => Promise<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>>;
 }
