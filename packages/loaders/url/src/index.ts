@@ -1,14 +1,6 @@
 /* eslint-disable no-case-declarations */
 /// <reference lib="dom" />
-import {
-  print,
-  IntrospectionOptions,
-  DocumentNode,
-  Kind,
-  parse,
-  buildASTSchema,
-  GraphQLError,
-} from 'graphql';
+import { print, IntrospectionOptions, DocumentNode, Kind, parse, buildASTSchema, GraphQLError } from 'graphql';
 import {
   AsyncExecutor,
   Executor,
@@ -22,6 +14,7 @@ import {
   isAsyncIterable,
   ExecutionParams,
   mapAsyncIterator,
+  withCancel,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch, Headers } from 'cross-fetch';
@@ -52,9 +45,7 @@ export type FetchFn = AsyncFetchFn | SyncFetchFn;
 type Headers =
   | Record<string, string>
   | Array<Record<string, string>>
-  | ((
-      executionParams: ExecutionParams
-    ) => Array<Record<string, string>> | Record<string, string>);
+  | ((executionParams: ExecutionParams) => Array<Record<string, string>> | Record<string, string>);
 
 type BuildExecutorOptions<TFetchFn = FetchFn> = {
   pointer: string;
@@ -70,8 +61,6 @@ export type SyncImportFn<T = unknown> = (moduleName: string) => T;
 
 const asyncImport: AsyncImportFn = (moduleName: string) => import(moduleName);
 const syncImport: SyncImportFn = (moduleName: string) => require(moduleName);
-
-
 
 interface ExecutionResult<TData = { [key: string]: any }, TExtensions = { [key: string]: any }> {
   errors?: ReadonlyArray<GraphQLError>;
@@ -227,11 +216,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       wss: 'https',
       ws: 'http',
     });
-    const executor = ({
-      document,
-      variables,
-      ...rest
-    }: ExecutionParams) => {
+    const executor = ({ document, variables, ...rest }: ExecutionParams) => {
       const controller = new AbortController();
       let method = defaultMethod;
       if (useGETForQueries) {
@@ -309,37 +294,32 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
           const response: ExecutionResult = {};
           const maybeStream = await meros<ExecutionPatchResult>(res);
           if (isAsyncIterable(maybeStream)) {
-            const mappedAsyncIterator = mapAsyncIterator(maybeStream, part => {
-              if (part.json) {
-                const chunk = part.body;
-                if (chunk.path) {
-                  if (chunk.data) {
-                    const path: Array<string | number> = ['data'];
-                    merge(response, set({}, path.concat(chunk.path), chunk.data));
-                  }
+            return withCancel(
+              mapAsyncIterator(maybeStream, part => {
+                if (part.json) {
+                  const chunk = part.body;
+                  if (chunk.path) {
+                    if (chunk.data) {
+                      const path: Array<string | number> = ['data'];
+                      merge(response, set({}, path.concat(chunk.path), chunk.data));
+                    }
 
-                  if (chunk.errors) {
-                    response.errors = (response.errors || []).concat(chunk.errors);
+                    if (chunk.errors) {
+                      response.errors = (response.errors || []).concat(chunk.errors);
+                    }
+                  } else {
+                    if (chunk.data) {
+                      response.data = chunk.data;
+                    }
+                    if (chunk.errors) {
+                      response.errors = chunk.errors;
+                    }
                   }
-                } else {
-                  if (chunk.data) {
-                    response.data = chunk.data;
-                  }
-                  if (chunk.errors) {
-                    response.errors = chunk.errors;
-                  }
+                  return response;
                 }
-                return response;
-              }
-            });
-            const oldReturnFn =
-              mappedAsyncIterator.return.bind(mappedAsyncIterator) ||
-              (() => Promise.resolve({ value: undefined, done: true }));
-            mappedAsyncIterator.return = (...args) => {
-              controller.abort();
-              return oldReturnFn(...args);
-            };
-            return mappedAsyncIterator;
+              }),
+              () => controller.abort()
+            );
           } else {
             return maybeStream.json();
           }

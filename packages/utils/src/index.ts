@@ -51,3 +51,4 @@ export * from './isAsyncIterable';
 export * from './isDocumentNode';
 export * from './astFromValueUntyped';
 export * from './executor';
+export * from './withCancel';
