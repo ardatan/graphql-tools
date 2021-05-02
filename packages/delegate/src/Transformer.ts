@@ -23,7 +23,7 @@ export class Transformer {
     this.transformations.push({ transform, context });
   }
 
-  public transformRequest(originalRequest: Request) {
+  public transformRequest(originalRequest: Request): Request {
     return this.transformations.reduce(
       (request: Request, transformation: Transformation) =>
         transformation.transform.transformRequest != null
@@ -33,7 +33,7 @@ export class Transformer {
     );
   }
 
-  public transformResult(originalResult: ExecutionResult) {
+  public transformResult(originalResult: ExecutionResult): any {
     return this.transformations.reduceRight(
       (result: ExecutionResult, transformation: Transformation) =>
         transformation.transform.transformResult != null

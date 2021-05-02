@@ -1,10 +1,10 @@
-import { GraphQLError, GraphQLResolveInfo, locatedError, graphql } from 'graphql';
+import { GraphQLError, locatedError, graphql } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
+import { DelegationContext, externalValueFromResult } from '@graphql-tools/delegate';
 
-import { checkResultAndHandleErrors } from '../src/transforms/CheckResultAndHandleErrors';
 import { UNPATHED_ERRORS_SYMBOL } from '../src/symbols';
 import { getUnpathedErrors } from '../src/externalObjects';
 import { delegateToSchema, defaultMergedResolver } from '../src';
@@ -32,17 +32,15 @@ describe('Errors', () => {
     });
   });
 
-  describe('checkResultAndHandleErrors', () => {
+  describe('CheckResultAndHandleErrors', () => {
     test('persists single error', () => {
       const result = {
         errors: [new GraphQLError('Test error')],
       };
       try {
-        checkResultAndHandleErrors(
+        externalValueFromResult(
           result,
-          {},
-          ({} as unknown) as GraphQLResolveInfo,
-          'responseKey',
+          { fieldName: 'responseKey' } as unknown as DelegationContext,
         );
       } catch (e) {
         expect(e.message).toEqual('Test error');
@@ -55,11 +53,9 @@ describe('Errors', () => {
         errors: [new ErrorWithExtensions('Test error', 'UNAUTHENTICATED')],
       };
       try {
-        checkResultAndHandleErrors(
+        externalValueFromResult(
           result,
-          {},
-          ({} as unknown) as GraphQLResolveInfo,
-          'responseKey',
+          { fieldName: 'responseKey '} as unknown as DelegationContext,
         );
       } catch (e) {
         expect(e.message).toEqual('Test error');
@@ -73,11 +69,9 @@ describe('Errors', () => {
         errors: [new GraphQLError('Error1'), new GraphQLError('Error2')],
       };
       try {
-        checkResultAndHandleErrors(
+        externalValueFromResult(
           result,
-          {},
-          ({} as unknown) as GraphQLResolveInfo,
-          'responseKey',
+          { fieldName: 'reponseKey' } as unknown as DelegationContext,
         );
       } catch (e) {
         expect(e.message).toEqual('Error1\nError2');

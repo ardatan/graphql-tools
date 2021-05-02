@@ -20,7 +20,6 @@ export function createMergedTypeResolver(mergedTypeResolverOptions: MergedTypeRe
         selectionSet,
         context,
         info,
-        skipTypeMerging: true,
       });
   }
 
@@ -37,7 +36,6 @@ export function createMergedTypeResolver(mergedTypeResolverOptions: MergedTypeRe
         selectionSet,
         context,
         info,
-        skipTypeMerging: true,
       });
   }
 
