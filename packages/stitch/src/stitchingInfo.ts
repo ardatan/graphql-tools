@@ -4,16 +4,19 @@ import {
   Kind,
   SelectionSetNode,
   isObjectType,
-  isScalarType,
   getNamedType,
   GraphQLInterfaceType,
   SelectionNode,
   print,
   isInterfaceType,
   isLeafType,
+  isUnionType,
+  isInputObjectType,
+  FieldNode,
+  GraphQLField,
 } from 'graphql';
 
-import { parseSelectionSet, TypeMap, IResolvers, IFieldResolverOptions } from '@graphql-tools/utils';
+import { parseSelectionSet, TypeMap, IResolvers, IFieldResolverOptions, collectFields, GraphQLExecutionContext } from '@graphql-tools/utils';
 
 import { MergedTypeResolver, Subschema, SubschemaConfig, MergedTypeInfo, StitchingInfo } from '@graphql-tools/delegate';
 
@@ -27,57 +30,11 @@ export function createStitchingInfo(
   mergeTypes?: boolean | Array<string> | MergeTypeFilter
 ): StitchingInfo {
   const mergedTypes = createMergedTypes(typeCandidates, mergeTypes);
-  const selectionSetsByField: Record<string, Record<string, SelectionSetNode>> = Object.create(null);
-
-  Object.entries(mergedTypes).forEach(([typeName, mergedTypeInfo]) => {
-    if (mergedTypeInfo.selectionSets == null && mergedTypeInfo.fieldSelectionSets == null) {
-      return;
-    }
-
-    selectionSetsByField[typeName] = Object.create(null);
-
-    mergedTypeInfo.selectionSets.forEach((selectionSet, subschemaConfig) => {
-      const schema = subschemaConfig.transformedSchema;
-      const type = schema.getType(typeName) as GraphQLObjectType;
-      const fields = type.getFields();
-      Object.keys(fields).forEach(fieldName => {
-        const field = fields[fieldName];
-        const fieldType = getNamedType(field.type);
-        if (selectionSet && isLeafType(fieldType) && selectionSetContainsTopLevelField(selectionSet, fieldName)) {
-          return;
-        }
-        if (selectionSetsByField[typeName][fieldName] == null) {
-          selectionSetsByField[typeName][fieldName] = {
-            kind: Kind.SELECTION_SET,
-            selections: [parseSelectionSet('{ __typename }', { noLocation: true }).selections[0]],
-          };
-        }
-        selectionSetsByField[typeName][fieldName].selections = selectionSetsByField[typeName][
-          fieldName
-        ].selections.concat(selectionSet.selections);
-      });
-    });
-
-    mergedTypeInfo.fieldSelectionSets.forEach(selectionSetFieldMap => {
-      Object.keys(selectionSetFieldMap).forEach(fieldName => {
-        if (selectionSetsByField[typeName][fieldName] == null) {
-          selectionSetsByField[typeName][fieldName] = {
-            kind: Kind.SELECTION_SET,
-            selections: [parseSelectionSet('{ __typename }', { noLocation: true }).selections[0]],
-          };
-        }
-        selectionSetsByField[typeName][fieldName].selections = selectionSetsByField[typeName][
-          fieldName
-        ].selections.concat(selectionSetFieldMap[fieldName].selections);
-      });
-    });
-  });
 
   return {
     subschemaMap,
-    selectionSetsByType: undefined,
-    selectionSetsByField,
-    dynamicSelectionSetsByField: undefined,
+    fieldNodesByField: undefined,
+    dynamicFieldNodesByField: undefined,
     mergedTypes,
   };
 }
@@ -131,6 +88,7 @@ function createMergedTypes(
 
           if (mergedTypeConfig.selectionSet) {
             const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet, { noLocation: true });
+
             selectionSets.set(subschema, selectionSet);
           }
 
@@ -199,6 +157,7 @@ function createMergedTypes(
           fieldSelectionSets,
           uniqueFields: Object.create({}),
           nonUniqueFields: Object.create({}),
+          subschemaFields: Object.create({}),
           resolvers,
         };
 
@@ -208,6 +167,7 @@ function createMergedTypes(
           } else {
             mergedTypes[typeName].nonUniqueFields[fieldName] = supportedBySubschemas[fieldName];
           }
+          mergedTypes[typeName].subschemaFields[fieldName] = true;
         });
       }
     }
@@ -221,69 +181,138 @@ export function completeStitchingInfo(
   resolvers: IResolvers,
   schema: GraphQLSchema
 ): StitchingInfo {
-  const selectionSetsByType = Object.create(null);
-  [schema.getQueryType(), schema.getMutationType()].forEach(rootType => {
-    if (rootType) {
-      selectionSetsByType[rootType.name] = parseSelectionSet('{ __typename }', { noLocation: true });
-    }
-  });
-
-  const selectionSetsByField = stitchingInfo.selectionSetsByField;
-  const dynamicSelectionSetsByField = Object.create(null);
-
-  Object.keys(resolvers).forEach(typeName => {
-    const type = resolvers[typeName];
-    if (isScalarType(type)) {
+  const selectionSetsByField: Record<string, Record<string, SelectionSetNode>> = Object.create(null);
+  Object.entries(stitchingInfo.mergedTypes).forEach(([typeName, mergedTypeInfo]) => {
+    if (mergedTypeInfo.selectionSets == null && mergedTypeInfo.fieldSelectionSets == null) {
       return;
     }
-    Object.keys(type).forEach(fieldName => {
-      const field = type[fieldName] as IFieldResolverOptions;
+
+    selectionSetsByField[typeName] = Object.create(null);
+
+    mergedTypeInfo.selectionSets.forEach((selectionSet, subschemaConfig) => {
+      const schema = subschemaConfig.transformedSchema;
+      const type = schema.getType(typeName) as GraphQLObjectType;
+      const fields = type.getFields();
+      Object.keys(fields).forEach(fieldName => {
+        const field = fields[fieldName];
+        const fieldType = getNamedType(field.type);
+        if (selectionSet && isLeafType(fieldType) && selectionSetContainsTopLevelField(selectionSet, fieldName)) {
+          return;
+        }
+
+        const typeSelectionSets = selectionSetsByField[typeName];
+        if (typeSelectionSets[fieldName] == null) {
+          typeSelectionSets[fieldName] = {
+            kind: Kind.SELECTION_SET,
+            selections: [],
+          };
+        }
+
+        const fieldSelectionSet = selectionSetsByField[typeName][fieldName];
+
+        fieldSelectionSet.selections = fieldSelectionSet.selections.concat(selectionSet.selections);
+      });
+    });
+
+    mergedTypeInfo.fieldSelectionSets.forEach(selectionSetFieldMap => {
+      Object.keys(selectionSetFieldMap).forEach(fieldName => {
+        const typeSelectionSets = selectionSetsByField[typeName];
+        if (typeSelectionSets[fieldName] == null) {
+          typeSelectionSets[fieldName] = {
+            kind: Kind.SELECTION_SET,
+            selections: [],
+          };
+        }
+
+        const fieldSelectionSet = selectionSetsByField[typeName][fieldName];
+        fieldSelectionSet.selections = fieldSelectionSet.selections.concat(selectionSetFieldMap[fieldName].selections);
+      });
+    });
+  });
+
+  const dynamicFieldNodesByField:Record<string, Record<string, Array<(fieldNode: FieldNode) => Array<FieldNode>>>> = Object.create(null);
+
+  Object.keys(resolvers).forEach(typeName => {
+    const typeEntry = resolvers[typeName];
+    const type = schema.getType(typeName);
+    if (isLeafType(type) || isUnionType(type) || isInputObjectType(type)) {
+      return;
+    }
+
+    Object.keys(typeEntry).forEach(fieldName => {
+      const field = typeEntry[fieldName] as IFieldResolverOptions;
       if (field.selectionSet) {
         if (typeof field.selectionSet === 'function') {
-          if (!(typeName in dynamicSelectionSetsByField)) {
-            dynamicSelectionSetsByField[typeName] = Object.create(null);
+          if (!(typeName in dynamicFieldNodesByField)) {
+            dynamicFieldNodesByField[typeName] = Object.create(null);
           }
 
-          if (!(fieldName in dynamicSelectionSetsByField[typeName])) {
-            dynamicSelectionSetsByField[typeName][fieldName] = [];
+          if (!(fieldName in dynamicFieldNodesByField[typeName])) {
+            dynamicFieldNodesByField[typeName][fieldName] = [];
           }
 
-          dynamicSelectionSetsByField[typeName][fieldName].push(field.selectionSet);
+          const buildFieldNodeFn = field.selectionSet as ((schema: GraphQLSchema, field: GraphQLField<any, any>) => (originalFieldNode: FieldNode) => Array<FieldNode>);
+          const fieldNodeFn = buildFieldNodeFn(schema, type.getFields()[fieldName]);
+          dynamicFieldNodesByField[typeName][fieldName].push((fieldNode: FieldNode) => fieldNodeFn(fieldNode));
         } else {
           const selectionSet = parseSelectionSet(field.selectionSet, { noLocation: true });
           if (!(typeName in selectionSetsByField)) {
             selectionSetsByField[typeName] = Object.create(null);
           }
 
-          if (!(fieldName in selectionSetsByField[typeName])) {
-            selectionSetsByField[typeName][fieldName] = {
+          const typeSelectionSets = selectionSetsByField[typeName];
+          if (!(fieldName in typeSelectionSets)) {
+            typeSelectionSets[fieldName] = {
               kind: Kind.SELECTION_SET,
               selections: [],
             };
           }
-          selectionSetsByField[typeName][fieldName].selections = selectionSetsByField[typeName][
-            fieldName
-          ].selections.concat(selectionSet.selections);
+
+          const fieldSelectionSet = typeSelectionSets[fieldName];
+          fieldSelectionSet.selections = fieldSelectionSet.selections.concat(selectionSet.selections);
         }
       }
     });
   });
 
+  const partialExecutionContext = ({
+    schema,
+    variableValues: Object.create(null),
+    fragments: Object.create(null),
+  } as unknown) as GraphQLExecutionContext;
+
+  const fieldNodesByField: Record<string, Record<string, Array<FieldNode>>> = Object.create(null);
   Object.keys(selectionSetsByField).forEach(typeName => {
+    const typeFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
+    fieldNodesByField[typeName] = typeFieldNodes;
+
+    const type = schema.getType(typeName) as GraphQLObjectType;
     const typeSelectionSets = selectionSetsByField[typeName];
     Object.keys(typeSelectionSets).forEach(fieldName => {
+
       const consolidatedSelections: Map<string, SelectionNode> = new Map();
       const selectionSet = typeSelectionSets[fieldName];
-      selectionSet.selections.forEach(selection => {
-        consolidatedSelections.set(print(selection), selection);
-      });
-      selectionSet.selections = Array.from(consolidatedSelections.values());
+      selectionSet.selections.forEach(selection => consolidatedSelections.set(print(selection), selection));
+
+      const responseKeys = collectFields(
+        partialExecutionContext,
+        type,
+        {
+          kind: Kind.SELECTION_SET,
+          selections: Array.from(consolidatedSelections.values())
+        },
+        Object.create(null),
+        Object.create(null)
+      );
+
+      const fieldNodes: Array<FieldNode> = [];
+      typeFieldNodes[fieldName] = fieldNodes;
+      Object.values(responseKeys).forEach(nodes => fieldNodes.push(...nodes));
     });
   });
 
-  stitchingInfo.selectionSetsByType = selectionSetsByType;
-  stitchingInfo.selectionSetsByField = selectionSetsByField;
-  stitchingInfo.dynamicSelectionSetsByField = dynamicSelectionSetsByField;
+  stitchingInfo.fieldNodesByField = fieldNodesByField;
+  stitchingInfo.dynamicFieldNodesByField = dynamicFieldNodesByField;
 
   return stitchingInfo;
 }

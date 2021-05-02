@@ -6,7 +6,6 @@ import {
   GraphQLScalarType,
   FieldNode,
   printSchema,
-  graphqlSync,
   assertValidSchema,
   GraphQLFieldConfig,
   isSpecifiedScalarType,
@@ -210,16 +209,13 @@ describe('merge schemas through transforms', () => {
         },
         Bookings_Booking: {
           property: {
-            selectionSet: () => ({
-              kind: Kind.SELECTION_SET,
-              selections: [{
-                kind: Kind.FIELD,
-                name: {
-                  kind: Kind.NAME,
-                  value: 'propertyId',
-                }
-              }]
-            }),
+            selectionSet: () => () => [{
+              kind: Kind.FIELD,
+              name: {
+                kind: Kind.NAME,
+                value: 'propertyId',
+              }
+            }],
             resolve: (parent, _args, context, info) =>
               delegateToSchema({
                 schema: propertySubschema,
@@ -540,7 +536,7 @@ describe('default values', () => {
 });
 
 describe('rename fields that implement interface fields', () => {
-  test('should work', () => {
+  test('should work', async () => {
     const originalItem = {
       id: '123',
       camel: "I'm a camel!",
@@ -612,10 +608,10 @@ describe('rename fields that implement interface fields', () => {
       }
     `;
 
-    const originalResult = graphqlSync(originalSchema, originalQuery);
+    const originalResult = await graphql(originalSchema, originalQuery);
     expect(originalResult).toEqual({ data: { node: originalItem } });
 
-    const newResult = graphqlSync(wrappedSchema, newQuery);
+    const newResult = await graphql(wrappedSchema, newQuery);
     expect(newResult).toEqual({ data: { _node: originalItem } });
   });
 });
@@ -874,7 +870,7 @@ type Query {
 });
 
 describe('rename nested object fields with interfaces', () => {
-  test('should work', () => {
+  test('should work', async () => {
     const originalNode = {
       aList: [
         {
@@ -975,8 +971,8 @@ describe('rename nested object fields with interfaces', () => {
       }
     `;
 
-    const originalResult = graphqlSync(originalSchema, originalQuery);
-    const transformedResult = graphqlSync(transformedSchema, transformedQuery);
+    const originalResult = await graphql(originalSchema, originalQuery);
+    const transformedResult = await graphql(transformedSchema, transformedQuery);
 
     expect(originalResult).toEqual({ data: { node: originalNode } });
     expect(transformedResult).toEqual({

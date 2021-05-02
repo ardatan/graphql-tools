@@ -21,10 +21,12 @@ import {
   IResolvers,
   ExecutionResult,
   mapAsyncIterator,
+  isAsyncIterable,
+  AsyncExecutor,
 } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-import { ExecutionParams, SubschemaConfig } from '@graphql-tools/delegate';
+import { ExecutionParams, Executor, SubschemaConfig } from '@graphql-tools/delegate';
 
 export class CustomError extends GraphQLError {
   constructor(message: string, extensions: Record<string, any>) {
@@ -684,17 +686,20 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
   resolvers: subscriptionResolvers,
 });
 
-function makeExecutorFromSchema(schema: GraphQLSchema) {
-  return async <TReturn, TArgs, TContext>({ document, variables, context }: ExecutionParams<TArgs, TContext>) => {
-    return (new ValueOrPromise(() => graphql(
+function makeExecutorFromSchema(schema: GraphQLSchema): Executor {
+  return ({ document, variables, context }) => {
+    return new ValueOrPromise(() => graphql(
       schema,
       print(document),
       null,
       context,
       variables,
-    ))
-    .then(originalResult => JSON.parse(JSON.stringify(originalResult)))
-    .resolve()) as Promise<ExecutionResult<TReturn>> | ExecutionResult<TReturn>;
+    )).then((resultOrIterable: ExecutionResult | AsyncIterableIterator<AsyncExecutor>) => {
+      if (isAsyncIterable(resultOrIterable)) {
+        return mapAsyncIterator(resultOrIterable, originalResult => JSON.parse(JSON.stringify(originalResult)));
+      }
+      return JSON.parse(JSON.stringify(resultOrIterable));
+    }).resolve();
   };
 }
 

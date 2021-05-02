@@ -5,9 +5,10 @@ import {
   GraphQLDirective,
   specifiedDirectives,
   extendSchema,
+  isObjectType,
 } from 'graphql';
 
-import { SchemaDirectiveVisitor, mergeDeep, IResolvers, pruneSchema } from '@graphql-tools/utils';
+import { SchemaDirectiveVisitor, mergeDeep, IResolvers, pruneSchema, IObjectTypeResolver } from '@graphql-tools/utils';
 
 import {
   addResolversToSchema,
@@ -19,7 +20,14 @@ import {
   extendResolversFromInterfaces,
 } from '@graphql-tools/schema';
 
-import { SubschemaConfig, isSubschemaConfig, Subschema, defaultMergedResolver } from '@graphql-tools/delegate';
+import {
+  Subschema,
+  SubschemaConfig,
+  defaultMergedResolver,
+  getMergedParent,
+  isExternalObject,
+  isSubschemaConfig,
+} from '@graphql-tools/delegate';
 
 import { IStitchSchemasOptions, SubschemaConfigTransform } from './types';
 
@@ -141,11 +149,13 @@ export function stitchSchemas<TContext = Record<string, any>>({
   // We allow passing in an array of resolver maps, in which case we merge them
   const resolverMap: IResolvers = Array.isArray(resolvers) ? resolvers.reduce(mergeDeep, {}) : resolvers;
 
-  const finalResolvers = inheritResolversFromInterfaces
+  const extendedResolvers = inheritResolversFromInterfaces
     ? extendResolversFromInterfaces(schema, resolverMap)
     : resolverMap;
 
-  stitchingInfo = completeStitchingInfo(stitchingInfo, finalResolvers, schema);
+  stitchingInfo = completeStitchingInfo(stitchingInfo, extendedResolvers, schema);
+
+  const finalResolvers = wrapResolvers(extendedResolvers, schema);
 
   schema = addResolversToSchema({
     schema,
@@ -234,4 +244,43 @@ function applySubschemaConfigTransforms<TContext = Record<string, any>>(
   transformedSubschemas.forEach(subschema => originalSubschemaMap.set(subschema, subschemaOrSubschemaConfig));
 
   return transformedSubschemas;
+}
+
+function wrapResolvers(originalResolvers: IResolvers, schema: GraphQLSchema): IResolvers {
+  const wrappedResolvers: IResolvers = Object.create(null);
+
+  Object.keys(originalResolvers).forEach(typeName => {
+    const typeEntry = originalResolvers[typeName];
+    const type = schema.getType(typeName);
+    if (!isObjectType(type)) {
+      wrappedResolvers[typeName] = originalResolvers[typeName];
+      return;
+    }
+
+    const newTypeEntry: IObjectTypeResolver = Object.create(null);
+    Object.keys(typeEntry).forEach(fieldName => {
+      const field = typeEntry[fieldName];
+      const originalResolver = field?.resolve;
+      if (originalResolver === undefined) {
+        newTypeEntry[fieldName] = field;
+        return;
+      }
+
+      newTypeEntry[fieldName] = {
+        ...field,
+        resolve: (parent, args, context, info) => {
+          if (!isExternalObject(parent)) {
+            return originalResolver(parent, args, context, info);
+          }
+
+          return getMergedParent(parent, context, info).then(mergedParent =>
+            originalResolver(mergedParent, args, context, info)
+          );
+        },
+      };
+    });
+    wrappedResolvers[typeName] = newTypeEntry;
+  });
+
+  return wrappedResolvers;
 }

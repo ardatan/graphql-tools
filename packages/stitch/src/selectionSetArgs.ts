@@ -1,29 +1,50 @@
-import { parseSelectionSet } from '@graphql-tools/utils';
-import { SelectionSetNode, SelectionNode, FieldNode, Kind } from 'graphql';
+import { collectFields, GraphQLExecutionContext, parseSelectionSet } from '@graphql-tools/utils';
+import { FieldNode, GraphQLSchema, GraphQLObjectType, GraphQLField, getNamedType } from 'graphql';
 
-export const forwardArgsToSelectionSet: (
+export function forwardArgsToSelectionSet(
   selectionSet: string,
-  mapping?: Record<string, string[]>
-) => (field: FieldNode) => SelectionSetNode = (selectionSet: string, mapping?: Record<string, string[]>) => {
+  mapping?: Record<string, Array<string>>
+): (schema: GraphQLSchema, field: GraphQLField<any, any>) => (originalFieldNode: FieldNode) => Array<FieldNode> {
   const selectionSetDef = parseSelectionSet(selectionSet, { noLocation: true });
-  return (field: FieldNode): SelectionSetNode => {
-    const selections = selectionSetDef.selections.map(
-      (selectionNode): SelectionNode => {
-        if (selectionNode.kind === Kind.FIELD) {
-          if (!mapping) {
-            return { ...selectionNode, arguments: field.arguments.slice() };
-          } else if (selectionNode.name.value in mapping) {
-            const selectionArgs = mapping[selectionNode.name.value];
-            return {
-              ...selectionNode,
-              arguments: field.arguments.filter((arg): boolean => selectionArgs.includes(arg.name.value)),
-            };
-          }
-        }
-        return selectionNode;
-      }
+
+  return (schema: GraphQLSchema, field: GraphQLField<any, any>) => {
+    const partialExecutionContext = ({
+      schema,
+      variableValues: Object.create(null),
+      fragments: Object.create(null),
+    } as unknown) as GraphQLExecutionContext;
+
+    const responseKeys = collectFields(
+      partialExecutionContext,
+      getNamedType(field.type) as GraphQLObjectType,
+      selectionSetDef,
+      Object.create(null),
+      Object.create(null)
     );
 
-    return { ...selectionSetDef, selections };
+    return (originalFieldNode: FieldNode): Array<FieldNode> => {
+      const newFieldNodes: Array<FieldNode> = [];
+
+      Object.values(responseKeys).forEach(fieldNodes => {
+        fieldNodes.forEach(fieldNode => {
+          if (!mapping) {
+            newFieldNodes.push({
+              ...fieldNode,
+              arguments: originalFieldNode.arguments.slice(),
+            });
+          } else if (fieldNode.name.value in mapping) {
+            const newArgs = mapping[fieldNode.name.value];
+            newFieldNodes.push({
+              ...fieldNode,
+              arguments: originalFieldNode.arguments.filter((arg): boolean => newArgs.includes(arg.name.value)),
+            });
+          } else {
+            newFieldNodes.push(fieldNode);
+          }
+        });
+      });
+
+      return newFieldNodes;
+    };
   };
-};
+}
