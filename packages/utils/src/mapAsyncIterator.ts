@@ -6,7 +6,7 @@ export function mapAsyncIterator<T, U>(
   iterator: AsyncIterator<T>,
   callback: (value: T) => Promise<U> | U,
   rejectCallback?: any
-): AsyncIterator<U> {
+): AsyncIterableIterator<U> {
   let $return: any;
   let abruptClose: any;
 
@@ -47,7 +47,7 @@ export function mapAsyncIterator<T, U>(
     [Symbol.asyncIterator]() {
       return this;
     },
-  } as any;
+  };
 }
 
 function asyncMapValue<T, U>(value: T, callback: (value: T) => Promise<U> | U): Promise<U> {

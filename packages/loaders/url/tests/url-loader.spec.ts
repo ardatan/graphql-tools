@@ -14,6 +14,7 @@ import { Server as WSServer } from 'ws';
 import http from 'http';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 
+
 const SHOULD_NOT_GET_HERE_ERROR = 'SHOULD_NOT_GET_HERE';
 
 describe('Schema URL Loader', () => {
@@ -134,7 +135,7 @@ input TestInput {
     });
 
     it('Should pass default headers', async () => {
-      let headers: Record<string, string> = {};
+      let headers: Record<string, string | string[]> = {};
 
       const server = mockGraphQLServer({
         schema: testSchema,
@@ -153,12 +154,12 @@ input TestInput {
       expect(schema.schema).toBeDefined();
       expect(printSchemaWithDirectives(schema.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
-      expect(headers.accept).toContain(`application/json`);
+      expect(Array.isArray(headers.accept) ? headers.accept.join(',') : headers.accept).toContain(`application/json`);
       expect(headers['content-type']).toContain(`application/json`);
     });
 
     it('Should pass extra headers when they are specified as object', async () => {
-      let headers: Record<string, string> = {};
+      let headers: Record<string, string | string[]> = {};
       const server = mockGraphQLServer({
         schema: testSchema,
         host: testHost,
@@ -176,13 +177,13 @@ input TestInput {
       expect(schema.schema).toBeDefined();
       expect(printSchemaWithDirectives(schema.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
-      expect(headers.accept).toContain(`application/json`);
+      expect(Array.isArray(headers.accept) ? headers.accept.join(',') : headers.accept).toContain(`application/json`);
       expect(headers['content-type']).toContain(`application/json`);
       expect(headers.auth).toContain(`1`);
     });
 
     it('Should pass extra headers when they are specified as array', async () => {
-      let headers: Record<string, string> = {};
+      let headers: Record<string, string | string[]> = {};
       const server = mockGraphQLServer({
         schema: testSchema,
         host: testHost,
@@ -199,7 +200,7 @@ input TestInput {
       expect(schema.schema).toBeDefined();
       expect(printSchemaWithDirectives(schema.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
-      expect(headers.accept).toContain(`application/json`);
+      expect(Array.isArray(headers.accept) ? headers.accept.join(',') : headers.accept).toContain(`application/json`);
       expect(headers['content-type']).toContain(`application/json`);
       expect(headers.a).toContain(`1`);
       expect(headers.b).toContain(`2`);
@@ -338,6 +339,9 @@ input TestInput {
       const testUrl = 'http://localhost:8081/graphql';
       const { schema } = await loader.load(testUrl, {
         customFetch: async () => ({
+          headers: {
+            'content-type': 'application/json'
+          },
           json: async () => ({
             data: introspectionFromSchema(testSchema),
           })
@@ -403,6 +407,9 @@ input TestInput {
       const testUrl = 'http://localhost:8081/graphql';
       const { schema } = await loader.load(testUrl, {
         customFetch: async () => ({
+          headers: {
+            'content-type': 'application/json'
+          },
           json: async () => ({
             data: introspectionFromSchema(testSchema),
           })
