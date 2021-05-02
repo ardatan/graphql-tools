@@ -211,16 +211,19 @@ describe('respects buildSchema options', () => {
       expect(print(calls[0].document)).toEqual(`\
 {
   fieldA
+  __typename
 }
 `);
       expect(print(calls[1].document)).toEqual(`\
 {
   fieldB
+  __typename
 }
 `);
       expect(print(calls[2].document)).toEqual(`\
 {
   field3
+  __typename
 }
 `);
     });
