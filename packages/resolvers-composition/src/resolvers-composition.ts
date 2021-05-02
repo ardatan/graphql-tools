@@ -3,7 +3,7 @@ import { get, set, flatten } from 'lodash';
 import { isScalarType, GraphQLFieldResolver } from 'graphql';
 import { asArray } from '@graphql-tools/utils';
 
-export type ResolversComposition<Resolver extends GraphQLFieldResolver<any, any> = GraphQLFieldResolver<any, any>> = (
+export type ResolversComposition<Resolver extends GraphQLFieldResolver<any, any, any> = GraphQLFieldResolver<any, any>> = (
   next: Resolver
 ) => Resolver;
 
