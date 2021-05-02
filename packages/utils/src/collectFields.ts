@@ -122,6 +122,5 @@ function doesFragmentConditionMatch(
  * Implements the logic to compute the key of a given field's entry
  */
 function getFieldEntryKey(node: FieldNode): string {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   return node.alias ? node.alias.value : node.name.value;
 }
