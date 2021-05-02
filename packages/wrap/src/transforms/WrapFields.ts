@@ -51,7 +51,7 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
     this.numWraps = wrappingFieldNames.length;
     this.fieldNames = fieldNames;
 
-    const remainingWrappingFieldNames = this.wrappingFieldNames.slice();
+    const remainingWrappingFieldNames = wrappingFieldNames.slice();
     const outerMostWrappingFieldName = remainingWrappingFieldNames.shift();
     this.transformer = new MapFields(
       {
@@ -72,7 +72,8 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
         },
       },
       {
-        [outerTypeName]: (value, context: WrapFieldsTransformationContext) => dehoistValue(value, context),
+        [outerTypeName]: (value, context: WrapFieldsTransformationContext) =>
+          dehoistValue(value, wrappingTypeNames, context),
       },
       (errors, context: WrapFieldsTransformationContext) => dehoistErrors(errors, context)
     );
@@ -279,28 +280,31 @@ function hoistFieldNodes({
   return newFieldNodes;
 }
 
-export function dehoistValue(originalValue: any, context: WrapFieldsTransformationContext): any {
+export function dehoistValue(
+  originalValue: any,
+  wrappingTypeNames: Array<string>,
+  context: WrapFieldsTransformationContext
+): any {
   if (originalValue == null) {
     return originalValue;
   }
 
   const newValue = Object.create(null);
 
-  Object.keys(originalValue).forEach(alias => {
+  Object.keys(originalValue).forEach(responseKey => {
     let obj = newValue;
 
-    const path = context.paths[alias];
+    const path = context.paths[responseKey];
     if (path == null) {
-      newValue[alias] = originalValue[alias];
+      newValue[responseKey] = originalValue[responseKey];
       return;
     }
 
     const pathToField = path.pathToField;
-    const fieldAlias = path.alias;
-    pathToField.forEach(key => {
-      obj = obj[key] = obj[key] || Object.create(null);
+    pathToField.forEach((key, index) => {
+      obj = obj[key] = obj[key] ?? { __typename: wrappingTypeNames[index] };
     });
-    obj[fieldAlias] = originalValue[alias];
+    obj[path.alias] = originalValue[responseKey];
   });
 
   return newValue;
