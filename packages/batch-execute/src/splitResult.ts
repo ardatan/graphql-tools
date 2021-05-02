@@ -2,9 +2,9 @@
 
 import { ExecutionResult, GraphQLError } from 'graphql';
 
-import isPromise from 'is-promise';
-
 import { AsyncExecutionResult, ExecutionPatchResult, isAsyncIterable, relocatedError } from '@graphql-tools/utils';
+
+import { ValueOrPromise } from 'value-or-promise';
 
 import { parseKey } from './prefix';
 import { split } from './split';
@@ -20,17 +20,20 @@ export function splitResult(
   | AsyncIterableIterator<AsyncExecutionResult>
   | Promise<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>>
 > {
-  if (isPromise(mergedResult)) {
-    const result = mergedResult.then(r => splitExecutionResultOrAsyncIterableIterator(r, numResults));
-    const splitResults: Array<Promise<ExecutionResult | AsyncIterableIterator<ExecutionResult>>> = [];
-    for (let i = 0; i < numResults; i++) {
-      splitResults.push(result.then(r => r[i]));
-    }
+  const result = new ValueOrPromise(() => mergedResult).then(r => splitExecutionResultOrAsyncIterableIterator(r, numResults));
 
-    return splitResults;
+  const splitResults: Array<
+    | ExecutionResult
+    | AsyncIterableIterator<AsyncExecutionResult>
+    | Promise<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>>
+  > = [];
+  for (let i = 0; i < numResults; i++) {
+    splitResults.push(result.then(r => r[i]).resolve() as ExecutionResult
+    | AsyncIterableIterator<AsyncExecutionResult>
+    | Promise<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>>);
   }
 
-  return splitExecutionResultOrAsyncIterableIterator(mergedResult, numResults);
+  return splitResults;
 }
 
 export function splitExecutionResultOrAsyncIterableIterator(
