@@ -33,7 +33,7 @@ import syncFetch from 'sync-fetch';
 import isPromise from 'is-promise';
 import { extractFiles, isExtractableFile } from 'extract-files';
 import FormData from 'form-data';
-import 'eventsource/lib/eventsource-polyfill';
+import '@ardatan/eventsource';
 import { Subscription, SubscriptionOptions } from 'sse-z';
 import { URL } from 'url';
 import { ConnectionParamsOptions, SubscriptionClient as LegacySubscriptionClient } from 'subscriptions-transport-ws';
@@ -166,12 +166,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   }
 
   async createFormDataFromVariables<TVariables>({ query, variables }: { query: string; variables: TVariables }) {
-    const { Upload } = await import('graphql-upload');
     const vars = Object.assign({}, variables);
     const { clone, files } = extractFiles(
       vars,
       'variables',
-      ((v: any) => isExtractableFile(v) || v instanceof Upload || isAsyncIterable(v) || isPromise(v)) as any
+      ((v: any) => isExtractableFile(v) || v?.promise || isAsyncIterable(v) || isPromise(v)) as any
     );
     const map = Array.from(files.values()).reduce((prev, curr, currIndex) => {
       prev[currIndex] = curr;
@@ -192,7 +191,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
         if (isPromise(u)) {
           u = await u;
         }
-        if (u instanceof Upload) {
+        if (u?.promise) {
           const upload = await u.promise;
           const stream = upload.createReadStream();
           form.append(i.toString(), stream, {
