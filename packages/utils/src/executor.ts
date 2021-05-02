@@ -1,5 +1,5 @@
 import { DocumentNode, GraphQLResolveInfo } from 'graphql';
-import { ExecutionResult } from './Interfaces';
+import { AsyncExecutionResult, ExecutionResult } from './Interfaces';
 
 export interface ExecutionParams<TArgs = Record<string, any>, TContext = any> {
   document: DocumentNode;
@@ -15,7 +15,8 @@ export type AsyncExecutor<TBaseContext = Record<string, any>> = <
   TContext extends TBaseContext = TBaseContext
 >(
   params: ExecutionParams<TArgs, TContext>
-) => Promise<ExecutionResult<TReturn>>;
+) => Promise<AsyncIterableIterator<AsyncExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
+
 export type SyncExecutor<TBaseContext = Record<string, any>> = <
   TReturn = Record<string, any>,
   TArgs = Record<string, any>,
@@ -23,13 +24,15 @@ export type SyncExecutor<TBaseContext = Record<string, any>> = <
 >(
   params: ExecutionParams<TArgs, TContext>
 ) => ExecutionResult<TReturn>;
+
 export type Executor<TBaseContext = Record<string, any>> = <
   TReturn = Record<string, any>,
   TArgs = Record<string, any>,
   TContext extends TBaseContext = TBaseContext
 >(
   params: ExecutionParams<TArgs, TContext>
-) => ExecutionResult<TReturn> | Promise<ExecutionResult<TReturn>>;
+) => ExecutionResult<TReturn> | AsyncIterableIterator<AsyncExecutionResult<TReturn>> | Promise<AsyncIterableIterator<AsyncExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
+
 export type Subscriber<TBaseContext = Record<string, any>> = <
   TReturn = Record<string, any>,
   TArgs = Record<string, any>,
