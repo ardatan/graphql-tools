@@ -2,14 +2,119 @@
 
 import { ExecutionResult, GraphQLError } from 'graphql';
 
-import { relocatedError } from '@graphql-tools/utils';
+import isPromise from 'is-promise';
+
+import { AsyncExecutionResult, ExecutionPatchResult, isAsyncIterable, relocatedError } from '@graphql-tools/utils';
 
 import { parseKey } from './prefix';
+import { split } from './split';
+
+export function splitResult(
+  mergedResult:
+    | ExecutionResult
+    | AsyncIterableIterator<AsyncExecutionResult>
+    | Promise<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>>,
+  numResults: number
+): Array<
+  | ExecutionResult
+  | AsyncIterableIterator<AsyncExecutionResult>
+  | Promise<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>>
+> {
+  if (isPromise(mergedResult)) {
+    const result = mergedResult.then(r => splitExecutionResultOrAsyncIterableIterator(r, numResults));
+    const splitResults: Array<Promise<ExecutionResult | AsyncIterableIterator<ExecutionResult>>> = [];
+    for (let i = 0; i < numResults; i++) {
+      splitResults.push(result.then(r => r[i]));
+    }
+
+    return splitResults;
+  }
+
+  return splitExecutionResultOrAsyncIterableIterator(mergedResult, numResults);
+}
+
+export function splitExecutionResultOrAsyncIterableIterator(
+  mergedResult: ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>,
+  numResults: number
+): Array<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>> {
+  if (isAsyncIterable(mergedResult)) {
+    return split(mergedResult, numResults, originalResult => {
+      const path = (originalResult as ExecutionPatchResult).path;
+      if (path && path.length) {
+        const { index, originalKey } = parseKey(path[0] as string);
+        const newPath = ([originalKey] as Array<string | number>).concat(path.slice(1));
+
+        const newResult: ExecutionPatchResult = {
+          ...(originalResult as ExecutionPatchResult),
+          path: newPath,
+        };
+
+        const errors = originalResult.errors;
+        if (errors) {
+          const newErrors: Array<GraphQLError> = [];
+          errors.forEach(error => {
+            if (error.path) {
+              const parsedKey = parseKey(error.path[0] as string);
+              if (parsedKey) {
+                const { originalKey } = parsedKey;
+                const newError = relocatedError(error, [originalKey, ...error.path.slice(1)]);
+                newErrors.push(newError);
+                return;
+              }
+            }
+
+            newErrors.push(error);
+          });
+          newResult.errors = newErrors;
+        }
+
+        return [index, newResult];
+      }
+
+      let resultIndex: number;
+      const newResult: ExecutionResult = { ...originalResult };
+      const data = originalResult.data;
+      if (data) {
+        const newData = {};
+        Object.keys(data).forEach(prefixedKey => {
+          const { index, originalKey } = parseKey(prefixedKey);
+          resultIndex = index;
+          newData[originalKey] = data[prefixedKey];
+        });
+        newResult.data = newData;
+      }
+
+      const errors = originalResult.errors;
+      if (errors) {
+        const newErrors: Array<GraphQLError> = [];
+        errors.forEach(error => {
+          if (error.path) {
+            const parsedKey = parseKey(error.path[0] as string);
+            if (parsedKey) {
+              const { index, originalKey } = parsedKey;
+              resultIndex = index;
+              const newError = relocatedError(error, [originalKey, ...error.path.slice(1)]);
+              newErrors.push(newError);
+              return;
+            }
+          }
+
+          newErrors.push(error);
+        });
+        newResult.errors = newErrors;
+      }
+
+      return [resultIndex, newResult]
+    });
+  }
+
+  return splitExecutionResult(mergedResult, numResults);
+}
 
 /**
  * Split and transform result of the query produced by the `merge` function
  */
-export function splitResult(mergedResult: ExecutionResult, numResults: number): Array<ExecutionResult> {
+export function splitExecutionResult(mergedResult: ExecutionResult, numResults: number): Array<ExecutionResult> {
   const splitResults: Array<ExecutionResult> = [];
   for (let i = 0; i < numResults; i++) {
     splitResults.push({});
