@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@graphql-tools/delegate": "^7.0.1",
-    "@graphql-tools/utils": "^7.1.5",
+    "@graphql-tools/utils": "^7.8.1",
     "@graphql-tools/wrap": "^7.0.4",
     "@types/websocket": "1.0.2",
     "abort-controller": "3.0.0",
