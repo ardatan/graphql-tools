@@ -13,11 +13,10 @@ import { generateProxyingResolvers } from './generateProxyingResolvers';
 
 export function wrapSchema(subschemaConfig: SubschemaConfig): GraphQLSchema {
   const targetSchema = subschemaConfig.schema;
+  const transformedSchema = applySchemaTransforms(targetSchema, subschemaConfig);
 
-  const proxyingResolvers = generateProxyingResolvers(subschemaConfig);
+  const proxyingResolvers = generateProxyingResolvers(subschemaConfig, transformedSchema);
   const schema = createWrappingSchema(targetSchema, proxyingResolvers);
-
-  const transformedSchema = applySchemaTransforms(schema, subschemaConfig);
 
   return applySchemaTransforms(schema, subschemaConfig, transformedSchema);
 }
