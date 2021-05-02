@@ -1,0 +1,143 @@
+diff --git a/node_modules/graphql/execution/execute.js b/node_modules/graphql/execution/execute.js
+index e711fb5..e1dc791 100644
+--- a/node_modules/graphql/execution/execute.js
++++ b/node_modules/graphql/execution/execute.js
+@@ -724,7 +724,13 @@ function completeAsyncIteratorValue(exeContext, itemType, fieldNodes, info, path
+   var containsPromise = false;
+   var stream = getStreamValues(exeContext, fieldNodes);
+   return new Promise(function (resolve) {
+-    function next(index, completedResults) {
++    function advance(index, completedResults) {
++      if (stream && typeof stream.initialCount === 'number' && index >= stream.initialCount) {
++        exeContext.dispatcher.addAsyncIteratorValue(stream.label, index, path, iterator, exeContext, fieldNodes, info, itemType);
++        resolve(completedResults);
++        return;
++      }
++
+       var fieldPath = (0, _Path.addPath)(path, index, undefined);
+       iterator.next().then(function (_ref) {
+         var value = _ref.value,
+@@ -748,19 +754,9 @@ function completeAsyncIteratorValue(exeContext, itemType, fieldNodes, info, path
+           completedResults.push(null);
+           var error = (0, _locatedError.locatedError)(rawError, fieldNodes, (0, _Path.pathToArray)(fieldPath));
+           handleFieldError(error, itemType, errors);
+-          resolve(completedResults);
+-          return;
+         }
+ 
+-        var newIndex = index + 1;
+-
+-        if (stream && typeof stream.initialCount === 'number' && newIndex >= stream.initialCount) {
+-          exeContext.dispatcher.addAsyncIteratorValue(stream.label, newIndex, path, iterator, exeContext, fieldNodes, info, itemType);
+-          resolve(completedResults);
+-          return;
+-        }
+-
+-        next(newIndex, completedResults);
++        advance(index + 1, completedResults);
+       }, function (rawError) {
+         completedResults.push(null);
+         var error = (0, _locatedError.locatedError)(rawError, fieldNodes, (0, _Path.pathToArray)(fieldPath));
+@@ -769,7 +765,7 @@ function completeAsyncIteratorValue(exeContext, itemType, fieldNodes, info, path
+       });
+     }
+ 
+-    next(0, []);
++    advance(0, []);
+   }).then(function (completedResults) {
+     return containsPromise ? Promise.all(completedResults) : completedResults;
+   });
+@@ -1187,46 +1183,59 @@ var Dispatcher = /*#__PURE__*/function () {
+     var _this = this;
+ 
+     return new Promise(function (resolve) {
++      var resolved = false;
+       _this._subsequentPayloads.forEach(function (promise) {
+-        promise.then(function () {
+-          // resolve with actual promise, not resolved value of promise so we can remove it from this._subsequentPayloads
+-          resolve({
+-            promise: promise
+-          });
+-        });
+-      });
+-    }).then(function (_ref3) {
+-      var promise = _ref3.promise;
++        promise.then(function (payload) {
++          if (resolved) {
++            return;
++          }
++          resolved = true;
+ 
+-      _this._subsequentPayloads.splice(_this._subsequentPayloads.indexOf(promise), 1);
++          if (_this._subsequentPayloads.length === 0) {
++            // a different call to next has exhausted all payloads
++            resolve({ value: undefined, done: true });
++            return;
++          }
+ 
+-      return promise;
+-    }).then(function (_ref4) {
+-      var value = _ref4.value,
+-          done = _ref4.done;
++          var index = _this._subsequentPayloads.indexOf(promise);
+ 
+-      if (done && _this._subsequentPayloads.length === 0) {
+-        // async iterable resolver just finished and no more pending payloads
+-        return {
+-          value: {
+-            hasNext: false
+-          },
+-          done: false
+-        };
+-      } else if (done) {
+-        // async iterable resolver just finished but there are pending payloads
+-        // return the next one
+-        return _this._race();
+-      }
++          if (index === -1) {
++            // a different call to next has consumed this payload
++            resolve(_this._race());
++            return;
++          }
+ 
+-      var returnValue = _objectSpread(_objectSpread({}, value), {}, {
+-        hasNext: _this._subsequentPayloads.length > 0
+-      });
++          _this._subsequentPayloads.splice(index, 1);
+ 
+-      return {
+-        value: returnValue,
+-        done: false
+-      };
++          var value = payload.value,
++              done = payload.done;
++
++          if (done && _this._subsequentPayloads.length === 0) {
++            // async iterable resolver just finished and no more pending payloads
++            resolve({
++              value: {
++                hasNext: false,
++              },
++              done: false,
++            });
++            return;
++          } else if (done) {
++            // async iterable resolver just finished but there are pending payloads
++            // return the next one
++            resolve(_this._race());
++            return;
++          }
++
++          var returnValue = _objectSpread(_objectSpread({}, value), {}, {
++            hasNext: _this._subsequentPayloads.length > 0
++          });
++
++          resolve({
++            value: returnValue,
++            done: false,
++          });
++        });
++      });
+     });
+   };
+ 

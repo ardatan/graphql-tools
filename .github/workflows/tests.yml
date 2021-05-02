@@ -31,11 +31,11 @@ jobs:
       - name: Lint
         run: yarn lint
   build:
-    name: Build on ${{matrix.os}} GraphQL v${{matrix.graphql_version}}
+    name: Build on ${{matrix.os}} GraphQL ${{matrix.graphql_version_or_tag}}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        graphql_version: [14, 15]
+        graphql_version_or_tag: [experimental-stream-defer]
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
@@ -47,23 +47,23 @@ jobs:
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-16-${{matrix.graphql_version}}-yarn-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-16-${{matrix.graphql_version_or_tag}}-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-16-${{matrix.graphql_version}}-yarn
-      - name: Use GraphQL v${{matrix.graphql_version}}
-        run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
+            ${{ runner.os }}-16-${{matrix.graphql_version_or_tag}}-yarn
+      - name: Use GraphQL ${{matrix.graphql_version_or_tag}}
+        run: node ./scripts/match-graphql.js ${{matrix.graphql_version_or_tag}}
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Build
         run: yarn ts:transpile
   test:
-    name: Test on ${{matrix.os}}, Node ${{matrix.node_version}} and GraphQL v${{matrix.graphql_version}}
+    name: Test on ${{matrix.os}}, Node ${{matrix.node_version}} and GraphQL ${{matrix.graphql_version_or_tag}}
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
         os: [ubuntu-latest] # remove windows to speed up the tests
         node_version: [10, 16]
-        graphql_version: [14, 15]
+        graphql_version_or_tag: [experimental-stream-defer]
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
@@ -75,20 +75,20 @@ jobs:
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-yarn-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version_or_tag}}-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-yarn
-      - name: Use GraphQL v${{matrix.graphql_version}}
-        run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
+            ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version_or_tag}}-yarn
+      - name: Use GraphQL ${{matrix.graphql_version_or_tag}}
+        run: node ./scripts/match-graphql.js ${{matrix.graphql_version_or_tag}}
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Cache Jest
         uses: actions/cache@v2
         with:
           path: .cache/jest
-          key: ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-jest-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version_or_tag}}-jest-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-jest-
+            ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version_or_tag}}-jest-
       - name: Test
         run: yarn test --ci
         env:
