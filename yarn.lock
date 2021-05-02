@@ -296,10 +296,10 @@
     tslib "^1.11.1"
     yargs "15.3.1"
 
-"@ardatan/eventsource@1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@ardatan/eventsource/-/eventsource-1.1.1.tgz#06778a872b86b0bbfc9cf6f287c60e7d3304f5da"
-  integrity sha512-IZydkTuZushJs7kxxtUA5A/kTYUExPlOrA/sCPStaaseTl4YCR4BwQ45vrFi9M0ddXg5rqwwqiiJz/z8Of6jxg==
+"@ardatan/eventsource@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@ardatan/eventsource/-/eventsource-1.1.2.tgz#80c2f3a53a44a0bfe2d6f91f523daf1da0d3d887"
+  integrity sha512-ch/B82cVVUosCRX4Nn7b+scWhYfHFFHl8TbsaaDTUlPqH9JxXWmAGo1JHzWr2no0mcW+jW4qHUpoL4X9JYVEBw==
   dependencies:
     original "^1.0.0"
 
