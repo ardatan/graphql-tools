@@ -1,5 +1,11 @@
 # @graphql-tools/resolvers-composition
 
+## 6.2.7
+
+### Patch Changes
+
+- 788bc679: Fixed type error for resolvers with typed arguments
+
 ## 6.2.6
 
 ### Patch Changes
