@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.9.0
+
+### Minor Changes
+
+- 20d2c7bc: feat(utils): add withCancel
+
 ## 7.8.1
 
 ### Patch Changes
