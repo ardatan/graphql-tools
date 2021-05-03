@@ -26,7 +26,6 @@
   },
   "devDependencies": {
     "@types/extract-files": "8.1.0",
-    "@types/eventsource": "1.1.5",
     "@types/ws": "7.4.2",
     "graphql-upload": "11.0.0",
     "mock-http": "1.1.0",
