@@ -296,13 +296,6 @@
     tslib "^1.11.1"
     yargs "15.3.1"
 
-"@ardatan/eventsource@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@ardatan/eventsource/-/eventsource-1.1.2.tgz#80c2f3a53a44a0bfe2d6f91f523daf1da0d3d887"
-  integrity sha512-ch/B82cVVUosCRX4Nn7b+scWhYfHFFHl8TbsaaDTUlPqH9JxXWmAGo1JHzWr2no0mcW+jW4qHUpoL4X9JYVEBw==
-  dependencies:
-    original "^1.0.0"
-
 "@babel/code-frame@7.10.4":
   version "7.10.4"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.10.4.tgz#168da1a36e90da68ae8d49c0f1b48c7c6249213a"
@@ -2599,6 +2592,11 @@
   version "1.6.22"
   resolved "https://registry.yarnpkg.com/@mdx-js/util/-/util-1.6.22.tgz#219dfd89ae5b97a8801f015323ffa4b62f45718b"
   integrity sha512-H1rQc1ZOHANWBvPcW+JpGwr+juXSxM8Q8YCkm3GhZd8REu1fHR3z99CErO1p9pkcfcxZnMdIZdIsXkOHY0NilA==
+
+"@microsoft/fetch-event-source@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@microsoft/fetch-event-source/-/fetch-event-source-2.0.1.tgz#9ceecc94b49fbaa15666e38ae8587f64acce007d"
+  integrity sha512-W6CLUJ2eBMw3Rec70qrsEW0jOm/3twwJv21mrmj2yORiaVmVYGS4sSS5yUwvQc1ZlDLYGPnClVWmUUMagKNsfA==
 
 "@nodelib/fs.scandir@2.1.4":
   version "2.1.4"
@@ -13923,11 +13921,6 @@ sprintf-js@~1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
   integrity sha1-BOaSb2YolTVPPdAVIDYzuFcpfiw=
-
-sse-z@0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/sse-z/-/sse-z-0.3.0.tgz#e215db7c303d6c4a4199d80cb63811cc28fa55b9"
-  integrity sha512-jfcXynl9oAOS9YJ7iqS2JMUEHOlvrRAD+54CENiWnc4xsuVLQVSgmwf7cwOTcBd/uq3XkQKBGojgvEtVXcJ/8w==
 
 sshpk@^1.7.0:
   version "1.16.1"
