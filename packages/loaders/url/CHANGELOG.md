@@ -1,5 +1,19 @@
 # @graphql-tools/url-loader
 
+## 6.10.0
+
+### Minor Changes
+
+- 20d2c7bc: feat(url-loader): multipart response support
+- 20d2c7bc: feat(url-loader): ability to provide different subscriptionsEndpoint
+  feat(url-loader): ability to provide headers factory that takes executionParams
+- 77d63ab8: feat(url-loader): use fetch-event-source instead of sse-z
+
+### Patch Changes
+
+- Updated dependencies [20d2c7bc]
+  - @graphql-tools/utils@7.9.0
+
 ## 6.9.0
 
 ### Minor Changes
