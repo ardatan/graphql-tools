@@ -17,7 +17,7 @@ import {
   withCancel,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
-import { fetch as crossFetch, Headers } from 'cross-fetch';
+import { fetch as crossFetch } from 'cross-fetch';
 import { SubschemaConfig } from '@graphql-tools/delegate';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
@@ -216,7 +216,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       ws: 'http',
     });
     const dummyHostname = 'https://dummyhostname.com';
-    const validUrl = HTTP_URL.startsWith('http') ? HTTP_URL : `${dummyHostname}/${HTTP_URL}`;
+    const validUrl = HTTP_URL.startsWith('http')
+      ? HTTP_URL
+      : HTTP_URL.startsWith('/')
+      ? `${dummyHostname}${HTTP_URL}`
+      : `${dummyHostname}/${HTTP_URL}`;
     const urlObj = new URL(validUrl);
     urlObj.searchParams.set('query', query);
     if (variables && Object.keys(variables).length > 0) {
@@ -494,7 +498,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
         return customFetch as any;
       }
     }
-    return async ? crossFetch : syncFetch;
+    return async ? typeof fetch === 'undefined' ? crossFetch : fetch : syncFetch;
   }
 
   private getHeadersFromOptions(customHeaders: Headers, executionParams: ExecutionParams): Record<string, string> {
