@@ -27,7 +27,6 @@ import isPromise from 'is-promise';
 import { extractFiles, isExtractableFile } from 'extract-files';
 import FormData from 'form-data';
 import { fetchEventSource, FetchEventSourceInit } from '@microsoft/fetch-event-source';
-import { URL } from 'url';
 import { ConnectionParamsOptions, SubscriptionClient as LegacySubscriptionClient } from 'subscriptions-transport-ws';
 import AbortController from 'abort-controller';
 import { meros } from 'meros';
