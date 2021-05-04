@@ -10,7 +10,7 @@ Any input provided as a source will be recognized by utils automatically.
 
 It also extracts usages of `gql` from code files using [`@graphql-tools/graphql-tag-pluck`](/docs/graphql-tag-pluck).
 
-For notes on typescript, refer to [/docs/loaders]
+For notes on typescript, refer to [loaders](/docs/loaders)
 
 ## Usage
 
