@@ -99,8 +99,7 @@ describe('works with complex transforms', () => {
               argsFromKeys: (userIds) => ({ userIds }),
               context,
               info,
-              transforms: [queryTransform],
-              returnType: new GraphQLList(new GraphQLList(info.schema.getType('Book')))
+              transforms: [queryTransform]
             }),
           },
         },
