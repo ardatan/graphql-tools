@@ -16,6 +16,8 @@ The schema loading util is using loaders, and implemented using [chain-of-respon
 
 Specifying the loader is not necessary. The user need only provide the inputs. The utils will detect it automatically.
 
+For notes on typescript, refer to [/docs/loaders]
+
 ## Usage
 
 ```ts

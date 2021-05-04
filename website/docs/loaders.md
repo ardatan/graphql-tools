@@ -119,6 +119,8 @@ export const schema = new GraphQLSchema(...);
 
 > This loader only supports Node environment because it relies on File System of your platform.
 
+__NOTE:__ If you are using typescript and [path aliases](https://www.typescriptlang.org/tsconfig#paths), you may also need [tsconfig-paths](https://www.npmjs.com/package/tsconfig-paths).  Further reading can be found at the [GitHub issue.](https://github.com/ardatan/graphql-tools/issues/1544)
+
 ### URL Loader
 This loader generates [(a fully executable remote schema using @graphql-tools/wrap)](/docs/remote-schemas) from a URL endpoint.
 
