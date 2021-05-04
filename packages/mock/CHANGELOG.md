@@ -1,5 +1,11 @@
 # @graphql-tools/mock
 
+## 8.1.2
+
+### Patch Changes
+
+- 8e644923: fix(mock): handle null values correctly
+
 ## 8.1.1
 
 ### Patch Changes
