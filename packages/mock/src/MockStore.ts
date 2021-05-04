@@ -298,10 +298,10 @@ export class MockStore implements IMockStore {
       if (!isNullableType(fieldType)) {
         throw new Error(`should not be null because ${fieldTypeName} is not nullable. Received null.`);
       }
+      return null;
     }
 
     const nullableFieldType = getNullableType(fieldType);
-    if (value === null) return null;
     if (value === undefined) return this.generateValueFromType(nullableFieldType);
 
     // deal with nesting insert
