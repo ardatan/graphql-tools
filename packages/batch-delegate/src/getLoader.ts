@@ -18,7 +18,7 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
 
   return async (keys: ReadonlyArray<K>) => {
     const results = await delegateToSchema({
-      returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
+      returnType: new GraphQLList(options.info.returnType),
       onLocatedError: originalError =>
         relocatedError(originalError, originalError.path.slice(0, 0).concat(originalError.path.slice(2))),
       args: argsFromKeys(keys),
