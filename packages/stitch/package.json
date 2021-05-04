@@ -24,7 +24,7 @@
   "devDependencies": {
     "dataloader": "2.0.0",
     "is-promise": "4.0.0",
-    "value-or-promise": "1.0.6"
+    "value-or-promise": "1.0.7"
   },
   "dependencies": {
     "@graphql-tools/batch-delegate": "^7.0.0",
