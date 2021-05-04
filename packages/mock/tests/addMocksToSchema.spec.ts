@@ -245,6 +245,15 @@ describe('addMocksToSchema', () => {
         field2: Int
       }
     `);
+    const mockedSchema = addMocksToSchema({
+      schema,
+      mocks: {
+        Foo: () => ({
+          field1: 'text',
+          field2: null
+        })
+      }
+    })
     const query = /* GraphQL */`
       {
         foo {
@@ -253,15 +262,6 @@ describe('addMocksToSchema', () => {
         }
       }
     `;
-    const mockedSchema = addMocksToSchema({
-      schema,
-      mocks: {
-        Foo: () => ({
-          field1: 'text',
-          field2: null as any
-        })
-      }
-    })
     const { data } = await graphql({
       schema: mockedSchema,
       source: query
@@ -270,4 +270,46 @@ describe('addMocksToSchema', () => {
     expect(data.foo.field1).toBe('text');
     expect(data.foo.field2).toBe(null);
   })
+  it('should handle null fields correctly in nested fields', async () => {
+    const schema = buildSchema(/* GraphQL */`
+      type Query {
+        foo: Foo
+      }
+      type Foo {
+        foo_field: String
+        boo: Boo
+      }
+      type Boo {
+        boo_field: String
+      }
+
+    `);
+    const mockedSchema = addMocksToSchema({
+      schema,
+      mocks: {
+        Foo: () => ({
+          foo_field: "text",
+          boo: null
+        })
+      }
+    })
+    const query = /* GraphQL */`
+      {
+        foo {
+          foo_field
+          boo {
+            boo_field
+          }
+        }
+      }
+    `;
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: query
+    });
+
+    expect(errors).toBeFalsy();
+    expect(data.foo.foo_field).toBe('text');
+    expect(data.foo.boo).toBe(null);
+  });
 });
