@@ -11,8 +11,8 @@ import {
   GraphQLEnumValueConfig,
   GraphQLEnumType,
 } from 'graphql';
-import { ITypeDefinitions, TypeMap } from '@graphql-tools/utils';
-import { MergedTypeResolver, Subschema, SubschemaConfig } from '@graphql-tools/delegate';
+import { ITypeDefinitions } from '@graphql-tools/utils';
+import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
 export interface MergeTypeCandidate<TContext = Record<string, any>> {
