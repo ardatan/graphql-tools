@@ -11,12 +11,12 @@ import {
 } from 'graphql';
 
 import { wrapSchema } from '@graphql-tools/wrap';
-import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
+import { Subschema, SubschemaConfig, StitchingInfo } from '@graphql-tools/delegate';
 import { GraphQLParseOptions, ITypeDefinitions, rewireTypes, TypeMap } from '@graphql-tools/utils';
 import { buildDocumentFromTypeDefinitions } from '@graphql-tools/schema';
 
 import typeFromAST from './typeFromAST';
-import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, StitchingInfo, TypeMergingOptions } from './types';
+import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, TypeMergingOptions } from './types';
 import { mergeCandidates } from './mergeCandidates';
 import { extractDefinitions } from './definitions';
 

@@ -50,25 +50,6 @@ export type MergeTypeFilter<TContext = Record<string, any>> = (
   typeName: string
 ) => boolean;
 
-export interface MergedTypeInfo<TContext = Record<string, any>> {
-  typeName: string;
-  targetSubschemas: Map<Subschema<any, any, any, TContext>, Array<Subschema<any, any, any, TContext>>>;
-  uniqueFields: Record<string, Subschema<any, any, any, TContext>>;
-  nonUniqueFields: Record<string, Array<Subschema<any, any, any, TContext>>>;
-  typeMaps: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, TypeMap>;
-  selectionSets: Map<Subschema<any, any, any, TContext>, SelectionSetNode>;
-  fieldSelectionSets: Map<Subschema<any, any, any, TContext>, Record<string, SelectionSetNode>>;
-  resolvers: Map<Subschema<any, any, any, TContext>, MergedTypeResolver<TContext>>;
-}
-
-export interface StitchingInfo<TContext = Record<string, any>> {
-  subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>;
-  selectionSetsByType: Record<string, SelectionSetNode>;
-  selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
-  dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
-  mergedTypes: Record<string, MergedTypeInfo<TContext>>;
-}
-
 export interface IStitchSchemasOptions<TContext = Record<string, any>>
   extends Omit<IExecutableSchemaDefinition<TContext>, 'typeDefs'> {
   subschemas?: Array<
