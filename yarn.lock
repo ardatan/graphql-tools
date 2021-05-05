@@ -15308,10 +15308,10 @@ value-equal@^1.0.1:
   resolved "https://registry.yarnpkg.com/value-equal/-/value-equal-1.0.1.tgz#1e0b794c734c5c0cade179c437d356d931a34d6c"
   integrity sha512-NOJ6JZCAWr0zlxZt+xqCHNTEKOsrks2HQd4MqhP1qy4z1SkbEP467eNx6TgDKXMvUOb+OENfJCZwM+16n7fRfw==
 
-value-or-promise@1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.6.tgz#218aa4794aa2ee24dcf48a29aba4413ed584747f"
-  integrity sha512-9r0wQsWD8z/BxPOvnwbPf05ZvFngXyouE9EKB+5GbYix+BYnAwrIChCUyFIinfbf2FL/U71z+CPpbnmTdxrwBg==
+value-or-promise@1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.7.tgz#b7de9561d77c290da71c4b3692afeff7a5fe8a22"
+  integrity sha512-khaOVsnop49ufBQHJOO5PAFWGZAaeXIR/e06uAXnXHzMqQNYT0ZnaeKqnqtVZ+ToTyOTuUldaVCE0ZiGZO5GnQ==
 
 vary@~1.1.2:
   version "1.1.2"
