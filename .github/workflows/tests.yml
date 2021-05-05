@@ -15,17 +15,17 @@ jobs:
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
-      - name: Use Node 15
+      - name: Use Node
         uses: actions/setup-node@master
         with:
-          node-version: 15
+          node-version: 16
       - name: Cache Yarn
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-15-15-yarn-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-16-16-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-15-15-yarn
+            ${{ runner.os }}-16-16-yarn
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Lint
@@ -39,17 +39,17 @@ jobs:
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
-      - name: Use Node 14
+      - name: Use Node
         uses: actions/setup-node@master
         with:
-          node-version: 15
+          node-version: 16
       - name: Cache Yarn
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-14-${{matrix.graphql_version}}-yarn-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-16-${{matrix.graphql_version}}-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-14-${{matrix.graphql_version}}-yarn
+            ${{ runner.os }}-16-${{matrix.graphql_version}}-yarn
       - name: Use GraphQL v${{matrix.graphql_version}}
         run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
       - name: Install Dependencies using Yarn
@@ -62,12 +62,12 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node_version: [10, 15]
+        node_version: [10, 16]
         graphql_version: [14, 15]
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
-      - name: Use Node ${{matrix.node_version}}
+      - name: Use Node
         uses: actions/setup-node@master
         with:
           node-version: ${{ matrix.node_version }}
