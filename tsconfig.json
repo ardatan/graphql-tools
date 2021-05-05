@@ -18,6 +18,7 @@
     "downlevelIteration": true,
 
     "strict": true,
+    "skipLibCheck": true,
 
     "paths": {
       "@graphql-tools/*-loader": ["packages/loaders/*/src/index.ts"],
