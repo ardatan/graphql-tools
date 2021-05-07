@@ -22,7 +22,6 @@ import {
   ExecutionResult,
   mapAsyncIterator,
   isAsyncIterable,
-  AsyncExecutor,
 } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
@@ -694,7 +693,7 @@ function makeExecutorFromSchema(schema: GraphQLSchema): Executor {
       null,
       context,
       variables,
-    )).then((resultOrIterable: ExecutionResult | AsyncIterableIterator<AsyncExecutor>) => {
+    )).then(resultOrIterable => {
       if (isAsyncIterable(resultOrIterable)) {
         return mapAsyncIterator(resultOrIterable, originalResult => JSON.parse(JSON.stringify(originalResult)));
       }

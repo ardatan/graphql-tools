@@ -39,4 +39,4 @@ export type Subscriber<TBaseContext = Record<string, any>> = <
   TContext extends TBaseContext = TBaseContext
 >(
   params: ExecutionParams<TArgs, TContext>
-) => Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
+) => Promise<AsyncIterableIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;

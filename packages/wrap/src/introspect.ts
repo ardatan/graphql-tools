@@ -28,11 +28,11 @@ function getSchemaFromIntrospection(introspectionResult: ExecutionResult<Introsp
   }
 }
 
-export function introspectSchema<TExecutor extends AsyncExecutor | SyncExecutor>(
+export function introspectSchema<TExecutor extends SyncExecutor | AsyncExecutor | Executor>(
   executor: TExecutor,
   context?: Record<string, any>,
   options?: IntrospectionOptions
-): TExecutor extends AsyncExecutor ? Promise<GraphQLSchema> : GraphQLSchema {
+): TExecutor extends SyncExecutor ? GraphQLSchema : TExecutor extends AsyncExecutor ? Promise<GraphQLSchema> : Promise<GraphQLSchema> | GraphQLSchema {
   const parsedIntrospectionQuery: DocumentNode = parse(getIntrospectionQuery(options));
   return new ValueOrPromise(() => (executor as Executor)<IntrospectionQuery>({
     document: parsedIntrospectionQuery,

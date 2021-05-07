@@ -5,7 +5,7 @@ import { Subscriber, ExecutionParams, ExecutionResult, observableToAsyncIterable
 
 export const linkToSubscriber = (link: ApolloLink): Subscriber => async <TReturn, TArgs, TContext>(
   params: ExecutionParams<TArgs, TContext>
-): Promise<ExecutionResult<TReturn> | AsyncIterator<ExecutionResult<TReturn>>> => {
+): Promise<ExecutionResult<TReturn> | AsyncIterableIterator<ExecutionResult<TReturn>>> => {
   const { document, variables, extensions, context, info } = params;
   return observableToAsyncIterable<ExecutionResult<TReturn>>(
     execute(link, {
