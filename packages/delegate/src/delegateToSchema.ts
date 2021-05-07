@@ -261,6 +261,7 @@ function getExecutor(delegationContext: DelegationContext): Executor {
     executor = getBatchingExecutor(
       context,
       executor,
+      targetSchema,
       batchingOptions?.dataLoaderOptions,
       batchingOptions?.extensionsReducer
     );
