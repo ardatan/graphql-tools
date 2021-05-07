@@ -1,11 +1,11 @@
 import { chainFunctions } from './chain-functions';
 import { get, set, flatten } from 'lodash';
-import { isScalarType, GraphQLFieldResolver } from 'graphql';
+import { GraphQLFieldResolver, GraphQLScalarTypeConfig } from 'graphql';
 import { asArray } from '@graphql-tools/utils';
 
-export type ResolversComposition<Resolver extends GraphQLFieldResolver<any, any, any> = GraphQLFieldResolver<any, any>> = (
-  next: Resolver
-) => Resolver;
+export type ResolversComposition<
+  Resolver extends GraphQLFieldResolver<any, any, any> = GraphQLFieldResolver<any, any>
+> = (next: Resolver) => Resolver;
 
 export type ResolversComposerMapping<Resolvers extends Record<string, any> = Record<string, any>> =
   | {
@@ -21,6 +21,10 @@ export type ResolversComposerMapping<Resolvers extends Record<string, any> = Rec
       [path: string]: ResolversComposition | ResolversComposition[];
     };
 
+function isScalarTypeConfiguration(config: any): config is GraphQLScalarTypeConfig<any, any> {
+  return config && 'serialize' in config && 'parseLiteral' in config;
+}
+
 function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<string, any>>(
   resolvers: Resolvers,
   path: string,
@@ -31,7 +35,7 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
   if (split.length === 2) {
     const typeName = split[0];
 
-    if (isScalarType(resolvers[typeName])) {
+    if (isScalarTypeConfiguration(resolvers[typeName])) {
       return [];
     }
 
