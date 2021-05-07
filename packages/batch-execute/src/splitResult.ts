@@ -41,83 +41,88 @@ export function splitExecutionResultOrAsyncIterableIterator(
   numResults: number
 ): Array<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>> {
   if (isAsyncIterable(mergedResult)) {
-    return split(mergedResult, numResults, originalResult => {
-      const path = (originalResult as ExecutionPatchResult).path;
-      if (path && path.length) {
-        const { index, originalKey } = parseKey(path[0] as string);
-        const newPath = ([originalKey] as Array<string | number>).concat(path.slice(1));
-
-        const newResult: ExecutionPatchResult = {
-          ...(originalResult as ExecutionPatchResult),
-          path: newPath,
-        };
-
-        const errors = originalResult.errors;
-        if (errors) {
-          const newErrors: Array<GraphQLError> = [];
-          errors.forEach(error => {
-            if (error.path) {
-              const parsedKey = parseKey(error.path[0] as string);
-              if (parsedKey) {
-                const { originalKey } = parsedKey;
-                const newError = relocatedError(error, [originalKey, ...error.path.slice(1)]);
-                newErrors.push(newError);
-                return;
-              }
-            }
-
-            newErrors.push(error);
-          });
-          newResult.errors = newErrors;
-        }
-
-        return [index, newResult];
-      }
-
-      let resultIndex: number;
-      const newResult: ExecutionResult = { ...originalResult };
-      const data = originalResult.data;
-      if (data) {
-        const newData = {};
-        Object.keys(data).forEach(prefixedKey => {
-          const { index, originalKey } = parseKey(prefixedKey);
-          resultIndex = index;
-          newData[originalKey] = data[prefixedKey];
-        });
-        newResult.data = newData;
-      }
-
-      const errors = originalResult.errors;
-      if (errors) {
-        const newErrors: Array<GraphQLError> = [];
-        errors.forEach(error => {
-          if (error.path) {
-            const parsedKey = parseKey(error.path[0] as string);
-            if (parsedKey) {
-              const { index, originalKey } = parsedKey;
-              resultIndex = index;
-              const newError = relocatedError(error, [originalKey, ...error.path.slice(1)]);
-              newErrors.push(newError);
-              return;
-            }
-          }
-
-          newErrors.push(error);
-        });
-        newResult.errors = newErrors;
-      }
-
-      return [resultIndex, newResult]
-    });
+    return split(mergedResult, numResults, originalResult => splitExecutionPatchResult(originalResult as ExecutionPatchResult));
   }
 
   return splitExecutionResult(mergedResult, numResults);
 }
 
+function splitExecutionPatchResult(originalResult: ExecutionPatchResult): [number, ExecutionPatchResult] {
+  const path = originalResult.path;
+  if (path && path.length) {
+    const { index, originalKey } = parseKey(path[0] as string);
+    const newPath = ([originalKey] as Array<string | number>).concat(path.slice(1));
+
+    const newResult: ExecutionPatchResult = {
+      ...originalResult,
+      path: newPath,
+    };
+
+    const errors = originalResult.errors;
+    if (errors) {
+      const newErrors: Array<GraphQLError> = [];
+      errors.forEach(error => {
+        if (error.path) {
+          const parsedKey = parseKey(error.path[0] as string);
+          if (parsedKey) {
+            const { originalKey } = parsedKey;
+            const newError = relocatedError(error, [originalKey, ...error.path.slice(1)]);
+            newErrors.push(newError);
+            return;
+          }
+        }
+
+        newErrors.push(error);
+      });
+      newResult.errors = newErrors;
+    }
+
+    return [index, newResult];
+  }
+
+  let resultIndex: number;
+  const newResult: ExecutionPatchResult = { ...originalResult };
+  const data = originalResult.data;
+  if (data) {
+    const newData = {};
+    Object.keys(data).forEach(prefixedKey => {
+      const { index, originalKey } = parseKey(prefixedKey);
+      resultIndex = index;
+      newData[originalKey] = data[prefixedKey];
+    });
+    newResult.data = newData;
+  }
+
+  const errors = originalResult.errors;
+  if (errors) {
+    const newErrors: Array<GraphQLError> = [];
+    errors.forEach(error => {
+      if (error.path) {
+        const parsedKey = parseKey(error.path[0] as string);
+        if (parsedKey) {
+          const { index, originalKey } = parsedKey;
+          resultIndex = index;
+          const newError = relocatedError(error, [originalKey, ...error.path.slice(1)]);
+          newErrors.push(newError);
+          return;
+        }
+      }
+
+      newErrors.push(error);
+    });
+    newResult.errors = newErrors;
+  }
+
+  return [resultIndex, newResult]
+}
+
 /**
  * Split and transform result of the query produced by the `merge` function
+ * Similar to above, but while an ExecutionPatchResult will only contain a
+ * data destined for a single target, an ExecutionResult may contain results
+ * for multiple targets, indexed by key.
  */
-export function splitExecutionResult(mergedResult: ExecutionResult, numResults: number): Array<ExecutionResult> {
+function splitExecutionResult(mergedResult: ExecutionResult, numResults: number): Array<ExecutionResult> {
   const splitResults: Array<ExecutionResult> = [];
   for (let i = 0; i < numResults; i++) {
     splitResults.push({});
