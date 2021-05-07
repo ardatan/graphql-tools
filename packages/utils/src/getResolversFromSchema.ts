@@ -7,7 +7,6 @@ import {
   isUnionType,
   isObjectType,
   isSpecifiedScalarType,
-  defaultFieldResolver,
 } from 'graphql';
 
 import { IResolvers } from './Interfaces';
