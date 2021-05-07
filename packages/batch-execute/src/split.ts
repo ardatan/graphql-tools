@@ -8,46 +8,30 @@ type Splitter<T> = (item: T) => [number | undefined, T];
 
 export function split<T>(asyncIterable: AsyncIterableIterator<T>, n: number, splitter: Splitter<T>) {
   const iterator = asyncIterable[Symbol.asyncIterator]();
-  const returner = iterator.return?.bind(iterator) ?? undefined;
+  const returner = iterator.return?.bind(iterator) ?? (() => {});
 
   const buffers: Array<Array<IteratorResult<T>>> = Array(n);
   for (let i = 0; i < n; i++) {
     buffers[i] = [];
   }
 
-  if (returner) {
-    const set: Set<number> = new Set();
-    return buffers.map((buffer, index) => {
-      set.add(index);
-      return new Repeater(async (push, stop) => {
-        let earlyReturn: any;
-        stop.then(() => {
-          set.delete(index);
-          if (!set.size) {
-            earlyReturn = returner();
-          }
-        });
-
-        await loop(push, stop, earlyReturn, buffer, buffers, iterator, splitter);
-
-        await earlyReturn;
+  const set: Set<number> = new Set();
+  return buffers.map((buffer, index) => {
+    set.add(index);
+    return new Repeater(async (push, stop) => {
+      let earlyReturn: any;
+      stop.then(() => {
+        set.delete(index);
+        if (!set.size) {
+          earlyReturn = returner();
+        }
       });
+
+      await loop(push, stop, earlyReturn, buffer, buffers, iterator, splitter);
+
+      await earlyReturn;
     });
-  }
-
-  return buffers.map(
-    buffer =>
-      new Repeater(async (push, stop) => {
-        let earlyReturn: any;
-        stop.then(() => {
-          earlyReturn = returner ? returner() : true;
-        });
-
-        await loop(push, stop, earlyReturn, buffer, buffers, iterator, splitter);
-
-        await earlyReturn;
-      })
-  );
+  });
 }
 
 async function loop<T>(
@@ -83,8 +67,10 @@ async function next<T>(
   iterator: AsyncIterator<T>,
   splitter: Splitter<T>
 ): Promise<IteratorResult<T> | undefined> {
-  if (0 in buffer) {
-    return buffer.shift();
+  const existingIteration = buffer.shift();
+
+  if (existingIteration !== undefined) {
+    return existingIteration;
   }
 
   const iterationCandidate = await iterator.next();
@@ -93,6 +79,7 @@ async function next<T>(
   const value = iterationCandidate.value;
   if (value !== undefined) {
     const [iterationIndex, newValue] = splitter(value);
+
     if (iterationIndex !== undefined) {
       buffers[iterationIndex].push({
         ...iterationCandidate,
@@ -108,9 +95,5 @@ async function next<T>(
     }
   }
 
-  if (0 in buffer) {
-    return buffer.shift();
-  }
-
-  return undefined;
+  return buffer.shift();
 }
