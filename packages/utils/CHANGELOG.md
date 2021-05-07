@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 7.9.1
+
+### Patch Changes
+
+- be23817f: enhance(utils): do not extract default resolvers
+
 ## 7.9.0
 
 ### Minor Changes

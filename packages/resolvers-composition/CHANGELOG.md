@@ -1,5 +1,13 @@
 # @graphql-tools/resolvers-composition
 
+## 6.2.8
+
+### Patch Changes
+
+- be23817f: enhance(resolversComposition): do not compose scalar config
+- Updated dependencies [be23817f]
+  - @graphql-tools/utils@7.9.1
+
 ## 6.2.7
 
 ### Patch Changes
