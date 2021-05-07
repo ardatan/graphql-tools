@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 6.10.1
+
+### Patch Changes
+
+- 491e77cf: enhance(url-loader): start legacy subscriptions connection lazily
+
 ## 6.10.0
 
 ### Minor Changes
