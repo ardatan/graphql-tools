@@ -368,6 +368,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       url: WS_URL,
       webSocketImpl,
       connectionParams,
+      lazy: true,
     });
     return async ({ document, variables }: { document: DocumentNode; variables: any }) => {
       const query = print(document);
@@ -401,6 +402,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       WS_URL,
       {
         connectionParams,
+        lazy: true,
       },
       webSocketImpl
     );
