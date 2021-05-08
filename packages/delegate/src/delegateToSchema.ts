@@ -41,7 +41,7 @@ import { Subschema } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
 import { memoize2 } from './memoize';
-import { Receiver } from './Receiver';
+import { InitialReceiver } from './InitialReceiver';
 import { externalValueFromResult } from './externalValues';
 
 export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
@@ -140,7 +140,7 @@ function handleExecutionResult(
   resultTransformer: (originalResult: ExecutionResult) => ExecutionResult
 ): any {
   if (isAsyncIterable(executionResult)) {
-    const receiver = new Receiver(executionResult, delegationContext, resultTransformer);
+    const receiver = new InitialReceiver(executionResult, delegationContext, resultTransformer);
 
     return receiver.getInitialResult();
   }

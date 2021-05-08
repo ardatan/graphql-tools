@@ -27,7 +27,6 @@ import {
 } from './symbols';
 
 import { Subschema } from './Subschema';
-import { Receiver } from './Receiver';
 
 export type SchemaTransform = (
   originalWrappingSchema: GraphQLSchema,
@@ -199,6 +198,10 @@ export interface StitchingInfo<TContext = Record<string, any>> {
   fieldNodesByField: Record<string, Record<string, Array<FieldNode>>>;
   dynamicFieldNodesByField: Record<string, Record<string, Array<(fieldNode: FieldNode) => Array<FieldNode>>>>;
   mergedTypes: Record<string, MergedTypeInfo<TContext>>;
+}
+
+export interface Receiver {
+  request: (info: GraphQLResolveInfo) => Promise<any>;
 }
 
 export interface ExternalObject<TContext = Record<string, any>> {

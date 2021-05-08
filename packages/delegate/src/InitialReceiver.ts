@@ -17,13 +17,13 @@ import { Repeater, Stop } from '@repeaterjs/repeater';
 
 import { AsyncExecutionResult, getResponseKeyFromInfo } from '@graphql-tools/utils';
 
-import { DelegationContext, ExternalObject } from './types';
+import { DelegationContext, ExternalObject, Receiver } from './types';
 import { getReceiver, getSubschema, getUnpathedErrors, mergeExternalObjects } from './externalObjects';
 import { resolveExternalValue } from './resolveExternalValue';
 import { externalValueFromResult, externalValueFromPatchResult } from './externalValues';
 import { ExpectantStore } from './expectantStore';
 
-export class Receiver {
+export class InitialReceiver implements Receiver {
   private readonly asyncIterable: AsyncIterable<AsyncExecutionResult>;
   private readonly delegationContext: DelegationContext;
   private readonly fieldName: string;

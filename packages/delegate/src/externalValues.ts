@@ -4,9 +4,8 @@ import AggregateError from '@ardatan/aggregate-error';
 
 import { ExecutionPatchResult, ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
-import { DelegationContext } from './types';
+import { DelegationContext, Receiver } from './types';
 import { resolveExternalValue } from './resolveExternalValue';
-import { Receiver } from './Receiver';
 
 export function externalValueFromResult(
   originalResult: ExecutionResult,

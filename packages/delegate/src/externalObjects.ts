@@ -10,7 +10,7 @@ import {
 
 import { relocatedError, GraphQLExecutionContext, collectFields } from '@graphql-tools/utils';
 
-import { SubschemaConfig, ExternalObject } from './types';
+import { SubschemaConfig, ExternalObject, Receiver } from './types';
 import {
   OBJECT_SUBSCHEMA_SYMBOL,
   INITIAL_POSSIBLE_FIELDS,
@@ -19,7 +19,6 @@ import {
   UNPATHED_ERRORS_SYMBOL,
   RECEIVER_MAP_SYMBOL,
 } from './symbols';
-import { Receiver } from './Receiver';
 import { isSubschemaConfig } from './subschemaConfig';
 import { Subschema } from './Subschema';
 
