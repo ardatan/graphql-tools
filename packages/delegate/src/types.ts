@@ -202,6 +202,7 @@ export interface StitchingInfo<TContext = Record<string, any>> {
 
 export interface Receiver {
   request: (info: GraphQLResolveInfo) => Promise<any>;
+  update: (parent: ExternalObject, info: GraphQLResolveInfo) => any;
 }
 
 export interface ExternalObject<TContext = Record<string, any>> {

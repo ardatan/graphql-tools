@@ -14,6 +14,7 @@ import {
 } from './externalObjects';
 
 import { getMergedParent } from './getMergedParent';
+import { fieldShouldStream } from './fieldShouldStream';
 
 /**
  * Resolver that knows how to:
@@ -64,11 +65,19 @@ function resolveField(
   const fieldSubschema = getSubschema(parent, responseKey);
   const receiver = getReceiver(parent, fieldSubschema);
 
+  const data = parent[responseKey];
   if (receiver !== undefined) {
+    if (fieldShouldStream(info)) {
+      return receiver.request(info);
+    }
+
+    if (data !== undefined) {
+      return receiver.update(parent, info);
+    }
+
     return receiver.request(info);
   }
 
-  const data = parent[responseKey];
   if (data !== undefined) {
     const unpathedErrors = getUnpathedErrors(parent);
     return resolveExternalValue(data, unpathedErrors, fieldSubschema, context, info, receiver);

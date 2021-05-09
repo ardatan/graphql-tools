@@ -22,6 +22,7 @@ import { getReceiver, getSubschema, getUnpathedErrors, mergeExternalObjects } fr
 import { resolveExternalValue } from './resolveExternalValue';
 import { externalValueFromResult, externalValueFromPatchResult } from './externalValues';
 import { ExpectantStore } from './expectantStore';
+import { fieldShouldStream } from './fieldShouldStream';
 
 export class InitialReceiver implements Receiver {
   private readonly asyncIterable: AsyncIterable<AsyncExecutionResult>;
@@ -80,6 +81,39 @@ export class InitialReceiver implements Receiver {
     return initialResult;
   }
 
+  public update(parent: ExternalObject, info: GraphQLResolveInfo): any {
+    const path = responsePathAsArray(info.path).slice(this.initialResultDepth);
+    const pathKey = path.join('.');
+    const responseKey = path.slice().pop() as string;
+    const data = parent[responseKey];
+
+    return this._update(parent, info, pathKey, responseKey, data);
+  }
+
+  private _update(
+    parent: ExternalObject,
+    info: GraphQLResolveInfo,
+    pathKey: string,
+    responseKey: string,
+    data: any,
+  ): any {
+    const unpathedErrors = getUnpathedErrors(parent);
+    const subschema = getSubschema(parent, responseKey);
+    const receiver = getReceiver(parent, subschema);
+    const newExternalValue = resolveExternalValue(data, unpathedErrors, subschema, this.context, info, receiver);
+    this.onNewExternalValue(
+      pathKey,
+      newExternalValue,
+      isCompositeType(getNamedType(info.returnType))
+        ? {
+            kind: Kind.SELECTION_SET,
+            selections: [].concat(...info.fieldNodes.map(fieldNode => fieldNode.selectionSet.selections)),
+          }
+        : undefined
+    );
+    return newExternalValue;
+  }
+
   public request(info: GraphQLResolveInfo): Promise<any> {
     const path = responsePathAsArray(info.path).slice(this.initialResultDepth);
     const pathKey = path.join('.');
@@ -96,7 +130,7 @@ export class InitialReceiver implements Receiver {
     path: Array<string | number>,
     pathKey: string,
     infos: ReadonlyArray<GraphQLResolveInfo>
-  ): Promise<any> {
+  ): Promise<Array<any>> {
     const parentPath = path.slice();
     const responseKey = parentPath.pop() as string;
     const parentKey = parentPath.join('.');
@@ -124,48 +158,37 @@ export class InitialReceiver implements Receiver {
 
     const data = parent[responseKey];
     if (data !== undefined) {
-      const unpathedErrors = getUnpathedErrors(parent);
-      const subschema = getSubschema(parent, responseKey);
-      const receiver = getReceiver(parent, subschema);
-      this.onNewExternalValue(
-        pathKey,
-        resolveExternalValue(data, unpathedErrors, subschema, this.context, combinedInfo, receiver),
-        isCompositeType(getNamedType(combinedInfo.returnType))
-          ? {
-              kind: Kind.SELECTION_SET,
-              selections: [].concat(...combinedInfo.fieldNodes.map(fieldNode => fieldNode.selectionSet.selections)),
-            }
-          : undefined
-      );
+      this._update(parent, combinedInfo, pathKey, responseKey, data);
     }
 
     if (fieldShouldStream(combinedInfo)) {
-      return infos.map(
-        () =>
-          new Repeater(async (push, stop) => {
-            const initialValues = ((await this.cache.request(pathKey)) as unknown) as Array<ExternalObject>;
-            initialValues.forEach(async value => push(value));
-
-            let index = initialValues.length;
-
-            let stopped = false;
-            stop.then(() => (stopped = true));
-
-            this.stoppers.push(stop);
-
-            const next = () => this.cache.request(`${pathKey}.${index++}`);
-
-            /* eslint-disable no-unmodified-loop-condition */
-            while (!stopped) {
-              await push(next());
-            }
-            /* eslint-disable no-unmodified-loop-condition */
-          })
-      );
+      return infos.map(() => this._stream(pathKey));
     }
 
     const externalValue = await this.cache.request(pathKey);
     return new Array(infos.length).fill(externalValue);
+  }
+
+  private _stream(pathKey: string): AsyncIterator<any> {
+    return new Repeater(async (push, stop) => {
+      const initialValues = ((await this.cache.request(pathKey)) as unknown) as Array<ExternalObject>;
+
+      let stopped = false;
+      stop.then(() => (stopped = true));
+      this.stoppers.push(stop);
+
+      let index = 0;
+
+      /* eslint-disable no-unmodified-loop-condition */
+      while (!stopped && index < initialValues.length) {
+        await push(initialValues[index++]);
+      }
+
+      while (!stopped) {
+        await push(this.cache.request(`${pathKey}.${index++}`));
+      }
+      /* eslint-disable no-unmodified-loop-condition */
+    });
   }
 
   private async _iterate(): Promise<void> {
@@ -327,9 +350,4 @@ export class InitialReceiver implements Receiver {
       });
     }
   }
-}
-
-function fieldShouldStream(info: GraphQLResolveInfo): boolean {
-  const directives = info.fieldNodes[0]?.directives;
-  return directives !== undefined && directives.some(directive => directive.name.value === 'stream');
 }
