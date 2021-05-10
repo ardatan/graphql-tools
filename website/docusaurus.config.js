@@ -84,6 +84,9 @@ module.exports = {
       copyright: `Copyright © ${new Date().getFullYear()} The Guild, Inc. Built with Docusaurus.`,
     },
   },
+  scripts: [
+    'https://the-guild.dev/static/crisp.js'
+  ],
   presets: [
     [
       '@docusaurus/preset-classic',
