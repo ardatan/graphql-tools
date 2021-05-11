@@ -7,7 +7,7 @@ import { AsyncExecutionResult, ExecutionPatchResult, isAsyncIterable, relocatedE
 import { ValueOrPromise } from 'value-or-promise';
 
 import { parseKey } from './prefix';
-import { split } from './split';
+import { splitAsyncIterator } from './splitAsyncIterator';
 
 export function splitResult(
   mergedResult:
@@ -41,7 +41,7 @@ export function splitExecutionResultOrAsyncIterableIterator(
   numResults: number
 ): Array<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>> {
   if (isAsyncIterable(mergedResult)) {
-    return split(mergedResult, numResults, originalResult => splitExecutionPatchResult(originalResult as ExecutionPatchResult));
+    return splitAsyncIterator(mergedResult, numResults, originalResult => splitExecutionPatchResult(originalResult as ExecutionPatchResult));
   }
 
   return splitExecutionResult(mergedResult, numResults);

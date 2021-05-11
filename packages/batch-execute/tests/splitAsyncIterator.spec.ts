@@ -1,6 +1,6 @@
-import { split } from '../src/split';
+import { splitAsyncIterator } from '../src/splitAsyncIterator';
 
-describe('split', () => {
+describe('splitAsyncIterator', () => {
   test('it works sequentially', async () => {
     const gen3 = async function* () {
       for (let i = 0; i < 3; i++) {
@@ -8,7 +8,7 @@ describe('split', () => {
       }
     }();
 
-    const [one, two] = split(gen3, 2, (x) => [0, x + 5]);
+    const [one, two] = splitAsyncIterator(gen3, 2, (x) => [0, x + 5]);
 
     let results = [];
     for await (const result of one) {
@@ -30,7 +30,7 @@ describe('split', () => {
       }
     }();
 
-    const [one, two] = split(gen3, 2, (x) => [0, x + 5]);
+    const [one, two] = splitAsyncIterator(gen3, 2, (x) => [0, x + 5]);
 
     const oneResults = [];
     const twoResults = [];
