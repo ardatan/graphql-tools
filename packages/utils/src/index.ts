@@ -39,6 +39,7 @@ export * from './renameType';
 export * from './collectFields';
 export * from './transformInputValue';
 export * from './mapAsyncIterator';
+export * from './splitAsyncIterator';
 export * from './updateArgument';
 export * from './implementsAbstractType';
 export * from './errors';

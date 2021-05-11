@@ -2,12 +2,11 @@
 
 import { ExecutionResult, GraphQLError } from 'graphql';
 
-import { AsyncExecutionResult, ExecutionPatchResult, isAsyncIterable, relocatedError } from '@graphql-tools/utils';
+import { AsyncExecutionResult, ExecutionPatchResult, isAsyncIterable, relocatedError, splitAsyncIterator } from '@graphql-tools/utils';
 
 import { ValueOrPromise } from 'value-or-promise';
 
 import { parseKey } from './prefix';
-import { splitAsyncIterator } from './splitAsyncIterator';
 
 export function splitResult(
   mergedResult:
