@@ -52,8 +52,11 @@ async function loop<T>(
     }
 
     if (iteration.done) {
+      if (iteration.value !== undefined) {
+        await push(iteration.value);
+      }
       stop();
-      return iteration.value;
+      return;
     }
 
     await push(iteration.value);
