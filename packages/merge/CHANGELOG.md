@@ -1,5 +1,11 @@
 # @graphql-tools/merge
 
+## 6.2.14
+
+### Patch Changes
+
+- eae28793: fix(merge): handle undefined interfaces array on ObjectTypeDefinitionNode #2629
+
 ## 6.2.13
 
 ### Patch Changes

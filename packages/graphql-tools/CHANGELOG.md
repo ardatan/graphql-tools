@@ -1,10 +1,18 @@
 # graphql-tools
+
+## 7.0.5
+
+### Patch Changes
+
+- 52971f4e: fix(graphql-tools): provide @apollo/client as an optional package
+- Updated dependencies [eae28793]
+  - @graphql-tools/merge@6.2.14
+
 ## 7.0.4
 
 ### Patch Changes
 
 - Revert mock package to v7 to avoid breaking changes
-
 
 ## 7.0.3
 
