@@ -66,10 +66,8 @@ export class InitialReceiver implements Receiver {
 
   public async getInitialResult(): Promise<ExecutionResult> {
     let initialResult: any;
-    const payloads: Array<any> = [];
     for await (const payload of this.asyncIterable) {
       initialResult = externalValueFromResult(this.resultTransformer(payload), this.delegationContext, this);
-      payloads.push(payload);
       if (initialResult != null) {
         break;
       }
