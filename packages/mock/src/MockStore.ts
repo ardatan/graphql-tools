@@ -1,5 +1,6 @@
 import {
   GraphQLSchema,
+  GraphQLString,
   isObjectType,
   isScalarType,
   getNullableType,
@@ -509,6 +510,10 @@ export class MockStore implements IMockStore {
   }
 
   private getFieldType(typeName: string, fieldName: string) {
+    if (fieldName === '__typename') {
+      return GraphQLString;
+    }
+
     const type = this.getType(typeName);
 
     const field = type.getFields()[fieldName];
