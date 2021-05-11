@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@ardatan/aggregate-error": "0.0.6",
+    "@repeaterjs/repeater": "^3.0.4",
     "camel-case": "4.1.2",
     "tslib": "~2.2.0"
   },

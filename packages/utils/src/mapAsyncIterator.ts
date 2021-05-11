@@ -1,59 +1,71 @@
 /**
- * Given an AsyncIterable and a callback function, return an AsyncIterator
+ * Given an AsyncIterator and a callback function, return an AsyncIterator
  * which produces values mapped via calling the callback function.
+ *
+ * Implementation adapted from:
+ * https://github.com/repeaterjs/repeater/issues/48#issuecomment-569134039
+ * so that all payloads will be delivered in the original order
  */
+
+import { Push, Stop, Repeater } from '@repeaterjs/repeater';
+
 export function mapAsyncIterator<T, U>(
   iterator: AsyncIterator<T>,
-  callback: (value: T) => Promise<U> | U,
-  rejectCallback?: any
+  mapValue: (value: T) => Promise<U> | U,
 ): AsyncIterableIterator<U> {
-  let $return: any;
-  let abruptClose: any;
+  const returner = iterator.return?.bind(iterator) ?? (() => {});
 
-  if (typeof iterator.return === 'function') {
-    $return = iterator.return;
-    abruptClose = (error: any) => {
-      const rethrow = () => Promise.reject(error);
-      return $return.call(iterator).then(rethrow, rethrow);
-    };
+  return new Repeater(async (push, stop) => {
+    let earlyReturn: any;
+    stop.then(() => {
+      earlyReturn = returner();
+    });
+
+    await loop(push, stop, earlyReturn, iterator, mapValue);
+
+    await earlyReturn;
+  });
+}
+
+async function loop<T, U>(
+  push: Push<U>,
+  stop: Stop,
+  earlyReturn: Promise<any> | any,
+  iterator: AsyncIterator<T>,
+  mapValue: (value: T) => Promise<U> | U,
+): Promise<void> {
+  /* eslint-disable no-unmodified-loop-condition */
+  while (!earlyReturn) {
+    const iteration = await next(iterator, mapValue);
+
+    if (iteration.done) {
+      if (iteration.value !== undefined) {
+        await push(iteration.value);
+      }
+      stop();
+      return;
+    }
+
+    await push(iteration.value);
+  }
+  /* eslint-enable no-unmodified-loop-condition */
+}
+
+async function next<T, U>(
+  iterator: AsyncIterator<T>,
+  mapValue: (value: T) => Promise<U> | U,
+): Promise<IteratorResult<U>> {
+  const iterationCandidate = await iterator.next();
+
+  const value = iterationCandidate.value;
+  if (value === undefined) {
+    return iterationCandidate as IteratorResult<U>;
   }
 
-  function mapResult(result: any) {
-    return result.done ? result : asyncMapValue(result.value, callback).then(iteratorResult, abruptClose);
-  }
-
-  let mapReject: any;
-  if (rejectCallback) {
-    // Capture rejectCallback to ensure it cannot be null.
-    const reject = rejectCallback;
-    mapReject = (error: any) => asyncMapValue(error, reject).then(iteratorResult, abruptClose);
-  }
+  const newValue = await mapValue(iterationCandidate.value);
 
   return {
-    next() {
-      return iterator.next().then(mapResult, mapReject);
-    },
-    return() {
-      return $return
-        ? $return.call(iterator).then(mapResult, mapReject)
-        : Promise.resolve({ value: undefined, done: true });
-    },
-    throw(error: any) {
-      if (typeof iterator.throw === 'function') {
-        return iterator.throw(error).then(mapResult, mapReject);
-      }
-      return Promise.reject(error).catch(abruptClose);
-    },
-    [Symbol.asyncIterator]() {
-      return this;
-    },
+    ...iterationCandidate,
+    value: newValue,
   };
-}
-
-function asyncMapValue<T, U>(value: T, callback: (value: T) => Promise<U> | U): Promise<U> {
-  return new Promise(resolve => resolve(callback(value)));
-}
-
-function iteratorResult<T>(value: T): IteratorResult<T> {
-  return { value, done: false };
 }
