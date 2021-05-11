@@ -1,5 +1,11 @@
 # @graphql-tools/mock
 
+## 8.1.3
+
+### Patch Changes
+
+- 702f44ec: Avoid `__typename does not exist` error
+
 ## 8.1.2
 
 ### Patch Changes
