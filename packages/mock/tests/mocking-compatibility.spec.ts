@@ -19,10 +19,15 @@ describe('Mock retro-compatibility', () => {
   const shorthand = `
     scalar MissingMockType
 
+    type Ability {
+      name: String!
+    }
+
     interface Flying {
       id:String!
       returnSong: String
       returnInt: Int
+      returnAbility: Ability!
     }
 
     type Bird implements Flying {
@@ -31,6 +36,7 @@ describe('Mock retro-compatibility', () => {
       returnInt: Int
       returnString: String
       returnStringArgument(s: String): String
+      returnAbility: Ability!
     }
 
     type Bee implements Flying {
@@ -38,6 +44,7 @@ describe('Mock retro-compatibility', () => {
       returnSong: String
       returnInt: Int
       returnEnum: SomeEnum
+      returnAbility: Ability!
     }
 
     union BirdsAndBees = Bird | Bee
@@ -79,19 +86,6 @@ describe('Mock retro-compatibility', () => {
       mutation: RootMutation
     }
   `;
-
-  const resolveFunctions = {
-    BirdsAndBees: {
-      __resolveType(data: any, _context: any, info: GraphQLResolveInfo) {
-        return info.schema.getType(data.__typename);
-      },
-    },
-    Flying: {
-      __resolveType(data: any, _context: any, info: GraphQLResolveInfo) {
-        return info.schema.getType(data.__typename);
-      },
-    },
-  };
 
   test('throws an error if you forget to pass schema', () => {
     expect(() => addMocksToSchema({} as any)).toThrowError(
@@ -317,7 +311,6 @@ describe('Mock retro-compatibility', () => {
 
   test('can mock Unions', () => {
     let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    jsSchema = addResolversToSchema(jsSchema, resolveFunctions);
     const mockMap = {
       Int: () => 10,
       String: () => 'aha',
@@ -401,8 +394,6 @@ describe('Mock retro-compatibility', () => {
   it('can mock nullable Interfaces', () => {
     let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
 
-    jsSchema = addResolversToSchema(jsSchema, resolveFunctions);
-
     const mockMap = {
       Bird: (): null => null,
       Bee: (): null => null,
@@ -434,7 +425,39 @@ describe('Mock retro-compatibility', () => {
     });
   });
 
-  test('can support explicit Interface mock', () => {
+  test('can support explicit Interface mock with __typename', async () => {
+    const mockMap = {
+      Bird: () => ({
+        id: 'bird:hardcoded',
+      }),
+      Bee: () => ({
+        id: 'bee:hardcoded',
+      }),
+      Flying: () => ({
+        __typename: 'Bee',
+      }),
+    };
+    const server = mockServer(shorthand,  mockMap);
+    const testQuery = `{
+      node(id:"bee:123456"){
+        id
+        returnAbility {
+          name
+        }
+      }
+    }`;
+
+    const res = await server.query(testQuery);
+
+    expect(res.data.node).toEqual({
+      id: 'bee:hardcoded',
+      returnAbility: {
+        name: 'Hello World',
+      },
+    });
+  });
+
+  test('can support explicit Interface mock with resolver', () => {
     let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
     let spy = 0;
     const mockMap = {
@@ -484,33 +507,28 @@ describe('Mock retro-compatibility', () => {
     });
   });
 
-  // FIXME
-  test.skip('can support explicit UnionType mock', () => {
+  test('can support explicit UnionType mock', () => {
     let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    jsSchema = addResolversToSchema(jsSchema, resolveFunctions);
     let spy = 0;
     const mockMap = {
-      Bird: (_root: any, args: any) => ({
-        id: args.id,
+      Bird: () => ({
+        id: 'bird:hardcoded',
         returnInt: 100,
       }),
-      Bee: (_root: any, args: any) => ({
-        id: args.id,
+      Bee: () => ({
+        id: 'bee:hardcoded',
         returnEnum: 'A',
       }),
-      BirdsAndBees: (_root: any, args: any) => {
+      BirdsAndBees: () => {
         spy++;
-        const { id } = args;
-        const type = id.split(':')[0];
         return {
-          __typename: ['Bird', 'Bee'].find((r) => r.toLowerCase() === type),
+          __typename: 'Bee',
         };
       },
     };
     jsSchema = addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
-      preserveResolvers: true,
     });
     const testQuery = `{
         node2(id:"bee:123456"){
@@ -524,7 +542,7 @@ describe('Mock retro-compatibility', () => {
     return graphql(jsSchema, testQuery).then((res) => {
       expect(spy).toBe(1);
       expect(res.data.node2).toMatchObject({
-        id: 'bee:123456',
+        id: 'bee:hardcoded',
         returnEnum: 'A',
       });
     });
@@ -532,7 +550,6 @@ describe('Mock retro-compatibility', () => {
 
   test('throws an error when __typename is not returned within an explicit interface mock', () => {
     let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
-    jsSchema = addResolversToSchema(jsSchema, resolveFunctions);
     const mockMap = {
       Bird: (_root: any, args: any) => ({
         id: args.id,
