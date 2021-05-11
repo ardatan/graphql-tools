@@ -18,6 +18,9 @@
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0"
   },
+  "optionalDependencies": {
+    "@apollo/client": "~3.2.5 || ~3.3.0"
+  },
   "publishConfig": {
     "access": "public",
     "directory": "dist"
