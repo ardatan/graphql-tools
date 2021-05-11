@@ -1,5 +1,11 @@
 # @graphql-tools/stitch
 
+## 7.5.3
+
+### Patch Changes
+
+- b48f944c: chore(stitch) export typescript package types + cleanup (#2918)
+
 ## 7.5.2
 
 ### Patch Changes
