@@ -27,7 +27,7 @@ describe('Schema From Export', () => {
       expect(isSchema(schema)).toBeTruthy();
       const introspectionSchema = require('./test-files/githunt.json').__schema;
       for (const typeName in schema.getTypeMap()) {
-        if (!typeName.startsWith('_')) {
+        if (!typeName.startsWith('__')) {
           const type = schema.getType(typeName);
           const introspectionType = introspectionSchema.types.find((t: { name: string; }) => t.name === typeName);
           if (type.description || introspectionType.description) {
