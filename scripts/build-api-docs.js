@@ -3,7 +3,7 @@ const path = require('path');
 const rimraf = require('rimraf');
 const TypeDoc = require('typedoc');
 const { execSync } = require('child_process');
-const fsPromises = fs.promises;
+const fsPromises = require('fs/promises');
 const workspacePackageJson = require('../package.json');
 
 const MONOREPO = workspacePackageJson.name.replace('-monorepo', '');
@@ -33,7 +33,11 @@ async function buildApiDocs() {
   for (const packageJsonPath of packageJsonFiles) {
     const packageJsonContent = require(path.join(__dirname, '..', packageJsonPath));
     // Do not include private and large npm package that contains rest
-    if (!packageJsonContent.private && packageJsonContent.name !== MONOREPO) {
+    if (
+      !packageJsonContent.private &&
+      packageJsonContent.name !== MONOREPO &&
+      !packageJsonContent.name.endsWith('/container')
+    ) {
       modules.push([
         packageJsonContent.name,
         packageJsonPath.replace('./', '').replace('package.json', 'src/index.ts'),
@@ -83,6 +87,10 @@ async function buildApiDocs() {
   }
 
   async function visitMarkdownFile(filePath) {
+    if (!fs.existsSync(filePath)) {
+      console.warn(`${filePath} doesn't exist! Ignoring.`);
+      return;
+    }
     const lsStat = await fsPromises.lstat(filePath);
     if (lsStat.isFile()) {
       await patchMarkdownFile(filePath);
@@ -165,6 +173,10 @@ sidebar_label: "${id}"
   }
 
   function getSidebarItemsByDirectory(dirName) {
+    if (!fs.existsSync(dirName)) {
+      console.warn(`${dirName} doesn't exist! Ignoring.`);
+      return [];
+    }
     const filesInDirectory = fs.readdirSync(dirName);
     return filesInDirectory
       .map(fileName => {

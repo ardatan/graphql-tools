@@ -7,22 +7,22 @@ index 033a105..a4148d8 100644
  import useAlgoliaContextualFacetFilters from '@theme/hooks/useAlgoliaContextualFacetFilters';
  import {translate} from '@docusaurus/Translate';
 +import {CallEnum} from '@algolia/transporter';
-
+ 
  let DocSearchModal = null;
-
+ 
 @@ -101,7 +102,7 @@ function DocSearch({contextualSearch, ...props}) {
-
+ 
    const navigator = useRef({
      navigate({itemUrl}) {
 -      history.push(itemUrl);
 +      window.location.assign(itemUrl);
      },
    }).current;
-
+ 
 @@ -132,6 +133,13 @@ function DocSearch({contextualSearch, ...props}) {
          siteMetadata.docusaurusVersion,
        );
-
+ 
 +      const algoliaHost = 'the-guild.dev/api/algolia';
 +      searchClient.transporter.hosts.forEach(host => {
 +        if ((host.accept & CallEnum.Read) !== 0) {
