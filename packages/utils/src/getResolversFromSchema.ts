@@ -17,7 +17,7 @@ export function getResolversFromSchema(schema: GraphQLSchema): IResolvers {
   const typeMap = schema.getTypeMap();
 
   Object.keys(typeMap).forEach(typeName => {
-    if (!typeName.startsWith('_')) {
+    if (!typeName.startsWith('__')) {
       const type = typeMap[typeName];
 
       if (isScalarType(type)) {
