@@ -1,5 +1,15 @@
 # @graphql-tools/utils
 
+## 7.10.0
+
+### Minor Changes
+
+- e632c5d1: Make executors not generic over context types
+
+### Patch Changes
+
+- 99f092fd: fix(getResolversFromSchema) Fix resolvers for type names starting with a single underscore.
+
 ## 7.9.1
 
 ### Patch Changes
