@@ -10,7 +10,6 @@ import {
   DocumentNode,
   GraphQLOutputType,
   GraphQLObjectType,
-  GraphQLResolveInfo,
 } from 'graphql';
 
 import { ValueOrPromise } from 'value-or-promise';
@@ -19,9 +18,9 @@ import AggregateError from '@ardatan/aggregate-error';
 
 import { getBatchingExecutor } from '@graphql-tools/batch-execute';
 
-import { mapAsyncIterator, ExecutionResult, Executor, ExecutionParams } from '@graphql-tools/utils';
+import { mapAsyncIterator, ExecutionResult, Executor, ExecutionParams, Subscriber } from '@graphql-tools/utils';
 
-import { IDelegateToSchemaOptions, IDelegateRequestOptions, SubschemaConfig, StitchingInfo, Transform } from './types';
+import { IDelegateToSchemaOptions, IDelegateRequestOptions, StitchingInfo, DelegationContext } from './types';
 
 import { isSubschemaConfig } from './subschemaConfig';
 import { Subschema } from './Subschema';
@@ -77,23 +76,66 @@ function getDelegationReturnType(
   return rootType.getFields()[fieldName].type;
 }
 
-export function delegateRequest<TContext = Record<string, any>, TArgs = any>({
+export function delegateRequest<TContext = Record<string, any>, TArgs = any>(options: IDelegateRequestOptions<TContext, TArgs>) {
+  const delegationContext = getDelegationContext(options);
+
+  const transformer = new Transformer(delegationContext, options.binding);
+
+  const processedRequest = transformer.transformRequest(options.request);
+
+  if (!options.skipValidation) {
+    validateRequest(delegationContext, processedRequest.document);
+  }
+
+  const { operation, context, info } = delegationContext;
+
+  if (operation === 'query' || operation === 'mutation') {
+    const executor = getExecutor(delegationContext);
+
+    return new ValueOrPromise(() => executor({
+      ...processedRequest,
+      context,
+      info,
+    })).then(originalResult => transformer.transformResult(originalResult)).resolve();
+  }
+
+  const subscriber = getSubscriber(delegationContext);
+
+  return subscriber({
+    ...processedRequest,
+    context,
+    info,
+  }).then((subscriptionResult: AsyncIterableIterator<ExecutionResult> | ExecutionResult) => {
+    if (Symbol.asyncIterator in subscriptionResult) {
+      // "subscribe" to the subscription result and map the result through the transforms
+      return mapAsyncIterator<ExecutionResult, any>(
+        subscriptionResult as AsyncIterableIterator<ExecutionResult>,
+        originalResult => ({
+          [delegationContext.fieldName]: transformer.transformResult(originalResult),
+        })
+      );
+    }
+
+    return transformer.transformResult(subscriptionResult as ExecutionResult);
+  });
+}
+
+const emptyObject = {};
+
+function getDelegationContext({
   request,
-  schema: subschemaOrSubschemaConfig,
-  rootValue,
-  info,
+  schema,
   operation,
   fieldName,
-  args,
   returnType,
-  onLocatedError,
+  args,
   context,
+  info,
+  rootValue,
   transforms = [],
   transformedSchema,
-  skipValidation,
   skipTypeMerging,
-  binding,
-}: IDelegateRequestOptions<TContext, TArgs>) {
+}: IDelegateRequestOptions): DelegationContext {
   let operationDefinition: OperationDefinitionNode;
   let targetOperation: OperationTypeNode;
   let targetFieldName: string;
@@ -112,118 +154,51 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>({
     targetFieldName = fieldName;
   }
 
-  const { targetSchema, targetRootValue, subschemaConfig, allTransforms } = collectTargetParameters(
-    subschemaOrSubschemaConfig,
-    rootValue,
-    info,
-    transforms
-  );
+  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
 
-  const delegationContext = {
-    subschema: subschemaOrSubschemaConfig,
-    targetSchema,
+  const subschemaOrSubschemaConfig = stitchingInfo?.subschemaMap.get(schema) ?? schema;
+
+  if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
+    const targetSchema = subschemaOrSubschemaConfig.schema;
+    return {
+      subschema: schema,
+      subschemaConfig: subschemaOrSubschemaConfig,
+      targetSchema,
+      operation: targetOperation,
+      fieldName: targetFieldName,
+      args,
+      context,
+      info,
+      rootValue: rootValue ?? subschemaOrSubschemaConfig?.rootValue ?? info?.rootValue ?? emptyObject,
+      returnType: returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
+      transforms:
+        subschemaOrSubschemaConfig.transforms != null
+          ? subschemaOrSubschemaConfig.transforms.concat(transforms)
+          : transforms,
+      transformedSchema: transformedSchema ?? (subschemaOrSubschemaConfig as Subschema)?.transformedSchema ?? targetSchema,
+      skipTypeMerging,
+    };
+  }
+
+  return {
+    subschema: schema,
+    subschemaConfig: undefined,
+    targetSchema: subschemaOrSubschemaConfig,
     operation: targetOperation,
     fieldName: targetFieldName,
     args,
     context,
     info,
-    returnType:
-      returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
-    onLocatedError,
-    transforms: allTransforms,
-    transformedSchema: transformedSchema ?? (subschemaConfig as Subschema)?.transformedSchema ?? targetSchema,
+    rootValue: rootValue ?? info?.rootValue ?? emptyObject,
+    returnType: returnType ?? info?.returnType ?? getDelegationReturnType(subschemaOrSubschemaConfig, targetOperation, targetFieldName),
+    transforms,
+    transformedSchema: transformedSchema ?? subschemaOrSubschemaConfig,
     skipTypeMerging,
   };
-
-  const transformer = new Transformer(delegationContext, binding);
-
-  const processedRequest = transformer.transformRequest(request);
-
-  if (!skipValidation) {
-    validateRequest(targetSchema, processedRequest.document);
-  }
-
-  if (targetOperation === 'query' || targetOperation === 'mutation') {
-    let executor: Executor =
-      subschemaConfig?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || targetRootValue);
-
-    if (subschemaConfig?.batch) {
-      const batchingOptions = subschemaConfig?.batchingOptions;
-      executor = getBatchingExecutor(
-        context,
-        executor,
-        batchingOptions?.dataLoaderOptions,
-        batchingOptions?.extensionsReducer
-      );
-    }
-
-    return new ValueOrPromise(() => executor({
-      ...processedRequest,
-      context,
-      info,
-    })).then(originalResult => transformer.transformResult(originalResult)).resolve();
-  }
-
-  const subscriber =
-    subschemaConfig?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || targetRootValue);
-
-  return subscriber({
-    ...processedRequest,
-    context,
-    info,
-  }).then((subscriptionResult: AsyncIterableIterator<ExecutionResult> | ExecutionResult) => {
-    if (Symbol.asyncIterator in subscriptionResult) {
-      // "subscribe" to the subscription result and map the result through the transforms
-      return mapAsyncIterator<ExecutionResult, any>(
-        subscriptionResult as AsyncIterableIterator<ExecutionResult>,
-        originalResult => ({
-          [targetFieldName]: transformer.transformResult(originalResult),
-        })
-      );
-    }
-
-    return transformer.transformResult(subscriptionResult as ExecutionResult);
-  });
 }
 
-const emptyObject = {};
-
-function collectTargetParameters(
-  subschema: GraphQLSchema | SubschemaConfig,
-  rootValue: Record<string, any>,
-  info: GraphQLResolveInfo,
-  transforms: Array<Transform> = []
-): {
-  targetSchema: GraphQLSchema;
-  targetRootValue: Record<string, any>;
-  subschemaConfig?: SubschemaConfig;
-  allTransforms: Array<Transform>;
-} {
-  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
-
-  const subschemaOrSubschemaConfig = stitchingInfo?.subschemaMap.get(subschema) ?? subschema;
-
-  if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
-    return {
-      targetSchema: subschemaOrSubschemaConfig.schema,
-      targetRootValue: rootValue ?? subschemaOrSubschemaConfig?.rootValue ?? info?.rootValue ?? emptyObject,
-      subschemaConfig: subschemaOrSubschemaConfig,
-      allTransforms:
-        subschemaOrSubschemaConfig.transforms != null
-          ? subschemaOrSubschemaConfig.transforms.concat(transforms)
-          : transforms,
-    };
-  }
-
-  return {
-    targetSchema: subschemaOrSubschemaConfig,
-    targetRootValue: rootValue ?? info?.rootValue ?? emptyObject,
-    allTransforms: transforms,
-  };
-}
-
-function validateRequest(targetSchema: GraphQLSchema, document: DocumentNode) {
-  const errors = validate(targetSchema, document);
+function validateRequest(delegationContext: DelegationContext, document: DocumentNode) {
+  const errors = validate(delegationContext.targetSchema, document);
   if (errors.length > 0) {
     if (errors.length > 1) {
       const combinedError = new AggregateError(errors);
@@ -232,6 +207,30 @@ function validateRequest(targetSchema: GraphQLSchema, document: DocumentNode) {
     const error = errors[0];
     throw error.originalError || error;
   }
+}
+
+function getExecutor(delegationContext: DelegationContext): Executor {
+  const { subschemaConfig, targetSchema, context, rootValue } = delegationContext;
+
+  let executor: Executor =
+    subschemaConfig?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || rootValue);
+
+  if (subschemaConfig?.batch) {
+    const batchingOptions = subschemaConfig?.batchingOptions;
+    executor = getBatchingExecutor(
+      context,
+      executor,
+      batchingOptions?.dataLoaderOptions,
+      batchingOptions?.extensionsReducer
+    );
+  }
+
+  return executor;
+}
+
+function getSubscriber(delegationContext: DelegationContext): Subscriber {
+  const { subschemaConfig, targetSchema, rootValue } = delegationContext;
+  return subschemaConfig?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || rootValue);
 }
 
 const createDefaultExecutor = memoize2(function (schema: GraphQLSchema, rootValue: Record<string, any>): Executor {
