@@ -23,12 +23,14 @@ import {
   ExecutionParams,
   ExecutionResult,
   Executor,
+  Request,
   Subscriber,
   isAsyncIterable,
   mapAsyncIterator,
 } from '@graphql-tools/utils';
 
 import {
+  DelegationBinding,
   DelegationContext,
   IDelegateToSchemaOptions,
   IDelegateRequestOptions,
@@ -42,6 +44,7 @@ import { Transformer } from './Transformer';
 import { memoize2 } from './memoize';
 import { InitialReceiver } from './InitialReceiver';
 import { externalValueFromResult } from './externalValues';
+import { defaultDelegationBinding } from './delegationBindings';
 
 export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
   options: IDelegateToSchemaOptions<TContext, TArgs>
@@ -94,72 +97,13 @@ function getDelegationReturnType(
 export function delegateRequest<TContext = Record<string, any>, TArgs = any>(options: IDelegateRequestOptions<TContext, TArgs>) {
   const delegationContext = getDelegationContext(options);
 
-  const transformer = new Transformer(delegationContext, options.binding);
-
-  const processedRequest = transformer.transformRequest(options.request);
-
-  if (!options.skipValidation) {
-    validateRequest(delegationContext, processedRequest.document);
-  }
-
-  const { operation, context, info } = delegationContext;
+  const operation = delegationContext.operation;
 
   if (operation === 'query' || operation === 'mutation') {
-    const executor = getExecutor(delegationContext);
-
-    return new ValueOrPromise(() => executor({
-      ...processedRequest,
-      context,
-      info
-    })).then(
-      executionResult => handleExecutionResult(
-        executionResult,
-        delegationContext,
-        originalResult => transformer.transformResult(originalResult)
-      )
-    ).resolve();
+    return delegateQueryOrMutation(options.request, delegationContext, options.skipValidation, options.binding);
   }
 
-  const subscriber = getSubscriber(delegationContext);
-
-  return subscriber({
-    ...processedRequest,
-    context,
-    info,
-  }).then(subscriptionResult =>
-    handleSubscriptionResult(subscriptionResult, delegationContext, originalResult =>
-      transformer.transformResult(originalResult)
-    )
-  );
-}
-
-function handleExecutionResult(
-  executionResult: ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>,
-  delegationContext: DelegationContext,
-  resultTransformer: (originalResult: ExecutionResult) => ExecutionResult
-): any {
-  if (isAsyncIterable(executionResult)) {
-    const receiver = new InitialReceiver(executionResult, delegationContext, resultTransformer);
-
-    return receiver.getInitialResult();
-  }
-
-  return externalValueFromResult(resultTransformer(executionResult), delegationContext);
-}
-
-function handleSubscriptionResult(
-  subscriptionResult: AsyncIterableIterator<ExecutionResult> | ExecutionResult,
-  delegationContext: DelegationContext,
-  resultTransformer: (originalResult: ExecutionResult) => any
-): ExecutionResult | AsyncIterableIterator<ExecutionResult> {
-  if (isAsyncIterable(subscriptionResult)) {
-    // "subscribe" to the subscription result and map the result through the transforms
-    return mapAsyncIterator<ExecutionResult, any>(subscriptionResult, originalResult => ({
-      [delegationContext.fieldName]: externalValueFromResult(resultTransformer(originalResult), delegationContext),
-    }));
-  }
-
-  return resultTransformer(subscriptionResult);
+  return delegateSubscription(options.request, delegationContext, options.skipValidation, options.binding);
 }
 
 const emptyObject = {};
@@ -250,6 +194,17 @@ function validateRequest(delegationContext: DelegationContext, document: Documen
   }
 }
 
+const createDefaultExecutor = memoize2(function (schema: GraphQLSchema, rootValue: Record<string, any>): Executor {
+  return (({ document, context, variables, info }: ExecutionParams) =>
+    execute({
+      schema,
+      document,
+      contextValue: context,
+      variableValues: variables,
+      rootValue: rootValue ?? info?.rootValue,
+    })) as Executor;
+});
+
 function getExecutor(delegationContext: DelegationContext): Executor {
   const { subschemaConfig, targetSchema, context, rootValue } = delegationContext;
 
@@ -270,21 +225,45 @@ function getExecutor(delegationContext: DelegationContext): Executor {
   return executor;
 }
 
-function getSubscriber(delegationContext: DelegationContext): Subscriber {
-  const { subschemaConfig, targetSchema, rootValue } = delegationContext;
-  return subschemaConfig?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || rootValue);
+function handleExecutionResult(
+  executionResult: ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>,
+  delegationContext: DelegationContext,
+  resultTransformer: (originalResult: ExecutionResult) => ExecutionResult
+): any {
+  if (isAsyncIterable(executionResult)) {
+    const receiver = new InitialReceiver(executionResult, delegationContext, resultTransformer);
+
+    return receiver.getInitialResult();
+  }
+
+  return externalValueFromResult(resultTransformer(executionResult), delegationContext);
 }
 
-const createDefaultExecutor = memoize2(function (schema: GraphQLSchema, rootValue: Record<string, any>): Executor {
-  return (({ document, context, variables, info }: ExecutionParams) =>
-    execute({
-      schema,
-      document,
-      contextValue: context,
-      variableValues: variables,
-      rootValue: rootValue ?? info?.rootValue,
-    })) as Executor;
-});
+export function delegateQueryOrMutation(request: Request, delegationContext: DelegationContext, skipValidation?: boolean, binding: DelegationBinding = defaultDelegationBinding) {
+  const transformer = new Transformer(delegationContext, binding);
+
+  const processedRequest = transformer.transformRequest(request);
+
+  if (!skipValidation) {
+    validateRequest(delegationContext, processedRequest.document);
+  }
+
+  const { context, info } = delegationContext;
+
+  const executor = getExecutor(delegationContext);
+
+  return new ValueOrPromise(() => executor({
+    ...processedRequest,
+    context,
+    info
+  })).then(
+    executionResult => handleExecutionResult(
+      executionResult,
+      delegationContext,
+      originalResult => transformer.transformResult(originalResult)
+    )
+  ).resolve();
+}
 
 function createDefaultSubscriber(schema: GraphQLSchema, rootValue: Record<string, any>): Subscriber {
   return (async ({ document, context, variables, info }: ExecutionParams) =>
@@ -295,4 +274,48 @@ function createDefaultSubscriber(schema: GraphQLSchema, rootValue: Record<string
       variableValues: variables,
       rootValue: rootValue ?? info?.rootValue,
     })) as Subscriber;
+}
+
+function getSubscriber(delegationContext: DelegationContext): Subscriber {
+  const { subschemaConfig, targetSchema, rootValue } = delegationContext;
+  return subschemaConfig?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || rootValue);
+}
+
+function handleSubscriptionResult(
+  subscriptionResult: AsyncIterableIterator<ExecutionResult> | ExecutionResult,
+  delegationContext: DelegationContext,
+  resultTransformer: (originalResult: ExecutionResult) => any
+): ExecutionResult | AsyncIterableIterator<ExecutionResult> {
+  if (isAsyncIterable(subscriptionResult)) {
+    // "subscribe" to the subscription result and map the result through the transforms
+    return mapAsyncIterator<ExecutionResult, any>(subscriptionResult, originalResult => ({
+      [delegationContext.fieldName]: externalValueFromResult(resultTransformer(originalResult), delegationContext),
+    }));
+  }
+
+  return resultTransformer(subscriptionResult);
+}
+
+export function delegateSubscription(request: Request, delegationContext: DelegationContext, skipValidation = false, binding = defaultDelegationBinding) {
+  const transformer = new Transformer(delegationContext, binding);
+
+  const processedRequest = transformer.transformRequest(request);
+
+  if (!skipValidation) {
+    validateRequest(delegationContext, processedRequest.document);
+  }
+
+  const { context, info } = delegationContext;
+
+  const subscriber = getSubscriber(delegationContext);
+
+  return subscriber({
+    ...processedRequest,
+    context,
+    info,
+  }).then(subscriptionResult =>
+    handleSubscriptionResult(subscriptionResult, delegationContext, originalResult =>
+      transformer.transformResult(originalResult)
+    )
+  );
 }
