@@ -43,12 +43,14 @@ export interface Transform<T = Record<string, any>> {
 
 export interface DelegationContext {
   subschema: GraphQLSchema | SubschemaConfig;
+  subschemaConfig: SubschemaConfig;
   targetSchema: GraphQLSchema;
   operation: OperationTypeNode;
   fieldName: string;
   args: Record<string, any>;
   context: Record<string, any>;
   info: GraphQLResolveInfo;
+  rootValue?: Record<string, any>,
   returnType: GraphQLOutputType;
   onLocatedError?: (originalError: GraphQLError) => GraphQLError;
   transforms: Array<Transform>;
