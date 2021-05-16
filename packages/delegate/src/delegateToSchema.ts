@@ -26,7 +26,6 @@ import {
   Subscriber,
   isAsyncIterable,
   mapAsyncIterator,
-  Subscriber,
 } from '@graphql-tools/utils';
 
 import {
