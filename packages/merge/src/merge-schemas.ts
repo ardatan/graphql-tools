@@ -70,7 +70,7 @@ export function mergeSchemas(config: MergeSchemasConfig) {
 }
 
 /**
- * Synchronously merges multiple schemas, typeDefinitions and/or resolvers into a single schema.
+ * Asynchronously merges multiple schemas, typeDefinitions and/or resolvers into a single schema.
  * @param config Configuration object
  */
 export async function mergeSchemasAsync(config: MergeSchemasConfig) {
