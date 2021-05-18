@@ -133,7 +133,7 @@ function getMergedParentsFromFieldNodes(
   sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
   targetSubschemas: Array<Subschema>,
   context: Record<string, any>,
-  info: GraphQLResolveInfo
+  parentInfo: GraphQLResolveInfo
 ): Record<string, Promise<ExternalObject>> {
   if (!fieldNodes.length) {
     return Object.create(null);
@@ -163,7 +163,7 @@ function getMergedParentsFromFieldNodes(
   delegationMap.forEach((fieldNodes: Array<FieldNode>, s: Subschema) => {
     const resolver = mergedTypeInfo.resolvers.get(s);
     const selectionSet = { kind: Kind.SELECTION_SET, selections: fieldNodes };
-    let maybePromise = resolver(object, context, info, s, selectionSet);
+    let maybePromise = resolver(object, context, parentInfo, s, selectionSet);
     if (isPromise(maybePromise)) {
       maybePromise = maybePromise.then(undefined, error => error);
     }
@@ -171,8 +171,8 @@ function getMergedParentsFromFieldNodes(
 
     const promise = Promise.resolve(maybePromise).then(result =>
       mergeExternalObjects(
-        info.schema,
-        responsePathAsArray(info.path),
+        parentInfo.schema,
+        responsePathAsArray(parentInfo.path),
         object.__typename,
         object,
         [result],
@@ -190,8 +190,8 @@ function getMergedParentsFromFieldNodes(
     .then(results => getMergedParentsFromFieldNodes(
         mergedTypeInfo,
         mergeExternalObjects(
-          info.schema,
-          responsePathAsArray(info.path),
+          parentInfo.schema,
+          responsePathAsArray(parentInfo.path),
           object.__typename,
           object,
           results,
@@ -201,7 +201,7 @@ function getMergedParentsFromFieldNodes(
         combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
         nonProxiableSubschemas,
         context,
-        info
+        parentInfo
       )
     );
 
