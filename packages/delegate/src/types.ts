@@ -200,9 +200,14 @@ export interface StitchingInfo<TContext = Record<string, any>> {
   mergedTypes: Record<string, MergedTypeInfo<TContext>>;
 }
 
+export interface MergedExecutionResult<TData = Record<string, any>> {
+  unpathedErrors: Array<GraphQLError>;
+  data: TData;
+}
+
 export interface Receiver {
-  request: (info: GraphQLResolveInfo) => Promise<any>;
-  update: (parent: ExternalObject, info: GraphQLResolveInfo) => any;
+  request: (info: GraphQLResolveInfo) => Promise<MergedExecutionResult | AsyncIterableIterator<MergedExecutionResult>>;
+  update: (info: GraphQLResolveInfo, result: MergedExecutionResult) => void;
 }
 
 export interface ExternalObject<TContext = Record<string, any>> {

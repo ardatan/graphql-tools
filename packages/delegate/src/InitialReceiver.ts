@@ -3,9 +3,12 @@ import {
   ExecutionResult,
   getNamedType,
   GraphQLList,
+  GraphQLObjectType,
   GraphQLOutputType,
   GraphQLResolveInfo,
+  GraphQLSchema,
   isCompositeType,
+  isObjectType,
   Kind,
   responsePathAsArray,
   SelectionSetNode,
@@ -15,12 +18,10 @@ import DataLoader from 'dataloader';
 
 import { Repeater, Stop } from '@repeaterjs/repeater';
 
-import { AsyncExecutionResult, getResponseKeyFromInfo } from '@graphql-tools/utils';
+import { AsyncExecutionResult, collectFields, getResponseKeyFromInfo, GraphQLExecutionContext } from '@graphql-tools/utils';
 
-import { DelegationContext, ExternalObject, Receiver } from './types';
-import { getReceiver, getSubschema, getUnpathedErrors, mergeExternalObjects } from './externalObjects';
-import { resolveExternalValue } from './resolveExternalValue';
-import { externalValueFromResult, externalValueFromPatchResult } from './externalValues';
+import { DelegationContext, MergedExecutionResult, Receiver } from './types';
+import { mergeDataAndErrors } from './externalValues';
 import { ExpectantStore } from './expectantStore';
 import { fieldShouldStream } from './fieldShouldStream';
 
@@ -28,13 +29,12 @@ export class InitialReceiver implements Receiver {
   private readonly asyncIterable: AsyncIterable<AsyncExecutionResult>;
   private readonly delegationContext: DelegationContext;
   private readonly fieldName: string;
-  private readonly context: Record<string, any>;
   private readonly asyncSelectionSets: Record<string, SelectionSetNode>;
   private readonly resultTransformer: (originalResult: ExecutionResult) => any;
   private readonly initialResultDepth: number;
   private deferredPatches: Record<string, Array<ExecutionPatchResult>>;
   private streamedPatches: Record<string, Record<number, Array<ExecutionPatchResult>>>;
-  private cache: ExpectantStore<ExternalObject>;
+  private cache: ExpectantStore<MergedExecutionResult>;
   private stoppers: Array<Stop>;
   private loaders: Record<string, DataLoader<GraphQLResolveInfo, any>>;
   private infos: Record<string, Record<string, GraphQLResolveInfo>>;
@@ -47,10 +47,9 @@ export class InitialReceiver implements Receiver {
     this.asyncIterable = asyncIterable;
 
     this.delegationContext = delegationContext;
-    const { fieldName, context, info, asyncSelectionSets } = delegationContext;
+    const { fieldName, info, asyncSelectionSets } = delegationContext;
 
     this.fieldName = fieldName;
-    this.context = context;
     this.asyncSelectionSets = asyncSelectionSets;
 
     this.resultTransformer = resultTransformer;
@@ -64,44 +63,43 @@ export class InitialReceiver implements Receiver {
     this.infos = Object.create(null);
   }
 
-  public async getInitialResult(): Promise<ExecutionResult> {
-    let initialResult: any;
+  public async getInitialResult(): Promise<MergedExecutionResult> {
+    const { fieldName, info, onLocatedError } = this.delegationContext;
+
+    let initialResult: ExecutionResult;
+    let initialData: any;
     for await (const payload of this.asyncIterable) {
-      initialResult = externalValueFromResult(this.resultTransformer(payload), this.delegationContext, this);
-      if (initialResult != null) {
+      initialResult = this.resultTransformer(payload);
+      initialData = initialResult?.data?.[fieldName];
+      if (initialData != null) {
         break;
       }
     }
-    this.cache.set(getResponseKeyFromInfo(this.delegationContext.info), initialResult);
+
+    const fullPath = responsePathAsArray(info.path);
+    const newResult = mergeDataAndErrors(initialData, initialResult.errors, fullPath, onLocatedError);
+    this.cache.set(getResponseKeyFromInfo(info), newResult);
 
     this._iterate();
 
-    return initialResult;
+    return newResult;
   }
 
-  public update(parent: ExternalObject, info: GraphQLResolveInfo): any {
+  public update(info: GraphQLResolveInfo, result: MergedExecutionResult): void {
     const path = responsePathAsArray(info.path).slice(this.initialResultDepth);
     const pathKey = path.join('.');
-    const responseKey = path.slice().pop() as string;
-    const data = parent[responseKey];
 
-    return this._update(parent, info, pathKey, responseKey, data);
+    this._update(info, result, pathKey);
   }
 
   private _update(
-    parent: ExternalObject,
     info: GraphQLResolveInfo,
+    result: MergedExecutionResult,
     pathKey: string,
-    responseKey: string,
-    data: any,
-  ): any {
-    const unpathedErrors = getUnpathedErrors(parent);
-    const subschema = getSubschema(parent, responseKey);
-    const receiver = getReceiver(parent, subschema);
-    const newExternalValue = resolveExternalValue(data, unpathedErrors, subschema, this.context, info, receiver);
-    this.onNewExternalValue(
+  ): void {
+    this.onNewResult(
       pathKey,
-      newExternalValue,
+      result,
       isCompositeType(getNamedType(info.returnType))
         ? {
             kind: Kind.SELECTION_SET,
@@ -109,10 +107,9 @@ export class InitialReceiver implements Receiver {
           }
         : undefined
     );
-    return newExternalValue;
   }
 
-  public request(info: GraphQLResolveInfo): Promise<any> {
+  public request(info: GraphQLResolveInfo): Promise<MergedExecutionResult> {
     const path = responsePathAsArray(info.path).slice(this.initialResultDepth);
     const pathKey = path.join('.');
     let loader = this.loaders[pathKey];
@@ -154,22 +151,25 @@ export class InitialReceiver implements Receiver {
       throw new Error(`Parent with key "${parentKey}" not available.`)
     }
 
-    const data = parent[responseKey];
+    const data = parent.data[responseKey];
     if (data !== undefined) {
-      this._update(parent, combinedInfo, pathKey, responseKey, data);
+      const newResult = { data, unpathedErrors: parent.unpathedErrors };
+      this._update(combinedInfo, newResult, pathKey);
     }
 
     if (fieldShouldStream(combinedInfo)) {
       return infos.map(() => this._stream(pathKey));
     }
 
-    const externalValue = await this.cache.request(pathKey);
-    return new Array(infos.length).fill(externalValue);
+    const result = await this.cache.request(pathKey);
+    return new Array(infos.length).fill(result);
   }
 
-  private _stream(pathKey: string): AsyncIterator<any> {
+  private _stream(pathKey: string): AsyncIterator<MergedExecutionResult> {
+    const cache = this.cache;
     return new Repeater(async (push, stop) => {
-      const initialValues = ((await this.cache.request(pathKey)) as unknown) as Array<ExternalObject>;
+      const initialResult = await cache.request(pathKey);
+      const initialData = initialResult.data;
 
       let stopped = false;
       stop.then(() => (stopped = true));
@@ -178,12 +178,13 @@ export class InitialReceiver implements Receiver {
       let index = 0;
 
       /* eslint-disable no-unmodified-loop-condition */
-      while (!stopped && index < initialValues.length) {
-        await push(initialValues[index++]);
+      while (!stopped && index < initialData.length) {
+        const data = initialData[index++];
+        await push({ data, unpathedErrors: initialResult.unpathedErrors });
       }
 
       while (!stopped) {
-        await push(this.cache.request(`${pathKey}.${index++}`));
+        await push(cache.request(`${pathKey}.${index++}`));
       }
       /* eslint-disable no-unmodified-loop-condition */
     });
@@ -213,14 +214,13 @@ export class InitialReceiver implements Receiver {
       const transformedResult = this.resultTransformer(asyncResult);
 
       if (path.length === 1) {
-        const newExternalValue = externalValueFromPatchResult(
-          transformedResult,
-          this.delegationContext,
-          this.delegationContext.info,
-          this
-        );
         const pathKey = path.join('.');
-        this.onNewExternalValue(pathKey, newExternalValue, this.asyncSelectionSets[asyncResult.label]);
+
+        const { info, onLocatedError } = this.delegationContext;
+        const fullPath = responsePathAsArray(info.path);
+        const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, fullPath, onLocatedError);
+
+        this.onNewResult(pathKey, newResult, this.asyncSelectionSets[asyncResult.label]);
         continue;
       }
 
@@ -250,8 +250,11 @@ export class InitialReceiver implements Receiver {
           continue;
         }
 
-        const newExternalValue = externalValueFromPatchResult(transformedResult, this.delegationContext, info, this);
-        this.onNewExternalValue(`${pathKey}.${index}`, newExternalValue, this.asyncSelectionSets[asyncResult.label]);
+        const { onLocatedError } = this.delegationContext;
+        const fullPath = responsePathAsArray(info.path);
+        const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, fullPath, onLocatedError);
+
+        this.onNewResult(`${pathKey}.${index}`, newResult, this.asyncSelectionSets[asyncResult.label]);
         continue;
       }
 
@@ -271,8 +274,11 @@ export class InitialReceiver implements Receiver {
         continue;
       }
 
-      const newExternalValue = externalValueFromPatchResult(transformedResult, this.delegationContext, info, this);
-      this.onNewExternalValue(`${pathKey}`, newExternalValue, this.asyncSelectionSets[asyncResult.label]);
+      const { onLocatedError } = this.delegationContext;
+      const fullPath = responsePathAsArray(info.path);
+      const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, fullPath, onLocatedError);
+
+      this.onNewResult(pathKey, newResult, this.asyncSelectionSets[asyncResult.label]);
     }
 
     setTimeout(() => {
@@ -281,36 +287,32 @@ export class InitialReceiver implements Receiver {
     });
   }
 
-  private onNewExternalValue(pathKey: string, newExternalValue: any, selectionSet: SelectionSetNode): void {
-    const externalValue = this.cache.get(pathKey);
-    this.cache.set(
-      pathKey,
-      externalValue === undefined
-        ? newExternalValue
-        : mergeExternalObjects(
-            this.delegationContext.info.schema,
-            pathKey.split('.'),
-            externalValue.__typename,
-            externalValue,
-            [newExternalValue],
-            [selectionSet]
-          )
-    );
+  private onNewResult(pathKey: string, newResult: MergedExecutionResult, selectionSet: SelectionSetNode): void {
+    const result = this.cache.get(pathKey);
+    const mergedResult = result === undefined
+      ? newResult
+      : mergeResults(
+          this.delegationContext.info.schema,
+          result.data.__typename,
+          result,
+          newResult,
+          selectionSet
+        );
+
+    this.cache.set(pathKey, mergedResult);
 
     const infosByParentKey = this.infos[pathKey];
     if (infosByParentKey !== undefined) {
-      const unpathedErrors = getUnpathedErrors(newExternalValue);
+      const unpathedErrors = newResult.unpathedErrors;
       Object.keys(infosByParentKey).forEach(responseKey => {
         const info = infosByParentKey[responseKey];
-        const data = newExternalValue[responseKey];
+        const data = newResult.data[responseKey];
         if (data !== undefined) {
-          const subschema = getSubschema(newExternalValue, responseKey);
-          const receiver = getReceiver(newExternalValue, subschema);
-          const subExternalValue = resolveExternalValue(data, unpathedErrors, subschema, this.context, info, receiver);
+          const subResult = { data, unpathedErrors };
           const subPathKey = `${pathKey}.${responseKey}`;
-          this.onNewExternalValue(
+          this.onNewResult(
             subPathKey,
-            subExternalValue,
+            subResult,
             isCompositeType(getNamedType(info.returnType))
               ? {
                   kind: Kind.SELECTION_SET,
@@ -321,16 +323,16 @@ export class InitialReceiver implements Receiver {
         }
       });
     }
-
-    this.cache.set(pathKey, newExternalValue);
   }
 
   private onNewInfo(pathKey: string, info: GraphQLResolveInfo): void {
     const deferredPatches = this.deferredPatches[pathKey];
     if (deferredPatches !== undefined) {
       deferredPatches.forEach(deferredPatch => {
-        const newExternalValue = externalValueFromPatchResult(deferredPatch, this.delegationContext, info, this);
-        this.onNewExternalValue(pathKey, newExternalValue, this.asyncSelectionSets[deferredPatch.label]);
+        const { onLocatedError } = this.delegationContext;
+        const fullPath = responsePathAsArray(info.path);
+        const newResult = mergeDataAndErrors(deferredPatch.data, deferredPatch.errors, fullPath, onLocatedError);
+        this.onNewResult(pathKey, newResult, this.asyncSelectionSets[deferredPatch.label]);
       });
     }
 
@@ -342,10 +344,44 @@ export class InitialReceiver implements Receiver {
       };
       Object.entries(streamedPatches).forEach(([index, indexPatches]) => {
         indexPatches.forEach(patch => {
-          const newExternalValue = externalValueFromPatchResult(patch, this.delegationContext, listMemberInfo, this);
-          this.onNewExternalValue(`${pathKey}.${index}`, newExternalValue, this.asyncSelectionSets[patch.label]);
+          const { onLocatedError } = this.delegationContext;
+          const fullPath = responsePathAsArray(listMemberInfo.path);
+          const newResult = mergeDataAndErrors(patch.data, patch.errors, fullPath, onLocatedError);
+          this.onNewResult(`${pathKey}.${index}`, newResult, this.asyncSelectionSets[patch.label]);
         });
       });
     }
   }
+}
+
+export function mergeResults(
+  schema: GraphQLSchema,
+  typeName: string,
+  target: MergedExecutionResult,
+  source: MergedExecutionResult,
+  selectionSet: SelectionSetNode
+): MergedExecutionResult {
+  if (isObjectType(schema.getType(typeName))) {
+    const fieldNodes = collectFields(
+      {
+        schema,
+        variableValues: {},
+        fragments: {},
+      } as GraphQLExecutionContext,
+      schema.getType(typeName) as GraphQLObjectType,
+      selectionSet,
+      Object.create(null),
+      Object.create(null)
+    );
+
+    const targetData = target.data;
+    const sourceData = source.data;
+    Object.keys(fieldNodes).forEach(responseKey => {
+      targetData[responseKey] = sourceData[responseKey];
+    });
+  }
+
+  target.unpathedErrors.push(...source.unpathedErrors ?? []);
+
+  return target;
 }

@@ -26,7 +26,7 @@ export function isExternalObject(data: any): data is ExternalObject {
   return data != null && data[UNPATHED_ERRORS_SYMBOL] !== undefined;
 }
 
-export function annotateExternalObject(
+export function createExternalObject(
   object: any,
   errors: Array<GraphQLError>,
   subschema: GraphQLSchema | SubschemaConfig,
@@ -42,7 +42,9 @@ export function annotateExternalObject(
   const receiverMap: Map<GraphQLSchema | SubschemaConfig, Receiver> = new Map();
   receiverMap.set(subschema, receiver);
 
-  Object.defineProperties(object, {
+  const newObject = { ...object };
+
+  Object.defineProperties(newObject, {
     [OBJECT_SUBSCHEMA_SYMBOL]: { value: subschema },
     [INITIAL_POSSIBLE_FIELDS]: { value: initialPossibleFields },
     [INFO_SYMBOL]: { value: info },
@@ -50,7 +52,8 @@ export function annotateExternalObject(
     [UNPATHED_ERRORS_SYMBOL]: { value: errors },
     [RECEIVER_MAP_SYMBOL]: { value: receiverMap },
   });
-  return object;
+
+  return newObject;
 }
 
 export function getSubschema(object: ExternalObject, responseKey?: string): GraphQLSchema | SubschemaConfig {

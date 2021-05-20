@@ -27,11 +27,11 @@ export class ExpectantStore<T> {
     return this.cache[key];
   }
 
-  request(key: string): Promise<T> | T {
+  request(key: string): Promise<T> {
     const value = this.cache[key];
 
     if (value !== undefined) {
-      return value;
+      return Promise.resolve(value);
     }
 
     let settlers = this.settlers[key];

@@ -58,8 +58,8 @@ function externalValueFromDataAndErrors(
 
 export function mergeDataAndErrors(
   data: any,
-  errors: ReadonlyArray<GraphQLError>,
-  path: Array<string | number>,
+  errors: ReadonlyArray<GraphQLError> = [],
+  path: ReadonlyArray<string | number>,
   onLocatedError: (originalError: GraphQLError) => GraphQLError,
   index = 1
 ): { data: any; unpathedErrors: Array<GraphQLError> } {

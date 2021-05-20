@@ -1,8 +1,8 @@
-import { GraphQLResolveInfo, defaultFieldResolver } from 'graphql';
+import { GraphQLResolveInfo, defaultFieldResolver, GraphQLList, GraphQLOutputType } from 'graphql';
 
-import { getResponseKeyFromInfo } from '@graphql-tools/utils';
+import { getResponseKeyFromInfo, mapAsyncIterator } from '@graphql-tools/utils';
 
-import { ExternalObject } from './types';
+import { ExternalObject, MergedExecutionResult } from './types';
 
 import { resolveExternalValue } from './resolveExternalValue';
 import {
@@ -68,14 +68,24 @@ function resolveField(
   const data = parent[responseKey];
   if (receiver !== undefined) {
     if (fieldShouldStream(info)) {
-      return receiver.request(info);
+      return receiver.request(info).then(asyncIterator => {
+        const listMemberInfo: GraphQLResolveInfo = {
+          ...info,
+          returnType: (info.returnType as GraphQLList<GraphQLOutputType>).ofType,
+        };
+        return mapAsyncIterator(asyncIterator as AsyncIterableIterator<MergedExecutionResult>, ({ data, unpathedErrors }) =>
+          resolveExternalValue(data, unpathedErrors, fieldSubschema, context, listMemberInfo, receiver));
+      });
     }
 
-    if (data !== undefined) {
-      return receiver.update(parent, info);
+    if (data === undefined) {
+      return receiver.request(info).then(result =>
+        resolveExternalValue((result as MergedExecutionResult).data, (result as MergedExecutionResult).unpathedErrors, fieldSubschema, context, info, receiver));
     }
 
-    return receiver.request(info);
+    const unpathedErrors = getUnpathedErrors(parent);
+    receiver.update(info, { data, unpathedErrors });
+    return resolveExternalValue(data, unpathedErrors, fieldSubschema, context, info, receiver);
   }
 
   if (data !== undefined) {

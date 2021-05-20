@@ -14,7 +14,7 @@ import {
 import AggregateError from '@ardatan/aggregate-error';
 
 import { Receiver, SubschemaConfig } from './types';
-import { annotateExternalObject, isExternalObject } from './externalObjects';
+import { createExternalObject, isExternalObject } from './externalObjects';
 
 export function resolveExternalValue(
   result: any,
@@ -57,9 +57,7 @@ function resolveExternalObject(
     return object;
   }
 
-  annotateExternalObject(object, unpathedErrors, subschema, info, receiver);
-
-  return object;
+  return createExternalObject(object, unpathedErrors, subschema, info, receiver);
 }
 
 function resolveExternalList(
