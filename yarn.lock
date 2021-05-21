@@ -3169,12 +3169,12 @@
   resolved "https://registry.yarnpkg.com/@types/http-errors/-/http-errors-1.8.0.tgz#682477dbbbd07cd032731cb3b0e7eaee3d026b69"
   integrity sha512-2aoSC4UUbHDj2uCsCxcG/vRMXey/m17bC7UwitVm5hn22nI8O8Y9iDpA76Orc+DWkQ4zZrOKEshCqR/jSuXAHA==
 
-"@types/http-proxy-agent@^2.0.2":
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@types/http-proxy-agent/-/http-proxy-agent-2.0.2.tgz#942c1f35c7e1f0edd1b6ffae5d0f9051cfb32be1"
-  integrity sha512-2S6IuBRhqUnH1/AUx9k8KWtY3Esg4eqri946MnxTG5HwehF1S5mqLln8fcyMiuQkY72p2gH3W+rIPqp5li0LyQ==
+"@types/http-proxy-agent@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@types/http-proxy-agent/-/http-proxy-agent-4.0.0.tgz#6aa52287365115da1667384182ccc2f42603326d"
+  integrity sha512-KHJ5VLu4L0YBj+ZeDKVnGloSMmgdzLlhfSVL8XSwwv5SRoeWVEcco7kNpEIzzsS95lncn43J9vW3m88eX7Yzeg==
   dependencies:
-    "@types/node" "*"
+    http-proxy-agent "*"
 
 "@types/is-glob@4.0.1":
   version "4.0.1"
@@ -7906,7 +7906,7 @@ http-parser-js@>=0.5.1:
   resolved "https://registry.yarnpkg.com/http-parser-js/-/http-parser-js-0.5.3.tgz#01d2709c79d41698bb01d4decc5e9da4e4a033d9"
   integrity sha512-t7hjvef/5HEK7RWTdUzVUhl8zkEu+LlaE0IYzdMuvbSDipxBRpOn4Uhw8ZyECEa808iVT8XCjzo6xmYt4CiLZg==
 
-http-proxy-agent@^4.0.1:
+http-proxy-agent@*, http-proxy-agent@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/http-proxy-agent/-/http-proxy-agent-4.0.1.tgz#8a8c8ef7f5932ccf953c296ca8291b95aa74aa3a"
   integrity sha512-k0zdNgqWTGA6aeIRVpvfVob4fL52dTfaehylg0Y4UvSySvOq/Y+BOyPrgpUrA7HylqvU8vIZGsRuXmspskV0Tg==
