@@ -1,11 +1,25 @@
-import { GraphQLError, responsePathAsArray, locatedError } from 'graphql';
+import {
+  GraphQLError,
+  GraphQLList,
+  GraphQLResolveInfo,
+  GraphQLOutputType,
+  GraphQLSchema,
+  GraphQLType,
+  getNullableType,
+  isCompositeType,
+  isLeafType,
+  isListType,
+  locatedError,
+  responsePathAsArray,
+} from 'graphql';
 
 import AggregateError from '@ardatan/aggregate-error';
 
-import { ExecutionResult, relocatedError } from '@graphql-tools/utils';
+import { ExecutionResult } from '@graphql-tools/utils';
 
-import { DelegationContext, Receiver } from './types';
-import { resolveExternalValue } from './resolveExternalValue';
+import { DelegationContext, Receiver, SubschemaConfig } from './types';
+import { createExternalObject, isExternalObject } from './externalObjects';
+import { mergeDataAndErrors } from './mergeDataAndErrors';
 
 export function externalValueFromResult(
   originalResult: ExecutionResult,
@@ -24,71 +38,112 @@ export function externalValueFromResult(
     onLocatedError
   );
 
-  return resolveExternalValue(newData, unpathedErrors, subschema, context, info, receiver, returnType);
-
+  return createExternalValue(newData, unpathedErrors, subschema, context, info, receiver, returnType);
 }
 
-export function mergeDataAndErrors(
+export function createExternalValue(
   data: any,
-  errors: ReadonlyArray<GraphQLError> = [],
-  path: ReadonlyArray<string | number>,
-  onLocatedError: (originalError: GraphQLError) => GraphQLError,
-  index = 1
-): { data: any; unpathedErrors: Array<GraphQLError> } {
+  unpathedErrors: Array<GraphQLError> = [],
+  subschema: GraphQLSchema | SubschemaConfig,
+  context: Record<string, any>,
+  info: GraphQLResolveInfo,
+  receiver?: Receiver,
+  returnType: GraphQLOutputType = info?.returnType
+): any {
+  const type = getNullableType(returnType);
+
+  if (data instanceof Error) {
+    return data;
+  }
+
   if (data == null) {
-    if (!errors.length) {
-      return { data: null, unpathedErrors: [] };
-    }
-
-    if (errors.length === 1) {
-      const error = onLocatedError ? onLocatedError(errors[0]) : errors[0];
-      const newPath =
-        path === undefined ? error.path : error.path === undefined ? path : path.concat(error.path.slice(1));
-
-      return { data: relocatedError(errors[0], newPath), unpathedErrors: [] };
-    }
-
-    const newError = locatedError(new AggregateError(errors), undefined, path);
-
-    return { data: newError, unpathedErrors: [] };
+    return reportUnpathedErrorsViaNull(unpathedErrors);
   }
 
-  if (!errors.length) {
-    return { data, unpathedErrors: [] };
+  if (isLeafType(type)) {
+    return type.parseValue(data);
+  } else if (isCompositeType(type)) {
+    if (isExternalObject(data)) {
+      return data;
+    }
+    return createExternalObject(data, unpathedErrors, subschema, info, receiver);
+  } else if (isListType(type)) {
+    return createExternalList(type, data, unpathedErrors, subschema, context, info, receiver);
+  }
+}
+
+function createExternalList(
+  type: GraphQLList<any>,
+  list: Array<any>,
+  unpathedErrors: Array<GraphQLError>,
+  subschema: GraphQLSchema | SubschemaConfig,
+  context: Record<string, any>,
+  info: GraphQLResolveInfo,
+  receiver?: Receiver
+) {
+  return list.map(listMember =>
+    createExternalListMember(
+      getNullableType(type.ofType),
+      listMember,
+      unpathedErrors,
+      subschema,
+      context,
+      info,
+      receiver
+    )
+  );
+}
+
+function createExternalListMember(
+  type: GraphQLType,
+  listMember: any,
+  unpathedErrors: Array<GraphQLError>,
+  subschema: GraphQLSchema | SubschemaConfig,
+  context: Record<string, any>,
+  info: GraphQLResolveInfo,
+  receiver?: Receiver
+): any {
+  if (listMember instanceof Error) {
+    return listMember;
   }
 
-  let unpathedErrors: Array<GraphQLError> = [];
+  if (listMember == null) {
+    return reportUnpathedErrorsViaNull(unpathedErrors);
+  }
 
-  const errorMap: Record<string, Array<GraphQLError>> = Object.create(null);
-  errors.forEach(error => {
-    const pathSegment = error.path?.[index];
-    if (pathSegment != null) {
-      const pathSegmentErrors = errorMap[pathSegment];
-      if (pathSegmentErrors === undefined) {
-        errorMap[pathSegment] = [error];
-      } else {
-        pathSegmentErrors.push(error);
+  if (isLeafType(type)) {
+    return type.parseValue(listMember);
+  } else if (isCompositeType(type)) {
+    if (isExternalObject(listMember)) {
+      return listMember;
+    }
+    return createExternalObject(listMember, unpathedErrors, subschema, info, receiver);
+  } else if (isListType(type)) {
+    return createExternalList(type, listMember, unpathedErrors, subschema, context, info, receiver);
+  }
+}
+
+const reportedErrors: WeakMap<GraphQLError, boolean> = new Map();
+
+function reportUnpathedErrorsViaNull(unpathedErrors: Array<GraphQLError>) {
+  if (unpathedErrors.length) {
+    const unreportedErrors: Array<GraphQLError> = [];
+    unpathedErrors.forEach(error => {
+      if (!reportedErrors.has(error)) {
+        unreportedErrors.push(error);
+        reportedErrors.set(error, true);
       }
-    } else {
-      unpathedErrors.push(error);
-    }
-  });
+    });
 
-  Object.keys(errorMap).forEach(pathSegment => {
-    if (data[pathSegment] !== undefined) {
-      const { data: newData, unpathedErrors: newErrors } = mergeDataAndErrors(
-        data[pathSegment],
-        errorMap[pathSegment],
-        path,
-        onLocatedError,
-        index + 1
-      );
-      data[pathSegment] = newData;
-      unpathedErrors = unpathedErrors.concat(newErrors);
-    } else {
-      unpathedErrors = unpathedErrors.concat(errorMap[pathSegment]);
-    }
-  });
+    if (unreportedErrors.length) {
+      if (unreportedErrors.length === 1) {
+        return unreportedErrors[0];
+      }
 
-  return { data, unpathedErrors };
+      const combinedError = new AggregateError(unreportedErrors);
+      return locatedError(combinedError, undefined, unreportedErrors[0].path);
+    }
+  }
+
+  return null;
 }

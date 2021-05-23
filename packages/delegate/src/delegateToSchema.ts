@@ -43,9 +43,8 @@ import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
 import { memoize2 } from './memoize';
 import { InitialReceiver } from './InitialReceiver';
-import { externalValueFromResult } from './externalValues';
+import { createExternalValue, externalValueFromResult } from './externalValues';
 import { defaultDelegationBinding } from './delegationBindings';
-import { resolveExternalValue } from './resolveExternalValue';
 
 export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
   options: IDelegateToSchemaOptions<TContext, TArgs>
@@ -236,7 +235,7 @@ function handleExecutionResult(
 
     return receiver.getInitialResult().then(({ data, unpathedErrors}) => {
       const { subschema, context, info, returnType } = delegationContext;
-      return resolveExternalValue(data, unpathedErrors, subschema, context, info, receiver, returnType);
+      return createExternalValue(data, unpathedErrors, subschema, context, info, receiver, returnType);
     });
   }
 

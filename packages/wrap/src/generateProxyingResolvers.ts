@@ -4,7 +4,7 @@ import { getResponseKeyFromInfo } from '@graphql-tools/utils';
 import {
   delegateToSchema,
   getSubschema,
-  resolveExternalValue,
+  createExternalValue,
   SubschemaConfig,
   ICreateProxyingResolverOptions,
   applySchemaTransforms,
@@ -84,7 +84,7 @@ function createPossiblyNestedProxyingResolver(
         if (subschemaConfig === subschema && parent[responseKey] !== undefined) {
           const unpathedErrors = getUnpathedErrors(parent);
           const receiver = getReceiver(parent, subschema);
-          return resolveExternalValue(parent[responseKey], unpathedErrors, subschema, context, info, receiver);
+          return createExternalValue(parent[responseKey], unpathedErrors, subschema, context, info, receiver);
         }
       }
     }

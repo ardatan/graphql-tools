@@ -21,7 +21,7 @@ import { Repeater, Stop } from '@repeaterjs/repeater';
 import { AsyncExecutionResult, collectFields, getResponseKeyFromInfo, GraphQLExecutionContext } from '@graphql-tools/utils';
 
 import { DelegationContext, MergedExecutionResult, Receiver } from './types';
-import { mergeDataAndErrors } from './externalValues';
+import { mergeDataAndErrors } from './mergeDataAndErrors';
 import { ExpectantStore } from './expectantStore';
 import { fieldShouldStream } from './fieldShouldStream';
 

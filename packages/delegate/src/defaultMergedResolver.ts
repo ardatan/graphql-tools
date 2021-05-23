@@ -4,7 +4,7 @@ import { getResponseKeyFromInfo, mapAsyncIterator } from '@graphql-tools/utils';
 
 import { ExternalObject, MergedExecutionResult } from './types';
 
-import { resolveExternalValue } from './resolveExternalValue';
+import { createExternalValue } from './externalValues';
 import {
   getInitialPossibleFields,
   getReceiver,
@@ -44,8 +44,8 @@ export function defaultMergedResolver(
     const data = parent[responseKey];
     if (data !== undefined) {
       const unpathedErrors = getUnpathedErrors(parent);
-      const fieldSubschema = getSubschema(parent, responseKey);
-      return resolveExternalValue(data, unpathedErrors, fieldSubschema, context, info);
+      const subschema = getSubschema(parent, responseKey);
+      return createExternalValue(data, unpathedErrors, subschema, context, info);
     }
   } else if (info.fieldNodes[0].name.value in initialPossibleFields) {
     return resolveField(parent, responseKey, context, info);
@@ -62,8 +62,8 @@ function resolveField(
   context: Record<string, any>,
   info: GraphQLResolveInfo
 ): any {
-  const fieldSubschema = getSubschema(parent, responseKey);
-  const receiver = getReceiver(parent, fieldSubschema);
+  const subschema = getSubschema(parent, responseKey);
+  const receiver = getReceiver(parent, subschema);
 
   const data = parent[responseKey];
   if (receiver !== undefined) {
@@ -74,23 +74,25 @@ function resolveField(
           returnType: (info.returnType as GraphQLList<GraphQLOutputType>).ofType,
         };
         return mapAsyncIterator(asyncIterator as AsyncIterableIterator<MergedExecutionResult>, ({ data, unpathedErrors }) =>
-          resolveExternalValue(data, unpathedErrors, fieldSubschema, context, listMemberInfo, receiver));
+          createExternalValue(data, unpathedErrors, subschema, context, listMemberInfo, receiver));
       });
     }
 
     if (data === undefined) {
-      return receiver.request(info).then(result =>
-        resolveExternalValue((result as MergedExecutionResult).data, (result as MergedExecutionResult).unpathedErrors, fieldSubschema, context, info, receiver));
+      return receiver.request(info).then(result => {
+        const { data, unpathedErrors } = result as MergedExecutionResult;
+        return createExternalValue(data, unpathedErrors, subschema, context, info, receiver);
+      });
     }
 
     const unpathedErrors = getUnpathedErrors(parent);
     receiver.update(info, { data, unpathedErrors });
-    return resolveExternalValue(data, unpathedErrors, fieldSubschema, context, info, receiver);
+    return createExternalValue(data, unpathedErrors, subschema, context, info, receiver);
   }
 
   if (data !== undefined) {
     const unpathedErrors = getUnpathedErrors(parent);
-    return resolveExternalValue(data, unpathedErrors, fieldSubschema, context, info, receiver);
+    return createExternalValue(data, unpathedErrors, subschema, context, info, receiver);
   }
 
   // throw error?
