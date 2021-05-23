@@ -18,7 +18,7 @@ import AggregateError from '@ardatan/aggregate-error';
 import { ExecutionResult } from '@graphql-tools/utils';
 
 import { DelegationContext, Receiver, SubschemaConfig } from './types';
-import { createExternalObject, isExternalObject } from './externalObjects';
+import { createExternalObject } from './externalObjects';
 import { mergeDataAndErrors } from './mergeDataAndErrors';
 
 export function externalValueFromResult(
@@ -63,9 +63,6 @@ export function createExternalValue(
   if (isLeafType(type)) {
     return type.parseValue(data);
   } else if (isCompositeType(type)) {
-    if (isExternalObject(data)) {
-      return data;
-    }
     return createExternalObject(data, unpathedErrors, subschema, info, receiver);
   } else if (isListType(type)) {
     return createExternalList(type, data, unpathedErrors, subschema, context, info, receiver);
@@ -114,9 +111,6 @@ function createExternalListMember(
   if (isLeafType(type)) {
     return type.parseValue(listMember);
   } else if (isCompositeType(type)) {
-    if (isExternalObject(listMember)) {
-      return listMember;
-    }
     return createExternalObject(listMember, unpathedErrors, subschema, info, receiver);
   } else if (isListType(type)) {
     return createExternalList(type, listMember, unpathedErrors, subschema, context, info, receiver);
