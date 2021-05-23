@@ -1,8 +1,8 @@
-import { GraphQLError, responsePathAsArray, locatedError, GraphQLResolveInfo } from 'graphql';
+import { GraphQLError, responsePathAsArray, locatedError } from 'graphql';
 
 import AggregateError from '@ardatan/aggregate-error';
 
-import { ExecutionPatchResult, ExecutionResult, relocatedError } from '@graphql-tools/utils';
+import { ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
 import { DelegationContext, Receiver } from './types';
 import { resolveExternalValue } from './resolveExternalValue';
@@ -12,39 +12,10 @@ export function externalValueFromResult(
   delegationContext: DelegationContext,
   receiver?: Receiver
 ): any {
-  return externalValueFromDataAndErrors(
-    originalResult.data?.[delegationContext.fieldName],
-    originalResult.errors ?? [],
-    delegationContext,
-    receiver
-  );
-}
+  const { fieldName, context, subschema, onLocatedError, returnType, info } = delegationContext;
 
-export function externalValueFromPatchResult(
-  originalResult: ExecutionPatchResult,
-  delegationContext: DelegationContext,
-  info: GraphQLResolveInfo,
-  receiver: Receiver
-): any {
-  return externalValueFromDataAndErrors(
-    originalResult.data,
-    originalResult.errors ?? [],
-    {
-      ...delegationContext,
-      info,
-      returnType: info.returnType,
-    },
-    receiver
-  );
-}
-
-function externalValueFromDataAndErrors(
-  data: any,
-  errors: ReadonlyArray<GraphQLError>,
-  delegationContext: DelegationContext,
-  receiver?: Receiver
-): any {
-  const { context, subschema, onLocatedError, returnType, info } = delegationContext;
+  const data = originalResult.data?.[fieldName];
+  const errors = originalResult.errors ?? [];
 
   const { data: newData, unpathedErrors } = mergeDataAndErrors(
     data,
@@ -54,6 +25,7 @@ function externalValueFromDataAndErrors(
   );
 
   return resolveExternalValue(newData, unpathedErrors, subschema, context, info, receiver, returnType);
+
 }
 
 export function mergeDataAndErrors(
