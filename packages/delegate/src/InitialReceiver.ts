@@ -30,12 +30,9 @@ export class InitialReceiver implements Receiver {
   private readonly asyncSelectionSets: Record<string, SelectionSetNode>;
   private readonly resultTransformer: (originalResult: ExecutionResult) => any;
   private readonly initialResultDepth: number;
-  private deferredPatches: Record<string, Array<ExecutionPatchResult>>;
-  private streamedPatches: Record<string, Record<number, Array<ExecutionPatchResult>>>;
   private cache: ExpectantStore<MergedExecutionResult>;
   private stoppers: Array<Stop>;
   private loaders: Record<string, DataLoader<GraphQLResolveInfo, any>>;
-  private infos: Record<string, Record<string, GraphQLResolveInfo>>;
 
   constructor(
     asyncIterable: AsyncIterable<AsyncExecutionResult>,
@@ -53,12 +50,9 @@ export class InitialReceiver implements Receiver {
     this.resultTransformer = resultTransformer;
     this.initialResultDepth = info ? responsePathAsArray(info.path).length - 1 : 0;
 
-    this.deferredPatches = Object.create(null);
-    this.streamedPatches = Object.create(null);
     this.cache = new ExpectantStore();
     this.stoppers = [];
     this.loaders = Object.create(null);
-    this.infos = Object.create(null);
   }
 
   public async getInitialResult(): Promise<MergedExecutionResult> {
@@ -131,16 +125,6 @@ export class InitialReceiver implements Receiver {
       ...infos[0],
       fieldNodes: [].concat(...infos.map(info => info.fieldNodes)),
     };
-
-    let infosByParentKey = this.infos[parentKey];
-    if (infosByParentKey === undefined) {
-      infosByParentKey = this.infos[parentKey] = Object.create(null);
-    }
-
-    if (infosByParentKey[responseKey] === undefined) {
-      infosByParentKey[responseKey] = combinedInfo;
-      this.onNewInfo(pathKey);
-    }
 
     const parent = this.cache.get(parentKey);
 
@@ -228,24 +212,6 @@ export class InitialReceiver implements Receiver {
         const responseKey = parentPath.pop();
         const parentPathKey = parentPath.join('.');
         const pathKey = `${parentPathKey}.${responseKey}`;
-        const info = this.infos[parentPathKey]?.[responseKey];
-        if (info === undefined) {
-          const streamedPatches = this.streamedPatches[pathKey];
-          if (streamedPatches === undefined) {
-            this.streamedPatches[pathKey] = { [index]: [transformedResult] };
-            continue;
-          }
-
-          const indexPatches = streamedPatches[index];
-          if (indexPatches === undefined) {
-            streamedPatches[index] = [transformedResult];
-            continue;
-          }
-
-          indexPatches.push(transformedResult);
-          continue;
-        }
-
         const { onLocatedError } = this.delegationContext;
         const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, onLocatedError);
 
@@ -257,17 +223,6 @@ export class InitialReceiver implements Receiver {
       const responseKey = parentPath.pop();
       const parentPathKey = parentPath.join('.');
       const pathKey = `${parentPathKey}.${responseKey}`;
-      const info = this.infos[parentPathKey]?.[responseKey];
-      if (info === undefined) {
-        const deferredPatches = this.deferredPatches[pathKey];
-        if (deferredPatches === undefined) {
-          this.deferredPatches[pathKey] = [transformedResult];
-          continue;
-        }
-
-        deferredPatches.push(transformedResult);
-        continue;
-      }
 
       const { onLocatedError } = this.delegationContext;
       const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, onLocatedError);
@@ -294,51 +249,6 @@ export class InitialReceiver implements Receiver {
         );
 
     this.cache.set(pathKey, mergedResult);
-
-    const infosByParentKey = this.infos[pathKey];
-    if (infosByParentKey !== undefined) {
-      const unpathedErrors = newResult.unpathedErrors;
-      Object.keys(infosByParentKey).forEach(responseKey => {
-        const info = infosByParentKey[responseKey];
-        const data = newResult.data[responseKey];
-        if (data !== undefined) {
-          const subResult = { data, unpathedErrors };
-          const subPathKey = `${pathKey}.${responseKey}`;
-          this.onNewResult(
-            subPathKey,
-            subResult,
-            isCompositeType(getNamedType(info.returnType))
-              ? {
-                  kind: Kind.SELECTION_SET,
-                  selections: [].concat(...info.fieldNodes.map(fieldNode => fieldNode.selectionSet.selections)),
-                }
-              : undefined
-          );
-        }
-      });
-    }
-  }
-
-  private onNewInfo(pathKey: string): void {
-    const deferredPatches = this.deferredPatches[pathKey];
-    if (deferredPatches !== undefined) {
-      deferredPatches.forEach(deferredPatch => {
-        const { onLocatedError } = this.delegationContext;
-        const newResult = mergeDataAndErrors(deferredPatch.data, deferredPatch.errors, onLocatedError);
-        this.onNewResult(pathKey, newResult, this.asyncSelectionSets[deferredPatch.label]);
-      });
-    }
-
-    const streamedPatches = this.streamedPatches[pathKey];
-    if (streamedPatches !== undefined) {
-      Object.entries(streamedPatches).forEach(([index, indexPatches]) => {
-        indexPatches.forEach(patch => {
-          const { onLocatedError } = this.delegationContext;
-          const newResult = mergeDataAndErrors(patch.data, patch.errors, onLocatedError);
-          this.onNewResult(`${pathKey}.${index}`, newResult, this.asyncSelectionSets[patch.label]);
-        });
-      });
-    }
   }
 }
 
