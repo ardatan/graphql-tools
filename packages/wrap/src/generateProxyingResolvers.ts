@@ -2,15 +2,16 @@ import { GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo, GraphQLSch
 
 import { getResponseKeyFromInfo } from '@graphql-tools/utils';
 import {
-  delegateToSchema,
-  getSubschema,
-  createExternalValue,
-  SubschemaConfig,
   ICreateProxyingResolverOptions,
+  SubschemaConfig,
   applySchemaTransforms,
-  isExternalObject,
-  getUnpathedErrors,
+  createExternalValue,
+  delegateToSchema,
+  getInitialPath,
   getReceiver,
+  getSubschema,
+  getUnpathedErrors,
+  isExternalObject,
 } from '@graphql-tools/delegate';
 
 export function generateProxyingResolvers(
@@ -83,8 +84,9 @@ function createPossiblyNestedProxyingResolver(
         // also nested as a field within a different type.
         if (subschemaConfig === subschema && parent[responseKey] !== undefined) {
           const unpathedErrors = getUnpathedErrors(parent);
+          const initialPath = getInitialPath(parent);
           const receiver = getReceiver(parent, subschema);
-          return createExternalValue(parent[responseKey], unpathedErrors, subschema, context, info, receiver);
+          return createExternalValue(parent[responseKey], unpathedErrors, initialPath, subschema, context, info, receiver);
         }
       }
     }

@@ -1,3 +1,4 @@
+export const INITIAL_PATH_SYMBOL = Symbol('initialPath');
 export const UNPATHED_ERRORS_SYMBOL = Symbol('subschemaErrors');
 export const OBJECT_SUBSCHEMA_SYMBOL = Symbol('initialSubschema');
 export const INITIAL_POSSIBLE_FIELDS = Symbol('initialPossibleFields');

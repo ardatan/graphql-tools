@@ -10,6 +10,8 @@ import {
   DocumentNode,
   GraphQLOutputType,
   GraphQLObjectType,
+  responsePathAsArray,
+  GraphQLError,
 } from 'graphql';
 
 import { ValueOrPromise } from 'value-or-promise';
@@ -120,6 +122,7 @@ function getDelegationContext({
   rootValue,
   transforms = [],
   transformedSchema,
+  onLocatedError,
 }: IDelegateRequestOptions): DelegationContext {
   let operationDefinition: OperationDefinitionNode;
   let targetOperation: OperationTypeNode;
@@ -161,6 +164,7 @@ function getDelegationContext({
           ? subschemaOrSubschemaConfig.transforms.concat(transforms)
           : transforms,
       transformedSchema: transformedSchema ?? (subschemaOrSubschemaConfig as Subschema)?.transformedSchema ?? targetSchema,
+      onLocatedError: onLocatedError ?? ((error: GraphQLError) => error),
       asyncSelectionSets: Object.create(null),
     };
   }
@@ -235,7 +239,8 @@ function handleExecutionResult(
 
     return receiver.getInitialResult().then(({ data, unpathedErrors}) => {
       const { subschema, context, info, returnType } = delegationContext;
-      return createExternalValue(data, unpathedErrors, subschema, context, info, receiver, returnType);
+      const initialPath = responsePathAsArray(info.path);
+      return createExternalValue(data, unpathedErrors, initialPath, subschema, context, info, receiver, returnType);
     });
   }
 

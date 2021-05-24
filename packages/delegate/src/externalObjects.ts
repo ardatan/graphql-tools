@@ -6,6 +6,7 @@ import {
   GraphQLResolveInfo,
   SelectionSetNode,
   locatedError,
+  responsePathAsArray,
 } from 'graphql';
 
 import { relocatedError, GraphQLExecutionContext, collectFields } from '@graphql-tools/utils';
@@ -18,6 +19,7 @@ import {
   FIELD_SUBSCHEMA_MAP_SYMBOL,
   UNPATHED_ERRORS_SYMBOL,
   RECEIVER_MAP_SYMBOL,
+  INITIAL_PATH_SYMBOL,
 } from './symbols';
 import { isSubschemaConfig } from './subschemaConfig';
 import { Subschema } from './Subschema';
@@ -29,6 +31,7 @@ export function isExternalObject(data: any): data is ExternalObject {
 export function createExternalObject(
   object: any,
   errors: Array<GraphQLError>,
+  initialPath: Array<string | number>,
   subschema: GraphQLSchema | SubschemaConfig,
   info: GraphQLResolveInfo,
   receiver: Receiver
@@ -45,6 +48,7 @@ export function createExternalObject(
   const newObject = { ...object };
 
   Object.defineProperties(newObject, {
+    [INITIAL_PATH_SYMBOL]: { value: initialPath },
     [OBJECT_SUBSCHEMA_SYMBOL]: { value: subschema },
     [INITIAL_POSSIBLE_FIELDS]: { value: initialPossibleFields },
     [INFO_SYMBOL]: { value: info },
@@ -54,6 +58,10 @@ export function createExternalObject(
   });
 
   return newObject;
+}
+
+export function getInitialPath(object: ExternalObject): Array<string | number> {
+  return object[INITIAL_PATH_SYMBOL];
 }
 
 export function getSubschema(object: ExternalObject, responseKey?: string): GraphQLSchema | SubschemaConfig {
@@ -79,13 +87,16 @@ export function getReceiver(object: ExternalObject, subschema: GraphQLSchema | S
 }
 
 export function mergeExternalObjects(
-  schema: GraphQLSchema,
-  path: ReadonlyArray<string | number>,
-  typeName: string,
   target: ExternalObject,
   sources: Array<ExternalObject>,
   selectionSets: Array<SelectionSetNode>
 ): ExternalObject {
+  const initialPath = getInitialPath(target);
+  const parentInfo = getInfo(target);
+  const schema = parentInfo.schema;
+  const typeName = target.__typename;
+  const parentPath = responsePathAsArray(parentInfo.path);
+
   if (target[FIELD_SUBSCHEMA_MAP_SYMBOL] == null) {
     target[FIELD_SUBSCHEMA_MAP_SYMBOL] = Object.create(null);
   }
@@ -110,9 +121,14 @@ export function mergeExternalObjects(
     if (source instanceof Error || source === null) {
       Object.keys(fieldNodes).forEach(responseKey => {
         if (source instanceof GraphQLError) {
-          target[responseKey] = relocatedError(source, path.concat([responseKey]));
+          const basePath = parentPath.slice(initialPath.length);
+          const tailPath = source.path.length === parentPath.length ? [responseKey] : source.path.slice(initialPath.length);
+          const newPath = basePath.concat(tailPath);
+          target[responseKey] = relocatedError(source, newPath);
         } else if (source instanceof Error) {
-          target[responseKey] = locatedError(source, fieldNodes[responseKey], path.concat([responseKey]));
+          const basePath = parentPath.slice(initialPath.length);
+          const newPath = basePath.concat([responseKey]);
+          target[responseKey] = locatedError(source, fieldNodes[responseKey], newPath);
         } else {
           target[responseKey] = null;
         }

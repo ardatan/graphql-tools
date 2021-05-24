@@ -15,7 +15,7 @@ import {
 
 import AggregateError from '@ardatan/aggregate-error';
 
-import { ExecutionResult } from '@graphql-tools/utils';
+import { ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
 import { DelegationContext, Receiver, SubschemaConfig } from './types';
 import { createExternalObject } from './externalObjects';
@@ -30,20 +30,21 @@ export function externalValueFromResult(
 
   const data = originalResult.data?.[fieldName];
   const errors = originalResult.errors ?? [];
+  const initialPath = info ? responsePathAsArray(info.path) : [];
 
   const { data: newData, unpathedErrors } = mergeDataAndErrors(
     data,
     errors,
-    info ? responsePathAsArray(info.path) : undefined,
     onLocatedError
   );
 
-  return createExternalValue(newData, unpathedErrors, subschema, context, info, receiver, returnType);
+  return createExternalValue(newData, unpathedErrors, initialPath, subschema, context, info, receiver, returnType);
 }
 
 export function createExternalValue(
   data: any,
   unpathedErrors: Array<GraphQLError> = [],
+  initialPath: Array<string | number>,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
   info: GraphQLResolveInfo,
@@ -51,6 +52,10 @@ export function createExternalValue(
   returnType: GraphQLOutputType = info?.returnType
 ): any {
   const type = getNullableType(returnType);
+
+  if (data instanceof GraphQLError) {
+    return relocatedError(data, initialPath.concat(data.path));
+  }
 
   if (data instanceof Error) {
     return data;
@@ -63,9 +68,9 @@ export function createExternalValue(
   if (isLeafType(type)) {
     return type.parseValue(data);
   } else if (isCompositeType(type)) {
-    return createExternalObject(data, unpathedErrors, subschema, info, receiver);
+    return createExternalObject(data, unpathedErrors, initialPath, subschema, info, receiver);
   } else if (isListType(type)) {
-    return createExternalList(type, data, unpathedErrors, subschema, context, info, receiver);
+    return createExternalList(type, data, unpathedErrors, initialPath, subschema, context, info, receiver);
   }
 }
 
@@ -73,6 +78,7 @@ function createExternalList(
   type: GraphQLList<any>,
   list: Array<any>,
   unpathedErrors: Array<GraphQLError>,
+  initialPath: Array<string | number>,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
   info: GraphQLResolveInfo,
@@ -83,6 +89,7 @@ function createExternalList(
       getNullableType(type.ofType),
       listMember,
       unpathedErrors,
+      initialPath,
       subschema,
       context,
       info,
@@ -95,11 +102,16 @@ function createExternalListMember(
   type: GraphQLType,
   listMember: any,
   unpathedErrors: Array<GraphQLError>,
+  initialPath: Array<string | number>,
   subschema: GraphQLSchema | SubschemaConfig,
   context: Record<string, any>,
   info: GraphQLResolveInfo,
   receiver?: Receiver
 ): any {
+  if (listMember instanceof GraphQLError) {
+    return relocatedError(listMember, initialPath.concat(listMember.path));
+  }
+
   if (listMember instanceof Error) {
     return listMember;
   }
@@ -111,9 +123,9 @@ function createExternalListMember(
   if (isLeafType(type)) {
     return type.parseValue(listMember);
   } else if (isCompositeType(type)) {
-    return createExternalObject(listMember, unpathedErrors, subschema, info, receiver);
+    return createExternalObject(listMember, unpathedErrors, initialPath, subschema, info, receiver);
   } else if (isListType(type)) {
-    return createExternalList(type, listMember, unpathedErrors, subschema, context, info, receiver);
+    return createExternalList(type, listMember, unpathedErrors, initialPath, subschema, context, info, receiver);
   }
 }
 

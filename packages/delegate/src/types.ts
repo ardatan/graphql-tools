@@ -18,6 +18,7 @@ import DataLoader from 'dataloader';
 import { ExecutionParams, ExecutionResult, Executor, Request, Subscriber, TypeMap } from '@graphql-tools/utils';
 
 import {
+  INITIAL_PATH_SYMBOL,
   OBJECT_SUBSCHEMA_SYMBOL,
   FIELD_SUBSCHEMA_MAP_SYMBOL,
   UNPATHED_ERRORS_SYMBOL,
@@ -213,6 +214,7 @@ export interface Receiver {
 export interface ExternalObject<TContext = Record<string, any>> {
   __typename: string;
   [key: string]: any;
+  [INITIAL_PATH_SYMBOL]: Array<string | number>;
   [OBJECT_SUBSCHEMA_SYMBOL]: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
   [INITIAL_POSSIBLE_FIELDS]: GraphQLFieldMap<any, any>;
   [INFO_SYMBOL]: GraphQLResolveInfo;

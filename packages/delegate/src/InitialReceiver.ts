@@ -2,9 +2,7 @@ import {
   ExecutionPatchResult,
   ExecutionResult,
   getNamedType,
-  GraphQLList,
   GraphQLObjectType,
-  GraphQLOutputType,
   GraphQLResolveInfo,
   GraphQLSchema,
   isCompositeType,
@@ -76,8 +74,7 @@ export class InitialReceiver implements Receiver {
       }
     }
 
-    const fullPath = responsePathAsArray(info.path);
-    const newResult = mergeDataAndErrors(initialData, initialResult.errors, fullPath, onLocatedError);
+    const newResult = mergeDataAndErrors(initialData, initialResult.errors, onLocatedError);
     this.cache.set(getResponseKeyFromInfo(info), newResult);
 
     this._iterate();
@@ -142,7 +139,7 @@ export class InitialReceiver implements Receiver {
 
     if (infosByParentKey[responseKey] === undefined) {
       infosByParentKey[responseKey] = combinedInfo;
-      this.onNewInfo(pathKey, combinedInfo);
+      this.onNewInfo(pathKey);
     }
 
     const parent = this.cache.get(parentKey);
@@ -216,9 +213,8 @@ export class InitialReceiver implements Receiver {
       if (path.length === 1) {
         const pathKey = path.join('.');
 
-        const { info, onLocatedError } = this.delegationContext;
-        const fullPath = responsePathAsArray(info.path);
-        const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, fullPath, onLocatedError);
+        const { onLocatedError } = this.delegationContext;
+        const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, onLocatedError);
 
         this.onNewResult(pathKey, newResult, this.asyncSelectionSets[asyncResult.label]);
         continue;
@@ -251,8 +247,7 @@ export class InitialReceiver implements Receiver {
         }
 
         const { onLocatedError } = this.delegationContext;
-        const fullPath = responsePathAsArray(info.path);
-        const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, fullPath, onLocatedError);
+        const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, onLocatedError);
 
         this.onNewResult(`${pathKey}.${index}`, newResult, this.asyncSelectionSets[asyncResult.label]);
         continue;
@@ -275,8 +270,7 @@ export class InitialReceiver implements Receiver {
       }
 
       const { onLocatedError } = this.delegationContext;
-      const fullPath = responsePathAsArray(info.path);
-      const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, fullPath, onLocatedError);
+      const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, onLocatedError);
 
       this.onNewResult(pathKey, newResult, this.asyncSelectionSets[asyncResult.label]);
     }
@@ -325,28 +319,22 @@ export class InitialReceiver implements Receiver {
     }
   }
 
-  private onNewInfo(pathKey: string, info: GraphQLResolveInfo): void {
+  private onNewInfo(pathKey: string): void {
     const deferredPatches = this.deferredPatches[pathKey];
     if (deferredPatches !== undefined) {
       deferredPatches.forEach(deferredPatch => {
         const { onLocatedError } = this.delegationContext;
-        const fullPath = responsePathAsArray(info.path);
-        const newResult = mergeDataAndErrors(deferredPatch.data, deferredPatch.errors, fullPath, onLocatedError);
+        const newResult = mergeDataAndErrors(deferredPatch.data, deferredPatch.errors, onLocatedError);
         this.onNewResult(pathKey, newResult, this.asyncSelectionSets[deferredPatch.label]);
       });
     }
 
     const streamedPatches = this.streamedPatches[pathKey];
     if (streamedPatches !== undefined) {
-      const listMemberInfo: GraphQLResolveInfo = {
-        ...info,
-        returnType: (info.returnType as GraphQLList<GraphQLOutputType>).ofType,
-      };
       Object.entries(streamedPatches).forEach(([index, indexPatches]) => {
         indexPatches.forEach(patch => {
           const { onLocatedError } = this.delegationContext;
-          const fullPath = responsePathAsArray(listMemberInfo.path);
-          const newResult = mergeDataAndErrors(patch.data, patch.errors, fullPath, onLocatedError);
+          const newResult = mergeDataAndErrors(patch.data, patch.errors, onLocatedError);
           this.onNewResult(`${pathKey}.${index}`, newResult, this.asyncSelectionSets[patch.label]);
         });
       });

@@ -4,7 +4,6 @@ import {
   GraphQLResolveInfo,
   Kind,
   SelectionSetNode,
-  responsePathAsArray,
   getNamedType,
   print,
   GraphQLFieldMap,
@@ -171,9 +170,6 @@ function getMergedParentsFromFieldNodes(
 
     const promise = Promise.resolve(maybePromise).then(result =>
       mergeExternalObjects(
-        parentInfo.schema,
-        responsePathAsArray(parentInfo.path),
-        object.__typename,
         object,
         [result],
         [selectionSet]
@@ -190,9 +186,6 @@ function getMergedParentsFromFieldNodes(
     .then(results => getMergedParentsFromFieldNodes(
         mergedTypeInfo,
         mergeExternalObjects(
-          parentInfo.schema,
-          responsePathAsArray(parentInfo.path),
-          object.__typename,
           object,
           results,
           Array.from(resultMap.values())
