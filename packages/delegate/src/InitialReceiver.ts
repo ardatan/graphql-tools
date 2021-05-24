@@ -194,40 +194,13 @@ export class InitialReceiver implements Receiver {
 
       const transformedResult = this.resultTransformer(asyncResult);
 
-      if (path.length === 1) {
-        const pathKey = path.join('.');
+      const newResult = mergeDataAndErrors(
+        transformedResult.data,
+        transformedResult.errors,
+        this.delegationContext.onLocatedError
+      );
 
-        const { onLocatedError } = this.delegationContext;
-        const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, onLocatedError);
-
-        this.onNewResult(pathKey, newResult, this.asyncSelectionSets[asyncResult.label]);
-        continue;
-      }
-
-      const lastPathSegment = path[path.length - 1];
-      const isStreamPatch = typeof lastPathSegment === 'number';
-      if (isStreamPatch) {
-        const parentPath = path.slice();
-        const index = parentPath.pop();
-        const responseKey = parentPath.pop();
-        const parentPathKey = parentPath.join('.');
-        const pathKey = `${parentPathKey}.${responseKey}`;
-        const { onLocatedError } = this.delegationContext;
-        const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, onLocatedError);
-
-        this.onNewResult(`${pathKey}.${index}`, newResult, this.asyncSelectionSets[asyncResult.label]);
-        continue;
-      }
-
-      const parentPath = path.slice();
-      const responseKey = parentPath.pop();
-      const parentPathKey = parentPath.join('.');
-      const pathKey = `${parentPathKey}.${responseKey}`;
-
-      const { onLocatedError } = this.delegationContext;
-      const newResult = mergeDataAndErrors(transformedResult.data, transformedResult.errors, onLocatedError);
-
-      this.onNewResult(pathKey, newResult, this.asyncSelectionSets[asyncResult.label]);
+      this.onNewResult(path.join('.'), newResult, this.asyncSelectionSets[asyncResult.label]);
     }
 
     setTimeout(() => {
