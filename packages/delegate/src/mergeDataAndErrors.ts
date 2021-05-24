@@ -4,8 +4,7 @@ import { relocatedError } from '@graphql-tools/utils';
 export function mergeDataAndErrors(
   data: any,
   errors: ReadonlyArray<GraphQLError> = [],
-  path: ReadonlyArray<string | number>,
-  onLocatedError: (originalError: GraphQLError) => GraphQLError,
+  onLocatedError = (originalError: GraphQLError) => originalError,
   index = 1
 ): { data: any; unpathedErrors: Array<GraphQLError> } {
   if (data == null) {
@@ -14,16 +13,19 @@ export function mergeDataAndErrors(
     }
 
     if (errors.length === 1) {
-      const error = onLocatedError ? onLocatedError(errors[0]) : errors[0];
-      const newPath =
-        path === undefined ? error.path : error.path === undefined ? path : path.concat(error.path.slice(1));
-
-      return { data: relocatedError(errors[0], newPath), unpathedErrors: [] };
+      const error = onLocatedError(errors[0]);
+      const newPath = error.path === undefined ? [] : error.path.slice(1);
+      const newError = relocatedError(error, newPath);
+      return { data: newError, unpathedErrors: [] };
     }
 
-    const newError = locatedError(new AggregateError(errors), undefined, path);
+    const newErrors = errors.map(error => onLocatedError(error));
+    const firstError = newErrors[0];
+    const newPath = firstError.path === undefined ? [] : firstError.path.slice(1);
 
-    return { data: newError, unpathedErrors: [] };
+    const aggregateError = locatedError(new AggregateError(newErrors), undefined, newPath);
+
+    return { data: aggregateError, unpathedErrors: [] };
   }
 
   if (!errors.length) {
@@ -52,7 +54,6 @@ export function mergeDataAndErrors(
       const { data: newData, unpathedErrors: newErrors } = mergeDataAndErrors(
         data[pathSegment],
         errorMap[pathSegment],
-        path,
         onLocatedError,
         index + 1
       );
