@@ -7,7 +7,7 @@ import { mockGraphQLServer } from '../../../testing/utils';
 import { cwd } from 'process';
 import { execute, subscribe, parse, print, ExecutionResult, introspectionFromSchema } from 'graphql';
 import { GraphQLUpload } from 'graphql-upload';
-import { createReadStream , readFileSync } from 'fs';
+import { createReadStream, readFileSync } from 'fs';
 import { join } from 'path';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { Server as WSServer } from 'ws';
@@ -73,7 +73,7 @@ input TestInput {
     Subscription: {
       testMessage: {
         subscribe: () => {
-          const numbers = [0,1,2];
+          const numbers = [0, 1, 2];
           const asyncIterator = {
             next: async () => {
               if (numbers.length === 0) {
@@ -119,7 +119,7 @@ input TestInput {
 
       try {
         await loader.load(testUrl, {});
-      } catch(e) {
+      } catch (e) {
         expect(e.message).toBe('Could not obtain introspection result, received: ' + JSON.stringify(brokenData))
       }
     });
@@ -316,138 +316,141 @@ input TestInput {
       expect(result.document).toBeDefined();
       expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
     })
-    it('should handle subscriptions - new protocol', async (done) => {
-      const testUrl = 'http://localhost:8081/graphql';
-      const { schema } = await loader.load(testUrl, {
-        customFetch: async () => ({
-          headers: {
-            'content-type': 'application/json'
+    it('should handle subscriptions - new protocol', (done) => {
+      Promise.resolve().then(async () => {
+        const testUrl = 'http://localhost:8081/graphql';
+        const { schema } = await loader.load(testUrl, {
+          customFetch: async () => ({
+            headers: {
+              'content-type': 'application/json'
+            },
+            json: async () => ({
+              data: introspectionFromSchema(testSchema),
+            })
+          }) as any,
+        });
+
+        const httpServer = http.createServer(function weServeSocketsOnly(_, res) {
+          res.writeHead(404);
+          res.end();
+        });
+
+        const wsServer = new WSServer({
+          server: httpServer,
+          path: '/graphql'
+        });
+
+        const subscriptionServer = useServer(
+          {
+            schema: testSchema, // from the previous step
+            execute,
+            subscribe,
           },
-          json: async () => ({
-            data: introspectionFromSchema(testSchema),
-          })
-        }) as any,
-      });
+          wsServer,
+        );
 
-      const httpServer = http.createServer(function weServeSocketsOnly(_, res) {
-        res.writeHead(404);
-        res.end();
-      });
+        httpServer.listen(8081);
 
-      const wsServer = new WSServer({
-        server: httpServer,
-        path: '/graphql'
-      });
-
-      const subscriptionServer = useServer(
-        {
-          schema: testSchema, // from the previous step
-          execute,
-          subscribe,
-        },
-        wsServer,
-      );
-
-      httpServer.listen(8081);
-
-      const asyncIterator = await subscribe({
-        schema,
-        document: parse(/* GraphQL */`
+        const asyncIterator = await subscribe({
+          schema,
+          document: parse(/* GraphQL */`
           subscription TestMessage {
             testMessage {
               number
             }
           }
         `),
-        contextValue: {},
-      }) as AsyncIterableIterator<ExecutionResult>;
+          contextValue: {},
+        }) as AsyncIterableIterator<ExecutionResult>;
 
-      expect(asyncIterator['errors']).toBeFalsy();
-      expect(asyncIterator['errors']?.length).toBeFalsy();
+        expect(asyncIterator['errors']).toBeFalsy();
+        expect(asyncIterator['errors']?.length).toBeFalsy();
 
 
-      // eslint-disable-next-line no-inner-declarations
-      async function getNextResult() {
-        const result = await asyncIterator.next();
-        expect(result?.done).toBeFalsy();
-        return result?.value?.data?.testMessage?.number;
-      }
+        // eslint-disable-next-line no-inner-declarations
+        async function getNextResult() {
+          const result = await asyncIterator.next();
+          expect(result?.done).toBeFalsy();
+          return result?.value?.data?.testMessage?.number;
+        }
 
-      expect(await getNextResult()).toBe(0);
-      expect(await getNextResult()).toBe(1);
-      expect(await getNextResult()).toBe(2);
+        expect(await getNextResult()).toBe(0);
+        expect(await getNextResult()).toBe(1);
+        expect(await getNextResult()).toBe(2);
 
-      await asyncIterator.return();
-      await subscriptionServer.dispose();
-      wsServer.close(() => {
+        await asyncIterator.return();
+        await subscriptionServer.dispose();
+        wsServer.close(() => {
+          httpServer.close(done);
+        });
+      });
+    });
+    it('should handle subscriptions - legacy protocol', (done) => {
+      Promise.resolve().then(async () => {
+        const testUrl = 'http://localhost:8081/graphql';
+        const { schema } = await loader.load(testUrl, {
+          customFetch: async () => ({
+            headers: {
+              'content-type': 'application/json'
+            },
+            json: async () => ({
+              data: introspectionFromSchema(testSchema),
+            })
+          }) as any,
+          useWebSocketLegacyProtocol: true,
+        });
+
+        const httpServer = http.createServer(function weServeSocketsOnly(_, res) {
+          res.writeHead(404);
+          res.end();
+        });
+
+
+        httpServer.listen(8081);
+
+        const subscriptionServer = SubscriptionServer.create(
+          {
+            schema: testSchema,
+            execute,
+            subscribe,
+          },
+          {
+            server: httpServer,
+            path: '/graphql',
+          },
+        );
+
+        const asyncIterator = await subscribe({
+          schema,
+          document: parse(/* GraphQL */`
+          subscription TestMessage {
+            testMessage {
+              number
+            }
+          }
+        `),
+          contextValue: {},
+        }) as AsyncIterableIterator<ExecutionResult>;
+
+        expect(asyncIterator['errors']).toBeFalsy();
+        expect(asyncIterator['errors']?.length).toBeFalsy();
+
+
+        // eslint-disable-next-line no-inner-declarations
+        async function getNextResult() {
+          const result = await asyncIterator.next();
+          expect(result?.done).toBeFalsy();
+          return result?.value?.data?.testMessage?.number;
+        }
+
+        expect(await getNextResult()).toBe(0);
+        expect(await getNextResult()).toBe(1);
+        expect(await getNextResult()).toBe(2);
+
+        await asyncIterator.return();
+        subscriptionServer.close();
         httpServer.close(done);
       });
-
-    });
-    it('should handle subscriptions - legacy protocol', async (done) => {
-      const testUrl = 'http://localhost:8081/graphql';
-      const { schema } = await loader.load(testUrl, {
-        customFetch: async () => ({
-          headers: {
-            'content-type': 'application/json'
-          },
-          json: async () => ({
-            data: introspectionFromSchema(testSchema),
-          })
-        }) as any,
-        useWebSocketLegacyProtocol: true,
-      });
-
-      const httpServer = http.createServer(function weServeSocketsOnly(_, res) {
-        res.writeHead(404);
-        res.end();
-      });
-
-
-      httpServer.listen(8081);
-
-      const subscriptionServer = SubscriptionServer.create(
-        {
-          schema: testSchema,
-          execute,
-          subscribe,
-        },
-        {
-          server: httpServer,
-          path: '/graphql',
-        },
-      );
-
-      const asyncIterator = await subscribe({
-        schema,
-        document: parse(/* GraphQL */`
-          subscription TestMessage {
-            testMessage {
-              number
-            }
-          }
-        `),
-        contextValue: {},
-      }) as AsyncIterableIterator<ExecutionResult>;
-
-      expect(asyncIterator['errors']).toBeFalsy();
-      expect(asyncIterator['errors']?.length).toBeFalsy();
-
-
-      // eslint-disable-next-line no-inner-declarations
-      async function getNextResult() {
-        const result = await asyncIterator.next();
-        expect(result?.done).toBeFalsy();
-        return result?.value?.data?.testMessage?.number;
-      }
-
-      expect(await getNextResult()).toBe(0);
-      expect(await getNextResult()).toBe(1);
-      expect(await getNextResult()).toBe(2);
-
-      await asyncIterator.return();
-      subscriptionServer.close();
-      httpServer.close(done);
     });
     it('should handle multipart requests', async () => {
       scope = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker, method: 'POST' });
