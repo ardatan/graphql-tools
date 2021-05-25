@@ -51,7 +51,7 @@ type Query {
 `;
 
 const resolveFunctions = {
-  JSON: GraphQLJSON
+  JSON: GraphQLJSON,
 };
 
 const jsSchema = makeExecutableSchema({ typeDefs: schemaString, resolvers: resolveFunctions });
@@ -83,11 +83,13 @@ const myCustomScalarType = new GraphQLScalarType({
     return result;
   },
   parseLiteral(ast) {
-    switch (ast.kind) {
+    switch (
+      ast.kind
       // Implement your own behavior here by returning what suits your needs
       // depending on ast.kind
+    ) {
     }
-  }
+  },
 });
 
 const schemaString = `
@@ -105,7 +107,7 @@ type Query {
 `;
 
 const resolverFunctions = {
-  MyCustomScalar: myCustomScalarType
+  MyCustomScalar: myCustomScalarType,
 };
 
 const jsSchema = makeExecutableSchema({
@@ -135,8 +137,7 @@ type MyType {
 Next, the resolver:
 
 ```js
-import { GraphQLScalarType } from 'graphql';
-import { Kind } from 'graphql/language';
+import { Kind, GraphQLScalarType } from 'graphql';
 
 const resolverMap = {
   Date: new GraphQLScalarType({
@@ -150,7 +151,7 @@ const resolverMap = {
     },
     parseLiteral(ast) {
       if (ast.kind === Kind.INT) {
-        return new Date(+ast.value) // ast value is always in string format
+        return new Date(+ast.value); // ast value is always in string format
       }
       return null;
     },
@@ -173,8 +174,7 @@ type MyType {
 Next, the resolver:
 
 ```js
-import { GraphQLScalarType } from 'graphql';
-import { Kind } from 'graphql/language';
+import { Kind, GraphQLScalarType } from 'graphql';
 
 function oddValue(value) {
   return value % 2 === 1 ? value : null;
@@ -244,6 +244,8 @@ query MyAvatar($color: AllowedColor) {
 Putting it all together:
 
 ```js
+import { makeExecutableSchema } from '@graphql-tools/schema';
+
 const typeDefs = `
   enum AllowedColor {
     RED
@@ -263,7 +265,7 @@ const resolvers = {
     avatar: (root, args) => {
       // args.borderColor is 'RED', 'GREEN', or 'BLUE'
     },
-  }
+  },
 };
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
@@ -279,7 +281,7 @@ const resolvers = {
     RED: '#f00',
     GREEN: '#0f0',
     BLUE: '#00f',
-  }
+  },
 };
 ```
 
@@ -297,7 +299,7 @@ const resolvers = {
     avatar: (root, args) => {
       // args.favoriteColor is '#f00', '#0f0', or '#00f'
     },
-  }
+  },
 };
 ```
 

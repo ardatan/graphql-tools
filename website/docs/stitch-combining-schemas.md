@@ -94,9 +94,12 @@ export interface SubschemaConfig {
   merge?: Record<string, MergedTypeConfig>;
   batch?: boolean;
   batchingOptions?: {
-    extensionsReducer?: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>;
-    dataLoaderOptions?: DataLoader.Options<K, V, C>;
-  }
+    extensionsReducer?: (
+      mergedExtensions: Record<string, any>,
+      executionParams: ExecutionParams
+    ) => Record<string, any>,
+    dataLoaderOptions?: DataLoader.Options<K, V, C>,
+  };
 }
 ```
 
@@ -130,9 +133,9 @@ export const postsSubschema = {
 };
 ```
 
-* `schema`: this is a non-executable schema representing the remote API. The remote schema may be obtained using [introspection](/docs/remote-schemas/#introspectschemaexecutor-context), or fetched as a flat SDL string (from a server or repo) and built into a schema using [`buildSchema`](https://graphql.org/graphql-js/utilities/#buildschema). Note that not all GraphQL servers enable introspection, and those that do will not include custom directives.
-* `executor`: is a generic method that performs requests to a remote schema. It's quite simple to [write your own](/docs/remote-schemas#creating-an-executor). Subschema config uses the executor for query and mutation operations. See [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/combining-local-and-remote-schemas).
-* `subscriber`: to enable subscription operations, include a [subscriber function](/docs/remote-schemas#creating-a-subscriber) that returns an AsyncIterator. See [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/mutations-and-subscriptions).
+- `schema`: this is a non-executable schema representing the remote API. The remote schema may be obtained using [introspection](/docs/remote-schemas/#introspectschemaexecutor-context), or fetched as a flat SDL string (from a server or repo) and built into a schema using [`buildSchema`](https://graphql.org/graphql-js/utilities/#buildschema). Note that not all GraphQL servers enable introspection, and those that do will not include custom directives.
+- `executor`: is a generic method that performs requests to a remote schema. It's quite simple to [write your own](/docs/remote-schemas#creating-an-executor). Subschema config uses the executor for query and mutation operations. See [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/combining-local-and-remote-schemas).
+- `subscriber`: to enable subscription operations, include a [subscriber function](/docs/remote-schemas#creating-a-subscriber) that returns an AsyncIterator. See [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/mutations-and-subscriptions).
 
 ## Duplicate types
 
@@ -145,6 +148,8 @@ Types with the same name are automatically merged by default in GraphQL Tools v7
 Automatic merging will only encounter conflicts on type descriptions and fields. By default, the final definition of a type or field found in the subschemas array is used, or a specific definition may be [marked as canonical](/docs/stitch-type-merging#canonical-definitions) to prioritize it. You may customize all selection logic using `typeMergingOptions`; the following example prefers the _first_ definition of each conflicting element found in the subschemas array:
 
 ```js
+import { stitchSchemas } from '@graphql-tools/stitch';
+
 const gatewaySchema = stitchSchemas({
   subschemas: [...],
   mergeTypes: true, // << default in v7
@@ -165,6 +170,8 @@ const gatewaySchema = stitchSchemas({
 The automatic merge strategy also validates the integrity of merged schemas. Validations may be set to `error`, `warn`, or `off` for the entire schema or scoped for specific types and fields:
 
 ```js
+import { stitchSchemas } from '@graphql-tools/stitch';
+
 const gatewaySchema = stitchSchemas({
   subschemas: [...],
   typeMergingOptions: {
@@ -191,6 +198,8 @@ const gatewaySchema = stitchSchemas({
 By setting `mergeTypes: false`, only the final description and fields for a type found in the subschemas array will be used, and automated query planning will be disabled. You may manually resolve differences between conflicting types with an `onTypeConflict` handler:
 
 ```js
+import { stitchSchemas } from '@graphql-tools/stitch';
+
 const gatewaySchema = stitchSchemas({
   subschemas: [...],
   mergeTypes: false,
@@ -211,7 +220,7 @@ const postsSubschema = {
   schema: postsSchema,
   transforms: [
     new FilterRootFields((operation, rootField) => rootField !== 'postsByUserId'),
-    new RenameTypes((name) => `Post_${name}`),
+    new RenameTypes(name => `Post_${name}`),
   ],
 };
 ```

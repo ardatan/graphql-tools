@@ -33,7 +33,7 @@ let postsSchema = makeExecutableSchema({
       postById(id: ID!): Post
       postUserById(id: ID!): User
     }
-  `
+  `,
 });
 
 let usersSchema = makeExecutableSchema({
@@ -46,7 +46,7 @@ let usersSchema = makeExecutableSchema({
     type Query {
       userById(id: ID!): User
     }
-  `
+  `,
 });
 
 // just mock the schemas for now to make them return dummy data
@@ -67,9 +67,9 @@ const gatewaySchema = stitchSchemas({
         User: {
           fieldName: 'postUserById',
           selectionSet: '{ id }',
-          args: (originalObject) => ({ id: originalObject.id }),
-        }
-      }
+          args: originalObject => ({ id: originalObject.id }),
+        },
+      },
     },
     {
       schema: usersSchema,
@@ -77,12 +77,12 @@ const gatewaySchema = stitchSchemas({
         User: {
           fieldName: 'userById',
           selectionSet: '{ id }',
-          args: (originalObject) => ({ id: originalObject.id }),
-        }
-      }
+          args: originalObject => ({ id: originalObject.id }),
+        },
+      },
     },
   ],
-  mergeTypes: true // << default in v7
+  mergeTypes: true, // << default in v7
 });
 ```
 
@@ -90,7 +90,7 @@ That's it! Under the subschema config `merge` option, each merged type provides 
 
 - `fieldName` specifies a root field used to request the local type.
 - `selectionSet` specifies one or more key fields required from other services to perform this query. Query planning will automatically resolve these fields from other subschemas in dependency order.
--  `args` formats the initial object representation into query arguments.
+- `args` formats the initial object representation into query arguments.
 
 See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-single-records) for a working demonstration of this setup. This JavaScript-based syntax may also be written directly into schema type definitions using the `@merge` directive of the [stitching SDL](/docs/stitch-directives-sdl):
 
@@ -120,6 +120,8 @@ type User {
 It's logical to assume that each `postUserById` query has a backing database table used to lookup the requested user ID. However, this is frequently not the case. Here's a simple example that demonstrates how `User.posts` can be resolved without the posts service having any formal database concept of a User:
 
 ```js
+import { makeExecutableSchema } from '@graphql-tools/schema';
+
 const postsData = [
   { id: '1', message: 'Hello', authorId: '7' },
   { id: '2', message: 'Goodbye', authorId: '5' },
@@ -151,9 +153,9 @@ const postsSchema = makeExecutableSchema({
     User: {
       posts(user) {
         return postsData.filter(post => post.authorId === user.id);
-      }
-    }
-  }
+      },
+    },
+  },
 });
 ```
 
@@ -198,6 +200,8 @@ usersByIds(ids: [ID!]!): [User]!
 Once a service provides an array query for a merged type, batching may be enabled by adding a `key` method that picks a key from each partial record. The `argsFromKeys` method then transforms the list of picked keys into query arguments:
 
 ```js
+import { stitchSchemas } from '@graphql-tools/stitch';
+
 const gatewaySchema = stitchSchemas({
   subschemas: [
     {
@@ -207,9 +211,9 @@ const gatewaySchema = stitchSchemas({
           fieldName: 'postUsersByIds',
           selectionSet: '{ id }',
           key: ({ id }) => id,
-          argsFromKeys: (ids) => ({ ids }),
-        }
-      }
+          argsFromKeys: ids => ({ ids }),
+        },
+      },
     },
     {
       schema: usersSchema,
@@ -218,11 +222,11 @@ const gatewaySchema = stitchSchemas({
           fieldName: 'usersByIds',
           selectionSet: '{ id }',
           key: ({ id }) => id,
-          argsFromKeys: (ids) => ({ ids }),
-        }
-      }
+          argsFromKeys: ids => ({ ids }),
+        },
+      },
     },
-  ]
+  ],
 });
 ```
 
@@ -259,7 +263,9 @@ Using both array batching and query batching together is recommended, and should
 
 Type merging allows services to provide the bare minimum of fields they possess data for&mdash;and this is frequently nothing but an ID. For example:
 
-```js
+```ts
+import { makeExecutableSchema } from '@graphql-tools/schema';
+
 let postsSchema = makeExecutableSchema({
   typeDefs: `
     type Post {
@@ -276,7 +282,7 @@ let postsSchema = makeExecutableSchema({
     type Query {
       postById(id: ID!): Post
     }
-  `
+  `,
 });
 
 let usersSchema = makeExecutableSchema({
@@ -289,7 +295,7 @@ let usersSchema = makeExecutableSchema({
     type Query {
       usersByIds(ids: [ID!]!): [User]!
     }
-  `
+  `,
 });
 ```
 
@@ -308,11 +314,11 @@ const gatewaySchema = stitchSchemas({
           selectionSet: '{ id }',
           fieldName: 'usersByIds',
           key: ({ id }) => id,
-          argsFromKeys: (ids) => ({ ids }),
-        }
-      }
+          argsFromKeys: ids => ({ ids }),
+        },
+      },
     },
-  ]
+  ],
 });
 ```
 
@@ -336,7 +342,7 @@ const postsSchema = makeExecutableSchema({
       title: String!
       url: URL!
     }
-  `
+  `,
 });
 
 const layoutsSchema = makeExecutableSchema({
@@ -359,7 +365,7 @@ const layoutsSchema = makeExecutableSchema({
     type Homepage {
       slots: [HomepageSlot]!
     }
-  `
+  `,
 });
 ```
 
@@ -375,7 +381,9 @@ Merged types may define multiple key fields across services that join through a 
 
 Given this graph, the Vendors service must provide lookups for its `Product` type by either `upc` _or_ `id` to enable all possible traversals. These multiple pathways can be configured as `entryPoints`:
 
-```js
+```ts
+import { stitchSchemas } from '@graphql-tools/stitch';
+
 const gatewaySchema = stitchSchemas({
   subschemas: [
     {
@@ -384,26 +392,29 @@ const gatewaySchema = stitchSchemas({
         Product: {
           selectionSet: '{ upc }',
           fieldName: 'productByUpc',
-          args: (upc) => ({ upc }),
-        }
-      }
+          args: upc => ({ upc }),
+        },
+      },
     },
     {
       schema: vendorsSchema,
       merge: {
         Product: {
           // Entry points for each key format:
-          entryPoints: [{
-            selectionSet: '{ upc }',
-            fieldName: 'productByUpc',
-            args: (upc) => ({ upc }),
-          }, {
-            selectionSet: '{ id }',
-            fieldName: 'productById',
-            args: (id) => ({ id }),
-          }]
-        }
-      }
+          entryPoints: [
+            {
+              selectionSet: '{ upc }',
+              fieldName: 'productByUpc',
+              args: upc => ({ upc }),
+            },
+            {
+              selectionSet: '{ id }',
+              fieldName: 'productById',
+              args: id => ({ id }),
+            },
+          ],
+        },
+      },
     },
     {
       schema: reviewsSchema,
@@ -411,11 +422,11 @@ const gatewaySchema = stitchSchemas({
         Product: {
           selectionSet: '{ id }',
           fieldName: 'productById',
-          args: (id) => ({ id }),
-        }
-      }
+          args: id => ({ id }),
+        },
+      },
     },
-  ]
+  ],
 });
 ```
 
@@ -425,7 +436,10 @@ Note that the `entryPoints` option replaces a merged type's base `selectionSet` 
 
 APIs may leverage the gateway layer to transport field dependencies from one subservice to another while resolving data. This is useful when a field in one subschema requires one or more fields from other subschemas to be resolved, as described in the [federation spec](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/#requires). For example:
 
-```js
+```ts
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { stitchSchemas } from '@graphql-tools/stitch';
+
 const productsSchema = makeExecutableSchema({
   typeDefs: `
     type Product {
@@ -621,31 +635,36 @@ Only one of any given type or field may be made canonical. Fields that are uniqu
 The above SDL directives can also be written as static configuration:
 
 ```js
+import { stitchSchemas } from '@graphql-tools/stitch';
+
 const gatewaySchema = stitchSchemas({
-  subschemas: [{
-    schema: usersSchema,
-    merge: {
-      User: {
-        // ...
-        canonical: true
+  subschemas: [
+    {
+      schema: usersSchema,
+      merge: {
+        User: {
+          // ...
+          canonical: true,
+        },
+        Query: {
+          fields: {
+            user: { canonical: true },
+          },
+        },
       },
-      Query: {
-        fields: {
-          user: { canonical: true }
-        }
-      }
-    }
-  }, {
-    schema: postsSchema,
-    merge: {
-      User: {
-        // ...
-        fields: {
-          email: { canonical: true }
-        }
-      }
-    }
-  }]
+    },
+    {
+      schema: postsSchema,
+      merge: {
+        User: {
+          // ...
+          fields: {
+            email: { canonical: true },
+          },
+        },
+      },
+    },
+  ],
 });
 ```
 

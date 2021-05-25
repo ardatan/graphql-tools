@@ -76,7 +76,7 @@ const typeNameMap = {
 
 const schema = wrapSchema({
   schema: originalSchema,
-  transforms: [new RenameTypes((name) => typeNameMap[name] || name)]
+  transforms: [new RenameTypes(name => typeNameMap[name] || name)],
 });
 ```
 
@@ -96,16 +96,26 @@ Filter transforms are constructed with a filter function that returns a boolean.
 - [`FilterInputObjectFields`](/docs/api/classes/wrap_src.filterinputobjectfields): filters input fields of InputObject types.
 
 ```js
+const {
+  wrapSchema,
+  FilterTypes,
+  FilterRootFields,
+  FilterObjectFields,
+  FilterObjectFieldDirective,
+  FilterInterfaceFields,
+  FilterInputObjectFields,
+} = require('@graphql-tools/wrap');
+
 const schema = wrapSchema({
   schema: originalSchema,
   transforms: [
-    new FilterTypes((type) => true),
+    new FilterTypes(type => true),
     new FilterRootFields((operationName, fieldName, fieldConfig) => true),
     new FilterObjectFields((typeName, fieldName, fieldConfig) => true),
     new FilterObjectFieldDirectives((directiveName, directiveValue) => true),
     new FilterInterfaceFields((typeName, fieldName, fieldConfig) => true),
     new FilterInputObjectFields((typeName, fieldName, inputFieldConfig) => true),
-  ]
+  ],
 });
 ```
 
@@ -121,16 +131,26 @@ Renaming transforms are constructed with a renamer function that returns a strin
 - [`RenameInputObjectFields`](/docs/api/classes/wrap_src.renameinputobjectfields): renames input fields of InputObject types.
 
 ```js
+const {
+  wrapSchema,
+  RenameTypes,
+  RenameRootTypes,
+  RenameRootFields,
+  RenameObjectFields,
+  RenameInterfaceFields,
+  RenameInputObjectFields,
+} = require('@graphql-tools/wrap');
+
 const schema = wrapSchema({
   schema: originalSchema,
   transforms: [
-    new RenameTypes((name) => `New${name}`),
-    new RenameRootTypes((name) => `New${name}`),
+    new RenameTypes(name => `New${name}`),
+    new RenameRootTypes(name => `New${name}`),
     new RenameRootFields((operationName, fieldName, fieldConfig) => `new_${fieldName}`),
     new RenameObjectFields((typeName, fieldName, fieldConfig) => `new_${fieldName}`),
     new RenameInterfaceFields((typeName, fieldName, fieldConfig) => `new_${fieldName}`),
     new RenameInputObjectFields((typeName, fieldName, inputFieldConfig) => `new_${fieldName}`),
-  ]
+  ],
 });
 ```
 
@@ -153,6 +173,16 @@ Available transforms include:
 - [`TransformEnumValues`](/docs/api/classes/wrap_src.transformenumvalues): redefines values of Enum types.
 
 ```js
+const {
+  wrapSchema,
+  TransformRootFields,
+  TransformObjectFields,
+  TransformInterfaceFields,
+  TransformCompositeFields,
+  TransformInputObjectFields,
+  TransformEnumValues,
+} = require('@graphql-tools/wrap');
+
 const schema = wrapSchema({
   schema: originalSchema,
   transforms: [
@@ -162,7 +192,7 @@ const schema = wrapSchema({
     new TransformCompositeFields((typeName, fieldName, fieldConfig) => undefined),
     new TransformInputObjectFields((typeName, fieldName, inputFieldConfig) => [`new_${fieldName}`, inputFieldConfig]),
     new TransformEnumValues((typeName, enumValue, enumValueConfig) => [`NEW_${enumValue}`, enumValueConfig]),
-  ]
+  ],
 });
 ```
 
@@ -179,6 +209,15 @@ These transforms eliminate unwanted or unnecessary elements from a schema. These
 - [`RemoveObjectFieldsWithDirective`](/docs/api/classes/wrap_src.removeobjectfieldswithdirective): removes object fields with a schema directive matching a given name and optional argument criteria.
 
 ```js
+const {
+  wrapSchema,
+  PruneSchema,
+  RemoveObjectFieldDeprecations,
+  RemoveObjectFieldDirectives,
+  RemoveObjectFieldsWithDeprecation,
+  RemoveObjectFieldsWithDirective,
+} = require('@graphql-tools/wrap');
+
 const schema = wrapSchema({
   schema: originalSchema,
   transforms: [
@@ -187,7 +226,7 @@ const schema = wrapSchema({
     new RemoveObjectFieldDirectives('deprecated', { reason: /^gateway access only/ }),
     new RemoveObjectFieldsWithDeprecation(/^gateway access only/),
     new RemoveObjectFieldsWithDirective('deprecated', { reason: /^gateway access only/ }),
-  ]
+  ],
 });
 ```
 
@@ -199,6 +238,10 @@ It may be sometimes useful to add additional transforms to manually change an op
 - `WrapQuery(path: Array<string>, wrapper: QueryWrapper, extractor: (result: any) => any)` wrap a selection at `path` using function `wrapper`. Apply `extractor` at the same path to get the result. This is used to get a result nested inside other result.
 
 ```js
+const {
+  WrapQuery
+} = require('@graphql-tools/wrap');
+
 transforms: [
   // Wrap document takes a subtree as an AST node
   new WrapQuery(
@@ -223,7 +266,10 @@ transforms: [
 
 `WrapQuery` can also be used to expand multiple top level query fields
 
-```js
+```ts
+import { WrapQuery } from '@graphql-tools/wrap';
+import { SelectionSetNode } from 'graphql';
+
 transforms: [
   // Wrap document takes a subtree as an AST node
   new WrapQuery(
@@ -311,15 +357,17 @@ import { filterSchema, pruneSchema } from '@graphql-tools/utils';
 
 class RemovePrivateElementsTransform {
   transformSchema(originalWrappingSchema) {
-    const isPublicName = (name) => !name.startsWith('_');
+    const isPublicName = name => !name.startsWith('_');
 
-    return pruneSchema(filterSchema({
-      schema: originalWrappingSchema,
-      typeFilter: (typeName) => isPublicName(typeName),
-      rootFieldFilter: (operationName, fieldName) => isPublicName(fieldName),
-      fieldFilter: (typeName, fieldName) => isPublicName(fieldName),
-      argumentFilter: (typeName, fieldName, argName) => isPublicName(argName),
-    }));
+    return pruneSchema(
+      filterSchema({
+        schema: originalWrappingSchema,
+        typeFilter: typeName => isPublicName(typeName),
+        rootFieldFilter: (operationName, fieldName) => isPublicName(fieldName),
+        fieldFilter: (typeName, fieldName) => isPublicName(fieldName),
+        argumentFilter: (typeName, fieldName, argName) => isPublicName(argName),
+      })
+    );
   }
 
   // no need for operational transforms
@@ -327,7 +375,7 @@ class RemovePrivateElementsTransform {
 
 const schema = wrapSchema({
   schema: myRemoteSchema,
-  transforms: [new RemovePrivateElementsTransform()]
+  transforms: [new RemovePrivateElementsTransform()],
 });
 ```
 
