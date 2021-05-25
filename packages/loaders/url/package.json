@@ -50,7 +50,7 @@
     "sync-fetch": "0.3.0",
     "tslib": "~2.2.0",
     "valid-url": "1.0.9",
-    "ws": "7.4.5"
+    "ws": "7.4.6"
   },
   "publishConfig": {
     "access": "public",
