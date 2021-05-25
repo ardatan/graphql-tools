@@ -34,8 +34,8 @@ Most of this document is concerned with _implementing_ schema directives, and so
 However, the API we provide for _using_ a schema directive is extremely simple. Just import the implementation of the directive, then pass it to `makeExecutableSchema` via the `schemaTransforms` argument, which is an array of schema transformation functions:
 
 ```js
-import { makeExecutableSchema } from "@graphql-tools/schema";
-import { renameDirective } from "fake-rename-directive-package";
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { renameDirective } from 'fake-rename-directive-package';
 
 const typeDefs = `
 type Person @rename(to: "Human") {
@@ -45,7 +45,7 @@ type Person @rename(to: "Human") {
 
 const schema = makeExecutableSchema({
   typeDefs,
-  schemaTransforms: [renameDirective('rename')]
+  schemaTransforms: [renameDirective('rename')],
 });
 ```
 
@@ -57,34 +57,36 @@ Everything you read below addresses some aspect of how a directive like `@rename
 
 Since the GraphQL specification does not discuss any specific implementation strategy for directives, it's up to each GraphQL server framework to expose an API for implementing new directives.
 
-GraphQL Tools provides convenient yet powerful tools for implementing directive syntax: the [`mapSchema`](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/mapSchema.ts) and [`getDirectives`](https://github.com/ardatan/graphql-tools/blob/schemaTransforms/packages/utils/src/get-directives.ts) functions. `mapSchema` takes two arguments: the original schema, and an object map -- pardon the pun -- of functions that can be used to transform each GraphQL object within the original schema. `mapSchema` is a powerful tool, in that it creates a new copy of the original schema, transforms GraphQL objects as specified, and then rewires the entire schema such that all  GraphQL objects that refer to other GraphQL objects correctly point to the new set. The `getDirectives` function is straightforward; it extracts any directives (with their arguments) from the SDL originally used to create any GraphQL object.
+GraphQL Tools provides convenient yet powerful tools for implementing directive syntax: the [`mapSchema`](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/mapSchema.ts) and [`getDirectives`](https://github.com/ardatan/graphql-tools/blob/schemaTransforms/packages/utils/src/get-directives.ts) functions. `mapSchema` takes two arguments: the original schema, and an object map -- pardon the pun -- of functions that can be used to transform each GraphQL object within the original schema. `mapSchema` is a powerful tool, in that it creates a new copy of the original schema, transforms GraphQL objects as specified, and then rewires the entire schema such that all GraphQL objects that refer to other GraphQL objects correctly point to the new set. The `getDirectives` function is straightforward; it extracts any directives (with their arguments) from the SDL originally used to create any GraphQL object.
 
 Here is one possible implementation of the `@deprecated` directive we saw above:
 
 ```typescript
-import { mapSchema, getDirectives } from "@graphql-tools/utils";
+import { mapSchema, getDirectives } from '@graphql-tools/utils';
+import { GraphQLSchema } from 'graphql';
 
 export function deprecatedDirective(directiveName: string) {
   return {
     deprecatedDirectiveTypeDefs: `directive @${directiveName}(reason: String) on FIELD_DEFINITION | ENUM_VALUE`,
-    deprecatedDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
-      [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-        const directives = getDirectives(schema, fieldConfig);
-        const directiveArgumentMap = directives[directiveName];
-        if (directiveArgumentMap) {
-          fieldConfig.deprecationReason = directiveArgumentMap.reason;
-          return fieldConfig;
-        }
-      },
-      [MapperKind.ENUM_VALUE]: (enumValueConfig) => {
-        const directives = getDirectives(schema, enumValueConfig);
-        const directiveArgumentMap = directives[directiveName];
-        if (directiveArgumentMap) {
-          enumValueConfig.deprecationReason = directiveArgumentMap.reason;
-          return enumValueConfig;
-        }
-      }
-    }),
+    deprecatedDirectiveTransformer: (schema: GraphQLSchema) =>
+      mapSchema(schema, {
+        [MapperKind.OBJECT_FIELD]: fieldConfig => {
+          const directives = getDirectives(schema, fieldConfig);
+          const directiveArgumentMap = directives[directiveName];
+          if (directiveArgumentMap) {
+            fieldConfig.deprecationReason = directiveArgumentMap.reason;
+            return fieldConfig;
+          }
+        },
+        [MapperKind.ENUM_VALUE]: enumValueConfig => {
+          const directives = getDirectives(schema, enumValueConfig);
+          const directiveArgumentMap = directives[directiveName];
+          if (directiveArgumentMap) {
+            enumValueConfig.deprecationReason = directiveArgumentMap.reason;
+            return enumValueConfig;
+          }
+        },
+      }),
   };
 }
 ```
@@ -92,13 +94,15 @@ export function deprecatedDirective(directiveName: string) {
 In order to apply this implementation to a schema that contains `@deprecated` directives, simply pass the necessary typeDefs and schema transformation function to the `makeExecutableSchema` function in the appropriate positions:
 
 ```typescript
-import { deprecatedDirective } from "fake-deprecated-directive-package";
-import { makeExecutableSchema } from "@graphql-tools/schema";
+import { deprecatedDirective } from 'fake-deprecated-directive-package';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 
 const { deprecatedDirectiveTypeDefs, deprecatedDirectiveTransformer } = deprecatedDirective('deprecated');
 
 const schema = makeExecutableSchema({
-  typeDefs: [deprecatedDirectiveTypeDefs, `
+  typeDefs: [
+    deprecatedDirectiveTypeDefs,
+    `
     type ExampleType {
       newField: String
       oldField: String @deprecated(reason: "Use \`newField\`.")
@@ -107,7 +111,8 @@ const schema = makeExecutableSchema({
     type Query {
       rootField: ExampleType
     }
-  `],
+  `,
+  ],
   schemaTransforms: [deprecatedDirectiveTransformer],
 });
 ```
@@ -223,35 +228,38 @@ Suppose your resolver returns a `Date` object but you want to return a formatted
 function dateDirective(directiveName: string) {
   return {
     dateDirectiveTypeDefs: `directive @${directiveName}(format: String) on FIELD_DEFINITION`,
-    dateDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
-      [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-        const directives = getDirectives(schema, fieldConfig);
-        const directiveArgumentMap = directives[directiveName];
-        if (directiveArgumentMap) {
-          const { resolve = defaultFieldResolver } = fieldConfig;
-          const { format } = directiveArgumentMap;
-          fieldConfig.resolve = async function (source, args, context, info) {
-            const date = await resolve(source, args, context, info);
-            return formatDate(date, format, true);
-
+    dateDirectiveTransformer: (schema: GraphQLSchema) =>
+      mapSchema(schema, {
+        [MapperKind.OBJECT_FIELD]: fieldConfig => {
+          const directives = getDirectives(schema, fieldConfig);
+          const directiveArgumentMap = directives[directiveName];
+          if (directiveArgumentMap) {
+            const { resolve = defaultFieldResolver } = fieldConfig;
+            const { format } = directiveArgumentMap;
+            fieldConfig.resolve = async function (source, args, context, info) {
+              const date = await resolve(source, args, context, info);
+              return formatDate(date, format, true);
+            };
+            return fieldConfig;
           }
-          return fieldConfig;
-        }
-      }
-    }),
+        },
+      }),
   };
 }
 
 const { dateDirectiveTypeDefs, dateDirectiveTransformer } = dateDirective('date');
 
 const schema = makeExecutableSchema({
-  typeDefs: [dateDirectiveTypeDefs, `
+  typeDefs: [
+    dateDirectiveTypeDefs,
+    `
     scalar Date
 
     type Query {
       today: Date @date(format: "mmmm d, yyyy")
     }
-  `],
+  `,
+  ],
   resolvers: {
     Query: {
       today() {
@@ -266,7 +274,7 @@ const schema = makeExecutableSchema({
 Of course, it would be even better if the schema author did not have to decide on a specific `Date` format, but could instead leave that decision to the client. To make this work, the directive just needs to add an additional argument to the field:
 
 ```js
-import formatDate from "dateformat";
+import formatDate from 'dateformat';
 
 function formattableDateDirective(directiveName: string) {
   return {
@@ -274,46 +282,45 @@ function formattableDateDirective(directiveName: string) {
         defaultFormat: String = "mmmm d, yyyy"
       ) on FIELD_DEFINITION
     `,
-    formattableDateDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
-      [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-        const directives = getDirectives(schema, fieldConfig);
-        const directiveArgumentMap = directives[directiveName];
-        if (directiveArgumentMap) {
-          const { resolve = defaultFieldResolver } = fieldConfig;
-          const { defaultFormat } = directiveArgumentMap;
+    formattableDateDirectiveTransformer: (schema: GraphQLSchema) =>
+      mapSchema(schema, {
+        [MapperKind.OBJECT_FIELD]: fieldConfig => {
+          const directives = getDirectives(schema, fieldConfig);
+          const directiveArgumentMap = directives[directiveName];
+          if (directiveArgumentMap) {
+            const { resolve = defaultFieldResolver } = fieldConfig;
+            const { defaultFormat } = directiveArgumentMap;
 
-          fieldConfig.args['format'] = {
-            type: GraphQLString,
-          };
+            fieldConfig.args['format'] = {
+              type: GraphQLString,
+            };
 
-          fieldConfig.type = GraphQLString;
-          fieldConfig.resolve = async function (
-            source,
-            { format, ...args },
-            context,
-            info,
-          ) {
-            const newFormat = format || defaultFormat;
-            const date = await resolve(source, args, context, info);
-            return formatDate(date, newFormat, true);
-          };
-          return fieldConfig;
-        }
-      }
-    }),
+            fieldConfig.type = GraphQLString;
+            fieldConfig.resolve = async function (source, { format, ...args }, context, info) {
+              const newFormat = format || defaultFormat;
+              const date = await resolve(source, args, context, info);
+              return formatDate(date, newFormat, true);
+            };
+            return fieldConfig;
+          }
+        },
+      }),
   };
 }
 
 const { formattableDateDirectiveTypeDefs, formattableDateDirectiveTransformer } = formattableDateDirective('date');
 
 const schema = makeExecutableSchema({
-  typeDefs: [formattableDateDirectiveTypeDefs, `
+  typeDefs: [
+    formattableDateDirectiveTypeDefs,
+    `
     scalar Date
 
     type Query {
       today: Date @date
     }
-  `],
+  `,
+  ],
   resolvers: {
     Query: {
       today() {
@@ -328,16 +335,28 @@ const schema = makeExecutableSchema({
 Now the client can specify a desired `format` argument when requesting the `Query.today` field, or omit the argument to use the `defaultFormat` string specified in the schema:
 
 ```js
-import { graphql } from "graphql";
+import { graphql } from 'graphql';
 
-graphql(schema, `query { today }`).then(result => {
+graphql(
+  schema,
+  `
+    query {
+      today
+    }
+  `
+).then(result => {
   // Logs with the default "mmmm d, yyyy" format:
   console.log(result.data.today);
 });
 
-graphql(schema, `query {
-  today(format: "d mmm yyyy")
-}`).then(result => {
+graphql(
+  schema,
+  `
+    query {
+      today(format: "d mmm yyyy")
+    }
+  `
+).then(result => {
   // Logs with the requested "d mmm yyyy" format:
   console.log(result.data.today);
 });
@@ -348,9 +367,7 @@ graphql(schema, `query {
 Imagine a hypothetical `@auth` directive that takes an argument `requires` of type `Role`, which defaults to `ADMIN`. This `@auth` directive can appear on an `OBJECT` like `User` to set default access permissions for all `User` fields, as well as appearing on individual fields, to enforce field-specific `@auth` restrictions:
 
 ```graphql
-directive @auth(
-  requires: Role = ADMIN,
-) on OBJECT | FIELD_DEFINITION
+directive @auth(requires: Role = ADMIN) on OBJECT | FIELD_DEFINITION
 
 enum Role {
   ADMIN
@@ -581,43 +598,46 @@ Note that new types can be added to the schema with ease, but that each type mus
 Suppose your database uses incrementing IDs for each resource type, so IDs are not unique across all resource types. Here’s how you might synthesize a field called `uid` that combines the object type with various field values to produce an ID that’s unique across your schema:
 
 ```js
-import { GraphQLID } from "graphql";
-import { createHash } from "crypto";
+import { GraphQLID } from 'graphql';
+import { createHash } from 'crypto';
 
 function uniqueIDDirective(directiveName: string) {
   return {
     uniqueIDDirectiveTypeDefs: `directive @${directiveName}(name: String, from: [String]) on OBJECT`,
-    uniqueIDDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
-      [MapperKind.OBJECT_TYPE]: (type) => {
-        const directives = getDirectives(schema, type);
-        const directiveArgumentMap = directives[directiveName];
-        if (directiveArgumentMap) {
-          const { name, from } = directiveArgumentMap;
-          const config = type.toConfig();
-          config.fields[name] = {
-            type: GraphQLID,
-            description: 'Unique ID',
-            args: {},
-            resolve(object: any) {
-              const hash = createHash('sha1');
-              hash.update(type.name);
-              from.forEach((fieldName: string) => {
-                hash.update(String(object[fieldName]));
-              });
-              return hash.digest('hex');
-            },
-          };
-          return new GraphQLObjectType(config);
-        }
-      }
-    }),
+    uniqueIDDirectiveTransformer: (schema: GraphQLSchema) =>
+      mapSchema(schema, {
+        [MapperKind.OBJECT_TYPE]: type => {
+          const directives = getDirectives(schema, type);
+          const directiveArgumentMap = directives[directiveName];
+          if (directiveArgumentMap) {
+            const { name, from } = directiveArgumentMap;
+            const config = type.toConfig();
+            config.fields[name] = {
+              type: GraphQLID,
+              description: 'Unique ID',
+              args: {},
+              resolve(object: any) {
+                const hash = createHash('sha1');
+                hash.update(type.name);
+                from.forEach((fieldName: string) => {
+                  hash.update(String(object[fieldName]));
+                });
+                return hash.digest('hex');
+              },
+            };
+            return new GraphQLObjectType(config);
+          }
+        },
+      }),
   };
 }
 
 const { uniqueIDDirectiveTypeDefs, uniqueIDDirectiveTransformer } = uniqueIDDirective('uniqueID');
 
 const schema = makeExecutableSchema({
-  typeDefs: [uniqueIDDirectiveTypeDefs, `
+  typeDefs: [
+    uniqueIDDirectiveTypeDefs,
+    `
     type Query {
       people: [Person]
       locations: [Location]
@@ -632,7 +652,8 @@ const schema = makeExecutableSchema({
       locationID: Int
       address: String
     }
-  `],
+  `,
+  ],
   resolvers: {
     Query: {
       people() {
@@ -678,7 +699,6 @@ export function attachDirectiveResolvers(
   schema: GraphQLSchema,
   directiveResolvers: IDirectiveResolvers
 ): GraphQLSchema {
-
   // ... argument validation ...
 
   return mapSchema(schema, {
@@ -731,6 +751,7 @@ See [this `graphql-js` issue](https://github.com/graphql/graphql-js/issues/1343)
 How can you customize schema mapping? The second argument provided to mapSchema is an object of type `SchemaMapper` that can specify individual mapping functions.
 
 GraphQL objects are mapped according to the following algorithm:
+
 1. Types are mapped. The most general matching mapping function available will be used, i.e. inclusion of a `MapperKind.TYPE` will cause all types to be mapped with the specified mapper. Specifying `MapperKind.ABSTRACT_TYPE` and `MapperKind.MAPPER.QUERY` mappers will cause the first mapper to be used for interfaces and unions, the latter to be used for the root query object type, and all other types to be ignored.
 2. Enum values are mapped. If all you want to do to an enum is to change one value, it is more convenient to use a `MapperKind.ENUM_VALUE` mapper than to iterate through all values on your own and recreate the type -- although that would work!
 3. Fields are mapped. Similar to above, if you want to modify a single field, `mapSchema` can do the iteration for you. You can subspecify `MapperKind.OBJECT_FIELD` or `MapperKind.ROOT_FIELD` to select a limited subset of fields to map.

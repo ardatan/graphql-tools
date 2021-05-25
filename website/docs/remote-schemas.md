@@ -32,11 +32,11 @@ We've chosen to split this functionality up to give you the flexibility to choos
 type Executor = (operation: ExecutionParams) => Promise<ExecutionResult>;
 
 type ExecutionParams = {
-  document: DocumentNode;
-  variables?: Object;
-  context?: Object;
-  info?: GraphQLResolveInfo
-}
+  document: DocumentNode,
+  variables?: Object,
+  context?: Object,
+  info?: GraphQLResolveInfo,
+};
 ```
 
 ### Using cross-fetch
@@ -46,6 +46,7 @@ Basic usage
 ```js
 import { fetch } from 'cross-fetch';
 import { print } from 'graphql';
+import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 
 const executor = async ({ document, variables }) => {
   const query = print(document);
@@ -54,7 +55,7 @@ const executor = async ({ document, variables }) => {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ query, variables })
+    body: JSON.stringify({ query, variables }),
   });
   return fetchResult.json();
 };
@@ -64,8 +65,8 @@ export default async () => {
     schema: await introspectSchema(executor),
     executor,
   });
-  return schema
-}
+  return schema;
+};
 ```
 
 Authentication headers from context
@@ -73,6 +74,7 @@ Authentication headers from context
 ```js
 import { fetch } from 'cross-fetch';
 import { print } from 'graphql';
+import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 
 const executor = async ({ document, variables, context }) => {
   const query = print(document);
@@ -80,9 +82,9 @@ const executor = async ({ document, variables, context }) => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${context.authKey}`,
+      Authorization: `Bearer ${context.authKey}`,
     },
-    body: JSON.stringify({ query, variables })
+    body: JSON.stringify({ query, variables }),
   });
   return fetchResult.json();
 };
@@ -93,11 +95,12 @@ export default async () => {
     executor,
   });
 
-  return schema
-}
+  return schema;
+};
 ```
 
 ### Creating a subscriber
+
 For subscriptions, we need to define a subscriber that returns `AsyncIterator`. Other than that, it has the similar API with `executor`.
 
 ```ts
@@ -105,6 +108,7 @@ type Subscriber = (executionParams: ExecutionParams) => Promise<AsyncIterator<Ex
 ```
 
 #### Using `graphql-ws`
+
 For the following example to work, the server must implement the [library's transport protocol](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md). Learn more about [`graphql-ws`](https://github.com/enisdenjo/graphql-ws).
 
 ```ts
@@ -125,7 +129,7 @@ const executor: Executor = async ({ document, variables }) => {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ query, variables })
+    body: JSON.stringify({ query, variables }),
   });
   return fetchResult.json();
 };
@@ -168,8 +172,8 @@ export default async () => {
     subscriber,
   });
 
-  return schema
-}
+  return schema;
+};
 ```
 
 ## API
@@ -181,7 +185,7 @@ Use `executor` to obtain a non-executable client schema from a remote schema usi
 ```js
 import { introspectSchema } from '@graphql-tools/wrap';
 
-introspectSchema(executor).then((schema) => {
+introspectSchema(executor).then(schema => {
   // use the schema
 });
 
@@ -213,16 +217,18 @@ For users who need to customize the root proxying resolvers at the time that the
 export type CreateProxyingResolverFn = (options: ICreateProxyingResolverOptions) => GraphQLFieldResolver<any, any>;
 
 export interface ICreateProxyingResolverOptions {
-  subschemaConfig: SubschemaConfig;   // target schema config for delegation
-  transformedSchema?: GraphQLSchema;   // pre-processed result of applying any transforms to the target schema
-  operation?: Operation;   // target operation type = 'query' | 'mutation' | 'subscription'
-  fieldName?: string;   // target root field name
-};
+  subschemaConfig: SubschemaConfig; // target schema config for delegation
+  transformedSchema?: GraphQLSchema; // pre-processed result of applying any transforms to the target schema
+  operation?: Operation; // target operation type = 'query' | 'mutation' | 'subscription'
+  fieldName?: string; // target root field name
+}
 ```
 
 You may not need all the options to accomplish what you need. For example, the default proxying resolver creator just uses a subset of the passed arguments, with the fieldName inferred:
 
 ```ts
+import { delegateToSchema } from '@graphql-tools/delegate';
+
 export function defaultCreateProxyingResolver({
   subschemaConfig,
   operation,
@@ -240,30 +246,33 @@ export function defaultCreateProxyingResolver({
 }
 ```
 
-Parenthetically, note that that `args` from the root field resolver are not directly passed to the target schema. These arguments have already been parsed into their corresponding internal values by the GraphQL execution algorithm. The correct, serialized form of the arguments are available within the `info` object, ready for proxying. Specifying the `args` property for `delegateToSchema` allows one to pass *additional* arguments to the target schema, which is not necessary when creating a simple proxying schema.
+Parenthetically, note that that `args` from the root field resolver are not directly passed to the target schema. These arguments have already been parsed into their corresponding internal values by the GraphQL execution algorithm. The correct, serialized form of the arguments are available within the `info` object, ready for proxying. Specifying the `args` property for `delegateToSchema` allows one to pass _additional_ arguments to the target schema, which is not necessary when creating a simple proxying schema.
 
 The above can can all be put together like this:
 
 ```ts
+import { wrapSchema } from '@graphql-tools/wrap';
+
 const schema = wrapSchema({
   schema,
   executor: myCustomExecutor,
-  createProxyingResolver: myCustomCreateProxyingResolverFn
+  createProxyingResolver: myCustomCreateProxyingResolverFn,
 });
 ```
 
 Note that within the `defaultCreateProxyingResolver` function, `delegateToSchema` receives `executor` and `subscriber` functions stored on the subschema config object originally passed to `wrapSchema`. As above, use of the the `createProxyingResolver` option is helpful when you want to customize additional functionality at resolver creation time. If you just want to customize how things are proxied at the time that they are proxied, you can make do just with custom executors and subscribers.
 
-
 ### makeRemoteExecutableSchema(options)
 
 What about `makeRemoteExecutableSchema`, the function used in older versions to access remote schemas? It still works -- just now under the hood calling `wrapSchema`. There is essentially no longer any need to use `makeRemoteExecutableSchema` directly, but we've kept it around for backwards compatibility.
 
-You can  still pass a `createResolver` function to `makeRemoteExecutableSchema` to override how the fetch resolvers are created and executed. The `createResolver` param accepts an `Executor` as its first argument (and a `Subscriber` as its second) and returns a resolver function. This opens up the possibility for users to create batching mechanisms for fetches. As above, it is likely easier to just customize the `executor` function itself.
+You can still pass a `createResolver` function to `makeRemoteExecutableSchema` to override how the fetch resolvers are created and executed. The `createResolver` param accepts an `Executor` as its first argument (and a `Subscriber` as its second) and returns a resolver function. This opens up the possibility for users to create batching mechanisms for fetches. As above, it is likely easier to just customize the `executor` function itself.
 
 Given a GraphQL.js schema (can be a non-executable client schema made by `buildClientSchema`) and a [executor](#creating-an-executor), `makeRemoteExecutableSchema` produce a GraphQL Schema that routes all requests to the executor:
 
 ```js
+import { makeRemoteExecutableSchema } from '@graphql-tools/wrap';
+
 const createResolver: (executor: Executor) => GraphQLFieldResolver<any, any> = // . . .
 
 const schema = makeRemoteExecutableSchema({

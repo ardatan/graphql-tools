@@ -28,7 +28,7 @@ let postSchema = makeExecutableSchema({
       postById(id: ID!): Post
       postsByUserId(userId: ID!): [Post!]!
     }
-  `
+  `,
 });
 
 let userSchema = makeExecutableSchema({
@@ -41,7 +41,7 @@ let userSchema = makeExecutableSchema({
     type Query {
       userById(id: ID!): User
     }
-  `
+  `,
 });
 
 // just mock the schemas for now to make them return dummy data
@@ -64,10 +64,7 @@ To formalize this navigation within our gateway schema, we can _extend_ each typ
 import { stitchSchemas } from '@graphql-tools/stitch';
 
 export const schema = stitchSchemas({
-  subschemas: [
-    postsSubschema,
-    usersSubschema,
-  ],
+  subschemas: [postsSubschema, usersSubschema],
   typeDefs: `
     extend type Post {
       user: User!
@@ -75,7 +72,7 @@ export const schema = stitchSchemas({
     extend type User {
       posts: [Post!]!
     }
-  `
+  `,
 });
 ```
 
@@ -88,10 +85,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 import { delegateToSchema } from '@graphql-tools/delegate';
 
 export const schema = stitchSchemas({
-  subschemas: [
-    postsSubschema,
-    usersSubschema,
-  ],
+  subschemas: [postsSubschema, usersSubschema],
   typeDefs: `
     extend type Post {
       user: User!
@@ -131,7 +125,7 @@ export const schema = stitchSchemas({
         },
       },
     },
-  }
+  },
 });
 ```
 
@@ -190,12 +184,10 @@ With this many-users query available, we can now delegate the `Post.user` field 
 
 ```js
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
+import { stitchSchemas } from '@graphql-tools/stitch';
 
 const schema = stitchSchemas({
-  subschemas: [
-    postsSubschema,
-    usersSubschema,
-  ],
+  subschemas: [postsSubschema, usersSubschema],
   typeDefs: `
     extend type Post {
       user: User!
@@ -211,7 +203,7 @@ const schema = stitchSchemas({
             operation: 'query',
             fieldName: 'usersByIds',
             key: post.userId,
-            argsFromKeys: (ids) => ({ ids }),
+            argsFromKeys: ids => ({ ids }),
             context,
             info,
           });
@@ -223,6 +215,7 @@ const schema = stitchSchemas({
 ```
 
 Internally, `batchDelegateToSchema` wraps a single `delegateToSchema` call in a [DataLoader](https://www.npmjs.com/package/dataloader) scoped by context, field, arguments, and query selection. It assumes that the delegated operation will return an array of objects matching the gateway field's named GraphQL type (ex: a `User` field delegates to a `[User]` query). If this is not the case, then you should manually provide a `returnType` option citing the expected GraphQL return type. Since it is a thin wrapper around `DataLoader`, it also makes the following assumptions on the results:
+
 > - The Array of values must be the same length as the Array of keys.
 > - Each index in the Array of values must correspond to the same index in the Array of keys.
 
@@ -236,7 +229,7 @@ Exhaustive accessors like `User.posts` do not scale well (...what happens when a
 
 ```graphql
 extend type User {
-  posts(pageNumber: Int=1): [Post]!
+  posts(pageNumber: Int = 1): [Post]!
 }
 ```
 
@@ -252,7 +245,12 @@ postPagesByUserIds(userIds: [ID!]!, pageNumber: Int=1): [[Post!]!]!
 
 This `postPagesByUserIds` query is a very primitive example of pagination, and simply returns an array of posts for each user ID. Now we just need to pass the resolver's page number argument through to `batchDelegateToSchema`, and manually specify a `returnType` that matches the pagination format:
 
-```js
+```ts
+import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
+import { GraphQLList } from 'graphql';
+
+/// ...
+
 User: {
   posts: {
     selectionSet: `{ id }`,
@@ -284,6 +282,8 @@ In this configuration, resolver arguments will need to pass through with the ini
 
 ```js
 import { forwardArgsToSelectionSet } from '@graphql-tools/stitch';
+import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
+
 //...
 User: {
   posts: {
@@ -306,7 +306,7 @@ User: {
 By default, `forwardArgsToSelectionSet` will pass through all arguments from the gateway field to _all_ root fields in the selection set. For complex selections that request multiple fields, you may provide an additional mapping of selection names with their respective arguments:
 
 ```js
-forwardArgsToSelectionSet('{ id postIds }', { postIds: ['pageNumber'] })
+forwardArgsToSelectionSet('{ id postIds }', { postIds: ['pageNumber'] });
 ```
 
 ## Extending transformed schemas
@@ -331,7 +331,7 @@ const postSchema = makeExecutableSchema({
       postById(id: ID!): Post
       postsByUserId(userId: ID!): [Post]!
     }
-  `
+  `,
 });
 
 const postsSubschema = {
@@ -340,7 +340,7 @@ const postsSubschema = {
     // remove the "postsByUserId" root field
     new FilterRootFields((op, field) => field !== 'postsByUserId'),
     // prefix all type names with "Post_"
-    new RenameTypes((name) => `Post_${name}`),
+    new RenameTypes(name => `Post_${name}`),
   ],
 };
 
@@ -354,18 +354,15 @@ const userSchema = makeExecutableSchema({
     type Query {
       userById(id: ID!): User
     }
-  `
+  `,
 });
 
 const usersSubschema = {
-  schema: addMocksToSchema({ schema: userSchema })
+  schema: addMocksToSchema({ schema: userSchema }),
 };
 
 const stitchedSchema = stitchSchemas({
-  subschemas: [
-    postsSubschema,
-    usersSubschema,
-  ],
+  subschemas: [postsSubschema, usersSubschema],
   typeDefs: `
     extend type User {
       posts: [Post_Post!]!

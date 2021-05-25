@@ -9,6 +9,8 @@ description: Stitching API
 This is the main function that implements schema stitching. It accepts all the same arguments as [`makeExecutableSchema`](/docs/generate-schema/), and the additions below.
 
 ```ts
+import { stitchSchemas } from '@graphql-tools/stitch';
+
 stitchSchemas({
   subschemas?: Array<GraphQLSchema | SubschemaConfig | Array<SubschemaConfig>>;
   types?: Array<GraphQLNamedType>;
@@ -56,6 +58,8 @@ export type OnTypeConflict = (
 Creates a merged type resolver that may be [wrapped with custom behaviors](/docs/stitch-type-merging#wrapped-resolvers).
 
 ```ts
+import { createMergedTypeResolver } from '@graphql-tools/stitch';
+
 createMergedTypeResolver({
   fieldName?: string;
   args?: (originalResult: any) => Record<string, any>;
@@ -69,6 +73,8 @@ createMergedTypeResolver({
 Creates a dynamic `selectionSet` that [forwards gateway arguments](/docs/stitch-schema-extensions#via-selectionset) to a resolver selection hint.
 
 ```ts
+import { forwardArgsToSelectionSet } from '@graphql-tools/stitch';
+
 forwardArgsToSelectionSet(
   selectionSet: string,
   mapping?: Record<string, string[]>
