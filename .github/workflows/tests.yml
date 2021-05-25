@@ -61,7 +61,7 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest] # remove windows to speed up the tests
         node_version: [10, 16]
         graphql_version: [14, 15]
     steps:
