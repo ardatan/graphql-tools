@@ -71,7 +71,7 @@
     "prettier": "2.3.0",
     "ts-jest": "26.5.6",
     "typedoc": "0.20.36",
-    "typedoc-plugin-markdown": "3.8.1",
+    "typedoc-plugin-markdown": "3.8.2",
     "typescript": "4.2.4"
   },
   "husky": {
