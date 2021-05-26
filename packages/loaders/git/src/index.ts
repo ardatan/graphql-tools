@@ -4,8 +4,9 @@ import {
   gqlPluckFromCodeString,
   gqlPluckFromCodeStringSync,
 } from '@graphql-tools/graphql-tag-pluck';
+import minimatch from 'minimatch';
 
-import { loadFromGit, loadFromGitSync } from './load-git';
+import { loadFromGit, loadFromGitSync, readTreeAtRef, readTreeAtRefSync } from './load-git';
 import { parse } from './parse';
 
 // git:branch:path/to/file
@@ -57,6 +58,20 @@ export class GitLoader implements UniversalLoader {
 
   canLoadSync(pointer: string) {
     return typeof pointer === 'string' && pointer.toLowerCase().startsWith('git:');
+  }
+
+  async resolveGlob(glob:string) {
+    const { ref, path } = extractData(glob);
+    return (await readTreeAtRef(ref))
+      .filter(minimatch.filter(path))
+      .map(filePath => `git:${ref}:${filePath}`);
+  }
+
+  resolveGlobSync(glob: string) {
+    const { ref, path } = extractData(glob);
+    return readTreeAtRefSync(ref)
+      .filter(minimatch.filter(path))
+      .map(filePath => `git:${ref}:${filePath}`);
   }
 
   async load(pointer: string, options: GitLoaderOptions) {

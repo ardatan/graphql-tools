@@ -6,8 +6,6 @@ import { loadFile, loadFileSync } from './load-file';
 import { stringToHash, useStack, StackNext, StackFn } from '../utils/helpers';
 import { useCustomLoader, useCustomLoaderSync } from '../utils/custom-loader';
 import { useQueue, useSyncQueue } from '../utils/queue';
-import unixify from 'unixify';
-import globby, { sync as globbySync } from 'globby';
 
 type AddSource = (data: { pointer: string; source: Source; noCache?: boolean }) => void;
 type AddGlob = (data: { pointer: string; pointerOptions: any }) => void;
@@ -38,10 +36,7 @@ export async function collectSources<TOptions>({
   });
 
   for (const pointer in pointerOptionMap) {
-    const pointerOptions = {
-      ...(pointerOptionMap[pointer] ?? {}),
-      unixify,
-    };
+    const pointerOptions = pointerOptionMap[pointer];
 
     collect({
       pointer,
@@ -60,7 +55,8 @@ export async function collectSources<TOptions>({
       globs,
     });
 
-    const paths = await globby(globs, createGlobbyOptions(options));
+    // TODO: use the queue?
+    const paths = await collectPathsFromGlobs(globs, options);
 
     collectSourcesFromGlobals({
       filepaths: paths,
@@ -100,10 +96,7 @@ export function collectSourcesSync<TOptions>({
   });
 
   for (const pointer in pointerOptionMap) {
-    const pointerOptions = {
-      ...(pointerOptionMap[pointer] ?? {}),
-      unixify,
-    };
+    const pointerOptions = pointerOptionMap[pointer];
 
     collect({
       pointer,
@@ -122,7 +115,7 @@ export function collectSourcesSync<TOptions>({
       globs,
     });
 
-    const paths = globbySync(globs, createGlobbyOptions(options));
+    const paths = collectPathsFromGlobsSync(globs, options);
 
     collectSourcesFromGlobalsSync({
       filepaths: paths,
@@ -191,8 +184,7 @@ function includeIgnored<
 >({ options, globs }: { options: T; globs: string[] }) {
   if (options.ignore) {
     const ignoreList = asArray(options.ignore)
-      .map(g => `!(${g})`)
-      .map<string>(unixify);
+      .map(g => `!(${g})`);
 
     if (ignoreList.length > 0) {
       globs.push(...ignoreList);
@@ -200,8 +192,40 @@ function includeIgnored<
   }
 }
 
-function createGlobbyOptions(options: any): any {
-  return { absolute: true, ...options, ignore: [] };
+async function collectPathsFromGlobs(globs: string[], options: LoadTypedefsOptions):string[] {
+  const paths: string[] = [];
+
+  if (!options.loaders) {
+    return paths;
+  }
+
+  for await (const glob of globs) {
+    const loader = options.loaders.find(loader => loader.canLoadSync(glob, options));
+    const resolvedGlob = await loader.resolveGlob(glob, options)
+    if (resolvedGlob) {
+      paths.push(...resolvedGlob);
+    }
+  }
+
+  return paths;
+}
+
+function collectPathsFromGlobsSync(globs: string[], options: LoadTypedefsOptions):string[] {
+  const paths: string[] = [];
+
+  if (!options.loaders) {
+    return paths;
+  }
+
+  for (const glob of globs) {
+    const loader = options.loaders.find(loader => loader.canLoadSync(glob, options));
+    const resolvedGlob = loader.resolveGlobSync(glob, options)
+    if (resolvedGlob) {
+      paths.push(...resolvedGlob);
+    }
+  }
+
+  return paths;
 }
 
 function collectSourcesFromGlobals<T, P>({
@@ -342,9 +366,9 @@ function collectDocumentString<T>(
 }
 
 function collectGlob<T>({ pointer, pointerOptions, addGlob }: CollectOptions<T>, next: StackNext) {
-  if (isGlob(pointerOptions.unixify(pointer))) {
+  if (isGlob(pointer)) {
     return addGlob({
-      pointer: pointerOptions.unixify(pointer),
+      pointer,
       pointerOptions,
     });
   }
