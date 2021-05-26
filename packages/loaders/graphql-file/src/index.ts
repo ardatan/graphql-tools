@@ -1,3 +1,5 @@
+import type { GlobbyOptions } from 'globby';
+
 import {
   Source,
   UniversalLoader,
@@ -34,7 +36,7 @@ function isGraphQLImportFile(rawSDL: string) {
   return trimmedRawSDL.startsWith('# import') || trimmedRawSDL.startsWith('#import');
 }
 
-function createGlobbyOptions(options: GraphQLFileLoaderOptions) {
+function createGlobbyOptions(options: GraphQLFileLoaderOptions): GlobbyOptions {
   return { absolute: true, ...options, ignore: [] };
 }
 

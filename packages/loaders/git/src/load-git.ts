@@ -1,6 +1,7 @@
 import { execFile, execFileSync } from 'child_process';
 
-type Input = { ref: string; path: string };
+type PartialInput = { ref: string };
+type Input = PartialInput & { path: string };
 
 const createLoadError = (error: any) => new Error('Unable to load file from git: ' + error);
 const createShowCommand = ({ ref, path }: Input): string[] => {
@@ -8,7 +9,7 @@ const createShowCommand = ({ ref, path }: Input): string[] => {
 };
 
 const createTreeError = (error: Error) => new Error('Unable to load the file tree from git: ' +  error);
-const createTreeCommand = ({ ref }):string[] => {
+const createTreeCommand = ({ ref }: PartialInput):string[] => {
   return [
     'ls-tree',
     '-r',

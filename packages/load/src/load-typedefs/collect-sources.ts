@@ -192,7 +192,7 @@ function includeIgnored<
   }
 }
 
-async function collectPathsFromGlobs(globs: string[], options: LoadTypedefsOptions):string[] {
+async function collectPathsFromGlobs(globs: string[], options: LoadTypedefsOptions):Promise<string[]> {
   const paths: string[] = [];
 
   if (!options.loaders) {
@@ -200,8 +200,18 @@ async function collectPathsFromGlobs(globs: string[], options: LoadTypedefsOptio
   }
 
   for await (const glob of globs) {
-    const loader = options.loaders.find(loader => loader.canLoadSync(glob, options));
-    const resolvedGlob = await loader.resolveGlob(glob, options)
+    let loader;
+    for await (const candidateLoader of options.loaders) {
+      if (await candidateLoader.canLoad(glob, options)) {
+        loader = candidateLoader;
+        break;
+      }
+    }
+    if (!loader) {
+      // TODO: warn?
+      continue;
+    }
+    const resolvedGlob = await loader.resolveGlob(glob, options);
     if (resolvedGlob) {
       paths.push(...resolvedGlob);
     }
@@ -219,7 +229,11 @@ function collectPathsFromGlobsSync(globs: string[], options: LoadTypedefsOptions
 
   for (const glob of globs) {
     const loader = options.loaders.find(loader => loader.canLoadSync(glob, options));
-    const resolvedGlob = loader.resolveGlobSync(glob, options)
+    if (!loader) {
+      // TODO: warn?
+      continue;
+    }
+    const resolvedGlob = loader.resolveGlobSync(glob, options);
     if (resolvedGlob) {
       paths.push(...resolvedGlob);
     }
