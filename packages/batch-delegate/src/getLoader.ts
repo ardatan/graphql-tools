@@ -9,7 +9,7 @@ import { BatchDelegateOptions } from './types';
 
 const cache1: WeakMap<
   ReadonlyArray<FieldNode>,
-  WeakMap<GraphQLSchema | SubschemaConfig, Record<string, DataLoader<any, any>>>
+  WeakMap<GraphQLSchema | SubschemaConfig<any, any, any, any>, Record<string, DataLoader<any, any>>>
 > = new WeakMap();
 
 function createBatchFn<K = any>(options: BatchDelegateOptions) {
@@ -35,7 +35,7 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
   };
 }
 
-export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions): DataLoader<K, V, C> {
+export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
   const fieldName = options.fieldName ?? options.info.fieldName;
 
   let cache2: WeakMap<GraphQLSchema | SubschemaConfig, Record<string, DataLoader<K, V, C>>> = cache1.get(

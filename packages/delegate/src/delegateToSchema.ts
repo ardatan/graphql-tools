@@ -76,10 +76,12 @@ function getDelegationReturnType(
   return rootType.getFields()[fieldName].type;
 }
 
-export function delegateRequest<TContext = Record<string, any>, TArgs = any>(options: IDelegateRequestOptions<TContext, TArgs>) {
+export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
+  options: IDelegateRequestOptions<TContext, TArgs>
+) {
   const delegationContext = getDelegationContext(options);
 
-  const transformer = new Transformer(delegationContext, options.binding);
+  const transformer = new Transformer<TContext>(delegationContext, options.binding);
 
   const processedRequest = transformer.transformRequest(options.request);
 
@@ -92,11 +94,15 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(opt
   if (operation === 'query' || operation === 'mutation') {
     const executor = getExecutor(delegationContext);
 
-    return new ValueOrPromise(() => executor({
-      ...processedRequest,
-      context,
-      info,
-    })).then(originalResult => transformer.transformResult(originalResult)).resolve();
+    return new ValueOrPromise(() =>
+      executor({
+        ...processedRequest,
+        context,
+        info,
+      })
+    )
+      .then(originalResult => transformer.transformResult(originalResult))
+      .resolve();
   }
 
   const subscriber = getSubscriber(delegationContext);
@@ -105,7 +111,7 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(opt
     ...processedRequest,
     context,
     info,
-  }).then((subscriptionResult: AsyncIterableIterator<ExecutionResult> | ExecutionResult) => {
+  }).then(subscriptionResult => {
     if (Symbol.asyncIterator in subscriptionResult) {
       // "subscribe" to the subscription result and map the result through the transforms
       return mapAsyncIterator<ExecutionResult, any>(
@@ -122,7 +128,14 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(opt
 
 const emptyObject = {};
 
-function getDelegationContext({
+function assertGraphQLSchema(input: unknown): asserts input is GraphQLSchema {
+  if (input instanceof GraphQLSchema) {
+    return;
+  }
+  throw new Error('Expected GraphQL schema.');
+}
+
+function getDelegationContext<TContext>({
   request,
   schema,
   operation,
@@ -135,7 +148,7 @@ function getDelegationContext({
   transforms = [],
   transformedSchema,
   skipTypeMerging,
-}: IDelegateRequestOptions): DelegationContext {
+}: IDelegateRequestOptions<TContext>): DelegationContext<TContext> {
   let operationDefinition: OperationDefinitionNode;
   let targetOperation: OperationTypeNode;
   let targetFieldName: string;
@@ -149,12 +162,12 @@ function getDelegationContext({
 
   if (fieldName == null) {
     operationDefinition = operationDefinition ?? getOperationAST(request.document, undefined);
-    targetFieldName = ((operationDefinition.selectionSet.selections[0] as unknown) as FieldDefinitionNode).name.value;
+    targetFieldName = (operationDefinition.selectionSet.selections[0] as unknown as FieldDefinitionNode).name.value;
   } else {
     targetFieldName = fieldName;
   }
 
-  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
+  const stitchingInfo: StitchingInfo<TContext> = info?.schema.extensions?.stitchingInfo;
 
   const subschemaOrSubschemaConfig = stitchingInfo?.subschemaMap.get(schema) ?? schema;
 
@@ -170,15 +183,19 @@ function getDelegationContext({
       context,
       info,
       rootValue: rootValue ?? subschemaOrSubschemaConfig?.rootValue ?? info?.rootValue ?? emptyObject,
-      returnType: returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
+      returnType:
+        returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
       transforms:
         subschemaOrSubschemaConfig.transforms != null
           ? subschemaOrSubschemaConfig.transforms.concat(transforms)
           : transforms,
-      transformedSchema: transformedSchema ?? (subschemaOrSubschemaConfig as Subschema)?.transformedSchema ?? targetSchema,
+      transformedSchema:
+        transformedSchema ?? (subschemaOrSubschemaConfig as Subschema)?.transformedSchema ?? targetSchema,
       skipTypeMerging,
     };
   }
+
+  assertGraphQLSchema(subschemaOrSubschemaConfig);
 
   return {
     subschema: schema,
@@ -190,14 +207,17 @@ function getDelegationContext({
     context,
     info,
     rootValue: rootValue ?? info?.rootValue ?? emptyObject,
-    returnType: returnType ?? info?.returnType ?? getDelegationReturnType(subschemaOrSubschemaConfig, targetOperation, targetFieldName),
+    returnType:
+      returnType ??
+      info?.returnType ??
+      getDelegationReturnType(subschemaOrSubschemaConfig, targetOperation, targetFieldName),
     transforms,
     transformedSchema: transformedSchema ?? subschemaOrSubschemaConfig,
     skipTypeMerging,
   };
 }
 
-function validateRequest(delegationContext: DelegationContext, document: DocumentNode) {
+function validateRequest(delegationContext: DelegationContext<any>, document: DocumentNode) {
   const errors = validate(delegationContext.targetSchema, document);
   if (errors.length > 0) {
     if (errors.length > 1) {
@@ -209,7 +229,7 @@ function validateRequest(delegationContext: DelegationContext, document: Documen
   }
 }
 
-function getExecutor(delegationContext: DelegationContext): Executor {
+function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): Executor<TContext> {
   const { subschemaConfig, targetSchema, context, rootValue } = delegationContext;
 
   let executor: Executor =
@@ -228,7 +248,7 @@ function getExecutor(delegationContext: DelegationContext): Executor {
   return executor;
 }
 
-function getSubscriber(delegationContext: DelegationContext): Subscriber {
+function getSubscriber<TContext>(delegationContext: DelegationContext<TContext>): Subscriber<TContext> {
   const { subschemaConfig, targetSchema, rootValue } = delegationContext;
   return subschemaConfig?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || rootValue);
 }
