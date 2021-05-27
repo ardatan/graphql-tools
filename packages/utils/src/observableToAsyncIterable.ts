@@ -45,7 +45,7 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
   };
 
   const pullValue = () =>
-    new Promise(resolve => {
+    new Promise<IteratorResult<T>>(resolve => {
       if (pushQueue.length !== 0) {
         const element = pushQueue.shift();
         // either {value: {errors: [...]}} or {value: ...}
