@@ -16,9 +16,10 @@ export function normalizeString(str: string) {
 type PromiseOf<T extends (...args: any[]) => any> = T extends (...args: any[]) => Promise<infer R> ? R : ReturnType<T>;
 
 export function runTests<
-  TSync extends (...args: any[]) => TResult,
-  TAsync extends (...args: any[]) => Promise<TResult>,
-  TResult = ReturnType<TSync>
+  TResult extends any,
+  TArgs extends Array<any>,
+  TSync extends (...args: TArgs) => TResult,
+  TAsync extends (...args: TArgs) => Promise<TResult>
 >({ sync: executeSync, async: executeAsync }: { sync?: TSync; async?: TAsync }) {
   return (
     testRunner: (
@@ -29,7 +30,7 @@ export function runTests<
     if (executeSync) {
       // sync
       describe('sync', () => {
-        testRunner((...args: Parameters<TSync>) => {
+        testRunner((...args: Parameters<TSync | TAsync>) => {
           return new Promise<PromiseOf<TAsync>>((resolve, reject) => {
             try {
               const result: any = executeSync(...args);
