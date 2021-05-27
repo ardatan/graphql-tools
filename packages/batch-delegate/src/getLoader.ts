@@ -1,9 +1,20 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode } from 'graphql';
+import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode, responsePathAsArray } from 'graphql';
 
 import DataLoader from 'dataloader';
 
-import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
-import { relocatedError } from '@graphql-tools/utils';
+import {
+  SubschemaConfig,
+  Transformer,
+  createRequestFromInfo,
+  getDelegationContext,
+  getDelegatingOperation,
+  getExecutor,
+  validateRequest,
+  InitialReceiver,
+  createExternalValue,
+  externalValueFromResult,
+} from '@graphql-tools/delegate';
+import { isAsyncIterable, relocatedError } from '@graphql-tools/utils';
 
 import { BatchDelegateOptions } from './types';
 
@@ -17,14 +28,73 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
   const { lazyOptionsFn } = options;
 
   return async (keys: ReadonlyArray<K>) => {
-    const batchResult = await delegateToSchema({
-      returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
-      onLocatedError: originalError => relocatedError(originalError, originalError.path.slice(1)),
-      args: argsFromKeys(keys),
-      ...(lazyOptionsFn == null ? options : lazyOptionsFn(options)),
+    const {
+      context,
+      info,
+      operationName,
+      operation = getDelegatingOperation(info.parentType, info.schema),
+      fieldName = info.fieldName,
+      returnType = new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
+      selectionSet,
+      fieldNodes,
+      binding,
+      skipValidation,
+    } = options;
+
+    if (operation !== 'query' && operation !== 'mutation') {
+      throw new Error(`Batch delegation not possible for operation '${operation}'.`)
+    }
+
+    const request = createRequestFromInfo({
+      info,
+      operation,
+      fieldName,
+      selectionSet,
+      fieldNodes,
+      operationName,
     });
 
-    return Array.isArray(batchResult) ? batchResult : keys.map(() => batchResult);
+    const delegationContext = getDelegationContext({
+      request,
+      args: argsFromKeys(keys),
+      onLocatedError: originalError => relocatedError(originalError, originalError.path.slice(1)),
+      ...(lazyOptionsFn == null ? options : lazyOptionsFn(options)),
+      operation,
+      fieldName,
+      returnType,
+    });
+
+    const transformer = new Transformer(delegationContext, binding);
+
+    const processedRequest = transformer.transformRequest(request);
+
+    if (!skipValidation) {
+      validateRequest(delegationContext, processedRequest.document);
+    }
+
+    const executor = getExecutor(delegationContext);
+
+    const batchResult = await executor({
+      ...processedRequest,
+      context,
+      info
+    });
+
+    if (isAsyncIterable(batchResult)) {
+      const receiver = new InitialReceiver(batchResult, delegationContext, executionResult => transformer.transformResult(executionResult));
+
+      const { data, unpathedErrors } = await receiver.getInitialResult();
+
+      const { subschema, context, info, returnType } = delegationContext;
+      const initialPath = responsePathAsArray(info.path);
+      const batchValue = createExternalValue(data, unpathedErrors, initialPath, subschema, context, info, receiver, returnType);
+
+      return Array.isArray(batchValue) ? batchValue : keys.map(() => batchValue);
+    }
+
+    const batchValue = externalValueFromResult(transformer.transformResult(batchResult), delegationContext);
+
+    return Array.isArray(batchValue) ? batchValue : keys.map(() => batchValue);
   };
 }
 

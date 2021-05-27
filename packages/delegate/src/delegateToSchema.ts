@@ -110,7 +110,7 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(opt
 
 const emptyObject = {};
 
-function getDelegationContext({
+export function getDelegationContext({
   request,
   schema,
   operation,
@@ -186,7 +186,7 @@ function getDelegationContext({
   };
 }
 
-function validateRequest(delegationContext: DelegationContext, document: DocumentNode) {
+export function validateRequest(delegationContext: DelegationContext, document: DocumentNode) {
   const errors = validate(delegationContext.targetSchema, document);
   if (errors.length > 0) {
     if (errors.length > 1) {
@@ -209,7 +209,7 @@ const createDefaultExecutor = memoize2(function (schema: GraphQLSchema, rootValu
     })) as Executor;
 });
 
-function getExecutor(delegationContext: DelegationContext): Executor {
+export function getExecutor(delegationContext: DelegationContext): Executor {
   const { subschemaConfig, targetSchema, context, rootValue } = delegationContext;
 
   let executor: Executor =

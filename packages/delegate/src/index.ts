@@ -1,4 +1,6 @@
+export * from './InitialReceiver';
 export * from './Subschema';
+export * from './Transformer';
 export * from './applySchemaTransforms';
 export * from './createRequest';
 export * from './defaultMergedResolver';
