@@ -9,9 +9,23 @@ export interface Source {
   location?: string;
 }
 
+export interface Cacheable {
+  cacheable?<TPointer, TOptions>(
+    fn: (pointer: TPointer, options?: TOptions) => PromiseLike<Source | never>,
+    pointer: TPointer,
+    options?: TOptions
+  ): Promise<Source | never>;
+  cacheableSync?<TPointer, TOptions>(
+    fn: (pointer: TPointer, options?: TOptions) => Source | never,
+    pointer: TPointer,
+    options?: TOptions
+  ): Source | never;
+}
+
 export type SingleFileOptions = GraphQLParseOptions &
   GraphQLSchemaValidationOptions &
-  BuildSchemaOptions & {
+  BuildSchemaOptions &
+  Cacheable & {
     cwd?: string;
   };
 
@@ -24,6 +38,7 @@ export type DocumentPointer = WithList<DocumentGlobPathPointer>;
 export type DocumentPointerSingle = ElementOf<DocumentPointer>;
 
 export interface Loader<TPointer = string, TOptions extends SingleFileOptions = SingleFileOptions> {
+  cacheable?: boolean;
   loaderId(): string;
   canLoad(pointer: TPointer, options?: TOptions): Promise<boolean>;
   canLoadSync?(pointer: TPointer, options?: TOptions): boolean;

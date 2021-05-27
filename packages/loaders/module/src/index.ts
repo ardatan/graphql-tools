@@ -40,6 +40,8 @@ function extractData(
  * ```
  */
 export class ModuleLoader implements UniversalLoader {
+  cacheable = true;
+
   loaderId() {
     return 'module-loader';
   }

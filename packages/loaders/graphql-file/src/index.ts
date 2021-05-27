@@ -55,6 +55,8 @@ function isGraphQLImportFile(rawSDL: string) {
  * ```
  */
 export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptions> {
+  cacheable = true;
+
   loaderId(): string {
     return 'graphql-file';
   }
@@ -94,16 +96,19 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
     return false;
   }
 
-  async load(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Promise<Source> {
-    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
-    const rawSDL: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
-
-    return this.handleFileContent(rawSDL, pointer, options);
-  }
-
   loadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Source {
     const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
     const rawSDL = readFileSync(normalizedFilePath, { encoding: 'utf8' });
+    return this.handleFileContent(rawSDL, pointer, options);
+  }
+
+  async load(
+    pointer: SchemaPointerSingle | DocumentPointerSingle,
+    options: GraphQLFileLoaderOptions
+  ): Promise<Source> {
+    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
+    const rawSDL: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
+
     return this.handleFileContent(rawSDL, pointer, options);
   }
 

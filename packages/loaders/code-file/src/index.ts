@@ -50,6 +50,8 @@ const FILE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue'];
  * Supported extensions include: `.ts`, `.tsx`, `.js`, `.jsx`, `.vue`
  */
 export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
+  cacheable = true;
+
   loaderId(): string {
     return 'code-file';
   }
@@ -100,7 +102,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
         const sdl = await gqlPluckFromCodeString(normalizedFilePath, content, options.pluckConfig);
 
         if (sdl) {
-          return parseSDL({ pointer, sdl, options });
+          return parseSDL({ pointer: normalizedFilePath, sdl, options });
         }
       } catch (e) {
         debugLog(`Failed to load schema from code file "${normalizedFilePath}": ${e.message}`);
@@ -115,7 +117,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
         }
 
         const loaded = await tryToLoadFromExport(normalizedFilePath);
-        const source = resolveSource(pointer, loaded, options);
+        const source = resolveSource(normalizedFilePath, loaded, options);
 
         if (source) {
           return source;
@@ -143,7 +145,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
         const sdl = gqlPluckFromCodeStringSync(normalizedFilePath, content, options.pluckConfig);
 
         if (sdl) {
-          return parseSDL({ pointer, sdl, options });
+          return parseSDL({ pointer: normalizedFilePath, sdl, options });
         }
       } catch (e) {
         debugLog(`Failed to load schema from code file "${normalizedFilePath}": ${e.message}`);
@@ -158,7 +160,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
         }
 
         const loaded = tryToLoadFromExportSync(normalizedFilePath);
-        const source = resolveSource(pointer, loaded, options);
+        const source = resolveSource(normalizedFilePath, loaded, options);
 
         if (source) {
           return source;

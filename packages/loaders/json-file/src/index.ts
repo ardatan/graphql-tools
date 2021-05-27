@@ -43,6 +43,8 @@ export interface JsonFileLoaderOptions extends SingleFileOptions {}
  * ```
  */
 export class JsonFileLoader implements DocumentLoader {
+  cacheable = true;
+
   loaderId(): string {
     return 'json-file';
   }
