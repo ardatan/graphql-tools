@@ -21,6 +21,7 @@ import {
   GraphQLBoolean,
   graphqlSync,
   GraphQLSchema,
+  GraphQLFieldResolver,
 } from 'graphql';
 
 import {
@@ -1648,7 +1649,7 @@ To disable this validator, use:
       makeExecutableSchema.bind(null, {
         typeDefs: short,
         resolvers: rf,
-        resolverValidationOptions: { requireResolversForNonScalar: false },
+        resolverValidationOptions: { requireResolversForNonScalar: 'ignore' },
       }),
     ).not.toThrow();
   });
@@ -2184,8 +2185,8 @@ describe('Generating a full graphQL schema with resolvers and connectors', () =>
 
 describe('chainResolvers', () => {
   test('can chain two resolvers', () => {
-    const r1 = (root: number) => root + 1;
-    const r2 = (root: number, { addend }: { addend: number }) => root + addend;
+    const r1: GraphQLFieldResolver<any, any, { addend: number }> = (root: number) => root + 1;
+    const r2: GraphQLFieldResolver<any, any, { addend: number }> = (root: number, { addend }) => root + addend;
 
     const rChained = chainResolvers([r1, r2]);
     expect(rChained(0, { addend: 2 }, null, null)).toBe(3);
