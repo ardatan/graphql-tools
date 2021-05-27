@@ -8,11 +8,11 @@ import { ObjectValueTransformerMap, ErrorsTransformer } from '../types';
 
 import TransformCompositeFields from './TransformCompositeFields';
 
-export default class MapFields implements Transform {
+export default class MapFields<TContext> implements Transform<any, TContext> {
   private fieldNodeTransformerMap: FieldNodeMappers;
   private objectValueTransformerMap?: ObjectValueTransformerMap;
   private errorsTransformer?: ErrorsTransformer;
-  private transformer: TransformCompositeFields;
+  private transformer: TransformCompositeFields<TContext>;
 
   constructor(
     fieldNodeTransformerMap: FieldNodeMappers,
@@ -26,7 +26,7 @@ export default class MapFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const subscriptionTypeName = originalWrappingSchema.getSubscriptionType()?.name;

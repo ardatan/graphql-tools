@@ -204,6 +204,12 @@ export type FieldFilter = (
   fieldConfig?: GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig
 ) => boolean;
 
+export type ObjectFieldFilter = (
+  typeName?: string,
+  fieldName?: string,
+  fieldConfig?: GraphQLFieldConfig<any, any>
+) => boolean;
+
 export type RootFieldFilter = (
   operation?: 'Query' | 'Mutation' | 'Subscription',
   rootFieldName?: string,
@@ -460,16 +466,16 @@ export interface SchemaMapper {
 }
 
 export type SchemaFieldMapperTypes = Array<
-  MapperKind.FIELD |
-  MapperKind.COMPOSITE_FIELD |
-  MapperKind.OBJECT_FIELD |
-  MapperKind.ROOT_FIELD |
-  MapperKind.QUERY_ROOT_FIELD |
-  MapperKind.MUTATION_ROOT_FIELD |
-  MapperKind.SUBSCRIPTION_ROOT_FIELD |
-  MapperKind.INTERFACE_FIELD |
-  MapperKind.INPUT_OBJECT_FIELD
->
+  | MapperKind.FIELD
+  | MapperKind.COMPOSITE_FIELD
+  | MapperKind.OBJECT_FIELD
+  | MapperKind.ROOT_FIELD
+  | MapperKind.QUERY_ROOT_FIELD
+  | MapperKind.MUTATION_ROOT_FIELD
+  | MapperKind.SUBSCRIPTION_ROOT_FIELD
+  | MapperKind.INTERFACE_FIELD
+  | MapperKind.INPUT_OBJECT_FIELD
+>;
 
 export type NamedTypeMapper = (type: GraphQLNamedType, schema: GraphQLSchema) => GraphQLNamedType | null | undefined;
 

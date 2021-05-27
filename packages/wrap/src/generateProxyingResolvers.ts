@@ -12,8 +12,8 @@ import {
   getUnpathedErrors,
 } from '@graphql-tools/delegate';
 
-export function generateProxyingResolvers(
-  subschemaConfig: SubschemaConfig
+export function generateProxyingResolvers<TContext>(
+  subschemaConfig: SubschemaConfig<any, any, any, TContext>
 ): Record<string, Record<string, GraphQLFieldResolver<any, any>>> {
   const targetSchema = subschemaConfig.schema;
   const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
@@ -27,6 +27,7 @@ export function generateProxyingResolvers(
   };
 
   const resolvers = {};
+  // @ts-expect-error: Object.keys typings suck.
   Object.keys(operationTypes).forEach((operation: OperationTypeNode) => {
     const rootType = operationTypes[operation];
     if (rootType != null) {
@@ -62,10 +63,10 @@ export function generateProxyingResolvers(
   return resolvers;
 }
 
-function createPossiblyNestedProxyingResolver(
-  subschemaConfig: SubschemaConfig,
+function createPossiblyNestedProxyingResolver<TContext>(
+  subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   proxyingResolver: GraphQLFieldResolver<any, any>
-): GraphQLFieldResolver<any, any> {
+): GraphQLFieldResolver<any, TContext, any> {
   return (parent, args, context, info) => {
     if (parent != null) {
       const responseKey = getResponseKeyFromInfo(info);
@@ -88,11 +89,11 @@ function createPossiblyNestedProxyingResolver(
   };
 }
 
-export function defaultCreateProxyingResolver({
+export function defaultCreateProxyingResolver<TContext>({
   subschemaConfig,
   operation,
   transformedSchema,
-}: ICreateProxyingResolverOptions): GraphQLFieldResolver<any, any> {
+}: ICreateProxyingResolverOptions<TContext>): GraphQLFieldResolver<any, any> {
   return (_parent, _args, context, info) =>
     delegateToSchema({
       schema: subschemaConfig,

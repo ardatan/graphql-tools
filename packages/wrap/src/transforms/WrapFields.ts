@@ -30,13 +30,13 @@ interface WrapFieldsTransformationContext {
   paths: Record<string, { pathToField: Array<string>; alias: string }>;
 }
 
-export default class WrapFields implements Transform<WrapFieldsTransformationContext> {
+export default class WrapFields<TContext> implements Transform<WrapFieldsTransformationContext, TContext> {
   private readonly outerTypeName: string;
   private readonly wrappingFieldNames: Array<string>;
   private readonly wrappingTypeNames: Array<string>;
   private readonly numWraps: number;
   private readonly fieldNames: Array<string>;
-  private readonly transformer: Transform;
+  private readonly transformer: Transform<any, TContext>;
 
   constructor(
     outerTypeName: string,
@@ -53,34 +53,30 @@ export default class WrapFields implements Transform<WrapFieldsTransformationCon
 
     const remainingWrappingFieldNames = this.wrappingFieldNames.slice();
     const outerMostWrappingFieldName = remainingWrappingFieldNames.shift();
-    this.transformer = new MapFields(
+    this.transformer = new MapFields<TContext>(
       {
         [outerTypeName]: {
-          [outerMostWrappingFieldName]: (
-            fieldNode,
-            fragments,
-            transformationContext: WrapFieldsTransformationContext
-          ) =>
+          [outerMostWrappingFieldName]: (fieldNode, fragments, transformationContext) =>
             hoistFieldNodes({
               fieldNode,
               path: remainingWrappingFieldNames,
               fieldNames,
               fragments,
-              transformationContext,
+              transformationContext: transformationContext as WrapFieldsTransformationContext,
               prefix,
             }),
         },
       },
       {
-        [outerTypeName]: (value, context: WrapFieldsTransformationContext) => dehoistValue(value, context),
+        [outerTypeName]: (value, context) => dehoistValue(value, context as WrapFieldsTransformationContext),
       },
-      (errors, context: WrapFieldsTransformationContext) => dehoistErrors(errors, context)
+      (errors, context) => dehoistErrors(errors, context as WrapFieldsTransformationContext)
     );
   }
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const targetFieldConfigMap = selectObjectFields(

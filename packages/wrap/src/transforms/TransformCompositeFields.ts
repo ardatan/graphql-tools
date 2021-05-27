@@ -17,7 +17,7 @@ import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/de
 
 import { FieldTransformer, FieldNodeTransformer, DataTransformer, ErrorsTransformer } from '../types';
 
-export default class TransformCompositeFields implements Transform {
+export default class TransformCompositeFields<TContext = Record<string, any>> implements Transform<any, TContext> {
   private readonly fieldTransformer: FieldTransformer;
   private readonly fieldNodeTransformer: FieldNodeTransformer;
   private readonly dataTransformer: DataTransformer;
@@ -42,7 +42,7 @@ export default class TransformCompositeFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig,
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     _transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     this.transformedSchema = mapSchema(originalWrappingSchema, {
