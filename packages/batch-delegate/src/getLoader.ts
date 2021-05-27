@@ -81,6 +81,8 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
     });
 
     if (isAsyncIterable(batchResult)) {
+      // TODO: split the asyncIterable and make a new receiver from each of them, return the Receiver instead of the
+      // initial value, so that the correct info can be used to instantiate the Receiver
       const receiver = new InitialReceiver(batchResult, delegationContext, executionResult => transformer.transformResult(executionResult));
 
       const { data, unpathedErrors } = await receiver.getInitialResult();
@@ -92,7 +94,9 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
       return Array.isArray(batchValue) ? batchValue : keys.map(() => batchValue);
     }
 
-    const batchValue = externalValueFromResult(transformer.transformResult(batchResult), delegationContext);
+      // TODO: split the batchedResult and return the result instead of the value, so the correct info
+      // can be used to instantiate the value
+      const batchValue = externalValueFromResult(transformer.transformResult(batchResult), delegationContext);
 
     return Array.isArray(batchValue) ? batchValue : keys.map(() => batchValue);
   };
