@@ -14,23 +14,17 @@ const cache1: WeakMap<
 
 function createBatchFn<K = any>(options: BatchDelegateOptions) {
   const argsFromKeys = options.argsFromKeys ?? ((keys: ReadonlyArray<K>) => ({ ids: keys }));
-  const { valuesFromResults, lazyOptionsFn } = options;
+  const { lazyOptionsFn } = options;
 
   return async (keys: ReadonlyArray<K>) => {
-    const results = await delegateToSchema({
+    const batchResult = await delegateToSchema({
       returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
       onLocatedError: originalError => relocatedError(originalError, originalError.path.slice(1)),
       args: argsFromKeys(keys),
       ...(lazyOptionsFn == null ? options : lazyOptionsFn(options)),
     });
 
-    if (results instanceof Error) {
-      return keys.map(() => results);
-    }
-
-    const values = valuesFromResults == null ? results : valuesFromResults(results, keys);
-
-    return Array.isArray(values) ? values : keys.map(() => values);
+    return Array.isArray(batchResult) ? batchResult : keys.map(() => batchResult);
   };
 }
 

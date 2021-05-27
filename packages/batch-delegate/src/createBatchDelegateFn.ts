@@ -8,14 +8,12 @@ export function createBatchDelegateFn<K = any, V = any, C = K>(
   optionsOrArgsFromKeys: CreateBatchDelegateFnOptions | ((keys: ReadonlyArray<K>) => Record<string, any>),
   lazyOptionsFn?: BatchDelegateOptionsFn,
   dataLoaderOptions?: DataLoader.Options<K, V, C>,
-  valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>
 ): BatchDelegateFn<K> {
   return typeof optionsOrArgsFromKeys === 'function'
     ? createBatchDelegateFnImpl({
         argsFromKeys: optionsOrArgsFromKeys,
         lazyOptionsFn,
         dataLoaderOptions,
-        valuesFromResults,
       })
     : createBatchDelegateFnImpl(optionsOrArgsFromKeys);
 }

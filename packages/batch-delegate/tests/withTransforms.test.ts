@@ -6,7 +6,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 import { TransformQuery } from '@graphql-tools/wrap'
 
 describe('works with complex transforms', () => {
-  test('using TransformQuery instead of valuesFromResults', async () => {
+  test('using TransformQuery', async () => {
     const bookSchema = makeExecutableSchema({
       typeDefs: `
         type Book {
