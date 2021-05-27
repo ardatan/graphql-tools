@@ -7,7 +7,7 @@ import {
   SingleFileOptions,
 } from '@graphql-tools/utils';
 import { isAbsolute, resolve } from 'path';
-import { readFileSync, accessSync, promises as fsPromises } from 'fs';
+import { readFileSync, promises as fsPromises, existsSync } from 'fs';
 import { cwd } from 'process';
 
 const { readFile, access } = fsPromises;
@@ -68,12 +68,7 @@ export class JsonFileLoader implements DocumentLoader {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
 
-        try {
-          accessSync(normalizedFilePath);
-          return true;
-        } catch {
-          return false;
-        }
+        return existsSync(normalizedFilePath);
       }
     }
 

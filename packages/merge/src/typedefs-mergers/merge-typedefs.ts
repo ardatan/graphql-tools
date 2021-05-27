@@ -14,7 +14,7 @@ import { CompareFn, defaultStringComparator, isSourceTypes, isStringTypes } from
 import { MergedResultMap, mergeGraphQLNodes, schemaDefSymbol } from './merge-nodes';
 import { resetComments, printWithComments } from './comments';
 import { getDocumentNodeFromSchema } from '@graphql-tools/utils';
-import { operationTypeDefinitionNodeTypeRootTypeMap } from './schema-def';
+import { DEFAULT_OPERATION_TYPE_NAME_MAP } from './schema-def';
 
 type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
 
@@ -117,7 +117,7 @@ export function mergeTypeDefs(
 
 function visitTypeSources(
   types: Array<string | Source | DocumentNode | GraphQLSchema | DefinitionNode>,
-  allNodes: DefinitionNode[]
+  allNodes: DefinitionNode[] = []
 ) {
   for (const type of types) {
     if (type) {
@@ -136,6 +136,7 @@ function visitTypeSources(
       }
     }
   }
+  return allNodes;
 }
 
 export function mergeGraphQLTypes(
@@ -144,23 +145,22 @@ export function mergeGraphQLTypes(
 ): DefinitionNode[] {
   resetComments();
 
-  const allNodes: DefinitionNode[] = [];
-  visitTypeSources(types, allNodes);
+  const allNodes = visitTypeSources(types);
 
   const mergedNodes: MergedResultMap = mergeGraphQLNodes(allNodes, config);
 
-  // XXX: right now we don't handle multiple schema definitions
-  let schemaDef = mergedNodes[schemaDefSymbol] || {
-    kind: Kind.SCHEMA_DEFINITION,
-    operationTypes: [],
-  };
-
   if (config?.useSchemaDefinition) {
+    // XXX: right now we don't handle multiple schema definitions
+    const schemaDef = mergedNodes[schemaDefSymbol] || {
+      kind: Kind.SCHEMA_DEFINITION,
+      operationTypes: [],
+    };
     const operationTypes = schemaDef.operationTypes as OperationTypeDefinitionNode[];
-    for (const opTypeDefNodeType in operationTypeDefinitionNodeTypeRootTypeMap) {
+    for (const opTypeDefNodeType in DEFAULT_OPERATION_TYPE_NAME_MAP) {
       const opTypeDefNode = operationTypes.find(operationType => operationType.operation === opTypeDefNodeType);
       if (!opTypeDefNode) {
-        const existingPossibleRootType = mergedNodes[operationTypeDefinitionNodeTypeRootTypeMap[opTypeDefNodeType]];
+        const possibleRootTypeName = DEFAULT_OPERATION_TYPE_NAME_MAP[opTypeDefNodeType];
+        const existingPossibleRootType = mergedNodes[possibleRootTypeName];
         if (existingPossibleRootType) {
           operationTypes.push({
             kind: Kind.OPERATION_TYPE_DEFINITION,
@@ -173,10 +173,14 @@ export function mergeGraphQLTypes(
         }
       }
     }
+
+    if (schemaDef.operationTypes?.length > 0) {
+      mergedNodes[schemaDefSymbol] = schemaDef;
+    }
   }
 
-  if (config?.forceSchemaDefinition && !schemaDef?.operationTypes?.length) {
-    schemaDef = {
+  if (config?.forceSchemaDefinition && !mergedNodes[schemaDefSymbol]?.operationTypes?.length) {
+    mergedNodes[schemaDefSymbol] = {
       kind: Kind.SCHEMA_DEFINITION,
       operationTypes: [
         {
@@ -195,10 +199,6 @@ export function mergeGraphQLTypes(
   }
 
   const mergedNodeDefinitions = Object.values(mergedNodes);
-
-  if (schemaDef.operationTypes?.length) {
-    mergedNodeDefinitions.push(schemaDef);
-  }
 
   if (config?.sort) {
     const sortFn = typeof config.sort === 'function' ? config.sort : defaultStringComparator;

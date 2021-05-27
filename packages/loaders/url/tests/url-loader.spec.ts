@@ -296,9 +296,6 @@ input TestInput {
       scope = nock(testHost).get(testPath).reply(200, testTypeDefs);
       const result = await loader.load(testHost + testPath, {});
 
-      expect(result.schema).toBeDefined();
-      expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
-
       expect(result.document).toBeDefined();
       expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
     })
@@ -309,9 +306,6 @@ input TestInput {
       const result = await loader.load(testHost + testPath, {
         handleAsSDL: true,
       });
-
-      expect(result.schema).toBeDefined();
-      expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
       expect(result.document).toBeDefined();
       expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);

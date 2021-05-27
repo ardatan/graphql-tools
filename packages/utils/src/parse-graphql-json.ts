@@ -1,9 +1,7 @@
 import { buildClientSchema, ParseOptions } from 'graphql';
 import { GraphQLSchemaValidationOptions } from 'graphql/type/schema';
-import { printSchemaWithDirectives } from './print-schema-with-directives';
 import { Source } from './loaders';
 import { SchemaPrintOptions } from './types';
-import { parseGraphQLSDL } from './parse-graphql-sdl';
 
 function stripBOM(content: string): string {
   content = content.toString();
@@ -33,22 +31,22 @@ export function parseGraphQLJSON(
   }
 
   if (parsedJson.kind === 'Document') {
-    const document = parsedJson;
-
     return {
       location,
-      document,
+      document: parsedJson,
     };
   } else if (parsedJson.__schema) {
     const schema = buildClientSchema(parsedJson, options);
-    const rawSDL = printSchemaWithDirectives(schema, options);
 
     return {
       location,
-      document: parseGraphQLSDL(location, rawSDL, options).document,
-      rawSDL,
       schema,
     };
+  } else if (typeof parsedJson === 'string') {
+    return {
+      location,
+      rawSDL: parsedJson
+    }
   }
 
   throw new Error(`Not valid JSON content`);

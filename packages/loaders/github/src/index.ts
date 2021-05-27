@@ -112,12 +112,9 @@ export class GithubLoader implements UniversalLoader<GithubLoaderOptions> {
       return parseGraphQLJSON(pointer, content, options);
     }
 
-    const rawSDL = await gqlPluckFromCodeString(pointer, content, options.pluckConfig);
-    if (rawSDL) {
-      return {
-        location: pointer,
-        rawSDL,
-      };
+    if (path.endsWith('.tsx') || path.endsWith('.ts') || path.endsWith('.js') || path.endsWith('.jsx')) {
+      const rawSDL = await gqlPluckFromCodeString(pointer, content, options.pluckConfig);
+      return parseGraphQLSDL(path, rawSDL, options);
     }
 
     throw new Error(`Invalid file extension: ${path}`);

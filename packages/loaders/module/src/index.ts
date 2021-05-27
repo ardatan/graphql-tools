@@ -1,11 +1,11 @@
-import { parse, isSchema } from 'graphql';
+import { DocumentNode, GraphQLSchema, isSchema } from 'graphql';
 import {
   UniversalLoader,
-  fixSchemaAst,
-  getDocumentNodeFromSchema,
-  SingleFileOptions,
   Source,
 } from '@graphql-tools/utils';
+import { existsSync, promises as fsPromises } from 'fs';
+
+const { access } = fsPromises;
 
 const InvalidError = new Error(`Imported object was not a string, DocumentNode or GraphQLSchema`);
 const createLoadError = (error: any) =>
@@ -44,17 +44,40 @@ export class ModuleLoader implements UniversalLoader {
     return 'module-loader';
   }
 
-  async canLoad(pointer: string) {
-    return this.canLoadSync(pointer);
-  }
-
-  canLoadSync(pointer: string) {
+  private isExpressionValid(pointer: string) {
     return typeof pointer === 'string' && pointer.toLowerCase().startsWith('module:');
   }
 
-  async load(pointer: string, options: SingleFileOptions) {
+  async canLoad(pointer: string) {
+    if (this.isExpressionValid(pointer)) {
+      const { modulePath } = extractData(pointer);
+      try {
+        const moduleAbsolutePath = require.resolve(modulePath);
+        await access(moduleAbsolutePath);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  canLoadSync(pointer: string) {
+    if (this.isExpressionValid(pointer)) {
+      const { modulePath } = extractData(pointer);
+      try {
+        const moduleAbsolutePath = require.resolve(modulePath);
+        return existsSync(moduleAbsolutePath);
+      } catch(e) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  async load(pointer: string) {
     try {
-      const result = this.parse(pointer, options, await this.importModule(pointer));
+      const result = this.parse(pointer, await this.importModule(pointer));
 
       if (result) {
         return result;
@@ -66,9 +89,9 @@ export class ModuleLoader implements UniversalLoader {
     }
   }
 
-  loadSync(pointer: string, options: SingleFileOptions) {
+  loadSync(pointer: string) {
     try {
-      const result = this.parse(pointer, options, this.importModuleSync(pointer));
+      const result = this.parse(pointer, this.importModuleSync(pointer));
 
       if (result) {
         return result;
@@ -80,20 +103,16 @@ export class ModuleLoader implements UniversalLoader {
     }
   }
 
-  private parse(pointer: string, options: SingleFileOptions, importedModule: any): Source | void {
+  private parse(pointer: string, importedModule: GraphQLSchema | string | DocumentNode): Source | void {
     if (isSchema(importedModule)) {
-      const schema = fixSchemaAst(importedModule, options);
       return {
-        schema,
-        get document() {
-          return getDocumentNodeFromSchema(schema);
-        },
+        schema: importedModule,
         location: pointer,
       };
     } else if (typeof importedModule === 'string') {
       return {
         location: pointer,
-        document: parse(importedModule),
+        rawSDL: importedModule,
       };
     } else if (typeof importedModule === 'object' && importedModule.kind === 'Document') {
       return {

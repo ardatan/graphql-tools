@@ -45,7 +45,6 @@ describe('ModuleLoader', () => {
       it('should load GraphQLSchema object from a file', async () => {
         const result: Source = await load(getPointer('schema'), {});
         expect(result.schema).toBeDefined();
-        expect(result.document).toBeDefined();
       });
 
       it('should load DocumentNode object from a file', async () => {
@@ -55,7 +54,7 @@ describe('ModuleLoader', () => {
 
       it('should load string from a file', async () => {
         const result: Source = await load(getPointer('type-defs-string'), {});
-        expect(result.document).toBeDefined();
+        expect(result.rawSDL).toBeDefined();
       });
 
       it('should load using a named export', async () => {

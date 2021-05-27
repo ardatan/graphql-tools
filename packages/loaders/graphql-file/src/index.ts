@@ -8,7 +8,7 @@ import {
   SingleFileOptions,
 } from '@graphql-tools/utils';
 import { isAbsolute, resolve } from 'path';
-import { readFileSync, accessSync, promises as fsPromises } from 'fs';
+import { readFileSync, promises as fsPromises, existsSync } from 'fs';
 import { cwd as processCwd } from 'process';
 import { processImport } from '@graphql-tools/import';
 
@@ -82,12 +82,7 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
-        try {
-          accessSync(normalizedFilePath);
-          return true;
-        } catch {
-          return false;
-        }
+        return existsSync(normalizedFilePath);
       }
     }
 

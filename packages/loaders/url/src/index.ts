@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 /// <reference lib="dom" />
-import { print, IntrospectionOptions, DocumentNode, Kind, parse, buildASTSchema, GraphQLError } from 'graphql';
+import { print, IntrospectionOptions, DocumentNode, Kind, GraphQLError } from 'graphql';
 import {
   AsyncExecutor,
   Executor,
@@ -15,6 +15,7 @@ import {
   ExecutionParams,
   mapAsyncIterator,
   withCancel,
+  parseGraphQLSDL,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
@@ -652,14 +653,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       headers,
     });
     const schemaString = await response.text();
-    const document = parse(schemaString, options);
-    const schema = buildASTSchema(document, options);
-    return {
-      location: pointer,
-      rawSDL: schemaString,
-      document,
-      schema,
-    };
+    return parseGraphQLSDL(pointer, schemaString, options);
   }
 
   handleSDLSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Source {
@@ -671,14 +665,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       headers,
     });
     const schemaString = response.text();
-    const document = parse(schemaString, options);
-    const schema = buildASTSchema(document, options);
-    return {
-      location: pointer,
-      rawSDL: schemaString,
-      document,
-      schema,
-    };
+    return parseGraphQLSDL(pointer, schemaString, options);
   }
 
   async load(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {

@@ -24,6 +24,10 @@ export class PrismaLoader extends UrlLoader {
     return 'prisma';
   }
 
+  canLoadSync() {
+    return false;
+  }
+
   async canLoad(prismaConfigFilePath: string, options: PrismaLoaderOptions): Promise<boolean> {
     if (typeof prismaConfigFilePath === 'string' && prismaConfigFilePath.endsWith('prisma.yml')) {
       const joinedYmlPath = join(options.cwd || cwd(), prismaConfigFilePath);

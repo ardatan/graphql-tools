@@ -19,7 +19,7 @@ export function isNamedDefinitionNode(definitionNode: DefinitionNode): definitio
   return 'name' in definitionNode;
 }
 
-export const schemaDefSymbol = Symbol('schemaDefSymbol');
+export const schemaDefSymbol = 'SCHEMA_DEF_SYMBOL';
 
 export function mergeGraphQLNodes(nodes: ReadonlyArray<DefinitionNode>, config?: Config): MergedResultMap {
   const mergedResultMap = {} as MergedResultMap;

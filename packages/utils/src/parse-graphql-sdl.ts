@@ -16,11 +16,9 @@ import { GraphQLParseOptions } from './Interfaces';
 export function parseGraphQLSDL(location: string, rawSDL: string, options: GraphQLParseOptions = {}) {
   let document: DocumentNode;
   const sdl: string = rawSDL;
-  let sdlModified = false;
 
   try {
     if (options.commentDescriptions && sdl.includes('#')) {
-      sdlModified = true;
       document = transformCommentsToDescriptions(rawSDL, options);
 
       // If noLocation=true, we need to make sure to print and parse it again, to remove locations,
@@ -46,7 +44,6 @@ export function parseGraphQLSDL(location: string, rawSDL: string, options: Graph
   return {
     location,
     document,
-    rawSDL: sdlModified ? print(document) : sdl,
   };
 }
 

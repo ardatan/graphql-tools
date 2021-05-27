@@ -1,6 +1,7 @@
-import { SchemaLoader, Source, SingleFileOptions } from '@graphql-tools/utils';
+import { SchemaLoader, Source, SingleFileOptions, parseGraphQLSDL } from '@graphql-tools/utils';
 import { fetch } from 'cross-fetch';
-import { buildClientSchema } from 'graphql';
+import AggregateError from '@ardatan/aggregate-error';
+import syncFetch from 'sync-fetch';
 
 /**
  * Additional options for loading from Apollo Engine
@@ -25,49 +26,63 @@ export class ApolloEngineLoader implements SchemaLoader<ApolloEngineOptions> {
     return 'apollo-engine';
   }
 
+  private getFetchArgs(options: ApolloEngineOptions): [string, RequestInit] {
+    return [
+      options.engine.endpoint || DEFAULT_APOLLO_ENDPOINT,
+      {
+        method: 'POST',
+        headers: {
+          'x-api-key': options.engine.apiKey,
+          'apollo-client-name': 'Apollo Language Server',
+          'apollo-client-reference-id': '146d29c0-912c-46d3-b686-920e52586be6',
+          'apollo-client-version': '2.6.8',
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          ...options.headers,
+        },
+        body: JSON.stringify({
+          query: SCHEMA_QUERY,
+          variables: {
+            id: options.graph,
+            tag: options.variant,
+          },
+        }),
+      },
+    ];
+  }
+
   async canLoad(ptr: string) {
+    return this.canLoadSync(ptr);
+  }
+
+  canLoadSync(ptr: string) {
     return typeof ptr === 'string' && ptr === 'apollo-engine';
   }
 
-  canLoadSync() {
-    return false;
-  }
-
-  async load(_: 'apollo-engine', options: ApolloEngineOptions): Promise<Source> {
-    const response = await fetch(options.engine.endpoint || DEFAULT_APOLLO_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'x-api-key': options.engine.apiKey,
-        'apollo-client-name': 'Apollo Language Server',
-        'apollo-client-reference-id': '146d29c0-912c-46d3-b686-920e52586be6',
-        'apollo-client-version': '2.6.8',
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        ...options.headers,
-      },
-      body: JSON.stringify({
-        query: SCHEMA_QUERY,
-        variables: {
-          id: options.graph,
-          tag: options.variant,
-        },
-      }),
-    });
+  async load(pointer: 'apollo-engine', options: ApolloEngineOptions): Promise<Source> {
+    const fetchArgs = this.getFetchArgs(options);
+    const response = await fetch(...fetchArgs);
 
     const { data, errors } = await response.json();
 
     if (errors) {
-      throw new Error(errors.map(({ message }: Error) => message).join('\n'));
+      throw new AggregateError(errors);
     }
 
-    return {
-      location: 'apollo-engine',
-      schema: buildClientSchema(data.service.schema),
-    };
+    return parseGraphQLSDL(pointer, data.service.schema.document, options);
   }
 
-  loadSync(): never {
-    throw new Error('Loader ApolloEngine has no sync mode');
+  loadSync(pointer: 'apollo-engine', options: ApolloEngineOptions): Source {
+    const fetchArgs = this.getFetchArgs(options);
+    const response = syncFetch(...fetchArgs);
+
+    const { data, errors } = response.json();
+
+    if (errors) {
+      throw new AggregateError(errors);
+    }
+
+    return parseGraphQLSDL(pointer, data.service.schema.document, options);
   }
 }
 
@@ -80,104 +95,7 @@ export const SCHEMA_QUERY = /* GraphQL */ `
       ... on Service {
         __typename
         schema(tag: $tag) {
-          hash
-          __schema: introspection {
-            queryType {
-              name
-            }
-            mutationType {
-              name
-            }
-            subscriptionType {
-              name
-            }
-            types(filter: { includeBuiltInTypes: true }) {
-              ...IntrospectionFullType
-            }
-            directives {
-              name
-              description
-              locations
-              args {
-                ...IntrospectionInputValue
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  fragment IntrospectionFullType on IntrospectionType {
-    kind
-    name
-    description
-    fields {
-      name
-      description
-      args {
-        ...IntrospectionInputValue
-      }
-      type {
-        ...IntrospectionTypeRef
-      }
-      isDeprecated
-      deprecationReason
-    }
-    inputFields {
-      ...IntrospectionInputValue
-    }
-    interfaces {
-      ...IntrospectionTypeRef
-    }
-    enumValues(includeDeprecated: true) {
-      name
-      description
-      isDeprecated
-      deprecationReason
-    }
-    possibleTypes {
-      ...IntrospectionTypeRef
-    }
-  }
-
-  fragment IntrospectionInputValue on IntrospectionInputValue {
-    name
-    description
-    type {
-      ...IntrospectionTypeRef
-    }
-    defaultValue
-  }
-
-  fragment IntrospectionTypeRef on IntrospectionType {
-    kind
-    name
-    ofType {
-      kind
-      name
-      ofType {
-        kind
-        name
-        ofType {
-          kind
-          name
-          ofType {
-            kind
-            name
-            ofType {
-              kind
-              name
-              ofType {
-                kind
-                name
-                ofType {
-                  kind
-                  name
-                }
-              }
-            }
-          }
+          document
         }
       }
     }

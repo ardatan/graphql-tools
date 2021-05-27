@@ -2,7 +2,7 @@ import { Kind, OperationTypeDefinitionNode, SchemaDefinitionNode, SchemaExtensio
 import { mergeDirectives } from './directives';
 import { Config } from './merge-typedefs';
 
-export const operationTypeDefinitionNodeTypeRootTypeMap = {
+export const DEFAULT_OPERATION_TYPE_NAME_MAP = {
   query: 'Query',
   mutation: 'Mutation',
   subscription: 'Subscription',
@@ -13,7 +13,7 @@ function mergeOperationTypes(
   existingOpNodeList: ReadonlyArray<OperationTypeDefinitionNode> = []
 ): OperationTypeDefinitionNode[] {
   const finalOpNodeList: OperationTypeDefinitionNode[] = [];
-  for (const opNodeType in operationTypeDefinitionNodeTypeRootTypeMap) {
+  for (const opNodeType in DEFAULT_OPERATION_TYPE_NAME_MAP) {
     const opNode =
       opNodeList.find(n => n.operation === opNodeType) || existingOpNodeList.find(n => n.operation === opNodeType);
     if (opNode) {

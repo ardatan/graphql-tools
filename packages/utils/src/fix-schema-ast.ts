@@ -1,10 +1,10 @@
-import { GraphQLSchema, BuildSchemaOptions, buildSchema } from 'graphql';
+import { GraphQLSchema, BuildSchemaOptions, buildASTSchema } from 'graphql';
 import { SchemaPrintOptions } from './types';
-import { printSchemaWithDirectives } from './print-schema-with-directives';
+import { getDocumentNodeFromSchema } from './print-schema-with-directives';
 
 function buildFixedSchema(schema: GraphQLSchema, options: BuildSchemaOptions & SchemaPrintOptions) {
-  return buildSchema(printSchemaWithDirectives(schema), {
-    noLocation: true,
+  const document = getDocumentNodeFromSchema(schema);
+  return buildASTSchema(document, {
     ...(options || {}),
   });
 }
