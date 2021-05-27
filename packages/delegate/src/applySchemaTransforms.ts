@@ -4,9 +4,9 @@ import { cloneSchema } from '@graphql-tools/utils';
 
 import { SubschemaConfig } from './types';
 
-export function applySchemaTransforms<TContext = Record<string, any>>(
+export function applySchemaTransforms(
   originalWrappingSchema: GraphQLSchema,
-  subschemaConfig: SubschemaConfig<any, any, any, TContext>,
+  subschemaConfig: SubschemaConfig<any, any, any, any>,
   transformedSchema?: GraphQLSchema
 ): GraphQLSchema {
   const schemaTransforms = subschemaConfig.transforms;
