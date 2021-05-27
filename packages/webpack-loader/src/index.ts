@@ -3,7 +3,7 @@ import { isExecutableDefinitionNode, Kind, DocumentNode } from 'graphql';
 import { uniqueCode } from '@graphql-tools/webpack-loader-runtime';
 import { parseDocument } from './parser';
 import { optimizeDocumentNode, removeDescriptions, removeEmptyNodes } from '@graphql-tools/optimize';
-import type { LoaderContext } from "webpack"
+import type { LoaderContext } from 'webpack';
 
 function isSDL(doc: DocumentNode) {
   return !doc.definitions.some(def => isExecutableDefinitionNode(def));
@@ -45,7 +45,7 @@ function expandImports(source: string, options: Options) {
 export default function graphqlLoader(this: LoaderContext<Options>, source: string) {
   this.cacheable();
   // TODO: This should probably use this.getOptions()
-  const options = this.query as Options || {};
+  const options = (this.query as Options) || {};
   let doc = parseDocument(source);
 
   const optimizers = [];
@@ -64,9 +64,8 @@ export default function graphqlLoader(this: LoaderContext<Options>, source: stri
   let stringifiedDoc = JSON.stringify(doc);
 
   if (options.replaceKinds) {
-    Object.keys(Kind).forEach((identifier: keyof typeof Kind) => {
-      const value = Kind[identifier];
-
+    Object.keys(Kind).forEach(identifier => {
+      const value = Kind[identifier as keyof typeof Kind];
       stringifiedDoc = stringifiedDoc.replace(new RegExp(`"kind":"${value}"`, 'g'), `"kind": Kind.${identifier}`);
     });
   }
