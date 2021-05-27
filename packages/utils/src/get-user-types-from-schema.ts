@@ -12,7 +12,7 @@ export function getUserTypesFromSchema(schema: GraphQLSchema): GraphQLObjectType
   const allTypesMap = schema.getTypeMap();
 
   // tslint:disable-next-line: no-unnecessary-local-variable
-  const modelTypes = Object.values(allTypesMap).filter((graphqlType: GraphQLObjectType) => {
+  const modelTypes = Object.values(allTypesMap).filter((graphqlType): graphqlType is GraphQLObjectType => {
     if (isObjectType(graphqlType)) {
       // Filter out private types
       if (graphqlType.name.startsWith('__')) {
@@ -34,5 +34,5 @@ export function getUserTypesFromSchema(schema: GraphQLSchema): GraphQLObjectType
     return false;
   });
 
-  return modelTypes as GraphQLObjectType[];
+  return modelTypes
 }

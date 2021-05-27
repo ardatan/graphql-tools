@@ -8,7 +8,6 @@ import {
   graphql,
   GraphQLString,
   GraphQLScalarType,
-  StringValueNode,
   GraphQLInputFieldConfig,
   GraphQLFieldConfig,
   isNonNullType,
@@ -515,6 +514,12 @@ describe('@directives', () => {
       );
     }
 
+    function assertStringArray(input: Array<unknown>): asserts input is Array<string> {
+      if (input.some(item => typeof item !== "string")) {
+        throw new Error("All items in array should be strings.")
+      }
+    }
+
     function checkErrors(
       expectedCount: number,
       ...expectedNames: Array<string>
@@ -522,15 +527,13 @@ describe('@directives', () => {
       return function ({
         errors = [],
         data,
-      }: {
-        errors: Array<any>;
-        data: any;
-      }) {
+      }: ExecutionResult) {
         expect(errors.length).toBe(expectedCount);
         expect(
           errors.every((error) => error.message === 'not authorized'),
         ).toBeTruthy();
         const actualNames = errors.map((error) => error.path.slice(-1)[0]);
+        assertStringArray(actualNames)
         expect(expectedNames.sort((a, b) => a.localeCompare(b))).toEqual(
           actualNames.sort((a, b) => a.localeCompare(b)),
         );
@@ -577,7 +580,7 @@ describe('@directives', () => {
               return type.parseValue(value);
             },
 
-            parseLiteral(ast: StringValueNode) {
+            parseLiteral(ast) {
               return type.parseLiteral(ast, {});
             },
           });

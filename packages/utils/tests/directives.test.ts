@@ -13,7 +13,6 @@ import {
   GraphQLScalarType,
   GraphQLSchema,
   GraphQLString,
-  StringValueNode,
   defaultFieldResolver,
   graphql,
   GraphQLNonNull,
@@ -793,7 +792,7 @@ describe('@directives', () => {
             },
           ) {
             const { resolve = defaultFieldResolver } = field;
-            field.resolve = async function (...args: Array<any>) {
+            field.resolve = async function (...args: Parameters<typeof defaultFieldResolver>) {
               const defaultText = await resolve.apply(this, args);
               // In this example, path would be ["Query", "greeting"]:
               const path = [details.objectType.name, field.name];
@@ -871,7 +870,7 @@ describe('@directives', () => {
         Object.keys(fields).forEach((fieldName) => {
           const field = fields[fieldName];
           const { resolve = defaultFieldResolver } = field;
-          field.resolve = function (...args: Array<any>) {
+          field.resolve = function (...args: Parameters<typeof defaultFieldResolver>) {
             // Get the required Role from the field first, falling back
             // to the objectType if no Role is required by the field:
             const requiredRole =
@@ -957,6 +956,12 @@ describe('@directives', () => {
       );
     }
 
+    function assertStringArray(input: Array<unknown>): asserts input is Array<string> {
+      if (input.some(item => typeof item !== "string")) {
+        throw new Error("All items in array should be strings.")
+      }
+    }
+
     function checkErrors(
       expectedCount: number,
       ...expectedNames: Array<string>
@@ -964,15 +969,13 @@ describe('@directives', () => {
       return function ({
         errors = [],
         data,
-      }: {
-        errors: Array<any>;
-        data: any;
-      }) {
+      }: ExecutionResult) {
         expect(errors.length).toBe(expectedCount);
         expect(
           errors.every((error) => error.message === 'not authorized'),
         ).toBeTruthy();
         const actualNames = errors.map((error) => error.path.slice(-1)[0]);
+        assertStringArray(actualNames)
         expect(expectedNames.sort((a, b) => a.localeCompare(b))).toEqual(
           actualNames.sort((a, b) => a.localeCompare(b)),
         );
@@ -1018,7 +1021,7 @@ describe('@directives', () => {
             return type.parseValue(value);
           },
 
-          parseLiteral(ast: StringValueNode) {
+          parseLiteral(ast) {
             return type.parseLiteral(ast, {});
           },
         });
@@ -1418,7 +1421,7 @@ describe('@directives', () => {
             const { resolve = defaultFieldResolver } = field;
             const newField = { ...field };
 
-            newField.resolve = async function (...args: Array<any>) {
+            newField.resolve = async function (...args: Parameters<typeof defaultFieldResolver>) {
               const result = await resolve.apply(this, args);
               if (typeof result === 'string') {
                 return result.toUpperCase();
@@ -1432,7 +1435,7 @@ describe('@directives', () => {
         reverse: class extends SchemaDirectiveVisitor {
           public visitFieldDefinition(field: GraphQLField<any, any>) {
             const { resolve = defaultFieldResolver } = field;
-            field.resolve = async function (...args: Array<any>) {
+            field.resolve = async function (...args: Parameters<typeof defaultFieldResolver>) {
               const result = await resolve.apply(this, args);
               if (typeof result === 'string') {
                 return result.split('').reverse().join('');

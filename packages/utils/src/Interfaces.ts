@@ -459,6 +459,18 @@ export interface SchemaMapper {
   [MapperKind.DIRECTIVE]?: DirectiveMapper;
 }
 
+export type SchemaFieldMapperTypes = Array<
+  MapperKind.FIELD |
+  MapperKind.COMPOSITE_FIELD |
+  MapperKind.OBJECT_FIELD |
+  MapperKind.ROOT_FIELD |
+  MapperKind.QUERY_ROOT_FIELD |
+  MapperKind.MUTATION_ROOT_FIELD |
+  MapperKind.SUBSCRIPTION_ROOT_FIELD |
+  MapperKind.INTERFACE_FIELD |
+  MapperKind.INPUT_OBJECT_FIELD
+>
+
 export type NamedTypeMapper = (type: GraphQLNamedType, schema: GraphQLSchema) => GraphQLNamedType | null | undefined;
 
 export type ScalarTypeMapper = (type: GraphQLScalarType, schema: GraphQLSchema) => GraphQLScalarType | null | undefined;

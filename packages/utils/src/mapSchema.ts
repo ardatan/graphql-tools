@@ -40,6 +40,7 @@ import {
   IDefaultValueIteratorFn,
   ArgumentMapper,
   EnumValueMapper,
+  SchemaFieldMapperTypes,
 } from './Interfaces';
 
 import { rewireTypes } from './rewire';
@@ -438,9 +439,9 @@ function getTypeMapper(schema: GraphQLSchema, schemaMapper: SchemaMapper, typeNa
   return typeMapper != null ? typeMapper : null;
 }
 
-function getFieldSpecifiers(schema: GraphQLSchema, typeName: string): Array<MapperKind> {
+function getFieldSpecifiers(schema: GraphQLSchema, typeName: string): SchemaFieldMapperTypes {
   const type = schema.getType(typeName);
-  const specifiers = [MapperKind.FIELD];
+  const specifiers: SchemaFieldMapperTypes = [MapperKind.FIELD];
 
   if (isObjectType(type)) {
     specifiers.push(MapperKind.COMPOSITE_FIELD, MapperKind.OBJECT_FIELD);
@@ -473,10 +474,11 @@ function getFieldMapper<F extends GraphQLFieldConfig<any, any> | GraphQLInputFie
   const stack = [...specifiers];
   while (!fieldMapper && stack.length > 0) {
     const next = stack.pop();
-    fieldMapper = schemaMapper[next] as GenericFieldMapper<F>;
+    // TODO: fix this as unknown cast
+    fieldMapper = schemaMapper[next] as unknown as GenericFieldMapper<F>;
   }
 
-  return fieldMapper != null ? fieldMapper : null;
+  return fieldMapper ?? null;
 }
 
 function getArgumentMapper(schemaMapper: SchemaMapper): ArgumentMapper | null {
