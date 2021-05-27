@@ -21,10 +21,10 @@ import {
   ValidationLevel,
 } from './types';
 
-export function validateFieldConsistency(
+export function validateFieldConsistency<TContext = Record<string, any>>(
   finalFieldConfig: GraphQLFieldConfig<any, any>,
-  candidates: Array<MergeFieldConfigCandidate>,
-  typeMergingOptions: TypeMergingOptions
+  candidates: Array<MergeFieldConfigCandidate<TContext>>,
+  typeMergingOptions: TypeMergingOptions<TContext>
 ): void {
   const fieldNamespace = `${candidates[0].type.name}.${candidates[0].fieldName}`;
   const finalFieldNull = isNonNullType(finalFieldConfig.type);
@@ -101,10 +101,10 @@ export function validateFieldConsistency(
   });
 }
 
-export function validateInputObjectConsistency(
+export function validateInputObjectConsistency<TContext = Record<string, any>>(
   fieldInclusionMap: Record<string, number>,
-  candidates: Array<MergeTypeCandidate>,
-  typeMergingOptions: TypeMergingOptions
+  candidates: Array<MergeTypeCandidate<TContext>>,
+  typeMergingOptions: TypeMergingOptions<TContext>
 ): void {
   Object.entries(fieldInclusionMap).forEach(([fieldName, count]) => {
     if (candidates.length !== count) {
@@ -118,10 +118,10 @@ export function validateInputObjectConsistency(
   });
 }
 
-export function validateInputFieldConsistency(
+export function validateInputFieldConsistency<TContext = Record<string, any>>(
   finalInputFieldConfig: GraphQLInputFieldConfig,
-  candidates: Array<MergeInputFieldConfigCandidate>,
-  typeMergingOptions: TypeMergingOptions
+  candidates: Array<MergeInputFieldConfigCandidate<TContext>>,
+  typeMergingOptions: TypeMergingOptions<TContext>
 ): void {
   const inputFieldNamespace = `${candidates[0].type.name}.${candidates[0].fieldName}`;
   const inputFieldConfigs = candidates.map(c => c.inputFieldConfig);
@@ -158,12 +158,12 @@ export function validateInputFieldConsistency(
   }
 }
 
-export function validateTypeConsistency(
+export function validateTypeConsistency<TContext = Record<string, any>>(
   finalElementConfig: GraphQLFieldConfig<any, any> | GraphQLArgumentConfig | GraphQLInputFieldConfig,
   candidates: Array<GraphQLFieldConfig<any, any> | GraphQLArgumentConfig | GraphQLInputFieldConfig>,
   definitionType: string,
   settingNamespace: string,
-  typeMergingOptions: TypeMergingOptions
+  typeMergingOptions: TypeMergingOptions<TContext>
 ): void {
   const finalNamedType = getNamedType(finalElementConfig.type);
   const finalIsScalar = isScalarType(finalNamedType);
@@ -202,10 +202,10 @@ function hasListType(type: GraphQLType): boolean {
   return isListType(getNullableType(type));
 }
 
-export function validateInputEnumConsistency(
+export function validateInputEnumConsistency<TContext = Record<string, any>>(
   inputEnumType: GraphQLEnumType,
   candidates: Array<GraphQLArgumentConfig | GraphQLInputFieldConfig>,
-  typeMergingOptions: TypeMergingOptions
+  typeMergingOptions: TypeMergingOptions<TContext>
 ): void {
   const enumValueInclusionMap: Record<string, number> = Object.create(null);
 
@@ -228,7 +228,11 @@ export function validateInputEnumConsistency(
   }
 }
 
-function validationMessage(message: string, settingNamespace: string, typeMergingOptions: TypeMergingOptions): void {
+function validationMessage<TContext = Record<string, any>>(
+  message: string,
+  settingNamespace: string,
+  typeMergingOptions: TypeMergingOptions<TContext>
+): void {
   const override = `typeMergingOptions.validationScopes['${settingNamespace}'].validationLevel`;
   const settings = getValidationSettings(settingNamespace, typeMergingOptions);
 
@@ -244,7 +248,10 @@ function validationMessage(message: string, settingNamespace: string, typeMergin
   }
 }
 
-function getValidationSettings(settingNamespace: string, typeMergingOptions: TypeMergingOptions): ValidationSettings {
+function getValidationSettings<TContext = Record<string, any>>(
+  settingNamespace: string,
+  typeMergingOptions: TypeMergingOptions<TContext>
+): ValidationSettings {
   return {
     ...(typeMergingOptions?.validationSettings ?? {}),
     ...(typeMergingOptions?.validationScopes?.[settingNamespace] ?? {}),

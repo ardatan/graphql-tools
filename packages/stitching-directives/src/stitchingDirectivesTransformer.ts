@@ -52,9 +52,8 @@ export function stitchingDirectivesTransformer(
     const selectionSetsByType: Record<string, SelectionSetNode> = Object.create(null);
     const computedFieldSelectionSets: Record<string, Record<string, SelectionSetNode>> = Object.create(null);
     const mergedTypesResolversInfo: Record<string, MergedTypeResolverInfo> = Object.create(null);
-    const canonicalTypesInfo: Record<string, { canonical?: boolean; fields?: Record<string, boolean> }> = Object.create(
-      null
-    );
+    const canonicalTypesInfo: Record<string, { canonical?: boolean; fields?: Record<string, boolean> }> =
+      Object.create(null);
 
     const schema = subschemaConfig.schema;
 
@@ -277,7 +276,9 @@ export function stitchingDirectivesTransformer(
           forEachConcreteTypeName(namedType, schema, typeNames, typeName => {
             const parsedMergeArgsExpr = parseMergeArgsExpr(
               mergeArgsExpr,
-              allSelectionSetsByType[typeName] == null ? undefined : mergeSelectionSets(...allSelectionSetsByType[typeName]),
+              allSelectionSetsByType[typeName] == null
+                ? undefined
+                : mergeSelectionSets(...allSelectionSetsByType[typeName])
             );
 
             const additionalArgs = directiveArgumentMap.additionalArgs;
@@ -421,9 +422,9 @@ function generateKeyFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (origina
 
 function generateArgsFromKeysFn(
   mergedTypeResolverInfo: MergedTypeResolverInfo
-): (keys: Array<any>) => Record<string, any> {
+): (keys: ReadonlyArray<any>) => Record<string, any> {
   const { expansions, args } = mergedTypeResolverInfo;
-  return (keys: Array<any>): Record<string, any> => {
+  return (keys: ReadonlyArray<any>): Record<string, any> => {
     const newArgs = mergeDeep({}, args);
     expansions.forEach(expansion => {
       const mappingInstructions = expansion.mappingInstructions;

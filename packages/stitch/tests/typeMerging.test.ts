@@ -552,7 +552,7 @@ describe('external object annotation with batchDelegateToSchema', () => {
     resolvers: {
       Query: {
         networks: (_root, { ids }) =>
-          ids.map((id) => ({ id, domains: [{ id: Number(id) + 3, name: `network${id}.com` }] })),
+          ids.map((id: unknown) => ({ id, domains: [{ id: Number(id) + 3, name: `network${id}.com` }] })),
       },
     },
   })
@@ -573,7 +573,7 @@ describe('external object annotation with batchDelegateToSchema', () => {
     resolvers: {
       Query: {
         posts: (_root, { ids }) =>
-          ids.map((id) => ({
+          ids.map((id: unknown) => ({
             id,
             network: { id: Number(id) + 2 },
           })),

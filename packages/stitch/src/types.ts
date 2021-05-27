@@ -57,7 +57,7 @@ export interface IStitchSchemasOptions<TContext = Record<string, any>>
   >;
   typeDefs?: ITypeDefinitions;
   types?: Array<GraphQLNamedType>;
-  onTypeConflict?: OnTypeConflict;
+  onTypeConflict?: OnTypeConflict<TContext>;
   mergeDirectives?: boolean;
   mergeTypes?: boolean | Array<string> | MergeTypeFilter<TContext>;
   typeMergingOptions?: TypeMergingOptions<TContext>;
@@ -73,7 +73,7 @@ export interface TypeMergingOptions<TContext = Record<string, any>> {
   validationScopes?: Record<string, ValidationSettings>;
   typeCandidateMerger?: (candidates: Array<MergeTypeCandidate<TContext>>) => MergeTypeCandidate<TContext>;
   typeDescriptionsMerger?: (candidates: Array<MergeTypeCandidate<TContext>>) => string;
-  fieldConfigMerger?: (candidates: Array<MergeFieldConfigCandidate<TContext>>) => GraphQLFieldConfig<any, any>;
+  fieldConfigMerger?: (candidates: Array<MergeFieldConfigCandidate<TContext>>) => GraphQLFieldConfig<any, TContext>;
   inputFieldConfigMerger?: (candidates: Array<MergeInputFieldConfigCandidate<TContext>>) => GraphQLInputFieldConfig;
   enumValueConfigMerger?: (candidates: Array<MergeEnumValueConfigCandidate<TContext>>) => GraphQLEnumValueConfig;
 }
