@@ -1,6 +1,7 @@
 /* eslint-disable no-case-declarations */
 /// <reference lib="dom" />
-import { print, IntrospectionOptions, DocumentNode, Kind, GraphQLError } from 'graphql';
+import { print, IntrospectionOptions, Kind, GraphQLError } from 'graphql';
+
 import {
   AsyncExecutor,
   Executor,
@@ -175,7 +176,8 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     );
     form.append('map', JSON.stringify(map));
     await Promise.all(
-      Array.from(uploads.entries()).map(async ([i, u]) => {
+      Array.from(uploads.entries()).map(async (params: unknown) => {
+        let [i, u] = params as any;
         if (isPromise(u)) {
           u = await u;
         }
@@ -371,14 +373,14 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       connectionParams,
       lazy: true,
     });
-    return async ({ document, variables }: { document: DocumentNode; variables: any }) => {
+    return async ({ document, variables }) => {
       const query = print(document);
       return observableToAsyncIterable({
         subscribe: observer => {
           const unsubscribe = subscriptionClient.subscribe(
             {
               query,
-              variables,
+              variables: variables as Record<string, any>,
             },
             observer
           );
@@ -414,7 +416,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
           query: document,
           variables,
         })
-      ) as AsyncIterator<ExecutionResult<TReturn>>;
+      ) as AsyncIterableIterator<ExecutionResult<TReturn>>;
     };
   }
 
@@ -424,7 +426,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     fetch: AsyncFetchFn,
     options: FetchEventSourceInit
   ): Subscriber {
-    return async ({ document, variables, ...rest }: { document: DocumentNode; variables: any }) => {
+    return async ({ document, variables, ...rest }) => {
       const controller = new AbortController();
       const query = print(document);
       const finalUrl = this.prepareGETUrl({ baseUrl: pointer, query, variables });
