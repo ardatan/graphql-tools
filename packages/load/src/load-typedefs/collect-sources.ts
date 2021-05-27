@@ -53,7 +53,7 @@ export async function collectSources<TOptions>({
       options,
       addSource,
       addGlob,
-      queue: queue.add,
+      queue: queue.add as AddToQueue<void>,
     });
   }
 
@@ -67,7 +67,7 @@ export async function collectSources<TOptions>({
       globOptions,
       pointerOptionMap,
       addSource,
-      queue: queue.add,
+      queue: queue.add as AddToQueue<void>,
     });
   }
 
