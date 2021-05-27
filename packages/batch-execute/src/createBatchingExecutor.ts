@@ -12,20 +12,20 @@ import { splitResult } from './splitResult';
 export function createBatchingExecutor(
   executor: Executor,
   dataLoaderOptions?: DataLoader.Options<any, any, any>,
-  extensionsReducer?: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>
+  extensionsReducer: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any> = defaultExtensionsReducer
 ): Executor {
   const loader = new DataLoader(
-    createLoadFn(executor, extensionsReducer ?? defaultExtensionsReducer),
+    createLoadFn(executor, extensionsReducer),
     dataLoaderOptions
   );
   return (executionParams: ExecutionParams) => loader.load(executionParams);
 }
 
 function createLoadFn(
-  executor: ({ document, context, variables, info }: ExecutionParams) => ExecutionResult | Promise<ExecutionResult>,
+  executor: Executor,
   extensionsReducer: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>
 ) {
-  return async (execs: Array<ExecutionParams>): Promise<Array<ExecutionResult>> => {
+  return async (execs: ReadonlyArray<ExecutionParams>): Promise<Array<ExecutionResult>> => {
     const execBatches: Array<Array<ExecutionParams>> = [];
     let index = 0;
     const exec = execs[index];
