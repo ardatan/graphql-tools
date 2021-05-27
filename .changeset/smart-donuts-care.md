@@ -1,5 +1,5 @@
 ---
-'@graphql-tools/utils': minor
+'@graphql-tools/utils': patch
 ---
 
-enhance(utils): refactor and cleanup
+enhance(utils): refactor, cleanup and remove extra work
