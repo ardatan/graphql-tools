@@ -1,3 +1,5 @@
+import type { GlobbyOptions } from 'globby';
+
 import {
   Source,
   UniversalLoader,
@@ -11,6 +13,9 @@ import { isAbsolute, resolve } from 'path';
 import { readFileSync, promises as fsPromises, existsSync } from 'fs';
 import { cwd as processCwd } from 'process';
 import { processImport } from '@graphql-tools/import';
+import globby from 'globby';
+import isGlob from 'is-glob';
+import unixify from 'unixify';
 
 const { readFile, access } = fsPromises;
 
@@ -29,6 +34,10 @@ export interface GraphQLFileLoaderOptions extends SingleFileOptions {
 function isGraphQLImportFile(rawSDL: string) {
   const trimmedRawSDL = rawSDL.trim();
   return trimmedRawSDL.startsWith('# import') || trimmedRawSDL.startsWith('#import');
+}
+
+function createGlobbyOptions(options: GraphQLFileLoaderOptions): GlobbyOptions {
+  return { absolute: true, ...options, ignore: [] };
 }
 
 /**
@@ -63,6 +72,11 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
     pointer: SchemaPointerSingle | DocumentPointerSingle,
     options: GraphQLFileLoaderOptions
   ): Promise<boolean> {
+    if (isGlob(pointer)) {
+      // FIXME: parse to find and check the file extensions?
+      return true;
+    }
+
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
@@ -79,6 +93,11 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
   }
 
   canLoadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): boolean {
+    if (isGlob(pointer)) {
+      // FIXME: parse to find and check the file extensions?
+      return true;
+    }
+
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
@@ -87,6 +106,20 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
     }
 
     return false;
+  }
+
+  async resolveGlobs(globs: string[], options: GraphQLFileLoaderOptions) {
+    return globby(
+      globs.map(v => unixify(v)),
+      createGlobbyOptions(options)
+    );
+  }
+
+  resolveGlobsSync(globs: string[], options: GraphQLFileLoaderOptions) {
+    return globby.sync(
+      globs.map(v => unixify(v)),
+      createGlobbyOptions(options)
+    );
   }
 
   async load(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Promise<Source> {

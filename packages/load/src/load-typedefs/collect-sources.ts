@@ -6,8 +6,6 @@ import { loadFile, loadFileSync } from './load-file';
 import { stringToHash, useStack, StackNext, StackFn } from '../utils/helpers';
 import { useCustomLoader, useCustomLoaderSync } from '../utils/custom-loader';
 import { useQueue, useSyncQueue } from '../utils/queue';
-import unixify from 'unixify';
-import globby, { sync as globbySync } from 'globby';
 
 type AddSource = (data: { pointer: string; source: Source; noCache?: boolean }) => void;
 type AddGlob = (data: { pointer: string; pointerOptions: any }) => void;
@@ -38,10 +36,7 @@ export async function collectSources<TOptions>({
   });
 
   for (const pointer in pointerOptionMap) {
-    const pointerOptions = {
-      ...(pointerOptionMap[pointer] ?? {}),
-      unixify,
-    };
+    const pointerOptions = pointerOptionMap[pointer];
 
     collect({
       pointer,
@@ -60,7 +55,8 @@ export async function collectSources<TOptions>({
       globs,
     });
 
-    const paths = await globby(globs, createGlobbyOptions(options));
+    // TODO: use the queue?
+    const paths = await collectPathsFromGlobs(globs, options);
 
     collectSourcesFromGlobals({
       filepaths: paths,
@@ -100,10 +96,7 @@ export function collectSourcesSync<TOptions>({
   });
 
   for (const pointer in pointerOptionMap) {
-    const pointerOptions = {
-      ...(pointerOptionMap[pointer] ?? {}),
-      unixify,
-    };
+    const pointerOptions = pointerOptionMap[pointer];
 
     collect({
       pointer,
@@ -122,7 +115,7 @@ export function collectSourcesSync<TOptions>({
       globs,
     });
 
-    const paths = globbySync(globs, createGlobbyOptions(options));
+    const paths = collectPathsFromGlobsSync(globs, options);
 
     collectSourcesFromGlobalsSync({
       filepaths: paths,
@@ -190,9 +183,16 @@ function includeIgnored<
   }
 >({ options, globs }: { options: T; globs: string[] }) {
   if (options.ignore) {
-    const ignoreList = asArray(options.ignore)
-      .map(g => `!(${g})`)
-      .map<string>(unixify);
+    const ignoreList = asArray(options.ignore).map(g => {
+      // FIXME: this seems like the wrong place to do this
+      // should we have the loaders inspect and handle the ignores option?
+      // should we build a list of ignores here and pass that as an argument to resolveGlobs instead of "options"?
+      if (g.startsWith('git:')) {
+        const [, ref, path] = g.split(':');
+        return `git:${ref}:!(${path})`;
+      }
+      return `!(${g})`;
+    });
 
     if (ignoreList.length > 0) {
       globs.push(...ignoreList);
@@ -200,8 +200,72 @@ function includeIgnored<
   }
 }
 
-function createGlobbyOptions(options: any): any {
-  return { absolute: true, ...options, ignore: [] };
+async function collectPathsFromGlobs(globs: string[], options: LoadTypedefsOptions): Promise<string[]> {
+  const paths: string[] = [];
+
+  if (!options.loaders) {
+    return paths;
+  }
+
+  const loadersForGlobs = new Map();
+  for (const glob of globs) {
+    let loader;
+    for await (const candidateLoader of options.loaders) {
+      if (candidateLoader.resolveGlobs && (await candidateLoader.canLoad(glob, options))) {
+        loader = candidateLoader;
+        break;
+      }
+    }
+    if (!loader) {
+      // TODO: warn?
+      continue;
+    }
+    if (!loadersForGlobs.has(loader)) {
+      loadersForGlobs.set(loader, []);
+    }
+    loadersForGlobs.get(loader).push(glob);
+  }
+
+  for await (const [loader, globs] of loadersForGlobs.entries()) {
+    const resolvedGlobs = await loader.resolveGlobs(globs, options);
+    if (resolvedGlobs) {
+      paths.push(...resolvedGlobs);
+    }
+  }
+
+  return paths;
+}
+
+function collectPathsFromGlobsSync(globs: string[], options: LoadTypedefsOptions): string[] {
+  const paths: string[] = [];
+
+  if (!options.loaders) {
+    return paths;
+  }
+
+  const loadersForGlobs = new Map();
+  for (const glob of globs) {
+    const loader = options.loaders.find(
+      candidateLoader => candidateLoader.resolveGlobsSync && candidateLoader.canLoadSync(glob, options)
+    );
+    if (!loader) {
+      // TODO: warn?
+      continue;
+    }
+    if (!loadersForGlobs.has(loader)) {
+      loadersForGlobs.set(loader, []);
+    }
+    loadersForGlobs.get(loader).push(glob);
+  }
+
+  for (const [loader, globs] of loadersForGlobs.entries()) {
+    const resolvedGlobs = loader.resolveGlobsSync(globs, options);
+    if (resolvedGlobs) {
+      paths.push(...resolvedGlobs);
+    }
+  }
+
+  return paths;
 }
 
 function collectSourcesFromGlobals<T, P>({
@@ -342,9 +406,9 @@ function collectDocumentString<T>(
 }
 
 function collectGlob<T>({ pointer, pointerOptions, addGlob }: CollectOptions<T>, next: StackNext) {
-  if (isGlob(pointerOptions.unixify(pointer))) {
+  if (isGlob(pointer)) {
     return addGlob({
-      pointer: pointerOptions.unixify(pointer),
+      pointer,
       pointerOptions,
     });
   }

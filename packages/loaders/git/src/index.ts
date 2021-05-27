@@ -4,14 +4,13 @@ import {
   gqlPluckFromCodeString,
   gqlPluckFromCodeStringSync,
 } from '@graphql-tools/graphql-tag-pluck';
+import micromatch from 'micromatch';
 
-import { loadFromGit, loadFromGitSync } from './load-git';
+import { loadFromGit, loadFromGitSync, readTreeAtRef, readTreeAtRefSync } from './load-git';
 import { parse } from './parse';
 
 // git:branch:path/to/file
-function extractData(
-  pointer: string
-): {
+function extractData(pointer: string): {
   ref: string;
   path: string;
 } {
@@ -57,6 +56,38 @@ export class GitLoader implements UniversalLoader {
 
   canLoadSync(pointer: string) {
     return typeof pointer === 'string' && pointer.toLowerCase().startsWith('git:');
+  }
+
+  async resolveGlobs(globs: string[]) {
+    const refsForPaths = new Map();
+    for (const glob of globs) {
+      const { ref, path } = extractData(glob);
+      if (!refsForPaths.has(ref)) {
+        refsForPaths.set(ref, []);
+      }
+      refsForPaths.get(ref).push(path);
+    }
+    const resolved: string[] = [];
+    for await (const [ref, paths] of refsForPaths.entries()) {
+      resolved.push(...micromatch(await readTreeAtRef(ref), paths).map(filePath => `git:${ref}:${filePath}`));
+    }
+    return resolved;
+  }
+
+  resolveGlobsSync(globs: string[]) {
+    const refsForPaths = new Map();
+    for (const glob of globs) {
+      const { ref, path } = extractData(glob);
+      if (!refsForPaths.has(ref)) {
+        refsForPaths.set(ref, []);
+      }
+      refsForPaths.get(ref).push(path);
+    }
+    const resolved: string[] = [];
+    for (const [ref, paths] of refsForPaths.entries()) {
+      resolved.push(...micromatch(readTreeAtRefSync(ref), paths).map(filePath => `git:${ref}:${filePath}`));
+    }
+    return resolved;
   }
 
   async load(pointer: string, options: GitLoaderOptions) {

@@ -16,13 +16,19 @@
   "typescript": {
     "definition": "dist/index.d.ts"
   },
+  "devDependencies": {
+    "@types/is-glob": "4.0.1"
+  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "dependencies": {
     "@graphql-tools/utils": "^7.0.0",
     "@graphql-tools/graphql-tag-pluck": "^6.5.1",
-    "tslib": "~2.2.0"
+    "globby": "^11.0.3",
+    "is-glob": "^4.0.1",
+    "tslib": "~2.2.0",
+    "unixify": "^1.0.0"
   },
   "publishConfig": {
     "access": "public",

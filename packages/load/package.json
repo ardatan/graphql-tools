@@ -28,12 +28,10 @@
   "dependencies": {
     "@graphql-tools/utils": "^7.5.0",
     "@graphql-tools/merge": "^6.2.12",
-    "globby": "11.0.3",
     "import-from": "3.0.0",
     "is-glob": "4.0.1",
     "p-limit": "3.1.0",
     "tslib": "~2.2.0",
-    "unixify": "1.0.0",
     "valid-url": "1.0.9"
   },
   "publishConfig": {

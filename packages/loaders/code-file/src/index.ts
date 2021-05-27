@@ -1,3 +1,5 @@
+import type { GlobbyOptions } from 'globby';
+
 import { isSchema, GraphQLSchema, DocumentNode } from 'graphql';
 import {
   SchemaPointerSingle,
@@ -16,6 +18,9 @@ import {
   gqlPluckFromCodeString,
   gqlPluckFromCodeStringSync,
 } from '@graphql-tools/graphql-tag-pluck';
+import globby from 'globby';
+import isGlob from 'is-glob';
+import unixify from 'unixify';
 import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module';
 import { isAbsolute, resolve } from 'path';
 import { cwd } from 'process';
@@ -34,6 +39,10 @@ export type CodeFileLoaderOptions = {
 } & SingleFileOptions;
 
 const FILE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue'];
+
+function createGlobbyOptions(options: CodeFileLoaderOptions): GlobbyOptions {
+  return { absolute: true, ...options, ignore: [] };
+}
 
 /**
  * This loader loads GraphQL documents and type definitions from code files
@@ -58,6 +67,11 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     pointer: SchemaPointerSingle | DocumentPointerSingle,
     options: CodeFileLoaderOptions
   ): Promise<boolean> {
+    if (isGlob(pointer)) {
+      // FIXME: parse to find and check the file extensions?
+      return true;
+    }
+
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
@@ -74,6 +88,11 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
   }
 
   canLoadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): boolean {
+    if (isGlob(pointer)) {
+      // FIXME: parse to find and check the file extensions?
+      return true;
+    }
+
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
@@ -82,6 +101,20 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     }
 
     return false;
+  }
+
+  async resolveGlobs(globs: string[], options: CodeFileLoaderOptions) {
+    return globby(
+      globs.map(v => unixify(v)),
+      createGlobbyOptions(options)
+    );
+  }
+
+  resolveGlobsSync(globs: string[], options: CodeFileLoaderOptions) {
+    return globby.sync(
+      globs.map(v => unixify(v)),
+      createGlobbyOptions(options)
+    );
   }
 
   async load(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): Promise<Source> {
@@ -171,7 +204,11 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
   }
 }
 
-function resolveSource(pointer: string, value: GraphQLSchema | DocumentNode | string, options: CodeFileLoaderOptions): Source | null {
+function resolveSource(
+  pointer: string,
+  value: GraphQLSchema | DocumentNode | string,
+  options: CodeFileLoaderOptions
+): Source | null {
   if (typeof value === 'string') {
     return parseGraphQLSDL(pointer, value, options);
   } else if (isSchema(value)) {
