@@ -1,4 +1,5 @@
 import { execFile, execFileSync } from 'child_process';
+import os from 'os';
 
 type PartialInput = { ref: string };
 type Input = PartialInput & { path: string };
@@ -27,7 +28,7 @@ export async function readTreeAtRef(ref: string): Promise<string[] | never> {
           if (error) {
             reject(error);
           } else {
-            resolve(stdout.split('\n'));
+            resolve(stdout.split(os.EOL).map(line => line.trim()));
           }
         }
       );
@@ -42,7 +43,9 @@ export async function readTreeAtRef(ref: string): Promise<string[] | never> {
  */
 export function readTreeAtRefSync(ref: string): string[] | never {
   try {
-    return execFileSync('git', createTreeCommand({ ref }), { encoding: 'utf-8' }).split('\n');
+    return execFileSync('git', createTreeCommand({ ref }), { encoding: 'utf-8' })
+      .split(os.EOL)
+      .map(line => line.trim());
   } catch (error) {
     throw createTreeError(error);
   }
