@@ -13,7 +13,7 @@ import {
 import { dedentBlockStringValue } from 'graphql/language/blockString.js';
 import { GraphQLParseOptions } from './Interfaces';
 
-export function parseGraphQLSDL(location: string, rawSDL: string, options: GraphQLParseOptions = {}) {
+export function parseGraphQLSDL(location: string | undefined, rawSDL: string, options: GraphQLParseOptions = {}) {
   let document: DocumentNode;
   const sdl: string = rawSDL;
 
