@@ -1,7 +1,10 @@
 import { GraphQLFieldResolver, defaultFieldResolver, GraphQLSchema } from 'graphql';
-import { mapSchema, MapperKind } from '@graphql-tools/utils';
+import { mapSchema, MapperKind, Maybe } from '@graphql-tools/utils';
 
-function decorateToCatchUndefined(fn: GraphQLFieldResolver<any, any>, hint: string): GraphQLFieldResolver<any, any> {
+function decorateToCatchUndefined(
+  fn: Maybe<GraphQLFieldResolver<any, any>>,
+  hint: string
+): GraphQLFieldResolver<any, any> {
   const resolve = fn == null ? defaultFieldResolver : fn;
   return (root, args, ctx, info) => {
     const result = resolve(root, args, ctx, info);

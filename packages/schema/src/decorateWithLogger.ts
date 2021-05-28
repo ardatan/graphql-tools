@@ -1,4 +1,5 @@
 import { defaultFieldResolver, GraphQLFieldResolver } from 'graphql';
+import { Maybe } from 'packages/graphql-tools/src';
 import { ILogger } from './types';
 
 /*
@@ -7,7 +8,7 @@ import { ILogger } from './types';
  * hint: an optional hint to add to the error's message
  */
 export function decorateWithLogger(
-  fn: GraphQLFieldResolver<any, any>,
+  fn: Maybe<GraphQLFieldResolver<any, any>>,
   logger: ILogger,
   hint: string
 ): GraphQLFieldResolver<any, any> {

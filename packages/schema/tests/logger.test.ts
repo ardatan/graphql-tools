@@ -63,7 +63,7 @@ describe('Logger', () => {
         },
       },
     };
-    let loggedErr: Error = null;
+    let loggedErr: Error | null = null;
     const logger = new Logger('LoggyMcLogface', (e: Error) => {
       loggedErr = e;
     });
@@ -172,7 +172,7 @@ describe('Logger', () => {
       },
     };
 
-    let loggedErr: Error = null;
+    let loggedErr: Error | null = null;
     const logger = new Logger('LoggyMcLogface', (e: Error) => {
       loggedErr = e;
     });
@@ -237,7 +237,7 @@ describe('providing useful errors from resolvers', () => {
     `;
     const resolve = {
       RootQuery: {
-        species: (): string => undefined,
+        species: (): string | undefined => undefined,
         stuff: () => 'stuff',
       },
     };
@@ -251,7 +251,7 @@ describe('providing useful errors from resolvers', () => {
     });
     const testQuery = '{ species, stuff }';
     const expectedErr = /Resolver for "RootQuery.species" returned undefined/;
-    const expectedResData = { species: null as string, stuff: 'stuff' };
+    const expectedResData = { species: null as string | null, stuff: 'stuff' };
     return graphql(jsSchema, testQuery).then((res) => {
       expect(logger.errors.length).toEqual(1);
       expect(logger.errors[0].message).toMatch(expectedErr);
@@ -330,7 +330,7 @@ describe('providing useful errors from resolvers', () => {
           }
       }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.errors[0].originalError.message).toBe(
+      expect(res.errors?.[0].originalError?.message).toBe(
         'Resolver for "Thread.name" returned undefined',
       );
     });
@@ -388,7 +388,7 @@ describe('providing useful errors from resolvers', () => {
     `;
     const resolve = {
       RootQuery: {
-        species: (): string => undefined,
+        species: (): string | undefined => undefined,
         stuff: () => 'stuff',
       },
     };
@@ -400,7 +400,7 @@ describe('providing useful errors from resolvers', () => {
       logger,
     });
     const testQuery = '{ species, stuff }';
-    const expectedResData = { species: null as string, stuff: 'stuff' };
+    const expectedResData = { species: null as string | null, stuff: 'stuff' };
     return graphql(jsSchema, testQuery).then((res) => {
       expect(logger.errors.length).toEqual(0);
       expect(res.data).toEqual(expectedResData);
