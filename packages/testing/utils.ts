@@ -99,7 +99,7 @@ export function mockGraphQLServer({
   path: string | RegExp | ((path: string) => boolean);
   intercept?: (obj: nock.ReplyFnContext) => void;
   method?: string;
-}) {
+}): nock.Scope {
   const handler = async function (this: nock.ReplyFnContext, uri: string, body: any) {
     if (intercept) {
       intercept(this);
@@ -156,4 +156,5 @@ export function mockGraphQLServer({
     case 'POST':
       return nock(host).post(path).reply(handler);
   }
+  throw new Error(`Unsupported method: ${method}`);
 }
