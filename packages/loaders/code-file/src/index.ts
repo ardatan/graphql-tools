@@ -118,7 +118,10 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     );
   }
 
-  async load(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): Promise<Source> {
+  async load(
+    pointer: SchemaPointerSingle | DocumentPointerSingle,
+    options: CodeFileLoaderOptions
+  ): Promise<Source | null> {
     const normalizedFilePath = ensureAbsolutePath(pointer, options);
 
     const errors: Error[] = [];
@@ -161,7 +164,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     return null;
   }
 
-  loadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): Source {
+  loadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): Source | null {
     const normalizedFilePath = ensureAbsolutePath(pointer, options);
 
     const errors: Error[] = [];
@@ -207,7 +210,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
 
 function resolveSource(
   pointer: string,
-  value: GraphQLSchema | DocumentNode | string,
+  value: GraphQLSchema | DocumentNode | string | null,
   options: CodeFileLoaderOptions
 ): Source | null {
   if (typeof value === 'string') {
