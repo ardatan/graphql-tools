@@ -12,12 +12,12 @@ import { splitResult } from './splitResult';
 export function createBatchingExecutor(
   executor: Executor,
   dataLoaderOptions?: DataLoader.Options<any, any, any>,
-  extensionsReducer: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any> = defaultExtensionsReducer
+  extensionsReducer: (
+    mergedExtensions: Record<string, any>,
+    executionParams: ExecutionParams
+  ) => Record<string, any> = defaultExtensionsReducer
 ): Executor {
-  const loader = new DataLoader(
-    createLoadFn(executor, extensionsReducer),
-    dataLoaderOptions
-  );
+  const loader = new DataLoader(createLoadFn(executor, extensionsReducer), dataLoaderOptions);
   return (executionParams: ExecutionParams) => loader.load(executionParams);
 }
 
@@ -31,9 +31,11 @@ function createLoadFn(
     const exec = execs[index];
     let currentBatch: Array<ExecutionParams> = [exec];
     execBatches.push(currentBatch);
-    const operationType = getOperationAST(exec.document, undefined).operation;
+    // TODO: Do we need handling here? Should we add a assert call?
+    const operationType = getOperationAST(exec.document, undefined)!.operation;
     while (++index < execs.length) {
-      const currentOperationType = getOperationAST(execs[index].document, undefined).operation;
+      // TODO: Do we need handling here? Should we add a assert call?
+      const currentOperationType = getOperationAST(execs[index].document, undefined)!.operation;
       if (operationType === currentOperationType) {
         currentBatch.push(execs[index]);
       } else {
@@ -48,13 +50,21 @@ function createLoadFn(
       executionResults.push(new ValueOrPromise(() => executor(mergedExecutionParams)));
     });
 
-    return ValueOrPromise.all(executionResults).then(resultBatches => {
-      let results: Array<ExecutionResult> = [];
-      resultBatches.forEach((resultBatch, index) => {
-        results = results.concat(splitResult(resultBatch, execBatches[index].length));
-      });
-      return results;
-    }).resolve();
+    return ValueOrPromise.all(executionResults)
+      .then(resultBatches => {
+        let results: Array<ExecutionResult> = [];
+        resultBatches.forEach((resultBatch, index) => {
+          // The typings of promise-or-value enforce that the items can be null or undefined
+          // this is not the case here and the upstream types should probably be fixed.
+          // see https://github.com/yaacovCR/value-or-promise/pull/2
+          results = [...results, ...splitResult(resultBatch!, execBatches[index].length)];
+        });
+        return results;
+        // The typings of promise-or-value enforce that the items can be null or undefined
+        // this is not the case here and the upstream types should probably be fixed.
+        // see https://github.com/yaacovCR/value-or-promise/pull/2
+      })
+      .resolve() as Promise<Array<ExecutionResult>>;
   };
 }
 

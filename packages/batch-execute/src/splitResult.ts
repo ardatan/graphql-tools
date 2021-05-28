@@ -18,11 +18,16 @@ export function splitResult(mergedResult: ExecutionResult, numResults: number): 
   const data = mergedResult.data;
   if (data) {
     Object.keys(data).forEach(prefixedKey => {
-      const { index, originalKey } = parseKey(prefixedKey);
-      if (!splitResults[index].data) {
-        splitResults[index].data = { [originalKey]: data[prefixedKey] };
+      // TODO: DIscuss how null return type should be handled here?
+      const { index, originalKey } = parseKey(prefixedKey)!;
+      const result = splitResults[index];
+      if (!result) {
+        return;
+      }
+      if (!result.data) {
+        result.data = { [originalKey]: data[prefixedKey] };
       } else {
-        splitResults[index].data[originalKey] = data[prefixedKey];
+        result.data[originalKey] = data[prefixedKey];
       }
     });
   }
