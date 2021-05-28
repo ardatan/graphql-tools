@@ -166,6 +166,7 @@ export class Variables {
       ' You can check our docs for more info.',
     ].join('');
     this.out.warn(this.out.getErrorPrefix(this.fileName, 'warning') + errorMessage);
+    return Promise.resolve();
   }
 
   getValueFromEnv(variableString: any) {

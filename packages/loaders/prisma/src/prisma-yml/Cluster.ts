@@ -76,6 +76,14 @@ export class Cluster {
       const grants = [{ target: `*/*`, action: '*' }];
       const secret = process.env.PRISMA_MANAGEMENT_API_SECRET || this.clusterSecret;
 
+      if (!secret) {
+        throw new Error(
+          `Could not generate token for cluster ${chalk.bold(
+            this.getDeployEndpoint()
+          )}. Did you provide the env var PRISMA_MANAGEMENT_API_SECRET?`
+        );
+      }
+
       try {
         const algorithm = process.env.PRISMA_MANAGEMENT_API_SECRET ? 'HS256' : 'RS256';
         this.cachedToken = jwt.sign({ grants }, secret, {
@@ -84,9 +92,7 @@ export class Cluster {
         });
       } catch (e) {
         throw new Error(
-          `Could not generate token for cluster ${chalk.bold(
-            this.getDeployEndpoint()
-          )}. Did you provide the env var PRISMA_MANAGEMENT_API_SECRET?
+          `Could not generate token for cluster ${chalk.bold(this.getDeployEndpoint())}.
 Original error: ${e.message}`
         );
       }
