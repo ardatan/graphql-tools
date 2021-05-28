@@ -23,7 +23,8 @@
     "@graphql-tools/graphql-tag-pluck": "^6.2.6",
     "@graphql-tools/utils": "^7.0.0",
     "micromatch": "^4.0.4",
-    "tslib": "~2.2.0"
+    "tslib": "~2.2.0",
+    "unixify": "^1.0.0"
   },
   "devDependencies": {
     "@types/micromatch": "latest"

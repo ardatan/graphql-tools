@@ -5,6 +5,7 @@ import {
   gqlPluckFromCodeStringSync,
 } from '@graphql-tools/graphql-tag-pluck';
 import micromatch from 'micromatch';
+import unixify from 'unixify';
 
 import { loadFromGit, loadFromGitSync, readTreeAtRef, readTreeAtRefSync } from './load-git';
 import { parse } from './parse';
@@ -66,7 +67,7 @@ export class GitLoader implements UniversalLoader {
       if (!refsForPaths.has(ref)) {
         refsForPaths.set(ref, []);
       }
-      refsForPaths.get(ref).push(path);
+      refsForPaths.get(ref).push(unixify(path));
     }
 
     for (const ignore of ignores) {
@@ -74,7 +75,7 @@ export class GitLoader implements UniversalLoader {
       if (!refsForPaths.has(ref)) {
         refsForPaths.set(ref, []);
       }
-      refsForPaths.get(ref).push(`!(${path})`);
+      refsForPaths.get(ref).push(`!(${unixify(path)})`);
     }
 
     const resolved: string[] = [];
@@ -92,7 +93,7 @@ export class GitLoader implements UniversalLoader {
       if (!refsForPaths.has(ref)) {
         refsForPaths.set(ref, []);
       }
-      refsForPaths.get(ref).push(path);
+      refsForPaths.get(ref).push(unixify(path));
     }
 
     for (const ignore of ignores) {
@@ -100,7 +101,7 @@ export class GitLoader implements UniversalLoader {
       if (!refsForPaths.has(ref)) {
         refsForPaths.set(ref, []);
       }
-      refsForPaths.get(ref).push(`!(${path})`);
+      refsForPaths.get(ref).push(`!(${unixify(path)})`);
     }
 
     const resolved: string[] = [];
