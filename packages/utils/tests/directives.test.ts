@@ -39,6 +39,7 @@ import {
   ExecutionResult,
   astFromDirective,
 } from '@graphql-tools/utils';
+import { assertGraphQLEnumType, assertGraphQLInputObjectType, assertGraphQLInterfaceType, assertGraphQLObjectType, assertGraphQLScalerType, assertGraphQLUnionType } from './shared';
 
 const typeDefs = `
 directive @schemaDirective(role: String) on SCHEMA
@@ -146,14 +147,14 @@ describe('@directives', () => {
     }
 
     function getDirectiveNames(type: VisitableSchemaType): Array<string> {
-      let directives = type.astNode.directives.map((d) => d.name.value);
+      let directives = (type.astNode?.directives ?? []).map((d) => d.name.value);
       const extensionASTNodes = (type as {
         extensionASTNodes?: Array<TypeSystemExtensionNode>;
       }).extensionASTNodes;
       if (extensionASTNodes != null) {
         extensionASTNodes.forEach((extensionASTNode) => {
           directives = directives.concat(
-            extensionASTNode.directives.map((d) => d.name.value),
+            (extensionASTNode.directives ?? []).map((d) => d.name.value),
           );
         });
       }
@@ -165,15 +166,19 @@ describe('@directives', () => {
       'schemaExtensionDirective',
     ]);
 
+    const queryType = schema.getQueryType()
+    assertGraphQLObjectType(queryType)
     checkDirectives(
-      schema.getQueryType(),
+      queryType,
       ['queryTypeDirective', 'queryTypeExtensionDirective'],
       {
         people: ['queryFieldDirective'],
       },
     );
 
-    expect(getDirectiveNames(schema.getType('Gender'))).toEqual([
+    const GenderType = schema.getType('Gender')
+    assertGraphQLEnumType(GenderType)
+    expect(getDirectiveNames(GenderType)).toEqual([
       'enumTypeDirective',
       'enumTypeExtensionDirective',
     ]);
@@ -183,41 +188,50 @@ describe('@directives', () => {
     ) as GraphQLEnumType).getValues()[0];
     expect(getDirectiveNames(nonBinary)).toEqual(['enumValueDirective']);
 
-    checkDirectives(schema.getType('Date') as GraphQLObjectType, [
+    const DateType = schema.getType('Date')
+    assertGraphQLScalerType(DateType)
+    checkDirectives(DateType, [
       'dateDirective',
       'dateExtensionDirective',
     ]);
 
+    const NamedType = schema.getType('Named')
+    assertGraphQLInterfaceType(NamedType)
     checkDirectives(
-      schema.getType('Named') as GraphQLObjectType,
+      NamedType,
       ['interfaceDirective', 'interfaceExtensionDirective'],
       {
         name: ['interfaceFieldDirective'],
       },
     );
 
+    const PersonInput = schema.getType('PersonInput')
+    assertGraphQLInputObjectType(PersonInput)
     checkDirectives(
-      schema.getType('PersonInput') as GraphQLObjectType,
+      PersonInput,
       ['inputTypeDirective', 'inputTypeExtensionDirective'],
       {
         name: ['inputFieldDirective'],
         gender: [],
       },
     );
-
+    const MutationType = schema.getMutationType()
+    assertGraphQLObjectType(MutationType)
     checkDirectives(
-      schema.getMutationType(),
+      MutationType,
       ['mutationTypeDirective', 'mutationTypeExtensionDirective'],
       {
         addPerson: ['mutationMethodDirective'],
       },
     );
     expect(
-      getDirectiveNames(schema.getMutationType().getFields().addPerson.args[0]),
+      getDirectiveNames(MutationType.getFields().addPerson.args[0]),
     ).toEqual(['mutationArgumentDirective']);
 
+    const PersonType = schema.getType('Person')
+    assertGraphQLObjectType(PersonType)
     checkDirectives(
-      schema.getType('Person'),
+      PersonType,
       ['objectTypeDirective', 'objectTypeExtensionDirective'],
       {
         id: ['objectFieldDirective'],
@@ -225,7 +239,9 @@ describe('@directives', () => {
       },
     );
 
-    checkDirectives(schema.getType('WhateverUnion'), [
+    const WhateverUnionType = schema.getType('WhateverUnion')
+    assertGraphQLUnionType(WhateverUnionType)
+    checkDirectives(WhateverUnionType, [
       'unionDirective',
       'unionExtensionDirective',
     ]);
@@ -551,7 +567,7 @@ describe('@directives', () => {
           ) {
             expect(theSchema).toBe(schema);
             const prev = schema.getDirective(name);
-            prev.args.some((arg) => {
+            prev?.args.some((arg) => {
               if (arg.name === 'times') {
                 // Override the default value of the times argument to be 3
                 // instead of 5.
@@ -974,7 +990,7 @@ describe('@directives', () => {
         expect(
           errors.every((error) => error.message === 'not authorized'),
         ).toBeTruthy();
-        const actualNames = errors.map((error) => error.path.slice(-1)[0]);
+        const actualNames = errors.map((error) => error.path!.slice(-1)[0]);
         assertStringArray(actualNames)
         expect(expectedNames.sort((a, b) => a.localeCompare(b))).toEqual(
           actualNames.sort((a, b) => a.localeCompare(b)),
@@ -990,10 +1006,10 @@ describe('@directives', () => {
       execWithRole('ADMIN')
         .then(checkErrors(0))
         .then((data) => {
-          expect(data.users.length).toBe(1);
-          expect(data.users[0].banned).toBe(true);
-          expect(data.users[0].canPost).toBe(false);
-          expect(data.users[0].name).toBe('Ben');
+          expect(data?.users.length).toBe(1);
+          expect(data?.users[0].banned).toBe(true);
+          expect(data?.users[0].canPost).toBe(false);
+          expect(data?.users[0].name).toBe('Ben');
         }),
     ]);
   });
@@ -1100,8 +1116,8 @@ describe('@directives', () => {
         }
       `,
     );
-    expect(errors.length).toBe(1);
-    expect(errors[0].message).toBe('expected 26 to be at most 10');
+    expect(errors?.length).toBe(1);
+    expect(errors?.[0].message).toBe('expected 26 to be at most 10');
 
     const result = await graphql(
       schema,
@@ -1210,7 +1226,7 @@ describe('@directives', () => {
     ).then((result) => {
       const { data } = result;
 
-      expect(data.people).toEqual([
+      expect(data?.people).toEqual([
         {
           uid: '580a207c8e94f03b93a2b01217c3cc218490571a',
           personID: 1,
@@ -1218,7 +1234,7 @@ describe('@directives', () => {
         },
       ]);
 
-      expect(data.locations).toEqual([
+      expect(data?.locations).toEqual([
         {
           uid: 'c31b71e6e23a7ae527f94341da333590dd7cba96',
           locationID: 1,
@@ -1287,7 +1303,7 @@ describe('@directives', () => {
 
       schemaDirectives: {
         remove: class extends SchemaDirectiveVisitor {
-          public visitEnumValue(): null {
+          public visitEnumValue(): any {
             if (this.args.if) {
               return null;
             }
@@ -1473,8 +1489,8 @@ describe('@directives', () => {
       min = null,
       message = null,
     } : {
-      min: number,
-      message: string,
+      min: null | number,
+      message: null | string,
     }) {
       if(min && value.length < min) {
         throw new Error(message || `Please ensure the value is at least ${min} characters.`);
@@ -1561,7 +1577,7 @@ describe('@directives', () => {
         }
       `,
     ).then(({ errors }) => {
-      expect(errors[0].originalError).toEqual(new Error('Author input error'));
+      expect(errors?.[0].originalError).toEqual(new Error('Author input error'));
     });
   });
   it('should print a directive correctly from GraphQLDirective object using astFromDirective and print', () => {

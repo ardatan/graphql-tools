@@ -18,13 +18,16 @@ export function getUserTypesFromSchema(schema: GraphQLSchema): GraphQLObjectType
       if (graphqlType.name.startsWith('__')) {
         return false;
       }
-      if (schema.getMutationType() && graphqlType.name === schema.getMutationType().name) {
+      const schemaMutationType = schema.getMutationType();
+      if (schemaMutationType && graphqlType.name === schemaMutationType.name) {
         return false;
       }
-      if (schema.getQueryType() && graphqlType.name === schema.getQueryType().name) {
+      const schemaQueryType = schema.getMutationType();
+      if (schemaQueryType && graphqlType.name === schemaQueryType.name) {
         return false;
       }
-      if (schema.getSubscriptionType() && graphqlType.name === schema.getSubscriptionType().name) {
+      const schemaSubscriptionType = schema.getMutationType();
+      if (schemaSubscriptionType && graphqlType.name === schemaSubscriptionType.name) {
         return false;
       }
 
@@ -34,5 +37,5 @@ export function getUserTypesFromSchema(schema: GraphQLSchema): GraphQLObjectType
     return false;
   });
 
-  return modelTypes
+  return modelTypes;
 }

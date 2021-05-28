@@ -73,10 +73,7 @@ export function getLeadingCommentBlock(node: ASTNode): void | string {
   return comments.length > 0 ? comments.reverse().join('\n') : undefined;
 }
 
-export function transformCommentsToDescriptions(
-  sourceSdl: string,
-  options: GraphQLParseOptions = {}
-): DocumentNode | null {
+export function transformCommentsToDescriptions(sourceSdl: string, options: GraphQLParseOptions = {}): DocumentNode {
   const parsedDoc = parse(sourceSdl, {
     ...options,
     noLocation: false,

@@ -352,17 +352,17 @@ function mapArguments(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMap
 
       if (isObjectType(originalType)) {
         newTypeMap[typeName] = new GraphQLObjectType({
-          ...((config as unknown) as GraphQLObjectTypeConfig<any, any>),
+          ...(config as unknown as GraphQLObjectTypeConfig<any, any>),
           fields: newFieldConfigMap,
         });
       } else if (isInterfaceType(originalType)) {
         newTypeMap[typeName] = new GraphQLInterfaceType({
-          ...((config as unknown) as GraphQLInterfaceTypeConfig<any, any>),
+          ...(config as unknown as GraphQLInterfaceTypeConfig<any, any>),
           fields: newFieldConfigMap,
         });
       } else {
         newTypeMap[typeName] = new GraphQLInputObjectType({
-          ...((config as unknown) as GraphQLInputObjectTypeConfig),
+          ...(config as unknown as GraphQLInputObjectTypeConfig),
           fields: newFieldConfigMap,
         });
       }
@@ -432,7 +432,8 @@ function getTypeMapper(schema: GraphQLSchema, schemaMapper: SchemaMapper, typeNa
   let typeMapper: NamedTypeMapper | undefined;
   const stack = [...specifiers];
   while (!typeMapper && stack.length > 0) {
-    const next = stack.pop();
+    // It is safe to use the ! operator here as we check the length.
+    const next = stack.pop()!;
     typeMapper = schemaMapper[next] as NamedTypeMapper;
   }
 
@@ -473,7 +474,8 @@ function getFieldMapper<F extends GraphQLFieldConfig<any, any> | GraphQLInputFie
   let fieldMapper: GenericFieldMapper<F> | undefined;
   const stack = [...specifiers];
   while (!fieldMapper && stack.length > 0) {
-    const next = stack.pop();
+    // It is safe to use the ! operator here as we check the length.
+    const next = stack.pop()!;
     // TODO: fix this as unknown cast
     fieldMapper = schemaMapper[next] as unknown as GenericFieldMapper<F>;
   }
