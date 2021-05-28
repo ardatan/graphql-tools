@@ -1,4 +1,12 @@
-import { Source, isDocumentString, parseGraphQLSDL, asArray, getDocumentNodeFromSchema } from '@graphql-tools/utils';
+import {
+  Source,
+  isDocumentString,
+  parseGraphQLSDL,
+  asArray,
+  getDocumentNodeFromSchema,
+  Loader,
+  ResolverGlobs,
+} from '@graphql-tools/utils';
 import { isSchema, Kind } from 'graphql';
 import isGlob from 'is-glob';
 import { LoadTypedefsOptions } from '../load-typedefs';
@@ -50,11 +58,6 @@ export async function collectSources<TOptions>({
   }
 
   if (globs.length) {
-    includeIgnored({
-      options,
-      globs,
-    });
-
     // TODO: use the queue?
     const paths = await collectPathsFromGlobs(globs, options);
 
@@ -110,11 +113,6 @@ export function collectSourcesSync<TOptions>({
   }
 
   if (globs.length) {
-    includeIgnored({
-      options,
-      globs,
-    });
-
     const paths = collectPathsFromGlobsSync(globs, options);
 
     collectSourcesFromGlobalsSync({
@@ -131,8 +129,6 @@ export function collectSourcesSync<TOptions>({
 
   return sources;
 }
-
-//
 
 function createHelpers<T>({
   sources,
@@ -177,37 +173,17 @@ function createHelpers<T>({
   };
 }
 
-function includeIgnored<
-  T extends {
-    ignore?: string | string[];
-  }
->({ options, globs }: { options: T; globs: string[] }) {
-  if (options.ignore) {
-    const ignoreList = asArray(options.ignore).map(g => {
-      // FIXME: this seems like the wrong place to do this
-      // should we have the loaders inspect and handle the ignores option?
-      // should we build a list of ignores here and pass that as an argument to resolveGlobs instead of "options"?
-      if (g.startsWith('git:')) {
-        const [, ref, path] = g.split(':');
-        return `git:${ref}:!(${path})`;
-      }
-      return `!(${g})`;
-    });
-
-    if (ignoreList.length > 0) {
-      globs.push(...ignoreList);
-    }
-  }
-}
-
-async function collectPathsFromGlobs(globs: string[], options: LoadTypedefsOptions): Promise<string[]> {
-  const paths: string[] = [];
-
-  if (!options.loaders) {
-    return paths;
-  }
-
-  const loadersForGlobs = new Map();
+async function addGlobsToLoaders({
+  options,
+  loadersForGlobs,
+  globs,
+  type,
+}: {
+  options: LoadTypedefsOptions;
+  loadersForGlobs: Map<Loader, ResolverGlobs>;
+  globs: string[];
+  type: 'globs' | 'ignores';
+}) {
   for (const glob of globs) {
     let loader;
     for await (const candidateLoader of options.loaders) {
@@ -217,19 +193,56 @@ async function collectPathsFromGlobs(globs: string[], options: LoadTypedefsOptio
       }
     }
     if (!loader) {
-      // TODO: warn?
-      continue;
+      throw new Error(`unable to find loader for glob "${glob}"`);
     }
     if (!loadersForGlobs.has(loader)) {
-      loadersForGlobs.set(loader, []);
+      loadersForGlobs.set(loader, { globs: [], ignores: [] });
     }
-    loadersForGlobs.get(loader).push(glob);
+    loadersForGlobs.get(loader)[type].push(glob);
   }
+}
 
-  for await (const [loader, globs] of loadersForGlobs.entries()) {
-    const resolvedGlobs = await loader.resolveGlobs(globs, options);
-    if (resolvedGlobs) {
-      paths.push(...resolvedGlobs);
+function addGlobsToLoadersSync({
+  options,
+  loadersForGlobs,
+  globs,
+  type,
+}: {
+  options: LoadTypedefsOptions;
+  loadersForGlobs: Map<Loader, ResolverGlobs>;
+  globs: string[];
+  type: 'globs' | 'ignores';
+}) {
+  for (const glob of globs) {
+    let loader;
+    for (const candidateLoader of options.loaders) {
+      if (candidateLoader.resolveGlobs && candidateLoader.canLoadSync(glob, options)) {
+        loader = candidateLoader;
+        break;
+      }
+    }
+    if (!loader) {
+      throw new Error(`unable to find loader for glob "${glob}"`);
+    }
+    if (!loadersForGlobs.has(loader)) {
+      loadersForGlobs.set(loader, { globs: [], ignores: [] });
+    }
+    loadersForGlobs.get(loader)[type].push(glob);
+  }
+}
+
+async function collectPathsFromGlobs(globs: string[], options: LoadTypedefsOptions): Promise<string[]> {
+  const paths: string[] = [];
+
+  const loadersForGlobs: Map<Loader, ResolverGlobs> = new Map();
+
+  await addGlobsToLoaders({ options, loadersForGlobs, globs, type: 'globs' });
+  await addGlobsToLoaders({ options, loadersForGlobs, globs: asArray(options.ignore), type: 'ignores' });
+
+  for await (const [loader, globsAndIgnores] of loadersForGlobs.entries()) {
+    const resolvedPaths = await loader.resolveGlobs(globsAndIgnores, options);
+    if (resolvedPaths) {
+      paths.push(...resolvedPaths);
     }
   }
 
@@ -239,29 +252,15 @@ async function collectPathsFromGlobs(globs: string[], options: LoadTypedefsOptio
 function collectPathsFromGlobsSync(globs: string[], options: LoadTypedefsOptions): string[] {
   const paths: string[] = [];
 
-  if (!options.loaders) {
-    return paths;
-  }
+  const loadersForGlobs: Map<Loader, ResolverGlobs> = new Map();
 
-  const loadersForGlobs = new Map();
-  for (const glob of globs) {
-    const loader = options.loaders.find(
-      candidateLoader => candidateLoader.resolveGlobsSync && candidateLoader.canLoadSync(glob, options)
-    );
-    if (!loader) {
-      // TODO: warn?
-      continue;
-    }
-    if (!loadersForGlobs.has(loader)) {
-      loadersForGlobs.set(loader, []);
-    }
-    loadersForGlobs.get(loader).push(glob);
-  }
+  addGlobsToLoadersSync({ options, loadersForGlobs, globs, type: 'globs' });
+  addGlobsToLoadersSync({ options, loadersForGlobs, globs: asArray(options.ignore), type: 'ignores' });
 
-  for (const [loader, globs] of loadersForGlobs.entries()) {
-    const resolvedGlobs = loader.resolveGlobsSync(globs, options);
-    if (resolvedGlobs) {
-      paths.push(...resolvedGlobs);
+  for (const [loader, globsAndIgnores] of loadersForGlobs.entries()) {
+    const resolvedPaths = loader.resolveGlobsSync(globsAndIgnores, options);
+    if (resolvedPaths) {
+      paths.push(...resolvedPaths);
     }
   }
 

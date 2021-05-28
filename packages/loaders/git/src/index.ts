@@ -1,4 +1,4 @@
-import { UniversalLoader, SingleFileOptions } from '@graphql-tools/utils';
+import { UniversalLoader, SingleFileOptions, ResolverGlobs } from '@graphql-tools/utils';
 import {
   GraphQLTagPluckOptions,
   gqlPluckFromCodeString,
@@ -58,8 +58,9 @@ export class GitLoader implements UniversalLoader {
     return typeof pointer === 'string' && pointer.toLowerCase().startsWith('git:');
   }
 
-  async resolveGlobs(globs: string[]) {
+  async resolveGlobs({ globs, ignores }: ResolverGlobs) {
     const refsForPaths = new Map();
+
     for (const glob of globs) {
       const { ref, path } = extractData(glob);
       if (!refsForPaths.has(ref)) {
@@ -67,6 +68,15 @@ export class GitLoader implements UniversalLoader {
       }
       refsForPaths.get(ref).push(path);
     }
+
+    for (const ignore of ignores) {
+      const { ref, path } = extractData(ignore);
+      if (!refsForPaths.has(ref)) {
+        refsForPaths.set(ref, []);
+      }
+      refsForPaths.get(ref).push(`!(${path})`);
+    }
+
     const resolved: string[] = [];
     for await (const [ref, paths] of refsForPaths.entries()) {
       resolved.push(...micromatch(await readTreeAtRef(ref), paths).map(filePath => `git:${ref}:${filePath}`));
@@ -74,8 +84,9 @@ export class GitLoader implements UniversalLoader {
     return resolved;
   }
 
-  resolveGlobsSync(globs: string[]) {
+  resolveGlobsSync({ globs, ignores }: ResolverGlobs) {
     const refsForPaths = new Map();
+
     for (const glob of globs) {
       const { ref, path } = extractData(glob);
       if (!refsForPaths.has(ref)) {
@@ -83,6 +94,15 @@ export class GitLoader implements UniversalLoader {
       }
       refsForPaths.get(ref).push(path);
     }
+
+    for (const ignore of ignores) {
+      const { ref, path } = extractData(ignore);
+      if (!refsForPaths.has(ref)) {
+        refsForPaths.set(ref, []);
+      }
+      refsForPaths.get(ref).push(`!(${path})`);
+    }
+
     const resolved: string[] = [];
     for (const [ref, paths] of refsForPaths.entries()) {
       resolved.push(...micromatch(readTreeAtRefSync(ref), paths).map(filePath => `git:${ref}:${filePath}`));

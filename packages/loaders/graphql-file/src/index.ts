@@ -8,6 +8,7 @@ import {
   isValidPath,
   parseGraphQLSDL,
   SingleFileOptions,
+  ResolverGlobs,
 } from '@graphql-tools/utils';
 import { isAbsolute, resolve } from 'path';
 import { readFileSync, promises as fsPromises, existsSync } from 'fs';
@@ -108,16 +109,16 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
     return false;
   }
 
-  async resolveGlobs(globs: string[], options: GraphQLFileLoaderOptions) {
+  async resolveGlobs({ globs, ignores }: ResolverGlobs, options: GraphQLFileLoaderOptions) {
     return globby(
-      globs.map(v => unixify(v)),
+      globs.concat(ignores.map(v => `!(${v})`)).map(v => unixify(v)),
       createGlobbyOptions(options)
     );
   }
 
-  resolveGlobsSync(globs: string[], options: GraphQLFileLoaderOptions) {
+  resolveGlobsSync({ globs, ignores }: ResolverGlobs, options: GraphQLFileLoaderOptions) {
     return globby.sync(
-      globs.map(v => unixify(v)),
+      globs.concat(ignores.map(v => `!(${v})`)).map(v => unixify(v)),
       createGlobbyOptions(options)
     );
   }

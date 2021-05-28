@@ -12,6 +12,7 @@ import {
   isValidPath,
   parseGraphQLSDL,
   isDocumentNode,
+  ResolverGlobs,
 } from '@graphql-tools/utils';
 import {
   GraphQLTagPluckOptions,
@@ -103,16 +104,16 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     return false;
   }
 
-  async resolveGlobs(globs: string[], options: CodeFileLoaderOptions) {
+  async resolveGlobs({ globs, ignores }: ResolverGlobs, options: CodeFileLoaderOptions) {
     return globby(
-      globs.map(v => unixify(v)),
+      globs.concat(ignores.map(v => `!(${v})`)).map(v => unixify(v)),
       createGlobbyOptions(options)
     );
   }
 
-  resolveGlobsSync(globs: string[], options: CodeFileLoaderOptions) {
+  resolveGlobsSync({ globs, ignores }: ResolverGlobs, options: CodeFileLoaderOptions) {
     return globby.sync(
-      globs.map(v => unixify(v)),
+      globs.concat(ignores.map(v => `!(${v})`)).map(v => unixify(v)),
       createGlobbyOptions(options)
     );
   }
