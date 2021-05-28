@@ -17,6 +17,7 @@ import {
   mapAsyncIterator,
   withCancel,
   parseGraphQLSDL,
+  Maybe,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
@@ -50,13 +51,15 @@ type Headers =
 type BuildExecutorOptions<TFetchFn = FetchFn> = {
   pointer: string;
   fetch: TFetchFn;
-  extraHeaders: Headers;
+  extraHeaders?: Maybe<Headers>;
   defaultMethod: 'GET' | 'POST';
-  useGETForQueries: boolean;
-  multipart?: boolean;
+  useGETForQueries?: Maybe<boolean>;
+  multipart?: Maybe<boolean>;
 };
 
+// TODO: Should the types here be changed to T extends Record<string, any> ?
 export type AsyncImportFn<T = unknown> = (moduleName: string) => PromiseLike<T>;
+// TODO: Should the types here be changed to T extends Record<string, any> ?
 export type SyncImportFn<T = unknown> = (moduleName: string) => T;
 
 const asyncImport: AsyncImportFn = (moduleName: string) => import(moduleName);
@@ -422,9 +425,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
 
   buildSSESubscriber(
     pointer: string,
-    extraHeaders: Headers,
+    extraHeaders: Maybe<Headers>,
     fetch: AsyncFetchFn,
-    options: FetchEventSourceInit
+    options: Maybe<FetchEventSourceInit>
   ): Subscriber {
     return async ({ document, variables, ...rest }) => {
       const controller = new AbortController();
@@ -495,9 +498,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
         const [moduleName, fetchFnName] = customFetch.split('#');
         const moduleResult = importFn(moduleName);
         if (isPromise(moduleResult)) {
-          return moduleResult.then(module => (fetchFnName ? module[fetchFnName] : module));
+          return moduleResult.then(module => (fetchFnName ? (module as Record<string, any>)[fetchFnName] : module));
         } else {
-          return fetchFnName ? moduleResult[fetchFnName] : moduleResult;
+          return fetchFnName ? (module as Record<string, any>)[fetchFnName] : moduleResult;
         }
       } else {
         return customFetch as any;
@@ -506,7 +509,10 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return async ? (typeof fetch === 'undefined' ? crossFetch : fetch) : syncFetch;
   }
 
-  private getHeadersFromOptions(customHeaders: Headers, executionParams: ExecutionParams): Record<string, string> {
+  private getHeadersFromOptions(
+    customHeaders: Maybe<Headers>,
+    executionParams: ExecutionParams
+  ): Record<string, string> {
     let headers = {};
     if (customHeaders) {
       if (typeof customHeaders === 'function') {
@@ -542,7 +548,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       if (isPromise(importedModule)) {
         return importedModule.then(webSocketImplName ? importedModule[webSocketImplName] : importedModule);
       } else {
-        return webSocketImplName ? importedModule[webSocketImplName] : importedModule;
+        return webSocketImplName ? (importedModule as Record<string, any>)[webSocketImplName] : importedModule;
       }
     } else {
       const websocketImpl = options.webSocketImpl || WebSocket;
