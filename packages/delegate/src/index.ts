@@ -1,4 +1,4 @@
-export * from './InitialReceiver';
+export * from './Receiver';
 export * from './Subschema';
 export * from './Transformer';
 export * from './applySchemaTransforms';

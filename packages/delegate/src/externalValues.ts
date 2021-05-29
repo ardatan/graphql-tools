@@ -17,9 +17,10 @@ import AggregateError from '@ardatan/aggregate-error';
 
 import { ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
-import { DelegationContext, Receiver, SubschemaConfig } from './types';
+import { DelegationContext, SubschemaConfig } from './types';
 import { createExternalObject } from './externalObjects';
 import { mergeDataAndErrors } from './mergeDataAndErrors';
+import { Receiver } from './Receiver';
 
 export function externalValueFromResult(
   originalResult: ExecutionResult,
@@ -32,11 +33,7 @@ export function externalValueFromResult(
   const errors = originalResult.errors ?? [];
   const initialPath = info ? responsePathAsArray(info.path) : [];
 
-  const { data: newData, unpathedErrors } = mergeDataAndErrors(
-    data,
-    errors,
-    onLocatedError
-  );
+  const { data: newData, unpathedErrors } = mergeDataAndErrors(data, errors, onLocatedError);
 
   return createExternalValue(newData, unpathedErrors, initialPath, subschema, context, info, receiver, returnType);
 }

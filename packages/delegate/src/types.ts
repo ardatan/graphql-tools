@@ -27,6 +27,7 @@ import {
   INFO_SYMBOL,
 } from './symbols';
 
+import { Receiver } from './Receiver';
 import { Subschema } from './Subschema';
 
 export type SchemaTransform = (
@@ -60,7 +61,7 @@ export interface DelegationContext {
   args: Record<string, any>;
   context: Record<string, any>;
   info: GraphQLResolveInfo;
-  rootValue?: Record<string, any>,
+  rootValue?: Record<string, any>;
   returnType: GraphQLOutputType;
   onLocatedError?: (originalError: GraphQLError) => GraphQLError;
   transforms: Array<Transform>;
@@ -159,14 +160,16 @@ export interface SubschemaConfig<K = any, V = any, C = K, TContext = Record<stri
   batchingOptions?: BatchingOptions<K, V, C>;
 }
 
-export interface MergedTypeConfig<K = any, V = any, TContext = Record<string, any>> extends MergedTypeEntryPoint<K, V, TContext> {
+export interface MergedTypeConfig<K = any, V = any, TContext = Record<string, any>>
+  extends MergedTypeEntryPoint<K, V, TContext> {
   entryPoints?: Array<MergedTypeEntryPoint>;
   fields?: Record<string, MergedFieldConfig>;
   computedFields?: Record<string, { selectionSet?: string }>;
   canonical?: boolean;
 }
 
-export interface MergedTypeEntryPoint<K = any, V = any, TContext = Record<string, any>> extends MergedTypeResolverOptions<K, V> {
+export interface MergedTypeEntryPoint<K = any, V = any, TContext = Record<string, any>>
+  extends MergedTypeResolverOptions<K, V> {
   selectionSet?: string;
   key?: (originalResult: any) => K;
   resolve?: MergedTypeResolver<TContext>;
@@ -203,11 +206,6 @@ export interface StitchingInfo<TContext = Record<string, any>> {
 export interface MergedExecutionResult<TData = Record<string, any>> {
   unpathedErrors: Array<GraphQLError>;
   data: TData;
-}
-
-export interface Receiver {
-  request: (info: GraphQLResolveInfo) => Promise<MergedExecutionResult | AsyncIterableIterator<MergedExecutionResult>>;
-  update: (info: GraphQLResolveInfo, result: MergedExecutionResult) => void;
 }
 
 export interface ExternalObject<TContext = Record<string, any>> {

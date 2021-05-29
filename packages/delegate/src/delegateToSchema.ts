@@ -10,7 +10,6 @@ import {
   DocumentNode,
   GraphQLOutputType,
   GraphQLObjectType,
-  responsePathAsArray,
   GraphQLError,
 } from 'graphql';
 
@@ -44,8 +43,8 @@ import { Subschema } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
 import { memoize2 } from './memoize';
-import { InitialReceiver } from './InitialReceiver';
-import { createExternalValue, externalValueFromResult } from './externalValues';
+import { Receiver } from './Receiver';
+import { externalValueFromResult } from './externalValues';
 import { defaultDelegationBinding } from './delegationBindings';
 
 export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
@@ -96,7 +95,9 @@ function getDelegationReturnType(
   return rootType.getFields()[fieldName].type;
 }
 
-export function delegateRequest<TContext = Record<string, any>, TArgs = any>(options: IDelegateRequestOptions<TContext, TArgs>) {
+export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
+  options: IDelegateRequestOptions<TContext, TArgs>
+) {
   const delegationContext = getDelegationContext(options);
 
   const operation = delegationContext.operation;
@@ -137,7 +138,7 @@ export function getDelegationContext({
 
   if (fieldName == null) {
     operationDefinition = operationDefinition ?? getOperationAST(request.document, undefined);
-    targetFieldName = ((operationDefinition.selectionSet.selections[0] as unknown) as FieldDefinitionNode).name.value;
+    targetFieldName = (operationDefinition.selectionSet.selections[0] as unknown as FieldDefinitionNode).name.value;
   } else {
     targetFieldName = fieldName;
   }
@@ -158,12 +159,14 @@ export function getDelegationContext({
       context,
       info,
       rootValue: rootValue ?? subschemaOrSubschemaConfig?.rootValue ?? info?.rootValue ?? emptyObject,
-      returnType: returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
+      returnType:
+        returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
       transforms:
         subschemaOrSubschemaConfig.transforms != null
           ? subschemaOrSubschemaConfig.transforms.concat(transforms)
           : transforms,
-      transformedSchema: transformedSchema ?? (subschemaOrSubschemaConfig as Subschema)?.transformedSchema ?? targetSchema,
+      transformedSchema:
+        transformedSchema ?? (subschemaOrSubschemaConfig as Subschema)?.transformedSchema ?? targetSchema,
       onLocatedError: onLocatedError ?? ((error: GraphQLError) => error),
       asyncSelectionSets: Object.create(null),
     };
@@ -179,7 +182,10 @@ export function getDelegationContext({
     context,
     info,
     rootValue: rootValue ?? info?.rootValue ?? emptyObject,
-    returnType: returnType ?? info?.returnType ?? getDelegationReturnType(subschemaOrSubschemaConfig, targetOperation, targetFieldName),
+    returnType:
+      returnType ??
+      info?.returnType ??
+      getDelegationReturnType(subschemaOrSubschemaConfig, targetOperation, targetFieldName),
     transforms,
     transformedSchema: transformedSchema ?? subschemaOrSubschemaConfig,
     asyncSelectionSets: Object.create(null),
@@ -235,19 +241,20 @@ function handleExecutionResult(
   resultTransformer: (originalResult: ExecutionResult) => ExecutionResult
 ): any {
   if (isAsyncIterable(executionResult)) {
-    const receiver = new InitialReceiver(executionResult, delegationContext, resultTransformer);
+    const receiver = new Receiver(executionResult, delegationContext, resultTransformer);
 
-    return receiver.getInitialResult().then(({ data, unpathedErrors}) => {
-      const { subschema, context, info, returnType } = delegationContext;
-      const initialPath = responsePathAsArray(info.path);
-      return createExternalValue(data, unpathedErrors, initialPath, subschema, context, info, receiver, returnType);
-    });
+    return receiver.getInitialValue();
   }
 
   return externalValueFromResult(resultTransformer(executionResult), delegationContext);
 }
 
-export function delegateQueryOrMutation(request: Request, delegationContext: DelegationContext, skipValidation?: boolean, binding: DelegationBinding = defaultDelegationBinding) {
+export function delegateQueryOrMutation(
+  request: Request,
+  delegationContext: DelegationContext,
+  skipValidation?: boolean,
+  binding: DelegationBinding = defaultDelegationBinding
+) {
   const transformer = new Transformer(delegationContext, binding);
 
   const processedRequest = transformer.transformRequest(request);
@@ -260,17 +267,19 @@ export function delegateQueryOrMutation(request: Request, delegationContext: Del
 
   const executor = getExecutor(delegationContext);
 
-  return new ValueOrPromise(() => executor({
-    ...processedRequest,
-    context,
-    info
-  })).then(
-    executionResult => handleExecutionResult(
-      executionResult,
-      delegationContext,
-      originalResult => transformer.transformResult(originalResult)
+  return new ValueOrPromise(() =>
+    executor({
+      ...processedRequest,
+      context,
+      info,
+    })
+  )
+    .then(executionResult =>
+      handleExecutionResult(executionResult, delegationContext, originalResult =>
+        transformer.transformResult(originalResult)
+      )
     )
-  ).resolve();
+    .resolve();
 }
 
 function createDefaultSubscriber(schema: GraphQLSchema, rootValue: Record<string, any>): Subscriber {
@@ -304,7 +313,12 @@ function handleSubscriptionResult(
   return resultTransformer(subscriptionResult);
 }
 
-export function delegateSubscription(request: Request, delegationContext: DelegationContext, skipValidation = false, binding = defaultDelegationBinding) {
+export function delegateSubscription(
+  request: Request,
+  delegationContext: DelegationContext,
+  skipValidation = false,
+  binding = defaultDelegationBinding
+) {
   const transformer = new Transformer(delegationContext, binding);
 
   const processedRequest = transformer.transformRequest(request);

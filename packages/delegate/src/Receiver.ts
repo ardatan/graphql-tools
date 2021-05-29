@@ -16,14 +16,20 @@ import DataLoader from 'dataloader';
 
 import { Repeater, Stop } from '@repeaterjs/repeater';
 
-import { AsyncExecutionResult, collectFields, getResponseKeyFromInfo, GraphQLExecutionContext } from '@graphql-tools/utils';
+import {
+  AsyncExecutionResult,
+  collectFields,
+  getResponseKeyFromInfo,
+  GraphQLExecutionContext,
+} from '@graphql-tools/utils';
 
-import { DelegationContext, MergedExecutionResult, Receiver } from './types';
+import { DelegationContext, MergedExecutionResult } from './types';
 import { mergeDataAndErrors } from './mergeDataAndErrors';
 import { ExpectantStore } from './expectantStore';
 import { fieldShouldStream } from './fieldShouldStream';
+import { createExternalValue } from './externalValues';
 
-export class InitialReceiver implements Receiver {
+export class Receiver {
   private readonly asyncIterable: AsyncIterable<AsyncExecutionResult>;
   private readonly delegationContext: DelegationContext;
   private readonly fieldName: string;
@@ -55,8 +61,8 @@ export class InitialReceiver implements Receiver {
     this.loaders = Object.create(null);
   }
 
-  public async getInitialResult(): Promise<MergedExecutionResult> {
-    const { fieldName, info, onLocatedError } = this.delegationContext;
+  public async getInitialValue(): Promise<any> {
+    const { subschema, fieldName, context, info, returnType, onLocatedError } = this.delegationContext;
 
     let initialResult: ExecutionResult;
     let initialData: any;
@@ -73,7 +79,9 @@ export class InitialReceiver implements Receiver {
 
     this._iterate();
 
-    return newResult;
+    const { data, unpathedErrors } = newResult;
+    const initialPath = responsePathAsArray(info.path);
+    return createExternalValue(data, unpathedErrors, initialPath, subschema, context, info, this, returnType);
   }
 
   public update(info: GraphQLResolveInfo, result: MergedExecutionResult): void {
@@ -83,11 +91,7 @@ export class InitialReceiver implements Receiver {
     this._update(info, result, pathKey);
   }
 
-  private _update(
-    info: GraphQLResolveInfo,
-    result: MergedExecutionResult,
-    pathKey: string,
-  ): void {
+  private _update(info: GraphQLResolveInfo, result: MergedExecutionResult, pathKey: string): void {
     this.onNewResult(
       pathKey,
       result,
@@ -100,7 +104,9 @@ export class InitialReceiver implements Receiver {
     );
   }
 
-  public request(info: GraphQLResolveInfo): Promise<MergedExecutionResult> {
+  public request(
+    info: GraphQLResolveInfo
+  ): Promise<MergedExecutionResult | AsyncIterableIterator<MergedExecutionResult>> {
     const path = responsePathAsArray(info.path).slice(this.initialResultDepth);
     const pathKey = path.join('.');
     let loader = this.loaders[pathKey];
@@ -129,7 +135,7 @@ export class InitialReceiver implements Receiver {
     const parent = this.cache.get(parentKey);
 
     if (parent === undefined) {
-      throw new Error(`Parent with key "${parentKey}" not available.`)
+      throw new Error(`Parent with key "${parentKey}" not available.`);
     }
 
     const data = parent.data[responseKey];
@@ -211,15 +217,10 @@ export class InitialReceiver implements Receiver {
 
   private onNewResult(pathKey: string, newResult: MergedExecutionResult, selectionSet: SelectionSetNode): void {
     const result = this.cache.get(pathKey);
-    const mergedResult = result === undefined
-      ? newResult
-      : mergeResults(
-          this.delegationContext.info.schema,
-          result.data.__typename,
-          result,
-          newResult,
-          selectionSet
-        );
+    const mergedResult =
+      result === undefined
+        ? newResult
+        : mergeResults(this.delegationContext.info.schema, result.data.__typename, result, newResult, selectionSet);
 
     this.cache.set(pathKey, mergedResult);
   }
@@ -252,7 +253,7 @@ export function mergeResults(
     });
   }
 
-  target.unpathedErrors.push(...source.unpathedErrors ?? []);
+  target.unpathedErrors.push(...(source.unpathedErrors ?? []));
 
   return target;
 }

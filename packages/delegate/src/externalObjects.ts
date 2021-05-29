@@ -11,7 +11,7 @@ import {
 
 import { relocatedError, GraphQLExecutionContext, collectFields } from '@graphql-tools/utils';
 
-import { SubschemaConfig, ExternalObject, Receiver } from './types';
+import { SubschemaConfig, ExternalObject } from './types';
 import {
   OBJECT_SUBSCHEMA_SYMBOL,
   INITIAL_POSSIBLE_FIELDS,
@@ -22,6 +22,7 @@ import {
   INITIAL_PATH_SYMBOL,
 } from './symbols';
 import { isSubschemaConfig } from './subschemaConfig';
+import { Receiver } from './Receiver';
 import { Subschema } from './Subschema';
 
 export function isExternalObject(data: any): data is ExternalObject {
@@ -122,7 +123,8 @@ export function mergeExternalObjects(
       Object.keys(fieldNodes).forEach(responseKey => {
         if (source instanceof GraphQLError) {
           const basePath = parentPath.slice(initialPath.length);
-          const tailPath = source.path.length === parentPath.length ? [responseKey] : source.path.slice(initialPath.length);
+          const tailPath =
+            source.path.length === parentPath.length ? [responseKey] : source.path.slice(initialPath.length);
           const newPath = basePath.concat(tailPath);
           target[responseKey] = relocatedError(source, newPath);
         } else if (source instanceof Error) {

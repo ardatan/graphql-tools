@@ -1,4 +1,4 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode, responsePathAsArray } from 'graphql';
+import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode } from 'graphql';
 
 import DataLoader from 'dataloader';
 
@@ -10,8 +10,7 @@ import {
   getDelegatingOperation,
   getExecutor,
   validateRequest,
-  InitialReceiver,
-  createExternalValue,
+  Receiver,
   externalValueFromResult,
 } from '@graphql-tools/delegate';
 import { isAsyncIterable, relocatedError } from '@graphql-tools/utils';
@@ -42,7 +41,7 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
     } = options;
 
     if (operation !== 'query' && operation !== 'mutation') {
-      throw new Error(`Batch delegation not possible for operation '${operation}'.`)
+      throw new Error(`Batch delegation not possible for operation '${operation}'.`);
     }
 
     const request = createRequestFromInfo({
@@ -77,26 +76,24 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
     const batchResult = await executor({
       ...processedRequest,
       context,
-      info
+      info,
     });
 
     if (isAsyncIterable(batchResult)) {
       // TODO: split the asyncIterable and make a new receiver from each of them, return the Receiver instead of the
       // initial value, so that the correct info can be used to instantiate the Receiver
-      const receiver = new InitialReceiver(batchResult, delegationContext, executionResult => transformer.transformResult(executionResult));
+      const receiver = new Receiver(batchResult, delegationContext, executionResult =>
+        transformer.transformResult(executionResult)
+      );
 
-      const { data, unpathedErrors } = await receiver.getInitialResult();
-
-      const { subschema, context, info, returnType } = delegationContext;
-      const initialPath = responsePathAsArray(info.path);
-      const batchValue = createExternalValue(data, unpathedErrors, initialPath, subschema, context, info, receiver, returnType);
+      const batchValue = await receiver.getInitialValue();
 
       return Array.isArray(batchValue) ? batchValue : keys.map(() => batchValue);
     }
 
-      // TODO: split the batchedResult and return the result instead of the value, so the correct info
-      // can be used to instantiate the value
-      const batchValue = externalValueFromResult(transformer.transformResult(batchResult), delegationContext);
+    // TODO: split the batchedResult and return the result instead of the value, so the correct info
+    // can be used to instantiate the value
+    const batchValue = externalValueFromResult(transformer.transformResult(batchResult), delegationContext);
 
     return Array.isArray(batchValue) ? batchValue : keys.map(() => batchValue);
   };
