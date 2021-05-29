@@ -13047,10 +13047,10 @@ value-equal@^1.0.1:
   resolved "https://registry.yarnpkg.com/value-equal/-/value-equal-1.0.1.tgz#1e0b794c734c5c0cade179c437d356d931a34d6c"
   integrity sha512-NOJ6JZCAWr0zlxZt+xqCHNTEKOsrks2HQd4MqhP1qy4z1SkbEP467eNx6TgDKXMvUOb+OENfJCZwM+16n7fRfw==
 
-value-or-promise@1.0.8:
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.8.tgz#7a76b1e081c40436a2c74a33745b5a6f13e5c01d"
-  integrity sha512-R6gyEy9R2Mh0taDANmv30MvgRKJz5jMB55seKSerBCudolsH5kOpHYaEiX3OIQ0/C430Z5mZ9A02O32Da0I6KA==
+value-or-promise@1.0.10:
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.10.tgz#5bf041f1e9a8e7043911875547636768a836e446"
+  integrity sha512-1OwTzvcfXkAfabk60UVr5NdjtjJ0Fg0T5+B1bhxtrOEwSH2fe8y4DnLgoksfCyd8yZCOQQHB0qLMQnwgCjbXLQ==
 
 vary@~1.1.2:
   version "1.1.2"
