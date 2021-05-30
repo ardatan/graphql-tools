@@ -244,7 +244,7 @@ function addResolversToExistingSchema(
             const fieldResolve = resolverValue[fieldName];
             if (typeof fieldResolve === 'function') {
               // for convenience. Allows shorter syntax in resolver definition file
-              field.resolve = fieldResolve;
+              field.resolve = fieldResolve.bind(resolverValue);
             } else {
               setFieldProperties(field, fieldResolve);
             }
@@ -398,7 +398,7 @@ function createNewSchemaWithResolvers(
           const newFieldConfig = { ...fieldConfig };
           if (typeof fieldResolve === 'function') {
             // for convenience. Allows shorter syntax in resolver definition file
-            newFieldConfig.resolve = fieldResolve;
+            newFieldConfig.resolve = fieldResolve.bind(resolverValue);
           } else {
             setFieldProperties(newFieldConfig, fieldResolve);
           }
