@@ -769,6 +769,9 @@ describe('generating schema from shorthand', () => {
     const jsSchema = makeExecutableSchema({
       typeDefs: typeDefs,
       resolvers: resolvers,
+      resolverValidationOptions: {
+        requireResolversToMatchSchema: 'ignore',
+      },
     });
     const resultPromise = graphql(jsSchema, testQuery);
     return resultPromise.then((result) =>
