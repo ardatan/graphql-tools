@@ -746,9 +746,9 @@ describe('generating schema from shorthand', () => {
     `;
     
     const QueryResolver = class QueryResolver {
-      private internalVersion: number = 1
+      private internalVersion = 1
 
-      version(root, args, context) {
+      version(root: any, args: any, context: any) {
         return this.internalVersion
       }
     }
