@@ -9,7 +9,7 @@ describe('splitAsyncIterator', () => {
       }
     }();
 
-    const [one, two] = splitAsyncIterator(gen3, 2, (x) => [0, x + 5]);
+    const [one, two] = splitAsyncIterator(gen3, 2, (x) => [[0, x + 5]]);
 
     let results = [];
     for await (const result of one) {
@@ -31,7 +31,7 @@ describe('splitAsyncIterator', () => {
       }
     }();
 
-    const [one, two] = splitAsyncIterator(gen3, 2, (x) => [0, x + 5]);
+    const [one, two] = splitAsyncIterator(gen3, 2, (x) => [[0, x + 5]]);
 
     const oneResults = [];
     const twoResults = [];
@@ -55,7 +55,7 @@ describe('splitAsyncIterator with mapAsyncIterator', () => {
     }();
 
     const mappedGen3 = mapAsyncIterator(gen3, value => value);
-    const [one, two] = splitAsyncIterator(mappedGen3, 2, (x) => [0, x + 5]);
+    const [one, two] = splitAsyncIterator(mappedGen3, 2, (x) => [[0, x + 5]]);
 
     let results = [];
     for await (const result of one) {
@@ -78,7 +78,7 @@ describe('splitAsyncIterator with mapAsyncIterator', () => {
     }();
 
     const mappedGen3 = mapAsyncIterator(gen3, value => value);
-    const [one, two] = splitAsyncIterator(mappedGen3, 2, (x) => [0, x + 5]);
+    const [one, two] = splitAsyncIterator(mappedGen3, 2, (x) => [[0, x + 5]]);
 
     const oneResults = [];
     const twoResults = [];

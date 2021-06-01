@@ -1,4 +1,4 @@
-import { getNamedType, GraphQLOutputType, GraphQLList } from 'graphql';
+import { getNamedType, GraphQLOutputType } from 'graphql';
 import { delegateToSchema, MergedTypeResolver, MergedTypeResolverOptions } from '@graphql-tools/delegate';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 
@@ -11,9 +11,9 @@ export function createMergedTypeResolver(mergedTypeResolverOptions: MergedTypeRe
         schema: subschema,
         operation: 'query',
         fieldName,
-        returnType: new GraphQLList(
-          getNamedType(info.schema.getType(originalResult.__typename) ?? info.returnType) as GraphQLOutputType
-        ),
+        returnType: getNamedType(
+          info.schema.getType(originalResult.__typename) ?? info.returnType
+        ) as GraphQLOutputType,
         key,
         argsFromKeys,
         selectionSet,

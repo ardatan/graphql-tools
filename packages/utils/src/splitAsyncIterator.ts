@@ -4,7 +4,7 @@
 
 import { Repeater } from '@repeaterjs/repeater';
 
-type Splitter<T> = (item: T) => [number | undefined, T];
+type Splitter<T> = (item: T) => [[number | undefined, T]];
 
 export function splitAsyncIterator<T>(iterator: AsyncIterator<T>, n: number, splitter: Splitter<T>) {
   const returner = iterator.return?.bind(iterator) ?? (() => true);
@@ -62,21 +62,23 @@ async function next<T>(
 
   const iterationCandidate = await iterator.next();
 
-  let tee = true;
   const value = iterationCandidate.value;
   if (value !== undefined) {
-    const [iterationIndex, newValue] = splitter(value);
+    const assignments = splitter(value);
 
-    if (iterationIndex !== undefined) {
-      buffers[iterationIndex].push({
-        ...iterationCandidate,
-        value: newValue,
-      });
-      tee = false;
+    for (const [iterationIndex, newValue] of assignments) {
+      if (iterationIndex !== undefined) {
+        buffers[iterationIndex].push({
+          ...iterationCandidate,
+          value: newValue,
+        });
+      } else {
+        for (const b of buffers) {
+          b.push(iterationCandidate);
+        }
+      }
     }
-  }
-
-  if (tee) {
+  } else {
     for (const b of buffers) {
       b.push(iterationCandidate);
     }

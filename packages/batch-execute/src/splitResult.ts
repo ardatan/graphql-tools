@@ -2,7 +2,13 @@
 
 import { ExecutionResult, GraphQLError } from 'graphql';
 
-import { AsyncExecutionResult, ExecutionPatchResult, isAsyncIterable, relocatedError, splitAsyncIterator } from '@graphql-tools/utils';
+import {
+  AsyncExecutionResult,
+  ExecutionPatchResult,
+  isAsyncIterable,
+  relocatedError,
+  splitAsyncIterator,
+} from '@graphql-tools/utils';
 
 import { ValueOrPromise } from 'value-or-promise';
 
@@ -19,7 +25,9 @@ export function splitResult(
   | AsyncIterableIterator<AsyncExecutionResult>
   | Promise<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>>
 > {
-  const result = new ValueOrPromise(() => mergedResult).then(r => splitExecutionResultOrAsyncIterableIterator(r, numResults));
+  const result = new ValueOrPromise(() => mergedResult).then(r =>
+    splitExecutionResultOrAsyncIterableIterator(r, numResults)
+  );
 
   const splitResults: Array<
     | ExecutionResult
@@ -27,9 +35,12 @@ export function splitResult(
     | Promise<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>>
   > = [];
   for (let i = 0; i < numResults; i++) {
-    splitResults.push(result.then(r => r[i]).resolve() as ExecutionResult
-    | AsyncIterableIterator<AsyncExecutionResult>
-    | Promise<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>>);
+    splitResults.push(
+      result.then(r => r[i]).resolve() as
+        | ExecutionResult
+        | AsyncIterableIterator<AsyncExecutionResult>
+        | Promise<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>>
+    );
   }
 
   return splitResults;
@@ -40,13 +51,15 @@ export function splitExecutionResultOrAsyncIterableIterator(
   numResults: number
 ): Array<ExecutionResult | AsyncIterableIterator<AsyncExecutionResult>> {
   if (isAsyncIterable(mergedResult)) {
-    return splitAsyncIterator(mergedResult, numResults, originalResult => splitExecutionPatchResult(originalResult as ExecutionPatchResult));
+    return splitAsyncIterator(mergedResult, numResults, originalResult =>
+      splitExecutionPatchResult(originalResult as ExecutionPatchResult)
+    );
   }
 
   return splitExecutionResult(mergedResult, numResults);
 }
 
-function splitExecutionPatchResult(originalResult: ExecutionPatchResult): [number, ExecutionPatchResult] {
+function splitExecutionPatchResult(originalResult: ExecutionPatchResult): [[number, ExecutionPatchResult]] {
   const path = originalResult.path;
   if (path && path.length) {
     const { index, originalKey } = parseKey(path[0] as string);
@@ -76,7 +89,7 @@ function splitExecutionPatchResult(originalResult: ExecutionPatchResult): [numbe
       newResult.errors = newErrors;
     }
 
-    return [index, newResult];
+    return [[index, newResult]];
   }
 
   let resultIndex: number;
@@ -112,7 +125,7 @@ function splitExecutionPatchResult(originalResult: ExecutionPatchResult): [numbe
     newResult.errors = newErrors;
   }
 
-  return [resultIndex, newResult]
+  return [[resultIndex, newResult]];
 }
 
 /**

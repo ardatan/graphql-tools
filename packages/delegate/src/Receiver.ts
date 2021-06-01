@@ -119,6 +119,15 @@ export class Receiver {
   ): Promise<Array<any>> {
     const parentPath = path.slice();
     const responseKey = parentPath.pop() as string;
+
+    const indices: Array<number> = [];
+    let lastSegment = parentPath.length - 1;
+    while (typeof parentPath[lastSegment] === 'number') {
+      const index = parentPath.pop() as number;
+      indices.push(index);
+      lastSegment--;
+    }
+
     const parentKey = parentPath.join('.');
 
     const combinedInfo: GraphQLResolveInfo = {
@@ -132,7 +141,12 @@ export class Receiver {
       throw new Error(`Parent with key "${parentKey}" not available.`);
     }
 
-    const data = parent.data[responseKey];
+    let data = parent.data;
+    for (const index of indices) {
+      data = data[index];
+    }
+    data = data[responseKey];
+
     if (data !== undefined) {
       const newResult = { data, unpathedErrors: parent.unpathedErrors };
       this._update(combinedInfo, newResult, pathKey);
