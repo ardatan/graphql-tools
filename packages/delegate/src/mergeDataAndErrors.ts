@@ -1,3 +1,5 @@
+import AggregateError from '@ardatan/aggregate-error';
+
 import { GraphQLError, locatedError } from 'graphql';
 import { relocatedError } from '@graphql-tools/utils';
 
