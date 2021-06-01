@@ -1,5 +1,4 @@
 import {
-  ExecutionPatchResult,
   ExecutionResult,
   getNamedType,
   GraphQLObjectType,
@@ -30,22 +29,17 @@ import { fieldShouldStream } from './fieldShouldStream';
 import { createExternalValue } from './externalValues';
 
 export class Receiver {
-  private readonly asyncIterable: AsyncIterable<AsyncExecutionResult>;
+  private readonly asyncIterator: AsyncIterator<AsyncExecutionResult>;
   private readonly delegationContext: DelegationContext;
   private readonly fieldName: string;
   private readonly asyncSelectionSets: Record<string, SelectionSetNode>;
-  private readonly resultTransformer: (originalResult: ExecutionResult) => any;
   private readonly initialResultDepth: number;
   private cache: ExpectantStore<MergedExecutionResult>;
   private stoppers: Array<Stop>;
   private loaders: Record<string, DataLoader<GraphQLResolveInfo, any>>;
 
-  constructor(
-    asyncIterable: AsyncIterable<AsyncExecutionResult>,
-    delegationContext: DelegationContext,
-    resultTransformer: (originalResult: ExecutionResult) => any
-  ) {
-    this.asyncIterable = asyncIterable;
+  constructor(asyncIterator: AsyncIterator<AsyncExecutionResult>, delegationContext: DelegationContext) {
+    this.asyncIterator = asyncIterator;
 
     this.delegationContext = delegationContext;
     const { fieldName, info, asyncSelectionSets } = delegationContext;
@@ -53,7 +47,6 @@ export class Receiver {
     this.fieldName = fieldName;
     this.asyncSelectionSets = asyncSelectionSets;
 
-    this.resultTransformer = resultTransformer;
     this.initialResultDepth = info ? responsePathAsArray(info.path).length - 1 : 0;
 
     this.cache = new ExpectantStore();
@@ -66,12 +59,13 @@ export class Receiver {
 
     let initialResult: ExecutionResult;
     let initialData: any;
-    for await (const payload of this.asyncIterable) {
-      initialResult = this.resultTransformer(payload);
-      initialData = initialResult?.data?.[fieldName];
-      if (initialData != null) {
+    while (initialData == null) {
+      const payload = await this.asyncIterator.next();
+      if (payload.done) {
         break;
       }
+      initialResult = payload.value;
+      initialData = initialResult?.data?.[fieldName];
     }
 
     const newResult = mergeDataAndErrors(initialData, initialResult.errors, onLocatedError);
@@ -178,11 +172,9 @@ export class Receiver {
   }
 
   private async _iterate(): Promise<void> {
-    const iterator = this.asyncIterable[Symbol.asyncIterator]();
-
     let hasNext = true;
     while (hasNext) {
-      const payload = (await iterator.next()) as IteratorResult<ExecutionPatchResult, ExecutionPatchResult>;
+      const payload = await this.asyncIterator.next();
 
       hasNext = !payload.done;
       const asyncResult = payload.value;
@@ -198,13 +190,7 @@ export class Receiver {
         continue;
       }
 
-      const transformedResult = this.resultTransformer(asyncResult);
-
-      const newResult = mergeDataAndErrors(
-        transformedResult.data,
-        transformedResult.errors,
-        this.delegationContext.onLocatedError
-      );
+      const newResult = mergeDataAndErrors(asyncResult.data, asyncResult.errors, this.delegationContext.onLocatedError);
 
       this.onNewResult(path.join('.'), newResult, this.asyncSelectionSets[asyncResult.label]);
     }

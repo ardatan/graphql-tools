@@ -241,8 +241,8 @@ function handleExecutionResult(
   resultTransformer: (originalResult: ExecutionResult) => ExecutionResult
 ): any {
   if (isAsyncIterable(executionResult)) {
-    const receiver = new Receiver(executionResult, delegationContext, resultTransformer);
-
+    const transformedIterable = mapAsyncIterator(executionResult, value => resultTransformer(value));
+    const receiver = new Receiver(transformedIterable, delegationContext);
     return receiver.getInitialValue();
   }
 

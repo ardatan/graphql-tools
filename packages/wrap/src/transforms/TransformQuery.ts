@@ -8,10 +8,14 @@ export type QueryTransformer = (
   selectionSet: SelectionSetNode,
   fragments: Record<string, FragmentDefinitionNode>,
   delegationContext: DelegationContext,
-  transformationContext: Record<string, any>,
+  transformationContext: Record<string, any>
 ) => SelectionSetNode;
 
-export type ResultTransformer = (result: any, delegationContext: DelegationContext, transformationContext: Record<string, any>) => any;
+export type ResultTransformer = (
+  result: any,
+  delegationContext: DelegationContext,
+  transformationContext: Record<string, any>
+) => any;
 
 export type ErrorPathTransformer = (path: ReadonlyArray<string | number>) => Array<string | number>;
 
@@ -59,7 +63,12 @@ export default class TransformQuery implements Transform {
           index++;
 
           if (index === pathLength) {
-            const selectionSet = this.queryTransformer(node.selectionSet, this.fragments, delegationContext, transformationContext);
+            const selectionSet = this.queryTransformer(
+              node.selectionSet,
+              this.fragments,
+              delegationContext,
+              transformationContext
+            );
 
             return {
               ...node,
@@ -87,12 +96,17 @@ export default class TransformQuery implements Transform {
     const data = this.transformData(originalResult.data, delegationContext, transformationContext);
     const errors = originalResult.errors;
     return {
+      ...originalResult,
       data,
       errors: errors != null ? this.transformErrors(errors) : undefined,
     };
   }
 
-  private transformData(data: any, delegationContext: DelegationContext, transformationContext: Record<string, any>): any {
+  private transformData(
+    data: any,
+    delegationContext: DelegationContext,
+    transformationContext: Record<string, any>
+  ): any {
     const leafIndex = this.path.length - 1;
     let index = 0;
     let newData = data;
