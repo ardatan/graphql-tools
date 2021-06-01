@@ -2,12 +2,12 @@
 // and: https://gist.github.com/jed/cc1e949419d42e2cb26d7f2e1645864d
 // and also: https://github.com/repeaterjs/repeater/issues/48#issuecomment-569134039
 
-import { Push, Stop, Repeater } from '@repeaterjs/repeater';
+import { Repeater } from '@repeaterjs/repeater';
 
 type Splitter<T> = (item: T) => [number | undefined, T];
 
 export function splitAsyncIterator<T>(iterator: AsyncIterator<T>, n: number, splitter: Splitter<T>) {
-  const returner = iterator.return?.bind(iterator) ?? (() => {});
+  const returner = iterator.return?.bind(iterator) ?? (() => true);
 
   const buffers: Array<Array<IteratorResult<T>>> = Array(n);
   for (let i = 0; i < n; i++) {
@@ -26,41 +26,26 @@ export function splitAsyncIterator<T>(iterator: AsyncIterator<T>, n: number, spl
         }
       });
 
-      await loop(push, stop, earlyReturn, buffer, buffers, iterator, splitter);
+      /* eslint-disable no-unmodified-loop-condition */
+      while (!earlyReturn) {
+        const iteration = await next(buffer, buffers, iterator, splitter);
+
+        if (iteration === undefined) {
+          continue;
+        }
+
+        if (iteration.done) {
+          stop();
+          return iteration.value;
+        }
+
+        await push(iteration.value);
+      }
+      /* eslint-enable no-unmodified-loop-condition */
 
       await earlyReturn;
     });
   });
-}
-
-async function loop<T>(
-  push: Push<T>,
-  stop: Stop,
-  earlyReturn: Promise<any> | any,
-  buffer: Array<IteratorResult<T>>,
-  buffers: Array<Array<IteratorResult<T>>>,
-  iterator: AsyncIterator<T>,
-  splitter: Splitter<T>
-): Promise<void> {
-  /* eslint-disable no-unmodified-loop-condition */
-  while (!earlyReturn) {
-    const iteration = await next(buffer, buffers, iterator, splitter);
-
-    if (iteration === undefined) {
-      continue;
-    }
-
-    if (iteration.done) {
-      if (iteration.value !== undefined) {
-        await push(iteration.value);
-      }
-      stop();
-      return;
-    }
-
-    await push(iteration.value);
-  }
-  /* eslint-enable no-unmodified-loop-condition */
 }
 
 async function next<T>(

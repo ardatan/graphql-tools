@@ -7,13 +7,13 @@
  * so that all payloads will be delivered in the original order
  */
 
-import { Push, Stop, Repeater } from '@repeaterjs/repeater';
+import { Repeater } from '@repeaterjs/repeater';
 
 export function mapAsyncIterator<T, U>(
   iterator: AsyncIterator<T>,
-  mapValue: (value: T) => Promise<U> | U,
+  mapValue: (value: T) => Promise<U> | U
 ): AsyncIterableIterator<U> {
-  const returner = iterator.return?.bind(iterator) ?? (() => {});
+  const returner = iterator.return?.bind(iterator) ?? (() => true);
 
   return new Repeater(async (push, stop) => {
     let earlyReturn: any;
@@ -21,51 +21,19 @@ export function mapAsyncIterator<T, U>(
       earlyReturn = returner();
     });
 
-    await loop(push, stop, earlyReturn, iterator, mapValue);
+    /* eslint-disable no-unmodified-loop-condition */
+    while (!earlyReturn) {
+      const iteration = await iterator.next();
+
+      if (iteration.done) {
+        stop();
+        return iteration.value;
+      }
+
+      await push(mapValue(iteration.value));
+    }
+    /* eslint-enable no-unmodified-loop-condition */
 
     await earlyReturn;
   });
-}
-
-async function loop<T, U>(
-  push: Push<U>,
-  stop: Stop,
-  earlyReturn: Promise<any> | any,
-  iterator: AsyncIterator<T>,
-  mapValue: (value: T) => Promise<U> | U,
-): Promise<void> {
-  /* eslint-disable no-unmodified-loop-condition */
-  while (!earlyReturn) {
-    const iteration = await next(iterator, mapValue);
-
-    if (iteration.done) {
-      if (iteration.value !== undefined) {
-        await push(iteration.value);
-      }
-      stop();
-      return;
-    }
-
-    await push(iteration.value);
-  }
-  /* eslint-enable no-unmodified-loop-condition */
-}
-
-async function next<T, U>(
-  iterator: AsyncIterator<T>,
-  mapValue: (value: T) => Promise<U> | U,
-): Promise<IteratorResult<U>> {
-  const iterationCandidate = await iterator.next();
-
-  const value = iterationCandidate.value;
-  if (value === undefined) {
-    return iterationCandidate as IteratorResult<U>;
-  }
-
-  const newValue = await mapValue(iterationCandidate.value);
-
-  return {
-    ...iterationCandidate,
-    value: newValue,
-  };
 }
