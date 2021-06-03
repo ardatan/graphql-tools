@@ -89,18 +89,17 @@ describe('merge conflict handlers', () => {
         }
       },
     });
-
-    expect(gatewaySchema.getType('Listing').description).toEqual('A type');
-    expect(gatewaySchema.getType('IListing').description).toEqual('An interface');
-    expect(gatewaySchema.getType('ListingInput').description).toEqual('An input');
     const Listing = gatewaySchema.getType('Listing')
     assertGraphQLObjectType(Listing)
-    expect(Listing.getFields().id.description).toEqual('type identifier');
     const IListing = gatewaySchema.getType('IListing')
     assertGraphQLInterfaceType(IListing)
-    expect(IListing.getFields().id.description).toEqual('interface identifier');
     const ListingInput = gatewaySchema.getType('ListingInput')
     assertGraphQLInputObjectType(ListingInput)
+    expect(Listing.description).toEqual('A type');
+    expect(IListing.description).toEqual('An interface');
+    expect(ListingInput.description).toEqual('An input');
+    expect(Listing.getFields().id.description).toEqual('type identifier');
+    expect(IListing.getFields().id.description).toEqual('interface identifier');
     expect(ListingInput.getFields().id.description).toEqual('input identifier');
   });
 });

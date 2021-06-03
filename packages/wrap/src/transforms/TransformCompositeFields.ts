@@ -152,7 +152,7 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
         });
       }
 
-      let transformedSelection: SelectionNode | Array<SelectionNode> | undefined;
+      let transformedSelection: Maybe<SelectionNode | Array<SelectionNode>>;
       if (this.fieldNodeTransformer == null) {
         transformedSelection = selection;
       } else {

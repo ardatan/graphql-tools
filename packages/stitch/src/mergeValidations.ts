@@ -24,7 +24,7 @@ import {
 export function validateFieldConsistency<TContext = Record<string, any>>(
   finalFieldConfig: GraphQLFieldConfig<any, any>,
   candidates: Array<MergeFieldConfigCandidate<TContext>>,
-  typeMergingOptions: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>
 ): void {
   const fieldNamespace = `${candidates[0].type.name}.${candidates[0].fieldName}`;
   const finalFieldNull = isNonNullType(finalFieldConfig.type);
@@ -56,6 +56,9 @@ export function validateFieldConsistency<TContext = Record<string, any>>(
 
   const argCandidatesMap: Record<string, Array<GraphQLArgumentConfig>> = Object.create(null);
   candidates.forEach(({ fieldConfig }) => {
+    if (fieldConfig.args == null) {
+      return;
+    }
     Object.entries(fieldConfig.args).forEach(([argName, arg]) => {
       argCandidatesMap[argName] = argCandidatesMap[argName] || [];
       argCandidatesMap[argName].push(arg);
@@ -71,6 +74,9 @@ export function validateFieldConsistency<TContext = Record<string, any>>(
   }
 
   Object.entries(argCandidatesMap).forEach(([argName, argCandidates]) => {
+    if (finalFieldConfig.args == null) {
+      return;
+    }
     const argNamespace = `${fieldNamespace}.${argName}`;
     const finalArgConfig = finalFieldConfig.args[argName] || argCandidates[argCandidates.length - 1];
     const finalArgType = getNamedType(finalArgConfig.type);
@@ -104,7 +110,7 @@ export function validateFieldConsistency<TContext = Record<string, any>>(
 export function validateInputObjectConsistency<TContext = Record<string, any>>(
   fieldInclusionMap: Record<string, number>,
   candidates: Array<MergeTypeCandidate<TContext>>,
-  typeMergingOptions: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>
 ): void {
   Object.entries(fieldInclusionMap).forEach(([fieldName, count]) => {
     if (candidates.length !== count) {
@@ -121,7 +127,7 @@ export function validateInputObjectConsistency<TContext = Record<string, any>>(
 export function validateInputFieldConsistency<TContext = Record<string, any>>(
   finalInputFieldConfig: GraphQLInputFieldConfig,
   candidates: Array<MergeInputFieldConfigCandidate<TContext>>,
-  typeMergingOptions: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>
 ): void {
   const inputFieldNamespace = `${candidates[0].type.name}.${candidates[0].fieldName}`;
   const inputFieldConfigs = candidates.map(c => c.inputFieldConfig);
@@ -163,7 +169,7 @@ export function validateTypeConsistency<TContext = Record<string, any>>(
   candidates: Array<GraphQLFieldConfig<any, any> | GraphQLArgumentConfig | GraphQLInputFieldConfig>,
   definitionType: string,
   settingNamespace: string,
-  typeMergingOptions: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>
 ): void {
   const finalNamedType = getNamedType(finalElementConfig.type);
   const finalIsScalar = isScalarType(finalNamedType);
@@ -205,7 +211,7 @@ function hasListType(type: GraphQLType): boolean {
 export function validateInputEnumConsistency<TContext = Record<string, any>>(
   inputEnumType: GraphQLEnumType,
   candidates: Array<GraphQLArgumentConfig | GraphQLInputFieldConfig>,
-  typeMergingOptions: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>
 ): void {
   const enumValueInclusionMap: Record<string, number> = Object.create(null);
 
@@ -231,7 +237,7 @@ export function validateInputEnumConsistency<TContext = Record<string, any>>(
 function validationMessage<TContext = Record<string, any>>(
   message: string,
   settingNamespace: string,
-  typeMergingOptions: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>
 ): void {
   const override = `typeMergingOptions.validationScopes['${settingNamespace}'].validationLevel`;
   const settings = getValidationSettings(settingNamespace, typeMergingOptions);
@@ -250,7 +256,7 @@ function validationMessage<TContext = Record<string, any>>(
 
 function getValidationSettings<TContext = Record<string, any>>(
   settingNamespace: string,
-  typeMergingOptions: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>
 ): ValidationSettings {
   return {
     ...(typeMergingOptions?.validationSettings ?? {}),

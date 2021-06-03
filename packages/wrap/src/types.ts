@@ -13,7 +13,7 @@ import {
   GraphQLEnumValueConfig,
 } from 'graphql';
 import { DelegationContext } from '@graphql-tools/delegate';
-import { Executor, Subscriber, Request } from '@graphql-tools/utils';
+import { Executor, Subscriber, Request, Maybe } from '@graphql-tools/utils';
 
 export interface IMakeRemoteExecutableSchemaOptions<TContext = Record<string, any>> {
   schema: GraphQLSchema | string;
@@ -51,19 +51,19 @@ export type FieldTransformer<TContext = Record<string, any>> = (
   typeName: string,
   fieldName: string,
   fieldConfig: GraphQLFieldConfig<any, TContext>
-) => GraphQLFieldConfig<any, TContext> | [string, GraphQLFieldConfig<any, TContext>] | null | undefined;
+) => Maybe<GraphQLFieldConfig<any, TContext> | [string, GraphQLFieldConfig<any, TContext>]>;
 
 export type RootFieldTransformer<TContext = Record<string, any>> = (
   operation: 'Query' | 'Mutation' | 'Subscription',
   fieldName: string,
   fieldConfig: GraphQLFieldConfig<any, TContext>
-) => GraphQLFieldConfig<any, TContext> | [string, GraphQLFieldConfig<any, TContext>] | null | undefined;
+) => Maybe<GraphQLFieldConfig<any, TContext> | [string, GraphQLFieldConfig<any, TContext>]>;
 
 export type EnumValueTransformer = (
   typeName: string,
   externalValue: string,
   enumValueConfig: GraphQLEnumValueConfig
-) => GraphQLEnumValueConfig | [string, GraphQLEnumValueConfig] | null | undefined;
+) => Maybe<GraphQLEnumValueConfig | [string, GraphQLEnumValueConfig]>;
 
 export type FieldNodeTransformer = (
   typeName: string,
@@ -71,7 +71,7 @@ export type FieldNodeTransformer = (
   fieldNode: FieldNode,
   fragments: Record<string, FragmentDefinitionNode>,
   transformationContext: Record<string, any>
-) => SelectionNode | Array<SelectionNode> | undefined;
+) => Maybe<SelectionNode | Array<SelectionNode>>;
 
 export type LeafValueTransformer = (typeName: string, value: any) => any;
 

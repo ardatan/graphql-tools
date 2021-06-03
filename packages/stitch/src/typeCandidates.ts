@@ -42,7 +42,7 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
     GraphQLSchema | SubschemaConfig<any, any, any, TContext>
   >;
   types: Array<GraphQLNamedType>;
-  typeDefs: ITypeDefinitions;
+  typeDefs: ITypeDefinitions | undefined;
   parseOptions: GraphQLParseOptions;
   extensions: Array<DocumentNode>;
   directiveMap: Record<string, GraphQLDirective>;
@@ -51,15 +51,15 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
     schemaExtensions: Array<SchemaExtensionNode>;
   };
   operationTypeNames: Record<string, any>;
-  mergeDirectives: boolean;
+  mergeDirectives?: boolean | undefined;
 }): Record<string, Array<MergeTypeCandidate<TContext>>> {
   const typeCandidates: Record<string, Array<MergeTypeCandidate<TContext>>> = Object.create(null);
 
-  let schemaDef: SchemaDefinitionNode;
+  let schemaDef: SchemaDefinitionNode | undefined;
   let schemaExtensions: Array<SchemaExtensionNode> = [];
 
-  let document: DocumentNode;
-  let extraction: ReturnType<typeof extractDefinitions>;
+  let document: DocumentNode | undefined;
+  let extraction: ReturnType<typeof extractDefinitions> | undefined;
   if ((typeDefs && !Array.isArray(typeDefs)) || (Array.isArray(typeDefs) && typeDefs.length)) {
     document = buildDocumentFromTypeDefinitions(typeDefs, parseOptions);
     extraction = extractDefinitions(document);
@@ -67,7 +67,7 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
     schemaExtensions = schemaExtensions.concat(extraction.schemaExtensions);
   }
 
-  schemaDefs.schemaDef = schemaDef;
+  schemaDefs.schemaDef = schemaDef ?? schemaDefs.schemaDef;
   schemaDefs.schemaExtensions = schemaExtensions;
 
   setOperationTypeNames(schemaDefs, operationTypeNames);
@@ -91,7 +91,7 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
       }
     });
 
-    if (mergeDirectives) {
+    if (mergeDirectives === true) {
       schema.getDirectives().forEach(directive => {
         directiveMap[directive.name] = directive;
       });
@@ -116,7 +116,7 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
     });
   });
 
-  if (document !== undefined) {
+  if (document != null && extraction != null) {
     extraction.typeDefinitions.forEach(def => {
       const type = typeFromAST(def) as GraphQLNamedType;
       if (type != null) {
@@ -190,9 +190,9 @@ export function buildTypes<TContext = Record<string, any>>({
   directives: Array<GraphQLDirective>;
   stitchingInfo: StitchingInfo<TContext>;
   operationTypeNames: Record<string, any>;
-  onTypeConflict: OnTypeConflict<TContext>;
+  onTypeConflict?: OnTypeConflict<TContext>;
   mergeTypes: boolean | Array<string> | MergeTypeFilter<TContext>;
-  typeMergingOptions: TypeMergingOptions<TContext>;
+  typeMergingOptions?: TypeMergingOptions<TContext>;
 }): { typeMap: TypeMap; directives: Array<GraphQLDirective> } {
   const typeMap: TypeMap = Object.create(null);
 

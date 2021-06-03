@@ -13,7 +13,7 @@ import {
   isLeafType,
 } from 'graphql';
 
-import { parseSelectionSet, TypeMap, IResolvers, IFieldResolverOptions } from '@graphql-tools/utils';
+import { parseSelectionSet, TypeMap, IResolvers, IFieldResolverOptions, isSome } from '@graphql-tools/utils';
 
 import { MergedTypeResolver, Subschema, SubschemaConfig, MergedTypeInfo, StitchingInfo } from '@graphql-tools/delegate';
 
@@ -136,12 +136,14 @@ function createMergedTypes<TContext = Record<string, any>>(
 
           if (mergedTypeConfig.fields) {
             const parsedFieldSelectionSets = Object.create(null);
-            Object.keys(mergedTypeConfig.fields).forEach(fieldName => {
+            for (const fieldName in mergedTypeConfig.fields) {
               if (mergedTypeConfig.fields[fieldName].selectionSet) {
                 const rawFieldSelectionSet = mergedTypeConfig.fields[fieldName].selectionSet;
-                parsedFieldSelectionSets[fieldName] = parseSelectionSet(rawFieldSelectionSet, { noLocation: true });
+                parsedFieldSelectionSets[fieldName] = rawFieldSelectionSet
+                  ? parseSelectionSet(rawFieldSelectionSet, { noLocation: true })
+                  : undefined;
               }
-            });
+            }
             fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
           }
 
@@ -181,8 +183,8 @@ function createMergedTypes<TContext = Record<string, any>>(
         });
 
         const sourceSubschemas = typeCandidates[typeName]
-          .filter(typeCandidate => typeCandidate.transformedSubschema != null)
-          .map(typeCandidate => typeCandidate.transformedSubschema);
+          .map(typeCandidate => typeCandidate?.transformedSubschema)
+          .filter(isSome);
         const targetSubschemasBySubschema: Map<
           Subschema<any, any, any, TContext>,
           Array<Subschema<any, any, any, TContext>>
