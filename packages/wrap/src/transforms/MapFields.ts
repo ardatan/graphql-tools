@@ -30,6 +30,7 @@ export default class MapFields<TContext> implements Transform<any, TContext> {
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const subscriptionTypeName = originalWrappingSchema.getSubscriptionType()?.name;
+    const objectValueTransformerMap = this.objectValueTransformerMap;
     this.transformer = new TransformCompositeFields(
       () => undefined,
       (typeName, fieldName, fieldNode, fragments, transformationContext) => {
@@ -45,7 +46,7 @@ export default class MapFields<TContext> implements Transform<any, TContext> {
 
         return fieldNodeTransformer(fieldNode, fragments, transformationContext);
       },
-      this.objectValueTransformerMap != null
+      objectValueTransformerMap != null
         ? (data, transformationContext) => {
             if (data == null) {
               return data;
@@ -60,7 +61,7 @@ export default class MapFields<TContext> implements Transform<any, TContext> {
               }
             }
 
-            const transformer = this.objectValueTransformerMap[typeName];
+            const transformer = objectValueTransformerMap[typeName];
             if (transformer == null) {
               return data;
             }

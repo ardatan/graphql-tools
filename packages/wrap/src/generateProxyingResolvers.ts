@@ -1,6 +1,6 @@
 import { GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo, OperationTypeNode } from 'graphql';
 
-import { getResponseKeyFromInfo } from '@graphql-tools/utils';
+import { Maybe, getResponseKeyFromInfo } from '@graphql-tools/utils';
 import {
   delegateToSchema,
   getSubschema,
@@ -20,7 +20,7 @@ export function generateProxyingResolvers<TContext>(
 
   const transformedSchema = applySchemaTransforms(targetSchema, subschemaConfig);
 
-  const operationTypes: Record<OperationTypeNode, GraphQLObjectType> = {
+  const operationTypes: Record<OperationTypeNode, Maybe<GraphQLObjectType>> = {
     query: targetSchema.getQueryType(),
     mutation: targetSchema.getMutationType(),
     subscription: targetSchema.getSubscriptionType(),

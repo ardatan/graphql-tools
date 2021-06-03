@@ -199,21 +199,21 @@ export type InputFieldFilter = (
 ) => boolean;
 
 export type FieldFilter = (
-  typeName?: string,
-  fieldName?: string,
-  fieldConfig?: GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig
+  typeName: string,
+  fieldName: string,
+  fieldConfig: GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig
 ) => boolean;
 
 export type ObjectFieldFilter = (
-  typeName?: string,
-  fieldName?: string,
-  fieldConfig?: GraphQLFieldConfig<any, any>
+  typeName: string,
+  fieldName: string,
+  fieldConfig: GraphQLFieldConfig<any, any>
 ) => boolean;
 
 export type RootFieldFilter = (
-  operation?: 'Query' | 'Mutation' | 'Subscription',
-  rootFieldName?: string,
-  fieldConfig?: GraphQLFieldConfig<any, any>
+  operation: 'Query' | 'Mutation' | 'Subscription',
+  rootFieldName: string,
+  fieldConfig: GraphQLFieldConfig<any, any>
 ) => boolean;
 
 export type TypeFilter = (typeName: string, type: GraphQLType) => boolean;

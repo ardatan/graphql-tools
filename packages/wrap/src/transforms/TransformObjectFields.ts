@@ -10,7 +10,7 @@ import TransformCompositeFields from './TransformCompositeFields';
 
 export default class TransformObjectFields implements Transform {
   private readonly objectFieldTransformer: FieldTransformer;
-  private readonly fieldNodeTransformer: FieldNodeTransformer;
+  private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
   private transformer: TransformCompositeFields;
 
   constructor(objectFieldTransformer: FieldTransformer, fieldNodeTransformer?: FieldNodeTransformer) {

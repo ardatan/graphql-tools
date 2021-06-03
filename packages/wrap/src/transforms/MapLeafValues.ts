@@ -66,7 +66,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
   public transformRequest(
     originalRequest: Request,
     _delegationContext: DelegationContext,
-    transformationContext?: MapLeafValuesTransformationContext
+    transformationContext: MapLeafValuesTransformationContext
   ): Request {
     const document = originalRequest.document;
     const variableValues = originalRequest.variables;
@@ -97,7 +97,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
   public transformResult(
     originalResult: ExecutionResult,
     _delegationContext: DelegationContext,
-    transformationContext?: MapLeafValuesTransformationContext
+    transformationContext: MapLeafValuesTransformationContext
   ): ExecutionResult {
     return visitResult(
       originalResult,
@@ -112,7 +112,9 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
     variableValues: Record<string, any>
   ): Array<OperationDefinitionNode> {
     return operations.map((operation: OperationDefinitionNode) => {
-      const variableDefinitionMap: Record<string, VariableDefinitionNode> = operation.variableDefinitions.reduce(
+      const variableDefinitionMap: Record<string, VariableDefinitionNode> = (
+        operation.variableDefinitions ?? []
+      ).reduce(
         (prev, def) => ({
           ...prev,
           [def.variable.name.value]: def,
@@ -138,7 +140,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
     field: FieldNode,
     variableDefinitionMap: Record<string, VariableDefinitionNode>,
     variableValues: Record<string, any>
-  ): FieldNode {
+  ): FieldNode | undefined {
     const targetField = this.typeInfo.getFieldDef();
 
     if (!targetField.name.startsWith('__')) {

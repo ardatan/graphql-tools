@@ -46,7 +46,7 @@ function createWrappingSchema(
 
       Object.keys(config.fields).forEach(fieldName => {
         config.fields[fieldName].resolve = defaultMergedResolver;
-        config.fields[fieldName].subscribe = null;
+        config.fields[fieldName].subscribe = undefined;
       });
 
       return new GraphQLObjectType(config);

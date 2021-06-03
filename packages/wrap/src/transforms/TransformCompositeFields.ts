@@ -11,7 +11,7 @@ import {
   FragmentDefinitionNode,
 } from 'graphql';
 
-import { Request, MapperKind, mapSchema, visitData, ExecutionResult } from '@graphql-tools/utils';
+import { Request, MapperKind, mapSchema, visitData, ExecutionResult, Maybe } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -19,13 +19,13 @@ import { FieldTransformer, FieldNodeTransformer, DataTransformer, ErrorsTransfor
 
 export default class TransformCompositeFields<TContext = Record<string, any>> implements Transform<any, TContext> {
   private readonly fieldTransformer: FieldTransformer;
-  private readonly fieldNodeTransformer: FieldNodeTransformer;
-  private readonly dataTransformer: DataTransformer;
-  private readonly errorsTransformer: ErrorsTransformer;
+  private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
+  private readonly dataTransformer: DataTransformer | undefined;
+  private readonly errorsTransformer: ErrorsTransformer | undefined;
   private transformedSchema: GraphQLSchema;
   private typeInfo: TypeInfo;
   private mapping: Record<string, Record<string, string>>;
-  private subscriptionTypeName: string;
+  private subscriptionTypeName: string | undefined;
 
   constructor(
     fieldTransformer: FieldTransformer,
@@ -90,10 +90,11 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
     _delegationContext: DelegationContext,
     transformationContext: Record<string, any>
   ): ExecutionResult {
-    if (this.dataTransformer != null) {
-      result.data = visitData(result.data, value => this.dataTransformer(value, transformationContext));
+    const dataTransformer = this.dataTransformer;
+    if (dataTransformer != null) {
+      result.data = visitData(result.data, value => dataTransformer(value, transformationContext));
     }
-    if (this.errorsTransformer != null) {
+    if (this.errorsTransformer != null && Array.isArray(result.errors)) {
       result.errors = this.errorsTransformer(result.errors, transformationContext);
     }
     return result;
@@ -120,8 +121,8 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
     typeInfo: TypeInfo,
     fragments: Record<string, FragmentDefinitionNode>,
     transformationContext: Record<string, any>
-  ): SelectionSetNode {
-    const parentType: GraphQLType = typeInfo.getParentType();
+  ): SelectionSetNode | undefined {
+    const parentType: Maybe<GraphQLType> = typeInfo.getParentType();
     if (parentType == null) {
       return undefined;
     }
@@ -151,7 +152,7 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
         });
       }
 
-      let transformedSelection: SelectionNode | Array<SelectionNode>;
+      let transformedSelection: SelectionNode | Array<SelectionNode> | undefined;
       if (this.fieldNodeTransformer == null) {
         transformedSelection = selection;
       } else {

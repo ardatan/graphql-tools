@@ -17,11 +17,11 @@ import { Executor, Subscriber, Request } from '@graphql-tools/utils';
 
 export interface IMakeRemoteExecutableSchemaOptions<TContext = Record<string, any>> {
   schema: GraphQLSchema | string;
-  executor?: Executor<TContext>;
+  executor: Executor<TContext>;
   subscriber?: Subscriber<TContext>;
   createResolver?: (
     executor: Executor<TContext>,
-    subscriber: Subscriber<TContext>
+    subscriber?: Subscriber<TContext> | undefined
   ) => GraphQLFieldResolver<any, TContext>;
   buildSchemaOptions?: BuildSchemaOptions;
 }
@@ -45,7 +45,7 @@ export type InputObjectNodeTransformer = (
   inputObjectNode: ObjectValueNode,
   request: Request,
   delegationContext?: DelegationContext
-) => ObjectValueNode;
+) => ObjectValueNode | undefined;
 
 export type FieldTransformer<TContext = Record<string, any>> = (
   typeName: string,
@@ -71,7 +71,7 @@ export type FieldNodeTransformer = (
   fieldNode: FieldNode,
   fragments: Record<string, FragmentDefinitionNode>,
   transformationContext: Record<string, any>
-) => SelectionNode | Array<SelectionNode>;
+) => SelectionNode | Array<SelectionNode> | undefined;
 
 export type LeafValueTransformer = (typeName: string, value: any) => any;
 
@@ -80,6 +80,6 @@ export type DataTransformer = (value: any, transformationContext: Record<string,
 export type ObjectValueTransformerMap = Record<string, DataTransformer>;
 
 export type ErrorsTransformer = (
-  errors: ReadonlyArray<GraphQLError>,
+  errors: ReadonlyArray<GraphQLError> | undefined,
   transformationContext: Record<string, any>
-) => Array<GraphQLError>;
+) => Array<GraphQLError> | undefined;

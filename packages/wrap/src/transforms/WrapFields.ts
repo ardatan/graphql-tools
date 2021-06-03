@@ -18,6 +18,7 @@ import {
   modifyObjectFields,
   ExecutionResult,
   relocatedError,
+  assertSome,
 } from '@graphql-tools/utils';
 
 import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
@@ -35,8 +36,8 @@ export default class WrapFields<TContext> implements Transform<WrapFieldsTransfo
   private readonly wrappingFieldNames: Array<string>;
   private readonly wrappingTypeNames: Array<string>;
   private readonly numWraps: number;
-  private readonly fieldNames: Array<string>;
-  private readonly transformer: Transform<any, TContext>;
+  private readonly fieldNames: Array<string> | undefined;
+  private readonly transformer: MapFields<TContext>;
 
   constructor(
     outerTypeName: string,
@@ -53,6 +54,7 @@ export default class WrapFields<TContext> implements Transform<WrapFieldsTransfo
 
     const remainingWrappingFieldNames = this.wrappingFieldNames.slice();
     const outerMostWrappingFieldName = remainingWrappingFieldNames.shift();
+    assertSome(outerMostWrappingFieldName);
     this.transformer = new MapFields<TContext>(
       {
         [outerTypeName]: {
@@ -79,10 +81,11 @@ export default class WrapFields<TContext> implements Transform<WrapFieldsTransfo
     subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
+    const fieldNames = this.fieldNames;
     const targetFieldConfigMap = selectObjectFields(
       originalWrappingSchema,
       this.outerTypeName,
-      !this.fieldNames ? () => true : fieldName => this.fieldNames.includes(fieldName)
+      !fieldNames ? () => true : fieldName => fieldNames.includes(fieldName)
     );
 
     const newTargetFieldConfigMap: GraphQLFieldConfigMap<any, any> = Object.create(null);
@@ -119,11 +122,11 @@ export default class WrapFields<TContext> implements Transform<WrapFieldsTransfo
       this.outerTypeName === originalWrappingSchema.getQueryType()?.name ||
       this.outerTypeName === originalWrappingSchema.getMutationType()?.name;
 
-    let resolve: GraphQLFieldResolver<any, any>;
+    let resolve: GraphQLFieldResolver<any, any> | undefined;
     if (transformedSchema) {
       if (wrappingRootField) {
         const targetSchema = subschemaConfig.schema;
-        const operation = this.outerTypeName === targetSchema.getQueryType().name ? 'query' : 'mutation';
+        const operation = this.outerTypeName === targetSchema.getQueryType()?.name ? 'query' : 'mutation';
         const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
         resolve = createProxyingResolver({
           subschemaConfig,
@@ -172,7 +175,7 @@ export default class WrapFields<TContext> implements Transform<WrapFieldsTransfo
 }
 
 function collectFields(
-  selectionSet: SelectionSetNode,
+  selectionSet: SelectionSetNode | undefined,
   fragments: Record<string, FragmentDefinitionNode>,
   fields: Array<FieldNode> = [],
   visitedFragmentNames = {}
@@ -303,9 +306,9 @@ export function dehoistValue(originalValue: any, context: WrapFieldsTransformati
 }
 
 function dehoistErrors(
-  errors: ReadonlyArray<GraphQLError>,
+  errors: ReadonlyArray<GraphQLError> | undefined,
   context: WrapFieldsTransformationContext
-): Array<GraphQLError> {
+): Array<GraphQLError> | undefined {
   if (errors === undefined) {
     return undefined;
   }
