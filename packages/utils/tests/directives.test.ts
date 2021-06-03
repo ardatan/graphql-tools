@@ -39,7 +39,7 @@ import {
   ExecutionResult,
   astFromDirective,
 } from '@graphql-tools/utils';
-import { assertGraphQLEnumType, assertGraphQLInputObjectType, assertGraphQLInterfaceType, assertGraphQLObjectType, assertGraphQLScalerType, assertGraphQLUnionType } from './shared';
+import { assertGraphQLEnumType, assertGraphQLInputObjectType, assertGraphQLInterfaceType, assertGraphQLObjectType, assertGraphQLScalerType, assertGraphQLUnionType } from '../../testing/assertion';
 
 const typeDefs = `
 directive @schemaDirective(role: String) on SCHEMA

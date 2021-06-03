@@ -1,38 +1,45 @@
-import { GraphQLEnumType, GraphQLInputObjectType, GraphQLInterfaceType, GraphQLObjectType, GraphQLScalarType, GraphQLUnionType } from "graphql"
+import {
+  GraphQLEnumType,
+  GraphQLInputObjectType,
+  GraphQLInterfaceType,
+  GraphQLObjectType,
+  GraphQLScalarType,
+  GraphQLUnionType,
+} from 'graphql';
 
 export function assertGraphQLObjectType(input: unknown): asserts input is GraphQLObjectType {
   if (input instanceof GraphQLObjectType) {
-    return
+    return;
   }
-  throw new Error("Expected GraphQLObjectType.")
+  throw new Error('Expected GraphQLObjectType.');
 }
 export function assertGraphQLEnumType(input: unknown): asserts input is GraphQLEnumType {
   if (input instanceof GraphQLEnumType) {
-    return
+    return;
   }
-  throw new Error("Expected GraphQLObjectType.")
+  throw new Error('Expected GraphQLObjectType.');
 }
 export function assertGraphQLScalerType(input: unknown): asserts input is GraphQLScalarType {
   if (input instanceof GraphQLScalarType) {
-    return
+    return;
   }
-  throw new Error("Expected GraphQLScalerType.")
+  throw new Error('Expected GraphQLScalerType.');
 }
 export function assertGraphQLInterfaceType(input: unknown): asserts input is GraphQLInterfaceType {
   if (input instanceof GraphQLInterfaceType) {
-    return
+    return;
   }
-  throw new Error("Expected GraphQLInterfaceType.")
+  throw new Error('Expected GraphQLInterfaceType.');
 }
 export function assertGraphQLUnionType(input: unknown): asserts input is GraphQLUnionType {
   if (input instanceof GraphQLUnionType) {
-    return
+    return;
   }
-  throw new Error("Expected GraphQLUnionType.")
+  throw new Error('Expected GraphQLUnionType.');
 }
 export function assertGraphQLInputObjectType(input: unknown): asserts input is GraphQLInputObjectType {
   if (input instanceof GraphQLInputObjectType) {
-    return
+    return;
   }
-  throw new Error("Expected GraphQLInputObjectType.")
+  throw new Error('Expected GraphQLInputObjectType.');
 }
