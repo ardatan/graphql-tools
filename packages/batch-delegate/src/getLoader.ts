@@ -20,7 +20,7 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
     const results = await delegateToSchema({
       returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
       onLocatedError: originalError =>
-        relocatedError(originalError, originalError.path.slice(0, 0).concat(originalError.path.slice(2))),
+        relocatedError(originalError, originalError.path?.slice(0, 0).concat(originalError.path.slice(2))),
       args: argsFromKeys(keys),
       ...(lazyOptionsFn == null ? options : lazyOptionsFn(options)),
     });
@@ -38,7 +38,7 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
 export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
   const fieldName = options.fieldName ?? options.info.fieldName;
 
-  let cache2: WeakMap<GraphQLSchema | SubschemaConfig, Record<string, DataLoader<K, V, C>>> = cache1.get(
+  let cache2: WeakMap<GraphQLSchema | SubschemaConfig, Record<string, DataLoader<K, V, C>>> | undefined = cache1.get(
     options.info.fieldNodes
   );
 
@@ -56,7 +56,7 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
   let loaders = cache2.get(options.schema);
 
   if (loaders === undefined) {
-    loaders = Object.create(null);
+    loaders = Object.create(null) as Record<string, DataLoader<K, V, C>>;
     cache2.set(options.schema, loaders);
     const batchFn = createBatchFn(options);
     const loader = new DataLoader<K, V, C>(keys => batchFn(keys), options.dataLoaderOptions);
