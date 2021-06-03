@@ -421,6 +421,8 @@ function collectCustomLoader<T>(
 ) {
   if (pointerOptions.loader) {
     return queue(async () => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO options.cwd is possibly undefined, but it seems like no test covers this path
       const loader = await useCustomLoader(pointerOptions.loader, options.cwd);
       const result = await loader(pointer, { ...options, ...pointerOptions }, pointerOptionMap);
 
@@ -441,6 +443,8 @@ function collectCustomLoaderSync<T>(
 ) {
   if (pointerOptions.loader) {
     return queue(() => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TODO options.cwd is possibly undefined, but it seems like no test covers this path
       const loader = useCustomLoaderSync(pointerOptions.loader, options.cwd);
       const result = loader(pointer, { ...options, ...pointerOptions }, pointerOptionMap);
 
