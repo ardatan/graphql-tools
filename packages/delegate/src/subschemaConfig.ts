@@ -12,8 +12,8 @@ export function cloneSubschemaConfig(subschemaConfig: SubschemaConfig): Subschem
 
   if (newSubschemaConfig.merge != null) {
     newSubschemaConfig.merge = { ...subschemaConfig.merge };
-    Object.keys(newSubschemaConfig.merge).forEach(typeName => {
-      const mergedTypeConfig = (newSubschemaConfig.merge[typeName] = { ...subschemaConfig.merge[typeName] });
+    for (const typeName of Object.keys(newSubschemaConfig.merge)) {
+      const mergedTypeConfig = (newSubschemaConfig.merge[typeName] = { ...(subschemaConfig.merge?.[typeName] ?? {}) });
 
       if (mergedTypeConfig.entryPoints != null) {
         mergedTypeConfig.entryPoints = mergedTypeConfig.entryPoints.map(entryPoint => ({ ...entryPoint }));
@@ -25,7 +25,7 @@ export function cloneSubschemaConfig(subschemaConfig: SubschemaConfig): Subschem
           fields[fieldName] = { ...fields[fieldName] };
         });
       }
-    });
+    }
   }
 
   return newSubschemaConfig;

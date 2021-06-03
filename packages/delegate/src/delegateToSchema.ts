@@ -18,7 +18,15 @@ import AggregateError from '@ardatan/aggregate-error';
 
 import { getBatchingExecutor } from '@graphql-tools/batch-execute';
 
-import { mapAsyncIterator, ExecutionResult, Executor, ExecutionParams, Subscriber } from '@graphql-tools/utils';
+import {
+  mapAsyncIterator,
+  ExecutionResult,
+  Executor,
+  ExecutionParams,
+  Subscriber,
+  Maybe,
+  assertSome,
+} from '@graphql-tools/utils';
 
 import { IDelegateToSchemaOptions, IDelegateRequestOptions, StitchingInfo, DelegationContext } from './types';
 
@@ -64,7 +72,7 @@ function getDelegationReturnType(
   operation: OperationTypeNode,
   fieldName: string
 ): GraphQLOutputType {
-  let rootType: GraphQLObjectType<any, any>;
+  let rootType: Maybe<GraphQLObjectType<any, any>>;
   if (operation === 'query') {
     rootType = targetSchema.getQueryType();
   } else if (operation === 'mutation') {
@@ -72,6 +80,7 @@ function getDelegationReturnType(
   } else {
     rootType = targetSchema.getSubscriptionType();
   }
+  assertSome(rootType);
 
   return rootType.getFields()[fieldName].type;
 }
@@ -141,7 +150,7 @@ function getDelegationContext<TContext>({
   operation,
   fieldName,
   returnType,
-  args,
+  args = {},
   context,
   info,
   rootValue,
@@ -149,20 +158,24 @@ function getDelegationContext<TContext>({
   transformedSchema,
   skipTypeMerging,
 }: IDelegateRequestOptions<TContext>): DelegationContext<TContext> {
-  let operationDefinition: OperationDefinitionNode;
-  let targetOperation: OperationTypeNode;
+  let operationDefinition: Maybe<OperationDefinitionNode>;
+  let targetOperation: Maybe<OperationTypeNode>;
   let targetFieldName: string;
+  skipTypeMerging = skipTypeMerging ?? false;
 
   if (operation == null) {
     operationDefinition = getOperationAST(request.document, undefined);
-    targetOperation = operationDefinition.operation;
+    targetOperation = operationDefinition?.operation;
   } else {
     targetOperation = operation;
   }
 
+  // TODO: Do what if there is no targetOperation?
+  assertSome(targetOperation);
+
   if (fieldName == null) {
     operationDefinition = operationDefinition ?? getOperationAST(request.document, undefined);
-    targetFieldName = (operationDefinition.selectionSet.selections[0] as unknown as FieldDefinitionNode).name.value;
+    targetFieldName = (operationDefinition?.selectionSet.selections[0] as unknown as FieldDefinitionNode).name.value;
   } else {
     targetFieldName = fieldName;
   }
@@ -229,16 +242,21 @@ function validateRequest(delegationContext: DelegationContext<any>, document: Do
   }
 }
 
+// Since the memo function relies on WeakMap which needs an object.
+// TODO: clarify whether this has been a potential runtime error
+const executorFallbackRootValue = {};
+
 function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): Executor<TContext> {
   const { subschemaConfig, targetSchema, context, rootValue } = delegationContext;
 
   let executor: Executor =
-    subschemaConfig?.executor || createDefaultExecutor(targetSchema, subschemaConfig?.rootValue || rootValue);
+    subschemaConfig?.executor ||
+    createDefaultExecutor(targetSchema, subschemaConfig?.rootValue ?? rootValue ?? executorFallbackRootValue);
 
   if (subschemaConfig?.batch) {
     const batchingOptions = subschemaConfig?.batchingOptions;
     executor = getBatchingExecutor(
-      context,
+      context as any,
       executor,
       batchingOptions?.dataLoaderOptions,
       batchingOptions?.extensionsReducer
@@ -253,7 +271,7 @@ function getSubscriber<TContext>(delegationContext: DelegationContext<TContext>)
   return subschemaConfig?.subscriber || createDefaultSubscriber(targetSchema, subschemaConfig?.rootValue || rootValue);
 }
 
-const createDefaultExecutor = memoize2(function (schema: GraphQLSchema, rootValue: Record<string, any>): Executor {
+const createDefaultExecutor = memoize2(function (schema: GraphQLSchema, rootValue?: Record<string, any>): Executor {
   return (({ document, context, variables, info }: ExecutionParams) =>
     execute({
       schema,
@@ -264,7 +282,7 @@ const createDefaultExecutor = memoize2(function (schema: GraphQLSchema, rootValu
     })) as Executor;
 });
 
-function createDefaultSubscriber(schema: GraphQLSchema, rootValue: Record<string, any>) {
+function createDefaultSubscriber(schema: GraphQLSchema, rootValue?: Record<string, any>) {
   return ({ document, context, variables, info }: ExecutionParams) =>
     subscribe({
       schema,

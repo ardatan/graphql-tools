@@ -38,7 +38,7 @@ export function checkResultAndHandleErrors(
   context: Record<string, any>,
   info: GraphQLResolveInfo,
   responseKey: string = getResponseKeyFromInfo(info),
-  subschema?: GraphQLSchema | SubschemaConfig,
+  subschema: GraphQLSchema | SubschemaConfig,
   returnType: GraphQLOutputType = info.returnType,
   skipTypeMerging?: boolean,
   onLocatedError?: (originalError: GraphQLError) => GraphQLError
@@ -46,7 +46,7 @@ export function checkResultAndHandleErrors(
   const { data, unpathedErrors } = mergeDataAndErrors(
     result.data == null ? undefined : result.data[responseKey],
     result.errors == null ? [] : result.errors,
-    info ? responsePathAsArray(info.path) : undefined,
+    info != null && info.path ? responsePathAsArray(info.path) : undefined,
     onLocatedError
   );
 
@@ -56,8 +56,8 @@ export function checkResultAndHandleErrors(
 export function mergeDataAndErrors(
   data: any,
   errors: ReadonlyArray<GraphQLError>,
-  path: Array<string | number>,
-  onLocatedError: (originalError: GraphQLError) => GraphQLError,
+  path: Array<string | number> | undefined,
+  onLocatedError?: (originalError: GraphQLError) => GraphQLError,
   index = 1
 ): { data: any; unpathedErrors: Array<GraphQLError> } {
   if (data == null) {

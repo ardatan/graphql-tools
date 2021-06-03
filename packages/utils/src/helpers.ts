@@ -88,3 +88,9 @@ export function compareNodes(a: ASTNode, b: ASTNode, customFn?: (a: any, b: any)
 export function isSome<T>(input: T): input is Exclude<T, null | undefined> {
   return input != null;
 }
+
+export function assertSome<T>(input: T): asserts input is Exclude<T, null | undefined> {
+  if (input == null) {
+    throw new Error('Value should be something');
+  }
+}

@@ -86,7 +86,7 @@ function resolveExternalObject(
   }
 
   const mergedTypeInfo = stitchingInfo.mergedTypes[typeName];
-  let targetSubschemas: Array<Subschema>;
+  let targetSubschemas: undefined | Array<Subschema>;
 
   // Within the stitching context, delegation to a stitched GraphQLSchema or SubschemaConfig
   // will be redirected to the appropriate Subschema object, from which merge targets can be queried.
@@ -106,7 +106,7 @@ function resolveExternalObject(
     typeName,
     object,
     fieldNodes,
-    subschema as Subschema,
+    subschema as Subschema | Array<Subschema>,
     targetSubschemas,
     context,
     info

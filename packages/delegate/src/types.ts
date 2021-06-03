@@ -43,12 +43,12 @@ export interface Transform<T = any, TContext = Record<string, any>> {
 
 export interface DelegationContext<TContext = Record<string, any>> {
   subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
-  subschemaConfig: SubschemaConfig<any, any, any, TContext>;
+  subschemaConfig?: SubschemaConfig<any, any, any, TContext>;
   targetSchema: GraphQLSchema;
   operation: OperationTypeNode;
   fieldName: string;
   args: Record<string, any>;
-  context: TContext;
+  context?: TContext;
   info: GraphQLResolveInfo;
   rootValue?: Record<string, any>;
   returnType: GraphQLOutputType;
@@ -83,9 +83,8 @@ export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs 
 }
 
 export interface IDelegateRequestOptions<TContext = Record<string, any>, TArgs = Record<string, any>>
-  extends Omit<IDelegateToSchemaOptions<TContext, TArgs>, 'info'> {
+  extends IDelegateToSchemaOptions<TContext, TArgs> {
   request: Request;
-  info?: GraphQLResolveInfo;
 }
 
 export interface ICreateRequestFromInfo {
