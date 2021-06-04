@@ -198,9 +198,9 @@ export function buildTypes<TContext = Record<string, any>>({
 
   Object.keys(typeCandidates).forEach(typeName => {
     if (
-      typeName === operationTypeNames.query ||
-      typeName === operationTypeNames.mutation ||
-      typeName === operationTypeNames.subscription ||
+      typeName === operationTypeNames['query'] ||
+      typeName === operationTypeNames['mutation'] ||
+      typeName === operationTypeNames['subscription'] ||
       (mergeTypes === true && !typeCandidates[typeName].some(candidate => isSpecifiedScalarType(candidate.type))) ||
       (typeof mergeTypes === 'function' && mergeTypes(typeCandidates[typeName], typeName)) ||
       (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||

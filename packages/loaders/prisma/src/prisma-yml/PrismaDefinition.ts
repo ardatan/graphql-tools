@@ -45,8 +45,8 @@ export class PrismaDefinitionClass {
   }
 
   async load(args: Args, envPath?: string, graceful?: boolean) {
-    if (args.project) {
-      const flagPath = path.resolve(args.project as string);
+    if (args['project']) {
+      const flagPath = path.resolve(String(args['project']));
 
       try {
         fs.accessSync(flagPath);
@@ -97,7 +97,7 @@ export class PrismaDefinitionClass {
   }
 
   get endpoint(): string | undefined {
-    return (this.definition && this.definition.endpoint) || process.env.PRISMA_MANAGEMENT_API_ENDPOINT;
+    return (this.definition && this.definition.endpoint) || process.env['PRISMA_MANAGEMENT_API_ENDPOINT'];
   }
 
   get clusterBaseUrl(): string | undefined {
@@ -216,7 +216,7 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
   }
 
   async getClusterByEndpoint(data: ParseEndpointResult) {
-    if (data.clusterBaseUrl && !process.env.PRISMA_MANAGEMENT_API_SECRET) {
+    if (data.clusterBaseUrl && !process.env['PRISMA_MANAGEMENT_API_SECRET']) {
       const cluster = this.findClusterByBaseUrl(data.clusterBaseUrl);
       if (cluster) {
         return cluster;

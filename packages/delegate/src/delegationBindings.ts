@@ -1,4 +1,4 @@
-import { assertSome } from '@graphql-tools/utils';
+import { assertSome, Maybe } from '@graphql-tools/utils';
 import { Transform, StitchingInfo, DelegationContext } from './types';
 
 import AddSelectionSets from './transforms/AddSelectionSets';
@@ -15,7 +15,7 @@ export function defaultDelegationBinding<TContext>(
   let delegationTransforms: Array<Transform<any, TContext>> = [new CheckResultAndHandleErrors()];
 
   const info = delegationContext.info;
-  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
+  const stitchingInfo: Maybe<StitchingInfo> = info?.schema.extensions?.['stitchingInfo'];
 
   if (stitchingInfo != null) {
     assertSome(stitchingInfo.selectionSetsByType);

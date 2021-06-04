@@ -32,9 +32,13 @@ function createWrappingSchema(
 
       const fieldConfigMap = config.fields;
       Object.keys(fieldConfigMap).forEach(fieldName => {
+        const field = fieldConfigMap[fieldName];
+        if (field == null) {
+          return;
+        }
         fieldConfigMap[fieldName] = {
-          ...fieldConfigMap[fieldName],
-          ...proxyingResolvers[type.name][fieldName],
+          ...field,
+          ...proxyingResolvers[type.name]?.[fieldName],
         };
       });
 
@@ -45,8 +49,12 @@ function createWrappingSchema(
       config.isTypeOf = undefined;
 
       Object.keys(config.fields).forEach(fieldName => {
-        config.fields[fieldName].resolve = defaultMergedResolver;
-        config.fields[fieldName].subscribe = undefined;
+        const field = config.fields[fieldName];
+        if (field == null) {
+          return;
+        }
+        field.resolve = defaultMergedResolver;
+        field.subscribe = undefined;
       });
 
       return new GraphQLObjectType(config);

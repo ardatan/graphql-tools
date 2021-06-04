@@ -58,10 +58,10 @@ export class Cluster {
     if (this.name === 'shared-public-demo') {
       return '';
     }
-    if (this.isPrivate && process.env.PRISMA_MANAGEMENT_API_SECRET) {
+    if (this.isPrivate && process.env['PRISMA_MANAGEMENT_API_SECRET']) {
       return this.getLocalToken();
     }
-    if (this.shared || (this.isPrivate && !process.env.PRISMA_MANAGEMENT_API_SECRET)) {
+    if (this.shared || (this.isPrivate && !process.env['PRISMA_MANAGEMENT_API_SECRET'])) {
       return this.generateClusterToken(serviceName, workspaceSlug, stageName);
     } else {
       return this.getLocalToken();
@@ -69,12 +69,12 @@ export class Cluster {
   }
 
   getLocalToken(): string | null {
-    if (!this.clusterSecret && !process.env.PRISMA_MANAGEMENT_API_SECRET) {
+    if (!this.clusterSecret && !process.env['PRISMA_MANAGEMENT_API_SECRET']) {
       return null;
     }
     if (!this.cachedToken) {
       const grants = [{ target: `*/*`, action: '*' }];
-      const secret = process.env.PRISMA_MANAGEMENT_API_SECRET || this.clusterSecret;
+      const secret = process.env['PRISMA_MANAGEMENT_API_SECRET'] || this.clusterSecret;
 
       if (!secret) {
         throw new Error(
@@ -85,7 +85,7 @@ export class Cluster {
       }
 
       try {
-        const algorithm = process.env.PRISMA_MANAGEMENT_API_SECRET ? 'HS256' : 'RS256';
+        const algorithm = process.env['PRISMA_MANAGEMENT_API_SECRET'] ? 'HS256' : 'RS256';
         this.cachedToken = jwt.sign({ grants }, secret, {
           expiresIn: '5y',
           algorithm,

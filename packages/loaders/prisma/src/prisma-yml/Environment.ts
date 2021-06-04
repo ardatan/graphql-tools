@@ -48,7 +48,7 @@ export class Environment {
   }
 
   get cloudSessionKey(): string | undefined {
-    return process.env.PRISMA_CLOUD_SESSION_KEY || this.globalRC.cloudSessionKey;
+    return process.env['PRISMA_CLOUD_SESSION_KEY'] || this.globalRC.cloudSessionKey;
   }
 
   async renewToken() {

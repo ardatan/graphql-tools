@@ -20,6 +20,7 @@ import { annotateExternalObject, isExternalObject } from './externalObjects';
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
 import { mergeFields } from './mergeFields';
 import { Subschema } from './Subschema';
+import { Maybe } from '@graphql-tools/utils';
 
 export function resolveExternalValue(
   result: any,
@@ -66,8 +67,8 @@ function resolveExternalObject(
 
   annotateExternalObject(object, unpathedErrors, subschema);
 
-  const stitchingInfo: StitchingInfo = info?.schema.extensions?.stitchingInfo;
-  if (skipTypeMerging || !stitchingInfo) {
+  const stitchingInfo: Maybe<StitchingInfo> = info?.schema.extensions?.['stitchingInfo'];
+  if (skipTypeMerging || stitchingInfo == null) {
     return object;
   }
 

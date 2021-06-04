@@ -32,7 +32,7 @@ import {
   GraphQLDeprecatedDirective,
 } from 'graphql';
 
-import { createStub, createNamedStub } from '@graphql-tools/utils';
+import { createStub, createNamedStub, Maybe } from '@graphql-tools/utils';
 
 const backcompatOptions = { commentDescriptions: true };
 
@@ -279,7 +279,7 @@ function isBlank(str: string) {
   return leadingWhitespace(str) === str.length;
 }
 
-function getDeprecationReason(node: EnumValueDefinitionNode | FieldDefinitionNode): string {
+function getDeprecationReason(node: EnumValueDefinitionNode | FieldDefinitionNode): Maybe<string> {
   const deprecated = getDirectiveValues(GraphQLDeprecatedDirective, node);
-  return deprecated?.reason;
+  return deprecated?.['reason'];
 }

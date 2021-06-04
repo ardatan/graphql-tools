@@ -1,6 +1,6 @@
 import { GraphQLSchema, FieldNode, GraphQLObjectType, GraphQLResolveInfo } from 'graphql';
 
-import { collectFields, GraphQLExecutionContext } from '@graphql-tools/utils';
+import { collectFields, GraphQLExecutionContext, Maybe } from '@graphql-tools/utils';
 
 import { isSubschemaConfig } from './subschemaConfig';
 import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from './types';
@@ -30,8 +30,8 @@ function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<st
   });
 
   // TODO: Verify whether it is safe that extensions always exists.
-  const stitchingInfo = info.schema.extensions!.stitchingInfo as StitchingInfo;
-  const selectionSetsByField = stitchingInfo.selectionSetsByField;
+  const stitchingInfo: Maybe<StitchingInfo> = info.schema.extensions?.['stitchingInfo'];
+  const selectionSetsByField = stitchingInfo?.selectionSetsByField;
 
   Object.keys(subFieldNodes).forEach(responseName => {
     const fieldName = subFieldNodes[responseName][0].name.value;

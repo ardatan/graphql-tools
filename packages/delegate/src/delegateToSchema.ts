@@ -180,7 +180,7 @@ function getDelegationContext<TContext>({
     targetFieldName = fieldName;
   }
 
-  const stitchingInfo: StitchingInfo<TContext> = info?.schema.extensions?.stitchingInfo;
+  const stitchingInfo: Maybe<StitchingInfo<TContext>> = info?.schema.extensions?.['stitchingInfo'];
 
   const subschemaOrSubschemaConfig = stitchingInfo?.subschemaMap.get(schema) ?? schema;
 
