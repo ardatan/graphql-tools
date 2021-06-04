@@ -21,6 +21,7 @@ import {
   ResultVisitorMap,
   updateArgument,
   transformInputValue,
+  assertSome,
 } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
@@ -35,13 +36,23 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
   private readonly inputValueTransformer: LeafValueTransformer;
   private readonly outputValueTransformer: LeafValueTransformer;
   private readonly resultVisitorMap: ResultVisitorMap;
-  private originalWrappingSchema: GraphQLSchema;
-  private typeInfo: TypeInfo;
+  private originalWrappingSchema: GraphQLSchema | undefined;
+  private typeInfo: TypeInfo | undefined;
 
   constructor(inputValueTransformer: LeafValueTransformer, outputValueTransformer: LeafValueTransformer) {
     this.inputValueTransformer = inputValueTransformer;
     this.outputValueTransformer = outputValueTransformer;
     this.resultVisitorMap = Object.create(null);
+  }
+
+  private _getTypeInfo() {
+    assertSome(this.typeInfo);
+    return this.typeInfo;
+  }
+
+  private _getOriginalWrappingSchema() {
+    assertSome(this.originalWrappingSchema);
+    return this.originalWrappingSchema;
   }
 
   public transformSchema(
@@ -102,7 +113,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
     return visitResult(
       originalResult,
       transformationContext.transformedRequest,
-      this.originalWrappingSchema,
+      this._getOriginalWrappingSchema(),
       this.resultVisitorMap
     );
   }
@@ -124,7 +135,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
 
       const newOperation = visit(
         operation,
-        visitWithTypeInfo(this.typeInfo, {
+        visitWithTypeInfo(this._getTypeInfo(), {
           [Kind.FIELD]: node => this.transformFieldNode(node, variableDefinitionMap, variableValues),
         })
       );
@@ -141,7 +152,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
     variableDefinitionMap: Record<string, VariableDefinitionNode>,
     variableValues: Record<string, any>
   ): FieldNode | undefined {
-    const targetField = this.typeInfo.getFieldDef();
+    const targetField = this._getTypeInfo().getFieldDef();
 
     if (!targetField.name.startsWith('__')) {
       const argumentNodes = field.arguments;

@@ -127,7 +127,7 @@ type User @model {
 }
 `;
     const { definition, env } = makeDefinition(yml, datamodel, {});
-    const envPath = path.join(definition.definitionDir, '.env');
+    const envPath = path.join(definition.definitionDir!, '.env');
 
     fs.mkdirSync(path.dirname(envPath), { recursive: true });
     fs.writeFileSync(envPath, `MY_DOT_ENV_SECRET=this-is-very-secret,and-comma,seperated`);
@@ -241,7 +241,7 @@ type User @model {
 }
 `;
     const { definition, env } = makeDefinition(yml, datamodel);
-    const envPath = path.join(definition.definitionDir, '.env');
+    const envPath = path.join(definition.definitionDir!, '.env');
 
     fs.mkdirSync(path.dirname(envPath), { recursive: true });
     fs.writeFileSync(envPath, `MY_DOT_ENV_SECRET=this-is-very-secret,and-comma,seperated`);

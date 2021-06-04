@@ -11,7 +11,7 @@ import {
   FragmentDefinitionNode,
 } from 'graphql';
 
-import { Request, MapperKind, mapSchema, visitData, ExecutionResult, Maybe } from '@graphql-tools/utils';
+import { Request, MapperKind, mapSchema, visitData, ExecutionResult, Maybe, assertSome } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -22,8 +22,8 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
   private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
   private readonly dataTransformer: DataTransformer | undefined;
   private readonly errorsTransformer: ErrorsTransformer | undefined;
-  private transformedSchema: GraphQLSchema;
-  private typeInfo: TypeInfo;
+  private transformedSchema: GraphQLSchema | undefined;
+  private typeInfo: TypeInfo | undefined;
   private mapping: Record<string, Record<string, string>>;
   private subscriptionTypeName: string | undefined;
 
@@ -38,6 +38,11 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
     this.dataTransformer = dataTransformer;
     this.errorsTransformer = errorsTransformer;
     this.mapping = {};
+  }
+
+  private _getTypeInfo() {
+    assertSome(this.typeInfo);
+    return this.typeInfo;
   }
 
   public transformSchema(
@@ -107,10 +112,10 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
   ): DocumentNode {
     return visit(
       document,
-      visitWithTypeInfo(this.typeInfo, {
+      visitWithTypeInfo(this._getTypeInfo(), {
         leave: {
           [Kind.SELECTION_SET]: node =>
-            this.transformSelectionSet(node, this.typeInfo, fragments, transformationContext),
+            this.transformSelectionSet(node, this._getTypeInfo(), fragments, transformationContext),
         },
       })
     );

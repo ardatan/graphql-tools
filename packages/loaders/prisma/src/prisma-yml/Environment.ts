@@ -14,15 +14,16 @@ import { getProxyAgent } from './utils/getProxyAgent';
 // eslint-disable-next-line
 // @ts-ignore
 import * as jwt from 'jsonwebtoken';
+import { assertSome } from '@graphql-tools/utils';
 const debug = require('debug')('Environment');
 
 export class Environment {
   sharedClusters: string[] = ['prisma-eu1', 'prisma-us1'];
   clusterEndpointMap = clusterEndpointMap;
-  args: Args;
-  activeCluster: Cluster;
+  args: Args | undefined;
+  activeCluster: Cluster | undefined;
   globalRC: RC = {};
-  clusters: Cluster[];
+  clusters: Cluster[] | undefined;
   out: IOutput;
   home: string;
   rcPath: string;
@@ -35,6 +36,11 @@ export class Environment {
 
     this.rcPath = path.join(this.home, '.prisma/config.yml');
     fs.mkdirSync(path.dirname(this.rcPath), { recursive: true });
+  }
+
+  private _getClusters() {
+    assertSome(this.clusters);
+    return this.clusters;
   }
 
   async load() {
@@ -105,7 +111,7 @@ export class Environment {
         }
         if (res.me && res.me.memberships && Array.isArray(res.me.memberships)) {
           // clean up all prisma-eu1 and prisma-us1 clusters if they already exist
-          this.clusters = this.clusters.filter(c => c.name !== 'prisma-eu1' && c.name !== 'prisma-us1');
+          this.clusters = this._getClusters().filter(c => c.name !== 'prisma-eu1' && c.name !== 'prisma-us1');
 
           res.me.memberships.forEach((m: any) => {
             m.workspace.clusters.forEach((cluster: any) => {
@@ -160,7 +166,8 @@ export class Environment {
   }
 
   addCluster(cluster: Cluster) {
-    const existingClusterIndex = this.clusters.findIndex(c => {
+    const clusters = this._getClusters();
+    const existingClusterIndex = clusters.findIndex(c => {
       if (cluster.workspaceSlug) {
         return c.workspaceSlug === cluster.workspaceSlug && c.name === cluster.name;
       } else {
@@ -168,13 +175,13 @@ export class Environment {
       }
     });
     if (existingClusterIndex > -1) {
-      this.clusters.splice(existingClusterIndex, 1);
+      clusters.splice(existingClusterIndex, 1);
     }
-    this.clusters.push(cluster);
+    clusters.push(cluster);
   }
 
   removeCluster(name: string) {
-    this.clusters = this.clusters.filter(c => c.name !== name);
+    this.clusters = this._getClusters().filter(c => c.name !== name);
   }
 
   saveGlobalRC() {
@@ -248,7 +255,7 @@ export class Environment {
   }
 
   private getLocalClusterConfig() {
-    return this.clusters
+    return this._getClusters()
       .filter(c => !c.shared && c.clusterSecret !== this.cloudSessionKey && !c.isPrivate)
       .reduce((acc, cluster) => {
         return {

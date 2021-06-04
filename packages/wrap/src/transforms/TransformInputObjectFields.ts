@@ -15,7 +15,7 @@ import {
   NamedTypeNode,
 } from 'graphql';
 
-import { Maybe, Request, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
+import { Maybe, Request, MapperKind, mapSchema, transformInputValue, assertSome } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -25,7 +25,7 @@ export default class TransformInputObjectFields implements Transform {
   private readonly inputFieldTransformer: InputFieldTransformer;
   private readonly inputFieldNodeTransformer: InputFieldNodeTransformer | undefined;
   private readonly inputObjectNodeTransformer: InputObjectNodeTransformer | undefined;
-  private transformedSchema: GraphQLSchema;
+  private transformedSchema: GraphQLSchema | undefined;
   private mapping: Record<string, Record<string, string>>;
 
   constructor(
@@ -37,6 +37,11 @@ export default class TransformInputObjectFields implements Transform {
     this.inputFieldNodeTransformer = inputFieldNodeTransformer;
     this.inputObjectNodeTransformer = inputObjectNodeTransformer;
     this.mapping = {};
+  }
+
+  private _getTransformedSchema() {
+    assertSome(this.transformedSchema);
+    return this.transformedSchema;
   }
 
   public transformSchema(
@@ -145,7 +150,7 @@ export default class TransformInputObjectFields implements Transform {
     request: Request,
     delegationContext?: DelegationContext
   ): DocumentNode {
-    const typeInfo = new TypeInfo(this.transformedSchema);
+    const typeInfo = new TypeInfo(this._getTransformedSchema());
     const newDocument: DocumentNode = visit(
       document,
       visitWithTypeInfo(typeInfo, {

@@ -11,7 +11,7 @@ import MapLeafValues, { MapLeafValuesTransformationContext } from './MapLeafValu
 export default class TransformEnumValues implements Transform<MapLeafValuesTransformationContext> {
   private readonly enumValueTransformer: EnumValueTransformer;
   private readonly transformer: MapLeafValues;
-  private transformedSchema: GraphQLSchema;
+  private transformedSchema: GraphQLSchema | undefined;
   private mapping: Record<string, Record<string, string>>;
   private reverseMapping: Record<string, Record<string, string>>;
 

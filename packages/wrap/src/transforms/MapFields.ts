@@ -1,6 +1,6 @@
 import { GraphQLSchema } from 'graphql';
 
-import { Request, FieldNodeMappers, ExecutionResult } from '@graphql-tools/utils';
+import { Request, FieldNodeMappers, ExecutionResult, assertSome } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -12,7 +12,7 @@ export default class MapFields<TContext> implements Transform<any, TContext> {
   private fieldNodeTransformerMap: FieldNodeMappers;
   private objectValueTransformerMap?: ObjectValueTransformerMap;
   private errorsTransformer?: ErrorsTransformer;
-  private transformer: TransformCompositeFields<TContext>;
+  private transformer: TransformCompositeFields<TContext> | undefined;
 
   constructor(
     fieldNodeTransformerMap: FieldNodeMappers,
@@ -22,6 +22,11 @@ export default class MapFields<TContext> implements Transform<any, TContext> {
     this.fieldNodeTransformerMap = fieldNodeTransformerMap;
     this.objectValueTransformerMap = objectValueTransformerMap;
     this.errorsTransformer = errorsTransformer;
+  }
+
+  private _getTransformer() {
+    assertSome(this.transformer);
+    return this.transformer;
   }
 
   public transformSchema(
@@ -79,7 +84,7 @@ export default class MapFields<TContext> implements Transform<any, TContext> {
     delegationContext: DelegationContext,
     transformationContext: Record<string, any>
   ): Request {
-    return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
+    return this._getTransformer().transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
@@ -87,6 +92,6 @@ export default class MapFields<TContext> implements Transform<any, TContext> {
     delegationContext: DelegationContext,
     transformationContext: Record<string, any>
   ): ExecutionResult {
-    return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
+    return this._getTransformer().transformResult(originalResult, delegationContext, transformationContext);
   }
 }

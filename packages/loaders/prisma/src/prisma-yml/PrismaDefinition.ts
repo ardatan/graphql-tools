@@ -27,12 +27,12 @@ export class PrismaDefinitionClass {
   typesString?: string;
   secrets: string[] | null;
   definitionPath?: string | null;
-  definitionDir: string;
+  definitionDir: string | undefined;
   env: Environment;
   out?: IOutput;
   envVars: any;
   rawEndpoint?: string;
-  private definitionString: string;
+  private definitionString: string | undefined;
   constructor(env: Environment, definitionPath?: string | null, envVars: EnvVars = process.env, out?: IOutput) {
     this.secrets = null;
     this.definitionPath = definitionPath;
@@ -212,7 +212,7 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
   }
 
   findClusterByBaseUrl(baseUrl: string) {
-    return this.env.clusters.find(c => c.baseUrl.toLowerCase() === baseUrl);
+    return this.env.clusters?.find(c => c.baseUrl.toLowerCase() === baseUrl);
   }
 
   async getClusterByEndpoint(data: ParseEndpointResult) {
@@ -256,7 +256,7 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
 
     let allTypes = '';
     typesPaths.forEach(unresolvedTypesPath => {
-      const typesPath = path.join(this.definitionDir, unresolvedTypesPath!);
+      const typesPath = path.join(this.definitionDir!, unresolvedTypesPath!);
       try {
         fs.accessSync(typesPath);
         const types = fs.readFileSync(typesPath, 'utf-8');
@@ -297,7 +297,7 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
 
         let query = subscription.query;
         if (subscription.query.endsWith('.graphql')) {
-          const queryPath = path.join(this.definitionDir, subscription.query);
+          const queryPath = path.join(this.definitionDir!, subscription.query);
           try {
             fs.accessSync(queryPath);
           } catch {
@@ -326,7 +326,7 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
 
   addDatamodel(datamodel: any) {
     this.definitionString += `\ndatamodel: ${datamodel}`;
-    fs.writeFileSync(this.definitionPath!, this.definitionString);
+    fs.writeFileSync(this.definitionPath!, this.definitionString!);
     this.definition!.datamodel = datamodel;
   }
 

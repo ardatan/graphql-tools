@@ -13,7 +13,7 @@ export class Cluster {
   local: boolean;
   shared: boolean;
   clusterSecret?: string;
-  requiresAuth: boolean;
+  requiresAuth: boolean | undefined;
   out: IOutput;
   isPrivate: boolean;
   workspaceSlug?: string;
