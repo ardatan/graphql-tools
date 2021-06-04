@@ -28,6 +28,7 @@
     "strictBindCallApply": true,
     "strictFunctionTypes": true,
     "strictNullChecks": true,
+    "strictPropertyInitialization": true,
 
     "paths": {
       "@graphql-tools/*-loader": ["packages/loaders/*/src/index.ts", "packages/*-loader/src/index.ts"],
