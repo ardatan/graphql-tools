@@ -179,7 +179,11 @@ function reportUnpathedErrorsViaNull(unpathedErrors: Array<GraphQLError>) {
       }
 
       const combinedError = new AggregateError(unreportedErrors);
-      return locatedError(combinedError, undefined, unreportedErrors[0].path);
+      // We cast path as any for GraphQL.js 14 compat
+      // locatedError path argument must be defined, but it is just forwarded to a constructor that allows a undefined value
+      // https://github.com/graphql/graphql-js/blob/b4bff0ba9c15c9d7245dd68556e754c41f263289/src/error/locatedError.js#L25
+      // https://github.com/graphql/graphql-js/blob/b4bff0ba9c15c9d7245dd68556e754c41f263289/src/error/GraphQLError.js#L19
+      return locatedError(combinedError, undefined as any, unreportedErrors[0].path as any);
     }
   }
 
