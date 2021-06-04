@@ -1,4 +1,4 @@
-import { IResolvers, mergeDeep } from '@graphql-tools/utils';
+import { IResolvers, Maybe, mergeDeep } from '@graphql-tools/utils';
 
 export type ResolversFactory<TContext> = (...args: any[]) => IResolvers<any, TContext>;
 export type ResolversDefinition<TContext> = IResolvers<any, TContext> | ResolversFactory<TContext>;
@@ -40,7 +40,7 @@ export interface MergeResolversOptions {
  * ```
  */
 export function mergeResolvers<TContext, T extends ResolversDefinition<TContext>>(
-  resolversDefinitions: T[],
+  resolversDefinitions: Maybe<T[]>,
   options?: MergeResolversOptions
 ): T {
   if (!resolversDefinitions || resolversDefinitions.length === 0) {

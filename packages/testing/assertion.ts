@@ -1,10 +1,19 @@
 import {
+  ASTNode,
+  EnumTypeDefinitionNode,
   GraphQLEnumType,
   GraphQLInputObjectType,
   GraphQLInterfaceType,
   GraphQLObjectType,
   GraphQLScalarType,
   GraphQLUnionType,
+  InputObjectTypeDefinitionNode,
+  InterfaceTypeDefinitionNode,
+  ListValueNode,
+  NamedTypeNode,
+  ObjectTypeDefinitionNode,
+  ScalarTypeDefinitionNode,
+  UnionTypeDefinitionNode,
 } from 'graphql';
 
 export function assertGraphQLObjectType(input: unknown): asserts input is GraphQLObjectType {
@@ -42,4 +51,53 @@ export function assertGraphQLInputObjectType(input: unknown): asserts input is G
     return;
   }
   throw new Error('Expected GraphQLInputObjectType.');
+}
+
+export function assertEnumTypeDefinitionNode(input: ASTNode): asserts input is EnumTypeDefinitionNode {
+  if (input.kind === 'EnumTypeDefinition') {
+    return;
+  }
+  throw new Error('Expected EnumTypeDefinitionNode.');
+}
+export function assertObjectTypeDefinitionNode(input: ASTNode): asserts input is ObjectTypeDefinitionNode {
+  if (input.kind === 'ObjectTypeDefinition') {
+    return;
+  }
+  throw new Error(`Expected ObjectTypeDefinitionNode. Got ${input.kind}`);
+}
+export function assertInterfaceTypeDefinitionNode(input: ASTNode): asserts input is InterfaceTypeDefinitionNode {
+  if (input.kind === 'InterfaceTypeDefinition') {
+    return;
+  }
+  throw new Error(`Expected InterfaceTypeDefinitionNode. Got ${input.kind}`);
+}
+export function assertUnionTypeDefinitionNode(input: ASTNode): asserts input is UnionTypeDefinitionNode {
+  if (input.kind === 'UnionTypeDefinition') {
+    return;
+  }
+  throw new Error(`Expected InterfaceTypeDefinitionNode. Got ${input.kind}`);
+}
+export function assertNamedTypeNode(input: ASTNode): asserts input is NamedTypeNode {
+  if (input.kind === 'NamedType') {
+    return;
+  }
+  throw new Error(`Expected NamedTypeNode. Got ${input.kind}`);
+}
+export function assertScalarTypeDefinitionNode(input: ASTNode): asserts input is ScalarTypeDefinitionNode {
+  if (input.kind === 'ScalarTypeDefinition') {
+    return;
+  }
+  throw new Error(`Expected ScalarTypeDefinitionNode. Got ${input.kind}`);
+}
+export function assertInputObjectTypeDefinitionNode(input: ASTNode): asserts input is InputObjectTypeDefinitionNode {
+  if (input.kind === 'InputObjectTypeDefinition') {
+    return;
+  }
+  throw new Error(`Expected InputObjectTypeDefinitionNode. Got ${input.kind}`);
+}
+export function assertListValueNode(input: ASTNode): asserts input is ListValueNode {
+  if (input.kind === 'ListValue') {
+    return;
+  }
+  throw new Error(`Expected ListValueNode. Got ${input.kind}`);
 }

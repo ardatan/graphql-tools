@@ -161,7 +161,7 @@ export function mergeGraphQLTypes(
       if (!opTypeDefNode) {
         const possibleRootTypeName = DEFAULT_OPERATION_TYPE_NAME_MAP[opTypeDefNodeType];
         const existingPossibleRootType = mergedNodes[possibleRootTypeName];
-        if (existingPossibleRootType) {
+        if (existingPossibleRootType != null && existingPossibleRootType.name != null) {
           operationTypes.push({
             kind: Kind.OPERATION_TYPE_DEFINITION,
             type: {
@@ -174,7 +174,7 @@ export function mergeGraphQLTypes(
       }
     }
 
-    if (schemaDef.operationTypes?.length > 0) {
+    if (schemaDef?.operationTypes?.length != null && schemaDef.operationTypes.length > 0) {
       mergedNodes[schemaDefSymbol] = schemaDef;
     }
   }
