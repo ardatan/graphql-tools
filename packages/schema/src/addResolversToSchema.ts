@@ -130,13 +130,17 @@ export function addResolversToSchema(
             const fields = type.getFields();
             const field = fields[fieldName];
 
-            if (field == null && requireResolversToMatchSchema && requireResolversToMatchSchema !== 'ignore') {
-              throw new Error(`${typeName}.${fieldName} defined in resolvers, but not in schema`);
-            }
-
-            const fieldResolve = resolverValue[fieldName];
-            if (typeof fieldResolve !== 'function' && typeof fieldResolve !== 'object') {
-              throw new Error(`Resolver ${typeName}.${fieldName} must be object or function`);
+            if (field == null) {
+              // Field present in resolver but not in schema
+              if (requireResolversToMatchSchema && requireResolversToMatchSchema !== 'ignore') {
+                throw new Error(`${typeName}.${fieldName} defined in resolvers, but not in schema`);
+              }
+            } else {
+              // Field present in both the resolver and schema
+              const fieldResolve = resolverValue[fieldName];
+              if (typeof fieldResolve !== 'function' && typeof fieldResolve !== 'object') {
+                throw new Error(`Resolver ${typeName}.${fieldName} must be object or function`);
+              }
             }
           }
         });
@@ -244,7 +248,7 @@ function addResolversToExistingSchema(
             const fieldResolve = resolverValue[fieldName];
             if (typeof fieldResolve === 'function') {
               // for convenience. Allows shorter syntax in resolver definition file
-              field.resolve = fieldResolve;
+              field.resolve = fieldResolve.bind(resolverValue);
             } else {
               setFieldProperties(field, fieldResolve);
             }
@@ -398,7 +402,7 @@ function createNewSchemaWithResolvers(
           const newFieldConfig = { ...fieldConfig };
           if (typeof fieldResolve === 'function') {
             // for convenience. Allows shorter syntax in resolver definition file
-            newFieldConfig.resolve = fieldResolve;
+            newFieldConfig.resolve = fieldResolve.bind(resolverValue);
           } else {
             setFieldProperties(newFieldConfig, fieldResolve);
           }

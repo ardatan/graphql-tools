@@ -737,6 +737,47 @@ describe('generating schema from shorthand', () => {
       expect(result).toEqual(solution as ExecutionResult),
     );
   });
+  
+  test('works with classes as resolvers', () => {
+    const typeDefs = `
+      type Query {
+        version: Int
+      }
+    `;
+    
+    const QueryResolver = class QueryResolver {
+      private internalVersion = 1
+
+      version(root: any, args: any, context: any) {
+        return this.internalVersion
+      }
+    }
+
+    const resolvers = {
+      Query: new QueryResolver(),
+    };
+
+    const testQuery = `{
+      version
+    }`;
+
+    const solution = {
+      data: {
+        version: 1
+      },
+    };
+    const jsSchema = makeExecutableSchema({
+      typeDefs: typeDefs,
+      resolvers: resolvers,
+      resolverValidationOptions: {
+        requireResolversToMatchSchema: 'ignore',
+      },
+    });
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then((result) =>
+      expect(result).toEqual(solution as ExecutionResult),
+    );
+  });
 
   describe('scalar types', () => {
     test('supports passing a GraphQLScalarType in resolveFunctions', () => {
