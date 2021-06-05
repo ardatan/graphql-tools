@@ -12,30 +12,27 @@ export function mergeDeep<T extends object, S extends any[]>(
     return target as any;
   }
   const output = {};
+  Object.setPrototypeOf(output, Object.create(Object.getPrototypeOf(target)));
   for (const source of [target, ...sources]) {
     if (isObject(target) && isObject(source)) {
-      for (const key in source) {
-        if (isObject(source[key])) {
-          if (!(key in target)) {
-            Object.assign(output, { [key]: source[key] });
-          } else {
-            output[key] = mergeDeep(target[key], source[key]);
-          }
-        } else {
-          Object.assign(output, { [key]: source[key] });
-        }
-      }
-
       const outputPrototype = Object.getPrototypeOf(output);
       const sourcePrototype = Object.getPrototypeOf(source);
       if (sourcePrototype) {
-        if (outputPrototype) {
-          Object.getOwnPropertyNames(sourcePrototype).forEach(key => {
-            const descriptor = Object.getOwnPropertyDescriptor(sourcePrototype, key);
-            Object.defineProperty(outputPrototype, key, descriptor);
-          });
+        Object.getOwnPropertyNames(sourcePrototype).forEach(key => {
+          const descriptor = Object.getOwnPropertyDescriptor(sourcePrototype, key);
+          Object.defineProperty(outputPrototype, key, descriptor);
+        });
+      }
+
+      for (const key in source) {
+        if (isObject(source[key])) {
+          if (!(key in output)) {
+            Object.assign(output, { [key]: source[key] });
+          } else {
+            output[key] = mergeDeep(output[key], source[key]);
+          }
         } else {
-          Object.setPrototypeOf(output, sourcePrototype);
+          Object.assign(output, { [key]: source[key] });
         }
       }
     }

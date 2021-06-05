@@ -39,6 +39,7 @@ describe('mergeDeep', () => {
     const merged = mergeDeep({ one: new ClassA()}, { one: new ClassB()})
     expect(merged.one.a()).toEqual('a')
     expect(merged.one.b()).toEqual('b')
+    expect(merged.a).toBeUndefined()
   })
 
   test('strips property symbols', () => {
