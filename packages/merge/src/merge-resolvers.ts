@@ -55,17 +55,18 @@ export function mergeResolvers<TContext, T extends ResolversDefinition<TContext>
     return singleDefinition;
   }
 
-  const resolversFactories = new Array<ResolversFactory<TContext>>();
-  const resolvers = new Array<IResolvers<any, TContext>>();
+  type TFactory = (...args: any[]) => T;
+  const resolversFactories = new Array<TFactory>();
+  const resolvers = new Array<T>();
 
   for (let resolversDefinition of resolversDefinitions) {
     if (Array.isArray(resolversDefinition)) {
       resolversDefinition = mergeResolvers(resolversDefinition);
     }
     if (typeof resolversDefinition === 'function') {
-      resolversFactories.push(resolversDefinition as ResolversFactory<TContext>);
+      resolversFactories.push(resolversDefinition as unknown as TFactory);
     } else if (typeof resolversDefinition === 'object') {
-      resolvers.push(resolversDefinition as IResolvers<any, TContext>);
+      resolvers.push(resolversDefinition);
     }
   }
   let result: T = {} as T;
@@ -75,7 +76,7 @@ export function mergeResolvers<TContext, T extends ResolversDefinition<TContext>
       return resolvers.concat(resultsOfFactories).reduce(mergeDeep, {});
     }) as any;
   } else {
-    result = resolvers.reduce(mergeDeep, {});
+    result = resolvers.reduce(mergeDeep, {} as T);
   }
   if (options && options.exclusions) {
     for (const exclusion of options.exclusions) {
