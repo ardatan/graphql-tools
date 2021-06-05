@@ -7,7 +7,7 @@ type UnboxIntersection<T> = T extends { 0: infer U } ? U : never;
 export function mergeDeep<T extends object, S extends any[]>(
   target: T,
   ...sources: S
-): T & UnboxIntersection<UnionToIntersection<BoxedTupleTypes<S>>> {
+): T & UnboxIntersection<UnionToIntersection<BoxedTupleTypes<S>>> & any {
   if (isScalarType(target)) {
     return target as any;
   }
