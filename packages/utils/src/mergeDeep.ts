@@ -1,14 +1,18 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { isScalarType } from 'graphql';
 
-export function mergeDeep(target: any, ...sources: any[]): any {
+type BoxedTupleTypes<T extends any[]> = { [P in keyof T]: [T[P]] }[Exclude<keyof T, keyof any[]>];
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
+type UnboxIntersection<T> = T extends { 0: infer U } ? U : never;
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function mergeDeep<T extends object, S extends any[]>(
+  target: T,
+  ...sources: S
+): T & UnboxIntersection<UnionToIntersection<BoxedTupleTypes<S>>> {
   if (isScalarType(target)) {
-    return target;
+    return target as any;
   }
-  const output = {
-    ...target,
-  };
-  for (const source of sources) {
+  const output = {};
+  for (const source of [target, ...sources]) {
     if (isObject(target) && isObject(source)) {
       for (const key in source) {
         if (isObject(source[key])) {
@@ -19,6 +23,19 @@ export function mergeDeep(target: any, ...sources: any[]): any {
           }
         } else {
           Object.assign(output, { [key]: source[key] });
+        }
+      }
+
+      const outputPrototype = Object.getPrototypeOf(output);
+      const sourcePrototype = Object.getPrototypeOf(source);
+      if (sourcePrototype) {
+        if (outputPrototype) {
+          Object.getOwnPropertyNames(sourcePrototype).forEach(key => {
+            const descriptor = Object.getOwnPropertyDescriptor(sourcePrototype, key);
+            Object.defineProperty(outputPrototype, key, descriptor);
+          });
+        } else {
+          Object.setPrototypeOf(output, sourcePrototype);
         }
       }
     }
