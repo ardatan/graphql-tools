@@ -61,7 +61,8 @@
     "packages/load/tests/loaders/schema",
     "website",
     "scripts",
-    "packages/loaders/code-file/tests/test-files"
+    "packages/loaders/code-file/tests/test-files",
+    "bob-esbuild.config.ts"
   ],
   "globals":{
     "BigInt": true

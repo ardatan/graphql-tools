@@ -9,23 +9,31 @@
   },
   "license": "MIT",
   "sideEffects": false,
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "typings": "dist/index.d.ts",
   "typescript": {
     "definition": "dist/index.d.ts"
   },
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./*": {
+      "require": "./dist/*.js",
+      "import": "./dist/*.mjs"
+    }
+  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0"
   },
-  "buildOptions": {
-    "input": "./src/index.ts"
-  },
+  "buildOptions": {},
   "dependencies": {
+    "@ardatan/aggregate-error": "0.0.6",
     "@graphql-tools/batch-execute": "^7.1.2",
     "@graphql-tools/schema": "^7.1.5",
     "@graphql-tools/utils": "^7.7.1",
-    "@ardatan/aggregate-error": "0.0.6",
     "dataloader": "2.0.0",
     "tslib": "~2.2.0",
     "value-or-promise": "1.0.10"
@@ -33,5 +41,11 @@
   "publishConfig": {
     "access": "public",
     "directory": "dist"
+  },
+  "scripts": {
+    "prepack": "bob-esbuild build"
+  },
+  "devDependencies": {
+    "bob-esbuild-cli": "^0.1.25"
   }
 }

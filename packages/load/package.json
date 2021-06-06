@@ -10,11 +10,21 @@
   "author": "Dotan Simha <dotansimha@gmail.com>",
   "license": "MIT",
   "sideEffects": false,
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "typings": "dist/index.d.ts",
   "typescript": {
     "definition": "dist/index.d.ts"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./*": {
+      "require": "./dist/*.js",
+      "import": "./dist/*.mjs"
+    }
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0"
@@ -22,12 +32,13 @@
   "devDependencies": {
     "@types/is-glob": "4.0.1",
     "@types/valid-url": "1.0.3",
+    "bob-esbuild-cli": "^0.1.25",
     "graphql-tag": "2.12.4",
     "graphql-type-json": "0.3.2"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^7.5.0",
     "@graphql-tools/merge": "^6.2.12",
+    "@graphql-tools/utils": "^7.5.0",
     "globby": "11.0.3",
     "import-from": "4.0.0",
     "is-glob": "4.0.1",
@@ -39,5 +50,8 @@
   "publishConfig": {
     "access": "public",
     "directory": "dist"
+  },
+  "scripts": {
+    "prepack": "bob-esbuild build"
   }
 }

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import gql from 'graphql-tag';
 
 export const myQuery = gql;

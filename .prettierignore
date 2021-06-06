@@ -2,3 +2,4 @@ dist
 tests
 tests
 spec
+pnpm-lock.yaml

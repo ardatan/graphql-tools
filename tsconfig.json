@@ -4,8 +4,8 @@
 
     "outDir": "dist",
     "baseUrl": ".",
-
-    "target": "es2018",
+    "rootDir": ".",
+    "target": "es2019",
     "module": "esnext",
     "moduleResolution": "node",
     "lib": ["esnext"],

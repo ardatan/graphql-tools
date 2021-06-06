@@ -11,3 +11,4 @@ yarn.lock
 yarn-error.log
 bundle-test
 *.tgz
+*.log
