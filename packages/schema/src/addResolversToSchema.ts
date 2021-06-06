@@ -61,7 +61,7 @@ export function addResolversToSchema(
     ? extendResolversFromInterfaces(schema, inputResolvers)
     : inputResolvers;
 
-  Object.keys(resolvers).forEach(typeName => {
+  Object.getOwnPropertyNames(resolvers).forEach(typeName => {
     const resolverValue = resolvers[typeName];
     const resolverType = typeof resolverValue;
 
@@ -69,7 +69,7 @@ export function addResolversToSchema(
       if (resolverType !== 'function') {
         throw new Error(
           `"${typeName}" defined in resolvers, but has invalid value "${
-            (resolverValue as unknown) as string
+            resolverValue as unknown as string
           }". A schema resolver's value must be of type object or function.`
         );
       }
@@ -77,7 +77,7 @@ export function addResolversToSchema(
       if (resolverType !== 'object') {
         throw new Error(
           `"${typeName}" defined in resolvers, but has invalid value "${
-            (resolverValue as unknown) as string
+            resolverValue as unknown as string
           }". The resolver's value must be of type object.`
         );
       }
@@ -92,7 +92,7 @@ export function addResolversToSchema(
         throw new Error(`"${typeName}" defined in resolvers, but not in schema`);
       } else if (isSpecifiedScalarType(type)) {
         // allow -- without recommending -- overriding of specified scalar types
-        Object.keys(resolverValue).forEach(fieldName => {
+        Object.getOwnPropertyNames(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             type[fieldName.substring(2)] = resolverValue[fieldName];
           } else {
@@ -102,7 +102,7 @@ export function addResolversToSchema(
       } else if (isEnumType(type)) {
         const values = type.getValues();
 
-        Object.keys(resolverValue).forEach(fieldName => {
+        Object.getOwnPropertyNames(resolverValue).forEach(fieldName => {
           if (
             !fieldName.startsWith('__') &&
             !values.some(value => value.name === fieldName) &&
@@ -113,7 +113,7 @@ export function addResolversToSchema(
           }
         });
       } else if (isUnionType(type)) {
-        Object.keys(resolverValue).forEach(fieldName => {
+        Object.getOwnPropertyNames(resolverValue).forEach(fieldName => {
           if (
             !fieldName.startsWith('__') &&
             requireResolversToMatchSchema &&
@@ -125,7 +125,7 @@ export function addResolversToSchema(
           }
         });
       } else if (isObjectType(type) || isInterfaceType(type)) {
-        Object.keys(resolverValue).forEach(fieldName => {
+        Object.getOwnPropertyNames(resolverValue).forEach(fieldName => {
           if (!fieldName.startsWith('__')) {
             const fields = type.getFields();
             const field = fields[fieldName];
@@ -165,13 +165,13 @@ function addResolversToExistingSchema(
   defaultFieldResolver: GraphQLFieldResolver<any, any>
 ): GraphQLSchema {
   const typeMap = schema.getTypeMap();
-  Object.keys(resolvers).forEach(typeName => {
+  getAllPropertyNames(resolvers).forEach(typeName => {
     if (typeName !== '__schema') {
       const type = schema.getType(typeName);
       const resolverValue = resolvers[typeName];
 
       if (isScalarType(type)) {
-        Object.keys(resolverValue).forEach(fieldName => {
+        getAllPropertyNames(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             type[fieldName.substring(2)] = resolverValue[fieldName];
           } else if (fieldName === 'astNode' && type.astNode != null) {
@@ -200,7 +200,7 @@ function addResolversToExistingSchema(
         const config = type.toConfig();
         const enumValueConfigMap = config.values;
 
-        Object.keys(resolverValue).forEach(fieldName => {
+        getAllPropertyNames(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             config[fieldName.substring(2)] = resolverValue[fieldName];
           } else if (fieldName === 'astNode' && config.astNode != null) {
@@ -228,13 +228,13 @@ function addResolversToExistingSchema(
 
         typeMap[typeName] = new GraphQLEnumType(config);
       } else if (isUnionType(type)) {
-        Object.keys(resolverValue).forEach(fieldName => {
+        getAllPropertyNames(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             type[fieldName.substring(2)] = resolverValue[fieldName];
           }
         });
       } else if (isObjectType(type) || isInterfaceType(type)) {
-        Object.keys(resolverValue).forEach(fieldName => {
+        getAllPropertyNames(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             // this is for isTypeOf and resolveType and all the other stuff.
             type[fieldName.substring(2)] = resolverValue[fieldName];
@@ -286,7 +286,7 @@ function createNewSchemaWithResolvers(
       const config = type.toConfig();
       const resolverValue = resolvers[type.name];
       if (!isSpecifiedScalarType(type) && resolverValue != null) {
-        Object.keys(resolverValue).forEach(fieldName => {
+        getAllPropertyNames(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             config[fieldName.substring(2)] = resolverValue[fieldName];
           } else if (fieldName === 'astNode' && config.astNode != null) {
@@ -322,7 +322,7 @@ function createNewSchemaWithResolvers(
       const enumValueConfigMap = config.values;
 
       if (resolverValue != null) {
-        Object.keys(resolverValue).forEach(fieldName => {
+        getAllPropertyNames(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             config[fieldName.substring(2)] = resolverValue[fieldName];
           } else if (fieldName === 'astNode' && config.astNode != null) {
@@ -356,7 +356,7 @@ function createNewSchemaWithResolvers(
 
       if (resolverValue != null) {
         const config = type.toConfig();
-        Object.keys(resolverValue).forEach(fieldName => {
+        getAllPropertyNames(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             config[fieldName.substring(2)] = resolverValue[fieldName];
           }
@@ -370,7 +370,7 @@ function createNewSchemaWithResolvers(
       if (resolverValue != null) {
         const config = type.toConfig();
 
-        Object.keys(resolverValue).forEach(fieldName => {
+        getAllPropertyNames(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             config[fieldName.substring(2)] = resolverValue[fieldName];
           }
@@ -384,7 +384,7 @@ function createNewSchemaWithResolvers(
       if (resolverValue != null) {
         const config = type.toConfig();
 
-        Object.keys(resolverValue).forEach(fieldName => {
+        getAllPropertyNames(resolverValue).forEach(fieldName => {
           if (fieldName.startsWith('__')) {
             config[fieldName.substring(2)] = resolverValue[fieldName];
           }
@@ -431,4 +431,11 @@ function setFieldProperties(
   Object.keys(propertiesObj).forEach(propertyName => {
     field[propertyName] = propertiesObj[propertyName];
   });
+}
+
+function getAllPropertyNames(obj: any): string[] {
+  const prototype = Object.getPrototypeOf(obj);
+  let inherited = prototype ? getAllPropertyNames(prototype) : [];
+  inherited = inherited.filter(property => property !== 'constructor');
+  return [...new Set(Object.getOwnPropertyNames(obj).concat(inherited))];
 }
