@@ -27,6 +27,8 @@ export interface Loader<TPointer = string, TOptions extends SingleFileOptions = 
   loaderId(): string;
   canLoad(pointer: TPointer, options?: TOptions): Promise<boolean>;
   canLoadSync?(pointer: TPointer, options?: TOptions): boolean;
+  resolveGlobs?(globs: ResolverGlobs, options?: TOptions): Promise<TPointer[] | never>;
+  resolveGlobsSync?(globs: ResolverGlobs, options?: TOptions): TPointer[];
   load(pointer: TPointer, options?: TOptions): Promise<Source | never>;
   loadSync?(pointer: TPointer, options?: TOptions): Source | never;
 }
@@ -45,3 +47,8 @@ export type UniversalLoader<TOptions extends SingleFileOptions = SingleFileOptio
   SchemaPointerSingle | DocumentPointerSingle,
   TOptions
 >;
+
+export type ResolverGlobs = {
+  globs: string[];
+  ignores: string[];
+};

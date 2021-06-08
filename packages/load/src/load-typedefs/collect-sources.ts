@@ -1,4 +1,12 @@
-import { Source, isDocumentString, parseGraphQLSDL, asArray, getDocumentNodeFromSchema } from '@graphql-tools/utils';
+import {
+  Source,
+  isDocumentString,
+  parseGraphQLSDL,
+  asArray,
+  getDocumentNodeFromSchema,
+  Loader,
+  ResolverGlobs,
+} from '@graphql-tools/utils';
 import { isSchema, Kind } from 'graphql';
 import isGlob from 'is-glob';
 import { LoadTypedefsOptions } from '../load-typedefs';
@@ -6,8 +14,6 @@ import { loadFile, loadFileSync } from './load-file';
 import { stringToHash, useStack, StackNext, StackFn } from '../utils/helpers';
 import { useCustomLoader, useCustomLoaderSync } from '../utils/custom-loader';
 import { useQueue, useSyncQueue } from '../utils/queue';
-import unixify from 'unixify';
-import globby, { sync as globbySync } from 'globby';
 
 type AddSource = (data: { pointer: string; source: Source; noCache?: boolean }) => void;
 type AddGlob = (data: { pointer: string; pointerOptions: any }) => void;
@@ -38,10 +44,7 @@ export async function collectSources<TOptions>({
   });
 
   for (const pointer in pointerOptionMap) {
-    const pointerOptions = {
-      ...(pointerOptionMap[pointer] ?? {}),
-      unixify,
-    };
+    const pointerOptions = pointerOptionMap[pointer];
 
     collect({
       pointer,
@@ -55,12 +58,8 @@ export async function collectSources<TOptions>({
   }
 
   if (globs.length) {
-    includeIgnored({
-      options,
-      globs,
-    });
-
-    const paths = await globby(globs, createGlobbyOptions(options));
+    // TODO: use the queue?
+    const paths = await collectPathsFromGlobs(globs, options);
 
     collectSourcesFromGlobals({
       filepaths: paths,
@@ -100,10 +99,7 @@ export function collectSourcesSync<TOptions>({
   });
 
   for (const pointer in pointerOptionMap) {
-    const pointerOptions = {
-      ...(pointerOptionMap[pointer] ?? {}),
-      unixify,
-    };
+    const pointerOptions = pointerOptionMap[pointer];
 
     collect({
       pointer,
@@ -117,12 +113,7 @@ export function collectSourcesSync<TOptions>({
   }
 
   if (globs.length) {
-    includeIgnored({
-      options,
-      globs,
-    });
-
-    const paths = globbySync(globs, createGlobbyOptions(options));
+    const paths = collectPathsFromGlobsSync(globs, options);
 
     collectSourcesFromGlobalsSync({
       filepaths: paths,
@@ -138,8 +129,6 @@ export function collectSourcesSync<TOptions>({
 
   return sources;
 }
-
-//
 
 function createHelpers<T>({
   sources,
@@ -184,24 +173,98 @@ function createHelpers<T>({
   };
 }
 
-function includeIgnored<
-  T extends {
-    ignore?: string | string[];
-  }
->({ options, globs }: { options: T; globs: string[] }) {
-  if (options.ignore) {
-    const ignoreList = asArray(options.ignore)
-      .map(g => `!(${g})`)
-      .map<string>(unixify);
-
-    if (ignoreList.length > 0) {
-      globs.push(...ignoreList);
+async function addGlobsToLoaders({
+  options,
+  loadersForGlobs,
+  globs,
+  type,
+}: {
+  options: LoadTypedefsOptions;
+  loadersForGlobs: Map<Loader, ResolverGlobs>;
+  globs: string[];
+  type: 'globs' | 'ignores';
+}) {
+  for (const glob of globs) {
+    let loader;
+    for await (const candidateLoader of options.loaders) {
+      if (candidateLoader.resolveGlobs && (await candidateLoader.canLoad(glob, options))) {
+        loader = candidateLoader;
+        break;
+      }
     }
+    if (!loader) {
+      throw new Error(`unable to find loader for glob "${glob}"`);
+    }
+    if (!loadersForGlobs.has(loader)) {
+      loadersForGlobs.set(loader, { globs: [], ignores: [] });
+    }
+    loadersForGlobs.get(loader)[type].push(glob);
   }
 }
 
-function createGlobbyOptions(options: any): any {
-  return { absolute: true, ...options, ignore: [] };
+function addGlobsToLoadersSync({
+  options,
+  loadersForGlobs,
+  globs,
+  type,
+}: {
+  options: LoadTypedefsOptions;
+  loadersForGlobs: Map<Loader, ResolverGlobs>;
+  globs: string[];
+  type: 'globs' | 'ignores';
+}) {
+  for (const glob of globs) {
+    let loader;
+    for (const candidateLoader of options.loaders) {
+      if (candidateLoader.resolveGlobs && candidateLoader.canLoadSync(glob, options)) {
+        loader = candidateLoader;
+        break;
+      }
+    }
+    if (!loader) {
+      throw new Error(`unable to find loader for glob "${glob}"`);
+    }
+    if (!loadersForGlobs.has(loader)) {
+      loadersForGlobs.set(loader, { globs: [], ignores: [] });
+    }
+    loadersForGlobs.get(loader)[type].push(glob);
+  }
+}
+
+async function collectPathsFromGlobs(globs: string[], options: LoadTypedefsOptions): Promise<string[]> {
+  const paths: string[] = [];
+
+  const loadersForGlobs: Map<Loader, ResolverGlobs> = new Map();
+
+  await addGlobsToLoaders({ options, loadersForGlobs, globs, type: 'globs' });
+  await addGlobsToLoaders({ options, loadersForGlobs, globs: asArray(options.ignore), type: 'ignores' });
+
+  for await (const [loader, globsAndIgnores] of loadersForGlobs.entries()) {
+    const resolvedPaths = await loader.resolveGlobs(globsAndIgnores, options);
+    if (resolvedPaths) {
+      paths.push(...resolvedPaths);
+    }
+  }
+
+  return paths;
+}
+
+function collectPathsFromGlobsSync(globs: string[], options: LoadTypedefsOptions): string[] {
+  const paths: string[] = [];
+
+  const loadersForGlobs: Map<Loader, ResolverGlobs> = new Map();
+
+  addGlobsToLoadersSync({ options, loadersForGlobs, globs, type: 'globs' });
+  addGlobsToLoadersSync({ options, loadersForGlobs, globs: asArray(options.ignore), type: 'ignores' });
+
+  for (const [loader, globsAndIgnores] of loadersForGlobs.entries()) {
+    const resolvedPaths = loader.resolveGlobsSync(globsAndIgnores, options);
+    if (resolvedPaths) {
+      paths.push(...resolvedPaths);
+    }
+  }
+
+  return paths;
 }
 
 function collectSourcesFromGlobals<T, P>({
@@ -342,9 +405,9 @@ function collectDocumentString<T>(
 }
 
 function collectGlob<T>({ pointer, pointerOptions, addGlob }: CollectOptions<T>, next: StackNext) {
-  if (isGlob(pointerOptions.unixify(pointer))) {
+  if (isGlob(pointer)) {
     return addGlob({
-      pointer: pointerOptions.unixify(pointer),
+      pointer,
       pointerOptions,
     });
   }
