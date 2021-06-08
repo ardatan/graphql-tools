@@ -7,6 +7,7 @@ import { cwd } from 'process';
 import { getGraphQLParameters, processRequest as processGraphQLHelixRequest } from 'graphql-helix';
 import { processRequest as processGraphQLUploadRequest } from 'graphql-upload';
 import { Request as MockReq } from 'mock-http';
+import { jest } from '@jest/globals';
 
 export function normalizeString(str: string) {
   return str.replace(/[\s,]+/g, ' ').trim();
@@ -55,7 +56,7 @@ export function useMonorepo({ dirname }: { dirname: string }) {
 
   return {
     correctCWD() {
-      let spyProcessCwd: jest.SpyInstance;
+      let spyProcessCwd: any;
       beforeEach(() => {
         spyProcessCwd = jest.spyOn(process, 'cwd').mockReturnValue(cwd);
       });

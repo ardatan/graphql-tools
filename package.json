@@ -8,6 +8,7 @@
     "predeploy:website": "yarn build:api-docs",
     "deploy:website": "cd website && yarn deploy",
     "ts:transpile": "concurrently \"tsc --project tsconfig.build.json\" \"tsc --project tsconfig.build.es5.json\"",
+    "clean-dist": "rimraf \"packages/**/dist\" && rimraf \"packages/**/dist-es5\" && rimraf \".bob\"",
     "build": "yarn ts:transpile && bob build",
     "build:api-docs": "node scripts/build-api-docs.js",
     "lint": "eslint --ext .ts .",
@@ -41,7 +42,7 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "@ardatan/bob-the-bundler": "1.2.2",
+    "@ardatan/bob-the-bundler": "1.2.5",
     "@babel/core": "7.14.3",
     "@babel/plugin-proposal-class-properties": "7.13.0",
     "@babel/preset-env": "7.14.4",

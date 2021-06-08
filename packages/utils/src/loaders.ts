@@ -1,5 +1,4 @@
 import { DocumentNode, GraphQLSchema, BuildSchemaOptions } from 'graphql';
-import { GraphQLSchemaValidationOptions } from 'graphql/type/schema';
 import { GraphQLParseOptions } from './Interfaces';
 
 export interface Source {
@@ -10,7 +9,6 @@ export interface Source {
 }
 
 export type SingleFileOptions = GraphQLParseOptions &
-  GraphQLSchemaValidationOptions &
   BuildSchemaOptions & {
     cwd?: string;
   };

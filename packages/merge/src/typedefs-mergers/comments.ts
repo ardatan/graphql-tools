@@ -90,7 +90,7 @@ export function printComment(comment: string): string {
  * This is a temp measure, we will move to using the original non modified printer.js ASAP.
  */
 
-// import { visit, VisitFn } from 'graphql/language/visitor';
+// import { visit, VisitFn } from 'graphql';
 
 /**
  * Given maybeArray, print an empty string if it is null or empty, otherwise

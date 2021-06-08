@@ -1,5 +1,4 @@
-import { ArgumentNode, DirectiveNode } from 'graphql/language/ast';
-import { DirectiveDefinitionNode, ListValueNode, NameNode, print } from 'graphql';
+import { ArgumentNode, DirectiveNode, DirectiveDefinitionNode, ListValueNode, NameNode, print } from 'graphql';
 import { Config } from './merge-typedefs';
 
 function directiveAlreadyExists(directivesArr: ReadonlyArray<DirectiveNode>, otherDirective: DirectiveNode): boolean {

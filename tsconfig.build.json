@@ -5,6 +5,7 @@
         "*.spec.ts",
         "**/tests",
         "**/test-assets",
-        "**/test-files"
+        "**/test-files",
+        "packages/testing"
     ]
 }

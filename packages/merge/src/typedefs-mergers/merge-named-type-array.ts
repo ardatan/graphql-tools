@@ -1,4 +1,4 @@
-import { NamedTypeNode } from 'graphql/language/ast';
+import { NamedTypeNode } from 'graphql';
 import { Config } from '.';
 import { compareNodes } from '@graphql-tools/utils';
 

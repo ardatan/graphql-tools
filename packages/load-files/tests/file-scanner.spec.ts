@@ -1,6 +1,7 @@
 import { loadFilesSync, loadFiles, LoadFilesOptions } from '@graphql-tools/load-files';
 import { print } from 'graphql';
 import { join } from 'path';
+import {jest} from '@jest/globals';
 
 const syncAndAsync = Object.entries({ 'SYNC': loadFilesSync, 'ASYNC': loadFiles });
 

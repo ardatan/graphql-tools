@@ -1,5 +1,4 @@
 import { buildClientSchema, ParseOptions } from 'graphql';
-import { GraphQLSchemaValidationOptions } from 'graphql/type/schema';
 import { Source } from './loaders';
 import { SchemaPrintOptions } from './types';
 
@@ -22,7 +21,7 @@ function parseBOM(content: string): any {
 export function parseGraphQLJSON(
   location: string,
   jsonContent: string,
-  options: SchemaPrintOptions & ParseOptions & GraphQLSchemaValidationOptions
+  options: SchemaPrintOptions & ParseOptions
 ): Source {
   let parsedJson = parseBOM(jsonContent);
 
@@ -45,8 +44,8 @@ export function parseGraphQLJSON(
   } else if (typeof parsedJson === 'string') {
     return {
       location,
-      rawSDL: parsedJson
-    }
+      rawSDL: parsedJson,
+    };
   }
 
   throw new Error(`Not valid JSON content`);

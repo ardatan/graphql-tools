@@ -10,6 +10,7 @@ export interface SchemaPrintOptions {
    * Default: false
    */
   commentDescriptions?: boolean;
+  assumeValid?: boolean;
 }
 
 export interface GetDocumentNodeFromSchemaOptions {

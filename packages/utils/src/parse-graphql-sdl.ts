@@ -10,7 +10,7 @@ import {
   StringValueNode,
   print,
 } from 'graphql';
-import { dedentBlockStringValue } from 'graphql/language/blockString';
+import { dedentBlockStringValue } from 'graphql/language/blockString.js';
 import { GraphQLParseOptions } from './Interfaces';
 
 export function parseGraphQLSDL(location: string, rawSDL: string, options: GraphQLParseOptions = {}) {
