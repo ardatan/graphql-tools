@@ -56,7 +56,7 @@
     "meros": "1.1.4",
     "is-promise": "4.0.0",
     "isomorphic-ws": "4.0.1",
-    "subscriptions-transport-ws": "^0.9.18",
+    "subscriptions-transport-ws": "^0.10.0",
     "sync-fetch": "0.3.0",
     "tslib": "~2.2.0",
     "valid-url": "1.0.9",
