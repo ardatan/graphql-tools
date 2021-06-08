@@ -738,6 +738,47 @@ describe('generating schema from shorthand', () => {
     );
   });
 
+  test('works with classes as resolvers', () => {
+    const typeDefs = `
+      type Query {
+        version: Int
+      }
+    `;
+
+    const QueryResolver = class QueryResolver {
+      private internalVersion = 1
+
+      version(root: any, args: any, context: any) {
+        return this.internalVersion
+      }
+    }
+
+    const resolvers = {
+      Query: new QueryResolver(),
+    };
+
+    const testQuery = `{
+      version
+    }`;
+
+    const solution = {
+      data: {
+        version: 1
+      },
+    };
+    const jsSchema = makeExecutableSchema({
+      typeDefs: typeDefs,
+      resolvers: resolvers,
+      resolverValidationOptions: {
+        requireResolversToMatchSchema: 'ignore',
+      },
+    });
+    const resultPromise = graphql(jsSchema, testQuery);
+    return resultPromise.then((result) =>
+      expect(result).toEqual(solution as ExecutionResult),
+    );
+  });
+
   describe('scalar types', () => {
     test('supports passing a GraphQLScalarType in resolveFunctions', () => {
       const scalarNames = Object.keys(scalarResolvers);
@@ -2571,6 +2612,34 @@ describe('interfaces', () => {
     });
     const response = await graphql(schema, query);
     expect(response.errors).not.toBeDefined();
+  });
+  test('does not throw if there is an interface resolveType resolver implemented in class', async () => {
+    const NodeResolver = class {
+      __resolveType ({ type }: { type: string }): string {
+        return type
+      }
+    }
+    const resolvers = {
+      Query: queryResolver,
+      Node: new NodeResolver(),
+    };
+    const schema = makeExecutableSchema({
+      typeDefs: testSchemaWithInterfaces,
+      resolvers,
+      resolverValidationOptions: { requireResolversForResolveType: 'error' },
+    });
+    const response = await graphql(schema, query);
+    expect(response.errors).not.toBeDefined();
+    expect(response.data).toEqual({
+      'node': {
+        '__typename': 'User',
+        'id': '1',
+      },
+      'user': {
+        'id': '1',
+        'name': 'Kim',
+      }
+    })
   });
   test('does not warn if requireResolversForResolveType is disabled and there are missing resolvers', () => {
     const resolvers = {
