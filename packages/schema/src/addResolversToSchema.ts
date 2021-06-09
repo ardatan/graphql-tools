@@ -69,7 +69,7 @@ export function addResolversToSchema(
       if (resolverType !== 'function') {
         throw new Error(
           `"${typeName}" defined in resolvers, but has invalid value "${
-            (resolverValue as unknown) as string
+            resolverValue as unknown as string
           }". A schema resolver's value must be of type object or function.`
         );
       }
@@ -77,7 +77,7 @@ export function addResolversToSchema(
       if (resolverType !== 'object') {
         throw new Error(
           `"${typeName}" defined in resolvers, but has invalid value "${
-            (resolverValue as unknown) as string
+            resolverValue as unknown as string
           }". The resolver's value must be of type object.`
         );
       }
@@ -152,7 +152,7 @@ export function addResolversToSchema(
     ? addResolversToExistingSchema(schema, resolvers, defaultFieldResolver)
     : createNewSchemaWithResolvers(schema, resolvers, defaultFieldResolver);
 
-  if (requireResolversForResolveType || requireResolversForResolveType !== 'ignore') {
+  if (requireResolversForResolveType && requireResolversForResolveType !== 'ignore') {
     checkForResolveTypeResolver(schema, requireResolversForResolveType);
   }
 
