@@ -2383,10 +2383,10 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@theguild/components@1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-1.2.0.tgz#cd223a6649fc134171b6fcb604b9cf7ffb2d9023"
-  integrity sha512-JrWt6WYHpma7p0i1gbugoRhOlg+j65/deQjVbPTQaSfbS9J8odFltHFFBA1Nt+6WP4uCFSc3kYs4bysv/OxYZw==
+"@theguild/components@1.2.4":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-1.2.4.tgz#08a604fc38a94d62a2e4c8ff8605f6346e46f28c"
+  integrity sha512-0nxytVpdXB2aey7Mn8hHSlyP/9jSgpAwlxjkzajVwjawkV13+h0VaQl19d6DT8mmbi4uB50uF4o0g4HgKl0FWQ==
   dependencies:
     "@emotion/react" "^11.4.0"
     "@emotion/styled" "^11.3.0"
@@ -6737,10 +6737,10 @@ graphql-request@^3.3.0:
     extract-files "^9.0.0"
     form-data "^3.0.0"
 
-graphql-scalars@1.9.3:
-  version "1.9.3"
-  resolved "https://registry.yarnpkg.com/graphql-scalars/-/graphql-scalars-1.9.3.tgz#84d27e42d280a16821ab0ef59cddaac84f798575"
-  integrity sha512-vP71Og4ALfe3PCk6T+B7LcJHH55gL0tYidmAE/kWT3ScE2FUCFS7iiMXFQXjCaYLi8nZcRLn9HuejGcjZ8kRug==
+graphql-scalars@1.10.0:
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/graphql-scalars/-/graphql-scalars-1.10.0.tgz#9daf9252b16e6fae553a06976163a23f41b65dfd"
+  integrity sha512-LONlj8FfhA2iGpkZJWf5e4PVAHXxnZEHSOEvowLYvNXl/TNnhIck8VmE+lren/aa6GKrG+lZufo5lgnyjxcF6g==
   dependencies:
     tslib "~2.2.0"
 
@@ -12516,12 +12516,12 @@ text-table@0.2.0, text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-the-guild-components@1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/the-guild-components/-/the-guild-components-1.2.0.tgz#08d97dc6a16d814431bcae87ddedd02179036867"
-  integrity sha512-QJTeCpV8cGO4s19sp774Kb9Ky/FhvDPI4G0QRaIOf7kZSf2rrQN97HOC6YBdKAnry3HQ9VbpCm9jRCTjJmJiXQ==
+the-guild-components@1.2.4:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/the-guild-components/-/the-guild-components-1.2.4.tgz#38205d5b351ded715e02c83591e869cb4a841f46"
+  integrity sha512-mNSBso+GQ/RWLRT5XySNdFnQ0TVGB6YE4L/7MyBsFRw3vgO8K74LuJGVsKzUWX51PetSaus+nVl0DHWfJGpz7g==
   dependencies:
-    "@theguild/components" "1.2.0"
+    "@theguild/components" "1.2.4"
 
 throat@^6.0.1:
   version "6.0.1"
