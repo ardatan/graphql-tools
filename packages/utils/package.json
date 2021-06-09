@@ -32,7 +32,7 @@
   "devDependencies": {
     "@types/dateformat": "3.0.1",
     "dateformat": "4.5.1",
-    "graphql-scalars": "1.9.3"
+    "graphql-scalars": "1.10.0"
   },
   "dependencies": {
     "@ardatan/aggregate-error": "0.0.6",
