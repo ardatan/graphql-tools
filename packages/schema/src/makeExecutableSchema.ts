@@ -69,6 +69,7 @@ export function makeExecutableSchema<TContext = any>({
   pruningOptions,
   updateResolversInPlace = false,
   noExtensionExtraction = false,
+  assumeValidSchema = false,
 }: IExecutableSchemaDefinition<TContext>) {
   // Validate and clean up arguments
   if (typeof resolverValidationOptions !== 'object') {
@@ -93,7 +94,10 @@ export function makeExecutableSchema<TContext = any>({
         updateResolversInPlace,
       });
 
-      if (Object.keys(resolverValidationOptions).length > 0) {
+      if (
+        Object.keys(resolverValidationOptions).length > 0 &&
+        Object.values(resolverValidationOptions).some(o => o !== 'ignore')
+      ) {
         assertResolversPresent(schemaWithResolvers, resolverValidationOptions);
       }
 
@@ -140,7 +144,12 @@ export function makeExecutableSchema<TContext = any>({
     schemaTransforms.push(pruneSchema);
   }
 
-  const schemaFromTypeDefs = buildSchemaFromTypeDefinitions(typeDefs, parseOptions, noExtensionExtraction);
+  const schemaFromTypeDefs = buildSchemaFromTypeDefinitions(
+    typeDefs,
+    parseOptions,
+    noExtensionExtraction,
+    assumeValidSchema
+  );
 
   return schemaTransforms.reduce((schema, schemaTransform) => schemaTransform(schema), schemaFromTypeDefs);
 }

@@ -75,6 +75,10 @@ export interface IExecutableSchemaDefinition<TContext = any> {
    * Do not extract and apply extensions separately and leave it to `buildASTSchema`
    */
   noExtensionExtraction?: boolean;
+  /**
+   * Assume schema is valid (so skip all validation)
+   */
+  assumeValidSchema?: boolean;
 }
 
 export type ExecutableSchemaTransformation = (schema: GraphQLSchema) => GraphQLSchema;

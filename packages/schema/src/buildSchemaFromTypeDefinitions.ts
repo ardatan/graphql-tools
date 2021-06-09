@@ -8,21 +8,22 @@ import { concatenateTypeDefs } from './concatenateTypeDefs';
 export function buildSchemaFromTypeDefinitions(
   typeDefinitions: ITypeDefinitions,
   parseOptions?: GraphQLParseOptions,
-  noExtensionExtraction?: boolean
+  noExtensionExtraction?: boolean,
+  assumeValidSchema?: boolean
 ): GraphQLSchema {
   const document = buildDocumentFromTypeDefinitions(typeDefinitions, parseOptions);
 
   if (noExtensionExtraction) {
-    return buildASTSchema(document);
+    return buildASTSchema(document, { assumeValid: assumeValidSchema });
   }
 
   const { typesAst, extensionsAst } = filterAndExtractExtensionDefinitions(document);
 
-  const backcompatOptions = { commentDescriptions: true };
-  let schema: GraphQLSchema = buildASTSchema(typesAst, backcompatOptions);
+  const buildAstOptions = { assumeValid: assumeValidSchema, commentDescriptions: true };
+  let schema: GraphQLSchema = buildASTSchema(typesAst, buildAstOptions);
 
   if (extensionsAst.definitions.length > 0) {
-    schema = extendSchema(schema, extensionsAst, backcompatOptions);
+    schema = extendSchema(schema, extensionsAst, buildAstOptions);
   }
 
   return schema;
