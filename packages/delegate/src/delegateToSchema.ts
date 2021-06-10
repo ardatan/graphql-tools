@@ -165,13 +165,11 @@ function getDelegationContext<TContext>({
 
   if (operation == null) {
     operationDefinition = getOperationAST(request.document, undefined);
-    targetOperation = operationDefinition?.operation;
+    assertSome(operationDefinition, 'Could not identify the main operation of the document.');
+    targetOperation = operationDefinition.operation;
   } else {
     targetOperation = operation;
   }
-
-  // TODO: Do what if there is no targetOperation?
-  assertSome(targetOperation);
 
   if (fieldName == null) {
     operationDefinition = operationDefinition ?? getOperationAST(request.document, undefined);
