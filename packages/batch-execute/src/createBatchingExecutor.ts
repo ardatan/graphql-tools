@@ -31,11 +31,18 @@ function createLoadFn(
     const exec = execs[index];
     let currentBatch: Array<ExecutionParams> = [exec];
     execBatches.push(currentBatch);
-    // TODO: Do we need handling here? Should we add a assert call?
-    const operationType = getOperationAST(exec.document, undefined)!.operation;
+
+    const operationType = getOperationAST(exec.document, undefined)?.operation;
+    if (operationType == null) {
+      throw new Error('Could not identify operation type of document.');
+    }
+
     while (++index < execs.length) {
-      // TODO: Do we need handling here? Should we add a assert call?
-      const currentOperationType = getOperationAST(execs[index].document, undefined)!.operation;
+      const currentOperationType = getOperationAST(execs[index].document, undefined)?.operation;
+      if (operationType == null) {
+        throw new Error('Could not identify operation type of document.');
+      }
+
       if (operationType === currentOperationType) {
         currentBatch.push(execs[index]);
       } else {
