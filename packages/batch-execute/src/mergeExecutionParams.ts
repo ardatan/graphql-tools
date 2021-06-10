@@ -86,9 +86,7 @@ export function mergeExecutionParams(
   });
 
   if (operation == null) {
-    // TODO: Discuss how this error should be handled.
-    // Should the return type be changed to null in case no operation node was found?
-    throw new Error('Did not expect operation to be null.');
+    throw new Error('Could not identify operation type. Did the document only include fragment definitions?');
   }
 
   const mergedOperationDefinition: OperationDefinitionNode = {
