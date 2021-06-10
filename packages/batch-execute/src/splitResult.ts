@@ -22,10 +22,10 @@ export function splitResult(mergedResult: ExecutionResult, numResults: number): 
       assertSome(parsedKey, "'parsedKey' should not be null.");
       const { index, originalKey } = parsedKey;
       const result = splitResults[index];
-      if (!result) {
+      if (result == null) {
         return;
       }
-      if (!result.data) {
+      if (result.data == null) {
         result.data = { [originalKey]: data[prefixedKey] };
       } else {
         result.data[originalKey] = data[prefixedKey];
