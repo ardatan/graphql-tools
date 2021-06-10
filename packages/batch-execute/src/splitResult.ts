@@ -2,7 +2,7 @@
 
 import { ExecutionResult, GraphQLError } from 'graphql';
 
-import { relocatedError } from '@graphql-tools/utils';
+import { assertSome, relocatedError } from '@graphql-tools/utils';
 
 import { parseKey } from './prefix';
 
@@ -18,8 +18,9 @@ export function splitResult(mergedResult: ExecutionResult, numResults: number): 
   const data = mergedResult.data;
   if (data) {
     Object.keys(data).forEach(prefixedKey => {
-      // TODO: DIscuss how null return type should be handled here?
-      const { index, originalKey } = parseKey(prefixedKey)!;
+      const parsedKey = parseKey(prefixedKey);
+      assertSome(parsedKey, "'parsedKey' should not be null.");
+      const { index, originalKey } = parsedKey;
       const result = splitResults[index];
       if (!result) {
         return;

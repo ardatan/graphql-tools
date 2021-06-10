@@ -89,8 +89,11 @@ export function isSome<T>(input: T): input is Exclude<T, null | undefined> {
   return input != null;
 }
 
-export function assertSome<T>(input: T): asserts input is Exclude<T, null | undefined> {
+export function assertSome<T>(
+  input: T,
+  message = 'Value should be something'
+): asserts input is Exclude<T, null | undefined> {
   if (input == null) {
-    throw new Error('Value should be something');
+    throw new Error(message);
   }
 }
