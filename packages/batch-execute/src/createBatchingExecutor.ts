@@ -54,17 +54,11 @@ function createLoadFn(
       .then(resultBatches => {
         let results: Array<ExecutionResult> = [];
         resultBatches.forEach((resultBatch, index) => {
-          // The typings of promise-or-value enforce that the items can be null or undefined
-          // this is not the case here and the upstream types should probably be fixed.
-          // see https://github.com/yaacovCR/value-or-promise/pull/2
           results = [...results, ...splitResult(resultBatch!, execBatches[index].length)];
         });
         return results;
-        // The typings of promise-or-value enforce that the items can be null or undefined
-        // this is not the case here and the upstream types should probably be fixed.
-        // see https://github.com/yaacovCR/value-or-promise/pull/2
       })
-      .resolve() as Promise<Array<ExecutionResult>>;
+      .resolve();
   };
 }
 
