@@ -28,7 +28,13 @@ import {
   assertSome,
 } from '@graphql-tools/utils';
 
-import { IDelegateToSchemaOptions, IDelegateRequestOptions, StitchingInfo, DelegationContext } from './types';
+import {
+  IDelegateToSchemaOptions,
+  IDelegateRequestOptions,
+  StitchingInfo,
+  DelegationContext,
+  SubschemaConfig,
+} from './types';
 
 import { isSubschemaConfig } from './subschemaConfig';
 import { Subschema } from './Subschema';
@@ -137,13 +143,6 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
 
 const emptyObject = {};
 
-function assertGraphQLSchema(input: unknown): asserts input is GraphQLSchema {
-  if (input instanceof GraphQLSchema) {
-    return;
-  }
-  throw new Error('Expected GraphQL schema.');
-}
-
 function getDelegationContext<TContext>({
   request,
   schema,
@@ -180,7 +179,8 @@ function getDelegationContext<TContext>({
 
   const stitchingInfo: Maybe<StitchingInfo<TContext>> = info?.schema.extensions?.['stitchingInfo'];
 
-  const subschemaOrSubschemaConfig = stitchingInfo?.subschemaMap.get(schema) ?? schema;
+  const subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig<any, any, any, any> =
+    stitchingInfo?.subschemaMap.get(schema) ?? schema;
 
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     const targetSchema = subschemaOrSubschemaConfig.schema;
@@ -201,12 +201,11 @@ function getDelegationContext<TContext>({
           ? subschemaOrSubschemaConfig.transforms.concat(transforms)
           : transforms,
       transformedSchema:
-        transformedSchema ?? (subschemaOrSubschemaConfig as Subschema)?.transformedSchema ?? targetSchema,
+        transformedSchema ??
+        (subschemaOrSubschemaConfig instanceof Subschema ? subschemaOrSubschemaConfig.transformedSchema : targetSchema),
       skipTypeMerging,
     };
   }
-
-  assertGraphQLSchema(subschemaOrSubschemaConfig);
 
   return {
     subschema: schema,

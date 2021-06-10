@@ -1,6 +1,6 @@
 import { SubschemaConfig } from './types';
 
-export function isSubschemaConfig(value: any): value is SubschemaConfig {
+export function isSubschemaConfig(value: any): value is SubschemaConfig<any, any, any, any> {
   return Boolean(value?.schema);
 }
 

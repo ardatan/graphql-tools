@@ -52,7 +52,7 @@ function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<st
 
 export const getFieldsNotInSubschema = memoizeInfoAnd2Objects(function (
   info: GraphQLResolveInfo,
-  subschema: GraphQLSchema | SubschemaConfig,
+  subschema: GraphQLSchema | SubschemaConfig<any, any, any, any>,
   mergedTypeInfo: MergedTypeInfo
 ): Array<FieldNode> {
   const typeMap = isSubschemaConfig(subschema) ? mergedTypeInfo.typeMaps.get(subschema) : subschema.getTypeMap();
