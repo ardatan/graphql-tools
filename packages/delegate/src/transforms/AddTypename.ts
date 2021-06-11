@@ -7,20 +7,19 @@ import {
   SelectionSetNode,
   Kind,
   GraphQLSchema,
-  isAbstractType,
 } from 'graphql';
 
 import { Request } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 
-export default class AddTypenameToAbstract implements Transform {
+export default class AddTypename implements Transform {
   public transformRequest(
     originalRequest: Request,
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
   ): Request {
-    const document = addTypenameToAbstract(delegationContext.targetSchema, originalRequest.document);
+    const document = addTypename(delegationContext.targetSchema, originalRequest.document);
     return {
       ...originalRequest,
       document,
@@ -28,15 +27,16 @@ export default class AddTypenameToAbstract implements Transform {
   }
 }
 
-function addTypenameToAbstract(targetSchema: GraphQLSchema, document: DocumentNode): DocumentNode {
+function addTypename(targetSchema: GraphQLSchema, document: DocumentNode): DocumentNode {
   const typeInfo = new TypeInfo(targetSchema);
+  const subscriptionType = targetSchema.getSubscriptionType();
   return visit(
     document,
     visitWithTypeInfo(typeInfo, {
       [Kind.SELECTION_SET](node: SelectionSetNode): SelectionSetNode | null | undefined {
         const parentType: GraphQLType = typeInfo.getParentType();
         let selections = node.selections;
-        if (parentType != null && isAbstractType(parentType)) {
+        if (parentType !== subscriptionType) {
           selections = selections.concat({
             kind: Kind.FIELD,
             name: {

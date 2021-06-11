@@ -25,7 +25,6 @@ export default class TransformCompositeFields implements Transform {
   private transformedSchema: GraphQLSchema;
   private typeInfo: TypeInfo;
   private mapping: Record<string, Record<string, string>>;
-  private subscriptionTypeName: string;
 
   constructor(
     fieldTransformer: FieldTransformer,
@@ -62,7 +61,6 @@ export default class TransformCompositeFields implements Transform {
       },
     });
     this.typeInfo = new TypeInfo(this.transformedSchema);
-    this.subscriptionTypeName = originalWrappingSchema.getSubscriptionType()?.name;
 
     return this.transformedSchema;
   }
@@ -136,20 +134,6 @@ export default class TransformCompositeFields implements Transform {
       }
 
       const newName = selection.name.value;
-
-      // See https://github.com/ardatan/graphql-tools/issues/2282
-      if (
-        (this.dataTransformer != null || this.errorsTransformer != null) &&
-        (this.subscriptionTypeName == null || parentTypeName !== this.subscriptionTypeName)
-      ) {
-        newSelections.push({
-          kind: Kind.FIELD,
-          name: {
-            kind: Kind.NAME,
-            value: '__typename',
-          },
-        });
-      }
 
       let transformedSelection: SelectionNode | Array<SelectionNode>;
       if (this.fieldNodeTransformer == null) {

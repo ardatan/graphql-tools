@@ -22,6 +22,7 @@ import {
   OperationDefinitionNode,
   GraphQLError,
   ExecutionResult as GraphQLExecutionResult,
+  ExecutionPatchResult as GraphQLExecutionPatchResult,
   GraphQLOutputType,
   FieldDefinitionNode,
   GraphQLFieldConfig,
@@ -54,10 +55,21 @@ import { SchemaVisitor } from './SchemaVisitor';
 // See: https://github.com/graphql/graphql-js/pull/2490
 
 export interface ExecutionResult<TData = Record<string, any>> extends GraphQLExecutionResult {
+  errors?: ReadonlyArray<GraphQLError>;
   data?: TData | null;
   extensions?: Record<string, any>;
 }
 
+export interface ExecutionPatchResult<TData = Record<string, any>> extends GraphQLExecutionPatchResult {
+  errors?: ReadonlyArray<GraphQLError>;
+  data?: TData | null;
+  path?: ReadonlyArray<string | number>;
+  label?: string;
+  hasNext: boolean;
+  extensions?: Record<string, any>;
+}
+
+export type AsyncExecutionResult<TData = Record<string, any>> = ExecutionResult<TData> | ExecutionPatchResult<TData>;
 // graphql-js non-exported typings
 
 export type TypeMap = Record<string, GraphQLNamedType>;

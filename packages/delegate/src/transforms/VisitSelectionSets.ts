@@ -7,13 +7,13 @@ import {
   visit,
   visitWithTypeInfo,
   GraphQLOutputType,
-  OperationDefinitionNode,
   FragmentDefinitionNode,
   SelectionNode,
   DefinitionNode,
+  InlineFragmentNode,
 } from 'graphql';
 
-import { Request, collectFields, GraphQLExecutionContext } from '@graphql-tools/utils';
+import { Request } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 
@@ -48,93 +48,72 @@ function visitSelectionSets(
   initialType: GraphQLOutputType,
   visitor: (node: SelectionSetNode, typeInfo: TypeInfo) => SelectionSetNode
 ): DocumentNode {
-  const { document, variables } = request;
-
-  const operations: Array<OperationDefinitionNode> = [];
-  const fragments: Record<string, FragmentDefinitionNode> = Object.create(null);
-  document.definitions.forEach(def => {
-    if (def.kind === Kind.OPERATION_DEFINITION) {
-      operations.push(def);
-    } else if (def.kind === Kind.FRAGMENT_DEFINITION) {
-      fragments[def.name.value] = def;
-    }
-  });
-
-  const partialExecutionContext = {
-    schema,
-    variableValues: variables,
-    fragments,
-  } as GraphQLExecutionContext;
+  const { document } = request;
 
   const typeInfo = new TypeInfo(schema, undefined, initialType);
-  const newDefinitions: Array<DefinitionNode> = operations.map(operation => {
-    const type =
-      operation.operation === 'query'
-        ? schema.getQueryType()
-        : operation.operation === 'mutation'
-        ? schema.getMutationType()
-        : schema.getSubscriptionType();
 
-    const fields = collectFields(
-      partialExecutionContext,
-      type,
-      operation.selectionSet,
-      Object.create(null),
-      Object.create(null)
-    );
+  const newDefinitions: Array<DefinitionNode> = [];
+  document.definitions.forEach(def => {
+    if (def.kind === Kind.FRAGMENT_DEFINITION) {
+      newDefinitions.push(visitNode(def, typeInfo, visitor));
+    } else if (def.kind === Kind.OPERATION_DEFINITION) {
+      const newSelections: Array<SelectionNode> = [];
 
-    const newSelections: Array<SelectionNode> = [];
-    Object.keys(fields).forEach(responseKey => {
-      const fieldNodes = fields[responseKey];
-      fieldNodes.forEach(fieldNode => {
-        const selectionSet = fieldNode.selectionSet;
-
-        if (selectionSet == null) {
-          newSelections.push(fieldNode);
+      def.selectionSet.selections.forEach(selection => {
+        if (selection.kind === Kind.FRAGMENT_SPREAD) {
           return;
         }
 
-        const newSelectionSet = visit(
-          selectionSet,
-          visitWithTypeInfo(typeInfo, {
-            [Kind.SELECTION_SET]: node => visitor(node, typeInfo),
-          })
-        );
+        if (selection.kind === Kind.INLINE_FRAGMENT) {
+          newSelections.push(visitNode(selection, typeInfo, visitor));
+          return;
+        }
+
+        const selectionSet = selection.selectionSet;
+
+        if (selectionSet == null) {
+          newSelections.push(selection);
+          return;
+        }
+
+        const newSelectionSet = visitNode(selectionSet, typeInfo, visitor);
 
         if (newSelectionSet === selectionSet) {
-          newSelections.push(fieldNode);
+          newSelections.push(selection);
           return;
         }
 
         newSelections.push({
-          ...fieldNode,
+          ...selection,
           selectionSet: newSelectionSet,
         });
       });
-    });
 
-    return {
-      ...operation,
-      selectionSet: {
-        kind: Kind.SELECTION_SET,
-        selections: newSelections,
-      },
-    };
-  });
-
-  Object.values(fragments).forEach(fragment => {
-    newDefinitions.push(
-      visit(
-        fragment,
-        visitWithTypeInfo(typeInfo, {
-          [Kind.SELECTION_SET]: node => visitor(node, typeInfo),
-        })
-      )
-    );
+      newDefinitions.push({
+        ...def,
+        selectionSet: {
+          kind: Kind.SELECTION_SET,
+          selections: newSelections,
+        },
+      });
+    }
   });
 
   return {
     ...document,
     definitions: newDefinitions,
   };
+}
+
+function visitNode<T extends SelectionSetNode | FragmentDefinitionNode | InlineFragmentNode>(
+  node: T,
+  typeInfo: TypeInfo,
+  visitor: (node: SelectionSetNode, typeInfo: TypeInfo) => SelectionSetNode
+): T {
+  return visit(
+    node,
+    visitWithTypeInfo(typeInfo, {
+      [Kind.SELECTION_SET]: node => visitor(node, typeInfo),
+    })
+  );
 }

@@ -30,11 +30,9 @@ export default class ExpandAbstractTypes implements Transform {
       delegationContext.info.schema,
       targetSchema
     );
-    const reversePossibleTypesMap = flipMapping(possibleTypesMap);
     const document = expandAbstractTypes(
       targetSchema,
       possibleTypesMap,
-      reversePossibleTypesMap,
       interfaceExtensionsMap,
       originalRequest.document
     );
@@ -79,24 +77,9 @@ function extractPossibleTypes(sourceSchema: GraphQLSchema, targetSchema: GraphQL
   return { possibleTypesMap, interfaceExtensionsMap };
 }
 
-function flipMapping(mapping: Record<string, Array<string>>): Record<string, Array<string>> {
-  const result: Record<string, Array<string>> = Object.create(null);
-  Object.keys(mapping).forEach(typeName => {
-    const toTypeNames = mapping[typeName];
-    toTypeNames.forEach(toTypeName => {
-      if (!(toTypeName in result)) {
-        result[toTypeName] = [];
-      }
-      result[toTypeName].push(typeName);
-    });
-  });
-  return result;
-}
-
 function expandAbstractTypes(
   targetSchema: GraphQLSchema,
   possibleTypesMap: Record<string, Array<string>>,
-  reversePossibleTypesMap: Record<string, Array<string>>,
   interfaceExtensionsMap: Record<string, Record<string, boolean>>,
   document: DocumentNode
 ): DocumentNode {
@@ -178,7 +161,7 @@ function expandAbstractTypes(
     visitWithTypeInfo(typeInfo, {
       [Kind.SELECTION_SET](node: SelectionSetNode) {
         let newSelections = node.selections;
-        const addedSelections = [];
+        const addedSelections: Array<SelectionNode> = [];
         const maybeType = typeInfo.getParentType();
         if (maybeType != null) {
           const parentType: GraphQLNamedType = getNamedType(maybeType);
@@ -225,16 +208,6 @@ function expandAbstractTypes(
               interfaceExtensionFields.push(selection);
             }
           });
-
-          if (parentType.name in reversePossibleTypesMap) {
-            addedSelections.push({
-              kind: Kind.FIELD,
-              name: {
-                kind: Kind.NAME,
-                value: '__typename',
-              },
-            });
-          }
 
           if (interfaceExtensionFields.length) {
             const possibleTypes = possibleTypesMap[parentType.name];

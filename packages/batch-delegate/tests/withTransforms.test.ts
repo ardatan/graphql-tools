@@ -1,4 +1,4 @@
-import { graphql, GraphQLList, Kind } from 'graphql';
+import { graphql, Kind } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
@@ -6,7 +6,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 import { TransformQuery } from '@graphql-tools/wrap'
 
 describe('works with complex transforms', () => {
-  test('using TransformQuery instead of valuesFromResults', async () => {
+  test('using TransformQuery', async () => {
     const bookSchema = makeExecutableSchema({
       typeDefs: `
         type Book {
@@ -100,7 +100,6 @@ describe('works with complex transforms', () => {
               context,
               info,
               transforms: [queryTransform],
-              returnType: new GraphQLList(new GraphQLList(info.schema.getType('Book')))
             }),
           },
         },

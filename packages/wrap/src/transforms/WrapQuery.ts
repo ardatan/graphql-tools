@@ -77,6 +77,7 @@ export default class WrapQuery implements Transform {
     }
 
     return {
+      ...originalResult,
       data: rootData,
       errors: originalResult.errors,
     };

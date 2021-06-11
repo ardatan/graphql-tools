@@ -1,7 +1,6 @@
 import {
   GraphQLNamedType,
   GraphQLSchema,
-  SelectionSetNode,
   FieldNode,
   GraphQLFieldConfig,
   GraphQLObjectType,
@@ -10,6 +9,7 @@ import {
   GraphQLInputObjectType,
   GraphQLEnumValueConfig,
   GraphQLEnumType,
+  GraphQLField,
 } from 'graphql';
 import { ITypeDefinitions } from '@graphql-tools/utils';
 import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
@@ -108,6 +108,6 @@ export type OnTypeConflict<TContext = Record<string, any>> = (
 declare module '@graphql-tools/utils' {
   interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = any> {
     fragment?: string;
-    selectionSet?: string | ((node: FieldNode) => SelectionSetNode);
+    selectionSet?: string | ((schema: GraphQLSchema, field: GraphQLField<any, any>) => (originalFieldNode: FieldNode) => Array<FieldNode>);
   }
 }

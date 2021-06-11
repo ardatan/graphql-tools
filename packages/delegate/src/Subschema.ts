@@ -9,13 +9,9 @@ export function isSubschema(value: any): value is Subschema {
   return Boolean(value.transformedSchema);
 }
 
-interface ISubschema<K = any, V = any, C = K, TContext = Record<string, any>>
-  extends SubschemaConfig<K, V, C, TContext> {
-  transformedSchema: GraphQLSchema;
-}
-
 export class Subschema<K = any, V = any, C = K, TContext = Record<string, any>>
-  implements ISubschema<K, V, C, TContext> {
+  implements SubschemaConfig<K, V, C, TContext>
+{
   public schema: GraphQLSchema;
 
   public rootValue?: Record<string, any>;
@@ -28,7 +24,7 @@ export class Subschema<K = any, V = any, C = K, TContext = Record<string, any>>
   public transforms: Array<Transform>;
   public transformedSchema: GraphQLSchema;
 
-  public merge?: Record<string, MergedTypeConfig<any, any, TContext>>;
+  public merge?: Record<string, MergedTypeConfig<any, TContext>>;
 
   constructor(config: SubschemaConfig<K, V, C, TContext>) {
     this.schema = config.schema;

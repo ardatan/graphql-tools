@@ -1,24 +1,29 @@
-import { GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo, OperationTypeNode } from 'graphql';
+import { GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo, GraphQLSchema, OperationTypeNode } from 'graphql';
 
 import { getResponseKeyFromInfo } from '@graphql-tools/utils';
 import {
-  delegateToSchema,
-  getSubschema,
-  resolveExternalValue,
-  SubschemaConfig,
   ICreateProxyingResolverOptions,
+  SubschemaConfig,
   applySchemaTransforms,
-  isExternalObject,
+  createExternalValue,
+  delegateToSchema,
+  getInitialPath,
+  getReceiver,
+  getSubschema,
   getUnpathedErrors,
+  isExternalObject,
 } from '@graphql-tools/delegate';
 
 export function generateProxyingResolvers(
-  subschemaConfig: SubschemaConfig
+  subschemaConfig: SubschemaConfig,
+  transformedSchema?: GraphQLSchema,
 ): Record<string, Record<string, GraphQLFieldResolver<any, any>>> {
   const targetSchema = subschemaConfig.schema;
   const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
 
-  const transformedSchema = applySchemaTransforms(targetSchema, subschemaConfig);
+  if (transformedSchema === undefined) {
+    transformedSchema = applySchemaTransforms(targetSchema, subschemaConfig);
+  }
 
   const operationTypes: Record<OperationTypeNode, GraphQLObjectType> = {
     query: targetSchema.getQueryType(),
@@ -72,14 +77,16 @@ function createPossiblyNestedProxyingResolver(
 
       // Check to see if the parent contains a proxied result
       if (isExternalObject(parent)) {
-        const unpathedErrors = getUnpathedErrors(parent);
         const subschema = getSubschema(parent, responseKey);
 
         // If there is a proxied result from this subschema, return it
         // This can happen even for a root field when the root type ia
         // also nested as a field within a different type.
         if (subschemaConfig === subschema && parent[responseKey] !== undefined) {
-          return resolveExternalValue(parent[responseKey], unpathedErrors, subschema, context, info);
+          const unpathedErrors = getUnpathedErrors(parent);
+          const initialPath = getInitialPath(parent);
+          const receiver = getReceiver(parent, subschema);
+          return createExternalValue(parent[responseKey], unpathedErrors, initialPath, subschema, context, info, receiver);
         }
       }
     }

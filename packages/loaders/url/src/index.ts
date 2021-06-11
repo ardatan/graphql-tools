@@ -414,7 +414,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
           query: document,
           variables,
         })
-      ) as AsyncIterator<ExecutionResult<TReturn>>;
+      ) as AsyncIterableIterator<ExecutionResult<TReturn>>;
     };
   }
 
