@@ -190,7 +190,7 @@ export type Ref<KeyT extends KeyTypeConstraints = string> = {
 };
 
 export function isRef<KeyT extends KeyTypeConstraints = string>(maybeRef: unknown): maybeRef is Ref<KeyT> {
-  return maybeRef && typeof maybeRef === 'object' && maybeRef.hasOwnProperty('$ref');
+  return maybeRef && typeof maybeRef === 'object' && Object.prototype.hasOwnProperty.call(maybeRef, '$ref');
 }
 
 export function assertIsRef<KeyT extends KeyTypeConstraints = string>(
