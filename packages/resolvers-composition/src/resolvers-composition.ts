@@ -50,8 +50,12 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
     }
 
     if (fieldName === '*') {
+      const endpoints = resolvers[typeName];
+      if (!endpoints) {
+          return []
+      }
       return flatten(
-        Object.keys(resolvers[typeName]).map(field =>
+        Object.keys(endpoints).map(field =>
           resolveRelevantMappings(resolvers, `${typeName}.${field}`, allMappings)
         )
       ).filter(mapItem => !allMappings[mapItem]);
