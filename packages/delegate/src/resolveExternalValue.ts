@@ -13,7 +13,7 @@ import {
   locatedError,
 } from 'graphql';
 
-import AggregateError from '@ardatan/aggregate-error';
+import { AggregateError } from '@graphql-tools/utils';
 
 import { StitchingInfo, SubschemaConfig } from './types';
 import { annotateExternalObject, isExternalObject } from './externalObjects';

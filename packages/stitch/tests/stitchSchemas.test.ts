@@ -1,12 +1,10 @@
 import {
   graphql,
   GraphQLSchema,
-  GraphQLField,
   GraphQLObjectType,
   GraphQLScalarType,
   subscribe,
   parse,
-  defaultFieldResolver,
   findDeprecatedUsages,
   printSchema,
   GraphQLResolveInfo,
@@ -18,7 +16,6 @@ import { stitchSchemas } from '../src/stitchSchemas';
 import {
   cloneSchema,
   getResolversFromSchema,
-  SchemaDirectiveVisitor,
   IResolvers,
   ExecutionResult,
   assertSome,
@@ -356,20 +353,6 @@ testCombinations.forEach((combination) => {
           codeCoverageTypeDefs,
           schemaDirectiveTypeDefs,
         ],
-        schemaDirectives: {
-          upper: class extends SchemaDirectiveVisitor {
-            public visitFieldDefinition(field: GraphQLField<any, any>) {
-              const { resolve = defaultFieldResolver } = field;
-              field.resolve = async function (...args) {
-                const result = await resolve.apply(this, args);
-                if (typeof result === 'string') {
-                  return result.toUpperCase();
-                }
-                return result;
-              };
-            }
-          },
-        },
         mergeDirectives: true,
         resolvers: {
           Property: {
@@ -3082,31 +3065,6 @@ fragment BookingFragment on Booking {
                 name: 'BedBugs - The Affordable Hostel',
               },
             ],
-          },
-        });
-      });
-    });
-
-    describe('schema directives', () => {
-      test('should work with schema directives', async () => {
-        const result = await graphql(
-          stitchedSchema,
-          `
-            query {
-              propertyById(id: "p1") {
-                someField
-              }
-            }
-          `,
-          undefined,
-          {},
-        );
-
-        expect(result).toEqual({
-          data: {
-            propertyById: {
-              someField: 'SOMEFIELD',
-            },
           },
         });
       });

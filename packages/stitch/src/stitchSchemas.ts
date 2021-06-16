@@ -7,17 +7,9 @@ import {
   extendSchema,
 } from 'graphql';
 
-import { SchemaDirectiveVisitor, mergeDeep, IResolvers, pruneSchema } from '@graphql-tools/utils';
+import { IResolvers, pruneSchema } from '@graphql-tools/utils';
 
-import {
-  addResolversToSchema,
-  addSchemaLevelResolver,
-  addErrorLoggingToSchema,
-  addCatchUndefinedToSchema,
-  assertResolversPresent,
-  attachDirectiveResolvers,
-  extendResolversFromInterfaces,
-} from '@graphql-tools/schema';
+import { addResolversToSchema, assertResolversPresent, extendResolversFromInterfaces } from '@graphql-tools/schema';
 
 import { SubschemaConfig, isSubschemaConfig, Subschema, defaultMergedResolver } from '@graphql-tools/delegate';
 
@@ -30,6 +22,7 @@ import {
   isolateComputedFieldsTransformer,
   splitMergedTypeEntryPointsTransformer,
 } from './subschemaConfigTransforms';
+import { mergeResolvers } from '@graphql-tools/merge';
 
 export function stitchSchemas<TContext = Record<string, any>>({
   subschemas = [],
@@ -41,12 +34,8 @@ export function stitchSchemas<TContext = Record<string, any>>({
   typeMergingOptions,
   subschemaConfigTransforms = defaultSubschemaConfigTransforms,
   resolvers = {},
-  schemaDirectives,
   inheritResolversFromInterfaces = false,
-  logger,
-  allowUndefinedInResolve = true,
   resolverValidationOptions = {},
-  directiveResolvers,
   schemaTransforms = [],
   parseOptions = {},
   pruningOptions,
@@ -145,7 +134,7 @@ export function stitchSchemas<TContext = Record<string, any>>({
   });
 
   // We allow passing in an array of resolver maps, in which case we merge them
-  const resolverMap: IResolvers = Array.isArray(resolvers) ? resolvers.reduce(mergeDeep, {}) : resolvers;
+  const resolverMap: IResolvers = mergeResolvers(resolvers);
 
   const finalResolvers = inheritResolversFromInterfaces
     ? extendResolversFromInterfaces(schema, resolverMap)
@@ -168,31 +157,9 @@ export function stitchSchemas<TContext = Record<string, any>>({
 
   schema = addStitchingInfo(schema, stitchingInfo);
 
-  if (!allowUndefinedInResolve) {
-    schema = addCatchUndefinedToSchema(schema);
-  }
-
-  if (logger != null) {
-    schema = addErrorLoggingToSchema(schema, logger);
-  }
-
-  if (typeof finalResolvers['__schema'] === 'function') {
-    // TODO a bit of a hack now, better rewrite generateSchema to attach it there.
-    // not doing that now, because I'd have to rewrite a lot of tests.
-    schema = addSchemaLevelResolver(schema, finalResolvers['__schema']);
-  }
-
   schemaTransforms.forEach(schemaTransform => {
     schema = schemaTransform(schema);
   });
-
-  if (directiveResolvers != null) {
-    schema = attachDirectiveResolvers(schema, directiveResolvers);
-  }
-
-  if (schemaDirectives != null) {
-    SchemaDirectiveVisitor.visitSchemaDirectives(schema, schemaDirectives);
-  }
 
   if (pruningOptions) {
     schema = pruneSchema(schema, pruningOptions);

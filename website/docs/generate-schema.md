@@ -219,10 +219,7 @@ const jsSchema = makeExecutableSchema({
   typeDefs,
   resolvers, // optional
   logger, // optional
-  allowUndefinedInResolve: false, // optional
   resolverValidationOptions: {}, // optional
-  directiveResolvers: null, // optional
-  schemaDirectives: null,  // optional
   schemaTransforms: [],  // optional
   parseOptions: {},  // optional
   inheritResolversFromInterfaces: false  // optional
@@ -233,11 +230,7 @@ const jsSchema = makeExecutableSchema({
 
 - `resolvers` is an optional argument _(empty object by default)_ and should be an object or an array of objects that follow the pattern explained in [article on resolvers](/docs/resolvers/)
 
-- `logger` is an optional argument, which can be used to print errors to the server console that are usually swallowed by GraphQL. The `logger` argument should be an object with a `log` function, eg. `const logger = { log: e => console.log(e) }`
-
 - `parseOptions` is an optional argument which allows customization of parse when specifying `typeDefs` as a string.
-
-- `allowUndefinedInResolve` is an optional argument, which is `true` by default. When set to `false`, causes your resolver to throw errors if they return undefined, which can help make debugging easier.
 
 - `resolverValidationOptions` is an optional argument with the following properties, each of which can be set to `error`, `warn`, or `ignore`:
   - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error (`error`) or issue a warning (`warn`)unless a resolver is defined for every field with arguments. The default is `ignore`, causing this validator to be skipped.
@@ -254,4 +247,3 @@ const jsSchema = makeExecutableSchema({
 
 - `schemaTransforms` is an optional argument _(empty array by default)_ and should be an array of schema transformation functions, essentially designed to enable the use of [directive-based functional schema transformation](/docs/schema-directives/)
 
-- `schemaDirectives` is an optional argument _(empty object by default)_ and can be used to specify the [earlier class-based implementation of schema directives](/docs/legacy-schema-directives/)

@@ -40,19 +40,19 @@ export interface MergeResolversOptions {
  * ```
  */
 export function mergeResolvers<TContext, T extends ResolversDefinition<TContext>>(
-  resolversDefinitions: Maybe<T[]>,
+  resolversDefinitions: Maybe<T | T[]>,
   options?: MergeResolversOptions
 ): T {
-  if (!resolversDefinitions || resolversDefinitions.length === 0) {
+  if (!resolversDefinitions || (Array.isArray(resolversDefinitions) && resolversDefinitions.length === 0)) {
     return {} as T;
   }
 
+  if (!Array.isArray(resolversDefinitions)) {
+    return resolversDefinitions;
+  }
+
   if (resolversDefinitions.length === 1) {
-    const singleDefinition = resolversDefinitions[0];
-    if (Array.isArray(singleDefinition)) {
-      return mergeResolvers(singleDefinition);
-    }
-    return singleDefinition;
+    return resolversDefinitions[0];
   }
 
   type TFactory = (...args: any[]) => T;

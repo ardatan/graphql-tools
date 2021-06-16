@@ -1,4 +1,5 @@
-import { Source, debugLog, Maybe } from '@graphql-tools/utils';
+import { Source, Maybe } from '@graphql-tools/utils';
+import { env } from 'process';
 import { LoadTypedefsOptions } from '../load-typedefs';
 
 export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Maybe<Source>> {
@@ -17,7 +18,9 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
         return loadedValue;
       }
     } catch (error) {
-      debugLog(`Failed to find any GraphQL type definitions in: ${pointer} - ${error.message}`);
+      if (env['DEBUG']) {
+        console.error(`Failed to find any GraphQL type definitions in: ${pointer} - ${error.message}`);
+      }
       throw error;
     }
   }
@@ -41,7 +44,9 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): May
         return loader.loadSync!(pointer, options);
       }
     } catch (error) {
-      debugLog(`Failed to find any GraphQL type definitions in: ${pointer} - ${error.message}`);
+      if (env['DEBUG']) {
+        console.error(`Failed to find any GraphQL type definitions in: ${pointer} - ${error.message}`);
+      }
       throw error;
     }
   }

@@ -11,7 +11,7 @@ import {
   GraphQLEnumValueConfig,
   GraphQLEnumType,
 } from 'graphql';
-import { ITypeDefinitions, Maybe } from '@graphql-tools/utils';
+import { TypeSource } from '@graphql-tools/utils';
 import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
@@ -55,7 +55,7 @@ export interface IStitchSchemasOptions<TContext = Record<string, any>>
   subschemas?: Array<
     GraphQLSchema | SubschemaConfig<any, any, any, TContext> | Array<SubschemaConfig<any, any, any, TContext>>
   >;
-  typeDefs?: ITypeDefinitions;
+  typeDefs?: TypeSource;
   types?: Array<GraphQLNamedType>;
   onTypeConflict?: OnTypeConflict<TContext>;
   mergeDirectives?: boolean | undefined;

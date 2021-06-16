@@ -12,13 +12,13 @@ import {
 
 import { wrapSchema } from '@graphql-tools/wrap';
 import { Subschema, SubschemaConfig, StitchingInfo } from '@graphql-tools/delegate';
-import { GraphQLParseOptions, ITypeDefinitions, rewireTypes, TypeMap } from '@graphql-tools/utils';
-import { buildDocumentFromTypeDefinitions } from '@graphql-tools/schema';
+import { GraphQLParseOptions, TypeSource, rewireTypes, TypeMap } from '@graphql-tools/utils';
 
 import typeFromAST from './typeFromAST';
 import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, TypeMergingOptions } from './types';
 import { mergeCandidates } from './mergeCandidates';
 import { extractDefinitions } from './definitions';
+import { mergeTypeDefs } from '@graphql-tools/merge';
 
 type CandidateSelector<TContext = Record<string, any>> = (
   candidates: Array<MergeTypeCandidate<TContext>>
@@ -42,7 +42,7 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
     GraphQLSchema | SubschemaConfig<any, any, any, TContext>
   >;
   types: Array<GraphQLNamedType>;
-  typeDefs: ITypeDefinitions | undefined;
+  typeDefs: TypeSource;
   parseOptions: GraphQLParseOptions;
   extensions: Array<DocumentNode>;
   directiveMap: Record<string, GraphQLDirective>;
@@ -61,7 +61,7 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
   let document: DocumentNode | undefined;
   let extraction: ReturnType<typeof extractDefinitions> | undefined;
   if ((typeDefs && !Array.isArray(typeDefs)) || (Array.isArray(typeDefs) && typeDefs.length)) {
-    document = buildDocumentFromTypeDefinitions(typeDefs, parseOptions);
+    document = mergeTypeDefs(typeDefs, parseOptions);
     extraction = extractDefinitions(document);
     schemaDef = extraction.schemaDefs[0];
     schemaExtensions = schemaExtensions.concat(extraction.schemaExtensions);
