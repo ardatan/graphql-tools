@@ -2,6 +2,7 @@ import gql from 'graphql-tag';
 import { composeResolvers, ResolversComposerMapping } from '../src';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { execute, GraphQLScalarType, Kind } from 'graphql';
+import { IResolvers } from 'packages/graphql-tools/src';
 
 function createAsyncIterator<T>(array: T[]): AsyncIterator<T, T, T> {
   let i = 0;
@@ -292,40 +293,20 @@ describe('Resolvers composition', () => {
 
   it('should handle nullish properties correctly', async () => {
     const getFoo = () => 'FOO';
-    const typeDefs = gql`
-      type Query {
-        foo: String
-        bar: String
-      }
-    `;
-    const resolvers = {
+    const resolvers: IResolvers = {
       Query: {
-        foo: async () => getFoo()
+        foo: async () => getFoo(),
+        bar: undefined,
       },
+      Mutation: undefined
     };
     const resolversComposition: ResolversComposerMapping = {
       'Query.foo': (next: (arg0: any, arg1: any, arg2: any, arg3: any) => void) => async (root: any, args: any, context: any, info: any) => {
         const prevResult = await next(root, args, context, info);
         return getFoo() + prevResult;
       },
-      'Query.bar': null,
+      'Query.bar': undefined
     };
-    const composedResolvers = composeResolvers(resolvers, resolversComposition);
-    const schema = makeExecutableSchema({
-      typeDefs,
-      resolvers: composedResolvers,
-    });
-
-    const result = await execute({
-      schema,
-
-      document: gql`
-        query {
-          foo
-        }
-      `,
-    });
-    expect(result.errors).toBeFalsy();
-    expect(result.data.foo).toBe('FOOFOO');
+    expect(() => composeResolvers(resolvers, resolversComposition)).not.toThrow();
   })
 });
