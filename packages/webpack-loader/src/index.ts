@@ -41,7 +41,7 @@ function expandImports(source: string, options: Options) {
   return outputCode;
 }
 
-export default function graphqlLoader(source: string) {
+export default function graphqlLoader(this: { query: Options; cacheable: VoidFunction }, source: string) {
   this.cacheable();
   const options: Options = this.query || {};
   let doc = parseDocument(source);
