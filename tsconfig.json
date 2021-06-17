@@ -25,7 +25,7 @@
     "skipLibCheck": true,
 
     "paths": {
-      "@graphql-tools/*-loader": ["packages/loaders/*/src/index.ts"],
+      "@graphql-tools/*-loader": ["packages/loaders/*/src/index.ts", "packages/*-loader/src/index.ts"],
       "@graphql-tools/*": ["packages/*/src/index.ts"]
     }
   },

@@ -1,8 +1,8 @@
-import loader, { Options } from '@graphql-tools/webpack-loader';
-import { Transformer } from '@jest/transform';
+import loader from '@graphql-tools/webpack-loader';
+import { SyncTransformer, TransformOptions } from '@jest/transform';
 import { Config } from '@jest/types';
 
-export interface GraphQLGlobalOptions extends Options {}
+export type GraphQLGlobalOptions = ThisParameterType<typeof loader>['query'];
 
 declare module '@jest/types' {
   namespace Config {
@@ -12,9 +12,9 @@ declare module '@jest/types' {
   }
 }
 
-class GraphQLTransformer implements Transformer {
-  process(input: string, _filePath: Config.Path, jestConfig: Config.ProjectConfig): string {
-    const config = jestConfig.globals?.['graphql'] || {};
+class GraphQLTransformer implements SyncTransformer {
+  process(input: string, _filePath: Config.Path, jestConfig: TransformOptions): string {
+    const config = jestConfig.config.globals?.['graphql'] || {};
     // call directly the webpack loader with a mocked context
     // as the loader leverages `this.cacheable()`
     return loader.call(

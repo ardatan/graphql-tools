@@ -21,6 +21,10 @@
       "import": "./dist/*.mjs"
     }
   },
+  "typings": "dist/index.d.ts",
+  "typescript": {
+    "definition": "dist/index.d.ts"
+  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0"
   },
