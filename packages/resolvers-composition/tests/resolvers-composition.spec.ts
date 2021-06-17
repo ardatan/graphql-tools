@@ -289,4 +289,43 @@ describe('Resolvers composition', () => {
     expect(functionsCalled).not.toContain('parseLiteral');
 
   });
+
+  it('should handle nullish properties correctly', async () => {
+    const getFoo = () => 'FOO';
+    const typeDefs = gql`
+      type Query {
+        foo: String
+        bar: String
+      }
+    `;
+    const resolvers = {
+      Query: {
+        foo: async () => getFoo()
+      },
+    };
+    const resolversComposition: ResolversComposerMapping = {
+      'Query.foo': (next: (arg0: any, arg1: any, arg2: any, arg3: any) => void) => async (root: any, args: any, context: any, info: any) => {
+        const prevResult = await next(root, args, context, info);
+        return getFoo() + prevResult;
+      },
+      'Query.bar': null,
+    };
+    const composedResolvers = composeResolvers(resolvers, resolversComposition);
+    const schema = makeExecutableSchema({
+      typeDefs,
+      resolvers: composedResolvers,
+    });
+
+    const result = await execute({
+      schema,
+
+      document: gql`
+        query {
+          foo
+        }
+      `,
+    });
+    expect(result.errors).toBeFalsy();
+    expect(result.data.foo).toBe('FOOFOO');
+  })
 });
