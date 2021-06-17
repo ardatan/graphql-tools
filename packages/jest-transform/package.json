@@ -22,7 +22,7 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/webpack-loader": "6.0.15",
+    "@graphql-tools/webpack-loader": "^6.4.0",
     "@jest/transform": "^26.2.0",
     "@jest/types": "^26.2.0",
     "tslib": "~2.0.0"
