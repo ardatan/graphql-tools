@@ -7,7 +7,6 @@ import { stripWhitespaces } from './utils';
 import gql from 'graphql-tag';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import {jest} from '@jest/globals';
 
 const introspectionSchema = JSON.parse(readFileSync(join(__dirname, './schema.json'), 'utf8'));
 
@@ -1364,5 +1363,22 @@ describe('Merge TypeDefs', () => {
 
       expect(mergeDirectives(directivesOne, directivesTwo, config)).toEqual(directivesTwo);
     });
+  })
+
+  it('should respect schema definition', () => {
+    const typeDefs = /* GraphQL */`
+      schema {
+          query: query_root
+      }
+
+      type Query {
+          one: String
+      }
+
+      type query_root {
+          two: String
+      }
+    `;
+    expect(print(mergeTypeDefs([typeDefs]))).toBeSimilarGqlDoc(stripWhitespaces(typeDefs))
   })
 });
