@@ -7,6 +7,8 @@ import { stripWhitespaces } from './utils';
 import gql from 'graphql-tag';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { loadSchema } from '@graphql-tools/load';
+import { printSchemaWithDirectives, validateGraphQlDocuments, checkValidationErrors } from '@graphql-tools/utils';
 
 const introspectionSchema = JSON.parse(readFileSync(join(__dirname, './schema.json'), 'utf8'));
 
@@ -1365,8 +1367,8 @@ describe('Merge TypeDefs', () => {
     });
   })
 
-  it('should respect schema definition', () => {
-    const typeDefs = /* GraphQL */`
+  it('should respect schema definition', async () => {
+    const typeDefs = stripWhitespaces(/* GraphQL */`
       schema {
           query: query_root
       }
@@ -1378,7 +1380,31 @@ describe('Merge TypeDefs', () => {
       type query_root {
           two: String
       }
-    `;
-    expect(print(mergeTypeDefs([typeDefs]))).toBeSimilarGqlDoc(stripWhitespaces(typeDefs))
+    `);
+    /**
+     *  mergeTypeDefs doesn't change schema definition
+     *  So this means query { two } is supposed to refer to query_root's two field correctly
+     *  */
+    expect(print(mergeTypeDefs([typeDefs]))).toBeSimilarGqlDoc(typeDefs);
+    /**
+     * Load the schema with loadSchema like codegen does
+     */
+    const schema = await loadSchema(typeDefs, {
+      loaders: []
+    });
+    // And make sure when loadSchema loads the schema from type defs
+    // It keeps the schema definition as-is
+    expect(printSchemaWithDirectives(schema)).toBeSimilarGqlDoc(typeDefs);
+    const document = parse(/* GraphQL */`
+      query getTwo {
+        two
+      }
+    `);
+    // Try to validate the document like codegen does
+    try {
+      checkValidationErrors(await validateGraphQlDocuments(schema, [{ document }]));
+    } catch(e) {
+      expect(e).toBeFalsy();
+    }
   })
 });
