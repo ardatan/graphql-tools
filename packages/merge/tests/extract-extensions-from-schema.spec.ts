@@ -1,6 +1,6 @@
 import { buildSchema, GraphQLSchema, printSchema, buildASTSchema, parse } from 'graphql';
 import { assertGraphQLEnumType, assertGraphQLInputObjectType, assertGraphQLObjectType, assertGraphQLInterfaceType, assertGraphQLUnionType, assertGraphQLScalerType } from '../../testing/assertion';
-import { assertSome } from 'packages/utils/src/helpers';
+import { assertSome } from '@graphql-tools/utils';
 import { extractExtensionsFromSchema, mergeExtensions, applyExtensions } from '../src/extensions'
 
 describe('extensions', () => {
