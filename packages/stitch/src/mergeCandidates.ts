@@ -51,6 +51,7 @@ import {
 } from './mergeValidations';
 
 import { isSubschemaConfig } from '@graphql-tools/delegate';
+import { Maybe } from '@graphql-tools/utils';
 
 export function mergeCandidates<TContext = Record<string, any>>(
   typeName: string,
@@ -523,8 +524,9 @@ function inputFieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
   candidates: Array<MergeTypeCandidate<TContext>>,
   typeMergingOptions?: TypeMergingOptions<TContext>
 ): GraphQLInputFieldConfigMap {
-  const inputFieldConfigCandidatesMap: Record<string, Array<MergeInputFieldConfigCandidate<TContext>>> =
-    Object.create(null);
+  const inputFieldConfigCandidatesMap: Record<string, Array<MergeInputFieldConfigCandidate<TContext>>> = Object.create(
+    null
+  );
   const fieldInclusionMap: Record<string, number> = Object.create(null);
 
   candidates.forEach(candidate => {

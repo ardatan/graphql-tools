@@ -11,7 +11,7 @@ import {
   GraphQLEnumValueConfig,
   GraphQLEnumType,
 } from 'graphql';
-import { TypeSource } from '@graphql-tools/utils';
+import { Maybe, TypeSource } from '@graphql-tools/utils';
 import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 

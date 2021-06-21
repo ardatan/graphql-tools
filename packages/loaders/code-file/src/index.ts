@@ -134,7 +134,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
           return parseGraphQLSDL(pointer, sdl, options);
         }
       } catch (e) {
-        if (env.DEBUG) {
+        if (env['DEBUG']) {
           console.error(`Failed to load schema from code file "${normalizedFilePath}": ${e.message}`);
         }
         errors.push(e);
@@ -179,7 +179,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
           return parseGraphQLSDL(pointer, sdl, options);
         }
       } catch (e) {
-        if (env.DEBUG) {
+        if (env['DEBUG']) {
           console.error(`Failed to load schema from code file "${normalizedFilePath}": ${e.message}`);
         }
         errors.push(e);

@@ -91,7 +91,7 @@ export function stitchSchemas<TContext = Record<string, any>>({
     subschemas: transformedSubschemas,
     originalSubschemaMap,
     types,
-    typeDefs,
+    typeDefs: typeDefs || [],
     parseOptions,
     extensions,
     directiveMap,

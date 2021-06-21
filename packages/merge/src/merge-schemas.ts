@@ -46,7 +46,7 @@ const defaultResolverValidationOptions: Partial<IResolverValidationOptions> = {
  * @param config Configuration object
  */
 export function mergeSchemas(config: MergeSchemasConfig) {
-  const typeDefs = mergeTypeDefs([config.schemas, config.typeDefs], config);
+  const typeDefs = mergeTypeDefs([config.schemas, config.typeDefs || []], config);
   const extractedResolvers: IResolvers<any, any>[] = [];
   const extractedExtensions: SchemaExtensions[] = [];
   for (const schema of config.schemas) {
@@ -67,7 +67,7 @@ export function mergeSchemas(config: MergeSchemasConfig) {
  */
 export async function mergeSchemasAsync(config: MergeSchemasConfig) {
   const [typeDefs, resolvers, extensions] = await Promise.all([
-    mergeTypeDefs([config.schemas, config.typeDefs], config),
+    mergeTypeDefs([config.schemas, config.typeDefs || []], config),
     Promise.all(config.schemas.map(async schema => getResolversFromSchema(schema))).then(extractedResolvers =>
       mergeResolvers([...extractedResolvers, ...ensureResolvers(config)], config)
     ),
