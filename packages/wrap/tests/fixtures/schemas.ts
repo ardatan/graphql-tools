@@ -12,8 +12,6 @@ import {
   GraphQLInterfaceType,
 } from 'graphql';
 
-import isPromise from 'is-promise';
-
 import { ValueOrPromise } from 'value-or-promise';
 
 import { introspectSchema } from '../../src/introspect';
@@ -21,6 +19,7 @@ import {
   IResolvers,
   ExecutionResult,
   mapAsyncIterator,
+  isAsyncIterable,
 } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { SubschemaConfig, ExecutionParams } from '@graphql-tools/delegate';
@@ -606,7 +605,7 @@ const bookingResolvers: IResolvers = {
       return limit ? list.slice(0, limit) : list;
     },
     vehicle(parent: Customer) {
-      return sampleData.Vehicle[parent.vehicleId];
+      return parent.vehicleId && sampleData.Vehicle[parent.vehicleId];
     },
     error() {
       throw new Error('Customer.error error');
@@ -699,16 +698,15 @@ function makeExecutorFromSchema(schema: GraphQLSchema) {
 
 function makeSubscriberFromSchema(schema: GraphQLSchema) {
   return async <TReturn, TArgs, TContext>({ document, variables, context }: ExecutionParams<TArgs, TContext>) => {
-    const result = subscribe(
+    const result = await subscribe(
       schema,
       document,
       null,
       context,
       variables,
-    ) as Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
-    if (isPromise(result)) {
-      return result.then(asyncIterator =>
-        mapAsyncIterator(asyncIterator as AsyncIterator<ExecutionResult>, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult))));
+    );
+    if (isAsyncIterable<ExecutionResult<TReturn>>(result)) {
+      return mapAsyncIterator<ExecutionResult<TReturn>, TReturn>(result, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult)));
     }
     return JSON.parse(JSON.stringify(result));
   };
