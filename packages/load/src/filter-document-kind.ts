@@ -4,7 +4,7 @@ import { DocumentNode, DefinitionNode, Kind } from 'graphql';
 /**
  * @internal
  */
-export const filterKind = (content: DocumentNode, filterKinds: null | string[]) => {
+export const filterKind = (content: DocumentNode | undefined, filterKinds: null | string[]) => {
   if (content && content.definitions && content.definitions.length && filterKinds && filterKinds.length > 0) {
     const invalidDefinitions: DefinitionNode[] = [];
     const validDefinitions: DefinitionNode[] = [];

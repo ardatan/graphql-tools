@@ -122,7 +122,7 @@ export function composeResolvers<Resolvers extends Record<string, any>>(
       });
     } else if (resolverPathMapping) {
       Object.keys(resolverPathMapping).forEach(fieldName => {
-        const composeFns = mapping[resolverPath][fieldName];
+        const composeFns = resolverPathMapping[fieldName];
         const relevantFields = resolveRelevantMappings(resolvers, resolverPath + '.' + fieldName, mapping);
 
         relevantFields.forEach((path: string) => {

@@ -199,15 +199,21 @@ export type InputFieldFilter = (
 ) => boolean;
 
 export type FieldFilter = (
-  typeName?: string,
-  fieldName?: string,
-  fieldConfig?: GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig
+  typeName: string,
+  fieldName: string,
+  fieldConfig: GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig
+) => boolean;
+
+export type ObjectFieldFilter = (
+  typeName: string,
+  fieldName: string,
+  fieldConfig: GraphQLFieldConfig<any, any>
 ) => boolean;
 
 export type RootFieldFilter = (
-  operation?: 'Query' | 'Mutation' | 'Subscription',
-  rootFieldName?: string,
-  fieldConfig?: GraphQLFieldConfig<any, any>
+  operation: 'Query' | 'Mutation' | 'Subscription',
+  rootFieldName: string,
+  fieldConfig: GraphQLFieldConfig<any, any>
 ) => boolean;
 
 export type TypeFilter = (typeName: string, type: GraphQLType) => boolean;
@@ -458,6 +464,18 @@ export interface SchemaMapper {
   [MapperKind.INPUT_OBJECT_FIELD]?: InputFieldMapper;
   [MapperKind.DIRECTIVE]?: DirectiveMapper;
 }
+
+export type SchemaFieldMapperTypes = Array<
+  | MapperKind.FIELD
+  | MapperKind.COMPOSITE_FIELD
+  | MapperKind.OBJECT_FIELD
+  | MapperKind.ROOT_FIELD
+  | MapperKind.QUERY_ROOT_FIELD
+  | MapperKind.MUTATION_ROOT_FIELD
+  | MapperKind.SUBSCRIPTION_ROOT_FIELD
+  | MapperKind.INTERFACE_FIELD
+  | MapperKind.INPUT_OBJECT_FIELD
+>;
 
 export type NamedTypeMapper = (type: GraphQLNamedType, schema: GraphQLSchema) => GraphQLNamedType | null | undefined;
 

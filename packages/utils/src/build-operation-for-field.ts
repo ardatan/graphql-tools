@@ -340,15 +340,13 @@ function resolveSelectionSet({
           }
           return null;
         })
-        .filter(f => {
-          if (f) {
-            if ('selectionSet' in f) {
-              return f.selectionSet?.selections?.length;
-            } else {
-              return true;
-            }
+        .filter((f): f is SelectionNode => {
+          if (f == null) {
+            return false;
+          } else if ('selectionSet' in f) {
+            return !!f.selectionSet?.selections?.length;
           }
-          return false;
+          return true;
         }),
     };
   }

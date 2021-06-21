@@ -23,6 +23,7 @@ import {
   GraphQLEnumValueConfig,
   EnumValueDefinitionNode,
 } from 'graphql';
+import { Maybe } from 'packages/graphql-tools/src';
 
 import { getArgumentValues } from './getArgumentValues';
 
@@ -57,7 +58,7 @@ type DirectableGraphQLObject =
 export function getDirectivesInExtensions(
   node: DirectableGraphQLObject,
   pathToDirectivesInExtensions = ['directives']
-): DirectiveUseMap {
+): Maybe<DirectiveUseMap> {
   const directivesInExtensions = pathToDirectivesInExtensions.reduce(
     (acc, pathSegment) => (acc == null ? acc : acc[pathSegment]),
     node?.extensions

@@ -28,6 +28,7 @@ import {
 
 import { healSchema } from './heal';
 import { SchemaVisitor } from './SchemaVisitor';
+import { isSome } from './helpers';
 
 function isSchemaVisitor(obj: any): obj is SchemaVisitor {
   if ('schema' in obj && isSchema(obj.schema)) {
@@ -162,12 +163,14 @@ export function visitSchema(
       if (newInputObject != null) {
         const fieldMap = newInputObject.getFields() as Record<string, GraphQLInputField>;
         for (const key of Object.keys(fieldMap)) {
-          fieldMap[key] = callMethod('visitInputFieldDefinition', fieldMap[key], {
+          const result = callMethod('visitInputFieldDefinition', fieldMap[key], {
             // Since we call a different method for input object fields, we
             // can't reuse the visitFields function here.
             objectType: newInputObject,
           });
-          if (!fieldMap[key]) {
+          if (result) {
+            fieldMap[key] = result;
+          } else {
             delete fieldMap[key];
           }
         }
@@ -195,10 +198,10 @@ export function visitSchema(
               enumType: newEnum,
             })
           )
-          .filter(Boolean);
+          .filter(isSome);
 
         // Recreate the enum type if any of the values changed
-        const valuesUpdated = newValues.some((value, index) => value !== newEnum.getValues()[index]);
+        const valuesUpdated = newValues.some((value, index) => value !== newEnum!.getValues()[index]);
         if (valuesUpdated) {
           newEnum = new GraphQLEnumType({
             ...(newEnum as GraphQLEnumType).toConfig(),
@@ -221,7 +224,7 @@ export function visitSchema(
       return newEnum;
     }
 
-    throw new Error(`Unexpected schema type: ${(type as unknown) as string}`);
+    throw new Error(`Unexpected schema type: ${type as unknown as string}`);
   }
 
   function visitFields(type: GraphQLObjectType | GraphQLInterfaceType) {
@@ -254,7 +257,7 @@ export function visitSchema(
               objectType: type,
             })
           )
-          .filter(Boolean);
+          .filter(isSome);
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -309,7 +312,7 @@ function getVisitor(visitorDef: SchemaVisitorMap, specifiers: Array<VisitSchemaK
   let typeVisitor: NamedTypeVisitor | undefined;
   const stack = [...specifiers];
   while (!typeVisitor && stack.length > 0) {
-    const next = stack.pop();
+    const next = stack.pop()!;
     typeVisitor = visitorDef[next] as NamedTypeVisitor;
   }
 

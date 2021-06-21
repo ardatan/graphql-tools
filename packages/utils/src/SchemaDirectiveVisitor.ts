@@ -11,6 +11,7 @@ import { VisitableSchemaType } from './Interfaces';
 import { SchemaVisitor } from './SchemaVisitor';
 import { visitSchema } from './visitSchema';
 import { getArgumentValues } from './getArgumentValues';
+import { Maybe } from 'packages/graphql-tools/src';
 
 // This class represents a reusable implementation of a @directive that may
 // appear in a GraphQL schema written in Schema Definition Language.
@@ -152,9 +153,11 @@ export class SchemaDirectiveVisitor<TArgs = any, TContext = any> extends SchemaV
       } else {
         let directiveNodes = type?.astNode?.directives ?? [];
 
-        const extensionASTNodes: ReadonlyArray<TypeSystemExtensionNode> = (type as {
-          extensionASTNodes?: Array<TypeSystemExtensionNode>;
-        }).extensionASTNodes;
+        const extensionASTNodes: Maybe<ReadonlyArray<TypeSystemExtensionNode>> = (
+          type as {
+            extensionASTNodes?: Array<TypeSystemExtensionNode>;
+          }
+        ).extensionASTNodes;
 
         if (extensionASTNodes != null) {
           extensionASTNodes.forEach(extensionASTNode => {

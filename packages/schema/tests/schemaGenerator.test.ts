@@ -21,6 +21,7 @@ import {
   GraphQLBoolean,
   graphqlSync,
   GraphQLSchema,
+  GraphQLFieldResolver,
 } from 'graphql';
 
 import {
@@ -55,7 +56,7 @@ interface Bird {
 function expectWarning(fn: () => void, warnMatcher?: string) {
   // eslint-disable-next-line no-console
   const originalWarn = console.warn;
-  let warning: string = null;
+  let warning: string | null = null;
 
   try {
     // eslint-disable-next-line no-console
@@ -97,11 +98,13 @@ const testResolvers = {
 
 describe('generating schema from shorthand', () => {
   test('throws an error if no schema is provided', () => {
+    // @ts-expect-error: we call it with invalid params
     expect(() => makeExecutableSchema(undefined)).toThrowError('undefined');
   });
 
   test('throws an error if typeDefinitionNodes are not provided', () => {
     expect(() =>
+      // @ts-expect-error: we call it with invalid params
       makeExecutableSchema({ typeDefs: undefined, resolvers: {} }),
     ).toThrowError('Must provide typeDefs');
   });
@@ -218,7 +221,7 @@ describe('generating schema from shorthand', () => {
               name: 'name',
               type: {
                 kind: 'NON_NULL',
-                name: null as string,
+                name: null as string | null,
                 ofType: {
                   name: 'String',
                 },
@@ -242,7 +245,7 @@ describe('generating schema from shorthand', () => {
               name: 'species',
               type: {
                 kind: 'LIST',
-                name: null as string,
+                name: null as string | null,
                 ofType: {
                   name: 'BirdSpecies',
                 },
@@ -251,7 +254,7 @@ describe('generating schema from shorthand', () => {
                 {
                   name: 'name',
                   type: {
-                    name: null as string,
+                    name: null as string | null,
                     kind: 'NON_NULL',
                     ofType: {
                       name: 'String',
@@ -293,7 +296,7 @@ describe('generating schema from shorthand', () => {
       typeDefs: typeDefAry,
       resolvers: {},
     });
-    expect(jsSchema.getQueryType().name).toBe('Query');
+    expect(jsSchema.getQueryType()?.name).toBe('Query');
   });
 
   test('can generate a schema from a parsed type definition', () => {
@@ -310,7 +313,7 @@ describe('generating schema from shorthand', () => {
       typeDefs: typeDefSchema,
       resolvers: {},
     });
-    expect(jsSchema.getQueryType().name).toBe('Query');
+    expect(jsSchema.getQueryType()?.name).toBe('Query');
   });
 
   test('can generate a schema from an array of parsed and none parsed type definitions', () => {
@@ -330,7 +333,7 @@ describe('generating schema from shorthand', () => {
       typeDefs: typeDefSchema,
       resolvers: {},
     });
-    expect(jsSchema.getQueryType().name).toBe('Query');
+    expect(jsSchema.getQueryType()?.name).toBe('Query');
   });
 
   test('can generate a schema from an array of types with extensions', () => {
@@ -356,9 +359,9 @@ describe('generating schema from shorthand', () => {
       typeDefs: typeDefAry,
       resolvers: {},
     });
-    expect(jsSchema.getQueryType().name).toBe('Query');
-    expect(jsSchema.getQueryType().getFields().foo).toBeDefined();
-    expect(jsSchema.getQueryType().getFields().bar).toBeDefined();
+    expect(jsSchema.getQueryType()?.name).toBe('Query');
+    expect(jsSchema.getQueryType()?.getFields().foo).toBeDefined();
+    expect(jsSchema.getQueryType()?.getFields().bar).toBeDefined();
   });
 
   test('allow for a map of extensions in field resolver', () => {
@@ -381,9 +384,9 @@ describe('generating schema from shorthand', () => {
         },
       },
     });
-    const extensions = jsSchema.getQueryType().getFields().foo.extensions;
+    const extensions = jsSchema.getQueryType()?.getFields().foo.extensions;
     expect(extensions).toHaveProperty('verbose');
-    expect(extensions.verbose).toBe(true);
+    expect(extensions!.verbose).toBe(true);
   });
 
   test('can concatenateTypeDefs created by a function inside a closure', () => {
@@ -433,7 +436,7 @@ describe('generating schema from shorthand', () => {
       typeDefs: typeDefAry,
       resolvers: {},
     });
-    expect(jsSchema.getQueryType().name).toBe('Query');
+    expect(jsSchema.getQueryType()?.name).toBe('Query');
   });
 
   test('works with imports, even circular ones', () => {
@@ -459,7 +462,7 @@ describe('generating schema from shorthand', () => {
         TypeB: { a: () => null },
       },
     });
-    expect(jsSchema.getQueryType().name).toBe('Query');
+    expect(jsSchema.getQueryType()?.name).toBe('Query');
   });
 
   test('can generate a schema with resolvers', () => {
@@ -804,13 +807,13 @@ describe('generating schema from shorthand', () => {
         typeDefs: shorthand,
         resolvers: resolveFunctions,
       });
-      expect(jsSchema.getQueryType().name).toBe('Query');
+      expect(jsSchema.getQueryType()?.name).toBe('Query');
       for (const scalarName of scalarNames) {
         expect(jsSchema.getType(scalarName)).toBeInstanceOf(GraphQLScalarType);
         expect(jsSchema.getType(scalarName)).toHaveProperty('description');
-        expect(typeof jsSchema.getType(scalarName).description).toBe('string');
+        expect(typeof jsSchema.getType(scalarName)?.description).toBe('string');
         expect(
-          jsSchema.getType(scalarName).description.length,
+          jsSchema.getType(scalarName)?.description?.length,
         ).toBeGreaterThan(0);
       }
     });
@@ -832,7 +835,7 @@ describe('generating schema from shorthand', () => {
         typeDefs: shorthand,
         resolvers: resolveFunctions,
       });
-      expect(jsSchema.getQueryType().name).toBe('Query');
+      expect(jsSchema.getQueryType()?.name).toBe('Query');
       expect(jsSchema.getType('Boolean')).toBe(GraphQLBoolean);
     });
 
@@ -868,7 +871,7 @@ describe('generating schema from shorthand', () => {
         }
       `;
       const result = graphqlSync(jsSchema, testQuery);
-      expect(result.data.foo.aField).toBe(false);
+      expect(result.data!.foo.aField).toBe(false);
       jsSchema = addResolversToSchema({
         schema: jsSchema,
         resolvers: {
@@ -905,7 +908,7 @@ describe('generating schema from shorthand', () => {
 
       const testType = schema.getType('Test');
       expect(testType).toBeInstanceOf(GraphQLScalarType);
-      expect(testType.astNode.directives.length).toBe(1);
+      expect(testType!.astNode!.directives!.length).toBe(1);
     });
 
     test('retains scalars after walking/recreating the schema', () => {
@@ -967,7 +970,7 @@ describe('generating schema from shorthand', () => {
       );
       expect(walkedSchema.getType('Test')).toBeInstanceOf(GraphQLScalarType);
       expect(walkedSchema.getType('Test')).toHaveProperty('description');
-      expect(walkedSchema.getType('Test').description).toBe('Test resolver');
+      expect(walkedSchema.getType('Test')!.description).toBe('Test resolver');
       const testQuery = `
         {
           test
@@ -1096,7 +1099,7 @@ describe('generating schema from shorthand', () => {
   `;
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then((result) => {
-        expect(result.data.post.something).toEqual(testValue);
+        expect(result.data!.post.something).toEqual(testValue);
         expect(result.errors).toEqual(undefined);
       });
     });
@@ -1166,7 +1169,7 @@ describe('generating schema from shorthand', () => {
   `;
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then((result) => {
-        expect(result.data.post.something).toEqual(testDate.getTime());
+        expect(result.data!.post.something).toEqual(testDate.getTime());
         expect(result.errors).toEqual(undefined);
       });
     });
@@ -1207,7 +1210,7 @@ describe('generating schema from shorthand', () => {
         resolvers: resolveFunctions,
       });
 
-      expect(jsSchema.getQueryType().name).toBe('Query');
+      expect(jsSchema.getQueryType()!.name).toBe('Query');
       expect(jsSchema.getType('Color')).toBeInstanceOf(GraphQLEnumType);
       expect(jsSchema.getType('NumericEnum')).toBeInstanceOf(GraphQLEnumType);
     });
@@ -1268,9 +1271,9 @@ describe('generating schema from shorthand', () => {
 
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then((result) => {
-        expect(result.data.redColor).toEqual('RED');
-        expect(result.data.blueColor).toEqual('BLUE');
-        expect(result.data.numericEnum).toEqual('TEST');
+        expect(result.data!.redColor).toEqual('RED');
+        expect(result.data!.blueColor).toEqual('BLUE');
+        expect(result.data!.numericEnum).toEqual('TEST');
         expect(result.errors).toEqual(undefined);
       });
     });
@@ -1327,9 +1330,9 @@ describe('generating schema from shorthand', () => {
 
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then((result) => {
-        expect(result.data.red).toEqual(resolveFunctions.Color.RED);
-        expect(result.data.blue).toEqual(resolveFunctions.Color.BLUE);
-        expect(result.data.num).toEqual(resolveFunctions.NumericEnum.TEST);
+        expect(result.data!.red).toEqual(resolveFunctions.Color.RED);
+        expect(result.data!.blue).toEqual(resolveFunctions.Color.BLUE);
+        expect(result.data!.num).toEqual(resolveFunctions.NumericEnum.TEST);
         expect(result.errors).toEqual(undefined);
       });
     });
@@ -1373,7 +1376,7 @@ describe('generating schema from shorthand', () => {
 
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then((result) => {
-        expect(result.data.red).toEqual(resolveFunctions.Color.RED);
+        expect(result.data!.red).toEqual(resolveFunctions.Color.RED);
         expect(result.errors).toEqual(undefined);
       });
     });
@@ -1424,7 +1427,7 @@ describe('generating schema from shorthand', () => {
 
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then((result) => {
-        expect(result.data.red).toEqual('override');
+        expect(result.data!.red).toEqual('override');
         expect(result.errors).toEqual(undefined);
       });
     });
@@ -1472,7 +1475,7 @@ describe('generating schema from shorthand', () => {
 
     const resultPromise = graphql(jsSchema, testQuery);
     return resultPromise.then((result) => {
-      expect(result.data.red).toEqual('#EA3232');
+      expect(result.data!.red).toEqual('#EA3232');
       expect(result.errors).toEqual(undefined);
     });
   });
@@ -1648,7 +1651,7 @@ To disable this validator, use:
       makeExecutableSchema.bind(null, {
         typeDefs: short,
         resolvers: rf,
-        resolverValidationOptions: { requireResolversForNonScalar: false },
+        resolverValidationOptions: { requireResolversForNonScalar: 'ignore' },
       }),
     ).not.toThrow();
   });
@@ -2038,7 +2041,7 @@ describe('Attaching external data fetchers to schema', () => {
         species(name: "strix")
       }`;
       return graphql(jsSchema, query).then((res) => {
-        expect(res.data.species).toBe('ROOTstrix');
+        expect(res.data!.species).toBe('ROOTstrix');
       });
     });
 
@@ -2053,7 +2056,7 @@ describe('Attaching external data fetchers to schema', () => {
         stuff
       }`;
       return graphql(jsSchema, query).then((res) => {
-        expect(res.data.stuff).toBe('stuff');
+        expect(res.data!.stuff).toBe('stuff');
       });
     });
 
@@ -2184,11 +2187,15 @@ describe('Generating a full graphQL schema with resolvers and connectors', () =>
 
 describe('chainResolvers', () => {
   test('can chain two resolvers', () => {
-    const r1 = (root: number) => root + 1;
-    const r2 = (root: number, { addend }: { addend: number }) => root + addend;
+    const r1: GraphQLFieldResolver<any, any, { addend: number }> = (root: number) => root + 1;
+    const r2: GraphQLFieldResolver<any, any, { addend: number }> = (root: number, { addend }) => root + addend;
+
+    const info: GraphQLResolveInfo = ({
+      fieldName: 'addend',
+    } as unknown) as GraphQLResolveInfo;
 
     const rChained = chainResolvers([r1, r2]);
-    expect(rChained(0, { addend: 2 }, null, null)).toBe(3);
+    expect(rChained(0, { addend: 2 }, null, info)).toBe(3);
   });
 
   test('uses default resolver when a resolver is undefined', () => {
@@ -2464,7 +2471,7 @@ describe('can specify lexical parser options', () => {
       },
     });
 
-    expect(schema.astNode.loc).toBeUndefined();
+    expect(schema.astNode!.loc).toBeUndefined();
   });
 
   test("can specify 'experimentalFragmentVariables' option", () => {
@@ -2528,7 +2535,7 @@ describe('can specify lexical parser options', () => {
 
       document.definitions.forEach((def) => {
         if (def.kind === Kind.FRAGMENT_DEFINITION) {
-          variableDefs = variableDefs.concat(def.variableDefinitions);
+          variableDefs = variableDefs.concat(def.variableDefinitions!);
         }
       });
 

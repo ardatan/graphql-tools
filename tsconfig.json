@@ -18,11 +18,14 @@
     "downlevelIteration": true,
 
     "suppressImplicitAnyIndexErrors": true,
-    "noImplicitAny": true,
-    "alwaysStrict": true,
+
+    "skipLibCheck": true,
+
+    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
 
     "paths": {
       "@graphql-tools/*-loader": ["packages/loaders/*/src/index.ts", "packages/*-loader/src/index.ts"],
