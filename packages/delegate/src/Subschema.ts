@@ -19,7 +19,6 @@ export class Subschema<K = any, V = any, C = K, TContext = Record<string, any>>
 {
   public schema: GraphQLSchema;
 
-  public rootValue?: Record<string, any>;
   public executor?: Executor<TContext>;
   public subscriber?: Subscriber<TContext>;
   public batch?: boolean;
@@ -34,7 +33,6 @@ export class Subschema<K = any, V = any, C = K, TContext = Record<string, any>>
   constructor(config: SubschemaConfig<K, V, C, TContext>) {
     this.schema = config.schema;
 
-    this.rootValue = config.rootValue;
     this.executor = config.executor;
     this.subscriber = config.subscriber;
     this.batch = config.batch;

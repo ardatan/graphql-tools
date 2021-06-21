@@ -27,7 +27,6 @@ import {
   isEnumType,
   Kind,
 } from 'graphql';
-import { camelCase } from 'camel-case';
 
 let operationVariables: VariableDefinitionNode[] = [];
 let fieldTypeMap = new Map();
@@ -42,10 +41,6 @@ function resetOperationVariables() {
 
 function resetFieldMap() {
   fieldTypeMap = new Map();
-}
-
-function buildOperationName(name: string) {
-  return camelCase(name);
 }
 
 export type Skip = string[];
@@ -131,15 +126,15 @@ function buildOperationAndCollectVariables({
   };
   const type = typeMap[kind];
   const field = type.getFields()[fieldName];
-  const operationName = buildOperationName(`${fieldName}_${kind}`);
+  const operationName = `${fieldName}_${kind}`;
 
   if (field.args) {
-    field.args.forEach(arg => {
+    for (const arg of field.args) {
       const argName = arg.name;
       if (!argNames || argNames.includes(argName)) {
         addOperationVariable(resolveVariable(arg, argName));
       }
-    });
+    }
   }
 
   return {
@@ -394,7 +389,7 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
 }
 
 function getArgumentName(name: string, path: string[]): string {
-  return camelCase([...path, name].join('_'));
+  return [...path, name].join('_');
 }
 
 function resolveField({

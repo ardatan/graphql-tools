@@ -20,30 +20,20 @@ import {
   DocumentNode,
   GraphQLBoolean,
   graphqlSync,
-  GraphQLSchema,
   GraphQLFieldResolver,
 } from 'graphql';
 
 import {
   makeExecutableSchema,
-  addErrorLoggingToSchema,
-  addSchemaLevelResolver,
   addResolversToSchema,
-  attachDirectiveResolvers,
   chainResolvers,
-  concatenateTypeDefs,
-  ILogger,
 } from '@graphql-tools/schema';
 
 import {
   IResolverValidationOptions,
   IResolvers,
-  IDirectiveResolvers,
-  NextResolverFn,
-  VisitSchemaKind,
-  ITypeDefinitions,
-  visitSchema,
-  ExecutionResult
+  ExecutionResult,
+  TypeSource
 } from '@graphql-tools/utils';
 
 import TypeA from './fixtures/circularSchemaA';
@@ -88,7 +78,6 @@ const testSchema = `
       }
     `;
 const testResolvers = {
-  __schema: () => ({ stuff: 'stuff', species: 'ROOT' }),
   RootQuery: {
     usecontext: (_r: any, _a: Record<string, any>, ctx: any) => ctx.usecontext,
     species: (root: any, { name }: { name: string }) =>
@@ -118,22 +107,22 @@ describe('generating schema from shorthand', () => {
   test('throws an error if typeDefinitionNodes is neither string nor array nor schema AST', () => {
     expect(() =>
       makeExecutableSchema({
-        typeDefs: ({} as unknown) as ITypeDefinitions,
+        typeDefs: ({} as unknown) as TypeSource,
         resolvers: {},
       }),
     ).toThrowError(
-      'typeDefs must be a string, array or schema AST, got object',
+      'typeDefs must contain only strings, documents, schemas, or functions, got object',
     );
   });
 
   test('throws an error if typeDefinitionNode array contains not only functions and strings', () => {
     expect(() =>
       makeExecutableSchema({
-        typeDefs: ([17] as unknown) as ITypeDefinitions,
+        typeDefs: ([17] as unknown) as TypeSource,
         resolvers: {},
       }),
     ).toThrowError(
-      'typeDef array must contain only strings, documents, or functions, got number',
+      'typeDefs must contain only strings, documents, schemas, or functions, got number',
     );
   });
 
@@ -360,8 +349,8 @@ describe('generating schema from shorthand', () => {
       resolvers: {},
     });
     expect(jsSchema.getQueryType()?.name).toBe('Query');
-    expect(jsSchema.getQueryType()?.getFields().foo).toBeDefined();
-    expect(jsSchema.getQueryType()?.getFields().bar).toBeDefined();
+    expect(jsSchema.getQueryType()?.getFields()['foo']).toBeDefined();
+    expect(jsSchema.getQueryType()?.getFields()['bar']).toBeDefined();
   });
 
   test('allow for a map of extensions in field resolver', () => {
@@ -384,33 +373,9 @@ describe('generating schema from shorthand', () => {
         },
       },
     });
-    const extensions = jsSchema.getQueryType()?.getFields().foo.extensions;
+    const extensions = jsSchema.getQueryType()?.getFields()['foo'].extensions;
     expect(extensions).toHaveProperty('verbose');
-    expect(extensions!.verbose).toBe(true);
-  });
-
-  test('can concatenateTypeDefs created by a function inside a closure', () => {
-    const typeA = { typeDefs: () => ['type TypeA { foo: String }'] };
-    const typeB = { typeDefs: () => ['type TypeB { bar: String }'] };
-    const typeC = { typeDefs: () => ['type TypeC { foo: String }'] };
-    const typeD = { typeDefs: () => ['type TypeD { bar: String }'] };
-
-    function combineTypeDefs(...args: Array<any>): any {
-      return { typeDefs: () => args.map((o) => o.typeDefs) };
-    }
-
-    const combinedAandB = combineTypeDefs(typeA, typeB);
-    const combinedCandD = combineTypeDefs(typeC, typeD);
-
-    const result = concatenateTypeDefs([
-      combinedAandB.typeDefs,
-      combinedCandD.typeDefs,
-    ]);
-
-    expect(result).toMatch('type TypeA');
-    expect(result).toMatch('type TypeB');
-    expect(result).toMatch('type TypeC');
-    expect(result).toMatch('type TypeD');
+    expect(extensions!['verbose']).toBe(true);
   });
 
   test('properly deduplicates the array of type DefinitionNodes', () => {
@@ -751,7 +716,7 @@ describe('generating schema from shorthand', () => {
     const QueryResolver = class QueryResolver {
       private internalVersion = 1
 
-      version(root: any, args: any, context: any) {
+      version() {
         return this.internalVersion
       }
     }
@@ -871,7 +836,7 @@ describe('generating schema from shorthand', () => {
         }
       `;
       const result = graphqlSync(jsSchema, testQuery);
-      expect(result.data!.foo.aField).toBe(false);
+      expect(result.data!['foo'].aField).toBe(false);
       jsSchema = addResolversToSchema({
         schema: jsSchema,
         resolvers: {
@@ -909,80 +874,6 @@ describe('generating schema from shorthand', () => {
       const testType = schema.getType('Test');
       expect(testType).toBeInstanceOf(GraphQLScalarType);
       expect(testType!.astNode!.directives!.length).toBe(1);
-    });
-
-    test('retains scalars after walking/recreating the schema', () => {
-      const shorthand = `
-        scalar Test
-
-        type Foo {
-          testField: Test
-        }
-
-        type Query {
-          test: Test
-          testIn(input: Test): Test
-        }
-      `;
-      const resolveFunctions = {
-        Test: new GraphQLScalarType({
-          name: 'Test',
-          description: 'Test resolver',
-          serialize(value) {
-            if (typeof value !== 'string' || value.indexOf('scalar:') !== 0) {
-              return `scalar:${value as string}`;
-            }
-            return value;
-          },
-          parseValue(value) {
-            return `scalar:${value as string}`;
-          },
-          parseLiteral(ast: any) {
-            switch (ast.kind) {
-              case Kind.STRING:
-              case Kind.INT:
-                return `scalar:${ast.value as string}`;
-              default:
-                return null;
-            }
-          },
-        }),
-        Query: {
-          testIn(_: any, { input }: any) {
-            expect(input).toMatch('scalar:');
-            return input;
-          },
-          test() {
-            return 42;
-          },
-        },
-      };
-      const walkedSchema = visitSchema(
-        makeExecutableSchema({
-          typeDefs: shorthand,
-          resolvers: resolveFunctions,
-        }),
-        {
-          [VisitSchemaKind.ENUM_TYPE](type: GraphQLEnumType) {
-            return type;
-          },
-        },
-      );
-      expect(walkedSchema.getType('Test')).toBeInstanceOf(GraphQLScalarType);
-      expect(walkedSchema.getType('Test')).toHaveProperty('description');
-      expect(walkedSchema.getType('Test')!.description).toBe('Test resolver');
-      const testQuery = `
-        {
-          test
-          testIn(input: 1)
-        }`;
-      const resultPromise = graphql(walkedSchema, testQuery);
-      return resultPromise.then((result) =>
-        expect(result.data).toEqual({
-          test: 'scalar:42',
-          testIn: 'scalar:1',
-        }),
-      );
     });
 
     test('should support custom scalar usage on client-side query execution', () => {
@@ -1099,7 +990,7 @@ describe('generating schema from shorthand', () => {
   `;
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then((result) => {
-        expect(result.data!.post.something).toEqual(testValue);
+        expect(result.data!['post'].something).toEqual(testValue);
         expect(result.errors).toEqual(undefined);
       });
     });
@@ -1169,7 +1060,7 @@ describe('generating schema from shorthand', () => {
   `;
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then((result) => {
-        expect(result.data!.post.something).toEqual(testDate.getTime());
+        expect(result.data!['post'].something).toEqual(testDate.getTime());
         expect(result.errors).toEqual(undefined);
       });
     });
@@ -1271,9 +1162,9 @@ describe('generating schema from shorthand', () => {
 
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then((result) => {
-        expect(result.data!.redColor).toEqual('RED');
-        expect(result.data!.blueColor).toEqual('BLUE');
-        expect(result.data!.numericEnum).toEqual('TEST');
+        expect(result.data!['redColor']).toEqual('RED');
+        expect(result.data!['blueColor']).toEqual('BLUE');
+        expect(result.data!['numericEnum']).toEqual('TEST');
         expect(result.errors).toEqual(undefined);
       });
     });
@@ -1330,9 +1221,9 @@ describe('generating schema from shorthand', () => {
 
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then((result) => {
-        expect(result.data!.red).toEqual(resolveFunctions.Color.RED);
-        expect(result.data!.blue).toEqual(resolveFunctions.Color.BLUE);
-        expect(result.data!.num).toEqual(resolveFunctions.NumericEnum.TEST);
+        expect(result.data!['red']).toEqual(resolveFunctions.Color.RED);
+        expect(result.data!['blue']).toEqual(resolveFunctions.Color.BLUE);
+        expect(result.data!['num']).toEqual(resolveFunctions.NumericEnum.TEST);
         expect(result.errors).toEqual(undefined);
       });
     });
@@ -1376,7 +1267,7 @@ describe('generating schema from shorthand', () => {
 
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then((result) => {
-        expect(result.data!.red).toEqual(resolveFunctions.Color.RED);
+        expect(result.data!['red']).toEqual(resolveFunctions.Color.RED);
         expect(result.errors).toEqual(undefined);
       });
     });
@@ -1427,7 +1318,7 @@ describe('generating schema from shorthand', () => {
 
       const resultPromise = graphql(jsSchema, testQuery);
       return resultPromise.then((result) => {
-        expect(result.data!.red).toEqual('override');
+        expect(result.data!['red']).toEqual('override');
         expect(result.errors).toEqual(undefined);
       });
     });
@@ -1475,7 +1366,7 @@ describe('generating schema from shorthand', () => {
 
     const resultPromise = graphql(jsSchema, testQuery);
     return resultPromise.then((result) => {
-      expect(result.data!.red).toEqual('#EA3232');
+      expect(result.data!['red']).toEqual('#EA3232');
       expect(result.errors).toEqual(undefined);
     });
   });
@@ -2012,157 +1903,6 @@ To disable this validator, use:
   });
 });
 
-describe('Add error logging to schema', () => {
-  test('throws an error if no logger is provided', () => {
-    expect(() =>
-      addErrorLoggingToSchema(({} as unknown) as GraphQLSchema),
-    ).toThrow('Must provide a logger');
-  });
-  test('throws an error if logger.log is not a function', () => {
-    expect(() =>
-      addErrorLoggingToSchema(
-        ({} as unknown) as GraphQLSchema,
-        ({ log: '1' } as unknown) as ILogger,
-      ),
-    ).toThrow('Logger.log must be a function');
-  });
-});
-
-describe('Attaching external data fetchers to schema', () => {
-  describe('Schema level resolver', () => {
-    test('actually runs', () => {
-      let jsSchema = makeExecutableSchema({
-        typeDefs: testSchema,
-        resolvers: testResolvers,
-      });
-      const rootResolver = () => ({ species: 'ROOT' });
-      jsSchema = addSchemaLevelResolver(jsSchema, rootResolver);
-      const query = `{
-        species(name: "strix")
-      }`;
-      return graphql(jsSchema, query).then((res) => {
-        expect(res.data!.species).toBe('ROOTstrix');
-      });
-    });
-
-    test('can wrap fields that do not have a resolver defined', () => {
-      let jsSchema = makeExecutableSchema({
-        typeDefs: testSchema,
-        resolvers: testResolvers,
-      });
-      const rootResolver = () => ({ stuff: 'stuff' });
-      jsSchema = addSchemaLevelResolver(jsSchema, rootResolver);
-      const query = `{
-        stuff
-      }`;
-      return graphql(jsSchema, query).then((res) => {
-        expect(res.data!.stuff).toBe('stuff');
-      });
-    });
-
-    test('runs only once per query', () => {
-      const simpleResolvers = {
-        RootQuery: {
-          usecontext: (_r: any, _a: Record<string, any>, ctx: any) =>
-            ctx.usecontext,
-          species: (root: any, { name }: { name: string }) =>
-            (root.species as string) + name,
-        },
-      };
-      let jsSchema = makeExecutableSchema({
-        typeDefs: testSchema,
-        resolvers: simpleResolvers,
-      });
-      let count = 0;
-      const rootResolver = () => {
-        if (count === 0) {
-          count += 1;
-          return { stuff: 'stuff', species: 'some ' };
-        }
-        return { stuff: 'EEE', species: 'EEE' };
-      };
-      jsSchema = addSchemaLevelResolver(jsSchema, rootResolver);
-      const query = `{
-        species(name: "strix")
-        stuff
-      }`;
-      const expected = {
-        species: 'some strix',
-        stuff: 'stuff',
-      };
-      return graphql(jsSchema, query).then((res) => {
-        expect(res.data).toEqual(expected);
-      });
-    });
-
-    test('runs twice for two queries', () => {
-      const simpleResolvers = {
-        RootQuery: {
-          usecontext: (_r: any, _a: Record<string, any>, ctx: any) =>
-            ctx.usecontext,
-          species: (root: any, { name }: { name: string }) =>
-            (root.species as string) + name,
-        },
-      };
-      let jsSchema = makeExecutableSchema({
-        typeDefs: testSchema,
-        resolvers: simpleResolvers,
-      });
-      let count = 0;
-      const rootResolver = () => {
-        if (count === 0) {
-          count += 1;
-          return { stuff: 'stuff', species: 'some ' };
-        }
-        if (count === 1) {
-          count += 1;
-          return { stuff: 'stuff2', species: 'species2 ' };
-        }
-        return { stuff: 'EEE', species: 'EEE' };
-      };
-      jsSchema = addSchemaLevelResolver(jsSchema, rootResolver);
-      const query = `{
-        species(name: "strix")
-        stuff
-      }`;
-      const expected = {
-        species: 'some strix',
-        stuff: 'stuff',
-      };
-      const expected2 = {
-        species: 'species2 strix',
-        stuff: 'stuff2',
-      };
-      return graphql(jsSchema, query).then((res) => {
-        expect(res.data).toEqual(expected);
-        return graphql(jsSchema, query).then((res2) =>
-          expect(res2.data).toEqual(expected2),
-        );
-      });
-    });
-
-    test('can attach things to context', () => {
-      let jsSchema = makeExecutableSchema({
-        typeDefs: testSchema,
-        resolvers: testResolvers,
-      });
-      const rootResolver = (_o: any, _a: Record<string, any>, ctx: any) => {
-        ctx.usecontext = 'ABC';
-      };
-      jsSchema = addSchemaLevelResolver(jsSchema, rootResolver);
-      const query = `{
-        usecontext
-      }`;
-      const expected = {
-        usecontext: 'ABC',
-      };
-      return graphql(jsSchema, query, {}, {}).then((res) => {
-        expect(res.data).toEqual(expected);
-      });
-    });
-  });
-});
-
 describe('Generating a full graphQL schema with resolvers and connectors', () => {
   test('outputs a working GraphQL schema', () => {
     const schema = makeExecutableSchema({
@@ -2179,7 +1919,7 @@ describe('Generating a full graphQL schema with resolvers and connectors', () =>
       stuff: 'stuff',
       usecontext: 'ABC',
     };
-    return graphql(schema, query, {}, { usecontext: 'ABC' }).then((res) => {
+    return graphql(schema, query, { stuff: 'stuff', species: 'ROOT' }, { usecontext: 'ABC' }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -2209,248 +1949,6 @@ describe('chainResolvers', () => {
       fieldName: 'person',
     } as unknown) as GraphQLResolveInfo;
     expect(rChained(0, { name: 'tony' }, null, info)).toBe('tony');
-  });
-});
-
-describe('attachDirectiveResolvers on field', () => {
-  const testSchemaWithDirectives = `
-    directive @upper on FIELD_DEFINITION
-    directive @lower on FIELD_DEFINITION
-    directive @default(value: String!) on FIELD_DEFINITION
-    directive @catchError on FIELD_DEFINITION
-
-    type TestObject {
-      hello: String @upper
-    }
-    type RootQuery {
-      hello: String @upper
-      withDefault: String @default(value: "some default_value")
-      object: TestObject
-      asyncResolver: String @upper
-      multiDirectives: String @upper @lower
-      throwError: String @catchError
-    }
-    schema {
-      query: RootQuery
-    }
-  `;
-
-  const testObject = {
-    hello: 'giau. tran minh',
-  };
-
-  const testResolversDirectives = {
-    RootQuery: {
-      hello: () => 'giau. tran minh',
-      object: () => testObject,
-      asyncResolver: async () => Promise.resolve('giau. tran minh'),
-      multiDirectives: () => 'Giau. Tran Minh',
-      throwError: () => {
-        throw new Error('This error for testing');
-      },
-    },
-  };
-
-  const directiveResolvers: IDirectiveResolvers = {
-    lower(
-      next: NextResolverFn,
-      _src: any,
-      _args: { [argName: string]: any },
-      _context: any,
-    ) {
-      return next().then((str) => {
-        if (typeof str === 'string') {
-          return str.toLowerCase();
-        }
-        return str;
-      });
-    },
-    upper(
-      next: NextResolverFn,
-      _src: any,
-      _args: { [argName: string]: any },
-      _context: any,
-    ) {
-      return next().then((str) => {
-        if (typeof str === 'string') {
-          return str.toUpperCase();
-        }
-        return str;
-      });
-    },
-    default(
-      next: NextResolverFn,
-      _src: any,
-      args: { [argName: string]: any },
-      _context: any,
-    ) {
-      return next().then((res) => {
-        if (undefined === res) {
-          return args.value;
-        }
-        return res;
-      });
-    },
-    catchError(
-      next: NextResolverFn,
-      _src: any,
-      _args: { [argName: string]: any },
-      _context: any,
-    ) {
-      return next().catch((error) => error.message);
-    },
-  };
-
-  test('throws error if directiveResolvers argument is an array', () => {
-    const jsSchema = makeExecutableSchema({
-      typeDefs: testSchema,
-      resolvers: testResolvers,
-    });
-    expect(() =>
-      attachDirectiveResolvers(jsSchema, ([
-        1,
-      ] as unknown) as IDirectiveResolvers),
-    ).toThrowError(
-      'Expected directiveResolvers to be of type object, got Array',
-    );
-  });
-
-  test('throws error if directiveResolvers argument is not an object', () => {
-    const jsSchema = makeExecutableSchema({
-      typeDefs: testSchema,
-      resolvers: testResolvers,
-    });
-    return expect(() =>
-      attachDirectiveResolvers(
-        jsSchema,
-        ('a' as unknown) as IDirectiveResolvers,
-      ),
-    ).toThrowError(
-      'Expected directiveResolvers to be of type object, got string',
-    );
-  });
-
-  test('upper String from resolvers', () => {
-    const schema = makeExecutableSchema({
-      typeDefs: testSchemaWithDirectives,
-      resolvers: testResolversDirectives,
-      directiveResolvers,
-    });
-    const query = `{
-      hello
-    }`;
-    const expected = {
-      hello: 'GIAU. TRAN MINH',
-    };
-    return graphql(schema, query, {}, {}).then((res) => {
-      expect(res.data).toEqual(expected);
-    });
-  });
-
-  test('using default resolver for object property', () => {
-    const schema = makeExecutableSchema({
-      typeDefs: testSchemaWithDirectives,
-      resolvers: testResolversDirectives,
-      directiveResolvers,
-    });
-    const query = `{
-      object {
-        hello
-      }
-    }`;
-    const expected = {
-      object: {
-        hello: 'GIAU. TRAN MINH',
-      },
-    };
-    return graphql(schema, query, {}, {}).then((res) => {
-      expect(res.data).toEqual(expected);
-    });
-  });
-
-  test('passes in directive arguments to the directive resolver', () => {
-    const schema = makeExecutableSchema({
-      typeDefs: testSchemaWithDirectives,
-      resolvers: testResolversDirectives,
-      directiveResolvers,
-    });
-    const query = `{
-      withDefault
-    }`;
-    const expected = {
-      withDefault: 'some default_value',
-    };
-    return graphql(schema, query, {}, {}).then((res) => {
-      expect(res.data).toEqual(expected);
-    });
-  });
-
-  test('No effect if missing directive resolvers', () => {
-    const schema = makeExecutableSchema({
-      typeDefs: testSchemaWithDirectives,
-      resolvers: testResolversDirectives,
-      directiveResolvers: {}, // Empty resolver
-    });
-    const query = `{
-      hello
-    }`;
-    const expected = {
-      hello: 'giau. tran minh',
-    };
-    return graphql(schema, query, {}, {}).then((res) => {
-      expect(res.data).toEqual(expected);
-    });
-  });
-
-  test('If resolver return Promise, keep using it', () => {
-    const schema = makeExecutableSchema({
-      typeDefs: testSchemaWithDirectives,
-      resolvers: testResolversDirectives,
-      directiveResolvers,
-    });
-    const query = `{
-      asyncResolver
-    }`;
-    const expected = {
-      asyncResolver: 'GIAU. TRAN MINH',
-    };
-    return graphql(schema, query, {}, {}).then((res) => {
-      expect(res.data).toEqual(expected);
-    });
-  });
-
-  test('Multi directives apply with LTR order', () => {
-    const schema = makeExecutableSchema({
-      typeDefs: testSchemaWithDirectives,
-      resolvers: testResolversDirectives,
-      directiveResolvers,
-    });
-    const query = `{
-      multiDirectives
-    }`;
-    const expected = {
-      multiDirectives: 'giau. tran minh',
-    };
-    return graphql(schema, query, {}, {}).then((res) => {
-      expect(res.data).toEqual(expected);
-    });
-  });
-
-  test('Allow to catch error from next resolver', () => {
-    const schema = makeExecutableSchema({
-      typeDefs: testSchemaWithDirectives,
-      resolvers: testResolversDirectives,
-      directiveResolvers,
-    });
-    const query = `{
-      throwError
-    }`;
-    const expected = {
-      throwError: 'This error for testing',
-    };
-    return graphql(schema, query, {}, {}).then((res) => {
-      expect(res.data).toEqual(expected);
-    });
   });
 });
 
@@ -2531,13 +2029,13 @@ describe('can specify lexical parser options', () => {
     const parsedQuery = parse(query, { experimentalFragmentVariables: true });
 
     const hoist = (document: DocumentNode) => {
-      let variableDefs: Array<VariableDefinitionNode> = [];
+      const variableDefs: Array<VariableDefinitionNode> = [];
 
-      document.definitions.forEach((def) => {
-        if (def.kind === Kind.FRAGMENT_DEFINITION) {
-          variableDefs = variableDefs.concat(def.variableDefinitions!);
+      for (const def of document.definitions) {
+        if (def.kind === Kind.FRAGMENT_DEFINITION && def.variableDefinitions) {
+          variableDefs.push(...def.variableDefinitions);
         }
-      });
+      }
 
       return {
         kind: Kind.DOCUMENT,

@@ -1,4 +1,4 @@
-import * as lodash from 'lodash';
+import _ from 'lodash';
 // eslint-disable-next-line
 // @ts-ignore
 import replaceall from 'replaceall';
@@ -43,10 +43,10 @@ export class Variables {
     const deepMapValues = (object: any, callback: any, propertyPath?: string[]): any => {
       const deepMapValuesIteratee = (value: any, key: any) =>
         deepMapValues(value, callback, propertyPath ? propertyPath.concat(key) : [key]);
-      if (lodash.isArray(object)) {
-        return lodash.map(object, deepMapValuesIteratee);
-      } else if (lodash.isObject(object) && !lodash.isDate(object) && !lodash.isFunction(object)) {
-        return lodash.extend({}, object, lodash.mapValues(object, deepMapValuesIteratee));
+      if (_.isArray(object)) {
+        return _.map(object, deepMapValuesIteratee);
+      } else if (_.isObject(object) && !_.isDate(object) && !_.isFunction(object)) {
+        return _.extend({}, object, _.mapValues(object, deepMapValuesIteratee));
       }
       return callback(object, propertyPath);
     };
@@ -54,7 +54,7 @@ export class Variables {
     deepMapValues(objectToPopulate, (property: any, propertyPath: any) => {
       if (typeof property === 'string') {
         const populateSingleProperty = this.populateProperty(property, true).then((newProperty: any) =>
-          lodash.set(objectToPopulate, propertyPath, newProperty)
+          _.set(objectToPopulate, propertyPath, newProperty)
         );
         populateAll.push(populateSingleProperty);
       }
@@ -64,40 +64,43 @@ export class Variables {
   }
 
   populateProperty(propertyParam: any, populateInPlace?: boolean): any {
-    let property = populateInPlace ? propertyParam : lodash.cloneDeep(propertyParam);
+    let property = populateInPlace ? propertyParam : _.cloneDeep(propertyParam);
     const allValuesToPopulate: any[] = [];
     let warned = false;
 
     if (typeof property === 'string' && property.match(this.variableSyntax)) {
-      property.match(this.variableSyntax)!.forEach(matchedString => {
-        const variableString = matchedString
-          .replace(this.variableSyntax, (_, varName) => varName.trim())
-          .replace(/\s/g, '');
+      const matchedStrings = property.match(this.variableSyntax);
+      if (matchedStrings) {
+        for (const matchedString of matchedStrings) {
+          const variableString = matchedString
+            .replace(this.variableSyntax, (_, varName) => varName.trim())
+            .replace(/\s/g, '');
 
-        let singleValueToPopulate: Promise<any> | null = null;
-        if (variableString.match(this.overwriteSyntax)) {
-          singleValueToPopulate = this.overwrite(variableString);
-        } else {
-          singleValueToPopulate = this.getValueFromSource(variableString).then((valueToPopulate: any) => {
-            if (typeof valueToPopulate === 'object') {
-              return this.populateObject(valueToPopulate);
-            }
-            return valueToPopulate;
-          });
-        }
-
-        singleValueToPopulate = singleValueToPopulate!.then(valueToPopulate => {
-          if (this.warnIfNotFound(variableString, valueToPopulate)) {
-            warned = true;
+          let singleValueToPopulate: Promise<any> | null = null;
+          if (variableString.match(this.overwriteSyntax)) {
+            singleValueToPopulate = this.overwrite(variableString);
+          } else {
+            singleValueToPopulate = this.getValueFromSource(variableString).then((valueToPopulate: any) => {
+              if (typeof valueToPopulate === 'object') {
+                return this.populateObject(valueToPopulate);
+              }
+              return valueToPopulate;
+            });
           }
-          return this.populateVariable(property, matchedString, valueToPopulate).then((newProperty: any) => {
-            property = newProperty;
-            return Promise.resolve(property);
-          });
-        });
 
-        allValuesToPopulate.push(singleValueToPopulate);
-      });
+          singleValueToPopulate = singleValueToPopulate!.then(valueToPopulate => {
+            if (this.warnIfNotFound(variableString, valueToPopulate)) {
+              warned = true;
+            }
+            return this.populateVariable(property, matchedString, valueToPopulate).then((newProperty: any) => {
+              property = newProperty;
+              return Promise.resolve(property);
+            });
+          });
+
+          allValuesToPopulate.push(singleValueToPopulate);
+        }
+      }
       return Promise.all(allValuesToPopulate).then(() => {
         if ((property as any) !== (this.json as any) && !warned) {
           return this.populateProperty(property);
@@ -143,7 +146,7 @@ export class Variables {
         return (
           finalValue !== null &&
           typeof finalValue !== 'undefined' &&
-          !(typeof finalValue === 'object' && lodash.isEmpty(finalValue))
+          !(typeof finalValue === 'object' && _.isEmpty(finalValue))
         );
       });
       return Promise.resolve(finalValue);
@@ -215,7 +218,7 @@ export class Variables {
     if (
       valueToPopulate === null ||
       typeof valueToPopulate === 'undefined' ||
-      (typeof valueToPopulate === 'object' && lodash.isEmpty(valueToPopulate))
+      (typeof valueToPopulate === 'object' && _.isEmpty(valueToPopulate))
     ) {
       let varType;
       if (variableString.match(this.envRefSyntax)) {

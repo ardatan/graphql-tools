@@ -8,7 +8,7 @@ export const linkToSubscriber =
   async <TReturn, TArgs, TContext>(
     params: ExecutionParams<TArgs, TContext>
   ): Promise<ExecutionResult<TReturn> | AsyncIterableIterator<ExecutionResult<TReturn>>> => {
-    const { document, variables, extensions, context, info } = params;
+    const { document, variables, extensions, context, info, operationName } = params;
     return observableToAsyncIterable<ExecutionResult<TReturn>>(
       execute(link, {
         query: document,
@@ -19,6 +19,7 @@ export const linkToSubscriber =
           clientAwareness: {},
         },
         extensions,
+        operationName,
       }) as Observable<ExecutionResult<TReturn>>
     )[Symbol.asyncIterator]();
   };

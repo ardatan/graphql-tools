@@ -13,14 +13,13 @@ import {
   locatedError,
 } from 'graphql';
 
-import AggregateError from '@ardatan/aggregate-error';
+import { AggregateError, Maybe } from '@graphql-tools/utils';
 
 import { StitchingInfo, SubschemaConfig } from './types';
 import { annotateExternalObject, isExternalObject } from './externalObjects';
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
 import { mergeFields } from './mergeFields';
 import { Subschema } from './Subschema';
-import { Maybe } from '@graphql-tools/utils';
 
 export function resolveExternalValue(
   result: any,
@@ -162,17 +161,17 @@ function resolveExternalListMember(
   }
 }
 
-const reportedErrors: WeakMap<GraphQLError, boolean> = new Map();
+const reportedErrors = new WeakMap<GraphQLError, boolean>();
 
 function reportUnpathedErrorsViaNull(unpathedErrors: Array<GraphQLError>) {
   if (unpathedErrors.length) {
     const unreportedErrors: Array<GraphQLError> = [];
-    unpathedErrors.forEach(error => {
+    for (const error of unpathedErrors) {
       if (!reportedErrors.has(error)) {
         unreportedErrors.push(error);
         reportedErrors.set(error, true);
       }
-    });
+    }
 
     if (unreportedErrors.length) {
       if (unreportedErrors.length === 1) {

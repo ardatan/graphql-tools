@@ -11,7 +11,6 @@ import { sentence, first_name } from 'casual';
 import { addMocksToSchema, MockList, mockServer, IMocks, IMockStore } from '../src';
 import {
   addResolversToSchema,
-  buildSchemaFromTypeDefinitions,
   makeExecutableSchema,
 } from '@graphql-tools/schema';
 
@@ -100,7 +99,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('throws an error if second argument is not a Map', () => {
-    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const jsSchema = buildSchema(shorthand);
     expect(() =>
       addMocksToSchema({
         schema: jsSchema,
@@ -110,7 +109,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('mocks the default types for you', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {};
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
@@ -121,13 +120,13 @@ describe('Mock retro-compatibility', () => {
       returnID
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnInt).toBeGreaterThanOrEqual(-1000);
-      expect(res.data.returnInt).toBeLessThanOrEqual(1000);
-      expect(res.data.returnFloat).toBeGreaterThanOrEqual(-1000);
-      expect(res.data.returnFloat).toBeLessThanOrEqual(1000);
-      expect(typeof res.data.returnBoolean).toBe('boolean');
-      expect(typeof res.data.returnString).toBe('string');
-      expect(typeof res.data.returnID).toBe('string');
+      expect(res.data?.['returnInt']).toBeGreaterThanOrEqual(-1000);
+      expect(res.data?.['returnInt']).toBeLessThanOrEqual(1000);
+      expect(res.data?.['returnFloat']).toBeGreaterThanOrEqual(-1000);
+      expect(res.data?.['returnFloat']).toBeLessThanOrEqual(1000);
+      expect(typeof res.data?.['returnBoolean']).toBe('boolean');
+      expect(typeof res.data?.['returnString']).toBe('string');
+      expect(typeof res.data?.['returnID']).toBe('string');
     });
   });
 
@@ -171,7 +170,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('mockServer is able to preserveResolvers of a prebuilt schema', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const resolvers = {
       RootQuery: {
         returnString: () => 'someString',
@@ -208,7 +207,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('lets you use mockServer with prebuilt schema', () => {
-    const jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    const jsSchema = buildSchema(shorthand);
     const testQuery = `{
       returnInt
       returnFloat
@@ -248,7 +247,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('does not mask resolveType functions if you tell it not to', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     let spy = 0;
     const resolvers = {
       BirdsAndBees: {
@@ -284,19 +283,19 @@ describe('Mock retro-compatibility', () => {
 
   // TODO test mockServer with precompiled schema
   test('can mock Enum', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {};
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnEnum
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(['A', 'B', 'C']).toContain(res.data.returnEnum);
+      expect(['A', 'B', 'C']).toContain(res.data?.['returnEnum']);
     });
   });
 
   test('can mock Enum with a certain value', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {
       SomeEnum: () => 'C',
     };
@@ -305,12 +304,12 @@ describe('Mock retro-compatibility', () => {
       returnEnum
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect('C').toBe(res.data.returnEnum);
+      expect('C').toBe(res.data?.['returnEnum']);
     });
   });
 
   test('can mock Unions', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {
       Int: () => 10,
       String: () => 'aha',
@@ -334,13 +333,13 @@ describe('Mock retro-compatibility', () => {
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
       // XXX this test is expected to fail once every 2^40 times ;-)
-      expect(res.data.returnBirdsAndBees).toContainEqual(
+      expect(res.data?.['returnBirdsAndBees']).toContainEqual(
         expect.objectContaining({
           returnInt: 10,
           returnString: 'aha',
         }),
       );
-      return expect(res.data.returnBirdsAndBees).toContainEqual(
+      return expect(res.data?.['returnBirdsAndBees']).toContainEqual(
         expect.objectContaining({
           returnInt: 10,
           returnEnum: 'A',
@@ -350,7 +349,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('can mock Interfaces by default', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {
       Int: () => 10,
       String: () => 'aha',
@@ -376,13 +375,13 @@ describe('Mock retro-compatibility', () => {
       }
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnFlying).toContainEqual(
+      expect(res.data?.['returnFlying']).toContainEqual(
         expect.objectContaining({
           returnInt: 10,
           returnString: 'aha',
         }),
       );
-      return expect(res.data.returnFlying).toContainEqual(
+      return expect(res.data?.['returnFlying']).toContainEqual(
         expect.objectContaining({
           returnInt: 10,
           returnEnum: 'A',
@@ -392,7 +391,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   it('can mock nullable Interfaces', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
 
     const mockMap = {
       Bird: (): null => null,
@@ -421,7 +420,7 @@ describe('Mock retro-compatibility', () => {
     }`;
 
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.node).toEqual(null);
+      expect(res.data?.['node']).toEqual(null);
     });
   });
 
@@ -449,7 +448,7 @@ describe('Mock retro-compatibility', () => {
 
     const res = await server.query(testQuery);
 
-    expect(res.data.node).toEqual({
+    expect(res.data?.['node']).toEqual({
       id: 'bee:hardcoded',
       returnAbility: {
         name: 'Hello World',
@@ -458,7 +457,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('can support explicit Interface mock with resolver', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     let spy = 0;
     const mockMap = {
       Bird: () => ({
@@ -480,7 +479,7 @@ describe('Mock retro-compatibility', () => {
           const __typename = ['Bird', 'Bee'].find(
             (r) => r.toLowerCase() === type,
           );
-          return store.get(__typename, id);
+          return __typename && store.get(__typename, id);
         }
       }
     });
@@ -499,7 +498,7 @@ describe('Mock retro-compatibility', () => {
 
     return graphql(jsSchema, testQuery).then((res) => {
       expect(spy).toBe(1); // to make sure that Flying possible types are not randomly selected
-      expect(res.data.node).toMatchObject({
+      expect(res.data?.['node']).toMatchObject({
         id: 'bee:123456',
         returnSong: 'I believe i can fly',
         returnInt: 200,
@@ -508,7 +507,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('can support explicit UnionType mock', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     let spy = 0;
     const mockMap = {
       Bird: () => ({
@@ -541,7 +540,7 @@ describe('Mock retro-compatibility', () => {
 
     return graphql(jsSchema, testQuery).then((res) => {
       expect(spy).toBe(1);
-      expect(res.data.node2).toMatchObject({
+      expect(res.data?.['node2']).toMatchObject({
         id: 'bee:hardcoded',
         returnEnum: 'A',
       });
@@ -549,7 +548,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('throws an error when __typename is not returned within an explicit interface mock', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {
       Bird: (_root: any, args: any) => ({
         id: args.id,
@@ -570,12 +569,12 @@ describe('Mock retro-compatibility', () => {
         }`;
     const expected = 'Please return a __typename in "Flying"';
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.errors[0].originalError.message).toBe(expected);
+      expect(res.errors?.[0].originalError?.message).toBe(expected);
     });
   });
 
   test('throws an error in resolve if mock type is not defined', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {};
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
@@ -583,12 +582,12 @@ describe('Mock retro-compatibility', () => {
     }`;
     const expected = 'No mock defined for type "MissingMockType"';
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.errors[0].originalError.message).toBe(expected);
+      expect(res.errors?.[0].originalError?.message).toBe(expected);
     });
   });
 
   test('throws an error in resolve if mock type is not defined and resolver failed', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const resolvers = {
       MissingMockType: {
         __serialize: (val: string) => val,
@@ -596,7 +595,7 @@ describe('Mock retro-compatibility', () => {
         __parseLiteral: (val: string) => val,
       },
       RootQuery: {
-        returnMockError: (): string => undefined,
+        returnMockError: () => undefined,
       },
     };
     jsSchema = addResolversToSchema(jsSchema, resolvers);
@@ -612,12 +611,12 @@ describe('Mock retro-compatibility', () => {
       }`;
     const expected = 'No mock defined for type "MissingMockType"';
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.errors[0].originalError.message).toBe(expected);
+      expect(res.errors?.[0].originalError?.message).toBe(expected);
     });
   });
 
   test('can preserve scalar resolvers', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const resolvers = {
       MissingMockType: {
         __serialize: (val: string) => val,
@@ -649,85 +648,85 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('can mock an Int', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = { Int: () => 55 };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnInt
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnInt).toBe(55);
+      expect(res.data?.['returnInt']).toBe(55);
     });
   });
 
   test('can mock a Float', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = { Float: () => 55.5 };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnFloat
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnFloat).toBe(55.5);
+      expect(res.data?.['returnFloat']).toBe(55.5);
     });
   });
   test('can mock a String', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = { String: () => 'a string' };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnString
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnString).toBe('a string');
+      expect(res.data?.['returnString']).toBe('a string');
     });
   });
   test('can mock a Boolean', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = { Boolean: () => true };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnBoolean
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnBoolean).toBe(true);
+      expect(res.data?.['returnBoolean']).toBe(true);
     });
   });
   test('can mock an ID', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = { ID: () => 'ea5bdc19' };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnID
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnID).toBe('ea5bdc19');
+      expect(res.data?.['returnID']).toBe('ea5bdc19');
     });
   });
   test('nullable type is nullable', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = { String: (): null => null };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnNullableString
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnNullableString).toBe(null);
+      expect(res.data?.['returnNullableString']).toBe(null);
     });
   });
   test('can mock a nonNull type', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = { String: () => 'nonnull' };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
       returnNonNullString
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnNonNullString).toBe('nonnull');
+      expect(res.data?.['returnNonNullString']).toBe('nonnull');
     });
   });
   test('nonNull type is not nullable', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = { String: (): null => null };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
@@ -735,11 +734,11 @@ describe('Mock retro-compatibility', () => {
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
       expect(res.data).toBe(null);
-      expect(res.errors.length).toBe(1);
+      expect(res.errors?.length).toBe(1);
     });
   });
   test('can mock object types', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {
       String: () => 'abc',
       Int: () => 123,
@@ -757,7 +756,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('can mock a list of ints', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = { Int: () => 123 };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
     const testQuery = `{
@@ -772,7 +771,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('can mock a list of lists of objects', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {
       String: () => 'a',
       Int: () => 1,
@@ -799,7 +798,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('does not mask resolvers if you tell it not to', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {
       RootQuery: () => ({
         returnInt: (_root: any, _args: Record<string, any>) => 42, // a) in resolvers, will not be used
@@ -836,7 +835,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('lets you mock non-leaf types conveniently', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {
       Bird: () => ({
         returnInt: 12,
@@ -865,7 +864,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('lets you mock and resolve non-leaf types concurrently', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const resolvers = {
       RootQuery: {
         returnListOfInt: () => [1, 2, 3],
@@ -908,7 +907,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('lets you mock and resolve non-leaf types concurrently, support promises', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const resolvers = {
       RootQuery: {
         returnObject: () =>
@@ -948,7 +947,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('lets you mock and resolve non-leaf types concurrently, support defineProperty', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const objProxy = {};
     Object.defineProperty(
       objProxy,
@@ -989,7 +988,7 @@ describe('Mock retro-compatibility', () => {
     });
   });
 
-  test('let you mock with preserving resolvers, also when using logger', () => {
+  test('let you mock with preserving resolvers', () => {
     const resolvers = {
       RootQuery: {
         returnString: () => 'woot!?', // a) resolve of a string
@@ -998,7 +997,6 @@ describe('Mock retro-compatibility', () => {
     let jsSchema = makeExecutableSchema({
       typeDefs: [shorthand],
       resolvers,
-      logger: console,
     });
     const mockMap = {
       Int: () => 123, // b) mock of Int.
@@ -1028,10 +1026,10 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('let you resolve null with mocking and preserving resolvers', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const resolvers = {
       RootQuery: {
-        returnString: (): string => null, // a) resolve of a string
+        returnString: () => null, // a) resolve of a string
       },
     };
     jsSchema = addResolversToSchema(jsSchema, resolvers);
@@ -1055,7 +1053,7 @@ describe('Mock retro-compatibility', () => {
         returnInt: 666, // from the mock, see b)
         returnString: 'Hello World', // from mock default values.
       },
-      returnString: null as string, // from the mock, see a)
+      returnString: null as unknown as string, // from the mock, see a)
     };
     return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
       expect(res.data).toEqual(expected);
@@ -1063,10 +1061,10 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('lets you mock root query fields', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const resolvers = {
       RootQuery: {
-        returnStringArgument: (_: void, a: Record<string, any>) => a.s,
+        returnStringArgument: (_: void, a: Record<string, any>) => a['s'],
       },
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, resolvers });
@@ -1082,10 +1080,10 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('lets you mock root mutation fields', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const resolvers = {
       RootMutation: {
-        returnStringArgument: (_: void, a: Record<string, any>) => a.s,
+        returnStringArgument: (_: void, a: Record<string, any>) => a['s'],
       },
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, resolvers });
@@ -1101,7 +1099,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('lets you mock a list of a certain length', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {
       RootQuery: () => ({ returnListOfInt: () => new MockList(3) }),
       Int: () => 12,
@@ -1119,7 +1117,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('lets you mock a list of a random length', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {
       RootQuery: () => ({ returnListOfInt: () => new MockList([10, 20]) }),
       Int: () => 12,
@@ -1129,14 +1127,14 @@ describe('Mock retro-compatibility', () => {
       returnListOfInt
     }`;
     return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data.returnListOfInt.length).toBeGreaterThanOrEqual(10);
-      expect(res.data.returnListOfInt.length).toBeLessThanOrEqual(20);
-      expect(res.data.returnListOfInt[0]).toBe(12);
+      expect(res.data?.['returnListOfInt'].length).toBeGreaterThanOrEqual(10);
+      expect(res.data?.['returnListOfInt'].length).toBeLessThanOrEqual(20);
+      expect(res.data?.['returnListOfInt'][0]).toBe(12);
     });
   });
 
   test('lets you provide a function for your MockList', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {
       RootQuery: () => ({
         returnListOfInt: () => new MockList(2, () => 33),
@@ -1165,7 +1163,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('lets you nest MockList in MockList', () => {
-    let jsSchema = buildSchemaFromTypeDefinitions(shorthand);
+    let jsSchema = buildSchema(shorthand);
     const mockMap = {
       RootQuery: () => ({
         returnListOfListOfInt: () => new MockList(2, () => new MockList(3)),
@@ -1368,9 +1366,9 @@ describe('Mock retro-compatibility', () => {
       `,
     });
 
-    expect(result.data?.reviews?.length <= 4).toBeTruthy();
-    expect(typeof result.data?.reviews[0]?.sentence).toBe('string');
-    expect(typeof result.data?.reviews[0]?.user?.first_name).toBe('string');
+    expect(result.data?.['reviews']?.length <= 4).toBeTruthy();
+    expect(typeof result.data?.['reviews'][0]?.sentence).toBe('string');
+    expect(typeof result.data?.['reviews'][0]?.user?.first_name).toBe('string');
   });
 
   it('resolves subscriptions only once', async () => {

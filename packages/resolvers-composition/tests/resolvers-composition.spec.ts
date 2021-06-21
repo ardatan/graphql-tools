@@ -2,7 +2,6 @@ import gql from 'graphql-tag';
 import { composeResolvers, ResolversComposerMapping } from '../src';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { execute, GraphQLScalarType, Kind } from 'graphql';
-import { IResolvers } from 'packages/graphql-tools/src';
 
 function createAsyncIterator<T>(array: T[]): AsyncIterator<T, T, T> {
   let i = 0;
@@ -53,7 +52,7 @@ describe('Resolvers composition', () => {
       `,
     });
     expect(result.errors).toBeFalsy();
-    expect(result.data!.foo).toBe('FOOFOO');
+    expect(result.data!['foo']).toBe('FOOFOO');
   });
   it('should compose resolvers with resolve field', async () => {
     const getFoo = () => 'FOO';
@@ -91,7 +90,7 @@ describe('Resolvers composition', () => {
       `,
     });
     expect(result.errors).toBeFalsy();
-    expect(result.data!.foo).toBe('FOOFOO');
+    expect(result.data!['foo']).toBe('FOOFOO');
   });
   it('should compose subscription resolvers', async () => {
     const array1 = [1, 2];
@@ -170,7 +169,7 @@ describe('Resolvers composition', () => {
       `,
     });
     expect(result.errors).toBeFalsy();
-    expect(result.data!.foo).toBe('FOOFOO');
+    expect(result.data!['foo']).toBe('FOOFOO');
   });
   it('should be able to take nested composition objects for subscription resolvers', async () => {
     const array1 = [1, 2];
@@ -293,14 +292,14 @@ describe('Resolvers composition', () => {
 
   it('should handle nullish properties correctly', async () => {
     const getFoo = () => 'FOO';
-    const resolvers: IResolvers = {
+    const resolvers = {
       Query: {
         foo: async () => getFoo(),
         bar: undefined,
       },
       Mutation: undefined
     };
-    const resolversComposition: ResolversComposerMapping = {
+    const resolversComposition: any = {
       'Query.foo': (next: (arg0: any, arg1: any, arg2: any, arg3: any) => void) => async (root: any, args: any, context: any, info: any) => {
         const prevResult = await next(root, args, context, info);
         return getFoo() + prevResult;
