@@ -1,5 +1,5 @@
 import { chainFunctions } from './chain-functions';
-import { get, set, flatten } from 'lodash';
+import _ from 'lodash';
 import { GraphQLFieldResolver, GraphQLScalarTypeConfig } from 'graphql';
 import { asArray } from '@graphql-tools/utils';
 
@@ -45,11 +45,9 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
       if (!resolvers) {
         return [];
       }
-      return flatten(
-        Object.keys(resolvers).map(typeName =>
+      return Object.keys(resolvers).map(typeName =>
           resolveRelevantMappings(resolvers, `${typeName}.${fieldName}`, allMappings)
-        )
-      );
+        ).flat();
     }
 
     if (fieldName === '*') {
@@ -57,9 +55,7 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
       if (!fieldMap) {
         return [];
       }
-      return flatten(
-        Object.keys(fieldMap).map(field => resolveRelevantMappings(resolvers, `${typeName}.${field}`, allMappings))
-      ).filter(mapItem => !allMappings[mapItem]);
+      return Object.keys(fieldMap).map(field => resolveRelevantMappings(resolvers, `${typeName}.${field}`, allMappings)).flat().filter(mapItem => !allMappings[mapItem]);
     } else {
       const paths = [];
 
@@ -87,11 +83,9 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
       return [];
     }
 
-    return flatten(
-      Object.keys(fieldMap).map(fieldName =>
+    return Object.keys(fieldMap).map(fieldName =>
         resolveRelevantMappings(resolvers, `${typeName}.${fieldName}`, allMappings)
-      )
-    );
+      ).flat();
   }
 
   return [];
@@ -125,18 +119,18 @@ export function composeResolvers<Resolvers extends Record<string, any>>(
         const composeFns = resolverPathMapping[fieldName];
         const relevantFields = resolveRelevantMappings(resolvers, resolverPath + '.' + fieldName, mapping);
 
-        relevantFields.forEach((path: string) => {
+        for (const path of relevantFields) {
           mappingResult[path] = asArray(composeFns);
-        });
+        }
       });
     }
   });
 
-  Object.keys(mappingResult).forEach(path => {
-    const fns = chainFunctions([...asArray(mappingResult[path]), () => get(resolvers, path)]);
+  for (const path in mappingResult) {
+    const fns = chainFunctions([...asArray(mappingResult[path]), () => _.get(resolvers, path)]);
 
-    set(resolvers, path, fns());
-  });
+    _.set(resolvers, path, fns());
+  }
 
   return resolvers;
 }

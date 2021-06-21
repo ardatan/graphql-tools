@@ -1,4 +1,4 @@
-import { SubschemaConfigTransform } from 'packages/graphql-tools/src';
+import { SubschemaConfigTransform } from '../types';
 import { computedDirectiveTransformer } from './computedDirectiveTransformer';
 
 export { computedDirectiveTransformer } from './computedDirectiveTransformer';

@@ -13,14 +13,13 @@ import {
   locatedError,
 } from 'graphql';
 
-import AggregateError from '@ardatan/aggregate-error';
+import { AggregateError, Maybe } from '@graphql-tools/utils';
 
 import { StitchingInfo, SubschemaConfig } from './types';
 import { annotateExternalObject, isExternalObject } from './externalObjects';
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
 import { mergeFields } from './mergeFields';
 import { Subschema } from './Subschema';
-import { Maybe } from '@graphql-tools/utils';
 
 export function resolveExternalValue(
   result: any,

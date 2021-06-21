@@ -17,7 +17,7 @@ import {
 
 import { Request, GraphQLExecutionContext, ExecutionResult } from './Interfaces';
 import { collectFields } from './collectFields';
-import { Maybe } from 'packages/graphql-tools/src';
+import { Maybe } from '@graphql-tools/utils';
 
 export type ValueVisitor = (value: any) => any;
 

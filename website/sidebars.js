@@ -10,7 +10,6 @@ module.exports = {
         "mocking",
         "connectors",
         "schema-directives",
-        "directive-resolvers",
         "schema-delegation",
         "remote-schemas",
         "schema-wrapping",

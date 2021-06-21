@@ -9,7 +9,7 @@ import {
   ASTVisitor,
 } from 'graphql';
 import { Source } from './loaders';
-import AggregateError from '@ardatan/aggregate-error';
+import { AggregateError } from './AggregateError';
 
 export type ValidationRule = (context: ValidationContext) => ASTVisitor;
 
@@ -92,7 +92,7 @@ export function checkValidationErrors(loadDocumentErrors: ReadonlyArray<LoadDocu
       }
     }
 
-    throw new AggregateError(errors);
+    throw new AggregateError(errors, 'Validation failed');
   }
 }
 

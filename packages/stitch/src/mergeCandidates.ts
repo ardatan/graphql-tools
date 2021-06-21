@@ -50,8 +50,8 @@ import {
   validateInputObjectConsistency,
 } from './mergeValidations';
 
-import { fieldToFieldConfig, inputFieldToFieldConfig, Maybe } from '@graphql-tools/utils';
 import { isSubschemaConfig } from '@graphql-tools/delegate';
+import { Maybe } from '@graphql-tools/utils';
 
 export function mergeCandidates<TContext = Record<string, any>>(
   typeName: string,
@@ -456,10 +456,11 @@ function fieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
   const fieldConfigCandidatesMap: Record<string, Array<MergeFieldConfigCandidate<TContext>>> = Object.create(null);
 
   candidates.forEach(candidate => {
-    const fieldMap = (candidate.type as GraphQLObjectType | GraphQLInterfaceType).getFields();
-    Object.keys(fieldMap).forEach(fieldName => {
+    const typeConfig = (candidate.type as GraphQLObjectType | GraphQLInterfaceType).toConfig();
+    const fieldConfigMap = typeConfig.fields;
+    Object.entries(fieldConfigMap).forEach(([fieldName, fieldConfig]) => {
       const fieldConfigCandidate = {
-        fieldConfig: fieldToFieldConfig(fieldMap[fieldName]),
+        fieldConfig,
         fieldName,
         type: candidate.type as GraphQLObjectType | GraphQLInterfaceType,
         subschema: candidate.subschema,
@@ -523,18 +524,20 @@ function inputFieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
   candidates: Array<MergeTypeCandidate<TContext>>,
   typeMergingOptions?: TypeMergingOptions<TContext>
 ): GraphQLInputFieldConfigMap {
-  const inputFieldConfigCandidatesMap: Record<string, Array<MergeInputFieldConfigCandidate<TContext>>> =
-    Object.create(null);
+  const inputFieldConfigCandidatesMap: Record<string, Array<MergeInputFieldConfigCandidate<TContext>>> = Object.create(
+    null
+  );
   const fieldInclusionMap: Record<string, number> = Object.create(null);
 
   candidates.forEach(candidate => {
-    const inputFieldMap = (candidate.type as GraphQLInputObjectType).getFields();
-    Object.keys(inputFieldMap).forEach(fieldName => {
+    const typeConfig = (candidate.type as GraphQLInputObjectType).toConfig();
+    const inputFieldConfigMap = typeConfig.fields;
+    Object.entries(inputFieldConfigMap).forEach(([fieldName, inputFieldConfig]) => {
       fieldInclusionMap[fieldName] = fieldInclusionMap[fieldName] || 0;
       fieldInclusionMap[fieldName] += 1;
 
       const inputFieldConfigCandidate = {
-        inputFieldConfig: inputFieldToFieldConfig(inputFieldMap[fieldName]),
+        inputFieldConfig,
         fieldName,
         type: candidate.type as GraphQLInputObjectType,
         subschema: candidate.subschema,

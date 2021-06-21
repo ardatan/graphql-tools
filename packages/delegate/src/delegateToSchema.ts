@@ -14,8 +14,6 @@ import {
 
 import { ValueOrPromise } from 'value-or-promise';
 
-import AggregateError from '@ardatan/aggregate-error';
-
 import { getBatchingExecutor } from '@graphql-tools/batch-execute';
 
 import {
@@ -26,6 +24,7 @@ import {
   Subscriber,
   Maybe,
   assertSome,
+  AggregateError,
 } from '@graphql-tools/utils';
 
 import {

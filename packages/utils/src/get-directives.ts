@@ -23,7 +23,7 @@ import {
   GraphQLEnumValueConfig,
   EnumValueDefinitionNode,
 } from 'graphql';
-import { Maybe } from 'packages/graphql-tools/src';
+import { Maybe } from '@graphql-tools/utils';
 
 import { getArgumentValues } from './getArgumentValues';
 

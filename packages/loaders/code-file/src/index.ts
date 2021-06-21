@@ -4,7 +4,6 @@ import { isSchema, GraphQLSchema, DocumentNode } from 'graphql';
 import {
   SchemaPointerSingle,
   DocumentPointerSingle,
-  debugLog,
   SingleFileOptions,
   Source,
   UniversalLoader,
@@ -24,7 +23,7 @@ import isGlob from 'is-glob';
 import unixify from 'unixify';
 import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module';
 import { isAbsolute, resolve } from 'path';
-import { cwd } from 'process';
+import { cwd, env } from 'process';
 import { readFileSync, promises as fsPromises, existsSync } from 'fs';
 
 const { readFile, access } = fsPromises;
@@ -135,7 +134,9 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
           return parseGraphQLSDL(pointer, sdl, options);
         }
       } catch (e) {
-        debugLog(`Failed to load schema from code file "${normalizedFilePath}": ${e.message}`);
+        if (env['DEBUG']) {
+          console.error(`Failed to load schema from code file "${normalizedFilePath}": ${e.message}`);
+        }
         errors.push(e);
       }
     }
@@ -178,7 +179,9 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
           return parseGraphQLSDL(pointer, sdl, options);
         }
       } catch (e) {
-        debugLog(`Failed to load schema from code file "${normalizedFilePath}": ${e.message}`);
+        if (env['DEBUG']) {
+          console.error(`Failed to load schema from code file "${normalizedFilePath}": ${e.message}`);
+        }
         errors.push(e);
       }
     }
