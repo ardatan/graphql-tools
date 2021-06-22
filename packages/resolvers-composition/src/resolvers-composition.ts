@@ -45,9 +45,14 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
       if (!resolvers) {
         return [];
       }
-      return Object.keys(resolvers)
-        .map(typeName => resolveRelevantMappings(resolvers, `${typeName}.${fieldName}`, allMappings))
-        .flat();
+      const mappings: string[] = [];
+      for (const typeName in resolvers) {
+        const relevantMappings = resolveRelevantMappings(resolvers, `${typeName}.${fieldName}`, allMappings);
+        for (const relevantMapping of relevantMappings) {
+          mappings.push(relevantMapping);
+        }
+      }
+      return mappings;
     }
 
     if (fieldName === '*') {
@@ -55,10 +60,16 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
       if (!fieldMap) {
         return [];
       }
-      return Object.keys(fieldMap)
-        .map(field => resolveRelevantMappings(resolvers, `${typeName}.${field}`, allMappings))
-        .flat()
-        .filter(mapItem => !allMappings[mapItem]);
+      const mappings: string[] = [];
+      for (const field in fieldMap) {
+        const relevantMappings = resolveRelevantMappings(resolvers, `${typeName}.${field}`, allMappings);
+        for (const relevantMapping of relevantMappings) {
+          if (!allMappings[relevantMapping]) {
+            mappings.push(relevantMapping);
+          }
+        }
+      }
+      return mappings;
     } else {
       const paths = [];
 
@@ -86,9 +97,15 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
       return [];
     }
 
-    return Object.keys(fieldMap)
-      .map(fieldName => resolveRelevantMappings(resolvers, `${typeName}.${fieldName}`, allMappings))
-      .flat();
+    const mappings: string[] = [];
+
+    for (const fieldName in fieldMap) {
+      const relevantMappings = resolveRelevantMappings(resolvers, `${typeName}.${fieldName}`, allMappings);
+      for (const relevantMapping of relevantMappings) {
+        mappings.push(relevantMapping);
+      }
+    }
+    return mappings;
   }
 
   return [];

@@ -62,14 +62,14 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
   ): GraphQLSchema {
     this.originalWrappingSchema = originalWrappingSchema;
     const typeMap = originalWrappingSchema.getTypeMap();
-    Object.keys(typeMap).forEach(typeName => {
+    for (const typeName in typeMap) {
       const type = typeMap[typeName];
       if (!typeName.startsWith('__')) {
         if (isLeafType(type)) {
           this.resultVisitorMap[typeName] = (value: any) => this.outputValueTransformer(typeName, value);
         }
       }
-    });
+    }
     this.typeInfo = new TypeInfo(originalWrappingSchema);
     return originalWrappingSchema;
   }

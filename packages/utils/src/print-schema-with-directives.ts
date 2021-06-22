@@ -618,7 +618,8 @@ export function makeDirectiveNode(
       }
     });
   } else {
-    Object.entries(args).forEach(([argName, argValue]) => {
+    for (const argName in args) {
+      const argValue = args[argName];
       const value = astFromValueUntyped(argValue);
       if (value) {
         directiveArguments.push({
@@ -630,7 +631,7 @@ export function makeDirectiveNode(
           value,
         });
       }
-    });
+    }
   }
 
   return {
@@ -648,15 +649,16 @@ export function makeDirectiveNodes(
   directiveValues: Record<string, any>
 ): Array<DirectiveNode> {
   const directiveNodes: Array<DirectiveNode> = [];
-  Object.entries(directiveValues).forEach(([directiveName, arrayOrSingleValue]) => {
+  for (const directiveName in directiveValues) {
+    const arrayOrSingleValue = directiveValues[directiveName];
     const directive = schema?.getDirective(directiveName);
     if (Array.isArray(arrayOrSingleValue)) {
-      arrayOrSingleValue.forEach(value => {
+      for (const value of arrayOrSingleValue) {
         directiveNodes.push(makeDirectiveNode(directiveName, value, directive));
-      });
+      }
     } else {
       directiveNodes.push(makeDirectiveNode(directiveName, arrayOrSingleValue, directive));
     }
-  });
+  }
   return directiveNodes;
 }

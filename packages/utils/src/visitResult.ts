@@ -57,10 +57,10 @@ export function visitData(data: any, enter?: ValueVisitor, leave?: ValueVisitor)
     const newData = enter != null ? enter(data) : data;
 
     if (newData != null) {
-      Object.keys(newData).forEach(key => {
+      for (const key in newData) {
         const value = newData[key];
         newData[key] = visitData(value, enter, leave);
-      });
+      }
     }
 
     return leave != null ? leave(newData) : newData;
@@ -198,7 +198,7 @@ function visitObjectValue(
     sortedErrors.unpathedErrors.forEach(error => errorInfo.unpathedErrors.add(error));
   }
 
-  Object.keys(fieldNodeMap).forEach(responseKey => {
+  for (const responseKey in fieldNodeMap) {
     const subFieldNodes = fieldNodeMap[responseKey];
     const fieldName = subFieldNodes[0].name.value;
     const fieldType = fieldName === '__typename' ? TypeNameMetaFieldDef.type : fieldMap[fieldName].type;
@@ -226,7 +226,7 @@ function visitObjectValue(
     );
 
     updateObject(newObject, responseKey, newValue, typeVisitorMap, fieldName);
-  });
+  }
 
   const oldTypename = newObject.__typename;
   if (oldTypename != null) {

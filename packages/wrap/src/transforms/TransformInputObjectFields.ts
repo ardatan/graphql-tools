@@ -104,7 +104,7 @@ export default class TransformInputObjectFields implements Transform {
             (type, originalValue) => {
               const newValue = Object.create(null);
               const fields = type.getFields();
-              Object.keys(originalValue).forEach(key => {
+              for (const key in originalValue) {
                 const field = fields[key];
                 if (field != null) {
                   const newFieldName = this.mapping[type.name]?.[field.name];
@@ -114,7 +114,7 @@ export default class TransformInputObjectFields implements Transform {
                     newValue[field.name] = originalValue[field.name];
                   }
                 }
-              });
+              }
               return newValue;
             }
           );

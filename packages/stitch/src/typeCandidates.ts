@@ -81,7 +81,7 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
       subscription: schema.getSubscriptionType(),
     };
 
-    Object.keys(operationTypes).forEach(operationType => {
+    for (const operationType in operationTypes) {
       if (operationTypes[operationType] != null) {
         addTypeCandidate(typeCandidates, operationTypeNames[operationType], {
           type: operationTypes[operationType],
@@ -89,16 +89,16 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
           transformedSubschema: subschema,
         });
       }
-    });
+    }
 
     if (mergeDirectives === true) {
-      schema.getDirectives().forEach(directive => {
+      for (const directive of schema.getDirectives()) {
         directiveMap[directive.name] = directive;
-      });
+      }
     }
 
     const originalTypeMap = schema.getTypeMap();
-    Object.keys(originalTypeMap).forEach(typeName => {
+    for (const typeName in originalTypeMap) {
       const type: GraphQLNamedType = originalTypeMap[typeName];
       if (
         isNamedType(type) &&
@@ -113,7 +113,7 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
           transformedSubschema: subschema,
         });
       }
-    });
+    }
   });
 
   if (document != null && extraction != null) {
@@ -196,7 +196,7 @@ export function buildTypes<TContext = Record<string, any>>({
 }): { typeMap: TypeMap; directives: Array<GraphQLDirective> } {
   const typeMap: TypeMap = Object.create(null);
 
-  Object.keys(typeCandidates).forEach(typeName => {
+  for (const typeName in typeCandidates) {
     if (
       typeName === operationTypeNames['query'] ||
       typeName === operationTypeNames['mutation'] ||
@@ -214,7 +214,7 @@ export function buildTypes<TContext = Record<string, any>>({
           : (cands: Array<MergeTypeCandidate<TContext>>) => cands[cands.length - 1];
       typeMap[typeName] = candidateSelector(typeCandidates[typeName]).type;
     }
-  });
+  }
 
   return rewireTypes(typeMap, directives);
 }

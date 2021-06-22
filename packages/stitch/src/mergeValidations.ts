@@ -55,15 +55,16 @@ export function validateFieldConsistency<TContext = Record<string, any>>(
   }
 
   const argCandidatesMap: Record<string, Array<GraphQLArgumentConfig>> = Object.create(null);
-  candidates.forEach(({ fieldConfig }) => {
+  for (const { fieldConfig } of candidates) {
     if (fieldConfig.args == null) {
-      return;
+      continue;
     }
-    Object.entries(fieldConfig.args).forEach(([argName, arg]) => {
+    for (const argName in fieldConfig.args) {
+      const arg = fieldConfig.args[argName];
       argCandidatesMap[argName] = argCandidatesMap[argName] || [];
       argCandidatesMap[argName].push(arg);
-    });
-  });
+    }
+  }
 
   if (Object.values(argCandidatesMap).some(argCandidates => candidates.length !== argCandidates.length)) {
     validationMessage(
@@ -175,7 +176,7 @@ export function validateTypeConsistency<TContext = Record<string, any>>(
   const finalIsScalar = isScalarType(finalNamedType);
   const finalIsList = hasListType(finalElementConfig.type);
 
-  candidates.forEach(c => {
+  for (const c of candidates) {
     if (finalIsList !== hasListType(c.type)) {
       throw new Error(
         `Definitions of ${definitionType} "${settingNamespace}" implement inconsistent list types across subschemas and cannot be merged.`
@@ -201,7 +202,7 @@ export function validateTypeConsistency<TContext = Record<string, any>>(
         );
       }
     }
-  });
+  }
 }
 
 function hasListType(type: GraphQLType): boolean {
@@ -215,15 +216,15 @@ export function validateInputEnumConsistency<TContext = Record<string, any>>(
 ): void {
   const enumValueInclusionMap: Record<string, number> = Object.create(null);
 
-  candidates.forEach(candidate => {
+  for (const candidate of candidates) {
     const enumType = getNamedType(candidate.type) as GraphQLEnumType;
     if (isEnumType(enumType)) {
-      enumType.getValues().forEach(({ value }) => {
+      for (const { value } of enumType.getValues()) {
         enumValueInclusionMap[value] = enumValueInclusionMap[value] || 0;
         enumValueInclusionMap[value] += 1;
-      });
+      }
     }
-  });
+  }
 
   if (Object.values(enumValueInclusionMap).some(count => candidates.length !== count)) {
     validationMessage(
