@@ -2,7 +2,6 @@ import {
   ArgumentNode,
   DocumentNode,
   FragmentDefinitionNode,
-  GraphQLArgument,
   GraphQLField,
   GraphQLObjectType,
   GraphQLSchema,

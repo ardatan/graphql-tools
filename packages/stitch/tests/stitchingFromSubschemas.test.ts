@@ -114,8 +114,8 @@ authorSchema = addMocksToSchema({
   preserveResolvers: true,
 });
 
-schemas.chirpSchema = chirpSchema;
-schemas.authorSchema = authorSchema;
+schemas['chirpSchema'] = chirpSchema;
+schemas['authorSchema'] = authorSchema;
 
 const stitchedSchema = stitchSchemas({
   subschemas:Object.keys(schemas).map((schemaName) => schemas[schemaName]),
@@ -141,8 +141,8 @@ describe('merging without specifying fragments', () => {
 
     expect(result.errors).toBeUndefined();
     assertSome(result.data)
-    expect(result.data.userById.chirps[1].id).not.toBe(null);
-    expect(result.data.userById.chirps[1].text).not.toBe(null);
-    expect(result.data.userById.chirps[1].author.email).not.toBe(null);
+    expect(result.data['userById'].chirps[1].id).not.toBe(null);
+    expect(result.data['userById'].chirps[1].text).not.toBe(null);
+    expect(result.data['userById'].chirps[1].author.email).not.toBe(null);
   });
 });

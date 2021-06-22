@@ -608,7 +608,7 @@ const bookingResolvers: IResolvers = {
       return limit ? list.slice(0, limit) : list;
     },
     vehicle(parent: Customer) {
-      return sampleData.Vehicle[parent.vehicleId];
+      return parent.vehicleId && sampleData.Vehicle[parent.vehicleId];
     },
     error() {
       throw new Error('Customer.error error');
@@ -717,7 +717,7 @@ function makeSubscriberFromSchema(schema: GraphQLSchema) {
     if (isPromise(result)) {
       return result.then(asyncIterator => {
         assertAsyncIterable(asyncIterator)
-        return mapAsyncIterator(asyncIterator, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult)))
+        return mapAsyncIterator<any, any>(asyncIterator, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult)))
       });
     }
     return JSON.parse(JSON.stringify(result));

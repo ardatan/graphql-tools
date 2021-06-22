@@ -96,7 +96,7 @@ describe('delegateToSchema ', () => {
         bookingById: {
           property: {
             location: {
-              coordinates: sampleData.Property.p1.location.coordinates,
+              coordinates: sampleData.Property['p1'].location.coordinates,
             },
           },
         },
@@ -214,7 +214,7 @@ describe('delegateToSchema ', () => {
       );
 
       assertSome(data)
-      expect(data.posts).toEqual(expectedData);
+      expect(data['posts']).toEqual(expectedData);
     });
 
     it('should resolve with a fragment', async () => {
@@ -239,7 +239,7 @@ describe('delegateToSchema ', () => {
         `,
       );
       assertSome(data)
-      expect(data.posts).toEqual(expectedData);
+      expect(data['posts']).toEqual(expectedData);
     });
 
     it('should resolve with deep fragment', async () => {
@@ -264,7 +264,7 @@ describe('delegateToSchema ', () => {
         `,
       );
       assertSome(data)
-      expect(data.posts).toEqual(expectedData);
+      expect(data['posts']).toEqual(expectedData);
     });
 
     it('should resolve with nested fragments', async () => {
@@ -293,7 +293,7 @@ describe('delegateToSchema ', () => {
         `,
       )
       assertSome(data)
-      expect(data.posts).toEqual(expectedData);
+      expect(data['posts']).toEqual(expectedData);
     });
   });
 });

@@ -7,6 +7,7 @@
     "postinstall": "patch-package && husky install",
     "predeploy:website": "yarn build:api-docs",
     "deploy:website": "cd website && yarn deploy",
+    "ts:check": "tsc --noEmit",
     "ts:transpile": "concurrently \"tsc --project tsconfig.build.json\" \"tsc --project tsconfig.build.es5.json\"",
     "clean-dist": "rimraf \"packages/**/dist\" && rimraf \"packages/**/dist-es5\" && rimraf \".bob\"",
     "build": "yarn ts:transpile && bob build",
