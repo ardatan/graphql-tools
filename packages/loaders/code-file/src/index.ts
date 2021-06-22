@@ -25,6 +25,7 @@ import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module
 import { isAbsolute, resolve } from 'path';
 import { cwd, env } from 'process';
 import { readFileSync, promises as fsPromises, existsSync } from 'fs';
+import { createRequire } from 'module';
 
 const { readFile, access } = fsPromises;
 
@@ -189,7 +190,10 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     if (!options.noRequire) {
       try {
         if (options && options.require) {
-          asArray(options.require).forEach(m => require(m));
+          const cwdRequire = createRequire(options.cwd || cwd());
+          for (const m of asArray(options.require)) {
+            cwdRequire(m);
+          }
         }
 
         const loaded = tryToLoadFromExportSync(normalizedFilePath);

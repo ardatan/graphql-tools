@@ -104,7 +104,7 @@ function addVariablesToRootField(
 
         newSelectionSet.push({
           ...selection,
-          arguments: Object.keys(argumentNodeMap).map(argName => argumentNodeMap[argName]),
+          arguments: Object.values(argumentNodeMap),
         });
       } else {
         newSelectionSet.push(selection);
@@ -113,7 +113,7 @@ function addVariablesToRootField(
 
     return {
       ...operation,
-      variableDefinitions: Object.keys(variableDefinitionMap).map(varName => variableDefinitionMap[varName]),
+      variableDefinitions: Object.values(variableDefinitionMap),
       selectionSet: {
         kind: Kind.SELECTION_SET,
         selections: newSelectionSet,
@@ -137,7 +137,7 @@ function updateArguments(
   variableValues: Record<string, any>,
   newArgs: Record<string, any>
 ): void {
-  targetField.args.forEach((argument: GraphQLArgument) => {
+  for (const argument of targetField.args) {
     const argName = argument.name;
     const argType = argument.type;
 
@@ -151,5 +151,5 @@ function updateArguments(
         serializeInputValue(argType, newArgs[argName])
       );
     }
-  });
+  }
 }

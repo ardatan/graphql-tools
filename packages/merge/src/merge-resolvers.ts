@@ -64,13 +64,15 @@ export function mergeResolvers<TSource, TContext>(
   }
   const result = resolvers.reduce(mergeDeep, {});
 
-  options?.exclusions?.forEach(exclusion => {
-    const [typeName, fieldName] = exclusion.split('.');
-    if (!fieldName || fieldName === '*') {
-      delete result[typeName];
-    } else if (result[typeName]) {
-      delete result[typeName][fieldName];
+  if (options?.exclusions) {
+    for (const exclusion of options.exclusions) {
+      const [typeName, fieldName] = exclusion.split('.');
+      if (!fieldName || fieldName === '*') {
+        delete result[typeName];
+      } else if (result[typeName]) {
+        delete result[typeName][fieldName];
+      }
     }
-  });
+  }
   return result;
 }

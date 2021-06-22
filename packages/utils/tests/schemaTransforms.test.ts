@@ -122,12 +122,12 @@ describe('@directives', () => {
       return schema => mapSchema(schema, {
         [MapperKind.OBJECT_TYPE]: type => {
           const directives = getDirectives(schema, type);
-          Object.keys(directives).forEach(directiveName => {
+          for (const directiveName in directives) {
             if (directiveNames.includes(directiveName)) {
               expect(type.name).toBe(schema.getQueryType()?.name);
               visited.add(type);
             }
-          });
+          }
           return undefined;
         }
       })
@@ -149,11 +149,11 @@ describe('@directives', () => {
     function recordSchemaDirectiveUses(directiveNames: Array<string>): (schema: GraphQLSchema) => GraphQLSchema {
       return schema => {
         const directives = getDirectives(schema, schema);
-        Object.keys(directives).forEach(directiveName => {
+          for (const directiveName in directives) {
           if (directiveNames.includes(directiveName)) {
             visited.push(schema);
           }
-        });
+        }
         return schema;
       }
     }
@@ -729,9 +729,9 @@ describe('@directives', () => {
                 resolve(object: any) {
                   const hash = createHash('sha1');
                   hash.update(type.name);
-                  from.forEach((fieldName: string) => {
+                  for (const fieldName of from ){
                     hash.update(String(object[fieldName]));
-                  });
+                  }
                   return hash.digest('hex');
                 },
               };

@@ -23,9 +23,9 @@ function handleModule(m: NodeModule, filename: string) {
 }
 
 export function registerGraphQLExtensions(require: NodeRequire) {
-  VALID_EXTENSIONS.forEach(ext => {
+  for (const ext of VALID_EXTENSIONS) {
     require.extensions[`.${ext}`] = handleModule;
-  });
+  }
 }
 
 registerGraphQLExtensions(require);

@@ -30,12 +30,12 @@ export function astFromValueUntyped(value: any): ValueNode | null {
   // the value is not an array, convert the value using the list's item type.
   if (Array.isArray(value)) {
     const valuesNodes: Array<ValueNode> = [];
-    value.forEach(item => {
+    for (const item of value) {
       const itemNode = astFromValueUntyped(item);
       if (itemNode != null) {
         valuesNodes.push(itemNode);
       }
-    });
+    }
     return { kind: Kind.LIST, values: valuesNodes };
   }
 

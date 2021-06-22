@@ -2029,13 +2029,13 @@ describe('can specify lexical parser options', () => {
     const parsedQuery = parse(query, { experimentalFragmentVariables: true });
 
     const hoist = (document: DocumentNode) => {
-      let variableDefs: Array<VariableDefinitionNode> = [];
+      const variableDefs: Array<VariableDefinitionNode> = [];
 
-      document.definitions.forEach((def) => {
-        if (def.kind === Kind.FRAGMENT_DEFINITION) {
-          variableDefs = variableDefs.concat(def.variableDefinitions!);
+      for (const def of document.definitions) {
+        if (def.kind === Kind.FRAGMENT_DEFINITION && def.variableDefinitions) {
+          variableDefs.push(...def.variableDefinitions);
         }
-      });
+      }
 
       return {
         kind: Kind.DOCUMENT,

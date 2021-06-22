@@ -55,7 +55,7 @@ export function stitchSchemas<TContext = Record<string, any>>({
     GraphQLSchema | SubschemaConfig<any, any, any, TContext>
   > = new Map();
 
-  subschemas.forEach(subschemaOrSubschemaArray => {
+  for (const subschemaOrSubschemaArray of subschemas) {
     if (Array.isArray(subschemaOrSubschemaArray)) {
       subschemaOrSubschemaArray.forEach(s => {
         transformedSubschemas = transformedSubschemas.concat(
@@ -72,7 +72,7 @@ export function stitchSchemas<TContext = Record<string, any>>({
         )
       );
     }
-  });
+  }
 
   const extensions: Array<DocumentNode> = [];
   const directives: Array<GraphQLDirective> = [];
@@ -100,9 +100,9 @@ export function stitchSchemas<TContext = Record<string, any>>({
     mergeDirectives,
   });
 
-  Object.keys(directiveMap).forEach(directiveName => {
+  for (const directiveName in directiveMap) {
     directives.push(directiveMap[directiveName]);
-  });
+  }
 
   let stitchingInfo = createStitchingInfo(subschemaMap, typeCandidates, mergeTypes);
 

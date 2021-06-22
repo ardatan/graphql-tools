@@ -127,21 +127,23 @@ export function astFromSchema(
     subscription: undefined,
   };
 
-  let nodes: Array<SchemaDefinitionNode | SchemaExtensionNode> = [];
+  const nodes: Array<SchemaDefinitionNode | SchemaExtensionNode> = [];
   if (schema.astNode != null) {
     nodes.push(schema.astNode);
   }
   if (schema.extensionASTNodes != null) {
-    nodes = nodes.concat(schema.extensionASTNodes);
+    for (const extensionASTNode of schema.extensionASTNodes) {
+      nodes.push(extensionASTNode);
+    }
   }
 
-  nodes.forEach(node => {
+  for (const node of nodes) {
     if (node.operationTypes) {
-      node.operationTypes.forEach(operationTypeDefinitionNode => {
+      for (const operationTypeDefinitionNode of node.operationTypes) {
         operationTypeMap[operationTypeDefinitionNode.operation] = operationTypeDefinitionNode;
-      });
+      }
     }
-  });
+  }
 
   const rootTypeMap: Record<OperationTypeNode, Maybe<GraphQLObjectType>> = {
     query: schema.getQueryType(),
@@ -149,7 +151,7 @@ export function astFromSchema(
     subscription: schema.getSubscriptionType(),
   };
 
-  Object.keys(operationTypeMap).forEach(operationTypeNode => {
+  for (const operationTypeNode in operationTypeMap) {
     if (rootTypeMap[operationTypeNode] != null) {
       if (operationTypeMap[operationTypeNode] != null) {
         operationTypeMap[operationTypeNode].type = astFromType(rootTypeMap[operationTypeNode]);
@@ -161,7 +163,7 @@ export function astFromSchema(
         };
       }
     }
-  });
+  }
 
   const operationTypes = Object.values(operationTypeMap).filter(isSome);
 

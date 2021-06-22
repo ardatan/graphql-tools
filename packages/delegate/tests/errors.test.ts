@@ -100,9 +100,10 @@ describe('Errors', () => {
         expect(e.originalError).toBeDefined();
         expect(e.originalError.errors).toBeDefined();
         expect(e.originalError.errors).toHaveLength(result.errors.length);
-        result.errors.forEach((error, i) => {
+        for (const i in result.errors) {
+          const error = result.errors[i];
           expect(e.originalError.errors[i]).toEqual(error);
-        });
+        }
       }
     });
 

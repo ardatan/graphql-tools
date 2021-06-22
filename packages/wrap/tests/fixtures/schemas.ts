@@ -224,9 +224,9 @@ function parseLiteral(ast: ValueNode): any {
       return parseFloat(ast.value);
     case Kind.OBJECT: {
       const value = Object.create(null);
-      ast.fields.forEach((field) => {
+      for (const field of ast.fields) {
         value[field.name.value] = parseLiteral(field.value);
-      });
+      }
 
       return value;
     }

@@ -94,9 +94,9 @@ function mergeObjectTypeCandidates<TContext = Record<string, any>>(
     .map(typeConfig => typeConfig.interfaces)
     .reduce((acc, interfaces) => {
       if (interfaces != null) {
-        interfaces.forEach(iface => {
+        for (const iface of interfaces) {
           acc[iface.name] = iface;
-        });
+        }
       }
       return acc;
     }, Object.create(null));
@@ -203,9 +203,9 @@ function mergeInterfaceTypeCandidates<TContext = Record<string, any>>(
     .map(typeConfig => (typeConfig as unknown as { interfaces: Array<GraphQLInterfaceType> }).interfaces)
     .reduce((acc, interfaces) => {
       if (interfaces != null) {
-        interfaces.forEach(iface => {
+        for (const iface of interfaces) {
           acc[iface.name] = iface;
-        });
+        }
       }
       return acc;
     }, Object.create(null));
@@ -258,9 +258,9 @@ function mergeUnionTypeCandidates<TContext = Record<string, any>>(
 
   const typeConfigs = candidates.map(candidate => (candidate.type as GraphQLUnionType).toConfig());
   const typeMap = typeConfigs.reduce((acc, typeConfig) => {
-    typeConfig.types.forEach(type => {
+    for (const type of typeConfig.types) {
       acc[type.name] = type;
-    });
+    }
     return acc;
   }, Object.create(null));
   const types = Object.keys(typeMap).map(typeName => typeMap[typeName]);
@@ -330,9 +330,9 @@ function enumValueConfigMapFromTypeCandidates(
 ): GraphQLEnumValueConfigMap {
   const enumValueConfigCandidatesMap: Record<string, Array<MergeEnumValueConfigCandidate>> = Object.create(null);
 
-  candidates.forEach(candidate => {
+  for (const candidate of candidates) {
     const valueMap = (candidate.type as GraphQLEnumType).toConfig().values;
-    Object.keys(valueMap).forEach(enumValue => {
+    for (const enumValue in valueMap) {
       const enumValueConfigCandidate = {
         enumValueConfig: valueMap[enumValue],
         enumValue,
@@ -346,15 +346,15 @@ function enumValueConfigMapFromTypeCandidates(
       } else {
         enumValueConfigCandidatesMap[enumValue] = [enumValueConfigCandidate];
       }
-    });
-  });
+    }
+  }
 
   const enumValueConfigMap = Object.create(null);
 
-  Object.keys(enumValueConfigCandidatesMap).forEach(enumValue => {
+  for (const enumValue in enumValueConfigCandidatesMap) {
     const enumValueConfigMerger = typeMergingOptions?.enumValueConfigMerger ?? defaultEnumValueConfigMerger;
     enumValueConfigMap[enumValue] = enumValueConfigMerger(enumValueConfigCandidatesMap[enumValue]);
-  });
+  }
 
   return enumValueConfigMap;
 }
@@ -455,10 +455,12 @@ function fieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
 ): GraphQLFieldConfigMap<any, any> {
   const fieldConfigCandidatesMap: Record<string, Array<MergeFieldConfigCandidate<TContext>>> = Object.create(null);
 
-  candidates.forEach(candidate => {
+  for (const candidate of candidates) {
     const typeConfig = (candidate.type as GraphQLObjectType | GraphQLInterfaceType).toConfig();
     const fieldConfigMap = typeConfig.fields;
-    Object.entries(fieldConfigMap).forEach(([fieldName, fieldConfig]) => {
+    for (const fieldName in fieldConfigMap) {
+      const fieldConfig = fieldConfigMap[fieldName];
+
       const fieldConfigCandidate = {
         fieldConfig,
         fieldName,
@@ -472,14 +474,14 @@ function fieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
       } else {
         fieldConfigCandidatesMap[fieldName] = [fieldConfigCandidate];
       }
-    });
-  });
+    }
+  }
 
   const fieldConfigMap = Object.create(null);
 
-  Object.keys(fieldConfigCandidatesMap).forEach(fieldName => {
+  for (const fieldName in fieldConfigCandidatesMap) {
     fieldConfigMap[fieldName] = mergeFieldConfigs(fieldConfigCandidatesMap[fieldName], typeMergingOptions);
-  });
+  }
 
   return fieldConfigMap;
 }
@@ -500,14 +502,14 @@ function defaultFieldConfigMerger<TContext = Record<string, any>>(
   const canonicalByField: Array<GraphQLFieldConfig<any, any>> = [];
   const canonicalByType: Array<GraphQLFieldConfig<any, any>> = [];
 
-  candidates.forEach(({ type, fieldName, fieldConfig, transformedSubschema }) => {
-    if (!isSubschemaConfig(transformedSubschema)) return;
+  for (const { type, fieldName, fieldConfig, transformedSubschema } of candidates) {
+    if (!isSubschemaConfig(transformedSubschema)) continue;
     if (transformedSubschema.merge?.[type.name]?.fields?.[fieldName]?.canonical) {
       canonicalByField.push(fieldConfig);
     } else if (transformedSubschema.merge?.[type.name]?.canonical) {
       canonicalByType.push(fieldConfig);
     }
-  });
+  }
 
   if (canonicalByField.length > 1) {
     throw new Error(`Multiple canonical definitions for "${candidates[0].type.name}.${candidates[0].fieldName}"`);
@@ -529,10 +531,11 @@ function inputFieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
   );
   const fieldInclusionMap: Record<string, number> = Object.create(null);
 
-  candidates.forEach(candidate => {
+  for (const candidate of candidates) {
     const typeConfig = (candidate.type as GraphQLInputObjectType).toConfig();
     const inputFieldConfigMap = typeConfig.fields;
-    Object.entries(inputFieldConfigMap).forEach(([fieldName, inputFieldConfig]) => {
+    for (const fieldName in inputFieldConfigMap) {
+      const inputFieldConfig = inputFieldConfigMap[fieldName];
       fieldInclusionMap[fieldName] = fieldInclusionMap[fieldName] || 0;
       fieldInclusionMap[fieldName] += 1;
 
@@ -549,14 +552,14 @@ function inputFieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
       } else {
         inputFieldConfigCandidatesMap[fieldName] = [inputFieldConfigCandidate];
       }
-    });
-  });
+    }
+  }
 
   validateInputObjectConsistency(fieldInclusionMap, candidates, typeMergingOptions);
 
   const inputFieldConfigMap = Object.create(null);
 
-  Object.keys(inputFieldConfigCandidatesMap).forEach(fieldName => {
+  for (const fieldName in inputFieldConfigCandidatesMap) {
     const inputFieldConfigMerger = typeMergingOptions?.inputFieldConfigMerger ?? defaultInputFieldConfigMerger;
     inputFieldConfigMap[fieldName] = inputFieldConfigMerger(inputFieldConfigCandidatesMap[fieldName]);
     validateInputFieldConsistency(
@@ -564,7 +567,7 @@ function inputFieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
       inputFieldConfigCandidatesMap[fieldName],
       typeMergingOptions
     );
-  });
+  }
 
   return inputFieldConfigMap;
 }
@@ -575,14 +578,14 @@ function defaultInputFieldConfigMerger<TContext = Record<string, any>>(
   const canonicalByField: Array<GraphQLInputFieldConfig> = [];
   const canonicalByType: Array<GraphQLInputFieldConfig> = [];
 
-  candidates.forEach(({ type, fieldName, inputFieldConfig, transformedSubschema }) => {
-    if (!isSubschemaConfig(transformedSubschema)) return;
+  for (const { type, fieldName, inputFieldConfig, transformedSubschema } of candidates) {
+    if (!isSubschemaConfig(transformedSubschema)) continue;
     if (transformedSubschema.merge?.[type.name]?.fields?.[fieldName]?.canonical) {
       canonicalByField.push(inputFieldConfig);
     } else if (transformedSubschema.merge?.[type.name]?.canonical) {
       canonicalByType.push(inputFieldConfig);
     }
-  });
+  }
 
   if (canonicalByField.length > 1) {
     throw new Error(`Multiple canonical definitions for "${candidates[0].type.name}.${candidates[0].fieldName}"`);
@@ -598,19 +601,18 @@ function defaultInputFieldConfigMerger<TContext = Record<string, any>>(
 function canonicalFieldNamesForType<TContext>(candidates: Array<MergeTypeCandidate<TContext>>): Array<string> {
   const canonicalFieldNames: Record<string, boolean> = Object.create(null);
 
-  candidates.forEach(({ type, transformedSubschema }) => {
-    if (!isSubschemaConfig(transformedSubschema)) {
-      return;
-    }
+  for (const { type, transformedSubschema } of candidates) {
+    if (!isSubschemaConfig(transformedSubschema)) continue;
     const mergeConfig = transformedSubschema.merge?.[type.name];
     if (mergeConfig != null && mergeConfig.fields != null && !mergeConfig.canonical) {
-      Object.entries(mergeConfig.fields).forEach(([fieldName, mergedFieldConfig]) => {
+      for (const fieldName in mergeConfig.fields) {
+        const mergedFieldConfig = mergeConfig.fields[fieldName];
         if (mergedFieldConfig.canonical) {
           canonicalFieldNames[fieldName] = true;
         }
-      });
+      }
     }
-  });
+  }
 
   return Object.keys(canonicalFieldNames);
 }
