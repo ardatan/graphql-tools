@@ -35,7 +35,7 @@ describe('merging using type merging', () => {
 
   accountsSchemaTypes._Key = new GraphQLScalarType({
     name: '_Key',
-  });
+  } as any);
   accountsSchemaTypes.Query = new GraphQLObjectType({
     name: 'Query',
     fields: () => ({
