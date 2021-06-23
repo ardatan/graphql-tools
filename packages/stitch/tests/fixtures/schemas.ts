@@ -190,10 +190,6 @@ export const sampleData: {
   },
 };
 
-function values<T>(o: { [s: string]: T }): Array<T> {
-  return Object.keys(o).map((k) => o[k]);
-}
-
 function coerceString(value: any): string {
   if (Array.isArray(value)) {
     throw new TypeError(
@@ -227,9 +223,9 @@ function parseLiteral(ast: ValueNode): any {
       return parseFloat(ast.value);
     case Kind.OBJECT: {
       const value = Object.create(null);
-      ast.fields.forEach((field) => {
+      for (const field of ast.fields) {
         value[field.name.value] = parseLiteral(field.value);
-      });
+      }
 
       return value;
     }
@@ -351,7 +347,7 @@ const propertyResolvers: IResolvers = {
     },
 
     properties(_root, { limit }) {
-      const list = values(sampleData.Property);
+      const list = Object.values(sampleData.Property);
       return limit ? list.slice(0, limit) : list;
     },
 
@@ -466,7 +462,7 @@ const productTypeDefs = `
 const productResolvers: IResolvers = {
   Query: {
     products(_root) {
-      const list = values(sampleData.Product);
+      const list = Object.values(sampleData.Product);
       return list;
     },
   },
@@ -552,7 +548,7 @@ const bookingResolvers: IResolvers = {
       return sampleData.Booking[id];
     },
     bookingsByPropertyId(_parent, { propertyId, limit }) {
-      const list = values(sampleData.Booking).filter(
+      const list = Object.values(sampleData.Booking).filter(
         (booking: Booking) => booking.propertyId === propertyId,
       );
       return limit ? list.slice(0, limit) : list;
@@ -561,11 +557,11 @@ const bookingResolvers: IResolvers = {
       return sampleData.Customer[id];
     },
     bookings(_parent, { limit }) {
-      const list = values(sampleData.Booking);
+      const list = Object.values(sampleData.Booking);
       return limit ? list.slice(0, limit) : list;
     },
     customers(_parent, { limit }) {
-      const list = values(sampleData.Customer);
+      const list = Object.values(sampleData.Customer);
       return limit ? list.slice(0, limit) : list;
     },
   },
@@ -602,13 +598,13 @@ const bookingResolvers: IResolvers = {
 
   Customer: {
     bookings(parent: Customer, { limit }) {
-      const list = values(sampleData.Booking).filter(
+      const list = Object.values(sampleData.Booking).filter(
         (booking: Booking) => booking.customerId === parent.id,
       );
       return limit ? list.slice(0, limit) : list;
     },
     vehicle(parent: Customer) {
-      return sampleData.Vehicle[parent.vehicleId];
+      return parent.vehicleId && sampleData.Vehicle[parent.vehicleId];
     },
     error() {
       throw new Error('Customer.error error');
@@ -717,7 +713,7 @@ function makeSubscriberFromSchema(schema: GraphQLSchema) {
     if (isPromise(result)) {
       return result.then(asyncIterator => {
         assertAsyncIterable(asyncIterator)
-        return mapAsyncIterator(asyncIterator, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult)))
+        return mapAsyncIterator<any, any>(asyncIterator, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult)))
       });
     }
     return JSON.parse(JSON.stringify(result));
