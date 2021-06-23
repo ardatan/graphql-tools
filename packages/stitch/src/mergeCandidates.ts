@@ -92,7 +92,7 @@ function mergeObjectTypeCandidates<TContext = Record<string, any>>(
   const typeConfigs = candidates.map(candidate => (candidate.type as GraphQLObjectType).toConfig());
   const interfaceMap = typeConfigs
     .map(typeConfig => typeConfig.interfaces)
-    .reduce((acc, interfaces) => {
+    .reduce<Record<string, GraphQLInterfaceType>>((acc, interfaces) => {
       if (interfaces != null) {
         for (const iface of interfaces) {
           acc[iface.name] = iface;
@@ -200,8 +200,8 @@ function mergeInterfaceTypeCandidates<TContext = Record<string, any>>(
   const fields = fieldConfigMapFromTypeCandidates(candidates, typeMergingOptions);
   const typeConfigs = candidates.map(candidate => (candidate.type as GraphQLInterfaceType).toConfig());
   const interfaceMap = typeConfigs
-    .map(typeConfig => (typeConfig as unknown as { interfaces: Array<GraphQLInterfaceType> }).interfaces)
-    .reduce((acc, interfaces) => {
+    .map(typeConfig => typeConfig.interfaces)
+    .reduce<Record<string, GraphQLInterfaceType>>((acc, interfaces) => {
       if (interfaces != null) {
         for (const iface of interfaces) {
           acc[iface.name] = iface;
@@ -209,7 +209,7 @@ function mergeInterfaceTypeCandidates<TContext = Record<string, any>>(
       }
       return acc;
     }, Object.create(null));
-  const interfaces = Object.keys(interfaceMap).map(interfaceName => interfaceMap[interfaceName]);
+  const interfaces = Object.values(interfaceMap);
 
   const astNodes = pluck<InterfaceTypeDefinitionNode>('astNode', candidates);
   const fieldAstNodes = canonicalFieldNamesForType(candidates)
@@ -256,14 +256,19 @@ function mergeUnionTypeCandidates<TContext = Record<string, any>>(
   candidates = orderedTypeCandidates(candidates, typeMergingOptions);
   const description = mergeTypeDescriptions(candidates, typeMergingOptions);
 
-  const typeConfigs = candidates.map(candidate => (candidate.type as GraphQLUnionType).toConfig());
-  const typeMap = typeConfigs.reduce((acc, typeConfig) => {
+  const typeConfigs = candidates.map(candidate => {
+    if (!isUnionType(candidate.type)) {
+      throw new Error(`Expected ${candidate.type} to be a union type!`);
+    }
+    return candidate.type.toConfig();
+  });
+  const typeMap = typeConfigs.reduce<Record<string, GraphQLObjectType>>((acc, typeConfig) => {
     for (const type of typeConfig.types) {
       acc[type.name] = type;
     }
     return acc;
   }, Object.create(null));
-  const types = Object.keys(typeMap).map(typeName => typeMap[typeName]);
+  const types = Object.values(typeMap);
 
   const astNodes = pluck<UnionTypeDefinitionNode>('astNode', candidates);
   const astNode = astNodes

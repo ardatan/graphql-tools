@@ -20,7 +20,7 @@ describe('delegateToSchema ', () => {
       properties: Record<string, Property>,
       name: string,
     ): Property | undefined {
-      for (const key of Object.keys(properties)) {
+      for (const key in properties) {
         const property = properties[key];
         if (property.location.name === name) {
           return property;
