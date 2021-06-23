@@ -4,12 +4,17 @@ on:
   pull_request:
     branches:
       - master
-
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Are you sure?'
+        required: true
+        default: 'yes'
 jobs:
   publish-canary:
     name: Publish Canary
     runs-on: ubuntu-latest
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.pull_request.head.repo.full_name == github.repository || github.event.inputs.confirm == 'yes'
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
@@ -44,6 +49,8 @@ jobs:
           npm-token: ${{ secrets.NODE_AUTH_TOKEN }}
           npm-script: 'yarn release:canary'
           changesets: true
+        env:
+          ON_DEMAND: ${{github.event.inputs.confirm}}
       - name: Publish a message
         if: steps.canary.outputs.released
         uses: 'kamilkisiela/pr-comment@master'
