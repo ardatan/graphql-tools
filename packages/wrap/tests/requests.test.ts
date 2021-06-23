@@ -34,12 +34,13 @@ describe('requests', () => {
           minor
           patch
         }`),
+        targetOperationName: 'test'
       }),
     );
 
     const expectedRequest = removeLocations({
       document: parse(`
-        query {
+        query test {
           version {
             major
             minor
@@ -48,6 +49,7 @@ describe('requests', () => {
         }
       `),
       variables: {},
+      operationName: 'test'
     });
 
     expect(expectedRequest).toMatchObject(request);

@@ -172,6 +172,7 @@ export function createRequest({
   return {
     document,
     variables: newVariables,
+    operationName: targetOperationName,
   };
 }
 

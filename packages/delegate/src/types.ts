@@ -56,6 +56,7 @@ export interface DelegationContext<TContext = Record<string, any>> {
   transforms: Array<Transform<any, TContext>>;
   transformedSchema: GraphQLSchema;
   skipTypeMerging: boolean;
+  operationName?: string;
 }
 
 export type DelegationBinding<TContext = Record<string, any>> = (
@@ -143,7 +144,6 @@ export interface SubschemaConfig<K = any, V = any, C = K, TContext = Record<stri
   createProxyingResolver?: CreateProxyingResolverFn<TContext>;
   transforms?: Array<Transform<any, TContext>>;
   merge?: Record<string, MergedTypeConfig<any, any, TContext>>;
-  rootValue?: Record<string, any>;
   executor?: Executor<TContext>;
   subscriber?: Subscriber<TContext>;
   batch?: boolean;

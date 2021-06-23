@@ -182,29 +182,6 @@ input TestInput {
       expect(headers['auth']).toContain(`1`);
     });
 
-    it('Should pass extra headers when they are specified as array', async () => {
-      let headers: Record<string, string | string[]> = {};
-      scope = mockGraphQLServer({
-        schema: testSchema,
-        host: testHost,
-        path: testPathChecker,
-        intercept(ctx) {
-          headers = ctx.req.headers;
-        },
-      });
-      const source = await loader.load(testUrl, { headers: [{ A: '1' }, { B: '2', C: '3' }] });
-
-      expect(source).toBeDefined();
-      assertNonMaybe(source.schema)
-      expect(printSchemaWithDirectives(source.schema)).toBeSimilarGqlDoc(testTypeDefs);
-
-      expect(Array.isArray(headers['accept']) ? headers['accept'].join(',') : headers['accept']).toContain(`application/json`);
-      expect(headers['content-type']).toContain(`application/json`);
-      expect(headers['a']).toContain(`1`);
-      expect(headers['b']).toContain(`2`);
-      expect(headers['c']).toContain(`3`);
-    });
-
     it('Should utilize extra introspection options', async () => {
       scope = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker });
       const source = await loader.load(testUrl, { descriptions: false });
