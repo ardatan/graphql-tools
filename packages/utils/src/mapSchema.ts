@@ -29,6 +29,7 @@ import {
   Kind,
   EnumValueDefinitionNode,
 } from 'graphql';
+import { getObjectTypeFromTypeMap } from './addTypes';
 
 import {
   SchemaMapper,
@@ -47,16 +48,30 @@ import { rewireTypes } from './rewire';
 import { serializeInputValue, parseInputValue } from './transformInputValue';
 
 export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}): GraphQLSchema {
-  const originalTypeMap = schema.getTypeMap();
-
-  let newTypeMap = mapDefaultValues(originalTypeMap, schema, serializeInputValue);
-  newTypeMap = mapTypes(newTypeMap, schema, schemaMapper, type => isLeafType(type));
-  newTypeMap = mapEnumValues(newTypeMap, schema, schemaMapper);
-  newTypeMap = mapDefaultValues(newTypeMap, schema, parseInputValue);
-
-  newTypeMap = mapTypes(newTypeMap, schema, schemaMapper, type => !isLeafType(type));
-  newTypeMap = mapFields(newTypeMap, schema, schemaMapper);
-  newTypeMap = mapArguments(newTypeMap, schema, schemaMapper);
+  const newTypeMap = mapArguments(
+    mapFields(
+      mapTypes(
+        mapDefaultValues(
+          mapEnumValues(
+            mapTypes(mapDefaultValues(schema.getTypeMap(), schema, serializeInputValue), schema, schemaMapper, type =>
+              isLeafType(type)
+            ),
+            schema,
+            schemaMapper
+          ),
+          schema,
+          parseInputValue
+        ),
+        schema,
+        schemaMapper,
+        type => !isLeafType(type)
+      ),
+      schema,
+      schemaMapper
+    ),
+    schema,
+    schemaMapper
+  );
 
   const originalDirectives = schema.getDirectives();
   const newDirectives = mapDirectives(originalDirectives, schema, schemaMapper);
@@ -65,29 +80,18 @@ export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}
   const mutationType = schema.getMutationType();
   const subscriptionType = schema.getSubscriptionType();
 
-  const newQueryTypeName =
-    queryType != null ? (newTypeMap[queryType.name] != null ? newTypeMap[queryType.name].name : undefined) : undefined;
-  const newMutationTypeName =
-    mutationType != null
-      ? newTypeMap[mutationType.name] != null
-        ? newTypeMap[mutationType.name].name
-        : undefined
-      : undefined;
-  const newSubscriptionTypeName =
-    subscriptionType != null
-      ? newTypeMap[subscriptionType.name] != null
-        ? newTypeMap[subscriptionType.name].name
-        : undefined
-      : undefined;
+  const newQueryTypeName = queryType?.name && newTypeMap?.[queryType?.name]?.name;
+  const newMutationTypeName = mutationType?.name && newTypeMap?.[mutationType?.name]?.name;
+  const newSubscriptionTypeName = subscriptionType?.name && newTypeMap?.[subscriptionType?.name]?.name;
 
   const { typeMap, directives } = rewireTypes(newTypeMap, newDirectives);
 
   return new GraphQLSchema({
     ...schema.toConfig(),
-    query: newQueryTypeName ? (typeMap[newQueryTypeName] as GraphQLObjectType) : undefined,
-    mutation: newMutationTypeName ? (typeMap[newMutationTypeName] as GraphQLObjectType) : undefined,
-    subscription: newSubscriptionTypeName != null ? (typeMap[newSubscriptionTypeName] as GraphQLObjectType) : undefined,
-    types: Object.keys(typeMap).map(typeName => typeMap[typeName]),
+    query: getObjectTypeFromTypeMap(typeMap, newQueryTypeName),
+    mutation: getObjectTypeFromTypeMap(typeMap, newMutationTypeName),
+    subscription: getObjectTypeFromTypeMap(typeMap, newSubscriptionTypeName),
+    types: Object.values(typeMap),
     directives,
   });
 }

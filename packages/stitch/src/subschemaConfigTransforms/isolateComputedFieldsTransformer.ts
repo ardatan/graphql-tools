@@ -1,4 +1,4 @@
-import { GraphQLObjectType, GraphQLInterfaceType, isObjectType, isInterfaceType } from 'graphql';
+import { GraphQLObjectType, isObjectType, isInterfaceType } from 'graphql';
 
 import { SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 
@@ -14,12 +14,15 @@ export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfi
   const baseSchemaTypes: Record<string, MergedTypeConfig> = Object.create(null);
   const isolatedSchemaTypes: Record<string, MergedTypeConfig> = Object.create(null);
 
-  Object.entries(subschemaConfig.merge).forEach(([typeName, mergedTypeConfig]) => {
+  for (const typeName in subschemaConfig.merge) {
+    const mergedTypeConfig = subschemaConfig.merge[typeName];
+
     baseSchemaTypes[typeName] = mergedTypeConfig;
 
     if (mergedTypeConfig.computedFields) {
       const mergeConfigFields = mergedTypeConfig.fields ?? Object.create(null);
-      Object.entries(mergedTypeConfig.computedFields).forEach(([fieldName, mergedFieldConfig]) => {
+      for (const fieldName in mergedTypeConfig.computedFields) {
+        const mergedFieldConfig = mergedTypeConfig.computedFields[fieldName];
         console.warn(
           `The "computedFields" setting is deprecated. Update your @graphql-tools/stitching-directives package, and/or update static merged type config to "${typeName}.fields.${fieldName} = { selectionSet: '${mergedFieldConfig.selectionSet}', computed: true }"`
         );
@@ -28,7 +31,7 @@ export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfi
           ...mergedFieldConfig,
           computed: true,
         };
-      });
+      }
       delete mergedTypeConfig.computedFields;
       mergedTypeConfig.fields = mergeConfigFields;
     }
@@ -37,7 +40,8 @@ export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfi
       const baseFields: Record<string, MergedFieldConfig> = Object.create(null);
       const isolatedFields: Record<string, MergedFieldConfig> = Object.create(null);
 
-      Object.entries(mergedTypeConfig.fields).forEach(([fieldName, mergedFieldConfig]) => {
+      for (const fieldName in mergedTypeConfig.fields) {
+        const mergedFieldConfig = mergedTypeConfig.fields[fieldName];
         if (mergedFieldConfig.computed && mergedFieldConfig.selectionSet) {
           isolatedFields[fieldName] = mergedFieldConfig;
         } else if (mergedFieldConfig.computed) {
@@ -45,7 +49,7 @@ export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfi
         } else {
           baseFields[fieldName] = mergedFieldConfig;
         }
-      });
+      }
 
       const isolatedFieldCount = Object.keys(isolatedFields).length;
       const objectType = subschemaConfig.schema.getType(typeName) as GraphQLObjectType;
@@ -62,7 +66,7 @@ export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfi
         };
       }
     }
-  });
+  }
 
   if (Object.keys(isolatedSchemaTypes).length) {
     return [
@@ -146,27 +150,34 @@ type IsolatedSubschemaInput = Exclude<SubschemaConfig, 'merge'> & {
 function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): SubschemaConfig {
   const rootFields: Record<string, boolean> = {};
 
-  Object.values(subschemaConfig.merge).forEach(mergedTypeConfig => {
+  for (const typeName in subschemaConfig.merge) {
+    const mergedTypeConfig = subschemaConfig.merge[typeName];
     const entryPoints = mergedTypeConfig.entryPoints ?? [mergedTypeConfig];
-    entryPoints.forEach(entryPoint => {
+    for (const entryPoint of entryPoints) {
       if (entryPoint.fieldName != null) {
         rootFields[entryPoint.fieldName] = true;
       }
-    });
-  });
+    }
+  }
 
   const interfaceFields: Record<string, Record<string, boolean>> = {};
   for (const typeName in subschemaConfig.merge) {
-    (subschemaConfig.schema.getType(typeName) as GraphQLObjectType).getInterfaces().forEach(int => {
-      Object.keys((subschemaConfig.schema.getType(int.name) as GraphQLInterfaceType).getFields()).forEach(
-        intFieldName => {
-          if (subschemaConfig.merge[typeName].fields?.[intFieldName]) {
-            interfaceFields[int.name] = interfaceFields[int.name] || {};
-            interfaceFields[int.name][intFieldName] = true;
-          }
+    const type = subschemaConfig.schema.getType(typeName);
+    if (!type || !('getInterfaces' in type)) {
+      throw new Error(`${typeName} expected to have 'getInterfaces' method`);
+    }
+    for (const int of type.getInterfaces()) {
+      const intType = subschemaConfig.schema.getType(int.name);
+      if (!intType || !('getFields' in intType)) {
+        throw new Error(`${int.name} expected to have 'getFields' method`);
+      }
+      for (const intFieldName in intType.getFields()) {
+        if (subschemaConfig.merge[typeName].fields?.[intFieldName]) {
+          interfaceFields[int.name] = interfaceFields[int.name] || {};
+          interfaceFields[int.name][intFieldName] = true;
         }
-      );
-    });
+      }
+    }
   }
 
   const filteredSchema = pruneSchema(

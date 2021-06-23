@@ -13,9 +13,9 @@ export function forEachDefaultValue(schema: GraphQLSchema, fn: IDefaultValueIter
         for (const fieldName in fields) {
           const field = fields[fieldName];
 
-          field.args.forEach(arg => {
+          for (const arg of field.args) {
             arg.defaultValue = fn(arg.type, arg.defaultValue);
-          });
+          }
         }
       } else if (isInputObjectType(type)) {
         const fields = type.getFields();

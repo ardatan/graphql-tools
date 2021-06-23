@@ -709,8 +709,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
 }
 
 function switchProtocols(pointer: string, protocolMap: Record<string, string>): string {
-  const protocols: [string, string][] = Object.keys(protocolMap).map(source => [source, protocolMap[source]]);
-  return protocols.reduce(
+  return Object.entries(protocolMap).reduce(
     (prev, [source, target]) => prev.replace(`${source}://`, `${target}://`).replace(`${source}:\\`, `${target}:\\`),
     pointer
   );

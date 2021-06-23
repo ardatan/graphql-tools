@@ -74,10 +74,11 @@ export function validateFieldConsistency<TContext = Record<string, any>>(
     );
   }
 
-  Object.entries(argCandidatesMap).forEach(([argName, argCandidates]) => {
+  for (const argName in argCandidatesMap) {
     if (finalFieldConfig.args == null) {
-      return;
+      continue;
     }
+    const argCandidates = argCandidatesMap[argName];
     const argNamespace = `${fieldNamespace}.${argName}`;
     const finalArgConfig = finalFieldConfig.args[argName] || argCandidates[argCandidates.length - 1];
     const finalArgType = getNamedType(finalArgConfig.type);
@@ -105,7 +106,7 @@ export function validateFieldConsistency<TContext = Record<string, any>>(
     if (isEnumType(finalArgType)) {
       validateInputEnumConsistency(finalArgType, argCandidates, typeMergingOptions);
     }
-  });
+  }
 }
 
 export function validateInputObjectConsistency<TContext = Record<string, any>>(
@@ -113,7 +114,8 @@ export function validateInputObjectConsistency<TContext = Record<string, any>>(
   candidates: Array<MergeTypeCandidate<TContext>>,
   typeMergingOptions?: TypeMergingOptions<TContext>
 ): void {
-  Object.entries(fieldInclusionMap).forEach(([fieldName, count]) => {
+  for (const fieldName in fieldInclusionMap) {
+    const count = fieldInclusionMap[fieldName];
     if (candidates.length !== count) {
       const namespace = `${candidates[0].type.name}.${fieldName}`;
       validationMessage(
@@ -122,7 +124,7 @@ export function validateInputObjectConsistency<TContext = Record<string, any>>(
         typeMergingOptions
       );
     }
-  });
+  }
 }
 
 export function validateInputFieldConsistency<TContext = Record<string, any>>(

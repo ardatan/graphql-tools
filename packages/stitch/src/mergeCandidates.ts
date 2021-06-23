@@ -100,7 +100,7 @@ function mergeObjectTypeCandidates<TContext = Record<string, any>>(
       }
       return acc;
     }, Object.create(null));
-  const interfaces = Object.keys(interfaceMap).map(interfaceName => interfaceMap[interfaceName]);
+  const interfaces = Object.values(interfaceMap);
 
   const astNodes = pluck<ObjectTypeDefinitionNode>('astNode', candidates);
   const fieldAstNodes = canonicalFieldNamesForType(candidates)

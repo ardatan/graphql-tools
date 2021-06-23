@@ -8,7 +8,6 @@ import {
   FragmentDefinitionNode,
   VariableDefinitionNode,
   ArgumentNode,
-  GraphQLArgument,
   FieldNode,
   valueFromAST,
   isLeafType,
@@ -142,7 +141,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
 
       return {
         ...newOperation,
-        variableDefinitions: Object.keys(variableDefinitionMap).map(varName => variableDefinitionMap[varName]),
+        variableDefinitions: Object.values(variableDefinitionMap),
       };
     });
   }
@@ -165,7 +164,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
           Object.create(null)
         );
 
-        targetField.args.forEach((argument: GraphQLArgument) => {
+        for (const argument of targetField.args) {
           const argName = argument.name;
           const argType = argument.type;
 
@@ -188,11 +187,11 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
               return newValue === undefined ? v : newValue;
             })
           );
-        });
+        }
 
         return {
           ...field,
-          arguments: Object.keys(argumentNodeMap).map(argName => argumentNodeMap[argName]),
+          arguments: Object.values(argumentNodeMap),
         };
       }
     }

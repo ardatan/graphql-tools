@@ -600,7 +600,7 @@ export function makeDirectiveNode(
   const directiveArguments: Array<ArgumentNode> = [];
 
   if (directive != null) {
-    directive.args.forEach(arg => {
+    for (const arg of directive.args) {
       const argName = arg.name;
       const argValue = args[argName];
       if (argValue !== undefined) {
@@ -616,7 +616,7 @@ export function makeDirectiveNode(
           });
         }
       }
-    });
+    }
   } else {
     for (const argName in args) {
       const argValue = args[argName];

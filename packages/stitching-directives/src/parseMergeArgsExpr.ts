@@ -54,8 +54,9 @@ export function parseMergeArgsExpr(mergeArgsExpr: string, selectionSet?: Selecti
 
     sourcePaths.push(...getSourcePaths(mappingInstructions, selectionSet));
 
+    assertNotWithinList(valuePath);
     expansions.push({
-      valuePath: assertNotWithinList(valuePath),
+      valuePath,
       value,
       mappingInstructions,
     });
@@ -68,23 +69,24 @@ export function parseMergeArgsExpr(mergeArgsExpr: string, selectionSet?: Selecti
 
 function getMappingInstructions(variablePaths: VariablePaths): Array<MappingInstruction> {
   const mappingInstructions: Array<MappingInstruction> = [];
-  Object.entries(variablePaths).forEach(([keyPath, valuePath]) => {
+  for (const keyPath in variablePaths) {
+    const valuePath = variablePaths[keyPath];
     const splitKeyPath = keyPath.split(KEY_DELIMITER).slice(1);
 
+    assertNotWithinList(valuePath);
     mappingInstructions.push({
-      destinationPath: assertNotWithinList(valuePath),
+      destinationPath: valuePath,
       sourcePath: splitKeyPath,
     });
-  });
+  }
 
   return mappingInstructions;
 }
 
-function assertNotWithinList(path: Array<string | number>): Array<string> {
-  path.forEach(pathSegment => {
+function assertNotWithinList(path: Array<string | number>): asserts path is string[] {
+  for (const pathSegment of path) {
     if (typeof pathSegment === 'number') {
       throw new Error('Insertions cannot be made into a list.');
     }
-  });
-  return path as Array<string>;
+  }
 }

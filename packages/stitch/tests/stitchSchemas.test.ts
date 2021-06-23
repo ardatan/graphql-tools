@@ -325,7 +325,7 @@ const schemaDirectiveTypeDefs = `
   }
 `;
 
-testCombinations.forEach((combination) => {
+for (const combination of testCombinations) {
   describe('merging ' + combination.name, () => {
     let stitchedSchema: GraphQLSchema;
     let propertySchema: GraphQLSchema | SubschemaConfig;
@@ -2679,13 +2679,13 @@ fragment BookingFragment on Booking {
 
           const stitchedResult = await graphql(stitchedSchema, propertyQuery, undefined, {});
 
-          [propertyResult, stitchedResult].forEach((result) => {
+          for (const result of [propertyResult, stitchedResult]) {
             assertSome(result.errors)
             expect(result.errors.length > 0).toBe(true);
             const error = result.errors[0];
             assertSome(error.extensions)
             expect(error.extensions['code']).toBe('SOME_CUSTOM_CODE');
-          });
+          }
         },
       );
     });
@@ -3510,4 +3510,4 @@ assertSome(result.data)
       });
     });
   });
-});
+}

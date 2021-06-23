@@ -186,12 +186,12 @@ function expandAbstractTypes(
           const parentType: GraphQLNamedType = getNamedType(maybeType);
           const interfaceExtension = interfaceExtensionsMap[parentType.name];
           const interfaceExtensionFields = [] as Array<SelectionNode>;
-          node.selections.forEach((selection: SelectionNode) => {
+          for (const selection of node.selections) {
             if (selection.kind === Kind.INLINE_FRAGMENT) {
               if (selection.typeCondition != null) {
                 const possibleTypes = possibleTypesMap[selection.typeCondition.name.value];
                 if (possibleTypes != null) {
-                  possibleTypes.forEach(possibleType => {
+                  for (const possibleType of possibleTypes) {
                     const maybePossibleType = targetSchema.getType(possibleType);
                     if (
                       maybePossibleType != null &&
@@ -199,13 +199,13 @@ function expandAbstractTypes(
                     ) {
                       addedSelections.push(generateInlineFragment(possibleType, selection.selectionSet));
                     }
-                  });
+                  }
                 }
               }
             } else if (selection.kind === Kind.FRAGMENT_SPREAD) {
               const fragmentName = selection.name.value;
               if (fragmentName in fragmentReplacements) {
-                fragmentReplacements[fragmentName].forEach(replacement => {
+                for (const replacement of fragmentReplacements[fragmentName]) {
                   const typeName = replacement.typeName;
                   const maybeReplacementType = targetSchema.getType(typeName);
                   if (maybeReplacementType != null && implementsAbstractType(targetSchema, parentType, maybeType)) {
@@ -217,7 +217,7 @@ function expandAbstractTypes(
                       },
                     });
                   }
-                });
+                }
               }
             } else if (
               interfaceExtension != null &&
@@ -226,7 +226,7 @@ function expandAbstractTypes(
             ) {
               interfaceExtensionFields.push(selection);
             }
-          });
+          }
 
           if (parentType.name in reversePossibleTypesMap) {
             addedSelections.push({
@@ -241,14 +241,14 @@ function expandAbstractTypes(
           if (interfaceExtensionFields.length) {
             const possibleTypes = possibleTypesMap[parentType.name];
             if (possibleTypes != null) {
-              possibleTypes.forEach(possibleType => {
+              for (const possibleType of possibleTypes) {
                 addedSelections.push(
                   generateInlineFragment(possibleType, {
                     kind: Kind.SELECTION_SET,
                     selections: interfaceExtensionFields,
                   })
                 );
-              });
+              }
 
               newSelections = newSelections.filter(
                 (selection: SelectionNode) =>

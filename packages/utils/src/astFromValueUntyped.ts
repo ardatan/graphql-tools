@@ -41,7 +41,8 @@ export function astFromValueUntyped(value: any): ValueNode | null {
 
   if (typeof value === 'object') {
     const fieldNodes: Array<ObjectFieldNode> = [];
-    Object.entries(value).forEach(([fieldName, fieldValue]) => {
+    for (const fieldName in value) {
+      const fieldValue = value[fieldName];
       const ast = astFromValueUntyped(fieldValue);
       if (ast) {
         fieldNodes.push({
@@ -50,7 +51,7 @@ export function astFromValueUntyped(value: any): ValueNode | null {
           value: ast,
         });
       }
-    });
+    }
     return { kind: Kind.OBJECT, fields: fieldNodes };
   }
 

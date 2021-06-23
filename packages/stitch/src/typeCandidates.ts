@@ -8,6 +8,7 @@ import {
   SchemaExtensionNode,
   isSpecifiedScalarType,
   GraphQLSchema,
+  isDirective,
 } from 'graphql';
 
 import { wrapSchema } from '@graphql-tools/wrap';
@@ -72,7 +73,7 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
 
   setOperationTypeNames(schemaDefs, operationTypeNames);
 
-  subschemas.forEach(subschema => {
+  for (const subschema of subschemas) {
     const schema = wrapSchema(subschema);
 
     const operationTypes = {
@@ -114,20 +115,26 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
         });
       }
     }
-  });
+  }
 
   if (document != null && extraction != null) {
-    extraction.typeDefinitions.forEach(def => {
-      const type = typeFromAST(def) as GraphQLNamedType;
+    for (const def of extraction.typeDefinitions) {
+      const type = typeFromAST(def);
+      if (!isNamedType(type)) {
+        throw new Error(`Expected to get named typed but got ${JSON.stringify(def)}`);
+      }
       if (type != null) {
         addTypeCandidate(typeCandidates, type.name, { type });
       }
-    });
+    }
 
-    extraction.directiveDefs.forEach(def => {
-      const directive = typeFromAST(def) as GraphQLDirective;
+    for (const def of extraction.directiveDefs) {
+      const directive = typeFromAST(def);
+      if (!isDirective(directive)) {
+        throw new Error(`Expected to get directive type but got ${JSON.stringify(def)}`);
+      }
       directiveMap[directive.name] = directive;
-    });
+    }
 
     if (extraction.extensionDefs.length > 0) {
       extensions.push({
@@ -137,7 +144,9 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
     }
   }
 
-  types.forEach(type => addTypeCandidate(typeCandidates, type.name, { type }));
+  for (const type of types) {
+    addTypeCandidate(typeCandidates, type.name, { type });
+  }
 
   return typeCandidates;
 }
@@ -157,13 +166,13 @@ function setOperationTypeNames(
     allNodes.unshift(schemaDef);
   }
 
-  allNodes.forEach(node => {
+  for (const node of allNodes) {
     if (node.operationTypes != null) {
-      node.operationTypes.forEach(operationType => {
+      for (const operationType of node.operationTypes) {
         operationTypeNames[operationType.operation] = operationType.type.name.value;
-      });
+      }
     }
-  });
+  }
 }
 
 function addTypeCandidate<TContext = Record<string, any>>(

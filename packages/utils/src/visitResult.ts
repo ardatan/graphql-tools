@@ -195,7 +195,9 @@ function visitObjectValue(
   if (errors != null) {
     sortedErrors = sortErrorsByPathSegment(errors, pathIndex);
     errorMap = sortedErrors.errorMap;
-    sortedErrors.unpathedErrors.forEach(error => errorInfo.unpathedErrors.add(error));
+    for (const error of sortedErrors.unpathedErrors) {
+      errorInfo.unpathedErrors.add(error);
+    }
   }
 
   for (const responseKey in fieldNodeMap) {
@@ -353,11 +355,11 @@ function visitFieldValue(
 function sortErrorsByPathSegment(errors: ReadonlyArray<GraphQLError>, pathIndex: number): SortedErrors {
   const errorMap = Object.create(null);
   const unpathedErrors: Set<GraphQLError> = new Set();
-  errors.forEach(error => {
+  for (const error of errors) {
     const pathSegment = error.path?.[pathIndex];
     if (pathSegment == null) {
       unpathedErrors.add(error);
-      return;
+      continue;
     }
 
     if (pathSegment in errorMap) {
@@ -365,7 +367,7 @@ function sortErrorsByPathSegment(errors: ReadonlyArray<GraphQLError>, pathIndex:
     } else {
       errorMap[pathSegment] = [error];
     }
-  });
+  }
 
   return {
     errorMap,
@@ -380,7 +382,7 @@ function addPathSegmentInfo(
   errors: ReadonlyArray<GraphQLError> = [],
   errorInfo: ErrorInfo
 ) {
-  errors.forEach(error => {
+  for (const error of errors) {
     const segmentInfo = {
       type,
       fieldName,
@@ -392,7 +394,7 @@ function addPathSegmentInfo(
     } else {
       pathSegmentsInfo.push(segmentInfo);
     }
-  });
+  }
 }
 
 function collectSubFields(
@@ -403,11 +405,11 @@ function collectSubFields(
   let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
   const visitedFragmentNames = Object.create(null);
 
-  fieldNodes.forEach(fieldNode => {
+  for (const fieldNode of fieldNodes) {
     if (fieldNode.selectionSet) {
       subFieldNodes = collectFields(exeContext, type, fieldNode.selectionSet, subFieldNodes, visitedFragmentNames);
     }
-  });
+  }
 
   return subFieldNodes;
 }

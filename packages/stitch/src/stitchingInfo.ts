@@ -228,11 +228,12 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
   schema: GraphQLSchema
 ): StitchingInfo<TContext> {
   const selectionSetsByType = Object.create(null);
-  [schema.getQueryType(), schema.getMutationType()].forEach(rootType => {
+  const rootTypes = [schema.getQueryType(), schema.getMutationType()];
+  for (const rootType of rootTypes) {
     if (rootType) {
       selectionSetsByType[rootType.name] = parseSelectionSet('{ __typename }', { noLocation: true });
     }
-  });
+  }
 
   const selectionSetsByField = stitchingInfo.selectionSetsByField;
   const dynamicSelectionSetsByField = Object.create(null);

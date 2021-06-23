@@ -187,10 +187,6 @@ export const sampleData: {
   },
 };
 
-function values<T>(o: { [s: string]: T }): Array<T> {
-  return Object.keys(o).map((k) => o[k]);
-}
-
 function coerceString(value: any): string {
   if (Array.isArray(value)) {
     throw new TypeError(
@@ -348,7 +344,7 @@ const propertyResolvers: IResolvers = {
     },
 
     properties(_root, { limit }) {
-      const list = values(sampleData.Property);
+      const list = Object.values(sampleData.Property);
       return limit ? list.slice(0, limit) : list;
     },
 
@@ -463,7 +459,7 @@ const productTypeDefs = `
 const productResolvers: IResolvers = {
   Query: {
     products(_root) {
-      const list = values(sampleData.Product);
+      const list = Object.values(sampleData.Product);
       return list;
     },
   },
@@ -549,7 +545,7 @@ const bookingResolvers: IResolvers = {
       return sampleData.Booking[id];
     },
     bookingsByPropertyId(_parent, { propertyId, limit }) {
-      const list = values(sampleData.Booking).filter(
+      const list = Object.values(sampleData.Booking).filter(
         (booking: Booking) => booking.propertyId === propertyId,
       );
       return limit ? list.slice(0, limit) : list;
@@ -558,11 +554,11 @@ const bookingResolvers: IResolvers = {
       return sampleData.Customer[id];
     },
     bookings(_parent, { limit }) {
-      const list = values(sampleData.Booking);
+      const list = Object.values(sampleData.Booking);
       return limit ? list.slice(0, limit) : list;
     },
     customers(_parent, { limit }) {
-      const list = values(sampleData.Customer);
+      const list = Object.values(sampleData.Customer);
       return limit ? list.slice(0, limit) : list;
     },
   },
@@ -599,7 +595,7 @@ const bookingResolvers: IResolvers = {
 
   Customer: {
     bookings(parent: Customer, { limit }) {
-      const list = values(sampleData.Booking).filter(
+      const list = Object.values(sampleData.Booking).filter(
         (booking: Booking) => booking.customerId === parent.id,
       );
       return limit ? list.slice(0, limit) : list;
