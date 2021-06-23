@@ -198,9 +198,9 @@ function mergeInterfaceTypeCandidates<TContext = Record<string, any>>(
 
   const description = mergeTypeDescriptions(candidates, typeMergingOptions);
   const fields = fieldConfigMapFromTypeCandidates(candidates, typeMergingOptions);
-  const typeConfigs = candidates.map(candidate => (candidate.type as GraphQLInterfaceType).toConfig());
+  const typeConfigs = candidates.map(candidate => candidate.type.toConfig());
   const interfaceMap = typeConfigs
-    .map(typeConfig => typeConfig.interfaces)
+    .map(typeConfig => ('interfaces' in typeConfig ? typeConfig.interfaces : []))
     .reduce<Record<string, GraphQLInterfaceType>>((acc, interfaces) => {
       if (interfaces != null) {
         for (const iface of interfaces) {
