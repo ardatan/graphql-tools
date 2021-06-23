@@ -9,10 +9,7 @@ import { getSourcePaths } from './getSourcePaths';
 
 type VariablePaths = Record<string, Array<string | number>>;
 
-export function parseMergeArgsExpr(
-  mergeArgsExpr: string,
-  selectionSet?: SelectionSetNode,
-): ParsedMergeArgsExpr {
+export function parseMergeArgsExpr(mergeArgsExpr: string, selectionSet?: SelectionSetNode): ParsedMergeArgsExpr {
   const { mergeArgsExpr: newMergeArgsExpr, expansionExpressions } = preparseMergeArgsExpr(mergeArgsExpr);
 
   const inputValue = parseValue(`{ ${newMergeArgsExpr} }`, { noLocation: true });
@@ -32,15 +29,15 @@ export function parseMergeArgsExpr(
   }
 
   const expansionRegEx = new RegExp(`^${EXPANSION_PREFIX}[0-9]+$`);
-  Object.keys(variablePaths).forEach(variableName => {
+  for (const variableName in variablePaths) {
     if (!variableName.match(expansionRegEx)) {
       throw new Error('Expansions cannot be mixed with single key declarations.');
     }
-  });
+  }
 
   const expansions: Array<Expansion> = [];
   const sourcePaths: Array<Array<string>> = [];
-  Object.keys(expansionExpressions).forEach(variableName => {
+  for (const variableName in expansionExpressions) {
     const str = expansionExpressions[variableName];
     const valuePath = variablePaths[variableName];
     const { inputValue: expansionInputValue, variablePaths: expansionVariablePaths } = extractVariables(
@@ -62,7 +59,7 @@ export function parseMergeArgsExpr(
       value,
       mappingInstructions,
     });
-  });
+  }
 
   const usedProperties = propertyTreeFromPaths(sourcePaths);
 

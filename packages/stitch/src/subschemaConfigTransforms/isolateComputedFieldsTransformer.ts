@@ -96,16 +96,16 @@ function filterBaseSubschema(
   );
 
   const filteredFields: Record<string, Record<string, boolean>> = {};
-  Object.keys(filteredSchema.getTypeMap()).forEach(typeName => {
+  for (const typeName in filteredSchema.getTypeMap()) {
     const type = filteredSchema.getType(typeName);
     if (isObjectType(type) || isInterfaceType(type)) {
       filteredFields[typeName] = { __typename: true };
       const fieldMap = type.getFields();
-      Object.keys(fieldMap).forEach(fieldName => {
+      for (const fieldName in fieldMap) {
         filteredFields[typeName][fieldName] = true;
-      });
+      }
     }
-  });
+  }
 
   const filteredSubschema = {
     ...subschemaConfig,
@@ -125,11 +125,11 @@ function filterBaseSubschema(
   const remainingTypes = filteredSchema.getTypeMap();
   const mergeConfig = filteredSubschema.merge;
   if (mergeConfig) {
-    Object.keys(mergeConfig).forEach(mergeType => {
+    for (const mergeType in mergeConfig) {
       if (!remainingTypes[mergeType]) {
         delete mergeConfig[mergeType];
       }
-    });
+    }
 
     if (!Object.keys(mergeConfig).length) {
       delete filteredSubschema.merge;
@@ -156,7 +156,7 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
   });
 
   const interfaceFields: Record<string, Record<string, boolean>> = {};
-  Object.keys(subschemaConfig.merge).forEach(typeName => {
+  for (const typeName in subschemaConfig.merge) {
     (subschemaConfig.schema.getType(typeName) as GraphQLObjectType).getInterfaces().forEach(int => {
       Object.keys((subschemaConfig.schema.getType(int.name) as GraphQLInterfaceType).getFields()).forEach(
         intFieldName => {
@@ -167,7 +167,7 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
         }
       );
     });
-  });
+  }
 
   const filteredSchema = pruneSchema(
     filterSchema({
@@ -179,16 +179,16 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
   );
 
   const filteredFields: Record<string, Record<string, boolean>> = {};
-  Object.keys(filteredSchema.getTypeMap()).forEach(typeName => {
+  for (const typeName in filteredSchema.getTypeMap()) {
     const type = filteredSchema.getType(typeName);
     if (isObjectType(type) || isInterfaceType(type)) {
       filteredFields[typeName] = { __typename: true };
       const fieldMap = type.getFields();
-      Object.keys(fieldMap).forEach(fieldName => {
+      for (const fieldName in fieldMap) {
         filteredFields[typeName][fieldName] = true;
-      });
+      }
     }
-  });
+  }
 
   return {
     ...subschemaConfig,

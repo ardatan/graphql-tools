@@ -13,15 +13,15 @@ export function splitMergedTypeEntryPointsTransformer(subschemaConfig: Subschema
 
   for (let i = 0; i < maxEntryPoints; i += 1) {
     const subschemaPermutation = cloneSubschemaConfig(subschemaConfig);
-    const mergedTypesCopy: Record<string, MergedTypeConfig<any, any, any>> =
-      subschemaPermutation.merge ?? Object.create(null);
+    const mergedTypesCopy: Record<string, MergedTypeConfig<any, any, any>> = subschemaPermutation.merge ??
+    Object.create(null);
     let currentMerge = mergedTypesCopy;
 
     if (i > 0) {
       subschemaPermutation.merge = currentMerge = Object.create(null);
     }
 
-    Object.keys(mergedTypesCopy).forEach(typeName => {
+    for (const typeName in mergedTypesCopy) {
       const mergedTypeConfig = mergedTypesCopy[typeName];
       const mergedTypeEntryPoint = mergedTypeConfig?.entryPoints?.[i];
 
@@ -38,15 +38,16 @@ export function splitMergedTypeEntryPointsTransformer(subschemaConfig: Subschema
         if (i > 0) {
           delete mergedTypeConfig.canonical;
           if (mergedTypeConfig.fields != null) {
-            Object.values(mergedTypeConfig.fields).forEach(mergedFieldConfig => {
+            for (const mergedFieldName in mergedTypeConfig.fields) {
+              const mergedFieldConfig = mergedTypeConfig.fields[mergedFieldName];
               delete mergedFieldConfig.canonical;
-            });
+            }
           }
         }
 
         currentMerge[typeName] = mergedTypeConfig;
       }
-    });
+    }
 
     subschemaPermutations.push(subschemaPermutation);
   }
