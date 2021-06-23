@@ -261,23 +261,3 @@ const schema = wrapSchema({
 ```
 
 Note that within the `defaultCreateProxyingResolver` function, `delegateToSchema` receives `executor` and `subscriber` functions stored on the subschema config object originally passed to `wrapSchema`. As above, use of the the `createProxyingResolver` option is helpful when you want to customize additional functionality at resolver creation time. If you just want to customize how things are proxied at the time that they are proxied, you can make do just with custom executors and subscribers.
-
-### makeRemoteExecutableSchema(options)
-
-What about `makeRemoteExecutableSchema`, the function used in older versions to access remote schemas? It still works -- just now under the hood calling `wrapSchema`. There is essentially no longer any need to use `makeRemoteExecutableSchema` directly, but we've kept it around for backwards compatibility.
-
-You can still pass a `createResolver` function to `makeRemoteExecutableSchema` to override how the fetch resolvers are created and executed. The `createResolver` param accepts an `Executor` as its first argument (and a `Subscriber` as its second) and returns a resolver function. This opens up the possibility for users to create batching mechanisms for fetches. As above, it is likely easier to just customize the `executor` function itself.
-
-Given a GraphQL.js schema (can be a non-executable client schema made by `buildClientSchema`) and a [executor](#creating-an-executor), `makeRemoteExecutableSchema` produce a GraphQL Schema that routes all requests to the executor:
-
-```js
-import { makeRemoteExecutableSchema } from '@graphql-tools/wrap';
-
-const createResolver: (executor: Executor) => GraphQLFieldResolver<any, any> = // . . .
-
-const schema = makeRemoteExecutableSchema({
-  schema,
-  executor,
-  createResolver
-});
-```
