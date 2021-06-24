@@ -6,15 +6,22 @@ on:
       - master
   workflow_dispatch:
     inputs:
-      confirm:
+      onDemand:
         description: 'Are you sure?'
         required: true
         default: 'yes'
+      npmTag:
+        description: 'NPM Tag'
+        required: true
+        default: 'alpha'
+      npmVersionSuffix:
+        description: 'Custom NPM Version Suffix'
+        required: false
 jobs:
   publish-canary:
     name: Publish Canary
     runs-on: ubuntu-latest
-    if: github.event.pull_request.head.repo.full_name == github.repository || github.event.inputs.confirm == 'yes'
+    if: github.event.pull_request.head.repo.full_name == github.repository || github.event.inputs.onDemand == 'yes'
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
@@ -50,7 +57,9 @@ jobs:
           npm-script: 'yarn release:canary'
           changesets: true
         env:
-          ON_DEMAND: ${{github.event.inputs.confirm}}
+          ON_DEMAND: ${{github.event.inputs.onDemand}}
+          NPM_TAG: ${{github.event.inputs.npmTag || 'alpha'}}
+          NPM_VERSION_SUFFIX: ${{github.event.inputs.npmVersionSuffix}}
       - name: Publish a message
         if: steps.canary.outputs.released
         uses: 'kamilkisiela/pr-comment@master'
