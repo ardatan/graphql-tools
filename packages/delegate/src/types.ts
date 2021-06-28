@@ -14,7 +14,7 @@ import {
 
 import DataLoader from 'dataloader';
 
-import { ExecutionParams, ExecutionResult, Executor, Request, Subscriber, TypeMap } from '@graphql-tools/utils';
+import { ExecutionParams, ExecutionResult, Executor, Request, TypeMap } from '@graphql-tools/utils';
 
 import { Subschema } from './Subschema';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
@@ -145,7 +145,6 @@ export interface SubschemaConfig<K = any, V = any, C = K, TContext = Record<stri
   transforms?: Array<Transform<any, TContext>>;
   merge?: Record<string, MergedTypeConfig<any, any, TContext>>;
   executor?: Executor<TContext>;
-  subscriber?: Subscriber<TContext>;
   batch?: boolean;
   batchingOptions?: BatchingOptions<K, V, C>;
 }

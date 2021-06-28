@@ -682,7 +682,23 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
 });
 
 function makeExecutorFromSchema(schema: GraphQLSchema) {
-  return async <TReturn, TArgs, TContext>({ document, variables, context }: ExecutionParams<TArgs, TContext>) => {
+  return async <TReturn, TArgs, TContext>({ document, variables, context, info }: ExecutionParams<TArgs, TContext>) => {
+    if (info?.operation.operation === 'subscription') {
+      const result = subscribe(
+        schema,
+        document,
+        null,
+        context,
+        variables,
+      ) as Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
+      if (isPromise(result)) {
+        return result.then(asyncIterator => {
+          assertAsyncIterable(asyncIterator)
+          return mapAsyncIterator<any, any>(asyncIterator, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult)))
+        });
+      }
+      return JSON.parse(JSON.stringify(result));
+    }
     return (new ValueOrPromise(() => graphql(
       schema,
       print(document),
@@ -701,35 +717,14 @@ function assertAsyncIterable(input: unknown): asserts input is AsyncIterableIter
   }
 }
 
-function makeSubscriberFromSchema(schema: GraphQLSchema) {
-  return async <TReturn, TArgs, TContext>({ document, variables, context }: ExecutionParams<TArgs, TContext>) => {
-    const result = subscribe(
-      schema,
-      document,
-      null,
-      context,
-      variables,
-    ) as Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
-    if (isPromise(result)) {
-      return result.then(asyncIterator => {
-        assertAsyncIterable(asyncIterator)
-        return mapAsyncIterator<any, any>(asyncIterator, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult)))
-      });
-    }
-    return JSON.parse(JSON.stringify(result));
-  };
-}
-
 export async function makeSchemaRemote(
   schema: GraphQLSchema,
 ): Promise<SubschemaConfig> {
   const executor = makeExecutorFromSchema(schema);
-  const subscriber = makeSubscriberFromSchema(schema);
   const clientSchema = await introspectSchema(executor);
   return {
     schema: clientSchema,
     executor,
-    subscriber,
     batch: true,
   };
 }

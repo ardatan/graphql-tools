@@ -18,7 +18,10 @@ export function createBatchingExecutor(
   ) => Record<string, any> = defaultExtensionsReducer
 ): Executor {
   const loader = new DataLoader(createLoadFn(executor, extensionsReducer), dataLoaderOptions);
-  return (executionParams: ExecutionParams) => loader.load(executionParams);
+  return (executionParams: ExecutionParams) =>
+    executionParams.info?.operation.operation === 'subscription'
+      ? executor(executionParams)
+      : loader.load(executionParams);
 }
 
 function createLoadFn(
@@ -53,7 +56,7 @@ function createLoadFn(
 
     const executionResults: Array<ValueOrPromise<ExecutionResult>> = execBatches.map(execBatch => {
       const mergedExecutionParams = mergeExecutionParams(execBatch, extensionsReducer);
-      return new ValueOrPromise(() => executor(mergedExecutionParams));
+      return new ValueOrPromise(() => executor(mergedExecutionParams) as ExecutionResult);
     });
 
     return ValueOrPromise.all(executionResults)
