@@ -50,7 +50,7 @@ export function introspectSchema<TExecutor extends AsyncExecutor | SyncExecutor>
       if (isAsyncIterable(introspection)) {
         return introspection.next().then(({ value }) => value);
       }
-      return getSchemaFromIntrospection(introspection);
+      return introspection;
     })
     .then(introspection => getSchemaFromIntrospection(introspection))
     .resolve() as any;
