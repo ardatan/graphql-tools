@@ -10,14 +10,7 @@ import {
 
 import { ValueOrPromise } from 'value-or-promise';
 
-import {
-  AsyncExecutor,
-  Executor,
-  SyncExecutor,
-  ExecutionResult,
-  AggregateError,
-  isAsyncIterable,
-} from '@graphql-tools/utils';
+import { AsyncExecutor, Executor, ExecutionResult, AggregateError, isAsyncIterable } from '@graphql-tools/utils';
 
 function getSchemaFromIntrospection(introspectionResult: ExecutionResult<IntrospectionQuery>): GraphQLSchema {
   if (introspectionResult?.data?.__schema) {
@@ -34,7 +27,7 @@ function getSchemaFromIntrospection(introspectionResult: ExecutionResult<Introsp
   }
 }
 
-export function introspectSchema<TExecutor extends AsyncExecutor | SyncExecutor>(
+export function introspectSchema<TExecutor extends Executor>(
   executor: TExecutor,
   context?: Record<string, any>,
   options?: IntrospectionOptions
