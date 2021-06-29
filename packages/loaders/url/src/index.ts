@@ -5,7 +5,6 @@ import { print, IntrospectionOptions, Kind, GraphQLError } from 'graphql';
 import {
   AsyncExecutor,
   Executor,
-  Subscriber,
   SyncExecutor,
   SchemaPointerSingle,
   Source,
@@ -382,11 +381,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return executor;
   }
 
-  buildWSSubscriber(
+  buildWSExecutor(
     subscriptionsEndpoint: string,
     webSocketImpl: typeof WebSocket,
     connectionParams?: ClientOptions['connectionParams']
-  ): Subscriber {
+  ): AsyncExecutor {
     const WS_URL = switchProtocols(subscriptionsEndpoint, {
       https: 'wss',
       http: 'ws',
@@ -418,11 +417,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     };
   }
 
-  buildWSLegacySubscriber(
+  buildWSLegacyExecutor(
     subscriptionsEndpoint: string,
     webSocketImpl: typeof WebSocket,
     connectionParams?: ConnectionParamsOptions
-  ): Subscriber {
+  ): AsyncExecutor {
     const WS_URL = switchProtocols(subscriptionsEndpoint, {
       https: 'wss',
       http: 'ws',
@@ -447,12 +446,12 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     };
   }
 
-  buildSSESubscriber(
+  buildSSEExecutor(
     pointer: string,
     extraHeaders: HeadersConfig | undefined,
     fetch: AsyncFetchFn,
     options: Maybe<FetchEventSourceInit>
-  ): Subscriber<any, ExecutionExtensions> {
+  ): AsyncExecutor<any, ExecutionExtensions> {
     return async ({ document, variables, extensions }) => {
       const controller = new AbortController();
       const query = print(document);
@@ -558,14 +557,11 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     }
   }
 
-  async getExecutorAndSubscriberAsync(
-    pointer: SchemaPointerSingle,
-    options: LoadFromUrlOptions = {}
-  ): Promise<{ executor: AsyncExecutor; subscriber: Subscriber }> {
+  async getExecutorAsync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions = {}): Promise<AsyncExecutor> {
     const fetch = await this.getFetch(options.customFetch, asyncImport, true);
     const defaultMethod = this.getDefaultMethodFromOptions(options.method, 'POST');
 
-    const executor = this.buildExecutor({
+    const httpExecutor = this.buildExecutor({
       pointer,
       fetch,
       extraHeaders: options.headers,
@@ -574,31 +570,35 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       multipart: options.multipart,
     });
 
-    let subscriber: Subscriber;
+    let subscriptionExecutor: AsyncExecutor;
 
     const subscriptionsEndpoint = options.subscriptionsEndpoint || pointer;
     if (options.useSSEForSubscription) {
-      subscriber = this.buildSSESubscriber(subscriptionsEndpoint, options.headers, fetch, options.eventSourceOptions);
+      subscriptionExecutor = this.buildSSEExecutor(
+        subscriptionsEndpoint,
+        options.headers,
+        fetch,
+        options.eventSourceOptions
+      );
     } else {
       const webSocketImpl = await this.getWebSocketImpl(options, asyncImport);
       const connectionParams = () => ({ headers: options.headers });
       if (options.useWebSocketLegacyProtocol) {
-        subscriber = this.buildWSLegacySubscriber(subscriptionsEndpoint, webSocketImpl, connectionParams);
+        subscriptionExecutor = this.buildWSLegacyExecutor(subscriptionsEndpoint, webSocketImpl, connectionParams);
       } else {
-        subscriber = this.buildWSSubscriber(subscriptionsEndpoint, webSocketImpl, connectionParams);
+        subscriptionExecutor = this.buildWSExecutor(subscriptionsEndpoint, webSocketImpl, connectionParams);
       }
     }
 
-    return {
-      executor,
-      subscriber,
+    return params => {
+      if (params.info?.operation.operation === 'subscription') {
+        return subscriptionExecutor(params);
+      }
+      return httpExecutor(params);
     };
   }
 
-  getExecutorAndSubscriberSync(
-    pointer: SchemaPointerSingle,
-    options: LoadFromUrlOptions
-  ): { executor: SyncExecutor; subscriber: Subscriber } {
+  getExecutorSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): SyncExecutor {
     const fetch = this.getFetch(options?.customFetch, syncImport, false);
     const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'POST');
 
@@ -610,48 +610,22 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       useGETForQueries: options.useGETForQueries,
     });
 
-    const subscriptionsEndpoint = options.subscriptionsEndpoint || pointer;
-    let subscriber: Subscriber;
-    if (options.useSSEForSubscription) {
-      const asyncFetchFn: any = (...args: any[]) =>
-        this.getFetch(options?.customFetch, asyncImport, true).then((asyncFetch: any) => asyncFetch(...args));
-      subscriber = this.buildSSESubscriber(
-        subscriptionsEndpoint,
-        options.headers,
-        asyncFetchFn,
-        options.eventSourceOptions
-      );
-    } else {
-      const webSocketImpl = this.getWebSocketImpl(options, syncImport);
-      const connectionParams = () => ({ headers: options.headers });
-      if (options.useWebSocketLegacyProtocol) {
-        subscriber = this.buildWSLegacySubscriber(subscriptionsEndpoint, webSocketImpl, connectionParams);
-      } else {
-        subscriber = this.buildWSSubscriber(subscriptionsEndpoint, webSocketImpl, connectionParams);
-      }
-    }
-
-    return {
-      executor,
-      subscriber,
-    };
+    return executor;
   }
 
   async getSubschemaConfigAsync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<SubschemaConfig> {
-    const { executor, subscriber } = await this.getExecutorAndSubscriberAsync(pointer, options);
+    const executor = await this.getExecutorAsync(pointer, options);
     return {
       schema: await introspectSchema(executor, undefined, options as IntrospectionOptions),
       executor,
-      subscriber,
     };
   }
 
   getSubschemaConfigSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): SubschemaConfig {
-    const { executor, subscriber } = this.getExecutorAndSubscriberSync(pointer, options);
+    const executor = this.getExecutorSync(pointer, options);
     return {
       schema: introspectSchema(executor, undefined, options as IntrospectionOptions),
       executor,
-      subscriber,
     };
   }
 

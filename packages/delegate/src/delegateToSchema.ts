@@ -18,13 +18,12 @@ import { getBatchingExecutor } from '@graphql-tools/batch-execute';
 
 import {
   mapAsyncIterator,
-  ExecutionResult,
   Executor,
   ExecutionParams,
-  Subscriber,
   Maybe,
   assertSome,
   AggregateError,
+  isAsyncIterable,
 } from '@graphql-tools/utils';
 
 import {
@@ -102,41 +101,27 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
     validateRequest(delegationContext, processedRequest.document);
   }
 
-  const { operation, context, info } = delegationContext;
+  const { context, info } = delegationContext;
 
-  if (operation === 'query' || operation === 'mutation') {
-    const executor = getExecutor(delegationContext);
+  const executor = getExecutor(delegationContext);
 
-    return new ValueOrPromise(() =>
-      executor({
-        ...processedRequest,
-        context,
-        info,
-      })
-    )
-      .then(originalResult => transformer.transformResult(originalResult))
-      .resolve();
-  }
-
-  const subscriber = getSubscriber(delegationContext);
-
-  return subscriber({
-    ...processedRequest,
-    context,
-    info,
-  }).then(subscriptionResult => {
-    if (Symbol.asyncIterator in subscriptionResult) {
-      // "subscribe" to the subscription result and map the result through the transforms
-      return mapAsyncIterator<ExecutionResult, any>(
-        subscriptionResult as AsyncIterableIterator<ExecutionResult>,
-        originalResult => ({
+  return new ValueOrPromise(() =>
+    executor({
+      ...processedRequest,
+      context,
+      info,
+    })
+  )
+    .then(originalResult => {
+      if (isAsyncIterable(originalResult)) {
+        // "subscribe" to the subscription result and map the result through the transforms
+        return mapAsyncIterator(originalResult, originalResult => ({
           [delegationContext.fieldName]: transformer.transformResult(originalResult),
-        })
-      );
-    }
-
-    return transformer.transformResult(subscriptionResult as ExecutionResult);
-  });
+        }));
+      }
+      return transformer.transformResult(originalResult);
+    })
+    .resolve();
 }
 
 const emptyObject = {};
@@ -250,14 +235,14 @@ function validateRequest(delegationContext: DelegationContext<any>, document: Do
 }
 
 function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): Executor<TContext> {
-  const { subschemaConfig, targetSchema, context } = delegationContext;
+  const { subschemaConfig, targetSchema, context, operation } = delegationContext;
 
-  let executor: Executor = subschemaConfig?.executor || createDefaultExecutor(targetSchema);
+  let executor: Executor = subschemaConfig?.executor || createDefaultExecutor(targetSchema, operation);
 
   if (subschemaConfig?.batch) {
     const batchingOptions = subschemaConfig?.batchingOptions;
     executor = getBatchingExecutor(
-      context ?? self ?? window ?? global,
+      context ?? globalThis ?? window ?? global,
       executor,
       batchingOptions?.dataLoaderOptions,
       batchingOptions?.extensionsReducer
@@ -267,29 +252,17 @@ function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): 
   return executor;
 }
 
-function getSubscriber<TContext>(delegationContext: DelegationContext<TContext>): Subscriber<TContext> {
-  const { subschemaConfig, targetSchema } = delegationContext;
-  return subschemaConfig?.subscriber || createDefaultSubscriber(targetSchema);
-}
-
-function createDefaultExecutor(schema: GraphQLSchema): Executor {
-  return (({ document, context, variables, rootValue }: ExecutionParams) =>
-    execute({
+const createDefaultExecutor = (schema: GraphQLSchema, operation: OperationTypeNode) =>
+  (({ document, context, variables, rootValue }: ExecutionParams) => {
+    const executionParams = {
       schema,
       document,
       contextValue: context,
       variableValues: variables,
       rootValue,
-    })) as Executor;
-}
-
-function createDefaultSubscriber(schema: GraphQLSchema) {
-  return ({ document, context, variables, rootValue }: ExecutionParams) =>
-    subscribe({
-      schema,
-      document,
-      contextValue: context,
-      variableValues: variables,
-      rootValue,
-    }) as any;
-}
+    };
+    if (operation === 'subscription') {
+      return subscribe(executionParams);
+    }
+    return execute(executionParams);
+  }) as Executor;

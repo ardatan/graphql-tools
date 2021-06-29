@@ -10,7 +10,7 @@ import {
 
 import { ValueOrPromise } from 'value-or-promise';
 
-import { AsyncExecutor, Executor, SyncExecutor, ExecutionResult, AggregateError } from '@graphql-tools/utils';
+import { AsyncExecutor, Executor, ExecutionResult, AggregateError, isAsyncIterable } from '@graphql-tools/utils';
 
 function getSchemaFromIntrospection(introspectionResult: ExecutionResult<IntrospectionQuery>): GraphQLSchema {
   if (introspectionResult?.data?.__schema) {
@@ -27,7 +27,7 @@ function getSchemaFromIntrospection(introspectionResult: ExecutionResult<Introsp
   }
 }
 
-export function introspectSchema<TExecutor extends AsyncExecutor | SyncExecutor>(
+export function introspectSchema<TExecutor extends Executor>(
   executor: TExecutor,
   context?: Record<string, any>,
   options?: IntrospectionOptions
@@ -39,15 +39,12 @@ export function introspectSchema<TExecutor extends AsyncExecutor | SyncExecutor>
       context,
     })
   )
+    .then(introspection => {
+      if (isAsyncIterable(introspection)) {
+        return introspection.next().then(({ value }) => value);
+      }
+      return introspection;
+    })
     .then(introspection => getSchemaFromIntrospection(introspection))
     .resolve() as any;
-}
-
-// Keep for backwards compatibility. Will be removed on next release.
-export function introspectSchemaSync(
-  executor: SyncExecutor,
-  context?: Record<string, any>,
-  options?: IntrospectionOptions
-) {
-  return introspectSchema(executor, context, options);
 }

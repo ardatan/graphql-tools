@@ -284,8 +284,7 @@ const propertyRootTypeDefs = `
     foo: String
   }
 
-  ${
-  'getInterfaces' in GraphQLInterfaceType.prototype
+  ${'getInterfaces' in GraphQLInterfaceType.prototype
     ? `interface TestNestedInterface implements TestInterface {
     kind: TestInterfaceKind
     testString: String
@@ -296,7 +295,7 @@ const propertyRootTypeDefs = `
     testString: String
     bar: String
   }`
-      : `type TestImpl2 implements TestInterface {
+    : `type TestImpl2 implements TestInterface {
     kind: TestInterfaceKind
     testString: String
     bar: String
@@ -363,27 +362,27 @@ const propertyResolvers: IResolvers = {
     interfaceTest(_root, { kind }) {
       return kind === 'ONE'
         ? {
-            kind: 'ONE',
-            testString: 'test',
-            foo: 'foo',
-          }
+          kind: 'ONE',
+          testString: 'test',
+          foo: 'foo',
+        }
         : {
-            kind: 'TWO',
-            testString: 'test',
-            bar: 'bar',
-          };
+          kind: 'TWO',
+          testString: 'test',
+          bar: 'bar',
+        };
     },
 
     unionTest(_root, { output }) {
       return output === 'Interface'
         ? {
-            kind: 'ONE',
-            testString: 'test',
-            foo: 'foo',
-          }
+          kind: 'ONE',
+          testString: 'test',
+          foo: 'foo',
+        }
         : {
-            someField: 'Bar',
-          };
+          someField: 'Bar',
+        };
     },
 
     errorTest() {
@@ -679,7 +678,20 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
 });
 
 function makeExecutorFromSchema(schema: GraphQLSchema) {
-  return async <TReturn, TArgs, TContext>({ document, variables, context }: ExecutionParams<TArgs, TContext>) => {
+  return async <TReturn, TArgs, TContext>({ document, variables, context, info }: ExecutionParams<TArgs, TContext>) => {
+    if (info?.operation.operation === 'subscription') {
+      const result = await subscribe(
+        schema,
+        document,
+        null,
+        context,
+        variables,
+      );
+      if (isAsyncIterable<ExecutionResult<TReturn>>(result)) {
+        return mapAsyncIterator<ExecutionResult<TReturn>, TReturn>(result, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult)));
+      }
+      return JSON.parse(JSON.stringify(result));
+    }
     return (new ValueOrPromise(() => graphql(
       schema,
       print(document),
@@ -687,24 +699,8 @@ function makeExecutorFromSchema(schema: GraphQLSchema) {
       context,
       variables,
     ))
-    .then(originalResult => JSON.parse(JSON.stringify(originalResult)))
-    .resolve()) as Promise<ExecutionResult<TReturn>> | ExecutionResult<TReturn>;
-  };
-}
-
-function makeSubscriberFromSchema(schema: GraphQLSchema) {
-  return async <TReturn, TArgs, TContext>({ document, variables, context }: ExecutionParams<TArgs, TContext>) => {
-    const result = await subscribe(
-      schema,
-      document,
-      null,
-      context,
-      variables,
-    );
-    if (isAsyncIterable<ExecutionResult<TReturn>>(result)) {
-      return mapAsyncIterator<ExecutionResult<TReturn>, TReturn>(result, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult)));
-    }
-    return JSON.parse(JSON.stringify(result));
+      .then(originalResult => JSON.parse(JSON.stringify(originalResult)))
+      .resolve()) as Promise<ExecutionResult<TReturn>> | ExecutionResult<TReturn>;
   };
 }
 
@@ -712,12 +708,10 @@ export async function makeSchemaRemote(
   schema: GraphQLSchema,
 ): Promise<SubschemaConfig> {
   const executor = makeExecutorFromSchema(schema);
-  const subscriber = makeSubscriberFromSchema(schema);
   const clientSchema = await introspectSchema(executor);
   return {
     schema: clientSchema,
     executor,
-    subscriber,
   };
 }
 

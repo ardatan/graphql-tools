@@ -3,7 +3,7 @@ import { GraphQLSchema } from 'graphql';
 import { SubschemaConfig, Transform, MergedTypeConfig, CreateProxyingResolverFn, BatchingOptions } from './types';
 
 import { applySchemaTransforms } from './applySchemaTransforms';
-import { Executor, Subscriber } from '@graphql-tools/utils';
+import { Executor } from '@graphql-tools/utils';
 
 export function isSubschema(value: any): value is Subschema {
   return Boolean(value.transformedSchema);
@@ -20,7 +20,6 @@ export class Subschema<K = any, V = any, C = K, TContext = Record<string, any>>
   public schema: GraphQLSchema;
 
   public executor?: Executor<TContext>;
-  public subscriber?: Subscriber<TContext>;
   public batch?: boolean;
   public batchingOptions?: BatchingOptions<K, V, C>;
 
@@ -34,7 +33,6 @@ export class Subschema<K = any, V = any, C = K, TContext = Record<string, any>>
     this.schema = config.schema;
 
     this.executor = config.executor;
-    this.subscriber = config.subscriber;
     this.batch = config.batch;
     this.batchingOptions = config.batchingOptions;
 
