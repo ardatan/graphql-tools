@@ -1,6 +1,6 @@
 import '../../../testing/to-be-similar-gql-doc';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { UrlLoader } from '../src';
+import { SubscriptionProtocol, UrlLoader } from '../src';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import nock from 'nock';
 import { mockGraphQLServer } from '../../../testing/utils';
@@ -305,6 +305,7 @@ input TestInput {
               data: introspectionFromSchema(testSchema),
             })
           }) as any,
+          subscriptionsProtocol: SubscriptionProtocol.WS
         });
 
         const httpServer = http.createServer(function weServeSocketsOnly(_, res) {
@@ -374,7 +375,7 @@ input TestInput {
               data: introspectionFromSchema(testSchema),
             })
           }) as any,
-          useWebSocketLegacyProtocol: true,
+          subscriptionsProtocol: SubscriptionProtocol.LEGACY_WS
         });
 
         const httpServer = http.createServer(function weServeSocketsOnly(_, res) {
