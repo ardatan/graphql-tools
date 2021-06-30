@@ -97,7 +97,7 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
 
   const processedRequest = transformer.transformRequest(options.request);
 
-  if (!options.skipValidation) {
+  if (options.validateRequest) {
     validateRequest(delegationContext, processedRequest.document);
   }
 

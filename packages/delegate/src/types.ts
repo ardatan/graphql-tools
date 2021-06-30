@@ -78,7 +78,7 @@ export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs 
   rootValue?: Record<string, any>;
   transforms?: Array<Transform<any, TContext>>;
   transformedSchema?: GraphQLSchema;
-  skipValidation?: boolean;
+  validateRequest?: boolean;
   skipTypeMerging?: boolean;
   binding?: DelegationBinding<TContext>;
 }
