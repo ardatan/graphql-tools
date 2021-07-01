@@ -1,6 +1,6 @@
 import type { GlobbyOptions } from 'globby';
 
-import { isSchema, GraphQLSchema, DocumentNode } from 'graphql';
+import { isSchema, GraphQLSchema, DocumentNode, concatAST, parse } from 'graphql';
 import {
   SchemaPointerSingle,
   DocumentPointerSingle,
@@ -129,10 +129,13 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     if (!options.noPluck) {
       try {
         const content = await readFile(normalizedFilePath, { encoding: 'utf-8' });
-        const sdl = await gqlPluckFromCodeString(normalizedFilePath, content, options.pluckConfig);
+        const sources = await gqlPluckFromCodeString(normalizedFilePath, content, options.pluckConfig);
 
-        if (sdl) {
-          return parseGraphQLSDL(pointer, sdl, options);
+        if (sources.length) {
+          return {
+            document: concatAST(sources.map(source => parse(source, options))),
+            location: pointer,
+          };
         }
       } catch (e) {
         if (env['DEBUG']) {
@@ -174,10 +177,13 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     if (!options.noPluck) {
       try {
         const content = readFileSync(normalizedFilePath, { encoding: 'utf-8' });
-        const sdl = gqlPluckFromCodeStringSync(normalizedFilePath, content, options.pluckConfig);
+        const sources = gqlPluckFromCodeStringSync(normalizedFilePath, content, options.pluckConfig);
 
-        if (sdl) {
-          return parseGraphQLSDL(pointer, sdl, options);
+        if (sources.length) {
+          return {
+            document: concatAST(sources.map(source => parse(source, options))),
+            location: pointer,
+          };
         }
       } catch (e) {
         if (env['DEBUG']) {
