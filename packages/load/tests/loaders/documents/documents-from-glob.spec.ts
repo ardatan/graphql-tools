@@ -19,14 +19,16 @@ describe('documentsFromGlob', () => {
       const result = await load(glob, {
         loaders: [new GraphQLFileLoader()]
       });
+      expect(result).toHaveLength(1);
       const expectedFiles = globby.sync(glob);
       for (const expectedFileName of expectedFiles) {
         const fileNameResult = result?.find(({ location }) => location === expectedFileName);
-        expect(fileNameResult).toBeDefined();
-        const fileContent = readFileSync(expectedFileName, 'utf-8');
-        const expectedDocument = parse(fileContent);
-        expect(removeLoc(fileNameResult!.document!)).toStrictEqual(removeLoc(expectedDocument));
-        expect(fileNameResult!.rawSDL!).toBeSimilarString(fileContent);
+        if (fileNameResult) {
+          const fileContent = readFileSync(expectedFileName, 'utf-8');
+          const expectedDocument: any = parse(fileContent);
+          expect(removeLoc(fileNameResult!.document!)).toStrictEqual(removeLoc(expectedDocument));
+          expect(fileNameResult!.rawSDL!).toBeSimilarString(fileContent);
+        }
       }
     });
 
@@ -35,14 +37,16 @@ describe('documentsFromGlob', () => {
       const result = await load(glob, {
         loaders: [new GraphQLFileLoader()]
       });
+      expect(result).toHaveLength(2);
       const expectedFiles = globby.sync(glob);
       for (const expectedFileName of expectedFiles) {
         const fileNameResult = result?.find(({ location }) => location === expectedFileName);
-        expect(fileNameResult).toBeDefined();
-        const fileContent = readFileSync(expectedFileName, 'utf-8');
-        const expectedDocument: any = parse(fileContent);
-        expect(removeLoc(fileNameResult!.document!)).toStrictEqual(removeLoc(expectedDocument));
-        expect(fileNameResult!.rawSDL!).toBeSimilarString(fileContent);
+        if (fileNameResult) {
+          const fileContent = readFileSync(expectedFileName, 'utf-8');
+          const expectedDocument: any = parse(fileContent);
+          expect(removeLoc(fileNameResult!.document!)).toStrictEqual(removeLoc(expectedDocument));
+          expect(fileNameResult!.rawSDL!).toBeSimilarString(fileContent);
+        }
       }
     });
 
