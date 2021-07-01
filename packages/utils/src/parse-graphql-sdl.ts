@@ -41,7 +41,6 @@ export function parseGraphQLSDL(location: string | undefined, rawSDL: string, op
   }
 
   return {
-    rawSDL,
     location,
     document,
   };
