@@ -152,7 +152,7 @@ describe('schema from typedefs', () => {
       expect(schemaWithSources.extensions['sources']).toBeDefined();
       expect(schemaWithSources.extensions['sources']).toHaveLength(1);
       expect(schemaWithSources.extensions['sources'][0]).toMatchObject(expect.objectContaining({
-        name: glob
+        name: glob.replace('.', process.cwd())
       }))
 
       const schemaWithoutSources = await load(glob, {
