@@ -2838,10 +2838,10 @@
     tapable "^2.2.0"
     webpack "^5"
 
-"@types/websocket@1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@types/websocket/-/websocket-1.0.2.tgz#d2855c6a312b7da73ed16ba6781815bf30c6187a"
-  integrity sha512-B5m9aq7cbbD/5/jThEr33nUY8WEfVi6A2YKCTOvw5Ldy7mtsOkqRvGjnzy6g7iMMDsgu7xREuCzqATLDLQVKcQ==
+"@types/websocket@1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@types/websocket/-/websocket-1.0.3.tgz#49e09f939afd0ccdee4f7108d4712ec9feb0f153"
+  integrity sha512-ZdoTSwmDsKR7l1I8fpfQtmTI/hUwlOvE3q0iyJsp4tXU0MkdrYowimDzwxjhQvxU4qjhHLd3a6ig0OXRbLgIdw==
   dependencies:
     "@types/node" "*"
 
