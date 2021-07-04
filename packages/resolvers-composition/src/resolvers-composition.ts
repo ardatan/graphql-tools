@@ -28,8 +28,7 @@ function isScalarTypeConfiguration(config: any): config is GraphQLScalarTypeConf
 
 function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<string, any>>(
   resolvers: Resolvers,
-  path: string,
-  allMappings: ResolversComposerMapping<Resolvers>
+  path: string
 ): string[] {
   if (!resolvers) {
     return [];
@@ -67,26 +66,20 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
         continue;
       }
 
-      const paths = [];
-
       const resolvedPath = `${typeName}.${field}`;
 
       if (resolvers[typeName] && resolvers[typeName][field]) {
         if (resolvers[typeName][field].subscribe) {
-          paths.push(resolvedPath + '.subscribe');
+          mappings.push(resolvedPath + '.subscribe');
         }
 
         if (resolvers[typeName][field].resolve) {
-          paths.push(resolvedPath + '.resolve');
+          mappings.push(resolvedPath + '.resolve');
         }
 
         if (typeof resolvers[typeName][field] === 'function') {
-          paths.push(resolvedPath);
+          mappings.push(resolvedPath);
         }
-      }
-
-      for (const path of paths) {
-        mappings.push(path);
       }
     }
   }
@@ -112,7 +105,7 @@ export function composeResolvers<Resolvers extends Record<string, any>>(
     const resolverPathMapping = mapping[resolverPath];
     if (resolverPathMapping instanceof Array || typeof resolverPathMapping === 'function') {
       const composeFns = resolverPathMapping as ResolversComposition | ResolversComposition[];
-      const relevantFields = resolveRelevantMappings(resolvers, resolverPath, mapping);
+      const relevantFields = resolveRelevantMappings(resolvers, resolverPath);
 
       for (const path of relevantFields) {
         mappingResult[path] = asArray(composeFns);
@@ -120,7 +113,7 @@ export function composeResolvers<Resolvers extends Record<string, any>>(
     } else if (resolverPathMapping) {
       for (const fieldName in resolverPathMapping) {
         const composeFns = resolverPathMapping[fieldName];
-        const relevantFields = resolveRelevantMappings(resolvers, resolverPath + '.' + fieldName, mapping);
+        const relevantFields = resolveRelevantMappings(resolvers, resolverPath + '.' + fieldName);
 
         for (const path of relevantFields) {
           mappingResult[path] = asArray(composeFns);
