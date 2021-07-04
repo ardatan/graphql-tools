@@ -2715,7 +2715,7 @@
   dependencies:
     "@types/unist" "*"
 
-"@types/micromatch@latest":
+"@types/micromatch@^4.0.1", "@types/micromatch@latest":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@types/micromatch/-/micromatch-4.0.1.tgz#9381449dd659fc3823fd2a4190ceacc985083bc7"
   integrity sha1-k4FEndZZ/Dgj/SpBkM6syYUIO8c=
