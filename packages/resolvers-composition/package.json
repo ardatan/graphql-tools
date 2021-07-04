@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@types/lodash": "4.14.170",
-    "@types/micromatch": "^4.0.1"
+    "@types/micromatch": "4.0.1"
   },
   "dependencies": {
     "@graphql-tools/utils": "^7.9.1",
