@@ -1,3 +1,4 @@
+import { Maybe } from '@graphql-tools/utils';
 import {
   getDescription,
   StringValueNode,
@@ -8,7 +9,6 @@ import {
   visit,
   VisitFn,
 } from 'graphql';
-import { Maybe } from 'graphql/jsutils/Maybe';
 import type { ASTVisitor } from 'graphql/language/visitor';
 import { NamedDefinitionNode } from './merge-nodes';
 
@@ -264,7 +264,7 @@ const printDocASTReducer: ASTVisitor = {
   // Type System Definitions
 
   SchemaDefinition: {
-    leave: ({ description, directives, operationTypes }) =>
+    leave: ({ description, directives, operationTypes }: any) =>
       wrap('', description, '\n') + join(['schema', join(directives, ' '), block(operationTypes)], ' '),
   },
 
@@ -301,7 +301,7 @@ const printDocASTReducer: ASTVisitor = {
   },
 
   InterfaceTypeDefinition: {
-    leave: ({ description, name, interfaces, directives, fields }) =>
+    leave: ({ description, name, interfaces, directives, fields }: any) =>
       wrap('', description, '\n') +
       join(
         ['interface', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)],
@@ -360,7 +360,7 @@ const printDocASTReducer: ASTVisitor = {
   },
 
   InterfaceTypeExtension: {
-    leave: ({ name, interfaces, directives, fields }) =>
+    leave: ({ name, interfaces, directives, fields }: any) =>
       join(
         ['extend interface', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)],
         ' '
