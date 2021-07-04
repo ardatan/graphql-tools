@@ -78,3 +78,14 @@ const composedResolvers = composeResolvers(resolvers, resolversComposition);
 ```
 
 `composeResolvers` is a method in `@graphql-tools/resolvers-composition` package that accepts `IResolvers` object and mappings for composition functions that would be run before resolver itself.
+
+### Supported path matcher format
+The paths for resolvers support `*` wildcard for types and glob patters for fields, eg:
+- `*.*` - all types and all fields
+- `Query.*` - all queries
+- `Query.single`- only a single query
+- `Query.{first, second}` - queries for first/second
+- `Query.!first` - all queries but first
+- `Query.!{first, second}` - all queries but first/second
+
+
