@@ -2,6 +2,7 @@ import { chainFunctions } from './chain-functions';
 import _ from 'lodash';
 import { GraphQLFieldResolver, GraphQLScalarTypeConfig } from 'graphql';
 import { asArray } from '@graphql-tools/utils';
+import { matcher } from 'micromatch';
 
 export type ResolversComposition<
   Resolver extends GraphQLFieldResolver<any, any, any> = GraphQLFieldResolver<any, any>
@@ -30,85 +31,67 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
   path: string,
   allMappings: ResolversComposerMapping<Resolvers>
 ): string[] {
-  const split = path.split('.');
+  if (!resolvers) {
+    return [];
+  }
 
-  if (split.length === 2) {
-    const typeName = split[0];
+  const [typeNameOrGlob, fieldNameOrGlob] = path.split('.');
+  const isTypeMatch = matcher(typeNameOrGlob);
+
+  let fixedFieldGlob = fieldNameOrGlob;
+  // convert single value OR `{singleField}` to `singleField` as matching will fail otherwise
+  if (fixedFieldGlob.includes('{') && !fixedFieldGlob.includes(',')) {
+    fixedFieldGlob = fieldNameOrGlob.replace('{', '').replace('}', '');
+  }
+  fixedFieldGlob = fixedFieldGlob.replace(', ', ',').trim();
+
+  const isFieldMatch = matcher(fixedFieldGlob);
+
+  const mappings: string[] = [];
+  for (const typeName in resolvers) {
+    if (!isTypeMatch(typeName)) {
+      continue;
+    }
 
     if (isScalarTypeConfiguration(resolvers[typeName])) {
-      return [];
+      continue;
     }
-
-    const fieldName = split[1];
-
-    if (typeName === '*') {
-      if (!resolvers) {
-        return [];
-      }
-      const mappings: string[] = [];
-      for (const typeName in resolvers) {
-        const relevantMappings = resolveRelevantMappings(resolvers, `${typeName}.${fieldName}`, allMappings);
-        for (const relevantMapping of relevantMappings) {
-          mappings.push(relevantMapping);
-        }
-      }
-      return mappings;
-    }
-
-    if (fieldName === '*') {
-      const fieldMap = resolvers[typeName];
-      if (!fieldMap) {
-        return [];
-      }
-      const mappings: string[] = [];
-      for (const field in fieldMap) {
-        const relevantMappings = resolveRelevantMappings(resolvers, `${typeName}.${field}`, allMappings);
-        for (const relevantMapping of relevantMappings) {
-          if (!allMappings[relevantMapping]) {
-            mappings.push(relevantMapping);
-          }
-        }
-      }
-      return mappings;
-    } else {
-      const paths = [];
-
-      if (resolvers[typeName] && resolvers[typeName][fieldName]) {
-        if (resolvers[typeName][fieldName].subscribe) {
-          paths.push(path + '.subscribe');
-        }
-
-        if (resolvers[typeName][fieldName].resolve) {
-          paths.push(path + '.resolve');
-        }
-
-        if (typeof resolvers[typeName][fieldName] === 'function') {
-          paths.push(path);
-        }
-      }
-
-      return paths;
-    }
-  } else if (split.length === 1) {
-    const typeName = split[0];
 
     const fieldMap = resolvers[typeName];
     if (!fieldMap) {
       return [];
     }
 
-    const mappings: string[] = [];
+    for (const field in fieldMap) {
+      if (!isFieldMatch(field)) {
+        continue;
+      }
 
-    for (const fieldName in fieldMap) {
-      const relevantMappings = resolveRelevantMappings(resolvers, `${typeName}.${fieldName}`, allMappings);
-      for (const relevantMapping of relevantMappings) {
-        mappings.push(relevantMapping);
+      const paths = [];
+
+      const resolvedPath = `${typeName}.${field}`;
+
+      if (resolvers[typeName] && resolvers[typeName][field]) {
+        if (resolvers[typeName][field].subscribe) {
+          paths.push(resolvedPath + '.subscribe');
+        }
+
+        if (resolvers[typeName][field].resolve) {
+          paths.push(resolvedPath + '.resolve');
+        }
+
+        if (typeof resolvers[typeName][field] === 'function') {
+          paths.push(resolvedPath);
+        }
+      }
+
+      for (const path of paths) {
+        mappings.push(path);
       }
     }
-    return mappings;
   }
 
-  return [];
+  return mappings;
 }
 
 /**
