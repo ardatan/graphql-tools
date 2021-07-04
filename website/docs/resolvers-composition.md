@@ -83,7 +83,7 @@ const composedResolvers = composeResolvers(resolvers, resolversComposition);
 The paths for resolvers support `*` wildcard for types and glob patters for fields, eg:
 - `*.*` - all types and all fields
 - `Query.*` - all queries
-- `Query.single`- only a single query
+- `Query.single` - only a single query
 - `Query.{first, second}` - queries for first/second
 - `Query.!first` - all queries but first
 - `Query.!{first, second}` - all queries but first/second
