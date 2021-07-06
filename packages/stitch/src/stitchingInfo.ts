@@ -76,9 +76,9 @@ export function createStitchingInfo<TContext = Record<string, any>>(
 
   return {
     subschemaMap,
-    selectionSetsByType: undefined,
+    selectionSetsByType: Object.create(null),
     selectionSetsByField,
-    dynamicSelectionSetsByField: undefined,
+    dynamicSelectionSetsByField: Object.create(null),
     mergedTypes,
   };
 }
@@ -227,16 +227,14 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
   resolvers: IResolvers,
   schema: GraphQLSchema
 ): StitchingInfo<TContext> {
-  const selectionSetsByType = Object.create(null);
+  const { selectionSetsByType, selectionSetsByField, dynamicSelectionSetsByField } = stitchingInfo;
+
   const rootTypes = [schema.getQueryType(), schema.getMutationType()];
   for (const rootType of rootTypes) {
     if (rootType) {
       selectionSetsByType[rootType.name] = parseSelectionSet('{ __typename }', { noLocation: true });
     }
   }
-
-  const selectionSetsByField = stitchingInfo.selectionSetsByField;
-  const dynamicSelectionSetsByField = Object.create(null);
 
   for (const typeName in resolvers) {
     const type = resolvers[typeName];
@@ -287,10 +285,6 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
       selectionSet.selections = Array.from(consolidatedSelections.values());
     }
   }
-
-  stitchingInfo.selectionSetsByType = selectionSetsByType;
-  stitchingInfo.selectionSetsByField = selectionSetsByField;
-  stitchingInfo.dynamicSelectionSetsByField = dynamicSelectionSetsByField;
 
   return stitchingInfo;
 }

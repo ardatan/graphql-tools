@@ -188,9 +188,9 @@ export type MergedTypeResolver<TContext = Record<string, any>> = (
 
 export interface StitchingInfo<TContext = Record<string, any>> {
   subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>;
-  selectionSetsByType: Record<string, SelectionSetNode> | undefined;
+  selectionSetsByType: Record<string, SelectionSetNode>;
   selectionSetsByField: Record<string, Record<string, SelectionSetNode>>;
-  dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>> | undefined;
+  dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
   mergedTypes: Record<string, MergedTypeInfo<TContext>>;
 }
 
