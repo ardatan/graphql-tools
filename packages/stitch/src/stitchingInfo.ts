@@ -229,6 +229,8 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
 ): StitchingInfo<TContext> {
   const { selectionSetsByType, selectionSetsByField, dynamicSelectionSetsByField } = stitchingInfo;
 
+  // must add __typename to query and mutation root types to handle type merging with nested root types
+  // cannot add __typename to subscription root types, but they cannot be nested
   const rootTypes = [schema.getQueryType(), schema.getMutationType()];
   for (const rootType of rootTypes) {
     if (rootType) {
