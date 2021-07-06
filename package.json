@@ -19,8 +19,7 @@
     "prerelease": "yarn build",
     "prerelease-canary": "yarn build",
     "release": "changeset publish",
-    "release:canary": "(node scripts/canary-release.js && yarn build && yarn changeset publish --tag $NPM_TAG) || echo Skipping Canary...",
-    "benchmark": "node benchmark/federation-demo/benchmark.js"
+    "release:canary": "(node scripts/canary-release.js && yarn build && yarn changeset publish --tag $NPM_TAG) || echo Skipping Canary..."
   },
   "repository": {
     "type": "git",
@@ -90,8 +89,8 @@
       "./packages/*",
       "./packages/loaders/*",
       "./website",
-      "./benchmark/federation-demo",
-      "./benchmark/federation-demo/services/*"
+      "./benchmark/federation",
+      "./benchmark/federation/services/*"
     ],
     "nohoist": [
       "@graphql-tools/website/@docusaurus/*"
