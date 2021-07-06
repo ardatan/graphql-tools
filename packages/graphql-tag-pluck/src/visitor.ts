@@ -167,6 +167,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
   // Will result with ['gql', 'graphql']
   const definedIdentifierNames: string[] = [];
 
+  const alreadyProcessedOperationsCache = new Set<string>();
   // Will accumulate all template literals
   const gqlTemplateLiterals: PluckedContent[] = [];
 
@@ -194,6 +195,15 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
     );
   };
 
+  const addTemplateLiteralToResult = (content: PluckedContent) => {
+    const cacheKey = `end/${content.end}/start/${content.start}/${content.content}`;
+    if (alreadyProcessedOperationsCache.has(cacheKey)) {
+      return;
+    }
+    alreadyProcessedOperationsCache.add(cacheKey);
+    gqlTemplateLiterals.push(content);
+  };
+
   // Push all template literals leaded by graphql magic comment
   // e.g. /* GraphQL */ `query myQuery {}` -> query myQuery {}
   const pluckMagicTemplateLiteral = (node: any, takeExpression = false) => {
@@ -215,9 +225,8 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
 
     const nodeToUse = takeExpression ? node.expression : node;
     const gqlTemplateLiteral = pluckStringFromFile(nodeToUse);
-
     if (gqlTemplateLiteral) {
-      gqlTemplateLiterals.push({
+      addTemplateLiteralToResult({
         content: gqlTemplateLiteral,
         loc: node.loc,
         end: node.end,
@@ -262,7 +271,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
             // If the entire template was made out of interpolations it should be an empty
             // string by now and thus should be ignored
             if (gqlTemplateLiteral) {
-              gqlTemplateLiterals.push({
+              addTemplateLiteralToResult({
                 content: gqlTemplateLiteral,
                 loc,
                 end,
@@ -344,7 +353,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
         const gqlTemplateLiteral = pluckStringFromFile(path.node.quasi);
 
         if (gqlTemplateLiteral) {
-          gqlTemplateLiterals.push({
+          addTemplateLiteralToResult({
             content: gqlTemplateLiteral,
             end: path.node.quasi.end,
             start: path.node.quasi.start,
