@@ -19,6 +19,7 @@ module.exports = {
             "stitch-combining-schemas",
             "stitch-type-merging",
             "stitch-directives-sdl",
+            "federation-to-stitching",
             "stitch-schema-extensions",
             "stitch-api"
           ]
