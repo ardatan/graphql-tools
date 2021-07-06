@@ -21,10 +21,9 @@ import {
   isInterfaceType,
 } from 'graphql';
 
-import { Request, implementsAbstractType, TypeMap, assertSome } from '@graphql-tools/utils';
+import { Request, implementsAbstractType, TypeMap, assertSome, getDefinedRootType } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
-import { getDefinedRootType } from '../getDefinedRootType';
 
 export default class FilterToSchema implements Transform {
   public transformRequest(

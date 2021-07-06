@@ -29,7 +29,8 @@ import {
   Kind,
   EnumValueDefinitionNode,
 } from 'graphql';
-import { getObjectTypeFromTypeMap } from './addTypes';
+
+import { getObjectTypeFromTypeMap } from './getObjectTypeFromTypeMap';
 
 import {
   SchemaMapper,
@@ -76,21 +77,13 @@ export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}
   const originalDirectives = schema.getDirectives();
   const newDirectives = mapDirectives(originalDirectives, schema, schemaMapper);
 
-  const queryType = schema.getQueryType();
-  const mutationType = schema.getMutationType();
-  const subscriptionType = schema.getSubscriptionType();
-
-  const newQueryTypeName = queryType?.name && newTypeMap?.[queryType?.name]?.name;
-  const newMutationTypeName = mutationType?.name && newTypeMap?.[mutationType?.name]?.name;
-  const newSubscriptionTypeName = subscriptionType?.name && newTypeMap?.[subscriptionType?.name]?.name;
-
   const { typeMap, directives } = rewireTypes(newTypeMap, newDirectives);
 
   return new GraphQLSchema({
     ...schema.toConfig(),
-    query: getObjectTypeFromTypeMap(typeMap, newQueryTypeName),
-    mutation: getObjectTypeFromTypeMap(typeMap, newMutationTypeName),
-    subscription: getObjectTypeFromTypeMap(typeMap, newSubscriptionTypeName),
+    query: getObjectTypeFromTypeMap(typeMap, getObjectTypeFromTypeMap(newTypeMap, schema.getQueryType())),
+    mutation: getObjectTypeFromTypeMap(typeMap, getObjectTypeFromTypeMap(newTypeMap, schema.getMutationType())),
+    subscription: getObjectTypeFromTypeMap(typeMap, getObjectTypeFromTypeMap(newTypeMap, schema.getSubscriptionType())),
     types: Object.values(typeMap),
     directives,
   });
@@ -407,14 +400,11 @@ function getTypeSpecifiers(schema: GraphQLSchema, typeName: string): Array<Mappe
 
   if (isObjectType(type)) {
     specifiers.push(MapperKind.COMPOSITE_TYPE, MapperKind.OBJECT_TYPE);
-    const query = schema.getQueryType();
-    const mutation = schema.getMutationType();
-    const subscription = schema.getSubscriptionType();
-    if (query != null && typeName === query.name) {
+    if (typeName === schema.getQueryType()?.name) {
       specifiers.push(MapperKind.ROOT_OBJECT, MapperKind.QUERY);
-    } else if (mutation != null && typeName === mutation.name) {
+    } else if (typeName === schema.getMutationType()?.name) {
       specifiers.push(MapperKind.ROOT_OBJECT, MapperKind.MUTATION);
-    } else if (subscription != null && typeName === subscription.name) {
+    } else if (typeName === schema.getSubscriptionType()?.name) {
       specifiers.push(MapperKind.ROOT_OBJECT, MapperKind.SUBSCRIPTION);
     }
   } else if (isInputObjectType(type)) {
@@ -451,14 +441,11 @@ function getFieldSpecifiers(schema: GraphQLSchema, typeName: string): SchemaFiel
 
   if (isObjectType(type)) {
     specifiers.push(MapperKind.COMPOSITE_FIELD, MapperKind.OBJECT_FIELD);
-    const query = schema.getQueryType();
-    const mutation = schema.getMutationType();
-    const subscription = schema.getSubscriptionType();
-    if (query != null && typeName === query.name) {
+    if (typeName === schema.getQueryType()?.name) {
       specifiers.push(MapperKind.ROOT_FIELD, MapperKind.QUERY_ROOT_FIELD);
-    } else if (mutation != null && typeName === mutation.name) {
+    } else if (typeName === schema.getMutationType()?.name) {
       specifiers.push(MapperKind.ROOT_FIELD, MapperKind.MUTATION_ROOT_FIELD);
-    } else if (subscription != null && typeName === subscription.name) {
+    } else if (typeName === schema.getSubscriptionType()?.name) {
       specifiers.push(MapperKind.ROOT_FIELD, MapperKind.SUBSCRIPTION_ROOT_FIELD);
     }
   } else if (isInterfaceType(type)) {

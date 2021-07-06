@@ -13,10 +13,9 @@ import {
   DefinitionNode,
 } from 'graphql';
 
-import { Request, collectFields, GraphQLExecutionContext, Maybe } from '@graphql-tools/utils';
+import { Request, collectFields, GraphQLExecutionContext, Maybe, getDefinedRootType } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
-import { getDefinedRootType } from '../getDefinedRootType';
 
 type VisitSelectionSetsVisitor = (node: SelectionSetNode, typeInfo: TypeInfo) => Maybe<SelectionSetNode>;
 

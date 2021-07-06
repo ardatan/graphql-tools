@@ -9,7 +9,7 @@ import {
   GraphQLInterfaceType,
   isSchema,
 } from 'graphql';
-import { mapSchema, MapperKind, IResolvers } from '@graphql-tools/utils';
+import { mapSchema, MapperKind, IResolvers, getRootTypeNames } from '@graphql-tools/utils';
 import { addResolversToSchema } from '@graphql-tools/schema';
 import { isRef, IMockStore, IMocks, TypePolicy } from './types';
 import { copyOwnProps, isObject } from './utils';
@@ -243,14 +243,7 @@ export function addMocksToSchema({
 }
 
 const isRootType = (type: GraphQLObjectType, schema: GraphQLSchema) => {
-  const queryType = schema.getQueryType();
-  const isOnQueryType = queryType != null && queryType.name === type.name;
+  const rootTypeNames = getRootTypeNames(schema);
 
-  const mutationType = schema.getMutationType();
-  const isOnMutationType = mutationType != null && mutationType.name === type.name;
-
-  const subscriptionType = schema.getSubscriptionType();
-  const isOnSubscriptionType = subscriptionType != null && subscriptionType.name === type.name;
-
-  return isOnQueryType || isOnMutationType || isOnSubscriptionType;
+  return rootTypeNames.has(type.name);
 };

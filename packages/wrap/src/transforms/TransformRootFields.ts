@@ -28,24 +28,20 @@ export default class TransformRootFields implements Transform {
     subschemaConfig: SubschemaConfig,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
-    const queryTypeName = originalWrappingSchema.getQueryType()?.name;
-    const mutationTypeName = originalWrappingSchema.getMutationType()?.name;
-    const subscriptionTypeName = originalWrappingSchema.getSubscriptionType()?.name;
-
     const rootToObjectFieldTransformer = (
       typeName: string,
       fieldName: string,
       fieldConfig: GraphQLFieldConfig<any, any>
     ) => {
-      if (typeName === queryTypeName) {
+      if (typeName === originalWrappingSchema.getQueryType()?.name) {
         return this.rootFieldTransformer('Query', fieldName, fieldConfig);
       }
 
-      if (typeName === mutationTypeName) {
+      if (typeName === originalWrappingSchema.getMutationType()?.name) {
         return this.rootFieldTransformer('Mutation', fieldName, fieldConfig);
       }
 
-      if (typeName === subscriptionTypeName) {
+      if (typeName === originalWrappingSchema.getSubscriptionType()?.name) {
         return this.rootFieldTransformer('Subscription', fieldName, fieldConfig);
       }
 

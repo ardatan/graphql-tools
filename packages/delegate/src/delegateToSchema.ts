@@ -23,6 +23,7 @@ import {
   assertSome,
   AggregateError,
   isAsyncIterable,
+  getDefinedRootType,
 } from '@graphql-tools/utils';
 
 import {
@@ -37,7 +38,6 @@ import { isSubschemaConfig } from './subschemaConfig';
 import { Subschema } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
-import { getDefinedRootType } from './getDefinedRootType';
 
 export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
   options: IDelegateToSchemaOptions<TContext, TArgs>

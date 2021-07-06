@@ -86,13 +86,8 @@ export function stitchSchemas<TContext = Record<string, any>>({
     return acc;
   }, Object.create(null));
   const schemaDefs = Object.create(null);
-  const operationTypeNames = {
-    query: 'Query',
-    mutation: 'Mutation',
-    subscription: 'Subscription',
-  };
 
-  const typeCandidates = buildTypeCandidates({
+  const [typeCandidates, rootTypeNameMap] = buildTypeCandidates({
     subschemas: transformedSubschemas,
     originalSubschemaMap,
     types,
@@ -101,7 +96,6 @@ export function stitchSchemas<TContext = Record<string, any>>({
     extensions,
     directiveMap,
     schemaDefs,
-    operationTypeNames,
     mergeDirectives,
   });
 
@@ -115,16 +109,16 @@ export function stitchSchemas<TContext = Record<string, any>>({
     typeCandidates,
     directives,
     stitchingInfo,
-    operationTypeNames,
+    rootTypeNames: Object.values(rootTypeNameMap),
     onTypeConflict,
     mergeTypes,
     typeMergingOptions,
   });
 
   let schema = new GraphQLSchema({
-    query: newTypeMap[operationTypeNames.query] as GraphQLObjectType,
-    mutation: newTypeMap[operationTypeNames.mutation] as GraphQLObjectType,
-    subscription: newTypeMap[operationTypeNames.subscription] as GraphQLObjectType,
+    query: newTypeMap[rootTypeNameMap.query] as GraphQLObjectType,
+    mutation: newTypeMap[rootTypeNameMap.mutation] as GraphQLObjectType,
+    subscription: newTypeMap[rootTypeNameMap.subscription] as GraphQLObjectType,
     types: Object.keys(newTypeMap).map(key => newTypeMap[key]),
     directives: newDirectives,
     astNode: schemaDefs.schemaDef,
