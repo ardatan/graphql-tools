@@ -1,6 +1,6 @@
 import { GraphQLObjectType, GraphQLSchema, OperationTypeNode } from 'graphql';
 
-import { Maybe } from '../../utils/src/types';
+import { Maybe } from '@graphql-tools/utils';
 
 export function getDefinedRootType(schema: GraphQLSchema, operation: OperationTypeNode): GraphQLObjectType {
   let rootType: Maybe<GraphQLObjectType>;
