@@ -92,3 +92,26 @@ jobs:
         run: yarn test --ci
         env:
           CI: true
+  benchmark:
+    name: Benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v2
+      - name: Use Node
+        uses: actions/setup-node@master
+        with:
+          node-version: 16
+      - name: Cache Yarn
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-16-${{matrix.graphql_version}}-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-16-${{matrix.graphql_version}}-yarn
+      - name: Install Dependencies using Yarn
+        run: yarn install --ignore-engines && git checkout yarn.lock
+      - name: Build
+        run: yarn build
+      - name: Federation vs Stitching
+        run: node benchmark/federation-demo/benchmark.js
