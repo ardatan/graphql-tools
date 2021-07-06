@@ -35,7 +35,7 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "@types/extract-files": "8.1.0",
+    "@types/extract-files": "8.1.1",
     "@types/ws": "7.4.6",
     "graphql-upload": "12.0.0",
     "mock-http": "1.1.0",
