@@ -13,9 +13,10 @@ import {
   DefinitionNode,
 } from 'graphql';
 
-import { Request, collectFields, GraphQLExecutionContext, Maybe, getRootType } from '@graphql-tools/utils';
+import { Request, collectFields, GraphQLExecutionContext, Maybe } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
+import { getDefinedRootType } from '../getDefinedRootType';
 
 type VisitSelectionSetsVisitor = (node: SelectionSetNode, typeInfo: TypeInfo) => Maybe<SelectionSetNode>;
 
@@ -70,11 +71,7 @@ function visitSelectionSets(
 
   const typeInfo = new TypeInfo(schema, undefined, initialType);
   const newDefinitions: Array<DefinitionNode> = operations.map(operation => {
-    const type = getRootType(schema, operation.operation);
-
-    if (type == null) {
-      throw new Error(`Schema missing root type for operation "${operation}".`);
-    }
+    const type = getDefinedRootType(schema, operation.operation);
 
     const fields = collectFields(
       partialExecutionContext,

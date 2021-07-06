@@ -23,7 +23,6 @@ import {
   assertSome,
   AggregateError,
   isAsyncIterable,
-  getRootType,
 } from '@graphql-tools/utils';
 
 import {
@@ -38,6 +37,7 @@ import { isSubschemaConfig } from './subschemaConfig';
 import { Subschema } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
+import { getDefinedRootType } from './getDefinedRootType';
 
 export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
   options: IDelegateToSchemaOptions<TContext, TArgs>
@@ -75,11 +75,7 @@ function getDelegationReturnType(
   operation: OperationTypeNode,
   fieldName: string
 ): GraphQLOutputType {
-  const rootType = getRootType(targetSchema, operation);
-
-  if (rootType == null) {
-    throw new Error(`Schema missing root type for operation "${operation}".`);
-  }
+  const rootType = getDefinedRootType(targetSchema, operation);
 
   return rootType.getFields()[fieldName].type;
 }

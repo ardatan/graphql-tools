@@ -21,9 +21,10 @@ import {
   isInterfaceType,
 } from 'graphql';
 
-import { Request, implementsAbstractType, TypeMap, assertSome, getRootType } from '@graphql-tools/utils';
+import { Request, implementsAbstractType, TypeMap, assertSome } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
+import { getDefinedRootType } from '../getDefinedRootType';
 
 export default class FilterToSchema implements Transform {
   public transformRequest(
@@ -71,11 +72,7 @@ function filterToSchema(
   let fragmentSet = Object.create(null);
 
   for (const operation of operations) {
-    const type = getRootType(targetSchema, operation.operation);
-
-    if (type == null) {
-      throw new Error(`Schema missing root type for operation "${operation}".`);
-    }
+    const type = getDefinedRootType(targetSchema, operation.operation);
 
     const {
       selectionSet,
