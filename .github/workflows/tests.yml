@@ -114,4 +114,4 @@ jobs:
       - name: Build
         run: yarn build
       - name: Federation vs Stitching
-        run: node benchmark/federation-demo/benchmark.js
+        run: yarn benchmark

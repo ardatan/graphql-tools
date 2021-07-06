@@ -19,7 +19,8 @@
     "prerelease": "yarn build",
     "prerelease-canary": "yarn build",
     "release": "changeset publish",
-    "release:canary": "(node scripts/canary-release.js && yarn build && yarn changeset publish --tag $NPM_TAG) || echo Skipping Canary..."
+    "release:canary": "(node scripts/canary-release.js && yarn build && yarn changeset publish --tag $NPM_TAG) || echo Skipping Canary...",
+    "benchmark": "node benchmark/federation-demo/benchmark.js"
   },
   "repository": {
     "type": "git",
