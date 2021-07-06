@@ -88,7 +88,9 @@
     "packages": [
       "./packages/*",
       "./packages/loaders/*",
-      "./website"
+      "./website",
+      "./benchmark/federation-demo",
+      "./benchmark/federation-demo/services/*"
     ],
     "nohoist": [
       "@graphql-tools/website/@docusaurus/*"
