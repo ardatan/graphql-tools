@@ -1207,6 +1207,28 @@ describe('graphql-tag-pluck', () => {
       `));
     });
 
+    it('should pluck graphql-tag template literals from code string with /* GraphQL */ comment', async () => {
+      const sources = await pluck('test.js', freeText(`
+        import gql from 'graphql-tag'
+
+        const doc = gql(/* GraphQL */ \`
+          query foo {
+            foo {
+              foo
+            }
+          }
+        \`)
+      `));
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+        query foo {
+          foo {
+            foo
+          }
+        }
+      `));
+    })
+
     it('should pluck graphql-tag template literals from a .js file', async () => {
       const sources = await pluck('tmp-XXXXXX.js', freeText(`
         import gql from 'graphql-tag'
