@@ -65,7 +65,7 @@
     "graphql": "15.5.1",
     "graphql-helix": "1.6.1",
     "graphql-subscriptions": "1.2.1",
-    "husky": "7.0.0",
+    "husky": "7.0.1",
     "jest": "27.0.6",
     "lint-staged": "11.0.0",
     "nock": "13.1.1",
