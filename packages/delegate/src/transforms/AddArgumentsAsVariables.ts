@@ -10,10 +10,9 @@ import {
   VariableDefinitionNode,
 } from 'graphql';
 
-import { Request, serializeInputValue, updateArgument } from '@graphql-tools/utils';
+import { getDefinedRootType, Request, serializeInputValue, updateArgument } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
-import { getDefinedRootType } from '../getDefinedRootType';
 
 export default class AddArgumentsAsVariables implements Transform {
   private readonly args: Record<string, any>;
@@ -71,10 +70,6 @@ function addVariablesToRootField(
     );
 
     const type = getDefinedRootType(targetSchema, operation.operation);
-
-    if (type == null) {
-      throw new Error(`Schema missing root type for operation "${operation}".`);
-    }
 
     const newSelectionSet: Array<SelectionNode> = [];
 

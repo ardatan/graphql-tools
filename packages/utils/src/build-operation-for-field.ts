@@ -28,6 +28,8 @@ import {
   Kind,
 } from 'graphql';
 
+import { getDefinedRootType } from './rootTypes';
+
 let operationVariables: VariableDefinitionNode[] = [];
 let fieldTypeMap = new Map();
 
@@ -119,12 +121,7 @@ function buildOperationAndCollectVariables({
   argNames?: string[];
   selectedFields: SelectedFields;
 }): OperationDefinitionNode {
-  const typeMap: Record<OperationTypeNode, GraphQLObjectType> = {
-    query: schema.getQueryType()!,
-    mutation: schema.getMutationType()!,
-    subscription: schema.getSubscriptionType()!,
-  };
-  const type = typeMap[kind];
+  const type = getDefinedRootType(schema, kind);
   const field = type.getFields()[fieldName];
   const operationName = `${fieldName}_${kind}`;
 

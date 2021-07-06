@@ -13,7 +13,7 @@ import {
   FragmentDefinitionNode,
 } from 'graphql';
 
-import { Request } from '@graphql-tools/utils';
+import { getRootTypeNames, Request } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 
@@ -48,9 +48,7 @@ function wrapConcreteTypes(
     return document;
   }
 
-  const queryTypeName = targetSchema.getQueryType()?.name;
-  const mutationTypeName = targetSchema.getMutationType()?.name;
-  const subscriptionTypeName = targetSchema.getSubscriptionType()?.name;
+  const rootTypeNames = getRootTypeNames(targetSchema);
 
   const typeInfo = new TypeInfo(targetSchema);
   const newDocument = visit(
@@ -58,7 +56,7 @@ function wrapConcreteTypes(
     visitWithTypeInfo(typeInfo, {
       [Kind.FRAGMENT_DEFINITION]: (node: FragmentDefinitionNode) => {
         const typeName = node.typeCondition.name.value;
-        if (typeName !== queryTypeName && typeName !== mutationTypeName && typeName !== subscriptionTypeName) {
+        if (!rootTypeNames.has(typeName)) {
           return false;
         }
       },
