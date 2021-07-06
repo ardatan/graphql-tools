@@ -19,12 +19,12 @@ import {
   getNamedType,
   isObjectType,
   isInterfaceType,
-  GraphQLObjectType,
 } from 'graphql';
 
-import { Request, implementsAbstractType, TypeMap, assertSome, Maybe } from '@graphql-tools/utils';
+import { Request, implementsAbstractType, TypeMap, assertSome } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
+import { getDefinedRootType } from '../getDefinedRootType';
 
 export default class FilterToSchema implements Transform {
   public transformRequest(
@@ -72,15 +72,7 @@ function filterToSchema(
   let fragmentSet = Object.create(null);
 
   for (const operation of operations) {
-    let type: Maybe<GraphQLObjectType<any, any>>;
-    if (operation.operation === 'subscription') {
-      type = targetSchema.getSubscriptionType();
-    } else if (operation.operation === 'mutation') {
-      type = targetSchema.getMutationType();
-    } else {
-      type = targetSchema.getQueryType();
-    }
-    assertSome(type);
+    const type = getDefinedRootType(targetSchema, operation.operation);
 
     const {
       selectionSet,

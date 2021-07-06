@@ -9,7 +9,6 @@ import {
   OperationDefinitionNode,
   DocumentNode,
   GraphQLOutputType,
-  GraphQLObjectType,
 } from 'graphql';
 
 import { ValueOrPromise } from 'value-or-promise';
@@ -38,6 +37,7 @@ import { isSubschemaConfig } from './subschemaConfig';
 import { Subschema } from './Subschema';
 import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
+import { getDefinedRootType } from './getDefinedRootType';
 
 export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
   options: IDelegateToSchemaOptions<TContext, TArgs>
@@ -75,15 +75,7 @@ function getDelegationReturnType(
   operation: OperationTypeNode,
   fieldName: string
 ): GraphQLOutputType {
-  let rootType: Maybe<GraphQLObjectType<any, any>>;
-  if (operation === 'query') {
-    rootType = targetSchema.getQueryType();
-  } else if (operation === 'mutation') {
-    rootType = targetSchema.getMutationType();
-  } else {
-    rootType = targetSchema.getSubscriptionType();
-  }
-  assertSome(rootType);
+  const rootType = getDefinedRootType(targetSchema, operation);
 
   return rootType.getFields()[fieldName].type;
 }

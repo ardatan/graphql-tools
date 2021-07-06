@@ -13,9 +13,10 @@ import {
   DefinitionNode,
 } from 'graphql';
 
-import { Request, collectFields, GraphQLExecutionContext, assertSome, Maybe } from '@graphql-tools/utils';
+import { Request, collectFields, GraphQLExecutionContext, Maybe } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
+import { getDefinedRootType } from '../getDefinedRootType';
 
 type VisitSelectionSetsVisitor = (node: SelectionSetNode, typeInfo: TypeInfo) => Maybe<SelectionSetNode>;
 
@@ -70,13 +71,7 @@ function visitSelectionSets(
 
   const typeInfo = new TypeInfo(schema, undefined, initialType);
   const newDefinitions: Array<DefinitionNode> = operations.map(operation => {
-    const type =
-      operation.operation === 'query'
-        ? schema.getQueryType()
-        : operation.operation === 'mutation'
-        ? schema.getMutationType()
-        : schema.getSubscriptionType();
-    assertSome(type);
+    const type = getDefinedRootType(schema, operation.operation);
 
     const fields = collectFields(
       partialExecutionContext,

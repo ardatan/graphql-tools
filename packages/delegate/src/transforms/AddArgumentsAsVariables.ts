@@ -3,7 +3,6 @@ import {
   DocumentNode,
   FragmentDefinitionNode,
   GraphQLField,
-  GraphQLObjectType,
   GraphQLSchema,
   Kind,
   OperationDefinitionNode,
@@ -11,9 +10,10 @@ import {
   VariableDefinitionNode,
 } from 'graphql';
 
-import { Maybe, Request, serializeInputValue, updateArgument, assertSome } from '@graphql-tools/utils';
+import { Request, serializeInputValue, updateArgument } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
+import { getDefinedRootType } from '../getDefinedRootType';
 
 export default class AddArgumentsAsVariables implements Transform {
   private readonly args: Record<string, any>;
@@ -70,16 +70,11 @@ function addVariablesToRootField(
       {}
     );
 
-    let type: Maybe<GraphQLObjectType>;
-    if (operation.operation === 'subscription') {
-      type = targetSchema.getSubscriptionType();
-    } else if (operation.operation === 'mutation') {
-      type = targetSchema.getMutationType();
-    } else {
-      type = targetSchema.getQueryType();
-    }
+    const type = getDefinedRootType(targetSchema, operation.operation);
 
-    assertSome(type);
+    if (type == null) {
+      throw new Error(`Schema missing root type for operation "${operation}".`);
+    }
 
     const newSelectionSet: Array<SelectionNode> = [];
 
