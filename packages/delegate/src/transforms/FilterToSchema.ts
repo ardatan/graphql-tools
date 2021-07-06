@@ -19,10 +19,9 @@ import {
   getNamedType,
   isObjectType,
   isInterfaceType,
-  GraphQLObjectType,
 } from 'graphql';
 
-import { Request, implementsAbstractType, TypeMap, assertSome, Maybe } from '@graphql-tools/utils';
+import { Request, implementsAbstractType, TypeMap, assertSome, getRootType } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 
@@ -72,15 +71,11 @@ function filterToSchema(
   let fragmentSet = Object.create(null);
 
   for (const operation of operations) {
-    let type: Maybe<GraphQLObjectType<any, any>>;
-    if (operation.operation === 'subscription') {
-      type = targetSchema.getSubscriptionType();
-    } else if (operation.operation === 'mutation') {
-      type = targetSchema.getMutationType();
-    } else {
-      type = targetSchema.getQueryType();
+    const type = getRootType(targetSchema, operation.operation);
+
+    if (type == null) {
+      throw new Error(`Schema missing root type for operation "${operation}".`);
     }
-    assertSome(type);
 
     const {
       selectionSet,

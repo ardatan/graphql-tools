@@ -9,7 +9,6 @@ import {
   OperationDefinitionNode,
   DocumentNode,
   GraphQLOutputType,
-  GraphQLObjectType,
 } from 'graphql';
 
 import { ValueOrPromise } from 'value-or-promise';
@@ -24,6 +23,7 @@ import {
   assertSome,
   AggregateError,
   isAsyncIterable,
+  getRootType,
 } from '@graphql-tools/utils';
 
 import {
@@ -75,15 +75,11 @@ function getDelegationReturnType(
   operation: OperationTypeNode,
   fieldName: string
 ): GraphQLOutputType {
-  let rootType: Maybe<GraphQLObjectType<any, any>>;
-  if (operation === 'query') {
-    rootType = targetSchema.getQueryType();
-  } else if (operation === 'mutation') {
-    rootType = targetSchema.getMutationType();
-  } else {
-    rootType = targetSchema.getSubscriptionType();
+  const rootType = getRootType(targetSchema, operation);
+
+  if (rootType == null) {
+    throw new Error(`Schema missing root type for operation "${operation}".`);
   }
-  assertSome(rootType);
 
   return rootType.getFields()[fieldName].type;
 }

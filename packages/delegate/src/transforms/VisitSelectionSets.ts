@@ -13,7 +13,7 @@ import {
   DefinitionNode,
 } from 'graphql';
 
-import { Request, collectFields, GraphQLExecutionContext, assertSome, Maybe } from '@graphql-tools/utils';
+import { Request, collectFields, GraphQLExecutionContext, Maybe, getRootType } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 
@@ -70,13 +70,11 @@ function visitSelectionSets(
 
   const typeInfo = new TypeInfo(schema, undefined, initialType);
   const newDefinitions: Array<DefinitionNode> = operations.map(operation => {
-    const type =
-      operation.operation === 'query'
-        ? schema.getQueryType()
-        : operation.operation === 'mutation'
-        ? schema.getMutationType()
-        : schema.getSubscriptionType();
-    assertSome(type);
+    const type = getRootType(schema, operation.operation);
+
+    if (type == null) {
+      throw new Error(`Schema missing root type for operation "${operation}".`);
+    }
 
     const fields = collectFields(
       partialExecutionContext,
