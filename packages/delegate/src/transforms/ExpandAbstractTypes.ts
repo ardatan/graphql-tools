@@ -48,23 +48,29 @@ export default class ExpandAbstractTypes implements Transform {
 
 function extractPossibleTypes(sourceSchema: GraphQLSchema, targetSchema: GraphQLSchema) {
   const typeMap = sourceSchema.getTypeMap();
+  const targetTypeMap = targetSchema.getTypeMap();
   const possibleTypesMap: Record<string, Array<string>> = Object.create(null);
   const interfaceExtensionsMap: Record<string, Record<string, boolean>> = Object.create(null);
+
   for (const typeName in typeMap) {
     const type = typeMap[typeName];
+
     if (isAbstractType(type)) {
-      const targetType = targetSchema.getType(typeName);
+      const targetType = targetTypeMap[typeName];
 
       if (isInterfaceType(type) && isInterfaceType(targetType)) {
         const targetTypeFields = targetType.getFields();
+        const sourceTypeFields = type.getFields();
         const extensionFields: Record<string, boolean> = Object.create(null);
         let isExtensionFieldsEmpty = true;
-        for (const fieldName in type.getFields()) {
+
+        for (const fieldName in sourceTypeFields) {
           if (!targetTypeFields[fieldName]) {
             extensionFields[fieldName] = true;
             isExtensionFieldsEmpty = false;
           }
         }
+
         if (!isExtensionFieldsEmpty) {
           interfaceExtensionsMap[typeName] = extensionFields;
         }
@@ -72,9 +78,13 @@ function extractPossibleTypes(sourceSchema: GraphQLSchema, targetSchema: GraphQL
 
       if (!isAbstractType(targetType) || typeName in interfaceExtensionsMap) {
         const implementations = sourceSchema.getPossibleTypes(type);
-        possibleTypesMap[typeName] = implementations
-          .filter(impl => targetSchema.getType(impl.name))
-          .map(impl => impl.name);
+        possibleTypesMap[typeName] = [];
+
+        for (const impl of implementations) {
+          if (targetTypeMap[impl.name]) {
+            possibleTypesMap[typeName].push(impl.name);
+          }
+        }
       }
     }
   }
@@ -102,25 +112,36 @@ function expandAbstractTypes(
   interfaceExtensionsMap: Record<string, Record<string, boolean>>,
   document: DocumentNode
 ): DocumentNode {
-  const operations: Array<OperationDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.OPERATION_DEFINITION
-  ) as Array<OperationDefinitionNode>;
+  const operations: OperationDefinitionNode[] = [];
+  const fragments: FragmentDefinitionNode[] = [];
+  const newFragments: FragmentDefinitionNode[] = [];
+  const existingFragmentNames = new Set<string>();
 
-  const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.FRAGMENT_DEFINITION
-  ) as Array<FragmentDefinitionNode>;
+  for (let i = 0; i < document.definitions.length; i++) {
+    const def = document.definitions[i];
 
-  const existingFragmentNames = fragments.map(fragment => fragment.name.value);
+    if (def.kind === Kind.FRAGMENT_DEFINITION) {
+      fragments.push(def);
+      newFragments.push(def);
+      existingFragmentNames.add(def.name.value);
+    } else if (def.kind === Kind.OPERATION_DEFINITION) {
+      operations.push(def);
+    }
+  }
+
   let fragmentCounter = 0;
-  const generateFragmentName = (typeName: string) => {
-    let fragmentName;
+  function generateFragmentName(typeName: string) {
+    let fragmentName: string;
+
     do {
       fragmentName = `_${typeName}_Fragment${fragmentCounter.toString()}`;
       fragmentCounter++;
-    } while (existingFragmentNames.indexOf(fragmentName) !== -1);
+    } while (existingFragmentNames.has(fragmentName));
+
     return fragmentName;
-  };
-  const generateInlineFragment = (typeName: string, selectionSet: SelectionSetNode) => {
+  }
+
+  function generateInlineFragment(typeName: string, selectionSet: SelectionSetNode) {
     return {
       kind: Kind.INLINE_FRAGMENT,
       typeCondition: {
@@ -132,19 +153,20 @@ function expandAbstractTypes(
       },
       selectionSet,
     };
-  };
+  }
 
-  const newFragments: Array<FragmentDefinitionNode> = [];
   const fragmentReplacements: Record<string, Array<{ fragmentName: string; typeName: string }>> = Object.create(null);
 
   for (const fragment of fragments) {
-    newFragments.push(fragment);
     const possibleTypes = possibleTypesMap[fragment.typeCondition.name.value];
+
     if (possibleTypes != null) {
-      fragmentReplacements[fragment.name.value] = [];
+      const fragmentName = fragment.name.value;
+      fragmentReplacements[fragmentName] = [];
       for (const possibleTypeName of possibleTypes) {
         const name = generateFragmentName(possibleTypeName);
-        existingFragmentNames.push(name);
+        existingFragmentNames.add(name);
+
         const newFragment: FragmentDefinitionNode = {
           kind: Kind.FRAGMENT_DEFINITION,
           name: {
@@ -160,9 +182,10 @@ function expandAbstractTypes(
           },
           selectionSet: fragment.selectionSet,
         };
+
         newFragments.push(newFragment);
 
-        fragmentReplacements[fragment.name.value].push({
+        fragmentReplacements[fragmentName].push({
           fragmentName: name,
           typeName: possibleTypeName,
         });
@@ -175,6 +198,7 @@ function expandAbstractTypes(
     definitions: [...operations, ...newFragments],
   };
   const typeInfo = new TypeInfo(targetSchema);
+
   return visit(
     newDocument,
     visitWithTypeInfo(typeInfo, {
@@ -182,14 +206,17 @@ function expandAbstractTypes(
         let newSelections = node.selections;
         const addedSelections = [];
         const maybeType = typeInfo.getParentType();
+
         if (maybeType != null) {
           const parentType: GraphQLNamedType = getNamedType(maybeType);
           const interfaceExtension = interfaceExtensionsMap[parentType.name];
           const interfaceExtensionFields = [] as Array<SelectionNode>;
+
           for (const selection of node.selections) {
             if (selection.kind === Kind.INLINE_FRAGMENT) {
               if (selection.typeCondition != null) {
                 const possibleTypes = possibleTypesMap[selection.typeCondition.name.value];
+
                 if (possibleTypes != null) {
                   for (const possibleType of possibleTypes) {
                     const maybePossibleType = targetSchema.getType(possibleType);
@@ -204,10 +231,12 @@ function expandAbstractTypes(
               }
             } else if (selection.kind === Kind.FRAGMENT_SPREAD) {
               const fragmentName = selection.name.value;
+
               if (fragmentName in fragmentReplacements) {
                 for (const replacement of fragmentReplacements[fragmentName]) {
                   const typeName = replacement.typeName;
                   const maybeReplacementType = targetSchema.getType(typeName);
+
                   if (maybeReplacementType != null && implementsAbstractType(targetSchema, parentType, maybeType)) {
                     addedSelections.push({
                       kind: Kind.FRAGMENT_SPREAD,
