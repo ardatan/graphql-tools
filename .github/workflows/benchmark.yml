@@ -1,0 +1,56 @@
+name: Benchmark
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      productsSize:
+        description: 'Number of products generated'
+        required: true
+        default: '3'
+
+jobs:
+  federation-benchmark:
+    name: Federation Benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v2
+      - name: Use Node
+        uses: actions/setup-node@master
+        with:
+          node-version: 16
+      - name: Cache Yarn
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-16-16-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-16-16-yarn
+      - name: Install Dependencies using Yarn
+        run: yarn install --ignore-engines && git checkout yarn.lock
+      - name: Build
+        run: yarn build
+      - name: Setup K6
+        run: |
+          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+      - name: GraphQL API
+        working-directory: ./benchmark/federation
+        run: |
+          yarn start &
+          yarn wait-on tcp:3000
+        env:
+          PRODUCTS_SIZE: ${{github.event.inputs.productsSize || '3'}}
+      - name: Federation
+        run: k6 -e ENDPOINT=federation run --out json=federation.json benchmark/federation/k6.js
+      - name: Stitching
+        run: k6 -e ENDPOINT=stitching run --out json=stitching.json benchmark/federation/k6.js
+      - name: Monolith
+        run: k6 -e ENDPOINT=monolith run --out json=stitching.json benchmark/federation/k6.js
+      - name: Compare
+        run: node benchmark/compare federation:federation.json stitching:stitching.json
