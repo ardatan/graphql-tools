@@ -11,17 +11,15 @@ type AddValidSource = (source: Source) => void;
 type ParseOptions = {
   partialSource: Source;
   options: any;
-  globOptions: any;
   pointerOptionMap: any;
   addValidSource: AddValidSource;
 };
 
-export function parseSource({ partialSource, options, globOptions, pointerOptionMap, addValidSource }: ParseOptions) {
+export function parseSource({ partialSource, options, pointerOptionMap, addValidSource }: ParseOptions) {
   if (partialSource) {
     const input = prepareInput({
       source: partialSource,
       options,
-      globOptions,
       pointerOptionMap,
     });
 
@@ -41,12 +39,10 @@ export function parseSource({ partialSource, options, globOptions, pointerOption
 function prepareInput({
   source,
   options,
-  globOptions,
   pointerOptionMap,
 }: {
   source: Source;
   options: any;
-  globOptions: any;
   pointerOptionMap: any;
 }): Input {
   let specificOptions = {
@@ -56,7 +52,7 @@ function prepareInput({
   if (source.location) {
     specificOptions = {
       ...specificOptions,
-      ...(source.location in pointerOptionMap ? globOptions : pointerOptionMap[source.location]),
+      ...pointerOptionMap[source.location],
     };
   }
 

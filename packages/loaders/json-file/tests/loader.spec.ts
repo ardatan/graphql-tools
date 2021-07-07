@@ -1,7 +1,5 @@
 import { join } from 'path';
 
-import { Source } from '@graphql-tools/utils';
-
 import { JsonFileLoader } from '../src';
 import { runTests } from '../../../testing/utils';
 
@@ -50,17 +48,17 @@ describe('JsonFileLoader', () => {
       sync: loader.loadSync.bind(loader),
     })(load => {
       it('should load introspection data from a .json file', async () => {
-        const result: Source = await load(getPointer('introspection.json'), {});
+        const [result] = await load(getPointer('introspection.json'), {});
         expect(result.schema).toBeDefined();
       });
 
       it('should load type definitions from a .json file', async () => {
-        const result: Source = await load(getPointer('type-defs.json'), {});
+        const [result] = await load(getPointer('type-defs.json'), {});
         expect(result.document).toBeDefined();
       });
 
       it('should load file from absolute path', async () => {
-        const result: Source = await load(join(process.cwd(), getPointer('type-defs.json')), {});
+        const [result] = await load(join(process.cwd(), getPointer('type-defs.json')), {});
         expect(result.document).toBeDefined();
       });
 

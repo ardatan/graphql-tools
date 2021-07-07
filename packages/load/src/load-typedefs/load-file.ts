@@ -2,7 +2,7 @@ import { Source, Maybe } from '@graphql-tools/utils';
 import { env } from 'process';
 import { LoadTypedefsOptions } from '../load-typedefs';
 
-export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Maybe<Source>> {
+export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Maybe<Source[]>> {
   const cached = useCache({ pointer, options });
 
   if (cached) {
@@ -28,7 +28,7 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
   return undefined;
 }
 
-export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Maybe<Source> {
+export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Maybe<Source[]> {
   const cached = useCache({ pointer, options });
 
   if (cached) {
