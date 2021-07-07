@@ -16,5 +16,11 @@ module.exports = async function () {
     buildService: ({ name }) => new LocalGraphQLDataSource(serviceMap[name].schema)
   });
 
-  return gateway.load();
+  const { schema, executor } = await gateway.load();
+
+  return {
+    schema,
+    executor,
+    stop: () => gateway.stop(),
+  };
 };
