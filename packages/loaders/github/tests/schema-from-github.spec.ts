@@ -57,7 +57,7 @@ test('load schema from GitHub', async () => {
 
   const loader = new GithubLoader();
 
-  const schema = await loader.load(pointer, {
+  const [source] = await loader.load(pointer, {
     token,
   });
 
@@ -94,7 +94,7 @@ test('load schema from GitHub', async () => {
   // name
   expect(params.operationName).toEqual('GetGraphQLSchemaForGraphQLtools');
 
-  assertNonMaybe(schema.document)
+  assertNonMaybe(source.document)
   // schema
-  expect(print(schema.document)).toEqual(printSchema(buildSchema(typeDefs)));
+  expect(print(source.document)).toEqual(printSchema(buildSchema(typeDefs)));
 });

@@ -1,11 +1,11 @@
-import { SchemaLoader, Source, SingleFileOptions, parseGraphQLSDL, AggregateError } from '@graphql-tools/utils';
+import { Source, parseGraphQLSDL, AggregateError, BaseLoaderOptions, Loader } from '@graphql-tools/utils';
 import { fetch } from 'cross-fetch';
 import syncFetch from 'sync-fetch';
 
 /**
  * Additional options for loading from Apollo Engine
  */
-export interface ApolloEngineOptions extends SingleFileOptions {
+export interface ApolloEngineOptions extends BaseLoaderOptions {
   engine: {
     endpoint?: string;
     apiKey: string;
@@ -20,7 +20,7 @@ const DEFAULT_APOLLO_ENDPOINT = 'https://engine-graphql.apollographql.com/api/gr
 /**
  * This loader loads a schema from Apollo Engine
  */
-export class ApolloEngineLoader implements SchemaLoader<ApolloEngineOptions> {
+export class ApolloEngineLoader implements Loader<ApolloEngineOptions> {
   loaderId() {
     return 'apollo-engine';
   }
@@ -58,7 +58,7 @@ export class ApolloEngineLoader implements SchemaLoader<ApolloEngineOptions> {
     return typeof ptr === 'string' && ptr === 'apollo-engine';
   }
 
-  async load(pointer: 'apollo-engine', options: ApolloEngineOptions): Promise<Source> {
+  async load(pointer: 'apollo-engine', options: ApolloEngineOptions): Promise<Source[]> {
     const fetchArgs = this.getFetchArgs(options);
     const response = await fetch(...fetchArgs);
 
@@ -68,10 +68,11 @@ export class ApolloEngineLoader implements SchemaLoader<ApolloEngineOptions> {
       throw new AggregateError(errors, 'Introspection from Apollo Engine failed');
     }
 
-    return parseGraphQLSDL(pointer, data.service.schema.document, options);
+    const source = parseGraphQLSDL(pointer, data.service.schema.document, options);
+    return [source];
   }
 
-  loadSync(pointer: 'apollo-engine', options: ApolloEngineOptions): Source {
+  loadSync(pointer: 'apollo-engine', options: ApolloEngineOptions): Source[] {
     const fetchArgs = this.getFetchArgs(options);
     const response = syncFetch(...fetchArgs);
 
@@ -81,7 +82,8 @@ export class ApolloEngineLoader implements SchemaLoader<ApolloEngineOptions> {
       throw new AggregateError(errors, 'Introspection from Apollo Engine failed');
     }
 
-    return parseGraphQLSDL(pointer, data.service.schema.document, options);
+    const source = parseGraphQLSDL(pointer, data.service.schema.document, options);
+    return [source];
   }
 }
 

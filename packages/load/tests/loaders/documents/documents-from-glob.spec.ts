@@ -34,10 +34,8 @@ describe('documentsFromGlob', () => {
       const result = await load(glob, {
         loaders: [new CodeFileLoader()]
       });
-      const { document } = result[0];
-      const operations = document && separateOperations(document);
 
-      expect(operations && Object.keys(operations)).toHaveLength(2);
+      expect(result).toHaveLength(2);
     });
 
     test(`Should load GraphQL documents that match custom settings`, async () => {

@@ -1,8 +1,5 @@
 import { DocumentNode, GraphQLSchema, isSchema } from 'graphql';
-import {
-  UniversalLoader,
-  Source,
-} from '@graphql-tools/utils';
+import { Loader, Source } from '@graphql-tools/utils';
 import { existsSync, promises as fsPromises } from 'fs';
 
 const { access } = fsPromises;
@@ -12,9 +9,7 @@ const createLoadError = (error: any) =>
   new Error('Unable to load schema from module: ' + `${error.message || /* istanbul ignore next */ error}`);
 
 // module:node/module#export
-function extractData(
-  pointer: string
-): {
+function extractData(pointer: string): {
   modulePath: string;
   exportName?: string;
 } {
@@ -39,7 +34,7 @@ function extractData(
  * })
  * ```
  */
-export class ModuleLoader implements UniversalLoader {
+export class ModuleLoader implements Loader {
   loaderId() {
     return 'module-loader';
   }
@@ -68,7 +63,7 @@ export class ModuleLoader implements UniversalLoader {
       try {
         const moduleAbsolutePath = require.resolve(modulePath);
         return existsSync(moduleAbsolutePath);
-      } catch(e) {
+      } catch (e) {
         return false;
       }
     }
@@ -80,7 +75,7 @@ export class ModuleLoader implements UniversalLoader {
       const result = this.parse(pointer, await this.importModule(pointer));
 
       if (result) {
-        return result;
+        return [result];
       }
 
       throw InvalidError;
@@ -94,7 +89,7 @@ export class ModuleLoader implements UniversalLoader {
       const result = this.parse(pointer, this.importModuleSync(pointer));
 
       if (result) {
-        return result;
+        return [result];
       }
 
       throw InvalidError;

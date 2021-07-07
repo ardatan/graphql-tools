@@ -43,22 +43,22 @@ describe('ModuleLoader', () => {
       sync: loader.loadSync.bind(loader),
     })(load => {
       it('should load GraphQLSchema object from a file', async () => {
-        const result: Source = await load(getPointer('schema'));
+        const [result] = await load(getPointer('schema'));
         expect(result.schema).toBeDefined();
       });
 
       it('should load DocumentNode object from a file', async () => {
-        const result: Source = await load(getPointer('type-defs'));
+        const [result] = await load(getPointer('type-defs'));
         expect(result.document).toBeDefined();
       });
 
       it('should load string from a file', async () => {
-        const result: Source = await load(getPointer('type-defs-string'));
+        const [result] = await load(getPointer('type-defs-string'));
         expect(result.rawSDL).toBeDefined();
       });
 
       it('should load using a named export', async () => {
-        const result: Source = await load(getPointer('type-defs-named-export', 'typeDefs'));
+        const [result] = await load(getPointer('type-defs-named-export', 'typeDefs'));
         expect(result.document).toBeDefined();
       });
 

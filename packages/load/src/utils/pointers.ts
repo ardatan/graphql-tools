@@ -4,10 +4,15 @@ import { UnnormalizedTypeDefPointer } from './../load-typedefs';
 export function normalizePointers(
   unnormalizedPointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[]
 ) {
-  return asArray(unnormalizedPointerOrPointers).reduce<{ [key: string]: any }>(
+  const ignore: string[] = [];
+  const pointerOptionMap = asArray(unnormalizedPointerOrPointers).reduce<{ [key: string]: any }>(
     (normalizedPointers, unnormalizedPointer) => {
       if (typeof unnormalizedPointer === 'string') {
-        normalizedPointers[unnormalizedPointer] = {};
+        if (unnormalizedPointer.startsWith('!')) {
+          ignore.push(unnormalizedPointer.replace('!', ''));
+        } else {
+          normalizedPointers[unnormalizedPointer] = {};
+        }
       } else if (typeof unnormalizedPointer === 'object') {
         Object.assign(normalizedPointers, unnormalizedPointer);
       } else {
@@ -18,4 +23,5 @@ export function normalizePointers(
     },
     {}
   );
+  return { ignore, pointerOptionMap };
 }

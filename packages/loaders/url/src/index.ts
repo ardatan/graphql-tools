@@ -6,10 +6,9 @@ import {
   AsyncExecutor,
   Executor,
   SyncExecutor,
-  SchemaPointerSingle,
   Source,
-  DocumentLoader,
-  SingleFileOptions,
+  Loader,
+  BaseLoaderOptions,
   observableToAsyncIterable,
   isAsyncIterable,
   ExecutionParams,
@@ -86,7 +85,7 @@ export enum SubscriptionProtocol {
 /**
  * Additional options for loading from a URL
  */
-export interface LoadFromUrlOptions extends SingleFileOptions, Partial<IntrospectionOptions> {
+export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<IntrospectionOptions> {
   /**
    * Additional headers to include when querying the original schema
    */
@@ -147,16 +146,16 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
  * });
  * ```
  */
-export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
+export class UrlLoader implements Loader<LoadFromUrlOptions> {
   loaderId(): string {
     return 'url';
   }
 
-  async canLoad(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<boolean> {
+  async canLoad(pointer: string, options: LoadFromUrlOptions): Promise<boolean> {
     return this.canLoadSync(pointer, options);
   }
 
-  canLoadSync(pointer: SchemaPointerSingle, _options: LoadFromUrlOptions): boolean {
+  canLoadSync(pointer: string, _options: LoadFromUrlOptions): boolean {
     return !!isWebUri(pointer);
   }
 
@@ -619,9 +618,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return executor;
   }
 
-  handleSDL(pointer: SchemaPointerSingle, fetch: SyncFetchFn, options: LoadFromUrlOptions): Source;
-  handleSDL(pointer: SchemaPointerSingle, fetch: AsyncFetchFn, options: LoadFromUrlOptions): Promise<Source>;
-  handleSDL(pointer: SchemaPointerSingle, fetch: FetchFn, options: LoadFromUrlOptions): Source | Promise<Source> {
+  handleSDL(pointer: string, fetch: SyncFetchFn, options: LoadFromUrlOptions): Source;
+  handleSDL(pointer: string, fetch: AsyncFetchFn, options: LoadFromUrlOptions): Promise<Source>;
+  handleSDL(pointer: string, fetch: FetchFn, options: LoadFromUrlOptions): Source | Promise<Source> {
     const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'GET');
     return new ValueOrPromise<any>(() =>
       fetch(pointer, {
@@ -634,7 +633,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       .resolve();
   }
 
-  async load(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {
+  async load(pointer: string, options: LoadFromUrlOptions): Promise<Source[]> {
     let source: Source = {
       location: pointer,
     };
@@ -669,10 +668,10 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       executor,
     });
 
-    return source;
+    return [source];
   }
 
-  loadSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Source {
+  loadSync(pointer: string, options: LoadFromUrlOptions): Source[] {
     let source: Source = {
       location: pointer,
     };
@@ -707,7 +706,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       executor,
     });
 
-    return source;
+    return [source];
   }
 }
 
