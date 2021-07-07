@@ -113,5 +113,13 @@ jobs:
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Build
         run: yarn build
-      - name: Benchmark
-        run: node benchmark/federation/benchmark.js
+      - name: Setup K6
+        run: |
+          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+      - name: Federation
+        run: k6 -e ENDPOINT=federation run benchmark/federation/test.js
+      - name: Stitching
+        run: k6 -e ENDPOINT=stitching run benchmark/federation/test.js
