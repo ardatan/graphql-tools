@@ -1,7 +1,5 @@
 import { join } from 'path';
 
-import { Source } from '@graphql-tools/utils';
-
 import { JsonFileLoader } from '../src';
 import { runTests } from '../../../testing/utils';
 
