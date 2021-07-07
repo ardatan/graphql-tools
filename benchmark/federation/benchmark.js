@@ -19,7 +19,7 @@ async function runBenchmarks() {
   return new Promise((resolve, reject) => {
     suite
       .add('Apollo Gateway', async function () {
-        return apolloGatewayExecutor({
+        const result = await apolloGatewayExecutor({
           document: testQueryAST,
           request: {
             query: testQuery,
@@ -31,12 +31,20 @@ async function runBenchmarks() {
           },
           schema: apolloGatewaySchema,
         });
+        if (result?.errors?.length) {
+          console.log(`Apollo Gateway failed`);
+          throw new AggregateError(result.errors, `Apollo Gateway failed`);
+        }
       })
-      .add('Schema Stitching', function () {
-        return execute({
+      .add('Schema Stitching', async function () {
+        const result = await execute({
           schema: stitchedSchema,
           document: testQueryAST,
         });
+        if (result?.errors?.length) {
+          console.log(`Schema Stitching failed`);
+          throw new AggregateError(result.errors, `Schema Stitching failed`);
+        }
       })
       .on('error', function (error) {
         stopApolloGateway();
