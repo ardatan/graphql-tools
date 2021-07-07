@@ -11,15 +11,6 @@ const suite = new Benchmark.Suite();
 
 const testQuery = readFileSync(join(__dirname, './TestQuery.graphql'), 'utf8');
 const testQueryAST = parse(testQuery);
-const testQueryOperation = getOperationAST(testQueryAST);
-
-const { InMemoryLRUCache } = require('apollo-server-caching');
-const apolloCache = new InMemoryLRUCache();
-const schemaHash = {};
-const metrics = {};
-const rootValue = {};
-const variableValues = {};
-const contextValue = {};
 
 async function runBenchmarks() {
   const [stitchedSchema, { schema: apolloGatewaySchema, executor: apolloGatewayExecutor, stop: stopApolloGateway }] =
@@ -31,28 +22,19 @@ async function runBenchmarks() {
         document: testQueryAST,
         request: {
           query: testQuery,
-          operationName: undefined,
-          variables: variableValues,
         },
-        operationName: undefined,
-        cache: apolloCache,
-        context: contextValue,
-        queryHash: testQuery,
-        logger: console,
-        metrics,
-        source: testQuery,
-        operation: testQueryOperation,
+        cache: {
+          get: async () => undefined,
+          set: async () => {},
+          delete: async () => true,
+        },
         schema: apolloGatewaySchema,
-        schemaHash,
       });
     })
     .add('Schema Stitching', function () {
       return execute({
         schema: stitchedSchema,
         document: testQueryAST,
-        rootValue,
-        contextValue,
-        variableValues,
       });
     })
     .on('cycle', function (event) {
@@ -63,7 +45,7 @@ async function runBenchmarks() {
       stopApolloGateway();
     })
     // run async
-    .run({ async: true });
+    .run({ async: true, delay: 15, queue: true });
 }
 
 runBenchmarks().catch(e => {
