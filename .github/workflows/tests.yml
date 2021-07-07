@@ -129,4 +129,4 @@ jobs:
       - name: Stitching
         run: k6 -e ENDPOINT=stitching run --out json=stitching.json benchmark/federation/k6.js
       - name: Compare
-        run: node benchmark/compare federation:benchmark/federation/federation.json stitching:benchmark/federation/stitching.json
+        run: node benchmark/compare federation:federation.json stitching:stitching.json
