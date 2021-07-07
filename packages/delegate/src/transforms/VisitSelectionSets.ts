@@ -52,83 +52,77 @@ function visitSelectionSets(
 ): DocumentNode {
   const { document, variables } = request;
 
+  const typeInfo = new TypeInfo(schema, undefined, initialType);
   const operations: Array<OperationDefinitionNode> = [];
   const fragments: Record<string, FragmentDefinitionNode> = Object.create(null);
+  const newDefinitions: Array<DefinitionNode> = [];
+
   for (const def of document.definitions) {
     if (def.kind === Kind.OPERATION_DEFINITION) {
+      const operation = def;
       operations.push(def);
+
+      const type = getDefinedRootType(schema, operation.operation);
+      const fields = collectFields(
+        {
+          schema,
+          variableValues: variables,
+          fragments,
+        } as GraphQLExecutionContext,
+        type,
+        operation.selectionSet,
+        Object.create(null),
+        Object.create(null)
+      );
+
+      const newSelections: Array<SelectionNode> = [];
+      for (const responseKey in fields) {
+        const fieldNodes = fields[responseKey];
+        for (const fieldNode of fieldNodes) {
+          const selectionSet = fieldNode.selectionSet;
+
+          if (selectionSet == null) {
+            newSelections.push(fieldNode);
+            continue;
+          }
+
+          const newSelectionSet = visit(
+            selectionSet,
+            visitWithTypeInfo(typeInfo, {
+              [Kind.SELECTION_SET]: node => visitor(node, typeInfo),
+            })
+          );
+
+          if (newSelectionSet === selectionSet) {
+            newSelections.push(fieldNode);
+            continue;
+          }
+
+          newSelections.push({
+            ...fieldNode,
+            selectionSet: newSelectionSet,
+          });
+        }
+      }
+
+      newDefinitions.push({
+        ...def,
+        selectionSet: {
+          kind: Kind.SELECTION_SET,
+          selections: newSelections,
+        },
+      });
     } else if (def.kind === Kind.FRAGMENT_DEFINITION) {
       fragments[def.name.value] = def;
-    }
-  }
-
-  const partialExecutionContext = {
-    schema,
-    variableValues: variables,
-    fragments,
-  } as GraphQLExecutionContext;
-
-  const typeInfo = new TypeInfo(schema, undefined, initialType);
-  const newDefinitions: Array<DefinitionNode> = operations.map(operation => {
-    const type = getDefinedRootType(schema, operation.operation);
-
-    const fields = collectFields(
-      partialExecutionContext,
-      type,
-      operation.selectionSet,
-      Object.create(null),
-      Object.create(null)
-    );
-
-    const newSelections: Array<SelectionNode> = [];
-    for (const responseKey in fields) {
-      const fieldNodes = fields[responseKey];
-      for (const fieldNode of fieldNodes) {
-        const selectionSet = fieldNode.selectionSet;
-
-        if (selectionSet == null) {
-          newSelections.push(fieldNode);
-          continue;
-        }
-
-        const newSelectionSet = visit(
-          selectionSet,
+      newDefinitions.push(
+        visit(
+          def,
           visitWithTypeInfo(typeInfo, {
             [Kind.SELECTION_SET]: node => visitor(node, typeInfo),
           })
-        );
-
-        if (newSelectionSet === selectionSet) {
-          newSelections.push(fieldNode);
-          continue;
-        }
-
-        newSelections.push({
-          ...fieldNode,
-          selectionSet: newSelectionSet,
-        });
-      }
+        )
+      );
     }
-
-    return {
-      ...operation,
-      selectionSet: {
-        kind: Kind.SELECTION_SET,
-        selections: newSelections,
-      },
-    };
-  });
-
-  for (const fragmentIndex in fragments) {
-    const fragment = fragments[fragmentIndex];
-    newDefinitions.push(
-      visit(
-        fragment,
-        visitWithTypeInfo(typeInfo, {
-          [Kind.SELECTION_SET]: node => visitor(node, typeInfo),
-        })
-      )
-    );
   }
 
   return {
