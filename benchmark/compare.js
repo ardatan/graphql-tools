@@ -39,8 +39,8 @@ const byFactor = Math.abs(1 - slower / faster);
 
 console.log(`
 
-${left.name}: ${left.avg} ms
-${right.name}: ${right.avg} ms
+${left.name}: ${left.avg.toFixed(2)} ms
+${right.name}: ${right.avg.toFixed(2)} ms
 
 Faster is "${fasterName}" by ${(byFactor * 100).toFixed(2)}%
 
