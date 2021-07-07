@@ -35,7 +35,7 @@ const fasterName = left.avg < right.avg ? left.name : right.name;
 
 const faster = Math.min(left.avg, right.avg);
 const slower = Math.max(left.avg, right.avg);
-const byFactor = slower / faster - 1;
+const byFactor = Math.abs(1 - slower / faster);
 
 console.log(`
 
