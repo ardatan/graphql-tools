@@ -1,4 +1,4 @@
-const { ApolloServer, gql } = require("apollo-server");
+const { gql } = require("graphql-tag");
 const { buildFederatedSchema } = require("@apollo/federation");
 
 const typeDefs = gql`
