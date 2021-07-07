@@ -133,5 +133,12 @@ describe('documentsFromGlob', () => {
       });
       expect(result.length).toBe(1);
     });
+    test(`should try next loader if first one fails`, async () => {
+      const glob = join(__dirname, './test-with-brackets/', '**/*.ts');
+      const result = await load(glob, {
+        loaders: [new GraphQLFileLoader(), new CodeFileLoader()],
+      });
+      expect(result.length).toBe(1);
+    })
   })
 });

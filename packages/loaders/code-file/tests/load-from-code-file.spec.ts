@@ -117,30 +117,61 @@ describe('loadFromCodeFileSync', () => {
   it('should support loading many in same file', () => {
     const loaded = loader.loadSync('./test-files/multiple-from-file.ts', {
       cwd: __dirname,
+      pluckConfig: {
+        skipIndent: true,
+      },
     });
     expect(loaded?.length).toEqual(3);
     expect(loaded?.[0].rawSDL).toBeDefined();
     expect(loaded?.[0].rawSDL).toMatchInlineSnapshot(`
-      "query Foo {
-        Tweets {
-          id
+      "
+        query Foo {
+          Tweets {
+            id
+          }
         }
-      }"
+      "
     `);
     expect(loaded?.[1].rawSDL).toBeDefined();
     expect(loaded?.[1].rawSDL).toMatchInlineSnapshot(`
-"fragment Lel on Tweet {
-  id
-  body
-}"
-`);
+      "
+        fragment Lel on Tweet {
+          id
+          body
+        }
+      "
+    `);
     expect(loaded?.[2].rawSDL).toBeDefined();
     expect(loaded?.[2].rawSDL).toMatchInlineSnapshot(`
-"query Bar {
-  Tweets {
-    ...Lel
-  }
-}"
-`);
+      "
+        query Bar {
+          Tweets {
+            ...Lel
+          }
+        }
+      "
+    `);
   });
+
+  it('can inherit config options from constructor', () => {
+    const loader = new CodeFileLoader({
+      pluckConfig: {
+        skipIndent: true
+      }
+    })
+    const loaded = loader.loadSync('./test-files/multiple-from-file.ts', {
+      cwd: __dirname,
+    });
+    expect(loaded?.length).toEqual(3);
+    expect(loaded?.[0].rawSDL).toBeDefined();
+    expect(loaded?.[0].rawSDL).toMatchInlineSnapshot(`
+      "
+        query Foo {
+          Tweets {
+            id
+          }
+        }
+      "
+    `);
+  })
 });

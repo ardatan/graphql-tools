@@ -1,4 +1,4 @@
-import { Source, Maybe } from '@graphql-tools/utils';
+import { Source, Maybe, isSome } from '@graphql-tools/utils';
 import { env } from 'process';
 import { LoadTypedefsOptions } from '../load-typedefs';
 
@@ -15,6 +15,9 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
 
       if (canLoad) {
         const loadedValue = await loader.load(pointer, options);
+        if (!isSome(loadedValue) || loadedValue.length === 0) {
+          continue;
+        }
         return loadedValue;
       }
     } catch (error) {
@@ -41,7 +44,11 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): May
 
       if (canLoad) {
         // We check for the existence so it is okay to force non null
-        return loader.loadSync!(pointer, options);
+        const loadedValue = loader.loadSync!(pointer, options);
+        if (!isSome(loadedValue) || loadedValue.length === 0) {
+          continue;
+        }
+        return loadedValue;
       }
     } catch (error) {
       if (env['DEBUG']) {
