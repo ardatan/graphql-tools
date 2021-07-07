@@ -156,6 +156,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
           return sources.map(source => ({
             document: parse(source, options),
             location,
+            rawSDL: source.body,
           }));
         }
       } catch (e) {
@@ -204,6 +205,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
           return sources.map(source => ({
             document: parse(source, options),
             location,
+            rawSDL: source.body,
           }));
         }
       } catch (e) {
