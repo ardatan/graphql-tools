@@ -125,6 +125,8 @@ jobs:
           yarn start &
           yarn wait-on tcp:3000
       - name: Federation
-        run: k6 -e ENDPOINT=federation run benchmark/federation/test.js
+        run: k6 -e ENDPOINT=federation run --out json=federation.json benchmark/federation/k6.js
       - name: Stitching
-        run: k6 -e ENDPOINT=stitching run benchmark/federation/test.js
+        run: k6 -e ENDPOINT=stitching run --out json=stitching.json benchmark/federation/k6.js
+      - name: Compare
+        run: node benchmark/compare federation:benchmark/federation/federation.json stitching:benchmark/federation/stitching.json
