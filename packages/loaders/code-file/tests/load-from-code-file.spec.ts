@@ -10,7 +10,7 @@ describe('loadFromCodeFile', () => {
     try {
       const result = await loader.load('./test-files/invalid-anon-doc.js', {
         noRequire: true,
-        cwd: __dirname
+        cwd: __dirname,
       });
       const loaded = result?.[0];
       const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
@@ -24,7 +24,7 @@ describe('loadFromCodeFile', () => {
   it('should load a valid file', async () => {
     const result = await loader.load('./test-files/valid-doc.js', {
       noRequire: true,
-      cwd: __dirname
+      cwd: __dirname,
     });
     const loaded = result?.[0];
     const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
@@ -46,7 +46,7 @@ describe('loadFromCodeFile', () => {
   it('should load a TypeScript file using decorator', async () => {
     const result = await loader.load('./test-files/with-decorator-doc.ts', {
       noRequire: true,
-      cwd: __dirname
+      cwd: __dirname,
     });
     const loaded = result?.[0];
     const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
@@ -56,7 +56,7 @@ describe('loadFromCodeFile', () => {
 
   it('should support string interpolation', async () => {
     const result = await loader.load('./test-files/string-interpolation.js', {
-      cwd: __dirname
+      cwd: __dirname,
     });
     const loaded = result?.[0];
     const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
@@ -72,19 +72,19 @@ describe('loadFromCodeFileSync', () => {
     expect(() => {
       const result = loader.loadSync('./test-files/invalid-anon-doc.js', {
         noRequire: true,
-        cwd: __dirname
+        cwd: __dirname,
       });
       const loaded = result?.[0];
       const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
 
       expect(doc?.kind).toEqual('Document');
-    }).toThrowError('Syntax Error: Unexpected Name "InvalidGetUser"')
+    }).toThrowError('Syntax Error: Unexpected Name "InvalidGetUser"');
   });
 
   it('should load a valid file', () => {
     const result = loader.loadSync('./test-files/valid-doc.js', {
       noRequire: true,
-      cwd: __dirname
+      cwd: __dirname,
     });
     const loaded = result?.[0];
     const doc = loaded?.document;
@@ -105,12 +105,42 @@ describe('loadFromCodeFileSync', () => {
 
   it('should support string interpolation', () => {
     const result = loader.loadSync('./test-files/string-interpolation.js', {
-      cwd: __dirname
+      cwd: __dirname,
     });
 
     const loaded = result?.[0];
     const doc = loaded?.document;
 
     expect(doc?.kind).toEqual('Document');
+  });
+
+  it('should support loading many in same file', () => {
+    const loaded = loader.loadSync('./test-files/multiple-from-file.ts', {
+      cwd: __dirname,
+    });
+    expect(loaded?.length).toEqual(3);
+    expect(loaded?.[0].rawSDL).toBeDefined();
+    expect(loaded?.[0].rawSDL).toMatchInlineSnapshot(`
+      "query Foo {
+        Tweets {
+          id
+        }
+      }"
+    `);
+    expect(loaded?.[1].rawSDL).toBeDefined();
+    expect(loaded?.[1].rawSDL).toMatchInlineSnapshot(`
+"fragment Lel on Tweet {
+  id
+  body
+}"
+`);
+    expect(loaded?.[2].rawSDL).toBeDefined();
+    expect(loaded?.[2].rawSDL).toMatchInlineSnapshot(`
+"query Bar {
+  Tweets {
+    ...Lel
+  }
+}"
+`);
   });
 });
