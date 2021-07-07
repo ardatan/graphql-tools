@@ -37,6 +37,8 @@ export type CodeFileLoaderOptions = {
   pluckConfig?: GraphQLTagPluckOptions;
   noPluck?: boolean;
   noRequire?: boolean;
+  /** Specify a string with which the rawSDL of plucked documents within the same file are concat */
+  pluckConcatString?: string;
 } & SingleFileOptions;
 
 const FILE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue'];
@@ -135,6 +137,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
           return {
             document: concatAST(sources.map(source => parse(source, options))),
             location: pointer,
+            rawSDL: sources.map(source => source.body).join(options.pluckConcatString ?? `\n`),
           };
         }
       } catch (e) {
@@ -183,6 +186,7 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
           return {
             document: concatAST(sources.map(source => parse(source, options))),
             location: pointer,
+            rawSDL: sources.map(source => source.body).join(options.pluckConcatString ?? `\n`),
           };
         }
       } catch (e) {
