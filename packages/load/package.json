@@ -30,7 +30,7 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "@types/is-glob": "4.0.1",
+    "@types/is-glob": "4.0.2",
     "@types/valid-url": "1.0.3",
     "graphql-tag": "2.12.5",
     "graphql-type-json": "0.3.2"
