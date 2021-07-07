@@ -26,15 +26,19 @@ import { createRequire } from 'module';
 
 const { readFile, access } = fsPromises;
 
+export type CodeFileLoaderConfig = {
+  pluckConfig?: GraphQLTagPluckOptions;
+  noPluck?: boolean;
+  noRequire?: boolean;
+};
+
 /**
  * Additional options for loading from a code file
  */
 export type CodeFileLoaderOptions = {
   require?: string | string[];
-  pluckConfig?: GraphQLTagPluckOptions;
-  noPluck?: boolean;
-  noRequire?: boolean;
-} & BaseLoaderOptions;
+} & CodeFileLoaderConfig &
+  BaseLoaderOptions;
 
 const FILE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue'];
 
@@ -57,11 +61,21 @@ function createGlobbyOptions(options: CodeFileLoaderOptions): GlobbyOptions {
  * Supported extensions include: `.ts`, `.tsx`, `.js`, `.jsx`, `.vue`
  */
 export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
+  private config: CodeFileLoaderConfig;
+  constructor(config?: CodeFileLoaderConfig) {
+    this.config = config ?? {};
+  }
+
+  private getMergedOptions(options: CodeFileLoaderOptions): CodeFileLoaderOptions {
+    return { ...this.config, ...options };
+  }
+
   loaderId(): string {
     return 'code-file';
   }
 
   async canLoad(pointer: string, options: CodeFileLoaderOptions): Promise<boolean> {
+    options = this.getMergedOptions(options);
     if (isGlob(pointer)) {
       // FIXME: parse to find and check the file extensions?
       return true;
@@ -83,6 +97,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
   }
 
   canLoadSync(pointer: string, options: CodeFileLoaderOptions): boolean {
+    options = this.getMergedOptions(options);
     if (isGlob(pointer)) {
       // FIXME: parse to find and check the file extensions?
       return true;
@@ -99,16 +114,19 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
   }
 
   async resolveGlobs(glob: string, options: CodeFileLoaderOptions) {
+    options = this.getMergedOptions(options);
     const ignores = asArray(options.ignore || []);
     return globby([glob, ...ignores.map(v => `!(${v})`).map(v => unixify(v))], createGlobbyOptions(options));
   }
 
   resolveGlobsSync(glob: string, options: CodeFileLoaderOptions) {
+    options = this.getMergedOptions(options);
     const ignores = asArray(options.ignore || []);
     return globby.sync([glob, ...ignores.map(v => `!(${v})`).map(v => unixify(v))], createGlobbyOptions(options));
   }
 
   async load(pointer: string, options: CodeFileLoaderOptions): Promise<Source[] | null> {
+    options = this.getMergedOptions(options);
     if (isGlob(pointer)) {
       const resolvedPaths = await this.resolveGlobs(pointer, options);
       const finalResult: Source[] = [];
@@ -127,6 +145,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
   }
 
   loadSync(pointer: string, options: CodeFileLoaderOptions): Source[] | null {
+    options = this.getMergedOptions(options);
     if (isGlob(pointer)) {
       const resolvedPaths = this.resolveGlobsSync(pointer, options);
       const finalResult: Source[] = [];
@@ -143,6 +162,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
   }
 
   async handleSinglePath(location: string, options: CodeFileLoaderOptions): Promise<Source[] | null> {
+    options = this.getMergedOptions(options);
     const normalizedFilePath = ensureAbsolutePath(location, options);
 
     const errors: Error[] = [];
@@ -192,6 +212,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
   }
 
   handleSinglePathSync(location: string, options: CodeFileLoaderOptions): Source[] | null {
+    options = this.getMergedOptions(options);
     const normalizedFilePath = ensureAbsolutePath(location, options);
 
     const errors: Error[] = [];

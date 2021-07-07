@@ -152,4 +152,26 @@ describe('loadFromCodeFileSync', () => {
       "
     `);
   });
+
+  it('can inherit config options from constructor', () => {
+    const loader = new CodeFileLoader({
+      pluckConfig: {
+        skipIndent: true
+      }
+    })
+    const loaded = loader.loadSync('./test-files/multiple-from-file.ts', {
+      cwd: __dirname,
+    });
+    expect(loaded?.length).toEqual(3);
+    expect(loaded?.[0].rawSDL).toBeDefined();
+    expect(loaded?.[0].rawSDL).toMatchInlineSnapshot(`
+      "
+        query Foo {
+          Tweets {
+            id
+          }
+        }
+      "
+    `);
+  })
 });
