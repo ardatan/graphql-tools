@@ -2,7 +2,7 @@ import { chainFunctions } from './chain-functions';
 import _ from 'lodash';
 import { GraphQLFieldResolver, GraphQLScalarTypeConfig } from 'graphql';
 import { asArray } from '@graphql-tools/utils';
-import { matcher } from 'micromatch';
+import micromatch from 'micromatch';
 
 export type ResolversComposition<
   Resolver extends GraphQLFieldResolver<any, any, any> = GraphQLFieldResolver<any, any>
@@ -35,7 +35,7 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
   }
 
   const [typeNameOrGlob, fieldNameOrGlob] = path.split('.');
-  const isTypeMatch = matcher(typeNameOrGlob);
+  const isTypeMatch = micromatch.matcher(typeNameOrGlob);
 
   let fixedFieldGlob = fieldNameOrGlob;
   // convert single value OR `{singleField}` to `singleField` as matching will fail otherwise
@@ -44,7 +44,7 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
   }
   fixedFieldGlob = fixedFieldGlob.replace(', ', ',').trim();
 
-  const isFieldMatch = matcher(fixedFieldGlob);
+  const isFieldMatch = micromatch.matcher(fixedFieldGlob);
 
   const mappings: string[] = [];
   for (const typeName in resolvers) {
