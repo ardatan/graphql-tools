@@ -51,6 +51,8 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
   };
 }
 
+const cacheKeyFn = (key: any) => (typeof key === 'object' ? JSON.stringify(key) : key);
+
 export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
   const fieldName = options.fieldName ?? options.info.fieldName;
 
@@ -58,13 +60,19 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
     options.info.fieldNodes
   );
 
+  // Prevents the keys to be passed with the same structure
+  const dataLoaderOptions: DataLoader.Options<any, any, any> = {
+    cacheKeyFn,
+    ...options.dataLoaderOptions,
+  };
+
   if (cache2 === undefined) {
     cache2 = new WeakMap();
     cache1.set(options.info.fieldNodes, cache2);
     const loaders = Object.create(null);
     cache2.set(options.schema, loaders);
     const batchFn = createBatchFn(options);
-    const loader = new DataLoader<K, V, C>(keys => batchFn(keys), options.dataLoaderOptions);
+    const loader = new DataLoader<K, V, C>(keys => batchFn(keys), dataLoaderOptions);
     loaders[fieldName] = loader;
     return loader;
   }
@@ -75,7 +83,7 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
     loaders = Object.create(null) as Record<string, DataLoader<K, V, C>>;
     cache2.set(options.schema, loaders);
     const batchFn = createBatchFn(options);
-    const loader = new DataLoader<K, V, C>(keys => batchFn(keys), options.dataLoaderOptions);
+    const loader = new DataLoader<K, V, C>(keys => batchFn(keys), dataLoaderOptions);
     loaders[fieldName] = loader;
     return loader;
   }
@@ -84,7 +92,7 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
 
   if (loader === undefined) {
     const batchFn = createBatchFn(options);
-    loader = new DataLoader<K, V, C>(keys => batchFn(keys), options.dataLoaderOptions);
+    loader = new DataLoader<K, V, C>(keys => batchFn(keys), dataLoaderOptions);
     loaders[fieldName] = loader;
   }
 
