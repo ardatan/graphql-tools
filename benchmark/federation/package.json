@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node index.js",
+    "start": "cross-env NODE_ENV=production node index.js",
     "loadtest:federation": "k6 -e ENDPOINT=federation run k6.js",
     "loadtest:stitching": "k6 -e ENDPOINT=stitching run k6.js"
   },
@@ -15,6 +15,7 @@
     "express": "4.17.1",
     "graphql": "15.5.1",
     "graphql-tag": "2.12.5",
-    "wait-on": "6.0.0"
+    "wait-on": "6.0.0",
+    "cross-env": "7.0.3"
   }
 }
