@@ -9,6 +9,7 @@ import {
   OperationDefinitionNode,
   DocumentNode,
   GraphQLOutputType,
+  ExecutionArgs,
 } from 'graphql';
 
 import { ValueOrPromise } from 'value-or-promise';
@@ -90,7 +91,7 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
     validateRequest(delegationContext, processedRequest.document);
   }
 
-  const { context, info } = delegationContext;
+  const { context, operation } = delegationContext;
 
   const executor = getExecutor(delegationContext);
 
@@ -98,7 +99,7 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
     executor({
       ...processedRequest,
       context,
-      info,
+      operationType: operation,
     })
   )
     .then(originalResult => {
@@ -131,17 +132,16 @@ function getDelegationContext<TContext>({
   let targetFieldName: string;
 
   if (operation == null) {
-    operationDefinition = getOperationAST(request.document, request.operationName);
-    if (operationDefinition == null) {
-      throw new Error('Cannot infer main operation from the provided document.');
-    }
-    targetOperation = operationDefinition.operation;
+    targetOperation = request.operationType;
   } else {
     targetOperation = operation;
   }
 
   if (fieldName == null) {
-    operationDefinition = operationDefinition ?? getOperationAST(request.document, request.operationName);
+    operationDefinition = getOperationAST(request.document, request.operationName);
+    if (!operationDefinition) {
+      throw new Error('Could not identify the main operation of the document.');
+    }
     targetFieldName = (operationDefinition?.selectionSet.selections[0] as unknown as FieldDefinitionNode).name.value;
   } else {
     targetFieldName = fieldName;
@@ -208,9 +208,9 @@ function validateRequest(delegationContext: DelegationContext<any>, document: Do
 }
 
 function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): Executor<TContext> {
-  const { subschemaConfig, targetSchema, context, operation } = delegationContext;
+  const { subschemaConfig, targetSchema, context } = delegationContext;
 
-  let executor: Executor = subschemaConfig?.executor || createDefaultExecutor(targetSchema, operation);
+  let executor: Executor = subschemaConfig?.executor || createDefaultExecutor(targetSchema);
 
   if (subschemaConfig?.batch) {
     const batchingOptions = subschemaConfig?.batchingOptions;
@@ -225,26 +225,26 @@ function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): 
   return executor;
 }
 
-function createDefaultExecutor(schema: GraphQLSchema, operation: OperationTypeNode): Executor {
-  if (operation === 'subscription') {
-    return (({ document, context, variables, rootValue, operationName }: Request) =>
-      subscribe({
-        schema,
-        document,
-        contextValue: context,
-        variableValues: variables,
-        rootValue,
-        operationName,
-      })) as Executor;
-  }
-
-  return (({ document, context, variables, rootValue, operationName }: Request) =>
-    execute({
+function createDefaultExecutor(schema: GraphQLSchema): Executor {
+  return function defaultExecutor({
+    document,
+    context,
+    variables,
+    rootValue,
+    operationName,
+    operationType,
+  }: Request) {
+    const executionArgs: ExecutionArgs = {
       schema,
       document,
       contextValue: context,
       variableValues: variables,
       rootValue,
       operationName,
-    })) as Executor;
+    };
+    if (operationType === 'subscription') {
+      return subscribe(executionArgs);
+    }
+    return execute(executionArgs);
+  } as Executor;
 }

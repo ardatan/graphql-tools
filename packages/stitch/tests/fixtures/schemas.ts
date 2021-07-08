@@ -682,8 +682,8 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
 });
 
 function makeExecutorFromSchema(schema: GraphQLSchema) {
-  return async <TReturn, TArgs, TContext>({ document, variables, context, info }: Request<TArgs, TContext>) => {
-    if (info?.operation.operation === 'subscription') {
+  return async <TReturn, TArgs, TContext>({ document, variables, context, operationType }: Request<TArgs, TContext>) => {
+    if (operationType === 'subscription') {
       const result = subscribe(
         schema,
         document,

@@ -50,7 +50,8 @@ describe('requests', () => {
       `),
       rootValue: undefined,
       variables: {},
-      operationName: 'test'
+      operationName: 'test',
+      operationType: 'query'
     });
 
     expect(expectedRequest).toMatchObject(request);

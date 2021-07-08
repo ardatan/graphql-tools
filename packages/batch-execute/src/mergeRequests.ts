@@ -110,7 +110,7 @@ export function mergeRequests(
     variables: mergedVariables,
     extensions: mergedExtensions,
     context: requests[0].context,
-    info: requests[0].info,
+    operationType: operation,
   };
 }
 
@@ -137,6 +137,7 @@ function prefixRequest(prefix: string, request: Request): Request {
   return {
     document,
     variables: prefixedVariables,
+    operationType: request.operationType,
   };
 }
 

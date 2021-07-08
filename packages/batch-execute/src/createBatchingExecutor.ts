@@ -1,5 +1,3 @@
-import { getOperationAST } from 'graphql';
-
 import DataLoader from 'dataloader';
 
 import { ValueOrPromise } from 'value-or-promise';
@@ -18,8 +16,9 @@ export function createBatchingExecutor(
   ) => Record<string, any> = defaultExtensionsReducer
 ): Executor {
   const loader = new DataLoader(createLoadFn(executor, extensionsReducer), dataLoaderOptions);
-  return (request: Request) =>
-    request.info?.operation.operation === 'subscription' ? executor(request) : loader.load(request);
+  return (request: Request) => {
+    return request.operationType === 'subscription' ? executor(request) : loader.load(request);
+  };
 }
 
 function createLoadFn(
@@ -33,13 +32,10 @@ function createLoadFn(
     let currentBatch: Array<Request> = [request];
     execBatches.push(currentBatch);
 
-    const operationType = getOperationAST(request.document, undefined)?.operation;
-    if (operationType == null) {
-      throw new Error('Could not identify operation type of document.');
-    }
+    const operationType = request.operationType;
 
     while (++index < requests.length) {
-      const currentOperationType = getOperationAST(requests[index].document, undefined)?.operation;
+      const currentOperationType = requests[index].operationType;
       if (operationType == null) {
         throw new Error('Could not identify operation type of document.');
       }

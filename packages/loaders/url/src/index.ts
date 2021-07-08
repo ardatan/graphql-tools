@@ -295,12 +295,12 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       variables,
       operationName,
       extensions,
+      operationType,
     }: Request<any, any, any, ExecutionExtensions>) => {
       const controller = new AbortController();
       let method = defaultMethod;
       if (options?.useGETForQueries) {
-        const operationAst = getOperationAST(document, operationName);
-        if (operationAst?.operation === 'query') {
+        if (operationType === 'query') {
           method = 'GET';
         } else {
           method = defaultMethod;
@@ -610,7 +610,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         throw new Error(`No valid operations found: ${params.operationName || ''}`);
       }
       if (
-        operationAst.operation === 'subscription' ||
+        params.operationType === 'subscription' ||
         isLiveQueryOperationDefinitionNode(operationAst, params.variables as Record<string, any>)
       ) {
         return subscriptionExecutor(params);

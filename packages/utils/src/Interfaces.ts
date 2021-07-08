@@ -48,6 +48,7 @@ import {
   GraphQLType,
   Source,
   DefinitionNode,
+  OperationTypeNode,
 } from 'graphql';
 
 // graphql-js < v15 backwards compatible ExecutionResult
@@ -65,6 +66,7 @@ export interface Request<
   TExtensions = Record<string, any>
 > {
   document: DocumentNode;
+  operationType: OperationTypeNode;
   variables?: TArgs;
   extensions?: TExtensions;
   operationName?: string;
@@ -72,7 +74,6 @@ export interface Request<
   rootValue?: TRootValue;
   // If the request originates within execution of a parent request, it may contain the parent context and info
   context?: TContext;
-  info?: GraphQLResolveInfo;
 }
 
 // graphql-js non-exported typings
