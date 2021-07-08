@@ -16,7 +16,7 @@ const createExecutor =
     execute({
       schema,
       document,
-      variableValues: variables,
+      variableValues: variables
     });
 
 async function makeGatewaySchema() {
@@ -31,6 +31,7 @@ function fetchFederationSubschema({ schema, typeDefs }) {
   return {
     schema: buildSchema(sdl),
     executor: createExecutor(schema),
+    batch: true
   };
 }
 

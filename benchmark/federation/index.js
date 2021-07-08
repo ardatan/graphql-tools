@@ -31,7 +31,7 @@ async function main() {
   app.post('/stitching', (req, res) => {
     execute({
       schema: stitching,
-      document: parse(req.body.query),
+      document: parse(req.body.query)
     })
       .then(result => {
         res.json(result);
