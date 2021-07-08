@@ -18,10 +18,11 @@ export function createBatchingExecutor(
   ) => Record<string, any> = defaultExtensionsReducer
 ): Executor {
   const loader = new DataLoader(createLoadFn(executor, extensionsReducer), dataLoaderOptions);
-  return (executionParams: ExecutionParams) =>
-    executionParams.info?.operation.operation === 'subscription'
+  return function batchingExecutor(executionParams: ExecutionParams) {
+    return executionParams.info?.operation.operation === 'subscription'
       ? executor(executionParams)
       : loader.load(executionParams);
+  };
 }
 
 function createLoadFn(

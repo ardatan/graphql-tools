@@ -228,9 +228,9 @@ function validateRequest(delegationContext: DelegationContext<any>, document: Do
 }
 
 function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): Executor<TContext> {
-  const { subschemaConfig, targetSchema, context, operation } = delegationContext;
+  const { subschemaConfig, targetSchema, context } = delegationContext;
 
-  let executor: Executor = subschemaConfig?.executor || createDefaultExecutor(targetSchema, operation);
+  let executor: Executor = subschemaConfig?.executor || getDefaultExecutor(targetSchema);
 
   if (subschemaConfig?.batch) {
     const batchingOptions = subschemaConfig?.batchingOptions;
@@ -245,8 +245,19 @@ function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): 
   return executor;
 }
 
-const createDefaultExecutor = (schema: GraphQLSchema, operation: OperationTypeNode) =>
-  (({ document, context, variables, rootValue }: ExecutionParams) => {
+const schemaDefaultExecutorMap = new WeakMap<GraphQLSchema, Executor>();
+
+function getDefaultExecutor(schema: GraphQLSchema) {
+  let executor = schemaDefaultExecutorMap.get(schema);
+  if (!executor) {
+    executor = createDefaultExecutor(schema);
+    schemaDefaultExecutorMap.set(schema, executor);
+  }
+  return executor;
+}
+
+function createDefaultExecutor(schema: GraphQLSchema) {
+  return function defaultExecutor({ document, context, variables, rootValue, info }: ExecutionParams) {
     const executionParams = {
       schema,
       document,
@@ -254,8 +265,9 @@ const createDefaultExecutor = (schema: GraphQLSchema, operation: OperationTypeNo
       variableValues: variables,
       rootValue,
     };
-    if (operation === 'subscription') {
+    if (info?.operation?.operation === 'subscription') {
       return subscribe(executionParams);
     }
     return execute(executionParams);
-  }) as Executor;
+  } as Executor;
+}
