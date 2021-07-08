@@ -2,7 +2,7 @@
 
 import { ExecutionResult, GraphQLError } from 'graphql';
 
-import { assertSome, relocatedError } from '@graphql-tools/utils';
+import { relocatedError } from '@graphql-tools/utils';
 
 import { parseKey } from './prefix';
 
@@ -17,9 +17,7 @@ export function splitResult({ data, errors }: ExecutionResult, numResults: numbe
 
   if (data) {
     for (const prefixedKey in data) {
-      const parsedKey = parseKey(prefixedKey);
-      assertSome(parsedKey, "'parsedKey' should not be null.");
-      const { index, originalKey } = parsedKey;
+      const { index, originalKey } = parseKey(prefixedKey);
       const result = splitResults[index];
       if (result == null) {
         continue;
@@ -36,12 +34,10 @@ export function splitResult({ data, errors }: ExecutionResult, numResults: numbe
     for (const error of errors) {
       if (error.path) {
         const parsedKey = parseKey(error.path[0] as string);
-        if (parsedKey) {
-          const { index, originalKey } = parsedKey;
-          const newError = relocatedError(error, [originalKey, ...error.path.slice(1)]);
-          const errors = (splitResults[index].errors = (splitResults[index].errors || []) as GraphQLError[]);
-          errors.push(newError);
-        }
+        const { index, originalKey } = parsedKey;
+        const newError = relocatedError(error, [originalKey, ...error.path.slice(1)]);
+        const errors = (splitResults[index].errors = (splitResults[index].errors || []) as GraphQLError[]);
+        errors.push(newError);
       }
     }
   }

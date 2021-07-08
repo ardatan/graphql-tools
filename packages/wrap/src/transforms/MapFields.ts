@@ -1,6 +1,6 @@
 import { GraphQLSchema } from 'graphql';
 
-import { Request, FieldNodeMappers, ExecutionResult, assertSome } from '@graphql-tools/utils';
+import { Request, FieldNodeMappers, ExecutionResult } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -25,8 +25,13 @@ export default class MapFields<TContext> implements Transform<any, TContext> {
   }
 
   private _getTransformer() {
-    assertSome(this.transformer);
-    return this.transformer;
+    const transformer = this.transformer;
+    if (transformer === undefined) {
+      throw new Error(
+        `The MapFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+      );
+    }
+    return transformer;
   }
 
   public transformSchema(

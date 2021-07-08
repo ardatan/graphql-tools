@@ -21,7 +21,7 @@ import {
   isInterfaceType,
 } from 'graphql';
 
-import { Request, implementsAbstractType, TypeMap, assertSome, getDefinedRootType } from '@graphql-tools/utils';
+import { Request, implementsAbstractType, TypeMap, getDefinedRootType } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 
@@ -141,7 +141,11 @@ function collectFragmentVariables(
       const name = nextFragmentName;
       const typeName = fragment.typeCondition.name.value;
       const type = targetSchema.getType(typeName);
-      assertSome(type);
+      if (type == null) {
+        throw new Error(
+          `Fragment reference type "${typeName}", but the type is not contained within the target schema.`
+        );
+      }
       const {
         selectionSet,
         usedFragments: fragmentUsedFragments,
@@ -209,7 +213,9 @@ function filterSelectionSet(
         },
         leave(node: FieldNode): null | undefined | FieldNode {
           const type = typeInfo.getType();
-          assertSome(type);
+          if (type == null) {
+            throw new Error(`No type was found for field node ${node}.`);
+          }
           const resolvedType = getNamedType(type);
           if (isObjectType(resolvedType) || isInterfaceType(resolvedType)) {
             const selections = node.selectionSet != null ? node.selectionSet.selections : null;
