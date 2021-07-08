@@ -9,14 +9,7 @@ import {
   GraphQLFieldResolver,
 } from 'graphql';
 
-import {
-  appendObjectFields,
-  removeObjectFields,
-  Request,
-  ExecutionResult,
-  relocatedError,
-  assertSome,
-} from '@graphql-tools/utils';
+import { appendObjectFields, removeObjectFields, Request, ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
 import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -52,7 +45,10 @@ export default class HoistField implements Transform {
 
     const pathToField = path.slice();
     const oldFieldName = pathToField.pop();
-    assertSome(oldFieldName);
+
+    if (oldFieldName == null) {
+      throw new Error(`Cannot hoist field to ${newFieldName} on type ${typeName}, no path provided.`);
+    }
 
     this.oldFieldName = oldFieldName;
     this.pathToField = pathToField;

@@ -20,7 +20,6 @@ import {
   ResultVisitorMap,
   updateArgument,
   transformInputValue,
-  assertSome,
 } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
@@ -45,13 +44,23 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
   }
 
   private _getTypeInfo() {
-    assertSome(this.typeInfo);
-    return this.typeInfo;
+    const typeInfo = this.typeInfo;
+    if (typeInfo === undefined) {
+      throw new Error(
+        `The MapLeafValues transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+      );
+    }
+    return typeInfo;
   }
 
   private _getOriginalWrappingSchema() {
-    assertSome(this.originalWrappingSchema);
-    return this.originalWrappingSchema;
+    const originalWrappingSchema = this.originalWrappingSchema;
+    if (originalWrappingSchema === undefined) {
+      throw new Error(
+        `The MapLeafValues transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+      );
+    }
+    return originalWrappingSchema;
   }
 
   public transformSchema(

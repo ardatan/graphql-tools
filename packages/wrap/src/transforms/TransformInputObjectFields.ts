@@ -14,7 +14,7 @@ import {
   isInputType,
 } from 'graphql';
 
-import { Maybe, Request, MapperKind, mapSchema, transformInputValue, assertSome } from '@graphql-tools/utils';
+import { Maybe, Request, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -39,8 +39,13 @@ export default class TransformInputObjectFields implements Transform {
   }
 
   private _getTransformedSchema() {
-    assertSome(this.transformedSchema);
-    return this.transformedSchema;
+    const transformedSchema = this.transformedSchema;
+    if (transformedSchema === undefined) {
+      throw new Error(
+        `The TransformInputObjectFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+      );
+    }
+    return transformedSchema;
   }
 
   public transformSchema(

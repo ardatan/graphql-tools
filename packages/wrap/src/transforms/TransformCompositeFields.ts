@@ -11,7 +11,7 @@ import {
   FragmentDefinitionNode,
 } from 'graphql';
 
-import { Request, MapperKind, mapSchema, visitData, ExecutionResult, Maybe, assertSome } from '@graphql-tools/utils';
+import { Request, MapperKind, mapSchema, visitData, ExecutionResult, Maybe } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -41,8 +41,13 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
   }
 
   private _getTypeInfo() {
-    assertSome(this.typeInfo);
-    return this.typeInfo;
+    const typeInfo = this.typeInfo;
+    if (typeInfo === undefined) {
+      throw new Error(
+        `The TransformCompositeFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+      );
+    }
+    return typeInfo;
   }
 
   public transformSchema(

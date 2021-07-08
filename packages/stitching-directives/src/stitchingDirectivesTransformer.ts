@@ -17,7 +17,6 @@ import {
 
 import { cloneSubschemaConfig, SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 import {
-  assertSome,
   getDirectives,
   getImplementingTypes,
   MapperKind,
@@ -483,7 +482,9 @@ function buildKeyExpr(key: Array<string>): string {
     }
     const aliasParts = aliasPath.split('.');
     const lastAliasPart = aliasParts.pop();
-    assertSome(lastAliasPart);
+    if (lastAliasPart == null) {
+      throw new Error(`Key "${key}" is invalid, no path provided.`);
+    }
     let object: Record<string, unknown> = { [lastAliasPart]: `$key.${keyPath}` };
 
     for (const aliasPart of aliasParts.reverse()) {
