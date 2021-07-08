@@ -2386,10 +2386,10 @@
   dependencies:
     defer-to-connect "^1.0.1"
 
-"@theguild/components@1.4.2":
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-1.4.2.tgz#3eb507ba5eb9404a24c21b7441bb5c540646ddd1"
-  integrity sha512-ERz8MclhrvuSOl7cLMYPQWQT/vNkDyRiow6VpMVKCC2SiXf2Js2RtG8KKMNZY9QwRjX8PhDkJW9KXikV6ugdGA==
+"@theguild/components@1.4.3":
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-1.4.3.tgz#ade9c67981fc97c139c058e034f62a6db6072df0"
+  integrity sha512-35sj751HgiM+HWh5MCKWhEj0D4ZYe4G90JTKMMIaPyv3PbdIMnyMhdywuDcAhTCPScH1ubd39/NgkouqznS4Ig==
   dependencies:
     "@emotion/react" "^11.4.0"
     "@emotion/styled" "^11.3.0"
@@ -12530,12 +12530,12 @@ text-table@0.2.0, text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-the-guild-components@1.4.2:
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/the-guild-components/-/the-guild-components-1.4.2.tgz#a0aa8f3c0d8774f6b4cf9d689c120866e84ff81a"
-  integrity sha512-bkM6qwe7Ee/W0q0SVccmPjsM81mo7OZUpXIbWOlr5XK9KcUGWhR8QPXuctxAku0srhsrgmorNYuwUnEiwhc6Ag==
+the-guild-components@1.4.3:
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/the-guild-components/-/the-guild-components-1.4.3.tgz#fe648275dcc84f204114e9229af6b60acd586b6a"
+  integrity sha512-bKyb9NQxV+BZgnkqGB3tMYwq6zRGAdo5H6THpvTKgT8jDQk7UF4gGAGT0N/WvCz7VWf68f/yKpcHgSMVPVM+Vg==
   dependencies:
-    "@theguild/components" "1.4.2"
+    "@theguild/components" "1.4.3"
 
 throat@^6.0.1:
   version "6.0.1"
