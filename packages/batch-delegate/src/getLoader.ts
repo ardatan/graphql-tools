@@ -1,4 +1,4 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode } from 'graphql';
+import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema } from 'graphql';
 
 import DataLoader from 'dataloader';
 
@@ -8,7 +8,7 @@ import { relocatedError } from '@graphql-tools/utils';
 import { BatchDelegateOptions } from './types';
 
 const cache1: WeakMap<
-  ReadonlyArray<FieldNode>,
+  any,
   WeakMap<GraphQLSchema | SubschemaConfig<any, any, any, any>, Record<string, DataLoader<any, any>>>
 > = new WeakMap();
 
@@ -56,9 +56,11 @@ const cacheKeyFn = (key: any) => (typeof key === 'object' ? JSON.stringify(key) 
 export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
   const fieldName = options.fieldName ?? options.info.fieldName;
 
-  let cache2: WeakMap<GraphQLSchema | SubschemaConfig, Record<string, DataLoader<K, V, C>>> | undefined = cache1.get(
-    options.info.fieldNodes
-  );
+  // Context is needed for better caching
+  const cache1Key = options.context ?? options.info.fieldNodes;
+
+  let cache2: WeakMap<GraphQLSchema | SubschemaConfig, Record<string, DataLoader<K, V, C>>> | undefined =
+    cache1.get(cache1Key);
 
   // Prevents the keys to be passed with the same structure
   const dataLoaderOptions: DataLoader.Options<any, any, any> = {
@@ -68,7 +70,7 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
 
   if (cache2 === undefined) {
     cache2 = new WeakMap();
-    cache1.set(options.info.fieldNodes, cache2);
+    cache1.set(cache1Key, cache2);
     const loaders = Object.create(null);
     cache2.set(options.schema, loaders);
     const batchFn = createBatchFn(options);
