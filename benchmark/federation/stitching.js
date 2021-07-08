@@ -10,14 +10,15 @@ const services = [
   require('./services/reviews'),
 ];
 
-const createExecutor =
-  schema =>
-  ({ document, variables }) =>
-    execute({
+function createExecutor(schema) {
+  return function serviceExecutor({ document, variables }) {
+    return execute({
       schema,
       document,
       variableValues: variables
     });
+  }
+}
 
 async function makeGatewaySchema() {
   return stitchSchemas({
