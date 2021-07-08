@@ -36,7 +36,7 @@
     "tslib": "~2.3.0"
   },
   "devDependencies": {
-    "@types/babel__traverse": "7.14.1",
+    "@types/babel__traverse": "7.14.2",
     "@vue/compiler-sfc": "3.1.4"
   },
   "buildOptions": {
