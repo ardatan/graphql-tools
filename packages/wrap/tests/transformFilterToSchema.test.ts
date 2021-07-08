@@ -26,7 +26,8 @@ describe('FilterToSchema', () => {
       document: query,
       variables: {
         id: 'c1',
-      }
+      },
+      operationType: 'query' as const
     }, {
       targetSchema: bookingSchema
     } as DelegationContext, {});
@@ -60,6 +61,7 @@ describe('FilterToSchema', () => {
         id: 'c1',
         limit: 10,
       },
+      operationType: 'query' as const,
     }, {
       targetSchema: bookingSchema
     } as DelegationContext, {});
@@ -92,6 +94,7 @@ describe('FilterToSchema', () => {
       variables: {
         id: 'b1',
       },
+      operationType: 'query' as const,
     }, {
       targetSchema: bookingSchema
     } as DelegationContext, {});
