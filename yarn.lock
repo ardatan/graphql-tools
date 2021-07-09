@@ -2794,10 +2794,10 @@
   resolved "https://registry.yarnpkg.com/@types/range-parser/-/range-parser-1.2.3.tgz#7ee330ba7caafb98090bece86a5ee44115904c2c"
   integrity sha512-ewFXqrQHlFsgc09MK5jP5iR7vumV/BYayNC6PgJO2LPe8vrnNFyjQjSppfEngITi0qvfKtzFvgKymGheFM9UOA==
 
-"@types/relay-compiler@8.0.0":
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/@types/relay-compiler/-/relay-compiler-8.0.0.tgz#98961b923555145067d3895f8774f3024f14e6fa"
-  integrity sha512-rSR62gfhm2ZZp888RK93/jODOCA1j2MpWr5ibZEyYprmVG1G9KE5TfNUERCcc9z58F4d8tMIX00ZpBOU1sWcDA==
+"@types/relay-compiler@8.0.1":
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/@types/relay-compiler/-/relay-compiler-8.0.1.tgz#eb85b503cfa571e60a1ae3eb5a4513fa9fcdb5f6"
+  integrity sha512-C2CkGeyInDAedzLrI0KcQvSKTqtMvG49tw79AqnkGJ3qyaGHbCFQYnysndPr4iyLvphNt6DJCxAqr4egFbGNzw==
   dependencies:
     "@types/relay-runtime" "*"
     graphql "^14.5.3"
