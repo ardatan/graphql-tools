@@ -161,5 +161,16 @@ describe('schema from typedefs', () => {
       assertNonMaybe(schemaWithoutSources.extensions)
       expect(schemaWithoutSources.extensions['sources']).not.toBeDefined();
     });
+
+    it('should be able to exclude documents via negative glob', async () => {
+      await load([
+        './tests/loaders/schema/test-files/schema-dir/user.graphql',
+        './tests/loaders/schema/test-files/schema-dir/invalid.graphql',
+        '!./tests/loaders/schema/test-files/schema-dir/*.graphql',
+      ], {
+        loaders: [new GraphQLFileLoader()],
+        includeSources: true,
+      });
+    })
   })
 });
