@@ -304,6 +304,8 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
 
       return new ValueOrPromise(() => {
         const query = print(document);
+        const signal = fetch === syncFetch ? undefined : controller.signal;
+
         switch (method) {
           case 'GET':
             const finalUrl = this.prepareGETUrl({ baseUrl: endpoint, query, variables, operationName, extensions });
@@ -330,7 +332,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                         accept: 'application/json',
                         ...headers,
                       },
-                      signal: controller.signal,
+                      signal,
                     }) as any
                 )
                 .resolve();
@@ -349,7 +351,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                   'content-type': 'application/json',
                   ...headers,
                 },
-                signal: controller.signal,
+                signal,
               });
             }
         }
@@ -508,7 +510,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
               }
             },
             fetch,
-            signal: controller.signal,
+            signal: fetch === syncFetch ? undefined : controller.signal,
             ...(options?.eventSourceOptions || {}),
           });
           return {

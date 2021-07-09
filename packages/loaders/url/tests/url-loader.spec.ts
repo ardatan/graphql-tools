@@ -13,7 +13,7 @@ import { useServer } from 'graphql-ws/lib/use/ws';
 import { Server as WSServer } from 'ws';
 import http from 'http';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
-
+import { loadSchemaSync } from 'graphql-tools';
 
 describe('Schema URL Loader', () => {
   const loader = new UrlLoader();
@@ -469,5 +469,11 @@ input TestInput {
       expect(result.data['uploadFile']?.filename).toBe(fileName);
       expect(result.data['uploadFile']?.content).toBe(content);
     });
+
+    it('should load url synchronously', () => {
+      expect(() => {
+        loader.loadSync(testHost)
+      }).not.toThrow('Expected signal to be an instanceof AbortSignal')
+    })
   });
 });
