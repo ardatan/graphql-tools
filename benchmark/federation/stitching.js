@@ -11,13 +11,14 @@ const services = [
 ];
 
 function createExecutor(schema) {
-  return function serviceExecutor({ document, variables }) {
+  return function serviceExecutor({ document, variables, context }) {
     return execute({
       schema,
       document,
-      variableValues: variables
+      variableValues: variables,
+      contextValue: context,
     });
-  }
+  };
 }
 
 async function makeGatewaySchema() {

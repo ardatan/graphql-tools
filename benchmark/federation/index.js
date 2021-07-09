@@ -23,6 +23,7 @@ async function main() {
           delete: async () => true,
         },
         schema: federation.schema,
+        context: {}
       })
       .then(result => res.json(result))
       .catch(error => res.status(500).send(error));
@@ -31,7 +32,8 @@ async function main() {
   app.post('/stitching', (req, res) => {
     execute({
       schema: stitching,
-      document: parse(req.body.query)
+      document: parse(req.body.query),
+      contextValue: {}
     })
       .then(result => {
         res.json(result);
