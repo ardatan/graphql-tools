@@ -76,10 +76,6 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
 
   async canLoad(pointer: string, options: CodeFileLoaderOptions): Promise<boolean> {
     options = this.getMergedOptions(options);
-    if (isGlob(pointer)) {
-      // FIXME: parse to find and check the file extensions?
-      return true;
-    }
 
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
@@ -98,10 +94,6 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
 
   canLoadSync(pointer: string, options: CodeFileLoaderOptions): boolean {
     options = this.getMergedOptions(options);
-    if (isGlob(pointer)) {
-      // FIXME: parse to find and check the file extensions?
-      return true;
-    }
 
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
@@ -116,13 +108,13 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
   async resolveGlobs(glob: string, options: CodeFileLoaderOptions) {
     options = this.getMergedOptions(options);
     const ignores = asArray(options.ignore || []);
-    return globby([glob, ...ignores.map(v => `!(${v})`).map(v => unixify(v))], createGlobbyOptions(options));
+    return globby([glob, ...ignores.map(v => `!${v}`).map(v => unixify(v))], createGlobbyOptions(options));
   }
 
   resolveGlobsSync(glob: string, options: CodeFileLoaderOptions) {
     options = this.getMergedOptions(options);
     const ignores = asArray(options.ignore || []);
-    return globby.sync([glob, ...ignores.map(v => `!(${v})`).map(v => unixify(v))], createGlobbyOptions(options));
+    return globby.sync([glob, ...ignores.map(v => `!${v}`).map(v => unixify(v))], createGlobbyOptions(options));
   }
 
   async load(pointer: string, options: CodeFileLoaderOptions): Promise<Source[] | null> {

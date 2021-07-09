@@ -11,15 +11,11 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
 
   for await (const loader of options.loaders) {
     try {
-      const canLoad = await loader.canLoad(pointer, options);
-
-      if (canLoad) {
-        const loadedValue = await loader.load(pointer, options);
-        if (!isSome(loadedValue) || loadedValue.length === 0) {
-          continue;
-        }
-        return loadedValue;
+      const loadedValue = await loader.load(pointer, options);
+      if (!isSome(loadedValue) || loadedValue.length === 0) {
+        continue;
       }
+      return loadedValue;
     } catch (error) {
       if (env['DEBUG']) {
         console.error(`Failed to find any GraphQL type definitions in: ${pointer} - ${error.message}`);
@@ -40,16 +36,12 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): May
 
   for (const loader of options.loaders) {
     try {
-      const canLoad = loader.canLoadSync && loader.loadSync && loader.canLoadSync(pointer, options);
-
-      if (canLoad) {
-        // We check for the existence so it is okay to force non null
-        const loadedValue = loader.loadSync!(pointer, options);
-        if (!isSome(loadedValue) || loadedValue.length === 0) {
-          continue;
-        }
-        return loadedValue;
+      // We check for the existence so it is okay to force non null
+      const loadedValue = loader.loadSync!(pointer, options);
+      if (!isSome(loadedValue) || loadedValue.length === 0) {
+        continue;
       }
+      return loadedValue;
     } catch (error) {
       if (env['DEBUG']) {
         console.error(`Failed to find any GraphQL type definitions in: ${pointer} - ${error.message}`);

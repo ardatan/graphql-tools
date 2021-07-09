@@ -163,14 +163,15 @@ describe('schema from typedefs', () => {
     });
 
     it('should be able to exclude documents via negative glob', async () => {
-      await load([
+      const result = await load([
         './tests/loaders/schema/test-files/schema-dir/user.graphql',
         './tests/loaders/schema/test-files/schema-dir/invalid.graphql',
-        '!./tests/loaders/schema/test-files/schema-dir/*.graphql',
+        '!./tests/loaders/schema/test-files/schema-dir/i*.graphql',
       ], {
         loaders: [new GraphQLFileLoader()],
         includeSources: true,
       });
+      expect(result.getTypeMap()["User"]).toBeDefined()
     })
   })
 });
