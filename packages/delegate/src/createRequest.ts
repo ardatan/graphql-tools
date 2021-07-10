@@ -52,10 +52,6 @@ export function createRequestFromInfo({
   });
 }
 
-const raiseError = (message: string) => {
-  throw new Error(message);
-};
-
 export function createRequest({
   sourceSchema,
   sourceParentType,
@@ -127,15 +123,18 @@ export function createRequest({
     );
   }
 
+  const rootFieldName = targetFieldName ?? fieldNodes?.[0]?.name.value;
+
+  if (rootFieldName === undefined) {
+    throw new Error(`Either "targetFieldName" or a non empty "fieldNodes" array must be provided.`);
+  }
+
   const rootfieldNode: FieldNode = {
     kind: Kind.FIELD,
     arguments: Object.values(argumentNodeMap),
     name: {
       kind: Kind.NAME,
-      value:
-        targetFieldName ??
-        fieldNodes?.[0]?.name.value ??
-        raiseError("Either 'targetFieldName' or a non empty 'fieldNodes' array must be provided."),
+      value: rootFieldName,
     },
     selectionSet: newSelectionSet,
   };
