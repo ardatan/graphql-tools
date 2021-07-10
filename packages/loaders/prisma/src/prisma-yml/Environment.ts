@@ -14,7 +14,6 @@ import { getProxyAgent } from './utils/getProxyAgent';
 // eslint-disable-next-line
 // @ts-ignore
 import * as jwt from 'jsonwebtoken';
-import { assertSome } from '@graphql-tools/utils';
 const debug = require('debug')('Environment');
 
 export class Environment {
@@ -39,8 +38,11 @@ export class Environment {
   }
 
   private _getClusters() {
-    assertSome(this.clusters);
-    return this.clusters;
+    const clusters = this.clusters;
+    if (clusters === undefined) {
+      throw new Error(`Cannot get clusters. Did you forget to call "Environment.load()"?`);
+    }
+    return clusters;
   }
 
   async load() {
