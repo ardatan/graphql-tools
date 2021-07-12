@@ -7,7 +7,7 @@ on:
 
 jobs:
   federation-benchmark:
-    name: Federation Benchmark
+    name: Federation Benchmark with ${{matrix.products_size}} Products
     runs-on: ubuntu-latest
     strategy:
       matrix:
