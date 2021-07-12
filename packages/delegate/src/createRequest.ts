@@ -16,7 +16,7 @@ import {
   DocumentNode,
 } from 'graphql';
 
-import { Request, serializeInputValue, updateArgument } from '@graphql-tools/utils';
+import { ExecutionRequest, serializeInputValue, updateArgument } from '@graphql-tools/utils';
 import { ICreateRequestFromInfo, ICreateRequest } from './types';
 
 export function getDelegatingOperation(parentType: GraphQLObjectType, schema: GraphQLSchema): OperationTypeNode {
@@ -37,7 +37,7 @@ export function createRequestFromInfo({
   fieldName = info.fieldName,
   selectionSet,
   fieldNodes = info.fieldNodes,
-}: ICreateRequestFromInfo): Request {
+}: ICreateRequestFromInfo): ExecutionRequest {
   return createRequest({
     sourceSchema: info.schema,
     sourceParentType: info.parentType,
@@ -67,7 +67,7 @@ export function createRequest({
   targetFieldName,
   selectionSet,
   fieldNodes,
-}: ICreateRequest): Request {
+}: ICreateRequest): ExecutionRequest {
   let newSelectionSet: SelectionSetNode | undefined;
   let argumentNodeMap: Record<string, ArgumentNode>;
 

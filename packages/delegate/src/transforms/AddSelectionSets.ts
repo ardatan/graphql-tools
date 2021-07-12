@@ -1,6 +1,6 @@
 import { SelectionSetNode, TypeInfo, Kind, FieldNode, SelectionNode, print } from 'graphql';
 
-import { Maybe, Request } from '@graphql-tools/utils';
+import { Maybe, ExecutionRequest } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 import { memoize2 } from '../memoize';
@@ -21,10 +21,10 @@ export default class AddSelectionSets implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 }

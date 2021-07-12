@@ -21,16 +21,16 @@ import {
   isInterfaceType,
 } from 'graphql';
 
-import { Request, implementsAbstractType, TypeMap, getDefinedRootType } from '@graphql-tools/utils';
+import { ExecutionRequest, implementsAbstractType, TypeMap, getDefinedRootType } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 
 export default class FilterToSchema implements Transform {
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     return {
       ...originalRequest,
       ...filterToSchema(delegationContext.targetSchema, originalRequest.document, originalRequest.variables),

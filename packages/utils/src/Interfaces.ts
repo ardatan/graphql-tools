@@ -59,7 +59,7 @@ export interface ExecutionResult<TData = Record<string, any>> extends GraphQLExe
   extensions?: Record<string, any>;
 }
 
-export interface Request<
+export interface ExecutionRequest<
   TArgs extends Record<string, any> = Record<string, any>,
   TContext = any,
   TRootValue = any,

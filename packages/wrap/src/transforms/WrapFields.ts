@@ -12,7 +12,7 @@ import {
 } from 'graphql';
 
 import {
-  Request,
+  ExecutionRequest,
   appendObjectFields,
   selectObjectFields,
   modifyObjectFields,
@@ -159,10 +159,10 @@ export default class WrapFields<TContext> implements Transform<WrapFieldsTransfo
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     transformationContext: WrapFieldsTransformationContext
-  ): Request {
+  ): ExecutionRequest {
     transformationContext.nextIndex = 0;
     transformationContext.paths = Object.create(null);
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);

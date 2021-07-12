@@ -10,7 +10,7 @@ import {
   GraphQLEnumValueConfig,
 } from 'graphql';
 import { DelegationContext } from '@graphql-tools/delegate';
-import { Request, Maybe } from '@graphql-tools/utils';
+import { ExecutionRequest, Maybe } from '@graphql-tools/utils';
 
 export type InputFieldTransformer = (
   typeName: string,
@@ -22,14 +22,14 @@ export type InputFieldNodeTransformer = (
   typeName: string,
   fieldName: string,
   inputFieldNode: ObjectFieldNode,
-  request: Request,
+  request: ExecutionRequest,
   delegationContext?: DelegationContext
 ) => ObjectFieldNode | Array<ObjectFieldNode>;
 
 export type InputObjectNodeTransformer = (
   typeName: string,
   inputObjectNode: ObjectValueNode,
-  request: Request,
+  request: ExecutionRequest,
   delegationContext?: DelegationContext
 ) => ObjectValueNode | undefined;
 

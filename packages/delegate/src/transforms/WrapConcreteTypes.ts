@@ -13,7 +13,7 @@ import {
   FragmentDefinitionNode,
 } from 'graphql';
 
-import { getRootTypeNames, Request } from '@graphql-tools/utils';
+import { getRootTypeNames, ExecutionRequest } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 
@@ -21,10 +21,10 @@ import { Transform, DelegationContext } from '../types';
 
 export default class WrapConcreteTypes implements Transform {
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     const document = wrapConcreteTypes(
       delegationContext.returnType,
       delegationContext.targetSchema,

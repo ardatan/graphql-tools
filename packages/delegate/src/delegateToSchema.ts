@@ -19,7 +19,7 @@ import { getBatchingExecutor } from '@graphql-tools/batch-execute';
 import {
   mapAsyncIterator,
   Executor,
-  Request,
+  ExecutionRequest,
   Maybe,
   AggregateError,
   isAsyncIterable,
@@ -228,7 +228,7 @@ function createDefaultExecutor(schema: GraphQLSchema): Executor {
       rootValue,
       operationName,
       operationType,
-    }: Request) {
+    }: ExecutionRequest) {
       const executionArgs: ExecutionArgs = {
         schema,
         document,

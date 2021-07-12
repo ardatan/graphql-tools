@@ -14,7 +14,7 @@ import {
 
 import DataLoader from 'dataloader';
 
-import { Request, ExecutionResult, Executor, TypeMap } from '@graphql-tools/utils';
+import { ExecutionRequest, ExecutionResult, Executor, TypeMap } from '@graphql-tools/utils';
 
 import { Subschema } from './Subschema';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
@@ -25,10 +25,10 @@ export type SchemaTransform<TContext = Record<any, string>> = (
   transformedSchema?: GraphQLSchema
 ) => GraphQLSchema;
 export type RequestTransform<T = Record<string, any>> = (
-  originalRequest: Request,
+  originalRequest: ExecutionRequest,
   delegationContext: DelegationContext,
   transformationContext: T
-) => Request;
+) => ExecutionRequest;
 export type ResultTransform<T = Record<string, any>> = (
   originalResult: ExecutionResult,
   delegationContext: DelegationContext,
@@ -85,7 +85,7 @@ export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs 
 
 export interface IDelegateRequestOptions<TContext = Record<string, any>, TArgs = Record<string, any>>
   extends IDelegateToSchemaOptions<TContext, TArgs> {
-  request: Request;
+  request: ExecutionRequest;
 }
 
 export interface ICreateRequestFromInfo {
@@ -137,7 +137,7 @@ export type CreateProxyingResolverFn<TContext = Record<string, any>> = (
 ) => GraphQLFieldResolver<any, TContext>;
 
 export interface BatchingOptions<K = any, V = any, C = K> {
-  extensionsReducer?: (mergedExtensions: Record<string, any>, request: Request) => Record<string, any>;
+  extensionsReducer?: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>;
   dataLoaderOptions?: DataLoader.Options<K, V, C>;
 }
 

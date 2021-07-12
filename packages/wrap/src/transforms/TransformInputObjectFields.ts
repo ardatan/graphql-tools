@@ -14,7 +14,7 @@ import {
   isInputType,
 } from 'graphql';
 
-import { Maybe, Request, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
+import { Maybe, ExecutionRequest, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -74,10 +74,10 @@ export default class TransformInputObjectFields implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     const variableValues = originalRequest.variables ?? {};
     const fragments = Object.create(null);
 
@@ -152,7 +152,7 @@ export default class TransformInputObjectFields implements Transform {
     mapping: Record<string, Record<string, string>>,
     inputFieldNodeTransformer: InputFieldNodeTransformer | undefined,
     inputObjectNodeTransformer: InputObjectNodeTransformer | undefined,
-    request: Request,
+    request: ExecutionRequest,
     delegationContext?: DelegationContext
   ): DocumentNode {
     const typeInfo = new TypeInfo(this._getTransformedSchema());

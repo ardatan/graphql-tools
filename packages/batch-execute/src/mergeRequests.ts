@@ -17,7 +17,7 @@ import {
   FieldNode,
 } from 'graphql';
 
-import { Request, Maybe } from '@graphql-tools/utils';
+import { ExecutionRequest } from '@graphql-tools/utils';
 
 import { createPrefix } from './prefix';
 
@@ -56,9 +56,9 @@ import { createPrefix } from './prefix';
  *   }
  */
 export function mergeRequests(
-  requests: Array<Request>,
-  extensionsReducer: (mergedExtensions: Record<string, any>, request: Request) => Record<string, any>
-): Request {
+  requests: Array<ExecutionRequest>,
+  extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
+): ExecutionRequest {
   const mergedVariables: Record<string, any> = Object.create(null);
   const mergedVariableDefinitions: Array<VariableDefinitionNode> = [];
   const mergedSelections: Array<SelectionNode> = [];
@@ -106,7 +106,7 @@ export function mergeRequests(
   };
 }
 
-function prefixRequest(prefix: string, request: Request): Request {
+function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequest {
   let document = aliasTopLevelFields(prefix, request.document);
   const executionVariables = request.variables ?? {};
   const variableNames = Object.keys(executionVariables);

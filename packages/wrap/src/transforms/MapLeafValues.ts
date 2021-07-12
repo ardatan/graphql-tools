@@ -14,7 +14,7 @@ import {
 } from 'graphql';
 
 import {
-  Request,
+  ExecutionRequest,
   ExecutionResult,
   visitResult,
   ResultVisitorMap,
@@ -27,7 +27,7 @@ import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/de
 import { LeafValueTransformer } from '../types';
 
 export interface MapLeafValuesTransformationContext {
-  transformedRequest: Request;
+  transformedRequest: ExecutionRequest;
 }
 
 export default class MapLeafValues implements Transform<MapLeafValuesTransformationContext> {
@@ -83,10 +83,10 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     _delegationContext: DelegationContext,
     transformationContext: MapLeafValuesTransformationContext
-  ): Request {
+  ): ExecutionRequest {
     const document = originalRequest.document;
     const variableValues = (originalRequest.variables = {});
 

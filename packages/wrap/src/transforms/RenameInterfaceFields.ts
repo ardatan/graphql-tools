@@ -1,6 +1,6 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
-import { Request } from '@graphql-tools/utils';
+import { ExecutionRequest } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -27,10 +27,10 @@ export default class RenameInterfaceFields implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 }

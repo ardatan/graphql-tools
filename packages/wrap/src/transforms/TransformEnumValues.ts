@@ -1,6 +1,6 @@
 import { GraphQLSchema, GraphQLEnumValueConfig, ExecutionResult } from 'graphql';
 
-import { Request, MapperKind, mapSchema, Maybe } from '@graphql-tools/utils';
+import { ExecutionRequest, MapperKind, mapSchema, Maybe } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -43,10 +43,10 @@ export default class TransformEnumValues implements Transform<MapLeafValuesTrans
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     transformationContext: MapLeafValuesTransformationContext
-  ): Request {
+  ): ExecutionRequest {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
