@@ -11,7 +11,7 @@ import {
   FragmentDefinitionNode,
 } from 'graphql';
 
-import { Request, MapperKind, mapSchema, visitData, ExecutionResult, Maybe } from '@graphql-tools/utils';
+import { ExecutionRequest, MapperKind, mapSchema, visitData, ExecutionResult, Maybe } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -78,10 +78,10 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     _delegationContext: DelegationContext,
     transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     const document = originalRequest.document;
     const fragments = Object.create(null);
     for (const def of document.definitions) {

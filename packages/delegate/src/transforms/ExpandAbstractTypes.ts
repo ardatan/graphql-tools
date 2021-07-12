@@ -15,16 +15,16 @@ import {
   visitWithTypeInfo,
 } from 'graphql';
 
-import { implementsAbstractType, Request } from '@graphql-tools/utils';
+import { implementsAbstractType, ExecutionRequest } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 
 export default class ExpandAbstractTypes implements Transform {
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     const targetSchema = delegationContext.targetSchema;
     const { possibleTypesMap, interfaceExtensionsMap } = extractPossibleTypes(
       delegationContext.info.schema,

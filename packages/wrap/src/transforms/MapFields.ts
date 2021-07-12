@@ -1,6 +1,6 @@
 import { GraphQLSchema } from 'graphql';
 
-import { Request, FieldNodeMappers, ExecutionResult } from '@graphql-tools/utils';
+import { ExecutionRequest, FieldNodeMappers, ExecutionResult } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -85,10 +85,10 @@ export default class MapFields<TContext> implements Transform<any, TContext> {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     return this._getTransformer().transformRequest(originalRequest, delegationContext, transformationContext);
   }
 

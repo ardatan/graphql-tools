@@ -1,6 +1,6 @@
 import { visit, GraphQLSchema, NamedTypeNode, Kind } from 'graphql';
 
-import { Request, ExecutionResult, MapperKind, mapSchema, renameType, visitData } from '@graphql-tools/utils';
+import { ExecutionRequest, ExecutionResult, MapperKind, mapSchema, renameType, visitData } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -35,10 +35,10 @@ export default class RenameRootTypes implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     _delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     const document = visit(originalRequest.document, {
       [Kind.NAMED_TYPE]: (node: NamedTypeNode) => {
         const name = node.name.value;

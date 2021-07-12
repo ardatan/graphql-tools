@@ -48,6 +48,7 @@ import {
   GraphQLType,
   Source,
   DefinitionNode,
+  OperationTypeNode,
 } from 'graphql';
 
 // graphql-js < v15 backwards compatible ExecutionResult
@@ -58,13 +59,14 @@ export interface ExecutionResult<TData = Record<string, any>> extends GraphQLExe
   extensions?: Record<string, any>;
 }
 
-export interface Request<
+export interface ExecutionRequest<
   TArgs extends Record<string, any> = Record<string, any>,
   TContext = any,
   TRootValue = any,
   TExtensions = Record<string, any>
 > {
   document: DocumentNode;
+  operationType: OperationTypeNode;
   variables?: TArgs;
   extensions?: TExtensions;
   operationName?: string;

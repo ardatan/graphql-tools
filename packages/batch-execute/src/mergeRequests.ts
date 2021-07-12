@@ -15,10 +15,9 @@ import {
   ASTKindToNode,
   InlineFragmentNode,
   FieldNode,
-  OperationTypeNode,
 } from 'graphql';
 
-import { Request, Maybe } from '@graphql-tools/utils';
+import { ExecutionRequest } from '@graphql-tools/utils';
 
 import { createPrefix } from './prefix';
 
@@ -57,16 +56,14 @@ import { createPrefix } from './prefix';
  *   }
  */
 export function mergeRequests(
-  requests: Array<Request>,
-  extensionsReducer: (mergedExtensions: Record<string, any>, request: Request) => Record<string, any>
-): Request {
+  requests: Array<ExecutionRequest>,
+  extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
+): ExecutionRequest {
   const mergedVariables: Record<string, any> = Object.create(null);
   const mergedVariableDefinitions: Array<VariableDefinitionNode> = [];
   const mergedSelections: Array<SelectionNode> = [];
   const mergedFragmentDefinitions: Array<FragmentDefinitionNode> = [];
   let mergedExtensions: Record<string, any> = Object.create(null);
-
-  let operation: Maybe<OperationTypeNode>;
 
   for (const index in requests) {
     const request = requests[index];
@@ -74,7 +71,6 @@ export function mergeRequests(
 
     for (const def of prefixedRequests.document.definitions) {
       if (isOperationDefinition(def)) {
-        operation = def.operation;
         mergedSelections.push(...def.selectionSet.selections);
         if (def.variableDefinitions) {
           mergedVariableDefinitions.push(...def.variableDefinitions);
@@ -88,13 +84,9 @@ export function mergeRequests(
     mergedExtensions = extensionsReducer(mergedExtensions, request);
   }
 
-  if (operation == null) {
-    throw new Error('Could not identify operation type. Did the document only include fragment definitions?');
-  }
-
   const mergedOperationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
-    operation,
+    operation: requests[0].operationType,
     variableDefinitions: mergedVariableDefinitions,
     selectionSet: {
       kind: Kind.SELECTION_SET,
@@ -111,10 +103,11 @@ export function mergeRequests(
     extensions: mergedExtensions,
     context: requests[0].context,
     info: requests[0].info,
+    operationType: requests[0].operationType,
   };
 }
 
-function prefixRequest(prefix: string, request: Request): Request {
+function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequest {
   let document = aliasTopLevelFields(prefix, request.document);
   const executionVariables = request.variables ?? {};
   const variableNames = Object.keys(executionVariables);
@@ -137,6 +130,7 @@ function prefixRequest(prefix: string, request: Request): Request {
   return {
     document,
     variables: prefixedVariables,
+    operationType: request.operationType,
   };
 }
 

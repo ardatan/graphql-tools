@@ -10,7 +10,7 @@ import {
   VariableDefinitionNode,
 } from 'graphql';
 
-import { getDefinedRootType, Request, serializeInputValue, updateArgument } from '@graphql-tools/utils';
+import { getDefinedRootType, ExecutionRequest, serializeInputValue, updateArgument } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 
@@ -28,10 +28,10 @@ export default class AddArgumentsAsVariables implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     const { document, variables } = addVariablesToRootField(delegationContext.targetSchema, originalRequest, this.args);
 
     return {
@@ -44,7 +44,7 @@ export default class AddArgumentsAsVariables implements Transform {
 
 function addVariablesToRootField(
   targetSchema: GraphQLSchema,
-  originalRequest: Request,
+  originalRequest: ExecutionRequest,
   args: Record<string, any>
 ): {
   document: DocumentNode;

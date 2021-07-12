@@ -2,12 +2,12 @@ import { toPromise } from '@apollo/client/core';
 import { ApolloLink, execute } from '@apollo/client/link/core';
 import { Observable } from '@apollo/client/utilities';
 
-import { Executor, Request, ExecutionResult, observableToAsyncIterable } from '@graphql-tools/utils';
+import { Executor, ExecutionRequest, ExecutionResult, observableToAsyncIterable } from '@graphql-tools/utils';
 
 export const linkToExecutor =
   (link: ApolloLink): Executor =>
-  async <TReturn, TArgs, TContext>(request: Request<TArgs, TContext>) => {
-    const { document, variables, extensions, context, info, operationName } = request;
+  async <TReturn, TArgs, TContext>(params: ExecutionRequest<TArgs, TContext>) => {
+    const { document, variables, extensions, context, operationType, operationName, info } = params;
     const observable = execute(link, {
       query: document,
       variables,
@@ -19,7 +19,7 @@ export const linkToExecutor =
       extensions,
       operationName,
     }) as Observable<ExecutionResult<TReturn>>;
-    if (info?.operation.operation === 'subscription') {
+    if (operationType === 'subscription') {
       return observableToAsyncIterable<ExecutionResult<TReturn>>(observable)[Symbol.asyncIterator]();
     }
     return toPromise(observable);

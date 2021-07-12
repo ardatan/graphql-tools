@@ -15,7 +15,7 @@ import {
   TypeNameMetaFieldDef,
 } from 'graphql';
 
-import { Request, GraphQLExecutionContext, ExecutionResult } from './Interfaces';
+import { ExecutionRequest, GraphQLExecutionContext, ExecutionResult } from './Interfaces';
 import { collectFields } from './collectFields';
 import { Maybe } from '@graphql-tools/utils';
 
@@ -77,7 +77,7 @@ export function visitErrors(
 }
 export function visitResult(
   result: ExecutionResult,
-  request: Request,
+  request: ExecutionRequest,
   schema: GraphQLSchema,
   resultVisitorMap?: ResultVisitorMap,
   errorVisitorMap?: ErrorVisitorMap

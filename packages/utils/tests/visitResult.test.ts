@@ -22,6 +22,7 @@ describe('visiting results', () => {
   const request = {
     document: parse('{ test { field } }'),
     variables: {},
+    operationType: 'query' as const
   };
 
   it('should visit without throwing', async () => {
@@ -45,7 +46,8 @@ describe('visiting results', () => {
   it('should visit with a request with introspection fields without throwing', async () => {
     const introspectionRequest = {
       document: parse('{ test { field __typename } }'),
-      variables: {}
+      variables: {},
+      operationType: 'query' as const
     };
     const result = {
       data: {
@@ -226,6 +228,7 @@ describe('visiting nested results', () => {
       }
     }`),
     variables: {},
+    operationType: 'query' as const,
   };
 
   it('should work', async () => {
@@ -293,6 +296,7 @@ describe('visiting nested results', () => {
       }
     }`),
     variables: {},
+    operationType: 'query' as const,
   };
 
   it('should work', async () => {
@@ -352,6 +356,7 @@ describe('visiting errors', () => {
   const request = {
     document: parse('{ test { field } }'),
     variables: {},
+    operationType: 'query' as const,
   };
 
   it('should allow visiting without an errorVisitor', async () => {

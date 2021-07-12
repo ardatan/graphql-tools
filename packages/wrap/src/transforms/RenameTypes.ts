@@ -9,7 +9,7 @@ import {
 } from 'graphql';
 
 import {
-  Request,
+  ExecutionRequest,
   ExecutionResult,
   MapperKind,
   RenameTypesOptions,
@@ -66,10 +66,10 @@ export default class RenameTypes implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     _delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     const document = visit(originalRequest.document, {
       [Kind.NAMED_TYPE]: (node: NamedTypeNode) => {
         const name = node.name.value;

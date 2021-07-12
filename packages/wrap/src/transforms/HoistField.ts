@@ -9,7 +9,13 @@ import {
   GraphQLFieldResolver,
 } from 'graphql';
 
-import { appendObjectFields, removeObjectFields, Request, ExecutionResult, relocatedError } from '@graphql-tools/utils';
+import {
+  appendObjectFields,
+  removeObjectFields,
+  ExecutionRequest,
+  ExecutionResult,
+  relocatedError,
+} from '@graphql-tools/utils';
 
 import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -153,10 +159,10 @@ export default class HoistField implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 

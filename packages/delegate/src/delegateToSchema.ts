@@ -9,6 +9,7 @@ import {
   OperationDefinitionNode,
   DocumentNode,
   GraphQLOutputType,
+  ExecutionArgs,
 } from 'graphql';
 
 import { ValueOrPromise } from 'value-or-promise';
@@ -18,7 +19,7 @@ import { getBatchingExecutor } from '@graphql-tools/batch-execute';
 import {
   mapAsyncIterator,
   Executor,
-  Request,
+  ExecutionRequest,
   Maybe,
   AggregateError,
   isAsyncIterable,
@@ -50,6 +51,7 @@ export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
     fieldName = info.fieldName,
     selectionSet,
     fieldNodes,
+    context,
   } = options;
 
   const request = createRequestFromInfo({
@@ -60,6 +62,7 @@ export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
     fieldNodes,
     rootValue: rootValue ?? (schema as SubschemaConfig).rootValue,
     operationName,
+    context,
   });
 
   return delegateRequest({
@@ -90,17 +93,9 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
     validateRequest(delegationContext, processedRequest.document);
   }
 
-  const { context, info } = delegationContext;
-
   const executor = getExecutor(delegationContext);
 
-  return new ValueOrPromise(() =>
-    executor({
-      ...processedRequest,
-      context,
-      info,
-    })
-  )
+  return new ValueOrPromise(() => executor(processedRequest))
     .then(originalResult => {
       if (isAsyncIterable(originalResult)) {
         // "subscribe" to the subscription result and map the result through the transforms
@@ -116,32 +111,23 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
 function getDelegationContext<TContext>({
   request,
   schema,
-  operation,
   fieldName,
   returnType,
   args,
-  context,
   info,
   transforms = [],
   transformedSchema,
   skipTypeMerging = false,
 }: IDelegateRequestOptions<TContext>): DelegationContext<TContext> {
+  const { operationType: operation, context, operationName, document } = request;
   let operationDefinition: Maybe<OperationDefinitionNode>;
-  let targetOperation: Maybe<OperationTypeNode>;
   let targetFieldName: string;
 
-  if (operation == null) {
-    operationDefinition = getOperationAST(request.document, request.operationName);
+  if (fieldName == null) {
+    operationDefinition = getOperationAST(document, operationName);
     if (operationDefinition == null) {
       throw new Error('Cannot infer main operation from the provided document.');
     }
-    targetOperation = operationDefinition.operation;
-  } else {
-    targetOperation = operation;
-  }
-
-  if (fieldName == null) {
-    operationDefinition = operationDefinition ?? getOperationAST(request.document, request.operationName);
     targetFieldName = (operationDefinition?.selectionSet.selections[0] as unknown as FieldDefinitionNode).name.value;
   } else {
     targetFieldName = fieldName;
@@ -158,13 +144,12 @@ function getDelegationContext<TContext>({
       subschema: schema,
       subschemaConfig: subschemaOrSubschemaConfig,
       targetSchema,
-      operation: targetOperation,
+      operation,
       fieldName: targetFieldName,
       args,
       context,
       info,
-      returnType:
-        returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
+      returnType: returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, operation, targetFieldName),
       transforms:
         subschemaOrSubschemaConfig.transforms != null
           ? subschemaOrSubschemaConfig.transforms.concat(transforms)
@@ -180,15 +165,13 @@ function getDelegationContext<TContext>({
     subschema: schema,
     subschemaConfig: undefined,
     targetSchema: subschemaOrSubschemaConfig,
-    operation: targetOperation,
+    operation,
     fieldName: targetFieldName,
     args,
     context,
     info,
     returnType:
-      returnType ??
-      info?.returnType ??
-      getDelegationReturnType(subschemaOrSubschemaConfig, targetOperation, targetFieldName),
+      returnType ?? info?.returnType ?? getDelegationReturnType(subschemaOrSubschemaConfig, operation, targetFieldName),
     transforms,
     transformedSchema: transformedSchema ?? subschemaOrSubschemaConfig,
     skipTypeMerging,
@@ -208,9 +191,9 @@ function validateRequest(delegationContext: DelegationContext<any>, document: Do
 }
 
 function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): Executor<TContext> {
-  const { subschemaConfig, targetSchema, context, operation } = delegationContext;
+  const { subschemaConfig, targetSchema, context } = delegationContext;
 
-  let executor: Executor = subschemaConfig?.executor || createDefaultExecutor(targetSchema, operation);
+  let executor: Executor = subschemaConfig?.executor || createDefaultExecutor(targetSchema);
 
   if (subschemaConfig?.batch) {
     const batchingOptions = subschemaConfig?.batchingOptions;
@@ -225,26 +208,33 @@ function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): 
   return executor;
 }
 
-function createDefaultExecutor(schema: GraphQLSchema, operation: OperationTypeNode): Executor {
-  if (operation === 'subscription') {
-    return (({ document, context, variables, rootValue, operationName }: Request) =>
-      subscribe({
+const defaultExecutorCache = new WeakMap<GraphQLSchema, Executor>();
+
+function createDefaultExecutor(schema: GraphQLSchema): Executor {
+  let defaultExecutor = defaultExecutorCache.get(schema);
+  if (!defaultExecutor) {
+    defaultExecutor = function defaultExecutor({
+      document,
+      context,
+      variables,
+      rootValue,
+      operationName,
+      operationType,
+    }: ExecutionRequest) {
+      const executionArgs: ExecutionArgs = {
         schema,
         document,
         contextValue: context,
         variableValues: variables,
         rootValue,
         operationName,
-      })) as Executor;
+      };
+      if (operationType === 'subscription') {
+        return subscribe(executionArgs);
+      }
+      return execute(executionArgs);
+    } as Executor;
+    defaultExecutorCache.set(schema, defaultExecutor);
   }
-
-  return (({ document, context, variables, rootValue, operationName }: Request) =>
-    execute({
-      schema,
-      document,
-      contextValue: context,
-      variableValues: variables,
-      rootValue,
-      operationName,
-    })) as Executor;
+  return defaultExecutor;
 }
