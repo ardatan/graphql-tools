@@ -111,21 +111,20 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
 function getDelegationContext<TContext>({
   request,
   schema,
-  operation = request.operationType,
   fieldName,
   returnType,
   args,
-  context,
   info,
   transforms = [],
   transformedSchema,
   skipTypeMerging = false,
 }: IDelegateRequestOptions<TContext>): DelegationContext<TContext> {
+  const { operationType: operation, context, operationName, document } = request;
   let operationDefinition: Maybe<OperationDefinitionNode>;
   let targetFieldName: string;
 
   if (fieldName == null) {
-    operationDefinition = getOperationAST(request.document, request.operationName);
+    operationDefinition = getOperationAST(document, operationName);
     if (operationDefinition == null) {
       throw new Error('Cannot infer main operation from the provided document.');
     }
