@@ -95,6 +95,7 @@ export interface ICreateRequestFromInfo {
   fieldName?: string;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
+  context?: any;
 }
 
 export interface ICreateRequest {
@@ -110,6 +111,7 @@ export interface ICreateRequest {
   targetFieldName: string;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
+  context?: any;
 }
 
 export interface MergedTypeInfo<TContext = Record<string, any>> {

@@ -51,6 +51,7 @@ export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
     fieldName = info.fieldName,
     selectionSet,
     fieldNodes,
+    context,
   } = options;
 
   const request = createRequestFromInfo({
@@ -61,6 +62,7 @@ export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
     fieldNodes,
     rootValue: rootValue ?? (schema as SubschemaConfig).rootValue,
     operationName,
+    context,
   });
 
   return delegateRequest({
@@ -91,17 +93,9 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
     validateRequest(delegationContext, processedRequest.document);
   }
 
-  const { context, operation } = delegationContext;
-
   const executor = getExecutor(delegationContext);
 
-  return new ValueOrPromise(() =>
-    executor({
-      ...processedRequest,
-      context,
-      operationType: operation,
-    })
-  )
+  return new ValueOrPromise(() => executor(processedRequest))
     .then(originalResult => {
       if (isAsyncIterable(originalResult)) {
         // "subscribe" to the subscription result and map the result through the transforms

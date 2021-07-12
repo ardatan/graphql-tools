@@ -37,6 +37,7 @@ export function createRequestFromInfo({
   fieldName = info.fieldName,
   selectionSet,
   fieldNodes = info.fieldNodes,
+  context,
 }: ICreateRequestFromInfo): ExecutionRequest {
   return createRequest({
     sourceSchema: info.schema,
@@ -51,6 +52,7 @@ export function createRequestFromInfo({
     targetFieldName: fieldName,
     selectionSet,
     fieldNodes,
+    context,
   });
 }
 
@@ -67,6 +69,7 @@ export function createRequest({
   targetFieldName,
   selectionSet,
   fieldNodes,
+  context,
 }: ICreateRequest): ExecutionRequest {
   let newSelectionSet: SelectionSetNode | undefined;
   let argumentNodeMap: Record<string, ArgumentNode>;
@@ -177,6 +180,7 @@ export function createRequest({
     rootValue: targetRootValue,
     operationName: targetOperationName,
     operationType: targetOperation,
+    context,
   };
 }
 

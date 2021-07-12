@@ -11,6 +11,7 @@ BREAKING CHANGES;
 - Rename `Request` to `ExecutionRequest`
 - Drop unnecessary `GraphQLResolveInfo` in `ExecutionRequest`
 - Add required `operationType: OperationTypeNode` field in `ExecutionRequest`
+- Add `context` in `createRequest` and `createRequestInfo` instead of `delegateToSchema`
 
 > It doesn't rely on info.operation.operationType to allow the user to call an operation from different root type.
 And it doesn't call getOperationAST again and again to get operation type from the document/operation because we have it in Request and ExecutionParams
