@@ -58,6 +58,23 @@ export interface ExecutionResult<TData = Record<string, any>> extends GraphQLExe
   extensions?: Record<string, any>;
 }
 
+export interface Request<
+  TArgs extends Record<string, any> = Record<string, any>,
+  TContext = any,
+  TRootValue = any,
+  TExtensions = Record<string, any>
+> {
+  document: DocumentNode;
+  variables?: TArgs;
+  extensions?: TExtensions;
+  operationName?: string;
+  // If the request will be executed locally, it may contain a rootValue
+  rootValue?: TRootValue;
+  // If the request originates within execution of a parent request, it may contain the parent context and info
+  context?: TContext;
+  info?: GraphQLResolveInfo;
+}
+
 // graphql-js non-exported typings
 
 export type TypeMap = Record<string, GraphQLNamedType>;
@@ -308,13 +325,6 @@ export type IFieldIteratorFn = (fieldDef: GraphQLField<any, any>, typeName: stri
 export type IDefaultValueIteratorFn = (type: GraphQLInputType, value: any) => void;
 
 export type NextResolverFn = () => Promise<any>;
-
-export interface Request {
-  document: DocumentNode;
-  variables: Record<string, any>;
-  operationName?: string;
-  extensions?: Record<string, any>;
-}
 
 export type VisitableSchemaType =
   | GraphQLSchema

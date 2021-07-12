@@ -14,7 +14,7 @@ import {
 
 import DataLoader from 'dataloader';
 
-import { ExecutionParams, ExecutionResult, Executor, Request, TypeMap } from '@graphql-tools/utils';
+import { Request, ExecutionResult, Executor, TypeMap } from '@graphql-tools/utils';
 
 import { Subschema } from './Subschema';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
@@ -47,12 +47,12 @@ export interface DelegationContext<TContext = Record<string, any>> {
   targetSchema: GraphQLSchema;
   operation: OperationTypeNode;
   fieldName: string;
-  args: Record<string, any>;
+  args?: Record<string, any>;
   context?: TContext;
   info: GraphQLResolveInfo;
-  rootValue?: Record<string, any>;
   returnType: GraphQLOutputType;
   onLocatedError?: (originalError: GraphQLError) => GraphQLError;
+  rootValue?: any;
   transforms: Array<Transform<any, TContext>>;
   transformedSchema: GraphQLSchema;
   skipTypeMerging: boolean;
@@ -75,7 +75,7 @@ export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs 
   fieldNodes?: ReadonlyArray<FieldNode>;
   context?: TContext;
   info: GraphQLResolveInfo;
-  rootValue?: Record<string, any>;
+  rootValue?: any;
   transforms?: Array<Transform<any, TContext>>;
   transformedSchema?: GraphQLSchema;
   validateRequest?: boolean;
@@ -90,9 +90,10 @@ export interface IDelegateRequestOptions<TContext = Record<string, any>, TArgs =
 
 export interface ICreateRequestFromInfo {
   info: GraphQLResolveInfo;
+  rootValue?: any;
   operationName?: string;
-  operation: OperationTypeNode;
-  fieldName: string;
+  operation?: OperationTypeNode;
+  fieldName?: string;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
 }
@@ -105,6 +106,7 @@ export interface ICreateRequest {
   variableDefinitions?: ReadonlyArray<VariableDefinitionNode>;
   variableValues?: Record<string, any>;
   targetOperation: OperationTypeNode;
+  targetRootValue?: any;
   targetOperationName?: string;
   targetFieldName: string;
   selectionSet?: SelectionSetNode;
@@ -135,13 +137,14 @@ export type CreateProxyingResolverFn<TContext = Record<string, any>> = (
 ) => GraphQLFieldResolver<any, TContext>;
 
 export interface BatchingOptions<K = any, V = any, C = K> {
-  extensionsReducer?: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>;
+  extensionsReducer?: (mergedExtensions: Record<string, any>, request: Request) => Record<string, any>;
   dataLoaderOptions?: DataLoader.Options<K, V, C>;
 }
 
 export interface SubschemaConfig<K = any, V = any, C = K, TContext = Record<string, any>> {
   schema: GraphQLSchema;
   createProxyingResolver?: CreateProxyingResolverFn<TContext>;
+  rootValue?: any;
   transforms?: Array<Transform<any, TContext>>;
   merge?: Record<string, MergedTypeConfig<any, any, TContext>>;
   executor?: Executor<TContext>;

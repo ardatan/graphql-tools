@@ -18,7 +18,7 @@ import { getBatchingExecutor } from '@graphql-tools/batch-execute';
 import {
   mapAsyncIterator,
   Executor,
-  ExecutionParams,
+  Request,
   Maybe,
   AggregateError,
   isAsyncIterable,
@@ -43,10 +43,11 @@ export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
 ): any {
   const {
     info,
+    schema,
+    rootValue,
     operationName,
     operation = getDelegatingOperation(info.parentType, info.schema),
     fieldName = info.fieldName,
-    returnType = info.returnType,
     selectionSet,
     fieldNodes,
   } = options;
@@ -57,15 +58,13 @@ export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
     fieldName,
     selectionSet,
     fieldNodes,
+    rootValue: rootValue ?? (schema as SubschemaConfig).rootValue,
     operationName,
   });
 
   return delegateRequest({
     ...options,
     request,
-    operation,
-    fieldName,
-    returnType,
   });
 }
 
@@ -75,7 +74,6 @@ function getDelegationReturnType(
   fieldName: string
 ): GraphQLOutputType {
   const rootType = getDefinedRootType(targetSchema, operation);
-
   return rootType.getFields()[fieldName].type;
 }
 
@@ -115,27 +113,22 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
     .resolve();
 }
 
-const emptyObject = {};
-
 function getDelegationContext<TContext>({
   request,
   schema,
   operation,
   fieldName,
   returnType,
-  args = {},
+  args,
   context,
   info,
-  rootValue = emptyObject,
   transforms = [],
   transformedSchema,
   skipTypeMerging = false,
-  operationName,
 }: IDelegateRequestOptions<TContext>): DelegationContext<TContext> {
   let operationDefinition: Maybe<OperationDefinitionNode>;
   let targetOperation: Maybe<OperationTypeNode>;
   let targetFieldName: string;
-  let targetOperationName: string | undefined;
 
   if (operation == null) {
     operationDefinition = getOperationAST(request.document, request.operationName);
@@ -154,16 +147,6 @@ function getDelegationContext<TContext>({
     targetFieldName = fieldName;
   }
 
-  if (operationName == null) {
-    if (request.operationName) {
-      targetOperationName = request.operationName;
-    } else if (operationDefinition?.name?.value) {
-      targetOperationName = operationDefinition.name.value;
-    }
-  } else {
-    targetOperationName = operationName;
-  }
-
   const stitchingInfo: Maybe<StitchingInfo<TContext>> = info?.schema.extensions?.['stitchingInfo'];
 
   const subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig<any, any, any, any> =
@@ -176,12 +159,10 @@ function getDelegationContext<TContext>({
       subschemaConfig: subschemaOrSubschemaConfig,
       targetSchema,
       operation: targetOperation,
-      operationName: targetOperationName,
       fieldName: targetFieldName,
       args,
       context,
       info,
-      rootValue: rootValue ?? emptyObject,
       returnType:
         returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
       transforms:
@@ -204,7 +185,6 @@ function getDelegationContext<TContext>({
     args,
     context,
     info,
-    rootValue: rootValue,
     returnType:
       returnType ??
       info?.returnType ??
@@ -245,17 +225,26 @@ function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): 
   return executor;
 }
 
-const createDefaultExecutor = (schema: GraphQLSchema, operation: OperationTypeNode) =>
-  (({ document, context, variables, rootValue }: ExecutionParams) => {
-    const executionParams = {
+function createDefaultExecutor(schema: GraphQLSchema, operation: OperationTypeNode): Executor {
+  if (operation === 'subscription') {
+    return (({ document, context, variables, rootValue, operationName }: Request) =>
+      subscribe({
+        schema,
+        document,
+        contextValue: context,
+        variableValues: variables,
+        rootValue,
+        operationName,
+      })) as Executor;
+  }
+
+  return (({ document, context, variables, rootValue, operationName }: Request) =>
+    execute({
       schema,
       document,
       contextValue: context,
       variableValues: variables,
       rootValue,
-    };
-    if (operation === 'subscription') {
-      return subscribe(executionParams);
-    }
-    return execute(executionParams);
-  }) as Executor;
+      operationName,
+    })) as Executor;
+}

@@ -1,7 +1,7 @@
 import { graphql, execute, ExecutionResult } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { delegateToSchema, SubschemaConfig, ExecutionParams, SyncExecutor, Executor } from '../src';
+import { delegateToSchema, SubschemaConfig, Request, SyncExecutor, Executor } from '../src';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { FilterObjectFields } from '@graphql-tools/wrap';
 
@@ -27,9 +27,9 @@ describe('batch execution', () => {
     const innerSubschemaConfig: SubschemaConfig = {
       schema: innerSchema,
       batch: true,
-      executor: ((params: ExecutionParams): ExecutionResult => {
+      executor: ((request: Request): ExecutionResult => {
         executions++;
-        return execute(innerSchema, params.document, undefined, params.context, params.variables) as ExecutionResult;
+        return execute(innerSchema, request.document, undefined, request.context, request.variables) as ExecutionResult;
       }) as SyncExecutor
     }
 
@@ -104,9 +104,9 @@ describe('batch execution', () => {
 
     let executions = 0;
 
-    const executor = ((params: ExecutionParams): ExecutionResult => {
+    const executor = ((request: Request): ExecutionResult => {
       executions++;
-      return execute(innerSchemaA, params.document, undefined, params.context, params.variables) as ExecutionResult;
+      return execute(innerSchemaA, request.document, undefined, request.context, request.variables) as ExecutionResult;
     }) as Executor;
 
     const innerSubschemaConfigA: Array<SubschemaConfig> = [{

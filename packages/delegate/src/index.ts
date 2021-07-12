@@ -9,4 +9,4 @@ export * from './resolveExternalValue';
 export * from './subschemaConfig';
 export * from './transforms';
 export * from './types';
-export { Executor, AsyncExecutor, SyncExecutor, ExecutionParams } from '@graphql-tools/utils';
+export { Executor, AsyncExecutor, SyncExecutor, Request } from '@graphql-tools/utils';

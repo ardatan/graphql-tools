@@ -18,7 +18,7 @@ import {
   OperationTypeNode,
 } from 'graphql';
 
-import { ExecutionParams, Maybe } from '@graphql-tools/utils';
+import { Request, Maybe } from '@graphql-tools/utils';
 
 import { createPrefix } from './prefix';
 
@@ -56,10 +56,10 @@ import { createPrefix } from './prefix';
  *     }
  *   }
  */
-export function mergeExecutionParams(
-  execs: Array<ExecutionParams>,
-  extensionsReducer: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>
-): ExecutionParams {
+export function mergeRequests(
+  requests: Array<Request>,
+  extensionsReducer: (mergedExtensions: Record<string, any>, request: Request) => Record<string, any>
+): Request {
   const mergedVariables: Record<string, any> = Object.create(null);
   const mergedVariableDefinitions: Array<VariableDefinitionNode> = [];
   const mergedSelections: Array<SelectionNode> = [];
@@ -68,11 +68,11 @@ export function mergeExecutionParams(
 
   let operation: Maybe<OperationTypeNode>;
 
-  for (const index in execs) {
-    const executionParams = execs[index];
-    const prefixedExecutionParams = prefixExecutionParams(createPrefix(index), executionParams);
+  for (const index in requests) {
+    const request = requests[index];
+    const prefixedRequests = prefixRequest(createPrefix(index), request);
 
-    for (const def of prefixedExecutionParams.document.definitions) {
+    for (const def of prefixedRequests.document.definitions) {
       if (isOperationDefinition(def)) {
         operation = def.operation;
         mergedSelections.push(...def.selectionSet.selections);
@@ -84,8 +84,8 @@ export function mergeExecutionParams(
         mergedFragmentDefinitions.push(def);
       }
     }
-    Object.assign(mergedVariables, prefixedExecutionParams.variables);
-    mergedExtensions = extensionsReducer(mergedExtensions, executionParams);
+    Object.assign(mergedVariables, prefixedRequests.variables);
+    mergedExtensions = extensionsReducer(mergedExtensions, request);
   }
 
   if (operation == null) {
@@ -109,18 +109,18 @@ export function mergeExecutionParams(
     },
     variables: mergedVariables,
     extensions: mergedExtensions,
-    context: execs[0].context,
-    info: execs[0].info,
+    context: requests[0].context,
+    info: requests[0].info,
   };
 }
 
-function prefixExecutionParams(prefix: string, executionParams: ExecutionParams): ExecutionParams {
-  let document = aliasTopLevelFields(prefix, executionParams.document);
-  const executionVariables = executionParams.variables ?? {};
+function prefixRequest(prefix: string, request: Request): Request {
+  let document = aliasTopLevelFields(prefix, request.document);
+  const executionVariables = request.variables ?? {};
   const variableNames = Object.keys(executionVariables);
 
   if (variableNames.length === 0) {
-    return { ...executionParams, document };
+    return { ...request, document };
   }
 
   document = visit(document, {

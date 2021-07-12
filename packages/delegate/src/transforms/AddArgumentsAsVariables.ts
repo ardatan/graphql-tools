@@ -51,7 +51,7 @@ function addVariablesToRootField(
   variables: Record<string, any>;
 } {
   const document = originalRequest.document;
-  const variableValues = originalRequest.variables;
+  const variableValues = originalRequest.variables ?? {};
 
   const operations: Array<OperationDefinitionNode> = document.definitions.filter(
     def => def.kind === Kind.OPERATION_DEFINITION

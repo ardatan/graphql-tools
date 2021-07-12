@@ -253,7 +253,7 @@ Query batching will collect all queries made during an execution cycle and combi
 ```ts
 batchingOptions?: {
   dataLoaderOptions?: DataLoader.Options<K, V, C>;
-  extensionsReducer?: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>;
+  extensionsReducer?: (mergedExtensions: Record<string, any>, request: Request) => Record<string, any>;
 }
 ```
 

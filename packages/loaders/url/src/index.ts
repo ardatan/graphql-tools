@@ -11,7 +11,7 @@ import {
   BaseLoaderOptions,
   observableToAsyncIterable,
   isAsyncIterable,
-  ExecutionParams,
+  Request,
   mapAsyncIterator,
   withCancel,
   parseGraphQLSDL,
@@ -288,7 +288,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       variables,
       operationName,
       extensions,
-    }: ExecutionParams<any, any, any, ExecutionExtensions>) => {
+    }: Request<any, any, any, ExecutionExtensions>) => {
       const controller = new AbortController();
       let method = defaultMethod;
       if (options?.useGETForQueries) {
@@ -456,7 +456,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       webSocketImpl
     );
 
-    return async <TReturn, TArgs>({ document, variables, operationName }: ExecutionParams<TArgs>) => {
+    return async <TReturn, TArgs>({ document, variables, operationName }: Request<TArgs>) => {
       return observableToAsyncIterable(
         subscriptionClient.request({
           query: document,

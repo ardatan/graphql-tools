@@ -48,6 +48,7 @@ describe('requests', () => {
           }
         }
       `),
+      rootValue: undefined,
       variables: {},
       operationName: 'test'
     });
