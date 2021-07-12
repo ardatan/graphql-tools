@@ -11,7 +11,7 @@ import {
 } from 'graphql';
 
 import {
-  getDirectives,
+  getDirective,
   getImplementingTypes,
   isSome,
   MapperKind,
@@ -39,26 +39,28 @@ export function stitchingDirectivesValidator(
 
     mapSchema(schema, {
       [MapperKind.OBJECT_TYPE]: type => {
-        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
+        const keyDirective = getDirective(schema, type, keyDirectiveName, pathToDirectivesInExtensions)?.[0];
 
-        if (keyDirectiveName != null && directives[keyDirectiveName]) {
-          const directiveArgumentMap = directives[keyDirectiveName];
-          parseSelectionSet(directiveArgumentMap.selectionSet);
+        if (keyDirective != null) {
+          parseSelectionSet(keyDirective['selectionSet']);
         }
 
         return undefined;
       },
       [MapperKind.OBJECT_FIELD]: (fieldConfig, _fieldName, typeName) => {
-        const directives = getDirectives(schema, fieldConfig, pathToDirectivesInExtensions);
+        const computedDirective = getDirective(
+          schema,
+          fieldConfig,
+          computedDirectiveName,
+          pathToDirectivesInExtensions
+        )?.[0];
 
-        if (computedDirectiveName != null && directives[computedDirectiveName]) {
-          const directiveArgumentMap = directives[computedDirectiveName];
-          parseSelectionSet(directiveArgumentMap.selectionSet);
+        if (computedDirective != null) {
+          parseSelectionSet(computedDirective['selectionSet']);
         }
 
-        if (mergeDirectiveName != null && directives[mergeDirectiveName]) {
-          const directiveArgumentMap = directives[mergeDirectiveName];
-
+        const mergeDirective = getDirective(schema, fieldConfig, mergeDirectiveName, pathToDirectivesInExtensions)?.[0];
+        if (mergeDirective != null) {
           if (typeName !== queryTypeName) {
             throw new Error('@merge directive may be used only for root fields of the root Query type.');
           }
@@ -73,14 +75,14 @@ export function stitchingDirectivesValidator(
             throw new Error('@merge directive must be used on a field that returns an object or a list of objects.');
           }
 
-          const mergeArgsExpr = directiveArgumentMap.argsExpr;
+          const mergeArgsExpr = mergeDirective['argsExpr'];
           if (mergeArgsExpr != null) {
             parseMergeArgsExpr(mergeArgsExpr);
           }
 
           const args = Object.keys(fieldConfig.args ?? {});
 
-          const keyArg = directiveArgumentMap.keyArg;
+          const keyArg = mergeDirective['keyArg'];
           if (keyArg == null) {
             if (!mergeArgsExpr && args.length !== 1) {
               throw new Error(
@@ -94,7 +96,7 @@ export function stitchingDirectivesValidator(
             // TODO: ideally we should check that the arg exists for the resolver
           }
 
-          const keyField = directiveArgumentMap.keyArg;
+          const keyField = mergeDirective['keyField'];
           if (keyField != null && !keyField.match(dottedNameRegEx)) {
             throw new Error(
               '`keyField` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.'
@@ -102,7 +104,7 @@ export function stitchingDirectivesValidator(
             // TODO: ideally we should check that it is part of the key
           }
 
-          const key: Array<string> = directiveArgumentMap.key;
+          const key: Array<string> = mergeDirective['key'];
           if (key != null) {
             if (keyField != null) {
               throw new Error('Cannot use @merge directive with both `keyField` and `key` arguments.');
@@ -132,7 +134,7 @@ export function stitchingDirectivesValidator(
             }
           }
 
-          const additionalArgs = directiveArgumentMap.additionalArgs;
+          const additionalArgs = mergeDirective['additionalArgs'];
           if (additionalArgs != null) {
             parseValue(`{ ${additionalArgs} }`, { noLocation: true });
           }
@@ -147,7 +149,7 @@ export function stitchingDirectivesValidator(
             );
           }
 
-          const typeNames: Array<string> = directiveArgumentMap.types;
+          const typeNames: Array<string> = mergeDirective['types'];
           if (typeNames != null) {
             if (!isAbstractType(returnType)) {
               throw new Error('Types argument can only be used with a field that returns an abstract type.');
