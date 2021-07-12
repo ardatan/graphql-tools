@@ -65,6 +65,10 @@ describe('JsonFileLoader', () => {
       it('should throw when the file content is malformed', async () => {
         await expect(load(getPointer('malformed.json'), {})).rejects.toThrowError('Unable to read JSON file');
       });
+      it('should skip file it cannot load', async () => {
+        const result = await load(getPointer('id_do_not_exist.json'), {});
+        expect(result).toEqual([])
+      })
     });
   });
 });
