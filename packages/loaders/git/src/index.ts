@@ -13,14 +13,14 @@ import { asArray, BaseLoaderOptions, Loader, Source } from '@graphql-tools/utils
 import isGlob from 'is-glob';
 
 // git:branch:path/to/file
-function extractData(pointer: string): {
+function extractData(pointer: string): null | {
   ref: string;
   path: string;
 } {
   const parts = pointer.replace(/^git\:/i, '').split(':');
 
   if (!parts || parts.length !== 2) {
-    throw new Error('Schema pointer should match "git:branchName:path/to/file"');
+    return null;
   }
 
   return {
@@ -61,17 +61,24 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     return typeof pointer === 'string' && pointer.toLowerCase().startsWith('git:');
   }
 
-  async resolveGlobs(glob: string, ignores: string[]) {
+  async resolveGlobs(glob: string, ignores: string[]): Promise<Array<string>> {
+    const data = extractData(glob);
+    if (data === null) {
+      return [];
+    }
     const refsForPaths = new Map();
-
-    const { ref, path } = extractData(glob);
+    const { ref, path } = data;
     if (!refsForPaths.has(ref)) {
       refsForPaths.set(ref, []);
     }
     refsForPaths.get(ref).push(unixify(path));
 
     for (const ignore of ignores) {
-      const { ref, path } = extractData(ignore);
+      const data = extractData(ignore);
+      if (data === null) {
+        continue;
+      }
+      const { ref, path } = data;
       if (!refsForPaths.has(ref)) {
         refsForPaths.set(ref, []);
       }
@@ -88,16 +95,24 @@ export class GitLoader implements Loader<GitLoaderOptions> {
   }
 
   resolveGlobsSync(glob: string, ignores: string[]) {
+    const data = extractData(glob);
+    if (data === null) {
+      return [];
+    }
+    const { ref, path } = data;
     const refsForPaths = new Map();
 
-    const { ref, path } = extractData(glob);
     if (!refsForPaths.has(ref)) {
       refsForPaths.set(ref, []);
     }
     refsForPaths.get(ref).push(unixify(path));
 
     for (const ignore of ignores) {
-      const { ref, path } = extractData(ignore);
+      const data = extractData(ignore);
+      if (data === null) {
+        continue;
+      }
+      const { ref, path } = data;
       if (!refsForPaths.has(ref)) {
         refsForPaths.set(ref, []);
       }
@@ -111,19 +126,12 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     return resolved;
   }
 
-  async load(pointer: string, options: GitLoaderOptions): Promise<Source[]> {
-    const { ref, path } = extractData(pointer);
-    if (isGlob(path)) {
-      const resolvedPaths = await this.resolveGlobs(pointer, asArray(options.ignore || []));
-      const finalResult: Source[] = [];
-
-      await Promise.all(
-        resolvedPaths.map(async path => {
-          const results = await this.load(path, options);
-          results?.forEach(result => finalResult.push(result));
-        })
-      );
+  private async _load(pointer: string, options: GitLoaderOptions): Promise<Source[]> {
+    const result = extractData(pointer);
+    if (result === null) {
+      return [];
     }
+    const { ref, path } = result;
     const content = await loadFromGit({ ref, path });
     const parsed = handleStuff({ path, options, pointer, content });
 
@@ -139,17 +147,37 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     }));
   }
 
-  loadSync(pointer: string, options: GitLoaderOptions): Source[] {
-    const { ref, path } = extractData(pointer);
-    if (isGlob(path)) {
-      const resolvedPaths = this.resolveGlobsSync(pointer, asArray(options.ignore || []));
-      const finalResult: Source[] = [];
-
-      resolvedPaths.forEach(path => {
-        const results = this.loadSync(path, options);
-        results?.forEach(result => finalResult.push(result));
-      });
+  async load(pointer: string, options: GitLoaderOptions): Promise<Source[]> {
+    const result = extractData(pointer);
+    if (result === null) {
+      return [];
     }
+    const { path } = result;
+    const finalResult: Source[] = [];
+
+    if (isGlob(path)) {
+      const resolvedPaths = await this.resolveGlobs(pointer, asArray(options.ignore || []));
+
+      await Promise.all(
+        resolvedPaths.map(async path => {
+          const results = await this.load(path, options);
+          finalResult.push(...results);
+        })
+      );
+    } else if (await this.canLoad(pointer)) {
+      finalResult.push(...(await this._load(pointer, options)));
+    }
+
+    return finalResult;
+  }
+
+  private _loadSync(pointer: string, options: GitLoaderOptions): Source[] {
+    const result = extractData(pointer);
+    if (result === null) {
+      return [];
+    }
+    const { ref, path } = result;
+
     const content = loadFromGitSync({ ref, path });
     const parsed = handleStuff({ path, options, pointer, content });
 
@@ -163,5 +191,28 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       location: pointer,
       document: parse(source, options),
     }));
+  }
+
+  loadSync(pointer: string, options: GitLoaderOptions): Source[] {
+    const result = extractData(pointer);
+    if (result === null) {
+      return [];
+    }
+    const { path } = result;
+    const finalResult: Source[] = [];
+
+    if (isGlob(path)) {
+      const resolvedPaths = this.resolveGlobsSync(pointer, asArray(options.ignore || []));
+      const finalResult: Source[] = [];
+      for (const path of resolvedPaths) {
+        if (this.canLoadSync(path)) {
+          finalResult.push(...this.loadSync(path, options));
+        }
+      }
+    } else if (this.canLoadSync(pointer)) {
+      finalResult.push(...this._loadSync(pointer, options));
+    }
+
+    return finalResult;
   }
 }
