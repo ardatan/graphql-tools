@@ -10,3 +10,7 @@ BREAKING CHANGES;
 
 - Drop unnecessary `GraphQLResolveInfo` in `ExecutionParams`
 - Add required `operationType: OperationTypeNode` field in `ExecutionParams`
+
+Improvements;
+
+- Memoize `defaultExecutor` for a single `GraphQLSchema` so allow `getBatchingExecutor` to memoize `batchingExecutor` correctly.

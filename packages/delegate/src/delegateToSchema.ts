@@ -242,7 +242,7 @@ function createDefaultExecutor(schema: GraphQLSchema): Executor {
       }
       return execute(executionArgs);
     } as Executor;
-    defaultExecutorCache.set(defaultExecutor);
+    defaultExecutorCache.set(schema, defaultExecutor);
   }
   return defaultExecutor;
 }
