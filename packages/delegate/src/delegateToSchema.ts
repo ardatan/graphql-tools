@@ -216,26 +216,33 @@ function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): 
   return executor;
 }
 
+const defaultExecutorCache = new WeakMap<GraphQLSchema, Executor>();
+
 function createDefaultExecutor(schema: GraphQLSchema): Executor {
-  return function defaultExecutor({
-    document,
-    context,
-    variables,
-    rootValue,
-    operationName,
-    operationType,
-  }: Request) {
-    const executionArgs: ExecutionArgs = {
-      schema,
+  let defaultExecutor = defaultExecutorCache.get(schema);
+  if (!defaultExecutor) {
+    defaultExecutor = function defaultExecutor({
       document,
-      contextValue: context,
-      variableValues: variables,
+      context,
+      variables,
       rootValue,
       operationName,
-    };
-    if (operationType === 'subscription') {
-      return subscribe(executionArgs);
-    }
-    return execute(executionArgs);
-  } as Executor;
+      operationType,
+    }: Request) {
+      const executionArgs: ExecutionArgs = {
+        schema,
+        document,
+        contextValue: context,
+        variableValues: variables,
+        rootValue,
+        operationName,
+      };
+      if (operationType === 'subscription') {
+        return subscribe(executionArgs);
+      }
+      return execute(executionArgs);
+    } as Executor;
+    defaultExecutorCache.set(defaultExecutor);
+  }
+  return defaultExecutor;
 }
