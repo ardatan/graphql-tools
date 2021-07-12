@@ -60,7 +60,6 @@ export class JsonFileLoader implements Loader {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
-
         return existsSync(normalizedFilePath);
       }
     }
@@ -70,6 +69,9 @@ export class JsonFileLoader implements Loader {
 
   async load(pointer: string, options: JsonFileLoaderOptions): Promise<Source[]> {
     const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+    if (!(await this.canLoad(normalizedFilePath, options))) {
+      return [];
+    }
 
     try {
       const jsonContent: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
@@ -80,13 +82,16 @@ export class JsonFileLoader implements Loader {
   }
 
   loadSync(pointer: string, options: JsonFileLoaderOptions): Source[] {
-    const normalizedFilepath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+    if (!this.canLoadSync(normalizedFilePath, options)) {
+      return [];
+    }
 
     try {
-      const jsonContent = readFileSync(normalizedFilepath, 'utf8');
+      const jsonContent = readFileSync(normalizedFilePath, 'utf8');
       return [parseGraphQLJSON(pointer, jsonContent, options)];
     } catch (e) {
-      throw new Error(`Unable to read JSON file: ${normalizedFilepath}: ${e.message || /* istanbul ignore next */ e}`);
+      throw new Error(`Unable to read JSON file: ${normalizedFilePath}: ${e.message || /* istanbul ignore next */ e}`);
     }
   }
 }

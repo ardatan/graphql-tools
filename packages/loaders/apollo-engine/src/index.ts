@@ -58,7 +58,10 @@ export class ApolloEngineLoader implements Loader<ApolloEngineOptions> {
     return typeof ptr === 'string' && ptr === 'apollo-engine';
   }
 
-  async load(pointer: 'apollo-engine', options: ApolloEngineOptions): Promise<Source[]> {
+  async load(pointer: string, options: ApolloEngineOptions): Promise<Source[]> {
+    if (!(await this.canLoad(pointer))) {
+      return [];
+    }
     const fetchArgs = this.getFetchArgs(options);
     const response = await fetch(...fetchArgs);
 
@@ -72,7 +75,10 @@ export class ApolloEngineLoader implements Loader<ApolloEngineOptions> {
     return [source];
   }
 
-  loadSync(pointer: 'apollo-engine', options: ApolloEngineOptions): Source[] {
+  loadSync(pointer: string, options: ApolloEngineOptions): Source[] {
+    if (!this.canLoadSync(pointer)) {
+      return [];
+    }
     const fetchArgs = this.getFetchArgs(options);
     const response = syncFetch(...fetchArgs);
 
