@@ -117,23 +117,22 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
     return globby.sync([glob, ...ignores.map(v => `!${v}`).map(v => unixify(v))], createGlobbyOptions(options));
   }
 
-  async load(pointer: string, options: CodeFileLoaderOptions): Promise<Source[] | null> {
+  async load(pointer: string, options: CodeFileLoaderOptions): Promise<Source[]> {
     options = this.getMergedOptions(options);
+    const finalResult: Source[] = [];
+
     if (isGlob(pointer)) {
       const resolvedPaths = await this.resolveGlobs(pointer, options);
-      const finalResult: Source[] = [];
       await Promise.all(
         resolvedPaths.map(async path => {
-          if (await this.canLoad(path, options)) {
-            const result = await this.handleSinglePath(path, options);
-            result?.forEach(result => finalResult.push(result));
-          }
+          finalResult.push(...(await this.handleSinglePath(path, options)));
         })
       );
-      return finalResult;
+    } else {
+      finalResult.push(...(await this.handleSinglePath(pointer, options)));
     }
 
-    return this.handleSinglePath(pointer, options);
+    return finalResult;
   }
 
   loadSync(pointer: string, options: CodeFileLoaderOptions): Source[] | null {
@@ -153,7 +152,11 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
     return this.handleSinglePathSync(pointer, options);
   }
 
-  async handleSinglePath(location: string, options: CodeFileLoaderOptions): Promise<Source[] | null> {
+  async handleSinglePath(location: string, options: CodeFileLoaderOptions): Promise<Source[]> {
+    if (!(await this.canLoad(location, options))) {
+      return [];
+    }
+
     options = this.getMergedOptions(options);
     const normalizedFilePath = ensureAbsolutePath(location, options);
 
@@ -200,10 +203,13 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
       throw errors[0];
     }
 
-    return null;
+    return [];
   }
 
   handleSinglePathSync(location: string, options: CodeFileLoaderOptions): Source[] | null {
+    if (!this.canLoadSync(location, options)) {
+      return [];
+    }
     options = this.getMergedOptions(options);
     const normalizedFilePath = ensureAbsolutePath(location, options);
 

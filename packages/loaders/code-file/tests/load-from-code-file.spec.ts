@@ -63,6 +63,19 @@ describe('loadFromCodeFile', () => {
 
     expect(doc?.kind).toEqual('Document');
   });
+
+
+  it('does not try to load single file it cannot load', async () => {
+    const loader = new CodeFileLoader({
+      pluckConfig: {
+        skipIndent: true
+      }
+    })
+    const loaded = await loader.load('./test-files/other.graphql', {
+      cwd: __dirname,
+    });
+    expect(loaded).toEqual([])
+  })
 });
 
 describe('loadFromCodeFileSync', () => {
@@ -173,5 +186,17 @@ describe('loadFromCodeFileSync', () => {
         }
       "
     `);
+  })
+
+  it('does not try to load single file it cannot load', async () => {
+    const loader = new CodeFileLoader({
+      pluckConfig: {
+        skipIndent: true
+      }
+    })
+    const loaded = loader.loadSync('./test-files/other.graphql', {
+      cwd: __dirname,
+    });
+    expect(loaded).toEqual([])
   })
 });
