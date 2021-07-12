@@ -5,23 +5,26 @@ export function normalizePointers(
   unnormalizedPointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[]
 ) {
   const ignore: string[] = [];
-  const pointerOptionMap = asArray(unnormalizedPointerOrPointers).reduce<{ [key: string]: any }>(
-    (normalizedPointers, unnormalizedPointer) => {
-      if (typeof unnormalizedPointer === 'string') {
-        if (unnormalizedPointer.startsWith('!')) {
-          ignore.push(unnormalizedPointer.replace('!', ''));
-        } else {
-          normalizedPointers[unnormalizedPointer] = {};
-        }
-      } else if (typeof unnormalizedPointer === 'object') {
-        Object.assign(normalizedPointers, unnormalizedPointer);
-      } else {
-        throw new Error(`Invalid pointer ${unnormalizedPointer}`);
-      }
+  const pointerOptionMap: Record<string, Record<string, any>> = {};
 
-      return normalizedPointers;
-    },
-    {}
-  );
+  const handlePointer = (rawPointer: string, options = {}) => {
+    if (rawPointer.startsWith('!')) {
+      ignore.push(rawPointer.replace('!', ''));
+    } else {
+      pointerOptionMap[rawPointer] = options;
+    }
+  };
+
+  for (const rawPointer of asArray(unnormalizedPointerOrPointers)) {
+    if (typeof rawPointer === 'string') {
+      handlePointer(rawPointer);
+    } else if (typeof rawPointer === 'object') {
+      for (const [path, options] of Object.entries(rawPointer)) {
+        handlePointer(path, options);
+      }
+    } else {
+      throw new Error(`Invalid pointer '${rawPointer}'.`);
+    }
+  }
   return { ignore, pointerOptionMap };
 }
