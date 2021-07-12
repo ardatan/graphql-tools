@@ -119,7 +119,7 @@ describe('documentsFromGlob', () => {
 
     test(`Should ignore files that is added to ignore glob (using negative glob)`, async () => {
       const glob = join(__dirname, './test-files/', '*.graphql');
-      const ignoreGlob = `!(${join(__dirname, './test-files/', '*.query.graphql')})`;
+      const ignoreGlob = `!${join(__dirname, './test-files/', '*.query.graphql')}`;
       const result = await load([glob, ignoreGlob], {
         loaders: [new GraphQLFileLoader()]
       });

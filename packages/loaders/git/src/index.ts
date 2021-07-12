@@ -75,7 +75,7 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       if (!refsForPaths.has(ref)) {
         refsForPaths.set(ref, []);
       }
-      refsForPaths.get(ref).push(`!(${unixify(path)})`);
+      refsForPaths.get(ref).push(`!${unixify(path)}`);
     }
 
     const resolved: string[] = [];
@@ -101,7 +101,7 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       if (!refsForPaths.has(ref)) {
         refsForPaths.set(ref, []);
       }
-      refsForPaths.get(ref).push(`!(${unixify(path)})`);
+      refsForPaths.get(ref).push(`!${unixify(path)}`);
     }
 
     const resolved: string[] = [];

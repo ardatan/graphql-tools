@@ -141,6 +141,15 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
   subscriptionsProtocol?: SubscriptionProtocol;
 }
 
+const isCompatibleUri = (uri: string): boolean => {
+  if (isWebUri(uri)) {
+    return true;
+  }
+  // we just replace the url part, the remaining validation is the same
+  const wsUri = uri.replace('wss://', 'http://').replace('ws://', 'http://');
+  return !!isWebUri(wsUri);
+};
+
 /**
  * This loader loads a schema from a URL. The loaded schema is a fully-executable,
  * remote schema since it's created using [@graphql-tools/wrap](/docs/remote-schemas).
@@ -163,7 +172,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   }
 
   canLoadSync(pointer: string, _options: LoadFromUrlOptions): boolean {
-    return !!isWebUri(pointer);
+    return isCompatibleUri(pointer);
   }
 
   createFormDataFromVariables<TVariables>({
@@ -642,6 +651,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   }
 
   async load(pointer: string, options: LoadFromUrlOptions): Promise<Source[]> {
+    if (!(await this.canLoad(pointer, options))) {
+      return [];
+    }
     let source: Source = {
       location: pointer,
     };
@@ -680,6 +692,10 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   }
 
   loadSync(pointer: string, options: LoadFromUrlOptions): Source[] {
+    if (!this.canLoad(pointer, options)) {
+      return [];
+    }
+
     let source: Source = {
       location: pointer,
     };
