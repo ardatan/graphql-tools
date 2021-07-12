@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-let [, , leftPointer, rightPointer] = process.argv;
+let [, , ...rawPointers] = process.argv;
 
 function createReport(pointer) {
   const [name, file] = pointer.split(':');
@@ -28,20 +28,8 @@ function createReport(pointer) {
   };
 }
 
-const left = createReport(leftPointer);
-const right = createReport(rightPointer);
+const pointers = rawPointers.map(createReport);
 
-const fasterName = left.avg < right.avg ? left.name : right.name;
+const stats = pointers.map(pointer => `${pointer.name}: ${pointer.avg.toFixed(2)} ms`).join('\n')
 
-const faster = Math.min(left.avg, right.avg);
-const slower = Math.max(left.avg, right.avg);
-const byFactor = Math.abs(1 - slower / faster);
-
-console.log(`
-
-${left.name}: ${left.avg.toFixed(2)} ms
-${right.name}: ${right.avg.toFixed(2)} ms
-
-Faster is "${fasterName}" by ${(byFactor * 100).toFixed(2)}%
-
-`);
+console.log(stats);
