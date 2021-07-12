@@ -4,9 +4,9 @@ import DataLoader from 'dataloader';
 
 import { ValueOrPromise } from 'value-or-promise';
 
-import { ExecutionParams, Executor, ExecutionResult } from '@graphql-tools/utils';
+import { Request, Executor, ExecutionResult } from '@graphql-tools/utils';
 
-import { mergeExecutionParams } from './mergeExecutionParams';
+import { mergeRequests } from './mergeRequests';
 import { splitResult } from './splitResult';
 
 export function createBatchingExecutor(
@@ -14,49 +14,47 @@ export function createBatchingExecutor(
   dataLoaderOptions?: DataLoader.Options<any, any, any>,
   extensionsReducer: (
     mergedExtensions: Record<string, any>,
-    executionParams: ExecutionParams
+    request: Request
   ) => Record<string, any> = defaultExtensionsReducer
 ): Executor {
   const loader = new DataLoader(createLoadFn(executor, extensionsReducer), dataLoaderOptions);
-  return (executionParams: ExecutionParams) =>
-    executionParams.info?.operation.operation === 'subscription'
-      ? executor(executionParams)
-      : loader.load(executionParams);
+  return (request: Request) =>
+    request.info?.operation.operation === 'subscription' ? executor(request) : loader.load(request);
 }
 
 function createLoadFn(
   executor: Executor,
-  extensionsReducer: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>
+  extensionsReducer: (mergedExtensions: Record<string, any>, request: Request) => Record<string, any>
 ) {
-  return async (execs: ReadonlyArray<ExecutionParams>): Promise<Array<ExecutionResult>> => {
-    const execBatches: Array<Array<ExecutionParams>> = [];
+  return async (requests: ReadonlyArray<Request>): Promise<Array<ExecutionResult>> => {
+    const execBatches: Array<Array<Request>> = [];
     let index = 0;
-    const exec = execs[index];
-    let currentBatch: Array<ExecutionParams> = [exec];
+    const request = requests[index];
+    let currentBatch: Array<Request> = [request];
     execBatches.push(currentBatch);
 
-    const operationType = getOperationAST(exec.document, undefined)?.operation;
+    const operationType = getOperationAST(request.document, undefined)?.operation;
     if (operationType == null) {
       throw new Error('Could not identify operation type of document.');
     }
 
-    while (++index < execs.length) {
-      const currentOperationType = getOperationAST(execs[index].document, undefined)?.operation;
+    while (++index < requests.length) {
+      const currentOperationType = getOperationAST(requests[index].document, undefined)?.operation;
       if (operationType == null) {
         throw new Error('Could not identify operation type of document.');
       }
 
       if (operationType === currentOperationType) {
-        currentBatch.push(execs[index]);
+        currentBatch.push(requests[index]);
       } else {
-        currentBatch = [execs[index]];
+        currentBatch = [requests[index]];
         execBatches.push(currentBatch);
       }
     }
 
     const executionResults: Array<ValueOrPromise<ExecutionResult>> = execBatches.map(execBatch => {
-      const mergedExecutionParams = mergeExecutionParams(execBatch, extensionsReducer);
-      return new ValueOrPromise(() => executor(mergedExecutionParams) as ExecutionResult);
+      const mergedRequests = mergeRequests(execBatch, extensionsReducer);
+      return new ValueOrPromise(() => executor(mergedRequests) as ExecutionResult);
     });
 
     return ValueOrPromise.all(executionResults)
@@ -70,11 +68,8 @@ function createLoadFn(
   };
 }
 
-function defaultExtensionsReducer(
-  mergedExtensions: Record<string, any>,
-  executionParams: ExecutionParams
-): Record<string, any> {
-  const newExtensions = executionParams.extensions;
+function defaultExtensionsReducer(mergedExtensions: Record<string, any>, request: Request): Record<string, any> {
+  const newExtensions = request.extensions;
   if (newExtensions != null) {
     Object.assign(mergedExtensions, newExtensions);
   }

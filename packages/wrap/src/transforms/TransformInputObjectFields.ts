@@ -78,7 +78,7 @@ export default class TransformInputObjectFields implements Transform {
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
   ): Request {
-    const variableValues = originalRequest.variables;
+    const variableValues = originalRequest.variables ?? {};
     const fragments = Object.create(null);
 
     const operations: Array<OperationDefinitionNode> = [];

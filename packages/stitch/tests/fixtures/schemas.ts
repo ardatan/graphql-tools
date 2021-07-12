@@ -25,7 +25,7 @@ import {
 } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-import { ExecutionParams, SubschemaConfig } from '@graphql-tools/delegate';
+import { Request, SubschemaConfig } from '@graphql-tools/delegate';
 
 export class CustomError extends GraphQLError {
   constructor(message: string, extensions: Record<string, any>) {
@@ -682,7 +682,7 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
 });
 
 function makeExecutorFromSchema(schema: GraphQLSchema) {
-  return async <TReturn, TArgs, TContext>({ document, variables, context, info }: ExecutionParams<TArgs, TContext>) => {
+  return async <TReturn, TArgs, TContext>({ document, variables, context, info }: Request<TArgs, TContext>) => {
     if (info?.operation.operation === 'subscription') {
       const result = subscribe(
         schema,

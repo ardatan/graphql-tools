@@ -41,7 +41,7 @@ export default class FilterToSchema implements Transform {
 function filterToSchema(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
-  variables: Record<string, any>
+  variables?: Record<string, any>
 ): { document: DocumentNode; variables: Record<string, any> } {
   const operations: Array<OperationDefinitionNode> = document.definitions.filter(
     def => def.kind === Kind.OPERATION_DEFINITION
@@ -105,13 +105,15 @@ function filterToSchema(
     });
   }
 
-  const newVariables = usedVariables.reduce((acc, variableName) => {
-    const variableValue = variables[variableName];
-    if (variableValue !== undefined) {
-      acc[variableName] = variableValue;
-    }
-    return acc;
-  }, {});
+  const newVariables = variables
+    ? usedVariables.reduce((acc, variableName) => {
+        const variableValue = variables[variableName];
+        if (variableValue !== undefined) {
+          acc[variableName] = variableValue;
+        }
+        return acc;
+      }, {})
+    : {};
 
   return {
     document: {

@@ -1,23 +1,7 @@
-import { DocumentNode, GraphQLResolveInfo } from 'graphql';
-import { ExecutionResult } from './Interfaces';
+import { ExecutionResult, Request } from './Interfaces';
 
 type MaybePromise<T> = Promise<T> | T;
 type MaybeAsyncIterableIterator<T> = AsyncIterableIterator<T> | T;
-
-export interface ExecutionParams<
-  TArgs extends Record<string, any> = Record<string, any>,
-  TContext = any,
-  TRootValue = any,
-  TExtensions = Record<string, any>
-> {
-  document: DocumentNode;
-  variables?: TArgs;
-  extensions?: TExtensions;
-  context?: TContext;
-  info?: GraphQLResolveInfo;
-  rootValue?: TRootValue;
-  operationName?: string;
-}
 
 export type AsyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = Record<string, any>> = <
   TReturn = any,
@@ -26,7 +10,7 @@ export type AsyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = 
   TRoot = any,
   TExtensions extends TBaseExtensions = TBaseExtensions
 >(
-  params: ExecutionParams<TArgs, TContext, TRoot, TExtensions>
+  request: Request<TArgs, TContext, TRoot, TExtensions>
 ) => Promise<MaybeAsyncIterableIterator<ExecutionResult<TReturn>>>;
 
 export type SyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = Record<string, any>> = <
@@ -36,7 +20,7 @@ export type SyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = R
   TRoot = any,
   TExtensions extends TBaseExtensions = TBaseExtensions
 >(
-  params: ExecutionParams<TArgs, TContext, TRoot, TExtensions>
+  request: Request<TArgs, TContext, TRoot, TExtensions>
 ) => ExecutionResult<TReturn>;
 
 export type Executor<TBaseContext = Record<string, any>, TBaseExtensions = Record<string, any>> = <
@@ -46,5 +30,5 @@ export type Executor<TBaseContext = Record<string, any>, TBaseExtensions = Recor
   TRoot = any,
   TExtensions extends TBaseExtensions = TBaseExtensions
 >(
-  params: ExecutionParams<TArgs, TContext, TRoot, TExtensions>
+  request: Request<TArgs, TContext, TRoot, TExtensions>
 ) => MaybePromise<MaybeAsyncIterableIterator<ExecutionResult<TReturn>>>;

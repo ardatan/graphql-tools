@@ -31,6 +31,7 @@ export function getDelegatingOperation(parentType: GraphQLObjectType, schema: Gr
 
 export function createRequestFromInfo({
   info,
+  rootValue,
   operationName,
   operation = getDelegatingOperation(info.parentType, info.schema),
   fieldName = info.fieldName,
@@ -44,6 +45,7 @@ export function createRequestFromInfo({
     fragments: info.fragments,
     variableDefinitions: info.operation.variableDefinitions,
     variableValues: info.variableValues,
+    targetRootValue: rootValue,
     targetOperationName: operationName,
     targetOperation: operation,
     targetFieldName: fieldName,
@@ -59,6 +61,7 @@ export function createRequest({
   fragments,
   variableDefinitions,
   variableValues,
+  targetRootValue,
   targetOperationName,
   targetOperation,
   targetFieldName,
@@ -171,6 +174,7 @@ export function createRequest({
   return {
     document,
     variables: newVariables,
+    rootValue: targetRootValue,
     operationName: targetOperationName,
   };
 }

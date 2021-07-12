@@ -86,16 +86,16 @@ In the example above, the extra "subschema" wrapper objects may look verbose at 
 ```js
 export interface SubschemaConfig {
   schema: GraphQLSchema;
-  rootValue?: Record<string, any>;
   executor?: Executor;
   createProxyingResolver?: CreateProxyingResolverFn;
+  rootValue?: Record<string, any>;
   transforms?: Array<Transform>;
   merge?: Record<string, MergedTypeConfig>;
   batch?: boolean;
   batchingOptions?: {
     extensionsReducer?: (
       mergedExtensions: Record<string, any>,
-      executionParams: ExecutionParams
+      request: Request
     ) => Record<string, any>,
     dataLoaderOptions?: DataLoader.Options<K, V, C>,
   };
