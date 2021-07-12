@@ -53,6 +53,7 @@ export function createRequestFromInfo({
     selectionSet,
     fieldNodes,
     context,
+    info,
   });
 }
 
@@ -70,6 +71,7 @@ export function createRequest({
   selectionSet,
   fieldNodes,
   context,
+  info,
 }: ICreateRequest): ExecutionRequest {
   let newSelectionSet: SelectionSetNode | undefined;
   let argumentNodeMap: Record<string, ArgumentNode>;
@@ -181,6 +183,7 @@ export function createRequest({
     operationName: targetOperationName,
     operationType: targetOperation,
     context,
+    info,
   };
 }
 

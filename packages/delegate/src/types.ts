@@ -112,6 +112,7 @@ export interface ICreateRequest {
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
   context?: any;
+  info?: GraphQLResolveInfo;
 }
 
 export interface MergedTypeInfo<TContext = Record<string, any>> {

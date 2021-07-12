@@ -74,6 +74,7 @@ export interface ExecutionRequest<
   rootValue?: TRootValue;
   // If the request originates within execution of a parent request, it may contain the parent context and info
   context?: TContext;
+  info?: GraphQLResolveInfo;
 }
 
 // graphql-js non-exported typings
