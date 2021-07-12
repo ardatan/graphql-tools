@@ -20,9 +20,10 @@ import {
   ExecutionResult,
   isAsyncIterable,
   AsyncExecutor,
+  ExecutionRequest,
 } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { SubschemaConfig, Request } from '@graphql-tools/delegate';
+import { SubschemaConfig } from '@graphql-tools/delegate';
 
 export class CustomError extends GraphQLError {
   constructor(message: string, extensions: Record<string, any>) {
@@ -678,7 +679,7 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
 });
 
 function makeExecutorFromSchema(schema: GraphQLSchema): AsyncExecutor {
-  return async <TReturn, TArgs, TContext>({ document, variables, context, operationType }: Request<TArgs, TContext>) => {
+  return async <TReturn, TArgs, TContext>({ document, variables, context, operationType }: ExecutionRequest<TArgs, TContext>) => {
     if (operationType === 'subscription') {
       const result = await subscribe(
         schema,

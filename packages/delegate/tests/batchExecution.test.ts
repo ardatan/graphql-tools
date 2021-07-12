@@ -1,9 +1,10 @@
 import { graphql, execute, ExecutionResult } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { delegateToSchema, SubschemaConfig, Request, SyncExecutor, Executor } from '../src';
+import { delegateToSchema, SubschemaConfig } from '../src';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { FilterObjectFields } from '@graphql-tools/wrap';
+import { ExecutionRequest, Executor, SyncExecutor } from '@graphql-tools/utils';
 
 describe('batch execution', () => {
   it('should batch', async () => {
@@ -27,7 +28,7 @@ describe('batch execution', () => {
     const innerSubschemaConfig: SubschemaConfig = {
       schema: innerSchema,
       batch: true,
-      executor: ((request: Request): ExecutionResult => {
+      executor: ((request: ExecutionRequest): ExecutionResult => {
         executions++;
         return execute(innerSchema, request.document, undefined, request.context, request.variables) as ExecutionResult;
       }) as SyncExecutor
@@ -104,7 +105,7 @@ describe('batch execution', () => {
 
     let executions = 0;
 
-    const executor = ((request: Request): ExecutionResult => {
+    const executor = ((request: ExecutionRequest): ExecutionResult => {
       executions++;
       return execute(innerSchemaA, request.document, undefined, request.context, request.variables) as ExecutionResult;
     }) as Executor;
