@@ -21,13 +21,10 @@ export default class RemoveObjectFieldsWithDirective implements Transform {
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const transformer = new FilterObjectFields((_typeName, _fieldName, fieldConfig) => {
-      const valueMap = getDirectives(originalWrappingSchema, fieldConfig);
-      return !Object.keys(valueMap).some(
-        directiveName =>
-          valueMatchesCriteria(directiveName, this.directiveName) &&
-          ((Array.isArray(valueMap[directiveName]) &&
-            valueMap[directiveName].some((value: any) => valueMatchesCriteria(value, this.args))) ||
-            valueMatchesCriteria(valueMap[directiveName], this.args))
+      const directives = getDirectives(originalWrappingSchema, fieldConfig);
+      return !directives.some(
+        directive =>
+          valueMatchesCriteria(directive.name, this.directiveName) && valueMatchesCriteria(directive.args, this.args)
       );
     });
 

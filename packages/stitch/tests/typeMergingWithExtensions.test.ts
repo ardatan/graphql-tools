@@ -52,9 +52,9 @@ describe('merging using type merging', () => {
         },
         resolve: (_root, { keys }) => keys.map((key: Record<string, any>) => users.find(u => u.id === key['id'])),
         extensions: {
-          directives: {
-            merge: {},
-          },
+          directives: [{
+            name: 'merge',
+          }],
         },
       }
     }),
@@ -68,12 +68,13 @@ describe('merging using type merging', () => {
       username: { type: GraphQLString }
     }),
     extensions: {
-      directives: {
-        key: {
+      directives: [{
+        name: 'key',
+        args: {
           selectionSet: '{ id }',
-        }
-      }
-    }
+        },
+      }],
+    },
   });
 
   const accountsSchema = stitchingDirectivesValidator(new GraphQLSchema({

@@ -1,4 +1,4 @@
-import { getDirectives, MapperKind, mapSchema } from '@graphql-tools/utils';
+import { getDirective, MapperKind, mapSchema } from '@graphql-tools/utils';
 import { cloneSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { SubschemaConfigTransform } from '../types';
@@ -15,13 +15,13 @@ export function computedDirectiveTransformer(computedDirectiveName: string): Sub
           return undefined;
         }
 
-        const computed = getDirectives(schema, fieldConfig)[computedDirectiveName];
+        const computed = getDirective(schema, fieldConfig, computedDirectiveName)?.[0];
 
         if (computed == null) {
           return undefined;
         }
 
-        const selectionSet = computed.fields != null ? `{ ${computed.fields} }` : computed.selectionSet;
+        const selectionSet = computed['fields'] != null ? `{ ${computed['fields']} }` : computed['selectionSet'];
 
         if (selectionSet == null) {
           return undefined;
