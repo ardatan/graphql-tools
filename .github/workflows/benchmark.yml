@@ -4,17 +4,14 @@ on:
   pull_request:
     branches:
       - master
-  workflow_dispatch:
-    inputs:
-      productsSize:
-        description: 'Number of products generated'
-        required: true
-        default: '3'
 
 jobs:
   federation-benchmark:
     name: Federation Benchmark
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        products_size: [3, 10, 50, 100]
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
@@ -45,7 +42,7 @@ jobs:
           yarn start &
           yarn wait-on tcp:3000
         env:
-          PRODUCTS_SIZE: ${{github.event.inputs.productsSize || '3'}}
+          PRODUCTS_SIZE: ${{matrix.products_size}}
       - name: Federation
         run: k6 -e ENDPOINT=federation run --out json=federation.json benchmark/federation/k6.js
       - name: Stitching
