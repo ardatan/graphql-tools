@@ -60,6 +60,9 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
   }
 
   async load(pointer: string, options: GithubLoaderOptions): Promise<Source[]> {
+    if (!(await this.canLoad(pointer))) {
+      return [];
+    }
     const { owner, name, ref, path } = extractData(pointer);
     const request = await fetch('https://api.github.com/graphql', {
       method: 'POST',

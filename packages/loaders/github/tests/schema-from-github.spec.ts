@@ -98,3 +98,12 @@ test('load schema from GitHub', async () => {
   // schema
   expect(print(source.document)).toEqual(printSchema(buildSchema(typeDefs)));
 });
+
+test('simply skips schema for path that cannot be loaded', async () => {
+  const loader = new GithubLoader();
+
+  const result = await loader.load("./test/123", {
+    token,
+  });
+  expect(result).toEqual([])
+})
