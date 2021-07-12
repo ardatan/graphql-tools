@@ -140,5 +140,14 @@ describe('documentsFromGlob', () => {
       });
       expect(result.length).toBe(1);
     })
+    test(`should try loading using all loaders`, async () => {
+      const glob = join(__dirname, './test-files/', '(tags.js|2.graphql)');
+      const result = await load(glob, {
+        loaders: [new GraphQLFileLoader(), new CodeFileLoader()],
+      });
+      // 1 from 2.graphql
+      // 2 from tags.js
+      expect(result.length).toEqual(3);
+    })
   })
 });
