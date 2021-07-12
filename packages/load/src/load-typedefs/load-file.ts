@@ -1,30 +1,31 @@
-import { Source, Maybe, isSome } from '@graphql-tools/utils';
+import { Source } from '@graphql-tools/utils';
 import { env } from 'process';
 import { LoadTypedefsOptions } from '../load-typedefs';
 
-export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Maybe<Source[]>> {
+export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Source[]> {
   const cached = useCache({ pointer, options });
 
   if (cached) {
     return cached;
   }
 
-  for await (const loader of options.loaders) {
-    try {
-      const loadedValue = await loader.load(pointer, options);
-      if (!isSome(loadedValue) || loadedValue.length === 0) {
-        continue;
-      }
-      return loadedValue;
-    } catch (error) {
-      if (env['DEBUG']) {
-        console.error(`Failed to find any GraphQL type definitions in: ${pointer} - ${error.message}`);
-      }
-      throw error;
-    }
-  }
+  const results: Source[] = [];
 
-  return undefined;
+  await Promise.all(
+    options.loaders.map(async loader => {
+      try {
+        const loaderResults = await loader.load(pointer, options);
+        loaderResults?.forEach(result => results.push(result));
+      } catch (error) {
+        if (env['DEBUG']) {
+          console.error(`Failed to find any GraphQL type definitions in: ${pointer} - ${error.message}`);
+        }
+        throw error;
+      }
+    })
+  );
+
+  return results;
 }
 
 export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Maybe<Source[]> {
@@ -34,14 +35,13 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): May
     return cached;
   }
 
+  const results: Source[] = [];
+
   for (const loader of options.loaders) {
     try {
       // We check for the existence so it is okay to force non null
-      const loadedValue = loader.loadSync!(pointer, options);
-      if (!isSome(loadedValue) || loadedValue.length === 0) {
-        continue;
-      }
-      return loadedValue;
+      const loaderResults = loader.loadSync!(pointer, options);
+      loaderResults?.forEach(result => results.push(result));
     } catch (error) {
       if (env['DEBUG']) {
         console.error(`Failed to find any GraphQL type definitions in: ${pointer} - ${error.message}`);
@@ -50,7 +50,7 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): May
     }
   }
 
-  return undefined;
+  return results;
 }
 
 function useCache<T extends any>({ pointer, options }: { pointer: string; options: T }) {
