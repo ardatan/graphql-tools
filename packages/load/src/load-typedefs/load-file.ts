@@ -28,7 +28,7 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
   return results;
 }
 
-export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Maybe<Source[]> {
+export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Source[] {
   const cached = useCache({ pointer, options });
 
   if (cached) {
