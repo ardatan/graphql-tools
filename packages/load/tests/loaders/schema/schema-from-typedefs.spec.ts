@@ -173,5 +173,18 @@ describe('schema from typedefs', () => {
       });
       expect(result.getTypeMap()["User"]).toBeDefined()
     })
+
+    it('should be able to exclude documents via nested negative glob', async () => {
+      await load([
+        './tests/loaders/schema/test-files/schema-dir/user.graphql',
+        './tests/loaders/schema/test-files/schema-dir/invalid.graphql',
+         {
+        '!./tests/loaders/schema/test-files/schema-dir/i*.graphql' : {}
+         }
+      ], {
+        loaders: [new GraphQLFileLoader()],
+        includeSources: true,
+      });
+    })
   })
 });
