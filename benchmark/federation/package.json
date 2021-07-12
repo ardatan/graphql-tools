@@ -5,7 +5,8 @@
   "scripts": {
     "start": "cross-env NODE_ENV=production node index.js",
     "loadtest:federation": "k6 -e ENDPOINT=federation run k6.js",
-    "loadtest:stitching": "k6 -e ENDPOINT=stitching run k6.js"
+    "loadtest:stitching": "k6 -e ENDPOINT=stitching run k6.js",
+    "loadtest:monolith": "k6 -e ENDPOINT=monolith run k6.js"
   },
   "dependencies": {
     "@apollo/gateway": "0.32.0",

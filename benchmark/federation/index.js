@@ -1,10 +1,15 @@
 const express = require('express');
 const runStitchingGateway = require('./stitching');
 const runApolloGateway = require('./federation');
+const makeMonolithSchema = require('./monolith');
 const { parse, execute } = require('graphql');
 
 async function main() {
-  const [stitching, federation] = await Promise.all([runStitchingGateway(), runApolloGateway()]);
+  const [stitching, federation, monolith] = await Promise.all([
+    runStitchingGateway(),
+    runApolloGateway(),
+    makeMonolithSchema(),
+  ]);
 
   const app = express();
 
@@ -23,7 +28,7 @@ async function main() {
           delete: async () => true,
         },
         schema: federation.schema,
-        context: {}
+        context: {},
       })
       .then(result => res.json(result))
       .catch(error => res.status(500).send(error));
@@ -33,12 +38,25 @@ async function main() {
     execute({
       schema: stitching,
       document: parse(req.body.query),
-      contextValue: {}
+      contextValue: {},
     })
       .then(result => {
         res.json(result);
       })
       .catch(error => res.status(500).send(error));
+  });
+
+  app.post('/monolith', (req, res) => {
+    try {
+      const result = execute({
+        schema: monolith,
+        document: parse(req.body.query),
+        contextValue: {},
+      });
+      res.json(result);
+    } catch (error) {
+      res.status(500).send(error);
+    }
   });
 
   app.listen(3000, () => {

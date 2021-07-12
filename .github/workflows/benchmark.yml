@@ -1,7 +1,7 @@
 name: Benchmark
 
 on:
-  push:
+  pull_request:
     branches:
       - master
   workflow_dispatch:
@@ -51,6 +51,6 @@ jobs:
       - name: Stitching
         run: k6 -e ENDPOINT=stitching run --out json=stitching.json benchmark/federation/k6.js
       - name: Monolith
-        run: k6 -e ENDPOINT=monolith run --out json=stitching.json benchmark/federation/k6.js
+        run: k6 -e ENDPOINT=monolith run --out json=monolith.json benchmark/federation/k6.js
       - name: Compare
         run: node benchmark/compare federation:federation.json stitching:stitching.json
