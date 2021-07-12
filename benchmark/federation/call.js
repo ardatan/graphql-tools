@@ -1,6 +1,6 @@
 const fetch = require('cross-fetch');
 
-fetch('http://localhost:3000/stitching', {
+fetch('http://localhost:3000/monolith', {
   method: 'POST',
   headers: {
     'content-type': 'application/json'

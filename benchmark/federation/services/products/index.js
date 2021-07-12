@@ -3,7 +3,7 @@ const { buildFederatedSchema } = require('@apollo/federation');
 
 const typeDefs = gql`
   extend type Query {
-    topProducts(first: Int = 5): [Product]
+    topProducts(first: Int): [Product]
   }
 
   type Product @key(fields: "upc") {
@@ -14,33 +14,9 @@ const typeDefs = gql`
   }
 `;
 
-const resolvers = {
-  Product: {
-    __resolveReference(object) {
-      return products.find(product => product.upc === object.upc);
-    },
-  },
-  Query: {
-    topProducts(_, args) {
-      return products.slice(0, args.first);
-    },
-  },
-};
+const listSize = parseInt(process.env.PRODUCTS_SIZE || '3');
 
-const schema = buildFederatedSchema([
-  {
-    typeDefs,
-    resolvers,
-  },
-]);
-
-module.exports = {
-  typeDefs,
-  resolvers,
-  schema,
-};
-
-const products = [
+const definedProducts = [
   {
     upc: '1',
     name: 'Table',
@@ -60,3 +36,29 @@ const products = [
     weight: 50,
   },
 ];
+const products = [...Array(listSize)].map((_, index) => definedProducts[index % 3]);
+
+const resolvers = {
+  Product: {
+    __resolveReference(object) {
+      return products.find(product => product.upc === object.upc);
+    },
+  },
+  Query: {
+    topProducts(_, args) {
+      return args.first ? products.slice(0, args.first) : products;
+    },
+  },
+};
+const schema = buildFederatedSchema([
+  {
+    typeDefs,
+    resolvers,
+  },
+]);
+
+module.exports = {
+  typeDefs,
+  resolvers,
+  schema,
+};
