@@ -60,17 +60,15 @@ describe('GitLoader', () => {
         expect(result.document).toMatchSnapshot();
       });
 
-      it('should throw when pointer is malformed', async () => {
-        await expect(load(getPointer('foo:graphql'), {})).rejects.toThrowError(
-          'Schema pointer should match "git:branchName:path/to/file"'
-        );
-      });
-
       it('should throw when the file does not exist', async () => {
         await expect(load(getPointer('wrong-filename.graphql'), {})).rejects.toThrowError(
           'Unable to load file from git'
         );
       });
+      it('should simply ignore a non git path', async () => {
+        const result = await load('./pluckable.ts', {});
+        expect(result).toEqual([])
+      })
     });
   });
 });
