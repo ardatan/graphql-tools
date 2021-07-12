@@ -56,7 +56,6 @@ export interface DelegationContext<TContext = Record<string, any>> {
   transforms: Array<Transform<any, TContext>>;
   transformedSchema: GraphQLSchema;
   skipTypeMerging: boolean;
-  operationName?: string;
 }
 
 export type DelegationBinding<TContext = Record<string, any>> = (

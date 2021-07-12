@@ -152,7 +152,6 @@ function getDelegationContext<TContext>({
       subschemaConfig: subschemaOrSubschemaConfig,
       targetSchema,
       operation,
-      operationName: request.operationName,
       fieldName: targetFieldName,
       args,
       context,
