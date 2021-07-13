@@ -692,7 +692,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   }
 
   loadSync(pointer: string, options: LoadFromUrlOptions): Source[] {
-    if (!this.canLoad(pointer, options)) {
+    if (!this.canLoadSync(pointer, options)) {
       return [];
     }
 
