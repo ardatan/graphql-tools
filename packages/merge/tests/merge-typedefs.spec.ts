@@ -1029,11 +1029,11 @@ describe('Merge TypeDefs', () => {
           create_product(description: String!, price: Int!): Product
           update_product(
             # product id
-            id: ID!,
+            id: ID!
             # product description
-            description: String!,
+            description: String!
             # product price
-            price: Int!): Product
+            price: Int! ): Product
         }
       `);
       const schema = stripWhitespaces(mergedTypes);

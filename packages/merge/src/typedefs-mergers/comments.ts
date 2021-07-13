@@ -133,7 +133,7 @@ function addDescription(cb: VisitFn<any, any>): VisitFn<any, any> {
     const key = [...keys, parent?.name?.value].filter(Boolean).join('.');
     const items: string[] = [];
 
-    if (commentsRegistry[key]) {
+    if (node.kind.includes('Definition') && commentsRegistry[key]) {
       items.push(...commentsRegistry[key]);
     }
 
