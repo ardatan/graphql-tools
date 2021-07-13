@@ -1,6 +1,6 @@
 import { GraphQLSchema, GraphQLError, GraphQLObjectType, SelectionSetNode, locatedError } from 'graphql';
 
-import { mergeDeep, relocatedError, GraphQLExecutionContext, collectFields } from '@graphql-tools/utils';
+import { relocatedError, GraphQLExecutionContext, collectFields } from '@graphql-tools/utils';
 
 import { SubschemaConfig, ExternalObject } from './types';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
@@ -73,7 +73,7 @@ export function mergeExternalObjects(
     }
   }
 
-  const combinedResult: ExternalObject = results.reduce(mergeDeep, target);
+  const combinedResult: ExternalObject = Object.assign({}, target, ...results);
 
   const newFieldSubschemaMap = results.reduce((newFieldSubschemaMap, source) => {
     const objectSubschema = source[OBJECT_SUBSCHEMA_SYMBOL];
