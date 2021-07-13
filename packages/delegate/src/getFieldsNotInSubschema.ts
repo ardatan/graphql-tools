@@ -1,10 +1,11 @@
 import { GraphQLSchema, FieldNode, GraphQLObjectType, GraphQLResolveInfo } from 'graphql';
 
-import { collectFields, GraphQLExecutionContext, Maybe } from '@graphql-tools/utils';
+import { Maybe } from '@graphql-tools/utils';
 
 import { isSubschemaConfig } from './subschemaConfig';
 import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from './types';
 import { memoizeInfoAnd2Objects } from './memoize';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
 
 function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<string, Array<FieldNode>> {
   let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
@@ -15,7 +16,7 @@ function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<st
     schema: info.schema,
     variableValues: info.variableValues,
     fragments: info.fragments,
-  } as unknown as GraphQLExecutionContext;
+  } as ExecutionContext;
 
   for (const fieldNode of info.fieldNodes) {
     if (fieldNode.selectionSet) {

@@ -30,7 +30,6 @@ export * from './selectionSets';
 export * from './getResponseKeyFromInfo';
 export * from './fields';
 export * from './renameType';
-export * from './collectFields';
 export * from './transformInputValue';
 export * from './mapAsyncIterator';
 export * from './updateArgument';

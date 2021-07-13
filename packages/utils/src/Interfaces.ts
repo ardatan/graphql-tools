@@ -3,7 +3,6 @@ import {
   GraphQLField,
   GraphQLInputType,
   GraphQLNamedType,
-  GraphQLFieldResolver,
   GraphQLResolveInfo,
   GraphQLScalarType,
   DocumentNode,
@@ -19,8 +18,6 @@ import {
   GraphQLDirective,
   FragmentDefinitionNode,
   SelectionNode,
-  OperationDefinitionNode,
-  GraphQLError,
   ExecutionResult as GraphQLExecutionResult,
   GraphQLOutputType,
   FieldDefinitionNode,
@@ -78,19 +75,6 @@ export interface ExecutionRequest<
 }
 
 // graphql-js non-exported typings
-
-export type TypeMap = Record<string, GraphQLNamedType>;
-
-export interface GraphQLExecutionContext {
-  schema: GraphQLSchema;
-  fragments: Record<string, FragmentDefinitionNode>;
-  rootValue: any;
-  contextValue: any;
-  operation: OperationDefinitionNode;
-  variableValues: Record<string, any>;
-  fieldResolver: GraphQLFieldResolver<any, any>;
-  errors: Array<GraphQLError>;
-}
 
 export interface GraphQLParseOptions {
   noLocation?: boolean;

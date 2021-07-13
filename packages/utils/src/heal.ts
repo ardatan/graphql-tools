@@ -20,8 +20,7 @@ import {
   isListType,
   isNonNullType,
 } from 'graphql';
-
-import { TypeMap } from './Interfaces';
+import { TypeMap } from 'graphql/type/schema';
 
 // Update any references to named schema types that disagree with the named
 // types found in schema.getTypeMap().
