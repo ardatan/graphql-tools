@@ -4,22 +4,31 @@ import {
   Kind,
   SelectionSetNode,
   isObjectType,
-  isScalarType,
   getNamedType,
   GraphQLInterfaceType,
-  SelectionNode,
   print,
   isInterfaceType,
   isLeafType,
+  FieldNode,
+  isInputObjectType,
+  isUnionType,
 } from 'graphql';
 
-import { parseSelectionSet, TypeMap, IResolvers, IFieldResolverOptions, isSome } from '@graphql-tools/utils';
+import {
+  parseSelectionSet,
+  TypeMap,
+  IResolvers,
+  IFieldResolverOptions,
+  isSome,
+  GraphQLExecutionContext,
+} from '@graphql-tools/utils';
 
 import { MergedTypeResolver, Subschema, SubschemaConfig, MergedTypeInfo, StitchingInfo } from '@graphql-tools/delegate';
 
 import { MergeTypeCandidate, MergeTypeFilter } from './types';
 
 import { createMergedTypeResolver } from './createMergedTypeResolver';
+import { collectFields } from 'graphql/execution/execute';
 
 export function createStitchingInfo<TContext = Record<string, any>>(
   subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>,
@@ -27,57 +36,10 @@ export function createStitchingInfo<TContext = Record<string, any>>(
   mergeTypes?: boolean | Array<string> | MergeTypeFilter<TContext>
 ): StitchingInfo<TContext> {
   const mergedTypes = createMergedTypes(typeCandidates, mergeTypes);
-  const selectionSetsByField: Record<string, Record<string, SelectionSetNode>> = Object.create(null);
-
-  for (const typeName in mergedTypes) {
-    const mergedTypeInfo = mergedTypes[typeName];
-    if (mergedTypeInfo.selectionSets == null && mergedTypeInfo.fieldSelectionSets == null) {
-      continue;
-    }
-
-    selectionSetsByField[typeName] = Object.create(null);
-
-    for (const [subschemaConfig, selectionSet] of mergedTypeInfo.selectionSets) {
-      const schema = subschemaConfig.transformedSchema;
-      const type = schema.getType(typeName) as GraphQLObjectType;
-      const fields = type.getFields();
-      for (const fieldName in fields) {
-        const field = fields[fieldName];
-        const fieldType = getNamedType(field.type);
-        if (selectionSet && isLeafType(fieldType) && selectionSetContainsTopLevelField(selectionSet, fieldName)) {
-          continue;
-        }
-        if (selectionSetsByField[typeName][fieldName] == null) {
-          selectionSetsByField[typeName][fieldName] = {
-            kind: Kind.SELECTION_SET,
-            selections: [parseSelectionSet('{ __typename }', { noLocation: true }).selections[0]],
-          };
-        }
-        selectionSetsByField[typeName][fieldName].selections = selectionSetsByField[typeName][
-          fieldName
-        ].selections.concat(selectionSet.selections);
-      }
-    }
-
-    for (const [, selectionSetFieldMap] of mergedTypeInfo.fieldSelectionSets) {
-      for (const fieldName in selectionSetFieldMap) {
-        if (selectionSetsByField[typeName][fieldName] == null) {
-          selectionSetsByField[typeName][fieldName] = {
-            kind: Kind.SELECTION_SET,
-            selections: [parseSelectionSet('{ __typename }', { noLocation: true }).selections[0]],
-          };
-        }
-        selectionSetsByField[typeName][fieldName].selections = selectionSetsByField[typeName][
-          fieldName
-        ].selections.concat(selectionSetFieldMap[fieldName].selections);
-      }
-    }
-  }
-
   return {
     subschemaMap,
-    selectionSetsByType: Object.create(null),
-    selectionSetsByField,
+    fieldNodesByType: Object.create(null),
+    fieldNodesByField: Object.create(null),
     dynamicSelectionSetsByField: Object.create(null),
     mergedTypes,
   };
@@ -227,68 +189,145 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
   resolvers: IResolvers,
   schema: GraphQLSchema
 ): StitchingInfo<TContext> {
-  const { selectionSetsByType, selectionSetsByField, dynamicSelectionSetsByField } = stitchingInfo;
+  const { fieldNodesByType, fieldNodesByField, dynamicSelectionSetsByField, mergedTypes } = stitchingInfo;
 
   // must add __typename to query and mutation root types to handle type merging with nested root types
   // cannot add __typename to subscription root types, but they cannot be nested
   const rootTypes = [schema.getQueryType(), schema.getMutationType()];
   for (const rootType of rootTypes) {
     if (rootType) {
-      selectionSetsByType[rootType.name] = parseSelectionSet('{ __typename }', { noLocation: true });
+      fieldNodesByType[rootType.name] = [
+        parseSelectionSet('{ __typename }', { noLocation: true }).selections[0] as FieldNode,
+      ];
+    }
+  }
+
+  const selectionSetsByField: Record<string, Record<string, Array<SelectionSetNode>>> = Object.create(null);
+  for (const typeName in mergedTypes) {
+    const mergedTypeInfo = mergedTypes[typeName];
+    if (mergedTypeInfo.selectionSets == null && mergedTypeInfo.fieldSelectionSets == null) {
+      continue;
+    }
+
+    for (const [subschemaConfig, selectionSet] of mergedTypeInfo.selectionSets) {
+      const schema = subschemaConfig.transformedSchema;
+      const type = schema.getType(typeName) as GraphQLObjectType;
+      const fields = type.getFields();
+      for (const fieldName in fields) {
+        const field = fields[fieldName];
+        const fieldType = getNamedType(field.type);
+        if (selectionSet && isLeafType(fieldType) && selectionSetContainsTopLevelField(selectionSet, fieldName)) {
+          continue;
+        }
+        updateSelectionSetMap(selectionSetsByField, typeName, fieldName, selectionSet, true);
+      }
+    }
+
+    for (const [, selectionSetFieldMap] of mergedTypeInfo.fieldSelectionSets) {
+      for (const fieldName in selectionSetFieldMap) {
+        const selectionSet = selectionSetFieldMap[fieldName];
+        updateSelectionSetMap(selectionSetsByField, typeName, fieldName, selectionSet, true);
+      }
     }
   }
 
   for (const typeName in resolvers) {
-    const type = resolvers[typeName];
-    if (isScalarType(type)) {
+    const type = schema.getType(typeName);
+    if (type === undefined || isLeafType(type) || isInputObjectType(type) || isUnionType(type)) {
       continue;
     }
-    for (const fieldName in type) {
-      const field = type[fieldName] as IFieldResolverOptions;
-      if (field.selectionSet) {
-        if (typeof field.selectionSet === 'function') {
-          if (!(typeName in dynamicSelectionSetsByField)) {
-            dynamicSelectionSetsByField[typeName] = Object.create(null);
-          }
+    const resolver = resolvers[typeName];
+    for (const fieldName in resolver) {
+      const field = resolver[fieldName] as IFieldResolverOptions;
+      if (typeof field.selectionSet === 'function') {
+        if (!(typeName in dynamicSelectionSetsByField)) {
+          dynamicSelectionSetsByField[typeName] = Object.create(null);
+        }
 
-          if (!(fieldName in dynamicSelectionSetsByField[typeName])) {
-            dynamicSelectionSetsByField[typeName][fieldName] = [];
-          }
+        if (!(fieldName in dynamicSelectionSetsByField[typeName])) {
+          dynamicSelectionSetsByField[typeName][fieldName] = [];
+        }
 
-          dynamicSelectionSetsByField[typeName][fieldName].push(field.selectionSet);
-        } else {
-          const selectionSet = parseSelectionSet(field.selectionSet, { noLocation: true });
-          if (!(typeName in selectionSetsByField)) {
-            selectionSetsByField[typeName] = Object.create(null);
-          }
+        dynamicSelectionSetsByField[typeName][fieldName].push(field.selectionSet);
+      } else if (field.selectionSet) {
+        const selectionSet = parseSelectionSet(field.selectionSet, { noLocation: true });
+        updateSelectionSetMap(selectionSetsByField, typeName, fieldName, selectionSet);
+      }
+    }
+  }
 
-          if (!(fieldName in selectionSetsByField[typeName])) {
-            selectionSetsByField[typeName][fieldName] = {
-              kind: Kind.SELECTION_SET,
-              selections: [],
-            };
+  const partialExecutionContext = {
+    schema,
+    variableValues: Object.create(null),
+    fragments: Object.create(null),
+  };
+
+  const fieldNodeMap = Object.create(null);
+
+  for (const typeName in selectionSetsByField) {
+    const type = schema.getType(typeName) as GraphQLObjectType;
+    for (const fieldName in selectionSetsByField[typeName]) {
+      for (const selectionSet of selectionSetsByField[typeName][fieldName]) {
+        const fieldNodes = collectFields(
+          partialExecutionContext as GraphQLExecutionContext,
+          type,
+          selectionSet,
+          Object.create(null),
+          Object.create(null)
+        );
+
+        for (const responseKey in fieldNodes) {
+          for (const fieldNode of fieldNodes[responseKey]) {
+            const key = print(fieldNode);
+            if (fieldNodeMap[key] == null) {
+              fieldNodeMap[key] = fieldNode;
+              updateArrayMap(fieldNodesByField, typeName, fieldName, fieldNode);
+            } else {
+              updateArrayMap(fieldNodesByField, typeName, fieldName, fieldNodeMap[key]);
+            }
           }
-          selectionSetsByField[typeName][fieldName].selections = selectionSetsByField[typeName][
-            fieldName
-          ].selections.concat(selectionSet.selections);
         }
       }
     }
   }
 
-  for (const typeName in selectionSetsByField) {
-    const typeSelectionSets = selectionSetsByField[typeName];
-    for (const fieldName in typeSelectionSets) {
-      const consolidatedSelections: Map<string, SelectionNode> = new Map();
-      const selectionSet = typeSelectionSets[fieldName];
-      for (const selection of selectionSet.selections) {
-        consolidatedSelections.set(print(selection), selection);
-      }
-      selectionSet.selections = Array.from(consolidatedSelections.values());
-    }
+  return stitchingInfo;
+}
+
+function updateSelectionSetMap(
+  map: Record<string, Record<string, Array<SelectionSetNode>>>,
+  typeName: string,
+  fieldName: string,
+  selectionSet: SelectionSetNode,
+  includeTypename?: boolean
+): void {
+  if (includeTypename) {
+    const typenameSelectionSet = parseSelectionSet('{ __typename }', { noLocation: true });
+    updateArrayMap(map, typeName, fieldName, selectionSet, typenameSelectionSet);
+    return;
   }
 
-  return stitchingInfo;
+  updateArrayMap(map, typeName, fieldName, selectionSet);
+}
+
+function updateArrayMap<T>(
+  map: Record<string, Record<string, Array<T>>>,
+  typeName: string,
+  fieldName: string,
+  value: T,
+  initialValue?: T
+): void {
+  if (map[typeName] == null) {
+    const initialItems = initialValue === undefined ? [value] : [initialValue, value];
+    map[typeName] = {
+      [fieldName]: initialItems,
+    };
+  } else if (map[typeName][fieldName] == null) {
+    const initialItems = initialValue === undefined ? [value] : [initialValue, value];
+    map[typeName][fieldName] = initialItems;
+  } else {
+    map[typeName][fieldName].push(value);
+  }
 }
 
 export function addStitchingInfo<TContext = Record<string, any>>(

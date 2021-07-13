@@ -31,23 +31,34 @@ function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<st
 
   // TODO: Verify whether it is safe that extensions always exists.
   const stitchingInfo: Maybe<StitchingInfo> = info.schema.extensions?.['stitchingInfo'];
-  const selectionSetsByField = stitchingInfo?.selectionSetsByField;
+  const fieldNodesByField = stitchingInfo?.fieldNodesByField;
 
-  for (const responseName in subFieldNodes) {
-    const fieldName = subFieldNodes[responseName][0].name.value;
-    const fieldSelectionSet = selectionSetsByField?.[typeName]?.[fieldName];
-    if (fieldSelectionSet != null) {
-      subFieldNodes = collectFields(
-        partialExecutionContext,
-        type,
-        fieldSelectionSet,
-        subFieldNodes,
-        visitedFragmentNames
-      );
+  const subFieldNodesByFieldName = Object.create(null);
+  for (const responseKey in subFieldNodes) {
+    const fieldName = subFieldNodes[responseKey][0].name.value;
+    const additionalFieldNodes = fieldNodesByField?.[typeName]?.[fieldName];
+    if (additionalFieldNodes) {
+      for (const additionalFieldNode of additionalFieldNodes) {
+        const additionalFieldName = additionalFieldNode.name.value;
+        if (subFieldNodesByFieldName[additionalFieldName] == null) {
+          subFieldNodesByFieldName[additionalFieldName] = [additionalFieldNode];
+        } else {
+          subFieldNodesByFieldName[additionalFieldName].push(additionalFieldNode);
+        }
+      }
     }
   }
 
-  return subFieldNodes;
+  for (const responseKey in subFieldNodes) {
+    const fieldName = subFieldNodes[responseKey][0].name.value;
+    if (subFieldNodesByFieldName[fieldName] == null) {
+      subFieldNodesByFieldName[fieldName] = subFieldNodes[responseKey];
+    } else {
+      subFieldNodesByFieldName[fieldName].concat(subFieldNodes[responseKey]);
+    }
+  }
+
+  return subFieldNodesByFieldName;
 }
 
 export const getFieldsNotInSubschema = memoizeInfoAnd2Objects(function (
@@ -65,10 +76,9 @@ export const getFieldsNotInSubschema = memoizeInfoAnd2Objects(function (
   const subFieldNodes = collectSubFields(info, typeName);
 
   let fieldsNotInSchema: Array<FieldNode> = [];
-  for (const responseName in subFieldNodes) {
-    const fieldName = subFieldNodes[responseName][0].name.value;
+  for (const fieldName in subFieldNodes) {
     if (!(fieldName in fields)) {
-      fieldsNotInSchema = fieldsNotInSchema.concat(subFieldNodes[responseName]);
+      fieldsNotInSchema = fieldsNotInSchema.concat(subFieldNodes[fieldName]);
     }
   }
 

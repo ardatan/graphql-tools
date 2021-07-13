@@ -21,8 +21,8 @@ export function defaultDelegationBinding<TContext>(
     delegationTransforms = delegationTransforms.concat([
       new ExpandAbstractTypes(),
       new AddSelectionSets(
-        stitchingInfo.selectionSetsByType,
-        stitchingInfo.selectionSetsByField,
+        stitchingInfo.fieldNodesByType,
+        stitchingInfo.fieldNodesByField,
         stitchingInfo.dynamicSelectionSetsByField
       ),
       new WrapConcreteTypes(),
