@@ -38,7 +38,7 @@
     "unixify": "^1.0.0"
   },
   "devDependencies": {
-    "@types/micromatch": "latest"
+    "@types/micromatch": "4.0.1"
   },
   "publishConfig": {
     "access": "public",

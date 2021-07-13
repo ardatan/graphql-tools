@@ -20,7 +20,7 @@ export default class CheckResultAndHandleErrors implements Transform {
   ): ExecutionResult {
     return checkResultAndHandleErrors(
       originalResult,
-      delegationContext.context != null ? delegationContext.context : {},
+      delegationContext.context!,
       delegationContext.info,
       delegationContext.fieldName,
       delegationContext.subschema,
