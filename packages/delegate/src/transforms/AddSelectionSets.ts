@@ -1,9 +1,8 @@
-import { SelectionSetNode, TypeInfo, Kind, FieldNode, SelectionNode, print } from 'graphql';
+import { SelectionSetNode, TypeInfo, Kind, FieldNode, SelectionNode } from 'graphql';
 
 import { Maybe, ExecutionRequest } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
-import { memoize2 } from '../memoize';
 
 import VisitSelectionSets from './VisitSelectionSets';
 
@@ -11,12 +10,12 @@ export default class AddSelectionSets implements Transform {
   private readonly transformer: VisitSelectionSets;
 
   constructor(
-    selectionSetsByType: Record<string, SelectionSetNode>,
-    selectionSetsByField: Record<string, Record<string, SelectionSetNode>>,
+    fieldNodesByType: Record<string, Array<FieldNode>>,
+    fieldNodesByField: Record<string, Record<string, Array<FieldNode>>>,
     dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>
   ) {
     this.transformer = new VisitSelectionSets((node, typeInfo) =>
-      visitSelectionSet(node, typeInfo, selectionSetsByType, selectionSetsByField, dynamicSelectionSetsByField)
+      visitSelectionSet(node, typeInfo, fieldNodesByType, fieldNodesByField, dynamicSelectionSetsByField)
     );
   }
 
@@ -32,30 +31,30 @@ export default class AddSelectionSets implements Transform {
 function visitSelectionSet(
   node: SelectionSetNode,
   typeInfo: TypeInfo,
-  selectionSetsByType: Record<string, SelectionSetNode>,
-  selectionSetsByField: Record<string, Record<string, SelectionSetNode>>,
+  fieldNodesByType: Record<string, Array<FieldNode>>,
+  fieldNodesByField: Record<string, Record<string, Array<FieldNode>>>,
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>
 ): Maybe<SelectionSetNode> {
   const parentType = typeInfo.getParentType();
 
-  const newSelections: Map<string, SelectionNode> = new Map();
+  const newSelections: Set<SelectionNode> = new Set();
 
   if (parentType != null) {
     const parentTypeName = parentType.name;
-    addSelectionsToMap(newSelections, node);
+    addSelectionsToSet(newSelections, node.selections);
 
-    if (parentTypeName in selectionSetsByType) {
-      const selectionSet = selectionSetsByType[parentTypeName];
-      addSelectionsToMap(newSelections, selectionSet);
+    const fieldNodes = fieldNodesByType[parentTypeName];
+    if (fieldNodes) {
+      addSelectionsToSet(newSelections, fieldNodes);
     }
 
-    if (parentTypeName in selectionSetsByField) {
+    if (parentTypeName in fieldNodesByField) {
       for (const selection of node.selections) {
         if (selection.kind === Kind.FIELD) {
-          const name = selection.name.value;
-          const selectionSet = selectionSetsByField[parentTypeName][name];
-          if (selectionSet != null) {
-            addSelectionsToMap(newSelections, selectionSet);
+          const fieldName = selection.name.value;
+          const fieldNodes = fieldNodesByField[parentTypeName][fieldName];
+          if (fieldNodes != null) {
+            addSelectionsToSet(newSelections, fieldNodes);
           }
         }
       }
@@ -70,7 +69,7 @@ function visitSelectionSet(
             for (const selectionSetFn of dynamicSelectionSets) {
               const selectionSet = selectionSetFn(selection);
               if (selectionSet != null) {
-                addSelectionsToMap(newSelections, selectionSet);
+                addSelectionsToSet(newSelections, selectionSet.selections);
               }
             }
           }
@@ -85,8 +84,8 @@ function visitSelectionSet(
   }
 }
 
-const addSelectionsToMap = memoize2(function (map: Map<string, SelectionNode>, selectionSet: SelectionSetNode): void {
-  for (const selection of selectionSet.selections) {
-    map.set(print(selection), selection);
+function addSelectionsToSet(set: Set<SelectionNode>, selections: ReadonlyArray<SelectionNode>): void {
+  for (const selection of selections) {
+    set.add(selection);
   }
-});
+}
