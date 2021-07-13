@@ -144,21 +144,21 @@
     tslib "^1.10.0"
     zen-observable "^0.8.14"
 
-"@apollo/federation@0.25.2", "@apollo/federation@^0.25.2":
-  version "0.25.2"
-  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.25.2.tgz#10b2e22ac20e64701fd6d31d9abbf7f411b03763"
-  integrity sha512-TrRCrGniHpnRwALm2J7q2c1X4Lcc95e7SeHkVjascaQx6nBZGFbBXadw8rOPxlw5syfxYf8h9winF+wwld+gsg==
+"@apollo/federation@0.26.0", "@apollo/federation@^0.26.0":
+  version "0.26.0"
+  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.26.0.tgz#72c89f01995bd2e066d447fed4aa58678d759bf6"
+  integrity sha512-j3l6lhQod630LQzLm2hhDyQQJtQikT7vRtRgIa3PuKEq6ouuOd1OQERhBnecobJlUfRWJkfvjYJ/PhQZ2sm/7Q==
   dependencies:
     apollo-graphql "^0.9.3"
     lodash.xorby "^4.7.0"
 
-"@apollo/gateway@0.32.0":
-  version "0.32.0"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.32.0.tgz#639b7b826c76a2bffdf777902010485dfd981918"
-  integrity sha512-Pxq3VVxG1ALrFNN8SM3RVy6Kwm+5p1KG3ObVmQX720Wx5WpRKvCRC23J/c3oFRpsGqjPOglh3vmpAQVdJJTCZA==
+"@apollo/gateway@0.33.0":
+  version "0.33.0"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.33.0.tgz#6e282fb88eb86d9ab9ae35d6d5d3e174085a6907"
+  integrity sha512-NQTFysgRzPYR8g90K43/hgH+Rxe7F/E2G2Linfc81VVNk5NruRSUeQV0EnsROC7lLbCqiCJ+WSQcN0ZaR2Jo7A==
   dependencies:
-    "@apollo/federation" "^0.25.2"
-    "@apollo/query-planner" "^0.2.2"
+    "@apollo/federation" "^0.26.0"
+    "@apollo/query-planner" "^0.2.3"
     "@opentelemetry/api" "^1.0.1"
     "@types/node-fetch" "2.5.10"
     apollo-graphql "^0.9.3"
@@ -191,10 +191,10 @@
     "@types/node" "^10.1.0"
     long "^4.0.0"
 
-"@apollo/query-planner@^0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-0.2.2.tgz#5397e5cd8a73dede34c485fb0c5fefa054f9153a"
-  integrity sha512-+RZSKY0xDYki9qwlzKXDNa+jrbj0Qstq44lcB21aViiDdEJWOTwf7Cqg3h/hN7QsUnL75XiDrwsjMLnwFdHSoQ==
+"@apollo/query-planner@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-0.2.3.tgz#8018ae12c24541838541cc7b20d6a628556918e5"
+  integrity sha512-3jYHLhuUTolAouVTkR1NrGH7ZQzj91KfH1L1Ddd2i2hfCG6VDj9xuRe+nznYV1Sk3/Uy226d7BPKo110H/3Pow==
   dependencies:
     chalk "^4.1.0"
     deep-equal "^2.0.5"
@@ -13215,6 +13215,11 @@ tiny-invariant@^1.0.2:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/tiny-invariant/-/tiny-invariant-1.1.0.tgz#634c5f8efdc27714b7f386c35e6760991d230875"
   integrity sha512-ytxQvrb1cPc9WBEI/HSeYYoGD0kWnGEOR8RY6KomWLBVhqz0RgTwVO9dLrGz7dC+nN9llyI7OKAgRq8Vq4ZBSw==
+
+tiny-lru@7.0.6:
+  version "7.0.6"
+  resolved "https://registry.yarnpkg.com/tiny-lru/-/tiny-lru-7.0.6.tgz#b0c3cdede1e5882aa2d1ae21cb2ceccf2a331f24"
+  integrity sha512-zNYO0Kvgn5rXzWpL0y3RS09sMK67eGaQj9805jlK9G6pSadfriTczzLHFXa/xcW4mIRfmlB9HyQ/+SgL0V1uow==
 
 tiny-warning@^1.0.0, tiny-warning@^1.0.3:
   version "1.0.3"
