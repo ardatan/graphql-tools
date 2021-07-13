@@ -36,7 +36,6 @@ export function stitchSchemas<TContext = Record<string, any>>({
   resolvers = {},
   inheritResolversFromInterfaces = false,
   resolverValidationOptions = {},
-  schemaTransforms = [],
   parseOptions = {},
   pruningOptions,
   updateResolversInPlace,
@@ -80,11 +79,11 @@ export function stitchSchemas<TContext = Record<string, any>>({
   }
 
   const extensions: Array<DocumentNode> = [];
-  const directives: Array<GraphQLDirective> = [];
-  const directiveMap: Record<string, GraphQLDirective> = specifiedDirectives.reduce((acc, directive) => {
-    acc[directive.name] = directive;
-    return acc;
-  }, Object.create(null));
+
+  const directiveMap: Record<string, GraphQLDirective> = Object.create(null);
+  for (const directive of specifiedDirectives) {
+    directiveMap[directive.name] = directive;
+  }
   const schemaDefs = Object.create(null);
 
   const [typeCandidates, rootTypeNameMap] = buildTypeCandidates({
@@ -99,15 +98,11 @@ export function stitchSchemas<TContext = Record<string, any>>({
     mergeDirectives,
   });
 
-  for (const directiveName in directiveMap) {
-    directives.push(directiveMap[directiveName]);
-  }
-
   let stitchingInfo = createStitchingInfo(subschemaMap, typeCandidates, mergeTypes);
 
   const { typeMap: newTypeMap, directives: newDirectives } = buildTypes({
     typeCandidates,
-    directives,
+    directives: Object.values(directiveMap),
     stitchingInfo,
     rootTypeNames: Object.values(rootTypeNameMap),
     onTypeConflict,
@@ -119,7 +114,7 @@ export function stitchSchemas<TContext = Record<string, any>>({
     query: newTypeMap[rootTypeNameMap.query] as GraphQLObjectType,
     mutation: newTypeMap[rootTypeNameMap.mutation] as GraphQLObjectType,
     subscription: newTypeMap[rootTypeNameMap.subscription] as GraphQLObjectType,
-    types: Object.keys(newTypeMap).map(key => newTypeMap[key]),
+    types: Object.values(newTypeMap),
     directives: newDirectives,
     astNode: schemaDefs.schemaDef,
     extensionASTNodes: schemaDefs.schemaExtensions,
@@ -155,10 +150,6 @@ export function stitchSchemas<TContext = Record<string, any>>({
   }
 
   schema = addStitchingInfo(schema, stitchingInfo);
-
-  for (const schemaTransform of schemaTransforms) {
-    schema = schemaTransform(schema);
-  }
 
   if (pruningOptions) {
     schema = pruneSchema(schema, pruningOptions);

@@ -4,7 +4,7 @@ import { pruneSchema } from '@graphql-tools/utils';
 import { addResolversToSchema } from './addResolversToSchema';
 
 import { assertResolversPresent } from './assertResolversPresent';
-import { ExecutableSchemaTransformation, IExecutableSchemaDefinition } from './types';
+import { IExecutableSchemaDefinition } from './types';
 import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
 
 /**
@@ -55,7 +55,6 @@ export function makeExecutableSchema<TContext = any>({
   typeDefs,
   resolvers = {},
   resolverValidationOptions = {},
-  schemaTransforms: userProvidedSchemaTransforms,
   parseOptions = {},
   inheritResolversFromInterfaces = false,
   pruningOptions,
@@ -70,49 +69,36 @@ export function makeExecutableSchema<TContext = any>({
     throw new Error('Must provide typeDefs');
   }
 
-  // Arguments are now validated and cleaned up
-  const schemaTransforms: ExecutableSchemaTransformation[] = [
-    schema => {
-      // We allow passing in an array of resolver maps, in which case we merge them
-
-      const schemaWithResolvers = addResolversToSchema({
-        schema,
-        resolvers: mergeResolvers(resolvers),
-        resolverValidationOptions,
-        inheritResolversFromInterfaces,
-        updateResolversInPlace,
-      });
-
-      if (Object.keys(resolverValidationOptions).length > 0) {
-        assertResolversPresent(schemaWithResolvers, resolverValidationOptions);
-      }
-
-      return schemaWithResolvers;
-    },
-  ];
-
-  if (userProvidedSchemaTransforms) {
-    schemaTransforms.push(schema =>
-      userProvidedSchemaTransforms.reduce((s, schemaTransform) => schemaTransform(s), schema)
-    );
-  }
-
-  if (pruningOptions) {
-    schemaTransforms.push(pruneSchema);
-  }
-
-  let schemaFromTypeDefs: GraphQLSchema;
+  let schema: GraphQLSchema;
 
   if (parseOptions?.commentDescriptions) {
     const mergedTypeDefs = mergeTypeDefs(typeDefs, {
       ...parseOptions,
       commentDescriptions: true,
     });
-    schemaFromTypeDefs = buildSchema(mergedTypeDefs, parseOptions);
+    schema = buildSchema(mergedTypeDefs, parseOptions);
   } else {
     const mergedTypeDefs = mergeTypeDefs(typeDefs, parseOptions);
-    schemaFromTypeDefs = buildASTSchema(mergedTypeDefs, parseOptions);
+    schema = buildASTSchema(mergedTypeDefs, parseOptions);
   }
 
-  return schemaTransforms.reduce((schema, schemaTransform) => schemaTransform(schema), schemaFromTypeDefs);
+  if (pruningOptions) {
+    schema = pruneSchema(schema);
+  }
+
+  // We allow passing in an array of resolver maps, in which case we merge them
+
+  schema = addResolversToSchema({
+    schema,
+    resolvers: mergeResolvers(resolvers),
+    resolverValidationOptions,
+    inheritResolversFromInterfaces,
+    updateResolversInPlace,
+  });
+
+  if (Object.keys(resolverValidationOptions).length > 0) {
+    assertResolversPresent(schema, resolverValidationOptions);
+  }
+
+  return schema;
 }

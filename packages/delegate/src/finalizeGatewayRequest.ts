@@ -1,5 +1,6 @@
 import {
   ArgumentNode,
+  DocumentNode,
   FragmentDefinitionNode,
   getNamedType,
   GraphQLField,
@@ -31,6 +32,91 @@ import {
 import { DelegationContext } from './types';
 import { getDocumentMetadata } from './getDocumentMetadata';
 import { TypeMap } from 'graphql/type/schema';
+import lru from 'tiny-lru';
+
+const DEFAULT_MAX = 1000;
+const DEFAULT_TTL = 3600000;
+
+const finalizedGatewayDocumentCache = lru<{
+  usedVariables: string[];
+  newDocument: DocumentNode;
+}>(DEFAULT_MAX, DEFAULT_TTL);
+
+function finalizeGatewayDocument(
+  targetSchema: GraphQLSchema,
+  fragments: FragmentDefinitionNode[],
+  operations: OperationDefinitionNode[]
+) {
+  const cacheKey = JSON.stringify({
+    fragments,
+    operations,
+  });
+  let finalizedGatewayDocument = finalizedGatewayDocumentCache.get(cacheKey);
+
+  if (!finalizedGatewayDocument) {
+    let usedVariables: Array<string> = [];
+    let usedFragments: Array<string> = [];
+    const newOperations: Array<OperationDefinitionNode> = [];
+    let newFragments: Array<FragmentDefinitionNode> = [];
+
+    const validFragments: Array<FragmentDefinitionNode> = [];
+    const validFragmentsWithType: TypeMap = Object.create(null);
+    for (const fragment of fragments) {
+      const typeName = fragment.typeCondition.name.value;
+      const type = targetSchema.getType(typeName);
+      if (type != null) {
+        validFragments.push(fragment);
+        validFragmentsWithType[fragment.name.value] = type;
+      }
+    }
+
+    let fragmentSet = Object.create(null);
+
+    for (const operation of operations) {
+      const type = getDefinedRootType(targetSchema, operation.operation);
+
+      const {
+        selectionSet,
+        usedFragments: operationUsedFragments,
+        usedVariables: operationUsedVariables,
+      } = finalizeSelectionSet(targetSchema, type, validFragmentsWithType, operation.selectionSet);
+
+      usedFragments = union(usedFragments, operationUsedFragments);
+
+      const {
+        usedVariables: collectedUsedVariables,
+        newFragments: collectedNewFragments,
+        fragmentSet: collectedFragmentSet,
+      } = collectFragmentVariables(targetSchema, fragmentSet, validFragments, validFragmentsWithType, usedFragments);
+      const operationOrFragmentVariables = union(operationUsedVariables, collectedUsedVariables);
+      usedVariables = union(usedVariables, operationOrFragmentVariables);
+      newFragments = collectedNewFragments;
+      fragmentSet = collectedFragmentSet;
+
+      const variableDefinitions = (operation.variableDefinitions ?? []).filter(
+        (variable: VariableDefinitionNode) => operationOrFragmentVariables.indexOf(variable.variable.name.value) !== -1
+      );
+
+      newOperations.push({
+        kind: Kind.OPERATION_DEFINITION,
+        operation: operation.operation,
+        name: operation.name,
+        directives: operation.directives,
+        variableDefinitions,
+        selectionSet,
+      });
+    }
+    finalizedGatewayDocument = {
+      usedVariables,
+      newDocument: {
+        kind: Kind.DOCUMENT,
+        definitions: [...newOperations, ...newFragments],
+      },
+    };
+    finalizedGatewayDocumentCache.set(cacheKey, finalizedGatewayDocument);
+  }
+  return finalizedGatewayDocument;
+}
 
 export function finalizeGatewayRequest(
   originalRequest: ExecutionRequest,
@@ -47,58 +133,7 @@ export function finalizeGatewayRequest(
     variables = Object.assign({}, variables ?? {}, requestWithNewVariables.newVariables);
   }
 
-  let usedVariables: Array<string> = [];
-  let usedFragments: Array<string> = [];
-  const newOperations: Array<OperationDefinitionNode> = [];
-  let newFragments: Array<FragmentDefinitionNode> = [];
-
-  const validFragments: Array<FragmentDefinitionNode> = [];
-  const validFragmentsWithType: TypeMap = Object.create(null);
-  for (const fragment of fragments) {
-    const typeName = fragment.typeCondition.name.value;
-    const type = targetSchema.getType(typeName);
-    if (type != null) {
-      validFragments.push(fragment);
-      validFragmentsWithType[fragment.name.value] = type;
-    }
-  }
-
-  let fragmentSet = Object.create(null);
-
-  for (const operation of operations) {
-    const type = getDefinedRootType(targetSchema, operation.operation);
-
-    const {
-      selectionSet,
-      usedFragments: operationUsedFragments,
-      usedVariables: operationUsedVariables,
-    } = finalizeSelectionSet(targetSchema, type, validFragmentsWithType, operation.selectionSet);
-
-    usedFragments = union(usedFragments, operationUsedFragments);
-
-    const {
-      usedVariables: collectedUsedVariables,
-      newFragments: collectedNewFragments,
-      fragmentSet: collectedFragmentSet,
-    } = collectFragmentVariables(targetSchema, fragmentSet, validFragments, validFragmentsWithType, usedFragments);
-    const operationOrFragmentVariables = union(operationUsedVariables, collectedUsedVariables);
-    usedVariables = union(usedVariables, operationOrFragmentVariables);
-    newFragments = collectedNewFragments;
-    fragmentSet = collectedFragmentSet;
-
-    const variableDefinitions = (operation.variableDefinitions ?? []).filter(
-      (variable: VariableDefinitionNode) => operationOrFragmentVariables.indexOf(variable.variable.name.value) !== -1
-    );
-
-    newOperations.push({
-      kind: Kind.OPERATION_DEFINITION,
-      operation: operation.operation,
-      name: operation.name,
-      directives: operation.directives,
-      variableDefinitions,
-      selectionSet,
-    });
-  }
+  const { usedVariables, newDocument } = finalizeGatewayDocument(targetSchema, fragments, operations);
 
   const newVariables = {};
   if (variables != null) {
@@ -109,11 +144,6 @@ export function finalizeGatewayRequest(
       }
     }
   }
-
-  const newDocument = {
-    kind: Kind.DOCUMENT,
-    definitions: [...newOperations, ...newFragments],
-  };
 
   return {
     ...originalRequest,

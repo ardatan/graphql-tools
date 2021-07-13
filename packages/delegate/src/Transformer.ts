@@ -29,31 +29,36 @@ export class Transformer<TContext = Record<string, any>> {
   }
 
   public transformRequest(originalRequest: ExecutionRequest): ExecutionRequest {
-    const preparedRequest = {
+    let request = {
       ...originalRequest,
-      document: prepareGatewayDocument(originalRequest.document, this.delegationContext),
+      document: prepareGatewayDocument(
+        originalRequest.document,
+        this.delegationContext.transformedSchema,
+        this.delegationContext.returnType,
+        this.delegationContext.info?.schema
+      ),
     };
 
-    const transformedRequest = this.transformations.reduce(
-      (request: ExecutionRequest, transformation: Transformation) =>
-        transformation.transform.transformRequest != null
-          ? transformation.transform.transformRequest(request, this.delegationContext, transformation.context)
-          : request,
-      preparedRequest
-    );
+    for (const transformation of this.transformations) {
+      if (transformation.transform.transformRequest) {
+        request = transformation.transform.transformRequest(request, this.delegationContext, transformation.context);
+      }
+    }
 
-    return finalizeGatewayRequest(transformedRequest, this.delegationContext);
+    return finalizeGatewayRequest(request, this.delegationContext);
   }
 
-  public transformResult(originalResult: ExecutionResult): any {
-    const transformedResult = this.transformations.reduceRight(
-      (result: ExecutionResult, transformation: Transformation) =>
-        transformation.transform.transformResult != null
-          ? transformation.transform.transformResult(result, this.delegationContext, transformation.context)
-          : result,
-      originalResult
-    );
+  public transformResult(originalResult: ExecutionResult) {
+    let result = originalResult;
 
-    return checkResultAndHandleErrors(transformedResult, this.delegationContext);
+    // from rigth to left
+    for (let i = this.transformations.length - 1; i >= 0; i--) {
+      const transformation = this.transformations[i];
+      if (transformation.transform.transformResult) {
+        result = transformation.transform.transformResult(result, this.delegationContext, transformation.context);
+      }
+    }
+
+    return checkResultAndHandleErrors(result, this.delegationContext);
   }
 }

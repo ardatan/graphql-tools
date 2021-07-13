@@ -1,5 +1,3 @@
-import { GraphQLSchema } from 'graphql';
-
 import {
   TypeSource,
   IResolvers,
@@ -25,10 +23,6 @@ export interface IExecutableSchemaDefinition<TContext = any> {
    */
   resolverValidationOptions?: IResolverValidationOptions;
   /**
-   * An array of schema transformation functions
-   */
-  schemaTransforms?: ExecutableSchemaTransformation[];
-  /**
    * Additional options for parsing the type definitions if they are provided
    * as a string
    */
@@ -47,5 +41,3 @@ export interface IExecutableSchemaDefinition<TContext = any> {
    */
   updateResolversInPlace?: boolean;
 }
-
-export type ExecutableSchemaTransformation = (schema: GraphQLSchema) => GraphQLSchema;

@@ -9,14 +9,12 @@ import {
   getNamedType,
 } from 'graphql';
 
-import { ValueOrPromise } from 'value-or-promise';
-
-import { MergedTypeInfo } from './types';
+import { ExternalObject, MergedTypeInfo } from './types';
 import { memoize4, memoize3, memoize2 } from './memoize';
 import { mergeExternalObjects } from './externalObjects';
 import { Subschema } from './Subschema';
 
-const sortSubschemasByProxiability = memoize4(function (
+const sortSubschemasByProxiability = memoize4(function sortSubschemasByProxiability(
   mergedTypeInfo: MergedTypeInfo,
   sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
   targetSubschemas: Array<Subschema>,
@@ -63,7 +61,7 @@ const sortSubschemasByProxiability = memoize4(function (
   };
 });
 
-const buildDelegationPlan = memoize3(function (
+const buildDelegationPlan = memoize3(function buildDelegationPlan(
   mergedTypeInfo: MergedTypeInfo,
   fieldNodes: Array<FieldNode>,
   proxiableSubschemas: Array<Subschema>
@@ -76,7 +74,7 @@ const buildDelegationPlan = memoize3(function (
 
   // 2. for each selection:
 
-  const delegationMap: Map<Subschema, Array<SelectionNode>> = new Map();
+  const delegationMap: Map<Subschema, SelectionSetNode> = new Map();
   for (const fieldNode of fieldNodes) {
     if (fieldNode.name.value === '__typename') {
       continue;
@@ -91,11 +89,14 @@ const buildDelegationPlan = memoize3(function (
         continue;
       }
 
-      const existingSubschema = delegationMap.get(uniqueSubschema);
+      const existingSubschema = delegationMap.get(uniqueSubschema)?.selections as SelectionNode[];
       if (existingSubschema != null) {
         existingSubschema.push(fieldNode);
       } else {
-        delegationMap.set(uniqueSubschema, [fieldNode]);
+        delegationMap.set(uniqueSubschema, {
+          kind: Kind.SELECTION_SET,
+          selections: [fieldNode],
+        });
       }
 
       continue;
@@ -119,28 +120,22 @@ const buildDelegationPlan = memoize3(function (
     const existingSubschema = nonUniqueSubschemas.find(s => delegationMap.has(s));
     if (existingSubschema != null) {
       // It is okay we previously explicitly check whether the map has the element.
-      delegationMap.get(existingSubschema)!.push(fieldNode);
+      (delegationMap.get(existingSubschema)!.selections as SelectionNode[]).push(fieldNode);
     } else {
-      delegationMap.set(nonUniqueSubschemas[0], [fieldNode]);
+      delegationMap.set(nonUniqueSubschemas[0], {
+        kind: Kind.SELECTION_SET,
+        selections: [fieldNode],
+      });
     }
   }
 
-  const finalDelegationMap: Map<Subschema, SelectionSetNode> = new Map();
-
-  for (const [subschema, selections] of delegationMap) {
-    finalDelegationMap.set(subschema, {
-      kind: Kind.SELECTION_SET,
-      selections,
-    });
-  }
-
   return {
-    delegationMap: finalDelegationMap,
+    delegationMap,
     unproxiableFieldNodes,
   };
 });
 
-const combineSubschemas = memoize2(function (
+const combineSubschemas = memoize2(function combineSubschemas(
   subschemaOrSubschemas: Subschema | Array<Subschema>,
   additionalSubschemas: Array<Subschema>
 ): Array<Subschema> {
@@ -149,7 +144,7 @@ const combineSubschemas = memoize2(function (
     : [subschemaOrSubschemas].concat(additionalSubschemas);
 });
 
-export function mergeFields(
+export async function mergeFields(
   mergedTypeInfo: MergedTypeInfo,
   typeName: string,
   object: any,
@@ -158,7 +153,7 @@ export function mergeFields(
   targetSubschemas: Array<Subschema<any, any, any, any>>,
   context: any,
   info: GraphQLResolveInfo
-): any {
+): Promise<any> {
   if (!fieldNodes.length) {
     return object;
   }
@@ -176,41 +171,42 @@ export function mergeFields(
     return object;
   }
 
-  const resultMap: Map<ValueOrPromise<any>, SelectionSetNode> = new Map();
-  for (const [s, selectionSet] of delegationMap) {
-    const resolver = mergedTypeInfo.resolvers.get(s);
-    if (resolver) {
-      const valueOrPromise = new ValueOrPromise(() => resolver(object, context, info, s, selectionSet)).catch(
-        error => error
-      );
-      resultMap.set(valueOrPromise, selectionSet);
-    }
-  }
+  const selectionSets: SelectionSetNode[] = [];
+  const results: ExternalObject[] = [];
+  await Promise.all(
+    [...delegationMap.entries()].map(async ([s, selectionSet], i) => {
+      const resolver = mergedTypeInfo.resolvers.get(s);
+      if (resolver) {
+        try {
+          results[i] = await resolver(object, context, info, s, selectionSet);
+        } catch (error) {
+          results[i] = error;
+        }
+        selectionSets[i] = selectionSet;
+      }
+    })
+  );
 
-  return ValueOrPromise.all(Array.from(resultMap.keys()))
-    .then(results =>
-      mergeFields(
-        mergedTypeInfo,
-        typeName,
-        mergeExternalObjects(
-          info.schema,
-          responsePathAsArray(info.path),
-          object.__typename,
-          object,
-          results,
-          Array.from(resultMap.values())
-        ),
-        unproxiableFieldNodes,
-        combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
-        nonProxiableSubschemas,
-        context,
-        info
-      )
-    )
-    .resolve();
+  return mergeFields(
+    mergedTypeInfo,
+    typeName,
+    await mergeExternalObjects(
+      info.schema,
+      responsePathAsArray(info.path),
+      object.__typename,
+      object,
+      results,
+      selectionSets
+    ),
+    unproxiableFieldNodes,
+    combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
+    nonProxiableSubschemas,
+    context,
+    info
+  );
 }
 
-const subschemaTypesContainSelectionSet = memoize3(function (
+const subschemaTypesContainSelectionSet = memoize3(function subschemaTypesContainSelectionSetMemoized(
   mergedTypeInfo: MergedTypeInfo,
   sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
   selectionSet: SelectionSetNode
