@@ -41,6 +41,7 @@ export function mergeExternalObjects(
   const results: Array<any> = [];
   let errors: Array<GraphQLError> = [];
 
+  const type = schema.getType(typeName) as GraphQLObjectType;
   for (const index in sources) {
     const source = sources[index];
     if (source instanceof Error || source === null) {
@@ -51,7 +52,7 @@ export function mergeExternalObjects(
           variableValues: {},
           fragments: {},
         } as GraphQLExecutionContext,
-        schema.getType(typeName) as GraphQLObjectType,
+        type,
         selectionSet,
         Object.create(null),
         Object.create(null)
