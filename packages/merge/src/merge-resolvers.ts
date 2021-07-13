@@ -62,7 +62,7 @@ export function mergeResolvers<TSource, TContext>(
       resolvers.push(resolversDefinition);
     }
   }
-  const result = resolvers.reduce(mergeDeep, {});
+  const result = mergeDeep(resolvers, true);
 
   if (options?.exclusions) {
     for (const exclusion of options.exclusions) {

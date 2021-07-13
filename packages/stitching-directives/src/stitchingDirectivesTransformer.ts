@@ -329,10 +329,10 @@ export function stitchingDirectivesTransformer(
 
             const additionalArgs = mergeDirective['additionalArgs'];
             if (additionalArgs != null) {
-              parsedMergeArgsExpr.args = mergeDeep(
+              parsedMergeArgsExpr.args = mergeDeep([
                 parsedMergeArgsExpr.args,
-                valueFromASTUntyped(parseValue(`{ ${additionalArgs} }`, { noLocation: true }))
-              );
+                valueFromASTUntyped(parseValue(`{ ${additionalArgs} }`, { noLocation: true })),
+              ]);
             }
 
             mergedTypesResolversInfo[typeName] = {
@@ -473,13 +473,13 @@ function generateArgsFromKeysFn(
 ): (keys: ReadonlyArray<any>) => Record<string, any> {
   const { expansions, args } = mergedTypeResolverInfo;
   return (keys: ReadonlyArray<any>): Record<string, any> => {
-    const newArgs = mergeDeep({}, args);
+    const newArgs = mergeDeep([{}, args]);
     if (expansions) {
       for (const expansion of expansions) {
         const mappingInstructions = expansion.mappingInstructions;
         const expanded: Array<any> = [];
         for (const key of keys) {
-          let newValue = mergeDeep({}, expansion.valuePath);
+          let newValue = mergeDeep([{}, expansion.valuePath]);
           for (const { destinationPath, sourcePath } of mappingInstructions) {
             if (destinationPath.length) {
               addProperty(newValue, destinationPath, getProperty(key, sourcePath));
@@ -500,7 +500,7 @@ function generateArgsFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (origin
   const { mappingInstructions, args, usedProperties } = mergedTypeResolverInfo;
 
   return (originalResult: any): Record<string, any> => {
-    const newArgs = mergeDeep({}, args);
+    const newArgs = mergeDeep([{}, args]);
     const filteredResult = getProperties(originalResult, usedProperties);
     if (mappingInstructions) {
       for (const mappingInstruction of mappingInstructions) {
@@ -532,7 +532,7 @@ function buildKeyExpr(key: Array<string>): string {
     for (const aliasPart of aliasParts.reverse()) {
       object = { [aliasPart]: object };
     }
-    mergedObject = mergeDeep(mergedObject, object);
+    mergedObject = mergeDeep([mergedObject, object]);
   }
 
   return JSON.stringify(mergedObject).replace(/"/g, '');
