@@ -1,5 +1,4 @@
 import { IResolvers, Maybe, mergeDeep } from '@graphql-tools/utils';
-import { isScalarType } from 'graphql';
 
 /**
  * Additional options for merging resolvers
@@ -63,7 +62,7 @@ export function mergeResolvers<TSource, TContext>(
       resolvers.push(resolversDefinition);
     }
   }
-  const result = mergeDeep(resolvers, obj => !isScalarType(obj));
+  const result = mergeDeep(resolvers, true);
 
   if (options?.exclusions) {
     for (const exclusion of options.exclusions) {
