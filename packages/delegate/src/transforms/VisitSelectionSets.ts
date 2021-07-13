@@ -13,15 +13,10 @@ import {
   DefinitionNode,
 } from 'graphql';
 
-import {
-  ExecutionRequest,
-  collectFields,
-  GraphQLExecutionContext,
-  Maybe,
-  getDefinedRootType,
-} from '@graphql-tools/utils';
+import { ExecutionRequest, Maybe, getDefinedRootType } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
 
 type VisitSelectionSetsVisitor = (node: SelectionSetNode, typeInfo: TypeInfo) => Maybe<SelectionSetNode>;
 
@@ -74,7 +69,7 @@ function visitSelectionSets(
           schema,
           variableValues: variables,
           fragments,
-        } as GraphQLExecutionContext,
+        } as ExecutionContext,
         type,
         operation.selectionSet,
         Object.create(null),

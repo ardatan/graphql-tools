@@ -1,9 +1,10 @@
 import { GraphQLSchema, GraphQLError, GraphQLObjectType, SelectionSetNode, locatedError } from 'graphql';
 
-import { mergeDeep, relocatedError, GraphQLExecutionContext, collectFields } from '@graphql-tools/utils';
+import { mergeDeep, relocatedError } from '@graphql-tools/utils';
 
 import { SubschemaConfig, ExternalObject } from './types';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
 
 export function isExternalObject(data: any): data is ExternalObject {
   return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
@@ -50,7 +51,7 @@ export function mergeExternalObjects(
           schema,
           variableValues: {},
           fragments: {},
-        } as GraphQLExecutionContext,
+        } as ExecutionContext,
         schema.getType(typeName) as GraphQLObjectType,
         selectionSet,
         Object.create(null),

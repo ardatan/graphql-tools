@@ -14,21 +14,15 @@ import {
   isUnionType,
 } from 'graphql';
 
-import {
-  parseSelectionSet,
-  TypeMap,
-  IResolvers,
-  IFieldResolverOptions,
-  isSome,
-  GraphQLExecutionContext,
-} from '@graphql-tools/utils';
+import { parseSelectionSet, IResolvers, IFieldResolverOptions, isSome } from '@graphql-tools/utils';
 
 import { MergedTypeResolver, Subschema, SubschemaConfig, MergedTypeInfo, StitchingInfo } from '@graphql-tools/delegate';
 
 import { MergeTypeCandidate, MergeTypeFilter } from './types';
 
 import { createMergedTypeResolver } from './createMergedTypeResolver';
-import { collectFields } from 'graphql/execution/execute';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
+import { TypeMap } from 'graphql/type/schema';
 
 export function createStitchingInfo<TContext = Record<string, any>>(
   subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>,
@@ -260,7 +254,7 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
     schema,
     variableValues: Object.create(null),
     fragments: Object.create(null),
-  };
+  } as ExecutionContext;
 
   const fieldNodeMap = Object.create(null);
 
@@ -269,7 +263,7 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
     for (const fieldName in selectionSetsByField[typeName]) {
       for (const selectionSet of selectionSetsByField[typeName][fieldName]) {
         const fieldNodes = collectFields(
-          partialExecutionContext as GraphQLExecutionContext,
+          partialExecutionContext,
           type,
           selectionSet,
           Object.create(null),
