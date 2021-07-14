@@ -1,6 +1,6 @@
 import { FieldNode, visit, Kind, SelectionNode, SelectionSetNode } from 'graphql';
 
-import { Request, ExecutionResult } from '@graphql-tools/utils';
+import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '@graphql-tools/delegate';
 
@@ -18,10 +18,10 @@ export default class WrapQuery implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     _delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     const fieldPath: Array<string> = [];
     const ourPath = JSON.stringify(this.path);
     const document = visit(originalRequest.document, {

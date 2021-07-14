@@ -1,11 +1,4 @@
-import {
-  Source,
-  parseGraphQLJSON,
-  SchemaPointerSingle,
-  DocumentLoader,
-  isValidPath,
-  SingleFileOptions,
-} from '@graphql-tools/utils';
+import { Source, parseGraphQLJSON, Loader, isValidPath, BaseLoaderOptions } from '@graphql-tools/utils';
 import { isAbsolute, resolve } from 'path';
 import { readFileSync, promises as fsPromises, existsSync } from 'fs';
 import { cwd } from 'process';
@@ -17,7 +10,7 @@ const FILE_EXTENSIONS = ['.json'];
 /**
  * Additional options for loading from a JSON file
  */
-export interface JsonFileLoaderOptions extends SingleFileOptions {}
+export interface JsonFileLoaderOptions extends BaseLoaderOptions {}
 
 /**
  * This loader loads documents and type definitions from JSON files.
@@ -42,12 +35,8 @@ export interface JsonFileLoaderOptions extends SingleFileOptions {}
  * });
  * ```
  */
-export class JsonFileLoader implements DocumentLoader {
-  loaderId(): string {
-    return 'json-file';
-  }
-
-  async canLoad(pointer: SchemaPointerSingle, options: JsonFileLoaderOptions): Promise<boolean> {
+export class JsonFileLoader implements Loader {
+  async canLoad(pointer: string, options: JsonFileLoaderOptions): Promise<boolean> {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
@@ -63,11 +52,10 @@ export class JsonFileLoader implements DocumentLoader {
     return false;
   }
 
-  canLoadSync(pointer: SchemaPointerSingle, options: JsonFileLoaderOptions): boolean {
+  canLoadSync(pointer: string, options: JsonFileLoaderOptions): boolean {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
-
         return existsSync(normalizedFilePath);
       }
     }
@@ -75,25 +63,31 @@ export class JsonFileLoader implements DocumentLoader {
     return false;
   }
 
-  async load(pointer: SchemaPointerSingle, options: JsonFileLoaderOptions): Promise<Source> {
+  async load(pointer: string, options: JsonFileLoaderOptions): Promise<Source[]> {
     const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+    if (!(await this.canLoad(normalizedFilePath, options))) {
+      return [];
+    }
 
     try {
       const jsonContent: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
-      return parseGraphQLJSON(pointer, jsonContent, options);
+      return [parseGraphQLJSON(pointer, jsonContent, options)];
     } catch (e) {
       throw new Error(`Unable to read JSON file: ${normalizedFilePath}: ${e.message || /* istanbul ignore next */ e}`);
     }
   }
 
-  loadSync(pointer: SchemaPointerSingle, options: JsonFileLoaderOptions): Source {
-    const normalizedFilepath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+  loadSync(pointer: string, options: JsonFileLoaderOptions): Source[] {
+    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+    if (!this.canLoadSync(normalizedFilePath, options)) {
+      return [];
+    }
 
     try {
-      const jsonContent = readFileSync(normalizedFilepath, 'utf8');
-      return parseGraphQLJSON(pointer, jsonContent, options);
+      const jsonContent = readFileSync(normalizedFilePath, 'utf8');
+      return [parseGraphQLJSON(pointer, jsonContent, options)];
     } catch (e) {
-      throw new Error(`Unable to read JSON file: ${normalizedFilepath}: ${e.message || /* istanbul ignore next */ e}`);
+      throw new Error(`Unable to read JSON file: ${normalizedFilePath}: ${e.message || /* istanbul ignore next */ e}`);
     }
   }
 }

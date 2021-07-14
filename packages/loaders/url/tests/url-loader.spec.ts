@@ -133,7 +133,7 @@ input TestInput {
     it('Should return a valid schema when request is valid', async () => {
       scope = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker });
 
-      const source = await loader.load(testUrl, {});
+      const [source] = await loader.load(testUrl, {});
       assertNonMaybe(source.schema)
       expect(printSchemaWithDirectives(source.schema)).toBeSimilarGqlDoc(testTypeDefs);
     });
@@ -150,7 +150,7 @@ input TestInput {
         },
       });
 
-      const source = await loader.load(testUrl, {});
+      const [source] = await loader.load(testUrl, {});
 
       expect(source).toBeDefined();
       assertNonMaybe(source.schema)
@@ -171,7 +171,7 @@ input TestInput {
         },
       });
 
-      const source = await loader.load(testUrl, { headers: { Auth: '1' } });
+      const [source] = await loader.load(testUrl, { headers: { Auth: '1' } });
 
       expect(source).toBeDefined();
       assertNonMaybe(source.schema)
@@ -184,7 +184,7 @@ input TestInput {
 
     it('Should utilize extra introspection options', async () => {
       scope = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker });
-      const source = await loader.load(testUrl, { descriptions: false });
+      const [source] = await loader.load(testUrl, { descriptions: false });
 
       expect(source).toBeDefined();
       assertNonMaybe(source.schema)
@@ -197,7 +197,7 @@ input TestInput {
     it('should handle useGETForQueries correctly', async () => {
       scope = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker, method: 'GET' });
 
-      const source = await loader.load(testUrl, {
+      const [source] = await loader.load(testUrl, {
         descriptions: false,
         useGETForQueries: true,
       });
@@ -234,7 +234,7 @@ input TestInput {
       };
       const url = address.host + address.path;
       scope = mockGraphQLServer({ schema: testSchema, host: address.host, path: address.path });
-      const result = await loader.load(url, {});
+      const [result] = await loader.load(url, {});
 
       assertNonMaybe(result.schema)
       expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
@@ -251,7 +251,7 @@ input TestInput {
         host: address.host.replace('ws', 'http'),
         path: address.path,
       });
-      const result = await loader.load(url, {});
+      const [result] = await loader.load(url, {});
 
       assertNonMaybe(result.schema)
       expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
@@ -268,7 +268,7 @@ input TestInput {
         host: address.host.replace('wss', 'https'),
         path: address.path,
       });
-      const result = await loader.load(url, {});
+      const [result] = await loader.load(url, {});
 
       assertNonMaybe(result.schema)
       expect(printSchemaWithDirectives(result.schema)).toBeSimilarGqlDoc(testTypeDefs);
@@ -277,7 +277,7 @@ input TestInput {
       const testHost = 'http://localhost:3000';
       const testPath = '/schema.graphql';
       scope = nock(testHost).get(testPath).reply(200, testTypeDefs);
-      const result = await loader.load(testHost + testPath, {});
+      const [result] = await loader.load(testHost + testPath, {});
 
       assertNonMaybe(result.document)
       expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
@@ -286,7 +286,7 @@ input TestInput {
       const testHost = 'http://localhost:3000';
       const testPath = '/sdl';
       scope = nock(testHost).get(testPath).reply(200, testTypeDefs);
-      const result = await loader.load(testHost + testPath, {
+      const [result] = await loader.load(testHost + testPath, {
         handleAsSDL: true,
       });
 
@@ -296,7 +296,7 @@ input TestInput {
     it('should handle subscriptions - new protocol', (done) => {
       Promise.resolve().then(async () => {
         const testUrl = 'http://localhost:8081/graphql';
-        const { schema } = await loader.load(testUrl, {
+        const [{ schema }] = await loader.load(testUrl, {
           customFetch: async () => ({
             headers: {
               'content-type': 'application/json'
@@ -366,7 +366,7 @@ input TestInput {
     it('should handle subscriptions - legacy protocol', (done) => {
       Promise.resolve().then(async () => {
         const testUrl = 'http://localhost:8081/graphql';
-        const { schema } = await loader.load(testUrl, {
+        const [{ schema }] = await loader.load(testUrl, {
           customFetch: async () => ({
             headers: {
               'content-type': 'application/json'
@@ -433,7 +433,7 @@ input TestInput {
     it('should handle multipart requests', async () => {
       scope = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker, method: 'POST' });
 
-      const { schema } = await loader.load(testUrl, {
+      const [{ schema }] = await loader.load(testUrl, {
         multipart: true,
       });
 

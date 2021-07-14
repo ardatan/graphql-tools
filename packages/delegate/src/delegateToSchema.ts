@@ -9,7 +9,7 @@ import {
   OperationDefinitionNode,
   DocumentNode,
   GraphQLOutputType,
-  GraphQLObjectType,
+  ExecutionArgs,
 } from 'graphql';
 
 import { ValueOrPromise } from 'value-or-promise';
@@ -19,11 +19,11 @@ import { getBatchingExecutor } from '@graphql-tools/batch-execute';
 import {
   mapAsyncIterator,
   Executor,
-  ExecutionParams,
+  ExecutionRequest,
   Maybe,
-  assertSome,
   AggregateError,
   isAsyncIterable,
+  getDefinedRootType,
 } from '@graphql-tools/utils';
 
 import {
@@ -44,12 +44,14 @@ export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
 ): any {
   const {
     info,
+    schema,
+    rootValue,
     operationName,
     operation = getDelegatingOperation(info.parentType, info.schema),
     fieldName = info.fieldName,
-    returnType = info.returnType,
     selectionSet,
     fieldNodes,
+    context,
   } = options;
 
   const request = createRequestFromInfo({
@@ -58,15 +60,14 @@ export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
     fieldName,
     selectionSet,
     fieldNodes,
+    rootValue: rootValue ?? (schema as SubschemaConfig).rootValue,
     operationName,
+    context,
   });
 
   return delegateRequest({
     ...options,
     request,
-    operation,
-    fieldName,
-    returnType,
   });
 }
 
@@ -75,16 +76,7 @@ function getDelegationReturnType(
   operation: OperationTypeNode,
   fieldName: string
 ): GraphQLOutputType {
-  let rootType: Maybe<GraphQLObjectType<any, any>>;
-  if (operation === 'query') {
-    rootType = targetSchema.getQueryType();
-  } else if (operation === 'mutation') {
-    rootType = targetSchema.getMutationType();
-  } else {
-    rootType = targetSchema.getSubscriptionType();
-  }
-  assertSome(rootType);
-
+  const rootType = getDefinedRootType(targetSchema, operation);
   return rootType.getFields()[fieldName].type;
 }
 
@@ -101,74 +93,42 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
     validateRequest(delegationContext, processedRequest.document);
   }
 
-  const { context, info } = delegationContext;
-
   const executor = getExecutor(delegationContext);
 
-  return new ValueOrPromise(() =>
-    executor({
-      ...processedRequest,
-      context,
-      info,
-    })
-  )
+  return new ValueOrPromise(() => executor(processedRequest))
     .then(originalResult => {
       if (isAsyncIterable(originalResult)) {
         // "subscribe" to the subscription result and map the result through the transforms
-        return mapAsyncIterator(originalResult, originalResult => ({
-          [delegationContext.fieldName]: transformer.transformResult(originalResult),
-        }));
+        return mapAsyncIterator(originalResult, result => transformer.transformResult(result));
       }
       return transformer.transformResult(originalResult);
     })
     .resolve();
 }
 
-const emptyObject = {};
-
 function getDelegationContext<TContext>({
   request,
   schema,
-  operation,
   fieldName,
   returnType,
-  args = {},
-  context,
+  args,
   info,
-  rootValue = emptyObject,
   transforms = [],
   transformedSchema,
   skipTypeMerging = false,
-  operationName,
 }: IDelegateRequestOptions<TContext>): DelegationContext<TContext> {
+  const { operationType: operation, context, operationName, document } = request;
   let operationDefinition: Maybe<OperationDefinitionNode>;
-  let targetOperation: Maybe<OperationTypeNode>;
   let targetFieldName: string;
-  let targetOperationName: string | undefined;
-
-  if (operation == null) {
-    operationDefinition = getOperationAST(request.document, request.operationName);
-    assertSome(operationDefinition, 'Could not identify the main operation of the document.');
-    targetOperation = operationDefinition.operation;
-  } else {
-    targetOperation = operation;
-  }
 
   if (fieldName == null) {
-    operationDefinition = operationDefinition ?? getOperationAST(request.document, request.operationName);
+    operationDefinition = getOperationAST(document, operationName);
+    if (operationDefinition == null) {
+      throw new Error('Cannot infer main operation from the provided document.');
+    }
     targetFieldName = (operationDefinition?.selectionSet.selections[0] as unknown as FieldDefinitionNode).name.value;
   } else {
     targetFieldName = fieldName;
-  }
-
-  if (operationName == null) {
-    if (request.operationName) {
-      targetOperationName = request.operationName;
-    } else if (operationDefinition?.name?.value) {
-      targetOperationName = operationDefinition.name.value;
-    }
-  } else {
-    targetOperationName = operationName;
   }
 
   const stitchingInfo: Maybe<StitchingInfo<TContext>> = info?.schema.extensions?.['stitchingInfo'];
@@ -182,15 +142,12 @@ function getDelegationContext<TContext>({
       subschema: schema,
       subschemaConfig: subschemaOrSubschemaConfig,
       targetSchema,
-      operation: targetOperation,
-      operationName: targetOperationName,
+      operation,
       fieldName: targetFieldName,
       args,
       context,
       info,
-      rootValue: rootValue ?? emptyObject,
-      returnType:
-        returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, targetOperation, targetFieldName),
+      returnType: returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, operation, targetFieldName),
       transforms:
         subschemaOrSubschemaConfig.transforms != null
           ? subschemaOrSubschemaConfig.transforms.concat(transforms)
@@ -206,16 +163,13 @@ function getDelegationContext<TContext>({
     subschema: schema,
     subschemaConfig: undefined,
     targetSchema: subschemaOrSubschemaConfig,
-    operation: targetOperation,
+    operation,
     fieldName: targetFieldName,
     args,
     context,
     info,
-    rootValue: rootValue,
     returnType:
-      returnType ??
-      info?.returnType ??
-      getDelegationReturnType(subschemaOrSubschemaConfig, targetOperation, targetFieldName),
+      returnType ?? info?.returnType ?? getDelegationReturnType(subschemaOrSubschemaConfig, operation, targetFieldName),
     transforms,
     transformedSchema: transformedSchema ?? subschemaOrSubschemaConfig,
     skipTypeMerging,
@@ -235,9 +189,9 @@ function validateRequest(delegationContext: DelegationContext<any>, document: Do
 }
 
 function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): Executor<TContext> {
-  const { subschemaConfig, targetSchema, context, operation } = delegationContext;
+  const { subschemaConfig, targetSchema, context } = delegationContext;
 
-  let executor: Executor = subschemaConfig?.executor || createDefaultExecutor(targetSchema, operation);
+  let executor: Executor = subschemaConfig?.executor || createDefaultExecutor(targetSchema);
 
   if (subschemaConfig?.batch) {
     const batchingOptions = subschemaConfig?.batchingOptions;
@@ -252,17 +206,33 @@ function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): 
   return executor;
 }
 
-const createDefaultExecutor = (schema: GraphQLSchema, operation: OperationTypeNode) =>
-  (({ document, context, variables, rootValue }: ExecutionParams) => {
-    const executionParams = {
-      schema,
+const defaultExecutorCache = new WeakMap<GraphQLSchema, Executor>();
+
+function createDefaultExecutor(schema: GraphQLSchema): Executor {
+  let defaultExecutor = defaultExecutorCache.get(schema);
+  if (!defaultExecutor) {
+    defaultExecutor = function defaultExecutor({
       document,
-      contextValue: context,
-      variableValues: variables,
+      context,
+      variables,
       rootValue,
-    };
-    if (operation === 'subscription') {
-      return subscribe(executionParams);
-    }
-    return execute(executionParams);
-  }) as Executor;
+      operationName,
+      operationType,
+    }: ExecutionRequest) {
+      const executionArgs: ExecutionArgs = {
+        schema,
+        document,
+        contextValue: context,
+        variableValues: variables,
+        rootValue,
+        operationName,
+      };
+      if (operationType === 'subscription') {
+        return subscribe(executionArgs);
+      }
+      return execute(executionArgs);
+    } as Executor;
+    defaultExecutorCache.set(schema, defaultExecutor);
+  }
+  return defaultExecutor;
+}

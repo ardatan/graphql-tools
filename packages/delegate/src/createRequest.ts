@@ -16,7 +16,7 @@ import {
   DocumentNode,
 } from 'graphql';
 
-import { Request, serializeInputValue, updateArgument } from '@graphql-tools/utils';
+import { ExecutionRequest, serializeInputValue, updateArgument } from '@graphql-tools/utils';
 import { ICreateRequestFromInfo, ICreateRequest } from './types';
 
 export function getDelegatingOperation(parentType: GraphQLObjectType, schema: GraphQLSchema): OperationTypeNode {
@@ -31,12 +31,14 @@ export function getDelegatingOperation(parentType: GraphQLObjectType, schema: Gr
 
 export function createRequestFromInfo({
   info,
+  rootValue,
   operationName,
   operation = getDelegatingOperation(info.parentType, info.schema),
   fieldName = info.fieldName,
   selectionSet,
   fieldNodes = info.fieldNodes,
-}: ICreateRequestFromInfo): Request {
+  context,
+}: ICreateRequestFromInfo): ExecutionRequest {
   return createRequest({
     sourceSchema: info.schema,
     sourceParentType: info.parentType,
@@ -44,17 +46,16 @@ export function createRequestFromInfo({
     fragments: info.fragments,
     variableDefinitions: info.operation.variableDefinitions,
     variableValues: info.variableValues,
+    targetRootValue: rootValue,
     targetOperationName: operationName,
     targetOperation: operation,
     targetFieldName: fieldName,
     selectionSet,
     fieldNodes,
+    context,
+    info,
   });
 }
-
-const raiseError = (message: string) => {
-  throw new Error(message);
-};
 
 export function createRequest({
   sourceSchema,
@@ -63,12 +64,15 @@ export function createRequest({
   fragments,
   variableDefinitions,
   variableValues,
+  targetRootValue,
   targetOperationName,
   targetOperation,
   targetFieldName,
   selectionSet,
   fieldNodes,
-}: ICreateRequest): Request {
+  context,
+  info,
+}: ICreateRequest): ExecutionRequest {
   let newSelectionSet: SelectionSetNode | undefined;
   let argumentNodeMap: Record<string, ArgumentNode>;
 
@@ -127,15 +131,18 @@ export function createRequest({
     );
   }
 
+  const rootFieldName = targetFieldName ?? fieldNodes?.[0]?.name.value;
+
+  if (rootFieldName === undefined) {
+    throw new Error(`Either "targetFieldName" or a non empty "fieldNodes" array must be provided.`);
+  }
+
   const rootfieldNode: FieldNode = {
     kind: Kind.FIELD,
     arguments: Object.values(argumentNodeMap),
     name: {
       kind: Kind.NAME,
-      value:
-        targetFieldName ??
-        fieldNodes?.[0]?.name.value ??
-        raiseError("Either 'targetFieldName' or a non empty 'fieldNodes' array must be provided."),
+      value: rootFieldName,
     },
     selectionSet: newSelectionSet,
   };
@@ -172,7 +179,11 @@ export function createRequest({
   return {
     document,
     variables: newVariables,
+    rootValue: targetRootValue,
     operationName: targetOperationName,
+    operationType: targetOperation,
+    context,
+    info,
   };
 }
 

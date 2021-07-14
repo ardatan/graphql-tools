@@ -55,8 +55,8 @@ describe('documentsFromGlob', () => {
       const result = await load(glob, {
         loaders: [new CodeFileLoader()]
       });
-      expect(result[0]?.document).toBeDefined();
-      expect(Object.keys(separateOperations(result[0].document!))).toHaveLength(2);
+
+      expect(result).toHaveLength(2);
     });
 
     test(`Should load GraphQL operations that match custom settings`, async () => {
@@ -138,7 +138,7 @@ describe('documentsFromGlob', () => {
 
     test(`Should ignore files that is added to ignore glob (using negative glob)`, async () => {
       const glob = join(__dirname, './test-files/', '*.graphql');
-      const ignoreGlob = `!(${join(__dirname, './test-files/', '*.query.graphql')})`;
+      const ignoreGlob = `!${join(__dirname, './test-files/', '*.query.graphql')}`;
       const result = await load([glob, ignoreGlob], {
         loaders: [new GraphQLFileLoader()]
       });
@@ -152,5 +152,21 @@ describe('documentsFromGlob', () => {
       });
       expect(result.length).toBe(1);
     });
+    test(`should try next loader if first one fails`, async () => {
+      const glob = join(__dirname, './test-with-brackets/', '**/*.ts');
+      const result = await load(glob, {
+        loaders: [new GraphQLFileLoader(), new CodeFileLoader()],
+      });
+      expect(result.length).toBe(1);
+    })
+    test(`should try loading using all loaders`, async () => {
+      const glob = join(__dirname, './test-files/', '(tags.js|2.graphql)');
+      const result = await load(glob, {
+        loaders: [new GraphQLFileLoader(), new CodeFileLoader()],
+      });
+      // 1 from 2.graphql
+      // 2 from tags.js
+      expect(result.length).toEqual(3);
+    })
   })
 });

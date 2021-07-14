@@ -14,7 +14,7 @@ import {
   isInputType,
 } from 'graphql';
 
-import { Maybe, Request, MapperKind, mapSchema, transformInputValue, assertSome } from '@graphql-tools/utils';
+import { Maybe, ExecutionRequest, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -39,8 +39,13 @@ export default class TransformInputObjectFields implements Transform {
   }
 
   private _getTransformedSchema() {
-    assertSome(this.transformedSchema);
-    return this.transformedSchema;
+    const transformedSchema = this.transformedSchema;
+    if (transformedSchema === undefined) {
+      throw new Error(
+        `The TransformInputObjectFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+      );
+    }
+    return transformedSchema;
   }
 
   public transformSchema(
@@ -69,11 +74,11 @@ export default class TransformInputObjectFields implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
-  ): Request {
-    const variableValues = originalRequest.variables;
+  ): ExecutionRequest {
+    const variableValues = originalRequest.variables ?? {};
     const fragments = Object.create(null);
 
     const operations: Array<OperationDefinitionNode> = [];
@@ -147,7 +152,7 @@ export default class TransformInputObjectFields implements Transform {
     mapping: Record<string, Record<string, string>>,
     inputFieldNodeTransformer: InputFieldNodeTransformer | undefined,
     inputObjectNodeTransformer: InputObjectNodeTransformer | undefined,
-    request: Request,
+    request: ExecutionRequest,
     delegationContext?: DelegationContext
   ): DocumentNode {
     const typeInfo = new TypeInfo(this._getTransformedSchema());

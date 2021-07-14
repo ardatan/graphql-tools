@@ -1,7 +1,5 @@
 import { join } from 'path';
 
-import { Source } from '@graphql-tools/utils';
-
 import { ModuleLoader } from '../src';
 import { runTests } from '../../../testing/utils';
 
@@ -11,12 +9,6 @@ describe('ModuleLoader', () => {
     const absolutePath = join(process.cwd(), 'packages/loaders/module/tests/test-files', fileName);
     return `module:${absolutePath}${exportName ? `#${exportName}` : ''}`;
   };
-
-  describe('loaderId', () => {
-    it('should return a loader id', () => {
-      expect(loader.loaderId()).toBeDefined();
-    });
-  });
 
   describe('canLoad', () => {
     runTests({
@@ -43,22 +35,22 @@ describe('ModuleLoader', () => {
       sync: loader.loadSync.bind(loader),
     })(load => {
       it('should load GraphQLSchema object from a file', async () => {
-        const result: Source = await load(getPointer('schema'));
+        const [result] = await load(getPointer('schema'));
         expect(result.schema).toBeDefined();
       });
 
       it('should load DocumentNode object from a file', async () => {
-        const result: Source = await load(getPointer('type-defs'));
+        const [result] = await load(getPointer('type-defs'));
         expect(result.document).toBeDefined();
       });
 
       it('should load string from a file', async () => {
-        const result: Source = await load(getPointer('type-defs-string'));
+        const [result] = await load(getPointer('type-defs-string'));
         expect(result.rawSDL).toBeDefined();
       });
 
       it('should load using a named export', async () => {
-        const result: Source = await load(getPointer('type-defs-named-export', 'typeDefs'));
+        const [result] = await load(getPointer('type-defs-named-export', 'typeDefs'));
         expect(result.document).toBeDefined();
       });
 

@@ -1,4 +1,4 @@
-import { assertSome, Maybe } from '@graphql-tools/utils';
+import { Maybe } from '@graphql-tools/utils';
 import { Transform, StitchingInfo, DelegationContext } from './types';
 
 import AddSelectionSets from './transforms/AddSelectionSets';
@@ -18,13 +18,11 @@ export function defaultDelegationBinding<TContext>(
   const stitchingInfo: Maybe<StitchingInfo> = info?.schema.extensions?.['stitchingInfo'];
 
   if (stitchingInfo != null) {
-    assertSome(stitchingInfo.selectionSetsByType);
-    assertSome(stitchingInfo.dynamicSelectionSetsByField);
     delegationTransforms = delegationTransforms.concat([
       new ExpandAbstractTypes(),
       new AddSelectionSets(
-        stitchingInfo.selectionSetsByType,
-        stitchingInfo.selectionSetsByField,
+        stitchingInfo.fieldNodesByType,
+        stitchingInfo.fieldNodesByField,
         stitchingInfo.dynamicSelectionSetsByField
       ),
       new WrapConcreteTypes(),

@@ -10,16 +10,16 @@ import {
   isAbstractType,
 } from 'graphql';
 
-import { Maybe, Request } from '@graphql-tools/utils';
+import { Maybe, ExecutionRequest } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 
 export default class AddTypenameToAbstract implements Transform {
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     const document = addTypenameToAbstract(delegationContext.targetSchema, originalRequest.document);
     return {
       ...originalRequest,

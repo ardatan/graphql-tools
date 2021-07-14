@@ -1,4 +1,4 @@
-import { Request, ExecutionResult } from '@graphql-tools/utils';
+import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
 import { DelegationContext, DelegationBinding, Transform } from './types';
 
@@ -25,9 +25,9 @@ export class Transformer<TContext = Record<string, any>> {
     this.transformations.push({ transform, context });
   }
 
-  public transformRequest(originalRequest: Request) {
+  public transformRequest(originalRequest: ExecutionRequest) {
     return this.transformations.reduce(
-      (request: Request, transformation: Transformation) =>
+      (request: ExecutionRequest, transformation: Transformation) =>
         transformation.transform.transformRequest != null
           ? transformation.transform.transformRequest(request, this.delegationContext, transformation.context)
           : request,

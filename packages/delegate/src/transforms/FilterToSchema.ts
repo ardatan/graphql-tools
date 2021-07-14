@@ -19,19 +19,19 @@ import {
   getNamedType,
   isObjectType,
   isInterfaceType,
-  GraphQLObjectType,
 } from 'graphql';
 
-import { Request, implementsAbstractType, TypeMap, assertSome, Maybe } from '@graphql-tools/utils';
+import { ExecutionRequest, implementsAbstractType, getDefinedRootType } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
+import { TypeMap } from 'graphql/type/schema';
 
 export default class FilterToSchema implements Transform {
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     return {
       ...originalRequest,
       ...filterToSchema(delegationContext.targetSchema, originalRequest.document, originalRequest.variables),
@@ -42,7 +42,7 @@ export default class FilterToSchema implements Transform {
 function filterToSchema(
   targetSchema: GraphQLSchema,
   document: DocumentNode,
-  variables: Record<string, any>
+  variables?: Record<string, any>
 ): { document: DocumentNode; variables: Record<string, any> } {
   const operations: Array<OperationDefinitionNode> = document.definitions.filter(
     def => def.kind === Kind.OPERATION_DEFINITION
@@ -72,15 +72,7 @@ function filterToSchema(
   let fragmentSet = Object.create(null);
 
   for (const operation of operations) {
-    let type: Maybe<GraphQLObjectType<any, any>>;
-    if (operation.operation === 'subscription') {
-      type = targetSchema.getSubscriptionType();
-    } else if (operation.operation === 'mutation') {
-      type = targetSchema.getMutationType();
-    } else {
-      type = targetSchema.getQueryType();
-    }
-    assertSome(type);
+    const type = getDefinedRootType(targetSchema, operation.operation);
 
     const {
       selectionSet,
@@ -114,13 +106,15 @@ function filterToSchema(
     });
   }
 
-  const newVariables = usedVariables.reduce((acc, variableName) => {
-    const variableValue = variables[variableName];
-    if (variableValue !== undefined) {
-      acc[variableName] = variableValue;
-    }
-    return acc;
-  }, {});
+  const newVariables = variables
+    ? usedVariables.reduce((acc, variableName) => {
+        const variableValue = variables[variableName];
+        if (variableValue !== undefined) {
+          acc[variableName] = variableValue;
+        }
+        return acc;
+      }, {})
+    : {};
 
   return {
     document: {
@@ -150,7 +144,11 @@ function collectFragmentVariables(
       const name = nextFragmentName;
       const typeName = fragment.typeCondition.name.value;
       const type = targetSchema.getType(typeName);
-      assertSome(type);
+      if (type == null) {
+        throw new Error(
+          `Fragment reference type "${typeName}", but the type is not contained within the target schema.`
+        );
+      }
       const {
         selectionSet,
         usedFragments: fragmentUsedFragments,
@@ -218,7 +216,9 @@ function filterSelectionSet(
         },
         leave(node: FieldNode): null | undefined | FieldNode {
           const type = typeInfo.getType();
-          assertSome(type);
+          if (type == null) {
+            throw new Error(`No type was found for field node ${node}.`);
+          }
           const resolvedType = getNamedType(type);
           if (isObjectType(resolvedType) || isInterfaceType(resolvedType)) {
             const selections = node.selectionSet != null ? node.selectionSet.selections : null;

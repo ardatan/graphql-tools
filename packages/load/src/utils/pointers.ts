@@ -4,18 +4,27 @@ import { UnnormalizedTypeDefPointer } from './../load-typedefs';
 export function normalizePointers(
   unnormalizedPointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[]
 ) {
-  return asArray(unnormalizedPointerOrPointers).reduce<{ [key: string]: any }>(
-    (normalizedPointers, unnormalizedPointer) => {
-      if (typeof unnormalizedPointer === 'string') {
-        normalizedPointers[unnormalizedPointer] = {};
-      } else if (typeof unnormalizedPointer === 'object') {
-        Object.assign(normalizedPointers, unnormalizedPointer);
-      } else {
-        throw new Error(`Invalid pointer ${unnormalizedPointer}`);
-      }
+  const ignore: string[] = [];
+  const pointerOptionMap: Record<string, Record<string, any>> = {};
 
-      return normalizedPointers;
-    },
-    {}
-  );
+  const handlePointer = (rawPointer: string, options = {}) => {
+    if (rawPointer.startsWith('!')) {
+      ignore.push(rawPointer.replace('!', ''));
+    } else {
+      pointerOptionMap[rawPointer] = options;
+    }
+  };
+
+  for (const rawPointer of asArray(unnormalizedPointerOrPointers)) {
+    if (typeof rawPointer === 'string') {
+      handlePointer(rawPointer);
+    } else if (typeof rawPointer === 'object') {
+      for (const [path, options] of Object.entries(rawPointer)) {
+        handlePointer(path, options);
+      }
+    } else {
+      throw new Error(`Invalid pointer '${rawPointer}'.`);
+    }
+  }
+  return { ignore, pointerOptionMap };
 }

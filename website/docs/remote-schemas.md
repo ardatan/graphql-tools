@@ -27,9 +27,9 @@ You can use an executor with an HTTP Client implementation (like cross-fetch). A
 We've chosen to split this functionality up to give you the flexibility to choose when to do the introspection step. For example, you might already have the remote schema information, allowing you to skip the `introspectSchema` step entirely. Here's a complete example:
 
 ```js
-type Executor = (operation: ExecutionParams) => Promise<ExecutionResult>;
+type Executor = (request: Request) => Promise<ExecutionResult>;
 
-type ExecutionParams = {
+type Request = {
   document: DocumentNode,
   variables?: Object,
   context?: Object,
@@ -213,7 +213,6 @@ import { delegateToSchema } from '@graphql-tools/delegate';
 export function defaultCreateProxyingResolver({
   subschemaConfig,
   operation,
-  transforms,
   transformedSchema,
 }: ICreateProxyingResolverOptions): GraphQLFieldResolver<any, any> {
   return (_parent, _args, context, info) =>

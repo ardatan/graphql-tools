@@ -26,29 +26,15 @@
 // enhanceSchema can fill this gap by adding an additional round of rewiring.
 //
 
-import {
-  GraphQLObjectType,
-  GraphQLSchema,
-  GraphQLNamedType,
-  GraphQLDirective,
-  isNamedType,
-  isDirective,
-  isObjectType,
-} from 'graphql';
+import { GraphQLSchema, GraphQLNamedType, GraphQLDirective, isNamedType, isDirective } from 'graphql';
+
+import { getObjectTypeFromTypeMap } from './getObjectTypeFromTypeMap';
 import { rewireTypes } from './rewire';
 
 export function addTypes(
   schema: GraphQLSchema,
   newTypesOrDirectives: Array<GraphQLNamedType | GraphQLDirective>
 ): GraphQLSchema {
-  const queryType = schema.getQueryType();
-  const mutationType = schema.getMutationType();
-  const subscriptionType = schema.getSubscriptionType();
-
-  const queryTypeName = queryType != null ? queryType.name : undefined;
-  const mutationTypeName = mutationType != null ? mutationType.name : undefined;
-  const subscriptionTypeName = subscriptionType != null ? subscriptionType.name : undefined;
-
   const config = schema.toConfig();
 
   const originalTypeMap: Record<string, GraphQLNamedType> = {};
@@ -73,22 +59,10 @@ export function addTypes(
 
   return new GraphQLSchema({
     ...config,
-    query: getObjectTypeFromTypeMap(typeMap, queryTypeName),
-    mutation: getObjectTypeFromTypeMap(typeMap, mutationTypeName),
-    subscription: getObjectTypeFromTypeMap(typeMap, subscriptionTypeName),
+    query: getObjectTypeFromTypeMap(typeMap, schema.getQueryType()),
+    mutation: getObjectTypeFromTypeMap(typeMap, schema.getMutationType()),
+    subscription: getObjectTypeFromTypeMap(typeMap, schema.getSubscriptionType()),
     types: Object.values(typeMap),
     directives,
   });
-}
-
-export function getObjectTypeFromTypeMap(
-  typeMap: Record<string, GraphQLNamedType>,
-  typeName?: string
-): GraphQLObjectType | undefined {
-  if (typeName) {
-    const maybeObjectType = typeMap[typeName];
-    if (isObjectType(maybeObjectType)) {
-      return maybeObjectType;
-    }
-  }
 }

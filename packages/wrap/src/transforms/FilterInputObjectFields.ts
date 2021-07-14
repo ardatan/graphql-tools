@@ -1,6 +1,6 @@
 import { GraphQLSchema, GraphQLInputFieldConfig } from 'graphql';
 
-import { Request, InputFieldFilter } from '@graphql-tools/utils';
+import { ExecutionRequest, InputFieldFilter } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -29,10 +29,10 @@ export default class FilterInputObjectFields implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 }

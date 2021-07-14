@@ -1,7 +1,7 @@
-import { UniversalLoader, parseGraphQLSDL, parseGraphQLJSON, SingleFileOptions } from '@graphql-tools/utils';
+import { Loader, parseGraphQLSDL, parseGraphQLJSON, BaseLoaderOptions, Source } from '@graphql-tools/utils';
 import { fetch } from 'cross-fetch';
 import { GraphQLTagPluckOptions, gqlPluckFromCodeString } from '@graphql-tools/graphql-tag-pluck';
-import { concatAST, parse } from 'graphql';
+import { parse } from 'graphql';
 
 // github:owner/name#ref:path/to/file
 function extractData(pointer: string): {
@@ -25,7 +25,7 @@ function extractData(pointer: string): {
 /**
  * Additional options for loading from GitHub
  */
-export interface GithubLoaderOptions extends SingleFileOptions {
+export interface GithubLoaderOptions extends BaseLoaderOptions {
   /**
    * A GitHub access token
    */
@@ -46,11 +46,7 @@ export interface GithubLoaderOptions extends SingleFileOptions {
  * })
  * ```
  */
-export class GithubLoader implements UniversalLoader<GithubLoaderOptions> {
-  loaderId() {
-    return 'github-loader';
-  }
-
+export class GithubLoader implements Loader<GithubLoaderOptions> {
   async canLoad(pointer: string) {
     return typeof pointer === 'string' && pointer.toLowerCase().startsWith('github:');
   }
@@ -59,7 +55,10 @@ export class GithubLoader implements UniversalLoader<GithubLoaderOptions> {
     return false;
   }
 
-  async load(pointer: string, options: GithubLoaderOptions) {
+  async load(pointer: string, options: GithubLoaderOptions): Promise<Source[]> {
+    if (!(await this.canLoad(pointer))) {
+      return [];
+    }
     const { owner, name, ref, path } = extractData(pointer);
     const request = await fetch('https://api.github.com/graphql', {
       method: 'POST',
@@ -104,19 +103,19 @@ export class GithubLoader implements UniversalLoader<GithubLoaderOptions> {
     const content = response.data.repository.object.text;
 
     if (/\.(gql|graphql)s?$/i.test(path)) {
-      return parseGraphQLSDL(pointer, content, options);
+      return [parseGraphQLSDL(pointer, content, options)];
     }
 
     if (/\.json$/i.test(path)) {
-      return parseGraphQLJSON(pointer, content, options);
+      return [parseGraphQLJSON(pointer, content, options)];
     }
 
     if (path.endsWith('.tsx') || path.endsWith('.ts') || path.endsWith('.js') || path.endsWith('.jsx')) {
       const sources = await gqlPluckFromCodeString(pointer, content, options.pluckConfig);
-      return {
-        location: path,
-        document: concatAST(sources.map(source => parse(source, options))),
-      };
+      return sources.map(source => ({
+        location: pointer,
+        document: parse(source, options),
+      }));
     }
 
     throw new Error(`Invalid file extension: ${path}`);

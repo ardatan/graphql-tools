@@ -11,8 +11,7 @@ import { isSome } from '@graphql-tools/utils';
 
 const VALID_EXTENSIONS = ['graphql', 'graphqls', 'gql', 'gqls'];
 
-function handleModule(m: NodeModule, filename: string) {
-  console.log(m, filename);
+export function handleModule(m: NodeModule, filename: string) {
   const sources = loadTypedefsSync(filename, {
     loaders: [new GraphQLFileLoader()],
   });
@@ -22,9 +21,9 @@ function handleModule(m: NodeModule, filename: string) {
   m.exports = mergedDoc;
 }
 
-export function registerGraphQLExtensions(require: NodeRequire) {
+export function registerGraphQLExtensions(nodeRequire: NodeRequire) {
   for (const ext of VALID_EXTENSIONS) {
-    require.extensions[`.${ext}`] = handleModule;
+    nodeRequire.extensions[`.${ext}`] = handleModule;
   }
 }
 

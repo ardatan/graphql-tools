@@ -3,7 +3,6 @@ import {
   DocumentNode,
   FragmentDefinitionNode,
   GraphQLField,
-  GraphQLObjectType,
   GraphQLSchema,
   Kind,
   OperationDefinitionNode,
@@ -11,7 +10,7 @@ import {
   VariableDefinitionNode,
 } from 'graphql';
 
-import { Maybe, Request, serializeInputValue, updateArgument, assertSome } from '@graphql-tools/utils';
+import { getDefinedRootType, ExecutionRequest, serializeInputValue, updateArgument } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 
@@ -29,10 +28,10 @@ export default class AddArgumentsAsVariables implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     const { document, variables } = addVariablesToRootField(delegationContext.targetSchema, originalRequest, this.args);
 
     return {
@@ -45,14 +44,14 @@ export default class AddArgumentsAsVariables implements Transform {
 
 function addVariablesToRootField(
   targetSchema: GraphQLSchema,
-  originalRequest: Request,
+  originalRequest: ExecutionRequest,
   args: Record<string, any>
 ): {
   document: DocumentNode;
   variables: Record<string, any>;
 } {
   const document = originalRequest.document;
-  const variableValues = originalRequest.variables;
+  const variableValues = originalRequest.variables ?? {};
 
   const operations: Array<OperationDefinitionNode> = document.definitions.filter(
     def => def.kind === Kind.OPERATION_DEFINITION
@@ -70,16 +69,7 @@ function addVariablesToRootField(
       {}
     );
 
-    let type: Maybe<GraphQLObjectType>;
-    if (operation.operation === 'subscription') {
-      type = targetSchema.getSubscriptionType();
-    } else if (operation.operation === 'mutation') {
-      type = targetSchema.getMutationType();
-    } else {
-      type = targetSchema.getQueryType();
-    }
-
-    assertSome(type);
+    const type = getDefinedRootType(targetSchema, operation.operation);
 
     const newSelectionSet: Array<SelectionNode> = [];
 

@@ -20,10 +20,6 @@ export interface PrismaLoaderOptions extends LoadFromUrlOptions {
  * This loader loads a schema from a `prisma.yml` file
  */
 export class PrismaLoader extends UrlLoader {
-  loaderId() {
-    return 'prisma';
-  }
-
   canLoadSync() {
     return false;
   }
@@ -42,6 +38,9 @@ export class PrismaLoader extends UrlLoader {
   }
 
   async load(prismaConfigFilePath: string, options: PrismaLoaderOptions) {
+    if (!(await this.canLoad(prismaConfigFilePath, options))) {
+      return [];
+    }
     const { graceful, envVars } = options;
     const home = homedir();
     const env = new Environment(home);

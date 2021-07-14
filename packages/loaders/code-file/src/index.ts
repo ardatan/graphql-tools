@@ -1,17 +1,14 @@
 import type { GlobbyOptions } from 'globby';
 
-import { isSchema, GraphQLSchema, DocumentNode, concatAST, parse } from 'graphql';
+import { isSchema, GraphQLSchema, DocumentNode, parse } from 'graphql';
 import {
-  SchemaPointerSingle,
-  DocumentPointerSingle,
-  SingleFileOptions,
   Source,
-  UniversalLoader,
   asArray,
   isValidPath,
   parseGraphQLSDL,
   isDocumentNode,
-  ResolverGlobs,
+  BaseLoaderOptions,
+  Loader,
 } from '@graphql-tools/utils';
 import {
   GraphQLTagPluckOptions,
@@ -29,15 +26,19 @@ import { createRequire } from 'module';
 
 const { readFile, access } = fsPromises;
 
+export type CodeFileLoaderConfig = {
+  pluckConfig?: GraphQLTagPluckOptions;
+  noPluck?: boolean;
+  noRequire?: boolean;
+};
+
 /**
  * Additional options for loading from a code file
  */
 export type CodeFileLoaderOptions = {
   require?: string | string[];
-  pluckConfig?: GraphQLTagPluckOptions;
-  noPluck?: boolean;
-  noRequire?: boolean;
-} & SingleFileOptions;
+} & CodeFileLoaderConfig &
+  BaseLoaderOptions;
 
 const FILE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue'];
 
@@ -59,19 +60,18 @@ function createGlobbyOptions(options: CodeFileLoaderOptions): GlobbyOptions {
  *
  * Supported extensions include: `.ts`, `.tsx`, `.js`, `.jsx`, `.vue`
  */
-export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
-  loaderId(): string {
-    return 'code-file';
+export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
+  private config: CodeFileLoaderConfig;
+  constructor(config?: CodeFileLoaderConfig) {
+    this.config = config ?? {};
   }
 
-  async canLoad(
-    pointer: SchemaPointerSingle | DocumentPointerSingle,
-    options: CodeFileLoaderOptions
-  ): Promise<boolean> {
-    if (isGlob(pointer)) {
-      // FIXME: parse to find and check the file extensions?
-      return true;
-    }
+  private getMergedOptions(options: CodeFileLoaderOptions): CodeFileLoaderOptions {
+    return { ...this.config, ...options };
+  }
+
+  async canLoad(pointer: string, options: CodeFileLoaderOptions): Promise<boolean> {
+    options = this.getMergedOptions(options);
 
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
@@ -88,11 +88,8 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     return false;
   }
 
-  canLoadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): boolean {
-    if (isGlob(pointer)) {
-      // FIXME: parse to find and check the file extensions?
-      return true;
-    }
+  canLoadSync(pointer: string, options: CodeFileLoaderOptions): boolean {
+    options = this.getMergedOptions(options);
 
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
@@ -104,25 +101,60 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
     return false;
   }
 
-  async resolveGlobs({ globs, ignores }: ResolverGlobs, options: CodeFileLoaderOptions) {
-    return globby(
-      globs.concat(ignores.map(v => `!(${v})`)).map(v => unixify(v)),
-      createGlobbyOptions(options)
-    );
+  async resolveGlobs(glob: string, options: CodeFileLoaderOptions) {
+    options = this.getMergedOptions(options);
+    const ignores = asArray(options.ignore || []);
+    return globby([glob, ...ignores.map(v => `!${v}`).map(v => unixify(v))], createGlobbyOptions(options));
   }
 
-  resolveGlobsSync({ globs, ignores }: ResolverGlobs, options: CodeFileLoaderOptions) {
-    return globby.sync(
-      globs.concat(ignores.map(v => `!(${v})`)).map(v => unixify(v)),
-      createGlobbyOptions(options)
-    );
+  resolveGlobsSync(glob: string, options: CodeFileLoaderOptions) {
+    options = this.getMergedOptions(options);
+    const ignores = asArray(options.ignore || []);
+    return globby.sync([glob, ...ignores.map(v => `!${v}`).map(v => unixify(v))], createGlobbyOptions(options));
   }
 
-  async load(
-    pointer: SchemaPointerSingle | DocumentPointerSingle,
-    options: CodeFileLoaderOptions
-  ): Promise<Source | null> {
-    const normalizedFilePath = ensureAbsolutePath(pointer, options);
+  async load(pointer: string, options: CodeFileLoaderOptions): Promise<Source[]> {
+    options = this.getMergedOptions(options);
+    const finalResult: Source[] = [];
+
+    if (isGlob(pointer)) {
+      const resolvedPaths = await this.resolveGlobs(pointer, options);
+      await Promise.all(
+        resolvedPaths.map(async path => {
+          finalResult.push(...(await this.handleSinglePath(path, options)));
+        })
+      );
+    } else {
+      finalResult.push(...(await this.handleSinglePath(pointer, options)));
+    }
+
+    return finalResult;
+  }
+
+  loadSync(pointer: string, options: CodeFileLoaderOptions): Source[] | null {
+    options = this.getMergedOptions(options);
+    if (isGlob(pointer)) {
+      const resolvedPaths = this.resolveGlobsSync(pointer, options);
+      const finalResult: Source[] = [];
+      for (const path of resolvedPaths) {
+        if (this.canLoadSync(path, options)) {
+          const result = this.handleSinglePathSync(path, options);
+          result?.forEach(result => finalResult.push(result));
+        }
+      }
+      return finalResult;
+    }
+
+    return this.handleSinglePathSync(pointer, options);
+  }
+
+  async handleSinglePath(location: string, options: CodeFileLoaderOptions): Promise<Source[]> {
+    if (!(await this.canLoad(location, options))) {
+      return [];
+    }
+
+    options = this.getMergedOptions(options);
+    const normalizedFilePath = ensureAbsolutePath(location, options);
 
     const errors: Error[] = [];
 
@@ -132,10 +164,11 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
         const sources = await gqlPluckFromCodeString(normalizedFilePath, content, options.pluckConfig);
 
         if (sources.length) {
-          return {
-            document: concatAST(sources.map(source => parse(source, options))),
-            location: pointer,
-          };
+          return sources.map(source => ({
+            document: parse(source, options),
+            location,
+            rawSDL: source.body,
+          }));
         }
       } catch (e) {
         if (env['DEBUG']) {
@@ -152,10 +185,10 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
         }
 
         const loaded = await tryToLoadFromExport(normalizedFilePath);
-        const source = resolveSource(pointer, loaded, options);
+        const source = resolveSource(location, loaded, options);
 
         if (source) {
-          return source;
+          return [source];
         }
       } catch (e) {
         errors.push(e);
@@ -166,11 +199,15 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
       throw errors[0];
     }
 
-    return null;
+    return [];
   }
 
-  loadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: CodeFileLoaderOptions): Source | null {
-    const normalizedFilePath = ensureAbsolutePath(pointer, options);
+  handleSinglePathSync(location: string, options: CodeFileLoaderOptions): Source[] | null {
+    if (!this.canLoadSync(location, options)) {
+      return [];
+    }
+    options = this.getMergedOptions(options);
+    const normalizedFilePath = ensureAbsolutePath(location, options);
 
     const errors: Error[] = [];
 
@@ -180,10 +217,11 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
         const sources = gqlPluckFromCodeStringSync(normalizedFilePath, content, options.pluckConfig);
 
         if (sources.length) {
-          return {
-            document: concatAST(sources.map(source => parse(source, options))),
-            location: pointer,
-          };
+          return sources.map(source => ({
+            document: parse(source, options),
+            location,
+            rawSDL: source.body,
+          }));
         }
       } catch (e) {
         if (env['DEBUG']) {
@@ -203,10 +241,10 @@ export class CodeFileLoader implements UniversalLoader<CodeFileLoaderOptions> {
         }
 
         const loaded = tryToLoadFromExportSync(normalizedFilePath);
-        const source = resolveSource(pointer, loaded, options);
+        const source = resolveSource(location, loaded, options);
 
         if (source) {
-          return source;
+          return [source];
         }
       } catch (e) {
         errors.push(e);
@@ -243,9 +281,6 @@ function resolveSource(
   return null;
 }
 
-function ensureAbsolutePath(
-  pointer: SchemaPointerSingle | DocumentPointerSingle,
-  options: CodeFileLoaderOptions
-): string {
+function ensureAbsolutePath(pointer: string, options: CodeFileLoaderOptions): string {
   return isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
 }

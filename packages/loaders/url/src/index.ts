@@ -6,13 +6,12 @@ import {
   AsyncExecutor,
   Executor,
   SyncExecutor,
-  SchemaPointerSingle,
   Source,
-  DocumentLoader,
-  SingleFileOptions,
+  Loader,
+  BaseLoaderOptions,
   observableToAsyncIterable,
   isAsyncIterable,
-  ExecutionParams,
+  ExecutionRequest,
   mapAsyncIterator,
   withCancel,
   parseGraphQLSDL,
@@ -22,17 +21,26 @@ import { fetch as crossFetch } from 'cross-fetch';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
 import WebSocket from 'isomorphic-ws';
-import syncFetch from 'sync-fetch';
+import syncFetchImported from 'sync-fetch';
 import isPromise from 'is-promise';
 import { extractFiles, isExtractableFile } from 'extract-files';
 import FormData from 'form-data';
-import { fetchEventSource, FetchEventSourceInit } from '@microsoft/fetch-event-source';
+import { fetchEventSource, FetchEventSourceInit } from '@ardatan/fetch-event-source';
 import { ConnectionParamsOptions, SubscriptionClient as LegacySubscriptionClient } from 'subscriptions-transport-ws';
 import AbortController from 'abort-controller';
 import { meros } from 'meros';
 import _ from 'lodash';
 import { ValueOrPromise } from 'value-or-promise';
 import { isLiveQueryOperationDefinitionNode } from '@n1ru4l/graphql-live-query';
+
+const syncFetch: SyncFetchFn = (input: RequestInfo, init?: RequestInit): SyncResponse => {
+  if (typeof input === 'string') {
+    delete init?.signal;
+  } else {
+    delete (input as any).signal;
+  }
+  return syncFetchImported(input, init);
+};
 
 export type AsyncFetchFn = typeof import('cross-fetch').fetch;
 export type SyncFetchFn = (input: RequestInfo, init?: RequestInit) => SyncResponse;
@@ -42,10 +50,8 @@ export type SyncResponse = Omit<Response, 'json' | 'text'> & {
 };
 export type FetchFn = AsyncFetchFn | SyncFetchFn;
 
-// TODO: Should the types here be changed to T extends Record<string, any> ?
-export type AsyncImportFn<T = unknown> = (moduleName: string) => PromiseLike<T>;
-// TODO: Should the types here be changed to T extends Record<string, any> ?
-export type SyncImportFn<T = unknown> = (moduleName: string) => T;
+export type AsyncImportFn = (moduleName: string) => PromiseLike<any>;
+export type SyncImportFn = (moduleName: string) => any;
 
 const asyncImport: AsyncImportFn = (moduleName: string) => import(moduleName);
 const syncImport: SyncImportFn = (moduleName: string) => require(moduleName);
@@ -86,7 +92,7 @@ export enum SubscriptionProtocol {
 /**
  * Additional options for loading from a URL
  */
-export interface LoadFromUrlOptions extends SingleFileOptions, Partial<IntrospectionOptions> {
+export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<IntrospectionOptions> {
   /**
    * Additional headers to include when querying the original schema
    */
@@ -135,6 +141,15 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
   subscriptionsProtocol?: SubscriptionProtocol;
 }
 
+const isCompatibleUri = (uri: string): boolean => {
+  if (isWebUri(uri)) {
+    return true;
+  }
+  // we just replace the url part, the remaining validation is the same
+  const wsUri = uri.replace('wss://', 'http://').replace('ws://', 'http://');
+  return !!isWebUri(wsUri);
+};
+
 /**
  * This loader loads a schema from a URL. The loaded schema is a fully-executable,
  * remote schema since it's created using [@graphql-tools/wrap](/docs/remote-schemas).
@@ -147,17 +162,13 @@ export interface LoadFromUrlOptions extends SingleFileOptions, Partial<Introspec
  * });
  * ```
  */
-export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
-  loaderId(): string {
-    return 'url';
-  }
-
-  async canLoad(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<boolean> {
+export class UrlLoader implements Loader<LoadFromUrlOptions> {
+  async canLoad(pointer: string, options: LoadFromUrlOptions): Promise<boolean> {
     return this.canLoadSync(pointer, options);
   }
 
-  canLoadSync(pointer: SchemaPointerSingle, _options: LoadFromUrlOptions): boolean {
-    return !!isWebUri(pointer);
+  canLoadSync(pointer: string, _options: LoadFromUrlOptions): boolean {
+    return isCompatibleUri(pointer);
   }
 
   createFormDataFromVariables<TVariables>({
@@ -289,12 +300,12 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       variables,
       operationName,
       extensions,
-    }: ExecutionParams<any, any, any, ExecutionExtensions>) => {
+      operationType,
+    }: ExecutionRequest<any, any, any, ExecutionExtensions>) => {
       const controller = new AbortController();
       let method = defaultMethod;
       if (options?.useGETForQueries) {
-        const operationAst = getOperationAST(document, operationName);
-        if (operationAst?.operation === 'query') {
+        if (operationType === 'query') {
           method = 'GET';
         } else {
           method = defaultMethod;
@@ -457,7 +468,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       webSocketImpl
     );
 
-    return async <TReturn, TArgs>({ document, variables, operationName }: ExecutionParams<TArgs>) => {
+    return async <TReturn, TArgs>({ document, variables, operationName }: ExecutionRequest<TArgs>) => {
       return observableToAsyncIterable(
         subscriptionClient.request({
           query: document,
@@ -473,10 +484,10 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     fetch: AsyncFetchFn,
     options?: Omit<LoadFromUrlOptions, 'subscriptionEndpoint'>
   ): AsyncExecutor<any, ExecutionExtensions> {
-    return async ({ document, variables, extensions }) => {
+    return async ({ document, variables, extensions, operationName }) => {
       const controller = new AbortController();
       const query = print(document);
-      const finalUrl = this.prepareGETUrl({ baseUrl: endpoint, query, variables });
+      const finalUrl = this.prepareGETUrl({ baseUrl: endpoint, query, variables, operationName, extensions });
       return observableToAsyncIterable({
         subscribe: observer => {
           const headers = Object.assign({}, options?.headers || {}, extensions?.headers || {});
@@ -531,17 +542,21 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     if (customFetch) {
       if (typeof customFetch === 'string') {
         const [moduleName, fetchFnName] = customFetch.split('#');
-        const moduleResult = importFn(moduleName);
-        if (isPromise(moduleResult)) {
-          return moduleResult.then(module => (fetchFnName ? (module as Record<string, any>)[fetchFnName] : module));
-        } else {
-          return fetchFnName ? (module as Record<string, any>)[fetchFnName] : moduleResult;
-        }
+        return new ValueOrPromise(() => importFn(moduleName))
+          .then(module => (fetchFnName ? (module as Record<string, any>)[fetchFnName] : module))
+          .resolve();
       } else {
         return customFetch as any;
       }
     }
-    return importFn === asyncImport ? (typeof fetch === 'undefined' ? crossFetch : fetch) : syncFetch;
+    if (importFn === asyncImport) {
+      if (typeof fetch === 'undefined') {
+        return crossFetch as any;
+      }
+      return fetch as any;
+    } else {
+      return syncFetch;
+    }
   }
 
   private getDefaultMethodFromOptions(method: LoadFromUrlOptions['method'], defaultMethod: 'GET' | 'POST') {
@@ -561,12 +576,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
   ): typeof WebSocket | PromiseLike<typeof WebSocket> {
     if (typeof options?.webSocketImpl === 'string') {
       const [moduleName, webSocketImplName] = options.webSocketImpl.split('#');
-      const importedModule = importFn(moduleName);
-      if (isPromise(importedModule)) {
-        return importedModule.then(webSocketImplName ? importedModule[webSocketImplName] : importedModule);
-      } else {
-        return webSocketImplName ? (importedModule as Record<string, any>)[webSocketImplName] : importedModule;
-      }
+      return new ValueOrPromise(() => importFn(moduleName))
+        .then(importedModule => (webSocketImplName ? importedModule[webSocketImplName] : importedModule))
+        .resolve();
     } else {
       const websocketImpl = options?.webSocketImpl || WebSocket;
       return websocketImpl;
@@ -603,7 +615,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
         throw new Error(`No valid operations found: ${params.operationName || ''}`);
       }
       if (
-        operationAst.operation === 'subscription' ||
+        params.operationType === 'subscription' ||
         isLiveQueryOperationDefinitionNode(operationAst, params.variables as Record<string, any>)
       ) {
         return subscriptionExecutor(params);
@@ -619,9 +631,9 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
     return executor;
   }
 
-  handleSDL(pointer: SchemaPointerSingle, fetch: SyncFetchFn, options: LoadFromUrlOptions): Source;
-  handleSDL(pointer: SchemaPointerSingle, fetch: AsyncFetchFn, options: LoadFromUrlOptions): Promise<Source>;
-  handleSDL(pointer: SchemaPointerSingle, fetch: FetchFn, options: LoadFromUrlOptions): Source | Promise<Source> {
+  handleSDL(pointer: string, fetch: SyncFetchFn, options: LoadFromUrlOptions): Source;
+  handleSDL(pointer: string, fetch: AsyncFetchFn, options: LoadFromUrlOptions): Promise<Source>;
+  handleSDL(pointer: string, fetch: FetchFn, options: LoadFromUrlOptions): Source | Promise<Source> {
     const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'GET');
     return new ValueOrPromise<any>(() =>
       fetch(pointer, {
@@ -634,7 +646,10 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       .resolve();
   }
 
-  async load(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Promise<Source> {
+  async load(pointer: string, options: LoadFromUrlOptions): Promise<Source[]> {
+    if (!(await this.canLoad(pointer, options))) {
+      return [];
+    }
     let source: Source = {
       location: pointer,
     };
@@ -669,10 +684,14 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       executor,
     });
 
-    return source;
+    return [source];
   }
 
-  loadSync(pointer: SchemaPointerSingle, options: LoadFromUrlOptions): Source {
+  loadSync(pointer: string, options: LoadFromUrlOptions): Source[] {
+    if (!this.canLoadSync(pointer, options)) {
+      return [];
+    }
+
     let source: Source = {
       location: pointer,
     };
@@ -707,7 +726,7 @@ export class UrlLoader implements DocumentLoader<LoadFromUrlOptions> {
       executor,
     });
 
-    return source;
+    return [source];
   }
 }
 

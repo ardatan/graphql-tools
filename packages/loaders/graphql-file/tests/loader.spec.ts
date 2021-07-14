@@ -1,7 +1,6 @@
 import { join } from 'path';
 
 import { print } from 'graphql'
-import { Source } from '@graphql-tools/utils';
 
 import { GraphQLFileLoader } from '../src';
 import { runTests } from '../../../testing/utils';
@@ -12,12 +11,6 @@ describe('GraphQLFileLoader', () => {
   const getPointer = (fileName: string) => {
     return join('packages/loaders/graphql-file/tests/test-files', fileName);
   };
-
-  describe('loaderId', () => {
-    it('should return a loader id', () => {
-      expect(loader.loaderId()).toBeDefined();
-    });
-  });
 
   describe('canLoad', () => {
     runTests({
@@ -52,17 +45,17 @@ describe('GraphQLFileLoader', () => {
       sync: loader.loadSync.bind(loader),
     })(load => {
       it('should load type definitions from a .graphql file', async () => {
-        const result: Source = await load(getPointer('type-defs.graphql'), {});
+        const [result] = await load(getPointer('type-defs.graphql'), {});
         expect(result.document).toBeDefined();
       });
 
       it('should load file from absolute path', async () => {
-        const result: Source = await load(join(process.cwd(), getPointer('type-defs.graphql')), {});
+        const [result] = await load(join(process.cwd(), getPointer('type-defs.graphql')), {});
         expect(result.document).toBeDefined();
       });
 
       it('should load type definitions document with #import expression', async () => {
-        const result: Source = await load(getPointer('type-defs-with-import.graphql'), {});
+        const [result] = await load(getPointer('type-defs-with-import.graphql'), {});
         expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */`
           type Query {
             a: A
@@ -75,7 +68,7 @@ describe('GraphQLFileLoader', () => {
       });
 
       it('should load executable document with #import expression', async () => {
-        const result: Source = await load(getPointer('executable.graphql'), {});
+        const [result] = await load(getPointer('executable.graphql'), {});
         expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */`
           query MyQuery {
             a {

@@ -8,10 +8,11 @@ describe('loadFromCodeFile', () => {
 
   it('Should throw an error when a document is loaded using AST and the document is not valid', async () => {
     try {
-      const loaded = await loader.load('./test-files/invalid-anon-doc.js', {
+      const result = await loader.load('./test-files/invalid-anon-doc.js', {
         noRequire: true,
-        cwd: __dirname
+        cwd: __dirname,
       });
+      const loaded = result?.[0];
       const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
 
       expect(doc).toBeFalsy();
@@ -21,43 +22,60 @@ describe('loadFromCodeFile', () => {
   });
 
   it('should load a valid file', async () => {
-    const loaded = await loader.load('./test-files/valid-doc.js', {
+    const result = await loader.load('./test-files/valid-doc.js', {
       noRequire: true,
-      cwd: __dirname
+      cwd: __dirname,
     });
+    const loaded = result?.[0];
     const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
 
     expect(doc?.kind).toEqual('Document');
   });
 
   it('should consider options.cwd', async () => {
-    const loaded = await loader.load('valid-doc.js', {
+    const result = await loader.load('valid-doc.js', {
       cwd: path.resolve(__dirname, 'test-files'),
       noRequire: true,
     });
+    const loaded = result?.[0];
     const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
 
     expect(doc?.kind).toEqual('Document');
   });
 
   it('should load a TypeScript file using decorator', async () => {
-    const loaded = await loader.load('./test-files/with-decorator-doc.ts', {
+    const result = await loader.load('./test-files/with-decorator-doc.ts', {
       noRequire: true,
-      cwd: __dirname
+      cwd: __dirname,
     });
+    const loaded = result?.[0];
     const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
 
     expect(doc?.kind).toEqual('Document');
   });
 
   it('should support string interpolation', async () => {
-    const loaded = await loader.load('./test-files/string-interpolation.js', {
-      cwd: __dirname
+    const result = await loader.load('./test-files/string-interpolation.js', {
+      cwd: __dirname,
     });
+    const loaded = result?.[0];
     const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
 
     expect(doc?.kind).toEqual('Document');
   });
+
+
+  it('does not try to load single file it cannot load', async () => {
+    const loader = new CodeFileLoader({
+      pluckConfig: {
+        skipIndent: true
+      }
+    })
+    const loaded = await loader.load('./test-files/other.graphql', {
+      cwd: __dirname,
+    });
+    expect(loaded).toEqual([])
+  })
 });
 
 describe('loadFromCodeFileSync', () => {
@@ -65,43 +83,120 @@ describe('loadFromCodeFileSync', () => {
 
   it('Should throw an error when a document is loaded using AST and the document is not valid', () => {
     expect(() => {
-      const loaded = loader.loadSync('./test-files/invalid-anon-doc.js', {
+      const result = loader.loadSync('./test-files/invalid-anon-doc.js', {
         noRequire: true,
-        cwd: __dirname
+        cwd: __dirname,
       });
+      const loaded = result?.[0];
       const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
 
       expect(doc?.kind).toEqual('Document');
-    }).toThrowError('Syntax Error: Unexpected Name "InvalidGetUser"')
+    }).toThrowError('Syntax Error: Unexpected Name "InvalidGetUser"');
   });
 
   it('should load a valid file', () => {
-    const loaded = loader.loadSync('./test-files/valid-doc.js', {
+    const result = loader.loadSync('./test-files/valid-doc.js', {
       noRequire: true,
-      cwd: __dirname
+      cwd: __dirname,
     });
+    const loaded = result?.[0];
     const doc = loaded?.document;
 
     expect(doc?.kind).toEqual('Document');
   });
 
   it('should consider options.cwd', () => {
-    const loaded = loader.loadSync('valid-doc.js', {
+    const result = loader.loadSync('valid-doc.js', {
       cwd: path.resolve(__dirname, 'test-files'),
       noRequire: true,
     });
+    const loaded = result?.[0];
     const doc = loaded?.document;
 
     expect(doc?.kind).toEqual('Document');
   });
 
   it('should support string interpolation', () => {
-    const loaded = loader.loadSync('./test-files/string-interpolation.js', {
-      cwd: __dirname
+    const result = loader.loadSync('./test-files/string-interpolation.js', {
+      cwd: __dirname,
     });
 
+    const loaded = result?.[0];
     const doc = loaded?.document;
 
     expect(doc?.kind).toEqual('Document');
   });
+
+  it('should support loading many in same file', () => {
+    const loaded = loader.loadSync('./test-files/multiple-from-file.ts', {
+      cwd: __dirname,
+      pluckConfig: {
+        skipIndent: true,
+      },
+    });
+    expect(loaded?.length).toEqual(3);
+    expect(loaded?.[0].rawSDL).toBeDefined();
+    expect(loaded?.[0].rawSDL).toMatchInlineSnapshot(`
+      "
+        query Foo {
+          Tweets {
+            id
+          }
+        }
+      "
+    `);
+    expect(loaded?.[1].rawSDL).toBeDefined();
+    expect(loaded?.[1].rawSDL).toMatchInlineSnapshot(`
+      "
+        fragment Lel on Tweet {
+          id
+          body
+        }
+      "
+    `);
+    expect(loaded?.[2].rawSDL).toBeDefined();
+    expect(loaded?.[2].rawSDL).toMatchInlineSnapshot(`
+      "
+        query Bar {
+          Tweets {
+            ...Lel
+          }
+        }
+      "
+    `);
+  });
+
+  it('can inherit config options from constructor', () => {
+    const loader = new CodeFileLoader({
+      pluckConfig: {
+        skipIndent: true
+      }
+    })
+    const loaded = loader.loadSync('./test-files/multiple-from-file.ts', {
+      cwd: __dirname,
+    });
+    expect(loaded?.length).toEqual(3);
+    expect(loaded?.[0].rawSDL).toBeDefined();
+    expect(loaded?.[0].rawSDL).toMatchInlineSnapshot(`
+      "
+        query Foo {
+          Tweets {
+            id
+          }
+        }
+      "
+    `);
+  })
+
+  it('does not try to load single file it cannot load', async () => {
+    const loader = new CodeFileLoader({
+      pluckConfig: {
+        skipIndent: true
+      }
+    })
+    const loaded = loader.loadSync('./test-files/other.graphql', {
+      cwd: __dirname,
+    });
+    expect(loaded).toEqual([])
+  })
 });

@@ -3,7 +3,6 @@ import {
   GraphQLField,
   GraphQLInputType,
   GraphQLNamedType,
-  GraphQLFieldResolver,
   GraphQLResolveInfo,
   GraphQLScalarType,
   DocumentNode,
@@ -19,8 +18,6 @@ import {
   GraphQLDirective,
   FragmentDefinitionNode,
   SelectionNode,
-  OperationDefinitionNode,
-  GraphQLError,
   ExecutionResult as GraphQLExecutionResult,
   GraphQLOutputType,
   FieldDefinitionNode,
@@ -48,6 +45,7 @@ import {
   GraphQLType,
   Source,
   DefinitionNode,
+  OperationTypeNode,
 } from 'graphql';
 
 // graphql-js < v15 backwards compatible ExecutionResult
@@ -58,20 +56,25 @@ export interface ExecutionResult<TData = Record<string, any>> extends GraphQLExe
   extensions?: Record<string, any>;
 }
 
-// graphql-js non-exported typings
-
-export type TypeMap = Record<string, GraphQLNamedType>;
-
-export interface GraphQLExecutionContext {
-  schema: GraphQLSchema;
-  fragments: Record<string, FragmentDefinitionNode>;
-  rootValue: any;
-  contextValue: any;
-  operation: OperationDefinitionNode;
-  variableValues: Record<string, any>;
-  fieldResolver: GraphQLFieldResolver<any, any>;
-  errors: Array<GraphQLError>;
+export interface ExecutionRequest<
+  TArgs extends Record<string, any> = Record<string, any>,
+  TContext = any,
+  TRootValue = any,
+  TExtensions = Record<string, any>
+> {
+  document: DocumentNode;
+  operationType: OperationTypeNode;
+  variables?: TArgs;
+  extensions?: TExtensions;
+  operationName?: string;
+  // If the request will be executed locally, it may contain a rootValue
+  rootValue?: TRootValue;
+  // If the request originates within execution of a parent request, it may contain the parent context and info
+  context?: TContext;
+  info?: GraphQLResolveInfo;
 }
+
+// graphql-js non-exported typings
 
 export interface GraphQLParseOptions {
   noLocation?: boolean;
@@ -308,13 +311,6 @@ export type IFieldIteratorFn = (fieldDef: GraphQLField<any, any>, typeName: stri
 export type IDefaultValueIteratorFn = (type: GraphQLInputType, value: any) => void;
 
 export type NextResolverFn = () => Promise<any>;
-
-export interface Request {
-  document: DocumentNode;
-  variables: Record<string, any>;
-  operationName?: string;
-  extensions?: Record<string, any>;
-}
 
 export type VisitableSchemaType =
   | GraphQLSchema

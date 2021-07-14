@@ -32,12 +32,13 @@
   "dependencies": {
     "@graphql-tools/graphql-tag-pluck": "^6.2.6",
     "@graphql-tools/utils": "^7.0.0",
+    "is-glob": "4.0.1",
     "micromatch": "^4.0.4",
     "tslib": "~2.3.0",
     "unixify": "^1.0.0"
   },
   "devDependencies": {
-    "@types/micromatch": "latest"
+    "@types/micromatch": "4.0.1"
   },
   "publishConfig": {
     "access": "public",

@@ -17,8 +17,7 @@ import {
 
 import { cloneSubschemaConfig, SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 import {
-  assertSome,
-  getDirectives,
+  getDirective,
   getImplementingTypes,
   MapperKind,
   mapSchema,
@@ -74,45 +73,48 @@ export function stitchingDirectivesTransformer(
 
     mapSchema(schema, {
       [MapperKind.OBJECT_TYPE]: type => {
-        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
-
-        if (keyDirectiveName != null && directives[keyDirectiveName] != null) {
-          const keyDirective = directives[keyDirectiveName];
-          const selectionSet = parseSelectionSet(keyDirective.selectionSet, { noLocation: true });
+        const keyDirective = getDirective(schema, type, keyDirectiveName, pathToDirectivesInExtensions)?.[0];
+        if (keyDirective != null) {
+          const selectionSet = parseSelectionSet(keyDirective['selectionSet'], { noLocation: true });
           selectionSetsByType[type.name] = selectionSet;
         }
 
-        if (canonicalDirectiveName != null && directives[canonicalDirectiveName]) {
+        const canonicalDirective = getDirective(
+          schema,
+          type,
+          canonicalDirectiveName,
+          pathToDirectivesInExtensions
+        )?.[0];
+        if (canonicalDirective != null) {
           setCanonicalDefinition(type.name);
         }
-
         return undefined;
       },
       [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
-        const directives = getDirectives(schema, fieldConfig, pathToDirectivesInExtensions);
-
-        if (computedDirectiveName != null && directives[computedDirectiveName] != null) {
-          const computedDirective = directives[computedDirectiveName];
-          const selectionSet = parseSelectionSet(computedDirective.selectionSet, { noLocation: true });
+        const computedDirective = getDirective(
+          schema,
+          fieldConfig,
+          computedDirectiveName,
+          pathToDirectivesInExtensions
+        )?.[0];
+        if (computedDirective != null) {
+          const selectionSet = parseSelectionSet(computedDirective['selectionSet'], { noLocation: true });
           if (!computedFieldSelectionSets[typeName]) {
             computedFieldSelectionSets[typeName] = Object.create(null);
           }
           computedFieldSelectionSets[typeName][fieldName] = selectionSet;
         }
 
-        if (
-          mergeDirectiveName != null &&
-          directives[mergeDirectiveName] != null &&
-          directives[mergeDirectiveName].keyField
-        ) {
-          const mergeDirectiveKeyField = directives[mergeDirectiveName].keyField;
+        const mergeDirective = getDirective(schema, fieldConfig, mergeDirectiveName, pathToDirectivesInExtensions)?.[0];
+        if (mergeDirective?.['keyField'] != null) {
+          const mergeDirectiveKeyField = mergeDirective['keyField'];
           const selectionSet = parseSelectionSet(`{ ${mergeDirectiveKeyField}}`, { noLocation: true });
 
-          const typeNames: Array<string> = directives[mergeDirectiveName].types;
+          const typeNames: Array<string> = mergeDirective['types'];
 
           const returnType = getNamedType(fieldConfig.type);
 
-          forEachConcreteType(schema, returnType, directives[mergeDirectiveName]?.types, typeName => {
+          forEachConcreteType(schema, returnType, typeNames, typeName => {
             if (typeNames == null || typeNames.includes(typeName)) {
               const existingSelectionSet = selectionSetsByType[typeName];
               selectionSetsByType[typeName] = existingSelectionSet
@@ -122,70 +124,111 @@ export function stitchingDirectivesTransformer(
           });
         }
 
-        if (canonicalDirectiveName != null && directives[canonicalDirectiveName] != null) {
+        const canonicalDirective = getDirective(
+          schema,
+          fieldConfig,
+          canonicalDirectiveName,
+          pathToDirectivesInExtensions
+        )?.[0];
+        if (canonicalDirective != null) {
           setCanonicalDefinition(typeName, fieldName);
         }
 
         return undefined;
       },
       [MapperKind.INTERFACE_TYPE]: type => {
-        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
+        const canonicalDirective = getDirective(
+          schema,
+          type,
+          canonicalDirectiveName,
+          pathToDirectivesInExtensions
+        )?.[0];
 
-        if (canonicalDirectiveName != null && directives[canonicalDirectiveName] != null) {
+        if (canonicalDirective) {
           setCanonicalDefinition(type.name);
         }
 
         return undefined;
       },
       [MapperKind.INTERFACE_FIELD]: (fieldConfig, fieldName, typeName) => {
-        const directives = getDirectives(schema, fieldConfig, pathToDirectivesInExtensions);
+        const canonicalDirective = getDirective(
+          schema,
+          fieldConfig,
+          canonicalDirectiveName,
+          pathToDirectivesInExtensions
+        )?.[0];
 
-        if (canonicalDirectiveName != null && directives[canonicalDirectiveName]) {
+        if (canonicalDirective) {
           setCanonicalDefinition(typeName, fieldName);
         }
 
         return undefined;
       },
       [MapperKind.INPUT_OBJECT_TYPE]: type => {
-        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
+        const canonicalDirective = getDirective(
+          schema,
+          type,
+          canonicalDirectiveName,
+          pathToDirectivesInExtensions
+        )?.[0];
 
-        if (canonicalDirectiveName != null && directives[canonicalDirectiveName] != null) {
+        if (canonicalDirective) {
           setCanonicalDefinition(type.name);
         }
 
         return undefined;
       },
       [MapperKind.INPUT_OBJECT_FIELD]: (inputFieldConfig, fieldName, typeName) => {
-        const directives = getDirectives(schema, inputFieldConfig, pathToDirectivesInExtensions);
+        const canonicalDirective = getDirective(
+          schema,
+          inputFieldConfig,
+          canonicalDirectiveName,
+          pathToDirectivesInExtensions
+        )?.[0];
 
-        if (canonicalDirectiveName != null && directives[canonicalDirectiveName] != null) {
+        if (canonicalDirective != null) {
           setCanonicalDefinition(typeName, fieldName);
         }
 
         return undefined;
       },
       [MapperKind.UNION_TYPE]: type => {
-        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
+        const canonicalDirective = getDirective(
+          schema,
+          type,
+          canonicalDirectiveName,
+          pathToDirectivesInExtensions
+        )?.[0];
 
-        if (canonicalDirectiveName != null && directives[canonicalDirectiveName] != null) {
+        if (canonicalDirective != null) {
           setCanonicalDefinition(type.name);
         }
 
         return undefined;
       },
       [MapperKind.ENUM_TYPE]: type => {
-        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
+        const canonicalDirective = getDirective(
+          schema,
+          type,
+          canonicalDirectiveName,
+          pathToDirectivesInExtensions
+        )?.[0];
 
-        if (canonicalDirectiveName != null && directives[canonicalDirectiveName] != null) {
+        if (canonicalDirective != null) {
           setCanonicalDefinition(type.name);
         }
 
         return undefined;
       },
       [MapperKind.SCALAR_TYPE]: type => {
-        const directives = getDirectives(schema, type, pathToDirectivesInExtensions);
+        const canonicalDirective = getDirective(
+          schema,
+          type,
+          canonicalDirectiveName,
+          pathToDirectivesInExtensions
+        )?.[0];
 
-        if (canonicalDirectiveName != null && directives[canonicalDirectiveName] != null) {
+        if (canonicalDirective != null) {
           setCanonicalDefinition(type.name);
         }
 
@@ -249,23 +292,21 @@ export function stitchingDirectivesTransformer(
 
     mapSchema(schema, {
       [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName) => {
-        const directives = getDirectives(schema, fieldConfig, pathToDirectivesInExtensions);
+        const mergeDirective = getDirective(schema, fieldConfig, mergeDirectiveName, pathToDirectivesInExtensions)?.[0];
 
-        if (mergeDirectiveName != null && directives[mergeDirectiveName] != null) {
-          const directiveArgumentMap = directives[mergeDirectiveName];
-
+        if (mergeDirective != null) {
           const returnType = getNullableType(fieldConfig.type);
           const returnsList = isListType(returnType);
           const namedType = getNamedType(returnType);
 
-          let mergeArgsExpr: string = directiveArgumentMap.argsExpr;
+          let mergeArgsExpr: string = mergeDirective['argsExpr'];
 
           if (mergeArgsExpr == null) {
-            const key: Array<string> = directiveArgumentMap.key;
-            const keyField: string = directiveArgumentMap.keyField;
+            const key: Array<string> = mergeDirective['key'];
+            const keyField: string = mergeDirective['keyField'];
             const keyExpr = key != null ? buildKeyExpr(key) : keyField != null ? `$key.${keyField}` : '$key';
 
-            const keyArg: string = directiveArgumentMap.keyArg;
+            const keyArg: string = mergeDirective['keyArg'];
             const argNames = keyArg == null ? [Object.keys(fieldConfig.args ?? {})[0]] : keyArg.split('.');
 
             const lastArgName = argNames.pop();
@@ -276,7 +317,7 @@ export function stitchingDirectivesTransformer(
             }
           }
 
-          const typeNames: Array<string> = directiveArgumentMap.types;
+          const typeNames: Array<string> = mergeDirective['types'];
 
           forEachConcreteTypeName(namedType, schema, typeNames, typeName => {
             const parsedMergeArgsExpr = parseMergeArgsExpr(
@@ -286,12 +327,12 @@ export function stitchingDirectivesTransformer(
                 : mergeSelectionSets(...allSelectionSetsByType[typeName])
             );
 
-            const additionalArgs = directiveArgumentMap.additionalArgs;
+            const additionalArgs = mergeDirective['additionalArgs'];
             if (additionalArgs != null) {
-              parsedMergeArgsExpr.args = mergeDeep(
+              parsedMergeArgsExpr.args = mergeDeep([
                 parsedMergeArgsExpr.args,
-                valueFromASTUntyped(parseValue(`{ ${additionalArgs} }`, { noLocation: true }))
-              );
+                valueFromASTUntyped(parseValue(`{ ${additionalArgs} }`, { noLocation: true })),
+              ]);
             }
 
             mergedTypesResolversInfo[typeName] = {
@@ -432,13 +473,13 @@ function generateArgsFromKeysFn(
 ): (keys: ReadonlyArray<any>) => Record<string, any> {
   const { expansions, args } = mergedTypeResolverInfo;
   return (keys: ReadonlyArray<any>): Record<string, any> => {
-    const newArgs = mergeDeep({}, args);
+    const newArgs = mergeDeep([{}, args]);
     if (expansions) {
       for (const expansion of expansions) {
         const mappingInstructions = expansion.mappingInstructions;
         const expanded: Array<any> = [];
         for (const key of keys) {
-          let newValue = mergeDeep({}, expansion.valuePath);
+          let newValue = mergeDeep([{}, expansion.valuePath]);
           for (const { destinationPath, sourcePath } of mappingInstructions) {
             if (destinationPath.length) {
               addProperty(newValue, destinationPath, getProperty(key, sourcePath));
@@ -459,7 +500,7 @@ function generateArgsFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (origin
   const { mappingInstructions, args, usedProperties } = mergedTypeResolverInfo;
 
   return (originalResult: any): Record<string, any> => {
-    const newArgs = mergeDeep({}, args);
+    const newArgs = mergeDeep([{}, args]);
     const filteredResult = getProperties(originalResult, usedProperties);
     if (mappingInstructions) {
       for (const mappingInstruction of mappingInstructions) {
@@ -483,13 +524,15 @@ function buildKeyExpr(key: Array<string>): string {
     }
     const aliasParts = aliasPath.split('.');
     const lastAliasPart = aliasParts.pop();
-    assertSome(lastAliasPart);
+    if (lastAliasPart == null) {
+      throw new Error(`Key "${key}" is invalid, no path provided.`);
+    }
     let object: Record<string, unknown> = { [lastAliasPart]: `$key.${keyPath}` };
 
     for (const aliasPart of aliasParts.reverse()) {
       object = { [aliasPart]: object };
     }
-    mergedObject = mergeDeep(mergedObject, object);
+    mergedObject = mergeDeep([mergedObject, object]);
   }
 
   return JSON.stringify(mergedObject).replace(/"/g, '');

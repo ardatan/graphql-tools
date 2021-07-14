@@ -38,55 +38,8 @@ module.exports = {
         },
       ],
     },
-    footer: {
-      style: 'dark',
-      links: [
-        /* {
-          title: 'Docs',
-          items: [
-            {
-              label: 'Style Guide',
-              to: 'docs/doc1'
-            },
-            {
-              label: 'Second Doc',
-              to: 'docs/doc2'
-            }
-          ]
-        }, */
-        {
-          title: 'Community',
-          items: [
-            {
-              label: 'Discord',
-              href: 'http://bit.ly/guild-chat',
-            },
-            {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/graphql-tools',
-            },
-          ],
-        },
-        {
-          title: 'Social',
-          items: [
-            {
-              label: 'GitHub',
-              href: 'https://github.com/Urigo/graphql-tools/',
-            },
-            {
-              label: 'Twitter',
-              href: 'https://twitter.com/TheGuildDev',
-            },
-          ],
-        },
-      ],
-      copyright: `Copyright © ${new Date().getFullYear()} The Guild, Inc. Built with Docusaurus.`,
-    },
   },
-  scripts: [
-    'https://the-guild.dev/static/crisp.js'
-  ],
+  scripts: ['https://the-guild.dev/static/crisp.js'],
   presets: [
     [
       '@docusaurus/preset-classic',

@@ -30,8 +30,6 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "devDependencies": {
-    "@types/is-glob": "4.0.1",
-    "@types/valid-url": "1.0.3",
     "graphql-tag": "2.12.5",
     "graphql-type-json": "0.3.2"
   },
@@ -39,10 +37,8 @@
     "@graphql-tools/utils": "^7.5.0",
     "@graphql-tools/merge": "^6.2.12",
     "import-from": "4.0.0",
-    "is-glob": "4.0.1",
     "p-limit": "3.1.0",
-    "tslib": "~2.3.0",
-    "valid-url": "1.0.9"
+    "tslib": "~2.3.0"
   },
   "publishConfig": {
     "access": "public",

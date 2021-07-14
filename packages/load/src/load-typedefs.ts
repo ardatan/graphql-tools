@@ -1,4 +1,4 @@
-import { Source, SingleFileOptions, Loader, compareStrings } from '@graphql-tools/utils';
+import { Source, BaseLoaderOptions, Loader, compareStrings, asArray } from '@graphql-tools/utils';
 import { normalizePointers } from './utils/pointers';
 import { applyDefaultOptions } from './load-typedefs/options';
 import { collectSources, collectSourcesSync } from './load-typedefs/collect-sources';
@@ -7,12 +7,11 @@ import { useLimit } from './utils/helpers';
 
 const CONCURRENCY_LIMIT = 100;
 
-export type LoadTypedefsOptions<ExtraConfig = { [key: string]: any }> = SingleFileOptions &
+export type LoadTypedefsOptions<ExtraConfig = { [key: string]: any }> = BaseLoaderOptions &
   ExtraConfig & {
     cache?: { [key: string]: Source };
     loaders: Loader[];
     filterKinds?: string[];
-    ignore?: string | string[];
     sort?: boolean;
   };
 
@@ -29,8 +28,10 @@ export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
   options: LoadTypedefsOptions<Partial<AdditionalConfig>>
 ): Promise<Source[]> {
-  const pointerOptionMap = normalizePointers(pointerOrPointers);
-  const globOptions: any = {};
+  const { ignore, pointerOptionMap } = normalizePointers(pointerOrPointers);
+
+  options.ignore = asArray(options.ignore || []);
+  options.ignore.push(...ignore);
 
   applyDefaultOptions<AdditionalConfig>(options);
 
@@ -50,7 +51,6 @@ export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
         parseSource({
           partialSource,
           options,
-          globOptions,
           pointerOptionMap,
           addValidSource(source) {
             validSources.push(source);
@@ -74,8 +74,10 @@ export function loadTypedefsSync<AdditionalConfig = Record<string, unknown>>(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
   options: LoadTypedefsOptions<Partial<AdditionalConfig>>
 ): Source[] {
-  const pointerOptionMap = normalizePointers(pointerOrPointers);
-  const globOptions: any = {};
+  const { ignore, pointerOptionMap } = normalizePointers(pointerOrPointers);
+
+  options.ignore = asArray(options.ignore || []);
+  options.ignore.push(...ignore);
 
   applyDefaultOptions<AdditionalConfig>(options);
 
@@ -90,7 +92,6 @@ export function loadTypedefsSync<AdditionalConfig = Record<string, unknown>>(
     parseSource({
       partialSource,
       options,
-      globOptions,
       pointerOptionMap,
       addValidSource(source) {
         validSources.push(source);

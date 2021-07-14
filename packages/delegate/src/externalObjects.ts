@@ -1,9 +1,10 @@
 import { GraphQLSchema, GraphQLError, GraphQLObjectType, SelectionSetNode, locatedError } from 'graphql';
 
-import { mergeDeep, relocatedError, GraphQLExecutionContext, collectFields } from '@graphql-tools/utils';
+import { relocatedError } from '@graphql-tools/utils';
 
 import { SubschemaConfig, ExternalObject } from './types';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
 
 export function isExternalObject(data: any): data is ExternalObject {
   return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
@@ -50,7 +51,7 @@ export function mergeExternalObjects(
           schema,
           variableValues: {},
           fragments: {},
-        } as GraphQLExecutionContext,
+        } as ExecutionContext,
         schema.getType(typeName) as GraphQLObjectType,
         selectionSet,
         Object.create(null),
@@ -73,16 +74,17 @@ export function mergeExternalObjects(
     }
   }
 
-  const combinedResult: ExternalObject = results.reduce(mergeDeep, target);
+  const combinedResult: ExternalObject = Object.assign({}, target, ...results);
 
-  const newFieldSubschemaMap = results.reduce((newFieldSubschemaMap, source) => {
+  const newFieldSubschemaMap = target[FIELD_SUBSCHEMA_MAP_SYMBOL] ?? Object.create(null);
+
+  for (const source of results) {
     const objectSubschema = source[OBJECT_SUBSCHEMA_SYMBOL];
     const fieldSubschemaMap = source[FIELD_SUBSCHEMA_MAP_SYMBOL];
     for (const responseKey in source) {
       newFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
     }
-    return newFieldSubschemaMap;
-  }, target[FIELD_SUBSCHEMA_MAP_SYMBOL] ?? Object.create(null));
+  }
 
   combinedResult[FIELD_SUBSCHEMA_MAP_SYMBOL] = newFieldSubschemaMap;
   combinedResult[OBJECT_SUBSCHEMA_SYMBOL] = target[OBJECT_SUBSCHEMA_SYMBOL];

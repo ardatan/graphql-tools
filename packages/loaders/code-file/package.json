@@ -27,7 +27,7 @@
     "definition": "dist/index.d.ts"
   },
   "devDependencies": {
-    "@types/is-glob": "4.0.1"
+    "@types/is-glob": "4.0.2"
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0"

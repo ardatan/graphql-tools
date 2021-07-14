@@ -25,9 +25,9 @@ import {
   isSpecifiedScalarType,
   isSpecifiedDirective,
 } from 'graphql';
+import { TypeMap } from 'graphql/type/schema';
 
 import { getBuiltInForStub, isNamedStub } from './stub';
-import { TypeMap } from './Interfaces';
 
 export function rewireTypes(
   originalTypeMap: Record<string, GraphQLNamedType | null>,

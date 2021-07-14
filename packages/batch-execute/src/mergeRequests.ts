@@ -15,10 +15,9 @@ import {
   ASTKindToNode,
   InlineFragmentNode,
   FieldNode,
-  OperationTypeNode,
 } from 'graphql';
 
-import { ExecutionParams, Maybe } from '@graphql-tools/utils';
+import { ExecutionRequest } from '@graphql-tools/utils';
 
 import { createPrefix } from './prefix';
 
@@ -56,25 +55,22 @@ import { createPrefix } from './prefix';
  *     }
  *   }
  */
-export function mergeExecutionParams(
-  execs: Array<ExecutionParams>,
-  extensionsReducer: (mergedExtensions: Record<string, any>, executionParams: ExecutionParams) => Record<string, any>
-): ExecutionParams {
+export function mergeRequests(
+  requests: Array<ExecutionRequest>,
+  extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
+): ExecutionRequest {
   const mergedVariables: Record<string, any> = Object.create(null);
   const mergedVariableDefinitions: Array<VariableDefinitionNode> = [];
   const mergedSelections: Array<SelectionNode> = [];
   const mergedFragmentDefinitions: Array<FragmentDefinitionNode> = [];
   let mergedExtensions: Record<string, any> = Object.create(null);
 
-  let operation: Maybe<OperationTypeNode>;
+  for (const index in requests) {
+    const request = requests[index];
+    const prefixedRequests = prefixRequest(createPrefix(index), request);
 
-  for (const index in execs) {
-    const executionParams = execs[index];
-    const prefixedExecutionParams = prefixExecutionParams(createPrefix(index), executionParams);
-
-    for (const def of prefixedExecutionParams.document.definitions) {
+    for (const def of prefixedRequests.document.definitions) {
       if (isOperationDefinition(def)) {
-        operation = def.operation;
         mergedSelections.push(...def.selectionSet.selections);
         if (def.variableDefinitions) {
           mergedVariableDefinitions.push(...def.variableDefinitions);
@@ -84,17 +80,13 @@ export function mergeExecutionParams(
         mergedFragmentDefinitions.push(def);
       }
     }
-    Object.assign(mergedVariables, prefixedExecutionParams.variables);
-    mergedExtensions = extensionsReducer(mergedExtensions, executionParams);
-  }
-
-  if (operation == null) {
-    throw new Error('Could not identify operation type. Did the document only include fragment definitions?');
+    Object.assign(mergedVariables, prefixedRequests.variables);
+    mergedExtensions = extensionsReducer(mergedExtensions, request);
   }
 
   const mergedOperationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
-    operation,
+    operation: requests[0].operationType,
     variableDefinitions: mergedVariableDefinitions,
     selectionSet: {
       kind: Kind.SELECTION_SET,
@@ -109,18 +101,19 @@ export function mergeExecutionParams(
     },
     variables: mergedVariables,
     extensions: mergedExtensions,
-    context: execs[0].context,
-    info: execs[0].info,
+    context: requests[0].context,
+    info: requests[0].info,
+    operationType: requests[0].operationType,
   };
 }
 
-function prefixExecutionParams(prefix: string, executionParams: ExecutionParams): ExecutionParams {
-  let document = aliasTopLevelFields(prefix, executionParams.document);
-  const executionVariables = executionParams.variables ?? {};
+function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequest {
+  let document = aliasTopLevelFields(prefix, request.document);
+  const executionVariables = request.variables ?? {};
   const variableNames = Object.keys(executionVariables);
 
   if (variableNames.length === 0) {
-    return { ...executionParams, document };
+    return { ...request, document };
   }
 
   document = visit(document, {
@@ -137,6 +130,7 @@ function prefixExecutionParams(prefix: string, executionParams: ExecutionParams)
   return {
     document,
     variables: prefixedVariables,
+    operationType: request.operationType,
   };
 }
 

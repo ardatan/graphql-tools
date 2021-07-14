@@ -15,8 +15,8 @@ import {
   TypeNameMetaFieldDef,
 } from 'graphql';
 
-import { Request, GraphQLExecutionContext, ExecutionResult } from './Interfaces';
-import { collectFields } from './collectFields';
+import { ExecutionRequest, ExecutionResult } from './Interfaces';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
 import { Maybe } from '@graphql-tools/utils';
 
 export type ValueVisitor = (value: any) => any;
@@ -77,7 +77,7 @@ export function visitErrors(
 }
 export function visitResult(
   result: ExecutionResult,
-  request: Request,
+  request: ExecutionRequest,
   schema: GraphQLSchema,
   resultVisitorMap?: ResultVisitorMap,
   errorVisitorMap?: ErrorVisitorMap
@@ -91,7 +91,7 @@ export function visitResult(
       return acc;
     }, {}),
     variableValues: request.variables,
-  } as GraphQLExecutionContext;
+  } as ExecutionContext;
 
   const errorInfo: ErrorInfo = {
     segmentInfoMap: new Map<GraphQLError, Array<SegmentInfo>>(),
@@ -157,7 +157,7 @@ function visitErrorsByType(
 function visitRoot(
   root: any,
   operation: OperationDefinitionNode,
-  exeContext: GraphQLExecutionContext,
+  exeContext: ExecutionContext,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   errors: Maybe<ReadonlyArray<GraphQLError>>,
   errorInfo: ErrorInfo
@@ -178,7 +178,7 @@ function visitObjectValue(
   object: Record<string, any>,
   type: GraphQLObjectType,
   fieldNodeMap: Record<string, Array<FieldNode>>,
-  exeContext: GraphQLExecutionContext,
+  exeContext: ExecutionContext,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   pathIndex: number,
   errors: Maybe<ReadonlyArray<GraphQLError>>,
@@ -279,7 +279,7 @@ function visitListValue(
   list: Array<any>,
   returnType: GraphQLOutputType,
   fieldNodes: Array<FieldNode>,
-  exeContext: GraphQLExecutionContext,
+  exeContext: ExecutionContext,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   pathIndex: number,
   errors: ReadonlyArray<GraphQLError>,
@@ -294,7 +294,7 @@ function visitFieldValue(
   value: any,
   returnType: GraphQLOutputType,
   fieldNodes: Array<FieldNode>,
-  exeContext: GraphQLExecutionContext,
+  exeContext: ExecutionContext,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   pathIndex: number,
   errors: ReadonlyArray<GraphQLError> | undefined = [],
@@ -398,7 +398,7 @@ function addPathSegmentInfo(
 }
 
 function collectSubFields(
-  exeContext: GraphQLExecutionContext,
+  exeContext: ExecutionContext,
   type: GraphQLObjectType,
   fieldNodes: Array<FieldNode>
 ): Record<string, Array<FieldNode>> {

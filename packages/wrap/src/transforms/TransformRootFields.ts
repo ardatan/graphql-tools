@@ -1,6 +1,6 @@
 import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
 
-import { Request, ExecutionResult, assertSome } from '@graphql-tools/utils';
+import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -19,8 +19,13 @@ export default class TransformRootFields implements Transform {
   }
 
   private _getTransformer() {
-    assertSome(this.transformer);
-    return this.transformer;
+    const transformer = this.transformer;
+    if (transformer === undefined) {
+      throw new Error(
+        `The TransformRootFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+      );
+    }
+    return transformer;
   }
 
   public transformSchema(
@@ -28,24 +33,20 @@ export default class TransformRootFields implements Transform {
     subschemaConfig: SubschemaConfig,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
-    const queryTypeName = originalWrappingSchema.getQueryType()?.name;
-    const mutationTypeName = originalWrappingSchema.getMutationType()?.name;
-    const subscriptionTypeName = originalWrappingSchema.getSubscriptionType()?.name;
-
     const rootToObjectFieldTransformer = (
       typeName: string,
       fieldName: string,
       fieldConfig: GraphQLFieldConfig<any, any>
     ) => {
-      if (typeName === queryTypeName) {
+      if (typeName === originalWrappingSchema.getQueryType()?.name) {
         return this.rootFieldTransformer('Query', fieldName, fieldConfig);
       }
 
-      if (typeName === mutationTypeName) {
+      if (typeName === originalWrappingSchema.getMutationType()?.name) {
         return this.rootFieldTransformer('Mutation', fieldName, fieldConfig);
       }
 
-      if (typeName === subscriptionTypeName) {
+      if (typeName === originalWrappingSchema.getSubscriptionType()?.name) {
         return this.rootFieldTransformer('Subscription', fieldName, fieldConfig);
       }
 
@@ -58,10 +59,10 @@ export default class TransformRootFields implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     return this._getTransformer().transformRequest(originalRequest, delegationContext, transformationContext);
   }
 

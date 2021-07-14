@@ -14,13 +14,12 @@ import {
 } from 'graphql';
 
 import {
-  Request,
+  ExecutionRequest,
   ExecutionResult,
   visitResult,
   ResultVisitorMap,
   updateArgument,
   transformInputValue,
-  assertSome,
 } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
@@ -28,7 +27,7 @@ import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/de
 import { LeafValueTransformer } from '../types';
 
 export interface MapLeafValuesTransformationContext {
-  transformedRequest: Request;
+  transformedRequest: ExecutionRequest;
 }
 
 export default class MapLeafValues implements Transform<MapLeafValuesTransformationContext> {
@@ -45,13 +44,23 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
   }
 
   private _getTypeInfo() {
-    assertSome(this.typeInfo);
-    return this.typeInfo;
+    const typeInfo = this.typeInfo;
+    if (typeInfo === undefined) {
+      throw new Error(
+        `The MapLeafValues transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+      );
+    }
+    return typeInfo;
   }
 
   private _getOriginalWrappingSchema() {
-    assertSome(this.originalWrappingSchema);
-    return this.originalWrappingSchema;
+    const originalWrappingSchema = this.originalWrappingSchema;
+    if (originalWrappingSchema === undefined) {
+      throw new Error(
+        `The MapLeafValues transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+      );
+    }
+    return originalWrappingSchema;
   }
 
   public transformSchema(
@@ -74,12 +83,12 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     _delegationContext: DelegationContext,
     transformationContext: MapLeafValuesTransformationContext
-  ): Request {
+  ): ExecutionRequest {
     const document = originalRequest.document;
-    const variableValues = originalRequest.variables;
+    const variableValues = (originalRequest.variables = {});
 
     const operations: Array<OperationDefinitionNode> = document.definitions.filter(
       def => def.kind === Kind.OPERATION_DEFINITION

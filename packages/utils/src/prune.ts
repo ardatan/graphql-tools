@@ -18,7 +18,7 @@ import { PruneSchemaOptions } from './types';
 
 import { mapSchema } from './mapSchema';
 import { MapperKind } from './Interfaces';
-import { isSome } from './helpers';
+import { getRootTypes } from './rootTypes';
 
 type NamedOutputType =
   | GraphQLObjectType
@@ -189,7 +189,7 @@ function visitTypes(pruningContext: PruningContext, schema: GraphQLSchema): void
 
   const visitedTypes: Record<string, boolean> = Object.create(null);
 
-  const rootTypes = [schema.getQueryType(), schema.getMutationType(), schema.getSubscriptionType()].filter(isSome);
+  const rootTypes = getRootTypes(schema);
 
   for (const rootType of rootTypes) {
     visitOutputType(visitedTypes, pruningContext, rootType);

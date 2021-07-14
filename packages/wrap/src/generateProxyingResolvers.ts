@@ -1,6 +1,6 @@
-import { GraphQLFieldResolver, GraphQLObjectType, GraphQLResolveInfo, OperationTypeNode } from 'graphql';
+import { GraphQLFieldResolver } from 'graphql';
 
-import { Maybe, getResponseKeyFromInfo } from '@graphql-tools/utils';
+import { getResponseKeyFromInfo, getRootTypeMap } from '@graphql-tools/utils';
 import {
   delegateToSchema,
   getSubschema,
@@ -20,42 +20,33 @@ export function generateProxyingResolvers<TContext>(
 
   const transformedSchema = applySchemaTransforms(targetSchema, subschemaConfig);
 
-  const operationTypes: Record<OperationTypeNode, Maybe<GraphQLObjectType>> = {
-    query: targetSchema.getQueryType(),
-    mutation: targetSchema.getMutationType(),
-    subscription: targetSchema.getSubscriptionType(),
-  };
+  const rootTypeMap = getRootTypeMap(targetSchema);
 
   const resolvers = {};
-  for (const operationAsString in operationTypes) {
-    const operation = operationAsString as OperationTypeNode;
-    const rootType = operationTypes[operation];
-    if (rootType != null) {
-      const typeName = rootType.name;
-      const fields = rootType.getFields();
+  for (const [operation, rootType] of rootTypeMap.entries()) {
+    const typeName = rootType.name;
+    const fields = rootType.getFields();
 
-      resolvers[typeName] = {};
-      for (const fieldName in fields) {
-        const proxyingResolver = createProxyingResolver({
-          subschemaConfig,
-          transformedSchema,
-          operation,
-          fieldName,
-        });
+    resolvers[typeName] = {};
+    for (const fieldName in fields) {
+      const proxyingResolver = createProxyingResolver({
+        subschemaConfig,
+        transformedSchema,
+        operation,
+        fieldName,
+      });
 
-        const finalResolver = createPossiblyNestedProxyingResolver(subschemaConfig, proxyingResolver);
+      const finalResolver = createPossiblyNestedProxyingResolver(subschemaConfig, proxyingResolver);
 
-        if (operation === 'subscription') {
-          resolvers[typeName][fieldName] = {
-            subscribe: finalResolver,
-            resolve: (payload: any, _: never, __: never, { fieldName: targetFieldName }: GraphQLResolveInfo) =>
-              payload[targetFieldName],
-          };
-        } else {
-          resolvers[typeName][fieldName] = {
-            resolve: finalResolver,
-          };
-        }
+      if (operation === 'subscription') {
+        resolvers[typeName][fieldName] = {
+          subscribe: finalResolver,
+          resolve: identical,
+        };
+      } else {
+        resolvers[typeName][fieldName] = {
+          resolve: finalResolver,
+        };
       }
     }
   }
@@ -63,11 +54,15 @@ export function generateProxyingResolvers<TContext>(
   return resolvers;
 }
 
+function identical<T>(value: T): T {
+  return value;
+}
+
 function createPossiblyNestedProxyingResolver<TContext>(
   subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   proxyingResolver: GraphQLFieldResolver<any, any>
 ): GraphQLFieldResolver<any, TContext, any> {
-  return (parent, args, context, info) => {
+  return function possiblyNestedProxyingResolver(parent, args, context, info) {
     if (parent != null) {
       const responseKey = getResponseKeyFromInfo(info);
 
@@ -94,12 +89,13 @@ export function defaultCreateProxyingResolver<TContext>({
   operation,
   transformedSchema,
 }: ICreateProxyingResolverOptions<TContext>): GraphQLFieldResolver<any, any> {
-  return (_parent, _args, context, info) =>
-    delegateToSchema({
+  return function proxyingResolver(_parent, _args, context, info) {
+    return delegateToSchema({
       schema: subschemaConfig,
       operation,
       context,
       info,
       transformedSchema,
     });
+  };
 }

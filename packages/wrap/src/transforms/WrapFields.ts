@@ -12,13 +12,12 @@ import {
 } from 'graphql';
 
 import {
-  Request,
+  ExecutionRequest,
   appendObjectFields,
   selectObjectFields,
   modifyObjectFields,
   ExecutionResult,
   relocatedError,
-  assertSome,
 } from '@graphql-tools/utils';
 
 import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
@@ -54,7 +53,11 @@ export default class WrapFields<TContext> implements Transform<WrapFieldsTransfo
 
     const remainingWrappingFieldNames = this.wrappingFieldNames.slice();
     const outerMostWrappingFieldName = remainingWrappingFieldNames.shift();
-    assertSome(outerMostWrappingFieldName);
+
+    if (outerMostWrappingFieldName == null) {
+      throw new Error(`Cannot wrap fields, no wrapping field name provided.`);
+    }
+
     this.transformer = new MapFields<TContext>(
       {
         [outerTypeName]: {
@@ -156,10 +159,10 @@ export default class WrapFields<TContext> implements Transform<WrapFieldsTransfo
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     transformationContext: WrapFieldsTransformationContext
-  ): Request {
+  ): ExecutionRequest {
     transformationContext.nextIndex = 0;
     transformationContext.paths = Object.create(null);
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);

@@ -9,17 +9,20 @@ import {
   isSpecifiedScalarType,
   GraphQLSchema,
   isDirective,
+  GraphQLObjectType,
+  OperationTypeNode,
 } from 'graphql';
 
 import { wrapSchema } from '@graphql-tools/wrap';
 import { Subschema, SubschemaConfig, StitchingInfo } from '@graphql-tools/delegate';
-import { GraphQLParseOptions, TypeSource, rewireTypes, TypeMap } from '@graphql-tools/utils';
+import { GraphQLParseOptions, TypeSource, rewireTypes, getRootTypeMap } from '@graphql-tools/utils';
 
 import typeFromAST from './typeFromAST';
 import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, TypeMergingOptions } from './types';
 import { mergeCandidates } from './mergeCandidates';
 import { extractDefinitions } from './definitions';
 import { mergeTypeDefs } from '@graphql-tools/merge';
+import { TypeMap } from 'graphql/type/schema';
 
 type CandidateSelector<TContext = Record<string, any>> = (
   candidates: Array<MergeTypeCandidate<TContext>>
@@ -34,7 +37,6 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
   extensions,
   directiveMap,
   schemaDefs,
-  operationTypeNames,
   mergeDirectives,
 }: {
   subschemas: Array<Subschema<any, any, any, TContext>>;
@@ -51,9 +53,8 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
     schemaDef: SchemaDefinitionNode;
     schemaExtensions: Array<SchemaExtensionNode>;
   };
-  operationTypeNames: Record<string, any>;
   mergeDirectives?: boolean | undefined;
-}): Record<string, Array<MergeTypeCandidate<TContext>>> {
+}): [Record<string, Array<MergeTypeCandidate<TContext>>>, Record<OperationTypeNode, string>] {
   const typeCandidates: Record<string, Array<MergeTypeCandidate<TContext>>> = Object.create(null);
 
   let schemaDef: SchemaDefinitionNode | undefined;
@@ -71,25 +72,20 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
   schemaDefs.schemaDef = schemaDef ?? schemaDefs.schemaDef;
   schemaDefs.schemaExtensions = schemaExtensions;
 
-  setOperationTypeNames(schemaDefs, operationTypeNames);
+  const rootTypeNameMap = getRootTypeNameMap(schemaDefs);
 
   for (const subschema of subschemas) {
     const schema = wrapSchema(subschema);
 
-    const operationTypes = {
-      query: schema.getQueryType(),
-      mutation: schema.getMutationType(),
-      subscription: schema.getSubscriptionType(),
-    };
+    const rootTypeMap = getRootTypeMap(schema);
+    const rootTypes = Array.from(rootTypeMap.values());
 
-    for (const operationType in operationTypes) {
-      if (operationTypes[operationType] != null) {
-        addTypeCandidate(typeCandidates, operationTypeNames[operationType], {
-          type: operationTypes[operationType],
-          subschema: originalSubschemaMap.get(subschema),
-          transformedSubschema: subschema,
-        });
-      }
+    for (const [operation, rootType] of rootTypeMap.entries()) {
+      addTypeCandidate(typeCandidates, rootTypeNameMap[operation], {
+        type: rootType,
+        subschema: originalSubschemaMap.get(subschema),
+        transformedSubschema: subschema,
+      });
     }
 
     if (mergeDirectives === true) {
@@ -104,9 +100,7 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
       if (
         isNamedType(type) &&
         getNamedType(type).name.slice(0, 2) !== '__' &&
-        type !== operationTypes.query &&
-        type !== operationTypes.mutation &&
-        type !== operationTypes.subscription
+        !rootTypes.includes(type as GraphQLObjectType)
       ) {
         addTypeCandidate(typeCandidates, type.name, {
           type,
@@ -148,19 +142,22 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
     addTypeCandidate(typeCandidates, type.name, { type });
   }
 
-  return typeCandidates;
+  return [typeCandidates, rootTypeNameMap];
 }
 
-function setOperationTypeNames(
-  {
-    schemaDef,
-    schemaExtensions,
-  }: {
-    schemaDef: SchemaDefinitionNode;
-    schemaExtensions: Array<SchemaExtensionNode>;
-  },
-  operationTypeNames: Record<string, any>
-): void {
+function getRootTypeNameMap({
+  schemaDef,
+  schemaExtensions,
+}: {
+  schemaDef: SchemaDefinitionNode;
+  schemaExtensions: Array<SchemaExtensionNode>;
+}): Record<OperationTypeNode, string> {
+  const rootTypeNameMap: Record<OperationTypeNode, string> = {
+    query: 'Query',
+    mutation: 'Mutation',
+    subscription: 'Subscription',
+  };
+
   const allNodes: Array<SchemaDefinitionNode | SchemaExtensionNode> = schemaExtensions.slice();
   if (schemaDef != null) {
     allNodes.unshift(schemaDef);
@@ -169,10 +166,12 @@ function setOperationTypeNames(
   for (const node of allNodes) {
     if (node.operationTypes != null) {
       for (const operationType of node.operationTypes) {
-        operationTypeNames[operationType.operation] = operationType.type.name.value;
+        rootTypeNameMap[operationType.operation] = operationType.type.name.value;
       }
     }
   }
+
+  return rootTypeNameMap;
 }
 
 function addTypeCandidate<TContext = Record<string, any>>(
@@ -190,7 +189,7 @@ export function buildTypes<TContext = Record<string, any>>({
   typeCandidates,
   directives,
   stitchingInfo,
-  operationTypeNames,
+  rootTypeNames,
   onTypeConflict,
   mergeTypes,
   typeMergingOptions,
@@ -198,7 +197,7 @@ export function buildTypes<TContext = Record<string, any>>({
   typeCandidates: Record<string, Array<MergeTypeCandidate<TContext>>>;
   directives: Array<GraphQLDirective>;
   stitchingInfo: StitchingInfo<TContext>;
-  operationTypeNames: Record<string, any>;
+  rootTypeNames: Array<string>;
   onTypeConflict?: OnTypeConflict<TContext>;
   mergeTypes: boolean | Array<string> | MergeTypeFilter<TContext>;
   typeMergingOptions?: TypeMergingOptions<TContext>;
@@ -207,9 +206,7 @@ export function buildTypes<TContext = Record<string, any>>({
 
   for (const typeName in typeCandidates) {
     if (
-      typeName === operationTypeNames['query'] ||
-      typeName === operationTypeNames['mutation'] ||
-      typeName === operationTypeNames['subscription'] ||
+      rootTypeNames.includes(typeName) ||
       (mergeTypes === true && !typeCandidates[typeName].some(candidate => isSpecifiedScalarType(candidate.type))) ||
       (typeof mergeTypes === 'function' && mergeTypes(typeCandidates[typeName], typeName)) ||
       (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||

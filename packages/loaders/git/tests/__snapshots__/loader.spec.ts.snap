@@ -58,6 +58,10 @@ Object {
     },
   ],
   "kind": "Document",
+  "loc": Object {
+    "end": 30,
+    "start": 0,
+  },
 }
 `;
 
@@ -119,5 +123,9 @@ Object {
     },
   ],
   "kind": "Document",
+  "loc": Object {
+    "end": 30,
+    "start": 0,
+  },
 }
 `;

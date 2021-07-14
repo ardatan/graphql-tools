@@ -1,6 +1,6 @@
 import { GraphQLSchema, isInterfaceType, GraphQLFieldConfig } from 'graphql';
 
-import { Request, ExecutionResult, assertSome } from '@graphql-tools/utils';
+import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -19,8 +19,13 @@ export default class TransformInterfaceFields implements Transform {
   }
 
   private _getTransformer() {
-    assertSome(this.transformer);
-    return this.transformer;
+    const transformer = this.transformer;
+    if (transformer === undefined) {
+      throw new Error(
+        `The TransformInterfaceFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+      );
+    }
+    return transformer;
   }
 
   public transformSchema(
@@ -46,10 +51,10 @@ export default class TransformInterfaceFields implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     return this._getTransformer().transformRequest(originalRequest, delegationContext, transformationContext);
   }
 

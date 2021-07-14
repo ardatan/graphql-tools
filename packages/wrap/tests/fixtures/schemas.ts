@@ -18,11 +18,12 @@ import { introspectSchema } from '../../src/introspect';
 import {
   IResolvers,
   ExecutionResult,
-  mapAsyncIterator,
   isAsyncIterable,
+  AsyncExecutor,
+  ExecutionRequest,
 } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { SubschemaConfig, ExecutionParams } from '@graphql-tools/delegate';
+import { SubschemaConfig } from '@graphql-tools/delegate';
 
 export class CustomError extends GraphQLError {
   constructor(message: string, extensions: Record<string, any>) {
@@ -677,9 +678,9 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
   resolvers: subscriptionResolvers,
 });
 
-function makeExecutorFromSchema(schema: GraphQLSchema) {
-  return async <TReturn, TArgs, TContext>({ document, variables, context, info }: ExecutionParams<TArgs, TContext>) => {
-    if (info?.operation.operation === 'subscription') {
+function makeExecutorFromSchema(schema: GraphQLSchema): AsyncExecutor {
+  return async <TReturn, TArgs, TContext>({ document, variables, context, operationType }: ExecutionRequest<TArgs, TContext>) => {
+    if (operationType === 'subscription') {
       const result = await subscribe(
         schema,
         document,
@@ -688,9 +689,9 @@ function makeExecutorFromSchema(schema: GraphQLSchema) {
         variables,
       );
       if (isAsyncIterable<ExecutionResult<TReturn>>(result)) {
-        return mapAsyncIterator<ExecutionResult<TReturn>, TReturn>(result, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult)));
+        return result;
       }
-      return JSON.parse(JSON.stringify(result));
+      return result;
     }
     return (new ValueOrPromise(() => graphql(
       schema,
@@ -700,7 +701,7 @@ function makeExecutorFromSchema(schema: GraphQLSchema) {
       variables,
     ))
       .then(originalResult => JSON.parse(JSON.stringify(originalResult)))
-      .resolve()) as Promise<ExecutionResult<TReturn>> | ExecutionResult<TReturn>;
+      .resolve());
   };
 }
 

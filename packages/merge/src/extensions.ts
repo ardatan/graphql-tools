@@ -140,10 +140,7 @@ export function travelSchemaPossibleExtensions(
 }
 
 export function mergeExtensions(extensions: SchemaExtensions[]): SchemaExtensions {
-  return extensions.reduce(
-    (result, extensionObj) => [result, extensionObj].reduce<SchemaExtensions>(mergeDeep, {} as SchemaExtensions),
-    {} as SchemaExtensions
-  );
+  return mergeDeep(extensions);
 }
 
 function applyExtensionObject(
@@ -154,7 +151,7 @@ function applyExtensionObject(
     return;
   }
 
-  obj.extensions = [obj.extensions || {}, extensions || {}].reduce(mergeDeep, {});
+  obj.extensions = mergeDeep([obj.extensions || {}, extensions || {}]);
 }
 
 export function applyExtensions(schema: GraphQLSchema, extensions: SchemaExtensions): GraphQLSchema {

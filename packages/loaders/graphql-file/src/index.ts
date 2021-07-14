@@ -1,21 +1,11 @@
 import type { GlobbyOptions } from 'globby';
 
-import {
-  Source,
-  UniversalLoader,
-  DocumentPointerSingle,
-  SchemaPointerSingle,
-  isValidPath,
-  parseGraphQLSDL,
-  SingleFileOptions,
-  ResolverGlobs,
-} from '@graphql-tools/utils';
+import { Source, Loader, isValidPath, parseGraphQLSDL, BaseLoaderOptions, asArray } from '@graphql-tools/utils';
 import { isAbsolute, resolve } from 'path';
 import { readFileSync, promises as fsPromises, existsSync } from 'fs';
 import { cwd as processCwd } from 'process';
 import { processImport } from '@graphql-tools/import';
 import globby from 'globby';
-import isGlob from 'is-glob';
 import unixify from 'unixify';
 
 const { readFile, access } = fsPromises;
@@ -25,7 +15,7 @@ const FILE_EXTENSIONS = ['.gql', '.gqls', '.graphql', '.graphqls'];
 /**
  * Additional options for loading from a GraphQL file
  */
-export interface GraphQLFileLoaderOptions extends SingleFileOptions {
+export interface GraphQLFileLoaderOptions extends BaseLoaderOptions {
   /**
    * Set to `true` to disable handling `#import` syntax
    */
@@ -64,20 +54,8 @@ function createGlobbyOptions(options: GraphQLFileLoaderOptions): GlobbyOptions {
  * });
  * ```
  */
-export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptions> {
-  loaderId(): string {
-    return 'graphql-file';
-  }
-
-  async canLoad(
-    pointer: SchemaPointerSingle | DocumentPointerSingle,
-    options: GraphQLFileLoaderOptions
-  ): Promise<boolean> {
-    if (isGlob(pointer)) {
-      // FIXME: parse to find and check the file extensions?
-      return true;
-    }
-
+export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
+  async canLoad(pointer: string, options: GraphQLFileLoaderOptions): Promise<boolean> {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
@@ -93,47 +71,57 @@ export class GraphQLFileLoader implements UniversalLoader<GraphQLFileLoaderOptio
     return false;
   }
 
-  canLoadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): boolean {
-    if (isGlob(pointer)) {
-      // FIXME: parse to find and check the file extensions?
-      return true;
-    }
-
+  canLoadSync(pointer: string, options: GraphQLFileLoaderOptions): boolean {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
         const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
         return existsSync(normalizedFilePath);
       }
     }
-
     return false;
   }
 
-  async resolveGlobs({ globs, ignores }: ResolverGlobs, options: GraphQLFileLoaderOptions) {
-    return globby(
-      globs.concat(ignores.map(v => `!(${v})`)).map(v => unixify(v)),
-      createGlobbyOptions(options)
+  async resolveGlobs(glob: string, options: GraphQLFileLoaderOptions) {
+    const ignores = asArray(options.ignore || []);
+    const target = [glob, ...ignores.map(v => `!${v}`).map(v => unixify(v))];
+    const result = await globby(target, createGlobbyOptions(options));
+    return result;
+  }
+
+  resolveGlobsSync(glob: string, options: GraphQLFileLoaderOptions) {
+    const ignores = asArray(options.ignore || []);
+    const target = [glob, ...ignores.map(v => `!${v}`).map(v => unixify(v))];
+    const result = globby.sync(target, createGlobbyOptions(options));
+    return result;
+  }
+
+  async load(pointer: string, options: GraphQLFileLoaderOptions): Promise<Source[]> {
+    const resolvedPaths = await this.resolveGlobs(pointer, options);
+    const finalResult: Source[] = [];
+
+    await Promise.all(
+      resolvedPaths.map(async path => {
+        if (await this.canLoad(path, options)) {
+          const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
+          const rawSDL: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
+          finalResult.push(this.handleFileContent(rawSDL, normalizedFilePath, options));
+        }
+      })
     );
+    return finalResult;
   }
 
-  resolveGlobsSync({ globs, ignores }: ResolverGlobs, options: GraphQLFileLoaderOptions) {
-    return globby.sync(
-      globs.concat(ignores.map(v => `!(${v})`)).map(v => unixify(v)),
-      createGlobbyOptions(options)
-    );
-  }
-
-  async load(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Promise<Source> {
-    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
-    const rawSDL: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
-
-    return this.handleFileContent(rawSDL, normalizedFilePath, options);
-  }
-
-  loadSync(pointer: SchemaPointerSingle | DocumentPointerSingle, options: GraphQLFileLoaderOptions): Source {
-    const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
-    const rawSDL = readFileSync(normalizedFilePath, { encoding: 'utf8' });
-    return this.handleFileContent(rawSDL, normalizedFilePath, options);
+  loadSync(pointer: string, options: GraphQLFileLoaderOptions): Source[] {
+    const resolvedPaths = this.resolveGlobsSync(pointer, options);
+    const finalResult: Source[] = [];
+    for (const path of resolvedPaths) {
+      if (this.canLoadSync(path, options)) {
+        const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
+        const rawSDL = readFileSync(normalizedFilePath, { encoding: 'utf8' });
+        finalResult.push(this.handleFileContent(rawSDL, normalizedFilePath, options));
+      }
+    }
+    return finalResult;
   }
 
   handleFileContent(rawSDL: string, pointer: string, options: GraphQLFileLoaderOptions) {

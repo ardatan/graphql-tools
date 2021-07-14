@@ -12,10 +12,9 @@ import {
 import {
   appendObjectFields,
   removeObjectFields,
-  Request,
+  ExecutionRequest,
   ExecutionResult,
   relocatedError,
-  assertSome,
 } from '@graphql-tools/utils';
 
 import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
@@ -52,7 +51,10 @@ export default class HoistField implements Transform {
 
     const pathToField = path.slice();
     const oldFieldName = pathToField.pop();
-    assertSome(oldFieldName);
+
+    if (oldFieldName == null) {
+      throw new Error(`Cannot hoist field to ${newFieldName} on type ${typeName}, no path provided.`);
+    }
 
     this.oldFieldName = oldFieldName;
     this.pathToField = pathToField;
@@ -157,10 +159,10 @@ export default class HoistField implements Transform {
   }
 
   public transformRequest(
-    originalRequest: Request,
+    originalRequest: ExecutionRequest,
     delegationContext: DelegationContext,
     transformationContext: Record<string, any>
-  ): Request {
+  ): ExecutionRequest {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
