@@ -1,9 +1,13 @@
 import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
 import { join } from 'path';
-import { separateOperations } from 'graphql';
+import { parse, separateOperations } from 'graphql';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { runTests } from '../../../../testing/utils';
+import '../../../../testing/to-be-similar-string'
+import globby from 'globby';
+import { readFileSync } from 'fs';
+import { removeLoc } from '@graphql-tools/optimize';
 
 describe('documentsFromGlob', () => {
   runTests({
@@ -15,8 +19,17 @@ describe('documentsFromGlob', () => {
       const result = await load(glob, {
         loaders: [new GraphQLFileLoader()]
       });
-      expect(result.length).toBe(1);
-      expect(result[0].document).toBeDefined();
+      expect(result).toHaveLength(1);
+      const expectedFiles = globby.sync(glob);
+      for (const expectedFileName of expectedFiles) {
+        const fileNameResult = result?.find(({ location }) => location === expectedFileName);
+        if (fileNameResult) {
+          const fileContent = readFileSync(expectedFileName, 'utf-8');
+          const expectedDocument: any = parse(fileContent);
+          expect(removeLoc(fileNameResult!.document!)).toStrictEqual(removeLoc(expectedDocument));
+          expect(fileNameResult!.rawSDL!).toBeSimilarString(fileContent);
+        }
+      }
     });
 
     test(`Should load multiple GraphQL document from glob expression`, async () => {
@@ -24,12 +37,20 @@ describe('documentsFromGlob', () => {
       const result = await load(glob, {
         loaders: [new GraphQLFileLoader()]
       });
-      expect(result.length).toBe(2);
-      expect(result[0].document).toBeDefined();
-      expect(result[1].document).toBeDefined();
+      expect(result).toHaveLength(2);
+      const expectedFiles = globby.sync(glob);
+      for (const expectedFileName of expectedFiles) {
+        const fileNameResult = result?.find(({ location }) => location === expectedFileName);
+        if (fileNameResult) {
+          const fileContent = readFileSync(expectedFileName, 'utf-8');
+          const expectedDocument: any = parse(fileContent);
+          expect(removeLoc(fileNameResult!.document!)).toStrictEqual(removeLoc(expectedDocument));
+          expect(fileNameResult!.rawSDL!).toBeSimilarString(fileContent);
+        }
+      }
     });
 
-    test(`Should load two GraphQL documents both for gatsby and graphql-tag by default`, async () => {
+    test(`Should load two GraphQL operations both for gatsby and graphql-tag by default`, async () => {
       const glob = join(__dirname, './test-files/', 'tags.js');
       const result = await load(glob, {
         loaders: [new CodeFileLoader()]
@@ -38,7 +59,7 @@ describe('documentsFromGlob', () => {
       expect(result).toHaveLength(2);
     });
 
-    test(`Should load GraphQL documents that match custom settings`, async () => {
+    test(`Should load GraphQL operations that match custom settings`, async () => {
       const glob = join(__dirname, './test-files/', 'tags.js');
 
       const result = await load(glob, {
@@ -56,10 +77,8 @@ describe('documentsFromGlob', () => {
         ]
       });
 
-      const { document } = result[0];
-      const operations = document && separateOperations(document);
-
-      expect(operations && Object.keys(operations)).toHaveLength(1);
+      expect(result[0]?.document).toBeDefined();
+      expect(Object.keys(separateOperations(result[0].document!))).toHaveLength(1);
     });
 
     test(`Should throw on syntax errors`, async () => {
