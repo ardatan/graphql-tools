@@ -20,10 +20,6 @@ export interface PrismaLoaderOptions extends LoadFromUrlOptions {
  * This loader loads a schema from a `prisma.yml` file
  */
 export class PrismaLoader extends UrlLoader {
-  loaderId() {
-    return 'prisma';
-  }
-
   canLoadSync() {
     return false;
   }

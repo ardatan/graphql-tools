@@ -49,10 +49,6 @@ export type GitLoaderOptions = BaseLoaderOptions & {
  * ```
  */
 export class GitLoader implements Loader<GitLoaderOptions> {
-  loaderId() {
-    return 'git-loader';
-  }
-
   async canLoad(pointer: string) {
     return this.canLoadSync(pointer);
   }

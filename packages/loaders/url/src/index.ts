@@ -163,10 +163,6 @@ const isCompatibleUri = (uri: string): boolean => {
  * ```
  */
 export class UrlLoader implements Loader<LoadFromUrlOptions> {
-  loaderId(): string {
-    return 'url';
-  }
-
   async canLoad(pointer: string, options: LoadFromUrlOptions): Promise<boolean> {
     return this.canLoadSync(pointer, options);
   }

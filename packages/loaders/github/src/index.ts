@@ -47,10 +47,6 @@ export interface GithubLoaderOptions extends BaseLoaderOptions {
  * ```
  */
 export class GithubLoader implements Loader<GithubLoaderOptions> {
-  loaderId() {
-    return 'github-loader';
-  }
-
   async canLoad(pointer: string) {
     return typeof pointer === 'string' && pointer.toLowerCase().startsWith('github:');
   }

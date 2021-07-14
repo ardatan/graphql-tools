@@ -21,10 +21,6 @@ const DEFAULT_APOLLO_ENDPOINT = 'https://engine-graphql.apollographql.com/api/gr
  * This loader loads a schema from Apollo Engine
  */
 export class ApolloEngineLoader implements Loader<ApolloEngineOptions> {
-  loaderId() {
-    return 'apollo-engine';
-  }
-
   private getFetchArgs(options: ApolloEngineOptions): [string, RequestInit] {
     return [
       options.engine.endpoint || DEFAULT_APOLLO_ENDPOINT,

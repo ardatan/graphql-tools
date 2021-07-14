@@ -12,12 +12,6 @@ describe('GraphQLFileLoader', () => {
     return join('packages/loaders/graphql-file/tests/test-files', fileName);
   };
 
-  describe('loaderId', () => {
-    it('should return a loader id', () => {
-      expect(loader.loaderId()).toBeDefined();
-    });
-  });
-
   describe('canLoad', () => {
     runTests({
       async: loader.canLoad.bind(loader),

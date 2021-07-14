@@ -35,10 +35,6 @@ function extractData(pointer: string): {
  * ```
  */
 export class ModuleLoader implements Loader {
-  loaderId() {
-    return 'module-loader';
-  }
-
   private isExpressionValid(pointer: string) {
     return typeof pointer === 'string' && pointer.toLowerCase().startsWith('module:');
   }

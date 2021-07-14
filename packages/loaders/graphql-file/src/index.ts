@@ -55,10 +55,6 @@ function createGlobbyOptions(options: GraphQLFileLoaderOptions): GlobbyOptions {
  * ```
  */
 export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
-  loaderId(): string {
-    return 'graphql-file';
-  }
-
   async canLoad(pointer: string, options: GraphQLFileLoaderOptions): Promise<boolean> {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {

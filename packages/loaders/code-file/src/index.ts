@@ -70,10 +70,6 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
     return { ...this.config, ...options };
   }
 
-  loaderId(): string {
-    return 'code-file';
-  }
-
   async canLoad(pointer: string, options: CodeFileLoaderOptions): Promise<boolean> {
     options = this.getMergedOptions(options);
 

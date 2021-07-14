@@ -10,12 +10,6 @@ describe('ModuleLoader', () => {
     return `module:${absolutePath}${exportName ? `#${exportName}` : ''}`;
   };
 
-  describe('loaderId', () => {
-    it('should return a loader id', () => {
-      expect(loader.loaderId()).toBeDefined();
-    });
-  });
-
   describe('canLoad', () => {
     runTests({
       async: loader.canLoad.bind(loader),

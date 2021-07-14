@@ -10,12 +10,6 @@ describe('GitLoader', () => {
     return `git:${lastCommit}:packages/loaders/git/tests/test-files/${fileName}`;
   };
 
-  describe('loaderId', () => {
-    it('should return a loader id', () => {
-      expect(loader.loaderId()).toBeDefined();
-    });
-  });
-
   describe('canLoad', () => {
     runTests({
       async: loader.canLoad.bind(loader),

@@ -36,10 +36,6 @@ export interface JsonFileLoaderOptions extends BaseLoaderOptions {}
  * ```
  */
 export class JsonFileLoader implements Loader {
-  loaderId(): string {
-    return 'json-file';
-  }
-
   async canLoad(pointer: string, options: JsonFileLoaderOptions): Promise<boolean> {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
