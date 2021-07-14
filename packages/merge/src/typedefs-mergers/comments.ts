@@ -123,7 +123,7 @@ function addDescription(cb: VisitFn<any, any>): VisitFn<any, any> {
   ) => {
     const keys: string[] = [];
     const parent = path.reduce((prev, key) => {
-      if (['fields', 'arguments', 'values'].includes(key as any)) {
+      if (['fields', 'arguments', 'values'].includes(key as any) && prev.name) {
         keys.push(prev.name.value);
       }
 
