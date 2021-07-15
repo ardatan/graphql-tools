@@ -102,17 +102,21 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
     return false;
   }
 
+  private _buildGlobs(glob: string, options: CodeFileLoaderOptions) {
+    const ignores = asArray(options.ignore || []);
+    const globs = [unixify(glob), ...ignores.map(v => buildIgnoreGlob(unixify(v)))];
+    return globs;
+  }
+
   async resolveGlobs(glob: string, options: CodeFileLoaderOptions) {
     options = this.getMergedOptions(options);
-    const ignores = asArray(options.ignore || []);
-    const globs = [unixify(glob), ...ignores.map(v => unixify(v)).map(buildIgnoreGlob)];
+    const globs = this._buildGlobs(glob, options);
     return globby(globs, createGlobbyOptions(options));
   }
 
   resolveGlobsSync(glob: string, options: CodeFileLoaderOptions) {
     options = this.getMergedOptions(options);
-    const ignores = asArray(options.ignore || []);
-    const globs = [unixify(glob), ...ignores.map(v => unixify(v)).map(buildIgnoreGlob)];
+    const globs = this._buildGlobs(glob, options);
     return globby.sync(globs, createGlobbyOptions(options));
   }
 
