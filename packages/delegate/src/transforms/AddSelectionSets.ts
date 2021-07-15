@@ -41,7 +41,6 @@ function visitSelectionSet(
 
   if (parentType != null) {
     const parentTypeName = parentType.name;
-    addSelectionsToSet(newSelections, node.selections);
 
     const fieldNodes = fieldNodesByType[parentTypeName];
     if (fieldNodes) {
@@ -79,7 +78,7 @@ function visitSelectionSet(
 
     return {
       ...node,
-      selections: [...newSelections.values()],
+      selections: (node.selections ?? []).concat(Array.from(newSelections.values())),
     };
   }
 }
