@@ -15,7 +15,7 @@ describe('documentsFromGlob', () => {
     sync: loadDocumentsSync
   })(load => {
     test(`Should load one GraphQL document from glob expression`, async () => {
-      const glob = join(__dirname, './test-files/', '*.query.graphql');
+      const glob = join(__dirname, 'test-files', '*.query.graphql');
       const result = await load(glob, {
         loaders: [new GraphQLFileLoader()]
       });
@@ -33,7 +33,7 @@ describe('documentsFromGlob', () => {
     });
 
     test(`Should load multiple GraphQL document from glob expression`, async () => {
-      const glob = join(__dirname, './test-files/', '*.graphql');
+      const glob = join(__dirname, 'test-files', '*.graphql');
       const result = await load(glob, {
         loaders: [new GraphQLFileLoader()]
       });
@@ -51,7 +51,7 @@ describe('documentsFromGlob', () => {
     });
 
     test(`Should load two GraphQL operations both for gatsby and graphql-tag by default`, async () => {
-      const glob = join(__dirname, './test-files/', 'tags.js');
+      const glob = join(__dirname, 'test-files', 'tags.js');
       const result = await load(glob, {
         loaders: [new CodeFileLoader()]
       });
@@ -60,7 +60,7 @@ describe('documentsFromGlob', () => {
     });
 
     test(`Should load GraphQL operations that match custom settings`, async () => {
-      const glob = join(__dirname, './test-files/', 'tags.js');
+      const glob = join(__dirname, 'test-files', 'tags.js');
 
       const result = await load(glob, {
         pluckConfig: {
@@ -83,7 +83,7 @@ describe('documentsFromGlob', () => {
 
     test(`Should throw on syntax errors`, async () => {
       try {
-        const glob = join(__dirname, './test-invalid-syntax/', 'invalid-syntax.query.graphql');
+        const glob = join(__dirname, 'test-invalid-syntax', 'invalid-syntax.query.graphql');
         await load(glob, {
           loaders: [new GraphQLFileLoader()]
         });
@@ -96,7 +96,7 @@ describe('documentsFromGlob', () => {
 
     test(`Should throw on empty files and empty result`, async () => {
       try {
-        const glob = join(__dirname, './test-files/', '*.empty.graphql');
+        const glob = join(__dirname, 'test-files', '*.empty.graphql');
         await load(glob, {
           loaders: [new GraphQLFileLoader()]
         });
@@ -108,7 +108,7 @@ describe('documentsFromGlob', () => {
 
     test(`Should throw on invalid files`, async () => {
       try {
-        const glob = join(__dirname, './test-files/', 'invalid*.*.graphql');
+        const glob = join(__dirname, 'test-files', 'invalid*.*.graphql');
         await load(glob, {
           loaders: [new GraphQLFileLoader()]
         });
@@ -119,7 +119,7 @@ describe('documentsFromGlob', () => {
     });
 
     test(`Should ignore schema definitions`, async () => {
-      const glob = join(__dirname, './test-files/', '*.graphql');
+      const glob = join(__dirname, 'test-files', '*.graphql');
       const result = await load(glob, {
         loaders: [new GraphQLFileLoader()]
       });
@@ -127,8 +127,8 @@ describe('documentsFromGlob', () => {
     });
 
     test(`Should ignore files that is added to ignore glob (using options.ignore)`, async () => {
-      const glob = join(__dirname, './test-files/', '*.graphql');
-      const ignoreGlob = join(__dirname, './test-files/', '*.query.graphql');
+      const glob = join(__dirname, 'test-files', '*.graphql');
+      const ignoreGlob = join(__dirname, 'test-files', '*.query.graphql');
       const result = await load([glob], {
         ignore: ignoreGlob,
         loaders: [new GraphQLFileLoader()]
@@ -137,8 +137,8 @@ describe('documentsFromGlob', () => {
     });
 
     test(`Should ignore files that is added to ignore glob (using negative glob)`, async () => {
-      const glob = join(__dirname, './test-files/', '*.graphql');
-      const ignoreGlob = `!${join(__dirname, './test-files/', '*.query.graphql')}`;
+      const glob = join(__dirname, 'test-files', '*.graphql');
+      const ignoreGlob = `!${join(__dirname, 'test-files', '*.query.graphql')}`;
       const result = await load([glob, ignoreGlob], {
         loaders: [new GraphQLFileLoader()]
       });
@@ -146,21 +146,21 @@ describe('documentsFromGlob', () => {
     });
 
     test(`should respect brackets in file path`, async () => {
-      const glob = join(__dirname, './test-with-brackets/', '**/*.ts');
+      const glob = join(__dirname, 'test-with-brackets', '**/*.ts');
       const result = await load(glob, {
         loaders: [new CodeFileLoader()],
       });
       expect(result.length).toBe(1);
     });
     test(`should try next loader if first one fails`, async () => {
-      const glob = join(__dirname, './test-with-brackets/', '**/*.ts');
+      const glob = join(__dirname, 'test-with-brackets', '**/*.ts');
       const result = await load(glob, {
         loaders: [new GraphQLFileLoader(), new CodeFileLoader()],
       });
       expect(result.length).toBe(1);
     })
     test(`should try loading using all loaders`, async () => {
-      const glob = join(__dirname, './test-files/', '(tags.js|2.graphql)');
+      const glob = join(__dirname, 'test-files', '(tags.js|2.graphql)');
       const result = await load(glob, {
         loaders: [new GraphQLFileLoader(), new CodeFileLoader()],
       });

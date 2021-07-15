@@ -31,6 +31,8 @@ function createGlobbyOptions(options: GraphQLFileLoaderOptions): GlobbyOptions {
   return { absolute: true, ...options, ignore: [] };
 }
 
+const buildIgnoreGlob = (path: string) => `!${path}`;
+
 /**
  * This loader loads documents and type definitions from `.graphql` files.
  *
@@ -81,17 +83,21 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
     return false;
   }
 
-  async resolveGlobs(glob: string, options: GraphQLFileLoaderOptions) {
+  private _buildGlobs(glob: string, options: GraphQLFileLoaderOptions) {
     const ignores = asArray(options.ignore || []);
-    const target = [glob, ...ignores.map(v => `!${v}`).map(v => unixify(v))];
-    const result = await globby(target, createGlobbyOptions(options));
+    const globs = [unixify(glob), ...ignores.map(v => buildIgnoreGlob(unixify(v)))];
+    return globs;
+  }
+
+  async resolveGlobs(glob: string, options: GraphQLFileLoaderOptions) {
+    const globs = this._buildGlobs(glob, options);
+    const result = await globby(globs, createGlobbyOptions(options));
     return result;
   }
 
   resolveGlobsSync(glob: string, options: GraphQLFileLoaderOptions) {
-    const ignores = asArray(options.ignore || []);
-    const target = [glob, ...ignores.map(v => `!${v}`).map(v => unixify(v))];
-    const result = globby.sync(target, createGlobbyOptions(options));
+    const globs = this._buildGlobs(glob, options);
+    const result = globby.sync(globs, createGlobbyOptions(options));
     return result;
   }
 
