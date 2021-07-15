@@ -7,7 +7,7 @@ import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from './types';
 import { memoizeInfoAnd2Objects } from './memoize';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
 
-function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<string, Set<FieldNode>> {
+function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<string, Array<FieldNode>> {
   let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
   const visitedFragmentNames = Object.create(null);
 
@@ -30,37 +30,7 @@ function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<st
     }
   }
 
-  // TODO: Verify whether it is safe that extensions always exists.
-  const stitchingInfo: Maybe<StitchingInfo> = info.schema.extensions?.['stitchingInfo'];
-  const fieldNodesByField = stitchingInfo?.fieldNodesByField;
-
-  const subFieldNodesByFieldName: Record<string, Set<FieldNode>> = Object.create(null);
-  for (const responseKey in subFieldNodes) {
-    const fieldName = subFieldNodes[responseKey][0].name.value;
-    const additionalFieldNodes = fieldNodesByField?.[typeName]?.[fieldName];
-    if (additionalFieldNodes) {
-      for (const additionalFieldNode of additionalFieldNodes) {
-        const additionalFieldName = additionalFieldNode.name.value;
-        if (subFieldNodesByFieldName[additionalFieldName] == null) {
-          subFieldNodesByFieldName[additionalFieldName] = new Set();
-        }
-        subFieldNodesByFieldName[additionalFieldName].add(additionalFieldNode);
-      }
-    }
-  }
-
-  for (const responseKey in subFieldNodes) {
-    const subFieldNodesForResponseKey = subFieldNodes[responseKey];
-    const fieldName = subFieldNodesForResponseKey[0].name.value;
-    if (subFieldNodesByFieldName[fieldName] == null) {
-      subFieldNodesByFieldName[fieldName] = new Set();
-    }
-    for (const subFieldNode of subFieldNodesForResponseKey) {
-      subFieldNodesByFieldName[fieldName].add(subFieldNode);
-    }
-  }
-
-  return subFieldNodesByFieldName;
+  return subFieldNodes;
 }
 
 export const getFieldsNotInSubschema = memoizeInfoAnd2Objects(function (
@@ -77,12 +47,27 @@ export const getFieldsNotInSubschema = memoizeInfoAnd2Objects(function (
 
   const subFieldNodes = collectSubFields(info, typeName);
 
+  // TODO: Verify whether it is safe that extensions always exists.
+  const stitchingInfo: Maybe<StitchingInfo> = info.schema.extensions?.['stitchingInfo'];
+  const fieldNodesByField = stitchingInfo?.fieldNodesByField;
+
   let fieldsNotInSchema: Array<FieldNode> = [];
-  for (const fieldName in subFieldNodes) {
+  const additionalFieldNodes: Set<FieldNode> = new Set();
+  for (const responseKey in subFieldNodes) {
+    const subFieldNodesForResponseKey = subFieldNodes[responseKey];
+    const fieldName = subFieldNodesForResponseKey[0].name.value;
     if (!(fieldName in fields)) {
-      fieldsNotInSchema = fieldsNotInSchema.concat(Array.from(subFieldNodes[fieldName]));
+      fieldsNotInSchema = fieldsNotInSchema.concat(subFieldNodesForResponseKey);
+    }
+    const fieldNodesForField = fieldNodesByField?.[typeName]?.[fieldName];
+    if (fieldNodesForField) {
+      for (const fieldNode of fieldNodesForField) {
+        if (!(fieldNode.name.value in fields)) {
+          additionalFieldNodes.add(fieldNode);
+        }
+      }
     }
   }
 
-  return fieldsNotInSchema;
+  return fieldsNotInSchema.concat(Array.from(additionalFieldNodes));
 });
