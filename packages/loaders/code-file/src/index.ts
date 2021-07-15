@@ -16,7 +16,6 @@ import {
   gqlPluckFromCodeStringSync,
 } from '@graphql-tools/graphql-tag-pluck';
 import globby from 'globby';
-import isGlob from 'is-glob';
 import unixify from 'unixify';
 import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module';
 import { isAbsolute, resolve } from 'path';
@@ -45,6 +44,8 @@ const FILE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue'];
 function createGlobbyOptions(options: CodeFileLoaderOptions): GlobbyOptions {
   return { absolute: true, ...options, ignore: [] };
 }
+
+const buildIgnoreGlob = (path: string) => `!${path}`;
 
 /**
  * This loader loads GraphQL documents and type definitions from code files
@@ -104,48 +105,41 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
   async resolveGlobs(glob: string, options: CodeFileLoaderOptions) {
     options = this.getMergedOptions(options);
     const ignores = asArray(options.ignore || []);
-    return globby([glob, ...ignores.map(v => `!${v}`).map(v => unixify(v))], createGlobbyOptions(options));
+    const globs = [unixify(glob), ...ignores.map(v => unixify(v)).map(buildIgnoreGlob)];
+    return globby(globs, createGlobbyOptions(options));
   }
 
   resolveGlobsSync(glob: string, options: CodeFileLoaderOptions) {
     options = this.getMergedOptions(options);
     const ignores = asArray(options.ignore || []);
-    return globby.sync([glob, ...ignores.map(v => `!${v}`).map(v => unixify(v))], createGlobbyOptions(options));
+    const globs = [unixify(glob), ...ignores.map(v => unixify(v)).map(buildIgnoreGlob)];
+    return globby.sync(globs, createGlobbyOptions(options));
   }
 
   async load(pointer: string, options: CodeFileLoaderOptions): Promise<Source[]> {
     options = this.getMergedOptions(options);
     const finalResult: Source[] = [];
-
-    if (isGlob(pointer)) {
-      const resolvedPaths = await this.resolveGlobs(pointer, options);
-      await Promise.all(
-        resolvedPaths.map(async path => {
-          finalResult.push(...(await this.handleSinglePath(path, options)));
-        })
-      );
-    } else {
-      finalResult.push(...(await this.handleSinglePath(pointer, options)));
-    }
+    const resolvedPaths = await this.resolveGlobs(pointer, options);
+    await Promise.all(
+      resolvedPaths.map(async path => {
+        finalResult.push(...(await this.handleSinglePath(path, options)));
+      })
+    );
 
     return finalResult;
   }
 
   loadSync(pointer: string, options: CodeFileLoaderOptions): Source[] | null {
     options = this.getMergedOptions(options);
-    if (isGlob(pointer)) {
-      const resolvedPaths = this.resolveGlobsSync(pointer, options);
-      const finalResult: Source[] = [];
-      for (const path of resolvedPaths) {
-        if (this.canLoadSync(path, options)) {
-          const result = this.handleSinglePathSync(path, options);
-          result?.forEach(result => finalResult.push(result));
-        }
+    const resolvedPaths = this.resolveGlobsSync(pointer, options);
+    const finalResult: Source[] = [];
+    for (const path of resolvedPaths) {
+      if (this.canLoadSync(path, options)) {
+        const result = this.handleSinglePathSync(path, options);
+        result?.forEach(result => finalResult.push(result));
       }
-      return finalResult;
     }
-
-    return this.handleSinglePathSync(pointer, options);
+    return finalResult;
   }
 
   async handleSinglePath(location: string, options: CodeFileLoaderOptions): Promise<Source[]> {

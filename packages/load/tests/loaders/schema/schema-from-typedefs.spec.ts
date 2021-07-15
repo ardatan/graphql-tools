@@ -2,6 +2,7 @@ import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { runTests, useMonorepo } from '../../../../testing/utils';
+import path from 'path';
 
 const monorepo = useMonorepo({
   dirname: __dirname
@@ -152,7 +153,7 @@ describe('schema from typedefs', () => {
       expect(schemaWithSources.extensions['sources']).toBeDefined();
       expect(schemaWithSources.extensions['sources']).toHaveLength(1);
       expect(schemaWithSources.extensions['sources'][0]).toMatchObject(expect.objectContaining({
-        name: glob.replace('.', process.cwd())
+        name: path.resolve(process.cwd(), glob).replace(/\\/g, '/')
       }))
 
       const schemaWithoutSources = await load(glob, {
