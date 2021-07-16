@@ -1,5 +1,5 @@
 export { default as CheckResultAndHandleErrors, checkResultAndHandleErrors } from './CheckResultAndHandleErrors';
-export { default as ExpandAbstractTypes } from './ExpandAbstractTypes';
+export { default as PrepareGatewayRequest } from './PrepareGatewayRequest';
 export { default as VisitSelectionSets } from './VisitSelectionSets';
 export { default as AddSelectionSets } from './AddSelectionSets';
 export { default as AddArgumentsAsVariables } from './AddArgumentsAsVariables';

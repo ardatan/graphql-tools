@@ -2,12 +2,12 @@ import { Maybe } from '@graphql-tools/utils';
 import { Transform, StitchingInfo, DelegationContext } from './types';
 
 import AddSelectionSets from './transforms/AddSelectionSets';
-import ExpandAbstractTypes from './transforms/ExpandAbstractTypes';
 import WrapConcreteTypes from './transforms/WrapConcreteTypes';
 import FilterToSchema from './transforms/FilterToSchema';
 import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
 import AddArgumentsAsVariables from './transforms/AddArgumentsAsVariables';
+import PrepareGatewayRequest from './transforms/PrepareGatewayRequest';
 
 export function defaultDelegationBinding<TContext>(
   delegationContext: DelegationContext<TContext>
@@ -17,21 +17,19 @@ export function defaultDelegationBinding<TContext>(
   const info = delegationContext.info;
   const stitchingInfo: Maybe<StitchingInfo> = info?.schema.extensions?.['stitchingInfo'];
 
+  delegationTransforms.push(new PrepareGatewayRequest());
+
   if (stitchingInfo != null) {
     delegationTransforms = delegationTransforms.concat([
-      new ExpandAbstractTypes(),
       new AddSelectionSets(
         stitchingInfo.fieldNodesByType,
         stitchingInfo.fieldNodesByField,
         stitchingInfo.dynamicSelectionSetsByField
       ),
-      new WrapConcreteTypes(),
     ]);
-  } else if (info != null) {
-    delegationTransforms = delegationTransforms.concat([new WrapConcreteTypes(), new ExpandAbstractTypes()]);
-  } else {
-    delegationTransforms.push(new WrapConcreteTypes());
   }
+
+  delegationTransforms.push(new WrapConcreteTypes());
 
   const transforms = delegationContext.transforms;
   if (transforms != null) {
@@ -43,7 +41,7 @@ export function defaultDelegationBinding<TContext>(
     delegationTransforms.push(new AddArgumentsAsVariables(args));
   }
 
-  delegationTransforms = delegationTransforms.concat([new FilterToSchema(), new AddTypenameToAbstract()]);
+  delegationTransforms = delegationTransforms.concat([new AddTypenameToAbstract(), new FilterToSchema()]);
 
   return delegationTransforms;
 }
