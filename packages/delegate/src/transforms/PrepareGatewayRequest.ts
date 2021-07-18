@@ -175,8 +175,8 @@ function visitSelectionSet(
       addSelectionsToSet(uniqueSelections, fieldNodes);
     }
 
-    const interfaceExtension = interfaceExtensionsMap[parentType.name];
-    const interfaceExtensionFields = [] as Array<SelectionNode>;
+    const interfaceExtensions = interfaceExtensionsMap[parentType.name];
+    const interfaceExtensionFields: Array<SelectionNode> = [];
 
     for (const selection of node.selections) {
       if (selection.kind === Kind.INLINE_FRAGMENT) {
@@ -235,7 +235,7 @@ function visitSelectionSet(
           }
         }
 
-        if (interfaceExtension?.[fieldName]) {
+        if (interfaceExtensions?.[fieldName]) {
           interfaceExtensionFields.push(selection);
         } else {
           newSelections.push(selection);
