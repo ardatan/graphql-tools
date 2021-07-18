@@ -74,7 +74,65 @@ function prepareGatewayDocument(
           reversePossibleTypesMap,
           interfaceExtensionsMap
         ),
-    })
+    }),
+    // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
+    // empty keys cannot be removed only because of typescript errors
+    // will hopefully be fixed in future version of graphql-js to be optional
+    {
+      Name: [],
+
+      Document: ['definitions'],
+      OperationDefinition: ['selectionSet'],
+      VariableDefinition: [],
+      Variable: [],
+      SelectionSet: ['selections'],
+      Field: ['selectionSet'],
+      Argument: [],
+
+      FragmentSpread: [],
+      InlineFragment: ['selectionSet'],
+      FragmentDefinition: ['selectionSet'],
+
+      IntValue: [],
+      FloatValue: [],
+      StringValue: [],
+      BooleanValue: [],
+      NullValue: [],
+      EnumValue: [],
+      ListValue: [],
+      ObjectValue: [],
+      ObjectField: [],
+
+      Directive: [],
+
+      NamedType: [],
+      ListType: [],
+      NonNullType: [],
+
+      SchemaDefinition: [],
+      OperationTypeDefinition: [],
+
+      ScalarTypeDefinition: [],
+      ObjectTypeDefinition: [],
+      FieldDefinition: [],
+      InputValueDefinition: [],
+      InterfaceTypeDefinition: [],
+      UnionTypeDefinition: [],
+      EnumTypeDefinition: [],
+      EnumValueDefinition: [],
+      InputObjectTypeDefinition: [],
+
+      DirectiveDefinition: [],
+
+      SchemaExtension: [],
+
+      ScalarTypeExtension: [],
+      ObjectTypeExtension: [],
+      InterfaceTypeExtension: [],
+      UnionTypeExtension: [],
+      EnumTypeExtension: [],
+      InputObjectTypeExtension: [],
+    }
   );
 }
 
