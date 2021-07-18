@@ -50,7 +50,7 @@ export interface DelegationContext<TContext = Record<string, any>> {
   fieldName: string;
   args?: Record<string, any>;
   context?: TContext;
-  info: GraphQLResolveInfo;
+  info?: GraphQLResolveInfo;
   returnType: GraphQLOutputType;
   onLocatedError?: (originalError: GraphQLError) => GraphQLError;
   rootValue?: any;

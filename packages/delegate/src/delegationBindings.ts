@@ -2,7 +2,6 @@ import { Maybe } from '@graphql-tools/utils';
 import { Transform, StitchingInfo, DelegationContext } from './types';
 
 import AddSelectionSets from './transforms/AddSelectionSets';
-import WrapConcreteTypes from './transforms/WrapConcreteTypes';
 import FilterToSchema from './transforms/FilterToSchema';
 import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
@@ -28,8 +27,6 @@ export function defaultDelegationBinding<TContext>(
       ),
     ]);
   }
-
-  delegationTransforms.push(new WrapConcreteTypes());
 
   const transforms = delegationContext.transforms;
   if (transforms != null) {

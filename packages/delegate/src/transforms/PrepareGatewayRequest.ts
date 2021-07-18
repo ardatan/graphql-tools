@@ -31,21 +31,25 @@ export default class PrepareGatewayRequest implements Transform {
     _transformationContext: Record<string, any>
   ): ExecutionRequest {
     const { info, transformedSchema, returnType } = delegationContext;
+    const wrappedConcreteTypesDocument = wrapConcreteTypes(returnType, transformedSchema, originalRequest.document);
+
     if (info) {
       return {
         ...originalRequest,
-        document: prepareGatewayDocument(info.schema, transformedSchema, returnType, originalRequest.document),
+        document: prepareGatewayDocument(info?.schema, transformedSchema, wrappedConcreteTypesDocument),
       };
     }
 
-    return originalRequest;
+    return {
+      ...originalRequest,
+      document: wrappedConcreteTypesDocument,
+    };
   }
 }
 
 function prepareGatewayDocument(
   sourceSchema: GraphQLSchema,
   targetSchema: GraphQLSchema,
-  returnType: GraphQLOutputType,
   originalDocument: DocumentNode
 ): DocumentNode {
   const { possibleTypesMap, reversePossibleTypesMap, interfaceExtensionsMap } = getSchemaMetaData(
@@ -53,9 +57,7 @@ function prepareGatewayDocument(
     targetSchema
   );
 
-  const wrappedConcreteTypesDocument = wrapConcreteTypes(returnType, targetSchema, originalDocument);
-
-  const { operations, fragments, fragmentNames } = getDocumentMetadata(wrappedConcreteTypesDocument);
+  const { operations, fragments, fragmentNames } = getDocumentMetadata(originalDocument);
 
   const { expandedFragments, fragmentReplacements } = getExpandedFragments(fragments, fragmentNames, possibleTypesMap);
 
