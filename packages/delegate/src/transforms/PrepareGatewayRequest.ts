@@ -13,7 +13,6 @@ import {
   isInterfaceType,
   visit,
   visitWithTypeInfo,
-  GraphQLResolveInfo,
   InlineFragmentNode,
 } from 'graphql';
 
@@ -32,7 +31,7 @@ export default class PrepareGatewayRequest implements Transform {
     if (info) {
       return {
         ...originalRequest,
-        document: prepareGatewayDocument(info, transformedSchema, originalRequest.document),
+        document: prepareGatewayDocument(info.schema, transformedSchema, originalRequest.document),
       };
     }
 
@@ -41,12 +40,12 @@ export default class PrepareGatewayRequest implements Transform {
 }
 
 function prepareGatewayDocument(
-  info: GraphQLResolveInfo,
+  sourceSchema: GraphQLSchema,
   targetSchema: GraphQLSchema,
   originalDocument: DocumentNode
 ): DocumentNode {
   const { possibleTypesMap, reversePossibleTypesMap, interfaceExtensionsMap } = getSchemaMetaData(
-    info.schema,
+    sourceSchema,
     targetSchema
   );
 
