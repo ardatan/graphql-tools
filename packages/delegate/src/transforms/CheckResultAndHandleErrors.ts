@@ -20,7 +20,7 @@ export default class CheckResultAndHandleErrors implements Transform {
   ): ExecutionResult {
     return checkResultAndHandleErrors(
       originalResult,
-      delegationContext.context!,
+      delegationContext.context,
       delegationContext.info,
       delegationContext.fieldName,
       delegationContext.subschema,
@@ -33,11 +33,11 @@ export default class CheckResultAndHandleErrors implements Transform {
 
 export function checkResultAndHandleErrors(
   result: ExecutionResult,
-  context: Record<string, any>,
-  info: GraphQLResolveInfo,
-  responseKey: string = getResponseKeyFromInfo(info),
+  context: Record<string, any> | undefined,
+  info: GraphQLResolveInfo | undefined,
+  responseKey: string = getResponseKey(info),
   subschema: GraphQLSchema | SubschemaConfig,
-  returnType: GraphQLOutputType = info.returnType,
+  returnType: GraphQLOutputType = getReturnType(info),
   skipTypeMerging?: boolean,
   onLocatedError?: (originalError: GraphQLError) => GraphQLError
 ): any {
@@ -119,4 +119,18 @@ export function mergeDataAndErrors(
   }
 
   return { data, unpathedErrors };
+}
+
+function getResponseKey(info: GraphQLResolveInfo | undefined): string {
+  if (info == null) {
+    throw new Error(`Data cannot be extracted from result without an explicit key or source schema.`);
+  }
+  return getResponseKeyFromInfo(info);
+}
+
+function getReturnType(info: GraphQLResolveInfo | undefined): GraphQLOutputType {
+  if (info == null) {
+    throw new Error(`Return type cannot be inferred without a source schema.`);
+  }
+  return info.returnType;
 }

@@ -34,7 +34,7 @@ export default class VisitSelectionSets implements Transform {
   ): ExecutionRequest {
     const document = visitSelectionSets(
       originalRequest,
-      delegationContext.info.schema,
+      delegationContext.info!.schema,
       delegationContext.returnType,
       this.visitor
     );
