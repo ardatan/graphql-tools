@@ -28,11 +28,11 @@ export default class PrepareGatewayRequest implements Transform {
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
   ): ExecutionRequest {
-    const { targetSchema, info } = delegationContext;
+    const { transformedSchema, info } = delegationContext;
     if (info) {
       return {
         ...originalRequest,
-        document: prepareGatewayDocument(info, targetSchema, originalRequest.document),
+        document: prepareGatewayDocument(info, transformedSchema, originalRequest.document),
       };
     }
 
@@ -50,84 +50,22 @@ function prepareGatewayDocument(
     targetSchema
   );
 
-  const operations: OperationDefinitionNode[] = [];
-  const fragments: FragmentDefinitionNode[] = [];
-  const newFragments: FragmentDefinitionNode[] = [];
-  const existingFragmentNames = new Set<string>();
-  for (let i = 0; i < originalDocument.definitions.length; i++) {
-    const def = originalDocument.definitions[i];
+  const { operations, fragments, fragmentNames } = getDocumentMetadata(originalDocument);
 
-    if (def.kind === Kind.FRAGMENT_DEFINITION) {
-      fragments.push(def);
-      newFragments.push(def);
-      existingFragmentNames.add(def.name.value);
-    } else if (def.kind === Kind.OPERATION_DEFINITION) {
-      operations.push(def);
-    }
-  }
-
-  let fragmentCounter = 0;
-  function generateFragmentName(typeName: string): string {
-    let fragmentName: string;
-
-    do {
-      fragmentName = `_${typeName}_Fragment${fragmentCounter.toString()}`;
-      fragmentCounter++;
-    } while (existingFragmentNames.has(fragmentName));
-
-    return fragmentName;
-  }
-
-  const fragmentReplacements: Record<string, Array<{ fragmentName: string; typeName: string }>> = Object.create(null);
-
-  for (const fragment of fragments) {
-    const possibleTypes = possibleTypesMap[fragment.typeCondition.name.value];
-
-    if (possibleTypes != null) {
-      const fragmentName = fragment.name.value;
-      fragmentReplacements[fragmentName] = [];
-      for (const possibleTypeName of possibleTypes) {
-        const name = generateFragmentName(possibleTypeName);
-        existingFragmentNames.add(name);
-
-        const newFragment: FragmentDefinitionNode = {
-          kind: Kind.FRAGMENT_DEFINITION,
-          name: {
-            kind: Kind.NAME,
-            value: name,
-          },
-          typeCondition: {
-            kind: Kind.NAMED_TYPE,
-            name: {
-              kind: Kind.NAME,
-              value: possibleTypeName,
-            },
-          },
-          selectionSet: fragment.selectionSet,
-        };
-
-        newFragments.push(newFragment);
-
-        fragmentReplacements[fragmentName].push({
-          fragmentName: name,
-          typeName: possibleTypeName,
-        });
-      }
-    }
-  }
-
-  const newDocument = {
-    ...originalDocument,
-    definitions: [...operations, ...newFragments],
-  };
+  const { expandedFragments, fragmentReplacements } = getExpandedFragments(fragments, fragmentNames, possibleTypesMap);
 
   const typeInfo = new TypeInfo(targetSchema);
 
+  const expandedDocument = {
+    kind: Kind.DOCUMENT,
+    definitions: [...operations, ...fragments, ...expandedFragments],
+  };
+
   return visit(
-    newDocument,
+    expandedDocument,
     visitWithTypeInfo(typeInfo, {
       [Kind.SELECTION_SET]: node =>
-        visitSelecionSet(
+        visitSelectionSet(
           node,
           fragmentReplacements,
           targetSchema,
@@ -140,7 +78,7 @@ function prepareGatewayDocument(
   );
 }
 
-function visitSelecionSet(
+function visitSelectionSet(
   node: SelectionSetNode,
   fragmentReplacements: Record<string, Array<{ fragmentName: string; typeName: string }>>,
   targetSchema: GraphQLSchema,
@@ -149,8 +87,7 @@ function visitSelecionSet(
   reversePossibleTypesMap: Record<string, Array<string>>,
   interfaceExtensionsMap: Record<string, Record<string, boolean>>
 ): SelectionSetNode {
-  let newSelections = node.selections;
-  const addedSelections = [];
+  const newSelections: Array<SelectionNode> = [];
   const maybeType = typeInfo.getParentType();
 
   if (maybeType != null) {
@@ -163,32 +100,38 @@ function visitSelecionSet(
         if (selection.typeCondition != null) {
           const possibleTypes = possibleTypesMap[selection.typeCondition.name.value];
 
-          if (possibleTypes != null) {
-            for (const possibleType of possibleTypes) {
-              const maybePossibleType = targetSchema.getType(possibleType);
-              if (maybePossibleType != null && implementsAbstractType(targetSchema, parentType, maybePossibleType)) {
-                addedSelections.push(generateInlineFragment(possibleType, selection.selectionSet));
-              }
+          if (possibleTypes == null) {
+            newSelections.push(selection);
+            continue;
+          }
+
+          for (const possibleTypeName of possibleTypes) {
+            const maybePossibleType = targetSchema.getType(possibleTypeName);
+            if (maybePossibleType != null && implementsAbstractType(targetSchema, parentType, maybePossibleType)) {
+              newSelections.push(generateInlineFragment(possibleTypeName, selection.selectionSet));
             }
           }
         }
       } else if (selection.kind === Kind.FRAGMENT_SPREAD) {
         const fragmentName = selection.name.value;
 
-        if (fragmentName in fragmentReplacements) {
-          for (const replacement of fragmentReplacements[fragmentName]) {
-            const typeName = replacement.typeName;
-            const maybeReplacementType = targetSchema.getType(typeName);
+        if (!(fragmentName in fragmentReplacements)) {
+          newSelections.push(selection);
+          continue;
+        }
 
-            if (maybeReplacementType != null && implementsAbstractType(targetSchema, parentType, maybeType)) {
-              addedSelections.push({
-                kind: Kind.FRAGMENT_SPREAD,
-                name: {
-                  kind: Kind.NAME,
-                  value: replacement.fragmentName,
-                },
-              });
-            }
+        for (const replacement of fragmentReplacements[fragmentName]) {
+          const typeName = replacement.typeName;
+          const maybeReplacementType = targetSchema.getType(typeName);
+
+          if (maybeReplacementType != null && implementsAbstractType(targetSchema, parentType, maybeType)) {
+            newSelections.push({
+              kind: Kind.FRAGMENT_SPREAD,
+              name: {
+                kind: Kind.NAME,
+                value: replacement.fragmentName,
+              },
+            });
           }
         }
       } else if (
@@ -197,11 +140,13 @@ function visitSelecionSet(
         selection.kind === Kind.FIELD
       ) {
         interfaceExtensionFields.push(selection);
+      } else {
+        newSelections.push(selection);
       }
     }
 
     if (parentType.name in reversePossibleTypesMap) {
-      addedSelections.push({
+      newSelections.push({
         kind: Kind.FIELD,
         name: {
           kind: Kind.NAME,
@@ -214,25 +159,19 @@ function visitSelecionSet(
       const possibleTypes = possibleTypesMap[parentType.name];
       if (possibleTypes != null) {
         for (const possibleType of possibleTypes) {
-          addedSelections.push(
+          newSelections.push(
             generateInlineFragment(possibleType, {
               kind: Kind.SELECTION_SET,
               selections: interfaceExtensionFields,
             })
           );
         }
-
-        newSelections = newSelections.filter(
-          (selection: SelectionNode) => !(selection.kind === Kind.FIELD && interfaceExtension[selection.name.value])
-        );
       }
     }
-  }
 
-  if (addedSelections.length) {
     return {
       ...node,
-      selections: newSelections.concat(addedSelections),
+      selections: newSelections,
     };
   }
 
@@ -323,4 +262,92 @@ function reversePossibleTypesMap(possibleTypesMap: Record<string, Array<string>>
     }
   }
   return result;
+}
+
+function getDocumentMetadata(document: DocumentNode): {
+  operations: Array<OperationDefinitionNode>;
+  fragments: Array<FragmentDefinitionNode>;
+  fragmentNames: Set<string>;
+} {
+  const operations: OperationDefinitionNode[] = [];
+  const fragments: FragmentDefinitionNode[] = [];
+  const fragmentNames = new Set<string>();
+  for (let i = 0; i < document.definitions.length; i++) {
+    const def = document.definitions[i];
+
+    if (def.kind === Kind.FRAGMENT_DEFINITION) {
+      fragments.push(def);
+      fragmentNames.add(def.name.value);
+    } else if (def.kind === Kind.OPERATION_DEFINITION) {
+      operations.push(def);
+    }
+  }
+
+  return {
+    operations,
+    fragments,
+    fragmentNames,
+  };
+}
+
+function getExpandedFragments(
+  fragments: Array<FragmentDefinitionNode>,
+  fragmentNames: Set<string>,
+  possibleTypesMap: Record<string, Array<string>>
+): {
+  expandedFragments: Array<FragmentDefinitionNode>;
+  fragmentReplacements: Record<string, Array<{ fragmentName: string; typeName: string }>>;
+} {
+  let fragmentCounter = 0;
+  function generateFragmentName(typeName: string): string {
+    let fragmentName: string;
+
+    do {
+      fragmentName = `_${typeName}_Fragment${fragmentCounter.toString()}`;
+      fragmentCounter++;
+    } while (fragmentNames.has(fragmentName));
+
+    return fragmentName;
+  }
+
+  const expandedFragments: Array<FragmentDefinitionNode> = [];
+  const fragmentReplacements: Record<string, Array<{ fragmentName: string; typeName: string }>> = Object.create(null);
+  for (const fragment of fragments) {
+    const possibleTypes = possibleTypesMap[fragment.typeCondition.name.value];
+
+    if (possibleTypes != null) {
+      const fragmentName = fragment.name.value;
+      fragmentReplacements[fragmentName] = [];
+      for (const possibleTypeName of possibleTypes) {
+        const name = generateFragmentName(possibleTypeName);
+        fragmentNames.add(name);
+
+        expandedFragments.push({
+          kind: Kind.FRAGMENT_DEFINITION,
+          name: {
+            kind: Kind.NAME,
+            value: name,
+          },
+          typeCondition: {
+            kind: Kind.NAMED_TYPE,
+            name: {
+              kind: Kind.NAME,
+              value: possibleTypeName,
+            },
+          },
+          selectionSet: fragment.selectionSet,
+        });
+
+        fragmentReplacements[fragmentName].push({
+          fragmentName: name,
+          typeName: possibleTypeName,
+        });
+      }
+    }
+  }
+
+  return {
+    expandedFragments,
+    fragmentReplacements,
+  };
 }
