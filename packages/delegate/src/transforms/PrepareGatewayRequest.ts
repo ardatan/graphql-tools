@@ -14,9 +14,12 @@ import {
   visit,
   visitWithTypeInfo,
   InlineFragmentNode,
+  GraphQLOutputType,
+  isObjectType,
+  FieldNode,
 } from 'graphql';
 
-import { implementsAbstractType, ExecutionRequest } from '@graphql-tools/utils';
+import { implementsAbstractType, ExecutionRequest, getRootTypeNames } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
 import { memoize2 } from '../memoize';
@@ -27,11 +30,11 @@ export default class PrepareGatewayRequest implements Transform {
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
   ): ExecutionRequest {
-    const { transformedSchema, info } = delegationContext;
+    const { info, transformedSchema, returnType } = delegationContext;
     if (info) {
       return {
         ...originalRequest,
-        document: prepareGatewayDocument(info.schema, transformedSchema, originalRequest.document),
+        document: prepareGatewayDocument(info.schema, transformedSchema, returnType, originalRequest.document),
       };
     }
 
@@ -42,6 +45,7 @@ export default class PrepareGatewayRequest implements Transform {
 function prepareGatewayDocument(
   sourceSchema: GraphQLSchema,
   targetSchema: GraphQLSchema,
+  returnType: GraphQLOutputType,
   originalDocument: DocumentNode
 ): DocumentNode {
   const { possibleTypesMap, reversePossibleTypesMap, interfaceExtensionsMap } = getSchemaMetaData(
@@ -49,7 +53,9 @@ function prepareGatewayDocument(
     targetSchema
   );
 
-  const { operations, fragments, fragmentNames } = getDocumentMetadata(originalDocument);
+  const wrappedConcreteTypesDocument = wrapConcreteTypes(returnType, targetSchema, originalDocument);
+
+  const { operations, fragments, fragmentNames } = getDocumentMetadata(wrappedConcreteTypesDocument);
 
   const { expandedFragments, fragmentReplacements } = getExpandedFragments(fragments, fragmentNames, possibleTypesMap);
 
@@ -407,4 +413,113 @@ function getExpandedFragments(
     expandedFragments,
     fragmentReplacements,
   };
+}
+
+function wrapConcreteTypes(
+  returnType: GraphQLOutputType,
+  targetSchema: GraphQLSchema,
+  document: DocumentNode
+): DocumentNode {
+  const namedType = getNamedType(returnType);
+
+  if (!isObjectType(namedType)) {
+    return document;
+  }
+
+  const rootTypeNames = getRootTypeNames(targetSchema);
+
+  const typeInfo = new TypeInfo(targetSchema);
+  return visit(
+    document,
+    visitWithTypeInfo(typeInfo, {
+      [Kind.FRAGMENT_DEFINITION]: (node: FragmentDefinitionNode) => {
+        const typeName = node.typeCondition.name.value;
+        if (!rootTypeNames.has(typeName)) {
+          return false;
+        }
+      },
+      [Kind.FIELD]: (node: FieldNode) => {
+        const type = typeInfo.getType();
+        if (type != null && isAbstractType(getNamedType(type))) {
+          return {
+            ...node,
+            selectionSet: {
+              kind: Kind.SELECTION_SET,
+              selections: [
+                {
+                  kind: Kind.INLINE_FRAGMENT,
+                  typeCondition: {
+                    kind: Kind.NAMED_TYPE,
+                    name: {
+                      kind: Kind.NAME,
+                      value: namedType.name,
+                    },
+                  },
+                  selectionSet: node.selectionSet,
+                },
+              ],
+            },
+          };
+        }
+      },
+    }),
+    // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
+    // empty keys cannot be removed only because of typescript errors
+    // will hopefully be fixed in future version of graphql-js to be optional
+    {
+      Name: [],
+
+      Document: ['definitions'],
+      OperationDefinition: ['selectionSet'],
+      VariableDefinition: [],
+      Variable: [],
+      SelectionSet: ['selections'],
+      Field: [],
+      Argument: [],
+
+      FragmentSpread: [],
+      InlineFragment: ['selectionSet'],
+      FragmentDefinition: ['selectionSet'],
+
+      IntValue: [],
+      FloatValue: [],
+      StringValue: [],
+      BooleanValue: [],
+      NullValue: [],
+      EnumValue: [],
+      ListValue: [],
+      ObjectValue: [],
+      ObjectField: [],
+
+      Directive: [],
+
+      NamedType: [],
+      ListType: [],
+      NonNullType: [],
+
+      SchemaDefinition: [],
+      OperationTypeDefinition: [],
+
+      ScalarTypeDefinition: [],
+      ObjectTypeDefinition: [],
+      FieldDefinition: [],
+      InputValueDefinition: [],
+      InterfaceTypeDefinition: [],
+      UnionTypeDefinition: [],
+      EnumTypeDefinition: [],
+      EnumValueDefinition: [],
+      InputObjectTypeDefinition: [],
+
+      DirectiveDefinition: [],
+
+      SchemaExtension: [],
+
+      ScalarTypeExtension: [],
+      ObjectTypeExtension: [],
+      InterfaceTypeExtension: [],
+      UnionTypeExtension: [],
+      EnumTypeExtension: [],
+      InputObjectTypeExtension: [],
+    }
+  );
 }
