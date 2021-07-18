@@ -52,10 +52,14 @@ function prepareGatewayDocument(
   targetSchema: GraphQLSchema,
   originalDocument: DocumentNode
 ): DocumentNode {
-  const { possibleTypesMap, reversePossibleTypesMap, interfaceExtensionsMap } = getSchemaMetaData(
-    sourceSchema,
-    targetSchema
-  );
+  const {
+    possibleTypesMap,
+    reversePossibleTypesMap,
+    interfaceExtensionsMap,
+    fieldNodesByType,
+    fieldNodesByField,
+    dynamicSelectionSetsByField,
+  } = getSchemaMetaData(sourceSchema, targetSchema);
 
   const { operations, fragments, fragmentNames } = getDocumentMetadata(originalDocument);
 
@@ -79,7 +83,10 @@ function prepareGatewayDocument(
           typeInfo,
           possibleTypesMap,
           reversePossibleTypesMap,
-          interfaceExtensionsMap
+          interfaceExtensionsMap,
+          fieldNodesByType,
+          fieldNodesByField,
+          dynamicSelectionSetsByField
         ),
     }),
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
@@ -150,13 +157,24 @@ function visitSelectionSet(
   typeInfo: TypeInfo,
   possibleTypesMap: Record<string, Array<string>>,
   reversePossibleTypesMap: Record<string, Array<string>>,
-  interfaceExtensionsMap: Record<string, Record<string, boolean>>
+  interfaceExtensionsMap: Record<string, Record<string, boolean>>,
+  fieldNodesByType: Record<string, Array<FieldNode>>,
+  fieldNodesByField: Record<string, Record<string, Array<FieldNode>>>,
+  dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>
 ): SelectionSetNode {
   const newSelections: Array<SelectionNode> = [];
   const maybeType = typeInfo.getParentType();
 
   if (maybeType != null) {
     const parentType: GraphQLNamedType = getNamedType(maybeType);
+    const uniqueSelections: Set<SelectionNode> = new Set();
+    const parentTypeName = parentType.name;
+
+    const fieldNodes = fieldNodesByType[parentTypeName];
+    if (fieldNodes) {
+      addSelectionsToSet(uniqueSelections, fieldNodes);
+    }
+
     const interfaceExtension = interfaceExtensionsMap[parentType.name];
     const interfaceExtensionFields = [] as Array<SelectionNode>;
 
@@ -199,14 +217,29 @@ function visitSelectionSet(
             });
           }
         }
-      } else if (
-        interfaceExtension != null &&
-        interfaceExtension[selection.name.value] &&
-        selection.kind === Kind.FIELD
-      ) {
-        interfaceExtensionFields.push(selection);
       } else {
-        newSelections.push(selection);
+        const fieldName = selection.name.value;
+
+        const fieldNodes = fieldNodesByField[parentTypeName]?.[fieldName];
+        if (fieldNodes != null) {
+          addSelectionsToSet(uniqueSelections, fieldNodes);
+        }
+
+        const dynamicSelectionSets = dynamicSelectionSetsByField[parentTypeName]?.[fieldName];
+        if (dynamicSelectionSets != null) {
+          for (const selectionSetFn of dynamicSelectionSets) {
+            const selectionSet = selectionSetFn(selection);
+            if (selectionSet != null) {
+              addSelectionsToSet(uniqueSelections, selectionSet.selections);
+            }
+          }
+        }
+
+        if (interfaceExtension?.[fieldName]) {
+          interfaceExtensionFields.push(selection);
+        } else {
+          newSelections.push(selection);
+        }
       }
     }
 
@@ -236,7 +269,7 @@ function visitSelectionSet(
 
     return {
       ...node,
-      selections: newSelections,
+      selections: newSelections.concat(Array.from(uniqueSelections)),
     };
   }
 
@@ -265,6 +298,9 @@ const getSchemaMetaData = memoize2(
     possibleTypesMap: Record<string, Array<string>>;
     reversePossibleTypesMap: Record<string, Array<string>>;
     interfaceExtensionsMap: Record<string, Record<string, boolean>>;
+    fieldNodesByType: Record<string, Array<FieldNode>>;
+    fieldNodesByField: Record<string, Record<string, Array<FieldNode>>>;
+    dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
   } => {
     const typeMap = sourceSchema.getTypeMap();
     const targetTypeMap = targetSchema.getTypeMap();
@@ -307,10 +343,14 @@ const getSchemaMetaData = memoize2(
         }
       }
     }
+
     return {
       possibleTypesMap,
       reversePossibleTypesMap: reversePossibleTypesMap(possibleTypesMap),
       interfaceExtensionsMap,
+      fieldNodesByType: sourceSchema.extensions?.['stitchingInfo'].fieldNodesByType ?? {},
+      fieldNodesByField: sourceSchema.extensions?.['stitchingInfo'].fieldNodesByField ?? {},
+      dynamicSelectionSetsByField: sourceSchema.extensions?.['stitchingInfo'].dynamicSelectionSetsByField ?? {},
     };
   }
 );
@@ -524,4 +564,10 @@ function wrapConcreteTypes(
       InputObjectTypeExtension: [],
     }
   );
+}
+
+function addSelectionsToSet(set: Set<SelectionNode>, selections: ReadonlyArray<SelectionNode>): void {
+  for (const selection of selections) {
+    set.add(selection);
+  }
 }
