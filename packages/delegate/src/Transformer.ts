@@ -3,6 +3,7 @@ import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 import { DelegationContext, DelegationBinding, Transform } from './types';
 
 import { defaultDelegationBinding } from './delegationBindings';
+import { prepareGatewayDocument } from './prepareGatewayDocument';
 
 interface Transformation {
   transform: Transform;
@@ -26,12 +27,17 @@ export class Transformer<TContext = Record<string, any>> {
   }
 
   public transformRequest(originalRequest: ExecutionRequest) {
+    const preparedRequest = {
+      ...originalRequest,
+      document: prepareGatewayDocument(originalRequest.document, this.delegationContext),
+    };
+
     return this.transformations.reduce(
       (request: ExecutionRequest, transformation: Transformation) =>
         transformation.transform.transformRequest != null
           ? transformation.transform.transformRequest(request, this.delegationContext, transformation.context)
           : request,
-      originalRequest
+      preparedRequest
     );
   }
 

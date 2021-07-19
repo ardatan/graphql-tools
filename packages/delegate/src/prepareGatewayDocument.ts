@@ -17,41 +17,33 @@ import {
   GraphQLOutputType,
   isObjectType,
   FieldNode,
+  VariableDefinitionNode,
+  GraphQLField,
+  ArgumentNode,
 } from 'graphql';
 
-import { implementsAbstractType, ExecutionRequest, getRootTypeNames } from '@graphql-tools/utils';
+import {
+  implementsAbstractType,
+  getRootTypeNames,
+  updateArgument,
+  serializeInputValue,
+  getDefinedRootType,
+} from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '../types';
-import { memoize2 } from '../memoize';
+import { DelegationContext } from './types';
+import { memoize2 } from './memoize';
 
-export default class PrepareGatewayRequest implements Transform {
-  public transformRequest(
-    originalRequest: ExecutionRequest,
-    delegationContext: DelegationContext,
-    _transformationContext: Record<string, any>
-  ): ExecutionRequest {
-    const { info, transformedSchema, returnType } = delegationContext;
-    const wrappedConcreteTypesDocument = wrapConcreteTypes(returnType, transformedSchema, originalRequest.document);
-
-    if (info) {
-      return {
-        ...originalRequest,
-        document: prepareGatewayDocument(info?.schema, transformedSchema, wrappedConcreteTypesDocument),
-      };
-    }
-
-    return {
-      ...originalRequest,
-      document: wrappedConcreteTypesDocument,
-    };
-  }
-}
-
-function prepareGatewayDocument(
-  sourceSchema: GraphQLSchema,
-  targetSchema: GraphQLSchema,
-  originalDocument: DocumentNode
+export function prepareGatewayDocument(
+  originalDocument: DocumentNode,
+  delegationContext: DelegationContext
 ): DocumentNode {
+  const { info, transformedSchema, returnType } = delegationContext;
+  const wrappedConcreteTypesDocument = wrapConcreteTypes(returnType, transformedSchema, originalDocument);
+
+  if (info == null) {
+    return wrappedConcreteTypesDocument;
+  }
+
   const {
     possibleTypesMap,
     reversePossibleTypesMap,
@@ -59,13 +51,13 @@ function prepareGatewayDocument(
     fieldNodesByType,
     fieldNodesByField,
     dynamicSelectionSetsByField,
-  } = getSchemaMetaData(sourceSchema, targetSchema);
+  } = getSchemaMetaData(info.schema, transformedSchema);
 
-  const { operations, fragments, fragmentNames } = getDocumentMetadata(originalDocument);
+  const { operations, fragments, fragmentNames } = getDocumentMetadata(wrappedConcreteTypesDocument);
 
   const { expandedFragments, fragmentReplacements } = getExpandedFragments(fragments, fragmentNames, possibleTypesMap);
 
-  const typeInfo = new TypeInfo(targetSchema);
+  const typeInfo = new TypeInfo(transformedSchema);
 
   const expandedDocument = {
     kind: Kind.DOCUMENT,
@@ -79,7 +71,7 @@ function prepareGatewayDocument(
         visitSelectionSet(
           node,
           fragmentReplacements,
-          targetSchema,
+          transformedSchema,
           typeInfo,
           possibleTypesMap,
           reversePossibleTypesMap,
@@ -153,7 +145,7 @@ function prepareGatewayDocument(
 function visitSelectionSet(
   node: SelectionSetNode,
   fragmentReplacements: Record<string, Array<{ fragmentName: string; typeName: string }>>,
-  targetSchema: GraphQLSchema,
+  schema: GraphQLSchema,
   typeInfo: TypeInfo,
   possibleTypesMap: Record<string, Array<string>>,
   reversePossibleTypesMap: Record<string, Array<string>>,
@@ -189,8 +181,8 @@ function visitSelectionSet(
           }
 
           for (const possibleTypeName of possibleTypes) {
-            const maybePossibleType = targetSchema.getType(possibleTypeName);
-            if (maybePossibleType != null && implementsAbstractType(targetSchema, parentType, maybePossibleType)) {
+            const maybePossibleType = schema.getType(possibleTypeName);
+            if (maybePossibleType != null && implementsAbstractType(schema, parentType, maybePossibleType)) {
               newSelections.push(generateInlineFragment(possibleTypeName, selection.selectionSet));
             }
           }
@@ -205,9 +197,9 @@ function visitSelectionSet(
 
         for (const replacement of fragmentReplacements[fragmentName]) {
           const typeName = replacement.typeName;
-          const maybeReplacementType = targetSchema.getType(typeName);
+          const maybeReplacementType = schema.getType(typeName);
 
-          if (maybeReplacementType != null && implementsAbstractType(targetSchema, parentType, maybeType)) {
+          if (maybeReplacementType != null && implementsAbstractType(schema, parentType, maybeType)) {
             newSelections.push({
               kind: Kind.FRAGMENT_SPREAD,
               name: {
@@ -569,5 +561,94 @@ function wrapConcreteTypes(
 function addSelectionsToSet(set: Set<SelectionNode>, selections: ReadonlyArray<SelectionNode>): void {
   for (const selection of selections) {
     set.add(selection);
+  }
+}
+
+function addVariablesToRootField(
+  schema: GraphQLSchema,
+  operations: Array<OperationDefinitionNode>,
+  variableValues: Record<string, any>,
+  args: Record<string, any>
+): {
+  operations: Array<OperationDefinitionNode>;
+  variables: Record<string, any>;
+} {
+  const newOperations = operations.map(operation => {
+    const variableDefinitionMap: Record<string, VariableDefinitionNode> = (operation.variableDefinitions ?? []).reduce(
+      (prev, def) => ({
+        ...prev,
+        [def.variable.name.value]: def,
+      }),
+      {}
+    );
+
+    const type = getDefinedRootType(schema, operation.operation);
+
+    const newSelectionSet: Array<SelectionNode> = [];
+
+    for (const selection of operation.selectionSet.selections) {
+      if (selection.kind === Kind.FIELD) {
+        const argumentNodes = selection.arguments ?? [];
+        const argumentNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce(
+          (prev, argument) => ({
+            ...prev,
+            [argument.name.value]: argument,
+          }),
+          {}
+        );
+
+        const targetField = type.getFields()[selection.name.value];
+
+        // excludes __typename
+        if (targetField != null) {
+          updateArguments(targetField, argumentNodeMap, variableDefinitionMap, variableValues, args);
+        }
+
+        newSelectionSet.push({
+          ...selection,
+          arguments: Object.values(argumentNodeMap),
+        });
+      } else {
+        newSelectionSet.push(selection);
+      }
+    }
+
+    return {
+      ...operation,
+      variableDefinitions: Object.values(variableDefinitionMap),
+      selectionSet: {
+        kind: Kind.SELECTION_SET,
+        selections: newSelectionSet,
+      },
+    } as OperationDefinitionNode;
+  });
+
+  return {
+    operations: newOperations,
+    variables: variableValues,
+  };
+}
+
+function updateArguments(
+  targetField: GraphQLField<any, any>,
+  argumentNodeMap: Record<string, ArgumentNode>,
+  variableDefinitionMap: Record<string, VariableDefinitionNode>,
+  variableValues: Record<string, any>,
+  newArgs: Record<string, any>
+): void {
+  for (const argument of targetField.args) {
+    const argName = argument.name;
+    const argType = argument.type;
+
+    if (argName in newArgs) {
+      updateArgument(
+        argName,
+        argType,
+        argumentNodeMap,
+        variableDefinitionMap,
+        variableValues,
+        serializeInputValue(argType, newArgs[argName])
+      );
+    }
   }
 }
