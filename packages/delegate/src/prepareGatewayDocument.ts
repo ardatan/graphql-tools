@@ -4,7 +4,6 @@ import {
   GraphQLNamedType,
   GraphQLSchema,
   Kind,
-  OperationDefinitionNode,
   SelectionNode,
   SelectionSetNode,
   TypeInfo,
@@ -17,19 +16,9 @@ import {
   GraphQLOutputType,
   isObjectType,
   FieldNode,
-  VariableDefinitionNode,
-  GraphQLField,
-  ArgumentNode,
 } from 'graphql';
 
-import {
-  implementsAbstractType,
-  getRootTypeNames,
-  updateArgument,
-  serializeInputValue,
-  getDefinedRootType,
-  createVariableNameGenerator,
-} from '@graphql-tools/utils';
+import { implementsAbstractType, getRootTypeNames } from '@graphql-tools/utils';
 
 import { DelegationContext } from './types';
 import { memoize2 } from './memoize';
@@ -537,97 +526,5 @@ function wrapConcreteTypes(
 function addSelectionsToSet(set: Set<SelectionNode>, selections: ReadonlyArray<SelectionNode>): void {
   for (const selection of selections) {
     set.add(selection);
-  }
-}
-
-function addVariablesToRootField(
-  schema: GraphQLSchema,
-  operations: Array<OperationDefinitionNode>,
-  variableValues: Record<string, any>,
-  args: Record<string, any>
-): {
-  operations: Array<OperationDefinitionNode>;
-  variables: Record<string, any>;
-} {
-  const newOperations = operations.map(operation => {
-    const variableDefinitionMap: Record<string, VariableDefinitionNode> = (operation.variableDefinitions ?? []).reduce(
-      (prev, def) => ({
-        ...prev,
-        [def.variable.name.value]: def,
-      }),
-      {}
-    );
-
-    const type = getDefinedRootType(schema, operation.operation);
-
-    const newSelectionSet: Array<SelectionNode> = [];
-
-    for (const selection of operation.selectionSet.selections) {
-      if (selection.kind === Kind.FIELD) {
-        const argumentNodes = selection.arguments ?? [];
-        const argumentNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce(
-          (prev, argument) => ({
-            ...prev,
-            [argument.name.value]: argument,
-          }),
-          {}
-        );
-
-        const targetField = type.getFields()[selection.name.value];
-
-        // excludes __typename
-        if (targetField != null) {
-          updateArguments(targetField, argumentNodeMap, variableDefinitionMap, variableValues, args);
-        }
-
-        newSelectionSet.push({
-          ...selection,
-          arguments: Object.values(argumentNodeMap),
-        });
-      } else {
-        newSelectionSet.push(selection);
-      }
-    }
-
-    return {
-      ...operation,
-      variableDefinitions: Object.values(variableDefinitionMap),
-      selectionSet: {
-        kind: Kind.SELECTION_SET,
-        selections: newSelectionSet,
-      },
-    } as OperationDefinitionNode;
-  });
-
-  return {
-    operations: newOperations,
-    variables: variableValues,
-  };
-}
-
-function updateArguments(
-  targetField: GraphQLField<any, any>,
-  argumentNodeMap: Record<string, ArgumentNode>,
-  variableDefinitionMap: Record<string, VariableDefinitionNode>,
-  variableValues: Record<string, any>,
-  newArgs: Record<string, any>
-): void {
-  const generateVariableName = createVariableNameGenerator(variableDefinitionMap);
-
-  for (const argument of targetField.args) {
-    const argName = argument.name;
-    const argType = argument.type;
-
-    if (argName in newArgs) {
-      updateArgument(
-        argumentNodeMap,
-        variableDefinitionMap,
-        variableValues,
-        argName,
-        generateVariableName(argName),
-        argType,
-        serializeInputValue(argType, newArgs[argName])
-      );
-    }
   }
 }
