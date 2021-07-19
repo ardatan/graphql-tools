@@ -1,7 +1,5 @@
 import {
   ArgumentNode,
-  DocumentNode,
-  FragmentDefinitionNode,
   GraphQLField,
   GraphQLSchema,
   Kind,
@@ -19,18 +17,13 @@ import {
 } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '../types';
+import { getDocumentMetadata } from '../getDocumentMetadata';
 
 export default class AddArgumentsAsVariables implements Transform {
   private readonly args: Record<string, any>;
 
   constructor(args: Record<string, any>) {
-    this.args = Object.entries(args).reduce(
-      (prev, [key, val]) => ({
-        ...prev,
-        [key]: val,
-      }),
-      {}
-    );
+    this.args = args;
   }
 
   public transformRequest(
@@ -38,33 +31,34 @@ export default class AddArgumentsAsVariables implements Transform {
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
   ): ExecutionRequest {
-    const { document, variables } = addVariablesToRootField(delegationContext.targetSchema, originalRequest, this.args);
+    const { document, variables } = originalRequest;
+
+    const { operations, fragments } = getDocumentMetadata(document);
+    const { targetSchema } = delegationContext;
+    const { newOperations, newVariableValues } = addVariablesToRootFields(targetSchema, operations, this.args);
+
+    const newDocument = {
+      kind: Kind.DOCUMENT,
+      definitions: [...newOperations, ...fragments],
+    };
 
     return {
       ...originalRequest,
-      document,
-      variables,
+      document: newDocument,
+      variables: Object.assign({}, variables, newVariableValues),
     };
   }
 }
 
-function addVariablesToRootField(
+function addVariablesToRootFields(
   targetSchema: GraphQLSchema,
-  originalRequest: ExecutionRequest,
+  operations: Array<OperationDefinitionNode>,
   args: Record<string, any>
 ): {
-  document: DocumentNode;
-  variables: Record<string, any>;
+  newOperations: Array<OperationDefinitionNode>;
+  newVariableValues: Record<string, any>;
 } {
-  const document = originalRequest.document;
-  const variableValues = originalRequest.variables ?? {};
-
-  const operations: Array<OperationDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.OPERATION_DEFINITION
-  ) as Array<OperationDefinitionNode>;
-  const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.FRAGMENT_DEFINITION
-  ) as Array<FragmentDefinitionNode>;
+  const newVariableValues = Object.create(null);
 
   const newOperations = operations.map((operation: OperationDefinitionNode) => {
     const variableDefinitionMap: Record<string, VariableDefinitionNode> = (operation.variableDefinitions ?? []).reduce(
@@ -94,7 +88,7 @@ function addVariablesToRootField(
 
         // excludes __typename
         if (targetField != null) {
-          updateArguments(targetField, argumentNodeMap, variableDefinitionMap, variableValues, args);
+          updateArguments(targetField, argumentNodeMap, variableDefinitionMap, newVariableValues, args);
         }
 
         newSelectionSet.push({
@@ -117,11 +111,8 @@ function addVariablesToRootField(
   });
 
   return {
-    document: {
-      ...document,
-      definitions: [...newOperations, ...fragments],
-    },
-    variables: variableValues,
+    newOperations,
+    newVariableValues,
   };
 }
 
