@@ -28,6 +28,7 @@ import {
   updateArgument,
   serializeInputValue,
   getDefinedRootType,
+  createVariableNameGenerator,
 } from '@graphql-tools/utils';
 
 import { DelegationContext } from './types';
@@ -636,17 +637,20 @@ function updateArguments(
   variableValues: Record<string, any>,
   newArgs: Record<string, any>
 ): void {
+  const generateVariableName = createVariableNameGenerator(variableDefinitionMap);
+
   for (const argument of targetField.args) {
     const argName = argument.name;
     const argType = argument.type;
 
     if (argName in newArgs) {
       updateArgument(
-        argName,
-        argType,
         argumentNodeMap,
         variableDefinitionMap,
         variableValues,
+        argName,
+        generateVariableName(argName),
+        argType,
         serializeInputValue(argType, newArgs[argName])
       );
     }
