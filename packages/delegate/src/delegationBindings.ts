@@ -3,7 +3,7 @@ import { Transform, DelegationContext } from './types';
 import FilterToSchema from './transforms/FilterToSchema';
 import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
-import AddArgumentsAsVariables from './transforms/AddArgumentsAsVariables';
+import FinalizeGatewayRequest from './transforms/FinalizeGatewayRequest';
 
 export function defaultDelegationBinding<TContext>(
   delegationContext: DelegationContext<TContext>
@@ -17,7 +17,7 @@ export function defaultDelegationBinding<TContext>(
 
   const args = delegationContext.args;
   if (args != null) {
-    delegationTransforms.push(new AddArgumentsAsVariables(args));
+    delegationTransforms.push(new FinalizeGatewayRequest(args));
   }
 
   delegationTransforms = delegationTransforms.concat([new AddTypenameToAbstract(), new FilterToSchema()]);

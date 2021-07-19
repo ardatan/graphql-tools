@@ -19,7 +19,7 @@ import {
 import { Transform, DelegationContext } from '../types';
 import { getDocumentMetadata } from '../getDocumentMetadata';
 
-export default class AddArgumentsAsVariables implements Transform {
+export default class FinalizeGatewayRequest implements Transform {
   private readonly args: Record<string, any>;
 
   constructor(args: Record<string, any>) {
