@@ -1,13 +1,9 @@
 import { print, parse } from 'graphql';
-import { FilterToSchema, DelegationContext } from '@graphql-tools/delegate';
+import { DelegationContext } from '@graphql-tools/delegate';
 import { bookingSchema } from '../../wrap/tests/fixtures/schemas';
+import { finalizeGatewayRequest } from '../src/FinalizeGatewayRequest';
 
-describe('FilterToSchema', () => {
-  let filter: FilterToSchema;
-  beforeAll(() => {
-    filter = new FilterToSchema();
-  });
-
+describe('finalizeGatewayRequest', () => {
   test('should remove empty selection sets on objects', () => {
     const query = parse(`
     query customerQuery($id: ID!) {
@@ -20,7 +16,7 @@ describe('FilterToSchema', () => {
       }
     }
     `);
-    const filteredQuery = filter.transformRequest({
+    const filteredQuery = finalizeGatewayRequest({
       document: query,
       variables: {
         id: 'c1',
@@ -28,7 +24,7 @@ describe('FilterToSchema', () => {
       operationType: 'query' as const
     }, {
       targetSchema: bookingSchema
-    } as DelegationContext, {});
+    } as DelegationContext);
 
     const expected = parse(`
     query customerQuery($id: ID!) {
@@ -53,7 +49,7 @@ describe('FilterToSchema', () => {
       }
     }
     `);
-    const filteredQuery = filter.transformRequest({
+    const filteredQuery = finalizeGatewayRequest({
       document: query,
       variables: {
         id: 'c1',
@@ -62,7 +58,7 @@ describe('FilterToSchema', () => {
       operationType: 'query' as const,
     }, {
       targetSchema: bookingSchema
-    } as DelegationContext, {});
+    } as DelegationContext);
 
     const expected = parse(`
     query customerQuery($id: ID!) {
@@ -87,7 +83,7 @@ describe('FilterToSchema', () => {
         }
       }
       `);
-    const filteredQuery = filter.transformRequest({
+    const filteredQuery = finalizeGatewayRequest({
       document: query,
       variables: {
         id: 'b1',
@@ -95,7 +91,7 @@ describe('FilterToSchema', () => {
       operationType: 'query' as const,
     }, {
       targetSchema: bookingSchema
-    } as DelegationContext, {});
+    } as DelegationContext);
 
     const expected = parse(`
       query bookingQuery($id: ID!) {

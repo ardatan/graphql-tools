@@ -28,44 +28,98 @@ import {
   implementsAbstractType,
 } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext } from '../types';
-import { getDocumentMetadata } from '../getDocumentMetadata';
+import { DelegationContext } from './types';
+import { getDocumentMetadata } from './getDocumentMetadata';
 import { TypeMap } from 'graphql/type/schema';
 
-export default class FinalizeGatewayRequest implements Transform {
-  public transformRequest(
-    originalRequest: ExecutionRequest,
-    delegationContext: DelegationContext,
-    _transformationContext: Record<string, any>
-  ): ExecutionRequest {
-    let { document, variables } = originalRequest;
+export function finalizeGatewayRequest(
+  originalRequest: ExecutionRequest,
+  delegationContext: DelegationContext
+): ExecutionRequest {
+  let { document, variables } = originalRequest;
 
-    let { operations, fragments } = getDocumentMetadata(document);
-    const { targetSchema, args } = delegationContext;
+  let { operations, fragments } = getDocumentMetadata(document);
+  const { targetSchema, args } = delegationContext;
 
-    if (args) {
-      const requestWithNewVariables = addVariablesToRootFields(targetSchema, operations, args);
-      operations = requestWithNewVariables.newOperations;
-      variables = Object.assign({}, variables ?? {}, requestWithNewVariables.newVariables);
-    }
-
-    const finalizedRequest = finalizeRequest(targetSchema, operations, fragments, variables);
-
-    operations = finalizedRequest.newOperations;
-    fragments = finalizedRequest.newFragments;
-    variables = finalizedRequest.newVariables;
-
-    const newDocument = {
-      kind: Kind.DOCUMENT,
-      definitions: [...operations, ...fragments],
-    };
-
-    return {
-      ...originalRequest,
-      document: newDocument,
-      variables,
-    };
+  if (args) {
+    const requestWithNewVariables = addVariablesToRootFields(targetSchema, operations, args);
+    operations = requestWithNewVariables.newOperations;
+    variables = Object.assign({}, variables ?? {}, requestWithNewVariables.newVariables);
   }
+
+  let usedVariables: Array<string> = [];
+  let usedFragments: Array<string> = [];
+  const newOperations: Array<OperationDefinitionNode> = [];
+  let newFragments: Array<FragmentDefinitionNode> = [];
+
+  const validFragments: Array<FragmentDefinitionNode> = [];
+  const validFragmentsWithType: TypeMap = Object.create(null);
+  for (const fragment of fragments) {
+    const typeName = fragment.typeCondition.name.value;
+    const type = targetSchema.getType(typeName);
+    if (type != null) {
+      validFragments.push(fragment);
+      validFragmentsWithType[fragment.name.value] = type;
+    }
+  }
+
+  let fragmentSet = Object.create(null);
+
+  for (const operation of operations) {
+    const type = getDefinedRootType(targetSchema, operation.operation);
+
+    const {
+      selectionSet,
+      usedFragments: operationUsedFragments,
+      usedVariables: operationUsedVariables,
+    } = finalizeSelectionSet(targetSchema, type, validFragmentsWithType, operation.selectionSet);
+
+    usedFragments = union(usedFragments, operationUsedFragments);
+
+    const {
+      usedVariables: collectedUsedVariables,
+      newFragments: collectedNewFragments,
+      fragmentSet: collectedFragmentSet,
+    } = collectFragmentVariables(targetSchema, fragmentSet, validFragments, validFragmentsWithType, usedFragments);
+    const operationOrFragmentVariables = union(operationUsedVariables, collectedUsedVariables);
+    usedVariables = union(usedVariables, operationOrFragmentVariables);
+    newFragments = collectedNewFragments;
+    fragmentSet = collectedFragmentSet;
+
+    const variableDefinitions = (operation.variableDefinitions ?? []).filter(
+      (variable: VariableDefinitionNode) => operationOrFragmentVariables.indexOf(variable.variable.name.value) !== -1
+    );
+
+    newOperations.push({
+      kind: Kind.OPERATION_DEFINITION,
+      operation: operation.operation,
+      name: operation.name,
+      directives: operation.directives,
+      variableDefinitions,
+      selectionSet,
+    });
+  }
+
+  const newVariables = {};
+  if (variables != null) {
+    for (const variableName of usedVariables) {
+      const variableValue = variables[variableName];
+      if (variableValue !== undefined) {
+        newVariables[variableName] = variableValue;
+      }
+    }
+  }
+
+  const newDocument = {
+    kind: Kind.DOCUMENT,
+    definitions: [...newOperations, ...newFragments],
+  };
+
+  return {
+    ...originalRequest,
+    document: newDocument,
+    variables: newVariables,
+  };
 }
 
 function addVariablesToRootFields(
@@ -159,86 +213,6 @@ function updateArguments(
       );
     }
   }
-}
-
-function finalizeRequest(
-  targetSchema: GraphQLSchema,
-  operations: Array<OperationDefinitionNode>,
-  fragments: Array<FragmentDefinitionNode>,
-  variables?: Record<string, any>
-): {
-  newOperations: Array<OperationDefinitionNode>;
-  newFragments: Array<FragmentDefinitionNode>;
-  newVariables: Record<string, any>;
-} {
-  let usedVariables: Array<string> = [];
-  let usedFragments: Array<string> = [];
-  const newOperations: Array<OperationDefinitionNode> = [];
-  let newFragments: Array<FragmentDefinitionNode> = [];
-
-  const validFragments: Array<FragmentDefinitionNode> = [];
-  const validFragmentsWithType: TypeMap = Object.create(null);
-  for (const fragment of fragments) {
-    const typeName = fragment.typeCondition.name.value;
-    const type = targetSchema.getType(typeName);
-    if (type != null) {
-      validFragments.push(fragment);
-      validFragmentsWithType[fragment.name.value] = type;
-    }
-  }
-
-  let fragmentSet = Object.create(null);
-
-  for (const operation of operations) {
-    const type = getDefinedRootType(targetSchema, operation.operation);
-
-    const {
-      selectionSet,
-      usedFragments: operationUsedFragments,
-      usedVariables: operationUsedVariables,
-    } = finalizeSelectionSet(targetSchema, type, validFragmentsWithType, operation.selectionSet);
-
-    usedFragments = union(usedFragments, operationUsedFragments);
-
-    const {
-      usedVariables: collectedUsedVariables,
-      newFragments: collectedNewFragments,
-      fragmentSet: collectedFragmentSet,
-    } = collectFragmentVariables(targetSchema, fragmentSet, validFragments, validFragmentsWithType, usedFragments);
-    const operationOrFragmentVariables = union(operationUsedVariables, collectedUsedVariables);
-    usedVariables = union(usedVariables, operationOrFragmentVariables);
-    newFragments = collectedNewFragments;
-    fragmentSet = collectedFragmentSet;
-
-    const variableDefinitions = (operation.variableDefinitions ?? []).filter(
-      (variable: VariableDefinitionNode) => operationOrFragmentVariables.indexOf(variable.variable.name.value) !== -1
-    );
-
-    newOperations.push({
-      kind: Kind.OPERATION_DEFINITION,
-      operation: operation.operation,
-      name: operation.name,
-      directives: operation.directives,
-      variableDefinitions,
-      selectionSet,
-    });
-  }
-
-  const newVariables = {};
-  if (variables != null) {
-    for (const variableName of usedVariables) {
-      const variableValue = variables[variableName];
-      if (variableValue !== undefined) {
-        newVariables[variableName] = variableValue;
-      }
-    }
-  }
-
-  return {
-    newOperations,
-    newFragments,
-    newVariables,
-  };
 }
 
 function collectFragmentVariables(

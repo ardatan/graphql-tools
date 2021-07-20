@@ -4,6 +4,7 @@ import { DelegationContext, DelegationBinding, Transform } from './types';
 
 import { defaultDelegationBinding } from './delegationBindings';
 import { prepareGatewayDocument } from './prepareGatewayDocument';
+import { finalizeGatewayRequest } from './finalizeGatewayRequest';
 
 interface Transformation {
   transform: Transform;
@@ -32,13 +33,15 @@ export class Transformer<TContext = Record<string, any>> {
       document: prepareGatewayDocument(originalRequest.document, this.delegationContext),
     };
 
-    return this.transformations.reduce(
+    const transformedRequest = this.transformations.reduce(
       (request: ExecutionRequest, transformation: Transformation) =>
         transformation.transform.transformRequest != null
           ? transformation.transform.transformRequest(request, this.delegationContext, transformation.context)
           : request,
       preparedRequest
     );
+
+    return finalizeGatewayRequest(transformedRequest, this.delegationContext);
   }
 
   public transformResult(originalResult: ExecutionResult) {

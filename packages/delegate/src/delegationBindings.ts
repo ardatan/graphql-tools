@@ -1,7 +1,6 @@
 import { Transform, DelegationContext } from './types';
 
 import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
-import FinalizeGatewayRequest from './transforms/FinalizeGatewayRequest';
 
 export function defaultDelegationBinding<TContext>(
   delegationContext: DelegationContext<TContext>
@@ -12,8 +11,6 @@ export function defaultDelegationBinding<TContext>(
   if (transforms != null) {
     delegationTransforms = delegationTransforms.concat(transforms.slice().reverse());
   }
-
-  delegationTransforms.push(new FinalizeGatewayRequest());
 
   return delegationTransforms;
 }
