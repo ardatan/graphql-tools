@@ -59,10 +59,6 @@ export interface DelegationContext<TContext = Record<string, any>> {
   skipTypeMerging: boolean;
 }
 
-export type DelegationBinding<TContext = Record<string, any>> = (
-  delegationContext: DelegationContext<TContext>
-) => Array<Transform<any, TContext>>;
-
 export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs = Record<string, any>> {
   schema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
   operationName?: string;
@@ -80,7 +76,6 @@ export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs 
   transformedSchema?: GraphQLSchema;
   validateRequest?: boolean;
   skipTypeMerging?: boolean;
-  binding?: DelegationBinding<TContext>;
 }
 
 export interface IDelegateRequestOptions<TContext = Record<string, any>, TArgs = Record<string, any>>
