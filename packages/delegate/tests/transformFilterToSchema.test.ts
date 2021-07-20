@@ -1,8 +1,6 @@
 import { print, parse } from 'graphql';
 import { FilterToSchema, DelegationContext } from '@graphql-tools/delegate';
-import { bookingSchema } from './fixtures/schemas';
-
-// @todo: move this to the delegate package
+import { bookingSchema } from '../../wrap/tests/fixtures/schemas';
 
 describe('FilterToSchema', () => {
   let filter: FilterToSchema;
