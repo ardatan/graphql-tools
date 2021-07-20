@@ -1,6 +1,5 @@
 import {
   ArgumentNode,
-  DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
   FragmentSpreadNode,
@@ -25,6 +24,7 @@ import { ExecutionRequest, implementsAbstractType, getDefinedRootType } from '@g
 
 import { Transform, DelegationContext } from '../types';
 import { TypeMap } from 'graphql/type/schema';
+import { getDocumentMetadata } from '../getDocumentMetadata';
 
 export default class FilterToSchema implements Transform {
   public transformRequest(
@@ -32,42 +32,52 @@ export default class FilterToSchema implements Transform {
     delegationContext: DelegationContext,
     _transformationContext: Record<string, any>
   ): ExecutionRequest {
+    const { document, variables } = originalRequest;
+    const { operations, fragments } = getDocumentMetadata(document);
+    const { targetSchema } = delegationContext;
+    const { newOperations, newFragments, newVariables } = filterToSchema(
+      targetSchema,
+      operations,
+      fragments,
+      variables
+    );
+    const newDocument = {
+      kind: Kind.DOCUMENT,
+      definitions: [...newOperations, ...newFragments],
+    };
     return {
       ...originalRequest,
-      ...filterToSchema(delegationContext.targetSchema, originalRequest.document, originalRequest.variables),
+      document: newDocument,
+      variables: newVariables,
     };
   }
 }
 
 function filterToSchema(
   targetSchema: GraphQLSchema,
-  document: DocumentNode,
+  operations: Array<OperationDefinitionNode>,
+  fragments: Array<FragmentDefinitionNode>,
   variables?: Record<string, any>
-): { document: DocumentNode; variables: Record<string, any> } {
-  const operations: Array<OperationDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.OPERATION_DEFINITION
-  ) as Array<OperationDefinitionNode>;
-  const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
-    def => def.kind === Kind.FRAGMENT_DEFINITION
-  ) as Array<FragmentDefinitionNode>;
-
+): {
+  newOperations: Array<OperationDefinitionNode>;
+  newFragments: Array<FragmentDefinitionNode>;
+  newVariables: Record<string, any>;
+} {
   let usedVariables: Array<string> = [];
   let usedFragments: Array<string> = [];
   const newOperations: Array<OperationDefinitionNode> = [];
   let newFragments: Array<FragmentDefinitionNode> = [];
 
-  const validFragments: Array<FragmentDefinitionNode> = fragments.filter((fragment: FragmentDefinitionNode) => {
+  const validFragments: Array<FragmentDefinitionNode> = [];
+  const validFragmentsWithType: TypeMap = Object.create(null);
+  for (const fragment of fragments) {
     const typeName = fragment.typeCondition.name.value;
-    return Boolean(targetSchema.getType(typeName));
-  });
-
-  const validFragmentsWithType: TypeMap = validFragments.reduce(
-    (prev, fragment) => ({
-      ...prev,
-      [fragment.name.value]: targetSchema.getType(fragment.typeCondition.name.value),
-    }),
-    {}
-  );
+    const type = targetSchema.getType(typeName);
+    if (type != null) {
+      validFragments.push(fragment);
+      validFragmentsWithType[fragment.name.value] = type;
+    }
+  }
 
   let fragmentSet = Object.create(null);
 
@@ -106,22 +116,20 @@ function filterToSchema(
     });
   }
 
-  const newVariables = variables
-    ? usedVariables.reduce((acc, variableName) => {
-        const variableValue = variables[variableName];
-        if (variableValue !== undefined) {
-          acc[variableName] = variableValue;
-        }
-        return acc;
-      }, {})
-    : {};
+  const newVariables = {};
+  if (variables != null) {
+    for (const variableName of usedVariables) {
+      const variableValue = variables[variableName];
+      if (variableValue !== undefined) {
+        newVariables[variableName] = variableValue;
+      }
+    }
+  }
 
   return {
-    document: {
-      kind: Kind.DOCUMENT,
-      definitions: [...newOperations, ...newFragments],
-    },
-    variables: newVariables,
+    newOperations,
+    newFragments,
+    newVariables,
   };
 }
 
