@@ -1,6 +1,5 @@
 import { Transform, DelegationContext } from './types';
 
-import FilterToSchema from './transforms/FilterToSchema';
 import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
 import FinalizeGatewayRequest from './transforms/FinalizeGatewayRequest';
@@ -15,12 +14,9 @@ export function defaultDelegationBinding<TContext>(
     delegationTransforms = delegationTransforms.concat(transforms.slice().reverse());
   }
 
-  const args = delegationContext.args;
-  if (args != null) {
-    delegationTransforms.push(new FinalizeGatewayRequest(args));
-  }
+  delegationTransforms.push(new FinalizeGatewayRequest());
 
-  delegationTransforms = delegationTransforms.concat([new AddTypenameToAbstract(), new FilterToSchema()]);
+  delegationTransforms = delegationTransforms.concat([new AddTypenameToAbstract()]);
 
   return delegationTransforms;
 }
