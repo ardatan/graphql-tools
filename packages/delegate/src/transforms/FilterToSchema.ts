@@ -1,5 +1,4 @@
 import {
-  ArgumentNode,
   FieldNode,
   FragmentDefinitionNode,
   FragmentSpreadNode,
@@ -210,13 +209,22 @@ function filterSelectionSet(
               return null;
             }
 
-            const argNames = (field.args != null ? field.args : []).map(arg => arg.name);
+            const args = field.args != null ? field.args : [];
+            const argsMap = Object.create(null);
+            for (const arg of args) {
+              argsMap[arg.name] = arg;
+            }
             if (node.arguments != null) {
-              const args = node.arguments.filter((arg: ArgumentNode) => argNames.indexOf(arg.name.value) !== -1);
-              if (args.length !== node.arguments.length) {
+              const newArgs = [];
+              for (const arg of node.arguments) {
+                if (arg.name.value in argsMap) {
+                  newArgs.push(arg);
+                }
+              }
+              if (newArgs.length !== node.arguments.length) {
                 return {
                   ...node,
-                  arguments: args,
+                  arguments: newArgs,
                 };
               }
             }
@@ -227,26 +235,23 @@ function filterSelectionSet(
           if (type == null) {
             throw new Error(`No type was found for field node ${node}.`);
           }
-          const resolvedType = getNamedType(type);
-          if (isObjectType(resolvedType) || isInterfaceType(resolvedType)) {
+          const namedType = getNamedType(type);
+          if (!schema.getType(namedType.name) == null) {
+            return null;
+          }
+          if (isObjectType(namedType) || isInterfaceType(namedType)) {
             const selections = node.selectionSet != null ? node.selectionSet.selections : null;
             if (selections == null || selections.length === 0) {
-              // need to remove any added variables. Is there a better way to do this?
-              visit(node, {
-                [Kind.VARIABLE](variableNode: VariableNode) {
-                  const index = usedVariables.indexOf(variableNode.name.value);
-                  if (index !== -1) {
-                    usedVariables.splice(index, 1);
-                  }
-                },
-              });
               return null;
             }
           }
         },
       },
-      [Kind.FRAGMENT_SPREAD](node: FragmentSpreadNode): null | undefined {
-        if (node.name.value in validFragments) {
+      [Kind.FRAGMENT_SPREAD]: {
+        enter(node: FragmentSpreadNode): null | undefined {
+          if (!(node.name.value in validFragments)) {
+            return null;
+          }
           const parentType = typeInfo.getParentType();
           const innerType = validFragments[node.name.value];
           if (!implementsAbstractType(schema, parentType, innerType)) {
@@ -254,10 +259,7 @@ function filterSelectionSet(
           }
 
           usedFragments.push(node.name.value);
-          return;
-        }
-
-        return null;
+        },
       },
       [Kind.INLINE_FRAGMENT]: {
         enter(node: InlineFragmentNode): null | undefined {
@@ -270,10 +272,132 @@ function filterSelectionSet(
           }
         },
       },
-      [Kind.VARIABLE](node: VariableNode) {
-        usedVariables.push(node.name.value);
+    }),
+    // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
+    // empty keys cannot be removed only because of typescript errors
+    // will hopefully be fixed in future version of graphql-js to be optional
+    {
+      Name: [],
+
+      Document: [],
+      OperationDefinition: [],
+      VariableDefinition: [],
+      Variable: [],
+      SelectionSet: ['selections'],
+      Field: ['selectionSet'],
+      Argument: [],
+
+      FragmentSpread: [],
+      InlineFragment: ['selectionSet'],
+      FragmentDefinition: ['selectionSet'],
+
+      IntValue: [],
+      FloatValue: [],
+      StringValue: [],
+      BooleanValue: [],
+      NullValue: [],
+      EnumValue: [],
+      ListValue: [],
+      ObjectValue: [],
+      ObjectField: [],
+
+      Directive: [],
+
+      NamedType: [],
+      ListType: [],
+      NonNullType: [],
+
+      SchemaDefinition: [],
+      OperationTypeDefinition: [],
+
+      ScalarTypeDefinition: [],
+      ObjectTypeDefinition: [],
+      FieldDefinition: [],
+      InputValueDefinition: [],
+      InterfaceTypeDefinition: [],
+      UnionTypeDefinition: [],
+      EnumTypeDefinition: [],
+      EnumValueDefinition: [],
+      InputObjectTypeDefinition: [],
+
+      DirectiveDefinition: [],
+
+      SchemaExtension: [],
+
+      ScalarTypeExtension: [],
+      ObjectTypeExtension: [],
+      InterfaceTypeExtension: [],
+      UnionTypeExtension: [],
+      EnumTypeExtension: [],
+      InputObjectTypeExtension: [],
+    }
+  );
+
+  visit(
+    filteredSelectionSet,
+    {
+      [Kind.VARIABLE](variableNode: VariableNode) {
+        usedVariables.push(variableNode.name.value);
       },
-    })
+    },
+    // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
+    // empty keys cannot be removed only because of typescript errors
+    // will hopefully be fixed in future version of graphql-js to be optional
+    {
+      Name: [],
+
+      Document: [],
+      OperationDefinition: [],
+      VariableDefinition: [],
+      Variable: [],
+      SelectionSet: ['selections'],
+      Field: ['arguments', 'selectionSet'],
+      Argument: ['value'],
+
+      FragmentSpread: [],
+      InlineFragment: ['selectionSet'],
+      FragmentDefinition: ['selectionSet'],
+
+      IntValue: [],
+      FloatValue: [],
+      StringValue: [],
+      BooleanValue: [],
+      NullValue: [],
+      EnumValue: [],
+      ListValue: [],
+      ObjectValue: [],
+      ObjectField: [],
+
+      Directive: [],
+
+      NamedType: [],
+      ListType: [],
+      NonNullType: [],
+
+      SchemaDefinition: [],
+      OperationTypeDefinition: [],
+
+      ScalarTypeDefinition: [],
+      ObjectTypeDefinition: [],
+      FieldDefinition: [],
+      InputValueDefinition: [],
+      InterfaceTypeDefinition: [],
+      UnionTypeDefinition: [],
+      EnumTypeDefinition: [],
+      EnumValueDefinition: [],
+      InputObjectTypeDefinition: [],
+
+      DirectiveDefinition: [],
+
+      SchemaExtension: [],
+
+      ScalarTypeExtension: [],
+      ObjectTypeExtension: [],
+      InterfaceTypeExtension: [],
+      UnionTypeExtension: [],
+      EnumTypeExtension: [],
+      InputObjectTypeExtension: [],
+    }
   );
 
   return {
