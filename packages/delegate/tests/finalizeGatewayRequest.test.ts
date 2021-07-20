@@ -1,7 +1,7 @@
 import { print, parse } from 'graphql';
 import { DelegationContext } from '@graphql-tools/delegate';
 import { bookingSchema } from '../../wrap/tests/fixtures/schemas';
-import { finalizeGatewayRequest } from '../src/FinalizeGatewayRequest';
+import { finalizeGatewayRequest } from '../src/finalizeGatewayRequest';
 
 describe('finalizeGatewayRequest', () => {
   test('should remove empty selection sets on objects', () => {
