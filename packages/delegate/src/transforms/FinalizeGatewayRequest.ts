@@ -5,6 +5,7 @@ import {
   GraphQLField,
   GraphQLSchema,
   GraphQLType,
+  isAbstractType,
   isInterfaceType,
   isObjectType,
   Kind,
@@ -48,11 +49,11 @@ export default class FinalizeGatewayRequest implements Transform {
       variables = Object.assign({}, variables ?? {}, requestWithNewVariables.newVariables);
     }
 
-    const filteredRequest = filterToSchema(targetSchema, operations, fragments, variables);
+    const finalizedRequest = finalizeRequest(targetSchema, operations, fragments, variables);
 
-    operations = filteredRequest.newOperations;
-    fragments = filteredRequest.newFragments;
-    variables = filteredRequest.newVariables;
+    operations = finalizedRequest.newOperations;
+    fragments = finalizedRequest.newFragments;
+    variables = finalizedRequest.newVariables;
 
     const newDocument = {
       kind: Kind.DOCUMENT,
@@ -160,7 +161,7 @@ function updateArguments(
   }
 }
 
-function filterToSchema(
+function finalizeRequest(
   targetSchema: GraphQLSchema,
   operations: Array<OperationDefinitionNode>,
   fragments: Array<FragmentDefinitionNode>,
@@ -195,7 +196,7 @@ function filterToSchema(
       selectionSet,
       usedFragments: operationUsedFragments,
       usedVariables: operationUsedVariables,
-    } = filterSelectionSet(targetSchema, type, validFragmentsWithType, operation.selectionSet);
+    } = finalizeSelectionSet(targetSchema, type, validFragmentsWithType, operation.selectionSet);
 
     usedFragments = union(usedFragments, operationUsedFragments);
 
@@ -268,7 +269,7 @@ function collectFragmentVariables(
         selectionSet,
         usedFragments: fragmentUsedFragments,
         usedVariables: fragmentUsedVariables,
-      } = filterSelectionSet(targetSchema, type, validFragmentsWithType, fragment.selectionSet);
+      } = finalizeSelectionSet(targetSchema, type, validFragmentsWithType, fragment.selectionSet);
       remainingFragments = union(remainingFragments, fragmentUsedFragments);
       usedVariables = union(usedVariables, fragmentUsedVariables);
 
@@ -294,7 +295,7 @@ function collectFragmentVariables(
   };
 }
 
-function filterSelectionSet(
+function finalizeSelectionSet(
   schema: GraphQLSchema,
   type: GraphQLType,
   validFragments: { [name: string]: GraphQLType },
@@ -377,6 +378,26 @@ function filterSelectionSet(
             if (!implementsAbstractType(schema, parentType, innerType)) {
               return null;
             }
+          }
+        },
+      },
+      [Kind.SELECTION_SET]: {
+        leave: node => {
+          const parentType = typeInfo.getParentType();
+          if (parentType != null && isAbstractType(parentType)) {
+            const selections = node.selections.concat([
+              {
+                kind: Kind.FIELD,
+                name: {
+                  kind: Kind.NAME,
+                  value: '__typename',
+                },
+              },
+            ]);
+            return {
+              ...node,
+              selections,
+            };
           }
         },
       },

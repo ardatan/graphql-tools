@@ -1,6 +1,5 @@
 import { Transform, DelegationContext } from './types';
 
-import AddTypenameToAbstract from './transforms/AddTypenameToAbstract';
 import CheckResultAndHandleErrors from './transforms/CheckResultAndHandleErrors';
 import FinalizeGatewayRequest from './transforms/FinalizeGatewayRequest';
 
@@ -15,8 +14,6 @@ export function defaultDelegationBinding<TContext>(
   }
 
   delegationTransforms.push(new FinalizeGatewayRequest());
-
-  delegationTransforms = delegationTransforms.concat([new AddTypenameToAbstract()]);
 
   return delegationTransforms;
 }
