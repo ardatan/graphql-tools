@@ -144,23 +144,23 @@
     tslib "^1.10.0"
     zen-observable "^0.8.14"
 
-"@apollo/federation@0.26.0", "@apollo/federation@^0.26.0":
-  version "0.26.0"
-  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.26.0.tgz#72c89f01995bd2e066d447fed4aa58678d759bf6"
-  integrity sha512-j3l6lhQod630LQzLm2hhDyQQJtQikT7vRtRgIa3PuKEq6ouuOd1OQERhBnecobJlUfRWJkfvjYJ/PhQZ2sm/7Q==
+"@apollo/federation@0.27.0", "@apollo/federation@^0.27.0":
+  version "0.27.0"
+  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.27.0.tgz#2ee13b28cff94817ff07bb02215aa764d8becba3"
+  integrity sha512-hMeRN9IPsIn+5J5SmWof0ODbvRjRj8mBNqbsm9Zjkqjbw6RTlcx90taMk7cYhcd/E+uTyLQt5cOSRVBx53cxbQ==
   dependencies:
     apollo-graphql "^0.9.3"
     lodash.xorby "^4.7.0"
 
-"@apollo/gateway@0.33.0":
-  version "0.33.0"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.33.0.tgz#6e282fb88eb86d9ab9ae35d6d5d3e174085a6907"
-  integrity sha512-NQTFysgRzPYR8g90K43/hgH+Rxe7F/E2G2Linfc81VVNk5NruRSUeQV0EnsROC7lLbCqiCJ+WSQcN0ZaR2Jo7A==
+"@apollo/gateway@0.34.0":
+  version "0.34.0"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.34.0.tgz#6c0c0c84381ab8d5b24ecc1590812782833b7c77"
+  integrity sha512-uu3+ROonZT51T/U8uXcuCIrdk+ApRA7/r3r7bKTDzaGVEQjagVT+/BcuxAfk6wToAcQdGcc2fxRLfmIhYMmw7A==
   dependencies:
-    "@apollo/federation" "^0.26.0"
-    "@apollo/query-planner" "^0.2.3"
+    "@apollo/federation" "^0.27.0"
+    "@apollo/query-planner" "^0.3.0"
     "@opentelemetry/api" "^1.0.1"
-    "@types/node-fetch" "2.5.10"
+    "@types/node-fetch" "2.5.11"
     apollo-graphql "^0.9.3"
     apollo-reporting-protobuf "^0.8.0 || ^3.0.0 || ^3.0.0-preview.2"
     apollo-server-caching "^0.7.0 || ^3.0.0 ||  ^3.0.0-preview.2"
@@ -191,11 +191,12 @@
     "@types/node" "^10.1.0"
     long "^4.0.0"
 
-"@apollo/query-planner@^0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-0.2.3.tgz#8018ae12c24541838541cc7b20d6a628556918e5"
-  integrity sha512-3jYHLhuUTolAouVTkR1NrGH7ZQzj91KfH1L1Ddd2i2hfCG6VDj9xuRe+nznYV1Sk3/Uy226d7BPKo110H/3Pow==
+"@apollo/query-planner@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-0.3.0.tgz#facf7e768b51f4c45999f9a2c4eac785d858ddc2"
+  integrity sha512-+S5gIwQimKwA42NH3CULrdakR4bo4ba0Ci7r9Fydsk5nIj59IgmH+rK2CcpxFfYBQzuIMvVCKWQbRd/+tkRt7A==
   dependencies:
+    apollo-graphql "^0.9.3"
     chalk "^4.1.0"
     deep-equal "^2.0.5"
     pretty-format "^26.0.0"
@@ -2884,10 +2885,10 @@
   resolved "https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.1.tgz#283f669ff76d7b8260df8ab7a4262cc83d988256"
   integrity sha512-fZQQafSREFyuZcdWFAExYjBiCL7AUCdgsk80iO0q4yihYYdcIiH28CcuPTGFgLOCC8RlW49GSQxdHwZP+I7CNg==
 
-"@types/node-fetch@2.5.10":
-  version "2.5.10"
-  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.5.10.tgz#9b4d4a0425562f9fcea70b12cb3fcdd946ca8132"
-  integrity sha512-IpkX0AasN44hgEad0gEF/V6EgR5n69VEqPEgnmoM8GsIGro3PowbWs4tR6IhxUTyPLpOn+fiGG6nrQhcmoCuIQ==
+"@types/node-fetch@2.5.11":
+  version "2.5.11"
+  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.5.11.tgz#ce22a2e65fc8999f4dbdb7ddbbcf187d755169e4"
+  integrity sha512-2upCKaqVZETDRb8A2VTaRymqFBEgH8u6yr96b/u3+1uQEPDRo3mJLEiPk7vdXBHRtjwkjqzFYMJXrt0Z9QsYjQ==
   dependencies:
     "@types/node" "*"
     form-data "^3.0.0"
@@ -9082,10 +9083,10 @@ lines-and-columns@^1.1.6:
   resolved "https://registry.yarnpkg.com/lines-and-columns/-/lines-and-columns-1.1.6.tgz#1c00c743b433cd0a4e80758f7b64a57440d9ff00"
   integrity sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA=
 
-lint-staged@11.0.1:
-  version "11.0.1"
-  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-11.0.1.tgz#1b8ae8ed5a52ed87252db95fe008c2618c85f55a"
-  integrity sha512-RkTA1ulE6jAGFskxpGAwxfVRXjHp7D9gFg/+KMARUWMPiVFP0t28Em2u0gL8sA0w3/ck3TC57F2v2RNeQ5XPnw==
+lint-staged@11.1.0:
+  version "11.1.0"
+  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-11.1.0.tgz#a21d67ffe4516e907635adeaf6d6450d8cffb4e4"
+  integrity sha512-pzwEf+NKbTauAlk7gPPwTfulRXESEPZCSFXYfg20F220UOObebxu5uL5mkr9csQLNOM2Ydfrt3DJXakzAL7aaQ==
   dependencies:
     chalk "^4.1.1"
     cli-truncate "^2.1.0"
