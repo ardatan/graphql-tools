@@ -1931,7 +1931,7 @@ describe('onTypeConflict', () => {
     expect(result2.data).toBeUndefined();
   });
 
-  test('returns info.left and info.right properties that are not equal', async () => {
+  test('returns info.left and info.right properties that are not equal', () => {
     stitchSchemas({
       subschemas: [schema1, schema2],
       mergeTypes: false,
