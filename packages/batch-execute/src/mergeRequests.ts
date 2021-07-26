@@ -114,20 +114,23 @@ const prefixRequestDocumentCache = new LRU<string, DocumentNode>(1000);
 function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequest {
   const executionVariables = request.variables ?? {};
 
-  function prefixNode(node: VariableNode | FragmentDefinitionNode | FragmentSpreadNode) {
-    return prefixNodeName(node, prefix);
-  }
-
-  const cacheKey = JSON.stringify(request.document.definitions);
+  const cacheKey = prefix + JSON.stringify(request.document.definitions);
   let prefixedDocument = prefixRequestDocumentCache.get(cacheKey);
 
   if (!prefixedDocument) {
     prefixedDocument = aliasTopLevelFields(prefix, request.document);
-    prefixedDocument = visit(prefixedDocument, {
-      [Kind.VARIABLE]: prefixNode,
-      [Kind.FRAGMENT_DEFINITION]: prefixNode,
-      [Kind.FRAGMENT_SPREAD]: prefixNode,
-    }) as DocumentNode;
+
+    if (Object.keys(executionVariables).length > 0) {
+      // eslint-disable-next-line no-inner-declarations
+      function prefixNode(node: VariableNode | FragmentDefinitionNode | FragmentSpreadNode) {
+        return prefixNodeName(node, prefix);
+      }
+      prefixedDocument = visit(prefixedDocument, {
+        [Kind.VARIABLE]: prefixNode,
+        [Kind.FRAGMENT_DEFINITION]: prefixNode,
+        [Kind.FRAGMENT_SPREAD]: prefixNode,
+      }) as DocumentNode;
+    }
 
     prefixRequestDocumentCache.set(cacheKey, prefixedDocument);
   }
