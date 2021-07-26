@@ -117,14 +117,14 @@ function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequ
   const cacheKey = prefix + JSON.stringify(request.document.definitions);
   let prefixedDocument = prefixRequestDocumentCache.get(cacheKey);
 
+  function prefixNode(node: VariableNode | FragmentDefinitionNode | FragmentSpreadNode) {
+    return prefixNodeName(node, prefix);
+  }
+
   if (!prefixedDocument) {
     prefixedDocument = aliasTopLevelFields(prefix, request.document);
 
     if (Object.keys(executionVariables).length > 0) {
-      // eslint-disable-next-line no-inner-declarations
-      function prefixNode(node: VariableNode | FragmentDefinitionNode | FragmentSpreadNode) {
-        return prefixNodeName(node, prefix);
-      }
       prefixedDocument = visit(prefixedDocument, {
         [Kind.VARIABLE]: prefixNode,
         [Kind.FRAGMENT_DEFINITION]: prefixNode,
