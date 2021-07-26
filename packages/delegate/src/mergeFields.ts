@@ -214,12 +214,13 @@ export async function mergeFields(
     [...delegationMap.entries()].map(async ([s, selectionSet]) => {
       const resolver = mergedTypeInfo.resolvers.get(s);
       if (resolver) {
-        let source: any;
+        let source: unknown;
         try {
           source = await resolver(object, context, info, s, selectionSet);
         } catch (error) {
           source = error;
         }
+
         if (source instanceof Error || source === null) {
           const fieldNodes = collectFields(
             {
@@ -243,13 +244,14 @@ export async function mergeFields(
               nullResult[responseKey] = null;
             }
           }
-          source = nullResult;
-        } else {
-          if (source[UNPATHED_ERRORS_SYMBOL]) {
-            combinedErrors.push(...source[UNPATHED_ERRORS_SYMBOL]);
-          }
+          return nullResult;
         }
 
+        if (!isExternalObject(source)) {
+          return source;
+        }
+
+        combinedErrors.push(...source[UNPATHED_ERRORS_SYMBOL]);
         const objectSubschema = source[OBJECT_SUBSCHEMA_SYMBOL];
         const fieldSubschemaMap = source[FIELD_SUBSCHEMA_MAP_SYMBOL];
         for (const responseKey in source) {
