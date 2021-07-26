@@ -1,6 +1,5 @@
 import {
   ArgumentNode,
-  DocumentNode,
   FragmentDefinitionNode,
   getNamedType,
   GraphQLField,
@@ -32,102 +31,72 @@ import {
 import { DelegationContext } from './types';
 import { getDocumentMetadata } from './getDocumentMetadata';
 import type { TypeMap } from 'graphql/type/schema';
-import LRU from 'lru-cache';
-
-const finalizedGatewayDocumentCacheBySchema = new WeakMap<
-  GraphQLSchema,
-  LRU<
-    string,
-    {
-      usedVariables: string[];
-      newDocument: DocumentNode;
-    }
-  >
->();
-function getFinalizedGatewayDocumentCache(schema: GraphQLSchema) {
-  let finalizedGatewayDocumentCache = finalizedGatewayDocumentCacheBySchema.get(schema);
-  if (!finalizedGatewayDocumentCache) {
-    finalizedGatewayDocumentCache = new LRU(1000);
-    finalizedGatewayDocumentCacheBySchema.set(schema, finalizedGatewayDocumentCache);
-  }
-  return finalizedGatewayDocumentCache;
-}
 
 function finalizeGatewayDocument(
   targetSchema: GraphQLSchema,
   fragments: FragmentDefinitionNode[],
   operations: OperationDefinitionNode[]
 ) {
-  const cacheKey = JSON.stringify({
-    fragments,
-    operations,
-  });
-  const finalizedGatewayDocumentCache = getFinalizedGatewayDocumentCache(targetSchema);
-  let finalizedGatewayDocument = finalizedGatewayDocumentCache.get(cacheKey);
+  let usedVariables: Array<string> = [];
+  let usedFragments: Array<string> = [];
+  const newOperations: Array<OperationDefinitionNode> = [];
+  let newFragments: Array<FragmentDefinitionNode> = [];
 
-  if (!finalizedGatewayDocument) {
-    let usedVariables: Array<string> = [];
-    let usedFragments: Array<string> = [];
-    const newOperations: Array<OperationDefinitionNode> = [];
-    let newFragments: Array<FragmentDefinitionNode> = [];
-
-    const validFragments: Array<FragmentDefinitionNode> = [];
-    const validFragmentsWithType: TypeMap = Object.create(null);
-    for (const fragment of fragments) {
-      const typeName = fragment.typeCondition.name.value;
-      const type = targetSchema.getType(typeName);
-      if (type != null) {
-        validFragments.push(fragment);
-        validFragmentsWithType[fragment.name.value] = type;
-      }
+  const validFragments: Array<FragmentDefinitionNode> = [];
+  const validFragmentsWithType: TypeMap = Object.create(null);
+  for (const fragment of fragments) {
+    const typeName = fragment.typeCondition.name.value;
+    const type = targetSchema.getType(typeName);
+    if (type != null) {
+      validFragments.push(fragment);
+      validFragmentsWithType[fragment.name.value] = type;
     }
-
-    let fragmentSet = Object.create(null);
-
-    for (const operation of operations) {
-      const type = getDefinedRootType(targetSchema, operation.operation);
-
-      const {
-        selectionSet,
-        usedFragments: operationUsedFragments,
-        usedVariables: operationUsedVariables,
-      } = finalizeSelectionSet(targetSchema, type, validFragmentsWithType, operation.selectionSet);
-
-      usedFragments = union(usedFragments, operationUsedFragments);
-
-      const {
-        usedVariables: collectedUsedVariables,
-        newFragments: collectedNewFragments,
-        fragmentSet: collectedFragmentSet,
-      } = collectFragmentVariables(targetSchema, fragmentSet, validFragments, validFragmentsWithType, usedFragments);
-      const operationOrFragmentVariables = union(operationUsedVariables, collectedUsedVariables);
-      usedVariables = union(usedVariables, operationOrFragmentVariables);
-      newFragments = collectedNewFragments;
-      fragmentSet = collectedFragmentSet;
-
-      const variableDefinitions = (operation.variableDefinitions ?? []).filter(
-        (variable: VariableDefinitionNode) => operationOrFragmentVariables.indexOf(variable.variable.name.value) !== -1
-      );
-
-      newOperations.push({
-        kind: Kind.OPERATION_DEFINITION,
-        operation: operation.operation,
-        name: operation.name,
-        directives: operation.directives,
-        variableDefinitions,
-        selectionSet,
-      });
-    }
-    finalizedGatewayDocument = {
-      usedVariables,
-      newDocument: {
-        kind: Kind.DOCUMENT,
-        definitions: [...newOperations, ...newFragments],
-      },
-    };
-    finalizedGatewayDocumentCache.set(cacheKey, finalizedGatewayDocument);
   }
-  return finalizedGatewayDocument;
+
+  let fragmentSet = Object.create(null);
+
+  for (const operation of operations) {
+    const type = getDefinedRootType(targetSchema, operation.operation);
+
+    const {
+      selectionSet,
+      usedFragments: operationUsedFragments,
+      usedVariables: operationUsedVariables,
+    } = finalizeSelectionSet(targetSchema, type, validFragmentsWithType, operation.selectionSet);
+
+    usedFragments = union(usedFragments, operationUsedFragments);
+
+    const {
+      usedVariables: collectedUsedVariables,
+      newFragments: collectedNewFragments,
+      fragmentSet: collectedFragmentSet,
+    } = collectFragmentVariables(targetSchema, fragmentSet, validFragments, validFragmentsWithType, usedFragments);
+    const operationOrFragmentVariables = union(operationUsedVariables, collectedUsedVariables);
+    usedVariables = union(usedVariables, operationOrFragmentVariables);
+    newFragments = collectedNewFragments;
+    fragmentSet = collectedFragmentSet;
+
+    const variableDefinitions = (operation.variableDefinitions ?? []).filter(
+      (variable: VariableDefinitionNode) => operationOrFragmentVariables.indexOf(variable.variable.name.value) !== -1
+    );
+
+    newOperations.push({
+      kind: Kind.OPERATION_DEFINITION,
+      operation: operation.operation,
+      name: operation.name,
+      directives: operation.directives,
+      variableDefinitions,
+      selectionSet,
+    });
+  }
+
+  return {
+    usedVariables,
+    newDocument: {
+      kind: Kind.DOCUMENT,
+      definitions: [...newOperations, ...newFragments],
+    },
+  };
 }
 
 export function finalizeGatewayRequest(

@@ -32,7 +32,6 @@
     "input": "./src/index.ts"
   },
   "devDependencies": {
-    "@types/lru-cache": "5.1.1",
     "is-promise": "4.0.0"
   },
   "dependencies": {
@@ -40,8 +39,7 @@
     "@graphql-tools/schema": "^7.1.5",
     "@graphql-tools/utils": "^7.8.1",
     "tslib": "~2.3.0",
-    "value-or-promise": "1.0.10",
-    "lru-cache": "6.0.0"
+    "value-or-promise": "1.0.10"
   },
   "publishConfig": {
     "access": "public",

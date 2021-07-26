@@ -21,8 +21,6 @@ import { ExecutionRequest } from '@graphql-tools/utils';
 
 import { createPrefix } from './prefix';
 
-import LRU from 'lru-cache';
-
 /**
  * Merge multiple queries into a single query in such a way that query results
  * can be split and transformed as if they were obtained by running original queries.
@@ -109,30 +107,21 @@ export function mergeRequests(
   };
 }
 
-const prefixRequestDocumentCache = new LRU<string, DocumentNode>(1000);
-
 function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequest {
   const executionVariables = request.variables ?? {};
-
-  const cacheKey = prefix + JSON.stringify(request.document.definitions);
-  let prefixedDocument = prefixRequestDocumentCache.get(cacheKey);
 
   function prefixNode(node: VariableNode | FragmentDefinitionNode | FragmentSpreadNode) {
     return prefixNodeName(node, prefix);
   }
 
-  if (!prefixedDocument) {
-    prefixedDocument = aliasTopLevelFields(prefix, request.document);
+  let prefixedDocument = aliasTopLevelFields(prefix, request.document);
 
-    if (Object.keys(executionVariables).length > 0) {
-      prefixedDocument = visit(prefixedDocument, {
-        [Kind.VARIABLE]: prefixNode,
-        [Kind.FRAGMENT_DEFINITION]: prefixNode,
-        [Kind.FRAGMENT_SPREAD]: prefixNode,
-      }) as DocumentNode;
-    }
-
-    prefixRequestDocumentCache.set(cacheKey, prefixedDocument);
+  if (Object.keys(executionVariables).length > 0) {
+    prefixedDocument = visit(prefixedDocument, {
+      [Kind.VARIABLE]: prefixNode,
+      [Kind.FRAGMENT_DEFINITION]: prefixNode,
+      [Kind.FRAGMENT_SPREAD]: prefixNode,
+    }) as DocumentNode;
   }
 
   const prefixedVariables = {};

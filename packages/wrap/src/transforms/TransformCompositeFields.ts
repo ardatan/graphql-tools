@@ -17,10 +17,6 @@ import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/de
 
 import { FieldTransformer, FieldNodeTransformer, DataTransformer, ErrorsTransformer } from '../types';
 
-import LRU from 'lru-cache';
-
-const lruCache = new LRU<string, DocumentNode>(1000);
-
 export default class TransformCompositeFields<TContext = Record<string, any>> implements Transform<any, TContext> {
   private readonly fieldTransformer: FieldTransformer;
   private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
@@ -109,29 +105,21 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
   }
 
   private transformDocument(document: DocumentNode, transformationContext: Record<string, any>): DocumentNode {
-    const cacheKey = JSON.stringify(document.definitions);
-    let transformedDocument = lruCache.get(cacheKey);
-
-    if (!transformedDocument) {
-      const fragments = Object.create(null);
-      for (const def of document.definitions) {
-        if (def.kind === Kind.FRAGMENT_DEFINITION) {
-          fragments[def.name.value] = def;
-        }
+    const fragments = Object.create(null);
+    for (const def of document.definitions) {
+      if (def.kind === Kind.FRAGMENT_DEFINITION) {
+        fragments[def.name.value] = def;
       }
-      transformedDocument = visit(
-        document,
-        visitWithTypeInfo(this._getTypeInfo(), {
-          leave: {
-            [Kind.SELECTION_SET]: node =>
-              this.transformSelectionSet(node, this._getTypeInfo(), fragments, transformationContext),
-          },
-        })
-      );
-      lruCache.set(cacheKey, transformedDocument!);
     }
-
-    return transformedDocument!;
+    return visit(
+      document,
+      visitWithTypeInfo(this._getTypeInfo(), {
+        leave: {
+          [Kind.SELECTION_SET]: node =>
+            this.transformSelectionSet(node, this._getTypeInfo(), fragments, transformationContext),
+        },
+      })
+    );
   }
 
   private transformSelectionSet(

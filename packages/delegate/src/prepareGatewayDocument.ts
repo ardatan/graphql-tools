@@ -16,24 +16,12 @@ import {
   GraphQLOutputType,
   isObjectType,
   FieldNode,
-  GraphQLType,
 } from 'graphql';
 
 import { implementsAbstractType, getRootTypeNames } from '@graphql-tools/utils';
 
-import { memoize2, memoize3 } from './memoize';
+import { memoize2 } from './memoize';
 import { getDocumentMetadata } from './getDocumentMetadata';
-import LRU from 'lru-cache';
-
-const getPrepareGatewayDocumentCache = memoize3(function getGatewayDocumentCache(
-  _transformedSchema: GraphQLSchema,
-  _returnType: GraphQLType,
-  _infoSchema: GraphQLSchema
-): LRU<string, DocumentNode> {
-  return new LRU(1000);
-});
-
-const dummyValueForInfoSchema: any = {};
 
 export function prepareGatewayDocument(
   originalDocument: DocumentNode,
@@ -41,127 +29,108 @@ export function prepareGatewayDocument(
   returnType: GraphQLOutputType,
   infoSchema?: GraphQLSchema
 ): DocumentNode {
-  const cache = getPrepareGatewayDocumentCache(
-    transformedSchema,
-    getNamedType(returnType),
-    infoSchema || dummyValueForInfoSchema
-  );
+  const wrappedConcreteTypesDocument = wrapConcreteTypes(returnType, transformedSchema, originalDocument);
 
-  const cacheKey = JSON.stringify(originalDocument.definitions);
-  let preparedGatewayDocument = cache.get(cacheKey)!;
-
-  if (!preparedGatewayDocument) {
-    const wrappedConcreteTypesDocument = wrapConcreteTypes(returnType, transformedSchema, originalDocument);
-
-    if (infoSchema == null) {
-      return wrappedConcreteTypesDocument;
-    }
-
-    const {
-      possibleTypesMap,
-      reversePossibleTypesMap,
-      interfaceExtensionsMap,
-      fieldNodesByType,
-      fieldNodesByField,
-      dynamicSelectionSetsByField,
-    } = getSchemaMetaData(infoSchema, transformedSchema);
-
-    const { operations, fragments, fragmentNames } = getDocumentMetadata(wrappedConcreteTypesDocument);
-
-    const { expandedFragments, fragmentReplacements } = getExpandedFragments(
-      fragments,
-      fragmentNames,
-      possibleTypesMap
-    );
-
-    const typeInfo = new TypeInfo(transformedSchema);
-
-    const expandedDocument = {
-      kind: Kind.DOCUMENT,
-      definitions: [...operations, ...fragments, ...expandedFragments],
-    };
-
-    preparedGatewayDocument = visit(
-      expandedDocument,
-      visitWithTypeInfo(typeInfo, {
-        [Kind.SELECTION_SET]: node =>
-          visitSelectionSet(
-            node,
-            fragmentReplacements,
-            transformedSchema,
-            typeInfo,
-            possibleTypesMap,
-            reversePossibleTypesMap,
-            interfaceExtensionsMap,
-            fieldNodesByType,
-            fieldNodesByField,
-            dynamicSelectionSetsByField
-          ),
-      }),
-      // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
-      // empty keys cannot be removed only because of typescript errors
-      // will hopefully be fixed in future version of graphql-js to be optional
-      {
-        Name: [],
-
-        Document: ['definitions'],
-        OperationDefinition: ['selectionSet'],
-        VariableDefinition: [],
-        Variable: [],
-        SelectionSet: ['selections'],
-        Field: ['selectionSet'],
-        Argument: [],
-
-        FragmentSpread: [],
-        InlineFragment: ['selectionSet'],
-        FragmentDefinition: ['selectionSet'],
-
-        IntValue: [],
-        FloatValue: [],
-        StringValue: [],
-        BooleanValue: [],
-        NullValue: [],
-        EnumValue: [],
-        ListValue: [],
-        ObjectValue: [],
-        ObjectField: [],
-
-        Directive: [],
-
-        NamedType: [],
-        ListType: [],
-        NonNullType: [],
-
-        SchemaDefinition: [],
-        OperationTypeDefinition: [],
-
-        ScalarTypeDefinition: [],
-        ObjectTypeDefinition: [],
-        FieldDefinition: [],
-        InputValueDefinition: [],
-        InterfaceTypeDefinition: [],
-        UnionTypeDefinition: [],
-        EnumTypeDefinition: [],
-        EnumValueDefinition: [],
-        InputObjectTypeDefinition: [],
-
-        DirectiveDefinition: [],
-
-        SchemaExtension: [],
-
-        ScalarTypeExtension: [],
-        ObjectTypeExtension: [],
-        InterfaceTypeExtension: [],
-        UnionTypeExtension: [],
-        EnumTypeExtension: [],
-        InputObjectTypeExtension: [],
-      }
-    );
-
-    cache.set(cacheKey, preparedGatewayDocument);
+  if (infoSchema == null) {
+    return wrappedConcreteTypesDocument;
   }
 
-  return preparedGatewayDocument;
+  const {
+    possibleTypesMap,
+    reversePossibleTypesMap,
+    interfaceExtensionsMap,
+    fieldNodesByType,
+    fieldNodesByField,
+    dynamicSelectionSetsByField,
+  } = getSchemaMetaData(infoSchema, transformedSchema);
+
+  const { operations, fragments, fragmentNames } = getDocumentMetadata(wrappedConcreteTypesDocument);
+
+  const { expandedFragments, fragmentReplacements } = getExpandedFragments(fragments, fragmentNames, possibleTypesMap);
+
+  const typeInfo = new TypeInfo(transformedSchema);
+
+  const expandedDocument = {
+    kind: Kind.DOCUMENT,
+    definitions: [...operations, ...fragments, ...expandedFragments],
+  };
+
+  return visit(
+    expandedDocument,
+    visitWithTypeInfo(typeInfo, {
+      [Kind.SELECTION_SET]: node =>
+        visitSelectionSet(
+          node,
+          fragmentReplacements,
+          transformedSchema,
+          typeInfo,
+          possibleTypesMap,
+          reversePossibleTypesMap,
+          interfaceExtensionsMap,
+          fieldNodesByType,
+          fieldNodesByField,
+          dynamicSelectionSetsByField
+        ),
+    }),
+    // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
+    // empty keys cannot be removed only because of typescript errors
+    // will hopefully be fixed in future version of graphql-js to be optional
+    {
+      Name: [],
+
+      Document: ['definitions'],
+      OperationDefinition: ['selectionSet'],
+      VariableDefinition: [],
+      Variable: [],
+      SelectionSet: ['selections'],
+      Field: ['selectionSet'],
+      Argument: [],
+
+      FragmentSpread: [],
+      InlineFragment: ['selectionSet'],
+      FragmentDefinition: ['selectionSet'],
+
+      IntValue: [],
+      FloatValue: [],
+      StringValue: [],
+      BooleanValue: [],
+      NullValue: [],
+      EnumValue: [],
+      ListValue: [],
+      ObjectValue: [],
+      ObjectField: [],
+
+      Directive: [],
+
+      NamedType: [],
+      ListType: [],
+      NonNullType: [],
+
+      SchemaDefinition: [],
+      OperationTypeDefinition: [],
+
+      ScalarTypeDefinition: [],
+      ObjectTypeDefinition: [],
+      FieldDefinition: [],
+      InputValueDefinition: [],
+      InterfaceTypeDefinition: [],
+      UnionTypeDefinition: [],
+      EnumTypeDefinition: [],
+      EnumValueDefinition: [],
+      InputObjectTypeDefinition: [],
+
+      DirectiveDefinition: [],
+
+      SchemaExtension: [],
+
+      ScalarTypeExtension: [],
+      ObjectTypeExtension: [],
+      InterfaceTypeExtension: [],
+      UnionTypeExtension: [],
+      EnumTypeExtension: [],
+      InputObjectTypeExtension: [],
+    }
+  );
 }
 
 function visitSelectionSet(
