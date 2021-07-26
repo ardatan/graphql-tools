@@ -156,7 +156,7 @@ export function isExternalObject(data: any): data is ExternalObject {
 export function annotateExternalObject(
   object: any,
   errors: Array<GraphQLError>,
-  objectSubschema: GraphQLSchema | SubschemaConfig | undefined,
+  objectSubschema: GraphQLSchema | SubschemaConfig,
   fieldSubschemaMap?: Record<string, GraphQLSchema | SubschemaConfig>
 ): ExternalObject {
   Object.defineProperties(object, {
