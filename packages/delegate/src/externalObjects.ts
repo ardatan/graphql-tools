@@ -59,20 +59,21 @@ export async function mergeExternalObjects(
           Object.create(null)
         );
         const nullResult = {};
-        await Promise.all(
-          Object.keys(fieldNodes).map(async responseKey => {
-            if (source instanceof GraphQLError) {
-              nullResult[responseKey] = relocatedError(source, [...path, responseKey]);
-            } else if (source instanceof Error) {
-              nullResult[responseKey] = locatedError(source, fieldNodes[responseKey], path.concat([responseKey]));
-            } else {
-              nullResult[responseKey] = null;
-            }
-          })
-        );
+        for (const responseKey in fieldNodes) {
+          const combinedPath = [...path, responseKey];
+          if (source instanceof GraphQLError) {
+            nullResult[responseKey] = relocatedError(source, combinedPath);
+          } else if (source instanceof Error) {
+            nullResult[responseKey] = locatedError(source, fieldNodes[responseKey], combinedPath);
+          } else {
+            nullResult[responseKey] = null;
+          }
+        }
         results.push(nullResult);
       } else {
-        errors.push(...source[UNPATHED_ERRORS_SYMBOL]);
+        if (source[UNPATHED_ERRORS_SYMBOL]) {
+          errors.push(...source[UNPATHED_ERRORS_SYMBOL]);
+        }
         results.push(source);
         results[index] = source;
       }
@@ -86,11 +87,9 @@ export async function mergeExternalObjects(
     results.map(async source => {
       const objectSubschema = source[OBJECT_SUBSCHEMA_SYMBOL];
       const fieldSubschemaMap = source[FIELD_SUBSCHEMA_MAP_SYMBOL];
-      await Promise.all(
-        Object.keys(source).map(async responseKey => {
-          newFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
-        })
-      );
+      for (const responseKey in source) {
+        newFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
+      }
     })
   );
 

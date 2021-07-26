@@ -213,7 +213,7 @@ describe('merge failures', () => {
 
     const expectedResult: ExecutionResult = {
       data: { thing: null },
-      errors: [new GraphQLError('Cannot return null for non-nullable field Thing.description.')],
+      errors: [new GraphQLError('Cannot return null for non-nullable field Thing.id.')],
     }
 
     expect(result).toEqual(expectedResult);

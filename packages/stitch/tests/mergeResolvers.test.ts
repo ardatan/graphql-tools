@@ -63,9 +63,7 @@ describe('Merge resolvers', () => {
               fieldName: '_widgets',
               key: ({ id }) => id,
               argsFromKeys: (ids) => ({ ids }),
-              resolve: (originalResult) => {
-                return ({ ...originalResult, source: 'resolve' });
-              },
+              resolve: (originalResult) => ({ ...originalResult, source: 'resolve' }),
             },
             Sprocket: {
               selectionSet: '{ id }',
