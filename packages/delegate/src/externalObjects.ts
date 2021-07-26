@@ -72,10 +72,9 @@ export async function mergeExternalObjects(
         );
         results.push(nullResult);
       } else {
-        for (const error of source[UNPATHED_ERRORS_SYMBOL]) {
-          errors.push(error);
-        }
+        errors.push(...source[UNPATHED_ERRORS_SYMBOL]);
         results.push(source);
+        results[index] = source;
       }
     })
   );
@@ -97,7 +96,14 @@ export async function mergeExternalObjects(
 
   combinedResult[FIELD_SUBSCHEMA_MAP_SYMBOL] = newFieldSubschemaMap;
   combinedResult[OBJECT_SUBSCHEMA_SYMBOL] = target[OBJECT_SUBSCHEMA_SYMBOL];
-  combinedResult[UNPATHED_ERRORS_SYMBOL] = target[UNPATHED_ERRORS_SYMBOL].concat(errors);
+
+  const combinedErrors = target[UNPATHED_ERRORS_SYMBOL] || [];
+
+  for (const error of errors) {
+    combinedErrors.push(error);
+  }
+
+  combinedResult[UNPATHED_ERRORS_SYMBOL] = combinedErrors;
 
   return combinedResult;
 }

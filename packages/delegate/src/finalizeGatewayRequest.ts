@@ -31,16 +31,27 @@ import {
 
 import { DelegationContext } from './types';
 import { getDocumentMetadata } from './getDocumentMetadata';
-import { TypeMap } from 'graphql/type/schema';
+import type { TypeMap } from 'graphql/type/schema';
 import LRU from 'lru-cache';
 
-const finalizedGatewayDocumentCache = new LRU<
-  string,
-  {
-    usedVariables: string[];
-    newDocument: DocumentNode;
+const finalizedGatewayDocumentCacheBySchema = new WeakMap<
+  GraphQLSchema,
+  LRU<
+    string,
+    {
+      usedVariables: string[];
+      newDocument: DocumentNode;
+    }
+  >
+>();
+function getFinalizedGatewayDocumentCache(schema: GraphQLSchema) {
+  let finalizedGatewayDocumentCache = finalizedGatewayDocumentCacheBySchema.get(schema);
+  if (!finalizedGatewayDocumentCache) {
+    finalizedGatewayDocumentCache = new LRU(1000);
+    finalizedGatewayDocumentCacheBySchema.set(schema, finalizedGatewayDocumentCache);
   }
->(1000);
+  return finalizedGatewayDocumentCache;
+}
 
 function finalizeGatewayDocument(
   targetSchema: GraphQLSchema,
@@ -51,6 +62,7 @@ function finalizeGatewayDocument(
     fragments,
     operations,
   });
+  const finalizedGatewayDocumentCache = getFinalizedGatewayDocumentCache(targetSchema);
   let finalizedGatewayDocument = finalizedGatewayDocumentCache.get(cacheKey);
 
   if (!finalizedGatewayDocument) {
