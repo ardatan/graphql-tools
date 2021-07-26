@@ -465,7 +465,9 @@ function forEachConcreteType(
 }
 
 function generateKeyFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => any {
-  return (originalResult: any): any => getProperties(originalResult, mergedTypeResolverInfo.usedProperties);
+  return function keyFn(originalResult: any) {
+    return getProperties(originalResult, mergedTypeResolverInfo.usedProperties);
+  };
 }
 
 function generateArgsFromKeysFn(

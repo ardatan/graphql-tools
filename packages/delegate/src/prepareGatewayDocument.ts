@@ -23,17 +23,14 @@ import { implementsAbstractType, getRootTypeNames } from '@graphql-tools/utils';
 
 import { memoize2, memoize3 } from './memoize';
 import { getDocumentMetadata } from './getDocumentMetadata';
-import lru, { Lru } from 'tiny-lru';
-
-const DEFAULT_MAX = 1000;
-const DEFAULT_TTL = 3600000;
+import LRU from 'lru-cache';
 
 const getPrepareGatewayDocumentCache = memoize3(function getGatewayDocumentCache(
   _transformedSchema: GraphQLSchema,
   _returnType: GraphQLType,
   _infoSchema: GraphQLSchema
-): Lru<DocumentNode> {
-  return lru(DEFAULT_MAX, DEFAULT_TTL);
+): LRU<string, DocumentNode> {
+  return new LRU(1000);
 });
 
 const dummyValueForInfoSchema: any = {};

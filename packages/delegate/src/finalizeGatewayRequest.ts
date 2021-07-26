@@ -32,15 +32,15 @@ import {
 import { DelegationContext } from './types';
 import { getDocumentMetadata } from './getDocumentMetadata';
 import { TypeMap } from 'graphql/type/schema';
-import lru from 'tiny-lru';
+import LRU from 'lru-cache';
 
-const DEFAULT_MAX = 1000;
-const DEFAULT_TTL = 3600000;
-
-const finalizedGatewayDocumentCache = lru<{
-  usedVariables: string[];
-  newDocument: DocumentNode;
-}>(DEFAULT_MAX, DEFAULT_TTL);
+const finalizedGatewayDocumentCache = new LRU<
+  string,
+  {
+    usedVariables: string[];
+    newDocument: DocumentNode;
+  }
+>(1000);
 
 function finalizeGatewayDocument(
   targetSchema: GraphQLSchema,

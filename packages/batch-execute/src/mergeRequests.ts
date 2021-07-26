@@ -21,6 +21,8 @@ import { ExecutionRequest } from '@graphql-tools/utils';
 
 import { createPrefix } from './prefix';
 
+import LRU from 'lru-cache';
+
 /**
  * Merge multiple queries into a single query in such a way that query results
  * can be split and transformed as if they were obtained by running original queries.
@@ -107,32 +109,37 @@ export function mergeRequests(
   };
 }
 
-function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequest {
-  let document = aliasTopLevelFields(prefix, request.document);
-  const executionVariables = request.variables ?? {};
-  const variableNames = Object.keys(executionVariables);
+const prefixRequestDocumentCache = new LRU<string, DocumentNode>(1000);
 
-  if (variableNames.length === 0) {
-    return { ...request, document };
-  }
+function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequest {
+  const executionVariables = request.variables ?? {};
 
   function prefixNode(node: VariableNode | FragmentDefinitionNode | FragmentSpreadNode) {
     return prefixNodeName(node, prefix);
   }
 
-  document = visit(document, {
-    [Kind.VARIABLE]: prefixNode,
-    [Kind.FRAGMENT_DEFINITION]: prefixNode,
-    [Kind.FRAGMENT_SPREAD]: prefixNode,
-  });
+  const cacheKey = JSON.stringify(request.document.definitions);
+  let prefixedDocument = prefixRequestDocumentCache.get(cacheKey);
 
-  const prefixedVariables = variableNames.reduce((acc, name) => {
-    acc[prefix + name] = executionVariables[name];
-    return acc;
-  }, Object.create(null));
+  if (!prefixedDocument) {
+    prefixedDocument = aliasTopLevelFields(prefix, request.document);
+    prefixedDocument = visit(prefixedDocument, {
+      [Kind.VARIABLE]: prefixNode,
+      [Kind.FRAGMENT_DEFINITION]: prefixNode,
+      [Kind.FRAGMENT_SPREAD]: prefixNode,
+    }) as DocumentNode;
+
+    prefixRequestDocumentCache.set(cacheKey, prefixedDocument);
+  }
+
+  const prefixedVariables = {};
+
+  for (const variableName in executionVariables) {
+    prefixedVariables[prefix + variableName] = executionVariables[variableName];
+  }
 
   return {
-    document,
+    document: prefixedDocument,
     variables: prefixedVariables,
     operationType: request.operationType,
   };

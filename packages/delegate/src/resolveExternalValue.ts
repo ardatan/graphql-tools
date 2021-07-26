@@ -41,7 +41,7 @@ export function resolveExternalValue(
     return reportUnpathedErrorsViaNull(unpathedErrors);
   }
 
-  if (isLeafType(type)) {
+  if ('parseValue' in type) {
     return type.parseValue(result);
   } else if (isCompositeType(type)) {
     return resolveExternalObject(type, result, unpathedErrors, subschema, context, info, skipTypeMerging);
