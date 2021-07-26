@@ -108,27 +108,32 @@ export function mergeRequests(
 }
 
 function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequest {
-  let document = aliasTopLevelFields(prefix, request.document);
   const executionVariables = request.variables ?? {};
-  const variableNames = Object.keys(executionVariables);
 
-  if (variableNames.length === 0) {
-    return { ...request, document };
+  function prefixNode(node: VariableNode | FragmentDefinitionNode | FragmentSpreadNode) {
+    return prefixNodeName(node, prefix);
   }
 
-  document = visit(document, {
-    [Kind.VARIABLE]: (node: VariableNode) => prefixNodeName(node, prefix),
-    [Kind.FRAGMENT_DEFINITION]: (node: FragmentDefinitionNode) => prefixNodeName(node, prefix),
-    [Kind.FRAGMENT_SPREAD]: (node: FragmentSpreadNode) => prefixNodeName(node, prefix),
-  });
+  let prefixedDocument = aliasTopLevelFields(prefix, request.document);
 
-  const prefixedVariables = variableNames.reduce((acc, name) => {
-    acc[prefix + name] = executionVariables[name];
-    return acc;
-  }, Object.create(null));
+  const executionVariableNames = Object.keys(executionVariables);
+
+  if (executionVariableNames.length > 0) {
+    prefixedDocument = visit(prefixedDocument, {
+      [Kind.VARIABLE]: prefixNode,
+      [Kind.FRAGMENT_DEFINITION]: prefixNode,
+      [Kind.FRAGMENT_SPREAD]: prefixNode,
+    }) as DocumentNode;
+  }
+
+  const prefixedVariables = {};
+
+  for (const variableName of executionVariableNames) {
+    prefixedVariables[prefix + variableName] = executionVariables[variableName];
+  }
 
   return {
-    document,
+    document: prefixedDocument,
     variables: prefixedVariables,
     operationType: request.operationType,
   };

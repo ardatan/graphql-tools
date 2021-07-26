@@ -30,23 +30,13 @@ import {
 
 import { DelegationContext } from './types';
 import { getDocumentMetadata } from './getDocumentMetadata';
-import { TypeMap } from 'graphql/type/schema';
+import type { TypeMap } from 'graphql/type/schema';
 
-export function finalizeGatewayRequest(
-  originalRequest: ExecutionRequest,
-  delegationContext: DelegationContext
-): ExecutionRequest {
-  let { document, variables } = originalRequest;
-
-  let { operations, fragments } = getDocumentMetadata(document);
-  const { targetSchema, args } = delegationContext;
-
-  if (args) {
-    const requestWithNewVariables = addVariablesToRootFields(targetSchema, operations, args);
-    operations = requestWithNewVariables.newOperations;
-    variables = Object.assign({}, variables ?? {}, requestWithNewVariables.newVariables);
-  }
-
+function finalizeGatewayDocument(
+  targetSchema: GraphQLSchema,
+  fragments: FragmentDefinitionNode[],
+  operations: OperationDefinitionNode[]
+) {
   let usedVariables: Array<string> = [];
   let usedFragments: Array<string> = [];
   const newOperations: Array<OperationDefinitionNode> = [];
@@ -100,6 +90,32 @@ export function finalizeGatewayRequest(
     });
   }
 
+  return {
+    usedVariables,
+    newDocument: {
+      kind: Kind.DOCUMENT,
+      definitions: [...newOperations, ...newFragments],
+    },
+  };
+}
+
+export function finalizeGatewayRequest(
+  originalRequest: ExecutionRequest,
+  delegationContext: DelegationContext
+): ExecutionRequest {
+  let { document, variables } = originalRequest;
+
+  let { operations, fragments } = getDocumentMetadata(document);
+  const { targetSchema, args } = delegationContext;
+
+  if (args) {
+    const requestWithNewVariables = addVariablesToRootFields(targetSchema, operations, args);
+    operations = requestWithNewVariables.newOperations;
+    variables = Object.assign({}, variables ?? {}, requestWithNewVariables.newVariables);
+  }
+
+  const { usedVariables, newDocument } = finalizeGatewayDocument(targetSchema, fragments, operations);
+
   const newVariables = {};
   if (variables != null) {
     for (const variableName of usedVariables) {
@@ -109,11 +125,6 @@ export function finalizeGatewayRequest(
       }
     }
   }
-
-  const newDocument = {
-    kind: Kind.DOCUMENT,
-    definitions: [...newOperations, ...newFragments],
-  };
 
   return {
     ...originalRequest,

@@ -1,9 +1,6 @@
 import { PubSub } from 'graphql-subscriptions';
 import {
   GraphQLSchema,
-  graphql,
-  print,
-  subscribe,
   Kind,
   GraphQLScalarType,
   ValueNode,
@@ -12,18 +9,14 @@ import {
   GraphQLInterfaceType,
 } from 'graphql';
 
-import { ValueOrPromise } from 'value-or-promise';
 
 import { introspectSchema } from '../../src/introspect';
 import {
   IResolvers,
-  ExecutionResult,
-  isAsyncIterable,
   AsyncExecutor,
-  ExecutionRequest,
 } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { SubschemaConfig } from '@graphql-tools/delegate';
+import { createDefaultExecutor, SubschemaConfig } from '@graphql-tools/delegate';
 
 export class CustomError extends GraphQLError {
   constructor(message: string, extensions: Record<string, any>) {
@@ -678,38 +671,11 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
   resolvers: subscriptionResolvers,
 });
 
-function makeExecutorFromSchema(schema: GraphQLSchema): AsyncExecutor {
-  return async <TReturn, TArgs, TContext>({ document, variables, context, operationType }: ExecutionRequest<TArgs, TContext>) => {
-    if (operationType === 'subscription') {
-      const result = await subscribe(
-        schema,
-        document,
-        null,
-        context,
-        variables,
-      );
-      if (isAsyncIterable<ExecutionResult<TReturn>>(result)) {
-        return result;
-      }
-      return result;
-    }
-    return (new ValueOrPromise(() => graphql(
-      schema,
-      print(document),
-      null,
-      context,
-      variables,
-    ))
-      .then(originalResult => JSON.parse(JSON.stringify(originalResult)))
-      .resolve());
-  };
-}
-
 export async function makeSchemaRemote(
   schema: GraphQLSchema,
 ): Promise<SubschemaConfig> {
-  const executor = makeExecutorFromSchema(schema);
-  const clientSchema = await introspectSchema(executor);
+  const executor = createDefaultExecutor(schema);
+  const clientSchema = await introspectSchema(executor as AsyncExecutor);
   return {
     schema: clientSchema,
     executor,

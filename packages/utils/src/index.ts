@@ -14,7 +14,6 @@ export * from './create-schema-definition';
 export * from './build-operation-for-field';
 export * from './types';
 export * from './filterSchema';
-export * from './clone';
 export * from './heal';
 export * from './getResolversFromSchema';
 export * from './forEachField';

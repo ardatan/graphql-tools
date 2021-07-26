@@ -142,18 +142,12 @@ export default class WrapFields<TContext> implements Transform<WrapFieldsTransfo
       }
     }
 
-    const selectedFieldNames = Object.keys(newTargetFieldConfigMap);
-    [newSchema] = modifyObjectFields(
-      newSchema,
-      this.outerTypeName,
-      fieldName => selectedFieldNames.includes(fieldName),
-      {
-        [wrappingFieldName]: {
-          type: newSchema.getType(wrappingTypeName) as GraphQLObjectType,
-          resolve,
-        },
-      }
-    );
+    [newSchema] = modifyObjectFields(newSchema, this.outerTypeName, fieldName => !!newTargetFieldConfigMap[fieldName], {
+      [wrappingFieldName]: {
+        type: newSchema.getType(wrappingTypeName) as GraphQLObjectType,
+        resolve,
+      },
+    });
 
     return this.transformer.transformSchema(newSchema, subschemaConfig, transformedSchema);
   }

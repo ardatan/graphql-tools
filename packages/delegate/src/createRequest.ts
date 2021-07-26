@@ -79,16 +79,19 @@ export function createRequest({
   info,
 }: ICreateRequest): ExecutionRequest {
   let newSelectionSet: SelectionSetNode | undefined;
-  let argumentNodeMap: Record<string, ArgumentNode>;
+  const argumentNodeMap: Record<string, ArgumentNode> = Object.create(null);
 
   if (selectionSet != null) {
     newSelectionSet = selectionSet;
-    argumentNodeMap = Object.create(null);
   } else {
-    const selections: Array<SelectionNode> = (fieldNodes ?? []).reduce(
-      (acc, fieldNode) => (fieldNode.selectionSet != null ? acc.concat(fieldNode.selectionSet.selections) : acc),
-      [] as Array<SelectionNode>
-    );
+    const selections: Array<SelectionNode> = [];
+    for (const fieldNode of fieldNodes || []) {
+      if (fieldNode.selectionSet) {
+        for (const selection of fieldNode.selectionSet.selections) {
+          selections.push(selection);
+        }
+      }
+    }
 
     newSelectionSet = selections.length
       ? {
@@ -97,17 +100,11 @@ export function createRequest({
         }
       : undefined;
 
-    argumentNodeMap = {};
-
     const args = fieldNodes?.[0]?.arguments;
     if (args) {
-      argumentNodeMap = args.reduce(
-        (prev, curr) => ({
-          ...prev,
-          [curr.name.value]: curr,
-        }),
-        argumentNodeMap
-      );
+      for (const argNode of args) {
+        argumentNodeMap[argNode.name.value] = argNode;
+      }
     }
   }
 
@@ -173,7 +170,10 @@ export function createRequest({
   const definitions: Array<DefinitionNode> = [operationDefinition];
 
   if (fragments != null) {
-    definitions.push(...Object.values(fragments));
+    for (const fragmentName in fragments) {
+      const fragment = fragments[fragmentName];
+      definitions.push(fragment);
+    }
   }
 
   const document: DocumentNode = {

@@ -33,7 +33,7 @@ function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<st
   return subFieldNodes;
 }
 
-export const getFieldsNotInSubschema = memoizeInfoAnd2Objects(function (
+export const getFieldsNotInSubschema = memoizeInfoAnd2Objects(function getFieldsNotInSubschemaMemoized(
   info: GraphQLResolveInfo,
   subschema: GraphQLSchema | SubschemaConfig<any, any, any, any>,
   mergedTypeInfo: MergedTypeInfo
@@ -51,23 +51,24 @@ export const getFieldsNotInSubschema = memoizeInfoAnd2Objects(function (
   const stitchingInfo: Maybe<StitchingInfo> = info.schema.extensions?.['stitchingInfo'];
   const fieldNodesByField = stitchingInfo?.fieldNodesByField;
 
-  let fieldsNotInSchema: Array<FieldNode> = [];
-  const additionalFieldNodes: Set<FieldNode> = new Set();
+  const fieldsNotInSchema = new Set<FieldNode>();
   for (const responseKey in subFieldNodes) {
     const subFieldNodesForResponseKey = subFieldNodes[responseKey];
     const fieldName = subFieldNodesForResponseKey[0].name.value;
-    if (!(fieldName in fields)) {
-      fieldsNotInSchema = fieldsNotInSchema.concat(subFieldNodesForResponseKey);
+    if (!fields[fieldName]) {
+      for (const subFieldNodeForResponseKey of subFieldNodesForResponseKey) {
+        fieldsNotInSchema.add(subFieldNodeForResponseKey);
+      }
     }
     const fieldNodesForField = fieldNodesByField?.[typeName]?.[fieldName];
     if (fieldNodesForField) {
       for (const fieldNode of fieldNodesForField) {
-        if (!(fieldNode.name.value in fields)) {
-          additionalFieldNodes.add(fieldNode);
+        if (!fields[fieldNode.name.value]) {
+          fieldsNotInSchema.add(fieldNode);
         }
       }
     }
   }
 
-  return fieldsNotInSchema.concat(Array.from(additionalFieldNodes));
+  return Array.from(fieldsNotInSchema);
 });

@@ -291,7 +291,7 @@ export function stitchingDirectivesTransformer(
     }
 
     mapSchema(schema, {
-      [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName) => {
+      [MapperKind.OBJECT_FIELD]: function objectFieldMapper(fieldConfig, fieldName) {
         const mergeDirective = getDirective(schema, fieldConfig, mergeDirectiveName, pathToDirectivesInExtensions)?.[0];
 
         if (mergeDirective != null) {
@@ -319,7 +319,7 @@ export function stitchingDirectivesTransformer(
 
           const typeNames: Array<string> = mergeDirective['types'];
 
-          forEachConcreteTypeName(namedType, schema, typeNames, typeName => {
+          forEachConcreteTypeName(namedType, schema, typeNames, function generateResolveInfo(typeName) {
             const parsedMergeArgsExpr = parseMergeArgsExpr(
               mergeArgsExpr,
               allSelectionSetsByType[typeName] == null
@@ -465,14 +465,16 @@ function forEachConcreteType(
 }
 
 function generateKeyFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => any {
-  return (originalResult: any): any => getProperties(originalResult, mergedTypeResolverInfo.usedProperties);
+  return function keyFn(originalResult: any) {
+    return getProperties(originalResult, mergedTypeResolverInfo.usedProperties);
+  };
 }
 
 function generateArgsFromKeysFn(
   mergedTypeResolverInfo: MergedTypeResolverInfo
 ): (keys: ReadonlyArray<any>) => Record<string, any> {
   const { expansions, args } = mergedTypeResolverInfo;
-  return (keys: ReadonlyArray<any>): Record<string, any> => {
+  return function generateArgsFromKeys(keys: ReadonlyArray<any>): Record<string, any> {
     const newArgs = mergeDeep([{}, args]);
     if (expansions) {
       for (const expansion of expansions) {
@@ -499,7 +501,7 @@ function generateArgsFromKeysFn(
 function generateArgsFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => Record<string, any> {
   const { mappingInstructions, args, usedProperties } = mergedTypeResolverInfo;
 
-  return (originalResult: any): Record<string, any> => {
+  return function generateArgs(originalResult: any): Record<string, any> {
     const newArgs = mergeDeep([{}, args]);
     const filteredResult = getProperties(originalResult, usedProperties);
     if (mappingInstructions) {

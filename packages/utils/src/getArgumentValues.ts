@@ -46,14 +46,12 @@ export function getArgumentValues(
     {}
   );
 
-  for (const argDef of def.args) {
-    const name = argDef.name;
-    const argType = argDef.type;
+  for (const { name, type: argType, defaultValue } of def.args) {
     const argumentNode = argNodeMap[name];
 
     if (!argumentNode) {
-      if (argDef.defaultValue !== undefined) {
-        coercedValues[name] = argDef.defaultValue;
+      if (defaultValue !== undefined) {
+        coercedValues[name] = defaultValue;
       } else if (isNonNullType(argType)) {
         throw new GraphQLError(
           `Argument "${name}" of required type "${inspect(argType)}" ` + 'was not provided.',
@@ -68,9 +66,9 @@ export function getArgumentValues(
 
     if (valueNode.kind === Kind.VARIABLE) {
       const variableName = valueNode.name.value;
-      if (variableValues == null || !(variableName in variableMap)) {
-        if (argDef.defaultValue !== undefined) {
-          coercedValues[name] = argDef.defaultValue;
+      if (variableValues == null || !variableMap[variableName]) {
+        if (defaultValue !== undefined) {
+          coercedValues[name] = defaultValue;
         } else if (isNonNullType(argType)) {
           throw new GraphQLError(
             `Argument "${name}" of required type "${inspect(argType)}" ` +

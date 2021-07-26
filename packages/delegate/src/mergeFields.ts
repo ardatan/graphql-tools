@@ -7,16 +7,19 @@ import {
   GraphQLObjectType,
   responsePathAsArray,
   getNamedType,
+  GraphQLError,
+  locatedError,
+  GraphQLSchema,
 } from 'graphql';
 
-import { ValueOrPromise } from 'value-or-promise';
-
-import { MergedTypeInfo } from './types';
+import { ExternalObject, MergedTypeInfo, SubschemaConfig } from './types';
 import { memoize4, memoize3, memoize2 } from './memoize';
-import { mergeExternalObjects } from './externalObjects';
 import { Subschema } from './Subschema';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute';
+import { relocatedError } from '@graphql-tools/utils';
+import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
 
-const sortSubschemasByProxiability = memoize4(function (
+const sortSubschemasByProxiability = memoize4(function sortSubschemasByProxiability(
   mergedTypeInfo: MergedTypeInfo,
   sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
   targetSubschemas: Array<Subschema>,
@@ -63,7 +66,7 @@ const sortSubschemasByProxiability = memoize4(function (
   };
 });
 
-const buildDelegationPlan = memoize3(function (
+const buildDelegationPlan = memoize3(function buildDelegationPlan(
   mergedTypeInfo: MergedTypeInfo,
   fieldNodes: Array<FieldNode>,
   proxiableSubschemas: Array<Subschema>
@@ -76,7 +79,7 @@ const buildDelegationPlan = memoize3(function (
 
   // 2. for each selection:
 
-  const delegationMap: Map<Subschema, Array<SelectionNode>> = new Map();
+  const delegationMap: Map<Subschema, SelectionSetNode> = new Map();
   for (const fieldNode of fieldNodes) {
     if (fieldNode.name.value === '__typename') {
       continue;
@@ -91,11 +94,14 @@ const buildDelegationPlan = memoize3(function (
         continue;
       }
 
-      const existingSubschema = delegationMap.get(uniqueSubschema);
+      const existingSubschema = delegationMap.get(uniqueSubschema)?.selections as SelectionNode[];
       if (existingSubschema != null) {
         existingSubschema.push(fieldNode);
       } else {
-        delegationMap.set(uniqueSubschema, [fieldNode]);
+        delegationMap.set(uniqueSubschema, {
+          kind: Kind.SELECTION_SET,
+          selections: [fieldNode],
+        });
       }
 
       continue;
@@ -119,28 +125,22 @@ const buildDelegationPlan = memoize3(function (
     const existingSubschema = nonUniqueSubschemas.find(s => delegationMap.has(s));
     if (existingSubschema != null) {
       // It is okay we previously explicitly check whether the map has the element.
-      delegationMap.get(existingSubschema)!.push(fieldNode);
+      (delegationMap.get(existingSubschema)!.selections as SelectionNode[]).push(fieldNode);
     } else {
-      delegationMap.set(nonUniqueSubschemas[0], [fieldNode]);
+      delegationMap.set(nonUniqueSubschemas[0], {
+        kind: Kind.SELECTION_SET,
+        selections: [fieldNode],
+      });
     }
   }
 
-  const finalDelegationMap: Map<Subschema, SelectionSetNode> = new Map();
-
-  for (const [subschema, selections] of delegationMap) {
-    finalDelegationMap.set(subschema, {
-      kind: Kind.SELECTION_SET,
-      selections,
-    });
-  }
-
   return {
-    delegationMap: finalDelegationMap,
+    delegationMap,
     unproxiableFieldNodes,
   };
 });
 
-const combineSubschemas = memoize2(function (
+const combineSubschemas = memoize2(function combineSubschemas(
   subschemaOrSubschemas: Subschema | Array<Subschema>,
   additionalSubschemas: Array<Subschema>
 ): Array<Subschema> {
@@ -149,7 +149,32 @@ const combineSubschemas = memoize2(function (
     : [subschemaOrSubschemas].concat(additionalSubschemas);
 });
 
-export function mergeFields(
+export function isExternalObject(data: any): data is ExternalObject {
+  return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
+}
+
+export function annotateExternalObject(
+  object: any,
+  errors: Array<GraphQLError>,
+  subschema: GraphQLSchema | SubschemaConfig | undefined
+): ExternalObject {
+  Object.defineProperties(object, {
+    [OBJECT_SUBSCHEMA_SYMBOL]: { value: subschema },
+    [FIELD_SUBSCHEMA_MAP_SYMBOL]: { value: Object.create(null) },
+    [UNPATHED_ERRORS_SYMBOL]: { value: errors },
+  });
+  return object;
+}
+
+export function getSubschema(object: ExternalObject, responseKey: string): GraphQLSchema | SubschemaConfig {
+  return object[FIELD_SUBSCHEMA_MAP_SYMBOL][responseKey] ?? object[OBJECT_SUBSCHEMA_SYMBOL];
+}
+
+export function getUnpathedErrors(object: ExternalObject): Array<GraphQLError> {
+  return object[UNPATHED_ERRORS_SYMBOL];
+}
+
+export async function mergeFields(
   mergedTypeInfo: MergedTypeInfo,
   typeName: string,
   object: any,
@@ -158,7 +183,7 @@ export function mergeFields(
   targetSubschemas: Array<Subschema<any, any, any, any>>,
   context: any,
   info: GraphQLResolveInfo
-): any {
+): Promise<any> {
   if (!fieldNodes.length) {
     return object;
   }
@@ -176,41 +201,85 @@ export function mergeFields(
     return object;
   }
 
-  const resultMap: Map<ValueOrPromise<any>, SelectionSetNode> = new Map();
-  for (const [s, selectionSet] of delegationMap) {
-    const resolver = mergedTypeInfo.resolvers.get(s);
-    if (resolver) {
-      const valueOrPromise = new ValueOrPromise(() => resolver(object, context, info, s, selectionSet)).catch(
-        error => error
-      );
-      resultMap.set(valueOrPromise, selectionSet);
-    }
-  }
+  const combinedErrors = object[UNPATHED_ERRORS_SYMBOL] || [];
 
-  return ValueOrPromise.all(Array.from(resultMap.keys()))
-    .then(results =>
-      mergeFields(
-        mergedTypeInfo,
-        typeName,
-        mergeExternalObjects(
-          info.schema,
-          responsePathAsArray(info.path),
-          object.__typename,
-          object,
-          results,
-          Array.from(resultMap.values())
-        ),
-        unproxiableFieldNodes,
-        combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
-        nonProxiableSubschemas,
-        context,
-        info
-      )
-    )
-    .resolve();
+  const path = responsePathAsArray(info.path);
+
+  const newFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL] ?? Object.create(null);
+
+  const type = info.schema.getType(object.__typename) as GraphQLObjectType;
+
+  const results = await Promise.all(
+    [...delegationMap.entries()].map(async ([s, selectionSet]) => {
+      const resolver = mergedTypeInfo.resolvers.get(s);
+      if (resolver) {
+        let source: any;
+        try {
+          source = await resolver(object, context, info, s, selectionSet);
+        } catch (error) {
+          source = error;
+        }
+        if (source instanceof Error || source === null) {
+          const fieldNodes = collectFields(
+            {
+              schema: info.schema,
+              variableValues: {},
+              fragments: {},
+            } as ExecutionContext,
+            type,
+            selectionSet,
+            Object.create(null),
+            Object.create(null)
+          );
+          const nullResult = {};
+          for (const responseKey in fieldNodes) {
+            const combinedPath = [...path, responseKey];
+            if (source instanceof GraphQLError) {
+              nullResult[responseKey] = relocatedError(source, combinedPath);
+            } else if (source instanceof Error) {
+              nullResult[responseKey] = locatedError(source, fieldNodes[responseKey], combinedPath);
+            } else {
+              nullResult[responseKey] = null;
+            }
+          }
+          source = nullResult;
+        } else {
+          if (source[UNPATHED_ERRORS_SYMBOL]) {
+            combinedErrors.push(...source[UNPATHED_ERRORS_SYMBOL]);
+          }
+        }
+
+        const objectSubschema = source[OBJECT_SUBSCHEMA_SYMBOL];
+        const fieldSubschemaMap = source[FIELD_SUBSCHEMA_MAP_SYMBOL];
+        for (const responseKey in source) {
+          newFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
+        }
+
+        return source;
+      }
+    })
+  );
+
+  const combinedResult: ExternalObject = Object.assign({}, object, ...results);
+
+  combinedResult[FIELD_SUBSCHEMA_MAP_SYMBOL] = newFieldSubschemaMap;
+  combinedResult[OBJECT_SUBSCHEMA_SYMBOL] = object[OBJECT_SUBSCHEMA_SYMBOL];
+
+  combinedResult[UNPATHED_ERRORS_SYMBOL] = combinedErrors;
+
+  return mergeFields(
+    mergedTypeInfo,
+    typeName,
+    combinedResult,
+    unproxiableFieldNodes,
+    combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
+    nonProxiableSubschemas,
+    context,
+    info
+  );
 }
 
-const subschemaTypesContainSelectionSet = memoize3(function (
+const subschemaTypesContainSelectionSet = memoize3(function subschemaTypesContainSelectionSetMemoized(
   mergedTypeInfo: MergedTypeInfo,
   sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
   selectionSet: SelectionSetNode

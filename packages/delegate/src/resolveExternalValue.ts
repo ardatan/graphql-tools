@@ -17,9 +17,8 @@ import {
 import { AggregateError, Maybe } from '@graphql-tools/utils';
 
 import { StitchingInfo, SubschemaConfig } from './types';
-import { annotateExternalObject, isExternalObject } from './externalObjects';
+import { annotateExternalObject, isExternalObject, mergeFields } from './mergeFields';
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
-import { mergeFields } from './mergeFields';
 import { Subschema } from './Subschema';
 
 export function resolveExternalValue(
@@ -41,7 +40,7 @@ export function resolveExternalValue(
     return reportUnpathedErrorsViaNull(unpathedErrors);
   }
 
-  if (isLeafType(type)) {
+  if ('parseValue' in type) {
     return type.parseValue(result);
   } else if (isCompositeType(type)) {
     return resolveExternalObject(type, result, unpathedErrors, subschema, context, info, skipTypeMerging);
@@ -80,7 +79,7 @@ function resolveExternalObject(
   let typeName: string;
 
   if (isAbstractType(type)) {
-    const resolvedType = info.schema.getTypeMap()[object.__typename];
+    const resolvedType = info.schema.getType(object.__typename);
     if (resolvedType == null) {
       throw new Error(
         `Unable to resolve type '${object.__typename}'. Did you forget to include a transform that renames types? Did you delegate to the original subschema rather that the subschema config object containing the transform?`

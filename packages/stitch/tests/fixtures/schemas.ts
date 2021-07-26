@@ -1,9 +1,6 @@
 import { PubSub } from 'graphql-subscriptions';
 import {
   GraphQLSchema,
-  graphql,
-  print,
-  subscribe,
   Kind,
   GraphQLScalarType,
   ValueNode,
@@ -12,21 +9,14 @@ import {
   GraphQLInterfaceType,
 } from 'graphql';
 
-import isPromise from 'is-promise';
-
-import { ValueOrPromise } from 'value-or-promise';
-
 import { introspectSchema } from '@graphql-tools/wrap';
 import {
+  AsyncExecutor,
   IResolvers,
-  ExecutionResult,
-  mapAsyncIterator,
-  isAsyncIterable,
-  ExecutionRequest,
 } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-import { SubschemaConfig } from '@graphql-tools/delegate';
+import { SubschemaConfig, createDefaultExecutor } from '@graphql-tools/delegate';
 
 export class CustomError extends GraphQLError {
   constructor(message: string, extensions: Record<string, any>) {
@@ -682,47 +672,11 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
   resolvers: subscriptionResolvers,
 });
 
-function makeExecutorFromSchema(schema: GraphQLSchema) {
-  return async <TReturn, TArgs, TContext>({ document, variables, context, operationType }: ExecutionRequest<TArgs, TContext>) => {
-    if (operationType === 'subscription') {
-      const result = subscribe(
-        schema,
-        document,
-        null,
-        context,
-        variables,
-      ) as Promise<AsyncIterator<ExecutionResult<TReturn>> | ExecutionResult<TReturn>>;
-      if (isPromise(result)) {
-        return result.then(asyncIterator => {
-          assertAsyncIterable(asyncIterator)
-          return mapAsyncIterator<any, any>(asyncIterator, (originalResult: ExecutionResult<TReturn>) => JSON.parse(JSON.stringify(originalResult)))
-        });
-      }
-      return JSON.parse(JSON.stringify(result));
-    }
-    return (new ValueOrPromise(() => graphql(
-      schema,
-      print(document),
-      null,
-      context,
-      variables,
-    ))
-    .then(originalResult => JSON.parse(JSON.stringify(originalResult)))
-    .resolve()) as Promise<ExecutionResult<TReturn>> | ExecutionResult<TReturn>;
-  };
-}
-
-function assertAsyncIterable(input: unknown): asserts input is AsyncIterableIterator<unknown> {
-  if (isAsyncIterable(input) === false) {
-    throw new Error("Expected AsyncIterable.")
-  }
-}
-
 export async function makeSchemaRemote(
   schema: GraphQLSchema,
 ): Promise<SubschemaConfig> {
-  const executor = makeExecutorFromSchema(schema);
-  const clientSchema = await introspectSchema(executor);
+  const executor = createDefaultExecutor(schema);
+  const clientSchema = await introspectSchema(executor as AsyncExecutor);
   return {
     schema: clientSchema,
     executor,

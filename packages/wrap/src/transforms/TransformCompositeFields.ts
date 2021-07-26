@@ -83,15 +83,9 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
     transformationContext: Record<string, any>
   ): ExecutionRequest {
     const document = originalRequest.document;
-    const fragments = Object.create(null);
-    for (const def of document.definitions) {
-      if (def.kind === Kind.FRAGMENT_DEFINITION) {
-        fragments[def.name.value] = def;
-      }
-    }
     return {
       ...originalRequest,
-      document: this.transformDocument(document, fragments, transformationContext),
+      document: this.transformDocument(document, transformationContext),
     };
   }
 
@@ -110,11 +104,13 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
     return result;
   }
 
-  private transformDocument(
-    document: DocumentNode,
-    fragments: Record<string, FragmentDefinitionNode>,
-    transformationContext: Record<string, any>
-  ): DocumentNode {
+  private transformDocument(document: DocumentNode, transformationContext: Record<string, any>): DocumentNode {
+    const fragments = Object.create(null);
+    for (const def of document.definitions) {
+      if (def.kind === Kind.FRAGMENT_DEFINITION) {
+        fragments[def.name.value] = def;
+      }
+    }
     return visit(
       document,
       visitWithTypeInfo(this._getTypeInfo(), {

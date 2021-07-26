@@ -1,7 +1,5 @@
 import DataLoader from 'dataloader';
 
-import { ValueOrPromise } from 'value-or-promise';
-
 import { ExecutionRequest, Executor, ExecutionResult } from '@graphql-tools/utils';
 
 import { mergeRequests } from './mergeRequests';
@@ -25,7 +23,7 @@ function createLoadFn(
   executor: Executor,
   extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
 ) {
-  return async (requests: ReadonlyArray<ExecutionRequest>): Promise<Array<ExecutionResult>> => {
+  return async function batchExecuteLoadFn(requests: ReadonlyArray<ExecutionRequest>): Promise<Array<ExecutionResult>> {
     const execBatches: Array<Array<ExecutionRequest>> = [];
     let index = 0;
     const request = requests[index];
@@ -48,19 +46,15 @@ function createLoadFn(
       }
     }
 
-    const executionResults: Array<ValueOrPromise<ExecutionResult>> = execBatches.map(execBatch => {
-      const mergedRequests = mergeRequests(execBatch, extensionsReducer);
-      return new ValueOrPromise(() => executor(mergedRequests) as ExecutionResult);
-    });
+    const results = await Promise.all(
+      execBatches.map(async execBatch => {
+        const mergedRequests = mergeRequests(execBatch, extensionsReducer);
+        const resultBatches = (await executor(mergedRequests)) as ExecutionResult;
+        return splitResult(resultBatches, execBatch.length);
+      })
+    );
 
-    return ValueOrPromise.all(executionResults)
-      .then(resultBatches =>
-        resultBatches.reduce(
-          (results, resultBatch, index) => results.concat(splitResult(resultBatch, execBatches[index].length)),
-          new Array<ExecutionResult<Record<string, any>>>()
-        )
-      )
-      .resolve();
+    return results.flat();
   };
 }
 

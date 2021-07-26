@@ -20,18 +20,18 @@ import {
 
 import { implementsAbstractType, getRootTypeNames } from '@graphql-tools/utils';
 
-import { DelegationContext } from './types';
 import { memoize2 } from './memoize';
 import { getDocumentMetadata } from './getDocumentMetadata';
 
 export function prepareGatewayDocument(
   originalDocument: DocumentNode,
-  delegationContext: DelegationContext
+  transformedSchema: GraphQLSchema,
+  returnType: GraphQLOutputType,
+  infoSchema?: GraphQLSchema
 ): DocumentNode {
-  const { info, transformedSchema, returnType } = delegationContext;
   const wrappedConcreteTypesDocument = wrapConcreteTypes(returnType, transformedSchema, originalDocument);
 
-  if (info == null) {
+  if (infoSchema == null) {
     return wrappedConcreteTypesDocument;
   }
 
@@ -42,7 +42,7 @@ export function prepareGatewayDocument(
     fieldNodesByType,
     fieldNodesByField,
     dynamicSelectionSetsByField,
-  } = getSchemaMetaData(info.schema, transformedSchema);
+  } = getSchemaMetaData(infoSchema, transformedSchema);
 
   const { operations, fragments, fragmentNames } = getDocumentMetadata(wrappedConcreteTypesDocument);
 
@@ -145,17 +145,18 @@ function visitSelectionSet(
   fieldNodesByField: Record<string, Record<string, Array<FieldNode>>>,
   dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>
 ): SelectionSetNode {
-  const newSelections: Array<SelectionNode> = [];
+  const newSelections = new Set<SelectionNode>();
   const maybeType = typeInfo.getParentType();
 
   if (maybeType != null) {
     const parentType: GraphQLNamedType = getNamedType(maybeType);
-    const uniqueSelections: Set<SelectionNode> = new Set();
     const parentTypeName = parentType.name;
 
     const fieldNodes = fieldNodesByType[parentTypeName];
     if (fieldNodes) {
-      addSelectionsToSet(uniqueSelections, fieldNodes);
+      for (const fieldNode of fieldNodes) {
+        newSelections.add(fieldNode);
+      }
     }
 
     const interfaceExtensions = interfaceExtensionsMap[parentType.name];
@@ -167,22 +168,22 @@ function visitSelectionSet(
           const possibleTypes = possibleTypesMap[selection.typeCondition.name.value];
 
           if (possibleTypes == null) {
-            newSelections.push(selection);
+            newSelections.add(selection);
             continue;
           }
 
           for (const possibleTypeName of possibleTypes) {
             const maybePossibleType = schema.getType(possibleTypeName);
             if (maybePossibleType != null && implementsAbstractType(schema, parentType, maybePossibleType)) {
-              newSelections.push(generateInlineFragment(possibleTypeName, selection.selectionSet));
+              newSelections.add(generateInlineFragment(possibleTypeName, selection.selectionSet));
             }
           }
         }
       } else if (selection.kind === Kind.FRAGMENT_SPREAD) {
         const fragmentName = selection.name.value;
 
-        if (!(fragmentName in fragmentReplacements)) {
-          newSelections.push(selection);
+        if (!fragmentReplacements[fragmentName]) {
+          newSelections.add(selection);
           continue;
         }
 
@@ -191,7 +192,7 @@ function visitSelectionSet(
           const maybeReplacementType = schema.getType(typeName);
 
           if (maybeReplacementType != null && implementsAbstractType(schema, parentType, maybeType)) {
-            newSelections.push({
+            newSelections.add({
               kind: Kind.FRAGMENT_SPREAD,
               name: {
                 kind: Kind.NAME,
@@ -205,7 +206,9 @@ function visitSelectionSet(
 
         const fieldNodes = fieldNodesByField[parentTypeName]?.[fieldName];
         if (fieldNodes != null) {
-          addSelectionsToSet(uniqueSelections, fieldNodes);
+          for (const fieldNode of fieldNodes) {
+            newSelections.add(fieldNode);
+          }
         }
 
         const dynamicSelectionSets = dynamicSelectionSetsByField[parentTypeName]?.[fieldName];
@@ -213,7 +216,9 @@ function visitSelectionSet(
           for (const selectionSetFn of dynamicSelectionSets) {
             const selectionSet = selectionSetFn(selection);
             if (selectionSet != null) {
-              addSelectionsToSet(uniqueSelections, selectionSet.selections);
+              for (const selection of selectionSet.selections) {
+                newSelections.add(selection);
+              }
             }
           }
         }
@@ -221,13 +226,13 @@ function visitSelectionSet(
         if (interfaceExtensions?.[fieldName]) {
           interfaceExtensionFields.push(selection);
         } else {
-          newSelections.push(selection);
+          newSelections.add(selection);
         }
       }
     }
 
-    if (parentType.name in reversePossibleTypesMap) {
-      newSelections.push({
+    if (reversePossibleTypesMap[parentType.name]) {
+      newSelections.add({
         kind: Kind.FIELD,
         name: {
           kind: Kind.NAME,
@@ -240,7 +245,7 @@ function visitSelectionSet(
       const possibleTypes = possibleTypesMap[parentType.name];
       if (possibleTypes != null) {
         for (const possibleType of possibleTypes) {
-          newSelections.push(
+          newSelections.add(
             generateInlineFragment(possibleType, {
               kind: Kind.SELECTION_SET,
               selections: interfaceExtensionFields,
@@ -252,7 +257,7 @@ function visitSelectionSet(
 
     return {
       ...node,
-      selections: newSelections.concat(Array.from(uniqueSelections)),
+      selections: Array.from(newSelections),
     };
   }
 
@@ -314,7 +319,7 @@ const getSchemaMetaData = memoize2(
           }
         }
 
-        if (!isAbstractType(targetType) || typeName in interfaceExtensionsMap) {
+        if (interfaceExtensionsMap[typeName] || !isAbstractType(targetType)) {
           const implementations = sourceSchema.getPossibleTypes(type);
           possibleTypesMap[typeName] = [];
 
@@ -343,7 +348,7 @@ function reversePossibleTypesMap(possibleTypesMap: Record<string, Array<string>>
   for (const typeName in possibleTypesMap) {
     const toTypeNames = possibleTypesMap[typeName];
     for (const toTypeName of toTypeNames) {
-      if (!(toTypeName in result)) {
+      if (!result[toTypeName]) {
         result[toTypeName] = [];
       }
       result[toTypeName].push(typeName);
@@ -521,10 +526,4 @@ function wrapConcreteTypes(
       InputObjectTypeExtension: [],
     }
   );
-}
-
-function addSelectionsToSet(set: Set<SelectionNode>, selections: ReadonlyArray<SelectionNode>): void {
-  for (const selection of selections) {
-    set.add(selection);
-  }
 }

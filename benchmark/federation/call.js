@@ -3,7 +3,7 @@ const fetch = require('cross-fetch');
 fetch('http://localhost:3000/stitching', {
   method: 'POST',
   headers: {
-    'content-type': 'application/json'
+    'content-type': 'application/json',
   },
   body: JSON.stringify({
     query: /* GraphQL */ `
@@ -49,4 +49,6 @@ fetch('http://localhost:3000/stitching', {
       }
     `,
   }),
-}).then(res => res.json()).then(data => console.log(JSON.stringify(data, null, 2)));
+})
+  .then(res => res.json())
+  .then(data => console.log(JSON.stringify(data, null, 2)));

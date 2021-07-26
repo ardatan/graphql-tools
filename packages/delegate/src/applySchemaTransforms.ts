@@ -1,7 +1,5 @@
 import { GraphQLSchema } from 'graphql';
 
-import { cloneSchema } from '@graphql-tools/utils';
-
 import { SubschemaConfig } from './types';
 
 export function applySchemaTransforms(
@@ -18,7 +16,7 @@ export function applySchemaTransforms(
   return schemaTransforms.reduce(
     (schema: GraphQLSchema, transform) =>
       transform.transformSchema != null
-        ? transform.transformSchema(cloneSchema(schema), subschemaConfig, transformedSchema)
+        ? transform.transformSchema(schema, subschemaConfig, transformedSchema)
         : schema,
     originalWrappingSchema
   );

@@ -59,7 +59,7 @@ const resolvers = {
       return object.weight * 0.5;
     },
     reviews(product) {
-      return reviews.filter((review) => review.product.upc === product.upc);
+      return reviews.filter((review) => review.productUpc === product.upc);
     },
     inStock(product) {
       return inventory.find((inv) => inv.upc === product.upc)?.inStock;
@@ -69,6 +69,9 @@ const resolvers = {
     author(review) {
       return users.find((user) => user.id === review.authorID);
     },
+    product(review) {
+      return products.find(product => review.productUpc === product.upc)
+    }
   },
 };
 
@@ -122,7 +125,7 @@ const definedProducts = [
     weight: 50,
   },
 ];
-const products = [...Array(listSize)].map((_, index) => definedProducts[index % 3]);
+const products = Array(listSize).fill({}).map((_, index) => definedProducts[index % 3]);
 
 const usernames = [
   { id: "1", username: "@ada" },
@@ -131,27 +134,27 @@ const usernames = [
 
 const reviews = [
   {
-    id: "1",
-    authorID: "1",
-    product: { upc: "1" },
-    body: "Love it!",
+    id: '1',
+    authorID: '1',
+    productUpc: '1',
+    body: 'Love it!',
   },
   {
-    id: "2",
-    authorID: "1",
-    product: { upc: "2" },
-    body: "Too expensive.",
+    id: '2',
+    authorID: '1',
+    productUpc: '2',
+    body: 'Too expensive.',
   },
   {
-    id: "3",
-    authorID: "2",
-    product: { upc: "3" },
-    body: "Could be better.",
+    id: '3',
+    authorID: '2',
+    productUpc: '3',
+    body: 'Could be better.',
   },
   {
-    id: "4",
-    authorID: "2",
-    product: { upc: "1" },
-    body: "Prefer something else.",
+    id: '4',
+    authorID: '2',
+    productUpc: '1',
+    body: 'Prefer something else.',
   },
 ];

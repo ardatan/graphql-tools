@@ -15,7 +15,7 @@ import { stitchingDirectives } from '@graphql-tools/stitching-directives';
 import { ValidationLevel } from '../src/types';
 
 describe('merging using type merging with directives', () => {
-  const { allStitchingDirectivesTypeDefs, stitchingDirectivesValidator, stitchingDirectivesTransformer } = stitchingDirectives();
+  const { allStitchingDirectivesTypeDefs, stitchingDirectivesTransformer } = stitchingDirectives();
 
   const users = [
     {
@@ -59,7 +59,6 @@ describe('merging using type merging with directives', () => {
         _users: (_root, { keys }) => keys.map((key: Record<string, any>) => users.find(u => u.id === key['id'])),
       },
     },
-    schemaTransforms: [stitchingDirectivesValidator],
   });
 
   const inventory = [
@@ -126,7 +125,6 @@ describe('merging using type merging with directives', () => {
         },
       },
     },
-    schemaTransforms: [stitchingDirectivesValidator],
   });
 
   const products = [
@@ -191,7 +189,6 @@ describe('merging using type merging with directives', () => {
         _productsByUpc: (_root, { upcs }) => upcs.map((upc: any) => products.find(product => product.upc === upc)),
       }
     },
-    schemaTransforms: [stitchingDirectivesValidator],
   });
 
   const usernames = [
@@ -295,7 +292,6 @@ describe('merging using type merging with directives', () => {
         _products: (_root, { input }) => input.keys,
       },
     },
-    schemaTransforms: [stitchingDirectivesValidator],
   });
 
   const stitchedSchema = stitchSchemas({

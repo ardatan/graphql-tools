@@ -54,7 +54,9 @@ export function getProperties(object: Record<string, any>, propertyTree: Propert
 
     const prop = object[key];
 
-    newObject[key] = deepMap(prop, item => getProperties(item, subKey));
+    newObject[key] = deepMap(prop, function deepMapFn(item) {
+      return getProperties(item, subKey);
+    });
   }
 
   return newObject;
