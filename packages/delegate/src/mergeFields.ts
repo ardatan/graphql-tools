@@ -9,9 +9,10 @@ import {
   getNamedType,
   GraphQLError,
   locatedError,
+  GraphQLSchema,
 } from 'graphql';
 
-import { ExternalObject, MergedTypeInfo } from './types';
+import { ExternalObject, MergedTypeInfo, SubschemaConfig } from './types';
 import { memoize4, memoize3, memoize2 } from './memoize';
 import { Subschema } from './Subschema';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute';
@@ -148,10 +149,30 @@ const combineSubschemas = memoize2(function combineSubschemas(
     : [subschemaOrSubschemas].concat(additionalSubschemas);
 });
 
-export type SourceAndSelectionSet = {
-  source: any;
-  selectionSet: SelectionSetNode;
-};
+export function isExternalObject(data: any): data is ExternalObject {
+  return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
+}
+
+export function annotateExternalObject(
+  object: any,
+  errors: Array<GraphQLError>,
+  subschema: GraphQLSchema | SubschemaConfig | undefined
+): ExternalObject {
+  Object.defineProperties(object, {
+    [OBJECT_SUBSCHEMA_SYMBOL]: { value: subschema },
+    [FIELD_SUBSCHEMA_MAP_SYMBOL]: { value: Object.create(null) },
+    [UNPATHED_ERRORS_SYMBOL]: { value: errors },
+  });
+  return object;
+}
+
+export function getSubschema(object: ExternalObject, responseKey: string): GraphQLSchema | SubschemaConfig {
+  return object[FIELD_SUBSCHEMA_MAP_SYMBOL][responseKey] ?? object[OBJECT_SUBSCHEMA_SYMBOL];
+}
+
+export function getUnpathedErrors(object: ExternalObject): Array<GraphQLError> {
+  return object[UNPATHED_ERRORS_SYMBOL];
+}
 
 export async function mergeFields(
   mergedTypeInfo: MergedTypeInfo,
