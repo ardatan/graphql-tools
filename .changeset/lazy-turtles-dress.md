@@ -9,7 +9,6 @@
 BREAKING CHANGES;
 
 - Rename `Request` to `ExecutionRequest`
-- Drop unnecessary `GraphQLResolveInfo` in `ExecutionRequest`
 - Add required `operationType: OperationTypeNode` field in `ExecutionRequest`
 - Add `context` in `createRequest` and `createRequestInfo` instead of `delegateToSchema`
 
