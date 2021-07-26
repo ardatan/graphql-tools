@@ -21,8 +21,8 @@ import {
 } from 'graphql';
 
 import { implementsAbstractType, getRootTypeNames, memoize2 } from '@graphql-tools/utils';
-
 import { getDocumentMetadata } from './getDocumentMetadata';
+
 import { StitchingInfo } from './types';
 
 export function prepareGatewayDocument(

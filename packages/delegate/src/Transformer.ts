@@ -4,7 +4,6 @@ import { DelegationContext, Transform } from './types';
 
 import { prepareGatewayDocument } from './prepareGatewayDocument';
 import { finalizeGatewayRequest } from './finalizeGatewayRequest';
-import { checkResultAndHandleErrors } from './checkResultAndHandleErrors';
 
 interface Transformation {
   transform: Transform;
@@ -48,7 +47,7 @@ export class Transformer<TContext = Record<string, any>> {
     return finalizeGatewayRequest(request, this.delegationContext);
   }
 
-  public transformResult(originalResult: ExecutionResult) {
+  public transformResult(originalResult: ExecutionResult): ExecutionResult {
     let result = originalResult;
 
     // from rigth to left
@@ -59,6 +58,6 @@ export class Transformer<TContext = Record<string, any>> {
       }
     }
 
-    return checkResultAndHandleErrors(result, this.delegationContext);
+    return result;
   }
 }

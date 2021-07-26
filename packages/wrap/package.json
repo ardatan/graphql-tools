@@ -31,9 +31,6 @@
   "buildOptions": {
     "input": "./src/index.ts"
   },
-  "devDependencies": {
-    "is-promise": "4.0.0"
-  },
   "dependencies": {
     "@graphql-tools/delegate": "^8.2.0",
     "@graphql-tools/schema": "^8.2.0",

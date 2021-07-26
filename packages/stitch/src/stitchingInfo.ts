@@ -22,7 +22,6 @@ import { MergedTypeResolver, Subschema, SubschemaConfig, MergedTypeInfo, Stitchi
 import { MergeTypeCandidate, MergeTypeFilter } from './types';
 
 import { createMergedTypeResolver } from './createMergedTypeResolver';
-import { createDelegationPlanBuilder } from './createDelegationPlanBuilder';
 
 export function createStitchingInfo<TContext = Record<string, any>>(
   subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>,
@@ -165,12 +164,9 @@ function createMergedTypes<TContext = Record<string, any>>(
           fieldSelectionSets,
           uniqueFields: Object.create({}),
           nonUniqueFields: Object.create({}),
+          subschemaFields: Object.create({}),
           resolvers,
         } as MergedTypeInfo<TContext>;
-
-        mergedTypes[typeName].delegationPlanBuilder = createDelegationPlanBuilder(
-          mergedTypes[typeName] as MergedTypeInfo
-        );
 
         for (const fieldName in supportedBySubschemas) {
           if (supportedBySubschemas[fieldName].length === 1) {
@@ -178,6 +174,7 @@ function createMergedTypes<TContext = Record<string, any>>(
           } else {
             mergedTypes[typeName].nonUniqueFields[fieldName] = supportedBySubschemas[fieldName];
           }
+          mergedTypes[typeName].subschemaFields[fieldName] = true;
         }
       }
     }

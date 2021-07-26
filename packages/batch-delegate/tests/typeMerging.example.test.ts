@@ -341,7 +341,7 @@ describe('merging using type merging', () => {
     expect(result).toEqual(expectedResult);
   });
 
-  test('can stitch from accounts to reviews to products to inventory', async () => {
+  test('can stitch from accounts to reviews to products to inventory with shippingEstimate', async () => {
     const result = await graphql({
       schema: stitchedSchema,
       source: /* GraphQL */`

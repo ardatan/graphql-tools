@@ -1,13 +1,12 @@
-import { GraphQLError, GraphQLResolveInfo, locatedError, graphql } from 'graphql';
+import { GraphQLError, GraphQLResolveInfo, locatedError, graphql, GraphQLSchema } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
-import { checkResultAndHandleErrors } from '../src/checkResultAndHandleErrors';
 import { UNPATHED_ERRORS_SYMBOL } from '../src/symbols';
-import { getUnpathedErrors } from '../src/mergeFields';
-import { delegateToSchema, defaultMergedResolver, DelegationContext } from '../src';
+import { getUnpathedErrors } from '../src/externalObjects';
+import { delegateToSchema, defaultMergedResolver, externalValueFromResult } from '../src';
 
 class ErrorWithExtensions extends GraphQLError {
   constructor(message: string, code: string) {
@@ -32,32 +31,18 @@ describe('Errors', () => {
     });
   });
 
-  describe('checkResultAndHandleErrors', () => {
-    const fakeInfo: GraphQLResolveInfo = {
-      fieldName: "foo",
-      fieldNodes: [],
-      returnType: {} as any,
-      parentType: {} as any,
-      path: {prev: undefined, key: "foo", typename: undefined } as any,
-      schema: {} as any,
-      fragments: {},
-      rootValue: {},
-      operation: {} as any,
-      variableValues: {}
-    }
-
+  describe('externalValueFromResult', () => {
     test('persists single error', () => {
       const result = {
         errors: [new GraphQLError('Test error')],
       };
       try {
-        checkResultAndHandleErrors(
+        externalValueFromResult({
           result,
-          {
-            fieldName: 'responseKey',
-            info: fakeInfo,
-          } as DelegationContext,
-        );
+          schema: {} as GraphQLSchema,
+          fieldName: 'responseKey',
+          info: { fieldName: 'foo' } as GraphQLResolveInfo,
+        });
       } catch (e: any) {
         expect(e.message).toEqual('Test error');
         expect(e.originalError.errors).toBeUndefined();
@@ -69,13 +54,12 @@ describe('Errors', () => {
         errors: [new ErrorWithExtensions('Test error', 'UNAUTHENTICATED')],
       };
       try {
-        checkResultAndHandleErrors(
+        externalValueFromResult({
           result,
-          {
-            fieldName: 'responseKey',
-            info: fakeInfo,
-          } as DelegationContext,
-        );
+          schema: {} as GraphQLSchema,
+          fieldName: 'responseKey',
+          info: { fieldName: 'foo' } as GraphQLResolveInfo,
+        });
       } catch (e: any) {
         expect(e.message).toEqual('Test error');
         expect(e.extensions && e.extensions.code).toEqual('UNAUTHENTICATED');
@@ -88,13 +72,12 @@ describe('Errors', () => {
         errors: [new GraphQLError('Error1'), new GraphQLError('Error2')],
       };
       try {
-        checkResultAndHandleErrors(
+        externalValueFromResult({
           result,
-          {
-            fieldName: 'responseKey',
-            info: fakeInfo,
-          } as DelegationContext,
-        );
+          schema: {} as GraphQLSchema,
+          fieldName: 'responseKey',
+          info: { fieldName: 'foo' } as GraphQLResolveInfo,
+        });
       } catch (e: any) {
         expect(e.message).toEqual('Error1\nError2');
         expect(e.originalError).toBeDefined();

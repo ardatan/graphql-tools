@@ -1,48 +1,81 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode } from 'graphql';
+import { GraphQLSchema, FieldNode } from 'graphql';
 
 import DataLoader from 'dataloader';
 
-import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
-import { memoize2, relocatedError } from '@graphql-tools/utils';
+import {
+  SubschemaConfig,
+  Transformer,
+  validateRequest,
+  getExecutor,
+  getDelegatingOperation,
+  createRequestFromInfo,
+  getDelegationContext,
+} from '@graphql-tools/delegate';
+import { ExecutionResult, memoize2 } from '@graphql-tools/utils';
 
 import { BatchDelegateOptions } from './types';
 
-function createBatchFn<K = any>(options: BatchDelegateOptions) {
+function createBatchFn<K = any>(
+  options: BatchDelegateOptions
+): (keys: ReadonlyArray<K>) => Promise<Array<ExecutionResult<Record<string, any>>>> {
+  const {
+    info,
+    operationName,
+    operation = getDelegatingOperation(info.parentType, info.schema),
+    fieldName = info.fieldName,
+    returnType = info.returnType,
+    selectionSet,
+    fieldNodes,
+  } = options;
+
+  if (operation !== 'query' && operation !== 'mutation') {
+    throw new Error(`Batch delegation not possible for operation '${operation}'.`);
+  }
+
+  const request = createRequestFromInfo({
+    info,
+    operation,
+    fieldName,
+    selectionSet,
+    fieldNodes,
+    operationName,
+  });
+
+  const delegationContext = getDelegationContext({
+    request,
+    ...options,
+    operation,
+    fieldName,
+    returnType,
+  });
+
   const argsFromKeys = options.argsFromKeys ?? ((keys: ReadonlyArray<K>) => ({ ids: keys }));
-  const fieldName = options.fieldName ?? options.info.fieldName;
-  const { valuesFromResults, lazyOptionsFn } = options;
+
+  const { validateRequest: shouldValidateRequest } = options;
 
   return async function batchFn(keys: ReadonlyArray<K>) {
-    const results = await delegateToSchema({
-      returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
-      onLocatedError: originalError => {
-        if (originalError.path == null) {
-          return originalError;
-        }
+    const { fieldName, context, info } = delegationContext;
 
-        const [pathFieldName, pathNumber] = originalError.path;
-
-        if (pathFieldName !== fieldName) {
-          return originalError;
-        }
-        const pathNumberType = typeof pathNumber;
-        if (pathNumberType !== 'number') {
-          return originalError;
-        }
-
-        return relocatedError(originalError, originalError.path.slice(0, 0).concat(originalError.path.slice(2)));
-      },
+    const transformer = new Transformer({
+      ...delegationContext,
       args: argsFromKeys(keys),
-      ...(lazyOptionsFn == null ? options : lazyOptionsFn(options)),
     });
 
-    if (results instanceof Error) {
-      return keys.map(() => results);
+    const processedRequest = transformer.transformRequest(request);
+
+    if (shouldValidateRequest) {
+      validateRequest(delegationContext, processedRequest.document);
     }
 
-    const values = valuesFromResults == null ? results : valuesFromResults(results, keys);
+    const executor = getExecutor(delegationContext);
 
-    return Array.isArray(values) ? values : keys.map(() => values);
+    const batchResult = (await executor({
+      ...processedRequest,
+      context,
+      info,
+    })) as ExecutionResult;
+
+    return splitResult(transformer.transformResult(batchResult), fieldName, keys.length);
   };
 }
 
@@ -60,23 +93,51 @@ const getLoadersMap = memoize2(function getLoadersMap<K, V, C>(
   return new Map<string, DataLoader<K, V, C>>();
 });
 
-export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
-  const fieldName = options.fieldName ?? options.info.fieldName;
-  const loaders = getLoadersMap<K, V, C>(options.info.fieldNodes, options.schema);
+export function getLoader<K = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, ExecutionResult, C> {
+  const {
+    info,
+    operation = getDelegatingOperation(info.parentType, info.schema),
+    fieldName = info.fieldName,
+  } = options;
 
-  let loader = loaders.get(fieldName);
+  if (operation !== 'query' && operation !== 'mutation') {
+    throw new Error(`Batch delegation not possible for operation '${operation}'.`);
+  }
 
   // Prevents the keys to be passed with the same structure
-  const dataLoaderOptions: DataLoader.Options<any, any, any> = {
+  const dataLoaderOptions: DataLoader.Options<K, ExecutionResult, C> = {
     cacheKeyFn: defaultCacheKeyFn,
     ...options.dataLoaderOptions,
   };
 
+  const loaders = getLoadersMap<K, ExecutionResult, C>(info.fieldNodes, options.schema);
+  let loader = loaders.get(fieldName);
+
   if (loader === undefined) {
     const batchFn = createBatchFn(options);
-    loader = new DataLoader<K, V, C>(batchFn, dataLoaderOptions);
+    loader = new DataLoader<K, ExecutionResult, C>(keys => batchFn(keys), dataLoaderOptions);
     loaders.set(fieldName, loader);
   }
 
   return loader;
+}
+
+function splitResult(result: ExecutionResult, fieldName: string, numItems: number): Array<ExecutionResult> {
+  const { data, errors } = result;
+  const fieldData = data?.[fieldName];
+
+  if (fieldData === undefined) {
+    if (errors === undefined) {
+      return Array(numItems).fill({});
+    }
+
+    return Array(numItems).fill({ errors });
+  }
+
+  return fieldData.map((value: any) => ({
+    data: {
+      [fieldName]: value,
+    },
+    errors,
+  }));
 }
