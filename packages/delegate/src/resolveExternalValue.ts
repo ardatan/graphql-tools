@@ -17,9 +17,8 @@ import {
 import { AggregateError, Maybe } from '@graphql-tools/utils';
 
 import { StitchingInfo, SubschemaConfig } from './types';
-import { annotateExternalObject, isExternalObject } from './externalObjects';
+import { annotateExternalObject, isExternalObject, mergeFields } from './mergeFields';
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
-import { mergeFields } from './mergeFields';
 import { Subschema } from './Subschema';
 
 export function resolveExternalValue(
