@@ -140,7 +140,7 @@ export function travelSchemaPossibleExtensions(
 }
 
 export function mergeExtensions(extensions: SchemaExtensions[]): SchemaExtensions {
-  return Object.assign({}, ...extensions);
+  return mergeDeep(extensions);
 }
 
 function applyExtensionObject(
