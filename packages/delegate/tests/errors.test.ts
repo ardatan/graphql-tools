@@ -6,7 +6,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 
 import { checkResultAndHandleErrors } from '../src/checkResultAndHandleErrors';
 import { UNPATHED_ERRORS_SYMBOL } from '../src/symbols';
-import { getUnpathedErrors } from '../src/mergeFields';
+import { getUnpathedErrors } from '../src/externalObjects';
 import { delegateToSchema, defaultMergedResolver, DelegationContext } from '../src';
 
 class ErrorWithExtensions extends GraphQLError {

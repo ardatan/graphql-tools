@@ -9,15 +9,21 @@ import {
   getNamedType,
   GraphQLError,
   locatedError,
-  GraphQLSchema,
 } from 'graphql';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 
-import { ExternalObject, MergedTypeInfo, SubschemaConfig } from './types';
+import { relocatedError } from '@graphql-tools/utils';
+
+import { MergedTypeInfo } from './types';
 import { memoize4, memoize3, memoize2 } from './memoize';
 import { Subschema } from './Subschema';
-import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
-import { relocatedError } from '@graphql-tools/utils';
-import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
+import {
+  annotateExternalObject,
+  getSubschemaMap,
+  getObjectSubchema,
+  getUnpathedErrors,
+  isExternalObject,
+} from './externalObjects';
 
 const sortSubschemasByProxiability = memoize4(function sortSubschemasByProxiability(
   mergedTypeInfo: MergedTypeInfo,
@@ -149,32 +155,6 @@ const combineSubschemas = memoize2(function combineSubschemas(
     : [subschemaOrSubschemas].concat(additionalSubschemas);
 });
 
-export function isExternalObject(data: any): data is ExternalObject {
-  return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
-}
-
-export function annotateExternalObject(
-  object: any,
-  errors: Array<GraphQLError>,
-  objectSubschema: GraphQLSchema | SubschemaConfig,
-  fieldSubschemaMap?: Record<string, GraphQLSchema | SubschemaConfig>
-): ExternalObject {
-  Object.defineProperties(object, {
-    [UNPATHED_ERRORS_SYMBOL]: { value: errors },
-    [OBJECT_SUBSCHEMA_SYMBOL]: { value: objectSubschema },
-    [FIELD_SUBSCHEMA_MAP_SYMBOL]: { value: fieldSubschemaMap ?? Object.create(null) },
-  });
-  return object;
-}
-
-export function getSubschema(object: ExternalObject, responseKey: string): GraphQLSchema | SubschemaConfig {
-  return object[FIELD_SUBSCHEMA_MAP_SYMBOL][responseKey] ?? object[OBJECT_SUBSCHEMA_SYMBOL];
-}
-
-export function getUnpathedErrors(object: ExternalObject): Array<GraphQLError> {
-  return object[UNPATHED_ERRORS_SYMBOL];
-}
-
 export async function mergeFields(
   mergedTypeInfo: MergedTypeInfo,
   typeName: string,
@@ -202,11 +182,11 @@ export async function mergeFields(
     return object;
   }
 
-  const combinedErrors = object[UNPATHED_ERRORS_SYMBOL] || [];
+  const combinedErrors = getUnpathedErrors(object);
 
   const path = responsePathAsArray(info.path);
 
-  const newFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL] ?? Object.create(null);
+  const newFieldSubschemaMap = getSubschemaMap(object);
 
   const type = info.schema.getType(object.__typename) as GraphQLObjectType;
 
@@ -251,11 +231,10 @@ export async function mergeFields(
           return source;
         }
 
-        combinedErrors.push(...source[UNPATHED_ERRORS_SYMBOL]);
-        const objectSubschema = source[OBJECT_SUBSCHEMA_SYMBOL];
-        const fieldSubschemaMap = source[FIELD_SUBSCHEMA_MAP_SYMBOL];
+        const objectSubschema = getObjectSubchema(source);
+        const subschemaMap = getSubschemaMap(source);
         for (const responseKey in source) {
-          newFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
+          newFieldSubschemaMap[responseKey] = subschemaMap?.[responseKey] ?? objectSubschema;
         }
 
         return source;
@@ -266,7 +245,7 @@ export async function mergeFields(
   const combinedResult = annotateExternalObject(
     Object.assign({}, object, ...results),
     combinedErrors,
-    object[OBJECT_SUBSCHEMA_SYMBOL],
+    getObjectSubchema(object),
     newFieldSubschemaMap
   );
 
