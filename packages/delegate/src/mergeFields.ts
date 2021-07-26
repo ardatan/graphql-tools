@@ -180,11 +180,13 @@ export async function mergeFields(
     return object;
   }
 
-  const results: Array<any> = [];
-  const errors: Array<GraphQLError> = [];
+  const combinedErrors = object[UNPATHED_ERRORS_SYMBOL] || [];
 
   const path = responsePathAsArray(info.path);
-  await Promise.all(
+
+  const newFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL] ?? Object.create(null);
+
+  const results = await Promise.all(
     [...delegationMap.entries()].map(async ([s, selectionSet]) => {
       const resolver = mergedTypeInfo.resolvers.get(s);
       if (resolver) {
@@ -218,39 +220,28 @@ export async function mergeFields(
               nullResult[responseKey] = null;
             }
           }
-          results.push(nullResult);
+          source = nullResult;
         } else {
           if (source[UNPATHED_ERRORS_SYMBOL]) {
-            errors.push(...source[UNPATHED_ERRORS_SYMBOL]);
+            combinedErrors.push(...source[UNPATHED_ERRORS_SYMBOL]);
           }
-          results.push(source);
         }
+
+        const objectSubschema = source[OBJECT_SUBSCHEMA_SYMBOL];
+        const fieldSubschemaMap = source[FIELD_SUBSCHEMA_MAP_SYMBOL];
+        for (const responseKey in source) {
+          newFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
+        }
+
+        return source;
       }
     })
   );
 
   const combinedResult: ExternalObject = Object.assign({}, object, ...results);
 
-  const newFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL] ?? Object.create(null);
-
-  await Promise.all(
-    results.map(async source => {
-      const objectSubschema = source[OBJECT_SUBSCHEMA_SYMBOL];
-      const fieldSubschemaMap = source[FIELD_SUBSCHEMA_MAP_SYMBOL];
-      for (const responseKey in source) {
-        newFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
-      }
-    })
-  );
-
   combinedResult[FIELD_SUBSCHEMA_MAP_SYMBOL] = newFieldSubschemaMap;
   combinedResult[OBJECT_SUBSCHEMA_SYMBOL] = object[OBJECT_SUBSCHEMA_SYMBOL];
-
-  const combinedErrors = object[UNPATHED_ERRORS_SYMBOL] || [];
-
-  for (const error of errors) {
-    combinedErrors.push(error);
-  }
 
   combinedResult[UNPATHED_ERRORS_SYMBOL] = combinedErrors;
 
