@@ -114,17 +114,18 @@ const typeDefs = `
   }
 `;
 
-module.exports = makeExecutableSchema({
-  // 2. include the stitching directives validator...
-  schemaTransforms: [stitchingDirectivesValidator],
+const schema = makeExecutableSchema({
   typeDefs,
   resolvers: {
     Query: {
-      // 3. setup a query that exposes the raw SDL...
+      // 2. setup a query that exposes the raw SDL...
       _sdl: () => typeDefs
     }
   }
 });
+
+// 3. include the stitching directives validator...
+module.exports = stitchingDirectivesValidator(schema)
 ```
 
 1. Include `allStitchingDirectivesTypeDefs` in your schema's type definitions string (these define the schema of the directives themselves).
