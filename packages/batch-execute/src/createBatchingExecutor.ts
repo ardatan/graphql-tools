@@ -23,7 +23,7 @@ function createLoadFn(
   executor: Executor,
   extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
 ) {
-  return async (requests: ReadonlyArray<ExecutionRequest>): Promise<Array<ExecutionResult>> => {
+  return async function batchExecuteLoadFn(requests: ReadonlyArray<ExecutionRequest>): Promise<Array<ExecutionResult>> {
     const execBatches: Array<Array<ExecutionRequest>> = [];
     let index = 0;
     const request = requests[index];
