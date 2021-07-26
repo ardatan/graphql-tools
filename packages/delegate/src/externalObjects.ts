@@ -1,11 +1,7 @@
-import { GraphQLSchema, GraphQLError, GraphQLObjectType, SelectionSetNode, locatedError } from 'graphql';
-
-import { relocatedError } from '@graphql-tools/utils';
+import { GraphQLSchema, GraphQLError } from 'graphql';
 
 import { SubschemaConfig, ExternalObject } from './types';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
-import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
-import { SourceAndSelectionSet } from './mergeFields';
 
 export function isExternalObject(data: any): data is ExternalObject {
   return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
