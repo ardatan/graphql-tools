@@ -7,12 +7,16 @@ import {
   GraphQLObjectType,
   responsePathAsArray,
   getNamedType,
+  GraphQLError,
+  locatedError,
 } from 'graphql';
 
 import { ExternalObject, MergedTypeInfo } from './types';
 import { memoize4, memoize3, memoize2 } from './memoize';
-import { mergeExternalObjects } from './externalObjects';
 import { Subschema } from './Subschema';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute';
+import { relocatedError } from '@graphql-tools/utils';
+import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
 
 const sortSubschemasByProxiability = memoize4(function sortSubschemasByProxiability(
   mergedTypeInfo: MergedTypeInfo,
@@ -144,10 +148,15 @@ const combineSubschemas = memoize2(function combineSubschemas(
     : [subschemaOrSubschemas].concat(additionalSubschemas);
 });
 
+export type SourceAndSelectionSet = {
+  source: any;
+  selectionSet: SelectionSetNode;
+};
+
 export async function mergeFields(
   mergedTypeInfo: MergedTypeInfo,
   typeName: string,
-  object$: Promise<any>,
+  object: any,
   fieldNodes: Array<FieldNode>,
   sourceSubschemaOrSourceSubschemas: Subschema<any, any, any, any> | Array<Subschema<any, any, any, any>>,
   targetSubschemas: Array<Subschema<any, any, any, any>>,
@@ -155,7 +164,7 @@ export async function mergeFields(
   info: GraphQLResolveInfo
 ): Promise<any> {
   if (!fieldNodes.length) {
-    return object$;
+    return object;
   }
 
   const { proxiableSubschemas, nonProxiableSubschemas } = sortSubschemasByProxiability(
@@ -168,30 +177,87 @@ export async function mergeFields(
   const { delegationMap, unproxiableFieldNodes } = buildDelegationPlan(mergedTypeInfo, fieldNodes, proxiableSubschemas);
 
   if (!delegationMap.size) {
-    return object$;
+    return object;
   }
 
-  const selectionSets: SelectionSetNode[] = [];
-  const results: ExternalObject[] = [];
+  const results: Array<any> = [];
+  const errors: Array<GraphQLError> = [];
+
+  const path = responsePathAsArray(info.path);
   await Promise.all(
-    [...delegationMap.entries()].map(async ([s, selectionSet], i) => {
+    [...delegationMap.entries()].map(async ([s, selectionSet]) => {
       const resolver = mergedTypeInfo.resolvers.get(s);
       if (resolver) {
+        let source: any;
         try {
-          const object = await object$;
-          results[i] = await resolver(await object, context, info, s, selectionSet);
+          source = await resolver(object, context, info, s, selectionSet);
         } catch (error) {
-          results[i] = error;
+          source = error;
         }
-        selectionSets[i] = selectionSet;
+        const type = info.schema.getType(object.__typename) as GraphQLObjectType;
+        if (source instanceof Error || source === null) {
+          const fieldNodes = collectFields(
+            {
+              schema: info.schema,
+              variableValues: {},
+              fragments: {},
+            } as ExecutionContext,
+            type,
+            selectionSet,
+            Object.create(null),
+            Object.create(null)
+          );
+          const nullResult = {};
+          for (const responseKey in fieldNodes) {
+            const combinedPath = [...path, responseKey];
+            if (source instanceof GraphQLError) {
+              nullResult[responseKey] = relocatedError(source, combinedPath);
+            } else if (source instanceof Error) {
+              nullResult[responseKey] = locatedError(source, fieldNodes[responseKey], combinedPath);
+            } else {
+              nullResult[responseKey] = null;
+            }
+          }
+          results.push(nullResult);
+        } else {
+          if (source[UNPATHED_ERRORS_SYMBOL]) {
+            errors.push(...source[UNPATHED_ERRORS_SYMBOL]);
+          }
+          results.push(source);
+        }
       }
     })
   );
 
+  const combinedResult: ExternalObject = Object.assign({}, object, ...results);
+
+  const newFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL] ?? Object.create(null);
+
+  await Promise.all(
+    results.map(async source => {
+      const objectSubschema = source[OBJECT_SUBSCHEMA_SYMBOL];
+      const fieldSubschemaMap = source[FIELD_SUBSCHEMA_MAP_SYMBOL];
+      for (const responseKey in source) {
+        newFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
+      }
+    })
+  );
+
+  combinedResult[FIELD_SUBSCHEMA_MAP_SYMBOL] = newFieldSubschemaMap;
+  combinedResult[OBJECT_SUBSCHEMA_SYMBOL] = object[OBJECT_SUBSCHEMA_SYMBOL];
+
+  const combinedErrors = object[UNPATHED_ERRORS_SYMBOL] || [];
+
+  for (const error of errors) {
+    combinedErrors.push(error);
+  }
+
+  combinedResult[UNPATHED_ERRORS_SYMBOL] = combinedErrors;
+
   return mergeFields(
     mergedTypeInfo,
     typeName,
-    mergeExternalObjects(info.schema, responsePathAsArray(info.path), object$, results, selectionSets),
+    combinedResult,
     unproxiableFieldNodes,
     combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
     nonProxiableSubschemas,
