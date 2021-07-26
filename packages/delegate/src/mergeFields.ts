@@ -186,6 +186,8 @@ export async function mergeFields(
 
   const newFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL] ?? Object.create(null);
 
+  const type = info.schema.getType(object.__typename) as GraphQLObjectType;
+
   const results = await Promise.all(
     [...delegationMap.entries()].map(async ([s, selectionSet]) => {
       const resolver = mergedTypeInfo.resolvers.get(s);
@@ -196,7 +198,6 @@ export async function mergeFields(
         } catch (error) {
           source = error;
         }
-        const type = info.schema.getType(object.__typename) as GraphQLObjectType;
         if (source instanceof Error || source === null) {
           const fieldNodes = collectFields(
             {
