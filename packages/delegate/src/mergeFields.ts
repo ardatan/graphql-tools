@@ -263,9 +263,12 @@ export async function mergeFields(
     })
   );
 
-  const combinedResult: ExternalObject = Object.assign({}, object, ...results);
-
-  annotateExternalObject(combinedResult, combinedErrors, object[OBJECT_SUBSCHEMA_SYMBOL], newFieldSubschemaMap);
+  const combinedResult = annotateExternalObject(
+    Object.assign({}, object, ...results),
+    combinedErrors,
+    object[OBJECT_SUBSCHEMA_SYMBOL],
+    newFieldSubschemaMap
+  );
 
   return mergeFields(
     mergedTypeInfo,
