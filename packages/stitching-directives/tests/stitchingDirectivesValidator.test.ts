@@ -11,7 +11,7 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
+    expect(() => stitchingDirectivesValidator(makeExecutableSchema({ typeDefs }))).not.toThrow();
   });
 
   test('throws an error if type selectionSet invalid', () => {
@@ -28,7 +28,7 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).toThrow();
+    expect(() => stitchingDirectivesValidator(makeExecutableSchema({ typeDefs }))).toThrow();
   });
 
   test('does not throw an error if type selectionSet valid', () => {
@@ -45,7 +45,7 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
+    expect(() => stitchingDirectivesValidator(makeExecutableSchema({ typeDefs }))).not.toThrow();
   });
 
   test('throws an error if computed selectionSet invalid', () => {
@@ -62,7 +62,7 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).toThrow();
+    expect(() => stitchingDirectivesValidator(makeExecutableSchema({ typeDefs }))).toThrow();
   });
 
   test('does not throw an error if computed selectionSet valid', () => {
@@ -79,7 +79,7 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
+    expect(() => stitchingDirectivesValidator(makeExecutableSchema({ typeDefs }))).not.toThrow();
   });
 
   test('throws an error if merge argsExpr invalid', () => {
@@ -98,7 +98,7 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).toThrow();
+    expect(() => stitchingDirectivesValidator(makeExecutableSchema({ typeDefs }))).toThrow();
   });
 
   test('does not throw an error if merge argsExpr valid', () => {
@@ -117,13 +117,13 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
+    expect(() => stitchingDirectivesValidator(makeExecutableSchema({ typeDefs }))).not.toThrow();
   });
 
   test('does not throw an error when using merge with argsExpr on a multiple args endpoint', () => {
     const typeDefs = `
       ${allStitchingDirectivesTypeDefs}
-      
+
       type Query {
         _user(id: ID, name: String): User @merge(argsExpr: "id: $key.id, name: $key.name")
       }
@@ -135,7 +135,7 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
+    expect(() => stitchingDirectivesValidator(makeExecutableSchema({ typeDefs }))).not.toThrow();
   });
 
   test('does not throw an error if merge used without arguments', () => {
@@ -154,6 +154,6 @@ describe('type merging directives', () => {
     `;
 
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
-    expect(() => makeExecutableSchema({ typeDefs, schemaTransforms: [stitchingDirectivesValidator] })).not.toThrow();
+    expect(() => stitchingDirectivesValidator(makeExecutableSchema({ typeDefs }))).not.toThrow();
   });
 });
