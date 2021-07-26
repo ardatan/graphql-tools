@@ -156,12 +156,13 @@ export function isExternalObject(data: any): data is ExternalObject {
 export function annotateExternalObject(
   object: any,
   errors: Array<GraphQLError>,
-  subschema: GraphQLSchema | SubschemaConfig | undefined
+  objectSubschema: GraphQLSchema | SubschemaConfig | undefined,
+  fieldSubschemaMap?: Record<string, GraphQLSchema | SubschemaConfig>
 ): ExternalObject {
   Object.defineProperties(object, {
-    [OBJECT_SUBSCHEMA_SYMBOL]: { value: subschema },
-    [FIELD_SUBSCHEMA_MAP_SYMBOL]: { value: Object.create(null) },
     [UNPATHED_ERRORS_SYMBOL]: { value: errors },
+    [OBJECT_SUBSCHEMA_SYMBOL]: { value: objectSubschema },
+    [FIELD_SUBSCHEMA_MAP_SYMBOL]: { value: fieldSubschemaMap ?? Object.create(null) },
   });
   return object;
 }
@@ -262,10 +263,7 @@ export async function mergeFields(
 
   const combinedResult: ExternalObject = Object.assign({}, object, ...results);
 
-  combinedResult[FIELD_SUBSCHEMA_MAP_SYMBOL] = newFieldSubschemaMap;
-  combinedResult[OBJECT_SUBSCHEMA_SYMBOL] = object[OBJECT_SUBSCHEMA_SYMBOL];
-
-  combinedResult[UNPATHED_ERRORS_SYMBOL] = combinedErrors;
+  annotateExternalObject(combinedResult, combinedErrors, object[OBJECT_SUBSCHEMA_SYMBOL], newFieldSubschemaMap);
 
   return mergeFields(
     mergedTypeInfo,
