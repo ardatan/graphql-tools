@@ -34,17 +34,17 @@ export function getUnpathedErrors(object: ExternalObject): Array<GraphQLError> {
 export async function mergeExternalObjects(
   schema: GraphQLSchema,
   path: Array<string | number>,
-  typeName: string,
-  target: ExternalObject,
+  target$: Promise<ExternalObject>,
   sources: Array<ExternalObject>,
   selectionSets: Array<SelectionSetNode>
 ): Promise<ExternalObject> {
   const results: Array<any> = [];
   const errors: Array<GraphQLError> = [];
 
-  const type = schema.getType(typeName) as GraphQLObjectType;
   await Promise.all(
     sources.map(async (source, index) => {
+      const target = await target$;
+      const type = schema.getType(target.__typename) as GraphQLObjectType;
       if (source instanceof Error || source === null) {
         const selectionSet = selectionSets[index];
         const fieldNodes = collectFields(
@@ -79,6 +79,8 @@ export async function mergeExternalObjects(
       }
     })
   );
+
+  const target = await target$;
 
   const combinedResult: ExternalObject = Object.assign({}, target, ...results);
 

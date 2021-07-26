@@ -147,7 +147,7 @@ const combineSubschemas = memoize2(function combineSubschemas(
 export async function mergeFields(
   mergedTypeInfo: MergedTypeInfo,
   typeName: string,
-  object: any,
+  object$: Promise<any>,
   fieldNodes: Array<FieldNode>,
   sourceSubschemaOrSourceSubschemas: Subschema<any, any, any, any> | Array<Subschema<any, any, any, any>>,
   targetSubschemas: Array<Subschema<any, any, any, any>>,
@@ -155,7 +155,7 @@ export async function mergeFields(
   info: GraphQLResolveInfo
 ): Promise<any> {
   if (!fieldNodes.length) {
-    return object;
+    return object$;
   }
 
   const { proxiableSubschemas, nonProxiableSubschemas } = sortSubschemasByProxiability(
@@ -168,7 +168,7 @@ export async function mergeFields(
   const { delegationMap, unproxiableFieldNodes } = buildDelegationPlan(mergedTypeInfo, fieldNodes, proxiableSubschemas);
 
   if (!delegationMap.size) {
-    return object;
+    return object$;
   }
 
   const selectionSets: SelectionSetNode[] = [];
@@ -178,7 +178,8 @@ export async function mergeFields(
       const resolver = mergedTypeInfo.resolvers.get(s);
       if (resolver) {
         try {
-          results[i] = await resolver(object, context, info, s, selectionSet);
+          const object = await object$;
+          results[i] = await resolver(await object, context, info, s, selectionSet);
         } catch (error) {
           results[i] = error;
         }
@@ -190,14 +191,7 @@ export async function mergeFields(
   return mergeFields(
     mergedTypeInfo,
     typeName,
-    await mergeExternalObjects(
-      info.schema,
-      responsePathAsArray(info.path),
-      object.__typename,
-      object,
-      results,
-      selectionSets
-    ),
+    mergeExternalObjects(info.schema, responsePathAsArray(info.path), object$, results, selectionSets),
     unproxiableFieldNodes,
     combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
     nonProxiableSubschemas,

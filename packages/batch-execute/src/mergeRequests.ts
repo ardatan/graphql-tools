@@ -116,7 +116,9 @@ function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequ
 
   let prefixedDocument = aliasTopLevelFields(prefix, request.document);
 
-  if (Object.keys(executionVariables).length > 0) {
+  const executionVariableNames = Object.keys(executionVariables);
+
+  if (executionVariableNames.length > 0) {
     prefixedDocument = visit(prefixedDocument, {
       [Kind.VARIABLE]: prefixNode,
       [Kind.FRAGMENT_DEFINITION]: prefixNode,
@@ -126,7 +128,7 @@ function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequ
 
   const prefixedVariables = {};
 
-  for (const variableName in executionVariables) {
+  for (const variableName of executionVariableNames) {
     prefixedVariables[prefix + variableName] = executionVariables[variableName];
   }
 

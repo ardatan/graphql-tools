@@ -14,7 +14,6 @@ import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '../src/stitchSchemas';
 import {
-  cloneSchema,
   getResolversFromSchema,
   IResolvers,
   ExecutionResult,
@@ -59,12 +58,12 @@ const testCombinations = [
   },
   {
     name: 'recreated',
-    booking: cloneSchema(localBookingSchema),
+    booking: localBookingSchema,
     property: makeExecutableSchema({
       typeDefs: printSchema(localPropertySchema),
       resolvers: getResolversFromSchema(localPropertySchema),
     }),
-    product: cloneSchema(localProductSchema),
+    product: localProductSchema,
   },
 ];
 
