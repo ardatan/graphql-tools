@@ -4,7 +4,7 @@ import { DelegationContext, Transform } from './types';
 
 import { prepareGatewayDocument } from './prepareGatewayDocument';
 import { finalizeGatewayRequest } from './finalizeGatewayRequest';
-import { checkResultAndHandleErrors } from './checkResultAndHandleErrors';
+import { externalValueFromResult } from './externalValues';
 
 interface Transformation {
   transform: Transform;
@@ -59,6 +59,6 @@ export class Transformer<TContext = Record<string, any>> {
       }
     }
 
-    return checkResultAndHandleErrors(result, this.delegationContext);
+    return externalValueFromResult(result, this.delegationContext);
   }
 }

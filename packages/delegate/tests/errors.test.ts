@@ -4,10 +4,9 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
-import { checkResultAndHandleErrors } from '../src/checkResultAndHandleErrors';
 import { UNPATHED_ERRORS_SYMBOL } from '../src/symbols';
 import { getUnpathedErrors } from '../src/externalObjects';
-import { delegateToSchema, defaultMergedResolver, DelegationContext } from '../src';
+import { delegateToSchema, defaultMergedResolver, DelegationContext, externalValueFromResult } from '../src';
 
 class ErrorWithExtensions extends GraphQLError {
   constructor(message: string, code: string) {
@@ -32,7 +31,7 @@ describe('Errors', () => {
     });
   });
 
-  describe('checkResultAndHandleErrors', () => {
+  describe('externalValueFromResult', () => {
     const fakeInfo: GraphQLResolveInfo = {
       fieldName: "foo",
       fieldNodes: [],
@@ -51,7 +50,7 @@ describe('Errors', () => {
         errors: [new GraphQLError('Test error')],
       };
       try {
-        checkResultAndHandleErrors(
+        externalValueFromResult(
           result,
           {
             fieldName: 'responseKey',
@@ -69,7 +68,7 @@ describe('Errors', () => {
         errors: [new ErrorWithExtensions('Test error', 'UNAUTHENTICATED')],
       };
       try {
-        checkResultAndHandleErrors(
+        externalValueFromResult(
           result,
           {
             fieldName: 'responseKey',
@@ -88,7 +87,7 @@ describe('Errors', () => {
         errors: [new GraphQLError('Error1'), new GraphQLError('Error2')],
       };
       try {
-        checkResultAndHandleErrors(
+        externalValueFromResult(
           result,
           {
             fieldName: 'responseKey',
