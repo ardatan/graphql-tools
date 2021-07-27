@@ -37,10 +37,10 @@ export const getFieldsNotInSubschema = memoizeInfoAnd2Objects(function getFields
   info: GraphQLResolveInfo,
   subschema: GraphQLSchema | SubschemaConfig<any, any, any, any>,
   mergedTypeInfo: MergedTypeInfo
-): Array<FieldNode> {
+): Set<FieldNode> {
   const typeMap = isSubschemaConfig(subschema) ? mergedTypeInfo.typeMaps.get(subschema) : subschema.getTypeMap();
   if (!typeMap) {
-    return [];
+    return new Set();
   }
   const typeName = mergedTypeInfo.typeName;
   const fields = (typeMap[typeName] as GraphQLObjectType).getFields();
@@ -70,5 +70,5 @@ export const getFieldsNotInSubschema = memoizeInfoAnd2Objects(function getFields
     }
   }
 
-  return Array.from(fieldsNotInSchema);
+  return fieldsNotInSchema;
 });
