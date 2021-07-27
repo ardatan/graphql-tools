@@ -84,7 +84,7 @@ async function getMergedParentsFromInfos(
     }
   }
 
-  infos.forEach(info => {
+  for (const info of infos) {
     const responseKey = getResponseKeyFromInfo(info);
     const fieldName = info.fieldName;
     if (subschemaFields[fieldName] !== undefined) {
@@ -113,8 +113,8 @@ async function getMergedParentsFromInfos(
 
     const dynamicSelectionSets = typeDynamicSelectionSets?.[fieldName];
     if (dynamicSelectionSets !== undefined) {
-      info.fieldNodes.forEach(fieldNode => {
-        dynamicSelectionSets.forEach(dynamicSelectionSet => {
+      for (const fieldNode of info.fieldNodes) {
+        for (const dynamicSelectionSet of dynamicSelectionSets) {
           const responseMap = collectFields(
             parentInfo as unknown as ExecutionContext,
             sourceSubschemaParentType,
@@ -127,8 +127,8 @@ async function getMergedParentsFromInfos(
               keyFieldNodes.add(fieldNode);
             }
           }
-        });
-      });
+        }
+      }
     }
 
     if (keyResponseKeys[responseKey] !== undefined) {
@@ -141,7 +141,7 @@ async function getMergedParentsFromInfos(
     for (const fieldNode of keyFieldNodes) {
       fieldNodes.add(fieldNode);
     }
-  });
+  }
 
   const mergedParents = getMergedParentsFromFieldNodes(
     mergedTypeInfo,
@@ -159,11 +159,11 @@ async function getMergedParentsFromInfos(
       return mergedParents[responseKey];
     }
 
-    const results = await Promise.all(
-      Array.prototype.map.call(keyResponseKeys[responseKey], keyResponseKey => mergedParents[keyResponseKey])
-    );
-
-    return results[results.length - 1] as any;
+    let result: any;
+    for (const keyResponseKey of keyResponseKeys[responseKey]) {
+      result = await mergedParents[keyResponseKey];
+    }
+    return result;
   });
 }
 
@@ -315,10 +315,10 @@ function getMergedParentsFromFieldNodes(
 
   if (!delegationMap.size) {
     const mergedParentMap = Object.create(null);
-    unproxiableFieldNodes.forEach(fieldNode => {
+    for (const fieldNode of unproxiableFieldNodes) {
       const responseKey = fieldNode.alias?.value ?? fieldNode.name.value;
-      mergedParentMap[responseKey] = Promise.resolve(object);
-    });
+      mergedParentMap[responseKey] = Promise.resolve().then(() => object);
+    }
     return mergedParentMap;
   }
 
@@ -331,17 +331,20 @@ function getMergedParentsFromFieldNodes(
   const initialPath = getInitialPath(object);
   const newSubschemaMap = getSubschemaMap(object);
 
+  const promises: Promise<any>[] = [];
+
   for (const [s, fieldNodes] of delegationMap) {
     const resolver = mergedTypeInfo.resolvers.get(s);
     if (resolver) {
       const selectionSet: SelectionSetNode = { kind: Kind.SELECTION_SET, selections: fieldNodes };
-      let maybePromise = resolver(object, context, parentInfo, s, selectionSet);
-      if (isPromise(maybePromise)) {
-        maybePromise = maybePromise.then(undefined, error => error);
-      }
-      resultMap.set(maybePromise, selectionSet);
+      const resolverPromise = Promise.resolve()
+        .then(() => resolver(object, context, parentInfo, s, selectionSet))
+        .catch(error => error);
+      resultMap.set(resolverPromise, selectionSet);
+      promises.push(resolverPromise);
 
-      const promise = Promise.resolve(maybePromise).then(result => {
+      const promise = Promise.resolve().then(async () => {
+        const result = await resolverPromise;
         if (result instanceof Error || result === null) {
           const fieldNodes = collectFields(
             {
@@ -392,14 +395,14 @@ function getMergedParentsFromFieldNodes(
         return object;
       });
 
-      fieldNodes.forEach(fieldNode => {
+      for (const fieldNode of fieldNodes) {
         const responseKey = fieldNode.alias?.value ?? fieldNode.name.value;
         mergedParentMap[responseKey] = promise;
-      });
+      }
     }
   }
 
-  const nextPromise = Promise.all(resultMap.keys()).then(() =>
+  const nextPromise = Promise.all(promises).then(() =>
     getMergedParentsFromFieldNodes(
       mergedTypeInfo,
       object,
@@ -411,10 +414,10 @@ function getMergedParentsFromFieldNodes(
     )
   );
 
-  unproxiableFieldNodes.forEach(fieldNode => {
+  for (const fieldNode of unproxiableFieldNodes) {
     const responseKey = fieldNode.alias?.value ?? fieldNode.name.value;
     mergedParentMap[responseKey] = nextPromise.then(nextParent => nextParent[responseKey]);
-  });
+  }
 
   return mergedParentMap;
 }
