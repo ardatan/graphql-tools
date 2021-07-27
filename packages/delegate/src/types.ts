@@ -72,6 +72,7 @@ export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs 
   operation?: OperationTypeNode;
   fieldName?: string;
   returnType?: GraphQLOutputType;
+  onLocatedError?: (originalError: GraphQLError) => GraphQLError;
   args?: TArgs;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
