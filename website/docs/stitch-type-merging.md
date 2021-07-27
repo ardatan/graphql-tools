@@ -552,9 +552,31 @@ A field-level `selectionSet` specifies field dependencies while the `computed` s
 
 The main disadvantage of computed fields is that they cannot be resolved independently from the stitched gateway. Tolerance for this subservice inconsistency is largely dependent on your own service architecture. An imperfect solution is to deprecate all computed fields within a subschema, and then normalize their behavior in the gateway schema with a [`RemoveObjectFieldDeprecations`](/docs/schema-wrapping#grooming) transform. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/computed-fields).
 
-## Federation services
+## Consume Federation services in Stitching
 
 If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/), then you may notice that the above pattern of computed fields looks similar to the `_entities` service design of the [Apollo Federation specification](https://www.apollographql.com/docs/apollo-server/federation/federation-spec/). Federation resources may be included in a stitched gateway; this comes in handy when integrating with third-party services or in the process of a migration. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/federation-services) for more information.
+
+## Consume Relay services in Stitching
+
+If you have multiple services using [Relay Specification](https://relay.dev/docs/guides/graphql-server-specification/#schema), you can easily combine them with the `handleRelaySubschemas` utility function from `@graphql-tools/stitch` package, and your unified schema will handle `Node` interface and `node` operation automatically using Type Merging.
+
+```
+import { stitchSchemas, handleRelaySubschemas } from '@graphql-tools/stitch';
+
+const stitchedSchema = stitchSchemas({
+  subschemas: handleRelaySubschemas(
+    [
+      userSchema,
+      postSchema,
+      bookSchema
+    ],
+    id => getTypeNameFromGlobalID(id) // This is an optional parameter. If not exists, it will inherit the typename from the type condition of the fragment inside the query
+  )
+});
+```
+
+You can check the unit tests to see the complete usage;
+https://github.com/ardatan/graphql-tools/blob/master/packages/stitch/tests/relay.test.ts
 
 ## Canonical definitions
 

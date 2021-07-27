@@ -4,3 +4,4 @@ export { forwardArgsToSelectionSet } from './selectionSetArgs';
 
 export * from './subschemaConfigTransforms';
 export * from './types';
+export * from './relay';
