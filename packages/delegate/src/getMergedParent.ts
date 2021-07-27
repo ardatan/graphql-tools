@@ -12,7 +12,6 @@ import {
 import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 
 import DataLoader from 'dataloader';
-import isPromise from 'is-promise';
 
 import { getResponseKeyFromInfo, Maybe, relocatedError } from '@graphql-tools/utils';
 
