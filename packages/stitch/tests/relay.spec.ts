@@ -144,7 +144,7 @@ describe('Relay', () => {
       subschemas: handleRelaySubschemas([
         { schema: postSchema },
         { schema: userSchema },
-      ], id => id.split('_')[0])
+      ])
     });
 
     const stitchedResult = await execute({

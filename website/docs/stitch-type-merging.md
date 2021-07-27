@@ -564,11 +564,14 @@ If you have multiple services using [Relay Specification](https://relay.dev/docs
 import { stitchSchemas, handleRelaySubschemas } from '@graphql-tools/stitch';
 
 const stitchedSchema = stitchSchemas({
-  subschemas: handleRelaySubschemas([
-    userSchema,
-    postSchema,
-    bookSchema
-  ])
+  subschemas: handleRelaySubschemas(
+    [
+      userSchema,
+      postSchema,
+      bookSchema
+    ],
+    id => getTypeNameFromGlobalID(id) // This is an optional parameter. If not exists, it will inherit the typename from the type condition of the fragment inside the query
+  )
 });
 ```
 
