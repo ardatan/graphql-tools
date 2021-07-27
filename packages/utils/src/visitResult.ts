@@ -163,7 +163,7 @@ function visitRoot(
   errorInfo: ErrorInfo
 ): any {
   const operationRootType = getOperationRootType(exeContext.schema, operation);
-  const collectedFields = collectFields(
+  const responseMap = collectFields(
     exeContext,
     operationRootType,
     operation.selectionSet,
@@ -171,13 +171,13 @@ function visitRoot(
     Object.create(null)
   );
 
-  return visitObjectValue(root, operationRootType, collectedFields, exeContext, resultVisitorMap, 0, errors, errorInfo);
+  return visitObjectValue(root, operationRootType, responseMap, exeContext, resultVisitorMap, 0, errors, errorInfo);
 }
 
 function visitObjectValue(
   object: Record<string, any>,
   type: GraphQLObjectType,
-  fieldNodeMap: Record<string, Array<FieldNode>>,
+  responseMap: Record<string, Array<FieldNode>>,
   exeContext: ExecutionContext,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   pathIndex: number,
@@ -200,8 +200,8 @@ function visitObjectValue(
     }
   }
 
-  for (const responseKey in fieldNodeMap) {
-    const subFieldNodes = fieldNodeMap[responseKey];
+  for (const responseKey in responseMap) {
+    const subFieldNodes = responseMap[responseKey];
     const fieldName = subFieldNodes[0].name.value;
     const fieldType = fieldName === '__typename' ? TypeNameMetaFieldDef.type : fieldMap[fieldName].type;
 

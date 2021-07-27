@@ -161,6 +161,7 @@ function createMergedTypes<TContext = Record<string, any>>(
           fieldSelectionSets,
           uniqueFields: Object.create({}),
           nonUniqueFields: Object.create({}),
+          subschemaFields: Object.create({}),
           resolvers,
         };
 
@@ -170,6 +171,7 @@ function createMergedTypes<TContext = Record<string, any>>(
           } else {
             mergedTypes[typeName].nonUniqueFields[fieldName] = supportedBySubschemas[fieldName];
           }
+          mergedTypes[typeName].subschemaFields[fieldName] = true;
         }
       }
     }
@@ -262,7 +264,7 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
     const type = schema.getType(typeName) as GraphQLObjectType;
     for (const fieldName in selectionSetsByField[typeName]) {
       for (const selectionSet of selectionSetsByField[typeName][fieldName]) {
-        const fieldNodes = collectFields(
+        const responseMap = collectFields(
           partialExecutionContext,
           type,
           selectionSet,
@@ -270,8 +272,8 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
           Object.create(null)
         );
 
-        for (const responseKey in fieldNodes) {
-          for (const fieldNode of fieldNodes[responseKey]) {
+        for (const responseKey in responseMap) {
+          for (const fieldNode of responseMap[responseKey]) {
             const key = print(fieldNode);
             if (fieldNodeMap[key] == null) {
               fieldNodeMap[key] = fieldNode;

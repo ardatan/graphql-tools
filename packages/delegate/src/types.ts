@@ -10,6 +10,7 @@ import {
   VariableDefinitionNode,
   OperationTypeNode,
   GraphQLError,
+  GraphQLFieldMap,
 } from 'graphql';
 
 import DataLoader from 'dataloader';
@@ -17,7 +18,14 @@ import DataLoader from 'dataloader';
 import { ExecutionRequest, ExecutionResult, Executor } from '@graphql-tools/utils';
 
 import { Subschema } from './Subschema';
-import { OBJECT_SUBSCHEMA_SYMBOL, RESPONSE_KEY_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
+import {
+  INFO_SYMBOL,
+  INITIAL_PATH_SYMBOL,
+  INITIAL_POSSIBLE_FIELDS,
+  OBJECT_SUBSCHEMA_SYMBOL,
+  RESPONSE_KEY_SUBSCHEMA_MAP_SYMBOL,
+  UNPATHED_ERRORS_SYMBOL,
+} from './symbols';
 import { TypeMap } from 'graphql/type/schema';
 
 export type SchemaTransform<TContext = Record<any, string>> = (
@@ -52,7 +60,6 @@ export interface DelegationContext<TContext = Record<string, any>> {
   context?: TContext;
   info?: GraphQLResolveInfo;
   returnType: GraphQLOutputType;
-  onLocatedError?: (originalError: GraphQLError) => GraphQLError;
   rootValue?: any;
   transforms: Array<Transform<any, TContext>>;
   transformedSchema: GraphQLSchema;
@@ -65,7 +72,6 @@ export interface IDelegateToSchemaOptions<TContext = Record<string, any>, TArgs 
   operation?: OperationTypeNode;
   fieldName?: string;
   returnType?: GraphQLOutputType;
-  onLocatedError?: (originalError: GraphQLError) => GraphQLError;
   args?: TArgs;
   selectionSet?: SelectionSetNode;
   fieldNodes?: ReadonlyArray<FieldNode>;
@@ -117,6 +123,7 @@ export interface MergedTypeInfo<TContext = Record<string, any>> {
   targetSubschemas: Map<Subschema<any, any, any, TContext>, Array<Subschema<any, any, any, TContext>>>;
   uniqueFields: Record<string, Subschema<any, any, any, TContext>>;
   nonUniqueFields: Record<string, Array<Subschema<any, any, any, TContext>>>;
+  subschemaFields: Record<string, boolean>;
   typeMaps: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, TypeMap>;
   selectionSets: Map<Subschema<any, any, any, TContext>, SelectionSetNode>;
   fieldSelectionSets: Map<Subschema<any, any, any, TContext>, Record<string, SelectionSetNode>>;
@@ -198,7 +205,11 @@ export interface StitchingInfo<TContext = Record<string, any>> {
 export interface ExternalObject<TContext = Record<string, any>> {
   __typename: string;
   key: any;
+  [UNPATHED_ERRORS_SYMBOL]: Array<GraphQLError>;
+  [INITIAL_PATH_SYMBOL]: Array<string | number>;
   [OBJECT_SUBSCHEMA_SYMBOL]: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
+  [INITIAL_POSSIBLE_FIELDS]: GraphQLFieldMap<any, any>;
+  [INFO_SYMBOL]: GraphQLResolveInfo;
   [RESPONSE_KEY_SUBSCHEMA_MAP_SYMBOL]: Record<string, GraphQLSchema | SubschemaConfig<any, any, any, TContext>>;
   [UNPATHED_ERRORS_SYMBOL]: Array<GraphQLError>;
 }
