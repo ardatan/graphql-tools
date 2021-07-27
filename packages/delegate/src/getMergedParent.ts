@@ -11,7 +11,6 @@ import {
 } from 'graphql';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 
-import { Repeater } from '@repeaterjs/repeater';
 import DataLoader from 'dataloader';
 import isPromise from 'is-promise';
 
@@ -154,17 +153,17 @@ async function getMergedParentsFromInfos(
     parentInfo
   );
 
-  return infos.map(info => {
+  return infos.map(async info => {
     const responseKey = getResponseKeyFromInfo(info);
     if (keyResponseKeys[responseKey] === undefined) {
       return mergedParents[responseKey];
     }
 
-    // Set is never empty
-    const responseKeys = Array.from(keyResponseKeys[responseKey].values()).map(
-      keyResponseKey => mergedParents[keyResponseKey]
-    ) as [Promise<ExternalObject>, ...Array<Promise<ExternalObject>>];
-    return slowRace(responseKeys);
+    const results = await Promise.all(
+      Array.prototype.map.call(keyResponseKeys[responseKey], keyResponseKey => mergedParents[keyResponseKey])
+    );
+
+    return results[results.length - 1] as any;
   });
 }
 
@@ -462,13 +461,4 @@ function typesContainSelectionSet(types: Array<GraphQLObjectType>, selectionSet:
   }
 
   return true;
-}
-
-async function slowRace<T extends unknown>(promises: [Promise<T>, ...Array<Promise<T>>]): Promise<T> {
-  // if promises is non-empty, last will be defined
-  let last!: T;
-  for await (const result of Repeater.merge(promises)) {
-    last = result;
-  }
-  return last;
 }

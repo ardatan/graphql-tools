@@ -3,7 +3,6 @@ import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode 
 import DataLoader from 'dataloader';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
-import { relocatedError } from '@graphql-tools/utils';
 
 import { BatchDelegateOptions } from './types';
 
@@ -14,29 +13,11 @@ const cache1: WeakMap<
 
 function createBatchFn<K = any>(options: BatchDelegateOptions) {
   const argsFromKeys = options.argsFromKeys ?? ((keys: ReadonlyArray<K>) => ({ ids: keys }));
-  const fieldName = options.fieldName ?? options.info.fieldName;
   const { valuesFromResults, lazyOptionsFn } = options;
 
-  return async (keys: ReadonlyArray<K>) => {
+  return async function batchFn(keys: ReadonlyArray<K>) {
     const results = await delegateToSchema({
       returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
-      onLocatedError: originalError => {
-        if (originalError.path == null) {
-          return originalError;
-        }
-
-        const [pathFieldName, pathNumber] = originalError.path;
-
-        if (pathFieldName !== fieldName) {
-          return originalError;
-        }
-        const pathNumberType = typeof pathNumber;
-        if (pathNumberType !== 'number') {
-          return originalError;
-        }
-
-        return relocatedError(originalError, originalError.path.slice(0, 0).concat(originalError.path.slice(2)));
-      },
       args: argsFromKeys(keys),
       ...(lazyOptionsFn == null ? options : lazyOptionsFn(options)),
     });
@@ -72,7 +53,7 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
     const loaders = Object.create(null);
     cache2.set(options.schema, loaders);
     const batchFn = createBatchFn(options);
-    const loader = new DataLoader<K, V, C>(keys => batchFn(keys), dataLoaderOptions);
+    const loader = new DataLoader<K, V, C>(batchFn, dataLoaderOptions);
     loaders[fieldName] = loader;
     return loader;
   }
@@ -83,7 +64,7 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
     loaders = Object.create(null) as Record<string, DataLoader<K, V, C>>;
     cache2.set(options.schema, loaders);
     const batchFn = createBatchFn(options);
-    const loader = new DataLoader<K, V, C>(keys => batchFn(keys), dataLoaderOptions);
+    const loader = new DataLoader<K, V, C>(batchFn, dataLoaderOptions);
     loaders[fieldName] = loader;
     return loader;
   }
