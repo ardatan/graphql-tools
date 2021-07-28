@@ -7939,7 +7939,7 @@ jest@27.0.6:
     import-local "^3.0.2"
     jest-cli "^27.0.6"
 
-joi@^17.3.0, joi@^17.4.0:
+joi@^17.4.0:
   version "17.4.1"
   resolved "https://registry.yarnpkg.com/joi/-/joi-17.4.1.tgz#15d2f23c8cbe4d1baded2dd190c58f8dbe11cca0"
   integrity sha512-gDPOwQ5sr+BUxXuPDGrC1pSNcVR/yGGcTI0aCnjYxZEa3za60K/iCQ+OFIkEHWZGVCUcUlXlFKvMmrlmxrG6UQ==
@@ -12371,17 +12371,6 @@ w3c-xmlserializer@^2.0.0:
   integrity sha512-4tzD0mF8iSiMiNs30BiLO3EpfGLZUT2MSX/G+o7ZywDzliWQ3OPtTZ0PTC3B3ca1UAf4cJMHB+2Bf56EriJuRA==
   dependencies:
     xml-name-validator "^3.0.0"
-
-wait-on@5.3.0:
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/wait-on/-/wait-on-5.3.0.tgz#584e17d4b3fe7b46ac2b9f8e5e102c005c2776c7"
-  integrity sha512-DwrHrnTK+/0QFaB9a8Ol5Lna3k7WvUR4jzSKmz0YaPBpuN2sACyiPVKVfj6ejnjcajAcvn3wlbTyMIn9AZouOg==
-  dependencies:
-    axios "^0.21.1"
-    joi "^17.3.0"
-    lodash "^4.17.21"
-    minimist "^1.2.5"
-    rxjs "^6.6.3"
 
 wait-on@6.0.0:
   version "6.0.0"
