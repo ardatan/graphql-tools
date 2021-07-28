@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 8.0.1
+
+### Patch Changes
+
+- c36defbe: fix(delegate): fix ESM import
+
 ## 8.0.0
 
 ### Major Changes

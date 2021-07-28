@@ -1,5 +1,15 @@
 # @graphql-tools/stitch
 
+## 8.0.1
+
+### Patch Changes
+
+- c36defbe: fix(delegate): fix ESM import
+- Updated dependencies [c36defbe]
+  - @graphql-tools/delegate@8.0.1
+  - @graphql-tools/batch-delegate@8.0.1
+  - @graphql-tools/wrap@8.0.1
+
 ## 8.0.0
 
 ### Major Changes

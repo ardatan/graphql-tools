@@ -1,5 +1,13 @@
 # @graphql-tools/stitching-directives
 
+## 2.0.1
+
+### Patch Changes
+
+- c36defbe: fix(delegate): fix ESM import
+- Updated dependencies [c36defbe]
+  - @graphql-tools/delegate@8.0.1
+
 ## 2.0.0
 
 ### Major Changes
