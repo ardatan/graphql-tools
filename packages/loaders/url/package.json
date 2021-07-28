@@ -62,7 +62,7 @@
     "sync-fetch": "0.3.0",
     "tslib": "~2.3.0",
     "valid-url": "1.0.9",
-    "ws": "7.5.3",
+    "ws": "8.0.0",
     "value-or-promise": "1.0.10"
   },
   "publishConfig": {
