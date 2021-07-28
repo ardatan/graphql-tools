@@ -39,7 +39,10 @@ jobs:
         run: node scripts/install-typedocs-typescript-version.js
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
+      - name: Build Website
+        run: cd website/ && yarn build && yarn export && touch out/.nojekyll
       - name: Deploy 🚀
-        run: yarn deploy:website
-        env:
-          GIT_USER: theguild-bot
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: website/out # The folder the action should deploy.

@@ -7,6 +7,7 @@
     "dev": "concurrently -r \"next-remote-watch ./docs ./src/pages/_app.tsx ./src/pages/_document.tsx\" \"wait-on -s 1 http://localhost:3000 && open-cli http://localhost:3000\"",
     "next": "next",
     "start": "next start",
+    "export": "next export",
     "analyze": "cross-env ANALYZE=true next build"
   },
   "pnpm": { "overrides": { "esbuild": "^0.12.8" } },
