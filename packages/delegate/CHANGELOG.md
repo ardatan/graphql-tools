@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 8.0.2
+
+### Patch Changes
+
+- d93945fa: fix(delegate): ignore if stitchingInfo is not in extensions
+
 ## 8.0.1
 
 ### Patch Changes
