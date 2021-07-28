@@ -1,5 +1,14 @@
 # @graphql-tools/node-require
 
+## 6.2.6
+
+### Patch Changes
+
+- Updated dependencies [b823dbaf]
+  - @graphql-tools/utils@8.0.1
+  - @graphql-tools/load@7.0.1
+  - @graphql-tools/graphql-file-loader@7.0.1
+
 ## 6.2.5
 
 ### Patch Changes
