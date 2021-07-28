@@ -336,9 +336,9 @@ const getSchemaMetaData = memoize2(
       possibleTypesMap,
       reversePossibleTypesMap: reversePossibleTypesMap(possibleTypesMap),
       interfaceExtensionsMap,
-      fieldNodesByType: sourceSchema.extensions?.['stitchingInfo'].fieldNodesByType ?? {},
-      fieldNodesByField: sourceSchema.extensions?.['stitchingInfo'].fieldNodesByField ?? {},
-      dynamicSelectionSetsByField: sourceSchema.extensions?.['stitchingInfo'].dynamicSelectionSetsByField ?? {},
+      fieldNodesByType: sourceSchema.extensions?.['stitchingInfo']?.fieldNodesByType ?? {},
+      fieldNodesByField: sourceSchema.extensions?.['stitchingInfo']?.fieldNodesByField ?? {},
+      dynamicSelectionSetsByField: sourceSchema.extensions?.['stitchingInfo']?.dynamicSelectionSetsByField ?? {},
     };
   }
 );
