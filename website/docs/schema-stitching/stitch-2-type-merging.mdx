@@ -1,12 +1,12 @@
 ---
-id: stitch-type-merging
+id: stitch-2-type-merging
 title: Type merging
 sidebar_label: Type merging
 ---
 
 Type merging allows _partial definitions_ of a type to exist in any subschema, all of which are merged into one unified type in the gateway schema. When querying for a merged type, the gateway smartly delegates portions of a request to each relevant subschema in dependency order, and then combines all results for the final return.
 
-Type merging is now the preferred method of including GraphQL types across subschemas, replacing the need for [schema extensions](/docs/stitch-schema-extensions) (though does not preclude their use). To migrate from schema extensions, simply enable type merging and then start replacing extensions one by one with merges.
+Type merging is now the preferred method of including GraphQL types across subschemas, replacing the need for [schema extensions](/docs/stitch-4-schema-extensions) (though does not preclude their use). To migrate from schema extensions, simply enable type merging and then start replacing extensions one by one with merges.
 
 ## Basic example
 
@@ -92,7 +92,7 @@ That's it! Under the subschema config `merge` option, each merged type provides 
 - `selectionSet` specifies one or more key fields required from other services to perform this query. Query planning will automatically resolve these fields from other subschemas in dependency order.
 - `args` formats the initial object representation into query arguments.
 
-See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-single-records) for a working demonstration of this setup. This JavaScript-based syntax may also be written directly into schema type definitions using the `@merge` directive of the [stitching SDL](/docs/stitch-directives-sdl):
+See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-single-records) for a working demonstration of this setup. This JavaScript-based syntax may also be written directly into schema type definitions using the `@merge` directive of the [stitching SDL](/docs/stitch-3-directives-sdl):
 
 ```graphql
 type User {
@@ -322,7 +322,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-Stubbed types are quick and easy to setup and effectively work as automatic [schema extensions](/docs/stitch-schema-extensions) (in fact, you might not need extensions). A stubbed type may always be expanded with additional service-specific fields (see the [basic example](#basic-example)), however it requires a query in `merge` config as soon as it offers unique data.
+Stubbed types are quick and easy to setup and effectively work as automatic [schema extensions](/docs/stitch-4-schema-extensions) (in fact, you might not need extensions). A stubbed type may always be expanded with additional service-specific fields (see the [basic example](#basic-example)), however it requires a query in `merge` config as soon as it offers unique data.
 
 ## Merged interfaces
 
@@ -518,7 +518,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-In the above, the `shippingEstimate` and `deliveryService` fields are marked with `@computed` directives (see [stitching directives SDL](/docs/stitch-directives-sdl)), which specify additional _field-level dependencies_ required to resolve these specific fields beyond the `Product` type's base selection set. When a computed field appears in a query, the gateway will collect that field's dependencies from other subschemas so they may be sent as input with the request for the computed field(s).
+In the above, the `shippingEstimate` and `deliveryService` fields are marked with `@computed` directives (see [stitching directives SDL](/docs/stitch-3-directives-sdl)), which specify additional _field-level dependencies_ required to resolve these specific fields beyond the `Product` type's base selection set. When a computed field appears in a query, the gateway will collect that field's dependencies from other subschemas so they may be sent as input with the request for the computed field(s).
 
 The `@computed` SDL directive is a convenience syntax for static configuration that can be written as:
 
@@ -558,7 +558,7 @@ If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/a
 
 ## Consume Relay services in Stitching
 
-If you have multiple services using [Relay Specification](https://relay.dev/docs/guides/graphql-server-specification/#schema), you can easily combine them with the `handleRelaySubschemas` utility function from `@graphql-tools/stitch` package, and your unified schema will handle `Node` interface and `node` operation automatically using Type Merging.
+If you have multiple services using [Relay Specification](https://relay.dev/docs/graphql-server-specification/#schema), you can easily combine them with the `handleRelaySubschemas` utility function from `@graphql-tools/stitch` package, and your unified schema will handle `Node` interface and `node` operation automatically using Type Merging.
 
 ```
 import { stitchSchemas, handleRelaySubschemas } from '@graphql-tools/stitch';
@@ -587,7 +587,7 @@ Managing the gateway schema definition of each type and field becomes challengin
 - a field's final nullability, arguments, and deprecation reason.
 - a root field's default delegation target.
 
-The following example uses [stitching directives](/docs/stitch-directives-sdl) to mark preferred subschema elements as `@canonical`:
+The following example uses [stitching directives](/docs/stitch-3-directives-sdl) to mark preferred subschema elements as `@canonical`:
 
 ```graphql
 # --- Users schema ---
@@ -690,7 +690,7 @@ const gatewaySchema = stitchSchemas({
 });
 ```
 
-> **Implementation note:** canonical settings are _only_ used for building the combined gateway schema definition and defaulting root field targets; otherwise, they are given no special priority in runtime query planning (which always selects necessary fields from as few subschemas as possible). You may override the assembly of canonical definitions using [`typeMergingOptions`](/docs/stitch-combining-schemas#automatic-merge).
+> **Implementation note:** canonical settings are _only_ used for building the combined gateway schema definition and defaulting root field targets; otherwise, they are given no special priority in runtime query planning (which always selects necessary fields from as few subschemas as possible). You may override the assembly of canonical definitions using [`typeMergingOptions`](/docs/stitch-1-combining-schemas#automatic-merge).
 
 ## Type resolvers
 
@@ -767,4 +767,4 @@ Alternatively, you may provide completely custom resolver implementations for fe
 }
 ```
 
-When incorporating plain objects, always extend the provided `originalObject` to retain internal merge configuration. You may also return direct calls to `delegateToSchema` and `batchDelegateToSchema` (as described for [schema extensions](/docs/stitch-schema-extensions#basic-example)), however&mdash;always provide these delegation methods with a `skipTypeMerging: true` option to prevent infinite recursion.
+When incorporating plain objects, always extend the provided `originalObject` to retain internal merge configuration. You may also return direct calls to `delegateToSchema` and `batchDelegateToSchema` (as described for [schema extensions](/docs/stitch-4-schema-extensions#basic-example)), however&mdash;always provide these delegation methods with a `skipTypeMerging: true` option to prevent infinite recursion.

@@ -8,7 +8,7 @@ Schema wrapping (`@graphql-tools/wrap`) creates a modified version of a schema t
 
 Schema wrapping works by creating a new "gateway" schema that simply delegates all operations to the original subschema. A series of _transforms_ are applied that may modify the shape of the gateway schema and all proxied operations; these operational transforms may modify an operation prior to delegation, or modify the subschema result prior to its return.
 
-Note that [schema stitching](/docs/stitch-combining-schemas) is a _superset_ of the wrapping API. If you want to combine multiple services (with optional transforms) into one combined gateway schema, then you should use the [stitchSchemas](/docs/stitch-combining-schemas) method directly and allow it to handle all of the subservice wrappings.
+Note that [schema stitching](/docs/stitch-1-combining-schemas) is a _superset_ of the wrapping API. If you want to combine multiple services (with optional transforms) into one combined gateway schema, then you should use the [stitchSchemas](/docs/stitch-1-combining-schemas) method directly and allow it to handle all of the subservice wrappings.
 
 ## Getting started
 
@@ -203,7 +203,7 @@ These transforms accept an optional second node transformer function. When speci
 These transforms eliminate unwanted or unnecessary elements from a schema. These are configured in a variety of ways, so consult API documentation for specific options.
 
 - [`PruneSchema`](/docs/api/classes/wrap_src.pruneschema): eliminates unreachable elements from the schema. This is generally useful to include _after_ a filter transform so that orphaned types and values are eliminated from the schema. Accepts [pruneSchema](/docs/api/modules/utils#pruneschema) options.
-- [`RemoveObjectFieldDeprecations`](/docs/api/classes/wrap_src.removeobjectfielddeprecations): accepts a string or regex describing a deprecation to remove from the gateway schema. Fields matching this deprecation will be un-deprecated. Useful for normalizing [computed fields](/docs/stitch-type-merging#computed-fields) that are activated by the gateway wrapper.
+- [`RemoveObjectFieldDeprecations`](/docs/api/classes/wrap_src.removeobjectfielddeprecations): accepts a string or regex describing a deprecation to remove from the gateway schema. Fields matching this deprecation will be un-deprecated. Useful for normalizing [computed fields](/docs/stitch-2-type-merging#computed-fields) that are activated by the gateway wrapper.
 - [`RemoveObjectFieldDirectives`](/docs/api/classes/wrap_src.removeobjectfielddirectives): removes object field directives that match a directive name and optional argument criteria.
 - [`RemoveObjectFieldsWithDeprecation`](/docs/api/classes/wrap_src.removeobjectfieldswithdeprecation): removes object fields whose deprecation reason matches the provided string or regex.
 - [`RemoveObjectFieldsWithDirective`](/docs/api/classes/wrap_src.removeobjectfieldswithdirective): removes object fields with a schema directive matching a given name and optional argument criteria.

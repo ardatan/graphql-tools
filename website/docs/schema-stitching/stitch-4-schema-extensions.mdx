@@ -1,12 +1,12 @@
 ---
-id: stitch-schema-extensions
+id: stitch-4-schema-extensions
 title: Extending stitched schemas
 sidebar_label: Schema extensions
 ---
 
 Schema extensions add gateway-level type definitions and resolvers into a combined API, which is useful for establishing connections between types that exist in separate subschemas.
 
-When considering these capabilities, be sure to compare them with the newer automated features available through [type merging](/docs/stitch-type-merging). While type merging frequently eliminates the need for schema extensions, it does not preclude their use.
+When considering these capabilities, be sure to compare them with the newer automated features available through [type merging](/docs/stitch-2-type-merging). While type merging frequently eliminates the need for schema extensions, it does not preclude their use.
 
 ## Basic example
 
@@ -166,7 +166,7 @@ Post: {
 },
 ```
 
-Resolvers use the `delegateToSchema` function to forward parts of queries (or even whole new queries) to any other schema&mdash;inside _or outside_ of the stitched schema. When delegating to a stitched subschema, always provide the complete [subschema config](/docs/stitch-combining-schemas#subschema-configs) object as the `schema` option.
+Resolvers use the `delegateToSchema` function to forward parts of queries (or even whole new queries) to any other schema&mdash;inside _or outside_ of the stitched schema. When delegating to a stitched subschema, always provide the complete [subschema config](/docs/stitch-1-combining-schemas#subschema-configs) object as the `schema` option.
 
 By default, `delegateToSchema` assumes that the delegated operation will return the same GraphQL type as the resolved field (ex: a `User` field would delegate to a `User` query). If this is not the case, then you should manually provide a `returnType` option citing the expected GraphQL return type, and transform the result accordingly in the resolver.
 
@@ -311,7 +311,7 @@ forwardArgsToSelectionSet('{ id postIds }', { postIds: ['pageNumber'] });
 
 ## Extending transformed schemas
 
-[Transformed schemas](/docs/stitch-combining-schemas#adding-transforms) are nuanced because they involve two versions of the same schema: the original schema, and the transformed gateway schema. When extending a transformed schema, we extend the gateway schema but delegate to the original schema. For example:
+[Transformed schemas](/docs/stitch-1-combining-schemas#adding-transforms) are nuanced because they involve two versions of the same schema: the original schema, and the transformed gateway schema. When extending a transformed schema, we extend the gateway schema but delegate to the original schema. For example:
 
 ```js
 import { makeExecutableSchema } from '@graphql-tools/schema';

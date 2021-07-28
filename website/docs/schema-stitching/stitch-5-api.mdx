@@ -1,5 +1,5 @@
 ---
-id: stitch-api
+id: stitch-5-api
 title: Stitching API
 description: Stitching API
 ---
@@ -48,14 +48,14 @@ export type OnTypeConflict = (
 - `subschemas`: an array of schema-like objects. These subschemas are wrapped with proxying resolvers in the final schema.
 - `types`: additional types to add to the final type map, most useful for custom scalars or enums.
 - `typeDefs`: strings or parsed documents that contain additional types or type extensions. Type extensions are always applied last.
-- `resolvers`: accepts [standard resolvers](/docs/resolvers/) with the addition of specifying a [`selectionSet`](/docs/stitch-schema-extensions#selectionset).
-- `mergeTypes`: specifies a strategy for [handling duplicated types](/docs/stitch-combining-schemas#duplicate-types).
-- `typeMergingOptions`: allows customization of [automatic type merging](/docs/stitch-combining-schemas#automatic-merge).
-- `onTypeConflict`: allows customization of [manual type resolution](/docs/stitch-combining-schemas#manual-resolution).
+- `resolvers`: accepts [standard resolvers](/docs/resolvers/) with the addition of specifying a [`selectionSet`](/docs/stitch-4-schema-extensions#selectionset).
+- `mergeTypes`: specifies a strategy for [handling duplicated types](/docs/stitch-1-combining-schemas#duplicate-types).
+- `typeMergingOptions`: allows customization of [automatic type merging](/docs/stitch-1-combining-schemas#automatic-merge).
+- `onTypeConflict`: allows customization of [manual type resolution](/docs/stitch-1-combining-schemas#manual-resolution).
 
 ### createMergedTypeResolver
 
-Creates a merged type resolver that may be [wrapped with custom behaviors](/docs/stitch-type-merging#wrapped-resolvers).
+Creates a merged type resolver that may be [wrapped with custom behaviors](/docs/stitch-2-type-merging#wrapped-resolvers).
 
 ```ts
 import { createMergedTypeResolver } from '@graphql-tools/stitch';
@@ -70,7 +70,7 @@ createMergedTypeResolver({
 
 ### forwardArgsToSelectionSet
 
-Creates a dynamic `selectionSet` that [forwards gateway arguments](/docs/stitch-schema-extensions#via-selectionset) to a resolver selection hint.
+Creates a dynamic `selectionSet` that [forwards gateway arguments](/docs/stitch-4-schema-extensions#via-selectionset) to a resolver selection hint.
 
 ```ts
 import { forwardArgsToSelectionSet } from '@graphql-tools/stitch';

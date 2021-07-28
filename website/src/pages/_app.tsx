@@ -119,8 +119,8 @@ function AppContent(appProps: AppProps) {
           {
             children: 'Guides',
             title: 'Read about the Guides',
-            href: '/docs/guides/generate-schema',
-            onClick: e => handlePushRoute('/docs/guides/generate-schema', e),
+            href: '/docs/generate-schema',
+            onClick: e => handlePushRoute('/docs/generate-schema', e),
           },
           {
             children: 'Modules (API)',
