@@ -1,7 +1,8 @@
-const MarkdownTheme = require('typedoc-plugin-markdown/dist/theme');
+const { default: MarkdownTheme } = require('typedoc-plugin-markdown/dist/theme');
+
 const { PageEvent } = require('typedoc/dist/lib/output/events');
 
-exports.default = class DocusaurusTheme extends MarkdownTheme {
+module.exports = class DocusaurusTheme extends MarkdownTheme {
   /**
    * Escape characters for mdx support after render
    */
