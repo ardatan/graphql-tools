@@ -571,11 +571,9 @@ const getFieldNameInStore = (fieldName: string, fieldArgs?: string | { [argName:
 };
 
 function assertIsDefined<T>(value: T, message?: string): asserts value is NonNullable<T> {
-  const isDefined = (value: T): value is NonNullable<T> => {
-    return value !== undefined && value !== null;
-  };
-
-  if (isDefined(value)) return;
+  if (value !== undefined && value !== null) {
+    return;
+  }
 
   throw new Error(
     process.env['NODE_ENV'] === 'production' ? 'Invariant failed:' : `Invariant failed: ${message || ''}`
