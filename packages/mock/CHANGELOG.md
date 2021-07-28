@@ -1,5 +1,11 @@
 # @graphql-tools/mock
 
+## 8.1.5
+
+### Patch Changes
+
+- e7b78fd5: Removes `ts-is-defined` dependency
+
 ## 8.1.4
 
 ### Patch Changes
