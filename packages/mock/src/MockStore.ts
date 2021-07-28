@@ -12,7 +12,6 @@ import {
   isNullableType,
   isInterfaceType,
 } from 'graphql';
-import { assertIsDefined } from 'ts-is-defined';
 import stringify from 'fast-json-stable-stringify';
 
 import {
@@ -570,3 +569,15 @@ const getFieldNameInStore = (fieldName: string, fieldArgs?: string | { [argName:
 
   return `${fieldName}:${stringify(fieldArgs)}`;
 };
+
+function assertIsDefined<T>(value: T, message?: string): asserts value is NonNullable<T> {
+  const isDefined = (value: T): value is NonNullable<T> => {
+    return value !== undefined && value !== null;
+  };
+
+  if (isDefined(value)) return;
+
+  throw new Error(
+    process.env['NODE_ENV'] === 'production' ? 'Invariant failed:' : `Invariant failed: ${message || ''}`
+  );
+}
