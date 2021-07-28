@@ -5,6 +5,7 @@ import { AggregateError, relocatedError } from '@graphql-tools/utils';
 export function mergeDataAndErrors(
   data: any,
   errors: ReadonlyArray<GraphQLError> = [],
+  onLocatedError = (originalError: GraphQLError) => originalError,
   index = 1
 ): { data: any; unpathedErrors: Array<GraphQLError> } {
   if (data == null) {
@@ -13,15 +14,16 @@ export function mergeDataAndErrors(
     }
 
     if (errors.length === 1) {
-      const error = errors[0];
+      const error = onLocatedError(errors[0]);
       const newPath = error.path === undefined ? [] : error.path.slice(1);
       const newError = relocatedError(error, newPath);
       return { data: newError, unpathedErrors: [] };
     }
 
-    const firstError = errors[0];
+    const newErrors = errors.map(error => onLocatedError(error));
+    const firstError = newErrors[0];
     const newPath = firstError.path === undefined ? [] : firstError.path.slice(1);
-    const newError = locatedError(new AggregateError(errors), undefined, newPath);
+    const newError = locatedError(new AggregateError(newErrors), undefined, newPath);
 
     return { data: newError, unpathedErrors: [] };
   }
@@ -53,6 +55,7 @@ export function mergeDataAndErrors(
       const { data: newData, unpathedErrors: newErrors } = mergeDataAndErrors(
         data[pathSegment],
         pathSegmentErrors,
+        onLocatedError,
         index + 1
       );
       data[pathSegment] = newData;

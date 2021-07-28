@@ -349,8 +349,7 @@ export function stitchingDirectivesTransformer(
 
     for (const typeName in selectionSetsByType) {
       const selectionSet = selectionSetsByType[typeName];
-      const mergeConfig: Record<string, MergedTypeConfig<any, any, any>> = newSubschemaConfig.merge ??
-      Object.create(null);
+      const mergeConfig: Record<string, MergedTypeConfig<any, any>> = newSubschemaConfig.merge ?? Object.create(null);
       newSubschemaConfig.merge = mergeConfig;
 
       if (mergeConfig[typeName] == null) {
@@ -364,8 +363,7 @@ export function stitchingDirectivesTransformer(
 
     for (const typeName in computedFieldSelectionSets) {
       const selectionSets = computedFieldSelectionSets[typeName];
-      const mergeConfig: Record<string, MergedTypeConfig<any, any, any>> = newSubschemaConfig.merge ??
-      Object.create(null);
+      const mergeConfig: Record<string, MergedTypeConfig<any, any>> = newSubschemaConfig.merge ?? Object.create(null);
       newSubschemaConfig.merge = mergeConfig;
 
       if (mergeConfig[typeName] == null) {
@@ -389,8 +387,7 @@ export function stitchingDirectivesTransformer(
     for (const typeName in mergedTypesResolversInfo) {
       const mergedTypeResolverInfo = mergedTypesResolversInfo[typeName];
 
-      const mergeConfig: Record<string, MergedTypeConfig<any, any, any>> = newSubschemaConfig.merge ??
-      Object.create(null);
+      const mergeConfig: Record<string, MergedTypeConfig<any, any>> = newSubschemaConfig.merge ?? Object.create(null);
       newSubschemaConfig.merge = mergeConfig;
 
       if (newSubschemaConfig.merge[typeName] == null) {
@@ -411,8 +408,7 @@ export function stitchingDirectivesTransformer(
 
     for (const typeName in canonicalTypesInfo) {
       const canonicalTypeInfo = canonicalTypesInfo[typeName];
-      const mergeConfig: Record<string, MergedTypeConfig<any, any, any>> = newSubschemaConfig.merge ??
-      Object.create(null);
+      const mergeConfig: Record<string, MergedTypeConfig<any, any>> = newSubschemaConfig.merge ?? Object.create(null);
       newSubschemaConfig.merge = mergeConfig;
 
       if (newSubschemaConfig.merge[typeName] == null) {

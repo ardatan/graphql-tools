@@ -15,11 +15,11 @@ export function isExternalObject(data: any): data is ExternalObject {
   return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
 }
 
-export function createExternalObject(
+export function createExternalObject<TContext = Record<string, any>>(
   object: any,
   errors: Array<GraphQLError>,
   initialPath: Array<string | number>,
-  subschema: GraphQLSchema | SubschemaConfig,
+  subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
   info?: GraphQLResolveInfo
 ): ExternalObject {
   const schema =

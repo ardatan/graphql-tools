@@ -107,7 +107,6 @@ export type OnTypeConflict<TContext = Record<string, any>> = (
 
 declare module '@graphql-tools/utils' {
   interface IFieldResolverOptions<TSource = any, TContext = any, TArgs = any> {
-    fragment?: string;
     selectionSet?: string | ((node: FieldNode) => SelectionSetNode);
   }
 }

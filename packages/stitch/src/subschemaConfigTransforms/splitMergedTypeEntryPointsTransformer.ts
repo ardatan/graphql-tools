@@ -13,7 +13,7 @@ export function splitMergedTypeEntryPointsTransformer(subschemaConfig: Subschema
 
   for (let i = 0; i < maxEntryPoints; i += 1) {
     const subschemaPermutation = cloneSubschemaConfig(subschemaConfig);
-    const mergedTypesCopy: Record<string, MergedTypeConfig<any, any, any>> = subschemaPermutation.merge ??
+    const mergedTypesCopy: Record<string, MergedTypeConfig<any, any>> = subschemaPermutation.merge ??
     Object.create(null);
     let currentMerge = mergedTypesCopy;
 

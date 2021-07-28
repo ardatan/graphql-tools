@@ -1,70 +1,96 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode } from 'graphql';
+import { GraphQLSchema, FieldNode } from 'graphql';
 
 import DataLoader from 'dataloader';
 
-import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
-import { relocatedError } from '@graphql-tools/utils';
+import {
+  SubschemaConfig,
+  Transformer,
+  DelegationContext,
+  validateRequest,
+  getExecutor,
+  getDelegatingOperation,
+  createRequestFromInfo,
+  getDelegationContext,
+} from '@graphql-tools/delegate';
+import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
 import { BatchDelegateOptions } from './types';
 
 const cache1: WeakMap<
   ReadonlyArray<FieldNode>,
-  WeakMap<GraphQLSchema | SubschemaConfig<any, any, any, any>, Record<string, DataLoader<any, any>>>
+  WeakMap<GraphQLSchema | SubschemaConfig, Record<string, DataLoader<any, any>>>
 > = new WeakMap();
 
-function createBatchFn<K = any>(options: BatchDelegateOptions) {
+function createBatchFn<K = any>(
+  options: BatchDelegateOptions
+): (
+  keys: ReadonlyArray<K>,
+  request: ExecutionRequest,
+  delegationContext: DelegationContext<any>
+) => Promise<Array<ExecutionResult<Record<string, any>>>> {
   const argsFromKeys = options.argsFromKeys ?? ((keys: ReadonlyArray<K>) => ({ ids: keys }));
-  const fieldName = options.fieldName ?? options.info.fieldName;
-  const { valuesFromResults, lazyOptionsFn } = options;
 
-  return async (keys: ReadonlyArray<K>) => {
-    const results = await delegateToSchema({
-      returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
-      onLocatedError: originalError => {
-        if (originalError.path == null) {
-          return originalError;
-        }
+  const { validateRequest: shouldValidateRequest } = options;
 
-        const [pathFieldName, pathNumber] = originalError.path;
+  return async (keys: ReadonlyArray<K>, request: ExecutionRequest, delegationContext: DelegationContext<any>) => {
+    const { fieldName, context, info } = delegationContext;
 
-        if (pathFieldName !== fieldName) {
-          return originalError;
-        }
-        const pathNumberType = typeof pathNumber;
-        if (pathNumberType !== 'number') {
-          return originalError;
-        }
-
-        return relocatedError(originalError, originalError.path.slice(0, 0).concat(originalError.path.slice(2)));
-      },
+    const transformer = new Transformer({
+      ...delegationContext,
       args: argsFromKeys(keys),
-      ...(lazyOptionsFn == null ? options : lazyOptionsFn(options)),
     });
 
-    if (results instanceof Error) {
-      return keys.map(() => results);
+    const processedRequest = transformer.transformRequest(request);
+
+    if (shouldValidateRequest) {
+      validateRequest(delegationContext, processedRequest.document);
     }
 
-    const values = valuesFromResults == null ? results : valuesFromResults(results, keys);
+    const executor = getExecutor(delegationContext);
 
-    return Array.isArray(values) ? values : keys.map(() => values);
+    const batchResult = (await executor({
+      ...processedRequest,
+      context,
+      info,
+    })) as ExecutionResult;
+
+    return splitResult(transformer.transformResult(batchResult), fieldName, keys.length);
   };
 }
 
-const cacheKeyFn = (key: any) => (typeof key === 'object' ? JSON.stringify(key) : key);
+export function getLoader<K = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, ExecutionResult, C> {
+  const {
+    info,
+    operationName,
+    operation = getDelegatingOperation(info.parentType, info.schema),
+    fieldName = info.fieldName,
+    returnType = info.returnType,
+    selectionSet,
+    fieldNodes,
+  } = options;
 
-export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
-  const fieldName = options.fieldName ?? options.info.fieldName;
+  if (operation !== 'query' && operation !== 'mutation') {
+    throw new Error(`Batch delegation not possible for operation '${operation}'.`);
+  }
 
-  let cache2: WeakMap<GraphQLSchema | SubschemaConfig, Record<string, DataLoader<K, V, C>>> | undefined = cache1.get(
-    options.info.fieldNodes
-  );
+  const request = createRequestFromInfo({
+    info,
+    operation,
+    fieldName,
+    selectionSet,
+    fieldNodes,
+    operationName,
+  });
 
-  // Prevents the keys to be passed with the same structure
-  const dataLoaderOptions: DataLoader.Options<any, any, any> = {
-    cacheKeyFn,
-    ...options.dataLoaderOptions,
-  };
+  const delegationContext = getDelegationContext({
+    request,
+    ...options,
+    operation,
+    fieldName,
+    returnType,
+  });
+
+  let cache2 = cache1.get(options.info.fieldNodes);
 
   if (cache2 === undefined) {
     cache2 = new WeakMap();
@@ -72,19 +98,25 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
     const loaders = Object.create(null);
     cache2.set(options.schema, loaders);
     const batchFn = createBatchFn(options);
-    const loader = new DataLoader<K, V, C>(keys => batchFn(keys), dataLoaderOptions);
+    const loader = new DataLoader<K, ExecutionResult, C>(
+      keys => batchFn(keys, request, delegationContext),
+      options.dataLoaderOptions
+    );
     loaders[fieldName] = loader;
     return loader;
   }
 
-  let loaders = cache2.get(options.schema);
+  const loaders = cache2.get(options.schema);
 
   if (loaders === undefined) {
-    loaders = Object.create(null) as Record<string, DataLoader<K, V, C>>;
-    cache2.set(options.schema, loaders);
+    const newLoaders = Object.create(null);
+    cache2.set(options.schema, newLoaders);
     const batchFn = createBatchFn(options);
-    const loader = new DataLoader<K, V, C>(keys => batchFn(keys), dataLoaderOptions);
-    loaders[fieldName] = loader;
+    const loader = new DataLoader<K, ExecutionResult, C>(
+      keys => batchFn(keys, request, delegationContext),
+      options.dataLoaderOptions
+    );
+    newLoaders[fieldName] = loader;
     return loader;
   }
 
@@ -92,9 +124,32 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
 
   if (loader === undefined) {
     const batchFn = createBatchFn(options);
-    loader = new DataLoader<K, V, C>(keys => batchFn(keys), dataLoaderOptions);
+    loader = new DataLoader<K, ExecutionResult, C>(
+      keys => batchFn(keys, request, delegationContext),
+      options.dataLoaderOptions
+    );
     loaders[fieldName] = loader;
   }
 
   return loader;
+}
+
+function splitResult(result: ExecutionResult, fieldName: string, numItems: number): Array<ExecutionResult> {
+  const { data, errors } = result;
+  const fieldData = data?.[fieldName];
+
+  if (fieldData === undefined) {
+    if (errors === undefined) {
+      return Array(numItems).fill({});
+    }
+
+    return Array(numItems).fill({ errors });
+  }
+
+  return fieldData.map((value: any) => ({
+    data: {
+      [fieldName]: value,
+    },
+    errors,
+  }));
 }

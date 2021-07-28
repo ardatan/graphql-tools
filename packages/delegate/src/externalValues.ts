@@ -9,40 +9,39 @@ import {
   GraphQLType,
   locatedError,
   GraphQLOutputType,
-  ExecutionResult,
   responsePathAsArray,
 } from 'graphql';
 
-import { AggregateError, getResponseKeyFromInfo, relocatedError } from '@graphql-tools/utils';
+import { AggregateError, relocatedError } from '@graphql-tools/utils';
 
-import { DelegationContext, SubschemaConfig } from './types';
+import { ExternalValueFromResultOptions, SubschemaConfig } from './types';
 import { createExternalObject } from './externalObjects';
 import { mergeDataAndErrors } from './mergeDataAndErrors';
 
-export function externalValueFromResult(result: ExecutionResult, delegationContext: DelegationContext): any {
-  const {
-    context,
-    info,
-    fieldName: responseKey = getResponseKey(info),
-    subschema,
-    returnType = getReturnType(info),
-  } = delegationContext;
-
-  const data = result.data?.[responseKey];
+export function externalValueFromResult<TContext = Record<string, any>>({
+  result,
+  schema,
+  info,
+  context,
+  fieldName = getFieldName(info),
+  returnType = getReturnType(info),
+  onLocatedError = (error: GraphQLError) => error,
+}: ExternalValueFromResultOptions<TContext>): any {
+  const data = result.data?.[fieldName];
   const errors = result.errors ?? [];
   const initialPath = info ? responsePathAsArray(info.path) : [];
 
-  const { data: newData, unpathedErrors } = mergeDataAndErrors(data, errors);
+  const { data: newData, unpathedErrors } = mergeDataAndErrors(data, errors, onLocatedError);
 
-  return createExternalValue(newData, unpathedErrors, initialPath, subschema, context, info, returnType);
+  return createExternalValue(newData, unpathedErrors, initialPath, schema, context, info, returnType);
 }
 
-export function createExternalValue(
+export function createExternalValue<TContext = Record<string, any>>(
   data: any,
   unpathedErrors: Array<GraphQLError>,
   initialPath: Array<string | number>,
-  subschema: GraphQLSchema | SubschemaConfig,
-  context?: Record<string, any>,
+  subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
+  context?: TContext,
   info?: GraphQLResolveInfo,
   returnType = getReturnType(info)
 ): any {
@@ -68,12 +67,13 @@ export function createExternalValue(
     return createExternalList(type, data, unpathedErrors, initialPath, subschema, context, info);
   }
 }
-function createExternalList(
+
+function createExternalList<TContext = Record<string, any>>(
   type: GraphQLList<any>,
   list: Array<any>,
   unpathedErrors: Array<GraphQLError>,
   initialPath: Array<string | number>,
-  subschema: GraphQLSchema | SubschemaConfig,
+  subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
   context?: Record<string, any>,
   info?: GraphQLResolveInfo
 ) {
@@ -90,15 +90,19 @@ function createExternalList(
   );
 }
 
-function createExternalListMember(
+function createExternalListMember<TContext = Record<string, any>>(
   type: GraphQLType,
   listMember: any,
   unpathedErrors: Array<GraphQLError>,
   initialPath: Array<string | number>,
-  subschema: GraphQLSchema | SubschemaConfig,
+  subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
   context?: Record<string, any>,
   info?: GraphQLResolveInfo
 ): any {
+  if (listMember instanceof GraphQLError) {
+    return relocatedError(listMember, listMember.path ? initialPath.concat(listMember.path) : initialPath);
+  }
+
   if (listMember instanceof Error) {
     return listMember;
   }
@@ -145,11 +149,11 @@ function reportUnpathedErrorsViaNull(unpathedErrors: Array<GraphQLError>) {
   return null;
 }
 
-function getResponseKey(info: GraphQLResolveInfo | undefined): string {
+function getFieldName(info: GraphQLResolveInfo | undefined): string {
   if (info == null) {
     throw new Error(`Data cannot be extracted from result without an explicit key or source schema.`);
   }
-  return getResponseKeyFromInfo(info);
+  return info.fieldName;
 }
 
 function getReturnType(info: GraphQLResolveInfo | undefined): GraphQLOutputType {
