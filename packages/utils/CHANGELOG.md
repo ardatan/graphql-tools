@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.0.1
+
+### Patch Changes
+
+- b823dbaf: fix(utils): fix AggregateErrorConstructor type issue
+
 ## 8.0.0
 
 ### Major Changes
