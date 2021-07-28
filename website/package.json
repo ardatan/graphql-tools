@@ -14,7 +14,7 @@
   "resolutions": { "esbuild": "0.12.15" },
   "devDependencies": {
     "@next/bundle-analyzer": "11.0.1",
-    "@types/concurrently": "6.2.0",
+    "@types/concurrently": "6.2.1",
     "@types/mdx-js__react": "1.5.3",
     "@types/node": "15.14.1",
     "@types/react": "17.0.13",
