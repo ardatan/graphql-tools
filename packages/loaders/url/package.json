@@ -48,7 +48,7 @@
     "@graphql-tools/wrap": "^7.0.4",
     "@ardatan/fetch-event-source": "2.0.2",
     "@n1ru4l/graphql-live-query": "0.7.1",
-    "@types/websocket": "1.0.3",
+    "@types/websocket": "1.0.4",
     "abort-controller": "3.0.0",
     "cross-fetch": "3.1.4",
     "extract-files": "11.0.0",
