@@ -43,7 +43,7 @@
     "mock-socket": "9.0.3"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "^8.0.1",
+    "@graphql-tools/delegate": "8.0.1",
     "@graphql-tools/utils": "^8.0.0",
     "@graphql-tools/wrap": "^8.0.1",
     "@ardatan/fetch-event-source": "2.0.2",
