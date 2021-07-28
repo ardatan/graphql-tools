@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@graphql-tools/delegate": "8.0.2",
-    "@graphql-tools/utils": "^8.0.0",
+    "@graphql-tools/utils": "8.0.0",
     "@graphql-tools/wrap": "^8.0.2",
     "@ardatan/fetch-event-source": "2.0.2",
     "@n1ru4l/graphql-live-query": "0.7.1",

@@ -1,3 +1,4 @@
+/// <reference lib="es2021.promise" />
 let AggregateErrorImpl = globalThis.AggregateError;
 
 if (typeof AggregateErrorImpl === 'undefined') {

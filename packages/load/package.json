@@ -34,7 +34,7 @@
     "graphql-type-json": "0.3.2"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^8.0.0",
+    "@graphql-tools/utils": "8.0.0",
     "@graphql-tools/merge": "^6.2.15",
     "import-from": "4.0.0",
     "p-limit": "3.1.0",
