@@ -15,7 +15,7 @@ import {
 import { ExternalObject, MergedTypeInfo, SubschemaConfig } from './types';
 import { memoize4, memoize3, memoize2 } from './memoize';
 import { Subschema } from './Subschema';
-import { collectFields, ExecutionContext } from 'graphql/execution/execute';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
 import { relocatedError } from '@graphql-tools/utils';
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
 
