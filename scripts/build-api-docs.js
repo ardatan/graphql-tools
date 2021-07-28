@@ -13,16 +13,16 @@ async function buildApiDocs() {
   const outputDir = path.join(__dirname, '../website/docs/api');
   const sidebarsPath = path.join(__dirname, '../website/api-sidebar.json');
 
-  // Get the upstream git remote -- we don't want to assume it exists or is named "upstream"
-  const gitRemote = execSync('git remote -v', { encoding: 'utf-8' })
-    .split('\n')
-    .map(line => line.split('\t'))
-    .find(([_name, description]) => description.includes('(fetch)'));
-  const gitRemoteName = gitRemote && gitRemote[0];
-  if (!gitRemoteName) {
-    console.log('Unable to locate upstream git remote');
-    process.exit(1);
-  }
+  // // Get the upstream git remote -- we don't want to assume it exists or is named "upstream"
+  // const gitRemote = execSync('git remote -v', { encoding: 'utf-8' })
+  //   .split('\n')
+  //   .map(line => line.split('\t'))
+  //   .find(([_name, description]) => description.includes('(fetch)'));
+  // const gitRemoteName = gitRemote && gitRemote[0];
+  // if (!gitRemoteName) {
+  //   console.log('Unable to locate upstream git remote');
+  //   process.exit(1);
+  // }
 
   // An array of tuples where the first element is the package's name and the
   // the second element is the relative path to the package's entry point
@@ -65,7 +65,7 @@ async function buildApiDocs() {
     hideGenerator: true,
     hideBreadcrumbs: true,
     // skipSidebar: true,
-    gitRemote: gitRemoteName,
+    //gitRemote: gitRemoteName,
     gitRevision: 'master',
     tsconfig: path.resolve(__dirname, '../tsconfig.build.json'),
     entryPoints: modules.map(([_name, filePath]) => filePath),
