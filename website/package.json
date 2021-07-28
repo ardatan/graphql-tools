@@ -13,7 +13,7 @@
   "pnpm": { "overrides": { "esbuild": "^0.12.8" } },
   "resolutions": { "esbuild": "^0.12.8" },
   "devDependencies": {
-    "@next/bundle-analyzer": "^11.0.1",
+    "@next/bundle-analyzer": "11.0.1",
     "@types/concurrently": "^6.2.0",
     "@types/mdx-js__react": "^1.5.3",
     "@types/node": "^15.12.4",
@@ -40,7 +40,7 @@
     "@mdx-js/react": "^1.6.22",
     "@theguild/components": "1.4.3",
     "framer-motion": "^4.1.17",
-    "next": "^11.0.1",
+    "next": "11.0.1",
     "next-i18next": "^8.5.1",
     "next-seo": "^4.26.0",
     "prism-themes": "^1.7.0",
