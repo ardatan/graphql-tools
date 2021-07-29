@@ -1,0 +1,11 @@
+type Foo {
+  bar: Bar
+}
+
+type Bar {
+  ham: Ham
+}
+
+type Ham {
+  id: ID
+}
