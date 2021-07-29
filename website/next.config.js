@@ -31,6 +31,16 @@ module.exports = {
     return [
       ...existingRedirects,
       {
+        source: '/docs/directive-resolvers',
+        destination: '/docs/schema-directives',
+        permanent: true,
+      },
+      {
+        source: '/docs/schema-directives-legacy',
+        destination: '/docs/schema-directives',
+        permanent: true,
+      },
+      {
         source: '/docs/schema-stitching',
         destination: '/docs/schema-stitching/stitch-combining-schemas',
         permanent: true,
