@@ -21,3 +21,8 @@ aside {
 code {
   margin-top: 15px !important;
 }
+
+.chakra-text a {
+  font-weight: 700;
+  color: blue;
+}
