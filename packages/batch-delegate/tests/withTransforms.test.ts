@@ -1,4 +1,4 @@
-import { graphql, GraphQLList, Kind } from 'graphql';
+import { graphql, Kind } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';

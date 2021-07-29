@@ -23,7 +23,11 @@ export function mergeDataAndErrors(
     const newErrors = errors.map(error => onLocatedError(error));
     const firstError = newErrors[0];
     const newPath = firstError.path === undefined ? [] : firstError.path.slice(1);
-    const newError = locatedError(new AggregateError(newErrors), undefined, newPath);
+    // We cast path as any for GraphQL.js 14 compat
+    // locatedError path argument must be defined, but it is just forwarded to a constructor that allows a undefined value
+    // https://github.com/graphql/graphql-js/blob/b4bff0ba9c15c9d7245dd68556e754c41f263289/src/error/locatedError.js#L25
+    // https://github.com/graphql/graphql-js/blob/b4bff0ba9c15c9d7245dd68556e754c41f263289/src/error/GraphQLError.js#L19
+    const newError = locatedError(new AggregateError(newErrors), undefined as any, newPath);
 
     return { data: newError, unpathedErrors: [] };
   }
