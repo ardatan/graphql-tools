@@ -11,7 +11,6 @@ import {
 } from 'graphql';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 
-import { Repeater } from '@repeaterjs/repeater';
 import DataLoader from 'dataloader';
 
 import { getResponseKeyFromInfo, Maybe, relocatedError } from '@graphql-tools/utils';
@@ -160,11 +159,10 @@ async function getMergedParentsFromInfos(
       return mergedParents[responseKey];
     }
 
-    // Set is never empty
-    const responseKeys = Array.from(keyResponseKeys[responseKey].values()).map(
+    const promises = Array.from(keyResponseKeys[responseKey].values()).map(
       keyResponseKey => mergedParents[keyResponseKey]
-    ) as [Promise<ExternalObject>, ...Array<Promise<ExternalObject>>];
-    return slowRace(responseKeys);
+    );
+    return Promise.all(promises).then(parents => parents[0]);
   });
 }
 
@@ -460,13 +458,4 @@ function typesContainSelectionSet(types: Array<GraphQLObjectType>, selectionSet:
   }
 
   return true;
-}
-
-async function slowRace<T extends unknown>(promises: [Promise<T>, ...Array<Promise<T>>]): Promise<T> {
-  // if promises is non-empty, last will be defined
-  let last!: T;
-  for await (const result of Repeater.merge(promises)) {
-    last = result;
-  }
-  return last;
 }
