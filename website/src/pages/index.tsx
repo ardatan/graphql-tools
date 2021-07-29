@@ -14,7 +14,7 @@ export default function Index() {
           href: '/docs/introduction',
           onClick: e => handlePushRoute('/docs/introduction', e),
         }}
-        version="v 7.0.5"
+        version="v8"
         colors={['#000246', '#184BE6']}
       />
 
