@@ -560,7 +560,7 @@ If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/a
 
 If you have multiple services using [Relay Specification](https://relay.dev/docs/graphql-server-specification/#schema), you can easily combine them with the `handleRelaySubschemas` utility function from `@graphql-tools/stitch` package, and your unified schema will handle `Node` interface and `node` operation automatically using Type Merging.
 
-```
+```ts
 import { stitchSchemas, handleRelaySubschemas } from '@graphql-tools/stitch';
 
 const stitchedSchema = stitchSchemas({
