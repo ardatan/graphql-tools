@@ -56,7 +56,7 @@ async function buildApiDocs() {
 
   typeDoc.bootstrap({
     // mode: 'library',
-    theme: path.resolve(__dirname, 'typedoc-theme'),
+    // theme: path.resolve(__dirname, 'typedoc-theme'),
     // ignoreCompilerErrors: true,
     excludePrivate: true,
     excludeProtected: true,

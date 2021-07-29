@@ -39,6 +39,8 @@ jobs:
         run: node scripts/install-typedocs-typescript-version.js
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
+      - name: Build API Docs
+        run: yarn build-api:docs
       - name: Build Website
         run: cd website/ && yarn build && yarn export && touch out/.nojekyll
       - name: Deploy 🚀
