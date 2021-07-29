@@ -17,3 +17,7 @@ article {
 aside {
   position: static !important;
 }
+
+code {
+  margin-top: 15px !important;
+}
