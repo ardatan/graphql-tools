@@ -5,6 +5,7 @@ export function getRoutes(): IRoutes {
   const Routes: IRoutes = {
     _: {
       docs: {
+        $name: 'Topics',
         $routes: [
           'introduction',
           'generate-schema',
@@ -27,6 +28,17 @@ export function getRoutes(): IRoutes {
           '$migration',
         ],
         _: {
+          'schema-stitching': {
+            $name: 'Schema Stitching',
+            $routes: [
+              'stitch-combining-schemas',
+              'stitch-type-merging',
+              'stitch-directives-sdl',
+              'stitch-schema-extensions',
+              'stitch-api',
+              'stitch-federation',
+            ],
+          },
           api: apiSidebar,
         },
       },

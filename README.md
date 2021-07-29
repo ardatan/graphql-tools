@@ -13,7 +13,7 @@ This package provides a few useful ways to create a GraphQL schema:
 
 1. Use the GraphQL schema language to [generate a schema](https://graphql-tools.com/docs/generate-schema) with full support for resolvers, interfaces, unions, and custom scalars. The schema produced is completely compatible with [GraphQL.js](https://github.com/graphql/graphql-js).
 2. [Mock your GraphQL API](https://graphql-tools.com/docs/mocking) with fine-grained per-type mocking
-3. Automatically [stitch multiple schemas together](https://www.graphql-tools.com/docs/schema-stitching/stitch-1-combining-schemas
+3. Automatically [stitch multiple schemas together](https://www.graphql-tools.com/docs/schema-stitching/stitch-combining-schemas
 ) into one larger API
 
 ## Documentation
