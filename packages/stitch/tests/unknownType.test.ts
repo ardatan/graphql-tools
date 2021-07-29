@@ -2,6 +2,7 @@ import {
   graphql,
   GraphQLError,
   GraphQLSchema,
+  versionInfo,
 } from 'graphql';
 
 import { delegateToSchema } from '@graphql-tools/delegate';
@@ -101,11 +102,16 @@ describe('test delegateToSchema() with type renaming', () => {
       },
     );
 
+    const errorMessagesByVersion = {
+      14: `Abstract type ClassicItemInterface must resolve to an Object type at runtime for field Query.itemByVariant with value { __typename: "Item", id: "123", name: "Foo bar 42" }, received "undefined". Either the ClassicItemInterface type should provide a "resolveType" function or each possible type should provide an "isTypeOf" function.`,
+      15: `Abstract type "ClassicItemInterface" was resolve to a type "Item" that does not exist inside schema.`,
+    }
+
     expect(result).toEqual({
       data: {
         itemByVariant: null,
       },
-      errors: [new GraphQLError(`Abstract type "ClassicItemInterface" was resolve to a type "Item" that does not exist inside schema.`)],
+      errors: [new GraphQLError(errorMessagesByVersion[versionInfo.major])],
     });
   });
 
