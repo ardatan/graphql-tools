@@ -114,7 +114,7 @@ Each field on the `Repository` and `Issue` types should use the `defaultMergedRe
 
 The `delegateToSchema` method should be called with the following named options:
 
-```
+```ts
 delegateToSchema(options: {
   schema: GraphQLSchema;
   operation: 'query' | 'mutation' | 'subscription';
