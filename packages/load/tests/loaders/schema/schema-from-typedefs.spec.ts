@@ -187,5 +187,11 @@ describe('schema from typedefs', () => {
         includeSources: true,
       });
     })
+
+    it('should be able to load files with imports', async () => {
+      await load('./tests/loaders/schema/test-files/schema-dir/main.graphql', {
+        loaders: [new GraphQLFileLoader()],
+      })
+    })
   })
 });
