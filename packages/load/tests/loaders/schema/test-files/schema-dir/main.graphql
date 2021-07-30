@@ -1,0 +1,10 @@
+"""
+Having this import before everything else doesn't keep the directives imported
+"""
+# import "./directives.graphql"
+# import "./submain.graphql"
+
+type AnotherType {
+  normal: String
+  notUsed: TypeWithDeprecation
+}

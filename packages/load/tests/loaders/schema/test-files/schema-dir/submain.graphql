@@ -1,0 +1,9 @@
+"""
+Adding this in fixes the error (remove quotes from around hash)
+"#" import "./directives.graphql"
+"""
+
+type TypeWithDeprecation {
+  someField: String
+  badField: String @deprecatedWithMetrics(reason: "Don't use this")
+}
