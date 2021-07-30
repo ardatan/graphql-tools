@@ -27,7 +27,7 @@
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0",
-    "@apollo/client": "~3.2.5 || ~3.3.0"
+    "@apollo/client": "~3.2.5 || ~3.3.0 || ~3.4.0"
   },
   "buildOptions": {
     "input": "./src/index.ts",
@@ -38,7 +38,7 @@
     ]
   },
   "devDependencies": {
-    "@apollo/client": "3.3.21",
+    "@apollo/client": "3.4.1",
     "@types/apollo-upload-client": "14.1.0",
     "@types/graphql-upload": "8.0.6",
     "express-graphql": "0.12.0",
