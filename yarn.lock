@@ -2098,21 +2098,21 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.0.tgz#0eee6373e11418bfe0b5638f654df7a4ca6a3950"
   integrity sha512-wYn6r8zVZyQJ6rQaALBEln5B1pzxb9shV5Ef97kTvn6yVGrqyXVnDqnU24MXnFubR+rZjBY9NWuxX3FB2sTsjg==
 
-"@guild-docs/client@0.2.20":
-  version "0.2.20"
-  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-0.2.20.tgz#ff15ae584351258b74434f36ad9e115e3bda8d0b"
-  integrity sha512-zh/wvRuhpbk2GqD7aCUrwmP47FW25xAo94zeN0q5NwNRD8TYT1szglkPofuSESreYazwxmjGlpttzxmyYPdyyw==
+"@guild-docs/client@0.2.23":
+  version "0.2.23"
+  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-0.2.23.tgz#9270d00466cec9a7d887d79eba5bb1b63e96b6a6"
+  integrity sha512-e9pYTzZF/9xbiCP6YjNhEsO3ENRcPr8oT0527PdV+cccVpKZmeUvhdDcEM39MHwrF4M/uLuddOAT3/rWgYaF6w==
   dependencies:
     "@guild-docs/types" "^0.2.17"
     immer "^9.0.5"
-    next-mdx-remote "^3.0.2"
+    next-mdx-remote "^3.0.4"
     next-seo "^4.26.0"
     nprogress "^0.2.0"
     react-icons "^4.2.0"
     react-intersection-observer "^8.32.0"
     react-use "^17.2.4"
     use-immer "^0.6.0"
-    zustand "^3.5.5"
+    zustand "^3.5.7"
 
 "@guild-docs/server@0.2.22":
   version "0.2.22"
@@ -8850,7 +8850,7 @@ next-i18next@8.5.5:
     i18next-fs-backend "^1.0.7"
     react-i18next "^11.8.13"
 
-next-mdx-remote@^3.0.2, next-mdx-remote@^3.0.4:
+next-mdx-remote@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/next-mdx-remote/-/next-mdx-remote-3.0.4.tgz#c9b4aff4ec0780b08f34ccd6be966e569d6d4fda"
   integrity sha512-n/xN6GaeBgJiuTJDrG6iqJ2EY5rEZ99Vf2H1nc75MNn1a6XnZLgT6uQJxqbSN84svc9aU3CSxfRlOqgqVVPHIg==
@@ -12707,10 +12707,10 @@ zen-observable@0.8.15:
   resolved "https://registry.yarnpkg.com/zen-observable/-/zen-observable-0.8.15.tgz#96415c512d8e3ffd920afd3889604e30b9eaac15"
   integrity sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==
 
-zustand@^3.5.5:
-  version "3.5.5"
-  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.5.5.tgz#628458ad70621ddc2a17dbee49be963e5c0dccb5"
-  integrity sha512-iTiJoxzYFtiD7DhscgwK2P4Kft1JcZEI2U7mG8IxiOFM4KpBAiJZfFop3r/3wbCuyltXI6ph1Fx90e4j/S43XA==
+zustand@^3.5.7:
+  version "3.5.7"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.5.7.tgz#add5e8d0ba031ce6e0ddf9cb76ef15306efb665f"
+  integrity sha512-DlVFXJavIHyXTOGz6dB+8QHZsPyJcGJSEBtlp2Ivmd5SwtlCnhPo3L8LB6YRfAOJC2PbqzgoD8NMjk+y+vIF0g==
 
 zwitch@^1.0.0:
   version "1.0.5"
