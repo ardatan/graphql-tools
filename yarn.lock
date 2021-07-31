@@ -2114,10 +2114,10 @@
     use-immer "^0.6.0"
     zustand "^3.5.7"
 
-"@guild-docs/server@0.2.22":
-  version "0.2.22"
-  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-0.2.22.tgz#34366143484e585fb86bbfb4e2e4a31646d80f36"
-  integrity sha512-IroHOjkJDh35dDOMxWWPkNCWgnMRGb23F6+cDodZGLfBEbBZuhtkM5kOu60294mGhg/YPVsZVCgZyPrMb+KcVg==
+"@guild-docs/server@0.2.23":
+  version "0.2.23"
+  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-0.2.23.tgz#fe78f03dd0a9f1bb16b64f4ccb767772cd485ef1"
+  integrity sha512-72TbHrDHu69HkEBIFX77PKsp1CoVFNY0hGTNIqR7HChdOGqSJsvW1iwMf/pN1G2nDZcIn3tIbAyDc/Mcu8l3/A==
   dependencies:
     "@guild-docs/types" "^0.2.17"
     github-slugger "^1.3.0"
@@ -2125,7 +2125,7 @@
     gray-matter "^4.0.3"
     next-mdx-remote "^3.0.4"
     node-fetch "^2.6.1"
-    npms.io "^2.0.6"
+    npms.io "^2.1.0"
     remark-emoji "^2.2.0"
     remark-slug "^6.1.0"
     tiny-lru "^7.0.6"
@@ -9069,10 +9069,10 @@ npm-run-path@^4.0.1:
   dependencies:
     path-key "^3.0.0"
 
-npms.io@^2.0.6:
-  version "2.0.6"
-  resolved "https://registry.yarnpkg.com/npms.io/-/npms.io-2.0.6.tgz#bad3e61f5ce68a2e3bafed834e69dd1a225fffd4"
-  integrity sha512-trjF9FDKWSy6qAbjIhvfNxtepxokgS7DQzog3cgrZmnunhFJ9yaZDRiu36a4GuBjuxbLLQxayjTsYoGIJlpcnQ==
+npms.io@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/npms.io/-/npms.io-2.1.0.tgz#0173119133a523098d446b90330e24c0fde3b096"
+  integrity sha512-dImPsPz9MXBW3Q3GRW4OqDoq1quo5bgrRLnUye3XQXFRluFxAqbSvnkBZbHMsnGvv7rlqhbTn4miU26KgST9ZA==
   dependencies:
     axios "0.21.1"
 
