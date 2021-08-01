@@ -29,9 +29,9 @@
     "graphql": "^14.0.0 || ^15.0.0"
   },
   "dependencies": {
-    "@babel/parser": "7.14.8",
-    "@babel/traverse": "7.14.8",
-    "@babel/types": "7.14.8",
+    "@babel/parser": "7.14.9",
+    "@babel/traverse": "7.14.9",
+    "@babel/types": "7.14.9",
     "@graphql-tools/utils": "8.0.1",
     "tslib": "~2.3.0"
   },
