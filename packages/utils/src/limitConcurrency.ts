@@ -1,3 +1,6 @@
 import pLimit from 'p-limit';
+import cpus from 'cpus';
 
-export const limitConcurrency = pLimit(15);
+export function getConcurrencyLimiter() {
+  return pLimit(cpus().length);
+}
