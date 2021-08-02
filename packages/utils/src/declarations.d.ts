@@ -11,3 +11,4 @@ declare global {
   }
 }
 declare module 'graphql-upload';
+declare module 'cpus';
