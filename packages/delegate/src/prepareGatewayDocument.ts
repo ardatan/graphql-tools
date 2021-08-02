@@ -18,11 +18,10 @@ import {
   FieldNode,
 } from 'graphql';
 
-import memoize from 'memoizee/weak';
-
 import { implementsAbstractType, getRootTypeNames } from '@graphql-tools/utils';
 
 import { getDocumentMetadata } from './getDocumentMetadata';
+import { memoize2 } from './memoize';
 
 export function prepareGatewayDocument(
   originalDocument: DocumentNode,
@@ -279,7 +278,7 @@ function generateInlineFragment(typeName: string, selectionSet: SelectionSetNode
   };
 }
 
-const getSchemaMetaData = memoize(
+const getSchemaMetaData = memoize2(
   (
     sourceSchema: GraphQLSchema,
     targetSchema: GraphQLSchema
