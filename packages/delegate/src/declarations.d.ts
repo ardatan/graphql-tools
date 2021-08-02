@@ -1,33 +1,23 @@
-// See: https://github.com/anywhichway/nano-memoize/pull/30
+// See: https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/memoizee/index.d.ts
 
-declare module 'nano-memoize' {
-  interface nanomemoize {
-    clear(): void;
+declare module 'memoizee/weak' {
+  interface Options<F extends (...args: any[]) => any> {
+    length?: number | false | undefined;
+    maxAge?: number | undefined;
+    max?: number | undefined;
+    preFetch?: number | true | undefined;
+    promise?: boolean | undefined;
+    dispose?(value: any): void;
+    async?: boolean | undefined;
+    primitive?: boolean | undefined;
+    normalizer?(args: Parameters<F>): string;
+    resolvers?: Array<(arg: any) => any> | undefined;
   }
-  export default function memoized<T extends (...args: any[]) => any>(
-    fn: T,
-    options?: {
-      /**
-       * Only use the provided maxArgs for cache look-up, useful for ignoring final callback arguments
-       */
-      maxArgs?: number;
-      /**
-       * Number of milliseconds to cache a result, set to `Infinity` to never create timers or expire
-       */
-      maxAge?: number;
-      /**
-       * The serializer/key generator to use for single argument functions (optional, not recommended)
-       * must be able to serialize objects and functions, by default a WeakMap is used internally without serializing
-       */
-      serializer?: (...args: any[]) => any;
-      /**
-       * the equals function to use for multi-argument functions (optional, try to avoid) e.g. deepEquals for objects
-       */
-      equals?: (...args: any[]) => boolean;
-      /**
-       * Forces the use of multi-argument paradigm, auto set if function has a spread argument or uses `arguments` in its body.
-       */
-      vargs?: boolean;
-    }
-  ): T & nanomemoize;
+
+  interface Memoized<F> {
+    delete: F;
+    clear: F & (() => void);
+  }
+
+  export default function memoized<F extends (...args: any[]) => any>(f: F, options?: Options<F>): F & Memoized<F>;
 }

@@ -13,7 +13,7 @@ import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 
 import DataLoader from 'dataloader';
 
-import nanomemoize from 'nano-memoize';
+import memoize from 'memoizee/weak';
 
 import { getResponseKeyFromInfo, Maybe, relocatedError } from '@graphql-tools/utils';
 
@@ -28,7 +28,7 @@ import {
   isExternalObject,
 } from './externalObjects';
 
-const getMergeDetails = nanomemoize(
+const getMergeDetails = memoize(
   function getMergeDetails(
     info: GraphQLResolveInfo,
     parent: ExternalObject
@@ -66,7 +66,7 @@ const getMergeDetails = nanomemoize(
       targetSubschemas,
     };
   },
-  { maxArgs: 1 }
+  { length: 1 }
 );
 
 const loaders: WeakMap<any, DataLoader<GraphQLResolveInfo, Promise<ExternalObject>>> = new WeakMap();
@@ -101,7 +101,7 @@ export async function getMergedParent(
   return loader.load(info);
 }
 
-const getMergeFieldInfo = nanomemoize(
+const getMergeFieldInfo = memoize(
   function getMergeFieldInfo(
     stitchingInfo: StitchingInfo,
     mergedTypeInfo: MergedTypeInfo,
@@ -198,7 +198,7 @@ const getMergeFieldInfo = nanomemoize(
       keyResponseKeys,
     };
   },
-  { maxArgs: 4 }
+  { length: 4 }
 );
 
 async function getMergedParentsFromInfos(
@@ -235,7 +235,7 @@ async function getMergedParentsFromInfos(
   });
 }
 
-const sortSubschemasByProxiability = nanomemoize(function sortSubschemasByProxiability(
+const sortSubschemasByProxiability = memoize(function sortSubschemasByProxiability(
   mergedTypeInfo: MergedTypeInfo,
   sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
   targetSubschemas: Array<Subschema>,
@@ -282,7 +282,7 @@ const sortSubschemasByProxiability = nanomemoize(function sortSubschemasByProxia
   };
 });
 
-const buildDelegationPlan = nanomemoize(function buildDelegationPlan(
+const buildDelegationPlan = memoize(function buildDelegationPlan(
   mergedTypeInfo: MergedTypeInfo,
   fieldNodes: Array<FieldNode>,
   proxiableSubschemas: Array<Subschema>
@@ -350,7 +350,7 @@ const buildDelegationPlan = nanomemoize(function buildDelegationPlan(
   };
 });
 
-const combineSubschemas = nanomemoize(function combineSubschemas(
+const combineSubschemas = memoize(function combineSubschemas(
   subschemaOrSubschemas: Subschema | Array<Subschema>,
   additionalSubschemas: Array<Subschema>
 ): Array<Subschema> {
@@ -492,7 +492,7 @@ function getMergedParentsFromFieldNodes(
   return mergedParentMap;
 }
 
-const subschemaTypesContainSelectionSet = nanomemoize(function subschemaTypesContainSelectionSet(
+const subschemaTypesContainSelectionSet = memoize(function subschemaTypesContainSelectionSet(
   mergedTypeInfo: MergedTypeInfo,
   sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
   selectionSet: SelectionSetNode

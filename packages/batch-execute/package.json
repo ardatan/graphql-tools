@@ -34,7 +34,7 @@
   "dependencies": {
     "@graphql-tools/utils": "8.0.1",
     "dataloader": "2.0.0",
-    "nano-memoize": "1.2.1",
+    "memoizee": "0.4.15",
     "tslib": "~2.3.0",
     "value-or-promise": "1.0.10"
   },

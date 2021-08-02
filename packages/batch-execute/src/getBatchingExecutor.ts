@@ -1,12 +1,12 @@
 import DataLoader from 'dataloader';
 
-import nanomemoize from 'nano-memoize';
+import memoize from 'memoizee/weak';
 
 import { ExecutionRequest, Executor } from '@graphql-tools/utils';
 
 import { createBatchingExecutor } from './createBatchingExecutor';
 
-export const getBatchingExecutor = nanomemoize(
+export const getBatchingExecutor = memoize(
   function getBatchingExecutor(
     _context: Record<string, any>,
     executor: Executor,
@@ -17,5 +17,5 @@ export const getBatchingExecutor = nanomemoize(
   ): Executor {
     return createBatchingExecutor(executor, dataLoaderOptions, extensionsReducer);
   },
-  { maxArgs: 2 }
+  { length: 2 }
 );
