@@ -14,7 +14,7 @@ import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 
 import DataLoader from 'dataloader';
 
-import { Maybe, relocatedError, getConcurrencyLimiter } from '@graphql-tools/utils';
+import { Maybe, relocatedError, concurrentLimiter } from '@graphql-tools/utils';
 
 import { ExternalObject, MergedTypeInfo, StitchingInfo } from './types';
 import { Subschema } from './Subschema';
@@ -223,8 +223,6 @@ async function getMergedParentsFromInfos(
     }
   }
 
-  const limitConcurrency = getConcurrencyLimiter();
-
   return infos.map(info => {
     const keys = requiredKeys[info.fieldName];
     if (keys === undefined) {
@@ -237,7 +235,7 @@ async function getMergedParentsFromInfos(
 
     return Promise.all(
       Array.from(keys.values()).map(fieldName =>
-        limitConcurrency(() => {
+        concurrentLimiter(() => {
           const delegationStage = stageMap[fieldName];
           if (delegationStage !== undefined) {
             return parents[delegationStage];
@@ -474,11 +472,9 @@ function executeDelegationStage(
 
   const unpathedErrors = getUnpathedErrors(object);
 
-  const limitConcurrency = getConcurrencyLimiter();
-
   const promises = Promise.all(
     [...delegationMap.entries()].map(([s, fieldNodes]) =>
-      limitConcurrency(async () => {
+      concurrentLimiter(async () => {
         const resolver = mergedTypeInfo.resolvers.get(s);
         if (resolver) {
           const selectionSet: SelectionSetNode = { kind: Kind.SELECTION_SET, selections: fieldNodes };

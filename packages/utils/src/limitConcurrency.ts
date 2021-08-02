@@ -1,6 +1,3 @@
 import pLimit from 'p-limit';
-import cpus from 'cpus';
 
-export function getConcurrencyLimiter() {
-  return pLimit(cpus().length);
-}
+export const concurrentLimiter = pLimit(1000);

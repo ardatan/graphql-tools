@@ -36,7 +36,6 @@
   },
   "dependencies": {
     "tslib": "~2.3.0",
-    "cpus": "1.0.3",
     "p-limit": "3.1.0"
   },
   "publishConfig": {

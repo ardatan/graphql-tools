@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader';
 
-import { ExecutionRequest, Executor, ExecutionResult, getConcurrencyLimiter } from '@graphql-tools/utils';
+import { ExecutionRequest, Executor, ExecutionResult, concurrentLimiter } from '@graphql-tools/utils';
 
 import { mergeRequests } from './mergeRequests';
 import { splitResult } from './splitResult';
@@ -23,7 +23,6 @@ function createLoadFn(
   executor: Executor,
   extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
 ) {
-  const limitConcurrency = getConcurrencyLimiter();
   return async function batchExecuteLoadFn(requests: ReadonlyArray<ExecutionRequest>): Promise<Array<ExecutionResult>> {
     const execBatches: Array<Array<ExecutionRequest>> = [];
     let index = 0;
@@ -49,7 +48,7 @@ function createLoadFn(
 
     const results = await Promise.all(
       execBatches.map(execBatch =>
-        limitConcurrency(async () => {
+        concurrentLimiter(async () => {
           const mergedRequests = mergeRequests(execBatch, extensionsReducer);
           const resultBatches = (await executor(mergedRequests)) as ExecutionResult;
           return splitResult(resultBatches, execBatch.length);
