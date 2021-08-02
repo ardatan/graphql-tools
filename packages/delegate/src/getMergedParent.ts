@@ -101,6 +101,106 @@ export async function getMergedParent(
   return loader.load(info);
 }
 
+const getMergeFieldInfo = nanomemoize(
+  function getMergeFieldInfo(
+    stitchingInfo: StitchingInfo,
+    mergedTypeInfo: MergedTypeInfo,
+    sourceSubschema: Subschema,
+    ...infos: Array<GraphQLResolveInfo>
+  ): {
+    fieldNodes: Array<FieldNode>;
+    keyResponseKeys: Record<string, Set<string>>;
+  } {
+    const parentTypeName = mergedTypeInfo.typeName;
+    const sourceSubschemaParentType = sourceSubschema.transformedSchema.getType(parentTypeName) as GraphQLObjectType;
+    const sourceSubschemaFields = sourceSubschemaParentType.getFields();
+    const subschemaFields = mergedTypeInfo.subschemaFields;
+    const typeFieldNodes = stitchingInfo.fieldNodesByField?.[parentTypeName];
+    const typeDynamicSelectionSets = stitchingInfo?.dynamicSelectionSetsByField?.[parentTypeName];
+
+    const fieldNodes = new Set<FieldNode>();
+    const keyResponseKeys: Record<string, Set<string>> = Object.create(null);
+
+    const fieldNodesByType = stitchingInfo.fieldNodesByType?.[parentTypeName];
+    if (fieldNodesByType !== undefined) {
+      for (const fieldNode of fieldNodesByType) {
+        const fieldName = fieldNode.name.value;
+        if (!sourceSubschemaFields[fieldName]) {
+          const fieldName = fieldNode.name.value;
+          if (!sourceSubschemaFields[fieldName]) {
+            fieldNodes.add(fieldNode);
+          }
+        }
+      }
+    }
+
+    for (const info of infos) {
+      const responseKey = getResponseKeyFromInfo(info);
+      const fieldName = info.fieldName;
+      if (subschemaFields[fieldName] !== undefined) {
+        // merged subschema field
+        for (const fieldNode of info.fieldNodes) {
+          const fieldName = fieldNode.name.value;
+          if (!sourceSubschemaFields[fieldName]) {
+            fieldNodes.add(fieldNode);
+          }
+        }
+      } else {
+        // gateway field
+        if (keyResponseKeys[responseKey] === undefined) {
+          keyResponseKeys[responseKey] = new Set();
+        }
+      }
+
+      const keyFieldNodes = new Set<FieldNode>();
+
+      const fieldNodesByField = typeFieldNodes?.[fieldName];
+      if (fieldNodesByField !== undefined) {
+        for (const fieldNode of fieldNodesByField) {
+          keyFieldNodes.add(fieldNode);
+        }
+      }
+
+      const dynamicSelectionSets = typeDynamicSelectionSets?.[fieldName];
+      if (dynamicSelectionSets !== undefined) {
+        for (const fieldNode of info.fieldNodes) {
+          for (const dynamicSelectionSet of dynamicSelectionSets) {
+            const responseMap = collectFields(
+              infos[0] as unknown as ExecutionContext,
+              sourceSubschemaParentType,
+              dynamicSelectionSet(fieldNode),
+              {},
+              {}
+            );
+            for (const responseKey in responseMap) {
+              for (const fieldNode of responseMap[responseKey]) {
+                keyFieldNodes.add(fieldNode);
+              }
+            }
+          }
+        }
+      }
+
+      if (keyResponseKeys[responseKey] !== undefined) {
+        for (const fieldNode of keyFieldNodes.values()) {
+          const keyResponseKey = fieldNode.alias?.value ?? fieldNode.name.value;
+          keyResponseKeys[responseKey].add(keyResponseKey);
+        }
+      }
+
+      for (const fieldNode of keyFieldNodes) {
+        fieldNodes.add(fieldNode);
+      }
+    }
+
+    return {
+      fieldNodes: Array.from(fieldNodes),
+      keyResponseKeys,
+    };
+  },
+  { maxArgs: 4 }
+);
+
 async function getMergedParentsFromInfos(
   parent: ExternalObject,
   context: Record<string, any>,
@@ -110,92 +210,12 @@ async function getMergedParentsFromInfos(
   sourceSubschema: Subschema,
   targetSubschemas: Array<Subschema>
 ): Promise<Array<Promise<ExternalObject>>> {
-  const parentTypeName = mergedTypeInfo.typeName;
-  const sourceSubschemaParentType = sourceSubschema.transformedSchema.getType(parentTypeName) as GraphQLObjectType;
-  const sourceSubschemaFields = sourceSubschemaParentType.getFields();
-  const subschemaFields = mergedTypeInfo.subschemaFields;
-  const keyResponseKeys: Record<string, Set<string>> = Object.create(null);
-  const typeFieldNodes = stitchingInfo.fieldNodesByField?.[parentTypeName];
-  const typeDynamicSelectionSets = stitchingInfo?.dynamicSelectionSetsByField?.[parentTypeName];
-
-  const fieldNodes = new Set<FieldNode>();
-
-  const fieldNodesByType = stitchingInfo.fieldNodesByType?.[parentTypeName];
-  if (fieldNodesByType !== undefined) {
-    for (const fieldNode of fieldNodesByType) {
-      const fieldName = fieldNode.name.value;
-      if (!sourceSubschemaFields[fieldName]) {
-        const fieldName = fieldNode.name.value;
-        if (!sourceSubschemaFields[fieldName]) {
-          fieldNodes.add(fieldNode);
-        }
-      }
-    }
-  }
-
-  for (const info of infos) {
-    const responseKey = getResponseKeyFromInfo(info);
-    const fieldName = info.fieldName;
-    if (subschemaFields[fieldName] !== undefined) {
-      // merged subschema field
-      for (const fieldNode of info.fieldNodes) {
-        const fieldName = fieldNode.name.value;
-        if (!sourceSubschemaFields[fieldName]) {
-          fieldNodes.add(fieldNode);
-        }
-      }
-    } else {
-      // gateway field
-      if (keyResponseKeys[responseKey] === undefined) {
-        keyResponseKeys[responseKey] = new Set();
-      }
-    }
-
-    const keyFieldNodes = new Set<FieldNode>();
-
-    const fieldNodesByField = typeFieldNodes?.[fieldName];
-    if (fieldNodesByField !== undefined) {
-      for (const fieldNode of fieldNodesByField) {
-        keyFieldNodes.add(fieldNode);
-      }
-    }
-
-    const dynamicSelectionSets = typeDynamicSelectionSets?.[fieldName];
-    if (dynamicSelectionSets !== undefined) {
-      for (const fieldNode of info.fieldNodes) {
-        for (const dynamicSelectionSet of dynamicSelectionSets) {
-          const responseMap = collectFields(
-            infos[0] as unknown as ExecutionContext,
-            sourceSubschemaParentType,
-            dynamicSelectionSet(fieldNode),
-            {},
-            {}
-          );
-          for (const responseKey in responseMap) {
-            for (const fieldNode of responseMap[responseKey]) {
-              keyFieldNodes.add(fieldNode);
-            }
-          }
-        }
-      }
-    }
-
-    if (keyResponseKeys[responseKey] !== undefined) {
-      for (const fieldNode of keyFieldNodes.values()) {
-        const keyResponseKey = fieldNode.alias?.value ?? fieldNode.name.value;
-        keyResponseKeys[responseKey].add(keyResponseKey);
-      }
-    }
-
-    for (const fieldNode of keyFieldNodes) {
-      fieldNodes.add(fieldNode);
-    }
-  }
+  const { fieldNodes, keyResponseKeys } = getMergeFieldInfo(stitchingInfo, mergedTypeInfo, sourceSubschema, ...infos);
 
   const mergedParents = getMergedParentsFromFieldNodes(
     mergedTypeInfo,
     parent,
-    Array.from(fieldNodes),
+    fieldNodes,
     sourceSubschema,
     targetSubschemas,
     context,
