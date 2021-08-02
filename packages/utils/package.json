@@ -35,7 +35,8 @@
     "graphql-scalars": "1.10.0"
   },
   "dependencies": {
-    "tslib": "~2.3.0"
+    "tslib": "~2.3.0",
+    "p-limit": "3.1.0"
   },
   "publishConfig": {
     "access": "public",

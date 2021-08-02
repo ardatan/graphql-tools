@@ -33,7 +33,6 @@
   },
   "devDependencies": {
     "dataloader": "2.0.0",
-    "is-promise": "4.0.0",
     "value-or-promise": "1.0.10"
   },
   "dependencies": {

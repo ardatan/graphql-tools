@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader';
 
-import { ExecutionRequest, Executor, ExecutionResult } from '@graphql-tools/utils';
+import { ExecutionRequest, Executor, ExecutionResult, limitConcurrency } from '@graphql-tools/utils';
 
 import { mergeRequests } from './mergeRequests';
 import { splitResult } from './splitResult';
@@ -47,11 +47,13 @@ function createLoadFn(
     }
 
     const results = await Promise.all(
-      execBatches.map(async execBatch => {
-        const mergedRequests = mergeRequests(execBatch, extensionsReducer);
-        const resultBatches = (await executor(mergedRequests)) as ExecutionResult;
-        return splitResult(resultBatches, execBatch.length);
-      })
+      execBatches.map(execBatch =>
+        limitConcurrency(async () => {
+          const mergedRequests = mergeRequests(execBatch, extensionsReducer);
+          const resultBatches = (await executor(mergedRequests)) as ExecutionResult;
+          return splitResult(resultBatches, execBatch.length);
+        })
+      )
     );
 
     return results.flat();

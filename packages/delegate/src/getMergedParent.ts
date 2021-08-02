@@ -14,7 +14,7 @@ import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 
 import DataLoader from 'dataloader';
 
-import { Maybe, relocatedError } from '@graphql-tools/utils';
+import { Maybe, relocatedError, limitConcurrency } from '@graphql-tools/utils';
 
 import { ExternalObject, MergedTypeInfo, StitchingInfo } from './types';
 import { Subschema } from './Subschema';
@@ -233,14 +233,17 @@ async function getMergedParentsFromInfos(
       return Promise.resolve(parent);
     }
 
-    const promises = Array.from(keys.values()).map(fieldName => {
-      const delegationStage = stageMap[fieldName];
-      if (delegationStage !== undefined) {
-        return parents[delegationStage];
-      }
-      return Promise.resolve(parent);
-    });
-    return Promise.all(promises).then(parents => parents[0]);
+    return Promise.all(
+      Array.from(keys.values()).map(fieldName =>
+        limitConcurrency(() => {
+          const delegationStage = stageMap[fieldName];
+          if (delegationStage !== undefined) {
+            return parents[delegationStage];
+          }
+          return Promise.resolve(parent);
+        })
+      )
+    ).then(parents => parents[0]);
   });
 }
 
@@ -470,67 +473,69 @@ function executeDelegationStage(
   const unpathedErrors = getUnpathedErrors(object);
 
   const promises = Promise.all(
-    [...delegationMap.entries()].map(async ([s, fieldNodes]) => {
-      const resolver = mergedTypeInfo.resolvers.get(s);
-      if (resolver) {
-        const selectionSet: SelectionSetNode = { kind: Kind.SELECTION_SET, selections: fieldNodes };
-        let source: unknown;
-        try {
-          source = await resolver(object, context, parentInfo, s, selectionSet);
-        } catch (error) {
-          source = error;
-        }
-
-        if (source instanceof Error || source === null) {
-          const fieldNodes = collectFields(
-            {
-              schema,
-              variableValues: {},
-              fragments: {},
-            } as ExecutionContext,
-            type,
-            selectionSet,
-            Object.create(null),
-            Object.create(null)
-          );
-
-          const nullResult = Object.create(null);
-          if (source instanceof GraphQLError && source.path) {
-            const basePath = parentPath.slice(initialPath.length);
-            for (const responseKey in fieldNodes) {
-              const tailPath =
-                source.path.length === parentPath.length ? [responseKey] : source.path.slice(initialPath.length);
-              const newPath = basePath.concat(tailPath);
-              nullResult[responseKey] = relocatedError(source, newPath);
-            }
-          } else if (source instanceof Error) {
-            const basePath = parentPath.slice(initialPath.length);
-            for (const responseKey in fieldNodes) {
-              const newPath = basePath.concat([responseKey]);
-              nullResult[responseKey] = locatedError(source, fieldNodes[responseKey], newPath);
-            }
-          } else {
-            for (const responseKey in fieldNodes) {
-              nullResult[responseKey] = null;
-            }
+    [...delegationMap.entries()].map(([s, fieldNodes]) =>
+      limitConcurrency(async () => {
+        const resolver = mergedTypeInfo.resolvers.get(s);
+        if (resolver) {
+          const selectionSet: SelectionSetNode = { kind: Kind.SELECTION_SET, selections: fieldNodes };
+          let source: unknown;
+          try {
+            source = await resolver(object, context, parentInfo, s, selectionSet);
+          } catch (error) {
+            source = error;
           }
-          return nullResult;
-        }
 
-        if (!isExternalObject(source)) {
+          if (source instanceof Error || source === null) {
+            const fieldNodes = collectFields(
+              {
+                schema,
+                variableValues: {},
+                fragments: {},
+              } as ExecutionContext,
+              type,
+              selectionSet,
+              Object.create(null),
+              Object.create(null)
+            );
+
+            const nullResult = Object.create(null);
+            if (source instanceof GraphQLError && source.path) {
+              const basePath = parentPath.slice(initialPath.length);
+              for (const responseKey in fieldNodes) {
+                const tailPath =
+                  source.path.length === parentPath.length ? [responseKey] : source.path.slice(initialPath.length);
+                const newPath = basePath.concat(tailPath);
+                nullResult[responseKey] = relocatedError(source, newPath);
+              }
+            } else if (source instanceof Error) {
+              const basePath = parentPath.slice(initialPath.length);
+              for (const responseKey in fieldNodes) {
+                const newPath = basePath.concat([responseKey]);
+                nullResult[responseKey] = locatedError(source, fieldNodes[responseKey], newPath);
+              }
+            } else {
+              for (const responseKey in fieldNodes) {
+                nullResult[responseKey] = null;
+              }
+            }
+            return nullResult;
+          }
+
+          if (!isExternalObject(source)) {
+            return source;
+          }
+
+          const objectSubschema = getObjectSubchema(source);
+          const subschemaMap = getSubschemaMap(source);
+          for (const responseKey in source) {
+            newSubschemaMap[responseKey] = subschemaMap?.[responseKey] ?? objectSubschema;
+          }
+          unpathedErrors.push(...getUnpathedErrors(source));
+
           return source;
         }
-
-        const objectSubschema = getObjectSubchema(source);
-        const subschemaMap = getSubschemaMap(source);
-        for (const responseKey in source) {
-          newSubschemaMap[responseKey] = subschemaMap?.[responseKey] ?? objectSubschema;
-        }
-        unpathedErrors.push(...getUnpathedErrors(source));
-
-        return source;
-      }
-    })
+      })
+    )
   );
 
   return promises.then(sources => Object.assign(object, ...sources));
