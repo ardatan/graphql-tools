@@ -6,7 +6,8 @@ function createLimitConcurrency() {
   try {
     concurrency = cpus().length;
   } catch (e) {}
-  return pLimit(concurrency || 3);
+  concurrency = concurrency || 3;
+  return pLimit(concurrency);
 }
 
 export const limitConcurrency = createLimitConcurrency();
