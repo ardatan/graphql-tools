@@ -77,26 +77,9 @@ export async function getMergedParent(
   context: Record<string, any>,
   info: GraphQLResolveInfo
 ): Promise<ExternalObject> {
-  const mergeDetails = getMergeDetails(info, parent);
-  if (!mergeDetails) {
-    return parent;
-  }
-
-  const { stitchingInfo, mergedTypeInfo, sourceSubschema, targetSubschemas } = mergeDetails;
-
   let loader = loaders.get(parent);
   if (loader === undefined) {
-    loader = new DataLoader(infos =>
-      getMergedParentsFromInfos(
-        parent,
-        context,
-        infos,
-        stitchingInfo,
-        mergedTypeInfo,
-        sourceSubschema,
-        targetSubschemas
-      )
-    );
+    loader = new DataLoader(infos => getMergedParentsFromInfos(parent, context, infos));
     loaders.set(parent, loader);
   }
   return loader.load(info);
@@ -203,12 +186,15 @@ const getMergeFieldInfo = memoize(
 async function getMergedParentsFromInfos(
   parent: ExternalObject,
   context: Record<string, any>,
-  infos: ReadonlyArray<GraphQLResolveInfo>,
-  stitchingInfo: StitchingInfo,
-  mergedTypeInfo: MergedTypeInfo,
-  sourceSubschema: Subschema,
-  targetSubschemas: Array<Subschema>
+  infos: ReadonlyArray<GraphQLResolveInfo>
 ): Promise<Array<Promise<ExternalObject>>> {
+  const mergeDetails = getMergeDetails(infos[0], parent);
+  if (!mergeDetails) {
+    return Array(infos.length).fill(parent);
+  }
+
+  const { stitchingInfo, mergedTypeInfo, sourceSubschema, targetSubschemas } = mergeDetails;
+
   const { fieldNodes, requiredKeys } = getMergeFieldInfo(stitchingInfo, mergedTypeInfo, sourceSubschema, ...infos);
 
   const { delegationPlan, stageMap } = buildDelegationPlan(
