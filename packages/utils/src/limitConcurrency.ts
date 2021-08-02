@@ -2,7 +2,7 @@ import pLimit from 'p-limit';
 import cpus from 'cpus';
 
 function createLimitConcurrency() {
-  let concurrency: number;
+  let concurrency = 0;
   try {
     concurrency = cpus().length;
   } catch (e) {}
