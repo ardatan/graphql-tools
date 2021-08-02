@@ -8,6 +8,7 @@ import {
   responsePathAsArray,
   GraphQLError,
   locatedError,
+  GraphQLSchema,
 } from 'graphql';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 
@@ -15,7 +16,7 @@ import DataLoader from 'dataloader';
 
 import memoize from 'memoizee/weak';
 
-import { getResponseKeyFromInfo, Maybe, relocatedError } from '@graphql-tools/utils';
+import { Maybe, relocatedError } from '@graphql-tools/utils';
 
 import { ExternalObject, MergedTypeInfo, StitchingInfo } from './types';
 import { Subschema } from './Subschema';
@@ -109,7 +110,7 @@ const getMergeFieldInfo = memoize(
     ...infos: Array<GraphQLResolveInfo>
   ): {
     fieldNodes: Array<FieldNode>;
-    keyResponseKeys: Record<string, Set<string>>;
+    requiredKeys: Record<string, Set<string>>;
   } {
     const parentTypeName = mergedTypeInfo.typeName;
     const sourceSubschemaParentType = sourceSubschema.transformedSchema.getType(parentTypeName) as GraphQLObjectType;
@@ -119,7 +120,7 @@ const getMergeFieldInfo = memoize(
     const typeDynamicSelectionSets = stitchingInfo?.dynamicSelectionSetsByField?.[parentTypeName];
 
     const fieldNodes = new Set<FieldNode>();
-    const keyResponseKeys: Record<string, Set<string>> = Object.create(null);
+    const requiredKeys: Record<string, Set<string>> = Object.create(null);
 
     const fieldNodesByType = stitchingInfo.fieldNodesByType?.[parentTypeName];
     if (fieldNodesByType !== undefined) {
@@ -135,7 +136,6 @@ const getMergeFieldInfo = memoize(
     }
 
     for (const info of infos) {
-      const responseKey = getResponseKeyFromInfo(info);
       const fieldName = info.fieldName;
       if (subschemaFields[fieldName] !== undefined) {
         // merged subschema field
@@ -147,8 +147,8 @@ const getMergeFieldInfo = memoize(
         }
       } else {
         // gateway field
-        if (keyResponseKeys[responseKey] === undefined) {
-          keyResponseKeys[responseKey] = new Set();
+        if (requiredKeys[fieldName] === undefined) {
+          requiredKeys[fieldName] = new Set();
         }
       }
 
@@ -181,10 +181,9 @@ const getMergeFieldInfo = memoize(
         }
       }
 
-      if (keyResponseKeys[responseKey] !== undefined) {
+      if (requiredKeys[fieldName] !== undefined) {
         for (const fieldNode of keyFieldNodes.values()) {
-          const keyResponseKey = fieldNode.alias?.value ?? fieldNode.name.value;
-          keyResponseKeys[responseKey].add(keyResponseKey);
+          requiredKeys[fieldName].add(fieldNode.name.value);
         }
       }
 
@@ -195,7 +194,7 @@ const getMergeFieldInfo = memoize(
 
     return {
       fieldNodes: Array.from(fieldNodes),
-      keyResponseKeys,
+      requiredKeys,
     };
   },
   { length: 4 }
@@ -210,34 +209,65 @@ async function getMergedParentsFromInfos(
   sourceSubschema: Subschema,
   targetSubschemas: Array<Subschema>
 ): Promise<Array<Promise<ExternalObject>>> {
-  const { fieldNodes, keyResponseKeys } = getMergeFieldInfo(stitchingInfo, mergedTypeInfo, sourceSubschema, ...infos);
+  const { fieldNodes, requiredKeys } = getMergeFieldInfo(stitchingInfo, mergedTypeInfo, sourceSubschema, ...infos);
 
-  const mergedParents = getMergedParentsFromFieldNodes(
+  const { delegationPlan, stageMap } = buildDelegationPlan(
     mergedTypeInfo,
-    parent,
-    fieldNodes,
     sourceSubschema,
     targetSubschemas,
-    context,
-    getInfo(parent)
+    fieldNodes
   );
 
+  const parents: Array<Promise<ExternalObject>> = [];
+
+  if (delegationPlan.length) {
+    const parentInfo = getInfo(parent);
+    const schema = parentInfo.schema;
+    const type = schema.getType(parent.__typename) as GraphQLObjectType;
+    const parentPath = responsePathAsArray(parentInfo.path);
+    let promise = executeDelegationStage(
+      delegationPlan[0],
+      schema,
+      type,
+      mergedTypeInfo,
+      context,
+      parent,
+      parentInfo,
+      parentPath
+    );
+    parents.push(promise);
+    for (let i = 1, delegationStage = delegationPlan[i]; i < delegationPlan.length; i++) {
+      promise = promise.then(parent =>
+        executeDelegationStage(delegationStage, schema, type, mergedTypeInfo, context, parent, parentInfo, parentPath)
+      );
+      parents.push(promise);
+    }
+  }
+
   return infos.map(info => {
-    const responseKey = getResponseKeyFromInfo(info);
-    if (keyResponseKeys[responseKey] === undefined) {
-      return mergedParents[responseKey];
+    const keys = requiredKeys[info.fieldName];
+    if (keys === undefined) {
+      const delegationStage = stageMap[info.fieldName];
+      if (delegationStage !== undefined) {
+        return parents[delegationStage];
+      }
+      return Promise.resolve(parent);
     }
 
-    const promises = Array.from(keyResponseKeys[responseKey].values()).map(
-      keyResponseKey => mergedParents[keyResponseKey]
-    );
+    const promises = Array.from(keys.values()).map(fieldName => {
+      const delegationStage = stageMap[fieldName];
+      if (delegationStage !== undefined) {
+        return parents[delegationStage];
+      }
+      return Promise.resolve(parent);
+    });
     return Promise.all(promises).then(parents => parents[0]);
   });
 }
 
-const sortSubschemasByProxiability = memoize(function sortSubschemasByProxiability(
+function sortSubschemasByProxiability(
   mergedTypeInfo: MergedTypeInfo,
-  sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
+  sourceSubschemas: Array<Subschema>,
   targetSubschemas: Array<Subschema>,
   fieldNodes: Array<FieldNode>
 ): {
@@ -252,10 +282,7 @@ const sortSubschemasByProxiability = memoize(function sortSubschemasByProxiabili
   for (const t of targetSubschemas) {
     const selectionSet = mergedTypeInfo.selectionSets.get(t);
     const fieldSelectionSets = mergedTypeInfo.fieldSelectionSets.get(t);
-    if (
-      selectionSet != null &&
-      !subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemaOrSourceSubschemas, selectionSet)
-    ) {
+    if (selectionSet != null && !subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemas, selectionSet)) {
       nonProxiableSubschemas.push(t);
     } else {
       if (
@@ -265,7 +292,7 @@ const sortSubschemasByProxiability = memoize(function sortSubschemasByProxiabili
           const fieldSelectionSet = fieldSelectionSets[fieldName];
           return (
             fieldSelectionSet == null ||
-            subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemaOrSourceSubschemas, fieldSelectionSet)
+            subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemas, fieldSelectionSet)
           );
         })
       ) {
@@ -280,17 +307,101 @@ const sortSubschemasByProxiability = memoize(function sortSubschemasByProxiabili
     proxiableSubschemas,
     nonProxiableSubschemas,
   };
+}
+
+function calculateDelegationStage(
+  mergedTypeInfo: MergedTypeInfo,
+  sourceSubschemas: Array<Subschema>,
+  targetSubschemas: Array<Subschema>,
+  fieldNodes: Array<FieldNode>
+): {
+  proxiableSubschemas: Array<Subschema>;
+  nonProxiableSubschemas: Array<Subschema>;
+  delegationMap: Map<Subschema, Array<FieldNode>>;
+  proxiableFieldNodes: Array<FieldNode>;
+  unproxiableFieldNodes: Array<FieldNode>;
+} {
+  const { proxiableSubschemas, nonProxiableSubschemas } = sortSubschemasByProxiability(
+    mergedTypeInfo,
+    sourceSubschemas,
+    targetSubschemas,
+    fieldNodes
+  );
+
+  const { delegationMap, proxiableFieldNodes, unproxiableFieldNodes } = buildDelegationStage(
+    mergedTypeInfo,
+    fieldNodes,
+    proxiableSubschemas
+  );
+
+  return {
+    proxiableSubschemas,
+    nonProxiableSubschemas,
+    delegationMap,
+    proxiableFieldNodes,
+    unproxiableFieldNodes,
+  };
+}
+
+export const buildDelegationPlan = memoize(function buildDelegationPlan(
+  mergedTypeInfo: MergedTypeInfo,
+  sourceSubschema: Subschema,
+  targetSubschemas: Array<Subschema>,
+  fieldNodes: Array<FieldNode>
+): {
+  delegationPlan: Array<Map<Subschema, Array<FieldNode>>>;
+  stageMap: Record<string, number>;
+} {
+  const delegationPlan: Array<Map<Subschema, Array<FieldNode>>> = [];
+
+  let sourceSubschemas = createSubschemas(sourceSubschema);
+  let delegationStage = calculateDelegationStage(mergedTypeInfo, sourceSubschemas, targetSubschemas, fieldNodes);
+
+  let stageIndex = 0;
+  const stageMap = Object.create(null);
+
+  let delegationMap = delegationStage.delegationMap;
+
+  while (delegationMap.size) {
+    delegationPlan.push(delegationMap);
+
+    const { proxiableSubschemas, nonProxiableSubschemas, proxiableFieldNodes, unproxiableFieldNodes } = delegationStage;
+
+    sourceSubschemas = combineSubschemas(sourceSubschemas, proxiableSubschemas);
+
+    for (const fieldNode of proxiableFieldNodes) {
+      stageMap[fieldNode.name.value] = stageIndex;
+    }
+
+    stageIndex++;
+
+    delegationStage = calculateDelegationStage(
+      mergedTypeInfo,
+      sourceSubschemas,
+      nonProxiableSubschemas,
+      unproxiableFieldNodes
+    );
+
+    delegationMap = delegationStage.delegationMap;
+  }
+
+  return {
+    delegationPlan,
+    stageMap,
+  };
 });
 
-const buildDelegationPlan = memoize(function buildDelegationPlan(
+function buildDelegationStage(
   mergedTypeInfo: MergedTypeInfo,
   fieldNodes: Array<FieldNode>,
   proxiableSubschemas: Array<Subschema>
 ): {
   delegationMap: Map<Subschema, Array<FieldNode>>;
+  proxiableFieldNodes: Array<FieldNode>;
   unproxiableFieldNodes: Array<FieldNode>;
 } {
   const { uniqueFields, nonUniqueFields } = mergedTypeInfo;
+  const proxiableFieldNodes: Array<FieldNode> = [];
   const unproxiableFieldNodes: Array<FieldNode> = [];
 
   // 2. for each selection:
@@ -316,6 +427,7 @@ const buildDelegationPlan = memoize(function buildDelegationPlan(
       } else {
         delegationMap.set(uniqueSubschema, [fieldNode]);
       }
+      proxiableFieldNodes.push(fieldNode);
 
       continue;
     }
@@ -342,57 +454,37 @@ const buildDelegationPlan = memoize(function buildDelegationPlan(
     } else {
       delegationMap.set(nonUniqueSubschemas[0], [fieldNode]);
     }
+    proxiableFieldNodes.push(fieldNode);
   }
 
   return {
     delegationMap,
+    proxiableFieldNodes,
     unproxiableFieldNodes,
   };
+}
+
+const createSubschemas = memoize(function createSubschemas(subschema: Subschema): Array<Subschema> {
+  return [subschema];
 });
 
 const combineSubschemas = memoize(function combineSubschemas(
-  subschemaOrSubschemas: Subschema | Array<Subschema>,
+  subschemas: Array<Subschema>,
   additionalSubschemas: Array<Subschema>
 ): Array<Subschema> {
-  return Array.isArray(subschemaOrSubschemas)
-    ? subschemaOrSubschemas.concat(additionalSubschemas)
-    : [subschemaOrSubschemas].concat(additionalSubschemas);
+  return subschemas.concat(additionalSubschemas);
 });
 
-function getMergedParentsFromFieldNodes(
+function executeDelegationStage(
+  delegationMap: Map<Subschema, Array<FieldNode>>,
+  schema: GraphQLSchema,
+  type: GraphQLObjectType,
   mergedTypeInfo: MergedTypeInfo,
-  object: any,
-  fieldNodes: Array<FieldNode>,
-  sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
-  targetSubschemas: Array<Subschema>,
   context: Record<string, any>,
-  parentInfo: GraphQLResolveInfo
-): Record<string, Promise<ExternalObject>> {
-  if (!fieldNodes.length) {
-    return Object.create(null);
-  }
-
-  const { proxiableSubschemas, nonProxiableSubschemas } = sortSubschemasByProxiability(
-    mergedTypeInfo,
-    sourceSubschemaOrSourceSubschemas,
-    targetSubschemas,
-    fieldNodes
-  );
-
-  const { delegationMap, unproxiableFieldNodes } = buildDelegationPlan(mergedTypeInfo, fieldNodes, proxiableSubschemas);
-
-  if (!delegationMap.size) {
-    const mergedParentMap = Object.create(null);
-    for (const fieldNode of unproxiableFieldNodes) {
-      const responseKey = fieldNode.alias?.value ?? fieldNode.name.value;
-      mergedParentMap[responseKey] = Promise.resolve(object);
-    }
-    return mergedParentMap;
-  }
-
-  const schema = parentInfo.schema;
-  const type = schema.getType(object.__typename) as GraphQLObjectType;
-  const parentPath = responsePathAsArray(parentInfo.path);
+  object: any,
+  parentInfo: GraphQLResolveInfo,
+  parentPath: Array<string | number>
+): Promise<ExternalObject> {
   const initialPath = getInitialPath(object);
   const newSubschemaMap = getSubschemaMap(object);
 
@@ -462,52 +554,18 @@ function getMergedParentsFromFieldNodes(
     })
   );
 
-  const currentPromise = promises.then(sources => Object.assign(object, ...sources));
-
-  const mergedParentMap = Object.create(null);
-  for (const [, fieldNodes] of delegationMap) {
-    for (const fieldNode of fieldNodes) {
-      const responseKey = fieldNode.alias?.value ?? fieldNode.name.value;
-      mergedParentMap[responseKey] = currentPromise;
-    }
-  }
-
-  const nextPromise = currentPromise.then(() =>
-    getMergedParentsFromFieldNodes(
-      mergedTypeInfo,
-      object,
-      unproxiableFieldNodes,
-      combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
-      nonProxiableSubschemas,
-      context,
-      parentInfo
-    )
-  );
-
-  for (const fieldNode of unproxiableFieldNodes) {
-    const responseKey = fieldNode.alias?.value ?? fieldNode.name.value;
-    mergedParentMap[responseKey] = nextPromise.then(nextParent => nextParent[responseKey]);
-  }
-
-  return mergedParentMap;
+  return promises.then(sources => Object.assign(object, ...sources));
 }
 
 const subschemaTypesContainSelectionSet = memoize(function subschemaTypesContainSelectionSet(
   mergedTypeInfo: MergedTypeInfo,
-  sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
+  sourceSubschemas: Array<Subschema>,
   selectionSet: SelectionSetNode
 ) {
-  if (Array.isArray(sourceSubschemaOrSourceSubschemas)) {
-    return typesContainSelectionSet(
-      sourceSubschemaOrSourceSubschemas.map(
-        sourceSubschema => sourceSubschema.transformedSchema.getType(mergedTypeInfo.typeName) as GraphQLObjectType
-      ),
-      selectionSet
-    );
-  }
-
   return typesContainSelectionSet(
-    [sourceSubschemaOrSourceSubschemas.transformedSchema.getType(mergedTypeInfo.typeName) as GraphQLObjectType],
+    sourceSubschemas.map(
+      sourceSubschema => sourceSubschema.transformedSchema.getType(mergedTypeInfo.typeName) as GraphQLObjectType
+    ),
     selectionSet
   );
 });
