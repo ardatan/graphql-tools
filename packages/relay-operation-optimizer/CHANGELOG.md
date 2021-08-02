@@ -1,5 +1,11 @@
 # @graphql-tools/relay-operation-optimizer
 
+## 6.3.3
+
+### Patch Changes
+
+- bd3c8007: fix relay-compiler imports for esm
+
 ## 6.3.2
 
 ### Patch Changes
