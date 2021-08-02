@@ -18,9 +18,10 @@ import {
   FieldNode,
 } from 'graphql';
 
+import nanomemoize from 'nano-memoize';
+
 import { implementsAbstractType, getRootTypeNames } from '@graphql-tools/utils';
 
-import { memoize2 } from './memoize';
 import { getDocumentMetadata } from './getDocumentMetadata';
 
 export function prepareGatewayDocument(
@@ -278,7 +279,7 @@ function generateInlineFragment(typeName: string, selectionSet: SelectionSetNode
   };
 }
 
-const getSchemaMetaData = memoize2(
+const getSchemaMetaData = nanomemoize(
   (
     sourceSchema: GraphQLSchema,
     targetSchema: GraphQLSchema

@@ -13,13 +13,20 @@ import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 
 import DataLoader from 'dataloader';
 
-import { ExecutionResult, getResponseKeyFromInfo, Maybe, relocatedError } from '@graphql-tools/utils';
+import nanomemoize from 'nano-memoize';
+
+import { getResponseKeyFromInfo, Maybe, relocatedError } from '@graphql-tools/utils';
 
 import { ExternalObject, MergedTypeInfo, StitchingInfo } from './types';
-import { memoize4, memoize3, memoize2 } from './memoize';
 import { Subschema } from './Subschema';
-import { getInfo, getInitialPath, getObjectSubchema, getSubschemaMap, isExternalObject } from './externalObjects';
-import { ValueOrPromise } from 'value-or-promise';
+import {
+  getInfo,
+  getInitialPath,
+  getObjectSubchema,
+  getSubschemaMap,
+  getUnpathedErrors,
+  isExternalObject,
+} from './externalObjects';
 
 const loaders: WeakMap<any, DataLoader<GraphQLResolveInfo, Promise<ExternalObject>>> = new WeakMap();
 
@@ -166,7 +173,7 @@ async function getMergedParentsFromInfos(
   });
 }
 
-const sortSubschemasByProxiability = memoize4(function sortSubschemasByProxiability(
+const sortSubschemasByProxiability = nanomemoize(function sortSubschemasByProxiability(
   mergedTypeInfo: MergedTypeInfo,
   sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
   targetSubschemas: Array<Subschema>,
@@ -213,7 +220,7 @@ const sortSubschemasByProxiability = memoize4(function sortSubschemasByProxiabil
   };
 });
 
-const buildDelegationPlan = memoize3(function buildDelegationPlan(
+const buildDelegationPlan = nanomemoize(function buildDelegationPlan(
   mergedTypeInfo: MergedTypeInfo,
   fieldNodes: Array<FieldNode>,
   proxiableSubschemas: Array<Subschema>
@@ -281,7 +288,7 @@ const buildDelegationPlan = memoize3(function buildDelegationPlan(
   };
 });
 
-const combineSubschemas = memoize2(function combineSubschemas(
+const combineSubschemas = nanomemoize(function combineSubschemas(
   subschemaOrSubschemas: Subschema | Array<Subschema>,
   additionalSubschemas: Array<Subschema>
 ): Array<Subschema> {
@@ -321,24 +328,27 @@ function getMergedParentsFromFieldNodes(
     return mergedParentMap;
   }
 
-  const mergedParentMap = Object.create(null);
   const schema = parentInfo.schema;
   const type = schema.getType(object.__typename) as GraphQLObjectType;
   const parentPath = responsePathAsArray(parentInfo.path);
   const initialPath = getInitialPath(object);
   const newSubschemaMap = getSubschemaMap(object);
-  const promises: Array<Promise<ExecutionResult>> = [];
 
-  for (const [s, fieldNodes] of delegationMap) {
-    const resolver = mergedTypeInfo.resolvers.get(s);
-    if (resolver) {
-      const selectionSet: SelectionSetNode = { kind: Kind.SELECTION_SET, selections: fieldNodes };
-      const result = new ValueOrPromise(() => resolver(object, context, parentInfo, s, selectionSet))
-        .catch(error => error)
-        .resolve();
+  const unpathedErrors = getUnpathedErrors(object);
 
-      const promise = Promise.resolve(result).then(result => {
-        if (result instanceof Error || result === null) {
+  const promises = Promise.all(
+    [...delegationMap.entries()].map(async ([s, fieldNodes]) => {
+      const resolver = mergedTypeInfo.resolvers.get(s);
+      if (resolver) {
+        const selectionSet: SelectionSetNode = { kind: Kind.SELECTION_SET, selections: fieldNodes };
+        let source: unknown;
+        try {
+          source = await resolver(object, context, parentInfo, s, selectionSet);
+        } catch (error) {
+          source = error;
+        }
+
+        if (source instanceof Error || source === null) {
           const fieldNodes = collectFields(
             {
               schema,
@@ -352,19 +362,19 @@ function getMergedParentsFromFieldNodes(
           );
 
           const nullResult = Object.create(null);
-          if (result instanceof GraphQLError && result.path) {
+          if (source instanceof GraphQLError && source.path) {
             const basePath = parentPath.slice(initialPath.length);
             for (const responseKey in fieldNodes) {
               const tailPath =
-                result.path.length === parentPath.length ? [responseKey] : result.path.slice(initialPath.length);
+                source.path.length === parentPath.length ? [responseKey] : source.path.slice(initialPath.length);
               const newPath = basePath.concat(tailPath);
-              nullResult[responseKey] = relocatedError(result, newPath);
+              nullResult[responseKey] = relocatedError(source, newPath);
             }
-          } else if (result instanceof Error) {
+          } else if (source instanceof Error) {
             const basePath = parentPath.slice(initialPath.length);
             for (const responseKey in fieldNodes) {
               const newPath = basePath.concat([responseKey]);
-              nullResult[responseKey] = locatedError(result, fieldNodes[responseKey], newPath);
+              nullResult[responseKey] = locatedError(source, fieldNodes[responseKey], newPath);
             }
           } else {
             for (const responseKey in fieldNodes) {
@@ -374,24 +384,25 @@ function getMergedParentsFromFieldNodes(
           return nullResult;
         }
 
-        if (!isExternalObject(result)) {
-          return result;
+        if (!isExternalObject(source)) {
+          return source;
         }
 
-        const objectSubschema = getObjectSubchema(result);
-        const subschemaMap = getSubschemaMap(result);
-        for (const responseKey in result) {
+        const objectSubschema = getObjectSubchema(source);
+        const subschemaMap = getSubschemaMap(source);
+        for (const responseKey in source) {
           newSubschemaMap[responseKey] = subschemaMap?.[responseKey] ?? objectSubschema;
         }
+        unpathedErrors.push(...getUnpathedErrors(source));
 
-        return result;
-      });
+        return source;
+      }
+    })
+  );
 
-      promises.push(promise);
-    }
-  }
+  const currentPromise = promises.then(sources => Object.assign(object, ...sources));
 
-  const currentPromise = Promise.all(promises).then(sources => Object.assign(object, ...sources));
+  const mergedParentMap = Object.create(null);
   for (const [, fieldNodes] of delegationMap) {
     for (const fieldNode of fieldNodes) {
       const responseKey = fieldNode.alias?.value ?? fieldNode.name.value;
@@ -419,7 +430,7 @@ function getMergedParentsFromFieldNodes(
   return mergedParentMap;
 }
 
-const subschemaTypesContainSelectionSet = memoize3(function subschemaTypesContainSelectionSet(
+const subschemaTypesContainSelectionSet = nanomemoize(function subschemaTypesContainSelectionSet(
   mergedTypeInfo: MergedTypeInfo,
   sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
   selectionSet: SelectionSetNode
