@@ -47,7 +47,7 @@ export function defaultMergedResolver(
       const subschema = getSubschema(parent, responseKey);
       return createExternalValue(data, unpathedErrors, initialPath, subschema, context, info);
     }
-  } else if (info.fieldNodes[0].name.value in initialPossibleFields) {
+  } else if (info.fieldName in initialPossibleFields) {
     return resolveField(parent, responseKey, context, info);
   }
 

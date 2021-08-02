@@ -28,6 +28,47 @@ import {
   isExternalObject,
 } from './externalObjects';
 
+const getMergeDetails = nanomemoize(
+  function getMergeDetails(
+    info: GraphQLResolveInfo,
+    parent: ExternalObject
+  ):
+    | {
+        stitchingInfo: StitchingInfo;
+        mergedTypeInfo: MergedTypeInfo;
+        sourceSubschema: Subschema;
+        targetSubschemas: Array<Subschema>;
+      }
+    | undefined {
+    const schema = info.schema;
+    const stitchingInfo: Maybe<StitchingInfo> = schema.extensions?.['stitchingInfo'];
+    if (stitchingInfo == null) {
+      return;
+    }
+
+    const parentTypeName = info.parentType.name;
+    const mergedTypeInfo = stitchingInfo.mergedTypes[parentTypeName];
+    if (mergedTypeInfo === undefined) {
+      return;
+    }
+
+    // In the stitching context, all subschemas are compiled Subschema objects rather than SubschemaConfig objects
+    const sourceSubschema = getObjectSubchema(parent) as Subschema;
+    const targetSubschemas = mergedTypeInfo.targetSubschemas.get(sourceSubschema);
+    if (targetSubschemas === undefined || targetSubschemas.length === 0) {
+      return;
+    }
+
+    return {
+      stitchingInfo,
+      mergedTypeInfo,
+      sourceSubschema,
+      targetSubschemas,
+    };
+  },
+  { maxArgs: 1 }
+);
+
 const loaders: WeakMap<any, DataLoader<GraphQLResolveInfo, Promise<ExternalObject>>> = new WeakMap();
 
 export async function getMergedParent(
@@ -35,9 +76,26 @@ export async function getMergedParent(
   context: Record<string, any>,
   info: GraphQLResolveInfo
 ): Promise<ExternalObject> {
+  const mergeDetails = getMergeDetails(info, parent);
+  if (!mergeDetails) {
+    return parent;
+  }
+
+  const { stitchingInfo, mergedTypeInfo, sourceSubschema, targetSubschemas } = mergeDetails;
+
   let loader = loaders.get(parent);
   if (loader === undefined) {
-    loader = new DataLoader(infos => getMergedParentsFromInfos(parent, context, infos));
+    loader = new DataLoader(infos =>
+      getMergedParentsFromInfos(
+        parent,
+        context,
+        infos,
+        stitchingInfo,
+        mergedTypeInfo,
+        sourceSubschema,
+        targetSubschemas
+      )
+    );
     loaders.set(parent, loader);
   }
   return loader.load(info);
@@ -46,29 +104,13 @@ export async function getMergedParent(
 async function getMergedParentsFromInfos(
   parent: ExternalObject,
   context: Record<string, any>,
-  infos: ReadonlyArray<GraphQLResolveInfo>
+  infos: ReadonlyArray<GraphQLResolveInfo>,
+  stitchingInfo: StitchingInfo,
+  mergedTypeInfo: MergedTypeInfo,
+  sourceSubschema: Subschema,
+  targetSubschemas: Array<Subschema>
 ): Promise<Array<Promise<ExternalObject>>> {
-  const parentInfo = getInfo(parent);
-
-  const schema = parentInfo.schema;
-  const stitchingInfo: Maybe<StitchingInfo> = schema.extensions?.['stitchingInfo'];
-  if (stitchingInfo == null) {
-    return infos.map(() => Promise.resolve(parent));
-  }
-
-  const parentTypeName = infos[0].parentType.name;
-  const mergedTypeInfo = stitchingInfo.mergedTypes[parentTypeName];
-  if (mergedTypeInfo === undefined) {
-    return infos.map(() => Promise.resolve(parent));
-  }
-
-  // In the stitching context, all subschemas are compiled Subschema objects rather than SubschemaConfig objects
-  const sourceSubschema = getObjectSubchema(parent) as Subschema;
-  const targetSubschemas = mergedTypeInfo.targetSubschemas.get(sourceSubschema);
-  if (targetSubschemas === undefined || targetSubschemas.length === 0) {
-    return infos.map(() => Promise.resolve(parent));
-  }
-
+  const parentTypeName = mergedTypeInfo.typeName;
   const sourceSubschemaParentType = sourceSubschema.transformedSchema.getType(parentTypeName) as GraphQLObjectType;
   const sourceSubschemaFields = sourceSubschemaParentType.getFields();
   const subschemaFields = mergedTypeInfo.subschemaFields;
@@ -123,7 +165,7 @@ async function getMergedParentsFromInfos(
       for (const fieldNode of info.fieldNodes) {
         for (const dynamicSelectionSet of dynamicSelectionSets) {
           const responseMap = collectFields(
-            parentInfo as unknown as ExecutionContext,
+            infos[0] as unknown as ExecutionContext,
             sourceSubschemaParentType,
             dynamicSelectionSet(fieldNode),
             {},
@@ -157,7 +199,7 @@ async function getMergedParentsFromInfos(
     sourceSubschema,
     targetSubschemas,
     context,
-    parentInfo
+    getInfo(parent)
   );
 
   return infos.map(info => {
