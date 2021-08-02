@@ -1,4 +1,12 @@
 import pLimit from 'p-limit';
 import cpus from 'cpus';
 
-export const limitConcurrency = pLimit(cpus?.().length || 3);
+function createLimitConcurrency() {
+  let concurrency: number;
+  try {
+    concurrency = cpus().length;
+  } catch (e) {}
+  return pLimit(concurrency || 3);
+}
+
+export const limitConcurrency = createLimitConcurrency();
