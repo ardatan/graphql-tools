@@ -197,6 +197,7 @@ async function getMergedParentsFromInfos(
     fieldNodes
   );
 
+  const parent$ = Promise.resolve().then(() => parent);
   const parents: Array<Promise<ExternalObject>> = [];
 
   if (delegationPlan.length) {
@@ -204,18 +205,8 @@ async function getMergedParentsFromInfos(
     const schema = parentInfo.schema;
     const type = schema.getType(parent.__typename) as GraphQLObjectType;
     const parentPath = responsePathAsArray(parentInfo.path);
-    let promise = executeDelegationStage(
-      delegationPlan[0],
-      schema,
-      type,
-      mergedTypeInfo,
-      context,
-      parent,
-      parentInfo,
-      parentPath
-    );
-    parents.push(promise);
-    for (let i = 1, delegationStage = delegationPlan[i]; i < delegationPlan.length; i++) {
+    let promise = parent$;
+    for (const delegationStage of delegationPlan) {
       promise = promise.then(parent =>
         executeDelegationStage(delegationStage, schema, type, mergedTypeInfo, context, parent, parentInfo, parentPath)
       );
@@ -230,7 +221,7 @@ async function getMergedParentsFromInfos(
       if (delegationStage !== undefined) {
         return parents[delegationStage];
       }
-      return Promise.resolve(parent);
+      return parent$;
     }
 
     const promises = Array.from(keys.values()).map(fieldName => {
@@ -238,7 +229,7 @@ async function getMergedParentsFromInfos(
       if (delegationStage !== undefined) {
         return parents[delegationStage];
       }
-      return Promise.resolve(parent);
+      return parent$;
     });
     return Promise.all(promises).then(parents => parents[0]);
   });
@@ -454,7 +445,7 @@ const combineSubschemas = memoize2(function combineSubschemas(
   return subschemas.concat(additionalSubschemas);
 });
 
-function executeDelegationStage(
+async function executeDelegationStage(
   delegationMap: Map<Subschema, Array<FieldNode>>,
   schema: GraphQLSchema,
   type: GraphQLObjectType,
@@ -469,7 +460,7 @@ function executeDelegationStage(
 
   const unpathedErrors = getUnpathedErrors(object);
 
-  const promises = Promise.all(
+  await Promise.all(
     [...delegationMap.entries()].map(async ([s, fieldNodes]) => {
       const resolver = mergedTypeInfo.resolvers.get(s);
       if (resolver) {
@@ -514,26 +505,22 @@ function executeDelegationStage(
               nullResult[responseKey] = null;
             }
           }
-          return nullResult;
+          source = nullResult;
+        } else if (isExternalObject(source)) {
+          const objectSubschema = getObjectSubchema(source);
+          const subschemaMap = getSubschemaMap(source);
+          for (const responseKey in source) {
+            newSubschemaMap[responseKey] = subschemaMap?.[responseKey] ?? objectSubschema;
+          }
+          unpathedErrors.push(...getUnpathedErrors(source));
         }
 
-        if (!isExternalObject(source)) {
-          return source;
-        }
-
-        const objectSubschema = getObjectSubchema(source);
-        const subschemaMap = getSubschemaMap(source);
-        for (const responseKey in source) {
-          newSubschemaMap[responseKey] = subschemaMap?.[responseKey] ?? objectSubschema;
-        }
-        unpathedErrors.push(...getUnpathedErrors(source));
-
-        return source;
+        Object.assign(object, source);
       }
     })
   );
 
-  return promises.then(sources => Object.assign(object, ...sources));
+  return object;
 }
 
 const subschemaTypesContainSelectionSet = memoize3(function subschemaTypesContainSelectionSet(
