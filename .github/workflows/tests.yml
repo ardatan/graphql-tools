@@ -97,3 +97,5 @@ jobs:
         run: yarn test --ci
         env:
           CI: true
+      - name: Test ESM
+        run: node scripts/test-esm.mjs

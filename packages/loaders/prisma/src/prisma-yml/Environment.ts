@@ -13,8 +13,10 @@ import { clusterEndpointMap } from './constants';
 import { getProxyAgent } from './utils/getProxyAgent';
 // eslint-disable-next-line
 // @ts-ignore
-import * as jwt from 'jsonwebtoken';
-const debug = require('debug')('Environment');
+import jwt from 'jsonwebtoken';
+import debugPkg from 'debug';
+
+const debug = debugPkg('Environment');
 
 export class Environment {
   sharedClusters: string[] = ['prisma-eu1', 'prisma-us1'];

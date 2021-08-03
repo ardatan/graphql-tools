@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 // eslint-disable-next-line
 // @ts-ignore
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { Args } from './types/common';
 import { Environment } from './Environment';
 import { IOutput } from './Output';

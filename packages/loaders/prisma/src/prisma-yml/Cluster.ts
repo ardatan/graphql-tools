@@ -1,11 +1,13 @@
 import 'isomorphic-fetch';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { cloudApiEndpoint } from './constants';
 import { GraphQLClient } from 'graphql-request';
 import chalk from 'chalk';
 import { IOutput } from './Output';
 import { getProxyAgent } from './utils/getProxyAgent';
-const debug = require('debug')('environment');
+import debugPkg from 'debug';
+
+const debug = debugPkg('Environment');
 
 export class Cluster {
   name: string;
