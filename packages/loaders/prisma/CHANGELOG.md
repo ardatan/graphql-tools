@@ -1,5 +1,11 @@
 # @graphql-tools/prisma-loader
 
+## 7.0.2
+
+### Patch Changes
+
+- 118b3ca5: fix imports for ESM
+
 ## 7.0.1
 
 ### Patch Changes
