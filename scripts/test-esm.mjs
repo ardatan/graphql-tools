@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 
 async function main() {
-  const mjsFiles = await globby(['../packages/**/dist/*.mjs'], {
+  const mjsFiles = await globby(['../packages/*/dist/*.mjs', '../packages/loaders/*/dist/*.mjs'], {
     cwd: dirname(fileURLToPath(import.meta.url)),
   });
 
