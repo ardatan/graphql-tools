@@ -1,5 +1,11 @@
 # @graphql-tools/load
 
+## 7.1.0
+
+### Minor Changes
+
+- 1680874b: enhance(load): includeSources flag now adds extended sources as well
+
 ## 7.0.1
 
 ### Patch Changes
