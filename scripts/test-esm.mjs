@@ -3,6 +3,8 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 
+const ignore = ['../packages/node-require/dist/index.mjs', '../packages/links/dist/index.mjs'];
+
 async function main() {
   const mjsFiles = await globby(['../packages/*/dist/*.mjs', '../packages/loaders/*/dist/*.mjs'], {
     cwd: dirname(fileURLToPath(import.meta.url)),
@@ -14,6 +16,8 @@ async function main() {
   let i = 0;
   await Promise.all(
     mjsFiles.map(mjsFile => {
+      if (ignore.includes(mjsFile)) return;
+
       const mjsPath = `./${mjsFile}`;
       return import(mjsPath)
         .then(() => {
@@ -28,6 +32,7 @@ async function main() {
         });
     })
   );
+  ignore.length && console.warn(chalk.yellow(`${ignore.length} Ignoring: ${ignore.join(' | ')}`));
   ok.length && console.log(chalk.blue(`${ok.length} OK: ${ok.join(' | ')}`));
   fail.length && console.error(chalk.red(`${fail.length} Fail: ${fail.join(' | ')}`));
 
