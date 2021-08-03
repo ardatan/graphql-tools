@@ -87,6 +87,7 @@ function includeSources(schema: GraphQLSchema, sources: Source[]) {
   schema.extensions = {
     ...schema.extensions,
     sources: finalSources,
+    extendedSources: sources,
   };
 }
 
