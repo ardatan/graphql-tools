@@ -2602,6 +2602,13 @@
     prop-types "^15.7.2"
     tslib "^2.1.0"
 
+"@rollup/plugin-json@4.1.0":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@rollup/plugin-json/-/plugin-json-4.1.0.tgz#54e09867ae6963c593844d8bd7a9c718294496f3"
+  integrity sha512-yfLbTdNS6amI/2OpmbiBoW12vngr5NW2jCJVZSBEz+H5KfUJZ2M7sDjk0U6GOOdCWFVScShte29o9NezJ53TPw==
+  dependencies:
+    "@rollup/pluginutils" "^3.0.8"
+
 "@rollup/plugin-node-resolve@7.1.1":
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-node-resolve/-/plugin-node-resolve-7.1.1.tgz#8c6e59c4b28baf9d223028d0e450e06a485bb2b7"
@@ -4174,11 +4181,12 @@ bn.js@^5.0.0, bn.js@^5.1.1:
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-5.2.0.tgz#358860674396c6997771a9d051fcc1b57d4ae002"
   integrity sha512-D7iWRBvnZE8ecXiLj/9wbxH7Tk79fAh8IHaTNq1RWRixsS02W+5qS+iE9yq6RYl0asXx5tw0bLhmT5pIfbSquw==
 
-bob-the-bundler@1.4.1:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/bob-the-bundler/-/bob-the-bundler-1.4.1.tgz#794382f60f0d2a68c57d85a41d06caf4a45cb1b4"
-  integrity sha512-Ho7JLV8ePKjWgV1USjoZK7w0rJ64RXv8WTBjP/J+l3wILem+TekcBPjKvpYvAqmWBZIliaKVyZhGHgTOaqjabw==
+bob-the-bundler@1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/bob-the-bundler/-/bob-the-bundler-1.5.0.tgz#5357d7da0220678bd409070a5ca73e003a3838ad"
+  integrity sha512-12t53+uEM//xVIlh1QFyBUs+w16QejMv8p4t0iDKGOx5S2aveb4NyTrqhfMQHy2UFzAdW7c5VOo9G7nv9T86uQ==
   dependencies:
+    "@rollup/plugin-json" "4.1.0"
     "@rollup/plugin-node-resolve" "7.1.1"
     "@vercel/ncc" "0.28.3"
     builtins "4.0.0"
