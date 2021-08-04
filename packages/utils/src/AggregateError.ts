@@ -1,5 +1,15 @@
-/// <reference lib="es2021.promise" />
-let AggregateErrorImpl = globalThis.AggregateError;
+// Backwards compability for old versions of TypeScript
+interface AggregateError extends Error {
+  errors: any[];
+}
+
+interface AggregateErrorConstructor {
+  new (errors: Iterable<any>, message?: string): AggregateError;
+  (errors: Iterable<any>, message?: string): AggregateError;
+  readonly prototype: AggregateError;
+}
+
+let AggregateErrorImpl: AggregateErrorConstructor = globalThis.AggregateError;
 
 if (typeof AggregateErrorImpl === 'undefined') {
   class AggregateErrorClass extends Error implements AggregateError {
