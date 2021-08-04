@@ -2099,10 +2099,10 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.0.tgz#0eee6373e11418bfe0b5638f654df7a4ca6a3950"
   integrity sha512-wYn6r8zVZyQJ6rQaALBEln5B1pzxb9shV5Ef97kTvn6yVGrqyXVnDqnU24MXnFubR+rZjBY9NWuxX3FB2sTsjg==
 
-"@guild-docs/client@0.2.24":
-  version "0.2.24"
-  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-0.2.24.tgz#06960bbd4d38041d422cce839c9560ff95762d00"
-  integrity sha512-MwpCogCBCqoHsP3nDiIPoZtLwgEMCxCWBQK9jNF0Ipt2IOFyTUBdg/kFy9vLU4UzE2Ex2GoiMpwe7jdbjD1aMw==
+"@guild-docs/client@0.2.26":
+  version "0.2.26"
+  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-0.2.26.tgz#cce50fa555d84394c02d066935c6832de068587f"
+  integrity sha512-9k7CTtuvzQ+OKYd70ggcLxslSttEqL4ZiyFzCH1XC0G1d/BwajKz8NTUiHZHB+RPRbTV1jb5RBKH5x8/uMETyg==
   dependencies:
     "@guild-docs/types" "^0.2.17"
     immer "^9.0.5"
