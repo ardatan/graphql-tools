@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.0.2
+
+### Patch Changes
+
+- 04830049: fix(utils): support old TypeScript versions
+
 ## 8.0.1
 
 ### Patch Changes
