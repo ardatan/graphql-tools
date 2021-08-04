@@ -124,23 +124,24 @@
     tslib "^2.3.0"
     zen-observable-ts "^1.1.0"
 
-"@apollo/federation@0.27.1", "@apollo/federation@^0.27.1":
-  version "0.27.1"
-  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.27.1.tgz#863eba4efd5058e710d7c4d41186427e0322fc79"
-  integrity sha512-c/Bsn2o8dibtYB+hIzrbko/Zy62ZmlBin/BaPEDWUQdzw22czkwuCJ5y2sYCcmSb6z/8AcLcAspG3WtFs0BmTg==
+"@apollo/federation@0.28.0", "@apollo/federation@^0.28.0":
+  version "0.28.0"
+  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.28.0.tgz#bbfcde3f327b3ec65dcfd98c6f52d6623a38b251"
+  integrity sha512-M5Dp0XJhuxEOzYjPWWK5VtIqEI1IFRioh1+XHrls90UC8R+b6VXa0UxMO/zfKv00APr4gBODMcfRe5w97NSruw==
   dependencies:
     apollo-graphql "^0.9.3"
+    apollo-server-types "^3.0.2"
     lodash.xorby "^4.7.0"
 
-"@apollo/gateway@0.35.1":
-  version "0.35.1"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.35.1.tgz#0eb2a3b059de03932bb2f16659a8d72dae819d52"
-  integrity sha512-A1iv+rbyYLyW0ICgeDFMqB4Ppi6px5rjrwMCVcwCG8DgIsBxtFKFrJc+D+Nfipj/pOCGfpo6tgQz5sBeS7FGYQ==
+"@apollo/gateway@0.36.0":
+  version "0.36.0"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.36.0.tgz#b2f21d01d8d65deddb3daa435ea755bfe5b789a1"
+  integrity sha512-C53srrEC03btD4fxR5shfrKnwIy1d42ENSLPIt8o6gGosQuJ5KfaipyqDBP28lDxS0LHeKB1f9DuVmvH1LkVfQ==
   dependencies:
-    "@apollo/federation" "^0.27.1"
+    "@apollo/federation" "^0.28.0"
     "@apollo/query-planner" "^0.3.1"
     "@opentelemetry/api" "^1.0.1"
-    "@types/node-fetch" "2.5.11"
+    "@types/node-fetch" "2.5.12"
     apollo-graphql "^0.9.3"
     apollo-reporting-protobuf "^0.8.0 || ^3.0.0"
     apollo-server-caching "^0.7.0 || ^3.0.0"
@@ -2114,10 +2115,10 @@
     use-immer "^0.6.0"
     zustand "^3.5.7"
 
-"@guild-docs/server@0.2.23":
-  version "0.2.23"
-  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-0.2.23.tgz#fe78f03dd0a9f1bb16b64f4ccb767772cd485ef1"
-  integrity sha512-72TbHrDHu69HkEBIFX77PKsp1CoVFNY0hGTNIqR7HChdOGqSJsvW1iwMf/pN1G2nDZcIn3tIbAyDc/Mcu8l3/A==
+"@guild-docs/server@0.2.25":
+  version "0.2.25"
+  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-0.2.25.tgz#8c0167813d6b87241c22561716332a7c98af768f"
+  integrity sha512-f9/RxMJWrh1IedmpNhXdME+lIxD9B/ESylw6dfdwXqRqObzsrr7cTSF5PO4kw7wh7zCLohnf3AcRiYZdZg/sZQ==
   dependencies:
     "@guild-docs/types" "^0.2.17"
     github-slugger "^1.3.0"
@@ -3038,10 +3039,10 @@
   resolved "https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.1.tgz#283f669ff76d7b8260df8ab7a4262cc83d988256"
   integrity sha512-fZQQafSREFyuZcdWFAExYjBiCL7AUCdgsk80iO0q4yihYYdcIiH28CcuPTGFgLOCC8RlW49GSQxdHwZP+I7CNg==
 
-"@types/node-fetch@2.5.11":
-  version "2.5.11"
-  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.5.11.tgz#ce22a2e65fc8999f4dbdb7ddbbcf187d755169e4"
-  integrity sha512-2upCKaqVZETDRb8A2VTaRymqFBEgH8u6yr96b/u3+1uQEPDRo3mJLEiPk7vdXBHRtjwkjqzFYMJXrt0Z9QsYjQ==
+"@types/node-fetch@2.5.12":
+  version "2.5.12"
+  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.5.12.tgz#8a6f779b1d4e60b7a57fb6fd48d84fb545b9cc66"
+  integrity sha512-MKgC4dlq4kKNa/mYrwpKfzQMB5X3ee5U6fSprkKpToBqBmX4nFZL9cW5jl6sWn+xpRJ7ypWh2yyqqr8UUCstSw==
   dependencies:
     "@types/node" "*"
     form-data "^3.0.0"
@@ -3803,7 +3804,7 @@ apollo-server-plugin-base@^3.1.1:
   dependencies:
     apollo-server-types "^3.1.1"
 
-"apollo-server-types@^0.9.0 || ^3.0.0", apollo-server-types@^3.1.1:
+"apollo-server-types@^0.9.0 || ^3.0.0", apollo-server-types@^3.0.2, apollo-server-types@^3.1.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/apollo-server-types/-/apollo-server-types-3.1.1.tgz#a45bf4d7c978340dc7c7dff317628629bdc53443"
   integrity sha512-dTNlRxqdo+wnrcOFpFfzehdmcYHl6MQKuLnCCRzAHuVR5yOiuhQ5CIGhIjvMx2bP9ZoyON1SvXOIDTyTaU9gaQ==
@@ -4521,7 +4522,7 @@ chalk@4.0.0:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
 
-chalk@4.1.2:
+chalk@4.1.2, chalk@^4.0.0, chalk@^4.1.0, chalk@^4.1.1:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-4.1.2.tgz#aac4e2b7734a740867aeb16bf02aad556a1e7a01"
   integrity sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==
@@ -4533,14 +4534,6 @@ chalk@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-3.0.0.tgz#3f73c2bf526591f574cc492c51e2456349f844e4"
   integrity sha512-4D3B6Wf41KOYRFdszmDqMCGq5VV/uMAB273JILmO+3jAlh8X4qDtdtgCR3fxtbLEMzSx22QdhnDcJvu2u1fVwg==
-  dependencies:
-    ansi-styles "^4.1.0"
-    supports-color "^7.1.0"
-
-chalk@^4.0.0, chalk@^4.1.0, chalk@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/chalk/-/chalk-4.1.1.tgz#c80b3fab28bf6371e6863325eee67e618b77e6ad"
-  integrity sha512-diHzdDKxcU+bAsUboHLPEDQiw0qEe0qd7SYUn3HgcFlWgbDcfLGswOHYeGrHKzG9z6UYf01d9VFMfZxPM1xZSg==
   dependencies:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
