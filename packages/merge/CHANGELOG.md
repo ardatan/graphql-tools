@@ -1,5 +1,15 @@
 # @graphql-tools/merge
 
+## 7.0.0
+
+### Major Changes
+
+- 4992b472: BREAKING: change type signature and generic parameters of `mergeResolvers`
+
+### Patch Changes
+
+- @graphql-tools/schema@8.0.3
+
 ## 6.2.17
 
 ### Patch Changes
