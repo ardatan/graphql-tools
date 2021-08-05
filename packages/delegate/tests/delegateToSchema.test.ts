@@ -3,6 +3,7 @@ import { graphql } from 'graphql';
 import { delegateToSchema } from '../src/delegateToSchema';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { wrapSchema } from '@graphql-tools/wrap';
+import { stitchSchemas } from '@graphql-tools/stitch';
 
 function assertSome<T>(input: T): asserts input is Exclude<T, null | undefined> {
   if (input == null) {
@@ -199,4 +200,41 @@ describe('delegateToSchema', () => {
       }
     });
   });
+  test('should work variables in directives', async () => {
+    const sourceSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */`
+                type Query {
+                  users(input: UsersInput!): [User!]!
+                }
+
+                type User {
+                  name: String!
+                  age: Int!
+                }
+
+                input UsersInput {
+                  limit: Int
+                }
+      `,
+      resolvers: {
+        Query: {
+          users: () => {
+            return [
+              { name: 'ABC', age: 10 },
+              { name: 'DEF', age: 20 },
+            ];
+          },
+        },
+      },
+    });
+    const stitchedSchema = stitchSchemas({ subschemas: [sourceSchema] });
+
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */`query($input: UsersInput!, $skip_age: Boolean!) { users(input: $input) { name age @skip (if: $skip_age) } }`,
+      variableValues: { input: { limit: 5 }, skip_age: true },
+    });
+
+    expect(result).toEqual({ "data": { "users": [{ "name": "ABC" }, { "name": "DEF" }] } });
+  })
 });

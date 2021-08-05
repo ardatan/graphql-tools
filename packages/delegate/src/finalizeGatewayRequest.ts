@@ -291,15 +291,15 @@ const filteredSelectionSetVisitorKeys: Partial<VisitorKeyMap<ASTKindToNode>> = {
 
 const variablesVisitorKeys: Partial<VisitorKeyMap<ASTKindToNode>> = {
   SelectionSet: ['selections'],
-  Field: ['arguments', 'selectionSet'],
+  Field: ['arguments', 'directives', 'selectionSet'],
   Argument: ['value'],
 
-  FragmentSpread: [],
-  InlineFragment: ['selectionSet'],
-  FragmentDefinition: ['selectionSet'],
+  InlineFragment: ['directives', 'selectionSet'],
+  FragmentDefinition: ['directives', 'selectionSet'],
 
   ObjectValue: ['fields'],
   ObjectField: ['name', 'value'],
+  Directive: ['arguments'],
 };
 
 function finalizeSelectionSet(
