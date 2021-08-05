@@ -1,5 +1,6 @@
 import {
   ArgumentNode,
+  ASTKindToNode,
   FragmentDefinitionNode,
   getNamedType,
   GraphQLField,
@@ -16,6 +17,7 @@ import {
   TypeNameMetaFieldDef,
   VariableDefinitionNode,
   visit,
+  VisitorKeyMap,
   visitWithTypeInfo,
 } from 'graphql';
 
@@ -280,6 +282,26 @@ function collectFragmentVariables(
   };
 }
 
+const filteredSelectionSetVisitorKeys: Partial<VisitorKeyMap<ASTKindToNode>> = {
+  SelectionSet: ['selections'],
+  Field: ['selectionSet'],
+  InlineFragment: ['selectionSet'],
+  FragmentDefinition: ['selectionSet'],
+};
+
+const variablesVisitorKeys: Partial<VisitorKeyMap<ASTKindToNode>> = {
+  SelectionSet: ['selections'],
+  Field: ['arguments', 'directives', 'selectionSet'],
+  Argument: ['value'],
+
+  InlineFragment: ['directives', 'selectionSet'],
+  FragmentDefinition: ['directives', 'selectionSet'],
+
+  ObjectValue: ['fields'],
+  ObjectField: ['name', 'value'],
+  Directive: ['arguments'],
+};
+
 function finalizeSelectionSet(
   schema: GraphQLSchema,
   type: GraphQLType,
@@ -390,61 +412,7 @@ function finalizeSelectionSet(
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
     // empty keys cannot be removed only because of typescript errors
     // will hopefully be fixed in future version of graphql-js to be optional
-    {
-      Name: [],
-
-      Document: [],
-      OperationDefinition: [],
-      VariableDefinition: [],
-      Variable: [],
-      SelectionSet: ['selections'],
-      Field: ['selectionSet'],
-      Argument: [],
-
-      FragmentSpread: [],
-      InlineFragment: ['selectionSet'],
-      FragmentDefinition: ['selectionSet'],
-
-      IntValue: [],
-      FloatValue: [],
-      StringValue: [],
-      BooleanValue: [],
-      NullValue: [],
-      EnumValue: [],
-      ListValue: [],
-      ObjectValue: [],
-      ObjectField: [],
-
-      Directive: [],
-
-      NamedType: [],
-      ListType: [],
-      NonNullType: [],
-
-      SchemaDefinition: [],
-      OperationTypeDefinition: [],
-
-      ScalarTypeDefinition: [],
-      ObjectTypeDefinition: [],
-      FieldDefinition: [],
-      InputValueDefinition: [],
-      InterfaceTypeDefinition: [],
-      UnionTypeDefinition: [],
-      EnumTypeDefinition: [],
-      EnumValueDefinition: [],
-      InputObjectTypeDefinition: [],
-
-      DirectiveDefinition: [],
-
-      SchemaExtension: [],
-
-      ScalarTypeExtension: [],
-      ObjectTypeExtension: [],
-      InterfaceTypeExtension: [],
-      UnionTypeExtension: [],
-      EnumTypeExtension: [],
-      InputObjectTypeExtension: [],
-    }
+    filteredSelectionSetVisitorKeys as any
   );
 
   visit(
@@ -457,61 +425,7 @@ function finalizeSelectionSet(
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
     // empty keys cannot be removed only because of typescript errors
     // will hopefully be fixed in future version of graphql-js to be optional
-    {
-      Name: [],
-
-      Document: [],
-      OperationDefinition: [],
-      VariableDefinition: [],
-      Variable: [],
-      SelectionSet: ['selections'],
-      Field: ['arguments', 'selectionSet'],
-      Argument: ['value'],
-
-      FragmentSpread: [],
-      InlineFragment: ['selectionSet'],
-      FragmentDefinition: ['selectionSet'],
-
-      IntValue: [],
-      FloatValue: [],
-      StringValue: [],
-      BooleanValue: [],
-      NullValue: [],
-      EnumValue: [],
-      ListValue: [],
-      ObjectValue: [],
-      ObjectField: [],
-
-      Directive: [],
-
-      NamedType: [],
-      ListType: [],
-      NonNullType: [],
-
-      SchemaDefinition: [],
-      OperationTypeDefinition: [],
-
-      ScalarTypeDefinition: [],
-      ObjectTypeDefinition: [],
-      FieldDefinition: [],
-      InputValueDefinition: [],
-      InterfaceTypeDefinition: [],
-      UnionTypeDefinition: [],
-      EnumTypeDefinition: [],
-      EnumValueDefinition: [],
-      InputObjectTypeDefinition: [],
-
-      DirectiveDefinition: [],
-
-      SchemaExtension: [],
-
-      ScalarTypeExtension: [],
-      ObjectTypeExtension: [],
-      InterfaceTypeExtension: [],
-      UnionTypeExtension: [],
-      EnumTypeExtension: [],
-      InputObjectTypeExtension: [],
-    }
+    variablesVisitorKeys as any
   );
 
   return {
