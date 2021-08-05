@@ -295,7 +295,8 @@ const variablesVisitorKeys: Partial<VisitorKeyMap<ASTKindToNode>> = {
   Argument: ['value'],
 
   InlineFragment: ['directives', 'selectionSet'],
-  FragmentDefinition: ['directives', 'selectionSet'],
+  FragmentSpread: ['directives'],
+  FragmentDefinition: ['selectionSet'],
 
   ObjectValue: ['fields'],
   ObjectField: ['name', 'value'],
