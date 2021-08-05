@@ -1,6 +1,6 @@
 {
   "name": "federation-benchmark",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "private": true,
   "scripts": {
     "start": "cross-env NODE_ENV=production node index.js",
@@ -11,8 +11,8 @@
   "dependencies": {
     "@apollo/gateway": "0.36.0",
     "@apollo/federation": "0.28.0",
-    "@graphql-tools/stitch": "8.0.5",
-    "@graphql-tools/stitching-directives": "2.0.4",
+    "@graphql-tools/stitch": "8.0.6",
+    "@graphql-tools/stitching-directives": "2.0.5",
     "express": "4.17.1",
     "graphql": "15.5.1",
     "graphql-tag": "2.12.5",

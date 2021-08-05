@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 8.0.5
+
+### Patch Changes
+
+- 7fdef335: fix(delegate): handle variables correctly
+
 ## 8.0.4
 
 ### Patch Changes
