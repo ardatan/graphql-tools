@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 8.0.6
+
+### Patch Changes
+
+- ded29f3d: fix(delegate): collect variables from directives on FragmentSpread
+
 ## 8.0.5
 
 ### Patch Changes
