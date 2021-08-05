@@ -479,8 +479,8 @@ function finalizeSelectionSet(
       NullValue: [],
       EnumValue: [],
       ListValue: [],
-      ObjectValue: [],
-      ObjectField: [],
+      ObjectValue: ['fields'],
+      ObjectField: ['name', 'value'],
 
       Directive: [],
 
