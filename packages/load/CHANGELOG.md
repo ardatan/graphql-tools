@@ -1,5 +1,12 @@
 # @graphql-tools/load
 
+## 7.1.2
+
+### Patch Changes
+
+- Updated dependencies [4992b472]
+  - @graphql-tools/merge@7.0.0
+
 ## 7.1.1
 
 ### Patch Changes
