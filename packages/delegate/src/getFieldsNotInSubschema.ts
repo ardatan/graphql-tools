@@ -4,7 +4,7 @@ import { Maybe } from '@graphql-tools/utils';
 
 import { isSubschemaConfig } from './subschemaConfig';
 import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from './types';
-import { memoizeInfoAnd2Objects } from './memoize';
+import { memoize3 } from './memoize';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
 
 function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<string, Array<FieldNode>> {
@@ -33,7 +33,7 @@ function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<st
   return subFieldNodes;
 }
 
-export const getFieldsNotInSubschema = memoizeInfoAnd2Objects(function getFieldsNotInSubschemaMemoized(
+export const getFieldsNotInSubschema = memoize3(function getFieldsNotInSubschemaMemoized(
   info: GraphQLResolveInfo,
   subschema: GraphQLSchema | SubschemaConfig<any, any, any, any>,
   mergedTypeInfo: MergedTypeInfo

@@ -109,7 +109,7 @@ function resolveExternalObject(
     typeName,
     object,
     fieldNodes,
-    subschema as Subschema | Array<Subschema>,
+    subschema as Subschema,
     targetSubschemas,
     context,
     info

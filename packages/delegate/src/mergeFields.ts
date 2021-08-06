@@ -13,7 +13,7 @@ import {
 } from 'graphql';
 
 import { ExternalObject, MergedTypeInfo, SubschemaConfig } from './types';
-import { memoize4, memoize3, memoize2 } from './memoize';
+import { memoize4, memoize3, memoize2, memoize1 } from './memoize';
 import { Subschema } from './Subschema';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
 import { relocatedError } from '@graphql-tools/utils';
@@ -21,7 +21,7 @@ import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SY
 
 const sortSubschemasByProxiability = memoize4(function sortSubschemasByProxiability(
   mergedTypeInfo: MergedTypeInfo,
-  sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
+  sourceSubschemas: Array<Subschema>,
   targetSubschemas: Array<Subschema>,
   fieldNodes: Array<FieldNode>
 ): {
@@ -36,10 +36,7 @@ const sortSubschemasByProxiability = memoize4(function sortSubschemasByProxiabil
   for (const t of targetSubschemas) {
     const selectionSet = mergedTypeInfo.selectionSets.get(t);
     const fieldSelectionSets = mergedTypeInfo.fieldSelectionSets.get(t);
-    if (
-      selectionSet != null &&
-      !subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemaOrSourceSubschemas, selectionSet)
-    ) {
+    if (selectionSet != null && !subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemas, selectionSet)) {
       nonProxiableSubschemas.push(t);
     } else {
       if (
@@ -49,7 +46,7 @@ const sortSubschemasByProxiability = memoize4(function sortSubschemasByProxiabil
           const fieldSelectionSet = fieldSelectionSets[fieldName];
           return (
             fieldSelectionSet == null ||
-            subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemaOrSourceSubschemas, fieldSelectionSet)
+            subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemas, fieldSelectionSet)
           );
         })
       ) {
@@ -140,13 +137,15 @@ const buildDelegationPlan = memoize3(function buildDelegationPlan(
   };
 });
 
+const createSubschemas = memoize1(function createSubschemas(sourceSubschema: Subschema): Array<Subschema> {
+  return [sourceSubschema];
+});
+
 const combineSubschemas = memoize2(function combineSubschemas(
-  subschemaOrSubschemas: Subschema | Array<Subschema>,
+  sourceSubschemas: Array<Subschema>,
   additionalSubschemas: Array<Subschema>
 ): Array<Subschema> {
-  return Array.isArray(subschemaOrSubschemas)
-    ? subschemaOrSubschemas.concat(additionalSubschemas)
-    : [subschemaOrSubschemas].concat(additionalSubschemas);
+  return sourceSubschemas.concat(additionalSubschemas);
 });
 
 export function isExternalObject(data: any): data is ExternalObject {
@@ -179,7 +178,29 @@ export async function mergeFields(
   typeName: string,
   object: any,
   fieldNodes: Array<FieldNode>,
-  sourceSubschemaOrSourceSubschemas: Subschema<any, any, any, any> | Array<Subschema<any, any, any, any>>,
+  sourceSubschema: Subschema<any, any, any, any>,
+  targetSubschemas: Array<Subschema<any, any, any, any>>,
+  context: any,
+  info: GraphQLResolveInfo
+): Promise<any> {
+  return _mergeFields(
+    mergedTypeInfo,
+    typeName,
+    object,
+    fieldNodes,
+    createSubschemas(sourceSubschema),
+    targetSubschemas,
+    context,
+    info
+  );
+}
+
+async function _mergeFields(
+  mergedTypeInfo: MergedTypeInfo,
+  typeName: string,
+  object: any,
+  fieldNodes: Array<FieldNode>,
+  sourceSubschemas: Array<Subschema<any, any, any, any>>,
   targetSubschemas: Array<Subschema<any, any, any, any>>,
   context: any,
   info: GraphQLResolveInfo
@@ -190,7 +211,7 @@ export async function mergeFields(
 
   const { proxiableSubschemas, nonProxiableSubschemas } = sortSubschemasByProxiability(
     mergedTypeInfo,
-    sourceSubschemaOrSourceSubschemas,
+    sourceSubschemas,
     targetSubschemas,
     fieldNodes
   );
@@ -267,12 +288,12 @@ export async function mergeFields(
 
   combinedResult[UNPATHED_ERRORS_SYMBOL] = combinedErrors;
 
-  return mergeFields(
+  return _mergeFields(
     mergedTypeInfo,
     typeName,
     combinedResult,
     unproxiableFieldNodes,
-    combineSubschemas(sourceSubschemaOrSourceSubschemas, proxiableSubschemas),
+    combineSubschemas(sourceSubschemas, proxiableSubschemas),
     nonProxiableSubschemas,
     context,
     info
@@ -281,20 +302,13 @@ export async function mergeFields(
 
 const subschemaTypesContainSelectionSet = memoize3(function subschemaTypesContainSelectionSetMemoized(
   mergedTypeInfo: MergedTypeInfo,
-  sourceSubschemaOrSourceSubschemas: Subschema | Array<Subschema>,
+  sourceSubchemas: Array<Subschema>,
   selectionSet: SelectionSetNode
 ) {
-  if (Array.isArray(sourceSubschemaOrSourceSubschemas)) {
-    return typesContainSelectionSet(
-      sourceSubschemaOrSourceSubschemas.map(
-        sourceSubschema => sourceSubschema.transformedSchema.getType(mergedTypeInfo.typeName) as GraphQLObjectType
-      ),
-      selectionSet
-    );
-  }
-
   return typesContainSelectionSet(
-    [sourceSubschemaOrSourceSubschemas.transformedSchema.getType(mergedTypeInfo.typeName) as GraphQLObjectType],
+    sourceSubchemas.map(
+      sourceSubschema => sourceSubschema.transformedSchema.getType(mergedTypeInfo.typeName) as GraphQLObjectType
+    ),
     selectionSet
   );
 });
