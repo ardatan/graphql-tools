@@ -2099,12 +2099,12 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.0.tgz#0eee6373e11418bfe0b5638f654df7a4ca6a3950"
   integrity sha512-wYn6r8zVZyQJ6rQaALBEln5B1pzxb9shV5Ef97kTvn6yVGrqyXVnDqnU24MXnFubR+rZjBY9NWuxX3FB2sTsjg==
 
-"@guild-docs/client@0.2.26":
-  version "0.2.26"
-  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-0.2.26.tgz#cce50fa555d84394c02d066935c6832de068587f"
-  integrity sha512-9k7CTtuvzQ+OKYd70ggcLxslSttEqL4ZiyFzCH1XC0G1d/BwajKz8NTUiHZHB+RPRbTV1jb5RBKH5x8/uMETyg==
+"@guild-docs/client@0.2.27":
+  version "0.2.27"
+  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-0.2.27.tgz#40182b9df8dc5cdf2781bfad95a7fe5f8b7bea8f"
+  integrity sha512-WgjWBr28lUQP0BVrGnRtPEQIn5D9QAuHzHBTo6nZrrn+H52lBgw0kXqgzvbqPz3egNow7h2IArgER2KzosMi8A==
   dependencies:
-    "@guild-docs/types" "^0.2.17"
+    "@guild-docs/types" "^0.2.27"
     immer "^9.0.5"
     next-mdx-remote "^3.0.4"
     next-seo "^4.26.0"
@@ -2131,10 +2131,10 @@
     remark-slug "^6.1.0"
     tiny-lru "^7.0.6"
 
-"@guild-docs/types@^0.2.17":
-  version "0.2.17"
-  resolved "https://registry.yarnpkg.com/@guild-docs/types/-/types-0.2.17.tgz#796927a483f200d78b69bd17ac93c290ec5de8d8"
-  integrity sha512-U9zUTOX3KRC+ZollJ9/5y4Jrpd0QB4IyicGL12G1c55Y5tLtZ2hQr8gWk92YEPFsmrH+1UmMjIvOToLynuD7qA==
+"@guild-docs/types@^0.2.17", "@guild-docs/types@^0.2.27":
+  version "0.2.27"
+  resolved "https://registry.yarnpkg.com/@guild-docs/types/-/types-0.2.27.tgz#ec40dd729ac60a05f0ac55c7592f87629d094eb6"
+  integrity sha512-Aeu12/5Tp4NVh+JYuVHsPuJkvzYaAzyh53F3BPBBOCVSlVhJVMbUZJqjkEXd+NzFMz/GeysDcE3CyFG+7MizSg==
 
 "@hapi/accept@5.0.2":
   version "5.0.2"
