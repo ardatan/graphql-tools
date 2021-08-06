@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 8.0.7
+
+### Patch Changes
+
+- d47dcf42: fix(delegate): visit list values to collect variables
+
 ## 8.0.6
 
 ### Patch Changes
