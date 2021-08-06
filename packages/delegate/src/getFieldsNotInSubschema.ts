@@ -1,24 +1,27 @@
-import { GraphQLSchema, FieldNode, GraphQLObjectType, GraphQLResolveInfo } from 'graphql';
-
-import { Maybe } from '@graphql-tools/utils';
+import { GraphQLSchema, FieldNode, GraphQLObjectType, FragmentDefinitionNode } from 'graphql';
 
 import { isSubschemaConfig } from './subschemaConfig';
 import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from './types';
-import { memoize3 } from './memoize';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
 
-function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<string, Array<FieldNode>> {
+function collectSubFields(
+  schema: GraphQLSchema,
+  typeName: string,
+  fieldNodes: ReadonlyArray<FieldNode>,
+  fragments: Record<string, FragmentDefinitionNode>,
+  variableValues: Record<string, any>
+): Record<string, Array<FieldNode>> {
   let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
   const visitedFragmentNames = Object.create(null);
 
-  const type = info.schema.getType(typeName) as GraphQLObjectType;
+  const type = schema.getType(typeName) as GraphQLObjectType;
   const partialExecutionContext = {
-    schema: info.schema,
-    variableValues: info.variableValues,
-    fragments: info.fragments,
+    schema,
+    variableValues,
+    fragments,
   } as ExecutionContext;
 
-  for (const fieldNode of info.fieldNodes) {
+  for (const fieldNode of fieldNodes) {
     if (fieldNode.selectionSet) {
       subFieldNodes = collectFields(
         partialExecutionContext,
@@ -33,22 +36,26 @@ function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<st
   return subFieldNodes;
 }
 
-export const getFieldsNotInSubschema = memoize3(function getFieldsNotInSubschemaMemoized(
-  info: GraphQLResolveInfo,
+export function getFieldsNotInSubschema(
+  schema: GraphQLSchema,
+  stitchingInfo: StitchingInfo,
+  mergedTypeInfo: MergedTypeInfo,
+  typeName: string,
   subschema: GraphQLSchema | SubschemaConfig<any, any, any, any>,
-  mergedTypeInfo: MergedTypeInfo
+  fieldNodes: ReadonlyArray<FieldNode>,
+  fragments: Record<string, FragmentDefinitionNode>,
+  variableValues: Record<string, any>
 ): Array<FieldNode> {
   const typeMap = isSubschemaConfig(subschema) ? mergedTypeInfo.typeMaps.get(subschema) : subschema.getTypeMap();
   if (!typeMap) {
     return [];
   }
-  const typeName = mergedTypeInfo.typeName;
+
   const fields = (typeMap[typeName] as GraphQLObjectType).getFields();
 
-  const subFieldNodes = collectSubFields(info, typeName);
+  const subFieldNodes = collectSubFields(schema, typeName, fieldNodes, fragments, variableValues);
 
   // TODO: Verify whether it is safe that extensions always exists.
-  const stitchingInfo: Maybe<StitchingInfo> = info.schema.extensions?.['stitchingInfo'];
   const fieldNodesByField = stitchingInfo?.fieldNodesByField;
 
   const fieldsNotInSchema = new Set<FieldNode>();
@@ -71,4 +78,4 @@ export const getFieldsNotInSubschema = memoize3(function getFieldsNotInSubschema
   }
 
   return Array.from(fieldsNotInSchema);
-});
+}
