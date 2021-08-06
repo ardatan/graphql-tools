@@ -1,6 +1,6 @@
 import { print, parse } from 'graphql';
 import { DelegationContext } from '@graphql-tools/delegate';
-import { bookingSchema } from '../../wrap/tests/fixtures/schemas';
+import { bookingSchema, propertySchema } from '../../wrap/tests/fixtures/schemas';
 import { finalizeGatewayRequest } from '../src/finalizeGatewayRequest';
 
 describe('finalizeGatewayRequest', () => {
@@ -68,6 +68,31 @@ describe('finalizeGatewayRequest', () => {
       }
     }
     `);
+    expect(print(filteredQuery.document)).toBe(print(expected));
+  });
+
+  test('should not remove used variables in nested inputs', () => {
+    const query = parse(`
+    query jsonTestQuery($test: String!) {
+      jsonTest(input: [{ test: $test }] )
+    }
+    `);
+    const filteredQuery = finalizeGatewayRequest({
+      document: query,
+      variables: {
+        test: 'test',
+      },
+      operationType: 'query' as const,
+    }, {
+      targetSchema: propertySchema
+    } as DelegationContext);
+
+    const expected = parse(`
+    query jsonTestQuery($test: String!) {
+      jsonTest(input: [{ test: $test }] )
+    }
+    `);
+    expect(filteredQuery.variables).toEqual({ test: 'test' })
     expect(print(filteredQuery.document)).toBe(print(expected));
   });
 

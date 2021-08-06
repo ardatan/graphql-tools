@@ -301,6 +301,7 @@ const variablesVisitorKeys: Partial<VisitorKeyMap<ASTKindToNode>> = {
   ObjectValue: ['fields'],
   ObjectField: ['name', 'value'],
   Directive: ['arguments'],
+  ListValue: ['values'],
 };
 
 function finalizeSelectionSet(
