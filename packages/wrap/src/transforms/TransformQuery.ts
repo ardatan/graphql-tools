@@ -122,7 +122,7 @@ export default class TransformQuery implements Transform {
       }
       newData[next] = this.resultTransformer(newData[next], delegationContext, transformationContext);
     }
-    return newData;
+    return data;
   }
 
   private transformErrors(errors: ReadonlyArray<GraphQLError>): ReadonlyArray<GraphQLError> {
