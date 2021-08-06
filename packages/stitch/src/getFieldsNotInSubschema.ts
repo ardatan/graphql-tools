@@ -1,12 +1,12 @@
 import { GraphQLSchema, FieldNode, GraphQLObjectType, FragmentDefinitionNode } from 'graphql';
 
-import { isSubschemaConfig } from './subschemaConfig';
-import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from './types';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
+
+import { StitchingInfo } from '@graphql-tools/delegate';
 
 function collectSubFields(
   schema: GraphQLSchema,
-  typeName: string,
+  type: GraphQLObjectType,
   fieldNodes: ReadonlyArray<FieldNode>,
   fragments: Record<string, FragmentDefinitionNode>,
   variableValues: Record<string, any>
@@ -14,7 +14,6 @@ function collectSubFields(
   let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
   const visitedFragmentNames = Object.create(null);
 
-  const type = schema.getType(typeName) as GraphQLObjectType;
   const partialExecutionContext = {
     schema,
     variableValues,
@@ -39,24 +38,18 @@ function collectSubFields(
 export function getFieldsNotInSubschema(
   schema: GraphQLSchema,
   stitchingInfo: StitchingInfo,
-  mergedTypeInfo: MergedTypeInfo,
-  typeName: string,
-  subschema: GraphQLSchema | SubschemaConfig<any, any, any, any>,
+  gatewayType: GraphQLObjectType,
+  subschemaType: GraphQLObjectType,
   fieldNodes: ReadonlyArray<FieldNode>,
   fragments: Record<string, FragmentDefinitionNode>,
   variableValues: Record<string, any>
 ): Array<FieldNode> {
-  const typeMap = isSubschemaConfig(subschema) ? mergedTypeInfo.typeMaps.get(subschema) : subschema.getTypeMap();
-  if (!typeMap) {
-    return [];
-  }
-
-  const fields = (typeMap[typeName] as GraphQLObjectType).getFields();
-
-  const subFieldNodes = collectSubFields(schema, typeName, fieldNodes, fragments, variableValues);
+  const subFieldNodes = collectSubFields(schema, gatewayType, fieldNodes, fragments, variableValues);
 
   // TODO: Verify whether it is safe that extensions always exists.
   const fieldNodesByField = stitchingInfo?.fieldNodesByField;
+
+  const fields = subschemaType.getFields();
 
   const fieldsNotInSchema = new Set<FieldNode>();
   for (const responseKey in subFieldNodes) {
@@ -67,7 +60,7 @@ export function getFieldsNotInSubschema(
         fieldsNotInSchema.add(subFieldNodeForResponseKey);
       }
     }
-    const fieldNodesForField = fieldNodesByField?.[typeName]?.[fieldName];
+    const fieldNodesForField = fieldNodesByField?.[gatewayType.name]?.[fieldName];
     if (fieldNodesForField) {
       for (const fieldNode of fieldNodesForField) {
         if (!fields[fieldNode.name.value]) {

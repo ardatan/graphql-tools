@@ -9,8 +9,14 @@ import {
   FragmentDefinitionNode,
 } from 'graphql';
 
-import { MergedTypeInfo, StitchingInfo } from './types';
-import { Subschema } from './Subschema';
+import {
+  DelegationPlanBuilder,
+  MergedTypeInfo,
+  StitchingInfo,
+  Subschema,
+  SubschemaConfig,
+} from '@graphql-tools/delegate';
+
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
 import { memoize1, memoize2, memoize3 } from './memoize';
 
@@ -123,54 +129,98 @@ function calculateDelegationStage(
   };
 }
 
+function getStitchingInfo(schema: GraphQLSchema): StitchingInfo {
+  const stitchingInfo = schema.extensions?.['stitchingInfo'] as StitchingInfo | undefined;
+  if (!stitchingInfo) {
+    throw new Error(`Schema is not a stitched schema.`);
+  }
+  return stitchingInfo;
+}
+
+function getMergedTypeInfo(stitchingInfo: StitchingInfo, typeName: string): MergedTypeInfo {
+  const mergedTypeInfo = stitchingInfo.mergedTypes[typeName];
+  if (!mergedTypeInfo) {
+    throw new Error(`Type "${typeName}" is not a merged type.`);
+  }
+  return mergedTypeInfo;
+}
+
 export function buildDelegationPlan(
   schema: GraphQLSchema,
-  stitchingInfo: StitchingInfo,
-  mergedTypeInfo: MergedTypeInfo,
-  sourceSubschema: Subschema<any, any, any, any>,
-  targetSubschemas: Array<Subschema<any, any, any, any>>,
+  typeName: string,
+  sourceSubschema: GraphQLSchema | SubschemaConfig<any, any, any, any>,
   fieldNodes: ReadonlyArray<FieldNode>,
   fragments: Record<string, FragmentDefinitionNode> = Object.create(null),
   variableValues: Record<string, any> = Object.create(null)
 ): Array<Map<Subschema, SelectionSetNode>> {
-  const fieldsNotInSubschema = getFieldsNotInSubschema(
-    schema,
-    stitchingInfo,
-    mergedTypeInfo,
-    mergedTypeInfo.typeName,
-    sourceSubschema,
-    fieldNodes,
-    fragments,
-    variableValues
-  );
-
-  const delegationMaps: Array<Map<Subschema, SelectionSetNode>> = [];
-  let sourceSubschemas = createSubschemas(sourceSubschema);
-
-  let delegationStage = calculateDelegationStage(
-    mergedTypeInfo,
-    sourceSubschemas,
-    targetSubschemas,
-    fieldsNotInSubschema
-  );
-  let { delegationMap } = delegationStage;
-  while (delegationMap.size) {
-    delegationMaps.push(delegationMap);
-
-    const { proxiableSubschemas, nonProxiableSubschemas, unproxiableFieldNodes } = delegationStage;
-
-    sourceSubschemas = combineSubschemas(sourceSubschemas, proxiableSubschemas);
-
-    delegationStage = calculateDelegationStage(
-      mergedTypeInfo,
-      sourceSubschemas,
-      nonProxiableSubschemas,
-      unproxiableFieldNodes
-    );
-    delegationMap = delegationStage.delegationMap;
+  const stitchingInfo = getStitchingInfo(schema);
+  const transformedSubschema = stitchingInfo.subschemaMap.get(sourceSubschema);
+  if (!transformedSubschema) {
+    throw new Error('Stitched schema does not contain the specifiec source subschema.');
   }
 
-  return delegationMaps;
+  const delegationPlanBuilder = createDelegationPlanBuilder(typeName);
+
+  return delegationPlanBuilder(schema, transformedSubschema, fieldNodes, fragments, variableValues, stitchingInfo);
+}
+
+export function createDelegationPlanBuilder(typeName: string): DelegationPlanBuilder {
+  return (
+    schema: GraphQLSchema,
+    sourceSubschema: Subschema<any, any, any, any>,
+    fieldNodes: ReadonlyArray<FieldNode>,
+    fragments: Record<string, FragmentDefinitionNode> = Object.create(null),
+    variableValues: Record<string, any> = Object.create(null),
+    stitchingInfo = getStitchingInfo(schema),
+    mergedTypeInfo = getMergedTypeInfo(stitchingInfo, typeName),
+    targetSubschemas = mergedTypeInfo?.targetSubschemas.get(sourceSubschema)
+  ): Array<Map<Subschema, SelectionSetNode>> => {
+    if (!targetSubschemas || !targetSubschemas.length) {
+      return [];
+    }
+
+    const fieldsNotInSubschema = getFieldsNotInSubschema(
+      schema,
+      stitchingInfo,
+      schema.getType(typeName) as GraphQLObjectType,
+      mergedTypeInfo.typeMaps.get(sourceSubschema)?.[typeName] as GraphQLObjectType,
+      fieldNodes,
+      fragments,
+      variableValues
+    );
+
+    if (!fieldsNotInSubschema.length) {
+      return [];
+    }
+
+    const delegationMaps: Array<Map<Subschema, SelectionSetNode>> = [];
+    let sourceSubschemas = createSubschemas(sourceSubschema);
+
+    let delegationStage = calculateDelegationStage(
+      mergedTypeInfo,
+      sourceSubschemas,
+      targetSubschemas,
+      fieldsNotInSubschema
+    );
+    let { delegationMap } = delegationStage;
+    while (delegationMap.size) {
+      delegationMaps.push(delegationMap);
+
+      const { proxiableSubschemas, nonProxiableSubschemas, unproxiableFieldNodes } = delegationStage;
+
+      sourceSubschemas = combineSubschemas(sourceSubschemas, proxiableSubschemas);
+
+      delegationStage = calculateDelegationStage(
+        mergedTypeInfo,
+        sourceSubschemas,
+        nonProxiableSubschemas,
+        unproxiableFieldNodes
+      );
+      delegationMap = delegationStage.delegationMap;
+    }
+
+    return delegationMaps;
+  };
 }
 
 const createSubschemas = memoize1(function createSubschemas(sourceSubschema: Subschema): Array<Subschema> {

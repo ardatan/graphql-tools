@@ -23,6 +23,7 @@ import { MergeTypeCandidate, MergeTypeFilter } from './types';
 import { createMergedTypeResolver } from './createMergedTypeResolver';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
 import { TypeMap } from 'graphql/type/schema';
+import { buildDelegationPlan, createDelegationPlanBuilder } from './buildDelegationPlan';
 
 export function createStitchingInfo<TContext = Record<string, any>>(
   subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>,
@@ -30,6 +31,7 @@ export function createStitchingInfo<TContext = Record<string, any>>(
   mergeTypes?: boolean | Array<string> | MergeTypeFilter<TContext>
 ): StitchingInfo<TContext> {
   const mergedTypes = createMergedTypes(typeCandidates, mergeTypes);
+
   return {
     subschemaMap,
     fieldNodesByType: Object.create(null),
@@ -162,6 +164,7 @@ function createMergedTypes<TContext = Record<string, any>>(
           uniqueFields: Object.create({}),
           nonUniqueFields: Object.create({}),
           resolvers,
+          delegationPlanBuilder: createDelegationPlanBuilder(typeName),
         };
 
         for (const fieldName in supportedBySubschemas) {

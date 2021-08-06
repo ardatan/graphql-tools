@@ -8,13 +8,14 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import { ExternalObject, MergedTypeInfo, SubschemaConfig } from './types';
-import { memoize4 } from './memoize';
-import { Subschema } from './Subschema';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
+
 import { relocatedError } from '@graphql-tools/utils';
+
+import { ExternalObject, MergedTypeInfo, StitchingInfo, SubschemaConfig } from './types';
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
-import { buildDelegationPlan } from './buildDelegationPlan';
+import { Subschema } from './Subschema';
+import { memoize4 } from './memoize';
 
 export function isExternalObject(data: any): data is ExternalObject {
   return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
@@ -141,15 +142,15 @@ const buildDelegationPlanFromInfo = memoize4(function buildDelegationPlanFromInf
   targetSubschemas: Array<Subschema<any, any, any, any>>
 ): Array<Map<Subschema, SelectionSetNode>> {
   const { schema, fragments, variableValues, fieldNodes } = info;
-  const stitchingInfo = schema.extensions?.['stitchingInfo'];
-  return buildDelegationPlan(
+
+  return mergedTypeInfo.delegationPlanBuilder(
     schema,
-    stitchingInfo,
-    mergedTypeInfo,
     sourceSubschema,
-    targetSubschemas,
     fieldNodes,
     fragments,
-    variableValues
+    variableValues,
+    schema.extensions?.['stitchingInfo'] as StitchingInfo,
+    mergedTypeInfo,
+    targetSubschemas
   );
 });

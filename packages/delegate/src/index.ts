@@ -5,7 +5,6 @@ export * from './createRequest';
 export * from './defaultMergedResolver';
 export * from './delegateToSchema';
 export * from './mergeFields';
-export * from './buildDelegationPlan';
 export * from './resolveExternalValue';
 export * from './subschemaConfig';
 export * from './types';
