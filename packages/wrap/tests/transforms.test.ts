@@ -444,8 +444,16 @@ describe('transforms', () => {
             errorTest: String
           }
 
+          scalar PageInfo
+
+          type UserConnection {
+            pageInfo: PageInfo!
+            nodes: [User!]
+          }
+
           type Query {
             userById(id: ID!): User
+            usersByIds(ids: [ID!]): UserConnection!
           }
         `,
         resolvers: {
@@ -463,6 +471,14 @@ describe('transforms', () => {
             userById(_parent, { id }) {
               return data[id];
             },
+            usersByIds(_parent, { ids }) {
+              return {
+                nodes: Object.entries(data)
+                  .filter(([id, _value]) => ids.includes(id))
+                  .map(([_id, value]) => value),
+                pageInfo: "1"
+              }
+            }
           },
         },
       });
@@ -474,9 +490,17 @@ describe('transforms', () => {
             errorTest: String
           }
 
+          scalar PageInfo
+
+          type AddressConnection {
+            pageInfo: PageInfo!
+            nodes: [Address!]
+          }
+
           type Query {
             addressByUser(id: ID!): Address
             errorTest(id: ID!): Address
+            addressesByUsers(ids:[ID!]): AddressConnection!
           }
         `,
         resolvers: {
@@ -516,6 +540,40 @@ describe('transforms', () => {
                   }),
                 ],
               });
+            },
+            addressesByUsers(_parent, { ids }, context, info) {
+              return delegateToSchema({
+                schema: subschema,
+                operation: 'query',
+                fieldName: 'usersByIds',
+                args: { ids },
+                context,
+                info,
+                transforms: [
+                  // Wrap document takes a subtree as an AST node
+                  new TransformQuery({
+                    // longer path, useful when transforming paginated results
+                    path: ['usersByIds', 'nodes'],
+                    queryTransformer: (subtree: SelectionSetNode) => ({
+                      // same query transformation as above
+                      kind: Kind.SELECTION_SET,
+                      selections: [
+                        {
+                          kind: Kind.FIELD,
+                          name: {
+                            kind: Kind.NAME,
+                            value: 'address',
+                          },
+                          selectionSet: subtree,
+                        },
+                      ],
+                    }),
+                    // how to process the data result at path
+                    resultTransformer: (result) => result.map((u: any) => u.address),
+                    errorPathTransformer: (path) => path.slice(1),
+                  }),
+                ],
+              })
             },
             errorTest(_parent, { id }, context, info) {
               return delegateToSchema({
@@ -635,6 +693,41 @@ describe('transforms', () => {
           errorTest: null,
         },
         errors: [new Error('Test Error!')],
+      });
+    });
+
+    test('nested path produces nested result, other fields get preserved', async () => {
+      const result = await graphql(
+        schema,
+        `
+          query {
+            addressesByUsers(ids: ["u1", "u2"]) {
+              nodes {
+                streetAddress
+                zip
+              }
+              pageInfo
+            }
+          }
+        `
+      );
+
+      expect(result).toEqual({
+        data: {
+          addressesByUsers: {
+            nodes: [
+              {
+                streetAddress: 'Windy Shore 21 A 7',
+                zip: '12345',
+              },
+              {
+                streetAddress: 'Snowy Mountain 5 B 77',
+                zip: '54321',
+              },
+            ],
+            pageInfo: "1"
+          },
+        },
       });
     });
   });
