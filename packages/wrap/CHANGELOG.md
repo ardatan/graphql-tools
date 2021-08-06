@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 8.0.8
+
+### Patch Changes
+
+- 343e697e: Fix TransformQuery for path longer than 1
+
 ## 8.0.7
 
 ### Patch Changes
