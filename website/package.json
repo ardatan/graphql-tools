@@ -11,7 +11,7 @@
     "analyze": "cross-env ANALYZE=true next build"
   },
   "pnpm": { "overrides": { "esbuild": "^0.12.8" } },
-  "resolutions": { "esbuild": "0.12.18" },
+  "resolutions": { "esbuild": "0.12.19" },
   "devDependencies": {
     "@next/bundle-analyzer": "11.0.1",
     "@types/concurrently": "6.2.1",
@@ -21,7 +21,7 @@
     "@types/react-dom": "17.0.9",
     "concurrently": "6.2.0",
     "cross-env": "7.0.3",
-    "esbuild": "0.12.18",
+    "esbuild": "0.12.19",
     "esbuild-register": "2.6.0",
     "next-remote-watch": "1.0.0",
     "open-cli": "7.0.0",
