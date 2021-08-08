@@ -33,7 +33,7 @@
     "@chakra-ui/react": "1.6.5",
     "@chakra-ui/theme-tools": "1.1.8",
     "@chakra-ui/utils": "1.8.1",
-    "@emotion/react": "11.4.0",
+    "@emotion/react": "11.4.1",
     "@emotion/styled": "11.3.0",
     "@guild-docs/client": "0.2.27",
     "@guild-docs/server": "0.2.25",
