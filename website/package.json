@@ -19,7 +19,7 @@
     "@types/node": "15.14.1",
     "@types/react": "17.0.16",
     "@types/react-dom": "17.0.9",
-    "concurrently": "6.2.0",
+    "concurrently": "6.2.1",
     "cross-env": "7.0.3",
     "esbuild": "0.12.19",
     "esbuild-register": "2.6.0",
