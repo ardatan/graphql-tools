@@ -4,57 +4,63 @@ import { graphql, astFromValue, Kind, GraphQLString } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
 
 describe('FilterInputObjectFields', () => {
-  test('filtering works', async () => {
-    const schema = makeExecutableSchema({
-      typeDefs: `
-        input InputObject {
-          field1: String
-          field2: String
-        }
+  const schema = makeExecutableSchema({
+    typeDefs: `
+      input InputObject {
+        field1: String
+        field2: String
+      }
 
-        type OutputObject {
-          field1: String
-          field2: String
-        }
+      type OutputObject {
+        field1: String
+        field2: String
+      }
 
-        type Query {
-          test(argument: InputObject): OutputObject
-        }
-      `,
-      resolvers: {
-        Query: {
-          test: (_root, args) => {
-            return args.argument;
-          }
+      type Query {
+        test(argument: InputObject): OutputObject
+        test2(arguments: [InputObject]): [OutputObject]
+      }
+    `,
+    resolvers: {
+      Query: {
+        test: (_root, args) => {
+          return args.argument;
+        },
+        test2: (_root, args) => {
+          return args.arguments;
         }
       }
-    });
+    }
+  });
 
-    const transformedSchema = wrapSchema({
-      schema,
-      transforms: [
-        new FilterInputObjectFields(
-          (typeName, fieldName) => (typeName !== 'InputObject' || fieldName !== 'field2'),
-          (typeName, inputObjectNode) => {
-            if (typeName === 'InputObject') {
-              const value = astFromValue('field2', GraphQLString)
-              assertSome(value)
-              return {
-                ...inputObjectNode,
-                fields: [...inputObjectNode.fields, {
-                  kind: Kind.OBJECT_FIELD,
-                  name: {
-                    kind: Kind.NAME,
-                    value: 'field2',
-                  },
-                  value,
-                }],
-              };
-            }
+  const transformedSchema = wrapSchema({
+    schema,
+    transforms: [
+      new FilterInputObjectFields(
+        (typeName, fieldName) => (typeName !== 'InputObject' || fieldName !== 'field2'),
+        (typeName, inputObjectNode) => {
+          if (typeName === 'InputObject') {
+            const value = astFromValue('field2', GraphQLString)
+            assertSome(value)
+            return {
+              ...inputObjectNode,
+              fields: [...inputObjectNode.fields, {
+                kind: Kind.OBJECT_FIELD,
+                name: {
+                  kind: Kind.NAME,
+                  value: 'field2',
+                },
+                value,
+              }],
+            };
           }
-        )
-      ],
-    });
+        }
+      )
+    ],
+  });
+
+  test('filtering works', async () => {
+
 
     const query = `{
       test(argument: {
@@ -66,7 +72,31 @@ describe('FilterInputObjectFields', () => {
     }`;
 
     const result = await graphql(transformedSchema, query);
-    assertSome(result.data)
+    assertSome(result.data);
+    expect(result.errors).toBeUndefined();
+    expect(result.data['test'].field1).toBe('field1');
+    expect(result.data['test'].field2).toBe('field2');
+  });
+
+  test('filtering works with non-nullable input variable', async () => {
+
+
+    const query = `query testQuery($field1Arg: String!){
+      test(argument: {
+        field1: $field1Arg
+      }) {
+        field1
+        field2
+      }
+    }`;
+
+    const result = await graphql({
+      schema: transformedSchema,
+      source: query,
+      variableValues: {field1Arg: 'field1'}
+    });
+    assertSome(result.data);
+    expect(result.errors).toBeUndefined();
     expect(result.data['test'].field1).toBe('field1');
     expect(result.data['test'].field2).toBe('field2');
   });

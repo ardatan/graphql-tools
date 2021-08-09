@@ -96,11 +96,18 @@ export default class TransformInputObjectFields implements Transform {
       if (variableDefs != null) {
         for (const variableDef of variableDefs) {
           const varName = variableDef.variable.name.value;
-          if (variableDef.type.kind !== Kind.NAMED_TYPE) {
-            throw new Error(`Expected ${variableDef.type} to be a named type`);
+          let varType;
+          switch (variableDef.type.kind) {
+            case Kind.LIST_TYPE:
+              varType = typeFromAST(delegationContext.transformedSchema, variableDef.type);
+              break;
+            case Kind.NON_NULL_TYPE:
+              varType = typeFromAST(delegationContext.transformedSchema, variableDef.type);
+              break;
+            default:
+              varType = typeFromAST(delegationContext.transformedSchema, variableDef.type as any);
+              break;
           }
-          // requirement for 'as NamedTypeNode' appears to be a bug within types, as function should take any TypeNode
-          const varType = typeFromAST(delegationContext.transformedSchema, variableDef.type);
           if (!isInputType(varType)) {
             throw new Error(`Expected ${varType} to be an input type`);
           }
