@@ -25,7 +25,6 @@ export async function collectSources<TOptions>({
 
   const { addSource, collect } = createHelpers({
     sources,
-    options,
     stack: [collectDocumentString, collectCustomLoader, collectFallback],
   });
 
@@ -61,7 +60,6 @@ export function collectSourcesSync<TOptions>({
 
   const { addSource, collect } = createHelpers({
     sources,
-    options,
     stack: [collectDocumentString, collectCustomLoaderSync, collectFallbackSync],
   });
 
@@ -83,30 +81,9 @@ export function collectSourcesSync<TOptions>({
   return sources;
 }
 
-function createHelpers<T>({
-  sources,
-  options,
-  stack,
-}: {
-  sources: Source[];
-  options: LoadTypedefsOptions<Partial<T>>;
-  stack: StackFn<CollectOptions<T>>[];
-}) {
-  const addSource: AddSource = ({
-    pointer,
-    source,
-    noCache,
-  }: {
-    pointer: string;
-    source: Source;
-    noCache?: boolean;
-  }) => {
+function createHelpers<T>({ sources, stack }: { sources: Source[]; stack: StackFn<CollectOptions<T>>[] }) {
+  const addSource: AddSource = ({ source }: { pointer: string; source: Source }) => {
     sources.push(source);
-
-    if (!noCache && options.cache) {
-      options.cache[pointer] = options.cache[pointer] || [];
-      options.cache[pointer].push(source);
-    }
   };
 
   const collect = useStack(...stack);
