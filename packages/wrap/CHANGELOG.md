@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 8.0.9
+
+### Patch Changes
+
+- a7dee807: fix(wrap): handle non nullable input variables correctly
+
 ## 8.0.8
 
 ### Patch Changes
