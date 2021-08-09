@@ -53,8 +53,6 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Sou
   return results;
 }
 
-function useCache<T extends any>({ pointer, options }: { pointer: string; options: T }) {
-  if (options['cache']) {
-    return options['cache'][pointer];
-  }
+function useCache({ pointer, options }: { pointer: string; options: { cache?: { [key: string]: Source[] } } }) {
+  return options?.cache?.[pointer];
 }

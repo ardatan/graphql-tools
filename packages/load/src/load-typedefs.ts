@@ -9,7 +9,7 @@ const CONCURRENCY_LIMIT = 100;
 
 export type LoadTypedefsOptions<ExtraConfig = { [key: string]: any }> = BaseLoaderOptions &
   ExtraConfig & {
-    cache?: { [key: string]: Source };
+    cache?: { [key: string]: Source[] };
     loaders: Loader[];
     filterKinds?: string[];
     sort?: boolean;

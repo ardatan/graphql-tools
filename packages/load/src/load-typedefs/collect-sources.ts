@@ -104,7 +104,8 @@ function createHelpers<T>({
     sources.push(source);
 
     if (!noCache && options.cache) {
-      options.cache[pointer] = source;
+      options.cache[pointer] = options.cache[pointer] || [];
+      options.cache[pointer].push(source);
     }
   };
 
