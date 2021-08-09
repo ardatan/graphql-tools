@@ -1,5 +1,11 @@
 # @graphql-tools/load
 
+## 7.1.3
+
+### Patch Changes
+
+- 78dc790d: fix(load): fix loader cache
+
 ## 7.1.2
 
 ### Patch Changes
