@@ -12,6 +12,7 @@ import {
   ObjectFieldNode,
   OperationDefinitionNode,
   isInputType,
+  NamedTypeNode,
 } from 'graphql';
 
 import { Maybe, ExecutionRequest, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
@@ -96,18 +97,8 @@ export default class TransformInputObjectFields implements Transform {
       if (variableDefs != null) {
         for (const variableDef of variableDefs) {
           const varName = variableDef.variable.name.value;
-          let varType;
-          switch (variableDef.type.kind) {
-            case Kind.LIST_TYPE:
-              varType = typeFromAST(delegationContext.transformedSchema, variableDef.type);
-              break;
-            case Kind.NON_NULL_TYPE:
-              varType = typeFromAST(delegationContext.transformedSchema, variableDef.type);
-              break;
-            default:
-              varType = typeFromAST(delegationContext.transformedSchema, variableDef.type as any);
-              break;
-          }
+          // Cast to NamedTypeNode required until upcomming graphql releases will have TypeNode paramter
+          const varType = typeFromAST(delegationContext.transformedSchema, variableDef.type as NamedTypeNode);
           if (!isInputType(varType)) {
             throw new Error(`Expected ${varType} to be an input type`);
           }

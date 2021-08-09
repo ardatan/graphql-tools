@@ -18,16 +18,12 @@ describe('FilterInputObjectFields', () => {
 
       type Query {
         test(argument: InputObject): OutputObject
-        test2(arguments: [InputObject]): [OutputObject]
       }
     `,
     resolvers: {
       Query: {
         test: (_root, args) => {
           return args.argument;
-        },
-        test2: (_root, args) => {
-          return args.arguments;
         }
       }
     }
