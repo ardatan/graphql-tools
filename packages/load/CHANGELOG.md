@@ -1,5 +1,11 @@
 # @graphql-tools/load
 
+## 7.1.4
+
+### Patch Changes
+
+- fdc26730: fix(load): handle cache correctly
+
 ## 7.1.3
 
 ### Patch Changes
