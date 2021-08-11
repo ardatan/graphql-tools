@@ -2,22 +2,22 @@
 # yarn lockfile v1
 
 
-"@apollo/federation@0.28.0", "@apollo/federation@^0.28.0":
-  version "0.28.0"
-  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.28.0.tgz#bbfcde3f327b3ec65dcfd98c6f52d6623a38b251"
-  integrity sha512-M5Dp0XJhuxEOzYjPWWK5VtIqEI1IFRioh1+XHrls90UC8R+b6VXa0UxMO/zfKv00APr4gBODMcfRe5w97NSruw==
+"@apollo/federation@0.29.0", "@apollo/federation@^0.29.0":
+  version "0.29.0"
+  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.29.0.tgz#ef06e77fff639a7fb4a6c19caef604a2aef74f94"
+  integrity sha512-QxhomJbfaGk2zzXyJSzbRTtMVCrneo5Iuok8dN1Mklmhxx3XPdZhAq4cOWU4bSl90ZphRJCPIdrz4j9CIC0k4Q==
   dependencies:
     apollo-graphql "^0.9.3"
     apollo-server-types "^3.0.2"
     lodash.xorby "^4.7.0"
 
-"@apollo/gateway@0.37.0":
-  version "0.37.0"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.37.0.tgz#ce6a1f9003df61c2adda2b1bd64378d6d4892fdb"
-  integrity sha512-R3y16TOGXm71LJ7KJanabfDivqew+vpYqZ2RNnC/yFTO46nv6K2zY02GSHkFbxGoOvgAhNYt+RMnwtV3+8sdfQ==
+"@apollo/gateway@0.38.0":
+  version "0.38.0"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.38.0.tgz#1b726b5eb02d1bfa4daef738530f6113086db312"
+  integrity sha512-fjTPzQneTf5FmgNkSeC52DKMK2ggO8jWrVaWst7/cP0GvRJh9bBTg1mLPy2Sk2YYJxTKZzAqTKarYGhba8uC6g==
   dependencies:
-    "@apollo/federation" "^0.28.0"
-    "@apollo/query-planner" "^0.3.1"
+    "@apollo/federation" "^0.29.0"
+    "@apollo/query-planner" "^0.3.2"
     "@opentelemetry/api" "^1.0.1"
     "@types/node-fetch" "2.5.12"
     apollo-graphql "^0.9.3"
@@ -50,10 +50,10 @@
     "@types/node" "^10.1.0"
     long "^4.0.0"
 
-"@apollo/query-planner@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-0.3.1.tgz#72df57f6c7b3e57036ad4e0709b2d67dee2865aa"
-  integrity sha512-Oqzhh/Xtj3FJU9D7JbTuTtF31pi8NBS+yqFm1N8Nh1NXMlmv/U9zNtrvUHNO40ynQsLEVKDmddYob6viMbcCmg==
+"@apollo/query-planner@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-0.3.2.tgz#fdd51931a7ecf3f2a3c6c1b4909a881fc11114bb"
+  integrity sha512-/wbEL3oIKrV8iuJYfupQhhudfmozt13qByz95Mu3BrgSb97+bFgvlxq+1QKZi82DjEI4kXBnrsgLekIWm5BOUg==
   dependencies:
     apollo-graphql "^0.9.3"
     chalk "^4.1.0"
