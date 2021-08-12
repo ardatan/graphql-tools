@@ -98,7 +98,11 @@ export function checkValidationErrors(loadDocumentErrors: ReadonlyArray<LoadDocu
       }
     }
 
-    throw new AggregateError(errors, `GraphQL Document Validation failed with ${loadDocumentErrors.length} errors`);
+    throw new AggregateError(
+      errors,
+      `GraphQL Document Validation failed with ${errors.length} errors;
+  ${errors.map((error, index) => `Error ${index}: ${error.stack}`).join('\n\n')}`
+    );
   }
 }
 
