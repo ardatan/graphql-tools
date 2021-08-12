@@ -22,7 +22,7 @@ export default function Index() {
     <>
       <HeroGradient
         title="A set of utilities for faster development of GraphQL Schemas"
-        description="GraphQL Tools is an npm package and an opinionated structure for how to build a GraphQL schema and resolvers in JavaScript, following the GraphQL-first development workflow."
+        description="GraphQL Tools is a set of NPM packages and an opinionated structure for how to build a GraphQL schema and resolvers in JavaScript, following the GraphQL-first development workflow."
         link={{
           children: 'Get Started',
           title: 'Learn more about GraphQL Tools',
