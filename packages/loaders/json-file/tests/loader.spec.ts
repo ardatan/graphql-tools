@@ -56,8 +56,13 @@ describe('JsonFileLoader', () => {
         expect(result.document).toBeDefined();
       });
 
+      it('should load multiple files from glob expression', async () => {
+        const results = await load(join(process.cwd(), getPointer('*.json')), {});
+        expect(results).toHaveLength(2);
+      })
+
       it('should throw when the file content is malformed', async () => {
-        await expect(load(getPointer('malformed.json'), {})).rejects.toThrowError('Unable to read JSON file');
+        await expect(load(getPointer('failing/malformed.json'), {})).rejects.toThrowError('Unable to read JSON file');
       });
       it('should skip file it cannot load', async () => {
         const result = await load(getPointer('id_do_not_exist.json'), {});
