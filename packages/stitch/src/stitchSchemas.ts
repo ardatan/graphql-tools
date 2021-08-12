@@ -146,7 +146,10 @@ export function stitchSchemas<TContext = Record<string, any>>({
     updateResolversInPlace,
   });
 
-  if (Object.keys(resolverValidationOptions).length > 0) {
+  if (
+    Object.keys(resolverValidationOptions).length > 0 &&
+    Object.values(resolverValidationOptions).some(o => o !== 'ignore')
+  ) {
     assertResolversPresent(schema, resolverValidationOptions);
   }
 
