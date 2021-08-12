@@ -1,5 +1,11 @@
-import { Source, printSchemaWithDirectives, fixSchemaAst, parseGraphQLSDL } from '@graphql-tools/utils';
-import { printWithComments, resetComments } from '@graphql-tools/merge';
+import {
+  Source,
+  printSchemaWithDirectives,
+  fixSchemaAst,
+  parseGraphQLSDL,
+  printWithComments,
+  resetComments,
+} from '@graphql-tools/utils';
 import { filterKind } from '../filter-document-kind';
 
 type Options = any;

@@ -22,7 +22,7 @@ import {
   isolateComputedFieldsTransformer,
   splitMergedTypeEntryPointsTransformer,
 } from './subschemaConfigTransforms';
-import { mergeResolvers } from '@graphql-tools/merge';
+import { applyExtensions, mergeExtensions, mergeResolvers } from '@graphql-tools/merge';
 
 export function stitchSchemas<TContext = Record<string, any>>({
   subschemas = [],
@@ -39,6 +39,7 @@ export function stitchSchemas<TContext = Record<string, any>>({
   parseOptions = {},
   pruningOptions,
   updateResolversInPlace,
+  schemaExtensions,
 }: IStitchSchemasOptions<TContext>): GraphQLSchema {
   if (typeof resolverValidationOptions !== 'object') {
     throw new Error('Expected `resolverValidationOptions` to be an object');
@@ -153,6 +154,13 @@ export function stitchSchemas<TContext = Record<string, any>>({
 
   if (pruningOptions) {
     schema = pruneSchema(schema, pruningOptions);
+  }
+
+  if (schemaExtensions) {
+    if (Array.isArray(schemaExtensions)) {
+      schemaExtensions = mergeExtensions(schemaExtensions);
+    }
+    applyExtensions(schema, schemaExtensions);
   }
 
   return schema;

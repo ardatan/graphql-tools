@@ -1,6 +1,6 @@
 import { TypeSource } from '@graphql-tools/utils';
-import { GraphQLSchema, isSchema, graphql, buildASTSchema } from 'graphql';
-import { mergeTypeDefs } from '@graphql-tools/merge';
+import { isSchema, graphql } from 'graphql';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from './addMocksToSchema';
 import { IMockServer, IMocks } from './types';
 
@@ -17,15 +17,15 @@ import { IMockServer, IMocks } from './types';
  * server and not others.
  */
 export function mockServer(schema: TypeSource, mocks: IMocks, preserveResolvers = false): IMockServer {
-  let mySchema: GraphQLSchema;
-  if (!isSchema(schema)) {
-    // TODO: provide useful error messages here if this fails
-    mySchema = buildASTSchema(mergeTypeDefs(schema));
-  } else {
-    mySchema = schema;
-  }
+  const mockedSchema = addMocksToSchema({
+    schema: isSchema(schema)
+      ? schema
+      : makeExecutableSchema({
+          typeDefs: schema,
+        }),
+    mocks,
+    preserveResolvers,
+  });
 
-  mySchema = addMocksToSchema({ schema: mySchema, mocks, preserveResolvers });
-
-  return { query: (query, vars) => graphql(mySchema, query, {}, {}, vars) };
+  return { query: (query, vars) => graphql(mockedSchema, query, {}, {}, vars) };
 }

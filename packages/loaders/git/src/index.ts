@@ -122,7 +122,7 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     return resolved;
   }
 
-  private async _load(pointer: string, options: GitLoaderOptions): Promise<Source[]> {
+  private async handleSingularPointerAsync(pointer: string, options: GitLoaderOptions): Promise<Source[]> {
     const result = extractData(pointer);
     if (result === null) {
       return [];
@@ -157,17 +157,22 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       await Promise.all(
         resolvedPaths.map(async path => {
           const results = await this.load(path, options);
-          finalResult.push(...results);
+          for (const result of results) {
+            finalResult.push(result);
+          }
         })
       );
     } else if (await this.canLoad(pointer)) {
-      finalResult.push(...(await this._load(pointer, options)));
+      const results = await this.handleSingularPointerAsync(pointer, options);
+      for (const result of results) {
+        finalResult.push(result);
+      }
     }
 
     return finalResult;
   }
 
-  private _loadSync(pointer: string, options: GitLoaderOptions): Source[] {
+  private handleSingularPointerSync(pointer: string, options: GitLoaderOptions): Source[] {
     const result = extractData(pointer);
     if (result === null) {
       return [];
@@ -202,11 +207,17 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       const finalResult: Source[] = [];
       for (const path of resolvedPaths) {
         if (this.canLoadSync(path)) {
-          finalResult.push(...this.loadSync(path, options));
+          const results = this.loadSync(path, options);
+          for (const result of results) {
+            finalResult.push(result);
+          }
         }
       }
     } else if (this.canLoadSync(pointer)) {
-      finalResult.push(...this._loadSync(pointer, options));
+      const results = this.handleSingularPointerSync(pointer, options);
+      for (const result of results) {
+        finalResult.push(result);
+      }
     }
 
     return finalResult;

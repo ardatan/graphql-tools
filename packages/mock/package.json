@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@graphql-tools/schema": "^8.0.3",
-    "@graphql-tools/merge": "7.0.0",
     "@graphql-tools/utils": "8.0.2",
     "fast-json-stable-stringify": "^2.1.0",
     "tslib": "~2.3.0"

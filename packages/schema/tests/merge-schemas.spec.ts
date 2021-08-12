@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { graphql, buildSchema, GraphQLScalarType, Kind, GraphQLSchema, print } from 'graphql';
-import { mergeSchemas, mergeSchemasAsync } from '../src/merge-schemas';
+import { mergeSchemas } from '../src/merge-schemas';
 import { assertSome, printSchemaWithDirectives } from '@graphql-tools/utils';
 import { assertListValueNode } from '../../testing/assertion';
 
@@ -67,47 +67,6 @@ describe('Merge Schemas', () => {
         });
         const { errors, data } = await graphql({
             schema: mergeSchemas({
-                schemas: [fooSchema, barSchema]
-            }),
-            source: `
-                {
-                    foo
-                    bar
-                }
-            `
-        });
-        expect(errors).toBeFalsy();
-        assertSome(data)
-        expect(data['foo']).toBe('FOO');
-        expect(data['bar']).toBe('BAR');
-    });
-    it('should merge two valid executable schemas async', async () => {
-        const fooSchema = makeExecutableSchema({
-            typeDefs: /* GraphQL */`
-                type Query {
-                    foo: String
-                }
-            `,
-            resolvers: {
-                Query: {
-                    foo: () => 'FOO'
-                }
-            }
-        });
-        const barSchema = makeExecutableSchema({
-            typeDefs: /* GraphQL */`
-                type Query {
-                    bar: String
-                }
-            `,
-            resolvers: {
-                Query: {
-                    bar: () => 'BAR'
-                }
-            }
-        });
-        const { errors, data } = await graphql({
-            schema: await mergeSchemasAsync({
                 schemas: [fooSchema, barSchema]
             }),
             source: `

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import * as path from 'path';
 import { CodeFileLoader } from '../src';
-import { parse } from 'graphql';
+import { parse, print } from 'graphql';
 
 describe('loadFromCodeFile', () => {
   const loader = new CodeFileLoader();
@@ -128,40 +128,33 @@ describe('loadFromCodeFileSync', () => {
   });
 
   it('should support loading many in same file', () => {
-    const loaded = loader.loadSync('./test-files/multiple-from-file.ts', {
+    const loadedSources = loader.loadSync('./test-files/multiple-from-file.ts', {
       cwd: __dirname,
       pluckConfig: {
         skipIndent: true,
       },
     });
-    expect(loaded?.length).toEqual(3);
-    expect(loaded?.[0].rawSDL).toBeDefined();
-    expect(loaded?.[0].rawSDL).toMatchInlineSnapshot(`
-      "
-        query Foo {
-          Tweets {
-            id
-          }
-        }
-      "
-    `);
-    expect(loaded?.[1].rawSDL).toBeDefined();
-    expect(loaded?.[1].rawSDL).toMatchInlineSnapshot(`
-      "
-        fragment Lel on Tweet {
+    expect(loadedSources?.length).toEqual(1);
+    const loadedSource = loadedSources![0];
+    expect(loadedSource.document).toBeDefined();
+    const rawSDL = print(loadedSource.document!);
+    expect(rawSDL).toMatchInlineSnapshot(`
+      "query Foo {
+        Tweets {
           id
-          body
         }
-      "
-    `);
-    expect(loaded?.[2].rawSDL).toBeDefined();
-    expect(loaded?.[2].rawSDL).toMatchInlineSnapshot(`
-      "
-        query Bar {
-          Tweets {
-            ...Lel
-          }
+      }
+
+      fragment Lel on Tweet {
+        id
+        body
+      }
+
+      query Bar {
+        Tweets {
+          ...Lel
         }
+      }
       "
     `);
   });
@@ -172,18 +165,30 @@ describe('loadFromCodeFileSync', () => {
         skipIndent: true
       }
     })
-    const loaded = loader.loadSync('./test-files/multiple-from-file.ts', {
+    const loadedSources = loader.loadSync('./test-files/multiple-from-file.ts', {
       cwd: __dirname,
     });
-    expect(loaded?.length).toEqual(3);
-    expect(loaded?.[0].rawSDL).toBeDefined();
-    expect(loaded?.[0].rawSDL).toMatchInlineSnapshot(`
-      "
-        query Foo {
-          Tweets {
-            id
-          }
+    expect(loadedSources?.length).toEqual(1);
+    const loadedSource = loadedSources![0];
+    expect(loadedSource.document).toBeDefined();
+    const rawSDL = print(loadedSource.document!);
+    expect(rawSDL).toMatchInlineSnapshot(`
+      "query Foo {
+        Tweets {
+          id
         }
+      }
+
+      fragment Lel on Tweet {
+        id
+        body
+      }
+
+      query Bar {
+        Tweets {
+          ...Lel
+        }
+      }
       "
     `);
   })

@@ -45,5 +45,5 @@ export interface IExecutableSchemaDefinition<TContext = any> {
   /**
    * Schema extensions
    */
-  extensions?: SchemaExtensions | Array<SchemaExtensions>;
+  schemaExtensions?: SchemaExtensions | Array<SchemaExtensions>;
 }

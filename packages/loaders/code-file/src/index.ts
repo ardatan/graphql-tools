@@ -1,6 +1,14 @@
 import type { GlobbyOptions } from 'globby';
 
-import { isSchema, GraphQLSchema, DocumentNode, parse } from 'graphql';
+import {
+  isSchema,
+  GraphQLSchema,
+  DocumentNode,
+  parse,
+  concatAST,
+  Source as GraphQLSource,
+  ParseOptions,
+} from 'graphql';
 import {
   Source,
   asArray,
@@ -162,11 +170,12 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
         const sources = await gqlPluckFromCodeString(normalizedFilePath, content, options.pluckConfig);
 
         if (sources.length) {
-          return sources.map(source => ({
-            document: parse(source, options),
+          const mergedDocument = flattenSources(sources, options);
+          const mergedSource = {
+            document: mergedDocument,
             location,
-            rawSDL: source.body,
-          }));
+          };
+          return [mergedSource];
         }
       } catch (e) {
         if (env['DEBUG']) {
@@ -215,11 +224,12 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
         const sources = gqlPluckFromCodeStringSync(normalizedFilePath, content, options.pluckConfig);
 
         if (sources.length) {
-          return sources.map(source => ({
-            document: parse(source, options),
+          const mergedDocument = flattenSources(sources, options);
+          const mergedSource = {
+            document: mergedDocument,
             location,
-            rawSDL: source.body,
-          }));
+          };
+          return [mergedSource];
         }
       } catch (e) {
         if (env['DEBUG']) {
@@ -255,6 +265,11 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
 
     return null;
   }
+}
+
+function flattenSources(sources: GraphQLSource[], options: ParseOptions) {
+  const documents = sources.map(source => parse(source, options));
+  return concatAST(documents);
 }
 
 function resolveSource(

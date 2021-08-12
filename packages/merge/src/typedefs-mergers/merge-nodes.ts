@@ -1,5 +1,5 @@
 import { Config } from './merge-typedefs';
-import { DefinitionNode, Kind, NameNode, SchemaDefinitionNode, SchemaExtensionNode } from 'graphql';
+import { DefinitionNode, Kind, SchemaDefinitionNode, SchemaExtensionNode } from 'graphql';
 import { mergeType } from './type';
 import { mergeEnum } from './enum';
 import { mergeScalar } from './scalar';
@@ -9,13 +9,13 @@ import { mergeInterface } from './interface';
 import { mergeDirective } from './directives';
 import { collectComment } from './comments';
 import { mergeSchemaDefs } from './schema-def';
+import { NamedDefinitionNode } from '@graphql-tools/utils';
 
 export const schemaDefSymbol = 'SCHEMA_DEF_SYMBOL';
 
 export type MergedResultMap = Record<string, NamedDefinitionNode> & {
   [schemaDefSymbol]: SchemaDefinitionNode | SchemaExtensionNode;
 };
-export type NamedDefinitionNode = DefinitionNode & { name?: NameNode };
 
 export function isNamedDefinitionNode(definitionNode: DefinitionNode): definitionNode is NamedDefinitionNode {
   return 'name' in definitionNode;
