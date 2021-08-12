@@ -26,9 +26,6 @@
   "typescript": {
     "definition": "dist/index.d.ts"
   },
-  "devDependencies": {
-    "@types/is-glob": "4.0.2"
-  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0"
   },
@@ -36,7 +33,6 @@
     "@graphql-tools/utils": "8.0.2",
     "@graphql-tools/graphql-tag-pluck": "^7.0.2",
     "globby": "^11.0.3",
-    "is-glob": "^4.0.1",
     "tslib": "~2.3.0",
     "unixify": "^1.0.0"
   },

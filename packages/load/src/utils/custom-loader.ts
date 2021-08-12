@@ -1,8 +1,9 @@
-import importFrom from 'import-from';
+import { createRequire } from 'module';
 
 export function getCustomLoaderByPath(path: string, cwd: string) {
   try {
-    const requiredModule: any = importFrom(cwd, path);
+    const requireFn = createRequire(cwd);
+    const requiredModule = requireFn(path);
 
     if (requiredModule) {
       if (requiredModule.default && typeof requiredModule.default === 'function') {

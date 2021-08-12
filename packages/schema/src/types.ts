@@ -5,6 +5,8 @@ import {
   GraphQLParseOptions,
   PruneSchemaOptions,
 } from '@graphql-tools/utils';
+import { SchemaExtensions } from '@graphql-tools/merge';
+import { BuildSchemaOptions } from 'graphql';
 
 /**
  * Configuration object for creating an executable schema
@@ -26,7 +28,7 @@ export interface IExecutableSchemaDefinition<TContext = any> {
    * Additional options for parsing the type definitions if they are provided
    * as a string
    */
-  parseOptions?: GraphQLParseOptions;
+  parseOptions?: BuildSchemaOptions & GraphQLParseOptions;
   /**
    * GraphQL object types that implement interfaces will inherit any missing
    * resolvers from their interface types defined in the `resolvers` object
@@ -40,4 +42,8 @@ export interface IExecutableSchemaDefinition<TContext = any> {
    * Do not create a schema again and use the one from `buildASTSchema`
    */
   updateResolversInPlace?: boolean;
+  /**
+   * Schema extensions
+   */
+  extensions?: SchemaExtensions | Array<SchemaExtensions>;
 }

@@ -1,7 +1,7 @@
 import { loadTypedefs, LoadTypedefsOptions, UnnormalizedTypeDefPointer, loadTypedefsSync } from './load-typedefs';
 import { GraphQLSchema, BuildSchemaOptions, DocumentNode, Source as GraphQLSource, print } from 'graphql';
 import { OPERATION_KINDS } from './documents';
-import { mergeSchemasAsync, mergeSchemas, MergeSchemasConfig } from '@graphql-tools/merge';
+import { mergeSchemasAsync, mergeSchemas, MergeSchemasConfig } from '@graphql-tools/schema';
 import { Source } from '@graphql-tools/utils';
 
 export type LoadSchemaOptions = BuildSchemaOptions &
@@ -25,15 +25,15 @@ export async function loadSchema(
   options: LoadSchemaOptions
 ): Promise<GraphQLSchema> {
   const sources = await loadTypedefs(schemaPointers, {
-    filterKinds: OPERATION_KINDS,
     ...options,
+    filterKinds: OPERATION_KINDS,
   });
 
   const { schemas, typeDefs } = collectSchemasAndTypeDefs(sources);
   const mergeSchemasOptions: MergeSchemasConfig = {
+    ...options,
     schemas,
     typeDefs,
-    ...options,
   };
 
   const schema = await mergeSchemasAsync(mergeSchemasOptions);
@@ -60,13 +60,12 @@ export function loadSchemaSync(
   });
 
   const { schemas, typeDefs } = collectSchemasAndTypeDefs(sources);
-  const mergeSchemasOptions: MergeSchemasConfig = {
+
+  const schema = mergeSchemas({
     schemas,
     typeDefs,
     ...options,
-  };
-
-  const schema = mergeSchemas(mergeSchemasOptions);
+  });
 
   if (options?.includeSources) {
     includeSources(schema, sources);

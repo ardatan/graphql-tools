@@ -32,14 +32,10 @@
   "buildOptions": {
     "input": "./src/index.ts"
   },
-  "devDependencies": {
-    "@types/is-glob": "4.0.2"
-  },
   "dependencies": {
     "@graphql-tools/import": "^6.2.6",
     "@graphql-tools/utils": "8.0.2",
     "globby": "^11.0.3",
-    "is-glob": "^4.0.1",
     "unixify": "^1.0.0",
     "tslib": "~2.3.0"
   },

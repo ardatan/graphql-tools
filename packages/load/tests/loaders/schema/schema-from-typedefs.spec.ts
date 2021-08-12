@@ -3,6 +3,7 @@ import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { runTests, useMonorepo } from '../../../../testing/utils';
 import path from 'path';
+import { inspect } from 'util';
 
 const monorepo = useMonorepo({
   dirname: __dirname
@@ -10,7 +11,7 @@ const monorepo = useMonorepo({
 
 function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | undefined>{
   if (input == null) {
-    throw new Error("Value should be neither null nor undefined.")
+    throw new Error(`Value should be neither null nor undefined. But received: ${inspect(input)}`)
   }
 }
 

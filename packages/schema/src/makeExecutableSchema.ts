@@ -1,11 +1,11 @@
 import { buildASTSchema, buildSchema, GraphQLSchema } from 'graphql';
 
-import { pruneSchema } from '@graphql-tools/utils';
+import { asArray, pruneSchema } from '@graphql-tools/utils';
 import { addResolversToSchema } from './addResolversToSchema';
 
 import { assertResolversPresent } from './assertResolversPresent';
 import { IExecutableSchemaDefinition } from './types';
-import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
+import { applyExtensions, mergeExtensions, mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
 
 /**
  * Builds a schema from the provided type definitions and resolvers.
@@ -59,6 +59,7 @@ export function makeExecutableSchema<TContext = any>({
   inheritResolversFromInterfaces = false,
   pruningOptions,
   updateResolversInPlace = false,
+  extensions,
 }: IExecutableSchemaDefinition<TContext>) {
   // Validate and clean up arguments
   if (typeof resolverValidationOptions !== 'object') {
@@ -98,6 +99,11 @@ export function makeExecutableSchema<TContext = any>({
 
   if (Object.keys(resolverValidationOptions).length > 0) {
     assertResolversPresent(schema, resolverValidationOptions);
+  }
+
+  if (extensions) {
+    extensions = mergeExtensions(asArray(extensions));
+    applyExtensions(schema, extensions);
   }
 
   return schema;

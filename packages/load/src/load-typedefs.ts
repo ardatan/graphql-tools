@@ -76,8 +76,7 @@ export function loadTypedefsSync<AdditionalConfig = Record<string, unknown>>(
 ): Source[] {
   const { ignore, pointerOptionMap } = normalizePointers(pointerOrPointers);
 
-  options.ignore = asArray(options.ignore || []);
-  options.ignore.push(...ignore);
+  options.ignore = asArray(options.ignore || []).concat(ignore);
 
   applyDefaultOptions<AdditionalConfig>(options);
 
