@@ -1,5 +1,16 @@
 # @graphql-tools/code-file-loader
 
+## 7.0.3
+
+### Patch Changes
+
+- de38619b: "@graphql-tools/code-file-loader" no more returns multiple sources for each plucked GraphQL SDL. This breaks other tools such as GraphQL Code Generator.
+- Updated dependencies [b9684631]
+- Updated dependencies [9ede806a]
+- Updated dependencies [67691b78]
+  - @graphql-tools/utils@8.1.0
+  - @graphql-tools/graphql-tag-pluck@7.0.3
+
 ## 7.0.2
 
 ### Patch Changes

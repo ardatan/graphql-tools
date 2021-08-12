@@ -1,5 +1,18 @@
 # @graphql-tools/json-file-loader
 
+## 7.1.0
+
+### Minor Changes
+
+- 4247b02f: feat(json-file-loader): support glob expressions
+
+### Patch Changes
+
+- Updated dependencies [b9684631]
+- Updated dependencies [9ede806a]
+- Updated dependencies [67691b78]
+  - @graphql-tools/utils@8.1.0
+
 ## 7.0.2
 
 ### Patch Changes

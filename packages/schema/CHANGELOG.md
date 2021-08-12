@@ -1,5 +1,26 @@
 # @graphql-tools/schema
 
+## 8.1.0
+
+### Minor Changes
+
+- 67691b78: - `schemaExtensions` option has been added to `mergeSchemas`, `makeExecutableSchema` and `stitchSchemas` configurations
+
+  Breaking Changes;
+
+  - Move `mergeSchemas` and `MergeSchemasConfig` from `@graphql-tools/merge` to `@graphql-tools/schema` package to prevent circular dependency between them.
+  - `mergeSchemasAsync` has been removed.
+  - Move `NamedDefinitionNode`, `resetComments`, `collectComment`, `pushComment` and `printComment` from `@graphql-tools/merge` to `@graphql-tools/utils`.
+
+### Patch Changes
+
+- Updated dependencies [b9684631]
+- Updated dependencies [a5fb77a4]
+- Updated dependencies [9ede806a]
+- Updated dependencies [67691b78]
+  - @graphql-tools/utils@8.1.0
+  - @graphql-tools/merge@8.0.0
+
 ## 8.0.3
 
 ### Patch Changes
