@@ -180,6 +180,16 @@ export class MockStore implements IMockStore {
     this.store = {};
   }
 
+  filter(key: string, predicate: (val: Entity) => boolean) {
+    const entity = this.store[key];
+    return Object.values(entity).filter(predicate);
+  }
+
+  find(key: string, predicate: (val: Entity) => boolean) {
+    const entity = this.store[key];
+    return Object.values(entity).find(predicate);
+  }
+
   private getImpl<KeyT extends KeyTypeConstraints>(args: GetArgs<KeyT>) {
     const { typeName, key, fieldName, fieldArgs, defaultValue } = args;
 
