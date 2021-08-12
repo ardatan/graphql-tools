@@ -1,5 +1,14 @@
 # @graphql-tools/relay-operation-optimizer
 
+## 6.3.5
+
+### Patch Changes
+
+- Updated dependencies [b9684631]
+- Updated dependencies [9ede806a]
+- Updated dependencies [67691b78]
+  - @graphql-tools/utils@8.1.0
+
 ## 6.3.4
 
 ### Patch Changes

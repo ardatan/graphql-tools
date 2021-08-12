@@ -1,5 +1,22 @@
 # @graphql-tools/utils
 
+## 8.1.0
+
+### Minor Changes
+
+- b9684631: feat(validate-documents): more clear error messages with stack
+- 67691b78: - `schemaExtensions` option has been added to `mergeSchemas`, `makeExecutableSchema` and `stitchSchemas` configurations
+
+  Breaking Changes;
+
+  - Move `mergeSchemas` and `MergeSchemasConfig` from `@graphql-tools/merge` to `@graphql-tools/schema` package to prevent circular dependency between them.
+  - `mergeSchemasAsync` has been removed.
+  - Move `NamedDefinitionNode`, `resetComments`, `collectComment`, `pushComment` and `printComment` from `@graphql-tools/merge` to `@graphql-tools/utils`.
+
+### Patch Changes
+
+- 9ede806a: enhance(utils): use inspect from graphql-js instead of node:util #3324
+
 ## 8.0.2
 
 ### Patch Changes

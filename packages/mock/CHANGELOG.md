@@ -1,5 +1,19 @@
 # @graphql-tools/mock
 
+## 8.2.0
+
+### Minor Changes
+
+- 9a445940: feat(mock): add `find` and `filter` methods
+
+### Patch Changes
+
+- Updated dependencies [b9684631]
+- Updated dependencies [9ede806a]
+- Updated dependencies [67691b78]
+  - @graphql-tools/utils@8.1.0
+  - @graphql-tools/schema@8.1.0
+
 ## 8.1.8
 
 ### Patch Changes
