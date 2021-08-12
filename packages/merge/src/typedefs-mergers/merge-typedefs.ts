@@ -11,12 +11,13 @@ import {
 } from 'graphql';
 import { CompareFn, defaultStringComparator, isSourceTypes, isStringTypes } from './utils';
 import { MergedResultMap, mergeGraphQLNodes, schemaDefSymbol } from './merge-nodes';
-import { resetComments, printWithComments } from './comments';
 import {
   getDocumentNodeFromSchema,
   GetDocumentNodeFromSchemaOptions,
   isDocumentNode,
   TypeSource,
+  resetComments,
+  printWithComments,
 } from '@graphql-tools/utils';
 import { DEFAULT_OPERATION_TYPE_NAME_MAP } from './schema-def';
 

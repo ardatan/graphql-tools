@@ -13,7 +13,7 @@ import { mapSchema, MapperKind, IResolvers, getRootTypeNames } from '@graphql-to
 import { addResolversToSchema } from '@graphql-tools/schema';
 import { isRef, IMockStore, IMocks, TypePolicy } from './types';
 import { copyOwnProps, isObject } from './utils';
-import { createMockStore } from '.';
+import { createMockStore } from './MockStore';
 
 type IMockOptions = {
   schema: GraphQLSchema;

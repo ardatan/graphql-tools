@@ -14,7 +14,8 @@ export type TypePolicy = {
   /**
    * The name of the field that should be used as store `key`.
    *
-   * If `false`, no field will be used and we'll generate a random string
+   * If `false`, no field will be used and `id` or `_id` will be used,
+   * otherwise we'll generate a random string
    * as key.
    */
   keyFieldName?: string | false;

@@ -1,5 +1,4 @@
 export * from './arguments';
-export * from './comments';
 export * from './directives';
 export * from './enum-values';
 export * from './enum';

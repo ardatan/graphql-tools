@@ -7,9 +7,8 @@ import { mergeUnion } from './union';
 import { mergeInputType } from './input-type';
 import { mergeInterface } from './interface';
 import { mergeDirective } from './directives';
-import { collectComment } from './comments';
 import { mergeSchemaDefs } from './schema-def';
-import { NamedDefinitionNode } from '@graphql-tools/utils';
+import { NamedDefinitionNode, collectComment } from '@graphql-tools/utils';
 
 export const schemaDefSymbol = 'SCHEMA_DEF_SYMBOL';
 
