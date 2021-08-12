@@ -11,7 +11,7 @@ import {
   ArgumentNode,
 } from 'graphql';
 
-import { inspect } from 'util';
+import { inspect } from 'graphql/jsutils/inspect.js';
 
 /**
  * Prepares an object map of argument values given a list of argument
