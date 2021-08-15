@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 8.0.9
+
+### Patch Changes
+
+- 9a13357c: Fix nested type merges with repeated children ignore all but first occurrence
+
 ## 8.0.8
 
 ### Patch Changes
