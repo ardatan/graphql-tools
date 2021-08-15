@@ -1,5 +1,15 @@
 # @graphql-tools/stitch
 
+## 8.1.1
+
+### Patch Changes
+
+- 9a13357c: Fix nested type merges with repeated children ignore all but first occurrence
+- Updated dependencies [9a13357c]
+  - @graphql-tools/delegate@8.0.9
+  - @graphql-tools/batch-delegate@8.0.9
+  - @graphql-tools/wrap@8.0.11
+
 ## 8.1.0
 
 ### Minor Changes
