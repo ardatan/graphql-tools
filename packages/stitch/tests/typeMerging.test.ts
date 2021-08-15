@@ -632,3 +632,192 @@ describe('external object annotation with batchDelegateToSchema', () => {
     ])
   })
 })
+
+describe('type merge repeated nested delegates', () => {
+  const cities = [
+    {name: "Chicago", population: 2710000, country: { name: "United States"}},
+    {name: "Marseille", population: 861000, country: { name: "France"}},
+    {name: "Miami", population: 454279, country: { name: "United States"}},
+    {name: "Paris", population: 2161000, country: { name: "France"}},
+  ]
+  const citySchema = makeExecutableSchema({
+    typeDefs: `
+      type Country {
+        name: String!
+      }
+
+      type City {
+        name: String!
+        population: Float!
+        country: Country!
+      }
+
+      type Query {
+        citiesByName(name: [String]!): [City!]!
+      }
+    `,
+    resolvers: {
+      Query: {
+        citiesByName: (_root, { name }) =>
+          name.map((n: string) => cities.find((c) => c.name === n))
+      },
+    },
+  })
+
+  const countries = [
+    {name: "United States", population: 328200000, continent: { name: "North America"}},
+    {name: "France", population: 67060000, continent: { name: "Europe"}},
+  ]
+  const countrySchema = makeExecutableSchema({
+    typeDefs: `
+      type Continent {
+        name: String!
+      }
+
+      type Country {
+        name: String!
+        population: Float!
+        continent: Continent!
+      }
+
+      type Query {
+        countriesByName(name: [String]!): [Country!]!
+      }
+    `,
+    resolvers: {
+      Query: {
+        countriesByName: (_root, { name }) =>
+          name.map((n: string) => countries.find((c) => c.name === n))
+      },
+    },
+  })
+
+  const continents = [
+    {name: "North America", population: 579000000},
+    {name: "Europe", population: 746400000},
+  ]
+  const continentSchema = makeExecutableSchema({
+    typeDefs: `
+      type Continent {
+        name: String!
+        population: Float!
+      }
+
+      type Query {
+        continentsByName(name: [String]!): [Continent!]!
+      }
+    `,
+    resolvers: {
+      Query: {
+        continentsByName: (_root, { name }) =>
+          name.map((n: string) => continents.find((c) => c.name === n))
+      },
+    },
+  })
+
+  const gatewaySchema = stitchSchemas({
+    subschemas: [
+      {
+        schema: citySchema,
+        batch: true,
+      },
+      {
+        schema: countrySchema,
+        batch: true,
+        merge: {
+          Country: {
+            fieldName: 'countriesByName',
+            selectionSet: '{ name }',
+            key: ({ name }) => name,
+            argsFromKeys: (name) => ({ name }),
+          },
+        },
+      },
+      {
+        schema: continentSchema,
+        batch: true,
+        merge: {
+          Continent: {
+            fieldName: 'continentsByName',
+            selectionSet: '{ name }',
+            key: ({ name }) => name,
+            argsFromKeys: (name) => ({ name }),
+          },
+        },
+      },
+    ],
+  })
+
+  test('completes merge for all children', async () => {
+    const { data } = await graphql(
+      gatewaySchema,
+      `
+      query {
+        citiesByName(name: ["Chicago", "Miami", "Paris", "Marseille"]) {
+          name
+          population
+          country {
+            name
+            population
+            continent {
+              name
+              population
+            }
+          }
+        }
+      }
+      `,
+    )
+    assertSome(data)
+    expect(data['citiesByName']).toEqual([
+      {
+        "name": "Chicago",
+        "population": 2710000,
+        "country": {
+            "name": "United States",
+            "population": 328200000,
+            "continent": {
+                "name": "North America",
+                "population": 579000000
+            }
+        }
+    },
+    {
+        "name": "Miami",
+        "population": 454279,
+        "country": {
+            "name": "United States",
+            "population": 328200000,
+            "continent": {
+                "name": "North America",
+                "population": 579000000
+            }
+        }
+    },
+    {
+        "name": "Paris",
+        "population": 2161000,
+        "country": {
+            "name": "France",
+            "population": 67060000,
+            "continent": {
+                "name": "Europe",
+                "population": 746400000
+            }
+        }
+    },
+    {
+        "name": "Marseille",
+        "population": 861000,
+        "country": {
+            "name": "France",
+            "population": 67060000,
+            "continent": {
+                "name": "Europe",
+                "population": 746400000
+            }
+        }
+    },
+    ])
+  })
+})
