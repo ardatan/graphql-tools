@@ -5,16 +5,10 @@ import { appWithTranslation } from 'next-i18next';
 
 import { extendTheme, theme as chakraTheme } from '@chakra-ui/react';
 import { mode } from '@chakra-ui/theme-tools';
-import { ExtendComponents, handlePushRoute, CombinedThemeProvider, DocsPage, AppSeoProps } from '@guild-docs/client';
+import { handlePushRoute, CombinedThemeProvider, DocsPage, AppSeoProps } from '@guild-docs/client';
 import { Header, Subheader, FooterExtended } from '@theguild/components';
 
 import type { AppProps } from 'next/app';
-
-ExtendComponents({
-  HelloWorld() {
-    return <p>Hello World!</p>;
-  },
-});
 
 const styles: typeof chakraTheme['styles'] = {
   global: props => ({
@@ -41,8 +35,8 @@ const theme = extendTheme({
     },
   },
   fonts: {
-    heading: '"Poppins", sans-serif',
-    body: '"Poppins", sans-serif',
+    heading: 'TGCFont, sans-serif',
+    body: 'TGCFont, sans-serif',
   },
   config: {
     initialColorMode: 'light',
