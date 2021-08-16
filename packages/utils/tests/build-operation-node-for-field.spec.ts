@@ -260,6 +260,87 @@ test('should work with mutation', async () => {
   );
 });
 
+test('should work with mutation + return a field of type Query', async () => {
+  const schema = buildSchema(/* GraphQL */ `
+    type Pizza {
+      dough: String!
+      toppings: [String!]
+      query: Query
+    }
+
+    type Query {
+      pizza: Pizza
+      pizzaById(id: String!): Pizza
+    }
+    type Mutation {
+      addPizza(name: String!): Pizza
+    }
+  `)
+  const document = buildOperationNodeForField({
+    schema,
+    kind: 'mutation',
+    field: 'addPizza',
+    models,
+    ignore: [],
+  })!;
+
+  expect(clean(document)).toEqual(
+    clean(/* GraphQL */ `
+      mutation addPizza_mutation($name: String!) {
+        addPizza(name: $name) {
+          dough
+          toppings
+        }
+      }
+    `)
+  );
+});
+
+test('should work with mutation + Union + return a field of type Query', async () => {
+  const schema = buildSchema(/* GraphQL */ `
+    type Pizza {
+      dough: String!
+      toppings: [String!]
+      query: Query
+    }
+    type Salad {
+      ingredients: [String!]!
+      query: Query
+    }
+    union Food = Pizza | Salad
+    type Query {
+      pizza: Pizza
+      getPizzaById(id: String!): Pizza
+    }
+    type Mutation {
+      addRandomFood(name: String!): Food
+    }
+  `)
+  const document = buildOperationNodeForField({
+    schema,
+    kind: 'mutation',
+    field: 'addRandomFood',
+    models,
+    ignore: [],
+  })!;
+
+  expect(clean(document)).toEqual(
+    clean(/* GraphQL */ `
+      mutation addRandomFood_mutation($name: String!) {
+        addRandomFood(name: $name) {
+          ... on Pizza {
+            dough
+            toppings
+          }
+          ... on Salad {
+            ingredients
+          }
+        }
+      }
+    `)
+  );
+});
+
 test('should work with mutation and unions', async () => {
   const document = buildOperationNodeForField({
     schema,
