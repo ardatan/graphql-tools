@@ -284,6 +284,12 @@ function resolveSelectionSet({
   }
 
   if (isObjectType(type)) {
+    // Do not resolve `Query` type
+    // More info: https://github.com/ardatan/graphql-tools/issues/3380
+    if (type.name === 'Query') {
+      return;
+    }
+
     const isIgnored = ignore.includes(type.name) || ignore.includes(`${parent.name}.${path[path.length - 1]}`);
     const isModel = models.includes(type.name);
 
