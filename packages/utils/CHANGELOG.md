@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.1.1
+
+### Patch Changes
+
+- 2c807ddb: enhance(buildOperationNodeForField): mutation response return a field of type Query
+
 ## 8.1.0
 
 ### Minor Changes

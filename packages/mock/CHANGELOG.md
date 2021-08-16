@@ -1,5 +1,13 @@
 # @graphql-tools/mock
 
+## 8.2.1
+
+### Patch Changes
+
+- Updated dependencies [2c807ddb]
+  - @graphql-tools/utils@8.1.1
+  - @graphql-tools/schema@8.1.1
+
 ## 8.2.0
 
 ### Minor Changes
