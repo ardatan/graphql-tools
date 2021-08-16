@@ -28,7 +28,7 @@ import {
   Kind,
 } from 'graphql';
 
-import { getDefinedRootType } from './rootTypes';
+import { getDefinedRootType, getRootTypeNames } from './rootTypes';
 
 let operationVariables: VariableDefinitionNode[] = [];
 let fieldTypeMap = new Map();
@@ -60,7 +60,7 @@ export function buildOperationNodeForField({
   kind,
   field,
   models,
-  ignore,
+  ignore = [],
   depthLimit,
   circularReferenceDepth,
   argNames,
@@ -79,16 +79,19 @@ export function buildOperationNodeForField({
   resetOperationVariables();
   resetFieldMap();
 
+  const rootTypeNames = getRootTypeNames(schema);
+
   const operationNode = buildOperationAndCollectVariables({
     schema,
     fieldName: field,
     kind,
     models: models || [],
-    ignore: ignore || [],
+    ignore,
     depthLimit: depthLimit || Infinity,
     circularReferenceDepth: circularReferenceDepth || 1,
     argNames,
     selectedFields,
+    rootTypeNames,
   });
 
   // attach variables
@@ -110,6 +113,7 @@ function buildOperationAndCollectVariables({
   circularReferenceDepth,
   argNames,
   selectedFields,
+  rootTypeNames,
 }: {
   schema: GraphQLSchema;
   fieldName: string;
@@ -120,6 +124,7 @@ function buildOperationAndCollectVariables({
   circularReferenceDepth: number;
   argNames?: string[];
   selectedFields: SelectedFields;
+  rootTypeNames: Set<string>;
 }): OperationDefinitionNode {
   const type = getDefinedRootType(schema, kind);
   const field = type.getFields()[fieldName];
@@ -159,6 +164,7 @@ function buildOperationAndCollectVariables({
           depth: 0,
           argNames,
           selectedFields,
+          rootTypeNames,
         }),
       ],
     },
@@ -179,6 +185,7 @@ function resolveSelectionSet({
   depth,
   argNames,
   selectedFields,
+  rootTypeNames,
 }: {
   parent: GraphQLNamedType;
   type: GraphQLNamedType;
@@ -193,6 +200,7 @@ function resolveSelectionSet({
   depth: number;
   selectedFields: SelectedFields;
   argNames?: string[];
+  rootTypeNames: Set<string>;
 }): SelectionSetNode | void {
   if (typeof selectedFields === 'boolean' && depth > depthLimit) {
     return;
@@ -232,6 +240,7 @@ function resolveSelectionSet({
               depth,
               argNames,
               selectedFields,
+              rootTypeNames,
             }) as SelectionSetNode,
           };
         })
@@ -276,6 +285,7 @@ function resolveSelectionSet({
               depth,
               argNames,
               selectedFields,
+              rootTypeNames,
             }) as SelectionSetNode,
           };
         })
@@ -283,7 +293,7 @@ function resolveSelectionSet({
     };
   }
 
-  if (isObjectType(type)) {
+  if (isObjectType(type) && !rootTypeNames.has(type.name)) {
     const isIgnored = ignore.includes(type.name) || ignore.includes(`${parent.name}.${path[path.length - 1]}`);
     const isModel = models.includes(type.name);
 
@@ -328,6 +338,7 @@ function resolveSelectionSet({
               depth,
               argNames,
               selectedFields: selectedSubFields,
+              rootTypeNames,
             });
           }
           return null;
@@ -403,6 +414,7 @@ function resolveField({
   depth,
   argNames,
   selectedFields,
+  rootTypeNames,
 }: {
   type: GraphQLObjectType;
   field: GraphQLField<any, any>;
@@ -417,6 +429,7 @@ function resolveField({
   depth: number;
   selectedFields: SelectedFields;
   argNames?: string[];
+  rootTypeNames: Set<string>;
 }): SelectionNode {
   const namedType = getNamedType(field.type);
   let args: ArgumentNode[] = [];
@@ -489,6 +502,7 @@ function resolveField({
           depth: depth + 1,
           argNames,
           selectedFields,
+          rootTypeNames,
         }) || undefined,
       arguments: args,
     };
