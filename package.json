@@ -48,6 +48,7 @@
     "@babel/preset-env": "7.15.0",
     "@babel/preset-typescript": "7.15.0",
     "@changesets/cli": "2.16.0",
+    "@types/debug": "^4.1.7",
     "@types/jest": "27.0.1",
     "@types/node": "14.17.9",
     "@typescript-eslint/eslint-plugin": "4.29.1",
@@ -99,7 +100,7 @@
   },
   "resolutions": {
     "graphql": "15.5.1",
-    "esbuild": "^0.12.8",
+    "esbuild": "^0.12.20",
     "@changesets/apply-release-plan": "5.0.0"
   }
 }
