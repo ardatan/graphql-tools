@@ -18,7 +18,6 @@ import { AggregateError, Maybe } from '@graphql-tools/utils';
 
 import { StitchingInfo, SubschemaConfig } from './types';
 import { annotateExternalObject, isExternalObject, mergeFields } from './mergeFields';
-import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
 import { Subschema } from './Subschema';
 
 export function resolveExternalValue(
@@ -98,22 +97,11 @@ function resolveExternalObject(
   }
 
   // If there are no merge targets from the subschema, return.
-  if (!targetSubschemas) {
+  if (!targetSubschemas || !targetSubschemas.length) {
     return object;
   }
 
-  const fieldNodes = getFieldsNotInSubschema(info, subschema, mergedTypeInfo);
-
-  return mergeFields(
-    mergedTypeInfo,
-    typeName,
-    object,
-    fieldNodes,
-    subschema as Subschema | Array<Subschema>,
-    targetSubschemas,
-    context,
-    info
-  );
+  return mergeFields(mergedTypeInfo, object, subschema as Subschema, targetSubschemas, context, info);
 }
 
 function resolveExternalList(

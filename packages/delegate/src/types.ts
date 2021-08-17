@@ -111,6 +111,17 @@ export interface ICreateRequest {
   info?: GraphQLResolveInfo;
 }
 
+export type DelegationPlanBuilder = (
+  schema: GraphQLSchema,
+  sourceSubschema: Subschema<any, any, any, any>,
+  fieldNodes: ReadonlyArray<FieldNode>,
+  fragments?: Record<string, FragmentDefinitionNode>,
+  variableValues?: Record<string, any>,
+  stitchingInfo?: StitchingInfo,
+  mergedTypeInfo?: MergedTypeInfo,
+  targetSubschemas?: Array<Subschema>
+) => Array<Map<Subschema, SelectionSetNode>>;
+
 export interface MergedTypeInfo<TContext = Record<string, any>> {
   typeName: string;
   selectionSet?: SelectionSetNode;
@@ -121,6 +132,7 @@ export interface MergedTypeInfo<TContext = Record<string, any>> {
   selectionSets: Map<Subschema<any, any, any, TContext>, SelectionSetNode>;
   fieldSelectionSets: Map<Subschema<any, any, any, TContext>, Record<string, SelectionSetNode>>;
   resolvers: Map<Subschema<any, any, any, TContext>, MergedTypeResolver<TContext>>;
+  delegationPlanBuilder: DelegationPlanBuilder;
 }
 
 export interface ICreateProxyingResolverOptions<TContext = Record<string, any>> {
