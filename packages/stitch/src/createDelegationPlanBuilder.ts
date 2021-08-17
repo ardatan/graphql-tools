@@ -9,13 +9,7 @@ import {
   FragmentDefinitionNode,
 } from 'graphql';
 
-import {
-  DelegationPlanBuilder,
-  MergedTypeInfo,
-  StitchingInfo,
-  Subschema,
-  SubschemaConfig,
-} from '@graphql-tools/delegate';
+import { DelegationPlanBuilder, MergedTypeInfo, StitchingInfo, Subschema } from '@graphql-tools/delegate';
 
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
 import { memoize1, memoize2, memoize3 } from './memoize';
