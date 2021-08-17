@@ -145,25 +145,6 @@ function getMergedTypeInfo(stitchingInfo: StitchingInfo, typeName: string): Merg
   return mergedTypeInfo;
 }
 
-export function buildDelegationPlan(
-  schema: GraphQLSchema,
-  typeName: string,
-  sourceSubschema: GraphQLSchema | SubschemaConfig<any, any, any, any>,
-  fieldNodes: ReadonlyArray<FieldNode>,
-  fragments: Record<string, FragmentDefinitionNode> = Object.create(null),
-  variableValues: Record<string, any> = Object.create(null)
-): Array<Map<Subschema, SelectionSetNode>> {
-  const stitchingInfo = getStitchingInfo(schema);
-  const transformedSubschema = stitchingInfo.subschemaMap.get(sourceSubschema);
-  if (!transformedSubschema) {
-    throw new Error('Stitched schema does not contain the specifiec source subschema.');
-  }
-
-  const delegationPlanBuilder = createDelegationPlanBuilder(typeName);
-
-  return delegationPlanBuilder(schema, transformedSubschema, fieldNodes, fragments, variableValues, stitchingInfo);
-}
-
 export function createDelegationPlanBuilder(typeName: string): DelegationPlanBuilder {
   return (
     schema: GraphQLSchema,

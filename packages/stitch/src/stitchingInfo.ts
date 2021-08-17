@@ -23,7 +23,7 @@ import { MergeTypeCandidate, MergeTypeFilter } from './types';
 import { createMergedTypeResolver } from './createMergedTypeResolver';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
 import { TypeMap } from 'graphql/type/schema';
-import { createDelegationPlanBuilder } from './buildDelegationPlan';
+import { createDelegationPlanBuilder } from './createDelegationPlanBuilder';
 
 export function createStitchingInfo<TContext = Record<string, any>>(
   subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>,
