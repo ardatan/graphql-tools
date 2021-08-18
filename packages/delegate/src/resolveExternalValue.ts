@@ -48,6 +48,8 @@ export function resolveExternalValue(
   }
 }
 
+const emptyObject = Object.create(null);
+
 function resolveExternalObject(
   type: GraphQLCompositeType,
   object: any,
@@ -101,7 +103,7 @@ function resolveExternalObject(
     return object;
   }
 
-  return mergeFields(mergedTypeInfo, subschema as Subschema, object, context, info);
+  return mergeFields(mergedTypeInfo, subschema as Subschema, object, context || emptyObject, info);
 }
 
 function resolveExternalList(

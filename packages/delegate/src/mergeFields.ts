@@ -15,7 +15,7 @@ import { relocatedError } from '@graphql-tools/utils';
 import { ExternalObject, MergedTypeInfo, SubschemaConfig } from './types';
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
 import { Subschema } from './Subschema';
-import { memoize3 } from './memoize';
+import { memoize3, memoize5 } from './memoize';
 
 export function isExternalObject(data: any): data is ExternalObject {
   return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
@@ -42,7 +42,7 @@ export function getUnpathedErrors(object: ExternalObject): Array<GraphQLError> {
   return object[UNPATHED_ERRORS_SYMBOL];
 }
 
-export async function mergeFields(
+export const mergeFields = memoize5(async function mergeFields(
   mergedTypeInfo: MergedTypeInfo,
   sourceSubschema: Subschema<any, any, any, any>,
   object: any,
@@ -56,7 +56,7 @@ export async function mergeFields(
   }
 
   return object;
-}
+});
 
 async function executeDelegationStage(
   mergedTypeInfo: MergedTypeInfo,
