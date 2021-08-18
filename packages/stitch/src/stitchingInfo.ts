@@ -21,7 +21,7 @@ import { MergedTypeResolver, Subschema, SubschemaConfig, MergedTypeInfo, Stitchi
 import { MergeTypeCandidate, MergeTypeFilter } from './types';
 
 import { createMergedTypeResolver } from './createMergedTypeResolver';
-import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 import { TypeMap } from 'graphql/type/schema';
 
 export function createStitchingInfo<TContext = Record<string, any>>(

@@ -16,7 +16,7 @@ import {
 } from 'graphql';
 
 import { ExecutionRequest, ExecutionResult } from './Interfaces';
-import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 import { Maybe } from '@graphql-tools/utils';
 
 export type ValueVisitor = (value: any) => any;

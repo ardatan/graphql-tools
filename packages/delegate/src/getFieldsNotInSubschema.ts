@@ -5,7 +5,7 @@ import { Maybe } from '@graphql-tools/utils';
 import { isSubschemaConfig } from './subschemaConfig';
 import { MergedTypeInfo, SubschemaConfig, StitchingInfo } from './types';
 import { memoizeInfoAnd2Objects } from './memoize';
-import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
+import { collectFields, ExecutionContext } from 'graphql/execution/execute';
 
 function collectSubFields(info: GraphQLResolveInfo, typeName: string): Record<string, Array<FieldNode>> {
   let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
