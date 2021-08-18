@@ -12,7 +12,7 @@ import {
 import { DelegationPlanBuilder, MergedTypeInfo, StitchingInfo, Subschema } from '@graphql-tools/delegate';
 
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
-import { memoize1, memoize2, memoize3, memoize5 } from './memoize';
+import { memoize1, memoize2, memoize3 } from './memoize';
 
 function calculateDelegationStage(
   mergedTypeInfo: MergedTypeInfo,
@@ -140,7 +140,7 @@ function getMergedTypeInfo(stitchingInfo: StitchingInfo, typeName: string): Merg
 }
 
 export function createDelegationPlanBuilder(typeName: string): DelegationPlanBuilder {
-  return memoize5(function createDelegationPlanBuilder(
+  return function createDelegationPlanBuilder(
     schema: GraphQLSchema,
     sourceSubschema: Subschema<any, any, any, any>,
     fieldNodes: ReadonlyArray<FieldNode>,
@@ -195,7 +195,7 @@ export function createDelegationPlanBuilder(typeName: string): DelegationPlanBui
     }
 
     return delegationMaps;
-  });
+  };
 }
 
 const createSubschemas = memoize1(function createSubschemas(sourceSubschema: Subschema): Array<Subschema> {
