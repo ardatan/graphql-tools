@@ -115,11 +115,8 @@ export type DelegationPlanBuilder = (
   schema: GraphQLSchema,
   sourceSubschema: Subschema<any, any, any, any>,
   fieldNodes: ReadonlyArray<FieldNode>,
-  fragments?: Record<string, FragmentDefinitionNode>,
-  variableValues?: Record<string, any>,
-  stitchingInfo?: StitchingInfo,
-  mergedTypeInfo?: MergedTypeInfo,
-  targetSubschemas?: Array<Subschema>
+  fragments: Record<string, FragmentDefinitionNode>,
+  variableValues: Record<string, any>
 ) => Array<Map<Subschema, SelectionSetNode>>;
 
 export interface MergedTypeInfo<TContext = Record<string, any>> {

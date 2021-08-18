@@ -12,7 +12,7 @@ import {
 import { DelegationPlanBuilder, MergedTypeInfo, StitchingInfo, Subschema } from '@graphql-tools/delegate';
 
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
-import { memoize1, memoize2, memoize3 } from './memoize';
+import { memoize1, memoize2, memoize3, memoize5 } from './memoize';
 
 function calculateDelegationStage(
   mergedTypeInfo: MergedTypeInfo,
@@ -140,16 +140,16 @@ function getMergedTypeInfo(stitchingInfo: StitchingInfo, typeName: string): Merg
 }
 
 export function createDelegationPlanBuilder(typeName: string): DelegationPlanBuilder {
-  return (
+  return memoize5(function createDelegationPlanBuilder(
     schema: GraphQLSchema,
     sourceSubschema: Subschema<any, any, any, any>,
     fieldNodes: ReadonlyArray<FieldNode>,
-    fragments: Record<string, FragmentDefinitionNode> = Object.create(null),
-    variableValues: Record<string, any> = Object.create(null),
-    stitchingInfo = getStitchingInfo(schema),
-    mergedTypeInfo = getMergedTypeInfo(stitchingInfo, typeName),
-    targetSubschemas = mergedTypeInfo?.targetSubschemas.get(sourceSubschema)
-  ): Array<Map<Subschema, SelectionSetNode>> => {
+    fragments: Record<string, FragmentDefinitionNode>,
+    variableValues: Record<string, any>
+  ): Array<Map<Subschema, SelectionSetNode>> {
+    const stitchingInfo = getStitchingInfo(schema);
+    const mergedTypeInfo = getMergedTypeInfo(stitchingInfo, typeName);
+    const targetSubschemas = mergedTypeInfo?.targetSubschemas.get(sourceSubschema);
     if (!targetSubschemas || !targetSubschemas.length) {
       return [];
     }
@@ -195,7 +195,7 @@ export function createDelegationPlanBuilder(typeName: string): DelegationPlanBui
     }
 
     return delegationMaps;
-  };
+  });
 }
 
 const createSubschemas = memoize1(function createSubschemas(sourceSubschema: Subschema): Array<Subschema> {
