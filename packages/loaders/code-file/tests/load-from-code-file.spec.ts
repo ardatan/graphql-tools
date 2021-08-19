@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import * as path from 'path';
 import { CodeFileLoader } from '../src';
-import { parse, print } from 'graphql';
+import { parse } from 'graphql';
 
 describe('loadFromCodeFile', () => {
   const loader = new CodeFileLoader();
@@ -64,18 +64,17 @@ describe('loadFromCodeFile', () => {
     expect(doc?.kind).toEqual('Document');
   });
 
-
   it('does not try to load single file it cannot load', async () => {
     const loader = new CodeFileLoader({
       pluckConfig: {
-        skipIndent: true
-      }
-    })
+        skipIndent: true,
+      },
+    });
     const loaded = await loader.load('./test-files/other.graphql', {
       cwd: __dirname,
     });
-    expect(loaded).toEqual([])
-  })
+    expect(loaded).toEqual([]);
+  });
 });
 
 describe('loadFromCodeFileSync', () => {
@@ -134,80 +133,88 @@ describe('loadFromCodeFileSync', () => {
         skipIndent: true,
       },
     });
-    expect(loadedSources?.length).toEqual(1);
-    const loadedSource = loadedSources![0];
-    expect(loadedSource.document).toBeDefined();
-    const rawSDL = print(loadedSource.document!);
-    expect(rawSDL).toMatchInlineSnapshot(`
-      "query Foo {
-        Tweets {
-          id
-        }
-      }
-
-      fragment Lel on Tweet {
-        id
-        body
-      }
-
-      query Bar {
-        Tweets {
-          ...Lel
-        }
-      }
-      "
-    `);
-  });
-
-  it('can inherit config options from constructor', () => {
-    const loader = new CodeFileLoader({
-      pluckConfig: {
-        skipIndent: true
-      }
-    })
-    const loadedSources = loader.loadSync('./test-files/multiple-from-file.ts', {
-      cwd: __dirname,
-    });
     expect(loadedSources?.length).toEqual(3);
     expect(loadedSources![0].rawSDL).toBeDefined();
     expect(loadedSources![0].rawSDL).toMatchInlineSnapshot(`
-"  query Foo {
+"
+  query Foo {
     Tweets {
       id
     }
   }
 "
-    `);
+`);
     expect(loadedSources![1].rawSDL).toBeDefined();
     expect(loadedSources![1].rawSDL).toMatchInlineSnapshot(`
-"  fragment Lel on Tweet {
+"
+  fragment Lel on Tweet {
     id
     body
   }
 "
-    `);
+`);
     expect(loadedSources![2].rawSDL).toBeDefined();
     expect(loadedSources![2].rawSDL).toMatchInlineSnapshot(`
-"  query Bar {
+"
+  query Bar {
     Tweets {
       ...Lel
     }
   }
 "
 `);
+  });
 
-
-  })
+  it('can inherit config options from constructor', () => {
+    const loader = new CodeFileLoader({
+      pluckConfig: {
+        skipIndent: true,
+      },
+    });
+    const loadedSources = loader.loadSync('./test-files/multiple-from-file.ts', {
+      cwd: __dirname,
+    });
+    expect(loadedSources?.length).toEqual(3);
+    expect(loadedSources![0].rawSDL).toBeDefined();
+    expect(loadedSources![0].rawSDL).toMatchInlineSnapshot(`
+      "
+        query Foo {
+          Tweets {
+            id
+          }
+        }
+      "
+    `);
+    expect(loadedSources![1].rawSDL).toBeDefined();
+    expect(loadedSources![1].rawSDL).toMatchInlineSnapshot(`
+      "
+        fragment Lel on Tweet {
+          id
+          body
+        }
+      "
+    `);
+    expect(loadedSources![2].rawSDL).toBeDefined();
+    expect(loadedSources![2].rawSDL).toMatchInlineSnapshot(`
+      "
+        query Bar {
+          Tweets {
+            ...Lel
+          }
+        }
+      "
+    `);
+  });
 
   it('does not try to load single file it cannot load', async () => {
     const loader = new CodeFileLoader({
       pluckConfig: {
-        skipIndent: true
-      }
-    })
+        skipIndent: true,
+      },
+    });
     const loaded = loader.loadSync('./test-files/other.graphql', {
       cwd: __dirname,
     });
-    expect(loaded).toEqual([])
-  })
+    expect(loaded).toEqual([]);
+  });
 });
