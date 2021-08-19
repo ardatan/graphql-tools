@@ -168,29 +168,35 @@ describe('loadFromCodeFileSync', () => {
     const loadedSources = loader.loadSync('./test-files/multiple-from-file.ts', {
       cwd: __dirname,
     });
-    expect(loadedSources?.length).toEqual(1);
-    const loadedSource = loadedSources![0];
-    expect(loadedSource.document).toBeDefined();
-    const rawSDL = print(loadedSource.document!);
-    expect(rawSDL).toMatchInlineSnapshot(`
-      "query Foo {
-        Tweets {
-          id
-        }
-      }
-
-      fragment Lel on Tweet {
-        id
-        body
-      }
-
-      query Bar {
-        Tweets {
-          ...Lel
-        }
-      }
-      "
+    expect(loadedSources?.length).toEqual(3);
+    expect(loadedSources![0].rawSDL).toBeDefined();
+    expect(loadedSources![0].rawSDL).toMatchInlineSnapshot(`
+"  query Foo {
+    Tweets {
+      id
+    }
+  }
+"
     `);
+    expect(loadedSources![1].rawSDL).toBeDefined();
+    expect(loadedSources![1].rawSDL).toMatchInlineSnapshot(`
+"  fragment Lel on Tweet {
+    id
+    body
+  }
+"
+    `);
+    expect(loadedSources![2].rawSDL).toBeDefined();
+    expect(loadedSources![2].rawSDL).toMatchInlineSnapshot(`
+"  query Bar {
+    Tweets {
+      ...Lel
+    }
+  }
+"
+`);
+
+
   })
 
   it('does not try to load single file it cannot load', async () => {

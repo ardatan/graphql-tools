@@ -56,7 +56,7 @@ describe('documentsFromGlob', () => {
         loaders: [new CodeFileLoader()]
       });
 
-      expect(result).toHaveLength(1);
+      expect(result).toHaveLength(2);
     });
 
     test(`Should load GraphQL operations that match custom settings`, async () => {
@@ -166,7 +166,7 @@ describe('documentsFromGlob', () => {
       });
       // 1 from 2.graphql
       // 2 from tags.js
-      expect(result.length).toEqual(2);
+      expect(result.length).toEqual(3);
     })
   })
 });
