@@ -1,5 +1,14 @@
 # @graphql-tools/batch-delegate
 
+## 8.0.11
+
+### Patch Changes
+
+- e50852e6: use version ranges instead of a fixed version for the graphql-tools package versions
+- Updated dependencies [631b11bd]
+- Updated dependencies [e50852e6]
+  - @graphql-tools/delegate@8.1.0
+
 ## 8.0.10
 
 ### Patch Changes

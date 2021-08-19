@@ -1,5 +1,11 @@
 # @graphql-tools/relay-operation-optimizer
 
+## 6.3.7
+
+### Patch Changes
+
+- e50852e6: use version ranges instead of a fixed version for the graphql-tools package versions
+
 ## 6.3.6
 
 ### Patch Changes

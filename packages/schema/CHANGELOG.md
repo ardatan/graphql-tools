@@ -1,5 +1,13 @@
 # @graphql-tools/schema
 
+## 8.1.2
+
+### Patch Changes
+
+- e50852e6: use version ranges instead of a fixed version for the graphql-tools package versions
+- Updated dependencies [e50852e6]
+  - @graphql-tools/merge@8.0.2
+
 ## 8.1.1
 
 ### Patch Changes

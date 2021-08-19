@@ -1,5 +1,13 @@
 # @graphql-tools/prisma-loader
 
+## 7.0.6
+
+### Patch Changes
+
+- e50852e6: use version ranges instead of a fixed version for the graphql-tools package versions
+- Updated dependencies [e50852e6]
+  - @graphql-tools/url-loader@7.0.11
+
 ## 7.0.5
 
 ### Patch Changes
