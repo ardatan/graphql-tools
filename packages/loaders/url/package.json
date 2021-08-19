@@ -43,8 +43,8 @@
     "mock-socket": "9.0.3"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "8.0.10",
-    "@graphql-tools/utils": "8.1.1",
+    "@graphql-tools/delegate": "^8.0.10",
+    "@graphql-tools/utils": "^8.1.1",
     "@graphql-tools/wrap": "^8.0.12",
     "@ardatan/fetch-event-source": "2.0.2",
     "@n1ru4l/graphql-live-query": "0.7.1",

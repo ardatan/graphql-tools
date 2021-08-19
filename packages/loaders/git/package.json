@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@graphql-tools/graphql-tag-pluck": "^7.0.4",
-    "@graphql-tools/utils": "8.1.1",
+    "@graphql-tools/utils": "^8.1.1",
     "is-glob": "4.0.1",
     "micromatch": "^4.0.4",
     "tslib": "~2.3.0",
