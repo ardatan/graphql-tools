@@ -35,9 +35,9 @@
     "is-promise": "4.0.0"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "8.0.10",
+    "@graphql-tools/delegate": "^8.0.10",
     "@graphql-tools/schema": "^8.1.1",
-    "@graphql-tools/utils": "8.1.1",
+    "@graphql-tools/utils": "^8.1.1",
     "tslib": "~2.3.0",
     "value-or-promise": "1.0.10"
   },
