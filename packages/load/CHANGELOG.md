@@ -1,5 +1,11 @@
 # @graphql-tools/load
 
+## 7.1.8
+
+### Patch Changes
+
+- 98fa4a51: fix loading of custom loaders regression that caused custom loaders to fail
+
 ## 7.1.7
 
 ### Patch Changes
