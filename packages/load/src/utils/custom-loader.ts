@@ -1,8 +1,9 @@
 import { createRequire } from 'module';
+import { join as joinPaths } from 'path';
 
 export function getCustomLoaderByPath(path: string, cwd: string) {
   try {
-    const requireFn = createRequire(cwd);
+    const requireFn = createRequire(joinPaths(cwd, 'noop.js'));
     const requiredModule = requireFn(path);
 
     if (requiredModule) {
