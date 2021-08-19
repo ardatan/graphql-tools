@@ -1,5 +1,11 @@
 # @graphql-tools/resolvers-composition
 
+## 6.3.5
+
+### Patch Changes
+
+- e50852e6: use version ranges instead of a fixed version for the graphql-tools package versions
+
 ## 6.3.4
 
 ### Patch Changes

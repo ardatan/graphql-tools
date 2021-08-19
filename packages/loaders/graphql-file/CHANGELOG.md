@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-file-loader
 
+## 7.0.5
+
+### Patch Changes
+
+- e50852e6: use version ranges instead of a fixed version for the graphql-tools package versions
+
 ## 7.0.4
 
 ### Patch Changes

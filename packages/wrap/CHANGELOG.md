@@ -1,5 +1,15 @@
 # @graphql-tools/wrap
 
+## 8.0.13
+
+### Patch Changes
+
+- e50852e6: use version ranges instead of a fixed version for the graphql-tools package versions
+- Updated dependencies [631b11bd]
+- Updated dependencies [e50852e6]
+  - @graphql-tools/delegate@8.1.0
+  - @graphql-tools/schema@8.1.2
+
 ## 8.0.12
 
 ### Patch Changes
