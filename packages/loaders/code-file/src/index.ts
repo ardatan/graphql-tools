@@ -1,14 +1,6 @@
 import type { GlobbyOptions } from 'globby';
 
-import {
-  isSchema,
-  GraphQLSchema,
-  DocumentNode,
-  parse,
-  concatAST,
-  Source as GraphQLSource,
-  ParseOptions,
-} from 'graphql';
+import { isSchema, GraphQLSchema, DocumentNode, parse } from 'graphql';
 import {
   Source,
   asArray,
@@ -170,12 +162,11 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
         const sources = await gqlPluckFromCodeString(normalizedFilePath, content, options.pluckConfig);
 
         if (sources.length) {
-          const mergedDocument = flattenSources(sources, options);
-          const mergedSource = {
-            document: mergedDocument,
+          return sources.map(source => ({
+            rawSDL: source.body,
+            document: parse(source),
             location,
-          };
-          return [mergedSource];
+          }));
         }
       } catch (e) {
         if (env['DEBUG']) {
@@ -192,10 +183,12 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
         }
 
         const loaded = await tryToLoadFromExport(normalizedFilePath);
-        const source = resolveSource(location, loaded, options);
+        const sources = asArray(loaded)
+          .map(value => resolveSource(location, value, options))
+          .filter(Boolean);
 
-        if (source) {
-          return [source];
+        if (sources.length) {
+          return sources as Source[];
         }
       } catch (e) {
         errors.push(e);
@@ -224,12 +217,11 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
         const sources = gqlPluckFromCodeStringSync(normalizedFilePath, content, options.pluckConfig);
 
         if (sources.length) {
-          const mergedDocument = flattenSources(sources, options);
-          const mergedSource = {
-            document: mergedDocument,
+          return sources.map(source => ({
+            rawSDL: source.body,
+            document: parse(source),
             location,
-          };
-          return [mergedSource];
+          }));
         }
       } catch (e) {
         if (env['DEBUG']) {
@@ -249,10 +241,12 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
         }
 
         const loaded = tryToLoadFromExportSync(normalizedFilePath);
-        const source = resolveSource(location, loaded, options);
+        const sources = asArray(loaded)
+          .map(value => resolveSource(location, value, options))
+          .filter(Boolean);
 
-        if (source) {
-          return [source];
+        if (sources.length) {
+          return sources as Source[];
         }
       } catch (e) {
         errors.push(e);
@@ -265,11 +259,6 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
 
     return null;
   }
-}
-
-function flattenSources(sources: GraphQLSource[], options: ParseOptions) {
-  const documents = sources.map(source => parse(source, options));
-  return concatAST(documents);
 }
 
 function resolveSource(
