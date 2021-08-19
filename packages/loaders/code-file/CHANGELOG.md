@@ -1,5 +1,11 @@
 # @graphql-tools/code-file-loader
 
+## 7.0.6
+
+### Patch Changes
+
+- b64ff64d: fix(code-file-loader): return multiple sources for each plucked SDL block
+
 ## 7.0.5
 
 ### Patch Changes

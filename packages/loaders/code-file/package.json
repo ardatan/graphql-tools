@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/code-file-loader",
-  "version": "7.0.5",
+  "version": "7.0.6",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
