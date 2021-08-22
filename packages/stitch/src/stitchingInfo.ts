@@ -14,7 +14,7 @@ import {
   isUnionType,
 } from 'graphql';
 
-import { parseSelectionSet, IResolvers, IFieldResolverOptions, isSome } from '@graphql-tools/utils';
+import { TypeMap, parseSelectionSet, IResolvers, IFieldResolverOptions, isSome } from '@graphql-tools/utils';
 
 import { MergedTypeResolver, Subschema, SubschemaConfig, MergedTypeInfo, StitchingInfo } from '@graphql-tools/delegate';
 
@@ -22,7 +22,6 @@ import { MergeTypeCandidate, MergeTypeFilter } from './types';
 
 import { createMergedTypeResolver } from './createMergedTypeResolver';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
-import { TypeMap } from 'graphql/type/schema';
 import { createDelegationPlanBuilder } from './createDelegationPlanBuilder';
 
 export function createStitchingInfo<TContext = Record<string, any>>(

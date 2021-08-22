@@ -15,14 +15,13 @@ import {
 
 import { wrapSchema } from '@graphql-tools/wrap';
 import { Subschema, SubschemaConfig, StitchingInfo } from '@graphql-tools/delegate';
-import { GraphQLParseOptions, TypeSource, rewireTypes, getRootTypeMap } from '@graphql-tools/utils';
+import { TypeMap, GraphQLParseOptions, TypeSource, rewireTypes, getRootTypeMap } from '@graphql-tools/utils';
 
 import typeFromAST from './typeFromAST';
 import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, TypeMergingOptions } from './types';
 import { mergeCandidates } from './mergeCandidates';
 import { extractDefinitions } from './definitions';
 import { mergeTypeDefs } from '@graphql-tools/merge';
-import { TypeMap } from 'graphql/type/schema';
 
 type CandidateSelector<TContext = Record<string, any>> = (
   candidates: Array<MergeTypeCandidate<TContext>>

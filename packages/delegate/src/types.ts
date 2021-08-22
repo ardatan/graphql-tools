@@ -14,11 +14,10 @@ import {
 
 import DataLoader from 'dataloader';
 
-import { ExecutionRequest, ExecutionResult, Executor } from '@graphql-tools/utils';
+import { TypeMap, ExecutionRequest, ExecutionResult, Executor } from '@graphql-tools/utils';
 
 import { Subschema } from './Subschema';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
-import { TypeMap } from 'graphql/type/schema';
 
 export type SchemaTransform<TContext = Record<any, string>> = (
   originalWrappingSchema: GraphQLSchema,

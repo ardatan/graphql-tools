@@ -29,11 +29,11 @@ import {
   Kind,
   EnumValueDefinitionNode,
 } from 'graphql';
-import { TypeMap } from 'graphql/type/schema';
 
 import { getObjectTypeFromTypeMap } from './getObjectTypeFromTypeMap';
 
 import {
+  TypeMap,
   SchemaMapper,
   MapperKind,
   NamedTypeMapper,

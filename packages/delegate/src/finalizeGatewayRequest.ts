@@ -22,6 +22,7 @@ import {
 } from 'graphql';
 
 import {
+  TypeMap,
   getDefinedRootType,
   ExecutionRequest,
   serializeInputValue,
@@ -32,7 +33,6 @@ import {
 
 import { DelegationContext } from './types';
 import { getDocumentMetadata } from './getDocumentMetadata';
-import type { TypeMap } from 'graphql/type/schema';
 
 function finalizeGatewayDocument(
   targetSchema: GraphQLSchema,

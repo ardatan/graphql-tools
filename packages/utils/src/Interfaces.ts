@@ -48,6 +48,8 @@ import {
   OperationTypeNode,
 } from 'graphql';
 
+export type TypeMap = Record<string, GraphQLNamedType>;
+
 // graphql-js < v15 backwards compatible ExecutionResult
 // See: https://github.com/graphql/graphql-js/pull/2490
 
