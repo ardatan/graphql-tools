@@ -2841,10 +2841,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/graphql-upload@8.0.6":
-  version "8.0.6"
-  resolved "https://registry.yarnpkg.com/@types/graphql-upload/-/graphql-upload-8.0.6.tgz#6212b69fabb171389ca3c29e0a54b8c0d7b12301"
-  integrity sha512-PNFVwWMy1btDKN51ncAZbD2sTFdqGq416Tk/pUC/U5op97Vg0uw9/4psOPkDn+oEZMJjH0xMMFyJAH2lnoOxSA==
+"@types/graphql-upload@8.0.7":
+  version "8.0.7"
+  resolved "https://registry.yarnpkg.com/@types/graphql-upload/-/graphql-upload-8.0.7.tgz#71dd5d4a8d9ddb598df91298d6e98a943061b255"
+  integrity sha512-uXhInuUY/W6n9a+PdCt9vcZ7z2m+NzByBJFvvDM+46pljqEwXXnIAjsEI1Dka2FKRTGthetm/imN//RhtEEYSA==
   dependencies:
     "@types/express" "*"
     "@types/fs-capacitor" "*"
