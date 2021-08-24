@@ -1,5 +1,16 @@
 # @graphql-tools/stitch
 
+## 8.2.1
+
+### Patch Changes
+
+- c8c13ed1: enhance: remove TypeMap and small improvements
+- Updated dependencies [c8c13ed1]
+  - @graphql-tools/batch-delegate@8.0.12
+  - @graphql-tools/delegate@8.1.1
+  - @graphql-tools/merge@8.0.3
+  - @graphql-tools/utils@8.1.2
+
 ## 8.2.0
 
 ### Minor Changes

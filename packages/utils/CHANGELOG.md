@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.1.2
+
+### Patch Changes
+
+- c8c13ed1: enhance: remove TypeMap and small improvements
+
 ## 8.1.1
 
 ### Patch Changes
