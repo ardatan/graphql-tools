@@ -9,6 +9,7 @@ import {
   isDocumentNode,
   BaseLoaderOptions,
   Loader,
+  AggregateError,
 } from '@graphql-tools/utils';
 import {
   GraphQLTagPluckOptions,
