@@ -29,7 +29,6 @@ import {
   Kind,
   EnumValueDefinitionNode,
 } from 'graphql';
-import { TypeMap } from 'graphql/type/schema';
 
 import { getObjectTypeFromTypeMap } from './getObjectTypeFromTypeMap';
 
@@ -90,11 +89,11 @@ export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}
 }
 
 function mapTypes(
-  originalTypeMap: TypeMap,
+  originalTypeMap: Record<string, GraphQLNamedType>,
   schema: GraphQLSchema,
   schemaMapper: SchemaMapper,
   testFn: (originalType: GraphQLNamedType) => boolean = () => true
-): TypeMap {
+): Record<string, GraphQLNamedType> {
   const newTypeMap = {};
 
   for (const typeName in originalTypeMap) {
@@ -127,7 +126,11 @@ function mapTypes(
   return newTypeMap;
 }
 
-function mapEnumValues(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper: SchemaMapper): TypeMap {
+function mapEnumValues(
+  originalTypeMap: Record<string, GraphQLNamedType>,
+  schema: GraphQLSchema,
+  schemaMapper: SchemaMapper
+): Record<string, GraphQLNamedType> {
   const enumValueMapper = getEnumValueMapper(schemaMapper);
   if (!enumValueMapper) {
     return originalTypeMap;
@@ -166,7 +169,11 @@ function mapEnumValues(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMa
   );
 }
 
-function mapDefaultValues(originalTypeMap: TypeMap, schema: GraphQLSchema, fn: IDefaultValueIteratorFn): TypeMap {
+function mapDefaultValues(
+  originalTypeMap: Record<string, GraphQLNamedType>,
+  schema: GraphQLSchema,
+  fn: IDefaultValueIteratorFn
+): Record<string, GraphQLNamedType> {
   const newTypeMap = mapArguments(originalTypeMap, schema, {
     [MapperKind.ARGUMENT]: argumentConfig => {
       if (argumentConfig.defaultValue === undefined) {
@@ -200,7 +207,7 @@ function mapDefaultValues(originalTypeMap: TypeMap, schema: GraphQLSchema, fn: I
   });
 }
 
-function getNewType<T extends GraphQLType>(newTypeMap: TypeMap, type: T): T | null {
+function getNewType<T extends GraphQLType>(newTypeMap: Record<string, GraphQLNamedType>, type: T): T | null {
   if (isListType(type)) {
     const newType = getNewType(newTypeMap, type.ofType);
     return newType != null ? (new GraphQLList(newType) as T) : null;
@@ -215,7 +222,11 @@ function getNewType<T extends GraphQLType>(newTypeMap: TypeMap, type: T): T | nu
   return null;
 }
 
-function mapFields(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper: SchemaMapper): TypeMap {
+function mapFields(
+  originalTypeMap: Record<string, GraphQLNamedType>,
+  schema: GraphQLSchema,
+  schemaMapper: SchemaMapper
+): Record<string, GraphQLNamedType> {
   const newTypeMap = {};
 
   for (const typeName in originalTypeMap) {
@@ -287,7 +298,11 @@ function mapFields(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper
   return newTypeMap;
 }
 
-function mapArguments(originalTypeMap: TypeMap, schema: GraphQLSchema, schemaMapper: SchemaMapper): TypeMap {
+function mapArguments(
+  originalTypeMap: Record<string, GraphQLNamedType>,
+  schema: GraphQLSchema,
+  schemaMapper: SchemaMapper
+): Record<string, GraphQLNamedType> {
   const newTypeMap = {};
 
   for (const typeName in originalTypeMap) {

@@ -4,6 +4,7 @@ import {
   FragmentDefinitionNode,
   getNamedType,
   GraphQLField,
+  GraphQLNamedType,
   GraphQLSchema,
   GraphQLType,
   isAbstractType,
@@ -32,7 +33,6 @@ import {
 
 import { DelegationContext } from './types';
 import { getDocumentMetadata } from './getDocumentMetadata';
-import type { TypeMap } from 'graphql/type/schema';
 
 function finalizeGatewayDocument(
   targetSchema: GraphQLSchema,
@@ -45,7 +45,7 @@ function finalizeGatewayDocument(
   let newFragments: Array<FragmentDefinitionNode> = [];
 
   const validFragments: Array<FragmentDefinitionNode> = [];
-  const validFragmentsWithType: TypeMap = Object.create(null);
+  const validFragmentsWithType: Record<string, GraphQLNamedType> = Object.create(null);
   for (const fragment of fragments) {
     const typeName = fragment.typeCondition.name.value;
     const type = targetSchema.getType(typeName);

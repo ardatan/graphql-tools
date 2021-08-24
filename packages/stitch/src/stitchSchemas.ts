@@ -196,7 +196,7 @@ function applySubschemaConfigTransforms<TContext = Record<string, any>>(
     .concat(subschemaConfigTransformerPresets)
     .reduce(
       (transformedSubschemaConfigs, subschemaConfigTransform) =>
-        transformedSubschemaConfigs.map(ssConfig => subschemaConfigTransform(ssConfig)).flat(),
+        transformedSubschemaConfigs.flatMap(ssConfig => subschemaConfigTransform(ssConfig)),
       [subschemaConfig]
     );
 

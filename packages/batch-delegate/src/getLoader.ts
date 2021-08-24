@@ -7,17 +7,17 @@ import { relocatedError } from '@graphql-tools/utils';
 
 import { BatchDelegateOptions } from './types';
 
-const cache1: WeakMap<
+const cache1 = new WeakMap<
   ReadonlyArray<FieldNode>,
-  WeakMap<GraphQLSchema | SubschemaConfig<any, any, any, any>, Record<string, DataLoader<any, any>>>
-> = new WeakMap();
+  WeakMap<GraphQLSchema | SubschemaConfig<any, any, any, any>, Map<string, DataLoader<any, any>>>
+>();
 
 function createBatchFn<K = any>(options: BatchDelegateOptions) {
   const argsFromKeys = options.argsFromKeys ?? ((keys: ReadonlyArray<K>) => ({ ids: keys }));
   const fieldName = options.fieldName ?? options.info.fieldName;
   const { valuesFromResults, lazyOptionsFn } = options;
 
-  return async (keys: ReadonlyArray<K>) => {
+  return async function batchFn(keys: ReadonlyArray<K>) {
     const results = await delegateToSchema({
       returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
       onLocatedError: originalError => {
@@ -51,49 +51,52 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
   };
 }
 
-const cacheKeyFn = (key: any) => (typeof key === 'object' ? JSON.stringify(key) : key);
+function defaultCacheKeyFn(key: any) {
+  if (typeof key === 'object') {
+    return JSON.stringify(key);
+  }
+  return key;
+}
 
 export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
   const fieldName = options.fieldName ?? options.info.fieldName;
 
-  let cache2: WeakMap<GraphQLSchema | SubschemaConfig, Record<string, DataLoader<K, V, C>>> | undefined = cache1.get(
-    options.info.fieldNodes
-  );
+  let cache2 = cache1.get(options.info.fieldNodes);
 
   // Prevents the keys to be passed with the same structure
   const dataLoaderOptions: DataLoader.Options<any, any, any> = {
-    cacheKeyFn,
+    cacheKeyFn: defaultCacheKeyFn,
     ...options.dataLoaderOptions,
   };
 
   if (cache2 === undefined) {
     cache2 = new WeakMap();
     cache1.set(options.info.fieldNodes, cache2);
-    const loaders = Object.create(null);
+    const loaders = new Map();
     cache2.set(options.schema, loaders);
     const batchFn = createBatchFn(options);
-    const loader = new DataLoader<K, V, C>(keys => batchFn(keys), dataLoaderOptions);
-    loaders[fieldName] = loader;
+    const loader = new DataLoader<K, V, C>(batchFn, dataLoaderOptions);
+    loaders.set(fieldName, loader);
     return loader;
   }
 
   let loaders = cache2.get(options.schema);
 
   if (loaders === undefined) {
-    loaders = Object.create(null) as Record<string, DataLoader<K, V, C>>;
+    loaders = new Map();
     cache2.set(options.schema, loaders);
     const batchFn = createBatchFn(options);
-    const loader = new DataLoader<K, V, C>(keys => batchFn(keys), dataLoaderOptions);
-    loaders[fieldName] = loader;
+    const loader = new DataLoader<K, V, C>(batchFn, dataLoaderOptions);
+    loaders.set(fieldName, loader);
     return loader;
   }
 
-  let loader = loaders[fieldName];
+  let loader = loaders.get(fieldName);
 
   if (loader === undefined) {
     const batchFn = createBatchFn(options);
-    loader = new DataLoader<K, V, C>(keys => batchFn(keys), dataLoaderOptions);
-    loaders[fieldName] = loader;
+    loader = new DataLoader<K, V, C>(batchFn, dataLoaderOptions);
+    loaders.set(fieldName, loader);
   }
 
   return loader;

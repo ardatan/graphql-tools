@@ -22,7 +22,6 @@ import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, TypeMergingOptions
 import { mergeCandidates } from './mergeCandidates';
 import { extractDefinitions } from './definitions';
 import { mergeTypeDefs } from '@graphql-tools/merge';
-import { TypeMap } from 'graphql/type/schema';
 
 type CandidateSelector<TContext = Record<string, any>> = (
   candidates: Array<MergeTypeCandidate<TContext>>
@@ -201,8 +200,8 @@ export function buildTypes<TContext = Record<string, any>>({
   onTypeConflict?: OnTypeConflict<TContext>;
   mergeTypes: boolean | Array<string> | MergeTypeFilter<TContext>;
   typeMergingOptions?: TypeMergingOptions<TContext>;
-}): { typeMap: TypeMap; directives: Array<GraphQLDirective> } {
-  const typeMap: TypeMap = Object.create(null);
+}): { typeMap: Record<string, GraphQLNamedType>; directives: Array<GraphQLDirective> } {
+  const typeMap: Record<string, GraphQLNamedType> = Object.create(null);
 
   for (const typeName in typeCandidates) {
     if (

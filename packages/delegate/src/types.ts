@@ -10,6 +10,7 @@ import {
   VariableDefinitionNode,
   OperationTypeNode,
   GraphQLError,
+  GraphQLNamedType,
 } from 'graphql';
 
 import DataLoader from 'dataloader';
@@ -18,7 +19,6 @@ import { ExecutionRequest, ExecutionResult, Executor } from '@graphql-tools/util
 
 import { Subschema } from './Subschema';
 import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
-import { TypeMap } from 'graphql/type/schema';
 
 export type SchemaTransform<TContext = Record<any, string>> = (
   originalWrappingSchema: GraphQLSchema,
@@ -128,7 +128,7 @@ export interface MergedTypeInfo<TContext = Record<string, any>> {
   targetSubschemas: Map<Subschema<any, any, any, TContext>, Array<Subschema<any, any, any, TContext>>>;
   uniqueFields: Record<string, Subschema<any, any, any, TContext>>;
   nonUniqueFields: Record<string, Array<Subschema<any, any, any, TContext>>>;
-  typeMaps: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, TypeMap>;
+  typeMaps: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Record<string, GraphQLNamedType>>;
   selectionSets: Map<Subschema<any, any, any, TContext>, SelectionSetNode>;
   fieldSelectionSets: Map<Subschema<any, any, any, TContext>, Record<string, SelectionSetNode>>;
   resolvers: Map<Subschema<any, any, any, TContext>, MergedTypeResolver<TContext>>;

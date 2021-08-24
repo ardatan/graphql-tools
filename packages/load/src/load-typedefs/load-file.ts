@@ -7,19 +7,31 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
 
   if (!results) {
     results = [];
-    await Promise.all(
+    const errors: Error[] = [];
+    await Promise.allSettled(
       options.loaders.map(async loader => {
         try {
           const loaderResults = await loader.load(pointer, options);
           loaderResults?.forEach(result => results!.push(result));
         } catch (error) {
           if (env['DEBUG']) {
-            console.error(`Failed to find any GraphQL type definitions in: ${pointer} - ${error.message}`);
+            console.error(error);
           }
-          throw error;
+          errors.push(error);
         }
       })
     );
+    if (results.length === 0 && errors.length > 0) {
+      if (errors.length === 1) {
+        throw errors[0];
+      }
+      throw new AggregateError(
+        errors,
+        `Failed to find any GraphQL type definitions in: ${pointer};\n - ${errors
+          .map(error => error.message)
+          .join('\n  - ')}`
+      );
+    }
     if (options.cache) {
       options.cache[pointer] = results;
     }
