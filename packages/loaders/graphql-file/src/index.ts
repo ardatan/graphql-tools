@@ -1,9 +1,17 @@
 import type { GlobbyOptions } from 'globby';
 
-import { Source, Loader, isValidPath, parseGraphQLSDL, BaseLoaderOptions, asArray } from '@graphql-tools/utils';
+import {
+  Source,
+  Loader,
+  isValidPath,
+  parseGraphQLSDL,
+  BaseLoaderOptions,
+  asArray,
+  AggregateError,
+} from '@graphql-tools/utils';
 import { isAbsolute, resolve } from 'path';
 import { readFileSync, promises as fsPromises, existsSync } from 'fs';
-import { cwd as processCwd } from 'process';
+import { cwd as processCwd, env } from 'process';
 import { processImport } from '@graphql-tools/import';
 import globby from 'globby';
 import unixify from 'unixify';
@@ -104,29 +112,62 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
   async load(pointer: string, options: GraphQLFileLoaderOptions): Promise<Source[]> {
     const resolvedPaths = await this.resolveGlobs(pointer, options);
     const finalResult: Source[] = [];
+    const errors: Error[] = [];
 
     await Promise.all(
       resolvedPaths.map(async path => {
         if (await this.canLoad(path, options)) {
-          const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
-          const rawSDL: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
-          finalResult.push(this.handleFileContent(rawSDL, normalizedFilePath, options));
+          try {
+            const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
+            const rawSDL: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
+            finalResult.push(this.handleFileContent(rawSDL, normalizedFilePath, options));
+          } catch (e) {
+            if (env['DEBUG']) {
+              console.error(e);
+            }
+            errors.push(e);
+          }
         }
       })
     );
+
+    if (finalResult.length === 0 && errors.length > 0) {
+      if (errors.length === 1) {
+        throw errors[0];
+      }
+      throw new AggregateError(errors);
+    }
+
     return finalResult;
   }
 
   loadSync(pointer: string, options: GraphQLFileLoaderOptions): Source[] {
     const resolvedPaths = this.resolveGlobsSync(pointer, options);
     const finalResult: Source[] = [];
+    const errors: Error[] = [];
+
     for (const path of resolvedPaths) {
       if (this.canLoadSync(path, options)) {
-        const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
-        const rawSDL = readFileSync(normalizedFilePath, { encoding: 'utf8' });
-        finalResult.push(this.handleFileContent(rawSDL, normalizedFilePath, options));
+        try {
+          const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
+          const rawSDL = readFileSync(normalizedFilePath, { encoding: 'utf8' });
+          finalResult.push(this.handleFileContent(rawSDL, normalizedFilePath, options));
+        } catch (e) {
+          if (env['DEBUG']) {
+            console.error(e);
+          }
+          errors.push(e);
+        }
       }
     }
+
+    if (finalResult.length === 0 && errors.length > 0) {
+      if (errors.length === 1) {
+        throw errors[0];
+      }
+      throw new AggregateError(errors);
+    }
+
     return finalResult;
   }
 

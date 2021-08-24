@@ -9,6 +9,7 @@ import {
   isDocumentNode,
   BaseLoaderOptions,
   Loader,
+  AggregateError,
 } from '@graphql-tools/utils';
 import {
   GraphQLTagPluckOptions,
@@ -122,13 +123,31 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
 
   async load(pointer: string, options: CodeFileLoaderOptions): Promise<Source[]> {
     options = this.getMergedOptions(options);
-    const finalResult: Source[] = [];
     const resolvedPaths = await this.resolveGlobs(pointer, options);
+
+    const finalResult: Source[] = [];
+    const errors: Error[] = [];
+
     await Promise.all(
       resolvedPaths.map(async path => {
-        finalResult.push(...(await this.handleSinglePath(path, options)));
+        try {
+          const result = await this.handleSinglePath(path, options);
+          result?.forEach(result => finalResult.push(result));
+        } catch (e) {
+          if (env['DEBUG']) {
+            console.error(e);
+          }
+          errors.push(e);
+        }
       })
     );
+
+    if (finalResult.length === 0 && errors.length > 0) {
+      if (errors.length === 1) {
+        throw errors[0];
+      }
+      throw new AggregateError(errors);
+    }
 
     return finalResult;
   }
@@ -137,12 +156,29 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
     options = this.getMergedOptions(options);
     const resolvedPaths = this.resolveGlobsSync(pointer, options);
     const finalResult: Source[] = [];
+    const errors: Error[] = [];
+
     for (const path of resolvedPaths) {
       if (this.canLoadSync(path, options)) {
-        const result = this.handleSinglePathSync(path, options);
-        result?.forEach(result => finalResult.push(result));
+        try {
+          const result = this.handleSinglePathSync(path, options);
+          result?.forEach(result => finalResult.push(result));
+        } catch (e) {
+          if (env['DEBUG']) {
+            console.error(e);
+          }
+          errors.push(e);
+        }
       }
     }
+
+    if (finalResult.length === 0 && errors.length > 0) {
+      if (errors.length === 1) {
+        throw errors[0];
+      }
+      throw new AggregateError(errors);
+    }
+
     return finalResult;
   }
 

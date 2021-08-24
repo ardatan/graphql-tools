@@ -12,6 +12,7 @@ import {
   FieldNode,
   isInputObjectType,
   isUnionType,
+  GraphQLNamedType,
 } from 'graphql';
 
 import { parseSelectionSet, IResolvers, IFieldResolverOptions, isSome } from '@graphql-tools/utils';
@@ -22,7 +23,6 @@ import { MergeTypeCandidate, MergeTypeFilter } from './types';
 
 import { createMergedTypeResolver } from './createMergedTypeResolver';
 import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
-import { TypeMap } from 'graphql/type/schema';
 import { createDelegationPlanBuilder } from './createDelegationPlanBuilder';
 
 export function createStitchingInfo<TContext = Record<string, any>>(
@@ -67,7 +67,10 @@ function createMergedTypes<TContext = Record<string, any>>(
       ) {
         const targetSubschemas: Array<Subschema<any, any, any, TContext>> = [];
 
-        const typeMaps: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, TypeMap> = new Map();
+        const typeMaps: Map<
+          GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
+          Record<string, GraphQLNamedType>
+        > = new Map();
         const supportedBySubschemas: Record<string, Array<Subschema<any, any, any, TContext>>> = Object.create({});
         const selectionSets: Map<Subschema<any, any, any, TContext>, SelectionSetNode> = new Map();
         const fieldSelectionSets: Map<Subschema<any, any, any, TContext>, Record<string, SelectionSetNode>> = new Map();

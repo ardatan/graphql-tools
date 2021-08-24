@@ -25,7 +25,6 @@ import {
   isSpecifiedScalarType,
   isSpecifiedDirective,
 } from 'graphql';
-import { TypeMap } from 'graphql/type/schema';
 
 import { getBuiltInForStub, isNamedStub } from './stub';
 
@@ -33,14 +32,14 @@ export function rewireTypes(
   originalTypeMap: Record<string, GraphQLNamedType | null>,
   directives: ReadonlyArray<GraphQLDirective>
 ): {
-  typeMap: TypeMap;
+  typeMap: Record<string, GraphQLNamedType>;
   directives: Array<GraphQLDirective>;
 } {
   const referenceTypeMap = Object.create(null);
   for (const typeName in originalTypeMap) {
     referenceTypeMap[typeName] = originalTypeMap[typeName];
   }
-  const newTypeMap: TypeMap = Object.create(null);
+  const newTypeMap: Record<string, GraphQLNamedType> = Object.create(null);
 
   for (const typeName in referenceTypeMap) {
     const namedType = referenceTypeMap[typeName];

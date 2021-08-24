@@ -9,8 +9,9 @@ import unixify from 'unixify';
 import { loadFromGit, loadFromGitSync, readTreeAtRef, readTreeAtRefSync } from './load-git';
 import { parse as handleStuff } from './parse';
 import { parse } from 'graphql';
-import { asArray, BaseLoaderOptions, Loader, Source } from '@graphql-tools/utils';
+import { asArray, BaseLoaderOptions, Loader, Source, AggregateError } from '@graphql-tools/utils';
 import isGlob from 'is-glob';
+import { env } from 'process';
 
 // git:branch:path/to/file
 function extractData(pointer: string): null | {
@@ -150,23 +151,40 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     }
     const { path } = result;
     const finalResult: Source[] = [];
+    const errors: Error[] = [];
 
-    if (isGlob(path)) {
-      const resolvedPaths = await this.resolveGlobs(pointer, asArray(options.ignore || []));
+    try {
+      if (isGlob(path)) {
+        const resolvedPaths = await this.resolveGlobs(pointer, asArray(options.ignore || []));
 
-      await Promise.all(
-        resolvedPaths.map(async path => {
-          const results = await this.load(path, options);
-          for (const result of results) {
-            finalResult.push(result);
-          }
-        })
-      );
-    } else if (await this.canLoad(pointer)) {
-      const results = await this.handleSingularPointerAsync(pointer, options);
-      for (const result of results) {
-        finalResult.push(result);
+        await Promise.all(
+          resolvedPaths.map(async path => {
+            const results = await this.load(path, options);
+            results?.forEach(result => finalResult.push(result));
+          })
+        );
+      } else if (await this.canLoad(pointer)) {
+        const results = await this.handleSingularPointerAsync(pointer, options);
+        results?.forEach(result => finalResult.push(result));
       }
+    } catch (error) {
+      if (env['DEBUG']) {
+        console.error(error);
+      }
+      if (error instanceof AggregateError) {
+        for (const errorElement of error.errors) {
+          errors.push(errorElement);
+        }
+      } else {
+        errors.push(error);
+      }
+    }
+
+    if (finalResult.length === 0 && errors.length > 0) {
+      if (errors.length === 1) {
+        throw errors[0];
+      }
+      throw new AggregateError(errors);
     }
 
     return finalResult;
@@ -201,23 +219,44 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     }
     const { path } = result;
     const finalResult: Source[] = [];
+    const errors: Error[] = [];
 
-    if (isGlob(path)) {
-      const resolvedPaths = this.resolveGlobsSync(pointer, asArray(options.ignore || []));
-      const finalResult: Source[] = [];
-      for (const path of resolvedPaths) {
-        if (this.canLoadSync(path)) {
-          const results = this.loadSync(path, options);
-          for (const result of results) {
-            finalResult.push(result);
+    try {
+      if (isGlob(path)) {
+        const resolvedPaths = this.resolveGlobsSync(pointer, asArray(options.ignore || []));
+        const finalResult: Source[] = [];
+        for (const path of resolvedPaths) {
+          if (this.canLoadSync(path)) {
+            const results = this.loadSync(path, options);
+            for (const result of results) {
+              finalResult.push(result);
+            }
           }
         }
+      } else if (this.canLoadSync(pointer)) {
+        const results = this.handleSingularPointerSync(pointer, options);
+        for (const result of results) {
+          finalResult.push(result);
+        }
       }
-    } else if (this.canLoadSync(pointer)) {
-      const results = this.handleSingularPointerSync(pointer, options);
-      for (const result of results) {
-        finalResult.push(result);
+    } catch (error) {
+      if (env['DEBUG']) {
+        console.error(error);
       }
+      if (error instanceof AggregateError) {
+        for (const errorElement of error.errors) {
+          errors.push(errorElement);
+        }
+      } else {
+        errors.push(error);
+      }
+    }
+
+    if (finalResult.length === 0 && errors.length > 0) {
+      if (errors.length === 1) {
+        throw errors[0];
+      }
+      throw new AggregateError(errors);
     }
 
     return finalResult;

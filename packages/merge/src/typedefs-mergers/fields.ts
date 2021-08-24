@@ -2,7 +2,7 @@ import { Config } from './merge-typedefs';
 import { FieldDefinitionNode, InputValueDefinitionNode, TypeNode, NameNode } from 'graphql';
 import { extractType, isWrappingTypeNode, isListTypeNode, isNonNullTypeNode, printTypeNode } from './utils';
 import { mergeDirectives } from './directives';
-import { isNotEqual, compareNodes } from '@graphql-tools/utils';
+import { compareNodes } from '@graphql-tools/utils';
 import { mergeArguments } from './arguments';
 
 function fieldAlreadyExists(fieldsArr: ReadonlyArray<any>, otherField: any, config?: Config): boolean {
@@ -76,10 +76,8 @@ function preventConflicts(
   const aType = printTypeNode(a.type);
   const bType = printTypeNode(b.type);
 
-  if (isNotEqual(aType, bType)) {
-    if (safeChangeForFieldType(a.type, b.type, ignoreNullability) === false) {
-      throw new Error(`Field '${type.name.value}.${a.name.value}' changed type from '${aType}' to '${bType}'`);
-    }
+  if (aType !== bType && !safeChangeForFieldType(a.type, b.type, ignoreNullability)) {
+    throw new Error(`Field '${type.name.value}.${a.name.value}' changed type from '${aType}' to '${bType}'`);
   }
 }
 

@@ -20,7 +20,6 @@ import {
   isListType,
   isNonNullType,
 } from 'graphql';
-import { TypeMap } from 'graphql/type/schema';
 
 // Update any references to named schema types that disagree with the named
 // types found in schema.getTypeMap().
@@ -59,7 +58,7 @@ export function healTypes(
   originalTypeMap: Record<string, GraphQLNamedType | null>,
   directives: ReadonlyArray<GraphQLDirective>
 ) {
-  const actualNamedTypeMap: TypeMap = Object.create(null);
+  const actualNamedTypeMap: Record<string, GraphQLNamedType> = Object.create(null);
 
   // If any of the .name properties of the GraphQLNamedType objects in
   // schema.getTypeMap() have changed, the keys of the type map need to

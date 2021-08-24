@@ -2,35 +2,18 @@ import { parse, ASTNode } from 'graphql';
 
 export const asArray = <T>(fns: T | T[]) => (Array.isArray(fns) ? fns : fns ? [fns] : []);
 
-export function isEqual<T>(a: T, b: T): boolean {
-  if (Array.isArray(a) && Array.isArray(b)) {
-    if (a.length !== b.length) {
-      return false;
-    }
-
-    for (let index = 0; index < a.length; index++) {
-      if (a[index] !== b[index]) {
-        return false;
-      }
-    }
-
-    return true;
+const invalidDocRegex = /\.[a-z0-9]+$/i;
+export function isDocumentString(str: any): boolean {
+  if (typeof str !== 'string') {
+    return false;
   }
 
-  return a === b || (!a && !b);
-}
-
-export function isNotEqual<T>(a: T, b: T): boolean {
-  return !isEqual(a, b);
-}
-
-export function isDocumentString(str: string): boolean {
   // XXX: is-valid-path or is-glob treat SDL as a valid path
   // (`scalar Date` for example)
   // this why checking the extension is fast enough
   // and prevent from parsing the string in order to find out
   // if the string is a SDL
-  if (/\.[a-z0-9]+$/i.test(str)) {
+  if (invalidDocRegex.test(str)) {
     return false;
   }
 
@@ -43,7 +26,7 @@ export function isDocumentString(str: string): boolean {
 }
 
 const invalidPathRegex = /[‘“!%&^<=>`]/;
-export function isValidPath(str: string): boolean {
+export function isValidPath(str: any): boolean {
   return typeof str === 'string' && !invalidPathRegex.test(str);
 }
 
