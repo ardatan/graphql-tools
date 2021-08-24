@@ -630,11 +630,16 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   async buildSubscriptionExecutor(
     subscriptionsEndpoint: string,
     fetch: AsyncFetchFn,
-    options?: Omit<LoadFromUrlOptions, 'subscriptionsEndpoint'>
+    options?: LoadFromUrlOptions
   ): Promise<AsyncExecutor> {
     if (options?.subscriptionsProtocol === SubscriptionProtocol.SSE) {
       return this.buildSSEExecutor(subscriptionsEndpoint, fetch, options);
     } else if (options?.subscriptionsProtocol === SubscriptionProtocol.GRAPHQL_SSE) {
+      if (!options?.subscriptionsEndpoint) {
+        // when no custom subscriptions endpoint is specified,
+        // graphql-sse is recommended to be used on `/graphql/stream`
+        subscriptionsEndpoint += '/stream';
+      }
       return this.buildGraphQLSSEExecutor(subscriptionsEndpoint, fetch, options);
     } else {
       const webSocketImpl = await this.getWebSocketImpl(asyncImport, options);
