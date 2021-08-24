@@ -82,3 +82,42 @@ server.listen(3000, () => {
   console.info('Listening on http://localhost:3000/graphql');
 });
 ```
+
+[`graphql-sse`](https://github.com/enisdenjo/graphql-sse) offers a server and client implementation for transporting subscriptions over Server-Sent Events.
+
+```js
+const http = require('http');
+const express = require('express');
+const { graphqlHTTP } = require('express-graphql');
+const { createHandler } = require('graphql-sse');
+
+const typeDefs = require('./graphql/types');
+const resolvers = require('./graphql/resolvers');
+const { makeExecutableSchema } = require('@graphql-tools/schema');
+
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers,
+});
+
+const app = express();
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema,
+    graphiql: true,
+  })
+);
+app.use(
+  '/graphql/stream',
+  createHandler({
+    schema,
+  })
+);
+
+const server = http.createServer(app);
+
+server.listen(3000, () => {
+  console.info('Listening on http://localhost:3000/graphql');
+});
+```

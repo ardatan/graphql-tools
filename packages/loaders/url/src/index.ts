@@ -20,6 +20,7 @@ import { isWebUri } from 'valid-url';
 import { fetch as crossFetch } from 'cross-fetch';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
+import { ClientOptions as GraphQLSSEClientOptions, createClient as createGraphQLSSEClient } from 'graphql-sse';
 import WebSocket from 'isomorphic-ws';
 import syncFetchImported from 'sync-fetch';
 import isPromise from 'is-promise';
@@ -87,6 +88,10 @@ export enum SubscriptionProtocol {
    * Use SSE for subscription instead of WebSocket
    */
   SSE = 'SSE',
+  /**
+   * Use `graphql-sse` for subscriptions
+   */
+  GRAPHQL_SSE = 'GRAPHQL_SSE',
 }
 
 /**
@@ -139,6 +144,10 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Use specific protocol for subscriptions
    */
   subscriptionsProtocol?: SubscriptionProtocol;
+  /**
+   * Additional options to pass to the graphql-sse client.
+   */
+  graphqlSseOptions?: Omit<GraphQLSSEClientOptions, 'url' | 'headers' | 'fetchFn' | 'abortControllerImpl'>;
 }
 
 const isCompatibleUri = (uri: string): boolean => {
@@ -531,6 +540,39 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     };
   }
 
+  buildGraphQLSSEExecutor(
+    endpoint: string,
+    fetch: AsyncFetchFn,
+    options: Omit<LoadFromUrlOptions, 'subscriptionEndpoint'> = {}
+  ): AsyncExecutor {
+    const { headers } = options;
+    const client = createGraphQLSSEClient({
+      ...options.graphqlSseOptions,
+      url: endpoint,
+      fetchFn: fetch,
+      abortControllerImpl: AbortController,
+      headers,
+    });
+    return async ({ document, variables, operationName, extensions }) => {
+      return observableToAsyncIterable({
+        subscribe: observer => {
+          const unsubscribe = client.subscribe(
+            {
+              query: document,
+              variables: variables as Record<string, any>,
+              operationName,
+              extensions,
+            },
+            observer
+          );
+          return {
+            unsubscribe,
+          };
+        },
+      });
+    };
+  }
+
   getFetch(customFetch: LoadFromUrlOptions['customFetch'], importFn: AsyncImportFn): PromiseLike<AsyncFetchFn>;
 
   getFetch(customFetch: LoadFromUrlOptions['customFetch'], importFn: SyncImportFn): SyncFetchFn;
@@ -592,6 +634,8 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   ): Promise<AsyncExecutor> {
     if (options?.subscriptionsProtocol === SubscriptionProtocol.SSE) {
       return this.buildSSEExecutor(subscriptionsEndpoint, fetch, options);
+    } else if (options?.subscriptionsProtocol === SubscriptionProtocol.GRAPHQL_SSE) {
+      return this.buildGraphQLSSEExecutor(subscriptionsEndpoint, fetch, options);
     } else {
       const webSocketImpl = await this.getWebSocketImpl(asyncImport, options);
       const connectionParams = () => ({ headers: options?.headers });
