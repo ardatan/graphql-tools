@@ -1,5 +1,13 @@
 # @graphql-tools/delegate
 
+## 8.1.1
+
+### Patch Changes
+
+- c8c13ed1: enhance: remove TypeMap and small improvements
+- Updated dependencies [c8c13ed1]
+  - @graphql-tools/utils@8.1.2
+
 ## 8.1.0
 
 ### Minor Changes

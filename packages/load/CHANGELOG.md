@@ -1,5 +1,14 @@
 # @graphql-tools/load
 
+## 7.1.9
+
+### Patch Changes
+
+- c8c13ed1: enhance: remove TypeMap and small improvements
+- c8c13ed1: enhance(load): handle multiple errors correctly
+- Updated dependencies [c8c13ed1]
+  - @graphql-tools/utils@8.1.2
+
 ## 7.1.8
 
 ### Patch Changes

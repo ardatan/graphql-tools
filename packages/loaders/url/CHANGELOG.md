@@ -1,5 +1,14 @@
 # @graphql-tools/url-loader
 
+## 7.0.12
+
+### Patch Changes
+
+- e4dc54de: Add missing `@types/ws` dependency
+- Updated dependencies [c8c13ed1]
+  - @graphql-tools/delegate@8.1.1
+  - @graphql-tools/utils@8.1.2
+
 ## 7.0.11
 
 ### Patch Changes
