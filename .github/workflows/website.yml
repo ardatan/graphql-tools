@@ -44,7 +44,7 @@ jobs:
       - name: Build Website
         run: cd website/ && yarn build && yarn export && touch out/.nojekyll
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+        uses: JamesIves/github-pages-deploy-action@4.1.5
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: website/out # The folder the action should deploy.
