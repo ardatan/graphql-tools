@@ -506,15 +506,15 @@ describe('mapSchema', () => {
         return graphql({
           schema,
           source: /* GraphQL */`
-          query {
-            users {
-              name
-              banned
-              canPost
+            query {
+              users {
+                name
+                banned
+                canPost
+              }
             }
-          }
-        `,
-          variableValues: {
+          `,
+          contextValue: {
             headers: {
               authToken: role,
             },

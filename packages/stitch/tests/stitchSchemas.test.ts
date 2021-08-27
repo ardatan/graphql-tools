@@ -521,7 +521,7 @@ for (const combination of testCombinations) {
               contextTest(key: "test")
             }
           `,
-          variableValues: {
+          contextValue: {
             test: 'Foo',
           },
         });
