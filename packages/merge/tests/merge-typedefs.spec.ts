@@ -431,7 +431,7 @@ describe('Merge TypeDefs', () => {
         mergeTypeDefs([`directive @id on FIELD_DEFINITION`, `directive @id(name: String) on FIELD_DEFINITION`, `type MyType { id: Int @id }`, `type Query { f1: MyType }`]);
 
         done.fail('It should have failed');
-      } catch (e) {
+      } catch (e: any) {
         const msg = stripWhitespaces(e.message);
 
         expect(msg).toMatch('GraphQL directive "id"');

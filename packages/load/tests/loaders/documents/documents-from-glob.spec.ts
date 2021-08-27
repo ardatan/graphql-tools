@@ -88,7 +88,7 @@ describe('documentsFromGlob', () => {
           loaders: [new GraphQLFileLoader()]
         });
         expect(true).toBeFalsy();
-      } catch (e) {
+      } catch (e: any) {
         expect(e).toBeDefined();
         expect(e.message).toContain("Syntax Error");
       }
@@ -101,7 +101,7 @@ describe('documentsFromGlob', () => {
           loaders: [new GraphQLFileLoader()]
         });
         expect(true).toBeFalsy();
-      } catch (e) {
+      } catch (e: any) {
         expect(e).toBeDefined();
       }
     });
@@ -113,7 +113,7 @@ describe('documentsFromGlob', () => {
           loaders: [new GraphQLFileLoader()]
         });
         expect(true).toBeFalsy();
-      } catch (e) {
+      } catch (e: any) {
         expect(e).toBeDefined();
       }
     });

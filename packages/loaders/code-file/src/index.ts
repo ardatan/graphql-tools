@@ -133,7 +133,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
         try {
           const result = await this.handleSinglePath(path, options);
           result?.forEach(result => finalResult.push(result));
-        } catch (e) {
+        } catch (e: any) {
           if (env['DEBUG']) {
             console.error(e);
           }
@@ -163,7 +163,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
         try {
           const result = this.handleSinglePathSync(path, options);
           result?.forEach(result => finalResult.push(result));
-        } catch (e) {
+        } catch (e: any) {
           if (env['DEBUG']) {
             console.error(e);
           }
@@ -204,7 +204,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
             location,
           }));
         }
-      } catch (e) {
+      } catch (e: any) {
         if (env['DEBUG']) {
           console.error(`Failed to load schema from code file "${normalizedFilePath}": ${e.message}`);
         }
@@ -226,7 +226,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
         if (sources.length) {
           return sources as Source[];
         }
-      } catch (e) {
+      } catch (e: any) {
         errors.push(e);
       }
     }
@@ -259,7 +259,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
             location,
           }));
         }
-      } catch (e) {
+      } catch (e: any) {
         if (env['DEBUG']) {
           console.error(`Failed to load schema from code file "${normalizedFilePath}": ${e.message}`);
         }
@@ -284,7 +284,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
         if (sources.length) {
           return sources as Source[];
         }
-      } catch (e) {
+      } catch (e: any) {
         errors.push(e);
       }
     }

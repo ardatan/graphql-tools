@@ -23,7 +23,7 @@ describe('loadSchema', () => {
           loaders: [new CodeFileLoader()]
         });
         expect(true).toBeFalsy(); // should throw
-      } catch (e) {
+      } catch (e: any) {
         expect(e.toString()).toContain(`SyntaxError`);
       }
     });

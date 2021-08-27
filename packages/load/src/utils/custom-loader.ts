@@ -15,7 +15,7 @@ export function getCustomLoaderByPath(path: string, cwd: string) {
         return requiredModule;
       }
     }
-  } catch (e) {}
+  } catch (e: any) {}
 
   return null;
 }

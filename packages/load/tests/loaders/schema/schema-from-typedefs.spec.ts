@@ -40,7 +40,7 @@ describe('schema from typedefs', () => {
           loaders: [new GraphQLFileLoader()]
         });
         expect(true).toBeFalsy();
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toContain(`Unable to find any GraphQL type definitions for the following pointers:`);
         expect(e.message).toContain(`/tests/loaders/schema/test-files/schema-dir/*.empty.graphql`);
       }
@@ -54,7 +54,7 @@ describe('schema from typedefs', () => {
           loaders: [new GraphQLFileLoader()]
         });
         expect(schema).toBeFalsy();
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toContain(`Unable to find any GraphQL type definitions for the following pointers:`);
       }
     });
@@ -67,7 +67,7 @@ describe('schema from typedefs', () => {
           loaders: [new GraphQLFileLoader()]
         });
         expect(true).toBeFalsy();
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toContain(`Unable to find any GraphQL type definitions for the following pointers:`);
         expect(e.message).toContain(`./tests/loaders/schema/test-files/schema-dir/*.non-schema.graphql`);
       }

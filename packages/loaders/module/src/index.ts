@@ -46,7 +46,7 @@ export class ModuleLoader implements Loader {
         const moduleAbsolutePath = require.resolve(modulePath);
         await access(moduleAbsolutePath);
         return true;
-      } catch (e) {
+      } catch (e: any) {
         return false;
       }
     }
@@ -59,7 +59,7 @@ export class ModuleLoader implements Loader {
       try {
         const moduleAbsolutePath = require.resolve(modulePath);
         return existsSync(moduleAbsolutePath);
-      } catch (e) {
+      } catch (e: any) {
         return false;
       }
     }
@@ -75,7 +75,7 @@ export class ModuleLoader implements Loader {
       }
 
       throw InvalidError;
-    } catch (error) {
+    } catch (error: any) {
       throw createLoadError(error);
     }
   }
@@ -89,7 +89,7 @@ export class ModuleLoader implements Loader {
       }
 
       throw InvalidError;
-    } catch (error) {
+    } catch (error: any) {
       throw createLoadError(error);
     }
   }

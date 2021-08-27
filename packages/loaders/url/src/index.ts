@@ -508,7 +508,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                 try {
                   const { errors } = await response.json();
                   error = errors[0];
-                } catch (error) {
+                } catch (error: any) {
                   // Failed to parse body
                 }
 

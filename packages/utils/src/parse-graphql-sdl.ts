@@ -29,7 +29,7 @@ export function parseGraphQLSDL(location: string | undefined, rawSDL: string, op
     } else {
       document = parse(new GraphQLSource(rawSDL, location), options);
     }
-  } catch (e) {
+  } catch (e: any) {
     if (e.message.includes('EOF') && rawSDL.replace(/(\#[^*]*)/g, '').trim() === '') {
       document = {
         kind: Kind.DOCUMENT,

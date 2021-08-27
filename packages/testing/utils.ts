@@ -35,7 +35,7 @@ export function runTests<
             try {
               const result: any = executeSync(...args);
               resolve(result);
-            } catch (error) {
+            } catch (error: any) {
               reject(error);
             }
           });
@@ -79,7 +79,7 @@ function findProjectDir(dirname: string): string | never {
       }
 
       dirname = resolve(dirname, '..');
-    } catch (e) {
+    } catch (e: any) {
       // ignore
     }
   }

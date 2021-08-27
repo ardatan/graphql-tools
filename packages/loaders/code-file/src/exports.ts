@@ -82,7 +82,7 @@ function resolveExport(
     }
 
     return null;
-  } catch (e) {
+  } catch (e: any) {
     throw new Error('Exported schema must be of type GraphQLSchema, text, AST, or introspection JSON.');
   }
 }
