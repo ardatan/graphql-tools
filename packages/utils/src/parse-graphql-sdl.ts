@@ -1,7 +1,6 @@
 import {
   DocumentNode,
   Kind,
-  TokenKind,
   ASTNode,
   parse,
   Source as GraphQLSource,
@@ -10,7 +9,7 @@ import {
   StringValueNode,
   print,
 } from 'graphql';
-import { dedentBlockStringValue } from './comments';
+import { dedentBlockStringValue, getLeadingCommentBlock } from './comments';
 import { GraphQLParseOptions } from './Interfaces';
 
 export function parseGraphQLSDL(location: string | undefined, rawSDL: string, options: GraphQLParseOptions = {}) {
