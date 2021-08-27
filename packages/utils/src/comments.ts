@@ -1,4 +1,4 @@
-import { getLeadingCommentBlock, Maybe } from '@graphql-tools/utils';
+import { Maybe } from '@graphql-tools/utils';
 import {
   StringValueNode,
   FieldDefinitionNode,
@@ -8,6 +8,8 @@ import {
   visit,
   VisitFn,
   DefinitionNode,
+  Location,
+  TokenKind,
 } from 'graphql';
 import type { ASTVisitor } from 'graphql/language/visitor';
 
@@ -59,7 +61,7 @@ export function collectComment(node: NamedDefinitionNode): void {
 }
 
 export function pushComment(node: any, entity: string, field?: string, argument?: string): void {
-  const comment = getLeadingCommentBlock(node);
+  const comment = getDescription(node, { commentDescriptions: true });
 
   if (typeof comment !== 'string' || comment.length === 0) {
     return;
@@ -402,4 +404,103 @@ export function printWithComments(ast: ASTNode) {
 
 function isFieldDefinitionNode(node: any): node is FieldDefinitionNode {
   return node.kind === 'FieldDefinition';
+}
+
+// graphql < v13 and > v15 does not export getDescription
+
+export function getDescription(
+  node: { description?: StringValueNode; loc?: Location },
+  options?: { commentDescriptions?: boolean }
+): string | undefined {
+  if (node.description != null) {
+    return node.description.value;
+  }
+  if (options?.commentDescriptions) {
+    const rawValue = getLeadingCommentBlock(node);
+    if (rawValue !== undefined) {
+      return dedentBlockStringValue(`\n${rawValue as string}`);
+    }
+  }
+}
+
+export function getLeadingCommentBlock(node: { description?: StringValueNode; loc?: Location }): void | string {
+  const loc = node.loc;
+  if (!loc) {
+    return;
+  }
+  const comments = [];
+  let token = loc.startToken.prev;
+  while (
+    token != null &&
+    token.kind === TokenKind.COMMENT &&
+    token.next != null &&
+    token.prev != null &&
+    token.line + 1 === token.next.line &&
+    token.line !== token.prev.line
+  ) {
+    const value = String(token.value);
+    comments.push(value);
+    token = token.prev;
+  }
+  return comments.length > 0 ? comments.reverse().join('\n') : undefined;
+}
+
+export function dedentBlockStringValue(rawString: string): string {
+  // Expand a block string's raw value into independent lines.
+  const lines = rawString.split(/\r\n|[\n\r]/g);
+
+  // Remove common indentation from all lines but first.
+  const commonIndent = getBlockStringIndentation(lines);
+
+  if (commonIndent !== 0) {
+    for (let i = 1; i < lines.length; i++) {
+      lines[i] = lines[i].slice(commonIndent);
+    }
+  }
+
+  // Remove leading and trailing blank lines.
+  while (lines.length > 0 && isBlank(lines[0])) {
+    lines.shift();
+  }
+  while (lines.length > 0 && isBlank(lines[lines.length - 1])) {
+    lines.pop();
+  }
+
+  // Return a string of the lines joined with U+000A.
+  return lines.join('\n');
+}
+/**
+ * @internal
+ */
+export function getBlockStringIndentation(lines: ReadonlyArray<string>): number {
+  let commonIndent = null;
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    const indent = leadingWhitespace(line);
+    if (indent === line.length) {
+      continue; // skip empty lines
+    }
+
+    if (commonIndent === null || indent < commonIndent) {
+      commonIndent = indent;
+      if (commonIndent === 0) {
+        break;
+      }
+    }
+  }
+
+  return commonIndent === null ? 0 : commonIndent;
+}
+
+function leadingWhitespace(str: string) {
+  let i = 0;
+  while (i < str.length && (str[i] === ' ' || str[i] === '\t')) {
+    i++;
+  }
+  return i;
+}
+
+function isBlank(str: string) {
+  return leadingWhitespace(str) === str.length;
 }
