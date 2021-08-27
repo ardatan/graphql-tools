@@ -5,7 +5,6 @@ import {
   GraphQLScalarType,
   subscribe,
   parse,
-  findDeprecatedUsages,
   printSchema,
   GraphQLResolveInfo,
 } from 'graphql';
@@ -515,31 +514,29 @@ for (const combination of testCombinations) {
 
     describe('basic', () => {
       test('works with context', async () => {
-        const propertyResult = await graphql(
-          localPropertySchema,
-          `
+        const propertyResult = await graphql({
+          schema: localPropertySchema,
+          source: /* GraphQL */`
             query {
               contextTest(key: "test")
             }
           `,
-          {},
-          {
+          variableValues: {
             test: 'Foo',
           },
-        );
+        });
 
-        const stitchedResult = await graphql(
-          stitchedSchema,
-          `
+        const stitchedResult = await graphql({
+          schema: stitchedSchema,
+          source: /* GraphQL */`
             query {
               contextTest(key: "test")
             }
           `,
-          {},
-          {
+          variableValues: {
             test: 'Foo',
           },
-        );
+        });
 
         expect(propertyResult).toEqual({
           data: {
@@ -553,7 +550,7 @@ for (const combination of testCombinations) {
       test('works with custom scalars', async () => {
         const propertyResult = await graphql(
           localPropertySchema,
-          `
+          /* GraphQL */`
             query {
               dateTimeTest
               test1: jsonTest(input: { foo: "bar" })
@@ -565,7 +562,7 @@ for (const combination of testCombinations) {
 
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               dateTimeTest
               test1: jsonTest(input: { foo: "bar" })
@@ -591,7 +588,7 @@ for (const combination of testCombinations) {
       test('works with custom scalars', async () => {
         const scalarResult = await graphql(
           scalarSchema,
-          `
+          /* GraphQL */`
             query {
               testingScalar(input: "test") {
                 value
@@ -605,7 +602,7 @@ for (const combination of testCombinations) {
 
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               testingScalar(input: "test") {
                 value
@@ -637,7 +634,7 @@ for (const combination of testCombinations) {
       test('works with custom enums', async () => {
         const enumResult = await graphql(
           enumSchema,
-          `
+          /* GraphQL */`
             query {
               color(input: RED)
               numericEnum
@@ -672,7 +669,7 @@ for (const combination of testCombinations) {
 
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               color(input: RED)
               numericEnum
@@ -910,7 +907,7 @@ bookingById(id: "b1") {
       test('links in queries', async () => {
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               firstProperty: propertyById(id: "p2") {
                 id
@@ -1068,7 +1065,7 @@ bookingById(id: "b1") {
       test('unions', async () => {
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               customerById(id: "c1") {
                 ... on Person {
@@ -1099,7 +1096,7 @@ bookingById(id: "b1") {
       test('unions with alias', async () => {
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               customerById(id: "c1") {
                 ... on Person {
@@ -1181,7 +1178,7 @@ bookingById(id: "b1") {
       test('interfaces spread from top level functions', async () => {
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               first: customerById(id: "c1") {
                 name
@@ -1223,7 +1220,7 @@ bookingById(id: "b1") {
       test('unions implementing an interface', async () => {
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               customerById(id: "c1") {
                 ... on Person {
@@ -1264,7 +1261,7 @@ bookingById(id: "b1") {
       test('input objects with default', async () => {
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               one: defaultInputTest(input: {})
               two: defaultInputTest(input: { test: "Bar" })
@@ -1285,7 +1282,7 @@ bookingById(id: "b1") {
       test('deep links', async () => {
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               propertyById(id: "p2") {
                 id
@@ -1332,7 +1329,7 @@ bookingById(id: "b1") {
       test('link arguments', async () => {
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               propertyById(id: "p1") {
                 id
@@ -1556,7 +1553,7 @@ bookingById(id: "b1") {
 
         const stitchedResult = await graphql(
           schema,
-          `
+          /* GraphQL */`
             query {
               dateTimeTest
               test1: jsonTest(input: { foo: "bar" })
@@ -1705,7 +1702,7 @@ bookingById(id: "b1") {
       test('containing links', async () => {
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               propertyById(id: "p2") {
                 id
@@ -1847,7 +1844,7 @@ fragment BookingFragment on Booking {
       test('containing fragment on outer type', async () => {
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               propertyById(id: "p2") {
                 id
@@ -1906,7 +1903,7 @@ fragment BookingFragment on Booking {
       test('containing links and overlapping fragments on relation', async () => {
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               propertyById(id: "p2") {
                 id
@@ -1965,7 +1962,7 @@ fragment BookingFragment on Booking {
       test('containing links and single fragment on relation', async () => {
         const stitchedResult = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               propertyById(id: "p2") {
                 id
@@ -2341,7 +2338,7 @@ fragment BookingFragment on Booking {
 
         const result = await graphql({
           schema: mergedSchema,
-          source: `
+          source: /* GraphQL */`
             query {
               flattenedTransactions {
                 page {
@@ -2372,7 +2369,7 @@ fragment BookingFragment on Booking {
       test('aliases', async () => {
         const result = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               property: propertyById(id: "p1") {
                 id
@@ -2445,7 +2442,7 @@ fragment BookingFragment on Booking {
       test('aliases subschema queries', async () => {
         const result = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               customerById(id: "c1") {
                 id
@@ -2551,7 +2548,7 @@ fragment BookingFragment on Booking {
 
         const stitchedResult2 = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               errorTestNonNull
               ${bookingFragment}
@@ -2574,7 +2571,7 @@ fragment BookingFragment on Booking {
       test('nested errors', async () => {
         const result = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               propertyById(id: "p1") {
                 error
@@ -2741,7 +2738,7 @@ fragment BookingFragment on Booking {
       test('should allow defining new types in link type', async () => {
         const result = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               linkTest {
                 test
@@ -2940,7 +2937,7 @@ fragment BookingFragment on Booking {
       test('multi-interface filter', async () => {
         const result = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               products {
                 id
@@ -2975,7 +2972,7 @@ fragment BookingFragment on Booking {
       test('interface extensions', async () => {
         const result = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               products {
                 id
@@ -3010,7 +3007,7 @@ fragment BookingFragment on Booking {
       test('arbitrary transforms that return interfaces', async () => {
         const result = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               nodes {
                 id
@@ -3073,7 +3070,7 @@ fragment BookingFragment on Booking {
       test('should not pass extra arguments to delegates', async () => {
         const result = await graphql(
           stitchedSchema,
-          `
+          /* GraphQL */`
             query {
               delegateArgumentTest(arbitraryArg: 5) {
                 id
@@ -3124,7 +3121,7 @@ assertSome(result.data)
 
     describe('deprecation', () => {
       test('should retain deprecation information', () => {
-        const typeDefs = `
+        const typeDefs = /* GraphQL */`
           type Query {
             book: Book
           }
@@ -3132,12 +3129,6 @@ assertSome(result.data)
             category: String! @deprecated(reason: "yolo")
           }
         `;
-
-        const query = /* GraphQL */`query {
-          book {
-            category
-          }
-        }`;
 
         const resolvers = {
           Query: {
@@ -3151,15 +3142,10 @@ assertSome(result.data)
           resolvers,
         });
 
-        const deprecatedUsages = findDeprecatedUsages(schema, parse(query));
-        expect(deprecatedUsages.length).toBe(1);
-        expect(
-          deprecatedUsages.find(
-            (error) =>
-              error.message.match(/deprecated/g) != null &&
-              error.message.match(/yolo/g) != null,
-          ),
-        ).toBeDefined();
+        const bookType = schema.getType('Book') as GraphQLObjectType;
+        const bookTypeFields = bookType.getFields();
+        const categoryField = bookTypeFields['category'];
+        expect(categoryField.deprecationReason).toBe('yolo');
       });
     });
   });

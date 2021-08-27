@@ -34,8 +34,8 @@ describe('passes along errors for missing fields on list', () => {
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
-    const originalResult = await execute({ schema, document: parse(query) });
-    const stitchedResult = await execute({ schema: stitchedSchema, document: parse(query) });
+    const originalResult = await graphql({ schema, source: query });
+    const stitchedResult = await graphql({ schema: stitchedSchema, source: query });
     expect(stitchedResult).toEqual(originalResult);
     assertSome(stitchedResult.errors)
     assertSome(originalResult.errors)
@@ -71,8 +71,8 @@ describe('passes along errors for missing fields on list', () => {
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
-    const originalResult = await execute({ schema, document: parse(query) });
-    const stitchedResult = await execute({ schema: stitchedSchema, document: parse(query) });
+    const originalResult = await graphql({ schema, source: query });
+    const stitchedResult = await graphql({ schema: stitchedSchema, source: query });
     expect(stitchedResult).toEqual(originalResult);
     assertSome(originalResult.errors)
     assertSome(stitchedResult.errors)
@@ -110,8 +110,8 @@ describe('passes along errors when list field errors', () => {
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
-    const originalResult = await execute({ schema, document: parse(query) });
-    const stitchedResult = await execute({ schema: stitchedSchema, document: parse(query) });
+    const originalResult = await graphql({ schema, source: query });
+    const stitchedResult = await graphql({ schema: stitchedSchema, source: query });
     expect(stitchedResult).toEqual(originalResult);
     assertSome(stitchedResult.errors)
     assertSome(originalResult.errors)
@@ -147,8 +147,8 @@ describe('passes along errors when list field errors', () => {
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
-    const originalResult = await execute({ schema, document: parse(query) });
-    const stitchedResult = await execute({ schema: stitchedSchema, document: parse(query) });
+    const originalResult = await graphql({ schema, source: query });
+    const stitchedResult = await graphql({ schema: stitchedSchema, source: query });
     expect(stitchedResult).toEqual(originalResult);
     assertSome(stitchedResult.errors)
     assertSome(originalResult.errors)
@@ -179,8 +179,8 @@ describe('passes along errors when list field errors', () => {
       });
 
       const query = '{ getBoth { mandatoryField1 mandatoryField2 } }';
-      const originalResult = await execute({ schema, document: parse(query) });
-      const stitchedResult = await execute({ schema: stitchedSchema, document: parse(query) });
+      const originalResult = await graphql({ schema, source: query });
+      const stitchedResult = await graphql({ schema: stitchedSchema, source: query });
       expect(stitchedResult).toEqual(originalResult);
       assertSome(stitchedResult.errors)
       assertSome(originalResult.errors)
@@ -241,7 +241,7 @@ describe('passes along errors for remote schemas', () => {
       }
     }`
 
-    const result = await execute({ schema: stitchedSchema, document: parse(query) });
+    const result = await graphql({ schema: stitchedSchema, source: query });
     expect(result).toEqual(expectedResult);
   });
 });
@@ -306,9 +306,9 @@ describe('executor errors are propagated', () => {
       ],
     });
 
-    const result = await graphql(
+    const result = await graphql({
       schema,
-      `
+      source: /* GraphQL */`
         query {
           rootContainer {
             id
@@ -316,9 +316,7 @@ describe('executor errors are propagated', () => {
           }
         }
       `,
-      undefined,
-      {}
-    );
+    });
     expect(result.data).toEqual({
       rootContainer: {
         id: 'ContainerID',

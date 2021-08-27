@@ -88,7 +88,7 @@ describe('nested root types', () => {
       },
     };
 
-    const result = await execute({ schema: stitchedSchema, document: parse(query) });
+    const result = await graphql({ schema: stitchedSchema, source: query });
     expect(result).toEqual(expectedResult);
   });
 
@@ -127,7 +127,7 @@ describe('nested root types', () => {
       },
     };
 
-    const result = await graphql(stitchedSchema, mutation);
+    const result = await graphql({ schema: stitchedSchema, source: mutation });
     expect(result).toEqual(expectedResult);
   });
 });

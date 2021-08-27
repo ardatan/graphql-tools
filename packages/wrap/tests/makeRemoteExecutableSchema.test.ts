@@ -2,10 +2,10 @@ import {
   GraphQLSchema,
   subscribe,
   parse,
-  execute,
   print,
   ExecutionResult,
   buildSchema,
+  graphql,
 } from 'graphql';
 
 import { wrapSchema } from '../src/index';
@@ -51,7 +51,7 @@ describe('remote queries', () => {
       },
     };
 
-    const result = await execute({ schema, document: parse(query) });
+    const result = await graphql({ schema, source: query });
     expect(result).toEqual(expected);
   });
 });
@@ -133,20 +133,20 @@ describe('remote subscriptions', () => {
 });
 
 describe('when query for multiple fields', () => {
-  const typeDefs = `
+  const typeDefs = /* GraphQL */`
       type Query {
         fieldA: Int!
         fieldB: Int!
         field3: Int!
       }
     `;
-  const query = parse(`
+  const query = /* GraphQL */`
       query {
         fieldA
         fieldB
         field3
       }
-    `);
+    `;
   let calls: Array<any> = [];
   const executor = (args: any): any => {
     calls.push(args);
@@ -168,7 +168,7 @@ describe('when query for multiple fields', () => {
   });
 
   it('forwards three upstream queries', async () => {
-    const result = await execute({ schema: remoteSchema, document: query });
+    const result = await graphql({ schema: remoteSchema, source: query });
     expect(result).toEqual({
       data: {
         fieldA: 1,
