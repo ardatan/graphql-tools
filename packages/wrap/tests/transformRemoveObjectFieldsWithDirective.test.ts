@@ -4,7 +4,7 @@ import { assertGraphQLObjectType } from '../../testing/assertion';
 
 describe('RemoveObjectFieldsWithDirective', () => {
   const originalSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       directive @alpha(arg: String) on FIELD_DEFINITION
       directive @bravo(arg: String) on FIELD_DEFINITION
 

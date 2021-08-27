@@ -162,7 +162,7 @@ describe('delegateToSchema ', () => {
 
     const gatewaySchema = stitchSchemas({
       subschemas: [networkSchema, postsSchema],
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         extend type Post {
           network: Network!
         }

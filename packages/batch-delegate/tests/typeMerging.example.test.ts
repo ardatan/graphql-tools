@@ -28,7 +28,7 @@ describe('merging using type merging', () => {
   ];
 
   const accountsSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Query {
         me: User
         _userById(id: ID!): User
@@ -56,7 +56,7 @@ describe('merging using type merging', () => {
   ];
 
   const inventorySchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       input ProductRepresentation {
         upc: String!
         price: Int
@@ -112,7 +112,7 @@ describe('merging using type merging', () => {
   ];
 
   const productsSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Query {
         topProducts(first: Int = 2): [Product]
         _productByUpc(upc: String!): Product
@@ -167,7 +167,7 @@ describe('merging using type merging', () => {
   ];
 
   const reviewsSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Review {
         id: ID!
         body: String

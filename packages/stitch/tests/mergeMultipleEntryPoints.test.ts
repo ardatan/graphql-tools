@@ -5,7 +5,7 @@ import { stitchSchemas } from '../src/stitchSchemas';
 
 describe('merge on multiple keys', () => {
   const catalogSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Product {
         upc: ID!
         name: String
@@ -22,7 +22,7 @@ describe('merge on multiple keys', () => {
   });
 
   const vendorSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Product {
         id: ID!
         upc: ID!
@@ -44,7 +44,7 @@ describe('merge on multiple keys', () => {
   });
 
   const reviewsSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Product {
         id: ID!
         reviews: [String]

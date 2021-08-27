@@ -6,7 +6,7 @@ import { graphql } from 'graphql';
 describe('RenameRootTypes', () => {
   test('should work', async () => {
     let subschema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         schema {
           query: QueryRoot
           mutation: MutationRoot

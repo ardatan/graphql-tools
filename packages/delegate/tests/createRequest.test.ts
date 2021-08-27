@@ -7,7 +7,7 @@ import { delegateRequest } from '../src/delegateToSchema';
 describe('bare requests', () => {
   test('should work', async () => {
     const innerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Test {
           field: String
         }
@@ -26,7 +26,7 @@ describe('bare requests', () => {
     });
 
     const outerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Test {
           field: String
         }
@@ -101,7 +101,7 @@ describe('bare requests', () => {
 
   test('should work with adding args on delegation', async () => {
     const innerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Test {
           field: String
         }
@@ -120,7 +120,7 @@ describe('bare requests', () => {
     });
 
     const outerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Test {
           field: String
         }
@@ -185,7 +185,7 @@ describe('bare requests', () => {
 
   test('should work with errors', async () => {
     const innerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           test: String
         }
@@ -198,7 +198,7 @@ describe('bare requests', () => {
     });
 
     const outerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           delegate: String
         }

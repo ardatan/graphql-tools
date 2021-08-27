@@ -12,7 +12,7 @@ function assertGraphQLEnumType(input: unknown): asserts input is GraphQLEnumType
 describe('TransformEnumValues', () => {
   test('works', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         enum TestEnum {
           ONE
         }
@@ -50,7 +50,7 @@ describe('TransformEnumValues', () => {
 
   test('allows modification of external and internal values', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         enum TestEnum {
           ONE
         }
@@ -94,7 +94,7 @@ describe('TransformEnumValues', () => {
 
   test('works with variables', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         enum TestEnum {
           ONE
         }

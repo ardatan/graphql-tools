@@ -19,7 +19,7 @@ const ITEM = {
 };
 
 const serviceSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */`
     interface ItemInterface {
       id: ID!
       name: String

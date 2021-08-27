@@ -4,7 +4,7 @@ import { graphql } from 'graphql';
 
 describe('nested root types', () => {
   const schema1 = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Query {
         schema1Boolean: Boolean
         schema1Query: Query
@@ -27,7 +27,7 @@ describe('nested root types', () => {
   });
 
   const schema2 = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Query {
         schema2Boolean: Boolean
         schema2Query: Query

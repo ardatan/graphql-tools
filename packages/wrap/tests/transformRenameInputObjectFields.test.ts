@@ -6,7 +6,7 @@ import { assertSome } from '@graphql-tools/utils';
 describe('RenameInputObjectFields', () => {
   test('renaming with arguments works', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         input InputObject {
           field1: String
           field2: String
@@ -65,7 +65,7 @@ describe('RenameInputObjectFields', () => {
 
   test('renaming with variables works', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         input InputObject {
           field1: String
           field2: String

@@ -4,7 +4,7 @@ import { graphql } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
 
 const productSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */`
     type Product {
       id: ID!
       price: Float!
@@ -24,7 +24,7 @@ const productSchema = makeExecutableSchema({
 
 describe('merge computed fields via config', () => {
   const storefrontSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Product {
         id: ID!
         shippingEstimate: Float!
@@ -199,7 +199,7 @@ describe('merge computed fields via config', () => {
 
 describe('merge computed fields via SDL (Apollo Federation-style directive annotation)', () => {
   const storefrontSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       directive @computed(selectionSet: String!) on FIELD_DEFINITION
 
       type Product {

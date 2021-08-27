@@ -158,7 +158,7 @@ describe('passes along errors when list field errors', () => {
   describe('passes along correct error when there are two non-null fields', () => {
     test('should work', async () => {
       const schema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           type Query {
             getBoth: Both
           }
@@ -249,7 +249,7 @@ describe('passes along errors for remote schemas', () => {
 describe('executor errors are propagated', () => {
   test('when a microservice is down', async () => {
     const containerSchemaA = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
           type Container {
             id: ID!
             name: String
@@ -267,7 +267,7 @@ describe('executor errors are propagated', () => {
     });
 
     const containerSchemaB = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Container {
           id: ID!
         }

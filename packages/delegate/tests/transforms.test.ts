@@ -14,7 +14,7 @@ describe('can delegate to subschema with transforms', () => {
     };
 
     const targetSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Item {
           id: ID!
           camel_case: String
@@ -63,7 +63,7 @@ describe('can delegate to subschema with transforms', () => {
     });
 
     sourceSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Item {
           id: ID!
           camelCase: String

@@ -40,7 +40,7 @@ describe('merging using type merging with directives', () => {
     // Note: the subschema can rely on the gateway correctly sending the indicated key and
     // so it is safe to use a non-validated scalar argument. In the next example, the subschema
     // will choose to strongly type the `keys` argument, but it is not strictly necessary.
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
       type Query {
@@ -92,7 +92,7 @@ describe('merging using type merging with directives', () => {
     // It is typed correctly; `upc` is always specified, but `price` and `weight` will only
     // be included when `shippingEstimate` is included within the query.
     //
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       input ProductKey {
         upc: String!
@@ -166,7 +166,7 @@ describe('merging using type merging with directives', () => {
     // B. selections from the key can be referenced by using the $ sign and dot notation, so that
     //    $key.upc refers to the `upc` field of the key.
     //
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       type Query {
         topProducts(first: Int = 2): [Product]
@@ -236,7 +236,7 @@ describe('merging using type merging with directives', () => {
     // `argsExpr`, the $ sign without dot notation will pass the entire key as an object.
     // This allows arbitrary nesting of the key input as needed.
     //
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       type Review {
         id: ID!

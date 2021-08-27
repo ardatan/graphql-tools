@@ -15,7 +15,7 @@ import { propertySchema } from './fixtures/schemas';
 describe('rename root type', () => {
   test('works with stitchSchemas', async () => {
     let schemaWithCustomRootTypeNames = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         schema {
           query: QueryRoot
           mutation: MutationRoot
@@ -39,7 +39,7 @@ describe('rename root type', () => {
     schemaWithCustomRootTypeNames = addMocksToSchema({ schema: schemaWithCustomRootTypeNames });
 
     let schemaWithDefaultRootTypeNames = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           bar: String!
         }
@@ -65,7 +65,7 @@ describe('rename root type', () => {
           transforms: [new RenameRootTypes((name) => `${name}Root`)],
         },
       ],
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         schema {
           query: QueryRoot
           mutation: MutationRoot
@@ -121,7 +121,7 @@ describe('filter fields', () => {
       subschemas: [
         filteredSchema,
       ],
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         extend type Property {
           location: Location
         }

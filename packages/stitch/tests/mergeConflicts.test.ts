@@ -23,7 +23,7 @@ function assertGraphQLInputObjectType(input: unknown): asserts input is GraphQLI
 
 describe('merge conflict handlers', () => {
   const listings1Schema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       "ignore! - do not document here"
       type Listing implements IListing {
         "type identifier"
@@ -42,7 +42,7 @@ describe('merge conflict handlers', () => {
   });
 
   const listings2Schema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       "A type"
       type Listing implements IListing {
         "ignore! - do not document here"

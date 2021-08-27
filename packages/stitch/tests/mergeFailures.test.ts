@@ -5,7 +5,7 @@ import { graphql, GraphQLError, GraphQLSchema } from 'graphql';
 
 describe('merge failures', () => {
   const firstSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Thing {
         id: ID!
         name: String!
@@ -48,7 +48,7 @@ describe('merge failures', () => {
 
   it('proxies merged errors', async () => {
     const secondSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Thing {
           id: ID!
           description: String!
@@ -86,7 +86,7 @@ describe('merge failures', () => {
 
   test('proxies merged error arrays', async () => {
     const schema1 = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Thing {
           id: ID!
           name: String
@@ -104,7 +104,7 @@ describe('merge failures', () => {
     });
 
     const schema2 = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type ParentThing {
           thing: Thing
         }
@@ -145,7 +145,7 @@ describe('merge failures', () => {
 
   it('proxies inappropriate null', async () => {
     const secondSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Thing {
           id: ID!
           description: String!
@@ -183,7 +183,7 @@ describe('merge failures', () => {
 
   it('proxies errors on object', async () => {
     const secondSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Thing {
           id: ID!
           description: String!
@@ -229,7 +229,7 @@ describe('nullable merging', () => {
     ];
 
     const usersSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           username: String!
@@ -251,7 +251,7 @@ describe('nullable merging', () => {
     ];
 
     const appSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           appSetting1: String

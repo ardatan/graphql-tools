@@ -6,7 +6,7 @@ import { assertSome } from '@graphql-tools/utils';
 
 describe('Merge resolvers', () => {
   const firstSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Widget {
         id: ID!
       }
@@ -27,7 +27,7 @@ describe('Merge resolvers', () => {
   });
 
   const secondSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Widget {
         id: ID!
         source: String

@@ -5,7 +5,7 @@ import { assertSome } from '@graphql-tools/utils';
 
 describe('RemoveObjectFieldDirectives', () => {
   const originalSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       directive @alpha(arg: String) on FIELD_DEFINITION
       directive @bravo(arg: String) on FIELD_DEFINITION
 

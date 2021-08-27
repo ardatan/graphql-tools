@@ -18,7 +18,7 @@ import { stitchSchemas } from '../src/stitchSchemas';
 describe('merging using type merging', () => {
   test('works', async () => {
     let chirpSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Chirp {
           id: ID!
           text: String
@@ -40,7 +40,7 @@ describe('merging using type merging', () => {
     chirpSchema = addMocksToSchema({ schema: chirpSchema });
 
     let authorSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           email: String
@@ -117,7 +117,7 @@ describe('merging using type merging', () => {
 
   test("handle top level failures on subschema queries", async() => {
     let userSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           email: String
@@ -131,7 +131,7 @@ describe('merging using type merging', () => {
     userSchema = addMocksToSchema({ schema: userSchema });
 
     const failureSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           fail: Boolean
@@ -196,7 +196,7 @@ describe('merging using type merging', () => {
 
   test('merging types and type extensions should work together', async () => {
     const resultSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           resultById(id: ID!): String
         }
@@ -209,7 +209,7 @@ describe('merging using type merging', () => {
     });
 
     const containerSchemaA = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
           type Container {
             id: ID!
             resultId: ID!
@@ -227,7 +227,7 @@ describe('merging using type merging', () => {
     });
 
     const containerSchemaB = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Container {
           id: ID!
         }
@@ -274,7 +274,7 @@ describe('merging using type merging', () => {
           batch: true,
         },
       ],
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         extend type Container {
           result: String!
         }
@@ -327,7 +327,7 @@ describe('merging using type merging', () => {
 
 describe('Merged associations', () => {
   const layoutSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Network {
         id: ID!
         domain: String!
@@ -353,7 +353,7 @@ describe('Merged associations', () => {
   });
 
   const postsSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Network {
         id: ID!
       }
@@ -434,7 +434,7 @@ describe('Merged associations', () => {
 describe('merging using type merging when renaming', () => {
   test('works', async () => {
     let chirpSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Chirp {
           id: ID!
           text: String
@@ -456,7 +456,7 @@ describe('merging using type merging when renaming', () => {
     chirpSchema = addMocksToSchema({ schema: chirpSchema });
 
     let authorSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           email: String
@@ -536,7 +536,7 @@ describe('merging using type merging when renaming', () => {
 
 describe('external object annotation with batchDelegateToSchema', () => {
   const networkSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Domain {
         id: ID!
         name: String!
@@ -558,7 +558,7 @@ describe('external object annotation with batchDelegateToSchema', () => {
   })
 
   const postsSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Network {
         id: ID!
       }
@@ -637,7 +637,7 @@ describe('type merge repeated nested delegates', () => {
     {name: "Paris", population: 2161000, country: { name: "France"}},
   ]
   const citySchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Country {
         name: String!
       }
@@ -665,7 +665,7 @@ describe('type merge repeated nested delegates', () => {
     {name: "France", population: 67060000, continent: { name: "Europe"}},
   ]
   const countrySchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Continent {
         name: String!
       }
@@ -693,7 +693,7 @@ describe('type merge repeated nested delegates', () => {
     {name: "Europe", population: 746400000},
   ]
   const continentSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Continent {
         name: String!
         population: Float!

@@ -5,7 +5,7 @@ import { graphql } from 'graphql';
 describe('RenameInterfaceFields', () => {
   test('works', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         interface IWidget {
           name: String
         }

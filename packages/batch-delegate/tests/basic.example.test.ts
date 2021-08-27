@@ -9,7 +9,7 @@ describe('batch delegation within basic stitching example', () => {
     let numCalls = 0;
 
     const chirpSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Chirp {
           chirpedAtUserId: ID!
         }
@@ -27,7 +27,7 @@ describe('batch delegation within basic stitching example', () => {
 
     // Mocked author schema
     const authorSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           email: String
         }
@@ -97,7 +97,7 @@ describe('batch delegation within basic stitching example', () => {
     let numCalls = 0;
 
     const postsSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Post {
           id: ID!
           title: String
@@ -118,7 +118,7 @@ describe('batch delegation within basic stitching example', () => {
     });
 
     const usersSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           postIds: [ID]!

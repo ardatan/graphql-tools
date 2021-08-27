@@ -5,7 +5,7 @@ import { graphql } from 'graphql';
 describe('RenameRootFields', () => {
   test('works', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Widget {
           id: ID!
           name: String

@@ -5,7 +5,7 @@ import { GraphQLObjectType } from 'graphql';
 describe('FilterRootFields', () => {
   test('works', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Widget {
           alpha: String
           bravo: String

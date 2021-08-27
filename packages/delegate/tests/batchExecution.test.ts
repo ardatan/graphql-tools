@@ -9,7 +9,7 @@ import { ExecutionRequest, Executor, SyncExecutor } from '@graphql-tools/utils';
 describe('batch execution', () => {
   it('should batch', async () => {
     const innerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           field1: String
           field2: String
@@ -35,7 +35,7 @@ describe('batch execution', () => {
     }
 
     const outerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           field1: String
           field2: String
@@ -64,7 +64,7 @@ describe('batch execution', () => {
 
   it('should share batching dataloader between subschemas when using a common executor', async () => {
     const innerSchemaA = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Object {
           field1: String
           field2: String
@@ -85,7 +85,7 @@ describe('batch execution', () => {
     });
 
     const innerSchemaB = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Object {
           field3: String
         }

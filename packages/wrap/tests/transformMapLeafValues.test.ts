@@ -6,7 +6,7 @@ import { assertSome } from '@graphql-tools/utils';
 describe('MapLeafValues', () => {
   test('works', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         enum TestEnum {
           ONE
           TWO

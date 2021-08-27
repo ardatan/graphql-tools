@@ -16,7 +16,7 @@ describe('WrapQuery', () => {
       },
     };
     subschema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
       type User {
         id: ID!
         addressStreetAddress: String
@@ -36,7 +36,7 @@ describe('WrapQuery', () => {
       },
     });
     schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
       type User {
         id: ID!
         address: Address

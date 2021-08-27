@@ -10,7 +10,7 @@ import { assertGraphQLEnumType, assertGraphQLInputObjectType, assertGraphQLInter
 
 describe('merge canonical types', () => {
   const firstSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       directive @mydir(value: String) on OBJECT | INTERFACE | INPUT_OBJECT | UNION | ENUM | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
       "first"
@@ -68,7 +68,7 @@ describe('merge canonical types', () => {
   });
 
   const secondSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       directive @mydir(value: String) on OBJECT | INTERFACE | INPUT_OBJECT | UNION | ENUM | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
       "second"
@@ -187,7 +187,7 @@ describe('merge canonical types', () => {
         }
       },
     ],
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       directive @mydir(value: String) on OBJECT | INTERFACE | INPUT_OBJECT | UNION | ENUM | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
       "third"
@@ -325,7 +325,7 @@ describe('merge canonical types', () => {
 describe('merge @canonical directives', () => {
   const { stitchingDirectivesTransformer, stitchingDirectivesTypeDefs } = stitchingDirectives();
   const firstSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       ${stitchingDirectivesTypeDefs}
       "first"
       type Product @canonical {
@@ -351,7 +351,7 @@ describe('merge @canonical directives', () => {
     `
   });
   const secondSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       ${stitchingDirectivesTypeDefs}
       "second"
       type Product {

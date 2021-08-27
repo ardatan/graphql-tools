@@ -6,7 +6,7 @@ import { assertSome } from '@graphql-tools/utils';
 describe('extended interfaces', () => {
   test('expands extended interface types for subservices', async () => {
     const itemsSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         interface Slot {
           id: ID!
         }
@@ -31,7 +31,7 @@ describe('extended interfaces', () => {
       subschemas: [
         { schema: itemsSchema },
       ],
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         extend interface Slot {
           name: String!
         }
@@ -52,7 +52,7 @@ describe('extended interfaces', () => {
 
   test('merges types behind gateway interface extension', async () => {
     const itemsSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Item {
           id: ID!
           name: String!
@@ -71,7 +71,7 @@ describe('extended interfaces', () => {
     });
 
     const placementSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         interface Placement {
           id: ID!
         }
@@ -105,7 +105,7 @@ describe('extended interfaces', () => {
         },
         { schema: placementSchema },
       ],
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         extend interface Placement {
           name: String!
         }

@@ -82,7 +82,7 @@ class StripNonQueryTransform {
 describe('Gatsby transforms', () => {
   test('work', async () => {
     let schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
       directive @cacheControl(maxAge: Int, scope: CacheControlScope) on FIELD_DEFINITION | OBJECT | INTERFACE
 
       enum CacheControlScope {

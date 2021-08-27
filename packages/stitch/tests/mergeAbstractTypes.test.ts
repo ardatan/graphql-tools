@@ -6,7 +6,7 @@ import { assertSome } from '@graphql-tools/utils';
 describe('Abstract type merge', () => {
   it('merges with abstract type definitions', async () => {
     const imageSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Image {
           id: ID!
           url: String!
@@ -23,7 +23,7 @@ describe('Abstract type merge', () => {
     });
 
     const contentSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Post {
           id: ID!
           leadArt: LeadArt
@@ -96,7 +96,7 @@ describe('Abstract type merge', () => {
 
 describe('Merged associations', () => {
   const layoutSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       interface Slot {
         id: ID!
       }
@@ -123,7 +123,7 @@ describe('Merged associations', () => {
   });
 
   const postsSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Post {
         id: ID!
         title: String!

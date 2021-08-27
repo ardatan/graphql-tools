@@ -64,7 +64,7 @@ describe('graphql upload', () => {
 
   beforeAll(async () => {
     const remoteSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         scalar Upload
         type Query {
           version: String

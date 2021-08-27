@@ -119,7 +119,7 @@ describe('transforms', () => {
       });
 
       const subschema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           type Query {
             errorTest: String
           }
@@ -169,7 +169,7 @@ describe('transforms', () => {
         },
       };
       subschema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
         type User {
           id: ID!
           username: String
@@ -228,7 +228,7 @@ describe('transforms', () => {
         },
       });
       schema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
         type User {
           id: ID!
           username: String
@@ -430,7 +430,7 @@ describe('transforms', () => {
         },
       };
       subschema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           type User {
             id: ID!
             username: String
@@ -483,7 +483,7 @@ describe('transforms', () => {
         },
       });
       schema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           type Address {
             streetAddress: String
             zip: String

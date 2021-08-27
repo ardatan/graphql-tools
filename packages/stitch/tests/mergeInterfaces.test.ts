@@ -5,7 +5,7 @@ import { assertSome } from '@graphql-tools/utils';
 
 describe('merged interfaces via concrete type', () => {
   const namedItemSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       interface Placement {
         id: ID!
         name: String!
@@ -28,7 +28,7 @@ describe('merged interfaces via concrete type', () => {
   });
 
   const indexedItemSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       interface Placement {
         id: ID!
         index: Int!
@@ -99,7 +99,7 @@ describe('merged interfaces via concrete type', () => {
 
 describe('merged interfaces via abstract type', () => {
   const namedPlacementSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       interface Placement {
         id: ID!
         name: String!
@@ -122,7 +122,7 @@ describe('merged interfaces via abstract type', () => {
   });
 
   const indexedItemSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       interface Placement {
         id: ID!
         index: Int!

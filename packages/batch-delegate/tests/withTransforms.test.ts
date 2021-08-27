@@ -8,7 +8,7 @@ import { TransformQuery } from '@graphql-tools/wrap'
 describe('works with complex transforms', () => {
   test('using TransformQuery instead of valuesFromResults', async () => {
     const bookSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Book {
           id: ID!
           title: String!
@@ -38,7 +38,7 @@ describe('works with complex transforms', () => {
     });
 
     const userSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: String!
           email: String!

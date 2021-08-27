@@ -410,7 +410,7 @@ describe('transform object fields', () => {
 
 describe('optional arguments', () => {
   const schema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       enum Arg {
         possibleArg
       }
@@ -547,7 +547,7 @@ describe('rename fields that implement interface fields', () => {
     };
 
     const originalSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         interface Node {
           id: ID!
         }
@@ -631,7 +631,7 @@ describe('transform object fields', () => {
     };
 
     const itemSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Item {
           id: ID!
           camel_case: String
@@ -896,7 +896,7 @@ describe('rename nested object fields with interfaces', () => {
     };
 
     const originalSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         interface _Linkable {
           _linkType: String!
         }
@@ -1200,7 +1200,7 @@ describe('schema transformation with extraction of nested fields', () => {
 
 describe('HoistField transform', () => {
   const schema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Query {
         query: Outer
       }
@@ -1461,7 +1461,7 @@ describe('schema transformation with wrapping of object fields', () => {
 
     test('should work with selectionSets', async () => {
       let subschema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           type Query {
             user: User
           }
@@ -1479,7 +1479,7 @@ describe('schema transformation with wrapping of object fields', () => {
             new WrapFields('Query', ['wrapped'], [`WrappedQuery`]),
           ],
         }],
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           extend type User {
             dummy: String
           }
@@ -1601,7 +1601,7 @@ describe('interface resolver inheritance', () => {
 describe('stitchSchemas', () => {
   test('can merge null root fields', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           test: Test
         }
@@ -1628,7 +1628,7 @@ describe('stitchSchemas', () => {
 
   test('can merge default input types', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         input InputWithDefault {
           field: String = "test"
         }
@@ -1669,7 +1669,7 @@ type Query {
 
   test('can override scalars with new internal values', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         scalar TestScalar
         type Query {
           getTestScalar: TestScalar
@@ -1709,7 +1709,7 @@ type Query {
 
   test('can override scalars with new internal values when using default input types', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
           scalar TestScalar
           type Query {
             getTestScalar(input: TestScalar = "test"): TestScalar
@@ -1749,7 +1749,7 @@ type Query {
 
   test('can use @include directives', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type WrappingType {
           subfield: String
         }
@@ -1765,7 +1765,7 @@ type Query {
     });
     const stitchedSchema = stitchSchemas({
       subschemas: [schema],
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           get2: WrappingType
         }
@@ -1798,7 +1798,7 @@ type Query {
 
   test('can use functions in subfields', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type WrappingObject {
           functionField: Int!
         }

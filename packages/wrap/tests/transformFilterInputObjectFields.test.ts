@@ -5,7 +5,7 @@ import { assertSome } from '@graphql-tools/utils';
 
 describe('FilterInputObjectFields', () => {
   const schema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       input InputObject {
         field1: String
         field2: String

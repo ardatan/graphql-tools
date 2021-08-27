@@ -2130,7 +2130,7 @@ fragment BookingFragment on Booking {
     describe('aliases', () => {
       test('should allow aliasing on the gateway level in a complex schema with new types', async () => {
         const remoteSchema = makeExecutableSchema({
-          typeDefs: `type Query {
+          typeDefs: /* GraphQL */`type Query {
             persona: Persona!
           }
 
@@ -2224,7 +2224,7 @@ fragment BookingFragment on Booking {
 
         const mergedSchema = stitchSchemas({
           subschemas: [remoteSchema],
-          typeDefs: `
+          typeDefs: /* GraphQL */`
             type Query {
               flattenedTransactions: FlattenedTransactions
             }
@@ -3244,7 +3244,7 @@ assertSome(result.data)
   describe('new root type name', () => {
     test('works', async () => {
       let bookSchema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           type Query {
             book: Book
           }
@@ -3255,7 +3255,7 @@ assertSome(result.data)
       });
 
       let movieSchema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           type Query {
             movie: Movie
           }
@@ -3271,7 +3271,7 @@ assertSome(result.data)
 
       const stitchedSchema = stitchSchemas({
         subschemas: [bookSchema, movieSchema],
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           schema {
             query: RootQuery
           }
@@ -3311,7 +3311,7 @@ assertSome(result.data)
       };
 
       const stockSchema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           type StockRecord {
             id: ID!
             stock: Int!
@@ -3343,7 +3343,7 @@ assertSome(result.data)
       ];
 
       const productSchema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           interface IProduct {
             id: ID!
             title: String!
@@ -3385,7 +3385,7 @@ assertSome(result.data)
             },
           },
         },
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           extend interface IProduct {
             stockRecord: StockRecord
           }

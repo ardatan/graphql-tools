@@ -850,7 +850,7 @@ describe('generating schema from shorthand', () => {
 
     test('retains original scalar directives when passing in scalars in resolve functions', () => {
       const schema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           directive @test on SCALAR
 
           scalar Test @test
@@ -1969,7 +1969,7 @@ describe('chainResolvers', () => {
 describe('can specify lexical parser options', () => {
   test("can specify 'noLocation' option", () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type RootQuery {
           test: String
         }
@@ -2292,7 +2292,7 @@ describe('interface resolver inheritance', () => {
   });
   test('ignore resolvers that are not defined in the schema while inheriting resolvers from interfaces', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           foo: String
         }
