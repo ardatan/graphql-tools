@@ -12,6 +12,7 @@ import {
   isSpecifiedScalarType,
   GraphQLNamedType,
   Kind,
+  execute,
 } from 'graphql';
 
 import {
@@ -239,9 +240,9 @@ describe('merge schemas through transforms', () => {
 
   // FIXME fragment replacements
   test('node should work', async () => {
-    const result = await graphql(
-      stitchedSchema,
-      `
+    const result = await execute({
+      schema: stitchedSchema,
+      document: parse(/* GraphQL */ `
         query($pid: ID!, $bid: ID!) {
           property: node(id: $pid) {
             __typename
@@ -265,14 +266,12 @@ describe('merge schemas through transforms', () => {
             }
           }
         }
-      `,
-      {},
-      {},
-      {
+      `),
+      variableValues: {
         pid: 'p1',
         bid: 'b1',
-      },
-    );
+      }
+    });
 
     expect(result).toEqual({
       data: {
@@ -327,7 +326,7 @@ describe('merge schemas through transforms', () => {
       }
     `);
 
-    const sub = await subscribe(stitchedSchema, subscription) as AsyncIterableIterator<ExecutionResult>;
+    const sub = await subscribe({ schema: stitchedSchema, document: subscription }) as AsyncIterableIterator<ExecutionResult>;
 
     const payload = sub.next();
 
@@ -433,40 +432,40 @@ describe('optional arguments', () => {
   });
 
   it('work with schema stitching', async () => {
-    const query = `
+    const query = /* GraphQL */`
       {
         test
       }
     `;
 
-    const originalResult = await graphql(schema, query);
+    const originalResult = await execute({ schema, document: parse(query) });
     assertSome(originalResult.data)
     expect(originalResult.data['test']).toEqual(true);
 
-    const stitchedResult = await graphql(stitchedSchema, query);
+    const stitchedResult = await execute({ schema: stitchedSchema, document: parse(query) });
     assertSome(stitchedResult.data)
     expect(stitchedResult.data['test']).toEqual(true);
   });
 
   it('work with schema stitching when using variables', async () => {
-    const query = `
+    const query = /* GraphQL */`
       query test($arg: Arg) {
         test(arg: $arg)
       }
     `;
 
-    const originalResult = await graphql(schema, query);
+    const originalResult = await execute({ schema, document: parse(query) });
     assertSome(originalResult.data)
     expect(originalResult.data['test']).toEqual(true);
 
-    const stitchedResult = await graphql(stitchedSchema, query);
+    const stitchedResult = await execute({ schema: stitchedSchema, document: parse(query) });
     assertSome(stitchedResult.data)
     expect(stitchedResult.data['test']).toEqual(true);
   });
 
   // See https://github.com/graphql/graphql-js/issues/2533
   it('may not work as expected when explicitly passing in an undefined value', async () => {
-    const query = `
+    const query = /* GraphQL */`
       query test($arg: Arg) {
         test(arg: $arg)
       }
@@ -1143,7 +1142,7 @@ describe('WrapType', () => {
       subschemas: [subschemaGen(1), subschemaGen(2)]
     });
 
-    const query = `{
+    const query = /* GraphQL */`{
       test1 {
         test {
           aString
@@ -1156,7 +1155,7 @@ describe('WrapType', () => {
       }
     }`;
 
-    const result = await graphql(stitchedSchema, query);
+    const result = await execute({ schema: stitchedSchema, document: parse(query) });
 
     const expectedResult = {
       data: {
@@ -1514,7 +1513,7 @@ describe('schema transformation with wrapping of object fields', () => {
       });
 
       const query = '{ wrapped { user { dummy } } }';
-      const result = await graphql(stitchedSchema, query);
+      const result = await execute({ schema: stitchedSchema, document: parse(query) });
       assertSome(result.data)
       expect(result.data['wrapped'].user.dummy).not.toEqual(null);
     });
@@ -1563,7 +1562,7 @@ describe('interface resolver inheritance', () => {
       inheritResolversFromInterfaces: true,
     });
     const query = '{ user { id name } }';
-    const response = await graphql(stitchedSchema, query);
+    const response = await execute({ schema: stitchedSchema, document: parse(query) });
     expect(response).toEqual({
       data: {
         user: {
@@ -1586,7 +1585,7 @@ describe('interface resolver inheritance', () => {
       inheritResolversFromInterfaces: false,
     });
     const query = '{ user { id name } }';
-    const response = await graphql(stitchedSchema, query);
+    const response = await execute({ schema: stitchedSchema, document: parse(query) });
     assertSome(response.errors)
     expect(response.errors.length).toBe(1);
     expect(response.errors[0].message).toBe(
@@ -1606,7 +1605,7 @@ describe('interface resolver inheritance', () => {
       resolvers,
     });
     const query = '{ user { id name } }';
-    const response = await graphql(stitchedSchema, query);
+    const response = await execute({ schema: stitchedSchema, document: parse(query) });
     assertSome(response.errors)
     expect(response.errors.length).toBe(1);
     expect(response.errors[0].message).toBe(
@@ -1638,7 +1637,7 @@ describe('stitchSchemas', () => {
     });
 
     const query = '{ test { field } }';
-    const response = await graphql(stitchedSchema, query);
+    const response = await execute({ schema: stitchedSchema, document: parse(query) });
     assertSome(response.data)
     expect(response.data['test']).toBe(null);
     expect(response.errors).toBeUndefined();
@@ -1665,7 +1664,7 @@ describe('stitchSchemas', () => {
     });
 
     const query = '{ getInput(input: {}) }';
-    const response = await graphql(stitchedSchema, query);
+    const response = await execute({ schema: stitchedSchema, document: parse(query) });
 
     const printedSchema = printSchema(schema);
     expect(printedSchema).toContain(
@@ -1720,7 +1719,7 @@ type Query {
     });
 
     const query = '{ getTestScalar }';
-    const response = await graphql(stitchedSchema, query);
+    const response = await execute({ schema: stitchedSchema, document: parse(query) });
 
     expect(response.data?.['getTestScalar']).toBe('test');
   });
@@ -1760,7 +1759,7 @@ type Query {
     });
 
     const query = '{ getTestScalar }';
-    const response = await graphql(stitchedSchema, query);
+    const response = await execute({ schema: stitchedSchema, document: parse(query) });
 
     expect(response.data?.['getTestScalar']).toBe('test');
   });
@@ -1802,14 +1801,14 @@ type Query {
       },
     });
 
-    const query = `
+    const query = /* GraphQL */`
       {
         get2 @include(if: true) {
           subfield
         }
       }
     `;
-    const response = await graphql(stitchedSchema, query);
+    const response = await execute({ schema: stitchedSchema, document: parse(query) });
     expect(response.data?.['get2'].subfield).toBe('test');
   });
 
@@ -1837,7 +1836,7 @@ type Query {
     });
 
     const query = '{ wrappingObject { functionField } }';
-    const response = await graphql(stitchedSchema, query);
+    const response = await execute({ schema: stitchedSchema, document: parse(query) });
     expect(response.data?.['wrappingObject'].functionField).toBe(8);
   });
 });

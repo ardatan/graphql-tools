@@ -148,7 +148,7 @@ describe('Errors', () => {
           },
         });
 
-        const query = `{
+        const query = /* GraphQL */`{
           object {
             field1
             field2
@@ -203,7 +203,7 @@ describe('Errors', () => {
           subschemas: [remoteSchema],
         });
 
-        const query = `{
+        const query = /* GraphQL */`{
           object {
             field1
             field2

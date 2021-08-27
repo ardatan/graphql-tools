@@ -1,4 +1,4 @@
-import { graphql, GraphQLSchema, Kind, SelectionSetNode } from 'graphql';
+import { execute, GraphQLSchema, Kind, parse, SelectionSetNode } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { WrapQuery } from '@graphql-tools/wrap';
 import { delegateToSchema } from '@graphql-tools/delegate';
@@ -115,17 +115,17 @@ describe('WrapQuery', () => {
   });
 
   test('wrapping delegation, returning selectionSet', async () => {
-    const result = await graphql(
+    const result = await execute({
       schema,
-      `
+      document: parse(/* GraphQL */ `
         query {
           addressByUser(id: "u1") {
             streetAddress
             zip
           }
         }
-      `,
-    );
+      `)
+  });
 
     expect(result).toEqual({
       data: {

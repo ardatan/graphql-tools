@@ -54,7 +54,7 @@ describe('nested root types', () => {
   });
 
   it('works to nest Query', async () => {
-    const query = `
+    const query = /* GraphQL */`
       query {
         schema1Query {
           schema1Boolean
@@ -88,7 +88,7 @@ describe('nested root types', () => {
       },
     };
 
-    const result = await graphql(stitchedSchema, query);
+    const result = await execute({ schema: stitchedSchema, document: parse(query) });
     expect(result).toEqual(expectedResult);
   });
 

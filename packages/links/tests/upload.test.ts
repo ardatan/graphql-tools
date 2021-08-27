@@ -135,7 +135,7 @@ describe('graphql upload', () => {
   })
 
   test('should return a file after uploading one', async () => {
-    const query = `
+    const query = /* GraphQL */`
       mutation upload($file: Upload!) {
         upload(file: $file)
       }

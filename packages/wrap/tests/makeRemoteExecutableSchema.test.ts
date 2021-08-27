@@ -2,7 +2,6 @@ import {
   GraphQLSchema,
   subscribe,
   parse,
-  graphql,
   execute,
   print,
   ExecutionResult,
@@ -27,7 +26,7 @@ describe('remote queries', () => {
   });
 
   test('should work', async () => {
-    const query = `
+    const query = /* GraphQL */`
       {
         interfaceTest(kind: ONE) {
           kind
@@ -52,7 +51,7 @@ describe('remote queries', () => {
       },
     };
 
-    const result = await graphql(schema, query);
+    const result = await execute({ schema, document: parse(query) });
     expect(result).toEqual(expected);
   });
 });
@@ -79,7 +78,7 @@ describe('remote subscriptions', () => {
       }
     `);
 
-    const sub = await subscribe(schema, subscription) as AsyncIterableIterator<ExecutionResult>;
+    const sub = await subscribe({ schema, document: subscription }) as AsyncIterableIterator<ExecutionResult>;
 
     const payload = sub.next();
 
@@ -104,7 +103,7 @@ describe('remote subscriptions', () => {
       `);
 
     let notificationCnt = 0;
-    const sub1 = subscribe(schema, subscription);
+    const sub1 = subscribe({ schema, document: subscription });
     sub1.then(async (results) => {
       for await (const result of results as AsyncIterable<ExecutionResult>) {
         expect(result).toHaveProperty('data');
@@ -113,7 +112,7 @@ describe('remote subscriptions', () => {
       }
     });
 
-    const sub2 = subscribe(schema, subscription);
+    const sub2 = subscribe({ schema, document: subscription });
     sub2.then(async (results) => {
       for await (const result of results as AsyncIterable<ExecutionResult>) {
         expect(result).toHaveProperty('data');
@@ -133,96 +132,66 @@ describe('remote subscriptions', () => {
   });
 });
 
-describe('respects buildSchema options', () => {
-  const typeDefs = /* GraphQL */`
-  type Query {
-    # Field description
-    custom: CustomScalar!
-  }
-
-  # Scalar description
-  scalar CustomScalar
-`;
-
-  test('without comment descriptions', () => {
-    const remoteSchema = wrapSchema({ schema: buildSchema(typeDefs) });
-
-    const customScalar = remoteSchema.getType('CustomScalar');
-    expect(customScalar?.description).toBeUndefined();
-  });
-
-  test('with comment descriptions', () => {
-    const remoteSchema = wrapSchema({
-      schema: buildSchema(typeDefs, { commentDescriptions: true }),
-    });
-
-    const field = remoteSchema.getQueryType()!.getFields()['custom'];
-    expect(field.description).toBe('Field description');
-    const customScalar = remoteSchema.getType('CustomScalar');
-    expect(customScalar?.description).toBe('Scalar description');
-  });
-
-  describe('when query for multiple fields', () => {
-    const typeDefs = `
+describe('when query for multiple fields', () => {
+  const typeDefs = `
       type Query {
         fieldA: Int!
         fieldB: Int!
         field3: Int!
       }
     `;
-    const query = parse(`
+  const query = parse(`
       query {
         fieldA
         fieldB
         field3
       }
     `);
-    let calls: Array<any> = [];
-    const executor = (args: any): any => {
-      calls.push(args);
-      return Promise.resolve({
-        data: {
-          fieldA: 1,
-          fieldB: 2,
-          field3: 3,
-        },
-      });
-    };
-    const remoteSchema = wrapSchema({
-      schema: buildSchema(typeDefs),
-      executor,
+  let calls: Array<any> = [];
+  const executor = (args: any): any => {
+    calls.push(args);
+    return Promise.resolve({
+      data: {
+        fieldA: 1,
+        fieldB: 2,
+        field3: 3,
+      },
+    });
+  };
+  const remoteSchema = wrapSchema({
+    schema: buildSchema(typeDefs),
+    executor,
+  });
+
+  beforeEach(() => {
+    calls = [];
+  });
+
+  it('forwards three upstream queries', async () => {
+    const result = await execute({ schema: remoteSchema, document: query });
+    expect(result).toEqual({
+      data: {
+        fieldA: 1,
+        fieldB: 2,
+        field3: 3,
+      },
     });
 
-    beforeEach(() => {
-      calls = [];
-    });
-
-    it('forwards three upstream queries', async () => {
-      const result = await execute(remoteSchema, query);
-      expect(result).toEqual({
-        data: {
-          fieldA: 1,
-          fieldB: 2,
-          field3: 3,
-        },
-      });
-
-      expect(calls).toHaveLength(3);
-      expect(print(calls[0].document)).toEqual(`\
+    expect(calls).toHaveLength(3);
+    expect(print(calls[0].document)).toEqual(`\
 {
   fieldA
 }
 `);
-      expect(print(calls[1].document)).toEqual(`\
+    expect(print(calls[1].document)).toEqual(`\
 {
   fieldB
 }
 `);
-      expect(print(calls[2].document)).toEqual(`\
+    expect(print(calls[2].document)).toEqual(`\
 {
   field3
 }
 `);
-    });
   });
 });

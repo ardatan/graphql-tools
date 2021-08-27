@@ -26,6 +26,7 @@ import {
   isInterfaceType,
   isEnumType,
   Kind,
+  NamedTypeNode,
 } from 'graphql';
 
 import { getDefinedRootType, getRootTypeNames } from './rootTypes';
@@ -370,7 +371,7 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
     if (isNonNullType(type)) {
       return {
         kind: Kind.NON_NULL_TYPE,
-        type: resolveVariableType(type.ofType),
+        type: resolveVariableType(type.ofType) as NamedTypeNode,
       };
     }
 

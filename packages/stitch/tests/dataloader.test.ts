@@ -92,7 +92,7 @@ describe('dataloader', () => {
       },
     );
 
-    const query = `{
+    const query = /* GraphQL */`{
       task(id: "1") {
         id
         text

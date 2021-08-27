@@ -157,7 +157,7 @@ export function stitchingDirectivesValidator(
             const implementingTypes = isInterfaceType(returnType)
               ? getImplementingTypes(returnType.name, schema).map(typeName => schema.getType(typeName))
               : returnType.getTypes();
-            const implementingTypeNames = implementingTypes.filter(isSome).map(type => type.name);
+            const implementingTypeNames = implementingTypes.map(type => type?.name).filter(isSome);
             for (const typeName of typeNames) {
               if (!implementingTypeNames.includes(typeName)) {
                 throw new Error(

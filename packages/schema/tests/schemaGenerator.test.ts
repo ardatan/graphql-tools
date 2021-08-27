@@ -1909,7 +1909,7 @@ describe('Generating a full graphQL schema with resolvers and connectors', () =>
       typeDefs: testSchema,
       resolvers: testResolvers,
     });
-    const query = `{
+    const query = /* GraphQL */`{
       species(name: "uhu")
       stuff
       usecontext
@@ -2017,7 +2017,7 @@ describe('can specify lexical parser options', () => {
       resolvers,
     });
 
-    const query = `
+    const query = /* GraphQL */`
       fragment Hello($phrase: String = "world") on Query {
         hello(phrase: $phrase)
       }
@@ -2080,7 +2080,7 @@ describe('interfaces', () => {
     node: () => user,
     user: () => user,
   };
-  const query = `query {
+  const query = /* GraphQL */`query {
     node { id __typename }
     user { id name }
   }`;
@@ -2115,7 +2115,7 @@ describe('interfaces', () => {
       resolvers,
       resolverValidationOptions: { requireResolversForResolveType: 'error' },
     });
-    const response = await graphql(schema, query);
+    const response = await execute({ schema, document: parse(query) });
     expect(response.errors).not.toBeDefined();
   });
   test('does not throw if there is an interface resolveType resolver implemented in class', async () => {
@@ -2133,7 +2133,7 @@ describe('interfaces', () => {
       resolvers,
       resolverValidationOptions: { requireResolversForResolveType: 'error' },
     });
-    const response = await graphql(schema, query);
+    const response = await execute({ schema, document: parse(query) });
     expect(response.errors).not.toBeDefined();
     expect(response.data).toEqual({
       'node': {
@@ -2198,7 +2198,7 @@ describe('interface resolver inheritance', () => {
       },
     });
     const query = '{ user { id name } }';
-    const response = await graphql(schema, query);
+    const response = await execute({ schema, document: parse(query) });
     expect(response).toEqual({
       data: {
         user: {
@@ -2262,7 +2262,7 @@ describe('interface resolver inheritance', () => {
       },
     });
     const query = '{ cyborg { id name } replicant { id name }}';
-    const response = await graphql(schema, query);
+    const response = await execute({ schema, document: parse(query) });
     expect(response).toEqual({
       data: {
         cyborg: {
@@ -2327,7 +2327,7 @@ describe('unions', () => {
     post: () => post,
     displayable: () => [post, page],
   };
-  const query = `query {
+  const query = /* GraphQL */`query {
     post { title }
     page { title }
     displayable {
@@ -2366,7 +2366,7 @@ describe('unions', () => {
       resolvers,
       resolverValidationOptions: { requireResolversForResolveType: 'error' },
     });
-    const response = await graphql(schema, query);
+    const response = await execute({ schema, document: parse(query) });
     expect(response.errors).not.toBeDefined();
   });
   test('does not warn if requireResolversForResolveType is disabled', () => {

@@ -1,6 +1,5 @@
-import { Maybe } from '@graphql-tools/utils';
+import { getLeadingCommentBlock, Maybe } from '@graphql-tools/utils';
 import {
-  getDescription,
   StringValueNode,
   FieldDefinitionNode,
   ASTNode,
@@ -60,7 +59,7 @@ export function collectComment(node: NamedDefinitionNode): void {
 }
 
 export function pushComment(node: any, entity: string, field?: string, argument?: string): void {
-  const comment = getDescription(node, { commentDescriptions: true });
+  const comment = getLeadingCommentBlock(node);
 
   if (typeof comment !== 'string' || comment.length === 0) {
     return;

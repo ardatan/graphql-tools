@@ -35,9 +35,9 @@ describe('RenameRootTypes', () => {
       ],
     });
 
-    const result = await graphql(
+    const result = await graphql({
       schema,
-      `
+      source: `
         mutation {
           doSomething {
             query {
@@ -45,8 +45,8 @@ describe('RenameRootTypes', () => {
             }
           }
         }
-      `,
-    );
+      `
+    });
 
     expect(result).toEqual({
       data: {

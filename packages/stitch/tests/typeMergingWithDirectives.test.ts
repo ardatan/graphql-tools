@@ -5,7 +5,7 @@
 // https://github.com/ardatan/graphql-tools/issues/1710
 // https://github.com/ardatan/graphql-tools/issues/1959
 
-import { graphql } from 'graphql';
+import { execute, parse } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ExecutionResult } from '@graphql-tools/utils';
@@ -319,9 +319,9 @@ describe('merging using type merging with directives', () => {
   });
 
   test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {
-    const result = await graphql(
-      stitchedSchema,
-      `
+    const result = await execute({
+      schema: stitchedSchema,
+      document: parse(/* GraphQL */ `
         query {
           topProducts {
             upc
@@ -329,10 +329,8 @@ describe('merging using type merging with directives', () => {
             shippingEstimate
           }
         }
-      `,
-      undefined,
-      {},
-    );
+      `)
+    });
 
     const expectedResult: ExecutionResult = {
       data: {
@@ -352,9 +350,9 @@ describe('merging using type merging with directives', () => {
   });
 
   test('can stitch from accounts to reviews to products to inventory', async () => {
-    const result = await graphql(
-      stitchedSchema,
-      `
+    const result = await execute({
+      schema: stitchedSchema,
+      document: parse(/* GraphQL */ `
         query {
           me {
             reviews {
@@ -366,10 +364,8 @@ describe('merging using type merging with directives', () => {
             }
           }
         }
-      `,
-      undefined,
-      {},
-    );
+      `)
+    });
 
     const expectedResult: ExecutionResult = {
       data: {
@@ -386,9 +382,9 @@ describe('merging using type merging with directives', () => {
   });
 
   test('can stitch from accounts to reviews to products to inventory', async () => {
-    const result = await graphql(
-      stitchedSchema,
-      `
+    const result = await execute({
+      schema: stitchedSchema,
+      document: parse(/* GraphQL */ `
         query {
           me {
             reviews {
@@ -401,10 +397,8 @@ describe('merging using type merging with directives', () => {
             }
           }
         }
-      `,
-      undefined,
-      {},
-    );
+      `)
+    });
 
     const expectedResult: ExecutionResult = {
       data: {
@@ -435,9 +429,9 @@ describe('merging using type merging with directives', () => {
   });
 
   test('can stitch from accounts to reviews to products to inventory even when entire key not requested', async () => {
-    const result = await graphql(
-      stitchedSchema,
-      `
+    const result = await execute({
+      schema: stitchedSchema,
+      document: parse(/* GraphQL */ `
         query {
           me {
             reviews {
@@ -448,10 +442,8 @@ describe('merging using type merging with directives', () => {
             }
           }
         }
-      `,
-      undefined,
-      {},
-    );
+      `)
+    });
 
     const expectedResult: ExecutionResult = {
       data: {
@@ -478,9 +470,9 @@ describe('merging using type merging with directives', () => {
   });
 
   test('can stitch from inventory to products and then back to inventory', async () => {
-    const result = await graphql(
-      stitchedSchema,
-      `
+    const result = await execute({
+      schema: stitchedSchema,
+      document: parse(/* GraphQL */ `
         query {
           mostStockedProduct {
             upc
@@ -488,10 +480,8 @@ describe('merging using type merging with directives', () => {
             shippingEstimate
           }
         }
-      `,
-      undefined,
-      {},
-    );
+      `)
+    });
 
     const expectedResult: ExecutionResult = {
       data: {

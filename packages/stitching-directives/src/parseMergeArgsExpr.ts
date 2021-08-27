@@ -25,7 +25,7 @@ export function parseMergeArgsExpr(mergeArgsExpr: string, selectionSet?: Selecti
 
     const usedProperties = propertyTreeFromPaths(getSourcePaths(mappingInstructions, selectionSet));
 
-    return { args: valueFromASTUntyped(newInputValue), usedProperties, mappingInstructions };
+    return { args: valueFromASTUntyped(newInputValue) as Record<string, any>, usedProperties, mappingInstructions };
   }
 
   const expansionRegEx = new RegExp(`^${EXPANSION_PREFIX}[0-9]+$`);
@@ -64,7 +64,7 @@ export function parseMergeArgsExpr(mergeArgsExpr: string, selectionSet?: Selecti
 
   const usedProperties = propertyTreeFromPaths(sourcePaths);
 
-  return { args: valueFromASTUntyped(newInputValue), usedProperties, expansions };
+  return { args: valueFromASTUntyped(newInputValue) as Record<string, any>, usedProperties, expansions };
 }
 
 function getMappingInstructions(variablePaths: VariablePaths): Array<MappingInstruction> {

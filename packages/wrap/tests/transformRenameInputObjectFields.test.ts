@@ -1,6 +1,6 @@
 import { wrapSchema, RenameInputObjectFields } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { graphql } from 'graphql';
+import { execute, parse } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
 
 describe('RenameInputObjectFields', () => {
@@ -43,7 +43,7 @@ describe('RenameInputObjectFields', () => {
       ],
     });
 
-    const query = `{
+    const query = /* GraphQL */`{
       test(argument: {
         field1: "field1"
         field3: "field2"
@@ -53,10 +53,14 @@ describe('RenameInputObjectFields', () => {
       }
     }`;
 
-    const result = await graphql(transformedSchema, query);
+    const result = await execute({
+      schema: transformedSchema,
+      document: parse(query),
+    });
     assertSome(result.data)
-    expect(result.data['test'].field1).toBe('field1');
-    expect(result.data['test'].field2).toBe('field2');
+    const testData: any = result.data['test'];
+    expect(testData.field1).toBe('field1');
+    expect(testData.field2).toBe('field2');
   });
 
   test('renaming with variables works', async () => {
@@ -99,7 +103,7 @@ describe('RenameInputObjectFields', () => {
       ],
     });
 
-    const query = `query ($argument: InputObject) {
+    const query = /* GraphQL */`query ($argument: InputObject) {
       test(argument: $argument) {
         field1
         field2
@@ -116,9 +120,10 @@ describe('RenameInputObjectFields', () => {
         }]
       }
     }
-    const result = await graphql(transformedSchema, query, {}, {}, variables);
+    const result = await execute({ schema: transformedSchema, document: parse(query), variableValues: variables });
     assertSome(result.data)
-    expect(result.data['test'].field1).toBe('field1');
-    expect(result.data['test'].field2).toBe('field2');
+    const testData: any = result.data['test'];
+    expect(testData.field1).toBe('field1');
+    expect(testData.field2).toBe('field2');
   });
 });

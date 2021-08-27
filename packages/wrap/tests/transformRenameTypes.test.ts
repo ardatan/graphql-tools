@@ -1,5 +1,5 @@
 import { wrapSchema, RenameTypes } from '@graphql-tools/wrap';
-import { graphql, GraphQLSchema } from 'graphql';
+import { execute, GraphQLSchema, parse } from 'graphql';
 import { propertySchema } from './fixtures/schemas';
 
 describe('RenameTypes', () => {
@@ -9,15 +9,15 @@ describe('RenameTypes', () => {
       const transforms = [
         new RenameTypes(
           (name: string) =>
-            ({
-              Property: 'House',
-              Location: 'Spots',
-              TestInterface: 'TestingInterface',
-              DateTime: 'Datum',
-              InputWithDefault: 'DefaultingInput',
-              TestInterfaceKind: 'TestingInterfaceKinds',
-              TestImpl1: 'TestImplementation1',
-            }[name]),
+          ({
+            Property: 'House',
+            Location: 'Spots',
+            TestInterface: 'TestingInterface',
+            DateTime: 'Datum',
+            InputWithDefault: 'DefaultingInput',
+            TestInterfaceKind: 'TestingInterfaceKinds',
+            TestImpl1: 'TestImplementation1',
+          }[name]),
         ),
       ];
       schema = wrapSchema({
@@ -26,9 +26,9 @@ describe('RenameTypes', () => {
       });
     });
     test('should work', async () => {
-      const result = await graphql(
+      const result = await execute({
         schema,
-        `
+        document: parse(/* GraphQL */ `
           query($input: DefaultingInput!) {
             interfaceTest(kind: ONE) {
               ... on TestingInterface {
@@ -43,15 +43,13 @@ describe('RenameTypes', () => {
             dateTimeTest
             defaultInputTest(input: $input)
           }
-        `,
-        {},
-        {},
-        {
+      `),
+        variableValues: {
           input: {
             test: 'bar',
           },
-        },
-      );
+        }
+      });
 
       expect(result).toEqual({
         data: {
@@ -81,9 +79,9 @@ describe('RenameTypes', () => {
       });
     });
     test('should work', async () => {
-      const result = await graphql(
+      const result = await execute({
         schema,
-        `
+        document: parse(/* GraphQL */ `
           query($input: Property_InputWithDefault!) {
             interfaceTest(kind: ONE) {
               ... on Property_TestInterface {
@@ -102,15 +100,13 @@ describe('RenameTypes', () => {
             dateTimeTest
             defaultInputTest(input: $input)
           }
-        `,
-        {},
-        {},
-        {
+        `),
+        variableValues: {
           input: {
             test: 'bar',
           },
-        },
-      );
+        }
+      });
 
       expect(result).toEqual({
         data: {

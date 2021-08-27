@@ -73,9 +73,9 @@ describe('rename root type', () => {
       `,
     });
 
-    const result = await graphql(
-      stitchedSchema,
-      `
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */`
         mutation {
           doSomething {
             query {
@@ -85,7 +85,7 @@ describe('rename root type', () => {
           }
         }
       `,
-    );
+    });
 
     expect(result).toEqual({
       data: {

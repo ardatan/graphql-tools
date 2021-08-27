@@ -83,9 +83,9 @@ describe('test delegateToSchema() with type renaming', () => {
   });
 
   test('itemByVariant should work', async () => {
-    const result = await graphql(
-      stitchedSchema,
-      `
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */`
         query($variant: Variant!) {
           itemByVariant(variant: $variant) {
             __typename
@@ -94,12 +94,10 @@ describe('test delegateToSchema() with type renaming', () => {
           }
         }
       `,
-      {},
-      {},
-      {
+      variableValues: {
         variant: 'A',
       },
-    );
+    });
 
     expect(result).toEqual({
       data: {

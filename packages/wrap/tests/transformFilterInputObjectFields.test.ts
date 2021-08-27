@@ -1,6 +1,6 @@
 import { wrapSchema, FilterInputObjectFields } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { graphql, astFromValue, Kind, GraphQLString } from 'graphql';
+import { graphql, astFromValue, Kind, GraphQLString, parse, execute } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
 
 describe('FilterInputObjectFields', () => {
@@ -58,7 +58,7 @@ describe('FilterInputObjectFields', () => {
   test('filtering works', async () => {
 
 
-    const query = `{
+    const query = /* GraphQL */`{
       test(argument: {
         field1: "field1"
       }) {
@@ -67,17 +67,21 @@ describe('FilterInputObjectFields', () => {
       }
     }`;
 
-    const result = await graphql(transformedSchema, query);
+    const result = await execute({
+      schema: transformedSchema,
+      document: parse(query),
+    });
     assertSome(result.data);
     expect(result.errors).toBeUndefined();
-    expect(result.data['test'].field1).toBe('field1');
-    expect(result.data['test'].field2).toBe('field2');
+    const dataTest: any = result.data['test'];
+    expect(dataTest.field1).toBe('field1');
+    expect(dataTest.field2).toBe('field2');
   });
 
   test('filtering works with non-nullable input variable', async () => {
 
 
-    const query = `query testQuery($field1Arg: String!){
+    const query = /* GraphQL */`query testQuery($field1Arg: String!){
       test(argument: {
         field1: $field1Arg
       }) {
@@ -93,7 +97,8 @@ describe('FilterInputObjectFields', () => {
     });
     assertSome(result.data);
     expect(result.errors).toBeUndefined();
-    expect(result.data['test'].field1).toBe('field1');
-    expect(result.data['test'].field2).toBe('field2');
+    const dataTest: any = result.data['test'];
+    expect(dataTest.field1).toBe('field1');
+    expect(dataTest.field2).toBe('field2');
   });
 });

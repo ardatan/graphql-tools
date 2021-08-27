@@ -152,9 +152,9 @@ describe('Gatsby transforms', () => {
 
     expect(transformedSchema).toBeInstanceOf(GraphQLSchema);
 
-    const result = await graphql(
-      transformedSchema,
-      `
+    const result = await graphql({
+      schema: transformedSchema,
+      source: /* GraphQL */`
         {
           countries {
             language(code: "en") {
@@ -163,7 +163,7 @@ describe('Gatsby transforms', () => {
           }
         }
       `,
-    );
+      });
     expect(result).toEqual({
       data: {
         countries: {

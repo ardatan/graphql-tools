@@ -29,11 +29,12 @@ describe('RenameRootFields', () => {
       ],
     });
 
-    const result = await graphql(transformedSchema, `{
+    const result = await graphql({
+      schema: transformedSchema, source: /* GraphQL */`{
       titledWidget {
         name
       }
-    }`);
+    }`});
 
     expect(result.data).toEqual({
       titledWidget: {

@@ -80,7 +80,7 @@ describe('merging using type merging', () => {
       ],
     });
 
-    const query = `
+    const query = /* GraphQL */`
       query {
         userById(id: 5) {
           __typename
@@ -101,19 +101,18 @@ describe('merging using type merging', () => {
       }
     `;
 
-    const result = await graphql(
-      stitchedSchema,
-      query,
-      undefined,
-      {},
-    );
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: query,
+    });
 
     expect(result.errors).toBeUndefined();
     assertSome(result.data)
-    expect(result.data['userById'].__typename).toBe('User');
-    expect(result.data['userById'].chirps[1].id).not.toBe(null);
-    expect(result.data['userById'].chirps[1].text).not.toBe(null);
-    expect(result.data['userById'].chirps[1].author.email).not.toBe(null);
+    const userByIdData: any = result.data['userById'];
+    expect(userByIdData.__typename).toBe('User');
+    expect(userByIdData.chirps[1].id).not.toBe(null);
+    expect(userByIdData.chirps[1].text).not.toBe(null);
+    expect(userByIdData.chirps[1].author.email).not.toBe(null);
   });
 
   test("handle top level failures on subschema queries", async() => {
@@ -176,18 +175,16 @@ describe('merging using type merging', () => {
       ],
     });
 
-    const query = `
+    const query = /* GraphQL */`
       query {
         userById(id: 5) {  id  email fail }
       }
     `;
 
-    const result = await graphql(
-      stitchedSchema,
-      query,
-      undefined,
-      {},
-    );
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: query,
+    });
 
     expect(result.errors).not.toBeUndefined();
     expect(result.data).toMatchObject({ userById: { fail: null }});
@@ -303,9 +300,9 @@ describe('merging using type merging', () => {
       },
     });
 
-    const result = await graphql(
+    const result = await graphql({
       schema,
-      `
+      source: /* GraphQL */`
         query TestQuery {
           rootContainer {
             id
@@ -313,9 +310,7 @@ describe('merging using type merging', () => {
           }
         }
       `,
-      undefined,
-      {},
-    );
+    });
 
     const expectedResult = {
       data: {
@@ -416,7 +411,9 @@ describe('Merged associations', () => {
   });
 
   it('merges object with own remote type and association with associated remote type', async () => {
-    const { data } = await graphql(gatewaySchema, `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         posts(ids: [55]) {
           title
@@ -424,7 +421,7 @@ describe('Merged associations', () => {
           sections
         }
       }
-    `);
+    `});
       assertSome(data)
     expect(data['posts']).toEqual([{
       title: 'Post 55',
@@ -501,7 +498,7 @@ describe('merging using type merging when renaming', () => {
       ],
     });
 
-    const query = `
+    const query = /* GraphQL */`
       query {
         User_userById(id: 5) {
           __typename
@@ -522,19 +519,18 @@ describe('merging using type merging when renaming', () => {
       }
     `;
 
-    const result = await graphql(
-      stitchedSchema,
-      query,
-      undefined,
-      {},
-    );
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: query,
+    });
 
     expect(result.errors).toBeUndefined();
-    assertSome(result.data)
-    expect(result.data['User_userById'].__typename).toBe('Gateway_User');
-    expect(result.data['User_userById'].chirps[1].id).not.toBe(null);
-    expect(result.data['User_userById'].chirps[1].text).not.toBe(null);
-    expect(result.data['User_userById'].chirps[1].author.email).not.toBe(null);
+    assertSome(result.data);
+    const userByIdData: any = result.data['User_userById'];
+    expect(userByIdData.__typename).toBe('Gateway_User');
+    expect(userByIdData.chirps[1].id).not.toBe(null);
+    expect(userByIdData.chirps[1].text).not.toBe(null);
+    expect(userByIdData.chirps[1].author.email).not.toBe(null);
   });
 });
 
@@ -605,9 +601,9 @@ describe('external object annotation with batchDelegateToSchema', () => {
   })
 
   test('if batchDelegateToSchema can delegate 2 times the same key', async () => {
-    const { data } = await graphql(
-      gatewaySchema,
-      `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
         query {
           posts(ids: [55, 55]) {
             network {
@@ -620,7 +616,7 @@ describe('external object annotation with batchDelegateToSchema', () => {
           }
         }
       `,
-    )
+    })
     assertSome(data)
     expect(data['posts']).toEqual([
       {
@@ -749,9 +745,9 @@ describe('type merge repeated nested delegates', () => {
   })
 
   test('completes merge for all children', async () => {
-    const { data } = await graphql(
-      gatewaySchema,
-      `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         citiesByName(name: ["Chicago", "Miami", "Paris", "Marseille"]) {
           name
@@ -767,7 +763,7 @@ describe('type merge repeated nested delegates', () => {
         }
       }
       `,
-    )
+    })
     assertSome(data)
     expect(data['citiesByName']).toEqual([
       {

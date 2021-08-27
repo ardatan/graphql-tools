@@ -846,7 +846,7 @@ bookingById(id: "b1") {
           }
         `);
 
-        const sub = await subscribe(stitchedSchema, subscription) as AsyncIterableIterator<ExecutionResult>;
+        const sub = await subscribe({ schema: stitchedSchema, document: subscription }) as AsyncIterableIterator<ExecutionResult>;
 
         const payload = sub.next();
 
@@ -895,7 +895,7 @@ bookingById(id: "b1") {
           }
         `);
 
-        const sub = await subscribe(stitchedSchema, subscription) as AsyncIterableIterator<ExecutionResult>;
+        const sub = await subscribe({ schema: stitchedSchema, document: subscription }) as AsyncIterableIterator<ExecutionResult>;
 
         const payload = sub.next();
 
@@ -985,7 +985,7 @@ bookingById(id: "b1") {
       });
 
       test('interfaces', async () => {
-        const query = `
+        const query = /* GraphQL */`
           query {
             test1: interfaceTest(kind: ONE) {
               __typename
@@ -1134,7 +1134,7 @@ bookingById(id: "b1") {
       });
 
       test('unions implementing interface', async () => {
-        const query = `
+        const query = /* GraphQL */`
           query {
             test1: unionTest(output: "Interface") {
               ... on TestInterface {
@@ -3133,7 +3133,7 @@ assertSome(result.data)
           }
         `;
 
-        const query = `query {
+        const query = /* GraphQL */`query {
           book {
             category
           }

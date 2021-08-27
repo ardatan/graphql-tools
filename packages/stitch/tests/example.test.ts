@@ -91,7 +91,7 @@ describe('basic stitching example', () => {
       },
     });
 
-    const query = `
+    const query = /* GraphQL */`
       query {
         userById(id: 5) {
           chirps {
@@ -105,7 +105,7 @@ describe('basic stitching example', () => {
       }
     `;
 
-    const result = await graphql(stitchedSchema, query);
+    const result = await execute({ schema: stitchedSchema, document: parse(query) });
 
     expect(result.errors).toBeUndefined();
     assertSome(result.data)
