@@ -70,7 +70,7 @@ describe('remote subscriptions', () => {
       },
     };
 
-    const subscription = parse(`
+    const subscription = parse(/* GraphQL */`
       subscription Subscription {
         notifications {
           text
@@ -94,7 +94,7 @@ describe('remote subscriptions', () => {
       },
     };
 
-    const subscription = parse(`
+    const subscription = parse(/* GraphQL */`
         subscription Subscription {
           notifications {
             text

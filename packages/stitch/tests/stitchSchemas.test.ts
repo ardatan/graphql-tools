@@ -253,7 +253,7 @@ const linkSchema = `
   extend type Customer implements Node
 `;
 
-const loneExtend = parse(`
+const loneExtend = parse(/* GraphQL */`
   extend type Booking {
     foo: String!
   }
@@ -825,7 +825,7 @@ bookingById(id: "b1") {
           },
         };
 
-        const subscription = parse(`
+        const subscription = parse(/* GraphQL */`
           subscription Subscription {
             notifications {
               text
@@ -873,7 +873,7 @@ bookingById(id: "b1") {
           ],
         };
 
-        const subscription = parse(`
+        const subscription = parse(/* GraphQL */`
           subscription Subscription {
             notifications {
               throwError

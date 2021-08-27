@@ -3,7 +3,7 @@ import { getFieldsWithDirectives } from '../src';
 
 describe('getFieldsWithDirectives', () => {
   it('Should detect single basic directive', () => {
-    const node = parse(`
+    const node = parse(/* GraphQL */`
         type A {
             f1: String @a
         }
@@ -14,7 +14,7 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should detect single basic directive in a type extension', () => {
-    const node = parse(`
+    const node = parse(/* GraphQL */`
         extend type A {
           f1: String @a
         }
@@ -25,7 +25,7 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should parse string argument correctly', () => {
-    const node = parse(`
+    const node = parse(/* GraphQL */`
         type A {
             f1: String @a(f: "1")
         }
@@ -36,7 +36,7 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should parse multiple arguments correctly', () => {
-    const node = parse(`
+    const node = parse(/* GraphQL */`
         type A {
             f1: String @a(a1: "1", a2: 10)
         }
@@ -47,7 +47,7 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should parse object arg correctly', () => {
-    const node = parse(`
+    const node = parse(/* GraphQL */`
         type A {
             f1: String @a(a1: { foo: "bar" })
         }
@@ -58,7 +58,7 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should parse array arg correctly', () => {
-    const node = parse(`
+    const node = parse(/* GraphQL */`
         type A {
             f1: String @a(a1: [1,2,3])
         }
@@ -69,7 +69,7 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should parse complex array arg correctly', () => {
-    const node = parse(`
+    const node = parse(/* GraphQL */`
         type A {
             f1: String @a(a1: ["a", 1, {c: 3, d: true }])
         }
@@ -80,7 +80,7 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should detect multiple directives', () => {
-    const node = parse(`
+    const node = parse(/* GraphQL */`
         type A {
             f1: String @a @b
         }
@@ -91,7 +91,7 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should detect multiple directives and multiple fields', () => {
-    const node = parse(`
+    const node = parse(/* GraphQL */`
         type A {
             f1: String @a @b
             f2: String @c
@@ -104,7 +104,7 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should detect multiple types', () => {
-    const node = parse(`
+    const node = parse(/* GraphQL */`
         type A {
           f1: String @a
         }
@@ -120,7 +120,7 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should include only fields with directives', () => {
-    const node = parse(`
+    const node = parse(/* GraphQL */`
         type A {
           f1: String @a
           f2: Int
@@ -138,7 +138,7 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should detect multiple input types', () => {
-    const node = parse(`
+    const node = parse(/* GraphQL */`
         input A {
           f1: String @a
         }
@@ -154,7 +154,7 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should detect multiple extend input types', () => {
-    const node = parse(`
+    const node = parse(/* GraphQL */`
         extend input A {
           f1: String @a
         }

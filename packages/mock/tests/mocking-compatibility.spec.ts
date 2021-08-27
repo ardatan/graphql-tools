@@ -1391,7 +1391,7 @@ describe('Mock retro-compatibility', () => {
 
     const resultIterator = await subscribe({
       schema,
-      document: /* GraphQL */ parse(`
+      document: /* GraphQL */ parse(/* GraphQL */`
         subscription FooSub {
           fooSub {
             bar

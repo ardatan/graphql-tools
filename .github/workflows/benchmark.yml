@@ -27,7 +27,7 @@ jobs:
             ${{ runner.os }}-16-15-yarn
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
-      - name: Build
+      - name: Build packages
         run: yarn build
       - name: Setup K6
         run: |

@@ -318,7 +318,7 @@ describe('merge schemas through transforms', () => {
       Subscriptions_notifications: originalNotification.notifications,
     };
 
-    const subscription = parse(`
+    const subscription = parse(/* GraphQL */`
       subscription Subscription {
         Subscriptions_notifications {
           text

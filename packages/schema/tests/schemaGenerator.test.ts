@@ -289,7 +289,7 @@ describe('generating schema from shorthand', () => {
   });
 
   test('can generate a schema from a parsed type definition', () => {
-    const typeDefSchema = parse(`
+    const typeDefSchema = parse(/* GraphQL */`
       type Query {
         foo: String
       }
@@ -307,7 +307,7 @@ describe('generating schema from shorthand', () => {
 
   test('can generate a schema from an array of parsed and none parsed type definitions', () => {
     const typeDefSchema = [
-      parse(`
+      parse(/* GraphQL */`
           type Query {
             foo: String
           }`),
