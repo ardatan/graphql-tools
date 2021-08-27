@@ -940,7 +940,7 @@ describe('generating schema from shorthand', () => {
         throw new Error(`${value} is not odd`);
       };
 
-      const OddType = new GraphQLScalarType<number, number>({
+      const OddType = new GraphQLScalarType({
         name: 'Odd',
         description: 'Odd custom scalar type',
         parseValue: oddValue,
@@ -1006,7 +1006,7 @@ describe('generating schema from shorthand', () => {
     });
 
     test('should work with a Date custom scalar type', () => {
-      const DateType = new GraphQLScalarType<Date, number>({
+      const DateType = new GraphQLScalarType({
         name: 'Date',
         description: 'Date custom scalar type',
         parseValue(value: any) {

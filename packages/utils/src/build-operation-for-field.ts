@@ -371,7 +371,8 @@ function resolveVariable(arg: GraphQLArgument, name?: string): VariableDefinitio
     if (isNonNullType(type)) {
       return {
         kind: Kind.NON_NULL_TYPE,
-        type: resolveVariableType(type.ofType) as NamedTypeNode,
+        // for v16 compatibility
+        type: resolveVariableType(type.ofType) as any,
       };
     }
 
