@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        graphql_version: [14, 15, '16.0.0-rc.1']
+        graphql_version: [14, 15]
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
@@ -63,7 +63,7 @@ jobs:
       matrix:
         os: [ubuntu-latest] # remove windows to speed up the tests
         node_version: [12, 16]
-        graphql_version: [14, 15, '16.0.0-rc.1']
+        graphql_version: [14, 15]
         include:
           - node_version: 14
             os: windows-latest
@@ -104,7 +104,7 @@ jobs:
       matrix:
         os: [ubuntu-latest] # remove windows to speed up the tests
         node_version: [12, 16]
-        graphql_version: [14, 15, '16.0.0-rc.1']
+        graphql_version: [14, 15]
         include:
           - node_version: 14
             os: windows-latest
