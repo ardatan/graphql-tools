@@ -32,9 +32,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-16-16-yarn-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-16-15-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-16-16-yarn-
+            ${{ runner.os }}-16-15-yarn-
       - name: Align TypeScript version with typedoc
         run: node scripts/install-typedocs-typescript-version.js
       - name: Install Dependencies using Yarn
