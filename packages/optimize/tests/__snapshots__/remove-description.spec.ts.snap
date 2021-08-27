@@ -3,6 +3,5 @@
 exports[`removeDescription Should remove description 1`] = `
 "type Query {
   f: String
-}
-"
+}"
 `;
