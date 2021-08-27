@@ -47,7 +47,7 @@ import {
   subscriptionPubSubTrigger,
 } from './fixtures/schemas';
 
-const linkSchema = `
+const linkSchema = /* GraphQL */`
   """
   A new type linking the Property type.
   """

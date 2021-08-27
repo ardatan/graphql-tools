@@ -6,10 +6,10 @@ import {
   NameNode,
   TypeNode,
   visit,
-  VisitFn,
   DefinitionNode,
   Location,
   TokenKind,
+  NamedTypeNode,
 } from 'graphql';
 import type { ASTVisitor } from 'graphql/language/visitor';
 
@@ -102,8 +102,6 @@ export function printComment(comment: string): string {
  * This is a temp measure, we will move to using the original non modified printer.js ASAP.
  */
 
-// import { visit, VisitFn } from 'graphql';
-
 /**
  * Given maybeArray, print an empty string if it is null or empty, otherwise
  * print all items together separated by separator if provided
@@ -116,13 +114,21 @@ function hasMultilineItems(maybeArray: Maybe<ReadonlyArray<string>>): boolean {
   return maybeArray?.some(str => str.includes('\n')) ?? false;
 }
 
-function addDescription(cb: VisitFn<any, any>): VisitFn<any, any> {
+type VisitFn = (
+  node: { description?: StringValueNode; name?: NameNode; type?: TypeNode; kind: string },
+  key: string,
+  parent: NamedTypeNode,
+  path: string[],
+  ancestors: NamedTypeNode[]
+) => any;
+
+function addDescription(cb: VisitFn): VisitFn {
   return (
     node: { description?: StringValueNode; name?: NameNode; type?: TypeNode; kind: string },
-    _key,
-    _parent,
-    path,
-    ancestors
+    _key: string,
+    _parent: NamedTypeNode,
+    path: string[],
+    ancestors: NamedTypeNode[]
   ) => {
     const keys: string[] = [];
     const parent = path.reduce((prev, key) => {
@@ -140,7 +146,7 @@ function addDescription(cb: VisitFn<any, any>): VisitFn<any, any> {
       items.push(...commentsRegistry[key]);
     }
 
-    return join([...items.map(printComment), node.description, (cb as any)(node)], '\n');
+    return join([...items.map(printComment), node.description, cb(node, _key, _parent, path, ancestors)], '\n');
   };
 }
 

@@ -31,7 +31,7 @@ describe('Merging schemas', () => {
   });
 });
 
-const rawSchema = `
+const rawSchema = /* GraphQL */`
   type Post {
     id: ID!
     title: String!

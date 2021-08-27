@@ -67,7 +67,7 @@ function expectWarning(fn: () => void, warnMatcher?: string) {
   }
 }
 
-const testSchema = `
+const testSchema = /* GraphQL */`
       type RootQuery {
         usecontext: String
         species(name: String): String
