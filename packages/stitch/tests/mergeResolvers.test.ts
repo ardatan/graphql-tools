@@ -76,12 +76,14 @@ describe('Merge resolvers', () => {
       ]
     });
 
-    const { data } = await graphql(gatewaySchema, `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         widget(id: 1) { id source }
         sprocket(id: 1) { id source }
       }
-    `);
+    `});
 
     expect(data).toEqual({
       widget: { id: '1', source: 'resolve' },
@@ -128,12 +130,14 @@ describe('Merge resolvers', () => {
       ]
     });
 
-    const { data } = await graphql(gatewaySchema, `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         widget(id: 1) { id source }
         sprocket(id: 1) { id source }
       }
-    `);
+    `});
 
     expect(data).toEqual({
       widget: { id: '1', source: 'service->resolve' },
