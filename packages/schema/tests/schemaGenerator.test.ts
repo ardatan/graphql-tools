@@ -2307,11 +2307,14 @@ describe('interface resolver inheritance', () => {
         requireResolversToMatchSchema: 'ignore'
       }
     });
-    const response = await graphql(schema, /* GraphQL */`
-      {
-        foo
-      }
-    `);
+    const response = await graphql({
+      schema,
+      source: /* GraphQL */`
+        {
+          foo
+        }
+      `
+    });
     expect(response.errors).not.toBeDefined();
   })
 });

@@ -2,6 +2,7 @@ import gql from 'graphql-tag';
 import { composeResolvers, ResolversComposerMapping } from '../src';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { execute, GraphQLScalarType, Kind } from 'graphql';
+import { inspect } from 'util';
 
 function createAsyncIterator<T>(array: T[]): AsyncIterator<T, T, T> {
   let i = 0;
@@ -185,7 +186,7 @@ describe('Resolvers composition', () => {
     const resolversComposition: ResolversComposerMapping<typeof resolvers> = {
       Subscription: {
         foo: prevAsyncIteratorFactory => (root, args, context, info) => {
-          const prevAsyncIterator = prevAsyncIteratorFactory(root, args, context, info);
+          const prevAsyncIterator = prevAsyncIteratorFactory(root, args, context, info) as AsyncIterator<any>;
           const newAsyncIterator = createAsyncIterator(array2);
           return {
             async next() {
@@ -204,7 +205,7 @@ describe('Resolvers composition', () => {
               }
             },
             [Symbol.asyncIterator](): AsyncIterator<number> {
-              return this;
+              return this as AsyncIterator<number>;
             },
           };
         },
@@ -253,8 +254,8 @@ describe('Resolvers composition', () => {
         },
         PositiveInt: new GraphQLScalarType({
           name: 'PositiveInt',
-          serialize: val => parseInt(val.toString()),
-          parseValue: val => parseInt(val.toString()),
+          serialize: val => parseInt((val as any).toString()),
+          parseValue: val => parseInt((val as any).toString()),
           parseLiteral: literal => {
             switch (literal.kind) {
               case Kind.INT:
@@ -262,11 +263,11 @@ describe('Resolvers composition', () => {
               case Kind.STRING: {
                 const intVal = parseInt(literal.value.toString());
                 if (intVal > 0) {
-                  return literal.value;
+                  return intVal;
                 }
               }
             }
-            throw new Error(`Value ${JSON.stringify(literal)} is not a positive integer`)
+            throw new Error(`Value ${inspect(literal)} is not a positive integer`)
           },
         })
       };

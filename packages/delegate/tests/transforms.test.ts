@@ -95,9 +95,9 @@ describe('can delegate to subschema with transforms', () => {
   });
 
   test('renaming should work', async () => {
-    const result = await graphql(
-      sourceSchema,
-      `
+    const result = await graphql({
+      schema: sourceSchema,
+      source: /* GraphQL */`
         query {
           item {
             camelCase
@@ -111,7 +111,7 @@ describe('can delegate to subschema with transforms', () => {
           }
         }
       `,
-    );
+      });
 
     const TRANSFORMED_ITEM = {
       camelCase: "I'm a camel!",

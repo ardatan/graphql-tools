@@ -46,14 +46,14 @@ describe('delegateToSchema', () => {
       },
     });
 
-    const result = await graphql(
-      outerSchema,
-      `
+    const result = await graphql({
+      schema: outerSchema,
+      source: /* GraphQL */`
         query {
           delegateToSchema(input: "test")
         }
       `,
-    );
+    });
 
     assertSome(result.data)
     expect(result.data['delegateToSchema']).toEqual('test');
@@ -93,14 +93,14 @@ describe('delegateToSchema', () => {
       },
     });
 
-    const result = await graphql(
-      outerSchema,
-      `
+    const result = await graphql({
+      schema: outerSchema,
+      source: /* GraphQL */`
         query {
           delegateToSchema
         }
       `,
-    );
+    });
 
     assertSome(result.data)
     expect(result.data['delegateToSchema']).toEqual('test');
@@ -140,19 +140,17 @@ describe('delegateToSchema', () => {
       },
     });
 
-    const result = await graphql(
-      outerSchema,
-      `
+    const result = await graphql({
+      schema: outerSchema,
+      source: /* GraphQL */`
         query($input: String) {
           delegateToSchema(input: $input)
         }
       `,
-      undefined,
-      undefined,
-      {
+      variableValues: {
         input: 'test',
       },
-    );
+    });
 
     assertSome(result.data)
     expect(result.data['delegateToSchema']).toEqual('test');

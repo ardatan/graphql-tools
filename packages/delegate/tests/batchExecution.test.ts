@@ -30,7 +30,7 @@ describe('batch execution', () => {
       batch: true,
       executor: ((request: ExecutionRequest): ExecutionResult => {
         executions++;
-        return execute(innerSchema, request.document, undefined, request.context, request.variables) as ExecutionResult;
+        return execute({ schema: innerSchema, document: request.document, contextValue: request.context, variableValues: request.variables}) as ExecutionResult;
       }) as SyncExecutor
     }
 
@@ -56,7 +56,7 @@ describe('batch execution', () => {
       },
     };
 
-    const result = await graphql(outerSchema, '{ field1 field2 }', undefined, {});
+    const result = await graphql({ schema: outerSchema, source: '{ field1 field2 }'});
 
     expect(result).toEqual(expectedResult);
     expect(executions).toEqual(1);
@@ -107,7 +107,7 @@ describe('batch execution', () => {
 
     const executor = ((request: ExecutionRequest): ExecutionResult => {
       executions++;
-      return execute(innerSchemaA, request.document, undefined, request.context, request.variables) as ExecutionResult;
+      return execute({ schema: innerSchemaA, document: request.document, contextValue: request.context, variableValues: request.variables }) as ExecutionResult;
     }) as Executor;
 
     const innerSubschemaConfigA: Array<SubschemaConfig> = [{
@@ -160,7 +160,7 @@ describe('batch execution', () => {
       subschemas: [innerSubschemaConfigA, innerSubschemaConfigB],
     });
 
-    const resultWhenAsArray = await graphql(outerSchemaWithSubschemasAsArray, query, undefined, {});
+    const resultWhenAsArray = await graphql({ schema: outerSchemaWithSubschemasAsArray, source: query });
 
     expect(resultWhenAsArray).toEqual(expectedResult);
     expect(executions).toEqual(1);
@@ -169,7 +169,7 @@ describe('batch execution', () => {
       subschemas: [...innerSubschemaConfigA, innerSubschemaConfigB],
     });
 
-    const resultWhenSpread = await graphql(outerSchemaWithSubschemasSpread, query, undefined, {});
+    const resultWhenSpread = await graphql({ schema: outerSchemaWithSubschemasSpread, source: query });
 
     expect(resultWhenSpread).toEqual(expectedResult);
     expect(executions).toEqual(2);

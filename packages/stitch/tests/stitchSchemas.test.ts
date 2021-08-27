@@ -548,9 +548,9 @@ for (const combination of testCombinations) {
       });
 
       test('works with custom scalars', async () => {
-        const propertyResult = await graphql(
-          localPropertySchema,
-          /* GraphQL */`
+        const propertyResult = await graphql({
+          schema: localPropertySchema,
+          source: /* GraphQL */`
             query {
               dateTimeTest
               test1: jsonTest(input: { foo: "bar" })
@@ -558,11 +558,11 @@ for (const combination of testCombinations) {
               test3: jsonTest(input: "6")
             }
           `,
-        );
+        });
 
-        const stitchedResult = await graphql(
-          stitchedSchema,
-          /* GraphQL */`
+        const stitchedResult = await graphql({
+          schema: stitchedSchema,
+          source: /* GraphQL */`
             query {
               dateTimeTest
               test1: jsonTest(input: { foo: "bar" })
@@ -570,9 +570,7 @@ for (const combination of testCombinations) {
               test3: jsonTest(input: "6")
             }
           `,
-          undefined,
-          {},
-        );
+        });
 
         expect(propertyResult).toEqual({
           data: {
@@ -586,9 +584,9 @@ for (const combination of testCombinations) {
       });
 
       test('works with custom scalars', async () => {
-        const scalarResult = await graphql(
-          scalarSchema,
-          /* GraphQL */`
+        const scalarResult = await graphql({
+          schema: scalarSchema,
+          source: /* GraphQL */`
             query {
               testingScalar(input: "test") {
                 value
@@ -598,11 +596,11 @@ for (const combination of testCombinations) {
               }
             }
           `,
-        );
+        });
 
-        const stitchedResult = await graphql(
-          stitchedSchema,
-          /* GraphQL */`
+        const stitchedResult = await graphql({
+          schema: stitchedSchema,
+          source: /* GraphQL */`
             query {
               testingScalar(input: "test") {
                 value
@@ -612,9 +610,7 @@ for (const combination of testCombinations) {
               }
             }
           `,
-          undefined,
-          {},
-        );
+        });
 
         expect(scalarResult).toEqual({
           data: {
@@ -632,9 +628,9 @@ for (const combination of testCombinations) {
       });
 
       test('works with custom enums', async () => {
-        const enumResult = await graphql(
-          enumSchema,
-          /* GraphQL */`
+        const enumResult = await graphql({
+          schema: enumSchema,
+          source: /* GraphQL */`
             query {
               color(input: RED)
               numericEnum
@@ -665,11 +661,11 @@ for (const combination of testCombinations) {
               }
             }
           `,
-        );
+        });
 
-        const stitchedResult = await graphql(
-          stitchedSchema,
-          /* GraphQL */`
+        const stitchedResult = await graphql({
+          schema: stitchedSchema,
+          source: /* GraphQL */`
             query {
               color(input: RED)
               numericEnum
@@ -700,9 +696,7 @@ for (const combination of testCombinations) {
               }
             }
           `,
-          undefined,
-          {},
-        );
+        });
 
         expect(enumResult).toEqual({
           data: {
@@ -741,13 +735,13 @@ for (const combination of testCombinations) {
       });
 
       test('queries', async () => {
-        const propertyFragment = `
+        const propertyFragment = /* GraphQL */`
 propertyById(id: "p1") {
   id
   name
 }
   `;
-        const bookingFragment = `
+        const bookingFragment = /* GraphQL */`
 bookingById(id: "b1") {
   id
   customer {
@@ -768,15 +762,15 @@ bookingById(id: "b1") {
           `query { ${bookingFragment} }`,
         );
 
-        const stitchedResult = await graphql(
-          stitchedSchema,
-          `query {
-            ${propertyFragment}
-            ${bookingFragment}
-          }`,
-          undefined,
-          {},
-        );
+        const stitchedResult = await graphql({
+            schema: stitchedSchema,
+            source: /* GraphQL */`
+              query {
+                ${propertyFragment}
+                ${bookingFragment}
+              }
+            `,
+        });
         expect(stitchedResult).toEqual({
           data: {
             ...propertyResult.data,
@@ -787,7 +781,7 @@ bookingById(id: "b1") {
 
       // Technically mutations are not idempotent, but they are in our test schemas
       test('mutations', async () => {
-        const mutationFragment = `
+        const mutationFragment = /* GraphQL */`
       mutation Mutation($input: BookingInput!) {
         addBooking(input: $input) {
           id
@@ -806,24 +800,20 @@ bookingById(id: "b1") {
           endTime: '2015-02-10',
         };
 
-        const bookingResult = await graphql(
-          localBookingSchema,
-          mutationFragment,
-          {},
-          {},
-          {
+        const bookingResult = await graphql({
+          schema: localBookingSchema,
+          source: mutationFragment,
+          variableValues: {
             input,
           },
-        );
-        const stitchedResult = await graphql(
-          stitchedSchema,
-          mutationFragment,
-          {},
-          {},
-          {
+        });
+        const stitchedResult = await graphql({
+          schema: stitchedSchema,
+          source: mutationFragment,
+          variableValues: {
             input,
           },
-        );
+        });
 
         expect(stitchedResult).toEqual(bookingResult);
       });
@@ -1578,7 +1568,7 @@ bookingById(id: "b1") {
 
     describe('fragments', () => {
       test('named', async () => {
-        const propertyFragment = `
+        const propertyFragment = /* GraphQL */`
 fragment PropertyFragment on Property {
   id
   name
@@ -1587,7 +1577,7 @@ fragment PropertyFragment on Property {
   }
 }
     `;
-        const bookingFragment = `
+        const bookingFragment = /* GraphQL */`
 fragment BookingFragment on Booking {
   id
   customer {
@@ -1650,7 +1640,7 @@ fragment BookingFragment on Booking {
       });
 
       test('inline', async () => {
-        const propertyFragment = `
+        const propertyFragment = /* GraphQL */`
 propertyById(id: "p1") {
   ... on Property {
     id
@@ -1658,7 +1648,7 @@ propertyById(id: "p1") {
   name
 }
   `;
-        const bookingFragment = `
+        const bookingFragment = /* GraphQL */`
 bookingById(id: "b1") {
   id
   ... on Booking {
@@ -1775,7 +1765,7 @@ fragment PropertyFragment2 on Property {
   }
 }
     `;
-        const bookingFragment = `
+        const bookingFragment = /* GraphQL */`
 fragment BookingFragment on Booking {
   id
   customer {
@@ -2015,13 +2005,13 @@ fragment BookingFragment on Booking {
 
     describe('variables', () => {
       test('basic', async () => {
-        const propertyFragment = `
+        const propertyFragment = /* GraphQL */`
           propertyById(id: $p1) {
             id
             name
           }
         `;
-        const bookingFragment = `
+        const bookingFragment = /* GraphQL */`
           bookingById(id: $b1) {
             id
             customer {
@@ -2168,13 +2158,15 @@ fragment BookingFragment on Booking {
               persona: () => ({
                 transactions: {
                   items: [
-                    { id: 1,
+                    {
+                      id: 1,
                       debt: {
-                      installmentPlan: [{
-                        category: "Cat-B",
-                        installments: ["B1", "B2"]
-                      }]
-                    } },
+                        installmentPlan: [{
+                          category: "Cat-B",
+                          installments: ["B1", "B2"]
+                        }]
+                      }
+                    },
                     {
                       id: 3,
                       debt: {
@@ -2242,92 +2234,92 @@ fragment BookingFragment on Booking {
             Query: {
               flattenedTransactions: async (_root: any, _args: any, context: any, info: GraphQLResolveInfo) => {
                 const result = await delegateToSchema(
-                    {
-                      schema: remoteSchema,
-                      operation: "query",
-                      fieldName: "persona",
-                      context,
-                      info,
-                      args: [],
-                      transforms: [
-                        {
-                          transformRequest: (ast) => {
-                            /**
-                             * This is the query before:
-                              {
+                  {
+                    schema: remoteSchema,
+                    operation: "query",
+                    fieldName: "persona",
+                    context,
+                    info,
+                    args: [],
+                    transforms: [
+                      {
+                        transformRequest: (ast) => {
+                          /**
+                           * This is the query before:
+                            {
+                              persona {
+                                page {
+                                  id
+                                  debt {
+                                    ...DebtFields
+                                  }
+                                }
+                                totalCount
+                              }
+                            }
+                           */
+                          const query = ast.document.definitions.find(
+                            ({ operation }: any) => operation === "query"
+                          );
+                          const personaNode = (query as any).selectionSet.selections.find(
+                            ({ name }: any) => name.value === "persona"
+                          );
+                          const pageNode = personaNode.selectionSet.selections.find(
+                            ({ name }: any) => name.value === "page"
+                          );
+
+                          personaNode.selectionSet.selections = [
+                            {
+                              kind: 'Field',
+                              alias: undefined,
+                              name: { kind: 'Name', value: 'transactions' },
+                              arguments: [],
+                              directives: [],
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  {
+                                    kind: 'Field',
+                                    alias: undefined,
+                                    name: { kind: 'Name', value: 'items' },
+                                    arguments: [],
+                                    directives: [],
+                                    selectionSet: pageNode.selectionSet,
+                                  }
+                                ]
+                              },
+                            }
+                          ]
+
+                          /**
+                           * The is the query after:
+                             {
                                 persona {
-                                  page {
-                                    id
-                                    debt {
-                                      ...DebtFields
-                                    }
-                                  }
-                                  totalCount
-                                }
-                              }
-                             */
-                            const query = ast.document.definitions.find(
-                              ({ operation }: any) => operation === "query"
-                            );
-                            const personaNode = (query as any).selectionSet.selections.find(
-                              ({ name }: any) => name.value === "persona"
-                            );
-                            const pageNode = personaNode.selectionSet.selections.find(
-                              ({ name }: any) => name.value === "page"
-                            );
-
-                            personaNode.selectionSet.selections = [
-                                {
-                                  kind: 'Field',
-                                  alias: undefined,
-                                  name: { kind: 'Name', value: 'transactions' },
-                                  arguments: [],
-                                  directives: [],
-                                  selectionSet: {
-                                    kind: 'SelectionSet',
-                                    selections: [
-                                      {
-                                        kind: 'Field',
-                                        alias: undefined,
-                                        name: { kind: 'Name', value: 'items' },
-                                        arguments: [],
-                                        directives: [],
-                                        selectionSet: pageNode.selectionSet,
-                                      }
-                                    ]
-                                  },
-                              }
-                            ]
-
-                            /**
-                             * The is the query after:
-                               {
-                                  persona {
-                                    transactions {
-                                      items {
-                                        id
-                                        debt {
-                                          ...DebtFields
-                                        }
+                                  transactions {
+                                    items {
+                                      id
+                                      debt {
+                                        ...DebtFields
                                       }
                                     }
                                   }
                                 }
-                             */
+                              }
+                           */
 
-                            return ast;
-                          },
-                          transformResult: (originalResult: ExecutionResult) => {
-                            assertSome(originalResult.data)
-                            originalResult.data['persona'] = {
-                              page: originalResult.data['persona'].transactions.items,
-                            };
-                            return originalResult;
-                          },
-                        }
-                      ]
-                    },
-                  );
+                          return ast;
+                        },
+                        transformResult: (originalResult: ExecutionResult) => {
+                          assertSome(originalResult.data)
+                          originalResult.data['persona'] = {
+                            page: originalResult.data['persona'].transactions.items,
+                          };
+                          return originalResult;
+                        },
+                      }
+                    ]
+                  },
+                );
 
                 result.totalCount = result.page.length;
                 return result;
@@ -2499,10 +2491,10 @@ fragment BookingFragment on Booking {
 
     describe('errors', () => {
       test('root level', async () => {
-        const propertyFragment = `
+        const propertyFragment = /* GraphQL */`
                 errorTest
               `;
-        const bookingFragment = `
+        const bookingFragment = /* GraphQL */`
           bookingById(id: "b1") {
             id
             customer {
@@ -2658,7 +2650,7 @@ fragment BookingFragment on Booking {
 
       test(
         'should preserve custom error extensions from the original schema, ' +
-          'when merging schemas',
+        'when merging schemas',
         async () => {
           const propertyQuery = `
           query {
@@ -3114,7 +3106,7 @@ fragment BookingFragment on Booking {
         });
 
         const result = await graphql(schema, '{ book { cat: category } }');
-assertSome(result.data)
+        assertSome(result.data)
         expect(result.data['book'].cat).toBe('Test');
       });
     });
@@ -3236,7 +3228,7 @@ assertSome(result.data)
       });
 
       const result = await graphql(schema, '{ book { cat: category } }');
-assertSome(result.data)
+      assertSome(result.data)
       expect(result.data['book'].cat).toBe('Test');
     });
   });

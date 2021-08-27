@@ -79,16 +79,16 @@ describe('bare requests', () => {
       },
     });
 
-    const result = await graphql(
-      outerSchema,
-      `
+    const result = await graphql({
+      schema: outerSchema,
+      source: /* GraphQL */`
         query {
           delegate(input: "test") {
             field
           }
         }
       `,
-    );
+    });
 
     expect(result).toEqual({
       data: {
@@ -163,16 +163,16 @@ describe('bare requests', () => {
       },
     });
 
-    const result = await graphql(
-      outerSchema,
-      `
+    const result = await graphql({
+      schema: outerSchema,
+      source: /* GraphQL */`
         query {
           delegate(input: "test") {
             field
           }
         }
       `,
-    );
+  });
 
     expect(result).toEqual({
       data: {
@@ -227,14 +227,14 @@ describe('bare requests', () => {
       },
     });
 
-    const result = await graphql(
-      outerSchema,
-      `
+    const result = await graphql({
+      schema: outerSchema,
+      source: /* GraphQL */`
         query {
           delegate
         }
       `,
-    );
+    });
 
     expect(result).toEqual({
       data: {

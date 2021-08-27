@@ -131,7 +131,7 @@ function getDelegationContext<TContext>({
     targetFieldName = fieldName;
   }
 
-  const stitchingInfo: Maybe<StitchingInfo<TContext>> = info?.schema.extensions?.['stitchingInfo'];
+  const stitchingInfo = info?.schema.extensions?.['stitchingInfo'] as Maybe<StitchingInfo<TContext>>;
 
   const subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig<any, any, any, any> =
     stitchingInfo?.subschemaMap.get(schema) ?? schema;

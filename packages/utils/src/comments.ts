@@ -398,8 +398,8 @@ const printDocASTReducerWithComments = Object.keys(printDocASTReducer).reduce(
  * Converts an AST into a string, using one set of reasonable
  * formatting rules.
  */
-export function printWithComments(ast: ASTNode) {
-  return visit(ast, printDocASTReducerWithComments);
+export function printWithComments(ast: ASTNode): string {
+  return visit(ast, printDocASTReducerWithComments) as any;
 }
 
 function isFieldDefinitionNode(node: any): node is FieldDefinitionNode {

@@ -220,7 +220,7 @@ describe('Errors', () => {
           errors: [unpathedError],
         };
 
-        const gatewayResult = await graphql(gatewaySchema, query);
+        const gatewayResult = await graphql({ schema: gatewaySchema, source: query });
 
         expect(gatewayResult).toEqual(expectedResult);
       });

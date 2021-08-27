@@ -72,7 +72,9 @@ describe('Abstract type merge', () => {
       ],
     });
 
-    const { data } = await graphql(gatewaySchema, `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         post(id: 55) {
           leadArt {
@@ -84,9 +86,10 @@ describe('Abstract type merge', () => {
           }
         }
       }
-    `);
+    `});
     assertSome(data)
-    expect(data['post'].leadArt).toEqual({
+    const postData: any = data['post'];
+    expect(postData.leadArt).toEqual({
       __typename: 'Image',
       url: '/path/to/23',
       id: '23',
@@ -171,7 +174,9 @@ describe('Merged associations', () => {
   });
 
   it('merges associations onto abstract types', async () => {
-    const { data } = await graphql(gatewaySchema, `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         slots(ids: [55]) {
           id
@@ -182,7 +187,7 @@ describe('Merged associations', () => {
           }
         }
       }
-    `);
+    `});
 
     assertSome(data)
     expect(data['slots']).toEqual([{

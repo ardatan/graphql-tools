@@ -103,7 +103,7 @@ describe('dataloader', () => {
       }
     }`;
 
-    const result = await graphql(schema, query, null, { usersLoader });
+    const result = await graphql({schema, source: query, contextValue: { usersLoader }});
 
     expect(result).toEqual({
       data: {

@@ -314,7 +314,7 @@ describe('merge canonical types', () => {
   });
 
   it('promotes canonical root field definitions', async () => {
-    const { data } = await graphql(gatewaySchema, '{ field1 field2 }');
+    const { data } = await graphql({ schema: gatewaySchema, source: /* GraphQL */`{ field1 field2 }` });
     expect(data).toEqual({
       field1: 'first',
       field2: 'second',

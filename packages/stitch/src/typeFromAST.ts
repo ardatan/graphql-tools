@@ -179,5 +179,5 @@ function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {
 
 function getDeprecationReason(node: EnumValueDefinitionNode | FieldDefinitionNode): Maybe<string> {
   const deprecated = getDirectiveValues(GraphQLDeprecatedDirective, node);
-  return deprecated?.['reason'];
+  return deprecated?.['reason'] as string;
 }

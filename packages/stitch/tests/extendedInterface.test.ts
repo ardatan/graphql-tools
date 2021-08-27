@@ -38,14 +38,16 @@ describe('extended interfaces', () => {
       `,
     });
 
-    const { data } = await graphql(stitchedSchema, `
+    const { data } = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */`
       query {
         slot {
           id
           name
         }
       }
-    `);
+    `});
     assertSome(data)
     expect(data['slot']).toEqual({ id: '23', name: 'The Item' });
   });
@@ -112,14 +114,16 @@ describe('extended interfaces', () => {
       `,
     });
 
-    const result = await graphql(stitchedSchema, `
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */`
       query {
         placement: placementById(id: 23) {
           id
           name
         }
       }
-    `);
+    `});
     assertSome(result.data)
     expect(result.data['placement']).toEqual({ id: '23', name: 'Item 23' });
   });

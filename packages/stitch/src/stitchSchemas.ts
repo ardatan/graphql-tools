@@ -125,7 +125,7 @@ export function stitchSchemas<TContext = Record<string, any>>({
   for (const extension of extensions) {
     schema = extendSchema(schema, extension, {
       commentDescriptions: true,
-    });
+    } as any);
   }
 
   // We allow passing in an array of resolver maps, in which case we merge them
