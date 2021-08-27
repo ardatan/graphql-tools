@@ -58,7 +58,7 @@ describe('Errors', () => {
             info: fakeInfo,
           } as DelegationContext,
         );
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toEqual('Test error');
         expect(e.originalError.errors).toBeUndefined();
       }
@@ -76,7 +76,7 @@ describe('Errors', () => {
             info: fakeInfo,
           } as DelegationContext,
         );
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toEqual('Test error');
         expect(e.extensions && e.extensions.code).toEqual('UNAUTHENTICATED');
         expect(e.originalError.errors).toBeUndefined();
@@ -95,7 +95,7 @@ describe('Errors', () => {
             info: fakeInfo,
           } as DelegationContext,
         );
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toEqual('Error1\nError2');
         expect(e.originalError).toBeDefined();
         expect(e.originalError.errors).toBeDefined();

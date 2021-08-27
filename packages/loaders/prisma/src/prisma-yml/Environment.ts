@@ -73,7 +73,7 @@ export class Environment {
             this.globalRC.cloudSessionKey = res.renewToken;
             this.saveGlobalRC();
           }
-        } catch (e) {
+        } catch (e: any) {
           debug(e);
         }
       }
@@ -139,7 +139,7 @@ export class Environment {
             }
           }
         }
-      } catch (e) {
+      } catch (e: any) {
         debug(e);
       }
       await renewPromise;
@@ -228,7 +228,7 @@ export class Environment {
       let content;
       try {
         content = yaml.load(file);
-      } catch (e) {
+      } catch (e: any) {
         throw new Error(`Yaml parsing error in ${filePath}: ${e.message}`);
       }
       const variables = new Variables(filePath || 'no filepath provided', this.args, this.out);

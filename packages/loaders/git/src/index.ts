@@ -167,7 +167,7 @@ export class GitLoader implements Loader<GitLoaderOptions> {
         const results = await this.handleSingularPointerAsync(pointer, options);
         results?.forEach(result => finalResult.push(result));
       }
-    } catch (error) {
+    } catch (error: any) {
       if (env['DEBUG']) {
         console.error(error);
       }
@@ -239,7 +239,7 @@ export class GitLoader implements Loader<GitLoaderOptions> {
           finalResult.push(result);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       if (env['DEBUG']) {
         console.error(error);
       }

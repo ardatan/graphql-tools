@@ -125,7 +125,7 @@ input TestInput {
 
       try {
         await loader.load(testUrl, {});
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toBe('Could not obtain introspection result, received: ' + JSON.stringify(brokenData))
       }
     });

@@ -20,7 +20,7 @@ export function isDocumentString(str: any): boolean {
   try {
     parse(str);
     return true;
-  } catch (e) {}
+  } catch (e: any) {}
 
   return false;
 }

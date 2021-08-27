@@ -16,7 +16,7 @@ describe('loadFromCodeFile', () => {
       const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
 
       expect(doc).toBeFalsy();
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).toContain('Syntax Error: Unexpected Name "InvalidGetUser"');
     }
   });

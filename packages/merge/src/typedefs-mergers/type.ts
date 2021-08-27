@@ -25,7 +25,7 @@ export function mergeType(
         directives: mergeDirectives(node.directives, existingNode.directives, config),
         interfaces: mergeNamedTypeArray(node.interfaces, existingNode.interfaces, config),
       } as any;
-    } catch (e) {
+    } catch (e: any) {
       throw new Error(`Unable to merge GraphQL type "${node.name.value}": ${e.message}`);
     }
   }

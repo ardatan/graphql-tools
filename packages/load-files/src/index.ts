@@ -46,7 +46,7 @@ function isDirectorySync(path: string) {
   try {
     const pathStat = statSync(path);
     return pathStat.isDirectory();
-  } catch (e) {
+  } catch (e: any) {
     return false;
   }
 }
@@ -55,7 +55,7 @@ async function isDirectory(path: string) {
   try {
     const pathStat = await stat(path);
     return pathStat.isDirectory();
-  } catch (e) {
+  } catch (e: any) {
     return false;
   }
 }

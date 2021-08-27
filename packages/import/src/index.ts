@@ -388,7 +388,7 @@ function resolveFilePath(filePath: string, importFrom: string): string {
   try {
     const fullPath = join(dirName, importFrom);
     return realpathSync(fullPath);
-  } catch (e) {
+  } catch (e: any) {
     if (e.code === 'ENOENT') {
       return resolveFrom(dirName, importFrom);
     }

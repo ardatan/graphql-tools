@@ -2095,7 +2095,7 @@ describe('interfaces', () => {
         resolvers,
         resolverValidationOptions: { requireResolversForResolveType: 'error' },
       });
-    } catch (error) {
+    } catch (error: any) {
       expect(error.message).toEqual(
         `Type "Node" is missing a "__resolveType" resolver. Pass 'ignore' into "resolverValidationOptions.requireResolversForResolveType" to disable this error.`,
       );
@@ -2346,7 +2346,7 @@ describe('unions', () => {
         resolvers,
         resolverValidationOptions: { requireResolversForResolveType: 'error' },
       });
-    } catch (error) {
+    } catch (error: any) {
       expect(error.message).toEqual(
         `Type "Displayable" is missing a "__resolveType" resolver. Pass 'ignore' into "resolverValidationOptions.requireResolversForResolveType" to disable this error.`,
       );

@@ -81,7 +81,7 @@ async function executeDelegationStage(
         let source: any;
         try {
           source = await resolver(object, context, info, s, selectionSet);
-        } catch (error) {
+        } catch (error: any) {
           source = error;
         }
         if (source instanceof Error || source === null) {

@@ -227,7 +227,7 @@ async function pluckVueFileScript(fileData: string) {
   try {
     // tslint:disable-next-line: no-implicit-dependencies
     vueTemplateCompiler = await import('@vue/compiler-sfc');
-  } catch (e) {
+  } catch (e: any) {
     throw MissingVueTemplateCompilerError;
   }
 
@@ -241,7 +241,7 @@ function pluckVueFileScriptSync(fileData: string) {
   try {
     // tslint:disable-next-line: no-implicit-dependencies
     vueTemplateCompiler = require('@vue/compiler-sfc');
-  } catch (e) {
+  } catch (e: any) {
     throw MissingVueTemplateCompilerError;
   }
 

@@ -287,7 +287,7 @@ export class MockStore implements IMockStore {
       valueToStore = this.normalizeValueToStore(fieldType, value, currentValue, (typeName, values) =>
         this.insert(typeName, values, noOverride)
       );
-    } catch (e) {
+    } catch (e: any) {
       throw new Error(`Value to set in ${typeName}.${fieldName} in not normalizable: ${e.message}`);
     }
 
