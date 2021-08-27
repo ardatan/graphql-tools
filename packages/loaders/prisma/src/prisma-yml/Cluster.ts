@@ -117,7 +117,7 @@ Original error: ${e.message}`
     workspaceSlug: string = this.workspaceSlug || '*',
     stageName?: string
   ): Promise<string> {
-    const query = `
+    const query = /* GraphQL */ `
       mutation ($input: GenerateClusterTokenRequest!) {
         generateClusterToken(input: $input) {
           clusterToken
@@ -148,7 +148,7 @@ Original error: ${e.message}`
     workspaceSlug: string = this.workspaceSlug!,
     stageName?: string
   ): Promise<boolean> {
-    const query = `
+    const query = /* GraphQL */ `
       mutation ($input: GenerateClusterTokenRequest!) {
         addServiceToCloudDBIfMissing(input: $input)
       }

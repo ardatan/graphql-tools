@@ -5,7 +5,7 @@ import { GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
 describe('FilterInterfaceFields', () => {
   test('works', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         interface IWidget {
           alpha: String
           bravo: String

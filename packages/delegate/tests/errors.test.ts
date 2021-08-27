@@ -148,7 +148,7 @@ describe('Errors', () => {
           },
         });
 
-        const query = `{
+        const query = /* GraphQL */`{
           object {
             field1
             field2
@@ -203,7 +203,7 @@ describe('Errors', () => {
           subschemas: [remoteSchema],
         });
 
-        const query = `{
+        const query = /* GraphQL */`{
           object {
             field1
             field2
@@ -220,7 +220,7 @@ describe('Errors', () => {
           errors: [unpathedError],
         };
 
-        const gatewayResult = await graphql(gatewaySchema, query);
+        const gatewayResult = await graphql({ schema: gatewaySchema, source: query });
 
         expect(gatewayResult).toEqual(expectedResult);
       });

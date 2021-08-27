@@ -22,6 +22,7 @@ import { implementsAbstractType, getRootTypeNames } from '@graphql-tools/utils';
 
 import { memoize2 } from './memoize';
 import { getDocumentMetadata } from './getDocumentMetadata';
+import { StitchingInfo } from './types';
 
 export function prepareGatewayDocument(
   originalDocument: DocumentNode,
@@ -332,13 +333,14 @@ const getSchemaMetaData = memoize2(
       }
     }
 
+    const stitchingInfo = sourceSchema.extensions?.['stitchingInfo'] as StitchingInfo;
     return {
       possibleTypesMap,
       reversePossibleTypesMap: reversePossibleTypesMap(possibleTypesMap),
       interfaceExtensionsMap,
-      fieldNodesByType: sourceSchema.extensions?.['stitchingInfo']?.fieldNodesByType ?? {},
-      fieldNodesByField: sourceSchema.extensions?.['stitchingInfo']?.fieldNodesByField ?? {},
-      dynamicSelectionSetsByField: sourceSchema.extensions?.['stitchingInfo']?.dynamicSelectionSetsByField ?? {},
+      fieldNodesByType: stitchingInfo?.fieldNodesByType ?? {},
+      fieldNodesByField: stitchingInfo?.fieldNodesByField ?? {},
+      dynamicSelectionSetsByField: stitchingInfo?.dynamicSelectionSetsByField ?? {},
     };
   }
 );

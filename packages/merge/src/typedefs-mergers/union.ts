@@ -12,7 +12,8 @@ export function mergeUnion(
     return {
       name: first.name,
       description: first['description'] || second['description'],
-      directives: mergeDirectives(first.directives, second.directives, config),
+      // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+      directives: mergeDirectives(first.directives, second.directives, config) as any,
       kind:
         (config && config.convertExtensions) ||
         first.kind === 'UnionTypeDefinition' ||

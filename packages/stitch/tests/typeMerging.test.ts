@@ -18,7 +18,7 @@ import { stitchSchemas } from '../src/stitchSchemas';
 describe('merging using type merging', () => {
   test('works', async () => {
     let chirpSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Chirp {
           id: ID!
           text: String
@@ -40,7 +40,7 @@ describe('merging using type merging', () => {
     chirpSchema = addMocksToSchema({ schema: chirpSchema });
 
     let authorSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           email: String
@@ -80,7 +80,7 @@ describe('merging using type merging', () => {
       ],
     });
 
-    const query = `
+    const query = /* GraphQL */`
       query {
         userById(id: 5) {
           __typename
@@ -101,24 +101,23 @@ describe('merging using type merging', () => {
       }
     `;
 
-    const result = await graphql(
-      stitchedSchema,
-      query,
-      undefined,
-      {},
-    );
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: query,
+    });
 
     expect(result.errors).toBeUndefined();
     assertSome(result.data)
-    expect(result.data['userById'].__typename).toBe('User');
-    expect(result.data['userById'].chirps[1].id).not.toBe(null);
-    expect(result.data['userById'].chirps[1].text).not.toBe(null);
-    expect(result.data['userById'].chirps[1].author.email).not.toBe(null);
+    const userByIdData: any = result.data['userById'];
+    expect(userByIdData.__typename).toBe('User');
+    expect(userByIdData.chirps[1].id).not.toBe(null);
+    expect(userByIdData.chirps[1].text).not.toBe(null);
+    expect(userByIdData.chirps[1].author.email).not.toBe(null);
   });
 
   test("handle top level failures on subschema queries", async() => {
     let userSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           email: String
@@ -132,7 +131,7 @@ describe('merging using type merging', () => {
     userSchema = addMocksToSchema({ schema: userSchema });
 
     const failureSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           fail: Boolean
@@ -176,18 +175,16 @@ describe('merging using type merging', () => {
       ],
     });
 
-    const query = `
+    const query = /* GraphQL */`
       query {
         userById(id: 5) {  id  email fail }
       }
     `;
 
-    const result = await graphql(
-      stitchedSchema,
-      query,
-      undefined,
-      {},
-    );
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: query,
+    });
 
     expect(result.errors).not.toBeUndefined();
     expect(result.data).toMatchObject({ userById: { fail: null }});
@@ -199,7 +196,7 @@ describe('merging using type merging', () => {
 
   test('merging types and type extensions should work together', async () => {
     const resultSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           resultById(id: ID!): String
         }
@@ -212,7 +209,7 @@ describe('merging using type merging', () => {
     });
 
     const containerSchemaA = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
           type Container {
             id: ID!
             resultId: ID!
@@ -230,7 +227,7 @@ describe('merging using type merging', () => {
     });
 
     const containerSchemaB = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Container {
           id: ID!
         }
@@ -277,7 +274,7 @@ describe('merging using type merging', () => {
           batch: true,
         },
       ],
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         extend type Container {
           result: String!
         }
@@ -303,9 +300,9 @@ describe('merging using type merging', () => {
       },
     });
 
-    const result = await graphql(
+    const result = await graphql({
       schema,
-      `
+      source: /* GraphQL */`
         query TestQuery {
           rootContainer {
             id
@@ -313,9 +310,7 @@ describe('merging using type merging', () => {
           }
         }
       `,
-      undefined,
-      {},
-    );
+    });
 
     const expectedResult = {
       data: {
@@ -332,7 +327,7 @@ describe('merging using type merging', () => {
 
 describe('Merged associations', () => {
   const layoutSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Network {
         id: ID!
         domain: String!
@@ -358,7 +353,7 @@ describe('Merged associations', () => {
   });
 
   const postsSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Network {
         id: ID!
       }
@@ -416,7 +411,9 @@ describe('Merged associations', () => {
   });
 
   it('merges object with own remote type and association with associated remote type', async () => {
-    const { data } = await graphql(gatewaySchema, `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         posts(ids: [55]) {
           title
@@ -424,7 +421,7 @@ describe('Merged associations', () => {
           sections
         }
       }
-    `);
+    `});
       assertSome(data)
     expect(data['posts']).toEqual([{
       title: 'Post 55',
@@ -437,7 +434,7 @@ describe('Merged associations', () => {
 describe('merging using type merging when renaming', () => {
   test('works', async () => {
     let chirpSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Chirp {
           id: ID!
           text: String
@@ -459,7 +456,7 @@ describe('merging using type merging when renaming', () => {
     chirpSchema = addMocksToSchema({ schema: chirpSchema });
 
     let authorSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           email: String
@@ -501,7 +498,7 @@ describe('merging using type merging when renaming', () => {
       ],
     });
 
-    const query = `
+    const query = /* GraphQL */`
       query {
         User_userById(id: 5) {
           __typename
@@ -522,25 +519,24 @@ describe('merging using type merging when renaming', () => {
       }
     `;
 
-    const result = await graphql(
-      stitchedSchema,
-      query,
-      undefined,
-      {},
-    );
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: query,
+    });
 
     expect(result.errors).toBeUndefined();
-    assertSome(result.data)
-    expect(result.data['User_userById'].__typename).toBe('Gateway_User');
-    expect(result.data['User_userById'].chirps[1].id).not.toBe(null);
-    expect(result.data['User_userById'].chirps[1].text).not.toBe(null);
-    expect(result.data['User_userById'].chirps[1].author.email).not.toBe(null);
+    assertSome(result.data);
+    const userByIdData: any = result.data['User_userById'];
+    expect(userByIdData.__typename).toBe('Gateway_User');
+    expect(userByIdData.chirps[1].id).not.toBe(null);
+    expect(userByIdData.chirps[1].text).not.toBe(null);
+    expect(userByIdData.chirps[1].author.email).not.toBe(null);
   });
 });
 
 describe('external object annotation with batchDelegateToSchema', () => {
   const networkSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Domain {
         id: ID!
         name: String!
@@ -562,7 +558,7 @@ describe('external object annotation with batchDelegateToSchema', () => {
   })
 
   const postsSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Network {
         id: ID!
       }
@@ -605,9 +601,9 @@ describe('external object annotation with batchDelegateToSchema', () => {
   })
 
   test('if batchDelegateToSchema can delegate 2 times the same key', async () => {
-    const { data } = await graphql(
-      gatewaySchema,
-      `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
         query {
           posts(ids: [55, 55]) {
             network {
@@ -620,7 +616,7 @@ describe('external object annotation with batchDelegateToSchema', () => {
           }
         }
       `,
-    )
+    })
     assertSome(data)
     expect(data['posts']).toEqual([
       {
@@ -641,7 +637,7 @@ describe('type merge repeated nested delegates', () => {
     {name: "Paris", population: 2161000, country: { name: "France"}},
   ]
   const citySchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Country {
         name: String!
       }
@@ -669,7 +665,7 @@ describe('type merge repeated nested delegates', () => {
     {name: "France", population: 67060000, continent: { name: "Europe"}},
   ]
   const countrySchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Continent {
         name: String!
       }
@@ -697,7 +693,7 @@ describe('type merge repeated nested delegates', () => {
     {name: "Europe", population: 746400000},
   ]
   const continentSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Continent {
         name: String!
         population: Float!
@@ -749,9 +745,9 @@ describe('type merge repeated nested delegates', () => {
   })
 
   test('completes merge for all children', async () => {
-    const { data } = await graphql(
-      gatewaySchema,
-      `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         citiesByName(name: ["Chicago", "Miami", "Paris", "Marseille"]) {
           name
@@ -767,7 +763,7 @@ describe('type merge repeated nested delegates', () => {
         }
       }
       `,
-    )
+    })
     assertSome(data)
     expect(data['citiesByName']).toEqual([
       {

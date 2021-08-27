@@ -5,7 +5,7 @@ import { GraphQLObjectType, GraphQLInterfaceType, GraphQLInputObjectType } from 
 describe('filterSchema', () => {
   it('filters root fields', () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           keep: String
           omit: String
@@ -30,7 +30,7 @@ describe('filterSchema', () => {
 
   it('filters types', () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Keep implements IKeep {
           field(input: KeepInput): String
         }
@@ -84,7 +84,7 @@ describe('filterSchema', () => {
 
   it('filters object fields', () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Thing implements IThing {
           keep: String
           omit: String
@@ -107,7 +107,7 @@ describe('filterSchema', () => {
 
   it('filters interface fields', () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         interface IThing {
           keep: String
           omit: String
@@ -130,7 +130,7 @@ describe('filterSchema', () => {
 
   it('filters input object fields', () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         input ThingInput {
           keep: String
           omit: String
@@ -153,7 +153,7 @@ describe('filterSchema', () => {
 
   it('filters all field types', () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Thing implements IThing {
           keep: String
           omit: String
@@ -184,7 +184,7 @@ describe('filterSchema', () => {
 
   it('filters all arguments', () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           field(keep: String, omit: String): String
         }

@@ -176,7 +176,8 @@ export function astFromSchema(
   const schemaNode: SchemaDefinitionNode | SchemaExtensionNode = {
     kind: operationTypes != null ? Kind.SCHEMA_DEFINITION : Kind.SCHEMA_EXTENSION,
     operationTypes,
-    directives,
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: directives as any,
   };
 
   // This code is so weird because it needs to support GraphQL.js 14
@@ -317,8 +318,10 @@ export function astFromArg(
       value: arg.name,
     },
     type: astFromType(arg.type),
-    defaultValue: arg.defaultValue !== undefined ? astFromValue(arg.defaultValue, arg.type) ?? undefined : undefined,
-    directives: getDeprecatableDirectiveNodes(arg, schema, pathToDirectivesInExtensions),
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    defaultValue:
+      arg.defaultValue !== undefined ? astFromValue(arg.defaultValue, arg.type) ?? undefined : (undefined as any),
+    directives: getDeprecatableDirectiveNodes(arg, schema, pathToDirectivesInExtensions) as any,
   };
 }
 
@@ -344,7 +347,7 @@ export function astFromObjectType(
     },
     fields: Object.values(type.getFields()).map(field => astFromField(field, schema, pathToDirectivesInExtensions)),
     interfaces: Object.values(type.getInterfaces()).map(iFace => astFromType(iFace) as NamedTypeNode),
-    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions),
+    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions) as any,
   };
 }
 
@@ -369,7 +372,7 @@ export function astFromInterfaceType(
       value: type.name,
     },
     fields: Object.values(type.getFields()).map(field => astFromField(field, schema, pathToDirectivesInExtensions)),
-    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions),
+    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions) as any,
   };
 
   if ('getInterfaces' in type) {
@@ -401,7 +404,8 @@ export function astFromUnionType(
       kind: Kind.NAME,
       value: type.name,
     },
-    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions),
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions) as any,
     types: type.getTypes().map(type => astFromType(type) as NamedTypeNode),
   };
 }
@@ -429,7 +433,8 @@ export function astFromInputObjectType(
     fields: Object.values(type.getFields()).map(field =>
       astFromInputField(field, schema, pathToDirectivesInExtensions)
     ),
-    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions),
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions) as any,
   };
 }
 
@@ -454,7 +459,8 @@ export function astFromEnumType(
       value: type.name,
     },
     values: Object.values(type.getValues()).map(value => astFromEnumValue(value, schema, pathToDirectivesInExtensions)),
-    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions),
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions) as any,
   };
 }
 
@@ -508,7 +514,8 @@ export function astFromScalarType(
       kind: Kind.NAME,
       value: type.name,
     },
-    directives,
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: directives as any,
   };
 }
 
@@ -534,7 +541,8 @@ export function astFromField(
     },
     arguments: field.args.map(arg => astFromArg(arg, schema, pathToDirectivesInExtensions)),
     type: astFromType(field.type),
-    directives: getDeprecatableDirectiveNodes(field, schema, pathToDirectivesInExtensions),
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: getDeprecatableDirectiveNodes(field, schema, pathToDirectivesInExtensions) as any,
   };
 }
 
@@ -559,8 +567,9 @@ export function astFromInputField(
       value: field.name,
     },
     type: astFromType(field.type),
-    directives: getDeprecatableDirectiveNodes(field, schema, pathToDirectivesInExtensions),
-    defaultValue: astFromValue(field.defaultValue, field.type) ?? undefined,
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: getDeprecatableDirectiveNodes(field, schema, pathToDirectivesInExtensions) as any,
+    defaultValue: astFromValue(field.defaultValue, field.type) ?? (undefined as any),
   };
 }
 
@@ -584,7 +593,8 @@ export function astFromEnumValue(
       kind: Kind.NAME,
       value: value.name,
     },
-    directives: getDirectiveNodes(value, schema, pathToDirectivesInExtensions),
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: getDirectiveNodes(value, schema, pathToDirectivesInExtensions) as any,
   };
 }
 

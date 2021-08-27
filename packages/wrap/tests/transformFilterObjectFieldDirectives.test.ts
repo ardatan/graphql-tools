@@ -4,7 +4,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 describe('FilterObjectFieldDirectives', () => {
   test('removes unmatched field directives', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         directive @remove on FIELD_DEFINITION
         directive @keep(arg: Int) on FIELD_DEFINITION
         type Query {

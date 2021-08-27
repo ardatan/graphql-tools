@@ -27,5 +27,14 @@ export function mockServer(schema: TypeSource, mocks: IMocks, preserveResolvers 
     preserveResolvers,
   });
 
-  return { query: (query, vars) => graphql(mockedSchema, query, {}, {}, vars) };
+  return {
+    query: (query, vars) =>
+      graphql({
+        schema: mockedSchema,
+        source: query,
+        rootValue: {},
+        contextValue: {},
+        variableValues: vars,
+      }),
+  };
 }

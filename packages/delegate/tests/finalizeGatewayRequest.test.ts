@@ -5,7 +5,7 @@ import { finalizeGatewayRequest } from '../src/finalizeGatewayRequest';
 
 describe('finalizeGatewayRequest', () => {
   test('should remove empty selection sets on objects', () => {
-    const query = parse(`
+    const query = parse(/* GraphQL */`
     query customerQuery($id: ID!) {
       customerById(id: $id) {
         id
@@ -26,7 +26,7 @@ describe('finalizeGatewayRequest', () => {
       targetSchema: bookingSchema
     } as DelegationContext);
 
-    const expected = parse(`
+    const expected = parse(/* GraphQL */`
     query customerQuery($id: ID!) {
       customerById(id: $id) {
         id
@@ -38,7 +38,7 @@ describe('finalizeGatewayRequest', () => {
   });
 
   test('should also remove variables when removing empty selection sets', () => {
-    const query = parse(`
+    const query = parse(/* GraphQL */`
     query customerQuery($id: ID!, $limit: Int) {
       customerById(id: $id) {
         id
@@ -60,7 +60,7 @@ describe('finalizeGatewayRequest', () => {
       targetSchema: bookingSchema
     } as DelegationContext);
 
-    const expected = parse(`
+    const expected = parse(/* GraphQL */`
     query customerQuery($id: ID!) {
       customerById(id: $id) {
         id
@@ -72,7 +72,7 @@ describe('finalizeGatewayRequest', () => {
   });
 
   test('should not remove used variables in nested inputs', () => {
-    const query = parse(`
+    const query = parse(/* GraphQL */`
     query jsonTestQuery($test: String!) {
       jsonTest(input: [{ test: $test }] )
     }
@@ -87,7 +87,7 @@ describe('finalizeGatewayRequest', () => {
       targetSchema: propertySchema
     } as DelegationContext);
 
-    const expected = parse(`
+    const expected = parse(/* GraphQL */`
     query jsonTestQuery($test: String!) {
       jsonTest(input: [{ test: $test }] )
     }
@@ -97,7 +97,7 @@ describe('finalizeGatewayRequest', () => {
   });
 
   test('should remove empty selection sets on wrapped objects (non-nullable/lists)', () => {
-    const query = parse(`
+    const query = parse(/* GraphQL */`
       query bookingQuery($id: ID!) {
         bookingById(id: $id) {
           id
@@ -118,7 +118,7 @@ describe('finalizeGatewayRequest', () => {
       targetSchema: bookingSchema
     } as DelegationContext);
 
-    const expected = parse(`
+    const expected = parse(/* GraphQL */`
       query bookingQuery($id: ID!) {
         bookingById(id: $id) {
           id

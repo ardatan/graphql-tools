@@ -64,7 +64,7 @@ describe('Relay', () => {
           }
         }
       `)
-    });
+    }) as any;
     expect(userResult.data?.["user0"]?.name).toBe(users[0].name);
     expect(userResult.data?.["user1"]?.name).toBe(users[1].name);
     const postSchema = makeExecutableSchema({
@@ -132,7 +132,7 @@ describe('Relay', () => {
           }
         }
       `)
-    });
+    }) as any;
     expect(postResult.data?.["post0"]?.content).toBe(posts[0].content);
     expect(postResult.data?.["post1"]?.content).toBe(posts[1].content);
     expect(postResult.data?.["user0"]?.id).toBe(users[0].id);
@@ -177,7 +177,7 @@ describe('Relay', () => {
           }
         }
       `)
-    });
+    }) as any;
 
     expect(stitchedResult.data?.["post0"]?.content).toBe(posts[0].content);
     expect(stitchedResult.data?.["post1"]?.content).toBe(posts[1].content);

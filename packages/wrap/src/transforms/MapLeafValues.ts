@@ -21,6 +21,7 @@ import {
   updateArgument,
   transformInputValue,
   createVariableNameGenerator,
+  assertSome,
 } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
@@ -162,6 +163,8 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
     variableValues: Record<string, any>
   ): FieldNode | undefined {
     const targetField = this._getTypeInfo().getFieldDef();
+
+    assertSome(targetField);
 
     const generateVariableName = createVariableNameGenerator(variableDefinitionMap);
 

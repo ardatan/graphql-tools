@@ -281,11 +281,11 @@ describe('Merge Schemas', () => {
                 }
             }
         });
-        const { errors, data } = await graphql({
+        const result = await graphql({
             schema: mergeSchemas({
                 schemas: [fooSchema, barSchema]
             }),
-            source: `
+            source: /* GraphQL */`
                 {
                     bar {
                         foo
@@ -302,6 +302,7 @@ describe('Merge Schemas', () => {
                 }
             `
         });
+        const { data, errors } = result as any;
         expect(errors).toBeFalsy();
         assertSome(data)
         expect(data['bar'].foo).toBe('foo');
@@ -321,10 +322,14 @@ describe('Merge Schemas', () => {
                 Date: new GraphQLScalarType({
                     name: 'Date',
                     serialize(value) {
-                        return new Date(value).toISOString();
+                        if (typeof value === 'string' || typeof value === 'number' || value instanceof Date) {
+                            return new Date(value).toISOString();
+                        }
                     },
                     parseValue(value) {
-                        return new Date(value);
+                        if (typeof value === 'string' || typeof value === 'number' || value instanceof Date) {
+                            return new Date(value);
+                        }
                     },
                     parseLiteral(ast) {
                         if (ast.kind !== Kind.STRING) {

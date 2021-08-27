@@ -34,8 +34,8 @@ describe('passes along errors for missing fields on list', () => {
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
-    const originalResult = await graphql(schema, query);
-    const stitchedResult = await graphql(stitchedSchema, query);
+    const originalResult = await graphql({ schema, source: query });
+    const stitchedResult = await graphql({ schema: stitchedSchema, source: query });
     expect(stitchedResult).toEqual(originalResult);
     assertSome(stitchedResult.errors)
     assertSome(originalResult.errors)
@@ -71,8 +71,8 @@ describe('passes along errors for missing fields on list', () => {
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
-    const originalResult = await graphql(schema, query);
-    const stitchedResult = await graphql(stitchedSchema, query);
+    const originalResult = await graphql({ schema, source: query });
+    const stitchedResult = await graphql({ schema: stitchedSchema, source: query });
     expect(stitchedResult).toEqual(originalResult);
     assertSome(originalResult.errors)
     assertSome(stitchedResult.errors)
@@ -110,8 +110,8 @@ describe('passes along errors when list field errors', () => {
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
-    const originalResult = await graphql(schema, query);
-    const stitchedResult = await graphql(stitchedSchema, query);
+    const originalResult = await graphql({ schema, source: query });
+    const stitchedResult = await graphql({ schema: stitchedSchema, source: query });
     expect(stitchedResult).toEqual(originalResult);
     assertSome(stitchedResult.errors)
     assertSome(originalResult.errors)
@@ -147,8 +147,8 @@ describe('passes along errors when list field errors', () => {
     });
 
     const query = '{ getOuter { innerList { mandatoryField } } }';
-    const originalResult = await graphql(schema, query);
-    const stitchedResult = await graphql(stitchedSchema, query);
+    const originalResult = await graphql({ schema, source: query });
+    const stitchedResult = await graphql({ schema: stitchedSchema, source: query });
     expect(stitchedResult).toEqual(originalResult);
     assertSome(stitchedResult.errors)
     assertSome(originalResult.errors)
@@ -158,7 +158,7 @@ describe('passes along errors when list field errors', () => {
   describe('passes along correct error when there are two non-null fields', () => {
     test('should work', async () => {
       const schema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           type Query {
             getBoth: Both
           }
@@ -179,8 +179,8 @@ describe('passes along errors when list field errors', () => {
       });
 
       const query = '{ getBoth { mandatoryField1 mandatoryField2 } }';
-      const originalResult = await graphql(schema, query);
-      const stitchedResult = await graphql(stitchedSchema, query);
+      const originalResult = await graphql({ schema, source: query });
+      const stitchedResult = await graphql({ schema: stitchedSchema, source: query });
       expect(stitchedResult).toEqual(originalResult);
       assertSome(stitchedResult.errors)
       assertSome(originalResult.errors)
@@ -235,13 +235,13 @@ describe('passes along errors for remote schemas', () => {
       ],
     };
 
-    const query = `{
+    const query = /* GraphQL */`{
       test {
         field
       }
     }`
 
-    const result = await graphql(stitchedSchema, query);
+    const result = await graphql({ schema: stitchedSchema, source: query });
     expect(result).toEqual(expectedResult);
   });
 });
@@ -249,7 +249,7 @@ describe('passes along errors for remote schemas', () => {
 describe('executor errors are propagated', () => {
   test('when a microservice is down', async () => {
     const containerSchemaA = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
           type Container {
             id: ID!
             name: String
@@ -267,7 +267,7 @@ describe('executor errors are propagated', () => {
     });
 
     const containerSchemaB = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Container {
           id: ID!
         }
@@ -306,9 +306,9 @@ describe('executor errors are propagated', () => {
       ],
     });
 
-    const result = await graphql(
+    const result = await graphql({
       schema,
-      `
+      source: /* GraphQL */`
         query {
           rootContainer {
             id
@@ -316,9 +316,7 @@ describe('executor errors are propagated', () => {
           }
         }
       `,
-      undefined,
-      {}
-    );
+    });
     expect(result.data).toEqual({
       rootContainer: {
         id: 'ContainerID',

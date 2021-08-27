@@ -6,7 +6,7 @@ import { assertSome } from '@graphql-tools/utils';
 describe('extended interfaces', () => {
   test('expands extended interface types for subservices', async () => {
     const itemsSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         interface Slot {
           id: ID!
         }
@@ -31,28 +31,30 @@ describe('extended interfaces', () => {
       subschemas: [
         { schema: itemsSchema },
       ],
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         extend interface Slot {
           name: String!
         }
       `,
     });
 
-    const { data } = await graphql(stitchedSchema, `
+    const { data } = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */`
       query {
         slot {
           id
           name
         }
       }
-    `);
+    `});
     assertSome(data)
     expect(data['slot']).toEqual({ id: '23', name: 'The Item' });
   });
 
   test('merges types behind gateway interface extension', async () => {
     const itemsSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Item {
           id: ID!
           name: String!
@@ -71,7 +73,7 @@ describe('extended interfaces', () => {
     });
 
     const placementSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         interface Placement {
           id: ID!
         }
@@ -105,21 +107,23 @@ describe('extended interfaces', () => {
         },
         { schema: placementSchema },
       ],
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         extend interface Placement {
           name: String!
         }
       `,
     });
 
-    const result = await graphql(stitchedSchema, `
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */`
       query {
         placement: placementById(id: 23) {
           id
           name
         }
       }
-    `);
+    `});
     assertSome(result.data)
     expect(result.data['placement']).toEqual({ id: '23', name: 'Item 23' });
   });

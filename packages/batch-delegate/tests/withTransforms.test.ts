@@ -1,4 +1,4 @@
-import { graphql, GraphQLList, Kind } from 'graphql';
+import { execute, GraphQLList, GraphQLObjectType, Kind, parse } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
@@ -8,7 +8,7 @@ import { TransformQuery } from '@graphql-tools/wrap'
 describe('works with complex transforms', () => {
   test('using TransformQuery instead of valuesFromResults', async () => {
     const bookSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Book {
           id: ID!
           title: String!
@@ -38,7 +38,7 @@ describe('works with complex transforms', () => {
     });
 
     const userSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: String!
           email: String!
@@ -100,14 +100,14 @@ describe('works with complex transforms', () => {
               context,
               info,
               transforms: [queryTransform],
-              returnType: new GraphQLList(new GraphQLList(info.schema.getType('Book')!))
+              returnType: new GraphQLList(new GraphQLList(info.schema.getType('Book') as GraphQLObjectType))
             }),
           },
         },
       },
     });
 
-    const query = `
+    const query = /* GraphQL */`
       query {
         usersByIds(ids: ["u1", "u2"]) {
           id
@@ -119,7 +119,7 @@ describe('works with complex transforms', () => {
       }
     `;
 
-    const result = await graphql(stitchedSchema, query);
+    const result = await execute({ schema: stitchedSchema, document: parse(query) });
 
     expect(result.errors).toBeUndefined();
     expect(result.data).toEqual({

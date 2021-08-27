@@ -219,7 +219,7 @@ describe('visiting nested results', () => {
   `);
 
   const request = {
-    document: parse(`{
+    document: parse(/* GraphQL */`{
       userGroups {
         name
         subGroupedUsers {
@@ -287,7 +287,7 @@ describe('visiting nested results', () => {
   `);
 
   const request = {
-    document: parse(`{
+    document: parse(/* GraphQL */`{
       userGroups {
         name
         subGroupedUsers {

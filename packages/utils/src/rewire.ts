@@ -168,7 +168,7 @@ export function rewireTypes(
     return rewiredFields;
   }
 
-  function rewireNamedTypes<T extends GraphQLNamedType>(namedTypes: Array<T>): Array<T> {
+  function rewireNamedTypes<T extends GraphQLNamedType>(namedTypes: Iterable<T>): Array<T> {
     const rewiredTypes: Array<T> = [];
     for (const namedType of namedTypes) {
       const rewiredType = rewireType(namedType);

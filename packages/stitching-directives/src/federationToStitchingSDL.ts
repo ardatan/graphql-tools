@@ -126,7 +126,7 @@ export function federationToStitchingSDL(federationSDL: string, stitchingConfig 
   // we must fill in the missing details from the specification.
   if (entityTypes.length) {
     const queryDef = getQueryTypeDef(doc.definitions);
-    const entitiesSchema = parse(`
+    const entitiesSchema = parse(/* GraphQL */ `
       scalar _Any
       union _Entity = ${entityTypes.filter((v, i, a) => a.indexOf(v) === i).join(' | ')}
       type Query { _entities(representations: [_Any!]!): [_Entity]! @${stitchingConfig.mergeDirective.name} }

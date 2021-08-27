@@ -151,9 +151,10 @@ describe('schema from typedefs', () => {
         includeSources: true,
       });
       assertNonMaybe(schemaWithSources.extensions)
-      expect(schemaWithSources.extensions['sources']).toBeDefined();
-      expect(schemaWithSources.extensions['sources']).toHaveLength(1);
-      expect(schemaWithSources.extensions['sources'][0]).toMatchObject(expect.objectContaining({
+      const sourcesFromExtensions = schemaWithSources.extensions['sources'] as any;
+      expect(sourcesFromExtensions).toBeDefined();
+      expect(sourcesFromExtensions).toHaveLength(1);
+      expect(sourcesFromExtensions[0]).toMatchObject(expect.objectContaining({
         name: path.resolve(process.cwd(), glob).replace(/\\/g, '/')
       }))
 

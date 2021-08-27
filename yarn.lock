@@ -6538,10 +6538,10 @@ graphql-upload@12.0.0:
     isobject "^4.0.0"
     object-path "^0.11.5"
 
-graphql-ws@^5.0.0:
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.3.0.tgz#345f73686b639735f1f4ef0b9ea28e17c7f6a745"
-  integrity sha512-53MbSTOmgx5i6hf3DHVD5PrXix1drDmt2ja8MW7NG+aTpKGzkXVLyNcyNpxme4SK8jVtIV6ZIHkiwirqN0efpw==
+graphql-ws@^5.4.1:
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.4.1.tgz#76fb4c39dfa44a961546995b6bb5320726ff5f71"
+  integrity sha512-maBduPneZOFYb3otLgc9/U+fU3f9MVXLKg6lVVLqA9BDQQ6YR7YhQO21Rf9+44IRBi4l8m35lynFMFQTzN3eAQ==
 
 graphql@15.5.1, graphql@^14.5.3, graphql@^15.3.0:
   version "15.5.1"

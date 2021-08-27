@@ -1,7 +1,7 @@
 const { parse } = require('graphql')
 
 module.exports = {
-  typeDefs: parse(`
+  typeDefs: parse(/* GraphQL */`
     type Query {
       hello: String
     }

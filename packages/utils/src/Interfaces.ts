@@ -51,10 +51,10 @@ import {
 // graphql-js < v15 backwards compatible ExecutionResult
 // See: https://github.com/graphql/graphql-js/pull/2490
 
-export interface ExecutionResult<TData = Record<string, any>> extends GraphQLExecutionResult {
+export type ExecutionResult<TData = Record<string, any>> = GraphQLExecutionResult & {
   data?: TData | null;
   extensions?: Record<string, any>;
-}
+};
 
 export interface ExecutionRequest<
   TArgs extends Record<string, any> = Record<string, any>,

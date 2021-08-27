@@ -1,6 +1,6 @@
 import { wrapSchema, TransformEnumValues } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { graphql, GraphQLEnumType } from 'graphql';
+import { execute, GraphQLEnumType, parse } from 'graphql';
 
 function assertGraphQLEnumType(input: unknown): asserts input is GraphQLEnumType {
   if (input instanceof GraphQLEnumType) {
@@ -12,7 +12,7 @@ function assertGraphQLEnumType(input: unknown): asserts input is GraphQLEnumType
 describe('TransformEnumValues', () => {
   test('works', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         enum TestEnum {
           ONE
         }
@@ -37,17 +37,20 @@ describe('TransformEnumValues', () => {
       ],
     });
 
-    const query = `{
+    const query = /* GraphQL */`{
       test(argument: UNO)
     }`;
 
-    const result = await graphql(transformedSchema, query);
+    const result = await execute({
+      schema: transformedSchema,
+      document: parse(query),
+    });
     expect(result.errors).toBeUndefined();
   });
 
   test('allows modification of external and internal values', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         enum TestEnum {
           ONE
         }
@@ -75,11 +78,14 @@ describe('TransformEnumValues', () => {
       ],
     });
 
-    const query = `{
+    const query = /* GraphQL */`{
       test(argument: UNO)
     }`;
 
-    const result = await graphql(transformedSchema, query);
+    const result = await execute({
+      schema: transformedSchema,
+      document: parse(query),
+    });
     expect(result.errors).toBeUndefined();
     const TestEnum = transformedSchema.getType('TestEnum')
     assertGraphQLEnumType(TestEnum)
@@ -88,7 +94,7 @@ describe('TransformEnumValues', () => {
 
   test('works with variables', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         enum TestEnum {
           ONE
         }
@@ -113,11 +119,17 @@ describe('TransformEnumValues', () => {
       ],
     });
 
-    const query = `query Test($test: TestEnum) {
+    const query = /* GraphQL */`query Test($test: TestEnum) {
       test(argument: $test)
     }`;
 
-    const result = await graphql(transformedSchema, query, undefined, undefined, { test: 'UNO' });
+    const result = await execute({
+      schema: transformedSchema,
+      document: parse(query),
+      variableValues: {
+        test: 'UNO',
+      }
+    })
     expect(result.errors).toBeUndefined();
   });
 });

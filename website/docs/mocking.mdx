@@ -28,7 +28,7 @@ const schema = makeExecutableSchema({ typeDefs: schemaString });
 // Create a new schema with mocks
 const schemaWithMocks = addMocksToSchema({ schema });
 
-const query = `
+const query = /* GraphQL */`
 query tasksForUser {
   user(id: 6) { id, name }
 }
@@ -370,7 +370,7 @@ preserveResolvers = false
 
 const server = mockServer(schemaString, mocks, preserveResolvers);
 
-const query = `{ __typename }`
+const query = /* GraphQL */`{ __typename }`
 const variables = {}
 
 server.query(query, variables)
