@@ -83,7 +83,7 @@ async function executeDelegationStage(
         } catch (error: any) {
           source = error;
         }
-        if (source instanceof Error || source === null) {
+        if (source instanceof Error || source == null) {
           const fieldNodeResponseKeyMap = collectFields(info.schema, {}, {}, type, selectionSet, new Map(), new Set());
           const nullResult = {};
           for (const [responseKey, fieldNodes] of fieldNodeResponseKeyMap) {

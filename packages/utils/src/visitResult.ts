@@ -15,9 +15,10 @@ import {
   TypeNameMetaFieldDef,
   FragmentDefinitionNode,
 } from 'graphql';
+import { collectFields, collectSubFields } from './collectFields';
 
 import { ExecutionRequest, ExecutionResult } from './Interfaces';
-import { collectFields, collectSubFields, Maybe } from '@graphql-tools/utils';
+import { Maybe } from './types';
 
 export type ValueVisitor = (value: any) => any;
 

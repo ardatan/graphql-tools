@@ -140,12 +140,12 @@ export function collectSubFields(
   type: GraphQLObjectType,
   fieldNodes: Array<FieldNode>
 ): Map<string, Array<FieldNode>> {
-  let subFieldNodes = new Map<string, Array<FieldNode>>();
+  const subFieldNodes = new Map<string, Array<FieldNode>>();
   const visitedFragmentNames = new Set<string>();
 
   for (const fieldNode of fieldNodes) {
     if (fieldNode.selectionSet) {
-      subFieldNodes = collectFields(
+      collectFields(
         schema,
         fragments,
         variableValues,
