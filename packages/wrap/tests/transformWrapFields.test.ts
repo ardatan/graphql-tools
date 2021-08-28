@@ -42,7 +42,7 @@ describe('WrapFields', () => {
     const userType = schema.getType('User') as GraphQLObjectType;
     const addressType = schema.getType('Address') as GraphQLObjectType;
 
-    expect(userType.getFields().address).toBeDefined();
+    expect(userType.getFields()['address']).toBeDefined();
     expect(Object.keys(addressType.getFields()).sort()).toEqual([
       'city',
       'street',
