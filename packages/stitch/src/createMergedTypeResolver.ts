@@ -8,8 +8,8 @@ export function createMergedTypeResolver<TContext = any>(
   const { fieldName, argsFromKeys, valuesFromResults, args } = mergedTypeResolverOptions;
 
   if (argsFromKeys != null) {
-    return (originalResult, context, info, subschema, selectionSet, key) =>
-      batchDelegateToSchema({
+    return function mergedBatchedTypeResolver(originalResult, context, info, subschema, selectionSet, key) {
+      return batchDelegateToSchema({
         schema: subschema,
         operation: 'query',
         fieldName,
@@ -24,10 +24,11 @@ export function createMergedTypeResolver<TContext = any>(
         info,
         skipTypeMerging: true,
       });
+    };
   }
 
   if (args != null) {
-    return (originalResult, context, info, subschema, selectionSet) =>
+    return function mergedTypeResolver(originalResult, context, info, subschema, selectionSet) {
       delegateToSchema({
         schema: subschema,
         operation: 'query',
@@ -41,6 +42,7 @@ export function createMergedTypeResolver<TContext = any>(
         info,
         skipTypeMerging: true,
       });
+    };
   }
 
   return undefined;
