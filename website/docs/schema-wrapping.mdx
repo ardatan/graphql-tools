@@ -234,6 +234,7 @@ const schema = wrapSchema({
 
 It may be sometimes useful to add additional transforms to manually change an operation request or result when using `delegateToSchema`. Common use cases may be move selections around or to wrap them. The following built-in transforms may be useful in those cases.
 
+- `WrapFields('ParentType', ['scope'], ['ScopeType'], ['field1', 'field2', ...])` wraps a collection of fields on a parent type in one or more wrapping scopes with given namespaces and object types.
 - `ExtractField({ from: Array<string>, to: Array<string> })` move selection at `from` path to `to` path.
 - `WrapQuery(path: Array<string>, wrapper: QueryWrapper, extractor: (result: any) => any)` wrap a selection at `path` using function `wrapper`. Apply `extractor` at the same path to get the result. This is used to get a result nested inside other result.
 
