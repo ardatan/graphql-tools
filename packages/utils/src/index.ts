@@ -46,3 +46,4 @@ export * from './withCancel';
 export * from './AggregateError';
 export * from './rootTypes';
 export * from './comments';
+export * from './collectFields';

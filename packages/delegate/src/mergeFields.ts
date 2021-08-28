@@ -8,9 +8,7 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
-
-import { relocatedError } from '@graphql-tools/utils';
+import { collectFields, relocatedError } from '@graphql-tools/utils';
 
 import { ExternalObject, MergedTypeInfo, StitchingInfo, SubschemaConfig } from './types';
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
@@ -85,24 +83,14 @@ async function executeDelegationStage(
           source = error;
         }
         if (source instanceof Error || source === null) {
-          const fieldNodes = collectFields(
-            {
-              schema: info.schema,
-              variableValues: {},
-              fragments: {},
-            } as ExecutionContext,
-            type,
-            selectionSet,
-            Object.create(null),
-            Object.create(null)
-          );
+          const fieldNodes = collectFields(info.schema, {}, {}, type, selectionSet, new Map(), new Set());
           const nullResult = {};
-          for (const responseKey in fieldNodes) {
+          for (const [responseKey, fieldNode] of fieldNodes) {
             const combinedPath = [...path, responseKey];
             if (source instanceof GraphQLError) {
               nullResult[responseKey] = relocatedError(source, combinedPath);
             } else if (source instanceof Error) {
-              nullResult[responseKey] = locatedError(source, fieldNodes[responseKey], combinedPath);
+              nullResult[responseKey] = locatedError(source, fieldNode, combinedPath);
             } else {
               nullResult[responseKey] = null;
             }

@@ -67,7 +67,7 @@ function resolveExternalObject(
     return object;
   }
 
-  const stitchingInfo: Maybe<StitchingInfo> = info.schema.extensions?.['stitchingInfo'];
+  const stitchingInfo = info.schema.extensions?.['stitchingInfo'] as Maybe<StitchingInfo>;
 
   if (stitchingInfo == null) {
     return object;

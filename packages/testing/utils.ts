@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { GraphQLSchema } from 'graphql';
+import { execute, GraphQLSchema, subscribe } from 'graphql';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
 import nock from 'nock';
@@ -136,6 +136,26 @@ export function mockGraphQLServer({
       variables,
       request,
       schema,
+      execute: (schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver) =>
+        execute({
+          schema,
+          document,
+          rootValue,
+          contextValue,
+          variableValues,
+          operationName,
+          fieldResolver,
+        }),
+      subscribe: (schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver) =>
+        subscribe({
+          schema,
+          document,
+          rootValue,
+          contextValue,
+          variableValues,
+          operationName,
+          fieldResolver,
+        }),
     });
     // processRequest returns one of three types of results depending on how the server should respond
     // 1) RESPONSE: a regular JSON payload

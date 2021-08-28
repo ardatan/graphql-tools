@@ -15,14 +15,13 @@ import {
   GraphQLNamedType,
 } from 'graphql';
 
-import { parseSelectionSet, IResolvers, IFieldResolverOptions, isSome } from '@graphql-tools/utils';
+import { collectFields, parseSelectionSet, IResolvers, IFieldResolverOptions, isSome } from '@graphql-tools/utils';
 
 import { MergedTypeResolver, Subschema, SubschemaConfig, MergedTypeInfo, StitchingInfo } from '@graphql-tools/delegate';
 
 import { MergeTypeCandidate, MergeTypeFilter } from './types';
 
 import { createMergedTypeResolver } from './createMergedTypeResolver';
-import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
 import { createDelegationPlanBuilder } from './createDelegationPlanBuilder';
 
 export function createStitchingInfo<TContext = Record<string, any>>(
@@ -256,11 +255,8 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
     }
   }
 
-  const partialExecutionContext = {
-    schema,
-    variableValues: Object.create(null),
-    fragments: Object.create(null),
-  } as ExecutionContext;
+  const variableValues = Object.create(null);
+  const fragments = Object.create(null);
 
   const fieldNodeMap = Object.create(null);
 
@@ -268,16 +264,10 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
     const type = schema.getType(typeName) as GraphQLObjectType;
     for (const fieldName in selectionSetsByField[typeName]) {
       for (const selectionSet of selectionSetsByField[typeName][fieldName]) {
-        const fieldNodes = collectFields(
-          partialExecutionContext,
-          type,
-          selectionSet,
-          Object.create(null),
-          Object.create(null)
-        );
+        const fieldNodes = collectFields(schema, fragments, variableValues, type, selectionSet, new Map(), new Set());
 
-        for (const responseKey in fieldNodes) {
-          for (const fieldNode of fieldNodes[responseKey]) {
+        for (const [, fieldNodesByResponseKey] of fieldNodes) {
+          for (const fieldNode of fieldNodesByResponseKey) {
             const key = print(fieldNode);
             if (fieldNodeMap[key] == null) {
               fieldNodeMap[key] = fieldNode;

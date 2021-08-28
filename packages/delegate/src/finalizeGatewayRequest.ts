@@ -17,6 +17,7 @@ import {
   TypeInfo,
   TypeNameMetaFieldDef,
   VariableDefinitionNode,
+  versionInfo as graphqlVersionInfo,
   visit,
   VisitorKeyMap,
   visitWithTypeInfo,
@@ -33,6 +34,7 @@ import {
 
 import { DelegationContext } from './types';
 import { getDocumentMetadata } from './getDocumentMetadata';
+import { inspect } from 'graphql/jsutils/inspect.js';
 
 function finalizeGatewayDocument(
   targetSchema: GraphQLSchema,
@@ -313,7 +315,8 @@ function finalizeSelectionSet(
   const usedFragments: Array<string> = [];
   const usedVariables: Array<string> = [];
 
-  const typeInfo = new TypeInfo(schema, undefined, type);
+  const typeInfo =
+    graphqlVersionInfo.major < 16 ? new TypeInfo(schema, undefined, type as any) : new TypeInfo(schema, type as any);
   const filteredSelectionSet = visit(
     selectionSet,
     visitWithTypeInfo(typeInfo, {
@@ -351,7 +354,7 @@ function finalizeSelectionSet(
         leave: node => {
           const type = typeInfo.getType();
           if (type == null) {
-            throw new Error(`No type was found for field node ${node}.`);
+            throw new Error(`No type was found for field node ${inspect(node)}.`);
           }
           const namedType = getNamedType(type);
           if (!schema.getType(namedType.name) == null) {
