@@ -143,7 +143,7 @@ export function createDelegationPlanBuilder(typeName: string): DelegationPlanBui
   return (
     schema: GraphQLSchema,
     sourceSubschema: Subschema<any, any, any, any>,
-    fieldNodes: ReadonlyArray<FieldNode>,
+    fieldNodes: FieldNode[],
     fragments: Record<string, FragmentDefinitionNode> = Object.create(null),
     variableValues: Record<string, any> = Object.create(null),
     stitchingInfo = getStitchingInfo(schema),

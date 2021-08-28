@@ -251,9 +251,9 @@ describe('Mock retro-compatibility', () => {
     let spy = 0;
     const resolvers = {
       BirdsAndBees: {
-        __resolveType(data: any, _context: any, info: GraphQLResolveInfo) {
+        __resolveType(data: any, _context: any) {
           ++spy;
-          return info.schema.getType(data.__typename);
+          return data.__typename;
         },
       },
     };

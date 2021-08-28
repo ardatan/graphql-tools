@@ -264,10 +264,18 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
     const type = schema.getType(typeName) as GraphQLObjectType;
     for (const fieldName in selectionSetsByField[typeName]) {
       for (const selectionSet of selectionSetsByField[typeName][fieldName]) {
-        const fieldNodes = collectFields(schema, fragments, variableValues, type, selectionSet, new Map(), new Set());
+        const fieldNodesByResponseKey = collectFields(
+          schema,
+          fragments,
+          variableValues,
+          type,
+          selectionSet,
+          new Map(),
+          new Set()
+        );
 
-        for (const [, fieldNodesByResponseKey] of fieldNodes) {
-          for (const fieldNode of fieldNodesByResponseKey) {
+        for (const [, fieldNodes] of fieldNodesByResponseKey) {
+          for (const fieldNode of fieldNodes) {
             const key = print(fieldNode);
             if (fieldNodeMap[key] == null) {
               fieldNodeMap[key] = fieldNode;

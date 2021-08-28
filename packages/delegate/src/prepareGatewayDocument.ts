@@ -59,21 +59,19 @@ export function prepareGatewayDocument(
   return visit(
     expandedDocument,
     visitWithTypeInfo(typeInfo, {
-      [Kind.SELECTION_SET]: {
-        leave: node =>
-          visitSelectionSet(
-            node,
-            fragmentReplacements,
-            transformedSchema,
-            typeInfo,
-            possibleTypesMap,
-            reversePossibleTypesMap,
-            interfaceExtensionsMap,
-            fieldNodesByType,
-            fieldNodesByField,
-            dynamicSelectionSetsByField
-          ),
-      },
+      [Kind.SELECTION_SET]: node =>
+        visitSelectionSet(
+          node,
+          fragmentReplacements,
+          transformedSchema,
+          typeInfo,
+          possibleTypesMap,
+          reversePossibleTypesMap,
+          interfaceExtensionsMap,
+          fieldNodesByType,
+          fieldNodesByField,
+          dynamicSelectionSetsByField
+        ),
     }),
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
     // empty keys cannot be removed only because of typescript errors

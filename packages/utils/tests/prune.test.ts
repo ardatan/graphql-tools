@@ -4,7 +4,7 @@ import { PruneSchemaFilter } from '../src';
 
 describe('pruneSchema', () => {
   test('can handle recursive input types', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       input Input {
         moreInput: Input
       }
@@ -17,7 +17,7 @@ describe('pruneSchema', () => {
   });
 
   test('removes unused enums', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       enum Unused {
         VALUE
       }
@@ -31,7 +31,7 @@ describe('pruneSchema', () => {
   });
 
   test('removes unused objects', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       type Unused {
         value: String
       }
@@ -45,7 +45,7 @@ describe('pruneSchema', () => {
   });
 
   test('does not remove unused objects when skipUnusedTypesPruning is true', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       type Unused {
         value: String
       }
@@ -61,7 +61,7 @@ describe('pruneSchema', () => {
   });
 
   test('removes unused input objects', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       input Unused {
         value: String
       }
@@ -75,7 +75,7 @@ describe('pruneSchema', () => {
   });
 
   test('does not remove unused input objects when skipUnusedTypesPruning is true', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       input Unused {
         value: String
       }
@@ -91,7 +91,7 @@ describe('pruneSchema', () => {
   });
 
   test('removes unused unions', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       union Unused
 
       type Query {
@@ -103,7 +103,7 @@ describe('pruneSchema', () => {
   });
 
   test('does not remove unused unions when skipEmptyUnionPruning is true', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       union Unused
 
       type Query {
@@ -118,7 +118,7 @@ describe('pruneSchema', () => {
   });
 
   test('removes unused interfaces', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       interface Unused {
         value: String
       }
@@ -132,7 +132,7 @@ describe('pruneSchema', () => {
   });
 
   test('does not remove unused interfaces when skipUnimplementedInterfacesPruning is true', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       interface Unused {
         value: String
       }
@@ -149,11 +149,11 @@ describe('pruneSchema', () => {
   });
 
   test('removes top level objects with no fields', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       type Query {
         foo: Boolean
       }
-      
+
       type Mutation
       `);
     const result = pruneSchema(schema);
@@ -161,11 +161,11 @@ describe('pruneSchema', () => {
   });
 
   test('does not removes objects with no fields when skipEmptyCompositeTypePruning is true', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       type Query {
         foo: Boolean
       }
-      
+
       type Foo
     `);
     const result = pruneSchema(schema, {
@@ -176,11 +176,11 @@ describe('pruneSchema', () => {
   });
 
   test('removes unused interfaces when implementations are unused', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       interface UnusedInterface {
         value: String
       }
-      
+
       type UnusedType implements UnusedInterface {
         value: String
       }
@@ -195,9 +195,9 @@ describe('pruneSchema', () => {
   });
 
   test('removes unused unions when implementations are unused', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       union UnusedUnion = UnusedType
-      
+
       type UnusedType {
         value: String
       }
@@ -212,7 +212,7 @@ describe('pruneSchema', () => {
   });
 
   test('does not throw on pruning unimplemented interfaces', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       interface UnimplementedInterface {
         value: String
       }
@@ -226,9 +226,9 @@ describe('pruneSchema', () => {
   });
 
   test('does not prune types that match the filter', () => {
-    const schema = buildSchema(`
+    const schema = buildSchema(/* GraphQL */`
       directive @bar on OBJECT
-    
+
       type CustomType @bar {
         value: String
       }

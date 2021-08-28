@@ -6,6 +6,7 @@ import {
   GraphQLError,
   locatedError,
   GraphQLSchema,
+  FieldNode,
 } from 'graphql';
 
 import { collectFields, relocatedError } from '@graphql-tools/utils';
@@ -83,14 +84,14 @@ async function executeDelegationStage(
           source = error;
         }
         if (source instanceof Error || source === null) {
-          const fieldNodes = collectFields(info.schema, {}, {}, type, selectionSet, new Map(), new Set());
+          const fieldNodeResponseKeyMap = collectFields(info.schema, {}, {}, type, selectionSet, new Map(), new Set());
           const nullResult = {};
-          for (const [responseKey, fieldNode] of fieldNodes) {
+          for (const [responseKey, fieldNodes] of fieldNodeResponseKeyMap) {
             const combinedPath = [...path, responseKey];
             if (source instanceof GraphQLError) {
               nullResult[responseKey] = relocatedError(source, combinedPath);
             } else if (source instanceof Error) {
-              nullResult[responseKey] = locatedError(source, fieldNode, combinedPath);
+              nullResult[responseKey] = locatedError(source, fieldNodes, combinedPath);
             } else {
               nullResult[responseKey] = null;
             }
@@ -134,7 +135,7 @@ const buildDelegationPlanFromInfo = memoize4(function buildDelegationPlanFromInf
   return mergedTypeInfo.delegationPlanBuilder(
     schema,
     sourceSubschema,
-    fieldNodes,
+    fieldNodes as FieldNode[],
     fragments,
     variableValues,
     schema.extensions?.['stitchingInfo'] as StitchingInfo,

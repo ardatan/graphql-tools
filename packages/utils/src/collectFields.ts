@@ -132,3 +132,30 @@ function doesFragmentConditionMatch(
 function getFieldEntryKey(node: FieldNode): string {
   return node.alias ? node.alias.value : node.name.value;
 }
+
+export function collectSubFields(
+  schema: GraphQLSchema,
+  fragments: Record<string, FragmentDefinitionNode>,
+  variableValues: Record<string, any>,
+  type: GraphQLObjectType,
+  fieldNodes: Array<FieldNode>
+): Map<string, Array<FieldNode>> {
+  let subFieldNodes = new Map<string, Array<FieldNode>>();
+  const visitedFragmentNames = new Set<string>();
+
+  for (const fieldNode of fieldNodes) {
+    if (fieldNode.selectionSet) {
+      subFieldNodes = collectFields(
+        schema,
+        fragments,
+        variableValues,
+        type,
+        fieldNode.selectionSet,
+        subFieldNodes,
+        visitedFragmentNames
+      );
+    }
+  }
+
+  return subFieldNodes;
+}

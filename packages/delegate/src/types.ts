@@ -114,7 +114,7 @@ export interface ICreateRequest {
 export type DelegationPlanBuilder = (
   schema: GraphQLSchema,
   sourceSubschema: Subschema<any, any, any, any>,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: FieldNode[],
   fragments?: Record<string, FragmentDefinitionNode>,
   variableValues?: Record<string, any>,
   stitchingInfo?: StitchingInfo,

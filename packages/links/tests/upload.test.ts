@@ -94,7 +94,7 @@ describe('graphql upload', () => {
     remoteServer = await startServer(remoteApp);
     remotePort = (remoteServer.address() as AddressInfo).port;
 
-    const nonExecutableSchema = buildSchema(`
+    const nonExecutableSchema = buildSchema(/* GraphQL */`
       scalar Upload
       type Query {
         version: String

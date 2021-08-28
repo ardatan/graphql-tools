@@ -137,7 +137,7 @@ const productType = /* GraphQL */ `
 describe('Merge TypeDefs', () => {
   describe('AST Schema Fixing', () => {
     it('Should handle correctly schema without valid root AST node', () => {
-      const schema = buildSchema(`
+      const schema = buildSchema(/* GraphQL */`
         type A {
           a: String
         }

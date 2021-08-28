@@ -17,7 +17,7 @@ import {
 } from 'graphql';
 
 import { ExecutionRequest, ExecutionResult } from './Interfaces';
-import { collectFields, Maybe } from '@graphql-tools/utils';
+import { collectFields, collectSubFields, Maybe } from '@graphql-tools/utils';
 
 export type ValueVisitor = (value: any) => any;
 
@@ -173,7 +173,7 @@ function visitRoot(
     operation.selectionSet,
     new Map(),
     new Set()
-  ) as Map<string, FieldNode[]>;
+  );
 
   return visitObjectValue(
     root,
@@ -217,8 +217,7 @@ function visitObjectValue(
     }
   }
 
-  for (const responseKey in fieldNodeMap) {
-    const subFieldNodes = fieldNodeMap[responseKey];
+  for (const [responseKey, subFieldNodes] of fieldNodeMap) {
     const fieldName = subFieldNodes[0].name.value;
     const fieldType = fieldName === '__typename' ? TypeNameMetaFieldDef.type : fieldMap[fieldName].type;
 
@@ -255,7 +254,8 @@ function visitObjectValue(
   }
 
   if (errorMap) {
-    for (const errors of Object.values(errorMap)) {
+    for (const errorsKey in errorMap) {
+      const errors = errorMap[errorsKey];
       for (const error of errors) {
         errorInfo.unpathedErrors.add(error);
       }
@@ -435,31 +435,4 @@ function addPathSegmentInfo(
       pathSegmentsInfo.push(segmentInfo);
     }
   }
-}
-
-function collectSubFields(
-  schema: GraphQLSchema,
-  fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: Record<string, any>,
-  type: GraphQLObjectType,
-  fieldNodes: Array<FieldNode>
-): Map<string, Array<FieldNode>> {
-  let subFieldNodes = new Map<string, Array<FieldNode>>();
-  const visitedFragmentNames = new Set<string>();
-
-  for (const fieldNode of fieldNodes) {
-    if (fieldNode.selectionSet) {
-      subFieldNodes = collectFields(
-        schema,
-        fragments,
-        variableValues,
-        type,
-        fieldNode.selectionSet,
-        subFieldNodes,
-        visitedFragmentNames
-      ) as Map<string, Array<FieldNode>>;
-    }
-  }
-
-  return subFieldNodes;
 }
