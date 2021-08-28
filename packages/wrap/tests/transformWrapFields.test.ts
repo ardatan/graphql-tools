@@ -1,4 +1,4 @@
-import { graphql } from 'graphql';
+import { graphql, GraphQLObjectType } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { wrapSchema, WrapFields } from '@graphql-tools/wrap';
 
@@ -39,8 +39,8 @@ describe('WrapFields', () => {
   });
 
   test('schema is transformed with new type and field', async () => {
-    const userType = schema.getType('User');
-    const addressType = schema.getType('Address');
+    const userType = schema.getType('User') as GraphQLObjectType;
+    const addressType = schema.getType('Address') as GraphQLObjectType;
 
     expect(userType.getFields().address).toBeDefined();
     expect(Object.keys(addressType.getFields()).sort()).toEqual([
