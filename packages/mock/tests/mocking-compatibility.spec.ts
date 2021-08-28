@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
 import {
   graphql,
-  GraphQLResolveInfo,
   GraphQLSchema,
   buildSchema, subscribe, parse
 } from 'graphql';
