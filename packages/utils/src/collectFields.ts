@@ -120,7 +120,8 @@ function doesFragmentConditionMatch(
     return true;
   }
   if (isAbstractType(conditionalType)) {
-    return schema.isSubType(conditionalType, type);
+    const possibleTypes = schema.getPossibleTypes(conditionalType);
+    return possibleTypes.includes(type);
   }
   return false;
 }
