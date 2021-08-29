@@ -31,7 +31,7 @@ import {
   remoteProductSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
-} from './fixtures/schemas';
+} from '../../testing/fixtures/schemas';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });

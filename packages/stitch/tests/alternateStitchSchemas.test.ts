@@ -45,7 +45,7 @@ import {
   subscriptionSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
-} from './fixtures/schemas';
+} from '../../testing/fixtures/schemas';
 
 const linkSchema = /* GraphQL */`
   """

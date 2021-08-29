@@ -16,7 +16,7 @@ import {
   subscriptionPubSubTrigger,
   subscriptionPubSub,
   makeSchemaRemote,
-} from './fixtures/schemas';
+} from '../../testing/fixtures/schemas';
 
 describe('remote queries', () => {
   let schema: GraphQLSchema;

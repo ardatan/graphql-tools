@@ -10,25 +10,14 @@ import {
 } from 'graphql';
 
 import { introspectSchema } from '@graphql-tools/wrap';
-import {
-  AsyncExecutor,
-  IResolvers,
-} from '@graphql-tools/utils';
+import { AsyncExecutor, IResolvers } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
 import { SubschemaConfig, createDefaultExecutor } from '@graphql-tools/delegate';
 
 export class CustomError extends GraphQLError {
   constructor(message: string, extensions: Record<string, any>) {
-    super(
-      message,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      extensions,
-    );
+    super(message, undefined, undefined, undefined, undefined, undefined, extensions);
   }
 }
 
@@ -183,9 +172,7 @@ export const sampleData: {
 
 function coerceString(value: any): string {
   if (Array.isArray(value)) {
-    throw new TypeError(
-      `String cannot represent an array value: [${String(value)}]`,
-    );
+    throw new TypeError(`String cannot represent an array value: [${String(value)}]`);
   }
   return String(value);
 }
@@ -238,7 +225,7 @@ const GraphQLJSON = new GraphQLScalarType({
   parseLiteral,
 });
 
-const addressTypeDef = `
+const addressTypeDef = /* GraphQL */ `
   type Address {
     street: String
     city: String
@@ -247,7 +234,7 @@ const addressTypeDef = `
   }
 `;
 
-const propertyAddressTypeDef = `
+const propertyAddressTypeDef = /* GraphQL */ `
   type Property {
     id: ID!
     name: String!
@@ -257,7 +244,7 @@ const propertyAddressTypeDef = `
   }
 `;
 
-const propertyRootTypeDefs = /* GraphQL */`
+const propertyRootTypeDefs = /* GraphQL */ `
   type Location {
     name: String!
   }
@@ -278,9 +265,8 @@ const propertyRootTypeDefs = /* GraphQL */`
     foo: String
   }
 
-  ${
-    'getInterfaces' in GraphQLInterfaceType.prototype
-      ? `interface TestNestedInterface implements TestInterface {
+  ${'getInterfaces' in GraphQLInterfaceType.prototype
+    ? `interface TestNestedInterface implements TestInterface {
     kind: TestInterfaceKind
     testString: String
   }
@@ -290,12 +276,11 @@ const propertyRootTypeDefs = /* GraphQL */`
     testString: String
     bar: String
   }`
-      : `type TestImpl2 implements TestInterface {
+    : `type TestImpl2 implements TestInterface {
     kind: TestInterfaceKind
     testString: String
     bar: String
-  }`
-  }
+  }`}
 
   type UnionImpl {
     someField: String
@@ -322,7 +307,7 @@ const propertyRootTypeDefs = /* GraphQL */`
   }
 `;
 
-const propertyAddressTypeDefs = /* GraphQL */`
+const propertyAddressTypeDefs = /* GraphQL */ `
   scalar DateTime
   scalar JSON
 
@@ -429,7 +414,7 @@ const SimpleProduct = `type SimpleProduct implements Product & Sellable {
   }
 `;
 
-const productTypeDefs = /* GraphQL */`
+const productTypeDefs = /* GraphQL */ `
   interface Product {
     id: ID!
   }
@@ -465,7 +450,7 @@ const productResolvers: IResolvers = {
   },
 };
 
-const customerAddressTypeDef = `
+const customerAddressTypeDef = /* GraphQL */ `
   type Customer implements Person {
     id: ID!
     email: String!
@@ -477,7 +462,7 @@ const customerAddressTypeDef = `
   }
 `;
 
-const bookingRootTypeDefs = /* GraphQL */`
+const bookingRootTypeDefs = /* GraphQL */ `
   scalar DateTime
 
   type Booking {
@@ -502,7 +487,7 @@ const bookingRootTypeDefs = /* GraphQL */`
     bikeType: String
   }
 
-  type Car  {
+  type Car {
     id: ID!
     licensePlate: String
   }
@@ -527,7 +512,7 @@ const bookingRootTypeDefs = /* GraphQL */`
   }
 `;
 
-const bookingAddressTypeDefs = /* GraphQL */`
+const bookingAddressTypeDefs = /* GraphQL */ `
   ${addressTypeDef}
   ${customerAddressTypeDef}
   ${bookingRootTypeDefs}
@@ -539,9 +524,7 @@ const bookingResolvers: IResolvers = {
       return sampleData.Booking[id];
     },
     bookingsByPropertyId(_parent, { propertyId, limit }) {
-      const list = Object.values(sampleData.Booking).filter(
-        (booking: Booking) => booking.propertyId === propertyId,
-      );
+      const list = Object.values(sampleData.Booking).filter((booking: Booking) => booking.propertyId === propertyId);
       return limit ? list.slice(0, limit) : list;
     },
     customerById(_parent, { id }) {
@@ -558,10 +541,7 @@ const bookingResolvers: IResolvers = {
   },
 
   Mutation: {
-    addBooking(
-      _parent,
-      { input: { propertyId, customerId, startTime, endTime } },
-    ) {
+    addBooking(_parent, { input: { propertyId, customerId, startTime, endTime } }) {
       return {
         id: 'newId',
         propertyId,
@@ -589,9 +569,7 @@ const bookingResolvers: IResolvers = {
 
   Customer: {
     bookings(parent: Customer, { limit }) {
-      const list = Object.values(sampleData.Booking).filter(
-        (booking: Booking) => booking.customerId === parent.id,
-      );
+      const list = Object.values(sampleData.Booking).filter((booking: Booking) => booking.customerId === parent.id);
       return limit ? list.slice(0, limit) : list;
     },
     vehicle(parent: Customer) {
@@ -617,17 +595,17 @@ const bookingResolvers: IResolvers = {
   DateTime,
 };
 
-const subscriptionTypeDefs = /* GraphQL */`
-  type Notification{
+const subscriptionTypeDefs = /* GraphQL */ `
+  type Notification {
     text: String
     throwError: String
   }
 
-  type Query{
+  type Query {
     notifications: Notification
   }
 
-  type Subscription{
+  type Subscription {
     notifications: Notification
   }
 `;
@@ -641,8 +619,7 @@ const subscriptionResolvers: IResolvers = {
   },
   Subscription: {
     notifications: {
-      subscribe: () =>
-        subscriptionPubSub.asyncIterator(subscriptionPubSubTrigger),
+      subscribe: () => subscriptionPubSub.asyncIterator(subscriptionPubSubTrigger),
     },
   },
   Notification: {
@@ -672,9 +649,7 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
   resolvers: subscriptionResolvers,
 });
 
-export async function makeSchemaRemote(
-  schema: GraphQLSchema,
-): Promise<SubschemaConfig> {
+export async function makeSchemaRemote(schema: GraphQLSchema): Promise<SubschemaConfig> {
   const executor = createDefaultExecutor(schema);
   const clientSchema = await introspectSchema(executor as AsyncExecutor);
   return {
