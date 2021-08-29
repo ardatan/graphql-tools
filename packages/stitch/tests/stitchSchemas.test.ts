@@ -66,7 +66,7 @@ const testCombinations = [
   },
 ];
 
-const scalarTest = `
+const scalarTest = /* GraphQL */`
   """
   Description of TestScalar.
   """
@@ -117,7 +117,7 @@ const scalarSchema = makeExecutableSchema({
   },
 });
 
-const enumTest = `
+const enumTest = /* GraphQL */`
   """
   A type that uses an Enum.
   """
@@ -196,7 +196,7 @@ const enumSchema = makeExecutableSchema({
   },
 });
 
-const linkSchema = /* GraphQL */`
+const linkSchema = `
   """
   A new type linking the Property type.
   """
@@ -259,14 +259,14 @@ const loneExtend = parse(/* GraphQL */`
   }
 `);
 
-let interfaceExtensionTest = `
+let interfaceExtensionTest = /* GraphQL */`
   # No-op for older versions since this feature does not yet exist
   extend type DownloadableProduct {
     filesize: Int
   }
 `;
 
-interfaceExtensionTest = `
+interfaceExtensionTest = /* GraphQL */`
   extend interface Downloadable {
     filesize: Int
   }

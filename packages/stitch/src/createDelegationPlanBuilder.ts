@@ -12,7 +12,7 @@ import {
 import { DelegationPlanBuilder, MergedTypeInfo, StitchingInfo, Subschema } from '@graphql-tools/delegate';
 
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
-import { memoize1, memoize2, memoize3 } from './memoize';
+import { memoize1, memoize2, memoize3 } from '@graphql-tools/utils';
 
 function calculateDelegationStage(
   mergedTypeInfo: MergedTypeInfo,

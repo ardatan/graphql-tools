@@ -1504,7 +1504,7 @@ describe('schema transformation with wrapping of object fields', () => {
 });
 
 describe('interface resolver inheritance', () => {
-  const testSchemaWithInterfaceResolvers = `
+  const testSchemaWithInterfaceResolvers = /* GraphQL */`
     interface Node {
       id: ID!
     }

@@ -20,9 +20,8 @@ import {
   ASTKindToNode,
 } from 'graphql';
 
-import { implementsAbstractType, getRootTypeNames } from '@graphql-tools/utils';
+import { implementsAbstractType, getRootTypeNames, memoize2 } from '@graphql-tools/utils';
 
-import { memoize2 } from './memoize';
 import { getDocumentMetadata } from './getDocumentMetadata';
 import { StitchingInfo } from './types';
 
@@ -392,6 +391,7 @@ function wrapConcreteTypes(
   const rootTypeNames = getRootTypeNames(targetSchema);
 
   const typeInfo = new TypeInfo(targetSchema);
+
   return visit(
     document,
     visitWithTypeInfo(typeInfo, {

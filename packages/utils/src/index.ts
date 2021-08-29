@@ -48,3 +48,4 @@ export * from './rootTypes';
 export * from './comments';
 export * from './collectFields';
 export * from './inspect';
+export * from './memoize';

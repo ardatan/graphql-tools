@@ -9,12 +9,11 @@ import {
   FieldNode,
 } from 'graphql';
 
-import { collectFields, relocatedError } from '@graphql-tools/utils';
+import { collectFields, relocatedError, memoize4 } from '@graphql-tools/utils';
 
 import { ExternalObject, MergedTypeInfo, StitchingInfo, SubschemaConfig } from './types';
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
 import { Subschema } from './Subschema';
-import { memoize4 } from './memoize';
 
 export function isExternalObject(data: any): data is ExternalObject {
   return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
