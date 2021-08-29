@@ -115,7 +115,7 @@ export function finalizeGatewayRequest(
   if (args) {
     const requestWithNewVariables = addVariablesToRootFields(targetSchema, operations, args);
     operations = requestWithNewVariables.newOperations;
-    variables = Object.assign(Object.create(null), variables ?? {}, requestWithNewVariables.newVariables);
+    variables = Object.assign({}, variables ?? {}, requestWithNewVariables.newVariables);
   }
 
   const { usedVariables, newDocument } = finalizeGatewayDocument(targetSchema, fragments, operations);

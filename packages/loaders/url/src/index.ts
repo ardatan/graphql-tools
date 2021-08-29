@@ -182,7 +182,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     operationName?: string;
     extensions?: any;
   }) {
-    const vars = Object.assign(Object.create(null), variables);
+    const vars = Object.assign({}, variables);
     const { clone, files } = extractFiles(
       vars,
       'variables',
@@ -312,7 +312,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         }
       }
 
-      const headers = Object.assign(Object.create(null), options?.headers, extensions?.headers || {});
+      const headers = Object.assign({}, options?.headers, extensions?.headers || {});
 
       return new ValueOrPromise(() => {
         const query = print(document);
@@ -490,7 +490,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       const finalUrl = this.prepareGETUrl({ baseUrl: endpoint, query, variables, operationName, extensions });
       return observableToAsyncIterable({
         subscribe: observer => {
-          const headers = Object.assign(Object.create(null), options?.headers || {}, extensions?.headers || {});
+          const headers = Object.assign({}, options?.headers || {}, extensions?.headers || {});
           fetchEventSource(finalUrl, {
             credentials: 'include',
             headers,

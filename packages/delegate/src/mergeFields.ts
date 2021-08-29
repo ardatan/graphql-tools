@@ -114,7 +114,7 @@ async function executeDelegationStage(
     })
   );
 
-  const combinedResult: ExternalObject = Object.assign(Object.create(null), object, ...results);
+  const combinedResult: ExternalObject = Object.assign({}, object, ...results);
 
   combinedResult[FIELD_SUBSCHEMA_MAP_SYMBOL] = newFieldSubschemaMap;
   combinedResult[OBJECT_SUBSCHEMA_SYMBOL] = object[OBJECT_SUBSCHEMA_SYMBOL];
