@@ -41,7 +41,7 @@ describe('basic stitching example', () => {
 
     authorSchema = addMocksToSchema({ schema: authorSchema });
 
-    const linkTypeDefs = `
+    const linkTypeDefs = /* GraphQL */`
       extend type User {
         chirps: [Chirp]
       }
@@ -159,7 +159,7 @@ describe('stitching to interfaces', () => {
 
     authorSchema = addMocksToSchema({ schema: authorSchema });
 
-    const linkTypeDefs = `
+    const linkTypeDefs = /* GraphQL */`
       extend type User {
         chirps: [Chirp]
       }

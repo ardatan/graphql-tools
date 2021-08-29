@@ -16,6 +16,8 @@ import {
   GraphQLOutputType,
   isObjectType,
   FieldNode,
+  VisitorKeyMap,
+  ASTKindToNode,
 } from 'graphql';
 
 import { implementsAbstractType, getRootTypeNames } from '@graphql-tools/utils';
@@ -56,6 +58,15 @@ export function prepareGatewayDocument(
     definitions: [...operations, ...fragments, ...expandedFragments],
   };
 
+  const visitorKeyMap: Partial<VisitorKeyMap<ASTKindToNode>> = {
+    Document: ['definitions'],
+    OperationDefinition: ['selectionSet'],
+    SelectionSet: ['selections'],
+    Field: ['selectionSet'],
+    InlineFragment: ['selectionSet'],
+    FragmentDefinition: ['selectionSet'],
+  };
+
   return visit(
     expandedDocument,
     visitWithTypeInfo(typeInfo, {
@@ -76,61 +87,7 @@ export function prepareGatewayDocument(
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
     // empty keys cannot be removed only because of typescript errors
     // will hopefully be fixed in future version of graphql-js to be optional
-    {
-      Name: [],
-
-      Document: ['definitions'],
-      OperationDefinition: ['selectionSet'],
-      VariableDefinition: [],
-      Variable: [],
-      SelectionSet: ['selections'],
-      Field: ['selectionSet'],
-      Argument: [],
-
-      FragmentSpread: [],
-      InlineFragment: ['selectionSet'],
-      FragmentDefinition: ['selectionSet'],
-
-      IntValue: [],
-      FloatValue: [],
-      StringValue: [],
-      BooleanValue: [],
-      NullValue: [],
-      EnumValue: [],
-      ListValue: [],
-      ObjectValue: [],
-      ObjectField: [],
-
-      Directive: [],
-
-      NamedType: [],
-      ListType: [],
-      NonNullType: [],
-
-      SchemaDefinition: [],
-      OperationTypeDefinition: [],
-
-      ScalarTypeDefinition: [],
-      ObjectTypeDefinition: [],
-      FieldDefinition: [],
-      InputValueDefinition: [],
-      InterfaceTypeDefinition: [],
-      UnionTypeDefinition: [],
-      EnumTypeDefinition: [],
-      EnumValueDefinition: [],
-      InputObjectTypeDefinition: [],
-
-      DirectiveDefinition: [],
-
-      SchemaExtension: [],
-
-      ScalarTypeExtension: [],
-      ObjectTypeExtension: [],
-      InterfaceTypeExtension: [],
-      UnionTypeExtension: [],
-      EnumTypeExtension: [],
-      InputObjectTypeExtension: [],
-    }
+    visitorKeyMap as any
   );
 }
 

@@ -29,7 +29,7 @@ export function createMergedTypeResolver<TContext = any>(
 
   if (args != null) {
     return function mergedTypeResolver(originalResult, context, info, subschema, selectionSet) {
-      delegateToSchema({
+      return delegateToSchema({
         schema: subschema,
         operation: 'query',
         fieldName,

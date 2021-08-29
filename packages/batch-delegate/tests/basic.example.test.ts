@@ -46,7 +46,7 @@ describe('batch delegation within basic stitching example', () => {
       }
     });
 
-    const linkTypeDefs = `
+    const linkTypeDefs = /* GraphQL */`
       extend type Chirp {
         chirpedAtUser: User
       }
@@ -139,7 +139,7 @@ describe('batch delegation within basic stitching example', () => {
       }
     });
 
-    const linkTypeDefs = `
+    const linkTypeDefs = /* GraphQL */`
       extend type User {
         posts: [Post]!
       }

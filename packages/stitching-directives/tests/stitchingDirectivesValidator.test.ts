@@ -6,7 +6,7 @@ describe('type merging directives', () => {
   const { allStitchingDirectivesTypeDefs, stitchingDirectivesValidator } = stitchingDirectives();
 
   test('does not throw an error if no other typeDefs used', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
     `;
 
@@ -15,7 +15,7 @@ describe('type merging directives', () => {
   });
 
   test('throws an error if type selectionSet invalid', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       type Query {
         _user: User
@@ -32,7 +32,7 @@ describe('type merging directives', () => {
   });
 
   test('does not throw an error if type selectionSet valid', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       type Query {
         _user: User
@@ -49,7 +49,7 @@ describe('type merging directives', () => {
   });
 
   test('throws an error if computed selectionSet invalid', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       type Query {
         _user: User
@@ -66,7 +66,7 @@ describe('type merging directives', () => {
   });
 
   test('does not throw an error if computed selectionSet valid', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       type Query {
         _user: User
@@ -83,7 +83,7 @@ describe('type merging directives', () => {
   });
 
   test('throws an error if merge argsExpr invalid', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -102,7 +102,7 @@ describe('type merging directives', () => {
   });
 
   test('does not throw an error if merge argsExpr valid', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -121,7 +121,7 @@ describe('type merging directives', () => {
   });
 
   test('does not throw an error when using merge with argsExpr on a multiple args endpoint', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
 
       type Query {
@@ -139,7 +139,7 @@ describe('type merging directives', () => {
   });
 
   test('does not throw an error if merge used without arguments', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 

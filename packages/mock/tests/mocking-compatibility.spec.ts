@@ -1186,7 +1186,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('works for resolvers returning javascript Dates', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       scalar Date
 
       type DateObject {

@@ -257,7 +257,7 @@ const propertyAddressTypeDef = `
   }
 `;
 
-const propertyRootTypeDefs = `
+const propertyRootTypeDefs = /* GraphQL */`
   type Location {
     name: String!
   }
@@ -322,7 +322,7 @@ const propertyRootTypeDefs = `
   }
 `;
 
-const propertyAddressTypeDefs = `
+const propertyAddressTypeDefs = /* GraphQL */`
   scalar DateTime
   scalar JSON
 
@@ -429,7 +429,7 @@ const SimpleProduct = `type SimpleProduct implements Product & Sellable {
   }
 `;
 
-const productTypeDefs = `
+const productTypeDefs = /* GraphQL */`
   interface Product {
     id: ID!
   }
@@ -477,7 +477,7 @@ const customerAddressTypeDef = `
   }
 `;
 
-const bookingRootTypeDefs = `
+const bookingRootTypeDefs = /* GraphQL */`
   scalar DateTime
 
   type Booking {
@@ -527,7 +527,7 @@ const bookingRootTypeDefs = `
   }
 `;
 
-const bookingAddressTypeDefs = `
+const bookingAddressTypeDefs = /* GraphQL */`
   ${addressTypeDef}
   ${customerAddressTypeDef}
   ${bookingRootTypeDefs}
@@ -617,7 +617,7 @@ const bookingResolvers: IResolvers = {
   DateTime,
 };
 
-const subscriptionTypeDefs = `
+const subscriptionTypeDefs = /* GraphQL */`
   type Notification{
     text: String
     throwError: String

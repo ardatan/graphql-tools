@@ -278,7 +278,7 @@ interfaceExtensionTest = `
 
 // Miscellaneous typeDefs that exercise uncommon branches for the sake of
 // code coverage.
-const codeCoverageTypeDefs = `
+const codeCoverageTypeDefs = /* GraphQL */`
   interface SyntaxNode {
     type: String
   }
@@ -306,7 +306,7 @@ const codeCoverageTypeDefs = `
   }
 `;
 
-const schemaDirectiveTypeDefs = `
+const schemaDirectiveTypeDefs = /* GraphQL */`
   directive @upper on FIELD_DEFINITION
 
   directive @withEnumArg(enumArg: DirectiveEnum = FOO) on FIELD_DEFINITION
@@ -3030,7 +3030,7 @@ fragment BookingFragment on Booking {
 
       test('defaultMergedResolver should work with aliases if parent merged resolver is manually overwritten', async () => {
         // Source: https://github.com/apollographql/graphql-tools/issues/967
-        const typeDefs = `
+        const typeDefs = /* GraphQL */`
             type Query {
               book: Book
             }
@@ -3152,7 +3152,7 @@ fragment BookingFragment on Booking {
 
   describe('empty typeDefs array', () => {
     test('works', async () => {
-      const typeDefs = `
+      const typeDefs = /* GraphQL */`
       type Query {
         book: Book
       }

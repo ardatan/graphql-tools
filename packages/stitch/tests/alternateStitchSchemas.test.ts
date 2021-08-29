@@ -2199,7 +2199,7 @@ describe('unidirectional type merging', () => {
 
 describe('stitchSchemas handles typeDefs with default values', () => {
   test('it works', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       type Query {
         foo(arg: String = "1"): String
       }

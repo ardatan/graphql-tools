@@ -124,7 +124,7 @@ function mergeObjectTypeCandidates<TContext = Record<string, any>>(
 
   const extensionASTNodes = pluck<ObjectTypeExtensionNode>('extensionASTNodes', candidates);
 
-  const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
+  const extensions = Object.assign(Object.create(null), ...pluck<Record<string, any>>('extensions', candidates));
 
   const typeConfig = {
     name: typeName,
@@ -171,7 +171,7 @@ function mergeInputObjectTypeCandidates<TContext = Record<string, any>>(
 
   const extensionASTNodes = pluck<InputObjectTypeExtensionNode>('extensionASTNodes', candidates);
 
-  const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
+  const extensions = Object.assign(Object.create(null), ...pluck<Record<string, any>>('extensions', candidates));
 
   const typeConfig = {
     name: typeName,
@@ -233,7 +233,7 @@ function mergeInterfaceTypeCandidates<TContext = Record<string, any>>(
 
   const extensionASTNodes = pluck<InterfaceTypeExtensionNode>('extensionASTNodes', candidates);
 
-  const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
+  const extensions = Object.assign(Object.create(null), ...pluck<Record<string, any>>('extensions', candidates));
 
   const typeConfig = {
     name: typeName,
@@ -280,7 +280,7 @@ function mergeUnionTypeCandidates<TContext = Record<string, any>>(
 
   const extensionASTNodes = pluck<UnionTypeExtensionNode>('extensionASTNodes', candidates);
 
-  const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
+  const extensions = Object.assign(Object.create(null), ...pluck<Record<string, any>>('extensions', candidates));
 
   const typeConfig = {
     name: typeName,
@@ -315,7 +315,7 @@ function mergeEnumTypeCandidates<TContext = Record<string, any>>(
 
   const extensionASTNodes = pluck<EnumTypeExtensionNode>('extensionASTNodes', candidates);
 
-  const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
+  const extensions = Object.assign(Object.create(null), ...pluck<Record<string, any>>('extensions', candidates));
 
   const typeConfig = {
     name: typeName,
@@ -399,7 +399,7 @@ function mergeScalarTypeCandidates<TContext = Record<string, any>>(
 
   const extensionASTNodes = pluck<ScalarTypeExtensionNode>('extensionASTNodes', candidates);
 
-  const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
+  const extensions = Object.assign(Object.create(null), ...pluck<Record<string, any>>('extensions', candidates));
 
   const typeConfig = {
     name: typeName,
