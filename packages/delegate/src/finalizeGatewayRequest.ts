@@ -30,11 +30,11 @@ import {
   updateArgument,
   createVariableNameGenerator,
   implementsAbstractType,
+  inspect,
 } from '@graphql-tools/utils';
 
 import { DelegationContext } from './types';
 import { getDocumentMetadata } from './getDocumentMetadata';
-import { inspect } from 'graphql/jsutils/inspect.js';
 
 function finalizeGatewayDocument(
   targetSchema: GraphQLSchema,

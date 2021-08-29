@@ -2,7 +2,7 @@ import gql from 'graphql-tag';
 import { composeResolvers, ResolversComposerMapping } from '../src';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { execute, GraphQLScalarType, Kind } from 'graphql';
-import { inspect } from 'util';
+import { inspect } from '@graphql-tools/utils';
 
 function createAsyncIterator<T>(array: T[]): AsyncIterator<T, T, T> {
   let i = 0;
