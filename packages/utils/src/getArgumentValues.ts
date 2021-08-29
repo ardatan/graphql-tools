@@ -54,7 +54,7 @@ export function getArgumentValues(
         coercedValues[name] = defaultValue;
       } else if (isNonNullType(argType)) {
         throw new GraphQLError(
-          `Argument "${name}" of required type "${inspectUtils.inspect(argType)}" ` + 'was not provided.',
+          `Argument "${name}" of required type "${inspect(argType)}" ` + 'was not provided.',
           node
         );
       }
@@ -71,7 +71,7 @@ export function getArgumentValues(
           coercedValues[name] = defaultValue;
         } else if (isNonNullType(argType)) {
           throw new GraphQLError(
-            `Argument "${name}" of required type "${inspectUtils.inspect(argType)}" ` +
+            `Argument "${name}" of required type "${inspect(argType)}" ` +
               `was provided the variable "$${variableName}" which was not provided a runtime value.`,
             valueNode
           );
@@ -83,7 +83,7 @@ export function getArgumentValues(
 
     if (isNull && isNonNullType(argType)) {
       throw new GraphQLError(
-        `Argument "${name}" of non-null type "${inspectUtils.inspect(argType)}" ` + 'must not be null.',
+        `Argument "${name}" of non-null type "${inspect(argType)}" ` + 'must not be null.',
         valueNode
       );
     }
