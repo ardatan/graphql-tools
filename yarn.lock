@@ -9199,10 +9199,10 @@ onigasm@^2.2.5:
   dependencies:
     lru-cache "^5.1.1"
 
-open-cli@7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/open-cli/-/open-cli-7.0.0.tgz#e2f4e4d005bb2b571c7d529970a2c723d5f1779f"
-  integrity sha512-VxL1HWSsufFSxdcOq5Ijkd1sjK7XnmCI1QF1bYk4va3JI2nl+wLTTgOZ4i1OyNljb9rLoqajtFNCl91DmiIkQw==
+open-cli@7.0.1:
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/open-cli/-/open-cli-7.0.1.tgz#2de9d9658a35fb04ba397e7c503f4fe52d6e7373"
+  integrity sha512-w//Mb5nLGTu9aIAsAehgxV+CGEkd+P3CbdoTW8y2coQ/fmGXBSrea0i4RBqGnd9prSPX1akrBYc0e3NnWM4SPA==
   dependencies:
     file-type "^16.5.0"
     get-stdin "^9.0.0"
