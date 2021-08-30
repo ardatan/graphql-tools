@@ -214,16 +214,13 @@ export function astFromDirective(
       kind: Kind.NAME,
       value: directive.name,
     },
-    arguments: directive?.args
-      ? directive.args.map(arg => astFromArg(arg, schema, pathToDirectivesInExtensions))
-      : undefined,
+    arguments: directive.args?.map(arg => astFromArg(arg, schema, pathToDirectivesInExtensions)),
     repeatable: directive.isRepeatable,
-    locations: directive?.locations
-      ? directive.locations.map(location => ({
-          kind: Kind.NAME,
-          value: location,
-        }))
-      : [],
+    locations:
+      directive.locations?.map(location => ({
+        kind: Kind.NAME,
+        value: location,
+      })) || [],
   };
 }
 
@@ -469,35 +466,18 @@ export function astFromScalarType(
   schema: GraphQLSchema,
   pathToDirectivesInExtensions?: Array<string>
 ): ScalarTypeDefinitionNode {
-  let directiveNodesBesidesSpecifiedBy: Array<DirectiveNode> = [];
-  let specifiedByDirectiveNode: Maybe<DirectiveNode> = null;
-
   const directivesInExtensions = getDirectivesInExtensions(type, pathToDirectivesInExtensions);
 
-  let allDirectives: Maybe<ReadonlyArray<DirectiveNode>>;
-  if (directivesInExtensions != null) {
-    allDirectives = makeDirectiveNodes(schema, directivesInExtensions);
-  } else {
-    allDirectives = type.astNode?.directives;
-  }
+  const directives: DirectiveNode[] = directivesInExtensions
+    ? makeDirectiveNodes(schema, directivesInExtensions)
+    : (type.astNode?.directives as DirectiveNode[]) || [];
 
-  if (allDirectives != null) {
-    directiveNodesBesidesSpecifiedBy = allDirectives.filter(directive => directive.name.value !== 'specifiedBy');
-    if ((type as unknown as { specifiedByUrl: string }).specifiedByUrl != null) {
-      specifiedByDirectiveNode = allDirectives.filter(directive => directive.name.value === 'specifiedBy')?.[0];
-    }
+  if ('specifiedBy' in type && !directives.some(directiveNode => directiveNode.name.value === 'specifiedBy')) {
+    const specifiedByArgs = {
+      url: (type as any)['specifiedByUrl'],
+    };
+    directives.push(makeDirectiveNode('specifiedBy', specifiedByArgs));
   }
-
-  if ((type as unknown as { specifiedByUrl: string }).specifiedByUrl != null && specifiedByDirectiveNode == null) {
-    specifiedByDirectiveNode = makeDirectiveNode('specifiedBy', {
-      url: (type as unknown as { specifiedByUrl: string }).specifiedByUrl,
-    });
-  }
-
-  const directives =
-    specifiedByDirectiveNode == null
-      ? directiveNodesBesidesSpecifiedBy
-      : [specifiedByDirectiveNode].concat(directiveNodesBesidesSpecifiedBy);
 
   return {
     kind: Kind.SCALAR_TYPE_DEFINITION,
