@@ -30,7 +30,7 @@
     "esbuild": "0.12.24",
     "esbuild-register": "3.0.0",
     "next-remote-watch": "1.0.0",
-    "open-cli": "7.0.0",
+    "open-cli": "7.0.1",
     "typescript": "4.4.2",
     "wait-on": "6.0.0"
   },
