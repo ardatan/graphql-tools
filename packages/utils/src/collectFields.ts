@@ -1,3 +1,4 @@
+import { memoize5 } from './memoize';
 import {
   GraphQLSchema,
   FragmentDefinitionNode,
@@ -133,7 +134,7 @@ function getFieldEntryKey(node: FieldNode): string {
   return node.alias ? node.alias.value : node.name.value;
 }
 
-export function collectSubFields(
+export const collectSubFields = memoize5(function collectSubFields(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
   variableValues: Record<string, any>,
@@ -158,4 +159,4 @@ export function collectSubFields(
   }
 
   return subFieldNodes;
-}
+});

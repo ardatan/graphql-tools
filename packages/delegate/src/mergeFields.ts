@@ -9,9 +9,9 @@ import {
   FieldNode,
 } from 'graphql';
 
-import { collectFields, relocatedError, memoize4 } from '@graphql-tools/utils';
+import { collectFields, relocatedError } from '@graphql-tools/utils';
 
-import { ExternalObject, MergedTypeInfo, StitchingInfo, SubschemaConfig } from './types';
+import { ExternalObject, MergedTypeInfo, SubschemaConfig } from './types';
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
 import { Subschema } from './Subschema';
 
@@ -40,15 +40,23 @@ export function getUnpathedErrors(object: ExternalObject): Array<GraphQLError> {
   return object[UNPATHED_ERRORS_SYMBOL];
 }
 
+const EMPTY_ARRAY: any[] = [];
+const EMPTY_OBJECT = Object.create(null);
+
 export async function mergeFields(
   mergedTypeInfo: MergedTypeInfo,
   object: any,
   sourceSubschema: Subschema<any, any, any, any>,
-  targetSubschemas: Array<Subschema<any, any, any, any>>,
   context: any,
   info: GraphQLResolveInfo
 ): Promise<any> {
-  const delegationMaps = buildDelegationPlanFromInfo(info, mergedTypeInfo, sourceSubschema, targetSubschemas);
+  const delegationMaps = mergedTypeInfo.delegationPlanBuilder(
+    info.schema,
+    sourceSubschema,
+    info.variableValues != null && Object.keys(info.variableValues).length > 0 ? info.variableValues : EMPTY_OBJECT,
+    info.fragments != null && Object.keys(info.fragments).length > 0 ? info.fragments : EMPTY_OBJECT,
+    info.fieldNodes?.length > 0 ? (info.fieldNodes as FieldNode[]) : EMPTY_ARRAY
+  );
 
   for (const delegationMap of delegationMaps) {
     object = await executeDelegationStage(mergedTypeInfo, delegationMap, object, context, info);
@@ -122,23 +130,3 @@ async function executeDelegationStage(
 
   return combinedResult;
 }
-
-const buildDelegationPlanFromInfo = memoize4(function buildDelegationPlanFromInfo(
-  info: GraphQLResolveInfo,
-  mergedTypeInfo: MergedTypeInfo,
-  sourceSubschema: Subschema<any, any, any, any>,
-  targetSubschemas: Array<Subschema<any, any, any, any>>
-): Array<Map<Subschema, SelectionSetNode>> {
-  const { schema, fragments, variableValues, fieldNodes } = info;
-
-  return mergedTypeInfo.delegationPlanBuilder(
-    schema,
-    sourceSubschema,
-    fieldNodes as FieldNode[],
-    fragments,
-    variableValues,
-    schema.extensions?.['stitchingInfo'] as StitchingInfo,
-    mergedTypeInfo,
-    targetSubschemas
-  );
-});

@@ -114,12 +114,9 @@ export interface ICreateRequest {
 export type DelegationPlanBuilder = (
   schema: GraphQLSchema,
   sourceSubschema: Subschema<any, any, any, any>,
-  fieldNodes: FieldNode[],
-  fragments?: Record<string, FragmentDefinitionNode>,
-  variableValues?: Record<string, any>,
-  stitchingInfo?: StitchingInfo,
-  mergedTypeInfo?: MergedTypeInfo,
-  targetSubschemas?: Array<Subschema>
+  variableValues: Record<string, any>,
+  fragments: Record<string, FragmentDefinitionNode>,
+  fieldNodes: FieldNode[]
 ) => Array<Map<Subschema, SelectionSetNode>>;
 
 export interface MergedTypeInfo<TContext = Record<string, any>> {

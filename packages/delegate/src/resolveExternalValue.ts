@@ -101,7 +101,7 @@ function resolveExternalObject(
     return object;
   }
 
-  return mergeFields(mergedTypeInfo, object, subschema as Subschema, targetSubschemas, context, info);
+  return mergeFields(mergedTypeInfo, object, subschema as Subschema, context, info);
 }
 
 function resolveExternalList(
