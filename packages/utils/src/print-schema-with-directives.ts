@@ -471,7 +471,10 @@ export function astFromScalarType(
     ? makeDirectiveNodes(schema, directivesInExtensions)
     : (type.astNode?.directives as DirectiveNode[]) || [];
 
-  if ('specifiedBy' in type && !directives.some(directiveNode => directiveNode.name.value === 'specifiedBy')) {
+  if (
+    (type as any)['specifiedByUrl'] &&
+    !directives.some(directiveNode => directiveNode.name.value === 'specifiedBy')
+  ) {
     const specifiedByArgs = {
       url: (type as any)['specifiedByUrl'],
     };
