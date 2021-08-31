@@ -80,7 +80,11 @@ async function executeDelegationStage(
 
   const type = info.schema.getType(object.__typename) as GraphQLObjectType;
 
-  const results = await Promise.all(
+  const combinedResult: ExternalObject = Object.create(null);
+
+  Object.assign(combinedResult, object);
+
+  await Promise.all(
     [...delegationMap.entries()].map(async ([s, selectionSet]) => {
       const resolver = mergedTypeInfo.resolvers.get(s);
       if (resolver) {
@@ -116,12 +120,10 @@ async function executeDelegationStage(
           newFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
         }
 
-        return source;
+        Object.assign(combinedResult, source);
       }
     })
   );
-
-  const combinedResult: ExternalObject = Object.assign({}, object, ...results);
 
   combinedResult[FIELD_SUBSCHEMA_MAP_SYMBOL] = newFieldSubschemaMap;
   combinedResult[OBJECT_SUBSCHEMA_SYMBOL] = object[OBJECT_SUBSCHEMA_SYMBOL];
