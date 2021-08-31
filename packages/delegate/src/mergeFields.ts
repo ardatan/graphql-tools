@@ -60,7 +60,7 @@ export async function mergeFields(
   );
 
   for (const delegationMap of delegationMaps) {
-    object = await executeDelegationStage(mergedTypeInfo, delegationMap, object, context, info);
+    await executeDelegationStage(mergedTypeInfo, delegationMap, object, context, info);
   }
 
   return object;
@@ -72,12 +72,12 @@ async function executeDelegationStage(
   object: ExternalObject,
   context: any,
   info: GraphQLResolveInfo
-): Promise<any> {
+): Promise<void> {
   const combinedErrors = object[UNPATHED_ERRORS_SYMBOL];
 
   const path = responsePathAsArray(info.path);
 
-  const newFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL];
+  const combinedFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL];
 
   const type = info.schema.getType(object.__typename) as GraphQLObjectType;
 
@@ -115,11 +115,9 @@ async function executeDelegationStage(
         const fieldSubschemaMap = source[FIELD_SUBSCHEMA_MAP_SYMBOL];
         for (const responseKey in source) {
           object[responseKey] = source[responseKey];
-          newFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
+          combinedFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
         }
       }
     })
   );
-
-  return object;
 }

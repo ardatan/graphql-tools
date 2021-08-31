@@ -2,7 +2,6 @@ import {
   GraphQLResolveInfo,
   getNullableType,
   isCompositeType,
-  isLeafType,
   isListType,
   GraphQLError,
   GraphQLSchema,
@@ -143,7 +142,7 @@ function resolveExternalListMember(
     return reportUnpathedErrorsViaNull(unpathedErrors);
   }
 
-  if (isLeafType(type)) {
+  if ('parseValue' in type) {
     return type.parseValue(listMember);
   } else if (isCompositeType(type)) {
     return resolveExternalObject(type, listMember, unpathedErrors, subschema, context, info, skipTypeMerging);
