@@ -1,5 +1,12 @@
 # @graphql-tools/utils
 
+## 8.2.1
+
+### Patch Changes
+
+- 50609df8: fix(utils): print specifiedBy directive correctly
+- be6fdb88: fix(utils): bring back breaking change for fixSchemaAst
+
 ## 8.2.0
 
 ### Minor Changes
