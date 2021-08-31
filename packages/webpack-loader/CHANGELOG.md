@@ -1,5 +1,17 @@
 # @graphql-tools/webpack-loader
 
+## 6.6.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+
+### Patch Changes
+
+- Updated dependencies [c5b0719c]
+  - @graphql-tools/optimize@1.1.0
+  - @graphql-tools/webpack-loader-runtime@6.3.0
+
 ## 6.5.1
 
 ### Patch Changes

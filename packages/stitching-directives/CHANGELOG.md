@@ -1,5 +1,21 @@
 # @graphql-tools/stitching-directives
 
+## 2.1.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+
+### Patch Changes
+
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+  - @graphql-tools/delegate@8.2.0
+  - @graphql-tools/utils@8.2.0
+
 ## 2.0.11
 
 ### Patch Changes
