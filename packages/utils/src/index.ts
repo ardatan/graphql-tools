@@ -46,3 +46,4 @@ export * from './comments';
 export * from './collectFields';
 export * from './inspect';
 export * from './memoize';
+export * from './fixSchemaAst';
