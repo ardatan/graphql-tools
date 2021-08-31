@@ -22,11 +22,12 @@ export function isExternalObject(data: any): data is ExternalObject {
 export function annotateExternalObject(
   object: any,
   errors: Array<GraphQLError>,
-  subschema: GraphQLSchema | SubschemaConfig | undefined
+  subschema: GraphQLSchema | SubschemaConfig | undefined,
+  subschemaMap: Record<string, GraphQLSchema | SubschemaConfig<any, any, any, Record<string, any>>>
 ): ExternalObject {
   Object.defineProperties(object, {
     [OBJECT_SUBSCHEMA_SYMBOL]: { value: subschema },
-    [FIELD_SUBSCHEMA_MAP_SYMBOL]: { value: Object.create(null) },
+    [FIELD_SUBSCHEMA_MAP_SYMBOL]: { value: subschemaMap },
     [UNPATHED_ERRORS_SYMBOL]: { value: errors },
   });
   return object;
@@ -72,15 +73,13 @@ async function executeDelegationStage(
   context: any,
   info: GraphQLResolveInfo
 ): Promise<any> {
-  const combinedErrors = object[UNPATHED_ERRORS_SYMBOL] ?? [];
+  const combinedErrors = object[UNPATHED_ERRORS_SYMBOL];
 
   const path = responsePathAsArray(info.path);
 
-  const newFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL] ?? Object.create(null);
+  const newFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL];
 
   const type = info.schema.getType(object.__typename) as GraphQLObjectType;
-
-  const targetAndResults: [any, ...any[]] = [Object.create(null), object];
 
   await Promise.all(
     [...delegationMap.entries()].map(async ([s, selectionSet]) => {
@@ -115,21 +114,12 @@ async function executeDelegationStage(
         const objectSubschema = source[OBJECT_SUBSCHEMA_SYMBOL];
         const fieldSubschemaMap = source[FIELD_SUBSCHEMA_MAP_SYMBOL];
         for (const responseKey in source) {
+          object[responseKey] = source[responseKey];
           newFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
         }
-
-        targetAndResults.push(source);
       }
     })
   );
 
-  // eslint-disable-next-line prefer-spread
-  const combinedResult: ExternalObject = Object.assign.apply(Object, targetAndResults);
-
-  combinedResult[FIELD_SUBSCHEMA_MAP_SYMBOL] = newFieldSubschemaMap;
-  combinedResult[OBJECT_SUBSCHEMA_SYMBOL] = object[OBJECT_SUBSCHEMA_SYMBOL];
-
-  combinedResult[UNPATHED_ERRORS_SYMBOL] = combinedErrors;
-
-  return combinedResult;
+  return object;
 }

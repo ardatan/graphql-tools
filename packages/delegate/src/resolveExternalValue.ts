@@ -60,7 +60,7 @@ function resolveExternalObject(
   // if we have already resolved this object, for example, when the identical object appears twice
   // in a list, see https://github.com/ardatan/graphql-tools/issues/2304
   if (!isExternalObject(object)) {
-    annotateExternalObject(object, unpathedErrors, subschema);
+    annotateExternalObject(object, unpathedErrors, subschema, Object.create(null));
   }
 
   if (skipTypeMerging || info == null) {
