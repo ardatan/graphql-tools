@@ -1,5 +1,16 @@
 # graphql-tools
 
+## 8.2.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+
+### Patch Changes
+
+- Updated dependencies [c5b0719c]
+  - @graphql-tools/schema@8.2.0
+
 ## 8.1.0
 
 ### Minor Changes

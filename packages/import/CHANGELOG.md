@@ -1,5 +1,11 @@
 # @graphql-tools/import
 
+## 6.4.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+
 ## 6.3.1
 
 ### Patch Changes

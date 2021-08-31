@@ -1,5 +1,27 @@
 # @graphql-tools/stitch
 
+## 8.3.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+- c5b0719c: enhance(utils): move memoize functions to utils
+- c5b0719c: enhance(utils): copy collectFields from graphql-js@16 for backwards compat
+
+### Patch Changes
+
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+  - @graphql-tools/delegate@8.2.0
+  - @graphql-tools/utils@8.2.0
+  - @graphql-tools/batch-delegate@8.1.0
+  - @graphql-tools/merge@8.1.0
+  - @graphql-tools/schema@8.2.0
+  - @graphql-tools/wrap@8.1.0
+
 ## 8.2.1
 
 ### Patch Changes
