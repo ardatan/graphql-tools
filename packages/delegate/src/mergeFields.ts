@@ -80,9 +80,7 @@ async function executeDelegationStage(
 
   const type = info.schema.getType(object.__typename) as GraphQLObjectType;
 
-  const combinedResult: ExternalObject = Object.create(null);
-
-  Object.assign(combinedResult, object);
+  const targetAndResults: [any, ...any[]] = [Object.create(null), object];
 
   await Promise.all(
     [...delegationMap.entries()].map(async ([s, selectionSet]) => {
@@ -120,10 +118,13 @@ async function executeDelegationStage(
           newFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
         }
 
-        Object.assign(combinedResult, source);
+        targetAndResults.push(source);
       }
     })
   );
+
+  // eslint-disable-next-line prefer-spread
+  const combinedResult: ExternalObject = Object.assign.apply(Object, targetAndResults);
 
   combinedResult[FIELD_SUBSCHEMA_MAP_SYMBOL] = newFieldSubschemaMap;
   combinedResult[OBJECT_SUBSCHEMA_SYMBOL] = object[OBJECT_SUBSCHEMA_SYMBOL];
