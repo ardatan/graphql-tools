@@ -69,7 +69,7 @@ describe('parse sdl', () => {
 
     it('should transform comments to descriptions correctly on all available nodes', () => {
       const transformed = transformCommentsToDescriptions(ast);
-      const printed = print(transformed);
+      const printed = print(transformed).trim();
 
       expect(printed).toMatchSnapshot();
     });
@@ -79,7 +79,7 @@ describe('parse sdl', () => {
       const type = transformed.document.definitions.find((d): d is ObjectTypeDefinitionNode => "name" in d && d.name?.value === 'Type');
       expect(type?.description?.value).toBe('test type comment');
       expect(type?.loc).not.toBeDefined();
-      const printed = print(transformed.document);
+      const printed = print(transformed.document).trim();
       expect(printed).toMatchSnapshot();
     });
   });

@@ -114,9 +114,8 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
     return visit(
       document,
       visitWithTypeInfo(this._getTypeInfo(), {
-        leave: {
-          [Kind.SELECTION_SET]: node =>
-            this.transformSelectionSet(node, this._getTypeInfo(), fragments, transformationContext),
+        [Kind.SELECTION_SET]: {
+          leave: node => this.transformSelectionSet(node, this._getTypeInfo(), fragments, transformationContext),
         },
       })
     );

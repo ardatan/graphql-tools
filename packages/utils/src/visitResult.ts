@@ -13,11 +13,12 @@ import {
   OperationDefinitionNode,
   GraphQLError,
   TypeNameMetaFieldDef,
+  FragmentDefinitionNode,
 } from 'graphql';
+import { collectFields, collectSubFields } from './collectFields';
 
 import { ExecutionRequest, ExecutionResult } from './Interfaces';
-import { collectFields, ExecutionContext } from 'graphql/execution/execute.js';
-import { Maybe } from '@graphql-tools/utils';
+import { Maybe } from './types';
 
 export type ValueVisitor = (value: any) => any;
 
@@ -82,16 +83,14 @@ export function visitResult(
   resultVisitorMap?: ResultVisitorMap,
   errorVisitorMap?: ErrorVisitorMap
 ): any {
-  const partialExecutionContext = {
-    schema,
-    fragments: request.document.definitions.reduce((acc, def) => {
-      if (def.kind === Kind.FRAGMENT_DEFINITION) {
-        acc[def.name.value] = def;
-      }
-      return acc;
-    }, {}),
-    variableValues: request.variables,
-  } as ExecutionContext;
+  const fragments = request.document.definitions.reduce((acc, def) => {
+    if (def.kind === Kind.FRAGMENT_DEFINITION) {
+      acc[def.name.value] = def;
+    }
+    return acc;
+  }, {});
+
+  const variableValues = request.variables || {};
 
   const errorInfo: ErrorInfo = {
     segmentInfoMap: new Map<GraphQLError, Array<SegmentInfo>>(),
@@ -108,7 +107,9 @@ export function visitResult(
     result.data = visitRoot(
       data,
       operationDocumentNode,
-      partialExecutionContext,
+      schema,
+      fragments,
+      variableValues,
       resultVisitorMap,
       visitingErrors ? errors : undefined,
       errorInfo
@@ -157,28 +158,45 @@ function visitErrorsByType(
 function visitRoot(
   root: any,
   operation: OperationDefinitionNode,
-  exeContext: ExecutionContext,
+  schema: GraphQLSchema,
+  fragments: Record<string, FragmentDefinitionNode>,
+  variableValues: Record<string, any>,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   errors: Maybe<ReadonlyArray<GraphQLError>>,
   errorInfo: ErrorInfo
 ): any {
-  const operationRootType = getOperationRootType(exeContext.schema, operation);
+  const operationRootType = getOperationRootType(schema, operation);
   const collectedFields = collectFields(
-    exeContext,
+    schema,
+    fragments,
+    variableValues,
     operationRootType,
     operation.selectionSet,
-    Object.create(null),
-    Object.create(null)
+    new Map(),
+    new Set()
   );
 
-  return visitObjectValue(root, operationRootType, collectedFields, exeContext, resultVisitorMap, 0, errors, errorInfo);
+  return visitObjectValue(
+    root,
+    operationRootType,
+    collectedFields,
+    schema,
+    fragments,
+    variableValues,
+    resultVisitorMap,
+    0,
+    errors,
+    errorInfo
+  );
 }
 
 function visitObjectValue(
   object: Record<string, any>,
   type: GraphQLObjectType,
-  fieldNodeMap: Record<string, Array<FieldNode>>,
-  exeContext: ExecutionContext,
+  fieldNodeMap: Map<string, FieldNode[]>,
+  schema: GraphQLSchema,
+  fragments: Record<string, FragmentDefinitionNode>,
+  variableValues: Record<string, any>,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   pathIndex: number,
   errors: Maybe<ReadonlyArray<GraphQLError>>,
@@ -200,8 +218,7 @@ function visitObjectValue(
     }
   }
 
-  for (const responseKey in fieldNodeMap) {
-    const subFieldNodes = fieldNodeMap[responseKey];
+  for (const [responseKey, subFieldNodes] of fieldNodeMap) {
     const fieldName = subFieldNodes[0].name.value;
     const fieldType = fieldName === '__typename' ? TypeNameMetaFieldDef.type : fieldMap[fieldName].type;
 
@@ -220,7 +237,9 @@ function visitObjectValue(
       object[responseKey],
       fieldType,
       subFieldNodes,
-      exeContext,
+      schema,
+      fragments,
+      variableValues,
       resultVisitorMap,
       newPathIndex,
       fieldErrors,
@@ -236,7 +255,8 @@ function visitObjectValue(
   }
 
   if (errorMap) {
-    for (const errors of Object.values(errorMap)) {
+    for (const errorsKey in errorMap) {
+      const errors = errorMap[errorsKey];
       for (const error of errors) {
         errorInfo.unpathedErrors.add(error);
       }
@@ -279,14 +299,27 @@ function visitListValue(
   list: Array<any>,
   returnType: GraphQLOutputType,
   fieldNodes: Array<FieldNode>,
-  exeContext: ExecutionContext,
+  schema: GraphQLSchema,
+  fragments: Record<string, FragmentDefinitionNode>,
+  variableValues: Record<string, any>,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   pathIndex: number,
   errors: ReadonlyArray<GraphQLError>,
   errorInfo: ErrorInfo
 ): Array<any> {
   return list.map(listMember =>
-    visitFieldValue(listMember, returnType, fieldNodes, exeContext, resultVisitorMap, pathIndex + 1, errors, errorInfo)
+    visitFieldValue(
+      listMember,
+      returnType,
+      fieldNodes,
+      schema,
+      fragments,
+      variableValues,
+      resultVisitorMap,
+      pathIndex + 1,
+      errors,
+      errorInfo
+    )
   );
 }
 
@@ -294,7 +327,9 @@ function visitFieldValue(
   value: any,
   returnType: GraphQLOutputType,
   fieldNodes: Array<FieldNode>,
-  exeContext: ExecutionContext,
+  schema: GraphQLSchema,
+  fragments: Record<string, FragmentDefinitionNode>,
+  variableValues: Record<string, any>,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   pathIndex: number,
   errors: ReadonlyArray<GraphQLError> | undefined = [],
@@ -310,32 +345,38 @@ function visitFieldValue(
       value as Array<any>,
       nullableType.ofType,
       fieldNodes,
-      exeContext,
+      schema,
+      fragments,
+      variableValues,
       resultVisitorMap,
       pathIndex,
       errors,
       errorInfo
     );
   } else if (isAbstractType(nullableType)) {
-    const finalType = exeContext.schema.getType(value.__typename) as GraphQLObjectType;
-    const collectedFields = collectSubFields(exeContext, finalType, fieldNodes);
+    const finalType = schema.getType(value.__typename) as GraphQLObjectType;
+    const collectedFields = collectSubFields(schema, fragments, variableValues, finalType, fieldNodes);
     return visitObjectValue(
       value,
       finalType,
       collectedFields,
-      exeContext,
+      schema,
+      fragments,
+      variableValues,
       resultVisitorMap,
       pathIndex,
       errors,
       errorInfo
     );
   } else if (isObjectType(nullableType)) {
-    const collectedFields = collectSubFields(exeContext, nullableType, fieldNodes);
+    const collectedFields = collectSubFields(schema, fragments, variableValues, nullableType, fieldNodes);
     return visitObjectValue(
       value,
       nullableType,
       collectedFields,
-      exeContext,
+      schema,
+      fragments,
+      variableValues,
       resultVisitorMap,
       pathIndex,
       errors,
@@ -395,21 +436,4 @@ function addPathSegmentInfo(
       pathSegmentsInfo.push(segmentInfo);
     }
   }
-}
-
-function collectSubFields(
-  exeContext: ExecutionContext,
-  type: GraphQLObjectType,
-  fieldNodes: Array<FieldNode>
-): Record<string, Array<FieldNode>> {
-  let subFieldNodes: Record<string, Array<FieldNode>> = Object.create(null);
-  const visitedFragmentNames = Object.create(null);
-
-  for (const fieldNode of fieldNodes) {
-    if (fieldNode.selectionSet) {
-      subFieldNodes = collectFields(exeContext, type, fieldNode.selectionSet, subFieldNodes, visitedFragmentNames);
-    }
-  }
-
-  return subFieldNodes;
 }

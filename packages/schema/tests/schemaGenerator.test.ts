@@ -307,7 +307,7 @@ describe('generating schema from shorthand', () => {
 
   test('can generate a schema from an array of parsed and none parsed type definitions', () => {
     const typeDefSchema = [
-      parse(/* GraphQL */`
+      parse(`
           type Query {
             foo: String
           }`),
@@ -582,12 +582,12 @@ describe('generating schema from shorthand', () => {
         },
       },
       Searchable: {
-        __resolveType(data: any, _context: any, info: GraphQLResolveInfo) {
+        __resolveType(data: any, _context: any) {
           if (data.age) {
-            return info.schema.getType('Person');
+            return 'Person';
           }
           if (data.coordinates) {
-            return info.schema.getType('Location');
+            return 'Location';
           }
           return null;
         },
@@ -2224,7 +2224,7 @@ describe('interface resolver inheritance', () => {
   });
 
   test('respects interface order and existing resolvers', async () => {
-    const testSchemaWithInterfaceResolvers = `
+    const testSchemaWithInterfaceResolvers = /* GraphQL */`
     interface Node {
       id: ID!
     }
@@ -2232,11 +2232,11 @@ describe('interface resolver inheritance', () => {
       id: ID!
       name: String!
     }
-    type Replicant implements Node, Person {
+    type Replicant implements Node & Person {
       id: ID!
       name: String!
     }
-    type Cyborg implements Person, Node {
+    type Cyborg implements Person & Node {
       id: ID!
       name: String!
     }

@@ -365,7 +365,7 @@ describe('Merge Schemas', () => {
     });
 
     it.only('should not duplicate directives of scalars', () => {
-        const schema = buildSchema(`
+        const schema = buildSchema(/* GraphQL */`
             directive @sqlType(type: String!) on SCALAR
             scalar JSON @sqlType(type: "json")
         `);

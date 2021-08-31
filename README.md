@@ -32,7 +32,7 @@ When using `graphql-tools`, you describe the schema as a GraphQL type language s
 
 ```js
 
-const typeDefs = `
+const typeDefs = /* GraphQL */`
 type Author {
   id: ID! # the ! means that every author object _must_ have an id
   firstName: String

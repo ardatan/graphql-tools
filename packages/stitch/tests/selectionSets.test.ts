@@ -12,7 +12,7 @@ import {
   bookingSchema,
   sampleData,
   Property,
-} from './fixtures/schemas';
+} from '../../testing/fixtures/schemas';
 
 describe('delegateToSchema ', () => {
   test('should add selection sets for deep types', async () => {

@@ -144,7 +144,7 @@ To define a mock for a list, simply return an empty array of the desired length 
 If you'd like to provide a mock for an `Union` or `Interface` type, you need to provide the type with an extra `__typename`.
 
 ```ts
-const typeDefs = `
+const typeDefs = /* GraphQL */`
   ...
   union Result = User | Book
 `;
@@ -161,7 +161,7 @@ const mocks = {
 Use `resolvers` option of `addMocksToSchema` to implement custom resolvers that interact with the [`MockStore`](#mockstore), especially to mutate field values.
 
 ```ts
-const typeDefs = `
+const typeDefs = /* GraphQL */`
 type User {
   id: Id!
   name: String!
@@ -222,7 +222,7 @@ const result = await server.query(query, variables);
 By default, `*byId` (like `userById(id: ID!)`) field will return an entity that does not have the same `id` as the one queried. We can fix that:
 
 ```ts
-const typeDefs = `
+const typeDefs = /* GraphQL */`
 type User {
   id: Id!
   name: String!
@@ -250,7 +250,7 @@ Note that, by default, the `id` or `_id` field will be used as storage key and t
 The idea is that the [`MockStore`](#mockstore) contains the full list, as field value, and that the resolver queries the store and slice the result:
 
 ```ts
-const typeDefs = `
+const typeDefs = /* GraphQL */`
 type User {
   id: Id!
   name: String!
@@ -286,7 +286,7 @@ const schemaWithMocks = addMocksToSchema({
 The principles stay the same than for basic pagination:
 
 ```ts
-const typeDefs = `
+const typeDefs = /* GraphQL */`
 type User {
   id: Id!
   name: String!
@@ -612,7 +612,7 @@ If you used `__resolveType` resolver for mocking interfaces and unions, rather u
 Example:
 
 ```js
-const typeDefs = `
+const typeDefs = /* GraphQL */`
 type Query {
   fetchMore(listType: String!, amount: Int!, offset: Int!): List
 }

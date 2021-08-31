@@ -45,7 +45,7 @@ import {
   subscriptionSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
-} from './fixtures/schemas';
+} from '../../testing/fixtures/schemas';
 
 const linkSchema = /* GraphQL */`
   """
@@ -1504,7 +1504,7 @@ describe('schema transformation with wrapping of object fields', () => {
 });
 
 describe('interface resolver inheritance', () => {
-  const testSchemaWithInterfaceResolvers = `
+  const testSchemaWithInterfaceResolvers = /* GraphQL */`
     interface Node {
       id: ID!
     }
@@ -2199,7 +2199,7 @@ describe('unidirectional type merging', () => {
 
 describe('stitchSchemas handles typeDefs with default values', () => {
   test('it works', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       type Query {
         foo(arg: String = "1"): String
       }

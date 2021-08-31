@@ -2,7 +2,6 @@ import {
   GraphQLResolveInfo,
   getNullableType,
   isCompositeType,
-  isLeafType,
   isListType,
   GraphQLError,
   GraphQLSchema,
@@ -60,14 +59,14 @@ function resolveExternalObject(
   // if we have already resolved this object, for example, when the identical object appears twice
   // in a list, see https://github.com/ardatan/graphql-tools/issues/2304
   if (!isExternalObject(object)) {
-    annotateExternalObject(object, unpathedErrors, subschema);
+    annotateExternalObject(object, unpathedErrors, subschema, Object.create(null));
   }
 
   if (skipTypeMerging || info == null) {
     return object;
   }
 
-  const stitchingInfo: Maybe<StitchingInfo> = info.schema.extensions?.['stitchingInfo'];
+  const stitchingInfo = info.schema.extensions?.['stitchingInfo'] as Maybe<StitchingInfo>;
 
   if (stitchingInfo == null) {
     return object;
@@ -101,7 +100,7 @@ function resolveExternalObject(
     return object;
   }
 
-  return mergeFields(mergedTypeInfo, object, subschema as Subschema, targetSubschemas, context, info);
+  return mergeFields(mergedTypeInfo, object, subschema as Subschema, context, info);
 }
 
 function resolveExternalList(
@@ -143,7 +142,7 @@ function resolveExternalListMember(
     return reportUnpathedErrorsViaNull(unpathedErrors);
   }
 
-  if (isLeafType(type)) {
+  if ('parseValue' in type) {
     return type.parseValue(listMember);
   } else if (isCompositeType(type)) {
     return resolveExternalObject(type, listMember, unpathedErrors, subschema, context, info, skipTypeMerging);

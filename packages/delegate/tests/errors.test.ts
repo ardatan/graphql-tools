@@ -110,7 +110,7 @@ describe('Errors', () => {
     // see https://github.com/ardatan/graphql-tools/issues/1641
     describe('it proxies errors with invalid paths', () => {
       test('it works with bare delegation', async () => {
-        const typeDefs = `
+        const typeDefs = /* GraphQL */`
           type Object {
             field1: String
             field2: String
@@ -175,7 +175,7 @@ describe('Errors', () => {
       });
 
       test('it works with stitched schemas', async () => {
-        const typeDefs = `
+        const typeDefs = /* GraphQL */`
           type Object {
             field1: String
             field2: String

@@ -1,6 +1,6 @@
 import { print, parse } from 'graphql';
 import { DelegationContext } from '@graphql-tools/delegate';
-import { bookingSchema, propertySchema } from '../../wrap/tests/fixtures/schemas';
+import { bookingSchema, propertySchema } from '../../testing/fixtures/schemas';
 import { finalizeGatewayRequest } from '../src/finalizeGatewayRequest';
 
 describe('finalizeGatewayRequest', () => {

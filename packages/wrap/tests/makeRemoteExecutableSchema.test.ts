@@ -16,7 +16,7 @@ import {
   subscriptionPubSubTrigger,
   subscriptionPubSub,
   makeSchemaRemote,
-} from './fixtures/schemas';
+} from '../../testing/fixtures/schemas';
 
 describe('remote queries', () => {
   let schema: GraphQLSchema;
@@ -178,20 +178,20 @@ describe('when query for multiple fields', () => {
     });
 
     expect(calls).toHaveLength(3);
-    expect(print(calls[0].document)).toEqual(`\
+    expect(print(calls[0].document).trim()).toEqual(`\
 {
   fieldA
 }
-`);
-    expect(print(calls[1].document)).toEqual(`\
+`.trim());
+    expect(print(calls[1].document).trim()).toEqual(`\
 {
   fieldB
 }
-`);
-    expect(print(calls[2].document)).toEqual(`\
+`.trim());
+    expect(print(calls[2].document).trim()).toEqual(`\
 {
   field3
 }
-`);
+`.trim());
   });
 });

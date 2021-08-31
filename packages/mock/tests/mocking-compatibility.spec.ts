@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
 import {
   graphql,
-  GraphQLResolveInfo,
   GraphQLSchema,
   buildSchema, subscribe, parse
 } from 'graphql';
@@ -251,9 +250,9 @@ describe('Mock retro-compatibility', () => {
     let spy = 0;
     const resolvers = {
       BirdsAndBees: {
-        __resolveType(data: any, _context: any, info: GraphQLResolveInfo) {
+        __resolveType(data: any, _context: any) {
           ++spy;
-          return info.schema.getType(data.__typename);
+          return data.__typename;
         },
       },
     };
@@ -1187,7 +1186,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('works for resolvers returning javascript Dates', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       scalar Date
 
       type DateObject {

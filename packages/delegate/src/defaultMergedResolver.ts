@@ -25,7 +25,7 @@ export function defaultMergedResolver(
   const responseKey = getResponseKeyFromInfo(info);
 
   // check to see if parent is not a proxied result, i.e. if parent resolver was manually overwritten
-  // See https://github.com/apollographql/graphql-tools/issues/967
+  // See https://github.com/ardatan/graphql-tools/issues/967
   if (!isExternalObject(parent)) {
     return defaultFieldResolver(parent, args, context, info);
   }

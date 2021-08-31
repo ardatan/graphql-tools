@@ -57,7 +57,7 @@ describe('works with complex transforms', () => {
       }
     });
 
-    const linkTypeDefs = `
+    const linkTypeDefs = /* GraphQL */`
       extend type User {
         books: [Book!]!
       }

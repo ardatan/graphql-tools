@@ -6,7 +6,7 @@ import { assertSome, ExecutionResult, Executor } from '@graphql-tools/utils';
 
 describe('passes along errors for missing fields on list', () => {
   test('if non-null', async () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       type Query {
         getOuter: Outer
       }
@@ -43,7 +43,7 @@ describe('passes along errors for missing fields on list', () => {
   });
 
   test('even if nullable', async () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       type Query {
         getOuter: Outer
       }
@@ -82,7 +82,7 @@ describe('passes along errors for missing fields on list', () => {
 
 describe('passes along errors when list field errors', () => {
   test('if non-null', async () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       type Query {
         getOuter: Outer
       }
@@ -119,7 +119,7 @@ describe('passes along errors when list field errors', () => {
   });
 
   test('even if nullable', async () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       type Query {
         getOuter: Outer
       }
@@ -191,7 +191,7 @@ describe('passes along errors when list field errors', () => {
 
 describe('passes along errors for remote schemas', () => {
   it('it works', async () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       type Test {
         field: String!
       }

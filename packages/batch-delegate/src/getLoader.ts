@@ -3,14 +3,9 @@ import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode 
 import DataLoader from 'dataloader';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
-import { relocatedError } from '@graphql-tools/utils';
+import { memoize2, relocatedError } from '@graphql-tools/utils';
 
 import { BatchDelegateOptions } from './types';
-
-const cache1 = new WeakMap<
-  ReadonlyArray<FieldNode>,
-  WeakMap<GraphQLSchema | SubschemaConfig<any, any, any, any>, Map<string, DataLoader<any, any>>>
->();
 
 function createBatchFn<K = any>(options: BatchDelegateOptions) {
   const argsFromKeys = options.argsFromKeys ?? ((keys: ReadonlyArray<K>) => ({ ids: keys }));
@@ -58,40 +53,24 @@ function defaultCacheKeyFn(key: any) {
   return key;
 }
 
+const getLoadersMap = memoize2(function getLoadersMap<K, V, C>(
+  _fieldNodes: readonly FieldNode[],
+  _schema: GraphQLSchema | SubschemaConfig<any, any, any, any>
+) {
+  return new Map<string, DataLoader<K, V, C>>();
+});
+
 export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
   const fieldName = options.fieldName ?? options.info.fieldName;
+  const loaders = getLoadersMap<K, V, C>(options.info.fieldNodes, options.schema);
 
-  let cache2 = cache1.get(options.info.fieldNodes);
+  let loader = loaders.get(fieldName);
 
   // Prevents the keys to be passed with the same structure
   const dataLoaderOptions: DataLoader.Options<any, any, any> = {
     cacheKeyFn: defaultCacheKeyFn,
     ...options.dataLoaderOptions,
   };
-
-  if (cache2 === undefined) {
-    cache2 = new WeakMap();
-    cache1.set(options.info.fieldNodes, cache2);
-    const loaders = new Map();
-    cache2.set(options.schema, loaders);
-    const batchFn = createBatchFn(options);
-    const loader = new DataLoader<K, V, C>(batchFn, dataLoaderOptions);
-    loaders.set(fieldName, loader);
-    return loader;
-  }
-
-  let loaders = cache2.get(options.schema);
-
-  if (loaders === undefined) {
-    loaders = new Map();
-    cache2.set(options.schema, loaders);
-    const batchFn = createBatchFn(options);
-    const loader = new DataLoader<K, V, C>(batchFn, dataLoaderOptions);
-    loaders.set(fieldName, loader);
-    return loader;
-  }
-
-  let loader = loaders.get(fieldName);
 
   if (loader === undefined) {
     const batchFn = createBatchFn(options);

@@ -11,6 +11,6 @@ describe('removeDescription', () => {
       }
     `);
     const out = removeDescriptions(doc);
-    expect(print(out)).toMatchSnapshot();
+    expect(print(out).trim()).toMatchSnapshot();
   })
 })

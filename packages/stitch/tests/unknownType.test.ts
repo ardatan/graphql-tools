@@ -51,7 +51,7 @@ const serviceSchemaConfig = {
 describe('test delegateToSchema() with type renaming', () => {
   let stitchedSchema: GraphQLSchema;
 
-  const typeDefs = `
+  const typeDefs = /* GraphQL */`
   enum Variant {
     A
     B

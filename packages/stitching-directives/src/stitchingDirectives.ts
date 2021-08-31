@@ -30,10 +30,10 @@ export function stitchingDirectives(options: StitchingDirectivesOptions = {}): {
 
   const { keyDirectiveName, computedDirectiveName, mergeDirectiveName, canonicalDirectiveName } = finalOptions;
 
-  const keyDirectiveTypeDefs = `directive @${keyDirectiveName}(selectionSet: String!) on OBJECT`;
-  const computedDirectiveTypeDefs = `directive @${computedDirectiveName}(selectionSet: String!) on FIELD_DEFINITION`;
-  const mergeDirectiveTypeDefs = `directive @${mergeDirectiveName}(argsExpr: String, keyArg: String, keyField: String, key: [String!], additionalArgs: String) on FIELD_DEFINITION`;
-  const canonicalDirectiveTypeDefs = `directive @${canonicalDirectiveName} on OBJECT | INTERFACE | INPUT_OBJECT | UNION | ENUM | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION`;
+  const keyDirectiveTypeDefs = /* GraphQL */ `directive @${keyDirectiveName}(selectionSet: String!) on OBJECT`;
+  const computedDirectiveTypeDefs = /* GraphQL */ `directive @${computedDirectiveName}(selectionSet: String!) on FIELD_DEFINITION`;
+  const mergeDirectiveTypeDefs = /* GraphQL */ `directive @${mergeDirectiveName}(argsExpr: String, keyArg: String, keyField: String, key: [String!], additionalArgs: String) on FIELD_DEFINITION`;
+  const canonicalDirectiveTypeDefs = /* GraphQL */ `directive @${canonicalDirectiveName} on OBJECT | INTERFACE | INPUT_OBJECT | UNION | ENUM | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION`;
 
   const keyDirective = new GraphQLDirective({
     name: keyDirectiveName,

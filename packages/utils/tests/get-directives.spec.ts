@@ -5,7 +5,7 @@ import { GraphQLSchema } from 'graphql';
 
 describe('getDirectives', () => {
   it('should return the correct directives when no directives specified', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       type Query {
         test: String
       }
@@ -17,7 +17,7 @@ describe('getDirectives', () => {
   });
 
   it('should return the correct directives built-in directive specified over FIELD_DEFINITION', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       type Query {
         test: String @deprecated
       }
@@ -34,7 +34,7 @@ describe('getDirectives', () => {
   });
 
   it('should return the correct directives when using custom directive without arguments', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       type Query {
         test: String @mydir
       }
@@ -51,7 +51,7 @@ describe('getDirectives', () => {
   });
 
   it('should return the correct directives when using custom directive with optional argument', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       type Query {
         test: String @mydir(f1: "test")
       }
@@ -70,7 +70,7 @@ describe('getDirectives', () => {
   });
 
   it('should return the correct directives when using custom directive with optional argument an no value', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       type Query {
         test: String @mydir
       }

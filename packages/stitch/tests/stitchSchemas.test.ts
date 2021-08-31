@@ -31,7 +31,7 @@ import {
   remoteProductSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
-} from './fixtures/schemas';
+} from '../../testing/fixtures/schemas';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });
@@ -66,7 +66,7 @@ const testCombinations = [
   },
 ];
 
-const scalarTest = `
+const scalarTest = /* GraphQL */`
   """
   Description of TestScalar.
   """
@@ -117,7 +117,7 @@ const scalarSchema = makeExecutableSchema({
   },
 });
 
-const enumTest = `
+const enumTest = /* GraphQL */`
   """
   A type that uses an Enum.
   """
@@ -196,7 +196,7 @@ const enumSchema = makeExecutableSchema({
   },
 });
 
-const linkSchema = /* GraphQL */`
+const linkSchema = `
   """
   A new type linking the Property type.
   """
@@ -259,14 +259,14 @@ const loneExtend = parse(/* GraphQL */`
   }
 `);
 
-let interfaceExtensionTest = `
+let interfaceExtensionTest = /* GraphQL */`
   # No-op for older versions since this feature does not yet exist
   extend type DownloadableProduct {
     filesize: Int
   }
 `;
 
-interfaceExtensionTest = `
+interfaceExtensionTest = /* GraphQL */`
   extend interface Downloadable {
     filesize: Int
   }
@@ -278,7 +278,7 @@ interfaceExtensionTest = `
 
 // Miscellaneous typeDefs that exercise uncommon branches for the sake of
 // code coverage.
-const codeCoverageTypeDefs = `
+const codeCoverageTypeDefs = /* GraphQL */`
   interface SyntaxNode {
     type: String
   }
@@ -306,7 +306,7 @@ const codeCoverageTypeDefs = `
   }
 `;
 
-const schemaDirectiveTypeDefs = `
+const schemaDirectiveTypeDefs = /* GraphQL */`
   directive @upper on FIELD_DEFINITION
 
   directive @withEnumArg(enumArg: DirectiveEnum = FOO) on FIELD_DEFINITION
@@ -3030,7 +3030,7 @@ fragment BookingFragment on Booking {
 
       test('defaultMergedResolver should work with aliases if parent merged resolver is manually overwritten', async () => {
         // Source: https://github.com/apollographql/graphql-tools/issues/967
-        const typeDefs = `
+        const typeDefs = /* GraphQL */`
             type Query {
               book: Book
             }
@@ -3152,7 +3152,7 @@ fragment BookingFragment on Booking {
 
   describe('empty typeDefs array', () => {
     test('works', async () => {
-      const typeDefs = `
+      const typeDefs = /* GraphQL */`
       type Query {
         book: Book
       }

@@ -1,6 +1,5 @@
 {
   "name": "graphql-tools-monorepo",
-  "version": "6.2.3",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "private": true,
   "scripts": {
@@ -39,9 +38,6 @@
     "url": "https://github.com/ardatan/graphql-tools/issues"
   },
   "homepage": "https://github.com/ardatan/graphql-tools#readme",
-  "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0"
-  },
   "devDependencies": {
     "@babel/core": "7.15.0",
     "@babel/plugin-proposal-class-properties": "7.14.5",

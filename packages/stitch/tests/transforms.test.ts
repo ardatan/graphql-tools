@@ -10,7 +10,7 @@ import { addMocksToSchema } from '@graphql-tools/mock';
 
 import { stitchSchemas } from '../src/stitchSchemas';
 
-import { propertySchema } from './fixtures/schemas';
+import { propertySchema } from '../../testing/fixtures/schemas';
 
 describe('rename root type', () => {
   test('works with stitchSchemas', async () => {

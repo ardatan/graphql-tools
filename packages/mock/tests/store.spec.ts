@@ -3,7 +3,7 @@ import { createMockStore } from '../src';
 import { assertIsRef, Ref } from '../src/types';
 import { makeRef } from '../src/utils';
 
-const typeDefs = `
+const typeDefs = /* GraphQL */`
 type User {
   id: ID!
   age: Int!
@@ -364,7 +364,7 @@ describe('MockStore', () => {
   });
 
   it('should support ID of type number', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       type User {
         id: Int!
         name: String!

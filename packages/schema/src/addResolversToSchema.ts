@@ -180,7 +180,11 @@ function addResolversToExistingSchema(
           type.extensions != null &&
           (resolverValue as GraphQLScalarType).extensions != null
         ) {
-          type.extensions = Object.assign({}, type.extensions, (resolverValue as GraphQLScalarType).extensions);
+          type.extensions = Object.assign(
+            Object.create(null),
+            type.extensions,
+            (resolverValue as GraphQLScalarType).extensions
+          );
         } else {
           type[fieldName] = resolverValue[fieldName];
         }
@@ -209,7 +213,11 @@ function addResolversToExistingSchema(
           type.extensions != null &&
           (resolverValue as GraphQLEnumType).extensions != null
         ) {
-          type.extensions = Object.assign({}, type.extensions, (resolverValue as GraphQLEnumType).extensions);
+          type.extensions = Object.assign(
+            Object.create(null),
+            type.extensions,
+            (resolverValue as GraphQLEnumType).extensions
+          );
         } else if (enumValueConfigMap[fieldName]) {
           enumValueConfigMap[fieldName].value = resolverValue[fieldName];
         }
@@ -294,7 +302,11 @@ function createNewSchemaWithResolvers(
             config.extensions != null &&
             (resolverValue as GraphQLScalarType).extensions != null
           ) {
-            config.extensions = Object.assign({}, type.extensions, (resolverValue as GraphQLScalarType).extensions);
+            config.extensions = Object.assign(
+              Object.create(null),
+              type.extensions,
+              (resolverValue as GraphQLScalarType).extensions
+            );
           } else {
             config[fieldName] = resolverValue[fieldName];
           }
@@ -330,7 +342,11 @@ function createNewSchemaWithResolvers(
             config.extensions != null &&
             (resolverValue as GraphQLEnumType).extensions != null
           ) {
-            config.extensions = Object.assign({}, type.extensions, (resolverValue as GraphQLEnumType).extensions);
+            config.extensions = Object.assign(
+              Object.create(null),
+              type.extensions,
+              (resolverValue as GraphQLEnumType).extensions
+            );
           } else if (enumValueConfigMap[fieldName]) {
             enumValueConfigMap[fieldName].value = resolverValue[fieldName];
           }

@@ -3,7 +3,7 @@ import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { runTests, useMonorepo } from '../../../../testing/utils';
 import path from 'path';
-import { inspect } from 'util';
+import { inspect } from '@graphql-tools/utils';
 
 const monorepo = useMonorepo({
   dirname: __dirname
