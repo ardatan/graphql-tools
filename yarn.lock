@@ -1759,16 +1759,16 @@
   dependencies:
     "@chakra-ui/utils" "1.8.2"
 
-"@changesets/apply-release-plan@5.0.0", "@changesets/apply-release-plan@^5.0.1":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@changesets/apply-release-plan/-/apply-release-plan-5.0.0.tgz#11bf168acecbf4cfa2b0e6425160bac5ceeec1c3"
-  integrity sha512-SE+5nPNSKUyUociPnAvnjYSVF+diciEhX9ZHSqKWMlydswCDjiaq9gz67qwWCmwgEgEOz0TS7VrQBoOlzbitvA==
+"@changesets/apply-release-plan@5.0.1", "@changesets/apply-release-plan@^5.0.1":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@changesets/apply-release-plan/-/apply-release-plan-5.0.1.tgz#ed3e30550f787ef1b72f0a51e29a54d244123109"
+  integrity sha512-ltYLM/PPoL1Un9hnNCbUac25FWonJvIZ/9C3O4UyZ/k4rir9FGvH6KLtMOiPEAJWnXmaHeRDr06MzohuXOnmvw==
   dependencies:
     "@babel/runtime" "^7.10.4"
-    "@changesets/config" "^1.6.0"
+    "@changesets/config" "^1.6.1"
     "@changesets/get-version-range-type" "^0.3.2"
-    "@changesets/git" "^1.1.1"
-    "@changesets/types" "^4.0.0"
+    "@changesets/git" "^1.1.2"
+    "@changesets/types" "^4.0.1"
     "@manypkg/get-packages" "^1.0.1"
     detect-indent "^6.0.0"
     fs-extra "^7.0.1"
@@ -1826,7 +1826,7 @@
     term-size "^2.1.0"
     tty-table "^2.8.10"
 
-"@changesets/config@^1.6.0", "@changesets/config@^1.6.1":
+"@changesets/config@^1.6.1":
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/@changesets/config/-/config-1.6.1.tgz#e9b1636fd56a74411c493c924e6ffa07d7d26091"
   integrity sha512-aQTo6ODvhsvnSFszMP1YbJyAi1DtE1Pes9rL+G+KYJiAOA6k5RzbiKOarjo+ZkKXpX0G3CBAbOO8jXOX4xG7cQ==
@@ -1875,7 +1875,7 @@
   resolved "https://registry.yarnpkg.com/@changesets/get-version-range-type/-/get-version-range-type-0.3.2.tgz#8131a99035edd11aa7a44c341cbb05e668618c67"
   integrity sha512-SVqwYs5pULYjYT4op21F2pVbcrca4qA/bAA3FmFXKMN7Y+HcO8sbZUTx3TAy2VXulP2FACd1aC7f2nTuqSPbqg==
 
-"@changesets/git@^1.1.1", "@changesets/git@^1.1.2":
+"@changesets/git@^1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@changesets/git/-/git-1.1.2.tgz#248d4418bcb2d4f198852409cfcbd06a1fcb0424"
   integrity sha512-dfza8elsIwcYVa4fFzLaPs4+AkoCFiW3sfzkkC7WR+rG9j+zZh7CelzVpnoiAbEI2QOzeCbZKMoLSvBPgHhB1g==
@@ -1927,7 +1927,7 @@
     fs-extra "^7.0.1"
     p-filter "^2.1.0"
 
-"@changesets/types@^4.0.0", "@changesets/types@^4.0.1":
+"@changesets/types@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@changesets/types/-/types-4.0.1.tgz#85cf3cc32baff0691112d9d15fc21fbe022c9f0a"
   integrity sha512-zVfv752D8K2tjyFmxU/vnntQ+dPu+9NupOSguA/2Zuym4tVxRh0ylArgKZ1bOAi2eXfGlZMxJU/kj7uCSI15RQ==
