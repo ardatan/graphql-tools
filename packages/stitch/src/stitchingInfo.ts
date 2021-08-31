@@ -166,8 +166,11 @@ function createMergedTypes<TContext = Record<string, any>>(
           uniqueFields: Object.create({}),
           nonUniqueFields: Object.create({}),
           resolvers,
-          delegationPlanBuilder: createDelegationPlanBuilder(typeName),
-        };
+        } as MergedTypeInfo<TContext>;
+
+        mergedTypes[typeName].delegationPlanBuilder = createDelegationPlanBuilder(
+          mergedTypes[typeName] as MergedTypeInfo
+        );
 
         for (const fieldName in supportedBySubschemas) {
           if (supportedBySubschemas[fieldName].length === 1) {
