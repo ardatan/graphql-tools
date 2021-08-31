@@ -54,6 +54,7 @@ import { astFromType } from './astFromType';
 import { getDirectivesInExtensions } from './get-directives';
 import { astFromValueUntyped } from './astFromValueUntyped';
 import { isSome } from './helpers';
+import { getRootTypeMap } from './rootTypes';
 
 export function getDocumentNodeFromSchema(
   schema: GraphQLSchema,
@@ -121,11 +122,11 @@ export function astFromSchema(
   schema: GraphQLSchema,
   pathToDirectivesInExtensions?: Array<string>
 ): SchemaDefinitionNode | SchemaExtensionNode | null {
-  const operationTypeMap: Record<OperationTypeNode, Maybe<OperationTypeDefinitionNode>> = {
-    query: undefined,
-    mutation: undefined,
-    subscription: undefined,
-  };
+  const operationTypeMap = new Map<OperationTypeNode, OperationTypeDefinitionNode | undefined>([
+    ['query', undefined],
+    ['mutation', undefined],
+    ['subscription', undefined],
+  ]);
 
   const nodes: Array<SchemaDefinitionNode | SchemaExtensionNode> = [];
   if (schema.astNode != null) {
@@ -140,32 +141,30 @@ export function astFromSchema(
   for (const node of nodes) {
     if (node.operationTypes) {
       for (const operationTypeDefinitionNode of node.operationTypes) {
-        operationTypeMap[operationTypeDefinitionNode.operation] = operationTypeDefinitionNode;
+        operationTypeMap.set(operationTypeDefinitionNode.operation, operationTypeDefinitionNode);
       }
     }
   }
 
-  const rootTypeMap: Record<OperationTypeNode, Maybe<GraphQLObjectType>> = {
-    query: schema.getQueryType(),
-    mutation: schema.getMutationType(),
-    subscription: schema.getSubscriptionType(),
-  };
+  const rootTypeMap = getRootTypeMap(schema);
 
-  for (const operationTypeNode in operationTypeMap) {
-    if (rootTypeMap[operationTypeNode] != null) {
-      if (operationTypeMap[operationTypeNode] != null) {
-        operationTypeMap[operationTypeNode].type = astFromType(rootTypeMap[operationTypeNode]);
+  for (const [operationTypeNode, operationTypeDefinitionNode] of operationTypeMap) {
+    const rootType = rootTypeMap.get(operationTypeNode as OperationTypeNode);
+    if (rootType != null) {
+      const rootTypeAST = astFromType(rootType);
+      if (operationTypeDefinitionNode != null) {
+        (operationTypeDefinitionNode as any).type = rootTypeAST;
       } else {
-        operationTypeMap[operationTypeNode] = {
+        operationTypeMap.set(operationTypeNode, {
           kind: Kind.OPERATION_TYPE_DEFINITION,
           operation: operationTypeNode,
-          type: astFromType(rootTypeMap[operationTypeNode]),
-        };
+          type: rootTypeAST,
+        } as OperationTypeDefinitionNode);
       }
     }
   }
 
-  const operationTypes = Object.values(operationTypeMap).filter(isSome);
+  const operationTypes = [...operationTypeMap.values()].filter(isSome);
 
   const directives = getDirectiveNodes(schema, schema, pathToDirectivesInExtensions);
 
