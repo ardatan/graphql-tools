@@ -12,8 +12,8 @@ export function getDefinedRootType(schema: GraphQLSchema, operation: OperationTy
 }
 
 export const getRootTypeNames = memoize1(function getRootTypeNames(schema: GraphQLSchema): Set<string> {
-  const rootTypeMap = getRootTypeMap(schema);
-  return new Set(rootTypeMap.keys());
+  const rootTypes = getRootTypes(schema);
+  return new Set([...rootTypes].map(type => type.name));
 });
 
 export const getRootTypes = memoize1(function getRootTypes(schema: GraphQLSchema): Set<GraphQLObjectType> {
