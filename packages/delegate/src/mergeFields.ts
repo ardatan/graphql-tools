@@ -56,7 +56,7 @@ export async function mergeFields(
     sourceSubschema,
     info.variableValues != null && Object.keys(info.variableValues).length > 0 ? info.variableValues : EMPTY_OBJECT,
     info.fragments != null && Object.keys(info.fragments).length > 0 ? info.fragments : EMPTY_OBJECT,
-    info.fieldNodes?.length > 0 ? (info.fieldNodes as FieldNode[]) : EMPTY_ARRAY
+    info.fieldNodes?.length ? (info.fieldNodes as FieldNode[]) : EMPTY_ARRAY
   );
 
   for (const delegationMap of delegationMaps) {
