@@ -1357,5 +1357,49 @@ describe('Merge TypeDefs', () => {
 
       expect(mergeDirectives(directivesOne, directivesTwo, config)).toEqual(directivesTwo);
     });
+
+    it('should handle tripe quote comments in schema documents', () => {
+      const schemaWithTripleQuotes = gql`
+      type A {
+        """
+        This is a block quote that will fail on 6.2.15 and beyond
+        but will succeed on previous versions.
+        """
+        value: String!
+      }
+    `
+      const reformulatedGraphQL = gql`
+        ${mergeTypeDefs([schemaWithTripleQuotes], { commentDescriptions: true })}
+        `
+
+      expect(reformulatedGraphQL).toBeTruthy()
+    })
+
+    it('should handle single quote comments in schema documents', () => {
+      const schemaWithSingleQuote = gql`
+      type B {
+        "Single quote comment"
+        value: String!
+      }
+      `
+
+      const reformulatedGraphQL = gql`
+        ${mergeTypeDefs([schemaWithSingleQuote], { commentDescriptions: true })}
+      `
+      expect(reformulatedGraphQL).toBeTruthy()
+    })
+
+    it('should handle comment descriptions in schema documents', () => {
+    const schemaWithDescription = gql`
+      type C {
+        #This is a quote that will succed
+        value: String!
+      }
+    `
+    const reformulatedGraphQL = gql`
+      ${mergeTypeDefs([schemaWithDescription], { commentDescriptions: true })}
+    `
+    expect(reformulatedGraphQL).toBeTruthy()
+    })
   })
 });
