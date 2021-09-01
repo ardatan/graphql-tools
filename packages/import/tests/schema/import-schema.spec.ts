@@ -99,7 +99,7 @@ describe('importSchema', () => {
   });
 
   test('parse: multi line import', () => {
-    const sdl = `\
+    const sdl = /* GraphQL */`\
           # import A from 'a.graphql'
           # import * from "b.graphql"
             `;
