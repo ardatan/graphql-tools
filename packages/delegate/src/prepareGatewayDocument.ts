@@ -411,6 +411,22 @@ function wrapConcreteTypes(
         }
       },
       [Kind.FIELD]: (node: FieldNode) => {
+        // workaround for v16 lack of visitorKeys
+        //
+        // in v15, we never enter subfields because we don't visit any keys for nodes of kind `Kind.FIELD`
+        // which automatically means we only visit 'root fields', no matter how nested they are in fragment
+        // nodes.
+        //
+        // In v16, visitorKeys is gone, and we have to enter child fields and explicitly exit by returning
+        // 'false'.
+        const parentType = typeInfo.getParentType();
+        if (parentType == null) {
+          return false;
+        }
+        if (!rootTypeNames.has(parentType.name)) {
+          return false;
+        }
+        // end-workaround
         const type = typeInfo.getType();
         if (type != null && isAbstractType(getNamedType(type))) {
           return {
