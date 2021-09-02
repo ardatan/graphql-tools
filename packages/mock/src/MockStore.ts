@@ -39,6 +39,8 @@ export const defaultMocks = {
   ID: () => uuidv4(),
 };
 
+const defaultKeyFieldNames = ['id', '_id'];
+
 type Entity = {
   [key: string]: unknown;
 };
@@ -555,11 +557,14 @@ export class MockStore implements IMockStore {
       return typePolicyKeyField;
     }
 
-    const gqlType = this.getType(typeName);
-    const fieldNames = Object.keys(gqlType.getFields());
+    // How about common key field names?
 
-    if (fieldNames.includes('id')) return 'id';
-    if (fieldNames.includes('_id')) return '+id';
+    const gqlType = this.getType(typeName);
+    for (const fieldName in gqlType.getFields()) {
+      if (defaultKeyFieldNames.includes(fieldName)) {
+        return fieldName;
+      }
+    }
 
     return null;
   }
