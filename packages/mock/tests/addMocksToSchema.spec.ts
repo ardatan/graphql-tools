@@ -10,6 +10,12 @@ type User {
   book: Book!
 }
 
+type Author {
+  _id: ID!
+  name: String!
+  book: Book!
+}
+
 union UserImage = UserImageSolidColor | UserImageURL
 
 type UserImageSolidColor {
@@ -45,6 +51,7 @@ type ColoringBook implements Book {
 type Query {
   viewer: User!
   userById(id: ID!): User!
+  author: Author!
 }
 
 type Mutation {
@@ -87,6 +94,38 @@ describe('addMocksToSchema', () => {
     const viewerData2 = data2?.['viewer'] as any;
 
     expect(viewerData2['id']).toEqual(viewerData['id']);
+  });
+
+  it('handle _id key field', async () => {
+    const query = /* GraphQL */`
+      query {
+        author {
+          _id
+          name
+        }
+      }
+      `;
+    const mockedSchema = addMocksToSchema({ schema });
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: query,
+    });
+
+
+    expect(errors).not.toBeDefined();
+    expect(data).toBeDefined();
+    const viewerData = data?.['author'] as any;
+    expect(typeof viewerData['_id']).toBe('string')
+    expect(typeof viewerData['name']).toBe('string')
+
+    const { data: data2 } = await graphql({
+      schema: mockedSchema,
+      source: query,
+    });
+
+    const viewerData2 = data2?.['author'] as any;
+
+    expect(viewerData2['_id']).toEqual(viewerData['_id']);
   });
 
   it('mutations resolver', async () => {
