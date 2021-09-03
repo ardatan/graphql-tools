@@ -178,6 +178,11 @@ export interface IMockStore {
   set<KeyT extends KeyTypeConstraints = string>(ref: Ref<KeyT>, values: { [fieldName: string]: any }): void;
 
   /**
+   * Checks if a mock is present in the store for the given typeName and key.
+   */
+  has<KeyT extends KeyTypeConstraints = string>(typeName: string, key: KeyT): boolean;
+
+  /**
    * Resets the mock store
    */
   reset(): void;

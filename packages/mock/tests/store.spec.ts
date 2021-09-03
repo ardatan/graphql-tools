@@ -383,6 +383,62 @@ describe('MockStore', () => {
     expect(typeof user.$ref.key).toBe('number');
   });
 
+  describe('has method', () => {
+    it('should return true if a mocked value has been generated via get', () => {
+      const store = createMockStore({ schema });
+
+      expect(store.has('User', 'user-1')).toBe(false);
+
+      store.get('User', 'user-1', {
+        name: 'User 1',
+      });
+
+      expect(store.has('User', 'user-1')).toBe(true);
+    })
+
+    it('should return true if a mocked value was generated using nested get', () => {
+      const store = createMockStore({ schema });
+
+      expect(store.has('UserImageURL', 'user-image-1')).toBe(false);
+
+      store.get('User', 'user-1', {
+        image: {
+          __typename: 'UserImageURL',
+          id: 'user-image-1',
+        },
+      });
+
+      expect(store.has('UserImageURL', 'user-image-1')).toBe(true);
+    })
+
+    it('should return true if a mocked value has been set', () => {
+      const store = createMockStore({ schema });
+
+      expect(store.has('User', 'user-1')).toBe(false);
+
+      store.set('User', 'user-1', {
+        name: 'User 1',
+      });
+
+      expect(store.has('User', 'user-1')).toBe(true);
+    })
+
+    it('should return true if a mocked value was generated using nested set', () => {
+      const store = createMockStore({ schema });
+
+      expect(store.has('UserImageURL', 'user-image-1')).toBe(false);
+
+      store.set('User', 'user-1', {
+        image: {
+          __typename: 'UserImageURL',
+          id: 'user-image-1',
+        },
+      });
+
+      expect(store.has('UserImageURL', 'user-image-1')).toBe(true);
+    })
+  });
+
   describe('default values', () => {
     it('should be inserted when called with no key', () => {
       const store = createMockStore({ schema });
