@@ -1,5 +1,14 @@
 # @graphql-tools/stitch
 
+## 8.3.1
+
+### Patch Changes
+
+- d4918a78: fix(commentDescriptions): handle descriptions and comments correctly during merge
+- Updated dependencies [d4918a78]
+  - @graphql-tools/merge@8.1.1
+  - @graphql-tools/utils@8.2.2
+
 ## 8.3.0
 
 ### Minor Changes

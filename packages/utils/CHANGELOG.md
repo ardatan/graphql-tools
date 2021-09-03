@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.2.2
+
+### Patch Changes
+
+- d4918a78: fix(commentDescriptions): handle descriptions and comments correctly during merge
+
 ## 8.2.1
 
 ### Patch Changes
