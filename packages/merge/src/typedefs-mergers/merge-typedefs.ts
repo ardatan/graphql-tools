@@ -103,7 +103,7 @@ export function mergeTypeDefs(typeSource: TypeSource, config?: Partial<Config>):
 
   let result: any;
 
-  if (config && config.commentDescriptions) {
+  if (config?.commentDescriptions) {
     result = printWithComments(doc);
   } else {
     result = doc;

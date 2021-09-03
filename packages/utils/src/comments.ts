@@ -61,7 +61,7 @@ export function collectComment(node: NamedDefinitionNode): void {
 }
 
 export function pushComment(node: any, entity: string, field?: string, argument?: string): void {
-  const comment = getDescription(node, { commentDescriptions: true });
+  const comment = getComment(node);
 
   if (typeof comment !== 'string' || comment.length === 0) {
     return;
@@ -249,7 +249,13 @@ const printDocASTReducer: ASTVisitor = {
   IntValue: { leave: ({ value }) => value },
   FloatValue: { leave: ({ value }) => value },
   StringValue: {
-    leave: ({ value, block: isBlockString }) => (isBlockString ? printBlockString(value) : JSON.stringify(value)),
+    leave: ({ value, block: isBlockString }) => {
+      if (isBlockString) {
+        return printBlockString(value);
+      }
+
+      return JSON.stringify(value);
+    },
   },
   BooleanValue: { leave: ({ value }) => (value ? 'true' : 'false') },
   NullValue: { leave: () => 'null' },
@@ -273,8 +279,7 @@ const printDocASTReducer: ASTVisitor = {
   // Type System Definitions
 
   SchemaDefinition: {
-    leave: ({ description, directives, operationTypes }: any) =>
-      wrap('', description, '\n') + join(['schema', join(directives, ' '), block(operationTypes)], ' '),
+    leave: ({ directives, operationTypes }: any) => join(['schema', join(directives, ' '), block(operationTypes)], ' '),
   },
 
   OperationTypeDefinition: {
@@ -282,19 +287,16 @@ const printDocASTReducer: ASTVisitor = {
   },
 
   ScalarTypeDefinition: {
-    leave: ({ description, name, directives }) =>
-      wrap('', description, '\n') + join(['scalar', name, join(directives, ' ')], ' '),
+    leave: ({ name, directives }) => join(['scalar', name, join(directives, ' ')], ' '),
   },
 
   ObjectTypeDefinition: {
-    leave: ({ description, name, interfaces, directives, fields }) =>
-      wrap('', description, '\n') +
+    leave: ({ name, interfaces, directives, fields }) =>
       join(['type', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)], ' '),
   },
 
   FieldDefinition: {
-    leave: ({ description, name, arguments: args, type, directives }) =>
-      wrap('', description, '\n') +
+    leave: ({ name, arguments: args, type, directives }) =>
       name +
       (hasMultilineItems(args as any as string[])
         ? wrap('(\n', indent(join(args, '\n')), '\n)')
@@ -305,13 +307,12 @@ const printDocASTReducer: ASTVisitor = {
   },
 
   InputValueDefinition: {
-    leave: ({ description, name, type, defaultValue, directives }) =>
-      wrap('', description, '\n') + join([name + ': ' + type, wrap('= ', defaultValue), join(directives, ' ')], ' '),
+    leave: ({ name, type, defaultValue, directives }) =>
+      join([name + ': ' + type, wrap('= ', defaultValue), join(directives, ' ')], ' '),
   },
 
   InterfaceTypeDefinition: {
-    leave: ({ description, name, interfaces, directives, fields }: any) =>
-      wrap('', description, '\n') +
+    leave: ({ name, interfaces, directives, fields }: any) =>
       join(
         ['interface', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)],
         ' '
@@ -319,28 +320,24 @@ const printDocASTReducer: ASTVisitor = {
   },
 
   UnionTypeDefinition: {
-    leave: ({ description, name, directives, types }) =>
-      wrap('', description, '\n') + join(['union', name, join(directives, ' '), wrap('= ', join(types, ' | '))], ' '),
+    leave: ({ name, directives, types }) =>
+      join(['union', name, join(directives, ' '), wrap('= ', join(types, ' | '))], ' '),
   },
 
   EnumTypeDefinition: {
-    leave: ({ description, name, directives, values }) =>
-      wrap('', description, '\n') + join(['enum', name, join(directives, ' '), block(values)], ' '),
+    leave: ({ name, directives, values }) => join(['enum', name, join(directives, ' '), block(values)], ' '),
   },
 
   EnumValueDefinition: {
-    leave: ({ description, name, directives }) =>
-      wrap('', description, '\n') + join([name, join(directives, ' ')], ' '),
+    leave: ({ name, directives }) => join([name, join(directives, ' ')], ' '),
   },
 
   InputObjectTypeDefinition: {
-    leave: ({ description, name, directives, fields }) =>
-      wrap('', description, '\n') + join(['input', name, join(directives, ' '), block(fields)], ' '),
+    leave: ({ name, directives, fields }) => join(['input', name, join(directives, ' '), block(fields)], ' '),
   },
 
   DirectiveDefinition: {
-    leave: ({ description, name, arguments: args, repeatable, locations }) =>
-      wrap('', description, '\n') +
+    leave: ({ name, arguments: args, repeatable, locations }) =>
       'directive @' +
       name +
       (hasMultilineItems(args as any as string[])
@@ -413,7 +410,6 @@ function isFieldDefinitionNode(node: any): node is FieldDefinitionNode {
 }
 
 // graphql < v13 and > v15 does not export getDescription
-
 export function getDescription(
   node: { description?: StringValueNode; loc?: Location },
   options?: { commentDescriptions?: boolean }
@@ -422,14 +418,18 @@ export function getDescription(
     return node.description.value;
   }
   if (options?.commentDescriptions) {
-    const rawValue = getLeadingCommentBlock(node);
-    if (rawValue !== undefined) {
-      return dedentBlockStringValue(`\n${rawValue as string}`);
-    }
+    return getComment(node);
   }
 }
 
-export function getLeadingCommentBlock(node: { description?: StringValueNode; loc?: Location }): void | string {
+export function getComment(node: { loc?: Location }): undefined | string {
+  const rawValue = getLeadingCommentBlock(node);
+  if (rawValue !== undefined) {
+    return dedentBlockStringValue(`\n${rawValue as string}`);
+  }
+}
+
+export function getLeadingCommentBlock(node: { loc?: Location }): void | string {
   const loc = node.loc;
   if (!loc) {
     return;
