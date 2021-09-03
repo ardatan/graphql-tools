@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 8.2.1
+
+### Patch Changes
+
+- b2f18d6f: fix(delegate): pass an empty array if fieldNodes is falsy
+
 ## 8.2.0
 
 ### Minor Changes

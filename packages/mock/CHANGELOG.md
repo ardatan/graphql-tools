@@ -1,5 +1,11 @@
 # @graphql-tools/mock
 
+## 8.3.1
+
+### Patch Changes
+
+- 491e961a: fix(mock): fix handling \_id field name
+
 ## 8.3.0
 
 ### Minor Changes
