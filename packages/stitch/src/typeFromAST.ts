@@ -1,5 +1,4 @@
 import {
-  DefinitionNode,
   EnumTypeDefinitionNode,
   FieldDefinitionNode,
   GraphQLEnumType,
@@ -27,13 +26,24 @@ import {
   EnumValueDefinitionNode,
   getDirectiveValues,
   GraphQLDeprecatedDirective,
+  TypeDefinitionNode,
 } from 'graphql';
 
 import { createStub, createNamedStub, Maybe, getDescription } from '@graphql-tools/utils';
 
 const backcompatOptions = { commentDescriptions: true };
 
-export default function typeFromAST(node: DefinitionNode): GraphQLNamedType | GraphQLDirective | null {
+export default typeFromAST;
+
+function typeFromAST(node: ObjectTypeDefinitionNode): GraphQLObjectType;
+function typeFromAST(node: InterfaceTypeDefinitionNode): GraphQLInterfaceType;
+function typeFromAST(node: EnumTypeDefinitionNode): GraphQLEnumType;
+function typeFromAST(node: UnionTypeDefinitionNode): GraphQLUnionType;
+function typeFromAST(node: ScalarTypeDefinitionNode): GraphQLScalarType;
+function typeFromAST(node: InputObjectTypeDefinitionNode): GraphQLInputObjectType;
+function typeFromAST(node: DirectiveDefinitionNode): GraphQLDirective;
+function typeFromAST(node: TypeDefinitionNode): GraphQLNamedType;
+function typeFromAST(node: TypeDefinitionNode | DirectiveDefinitionNode): GraphQLNamedType | GraphQLDirective | null {
   switch (node.kind) {
     case Kind.OBJECT_TYPE_DEFINITION:
       return makeObjectType(node);
@@ -69,9 +79,10 @@ function makeInterfaceType(node: InterfaceTypeDefinitionNode): GraphQLInterfaceT
   const config = {
     name: node.name.value,
     description: getDescription(node, backcompatOptions),
-    interfaces: (node as unknown as ObjectTypeDefinitionNode).interfaces?.map(iface =>
-      createNamedStub(iface.name.value, 'interface')
-    ),
+    interfaces: () =>
+      (node as unknown as ObjectTypeDefinitionNode).interfaces?.map(iface =>
+        createNamedStub(iface.name.value, 'interface')
+      ),
     fields: () => (node.fields != null ? makeFields(node.fields) : {}),
     astNode: node,
   };

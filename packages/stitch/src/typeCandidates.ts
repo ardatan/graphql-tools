@@ -15,7 +15,14 @@ import {
 
 import { wrapSchema } from '@graphql-tools/wrap';
 import { Subschema, SubschemaConfig, StitchingInfo } from '@graphql-tools/delegate';
-import { GraphQLParseOptions, TypeSource, rewireTypes, getRootTypeMap, inspect } from '@graphql-tools/utils';
+import {
+  GraphQLParseOptions,
+  TypeSource,
+  rewireTypes,
+  getRootTypeMap,
+  inspect,
+  getRootTypes,
+} from '@graphql-tools/utils';
 
 import typeFromAST from './typeFromAST';
 import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, TypeMergingOptions } from './types';
@@ -77,7 +84,7 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
     const schema = wrapSchema(subschema);
 
     const rootTypeMap = getRootTypeMap(schema);
-    const rootTypes = Array.from(rootTypeMap.values());
+    const rootTypes = getRootTypes(schema);
 
     for (const [operation, rootType] of rootTypeMap.entries()) {
       addTypeCandidate(typeCandidates, rootTypeNameMap[operation], {
@@ -99,7 +106,7 @@ export function buildTypeCandidates<TContext = Record<string, any>>({
       if (
         isNamedType(type) &&
         getNamedType(type).name.slice(0, 2) !== '__' &&
-        !rootTypes.includes(type as GraphQLObjectType)
+        !rootTypes.has(type as GraphQLObjectType)
       ) {
         addTypeCandidate(typeCandidates, type.name, {
           type,
