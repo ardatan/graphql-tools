@@ -2100,13 +2100,12 @@
     use-immer "^0.6.0"
     zustand "^3.5.10"
 
-"@guild-docs/server@1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-1.0.2.tgz#56e846c5520a85d717f612c72e98654ae88fa1a4"
-  integrity sha512-0hEcMzsL+QVtTI2EEMU/iAbY1F3cwf6coOE1DbdQzNesSXVTR6l/xfWM9/gf7BUWkYoitzqqms8R5GwcCcapow==
+"@guild-docs/server@1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-1.0.3.tgz#d007d9e60e16a4ca656c3eef1d3818324446d958"
+  integrity sha512-Njy71Jot8S0cD3ifVzMUSJMUFvrLKAB/cM4WCp+RfhGtu/q40wHa7l2ELXKQdqAnEsFJw44oA59PbSsYArEb/Q==
   dependencies:
     "@guild-docs/types" "^1.0.0"
-    "@stefanprobst/remark-shiki" "^2.0.0"
     github-slugger "^1.4.0"
     globby "^11.0.4"
     gray-matter "^4.0.3"
@@ -2116,6 +2115,8 @@
     remark-emoji "^3.0.1"
     remark-slug "^7.0.0"
     tiny-lru "^7.0.6"
+    unified "^10.1.0"
+    unist-util-visit "^4.0.0"
 
 "@guild-docs/types@^1.0.0":
   version "1.0.0"
@@ -2677,14 +2678,6 @@
   integrity sha512-iQADsW4LBMISqZ6Ci1dupJL9pprqwcVFTcOsEmQOEhW+KLCVn/Y4Jrvg2k19fIHCp+iFprriYPTdRcQR8NbUPg==
   dependencies:
     "@sinonjs/commons" "^1.7.0"
-
-"@stefanprobst/remark-shiki@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@stefanprobst/remark-shiki/-/remark-shiki-2.0.0.tgz#b508fd9be069c595c8893100a741ffe09a90ae41"
-  integrity sha512-5IpwIZDVaXUXGqUorewHZ1V79iYEB5RgvHgb1KqL++bV6DD5flA1TZQGrvnhmRXhMMLng0tdEQz3Zyk9lsnIzg==
-  dependencies:
-    unified "^10.1.0"
-    unist-util-visit "^4.0.0"
 
 "@theguild/components@1.4.8":
   version "1.4.8"
