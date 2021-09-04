@@ -129,22 +129,22 @@
   resolved "https://registry.yarnpkg.com/@apollo/core-schema/-/core-schema-0.1.0.tgz#a9444f60deaded118657eb3373ddd64ced9ba0cd"
   integrity sha512-BwOWRnDLj1Y3mMdfjdcv8/h7jcfVnUqb+LfpWRX3siXWtGCGsrg+OTj0l7M7uJGOnN6ZM0XJyY9Pk5Lisb7q6Q==
 
-"@apollo/federation@0.30.0", "@apollo/federation@^0.30.0":
-  version "0.30.0"
-  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.30.0.tgz#8f21005aa35364b73283d737aeea6cac09101830"
-  integrity sha512-z255abB6EJGt7W+ffMgYwt8IGR/n3FpFv6WS6htV3F1h4IeIOynZQT5FrrJf5cuhDueMkW1ORaO96jcfmJETgg==
+"@apollo/federation@0.31.0", "@apollo/federation@^0.31.0":
+  version "0.31.0"
+  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.31.0.tgz#2a1ff38f20084e33fbf80d65e7b0d0c0864912ab"
+  integrity sha512-Xe7MisYi1QIOkq/y8GzUR1gK+ykpCP8X9gTzj7rOWeCbYJ1M0nWEgkoYKBNGtDHdeD+KPHm7wfO1HHhspXxZrg==
   dependencies:
     apollo-graphql "^0.9.3"
     apollo-server-types "^3.0.2"
     lodash.xorby "^4.7.0"
 
-"@apollo/gateway@0.39.0":
-  version "0.39.0"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.39.0.tgz#1e8d20597f2325fe574599868c39a450f491cfda"
-  integrity sha512-YGUDyD/TYV9hvj3UqnBsRkwMcTh6iR/y3861LbmudUBvUJcwNzPmC/ZI/f5Q81cWOgUpO6G8brIhkMhmZBuIMQ==
+"@apollo/gateway@0.40.0":
+  version "0.40.0"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.40.0.tgz#77f627edb0e96934c22257f35ca6b6bc3748087d"
+  integrity sha512-4pkUlD5IvE5WATAJ5FSB5C+eGM0bOUK7fX17vC7RhygKqpEh0J2t9C8s0wXfUeRp2rmDaQJWDFOv4CpKfhCntQ==
   dependencies:
     "@apollo/core-schema" "^0.1.0"
-    "@apollo/federation" "^0.30.0"
+    "@apollo/federation" "^0.31.0"
     "@apollo/query-planner" "^0.4.0"
     "@opentelemetry/api" "^1.0.1"
     "@types/node-fetch" "2.5.12"
@@ -246,17 +246,17 @@
     semver "^5.4.1"
     source-map "^0.5.0"
 
-"@babel/core@7.15.4", "@babel/core@^7.1.0", "@babel/core@^7.14.0", "@babel/core@^7.7.2", "@babel/core@^7.7.5":
-  version "7.15.4"
-  resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.15.4.tgz#a70d06c58ae1fce39c23f8efd79f9d5eb8b2f397"
-  integrity sha512-Lkcv9I4a8bgUI8LJOLM6IKv6hnz1KOju6KM1lceqVMKlKKqNRopYd2Pc9MgIurqvMJ6BooemrnJz8jlIiQIpsA==
+"@babel/core@7.15.5", "@babel/core@^7.1.0", "@babel/core@^7.14.0", "@babel/core@^7.7.2", "@babel/core@^7.7.5":
+  version "7.15.5"
+  resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.15.5.tgz#f8ed9ace730722544609f90c9bb49162dc3bf5b9"
+  integrity sha512-pYgXxiwAgQpgM1bNkZsDEq85f0ggXMA5L7c+o3tskGMh2BunCI9QUwB9Z4jpvXUOuMdyGKiGKQiRe11VS6Jzvg==
   dependencies:
     "@babel/code-frame" "^7.14.5"
     "@babel/generator" "^7.15.4"
     "@babel/helper-compilation-targets" "^7.15.4"
     "@babel/helper-module-transforms" "^7.15.4"
     "@babel/helpers" "^7.15.4"
-    "@babel/parser" "^7.15.4"
+    "@babel/parser" "^7.15.5"
     "@babel/template" "^7.15.4"
     "@babel/traverse" "^7.15.4"
     "@babel/types" "^7.15.4"
@@ -488,10 +488,10 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@babel/parser@7.15.4", "@babel/parser@^7.1.0", "@babel/parser@^7.12.5", "@babel/parser@^7.12.7", "@babel/parser@^7.14.0", "@babel/parser@^7.15.0", "@babel/parser@^7.15.4", "@babel/parser@^7.7.2":
-  version "7.15.4"
-  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.15.4.tgz#02f2931b822512d3aad17d475ae83da74a255a84"
-  integrity sha512-xmzz+7fRpjrvDUj+GV7zfz/R3gSK2cOxGlazaXooxspCr539cbTXJKvBJzSVI2pPhcRGquoOtaIkKCsHQUiO3w==
+"@babel/parser@7.15.5", "@babel/parser@^7.1.0", "@babel/parser@^7.12.5", "@babel/parser@^7.12.7", "@babel/parser@^7.14.0", "@babel/parser@^7.15.0", "@babel/parser@^7.15.4", "@babel/parser@^7.15.5", "@babel/parser@^7.7.2":
+  version "7.15.5"
+  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.15.5.tgz#d33a58ca69facc05b26adfe4abebfed56c1c2dac"
+  integrity sha512-2hQstc6I7T6tQsWzlboMh3SgMRPaS4H6H7cPQsJkdzTzEGqQrpLDsE2BGASU5sBPoEQyHzeqU6C8uKbFeEk6sg==
 
 "@babel/plugin-bugfix-v8-spread-parameters-in-optional-chaining@^7.15.4":
   version "7.15.4"
