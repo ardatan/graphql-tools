@@ -1,0 +1,11 @@
+query GetUsers {
+  users {
+    created_on
+    email
+    id
+    password_hash
+    status
+    modified_on
+    role
+  }
+}

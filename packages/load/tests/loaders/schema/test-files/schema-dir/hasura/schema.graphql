@@ -1,0 +1,199 @@
+schema {
+  query: query_root
+}
+
+type AttUser {
+  badgenumber: String
+  code: String
+  name: String
+  userid: ID
+}
+
+type Query {
+  attUser(id: ID!): AttUser
+  attUsers: [AttUser]
+}
+
+"""
+columns and relationships of "users"
+"""
+type users {
+  auth_key: String
+  created_by: Int
+  created_on: Int
+  email: String!
+  id: Int!
+  modified_by: Int
+  modified_on: Int
+  password_hash: String!
+  password_reset_token: String
+  role: String
+  status: Int!
+  username: String
+}
+
+"""query root"""
+type query_root {
+  attUser(id: ID!): AttUser
+  attUsers: [AttUser]
+
+  """
+  fetch data from the table: "users"
+  """
+  users(
+    """distinct select on columns"""
+    distinct_on: [users_select_column!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    order_by: [users_order_by!]
+
+    """filter the rows returned"""
+    where: users_bool_exp
+  ): [users!]!
+}
+
+"""
+expression to compare columns of type Int. All fields are combined with logical 'AND'.
+"""
+input Int_comparison_exp {
+  _eq: Int
+  _gt: Int
+  _gte: Int
+  _in: [Int!]
+  _is_null: Boolean
+  _lt: Int
+  _lte: Int
+  _neq: Int
+  _nin: [Int!]
+}
+
+"""
+expression to compare columns of type String. All fields are combined with logical 'AND'.
+"""
+input String_comparison_exp {
+  _eq: String
+  _gt: String
+  _gte: String
+  _ilike: String
+  _in: [String!]
+  _is_null: Boolean
+  _like: String
+  _lt: String
+  _lte: String
+  _neq: String
+  _nilike: String
+  _nin: [String!]
+  _nlike: String
+  _nsimilar: String
+  _similar: String
+}
+
+"""
+ordering options when selecting data from "users"
+"""
+input users_order_by {
+  auth_key: order_by
+  created_by: order_by
+  created_on: order_by
+  email: order_by
+  id: order_by
+  modified_by: order_by
+  modified_on: order_by
+  password_hash: order_by
+  password_reset_token: order_by
+  role: order_by
+  status: order_by
+  username: order_by
+}
+
+"""
+Boolean expression to filter rows from the table "users". All fields are combined with a logical 'AND'.
+"""
+input users_bool_exp {
+  _and: [users_bool_exp]
+  _not: users_bool_exp
+  _or: [users_bool_exp]
+  auth_key: String_comparison_exp
+  created_by: Int_comparison_exp
+  created_on: Int_comparison_exp
+  email: String_comparison_exp
+  id: Int_comparison_exp
+  modified_by: Int_comparison_exp
+  modified_on: Int_comparison_exp
+  password_hash: String_comparison_exp
+  password_reset_token: String_comparison_exp
+  role: String_comparison_exp
+  status: Int_comparison_exp
+  username: String_comparison_exp
+}
+
+"""column ordering options"""
+enum order_by {
+  """in the ascending order, nulls last"""
+  asc
+
+  """in the ascending order, nulls first"""
+  asc_nulls_first
+
+  """in the ascending order, nulls last"""
+  asc_nulls_last
+
+  """in the descending order, nulls first"""
+  desc
+
+  """in the descending order, nulls first"""
+  desc_nulls_first
+
+  """in the descending order, nulls last"""
+  desc_nulls_last
+}
+
+"""
+select columns of table "users"
+"""
+enum users_select_column {
+  """column name"""
+  auth_key
+
+  """column name"""
+  created_by
+
+  """column name"""
+  created_on
+
+  """column name"""
+  email
+
+  """column name"""
+  employee_id
+
+  """column name"""
+  id
+
+  """column name"""
+  modified_by
+
+  """column name"""
+  modified_on
+
+  """column name"""
+  password_hash
+
+  """column name"""
+  password_reset_token
+
+  """column name"""
+  role
+
+  """column name"""
+  status
+
+  """column name"""
+  username
+}

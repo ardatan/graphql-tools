@@ -1,9 +1,9 @@
-import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
+import { loadDocuments, loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { runTests, useMonorepo } from '../../../../testing/utils';
 import path from 'path';
-import { inspect } from '@graphql-tools/utils';
+import { inspect, validateGraphQlDocuments } from '@graphql-tools/utils';
 
 const monorepo = useMonorepo({
   dirname: __dirname
@@ -188,6 +188,24 @@ describe('schema from typedefs', () => {
         loaders: [new GraphQLFileLoader()],
         includeSources: true,
       });
+    })
+
+    it('should be able to load a schema with Query type but another type as a root query type', async () => {
+      const schema = await loadSchema(['./tests/loaders/schema/test-files/schema-dir/hasura/schema.graphql'], {
+        assumeValidSDL: true,
+        loaders: [new GraphQLFileLoader()],
+        sort: true,
+        convertExtensions: true,
+      });
+
+      const documents = await loadDocuments(['./tests/loaders/schema/test-files/schema-dir/hasura/attusers.graphql', './tests/schema-dir/hasura/users.graphql'], {
+        loaders: [new GraphQLFileLoader()],
+        sort: true,
+        skipGraphQLImport: true,
+      });
+
+      const errors = await validateGraphQlDocuments(schema, documents);
+      expect(errors).toHaveLength(0);
     })
   })
 });

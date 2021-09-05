@@ -1,0 +1,8 @@
+query GetAttUsers {
+  attUsers {
+    badgenumber
+    code
+    name
+    userid
+  }
+}
