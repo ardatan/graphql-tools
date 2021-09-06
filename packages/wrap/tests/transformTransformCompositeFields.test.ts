@@ -71,7 +71,7 @@ describe('TransformCompositeFields', () => {
   });
 
   test('transforms each data object with mapping', async () => {
-    const dataObjects: Array<String> = [];
+    const dataObjects: Array<string> = [];
     const transformedSchema = wrapSchema({
       schema: baseSchema,
       transforms: [
