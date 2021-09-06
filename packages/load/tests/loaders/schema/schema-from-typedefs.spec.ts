@@ -198,7 +198,9 @@ describe('schema from typedefs', () => {
         convertExtensions: true,
       });
 
-      const documents = await loadDocuments(['./tests/loaders/schema/test-files/schema-dir/hasura/attusers.graphql', './tests/schema-dir/hasura/users.graphql'], {
+      const documents = await loadDocuments([
+       './tests/loaders/schema/test-files/schema-dir/hasura/attusers.graphql', 
+       './tests/loaders/schema/test-files/schema-dir/hasura/users.graphql'], {
         loaders: [new GraphQLFileLoader()],
         sort: true,
         skipGraphQLImport: true,
