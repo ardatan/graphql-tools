@@ -71,13 +71,13 @@ describe('TransformCompositeFields', () => {
   });
 
   test('transforms each data object with mapping', async () => {
-    const dataObjects = [];
+    const dataObjects: Array<String> = [];
     const transformedSchema = wrapSchema({
       schema: baseSchema,
       transforms: [
         new TransformCompositeFields(
           (_typeName, _fieldName, fieldConfig) => fieldConfig,
-          null,
+          undefined,
           (obj) => {
             dataObjects.push(obj.__typename);
             if (obj._id) obj._id = obj._id.toUpperCase();
