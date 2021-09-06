@@ -2100,17 +2100,17 @@
     use-immer "^0.6.0"
     zustand "^3.5.10"
 
-"@guild-docs/server@1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-1.0.3.tgz#d007d9e60e16a4ca656c3eef1d3818324446d958"
-  integrity sha512-Njy71Jot8S0cD3ifVzMUSJMUFvrLKAB/cM4WCp+RfhGtu/q40wHa7l2ELXKQdqAnEsFJw44oA59PbSsYArEb/Q==
+"@guild-docs/server@1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-1.0.4.tgz#f4b9d025e02a102957c72e9e1a7866741b30ea5b"
+  integrity sha512-oC9/f1N9J9zbHbYLajMqXSiDYKs4vhFUFTRHAvxyCKlPu+L0iYlEyw4Ad7yVRIpRvB6u32CkrXReipPBQgtSHw==
   dependencies:
     "@guild-docs/types" "^1.0.0"
     github-slugger "^1.4.0"
     globby "^11.0.4"
     gray-matter "^4.0.3"
     next-mdx-remote "^3.0.4"
-    node-fetch "^2.6.1"
+    node-fetch "^2.6.2"
     npms.io "^2.1.0"
     remark-emoji "^3.0.1"
     remark-slug "^7.0.0"
@@ -9002,10 +9002,15 @@ node-emoji@^1.11.0, node-emoji@^1.8.1:
   dependencies:
     lodash "^4.17.21"
 
-node-fetch@2.6.1, node-fetch@^2.6.1:
+node-fetch@2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
   integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
+
+node-fetch@^2.6.1, node-fetch@^2.6.2:
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.2.tgz#986996818b73785e47b1965cc34eb093a1d464d0"
+  integrity sha512-aLoxToI6RfZ+0NOjmWAgn9+LEd30YCkJKFSyWacNZdEKTit/ZMcKjGkTRo8uWEsnIb/hfKecNPEbln02PdWbcA==
 
 node-html-parser@1.4.9:
   version "1.4.9"
