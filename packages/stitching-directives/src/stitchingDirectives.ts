@@ -8,7 +8,7 @@ import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOpt
 import { stitchingDirectivesValidator } from './stitchingDirectivesValidator';
 import { stitchingDirectivesTransformer } from './stitchingDirectivesTransformer';
 
-export function stitchingDirectives(options: StitchingDirectivesOptions = {}): {
+export interface StitchingDirectivesResult {
   keyDirectiveTypeDefs: string;
   computedDirectiveTypeDefs: string;
   mergeDirectiveTypeDefs: string;
@@ -22,7 +22,9 @@ export function stitchingDirectives(options: StitchingDirectivesOptions = {}): {
   mergeDirective: GraphQLDirective;
   canonicalDirective: GraphQLDirective;
   allStitchingDirectives: Array<GraphQLDirective>;
-} {
+}
+
+export function stitchingDirectives(options: StitchingDirectivesOptions = {}): StitchingDirectivesResult {
   const finalOptions: StitchingDirectivesFinalOptions = {
     ...defaultStitchingDirectiveOptions,
     ...options,

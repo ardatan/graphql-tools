@@ -12,7 +12,7 @@ import {
   parse,
   SchemaDefinitionNode,
 } from 'graphql';
-import { stitchingDirectives } from './stitchingDirectives';
+import { stitchingDirectives, StitchingDirectivesResult } from './stitchingDirectives';
 
 const extensionKind = /Extension$/;
 
@@ -47,7 +47,10 @@ function getQueryTypeDef(definitions: readonly DefinitionNode[]): ObjectTypeDefi
 // as the `buildFederatedSchema` helper does a fair amount
 // of hidden work to setup the Federation schema specification:
 // https://www.apollographql.com/docs/federation/federation-spec/#federation-schema-specification
-export function federationToStitchingSDL(federationSDL: string, stitchingConfig = stitchingDirectives()) {
+export function federationToStitchingSDL(
+  federationSDL: string,
+  stitchingConfig: StitchingDirectivesResult = stitchingDirectives()
+): string {
   const doc = parse(federationSDL);
   const entityTypes: string[] = [];
   const baseTypeNames = doc.definitions.reduce((memo, typeDef) => {
