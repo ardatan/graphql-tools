@@ -1,4 +1,5 @@
 ---
+'@graphql-tools/load': patch
 '@graphql-tools/merge': patch
 ---
 
