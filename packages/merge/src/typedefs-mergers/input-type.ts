@@ -14,7 +14,7 @@ export function mergeInputType(
         name: node.name,
         description: node['description'] || existingNode['description'],
         kind:
-          (config && config.convertExtensions) ||
+          config?.convertExtensions ||
           node.kind === 'InputObjectTypeDefinition' ||
           existingNode.kind === 'InputObjectTypeDefinition'
             ? 'InputObjectTypeDefinition'
@@ -28,7 +28,7 @@ export function mergeInputType(
     }
   }
 
-  return config && config.convertExtensions
+  return config?.convertExtensions
     ? {
         ...node,
         kind: 'InputObjectTypeDefinition',

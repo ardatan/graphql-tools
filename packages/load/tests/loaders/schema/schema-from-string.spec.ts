@@ -45,11 +45,15 @@ describe('schema from string', () => {
     });
     it('should load schema from string with schema definition and convertExtensions flag', async () => {
       const schemaString = /* GraphQL */`
-        schema {
-          query: Query
+        extend schema {
+          query: query_root
         }
 
         type Query {
+          not_book: String
+        }
+
+        type query_root {
           book: String
         }
       `;
@@ -58,7 +62,19 @@ describe('schema from string', () => {
         convertExtensions: true
       });
       const printedSchema = printSchemaWithDirectives(schema);
-      expect(printedSchema).toBeSimilarString(schemaString);
+      expect(printedSchema).toBeSimilarString(/* GraphQL */`
+        schema {
+          query: query_root
+        }
+
+        type Query {
+          not_book: String
+        }
+
+        type query_root {
+          book: String
+        }
+      `);
     });
   })
 })
