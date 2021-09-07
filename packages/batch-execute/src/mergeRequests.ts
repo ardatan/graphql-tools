@@ -80,7 +80,10 @@ export function mergeRequests(
         mergedFragmentDefinitions.push(def);
       }
     }
-    Object.assign(mergedVariables, prefixedRequests.variables);
+    for (const variableName in prefixedRequests.variables) {
+      const variableValue = prefixedRequests.variables[variableName];
+      mergedVariables[variableName] = variableValue;
+    }
     mergedExtensions = extensionsReducer(mergedExtensions, request);
   }
 
