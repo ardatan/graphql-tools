@@ -2880,6 +2880,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/graphql-fields@1.3.4":
+  version "1.3.4"
+  resolved "https://registry.yarnpkg.com/@types/graphql-fields/-/graphql-fields-1.3.4.tgz#868ffe444ba8027ea1eccb0909f9c331d1bd620a"
+  integrity sha512-McLJaAaqY7lk9d9y7E61iQrj0AwcEjSb8uHlPh7KgYV+XX1MSLlSt/alhd5k2BPRE8gy/f4lnkLGb5ke3iG66Q==
+  dependencies:
+    graphql "^15.3.0"
+
 "@types/graphql-upload@8.0.7":
   version "8.0.7"
   resolved "https://registry.yarnpkg.com/@types/graphql-upload/-/graphql-upload-8.0.7.tgz#71dd5d4a8d9ddb598df91298d6e98a943061b255"
@@ -6512,6 +6519,11 @@ grapheme-splitter@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/grapheme-splitter/-/grapheme-splitter-1.0.4.tgz#9cf3a665c6247479896834af35cf1dbb4400767e"
   integrity sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==
+
+graphql-fields@2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/graphql-fields/-/graphql-fields-2.0.3.tgz#5e68dff7afbb202be4f4f40623e983b22c96ab8f"
+  integrity sha512-x3VE5lUcR4XCOxPIqaO4CE+bTK8u6gVouOdpQX9+EKHr+scqtK5Pp/l8nIGqIpN1TUlkKE6jDCCycm/WtLRAwA==
 
 graphql-helix@1.7.0:
   version "1.7.0"

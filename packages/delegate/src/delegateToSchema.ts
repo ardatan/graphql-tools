@@ -189,6 +189,8 @@ function validateRequest(delegationContext: DelegationContext<any>, document: Do
   }
 }
 
+const GLOBAL_VALUE = {};
+
 function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): Executor<TContext> {
   const { subschemaConfig, targetSchema, context } = delegationContext;
 
@@ -197,7 +199,7 @@ function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): 
   if (subschemaConfig?.batch) {
     const batchingOptions = subschemaConfig?.batchingOptions;
     executor = getBatchingExecutor(
-      context ?? globalThis ?? window ?? global,
+      context ?? GLOBAL_VALUE,
       executor,
       batchingOptions?.dataLoaderOptions,
       batchingOptions?.extensionsReducer

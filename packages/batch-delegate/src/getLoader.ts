@@ -1,11 +1,13 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode } from 'graphql';
+import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, GraphQLResolveInfo } from 'graphql';
 
 import DataLoader from 'dataloader';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
-import { memoize2, relocatedError } from '@graphql-tools/utils';
+import { memoize1, memoize2, relocatedError } from '@graphql-tools/utils';
 
 import { BatchDelegateOptions } from './types';
+
+import graphqlFields from 'graphql-fields';
 
 function createBatchFn<K = any>(options: BatchDelegateOptions) {
   const argsFromKeys = options.argsFromKeys ?? ((keys: ReadonlyArray<K>) => ({ ids: keys }));
@@ -54,17 +56,24 @@ function defaultCacheKeyFn(key: any) {
 }
 
 const getLoadersMap = memoize2(function getLoadersMap<K, V, C>(
-  _fieldNodes: readonly FieldNode[],
-  _schema: GraphQLSchema | SubschemaConfig<any, any, any, any>
+  _schema: GraphQLSchema | SubschemaConfig<any, any, any, any>,
+  _identifier: any
 ) {
   return new Map<string, DataLoader<K, V, C>>();
 });
 
-export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
-  const fieldName = options.fieldName ?? options.info.fieldName;
-  const loaders = getLoadersMap<K, V, C>(options.info.fieldNodes, options.schema);
+export const getLoaderKey = memoize1(function getLoaderKey(info: GraphQLResolveInfo) {
+  return JSON.stringify(graphqlFields(info));
+});
 
-  let loader = loaders.get(fieldName);
+const GLOBAL_VALUE = {};
+
+export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
+  const loaders = getLoadersMap<K, V, C>(options.schema, options.context || GLOBAL_VALUE);
+
+  const loaderKey = getLoaderKey(options.info);
+
+  let loader = loaders.get(loaderKey);
 
   // Prevents the keys to be passed with the same structure
   const dataLoaderOptions: DataLoader.Options<any, any, any> = {
@@ -75,7 +84,7 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
   if (loader === undefined) {
     const batchFn = createBatchFn(options);
     loader = new DataLoader<K, V, C>(batchFn, dataLoaderOptions);
-    loaders.set(fieldName, loader);
+    loaders.set(loaderKey, loader);
   }
 
   return loader;

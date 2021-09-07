@@ -9,19 +9,12 @@ import { parseKey } from './prefix';
 /**
  * Split and transform result of the query produced by the `merge` function
  */
-export function splitResult({ data, errors }: ExecutionResult, numResults: number): Array<ExecutionResult> {
-  const splitResults: Array<ExecutionResult> = [];
-  for (let i = 0; i < numResults; i++) {
-    splitResults.push({});
-  }
-
+export function splitResult({ data, errors }: ExecutionResult, results: ExecutionResult[], start: number) {
   if (data) {
     for (const prefixedKey in data) {
       const { index, originalKey } = parseKey(prefixedKey);
-      const result = splitResults[index];
-      if (result == null) {
-        continue;
-      }
+      const indexInResults = start + index;
+      const result = (results[indexInResults] = results[indexInResults] || {});
       if (result.data == null) {
         result.data = { [originalKey]: data[prefixedKey] };
       } else {
@@ -36,11 +29,11 @@ export function splitResult({ data, errors }: ExecutionResult, numResults: numbe
         const parsedKey = parseKey(error.path[0] as string);
         const { index, originalKey } = parsedKey;
         const newError = relocatedError(error, [originalKey, ...error.path.slice(1)]);
-        const errors = (splitResults[index].errors = (splitResults[index].errors || []) as GraphQLError[]);
+        const indexInResults = start + index;
+        const result = (results[indexInResults] = results[indexInResults] || {});
+        const errors = (result.errors = (result.errors || []) as GraphQLError[]);
         errors.push(newError);
       }
     }
   }
-
-  return splitResults;
 }

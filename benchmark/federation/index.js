@@ -28,6 +28,7 @@ async function main() {
           delete: async () => true,
         },
         schema: federation.schema,
+        rootValue: {},
         context: {},
       })
       .then(result => res.json(result))
@@ -38,6 +39,7 @@ async function main() {
     execute({
       schema: stitching,
       document: parse(req.body.query),
+      rootValue: {},
       contextValue: {},
     })
       .then(result => {

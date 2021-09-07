@@ -20,10 +20,21 @@ export function createBatchingExecutor(
   };
 }
 
-function createLoadFn(
+type ExtensionsReducer = (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>;
+
+async function executeBatch(
   executor: Executor,
-  extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
+  extensionsReducer: ExtensionsReducer,
+  execBatch: ExecutionRequest[],
+  results: ExecutionResult[],
+  execBatchIndex: number
 ) {
+  const mergedRequest = mergeRequests(execBatch, extensionsReducer);
+  const resultBatches = (await executor(mergedRequest)) as ExecutionResult;
+  splitResult(resultBatches, results, execBatchIndex);
+}
+
+function createLoadFn(executor: Executor, extensionsReducer: ExtensionsReducer) {
   return async function batchExecuteLoadFn(requests: ReadonlyArray<ExecutionRequest>): Promise<Array<ExecutionResult>> {
     const execBatches: Array<Array<ExecutionRequest>> = [];
     let index = 0;
@@ -32,6 +43,9 @@ function createLoadFn(
     execBatches.push(currentBatch);
 
     const operationType = request.operationType;
+
+    const jobs: Promise<void>[] = [];
+    const results: ExecutionResult[] = [];
 
     while (++index < requests.length) {
       const currentOperationType = requests[index].operationType;
@@ -42,20 +56,25 @@ function createLoadFn(
       if (operationType === currentOperationType) {
         currentBatch.push(requests[index]);
       } else {
+        const batchExecutionJob = executeBatch(
+          executor,
+          extensionsReducer,
+          currentBatch,
+          results,
+          execBatches.length - 1
+        );
+        jobs.push(batchExecutionJob);
         currentBatch = [requests[index]];
         execBatches.push(currentBatch);
       }
     }
 
-    const results = await Promise.all(
-      execBatches.map(async execBatch => {
-        const mergedRequests = mergeRequests(execBatch, extensionsReducer);
-        const resultBatches = (await executor(mergedRequests)) as ExecutionResult;
-        return splitResult(resultBatches, execBatch.length);
-      })
-    );
+    const batchExecutionJob = executeBatch(executor, extensionsReducer, currentBatch, results, execBatches.length - 1);
+    jobs.push(batchExecutionJob);
 
-    return results.flat();
+    await Promise.all(jobs);
+
+    return results;
   };
 }
 
@@ -65,7 +84,12 @@ function defaultExtensionsReducer(
 ): Record<string, any> {
   const newExtensions = request.extensions;
   if (newExtensions != null) {
-    Object.assign(mergedExtensions, newExtensions);
+    for (const extensionName in newExtensions) {
+      const newExtension = newExtensions[extensionName];
+      if (newExtension) {
+        mergedExtensions[extensionName] = newExtension;
+      }
+    }
   }
   return mergedExtensions;
 }
