@@ -1,5 +1,15 @@
 # @graphql-tools/load
 
+## 7.3.0
+
+### Minor Changes
+
+- 5225cc71: feat(load): sort the final schema if "sort" option is provided
+
+### Patch Changes
+
+- 9a005161: fix(merge): convertExtensions should convert extensions to regular definitions not other way around
+
 ## 7.2.0
 
 ### Minor Changes
