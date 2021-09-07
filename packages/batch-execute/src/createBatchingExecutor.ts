@@ -56,21 +56,14 @@ function createLoadFn(executor: Executor, extensionsReducer: ExtensionsReducer) 
       if (operationType === currentOperationType) {
         currentBatch.push(requests[index]);
       } else {
-        const batchExecutionJob = executeBatch(
-          executor,
-          extensionsReducer,
-          currentBatch,
-          results,
-          execBatches.length - 1
-        );
-        jobs.push(batchExecutionJob);
+        jobs.push(executeBatch(executor, extensionsReducer, currentBatch, results, execBatches.length - 1));
         currentBatch = [requests[index]];
         execBatches.push(currentBatch);
       }
     }
 
-    const batchExecutionJob = executeBatch(executor, extensionsReducer, currentBatch, results, execBatches.length - 1);
-    jobs.push(batchExecutionJob);
+    // Push the last job
+    jobs.push(executeBatch(executor, extensionsReducer, currentBatch, results, execBatches.length - 1));
 
     await Promise.all(jobs);
 
