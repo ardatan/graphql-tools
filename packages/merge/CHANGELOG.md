@@ -1,5 +1,11 @@
 # @graphql-tools/merge
 
+## 8.1.2
+
+### Patch Changes
+
+- 9a005161: fix(merge): convertExtensions should convert extensions to regular definitions not other way around
+
 ## 8.1.1
 
 ### Patch Changes
