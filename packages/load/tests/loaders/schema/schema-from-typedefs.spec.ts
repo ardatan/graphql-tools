@@ -9,7 +9,7 @@ const monorepo = useMonorepo({
   dirname: __dirname
 });
 
-function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | undefined>{
+function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | undefined> {
   if (input == null) {
     throw new Error(`Value should be neither null nor undefined. But received: ${inspect(input)}`)
   }
@@ -181,9 +181,9 @@ describe('schema from typedefs', () => {
       await load([
         './tests/loaders/schema/test-files/schema-dir/user.graphql',
         './tests/loaders/schema/test-files/schema-dir/invalid.graphql',
-         {
-        '!./tests/loaders/schema/test-files/schema-dir/i*.graphql' : {}
-         }
+        {
+          '!./tests/loaders/schema/test-files/schema-dir/i*.graphql': {}
+        }
       ], {
         loaders: [new GraphQLFileLoader()],
         includeSources: true,

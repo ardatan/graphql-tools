@@ -15,7 +15,7 @@ export function mergeType(
         name: node.name,
         description: node['description'] || existingNode['description'],
         kind:
-          (config && config.convertExtensions) ||
+          config?.convertExtensions ||
           node.kind === 'ObjectTypeDefinition' ||
           existingNode.kind === 'ObjectTypeDefinition'
             ? 'ObjectTypeDefinition'
@@ -30,7 +30,7 @@ export function mergeType(
     }
   }
 
-  return config && config.convertExtensions
+  return config?.convertExtensions
     ? {
         ...node,
         kind: 'ObjectTypeDefinition',

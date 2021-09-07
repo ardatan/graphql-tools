@@ -14,7 +14,7 @@ export function mergeInterface(
         name: node.name,
         description: node['description'] || existingNode['description'],
         kind:
-          (config && config.convertExtensions) ||
+          config?.convertExtensions ||
           node.kind === 'InterfaceTypeDefinition' ||
           existingNode.kind === 'InterfaceTypeDefinition'
             ? 'InterfaceTypeDefinition'
@@ -28,7 +28,7 @@ export function mergeInterface(
     }
   }
 
-  return config && config.convertExtensions
+  return config?.convertExtensions
     ? {
         ...node,
         kind: 'InterfaceTypeDefinition',

@@ -1,4 +1,5 @@
 import '../../../../testing/to-be-similar-string'
+import '../../../../testing/to-be-similar-gql-doc';
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import { runTests, useMonorepo } from '../../../../testing/utils';
@@ -45,11 +46,15 @@ describe('schema from string', () => {
     });
     it('should load schema from string with schema definition and convertExtensions flag', async () => {
       const schemaString = /* GraphQL */`
-        schema {
-          query: Query
+        extend schema {
+          query: query_root
         }
 
         type Query {
+          not_book: String
+        }
+
+        type query_root {
           book: String
         }
       `;
@@ -58,7 +63,19 @@ describe('schema from string', () => {
         convertExtensions: true
       });
       const printedSchema = printSchemaWithDirectives(schema);
-      expect(printedSchema).toBeSimilarString(schemaString);
+      expect(printedSchema).toBeSimilarGqlDoc(/* GraphQL */`
+        schema {
+          query: query_root
+        }
+
+        type Query {
+          not_book: String
+        }
+
+        type query_root {
+          book: String
+        }
+      `);
     });
   })
 })
