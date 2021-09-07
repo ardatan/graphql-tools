@@ -1,5 +1,11 @@
 # @graphql-tools/stitching-directives
 
+## 2.1.1
+
+### Patch Changes
+
+- 320122ba: fix(stitching-directives): export correct typings
+
 ## 2.1.0
 
 ### Minor Changes
