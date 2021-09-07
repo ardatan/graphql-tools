@@ -1,4 +1,5 @@
 import '../../../../testing/to-be-similar-string'
+import '../../../../testing/to-be-similar-gql-doc';
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import { runTests, useMonorepo } from '../../../../testing/utils';
@@ -62,7 +63,7 @@ describe('schema from string', () => {
         convertExtensions: true
       });
       const printedSchema = printSchemaWithDirectives(schema);
-      expect(printedSchema).toBeSimilarString(/* GraphQL */`
+      expect(printedSchema).toBeSimilarGqlDoc(/* GraphQL */`
         schema {
           query: query_root
         }
