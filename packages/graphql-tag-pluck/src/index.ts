@@ -2,9 +2,15 @@ import generateConfig from './config';
 import { parse } from '@babel/parser';
 import { getExtNameFromFilePath } from './libs/extname';
 import createVisitor, { PluckedContent } from './visitor';
-import traverse from '@babel/traverse';
+import traversePkg from '@babel/traverse';
 import { freeText } from './utils';
 import { Source } from 'graphql';
+
+function getDefault<T>(module: T & { default?: T }): T {
+  return module.default || module;
+}
+
+const traverse = getDefault(traversePkg);
 
 /**
  * Additional options for determining how a file is parsed.
