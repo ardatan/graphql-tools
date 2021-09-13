@@ -5631,7 +5631,7 @@ esbuild-register@3.0.0:
   dependencies:
     jsonc-parser "^3.0.0"
 
-esbuild@0.12.26, esbuild@^0.12.20, esbuild@^0.12.9:
+esbuild@0.12.27, esbuild@^0.12.20, esbuild@^0.12.9:
   version "0.12.20"
   resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.12.20.tgz#4d3c9d83c99a4031e027b42a4c398c23b6827cb0"
   integrity sha512-u7+0qTo9Z64MD9PhooEngCmzyEYJ6ovFhPp8PLNh3UasR5Ihjv6HWVXqm8uHmasdQlpsAf0IsY4U0YVUfCpt4Q==
