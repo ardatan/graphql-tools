@@ -10,6 +10,8 @@ import { GraphQLUpload } from 'graphql-upload';
 import { createReadStream, readFileSync } from 'fs';
 import { join } from 'path';
 import { useServer } from 'graphql-ws/lib/use/ws';
+import { createHandler } from 'graphql-sse';
+import { fetch as crossFetch } from 'cross-fetch';
 import { Server as WSServer } from 'ws';
 import http from 'http';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
@@ -434,6 +436,63 @@ input TestInput {
         httpServer.close(done);
       });
     });
+    it('should handle subscriptions - graphql-sse', (done) => {
+      Promise.resolve().then(async () => {
+        const testUrl = 'http://localhost:8081/graphql';
+
+        const [{ schema }] = await loader.load(testUrl, {
+          customFetch: (url, options) => {
+            if (String(options?.body).includes('IntrospectionQuery')) {
+              return {
+                headers: {
+                  'content-type': 'application/json'
+                },
+                json: async () => ({
+                  data: introspectionFromSchema(testSchema),
+                })
+              } as any
+            }
+            return crossFetch(url, options);
+          },
+          subscriptionsProtocol: SubscriptionProtocol.GRAPHQL_SSE
+        });
+
+        const httpServer = http.createServer(createHandler({
+          schema: testSchema,
+        }));
+        httpServer.listen(8081);
+
+        assertNonMaybe(schema)
+        const asyncIterator = await subscribe({
+          schema,
+          document: parse(/* GraphQL */`
+          subscription TestMessage {
+            testMessage {
+              number
+            }
+          }
+        `),
+          contextValue: {},
+        }) as AsyncIterableIterator<ExecutionResult>;
+
+        expect(asyncIterator['errors']).toBeFalsy();
+        expect(asyncIterator['errors']?.length).toBeFalsy();
+
+        // eslint-disable-next-line no-inner-declarations
+        async function getNextResult() {
+          const result = await asyncIterator.next();
+          expect(result?.done).toBeFalsy();
+          return result?.value?.data?.testMessage?.number;
+        }
+
+        expect(await getNextResult()).toBe(0);
+        expect(await getNextResult()).toBe(1);
+        expect(await getNextResult()).toBe(2);
+
+        await asyncIterator.return!();
+        httpServer.close(done);
+      });
+    })
     it('should handle multipart requests', async () => {
       scope = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker, method: 'POST' });
 

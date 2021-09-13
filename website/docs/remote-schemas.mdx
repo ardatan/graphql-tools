@@ -157,6 +157,54 @@ export default async () => {
 };
 ```
 
+#### Using `graphql-sse`
+
+For the following example to work, the server must implement the [GraphQL over Server-Sent Events Protocol](https://github.com/enisdenjo/graphql-sse/blob/master/PROTOCOL.md). Learn more about [`graphql-sse`](https://github.com/enisdenjo/graphql-sse).
+
+```ts
+import { wrapSchema, introspectSchema } from '@graphql-tools/wrap';
+import { Executor } from '@graphql-tools/delegate';
+import { fetch } from 'cross-fetch';
+import AbortController from 'abort-controller'; // node < v15
+import { observableToAsyncIterable } from '@graphql-tools/utils';
+import { createClient } from 'graphql-sse';
+
+const SSE_GRAPHQL_ENDPOINT = 'http://localhost:3000/graphql/stream';
+
+const subscriptionClient = createClient({
+  singleConnection: true,
+  url: SSE_GRAPHQL_ENDPOINT,
+  fetchFn: fetch,
+  abortControllerImpl: AbortController, // node < v15
+});
+
+const executor: Executor = ({ document, variables }) =>
+  observableToAsyncIterable({
+    subscribe: observer => ({
+      unsubscribe: subscriptionClient.subscribe(
+        {
+          query: document,
+          variables,
+        },
+        {
+          next: data => observer.next && observer.next(data),
+          error: error => observer.next && observer.error(err),,
+          complete: () => observer.complete && observer.complete(),
+        }
+      ),
+    }),
+  });
+
+export default async () => {
+  const schema = wrapSchema({
+    schema: await introspectSchema(executor),
+    executor,
+  });
+
+  return schema;
+};
+```
+
 ## API
 
 ### introspectSchema(executor, [context])
