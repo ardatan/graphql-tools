@@ -56,7 +56,6 @@
   ],
   "ignorePatterns": [
     "dist",
-    "dist-es5",
     "node_modules",
     "packages/load/tests/loaders/schema",
     "website",

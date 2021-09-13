@@ -17,8 +17,7 @@
     "lib": true,
     "coverage": true,
     "npm": true,
-    "**/dist": true,
-    "**/dist-es5": true
+    "**/dist": true
   },
   "typescript.tsdk": "node_modules/typescript/lib"
 }
