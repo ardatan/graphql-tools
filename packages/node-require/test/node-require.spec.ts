@@ -9,8 +9,8 @@ describe('GraphQL Node Import', () => {
     const m: any = {};
     handleModule(m, join(__dirname, filePath));
     const typeDefs = m.exports;
-    expect(print(typeDefs).replace(/\s\s+/g, ' ')).toBe(
-      readFileSync(require.resolve(filePath), 'utf8').replace(/\s\s+/g, ' ')
+    expect(print(typeDefs).replace(/\s\s+/g, ' ').trim()).toBe(
+      readFileSync(require.resolve(filePath), 'utf8').replace(/\s\s+/g, ' ').trim()
     );
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/webpack-loader",
-  "version": "6.5.1",
+  "version": "6.6.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -26,14 +26,14 @@
     "definition": "dist/index.d.ts"
   },
   "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0"
+    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "buildOptions": {
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/optimize": "^1.0.1",
-    "@graphql-tools/webpack-loader-runtime": "^6.2.4",
+    "@graphql-tools/optimize": "^1.1.0",
+    "@graphql-tools/webpack-loader-runtime": "^6.3.0",
     "tslib": "~2.3.0"
   },
   "devDependencies": {

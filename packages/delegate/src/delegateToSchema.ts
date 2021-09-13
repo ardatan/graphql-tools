@@ -24,6 +24,7 @@ import {
   AggregateError,
   isAsyncIterable,
   getDefinedRootType,
+  memoize1,
 } from '@graphql-tools/utils';
 
 import {
@@ -131,7 +132,7 @@ function getDelegationContext<TContext>({
     targetFieldName = fieldName;
   }
 
-  const stitchingInfo: Maybe<StitchingInfo<TContext>> = info?.schema.extensions?.['stitchingInfo'];
+  const stitchingInfo = info?.schema.extensions?.['stitchingInfo'] as Maybe<StitchingInfo<TContext>>;
 
   const subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig<any, any, any, any> =
     stitchingInfo?.subschemaMap.get(schema) ?? schema;
@@ -206,33 +207,26 @@ function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): 
   return executor;
 }
 
-const defaultExecutorCache = new WeakMap<GraphQLSchema, Executor>();
-
-export function createDefaultExecutor(schema: GraphQLSchema): Executor {
-  let defaultExecutor = defaultExecutorCache.get(schema);
-  if (!defaultExecutor) {
-    defaultExecutor = function defaultExecutor({
+export const createDefaultExecutor = memoize1(function createDefaultExecutor(schema: GraphQLSchema): Executor {
+  return function defaultExecutor({
+    document,
+    context,
+    variables,
+    rootValue,
+    operationName,
+    operationType,
+  }: ExecutionRequest) {
+    const executionArgs: ExecutionArgs = {
+      schema,
       document,
-      context,
-      variables,
+      contextValue: context,
+      variableValues: variables,
       rootValue,
       operationName,
-      operationType,
-    }: ExecutionRequest) {
-      const executionArgs: ExecutionArgs = {
-        schema,
-        document,
-        contextValue: context,
-        variableValues: variables,
-        rootValue,
-        operationName,
-      };
-      if (operationType === 'subscription') {
-        return subscribe(executionArgs);
-      }
-      return execute(executionArgs);
-    } as Executor;
-    defaultExecutorCache.set(schema, defaultExecutor);
-  }
-  return defaultExecutor;
-}
+    };
+    if (operationType === 'subscription') {
+      return subscribe(executionArgs);
+    }
+    return execute(executionArgs);
+  } as Executor;
+});

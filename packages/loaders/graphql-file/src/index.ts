@@ -121,7 +121,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
             const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
             const rawSDL: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
             finalResult.push(this.handleFileContent(rawSDL, normalizedFilePath, options));
-          } catch (e) {
+          } catch (e: any) {
             if (env['DEBUG']) {
               console.error(e);
             }
@@ -152,7 +152,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
           const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
           const rawSDL = readFileSync(normalizedFilePath, { encoding: 'utf8' });
           finalResult.push(this.handleFileContent(rawSDL, normalizedFilePath, options));
-        } catch (e) {
+        } catch (e: any) {
           if (env['DEBUG']) {
             console.error(e);
           }

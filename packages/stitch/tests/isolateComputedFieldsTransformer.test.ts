@@ -7,7 +7,7 @@ import { assertSome } from '@graphql-tools/utils';
 describe('isolateComputedFieldsTransformer', () => {
   describe('basic isolation', ()    => {
     const storefrontSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Product {
           id: ID!
           shippingEstimate: Float!
@@ -105,7 +105,7 @@ describe('isolateComputedFieldsTransformer', () => {
 
   describe('fully computed type', () => {
     const storefrontSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Product {
           computedOne: String!
           computedTwo: String!
@@ -145,7 +145,7 @@ describe('isolateComputedFieldsTransformer', () => {
 
   describe('multiple computed types', () => {
     const storefrontSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Product {
           base: String!
           computeMe: String!
@@ -216,7 +216,7 @@ describe('isolateComputedFieldsTransformer', () => {
   describe('with computed interface fields', () => {
     it('shifts computed interface fields into computed schema', async () => {
       const testSchema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           interface IProduct {
             base: String!
             computeMe: String!
@@ -262,7 +262,7 @@ describe('isolateComputedFieldsTransformer', () => {
   describe('with multiple entryPoints', () => {
     it('includes all entryPoint fields', async () => {
       const testSchema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           type Product {
             id: ID!
             upc: ID!

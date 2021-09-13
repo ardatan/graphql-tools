@@ -1,5 +1,42 @@
 # @graphql-tools/merge
 
+## 8.1.2
+
+### Patch Changes
+
+- 9a005161: fix(merge): convertExtensions should convert extensions to regular definitions not other way around
+
+## 8.1.1
+
+### Patch Changes
+
+- d4918a78: fix(commentDescriptions): handle descriptions and comments correctly during merge
+- Updated dependencies [d4918a78]
+  - @graphql-tools/utils@8.2.2
+
+## 8.1.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+
+### Patch Changes
+
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+  - @graphql-tools/utils@8.2.0
+
+## 8.0.3
+
+### Patch Changes
+
+- c8c13ed1: enhance: remove TypeMap and small improvements
+- Updated dependencies [c8c13ed1]
+  - @graphql-tools/utils@8.1.2
+
 ## 8.0.2
 
 ### Patch Changes

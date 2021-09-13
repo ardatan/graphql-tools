@@ -14,7 +14,7 @@ export function mergeInputType(
         name: node.name,
         description: node['description'] || existingNode['description'],
         kind:
-          (config && config.convertExtensions) ||
+          config?.convertExtensions ||
           node.kind === 'InputObjectTypeDefinition' ||
           existingNode.kind === 'InputObjectTypeDefinition'
             ? 'InputObjectTypeDefinition'
@@ -23,12 +23,12 @@ export function mergeInputType(
         fields: mergeFields<InputValueDefinitionNode>(node, node.fields, existingNode.fields, config),
         directives: mergeDirectives(node.directives, existingNode.directives, config),
       } as any;
-    } catch (e) {
+    } catch (e: any) {
       throw new Error(`Unable to merge GraphQL input type "${node.name.value}": ${e.message}`);
     }
   }
 
-  return config && config.convertExtensions
+  return config?.convertExtensions
     ? {
         ...node,
         kind: 'InputObjectTypeDefinition',

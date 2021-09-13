@@ -16,12 +16,14 @@ import {
   GraphQLOutputType,
   isObjectType,
   FieldNode,
+  VisitorKeyMap,
+  ASTKindToNode,
 } from 'graphql';
 
-import { implementsAbstractType, getRootTypeNames } from '@graphql-tools/utils';
+import { implementsAbstractType, getRootTypeNames, memoize2 } from '@graphql-tools/utils';
 
-import { memoize2 } from './memoize';
 import { getDocumentMetadata } from './getDocumentMetadata';
+import { StitchingInfo } from './types';
 
 export function prepareGatewayDocument(
   originalDocument: DocumentNode,
@@ -55,6 +57,15 @@ export function prepareGatewayDocument(
     definitions: [...operations, ...fragments, ...expandedFragments],
   };
 
+  const visitorKeyMap: Partial<VisitorKeyMap<ASTKindToNode>> = {
+    Document: ['definitions'],
+    OperationDefinition: ['selectionSet'],
+    SelectionSet: ['selections'],
+    Field: ['selectionSet'],
+    InlineFragment: ['selectionSet'],
+    FragmentDefinition: ['selectionSet'],
+  };
+
   return visit(
     expandedDocument,
     visitWithTypeInfo(typeInfo, {
@@ -75,61 +86,7 @@ export function prepareGatewayDocument(
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
     // empty keys cannot be removed only because of typescript errors
     // will hopefully be fixed in future version of graphql-js to be optional
-    {
-      Name: [],
-
-      Document: ['definitions'],
-      OperationDefinition: ['selectionSet'],
-      VariableDefinition: [],
-      Variable: [],
-      SelectionSet: ['selections'],
-      Field: ['selectionSet'],
-      Argument: [],
-
-      FragmentSpread: [],
-      InlineFragment: ['selectionSet'],
-      FragmentDefinition: ['selectionSet'],
-
-      IntValue: [],
-      FloatValue: [],
-      StringValue: [],
-      BooleanValue: [],
-      NullValue: [],
-      EnumValue: [],
-      ListValue: [],
-      ObjectValue: [],
-      ObjectField: [],
-
-      Directive: [],
-
-      NamedType: [],
-      ListType: [],
-      NonNullType: [],
-
-      SchemaDefinition: [],
-      OperationTypeDefinition: [],
-
-      ScalarTypeDefinition: [],
-      ObjectTypeDefinition: [],
-      FieldDefinition: [],
-      InputValueDefinition: [],
-      InterfaceTypeDefinition: [],
-      UnionTypeDefinition: [],
-      EnumTypeDefinition: [],
-      EnumValueDefinition: [],
-      InputObjectTypeDefinition: [],
-
-      DirectiveDefinition: [],
-
-      SchemaExtension: [],
-
-      ScalarTypeExtension: [],
-      ObjectTypeExtension: [],
-      InterfaceTypeExtension: [],
-      UnionTypeExtension: [],
-      EnumTypeExtension: [],
-      InputObjectTypeExtension: [],
-    }
+    visitorKeyMap as any
   );
 }
 
@@ -332,13 +289,14 @@ const getSchemaMetaData = memoize2(
       }
     }
 
+    const stitchingInfo = sourceSchema.extensions?.['stitchingInfo'] as StitchingInfo;
     return {
       possibleTypesMap,
       reversePossibleTypesMap: reversePossibleTypesMap(possibleTypesMap),
       interfaceExtensionsMap,
-      fieldNodesByType: sourceSchema.extensions?.['stitchingInfo']?.fieldNodesByType ?? {},
-      fieldNodesByField: sourceSchema.extensions?.['stitchingInfo']?.fieldNodesByField ?? {},
-      dynamicSelectionSetsByField: sourceSchema.extensions?.['stitchingInfo']?.dynamicSelectionSetsByField ?? {},
+      fieldNodesByType: stitchingInfo?.fieldNodesByType ?? {},
+      fieldNodesByField: stitchingInfo?.fieldNodesByField ?? {},
+      dynamicSelectionSetsByField: stitchingInfo?.dynamicSelectionSetsByField ?? {},
     };
   }
 );
@@ -433,6 +391,16 @@ function wrapConcreteTypes(
   const rootTypeNames = getRootTypeNames(targetSchema);
 
   const typeInfo = new TypeInfo(targetSchema);
+
+  const visitorKeys: Partial<VisitorKeyMap<ASTKindToNode>> = {
+    Document: ['definitions'],
+    OperationDefinition: ['selectionSet'],
+    SelectionSet: ['selections'],
+
+    InlineFragment: ['selectionSet'],
+    FragmentDefinition: ['selectionSet'],
+  };
+
   return visit(
     document,
     visitWithTypeInfo(typeInfo, {
@@ -470,60 +438,6 @@ function wrapConcreteTypes(
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
     // empty keys cannot be removed only because of typescript errors
     // will hopefully be fixed in future version of graphql-js to be optional
-    {
-      Name: [],
-
-      Document: ['definitions'],
-      OperationDefinition: ['selectionSet'],
-      VariableDefinition: [],
-      Variable: [],
-      SelectionSet: ['selections'],
-      Field: [],
-      Argument: [],
-
-      FragmentSpread: [],
-      InlineFragment: ['selectionSet'],
-      FragmentDefinition: ['selectionSet'],
-
-      IntValue: [],
-      FloatValue: [],
-      StringValue: [],
-      BooleanValue: [],
-      NullValue: [],
-      EnumValue: [],
-      ListValue: [],
-      ObjectValue: [],
-      ObjectField: [],
-
-      Directive: [],
-
-      NamedType: [],
-      ListType: [],
-      NonNullType: [],
-
-      SchemaDefinition: [],
-      OperationTypeDefinition: [],
-
-      ScalarTypeDefinition: [],
-      ObjectTypeDefinition: [],
-      FieldDefinition: [],
-      InputValueDefinition: [],
-      InterfaceTypeDefinition: [],
-      UnionTypeDefinition: [],
-      EnumTypeDefinition: [],
-      EnumValueDefinition: [],
-      InputObjectTypeDefinition: [],
-
-      DirectiveDefinition: [],
-
-      SchemaExtension: [],
-
-      ScalarTypeExtension: [],
-      ObjectTypeExtension: [],
-      InterfaceTypeExtension: [],
-      UnionTypeExtension: [],
-      EnumTypeExtension: [],
-      InputObjectTypeExtension: [],
-    }
+    visitorKeys as any
   );
 }

@@ -4,7 +4,7 @@ import isPromise from 'is-promise';
 const GraphQLUpload = new GraphQLScalarType({
   name: 'Upload',
   description: 'The `Upload` scalar type represents a file upload.',
-  parseValue: value => {
+  parseValue: (value: any) => {
     if (value != null && isPromise(value.promise)) {
       // graphql-upload v10
       return value.promise;

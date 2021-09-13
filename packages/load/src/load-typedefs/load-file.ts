@@ -13,7 +13,7 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
         try {
           const loaderResults = await loader.load(pointer, options);
           loaderResults?.forEach(result => results!.push(result));
-        } catch (error) {
+        } catch (error: any) {
           if (env['DEBUG']) {
             console.error(error);
           }
@@ -58,7 +58,7 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Sou
         // We check for the existence so it is okay to force non null
         const loaderResults = loader.loadSync!(pointer, options);
         loaderResults?.forEach(result => results!.push(result));
-      } catch (error) {
+      } catch (error: any) {
         if (env['DEBUG']) {
           console.error(error);
         }

@@ -12,7 +12,7 @@ import {
 import { DelegationPlanBuilder, MergedTypeInfo, StitchingInfo, Subschema } from '@graphql-tools/delegate';
 
 import { getFieldsNotInSubschema } from './getFieldsNotInSubschema';
-import { memoize1, memoize2, memoize3 } from './memoize';
+import { memoize1, memoize2, memoize3, memoize5 } from '@graphql-tools/utils';
 
 function calculateDelegationStage(
   mergedTypeInfo: MergedTypeInfo,
@@ -131,29 +131,21 @@ function getStitchingInfo(schema: GraphQLSchema): StitchingInfo {
   return stitchingInfo;
 }
 
-function getMergedTypeInfo(stitchingInfo: StitchingInfo, typeName: string): MergedTypeInfo {
-  const mergedTypeInfo = stitchingInfo.mergedTypes[typeName];
-  if (!mergedTypeInfo) {
-    throw new Error(`Type "${typeName}" is not a merged type.`);
-  }
-  return mergedTypeInfo;
-}
-
-export function createDelegationPlanBuilder(typeName: string): DelegationPlanBuilder {
-  return (
+export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): DelegationPlanBuilder {
+  return memoize5(function delegationPlanBuilder(
     schema: GraphQLSchema,
     sourceSubschema: Subschema<any, any, any, any>,
-    fieldNodes: ReadonlyArray<FieldNode>,
-    fragments: Record<string, FragmentDefinitionNode> = Object.create(null),
-    variableValues: Record<string, any> = Object.create(null),
-    stitchingInfo = getStitchingInfo(schema),
-    mergedTypeInfo = getMergedTypeInfo(stitchingInfo, typeName),
-    targetSubschemas = mergedTypeInfo?.targetSubschemas.get(sourceSubschema)
-  ): Array<Map<Subschema, SelectionSetNode>> => {
+    variableValues: Record<string, any>,
+    fragments: Record<string, FragmentDefinitionNode>,
+    fieldNodes: FieldNode[]
+  ): Array<Map<Subschema, SelectionSetNode>> {
+    const stitchingInfo = getStitchingInfo(schema);
+    const targetSubschemas = mergedTypeInfo?.targetSubschemas.get(sourceSubschema);
     if (!targetSubschemas || !targetSubschemas.length) {
       return [];
     }
 
+    const typeName = mergedTypeInfo.typeName;
     const fieldsNotInSubschema = getFieldsNotInSubschema(
       schema,
       stitchingInfo,
@@ -195,7 +187,7 @@ export function createDelegationPlanBuilder(typeName: string): DelegationPlanBui
     }
 
     return delegationMaps;
-  };
+  });
 }
 
 const createSubschemas = memoize1(function createSubschemas(sourceSubschema: Subschema): Array<Subschema> {

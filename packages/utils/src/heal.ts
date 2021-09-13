@@ -158,7 +158,7 @@ export function healTypes(
 
   function healInterfaces(type: GraphQLObjectType | GraphQLInterfaceType) {
     if ('getInterfaces' in type) {
-      const interfaces = type.getInterfaces();
+      const interfaces = type.getInterfaces() as GraphQLInterfaceType[];
       interfaces.push(
         ...interfaces
           .splice(0)
@@ -179,7 +179,7 @@ export function healTypes(
   }
 
   function healUnderlyingTypes(type: GraphQLUnionType) {
-    const types = type.getTypes();
+    const types = type.getTypes() as GraphQLObjectType[];
     types.push(
       ...types
         .splice(0)

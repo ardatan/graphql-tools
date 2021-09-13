@@ -5,7 +5,7 @@ import { stitchSchemas } from '../src/stitchSchemas';
 
 describe('merge on multiple keys', () => {
   const catalogSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Product {
         upc: ID!
         name: String
@@ -22,7 +22,7 @@ describe('merge on multiple keys', () => {
   });
 
   const vendorSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Product {
         id: ID!
         upc: ID!
@@ -44,7 +44,7 @@ describe('merge on multiple keys', () => {
   });
 
   const reviewsSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Product {
         id: ID!
         reviews: [String]
@@ -114,7 +114,9 @@ describe('merge on multiple keys', () => {
   }];
 
   test('works from middle join outward', async () => {
-    const { data } = await graphql(gatewaySchema, `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         productsByKey(keys: [{ id: "101" }]) {
           id
@@ -124,13 +126,15 @@ describe('merge on multiple keys', () => {
           reviews
         }
       }
-    `);
+    `});
     assertSome(data)
     expect(data['productsByKey']).toEqual(result);
   });
 
   test('works from upc -> join -> id', async () => {
-    const { data } = await graphql(gatewaySchema, `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         productsByUpc(upcs: ["1"]) {
           id
@@ -140,13 +144,15 @@ describe('merge on multiple keys', () => {
           reviews
         }
       }
-    `);
+    `});
     assertSome(data)
     expect(data['productsByUpc']).toEqual(result);
   });
 
   test('works from id -> join -> upc', async () => {
-    const { data } = await graphql(gatewaySchema, `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         productsById(ids: ["101"]) {
           id
@@ -156,7 +162,7 @@ describe('merge on multiple keys', () => {
           reviews
         }
       }
-    `);
+    `});
     assertSome(data)
     expect(data['productsById']).toEqual(result);
   });

@@ -14,7 +14,7 @@ export function mergeInterface(
         name: node.name,
         description: node['description'] || existingNode['description'],
         kind:
-          (config && config.convertExtensions) ||
+          config?.convertExtensions ||
           node.kind === 'InterfaceTypeDefinition' ||
           existingNode.kind === 'InterfaceTypeDefinition'
             ? 'InterfaceTypeDefinition'
@@ -23,12 +23,12 @@ export function mergeInterface(
         fields: mergeFields(node, node.fields, existingNode.fields, config),
         directives: mergeDirectives(node.directives, existingNode.directives, config),
       } as any;
-    } catch (e) {
+    } catch (e: any) {
       throw new Error(`Unable to merge GraphQL interface "${node.name.value}": ${e.message}`);
     }
   }
 
-  return config && config.convertExtensions
+  return config?.convertExtensions
     ? {
         ...node,
         kind: 'InterfaceTypeDefinition',

@@ -7,7 +7,7 @@ import { relocatedError } from '../src/errors';
 import { visitResult } from '../src/visitResult';
 
 describe('visiting results', () => {
-  const schema = buildSchema(`
+  const schema = buildSchema(/* GraphQL */`
     interface TestInterface {
       field: String
     }
@@ -205,7 +205,7 @@ describe('visiting results', () => {
 });
 
 describe('visiting nested results', () => {
-  const schema = buildSchema(`
+  const schema = buildSchema(/* GraphQL */`
     type User {
       name: String
     }
@@ -219,7 +219,7 @@ describe('visiting nested results', () => {
   `);
 
   const request = {
-    document: parse(`{
+    document: parse(/* GraphQL */`{
       userGroups {
         name
         subGroupedUsers {
@@ -273,7 +273,7 @@ describe('visiting nested results', () => {
 });
 
 describe('visiting nested results', () => {
-  const schema = buildSchema(`
+  const schema = buildSchema(/* GraphQL */`
     type User {
       name: String
     }
@@ -287,7 +287,7 @@ describe('visiting nested results', () => {
   `);
 
   const request = {
-    document: parse(`{
+    document: parse(/* GraphQL */`{
       userGroups {
         name
         subGroupedUsers {
@@ -341,7 +341,7 @@ describe('visiting nested results', () => {
 });
 
 describe('visiting errors', () => {
-  const schema = buildSchema(`
+  const schema = buildSchema(/* GraphQL */`
     interface TestInterface {
       field: String
     }

@@ -4,7 +4,7 @@ import { graphql } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
 
 const productSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */`
     type Product {
       id: ID!
       price: Float!
@@ -24,7 +24,7 @@ const productSchema = makeExecutableSchema({
 
 describe('merge computed fields via config', () => {
   const storefrontSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Product {
         id: ID!
         shippingEstimate: Float!
@@ -97,7 +97,9 @@ describe('merge computed fields via config', () => {
   });
 
   it('can stitch from product service to inventory service', async () => {
-    const { data } = await graphql(gatewaySchema, `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         product(id: 77) {
           id
@@ -107,7 +109,7 @@ describe('merge computed fields via config', () => {
           deliveryService
         }
       }
-    `);
+    `});
 
     assertSome(data)
     expect(data['product']).toEqual({
@@ -120,7 +122,9 @@ describe('merge computed fields via config', () => {
   });
 
   it('can stitch from inventory service to product service and back to inventory service', async () => {
-    const { data } = await graphql(gatewaySchema, `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         storefront(id: 77) {
           availableProducts {
@@ -132,10 +136,11 @@ describe('merge computed fields via config', () => {
           }
         }
       }
-    `);
+    `});
 
     assertSome(data)
-    expect(data['storefront'].availableProducts).toEqual([
+    const storeFrontData: any = data['storefront'];
+    expect(storeFrontData.availableProducts).toEqual([
       {
         id: '23',
         price: 23.99,
@@ -176,7 +181,9 @@ describe('merge computed fields via config', () => {
       ],
     });
 
-    const { data } = await graphql(oldComputedSchema, `
+    const { data } = await graphql({
+      schema: oldComputedSchema,
+      source: /* GraphQL */`
       query {
         product(id: 77) {
           id
@@ -185,7 +192,7 @@ describe('merge computed fields via config', () => {
           deliveryService
         }
       }
-    `);
+    `});
 
     assertSome(data)
     expect(data['product']).toEqual({
@@ -199,7 +206,7 @@ describe('merge computed fields via config', () => {
 
 describe('merge computed fields via SDL (Apollo Federation-style directive annotation)', () => {
   const storefrontSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       directive @computed(selectionSet: String!) on FIELD_DEFINITION
 
       type Product {
@@ -261,7 +268,9 @@ describe('merge computed fields via SDL (Apollo Federation-style directive annot
   });
 
   it('can stitch from inventory service to product service and back to inventory service', async () => {
-    const { data } = await graphql(gatewaySchema, `
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         storefront(id: 77) {
           availableProducts {
@@ -273,10 +282,11 @@ describe('merge computed fields via SDL (Apollo Federation-style directive annot
           }
         }
       }
-    `);
+    `});
 
     assertSome(data)
-    expect(data['storefront'].availableProducts).toEqual([
+    const storeFrontData: any = data['storefront'];
+    expect(storeFrontData.availableProducts).toEqual([
       {
         id: '23',
         price: 23.99,

@@ -15,7 +15,7 @@ export function mergeType(
         name: node.name,
         description: node['description'] || existingNode['description'],
         kind:
-          (config && config.convertExtensions) ||
+          config?.convertExtensions ||
           node.kind === 'ObjectTypeDefinition' ||
           existingNode.kind === 'ObjectTypeDefinition'
             ? 'ObjectTypeDefinition'
@@ -25,12 +25,12 @@ export function mergeType(
         directives: mergeDirectives(node.directives, existingNode.directives, config),
         interfaces: mergeNamedTypeArray(node.interfaces, existingNode.interfaces, config),
       } as any;
-    } catch (e) {
+    } catch (e: any) {
       throw new Error(`Unable to merge GraphQL type "${node.name.value}": ${e.message}`);
     }
   }
 
-  return config && config.convertExtensions
+  return config?.convertExtensions
     ? {
         ...node,
         kind: 'ObjectTypeDefinition',

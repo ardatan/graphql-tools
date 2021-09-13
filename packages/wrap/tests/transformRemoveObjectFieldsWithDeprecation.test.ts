@@ -4,7 +4,7 @@ import { assertGraphQLObjectType } from '../../testing/assertion';
 
 describe('RemoveObjectFieldsWithDeprecation', () => {
   const originalSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Test {
         id: ID!
         first: String! @deprecated(reason: "do not remove")

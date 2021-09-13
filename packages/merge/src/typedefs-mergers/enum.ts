@@ -13,7 +13,7 @@ export function mergeEnum(
       name: e1.name,
       description: e1['description'] || e2['description'],
       kind:
-        (config && config.convertExtensions) || e1.kind === 'EnumTypeDefinition' || e2.kind === 'EnumTypeDefinition'
+        config?.convertExtensions || e1.kind === 'EnumTypeDefinition' || e2.kind === 'EnumTypeDefinition'
           ? 'EnumTypeDefinition'
           : 'EnumTypeExtension',
       loc: e1.loc,
@@ -22,7 +22,7 @@ export function mergeEnum(
     } as any;
   }
 
-  return config && config.convertExtensions
+  return config?.convertExtensions
     ? {
         ...e1,
         kind: 'EnumTypeDefinition',

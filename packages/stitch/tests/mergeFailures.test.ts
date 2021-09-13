@@ -5,7 +5,7 @@ import { graphql, GraphQLError, GraphQLSchema } from 'graphql';
 
 describe('merge failures', () => {
   const firstSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Thing {
         id: ID!
         name: String!
@@ -48,7 +48,7 @@ describe('merge failures', () => {
 
   it('proxies merged errors', async () => {
     const secondSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Thing {
           id: ID!
           description: String!
@@ -66,7 +66,9 @@ describe('merge failures', () => {
 
     const gatewaySchema = getGatewaySchema(secondSchema);
 
-    const result = await graphql(gatewaySchema, `
+    const result = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         thing(id: 23) {
           id
@@ -74,7 +76,7 @@ describe('merge failures', () => {
           description
         }
       }
-    `);
+    `});
 
     const expectedResult: ExecutionResult = {
       data: { thing: null },
@@ -86,7 +88,7 @@ describe('merge failures', () => {
 
   test('proxies merged error arrays', async () => {
     const schema1 = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Thing {
           id: ID!
           name: String
@@ -104,7 +106,7 @@ describe('merge failures', () => {
     });
 
     const schema2 = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type ParentThing {
           thing: Thing
         }
@@ -138,14 +140,17 @@ describe('merge failures', () => {
       }],
     });
 
-    const stitchedResult = await graphql(stitchedSchema, '{ parent { thing { name desc id } } }');
+    const stitchedResult = await graphql({
+      schema: stitchedSchema,
+      source: '{ parent { thing { name desc id } } }'
+    });
     assertSome(stitchedResult.errors)
     expect(stitchedResult.errors[0].path).toEqual(['parent', 'thing', 'name']);
   });
 
   it('proxies inappropriate null', async () => {
     const secondSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Thing {
           id: ID!
           description: String!
@@ -163,15 +168,18 @@ describe('merge failures', () => {
 
     const gatewaySchema = getGatewaySchema(secondSchema);
 
-    const result = await graphql(gatewaySchema, `
-      query {
-        thing(id: 23) {
-          id
-          name
-          description
+    const result = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
+        query {
+          thing(id: 23) {
+            id
+            name
+            description
+          }
         }
-      }
-    `);
+      `
+    });
 
     const expectedResult: ExecutionResult = {
       data: { thing: null },
@@ -183,7 +191,7 @@ describe('merge failures', () => {
 
   it('proxies errors on object', async () => {
     const secondSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Thing {
           id: ID!
           description: String!
@@ -201,15 +209,18 @@ describe('merge failures', () => {
 
     const gatewaySchema = getGatewaySchema(secondSchema);
 
-    const result = await graphql(gatewaySchema, `
-      query {
-        thing(id: 23) {
-          id
-          name
-          description
+    const result = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
+        query {
+          thing(id: 23) {
+            id
+            name
+            description
+          }
         }
-      }
-    `);
+      `
+    });
 
     const expectedResult: ExecutionResult = {
       data: { thing: null },
@@ -229,7 +240,7 @@ describe('nullable merging', () => {
     ];
 
     const usersSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           username: String!
@@ -251,7 +262,7 @@ describe('nullable merging', () => {
     ];
 
     const appSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           appSetting1: String
@@ -298,7 +309,9 @@ describe('nullable merging', () => {
       ],
     });
 
-    const result = await graphql(gatewaySchema, `
+    const result = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */`
       query {
         users(ids: [1, 2, 3]) {
           id
@@ -307,7 +320,7 @@ describe('nullable merging', () => {
           appSetting2
         }
       }
-    `);
+    `});
 
     const expectedResult = {
       data: {

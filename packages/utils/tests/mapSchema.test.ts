@@ -35,7 +35,7 @@ describe('mapSchema', () => {
 
     expect(newSchema).toBeInstanceOf(GraphQLSchema);
 
-    const result = graphqlSync(newSchema, '{ version }');
+    const result = graphqlSync({ schema: newSchema, source: /* GraphQL */`{ version }` });
     expect(result.data?.['version']).toBe(1);
   });
 
@@ -206,11 +206,14 @@ describe('mapSchema', () => {
       const { upperDirectiveTypeDefs, upperDirectiveTransformer } = upperDirective('upper');
 
       const schemaWithResolvers = makeExecutableSchema({
-        typeDefs: [upperDirectiveTypeDefs, `
-        type Query {
-          hello: String @upper
-        }
-      `],
+        typeDefs: [
+          upperDirectiveTypeDefs,
+          /* GraphQL */`
+            type Query {
+              hello: String @upper
+            }
+          `
+        ],
         resolvers: {
           Query: {
             hello() {
@@ -222,14 +225,14 @@ describe('mapSchema', () => {
 
       const schema = upperDirectiveTransformer(schemaWithResolvers);
 
-      return graphql(
+      return graphql({
         schema,
-        `
+        source: /* GraphQL */`
         query {
           hello
         }
       `,
-      ).then(({ data }) => {
+      }).then(({ data }) => {
         expect(data).toEqual({
           hello: 'HELLO WORLD',
         });
@@ -288,7 +291,7 @@ describe('mapSchema', () => {
                 const { resolve = defaultFieldResolver } = fieldConfig;
                 const { format } = dateDirective;
                 fieldConfig.resolve = async (source, args, context, info) => {
-                  const date = await resolve(source, args, context, info);
+                  const date: any = await resolve(source, args, context, info);
                   return formatDate(date, format, true);
                 };
                 return fieldConfig;
@@ -318,14 +321,14 @@ describe('mapSchema', () => {
       })
       const schema = dateDirectiveTransformer(rawSchema);
 
-      return graphql(
+      return graphql({
         schema,
-        `
-        query {
-          today
-        }
-      `,
-      ).then(({ data }) => {
+        source: /* GraphQL */`
+          query {
+            today
+          }
+        `,
+      }).then(({ data }) => {
         expect(data).toEqual({
           today: 'February 26, 2018',
         });
@@ -362,7 +365,7 @@ describe('mapSchema', () => {
                   info,
                 ) => {
                   const newFormat = format || defaultFormat;
-                  const date = await resolve(source, args, context, info);
+                  const date: any = await resolve(source, args, context, info);
                   return formatDate(date, newFormat, true);
                 };
                 return fieldConfig;
@@ -393,7 +396,7 @@ describe('mapSchema', () => {
 
       const schema = formattableDateDirectiveTransformer(rawSchema);
 
-      const resultNoArg = await graphql(schema, 'query { today }');
+      const resultNoArg = await graphql({schema, source: 'query { today }'});
 
       if (resultNoArg.errors != null) {
         expect(resultNoArg.errors).toEqual([]);
@@ -401,14 +404,14 @@ describe('mapSchema', () => {
 
       expect(resultNoArg.data).toEqual({ today: 'March 15, 2018' });
 
-      const resultWithArg = await graphql(
+      const resultWithArg = await graphql({
         schema,
-        `
+        source: `
         query {
           today(format: "dd mmm yyyy")
         }
       `,
-      );
+      });
 
       if (resultWithArg.errors != null) {
         expect(resultWithArg.errors).toEqual([]);
@@ -500,24 +503,23 @@ describe('mapSchema', () => {
       const schema = authDirectiveTransformer(rawSchema);
 
       function execWithRole(role: string): Promise<ExecutionResult> {
-        return graphql(
+        return graphql({
           schema,
-          `
-          query {
-            users {
-              name
-              banned
-              canPost
+          source: /* GraphQL */`
+            query {
+              users {
+                name
+                banned
+                canPost
+              }
             }
-          }
-        `,
-          null,
-          {
+          `,
+          contextValue: {
             headers: {
               authToken: role,
             },
           },
-        );
+        });
       }
 
       function assertStringArray(input: Array<unknown>): asserts input is Array<string> {
@@ -554,10 +556,11 @@ describe('mapSchema', () => {
         execWithRole('ADMIN')
           .then(checkErrors(0))
           .then((data) => {
-            expect(data?.['users'].length).toBe(1);
-            expect(data?.['users'][0].banned).toBe(true);
-            expect(data?.['users'][0].canPost).toBe(false);
-            expect(data?.['users'][0].name).toBe('Ben');
+            const usersData: any = data?.['users'];
+            expect(usersData?.length).toBe(1);
+            expect(usersData?.[0].banned).toBe(true);
+            expect(usersData?.[0].canPost).toBe(false);
+            expect(usersData?.[0].name).toBe('Ben');
           }),
       ]);
     });
@@ -569,8 +572,8 @@ describe('mapSchema', () => {
             super({
               name: `${type.name}WithLengthAtMost${maxLength.toString()}`,
 
-              serialize(value: string) {
-                const newValue: string = type.serialize(value);
+              serialize(value) {
+                const newValue = type.serialize(value) as string;
                 expect(typeof newValue.length).toBe('number');
                 if (newValue.length > maxLength) {
                   throw new Error(
@@ -582,8 +585,8 @@ describe('mapSchema', () => {
                 return newValue;
               },
 
-              parseValue(value: string) {
-                return type.parseValue(value);
+              parseValue(value) {
+                return type.parseValue(value) as string;
               },
 
               parseLiteral(ast) {
@@ -674,29 +677,29 @@ describe('mapSchema', () => {
       });
       const schema = lengthDirectiveTransformer(rawSchema);
 
-      const { errors } = await graphql(
+      const { errors } = await graphql({
         schema,
-        `
+        source: `
         query {
           books {
             title
           }
         }
       `,
-      );
+      });
       expect(errors?.length).toBe(1);
       expect(errors?.[0].message).toBe('expected 26 to be at most 10');
 
-      const result = await graphql(
+      const result = await graphql({
         schema,
-        `
+        source: `
         mutation {
           createBook(book: { title: "safe title" }) {
             title
           }
         }
       `,
-      );
+      });
 
       if (result.errors != null) {
         expect(result.errors).toEqual([]);
@@ -779,9 +782,9 @@ describe('mapSchema', () => {
       });
       const schema = uniqueIDDirectiveTransformer(rawSchema);
 
-      return graphql(
+      return graphql({
         schema,
-        `
+        source: `
         query {
           people {
             uid
@@ -794,10 +797,7 @@ describe('mapSchema', () => {
             address
           }
         }
-      `,
-        null,
-        {},
-      ).then((result) => {
+      `,}).then((result) => {
         const { data } = result;
 
         expect(data?.['people']).toEqual([
@@ -1098,14 +1098,14 @@ describe('mapSchema', () => {
 
       const transformedSchema = transformers.reduce((acc, curr) => curr(acc), schema);
 
-      return graphql(
-        transformedSchema,
-        `
+      return graphql({
+        schema: transformedSchema,
+        source: `
         query {
           hello
         }
       `,
-      ).then(({ data }) => {
+      }).then(({ data }) => {
         expect(data).toEqual({
           hello: 'DLROW OLLEH',
         });
@@ -1181,9 +1181,9 @@ describe('mapSchema', () => {
 
       schema = addMocksToSchema({ schema });
 
-      const result = await graphql(
+      const result = await graphql({
         schema,
-        `
+        source: `
         query {
           me {
             friends {
@@ -1194,7 +1194,7 @@ describe('mapSchema', () => {
           }
         }
       `,
-      );
+      });
 
       const expectedResult: any = {
         me: {

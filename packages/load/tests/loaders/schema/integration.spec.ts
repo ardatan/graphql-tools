@@ -23,7 +23,7 @@ describe('loadSchema', () => {
           loaders: [new CodeFileLoader()]
         });
         expect(true).toBeFalsy(); // should throw
-      } catch (e) {
+      } catch (e: any) {
         expect(e.toString()).toContain(`SyntaxError`);
       }
     });
@@ -72,5 +72,30 @@ describe('loadSchema', () => {
         }
       `);
     });
+
+    test('should sort the final schema if "sort" option provided', async () => {
+      const schemaPath = './tests/loaders/schema/test-files/schema-dir/non-sorted.graphql';
+      const schema = await load(schemaPath, {
+        loaders: [new GraphQLFileLoader()],
+        sort: true
+      });
+      expect(printSchema(schema)).toBeSimilarGqlDoc(/* GraphQL */`
+        type A {
+          b: String
+          s: String
+        }
+
+        type Query {
+          a: String
+          d: String
+          z: String
+        }
+
+        type User {
+          a: String
+          aa: String
+        }
+      `);
+    })
 })
 });

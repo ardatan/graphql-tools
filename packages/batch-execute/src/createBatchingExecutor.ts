@@ -13,8 +13,9 @@ export function createBatchingExecutor(
     request: ExecutionRequest
   ) => Record<string, any> = defaultExtensionsReducer
 ): Executor {
-  const loader = new DataLoader(createLoadFn(executor, extensionsReducer), dataLoaderOptions);
-  return (request: ExecutionRequest) => {
+  const loadFn = createLoadFn(executor, extensionsReducer);
+  const loader = new DataLoader(loadFn, dataLoaderOptions);
+  return function batchingExecutor(request: ExecutionRequest) {
     return request.operationType === 'subscription' ? executor(request) : loader.load(request);
   };
 }

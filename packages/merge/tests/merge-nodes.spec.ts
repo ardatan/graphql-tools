@@ -6,8 +6,8 @@ import { assertSome } from '@graphql-tools/utils';
 describe('Merge Nodes', () => {
   describe('type', () => {
     it('Should merge two GraphQL types correctly when one of them is empty', () => {
-      const type1 = parse(`type A { f1: String }`);
-      const type2 = parse(`type A`);
+      const type1 = parse(/* GraphQL */`type A { f1: String }`);
+      const type2 = parse(/* GraphQL */`type A`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const type = merged['A'];
       assertObjectTypeDefinitionNode(type)
@@ -19,8 +19,8 @@ describe('Merge Nodes', () => {
     });
 
     it('Should merge two GraphQL Types correctly', () => {
-      const type1 = parse(`type A { f1: String }`);
-      const type2 = parse(`type A { f2: Int }`);
+      const type1 = parse(/* GraphQL */`type A { f1: String }`);
+      const type2 = parse(/* GraphQL */`type A { f2: Int }`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const type = merged['A'];
       assertObjectTypeDefinitionNode(type)
@@ -36,8 +36,8 @@ describe('Merge Nodes', () => {
     });
 
     it('Should merge two GraphQL Types correctly when they have shared fields', () => {
-      const type1 = parse(`type A { f1: String }`);
-      const type2 = parse(`type A { f1: String, f2: Int}`);
+      const type1 = parse(/* GraphQL */`type A { f1: String }`);
+      const type2 = parse(/* GraphQL */`type A { f1: String, f2: Int}`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const type = merged['A'];
       assertObjectTypeDefinitionNode(type)
@@ -53,8 +53,8 @@ describe('Merge Nodes', () => {
     });
 
     it('Should merge GraphQL Types that extends the same interface', () => {
-      const type1 = parse(`interface Base { f1: String } type A implements Base { f1: String }`);
-      const type2 = parse(`interface Base { f1: String } type A implements Base { f2: Int}`);
+      const type1 = parse(/* GraphQL */`interface Base { f1: String } type A implements Base { f1: String }`);
+      const type2 = parse(/* GraphQL */`interface Base { f1: String } type A implements Base { f2: Int}`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const type = merged['A'];
       assertObjectTypeDefinitionNode(type)
@@ -65,8 +65,8 @@ describe('Merge Nodes', () => {
     });
 
     it('Should merge GraphQL Types that has interface and then override without it', () => {
-      const type1 = parse(`interface Base { f1: String } type A implements Base { f1: String }`);
-      const type2 = parse(`type A { f2: Int}`);
+      const type1 = parse(/* GraphQL */`interface Base { f1: String } type A implements Base { f1: String }`);
+      const type2 = parse(/* GraphQL */`type A { f2: Int}`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const type  = merged['A'];
       assertObjectTypeDefinitionNode(type)
@@ -77,8 +77,8 @@ describe('Merge Nodes', () => {
     });
 
     it('Should merge GraphQL Types and preserve directives and not override', () => {
-      const type1 = parse(`type A @test { f1: String }`);
-      const type2 = parse(`type A { f2: Int}`);
+      const type1 = parse(/* GraphQL */`type A @test { f1: String }`);
+      const type2 = parse(/* GraphQL */`type A { f2: Int}`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const type = merged['A'];
       assertObjectTypeDefinitionNode(type)
@@ -89,8 +89,8 @@ describe('Merge Nodes', () => {
     });
 
     it('Should merge GraphQL Types and preserve directives and merge multiple', () => {
-      const type1 = parse(`type A @test { f1: String }`);
-      const type2 = parse(`type A @other { f2: Int}`);
+      const type1 = parse(/* GraphQL */`type A @test { f1: String }`);
+      const type2 = parse(/* GraphQL */`type A @other { f2: Int}`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const type = merged['A'];
       assertObjectTypeDefinitionNode(type)
@@ -102,8 +102,8 @@ describe('Merge Nodes', () => {
     });
 
     it('Should merge GraphQL Types and preserve directives', () => {
-      const type1 = parse(`type A @test { f1: String }`);
-      const type2 = parse(`type A @test { f2: Int}`);
+      const type1 = parse(/* GraphQL */`type A @test { f1: String }`);
+      const type2 = parse(/* GraphQL */`type A @test { f2: Int}`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const type = merged['A'];
       assertObjectTypeDefinitionNode(type)
@@ -114,8 +114,8 @@ describe('Merge Nodes', () => {
     });
 
     it('Should merge GraphQL Types and merge directives', () => {
-      const type1 = parse(`type A @test { f1: String }`);
-      const type2 = parse(`type A @test2 { f2: Int}`);
+      const type1 = parse(/* GraphQL */`type A @test { f1: String }`);
+      const type2 = parse(/* GraphQL */`type A @test2 { f2: Int}`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const type = merged['A'];
       assertObjectTypeDefinitionNode(type)
@@ -127,8 +127,8 @@ describe('Merge Nodes', () => {
     });
 
     it('Should merge GraphQL Types and merge directives (reversed)', () => {
-      const type1 = parse(`type A @test { f1: String }`);
-      const type2 = parse(`type A @test2 { f2: Int}`);
+      const type1 = parse(/* GraphQL */`type A @test { f1: String }`);
+      const type2 = parse(/* GraphQL */`type A @test2 { f2: Int}`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions], {
         reverseDirectives: true,
       });
@@ -142,8 +142,8 @@ describe('Merge Nodes', () => {
     });
 
     it('Should merge GraphQL Types that extends the different interfaces', () => {
-      const type1 = parse(`interface Base1 { f1: String } type A implements Base1 { f1: String }`);
-      const type2 = parse(`interface Base2 { f2: Int } type A implements Base2 { f2: Int}`);
+      const type1 = parse(/* GraphQL */`interface Base1 { f1: String } type A implements Base1 { f1: String }`);
+      const type2 = parse(/* GraphQL */`interface Base2 { f2: Int } type A implements Base2 { f2: Int}`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const type = merged['A'];
       assertObjectTypeDefinitionNode(type)
@@ -155,8 +155,8 @@ describe('Merge Nodes', () => {
     });
 
     it('Should merge two GraphQL Types correctly when they have a conflict', () => {
-      const type1 = parse(`type A { f1: String }`);
-      const type2 = parse(`type A { f1: Int }`);
+      const type1 = parse(/* GraphQL */`type A { f1: String }`);
+      const type2 = parse(/* GraphQL */`type A { f1: Int }`);
       const mergedFn = () => mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
 
       expect(mergedFn).toThrowError('Unable to merge GraphQL type "A": Field "f1" already defined with a different type. Declared as "String", but you tried to override with "Int"');
@@ -165,8 +165,8 @@ describe('Merge Nodes', () => {
 
   describe('enum', () => {
     it('should merge different enums values', () => {
-      const type1 = parse(`enum A { T }`);
-      const type2 = parse(`enum A { S }`);
+      const type1 = parse(/* GraphQL */`enum A { T }`);
+      const type2 = parse(/* GraphQL */`enum A { S }`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const result = merged['A']
       assertEnumTypeDefinitionNode(result)
@@ -177,8 +177,8 @@ describe('Merge Nodes', () => {
     });
 
     it('should merge different same values', () => {
-      const type1 = parse(`enum A { T }`);
-      const type2 = parse(`enum A { T }`);
+      const type1 = parse(/* GraphQL */`enum A { T }`);
+      const type2 = parse(/* GraphQL */`enum A { T }`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const result = merged['A'];
       assertEnumTypeDefinitionNode(result)
@@ -189,8 +189,8 @@ describe('Merge Nodes', () => {
     });
 
     it('should merge directives correctly', () => {
-      const type1 = parse(`enum A @test { T }`);
-      const type2 = parse(`enum A @test2 { T }`);
+      const type1 = parse(/* GraphQL */`enum A @test { T }`);
+      const type2 = parse(/* GraphQL */`enum A @test2 { T }`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const result = merged['A'];
       assertEnumTypeDefinitionNode(result)
@@ -202,8 +202,8 @@ describe('Merge Nodes', () => {
     });
 
     it('should merge directives correctly when only one defined', () => {
-      const type1 = parse(`enum A @test { T }`);
-      const type2 = parse(`enum A { S }`);
+      const type1 = parse(/* GraphQL */`enum A @test { T }`);
+      const type2 = parse(/* GraphQL */`enum A { S }`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const result = merged['A'];
       assertEnumTypeDefinitionNode(result)
@@ -216,8 +216,8 @@ describe('Merge Nodes', () => {
 
   describe('union', () => {
     it('should merge unions possible types', () => {
-      const type1 = parse(`type A union C = A`);
-      const type2 = parse(`type B union C = B`);
+      const type1 = parse(/* GraphQL */`type A union C = A`);
+      const type2 = parse(/* GraphQL */`type B union C = B`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const result = merged['C'];
       assertUnionTypeDefinitionNode(result)
@@ -231,8 +231,8 @@ describe('Merge Nodes', () => {
 
   describe('scalar', () => {
     it('should merge scalar with the same type', () => {
-      const type1 = parse(`scalar A`);
-      const type2 = parse(`scalar A`);
+      const type1 = parse(/* GraphQL */`scalar A`);
+      const type2 = parse(/* GraphQL */`scalar A`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const result = merged['A'];
       assertScalarTypeDefinitionNode(result)
@@ -243,8 +243,8 @@ describe('Merge Nodes', () => {
 
   describe('input', () => {
     it('should merge input', () => {
-      const type1 = parse(`input A { f1: String }`);
-      const type2 = parse(`input A { f2: String }`);
+      const type1 = parse(/* GraphQL */`input A { f1: String }`);
+      const type2 = parse(/* GraphQL */`input A { f2: String }`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const result = merged['A'];
       assertInputObjectTypeDefinitionNode(result)
@@ -256,8 +256,8 @@ describe('Merge Nodes', () => {
     });
 
     it('should merge input and prefer NonNullable over Nullable', () => {
-      const type1 = parse(`input A { f1: String }`);
-      const type2 = parse(`input A { f1: String! }`);
+      const type1 = parse(/* GraphQL */`input A { f1: String }`);
+      const type2 = parse(/* GraphQL */`input A { f1: String! }`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const result = merged['A'];
       assertInputObjectTypeDefinitionNode(result)
@@ -271,8 +271,8 @@ describe('Merge Nodes', () => {
 
   describe('schema', () => {
     it('should merge Query type correctly', () => {
-      const type1 = parse(`type Query { f1: String }`);
-      const type2 = parse(`type Query { f2: String }`);
+      const type1 = parse(/* GraphQL */`type Query { f1: String }`);
+      const type2 = parse(/* GraphQL */`type Query { f2: String }`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       const type = merged['Query'];
       assertObjectTypeDefinitionNode(type)
@@ -288,8 +288,8 @@ describe('Merge Nodes', () => {
     });
 
     it.skip('should remove schema definition', () => {
-      const type1 = parse(`schema { query: Query } type Query { f1: String }`);
-      const type2 = parse(`type Query { f2: String }`);
+      const type1 = parse(/* GraphQL */`schema { query: Query } type Query { f1: String }`);
+      const type2 = parse(/* GraphQL */`type Query { f2: String }`);
       const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
       expect(Object.values(merged).length).toBe(1);
     });

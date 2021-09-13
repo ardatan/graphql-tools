@@ -4,7 +4,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 
 describe('type merging with only field selection sets', () => {
   const listingsSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Listing {
         id: ID!
         sellerId: ID!
@@ -22,7 +22,7 @@ describe('type merging with only field selection sets', () => {
   });
 
   const usersSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type User {
         id: ID!
         userName: String
@@ -80,8 +80,9 @@ describe('type merging with only field selection sets', () => {
   });
 
   test('errors without selectionSet...', async () => {
-    const result = await graphql(
-      stitchedSchema, `
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */`
         query {
           listing(id: 23) {
             id
@@ -94,7 +95,7 @@ describe('type merging with only field selection sets', () => {
           }
         }
       `,
-    );
+    });
 
     const expectedResult = {
       data: {

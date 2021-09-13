@@ -1,5 +1,27 @@
 # @graphql-tools/mock
 
+## 8.3.1
+
+### Patch Changes
+
+- 491e961a: fix(mock): fix handling \_id field name
+
+## 8.3.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+
+### Patch Changes
+
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+  - @graphql-tools/utils@8.2.0
+  - @graphql-tools/schema@8.2.0
+
 ## 8.2.2
 
 ### Patch Changes

@@ -1,5 +1,22 @@
 # @graphql-tools/wrap
 
+## 8.1.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+
+### Patch Changes
+
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+  - @graphql-tools/delegate@8.2.0
+  - @graphql-tools/utils@8.2.0
+  - @graphql-tools/schema@8.2.0
+
 ## 8.0.13
 
 ### Patch Changes

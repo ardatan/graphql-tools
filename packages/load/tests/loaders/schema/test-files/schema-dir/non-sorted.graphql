@@ -1,0 +1,15 @@
+type Query {
+  d: String
+  z: String
+  a: String
+}
+
+type User {
+  aa: String
+  a: String
+}
+
+type A {
+  s: String
+  b: String
+}

@@ -1,6 +1,6 @@
 {
   "name": "federation-benchmark",
-  "version": "0.0.13",
+  "version": "0.0.17",
   "private": true,
   "scripts": {
     "start": "cross-env NODE_ENV=production node index.js",
@@ -9,12 +9,12 @@
     "loadtest:monolith": "k6 -e ENDPOINT=monolith run k6.js"
   },
   "dependencies": {
-    "@apollo/gateway": "0.38.0",
-    "@apollo/federation": "0.29.0",
-    "@graphql-tools/stitch": "8.2.0",
-    "@graphql-tools/stitching-directives": "2.0.11",
+    "@apollo/gateway": "0.41.0",
+    "@apollo/federation": "0.32.0",
+    "@graphql-tools/stitch": "8.3.1",
+    "@graphql-tools/stitching-directives": "2.1.1",
     "express": "4.17.1",
-    "graphql": "15.5.1",
+    "graphql": "15.5.3",
     "graphql-tag": "2.12.5",
     "wait-on": "6.0.0",
     "cross-env": "7.0.3"

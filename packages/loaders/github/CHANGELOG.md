@@ -1,5 +1,21 @@
 # @graphql-tools/github-loader
 
+## 7.1.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+
+### Patch Changes
+
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+  - @graphql-tools/utils@8.2.0
+  - @graphql-tools/graphql-tag-pluck@7.1.0
+
 ## 7.0.5
 
 ### Patch Changes

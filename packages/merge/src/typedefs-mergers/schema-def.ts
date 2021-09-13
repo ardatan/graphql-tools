@@ -31,8 +31,7 @@ export function mergeSchemaDefs(
   if (existingNode) {
     return {
       kind:
-        node.kind === Kind.SCHEMA_DEFINITION ||
-        existingNode.kind === Kind.SCHEMA_DEFINITION
+        node.kind === Kind.SCHEMA_DEFINITION || existingNode.kind === Kind.SCHEMA_DEFINITION
           ? Kind.SCHEMA_DEFINITION
           : Kind.SCHEMA_EXTENSION,
       description: node['description'] || existingNode['description'],
@@ -41,10 +40,12 @@ export function mergeSchemaDefs(
     } as any;
   }
 
-  return (config?.convertExtensions
-    ? {
-        ...node,
-        kind: Kind.SCHEMA_EXTENSION,
-      }
-    : node) as any;
+  return (
+    config?.convertExtensions
+      ? {
+          ...node,
+          kind: Kind.SCHEMA_DEFINITION,
+        }
+      : node
+  ) as any;
 }

@@ -5,7 +5,7 @@ import { assertSome } from '@graphql-tools/utils';
 
 describe('merged interfaces via concrete type', () => {
   const namedItemSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       interface Placement {
         id: ID!
         name: String!
@@ -28,7 +28,7 @@ describe('merged interfaces via concrete type', () => {
   });
 
   const indexedItemSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       interface Placement {
         id: ID!
         index: Int!
@@ -68,7 +68,9 @@ describe('merged interfaces via concrete type', () => {
 
 
   test('works with selection set key', async () => {
-    const result = await graphql(stitchedSchema, `
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */`
       query {
         placement: placementById(id: 23) {
           id
@@ -76,21 +78,23 @@ describe('merged interfaces via concrete type', () => {
           name
         }
       }
-    `);
+    `});
 
     assertSome(result.data)
     expect(result.data['placement']).toEqual({ id: '23', index: 23, name: 'Item 23' });
   });
 
   test('works without selection set key', async () => {
-    const result = await graphql(stitchedSchema, `
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */`
       query {
         placement: placementById(id: 23) {
           index
           name
         }
       }
-    `);
+    `});
 
     assertSome(result.data)
     expect(result.data['placement']).toEqual({ index: 23, name: 'Item 23' });
@@ -99,7 +103,7 @@ describe('merged interfaces via concrete type', () => {
 
 describe('merged interfaces via abstract type', () => {
   const namedPlacementSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       interface Placement {
         id: ID!
         name: String!
@@ -122,7 +126,7 @@ describe('merged interfaces via abstract type', () => {
   });
 
   const indexedItemSchema = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       interface Placement {
         id: ID!
         index: Int!
@@ -162,7 +166,9 @@ describe('merged interfaces via abstract type', () => {
 
 
   test('works with selection set key', async () => {
-    const result = await graphql(stitchedSchema, `
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */`
       query {
         placement: placementById(id: 23) {
           id
@@ -170,7 +176,7 @@ describe('merged interfaces via abstract type', () => {
           name
         }
       }
-    `);
+    `});
 
 
     assertSome(result.data)
@@ -178,14 +184,16 @@ describe('merged interfaces via abstract type', () => {
   });
 
   test('works without selection set key', async () => {
-    const result = await graphql(stitchedSchema, `
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */`
       query {
         placement: placementById(id: 23) {
           index
           name
         }
       }
-    `);
+    `});
     assertSome(result.data)
     expect(result.data['placement']).toEqual({ index: 23, name: 'Item 23' });
   });

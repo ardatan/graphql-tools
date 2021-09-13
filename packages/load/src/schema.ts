@@ -1,5 +1,12 @@
 import { loadTypedefs, LoadTypedefsOptions, UnnormalizedTypeDefPointer, loadTypedefsSync } from './load-typedefs';
-import { GraphQLSchema, BuildSchemaOptions, DocumentNode, Source as GraphQLSource, print } from 'graphql';
+import {
+  GraphQLSchema,
+  BuildSchemaOptions,
+  DocumentNode,
+  Source as GraphQLSource,
+  print,
+  lexicographicSortSchema,
+} from 'graphql';
 import { OPERATION_KINDS } from './documents';
 import { mergeSchemas, MergeSchemasConfig } from '@graphql-tools/schema';
 import { Source } from '@graphql-tools/utils';
@@ -42,7 +49,7 @@ export async function loadSchema(
     includeSources(schema, sources);
   }
 
-  return schema;
+  return options.sort ? lexicographicSortSchema(schema) : schema;
 }
 
 /**
@@ -71,7 +78,7 @@ export function loadSchemaSync(
     includeSources(schema, sources);
   }
 
-  return schema;
+  return options.sort ? lexicographicSortSchema(schema) : schema;
 }
 
 function includeSources(schema: GraphQLSchema, sources: Source[]) {

@@ -49,8 +49,7 @@ interface Node {
 }
 
 \\"Custom scalar test\\"
-scalar Date
-"
+scalar Date"
 `;
 
 exports[`parse sdl comment parsing should transform comments to descriptions correctly on all available nodes with noLocation=true 1`] = `
@@ -102,6 +101,5 @@ interface Node {
 }
 
 \\"Custom scalar test\\"
-scalar Date
-"
+scalar Date"
 `;

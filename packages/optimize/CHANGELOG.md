@@ -1,5 +1,11 @@
 # @graphql-tools/optimize
 
+## 1.1.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+
 ## 1.0.1
 
 ### Patch Changes

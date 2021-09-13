@@ -1,4 +1,4 @@
-import { graphql } from 'graphql';
+import { execute, parse } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
@@ -9,7 +9,7 @@ describe('batch delegation within basic stitching example', () => {
     let numCalls = 0;
 
     const chirpSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Chirp {
           chirpedAtUserId: ID!
         }
@@ -27,7 +27,7 @@ describe('batch delegation within basic stitching example', () => {
 
     // Mocked author schema
     const authorSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           email: String
         }
@@ -46,7 +46,7 @@ describe('batch delegation within basic stitching example', () => {
       }
     });
 
-    const linkTypeDefs = `
+    const linkTypeDefs = /* GraphQL */`
       extend type Chirp {
         chirpedAtUser: User
       }
@@ -75,7 +75,7 @@ describe('batch delegation within basic stitching example', () => {
       },
     });
 
-    const query = `
+    const query = /* GraphQL */`
       query {
         trendingChirps {
           chirpedAtUser {
@@ -85,18 +85,19 @@ describe('batch delegation within basic stitching example', () => {
       }
     `;
 
-    const result = await graphql(stitchedSchema, query);
+    const result = await execute({ schema: stitchedSchema, document: parse(query) });
 
     expect(numCalls).toEqual(1);
     expect(result.errors).toBeUndefined();
-    expect(result.data!['trendingChirps'][0].chirpedAtUser.email).not.toBe(null);
+    const chirps: any = result.data!['trendingChirps'];
+    expect(chirps[0].chirpedAtUser.email).not.toBe(null);
   });
 
   test('works with key arrays', async () => {
     let numCalls = 0;
 
     const postsSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Post {
           id: ID!
           title: String
@@ -117,7 +118,7 @@ describe('batch delegation within basic stitching example', () => {
     });
 
     const usersSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           postIds: [ID]!
@@ -138,7 +139,7 @@ describe('batch delegation within basic stitching example', () => {
       }
     });
 
-    const linkTypeDefs = `
+    const linkTypeDefs = /* GraphQL */`
       extend type User {
         posts: [Post]!
       }
@@ -166,7 +167,7 @@ describe('batch delegation within basic stitching example', () => {
       },
     });
 
-    const query = `
+    const query = /* GraphQL */`
       query {
         users(ids: [1, 7]) {
           id
@@ -178,7 +179,7 @@ describe('batch delegation within basic stitching example', () => {
       }
     `;
 
-    const result = await graphql(stitchedSchema, query);
+    const result = await execute({ schema: stitchedSchema, document: parse(query) });
     expect(numCalls).toEqual(1);
     expect(result.data).toEqual({
       users: [

@@ -1,14 +1,15 @@
 import { Maybe } from '@graphql-tools/utils';
 import {
-  getDescription,
   StringValueNode,
   FieldDefinitionNode,
   ASTNode,
   NameNode,
   TypeNode,
   visit,
-  VisitFn,
   DefinitionNode,
+  Location,
+  TokenKind,
+  NamedTypeNode,
 } from 'graphql';
 import type { ASTVisitor } from 'graphql/language/visitor';
 
@@ -60,7 +61,7 @@ export function collectComment(node: NamedDefinitionNode): void {
 }
 
 export function pushComment(node: any, entity: string, field?: string, argument?: string): void {
-  const comment = getDescription(node, { commentDescriptions: true });
+  const comment = getComment(node);
 
   if (typeof comment !== 'string' || comment.length === 0) {
     return;
@@ -101,8 +102,6 @@ export function printComment(comment: string): string {
  * This is a temp measure, we will move to using the original non modified printer.js ASAP.
  */
 
-// import { visit, VisitFn } from 'graphql';
-
 /**
  * Given maybeArray, print an empty string if it is null or empty, otherwise
  * print all items together separated by separator if provided
@@ -115,13 +114,21 @@ function hasMultilineItems(maybeArray: Maybe<ReadonlyArray<string>>): boolean {
   return maybeArray?.some(str => str.includes('\n')) ?? false;
 }
 
-function addDescription(cb: VisitFn<any, any>): VisitFn<any, any> {
+type VisitFn = (
+  node: { description?: StringValueNode; name?: NameNode; type?: TypeNode; kind: string },
+  key: string,
+  parent: NamedTypeNode,
+  path: string[],
+  ancestors: NamedTypeNode[]
+) => any;
+
+function addDescription(cb: VisitFn): VisitFn {
   return (
     node: { description?: StringValueNode; name?: NameNode; type?: TypeNode; kind: string },
-    _key,
-    _parent,
-    path,
-    ancestors
+    _key: string,
+    _parent: NamedTypeNode,
+    path: string[],
+    ancestors: NamedTypeNode[]
   ) => {
     const keys: string[] = [];
     const parent = path.reduce((prev, key) => {
@@ -139,7 +146,7 @@ function addDescription(cb: VisitFn<any, any>): VisitFn<any, any> {
       items.push(...commentsRegistry[key]);
     }
 
-    return join([...items.map(printComment), node.description, (cb as any)(node)], '\n');
+    return join([...items.map(printComment), node.description, cb(node, _key, _parent, path, ancestors)], '\n');
   };
 }
 
@@ -242,7 +249,13 @@ const printDocASTReducer: ASTVisitor = {
   IntValue: { leave: ({ value }) => value },
   FloatValue: { leave: ({ value }) => value },
   StringValue: {
-    leave: ({ value, block: isBlockString }) => (isBlockString ? printBlockString(value) : JSON.stringify(value)),
+    leave: ({ value, block: isBlockString }) => {
+      if (isBlockString) {
+        return printBlockString(value);
+      }
+
+      return JSON.stringify(value);
+    },
   },
   BooleanValue: { leave: ({ value }) => (value ? 'true' : 'false') },
   NullValue: { leave: () => 'null' },
@@ -266,8 +279,7 @@ const printDocASTReducer: ASTVisitor = {
   // Type System Definitions
 
   SchemaDefinition: {
-    leave: ({ description, directives, operationTypes }: any) =>
-      wrap('', description, '\n') + join(['schema', join(directives, ' '), block(operationTypes)], ' '),
+    leave: ({ directives, operationTypes }: any) => join(['schema', join(directives, ' '), block(operationTypes)], ' '),
   },
 
   OperationTypeDefinition: {
@@ -275,19 +287,16 @@ const printDocASTReducer: ASTVisitor = {
   },
 
   ScalarTypeDefinition: {
-    leave: ({ description, name, directives }) =>
-      wrap('', description, '\n') + join(['scalar', name, join(directives, ' ')], ' '),
+    leave: ({ name, directives }) => join(['scalar', name, join(directives, ' ')], ' '),
   },
 
   ObjectTypeDefinition: {
-    leave: ({ description, name, interfaces, directives, fields }) =>
-      wrap('', description, '\n') +
+    leave: ({ name, interfaces, directives, fields }) =>
       join(['type', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)], ' '),
   },
 
   FieldDefinition: {
-    leave: ({ description, name, arguments: args, type, directives }) =>
-      wrap('', description, '\n') +
+    leave: ({ name, arguments: args, type, directives }) =>
       name +
       (hasMultilineItems(args as any as string[])
         ? wrap('(\n', indent(join(args, '\n')), '\n)')
@@ -298,13 +307,12 @@ const printDocASTReducer: ASTVisitor = {
   },
 
   InputValueDefinition: {
-    leave: ({ description, name, type, defaultValue, directives }) =>
-      wrap('', description, '\n') + join([name + ': ' + type, wrap('= ', defaultValue), join(directives, ' ')], ' '),
+    leave: ({ name, type, defaultValue, directives }) =>
+      join([name + ': ' + type, wrap('= ', defaultValue), join(directives, ' ')], ' '),
   },
 
   InterfaceTypeDefinition: {
-    leave: ({ description, name, interfaces, directives, fields }: any) =>
-      wrap('', description, '\n') +
+    leave: ({ name, interfaces, directives, fields }: any) =>
       join(
         ['interface', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)],
         ' '
@@ -312,28 +320,24 @@ const printDocASTReducer: ASTVisitor = {
   },
 
   UnionTypeDefinition: {
-    leave: ({ description, name, directives, types }) =>
-      wrap('', description, '\n') + join(['union', name, join(directives, ' '), wrap('= ', join(types, ' | '))], ' '),
+    leave: ({ name, directives, types }) =>
+      join(['union', name, join(directives, ' '), wrap('= ', join(types, ' | '))], ' '),
   },
 
   EnumTypeDefinition: {
-    leave: ({ description, name, directives, values }) =>
-      wrap('', description, '\n') + join(['enum', name, join(directives, ' '), block(values)], ' '),
+    leave: ({ name, directives, values }) => join(['enum', name, join(directives, ' '), block(values)], ' '),
   },
 
   EnumValueDefinition: {
-    leave: ({ description, name, directives }) =>
-      wrap('', description, '\n') + join([name, join(directives, ' ')], ' '),
+    leave: ({ name, directives }) => join([name, join(directives, ' ')], ' '),
   },
 
   InputObjectTypeDefinition: {
-    leave: ({ description, name, directives, fields }) =>
-      wrap('', description, '\n') + join(['input', name, join(directives, ' '), block(fields)], ' '),
+    leave: ({ name, directives, fields }) => join(['input', name, join(directives, ' '), block(fields)], ' '),
   },
 
   DirectiveDefinition: {
-    leave: ({ description, name, arguments: args, repeatable, locations }) =>
-      wrap('', description, '\n') +
+    leave: ({ name, arguments: args, repeatable, locations }) =>
       'directive @' +
       name +
       (hasMultilineItems(args as any as string[])
@@ -397,10 +401,112 @@ const printDocASTReducerWithComments = Object.keys(printDocASTReducer).reduce(
  * Converts an AST into a string, using one set of reasonable
  * formatting rules.
  */
-export function printWithComments(ast: ASTNode) {
-  return visit(ast, printDocASTReducerWithComments);
+export function printWithComments(ast: ASTNode): string {
+  return visit(ast, printDocASTReducerWithComments) as any;
 }
 
 function isFieldDefinitionNode(node: any): node is FieldDefinitionNode {
   return node.kind === 'FieldDefinition';
+}
+
+// graphql < v13 and > v15 does not export getDescription
+export function getDescription(
+  node: { description?: StringValueNode; loc?: Location },
+  options?: { commentDescriptions?: boolean }
+): string | undefined {
+  if (node.description != null) {
+    return node.description.value;
+  }
+  if (options?.commentDescriptions) {
+    return getComment(node);
+  }
+}
+
+export function getComment(node: { loc?: Location }): undefined | string {
+  const rawValue = getLeadingCommentBlock(node);
+  if (rawValue !== undefined) {
+    return dedentBlockStringValue(`\n${rawValue as string}`);
+  }
+}
+
+export function getLeadingCommentBlock(node: { loc?: Location }): void | string {
+  const loc = node.loc;
+  if (!loc) {
+    return;
+  }
+  const comments = [];
+  let token = loc.startToken.prev;
+  while (
+    token != null &&
+    token.kind === TokenKind.COMMENT &&
+    token.next != null &&
+    token.prev != null &&
+    token.line + 1 === token.next.line &&
+    token.line !== token.prev.line
+  ) {
+    const value = String(token.value);
+    comments.push(value);
+    token = token.prev;
+  }
+  return comments.length > 0 ? comments.reverse().join('\n') : undefined;
+}
+
+export function dedentBlockStringValue(rawString: string): string {
+  // Expand a block string's raw value into independent lines.
+  const lines = rawString.split(/\r\n|[\n\r]/g);
+
+  // Remove common indentation from all lines but first.
+  const commonIndent = getBlockStringIndentation(lines);
+
+  if (commonIndent !== 0) {
+    for (let i = 1; i < lines.length; i++) {
+      lines[i] = lines[i].slice(commonIndent);
+    }
+  }
+
+  // Remove leading and trailing blank lines.
+  while (lines.length > 0 && isBlank(lines[0])) {
+    lines.shift();
+  }
+  while (lines.length > 0 && isBlank(lines[lines.length - 1])) {
+    lines.pop();
+  }
+
+  // Return a string of the lines joined with U+000A.
+  return lines.join('\n');
+}
+/**
+ * @internal
+ */
+export function getBlockStringIndentation(lines: ReadonlyArray<string>): number {
+  let commonIndent = null;
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    const indent = leadingWhitespace(line);
+    if (indent === line.length) {
+      continue; // skip empty lines
+    }
+
+    if (commonIndent === null || indent < commonIndent) {
+      commonIndent = indent;
+      if (commonIndent === 0) {
+        break;
+      }
+    }
+  }
+
+  return commonIndent === null ? 0 : commonIndent;
+}
+
+function leadingWhitespace(str: string) {
+  let i = 0;
+  while (i < str.length && (str[i] === ' ' || str[i] === '\t')) {
+    i++;
+  }
+  return i;
+}
+
+function isBlank(str: string) {
+  return leadingWhitespace(str) === str.length;
 }

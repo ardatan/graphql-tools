@@ -12,7 +12,7 @@ import {
 import { IResolvers } from './Interfaces';
 
 export function getResolversFromSchema(schema: GraphQLSchema): IResolvers {
-  const resolvers = Object.create({});
+  const resolvers = Object.create(null);
 
   const typeMap = schema.getTypeMap();
 

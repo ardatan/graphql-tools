@@ -1,15 +1,15 @@
-import { graphql, execute, ExecutionResult } from 'graphql';
+import { graphql } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { delegateToSchema, SubschemaConfig } from '../src';
+import { createDefaultExecutor, delegateToSchema, SubschemaConfig } from '../src';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { FilterObjectFields } from '@graphql-tools/wrap';
-import { ExecutionRequest, Executor, SyncExecutor } from '@graphql-tools/utils';
+import { Executor } from '@graphql-tools/utils';
 
 describe('batch execution', () => {
   it('should batch', async () => {
     const innerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           field1: String
           field2: String
@@ -25,17 +25,18 @@ describe('batch execution', () => {
 
     let executions = 0;
 
+    const defaultExecutor = createDefaultExecutor(innerSchema);
     const innerSubschemaConfig: SubschemaConfig = {
       schema: innerSchema,
       batch: true,
-      executor: ((request: ExecutionRequest): ExecutionResult => {
+      executor: request => {
         executions++;
-        return execute(innerSchema, request.document, undefined, request.context, request.variables) as ExecutionResult;
-      }) as SyncExecutor
+        return defaultExecutor(request);
+      }
     }
 
     const outerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           field1: String
           field2: String
@@ -56,7 +57,7 @@ describe('batch execution', () => {
       },
     };
 
-    const result = await graphql(outerSchema, '{ field1 field2 }', undefined, {});
+    const result = await graphql({ schema: outerSchema, source: '{ field1 field2 }'});
 
     expect(result).toEqual(expectedResult);
     expect(executions).toEqual(1);
@@ -64,7 +65,7 @@ describe('batch execution', () => {
 
   it('should share batching dataloader between subschemas when using a common executor', async () => {
     const innerSchemaA = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Object {
           field1: String
           field2: String
@@ -85,7 +86,7 @@ describe('batch execution', () => {
     });
 
     const innerSchemaB = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Object {
           field3: String
         }
@@ -105,10 +106,11 @@ describe('batch execution', () => {
 
     let executions = 0;
 
-    const executor = ((request: ExecutionRequest): ExecutionResult => {
+    const defaultExecutor = createDefaultExecutor(innerSchemaA);
+    const executor: Executor = request => {
       executions++;
-      return execute(innerSchemaA, request.document, undefined, request.context, request.variables) as ExecutionResult;
-    }) as Executor;
+      return defaultExecutor(request);
+    };
 
     const innerSubschemaConfigA: Array<SubschemaConfig> = [{
       schema: innerSchemaA,
@@ -160,7 +162,7 @@ describe('batch execution', () => {
       subschemas: [innerSubschemaConfigA, innerSubschemaConfigB],
     });
 
-    const resultWhenAsArray = await graphql(outerSchemaWithSubschemasAsArray, query, undefined, {});
+    const resultWhenAsArray = await graphql({ schema: outerSchemaWithSubschemasAsArray, source: query });
 
     expect(resultWhenAsArray).toEqual(expectedResult);
     expect(executions).toEqual(1);
@@ -169,7 +171,7 @@ describe('batch execution', () => {
       subschemas: [...innerSubschemaConfigA, innerSubschemaConfigB],
     });
 
-    const resultWhenSpread = await graphql(outerSchemaWithSubschemasSpread, query, undefined, {});
+    const resultWhenSpread = await graphql({ schema: outerSchemaWithSubschemasSpread, source: query });
 
     expect(resultWhenSpread).toEqual(expectedResult);
     expect(executions).toEqual(2);

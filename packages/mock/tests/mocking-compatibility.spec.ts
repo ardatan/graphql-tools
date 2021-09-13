@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
 import {
   graphql,
-  GraphQLResolveInfo,
   GraphQLSchema,
   buildSchema, subscribe, parse
 } from 'graphql';
@@ -15,7 +14,7 @@ import {
 } from '@graphql-tools/schema';
 
 describe('Mock retro-compatibility', () => {
-  const shorthand = `
+  const shorthand = /* GraphQL */`
     scalar MissingMockType
 
     type Ability {
@@ -112,14 +111,14 @@ describe('Mock retro-compatibility', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = {};
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnInt
       returnFloat
       returnBoolean
       returnString
       returnID
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data?.['returnInt']).toBeGreaterThanOrEqual(-1000);
       expect(res.data?.['returnInt']).toBeLessThanOrEqual(1000);
       expect(res.data?.['returnFloat']).toBeGreaterThanOrEqual(-1000);
@@ -131,7 +130,7 @@ describe('Mock retro-compatibility', () => {
   });
 
   test('lets you use mockServer for convenience', () => {
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnInt
       returnFloat
       returnBoolean
@@ -177,7 +176,7 @@ describe('Mock retro-compatibility', () => {
       },
     };
     jsSchema = addResolversToSchema(jsSchema, resolvers);
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnInt
       returnString
       returnBirdsAndBees {
@@ -208,7 +207,7 @@ describe('Mock retro-compatibility', () => {
 
   test('lets you use mockServer with prebuilt schema', () => {
     const jsSchema = buildSchema(shorthand);
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnInt
       returnFloat
       returnBoolean
@@ -251,9 +250,9 @@ describe('Mock retro-compatibility', () => {
     let spy = 0;
     const resolvers = {
       BirdsAndBees: {
-        __resolveType(data: any, _context: any, info: GraphQLResolveInfo) {
+        __resolveType(data: any, _context: any) {
           ++spy;
-          return info.schema.getType(data.__typename);
+          return data.__typename;
         },
       },
     };
@@ -263,7 +262,7 @@ describe('Mock retro-compatibility', () => {
       mocks: {},
       preserveResolvers: true,
     });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnBirdsAndBees {
         ... on Bird {
           returnInt
@@ -275,7 +274,7 @@ describe('Mock retro-compatibility', () => {
         }
       }
     }`;
-    return graphql(jsSchema, testQuery).then((_res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((_res) => {
       // the resolveType has been called twice
       expect(spy).toBe(2);
     });
@@ -286,10 +285,10 @@ describe('Mock retro-compatibility', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = {};
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnEnum
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(['A', 'B', 'C']).toContain(res.data?.['returnEnum']);
     });
   });
@@ -300,10 +299,10 @@ describe('Mock retro-compatibility', () => {
       SomeEnum: () => 'C',
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnEnum
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect('C').toBe(res.data?.['returnEnum']);
     });
   });
@@ -319,7 +318,7 @@ describe('Mock retro-compatibility', () => {
       }),
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnBirdsAndBees {
         ... on Bird {
           returnInt
@@ -331,7 +330,7 @@ describe('Mock retro-compatibility', () => {
         }
       }
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       // XXX this test is expected to fail once every 2^40 times ;-)
       expect(res.data?.['returnBirdsAndBees']).toContainEqual(
         expect.objectContaining({
@@ -362,7 +361,7 @@ describe('Mock retro-compatibility', () => {
       schema: jsSchema,
       mocks: mockMap,
     });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnFlying {
         ... on Bird {
           returnInt
@@ -374,7 +373,7 @@ describe('Mock retro-compatibility', () => {
         }
       }
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data?.['returnFlying']).toContainEqual(
         expect.objectContaining({
           returnInt: 10,
@@ -413,13 +412,13 @@ describe('Mock retro-compatibility', () => {
       preserveResolvers: true,
     });
 
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       node(id: "someid") {
         id
       }
     }`;
 
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data?.['node']).toEqual(null);
     });
   });
@@ -437,7 +436,7 @@ describe('Mock retro-compatibility', () => {
       }),
     };
     const server = mockServer(shorthand,  mockMap);
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       node(id:"bee:123456"){
         id
         returnAbility {
@@ -488,7 +487,7 @@ describe('Mock retro-compatibility', () => {
       mocks: mockMap,
       resolvers,
     });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       node(id:"bee:123456"){
         id,
         returnSong,
@@ -496,7 +495,7 @@ describe('Mock retro-compatibility', () => {
       }
     }`;
 
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(spy).toBe(1); // to make sure that Flying possible types are not randomly selected
       expect(res.data?.['node']).toMatchObject({
         id: 'bee:123456',
@@ -529,7 +528,7 @@ describe('Mock retro-compatibility', () => {
       schema: jsSchema,
       mocks: mockMap,
     });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
         node2(id:"bee:123456"){
           ...on Bee{
             id,
@@ -538,7 +537,7 @@ describe('Mock retro-compatibility', () => {
         }
       }`;
 
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(spy).toBe(1);
       expect(res.data?.['node2']).toMatchObject({
         id: 'bee:hardcoded',
@@ -561,14 +560,14 @@ describe('Mock retro-compatibility', () => {
       Flying: (_root: any, _args: any) => ({}),
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
           node(id:"bee:123456"){
             id,
             returnInt
           }
         }`;
     const expected = 'Please return a __typename in "Flying"';
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.errors?.[0].originalError?.message).toBe(expected);
     });
   });
@@ -577,11 +576,11 @@ describe('Mock retro-compatibility', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = {};
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnMockError
     }`;
     const expected = 'No mock defined for type "MissingMockType"';
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.errors?.[0].originalError?.message).toBe(expected);
     });
   });
@@ -606,11 +605,11 @@ describe('Mock retro-compatibility', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
         returnMockError
       }`;
     const expected = 'No mock defined for type "MissingMockType"';
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.errors?.[0].originalError?.message).toBe(expected);
     });
   });
@@ -635,13 +634,13 @@ describe('Mock retro-compatibility', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnMockError
     }`;
     const expected = {
       returnMockError: '10-11-2012',
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
       expect(res.errors).toBeUndefined();
     });
@@ -651,10 +650,10 @@ describe('Mock retro-compatibility', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = { Int: () => 55 };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnInt
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data?.['returnInt']).toBe(55);
     });
   });
@@ -663,10 +662,10 @@ describe('Mock retro-compatibility', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = { Float: () => 55.5 };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnFloat
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data?.['returnFloat']).toBe(55.5);
     });
   });
@@ -674,10 +673,10 @@ describe('Mock retro-compatibility', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = { String: () => 'a string' };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnString
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data?.['returnString']).toBe('a string');
     });
   });
@@ -685,10 +684,10 @@ describe('Mock retro-compatibility', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = { Boolean: () => true };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnBoolean
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data?.['returnBoolean']).toBe(true);
     });
   });
@@ -696,10 +695,10 @@ describe('Mock retro-compatibility', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = { ID: () => 'ea5bdc19' };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnID
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data?.['returnID']).toBe('ea5bdc19');
     });
   });
@@ -707,10 +706,10 @@ describe('Mock retro-compatibility', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = { String: (): null => null };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnNullableString
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data?.['returnNullableString']).toBe(null);
     });
   });
@@ -718,10 +717,10 @@ describe('Mock retro-compatibility', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = { String: () => 'nonnull' };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnNonNullString
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data?.['returnNonNullString']).toBe('nonnull');
     });
   });
@@ -729,10 +728,10 @@ describe('Mock retro-compatibility', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = { String: (): null => null };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnNonNullString
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toBe(null);
       expect(res.errors?.length).toBe(1);
     });
@@ -744,13 +743,13 @@ describe('Mock retro-compatibility', () => {
       Int: () => 123,
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnObject { returnInt, returnString }
     }`;
     const expected = {
       returnObject: { returnInt: 123, returnString: 'abc' },
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -759,13 +758,13 @@ describe('Mock retro-compatibility', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = { Int: () => 123 };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnListOfInt
     }`;
     const expected = {
       returnListOfInt: [123, 123],
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -777,7 +776,7 @@ describe('Mock retro-compatibility', () => {
       Int: () => 1,
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnListOfListOfObject { returnInt, returnString }
     }`;
     const expected = {
@@ -792,7 +791,7 @@ describe('Mock retro-compatibility', () => {
         ],
       ],
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -819,7 +818,7 @@ describe('Mock retro-compatibility', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnInt
       returnFloat
       returnString
@@ -829,7 +828,7 @@ describe('Mock retro-compatibility', () => {
       returnFloat: 1.3, // b) from mock
       returnString: 'bar', // c) from resolvers, not masked by mock (and promise)
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -844,7 +843,7 @@ describe('Mock retro-compatibility', () => {
       Int: () => 15,
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnObject{
         returnInt
         returnString
@@ -858,7 +857,7 @@ describe('Mock retro-compatibility', () => {
       },
       returnInt: 15,
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -887,7 +886,7 @@ describe('Mock retro-compatibility', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnListOfInt
       returnObject{
         returnInt
@@ -901,7 +900,7 @@ describe('Mock retro-compatibility', () => {
         returnString: 'woot!?', // from the mock, see b)
       },
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -929,7 +928,7 @@ describe('Mock retro-compatibility', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
         returnObject{
           returnInt
           returnString
@@ -941,7 +940,7 @@ describe('Mock retro-compatibility', () => {
         returnString: 'woot!?', // from the mock, see b)
       },
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -971,7 +970,7 @@ describe('Mock retro-compatibility', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
         returnObject{
           returnInt
           returnString
@@ -983,7 +982,7 @@ describe('Mock retro-compatibility', () => {
         returnString: 'woot!?', // from the mock, see b)
       },
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -1006,7 +1005,7 @@ describe('Mock retro-compatibility', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnObject {
         returnInt
           returnString
@@ -1020,7 +1019,7 @@ describe('Mock retro-compatibility', () => {
       },
       returnString: 'woot!?', // from the mock, see a)
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -1041,7 +1040,7 @@ describe('Mock retro-compatibility', () => {
       mocks: mockMap,
       preserveResolvers: true,
     });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnObject {
         returnInt
         returnString
@@ -1055,7 +1054,7 @@ describe('Mock retro-compatibility', () => {
       },
       returnString: null as unknown as string, // from the mock, see a)
     };
-    return graphql(jsSchema, testQuery, undefined, {}).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -1068,13 +1067,13 @@ describe('Mock retro-compatibility', () => {
       },
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, resolvers });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnStringArgument(s: "adieu")
     }`;
     const expected = {
       returnStringArgument: 'adieu',
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -1087,13 +1086,13 @@ describe('Mock retro-compatibility', () => {
       },
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, resolvers });
-    const testQuery = `mutation {
+    const testQuery = /* GraphQL */`mutation {
       returnStringArgument(s: "adieu")
     }`;
     const expected = {
       returnStringArgument: 'adieu',
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -1105,13 +1104,13 @@ describe('Mock retro-compatibility', () => {
       Int: () => 12,
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnListOfInt
     }`;
     const expected = {
       returnListOfInt: [12, 12, 12],
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -1123,13 +1122,14 @@ describe('Mock retro-compatibility', () => {
       Int: () => 12,
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnListOfInt
     }`;
-    return graphql(jsSchema, testQuery).then((res) => {
-      expect(res.data?.['returnListOfInt'].length).toBeGreaterThanOrEqual(10);
-      expect(res.data?.['returnListOfInt'].length).toBeLessThanOrEqual(20);
-      expect(res.data?.['returnListOfInt'][0]).toBe(12);
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
+      const returnListOfIntData: any = res?.data?.['returnListOfInt'];
+      expect(returnListOfIntData.length).toBeGreaterThanOrEqual(10);
+      expect(returnListOfIntData.length).toBeLessThanOrEqual(20);
+      expect(returnListOfIntData[0]).toBe(12);
     });
   });
 
@@ -1142,13 +1142,13 @@ describe('Mock retro-compatibility', () => {
       Int: () => 12,
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnListOfInt
     }`;
     const expected = {
       returnListOfInt: [33, 33],
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -1171,7 +1171,7 @@ describe('Mock retro-compatibility', () => {
       Int: () => 12,
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap });
-    const testQuery = `{
+    const testQuery = /* GraphQL */`{
       returnListOfListOfInt
     }`;
     const expected = {
@@ -1180,13 +1180,13 @@ describe('Mock retro-compatibility', () => {
         [12, 12, 12],
       ],
     };
-    return graphql(jsSchema, testQuery).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
 
   test('works for resolvers returning javascript Dates', () => {
-    const typeDefs = `
+    const typeDefs = /* GraphQL */`
       scalar Date
 
       type DateObject {
@@ -1230,7 +1230,7 @@ describe('Mock retro-compatibility', () => {
       preserveResolvers: true,
     });
 
-    const query = `
+    const query = /* GraphQL */`
     {
       date1 {
         start
@@ -1247,7 +1247,7 @@ describe('Mock retro-compatibility', () => {
       date2: '2016-01-01T00:00:00.000Z',
       date3: '2016-05-04T00:00:00.000Z',
     };
-    return graphql(schema, query).then((res) => {
+    return graphql({ schema, source: query }).then((res) => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -1366,9 +1366,11 @@ describe('Mock retro-compatibility', () => {
       `,
     });
 
-    expect(result.data?.['reviews']?.length <= 4).toBeTruthy();
-    expect(typeof result.data?.['reviews'][0]?.sentence).toBe('string');
-    expect(typeof result.data?.['reviews'][0]?.user?.first_name).toBe('string');
+    const reviewsData: any = result.data?.['reviews'];
+
+    expect(reviewsData?.length <= 4).toBeTruthy();
+    expect(typeof reviewsData[0]?.sentence).toBe('string');
+    expect(typeof reviewsData[0]?.user?.first_name).toBe('string');
   });
 
   it('resolves subscriptions only once', async () => {
@@ -1388,7 +1390,7 @@ describe('Mock retro-compatibility', () => {
 
     const resultIterator = await subscribe({
       schema,
-      document: /* GraphQL */ parse(`
+      document: /* GraphQL */ parse(/* GraphQL */`
         subscription FooSub {
           fooSub {
             bar

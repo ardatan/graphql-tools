@@ -1,9 +1,9 @@
 import {
   GraphQLSchema,
   GraphQLScalarType,
-  graphql,
   Kind,
   SelectionSetNode,
+  graphql,
 } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -28,7 +28,7 @@ function createError<T>(message: string, extra?: T) {
 
 describe('transforms', () => {
   describe('base transform function', () => {
-    const scalarTest = `
+    const scalarTest = /* GraphQL */`
       scalar TestScalar
       type TestingScalar {
         value: TestScalar
@@ -61,21 +61,19 @@ describe('transforms', () => {
 
     test('should work', async () => {
       const schema = wrapSchema({ schema: scalarSchema });
-      const result = await graphql(
+      const result = await graphql({
         schema,
-        `
+        source: /* GraphQL */ `
           query($input: TestScalar) {
             testingScalar(input: $input) {
               value
             }
           }
         `,
-        {},
-        {},
-        {
+        variableValues: {
           input: 'test',
         },
-      );
+      });
 
       expect(result).toEqual({
         data: {
@@ -91,21 +89,19 @@ describe('transforms', () => {
         schema: scalarSchema,
         transforms: [],
       });
-      const result = await graphql(
+      const result = await graphql({
         schema,
-        `
+        source: /* GraphQL */ `
           query($input: TestScalar) {
             testingScalar(input: $input) {
               value
             }
           }
         `,
-        {},
-        {},
-        {
+        variableValues: {
           input: 'test',
         },
-      );
+      });
 
       expect(result).toEqual({
         data: {
@@ -123,7 +119,7 @@ describe('transforms', () => {
       });
 
       const subschema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           type Query {
             errorTest: String
           }
@@ -136,9 +132,15 @@ describe('transforms', () => {
       });
       const schema = wrapSchema({ schema: subschema });
 
-      const query = 'query { errorTest }';
-      const originalResult = await graphql(subschema, query);
-      const transformedResult = await graphql(schema, query);
+      const query = /* GraphQL */`query { errorTest }`;
+      const originalResult = await graphql({
+        schema: subschema,
+        source: query,
+      });
+      const transformedResult = await graphql({
+        schema,
+        source: query,
+      });
       expect(originalResult).toEqual(transformedResult);
     });
   });
@@ -167,7 +169,7 @@ describe('transforms', () => {
         },
       };
       subschema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
         type User {
           id: ID!
           username: String
@@ -226,7 +228,7 @@ describe('transforms', () => {
         },
       });
       schema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
         type User {
           id: ID!
           username: String
@@ -334,9 +336,9 @@ describe('transforms', () => {
     });
 
     test('wrapping delegation', async () => {
-      const result = await graphql(
+      const result = await graphql({
         schema,
-        `
+        source: /* GraphQL */`
           query {
             addressByUser(id: "u1") {
               streetAddress
@@ -344,7 +346,7 @@ describe('transforms', () => {
             }
           }
         `,
-      );
+      });
 
       expect(result).toEqual({
         data: {
@@ -357,9 +359,9 @@ describe('transforms', () => {
     });
 
     test('extracting delegation', async () => {
-      const result = await graphql(
+      const result = await graphql({
         schema,
-        `
+        source: /* GraphQL */`
           mutation($input: UserInput!) {
             setUserAndAddress(input: $input) {
               username
@@ -381,9 +383,7 @@ describe('transforms', () => {
           #   streetAddress
           # }
         `,
-        {},
-        {},
-        {
+        variableValues: {
           input: {
             id: 'u2',
             username: 'new-username',
@@ -391,7 +391,7 @@ describe('transforms', () => {
             zip: '22222',
           },
         },
-      );
+      });
       expect(result).toEqual({
         data: {
           setUserAndAddress: {
@@ -430,7 +430,7 @@ describe('transforms', () => {
         },
       };
       subschema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           type User {
             id: ID!
             username: String
@@ -483,7 +483,7 @@ describe('transforms', () => {
         },
       });
       schema = makeExecutableSchema({
-        typeDefs: `
+        typeDefs: /* GraphQL */`
           type Address {
             streetAddress: String
             zip: String
@@ -611,9 +611,9 @@ describe('transforms', () => {
     });
 
     test('wrapping delegation', async () => {
-      const result = await graphql(
+      const result = await graphql({
         schema,
-        `
+        source: /* GraphQL */`
           query {
             addressByUser(id: "u1") {
               streetAddress
@@ -621,7 +621,7 @@ describe('transforms', () => {
             }
           }
         `,
-      );
+      });
 
       expect(result).toEqual({
         data: {
@@ -634,21 +634,17 @@ describe('transforms', () => {
     });
 
     test('preserves errors from underlying fields', async () => {
-      const result = await graphql(
+      const result = await graphql({
         schema,
-        `
+        source: /* GraphQL */`
           query {
             addressByUser(id: "u1") {
               errorTest
             }
           }
         `,
-        {},
-        {},
-        {},
-        undefined,
-        defaultMergedResolver,
-      );
+        fieldResolver: defaultMergedResolver,
+      });
 
       expect(result).toEqual({
         data: {
@@ -672,21 +668,17 @@ describe('transforms', () => {
     });
 
     test('preserves errors when delegating from a root field to an error', async () => {
-      const result = await graphql(
+      const result = await graphql({
         schema,
-        `
+        source: /* GraphQL */`
           query {
             errorTest(id: "u1") {
               errorTest
             }
           }
         `,
-        {},
-        {},
-        {},
-        undefined,
-        defaultMergedResolver,
-      );
+        fieldResolver: defaultMergedResolver,
+      });
 
       expect(result).toEqual({
         data: {
@@ -697,9 +689,9 @@ describe('transforms', () => {
     });
 
     test('nested path produces nested result, other fields get preserved', async () => {
-      const result = await graphql(
+      const result = await graphql({
         schema,
-        `
+        source: /* GraphQL */`
           query {
             addressesByUsers(ids: ["u1", "u2"]) {
               nodes {
@@ -710,7 +702,7 @@ describe('transforms', () => {
             }
           }
         `
-      );
+      });
 
       expect(result).toEqual({
         data: {

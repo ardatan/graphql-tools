@@ -58,7 +58,7 @@ describe('Errors', () => {
             info: fakeInfo,
           } as DelegationContext,
         );
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toEqual('Test error');
         expect(e.originalError.errors).toBeUndefined();
       }
@@ -76,7 +76,7 @@ describe('Errors', () => {
             info: fakeInfo,
           } as DelegationContext,
         );
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toEqual('Test error');
         expect(e.extensions && e.extensions.code).toEqual('UNAUTHENTICATED');
         expect(e.originalError.errors).toBeUndefined();
@@ -95,7 +95,7 @@ describe('Errors', () => {
             info: fakeInfo,
           } as DelegationContext,
         );
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toEqual('Error1\nError2');
         expect(e.originalError).toBeDefined();
         expect(e.originalError.errors).toBeDefined();
@@ -110,7 +110,7 @@ describe('Errors', () => {
     // see https://github.com/ardatan/graphql-tools/issues/1641
     describe('it proxies errors with invalid paths', () => {
       test('it works with bare delegation', async () => {
-        const typeDefs = `
+        const typeDefs = /* GraphQL */`
           type Object {
             field1: String
             field2: String
@@ -148,7 +148,7 @@ describe('Errors', () => {
           },
         });
 
-        const query = `{
+        const query = /* GraphQL */`{
           object {
             field1
             field2
@@ -175,7 +175,7 @@ describe('Errors', () => {
       });
 
       test('it works with stitched schemas', async () => {
-        const typeDefs = `
+        const typeDefs = /* GraphQL */`
           type Object {
             field1: String
             field2: String
@@ -203,7 +203,7 @@ describe('Errors', () => {
           subschemas: [remoteSchema],
         });
 
-        const query = `{
+        const query = /* GraphQL */`{
           object {
             field1
             field2
@@ -220,7 +220,7 @@ describe('Errors', () => {
           errors: [unpathedError],
         };
 
-        const gatewayResult = await graphql(gatewaySchema, query);
+        const gatewayResult = await graphql({ schema: gatewaySchema, source: query });
 
         expect(gatewayResult).toEqual(expectedResult);
       });

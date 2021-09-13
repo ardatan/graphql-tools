@@ -1,7 +1,6 @@
 import {
   Source,
   printSchemaWithDirectives,
-  fixSchemaAst,
   parseGraphQLSDL,
   printWithComments,
   resetComments,
@@ -67,7 +66,6 @@ function prepareInput({
 
 function parseSchema(input: Input) {
   if (input.source.schema) {
-    input.source.schema = fixSchemaAst(input.source.schema, input.options);
     input.source.rawSDL = printSchemaWithDirectives(input.source.schema, input.options);
   }
 }

@@ -16,44 +16,44 @@
     }
   },
   "resolutions": {
-    "esbuild": "0.12.22"
+    "esbuild": "0.12.27"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "11.1.0",
+    "@next/bundle-analyzer": "11.1.2",
     "@types/concurrently": "6.2.1",
     "@types/mdx-js__react": "1.5.4",
     "@types/node": "15.14.1",
-    "@types/react": "17.0.19",
+    "@types/react": "17.0.20",
     "@types/react-dom": "17.0.9",
     "concurrently": "6.2.1",
     "cross-env": "7.0.3",
-    "esbuild": "0.12.22",
+    "esbuild": "0.12.27",
     "esbuild-register": "3.0.0",
     "next-remote-watch": "1.0.0",
-    "open-cli": "7.0.0",
-    "typescript": "4.3.5",
+    "open-cli": "7.0.1",
+    "typescript": "4.4.3",
     "wait-on": "6.0.0"
   },
   "dependencies": {
     "@chakra-ui/icons": "1.0.15",
-    "@chakra-ui/react": "1.6.6",
-    "@chakra-ui/theme-tools": "1.1.9",
+    "@chakra-ui/react": "1.6.7",
+    "@chakra-ui/theme-tools": "1.2.0",
     "@chakra-ui/utils": "1.8.2",
     "@emotion/react": "11.4.1",
     "@emotion/styled": "11.3.0",
-    "@guild-docs/client": "1.0.3",
-    "@guild-docs/server": "1.0.1",
+    "@guild-docs/client": "1.0.5",
+    "@guild-docs/server": "1.0.4",
     "@mdx-js/react": "1.6.22",
     "@theguild/components": "1.4.8",
     "framer-motion": "4.1.17",
-    "next": "11.1.0",
-    "next-i18next": "8.6.0",
+    "next": "11.1.2",
+    "next-i18next": "8.7.0",
     "next-seo": "4.26.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-icons": "4.2.0",
-    "react-use": "17.2.4",
+    "react-use": "17.3.1",
     "remark-admonitions": "1.2.1",
-    "shiki": "0.9.7"
+    "shiki": "0.9.10"
   }
 }

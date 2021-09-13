@@ -39,7 +39,7 @@ describe('requests', () => {
     );
 
     const expectedRequest = removeLocations({
-      document: parse(`
+      document: parse(/* GraphQL */`
         query test {
           version {
             major

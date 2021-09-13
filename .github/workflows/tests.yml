@@ -23,9 +23,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-16-16-yarn-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-16-15-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-16-16-yarn
+            ${{ runner.os }}-16-15-yarn
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Lint
@@ -35,7 +35,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        graphql_version: [14, 15]
+        graphql_version:
+          - 14
+          - 15
+          # - 16.0.0-rc.1
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
@@ -62,8 +65,11 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest] # remove windows to speed up the tests
-        node_version: [12, 16]
-        graphql_version: [14, 15]
+        node_version: [12, '16.8.0']
+        graphql_version:
+          - 14
+          - 15
+          # - 16.0.0-rc.1
         include:
           - node_version: 14
             os: windows-latest
@@ -97,5 +103,26 @@ jobs:
         run: yarn test --ci
         env:
           CI: true
+  test_esm:
+    name: ESM Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v2
+      - name: Use Node
+        uses: actions/setup-node@master
+        with:
+          node-version: '16.8.0'
+      - name: Cache Yarn
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-16.8.0-15-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-16.8.0-15-yarn
+      - name: Install Dependencies using Yarn
+        run: yarn install --ignore-engines && git checkout yarn.lock
+      - name: Build Packages
+        run: yarn build
       - name: Test ESM
-        run: yarn build && node scripts/test-esm.mjs
+        run: node scripts/test-esm.mjs

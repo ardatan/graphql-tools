@@ -3,13 +3,13 @@ import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { runTests, useMonorepo } from '../../../../testing/utils';
 import path from 'path';
-import { inspect } from 'util';
+import { inspect } from '@graphql-tools/utils';
 
 const monorepo = useMonorepo({
   dirname: __dirname
 });
 
-function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | undefined>{
+function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | undefined> {
   if (input == null) {
     throw new Error(`Value should be neither null nor undefined. But received: ${inspect(input)}`)
   }
@@ -40,7 +40,7 @@ describe('schema from typedefs', () => {
           loaders: [new GraphQLFileLoader()]
         });
         expect(true).toBeFalsy();
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toContain(`Unable to find any GraphQL type definitions for the following pointers:`);
         expect(e.message).toContain(`/tests/loaders/schema/test-files/schema-dir/*.empty.graphql`);
       }
@@ -54,7 +54,7 @@ describe('schema from typedefs', () => {
           loaders: [new GraphQLFileLoader()]
         });
         expect(schema).toBeFalsy();
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toContain(`Unable to find any GraphQL type definitions for the following pointers:`);
       }
     });
@@ -67,7 +67,7 @@ describe('schema from typedefs', () => {
           loaders: [new GraphQLFileLoader()]
         });
         expect(true).toBeFalsy();
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toContain(`Unable to find any GraphQL type definitions for the following pointers:`);
         expect(e.message).toContain(`./tests/loaders/schema/test-files/schema-dir/*.non-schema.graphql`);
       }
@@ -151,9 +151,10 @@ describe('schema from typedefs', () => {
         includeSources: true,
       });
       assertNonMaybe(schemaWithSources.extensions)
-      expect(schemaWithSources.extensions['sources']).toBeDefined();
-      expect(schemaWithSources.extensions['sources']).toHaveLength(1);
-      expect(schemaWithSources.extensions['sources'][0]).toMatchObject(expect.objectContaining({
+      const sourcesFromExtensions = schemaWithSources.extensions['sources'] as any;
+      expect(sourcesFromExtensions).toBeDefined();
+      expect(sourcesFromExtensions).toHaveLength(1);
+      expect(sourcesFromExtensions[0]).toMatchObject(expect.objectContaining({
         name: path.resolve(process.cwd(), glob).replace(/\\/g, '/')
       }))
 
@@ -180,9 +181,9 @@ describe('schema from typedefs', () => {
       await load([
         './tests/loaders/schema/test-files/schema-dir/user.graphql',
         './tests/loaders/schema/test-files/schema-dir/invalid.graphql',
-         {
-        '!./tests/loaders/schema/test-files/schema-dir/i*.graphql' : {}
-         }
+        {
+          '!./tests/loaders/schema/test-files/schema-dir/i*.graphql': {}
+        }
       ], {
         loaders: [new GraphQLFileLoader()],
         includeSources: true,

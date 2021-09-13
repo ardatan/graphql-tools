@@ -1,4 +1,5 @@
 import '../../testing/to-be-similar-gql-doc';
+import '../../testing/to-be-similar-string';
 import { mergeDirectives, mergeTypeDefs, mergeGraphQLTypes } from '../src';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch'
@@ -137,7 +138,7 @@ const productType = /* GraphQL */ `
 describe('Merge TypeDefs', () => {
   describe('AST Schema Fixing', () => {
     it('Should handle correctly schema without valid root AST node', () => {
-      const schema = buildSchema(`
+      const schema = buildSchema(/* GraphQL */`
         type A {
           a: String
         }
@@ -431,7 +432,7 @@ describe('Merge TypeDefs', () => {
         mergeTypeDefs([`directive @id on FIELD_DEFINITION`, `directive @id(name: String) on FIELD_DEFINITION`, `type MyType { id: Int @id }`, `type Query { f1: MyType }`]);
 
         done.fail('It should have failed');
-      } catch (e) {
+      } catch (e: any) {
         const msg = stripWhitespaces(e.message);
 
         expect(msg).toMatch('GraphQL directive "id"');
@@ -660,15 +661,15 @@ describe('Merge TypeDefs', () => {
         'type Query { f2: String }',
       ]);
 
-      expect(stripWhitespaces(print(merged))).toBeSimilarGqlDoc(
+      expect(stripWhitespaces(print(merged))).toBeSimilarString(
         stripWhitespaces(/* GraphQL */`
+        schema {
+          query: Query
+        }
+
         type Query {
           f1: String
           f2: String
-        }
-
-        schema {
-          query: Query
         }`)
       );
     });
@@ -709,16 +710,16 @@ describe('Merge TypeDefs', () => {
         `,
       ]);
 
-      expect(stripWhitespaces(print(merged))).toBeSimilarGqlDoc(
+      expect(stripWhitespaces(print(merged))).toBeSimilarString(
         stripWhitespaces(/* GraphQL */`
+        schema {
+          query: Query
+        }
+
         type Query {
           f1: String
           f2: String
           f3: String
-        }
-
-        schema {
-          query: Query
         }`)
       );
     });
@@ -1357,5 +1358,47 @@ describe('Merge TypeDefs', () => {
 
       expect(mergeDirectives(directivesOne, directivesTwo, config)).toEqual(directivesTwo);
     });
+
+  })
+  it('should handle tripe quote comments in schema documents', () => {
+    const schemaWithTripleQuotes = /* GraphQL */`
+      """
+      Multi line description on a type
+      """
+      type A {
+        """
+        Multi line description on a field
+        """
+        value: String!
+      }
+    `
+    const reformulatedGraphQL = mergeTypeDefs([schemaWithTripleQuotes], { commentDescriptions: true });
+
+    expect(reformulatedGraphQL).toBeSimilarString(schemaWithTripleQuotes);
+  })
+
+  it('should handle single quote comments in schema documents', () => {
+    const schemaWithSingleQuote = /* GraphQL */`
+      "Single line description on a type"
+      type B {
+        "Single line description on a field"
+        value: String!
+      }
+      `
+
+    const reformulatedGraphQL = mergeTypeDefs([schemaWithSingleQuote], { commentDescriptions: true });
+    expect(reformulatedGraphQL).toBeSimilarString(schemaWithSingleQuote);
+  })
+
+  it('should handle comment descriptions in schema documents', () => {
+    const schemaWithDescription = /* GraphQL */`
+      # Comment on a type
+      type C {
+        # Comment on a field
+        value: String!
+      }
+    `
+    const reformulatedGraphQL = mergeTypeDefs([schemaWithDescription], { commentDescriptions: true });
+    expect(reformulatedGraphQL).toBeSimilarString(schemaWithDescription);
   })
 });

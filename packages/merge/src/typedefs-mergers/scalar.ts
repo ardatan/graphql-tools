@@ -12,7 +12,7 @@ export function mergeScalar(
       name: node.name,
       description: node['description'] || existingNode['description'],
       kind:
-        (config && config.convertExtensions) ||
+        config?.convertExtensions ||
         node.kind === 'ScalarTypeDefinition' ||
         existingNode.kind === 'ScalarTypeDefinition'
           ? 'ScalarTypeDefinition'
@@ -22,7 +22,7 @@ export function mergeScalar(
     } as any;
   }
 
-  return config && config.convertExtensions
+  return config?.convertExtensions
     ? {
         ...node,
         kind: 'ScalarTypeDefinition',

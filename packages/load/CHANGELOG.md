@@ -1,5 +1,40 @@
 # @graphql-tools/load
 
+## 7.3.0
+
+### Minor Changes
+
+- 5225cc71: feat(load): sort the final schema if "sort" option is provided
+
+### Patch Changes
+
+- 9a005161: fix(merge): convertExtensions should convert extensions to regular definitions not other way around
+
+## 7.2.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+
+### Patch Changes
+
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+  - @graphql-tools/utils@8.2.0
+  - @graphql-tools/schema@8.2.0
+
+## 7.1.9
+
+### Patch Changes
+
+- c8c13ed1: enhance: remove TypeMap and small improvements
+- c8c13ed1: enhance(load): handle multiple errors correctly
+- Updated dependencies [c8c13ed1]
+  - @graphql-tools/utils@8.1.2
+
 ## 7.1.8
 
 ### Patch Changes

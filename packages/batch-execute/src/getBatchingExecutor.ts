@@ -1,8 +1,7 @@
 import DataLoader from 'dataloader';
 
-import { ExecutionRequest, Executor } from '@graphql-tools/utils';
+import { ExecutionRequest, Executor, memoize2of4 } from '@graphql-tools/utils';
 import { createBatchingExecutor } from './createBatchingExecutor';
-import { memoize2of4 } from './memoize';
 
 export const getBatchingExecutor = memoize2of4(function getBatchingExecutor(
   _context: Record<string, any>,

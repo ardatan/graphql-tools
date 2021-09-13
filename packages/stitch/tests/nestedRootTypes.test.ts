@@ -4,7 +4,7 @@ import { graphql } from 'graphql';
 
 describe('nested root types', () => {
   const schema1 = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Query {
         schema1Boolean: Boolean
         schema1Query: Query
@@ -27,7 +27,7 @@ describe('nested root types', () => {
   });
 
   const schema2 = makeExecutableSchema({
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       type Query {
         schema2Boolean: Boolean
         schema2Query: Query
@@ -54,7 +54,7 @@ describe('nested root types', () => {
   });
 
   it('works to nest Query', async () => {
-    const query = `
+    const query = /* GraphQL */`
       query {
         schema1Query {
           schema1Boolean
@@ -88,7 +88,7 @@ describe('nested root types', () => {
       },
     };
 
-    const result = await graphql(stitchedSchema, query);
+    const result = await graphql({ schema: stitchedSchema, source: query });
     expect(result).toEqual(expectedResult);
   });
 
@@ -127,7 +127,7 @@ describe('nested root types', () => {
       },
     };
 
-    const result = await graphql(stitchedSchema, mutation);
+    const result = await graphql({ schema: stitchedSchema, source: mutation });
     expect(result).toEqual(expectedResult);
   });
 });

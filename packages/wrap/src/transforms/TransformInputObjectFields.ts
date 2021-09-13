@@ -157,8 +157,8 @@ export default class TransformInputObjectFields implements Transform {
     const newDocument: DocumentNode = visit(
       document,
       visitWithTypeInfo(typeInfo, {
-        leave: {
-          [Kind.OBJECT]: (node: ObjectValueNode): ObjectValueNode | undefined => {
+        [Kind.OBJECT]: {
+          leave: (node: ObjectValueNode): ObjectValueNode | undefined => {
             // The casting is kind of legit here as we are in a visitor
             const parentType = typeInfo.getInputType() as Maybe<GraphQLInputObjectType>;
             if (parentType != null) {

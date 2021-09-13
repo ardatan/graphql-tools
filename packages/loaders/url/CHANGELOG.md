@@ -1,5 +1,31 @@
 # @graphql-tools/url-loader
 
+## 7.1.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+
+### Patch Changes
+
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+  - @graphql-tools/delegate@8.2.0
+  - @graphql-tools/utils@8.2.0
+  - @graphql-tools/wrap@8.1.0
+
+## 7.0.12
+
+### Patch Changes
+
+- e4dc54de: Add missing `@types/ws` dependency
+- Updated dependencies [c8c13ed1]
+  - @graphql-tools/delegate@8.1.1
+  - @graphql-tools/utils@8.1.2
+
 ## 7.0.11
 
 ### Patch Changes

@@ -127,7 +127,7 @@ input TestInput {
 
       try {
         await loader.load(testUrl, {});
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).toBe('Could not obtain introspection result, received: ' + JSON.stringify(brokenData))
       }
     });
@@ -391,8 +391,12 @@ input TestInput {
         const subscriptionServer = SubscriptionServer.create(
           {
             schema: testSchema,
-            execute,
-            subscribe,
+            execute: (schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver) => execute({
+              schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver
+            }),
+            subscribe: (schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver) => subscribe({
+              schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver
+            }),
           },
           {
             server: httpServer,
@@ -525,8 +529,9 @@ input TestInput {
 
       expect(result.errors).toBeFalsy();
       assertNonMaybe(result.data)
-      expect(result.data['uploadFile']?.filename).toBe(fileName);
-      expect(result.data['uploadFile']?.content).toBe(content);
+      const uploadFileData: any = result.data?.['uploadFile'];
+      expect(uploadFileData?.filename).toBe(fileName);
+      expect(uploadFileData?.content).toBe(content);
     });
   });
 });

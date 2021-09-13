@@ -1,7 +1,7 @@
 import { wrapSchema, FilterTypes } from '@graphql-tools/wrap';
 import { graphql, GraphQLSchema, GraphQLNamedType } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
-import { bookingSchema } from './fixtures/schemas';
+import { bookingSchema } from '../../testing/fixtures/schemas';
 
 describe('FilterTypes', () => {
   let schema: GraphQLSchema;
@@ -19,9 +19,9 @@ describe('FilterTypes', () => {
   });
 
   test('should work normally', async () => {
-    const result = await graphql(
+    const result = await graphql({
       schema,
-      `
+      source: /* GraphQL */`
         query {
           bookingById(id: "b1") {
             id
@@ -31,7 +31,7 @@ describe('FilterTypes', () => {
           }
         }
       `,
-    );
+      });
 
     expect(result).toEqual({
       data: {
@@ -46,9 +46,9 @@ describe('FilterTypes', () => {
   });
 
   test('should error on removed types', async () => {
-    const result = await graphql(
+    const result = await graphql({
       schema,
-      `
+      source: /* GraphQL */`
         query {
           bookingById(id: "b1") {
             id
@@ -61,7 +61,7 @@ describe('FilterTypes', () => {
           }
         }
       `,
-    );
+    });
     expect(result.errors).toBeDefined();
     assertSome(result.errors)
     expect(result.errors.length).toBe(1);

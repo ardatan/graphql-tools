@@ -9,7 +9,7 @@ import { assertSome } from '@graphql-tools/utils';
 describe('basic stitching example', () => {
   test('works', async () => {
     let chirpSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Chirp {
           id: ID!
           text: String
@@ -27,7 +27,7 @@ describe('basic stitching example', () => {
 
     // Mocked author schema
     let authorSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           email: String
@@ -41,7 +41,7 @@ describe('basic stitching example', () => {
 
     authorSchema = addMocksToSchema({ schema: authorSchema });
 
-    const linkTypeDefs = `
+    const linkTypeDefs = /* GraphQL */`
       extend type User {
         chirps: [Chirp]
       }
@@ -91,7 +91,7 @@ describe('basic stitching example', () => {
       },
     });
 
-    const query = `
+    const query = /* GraphQL */`
       query {
         userById(id: 5) {
           chirps {
@@ -105,13 +105,14 @@ describe('basic stitching example', () => {
       }
     `;
 
-    const result = await graphql(stitchedSchema, query);
+    const result = await graphql({ schema: stitchedSchema, source: query });
 
     expect(result.errors).toBeUndefined();
     assertSome(result.data)
-    expect(result.data['userById'].chirps[1].id).not.toBe(null);
-    expect(result.data['userById'].chirps[1].text).not.toBe(null);
-    expect(result.data['userById'].chirps[1].author.email).not.toBe(null);
+    const userByIdData: any = result.data['userById'];
+    expect(userByIdData.chirps[1].id).not.toBe(null);
+    expect(userByIdData.chirps[1].text).not.toBe(null);
+    expect(userByIdData.chirps[1].author.email).not.toBe(null);
   });
 });
 
@@ -119,7 +120,7 @@ describe('stitching to interfaces', () => {
   let stitchedSchema: GraphQLSchema;
   beforeAll(() => {
     let chirpSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         interface Node {
           id: ID!
         }
@@ -140,7 +141,7 @@ describe('stitching to interfaces', () => {
     chirpSchema = addMocksToSchema({ schema: chirpSchema });
 
     let authorSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         interface Node {
           id: ID!
         }
@@ -158,7 +159,7 @@ describe('stitching to interfaces', () => {
 
     authorSchema = addMocksToSchema({ schema: authorSchema });
 
-    const linkTypeDefs = `
+    const linkTypeDefs = /* GraphQL */`
       extend type User {
         chirps: [Chirp]
       }
@@ -228,13 +229,14 @@ describe('stitching to interfaces', () => {
       }
     `;
 
-    const resultWithFragments = await graphql(stitchedSchema, queryWithFragments);
+    const resultWithFragments = await graphql({ schema: stitchedSchema, source: queryWithFragments });
 
     expect(resultWithFragments.errors).toBeUndefined();
     assertSome(resultWithFragments.data)
-    expect(resultWithFragments.data['node'].chirps[1].id).not.toBe(null);
-    expect(resultWithFragments.data['node'].chirps[1].text).not.toBe(null);
-    expect(resultWithFragments.data['node'].chirps[1].author.email).not.toBe(null);
+    const nodeData: any = resultWithFragments.data['node'];
+    expect(nodeData.chirps[1].id).not.toBe(null);
+    expect(nodeData.chirps[1].text).not.toBe(null);
+    expect(nodeData.chirps[1].author.email).not.toBe(null);
   });
 
   test('it works without fragments', async () => {
@@ -253,13 +255,14 @@ describe('stitching to interfaces', () => {
       }
     `;
 
-    const resultWithoutFragments = await graphql(stitchedSchema, queryWithoutFragments);
+    const resultWithoutFragments = await graphql({ schema: stitchedSchema, source: queryWithoutFragments });
 
     expect(resultWithoutFragments.errors).toBeUndefined();
     assertSome(resultWithoutFragments.data)
-    expect(resultWithoutFragments.data['node'].chirps[1].id).not.toBe(null);
-    expect(resultWithoutFragments.data['node'].chirps[1].text).not.toBe(null);
-    expect(resultWithoutFragments.data['node'].chirps[1].author.email).not.toBe(null);
+    const nodeData: any = resultWithoutFragments.data['node'];
+    expect(nodeData.chirps[1].id).not.toBe(null);
+    expect(nodeData.chirps[1].text).not.toBe(null);
+    expect(nodeData.chirps[1].author.email).not.toBe(null);
 
   });
 });

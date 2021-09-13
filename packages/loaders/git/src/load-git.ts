@@ -33,7 +33,7 @@ export async function readTreeAtRef(ref: string): Promise<string[] | never> {
         }
       );
     });
-  } catch (error) {
+  } catch (error: any) {
     throw createTreeError(error);
   }
 }
@@ -46,7 +46,7 @@ export function readTreeAtRefSync(ref: string): string[] | never {
     return execFileSync('git', createTreeCommand({ ref }), { encoding: 'utf-8' })
       .split(os.EOL)
       .map(line => line.trim());
-  } catch (error) {
+  } catch (error: any) {
     throw createTreeError(error);
   }
 }
@@ -70,7 +70,7 @@ export async function loadFromGit(input: Input): Promise<string | never> {
         }
       );
     });
-  } catch (error) {
+  } catch (error: any) {
     throw createLoadError(error);
   }
 }
@@ -81,7 +81,7 @@ export async function loadFromGit(input: Input): Promise<string | never> {
 export function loadFromGitSync(input: Input): string | never {
   try {
     return execFileSync('git', createShowCommand(input), { encoding: 'utf-8' });
-  } catch (error) {
+  } catch (error: any) {
     throw createLoadError(error);
   }
 }

@@ -1,5 +1,28 @@
 # @graphql-tools/json-file-loader
 
+## 7.2.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+
+### Patch Changes
+
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+  - @graphql-tools/utils@8.2.0
+
+## 7.1.3
+
+### Patch Changes
+
+- c8c13ed1: enhance(load): handle multiple errors correctly
+- Updated dependencies [c8c13ed1]
+  - @graphql-tools/utils@8.1.2
+
 ## 7.1.2
 
 ### Patch Changes

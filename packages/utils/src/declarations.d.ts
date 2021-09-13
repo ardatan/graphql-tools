@@ -11,6 +11,3 @@ declare global {
   }
 }
 declare module 'graphql-upload';
-declare module 'graphql/jsutils/inspect.js' {
-  export function inspect(obj: any): string;
-}

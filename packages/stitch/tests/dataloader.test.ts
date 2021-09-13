@@ -9,7 +9,7 @@ import { stitchSchemas } from '../src/stitchSchemas';
 describe('dataloader', () => {
   test('should work', async () => {
     const taskSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Task {
           id: ID!
           text: String
@@ -31,7 +31,7 @@ describe('dataloader', () => {
     });
 
     const userSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type User {
           id: ID!
           email: String!
@@ -50,7 +50,7 @@ describe('dataloader', () => {
 
     const schema = stitchSchemas({
       subschemas: [taskSchema, userSchema],
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         extend type Task {
           user: User!
         }
@@ -92,7 +92,7 @@ describe('dataloader', () => {
       },
     );
 
-    const query = `{
+    const query = /* GraphQL */`{
       task(id: "1") {
         id
         text
@@ -103,7 +103,7 @@ describe('dataloader', () => {
       }
     }`;
 
-    const result = await graphql(schema, query, null, { usersLoader });
+    const result = await graphql({schema, source: query, contextValue: { usersLoader }});
 
     expect(result).toEqual({
       data: {

@@ -54,6 +54,7 @@ import { astFromType } from './astFromType';
 import { getDirectivesInExtensions } from './get-directives';
 import { astFromValueUntyped } from './astFromValueUntyped';
 import { isSome } from './helpers';
+import { getRootTypeMap } from './rootTypes';
 
 export function getDocumentNodeFromSchema(
   schema: GraphQLSchema,
@@ -121,11 +122,11 @@ export function astFromSchema(
   schema: GraphQLSchema,
   pathToDirectivesInExtensions?: Array<string>
 ): SchemaDefinitionNode | SchemaExtensionNode | null {
-  const operationTypeMap: Record<OperationTypeNode, Maybe<OperationTypeDefinitionNode>> = {
-    query: undefined,
-    mutation: undefined,
-    subscription: undefined,
-  };
+  const operationTypeMap = new Map<OperationTypeNode, OperationTypeDefinitionNode | undefined>([
+    ['query', undefined],
+    ['mutation', undefined],
+    ['subscription', undefined],
+  ]);
 
   const nodes: Array<SchemaDefinitionNode | SchemaExtensionNode> = [];
   if (schema.astNode != null) {
@@ -140,32 +141,30 @@ export function astFromSchema(
   for (const node of nodes) {
     if (node.operationTypes) {
       for (const operationTypeDefinitionNode of node.operationTypes) {
-        operationTypeMap[operationTypeDefinitionNode.operation] = operationTypeDefinitionNode;
+        operationTypeMap.set(operationTypeDefinitionNode.operation, operationTypeDefinitionNode);
       }
     }
   }
 
-  const rootTypeMap: Record<OperationTypeNode, Maybe<GraphQLObjectType>> = {
-    query: schema.getQueryType(),
-    mutation: schema.getMutationType(),
-    subscription: schema.getSubscriptionType(),
-  };
+  const rootTypeMap = getRootTypeMap(schema);
 
-  for (const operationTypeNode in operationTypeMap) {
-    if (rootTypeMap[operationTypeNode] != null) {
-      if (operationTypeMap[operationTypeNode] != null) {
-        operationTypeMap[operationTypeNode].type = astFromType(rootTypeMap[operationTypeNode]);
+  for (const [operationTypeNode, operationTypeDefinitionNode] of operationTypeMap) {
+    const rootType = rootTypeMap.get(operationTypeNode as OperationTypeNode);
+    if (rootType != null) {
+      const rootTypeAST = astFromType(rootType);
+      if (operationTypeDefinitionNode != null) {
+        (operationTypeDefinitionNode as any).type = rootTypeAST;
       } else {
-        operationTypeMap[operationTypeNode] = {
+        operationTypeMap.set(operationTypeNode, {
           kind: Kind.OPERATION_TYPE_DEFINITION,
           operation: operationTypeNode,
-          type: astFromType(rootTypeMap[operationTypeNode]),
-        };
+          type: rootTypeAST,
+        } as OperationTypeDefinitionNode);
       }
     }
   }
 
-  const operationTypes = Object.values(operationTypeMap).filter(isSome);
+  const operationTypes = [...operationTypeMap.values()].filter(isSome);
 
   const directives = getDirectiveNodes(schema, schema, pathToDirectivesInExtensions);
 
@@ -176,7 +175,8 @@ export function astFromSchema(
   const schemaNode: SchemaDefinitionNode | SchemaExtensionNode = {
     kind: operationTypes != null ? Kind.SCHEMA_DEFINITION : Kind.SCHEMA_EXTENSION,
     operationTypes,
-    directives,
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: directives as any,
   };
 
   // This code is so weird because it needs to support GraphQL.js 14
@@ -213,16 +213,13 @@ export function astFromDirective(
       kind: Kind.NAME,
       value: directive.name,
     },
-    arguments: directive?.args
-      ? directive.args.map(arg => astFromArg(arg, schema, pathToDirectivesInExtensions))
-      : undefined,
+    arguments: directive.args?.map(arg => astFromArg(arg, schema, pathToDirectivesInExtensions)),
     repeatable: directive.isRepeatable,
-    locations: directive?.locations
-      ? directive.locations.map(location => ({
-          kind: Kind.NAME,
-          value: location,
-        }))
-      : [],
+    locations:
+      directive.locations?.map(location => ({
+        kind: Kind.NAME,
+        value: location,
+      })) || [],
   };
 }
 
@@ -317,8 +314,10 @@ export function astFromArg(
       value: arg.name,
     },
     type: astFromType(arg.type),
-    defaultValue: arg.defaultValue !== undefined ? astFromValue(arg.defaultValue, arg.type) ?? undefined : undefined,
-    directives: getDeprecatableDirectiveNodes(arg, schema, pathToDirectivesInExtensions),
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    defaultValue:
+      arg.defaultValue !== undefined ? astFromValue(arg.defaultValue, arg.type) ?? undefined : (undefined as any),
+    directives: getDeprecatableDirectiveNodes(arg, schema, pathToDirectivesInExtensions) as any,
   };
 }
 
@@ -344,7 +343,7 @@ export function astFromObjectType(
     },
     fields: Object.values(type.getFields()).map(field => astFromField(field, schema, pathToDirectivesInExtensions)),
     interfaces: Object.values(type.getInterfaces()).map(iFace => astFromType(iFace) as NamedTypeNode),
-    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions),
+    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions) as any,
   };
 }
 
@@ -369,7 +368,7 @@ export function astFromInterfaceType(
       value: type.name,
     },
     fields: Object.values(type.getFields()).map(field => astFromField(field, schema, pathToDirectivesInExtensions)),
-    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions),
+    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions) as any,
   };
 
   if ('getInterfaces' in type) {
@@ -401,7 +400,8 @@ export function astFromUnionType(
       kind: Kind.NAME,
       value: type.name,
     },
-    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions),
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions) as any,
     types: type.getTypes().map(type => astFromType(type) as NamedTypeNode),
   };
 }
@@ -429,7 +429,8 @@ export function astFromInputObjectType(
     fields: Object.values(type.getFields()).map(field =>
       astFromInputField(field, schema, pathToDirectivesInExtensions)
     ),
-    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions),
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions) as any,
   };
 }
 
@@ -454,7 +455,8 @@ export function astFromEnumType(
       value: type.name,
     },
     values: Object.values(type.getValues()).map(value => astFromEnumValue(value, schema, pathToDirectivesInExtensions)),
-    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions),
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: getDirectiveNodes(type, schema, pathToDirectivesInExtensions) as any,
   };
 }
 
@@ -463,35 +465,21 @@ export function astFromScalarType(
   schema: GraphQLSchema,
   pathToDirectivesInExtensions?: Array<string>
 ): ScalarTypeDefinitionNode {
-  let directiveNodesBesidesSpecifiedBy: Array<DirectiveNode> = [];
-  let specifiedByDirectiveNode: Maybe<DirectiveNode> = null;
-
   const directivesInExtensions = getDirectivesInExtensions(type, pathToDirectivesInExtensions);
 
-  let allDirectives: Maybe<ReadonlyArray<DirectiveNode>>;
-  if (directivesInExtensions != null) {
-    allDirectives = makeDirectiveNodes(schema, directivesInExtensions);
-  } else {
-    allDirectives = type.astNode?.directives;
-  }
+  const directives: DirectiveNode[] = directivesInExtensions
+    ? makeDirectiveNodes(schema, directivesInExtensions)
+    : (type.astNode?.directives as DirectiveNode[]) || [];
 
-  if (allDirectives != null) {
-    directiveNodesBesidesSpecifiedBy = allDirectives.filter(directive => directive.name.value !== 'specifiedBy');
-    if ((type as unknown as { specifiedByUrl: string }).specifiedByUrl != null) {
-      specifiedByDirectiveNode = allDirectives.filter(directive => directive.name.value === 'specifiedBy')?.[0];
-    }
+  if (
+    (type as any)['specifiedByUrl'] &&
+    !directives.some(directiveNode => directiveNode.name.value === 'specifiedBy')
+  ) {
+    const specifiedByArgs = {
+      url: (type as any)['specifiedByUrl'],
+    };
+    directives.push(makeDirectiveNode('specifiedBy', specifiedByArgs));
   }
-
-  if ((type as unknown as { specifiedByUrl: string }).specifiedByUrl != null && specifiedByDirectiveNode == null) {
-    specifiedByDirectiveNode = makeDirectiveNode('specifiedBy', {
-      url: (type as unknown as { specifiedByUrl: string }).specifiedByUrl,
-    });
-  }
-
-  const directives =
-    specifiedByDirectiveNode == null
-      ? directiveNodesBesidesSpecifiedBy
-      : [specifiedByDirectiveNode].concat(directiveNodesBesidesSpecifiedBy);
 
   return {
     kind: Kind.SCALAR_TYPE_DEFINITION,
@@ -508,7 +496,8 @@ export function astFromScalarType(
       kind: Kind.NAME,
       value: type.name,
     },
-    directives,
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: directives as any,
   };
 }
 
@@ -534,7 +523,8 @@ export function astFromField(
     },
     arguments: field.args.map(arg => astFromArg(arg, schema, pathToDirectivesInExtensions)),
     type: astFromType(field.type),
-    directives: getDeprecatableDirectiveNodes(field, schema, pathToDirectivesInExtensions),
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: getDeprecatableDirectiveNodes(field, schema, pathToDirectivesInExtensions) as any,
   };
 }
 
@@ -559,8 +549,9 @@ export function astFromInputField(
       value: field.name,
     },
     type: astFromType(field.type),
-    directives: getDeprecatableDirectiveNodes(field, schema, pathToDirectivesInExtensions),
-    defaultValue: astFromValue(field.defaultValue, field.type) ?? undefined,
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: getDeprecatableDirectiveNodes(field, schema, pathToDirectivesInExtensions) as any,
+    defaultValue: astFromValue(field.defaultValue, field.type) ?? (undefined as any),
   };
 }
 
@@ -584,7 +575,8 @@ export function astFromEnumValue(
       kind: Kind.NAME,
       value: value.name,
     },
-    directives: getDirectiveNodes(value, schema, pathToDirectivesInExtensions),
+    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
+    directives: getDirectiveNodes(value, schema, pathToDirectivesInExtensions) as any,
   };
 }
 

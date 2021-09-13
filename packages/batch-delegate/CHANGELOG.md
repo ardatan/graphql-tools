@@ -1,5 +1,31 @@
 # @graphql-tools/batch-delegate
 
+## 8.1.0
+
+### Minor Changes
+
+- c5b0719c: feat: GraphQL v16 support
+- c5b0719c: enhance(utils): move memoize functions to utils
+
+### Patch Changes
+
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+- Updated dependencies [c5b0719c]
+  - @graphql-tools/delegate@8.2.0
+  - @graphql-tools/utils@8.2.0
+
+## 8.0.12
+
+### Patch Changes
+
+- c8c13ed1: enhance: remove TypeMap and small improvements
+- Updated dependencies [c8c13ed1]
+  - @graphql-tools/delegate@8.1.1
+  - @graphql-tools/utils@8.1.2
+
 ## 8.0.11
 
 ### Patch Changes

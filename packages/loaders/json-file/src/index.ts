@@ -110,7 +110,7 @@ export class JsonFileLoader implements Loader {
             const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
             const rawSDL: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
             finalResult.push(this.handleFileContent(normalizedFilePath, rawSDL, options));
-          } catch (e) {
+          } catch (e: any) {
             if (env['DEBUG']) {
               console.error(e);
             }
@@ -141,7 +141,7 @@ export class JsonFileLoader implements Loader {
           const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
           const rawSDL = readFileSync(normalizedFilePath, { encoding: 'utf8' });
           finalResult.push(this.handleFileContent(normalizedFilePath, rawSDL, options));
-        } catch (e) {
+        } catch (e: any) {
           if (env['DEBUG']) {
             console.error(e);
           }
@@ -163,7 +163,7 @@ export class JsonFileLoader implements Loader {
   handleFileContent(normalizedFilePath: string, rawSDL: string, options: JsonFileLoaderOptions): Source {
     try {
       return parseGraphQLJSON(normalizedFilePath, rawSDL, options);
-    } catch (e) {
+    } catch (e: any) {
       throw new Error(`Unable to read JSON file: ${normalizedFilePath}: ${e.message || /* istanbul ignore next */ e}`);
     }
   }

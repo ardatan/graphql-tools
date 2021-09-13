@@ -63,8 +63,8 @@ export function getDirectivesInExtensions(
 ): Array<DirectiveAnnotation> {
   return pathToDirectivesInExtensions.reduce(
     (acc, pathSegment) => (acc == null ? acc : acc[pathSegment]),
-    node?.extensions
-  ) as Array<DirectiveAnnotation>;
+    node?.extensions as unknown as Array<DirectiveAnnotation>
+  );
 }
 
 function _getDirectiveInExtensions(
@@ -88,8 +88,11 @@ export function getDirectiveInExtensions(
 ): Array<Record<string, any>> | undefined {
   const directivesInExtensions = pathToDirectivesInExtensions.reduce(
     (acc, pathSegment) => (acc == null ? acc : acc[pathSegment]),
-    node?.extensions
-  ) as Record<string, Record<string, any> | Array<Record<string, any>>> | Array<DirectiveAnnotation> | undefined;
+    node?.extensions as
+      | Record<string, Record<string, any> | Array<Record<string, any>>>
+      | Array<DirectiveAnnotation>
+      | undefined
+  );
 
   if (directivesInExtensions === undefined) {
     return undefined;

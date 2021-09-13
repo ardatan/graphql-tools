@@ -1,7 +1,6 @@
 import {
   DocumentNode,
   Kind,
-  TokenKind,
   ASTNode,
   parse,
   Source as GraphQLSource,
@@ -10,7 +9,7 @@ import {
   StringValueNode,
   print,
 } from 'graphql';
-import { dedentBlockStringValue } from 'graphql/language/blockString.js';
+import { dedentBlockStringValue, getLeadingCommentBlock } from './comments';
 import { GraphQLParseOptions } from './Interfaces';
 
 export function parseGraphQLSDL(location: string | undefined, rawSDL: string, options: GraphQLParseOptions = {}) {
@@ -29,7 +28,7 @@ export function parseGraphQLSDL(location: string | undefined, rawSDL: string, op
     } else {
       document = parse(new GraphQLSource(rawSDL, location), options);
     }
-  } catch (e) {
+  } catch (e: any) {
     if (e.message.includes('EOF') && rawSDL.replace(/(\#[^*]*)/g, '').trim() === '') {
       document = {
         kind: Kind.DOCUMENT,
@@ -44,32 +43,6 @@ export function parseGraphQLSDL(location: string | undefined, rawSDL: string, op
     location,
     document,
   };
-}
-
-export function getLeadingCommentBlock(node: ASTNode): void | string {
-  const loc = node.loc;
-
-  if (!loc) {
-    return;
-  }
-
-  const comments = [];
-  let token = loc.startToken.prev;
-
-  while (
-    token != null &&
-    token.kind === TokenKind.COMMENT &&
-    token.next &&
-    token.prev &&
-    token.line + 1 === token.next.line &&
-    token.line !== token.prev.line
-  ) {
-    const value = String(token.value);
-    comments.push(value);
-    token = token.prev;
-  }
-
-  return comments.length > 0 ? comments.reverse().join('\n') : undefined;
 }
 
 export function transformCommentsToDescriptions(sourceSdl: string, options: GraphQLParseOptions = {}): DocumentNode {

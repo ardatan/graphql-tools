@@ -71,7 +71,7 @@ type User @model {
 `;
     try {
       await loadDefinition(yml, datamodel);
-    } catch (e) {
+    } catch (e: any) {
       expect(e).toMatchSnapshot();
     }
   });
@@ -101,7 +101,7 @@ type User @model {
 
     try {
       await loadDefinition(yml, datamodel);
-    } catch (e) {
+    } catch (e: any) {
       expect(e).toMatchSnapshot();
     }
   });
@@ -136,7 +136,7 @@ type User @model {
 
     try {
       await loadDefinition(yml, datamodel);
-    } catch (e) {
+    } catch (e: any) {
       expect(e).toMatchSnapshot();
     }
   });
@@ -170,7 +170,7 @@ type User @model {
     await env.load();
     try {
       await loadDefinition(yml, datamodel);
-    } catch (e) {
+    } catch (e: any) {
       expect(e).toMatchSnapshot();
     }
   });
@@ -213,7 +213,7 @@ type User @model {
     try {
       await env.load();
       await definition.load({});
-    } catch (e) {
+    } catch (e: any) {
       error = e;
     }
 
@@ -249,7 +249,7 @@ type User @model {
     await env.load();
     try {
       await loadDefinition(yml, datamodel);
-    } catch (e) {
+    } catch (e: any) {
       expect(e).toMatchSnapshot();
     }
   });
@@ -276,7 +276,7 @@ type User @model {
     let error;
     try {
       await loadDefinition(yml, datamodel);
-    } catch (e) {
+    } catch (e: any) {
       error = e;
     }
 
@@ -308,7 +308,7 @@ type User @model {
     let error;
     try {
       await loadDefinition(yml, datamodel);
-    } catch (e) {
+    } catch (e: any) {
       error = e;
     }
 

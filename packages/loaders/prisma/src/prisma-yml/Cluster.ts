@@ -92,7 +92,7 @@ export class Cluster {
           expiresIn: '5y',
           algorithm,
         });
-      } catch (e) {
+      } catch (e: any) {
         throw new Error(
           `Could not generate token for cluster ${chalk.bold(this.getDeployEndpoint())}.
 Original error: ${e.message}`
@@ -117,7 +117,7 @@ Original error: ${e.message}`
     workspaceSlug: string = this.workspaceSlug || '*',
     stageName?: string
   ): Promise<string> {
-    const query = `
+    const query = /* GraphQL */ `
       mutation ($input: GenerateClusterTokenRequest!) {
         generateClusterToken(input: $input) {
           clusterToken
@@ -148,7 +148,7 @@ Original error: ${e.message}`
     workspaceSlug: string = this.workspaceSlug!,
     stageName?: string
   ): Promise<boolean> {
-    const query = `
+    const query = /* GraphQL */ `
       mutation ($input: GenerateClusterTokenRequest!) {
         addServiceToCloudDBIfMissing(input: $input)
       }
@@ -221,7 +221,7 @@ Original error: ${e.message}`
       if (data && data.serverInfo) {
         return data.serverInfo.version;
       }
-    } catch (e) {
+    } catch (e: any) {
       debug(e);
     }
 
@@ -236,7 +236,7 @@ Original error: ${e.message}`
       const res = await result.json();
       const { data } = res;
       return data.serverInfo.version;
-    } catch (e) {
+    } catch (e: any) {
       debug(e);
     }
 
@@ -269,7 +269,7 @@ Original error: ${e.message}`
         return true;
       }
       return false;
-    } catch (e) {
+    } catch (e: any) {
       debug('Assuming that the server needs authentication');
       debug(e.toString());
       return true;

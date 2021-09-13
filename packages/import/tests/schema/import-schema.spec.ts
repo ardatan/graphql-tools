@@ -99,7 +99,7 @@ describe('importSchema', () => {
   });
 
   test('parse: multi line import', () => {
-    const sdl = `\
+    const sdl = /* GraphQL */`\
           # import A from 'a.graphql'
           # import * from "b.graphql"
             `;
@@ -562,7 +562,7 @@ describe('importSchema', () => {
     try {
       const a = importSchema('./fixtures/complex/a.graphql');
       expect(a).toBeTruthy();
-    } catch (e) {
+    } catch (e: any) {
       expect(e).toBeFalsy();
     }
   });
@@ -747,7 +747,7 @@ describe('importSchema', () => {
     try {
       importSchema('./fixtures/type-not-found/a.graphql');
       throw new Error();
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).toBe(`Couldn't find type Post in any of the schemas.`);
     }
 
@@ -757,7 +757,7 @@ describe('importSchema', () => {
     try {
       importSchema('./fixtures/type-not-found/b.graphql');
       throw new Error();
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).toBe(`Couldn't find type Post in any of the schemas.`);
     }
 
@@ -767,7 +767,7 @@ describe('importSchema', () => {
     try {
       importSchema('./fixtures/type-not-found/c.graphql');
       throw new Error();
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).toBe(`Couldn't find type Post in any of the schemas.`);
     }
 
@@ -778,7 +778,7 @@ describe('importSchema', () => {
     try {
       importSchema('./fixtures/type-not-found/d.graphql');
       throw new Error();
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).toBe(`Couldn't find type MyInterface in any of the schemas.`);
     }
 
@@ -789,7 +789,7 @@ describe('importSchema', () => {
     try {
       importSchema('./fixtures/type-not-found/e.graphql');
       throw new Error();
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).toBe(`Couldn't find type C in any of the schemas.`);
     }
 
@@ -800,7 +800,7 @@ describe('importSchema', () => {
     try {
       importSchema('./fixtures/type-not-found/f.graphql');
       throw new Error();
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).toBe(`Couldn't find type Post in any of the schemas.`);
     }
 
@@ -811,7 +811,7 @@ describe('importSchema', () => {
     try {
       importSchema('./fixtures/type-not-found/g.graphql');
       throw new Error();
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).toBe(`Couldn't find type first in any of the schemas.`);
     }
 

@@ -103,7 +103,7 @@ export function mergeTypeDefs(typeSource: TypeSource, config?: Partial<Config>):
 
   let result: any;
 
-  if (config && config.commentDescriptions) {
+  if (config?.commentDescriptions) {
     result = printWithComments(doc);
   } else {
     result = doc;
@@ -205,7 +205,7 @@ export function mergeGraphQLTypes(typeSource: TypeSource, config: Config): Defin
 
   if (config?.sort) {
     const sortFn = typeof config.sort === 'function' ? config.sort : defaultStringComparator;
-    mergedNodeDefinitions.sort((a, b) => sortFn(a.name?.value, b.name?.value));
+    mergedNodeDefinitions.sort((a: any, b: any) => sortFn(a.name?.value, b.name?.value));
   }
 
   return mergedNodeDefinitions;

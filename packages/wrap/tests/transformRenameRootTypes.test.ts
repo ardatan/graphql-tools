@@ -6,7 +6,7 @@ import { graphql } from 'graphql';
 describe('RenameRootTypes', () => {
   test('should work', async () => {
     let subschema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         schema {
           query: QueryRoot
           mutation: MutationRoot
@@ -35,9 +35,9 @@ describe('RenameRootTypes', () => {
       ],
     });
 
-    const result = await graphql(
+    const result = await graphql({
       schema,
-      `
+      source: `
         mutation {
           doSomething {
             query {
@@ -45,8 +45,8 @@ describe('RenameRootTypes', () => {
             }
           }
         }
-      `,
-    );
+      `
+    });
 
     expect(result).toEqual({
       data: {

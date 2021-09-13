@@ -5,7 +5,7 @@
 // https://github.com/ardatan/graphql-tools/issues/1710
 // https://github.com/ardatan/graphql-tools/issues/1959
 
-import { graphql } from 'graphql';
+import { execute, parse } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ExecutionResult } from '@graphql-tools/utils';
@@ -40,7 +40,7 @@ describe('merging using type merging', () => {
     // Note: the subschema can rely on the gateway correctly sending the indicated key and
     // so it is safe to use a non-validated scalar argument. In the next example, the subschema
     // will choose to strongly type the `keys` argument, but it is not strictly necessary.
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
       union _Entity = User
@@ -95,7 +95,7 @@ describe('merging using type merging', () => {
     // It is typed correctly; `upc` is always specified, but `price` and `weight` will only
     // be included when `shippingEstimate` is included within the query.
     //
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
       union _Entity = Product
@@ -166,7 +166,7 @@ describe('merging using type merging', () => {
     // B. selections from the key can be referenced by using the $ sign and dot notation, so that
     //    $key.upc refers to the `upc` field of the key.
     //
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
       union _Entity = Product
@@ -236,7 +236,7 @@ describe('merging using type merging', () => {
     // `argsExpr`, the $ sign without dot notation will pass the entire key as an object.
     // This allows arbitrary nesting of the key input as needed.
     //
-    typeDefs: `
+    typeDefs: /* GraphQL */`
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
       union _Entity = User | Product | Review
@@ -314,9 +314,9 @@ describe('merging using type merging', () => {
   });
 
   test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {
-    const result = await graphql(
-      stitchedSchema,
-      `
+    const result = await execute({
+      schema: stitchedSchema,
+      document: parse(/* GraphQL */ `
         query {
           topProducts {
             upc
@@ -324,10 +324,8 @@ describe('merging using type merging', () => {
             shippingEstimate
           }
         }
-      `,
-      undefined,
-      {},
-    );
+      `)
+    });
 
     const expectedResult: ExecutionResult = {
       data: {
@@ -347,9 +345,9 @@ describe('merging using type merging', () => {
   });
 
   test('can stitch from accounts to reviews to products to inventory', async () => {
-    const result = await graphql(
-      stitchedSchema,
-      `
+    const result = await execute({
+      schema: stitchedSchema,
+      document: parse(/* GraphQL */ `
         query {
           me {
             reviews {
@@ -361,10 +359,8 @@ describe('merging using type merging', () => {
             }
           }
         }
-      `,
-      undefined,
-      {},
-    );
+      `)
+  });
 
     const expectedResult: ExecutionResult = {
       data: {
@@ -381,9 +377,9 @@ describe('merging using type merging', () => {
   });
 
   test('can stitch from accounts to reviews to products to inventory', async () => {
-    const result = await graphql(
-      stitchedSchema,
-      `
+    const result = await execute({
+      schema: stitchedSchema,
+      document: parse(/* GraphQL */ `
         query {
           me {
             reviews {
@@ -396,10 +392,8 @@ describe('merging using type merging', () => {
             }
           }
         }
-      `,
-      undefined,
-      {},
-    );
+      `)
+    });
 
     const expectedResult: ExecutionResult = {
       data: {
@@ -430,9 +424,9 @@ describe('merging using type merging', () => {
   });
 
   test('can stitch from accounts to reviews to products to inventory even when entire key not requested', async () => {
-    const result = await graphql(
-      stitchedSchema,
-      `
+    const result = await execute({
+      schema: stitchedSchema,
+      document: parse(/* GraphQL */ `
         query {
           me {
             reviews {
@@ -443,10 +437,8 @@ describe('merging using type merging', () => {
             }
           }
         }
-      `,
-      undefined,
-      {},
-    );
+      `)
+  });
 
     const expectedResult: ExecutionResult = {
       data: {
@@ -473,9 +465,9 @@ describe('merging using type merging', () => {
   });
 
   test('can stitch from inventory to products and then back to inventory', async () => {
-    const result = await graphql(
-      stitchedSchema,
-      `
+    const result = await execute({
+      schema: stitchedSchema,
+      document: parse(/* GraphQL */ `
         query {
           mostStockedProduct {
             upc
@@ -483,10 +475,8 @@ describe('merging using type merging', () => {
             shippingEstimate
           }
         }
-      `,
-      undefined,
-      {},
-    );
+      `)
+    });
 
     const expectedResult: ExecutionResult = {
       data: {

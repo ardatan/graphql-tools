@@ -13,29 +13,25 @@ describe('Merging schemas', () => {
 
     originalSchema = addMocksToSchema({ schema: originalSchema });
 
-    const originalResult = await graphql(
-      originalSchema,
-      query,
-      undefined,
-      undefined,
-      variables,
-    );
+    const originalResult = await graphql({
+      schema: originalSchema,
+      source: query,
+      variableValues: variables,
+    });
     assertNoDuplicateFragmentErrors(originalResult);
 
     const transformedSchema = wrapSchema({ schema: originalSchema });
 
-    const transformedResult = await graphql(
-      transformedSchema,
-      query,
-      undefined,
-      undefined,
-      variables,
-    );
+    const transformedResult = await graphql({
+      schema: transformedSchema,
+      source: query,
+      variableValues: variables,
+    });
     assertNoDuplicateFragmentErrors(transformedResult);
   });
 });
 
-const rawSchema = `
+const rawSchema = /* GraphQL */`
   type Post {
     id: ID!
     title: String!
@@ -52,7 +48,7 @@ const rawSchema = `
   }
 `;
 
-const query = `
+const query = /* GraphQL */`
   query getPostById($id: ID!) {
     post(id: $id) {
       ...Post
