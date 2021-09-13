@@ -2,11 +2,19 @@ import { graphql } from 'graphql';
 
 import { delegateToSchema } from '../src/delegateToSchema';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { wrapSchema } from '@graphql-tools/wrap';
+import { stitchSchemas } from '@graphql-tools/stitch';
+
+function assertSome<T>(input: T): asserts input is Exclude<T, null | undefined> {
+  if (input == null) {
+    throw new Error("Value should be neither null nor undefined.")
+  }
+}
 
 describe('delegateToSchema', () => {
   test('should work', async () => {
     const innerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           test(input: String): String
         }
@@ -19,7 +27,7 @@ describe('delegateToSchema', () => {
     });
 
     const outerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           delegateToSchema(input: String): String
         }
@@ -38,21 +46,22 @@ describe('delegateToSchema', () => {
       },
     });
 
-    const result = await graphql(
-      outerSchema,
-      `
+    const result = await graphql({
+      schema: outerSchema,
+      source: /* GraphQL */`
         query {
           delegateToSchema(input: "test")
         }
       `,
-    );
+    });
 
-    expect(result.data?.['delegateToSchema']).toEqual('test');
+    assertSome(result.data)
+    expect(result.data['delegateToSchema']).toEqual('test');
   });
 
   test('should work even where there are default fields', async () => {
     const innerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           test(input: String = "test"): String
         }
@@ -65,7 +74,7 @@ describe('delegateToSchema', () => {
     });
 
     const outerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Query {
           delegateToSchema(input: String = "test"): String
         }
@@ -84,21 +93,22 @@ describe('delegateToSchema', () => {
       },
     });
 
-    const result = await graphql(
-      outerSchema,
-      `
+    const result = await graphql({
+      schema: outerSchema,
+      source: /* GraphQL */`
         query {
           delegateToSchema
         }
       `,
-    );
+    });
 
-    expect(result.data?.['delegateToSchema']).toEqual('test');
+    assertSome(result.data)
+    expect(result.data['delegateToSchema']).toEqual('test');
   });
 
   test('should work even when there are variables', async () => {
     const innerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Parameters {
           input: String
           source: Boolean
@@ -111,14 +121,14 @@ describe('delegateToSchema', () => {
         Query: {
           test: (source, args) => ({
             source: source !== undefined,
-            ... args,
+            ...args,
           }),
         },
       },
     });
 
     const outerSchema = makeExecutableSchema({
-      typeDefs: `
+      typeDefs: /* GraphQL */`
         type Parameters {
           input: String
           source: Boolean
@@ -141,9 +151,9 @@ describe('delegateToSchema', () => {
       },
     });
 
-    const result = await graphql(
-      outerSchema,
-      `
+    const result = await graphql({
+      schema: outerSchema,
+      source: /* GraphQL */`
         query($input: String) {
           delegateToSchema(input: $input) {
             input
@@ -151,16 +161,95 @@ describe('delegateToSchema', () => {
           }
         }
       `,
-      undefined,
-      undefined,
-      {
+      variableValues: {
         input: 'test',
       },
-    );
+    });
 
+    assertSome(result.data)
     expect(result.data?.['delegateToSchema']).toEqual({
       input: "test",
       source: false,
     });
   });
+  test('should work even when there are variables for nested fields', async () => {
+    const innerSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */`
+        input TestInput {
+          strings: [String]
+        }
+        type Test {
+          strings: [String]
+        }
+        type Query {
+          test(input: TestInput): Test
+        }
+      `,
+      resolvers: {
+        Query: {
+          test: (_root, args) => args.input
+        },
+      },
+    });
+
+    const outerSchema = wrapSchema({ schema: innerSchema });
+
+    const result = await graphql({
+      schema: outerSchema,
+      source: /* GraphQL */ `
+        query test($strings: [String]) {
+          test(input: { strings: $strings }) {
+            strings
+          }
+        }
+      `,
+      variableValues: {
+        strings: ['foo', 'bar']
+      }
+    });
+
+    assertSome(result.data);
+    expect(result.data).toEqual({
+      test: {
+        strings: ['foo', 'bar']
+      }
+    });
+  });
+  test('should work variables in directives', async () => {
+    const sourceSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */`
+                type Query {
+                  users(input: UsersInput!): [User!]!
+                }
+
+                type User {
+                  name: String!
+                  age: Int!
+                }
+
+                input UsersInput {
+                  limit: Int
+                }
+      `,
+      resolvers: {
+        Query: {
+          users: () => {
+            return [
+              { name: 'ABC', age: 10 },
+              { name: 'DEF', age: 20 },
+            ];
+          },
+        },
+      },
+    });
+    const stitchedSchema = stitchSchemas({ subschemas: [sourceSchema] });
+
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */`query($input: UsersInput!, $skip_age: Boolean!) { users(input: $input) { name age @skip (if: $skip_age) } }`,
+      variableValues: { input: { limit: 5 }, skip_age: true },
+    });
+
+    expect(result).toEqual({ "data": { "users": [{ "name": "ABC" }, { "name": "DEF" }] } });
+  })
 });
