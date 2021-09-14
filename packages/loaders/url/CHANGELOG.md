@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.2.0
+
+### Minor Changes
+
+- eeba7390: Integrate and document `graphql-sse`
+
 ## 7.1.0
 
 ### Minor Changes
