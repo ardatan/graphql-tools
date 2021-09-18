@@ -90,7 +90,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
     transformationContext: MapLeafValuesTransformationContext
   ): ExecutionRequest {
     const document = originalRequest.document;
-    const variableValues = (originalRequest.variables = {});
+    const variableValues = originalRequest.variables || {};
 
     const operations: Array<OperationDefinitionNode> = document.definitions.filter(
       def => def.kind === Kind.OPERATION_DEFINITION
