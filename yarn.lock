@@ -8912,10 +8912,10 @@ next-remote-watch@1.0.0:
     commander "^5.0.0"
     express "^4.17.1"
 
-next-seo@4.27.0, next-seo@^4.27.0:
-  version "4.27.0"
-  resolved "https://registry.yarnpkg.com/next-seo/-/next-seo-4.27.0.tgz#9e6d1b9b49c09c3f5e1e86443dc04854b4edbd48"
-  integrity sha512-nodRrdEePRjFBo+2osYpDCVi+EbO45/MmCnLQpmS59HuEXBDePa3gpM67kJk9cCJ9dKkfp/MwYtmNbhDImMvmg==
+next-seo@4.28.0, next-seo@^4.27.0:
+  version "4.28.0"
+  resolved "https://registry.yarnpkg.com/next-seo/-/next-seo-4.28.0.tgz#1200c2b1d567ae009826d103c82be5c007a9af29"
+  integrity sha512-jlB7GBX7LA5UAzFbsSdaQQ//lDz1RU+6a1JtrDQPPtk0/Wk07kU/NmZLAx1U087355u5ToWZjQB8W0rQb4C3Gg==
 
 next@11.1.2:
   version "11.1.2"
