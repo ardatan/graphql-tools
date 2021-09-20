@@ -41,7 +41,7 @@
     "@chakra-ui/utils": "1.8.2",
     "@emotion/react": "11.4.1",
     "@emotion/styled": "11.3.0",
-    "@guild-docs/client": "1.0.5",
+    "@guild-docs/client": "1.0.6",
     "@guild-docs/server": "1.0.4",
     "@mdx-js/react": "1.6.22",
     "@theguild/components": "1.4.8",
