@@ -2084,15 +2084,15 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.0.tgz#0eee6373e11418bfe0b5638f654df7a4ca6a3950"
   integrity sha512-wYn6r8zVZyQJ6rQaALBEln5B1pzxb9shV5Ef97kTvn6yVGrqyXVnDqnU24MXnFubR+rZjBY9NWuxX3FB2sTsjg==
 
-"@guild-docs/client@1.0.5":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.0.5.tgz#a8ad4207059d401f053f133f20988e34435efaee"
-  integrity sha512-Oq8XXnKziB227pOTW5h6XdkVulBwErJCkNztWwrMsp8Wqb97za1tvrFe9Gpyy/eSeJoRw653BLORAJhn9H1QFA==
+"@guild-docs/client@1.0.6":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.0.6.tgz#293b7b929d9b20fe5b3f31b4dc665feb3d19d8cd"
+  integrity sha512-T4XkU6g4Bnws2b4p7rV3Aei+3dQ1EAJSRZDwBWHIdF8A4jZjEdh3KzO+BEoyQsU8d4AwisXa2gKarwvEAiCoEw==
   dependencies:
     "@guild-docs/types" "^1.0.0"
     immer "^9.0.6"
     next-mdx-remote "^3.0.4"
-    next-seo "^4.26.0"
+    next-seo "^4.27.0"
     nprogress "^0.2.0"
     react-icons "^4.2.0"
     react-intersection-observer "^8.32.1"
@@ -8911,7 +8911,7 @@ next-remote-watch@1.0.0:
     commander "^5.0.0"
     express "^4.17.1"
 
-next-seo@4.27.0, next-seo@^4.26.0:
+next-seo@4.27.0, next-seo@^4.27.0:
   version "4.27.0"
   resolved "https://registry.yarnpkg.com/next-seo/-/next-seo-4.27.0.tgz#9e6d1b9b49c09c3f5e1e86443dc04854b4edbd48"
   integrity sha512-nodRrdEePRjFBo+2osYpDCVi+EbO45/MmCnLQpmS59HuEXBDePa3gpM67kJk9cCJ9dKkfp/MwYtmNbhDImMvmg==
