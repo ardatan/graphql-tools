@@ -104,6 +104,16 @@ describe('schema from typedefs', () => {
       expect(schema.getTypeMap()['Query']).toBeDefined();
     });
 
+    it('should work with import notations multiple levels', async () => {
+      const schemaPath = './tests/loaders/schema/test-files/level1.graphql';
+      const schema = await load(schemaPath, {
+        loaders: [new GraphQLFileLoader()]
+      });
+
+      expect(schema.getTypeMap()['User']).toBeDefined();
+      expect(schema.getTypeMap()['Query']).toBeDefined();
+    });
+
     it('should work with extensions (static graphql file)', async () => {
       const schemaPath = './tests/loaders/schema/test-files/schema-dir/extensions/schema-with-extend.graphql';
       const schema = await load(schemaPath, {

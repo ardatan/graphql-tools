@@ -234,24 +234,30 @@ function visitFile(
         }
       }
     }
+    const potentialTransitiveDefinitionsMap = new Map<string, Set<DefinitionNode>>();
     const allImportedDefinitionsMap = new Map<string, Set<DefinitionNode>>();
     for (const line of importLines) {
       const { imports, from } = parseImportLine(line.replace('#', '').trim());
       const importFileDefinitionMap = visitFile(from, filePath, visitedFiles, predefinedImports);
       if (importFileDefinitionMap != null) {
-        if (imports.includes('*')) {
+        const buildFullDefinitionMap = (dependenciesMap: Map<string, Set<DefinitionNode>>) => {
           for (const [importedDefinitionName, importedDefinitions] of importFileDefinitionMap) {
             const [importedDefinitionTypeName] = importedDefinitionName.split('.');
-            if (!allImportedDefinitionsMap.has(importedDefinitionTypeName)) {
-              allImportedDefinitionsMap.set(importedDefinitionTypeName, new Set());
+            if (!dependenciesMap.has(importedDefinitionTypeName)) {
+              dependenciesMap.set(importedDefinitionTypeName, new Set());
             }
-            const allImportedDefinitions = allImportedDefinitionsMap.get(importedDefinitionTypeName);
+            const allImportedDefinitions = dependenciesMap.get(importedDefinitionTypeName);
             if (allImportedDefinitions) {
               for (const importedDefinition of importedDefinitions) {
                 allImportedDefinitions.add(importedDefinition);
               }
             }
           }
+        };
+
+        buildFullDefinitionMap(potentialTransitiveDefinitionsMap);
+        if (imports.includes('*')) {
+          buildFullDefinitionMap(allImportedDefinitionsMap);
         } else {
           for (let importedDefinitionName of imports) {
             if (importedDefinitionName.endsWith('.*')) {
@@ -317,6 +323,8 @@ function visitFile(
                   definitionsInCurrentFile?.forEach(def => addDefinition(def, definitionName, definitionSet));
                   const definitionsFromImports = allImportedDefinitionsMap.get(dependencyName);
                   definitionsFromImports?.forEach(def => addDefinition(def, definitionName, definitionSet));
+                  const transitiveDependencies = potentialTransitiveDefinitionsMap.get(dependencyName);
+                  transitiveDependencies?.forEach(def => addDefinition(def, definitionName, definitionSet));
                 });
               }
             }

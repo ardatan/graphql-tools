@@ -918,6 +918,37 @@ describe('importSchema', () => {
     expect(importSchema('fixtures/multiple-imports/schema.graphql')).toBeSimilarGqlDoc(expectedSDL);
   });
 
+  test('imports multiple imports at least 3 levels deep with transitive dependencies', () => {
+    const expectedSDL = /* GraphQL */`
+        type Product {
+            price: Int
+        }
+
+        type Products {
+            items: [Product]
+        }
+
+        type Account {
+            id: ID
+            cart: Cart
+        }
+
+        type Cart {
+            total: Int
+            products: Products
+        }
+
+        type Query {
+            user: User
+        }
+
+        type User {
+            account: Account
+        }
+    `;
+    expect(importSchema('fixtures/multiple-levels/level1.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+
   test('imports multi-level types without direct references', () => {
     const expectedSDL = /* GraphQL */`\
   type Level1 {
