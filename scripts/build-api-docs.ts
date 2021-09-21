@@ -141,7 +141,10 @@ async function buildApiDocs(): Promise<void> {
   );
 
   // Remove the generated "README.md" file
-  await fsPromises.unlink(path.join(OUTPUT_PATH, 'README.md'));
+  const readmePath = path.join(OUTPUT_PATH, 'README.md');
+  if (fs.existsSync(readmePath)) {
+    await fsPromises.unlink(path.join(OUTPUT_PATH, 'README.md'));
+  }
 
   // Update each module 's frontmatter and title
   await Promise.all(

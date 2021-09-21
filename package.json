@@ -57,6 +57,7 @@
     "eslint-plugin-n": "15.7.0",
     "eslint-plugin-promise": "6.1.1",
     "eslint-plugin-standard": "5.0.0",
+<<<<<<< HEAD
     "globby": "11.1.0",
     "graphql": "16.6.0",
     "graphql-subscriptions": "2.0.0",
@@ -72,6 +73,22 @@
     "typedoc-plugin-rename-defaults": "0.6.5",
     "typescript": "5.0.4",
     "weak-napi": "2.0.2"
+=======
+    "globby": "11.0.4",
+    "graphql": "15.6.0",
+    "graphql-helix": "1.7.0",
+    "graphql-subscriptions": "1.2.1",
+    "husky": "7.0.2",
+    "jest": "27.2.1",
+    "lint-staged": "11.1.2",
+    "nock": "13.1.3",
+    "patch-package": "6.4.7",
+    "prettier": "2.4.1",
+    "ts-jest": "27.0.5",
+    "typedoc": "0.22.4",
+    "typedoc-plugin-markdown": "3.10.4",
+    "typescript": "4.4.3"
+>>>>>>> chore(deps): update dependency typedoc to v0.22.4
   },
   "lint-staged": {
     "packages/**/src/**/*.{ts,tsx}": [
