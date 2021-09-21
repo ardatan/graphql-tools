@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 8.1.1
+
+### Patch Changes
+
+- d88a85a4: fix(wrap): fixing variables missing on wrap/MapLeafValues transform
+
 ## 8.1.0
 
 ### Minor Changes
