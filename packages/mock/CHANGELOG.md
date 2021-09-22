@@ -1,5 +1,16 @@
 # @graphql-tools/mock
 
+## 8.4.0
+
+### Minor Changes
+
+- d7de7fb6: feat(mock): add has method to MockStore
+
+### Patch Changes
+
+- Updated dependencies [da157d62]
+  - @graphql-tools/utils@8.2.3
+
 ## 8.3.1
 
 ### Patch Changes

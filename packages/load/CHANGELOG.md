@@ -1,5 +1,13 @@
 # @graphql-tools/load
 
+## 7.3.1
+
+### Patch Changes
+
+- 652c21d7: #3327 - Transitive schema definition dependencies are now included in building out the full dependency structure.
+- Updated dependencies [da157d62]
+  - @graphql-tools/utils@8.2.3
+
 ## 7.3.0
 
 ### Minor Changes
