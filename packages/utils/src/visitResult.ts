@@ -60,7 +60,9 @@ export function visitData(data: any, enter?: ValueVisitor, leave?: ValueVisitor)
     if (newData != null) {
       for (const key in newData) {
         const value = newData[key];
-        newData[key] = visitData(value, enter, leave);
+        Object.defineProperty(newData, key, {
+          value: visitData(value, enter, leave),
+        });
       }
     }
 

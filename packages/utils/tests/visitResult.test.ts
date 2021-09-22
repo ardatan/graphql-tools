@@ -4,7 +4,7 @@ import { ExecutionResult } from '@graphql-tools/utils';
 
 import { relocatedError } from '../src/errors';
 
-import { visitResult } from '../src/visitResult';
+import { visitData, visitResult } from '../src/visitResult';
 
 describe('visiting results', () => {
   const schema = buildSchema(/* GraphQL */`
@@ -402,5 +402,15 @@ describe('visiting errors', () => {
     });
 
     expect(visitedResult.errors[1].path).toEqual(['test', 'inserted', 'field']);
+  });
+});
+describe('visiting data', () => {
+  it('should work when the parent contains properties with getters only', async () => {
+    const result = {
+      data: Buffer.from("Test"),
+    };
+
+    const visitedResult = visitData(result);
+    expect(visitedResult).toEqual(result);
   });
 });
