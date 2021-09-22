@@ -58,8 +58,7 @@ export function visitData(data: any, enter?: ValueVisitor, leave?: ValueVisitor)
     const newData = enter != null ? enter(data) : data;
 
     if (newData != null) {
-      for (const key in newData) {
-        if (!Object.getOwnPropertyDescriptor(newData, key)?.writable) continue;
+      for (const key in Object.getOwnPropertySymbols(newData)) {
         const value = newData[key];
         newData[key] = visitData(value, enter, leave);
       }
