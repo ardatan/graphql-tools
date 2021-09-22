@@ -30,9 +30,7 @@
     "paths": {
       "@graphql-tools/*-loader": ["packages/loaders/*/src/index.ts", "packages/*-loader/src/index.ts"],
       "@graphql-tools/*": ["packages/*/src/index.ts"]
-    },
-
-    "tsBuildInfoFile": "./node_modules/tsconfig.tsbuildinfo"
+    }
   },
   "include": ["packages"],
   "exclude": ["**/node_modules", "**/dist", "**/test-files"]
