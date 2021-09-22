@@ -70,6 +70,10 @@ export class MockStore implements IMockStore {
     this.typePolicies = typePolicies || {};
   }
 
+  has<KeyT extends KeyTypeConstraints = string>(typeName: string, key: KeyT): boolean {
+    return !!this.store[typeName] && !!this.store[typeName][key];
+  }
+
   get<KeyT extends KeyTypeConstraints = string, ReturnKeyT extends KeyTypeConstraints = string>(
     _typeName: string | Ref<KeyT> | GetArgs<KeyT>,
     _key?: KeyT | { [fieldName: string]: any } | string | string[],
