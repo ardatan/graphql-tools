@@ -1,7 +1,7 @@
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { printSchema } from 'graphql';
+import { printSchema, buildSchema } from 'graphql';
 import { runTests, useMonorepo } from '../../../../testing/utils';
 import '../../../../testing/to-be-similar-gql-doc';
 
@@ -96,6 +96,34 @@ describe('loadSchema', () => {
           aa: String
         }
       `);
-    })
+    });
+
+    test('should add schemas from options.schemas to generated schema', async () => {
+      const schemaPath = './tests/loaders/schema/test-files/schema-dir/non-sorted.graphql';
+      const schema = await load(schemaPath, {
+        loaders: [new GraphQLFileLoader()],
+        sort: true,
+        schemas: [buildSchema(`scalar DateTime`)]
+      });
+      expect(printSchema(schema)).toBeSimilarGqlDoc(/* GraphQL */`
+        scalar DateTime
+
+        type A {
+          b: String
+          s: String
+        }
+
+        type Query {
+          a: String
+          d: String
+          z: String
+        }
+
+        type User {
+          a: String
+          aa: String
+        }
+      `);
+    });
 })
 });
