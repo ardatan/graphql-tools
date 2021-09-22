@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "incremental": false,
+    "incremental": true,
 
     "outDir": "dist",
     "baseUrl": ".",
