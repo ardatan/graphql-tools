@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.2.3
+
+### Patch Changes
+
+- da157d62: fix(utils): Avoid processing read-only properties on visitData method
+
 ## 8.2.2
 
 ### Patch Changes

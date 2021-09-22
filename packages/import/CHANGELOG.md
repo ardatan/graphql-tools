@@ -1,5 +1,11 @@
 # @graphql-tools/import
 
+## 6.4.1
+
+### Patch Changes
+
+- 652c21d7: #3327 - Transitive schema definition dependencies are now included in building out the full dependency structure.
+
 ## 6.4.0
 
 ### Minor Changes
