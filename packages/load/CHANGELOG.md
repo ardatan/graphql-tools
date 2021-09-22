@@ -1,5 +1,11 @@
 # @graphql-tools/load
 
+## 7.3.2
+
+### Patch Changes
+
+- 8079d43a: Fix loadSchema no longer accepting options.schemas
+
 ## 7.3.1
 
 ### Patch Changes
