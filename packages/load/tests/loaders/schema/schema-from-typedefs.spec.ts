@@ -199,5 +199,17 @@ describe('schema from typedefs', () => {
         includeSources: true,
       });
     })
+
+    it('should parse nested import types', async () => {
+      const glob = './tests/loaders/schema/test-files/nested-imports/query.graphql';
+      const schema = await load(glob, {
+        loaders: [new GraphQLFileLoader()]
+      });
+
+      expect(schema.getTypeMap()['Query']).toBeDefined();
+      expect(schema.getTypeMap()['Foo']).toBeDefined();
+      expect(schema.getTypeMap()['Bar']).toBeDefined();
+      expect(schema.getTypeMap()['Ham']).toBeDefined();
+    });
   })
 });
