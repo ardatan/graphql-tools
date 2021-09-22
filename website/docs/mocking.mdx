@@ -512,6 +512,18 @@ This method will reset `MockStore`.
 store.reset();
 ```
 
+#### has
+
+This method checks to see if a mock is present in the store for the given `typeName` and `key`. Returns `true` if the mock exists and `false` otherwise.
+
+```ts
+store.has('User', '1'); // false
+
+store.get('User', '1', { name: 'Alexandre' }) // or store.set
+
+store.has('User', '1'); // true
+```
+
 ## Migration from V7 and below
 
 ### Breaking change: Mock functions signature
