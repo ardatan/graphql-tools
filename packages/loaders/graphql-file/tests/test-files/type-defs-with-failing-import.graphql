@@ -1,0 +1,5 @@
+# import A from "./invalid-path.graphql"
+
+type Mutation {
+  a: A
+}
