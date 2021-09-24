@@ -4,6 +4,7 @@ import { ExecutionRequest, Executor, ExecutionResult } from '@graphql-tools/util
 
 import { mergeRequests } from './mergeRequests';
 import { splitResult } from './splitResult';
+import { Kind } from 'graphql';
 
 export function createBatchingExecutor(
   executor: Executor,
@@ -31,10 +32,10 @@ function createLoadFn(
     let currentBatch: Array<ExecutionRequest> = [request];
     execBatches.push(currentBatch);
 
-    const operationType = request.operationType;
+    const operationType = request.operationType ?? getOperationType(request);
 
     while (++index < requests.length) {
-      const currentOperationType = requests[index].operationType;
+      const currentOperationType = requests[index].operationType ?? getOperationType(requests[index]);
       if (operationType == null) {
         throw new Error('Could not identify operation type of document.');
       }
@@ -57,6 +58,10 @@ function createLoadFn(
 
     return results.flat();
   };
+}
+
+function getOperationType(request: ExecutionRequest): string {
+  return request.document.definitions.find(def => def.kind === Kind.OPERATION_DEFINITION).operation;
 }
 
 function defaultExtensionsReducer(

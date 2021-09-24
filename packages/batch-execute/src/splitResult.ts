@@ -36,8 +36,13 @@ export function splitResult({ data, errors }: ExecutionResult, numResults: numbe
         const parsedKey = parseKey(error.path[0] as string);
         const { index, originalKey } = parsedKey;
         const newError = relocatedError(error, [originalKey, ...error.path.slice(1)]);
-        const errors = (splitResults[index].errors = (splitResults[index].errors || []) as GraphQLError[]);
-        errors.push(newError);
+        const resultErrors = (splitResults[index].errors = (splitResults[index].errors || []) as GraphQLError[]);
+        resultErrors.push(newError);
+      } else {
+        splitResults.forEach(result => {
+          result.errors = (result.errors || []) as GraphQLError[];
+          result.errors.push(new GraphQLError(error.message));
+        });
       }
     }
   }
