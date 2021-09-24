@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@types/babel__traverse": "7.14.2",
-    "@vue/compiler-sfc": "3.2.17"
+    "@vue/compiler-sfc": "3.2.18"
   },
   "buildOptions": {
     "external": [
