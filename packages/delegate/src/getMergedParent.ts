@@ -26,12 +26,7 @@ import {
   isExternalObject,
 } from './externalObjects';
 
-const getMergeDetails = memoize1(function getMergeDetails(info: GraphQLResolveInfo):
-  | {
-      stitchingInfo: StitchingInfo;
-      mergedTypeInfo: MergedTypeInfo;
-    }
-  | undefined {
+const getMergedTypeInfo = memoize1(function getMergedTypeInfo(info: GraphQLResolveInfo): MergedTypeInfo | undefined {
   const schema = info.schema;
   const stitchingInfo: Maybe<StitchingInfo> = schema.extensions?.['stitchingInfo'];
   if (stitchingInfo == null) {
@@ -44,59 +39,51 @@ const getMergeDetails = memoize1(function getMergeDetails(info: GraphQLResolveIn
     return;
   }
 
-  return {
-    stitchingInfo,
-    mergedTypeInfo,
-  };
+  return mergedTypeInfo;
 });
 
-const loaders: WeakMap<any, DataLoader<GraphQLResolveInfo, Promise<ExternalObject>>> = new WeakMap();
+const loaders: WeakMap<any, DataLoader<ReadonlyArray<FieldNode>, Promise<ExternalObject>>> = new WeakMap();
 
 export async function getMergedParent(
   parent: ExternalObject,
   context: Record<string, any>,
   info: GraphQLResolveInfo
 ): Promise<ExternalObject> {
-  const mergeDetails = getMergeDetails(info);
-  if (!mergeDetails) {
+  const mergedTypeInfo = getMergedTypeInfo(info);
+  if (!mergedTypeInfo) {
     return parent;
   }
-
-  const { mergedTypeInfo } = mergeDetails;
 
   // In the stitching context, all subschemas are compiled Subschema objects rather than SubschemaConfig objects
   const sourceSubschema = getObjectSubchema(parent) as Subschema;
-  const targetSubschemas = mergedTypeInfo.targetSubschemas.get(sourceSubschema);
-  if (targetSubschemas === undefined || targetSubschemas.length === 0) {
-    return parent;
-  }
 
   let loader = loaders.get(parent);
   if (loader === undefined) {
-    loader = new DataLoader(infos =>
-      getMergedParentsFromInfos(parent, context, infos, mergedTypeInfo, sourceSubschema)
+    loader = new DataLoader(fieldNodeArrays =>
+      getMergedParentsFromFieldNodes(parent, context, info.schema, fieldNodeArrays, mergedTypeInfo, sourceSubschema)
     );
     loaders.set(parent, loader);
   }
-  return loader.load(info);
+  return loader.load(info.fieldNodes);
 }
 
-async function getMergedParentsFromInfos(
+async function getMergedParentsFromFieldNodes(
   parent: ExternalObject,
   context: Record<string, any>,
-  infos: ReadonlyArray<GraphQLResolveInfo>,
+  gatewaySchema: GraphQLSchema,
+  fieldNodeArrays: ReadonlyArray<ReadonlyArray<FieldNode>>,
   mergedTypeInfo: MergedTypeInfo,
   sourceSubschema: Subschema
 ): Promise<Array<Promise<ExternalObject>>> {
   const { requiredKeys, delegationMaps, stageMap } = buildDelegationPlan(
     mergedTypeInfo,
-    infos[0].schema,
+    gatewaySchema,
     sourceSubschema,
-    ...infos.map(info => info.fieldNodes)
+    ...fieldNodeArrays
   );
 
   if (!delegationMaps.length) {
-    return Array(infos.length).fill(parent);
+    return Array(fieldNodeArrays.length).fill(parent);
   }
 
   const promises: Array<Promise<ExternalObject>> = [];
@@ -113,30 +100,22 @@ async function getMergedParentsFromInfos(
     parent,
     parentInfo,
     parentPath
-  ).then(() => parent);
+  );
   promises.push(promise);
   for (let i = 1, delegationStage = delegationMaps[i]; i < delegationMaps.length; i++) {
     promise = promise.then(parent =>
-      executeDelegationStage(
-        delegationStage,
-        schema,
-        type,
-        mergedTypeInfo,
-        context,
-        parent,
-        parentInfo,
-        parentPath
-      ).then(() => parent)
+      executeDelegationStage(delegationStage, schema, type, mergedTypeInfo, context, parent, parentInfo, parentPath)
     );
     promises.push(promise);
   }
 
-  return infos.map(info => {
-    const keys = requiredKeys[info.fieldName];
+  return fieldNodeArrays.map(fieldNodeArray => {
+    const fieldName = fieldNodeArray[0].name.value;
+    const keys = requiredKeys[fieldName];
     if (keys === undefined) {
-      const delegationStage = stageMap[info.fieldName];
+      const delegationStage = stageMap[fieldName];
       if (delegationStage !== undefined) {
-        return promises[delegationStage].then(() => parent);
+        return promises[delegationStage];
       }
       return Promise.resolve(parent);
     }
@@ -145,7 +124,7 @@ async function getMergedParentsFromInfos(
       Array.from(keys.values()).map(fieldName => {
         const delegationStage = stageMap[fieldName];
         if (delegationStage !== undefined) {
-          return promises[delegationStage].then(() => parent);
+          return promises[delegationStage];
         }
         return Promise.resolve(parent);
       })
@@ -233,7 +212,7 @@ function calculateDelegationStage(
 
 export const buildDelegationPlan = memoize4ofMany(function buildDelegationPlan(
   mergedTypeInfo: MergedTypeInfo,
-  schema: GraphQLSchema,
+  gatewaySchema: GraphQLSchema,
   sourceSubschema: Subschema,
   ...fieldNodeArrays: Array<ReadonlyArray<FieldNode>>
 ): {
@@ -245,7 +224,7 @@ export const buildDelegationPlan = memoize4ofMany(function buildDelegationPlan(
   const delegationMaps: Array<Map<Subschema, Array<FieldNode>>> = [];
   const stageMap = Object.create(null);
 
-  const stitchingInfo: Maybe<StitchingInfo> = schema.extensions?.['stitchingInfo'];
+  const stitchingInfo: Maybe<StitchingInfo> = gatewaySchema.extensions?.['stitchingInfo'];
   if (stitchingInfo == null) {
     return { requiredKeys, delegationMaps, stageMap };
   }
@@ -431,7 +410,7 @@ async function executeDelegationStage(
   object: ExternalObject,
   parentInfo: GraphQLResolveInfo,
   parentPath: Array<string | number>
-): Promise<void> {
+): Promise<ExternalObject> {
   const initialPath = getInitialPath(object);
   const newSubschemaMap = getSubschemaMap(object);
 
@@ -475,23 +454,24 @@ async function executeDelegationStage(
           source = nullResult;
         }
 
-        // TODO: fold this assign into loop below?
-        Object.assign(object, source);
-
         // TODO: is this check necessary or just to make TS happy?
         if (!isExternalObject(source)) {
-          return;
+          Object.assign(object, source);
+          return object;
         }
 
         const objectSubschema = getObjectSubchema(source);
         const subschemaMap = getSubschemaMap(source);
         for (const responseKey in source) {
+          object[responseKey] = source[responseKey];
           newSubschemaMap[responseKey] = subschemaMap?.[responseKey] ?? objectSubschema;
         }
         unpathedErrors.push(...getUnpathedErrors(source));
       }
     })
   );
+
+  return object;
 }
 
 const subschemaTypesContainSelectionSet = memoize3(function subschemaTypesContainSelectionSet(
