@@ -2,9 +2,8 @@ import DataLoader from 'dataloader';
 
 import { ExecutionRequest, Executor, ExecutionResult } from '@graphql-tools/utils';
 
-import { mergeRequests } from './mergeRequests';
+import { mergeRequests, isOperationDefinition } from './mergeRequests';
 import { splitResult } from './splitResult';
-import { Kind, OperationDefinitionNode } from 'graphql';
 
 export function createBatchingExecutor(
   executor: Executor,
@@ -18,10 +17,11 @@ export function createBatchingExecutor(
   const loader = new DataLoader(loadFn, dataLoaderOptions);
   return function batchingExecutor(request: ExecutionRequest) {
     if (request.operationType == null) {
-      const op = request.document.definitions.find(
-        def => def.kind === Kind.OPERATION_DEFINITION
-      ) as OperationDefinitionNode;
-      request.operationType = op.operation;
+      for (const def of request.document.definitions) {
+        if (isOperationDefinition(def)) {
+          request.operationType = def.operation;
+        }
+      }
     }
     return request.operationType === 'subscription' ? executor(request) : loader.load(request);
   };

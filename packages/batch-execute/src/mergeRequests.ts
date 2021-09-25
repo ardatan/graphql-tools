@@ -284,7 +284,7 @@ function aliasField(field: FieldNode, aliasPrefix: string): FieldNode {
   };
 }
 
-function isOperationDefinition(def: DefinitionNode): def is OperationDefinitionNode {
+export function isOperationDefinition(def: DefinitionNode): def is OperationDefinitionNode {
   return def.kind === Kind.OPERATION_DEFINITION;
 }
 
