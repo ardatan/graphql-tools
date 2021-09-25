@@ -8,6 +8,8 @@ import {
   isObjectType,
 } from 'graphql';
 
+import { ValueOrPromise } from 'value-or-promise';
+
 import { IObjectTypeResolver, IResolvers, pruneSchema } from '@graphql-tools/utils';
 
 import { addResolversToSchema, assertResolversPresent, extendResolversFromInterfaces } from '@graphql-tools/schema';
@@ -252,9 +254,9 @@ function wrapResolvers(originalResolvers: IResolvers, schema: GraphQLSchema): IR
             return originalResolver(parent, args, context, info);
           }
 
-          return getMergedParent(parent, context, info).then(mergedParent =>
-            originalResolver(mergedParent, args, context, info)
-          );
+          return new ValueOrPromise(() => getMergedParent(parent, context, info))
+            .then(mergedParent => originalResolver(mergedParent, args, context, info))
+            .resolve();
         },
       };
     });

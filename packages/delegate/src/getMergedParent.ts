@@ -26,6 +26,32 @@ import {
   isExternalObject,
 } from './externalObjects';
 
+const loaders: WeakMap<any, DataLoader<ReadonlyArray<FieldNode>, Promise<ExternalObject>>> = new WeakMap();
+
+export function getMergedParent(
+  parent: ExternalObject,
+  context: Record<string, any>,
+  info: GraphQLResolveInfo
+): ExternalObject | Promise<ExternalObject> {
+  // In the stitching context, all subschemas are compiled Subschema objects rather than SubschemaConfig objects
+  const sourceSubschema = getObjectSubchema(parent) as Subschema;
+
+  const mergedTypeInfo = getMergedTypeInfo(info);
+  if (mergedTypeInfo === undefined) {
+    return parent;
+  }
+
+  let loader = loaders.get(parent);
+  if (loader === undefined) {
+    loader = new DataLoader(fieldNodeArrays =>
+      getMergedParentsFromFieldNodes(parent, context, info.schema, fieldNodeArrays, mergedTypeInfo, sourceSubschema)
+    );
+    loaders.set(parent, loader);
+  }
+
+  return loader.load(info.fieldNodes).then(promise => promise);
+}
+
 const getMergedTypeInfo = memoize1(function getMergedTypeInfo(info: GraphQLResolveInfo): MergedTypeInfo | undefined {
   const schema = info.schema;
   const stitchingInfo: Maybe<StitchingInfo> = schema.extensions?.['stitchingInfo'];
@@ -41,31 +67,6 @@ const getMergedTypeInfo = memoize1(function getMergedTypeInfo(info: GraphQLResol
 
   return mergedTypeInfo;
 });
-
-const loaders: WeakMap<any, DataLoader<ReadonlyArray<FieldNode>, Promise<ExternalObject>>> = new WeakMap();
-
-export async function getMergedParent(
-  parent: ExternalObject,
-  context: Record<string, any>,
-  info: GraphQLResolveInfo
-): Promise<ExternalObject> {
-  const mergedTypeInfo = getMergedTypeInfo(info);
-  if (!mergedTypeInfo) {
-    return parent;
-  }
-
-  // In the stitching context, all subschemas are compiled Subschema objects rather than SubschemaConfig objects
-  const sourceSubschema = getObjectSubchema(parent) as Subschema;
-
-  let loader = loaders.get(parent);
-  if (loader === undefined) {
-    loader = new DataLoader(fieldNodeArrays =>
-      getMergedParentsFromFieldNodes(parent, context, info.schema, fieldNodeArrays, mergedTypeInfo, sourceSubschema)
-    );
-    loaders.set(parent, loader);
-  }
-  return loader.load(info.fieldNodes);
-}
 
 async function getMergedParentsFromFieldNodes(
   parent: ExternalObject,

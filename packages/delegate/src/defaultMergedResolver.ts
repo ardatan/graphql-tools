@@ -1,5 +1,7 @@
 import { GraphQLResolveInfo, defaultFieldResolver } from 'graphql';
 
+import { ValueOrPromise } from 'value-or-promise';
+
 import { getResponseKeyFromInfo } from '@graphql-tools/utils';
 
 import { ExternalObject } from './types';
@@ -39,7 +41,7 @@ export function defaultMergedResolver(
 
   if (initialPossibleFields === undefined) {
     // TODO: can this be removed in the next major release?
-    // legacy use of  delegation without setting transformedSchema
+    // legacy use of delegation without setting transformedSchema
     const data = parent[responseKey];
     if (data !== undefined) {
       return resolveField(parent, responseKey, context, info);
@@ -48,9 +50,9 @@ export function defaultMergedResolver(
     return resolveField(parent, responseKey, context, info);
   }
 
-  return getMergedParent(parent, context, info).then(mergedParent =>
-    resolveField(mergedParent, responseKey, context, info)
-  );
+  return new ValueOrPromise(() => getMergedParent(parent, context, info))
+    .then(mergedParent => resolveField(mergedParent, responseKey, context, info))
+    .resolve();
 }
 
 function resolveField(

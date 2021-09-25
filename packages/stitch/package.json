@@ -32,8 +32,7 @@
     "input": "./src/index.ts"
   },
   "devDependencies": {
-    "dataloader": "2.0.0",
-    "value-or-promise": "1.0.10"
+    "dataloader": "2.0.0"
   },
   "dependencies": {
     "@graphql-tools/batch-delegate": "8.1.0",
@@ -42,7 +41,8 @@
     "@graphql-tools/schema": "^8.2.0",
     "@graphql-tools/utils": "^8.2.2",
     "@graphql-tools/wrap": "^8.1.0",
-    "tslib": "~2.3.0"
+    "tslib": "~2.3.0",
+    "value-or-promise": "1.0.10"
   },
   "publishConfig": {
     "access": "public",
