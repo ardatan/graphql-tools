@@ -88,12 +88,11 @@ async function getMergedParentsFromFieldNodes(
 
   const promises: Array<Promise<ExternalObject>> = [];
   const parentInfo = getInfo(parent);
-  const schema = parentInfo.schema;
-  const type = schema.getType(parent.__typename) as GraphQLObjectType;
+  const type = gatewaySchema.getType(parent.__typename) as GraphQLObjectType;
   const parentPath = responsePathAsArray(parentInfo.path);
   let promise = executeDelegationStage(
     delegationMaps[0],
-    schema,
+    gatewaySchema,
     type,
     mergedTypeInfo,
     context,
@@ -104,7 +103,16 @@ async function getMergedParentsFromFieldNodes(
   promises.push(promise);
   for (let i = 1, delegationStage = delegationMaps[i]; i < delegationMaps.length; i++) {
     promise = promise.then(parent =>
-      executeDelegationStage(delegationStage, schema, type, mergedTypeInfo, context, parent, parentInfo, parentPath)
+      executeDelegationStage(
+        delegationStage,
+        gatewaySchema,
+        type,
+        mergedTypeInfo,
+        context,
+        parent,
+        parentInfo,
+        parentPath
+      )
     );
     promises.push(promise);
   }
