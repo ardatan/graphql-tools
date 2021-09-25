@@ -1,11 +1,17 @@
-import { graphql, parse, print } from 'graphql';
+import {
+  graphql,
+  parse,
+  print,
+  OperationDefinitionNode,
+  ExecutionResult
+} from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createBatchingExecutor } from '@graphql-tools/batch-execute';
 import { Executor } from '@graphql-tools/utils';
 
 describe('batch execution', () => {
   let executorCalls: number = 0;
-  let executorDocument: string;
+  let executorDocument: string | undefined;
 
   const schema = makeExecutableSchema({
     typeDefs: /* GraphQL */`
@@ -26,15 +32,14 @@ describe('batch execution', () => {
     },
   });
 
-  const exec: Executor = ({ document, variables }) => {
+  const exec = (({ document }) => {
     executorCalls += 1;
     executorDocument = print(document);
     return graphql({
       schema,
       source: executorDocument,
-      variables
     });
-  };
+  }) as Executor;
 
   const batchExec = createBatchingExecutor(exec);
 
@@ -43,58 +48,62 @@ describe('batch execution', () => {
     executorDocument = undefined;
   });
 
-  function getRequestFields() {
-    return parse(executorDocument).definitions[0]
-      .selectionSet.selections.map(sel => sel.name.value);
+  function getRequestFields(): Array<string> {
+    if (executorDocument != null) {
+      const op = parse(executorDocument).definitions[0] as OperationDefinitionNode;
+      const names = op.selectionSet.selections.map(sel => 'name' in sel ? sel.name.value : undefined);
+      return names.filter(Boolean) as Array<string>;
+    }
+    return [];
   }
 
   it('batchs multiple executions', async () => {
-    const results = await Promise.all([
+    const [first, second] = await Promise.all([
       batchExec({ document: parse('{ field1 field2 }') }),
       batchExec({ document: parse('{ field2 field3(input: "3") }') }),
-    ]);
+    ]) as ExecutionResult[];
 
-    expect(results[0].data).toEqual({ field1: '1', field2: '2' });
-    expect(results[1].data).toEqual({ field2: '2', field3: '3' });
+    expect(first?.data).toEqual({ field1: '1', field2: '2' });
+    expect(second?.data).toEqual({ field2: '2', field3: '3' });
     expect(executorCalls).toEqual(1);
     expect(getRequestFields()).toEqual(['field1', 'field2', 'field2', 'field3']);
   });
 
   it('preserves root field aliases in the final result', async () => {
-    const results = await Promise.all([
+    const [first, second] = await Promise.all([
       batchExec({ document: parse('{ a: field1 b: field2 }') }),
       batchExec({ document: parse('{ c: field2 d: field3(input: "3") }') }),
-    ]);
+    ]) as ExecutionResult[];
 
-    expect(results[0].data).toEqual({ a: '1', b: '2' });
-    expect(results[1].data).toEqual({ c: '2', d: '3' });
+    expect(first?.data).toEqual({ a: '1', b: '2' });
+    expect(second?.data).toEqual({ c: '2', d: '3' });
     expect(executorCalls).toEqual(1);
     expect(getRequestFields()).toEqual(['field1', 'field2', 'field2', 'field3']);
   });
 
   it('preserves pathed errors in the final result', async () => {
-    const results = await Promise.all([
+    const [first, second] = await Promise.all([
       batchExec({ document: parse('{ first: boom(message: "first error") }') }),
       batchExec({ document: parse('{ second: boom(message: "second error") }') }),
-    ]);
+    ]) as ExecutionResult[];
 
-    expect(results[0].errors[0].message).toEqual('first error');
-    expect(results[0].errors[0].path).toEqual(['first']);
-    expect(results[1].errors[0].message).toEqual('second error');
-    expect(results[1].errors[0].path).toEqual(['second']);
+    expect(first?.errors?.[0].message).toEqual('first error');
+    expect(first?.errors?.[0].path).toEqual(['first']);
+    expect(second?.errors?.[0].message).toEqual('second error');
+    expect(second?.errors?.[0].path).toEqual(['second']);
     expect(executorCalls).toEqual(1);
   });
 
   it('returns request-level errors to all results', async () => {
-    const results = await Promise.all([
+    const [first, second] = await Promise.all([
       batchExec({ document: parse('{ field1 field2 }') }),
       batchExec({ document: parse('{ notgonnawork }') }),
-    ]);
+    ]) as ExecutionResult[];
 
-    expect(results[0].errors.length).toEqual(1);
-    expect(results[1].errors.length).toEqual(1);
-    expect(results[0].errors[0].message).toMatch(/notgonnawork/);
-    expect(results[1].errors[0].message).toMatch(/notgonnawork/);
+    expect(first?.errors?.length).toEqual(1);
+    expect(second?.errors?.length).toEqual(1);
+    expect(first?.errors?.[0].message).toMatch(/notgonnawork/);
+    expect(second?.errors?.[0].message).toMatch(/notgonnawork/);
     expect(executorCalls).toEqual(1);
   });
 });

@@ -5,6 +5,7 @@ import {
   Kind,
   DefinitionNode,
   OperationDefinitionNode,
+  OperationTypeNode,
   DocumentNode,
   FragmentDefinitionNode,
   VariableDefinitionNode,
@@ -86,7 +87,7 @@ export function mergeRequests(
 
   const mergedOperationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
-    operation: requests[0].operationType,
+    operation: requests[0].operationType as OperationTypeNode,
     variableDefinitions: mergedVariableDefinitions,
     selectionSet: {
       kind: Kind.SELECTION_SET,

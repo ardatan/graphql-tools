@@ -40,8 +40,8 @@ export function splitResult({ data, errors }: ExecutionResult, numResults: numbe
         resultErrors.push(newError);
       } else {
         splitResults.forEach(result => {
-          result.errors = (result.errors || []) as GraphQLError[];
-          result.errors.push(new GraphQLError(error.message));
+          const resultErrors = (result.errors = (result.errors || []) as GraphQLError[]);
+          resultErrors.push(new GraphQLError(error.message));
         });
       }
     }

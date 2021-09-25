@@ -118,7 +118,8 @@ function getDelegationContext<TContext>({
   transformedSchema,
   skipTypeMerging = false,
 }: IDelegateRequestOptions<TContext>): DelegationContext<TContext> {
-  const { operationType: operation, context, operationName, document } = request;
+  const { context, operationName, document } = request;
+  const operation = request.operationType as OperationTypeNode;
   let operationDefinition: Maybe<OperationDefinitionNode>;
   let targetFieldName: string;
 
