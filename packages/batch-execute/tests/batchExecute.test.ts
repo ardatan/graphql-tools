@@ -10,7 +10,7 @@ import { createBatchingExecutor } from '@graphql-tools/batch-execute';
 import { Executor } from '@graphql-tools/utils';
 
 describe('batch execution', () => {
-  let executorCalls: number = 0;
+  let executorCalls = 0;
   let executorDocument: string | undefined;
 
   const schema = makeExecutableSchema({
