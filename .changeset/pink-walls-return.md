@@ -8,5 +8,4 @@
 batch-execute enhancements:
 - unpathed errors are now returned for all batch results
 - the "graphqlTools" prefix is simplified down to just "_"
-- operationType may now be inferred from batched documents
 - new tests and documentation
