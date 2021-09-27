@@ -28,6 +28,11 @@ export interface GraphQLFileLoaderOptions extends BaseLoaderOptions {
    * Set to `true` to disable handling `#import` syntax
    */
   skipGraphQLImport?: boolean;
+
+  /**
+   * Set to `true` to raise errors if any matched files are not valid GraphQL
+   */
+  noSilentErrors?: boolean;
 }
 
 function isGraphQLImportFile(rawSDL: string) {
@@ -131,7 +136,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
       })
     );
 
-    if (finalResult.length === 0 && errors.length > 0) {
+    if (errors.length > 0 && (options.noSilentErrors || finalResult.length === 0)) {
       if (errors.length === 1) {
         throw errors[0];
       }
@@ -161,7 +166,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
       }
     }
 
-    if (finalResult.length === 0 && errors.length > 0) {
+    if (errors.length > 0 && (options.noSilentErrors || finalResult.length === 0)) {
       if (errors.length === 1) {
         throw errors[0];
       }

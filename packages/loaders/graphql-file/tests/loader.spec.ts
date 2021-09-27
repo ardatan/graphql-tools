@@ -82,13 +82,26 @@ describe('GraphQLFileLoader', () => {
         `)
       });
 
-      it('raises an error when for an invalid schema file', async () => {
+      it('should raise an error when for an invalid schema file', async () => {
         const result = load(getPointer('type-defs-with-failing-import.graphql'), {});
         await expect(result).rejects.toThrow();
       });
 
-      it('should raise an error if pointer includes valid and invalid schema files', async () => {
+      it('should not raise an error when the glob matches valid and invalid schema files', async () => {
         const [result] = await load(getPointer('type-defs-with-{import,failing-import}.graphql'), {});
+        expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */`
+          type Query {
+            a: A
+          }
+
+          type A {
+            b: String
+          }
+        `);
+      });
+
+      it('should raise an error when the glob matches valid and invalid schema files with `noSilentErrors` set to true', async () => {
+        const result = load(getPointer('type-defs-with-{import,failing-import}.graphql'), { noSilentErrors: true });
         await expect(result).rejects.toThrow();
       });
     });
