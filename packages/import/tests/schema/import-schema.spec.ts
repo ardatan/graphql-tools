@@ -949,6 +949,41 @@ describe('importSchema', () => {
     expect(importSchema('fixtures/multiple-levels/level1.graphql')).toBeSimilarGqlDoc(expectedSDL);
   });
 
+  test('imports dependencies at least 3 levels deep with transitive dependencies while using master schemata', () => {
+    const expectedSDL = /* GraphQL */`
+      type Account {
+        id: ID
+        cart: Cart
+      }
+
+      type Cart {
+        products: Products
+        total: Int
+      }
+
+      type PaginatedWrapper {
+        user: User
+      }
+
+      type Product {
+        price: Int
+      }
+
+      type Products {
+        items: [Product]
+      }
+
+      type Query {
+        pagination: PaginatedWrapper
+      }
+
+      type User {
+        account: Account
+      }
+    `;
+    expect(importSchema('fixtures/multiple-levels-master-schema/level1.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+
   test('imports multi-level types without direct references', () => {
     const expectedSDL = /* GraphQL */`\
   type Level1 {
