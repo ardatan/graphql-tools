@@ -24,7 +24,7 @@ import {
   AggregateError,
   isAsyncIterable,
   getDefinedRootType,
-  operationTypeFromDocument,
+  getDocumentOperationType,
   memoize1,
 } from '@graphql-tools/utils';
 
@@ -120,7 +120,7 @@ function getDelegationContext<TContext>({
   skipTypeMerging = false,
 }: IDelegateRequestOptions<TContext>): DelegationContext<TContext> {
   const { context, operationName, document } = request;
-  const operation = request.operationType ?? operationTypeFromDocument(document);
+  const operation = request.operationType ?? getDocumentOperationType(document);
   let operationDefinition: Maybe<OperationDefinitionNode>;
   let targetFieldName: string;
 

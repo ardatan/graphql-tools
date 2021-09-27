@@ -5,6 +5,7 @@ import {
   Kind,
   DefinitionNode,
   OperationDefinitionNode,
+  OperationTypeNode,
   DocumentNode,
   FragmentDefinitionNode,
   VariableDefinitionNode,
@@ -17,7 +18,7 @@ import {
   FieldNode,
 } from 'graphql';
 
-import { ExecutionRequest, operationTypeFromDocument, isOperationDefinition } from '@graphql-tools/utils';
+import { ExecutionRequest } from '@graphql-tools/utils';
 
 import { createPrefix } from './prefix';
 
@@ -56,6 +57,7 @@ import { createPrefix } from './prefix';
  *   }
  */
 export function mergeRequests(
+  operationType: OperationTypeNode,
   requests: Array<ExecutionRequest>,
   extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
 ): ExecutionRequest {
@@ -67,7 +69,7 @@ export function mergeRequests(
 
   for (const index in requests) {
     const request = requests[index];
-    const prefixedRequests = prefixRequest(createPrefix(index), request);
+    const prefixedRequests = prefixRequest(createPrefix(index), request, operationType);
 
     for (const def of prefixedRequests.document.definitions) {
       if (isOperationDefinition(def)) {
@@ -86,7 +88,7 @@ export function mergeRequests(
 
   const mergedOperationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
-    operation: requests[0].operationType ?? operationTypeFromDocument(requests[0].document),
+    operation: operationType,
     variableDefinitions: mergedVariableDefinitions,
     selectionSet: {
       kind: Kind.SELECTION_SET,
@@ -103,11 +105,11 @@ export function mergeRequests(
     extensions: mergedExtensions,
     context: requests[0].context,
     info: requests[0].info,
-    operationType: requests[0].operationType,
+    operationType,
   };
 }
 
-function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequest {
+function prefixRequest(prefix: string, request: ExecutionRequest, operationType: OperationTypeNode): ExecutionRequest {
   const executionVariables = request.variables ?? {};
 
   function prefixNode(node: VariableNode | FragmentDefinitionNode | FragmentSpreadNode) {
@@ -150,7 +152,7 @@ function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequ
   return {
     document: prefixedDocument,
     variables: prefixedVariables,
-    operationType: request.operationType,
+    operationType,
   };
 }
 
@@ -296,6 +298,10 @@ function aliasField(field: FieldNode, aliasPrefix: string): FieldNode {
       value: aliasPrefix + aliasNode.value,
     },
   };
+}
+
+function isOperationDefinition(def: DefinitionNode): def is OperationDefinitionNode {
+  return def.kind === Kind.OPERATION_DEFINITION;
 }
 
 function isFragmentDefinition(def: DefinitionNode): def is FragmentDefinitionNode {
