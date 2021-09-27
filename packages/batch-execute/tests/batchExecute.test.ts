@@ -103,7 +103,7 @@ describe('batch execution', () => {
       batchExec({ document: parse('{ ...on Query { field2 } }') }),
     ]) as ExecutionResult[];
 
-    const squishedDoc = executorDocument.replace(/\s+/g, ' ');
+    const squishedDoc = executorDocument?.replace(/\s+/g, ' ');
     expect(squishedDoc).toMatch('... on Query { _0_field1: field1 }');
     expect(squishedDoc).toMatch('... on Query { _1_field2: field2 }');
     expect(first?.data).toEqual({ field1: '1' });
