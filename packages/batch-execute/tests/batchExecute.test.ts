@@ -12,6 +12,7 @@ import { Executor } from '@graphql-tools/utils';
 describe('batch execution', () => {
   let executorCalls = 0;
   let executorDocument: string | undefined;
+  let executorVariables: Record<string, any> | undefined;
 
   const schema = makeExecutableSchema({
     typeDefs: /* GraphQL */`
@@ -32,12 +33,14 @@ describe('batch execution', () => {
     },
   });
 
-  const exec = (({ document }) => {
+  const exec = (({ document, variables }) => {
     executorCalls += 1;
     executorDocument = print(document);
+    executorVariables = variables;
     return graphql({
       schema,
       source: executorDocument,
+      variableValues: executorVariables,
     });
   }) as Executor;
 
@@ -46,6 +49,7 @@ describe('batch execution', () => {
   beforeEach(() => {
     executorCalls = 0;
     executorDocument = undefined;
+    executorVariables = undefined;
   });
 
   function getRequestFields(): Array<string> {
@@ -79,6 +83,32 @@ describe('batch execution', () => {
     expect(second?.data).toEqual({ c: '2', d: '3' });
     expect(executorCalls).toEqual(1);
     expect(getRequestFields()).toEqual(['field1', 'field2', 'field2', 'field3']);
+  });
+
+  it('renames input variables', async () => {
+    const [first, second] = await Promise.all([
+      batchExec({ document: parse('query($a: String){ field3(input: $a) }'), variables: { a: '1' } }),
+      batchExec({ document: parse('query($a: String){ field3(input: $a) }'), variables: { a: '2' } }),
+    ]) as ExecutionResult[];
+
+    expect(first?.data).toEqual({ field3: '1' });
+    expect(second?.data).toEqual({ field3: '2' });
+    expect(executorVariables).toEqual({ _0_a: '1', _1_a: '2' });
+    expect(executorCalls).toEqual(1);
+  });
+
+  it('renames fields within inline spreads', async () => {
+    const [first, second] = await Promise.all([
+      batchExec({ document: parse('{ ...on Query { field1 } }') }),
+      batchExec({ document: parse('{ ...on Query { field2 } }') }),
+    ]) as ExecutionResult[];
+
+    const squishedDoc = executorDocument.replace(/\s+/g, ' ');
+    expect(squishedDoc).toMatch('... on Query { _0_field1: field1 }');
+    expect(squishedDoc).toMatch('... on Query { _1_field2: field2 }');
+    expect(first?.data).toEqual({ field1: '1' });
+    expect(second?.data).toEqual({ field2: '2' });
+    expect(executorCalls).toEqual(1);
   });
 
   it('preserves pathed errors in the final result', async () => {
