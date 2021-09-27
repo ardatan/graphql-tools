@@ -118,12 +118,18 @@ function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequ
   let prefixedDocument = aliasTopLevelFields(prefix, request.document);
 
   const executionVariableNames = Object.keys(executionVariables);
+  const hasFragmentDefinitions = request.document.definitions.some(def => isFragmentDefinition(def));
+  const fragmentSpreadImpl: Record<string, boolean> = {};
 
-  if (executionVariableNames.length > 0) {
+  if (executionVariableNames.length > 0 || hasFragmentDefinitions) {
     prefixedDocument = visit(prefixedDocument, {
       [Kind.VARIABLE]: prefixNode,
       [Kind.FRAGMENT_DEFINITION]: prefixNode,
-      [Kind.FRAGMENT_SPREAD]: prefixNode,
+      [Kind.FRAGMENT_SPREAD]: node => {
+        node = prefixNodeName(node, prefix);
+        fragmentSpreadImpl[node.name.value] = true;
+        return node;
+      },
     }) as DocumentNode;
   }
 
@@ -131,6 +137,15 @@ function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequ
 
   for (const variableName of executionVariableNames) {
     prefixedVariables[prefix + variableName] = executionVariables[variableName];
+  }
+
+  if (hasFragmentDefinitions) {
+    prefixedDocument = {
+      ...prefixedDocument,
+      definitions: prefixedDocument.definitions.filter(def => {
+        return !isFragmentDefinition(def) || fragmentSpreadImpl[def.name.value];
+      }),
+    };
   }
 
   return {

@@ -21,6 +21,10 @@ describe('batch execution', () => {
         field2: String
         field3(input: String): String
         boom(message: String): String
+        widget: Widget
+      }
+      type Widget {
+        name: String
       }
     `,
     resolvers: {
@@ -29,6 +33,7 @@ describe('batch execution', () => {
         field2: () => '2',
         field3: (_root, { input }) => String(input),
         boom: (_root, { message }) => new Error(message),
+        widget: () => ({ name: 'wingnut' }),
       },
     },
   });
@@ -106,6 +111,33 @@ describe('batch execution', () => {
     const squishedDoc = executorDocument?.replace(/\s+/g, ' ');
     expect(squishedDoc).toMatch('... on Query { _0_field1: field1 }');
     expect(squishedDoc).toMatch('... on Query { _1_field2: field2 }');
+    expect(first?.data).toEqual({ field1: '1' });
+    expect(second?.data).toEqual({ field2: '2' });
+    expect(executorCalls).toEqual(1);
+  });
+
+  it('renames fragment definitions and spreads', async () => {
+    const [first, second] = await Promise.all([
+      batchExec({ document: parse('fragment A on Widget { name } query{ widget { ...A } }') }),
+      batchExec({ document: parse('fragment A on Widget { name } query{ widget { ...A } }') }),
+    ]) as ExecutionResult[];
+
+    const squishedDoc = executorDocument?.replace(/\s+/g, ' ');
+    expect(squishedDoc).toMatch('_0_widget: widget { ..._0_A }');
+    expect(squishedDoc).toMatch('_1_widget: widget { ..._1_A }');
+    expect(squishedDoc).toMatch('fragment _0_A on Widget');
+    expect(squishedDoc).toMatch('fragment _1_A on Widget');
+    expect(first?.data).toEqual({ widget: { name: 'wingnut' } });
+    expect(second?.data).toEqual({ widget: { name: 'wingnut' } });
+    expect(executorCalls).toEqual(1);
+  });
+
+  it('removes expanded root fragment definitions', async () => {
+    const [first, second] = await Promise.all([
+      batchExec({ document: parse('fragment A on Query { field1 } query{ ...A }') }),
+      batchExec({ document: parse('fragment A on Query { field2 } query{ ...A }') }),
+    ]) as ExecutionResult[];
+
     expect(first?.data).toEqual({ field1: '1' });
     expect(second?.data).toEqual({ field2: '2' });
     expect(executorCalls).toEqual(1);
