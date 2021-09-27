@@ -5,7 +5,6 @@ import {
   Kind,
   DefinitionNode,
   OperationDefinitionNode,
-  OperationTypeNode,
   DocumentNode,
   FragmentDefinitionNode,
   VariableDefinitionNode,
@@ -18,7 +17,7 @@ import {
   FieldNode,
 } from 'graphql';
 
-import { ExecutionRequest } from '@graphql-tools/utils';
+import { ExecutionRequest, operationTypeFromDocument, isOperationDefinition } from '@graphql-tools/utils';
 
 import { createPrefix } from './prefix';
 
@@ -87,7 +86,7 @@ export function mergeRequests(
 
   const mergedOperationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
-    operation: requests[0].operationType as OperationTypeNode,
+    operation: requests[0].operationType ?? operationTypeFromDocument(requests[0].document),
     variableDefinitions: mergedVariableDefinitions,
     selectionSet: {
       kind: Kind.SELECTION_SET,
@@ -297,10 +296,6 @@ function aliasField(field: FieldNode, aliasPrefix: string): FieldNode {
       value: aliasPrefix + aliasNode.value,
     },
   };
-}
-
-export function isOperationDefinition(def: DefinitionNode): def is OperationDefinitionNode {
-  return def.kind === Kind.OPERATION_DEFINITION;
 }
 
 function isFragmentDefinition(def: DefinitionNode): def is FragmentDefinitionNode {

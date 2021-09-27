@@ -9,24 +9,24 @@ Batch execution is a technique for consolidating multiple operations that target
 For example, given the following GraphQL operations:
 
 ```graphql
-query {
+query($arg: String) {
   field1
-  field3(input: "A")
+  field3(input: $arg)
 }
-query {
+query($arg: String) {
   tricky: field2
-  field3(input: "B")
+  field3(input: $arg)
 }
 ```
 
 These can be merged into one operation, and the resulting data can be unpacked into the original shape of the multiple requests:
 
 ```graphql
-query {
+query($_0_arg: String, $_1_arg: String) {
   _0_field1: field1
-  _0_field3: field3(input: "A")
+  _0_field3: field3(input: $_0_arg)
   _1_tricky: field2
-  _1_field3: field3(input: "B")
+  _1_field3: field3(input: $_1_arg)
 }
 ```
 
@@ -44,9 +44,9 @@ GraphQL Tools uses the plain GraphQL approach [devised by Gatsby](https://github
 An executor is a generic function that wraps a GraphQL execution with the following interface:
 
 ```js
-type Executor = (request: Request) => Promise<ExecutionResult>;
+type Executor = (request: ExecutionRequest) => Promise<ExecutionResult>;
 
-type Request = {
+type ExecutionRequest = {
   document: DocumentNode,
   variables?: Object,
   context?: Object,
@@ -82,7 +82,7 @@ async function myExecutor({ document, variables }) {
   return graphql({
     schema,
     source: print(document),
-    variables
+    variableValues: variables,
   });
 };
 ```
@@ -118,13 +118,14 @@ When using a batch executor, remember that multiple calls must be performed sync
 
 Batch merging uses several transformations to build a request:
 
-1. Replace top-level fragment spreads with inline fragments.
-2. Add unique aliases to all top-level query fields.
-3. Prefix all variable definitions and variable usages.
-4. Prefix names (and spreads) of fragments.
+1. Replace root-level fragment spreads with inline fragments.
+2. Add uniquely prefixed aliases to all root-level fields.
+3. Uniquely prefix all variable definitions and their references.
+4. Uniquely prefix all fragment definitions and their spreads.
+5. Prune orphaned fragment definitions.
 
 The results are then extracted with a series of reversals:
 
 1. Redistribute prefixed fields among original requests.
 2. Restore original root field aliases.
-3. Redistribute pathed errors among their corresponding requests.
+3. Redistribute errors among their corresponding requests.

@@ -1,8 +1,8 @@
 import DataLoader from 'dataloader';
 
-import { ExecutionRequest, Executor, ExecutionResult } from '@graphql-tools/utils';
+import { Executor, ExecutionRequest, ExecutionResult, operationTypeFromDocument } from '@graphql-tools/utils';
 
-import { mergeRequests, isOperationDefinition } from './mergeRequests';
+import { mergeRequests } from './mergeRequests';
 import { splitResult } from './splitResult';
 
 export function createBatchingExecutor(
@@ -16,13 +16,6 @@ export function createBatchingExecutor(
   const loadFn = createLoadFn(executor, extensionsReducer);
   const loader = new DataLoader(loadFn, dataLoaderOptions);
   return function batchingExecutor(request: ExecutionRequest) {
-    if (request.operationType == null) {
-      for (const def of request.document.definitions) {
-        if (isOperationDefinition(def)) {
-          request.operationType = def.operation;
-        }
-      }
-    }
     return request.operationType === 'subscription' ? executor(request) : loader.load(request);
   };
 }
@@ -38,14 +31,10 @@ function createLoadFn(
     let currentBatch: Array<ExecutionRequest> = [request];
     execBatches.push(currentBatch);
 
-    const operationType = request.operationType;
-
-    if (operationType == null) {
-      throw new Error('Could not identify operation type of document.');
-    }
+    const operationType = request.operationType ?? operationTypeFromDocument(request.document);
 
     while (++index < requests.length) {
-      const currentOperationType = requests[index].operationType;
+      const currentOperationType = requests[index].operationType ?? operationTypeFromDocument(requests[index].document);
 
       if (operationType === currentOperationType) {
         currentBatch.push(requests[index]);

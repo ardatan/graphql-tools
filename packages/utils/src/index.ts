@@ -32,6 +32,7 @@ export * from './updateArgument';
 export * from './implementsAbstractType';
 export * from './errors';
 export * from './observableToAsyncIterable';
+export * from './operationTypeFromDocument';
 export * from './visitResult';
 export * from './getArgumentValues';
 export * from './valueMatchesCriteria';
