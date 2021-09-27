@@ -101,18 +101,34 @@ const myBatchExec = createBatchingExecutor(myExec);
 // Perform a batch:
 
 const [first, second] = await Promise.all([
-  myBatchExec({ document: parse('{ a:field1 b:field2 }') }),
-  myBatchExec({ document: parse('{ field3 }') }),
+  myBatchExec({
+    document: parse('query($input:String) { a:field1 b:field2(input: $input) }'),
+    variables: { input: 'hello' },
+    operationType: 'query'
+  }),
+  myBatchExec({
+    document: parse('query($input:String) { field2(input: $input) }'),
+    variables: { input: 'world' },
+    operationType: 'query'
+  }),
 ]);
 
-// query {
+// query($_0_input: String, $_1_input: String) {
 //   _0_a: field1
-//   _0_b: field2
-//   _1_field3: field3
+//   _0_b: field2(input: $_0_input)
+//   _1_field2: field2(input: $_1_input)
 // }
 ```
 
-When using a batch executor, remember that multiple calls must be performed synchronously and all results awaited as one. Awaiting the results of each batching call individually will provide no benefit.
+A minimum of `document` and `operationType` params are required when invoking a batched executor. A document's operation type may be computed using:
+
+```js
+import { getOperationAST } from 'graphql';
+
+request.operationType = getOperationAST(document, operationName).operation;
+```
+
+When using a batch executor, remember that multiple calls must be performed synchronously and all results awaited as one. Awaiting the results of each batching call individually will behave like a normal executor.
 
 ## Merging algorithm
 

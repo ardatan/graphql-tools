@@ -63,7 +63,7 @@ export interface ExecutionRequest<
   TExtensions = Record<string, any>
 > {
   document: DocumentNode;
-  operationType?: OperationTypeNode;
+  operationType: OperationTypeNode;
   variables?: TArgs;
   operationName?: string;
   extensions?: TExtensions;

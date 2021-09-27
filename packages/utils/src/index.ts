@@ -12,7 +12,6 @@ export * from './build-operation-for-field';
 export * from './types';
 export * from './filterSchema';
 export * from './heal';
-export * from './getDocumentOperationType';
 export * from './getResolversFromSchema';
 export * from './forEachField';
 export * from './forEachDefaultValue';

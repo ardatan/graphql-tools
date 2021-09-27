@@ -68,8 +68,8 @@ describe('batch execution', () => {
 
   it('batchs multiple executions', async () => {
     const [first, second] = await Promise.all([
-      batchExec({ document: parse('{ field1 field2 }') }),
-      batchExec({ document: parse('{ field2 field3(input: "3") }') }),
+      batchExec({ document: parse('{ field1 field2 }'), operationType: 'query' }),
+      batchExec({ document: parse('{ field2 field3(input: "3") }'), operationType: 'query' }),
     ]) as ExecutionResult[];
 
     expect(first?.data).toEqual({ field1: '1', field2: '2' });
@@ -80,8 +80,8 @@ describe('batch execution', () => {
 
   it('preserves root field aliases in the final result', async () => {
     const [first, second] = await Promise.all([
-      batchExec({ document: parse('{ a: field1 b: field2 }') }),
-      batchExec({ document: parse('{ c: field2 d: field3(input: "3") }') }),
+      batchExec({ document: parse('{ a: field1 b: field2 }'), operationType: 'query' }),
+      batchExec({ document: parse('{ c: field2 d: field3(input: "3") }'), operationType: 'query' }),
     ]) as ExecutionResult[];
 
     expect(first?.data).toEqual({ a: '1', b: '2' });
@@ -92,8 +92,16 @@ describe('batch execution', () => {
 
   it('renames input variables', async () => {
     const [first, second] = await Promise.all([
-      batchExec({ document: parse('query($a: String){ field3(input: $a) }'), variables: { a: '1' } }),
-      batchExec({ document: parse('query($a: String){ field3(input: $a) }'), variables: { a: '2' } }),
+      batchExec({
+        document: parse('query($a: String){ field3(input: $a) }'),
+        variables: { a: '1' },
+        operationType: 'query',
+      }),
+      batchExec({
+        document: parse('query($a: String){ field3(input: $a) }'),
+        variables: { a: '2' },
+        operationType: 'query',
+      }),
     ]) as ExecutionResult[];
 
     expect(first?.data).toEqual({ field3: '1' });
@@ -104,8 +112,8 @@ describe('batch execution', () => {
 
   it('renames fields within inline spreads', async () => {
     const [first, second] = await Promise.all([
-      batchExec({ document: parse('{ ...on Query { field1 } }') }),
-      batchExec({ document: parse('{ ...on Query { field2 } }') }),
+      batchExec({ document: parse('{ ...on Query { field1 } }'), operationType: 'query' }),
+      batchExec({ document: parse('{ ...on Query { field2 } }'), operationType: 'query' }),
     ]) as ExecutionResult[];
 
     const squishedDoc = executorDocument?.replace(/\s+/g, ' ');
@@ -118,8 +126,14 @@ describe('batch execution', () => {
 
   it('renames fragment definitions and spreads', async () => {
     const [first, second] = await Promise.all([
-      batchExec({ document: parse('fragment A on Widget { name } query{ widget { ...A } }') }),
-      batchExec({ document: parse('fragment A on Widget { name } query{ widget { ...A } }') }),
+      batchExec({
+        document: parse('fragment A on Widget { name } query{ widget { ...A } }'),
+        operationType: 'query',
+      }),
+      batchExec({
+        document: parse('fragment A on Widget { name } query{ widget { ...A } }'),
+        operationType: 'query',
+      }),
     ]) as ExecutionResult[];
 
     const squishedDoc = executorDocument?.replace(/\s+/g, ' ');
@@ -134,8 +148,14 @@ describe('batch execution', () => {
 
   it('removes expanded root fragment definitions', async () => {
     const [first, second] = await Promise.all([
-      batchExec({ document: parse('fragment A on Query { field1 } query{ ...A }') }),
-      batchExec({ document: parse('fragment A on Query { field2 } query{ ...A }') }),
+      batchExec({
+        document: parse('fragment A on Query { field1 } query{ ...A }'),
+        operationType: 'query',
+      }),
+      batchExec({
+        document: parse('fragment A on Query { field2 } query{ ...A }'),
+        operationType: 'query',
+      }),
     ]) as ExecutionResult[];
 
     expect(first?.data).toEqual({ field1: '1' });
@@ -145,8 +165,14 @@ describe('batch execution', () => {
 
   it('preserves pathed errors in the final result', async () => {
     const [first, second] = await Promise.all([
-      batchExec({ document: parse('{ first: boom(message: "first error") }') }),
-      batchExec({ document: parse('{ second: boom(message: "second error") }') }),
+      batchExec({
+        document: parse('{ first: boom(message: "first error") }'),
+        operationType: 'query',
+      }),
+      batchExec({
+        document: parse('{ second: boom(message: "second error") }'),
+        operationType: 'query',
+      }),
     ]) as ExecutionResult[];
 
     expect(first?.errors?.[0].message).toEqual('first error');
@@ -158,8 +184,8 @@ describe('batch execution', () => {
 
   it('returns request-level errors to all results', async () => {
     const [first, second] = await Promise.all([
-      batchExec({ document: parse('{ field1 field2 }') }),
-      batchExec({ document: parse('{ notgonnawork }') }),
+      batchExec({ document: parse('{ field1 field2 }'), operationType: 'query' }),
+      batchExec({ document: parse('{ notgonnawork }'), operationType: 'query' }),
     ]) as ExecutionResult[];
 
     expect(first?.errors?.length).toEqual(1);
