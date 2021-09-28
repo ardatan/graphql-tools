@@ -25,7 +25,7 @@
     "@types/node": "15.14.1",
     "@types/react": "17.0.24",
     "@types/react-dom": "17.0.9",
-    "concurrently": "6.2.1",
+    "concurrently": "6.2.2",
     "cross-env": "7.0.3",
     "esbuild": "0.13.2",
     "esbuild-register": "3.0.0",
