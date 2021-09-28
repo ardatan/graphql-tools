@@ -8841,10 +8841,10 @@ mock-http@1.1.0:
   dependencies:
     mergee "^1.0.0"
 
-mock-socket@9.0.3:
-  version "9.0.3"
-  resolved "https://registry.yarnpkg.com/mock-socket/-/mock-socket-9.0.3.tgz#4bc6d2aea33191e4fed5ec71f039e2bbeb95e414"
-  integrity sha512-SxIiD2yE/By79p3cNAAXyLQWTvEFNEzcAO7PH+DzRqKSFaplAPFjiQLmw8ofmpCsZf+Rhfn2/xCJagpdGmYdTw==
+mock-socket@9.0.4:
+  version "9.0.4"
+  resolved "https://registry.yarnpkg.com/mock-socket/-/mock-socket-9.0.4.tgz#22f392d4719e9300cbb2b92eeb7aebbd8c9e3667"
+  integrity sha512-8cThhVcHBbjbVClyDII//5DdC9CpF69+uWJb4yVRfmGmb1yEEHRvQidNOSiSd/Znh4hjyzCFjtS8G3Xko/twWg==
   dependencies:
     url-parse "^1.4.4"
 
