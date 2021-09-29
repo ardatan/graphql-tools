@@ -796,6 +796,41 @@ describe('Mock retro-compatibility', () => {
     });
   });
 
+  test('Can mock a list of lists of objects, with preserveResolvers', () => {
+    let jsSchema = buildSchema(shorthand);
+    const mockMap = {
+      String: () => 'a',
+      Int: () => 1,
+    };
+    jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap, preserveResolvers: true });
+    const resolvers = {
+      RootQuery: {
+        returnListOfListOfObject: () => {
+          return [[{}, {returnInt: 2}], [{}, {returnString: 'b'}]]
+        }
+      },
+    };
+    jsSchema = addResolversToSchema(jsSchema, resolvers);
+    const testQuery = /* GraphQL */`{
+      returnListOfListOfObject { returnInt, returnString }
+    }`;
+    const expected = {
+      returnListOfListOfObject: [
+        [
+          { returnInt: 1, returnString: 'a' },
+          { returnInt: 2, returnString: 'a' },
+        ],
+        [
+          { returnInt: 1, returnString: 'a' },
+          { returnInt: 1, returnString: 'b' },
+        ],
+      ],
+    };
+    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
+      expect(res.data).toEqual(expected);
+    });
+  });
+
   test('does not mask resolvers if you tell it not to', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = {
