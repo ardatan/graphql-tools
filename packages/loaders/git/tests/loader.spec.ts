@@ -61,7 +61,7 @@ describe('GitLoader', () => {
       });
 
       it('should raise an error when the glob matches valid and invalid schema files with `noSilentErrors` set to true', async () => {
-        await expect(load(getPointer('type-defs{,-invalid}.graphql'), { noSilentErrors: true })).rejects.toThrowError();
+        await expect(load(getPointer('type-{defs,defs-invalid}.graphql'), { noSilentErrors: true })).rejects.toThrowError();
       });
 
       it('should simply ignore a non git path', async () => {
