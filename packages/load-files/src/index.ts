@@ -2,6 +2,8 @@ import globby, { sync as globbySync, GlobbyOptions } from 'globby';
 import unixify from 'unixify';
 import { extname } from 'path';
 import { statSync, readFileSync, promises as fsPromises } from 'fs';
+import { DocumentNode } from '@apollo/client/core';
+import { parse } from 'graphql';
 
 const { readFile, stat } = fsPromises;
 
@@ -157,7 +159,8 @@ export function loadFilesSync<T = any>(
         const extractedExport = extractExports(fileExports);
         return extractedExport;
       } else {
-        return readFileSync(path, { encoding: 'utf-8' });
+        const maybeSDL = readFileSync(path, { encoding: 'utf-8' });
+        return tryToParse(maybeSDL);
       }
     })
     .filter(v => v);
@@ -237,7 +240,8 @@ export async function loadFiles(
           const extractedExport = extractExports(fileExports);
           return extractedExport;
         } else {
-          return readFile(path, { encoding: 'utf-8' });
+          const maybeSDL = await readFile(path, { encoding: 'utf-8' });
+          return tryToParse(maybeSDL);
         }
       })
   );
@@ -246,4 +250,12 @@ export async function loadFiles(
 function isIndex(path: string, extensions: string[] = []): boolean {
   const IS_INDEX = /(\/|\\)index\.[^\/\\]+$/i; // (/ or \) AND `index.` AND (everything except \ and /)(end of line)
   return IS_INDEX.test(path) && extensions.some(ext => path.endsWith(formatExtension(ext)));
+}
+
+function tryToParse(maybeSDL: string): string | DocumentNode {
+  try {
+    return parse(maybeSDL);
+  } catch (e) {
+    return maybeSDL;
+  }
 }
