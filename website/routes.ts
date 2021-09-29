@@ -17,6 +17,7 @@ export function getRoutes(): IRoutes {
           'schema-directives',
           'schema-delegation',
           'remote-schemas',
+          'batch-execution',
           'schema-wrapping',
           'schema-merging',
           '$schema-stitching',

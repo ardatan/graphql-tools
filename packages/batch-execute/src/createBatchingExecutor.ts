@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader';
 
-import { ExecutionRequest, Executor, ExecutionResult } from '@graphql-tools/utils';
+import { Executor, ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
 import { mergeRequests } from './mergeRequests';
 import { splitResult } from './splitResult';
@@ -33,23 +33,25 @@ function createLoadFn(
 
     const operationType = request.operationType;
 
+    if (operationType == null) {
+      throw new Error('could not identify operation type of document');
+    }
+
     while (++index < requests.length) {
-      const currentOperationType = requests[index].operationType;
-      if (operationType == null) {
-        throw new Error('Could not identify operation type of document.');
-      }
+      const currentRequest = requests[index];
+      const currentOperationType = currentRequest.operationType;
 
       if (operationType === currentOperationType) {
-        currentBatch.push(requests[index]);
+        currentBatch.push(currentRequest);
       } else {
-        currentBatch = [requests[index]];
+        currentBatch = [currentRequest];
         execBatches.push(currentBatch);
       }
     }
 
     const results = await Promise.all(
       execBatches.map(async execBatch => {
-        const mergedRequests = mergeRequests(execBatch, extensionsReducer);
+        const mergedRequests = mergeRequests(execBatch[0].operationType, execBatch, extensionsReducer);
         const resultBatches = (await executor(mergedRequests)) as ExecutionResult;
         return splitResult(resultBatches, execBatch.length);
       })
