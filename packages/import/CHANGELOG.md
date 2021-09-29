@@ -1,5 +1,11 @@
 # @graphql-tools/import
 
+## 6.4.2
+
+### Patch Changes
+
+- a78fd76c: Schemata containing only imports will now resolve imported type's transitive dependencies.
+
 ## 6.4.1
 
 ### Patch Changes

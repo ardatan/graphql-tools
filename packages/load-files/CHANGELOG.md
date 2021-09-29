@@ -1,5 +1,11 @@
 # @graphql-tools/load-files
 
+## 6.5.0
+
+### Minor Changes
+
+- eb80821d: enhance(load-files): return DocumentNode if it is an SDL
+
 ## 6.4.0
 
 ### Minor Changes
