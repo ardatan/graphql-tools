@@ -2,7 +2,6 @@
 "@graphql-tools/batch-execute": patch
 "@graphql-tools/delegate": patch
 "@graphql-tools/utils": patch
-"@graphql-tools/website": patch
 ---
 
 batch-execute enhancements:
