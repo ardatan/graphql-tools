@@ -32,7 +32,7 @@
   "dependencies": {
     "@graphql-tools/graphql-tag-pluck": "^7.1.0",
     "@graphql-tools/utils": "^8.2.0",
-    "is-glob": "4.0.2",
+    "is-glob": "4.0.3",
     "micromatch": "^4.0.4",
     "tslib": "~2.3.0",
     "unixify": "^1.0.0"
