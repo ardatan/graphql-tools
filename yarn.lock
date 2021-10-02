@@ -2090,21 +2090,21 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.0.tgz#0eee6373e11418bfe0b5638f654df7a4ca6a3950"
   integrity sha512-wYn6r8zVZyQJ6rQaALBEln5B1pzxb9shV5Ef97kTvn6yVGrqyXVnDqnU24MXnFubR+rZjBY9NWuxX3FB2sTsjg==
 
-"@guild-docs/client@1.0.6":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.0.6.tgz#293b7b929d9b20fe5b3f31b4dc665feb3d19d8cd"
-  integrity sha512-T4XkU6g4Bnws2b4p7rV3Aei+3dQ1EAJSRZDwBWHIdF8A4jZjEdh3KzO+BEoyQsU8d4AwisXa2gKarwvEAiCoEw==
+"@guild-docs/client@1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.0.7.tgz#5d53a95e615375c76ac3150b96827bb81a39cb7b"
+  integrity sha512-jkV7HAmR4JuKEBtNoQrgjOSlsgoX7hfGMqlr6pHyD3CHqX8fHIZaT99oc6wz1OkL7lRfot9pbEhT0MSIUuf3rA==
   dependencies:
     "@guild-docs/types" "^1.0.0"
     immer "^9.0.6"
-    next-mdx-remote "^3.0.4"
-    next-seo "^4.27.0"
+    next-mdx-remote "^3.0.5"
+    next-seo "^4.28.1"
     nprogress "^0.2.0"
-    react-icons "^4.2.0"
+    react-icons "4.2.0"
     react-intersection-observer "^8.32.1"
     react-use "^17.3.1"
     use-immer "^0.6.0"
-    zustand "^3.5.10"
+    zustand "^3.5.12"
 
 "@guild-docs/server@1.0.4":
   version "1.0.4"
@@ -8941,10 +8941,10 @@ next-i18next@8.8.0:
     i18next-fs-backend "^1.0.7"
     react-i18next "^11.8.13"
 
-next-mdx-remote@^3.0.4:
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/next-mdx-remote/-/next-mdx-remote-3.0.4.tgz#c9b4aff4ec0780b08f34ccd6be966e569d6d4fda"
-  integrity sha512-n/xN6GaeBgJiuTJDrG6iqJ2EY5rEZ99Vf2H1nc75MNn1a6XnZLgT6uQJxqbSN84svc9aU3CSxfRlOqgqVVPHIg==
+next-mdx-remote@^3.0.4, next-mdx-remote@^3.0.5:
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/next-mdx-remote/-/next-mdx-remote-3.0.5.tgz#57b3ea156d20e622b51becbacedc995233cac236"
+  integrity sha512-m9OD2GBuqvz/IeM/h4kufQ7GEdaCaZ4owqkCQ+yoxzCIM7jVQYK9JWXNVcyPP/Y6FBS00fLH03Hn5VFdvkFf0A==
   dependencies:
     "@mdx-js/mdx" "^1.6.22"
     "@mdx-js/react" "^1.6.22"
@@ -8962,7 +8962,7 @@ next-remote-watch@1.0.0:
     commander "^5.0.0"
     express "^4.17.1"
 
-next-seo@4.28.1, next-seo@^4.27.0:
+next-seo@4.28.1, next-seo@^4.28.1:
   version "4.28.1"
   resolved "https://registry.yarnpkg.com/next-seo/-/next-seo-4.28.1.tgz#c98ee559c8ab7196c62d0f6903afd7a8cde47a03"
   integrity sha512-WZgwdM+UhpNF3A37zFllzmPhnOVJ9vYeYlc0n3Z/kYfz/QQgy8NEdncNNggS9dU4JD8xriaCcyknhy5OsrFsJw==
@@ -10025,7 +10025,7 @@ react-i18next@^11.8.13:
     "@babel/runtime" "^7.14.5"
     html-parse-stringify "^3.0.1"
 
-react-icons@4.2.0, react-icons@^4.2.0:
+react-icons@4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/react-icons/-/react-icons-4.2.0.tgz#6dda80c8a8f338ff96a1851424d63083282630d0"
   integrity sha512-rmzEDFt+AVXRzD7zDE21gcxyBizD/3NqjbX6cmViAgdqfJ2UiLer8927/QhhrXQV7dEj/1EGuOTPp7JnLYVJKQ==
@@ -12752,10 +12752,10 @@ zen-observable@0.8.15:
   resolved "https://registry.yarnpkg.com/zen-observable/-/zen-observable-0.8.15.tgz#96415c512d8e3ffd920afd3889604e30b9eaac15"
   integrity sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==
 
-zustand@^3.5.10:
-  version "3.5.10"
-  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.5.10.tgz#d2622efd64530ffda285ee5b13ff645b68ab0faf"
-  integrity sha512-upluvSRWrlCiExu2UbkuMIPJ9AigyjRFoO7O9eUossIj7rPPq7pcJ0NKk6t2P7KF80tg/UdPX6/pNKOSbs9DEg==
+zustand@^3.5.12:
+  version "3.5.12"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.5.12.tgz#407a8685eb286a32d7f560e74966993bbff1dae8"
+  integrity sha512-Cv9fX/yM5HXYODkn3Q/HMmMofnmZw3yqM73VT/3rQEvI/04Yl0OFNO24qMofhN82xTPWcCffkGPFCMq8r67Whg==
 
 zwitch@^1.0.0:
   version "1.0.5"
