@@ -59,7 +59,7 @@ GraphQL Tools provides convenient yet powerful tools for implementing directive 
 Here is one possible implementation of the `@deprecated` directive we saw above:
 
 ```typescript
-import { mapSchema, getDirectives } from '@graphql-tools/utils';
+import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils';
 import { GraphQLSchema } from 'graphql';
 
 function deprecatedDirective(directiveName: string) {
@@ -121,7 +121,7 @@ To appreciate the range of possibilities enabled by `mapSchema`, let's examine a
 
 Suppose you want to ensure a string-valued field is converted to uppercase. Though this use case is simple, it's a good example of a directive implementation that works by wrapping a field's `resolve` function:
 
-```js
+```typescript
 function upperDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
   return schema => mapSchema(schema, {
     [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
@@ -172,7 +172,7 @@ Notice how easy it is to handle both `@upper` and `@upperCase` with the same `up
 
 Suppose you've defined an object type that corresponds to a [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) resource, and you want to avoid implementing resolver functions for every field:
 
-```js
+```typescript
 function restDirective(directiveName: string) {
   return {
     restDirectiveTypeDefs: `directive @${directiveName}(url: String) on FIELD_DEFINITION`;
@@ -208,7 +208,7 @@ There are many more issues to consider when implementing a real GraphQL wrapper 
 
 Suppose your resolver returns a `Date` object but you want to return a formatted string to the client:
 
-```js
+```typescript
 function dateDirective(directiveName: string) {
   return {
     dateDirectiveTypeDefs: `directive @${directiveName}(format: String) on FIELD_DEFINITION`,
@@ -255,7 +255,7 @@ schema = dateDirectiveTransformer(schema);
 
 Of course, it would be even better if the schema author did not have to decide on a specific `Date` format, but could instead leave that decision to the client. To make this work, the directive just needs to add an additional argument to the field:
 
-```js
+```typescript
 import formatDate from 'dateformat';
 
 function formattableDateDirective(directiveName: string) {
@@ -372,7 +372,7 @@ type User @auth(requires: USER) {
 }
 ```
 
-```js
+```typescript
 function authDirective(directiveName: string, getUserFn: (token: string) => { hasRole: (role: string) => boolean} ) {
   const typeDirectiveArgumentMaps: Record<string, any> = {};
   return {
@@ -463,7 +463,7 @@ One drawback of this approach is that it does not guarantee fields will be wrapp
 
 Suppose you want to enforce a maximum length for a string-valued field:
 
-```js
+```typescript
 function lengthDirective(directiveName: string) {
   class LimitedLengthType extends GraphQLScalarType {
     constructor(type: GraphQLScalarType, maxLength: number) {
@@ -585,7 +585,7 @@ Note that new types can be added to the schema with ease, but that each type mus
 
 Suppose your database uses incrementing IDs for each resource type, so IDs are not unique across all resource types. Here’s how you might synthesize a field called `uid` that combines the object type with various field values to produce an ID that’s unique across your schema:
 
-```js
+```typescript
 import { GraphQLID } from 'graphql';
 import { createHash } from 'crypto';
 
