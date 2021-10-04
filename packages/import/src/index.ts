@@ -39,6 +39,7 @@ import { readFileSync, realpathSync } from 'fs';
 import { dirname, join, isAbsolute } from 'path';
 import resolveFrom from 'resolve-from';
 import { cwd as cwdFactory } from 'process';
+import { parseGraphQLSDL } from '@graphql-tools/utils';
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
 
@@ -61,6 +62,10 @@ const IMPORT_DEFAULT_REGEX = /^import\s+('|")(.*)('|");?$/;
 
 export type VisitedFilesMap = Map<string, Map<string, Set<DefinitionNode>>>;
 
+/**
+ * Loads the GraphQL document and recursively resolves all the imports
+ * and copies them into the final document.
+ */
 export function processImport(
   filePath: string,
   cwd = cwdFactory(),
@@ -100,7 +105,7 @@ function visitFile(
   if (!visitedFiles.has(filePath)) {
     const fileContent = filePath in predefinedImports ? predefinedImports[filePath] : readFileSync(filePath, 'utf8');
 
-    const { importLines, otherLines } = splitFile(fileContent);
+    const { importLines, otherLines } = extractImportLines(fileContent);
 
     const { definitionsByName, dependenciesByDefinitionName } = extractDependencies(filePath, otherLines);
     const fileDefinitionMap = getFileDefinitionMap(definitionsByName, dependenciesByDefinitionName);
@@ -198,7 +203,7 @@ function visitFile(
 
 export function extractDependencies(
   filePath: string,
-  otherLines: string
+  fileContents: string
 ): {
   definitionsByName: Map<string, Set<DefinitionNode>>;
   dependenciesByDefinitionName: Map<string, Set<string>>;
@@ -206,110 +211,116 @@ export function extractDependencies(
   const definitionsByName = new Map<string, Set<DefinitionNode>>();
   const dependenciesByDefinitionName = new Map<string, Set<string>>();
 
-  if (!otherLines) {
-    return { definitionsByName, dependenciesByDefinitionName };
-  }
-
-  const document = parse(new Source(otherLines, filePath), {
+  const { document } = parseGraphQLSDL(filePath, fileContents, {
     noLocation: true,
   });
 
   for (const definition of document.definitions) {
-    if ('name' in definition || definition.kind === Kind.SCHEMA_DEFINITION) {
-      const definitionName = 'name' in definition && definition.name ? definition.name.value : 'schema';
-      if (!definitionsByName.has(definitionName)) {
-        definitionsByName.set(definitionName, new Set());
-      }
-      const definitionsSet = definitionsByName.get(definitionName);
-      definitionsSet?.add(definition);
-
-      let dependencySet = dependenciesByDefinitionName.get(definitionName);
-      if (!dependencySet) {
-        dependencySet = new Set();
-        dependenciesByDefinitionName.set(definitionName, dependencySet);
-      }
-      switch (definition.kind) {
-        case Kind.OPERATION_DEFINITION:
-          visitOperationDefinitionNode(definition, dependencySet);
-          break;
-        case Kind.FRAGMENT_DEFINITION:
-          visitFragmentDefinitionNode(definition, dependencySet);
-          break;
-        case Kind.OBJECT_TYPE_DEFINITION:
-          visitObjectTypeDefinitionNode(definition, dependencySet, dependenciesByDefinitionName);
-          break;
-        case Kind.INTERFACE_TYPE_DEFINITION:
-          visitInterfaceTypeDefinitionNode(definition, dependencySet, dependenciesByDefinitionName);
-          break;
-        case Kind.UNION_TYPE_DEFINITION:
-          visitUnionTypeDefinitionNode(definition, dependencySet);
-          break;
-        case Kind.ENUM_TYPE_DEFINITION:
-          visitEnumTypeDefinitionNode(definition, dependencySet);
-          break;
-        case Kind.INPUT_OBJECT_TYPE_DEFINITION:
-          visitInputObjectTypeDefinitionNode(definition, dependencySet, dependenciesByDefinitionName);
-          break;
-        case Kind.DIRECTIVE_DEFINITION:
-          visitDirectiveDefinitionNode(definition, dependencySet, dependenciesByDefinitionName);
-          break;
-        case Kind.SCALAR_TYPE_DEFINITION:
-          visitScalarDefinitionNode(definition, dependencySet);
-          break;
-        case Kind.SCHEMA_DEFINITION:
-          visitSchemaDefinitionNode(definition, dependencySet);
-          break;
-        case Kind.OBJECT_TYPE_EXTENSION:
-          visitObjectTypeExtensionNode(definition, dependencySet, dependenciesByDefinitionName);
-          break;
-        case Kind.INTERFACE_TYPE_EXTENSION:
-          visitInterfaceTypeExtensionNode(definition, dependencySet, dependenciesByDefinitionName);
-          break;
-        case Kind.UNION_TYPE_EXTENSION:
-          visitUnionTypeExtensionNode(definition, dependencySet);
-          break;
-        case Kind.ENUM_TYPE_EXTENSION:
-          visitEnumTypeExtensionNode(definition, dependencySet);
-          break;
-        case Kind.INPUT_OBJECT_TYPE_EXTENSION:
-          visitInputObjectTypeExtensionNode(definition, dependencySet, dependenciesByDefinitionName);
-          break;
-        case Kind.SCALAR_TYPE_EXTENSION:
-          visitScalarExtensionNode(definition, dependencySet);
-          break;
-      }
-      if ('fields' in definition && definition.fields) {
-        for (const field of definition.fields) {
-          const definitionName = definition.name.value + '.' + field.name.value;
-          if (!definitionsByName.has(definitionName)) {
-            definitionsByName.set(definitionName, new Set());
-          }
-          definitionsByName.get(definitionName)?.add({
-            ...definition,
-            fields: [field as any],
-          });
-
-          let dependencySet = dependenciesByDefinitionName.get(definitionName);
-          if (!dependencySet) {
-            dependencySet = new Set();
-            dependenciesByDefinitionName.set(definitionName, dependencySet);
-          }
-          switch (field.kind) {
-            case Kind.FIELD_DEFINITION:
-              visitFieldDefinitionNode(field, dependencySet, dependenciesByDefinitionName);
-              break;
-            case Kind.INPUT_VALUE_DEFINITION:
-              visitInputValueDefinitionNode(field, dependencySet, dependenciesByDefinitionName);
-              break;
-          }
-        }
-      }
-    }
+    visitDefinition(definition, definitionsByName, dependenciesByDefinitionName);
   }
+
   return {
     definitionsByName,
     dependenciesByDefinitionName,
   };
+}
+
+function visitDefinition(
+  definition: DefinitionNode,
+  definitionsByName: Map<string, Set<DefinitionNode>>,
+  dependenciesByDefinitionName: Map<string, Set<string>>
+): void {
+  // TODO: handle queries without names
+  if ('name' in definition || definition.kind === Kind.SCHEMA_DEFINITION) {
+    const definitionName = 'name' in definition && definition.name ? definition.name.value : 'schema';
+    if (!definitionsByName.has(definitionName)) {
+      definitionsByName.set(definitionName, new Set());
+    }
+    const definitionsSet = definitionsByName.get(definitionName)!;
+    definitionsSet.add(definition);
+
+    let dependencySet = dependenciesByDefinitionName.get(definitionName);
+    if (!dependencySet) {
+      dependencySet = new Set();
+      dependenciesByDefinitionName.set(definitionName, dependencySet);
+    }
+    switch (definition.kind) {
+      case Kind.OPERATION_DEFINITION:
+        visitOperationDefinitionNode(definition, dependencySet);
+        break;
+      case Kind.FRAGMENT_DEFINITION:
+        visitFragmentDefinitionNode(definition, dependencySet);
+        break;
+      case Kind.OBJECT_TYPE_DEFINITION:
+        visitObjectTypeDefinitionNode(definition, dependencySet, dependenciesByDefinitionName);
+        break;
+      case Kind.INTERFACE_TYPE_DEFINITION:
+        visitInterfaceTypeDefinitionNode(definition, dependencySet, dependenciesByDefinitionName);
+        break;
+      case Kind.UNION_TYPE_DEFINITION:
+        visitUnionTypeDefinitionNode(definition, dependencySet);
+        break;
+      case Kind.ENUM_TYPE_DEFINITION:
+        visitEnumTypeDefinitionNode(definition, dependencySet);
+        break;
+      case Kind.INPUT_OBJECT_TYPE_DEFINITION:
+        visitInputObjectTypeDefinitionNode(definition, dependencySet, dependenciesByDefinitionName);
+        break;
+      case Kind.DIRECTIVE_DEFINITION:
+        visitDirectiveDefinitionNode(definition, dependencySet, dependenciesByDefinitionName);
+        break;
+      case Kind.SCALAR_TYPE_DEFINITION:
+        visitScalarDefinitionNode(definition, dependencySet);
+        break;
+      case Kind.SCHEMA_DEFINITION:
+        visitSchemaDefinitionNode(definition, dependencySet);
+        break;
+      case Kind.OBJECT_TYPE_EXTENSION:
+        visitObjectTypeExtensionNode(definition, dependencySet, dependenciesByDefinitionName);
+        break;
+      case Kind.INTERFACE_TYPE_EXTENSION:
+        visitInterfaceTypeExtensionNode(definition, dependencySet, dependenciesByDefinitionName);
+        break;
+      case Kind.UNION_TYPE_EXTENSION:
+        visitUnionTypeExtensionNode(definition, dependencySet);
+        break;
+      case Kind.ENUM_TYPE_EXTENSION:
+        visitEnumTypeExtensionNode(definition, dependencySet);
+        break;
+      case Kind.INPUT_OBJECT_TYPE_EXTENSION:
+        visitInputObjectTypeExtensionNode(definition, dependencySet, dependenciesByDefinitionName);
+        break;
+      case Kind.SCALAR_TYPE_EXTENSION:
+        visitScalarExtensionNode(definition, dependencySet);
+        break;
+    }
+    if ('fields' in definition && definition.fields) {
+      for (const field of definition.fields) {
+        const definitionName = definition.name.value + '.' + field.name.value;
+        if (!definitionsByName.has(definitionName)) {
+          definitionsByName.set(definitionName, new Set());
+        }
+        definitionsByName.get(definitionName)?.add({
+          ...definition,
+          fields: [field as any],
+        });
+
+        let dependencySet = dependenciesByDefinitionName.get(definitionName);
+        if (!dependencySet) {
+          dependencySet = new Set();
+          dependenciesByDefinitionName.set(definitionName, dependencySet);
+        }
+        switch (field.kind) {
+          case Kind.FIELD_DEFINITION:
+            visitFieldDefinitionNode(field, dependencySet, dependenciesByDefinitionName);
+            break;
+          case Kind.INPUT_VALUE_DEFINITION:
+            visitInputValueDefinitionNode(field, dependencySet, dependenciesByDefinitionName);
+            break;
+        }
+      }
+    }
+  }
 }
 
 function getFileDefinitionMap(
@@ -403,7 +414,11 @@ export function processImports(
   return { allImportedDefinitionsMap, potentialTransitiveDefinitionsMap };
 }
 
-export function splitFile(fileContent: string): { importLines: string[]; otherLines: string } {
+/**
+ * Splits the contents of a GraphQL file into lines that are imports
+ * and other lines which define the actual GraphQL document.
+ */
+export function extractImportLines(fileContent: string): { importLines: string[]; otherLines: string } {
   const importLines: string[] = [];
   let otherLines = '';
   for (const line of fileContent.split('\n')) {
@@ -417,6 +432,12 @@ export function splitFile(fileContent: string): { importLines: string[]; otherLi
   return { importLines, otherLines };
 }
 
+/**
+ * Parses an import line, returning a list of entities imported and the file
+ * from which they are imported.
+ *
+ * Throws if the import line does not have a correct format.
+ */
 export function parseImportLine(importLine: string): { imports: string[]; from: string } {
   let regexMatch = importLine.match(IMPORT_FROM_REGEX);
   if (regexMatch != null) {
