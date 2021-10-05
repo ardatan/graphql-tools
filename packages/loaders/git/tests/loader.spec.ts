@@ -59,6 +59,7 @@ describe('GitLoader', () => {
           'Unable to load file from git'
         );
       });
+
       it('should simply ignore a non git path', async () => {
         const result = await load('./pluckable.ts', {});
         expect(result).toEqual([])

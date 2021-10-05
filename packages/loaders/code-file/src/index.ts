@@ -30,6 +30,11 @@ export type CodeFileLoaderConfig = {
   pluckConfig?: GraphQLTagPluckOptions;
   noPluck?: boolean;
   noRequire?: boolean;
+
+  /**
+   * Set to `true` to raise errors if any matched files are not valid GraphQL
+   */
+  noSilentErrors?: boolean;
 };
 
 /**
@@ -142,7 +147,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
       })
     );
 
-    if (finalResult.length === 0 && errors.length > 0) {
+    if (errors.length > 0 && (options.noSilentErrors || finalResult.length === 0)) {
       if (errors.length === 1) {
         throw errors[0];
       }
@@ -172,7 +177,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
       }
     }
 
-    if (finalResult.length === 0 && errors.length > 0) {
+    if (errors.length > 0 && (options.noSilentErrors || finalResult.length === 0)) {
       if (errors.length === 1) {
         throw errors[0];
       }
