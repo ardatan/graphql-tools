@@ -1,5 +1,11 @@
 # @graphql-tools/import
 
+## 6.5.1
+
+### Patch Changes
+
+- be9fad09: fix(import): add missing dependency
+
 ## 6.5.0
 
 ### Minor Changes
