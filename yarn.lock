@@ -2781,12 +2781,13 @@
   resolved "https://registry.yarnpkg.com/@types/braces/-/braces-3.0.1.tgz#5a284d193cfc61abb2e5a50d36ebbc50d942a32b"
   integrity sha512-+euflG6ygo4bn0JHtn4pYqcXwRtLvElQ7/nnjDu7iYG56H0+OhCd7d6Ug0IE3WcFpZozBKW2+80FUbv5QGk5AQ==
 
-"@types/concurrently@6.2.1":
-  version "6.2.1"
-  resolved "https://registry.yarnpkg.com/@types/concurrently/-/concurrently-6.2.1.tgz#48540055add9d76c55d444aaaf6f4c964c405452"
-  integrity sha512-l+AH7GuHYSgIYoXAufh7P9/oYzRobM+m863XobAARzFiafcGdCjMQQ1grLbVc69+AJTBbO3S8mtt2UPsipk6WA==
+"@types/concurrently@6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@types/concurrently/-/concurrently-6.3.0.tgz#ef6956d0e120f78d1da93d4435da6fe872256d04"
+  integrity sha512-R0M9Dt330vtNgNlBYQYniDfI3I3Sk6cu27M1EKS5VFoio2rZqTMuOBGe9DX+ISM0B6y+RGrgtpWCv2k2VBLtbQ==
   dependencies:
     "@types/node" "*"
+    chalk "^4.1.0"
 
 "@types/connect@*":
   version "3.4.35"
