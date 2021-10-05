@@ -110,7 +110,11 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
   }
 
   async load(pointer: string, options: GraphQLFileLoaderOptions): Promise<Source[]> {
-    const resolvedPaths = await this.resolveGlobs(pointer, options);
+    let resolvedPaths: string[] = [];
+    if (!pointer.includes('*') && await this.canLoad(pointer, options))
+      resolvedPaths = [pointer]
+    else
+      resolvedPaths = this.resolveGlobsSync(pointer, options);
     const finalResult: Source[] = [];
     const errors: Error[] = [];
 
@@ -142,7 +146,11 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
   }
 
   loadSync(pointer: string, options: GraphQLFileLoaderOptions): Source[] {
-    const resolvedPaths = this.resolveGlobsSync(pointer, options);
+    let resolvedPaths: string[] = [];
+    if (!pointer.includes('*') && this.canLoadSync(pointer, options))
+      resolvedPaths = [pointer]
+    else
+      resolvedPaths = this.resolveGlobsSync(pointer, options);
     const finalResult: Source[] = [];
     const errors: Error[] = [];
 
