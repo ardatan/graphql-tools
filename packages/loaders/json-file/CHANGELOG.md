@@ -1,5 +1,11 @@
 # @graphql-tools/json-file-loader
 
+## 7.3.0
+
+### Minor Changes
+
+- 00d06c2c: feat(loader): provide `noSilentErrors` option to allow raising errors during loader resolution
+
 ## 7.2.0
 
 ### Minor Changes

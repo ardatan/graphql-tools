@@ -1,5 +1,11 @@
 # @graphql-tools/import
 
+## 6.5.0
+
+### Minor Changes
+
+- 1e90f094: Refactor processImport and export helper functions for parsing GraphQL imports
+
 ## 6.4.2
 
 ### Patch Changes
