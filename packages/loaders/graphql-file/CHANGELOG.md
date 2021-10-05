@@ -1,5 +1,16 @@
 # @graphql-tools/graphql-file-loader
 
+## 7.2.0
+
+### Minor Changes
+
+- 00d06c2c: feat(loader): provide `noSilentErrors` option to allow raising errors during loader resolution
+
+### Patch Changes
+
+- Updated dependencies [1e90f094]
+  - @graphql-tools/import@6.5.0
+
 ## 7.1.0
 
 ### Minor Changes
