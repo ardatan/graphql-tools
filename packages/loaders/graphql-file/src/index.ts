@@ -103,12 +103,26 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
   }
 
   async resolveGlobs(glob: string, options: GraphQLFileLoaderOptions) {
+    if (
+      !glob.includes('*') &&
+      (await this.canLoad(glob, options)) &&
+      !asArray(options.ignore || []).length &&
+      !options['includeSources']
+    )
+      return [glob]; // bypass globby when no glob character, can be loaded, no ignores and source not requested. Fixes problem with pkg and passes ci tests
     const globs = this._buildGlobs(glob, options);
     const result = await globby(globs, createGlobbyOptions(options));
     return result;
   }
 
   resolveGlobsSync(glob: string, options: GraphQLFileLoaderOptions) {
+    if (
+      !glob.includes('*') &&
+      this.canLoadSync(glob, options) &&
+      !asArray(options.ignore || []).length &&
+      !options['includeSources']
+    )
+      return [glob]; // bypass globby when no glob character, can be loaded, no ignores and source not requested. Fixes problem with pkg and passes ci tests
     const globs = this._buildGlobs(glob, options);
     const result = globby.sync(globs, createGlobbyOptions(options));
     return result;
