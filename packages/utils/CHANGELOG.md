@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.2.5
+
+### Patch Changes
+
+- 1043219f: fix implicit dependencies
+
 ## 8.2.4
 
 ### Patch Changes
