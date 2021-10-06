@@ -46,7 +46,7 @@
     "@changesets/cli": "2.17.0",
     "@types/debug": "4.1.7",
     "@types/jest": "27.0.2",
-    "@types/node": "14.17.20",
+    "@types/node": "14.17.21",
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
     "babel-jest": "27.2.4",
@@ -61,7 +61,7 @@
     "eslint-plugin-promise": "5.1.0",
     "eslint-plugin-standard": "5.0.0",
     "globby": "11.0.4",
-    "graphql": "15.6.0",
+    "graphql": "15.6.1",
     "graphql-helix": "1.8.0",
     "graphql-subscriptions": "1.2.1",
     "husky": "7.0.2",
@@ -95,7 +95,7 @@
     ]
   },
   "resolutions": {
-    "graphql": "15.6.0",
+    "graphql": "15.6.1",
     "esbuild": "^0.13.0",
     "@changesets/apply-release-plan": "5.0.1"
   }

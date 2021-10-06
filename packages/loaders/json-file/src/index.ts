@@ -22,7 +22,12 @@ const FILE_EXTENSIONS = ['.json'];
 /**
  * Additional options for loading from a JSON file
  */
-export interface JsonFileLoaderOptions extends BaseLoaderOptions {}
+export interface JsonFileLoaderOptions extends BaseLoaderOptions {
+  /**
+   * Set to `true` to raise errors if any matched files are not valid GraphQL
+   */
+  noSilentErrors?: boolean;
+}
 
 function createGlobbyOptions(options: JsonFileLoaderOptions): GlobbyOptions {
   return { absolute: true, ...options, ignore: [] };
@@ -120,7 +125,7 @@ export class JsonFileLoader implements Loader {
       })
     );
 
-    if (finalResult.length === 0 && errors.length > 0) {
+    if (errors.length > 0 && (options.noSilentErrors || finalResult.length === 0)) {
       if (errors.length === 1) {
         throw errors[0];
       }
@@ -150,7 +155,7 @@ export class JsonFileLoader implements Loader {
       }
     }
 
-    if (finalResult.length === 0 && errors.length > 0) {
+    if (errors.length > 0 && (options.noSilentErrors || finalResult.length === 0)) {
       if (errors.length === 1) {
         throw errors[0];
       }
