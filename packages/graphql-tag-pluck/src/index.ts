@@ -228,10 +228,9 @@ const MissingVueTemplateCompilerError = new Error(
 );
 
 async function pluckVueFileScript(fileData: string) {
-  // tslint:disable-next-line: no-implicit-dependencies
   let vueTemplateCompiler: typeof import('@vue/compiler-sfc');
   try {
-    // tslint:disable-next-line: no-implicit-dependencies
+    // eslint-disable-next-line import/no-extraneous-dependencies
     vueTemplateCompiler = await import('@vue/compiler-sfc');
   } catch (e: any) {
     throw MissingVueTemplateCompilerError;
@@ -241,11 +240,10 @@ async function pluckVueFileScript(fileData: string) {
 }
 
 function pluckVueFileScriptSync(fileData: string) {
-  // tslint:disable-next-line: no-implicit-dependencies
   let vueTemplateCompiler: typeof import('@vue/compiler-sfc');
 
   try {
-    // tslint:disable-next-line: no-implicit-dependencies
+    // eslint-disable-next-line import/no-extraneous-dependencies
     vueTemplateCompiler = require('@vue/compiler-sfc');
   } catch (e: any) {
     throw MissingVueTemplateCompilerError;

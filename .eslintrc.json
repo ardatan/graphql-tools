@@ -34,7 +34,8 @@
     "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/interface-name-prefix": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
-    "default-param-last": "off"
+    "default-param-last": "off",
+    "import/no-extraneous-dependencies": ["error", {"devDependencies": ["**/*.test.ts", "**/*.spec.ts"]}]
   },
   "env": {
     "es6": true,
@@ -43,14 +44,15 @@
   "overrides": [
     {
       "files": [
-        "**/test/**/*.{ts,js}",
-        "*.spec.ts"
+        "**/{test,tests,testing}/**/*.{ts,js}",
+        "*.{spec,test}.{ts,js}"
       ],
       "env": {
         "jest": true
       },
       "rules": {
-        "@typescript-eslint/no-unused-vars": "off"
+        "@typescript-eslint/no-unused-vars": "off",
+        "import/no-extraneous-dependencies": "off"
       }
     }
   ],

@@ -1,4 +1,4 @@
-import { Maybe } from '@graphql-tools/utils';
+import { Maybe } from './types';
 import {
   StringValueNode,
   FieldDefinitionNode,
