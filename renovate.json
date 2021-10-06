@@ -6,5 +6,6 @@
   "major": {
     "automerge": false
   },
-  "labels": ["dependencies"]
+  "labels": ["dependencies"],
+  "ignoreDeps": ["typedoc", "typedoc-plugin-markdown"]
 }
