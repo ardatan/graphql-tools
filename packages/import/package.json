@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "resolve-from": "5.0.0",
+    "@graphql-tools/utils": "^8.2.4",
     "tslib": "~2.3.0"
   }
 }
