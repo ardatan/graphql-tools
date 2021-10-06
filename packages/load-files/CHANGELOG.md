@@ -1,5 +1,11 @@
 # @graphql-tools/load-files
 
+## 6.5.1
+
+### Patch Changes
+
+- 1043219f: fix implicit dependencies
+
 ## 6.5.0
 
 ### Minor Changes
