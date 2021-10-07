@@ -62,14 +62,25 @@ const getLoadersMap = memoize2(function getLoadersMap<K, V, C>(
 
 const EMPTY_CONTEXT = {};
 
+function buildLoaderKey(options: BatchDelegateOptions<any>): string {
+  let loaderKey = '';
+  const fieldName = options.fieldName ?? options.info.fieldName;
+  const fieldNode = options.info.fieldNodes.find(fieldNode => fieldNode.name.value === fieldName);
+  if (fieldNode != null) {
+    loaderKey += print(fieldNode);
+  }
+  if (options.selectionSet) {
+    loaderKey += print(options.selectionSet);
+  }
+  return loaderKey;
+}
+
 export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
   const fieldName = options.fieldName ?? options.info.fieldName;
   const loaders = getLoadersMap<K, V, C>(options.context || EMPTY_CONTEXT, options.schema);
 
-  const fieldNode = options.info.fieldNodes.find(fieldNode => fieldNode.name.value === fieldName)!;
-
-  const fieldNodeStr = print(fieldNode);
-  let loader = loaders.get(fieldNodeStr);
+  const loaderKey = buildLoaderKey(options);
+  let loader = loaders.get(loaderKey);
 
   // Prevents the keys to be passed with the same structure
   const dataLoaderOptions: DataLoader.Options<any, any, any> = {
@@ -80,7 +91,7 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
   if (loader === undefined) {
     const batchFn = createBatchFn(options);
     loader = new DataLoader<K, V, C>(batchFn, dataLoaderOptions);
-    loaders.set(fieldNodeStr, loader);
+    loaders.set(loaderKey, loader);
   }
 
   return loader;
