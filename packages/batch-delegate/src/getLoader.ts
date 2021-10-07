@@ -76,7 +76,6 @@ function buildLoaderKey(options: BatchDelegateOptions<any>): string {
 }
 
 export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
-  const fieldName = options.fieldName ?? options.info.fieldName;
   const loaders = getLoadersMap<K, V, C>(options.context || EMPTY_CONTEXT, options.schema);
 
   const loaderKey = buildLoaderKey(options);
