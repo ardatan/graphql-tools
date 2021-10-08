@@ -10,5 +10,15 @@ export function batchDelegateToSchema<TContext = any>(options: BatchDelegateOpti
     return [];
   }
   const loader = getLoader(options);
-  return Array.isArray(key) ? loader.loadMany(key) : loader.load(key);
+  return Array.isArray(key)
+    ? loader.loadMany(
+        key.map(singleKey => ({
+          key: singleKey,
+          selectionSet: options.selectionSet,
+        }))
+      )
+    : loader.load({
+        key,
+        selectionSet: options.selectionSet,
+      });
 }

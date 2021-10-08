@@ -26,6 +26,9 @@ function createBatchDelegateFnImpl<K = any>(options: CreateBatchDelegateFnOption
       ...options,
       ...batchDelegateOptions,
     });
-    return loader.load(batchDelegateOptions.key);
+    return loader.load({
+      key: batchDelegateOptions.key,
+      selectionSet: batchDelegateOptions.selectionSet,
+    });
   };
 }
