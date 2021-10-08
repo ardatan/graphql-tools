@@ -1,9 +1,9 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, SelectionNode, print } from 'graphql';
+import { getNamedType, GraphQLList, GraphQLSchema, SelectionNode, FieldNode, Kind } from 'graphql';
 
 import DataLoader from 'dataloader';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
-import { memoize3, relocatedError } from '@graphql-tools/utils';
+import { memoize2, relocatedError } from '@graphql-tools/utils';
 
 import { BatchDelegateOptions } from './types';
 
@@ -11,10 +11,11 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
   const argsFromKeys = options.argsFromKeys ?? ((keys: ReadonlyArray<K>) => ({ ids: keys }));
   const fieldName = options.fieldName ?? options.info.fieldName;
   const { valuesFromResults, lazyOptionsFn } = options;
+  const returnType = new GraphQLList(getNamedType(options.returnType ?? options.info.returnType));
 
   return async function batchFn(keys: ReadonlyArray<K>) {
     const results = await delegateToSchema({
-      returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
+      returnType,
       onLocatedError: originalError => {
         if (originalError.path == null) {
           return originalError;
@@ -47,16 +48,12 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
 }
 
 function defaultCacheKeyFn(key: any) {
-  if (typeof key === 'object') {
-    return JSON.stringify(key);
-  }
-  return key;
+  return JSON.stringify(key);
 }
 
-const getLoadersMap = memoize3(function getLoadersMap<K, V, C>(
-  _context: any,
-  _returnType: GraphQLOutputType,
-  _schema: GraphQLSchema | SubschemaConfig<any, any, any, any>
+const getLoadersMap = memoize2(function getLoadersMap<K, V, C>(
+  _schema: GraphQLSchema | SubschemaConfig<any, any, any, any>,
+  _context: any
 ) {
   return new Map<string, DataLoader<K, V, C>>();
 });
@@ -66,17 +63,12 @@ const EMPTY_CONTEXT = {};
 const loaderMapOptionsMap = new WeakMap<DataLoader<any, any, any>, BatchDelegateOptions<any, any, any, any>>();
 
 export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
-  const loaders = getLoadersMap<K, V, C>(
-    options.context || EMPTY_CONTEXT,
-    getNamedType(options.info.returnType as any) as any,
-    options.schema
-  );
+  const loaders = getLoadersMap<K, V, C>(options.schema, options.context || EMPTY_CONTEXT);
 
-  const selectionSetSuffix = options.selectionSet
-    ? 'withSelectionSet'
-    : options.info.fieldNodes.reduce((str, fieldNode) => str + '\n' + print(fieldNode), '');
-  const fieldName = options.fieldName ?? options.info.fieldName;
-  const loaderKey = fieldName + selectionSetSuffix;
+  let loaderKey = options.selectionSet ? 'withSelectionSet' : 'withoutSelectionSet';
+  loaderKey += options.fieldName ?? options.info.fieldName;
+  const namedReturnType = getNamedType(options.returnType ?? options.info.returnType!)!;
+  loaderKey += namedReturnType.name;
   let loader = loaders.get(loaderKey);
 
   // Prevents the keys to be passed with the same structure
@@ -88,21 +80,34 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
   if (loader === undefined) {
     const batchFnOptions = {
       ...options,
-      selectionSet: options.selectionSet && {
-        ...options.selectionSet,
-        selections: [],
-      },
+      ...(options.selectionSet
+        ? {
+            selectionSet: {
+              kind: Kind.SELECTION_SET,
+              selections: [...options.selectionSet.selections],
+            },
+          }
+        : {
+            info: {
+              ...options.info,
+              fieldNodes: [...options.info.fieldNodes],
+            },
+          }),
     };
     const batchFn = createBatchFn(batchFnOptions);
     loader = new DataLoader<K, V, C>(batchFn, dataLoaderOptions);
     loaders.set(loaderKey, loader);
     loaderMapOptionsMap.set(loader, batchFnOptions);
+    return loader;
   }
 
+  const batchFnOptions = loaderMapOptionsMap.get(loader)!;
   if (options.selectionSet) {
-    const batchFnOptions = loaderMapOptionsMap.get(loader)!;
     const existingSelections = batchFnOptions.selectionSet!.selections as SelectionNode[];
     existingSelections.push(...options.selectionSet.selections);
+  } else {
+    const fieldNodes = batchFnOptions.info.fieldNodes as FieldNode[];
+    fieldNodes.push(...options.info.fieldNodes);
   }
 
   return loader;

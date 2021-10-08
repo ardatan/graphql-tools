@@ -7,7 +7,7 @@ import {
   extendSchema,
 } from 'graphql';
 
-import { IResolvers, pruneSchema } from '@graphql-tools/utils';
+import { IResolvers, memoize1, pruneSchema } from '@graphql-tools/utils';
 
 import { addResolversToSchema, assertResolversPresent, extendResolversFromInterfaces } from '@graphql-tools/schema';
 
@@ -174,6 +174,12 @@ const subschemaConfigTransformerPresets: Array<SubschemaConfigTransform<any>> = 
   splitMergedTypeEntryPointsTransformer,
 ];
 
+const getSubschemaFromSubschemaConfig = memoize1(function getSubschemaFromSubschemaConfig<TContext>(
+  ssConfig: SubschemaConfig<any, any, any, TContext>
+) {
+  return new Subschema<any, any, any, TContext>(ssConfig);
+});
+
 function applySubschemaConfigTransforms<TContext = Record<string, any>>(
   subschemaConfigTransforms: Array<SubschemaConfigTransform<TContext>>,
   subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
@@ -200,9 +206,7 @@ function applySubschemaConfigTransforms<TContext = Record<string, any>>(
       [subschemaConfig]
     );
 
-  const transformedSubschemas = transformedSubschemaConfigs.map(
-    ssConfig => new Subschema<any, any, any, TContext>(ssConfig)
-  );
+  const transformedSubschemas = transformedSubschemaConfigs.map(ssConfig => getSubschemaFromSubschemaConfig(ssConfig));
 
   const baseSubschema = transformedSubschemas[0];
 

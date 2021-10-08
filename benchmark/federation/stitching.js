@@ -14,16 +14,18 @@ const services = [
 async function makeGatewaySchema() {
   return stitchSchemas({
     subschemaConfigTransforms: [stitchingDirectivesTransformer],
-    subschemas: services.map(service => fetchFederationSubschema(service)),
+    subschemas: services.map((service) => fetchFederationSubschema(service)),
   });
 }
 
 function fetchFederationSubschema({ schema, typeDefs }) {
-  const sdl = federationToStitchingSDL(print(typeDefs));
+  const sdlWithFederationDirectives = print(typeDefs);
+  const sdlWithStitchingDirectives = federationToStitchingSDL(sdlWithFederationDirectives);
+  const schemaWithStitchingDirectives = buildSchema(sdlWithStitchingDirectives);
   return {
-    schema: buildSchema(sdl),
+    schema: schemaWithStitchingDirectives,
     executor: createDefaultExecutor(schema),
-    batch: true
+    batch: true,
   };
 }
 
