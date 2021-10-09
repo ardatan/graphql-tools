@@ -1,0 +1,4 @@
+# import Model365 from './365.model.graphql'
+type Mutation {
+  createModel365(data: String!): Model365!
+}

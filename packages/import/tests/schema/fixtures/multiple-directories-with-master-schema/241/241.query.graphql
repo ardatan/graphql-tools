@@ -1,0 +1,4 @@
+# import Model241 from './241.model.graphql'
+type Query {
+  query_model_241: Model241
+}

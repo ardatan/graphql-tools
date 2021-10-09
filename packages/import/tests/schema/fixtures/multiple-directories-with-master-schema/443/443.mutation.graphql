@@ -1,0 +1,4 @@
+# import Model443 from './443.model.graphql'
+type Mutation {
+  createModel443(data: String!): Model443!
+}

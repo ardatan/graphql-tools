@@ -1,0 +1,4 @@
+# import Model31 from './31.model.graphql'
+type Mutation {
+  createModel31(data: String!): Model31!
+}

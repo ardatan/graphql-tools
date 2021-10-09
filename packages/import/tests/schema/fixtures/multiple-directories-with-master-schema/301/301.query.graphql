@@ -1,0 +1,4 @@
+# import Model301 from './301.model.graphql'
+type Query {
+  query_model_301: Model301
+}

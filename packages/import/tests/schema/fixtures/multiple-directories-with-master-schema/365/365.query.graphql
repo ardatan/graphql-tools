@@ -1,0 +1,4 @@
+# import Model365 from './365.model.graphql'
+type Query {
+  query_model_365: Model365
+}

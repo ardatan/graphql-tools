@@ -1,0 +1,4 @@
+# import Model264 from './264.model.graphql'
+type Query {
+  query_model_264: Model264
+}

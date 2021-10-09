@@ -1,0 +1,3 @@
+type Model23 {
+  data: String!
+}

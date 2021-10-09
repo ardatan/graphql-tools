@@ -1,0 +1,4 @@
+# import Model404 from './404.model.graphql'
+type Mutation {
+  createModel404(data: String!): Model404!
+}

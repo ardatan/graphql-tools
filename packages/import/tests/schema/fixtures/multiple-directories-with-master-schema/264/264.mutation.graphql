@@ -1,0 +1,4 @@
+# import Model264 from './264.model.graphql'
+type Mutation {
+  createModel264(data: String!): Model264!
+}

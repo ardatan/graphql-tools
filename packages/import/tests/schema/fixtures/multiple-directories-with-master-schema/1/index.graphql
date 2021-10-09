@@ -1,0 +1,3 @@
+# import * from './1.model.graphql'
+# import * from './1.query.graphql'
+# import * from './1.mutation.graphql'

@@ -1,0 +1,3 @@
+type Model20 {
+  data: String!
+}
