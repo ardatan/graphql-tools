@@ -163,13 +163,6 @@ function visitFile(
 
     if (!otherLines) {
       visitedFiles.set(filePath, allImportedDefinitionsMap);
-
-      const definitionSet = new Set<DefinitionNode>();
-      allImportedDefinitionsMap?.forEach((importedDefinitions, importedDefinitionName) => {
-        importedDefinitions?.forEach(importedDefinition => {
-          addDefinition(importedDefinition, importedDefinitionName, definitionSet);
-        });
-      });
     } else {
       const fileDefinitionMap = visitedFiles.get(filePath);
       if (fileDefinitionMap) {
