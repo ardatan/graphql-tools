@@ -1,5 +1,11 @@
 # @graphql-tools/import
 
+## 6.5.3
+
+### Patch Changes
+
+- 8ffbb600: Remove code causing Maximum call stack size exceeded in @graphql-tools/import package.
+
 ## 6.5.2
 
 ### Patch Changes
