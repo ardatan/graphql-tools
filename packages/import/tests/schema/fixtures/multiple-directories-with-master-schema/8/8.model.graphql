@@ -1,0 +1,3 @@
+type Model8 {
+  data: String!
+}

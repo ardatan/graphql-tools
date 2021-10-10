@@ -984,6 +984,77 @@ describe('importSchema', () => {
     expect(importSchema('fixtures/multiple-levels-master-schema/level1.graphql')).toBeSimilarGqlDoc(expectedSDL);
   });
 
+  test('imports dependencies with transitive dependencies while using master schemata with directories', () => {
+    const expectedSDL = /* GraphQL */`
+      type Model1 {
+        data: String!
+      }
+
+      type Model10 {
+        data: String!
+      }
+
+      type Model2 {
+        data: String!
+      }
+
+      type Model3 {
+        data: String!
+      }
+
+      type Model4 {
+        data: String!
+      }
+
+      type Model5 {
+        data: String!
+      }
+
+      type Model6 {
+        data: String!
+      }
+
+      type Model7 {
+        data: String!
+      }
+
+      type Model8 {
+        data: String!
+      }
+
+      type Model9 {
+        data: String!
+      }
+
+      type Mutation {
+        createModel1(data: String!): Model1!
+        createModel10(data: String!): Model10!
+        createModel2(data: String!): Model2!
+        createModel3(data: String!): Model3!
+        createModel4(data: String!): Model4!
+        createModel5(data: String!): Model5!
+        createModel6(data: String!): Model6!
+        createModel7(data: String!): Model7!
+        createModel8(data: String!): Model8!
+        createModel9(data: String!): Model9!
+      }
+
+      type Query {
+        query_model_1: Model1
+        query_model_10: Model10
+        query_model_2: Model2
+        query_model_3: Model3
+        query_model_4: Model4
+        query_model_5: Model5
+        query_model_6: Model6
+        query_model_7: Model7
+        query_model_8: Model8
+        query_model_9: Model9
+      }
+    `;
+    expect(importSchema('fixtures/multiple-directories-with-master-schema/index.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+
   test('imports multi-level types without direct references', () => {
     const expectedSDL = /* GraphQL */`\
   type Level1 {
