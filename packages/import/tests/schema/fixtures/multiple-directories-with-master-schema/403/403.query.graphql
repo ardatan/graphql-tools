@@ -1,4 +1,0 @@
-# import Model403 from './403.model.graphql'
-type Query {
-  query_model_403: Model403
-}

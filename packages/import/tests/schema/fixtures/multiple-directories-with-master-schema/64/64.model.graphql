@@ -1,3 +1,0 @@
-type Model64 {
-  data: String!
-}

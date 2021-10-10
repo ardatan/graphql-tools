@@ -1,3 +1,0 @@
-type Model32 {
-  data: String!
-}

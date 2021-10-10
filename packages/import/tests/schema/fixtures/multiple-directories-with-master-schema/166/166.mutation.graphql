@@ -1,4 +1,0 @@
-# import Model166 from './166.model.graphql'
-type Mutation {
-  createModel166(data: String!): Model166!
-}

@@ -1,3 +1,0 @@
-type Model307 {
-  data: String!
-}

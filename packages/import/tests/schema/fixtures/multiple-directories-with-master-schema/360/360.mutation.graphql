@@ -1,4 +1,0 @@
-# import Model360 from './360.model.graphql'
-type Mutation {
-  createModel360(data: String!): Model360!
-}

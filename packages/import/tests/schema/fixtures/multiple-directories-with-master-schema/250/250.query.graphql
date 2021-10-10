@@ -1,4 +1,0 @@
-# import Model250 from './250.model.graphql'
-type Query {
-  query_model_250: Model250
-}

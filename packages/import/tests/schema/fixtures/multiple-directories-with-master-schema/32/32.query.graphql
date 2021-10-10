@@ -1,4 +1,0 @@
-# import Model32 from './32.model.graphql'
-type Query {
-  query_model_32: Model32
-}

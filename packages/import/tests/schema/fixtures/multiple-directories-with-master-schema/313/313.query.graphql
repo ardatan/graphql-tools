@@ -1,4 +1,0 @@
-# import Model313 from './313.model.graphql'
-type Query {
-  query_model_313: Model313
-}

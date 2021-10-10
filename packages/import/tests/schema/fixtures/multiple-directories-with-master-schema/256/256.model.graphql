@@ -1,3 +1,0 @@
-type Model256 {
-  data: String!
-}

@@ -1,4 +1,0 @@
-# import Model386 from './386.model.graphql'
-type Query {
-  query_model_386: Model386
-}

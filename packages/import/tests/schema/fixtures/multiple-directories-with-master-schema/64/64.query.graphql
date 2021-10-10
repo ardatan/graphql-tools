@@ -1,4 +1,0 @@
-# import Model64 from './64.model.graphql'
-type Query {
-  query_model_64: Model64
-}

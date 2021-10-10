@@ -1,3 +1,0 @@
-type Model45 {
-  data: String!
-}

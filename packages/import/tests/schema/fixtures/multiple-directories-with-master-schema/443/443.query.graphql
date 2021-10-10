@@ -1,4 +1,0 @@
-# import Model443 from './443.model.graphql'
-type Query {
-  query_model_443: Model443
-}
