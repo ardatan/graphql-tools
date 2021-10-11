@@ -2099,14 +2099,14 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.0.tgz#0eee6373e11418bfe0b5638f654df7a4ca6a3950"
   integrity sha512-wYn6r8zVZyQJ6rQaALBEln5B1pzxb9shV5Ef97kTvn6yVGrqyXVnDqnU24MXnFubR+rZjBY9NWuxX3FB2sTsjg==
 
-"@guild-docs/client@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.1.0.tgz#4edbe73d3e9606795d73b7cbb9d870901e0b42db"
-  integrity sha512-YMIHZ//JUkH9PS3GsdvSbzxY1DKQyfwCfq2HDkkz0RFeUucNp6S1U4via7QgFKEF17Jup3BQu4hdQ6v574wF4w==
+"@guild-docs/client@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.1.1.tgz#c8832327481a14cebb5de940470cb04237a0a709"
+  integrity sha512-+Lua8xBO0MUxMDmmmtBb7RJkDGuM8zJoyZC1GiqUmXLqoEeHV8I5hyZslVDdIHkCnXpHlnKKLQZm3o/4kAGqUQ==
   dependencies:
-    "@guild-docs/types" "^1.0.1"
+    "@guild-docs/types" "^1.0.2"
     immer "^9.0.6"
-    next-mdx-remote "^3.0.6"
+    next-mdx-remote "3.0.6"
     next-seo "^4.28.1"
     nprogress "^0.2.0"
     react-icons "4.3.1"
@@ -2134,7 +2134,7 @@
     unified "^10.1.0"
     unist-util-visit "^4.1.0"
 
-"@guild-docs/types@^1.0.1", "@guild-docs/types@^1.0.2":
+"@guild-docs/types@^1.0.2":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@guild-docs/types/-/types-1.0.2.tgz#99d424e702d75bb5a84d0ce898f192fa58fcaf8c"
   integrity sha512-dqTsMORehm4ASbzDwIeNJAv5Rkva36EqahhxhoqGR8ehVwFRx3G/S7bGoc8pqikb1AE0sBc5RW6Txw4x4rdfJg==
@@ -8945,7 +8945,7 @@ next-i18next@8.8.0:
     i18next-fs-backend "^1.0.7"
     react-i18next "^11.8.13"
 
-next-mdx-remote@3.0.6, next-mdx-remote@^3.0.6:
+next-mdx-remote@3.0.6:
   version "3.0.6"
   resolved "https://registry.yarnpkg.com/next-mdx-remote/-/next-mdx-remote-3.0.6.tgz#e8ccfc2d2f126a3d269e23c1e1b2a8f623e94520"
   integrity sha512-nLyDACEvebCwZonab29/AayXddgActZRcWvtsX8KKzxeRQH4Kjm9/5psD5ARU6ZTa3lALhVss+nCbejll3o5/g==
