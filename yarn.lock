@@ -2099,21 +2099,22 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.0.tgz#0eee6373e11418bfe0b5638f654df7a4ca6a3950"
   integrity sha512-wYn6r8zVZyQJ6rQaALBEln5B1pzxb9shV5Ef97kTvn6yVGrqyXVnDqnU24MXnFubR+rZjBY9NWuxX3FB2sTsjg==
 
-"@guild-docs/client@1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.0.7.tgz#5d53a95e615375c76ac3150b96827bb81a39cb7b"
-  integrity sha512-jkV7HAmR4JuKEBtNoQrgjOSlsgoX7hfGMqlr6pHyD3CHqX8fHIZaT99oc6wz1OkL7lRfot9pbEhT0MSIUuf3rA==
+"@guild-docs/client@1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.1.0.tgz#4edbe73d3e9606795d73b7cbb9d870901e0b42db"
+  integrity sha512-YMIHZ//JUkH9PS3GsdvSbzxY1DKQyfwCfq2HDkkz0RFeUucNp6S1U4via7QgFKEF17Jup3BQu4hdQ6v574wF4w==
   dependencies:
-    "@guild-docs/types" "^1.0.0"
+    "@guild-docs/types" "^1.0.1"
     immer "^9.0.6"
-    next-mdx-remote "^3.0.5"
+    next-mdx-remote "^3.0.6"
     next-seo "^4.28.1"
     nprogress "^0.2.0"
-    react-icons "4.2.0"
+    react-icons "4.3.1"
     react-intersection-observer "^8.32.1"
     react-use "^17.3.1"
+    remove-markdown "^0.3.0"
     use-immer "^0.6.0"
-    zustand "^3.5.12"
+    zustand "^3.5.13"
 
 "@guild-docs/server@1.0.4":
   version "1.0.4"
@@ -2133,10 +2134,10 @@
     unified "^10.1.0"
     unist-util-visit "^4.0.0"
 
-"@guild-docs/types@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@guild-docs/types/-/types-1.0.0.tgz#58bfdc6792be267dbbb8af77754337c98874f6f7"
-  integrity sha512-OKrSg5+GqSGSNb6XJmxiMPM+I7zkm8c+piG7IzbKbD1qtzXM8xUEpXdOjvUCxRS6C+e3zDmXOZ66krsINTCZXg==
+"@guild-docs/types@^1.0.0", "@guild-docs/types@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@guild-docs/types/-/types-1.0.1.tgz#9150dd89efe162318a1eb5c123ed271f89d08415"
+  integrity sha512-VAyZKVVeYiMsZDdvuk8sOVBr3OhKZQbOkGR1vmALGfmsaKUtbv5dcK4Y5eFcS4YzqIS5TE4q8zHdQPNonhj59Q==
 
 "@hapi/accept@5.0.2":
   version "5.0.2"
@@ -5701,7 +5702,7 @@ esbuild-windows-arm64@0.13.0:
   resolved "https://registry.yarnpkg.com/esbuild-windows-arm64/-/esbuild-windows-arm64-0.13.0.tgz#02f1acc106e0afadc95f364af82010d52ea8e85d"
   integrity sha512-dPchHf3BELctuyTEoZ7bNvmBplMHLulmnjz4dBFZFlVkLY/TNMuwWrQDVH98UkFRWqhtuqI1PnP4W9rw/cxFDQ==
 
-esbuild@0.13.4, esbuild@^0.12.9, esbuild@^0.13.0:
+esbuild@0.13.4, esbuild@^0.13.0, esbuild@^0.13.4:
   version "0.13.0"
   resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.13.0.tgz#998858eaa6338055b33be64253da544a865d23da"
   integrity sha512-J5mHgg+AYY002TYGvrecLXyMJSPBju2xd9vh1iyj+xjtOmHb9dmsGtqCziDwxlwqJiysMYRTXJ+EeDz4WYfFKA==
@@ -8939,14 +8940,14 @@ next-i18next@8.8.0:
     i18next-fs-backend "^1.0.7"
     react-i18next "^11.8.13"
 
-next-mdx-remote@^3.0.4, next-mdx-remote@^3.0.5:
-  version "3.0.5"
-  resolved "https://registry.yarnpkg.com/next-mdx-remote/-/next-mdx-remote-3.0.5.tgz#57b3ea156d20e622b51becbacedc995233cac236"
-  integrity sha512-m9OD2GBuqvz/IeM/h4kufQ7GEdaCaZ4owqkCQ+yoxzCIM7jVQYK9JWXNVcyPP/Y6FBS00fLH03Hn5VFdvkFf0A==
+next-mdx-remote@^3.0.4, next-mdx-remote@^3.0.6:
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/next-mdx-remote/-/next-mdx-remote-3.0.6.tgz#e8ccfc2d2f126a3d269e23c1e1b2a8f623e94520"
+  integrity sha512-nLyDACEvebCwZonab29/AayXddgActZRcWvtsX8KKzxeRQH4Kjm9/5psD5ARU6ZTa3lALhVss+nCbejll3o5/g==
   dependencies:
     "@mdx-js/mdx" "^1.6.22"
     "@mdx-js/react" "^1.6.22"
-    esbuild "^0.12.9"
+    esbuild "^0.13.4"
     pkg-dir "^5.0.0"
 
 next-remote-watch@1.0.0:
@@ -10028,11 +10029,6 @@ react-i18next@^11.8.13:
     "@babel/runtime" "^7.14.5"
     html-parse-stringify "^3.0.1"
 
-react-icons@4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/react-icons/-/react-icons-4.2.0.tgz#6dda80c8a8f338ff96a1851424d63083282630d0"
-  integrity sha512-rmzEDFt+AVXRzD7zDE21gcxyBizD/3NqjbX6cmViAgdqfJ2UiLer8927/QhhrXQV7dEj/1EGuOTPp7JnLYVJKQ==
-
 react-icons@4.3.1:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/react-icons/-/react-icons-4.3.1.tgz#2fa92aebbbc71f43d2db2ed1aed07361124e91ca"
@@ -10470,6 +10466,11 @@ remark-squeeze-paragraphs@4.0.0:
   integrity sha512-8qRqmL9F4nuLPIgl92XUuxI3pFxize+F1H0e/W3llTk0UsjJaj01+RrirkMw7P21RKe4X6goQhYRSvNWX+70Rw==
   dependencies:
     mdast-squeeze-paragraphs "^4.0.0"
+
+remove-markdown@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/remove-markdown/-/remove-markdown-0.3.0.tgz#5e4b667493a93579728f3d52ecc1db9ca505dc98"
+  integrity sha1-XktmdJOpNXlyjz1S7MHbnKUF3Jg=
 
 remove-trailing-separator@^1.0.1:
   version "1.1.0"
@@ -12760,10 +12761,10 @@ zen-observable@0.8.15:
   resolved "https://registry.yarnpkg.com/zen-observable/-/zen-observable-0.8.15.tgz#96415c512d8e3ffd920afd3889604e30b9eaac15"
   integrity sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==
 
-zustand@^3.5.12:
-  version "3.5.12"
-  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.5.12.tgz#407a8685eb286a32d7f560e74966993bbff1dae8"
-  integrity sha512-Cv9fX/yM5HXYODkn3Q/HMmMofnmZw3yqM73VT/3rQEvI/04Yl0OFNO24qMofhN82xTPWcCffkGPFCMq8r67Whg==
+zustand@^3.5.13:
+  version "3.5.13"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.5.13.tgz#fd1af8c14a23ec7efdeb9ab167b8e69a8fc0980a"
+  integrity sha512-orO/XcYwSWffsrPVTdCtuKM/zkUaOIyKDasOk/lecsD3R0euELsj+cB65uKZ1KyinrK2STHIuUhRoLpH8QprQg==
 
 zwitch@^1.0.0:
   version "1.0.5"
