@@ -181,7 +181,7 @@ function validateRequest(delegationContext: DelegationContext<any>, document: Do
   const errors = validate(delegationContext.targetSchema, document);
   if (errors.length > 0) {
     if (errors.length > 1) {
-      const combinedError = new AggregateError(errors);
+      const combinedError = new AggregateError(errors, errors.map(error => error.message).join(', \n'));
       throw combinedError;
     }
     const error = errors[0];

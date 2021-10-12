@@ -129,7 +129,10 @@ export class JsonFileLoader implements Loader {
       if (errors.length === 1) {
         throw errors[0];
       }
-      throw new AggregateError(errors);
+      throw new AggregateError(
+        errors,
+        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n')
+      );
     }
 
     return finalResult;
@@ -159,7 +162,10 @@ export class JsonFileLoader implements Loader {
       if (errors.length === 1) {
         throw errors[0];
       }
-      throw new AggregateError(errors);
+      throw new AggregateError(
+        errors,
+        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n')
+      );
     }
 
     return finalResult;
