@@ -1,5 +1,13 @@
 # @graphql-tools/code-file-loader
 
+## 7.2.1
+
+### Patch Changes
+
+- 58262be7: enhance: show more clear error messages for aggregated error
+- Updated dependencies [58262be7]
+  - @graphql-tools/utils@8.3.0
+
 ## 7.2.0
 
 ### Minor Changes
