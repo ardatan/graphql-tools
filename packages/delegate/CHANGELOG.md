@@ -1,5 +1,13 @@
 # @graphql-tools/delegate
 
+## 8.2.3
+
+### Patch Changes
+
+- 58262be7: enhance: show more clear error messages for aggregated error
+- Updated dependencies [58262be7]
+  - @graphql-tools/utils@8.3.0
+
 ## 8.2.2
 
 ### Patch Changes

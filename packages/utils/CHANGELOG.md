@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.3.0
+
+### Minor Changes
+
+- 58262be7: feat(utils): export createDefaultRules
+
 ## 8.2.5
 
 ### Patch Changes
