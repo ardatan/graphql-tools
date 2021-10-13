@@ -7,23 +7,23 @@
   resolved "https://registry.yarnpkg.com/@apollo/core-schema/-/core-schema-0.1.0.tgz#a9444f60deaded118657eb3373ddd64ced9ba0cd"
   integrity sha512-BwOWRnDLj1Y3mMdfjdcv8/h7jcfVnUqb+LfpWRX3siXWtGCGsrg+OTj0l7M7uJGOnN6ZM0XJyY9Pk5Lisb7q6Q==
 
-"@apollo/federation@0.33.2", "@apollo/federation@^0.33.2":
-  version "0.33.2"
-  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.33.2.tgz#9e83705377e60fe38524327115915b50395b379d"
-  integrity sha512-UwzLHPFXQfFPvHRugPcxVaXeWlFM3MQnkB+KmepT10VzErJPGsfFJ9dAnLSy2xlWysmI0AN95J8oLo+6fmkunA==
+"@apollo/federation@0.33.3", "@apollo/federation@^0.33.3":
+  version "0.33.3"
+  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.33.3.tgz#07710308c1a097c3aaee53759860751f6fff82e3"
+  integrity sha512-+BRJW1Kf7im86CWPQEdocXQTyPUH132MMoMCXuRvM4F1idb5EldqRkFNM8y9IAYNnbHsthmIWlrqmkuYg+irGQ==
   dependencies:
-    "@apollo/subgraph" "^0.1.1"
+    "@apollo/subgraph" "^0.1.2"
     apollo-graphql "^0.9.3"
     apollo-server-types "^3.0.2"
     lodash.xorby "^4.7.0"
 
-"@apollo/gateway@0.42.2":
-  version "0.42.2"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.42.2.tgz#8b60ce2cf23836e6eb944001e5bedbd6cadc8e55"
-  integrity sha512-D95i426mzO0BKPKdWWLOHJ/41aCX+B0J4CZ15r3Jqo7uWP1or1hz6k1wmcwwxWVzAa56fE9yjOqawBLhSpcKNw==
+"@apollo/gateway@0.42.3":
+  version "0.42.3"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.42.3.tgz#783db6d775cbd725b6d73c3c8f2acf41dcd14301"
+  integrity sha512-xJoY/wIv/LmsqcbPEEYgaGhzo/Ok8Ce1GFZJRigpmjCCsm0TFmWWgXRQ14RbtUi0TzCBdOcnSh1NfaJYpHgAdQ==
   dependencies:
     "@apollo/core-schema" "^0.1.0"
-    "@apollo/federation" "^0.33.2"
+    "@apollo/federation" "^0.33.3"
     "@apollo/query-planner" "^0.5.1"
     "@opentelemetry/api" "^1.0.1"
     "@types/node-fetch" "2.5.12"
@@ -67,10 +67,10 @@
     deep-equal "^2.0.5"
     pretty-format "^26.0.0"
 
-"@apollo/subgraph@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-0.1.1.tgz#77bbbd164914b1db0cdadefb491852e897f346c3"
-  integrity sha512-QVSTy8bX9kiNjRWG0fGrUfJ0ut2I/vvfIMuXBBXMCVcHXYJTMmmLFkb0nOF0HZwwbUSvOogaKFftl7IprvQX3A==
+"@apollo/subgraph@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-0.1.2.tgz#ea2e9c46a88012c22a2cd696f4e0f4b4c4608eb1"
+  integrity sha512-vrPtpayvJkLdqc/iLjhXi+W9HQ+Avnb2a8ylaZb0lsm9p0y1H5QxNDhC3SHhdYRvBnNeqgxE+OGYG1rHldMQIQ==
   dependencies:
     apollo-graphql "^0.9.3"
 
