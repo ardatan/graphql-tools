@@ -583,6 +583,47 @@ input TestInput {
           { data: { foo: { a: 1, b: 2 } }, },
         )
       })
+
+      it("should handle helix SSE response result (subscriptions)", async () => {
+        const serverHost = "http://localhost:1335"
+          const executor = await loader.getExecutorAsync(`${serverHost}/graphql`)
+
+          httpServer = http.createServer(async (_, res) => {
+            res.writeHead(200, {
+              "Content-Type": "text/event-stream",
+              // prettier-ignore
+              "Connection": "keep-alive",
+              "Cache-Control": "no-cache",
+            });
+
+            res.write(`---`)
+
+            const result = { data: { foo: 1 } }
+
+            res.write(`data: ${JSON.stringify(result)}\n\n`);
+            result.data.foo++
+            res.write(`data: ${JSON.stringify(result)}\n\n`);
+            result.data.foo++
+            res.write(`data: ${JSON.stringify(result)}\n\n`);
+
+            res.end();
+          });
+
+          await new Promise<void>((resolve) => httpServer.listen(1335, () => resolve()));
+
+          const result = await executor({
+            operationType: "query",
+            document: parse(/* GraphQL */ ` subscription { foo } `)
+          })
+          assertAsyncIterable(result)
+
+          const {value} = await result[Symbol.asyncIterator]().next()
+          expect(value).toEqual({ data: { foo: {} } })
+          await result[Symbol.asyncIterator]().next()
+          expect(value).toEqual(
+            { data: { foo: { a: 1, b: 2 }, }, },
+          )
+      })
     })
   });
 });
