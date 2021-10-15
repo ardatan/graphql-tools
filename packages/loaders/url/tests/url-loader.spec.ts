@@ -537,7 +537,7 @@ input TestInput {
     describe("helix compat", () => {
       let httpServer: http.Server;
 
-      beforeEach(async () => {
+      afterEach(async () => {
         if (httpServer !== undefined) {
           await new Promise<void>(resolve => httpServer.close(() => resolve()))
         }
@@ -547,7 +547,7 @@ input TestInput {
         const serverHost = "http://localhost:1335"
         const executor = await loader.getExecutorAsync(`${serverHost}/graphql`)
 
-        const httpServer = http.createServer(async (_, res) => {
+        httpServer = http.createServer(async (_, res) => {
           res.writeHead(200, {
             // prettier-ignore
             "Connection": "keep-alive",
