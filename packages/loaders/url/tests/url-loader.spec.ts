@@ -1,7 +1,7 @@
 import '../../../testing/to-be-similar-gql-doc';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { SubscriptionProtocol, UrlLoader } from '../src';
-import { printSchemaWithDirectives } from '@graphql-tools/utils';
+import { printSchemaWithDirectives, isAsyncIterable } from '@graphql-tools/utils';
 import nock from 'nock';
 import { mockGraphQLServer } from '../../../testing/utils';
 import { cwd } from 'process';
@@ -574,9 +574,29 @@ input TestInput {
           operationType: "query",
           document: parse(/* GraphQL */ ` query { foo { ... on Foo @defer { a b }} } `)
         })
-        console.log(result)
+        assertAsyncIterable(result)
+        const values = await collectAsyncIteratorValues(result)
+        expect(values).toEqual([
+          { data: { foo: {}}, hasNext: true },
+          { data: { a: 1, b: 2 }, path: ["foo"]}
+        ])
       })
-
     })
   });
 });
+
+
+function assertAsyncIterable(input: unknown): asserts input is AsyncIterable<any> {
+  if (isAsyncIterable(input)){
+    return
+  }
+  throw new Error("Expected AsyncIterable.")
+}
+
+const collectAsyncIteratorValues = async <TType>(asyncIterable: AsyncIterableIterator<TType>): Promise<Array<TType>> => {
+  const values: Array<TType> = [];
+  for await (const value of asyncIterable) {
+    values.push(value);
+  }
+  return values;
+};
