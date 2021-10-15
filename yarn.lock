@@ -2116,10 +2116,10 @@
     use-immer "^0.6.0"
     zustand "^3.5.13"
 
-"@guild-docs/server@1.0.6":
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-1.0.6.tgz#f814f2c43b43e0a2e5a689e45b1bdb2a25375846"
-  integrity sha512-oLz7tDVsWYyTDP5/0HLhrA5GXihT+wrr1Cvw17SPBR8wGnZL78WjaVFE6/nkBcxngxZYUbOvcw2w+HNDPNsG4w==
+"@guild-docs/server@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-2.0.1.tgz#6104d15bba91ff0d9a6c6c58002e10d3ac84a2c7"
+  integrity sha512-8KqCaGZF+834dpTF3PJbOOCZ4tqSSNDdEis4jedxYKPTPjZtgaWbjfFNzW8luITUplaE58PiNVodOUjHa0Vvww==
   dependencies:
     "@guild-docs/types" "^1.0.2"
     github-slugger "^1.4.0"
@@ -2127,7 +2127,6 @@
     gray-matter "^4.0.3"
     next-mdx-remote "3.0.6"
     node-fetch "^2.6.5"
-    npms.io "^2.1.0"
     remark-emoji "^3.0.1"
     remark-slug "^7.0.0"
     tiny-lru "^7.0.6"
@@ -4002,7 +4001,7 @@ available-typed-arrays@^1.0.4:
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.4.tgz#9e0ae84ecff20caae6a94a1c3bc39b955649b7a9"
   integrity sha512-SA5mXJWrId1TaQjfxUYghbqQ/hYioKmLJvPJyDuYRtXXenFNMjj4hSSt1Cf1xsuXSXrtxrVC5Ot4eU6cOtBDdA==
 
-axios@0.21.1, axios@^0.21.1:
+axios@^0.21.1:
   version "0.21.1"
   resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.1.tgz#22563481962f4d6bde9a76d516ef0e5d3c09b2b8"
   integrity sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==
@@ -9192,13 +9191,6 @@ npm-run-path@^4.0.1:
   integrity sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==
   dependencies:
     path-key "^3.0.0"
-
-npms.io@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/npms.io/-/npms.io-2.1.0.tgz#0173119133a523098d446b90330e24c0fde3b096"
-  integrity sha512-dImPsPz9MXBW3Q3GRW4OqDoq1quo5bgrRLnUye3XQXFRluFxAqbSvnkBZbHMsnGvv7rlqhbTn4miU26KgST9ZA==
-  dependencies:
-    axios "0.21.1"
 
 nprogress@^0.2.0:
   version "0.2.0"
