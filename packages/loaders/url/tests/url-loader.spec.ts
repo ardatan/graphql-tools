@@ -533,5 +533,50 @@ input TestInput {
       expect(uploadFileData?.filename).toBe(fileName);
       expect(uploadFileData?.content).toBe(content);
     });
+
+    describe("helix compat", () => {
+      let httpServer: http.Server;
+
+      beforeEach(async () => {
+        if (httpServer !== undefined) {
+          await new Promise<void>(resolve => httpServer.close(() => resolve()))
+        }
+      })
+
+      it("should handle helix multipart response result (defer & stream)", async  () => {
+        const serverHost = "http://localhost:1335"
+        const executor = await loader.getExecutorAsync(`${serverHost}/graphql`)
+
+        const httpServer = http.createServer((_, res) => {
+          res.writeHead(200, {
+            // prettier-ignore
+            "Connection": "keep-alive",
+            "Content-Type": 'multipart/mixed; boundary="-"',
+            "Transfer-Encoding": "chunked",
+          });
+
+          res.write(`---`)
+
+          let chunk = Buffer.from(JSON.stringify({ data: { foo: {}}, hasNext: true }), "utf8");
+
+          let data = ["", "Content-Type: application/json; charset=utf-8", chunk, "",  `---`];
+          res.write(data.join("\r\n"));
+
+          chunk = Buffer.from(JSON.stringify({ data: { a: 1, b: 2 }, path: ["foo"]}), "utf8");
+          data = ["", "Content-Type: application/json; charset=utf-8", "", chunk];
+          res.write(data.join("\r\n"));
+          res.write("\r\n-----\r\n");
+          res.end();
+        });
+        await new Promise<void>((resolve) => httpServer.listen(1335, () => resolve()));
+
+        const result = await executor({
+          operationType: "query",
+          document: parse(/* GraphQL */ ` query { foo { ... on Foo @defer { a b }} } `)
+        })
+        console.log(result)
+      })
+
+    })
   });
 });
