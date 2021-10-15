@@ -375,14 +375,18 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             }
         }
       })
-        .then((fetchResult: Response) => {
+        .then(async (fetchResult: Response) => {
           const response: ExecutionResult = {};
           const contentType = fetchResult.headers.get
             ? fetchResult.headers.get('content-type')
             : fetchResult['content-type'];
           if (contentType?.includes('multipart/mixed')) {
-            return meros<ExecutionPatchResult>(fetchResult).then(maybeStream => {
-              if (isAsyncIterable(maybeStream)) {
+            const body = await fetchResult.body;
+            body.headers = {
+              'content-type': contentType,
+            };
+            return meros<ExecutionPatchResult>(body).then(maybeStream => {
+              if (maybeStream[Symbol.asyncIterator] < 'u') {
                 return withCancel(
                   mapAsyncIterator(maybeStream, part => {
                     if (part.json) {

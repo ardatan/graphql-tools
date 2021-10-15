@@ -543,10 +543,12 @@ input TestInput {
         }
       })
 
-      it("should handle helix multipart response result (defer & stream)", async  () => {
-        const serverHost = "http://localhost:1335"
-        const executor = await loader.getExecutorAsync(`${serverHost}/graphql`)
-
+      it("should handle helix multipart response result", async () => {
+        const chunkDatas = [
+          { data: { foo: {} }, hasNext: true },
+          { data: { a: 1 }, path: ["foo"] },
+          { data: { a: 1, b: 2 }, path: ["foo"] }
+        ];
         const httpServer = http.createServer((_, res) => {
           res.writeHead(200, {
             // prettier-ignore
@@ -555,28 +557,61 @@ input TestInput {
             "Transfer-Encoding": "chunked",
           });
 
-          res.write(`---`)
+          res.write(`---`);
 
-          let chunk = Buffer.from(JSON.stringify({ data: { foo: {}}, hasNext: true }), "utf8");
+          for (const chunkData of chunkDatas) {
+            const chunk = Buffer.from(JSON.stringify(chunkData), "utf8");
+            const data = ["", "Content-Type: application/json; charset=utf-8", "", chunk, "", `---`];
+            res.write(data.join("\r\n"));
+          }
 
-          let data = ["", "Content-Type: application/json; charset=utf-8", chunk, "",  `---`];
-          res.write(data.join("\r\n"));
-
-          chunk = Buffer.from(JSON.stringify({ data: { a: 1, b: 2 }, path: ["foo"]}), "utf8");
-          data = ["", "Content-Type: application/json; charset=utf-8", "", chunk];
-          res.write(data.join("\r\n"));
           res.write("\r\n-----\r\n");
           res.end();
         });
-        await new Promise<void>((resolve) => httpServer.listen(1335, () => resolve()));
+        await new Promise<void>((resolve) => httpServer.listen(1335, resolve));
 
+        const executor = await loader.getExecutorAsync(`http://localhost:1335`);
         const result = await executor({
           operationType: "query",
-          document: parse(/* GraphQL */ ` query { foo { ... on Foo @defer { a b }} } `)
-        })
-        console.log(result)
-      })
+          document: parse(/* GraphQL */ `
+            query {
+              foo {
+                ... on Foo @defer {
+                  a
+                  b
+                }
+              }
+            }
+          `)
+        });
 
+        expect(result[Symbol.asyncIterator]).toBeTruthy();
+        const expectedDatas = [
+          {
+            data: {
+              foo: {}
+            }
+          },
+          {
+            data: {
+              foo: {
+                a: 1
+              }
+            }
+          },
+          {
+            data: {
+              foo: {
+                a: 1,
+                b: 2
+              }
+            }
+          }
+        ];
+        for await (const data of result) {
+          expect(data).toEqual(expectedDatas.shift()!);
+        }
+      });
     })
   });
 });
