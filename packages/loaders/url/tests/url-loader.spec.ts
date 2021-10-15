@@ -547,7 +547,7 @@ input TestInput {
         const serverHost = "http://localhost:1335"
         const executor = await loader.getExecutorAsync(`${serverHost}/graphql`)
 
-        const httpServer = http.createServer((_, res) => {
+        const httpServer = http.createServer(async (_, res) => {
           res.writeHead(200, {
             // prettier-ignore
             "Connection": "keep-alive",
@@ -557,14 +557,14 @@ input TestInput {
 
           res.write(`---`)
 
-          let chunk = Buffer.from(JSON.stringify({ data: { foo: {}}, hasNext: true }), "utf8");
+          let chunk = Buffer.from(JSON.stringify({ data: { foo: {} }, hasNext: true }), "utf8");
 
-          let data = ["", "Content-Type: application/json; charset=utf-8", chunk, "",  `---`];
-          res.write(data.join("\r\n"));
+          let data = ["", "Content-Type: application/json; charset=utf-8", "", chunk, "",  `---`].join("\r\n");
+          res.write(data);
 
           chunk = Buffer.from(JSON.stringify({ data: { a: 1, b: 2 }, path: ["foo"]}), "utf8");
-          data = ["", "Content-Type: application/json; charset=utf-8", "", chunk];
-          res.write(data.join("\r\n"));
+          data = ["", "Content-Type: application/json; charset=utf-8", "", chunk].join("\r\n");
+          res.write(data);
           res.write("\r\n-----\r\n");
           res.end();
         });
@@ -575,11 +575,13 @@ input TestInput {
           document: parse(/* GraphQL */ ` query { foo { ... on Foo @defer { a b }} } `)
         })
         assertAsyncIterable(result)
-        const values = await collectAsyncIteratorValues(result)
-        expect(values).toEqual([
-          { data: { foo: {}}, hasNext: true },
-          { data: { a: 1, b: 2 }, path: ["foo"]}
-        ])
+
+        const {value} = await result[Symbol.asyncIterator]().next()
+        expect(value).toEqual({ data: { foo: {} } })
+        await result[Symbol.asyncIterator]().next()
+        expect(value).toEqual(
+          { data: { foo: { a: 1, b: 2 } }, },
+        )
       })
     })
   });
@@ -592,11 +594,3 @@ function assertAsyncIterable(input: unknown): asserts input is AsyncIterable<any
   }
   throw new Error("Expected AsyncIterable.")
 }
-
-const collectAsyncIteratorValues = async <TType>(asyncIterable: AsyncIterableIterator<TType>): Promise<Array<TType>> => {
-  const values: Array<TType> = [];
-  for await (const value of asyncIterable) {
-    values.push(value);
-  }
-  return values;
-};
