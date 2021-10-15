@@ -380,7 +380,21 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           const contentType = fetchResult.headers.get
             ? fetchResult.headers.get('content-type')
             : fetchResult['content-type'];
+
           if (contentType?.includes('multipart/mixed')) {
+            if (typeof window === 'undefined') {
+              // It's Node.js and we dont have a stream interface on the fetchResult (Response)
+              // lets build the fake response with streams that meros can consume
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              fetchResult = fetchResult.body;
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              fetchResult.headers = {
+                'content-type': contentType,
+              };
+            }
+
             return meros<ExecutionPatchResult>(fetchResult).then(maybeStream => {
               if (isAsyncIterable(maybeStream)) {
                 return withCancel(
