@@ -1,4 +1,5 @@
 /* eslint-disable */
+// Based on https://github.com/maraisr/meros/blob/main/src/brpwser.ts
 
 import { decoder, separator } from './utils';
 

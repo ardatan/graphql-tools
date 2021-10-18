@@ -1,4 +1,6 @@
 /* eslint-disable */
+// Based on https://github.com/maraisr/meros/blob/main/src/node.ts
+
 import type { Readable } from 'stream';
 import { separator } from './utils';
 
