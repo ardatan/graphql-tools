@@ -351,45 +351,35 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           const contentType = fetchResult.headers.get('content-type');
 
           if (contentType?.includes('text/event-stream')) {
-            return handleEventStreamResponse(fetchResult).then(responseStream => {
-              if (responseStream) {
-                return responseStream;
-              } else {
-                return fetchResult.json();
-              }
-            });
+            return handleEventStreamResponse(fetchResult);
           } else if (contentType?.includes('multipart/mixed')) {
             return handleMultipartMixedResponse(fetchResult).then(responseStream => {
-              if (responseStream) {
-                const response: ExecutionResult = {};
-                return withCancel(
-                  mapAsyncIterator(responseStream, part => {
-                    if (part.json) {
-                      const chunk = part.body;
-                      if (chunk.path) {
-                        if (chunk.data) {
-                          const path: Array<string | number> = ['data'];
-                          _.set(response, path.concat(chunk.path), chunk.data);
-                        }
-                        if (chunk.errors) {
-                          response.errors = (response.errors || []).concat(chunk.errors);
-                        }
-                      } else {
-                        if (chunk.data) {
-                          response.data = chunk.data;
-                        }
-                        if (chunk.errors) {
-                          response.errors = chunk.errors;
-                        }
+              const response: ExecutionResult = {};
+              return withCancel(
+                mapAsyncIterator(responseStream, part => {
+                  if (part.json) {
+                    const chunk = part.body;
+                    if (chunk.path) {
+                      if (chunk.data) {
+                        const path: Array<string | number> = ['data'];
+                        _.set(response, path.concat(chunk.path), chunk.data);
                       }
-                      return response;
+                      if (chunk.errors) {
+                        response.errors = (response.errors || []).concat(chunk.errors);
+                      }
+                    } else {
+                      if (chunk.data) {
+                        response.data = chunk.data;
+                      }
+                      if (chunk.errors) {
+                        response.errors = chunk.errors;
+                      }
                     }
-                  }),
-                  () => controller.abort()
-                );
-              } else {
-                return fetchResult.json();
-              }
+                    return response;
+                  }
+                }),
+                () => controller.abort()
+              );
             });
           }
 
