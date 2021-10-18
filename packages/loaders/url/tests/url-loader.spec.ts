@@ -473,9 +473,6 @@ input TestInput {
           contextValue: {},
         }) as AsyncIterableIterator<ExecutionResult>;
 
-        console.log(
-          asyncIterator['errors']?.[0]
-        )
         expect(asyncIterator['errors']).toBeFalsy();
         expect(asyncIterator['errors']?.length).toBeFalsy();
 

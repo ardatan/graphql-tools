@@ -489,26 +489,29 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     };
   }
 
-  getFetch(customFetch: LoadFromUrlOptions['customFetch'], importFn: AsyncImportFn): PromiseLike<AsyncFetchFn>;
+  getFetch(
+    customFetch: LoadFromUrlOptions['customFetch'],
+    importFn: AsyncImportFn
+  ): PromiseLike<AsyncFetchFn> | AsyncFetchFn;
 
   getFetch(customFetch: LoadFromUrlOptions['customFetch'], importFn: SyncImportFn): SyncFetchFn;
 
   getFetch(
     customFetch: LoadFromUrlOptions['customFetch'],
     importFn: SyncImportFn | AsyncImportFn
-  ): SyncFetchFn | PromiseLike<AsyncFetchFn> {
+  ): FetchFn | PromiseLike<AsyncFetchFn> {
     if (customFetch) {
       if (typeof customFetch === 'string') {
         const [moduleName, fetchFnName] = customFetch.split('#');
         return new ValueOrPromise(() => importFn(moduleName))
           .then(module => (fetchFnName ? (module as Record<string, any>)[fetchFnName] : module))
           .resolve();
-      } else {
-        return customFetch as any;
+      } else if (typeof customFetch === 'function') {
+        return customFetch;
       }
     }
     if (importFn === asyncImport) {
-      return defaultAsyncFetch as any;
+      return defaultAsyncFetch;
     } else {
       return defaultSyncFetch;
     }
