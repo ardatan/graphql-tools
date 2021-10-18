@@ -56,7 +56,6 @@
     "graphql-sse": "^1.0.1",
     "graphql-ws": "^5.4.1",
     "lodash": "4.17.21",
-    "meros": "1.1.4",
     "is-promise": "4.0.0",
     "isomorphic-ws": "4.0.1",
     "subscriptions-transport-ws": "^0.10.0",

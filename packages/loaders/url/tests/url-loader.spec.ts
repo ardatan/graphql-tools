@@ -1,7 +1,7 @@
 import '../../../testing/to-be-similar-gql-doc';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { SubscriptionProtocol, UrlLoader } from '../src';
-import { printSchemaWithDirectives } from '@graphql-tools/utils';
+import { isAsyncIterable, printSchemaWithDirectives } from '@graphql-tools/utils';
 import nock from 'nock';
 import { mockGraphQLServer } from '../../../testing/utils';
 import { cwd } from 'process';
@@ -11,10 +11,11 @@ import { createReadStream, readFileSync } from 'fs';
 import { join } from 'path';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { createHandler } from 'graphql-sse';
-import { fetch as crossFetch } from 'cross-fetch';
 import { Server as WSServer } from 'ws';
 import http from 'http';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
+import { defaultAsyncFetch } from '../src/defaultAsyncFetch';
+import { Response } from 'cross-fetch';
 
 
 describe('Schema URL Loader', () => {
@@ -295,18 +296,17 @@ input TestInput {
       assertNonMaybe(result.document)
       expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
     })
-    it('should handle subscriptions - new protocol', (done) => {
+    it('should handle subscriptions - new graphql-ws', (done) => {
       Promise.resolve().then(async () => {
         const testUrl = 'http://localhost:8081/graphql';
         const [{ schema }] = await loader.load(testUrl, {
-          customFetch: async () => ({
+          customFetch: async () => new Response(JSON.stringify({
+            data: introspectionFromSchema(testSchema)
+          }), {
             headers: {
               'content-type': 'application/json'
-            },
-            json: async () => ({
-              data: introspectionFromSchema(testSchema),
-            })
-          }) as any,
+            }
+          }),
           subscriptionsProtocol: SubscriptionProtocol.WS
         });
 
@@ -365,18 +365,17 @@ input TestInput {
         });
       });
     });
-    it('should handle subscriptions - legacy protocol', (done) => {
+    it('should handle subscriptions - legacy subscriptions-transport-ws', (done) => {
       Promise.resolve().then(async () => {
         const testUrl = 'http://localhost:8081/graphql';
         const [{ schema }] = await loader.load(testUrl, {
-          customFetch: async () => ({
+          customFetch: async () => new Response(JSON.stringify({
+            data: introspectionFromSchema(testSchema)
+          }), {
             headers: {
               'content-type': 'application/json'
-            },
-            json: async () => ({
-              data: introspectionFromSchema(testSchema),
-            })
-          }) as any,
+            }
+          }),
           subscriptionsProtocol: SubscriptionProtocol.LEGACY_WS
         });
 
@@ -441,18 +440,17 @@ input TestInput {
         const testUrl = 'http://localhost:8081/graphql';
 
         const [{ schema }] = await loader.load(testUrl, {
-          customFetch: (url, options) => {
+          customFetch: async (url, options) => {
             if (String(options?.body).includes('IntrospectionQuery')) {
-              return {
+              return new Response(JSON.stringify({
+                data: introspectionFromSchema(testSchema)
+              }), {
                 headers: {
                   'content-type': 'application/json'
-                },
-                json: async () => ({
-                  data: introspectionFromSchema(testSchema),
-                })
-              } as any
+                }
+              })
             }
-            return crossFetch(url, options);
+            return defaultAsyncFetch(url, options);
           },
           subscriptionsProtocol: SubscriptionProtocol.GRAPHQL_SSE
         });
@@ -475,6 +473,9 @@ input TestInput {
           contextValue: {},
         }) as AsyncIterableIterator<ExecutionResult>;
 
+        console.log(
+          asyncIterator['errors']?.[0]
+        )
         expect(asyncIterator['errors']).toBeFalsy();
         expect(asyncIterator['errors']?.length).toBeFalsy();
 
@@ -493,7 +494,7 @@ input TestInput {
         httpServer.close(done);
       });
     })
-    it('should handle multipart requests', async () => {
+    it('should handle file uploads', async () => {
       scope = mockGraphQLServer({ schema: testSchema, host: testHost, path: testPathChecker, method: 'POST' });
 
       const [{ schema }] = await loader.load(testUrl, {
@@ -549,44 +550,7 @@ input TestInput {
           { data: { a: 1 }, path: ["foo"] },
           { data: { a: 1, b: 2 }, path: ["foo"] }
         ];
-        const httpServer = http.createServer((_, res) => {
-          res.writeHead(200, {
-            // prettier-ignore
-            "Connection": "keep-alive",
-            "Content-Type": 'multipart/mixed; boundary="-"',
-            "Transfer-Encoding": "chunked",
-          });
-
-          res.write(`---`);
-
-          for (const chunkData of chunkDatas) {
-            const chunk = Buffer.from(JSON.stringify(chunkData), "utf8");
-            const data = ["", "Content-Type: application/json; charset=utf-8", "", chunk, "", `---`];
-            res.write(data.join("\r\n"));
-          }
-
-          res.write("\r\n-----\r\n");
-          res.end();
-        });
-        await new Promise<void>((resolve) => httpServer.listen(1335, resolve));
-
-        const executor = await loader.getExecutorAsync(`http://localhost:1335`);
-        const result = await executor({
-          operationType: "query",
-          document: parse(/* GraphQL */ `
-            query {
-              foo {
-                ... on Foo @defer {
-                  a
-                  b
-                }
-              }
-            }
-          `)
-        });
-
-        expect(result[Symbol.asyncIterator]).toBeTruthy();
-        const expectedDatas = [
+        const expectedDatas: ExecutionResult[] = [
           {
             data: {
               foo: {}
@@ -608,10 +572,99 @@ input TestInput {
             }
           }
         ];
+        const serverPort = 1335;
+        const serverHost = "http://localhost:" + serverPort;
+        httpServer = http.createServer((_, res) => {
+          res.writeHead(200, {
+            // prettier-ignore
+            "Connection": "keep-alive",
+            "Content-Type": 'multipart/mixed; boundary="-"',
+            "Transfer-Encoding": "chunked",
+          });
+
+          res.write(`---`);
+
+          for (const chunkData of chunkDatas) {
+            const chunk = Buffer.from(JSON.stringify(chunkData), "utf8");
+            const data = ["", "Content-Type: application/json; charset=utf-8", "", chunk, "", `---`];
+            res.write(data.join("\r\n"));
+          }
+
+          res.write("\r\n-----\r\n");
+          res.end();
+        });
+        await new Promise<void>((resolve) => httpServer.listen(serverPort, resolve));
+
+        const executor = await loader.getExecutorAsync(serverHost);
+        const result = await executor({
+          operationType: "query",
+          document: parse(/* GraphQL */ `
+            query {
+              foo {
+                ... on Foo @defer {
+                  a
+                  b
+                }
+              }
+            }
+          `)
+        });
+
+        assertAsyncIterable(result);
         for await (const data of result) {
           expect(data).toEqual(expectedDatas.shift()!);
         }
+        expect(expectedDatas.length).toBe(0);
       });
+
+      it("should handle SSE subscription result", async () => {
+        const expectedDatas: ExecutionResult[] = [
+          { data: { foo: 1 } },
+          { data: { foo: 2 } },
+          { data: { foo: 3 } }
+        ];
+        const serverPort = 1336;
+        const serverHost = "http://localhost:" + serverPort;
+
+        httpServer = http.createServer((_, res) => {
+          res.writeHead(200, {
+            "Content-Type": "text/event-stream",
+            // prettier-ignore
+            "Connection": "keep-alive",
+            "Cache-Control": "no-cache",
+          });
+
+          for (const result of expectedDatas) {
+            res.write(`data: ${JSON.stringify(result)}\n\n`);
+          }
+
+          res.end();
+        });
+
+        await new Promise<void>((resolve) => httpServer.listen(serverPort, () => resolve()));
+
+        const executor = await loader.getExecutorAsync(`${serverHost}/graphql`, {
+          subscriptionsProtocol: SubscriptionProtocol.SSE
+        });
+        const result = await executor({
+          operationType: "subscription",
+          document: parse(/* GraphQL */ ` subscription { foo } `)
+        })
+        assertAsyncIterable(result)
+
+        for await (const singleResult of result) {
+          expect(singleResult).toStrictEqual(expectedDatas.shift()!);
+        }
+        expect(expectedDatas.length).toBe(0);
+      })
     })
   });
 });
+
+
+function assertAsyncIterable(input: unknown): asserts input is AsyncIterable<any> {
+  if (isAsyncIterable(input)) {
+    return
+  }
+  throw new Error("Expected AsyncIterable.")
+}

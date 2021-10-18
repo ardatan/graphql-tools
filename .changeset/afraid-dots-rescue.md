@@ -2,4 +2,4 @@
 '@graphql-tools/url-loader': patch
 ---
 
-fix(url-loader): handle defer/stream correctly in node env
+fix(url-loader): fix handling defer/stream and SSE
