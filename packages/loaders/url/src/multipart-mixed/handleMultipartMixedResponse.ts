@@ -32,10 +32,13 @@ export async function handleMultipartMixedResponse(response: Response): Promise<
   const body = await (response.body as unknown as Promise<IncomingMessage> | ReadableStream);
   const contentType = response.headers.get('content-type') || '';
   if (isIncomingMessage(body)) {
+    // Meros/node expects headers as an object map with the content-type prop
     body.headers = {
       'content-type': contentType,
     };
+    // And it expects `IncomingMessage` and `node-fetch` returns `body` as `Promise<PassThrough>`
     return merosIncomingMessage(body) as any;
   }
+  // Nothing is needed for regular `Response`.
   return merosReadableStream(response) as any;
 }
