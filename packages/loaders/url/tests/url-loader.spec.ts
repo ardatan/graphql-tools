@@ -535,7 +535,7 @@ input TestInput {
     describe("helix compat", () => {
       let httpServer: http.Server;
 
-      beforeEach(async () => {
+      afterEach(async () => {
         if (httpServer !== undefined) {
           await new Promise<void>(resolve => httpServer.close(() => resolve()))
         }
@@ -581,14 +581,16 @@ input TestInput {
 
           res.write(`---`);
 
-          for (const chunkData of chunkDatas) {
+          chunkDatas.forEach(chunkData => sleep(300).then(() => {
             const chunk = Buffer.from(JSON.stringify(chunkData), "utf8");
             const data = ["", "Content-Type: application/json; charset=utf-8", "", chunk, "", `---`];
             res.write(data.join("\r\n"));
-          }
+          }));
 
-          res.write("\r\n-----\r\n");
-          res.end();
+          sleep(1000).then(() => {
+            res.write("\r\n-----\r\n");
+            res.end();
+          });
         });
         await new Promise<void>((resolve) => httpServer.listen(serverPort, resolve));
 
@@ -631,11 +633,9 @@ input TestInput {
             "Cache-Control": "no-cache",
           });
 
-          for (const result of expectedDatas) {
-            res.write(`data: ${JSON.stringify(result)}\n\n`);
-          }
+          expectedDatas.forEach(result => sleep(300).then(() => res.write(`data: ${JSON.stringify(result)}\n\n`)));
 
-          res.end();
+          sleep(1000).then(() => res.end());
         });
 
         await new Promise<void>((resolve) => httpServer.listen(serverPort, () => resolve()));
@@ -664,4 +664,8 @@ function assertAsyncIterable(input: unknown): asserts input is AsyncIterable<any
     return
   }
   throw new Error("Expected AsyncIterable.")
+}
+
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
