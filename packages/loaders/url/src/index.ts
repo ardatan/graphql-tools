@@ -12,8 +12,6 @@ import {
   observableToAsyncIterable,
   isAsyncIterable,
   ExecutionRequest,
-  mapAsyncIterator,
-  withCancel,
   parseGraphQLSDL,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
@@ -31,8 +29,9 @@ import { ValueOrPromise } from 'value-or-promise';
 import { isLiveQueryOperationDefinitionNode } from '@n1ru4l/graphql-live-query';
 import { AsyncFetchFn, defaultAsyncFetch } from './defaultAsyncFetch';
 import { defaultSyncFetch, SyncFetchFn } from './defaultSyncFetch';
-import { handleMultipartMixedResponse } from './multipart-mixed/handleMultipartMixedResponse';
+import { handleMultipartMixedResponse } from './handleMultipartMixedResponse';
 import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse';
+import { addCancelToResponseStream } from './addCancelToResponseStream';
 
 export type FetchFn = AsyncFetchFn | SyncFetchFn;
 
@@ -351,36 +350,13 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           const contentType = fetchResult.headers.get('content-type');
 
           if (contentType?.includes('text/event-stream')) {
-            return handleEventStreamResponse(fetchResult);
+            return handleEventStreamResponse(fetchResult).then(resultStream =>
+              addCancelToResponseStream(resultStream, controller)
+            );
           } else if (contentType?.includes('multipart/mixed')) {
-            return handleMultipartMixedResponse(fetchResult).then(responseStream => {
-              const response: ExecutionResult = {};
-              return withCancel(
-                mapAsyncIterator(responseStream, part => {
-                  if (part.json) {
-                    const chunk = part.body;
-                    if (chunk.path) {
-                      if (chunk.data) {
-                        const path: Array<string | number> = ['data'];
-                        _.set(response, path.concat(chunk.path), chunk.data);
-                      }
-                      if (chunk.errors) {
-                        response.errors = (response.errors || []).concat(chunk.errors);
-                      }
-                    } else {
-                      if (chunk.data) {
-                        response.data = chunk.data;
-                      }
-                      if (chunk.errors) {
-                        response.errors = chunk.errors;
-                      }
-                    }
-                    return response;
-                  }
-                }),
-                () => controller.abort()
-              );
-            });
+            return handleMultipartMixedResponse(fetchResult).then(resultStream =>
+              addCancelToResponseStream(resultStream, controller)
+            );
           }
 
           return fetchResult.json();
