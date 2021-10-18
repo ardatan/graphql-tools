@@ -11,4 +11,5 @@ export async function handleEventStreamResponse(response: Response) {
     }
     return handleReadableStream(body);
   }
+  throw new Error('Body is null???');
 }

@@ -15,7 +15,7 @@ interface ExecutionPatchResult<TData = { [key: string]: any }, TExtensions = { [
 }
 
 type HandledResponse = Promise<
-  AsyncGenerator<
+  AsyncIterator<
     | {
         json: false;
         body: string;
@@ -37,4 +37,5 @@ export async function handleMultipartMixedResponse(response: Response) {
     }
     return handleReadableStream(body, boundary) as unknown as HandledResponse;
   }
+  throw new Error('Body is null???');
 }
