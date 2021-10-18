@@ -559,7 +559,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         throw new Error(`No valid operations found: ${params.operationName || ''}`);
       }
       if (
-        params.operationType === 'subscription' ||
+        operationAst.operation === 'subscription' ||
         isLiveQueryOperationDefinitionNode(operationAst, params.variables as Record<string, any>)
       ) {
         return subscriptionExecutor(params);
