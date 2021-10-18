@@ -24,17 +24,18 @@ type Part =
       json: false;
     };
 
-export async function handleMultipartMixedResponse(response: Response) {
-  const body = await response.body;
+function isIncomingMessage(body: any): body is IncomingMessage {
+  return body != null && typeof body === 'object' && 'pipe' in body;
+}
+
+export async function handleMultipartMixedResponse(response: Response): Promise<AsyncIterator<Part>> {
+  const body = await (response.body as unknown as Promise<IncomingMessage> | ReadableStream);
   const contentType = response.headers.get('content-type') || '';
-  if (body) {
-    if ('pipe' in body) {
-      (body as IncomingMessage).headers = {
-        'content-type': contentType,
-      };
-      return merosIncomingMessage(body) as unknown as AsyncIterator<Part>;
-    }
-    return merosReadableStream(response) as unknown as AsyncIterator<Part>;
+  if (isIncomingMessage(body)) {
+    body.headers = {
+      'content-type': contentType,
+    };
+    return merosIncomingMessage(body) as any;
   }
-  throw new Error('Body is null???');
+  return merosReadableStream(response) as any;
 }
