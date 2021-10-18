@@ -1,9 +1,9 @@
 /* eslint-disable */
 
 import { GraphQLError } from 'graphql';
-import { handleReadable } from './handleReadable';
-import { handleReadableStream } from './handleReadableStream';
-import { getBoundaryFromContentType } from './utils';
+import { meros as merosIncomingMessage } from 'meros/node';
+import { meros as merosReadableStream } from 'meros/browser';
+import { IncomingMessage } from 'http';
 
 interface ExecutionPatchResult<TData = { [key: string]: any }, TExtensions = { [key: string]: any }> {
   errors?: ReadonlyArray<GraphQLError>;
@@ -14,28 +14,27 @@ interface ExecutionPatchResult<TData = { [key: string]: any }, TExtensions = { [
   extensions?: TExtensions;
 }
 
-type HandledResponse = Promise<
-  AsyncIterator<
-    | {
-        json: false;
-        body: string;
-      }
-    | {
-        json: true;
-        body: ExecutionPatchResult;
-      }
-  >
->;
+type Part =
+  | {
+      body: ExecutionPatchResult;
+      json: true;
+    }
+  | {
+      body: string | Buffer;
+      json: false;
+    };
 
 export async function handleMultipartMixedResponse(response: Response) {
   const body = await response.body;
   const contentType = response.headers.get('content-type') || '';
-  const boundary = getBoundaryFromContentType(contentType);
   if (body) {
     if ('pipe' in body) {
-      return handleReadable(body, boundary) as unknown as HandledResponse;
+      (body as IncomingMessage).headers = {
+        'content-type': contentType,
+      };
+      return merosIncomingMessage(body) as unknown as AsyncIterator<Part>;
     }
-    return handleReadableStream(body, boundary) as unknown as HandledResponse;
+    return merosReadableStream(response) as unknown as AsyncIterator<Part>;
   }
   throw new Error('Body is null???');
 }
