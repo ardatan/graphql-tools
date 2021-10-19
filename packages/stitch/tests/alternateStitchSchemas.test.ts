@@ -747,17 +747,9 @@ describe('transform object fields', () => {
       `,
     });
 
-    const expectedResult: any = {
+    const expectedResult: ExecutionResult = {
       errors: [
-        {
-          locations: [
-            {
-              column: 17,
-              line: 6,
-            },
-          ],
-          message: 'Cannot query field "id" on type "Item".',
-        },
+        new GraphQLError('Cannot query field "id" on type "Item".', undefined, undefined, [17,6]),
       ],
     };
 
@@ -838,7 +830,7 @@ type Query {
       },
     });
 
-    const expectedResult: any = {
+    const expectedResult: ExecutionResult = {
       data: {
         propertyById: {
           // eslint-disable-next-line camelcase
@@ -854,20 +846,11 @@ type Query {
         },
       },
       errors: [
-        {
-          locations: [
-            {
-              column: 13,
-              line: 9,
-            },
-          ],
-          message: 'Property.error error',
-          path: ['propertyById', 'new_error'],
-        },
+        new GraphQLError('Property.error error', undefined, undefined, [13, 9], ['propertyById, new_error'])
       ],
     };
 
-    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+    (expectedResult.errors as any)[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -1012,7 +995,7 @@ describe('WrapType', () => {
       },
     });
 
-    const expectedResult: any = {
+    const expectedResult: ExecutionResult = {
       data: {
         namespace: {
           bookingById: {
@@ -1024,16 +1007,7 @@ describe('WrapType', () => {
         },
       },
       errors: [
-        {
-          locations: [
-            {
-              column: 15,
-              line: 8,
-            },
-          ],
-          message: 'Booking.error error',
-          path: ['namespace', 'bookingById', 'error'],
-        },
+        new GraphQLError('Booking.error error', undefined, undefined, [15, 8], ['namespace', 'bookingById, error'])
       ],
     };
 
@@ -1072,7 +1046,7 @@ describe('WrapType', () => {
       },
     });
 
-    const expectedResult: any = {
+    const expectedResult: ExecutionResult = {
       data: {
         namespace: {
           addBooking: {
@@ -1085,16 +1059,7 @@ describe('WrapType', () => {
         },
       },
       errors: [
-        {
-          locations: [
-            {
-              column: 15,
-              line: 9,
-            },
-          ],
-          message: 'Booking.error error',
-          path: ['namespace', 'addBooking', 'error'],
-        },
+        new GraphQLError('Booking.error error', undefined, undefined, [15, 9], ['namespace', 'addBooking', 'error']),
       ],
     };
 
@@ -1352,7 +1317,7 @@ describe('schema transformation with wrapping of object fields', () => {
         },
     });
 
-      const expectedResult: any = {
+      const expectedResult: ExecutionResult = {
         data: {
           propertyById: {
             test1: {
@@ -1365,20 +1330,11 @@ describe('schema transformation with wrapping of object fields', () => {
           },
         },
         errors: [
-          {
-            locations: [
-              {
-                column: 13,
-                line: 14,
-              },
-            ],
-            message: 'Property.error error',
-            path: ['propertyById', 'test1', 'two'],
-          },
+          new GraphQLError('Property.error error', undefined, undefined, [13, 14], ['propertyById', 'test1', 'two']),
         ],
       };
 
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+      (expectedResult.errors as any)[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
       expect(result).toEqual(expectedResult);
     });
@@ -1426,7 +1382,7 @@ describe('schema transformation with wrapping of object fields', () => {
         },
       });
 
-      const expectedResult: any = {
+      const expectedResult: ExecutionResult = {
         data: {
           propertyById: {
             test1: {
@@ -1447,7 +1403,7 @@ describe('schema transformation with wrapping of object fields', () => {
         ],
       };
 
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
+      (expectedResult.errors as any)[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
       expect(result).toEqual(expectedResult);
     });

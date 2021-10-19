@@ -1196,7 +1196,7 @@ describe('mapSchema', () => {
       `,
       });
 
-      const expectedResult: any = {
+      const expectedResult = {
         me: {
           friends: {
             items: [
