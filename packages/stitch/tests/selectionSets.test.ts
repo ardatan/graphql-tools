@@ -1,4 +1,4 @@
-import { graphql } from 'graphql';
+import { graphql, OperationTypeNode } from 'graphql';
 
 import { delegateToSchema } from '@graphql-tools/delegate';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
@@ -47,7 +47,7 @@ describe('delegateToSchema ', () => {
           resolve(booking, _args, context, info) {
             return delegateToSchema({
               schema: propertySchema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'propertyById',
               args: { id: booking.propertyId },
               context,
@@ -178,7 +178,7 @@ describe('delegateToSchema ', () => {
                 context,
                 fieldName: 'networks',
                 info,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 schema: networkSchema,
               })
             },

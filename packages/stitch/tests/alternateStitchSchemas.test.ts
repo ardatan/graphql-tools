@@ -13,6 +13,7 @@ import {
   GraphQLNamedType,
   Kind,
   execute,
+  OperationTypeNode,
 } from 'graphql';
 
 import {
@@ -161,7 +162,7 @@ describe('merge schemas through transforms', () => {
             if (args.id.startsWith('p')) {
               return delegateToSchema({
                 schema: propertySubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'propertyById',
                 args,
                 context,
@@ -171,7 +172,7 @@ describe('merge schemas through transforms', () => {
             } else if (args.id.startsWith('b')) {
               return delegateToSchema({
                 schema: bookingSubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'bookingById',
                 args,
                 context,
@@ -181,7 +182,7 @@ describe('merge schemas through transforms', () => {
             } else if (args.id.startsWith('c')) {
               return delegateToSchema({
                 schema: bookingSubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'customerById',
                 args,
                 context,
@@ -198,7 +199,7 @@ describe('merge schemas through transforms', () => {
             resolve: (parent, args, context, info) =>
               delegateToSchema({
                 schema: bookingSubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'bookingsByPropertyId',
                 args: {
                   propertyId: parent.id,
@@ -224,7 +225,7 @@ describe('merge schemas through transforms', () => {
             resolve: (parent, _args, context, info) =>
               delegateToSchema({
                 schema: propertySubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'propertyById',
                 args: {
                   id: parent.propertyId,
@@ -1775,7 +1776,7 @@ type Query {
           get2: (_root, _args, context, info) =>
             delegateToSchema({
               schema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'get1',
               context,
               info,
@@ -2008,7 +2009,7 @@ describe('basic type merging', () => {
           resolve: (originalResult, context, info, subschema, selectionSet) =>
             delegateToSchema({
               schema: subschema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'getTest',
               args: { id: originalResult.id },
               selectionSet,
@@ -2028,7 +2029,7 @@ describe('basic type merging', () => {
           resolve: (originalResult, context, info, subschema, selectionSet) =>
             delegateToSchema({
               schema: subschema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'getTest',
               args: { id: originalResult.id },
               selectionSet,
@@ -2152,7 +2153,7 @@ describe('unidirectional type merging', () => {
           resolve: (originalResult, context, info, subschema, selectionSet) =>
             delegateToSchema({
               schema: subschema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'getTest',
               args: { id: originalResult.id },
               selectionSet,

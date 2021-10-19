@@ -2042,7 +2042,7 @@ describe('can specify lexical parser options', () => {
 
     const parsedQuery = parse(query, { experimentalFragmentVariables: true, allowLegacyFragmentVariables: true } as any);
 
-    const hoist = (document: DocumentNode) => {
+    const hoist = (document: DocumentNode): DocumentNode => {
       const variableDefs: Array<VariableDefinitionNode> = [];
 
       for (const def of document.definitions) {

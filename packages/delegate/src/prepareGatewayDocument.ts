@@ -85,7 +85,7 @@ export function prepareGatewayDocument(
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
     // empty keys cannot be removed only because of typescript errors
     // will hopefully be fixed in future version of graphql-js to be optional
-    visitorKeyMap
+    visitorKeyMap as any
   );
 }
 

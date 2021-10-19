@@ -3,7 +3,7 @@ import '../../testing/to-be-similar-string';
 import { mergeDirectives, mergeTypeDefs, mergeGraphQLTypes } from '../src';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch'
-import { buildSchema, buildClientSchema, print, parse, Kind } from 'graphql';
+import { buildSchema, buildClientSchema, print, parse, Kind, DirectiveNode } from 'graphql';
 import { stripWhitespaces } from './utils';
 import gql from 'graphql-tag';
 import { readFileSync } from 'fs';
@@ -1297,7 +1297,7 @@ describe('Merge TypeDefs', () => {
     });
 
     it(`should merge with first schema directives set in ${direction} order`, () => {
-      const directives = [{
+      const directives: DirectiveNode[] = [{
         kind: Kind.DIRECTIVE,
         name: {
           kind: Kind.NAME,
@@ -1308,7 +1308,7 @@ describe('Merge TypeDefs', () => {
     });
 
     it(`should merge with second schema directives set in ${direction} order`, () => {
-      const directives = [{
+      const directives: DirectiveNode[] = [{
         kind: Kind.DIRECTIVE,
         name: {
           kind: Kind.NAME,
@@ -1319,7 +1319,7 @@ describe('Merge TypeDefs', () => {
     });
 
     it(`should merge with both schema directives set in ${direction} order`, () => {
-      const directives = [{
+      const directives: DirectiveNode[] = [{
         kind: Kind.DIRECTIVE,
         name: {
           kind: Kind.NAME,
@@ -1330,14 +1330,14 @@ describe('Merge TypeDefs', () => {
     });
 
     it(`should merge with both schema directives set, one of which has arguments in ${direction} order`, () => {
-      const directivesOne = [{
+      const directivesOne: DirectiveNode[] = [{
         kind: Kind.DIRECTIVE,
         name: {
           kind: Kind.NAME,
           value: 'firstDirective'
         }
       }];
-      const directivesTwo = [{
+      const directivesTwo: DirectiveNode[] = [{
         kind: Kind.DIRECTIVE,
         name: {
           kind: Kind.NAME,

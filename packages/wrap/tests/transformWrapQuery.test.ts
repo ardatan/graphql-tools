@@ -1,4 +1,4 @@
-import { execute, GraphQLSchema, Kind, parse, SelectionSetNode } from 'graphql';
+import { execute, GraphQLSchema, Kind, OperationTypeNode, parse, SelectionSetNode } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { WrapQuery } from '@graphql-tools/wrap';
 import { delegateToSchema } from '@graphql-tools/delegate';
@@ -56,7 +56,7 @@ describe('WrapQuery', () => {
           addressByUser(_parent, { id }, context, info) {
             return delegateToSchema({
               schema: subschema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'userById',
               args: { id },
               context,
@@ -67,7 +67,7 @@ describe('WrapQuery', () => {
                   // path at which to apply wrapping and extracting
                   ['userById'],
                   (subtree: SelectionSetNode) => {
-                    const newSelectionSet = {
+                    const newSelectionSet: SelectionSetNode = {
                       kind: Kind.SELECTION_SET,
                       selections: subtree.selections.map((selection) => {
                         // just append fragments, not interesting for this

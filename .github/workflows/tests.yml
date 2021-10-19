@@ -57,7 +57,7 @@ jobs:
         run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
-      - name: Build
+      - name: Type Check
         run: yarn ts:check
   test:
     name: Unit Test on Node ${{matrix.node_version}} (${{matrix.os}}) and GraphQL v${{matrix.graphql_version}}

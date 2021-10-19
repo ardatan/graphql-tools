@@ -175,7 +175,7 @@ function aliasTopLevelFields(prefix: string, document: DocumentNode): DocumentNo
   };
   return visit(document, transformer, {
     [Kind.DOCUMENT]: [`definitions`],
-  } as unknown as ASTVisitorKeyMap);
+  } as any);
 }
 
 /**

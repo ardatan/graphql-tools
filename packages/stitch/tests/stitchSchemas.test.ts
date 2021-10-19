@@ -7,6 +7,7 @@ import {
   parse,
   printSchema,
   GraphQLResolveInfo,
+  OperationTypeNode,
 } from 'graphql';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
@@ -359,7 +360,7 @@ for (const combination of testCombinations) {
               resolve(parent, args, context, info) {
                 return delegateToSchema({
                   schema: bookingSchema,
-                  operation: 'query',
+                  operation: 'query' as OperationTypeNode,
                   fieldName: 'bookingsByPropertyId',
                   args: {
                     propertyId: parent.id,
@@ -382,7 +383,7 @@ for (const combination of testCombinations) {
               resolve(parent, _args, context, info) {
                 return delegateToSchema({
                   schema: propertySchema,
-                  operation: 'query',
+                  operation: 'query' as OperationTypeNode,
                   fieldName: 'propertyById',
                   args: {
                     id: parent.propertyId,
@@ -409,7 +410,7 @@ for (const combination of testCombinations) {
               resolve(_parent, _args, context, info) {
                 return delegateToSchema({
                   schema: propertySchema,
-                  operation: 'query',
+                  operation: 'query' as OperationTypeNode,
                   fieldName: 'propertyById',
                   args: {
                     id: 'p1',
@@ -429,7 +430,7 @@ for (const combination of testCombinations) {
             delegateInterfaceTest(_parent, _args, context, info) {
               return delegateToSchema({
                 schema: propertySchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'interfaceTest',
                 args: {
                   kind: 'ONE',
@@ -441,7 +442,7 @@ for (const combination of testCombinations) {
             delegateArgumentTest(_parent, _args, context, info) {
               return delegateToSchema({
                 schema: propertySchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'propertyById',
                 args: {
                   id: 'p1',
@@ -461,7 +462,7 @@ for (const combination of testCombinations) {
                 if (args.id.startsWith('p')) {
                   return delegateToSchema({
                     schema: propertySchema,
-                    operation: 'query',
+                    operation: 'query' as OperationTypeNode,
                     fieldName: 'propertyById',
                     args,
                     context,
@@ -470,7 +471,7 @@ for (const combination of testCombinations) {
                 } else if (args.id.startsWith('b')) {
                   return delegateToSchema({
                     schema: bookingSchema,
-                    operation: 'query',
+                    operation: 'query' as OperationTypeNode,
                     fieldName: 'bookingById',
                     args,
                     context,
@@ -479,7 +480,7 @@ for (const combination of testCombinations) {
                 } else if (args.id.startsWith('c')) {
                   return delegateToSchema({
                     schema: bookingSchema,
-                    operation: 'query',
+                    operation: 'query' as OperationTypeNode,
                     fieldName: 'customerById',
                     args,
                     context,
@@ -493,14 +494,14 @@ for (const combination of testCombinations) {
             async nodes(_parent, _args, context, info) {
               const bookings = await delegateToSchema({
                 schema: bookingSchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'bookings',
                 context,
                 info,
               });
               const properties = await delegateToSchema({
                 schema: propertySchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'properties',
                 context,
                 info,
@@ -1372,7 +1373,7 @@ bookingById(id: "b1") {
               resolve(parent, args, context, info) {
                 return delegateToSchema({
                   schema: bookingSchema,
-                  operation: 'query',
+                  operation: 'query' as OperationTypeNode,
                   fieldName: 'bookingsByPropertyId',
                   args: {
                     propertyId: parent.id,
@@ -1392,7 +1393,7 @@ bookingById(id: "b1") {
               resolve(parent, _args, context, info) {
                 return delegateToSchema({
                   schema: propertySchema,
-                  operation: 'query',
+                  operation: 'query' as OperationTypeNode,
                   fieldName: 'propertyById',
                   args: {
                     id: parent.propertyId,
@@ -1419,7 +1420,7 @@ bookingById(id: "b1") {
             delegateInterfaceTest(_parent, _args, context, info) {
               return delegateToSchema({
                 schema: propertySchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'interfaceTest',
                 args: {
                   kind: 'ONE',
@@ -1431,7 +1432,7 @@ bookingById(id: "b1") {
             delegateArgumentTest(_parent, _args, context, info) {
               return delegateToSchema({
                 schema: propertySchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'propertyById',
                 args: {
                   id: 'p1',
@@ -1451,7 +1452,7 @@ bookingById(id: "b1") {
                 if (args.id.startsWith('p')) {
                   return delegateToSchema({
                     schema: propertySchema,
-                    operation: 'query',
+                    operation: 'query' as OperationTypeNode,
                     fieldName: 'propertyById',
                     args,
                     context,
@@ -1460,7 +1461,7 @@ bookingById(id: "b1") {
                 } else if (args.id.startsWith('b')) {
                   return delegateToSchema({
                     schema: bookingSchema,
-                    operation: 'query',
+                    operation: 'query' as OperationTypeNode,
                     fieldName: 'bookingById',
                     args,
                     context,
@@ -1469,7 +1470,7 @@ bookingById(id: "b1") {
                 } else if (args.id.startsWith('c')) {
                   return delegateToSchema({
                     schema: bookingSchema,
-                    operation: 'query',
+                    operation: 'query' as OperationTypeNode,
                     fieldName: 'customerById',
                     args,
                     context,
@@ -1488,14 +1489,14 @@ bookingById(id: "b1") {
             async nodes(_parent, _args, context, info) {
               const bookings = await delegateToSchema({
                 schema: bookingSchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'bookings',
                 context,
                 info,
               });
               const properties = await delegateToSchema({
                 schema: propertySchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'properties',
                 context,
                 info,
@@ -2200,7 +2201,7 @@ fragment BookingFragment on Booking {
                 const result = await delegateToSchema(
                   {
                     schema: remoteSchema,
-                    operation: "query",
+                    operation: "query" as OperationTypeNode,
                     fieldName: "persona",
                     context,
                     info,
@@ -3317,7 +3318,7 @@ fragment BookingFragment on Booking {
               selectionSet: `{ id } `,
               resolve: (obj, _args, _context, info) => delegateToSchema({
                 schema: stockSchema,
-                operation: "query",
+                operation: "query" as OperationTypeNode,
                 fieldName: "stockRecord",
                 args: { id: obj.id },
                 info,

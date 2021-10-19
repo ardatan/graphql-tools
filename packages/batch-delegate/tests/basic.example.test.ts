@@ -1,4 +1,4 @@
-import { execute, parse } from 'graphql';
+import { execute, OperationTypeNode, parse } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
@@ -62,7 +62,7 @@ describe('batch delegation within basic stitching example', () => {
             resolve(chirp, _args, context, info) {
               return batchDelegateToSchema({
                 schema: authorSchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'usersByIds',
                 key: chirp.chirpedAtUserId,
                 argsFromKeys: (ids) => ({ ids }),
@@ -155,7 +155,7 @@ describe('batch delegation within basic stitching example', () => {
             resolve(user, _args, context, info) {
               return batchDelegateToSchema({
                 schema: postsSchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'posts',
                 key: user.postIds,
                 context,

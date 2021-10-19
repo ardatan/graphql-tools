@@ -1,4 +1,4 @@
-import { parse } from 'graphql';
+import { OperationTypeNode, parse } from 'graphql';
 
 import { createRequest } from '@graphql-tools/delegate';
 import { parseSelectionSet } from '@graphql-tools/utils';
@@ -27,7 +27,7 @@ describe('requests', () => {
   test('should create requests', () => {
     const request = removeLocations(
       createRequest({
-        targetOperation: 'query',
+        targetOperation: 'query' as OperationTypeNode,
         targetFieldName: 'version',
         selectionSet: parseSelectionSet(`{
           major
