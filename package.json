@@ -95,7 +95,7 @@
     ]
   },
   "resolutions": {
-    "graphql": "16.0.0-rc.5",
+    "graphql": "15.6.1",
     "esbuild": "^0.13.0",
     "@changesets/apply-release-plan": "5.0.1"
   }

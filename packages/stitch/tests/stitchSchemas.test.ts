@@ -9,6 +9,7 @@ import {
   GraphQLResolveInfo,
   OperationTypeNode,
   GraphQLError,
+  DocumentNode,
 } from 'graphql';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
@@ -34,9 +35,10 @@ import {
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from '../../testing/fixtures/schemas';
+import { removeLoc } from 'packages/optimize/src';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const removeLocations = ({ locations, positions, source, ...rest }: any): any => ({ ...rest });
+const removeLocations = ({ locations, positions, source, nodes, ...rest }: any): any => ({ nodes: nodes?.map((node: DocumentNode) => removeLoc(node)), ...rest });
 
 const testCombinations = [
   {
