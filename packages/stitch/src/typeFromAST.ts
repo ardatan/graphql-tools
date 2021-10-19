@@ -27,6 +27,7 @@ import {
   GraphQLDeprecatedDirective,
   TypeDefinitionNode,
   GraphQLInterfaceTypeConfig,
+  DirectiveLocationEnum,
 } from 'graphql';
 
 import { createStub, createNamedStub, Maybe, getDescription } from '@graphql-tools/utils';
@@ -171,11 +172,16 @@ function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>): GraphQLFiel
   );
 }
 
+function isLocationValue(value: any): value is DirectiveLocationEnum {
+  return value in DirectiveLocation;
+}
+
 function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {
-  const locations: Array<DirectiveLocation> = [];
+  const locations: Array<DirectiveLocationEnum> = [];
   for (const location of node.locations) {
-    if (location.value in DirectiveLocation) {
-      locations.push(location.value as DirectiveLocation);
+    const locationValue = location.value;
+    if (isLocationValue(locationValue)) {
+      locations.push(locationValue);
     }
   }
   return new GraphQLDirective({
