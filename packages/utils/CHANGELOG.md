@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.4.0
+
+### Minor Changes
+
+- 149afddb: fix: getting ready for GraphQL v16
+
 ## 8.3.0
 
 ### Minor Changes

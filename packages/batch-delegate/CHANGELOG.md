@@ -1,5 +1,17 @@
 # @graphql-tools/batch-delegate
 
+## 8.2.0
+
+### Minor Changes
+
+- 149afddb: fix: getting ready for GraphQL v16
+
+### Patch Changes
+
+- Updated dependencies [149afddb]
+  - @graphql-tools/delegate@8.3.0
+  - @graphql-tools/utils@8.4.0
+
 ## 8.1.0
 
 ### Minor Changes
