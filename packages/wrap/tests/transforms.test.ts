@@ -5,6 +5,7 @@ import {
   SelectionSetNode,
   graphql,
   OperationTypeNode,
+  GraphQLError,
 } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -654,16 +655,7 @@ describe('transforms', () => {
           },
         },
         errors: [
-          {
-            locations: [
-              {
-                column: 15,
-                line: 4,
-              },
-            ],
-            message: 'Test Error!',
-            path: ['addressByUser', 'errorTest'],
-          },
+          new GraphQLError('Test Error!', undefined, undefined, [15, 4], ['addressByUser', 'errorTest']),
         ],
       });
     });

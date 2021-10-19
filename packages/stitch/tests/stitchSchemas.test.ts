@@ -2510,7 +2510,7 @@ fragment BookingFragment on Booking {
         assertSome(stitchedResult2.errors)
         expect(stitchedResult2.errors.map(removeLocations)).toEqual([
           new GraphQLError('Sample error non-null!', undefined, undefined, undefined, ['errorTestNonNull'])
-        ]);
+        ].map(removeLocations));
       });
 
       test('nested errors', async () => {
