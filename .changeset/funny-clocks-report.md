@@ -1,14 +1,14 @@
 ---
-'@graphql-tools/batch-delegate': patch
-'@graphql-tools/batch-execute': patch
-'@graphql-tools/delegate': patch
-'@graphql-tools/load': patch
-'@graphql-tools/merge': patch
-'@graphql-tools/schema': patch
-'@graphql-tools/stitch': patch
-'@graphql-tools/stitching-directives': patch
-'@graphql-tools/utils': patch
-'@graphql-tools/wrap': patch
+'@graphql-tools/batch-delegate': minor
+'@graphql-tools/batch-execute': minor
+'@graphql-tools/delegate': minor
+'@graphql-tools/load': minor
+'@graphql-tools/merge': minor
+'@graphql-tools/schema': minor
+'@graphql-tools/stitch': minor
+'@graphql-tools/stitching-directives': minor
+'@graphql-tools/utils': minor
+'@graphql-tools/wrap': minor
 ---
 
 fix: getting ready for GraphQL v16
