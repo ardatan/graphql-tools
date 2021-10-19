@@ -16,10 +16,9 @@ import {
   GraphQLOutputType,
   isObjectType,
   FieldNode,
-  ASTVisitorKeyMap,
 } from 'graphql';
 
-import { implementsAbstractType, getRootTypeNames, memoize2 } from '@graphql-tools/utils';
+import { implementsAbstractType, getRootTypeNames, memoize2, ASTVisitorKeyMap } from '@graphql-tools/utils';
 
 import { getDocumentMetadata } from './getDocumentMetadata';
 import { StitchingInfo } from './types';

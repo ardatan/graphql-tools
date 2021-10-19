@@ -19,7 +19,6 @@ import {
   VariableDefinitionNode,
   versionInfo as graphqlVersionInfo,
   visit,
-  ASTVisitorKeyMap,
   visitWithTypeInfo,
 } from 'graphql';
 
@@ -31,6 +30,7 @@ import {
   createVariableNameGenerator,
   implementsAbstractType,
   inspect,
+  ASTVisitorKeyMap,
 } from '@graphql-tools/utils';
 
 import { DelegationContext } from './types';
