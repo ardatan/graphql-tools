@@ -1,5 +1,13 @@
 # federation-benchmark
 
+## 0.0.18
+
+### Patch Changes
+
+- Updated dependencies [149afddb]
+  - @graphql-tools/stitch@8.4.0
+  - @graphql-tools/stitching-directives@2.2.0
+
 ## 0.0.17
 
 ### Patch Changes

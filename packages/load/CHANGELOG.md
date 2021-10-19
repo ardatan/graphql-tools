@@ -1,5 +1,17 @@
 # @graphql-tools/load
 
+## 7.4.0
+
+### Minor Changes
+
+- 149afddb: fix: getting ready for GraphQL v16
+
+### Patch Changes
+
+- Updated dependencies [149afddb]
+  - @graphql-tools/schema@8.3.0
+  - @graphql-tools/utils@8.4.0
+
 ## 7.3.2
 
 ### Patch Changes

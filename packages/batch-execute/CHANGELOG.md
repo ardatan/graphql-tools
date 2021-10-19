@@ -1,5 +1,16 @@
 # @graphql-tools/batch-execute
 
+## 8.2.0
+
+### Minor Changes
+
+- 149afddb: fix: getting ready for GraphQL v16
+
+### Patch Changes
+
+- Updated dependencies [149afddb]
+  - @graphql-tools/utils@8.4.0
+
 ## 8.1.1
 
 ### Patch Changes
