@@ -2567,9 +2567,9 @@ fragment BookingFragment on Booking {
           new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '1', 'bookingErrorAlias']),
           new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '2', 'error']),
           new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '2', 'bookingErrorAlias']),
-        ];
+        ].map(removeLocations);
 
-        expect(errorsWithoutLocations).toEqual(expectedErrors);
+        expect(errorsWithoutLocations).toEqual(expectedErrors.map(removeLocations));
       });
 
       test(
