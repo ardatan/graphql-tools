@@ -12,7 +12,6 @@ import {
   SelectionNode,
   FragmentSpreadNode,
   VariableNode,
-  ASTVisitorKeyMap,
   InlineFragmentNode,
   FieldNode,
 } from 'graphql';

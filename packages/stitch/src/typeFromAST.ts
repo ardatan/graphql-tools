@@ -83,7 +83,7 @@ function makeInterfaceType(node: InterfaceTypeDefinitionNode): GraphQLInterfaceT
     interfaces: () =>
       (node as unknown as ObjectTypeDefinitionNode).interfaces?.map(iface =>
         createNamedStub(iface.name.value, 'interface')
-      ) as readonly GraphQLInterfaceType[],
+      ) as any,
     fields: () => (node.fields != null ? makeFields(node.fields) : {}),
     astNode: node,
   };
