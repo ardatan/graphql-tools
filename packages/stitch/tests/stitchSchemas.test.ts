@@ -8,6 +8,7 @@ import {
   printSchema,
   GraphQLResolveInfo,
   OperationTypeNode,
+  GraphQLError,
 } from 'graphql';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
@@ -861,16 +862,7 @@ bookingById(id: "b1") {
             },
           } as any,
           errors: [
-            {
-              message: 'subscription field error',
-              path: ['notifications', 'throwError'],
-              locations: [
-                {
-                  line: 4,
-                  column: 15,
-                },
-              ],
-            },
+            new GraphQLError('subscription field error', undefined, undefined, [4, 15], ['notifications', 'throwError'])
           ],
         };
 
@@ -2517,10 +2509,7 @@ fragment BookingFragment on Booking {
         expect(stitchedResult2.data).toBe(null);
         assertSome(stitchedResult2.errors)
         expect(stitchedResult2.errors.map(removeLocations)).toEqual([
-          {
-            message: 'Sample error non-null!',
-            path: ['errorTestNonNull'],
-          },
+          new GraphQLError('Sample error non-null!', undefined, undefined, undefined, ['errorTestNonNull'])
         ]);
       });
 
@@ -2569,43 +2558,16 @@ fragment BookingFragment on Booking {
         assertSome(result.errors)
         const errorsWithoutLocations = result.errors.map(removeLocations);
 
-        const expectedErrors: Array<any> = [
-          {
-            message: 'Property.error error',
-            path: ['propertyById', 'error'],
-          },
-          {
-            message: 'Property.error error',
-            path: ['propertyById', 'errorAlias'],
-          },
-          {
-            message: 'Booking.error error',
-            path: ['propertyById', 'bookings', 0, 'error'],
-          },
-          {
-            message: 'Booking.error error',
-            path: ['propertyById', 'bookings', 0, 'bookingErrorAlias'],
-          },
-          {
-            message: 'Booking.error error',
-            path: ['propertyById', 'bookings', 1, 'error'],
-          },
-          {
-            message: 'Booking.error error',
-            path: ['propertyById', 'bookings', 1, 'bookingErrorAlias'],
-          },
-          {
-            message: 'Booking.error error',
-            path: ['propertyById', 'bookings', 2, 'error'],
-          },
-          {
-            message: 'Booking.error error',
-            path: ['propertyById', 'bookings', 2, 'bookingErrorAlias'],
-          },
+        const expectedErrors = [
+          new GraphQLError('Property.error error', undefined, undefined, undefined, ['propertyById', 'error'], undefined, { code: 'SOME_CUSTOM_CODE' }),
+          new GraphQLError('Property.error error', undefined, undefined, undefined, ['propertyById', 'errorAlias'], undefined, { code: 'SOME_CUSTOM_CODE' }),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '0', 'error']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '0', 'bookingErrorAlias']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '1', 'error']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '1', 'bookingErrorAlias']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '2', 'error']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '2', 'bookingErrorAlias']),
         ];
-
-        expectedErrors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-        expectedErrors[1].extensions = { code: 'SOME_CUSTOM_CODE' };
 
         expect(errorsWithoutLocations).toEqual(expectedErrors);
       });
@@ -3175,7 +3137,7 @@ fragment BookingFragment on Booking {
         typeDefs: [],
       });
 
-      const result = await graphql({schema, source: '{ book { cat: category } }'});
+      const result = await graphql({ schema, source: '{ book { cat: category } }' });
       assertSome(result.data)
       const bookData: any = result.data['book'];
       expect(bookData.cat).toBe('Test');
