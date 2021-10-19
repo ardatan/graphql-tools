@@ -26,7 +26,6 @@ import {
   getDirectiveValues,
   GraphQLDeprecatedDirective,
   TypeDefinitionNode,
-  GraphQLInterfaceTypeConfig,
   DirectiveLocationEnum,
 } from 'graphql';
 
@@ -77,17 +76,17 @@ function makeObjectType(node: ObjectTypeDefinitionNode): GraphQLObjectType {
 }
 
 function makeInterfaceType(node: InterfaceTypeDefinitionNode): GraphQLInterfaceType {
-  const config: GraphQLInterfaceTypeConfig<any, any> = {
+  const config = {
     name: node.name.value,
     description: getDescription(node, backcompatOptions),
     interfaces: () =>
       (node as unknown as ObjectTypeDefinitionNode).interfaces?.map(iface =>
         createNamedStub(iface.name.value, 'interface')
-      ) as any,
+      ),
     fields: () => (node.fields != null ? makeFields(node.fields) : {}),
     astNode: node,
   };
-  return new GraphQLInterfaceType(config);
+  return new GraphQLInterfaceType(config as any);
 }
 
 function makeEnumType(node: EnumTypeDefinitionNode): GraphQLEnumType {
