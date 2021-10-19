@@ -1,4 +1,4 @@
-import { graphql } from 'graphql';
+import { graphql, OperationTypeNode } from 'graphql';
 
 import { delegateToSchema } from '../src/delegateToSchema';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -36,7 +36,7 @@ describe('delegateToSchema', () => {
         Query: {
           delegateToSchema: (_root, args, context, info) => delegateToSchema({
             schema: innerSchema,
-            operation: 'query',
+            operation: 'query' as OperationTypeNode,
             fieldName: 'test',
             args,
             context,
@@ -83,7 +83,7 @@ describe('delegateToSchema', () => {
         Query: {
           delegateToSchema: (_root, args, context, info) => delegateToSchema({
             schema: innerSchema,
-            operation: 'query',
+            operation: 'query' as OperationTypeNode,
             fieldName: 'test',
             args,
             context,
@@ -130,7 +130,7 @@ describe('delegateToSchema', () => {
         Query: {
           delegateToSchema: (_root, args, context, info) => delegateToSchema({
             schema: innerSchema,
-            operation: 'query',
+            operation: 'query' as OperationTypeNode,
             fieldName: 'test',
             args,
             context,

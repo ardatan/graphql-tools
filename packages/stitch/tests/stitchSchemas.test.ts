@@ -7,6 +7,8 @@ import {
   parse,
   printSchema,
   GraphQLResolveInfo,
+  OperationTypeNode,
+  GraphQLError,
 } from 'graphql';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
@@ -34,7 +36,7 @@ import {
 } from '../../testing/fixtures/schemas';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const removeLocations = ({ locations, ...rest }: any): any => ({ ...rest });
+const removeLocations = ({ locations, positions, source, originalError, nodes, ...rest }: any): any => ({ ...rest });
 
 const testCombinations = [
   {
@@ -359,7 +361,7 @@ for (const combination of testCombinations) {
               resolve(parent, args, context, info) {
                 return delegateToSchema({
                   schema: bookingSchema,
-                  operation: 'query',
+                  operation: 'query' as OperationTypeNode,
                   fieldName: 'bookingsByPropertyId',
                   args: {
                     propertyId: parent.id,
@@ -382,7 +384,7 @@ for (const combination of testCombinations) {
               resolve(parent, _args, context, info) {
                 return delegateToSchema({
                   schema: propertySchema,
-                  operation: 'query',
+                  operation: 'query' as OperationTypeNode,
                   fieldName: 'propertyById',
                   args: {
                     id: parent.propertyId,
@@ -409,7 +411,7 @@ for (const combination of testCombinations) {
               resolve(_parent, _args, context, info) {
                 return delegateToSchema({
                   schema: propertySchema,
-                  operation: 'query',
+                  operation: 'query' as OperationTypeNode,
                   fieldName: 'propertyById',
                   args: {
                     id: 'p1',
@@ -429,7 +431,7 @@ for (const combination of testCombinations) {
             delegateInterfaceTest(_parent, _args, context, info) {
               return delegateToSchema({
                 schema: propertySchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'interfaceTest',
                 args: {
                   kind: 'ONE',
@@ -441,7 +443,7 @@ for (const combination of testCombinations) {
             delegateArgumentTest(_parent, _args, context, info) {
               return delegateToSchema({
                 schema: propertySchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'propertyById',
                 args: {
                   id: 'p1',
@@ -461,7 +463,7 @@ for (const combination of testCombinations) {
                 if (args.id.startsWith('p')) {
                   return delegateToSchema({
                     schema: propertySchema,
-                    operation: 'query',
+                    operation: 'query' as OperationTypeNode,
                     fieldName: 'propertyById',
                     args,
                     context,
@@ -470,7 +472,7 @@ for (const combination of testCombinations) {
                 } else if (args.id.startsWith('b')) {
                   return delegateToSchema({
                     schema: bookingSchema,
-                    operation: 'query',
+                    operation: 'query' as OperationTypeNode,
                     fieldName: 'bookingById',
                     args,
                     context,
@@ -479,7 +481,7 @@ for (const combination of testCombinations) {
                 } else if (args.id.startsWith('c')) {
                   return delegateToSchema({
                     schema: bookingSchema,
-                    operation: 'query',
+                    operation: 'query' as OperationTypeNode,
                     fieldName: 'customerById',
                     args,
                     context,
@@ -493,14 +495,14 @@ for (const combination of testCombinations) {
             async nodes(_parent, _args, context, info) {
               const bookings = await delegateToSchema({
                 schema: bookingSchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'bookings',
                 context,
                 info,
               });
               const properties = await delegateToSchema({
                 schema: propertySchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'properties',
                 context,
                 info,
@@ -860,16 +862,7 @@ bookingById(id: "b1") {
             },
           } as any,
           errors: [
-            {
-              message: 'subscription field error',
-              path: ['notifications', 'throwError'],
-              locations: [
-                {
-                  line: 4,
-                  column: 15,
-                },
-              ],
-            },
+            new GraphQLError('subscription field error', undefined, undefined, [4, 15], ['notifications', 'throwError'])
           ],
         };
 
@@ -1372,7 +1365,7 @@ bookingById(id: "b1") {
               resolve(parent, args, context, info) {
                 return delegateToSchema({
                   schema: bookingSchema,
-                  operation: 'query',
+                  operation: 'query' as OperationTypeNode,
                   fieldName: 'bookingsByPropertyId',
                   args: {
                     propertyId: parent.id,
@@ -1392,7 +1385,7 @@ bookingById(id: "b1") {
               resolve(parent, _args, context, info) {
                 return delegateToSchema({
                   schema: propertySchema,
-                  operation: 'query',
+                  operation: 'query' as OperationTypeNode,
                   fieldName: 'propertyById',
                   args: {
                     id: parent.propertyId,
@@ -1419,7 +1412,7 @@ bookingById(id: "b1") {
             delegateInterfaceTest(_parent, _args, context, info) {
               return delegateToSchema({
                 schema: propertySchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'interfaceTest',
                 args: {
                   kind: 'ONE',
@@ -1431,7 +1424,7 @@ bookingById(id: "b1") {
             delegateArgumentTest(_parent, _args, context, info) {
               return delegateToSchema({
                 schema: propertySchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'propertyById',
                 args: {
                   id: 'p1',
@@ -1451,7 +1444,7 @@ bookingById(id: "b1") {
                 if (args.id.startsWith('p')) {
                   return delegateToSchema({
                     schema: propertySchema,
-                    operation: 'query',
+                    operation: 'query' as OperationTypeNode,
                     fieldName: 'propertyById',
                     args,
                     context,
@@ -1460,7 +1453,7 @@ bookingById(id: "b1") {
                 } else if (args.id.startsWith('b')) {
                   return delegateToSchema({
                     schema: bookingSchema,
-                    operation: 'query',
+                    operation: 'query' as OperationTypeNode,
                     fieldName: 'bookingById',
                     args,
                     context,
@@ -1469,7 +1462,7 @@ bookingById(id: "b1") {
                 } else if (args.id.startsWith('c')) {
                   return delegateToSchema({
                     schema: bookingSchema,
-                    operation: 'query',
+                    operation: 'query' as OperationTypeNode,
                     fieldName: 'customerById',
                     args,
                     context,
@@ -1488,14 +1481,14 @@ bookingById(id: "b1") {
             async nodes(_parent, _args, context, info) {
               const bookings = await delegateToSchema({
                 schema: bookingSchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'bookings',
                 context,
                 info,
               });
               const properties = await delegateToSchema({
                 schema: propertySchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'properties',
                 context,
                 info,
@@ -2200,7 +2193,7 @@ fragment BookingFragment on Booking {
                 const result = await delegateToSchema(
                   {
                     schema: remoteSchema,
-                    operation: "query",
+                    operation: "query" as OperationTypeNode,
                     fieldName: "persona",
                     context,
                     info,
@@ -2516,11 +2509,8 @@ fragment BookingFragment on Booking {
         expect(stitchedResult2.data).toBe(null);
         assertSome(stitchedResult2.errors)
         expect(stitchedResult2.errors.map(removeLocations)).toEqual([
-          {
-            message: 'Sample error non-null!',
-            path: ['errorTestNonNull'],
-          },
-        ]);
+          new GraphQLError('Sample error non-null!', undefined, undefined, undefined, ['errorTestNonNull'])
+        ].map(removeLocations));
       });
 
       test('nested errors', async () => {
@@ -2568,45 +2558,18 @@ fragment BookingFragment on Booking {
         assertSome(result.errors)
         const errorsWithoutLocations = result.errors.map(removeLocations);
 
-        const expectedErrors: Array<any> = [
-          {
-            message: 'Property.error error',
-            path: ['propertyById', 'error'],
-          },
-          {
-            message: 'Property.error error',
-            path: ['propertyById', 'errorAlias'],
-          },
-          {
-            message: 'Booking.error error',
-            path: ['propertyById', 'bookings', 0, 'error'],
-          },
-          {
-            message: 'Booking.error error',
-            path: ['propertyById', 'bookings', 0, 'bookingErrorAlias'],
-          },
-          {
-            message: 'Booking.error error',
-            path: ['propertyById', 'bookings', 1, 'error'],
-          },
-          {
-            message: 'Booking.error error',
-            path: ['propertyById', 'bookings', 1, 'bookingErrorAlias'],
-          },
-          {
-            message: 'Booking.error error',
-            path: ['propertyById', 'bookings', 2, 'error'],
-          },
-          {
-            message: 'Booking.error error',
-            path: ['propertyById', 'bookings', 2, 'bookingErrorAlias'],
-          },
-        ];
+        const expectedErrors = [
+          new GraphQLError('Property.error error', undefined, undefined, undefined, ['propertyById', 'error'], undefined, { code: 'SOME_CUSTOM_CODE' }),
+          new GraphQLError('Property.error error', undefined, undefined, undefined, ['propertyById', 'errorAlias'], undefined, { code: 'SOME_CUSTOM_CODE' }),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', 0, 'error']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', 0, 'bookingErrorAlias']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', 1, 'error']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', 1, 'bookingErrorAlias']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', 2, 'error']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', 2, 'bookingErrorAlias']),
+        ].map(removeLocations);
 
-        expectedErrors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
-        expectedErrors[1].extensions = { code: 'SOME_CUSTOM_CODE' };
-
-        expect(errorsWithoutLocations).toEqual(expectedErrors);
+        expect(errorsWithoutLocations).toEqual(expectedErrors.map(removeLocations));
       });
 
       test(
@@ -3174,7 +3137,7 @@ fragment BookingFragment on Booking {
         typeDefs: [],
       });
 
-      const result = await graphql({schema, source: '{ book { cat: category } }'});
+      const result = await graphql({ schema, source: '{ book { cat: category } }' });
       assertSome(result.data)
       const bookData: any = result.data['book'];
       expect(bookData.cat).toBe('Test');
@@ -3317,7 +3280,7 @@ fragment BookingFragment on Booking {
               selectionSet: `{ id } `,
               resolve: (obj, _args, _context, info) => delegateToSchema({
                 schema: stockSchema,
-                operation: "query",
+                operation: "query" as OperationTypeNode,
                 fieldName: "stockRecord",
                 args: { id: obj.id },
                 info,

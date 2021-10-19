@@ -119,15 +119,15 @@ describe('printSchemaWithDirectives', () => {
       directives: specifiedDirectives.concat([
         new GraphQLDirective({
           name: 'entity',
-          locations: ['OBJECT'],
+          locations: ['OBJECT'] as any[],
         }),
         new GraphQLDirective({
           name: 'id',
-          locations: ['FIELD_DEFINITION'],
+          locations: ['FIELD_DEFINITION'] as any[],
         }),
         new GraphQLDirective({
           name: 'link',
-          locations: ['FIELD_DEFINITION'],
+          locations: ['FIELD_DEFINITION'] as any[],
         }),
       ]),
     })
@@ -226,7 +226,7 @@ describe('printSchemaWithDirectives', () => {
     const schema = new GraphQLSchema({
       directives: [new GraphQLDirective({
         name: 'dummy',
-        locations: ['QUERY'],
+        locations: ['QUERY'] as any[],
       })]
     } as any);
 

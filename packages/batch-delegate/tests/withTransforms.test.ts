@@ -1,4 +1,4 @@
-import { execute, GraphQLList, GraphQLObjectType, Kind, parse } from 'graphql';
+import { execute, GraphQLList, GraphQLObjectType, Kind, OperationTypeNode, parse } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
@@ -93,7 +93,7 @@ describe('works with complex transforms', () => {
             selectionSet: `{ id }`,
             resolve: (user, _args, context, info) => batchDelegateToSchema({
               schema: bookSchema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'booksByUserIds',
               key: user.id,
               argsFromKeys: (userIds) => ({ userIds }),

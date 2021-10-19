@@ -1,5 +1,5 @@
 import DataLoader from 'dataloader';
-import { graphql, GraphQLList, GraphQLResolveInfo } from 'graphql';
+import { graphql, GraphQLList, GraphQLResolveInfo, OperationTypeNode } from 'graphql';
 
 import { delegateToSchema } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -71,7 +71,7 @@ describe('dataloader', () => {
       async (keys: ReadonlyArray<{ id: any; info: GraphQLResolveInfo }>) => {
         const users = await delegateToSchema({
           schema: userSchema,
-          operation: 'query',
+          operation: 'query' as OperationTypeNode,
           fieldName: 'usersByIds',
           args: {
             ids: keys.map((k: { id: any }) => k.id),

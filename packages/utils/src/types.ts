@@ -1,4 +1,4 @@
-import { GraphQLEnumType, GraphQLInputObjectType, GraphQLNamedType, GraphQLScalarType } from 'graphql';
+import { GraphQLEnumType, GraphQLInputObjectType, GraphQLNamedType, GraphQLScalarType, visit } from 'graphql';
 
 export interface SchemaPrintOptions {
   /**
@@ -59,3 +59,6 @@ export type InputObjectValueTransformer = (
   type: GraphQLInputObjectType,
   originalValue: Record<string, any>
 ) => Record<string, any>;
+
+// GraphQL v14 doesn't have it. Remove this once we drop support for v14
+export type ASTVisitorKeyMap = Partial<Parameters<typeof visit>[2]>;

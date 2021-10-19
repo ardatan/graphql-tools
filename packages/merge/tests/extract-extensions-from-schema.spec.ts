@@ -184,7 +184,7 @@ describe('extensions', () => {
       MyInput = cleanSchema.getType('MyInput')
       assertGraphQLInputObjectType(MyInput)
       // To make sure it's stripped
-      expect(MyInput.extensions).toBeUndefined();
+      expect(Object.keys(MyInput.extensions || {})).toHaveLength(0);
 
       const modifiedSchema = applyExtensions(cleanSchema, result);
 

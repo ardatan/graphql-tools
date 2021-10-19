@@ -1,4 +1,4 @@
-import { graphql, GraphQLSchema } from 'graphql';
+import { graphql, GraphQLSchema, OperationTypeNode } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { delegateToSchema } from '@graphql-tools/delegate';
@@ -63,7 +63,7 @@ describe('basic stitching example', () => {
             selectionSet: `{ id }`,
             resolve: (user, _args, context, info) => delegateToSchema({
               schema: chirpSchema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'chirpsByAuthorId',
               args: {
                 authorId: user.id,
@@ -78,7 +78,7 @@ describe('basic stitching example', () => {
             selectionSet: `{ authorId }`,
             resolve: (chirp, _args, context, info) => delegateToSchema({
               schema: authorSchema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'userById',
               args: {
                 id: chirp.authorId,
@@ -181,7 +181,7 @@ describe('stitching to interfaces', () => {
             selectionSet: `{ id }`,
             resolve: (user, _args, context, info) => delegateToSchema({
               schema: chirpSchema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'chirpsByAuthorId',
               args: {
                 authorId: user.id,
@@ -196,7 +196,7 @@ describe('stitching to interfaces', () => {
             selectionSet: `{ authorId }`,
             resolve: (chirp, _args, context, info) => delegateToSchema({
               schema: authorSchema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'node',
               args: {
                 id: chirp.authorId,

@@ -13,6 +13,8 @@ import {
   GraphQLNamedType,
   Kind,
   execute,
+  OperationTypeNode,
+  GraphQLError,
 } from 'graphql';
 
 import {
@@ -161,7 +163,7 @@ describe('merge schemas through transforms', () => {
             if (args.id.startsWith('p')) {
               return delegateToSchema({
                 schema: propertySubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'propertyById',
                 args,
                 context,
@@ -171,7 +173,7 @@ describe('merge schemas through transforms', () => {
             } else if (args.id.startsWith('b')) {
               return delegateToSchema({
                 schema: bookingSubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'bookingById',
                 args,
                 context,
@@ -181,7 +183,7 @@ describe('merge schemas through transforms', () => {
             } else if (args.id.startsWith('c')) {
               return delegateToSchema({
                 schema: bookingSubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'customerById',
                 args,
                 context,
@@ -198,7 +200,7 @@ describe('merge schemas through transforms', () => {
             resolve: (parent, args, context, info) =>
               delegateToSchema({
                 schema: bookingSubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'bookingsByPropertyId',
                 args: {
                   propertyId: parent.id,
@@ -224,7 +226,7 @@ describe('merge schemas through transforms', () => {
             resolve: (parent, _args, context, info) =>
               delegateToSchema({
                 schema: propertySubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'propertyById',
                 args: {
                   id: parent.propertyId,
@@ -745,17 +747,9 @@ describe('transform object fields', () => {
       `,
     });
 
-    const expectedResult: any = {
+    const expectedResult: ExecutionResult = {
       errors: [
-        {
-          locations: [
-            {
-              column: 17,
-              line: 6,
-            },
-          ],
-          message: 'Cannot query field "id" on type "Item".',
-        },
+        new GraphQLError('Cannot query field "id" on type "Item".', undefined, undefined, [17,6]),
       ],
     };
 
@@ -836,7 +830,7 @@ type Query {
       },
     });
 
-    const expectedResult: any = {
+    const expectedResult: ExecutionResult = {
       data: {
         propertyById: {
           // eslint-disable-next-line camelcase
@@ -852,20 +846,9 @@ type Query {
         },
       },
       errors: [
-        {
-          locations: [
-            {
-              column: 13,
-              line: 9,
-            },
-          ],
-          message: 'Property.error error',
-          path: ['propertyById', 'new_error'],
-        },
+        new GraphQLError('Property.error error', undefined, undefined, [13, 9], ['propertyById, new_error'], undefined, { code: 'SOME_CUSTOM_CODE' })
       ],
     };
-
-    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -1010,7 +993,7 @@ describe('WrapType', () => {
       },
     });
 
-    const expectedResult: any = {
+    const expectedResult: ExecutionResult = {
       data: {
         namespace: {
           bookingById: {
@@ -1022,16 +1005,7 @@ describe('WrapType', () => {
         },
       },
       errors: [
-        {
-          locations: [
-            {
-              column: 15,
-              line: 8,
-            },
-          ],
-          message: 'Booking.error error',
-          path: ['namespace', 'bookingById', 'error'],
-        },
+        new GraphQLError('Booking.error error', undefined, undefined, [15, 8], ['namespace', 'bookingById, error'])
       ],
     };
 
@@ -1070,7 +1044,7 @@ describe('WrapType', () => {
       },
     });
 
-    const expectedResult: any = {
+    const expectedResult: ExecutionResult = {
       data: {
         namespace: {
           addBooking: {
@@ -1083,16 +1057,7 @@ describe('WrapType', () => {
         },
       },
       errors: [
-        {
-          locations: [
-            {
-              column: 15,
-              line: 9,
-            },
-          ],
-          message: 'Booking.error error',
-          path: ['namespace', 'addBooking', 'error'],
-        },
+        new GraphQLError('Booking.error error', undefined, undefined, [15, 9], ['namespace', 'addBooking', 'error']),
       ],
     };
 
@@ -1350,7 +1315,7 @@ describe('schema transformation with wrapping of object fields', () => {
         },
     });
 
-      const expectedResult: any = {
+      const expectedResult: ExecutionResult = {
         data: {
           propertyById: {
             test1: {
@@ -1363,20 +1328,9 @@ describe('schema transformation with wrapping of object fields', () => {
           },
         },
         errors: [
-          {
-            locations: [
-              {
-                column: 13,
-                line: 14,
-              },
-            ],
-            message: 'Property.error error',
-            path: ['propertyById', 'test1', 'two'],
-          },
+          new GraphQLError('Property.error error', undefined, undefined, [13, 14], ['propertyById', 'test1', 'two'], undefined, { code: 'SOME_CUSTOM_CODE' }),
         ],
       };
-
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
       expect(result).toEqual(expectedResult);
     });
@@ -1424,7 +1378,7 @@ describe('schema transformation with wrapping of object fields', () => {
         },
       });
 
-      const expectedResult: any = {
+      const expectedResult: ExecutionResult = {
         data: {
           propertyById: {
             test1: {
@@ -1441,20 +1395,9 @@ describe('schema transformation with wrapping of object fields', () => {
           },
         },
         errors: [
-          {
-            locations: [
-              {
-                column: 13,
-                line: 18,
-              },
-            ],
-            message: 'Property.error error',
-            path: ['propertyById', 'test1', 'innerWrap', 'two'],
-          },
+          new GraphQLError('Property.error error', undefined, undefined, [13, 18], ['propertyById', 'test1', 'innerWrap', 'two'], undefined, { code: 'SOME_CUSTOM_CODE' }),
         ],
       };
-
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
       expect(result).toEqual(expectedResult);
     });
@@ -1775,7 +1718,7 @@ type Query {
           get2: (_root, _args, context, info) =>
             delegateToSchema({
               schema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'get1',
               context,
               info,
@@ -2008,7 +1951,7 @@ describe('basic type merging', () => {
           resolve: (originalResult, context, info, subschema, selectionSet) =>
             delegateToSchema({
               schema: subschema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'getTest',
               args: { id: originalResult.id },
               selectionSet,
@@ -2028,7 +1971,7 @@ describe('basic type merging', () => {
           resolve: (originalResult, context, info, subschema, selectionSet) =>
             delegateToSchema({
               schema: subschema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'getTest',
               args: { id: originalResult.id },
               selectionSet,
@@ -2152,7 +2095,7 @@ describe('unidirectional type merging', () => {
           resolve: (originalResult, context, info, subschema, selectionSet) =>
             delegateToSchema({
               schema: subschema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'getTest',
               args: { id: originalResult.id },
               selectionSet,

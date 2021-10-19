@@ -1,4 +1,4 @@
-import { GraphQLError, GraphQLResolveInfo, locatedError, graphql } from 'graphql';
+import { GraphQLError, GraphQLResolveInfo, locatedError, graphql, OperationTypeNode } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ExecutionResult } from '@graphql-tools/utils';
@@ -140,7 +140,7 @@ describe('Errors', () => {
             Query: {
               object: (_parent, _args, context, info) => delegateToSchema({
                 schema: remoteSchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 context,
                 info,
               }),

@@ -143,7 +143,7 @@ function buildOperationAndCollectVariables({
     kind: Kind.OPERATION_DEFINITION,
     operation: kind,
     name: {
-      kind: 'Name',
+      kind: Kind.NAME,
       value: operationName,
     },
     variableDefinitions: [],

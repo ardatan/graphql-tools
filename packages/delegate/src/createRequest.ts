@@ -14,6 +14,7 @@ import {
   SelectionSetNode,
   DefinitionNode,
   DocumentNode,
+  NameNode,
 } from 'graphql';
 
 import {
@@ -26,12 +27,12 @@ import { ICreateRequestFromInfo, ICreateRequest } from './types';
 
 export function getDelegatingOperation(parentType: GraphQLObjectType, schema: GraphQLSchema): OperationTypeNode {
   if (parentType === schema.getMutationType()) {
-    return 'mutation';
+    return 'mutation' as OperationTypeNode;
   } else if (parentType === schema.getSubscriptionType()) {
-    return 'subscription';
+    return 'subscription' as OperationTypeNode;
   }
 
-  return 'query';
+  return 'query' as OperationTypeNode;
 }
 
 export function createRequestFromInfo({
@@ -149,7 +150,7 @@ export function createRequest({
     selectionSet: newSelectionSet,
   };
 
-  const operationName = targetOperationName
+  const operationName: NameNode | undefined = targetOperationName
     ? {
         kind: Kind.NAME,
         value: targetOperationName,

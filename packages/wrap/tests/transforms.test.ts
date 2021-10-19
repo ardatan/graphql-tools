@@ -4,6 +4,8 @@ import {
   Kind,
   SelectionSetNode,
   graphql,
+  OperationTypeNode,
+  GraphQLError,
 } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -260,7 +262,7 @@ describe('transforms', () => {
             addressByUser(_parent, { id }, context, info) {
               return delegateToSchema({
                 schema: subschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'userById',
                 args: { id },
                 context,
@@ -292,7 +294,7 @@ describe('transforms', () => {
             async setUserAndAddress(_parent, { input }, context, info) {
               const addressResult = await delegateToSchema({
                 schema: subschema,
-                operation: 'mutation',
+                operation: 'mutation' as OperationTypeNode,
                 fieldName: 'setAddress',
                 args: {
                   input: {
@@ -314,7 +316,7 @@ describe('transforms', () => {
               });
               const userResult = await delegateToSchema({
                 schema: subschema,
-                operation: 'mutation',
+                operation: 'mutation' as OperationTypeNode,
                 fieldName: 'setUser',
                 args: {
                   input: {
@@ -508,7 +510,7 @@ describe('transforms', () => {
             addressByUser(_parent, { id }, context, info) {
               return delegateToSchema({
                 schema: subschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'userById',
                 args: { id },
                 context,
@@ -544,7 +546,7 @@ describe('transforms', () => {
             addressesByUsers(_parent, { ids }, context, info) {
               return delegateToSchema({
                 schema: subschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'usersByIds',
                 args: { ids },
                 context,
@@ -578,7 +580,7 @@ describe('transforms', () => {
             errorTest(_parent, { id }, context, info) {
               return delegateToSchema({
                 schema: subschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'userById',
                 args: { id },
                 context,
@@ -653,16 +655,7 @@ describe('transforms', () => {
           },
         },
         errors: [
-          {
-            locations: [
-              {
-                column: 15,
-                line: 4,
-              },
-            ],
-            message: 'Test Error!',
-            path: ['addressByUser', 'errorTest'],
-          },
+          new GraphQLError('Test Error!', undefined, undefined, [15, 4], ['addressByUser', 'errorTest']),
         ],
       });
     });

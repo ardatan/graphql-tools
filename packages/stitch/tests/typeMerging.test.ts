@@ -1,7 +1,7 @@
 // The below is meant to be an alternative canonical schema stitching example
 // which relies on type merging.
 
-import { graphql } from 'graphql';
+import { graphql, OperationTypeNode } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
@@ -286,7 +286,7 @@ describe('merging using type merging', () => {
             resolve(container, _args, context, info) {
               return delegateToSchema({
                 schema: resultSchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'resultById',
                 args: {
                   id: container.resultId,

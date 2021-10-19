@@ -1,4 +1,4 @@
-import { graphql, Kind, GraphQLError } from 'graphql';
+import { graphql, Kind, GraphQLError, OperationTypeNode } from 'graphql';
 
 import { createRequest } from '../src/createRequest';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -66,7 +66,7 @@ describe('bare requests', () => {
                   }
                 }]
               }],
-              targetOperation: 'query',
+              targetOperation: 'query' as OperationTypeNode,
               targetFieldName: 'test',
             });
             return delegateRequest({
@@ -149,7 +149,7 @@ describe('bare requests', () => {
                   }],
                 },
               }],
-              targetOperation: 'query',
+              targetOperation: 'query' as OperationTypeNode,
               targetFieldName: 'test',
             });
             return delegateRequest({
@@ -214,7 +214,7 @@ describe('bare requests', () => {
                   value: 'delegate',
                 },
               }],
-              targetOperation: 'query',
+              targetOperation: 'query' as OperationTypeNode,
               targetFieldName: 'test',
             });
             return delegateRequest({
