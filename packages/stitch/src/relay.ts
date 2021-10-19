@@ -56,7 +56,7 @@ export function handleRelaySubschemas(subschemas: SubschemaConfig[], getTypeName
               const possibleTypeNames = new Set<string>();
               for (const fieldNode of info.fieldNodes) {
                 if (fieldNode.selectionSet?.selections) {
-                  for (const selection of fieldNode.selectionSet?.selections) {
+                  for (const selection of fieldNode.selectionSet?.selections || []) {
                     switch (selection.kind) {
                       case Kind.FRAGMENT_SPREAD: {
                         const fragment = info.fragments[selection.name.value];
