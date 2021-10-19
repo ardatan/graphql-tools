@@ -9,6 +9,7 @@ import {
   GraphQLFieldConfigMap,
   GraphQLFieldConfig,
   GraphQLFieldResolver,
+  OperationTypeNode,
 } from 'graphql';
 
 import {
@@ -134,7 +135,7 @@ export default class WrapFields<TContext> implements Transform<WrapFieldsTransfo
         resolve = createProxyingResolver({
           subschemaConfig,
           transformedSchema,
-          operation,
+          operation: operation as OperationTypeNode,
           fieldName: wrappingFieldName,
         });
       } else {

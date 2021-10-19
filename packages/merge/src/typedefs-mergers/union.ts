@@ -1,4 +1,4 @@
-import { UnionTypeDefinitionNode, UnionTypeExtensionNode } from 'graphql';
+import { Kind, UnionTypeDefinitionNode, UnionTypeExtensionNode } from 'graphql';
 import { mergeDirectives } from './directives';
 import { mergeNamedTypeArray } from './merge-named-type-array';
 import { Config } from './merge-typedefs';
@@ -16,8 +16,8 @@ export function mergeUnion(
       directives: mergeDirectives(first.directives, second.directives, config) as any,
       kind:
         config?.convertExtensions || first.kind === 'UnionTypeDefinition' || second.kind === 'UnionTypeDefinition'
-          ? 'UnionTypeDefinition'
-          : 'UnionTypeExtension',
+          ? Kind.UNION_TYPE_DEFINITION
+          : Kind.UNION_TYPE_EXTENSION,
       loc: first.loc,
       types: mergeNamedTypeArray(first.types, second.types, config),
     };
@@ -26,7 +26,7 @@ export function mergeUnion(
   return config?.convertExtensions
     ? {
         ...first,
-        kind: 'UnionTypeDefinition',
+        kind: Kind.UNION_TYPE_DEFINITION,
       }
     : first;
 }

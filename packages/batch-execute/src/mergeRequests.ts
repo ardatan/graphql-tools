@@ -12,8 +12,7 @@ import {
   SelectionNode,
   FragmentSpreadNode,
   VariableNode,
-  VisitorKeyMap,
-  ASTKindToNode,
+  ASTVisitorKeyMap,
   InlineFragmentNode,
   FieldNode,
 } from 'graphql';
@@ -176,7 +175,7 @@ function aliasTopLevelFields(prefix: string, document: DocumentNode): DocumentNo
   };
   return visit(document, transformer, {
     [Kind.DOCUMENT]: [`definitions`],
-  } as unknown as VisitorKeyMap<ASTKindToNode>);
+  } as unknown as ASTVisitorKeyMap);
 }
 
 /**

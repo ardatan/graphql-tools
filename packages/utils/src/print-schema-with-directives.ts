@@ -126,7 +126,7 @@ export function astFromSchema(
     ['query', undefined],
     ['mutation', undefined],
     ['subscription', undefined],
-  ]);
+  ] as [OperationTypeNode, OperationTypeDefinitionNode | undefined][]);
 
   const nodes: Array<SchemaDefinitionNode | SchemaExtensionNode> = [];
   if (schema.astNode != null) {

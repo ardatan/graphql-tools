@@ -1,5 +1,5 @@
 import { Config } from './merge-typedefs';
-import { InputObjectTypeDefinitionNode, InputValueDefinitionNode, InputObjectTypeExtensionNode } from 'graphql';
+import { InputObjectTypeDefinitionNode, InputValueDefinitionNode, InputObjectTypeExtensionNode, Kind } from 'graphql';
 import { mergeFields } from './fields';
 import { mergeDirectives } from './directives';
 
@@ -31,7 +31,7 @@ export function mergeInputType(
   return config?.convertExtensions
     ? {
         ...node,
-        kind: 'InputObjectTypeDefinition',
+        kind: Kind.INPUT_OBJECT_TYPE_DEFINITION,
       }
     : node;
 }

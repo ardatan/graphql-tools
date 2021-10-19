@@ -28,17 +28,17 @@ export const getRootTypeMap = memoize1(function getRootTypeMap(
 
   const queryType = schema.getQueryType();
   if (queryType) {
-    rootTypeMap.set('query', queryType);
+    rootTypeMap.set('query' as OperationTypeNode, queryType);
   }
 
   const mutationType = schema.getMutationType();
   if (mutationType) {
-    rootTypeMap.set('mutation', mutationType);
+    rootTypeMap.set('mutation' as OperationTypeNode, mutationType);
   }
 
   const subscriptionType = schema.getSubscriptionType();
   if (subscriptionType) {
-    rootTypeMap.set('subscription', subscriptionType);
+    rootTypeMap.set('subscription' as OperationTypeNode, subscriptionType);
   }
 
   return rootTypeMap;

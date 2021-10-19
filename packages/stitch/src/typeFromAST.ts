@@ -17,7 +17,6 @@ import {
   UnionTypeDefinitionNode,
   GraphQLDirective,
   DirectiveDefinitionNode,
-  DirectiveLocationEnum,
   DirectiveLocation,
   GraphQLFieldConfig,
   GraphQLEnumValueConfigMap,
@@ -27,6 +26,7 @@ import {
   getDirectiveValues,
   GraphQLDeprecatedDirective,
   TypeDefinitionNode,
+  GraphQLInterfaceTypeConfig,
 } from 'graphql';
 
 import { createStub, createNamedStub, Maybe, getDescription } from '@graphql-tools/utils';
@@ -76,13 +76,13 @@ function makeObjectType(node: ObjectTypeDefinitionNode): GraphQLObjectType {
 }
 
 function makeInterfaceType(node: InterfaceTypeDefinitionNode): GraphQLInterfaceType {
-  const config = {
+  const config: GraphQLInterfaceTypeConfig<any, any> = {
     name: node.name.value,
     description: getDescription(node, backcompatOptions),
     interfaces: () =>
       (node as unknown as ObjectTypeDefinitionNode).interfaces?.map(iface =>
         createNamedStub(iface.name.value, 'interface')
-      ),
+      ) as readonly GraphQLInterfaceType[],
     fields: () => (node.fields != null ? makeFields(node.fields) : {}),
     astNode: node,
   };
@@ -172,10 +172,10 @@ function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>): GraphQLFiel
 }
 
 function makeDirective(node: DirectiveDefinitionNode): GraphQLDirective {
-  const locations: Array<DirectiveLocationEnum> = [];
+  const locations: Array<DirectiveLocation> = [];
   for (const location of node.locations) {
     if (location.value in DirectiveLocation) {
-      locations.push(location.value as DirectiveLocationEnum);
+      locations.push(location.value as DirectiveLocation);
     }
   }
   return new GraphQLDirective({

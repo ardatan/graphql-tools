@@ -1,5 +1,5 @@
 import { Config } from './merge-typedefs';
-import { ObjectTypeDefinitionNode, ObjectTypeExtensionNode } from 'graphql';
+import { Kind, ObjectTypeDefinitionNode, ObjectTypeExtensionNode } from 'graphql';
 import { mergeFields } from './fields';
 import { mergeDirectives } from './directives';
 import { mergeNamedTypeArray } from './merge-named-type-array';
@@ -33,7 +33,7 @@ export function mergeType(
   return config?.convertExtensions
     ? {
         ...node,
-        kind: 'ObjectTypeDefinition',
+        kind: Kind.OBJECT_TYPE_DEFINITION,
       }
     : node;
 }

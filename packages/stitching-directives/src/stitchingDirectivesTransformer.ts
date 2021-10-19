@@ -550,7 +550,7 @@ function mergeSelectionSets(...selectionSets: Array<SelectionSetNode>): Selectio
     }
   }
 
-  const newSelectionSet = {
+  const newSelectionSet: SelectionSetNode = {
     kind: Kind.SELECTION_SET,
     selections: Object.values(normalizedSelections),
   };

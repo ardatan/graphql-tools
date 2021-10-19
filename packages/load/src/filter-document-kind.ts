@@ -4,7 +4,10 @@ import { env } from 'process';
 /**
  * @internal
  */
-export const filterKind = (content: DocumentNode | undefined, filterKinds: null | string[]) => {
+export const filterKind = (
+  content: DocumentNode | undefined,
+  filterKinds: null | string[]
+): DocumentNode | undefined => {
   if (content && content.definitions && content.definitions.length && filterKinds && filterKinds.length > 0) {
     const invalidDefinitions: DefinitionNode[] = [];
     const validDefinitions: DefinitionNode[] = [];

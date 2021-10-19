@@ -16,8 +16,7 @@ import {
   GraphQLOutputType,
   isObjectType,
   FieldNode,
-  VisitorKeyMap,
-  ASTKindToNode,
+  ASTVisitorKeyMap,
 } from 'graphql';
 
 import { implementsAbstractType, getRootTypeNames, memoize2 } from '@graphql-tools/utils';
@@ -52,12 +51,12 @@ export function prepareGatewayDocument(
 
   const typeInfo = new TypeInfo(transformedSchema);
 
-  const expandedDocument = {
+  const expandedDocument: DocumentNode = {
     kind: Kind.DOCUMENT,
     definitions: [...operations, ...fragments, ...expandedFragments],
   };
 
-  const visitorKeyMap: Partial<VisitorKeyMap<ASTKindToNode>> = {
+  const visitorKeyMap: ASTVisitorKeyMap = {
     Document: ['definitions'],
     OperationDefinition: ['selectionSet'],
     SelectionSet: ['selections'],
@@ -86,7 +85,7 @@ export function prepareGatewayDocument(
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
     // empty keys cannot be removed only because of typescript errors
     // will hopefully be fixed in future version of graphql-js to be optional
-    visitorKeyMap as any
+    visitorKeyMap
   );
 }
 
@@ -392,7 +391,7 @@ function wrapConcreteTypes(
 
   const typeInfo = new TypeInfo(targetSchema);
 
-  const visitorKeys: Partial<VisitorKeyMap<ASTKindToNode>> = {
+  const visitorKeys: any = {
     Document: ['definitions'],
     OperationDefinition: ['selectionSet'],
     SelectionSet: ['selections'],

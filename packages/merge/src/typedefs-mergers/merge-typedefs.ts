@@ -90,7 +90,7 @@ export function mergeTypeDefs(
 export function mergeTypeDefs(typeSource: TypeSource, config?: Partial<Config>): DocumentNode | string {
   resetComments();
 
-  const doc = {
+  const doc: DocumentNode = {
     kind: Kind.DOCUMENT,
     definitions: mergeGraphQLTypes(typeSource, {
       useSchemaDefinition: true,
@@ -188,7 +188,7 @@ export function mergeGraphQLTypes(typeSource: TypeSource, config: Config): Defin
       operationTypes: [
         {
           kind: Kind.OPERATION_TYPE_DEFINITION,
-          operation: 'query',
+          operation: 'query' as OperationTypeNode,
           type: {
             kind: Kind.NAMED_TYPE,
             name: {

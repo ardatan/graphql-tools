@@ -1,5 +1,5 @@
 import { Config } from './merge-typedefs';
-import { InterfaceTypeDefinitionNode, InterfaceTypeExtensionNode } from 'graphql';
+import { InterfaceTypeDefinitionNode, InterfaceTypeExtensionNode, Kind } from 'graphql';
 import { mergeFields } from './fields';
 import { mergeDirectives } from './directives';
 
@@ -31,7 +31,7 @@ export function mergeInterface(
   return config?.convertExtensions
     ? {
         ...node,
-        kind: 'InterfaceTypeDefinition',
+        kind: Kind.INTERFACE_TYPE_DEFINITION,
       }
     : node;
 }
