@@ -35,10 +35,9 @@ import {
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from '../../testing/fixtures/schemas';
-import { removeLoc } from '@graphql-tools/optimize';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const removeLocations = ({ locations, positions, source, nodes, ...rest }: any): any => ({ nodes: nodes?.map((node: DocumentNode) => removeLoc(node)), ...rest });
+const removeLocations = ({ locations, positions, source, nodes, ...rest }: any): any => ({ ...rest });
 
 const testCombinations = [
   {
