@@ -390,7 +390,7 @@ function wrapConcreteTypes(
 
   const typeInfo = new TypeInfo(targetSchema);
 
-  const visitorKeys: any = {
+  const visitorKeys: ASTVisitorKeyMap = {
     Document: ['definitions'],
     OperationDefinition: ['selectionSet'],
     SelectionSet: ['selections'],
