@@ -2561,12 +2561,12 @@ fragment BookingFragment on Booking {
         const expectedErrors = [
           new GraphQLError('Property.error error', undefined, undefined, undefined, ['propertyById', 'error'], undefined, { code: 'SOME_CUSTOM_CODE' }),
           new GraphQLError('Property.error error', undefined, undefined, undefined, ['propertyById', 'errorAlias'], undefined, { code: 'SOME_CUSTOM_CODE' }),
-          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '0', 'error']),
-          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '0', 'bookingErrorAlias']),
-          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '1', 'error']),
-          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '1', 'bookingErrorAlias']),
-          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '2', 'error']),
-          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', '2', 'bookingErrorAlias']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', 0, 'error']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', 0, 'bookingErrorAlias']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', 1, 'error']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', 1, 'bookingErrorAlias']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', 2, 'error']),
+          new GraphQLError('Booking.error error', undefined, undefined, undefined, ['propertyById', 'bookings', 2, 'bookingErrorAlias']),
         ].map(removeLocations);
 
         expect(errorsWithoutLocations).toEqual(expectedErrors.map(removeLocations));
