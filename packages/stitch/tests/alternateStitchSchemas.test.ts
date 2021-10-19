@@ -846,11 +846,9 @@ type Query {
         },
       },
       errors: [
-        new GraphQLError('Property.error error', undefined, undefined, [13, 9], ['propertyById, new_error'])
+        new GraphQLError('Property.error error', undefined, undefined, [13, 9], ['propertyById, new_error'], undefined, { code: 'SOME_CUSTOM_CODE' })
       ],
     };
-
-    (expectedResult.errors as any)[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -1330,11 +1328,9 @@ describe('schema transformation with wrapping of object fields', () => {
           },
         },
         errors: [
-          new GraphQLError('Property.error error', undefined, undefined, [13, 14], ['propertyById', 'test1', 'two']),
+          new GraphQLError('Property.error error', undefined, undefined, [13, 14], ['propertyById', 'test1', 'two'], undefined, { code: 'SOME_CUSTOM_CODE' }),
         ],
       };
-
-      (expectedResult.errors as any)[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
       expect(result).toEqual(expectedResult);
     });
@@ -1399,11 +1395,9 @@ describe('schema transformation with wrapping of object fields', () => {
           },
         },
         errors: [
-          new GraphQLError('Property.error error', undefined, undefined, [13, 18], ['propertyById', 'test1', 'innerWrap', 'two']),
+          new GraphQLError('Property.error error', undefined, undefined, [13, 18], ['propertyById', 'test1', 'innerWrap', 'two'], undefined, { code: 'SOME_CUSTOM_CODE' }),
         ],
       };
-
-      (expectedResult.errors as any)[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
       expect(result).toEqual(expectedResult);
     });
