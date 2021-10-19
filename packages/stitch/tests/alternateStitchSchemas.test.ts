@@ -14,6 +14,7 @@ import {
   Kind,
   execute,
   OperationTypeNode,
+  GraphQLError,
 } from 'graphql';
 
 import {
@@ -1442,16 +1443,7 @@ describe('schema transformation with wrapping of object fields', () => {
           },
         },
         errors: [
-          {
-            locations: [
-              {
-                column: 13,
-                line: 18,
-              },
-            ],
-            message: 'Property.error error',
-            path: ['propertyById', 'test1', 'innerWrap', 'two'],
-          },
+          new GraphQLError('Property.error error', undefined, undefined, [13, 18], ['propertyById', 'test1', 'innerWrap', 'two']),
         ],
       };
 
