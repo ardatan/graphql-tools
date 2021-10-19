@@ -15,6 +15,8 @@ import {
   GraphQLNamedType,
 } from 'graphql';
 
+import { ValueOrPromise } from 'value-or-promise';
+
 import { collectFields, parseSelectionSet, IResolvers, IFieldResolverOptions, isSome } from '@graphql-tools/utils';
 
 import { MergedTypeResolver, Subschema, SubschemaConfig, MergedTypeInfo, StitchingInfo } from '@graphql-tools/delegate';
@@ -119,8 +121,9 @@ function createMergedTypes<TContext = Record<string, any>>(
             subschema,
             keyFn
               ? (originalResult, context, info, subschema, selectionSet) => {
-                  const key = keyFn(originalResult);
-                  return resolver(originalResult, context, info, subschema, selectionSet, key);
+                  return new ValueOrPromise(() => keyFn(originalResult))
+                    .then(key => resolver(originalResult, context, info, subschema, selectionSet, key))
+                    .resolve();
                 }
               : resolver
           );

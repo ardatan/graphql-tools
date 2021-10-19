@@ -1,4 +1,4 @@
-import { addProperty, getProperties } from "../src/properties";
+import { addProperty, getProperties, getResolvedPropertiesOrPromise } from "../src/properties";
 
 describe('addProperty', () => {
   test('can add a key to an object', () => {
@@ -29,7 +29,7 @@ describe('addProperty', () => {
 });
 
 describe('getProperties', () => {
-  test('can getProperties', () => {
+  test('can getProperties', async () => {
     const object = {
       field1: 'value1',
       field2: {
@@ -43,7 +43,35 @@ describe('getProperties', () => {
       field2: {
         subfieldA: null,
       }
-    })
+    });
+
+    const expectedExtracted = {
+      field1: 'value1',
+      field2: {
+        subfieldA: 'valueA',
+      }
+    }
+
+    expect(extracted).toEqual(expectedExtracted);
+  });
+});
+
+describe('getResolvedPropertiesOrPromise', () => {
+  test('can getResolvedPropertiesOrPromise', async () => {
+    const object = {
+      field1: 'value1',
+      field2: Promise.resolve({
+        subfieldA: 'valueA',
+        subfieldB: 'valueB',
+      }),
+    }
+
+    const extracted = await getResolvedPropertiesOrPromise(object, {
+      field1: null,
+      field2: {
+        subfieldA: null,
+      }
+    }).resolve();
 
     const expectedExtracted = {
       field1: 'value1',

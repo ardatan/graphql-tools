@@ -1,4 +1,6 @@
 import { getNamedType, GraphQLOutputType, GraphQLList } from 'graphql';
+import { ValueOrPromise } from 'value-or-promise';
+
 import { delegateToSchema, MergedTypeResolver, MergedTypeResolverOptions } from '@graphql-tools/delegate';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 
@@ -29,19 +31,23 @@ export function createMergedTypeResolver<TContext = any>(
 
   if (args != null) {
     return function mergedTypeResolver(originalResult, context, info, subschema, selectionSet) {
-      return delegateToSchema({
-        schema: subschema,
-        operation: 'query',
-        fieldName,
-        returnType: getNamedType(
-          info.schema.getType(originalResult.__typename) ?? info.returnType
-        ) as GraphQLOutputType,
-        args: args(originalResult),
-        selectionSet,
-        context,
-        info,
-        skipTypeMerging: true,
-      });
+      return new ValueOrPromise(() => args(originalResult))
+        .then(resolvedArgs =>
+          delegateToSchema({
+            schema: subschema,
+            operation: 'query',
+            fieldName,
+            returnType: getNamedType(
+              info.schema.getType(originalResult.__typename) ?? info.returnType
+            ) as GraphQLOutputType,
+            args: resolvedArgs,
+            selectionSet,
+            context,
+            info,
+            skipTypeMerging: true,
+          })
+        )
+        .resolve();
     };
   }
 

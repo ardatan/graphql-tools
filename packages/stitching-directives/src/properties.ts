@@ -1,3 +1,5 @@
+import { ValueOrPromise } from 'value-or-promise';
+
 import { PropertyTree } from './types';
 
 export function addProperty(object: Record<string, any>, path: Array<string | number>, value: any) {
@@ -60,6 +62,35 @@ export function getProperties(object: Record<string, any>, propertyTree: Propert
   }
 
   return newObject;
+}
+
+// c.f. https://github.com/graphql/graphql-js/blob/main/src/jsutils/promiseForObject.ts
+export function getResolvedPropertiesOrPromise(
+  object: Record<string, any>,
+  propertyTree: PropertyTree
+): ValueOrPromise<any> {
+  if (object == null) {
+    return new ValueOrPromise(() => object);
+  }
+
+  const keys = Object.keys(propertyTree);
+
+  const newObject = Object.create(null);
+  return ValueOrPromise.all(
+    keys.map(key =>
+      new ValueOrPromise(() => object[key]).then(value => {
+        const subKey = propertyTree[key];
+        if (subKey == null) {
+          newObject[key] = value;
+          return;
+        }
+
+        newObject[key] = deepMap(value, function deepMapFn(item) {
+          return getProperties(item, subKey);
+        });
+      })
+    )
+  ).then(() => newObject);
 }
 
 export function propertyTreeFromPaths(paths: Array<Array<string>>): PropertyTree {
