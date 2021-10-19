@@ -9,7 +9,6 @@ import {
   GraphQLResolveInfo,
   OperationTypeNode,
   GraphQLError,
-  DocumentNode,
 } from 'graphql';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
