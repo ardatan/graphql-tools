@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.2.1
+
+### Patch Changes
+
+- f895177e: fix(url-loader): incremental delivery for defer/stream and SSE
+
 ## 7.2.0
 
 ### Minor Changes
