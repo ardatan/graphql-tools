@@ -217,8 +217,8 @@ describe('[url-loader] webpack bundle compat', () => {
       document as any
     );
     expect(result).toEqual([
-      { data: {}, hasNext: true },
-      { data: true, path: ["foo"], hasNext: false}
+      { data: {} },
+      { data: { foo: true} }
     ]);
   });
 
