@@ -13,7 +13,6 @@ describe('[url-loader] webpack bundle compat', () => {
   const port = 8712;
   const httpAddress = 'http://localhost:8712';
   const webpackBundlePath = path.resolve(__dirname, 'webpack.js');
-  const webpackBundlePathSourceMap = path.resolve(__dirname, 'webpack.js.map');
   let graphqlHandler: http.RequestListener | undefined;
 
   beforeAll(async () => {
@@ -58,19 +57,6 @@ describe('[url-loader] webpack bundle compat', () => {
           </html>
         `);
         res.end();
-        return;
-      }
-
-      if (req.method === 'GET' && req.url === '/webpack.js.map') {
-        const stat = fs.statSync(webpackBundlePathSourceMap);
-        res.writeHead(200, {
-          'Content-Type': 'application/json',
-          'Content-Length': stat.size,
-        });
-
-        const readStream = fs.createReadStream(webpackBundlePathSourceMap);
-        readStream.pipe(res);
-
         return;
       }
 
