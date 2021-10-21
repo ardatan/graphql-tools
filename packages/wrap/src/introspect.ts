@@ -57,8 +57,8 @@ export function introspectSchema(
   return new ValueOrPromise(() =>
     executor({
       document: parsedIntrospectionQuery,
-      operationType: 'query' as OperationTypeNode,
       context,
+      operationType: 'query' as OperationTypeNode,
     })
   )
     .then(introspection => {

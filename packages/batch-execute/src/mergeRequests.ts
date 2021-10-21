@@ -5,7 +5,6 @@ import {
   Kind,
   DefinitionNode,
   OperationDefinitionNode,
-  OperationTypeNode,
   DocumentNode,
   FragmentDefinitionNode,
   VariableDefinitionNode,
@@ -16,7 +15,7 @@ import {
   FieldNode,
 } from 'graphql';
 
-import { ExecutionRequest } from '@graphql-tools/utils';
+import { ExecutionRequest, getOperationASTFromRequest } from '@graphql-tools/utils';
 
 import { createPrefix } from './prefix';
 
@@ -55,7 +54,6 @@ import { createPrefix } from './prefix';
  *   }
  */
 export function mergeRequests(
-  operationType: OperationTypeNode,
   requests: Array<ExecutionRequest>,
   extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
 ): ExecutionRequest {
@@ -67,7 +65,7 @@ export function mergeRequests(
 
   for (const index in requests) {
     const request = requests[index];
-    const prefixedRequests = prefixRequest(createPrefix(index), request, operationType);
+    const prefixedRequests = prefixRequest(createPrefix(index), request);
 
     for (const def of prefixedRequests.document.definitions) {
       if (isOperationDefinition(def)) {
@@ -84,6 +82,8 @@ export function mergeRequests(
     mergedExtensions = extensionsReducer(mergedExtensions, request);
   }
 
+  const firstRequest = requests[0];
+  const operationType = firstRequest.operationType ?? getOperationASTFromRequest(firstRequest).operation;
   const mergedOperationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
     operation: operationType,
@@ -107,7 +107,7 @@ export function mergeRequests(
   };
 }
 
-function prefixRequest(prefix: string, request: ExecutionRequest, operationType: OperationTypeNode): ExecutionRequest {
+function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequest {
   const executionVariables = request.variables ?? {};
 
   function prefixNode(node: VariableNode | FragmentDefinitionNode | FragmentSpreadNode) {
@@ -150,7 +150,6 @@ function prefixRequest(prefix: string, request: ExecutionRequest, operationType:
   return {
     document: prefixedDocument,
     variables: prefixedVariables,
-    operationType,
   };
 }
 

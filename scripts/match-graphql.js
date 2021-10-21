@@ -13,6 +13,8 @@ if (pkg.resolutions.graphql.startsWith(version)){
   console.info(`GraphQL v${version} already installed! Skipping.`)
 }
 
-pkg.resolutions.graphql = `^${version}`;
+const npmVersion = version.includes('-') ? version : `^${version}`;
+pkg.resolutions.graphql = npmVersion;
+pkg.devDependencies.graphql = npmVersion;
 
 writeFileSync(pkgPath, JSON.stringify(pkg, null, 2), 'utf8');

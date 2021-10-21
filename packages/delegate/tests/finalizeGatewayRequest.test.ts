@@ -1,4 +1,4 @@
-import { print, parse, OperationTypeNode } from 'graphql';
+import { print, parse } from 'graphql';
 import { DelegationContext } from '@graphql-tools/delegate';
 import { bookingSchema, propertySchema } from '../../testing/fixtures/schemas';
 import { finalizeGatewayRequest } from '../src/finalizeGatewayRequest';
@@ -20,8 +20,7 @@ describe('finalizeGatewayRequest', () => {
       document: query,
       variables: {
         id: 'c1',
-      },
-      operationType: 'query' as OperationTypeNode
+      }
     }, {
       targetSchema: bookingSchema
     } as DelegationContext);
@@ -55,7 +54,6 @@ describe('finalizeGatewayRequest', () => {
         id: 'c1',
         limit: 10,
       },
-      operationType: 'query' as OperationTypeNode,
     }, {
       targetSchema: bookingSchema
     } as DelegationContext);
@@ -82,7 +80,6 @@ describe('finalizeGatewayRequest', () => {
       variables: {
         test: 'test',
       },
-      operationType: 'query' as OperationTypeNode,
     }, {
       targetSchema: propertySchema
     } as DelegationContext);
@@ -113,7 +110,6 @@ describe('finalizeGatewayRequest', () => {
       variables: {
         id: 'b1',
       },
-      operationType: 'query' as OperationTypeNode,
     }, {
       targetSchema: bookingSchema
     } as DelegationContext);
