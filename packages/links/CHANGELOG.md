@@ -1,5 +1,17 @@
 # @graphql-tools/links
 
+## 8.2.0
+
+### Minor Changes
+
+- ad04dc79: enhance: make operationType optional
+
+### Patch Changes
+
+- Updated dependencies [ad04dc79]
+  - @graphql-tools/delegate@8.4.0
+  - @graphql-tools/utils@8.5.0
+
 ## 8.1.0
 
 ### Minor Changes
