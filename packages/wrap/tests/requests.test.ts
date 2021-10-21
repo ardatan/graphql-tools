@@ -51,7 +51,6 @@ describe('requests', () => {
       rootValue: undefined,
       variables: {},
       operationName: 'test',
-      operationType: 'query',
       context: undefined,
       info: undefined,
     });

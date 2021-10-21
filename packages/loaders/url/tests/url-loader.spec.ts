@@ -5,7 +5,7 @@ import { isAsyncIterable, printSchemaWithDirectives } from '@graphql-tools/utils
 import nock from 'nock';
 import { mockGraphQLServer } from '../../../testing/utils';
 import { cwd } from 'process';
-import { execute, subscribe, parse, print, ExecutionResult, introspectionFromSchema, OperationTypeNode } from 'graphql';
+import { execute, subscribe, parse, print, ExecutionResult, introspectionFromSchema } from 'graphql';
 import { GraphQLUpload } from 'graphql-upload';
 import { createReadStream, readFileSync } from 'fs';
 import { join } from 'path';
@@ -596,7 +596,6 @@ input TestInput {
 
         const executor = await loader.getExecutorAsync(serverHost);
         const result = await executor({
-          operationType: "query " as OperationTypeNode,
           document: parse(/* GraphQL */ `
             query {
               foo {
@@ -644,7 +643,6 @@ input TestInput {
           subscriptionsProtocol: SubscriptionProtocol.SSE
         });
         const result = await executor({
-          operationType: "subscription" as OperationTypeNode,
           document: parse(/* GraphQL */ ` subscription { foo } `)
         })
         assertAsyncIterable(result)

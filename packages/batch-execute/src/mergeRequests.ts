@@ -5,7 +5,6 @@ import {
   Kind,
   DefinitionNode,
   OperationDefinitionNode,
-  OperationTypeNode,
   DocumentNode,
   FragmentDefinitionNode,
   VariableDefinitionNode,
@@ -14,9 +13,10 @@ import {
   VariableNode,
   InlineFragmentNode,
   FieldNode,
+  getOperationAST,
 } from 'graphql';
 
-import { ExecutionRequest } from '@graphql-tools/utils';
+import { assertSome, ExecutionRequest } from '@graphql-tools/utils';
 
 import { createPrefix } from './prefix';
 
@@ -55,7 +55,6 @@ import { createPrefix } from './prefix';
  *   }
  */
 export function mergeRequests(
-  operationType: OperationTypeNode,
   requests: Array<ExecutionRequest>,
   extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
 ): ExecutionRequest {
@@ -67,7 +66,7 @@ export function mergeRequests(
 
   for (const index in requests) {
     const request = requests[index];
-    const prefixedRequests = prefixRequest(createPrefix(index), request, operationType);
+    const prefixedRequests = prefixRequest(createPrefix(index), request);
 
     for (const def of prefixedRequests.document.definitions) {
       if (isOperationDefinition(def)) {
@@ -84,9 +83,12 @@ export function mergeRequests(
     mergedExtensions = extensionsReducer(mergedExtensions, request);
   }
 
+  const firstRequest = requests[0];
+  const firstOperationAst = getOperationAST(firstRequest.document, firstRequest.operationName);
+  assertSome(firstOperationAst, 'Could not find operation definition');
   const mergedOperationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
-    operation: operationType,
+    operation: firstOperationAst.operation,
     variableDefinitions: mergedVariableDefinitions,
     selectionSet: {
       kind: Kind.SELECTION_SET,
@@ -103,11 +105,10 @@ export function mergeRequests(
     extensions: mergedExtensions,
     context: requests[0].context,
     info: requests[0].info,
-    operationType,
   };
 }
 
-function prefixRequest(prefix: string, request: ExecutionRequest, operationType: OperationTypeNode): ExecutionRequest {
+function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequest {
   const executionVariables = request.variables ?? {};
 
   function prefixNode(node: VariableNode | FragmentDefinitionNode | FragmentSpreadNode) {
@@ -150,7 +151,6 @@ function prefixRequest(prefix: string, request: ExecutionRequest, operationType:
   return {
     document: prefixedDocument,
     variables: prefixedVariables,
-    operationType,
   };
 }
 

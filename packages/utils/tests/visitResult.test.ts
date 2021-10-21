@@ -1,4 +1,4 @@
-import { buildSchema, parse, GraphQLError, OperationTypeNode } from 'graphql';
+import { buildSchema, parse, GraphQLError } from 'graphql';
 
 import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
@@ -21,8 +21,7 @@ describe('visiting results', () => {
 
   const request: ExecutionRequest = {
     document: parse('{ test { field } }'),
-    variables: {},
-    operationType: 'query' as OperationTypeNode
+    variables: {}
   };
 
   it('should visit without throwing', async () => {
@@ -44,10 +43,9 @@ describe('visiting results', () => {
   });
 
   it('should visit with a request with introspection fields without throwing', async () => {
-    const introspectionRequest = {
+    const introspectionRequest: ExecutionRequest = {
       document: parse('{ test { field __typename } }'),
-      variables: {},
-      operationType: 'query' as OperationTypeNode
+      variables: {}
     };
     const result = {
       data: {
@@ -228,7 +226,6 @@ describe('visiting nested results', () => {
       }
     }`),
     variables: {},
-    operationType: 'query' as OperationTypeNode,
   };
 
   it('should work', async () => {
@@ -296,7 +293,6 @@ describe('visiting nested results', () => {
       }
     }`),
     variables: {},
-    operationType: 'query' as OperationTypeNode,
   };
 
   it('should work', async () => {
@@ -356,7 +352,6 @@ describe('visiting errors', () => {
   const request: ExecutionRequest = {
     document: parse('{ test { field } }'),
     variables: {},
-    operationType: 'query' as OperationTypeNode,
   };
 
   it('should allow visiting without an errorVisitor', async () => {

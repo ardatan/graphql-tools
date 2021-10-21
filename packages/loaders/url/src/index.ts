@@ -13,6 +13,7 @@ import {
   isAsyncIterable,
   ExecutionRequest,
   parseGraphQLSDL,
+  assertSome,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
@@ -279,8 +280,10 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       variables,
       operationName,
       extensions,
-      operationType,
     }: ExecutionRequest<any, any, any, ExecutionExtensions>) => {
+      const operationAst = getOperationAST(document, operationName);
+      assertSome(operationAst, `No operation found ${operationName}`);
+      const operationType = operationAst.operation;
       const controller = new AbortController();
       let method = defaultMethod;
       if (options?.useGETForQueries) {

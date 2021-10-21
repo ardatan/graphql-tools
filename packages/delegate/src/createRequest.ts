@@ -187,7 +187,6 @@ export function createRequest({
     variables: newVariables,
     rootValue: targetRootValue,
     operationName: targetOperationName,
-    operationType: targetOperation,
     context,
     info,
   };

@@ -6,7 +6,6 @@ import {
   FieldDefinitionNode,
   getOperationAST,
   OperationTypeNode,
-  OperationDefinitionNode,
   DocumentNode,
   GraphQLOutputType,
   ExecutionArgs,
@@ -25,6 +24,7 @@ import {
   isAsyncIterable,
   getDefinedRootType,
   memoize1,
+  assertSome,
 } from '@graphql-tools/utils';
 
 import {
@@ -118,16 +118,15 @@ function getDelegationContext<TContext>({
   transformedSchema,
   skipTypeMerging = false,
 }: IDelegateRequestOptions<TContext>): DelegationContext<TContext> {
-  const { operationType: operation, context, operationName, document } = request;
-  let operationDefinition: Maybe<OperationDefinitionNode>;
+  const { context, operationName, document } = request;
+  const operationDefinition = getOperationAST(document, operationName);
+  if (operationDefinition == null) {
+    throw new Error('Cannot infer main operation from the provided document.');
+  }
   let targetFieldName: string;
 
   if (fieldName == null) {
-    operationDefinition = getOperationAST(document, operationName);
-    if (operationDefinition == null) {
-      throw new Error('Cannot infer main operation from the provided document.');
-    }
-    targetFieldName = (operationDefinition?.selectionSet.selections[0] as unknown as FieldDefinitionNode).name.value;
+    targetFieldName = (operationDefinition.selectionSet.selections[0] as unknown as FieldDefinitionNode).name.value;
   } else {
     targetFieldName = fieldName;
   }
@@ -136,6 +135,8 @@ function getDelegationContext<TContext>({
 
   const subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig<any, any, any, any> =
     stitchingInfo?.subschemaMap.get(schema) ?? schema;
+
+  const operation = operationDefinition.operation;
 
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     const targetSchema = subschemaOrSubschemaConfig.schema;
@@ -208,14 +209,7 @@ function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): 
 }
 
 export const createDefaultExecutor = memoize1(function createDefaultExecutor(schema: GraphQLSchema): Executor {
-  return function defaultExecutor({
-    document,
-    context,
-    variables,
-    rootValue,
-    operationName,
-    operationType,
-  }: ExecutionRequest) {
+  return function defaultExecutor({ document, context, variables, rootValue, operationName }: ExecutionRequest) {
     const executionArgs: ExecutionArgs = {
       schema,
       document,
@@ -224,7 +218,9 @@ export const createDefaultExecutor = memoize1(function createDefaultExecutor(sch
       rootValue,
       operationName,
     };
-    if (operationType === 'subscription') {
+    const operationAst = getOperationAST(document, operationName);
+    assertSome(operationAst, `No operation found ${operationName}`);
+    if (operationAst.operation === 'subscription') {
       return subscribe(executionArgs);
     }
     return execute(executionArgs);

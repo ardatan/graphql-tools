@@ -6,7 +6,6 @@ import {
   IntrospectionOptions,
   IntrospectionQuery,
   ParseOptions,
-  OperationTypeNode,
 } from 'graphql';
 
 import { ValueOrPromise } from 'value-or-promise';
@@ -57,7 +56,6 @@ export function introspectSchema(
   return new ValueOrPromise(() =>
     executor({
       document: parsedIntrospectionQuery,
-      operationType: 'query' as OperationTypeNode,
       context,
     })
   )
