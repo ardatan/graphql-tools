@@ -178,7 +178,7 @@ describe('[url-loader] webpack bundle compat', () => {
         'Content-Type': 'multipart/mixed; boundary="-"',
         'Transfer-Encoding': 'chunked',
       });
-
+      res.write(`---`);
       let chunk = Buffer.from(JSON.stringify({ data: {} }), 'utf8');
       let data = ['', 'Content-Type: application/json; charset=utf-8', '', chunk, '', `---`];
       res.write(data.join('\r\n'));
@@ -271,5 +271,5 @@ describe('[url-loader] webpack bundle compat', () => {
       { data: { foo: true } },
       { data: { foo: false } }
     ]);
-  })
+  });
 });
