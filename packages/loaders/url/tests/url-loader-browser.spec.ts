@@ -256,7 +256,7 @@ describe('[url-loader] webpack bundle compat', () => {
         const result = await executor({
           document,
           // GraphQL 15 & 16 compat
-          operationType: 'query' as OperationTypeNode,
+          operationType: 'subscription' as OperationTypeNode,
         });
         const results = [];
         for await (const currentResult of result as any) {
