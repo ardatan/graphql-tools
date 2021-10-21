@@ -189,6 +189,7 @@ export function createRequest({
     operationName: targetOperationName,
     context,
     info,
+    operationType: targetOperation,
   };
 }
 

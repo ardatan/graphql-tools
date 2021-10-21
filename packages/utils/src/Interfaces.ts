@@ -45,6 +45,7 @@ import {
   GraphQLType,
   Source,
   DefinitionNode,
+  OperationTypeNode,
 } from 'graphql';
 
 // graphql-js < v15 backwards compatible ExecutionResult
@@ -63,6 +64,8 @@ export interface ExecutionRequest<
 > {
   document: DocumentNode;
   variables?: TArgs;
+  // TODO: Will be removed in next major
+  operationType?: OperationTypeNode;
   operationName?: string;
   extensions?: TExtensions;
   // If the request will be executed locally, it may contain a rootValue

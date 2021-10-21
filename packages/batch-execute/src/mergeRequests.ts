@@ -83,10 +83,10 @@ export function mergeRequests(
   }
 
   const firstRequest = requests[0];
-  const firstOperationAst = getOperationASTFromRequest(firstRequest);
+  const operationType = firstRequest.operationType ?? getOperationASTFromRequest(firstRequest).operation;
   const mergedOperationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
-    operation: firstOperationAst.operation,
+    operation: operationType,
     variableDefinitions: mergedVariableDefinitions,
     selectionSet: {
       kind: Kind.SELECTION_SET,
@@ -103,6 +103,7 @@ export function mergeRequests(
     extensions: mergedExtensions,
     context: requests[0].context,
     info: requests[0].info,
+    operationType,
   };
 }
 
