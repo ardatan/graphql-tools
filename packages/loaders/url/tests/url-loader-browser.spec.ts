@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import http from 'http';
 import puppeteer from 'puppeteer';
-import type { UrlLoader } from '../src';
+import type * as UrlLoaderModule from '../src';
 import { OperationTypeNode, parse } from 'graphql';
 
 describe('[url-loader] webpack bundle compat', () => {
@@ -66,7 +66,6 @@ describe('[url-loader] webpack bundle compat', () => {
       }
 
       if (req.method === 'GET' && req.url === '/webpack.js') {
-        console.log('fetch webpack bundle...');
         const stat = fs.statSync(webpackBundlePath);
         res.writeHead(200, {
           'Content-Type': 'application/javascript',
@@ -148,9 +147,9 @@ describe('[url-loader] webpack bundle compat', () => {
 
     const result = await page.evaluate(
       async (httpAddress, document) => {
-        const UrlLoaderClass = window['GraphQLToolsUrlLoader'].UrlLoader as typeof UrlLoader;
-        const loader = new UrlLoaderClass();
-        const executor = loader.buildHTTPExecutor(httpAddress + '/graphql', window.fetch);
+        const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+        const loader = new module.UrlLoader();
+        const executor = await loader.getExecutorAsync(httpAddress + '/graphql');
         const result = await executor({
           document,
           operationType: 'query' as OperationTypeNode,
@@ -200,9 +199,9 @@ describe('[url-loader] webpack bundle compat', () => {
 
     const result = await page.evaluate(
       async (httpAddress, document) => {
-        const UrlLoaderClass = window['GraphQLToolsUrlLoader'].UrlLoader as typeof UrlLoader;
-        const loader = new UrlLoaderClass();
-        const executor = loader.buildHTTPExecutor(httpAddress + '/graphql', window.fetch);
+        const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+        const loader = new module.UrlLoader();
+        const executor = await loader.getExecutorAsync(httpAddress + '/graphql');
         const result = await executor({
           document,
           // GraphQL 15 & 16 compat
@@ -249,9 +248,11 @@ describe('[url-loader] webpack bundle compat', () => {
 
     const result = await page.evaluate(
       async (httpAddress, document) => {
-        const UrlLoaderClass = window['GraphQLToolsUrlLoader'].UrlLoader as typeof UrlLoader;
-        const loader = new UrlLoaderClass();
-        const executor = loader.buildHTTPExecutor(httpAddress + '/graphql', window.fetch);
+        const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+        const loader = new module.UrlLoader();
+        const executor = await loader.getExecutorAsync(httpAddress + '/graphql', {
+          subscriptionsProtocol: module.SubscriptionProtocol.SSE
+        });
         const result = await executor({
           document,
           // GraphQL 15 & 16 compat
