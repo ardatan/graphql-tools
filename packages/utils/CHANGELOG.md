@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.5.0
+
+### Minor Changes
+
+- ad04dc79: enhance: make operationType optional
+
 ## 8.4.0
 
 ### Minor Changes
