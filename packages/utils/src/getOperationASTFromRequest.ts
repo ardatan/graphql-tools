@@ -1,5 +1,6 @@
-import { ExecutionRequest, memoize1 } from '.';
 import { DocumentNode, getOperationAST, OperationDefinitionNode } from 'graphql';
+import { ExecutionRequest } from './Interfaces';
+import { memoize1 } from './memoize';
 
 export function getOperationASTFromDocument(
   documentNode: DocumentNode,
