@@ -396,6 +396,19 @@ describe('MockStore', () => {
       expect(store.has('User', 'user-1')).toBe(true);
     })
 
+    it('should return true if a mocked value has been generated via get without data', () => {
+      const store = createMockStore({ schema });
+
+      expect(store.has('User', 'user-1')).toBe(false);
+      expect(store.has('User', 'user-2')).toBe(false);
+
+      store.get('User', 'user-1');
+      store.get('User', 'user-2', {});
+
+      expect(store.has('User', 'user-1')).toBe(true);
+      expect(store.has('User', 'user-2')).toBe(true);
+    })
+
     it('should return true if a mocked value was generated using nested get', () => {
       const store = createMockStore({ schema });
 
@@ -419,6 +432,16 @@ describe('MockStore', () => {
       store.set('User', 'user-1', {
         name: 'User 1',
       });
+
+      expect(store.has('User', 'user-1')).toBe(true);
+    })
+
+    it('should return true if a mocked value has been set without data', () => {
+      const store = createMockStore({ schema });
+
+      expect(store.has('User', 'user-1')).toBe(false);
+
+      store.set('User', 'user-1', {});
 
       expect(store.has('User', 'user-1')).toBe(true);
     })

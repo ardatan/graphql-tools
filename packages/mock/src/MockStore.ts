@@ -248,6 +248,14 @@ export class MockStore implements IMockStore {
       value = deepResolveMockList(value);
     }
 
+    if (this.store[typeName] === undefined) {
+      this.store[typeName] = {};
+    }
+
+    if (this.store[typeName][key] === undefined) {
+      this.store[typeName][key] = {};
+    }
+
     if (!fieldName) {
       if (!isRecord(value)) {
         throw new Error('When no `fieldName` is provided, `value` should be a record.');
@@ -270,14 +278,6 @@ export class MockStore implements IMockStore {
       throw new Error(
         `Field ${fieldName} is a key field of ${typeName} and you are trying to set it to ${value} while the key is ${key}`
       );
-    }
-
-    if (this.store[typeName] === undefined) {
-      this.store[typeName] = {};
-    }
-
-    if (this.store[typeName][key] === undefined) {
-      this.store[typeName][key] = {};
     }
 
     // if already set and we don't override
@@ -393,6 +393,14 @@ export class MockStore implements IMockStore {
         value: toInsert[fieldName],
         noOverride,
       });
+    }
+
+    if (this.store[typeName] === undefined) {
+      this.store[typeName] = {};
+    }
+
+    if (this.store[typeName][key] === undefined) {
+      this.store[typeName][key] = {};
     }
 
     return makeRef(typeName, key);
