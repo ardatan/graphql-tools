@@ -4,7 +4,6 @@ import {
   validate,
   GraphQLSchema,
   FieldDefinitionNode,
-  getOperationAST,
   OperationTypeNode,
   DocumentNode,
   GraphQLOutputType,
@@ -118,11 +117,7 @@ function getDelegationContext<TContext>({
   transformedSchema,
   skipTypeMerging = false,
 }: IDelegateRequestOptions<TContext>): DelegationContext<TContext> {
-  const { context, operationName, document } = request;
-  const operationDefinition = getOperationAST(document, operationName);
-  if (operationDefinition == null) {
-    throw new Error('Cannot infer main operation from the provided document.');
-  }
+  const operationDefinition = getOperationASTFromRequest(request);
   let targetFieldName: string;
 
   if (fieldName == null) {
@@ -147,7 +142,7 @@ function getDelegationContext<TContext>({
       operation,
       fieldName: targetFieldName,
       args,
-      context,
+      context: request.context,
       info,
       returnType: returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, operation, targetFieldName),
       transforms:
@@ -168,7 +163,7 @@ function getDelegationContext<TContext>({
     operation,
     fieldName: targetFieldName,
     args,
-    context,
+    context: request.context,
     info,
     returnType:
       returnType ?? info?.returnType ?? getDelegationReturnType(subschemaOrSubschemaConfig, operation, targetFieldName),
