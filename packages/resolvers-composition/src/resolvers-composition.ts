@@ -1,5 +1,5 @@
 import { chainFunctions } from './chain-functions';
-import _ from 'lodash';
+import { dset } from 'dset/merge';
 import { GraphQLFieldResolver, GraphQLScalarTypeConfig } from 'graphql';
 import { asArray } from '@graphql-tools/utils';
 import micromatch from 'micromatch';
@@ -125,7 +125,7 @@ export function composeResolvers<Resolvers extends Record<string, any>>(
   for (const path in mappingResult) {
     const fns = chainFunctions([...asArray(mappingResult[path]), () => _.get(resolvers, path)]);
 
-    _.set(resolvers, path, fns());
+    dset(resolvers, path, fns());
   }
 
   return resolvers;

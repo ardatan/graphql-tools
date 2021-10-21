@@ -1,5 +1,6 @@
 ---
 '@graphql-tools/url-loader': minor
+'@graphql-tools/resolvers-composition': minor
 ---
 
-replace heave lodash dependency with dset/merge
+replace heavy lodash dependency with dset/merge
