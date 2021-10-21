@@ -1,5 +1,11 @@
 # @graphql-tools/resolvers-composition
 
+## 6.5.0
+
+### Minor Changes
+
+- 9b1026dd: replace heavy lodash dependency with dset/merge
+
 ## 6.4.0
 
 ### Minor Changes

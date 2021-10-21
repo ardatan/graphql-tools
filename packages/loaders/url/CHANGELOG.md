@@ -1,5 +1,15 @@
 # @graphql-tools/url-loader
 
+## 7.3.0
+
+### Minor Changes
+
+- 9b1026dd: replace heavy lodash dependency with dset/merge
+
+### Patch Changes
+
+- 2563447a: fix(url-loader): handle SSE correctly with ReadableStream
+
 ## 7.2.1
 
 ### Patch Changes
