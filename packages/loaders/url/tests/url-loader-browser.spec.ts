@@ -153,7 +153,8 @@ describe('[url-loader] webpack bundle compat', () => {
         const executor = loader.buildHTTPExecutor(httpAddress + '/graphql', window.fetch);
         const result = await executor({
           document,
-          operationType: 'query',
+          // GraphQL 15 & 16 compat
+          operationType: 'query' as any,
         });
         return result;
       },
@@ -205,7 +206,8 @@ describe('[url-loader] webpack bundle compat', () => {
         const executor = loader.buildHTTPExecutor(httpAddress + '/graphql', window.fetch);
         const result = await executor({
           document,
-          operationType: 'query',
+          // GraphQL 15 & 16 compat
+          operationType: 'query' as any,
         });
         const results = [];
         for await (const currentResult of result as any) {
@@ -253,7 +255,8 @@ describe('[url-loader] webpack bundle compat', () => {
         const executor = loader.buildHTTPExecutor(httpAddress + '/graphql', window.fetch);
         const result = await executor({
           document,
-          operationType: 'query',
+          // GraphQL 15 & 16 compat
+          operationType: 'query' as any,
         });
         const results = [];
         for await (const currentResult of result as any) {
