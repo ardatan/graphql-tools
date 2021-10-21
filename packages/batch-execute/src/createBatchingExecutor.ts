@@ -39,7 +39,6 @@ function createLoadFn(
     execBatches.push(currentBatch);
 
     const operationAst = getOperationASTFromRequest(request);
-    assertSome(operationAst, `No operation found ${request.operationName}`);
     const operationType = operationAst.operation;
 
     if (operationType == null) {
@@ -49,8 +48,7 @@ function createLoadFn(
     while (++index < requests.length) {
       const currentRequest = requests[index];
       const currentOperationAST = getOperationASTFromRequest(currentRequest);
-      assertSome(currentOperationAST, `No operation found ${currentRequest.operationName}`);
-      const currentOperationType = operationAst.operation;
+      const currentOperationType = currentOperationAST.operation;
 
       if (operationType === currentOperationType) {
         currentBatch.push(currentRequest);
