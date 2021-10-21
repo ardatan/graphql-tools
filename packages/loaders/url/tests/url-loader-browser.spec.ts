@@ -4,7 +4,7 @@ import fs from 'fs';
 import http from 'http';
 import puppeteer from 'puppeteer';
 import type { UrlLoader } from '../src';
-import { parse } from 'graphql';
+import { OperationTypeNode, parse } from 'graphql';
 
 describe('[url-loader] webpack bundle compat', () => {
   let httpServer: http.Server;
@@ -153,8 +153,7 @@ describe('[url-loader] webpack bundle compat', () => {
         const executor = loader.buildHTTPExecutor(httpAddress + '/graphql', window.fetch);
         const result = await executor({
           document,
-          // GraphQL 15 & 16 compat
-          operationType: 'query' as any,
+          operationType: 'query' as OperationTypeNode,
         });
         return result;
       },
@@ -207,7 +206,7 @@ describe('[url-loader] webpack bundle compat', () => {
         const result = await executor({
           document,
           // GraphQL 15 & 16 compat
-          operationType: 'query' as any,
+          operationType: 'query' as OperationTypeNode,
         });
         const results = [];
         for await (const currentResult of result as any) {
@@ -256,7 +255,7 @@ describe('[url-loader] webpack bundle compat', () => {
         const result = await executor({
           document,
           // GraphQL 15 & 16 compat
-          operationType: 'query' as any,
+          operationType: 'query' as OperationTypeNode,
         });
         const results = [];
         for await (const currentResult of result as any) {
