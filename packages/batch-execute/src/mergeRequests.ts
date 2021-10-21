@@ -13,10 +13,9 @@ import {
   VariableNode,
   InlineFragmentNode,
   FieldNode,
-  getOperationAST,
 } from 'graphql';
 
-import { assertSome, ExecutionRequest } from '@graphql-tools/utils';
+import { ExecutionRequest, getOperationASTFromRequest } from '@graphql-tools/utils';
 
 import { createPrefix } from './prefix';
 
@@ -84,8 +83,7 @@ export function mergeRequests(
   }
 
   const firstRequest = requests[0];
-  const firstOperationAst = getOperationAST(firstRequest.document, firstRequest.operationName);
-  assertSome(firstOperationAst, 'Could not find operation definition');
+  const firstOperationAst = getOperationASTFromRequest(firstRequest);
   const mergedOperationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
     operation: firstOperationAst.operation,

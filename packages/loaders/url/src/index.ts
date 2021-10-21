@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 /// <reference lib="dom" />
-import { print, IntrospectionOptions, GraphQLError, buildASTSchema, buildSchema, getOperationAST } from 'graphql';
+import { print, IntrospectionOptions, GraphQLError, buildASTSchema, buildSchema } from 'graphql';
 
 import {
   AsyncExecutor,
@@ -13,7 +13,7 @@ import {
   isAsyncIterable,
   ExecutionRequest,
   parseGraphQLSDL,
-  assertSome,
+  getOperationASTFromRequest,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
@@ -275,14 +275,8 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       wss: 'https',
       ws: 'http',
     });
-    const executor = ({
-      document,
-      variables,
-      operationName,
-      extensions,
-    }: ExecutionRequest<any, any, any, ExecutionExtensions>) => {
-      const operationAst = getOperationAST(document, operationName);
-      assertSome(operationAst, `No operation found ${operationName}`);
+    const executor = (request: ExecutionRequest<any, any, any, ExecutionExtensions>) => {
+      const operationAst = getOperationASTFromRequest(request);
       const operationType = operationAst.operation;
       const controller = new AbortController();
       let method = defaultMethod;
@@ -294,13 +288,19 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         }
       }
 
-      const headers = Object.assign({}, options?.headers, extensions?.headers || {});
+      const headers = Object.assign({}, options?.headers, request.extensions?.headers || {});
 
       return new ValueOrPromise(() => {
-        const query = print(document);
+        const query = print(request.document);
         switch (method) {
           case 'GET':
-            const finalUrl = this.prepareGETUrl({ baseUrl: endpoint, query, variables, operationName, extensions });
+            const finalUrl = this.prepareGETUrl({
+              baseUrl: endpoint,
+              query,
+              variables: request.variables,
+              operationName: request.operationName,
+              extensions: request.extensions,
+            });
             return fetch(finalUrl, {
               method: 'GET',
               credentials: 'include',
@@ -312,7 +312,12 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           case 'POST':
             if (options?.multipart) {
               return new ValueOrPromise(() =>
-                this.createFormDataFromVariables({ query, variables, operationName, extensions })
+                this.createFormDataFromVariables({
+                  query,
+                  variables: request.variables,
+                  operationName: request.operationName,
+                  extensions: request.extensions,
+                })
               )
                 .then(
                   form =>
@@ -334,9 +339,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                 credentials: 'include',
                 body: JSON.stringify({
                   query,
-                  variables,
-                  operationName,
-                  extensions,
+                  variables: request.variables,
+                  operationName: request.operationName,
+                  extensions: request.extensions,
                 }),
                 headers: {
                   accept: 'application/json, multipart/mixed, text/event-stream',
@@ -555,18 +560,15 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     const subscriptionsEndpoint = options?.subscriptionsEndpoint || endpoint;
     const subscriptionExecutor = await this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, options);
 
-    return params => {
-      const operationAst = getOperationAST(params.document, params.operationName);
-      if (!operationAst) {
-        throw new Error(`No valid operations found: ${params.operationName || ''}`);
-      }
+    return request => {
+      const operationAst = getOperationASTFromRequest(request);
       if (
         operationAst.operation === 'subscription' ||
-        isLiveQueryOperationDefinitionNode(operationAst, params.variables as Record<string, any>)
+        isLiveQueryOperationDefinitionNode(operationAst, request.variables as Record<string, any>)
       ) {
-        return subscriptionExecutor(params);
+        return subscriptionExecutor(request);
       }
-      return httpExecutor(params);
+      return httpExecutor(request);
     };
   }
 

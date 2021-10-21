@@ -47,3 +47,4 @@ export * from './collectFields';
 export * from './inspect';
 export * from './memoize';
 export * from './fixSchemaAst';
+export * from './getOperationASTFromRequest';

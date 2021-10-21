@@ -24,7 +24,7 @@ import {
   isAsyncIterable,
   getDefinedRootType,
   memoize1,
-  assertSome,
+  getOperationASTFromRequest,
 } from '@graphql-tools/utils';
 
 import {
@@ -209,17 +209,16 @@ function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): 
 }
 
 export const createDefaultExecutor = memoize1(function createDefaultExecutor(schema: GraphQLSchema): Executor {
-  return function defaultExecutor({ document, context, variables, rootValue, operationName }: ExecutionRequest) {
+  return function defaultExecutor(request: ExecutionRequest) {
+    const operationAst = getOperationASTFromRequest(request);
     const executionArgs: ExecutionArgs = {
       schema,
-      document,
-      contextValue: context,
-      variableValues: variables,
-      rootValue,
-      operationName,
+      document: request.document,
+      contextValue: request.context,
+      variableValues: request.variables,
+      rootValue: request.rootValue,
+      operationName: request.operationName,
     };
-    const operationAst = getOperationAST(document, operationName);
-    assertSome(operationAst, `No operation found ${operationName}`);
     if (operationAst.operation === 'subscription') {
       return subscribe(executionArgs);
     }
