@@ -24,7 +24,6 @@ import { extractFiles, isExtractableFile } from 'extract-files';
 import FormData from 'form-data';
 import { ConnectionParamsOptions, SubscriptionClient as LegacySubscriptionClient } from 'subscriptions-transport-ws';
 import AbortController from 'abort-controller';
-import _ from 'lodash';
 import { ValueOrPromise } from 'value-or-promise';
 import { isLiveQueryOperationDefinitionNode } from '@n1ru4l/graphql-live-query';
 import { AsyncFetchFn, defaultAsyncFetch } from './defaultAsyncFetch';
