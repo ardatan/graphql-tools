@@ -1,12 +1,6 @@
 import DataLoader from 'dataloader';
 
-import {
-  Executor,
-  ExecutionRequest,
-  ExecutionResult,
-  assertSome,
-  getOperationASTFromRequest,
-} from '@graphql-tools/utils';
+import { Executor, ExecutionRequest, ExecutionResult, getOperationASTFromRequest } from '@graphql-tools/utils';
 
 import { mergeRequests } from './mergeRequests';
 import { splitResult } from './splitResult';
