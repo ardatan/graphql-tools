@@ -1,5 +1,4 @@
 import { Source, AggregateError } from '@graphql-tools/utils';
-import { env } from 'process';
 import { LoadTypedefsOptions } from '../load-typedefs';
 
 export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Source[]> {
@@ -14,7 +13,7 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
           const loaderResults = await loader.load(pointer, options);
           loaderResults?.forEach(result => results!.push(result));
         } catch (error: any) {
-          if (env['DEBUG']) {
+          if (process?.env['DEBUG']) {
             console.error(error);
           }
           if (error instanceof AggregateError) {
@@ -59,7 +58,7 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Sou
         const loaderResults = loader.loadSync!(pointer, options);
         loaderResults?.forEach(result => results!.push(result));
       } catch (error: any) {
-        if (env['DEBUG']) {
+        if (process?.env['DEBUG']) {
           console.error(error);
         }
         if (error instanceof AggregateError) {

@@ -1,5 +1,4 @@
 import { DocumentNode, DefinitionNode, Kind } from 'graphql';
-import { env } from 'process';
 
 /**
  * @internal
@@ -20,7 +19,7 @@ export const filterKind = (
     }
 
     if (invalidDefinitions.length > 0) {
-      if (env['DEBUG']) {
+      if (process?.env['DEBUG']) {
         for (const d of invalidDefinitions) {
           console.log(`Filtered document of kind ${d.kind} due to filter policy (${filterKinds.join(', ')})`);
         }

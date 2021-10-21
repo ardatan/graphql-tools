@@ -1,14 +1,35 @@
 import { createRequire } from 'module';
-import { join as joinPaths } from 'path';
+import { isAbsolute, join, join as joinPaths } from 'path';
 
-export function getCustomLoaderByPath(path: string, cwd: string) {
+export async function getCustomLoaderByPath(pathExpression: string, cwd: string) {
   try {
-    const requireFn = createRequire(joinPaths(cwd, 'noop.js'));
-    const requiredModule = requireFn(path);
+    const [modulePath, exportName = 'default'] = pathExpression.split('#');
+    const absoluteFilePath = isAbsolute(modulePath) ? modulePath : join(cwd, modulePath);
+    const requiredModule = await import(absoluteFilePath);
 
     if (requiredModule) {
-      if (requiredModule.default && typeof requiredModule.default === 'function') {
-        return requiredModule.default;
+      if (requiredModule[exportName] && typeof requiredModule[exportName] === 'function') {
+        return requiredModule[exportName];
+      }
+
+      if (typeof requiredModule === 'function') {
+        return requiredModule;
+      }
+    }
+  } catch (e: any) {}
+
+  return null;
+}
+
+export function getCustomLoaderByPathSync(pathExpression: string, cwd: string) {
+  try {
+    const [modulePath, exportName = 'default'] = pathExpression.split('#');
+    const requireFn = createRequire(joinPaths(cwd, 'noop.js'));
+    const requiredModule = requireFn(modulePath);
+
+    if (requiredModule) {
+      if (requiredModule[exportName] && typeof requiredModule[exportName] === 'function') {
+        return requiredModule[exportName];
       }
 
       if (typeof requiredModule === 'function') {
