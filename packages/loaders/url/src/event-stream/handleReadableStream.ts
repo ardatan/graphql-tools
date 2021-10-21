@@ -1,3 +1,5 @@
+// Based on https://github.com/Azure/fetch-event-source/blob/main/src/parse.ts
+
 const enum ControlChars {
   NewLine = 10,
   CarriageReturn = 13,

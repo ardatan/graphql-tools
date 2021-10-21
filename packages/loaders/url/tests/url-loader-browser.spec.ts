@@ -1,10 +1,10 @@
-import webpack from 'webpack';
+import webpack, { Stats } from 'webpack';
 import path from 'path';
 import fs from 'fs';
 import http from 'http';
 import puppeteer from 'puppeteer';
 import type * as UrlLoaderModule from '../src';
-import { OperationTypeNode, parse } from 'graphql';
+import { ExecutionResult, OperationTypeNode, parse } from 'graphql';
 
 describe('[url-loader] webpack bundle compat', () => {
   let httpServer: http.Server;
@@ -17,10 +17,11 @@ describe('[url-loader] webpack bundle compat', () => {
 
   beforeAll(async () => {
     // bundle webpack js
-    await new Promise<void>((resolve, reject) => {
+    const stats = await new Promise<Stats | undefined>((resolve, reject) => {
       webpack(
         {
-          entry: path.resolve(__dirname, '..', 'dist', 'index.mjs'),
+          mode: 'development',
+          entry: path.resolve(__dirname, '..', 'src', 'index.ts'),
           output: {
             path: path.resolve(__dirname),
             filename: 'webpack.js',
@@ -28,18 +29,34 @@ describe('[url-loader] webpack bundle compat', () => {
             library: 'GraphQLToolsUrlLoader',
             umdNamedDefine: true,
           },
+          module: {
+            rules: [
+              {
+                test: /\.tsx?$/,
+                loader: 'babel-loader',
+                options: require('../../../../babel.config.js')
+              }
+            ]
+          },
           plugins: [
             new webpack.DefinePlugin({
               setImmediate: 'setTimeout',
             }),
           ],
+          resolve: {
+            extensions: ['.ts', '.tsx', '.js'],
+          }
         },
-        err => {
+        (err, stats) => {
           if (err) return reject(err);
-          resolve();
+          resolve(stats);
         }
       );
     });
+
+    if (stats?.hasErrors()) {
+      console.error(stats.toString({ colors: true }));
+    }
 
     httpServer = http.createServer((req, res) => {
       if (req.method === 'GET' && req.url === '/') {
@@ -121,16 +138,17 @@ describe('[url-loader] webpack bundle compat', () => {
   it('can be used for executing a basic http query operation', async () => {
     page = await browser.newPage();
     await page.goto(httpAddress);
+    const expectedData = {
+      data: {
+        foo: true,
+      },
+    };
     graphqlHandler = (_req, res) => {
       res.writeHead(200, {
         'Content-Type': 'application/json',
       });
       res.write(
-        JSON.stringify({
-          data: {
-            foo: true,
-          },
-        })
+        JSON.stringify(expectedData)
       );
       res.end();
     };
@@ -154,13 +172,7 @@ describe('[url-loader] webpack bundle compat', () => {
       httpAddress,
       document as any
     );
-    expect(result).toMatchInlineSnapshot(`
-      Object {
-        "data": Object {
-          "foo": true,
-        },
-      }
-    `);
+    expect(result).toStrictEqual(expectedData);
   });
 
   it('handles executing a operation using multipart responses', async () => {
@@ -221,6 +233,11 @@ describe('[url-loader] webpack bundle compat', () => {
     page = await browser.newPage();
     await page.goto(httpAddress);
 
+    const expectedDatas = [
+      { data: { foo: true } },
+      { data: { foo: false } }
+    ]
+
     graphqlHandler = async (_req, res) => {
       res.writeHead(200, {
         "Content-Type": "text/event-stream",
@@ -229,11 +246,11 @@ describe('[url-loader] webpack bundle compat', () => {
         "Cache-Control": "no-cache",
       });
 
-      await new Promise(resolve => setTimeout(resolve, 300));
-      res.write(`data: ${JSON.stringify({ data: { foo: true } })}\n\n`);
-      await new Promise(resolve => setTimeout(resolve, 300));
-      res.write(`data: ${JSON.stringify({ data: { foo: false } })}\n\n`);
-      await new Promise(resolve => setTimeout(resolve, 300));
+      for (const data of expectedDatas) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
 
       res.end();
     };
@@ -257,17 +274,14 @@ describe('[url-loader] webpack bundle compat', () => {
           operationType: 'subscription' as OperationTypeNode,
         });
         const results = [];
-        for await (const currentResult of result as any) {
-          results.push(JSON.parse(JSON.stringify(currentResult)));
+        for await (const currentResult of result as AsyncIterable<ExecutionResult>) {
+          results.push(currentResult);
         }
         return results;
       },
       httpAddress,
       document as any
     );
-    expect(result).toEqual([
-      { data: { foo: true } },
-      { data: { foo: false } }
-    ]);
+    expect(result).toStrictEqual(expectedDatas);
   });
 });
