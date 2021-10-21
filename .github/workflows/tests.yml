@@ -125,45 +125,24 @@ jobs:
       - name: Test ESM
         run: node scripts/test-esm.mjs
   test_browser:
-    name: Browser Test on Node ${{matrix.node_version}} (${{matrix.os}}) and GraphQL v${{matrix.graphql_version}}
-    runs-on: ${{matrix.os}}
-    strategy:
-      matrix:
-        os: [ubuntu-latest] # remove windows to speed up the tests
-        node_version: [12, '16.8.0']
-        graphql_version:
-          - 14
-          - 15
-          - 16.0.0-rc.5
-        include:
-          - node_version: 14
-            os: windows-latest
-            graphql_version: 15
+    name: Browser Test
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
       - name: Use Node
         uses: actions/setup-node@master
         with:
-          node-version: ${{ matrix.node_version }}
+          node-version: 16
       - name: Cache Yarn
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-yarn-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-16-16-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-yarn
-      - name: Use GraphQL v${{matrix.graphql_version}}
-        run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
+            ${{ runner.os }}-16-16-yarn
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
-      - name: Cache Jest
-        uses: actions/cache@v2
-        with:
-          path: .cache/jest
-          key: ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-jest-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-${{matrix.node_version}}-${{matrix.graphql_version}}-jest-
       - name: Build Packages
         run: yarn build
       - name: Test
