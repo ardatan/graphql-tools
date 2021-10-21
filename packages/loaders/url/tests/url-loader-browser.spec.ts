@@ -21,8 +21,6 @@ describe('[url-loader] webpack bundle compat', () => {
     await new Promise<void>((resolve, reject) => {
       webpack(
         {
-          devtool: 'nosources-source-map',
-          mode: 'development',
           entry: path.resolve(__dirname, '..', 'dist', 'index.mjs'),
           output: {
             path: path.resolve(__dirname),
