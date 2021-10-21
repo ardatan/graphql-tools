@@ -1,5 +1,11 @@
 # @graphql-tools/mock
 
+## 8.4.1
+
+### Patch Changes
+
+- 99319bea: fix(mock): MockStore.has should be true if key is present without data
+
 ## 8.4.0
 
 ### Minor Changes
