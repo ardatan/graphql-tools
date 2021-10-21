@@ -5,7 +5,7 @@ import { meros as merosIncomingMessage } from 'meros/node';
 import { meros as merosReadableStream } from 'meros/browser';
 import { IncomingMessage } from 'http';
 import { mapAsyncIterator } from '@graphql-tools/utils';
-import _ from 'lodash';
+import { dset } from 'dset/merge';
 
 interface ExecutionPatchResult<TData = { [key: string]: any }, TExtensions = { [key: string]: any }> {
   errors?: ReadonlyArray<GraphQLError>;
@@ -53,7 +53,7 @@ export async function handleMultipartMixedResponse(response: Response) {
       if (chunk.path) {
         if (chunk.data) {
           const path: Array<string | number> = ['data'];
-          _.set(executionResult, path.concat(chunk.path), chunk.data);
+          dset(executionResult, path.concat(chunk.path), chunk.data);
         }
         if (chunk.errors) {
           executionResult.errors = (executionResult.errors || []).concat(chunk.errors);
