@@ -6,8 +6,8 @@ import puppeteer from 'puppeteer';
 import type * as UrlLoaderModule from '../src';
 import { ExecutionResult, OperationTypeNode, parse } from 'graphql';
 
-if (process.env['TEST_BROWSER']) {
-  describe('[url-loader] webpack bundle compat', () => {
+describe('[url-loader] webpack bundle compat', () => {
+  if (process.env['TEST_BROWSER']) {
     let httpServer: http.Server;
     let browser: puppeteer.Browser;
     let page: puppeteer.Page | undefined;
@@ -273,5 +273,7 @@ if (process.env['TEST_BROWSER']) {
       );
       expect(result).toStrictEqual(expectedDatas);
     });
-  });
-}
+  } else {
+    it('dummy', () => {});
+  }
+});
