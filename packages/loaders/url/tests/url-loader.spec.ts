@@ -544,8 +544,8 @@ input TestInput {
       it("should handle helix multipart response result", async () => {
         const chunkDatas = [
           { data: { foo: {} }, hasNext: true },
-          { data: { a: 1 }, path: ["foo"] },
-          { data: { a: 1, b: 2 }, path: ["foo"] }
+          { data: { a: 1 }, path: ["foo"], hasNext: true },
+          { data: { a: 1, b: 2 }, path: ["foo"], hasNext: false }
         ];
         const expectedDatas: ExecutionResult[] = [
           {
