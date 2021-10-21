@@ -13,6 +13,7 @@ describe('[url-loader] webpack bundle compat', () => {
   const port = 8712;
   const httpAddress = 'http://localhost:8712';
   const webpackBundlePath = path.resolve(__dirname, 'webpack.js');
+  const webpackBundlePathSourceMap = path.resolve(__dirname, 'webpack.js.map');
   let graphqlHandler: http.RequestListener | undefined;
 
   beforeAll(async () => {
@@ -20,6 +21,8 @@ describe('[url-loader] webpack bundle compat', () => {
     await new Promise<void>((resolve, reject) => {
       webpack(
         {
+          devtool: 'nosources-source-map',
+          mode: 'development',
           entry: path.resolve(__dirname, '..', 'dist', 'index.mjs'),
           output: {
             path: path.resolve(__dirname),
@@ -28,13 +31,8 @@ describe('[url-loader] webpack bundle compat', () => {
             library: 'GraphQLToolsUrlLoader',
             umdNamedDefine: true,
           },
-          optimization: {
-            minimize: false,
-          },
           plugins: [
             new webpack.DefinePlugin({
-              'process.env.NODE_ENV': JSON.stringify('production'),
-              'process.env.NODE_DEBUG': 'undefined',
               setImmediate: 'setTimeout',
             }),
           ],
@@ -62,6 +60,19 @@ describe('[url-loader] webpack bundle compat', () => {
           </html>
         `);
         res.end();
+        return;
+      }
+
+      if (req.method === 'GET' && req.url === '/webpack.js.map') {
+        const stat = fs.statSync(webpackBundlePathSourceMap);
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'Content-Length': stat.size,
+        });
+
+        const readStream = fs.createReadStream(webpackBundlePathSourceMap);
+        readStream.pipe(res);
+
         return;
       }
 
@@ -234,8 +245,11 @@ describe('[url-loader] webpack bundle compat', () => {
         "Cache-Control": "no-cache",
       });
 
-      res.write(`data: ${JSON.stringify({ data: { foo: true }})}\n\n`)
-      res.write(`data: ${JSON.stringify({ data: { foo: false }})}\n\n`)
+      await new Promise(resolve => setTimeout(resolve, 300));
+      res.write(`data: ${JSON.stringify({ data: { foo: true } })}\n\n`);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      res.write(`data: ${JSON.stringify({ data: { foo: false } })}\n\n`);
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       res.end();
     };
