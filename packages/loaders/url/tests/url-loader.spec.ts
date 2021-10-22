@@ -619,8 +619,7 @@ input TestInput {
         const expectedDatas: ExecutionResult[] = [
           { data: { foo: 1 } },
           { data: { foo: 2 } },
-          { data: { foo: 3 } },
-          { data: { foo: 4 } }
+          { data: { foo: 3 } }
         ];
         const serverPort = 1336;
         const serverHost = "http://localhost:" + serverPort;
@@ -656,7 +655,8 @@ input TestInput {
         const sentDatas: ExecutionResult[] = [
           { data: { foo: 1 } },
           { data: { foo: 2 } },
-          { data: { foo: 3 } }
+          { data: { foo: 3 } },
+          { data: { foo: 4 } }
         ];
         const serverPort = 1336;
         const serverHost = "http://localhost:" + serverPort;
