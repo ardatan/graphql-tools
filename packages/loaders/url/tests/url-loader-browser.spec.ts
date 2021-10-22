@@ -215,7 +215,7 @@ describe('[url-loader] webpack bundle compat', () => {
       ]);
     });
 
-    it('stops SSE subscription operations', async () => {
+    it('handles SSE subscription operations', async () => {
       page = await browser.newPage();
       await page.goto(httpAddress);
 
@@ -268,7 +268,7 @@ describe('[url-loader] webpack bundle compat', () => {
       );
       expect(result).toStrictEqual(expectedDatas);
     });
-    it('handles SSE subscription operations', async () => {
+    it('stops SSE subscription operations', async () => {
       page = await browser.newPage();
       await page.goto(httpAddress);
 
