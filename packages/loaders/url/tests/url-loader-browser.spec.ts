@@ -215,7 +215,7 @@ describe('[url-loader] webpack bundle compat', () => {
       ]);
     });
 
-    it('handles SSE subscription operations', async () => {
+    it('stops SSE subscription operations', async () => {
       page = await browser.newPage();
       await page.goto(httpAddress);
 
@@ -267,6 +267,64 @@ describe('[url-loader] webpack bundle compat', () => {
         document as any
       );
       expect(result).toStrictEqual(expectedDatas);
+    });
+    it('handles SSE subscription operations', async () => {
+      page = await browser.newPage();
+      await page.goto(httpAddress);
+
+      const sentDatas = [
+        { data: { foo: true } },
+        { data: { foo: false } },
+        { data: { foo: true } }
+      ]
+
+      graphqlHandler = async (_req, res) => {
+        res.writeHead(200, {
+          "Content-Type": "text/event-stream",
+          // prettier-ignore
+          "Connection": "keep-alive",
+          "Cache-Control": "no-cache",
+        });
+
+        for (const data of sentDatas) {
+          await new Promise(resolve => setTimeout(resolve, 300));
+          res.write(`data: ${JSON.stringify(data)}\n\n`);
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+
+        res.end();
+      };
+
+      const document = parse(/* GraphQL */ `
+      subscription {
+        foo
+      }
+    `);
+
+      const result = await page.evaluate(
+        async (httpAddress, document) => {
+          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const loader = new module.UrlLoader();
+          const executor = await loader.getExecutorAsync(httpAddress + '/graphql', {
+            subscriptionsProtocol: module.SubscriptionProtocol.SSE
+          });
+          const result = await executor({
+            document,
+          }) as AsyncIterableIterator<ExecutionResult>;
+          const results = [];
+          for await (const currentResult of result) {
+            results.push(currentResult);
+            if (results.length === 2) {
+              await result.return!();
+            }
+          }
+          return results;
+        },
+        httpAddress,
+        document as any
+      );
+
+      expect(result).toStrictEqual(sentDatas.slice(0, 2));
     });
   } else {
     it('dummy', () => {});

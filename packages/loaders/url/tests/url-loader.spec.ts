@@ -619,7 +619,8 @@ input TestInput {
         const expectedDatas: ExecutionResult[] = [
           { data: { foo: 1 } },
           { data: { foo: 2 } },
-          { data: { foo: 3 } }
+          { data: { foo: 3 } },
+          { data: { foo: 4 } }
         ];
         const serverPort = 1336;
         const serverHost = "http://localhost:" + serverPort;
@@ -650,7 +651,49 @@ input TestInput {
         for await (const singleResult of result) {
           expect(singleResult).toStrictEqual(expectedDatas.shift()!);
         }
-        expect(expectedDatas.length).toBe(0);
+      })
+      it("should be able to stop SSE subscription correctly", async () => {
+        const sentDatas: ExecutionResult[] = [
+          { data: { foo: 1 } },
+          { data: { foo: 2 } },
+          { data: { foo: 3 } }
+        ];
+        const serverPort = 1336;
+        const serverHost = "http://localhost:" + serverPort;
+
+        let serverResponse: http.ServerResponse;
+        httpServer = http.createServer((_, res) => {
+          serverResponse = res;
+          res.writeHead(200, {
+            "Content-Type": "text/event-stream",
+            // prettier-ignore
+            "Connection": "keep-alive",
+            "Cache-Control": "no-cache",
+          });
+
+          sentDatas.forEach(result => sleep(300).then(() => res.write(`data: ${JSON.stringify(result)}\n\n`)));
+
+          sleep(1000).then(() => res.end());
+        });
+
+        await new Promise<void>((resolve) => httpServer.listen(serverPort, () => resolve()));
+
+        const executor = await loader.getExecutorAsync(`${serverHost}/graphql`, {
+          subscriptionsProtocol: SubscriptionProtocol.SSE
+        });
+        const result = await executor({
+          document: parse(/* GraphQL */ ` subscription { foo } `)
+        })
+        assertAsyncIterable(result)
+
+        const firstResult = await result.next();
+        expect(firstResult.value).toStrictEqual(sentDatas[0]);
+        const secondResult = await result.next();
+        expect(secondResult.value).toStrictEqual(sentDatas[1]);
+        // Stop the request
+        await result.return!();
+        const doneResult = await result.next();
+        expect(doneResult).toStrictEqual({ done: true, value: undefined });
       })
     })
   });
