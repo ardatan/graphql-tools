@@ -662,9 +662,8 @@ input TestInput {
         const serverPort = 1336;
         const serverHost = "http://localhost:" + serverPort;
 
-        let serverResponse: http.ServerResponse;
+        let serverResponseEnded$: Promise<boolean>;
         httpServer = http.createServer((_, res) => {
-          serverResponse = res;
           res.writeHead(200, {
             "Content-Type": "text/event-stream",
             // prettier-ignore
@@ -673,8 +672,7 @@ input TestInput {
           });
 
           sentDatas.forEach(result => sleep(300).then(() => res.write(`data: ${JSON.stringify(result)}\n\n`)));
-
-          sleep(1000).then(() => res.end());
+          serverResponseEnded$ = new Promise(resolve => res.once('close', () => resolve(true)));
         });
 
         await new Promise<void>((resolve) => httpServer.listen(serverPort, () => resolve()));
@@ -695,6 +693,7 @@ input TestInput {
         await result.return!();
         const doneResult = await result.next();
         expect(doneResult).toStrictEqual({ done: true, value: undefined });
+        expect(await serverResponseEnded$!).toBe(true);
       })
     })
   });

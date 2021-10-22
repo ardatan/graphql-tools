@@ -291,8 +291,6 @@ describe('[url-loader] webpack bundle compat', () => {
           res.write(`data: ${JSON.stringify(data)}\n\n`);
           await new Promise(resolve => setTimeout(resolve, 300));
         }
-
-        res.end();
       };
 
       const document = parse(/* GraphQL */ `
