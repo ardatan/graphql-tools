@@ -650,6 +650,7 @@ input TestInput {
         for await (const singleResult of result) {
           expect(singleResult).toStrictEqual(expectedDatas.shift()!);
         }
+        expect(expectedDatas.length).toBe(0);
       })
       it("should be able to stop SSE subscription correctly", async () => {
         const sentDatas: ExecutionResult[] = [
