@@ -268,7 +268,7 @@ describe('[url-loader] webpack bundle compat', () => {
       );
       expect(result).toStrictEqual(expectedDatas);
     });
-    it('stops SSE subscription operations', async () => {
+    it('terminates SSE subscriptions when calling return on the AsyncIterable', async () => {
       page = await browser.newPage();
       await page.goto(httpAddress);
 

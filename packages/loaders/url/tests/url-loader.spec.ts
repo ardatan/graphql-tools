@@ -652,7 +652,7 @@ input TestInput {
         }
         expect(expectedDatas.length).toBe(0);
       })
-      it("should be able to stop SSE subscription correctly", async () => {
+      it("terminates SSE subscriptions when calling return on the AsyncIterable", async () => {
         const sentDatas: ExecutionResult[] = [
           { data: { foo: 1 } },
           { data: { foo: 2 } },
