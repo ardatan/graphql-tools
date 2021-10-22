@@ -278,6 +278,8 @@ describe('[url-loader] webpack bundle compat', () => {
         { data: { foo: true } }
       ]
 
+      let responseClosed$: Promise<boolean>;
+
       graphqlHandler = async (_req, res) => {
         res.writeHead(200, {
           "Content-Type": "text/event-stream",
@@ -286,11 +288,14 @@ describe('[url-loader] webpack bundle compat', () => {
           "Cache-Control": "no-cache",
         });
 
+        responseClosed$ = new Promise(resolve => res.once('close', () => resolve(true)));
+
         for (const data of sentDatas) {
           await new Promise(resolve => setTimeout(resolve, 300));
           res.write(`data: ${JSON.stringify(data)}\n\n`);
           await new Promise(resolve => setTimeout(resolve, 300));
         }
+
       };
 
       const document = parse(/* GraphQL */ `
@@ -321,6 +326,8 @@ describe('[url-loader] webpack bundle compat', () => {
         httpAddress,
         document as any
       );
+
+      expect(await responseClosed$!).toStrictEqual(true);
 
       expect(result).toStrictEqual(sentDatas.slice(0, 2));
     });
