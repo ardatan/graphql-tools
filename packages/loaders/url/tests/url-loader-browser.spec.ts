@@ -327,7 +327,7 @@ describe('[url-loader] webpack bundle compat', () => {
         document as any
       );
 
-      expect(await responseClosed$!).toStrictEqual(true);
+      expect(await responseClosed$!).toBe(true);
 
       expect(result).toStrictEqual(sentDatas.slice(0, 2));
     });
