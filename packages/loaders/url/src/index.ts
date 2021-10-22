@@ -276,49 +276,47 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       ws: 'http',
     });
     const executor = (request: ExecutionRequest<any, any, any, ExecutionExtensions>) => {
-      const operationAst = getOperationASTFromRequest(request);
-      const operationType = operationAst.operation;
       const controller = new AbortController();
       let method = defaultMethod;
+
       if (options?.useGETForQueries) {
+        const operationAst = getOperationASTFromRequest(request);
+        const operationType = operationAst.operation;
         if (operationType === 'query') {
           method = 'GET';
-        } else {
-          method = defaultMethod;
         }
       }
 
       const headers = Object.assign({}, options?.headers, request.extensions?.headers || {});
+      const accept = 'application/json, multipart/mixed, text/event-stream';
+
+      const query = print(request.document);
+      const requestBody = {
+        query,
+        variables: request.variables,
+        operationName: request.operationName,
+        extensions: request.extensions,
+      };
 
       return new ValueOrPromise(() => {
-        const query = print(request.document);
         switch (method) {
           case 'GET':
             const finalUrl = this.prepareGETUrl({
               baseUrl: endpoint,
-              query,
-              variables: request.variables,
-              operationName: request.operationName,
-              extensions: request.extensions,
+              ...requestBody,
             });
             return fetch(finalUrl, {
               method: 'GET',
               credentials: 'include',
               headers: {
-                accept: 'application/json',
+                accept,
                 ...headers,
               },
+              signal: controller.signal,
             });
           case 'POST':
             if (options?.multipart) {
-              return new ValueOrPromise(() =>
-                this.createFormDataFromVariables({
-                  query,
-                  variables: request.variables,
-                  operationName: request.operationName,
-                  extensions: request.extensions,
-                })
-              )
+              return new ValueOrPromise(() => this.createFormDataFromVariables(requestBody))
                 .then(
                   form =>
                     fetch(HTTP_URL, {
@@ -326,7 +324,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                       credentials: 'include',
                       body: form as any,
                       headers: {
-                        accept: 'application/json',
+                        accept,
                         ...headers,
                       },
                       signal: controller.signal,
@@ -337,14 +335,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
               return fetch(HTTP_URL, {
                 method: 'POST',
                 credentials: 'include',
-                body: JSON.stringify({
-                  query,
-                  variables: request.variables,
-                  operationName: request.operationName,
-                  extensions: request.extensions,
-                }),
+                body: JSON.stringify(requestBody),
                 headers: {
-                  accept: 'application/json, multipart/mixed, text/event-stream',
+                  accept,
                   'content-type': 'application/json',
                   ...headers,
                 },
