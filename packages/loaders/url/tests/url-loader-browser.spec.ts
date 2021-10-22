@@ -268,6 +268,69 @@ describe('[url-loader] webpack bundle compat', () => {
       );
       expect(result).toStrictEqual(expectedDatas);
     });
+    it('terminates SSE subscriptions when calling return on the AsyncIterable', async () => {
+      page = await browser.newPage();
+      await page.goto(httpAddress);
+
+      const sentDatas = [
+        { data: { foo: true } },
+        { data: { foo: false } },
+        { data: { foo: true } }
+      ]
+
+      let responseClosed$: Promise<boolean>;
+
+      graphqlHandler = async (_req, res) => {
+        res.writeHead(200, {
+          "Content-Type": "text/event-stream",
+          // prettier-ignore
+          "Connection": "keep-alive",
+          "Cache-Control": "no-cache",
+        });
+
+        responseClosed$ = new Promise(resolve => res.once('close', () => resolve(true)));
+
+        for (const data of sentDatas) {
+          await new Promise(resolve => setTimeout(resolve, 300));
+          res.write(`data: ${JSON.stringify(data)}\n\n`);
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+
+      };
+
+      const document = parse(/* GraphQL */ `
+      subscription {
+        foo
+      }
+    `);
+
+      const result = await page.evaluate(
+        async (httpAddress, document) => {
+          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const loader = new module.UrlLoader();
+          const executor = await loader.getExecutorAsync(httpAddress + '/graphql', {
+            subscriptionsProtocol: module.SubscriptionProtocol.SSE
+          });
+          const result = await executor({
+            document,
+          }) as AsyncIterableIterator<ExecutionResult>;
+          const results = [];
+          for await (const currentResult of result) {
+            results.push(currentResult);
+            if (results.length === 2) {
+              await result.return!();
+            }
+          }
+          return results;
+        },
+        httpAddress,
+        document as any
+      );
+
+      expect(await responseClosed$!).toBe(true);
+
+      expect(result).toStrictEqual(sentDatas.slice(0, 2));
+    });
   } else {
     it('dummy', () => {});
   }

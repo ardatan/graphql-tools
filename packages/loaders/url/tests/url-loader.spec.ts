@@ -652,6 +652,49 @@ input TestInput {
         }
         expect(expectedDatas.length).toBe(0);
       })
+      it("terminates SSE subscriptions when calling return on the AsyncIterable", async () => {
+        const sentDatas: ExecutionResult[] = [
+          { data: { foo: 1 } },
+          { data: { foo: 2 } },
+          { data: { foo: 3 } },
+          { data: { foo: 4 } }
+        ];
+        const serverPort = 1336;
+        const serverHost = "http://localhost:" + serverPort;
+
+        let serverResponseEnded$: Promise<boolean>;
+        httpServer = http.createServer((_, res) => {
+          res.writeHead(200, {
+            "Content-Type": "text/event-stream",
+            // prettier-ignore
+            "Connection": "keep-alive",
+            "Cache-Control": "no-cache",
+          });
+
+          sentDatas.forEach(result => sleep(300).then(() => res.write(`data: ${JSON.stringify(result)}\n\n`)));
+          serverResponseEnded$ = new Promise(resolve => res.once('close', () => resolve(true)));
+        });
+
+        await new Promise<void>((resolve) => httpServer.listen(serverPort, () => resolve()));
+
+        const executor = await loader.getExecutorAsync(`${serverHost}/graphql`, {
+          subscriptionsProtocol: SubscriptionProtocol.SSE
+        });
+        const result = await executor({
+          document: parse(/* GraphQL */ ` subscription { foo } `)
+        })
+        assertAsyncIterable(result)
+
+        const firstResult = await result.next();
+        expect(firstResult.value).toStrictEqual(sentDatas[0]);
+        const secondResult = await result.next();
+        expect(secondResult.value).toStrictEqual(sentDatas[1]);
+        // Stop the request
+        await result.return!();
+        const doneResult = await result.next();
+        expect(doneResult).toStrictEqual({ done: true, value: undefined });
+        expect(await serverResponseEnded$!).toBe(true);
+      })
     })
   });
 });
