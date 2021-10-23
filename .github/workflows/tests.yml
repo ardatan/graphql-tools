@@ -16,14 +16,14 @@ jobs:
       - name: Use Node
         uses: actions/setup-node@master
         with:
-          node-version: 16
+          node-version: '16.8.0'
       - name: Cache Yarn
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-16-15-yarn-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-16.8.0-15-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-16-15-yarn
+            ${{ runner.os }}-16.8.0-15-yarn
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Lint
@@ -36,21 +36,21 @@ jobs:
         graphql_version:
           - 14
           - 15
-          - 16.0.0-rc.5
+          - 16.0.0-rc.6
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
       - name: Use Node
         uses: actions/setup-node@master
         with:
-          node-version: 16
+          node-version: '16.8.0'
       - name: Cache Yarn
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-16-${{matrix.graphql_version}}-yarn-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-16.8.0-${{matrix.graphql_version}}-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-16-${{matrix.graphql_version}}-yarn
+            ${{ runner.os }}-16.8.0-${{matrix.graphql_version}}-yarn
       - name: Use GraphQL v${{matrix.graphql_version}}
         run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
       - name: Install Dependencies using Yarn
@@ -67,7 +67,7 @@ jobs:
         graphql_version:
           - 14
           - 15
-          - 16.0.0-rc.5
+          - 16.0.0-rc.6
         include:
           - node_version: 14
             os: windows-latest
@@ -133,14 +133,14 @@ jobs:
       - name: Use Node
         uses: actions/setup-node@master
         with:
-          node-version: 16
+          node-version: '16.8.0'
       - name: Cache Yarn
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
-          key: ${{ runner.os }}-16-16-yarn-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-16.8.0-15-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-16-16-yarn
+            ${{ runner.os }}-16.8.0-15-yarn
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Build Packages
