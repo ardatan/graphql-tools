@@ -1,10 +1,9 @@
-import { createRequire } from 'module';
-import { isAbsolute, join, join as joinPaths } from 'path';
+import { joinPaths, isAbsolutePath } from '@graphql-tools/utils';
 
 export async function getCustomLoaderByPath(pathExpression: string, cwd: string) {
   try {
     const [modulePath, exportName = 'default'] = pathExpression.split('#');
-    const absoluteFilePath = isAbsolute(modulePath) ? modulePath : join(cwd, modulePath);
+    const absoluteFilePath = isAbsolutePath(modulePath) ? modulePath : joinPaths(cwd, modulePath);
     const requiredModule = await import(absoluteFilePath);
 
     if (requiredModule) {
@@ -16,7 +15,9 @@ export async function getCustomLoaderByPath(pathExpression: string, cwd: string)
         return requiredModule;
       }
     }
-  } catch (e: any) {}
+  } catch (e: any) {
+    console.log(e);
+  }
 
   return null;
 }
@@ -24,8 +25,8 @@ export async function getCustomLoaderByPath(pathExpression: string, cwd: string)
 export function getCustomLoaderByPathSync(pathExpression: string, cwd: string) {
   try {
     const [modulePath, exportName = 'default'] = pathExpression.split('#');
-    const requireFn = createRequire(joinPaths(cwd, 'noop.js'));
-    const requiredModule = requireFn(modulePath);
+    const absoluteFilePath = isAbsolutePath(modulePath) ? modulePath : joinPaths(cwd, modulePath);
+    const requiredModule = require(absoluteFilePath);
 
     if (requiredModule) {
       if (requiredModule[exportName] && typeof requiredModule[exportName] === 'function') {
@@ -36,7 +37,9 @@ export function getCustomLoaderByPathSync(pathExpression: string, cwd: string) {
         return requiredModule;
       }
     }
-  } catch (e: any) {}
+  } catch (e: any) {
+    console.log(e);
+  }
 
   return null;
 }
