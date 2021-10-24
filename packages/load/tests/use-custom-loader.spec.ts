@@ -1,9 +1,9 @@
 import { getCustomLoaderByPath, getCustomLoaderByPathSync } from "../src/utils/custom-loader"
 
-[
+([
   ['async', getCustomLoaderByPath],
   ['sync', getCustomLoaderByPathSync]
-].forEach(([prefix, getCustomLoaderByPath]) => {
+] as const).forEach(([prefix, getCustomLoaderByPath]) => {
   describe('getCustomLoaderByPath - ' + prefix, () => {
     it("can load a custom loader from a file path", async () => {
       const loader = await getCustomLoaderByPath("./custom-loader.js", __dirname)
