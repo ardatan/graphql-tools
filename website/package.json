@@ -44,7 +44,7 @@
     "@guild-docs/client": "1.1.2",
     "@guild-docs/server": "2.0.2",
     "@mdx-js/react": "1.6.22",
-    "@theguild/components": "1.6.0",
+    "@theguild/components": "1.7.0",
     "framer-motion": "4.1.17",
     "next": "11.1.2",
     "next-i18next": "8.9.0",
