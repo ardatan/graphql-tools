@@ -42,7 +42,7 @@
     "mock-socket": "9.0.6",
     "puppeteer": "10.4.0",
     "babel-loader": "8.2.3",
-    "webpack": "5.59.1"
+    "webpack": "5.60.0"
   },
   "dependencies": {
     "@graphql-tools/delegate": "^8.4.0",
