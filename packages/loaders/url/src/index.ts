@@ -20,7 +20,6 @@ import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
 import { ClientOptions as GraphQLSSEClientOptions, createClient as createGraphQLSSEClient } from 'graphql-sse';
 import WebSocket from 'isomorphic-ws';
-import isPromise from 'is-promise';
 import { extractFiles, isExtractableFile } from 'extract-files';
 import FormData from 'form-data';
 import { ConnectionParamsOptions, SubscriptionClient as LegacySubscriptionClient } from 'subscriptions-transport-ws';
@@ -119,6 +118,10 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Additional options to pass to the graphql-sse client.
    */
   graphqlSseOptions?: Omit<GraphQLSSEClientOptions, 'url' | 'headers' | 'fetchFn' | 'abortControllerImpl'>;
+  /**
+   * Fetch SDL with Apollo Federation introspection query
+   */
+  federation?: boolean;
 }
 
 const isCompatibleUri = (uri: string): boolean => {
@@ -166,13 +169,16 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     const { clone, files } = extractFiles(
       vars,
       'variables',
-      ((v: any) => isExtractableFile(v) || v?.promise || isAsyncIterable(v) || isPromise(v)) as any
+      ((v: any) => isExtractableFile(v) || v?.promise || isAsyncIterable(v) || v?.then) as any
     );
-    const map = Array.from(files.values()).reduce((prev, curr, currIndex) => {
-      prev[currIndex] = curr;
-      return prev;
-    }, {});
-    const uploads: Map<number | string, any> = new Map(Array.from(files.keys()).map((u, i) => [i, u]));
+    const map: Record<number, string[]> = {};
+    const uploads: any[] = [];
+    let currIndex = 0;
+    for (const [file, curr] of files) {
+      map[currIndex] = curr;
+      uploads[currIndex] = file;
+      currIndex++;
+    }
     const form = new FormData();
     form.append(
       'operations',
@@ -185,28 +191,22 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     );
     form.append('map', JSON.stringify(map));
     return ValueOrPromise.all(
-      Array.from(uploads.entries()).map(params =>
-        new ValueOrPromise(() => {
-          const [i, u$] = params as any;
-          return new ValueOrPromise(() => u$).then(u => [i, u]).resolve();
-        }).then(([i, u]) => {
-          if (u?.promise) {
+      uploads.map((u$, i) =>
+        new ValueOrPromise(() => u$).then(u => {
+          const indexStr = i.toString();
+          if (u != null && 'promise' in u) {
             return u.promise.then((upload: any) => {
               const stream = upload.createReadStream();
-              form.append(i.toString(), stream, {
+              form.append(indexStr, stream, {
                 filename: upload.filename,
                 contentType: upload.mimetype,
-              } as any);
+              });
             });
           } else {
-            form.append(
-              i.toString(),
-              u as any,
-              {
-                filename: 'name' in u ? u['name'] : i,
-                contentType: u.type,
-              } as any
-            );
+            form.append(indexStr, u, {
+              filename: u.name || u.path || indexStr,
+              contentType: u.type,
+            });
           }
         })
       )
