@@ -1,5 +1,15 @@
 # @graphql-tools/prisma-loader
 
+## 7.1.1
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [981eef80]
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/url-loader@7.4.2
+  - @graphql-tools/utils@8.5.1
+
 ## 7.1.0
 
 ### Minor Changes

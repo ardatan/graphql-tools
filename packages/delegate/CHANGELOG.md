@@ -1,5 +1,15 @@
 # @graphql-tools/delegate
 
+## 8.4.1
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/batch-execute@8.3.1
+  - @graphql-tools/schema@8.3.1
+  - @graphql-tools/utils@8.5.1
+
 ## 8.4.0
 
 ### Minor Changes

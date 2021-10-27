@@ -1,5 +1,15 @@
 # @graphql-tools/node-require
 
+## 6.3.1
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/load@7.4.1
+  - @graphql-tools/graphql-file-loader@7.3.2
+  - @graphql-tools/utils@8.5.1
+
 ## 6.3.0
 
 ### Minor Changes

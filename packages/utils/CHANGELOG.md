@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.5.1
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+
 ## 8.5.0
 
 ### Minor Changes

@@ -1,5 +1,14 @@
 # @graphql-tools/git-loader
 
+## 7.1.2
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/graphql-tag-pluck@7.1.3
+  - @graphql-tools/utils@8.5.1
+
 ## 7.1.1
 
 ### Patch Changes
