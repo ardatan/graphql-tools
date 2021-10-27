@@ -1,5 +1,11 @@
 # @graphql-tools/load-files
 
+## 6.5.2
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+
 ## 6.5.1
 
 ### Patch Changes

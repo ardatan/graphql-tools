@@ -1,5 +1,13 @@
 # @graphql-tools/jest-transform
 
+## 1.1.1
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/webpack-loader@6.6.1
+
 ## 1.1.0
 
 ### Minor Changes

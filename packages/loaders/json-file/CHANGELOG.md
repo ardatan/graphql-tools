@@ -1,5 +1,13 @@
 # @graphql-tools/json-file-loader
 
+## 7.3.2
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/utils@8.5.1
+
 ## 7.3.1
 
 ### Patch Changes
