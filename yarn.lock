@@ -2122,10 +2122,10 @@
     unified "^10.1.0"
     unist-util-remove "^3.1.0"
 
-"@guild-docs/server@2.0.4":
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-2.0.4.tgz#8b8891d21acf46ae5db0a30b2f7a5eee29d18b5a"
-  integrity sha512-AnC1H+SWtnA7LoHQJIplrJ8zDJRtVoZVJvjrEuDYArNecFppJblCKG1Z1hjNhfvH0lZFns4SHPGiYsFK/jYYoQ==
+"@guild-docs/server@2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-2.1.0.tgz#932e3234c22a72b61f1e43a6d53feadd0f822e57"
+  integrity sha512-8lCSRwK3PIXErlI44VhhcQzpWnrZQ4fLJQn5fhR43ogDF+FExe/S2u8MyzdWtpb+xeBXghALCAB7zXNM9CvM4Q==
   dependencies:
     "@guild-docs/mdx-remote" "^1.0.0"
     "@guild-docs/types" "^1.0.3"
