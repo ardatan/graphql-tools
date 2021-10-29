@@ -48,7 +48,7 @@
     "@graphql-tools/delegate": "^8.4.1",
     "@graphql-tools/utils": "^8.5.1",
     "@graphql-tools/wrap": "^8.3.1",
-    "@n1ru4l/graphql-live-query": "0.8.1",
+    "@n1ru4l/graphql-live-query": "0.8.2",
     "@types/websocket": "1.0.4",
     "@types/ws": "^8.0.0",
     "abort-controller": "3.0.0",
