@@ -2102,10 +2102,10 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.0.tgz#0eee6373e11418bfe0b5638f654df7a4ca6a3950"
   integrity sha512-wYn6r8zVZyQJ6rQaALBEln5B1pzxb9shV5Ef97kTvn6yVGrqyXVnDqnU24MXnFubR+rZjBY9NWuxX3FB2sTsjg==
 
-"@guild-docs/client@1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.2.0.tgz#f5292a39817b78bb768834ac04e1fcf973c6b1b2"
-  integrity sha512-PIclS6Fssv2vXXHtiuGhexmJgDQ1eihfy/+bLkdvS1WSjqykX99gwU0eXiWwLe5QxB0jfHMv9AmE7Ii78Mjmvg==
+"@guild-docs/client@1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.2.1.tgz#3c325beb383cc2a1c304a878cb9c3c6cbfa60ec3"
+  integrity sha512-io0evzi/pBE+b3SRnpWgCkRK7fzYqOFEdrRGowBaGJxwsB7RXL2D3zsDEEMKn0NSXueDFmxKJ6T6Aavce56x9w==
   dependencies:
     "@guild-docs/mdx-remote" "^1.0.0"
     "@guild-docs/types" "^1.0.3"
@@ -2117,7 +2117,7 @@
     react-use "^17.3.1"
     remove-markdown "^0.3.0"
     use-immer "^0.6.0"
-    zustand "^3.6.1"
+    zustand "^3.6.2"
 
 "@guild-docs/mdx-remote@^1.0.0":
   version "1.0.0"
@@ -12797,10 +12797,10 @@ zen-observable@0.8.15:
   resolved "https://registry.yarnpkg.com/zen-observable/-/zen-observable-0.8.15.tgz#96415c512d8e3ffd920afd3889604e30b9eaac15"
   integrity sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==
 
-zustand@^3.6.1:
-  version "3.6.1"
-  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.6.1.tgz#d309074dd632ca7b14e20353e5c55274e3d72eda"
-  integrity sha512-2ghTWZhOx3xUK7drIa/1fVbuzyG70XKfCXIATrRBFDPcRRV4V/9uptNOKgyCvPwCDYgLpla4EtFbXNbdLpfPcw==
+zustand@^3.6.2:
+  version "3.6.2"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.6.2.tgz#76bd927c8f82c14d7aae9f592323371b583e564a"
+  integrity sha512-Jw+tM8T3koFjwLLj8ihlYcMqp3nHfpRNOrc/qqwFhmVp7nmrBD/N73bEb5cjveFKNQtAt+7n2S+gnIbhrV/4qA==
 
 zwitch@^1.0.0:
   version "1.0.5"
