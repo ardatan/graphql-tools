@@ -1,0 +1,17 @@
+diff --git a/node_modules/apollo-graphql/lib/schema/buildSchemaFromSDL.js b/node_modules/apollo-graphql/lib/schema/buildSchemaFromSDL.js
+index 56d2b8e..4343b6e 100644
+--- a/node_modules/apollo-graphql/lib/schema/buildSchemaFromSDL.js
++++ b/node_modules/apollo-graphql/lib/schema/buildSchemaFromSDL.js
+@@ -17,10 +17,8 @@ const skippedSDLRules = [
+     validation_1.UniqueDirectivesPerLocationRule
+ ];
+ try {
+-    const PossibleTypeExtensions = require("graphql/validation/rules/PossibleTypeExtensions")
+-        .PossibleTypeExtensions;
+-    if (PossibleTypeExtensions) {
+-        skippedSDLRules.push(PossibleTypeExtensions);
++    if (validation_1.PossibleTypeExtensionsRule) {
++        skippedSDLRules.push(validation_1.PossibleTypeExtensionsRule);
+     }
+ }
+ catch (e) {
