@@ -39,7 +39,7 @@
     "@types/extract-files": "8.1.1",
     "graphql-upload": "12.0.0",
     "mock-http": "1.1.0",
-    "mock-socket": "9.0.6",
+    "mock-socket": "9.0.7",
     "puppeteer": "10.4.0",
     "babel-loader": "8.2.3",
     "webpack": "5.61.0"
