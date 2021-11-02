@@ -212,8 +212,9 @@ describe('printSchemaWithDirectives', () => {
 
     const output = printSchemaWithDirectives(schema);
 
-    if ('specifiedByUrl' in GraphQLJSON) {
-      expect(output).toContain(`scalar JSON @specifiedBy(url: "${(GraphQLJSON as any).specifiedByUrl}")`);
+    const specifiedByValue = ((GraphQLJSON as any)['specifiedByUrl'] || (GraphQLJSON as any)['specifiedByURL']) as string;
+    if (specifiedByValue) {
+      expect(output).toContain(`scalar JSON @specifiedBy(url: "${specifiedByValue}")`);
     } else {
       expect(output).toContain('scalar JSON');
     }
