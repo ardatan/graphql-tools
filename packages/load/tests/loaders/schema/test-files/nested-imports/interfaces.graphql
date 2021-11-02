@@ -1,0 +1,19 @@
+interface Animal {
+  legs: Int!
+}
+
+type Cat implements Animal {
+  color: String!
+  legs: Int!
+}
+
+type Dog implements Animal {
+  legs: Int!
+  type: String!
+}
+
+union Pet = Cat | Dog
+
+type Foo {
+  pet: Pet
+}
