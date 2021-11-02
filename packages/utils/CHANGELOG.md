@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.5.2
+
+### Patch Changes
+
+- 233e0379: fix(utils): respect new specifiedByURL of GraphQL v16
+
 ## 8.5.1
 
 ### Patch Changes
