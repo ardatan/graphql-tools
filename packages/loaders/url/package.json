@@ -52,7 +52,7 @@
     "@n1ru4l/graphql-live-query": "0.8.2",
     "@types/websocket": "1.0.4",
     "@types/ws": "^8.0.0",
-    "cross-undici-fetch": "0.0.18",
+    "cross-undici-fetch": "0.0.19",
     "dset": "^3.1.0",
     "extract-files": "11.0.0",
     "graphql-sse": "^1.0.1",
