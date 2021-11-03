@@ -129,24 +129,24 @@
   resolved "https://registry.yarnpkg.com/@apollo/core-schema/-/core-schema-0.1.0.tgz#a9444f60deaded118657eb3373ddd64ced9ba0cd"
   integrity sha512-BwOWRnDLj1Y3mMdfjdcv8/h7jcfVnUqb+LfpWRX3siXWtGCGsrg+OTj0l7M7uJGOnN6ZM0XJyY9Pk5Lisb7q6Q==
 
-"@apollo/federation@0.33.3", "@apollo/federation@^0.33.3":
-  version "0.33.3"
-  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.33.3.tgz#07710308c1a097c3aaee53759860751f6fff82e3"
-  integrity sha512-+BRJW1Kf7im86CWPQEdocXQTyPUH132MMoMCXuRvM4F1idb5EldqRkFNM8y9IAYNnbHsthmIWlrqmkuYg+irGQ==
+"@apollo/federation@0.33.6", "@apollo/federation@^0.33.6":
+  version "0.33.6"
+  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.33.6.tgz#cd9fd983fdc6d007f4a09b085126845368feb525"
+  integrity sha512-RF72EtX4ofRyDz8p2ZBVLGQsO0LGgScFB7zS+pGLq1zuixQY5h71VYH7BvdUk8Ae6C7zkCG6IS+aUuhr4aABMQ==
   dependencies:
-    "@apollo/subgraph" "^0.1.2"
+    "@apollo/subgraph" "^0.1.4"
     apollo-graphql "^0.9.3"
     apollo-server-types "^3.0.2"
     lodash.xorby "^4.7.0"
 
-"@apollo/gateway@0.42.3":
-  version "0.42.3"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.42.3.tgz#783db6d775cbd725b6d73c3c8f2acf41dcd14301"
-  integrity sha512-xJoY/wIv/LmsqcbPEEYgaGhzo/Ok8Ce1GFZJRigpmjCCsm0TFmWWgXRQ14RbtUi0TzCBdOcnSh1NfaJYpHgAdQ==
+"@apollo/gateway@0.43.1":
+  version "0.43.1"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.43.1.tgz#af53302279ec00089796f37bae9c4fea131848f0"
+  integrity sha512-HqiFCAKpiThtoV9Phz6FBA5v9sZk632a4tcdZHtI0DHKRGEYfANp+tGxh+YyfvqCy5EAT+WL8d49A+B8KSAUpg==
   dependencies:
     "@apollo/core-schema" "^0.1.0"
-    "@apollo/federation" "^0.33.3"
-    "@apollo/query-planner" "^0.5.1"
+    "@apollo/federation" "^0.33.6"
+    "@apollo/query-planner" "^0.6.0"
     "@opentelemetry/api" "^1.0.1"
     "@types/node-fetch" "2.5.12"
     apollo-graphql "^0.9.3"
@@ -179,20 +179,20 @@
     "@types/node" "^10.1.0"
     long "^4.0.0"
 
-"@apollo/query-planner@^0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-0.5.1.tgz#6b8e3dce2104a03166d7b9e787a0b9948abd72f9"
-  integrity sha512-oIohoBu12UBt2YP1bh+iR2BekNQS8fvA2rjA7JPA+WLiQvzpz646B2ix0WepFf8a8oig7cYFx8aRVj8qQYRUdg==
+"@apollo/query-planner@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-0.6.0.tgz#6aef343cfc094706a86c996ed0af94ca50369587"
+  integrity sha512-sxI8qgFFq2MCi7pX3yuorqVvLd7xYuFlUJz7LRtfNLy7oMRPz0NWljnw2qp5ztMweDlJsDBGBm6wOKz9gGHjNA==
   dependencies:
     apollo-graphql "^0.9.3"
     chalk "^4.1.0"
     deep-equal "^2.0.5"
     pretty-format "^26.0.0"
 
-"@apollo/subgraph@^0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-0.1.2.tgz#ea2e9c46a88012c22a2cd696f4e0f4b4c4608eb1"
-  integrity sha512-vrPtpayvJkLdqc/iLjhXi+W9HQ+Avnb2a8ylaZb0lsm9p0y1H5QxNDhC3SHhdYRvBnNeqgxE+OGYG1rHldMQIQ==
+"@apollo/subgraph@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-0.1.4.tgz#21ca21ea74f54f39533b5e08e92069704c6b529b"
+  integrity sha512-G1N/sXZIHeX27tf+7lefEwVZFNYzdARe+pD597U5opfM1Gs1mYwRySfOdm1QkcItYG+EmTcSOuUJ5bNbvW0IUg==
   dependencies:
     apollo-graphql "^0.9.3"
 
@@ -6732,10 +6732,10 @@ graphql-sse@^1.0.1:
   resolved "https://registry.yarnpkg.com/graphql-sse/-/graphql-sse-1.0.1.tgz#d263a8077865b06eaf1b074204683d72a92a5e25"
   integrity sha512-CByxV9oKmUv/k9tlv8Bg/Hn9CcRlfsRQnU5YKI7Z2MfMckLBrXKq6Y1ln9GZh81Id/n5YV4O4X+p+QUHCu24sQ==
 
-graphql-subscriptions@1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/graphql-subscriptions/-/graphql-subscriptions-1.2.1.tgz#2142b2d729661ddf967b7388f7cf1dd4cf2e061d"
-  integrity sha512-95yD/tKi24q8xYa7Q9rhQN16AYj5wPbrb8tmHGM3WRc9EBmWrG/0kkMl+tQG8wcEuE9ibR4zyOM31p5Sdr2v4g==
+graphql-subscriptions@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/graphql-subscriptions/-/graphql-subscriptions-2.0.0.tgz#11ec181d475852d8aec879183e8e1eb94f2eb79a"
+  integrity sha512-s6k2b8mmt9gF9pEfkxsaO1lTxaySfKoEJzEfmwguBbQ//Oq23hIXCfR1hm4kdh5hnR20RdwB+s3BCb+0duHSZA==
   dependencies:
     iterall "^1.3.0"
 
