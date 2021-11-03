@@ -1,5 +1,11 @@
 # @graphql-tools/apollo-engine-loader
 
+## 7.2.1
+
+### Patch Changes
+
+- ef9c3853: fix: bump Node <v16.5 compatible version
+
 ## 7.2.0
 
 ### Minor Changes

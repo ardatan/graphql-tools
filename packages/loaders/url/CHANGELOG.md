@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.5.1
+
+### Patch Changes
+
+- ef9c3853: fix: bump Node <v16.5 compatible version
+
 ## 7.5.0
 
 ### Minor Changes
