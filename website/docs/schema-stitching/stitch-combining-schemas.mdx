@@ -112,7 +112,7 @@ To include a remote schema in the combined gateway, you must provide at least th
 
 ```js
 import { introspectSchema } from '@graphql-tools/wrap';
-import { fetch } from 'cross-fetch';
+import { fetch } from 'cross-undici-fetch';
 import { print } from 'graphql';
 
 async function remoteExecutor({ document, variables }) {

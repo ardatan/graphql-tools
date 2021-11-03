@@ -6,7 +6,7 @@ import express, { Express } from 'express';
 import { graphqlHTTP } from 'express-graphql';
 import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
 import FormData from 'form-data';
-import { fetch } from 'cross-fetch';
+import fetch from 'node-fetch';
 import { buildSchema } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -52,7 +52,7 @@ function testGraphqlMultipartRequest(query: string, port: number) {
 
   return fetch(`http://localhost:${port.toString()}`, {
     method: 'POST',
-    body: (body as unknown) as BodyInit,
+    body,
   });
 }
 

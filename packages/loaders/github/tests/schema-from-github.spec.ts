@@ -1,6 +1,6 @@
 import { printSchema, buildSchema, parse, print } from 'graphql';
 import { GithubLoader } from '../src';
-import nock from 'nock'
+import { Response } from 'sync-fetch';
 
 const owner = 'kamilkisiela';
 const name = 'graphql-inspector-example';
@@ -24,48 +24,50 @@ const typeDefs = /* GraphQL */`
 `;
 
 function normalize(doc: string): string {
-    return print(parse(doc));
+  return print(parse(doc));
 }
 
-function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | undefined>{
+function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | undefined> {
   if (input == null) {
     throw new Error("Value should be neither null nor undefined.")
   }
 }
 
-test('load schema from GitHub', async () => {
+test('load schema from GitHub', () => {
   let params: any = null;
-
-  const server = nock('https://api.github.com').post('/graphql').reply(function reply(_, body: any) {
-    params = {
-      headers: this.req.headers,
-      query: body.query,
-      variables: body.variables,
-      operationName: body.operationName
-    }
-
-    return [200, {
-      data: {
-        repository: {
-          object: {
-            text: typeDefs
-          }
-        }
-      }
-    }];
-  });
 
   const loader = new GithubLoader();
 
-  const [source] = await loader.load(pointer, {
+  const [source] = loader.loadSync(pointer, {
     token,
+    customFetch: (url: RequestInfo, options?: RequestInit) => {
+      expect(url.toString()).toBe(`https://api.github.com/graphql`);
+      expect(options?.method).toBe('POST');
+      const body = JSON.parse(options?.body?.toString() || '{}')
+      params = {
+        headers: options?.headers,
+        query: body.query,
+        variables: body.variables,
+        operationName: body.operationName
+      }
+      return new Response(JSON.stringify({
+        data: {
+          repository: {
+            object: {
+              text: typeDefs
+            }
+          }
+        }
+      }));
+    }
   });
-
-  server.done();
 
   assertNonMaybe(params);
 
   // headers
+  console.log({
+    params
+  })
   expect(params.headers['content-type']).toContain('application/json; charset=utf-8');
   expect(params.headers.authorization).toContain(`bearer ${token}`);
 

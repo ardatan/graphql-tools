@@ -1,7 +1,8 @@
 import { Loader, parseGraphQLSDL, parseGraphQLJSON, BaseLoaderOptions, Source } from '@graphql-tools/utils';
-import { fetch } from 'cross-fetch';
-import { GraphQLTagPluckOptions, gqlPluckFromCodeString } from '@graphql-tools/graphql-tag-pluck';
+import { GraphQLTagPluckOptions, gqlPluckFromCodeStringSync } from '@graphql-tools/graphql-tag-pluck';
 import { parse } from 'graphql';
+import syncFetch from 'sync-fetch';
+import asyncFetch from 'cross-undici-fetch';
 
 // github:owner/name#ref:path/to/file
 function extractData(pointer: string): {
@@ -34,6 +35,7 @@ export interface GithubLoaderOptions extends BaseLoaderOptions {
    * Additional options to pass to `graphql-tag-pluck`
    */
   pluckConfig?: GraphQLTagPluckOptions;
+  customFetch?: typeof asyncFetch | typeof syncFetch;
 }
 
 /**
@@ -48,11 +50,11 @@ export interface GithubLoaderOptions extends BaseLoaderOptions {
  */
 export class GithubLoader implements Loader<GithubLoaderOptions> {
   async canLoad(pointer: string) {
-    return typeof pointer === 'string' && pointer.toLowerCase().startsWith('github:');
+    return this.canLoadSync(pointer);
   }
 
-  canLoadSync() {
-    return false;
+  canLoadSync(pointer: string) {
+    return typeof pointer === 'string' && pointer.toLowerCase().startsWith('github:');
   }
 
   async load(pointer: string, options: GithubLoaderOptions): Promise<Source[]> {
@@ -60,34 +62,27 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
       return [];
     }
     const { owner, name, ref, path } = extractData(pointer);
-    const request = await fetch('https://api.github.com/graphql', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        Authorization: `bearer ${options.token}`,
-      },
-      body: JSON.stringify({
-        query: `
-          query GetGraphQLSchemaForGraphQLtools($owner: String!, $name: String!, $expression: String!) {
-            repository(owner: $owner, name: $name) {
-              object(expression: $expression) {
-                ... on Blob {
-                  text
-                }
-              }
-            }
-          }
-        `,
-        variables: {
-          owner,
-          name,
-          expression: ref + ':' + path,
-        },
-        operationName: 'GetGraphQLSchemaForGraphQLtools',
-      }),
-    });
+    const fetch = options.customFetch || asyncFetch;
+    const request = await fetch(
+      'https://api.github.com/graphql',
+      this.prepareRequest({ owner, ref, path, name, options })
+    );
     const response = await request.json();
+    return this.handleResponse({ pointer, path, options, response });
+  }
 
+  loadSync(pointer: string, options: GithubLoaderOptions): Source[] {
+    if (!this.canLoadSync(pointer)) {
+      return [];
+    }
+    const { owner, name, ref, path } = extractData(pointer);
+    const fetch = options.customFetch || syncFetch;
+    const request = fetch('https://api.github.com/graphql', this.prepareRequest({ owner, ref, path, name, options }));
+    const response = request.json();
+    return this.handleResponse({ pointer, path, options, response });
+  }
+
+  handleResponse({ pointer, path, options, response }: { pointer: string; path: string; options: any; response: any }) {
     let errorMessage: string | null = null;
 
     if (response.errors && response.errors.length > 0) {
@@ -111,7 +106,7 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
     }
 
     if (path.endsWith('.tsx') || path.endsWith('.ts') || path.endsWith('.js') || path.endsWith('.jsx')) {
-      const sources = await gqlPluckFromCodeString(pointer, content, options.pluckConfig);
+      const sources = gqlPluckFromCodeStringSync(pointer, content, options.pluckConfig);
       return sources.map(source => ({
         location: pointer,
         document: parse(source, options),
@@ -121,7 +116,44 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
     throw new Error(`Invalid file extension: ${path}`);
   }
 
-  loadSync(): never {
-    throw new Error('Loader GitHub has no sync mode');
+  prepareRequest({
+    owner,
+    ref,
+    path,
+    name,
+    options,
+  }: {
+    owner: string;
+    ref: string;
+    path: string;
+    name: string;
+    options: GithubLoaderOptions;
+  }): RequestInit {
+    return {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        authorization: `bearer ${options.token}`,
+      },
+      body: JSON.stringify({
+        query: `
+          query GetGraphQLSchemaForGraphQLtools($owner: String!, $name: String!, $expression: String!) {
+            repository(owner: $owner, name: $name) {
+              object(expression: $expression) {
+                ... on Blob {
+                  text
+                }
+              }
+            }
+          }
+        `,
+        variables: {
+          owner,
+          name,
+          expression: ref + ':' + path,
+        },
+        operationName: 'GetGraphQLSchemaForGraphQLtools',
+      }),
+    };
   }
 }

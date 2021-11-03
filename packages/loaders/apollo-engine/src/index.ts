@@ -1,5 +1,5 @@
 import { Source, parseGraphQLSDL, AggregateError, BaseLoaderOptions, Loader } from '@graphql-tools/utils';
-import { fetch } from 'cross-fetch';
+import { fetch } from 'cross-undici-fetch';
 import syncFetch from 'sync-fetch';
 
 /**
