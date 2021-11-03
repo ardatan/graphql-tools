@@ -5069,18 +5069,10 @@ cross-spawn@^7.0.1, cross-spawn@^7.0.2, cross-spawn@^7.0.3:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-cross-undici-fetch@0.0.17:
-  version "0.0.17"
-  resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.0.17.tgz#edb70e4dc78d7b22f7ec15922edfa99e975d775e"
-  integrity sha512-zPPsPR/y6KxzrueZ4YFZ08I3bK/KkR7VRoi9Pw+uDxqwy654+UfgDKVloPkYHN8QYLyTBFxqCDGqPvF+ccfyLA==
-  dependencies:
-    node-fetch "^2.6.5"
-    undici "^4.9.3"
-
-cross-undici-fetch@0.0.18:
-  version "0.0.18"
-  resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.0.18.tgz#9964d6b214ecf540d0c7f35b9fa00c31bed6f558"
-  integrity sha512-4xoy51cs1TDucWtZ9UA6GHDLJHoMKD5bBG0pMn4WbtoXdFmJw3JdL5ntz2e72YZ/WJdiWfHs9/8+wSQ80QsFvQ==
+cross-undici-fetch@0.0.19:
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.0.19.tgz#3feb25d72bbf536e194affac138eab55bd72b7e1"
+  integrity sha512-6FToDMNXfNQvnyhXBtjPvNujeHBzwCSXcljFB+MKws8tEmDQvSBU3hyiZVSulQIEpsxn9vIlNh71qmOEmH7fzA==
   dependencies:
     abort-controller "^3.0.0"
     form-data "^4.0.0"
@@ -11292,10 +11284,10 @@ stylis@^4.0.10, stylis@^4.0.3, stylis@^4.0.6:
   resolved "https://registry.yarnpkg.com/stylis/-/stylis-4.0.10.tgz#446512d1097197ab3f02fb3c258358c3f7a14240"
   integrity sha512-m3k+dk7QeJw660eIKRRn3xPF6uuvHs/FFzjX3HQ5ove0qYsiygoAhwn5a3IYKaZPo5LrYD0rfVmtv1gNY1uYwg==
 
-subscriptions-transport-ws@^0.10.0:
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/subscriptions-transport-ws/-/subscriptions-transport-ws-0.10.0.tgz#91fce775b31935e4ca995895a40942268877d23f"
-  integrity sha512-k28LhLn3abJ1mowFW+LP4QGggE0e3hrk55zXbMHyAeZkCUYtC0owepiwqMD3zX8DglQVaxnhE760pESrNSEzpg==
+subscriptions-transport-ws@^0.11.0:
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/subscriptions-transport-ws/-/subscriptions-transport-ws-0.11.0.tgz#baf88f050cba51d52afe781de5e81b3c31f89883"
+  integrity sha512-8D4C6DIH5tGiAIpp5I0wD/xRlNiZAPGHygzCe7VzyzUoxHtawzjNAY9SUTXU05/EY2NMY9/9GF0ycizkXr1CWQ==
   dependencies:
     backo2 "^1.0.2"
     eventemitter3 "^3.1.0"
