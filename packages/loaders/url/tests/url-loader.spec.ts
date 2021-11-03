@@ -432,12 +432,8 @@ input TestInput {
       const subscriptionServer = SubscriptionServer.create(
         {
           schema: testSchema,
-          execute: (schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver) => execute({
-            schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver
-          }),
-          subscribe: (schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver) => subscribe({
-            schema, document, rootValue, contextValue, variableValues, operationName, fieldResolver
-          }),
+          execute,
+          subscribe,
         },
         {
           server: httpServer,
