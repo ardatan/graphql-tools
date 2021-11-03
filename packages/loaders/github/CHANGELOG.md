@@ -1,5 +1,12 @@
 # @graphql-tools/github-loader
 
+## 7.2.0
+
+### Minor Changes
+
+- 41d9a996: enhance: use undici instead of node-fetch if available
+- 41d9a996: feat(github-loader): support sync mode
+
 ## 7.1.1
 
 ### Patch Changes

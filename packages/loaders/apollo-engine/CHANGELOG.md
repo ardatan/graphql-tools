@@ -1,5 +1,11 @@
 # @graphql-tools/apollo-engine-loader
 
+## 7.2.0
+
+### Minor Changes
+
+- 41d9a996: enhance: use undici instead of node-fetch if available
+
 ## 7.1.2
 
 ### Patch Changes

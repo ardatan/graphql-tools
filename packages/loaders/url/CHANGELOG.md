@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.5.0
+
+### Minor Changes
+
+- 41d9a996: enhance: use undici instead of node-fetch if available
+
 ## 7.4.2
 
 ### Patch Changes
