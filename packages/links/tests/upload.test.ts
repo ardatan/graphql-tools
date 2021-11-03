@@ -6,7 +6,7 @@ import express, { Express } from 'express';
 import { graphqlHTTP } from 'express-graphql';
 import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
 import FormData from 'form-data';
-import { fetch } from 'cross-fetch';
+import { fetch } from 'cross-undici-fetch';
 import { buildSchema } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';

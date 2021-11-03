@@ -42,7 +42,7 @@ type Request = {
 Basic usage
 
 ```js
-import { fetch } from 'cross-fetch';
+import { fetch } from 'cross-undici-fetch';
 import { print } from 'graphql';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 
@@ -70,7 +70,7 @@ export default async () => {
 Authentication headers from context
 
 ```js
-import { fetch } from 'cross-fetch';
+import { fetch } from 'cross-undici-fetch';
 import { print } from 'graphql';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 
@@ -108,7 +108,7 @@ For the following example to work, the server must implement the [library's tran
 ```ts
 import { wrapSchema, introspectSchema } from '@graphql-tools/wrap';
 import { Executor } from '@graphql-tools/delegate';
-import { fetch } from 'cross-fetch';
+import { fetch } from 'cross-undici-fetch';
 import { print } from 'graphql';
 import { observableToAsyncIterable } from '@graphql-tools/utils';
 import { createClient } from 'graphql-ws';
@@ -164,7 +164,7 @@ For the following example to work, the server must implement the [GraphQL over S
 ```ts
 import { wrapSchema, introspectSchema } from '@graphql-tools/wrap';
 import { Executor } from '@graphql-tools/delegate';
-import { fetch } from 'cross-fetch';
+import { fetch } from 'cross-undici-fetch';
 import AbortController from 'abort-controller'; // node < v15
 import { observableToAsyncIterable } from '@graphql-tools/utils';
 import { createClient } from 'graphql-sse';

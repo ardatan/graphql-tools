@@ -21,9 +21,7 @@ import { ClientOptions, createClient } from 'graphql-ws';
 import { ClientOptions as GraphQLSSEClientOptions, createClient as createGraphQLSSEClient } from 'graphql-sse';
 import WebSocket from 'isomorphic-ws';
 import { extractFiles, isExtractableFile } from 'extract-files';
-import FormData from 'form-data';
 import { ConnectionParamsOptions, SubscriptionClient as LegacySubscriptionClient } from 'subscriptions-transport-ws';
-import AbortController from 'abort-controller';
 import { ValueOrPromise } from 'value-or-promise';
 import { isLiveQueryOperationDefinitionNode } from '@n1ru4l/graphql-live-query';
 import { AsyncFetchFn, defaultAsyncFetch } from './defaultAsyncFetch';
@@ -31,6 +29,7 @@ import { defaultSyncFetch, SyncFetchFn } from './defaultSyncFetch';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse';
 import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse';
 import { addCancelToResponseStream } from './addCancelToResponseStream';
+import { AbortController, FormData } from 'cross-undici-fetch';
 
 export type FetchFn = AsyncFetchFn | SyncFetchFn;
 
@@ -118,10 +117,6 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Additional options to pass to the graphql-sse client.
    */
   graphqlSseOptions?: Omit<GraphQLSSEClientOptions, 'url' | 'headers' | 'fetchFn' | 'abortControllerImpl'>;
-  /**
-   * Fetch SDL with Apollo Federation introspection query
-   */
-  federation?: boolean;
 }
 
 const isCompatibleUri = (uri: string): boolean => {
@@ -169,7 +164,12 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     const { clone, files } = extractFiles(
       vars,
       'variables',
-      ((v: any) => isExtractableFile(v) || v?.promise || isAsyncIterable(v) || v?.then) as any
+      ((v: any) =>
+        isExtractableFile(v) ||
+        v?.promise ||
+        isAsyncIterable(v) ||
+        v?.then ||
+        typeof v?.arrayBuffer === 'function') as any
     );
     const map: Record<number, string[]> = {};
     const uploads: any[] = [];
@@ -197,16 +197,10 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           if (u != null && 'promise' in u) {
             return u.promise.then((upload: any) => {
               const stream = upload.createReadStream();
-              form.append(indexStr, stream, {
-                filename: upload.filename,
-                contentType: upload.mimetype,
-              });
+              form.append(indexStr, stream, upload.filename);
             });
           } else {
-            form.append(indexStr, u, {
-              filename: u.name || u.path || indexStr,
-              contentType: u.type,
-            });
+            form.append(indexStr, u, u.name || u.path || indexStr);
           }
         })
       )

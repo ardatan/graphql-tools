@@ -1,5 +1,5 @@
 import { Loader, parseGraphQLSDL, parseGraphQLJSON, BaseLoaderOptions, Source } from '@graphql-tools/utils';
-import { fetch } from 'cross-fetch';
+import { fetch } from 'cross-undici-fetch';
 import { GraphQLTagPluckOptions, gqlPluckFromCodeString } from '@graphql-tools/graphql-tag-pluck';
 import { parse } from 'graphql';
 

@@ -70,7 +70,7 @@ A working example can be found in the [Schema Stitching Handbook](https://github
 const { stitchSchemas } = require('@graphql-tools/stitch');
 const { federationToStitchingSDL, stitchingDirectives } = require('@graphql-tools/stitching-directives');
 const { buildSchema, print } = require('graphql');
-const { fetch } = require('cross-fetch');
+const { fetch } = require('cross-undici-fetch');
 const stitchingConfig = stitchingDirectives();
 
 const executor = async ({ document, variables }) => {
