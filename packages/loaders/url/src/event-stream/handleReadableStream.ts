@@ -95,13 +95,16 @@ export async function* handleReadableStream(stream: ReadableStream<Uint8Array>) 
         const line = buffer.subarray(lineStart, lineEnd);
         if (line.length === 0) {
           // empty line denotes end of message. Trigger the callback and start a new message:
-          yield JSON.parse(message.data);
-          message = {
-            data: '',
-            event: '',
-            id: '',
-            retry: undefined,
-          };
+          if (message.event || message.data) {
+            // NOT a server ping (":\n\n")
+            yield JSON.parse(message.data);
+            message = {
+              data: '',
+              event: '',
+              id: '',
+              retry: undefined,
+            };
+          }
         } else if (fieldLength > 0) {
           // exclude comments and lines with no values
           // line is of format "<field>:<value>" or "<field>: <value>"
