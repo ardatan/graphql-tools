@@ -2453,10 +2453,10 @@
   resolved "https://registry.yarnpkg.com/@mdx-js/util/-/util-1.6.22.tgz#219dfd89ae5b97a8801f015323ffa4b62f45718b"
   integrity sha512-H1rQc1ZOHANWBvPcW+JpGwr+juXSxM8Q8YCkm3GhZd8REu1fHR3z99CErO1p9pkcfcxZnMdIZdIsXkOHY0NilA==
 
-"@n1ru4l/graphql-live-query@0.8.2":
-  version "0.8.2"
-  resolved "https://registry.yarnpkg.com/@n1ru4l/graphql-live-query/-/graphql-live-query-0.8.2.tgz#b6e4a256f294f88c616a4c03c323860f803c96e0"
-  integrity sha512-StBuj5gxoVbFx2axvJF6ArnHVqVnibYeekRjO2T1KbUWyR+SbxaqDg9E3Ch9XkJnQAb+7HKW2JSUc+jnuqsXxQ==
+"@n1ru4l/graphql-live-query@0.9.0":
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/@n1ru4l/graphql-live-query/-/graphql-live-query-0.9.0.tgz#defaebdd31f625bee49e6745934f36312532b2bc"
+  integrity sha512-BTpWy1e+FxN82RnLz4x1+JcEewVdfmUhV1C6/XYD5AjS7PQp9QFF7K8bCD6gzPTr2l+prvqOyVueQhFJxB1vfg==
 
 "@napi-rs/triples@1.0.3":
   version "1.0.3"

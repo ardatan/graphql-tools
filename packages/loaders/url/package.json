@@ -49,7 +49,7 @@
     "@graphql-tools/delegate": "^8.4.1",
     "@graphql-tools/utils": "^8.5.1",
     "@graphql-tools/wrap": "^8.3.1",
-    "@n1ru4l/graphql-live-query": "0.8.2",
+    "@n1ru4l/graphql-live-query": "0.9.0",
     "@types/websocket": "1.0.4",
     "@types/ws": "^8.0.0",
     "cross-undici-fetch": "^0.0.20",
