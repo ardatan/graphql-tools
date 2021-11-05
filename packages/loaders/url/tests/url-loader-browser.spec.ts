@@ -290,11 +290,18 @@ describe('[url-loader] webpack bundle compat', () => {
 
         responseClosed$ = new Promise(resolve => res.once('close', () => resolve(true)));
 
+        const ping = setInterval(() => {
+          // Ping
+          res.write(':\n\n');
+        }, 100);
+
         for (const data of sentDatas) {
           await new Promise(resolve => setTimeout(resolve, 300));
           res.write(`data: ${JSON.stringify(data)}\n\n`);
           await new Promise(resolve => setTimeout(resolve, 300));
         }
+
+        clearInterval(ping);
 
       };
 

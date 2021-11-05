@@ -700,8 +700,15 @@ input TestInput {
             "Cache-Control": "no-cache",
           });
 
+          const ping = setInterval(() => {
+            // Ping
+            res.write(':\n\n');
+          }, 50);
           sentDatas.forEach(result => sleep(300).then(() => res.write(`data: ${JSON.stringify(result)}\n\n`)));
-          serverResponseEnded$ = new Promise(resolve => res.once('close', () => resolve(true)));
+          serverResponseEnded$ = new Promise(resolve => res.once('close', () => {
+            resolve(true);
+            clearInterval(ping);
+          }));
         });
 
         await new Promise<void>((resolve) => httpServer.listen(serverPort, () => resolve()));
