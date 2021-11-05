@@ -124,6 +124,18 @@ function visitFile(
       const fileDefinitionMap = visitedFiles.get(filePath);
       if (fileDefinitionMap && !definitionSet.has(definition)) {
         definitionSet.add(definition);
+
+        // Call addDefinition recursively to add all dependent documents
+        if ('name' in definition && definition.name) {
+          const documentName = definition.name.value;
+          const dependencyDefinitionForDocument = allImportedDefinitionsMap.get(documentName);
+          dependencyDefinitionForDocument?.forEach(node => {
+            if (node !== definition) {
+              addDefinition(node, definitionName, definitionSet);
+            }
+          });
+        }
+
         // Regenerate field exports if some fields are imported after visitor
         if ('fields' in definition && definition.fields) {
           for (const field of definition.fields) {
@@ -182,7 +194,14 @@ function visitFile(
                 }
                 const dependencyDefinitionsFromImports = allImportedDefinitionsMap.get(dependencyName);
                 dependencyDefinitionsFromImports?.forEach(dependencyDefinition => {
-                  addDefinition(dependencyDefinition, definitionName, definitionsWithDependencies);
+                  // addDefinition will add recursively all dependent documents for dependencyName document
+                  if (
+                    'name' in dependencyDefinition &&
+                    dependencyDefinition.name &&
+                    dependencyDefinition.name.value === dependencyName
+                  ) {
+                    addDefinition(dependencyDefinition, definitionName, definitionsWithDependencies);
+                  }
                 });
               }
             }
