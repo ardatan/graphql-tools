@@ -8,11 +8,13 @@ export async function* handleReadable(readable: Readable) {
       if (part) {
         const eventStr = part.split('event: ')[1];
         const dataStr = part.split('data: ')[1];
-        const data = JSON.parse(dataStr);
         if (eventStr === 'complete') {
           break outer;
         }
-        yield data.payload || data;
+        if (dataStr) {
+          const data = JSON.parse(dataStr);
+          yield data.payload || data;
+        }
       }
     }
   }
