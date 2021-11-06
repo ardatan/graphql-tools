@@ -62,4 +62,41 @@ describe('import in documents', () => {
         "import-test/default/c.graphql"
       ]);
     })
+
+  it('should import fragment with nested fragments', () => {
+    const document = importDocuments('./import-test/default/d.gql');
+
+    expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
+      query User {
+        user {
+          ...UserFields
+        }
+      }
+
+      fragment UserFields on User {
+        ...AnotherUserFields
+        posts {
+          ...PostFields
+        }
+      }
+
+      fragment AnotherUserFields on User {
+        firstName
+      }
+
+      fragment PostFields on Post {
+        title
+        ...AnotherPostFields
+      }
+
+      fragment AnotherPostFields on Post {
+        content
+        ...YetAnotherPostFields
+      }
+
+      fragment YetAnotherPostFields on Post {
+        content
+      }
+    `);
+  });
 });
