@@ -36,7 +36,7 @@ jobs:
         graphql_version:
           - 14
           - 15
-          - 16.0.0-rc.6
+          - 16
     steps:
       - name: Checkout Master
         uses: actions/checkout@v2
