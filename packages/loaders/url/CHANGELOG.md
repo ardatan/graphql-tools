@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.5.2
+
+### Patch Changes
+
+- 63a29361: fix(url-loader): handle SSE ping event correctly
+
 ## 7.5.1
 
 ### Patch Changes
