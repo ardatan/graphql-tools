@@ -1,5 +1,11 @@
 # @graphql-tools/import
 
+## 6.6.0
+
+### Minor Changes
+
+- 61e00a6d: fix(import): allow import nested fragments
+
 ## 6.5.8
 
 ### Patch Changes
