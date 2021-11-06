@@ -30,7 +30,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "devDependencies": {
-    "graphql-tag": "2.12.5",
+    "graphql-tag": "2.12.6",
     "graphql-type-json": "0.3.2"
   },
   "dependencies": {
