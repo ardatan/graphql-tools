@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/import",
-  "version": "6.5.8",
+  "version": "6.6.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
