@@ -63,7 +63,8 @@ export function introspectSchema(
   )
     .then(introspection => {
       if (isAsyncIterable(introspection)) {
-        return introspection.next().then(({ value }) => value);
+        const iterator = introspection[Symbol.asyncIterator]();
+        return iterator.next().then(({ value }) => value);
       }
       return introspection;
     })

@@ -98,8 +98,9 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
   return new ValueOrPromise(() => executor(processedRequest))
     .then(originalResult => {
       if (isAsyncIterable(originalResult)) {
+        const iterator = originalResult[Symbol.asyncIterator]();
         // "subscribe" to the subscription result and map the result through the transforms
-        return mapAsyncIterator(originalResult, result => transformer.transformResult(result));
+        return mapAsyncIterator(iterator, result => transformer.transformResult(result));
       }
       return transformer.transformResult(originalResult);
     })
