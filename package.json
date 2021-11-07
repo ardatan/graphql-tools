@@ -13,7 +13,7 @@
     "build:api-docs": "node scripts/build-api-docs.js",
     "lint": "eslint --ext .ts .",
     "prettier": "prettier --ignore-path .gitignore --write --list-different \"**/*.{ts,tsx,graphql,yml}\"",
-    "prettier:check": "prettier --ignore-path .gitignore --check \"**/*.{ts,tsx,graphql,yml}\"",
+    "prettier:check": "prettier --ignore-path .gitignore --ignore-path .prettierignore --check \"**/*.{ts,tsx,graphql,yml}\"",
     "test": "jest --no-watchman --forceExit",
     "prerelease": "yarn build",
     "prerelease-canary": "yarn build",
