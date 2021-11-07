@@ -70,13 +70,8 @@ describe('JsonFileLoader', () => {
         expect(result).toEqual([]);
       });
 
-      it('should not raise an error when the glob matches valid and invalid schema files', async () => {
-        const result = await load(getPointer('{type-defs,failing/malformed}.json'), {});
-        expect(result).toBeTruthy();
-      });
-
-      it('should raise an error when the glob matches valid and invalid schema files with `noSilentErrors` set to true', async () => {
-        const result = load(getPointer('{type-defs,failing/malformed}.json'), { noSilentErrors: true });
+      it('should raise an error when the glob matches valid and invalid schema files', async () => {
+        const result = load(getPointer('{type-defs,failing/malformed}.json'), {});
         await expect(result).rejects.toThrow();
       });
     });
