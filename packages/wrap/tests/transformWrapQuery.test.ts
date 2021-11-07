@@ -16,17 +16,17 @@ describe('WrapQuery', () => {
       },
     };
     subschema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
-      type User {
-        id: ID!
-        addressStreetAddress: String
-        addressZip: String
-      }
+      typeDefs: /* GraphQL */ `
+        type User {
+          id: ID!
+          addressStreetAddress: String
+          addressZip: String
+        }
 
-      type Query {
-        userById(id: ID!): User
-      }
-    `,
+        type Query {
+          userById(id: ID!): User
+        }
+      `,
       resolvers: {
         Query: {
           userById(_parent, { id }) {
@@ -36,21 +36,21 @@ describe('WrapQuery', () => {
       },
     });
     schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
-      type User {
-        id: ID!
-        address: Address
-      }
+      typeDefs: /* GraphQL */ `
+        type User {
+          id: ID!
+          address: Address
+        }
 
-      type Address {
-        streetAddress: String
-        zip: String
-      }
+        type Address {
+          streetAddress: String
+          zip: String
+        }
 
-      type Query {
-        addressByUser(id: ID!): Address
-      }
-    `,
+        type Query {
+          addressByUser(id: ID!): Address
+        }
+      `,
       resolvers: {
         Query: {
           addressByUser(_parent, { id }, context, info) {
@@ -69,13 +69,10 @@ describe('WrapQuery', () => {
                   (subtree: SelectionSetNode) => {
                     const newSelectionSet: SelectionSetNode = {
                       kind: Kind.SELECTION_SET,
-                      selections: subtree.selections.map((selection) => {
+                      selections: subtree.selections.map(selection => {
                         // just append fragments, not interesting for this
                         // test
-                        if (
-                          selection.kind === Kind.INLINE_FRAGMENT ||
-                          selection.kind === Kind.FRAGMENT_SPREAD
-                        ) {
+                        if (selection.kind === Kind.INLINE_FRAGMENT || selection.kind === Kind.FRAGMENT_SPREAD) {
                           return selection;
                         }
                         // prepend `address` to name and camelCase
@@ -84,10 +81,7 @@ describe('WrapQuery', () => {
                           kind: Kind.FIELD,
                           name: {
                             kind: Kind.NAME,
-                            value:
-                              'address' +
-                              oldFieldName.charAt(0).toUpperCase() +
-                              oldFieldName.slice(1),
+                            value: 'address' + oldFieldName.charAt(0).toUpperCase() + oldFieldName.slice(1),
                           },
                         };
                       }),
@@ -95,16 +89,16 @@ describe('WrapQuery', () => {
                     return newSelectionSet;
                   },
                   // how to process the data result at path
-                  (result) => ({
+                  result => ({
                     streetAddress: result.addressStreetAddress,
                     zip: result.addressZip,
-                  }),
+                  })
                 ),
                 // Wrap a second level field
                 new WrapQuery(
                   ['userById', 'zip'],
                   (subtree: SelectionSetNode) => subtree,
-                  (result) => result,
+                  result => result
                 ),
               ],
             });
@@ -124,8 +118,8 @@ describe('WrapQuery', () => {
             zip
           }
         }
-      `)
-  });
+      `),
+    });
 
     expect(result).toEqual({
       data: {

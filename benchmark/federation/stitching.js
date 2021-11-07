@@ -23,7 +23,7 @@ function fetchFederationSubschema({ schema, typeDefs }) {
   return {
     schema: buildSchema(sdl),
     executor: createDefaultExecutor(schema),
-    batch: true
+    batch: true,
   };
 }
 

@@ -1,9 +1,9 @@
-import { parse, print } from "graphql"
-import { removeLoc } from "../src/optimizers/remove-loc";
+import { parse, print } from 'graphql';
+import { removeLoc } from '../src/optimizers/remove-loc';
 
 describe('removeLoc', () => {
   it('Should remove location field', () => {
-    const doc = parse(/* GraphQL */`
+    const doc = parse(/* GraphQL */ `
       query findUser($userId: ID!) {
         user(id: $userId) {
           ...UserFields
@@ -27,5 +27,5 @@ describe('removeLoc', () => {
     expect(stringOut).toMatchSnapshot();
     expect(stringOut).not.toContain(`"loc":`);
     expect(() => print(out)).not.toThrow();
-  })
-})
+  });
+});

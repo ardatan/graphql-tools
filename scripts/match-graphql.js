@@ -9,7 +9,7 @@ const pkg = require(pkgPath);
 const version = argv[2];
 
 pkg.resolutions = pkg.resolutions || {};
-if (pkg.resolutions.graphql.startsWith(version)){
+if (pkg.resolutions.graphql.startsWith(version)) {
   console.info(`GraphQL v${version} is match! Skipping.`);
   return;
 }

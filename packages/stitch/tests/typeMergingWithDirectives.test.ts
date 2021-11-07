@@ -22,7 +22,7 @@ describe('merging using type merging with directives', () => {
       id: '1',
       name: 'Ada Lovelace',
       birthDate: '1815-12-10',
-      username: '@ada'
+      username: '@ada',
     },
     {
       id: '2',
@@ -40,7 +40,7 @@ describe('merging using type merging with directives', () => {
     // Note: the subschema can rely on the gateway correctly sending the indicated key and
     // so it is safe to use a non-validated scalar argument. In the next example, the subschema
     // will choose to strongly type the `keys` argument, but it is not strictly necessary.
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
       type Query {
@@ -64,7 +64,7 @@ describe('merging using type merging with directives', () => {
   const inventory = [
     { upc: '1', inStock: true },
     { upc: '2', inStock: false },
-    { upc: '3', inStock: true }
+    { upc: '3', inStock: true },
   ];
 
   const inventorySchema = makeExecutableSchema({
@@ -92,7 +92,7 @@ describe('merging using type merging with directives', () => {
     // It is typed correctly; `upc` is always specified, but `price` and `weight` will only
     // be included when `shippingEstimate` is included within the query.
     //
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       input ProductKey {
         upc: String!
@@ -113,10 +113,10 @@ describe('merging using type merging with directives', () => {
       Product: {
         shippingEstimate: product => {
           if (product.price > 1000) {
-            return 0 // free for expensive items
+            return 0; // free for expensive items
           }
           return Math.round(product.weight * 0.5) || null; // estimate is based on weight
-        }
+        },
       },
       Query: {
         mostStockedProduct: () => inventory.find(i => i.upc === '3'),
@@ -132,20 +132,20 @@ describe('merging using type merging with directives', () => {
       upc: '1',
       name: 'Table',
       price: 899,
-      weight: 100
+      weight: 100,
     },
     {
       upc: '2',
       name: 'Couch',
       price: 1299,
-      weight: 1000
+      weight: 1000,
     },
     {
       upc: '3',
       name: 'Chair',
       price: 54,
-      weight: 50
-    }
+      weight: 50,
+    },
   ];
 
   const productsSchema = makeExecutableSchema({
@@ -166,7 +166,7 @@ describe('merging using type merging with directives', () => {
     // B. selections from the key can be referenced by using the $ sign and dot notation, so that
     //    $key.upc refers to the `upc` field of the key.
     //
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       type Query {
         topProducts(first: Int = 2): [Product]
@@ -187,7 +187,7 @@ describe('merging using type merging with directives', () => {
       Query: {
         topProducts: (_root, args) => products.slice(0, args.first),
         _productsByUpc: (_root, { upcs }) => upcs.map((upc: any) => products.find(product => product.upc === upc)),
-      }
+      },
     },
   });
 
@@ -236,7 +236,7 @@ describe('merging using type merging with directives', () => {
     // `argsExpr`, the $ sign without dot notation will pass the entire key as an object.
     // This allows arbitrary nesting of the key input as needed.
     //
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       type Review {
         id: ID!
@@ -273,18 +273,18 @@ describe('merging using type merging with directives', () => {
     `,
     resolvers: {
       Review: {
-        author: (review) => ({ __typename: 'User', id: review.authorId }),
+        author: review => ({ __typename: 'User', id: review.authorId }),
       },
       User: {
-        reviews: (user) => reviews.filter(review => review.authorId === user.id),
-        numberOfReviews: (user) => reviews.filter(review => review.authorId === user.id).length,
-        username: (user) => {
-          const found = usernames.find(username => username.id === user.id)
-          return found ? found.username : null
+        reviews: user => reviews.filter(review => review.authorId === user.id),
+        numberOfReviews: user => reviews.filter(review => review.authorId === user.id).length,
+        username: user => {
+          const found = usernames.find(username => username.id === user.id);
+          return found ? found.username : null;
         },
       },
       Product: {
-        reviews: (product) => reviews.filter(review => review.product.upc === product.upc),
+        reviews: product => reviews.filter(review => review.product.upc === product.upc),
       },
       Query: {
         _reviews: (_root, { id }) => reviews.find(review => review.id === id),
@@ -311,11 +311,12 @@ describe('merging using type merging with directives', () => {
       {
         schema: reviewsSchema,
         batch: true,
-      }],
+      },
+    ],
     subschemaConfigTransforms: [stitchingDirectivesTransformer],
     typeMergingOptions: {
-      validationSettings: { validationLevel: ValidationLevel.Off }
-    }
+      validationSettings: { validationLevel: ValidationLevel.Off },
+    },
   });
 
   test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {
@@ -329,20 +330,23 @@ describe('merging using type merging with directives', () => {
             shippingEstimate
           }
         }
-      `)
+      `),
     });
 
     const expectedResult: ExecutionResult = {
       data: {
-        topProducts: [{
-          upc: '1',
-          inStock: true,
-          shippingEstimate: 50,
-        }, {
-          upc: '2',
-          inStock: false,
-          shippingEstimate: 0,
-        }],
+        topProducts: [
+          {
+            upc: '1',
+            inStock: true,
+            shippingEstimate: 50,
+          },
+          {
+            upc: '2',
+            inStock: false,
+            shippingEstimate: 0,
+          },
+        ],
       },
     };
 
@@ -364,7 +368,7 @@ describe('merging using type merging with directives', () => {
             }
           }
         }
-      `)
+      `),
     });
 
     const expectedResult: ExecutionResult = {
@@ -374,7 +378,7 @@ describe('merging using type merging with directives', () => {
             { product: { price: 899, upc: '1', weight: 100 } },
             { product: { price: 1299, upc: '2', weight: 1000 } },
           ],
-        }
+        },
       },
     };
 
@@ -397,7 +401,7 @@ describe('merging using type merging with directives', () => {
             }
           }
         }
-      `)
+      `),
     });
 
     const expectedResult: ExecutionResult = {
@@ -418,7 +422,7 @@ describe('merging using type merging with directives', () => {
                 upc: '2',
                 weight: 1000,
                 shippingEstimate: 0,
-              }
+              },
             },
           ],
         },
@@ -442,7 +446,7 @@ describe('merging using type merging with directives', () => {
             }
           }
         }
-      `)
+      `),
     });
 
     const expectedResult: ExecutionResult = {
@@ -459,7 +463,7 @@ describe('merging using type merging with directives', () => {
               product: {
                 upc: '2',
                 shippingEstimate: 0,
-              }
+              },
             },
           ],
         },
@@ -480,7 +484,7 @@ describe('merging using type merging with directives', () => {
             shippingEstimate
           }
         }
-      `)
+      `),
     });
 
     const expectedResult: ExecutionResult = {
@@ -496,4 +500,3 @@ describe('merging using type merging with directives', () => {
     expect(result).toEqual(expectedResult);
   });
 });
-

@@ -5,7 +5,7 @@ import { graphql, GraphQLError, GraphQLSchema } from 'graphql';
 
 describe('merge failures', () => {
   const firstSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Thing {
         id: ID!
         name: String!
@@ -17,38 +17,39 @@ describe('merge failures', () => {
     resolvers: {
       Query: {
         thing: (_root, { id }) => ({ id, name: 'The Thing' }),
-      }
-    }
+      },
+    },
   });
 
-  const getGatewaySchema = (secondSchema: GraphQLSchema): GraphQLSchema => stitchSchemas({
-    subschemas: [
-      {
-        schema: firstSchema,
-        merge: {
-          Thing: {
-            selectionSet: '{ id }',
-            fieldName: 'thing',
-            args: ({ id }) => ({ id }),
-          }
-        }
-      },
-      {
-        schema: secondSchema,
-        merge: {
-          Thing: {
-            selectionSet: '{ id }',
-            fieldName: '_thing',
-            args: ({ id }) => ({ id }),
-          }
-        }
-      },
-    ],
-  });
+  const getGatewaySchema = (secondSchema: GraphQLSchema): GraphQLSchema =>
+    stitchSchemas({
+      subschemas: [
+        {
+          schema: firstSchema,
+          merge: {
+            Thing: {
+              selectionSet: '{ id }',
+              fieldName: 'thing',
+              args: ({ id }) => ({ id }),
+            },
+          },
+        },
+        {
+          schema: secondSchema,
+          merge: {
+            Thing: {
+              selectionSet: '{ id }',
+              fieldName: '_thing',
+              args: ({ id }) => ({ id }),
+            },
+          },
+        },
+      ],
+    });
 
   it('proxies merged errors', async () => {
     const secondSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Thing {
           id: ID!
           description: String!
@@ -60,35 +61,36 @@ describe('merge failures', () => {
       resolvers: {
         Query: {
           _thing: () => new Error('unable to produce the thing'),
-        }
-      }
+        },
+      },
     });
 
     const gatewaySchema = getGatewaySchema(secondSchema);
 
     const result = await graphql({
       schema: gatewaySchema,
-      source: /* GraphQL */`
-      query {
-        thing(id: 23) {
-          id
-          name
-          description
+      source: /* GraphQL */ `
+        query {
+          thing(id: 23) {
+            id
+            name
+            description
+          }
         }
-      }
-    `});
+      `,
+    });
 
     const expectedResult: ExecutionResult = {
       data: { thing: null },
       errors: [new GraphQLError('unable to produce the thing')],
-    }
+    };
 
     expect(result).toEqual(expectedResult);
   });
 
   test('proxies merged error arrays', async () => {
     const schema1 = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Thing {
           id: ID!
           name: String
@@ -106,7 +108,7 @@ describe('merge failures', () => {
     });
 
     const schema2 = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type ParentThing {
           thing: Thing
         }
@@ -125,32 +127,35 @@ describe('merge failures', () => {
     });
 
     const stitchedSchema = stitchSchemas({
-      subschemas: [{
-        schema: schema1,
-        merge: {
-          Thing: {
-            selectionSet: '{ id }',
-            fieldName: 'things',
-            key: ({ id }) => id,
-            argsFromKeys: (ids) => ({ ids }),
+      subschemas: [
+        {
+          schema: schema1,
+          merge: {
+            Thing: {
+              selectionSet: '{ id }',
+              fieldName: 'things',
+              key: ({ id }) => id,
+              argsFromKeys: ids => ({ ids }),
+            },
           },
-        }
-      }, {
-        schema: schema2,
-      }],
+        },
+        {
+          schema: schema2,
+        },
+      ],
     });
 
     const stitchedResult = await graphql({
       schema: stitchedSchema,
-      source: '{ parent { thing { name desc id } } }'
+      source: '{ parent { thing { name desc id } } }',
     });
-    assertSome(stitchedResult.errors)
+    assertSome(stitchedResult.errors);
     expect(stitchedResult.errors[0].path).toEqual(['parent', 'thing', 'name']);
   });
 
   it('proxies inappropriate null', async () => {
     const secondSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Thing {
           id: ID!
           description: String!
@@ -162,15 +167,15 @@ describe('merge failures', () => {
       resolvers: {
         Query: {
           _thing: () => null,
-        }
-      }
+        },
+      },
     });
 
     const gatewaySchema = getGatewaySchema(secondSchema);
 
     const result = await graphql({
       schema: gatewaySchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           thing(id: 23) {
             id
@@ -178,20 +183,20 @@ describe('merge failures', () => {
             description
           }
         }
-      `
+      `,
     });
 
     const expectedResult: ExecutionResult = {
       data: { thing: null },
       errors: [new GraphQLError('Cannot return null for non-nullable field Thing.description.')],
-    }
+    };
 
     expect(result).toEqual(expectedResult);
   });
 
   it('proxies errors on object', async () => {
     const secondSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Thing {
           id: ID!
           description: String!
@@ -203,15 +208,15 @@ describe('merge failures', () => {
       resolvers: {
         Query: {
           _thing: () => ({}),
-        }
-      }
+        },
+      },
     });
 
     const gatewaySchema = getGatewaySchema(secondSchema);
 
     const result = await graphql({
       schema: gatewaySchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           thing(id: 23) {
             id
@@ -219,13 +224,13 @@ describe('merge failures', () => {
             description
           }
         }
-      `
+      `,
     });
 
     const expectedResult: ExecutionResult = {
       data: { thing: null },
       errors: [new GraphQLError('Cannot return null for non-nullable field Thing.id.')],
-    }
+    };
 
     expect(result).toEqual(expectedResult);
   });
@@ -240,7 +245,7 @@ describe('nullable merging', () => {
     ];
 
     const usersSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type User {
           id: ID!
           username: String!
@@ -252,8 +257,8 @@ describe('nullable merging', () => {
       resolvers: {
         Query: {
           users: (_root, { ids }) => ids.map((id: string) => users.find(u => u.id === id)),
-        }
-      }
+        },
+      },
     });
 
     const appUserSettings = [
@@ -262,7 +267,7 @@ describe('nullable merging', () => {
     ];
 
     const appSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type User {
           id: ID!
           appSetting1: String
@@ -274,12 +279,13 @@ describe('nullable merging', () => {
       `,
       resolvers: {
         Query: {
-          _users: (_root, { ids }) => ids.map((id: string) => {
-            const userSettings = appUserSettings.find(u => u.user_id === id);
-            return userSettings ? { ...userSettings, id } : null;
-          }),
-        }
-      }
+          _users: (_root, { ids }) =>
+            ids.map((id: string) => {
+              const userSettings = appUserSettings.find(u => u.user_id === id);
+              return userSettings ? { ...userSettings, id } : null;
+            }),
+        },
+      },
     });
 
     const gatewaySchema = stitchSchemas({
@@ -291,9 +297,9 @@ describe('nullable merging', () => {
               selectionSet: '{ id }',
               fieldName: 'users',
               key: ({ id }) => id,
-              argsFromKeys: (ids) => ({ ids }),
-            }
-          }
+              argsFromKeys: ids => ({ ids }),
+            },
+          },
         },
         {
           schema: appSchema,
@@ -302,25 +308,26 @@ describe('nullable merging', () => {
               selectionSet: '{ id }',
               fieldName: '_users',
               key: ({ id }) => id,
-              argsFromKeys: (ids) => ({ ids }),
-            }
-          }
+              argsFromKeys: ids => ({ ids }),
+            },
+          },
         },
       ],
     });
 
     const result = await graphql({
       schema: gatewaySchema,
-      source: /* GraphQL */`
-      query {
-        users(ids: [1, 2, 3]) {
-          id
-          username
-          appSetting1
-          appSetting2
+      source: /* GraphQL */ `
+        query {
+          users(ids: [1, 2, 3]) {
+            id
+            username
+            appSetting1
+            appSetting2
+          }
         }
-      }
-    `});
+      `,
+    });
 
     const expectedResult = {
       data: {

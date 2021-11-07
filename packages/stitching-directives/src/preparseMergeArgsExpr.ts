@@ -1,9 +1,7 @@
 export const KEY_DELIMITER = '__dot__';
 export const EXPANSION_PREFIX = '__exp';
 
-export function preparseMergeArgsExpr(
-  mergeArgsExpr: string
-): {
+export function preparseMergeArgsExpr(mergeArgsExpr: string): {
   mergeArgsExpr: string;
   expansionExpressions: Record<string, string>;
 } {

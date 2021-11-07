@@ -7,19 +7,11 @@ import { assertSome, IResolvers } from '@graphql-tools/utils';
 
 import { stitchSchemas } from '../src/stitchSchemas';
 
-import {
-  propertySchema,
-  bookingSchema,
-  sampleData,
-  Property,
-} from '../../testing/fixtures/schemas';
+import { propertySchema, bookingSchema, sampleData, Property } from '../../testing/fixtures/schemas';
 
 describe('delegateToSchema ', () => {
   test('should add selection sets for deep types', async () => {
-    function findPropertyByLocationName(
-      properties: Record<string, Property>,
-      name: string,
-    ): Property | undefined {
+    function findPropertyByLocationName(properties: Record<string, Property>, name: string): Property | undefined {
       for (const key in properties) {
         const property = properties[key];
         if (property.location.name === name) {
@@ -28,9 +20,9 @@ describe('delegateToSchema ', () => {
       }
     }
 
-    const COORDINATES_QUERY = /* GraphQL */`
+    const COORDINATES_QUERY = /* GraphQL */ `
       query BookingCoordinates($bookingId: ID!) {
-        bookingById (id: $bookingId) {
+        bookingById(id: $bookingId) {
           property {
             location {
               coordinates
@@ -59,16 +51,15 @@ describe('delegateToSchema ', () => {
       Location: {
         coordinates: {
           selectionSet: '{ name }',
-          resolve: (location) => {
+          resolve: location => {
             const name = location.name;
-            return findPropertyByLocationName(sampleData.Property, name)?.location
-              .coordinates;
+            return findPropertyByLocationName(sampleData.Property, name)?.location.coordinates;
           },
         },
       },
     };
 
-    const proxyTypeDefs = /* GraphQL */`
+    const proxyTypeDefs = /* GraphQL */ `
       extend type Booking {
         property: Property!
       }
@@ -104,32 +95,32 @@ describe('delegateToSchema ', () => {
 
   describe('should add selection sets for fragments', () => {
     const networkSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
-          interface Domain {
-            id: ID!
-            name: String!
-          }
-          type Domain1 implements Domain {
-            id: ID!
-            name: String!
-          }
-          type Domain2 implements Domain {
-            id: ID!
-            name: String!
-            extra: String!
-          }
-          type Network {
-            id: ID!
-            domains: [Domain!]!
-          }
-          type Query {
-            networks(ids: [ID!]!): [Network!]!
-          }
-        `,
+      typeDefs: /* GraphQL */ `
+        interface Domain {
+          id: ID!
+          name: String!
+        }
+        type Domain1 implements Domain {
+          id: ID!
+          name: String!
+        }
+        type Domain2 implements Domain {
+          id: ID!
+          name: String!
+          extra: String!
+        }
+        type Network {
+          id: ID!
+          domains: [Domain!]!
+        }
+        type Query {
+          networks(ids: [ID!]!): [Network!]!
+        }
+      `,
       resolvers: {
         Domain: {
           __resolveType() {
-            return 'Domain1'
+            return 'Domain1';
           },
         },
         Query: {
@@ -140,15 +131,15 @@ describe('delegateToSchema ', () => {
     });
 
     const postsSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
-          type Post {
-            id: ID!
-            networkId: ID!
-          }
-          type Query {
-            posts(ids: [ID!]!): [Post]!
-          }
-        `,
+      typeDefs: /* GraphQL */ `
+        type Post {
+          id: ID!
+          networkId: ID!
+        }
+        type Query {
+          posts(ids: [ID!]!): [Post]!
+        }
+      `,
       resolvers: {
         Query: {
           posts: (_root, { ids }) =>
@@ -162,7 +153,7 @@ describe('delegateToSchema ', () => {
 
     const gatewaySchema = stitchSchemas({
       subschemas: [networkSchema, postsSchema],
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         extend type Post {
           network: Network!
         }
@@ -174,13 +165,13 @@ describe('delegateToSchema ', () => {
             resolve(parent, _args, context, info) {
               return batchDelegateToSchema({
                 key: parent.networkId,
-                argsFromKeys: (ids) => ({ ids }),
+                argsFromKeys: ids => ({ ids }),
                 context,
                 fieldName: 'networks',
                 info,
                 operation: 'query' as OperationTypeNode,
                 schema: networkSchema,
-              })
+              });
             },
           },
         },
@@ -196,7 +187,7 @@ describe('delegateToSchema ', () => {
     it('should resolve with no fragments', async () => {
       const { data } = await graphql({
         schema: gatewaySchema,
-        source: /* GraphQL */`
+        source: /* GraphQL */ `
           query {
             posts(ids: [55]) {
               network {
@@ -211,14 +202,14 @@ describe('delegateToSchema ', () => {
         `,
       });
 
-      assertSome(data)
+      assertSome(data);
       expect(data['posts']).toEqual(expectedData);
     });
 
     it('should resolve with a fragment', async () => {
       const { data } = await graphql({
         schema: gatewaySchema,
-        source: /* GraphQL */`
+        source: /* GraphQL */ `
           query {
             posts(ids: [55]) {
               ...F1
@@ -236,14 +227,14 @@ describe('delegateToSchema ', () => {
           }
         `,
       });
-      assertSome(data)
+      assertSome(data);
       expect(data['posts']).toEqual(expectedData);
     });
 
     it('should resolve with deep fragment', async () => {
       const { data } = await graphql({
         schema: gatewaySchema,
-        source: /* GraphQL */`
+        source: /* GraphQL */ `
           query {
             posts(ids: [55]) {
               network {
@@ -261,14 +252,14 @@ describe('delegateToSchema ', () => {
           }
         `,
       });
-      assertSome(data)
+      assertSome(data);
       expect(data['posts']).toEqual(expectedData);
     });
 
     it('should resolve with nested fragments', async () => {
       const { data } = await graphql({
         schema: gatewaySchema,
-        source: /* GraphQL */`
+        source: /* GraphQL */ `
           query {
             posts(ids: [55]) {
               ...F1
@@ -289,10 +280,9 @@ describe('delegateToSchema ', () => {
             }
           }
         `,
-      })
-      assertSome(data)
+      });
+      assertSome(data);
       expect(data['posts']).toEqual(expectedData);
     });
   });
 });
-

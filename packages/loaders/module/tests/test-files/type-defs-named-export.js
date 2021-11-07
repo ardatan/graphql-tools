@@ -1,10 +1,10 @@
-const { parse } = require('graphql')
+const { parse } = require('graphql');
 
 module.exports = {
-  typeDefs: parse(/* GraphQL */`
+  typeDefs: parse(/* GraphQL */ `
     type Query {
       hello: String
     }
   `),
   favoriteNumber: 42,
-}
+};

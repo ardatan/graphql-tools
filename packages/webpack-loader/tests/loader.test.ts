@@ -1,14 +1,14 @@
 import '../../testing/to-be-similar-string';
 import { print, parse } from 'graphql';
-import {uniqueCode} from '@graphql-tools/webpack-loader-runtime';
+import { uniqueCode } from '@graphql-tools/webpack-loader-runtime';
 import loader from '../src/index';
 
 function useLoader(source: string, options: any): string {
-  return loader.call({cacheable() {}, query: options} as any, source)
+  return loader.call({ cacheable() {}, query: options } as any, source);
 }
 
 test('basic query', () => {
-  const docStr = /* GraphQL */`
+  const docStr = /* GraphQL */ `
     query Foo {
       foo
     }
@@ -34,13 +34,13 @@ test('basic query', () => {
 });
 
 test('basic query with esModules on', () => {
-  const docStr = /* GraphQL */`
+  const docStr = /* GraphQL */ `
     query Foo {
       foo
     }
   `;
   const doc = useLoader(docStr, {
-    esModule: true
+    esModule: true,
   });
 
   const docLine = `var doc = ${JSON.stringify(parse(docStr, { noLocation: true }))};`;
@@ -59,16 +59,16 @@ test('basic query with esModules on', () => {
 });
 
 test('replaceKinds enabled', () => {
-  const docStr = /* GraphQL */`
+  const docStr = /* GraphQL */ `
     query Foo {
       foo
     }
   `;
   const doc = useLoader(docStr, {
-    replaceKinds: true
+    replaceKinds: true,
   });
 
-  expect(doc).toMatch(`var Kind = require('graphql/language/kinds');`)
+  expect(doc).toMatch(`var Kind = require('graphql/language/kinds');`);
   expect(doc).toMatch(`"kind": Kind.DOCUMENT`);
   expect(doc).not.toMatch(`"kind": "`);
 });

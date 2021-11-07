@@ -4,7 +4,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 
 describe('type merging with only field selection sets', () => {
   const listingsSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Listing {
         id: ID!
         sellerId: ID!
@@ -16,13 +16,13 @@ describe('type merging with only field selection sets', () => {
     `,
     resolvers: {
       Query: {
-        listing: () => ({ id: 1, buyerId: 2, sellerId: 3 })
+        listing: () => ({ id: 1, buyerId: 2, sellerId: 3 }),
       },
     },
   });
 
   const usersSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type User {
         id: ID!
         userName: String
@@ -46,7 +46,7 @@ describe('type merging with only field selection sets', () => {
       Listing: {
         buyer: (_root, args) => ({ id: args.buyerId, userName: 'Bob' }),
         seller: (_root, args) => ({ id: args.sellerId, userName: 'Tom' }),
-      }
+      },
     },
   });
 
@@ -58,9 +58,9 @@ describe('type merging with only field selection sets', () => {
           Listing: {
             selectionSet: '{ id }',
             fieldName: 'listing',
-            args: ({ id }) => ({ id })
-          }
-        }
+            args: ({ id }) => ({ id }),
+          },
+        },
       },
       {
         schema: usersSchema,
@@ -72,17 +72,17 @@ describe('type merging with only field selection sets', () => {
             },
             fieldName: '_listings',
             key: ({ buyerId, sellerId }) => ({ buyerId, sellerId }),
-            argsFromKeys: (keys) => ({ keys }),
-          }
-        }
-      }
+            argsFromKeys: keys => ({ keys }),
+          },
+        },
+      },
     ],
   });
 
   test('errors without selectionSet...', async () => {
     const result = await graphql({
       schema: stitchedSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           listing(id: 23) {
             id
@@ -106,7 +106,7 @@ describe('type merging with only field selection sets', () => {
           },
           seller: {
             userName: 'Tom',
-          }
+          },
         },
       },
     };

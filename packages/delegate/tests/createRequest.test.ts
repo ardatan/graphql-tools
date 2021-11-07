@@ -7,7 +7,7 @@ import { delegateRequest } from '../src/delegateToSchema';
 describe('bare requests', () => {
   test('should work', async () => {
     const innerSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Test {
           field: String
         }
@@ -17,16 +17,16 @@ describe('bare requests', () => {
       `,
       resolvers: {
         Test: {
-          field: (parent) => parent.input,
+          field: parent => parent.input,
         },
         Query: {
           test: (_root, args) => ({ input: args.input }),
-        }
+        },
       },
     });
 
     const outerSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Test {
           field: String
         }
@@ -38,41 +38,47 @@ describe('bare requests', () => {
         Query: {
           delegate: (_root, args, _context, info) => {
             const request = createRequest({
-              fieldNodes: [{
-                kind: Kind.FIELD,
-                name: {
-                  kind: Kind.NAME,
-                  value: 'delegate',
-                },
-                selectionSet: {
-                  kind: Kind.SELECTION_SET,
-                  selections: [{
-                    kind: Kind.FIELD,
-                    name: {
-                      kind: Kind.NAME,
-                      value: 'field'
-                    },
-                  }],
-                },
-                arguments: [{
-                  kind: Kind.ARGUMENT,
+              fieldNodes: [
+                {
+                  kind: Kind.FIELD,
                   name: {
                     kind: Kind.NAME,
-                    value: 'input',
+                    value: 'delegate',
                   },
-                  value: {
-                    kind: Kind.STRING,
-                    value: args.input,
-                  }
-                }]
-              }],
+                  selectionSet: {
+                    kind: Kind.SELECTION_SET,
+                    selections: [
+                      {
+                        kind: Kind.FIELD,
+                        name: {
+                          kind: Kind.NAME,
+                          value: 'field',
+                        },
+                      },
+                    ],
+                  },
+                  arguments: [
+                    {
+                      kind: Kind.ARGUMENT,
+                      name: {
+                        kind: Kind.NAME,
+                        value: 'input',
+                      },
+                      value: {
+                        kind: Kind.STRING,
+                        value: args.input,
+                      },
+                    },
+                  ],
+                },
+              ],
               targetOperation: 'query' as OperationTypeNode,
               targetFieldName: 'test',
             });
             return delegateRequest({
               request,
               schema: innerSchema,
-              info
+              info,
             });
           },
         },
@@ -81,7 +87,7 @@ describe('bare requests', () => {
 
     const result = await graphql({
       schema: outerSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           delegate(input: "test") {
             field
@@ -101,7 +107,7 @@ describe('bare requests', () => {
 
   test('should work with adding args on delegation', async () => {
     const innerSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Test {
           field: String
         }
@@ -111,16 +117,16 @@ describe('bare requests', () => {
       `,
       resolvers: {
         Test: {
-          field: (parent) => parent.input,
+          field: parent => parent.input,
         },
         Query: {
           test: (_root, args) => ({ input: args.input }),
-        }
+        },
       },
     });
 
     const outerSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Test {
           field: String
         }
@@ -132,23 +138,27 @@ describe('bare requests', () => {
         Query: {
           delegate: (_root, args, _context, info) => {
             const request = createRequest({
-              fieldNodes: [{
-                kind: Kind.FIELD,
-                name: {
-                  kind: Kind.NAME,
-                  value: 'delegate',
+              fieldNodes: [
+                {
+                  kind: Kind.FIELD,
+                  name: {
+                    kind: Kind.NAME,
+                    value: 'delegate',
+                  },
+                  selectionSet: {
+                    kind: Kind.SELECTION_SET,
+                    selections: [
+                      {
+                        kind: Kind.FIELD,
+                        name: {
+                          kind: Kind.NAME,
+                          value: 'field',
+                        },
+                      },
+                    ],
+                  },
                 },
-                selectionSet: {
-                  kind: Kind.SELECTION_SET,
-                  selections: [{
-                    kind: Kind.FIELD,
-                    name: {
-                      kind: Kind.NAME,
-                      value: 'field'
-                    },
-                  }],
-                },
-              }],
+              ],
               targetOperation: 'query' as OperationTypeNode,
               targetFieldName: 'test',
             });
@@ -165,14 +175,14 @@ describe('bare requests', () => {
 
     const result = await graphql({
       schema: outerSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           delegate(input: "test") {
             field
           }
         }
       `,
-  });
+    });
 
     expect(result).toEqual({
       data: {
@@ -185,20 +195,22 @@ describe('bare requests', () => {
 
   test('should work with errors', async () => {
     const innerSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Query {
           test: String
         }
       `,
       resolvers: {
         Query: {
-          test: () => { throw new Error('test') },
-        }
+          test: () => {
+            throw new Error('test');
+          },
+        },
       },
     });
 
     const outerSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Query {
           delegate: String
         }
@@ -207,20 +219,22 @@ describe('bare requests', () => {
         Query: {
           delegate: (_source, _args, _context, info) => {
             const request = createRequest({
-              fieldNodes: [{
-                kind: Kind.FIELD,
-                name: {
-                  kind: Kind.NAME,
-                  value: 'delegate',
+              fieldNodes: [
+                {
+                  kind: Kind.FIELD,
+                  name: {
+                    kind: Kind.NAME,
+                    value: 'delegate',
+                  },
                 },
-              }],
+              ],
               targetOperation: 'query' as OperationTypeNode,
               targetFieldName: 'test',
             });
             return delegateRequest({
               request,
               schema: innerSchema,
-              info
+              info,
             });
           },
         },
@@ -229,7 +243,7 @@ describe('bare requests', () => {
 
     const result = await graphql({
       schema: outerSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           delegate
         }

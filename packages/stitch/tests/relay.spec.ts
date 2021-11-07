@@ -1,26 +1,27 @@
-import { makeExecutableSchema } from "@graphql-tools/schema";
-import { execute, parse } from "graphql";
-import { handleRelaySubschemas, stitchSchemas } from "../src";
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { execute, parse } from 'graphql';
+import { handleRelaySubschemas, stitchSchemas } from '../src';
 
 const users = [
   {
     id: 'User_0',
-    name: 'John Doe'
+    name: 'John Doe',
   },
   {
     id: 'User_1',
-    name: 'Jane Doe'
-  }
+    name: 'Jane Doe',
+  },
 ];
 
 const posts = [
-  { id: 'Post_0', content: 'Lorem Ipsum', userId: 'User_1' }, { id: 'Post_1', content: 'Dolor Sit Amet', userId: 'User_0' }
+  { id: 'Post_0', content: 'Lorem Ipsum', userId: 'User_1' },
+  { id: 'Post_1', content: 'Dolor Sit Amet', userId: 'User_0' },
 ];
 
 describe('Relay', () => {
   it('should', async () => {
     const userSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Query {
           node(id: ID!): Node
         }
@@ -44,13 +45,13 @@ describe('Relay', () => {
             return {
               id,
             };
-          }
-        }
-      }
+          },
+        },
+      },
     });
-    const userResult = await execute({
+    const userResult = (await execute({
       schema: userSchema,
-      document: parse(/* GraphQL */`
+      document: parse(/* GraphQL */ `
         fragment User on User {
           id
           name
@@ -63,12 +64,12 @@ describe('Relay', () => {
             ...User
           }
         }
-      `)
-    }) as any;
-    expect(userResult.data?.["user0"]?.name).toBe(users[0].name);
-    expect(userResult.data?.["user1"]?.name).toBe(users[1].name);
+      `),
+    })) as any;
+    expect(userResult.data?.['user0']?.name).toBe(users[0].name);
+    expect(userResult.data?.['user1']?.name).toBe(users[1].name);
     const postSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Query {
           node(id: ID!): Node
         }
@@ -96,19 +97,19 @@ describe('Relay', () => {
             return {
               id,
             };
-          }
+          },
         },
         User: {
           posts: ({ id }) => posts.filter(({ userId }) => id === userId),
-        }
-      }
+        },
+      },
     });
-    const postResult = await execute({
+    const postResult = (await execute({
       schema: postSchema,
-      document: parse(/* GraphQL */`
+      document: parse(/* GraphQL */ `
         fragment Post on Post {
-              id
-              content
+          id
+          content
         }
         fragment User on User {
           id
@@ -131,25 +132,22 @@ describe('Relay', () => {
             ...User
           }
         }
-      `)
-    }) as any;
-    expect(postResult.data?.["post0"]?.content).toBe(posts[0].content);
-    expect(postResult.data?.["post1"]?.content).toBe(posts[1].content);
-    expect(postResult.data?.["user0"]?.id).toBe(users[0].id);
-    expect(postResult.data?.["user0"]?.posts[0].content).toBe(posts[1].content);
-    expect(postResult.data?.["user1"]?.id).toBe(users[1].id);
-    expect(postResult.data?.["user1"]?.posts[0].content).toBe(posts[0].content);
+      `),
+    })) as any;
+    expect(postResult.data?.['post0']?.content).toBe(posts[0].content);
+    expect(postResult.data?.['post1']?.content).toBe(posts[1].content);
+    expect(postResult.data?.['user0']?.id).toBe(users[0].id);
+    expect(postResult.data?.['user0']?.posts[0].content).toBe(posts[1].content);
+    expect(postResult.data?.['user1']?.id).toBe(users[1].id);
+    expect(postResult.data?.['user1']?.posts[0].content).toBe(posts[0].content);
 
     const stitchedSchema = stitchSchemas({
-      subschemas: handleRelaySubschemas([
-        { schema: postSchema },
-        { schema: userSchema },
-      ], id => id.split('_')[0])
+      subschemas: handleRelaySubschemas([{ schema: postSchema }, { schema: userSchema }], id => id.split('_')[0]),
     });
 
-    const stitchedResult = await execute({
+    const stitchedResult = (await execute({
       schema: stitchedSchema,
-      document: parse(/* GraphQL */`
+      document: parse(/* GraphQL */ `
         fragment Post on Post {
           id
           content
@@ -176,14 +174,14 @@ describe('Relay', () => {
             ...User
           }
         }
-      `)
-    }) as any;
+      `),
+    })) as any;
 
-    expect(stitchedResult.data?.["post0"]?.content).toBe(posts[0].content);
-    expect(stitchedResult.data?.["post1"]?.content).toBe(posts[1].content);
-    expect(stitchedResult.data?.["user0"]?.name).toBe(users[0].name);
-    expect(stitchedResult.data?.["user0"]?.posts[0].content).toBe(posts[1].content);
-    expect(stitchedResult.data?.["user1"]?.name).toBe(users[1].name);
-    expect(stitchedResult.data?.["user1"]?.posts[0].content).toBe(posts[0].content);
-  })
-})
+    expect(stitchedResult.data?.['post0']?.content).toBe(posts[0].content);
+    expect(stitchedResult.data?.['post1']?.content).toBe(posts[1].content);
+    expect(stitchedResult.data?.['user0']?.name).toBe(users[0].name);
+    expect(stitchedResult.data?.['user0']?.posts[0].content).toBe(posts[1].content);
+    expect(stitchedResult.data?.['user1']?.name).toBe(users[1].name);
+    expect(stitchedResult.data?.['user1']?.posts[0].content).toBe(posts[0].content);
+  });
+});

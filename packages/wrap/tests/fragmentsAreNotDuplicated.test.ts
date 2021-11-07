@@ -1,7 +1,7 @@
 import { graphql } from 'graphql';
 
 import { wrapSchema } from '../src';
-import { makeExecutableSchema } from '@graphql-tools/schema'
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
 import { ExecutionResult } from '@graphql-tools/utils';
 
@@ -31,7 +31,7 @@ describe('Merging schemas', () => {
   });
 });
 
-const rawSchema = /* GraphQL */`
+const rawSchema = /* GraphQL */ `
   type Post {
     id: ID!
     title: String!
@@ -48,7 +48,7 @@ const rawSchema = /* GraphQL */`
   }
 `;
 
-const query = /* GraphQL */`
+const query = /* GraphQL */ `
   query getPostById($id: ID!) {
     post(id: $id) {
       ...Post
@@ -80,7 +80,7 @@ function assertNoDuplicateFragmentErrors(result: ExecutionResult) {
   // Run assertion against each array element for better test failure output.
   if (result.errors != null) {
     for (const error of result.errors) {
-      expect(error.message).toBe('')
+      expect(error.message).toBe('');
     }
   }
 }

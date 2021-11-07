@@ -22,7 +22,7 @@ describe('merging using type merging', () => {
       id: '1',
       name: 'Ada Lovelace',
       birthDate: '1815-12-10',
-      username: '@ada'
+      username: '@ada',
     },
     {
       id: '2',
@@ -40,7 +40,7 @@ describe('merging using type merging', () => {
     // Note: the subschema can rely on the gateway correctly sending the indicated key and
     // so it is safe to use a non-validated scalar argument. In the next example, the subschema
     // will choose to strongly type the `keys` argument, but it is not strictly necessary.
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
       union _Entity = User
@@ -58,7 +58,7 @@ describe('merging using type merging', () => {
       Query: {
         me: () => users[0],
         _entities: (_root, { keys }) => {
-          return keys.map((key: Record<string, any>) => ({ ...key,  ...users.find(u => u.id === key['id']) }));
+          return keys.map((key: Record<string, any>) => ({ ...key, ...users.find(u => u.id === key['id']) }));
         },
       },
     },
@@ -67,7 +67,7 @@ describe('merging using type merging', () => {
   const inventory = [
     { upc: '1', inStock: true },
     { upc: '2', inStock: false },
-    { upc: '3', inStock: true }
+    { upc: '3', inStock: true },
   ];
 
   const inventorySchema = makeExecutableSchema({
@@ -95,7 +95,7 @@ describe('merging using type merging', () => {
     // It is typed correctly; `upc` is always specified, but `price` and `weight` will only
     // be included when `shippingEstimate` is included within the query.
     //
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
       union _Entity = Product
@@ -113,10 +113,10 @@ describe('merging using type merging', () => {
       Product: {
         shippingEstimate: product => {
           if (product.price > 1000) {
-            return 0 // free for expensive items
+            return 0; // free for expensive items
           }
           return Math.round(product.weight * 0.5) || null; // estimate is based on weight
-        }
+        },
       },
       Query: {
         mostStockedProduct: () => inventory.find(i => i.upc === '3'),
@@ -132,20 +132,20 @@ describe('merging using type merging', () => {
       upc: '1',
       name: 'Table',
       price: 899,
-      weight: 100
+      weight: 100,
     },
     {
       upc: '2',
       name: 'Couch',
       price: 1299,
-      weight: 1000
+      weight: 1000,
     },
     {
       upc: '3',
       name: 'Chair',
       price: 54,
-      weight: 50
-    }
+      weight: 50,
+    },
   ];
 
   const productsSchema = makeExecutableSchema({
@@ -166,7 +166,7 @@ describe('merging using type merging', () => {
     // B. selections from the key can be referenced by using the $ sign and dot notation, so that
     //    $key.upc refers to the `upc` field of the key.
     //
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
       union _Entity = Product
@@ -185,9 +185,12 @@ describe('merging using type merging', () => {
       Query: {
         topProducts: (_root, args) => products.slice(0, args.first),
         _entities: (_root, { keys }) => {
-          return keys.map((key: Record<string, any>) => ({ ...key, ...products.find(product => product.upc === key['upc']) }));
-        }
-      }
+          return keys.map((key: Record<string, any>) => ({
+            ...key,
+            ...products.find(product => product.upc === key['upc']),
+          }));
+        },
+      },
     },
   });
 
@@ -236,7 +239,7 @@ describe('merging using type merging', () => {
     // `argsExpr`, the $ sign without dot notation will pass the entire key as an object.
     // This allows arbitrary nesting of the key input as needed.
     //
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
       union _Entity = User | Product | Review
@@ -262,24 +265,24 @@ describe('merging using type merging', () => {
     `,
     resolvers: {
       Review: {
-        author: (review) => ({ id: review.authorId }),
+        author: review => ({ id: review.authorId }),
       },
       User: {
-        reviews: (user) => reviews.filter(review => review.authorId === user.id),
-        numberOfReviews: (user) => reviews.filter(review => review.authorId === user.id).length,
-        username: (user) => {
-          const found = usernames.find(username => username.id === user.id)
-          return found ? found.username : null
+        reviews: user => reviews.filter(review => review.authorId === user.id),
+        numberOfReviews: user => reviews.filter(review => review.authorId === user.id).length,
+        username: user => {
+          const found = usernames.find(username => username.id === user.id);
+          return found ? found.username : null;
         },
       },
       Product: {
-        reviews: (product) => reviews.filter(review => review.product.upc === product.upc),
+        reviews: product => reviews.filter(review => review.product.upc === product.upc),
       },
       Query: {
         _entities: (_root, { keys }) => {
           return keys.map((key: Record<string, any>) => {
             if (key['__typename'] === 'Review') {
-              return ({ ...key, ...reviews.find(review => review.id === key['id']) });
+              return { ...key, ...reviews.find(review => review.id === key['id']) };
             }
 
             return { ...key };
@@ -306,11 +309,12 @@ describe('merging using type merging', () => {
       {
         schema: reviewsSchema,
         batch: true,
-      }],
+      },
+    ],
     subschemaConfigTransforms: [stitchingDirectivesTransformer],
     typeMergingOptions: {
-      validationSettings: { validationLevel: ValidationLevel.Off }
-    }
+      validationSettings: { validationLevel: ValidationLevel.Off },
+    },
   });
 
   test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {
@@ -324,20 +328,23 @@ describe('merging using type merging', () => {
             shippingEstimate
           }
         }
-      `)
+      `),
     });
 
     const expectedResult: ExecutionResult = {
       data: {
-        topProducts: [{
-          upc: '1',
-          inStock: true,
-          shippingEstimate: 50,
-        }, {
-          upc: '2',
-          inStock: false,
-          shippingEstimate: 0,
-        }],
+        topProducts: [
+          {
+            upc: '1',
+            inStock: true,
+            shippingEstimate: 50,
+          },
+          {
+            upc: '2',
+            inStock: false,
+            shippingEstimate: 0,
+          },
+        ],
       },
     };
 
@@ -359,8 +366,8 @@ describe('merging using type merging', () => {
             }
           }
         }
-      `)
-  });
+      `),
+    });
 
     const expectedResult: ExecutionResult = {
       data: {
@@ -369,7 +376,7 @@ describe('merging using type merging', () => {
             { product: { price: 899, upc: '1', weight: 100 } },
             { product: { price: 1299, upc: '2', weight: 1000 } },
           ],
-        }
+        },
       },
     };
 
@@ -392,7 +399,7 @@ describe('merging using type merging', () => {
             }
           }
         }
-      `)
+      `),
     });
 
     const expectedResult: ExecutionResult = {
@@ -413,7 +420,7 @@ describe('merging using type merging', () => {
                 upc: '2',
                 weight: 1000,
                 shippingEstimate: 0,
-              }
+              },
             },
           ],
         },
@@ -437,8 +444,8 @@ describe('merging using type merging', () => {
             }
           }
         }
-      `)
-  });
+      `),
+    });
 
     const expectedResult: ExecutionResult = {
       data: {
@@ -454,7 +461,7 @@ describe('merging using type merging', () => {
               product: {
                 upc: '2',
                 shippingEstimate: 0,
-              }
+              },
             },
           ],
         },
@@ -475,7 +482,7 @@ describe('merging using type merging', () => {
             shippingEstimate
           }
         }
-      `)
+      `),
     });
 
     const expectedResult: ExecutionResult = {

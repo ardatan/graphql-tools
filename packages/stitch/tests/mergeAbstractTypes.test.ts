@@ -6,7 +6,7 @@ import { assertSome } from '@graphql-tools/utils';
 describe('Abstract type merge', () => {
   it('merges with abstract type definitions', async () => {
     const imageSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Image {
           id: ID!
           url: String!
@@ -18,12 +18,12 @@ describe('Abstract type merge', () => {
       resolvers: {
         Query: {
           image: (_root, { id }) => ({ id, url: `/path/to/${id}` }),
-        }
-      }
+        },
+      },
     });
 
     const contentSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Post {
           id: ID!
           leadArt: LeadArt
@@ -43,8 +43,8 @@ describe('Abstract type merge', () => {
       resolvers: {
         Query: {
           post: (_root, { id }) => ({ id, leadArt: { __typename: 'Image', id: '23' } }),
-        }
-      }
+        },
+      },
     });
 
     const gatewaySchema = stitchSchemas({
@@ -74,20 +74,21 @@ describe('Abstract type merge', () => {
 
     const { data } = await graphql({
       schema: gatewaySchema,
-      source: /* GraphQL */`
-      query {
-        post(id: 55) {
-          leadArt {
-            __typename
-            ...on Image {
-              id
-              url
+      source: /* GraphQL */ `
+        query {
+          post(id: 55) {
+            leadArt {
+              __typename
+              ... on Image {
+                id
+                url
+              }
             }
           }
         }
-      }
-    `});
-    assertSome(data)
+      `,
+    });
+    assertSome(data);
     const postData: any = data['post'];
     expect(postData.leadArt).toEqual({
       __typename: 'Image',
@@ -99,7 +100,7 @@ describe('Abstract type merge', () => {
 
 describe('Merged associations', () => {
   const layoutSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       interface Slot {
         id: ID!
       }
@@ -121,12 +122,12 @@ describe('Merged associations', () => {
         slots: (_root, { ids }) => ids.map((id: any) => ({ __typename: 'Post', id })),
         posts: (_root, { ids }) => ids.map((id: any) => ({ id })),
         networks: (_root, { ids }) => ids.map((id: any) => ({ id, domain: `network${id}.com` })),
-      }
-    }
+      },
+    },
   });
 
   const postsSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Post {
         id: ID!
         title: String!
@@ -141,9 +142,10 @@ describe('Merged associations', () => {
     `,
     resolvers: {
       Query: {
-        _posts: (_root, { ids }) => ids.map((id: any) => ({ id, title: `Post ${id}`, network: { id: Number(id)+1 } })),
-      }
-    }
+        _posts: (_root, { ids }) =>
+          ids.map((id: any) => ({ id, title: `Post ${id}`, network: { id: Number(id) + 1 } })),
+      },
+    },
   });
 
   const gatewaySchema = stitchSchemas({
@@ -155,7 +157,7 @@ describe('Merged associations', () => {
             selectionSet: '{ id }',
             fieldName: 'networks',
             key: ({ id }) => id,
-            argsFromKeys: (ids) => ({ ids }),
+            argsFromKeys: ids => ({ ids }),
           },
         },
       },
@@ -166,34 +168,36 @@ describe('Merged associations', () => {
             selectionSet: '{ id }',
             fieldName: '_posts',
             key: ({ id }) => id,
-            argsFromKeys: (ids) => ({ ids }),
+            argsFromKeys: ids => ({ ids }),
           },
         },
       },
-    ]
+    ],
   });
 
   it('merges associations onto abstract types', async () => {
     const { data } = await graphql({
       schema: gatewaySchema,
-      source: /* GraphQL */`
-      query {
-        slots(ids: [55]) {
-          id
-          ...on Post {
-            network {
-              domain
+      source: /* GraphQL */ `
+        query {
+          slots(ids: [55]) {
+            id
+            ... on Post {
+              network {
+                domain
+              }
             }
           }
         }
-      }
-    `});
+      `,
+    });
 
-    assertSome(data)
-    expect(data['slots']).toEqual([{
-      id: '55',
-      network: { domain: 'network56.com' }
-    }]);
+    assertSome(data);
+    expect(data['slots']).toEqual([
+      {
+        id: '55',
+        network: { domain: 'network56.com' },
+      },
+    ]);
   });
-
 });

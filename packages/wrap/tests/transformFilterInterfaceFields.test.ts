@@ -5,7 +5,7 @@ import { GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
 describe('FilterInterfaceFields', () => {
   test('works', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         interface IWidget {
           alpha: String
           bravo: String
@@ -20,14 +20,12 @@ describe('FilterInterfaceFields', () => {
           widget: Widget
           anotherWidget: Widget
         }
-      `
+      `,
     });
 
     const transformedSchema = wrapSchema({
       schema,
-      transforms: [
-        new FilterInterfaceFields((_typeName, fieldName) => !fieldName.startsWith('a'))
-      ],
+      transforms: [new FilterInterfaceFields((_typeName, fieldName) => !fieldName.startsWith('a'))],
     });
 
     const iwidget = transformedSchema.getType('IWidget') as GraphQLInterfaceType;

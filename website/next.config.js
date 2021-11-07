@@ -15,14 +15,14 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 
 const config = withBundleAnalyzer(
-    withGuildDocs({
-      i18n,
-      getRoutes,
-      eslint: {
-        ignoreDuringBuilds: true,
-      },
-    })
-  );
+  withGuildDocs({
+    i18n,
+    getRoutes,
+    eslint: {
+      ignoreDuringBuilds: true,
+    },
+  })
+);
 
 module.exports = {
   ...config,
@@ -91,5 +91,5 @@ module.exports = {
         permanent: true,
       },
     ];
-  }
+  },
 };

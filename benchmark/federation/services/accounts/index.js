@@ -1,5 +1,5 @@
-const { gql } = require("graphql-tag");
-const { buildFederatedSchema } = require("@apollo/federation");
+const { gql } = require('graphql-tag');
+const { buildFederatedSchema } = require('@apollo/federation');
 
 const typeDefs = gql`
   extend type Query {
@@ -21,13 +21,13 @@ const resolvers = {
     },
     users() {
       return users;
-    }
+    },
   },
   User: {
     __resolveReference(object) {
       return users.find(user => user.id === object.id);
-    }
-  }
+    },
+  },
 };
 
 const schema = buildFederatedSchema([
@@ -40,20 +40,20 @@ const schema = buildFederatedSchema([
 module.exports = {
   typeDefs,
   resolvers,
-  schema
-}
+  schema,
+};
 
 const users = [
   {
-    id: "1",
-    name: "Ada Lovelace",
-    birthDate: "1815-12-10",
-    username: "@ada"
+    id: '1',
+    name: 'Ada Lovelace',
+    birthDate: '1815-12-10',
+    username: '@ada',
   },
   {
-    id: "2",
-    name: "Alan Turing",
-    birthDate: "1912-06-23",
-    username: "@complete"
-  }
+    id: '2',
+    name: 'Alan Turing',
+    birthDate: '1912-06-23',
+    username: '@complete',
+  },
 ];

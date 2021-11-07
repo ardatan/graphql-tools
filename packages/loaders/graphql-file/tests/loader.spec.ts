@@ -1,10 +1,10 @@
 import { join } from 'path';
 
-import { print } from 'graphql'
+import { print } from 'graphql';
 
 import { GraphQLFileLoader } from '../src';
 import { runTests } from '../../../testing/utils';
-import '../../../testing/to-be-similar-gql-doc'
+import '../../../testing/to-be-similar-gql-doc';
 
 describe('GraphQLFileLoader', () => {
   const loader = new GraphQLFileLoader();
@@ -56,7 +56,7 @@ describe('GraphQLFileLoader', () => {
 
       it('should load type definitions document with #import expression', async () => {
         const [result] = await load(getPointer('type-defs-with-import.graphql'), {});
-        expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */`
+        expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */ `
           type Query {
             a: A
           }
@@ -64,12 +64,12 @@ describe('GraphQLFileLoader', () => {
           type A {
             b: String
           }
-        `)
+        `);
       });
 
       it('should load executable document with #import expression', async () => {
         const [result] = await load(getPointer('executable.graphql'), {});
-        expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */`
+        expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */ `
           query MyQuery {
             a {
               ...AFragment
@@ -79,7 +79,7 @@ describe('GraphQLFileLoader', () => {
           fragment AFragment on A {
             b
           }
-        `)
+        `);
       });
 
       it('should raise an error when for an invalid schema file', async () => {
@@ -89,7 +89,7 @@ describe('GraphQLFileLoader', () => {
 
       it('should not raise an error when the glob matches valid and invalid schema files', async () => {
         const [result] = await load(getPointer('type-defs-with-{import,failing-import}.graphql'), {});
-        expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */`
+        expect(print(result.document!)).toBeSimilarGqlDoc(/* GraphQL */ `
           type Query {
             a: A
           }

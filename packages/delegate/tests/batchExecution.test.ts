@@ -9,7 +9,7 @@ import { Executor } from '@graphql-tools/utils';
 describe('batch execution', () => {
   it('should batch', async () => {
     const innerSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Query {
           field1: String
           field2: String
@@ -32,11 +32,11 @@ describe('batch execution', () => {
       executor: request => {
         executions++;
         return defaultExecutor(request);
-      }
-    }
+      },
+    };
 
     const outerSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Query {
           field1: String
           field2: String
@@ -57,7 +57,7 @@ describe('batch execution', () => {
       },
     };
 
-    const result = await graphql({ schema: outerSchema, source: '{ field1 field2 }'});
+    const result = await graphql({ schema: outerSchema, source: '{ field1 field2 }' });
 
     expect(result).toEqual(expectedResult);
     expect(executions).toEqual(1);
@@ -65,7 +65,7 @@ describe('batch execution', () => {
 
   it('should share batching dataloader between subschemas when using a common executor', async () => {
     const innerSchemaA = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Object {
           field1: String
           field2: String
@@ -86,7 +86,7 @@ describe('batch execution', () => {
     });
 
     const innerSchemaB = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Object {
           field3: String
         }
@@ -112,29 +112,32 @@ describe('batch execution', () => {
       return defaultExecutor(request);
     };
 
-    const innerSubschemaConfigA: Array<SubschemaConfig> = [{
-      schema: innerSchemaA,
-      transforms: [new FilterObjectFields((typeName, fieldName) => typeName !== 'Object' || fieldName !== 'field2')],
-      merge: {
-        Object: {
-          fieldName: 'objectA',
-          args: () => ({}),
+    const innerSubschemaConfigA: Array<SubschemaConfig> = [
+      {
+        schema: innerSchemaA,
+        transforms: [new FilterObjectFields((typeName, fieldName) => typeName !== 'Object' || fieldName !== 'field2')],
+        merge: {
+          Object: {
+            fieldName: 'objectA',
+            args: () => ({}),
+          },
         },
+        batch: true,
+        executor,
       },
-      batch: true,
-      executor,
-    }, {
-      schema: innerSchemaA,
-      transforms: [new FilterObjectFields((typeName, fieldName) => typeName !== 'Object' || fieldName !== 'field1')],
-      merge: {
-        Object: {
-          fieldName: 'objectA',
-          args: () => ({}),
+      {
+        schema: innerSchemaA,
+        transforms: [new FilterObjectFields((typeName, fieldName) => typeName !== 'Object' || fieldName !== 'field1')],
+        merge: {
+          Object: {
+            fieldName: 'objectA',
+            args: () => ({}),
+          },
         },
+        batch: true,
+        executor,
       },
-      batch: true,
-      executor,
-    }];
+    ];
 
     const innerSubschemaConfigB: SubschemaConfig = {
       schema: innerSchemaB,
@@ -144,7 +147,7 @@ describe('batch execution', () => {
           args: () => ({}),
         },
       },
-    }
+    };
 
     const query = '{ objectB { field1 field2 field3 } }';
 
@@ -154,7 +157,7 @@ describe('batch execution', () => {
           field1: 'test1',
           field2: 'test2',
           field3: 'test3',
-        }
+        },
       },
     };
 

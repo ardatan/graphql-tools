@@ -6,7 +6,7 @@ import { graphql } from 'graphql';
 describe('RenameRootTypes', () => {
   test('should work', async () => {
     let subschema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         schema {
           query: QueryRoot
           mutation: MutationRoot
@@ -30,9 +30,7 @@ describe('RenameRootTypes', () => {
 
     const schema = wrapSchema({
       schema: subschema,
-      transforms: [
-        new RenameRootTypes((name) => (name === 'QueryRoot' ? 'Query' : name)),
-      ],
+      transforms: [new RenameRootTypes(name => (name === 'QueryRoot' ? 'Query' : name))],
     });
 
     const result = await graphql({
@@ -45,7 +43,7 @@ describe('RenameRootTypes', () => {
             }
           }
         }
-      `
+      `,
     });
 
     expect(result).toEqual({

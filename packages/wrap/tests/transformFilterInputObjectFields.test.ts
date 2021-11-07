@@ -5,7 +5,7 @@ import { assertSome } from '@graphql-tools/utils';
 
 describe('FilterInputObjectFields', () => {
   const schema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       input InputObject {
         field1: String
         field2: String
@@ -24,48 +24,49 @@ describe('FilterInputObjectFields', () => {
       Query: {
         test: (_root, args) => {
           return args.argument;
-        }
-      }
-    }
+        },
+      },
+    },
   });
 
   const transformedSchema = wrapSchema({
     schema,
     transforms: [
       new FilterInputObjectFields(
-        (typeName, fieldName) => (typeName !== 'InputObject' || fieldName !== 'field2'),
+        (typeName, fieldName) => typeName !== 'InputObject' || fieldName !== 'field2',
         (typeName, inputObjectNode) => {
           if (typeName === 'InputObject') {
-            const value = astFromValue('field2', GraphQLString)
-            assertSome(value)
+            const value = astFromValue('field2', GraphQLString);
+            assertSome(value);
             return {
               ...inputObjectNode,
-              fields: [...inputObjectNode.fields, {
-                kind: Kind.OBJECT_FIELD,
-                name: {
-                  kind: Kind.NAME,
-                  value: 'field2',
+              fields: [
+                ...inputObjectNode.fields,
+                {
+                  kind: Kind.OBJECT_FIELD,
+                  name: {
+                    kind: Kind.NAME,
+                    value: 'field2',
+                  },
+                  value,
                 },
-                value,
-              }],
+              ],
             };
           }
         }
-      )
+      ),
     ],
   });
 
   test('filtering works', async () => {
-
-
-    const query = /* GraphQL */`{
-      test(argument: {
-        field1: "field1"
-      }) {
-        field1
-        field2
+    const query = /* GraphQL */ `
+      {
+        test(argument: { field1: "field1" }) {
+          field1
+          field2
+        }
       }
-    }`;
+    `;
 
     const result = await execute({
       schema: transformedSchema,
@@ -79,21 +80,19 @@ describe('FilterInputObjectFields', () => {
   });
 
   test('filtering works with non-nullable input variable', async () => {
-
-
-    const query = /* GraphQL */`query testQuery($field1Arg: String!){
-      test(argument: {
-        field1: $field1Arg
-      }) {
-        field1
-        field2
+    const query = /* GraphQL */ `
+      query testQuery($field1Arg: String!) {
+        test(argument: { field1: $field1Arg }) {
+          field1
+          field2
+        }
       }
-    }`;
+    `;
 
     const result = await graphql({
       schema: transformedSchema,
       source: query,
-      variableValues: {field1Arg: 'field1'}
+      variableValues: { field1Arg: 'field1' },
     });
     assertSome(result.data);
     expect(result.errors).toBeUndefined();

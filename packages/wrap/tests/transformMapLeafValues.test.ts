@@ -7,7 +7,7 @@ describe('MapLeafValues', () => {
   let transformedSchema: GraphQLSchema;
   beforeAll(() => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         enum TestEnum {
           ONE
           TWO
@@ -23,8 +23,8 @@ describe('MapLeafValues', () => {
         Query: {
           testEnum: (_root, { argument }) => argument,
           testScalar: (_root, { argument }) => argument,
-        }
-      }
+        },
+      },
     });
 
     const valueIterator = (typeName: string, value: any) => {
@@ -39,39 +39,41 @@ describe('MapLeafValues', () => {
 
     transformedSchema = wrapSchema({
       schema,
-      transforms: [
-        new MapLeafValues(valueIterator, valueIterator),
-      ],
+      transforms: [new MapLeafValues(valueIterator, valueIterator)],
     });
   });
   test('works', async () => {
-    const query = /* GraphQL */`{
-      testEnum(argument: ONE)
-      testScalar(argument: 5)
-    }`;
+    const query = /* GraphQL */ `
+      {
+        testEnum(argument: ONE)
+        testScalar(argument: 5)
+      }
+    `;
 
     const result = await execute({
       schema: transformedSchema,
       document: parse(query),
     });
-    assertSome(result.data)
+    assertSome(result.data);
     expect(result.data['testEnum']).toBe('THREE');
     expect(result.data['testScalar']).toBe(15);
   });
   test('works with variables', async () => {
-    const query = /* GraphQL */`query MyQuery($argument: Int!){
-      testEnum(argument: ONE)
-      testScalar(argument: $argument)
-    }`;
+    const query = /* GraphQL */ `
+      query MyQuery($argument: Int!) {
+        testEnum(argument: ONE)
+        testScalar(argument: $argument)
+      }
+    `;
 
     const result = await execute({
       schema: transformedSchema,
       document: parse(query),
       variableValues: {
-        argument: 5
-      }
+        argument: 5,
+      },
     });
-    assertSome(result.data)
+    assertSome(result.data);
     expect(result.data['testEnum']).toBe('THREE');
     expect(result.data['testScalar']).toBe(15);
   });

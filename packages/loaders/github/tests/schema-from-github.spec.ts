@@ -10,7 +10,7 @@ const token = 'MY-SECRET-TOKEN';
 
 const pointer = `github:${owner}/${name}#${ref}:${path}`;
 
-const typeDefs = /* GraphQL */`
+const typeDefs = /* GraphQL */ `
   type Post {
     id: ID
     title: String @deprecated(reason: "No more used")
@@ -29,7 +29,7 @@ function normalize(doc: string): string {
 
 function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | undefined> {
   if (input == null) {
-    throw new Error("Value should be neither null nor undefined.")
+    throw new Error('Value should be neither null nor undefined.');
   }
 }
 
@@ -43,37 +43,39 @@ test('load schema from GitHub', () => {
     customFetch: (url: RequestInfo, options?: RequestInit) => {
       expect(url.toString()).toBe(`https://api.github.com/graphql`);
       expect(options?.method).toBe('POST');
-      const body = JSON.parse(options?.body?.toString() || '{}')
+      const body = JSON.parse(options?.body?.toString() || '{}');
       params = {
         headers: options?.headers,
         query: body.query,
         variables: body.variables,
-        operationName: body.operationName
-      }
-      return new Response(JSON.stringify({
-        data: {
-          repository: {
-            object: {
-              text: typeDefs
-            }
-          }
-        }
-      }));
-    }
+        operationName: body.operationName,
+      };
+      return new Response(
+        JSON.stringify({
+          data: {
+            repository: {
+              object: {
+                text: typeDefs,
+              },
+            },
+          },
+        })
+      );
+    },
   });
 
   assertNonMaybe(params);
 
   // headers
   console.log({
-    params
-  })
+    params,
+  });
   expect(params.headers['content-type']).toContain('application/json; charset=utf-8');
   expect(params.headers.authorization).toContain(`bearer ${token}`);
 
   // query
   expect(normalize(params.query)).toEqual(
-    normalize(/* GraphQL */`
+    normalize(/* GraphQL */ `
       query GetGraphQLSchemaForGraphQLtools($owner: String!, $name: String!, $expression: String!) {
         repository(owner: $owner, name: $name) {
           object(expression: $expression) {
@@ -83,7 +85,7 @@ test('load schema from GitHub', () => {
           }
         }
       }
-    `),
+    `)
   );
 
   // variables
@@ -92,11 +94,11 @@ test('load schema from GitHub', () => {
     name,
     expression: ref + ':' + path,
   });
-  assertNonMaybe(params.operationName)
+  assertNonMaybe(params.operationName);
   // name
   expect(params.operationName).toEqual('GetGraphQLSchemaForGraphQLtools');
 
-  assertNonMaybe(source.document)
+  assertNonMaybe(source.document);
   // schema
   expect(print(source.document)).toEqual(printSchema(buildSchema(typeDefs)));
 });
@@ -104,8 +106,8 @@ test('load schema from GitHub', () => {
 test('simply skips schema for path that cannot be loaded', async () => {
   const loader = new GithubLoader();
 
-  const result = await loader.load("./test/123", {
+  const result = await loader.load('./test/123', {
     token,
   });
-  expect(result).toEqual([])
-})
+  expect(result).toEqual([]);
+});

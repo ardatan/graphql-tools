@@ -1,5 +1,5 @@
 //@ts-ignore
-import { gql } from "@app/gql";
+import { gql } from '@app/gql';
 
 const FooQuery = gql(/* GraphQL */ `
   query Foo {

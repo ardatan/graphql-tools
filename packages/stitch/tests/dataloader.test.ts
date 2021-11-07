@@ -9,7 +9,7 @@ import { stitchSchemas } from '../src/stitchSchemas';
 describe('dataloader', () => {
   test('should work', async () => {
     const taskSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Task {
           id: ID!
           text: String
@@ -31,7 +31,7 @@ describe('dataloader', () => {
     });
 
     const userSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type User {
           id: ID!
           email: String!
@@ -42,15 +42,14 @@ describe('dataloader', () => {
       `,
       resolvers: {
         Query: {
-          usersByIds: (_root, { ids }) =>
-            ids.map((id: string) => ({ id, email: `${id}@tasks.com` })),
+          usersByIds: (_root, { ids }) => ids.map((id: string) => ({ id, email: `${id}@tasks.com` })),
         },
       },
     });
 
     const schema = stitchSchemas({
       subschemas: [taskSchema, userSchema],
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         extend type Task {
           user: User!
         }
@@ -67,43 +66,43 @@ describe('dataloader', () => {
       },
     });
 
-    const usersLoader = new DataLoader(
-      async (keys: ReadonlyArray<{ id: any; info: GraphQLResolveInfo }>) => {
-        const users = await delegateToSchema({
-          schema: userSchema,
-          operation: 'query' as OperationTypeNode,
-          fieldName: 'usersByIds',
-          args: {
-            ids: keys.map((k: { id: any }) => k.id),
-          },
-          context: null,
-          info: keys[0].info,
-          returnType: new GraphQLList(keys[0].info.returnType),
-        });
+    const usersLoader = new DataLoader(async (keys: ReadonlyArray<{ id: any; info: GraphQLResolveInfo }>) => {
+      const users = await delegateToSchema({
+        schema: userSchema,
+        operation: 'query' as OperationTypeNode,
+        fieldName: 'usersByIds',
+        args: {
+          ids: keys.map((k: { id: any }) => k.id),
+        },
+        context: null,
+        info: keys[0].info,
+        returnType: new GraphQLList(keys[0].info.returnType),
+      });
 
-        expect(users).toContainEqual(
-          expect.objectContaining({
-            id: '1',
-            email: '1@tasks.com',
-          }),
-        );
+      expect(users).toContainEqual(
+        expect.objectContaining({
+          id: '1',
+          email: '1@tasks.com',
+        })
+      );
 
-        return users;
-      },
-    );
+      return users;
+    });
 
-    const query = /* GraphQL */`{
-      task(id: "1") {
-        id
-        text
-        user {
+    const query = /* GraphQL */ `
+      {
+        task(id: "1") {
           id
-          email
+          text
+          user {
+            id
+            email
+          }
         }
       }
-    }`;
+    `;
 
-    const result = await graphql({schema, source: query, contextValue: { usersLoader }});
+    const result = await graphql({ schema, source: query, contextValue: { usersLoader } });
 
     expect(result).toEqual({
       data: {

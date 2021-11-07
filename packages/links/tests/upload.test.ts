@@ -17,7 +17,7 @@ import { createServerHttpLink, GraphQLUpload as ServerGraphQLUpload, linkToExecu
 function streamToString(stream: Readable) {
   const chunks: Array<Buffer> = [];
   return new Promise((resolve, reject) => {
-    stream.on('data', (chunk) => chunks.push(chunk));
+    stream.on('data', chunk => chunks.push(chunk));
     stream.on('error', reject);
     stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
   });
@@ -45,7 +45,7 @@ function testGraphqlMultipartRequest(query: string, port: number) {
       variables: {
         file: null,
       },
-    }),
+    })
   );
   body.append('map', '{ "1": ["variables.file"] }');
   body.append('1', 'abc', { filename: __filename });
@@ -57,14 +57,14 @@ function testGraphqlMultipartRequest(query: string, port: number) {
 }
 
 describe('graphql upload', () => {
-  let remoteServer: Server
-  let remotePort: number
-  let gatewayServer: Server
-  let gatewayPort: number
+  let remoteServer: Server;
+  let remotePort: number;
+  let gatewayServer: Server;
+  let gatewayPort: number;
 
   beforeAll(async () => {
     const remoteSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         scalar Upload
         type Query {
           version: String
@@ -86,15 +86,12 @@ describe('graphql upload', () => {
       },
     });
 
-    const remoteApp = express().use(
-      graphqlUploadExpress(),
-      graphqlHTTP({ schema: remoteSchema }),
-    );
+    const remoteApp = express().use(graphqlUploadExpress(), graphqlHTTP({ schema: remoteSchema }));
 
     remoteServer = await startServer(remoteApp);
     remotePort = (remoteServer.address() as AddressInfo).port;
 
-    const nonExecutableSchema = buildSchema(/* GraphQL */`
+    const nonExecutableSchema = buildSchema(/* GraphQL */ `
       scalar Upload
       type Query {
         version: String
@@ -109,7 +106,7 @@ describe('graphql upload', () => {
       executor: linkToExecutor(
         createServerHttpLink({
           uri: `http://localhost:${remotePort.toString()}`,
-        }),
+        })
       ),
     };
 
@@ -120,22 +117,19 @@ describe('graphql upload', () => {
       },
     });
 
-    const gatewayApp = express().use(
-      graphqlUploadExpress(),
-      graphqlHTTP({ schema: gatewaySchema }),
-    );
+    const gatewayApp = express().use(graphqlUploadExpress(), graphqlHTTP({ schema: gatewaySchema }));
 
     gatewayServer = await startServer(gatewayApp);
     gatewayPort = (gatewayServer.address() as AddressInfo).port;
-  })
+  });
 
   afterAll(async () => {
     remoteServer.close();
     gatewayServer.close();
-  })
+  });
 
   test('should return a file after uploading one', async () => {
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       mutation upload($file: Upload!) {
         upload(file: $file)
       }

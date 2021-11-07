@@ -9,7 +9,7 @@ function removeLocations(value: any): any {
   }
 
   if (Array.isArray(value)) {
-    return value.map((v) => removeLocations(v));
+    return value.map(v => removeLocations(v));
   } else if (typeof value === 'object') {
     const newValue = {};
     for (const key in value) {
@@ -34,12 +34,12 @@ describe('requests', () => {
           minor
           patch
         }`),
-        targetOperationName: 'test'
-      }),
+        targetOperationName: 'test',
+      })
     );
 
     const expectedRequest = removeLocations({
-      document: parse(/* GraphQL */`
+      document: parse(/* GraphQL */ `
         query test {
           version {
             major

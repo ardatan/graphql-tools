@@ -1,5 +1,3 @@
-
-
 module.exports = function () {
-  return "I like turtles"
-}
+  return 'I like turtles';
+};

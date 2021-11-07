@@ -112,10 +112,11 @@ describe('loadFromCodeFileSync', () => {
   });
 
   it('should raise an error when the glob matches valid and invalid schema files with `noSilentErrors` set to true', async () => {
-    const result = () => loader.loadSync('./test-files/{valid,invalid-anon}-doc.js', {
-      cwd: __dirname,
-      noSilentErrors: true,
-    });
+    const result = () =>
+      loader.loadSync('./test-files/{valid,invalid-anon}-doc.js', {
+        cwd: __dirname,
+        noSilentErrors: true,
+      });
     expect(result).toThrow();
   });
 

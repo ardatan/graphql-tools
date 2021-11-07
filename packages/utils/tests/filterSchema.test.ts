@@ -5,7 +5,7 @@ import { GraphQLObjectType, GraphQLInterfaceType, GraphQLInputObjectType } from 
 describe('filterSchema', () => {
   it('filters root fields', () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Query {
           keep: String
           omit: String
@@ -14,7 +14,7 @@ describe('filterSchema', () => {
           keepThis(id: ID): String
           omitThis(id: ID): String
         }
-      `
+      `,
     });
 
     const filtered = filterSchema({
@@ -30,7 +30,7 @@ describe('filterSchema', () => {
 
   it('filters types', () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Keep implements IKeep {
           field(input: KeepInput): String
         }
@@ -59,12 +59,12 @@ describe('filterSchema', () => {
         }
         scalar KeepScalar
         scalar RemoveScalar
-      `
+      `,
     });
 
     const filtered = filterSchema({
       schema,
-      typeFilter: (typeName) => !/^I?Remove/.test(typeName)
+      typeFilter: typeName => !/^I?Remove/.test(typeName),
     });
 
     expect(filtered.getType('Keep')).toBeDefined();
@@ -84,7 +84,7 @@ describe('filterSchema', () => {
 
   it('filters object fields', () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Thing implements IThing {
           keep: String
           omit: String
@@ -92,7 +92,7 @@ describe('filterSchema', () => {
         interface IThing {
           control: String
         }
-      `
+      `,
     });
 
     const filtered = filterSchema({
@@ -107,7 +107,7 @@ describe('filterSchema', () => {
 
   it('filters interface fields', () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         interface IThing {
           keep: String
           omit: String
@@ -115,7 +115,7 @@ describe('filterSchema', () => {
         type Thing implements IThing {
           control: String
         }
-      `
+      `,
     });
 
     const filtered = filterSchema({
@@ -130,7 +130,7 @@ describe('filterSchema', () => {
 
   it('filters input object fields', () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         input ThingInput {
           keep: String
           omit: String
@@ -138,7 +138,7 @@ describe('filterSchema', () => {
         type Thing {
           control: String
         }
-      `
+      `,
     });
 
     const filtered = filterSchema({
@@ -153,7 +153,7 @@ describe('filterSchema', () => {
 
   it('filters all field types', () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Thing implements IThing {
           keep: String
           omit: String
@@ -166,7 +166,7 @@ describe('filterSchema', () => {
           keep: String
           omit: String
         }
-      `
+      `,
     });
 
     const filtered = filterSchema({
@@ -184,7 +184,7 @@ describe('filterSchema', () => {
 
   it('filters all arguments', () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Query {
           field(keep: String, omit: String): String
         }
@@ -194,7 +194,7 @@ describe('filterSchema', () => {
         interface IThing {
           field(keep: String, omit: String): String
         }
-      `
+      `,
     });
 
     const filtered = filterSchema({
@@ -202,8 +202,14 @@ describe('filterSchema', () => {
       argumentFilter: (_typeName, _fieldName, argName) => argName?.startsWith('keep') ?? false,
     });
 
-    expect((filtered.getType('Query') as GraphQLObjectType).getFields()['field'].args.map(arg => arg.name)).toEqual(['keep']);
-    expect((filtered.getType('Thing') as GraphQLObjectType).getFields()['field'].args.map(arg => arg.name)).toEqual(['keep']);
-    expect((filtered.getType('IThing') as GraphQLInterfaceType).getFields()['field'].args.map(arg => arg.name)).toEqual(['keep']);
+    expect((filtered.getType('Query') as GraphQLObjectType).getFields()['field'].args.map(arg => arg.name)).toEqual([
+      'keep',
+    ]);
+    expect((filtered.getType('Thing') as GraphQLObjectType).getFields()['field'].args.map(arg => arg.name)).toEqual([
+      'keep',
+    ]);
+    expect((filtered.getType('IThing') as GraphQLInterfaceType).getFields()['field'].args.map(arg => arg.name)).toEqual(
+      ['keep']
+    );
   });
 });

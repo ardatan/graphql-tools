@@ -3,10 +3,10 @@ import { getFieldsWithDirectives } from '../src';
 
 describe('getFieldsWithDirectives', () => {
   it('Should detect single basic directive', () => {
-    const node = parse(/* GraphQL */`
-        type A {
-            f1: String @a
-        }
+    const node = parse(/* GraphQL */ `
+      type A {
+        f1: String @a
+      }
     `);
 
     const result = getFieldsWithDirectives(node);
@@ -14,10 +14,10 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should detect single basic directive in a type extension', () => {
-    const node = parse(/* GraphQL */`
-        extend type A {
-          f1: String @a
-        }
+    const node = parse(/* GraphQL */ `
+      extend type A {
+        f1: String @a
+      }
     `);
 
     const result = getFieldsWithDirectives(node);
@@ -25,10 +25,10 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should parse string argument correctly', () => {
-    const node = parse(/* GraphQL */`
-        type A {
-            f1: String @a(f: "1")
-        }
+    const node = parse(/* GraphQL */ `
+      type A {
+        f1: String @a(f: "1")
+      }
     `);
 
     const result = getFieldsWithDirectives(node);
@@ -36,10 +36,10 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should parse multiple arguments correctly', () => {
-    const node = parse(/* GraphQL */`
-        type A {
-            f1: String @a(a1: "1", a2: 10)
-        }
+    const node = parse(/* GraphQL */ `
+      type A {
+        f1: String @a(a1: "1", a2: 10)
+      }
     `);
 
     const result = getFieldsWithDirectives(node);
@@ -47,10 +47,10 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should parse object arg correctly', () => {
-    const node = parse(/* GraphQL */`
-        type A {
-            f1: String @a(a1: { foo: "bar" })
-        }
+    const node = parse(/* GraphQL */ `
+      type A {
+        f1: String @a(a1: { foo: "bar" })
+      }
     `);
 
     const result = getFieldsWithDirectives(node);
@@ -58,10 +58,10 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should parse array arg correctly', () => {
-    const node = parse(/* GraphQL */`
-        type A {
-            f1: String @a(a1: [1,2,3])
-        }
+    const node = parse(/* GraphQL */ `
+      type A {
+        f1: String @a(a1: [1, 2, 3])
+      }
     `);
 
     const result = getFieldsWithDirectives(node);
@@ -69,10 +69,10 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should parse complex array arg correctly', () => {
-    const node = parse(/* GraphQL */`
-        type A {
-            f1: String @a(a1: ["a", 1, {c: 3, d: true }])
-        }
+    const node = parse(/* GraphQL */ `
+      type A {
+        f1: String @a(a1: ["a", 1, { c: 3, d: true }])
+      }
     `);
 
     const result = getFieldsWithDirectives(node);
@@ -80,38 +80,44 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should detect multiple directives', () => {
-    const node = parse(/* GraphQL */`
-        type A {
-            f1: String @a @b
-        }
+    const node = parse(/* GraphQL */ `
+      type A {
+        f1: String @a @b
+      }
     `);
 
     const result = getFieldsWithDirectives(node);
-    expect(result['A.f1']).toEqual([{ name: 'a', args: {} }, { name: 'b', args: {} }]);
+    expect(result['A.f1']).toEqual([
+      { name: 'a', args: {} },
+      { name: 'b', args: {} },
+    ]);
   });
 
   it('Should detect multiple directives and multiple fields', () => {
-    const node = parse(/* GraphQL */`
-        type A {
-            f1: String @a @b
-            f2: String @c
-        }
+    const node = parse(/* GraphQL */ `
+      type A {
+        f1: String @a @b
+        f2: String @c
+      }
     `);
 
     const result = getFieldsWithDirectives(node);
-    expect(result['A.f1']).toEqual([{ name: 'a', args: {} }, { name: 'b', args: {} }]);
+    expect(result['A.f1']).toEqual([
+      { name: 'a', args: {} },
+      { name: 'b', args: {} },
+    ]);
     expect(result['A.f2']).toEqual([{ name: 'c', args: {} }]);
   });
 
   it('Should detect multiple types', () => {
-    const node = parse(/* GraphQL */`
-        type A {
-          f1: String @a
-        }
+    const node = parse(/* GraphQL */ `
+      type A {
+        f1: String @a
+      }
 
-        type B {
-          f2: String @a
-        }
+      type B {
+        f2: String @a
+      }
     `);
 
     const result = getFieldsWithDirectives(node);
@@ -120,17 +126,17 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should include only fields with directives', () => {
-    const node = parse(/* GraphQL */`
-        type A {
-          f1: String @a
-          f2: Int
-          f3: String
-        }
+    const node = parse(/* GraphQL */ `
+      type A {
+        f1: String @a
+        f2: Int
+        f3: String
+      }
 
-        type B {
-          f4: ID!
-          f2: String @a
-        }
+      type B {
+        f4: ID!
+        f2: String @a
+      }
     `);
 
     const result = getFieldsWithDirectives(node);
@@ -138,33 +144,33 @@ describe('getFieldsWithDirectives', () => {
   });
 
   it('Should detect multiple input types', () => {
-    const node = parse(/* GraphQL */`
-        input A {
-          f1: String @a
-        }
+    const node = parse(/* GraphQL */ `
+      input A {
+        f1: String @a
+      }
 
-        input B {
-          f2: String @a
-        }
+      input B {
+        f2: String @a
+      }
     `);
 
-    const result = getFieldsWithDirectives(node, {includeInputTypes: true});
+    const result = getFieldsWithDirectives(node, { includeInputTypes: true });
     expect(result['A.f1']).toEqual([{ name: 'a', args: {} }]);
     expect(result['B.f2']).toEqual([{ name: 'a', args: {} }]);
   });
 
   it('Should detect multiple extend input types', () => {
-    const node = parse(/* GraphQL */`
-        extend input A {
-          f1: String @a
-        }
+    const node = parse(/* GraphQL */ `
+      extend input A {
+        f1: String @a
+      }
 
-        extend input B {
-          f2: String @a
-        }
+      extend input B {
+        f2: String @a
+      }
     `);
 
-    const result = getFieldsWithDirectives(node, {includeInputTypes: true});
+    const result = getFieldsWithDirectives(node, { includeInputTypes: true });
     expect(result['A.f1']).toEqual([{ name: 'a', args: {} }]);
     expect(result['B.f2']).toEqual([{ name: 'a', args: {} }]);
   });

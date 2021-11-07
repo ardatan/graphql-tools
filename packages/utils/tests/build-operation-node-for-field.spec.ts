@@ -275,7 +275,7 @@ test('should work with mutation + return a field of type Query', async () => {
     type Mutation {
       addPizza(name: String!): Pizza
     }
-  `)
+  `);
   const document = buildOperationNodeForField({
     schema,
     kind: 'mutation' as OperationTypeNode,
@@ -315,7 +315,7 @@ test('should work with mutation + Union + return a field of type Query', async (
     type Mutation {
       addRandomFood(name: String!): Food
     }
-  `)
+  `);
   const document = buildOperationNodeForField({
     schema,
     kind: 'mutation' as OperationTypeNode,
@@ -602,7 +602,6 @@ test('arguments', async () => {
 });
 
 test('selectedFields', async () => {
-
   const document = buildOperationNodeForField({
     schema,
     kind: 'query' as OperationTypeNode,
@@ -614,7 +613,7 @@ test('selectedFields', async () => {
         asian: true,
       },
       shelf: true, // Add all nested fields
-    }
+    },
   })!;
 
   expect(clean(document)).toEqual(
@@ -640,4 +639,4 @@ test('selectedFields', async () => {
       }
     `)
   );
-})
+});

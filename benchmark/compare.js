@@ -30,6 +30,6 @@ function createReport(pointer) {
 
 const pointers = rawPointers.map(createReport);
 
-const stats = pointers.map(pointer => `${pointer.name}: ${pointer.avg.toFixed(2)} ms`).join('\n')
+const stats = pointers.map(pointer => `${pointer.name}: ${pointer.avg.toFixed(2)} ms`).join('\n');
 
 console.log(stats);

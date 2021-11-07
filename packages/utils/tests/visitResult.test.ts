@@ -7,7 +7,7 @@ import { relocatedError } from '../src/errors';
 import { visitData, visitResult } from '../src/visitResult';
 
 describe('visiting results', () => {
-  const schema = buildSchema(/* GraphQL */`
+  const schema = buildSchema(/* GraphQL */ `
     interface TestInterface {
       field: String
     }
@@ -21,7 +21,7 @@ describe('visiting results', () => {
 
   const request: ExecutionRequest = {
     document: parse('{ test { field } }'),
-    variables: {}
+    variables: {},
   };
 
   it('should visit without throwing', async () => {
@@ -45,7 +45,7 @@ describe('visiting results', () => {
   it('should visit with a request with introspection fields without throwing', async () => {
     const introspectionRequest: ExecutionRequest = {
       document: parse('{ test { field __typename } }'),
-      variables: {}
+      variables: {},
     };
     const result = {
       data: {
@@ -125,7 +125,7 @@ describe('visiting results', () => {
     const visitedResult = visitResult(result, request, schema, {
       Test: {
         // leaf type visitors fire first.
-        field: (value) => value === 'intermediate' ? 'success' : 'failure',
+        field: value => (value === 'intermediate' ? 'success' : 'failure'),
       },
       String: () => 'intermediate',
     });
@@ -182,7 +182,7 @@ describe('visiting results', () => {
 
     const visitedResult = visitResult(result, request, schema, {
       Test: {
-        __leave: (object) => ({
+        __leave: object => ({
           ...object,
           __typename: 'Success',
         }),
@@ -203,7 +203,7 @@ describe('visiting results', () => {
 });
 
 describe('visiting nested results', () => {
-  const schema = buildSchema(/* GraphQL */`
+  const schema = buildSchema(/* GraphQL */ `
     type User {
       name: String
     }
@@ -217,28 +217,34 @@ describe('visiting nested results', () => {
   `);
 
   const request: ExecutionRequest = {
-    document: parse(/* GraphQL */`{
-      userGroups {
-        name
-        subGroupedUsers {
+    document: parse(/* GraphQL */ `
+      {
+        userGroups {
           name
+          subGroupedUsers {
+            name
+          }
         }
       }
-    }`),
+    `),
     variables: {},
   };
 
   it('should work', async () => {
     const result: ExecutionResult = {
       data: {
-        userGroups: [{
-          name: 'Group A',
-          subGroupedUsers: [[
-            {
-              name: 'User A',
-            }
-          ]]
-        }],
+        userGroups: [
+          {
+            name: 'Group A',
+            subGroupedUsers: [
+              [
+                {
+                  name: 'User A',
+                },
+              ],
+            ],
+          },
+        ],
       },
     };
 
@@ -270,7 +276,7 @@ describe('visiting nested results', () => {
 });
 
 describe('visiting nested results', () => {
-  const schema = buildSchema(/* GraphQL */`
+  const schema = buildSchema(/* GraphQL */ `
     type User {
       name: String
     }
@@ -284,28 +290,34 @@ describe('visiting nested results', () => {
   `);
 
   const request: ExecutionRequest = {
-    document: parse(/* GraphQL */`{
-      userGroups {
-        name
-        subGroupedUsers {
+    document: parse(/* GraphQL */ `
+      {
+        userGroups {
           name
+          subGroupedUsers {
+            name
+          }
         }
       }
-    }`),
+    `),
     variables: {},
   };
 
   it('should work', async () => {
     const result: ExecutionResult = {
       data: {
-        userGroups: [{
-          name: 'Group A',
-          subGroupedUsers: [[
-            {
-              name: 'User A',
-            }
-          ]]
-        }],
+        userGroups: [
+          {
+            name: 'Group A',
+            subGroupedUsers: [
+              [
+                {
+                  name: 'User A',
+                },
+              ],
+            ],
+          },
+        ],
       },
     };
 
@@ -337,7 +349,7 @@ describe('visiting nested results', () => {
 });
 
 describe('visiting errors', () => {
-  const schema = buildSchema(/* GraphQL */`
+  const schema = buildSchema(/* GraphQL */ `
     interface TestInterface {
       field: String
     }
@@ -365,7 +377,7 @@ describe('visiting errors', () => {
       errors: [
         new GraphQLError('unpathed error'),
         new GraphQLError('pathed error', undefined, undefined, undefined, ['test', 'field']),
-      ]
+      ],
     };
 
     const visitedResult = visitResult(result, request, schema, undefined, undefined);
@@ -383,7 +395,7 @@ describe('visiting errors', () => {
       errors: [
         new GraphQLError('unpathed error'),
         new GraphQLError('pathed error', undefined, undefined, undefined, ['test', 'field']),
-      ]
+      ],
     };
 
     const visitedResult = visitResult(result, request, schema, undefined, {
@@ -402,7 +414,7 @@ describe('visiting errors', () => {
 describe('visiting data', () => {
   it('should work when the parent contains properties with getters only', async () => {
     const result = {
-      data: Buffer.from("Test"),
+      data: Buffer.from('Test'),
     };
 
     const visitedResult = visitData(result);

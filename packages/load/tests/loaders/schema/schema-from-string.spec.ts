@@ -1,4 +1,4 @@
-import '../../../../testing/to-be-similar-string'
+import '../../../../testing/to-be-similar-string';
 import '../../../../testing/to-be-similar-gql-doc';
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
@@ -9,27 +9,26 @@ const monorepo = useMonorepo({
   dirname: __dirname,
 });
 describe('schema from string', () => {
-
   monorepo.correctCWD();
 
-    runTests({
-      async: loadSchema,
-      sync: loadSchemaSync
-    })(load => {
+  runTests({
+    async: loadSchema,
+    sync: loadSchemaSync,
+  })(load => {
     it('should load schema from string', async () => {
-      const schemaString = /* GraphQL */`
+      const schemaString = /* GraphQL */ `
         type Query {
           book: String
         }
       `;
       const schema = await load(schemaString, {
-        loaders: []
+        loaders: [],
       });
       const printedSchema = printSchema(schema);
       expect(printedSchema).toBeSimilarString(schemaString);
     });
     it('should load schema from string with schema definition', async () => {
-      const schemaString = /* GraphQL */`
+      const schemaString = /* GraphQL */ `
         schema {
           query: Query
         }
@@ -39,13 +38,13 @@ describe('schema from string', () => {
         }
       `;
       const schema = await load(schemaString, {
-        loaders: []
+        loaders: [],
       });
       const printedSchema = printSchemaWithDirectives(schema);
       expect(printedSchema).toBeSimilarString(schemaString);
     });
     it('should load schema from string with schema definition and convertExtensions flag', async () => {
-      const schemaString = /* GraphQL */`
+      const schemaString = /* GraphQL */ `
         extend schema {
           query: query_root
         }
@@ -60,10 +59,10 @@ describe('schema from string', () => {
       `;
       const schema = await load(schemaString, {
         loaders: [],
-        convertExtensions: true
+        convertExtensions: true,
       });
       const printedSchema = printSchemaWithDirectives(schema);
-      expect(printedSchema).toBeSimilarGqlDoc(/* GraphQL */`
+      expect(printedSchema).toBeSimilarGqlDoc(/* GraphQL */ `
         schema {
           query: query_root
         }
@@ -77,5 +76,5 @@ describe('schema from string', () => {
         }
       `);
     });
-  })
-})
+  });
+});

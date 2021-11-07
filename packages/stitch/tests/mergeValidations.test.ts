@@ -13,7 +13,7 @@ describe('Field validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field: String }') },
             { schema: buildSchema('type Query { field: URL } scalar URL') },
-          ]
+          ],
         });
       }).toThrow(/inconsistent named types/);
     });
@@ -27,7 +27,7 @@ describe('Field validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field: [URL] } scalar URL') },
             { schema: buildSchema('type Query { field: URL } scalar URL') },
-          ]
+          ],
         });
       }).toThrow(/inconsistent list types/);
     });
@@ -41,7 +41,7 @@ describe('Field validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field: [URL] } scalar URL') },
             { schema: buildSchema('type Query { field: [URL] } scalar URL') },
-          ]
+          ],
         });
       }).not.toThrow();
     });
@@ -55,14 +55,14 @@ describe('Field validations', () => {
             validationSettings: {
               validationLevel: ValidationLevel.Error,
               proxiableScalars: {
-                ID: ['String']
-              }
+                ID: ['String'],
+              },
             },
           },
           subschemas: [
             { schema: buildSchema('type Query { field: [String] }') },
             { schema: buildSchema('type Query { field: [ID] }') },
-          ]
+          ],
         });
       }).not.toThrow();
     });
@@ -74,14 +74,14 @@ describe('Field validations', () => {
             validationSettings: {
               validationLevel: ValidationLevel.Error,
               proxiableScalars: {
-                ID: ['Thing']
-              }
+                ID: ['Thing'],
+              },
             },
           },
           subschemas: [
             { schema: buildSchema('type Query { field: [Thing] } type Thing { id: ID }') },
             { schema: buildSchema('type Query { field: [ID] }') },
-          ]
+          ],
         });
       }).toThrow(/not proxiable scalars/);
     });
@@ -97,7 +97,7 @@ describe('Field validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field: String }') },
             { schema: buildSchema('type Query { field: String! }') },
-          ]
+          ],
         });
       }).toThrow(/is not-null while some subschemas permit null/);
     });
@@ -111,7 +111,7 @@ describe('Field validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field: String! }') },
             { schema: buildSchema('type Query { field: String }') },
-          ]
+          ],
         });
       }).not.toThrow();
     });
@@ -128,7 +128,7 @@ describe('Field validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field: String! }') },
             { schema: buildSchema('type Query { field: String }') },
-          ]
+          ],
         });
       }).toThrow(/does not match across subschemas/);
     });
@@ -146,7 +146,7 @@ describe('Argument validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(arg1: Int): Int }') },
             { schema: buildSchema('type Query { field(arg2: Int): Int }') },
-          ]
+          ],
         });
       }).toThrow(/inconsistent argument names/);
     });
@@ -160,7 +160,7 @@ describe('Argument validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(arg: Int): Int }') },
             { schema: buildSchema('type Query { field(arg: Int): Int }') },
-          ]
+          ],
         });
       }).not.toThrow();
     });
@@ -176,7 +176,7 @@ describe('Argument validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(arg: Int!): Int }') },
             { schema: buildSchema('type Query { field(arg: Int): Int }') },
-          ]
+          ],
         });
       }).toThrow(/permits null while some subschemas require not-null/);
     });
@@ -190,7 +190,7 @@ describe('Argument validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(arg: Int): Int }') },
             { schema: buildSchema('type Query { field(arg: Int!): Int }') },
-          ]
+          ],
         });
       }).not.toThrow();
     });
@@ -207,7 +207,7 @@ describe('Argument validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(arg: Int): Int }') },
             { schema: buildSchema('type Query { field(arg: Int!): Int }') },
-          ]
+          ],
         });
       }).toThrow(/does not match across subschemas/);
     });
@@ -223,7 +223,7 @@ describe('Argument validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(arg: String): String }') },
             { schema: buildSchema('type Query { field(arg: URL): String } scalar URL') },
-          ]
+          ],
         });
       }).toThrow(/inconsistent named types/);
     });
@@ -237,7 +237,7 @@ describe('Argument validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(arg: URL): String } scalar URL') },
             { schema: buildSchema('type Query { field(arg: [URL]): String } scalar URL') },
-          ]
+          ],
         });
       }).toThrow(/inconsistent list types/);
     });
@@ -251,7 +251,7 @@ describe('Argument validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(arg: [URL]): String } scalar URL') },
             { schema: buildSchema('type Query { field(arg: [URL]): String } scalar URL') },
-          ]
+          ],
         });
       }).not.toThrow();
     });
@@ -267,7 +267,7 @@ describe('Argument validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(status: Status): Int } enum Status { YES }') },
             { schema: buildSchema('type Query { field(status: Status): Int } enum Status { NO }') },
-          ]
+          ],
         });
       }).toThrow(/inconsistent values/);
     });
@@ -281,7 +281,7 @@ describe('Argument validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(status: Status): Int } enum Status { YES NO }') },
             { schema: buildSchema('type Query { field(status: Status): Int } enum Status { NO YES }') },
-          ]
+          ],
         });
       }).not.toThrow();
     });
@@ -299,7 +299,7 @@ describe('InputObject validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field1: Int }') },
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field2: Int }') },
-          ]
+          ],
         });
       }).toThrow(/not implemented by all subschemas/);
     });
@@ -313,7 +313,7 @@ describe('InputObject validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
-          ]
+          ],
         });
       }).not.toThrow();
     });
@@ -329,7 +329,7 @@ describe('InputObject validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int! }') },
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
-          ]
+          ],
         });
       }).toThrow(/permits null while some subschemas require not-null/);
     });
@@ -343,7 +343,7 @@ describe('InputObject validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int! }') },
-          ]
+          ],
         });
       }).not.toThrow();
     });
@@ -360,7 +360,7 @@ describe('InputObject validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int! }') },
-          ]
+          ],
         });
       }).toThrow(/does not match across subschemas/);
     });
@@ -376,7 +376,7 @@ describe('InputObject validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: String }') },
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: URL } scalar URL') },
-          ]
+          ],
         });
       }).toThrow(/inconsistent named types/);
     });
@@ -390,7 +390,7 @@ describe('InputObject validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: String }') },
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: [String] }') },
-          ]
+          ],
         });
       }).toThrow(/inconsistent list types/);
     });
@@ -404,7 +404,7 @@ describe('InputObject validations', () => {
           subschemas: [
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: [URL] } scalar URL') },
             { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: [URL] } scalar URL') },
-          ]
+          ],
         });
       }).not.toThrow();
     });
@@ -418,9 +418,17 @@ describe('InputObject validations', () => {
             validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { NO }') },
-          ]
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES }'
+              ),
+            },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { NO }'
+              ),
+            },
+          ],
         });
       }).toThrow(/inconsistent values/);
     });
@@ -432,9 +440,17 @@ describe('InputObject validations', () => {
             validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES NO }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { NO YES }') },
-          ]
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES NO }'
+              ),
+            },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { NO YES }'
+              ),
+            },
+          ],
         });
       }).not.toThrow();
     });
@@ -454,7 +470,7 @@ describe('Scoped validation settings', () => {
         subschemas: [
           { schema: buildSchema('type Query { field1: Int! }') },
           { schema: buildSchema('type Query { field1: Int }') },
-        ]
+        ],
       });
     }).toThrow(/does not match/);
   });
