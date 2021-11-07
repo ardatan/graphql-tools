@@ -1,10 +1,10 @@
-import { transformCommentsToDescriptions, parseGraphQLSDL } from "../src/parse-graphql-sdl";
+import { transformCommentsToDescriptions, parseGraphQLSDL } from '../src/parse-graphql-sdl';
 import { Kind, print, ObjectTypeDefinitionNode } from 'graphql';
 
 describe('parse sdl', () => {
   describe('parseGraphQLSDL', () => {
     it('Should work correctly with empty document (everything is commented out)', () => {
-      const doc = /* GraphQL */`
+      const doc = /* GraphQL */ `
         #query test {
         #  id
         #}
@@ -18,7 +18,7 @@ describe('parse sdl', () => {
   });
 
   describe('comment parsing', () => {
-    const ast = /* GraphQL */`
+    const ast = /* GraphQL */ `
       # test type comment
       type Type {
         # test field comment
@@ -76,7 +76,9 @@ describe('parse sdl', () => {
 
     it('should transform comments to descriptions correctly on all available nodes with noLocation=true', () => {
       const transformed = parseGraphQLSDL('test.graphql', ast, { noLocation: true, commentDescriptions: true });
-      const type = transformed.document.definitions.find((d): d is ObjectTypeDefinitionNode => "name" in d && d.name?.value === 'Type');
+      const type = transformed.document.definitions.find(
+        (d): d is ObjectTypeDefinitionNode => 'name' in d && d.name?.value === 'Type'
+      );
       expect(type?.description?.value).toBe('test type comment');
       expect(type?.loc).not.toBeDefined();
       const printed = print(transformed.document).trim();

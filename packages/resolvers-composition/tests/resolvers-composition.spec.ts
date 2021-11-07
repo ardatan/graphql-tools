@@ -9,8 +9,8 @@ function createAsyncIterator<T>(array: T[]): AsyncIterator<T, T, T> {
   return {
     next: async () => {
       const returnVal = {
-          done: i === array.length,
-          value: array[i],
+        done: i === array.length,
+        value: array[i],
       };
       i++;
       return returnVal;
@@ -32,10 +32,12 @@ describe('Resolvers composition', () => {
       },
     };
     const resolversComposition = {
-      'Query.foo': (next: (arg0: any, arg1: any, arg2: any, arg3: any) => void) => async (root: any, args: any, context: any, info: any) => {
-        const prevResult = await next(root, args, context, info);
-        return getFoo() + prevResult;
-      },
+      'Query.foo':
+        (next: (arg0: any, arg1: any, arg2: any, arg3: any) => void) =>
+        async (root: any, args: any, context: any, info: any) => {
+          const prevResult = await next(root, args, context, info);
+          return getFoo() + prevResult;
+        },
     };
     const composedResolvers = composeResolvers(resolvers, resolversComposition);
     const schema = makeExecutableSchema({
@@ -70,10 +72,12 @@ describe('Resolvers composition', () => {
       },
     };
     const resolversComposition = {
-      'Query.foo': (next: (arg0: any, arg1: any, arg2: any, arg3: any) => void) => async (root: any, args: any, context: any, info: any) => {
-        const prevResult = await next(root, args, context, info);
-        return getFoo() + prevResult;
-      },
+      'Query.foo':
+        (next: (arg0: any, arg1: any, arg2: any, arg3: any) => void) =>
+        async (root: any, args: any, context: any, info: any) => {
+          const prevResult = await next(root, args, context, info);
+          return getFoo() + prevResult;
+        },
     };
     const composedResolvers = composeResolvers(resolvers, resolversComposition);
     const schema = makeExecutableSchema({
@@ -230,12 +234,13 @@ describe('Resolvers composition', () => {
     };
     const resolversComposition = {
       '*.*': [
-        (next: any) => async (...args: any) => {
-          const result = await next(...args);
-          return result + 1;
-        }
-      ]
-    }
+        (next: any) =>
+          async (...args: any) => {
+            const result = await next(...args);
+            return result + 1;
+          },
+      ],
+    };
     const composedResolvers = composeResolvers(resolvers, resolversComposition);
 
     expect(await composedResolvers.Query.foo()).toBe(1);
@@ -246,41 +251,41 @@ describe('Resolvers composition', () => {
 
   it('should support *.* pattern and run it only for field resolvers, without scalars resolvers', async () => {
     const resolvers = {
-        Query: {
-          me: () => ({
-              id: 1,
-              age: 20,
-            }),
-        },
-        PositiveInt: new GraphQLScalarType({
-          name: 'PositiveInt',
-          serialize: val => parseInt((val as any).toString()),
-          parseValue: val => parseInt((val as any).toString()),
-          parseLiteral: literal => {
-            switch (literal.kind) {
-              case Kind.INT:
-              case Kind.FLOAT:
-              case Kind.STRING: {
-                const intVal = parseInt(literal.value.toString());
-                if (intVal > 0) {
-                  return intVal;
-                }
+      Query: {
+        me: () => ({
+          id: 1,
+          age: 20,
+        }),
+      },
+      PositiveInt: new GraphQLScalarType({
+        name: 'PositiveInt',
+        serialize: val => parseInt((val as any).toString()),
+        parseValue: val => parseInt((val as any).toString()),
+        parseLiteral: literal => {
+          switch (literal.kind) {
+            case Kind.INT:
+            case Kind.FLOAT:
+            case Kind.STRING: {
+              const intVal = parseInt(literal.value.toString());
+              if (intVal > 0) {
+                return intVal;
               }
             }
-            throw new Error(`Value ${inspect(literal)} is not a positive integer`)
-          },
-        })
-      };
+          }
+          throw new Error(`Value ${inspect(literal)} is not a positive integer`);
+        },
+      }),
+    };
 
     const functionsCalledSet: Set<string> = new Set();
     const resolversComposition = {
       '*.*': [
         (next: any) => {
-          functionsCalledSet.add(next.name)
+          functionsCalledSet.add(next.name);
           return next;
-        }
-      ]
-    }
+        },
+      ],
+    };
 
     composeResolvers(resolvers, resolversComposition);
     const functionsCalled = Array.from(functionsCalledSet);
@@ -288,7 +293,6 @@ describe('Resolvers composition', () => {
     expect(functionsCalled).not.toContain('serialize');
     expect(functionsCalled).not.toContain('parseValue');
     expect(functionsCalled).not.toContain('parseLiteral');
-
   });
 
   it('should support glob pattern for fields - Query.{foo, bar}', async () => {
@@ -305,12 +309,13 @@ describe('Resolvers composition', () => {
     };
     const resolversComposition = {
       'Query.{foo, bar}': [
-        (next: any) => async (...args: any) => {
-          const result = await next(...args);
-          return result + 1;
-        }
-      ]
-    }
+        (next: any) =>
+          async (...args: any) => {
+            const result = await next(...args);
+            return result + 1;
+          },
+      ],
+    };
     const composedResolvers = composeResolvers(resolvers, resolversComposition);
 
     expect(await composedResolvers.Query.foo()).toBe(1);
@@ -334,12 +339,13 @@ describe('Resolvers composition', () => {
     };
     const resolversComposition = {
       'Query.!{foo, bar}': [
-        (next: any) => async (...args: any) => {
-          const result = await next(...args);
-          return result + 1;
-        }
-      ]
-    }
+        (next: any) =>
+          async (...args: any) => {
+            const result = await next(...args);
+            return result + 1;
+          },
+      ],
+    };
     const composedResolvers = composeResolvers(resolvers, resolversComposition);
 
     expect(await composedResolvers.Query.foo()).toBe(0);
@@ -355,15 +361,17 @@ describe('Resolvers composition', () => {
         foo: async () => getFoo(),
         bar: undefined,
       },
-      Mutation: undefined
+      Mutation: undefined,
     };
     const resolversComposition: any = {
-      'Query.foo': (next: (arg0: any, arg1: any, arg2: any, arg3: any) => void) => async (root: any, args: any, context: any, info: any) => {
-        const prevResult = await next(root, args, context, info);
-        return getFoo() + prevResult;
-      },
-      'Query.bar': undefined
+      'Query.foo':
+        (next: (arg0: any, arg1: any, arg2: any, arg3: any) => void) =>
+        async (root: any, args: any, context: any, info: any) => {
+          const prevResult = await next(root, args, context, info);
+          return getFoo() + prevResult;
+        },
+      'Query.bar': undefined,
     };
     expect(() => composeResolvers(resolvers, resolversComposition)).not.toThrow();
-  })
+  });
 });

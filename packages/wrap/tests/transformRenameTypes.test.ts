@@ -9,15 +9,15 @@ describe('RenameTypes', () => {
       const transforms = [
         new RenameTypes(
           (name: string) =>
-          ({
-            Property: 'House',
-            Location: 'Spots',
-            TestInterface: 'TestingInterface',
-            DateTime: 'Datum',
-            InputWithDefault: 'DefaultingInput',
-            TestInterfaceKind: 'TestingInterfaceKinds',
-            TestImpl1: 'TestImplementation1',
-          }[name]),
+            ({
+              Property: 'House',
+              Location: 'Spots',
+              TestInterface: 'TestingInterface',
+              DateTime: 'Datum',
+              InputWithDefault: 'DefaultingInput',
+              TestInterfaceKind: 'TestingInterfaceKinds',
+              TestImpl1: 'TestImplementation1',
+            }[name])
         ),
       ];
       schema = wrapSchema({
@@ -29,7 +29,7 @@ describe('RenameTypes', () => {
       const result = await execute({
         schema,
         document: parse(/* GraphQL */ `
-          query($input: DefaultingInput!) {
+          query ($input: DefaultingInput!) {
             interfaceTest(kind: ONE) {
               ... on TestingInterface {
                 testString
@@ -43,12 +43,12 @@ describe('RenameTypes', () => {
             dateTimeTest
             defaultInputTest(input: $input)
           }
-      `),
+        `),
         variableValues: {
           input: {
             test: 'bar',
           },
-        }
+        },
       });
 
       expect(result).toEqual({
@@ -82,7 +82,7 @@ describe('RenameTypes', () => {
       const result = await execute({
         schema,
         document: parse(/* GraphQL */ `
-          query($input: Property_InputWithDefault!) {
+          query ($input: Property_InputWithDefault!) {
             interfaceTest(kind: ONE) {
               ... on Property_TestInterface {
                 testString
@@ -105,7 +105,7 @@ describe('RenameTypes', () => {
           input: {
             test: 'bar',
           },
-        }
+        },
       });
 
       expect(result).toEqual({

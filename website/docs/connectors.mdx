@@ -18,9 +18,9 @@ const resolverMap = {
     async gitHubRepository(root, args, context) {
       const response = await fetch(`https://api.github.com/repos/${args.name}`);
       return response.json();
-    }
-  }
-}
+    },
+  },
+};
 ```
 
 ## Factoring out fetching details
@@ -35,7 +35,9 @@ import { fetch } from 'cross-undici-fetch';
 const { GITHUB_API_KEY, GITHUB_API_SECRET } = process.env;
 
 export function getRepositoryByName(name) {
-  const response = fetch(`https://api.github.com/repos/${name}?GITHUB_API_KEY=${GITHUB_API_KEY}&GITHUB_API_SECRET=${GITHUB_API_SECRET}`);
+  const response = fetch(
+    `https://api.github.com/repos/${name}?GITHUB_API_KEY=${GITHUB_API_KEY}&GITHUB_API_SECRET=${GITHUB_API_SECRET}`
+  );
 }
 ```
 
@@ -48,14 +50,14 @@ const resolverMap = {
   Query: {
     gitHubRepository(root, args, context) {
       return getRepositoryByName(args.name);
-    }
+    },
   },
   Submission: {
     repository(root, args, context) {
       return getRepositoryByName(root.repositoryFullName);
-    }
-  }
-}
+    },
+  },
+};
 ```
 
 This means we no longer have to worry about the details of fetching from GitHub inside our resolvers, and we just need to put in the right repository name to fetch. We can improve our GitHub fetching logic over time.

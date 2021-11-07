@@ -7,21 +7,17 @@ describe('FilterTypes', () => {
   let schema: GraphQLSchema;
   beforeAll(() => {
     const typeNames = ['ID', 'String', 'DateTime', 'Query', 'Booking'];
-    const transforms = [
-      new FilterTypes(
-        (type: GraphQLNamedType) => typeNames.indexOf(type.name) >= 0,
-      ),
-    ];
+    const transforms = [new FilterTypes((type: GraphQLNamedType) => typeNames.indexOf(type.name) >= 0)];
     schema = wrapSchema({
       schema: bookingSchema,
-      transforms
+      transforms,
     });
   });
 
   test('should work normally', async () => {
     const result = await graphql({
       schema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           bookingById(id: "b1") {
             id
@@ -31,7 +27,7 @@ describe('FilterTypes', () => {
           }
         }
       `,
-      });
+    });
 
     expect(result).toEqual({
       data: {
@@ -48,7 +44,7 @@ describe('FilterTypes', () => {
   test('should error on removed types', async () => {
     const result = await graphql({
       schema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           bookingById(id: "b1") {
             id
@@ -63,10 +59,8 @@ describe('FilterTypes', () => {
       `,
     });
     expect(result.errors).toBeDefined();
-    assertSome(result.errors)
+    assertSome(result.errors);
     expect(result.errors.length).toBe(1);
-    expect(result.errors[0].message).toBe(
-      'Cannot query field "customer" on type "Booking".',
-    );
+    expect(result.errors[0].message).toBe('Cannot query field "customer" on type "Booking".');
   });
 });

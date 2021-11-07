@@ -2,10 +2,7 @@
 // TODO: reduce code repetition in this file.
 // see https://github.com/apollostack/graphql-tools/issues/26
 
-import {
-  typeDefs as scalarTypeDefs,
-  resolvers as scalarResolvers,
-} from 'graphql-scalars';
+import { typeDefs as scalarTypeDefs, resolvers as scalarResolvers } from 'graphql-scalars';
 import {
   graphql,
   GraphQLResolveInfo,
@@ -23,18 +20,9 @@ import {
   GraphQLFieldResolver,
 } from 'graphql';
 
-import {
-  makeExecutableSchema,
-  addResolversToSchema,
-  chainResolvers,
-} from '@graphql-tools/schema';
+import { makeExecutableSchema, addResolversToSchema, chainResolvers } from '@graphql-tools/schema';
 
-import {
-  IResolverValidationOptions,
-  IResolvers,
-  ExecutionResult,
-  TypeSource
-} from '@graphql-tools/utils';
+import { IResolverValidationOptions, IResolvers, ExecutionResult, TypeSource } from '@graphql-tools/utils';
 
 import TypeA from './fixtures/circularSchemaA';
 
@@ -67,21 +55,20 @@ function expectWarning(fn: () => void, warnMatcher?: string) {
   }
 }
 
-const testSchema = /* GraphQL */`
-      type RootQuery {
-        usecontext: String
-        species(name: String): String
-        stuff: String
-      }
-      schema {
-        query: RootQuery
-      }
-    `;
+const testSchema = /* GraphQL */ `
+  type RootQuery {
+    usecontext: String
+    species(name: String): String
+    stuff: String
+  }
+  schema {
+    query: RootQuery
+  }
+`;
 const testResolvers = {
   RootQuery: {
     usecontext: (_r: any, _a: Record<string, any>, ctx: any) => ctx.usecontext,
-    species: (root: any, { name }: { name: string }) =>
-      (root.species as string) + name,
+    species: (root: any, { name }: { name: string }) => (root.species as string) + name,
   },
 };
 
@@ -94,56 +81,48 @@ describe('generating schema from shorthand', () => {
   test('throws an error if typeDefinitionNodes are not provided', () => {
     expect(() =>
       // @ts-expect-error: we call it with invalid params
-      makeExecutableSchema({ typeDefs: undefined, resolvers: {} }),
+      makeExecutableSchema({ typeDefs: undefined, resolvers: {} })
     ).toThrowError('Must provide typeDefs');
   });
 
   test('throws an error if no resolveFunctions are provided', () => {
-    expect(() =>
-      makeExecutableSchema({ typeDefs: 'blah', resolvers: {} }),
-    ).toThrowError(GraphQLError);
+    expect(() => makeExecutableSchema({ typeDefs: 'blah', resolvers: {} })).toThrowError(GraphQLError);
   });
 
   test('throws an error if typeDefinitionNodes is neither string nor array nor schema AST', () => {
     expect(() =>
       makeExecutableSchema({
-        typeDefs: ({} as unknown) as TypeSource,
+        typeDefs: {} as unknown as TypeSource,
         resolvers: {},
-      }),
-    ).toThrowError(
-      'typeDefs must contain only strings, documents, schemas, or functions, got object',
-    );
+      })
+    ).toThrowError('typeDefs must contain only strings, documents, schemas, or functions, got object');
   });
 
   test('throws an error if typeDefinitionNode array contains not only functions and strings', () => {
     expect(() =>
       makeExecutableSchema({
-        typeDefs: ([17] as unknown) as TypeSource,
+        typeDefs: [17] as unknown as TypeSource,
         resolvers: {},
-      }),
-    ).toThrowError(
-      'typeDefs must contain only strings, documents, schemas, or functions, got number',
-    );
+      })
+    ).toThrowError('typeDefs must contain only strings, documents, schemas, or functions, got number');
   });
 
   test('throws an error if resolverValidationOptions is not an object', () => {
     const options = {
       typeDefs: 'blah',
       resolvers: {},
-      resolverValidationOptions: ('string' as unknown) as IResolverValidationOptions,
+      resolverValidationOptions: 'string' as unknown as IResolverValidationOptions,
     };
-    expect(() => makeExecutableSchema(options)).toThrowError(
-      'Expected `resolverValidationOptions` to be an object',
-    );
+    expect(() => makeExecutableSchema(options)).toThrowError('Expected `resolverValidationOptions` to be an object');
   });
 
   test('can generate a schema', () => {
-    const shorthand = /* GraphQL */`
+    const shorthand = /* GraphQL */ `
       """
       A bird species
       """
       type BirdSpecies {
-        name: String!,
+        name: String!
         wingspan: Int
       }
 
@@ -159,34 +138,12 @@ describe('generating schema from shorthand', () => {
       }
     `;
 
-    const introspectionQuery = /* GraphQL */`{
-      species: __type(name: "BirdSpecies"){
-        name,
-        description,
-        fields{
+    const introspectionQuery = /* GraphQL */ `
+      {
+        species: __type(name: "BirdSpecies") {
           name
-          type{
-            name
-            kind
-            ofType{
-              name
-            }
-          }
-        }
-      }
-      query: __type(name: "RootQuery"){
-        name,
-        description,
-        fields{
-          name
-          type {
-            name
-            kind
-            ofType {
-              name
-            }
-          }
-          args {
+          description
+          fields {
             name
             type {
               name
@@ -197,8 +154,32 @@ describe('generating schema from shorthand', () => {
             }
           }
         }
+        query: __type(name: "RootQuery") {
+          name
+          description
+          fields {
+            name
+            type {
+              name
+              kind
+              ofType {
+                name
+              }
+            }
+            args {
+              name
+              type {
+                name
+                kind
+                ofType {
+                  name
+                }
+              }
+            }
+          }
+        }
       }
-    }`;
+    `;
 
     const solution = {
       data: {
@@ -261,10 +242,8 @@ describe('generating schema from shorthand', () => {
       typeDefs: shorthand,
       resolvers: {},
     });
-    const resultPromise = graphql({ schema: jsSchema, source: introspectionQuery});
-    return resultPromise.then((result) =>
-      expect(result).toEqual(solution as ExecutionResult),
-    );
+    const resultPromise = graphql({ schema: jsSchema, source: introspectionQuery });
+    return resultPromise.then(result => expect(result).toEqual(solution as ExecutionResult));
   });
 
   test('can generate a schema from an array of types', () => {
@@ -289,7 +268,7 @@ describe('generating schema from shorthand', () => {
   });
 
   test('can generate a schema from a parsed type definition', () => {
-    const typeDefSchema = parse(/* GraphQL */`
+    const typeDefSchema = parse(/* GraphQL */ `
       type Query {
         foo: String
       }
@@ -431,9 +410,9 @@ describe('generating schema from shorthand', () => {
   });
 
   test('can generate a schema with resolvers', () => {
-    const shorthand = /* GraphQL */`
+    const shorthand = /* GraphQL */ `
       type BirdSpecies {
-        name: String!,
+        name: String!
         wingspan: Int
       }
       type RootQuery {
@@ -455,12 +434,14 @@ describe('generating schema from shorthand', () => {
       },
     };
 
-    const testQuery = /* GraphQL */`{
-      species(name: "BigBird"){
-        name
-        wingspan
+    const testQuery = /* GraphQL */ `
+      {
+        species(name: "BigBird") {
+          name
+          wingspan
+        }
       }
-    }`;
+    `;
 
     const solution = {
       data: {
@@ -477,15 +458,13 @@ describe('generating schema from shorthand', () => {
       resolvers: resolveFunctions,
     });
     const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-    return resultPromise.then((result) =>
-      expect(result).toEqual(solution as ExecutionResult),
-    );
+    return resultPromise.then(result => expect(result).toEqual(solution as ExecutionResult));
   });
 
   test('can generate a schema with extensions that can use resolvers', () => {
-    const shorthand = /* GraphQL */`
+    const shorthand = /* GraphQL */ `
       type BirdSpecies {
-        name: String!,
+        name: String!
         wingspan: Int
       }
       type RootQuery {
@@ -516,13 +495,15 @@ describe('generating schema from shorthand', () => {
       },
     };
 
-    const testQuery = /* GraphQL */`{
-      species(name: "BigBird"){
-        name
-        wingspan
-        height
+    const testQuery = /* GraphQL */ `
+      {
+        species(name: "BigBird") {
+          name
+          wingspan
+          height
+        }
       }
-    }`;
+    `;
 
     const solution = {
       data: {
@@ -540,13 +521,11 @@ describe('generating schema from shorthand', () => {
       resolvers: resolveFunctions,
     });
     const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-    return resultPromise.then((result) =>
-      expect(result).toEqual(solution as ExecutionResult),
-    );
+    return resultPromise.then(result => expect(result).toEqual(solution as ExecutionResult));
   });
 
   test('supports resolveType for unions', () => {
-    const shorthand = /* GraphQL */`
+    const shorthand = /* GraphQL */ `
       union Searchable = Person | Location
       type Person {
         name: String
@@ -594,18 +573,20 @@ describe('generating schema from shorthand', () => {
       },
     };
 
-    const testQuery = /* GraphQL */`{
-      search(name: "a"){
-        ... on Person {
-          name
-          age
-        }
-        ... on Location {
-          name
-          coordinates
+    const testQuery = /* GraphQL */ `
+      {
+        search(name: "a") {
+          ... on Person {
+            name
+            age
+          }
+          ... on Location {
+            name
+            coordinates
+          }
         }
       }
-    }`;
+    `;
 
     const solution = {
       data: {
@@ -627,15 +608,13 @@ describe('generating schema from shorthand', () => {
       resolvers: resolveFunctions,
     });
     const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-    return resultPromise.then((result) =>
-      expect(result).toEqual(solution as ExecutionResult),
-    );
+    return resultPromise.then(result => expect(result).toEqual(solution as ExecutionResult));
   });
 
   test('can generate a schema with an array of resolvers', () => {
-    const shorthand = /* GraphQL */`
+    const shorthand = /* GraphQL */ `
       type BirdSpecies {
-        name: String!,
+        name: String!
         wingspan: Int
       }
       type RootQuery {
@@ -675,14 +654,16 @@ describe('generating schema from shorthand', () => {
       },
     };
 
-    const testQuery = /* GraphQL */`{
-      numberOfSpecies
-      species(name: "BigBird"){
-        name
-        wingspan
-        height
+    const testQuery = /* GraphQL */ `
+      {
+        numberOfSpecies
+        species(name: "BigBird") {
+          name
+          wingspan
+          height
+        }
       }
-    }`;
+    `;
 
     const solution = {
       data: {
@@ -701,37 +682,37 @@ describe('generating schema from shorthand', () => {
       resolvers: [resolvers, otherResolvers],
     });
     const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-    return resultPromise.then((result) =>
-      expect(result).toEqual(solution as ExecutionResult),
-    );
+    return resultPromise.then(result => expect(result).toEqual(solution as ExecutionResult));
   });
 
   test('works with classes as resolvers', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       type Query {
         version: Int
       }
     `;
 
     const QueryResolver = class QueryResolver {
-      private internalVersion = 1
+      private internalVersion = 1;
 
       version() {
-        return this.internalVersion
+        return this.internalVersion;
       }
-    }
+    };
 
     const resolvers = {
       Query: new QueryResolver(),
     };
 
-    const testQuery = /* GraphQL */`{
-      version
-    }`;
+    const testQuery = /* GraphQL */ `
+      {
+        version
+      }
+    `;
 
     const solution = {
       data: {
-        version: 1
+        version: 1,
       },
     };
     const jsSchema = makeExecutableSchema({
@@ -742,23 +723,17 @@ describe('generating schema from shorthand', () => {
       },
     });
     const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-    return resultPromise.then((result) =>
-      expect(result).toEqual(solution as ExecutionResult),
-    );
+    return resultPromise.then(result => expect(result).toEqual(solution as ExecutionResult));
   });
 
   describe('scalar types', () => {
     test('supports passing a GraphQLScalarType in resolveFunctions', () => {
       const scalarNames = Object.keys(scalarResolvers);
-      const shorthand = /* GraphQL */`
+      const shorthand = /* GraphQL */ `
         ${scalarTypeDefs.join('\n')}
 
         type Foo {
-          ${scalarNames
-          .map(
-            (scalarName) => `${scalarName.toLowerCase()}Field: ${scalarName}`,
-          )
-          .join('\n')}
+          ${scalarNames.map(scalarName => `${scalarName.toLowerCase()}Field: ${scalarName}`).join('\n')}
         }
 
         type Query {
@@ -777,14 +752,12 @@ describe('generating schema from shorthand', () => {
         expect(jsSchema.getType(scalarName)).toBeInstanceOf(GraphQLScalarType);
         expect(jsSchema.getType(scalarName)).toHaveProperty('description');
         expect(typeof jsSchema.getType(scalarName)?.description).toBe('string');
-        expect(
-          jsSchema.getType(scalarName)?.description?.length,
-        ).toBeGreaterThan(0);
+        expect(jsSchema.getType(scalarName)?.description?.length).toBeGreaterThan(0);
       }
     });
 
     test('supports passing a default scalar type', () => {
-      const shorthand = /* GraphQL */`
+      const shorthand = /* GraphQL */ `
         type Foo {
           aField: Boolean
         }
@@ -806,7 +779,7 @@ describe('generating schema from shorthand', () => {
 
     test('allow overriding default scalar type fields', () => {
       const originalSerialize = GraphQLBoolean.serialize;
-      const shorthand = /* GraphQL */`
+      const shorthand = /* GraphQL */ `
         type Foo {
           aField: Boolean
         }
@@ -828,7 +801,7 @@ describe('generating schema from shorthand', () => {
         typeDefs: shorthand,
         resolvers: resolveFunctions,
       });
-      const testQuery = /* GraphQL */`
+      const testQuery = /* GraphQL */ `
         {
           foo {
             aField
@@ -850,7 +823,7 @@ describe('generating schema from shorthand', () => {
 
     test('retains original scalar directives when passing in scalars in resolve functions', () => {
       const schema = makeExecutableSchema({
-        typeDefs: /* GraphQL */`
+        typeDefs: /* GraphQL */ `
           directive @test on SCALAR
 
           scalar Test @test
@@ -863,8 +836,8 @@ describe('generating schema from shorthand', () => {
           Test: new GraphQLScalarType({
             name: 'Test',
             description: 'Test resolver',
-            serialize: (value) => value,
-            parseValue: (value) => value,
+            serialize: value => value,
+            parseValue: value => value,
           }),
           Query: {
             test: () => 42,
@@ -878,21 +851,21 @@ describe('generating schema from shorthand', () => {
     });
 
     test('should support custom scalar usage on client-side query execution', () => {
-      const shorthand = /* GraphQL */`
-          scalar CustomScalar
+      const shorthand = /* GraphQL */ `
+        scalar CustomScalar
 
-          type TestType {
-            testField: String
-          }
+        type TestType {
+          testField: String
+        }
 
-          type RootQuery {
-            myQuery(t: CustomScalar): TestType
-          }
+        type RootQuery {
+          myQuery(t: CustomScalar): TestType
+        }
 
-          schema {
-            query: RootQuery
-          }
-        `;
+        schema {
+          query: RootQuery
+        }
+      `;
 
       const resolveFunctions = {
         CustomScalar: new GraphQLScalarType({
@@ -914,19 +887,20 @@ describe('generating schema from shorthand', () => {
         }),
       };
 
-      const testQuery = /* GraphQL */`
-          query myQuery($t: CustomScalar) {
-            myQuery(t: $t) {
-              testField
-            }
-          }`;
+      const testQuery = /* GraphQL */ `
+        query myQuery($t: CustomScalar) {
+          myQuery(t: $t) {
+            testField
+          }
+        }
+      `;
 
       const jsSchema = makeExecutableSchema({
         typeDefs: shorthand,
         resolvers: resolveFunctions,
       });
       const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-      return resultPromise.then((result) => expect(result.errors).toBeFalsy());
+      return resultPromise.then(result => expect(result.errors).toBeFalsy());
     });
 
     test('should work with an Odd custom scalar type', () => {
@@ -950,11 +924,11 @@ describe('generating schema from shorthand', () => {
             const intValue: IntValueNode = ast;
             return oddValue(parseInt(intValue.value, 10));
           }
-          throw new Error(`value should be an integer`)
+          throw new Error(`value should be an integer`);
         },
       });
 
-      const typeDefs = /* GraphQL */`
+      const typeDefs = /* GraphQL */ `
         scalar Odd
 
         type Post {
@@ -990,15 +964,15 @@ describe('generating schema from shorthand', () => {
         typeDefs,
         resolvers,
       });
-      const testQuery = /* GraphQL */`
+      const testQuery = /* GraphQL */ `
         {
           post {
             something
           }
         }
-  `;
+      `;
       const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-      return resultPromise.then((result) => {
+      return resultPromise.then(result => {
         const postData: any = result.data?.['post'];
         expect(postData.something).toEqual(testValue);
         expect(result.errors).toEqual(undefined);
@@ -1027,7 +1001,7 @@ describe('generating schema from shorthand', () => {
         },
       });
 
-      const typeDefs = /* GraphQL */`
+      const typeDefs = /* GraphQL */ `
         scalar Date
 
         type Post {
@@ -1064,15 +1038,15 @@ describe('generating schema from shorthand', () => {
         typeDefs,
         resolvers,
       });
-      const testQuery = /* GraphQL */`
+      const testQuery = /* GraphQL */ `
         {
           post {
             something
           }
         }
-  `;
+      `;
       const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-      return resultPromise.then((result) => {
+      return resultPromise.then(result => {
         const postData: any = result.data?.['post'];
         expect(postData.something).toEqual(testDate.getTime());
         expect(result.errors).toEqual(undefined);
@@ -1082,7 +1056,7 @@ describe('generating schema from shorthand', () => {
 
   describe('enum support', () => {
     test('supports passing a GraphQLEnumType in resolveFunctions', () => {
-      const shorthand = /* GraphQL */`
+      const shorthand = /* GraphQL */ `
         enum Color {
           RED
         }
@@ -1121,32 +1095,34 @@ describe('generating schema from shorthand', () => {
     });
 
     test('supports passing the value for a GraphQLEnumType in resolveFunctions', () => {
-      const shorthand = /* GraphQL */`
-          enum Color {
-            RED
-            BLUE
-          }
+      const shorthand = /* GraphQL */ `
+        enum Color {
+          RED
+          BLUE
+        }
 
-          enum NumericEnum {
-            TEST
-          }
+        enum NumericEnum {
+          TEST
+        }
 
-          schema {
-            query: Query
-          }
+        schema {
+          query: Query
+        }
 
-          type Query {
-            redColor: Color
-            blueColor: Color
-            numericEnum: NumericEnum
-          }
-        `;
+        type Query {
+          redColor: Color
+          blueColor: Color
+          numericEnum: NumericEnum
+        }
+      `;
 
-      const testQuery = /* GraphQL */`{
+      const testQuery = /* GraphQL */ `
+        {
           redColor
           blueColor
           numericEnum
-         }`;
+        }
+      `;
 
       const resolveFunctions = {
         Color: {
@@ -1175,7 +1151,7 @@ describe('generating schema from shorthand', () => {
       });
 
       const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-      return resultPromise.then((result) => {
+      return resultPromise.then(result => {
         expect(result.data!['redColor']).toEqual('RED');
         expect(result.data!['blueColor']).toEqual('BLUE');
         expect(result.data!['numericEnum']).toEqual('TEST');
@@ -1184,31 +1160,33 @@ describe('generating schema from shorthand', () => {
     });
 
     test('supports resolving the value for a GraphQLEnumType in input types', () => {
-      const shorthand = /* GraphQL */`
-          enum Color {
-            RED
-            BLUE
-          }
+      const shorthand = /* GraphQL */ `
+        enum Color {
+          RED
+          BLUE
+        }
 
-          enum NumericEnum {
-            TEST
-          }
+        enum NumericEnum {
+          TEST
+        }
 
-          schema {
-            query: Query
-          }
+        schema {
+          query: Query
+        }
 
-          type Query {
-            colorTest(color: Color): String
-            numericTest(num: NumericEnum): Int
-          }
-        `;
+        type Query {
+          colorTest(color: Color): String
+          numericTest(num: NumericEnum): Int
+        }
+      `;
 
-      const testQuery = /* GraphQL */`{
+      const testQuery = /* GraphQL */ `
+        {
           red: colorTest(color: RED)
           blue: colorTest(color: BLUE)
           num: numericTest(num: TEST)
-         }`;
+        }
+      `;
 
       const resolveFunctions = {
         Color: {
@@ -1234,7 +1212,7 @@ describe('generating schema from shorthand', () => {
       });
 
       const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-      return resultPromise.then((result) => {
+      return resultPromise.then(result => {
         expect(result.data!['red']).toEqual(resolveFunctions.Color.RED);
         expect(result.data!['blue']).toEqual(resolveFunctions.Color.BLUE);
         expect(result.data!['num']).toEqual(resolveFunctions.NumericEnum.TEST);
@@ -1245,7 +1223,7 @@ describe('generating schema from shorthand', () => {
 
   describe('default value support', () => {
     test('supports default field values', () => {
-      const shorthand = /* GraphQL */`
+      const shorthand = /* GraphQL */ `
         enum Color {
           RED
         }
@@ -1259,9 +1237,11 @@ describe('generating schema from shorthand', () => {
         }
       `;
 
-      const testQuery = /* GraphQL */`{
-        red: colorTest
-       }`;
+      const testQuery = /* GraphQL */ `
+        {
+          red: colorTest
+        }
+      `;
 
       const resolveFunctions = {
         Color: {
@@ -1280,14 +1260,14 @@ describe('generating schema from shorthand', () => {
       });
 
       const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-      return resultPromise.then((result) => {
+      return resultPromise.then(result => {
         expect(result.data!['red']).toEqual(resolveFunctions.Color.RED);
         expect(result.errors).toEqual(undefined);
       });
     });
 
     test('supports changing default field values', () => {
-      const shorthand = /* GraphQL */`
+      const shorthand = /* GraphQL */ `
         enum Color {
           RED
         }
@@ -1301,9 +1281,11 @@ describe('generating schema from shorthand', () => {
         }
       `;
 
-      const testQuery = /* GraphQL */`{
-        red: colorTest
-       }`;
+      const testQuery = /* GraphQL */ `
+        {
+          red: colorTest
+        }
+      `;
 
       const resolveFunctions = {
         Color: {
@@ -1331,15 +1313,15 @@ describe('generating schema from shorthand', () => {
       });
 
       const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-      return resultPromise.then((result) => {
+      return resultPromise.then(result => {
         expect(result.data!['red']).toEqual('override');
         expect(result.errors).toEqual(undefined);
       });
     });
   });
 
-    test('supports modifying the schema in place', () => {
-    const shorthand = /* GraphQL */`
+  test('supports modifying the schema in place', () => {
+    const shorthand = /* GraphQL */ `
       enum Color {
         RED
       }
@@ -1353,9 +1335,11 @@ describe('generating schema from shorthand', () => {
       }
     `;
 
-    const testQuery = /* GraphQL */`{
-      red: colorTest
-      }`;
+    const testQuery = /* GraphQL */ `
+      {
+        red: colorTest
+      }
+    `;
 
     const resolveFunctions = {
       Color: {
@@ -1379,16 +1363,16 @@ describe('generating schema from shorthand', () => {
     });
 
     const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-    return resultPromise.then((result) => {
+    return resultPromise.then(result => {
       expect(result.data!['red']).toEqual('#EA3232');
       expect(result.errors).toEqual(undefined);
     });
   });
 
   test('can set description and deprecation reason', () => {
-    const shorthand = /* GraphQL */`
+    const shorthand = /* GraphQL */ `
       type BirdSpecies {
-        name: String!,
+        name: String!
         wingspan: Int
       }
       type RootQuery {
@@ -1414,16 +1398,18 @@ describe('generating schema from shorthand', () => {
       },
     };
 
-    const testQuery = /* GraphQL */`{
-      __type(name: "RootQuery"){
-        name
-        fields(includeDeprecated: true){
+    const testQuery = /* GraphQL */ `
+      {
+        __type(name: "RootQuery") {
           name
-          description
-          deprecationReason
+          fields(includeDeprecated: true) {
+            name
+            description
+            deprecationReason
+          }
         }
       }
-    }`;
+    `;
 
     const solution = {
       data: {
@@ -1445,9 +1431,7 @@ describe('generating schema from shorthand', () => {
       resolvers: resolveFunctions,
     });
     const resultPromise = graphql({ schema: jsSchema, source: testQuery });
-    return resultPromise.then((result) =>
-      expect(result).toEqual(solution as ExecutionResult),
-    );
+    return resultPromise.then(result => expect(result).toEqual(solution as ExecutionResult));
   });
 
   test('shows a warning if a field has arguments but no resolver', () => {
@@ -1483,9 +1467,7 @@ describe('generating schema from shorthand', () => {
 
     const rf = { Query: {} };
 
-    expect(
-      makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf }),
-    ).not.toThrow();
+    expect(makeExecutableSchema.bind(null, { typeDefs: short, resolvers: rf })).not.toThrow();
   });
 
   test('throws an error if a resolver is not a function', () => {
@@ -1503,7 +1485,7 @@ describe('generating schema from shorthand', () => {
       makeExecutableSchema({
         typeDefs: short,
         resolvers: rf,
-      }),
+      })
     ).toThrowError('Resolver Query.bird must be object or function');
   });
 
@@ -1525,17 +1507,20 @@ describe('generating schema from shorthand', () => {
       requireResolversForNonScalar: 'warn',
     };
 
-    expectWarning(() => {
-      makeExecutableSchema({
-        typeDefs: short,
-        resolvers: rf,
-        resolverValidationOptions,
-      });
-    }, `Resolver missing for "Query.bird".
+    expectWarning(
+      () => {
+        makeExecutableSchema({
+          typeDefs: short,
+          resolvers: rf,
+          resolverValidationOptions,
+        });
+      },
+      `Resolver missing for "Query.bird".
 To disable this validator, use:
   resolverValidationOptions: {
     requireResolversForNonScalar: 'ignore'
-  }`);
+  }`
+    );
   });
 
   test('allows non-scalar field to use default resolver if `resolverValidationOptions.requireResolversForNonScalar` = false', () => {
@@ -1557,7 +1542,7 @@ To disable this validator, use:
         typeDefs: short,
         resolvers: rf,
         resolverValidationOptions: { requireResolversForNonScalar: 'ignore' },
-      }),
+      })
     ).not.toThrow();
   });
 
@@ -1586,10 +1571,8 @@ To disable this validator, use:
       },
     };
 
-    expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
-    ).toThrowError(
-      "Searchable.name was defined in resolvers, but Searchable is not an object or interface type",
+    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
+      'Searchable.name was defined in resolvers, but Searchable is not an object or interface type'
     );
 
     expect(() =>
@@ -1599,7 +1582,7 @@ To disable this validator, use:
         resolverValidationOptions: {
           requireResolversToMatchSchema: 'ignore',
         },
-      }),
+      })
     ).not.toThrowError();
   });
 
@@ -1623,9 +1606,9 @@ To disable this validator, use:
       },
     };
 
-    expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
-    ).toThrowError('"Searchable" defined in resolvers, but not in schema');
+    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
+      '"Searchable" defined in resolvers, but not in schema'
+    );
 
     expect(() =>
       makeExecutableSchema({
@@ -1634,7 +1617,7 @@ To disable this validator, use:
         resolverValidationOptions: {
           requireResolversToMatchSchema: 'ignore',
         },
-      }),
+      })
     ).not.toThrowError();
   });
 
@@ -1656,11 +1639,9 @@ To disable this validator, use:
       Searchable: undefined,
     } as any;
 
-    expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
-    ).toThrowError(
+    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
       '"Searchable" defined in resolvers, but has invalid value "undefined". The resolver\'s value ' +
-      'must be of type object.',
+        'must be of type object.'
     );
   });
 
@@ -1684,9 +1665,9 @@ To disable this validator, use:
       },
     };
 
-    expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
-    ).toThrowError('RootQuery.name defined in resolvers, but not in schema');
+    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
+      'RootQuery.name defined in resolvers, but not in schema'
+    );
 
     expect(() =>
       makeExecutableSchema({
@@ -1695,7 +1676,7 @@ To disable this validator, use:
         resolverValidationOptions: {
           requireResolversToMatchSchema: 'ignore',
         },
-      }),
+      })
     ).not.toThrowError();
   });
 
@@ -1729,10 +1710,8 @@ To disable this validator, use:
       },
     };
 
-    expect(() =>
-      makeExecutableSchema({ typeDefs: short, resolvers: rf }),
-    ).toThrowError(
-      'Color.NO_RESOLVER was defined in resolvers, but not present within Color',
+    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
+      'Color.NO_RESOLVER was defined in resolvers, but not present within Color'
     );
 
     expect(() =>
@@ -1742,32 +1721,31 @@ To disable this validator, use:
         resolverValidationOptions: {
           requireResolversToMatchSchema: 'ignore',
         },
-      }),
+      })
     ).not.toThrowError();
   });
 
   test('throws if conflicting validation options are passed', () => {
-    const typeDefs = /* GraphQL */`
-    type Bird {
-      id: ID
-    }
-    type Query {
-      bird: Bird
-    }
-    schema {
-      query: Query
-    }`;
+    const typeDefs = /* GraphQL */ `
+      type Bird {
+        id: ID
+      }
+      type Query {
+        bird: Bird
+      }
+      schema {
+        query: Query
+      }
+    `;
     const resolvers = {};
 
-    function assertOptionsError(
-      resolverValidationOptions: IResolverValidationOptions,
-    ) {
+    function assertOptionsError(resolverValidationOptions: IResolverValidationOptions) {
       expect(() =>
         makeExecutableSchema({
           typeDefs,
           resolvers,
           resolverValidationOptions,
-        }),
+        })
       ).toThrow();
     }
 
@@ -1787,7 +1765,7 @@ To disable this validator, use:
   });
 
   test('warns for any missing field if `resolverValidationOptions.requireResolversForAllFields` = warn', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       type Bird {
         id: ID
       }
@@ -1796,7 +1774,8 @@ To disable this validator, use:
       }
       schema {
         query: Query
-      }`;
+      }
+    `;
 
     function assertFieldError(errorMatcher: string, resolvers: IResolvers) {
       expectWarning(() => {
@@ -1823,7 +1802,7 @@ To disable this validator, use:
   });
 
   test('does not throw if all fields are satisfied when `resolverValidationOptions.requireResolversForAllFields` = error', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       type Bird {
         id: ID
       }
@@ -1832,7 +1811,8 @@ To disable this validator, use:
       }
       schema {
         query: Query
-      }`;
+      }
+    `;
 
     const resolvers = {
       Bird: {
@@ -1848,14 +1828,14 @@ To disable this validator, use:
         typeDefs,
         resolvers,
         resolverValidationOptions: { requireResolversForAllFields: 'error' },
-      }),
+      })
     ).not.toThrow();
   });
 
-  test('throws an error if a resolve field cannot be used', (done) => {
-    const shorthand = /* GraphQL */`
+  test('throws an error if a resolve field cannot be used', done => {
+    const shorthand = /* GraphQL */ `
       type BirdSpecies {
-        name: String!,
+        name: String!
         wingspan: Int
       }
       type RootQuery {
@@ -1880,14 +1860,14 @@ To disable this validator, use:
       makeExecutableSchema({
         typeDefs: shorthand,
         resolvers: resolveFunctions,
-      }),
+      })
     ).toThrowError('RootQuery.speciez defined in resolvers, but not in schema');
     done();
   });
-  test('throws an error if a resolve type is not in schema', (done) => {
-    const shorthand = /* GraphQL */`
+  test('throws an error if a resolve type is not in schema', done => {
+    const shorthand = /* GraphQL */ `
       type BirdSpecies {
-        name: String!,
+        name: String!
         wingspan: Int
       }
       type RootQuery {
@@ -1911,7 +1891,7 @@ To disable this validator, use:
       makeExecutableSchema({
         typeDefs: shorthand,
         resolvers: resolveFunctions,
-      }),
+      })
     ).toThrowError('"BootQuery" defined in resolvers, but not in schema');
     done();
   });
@@ -1923,17 +1903,24 @@ describe('Generating a full graphQL schema with resolvers and connectors', () =>
       typeDefs: testSchema,
       resolvers: testResolvers,
     });
-    const query = /* GraphQL */`{
-      species(name: "uhu")
-      stuff
-      usecontext
-    }`;
+    const query = /* GraphQL */ `
+      {
+        species(name: "uhu")
+        stuff
+        usecontext
+      }
+    `;
     const expected = {
       species: 'ROOTuhu',
       stuff: 'stuff',
       usecontext: 'ABC',
     };
-    return graphql({schema, source: query, rootValue: { stuff: 'stuff', species: 'ROOT' }, contextValue: { usecontext: 'ABC' }}).then((res) => {
+    return graphql({
+      schema,
+      source: query,
+      rootValue: { stuff: 'stuff', species: 'ROOT' },
+      contextValue: { usecontext: 'ABC' },
+    }).then(res => {
       expect(res.data).toEqual(expected);
     });
   });
@@ -1944,9 +1931,9 @@ describe('chainResolvers', () => {
     const r1: GraphQLFieldResolver<any, any, { addend: number }> = (root: number) => root + 1;
     const r2: GraphQLFieldResolver<any, any, { addend: number }> = (root: number, { addend }) => root + addend;
 
-    const info: GraphQLResolveInfo = ({
+    const info: GraphQLResolveInfo = {
       fieldName: 'addend',
-    } as unknown) as GraphQLResolveInfo;
+    } as unknown as GraphQLResolveInfo;
 
     const rChained = chainResolvers([r1, r2]);
     expect(rChained(0, { addend: 2 }, null, info)).toBe(3);
@@ -1959,9 +1946,9 @@ describe('chainResolvers', () => {
     const r3 = (root: any) => root.name;
     const rChained = chainResolvers([r1, undefined, r3]);
     // faking the resolve info here.
-    const info: GraphQLResolveInfo = ({
+    const info: GraphQLResolveInfo = {
       fieldName: 'person',
-    } as unknown) as GraphQLResolveInfo;
+    } as unknown as GraphQLResolveInfo;
     expect(rChained(0, { name: 'tony' }, null, info)).toBe('tony');
   });
 });
@@ -1969,7 +1956,7 @@ describe('chainResolvers', () => {
 describe('can specify lexical parser options', () => {
   test("can specify 'noLocation' option", () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type RootQuery {
           test: String
         }
@@ -1987,7 +1974,7 @@ describe('can specify lexical parser options', () => {
   });
 
   test("can specify 'experimentalFragmentVariables' option", () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       type Query {
         version: Int
       }
@@ -2014,7 +2001,7 @@ describe('can specify lexical parser options', () => {
   // to hoist the parsed variables into queries, see https://github.com/graphql/graphql-js/pull/1141
   // and so this really has nothing to do with schema creation or execution.
   test("can use 'experimentalFragmentVariables' option", async () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       type Query {
         hello(phrase: String): String
       }
@@ -2031,7 +2018,7 @@ describe('can specify lexical parser options', () => {
       resolvers,
     });
 
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       fragment Hello($phrase: String = "world") on Query {
         hello(phrase: $phrase)
       }
@@ -2040,7 +2027,10 @@ describe('can specify lexical parser options', () => {
       }
     `;
 
-    const parsedQuery = parse(query, { experimentalFragmentVariables: true, allowLegacyFragmentVariables: true } as any);
+    const parsedQuery = parse(query, {
+      experimentalFragmentVariables: true,
+      allowLegacyFragmentVariables: true,
+    } as any);
 
     const hoist = (document: DocumentNode): DocumentNode => {
       const variableDefs: Array<VariableDefinitionNode> = [];
@@ -2053,7 +2043,7 @@ describe('can specify lexical parser options', () => {
 
       return {
         kind: Kind.DOCUMENT,
-        definitions: parsedQuery.definitions.map((def) => ({
+        definitions: parsedQuery.definitions.map(def => ({
           ...def,
           variableDefinitions: variableDefs,
         })),
@@ -2065,39 +2055,51 @@ describe('can specify lexical parser options', () => {
     const result = await execute({ schema: jsSchema, document: hoistedQuery });
     expect(result.data).toEqual({ hello: 'hello world' });
 
-    const result2 = await execute({ schema: jsSchema, document: hoistedQuery, variableValues: {
-      phrase: 'world again!',
-    }});
+    const result2 = await execute({
+      schema: jsSchema,
+      document: hoistedQuery,
+      variableValues: {
+        phrase: 'world again!',
+      },
+    });
     expect(result2.data).toEqual({ hello: 'hello world again!' });
   });
 });
 
 describe('interfaces', () => {
-  const testSchemaWithInterfaces = /* GraphQL */`
-  interface Node {
-    id: ID!
-  }
-  type User implements Node {
-    id: ID!
-    name: String!
-  }
-  type Query {
-    node: Node!
-    user: User!
-  }
-  schema {
-    query: Query
-  }
+  const testSchemaWithInterfaces = /* GraphQL */ `
+    interface Node {
+      id: ID!
+    }
+    type User implements Node {
+      id: ID!
+      name: String!
+    }
+    type Query {
+      node: Node!
+      user: User!
+    }
+    schema {
+      query: Query
+    }
   `;
   const user = { id: 1, type: 'User', name: 'Kim' };
   const queryResolver = {
     node: () => user,
     user: () => user,
   };
-  const query = /* GraphQL */`query {
-    node { id __typename }
-    user { id name }
-  }`;
+  const query = /* GraphQL */ `
+    query {
+      node {
+        id
+        __typename
+      }
+      user {
+        id
+        name
+      }
+    }
+  `;
 
   test('throws if there is no interface resolveType resolver', () => {
     const resolvers = {
@@ -2111,7 +2113,7 @@ describe('interfaces', () => {
       });
     } catch (error: any) {
       expect(error.message).toEqual(
-        `Type "Node" is missing a "__resolveType" resolver. Pass 'ignore' into "resolverValidationOptions.requireResolversForResolveType" to disable this error.`,
+        `Type "Node" is missing a "__resolveType" resolver. Pass 'ignore' into "resolverValidationOptions.requireResolversForResolveType" to disable this error.`
       );
       return;
     }
@@ -2134,10 +2136,10 @@ describe('interfaces', () => {
   });
   test('does not throw if there is an interface resolveType resolver implemented in class', async () => {
     const NodeResolver = class {
-      __resolveType ({ type }: { type: string }): string {
-        return type
+      __resolveType({ type }: { type: string }): string {
+        return type;
       }
-    }
+    };
     const resolvers = {
       Query: queryResolver,
       Node: new NodeResolver(),
@@ -2150,15 +2152,15 @@ describe('interfaces', () => {
     const response = await graphql({ schema, source: query });
     expect(response.errors).not.toBeDefined();
     expect(response.data).toEqual({
-      'node': {
-        '__typename': 'User',
-        'id': '1',
+      node: {
+        __typename: 'User',
+        id: '1',
       },
-      'user': {
-        'id': '1',
-        'name': 'Kim',
-      }
-    })
+      user: {
+        id: '1',
+        name: 'Kim',
+      },
+    });
   });
   test('does not warn if requireResolversForResolveType is disabled and there are missing resolvers', () => {
     const resolvers = {
@@ -2224,29 +2226,29 @@ describe('interface resolver inheritance', () => {
   });
 
   test('respects interface order and existing resolvers', async () => {
-    const testSchemaWithInterfaceResolvers = /* GraphQL */`
-    interface Node {
-      id: ID!
-    }
-    interface Person {
-      id: ID!
-      name: String!
-    }
-    type Replicant implements Node & Person {
-      id: ID!
-      name: String!
-    }
-    type Cyborg implements Person & Node {
-      id: ID!
-      name: String!
-    }
-    type Query {
-      cyborg: Cyborg!
-      replicant: Replicant!
-    }
-    schema {
-      query: Query
-    }
+    const testSchemaWithInterfaceResolvers = /* GraphQL */ `
+      interface Node {
+        id: ID!
+      }
+      interface Person {
+        id: ID!
+        name: String!
+      }
+      type Replicant implements Node & Person {
+        id: ID!
+        name: String!
+      }
+      type Cyborg implements Person & Node {
+        id: ID!
+        name: String!
+      }
+      type Query {
+        cyborg: Cyborg!
+        replicant: Replicant!
+      }
+      schema {
+        query: Query
+      }
     `;
     const cyborg = { id: 1, name: 'Alex Murphy', type: 'Cyborg' };
     const replicant = { id: 2, name: 'Rachael Tyrell', type: 'Replicant' };
@@ -2292,7 +2294,7 @@ describe('interface resolver inheritance', () => {
   });
   test('ignore resolvers that are not defined in the schema while inheriting resolvers from interfaces', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Query {
           foo: String
         }
@@ -2304,23 +2306,23 @@ describe('interface resolver inheritance', () => {
       },
       inheritResolversFromInterfaces: true,
       resolverValidationOptions: {
-        requireResolversToMatchSchema: 'ignore'
-      }
+        requireResolversToMatchSchema: 'ignore',
+      },
     });
     const response = await graphql({
       schema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         {
           foo
         }
-      `
+      `,
     });
     expect(response.errors).not.toBeDefined();
-  })
+  });
 });
 
 describe('unions', () => {
-  const testSchemaWithUnions = /* GraphQL */`
+  const testSchemaWithUnions = /* GraphQL */ `
     type Post {
       title: String!
     }
@@ -2344,14 +2346,24 @@ describe('unions', () => {
     post: () => post,
     displayable: () => [post, page],
   };
-  const query = /* GraphQL */`query {
-    post { title }
-    page { title }
-    displayable {
-      ... on Post { title }
-      ... on Page { title }
+  const query = /* GraphQL */ `
+    query {
+      post {
+        title
+      }
+      page {
+        title
+      }
+      displayable {
+        ... on Post {
+          title
+        }
+        ... on Page {
+          title
+        }
+      }
     }
-  }`;
+  `;
 
   test('throws if there is no union resolveType resolver', () => {
     const resolvers = {
@@ -2365,7 +2377,7 @@ describe('unions', () => {
       });
     } catch (error: any) {
       expect(error.message).toEqual(
-        `Type "Displayable" is missing a "__resolveType" resolver. Pass 'ignore' into "resolverValidationOptions.requireResolversForResolveType" to disable this error.`,
+        `Type "Displayable" is missing a "__resolveType" resolver. Pass 'ignore' into "resolverValidationOptions.requireResolversForResolveType" to disable this error.`
       );
       return;
     }

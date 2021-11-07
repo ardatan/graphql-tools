@@ -35,22 +35,22 @@ describe('GitLoader', () => {
       sync: loader.loadSync.bind(loader),
     })(load => {
       it('should load document from a .graphql file', async () => {
-        const [result]= await load(getPointer('type-defs.graphql'), {});
+        const [result] = await load(getPointer('type-defs.graphql'), {});
         expect(result.document).toBeDefined();
       });
 
       it('should load introspection data from a .json file', async () => {
-        const [result]= await load(getPointer('introspection.json'), {});
+        const [result] = await load(getPointer('introspection.json'), {});
         expect(result.schema).toBeDefined();
       });
 
       it('should load type definitions from a .json file', async () => {
-        const [result]= await load(getPointer('type-defs.json'), {});
+        const [result] = await load(getPointer('type-defs.json'), {});
         expect(result.document).toBeDefined();
       });
 
       it('should load type definitions from a pluckable file', async () => {
-        const [result]= await load(getPointer('pluckable.ts'), {});
+        const [result] = await load(getPointer('pluckable.ts'), {});
         expect(result.document).toMatchSnapshot();
       });
 
@@ -62,8 +62,8 @@ describe('GitLoader', () => {
 
       it('should simply ignore a non git path', async () => {
         const result = await load('./pluckable.ts', {});
-        expect(result).toEqual([])
-      })
+        expect(result).toEqual([]);
+      });
     });
   });
 });

@@ -1,10 +1,4 @@
-import {
-  graphql,
-  parse,
-  print,
-  OperationDefinitionNode,
-  ExecutionResult
-} from 'graphql';
+import { graphql, parse, print, OperationDefinitionNode, ExecutionResult } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createBatchingExecutor } from '@graphql-tools/batch-execute';
 import { Executor } from '@graphql-tools/utils';
@@ -15,7 +9,7 @@ describe('batch execution', () => {
   let executorVariables: Record<string, any> | undefined;
 
   const schema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Query {
         field1: String
         field2: String
@@ -60,17 +54,17 @@ describe('batch execution', () => {
   function getRequestFields(): Array<string> {
     if (executorDocument != null) {
       const op = parse(executorDocument).definitions[0] as OperationDefinitionNode;
-      const names = op.selectionSet.selections.map(sel => 'name' in sel ? sel.name.value : undefined);
+      const names = op.selectionSet.selections.map(sel => ('name' in sel ? sel.name.value : undefined));
       return names.filter(Boolean) as Array<string>;
     }
     return [];
   }
 
   it('batchs multiple executions', async () => {
-    const [first, second] = await Promise.all([
+    const [first, second] = (await Promise.all([
       batchExec({ document: parse('{ field1 field2 }') }),
       batchExec({ document: parse('{ field2 field3(input: "3") }') }),
-    ]) as ExecutionResult[];
+    ])) as ExecutionResult[];
 
     expect(first?.data).toEqual({ field1: '1', field2: '2' });
     expect(second?.data).toEqual({ field2: '2', field3: '3' });
@@ -79,10 +73,10 @@ describe('batch execution', () => {
   });
 
   it('preserves root field aliases in the final result', async () => {
-    const [first, second] = await Promise.all([
+    const [first, second] = (await Promise.all([
       batchExec({ document: parse('{ a: field1 b: field2 }') }),
       batchExec({ document: parse('{ c: field2 d: field3(input: "3") }') }),
-    ]) as ExecutionResult[];
+    ])) as ExecutionResult[];
 
     expect(first?.data).toEqual({ a: '1', b: '2' });
     expect(second?.data).toEqual({ c: '2', d: '3' });
@@ -91,18 +85,16 @@ describe('batch execution', () => {
   });
 
   it('renames input variables', async () => {
-    const [first, second] = await Promise.all([
+    const [first, second] = (await Promise.all([
       batchExec({
         document: parse('query($a: String){ field3(input: $a) }'),
         variables: { a: '1' },
-
       }),
       batchExec({
         document: parse('query($a: String){ field3(input: $a) }'),
         variables: { a: '2' },
-
       }),
-    ]) as ExecutionResult[];
+    ])) as ExecutionResult[];
 
     expect(first?.data).toEqual({ field3: '1' });
     expect(second?.data).toEqual({ field3: '2' });
@@ -111,10 +103,10 @@ describe('batch execution', () => {
   });
 
   it('renames fields within inline spreads', async () => {
-    const [first, second] = await Promise.all([
+    const [first, second] = (await Promise.all([
       batchExec({ document: parse('{ ...on Query { field1 } }') }),
       batchExec({ document: parse('{ ...on Query { field2 } }') }),
-    ]) as ExecutionResult[];
+    ])) as ExecutionResult[];
 
     const squishedDoc = executorDocument?.replace(/\s+/g, ' ');
     expect(squishedDoc).toMatch('... on Query { _0_field1: field1 }');
@@ -125,16 +117,14 @@ describe('batch execution', () => {
   });
 
   it('renames fragment definitions and spreads', async () => {
-    const [first, second] = await Promise.all([
+    const [first, second] = (await Promise.all([
       batchExec({
         document: parse('fragment A on Widget { name } query{ widget { ...A } }'),
-
       }),
       batchExec({
         document: parse('fragment A on Widget { name } query{ widget { ...A } }'),
-
       }),
-    ]) as ExecutionResult[];
+    ])) as ExecutionResult[];
 
     const squishedDoc = executorDocument?.replace(/\s+/g, ' ');
     expect(squishedDoc).toMatch('_0_widget: widget { ..._0_A }');
@@ -147,16 +137,14 @@ describe('batch execution', () => {
   });
 
   it('removes expanded root fragment definitions', async () => {
-    const [first, second] = await Promise.all([
+    const [first, second] = (await Promise.all([
       batchExec({
         document: parse('fragment A on Query { field1 } query{ ...A }'),
-
       }),
       batchExec({
         document: parse('fragment A on Query { field2 } query{ ...A }'),
-
       }),
-    ]) as ExecutionResult[];
+    ])) as ExecutionResult[];
 
     expect(first?.data).toEqual({ field1: '1' });
     expect(second?.data).toEqual({ field2: '2' });
@@ -164,16 +152,14 @@ describe('batch execution', () => {
   });
 
   it('preserves pathed errors in the final result', async () => {
-    const [first, second] = await Promise.all([
+    const [first, second] = (await Promise.all([
       batchExec({
         document: parse('{ first: boom(message: "first error") }'),
-
       }),
       batchExec({
         document: parse('{ second: boom(message: "second error") }'),
-
       }),
-    ]) as ExecutionResult[];
+    ])) as ExecutionResult[];
 
     expect(first?.errors?.[0].message).toEqual('first error');
     expect(first?.errors?.[0].path).toEqual(['first']);
@@ -183,10 +169,10 @@ describe('batch execution', () => {
   });
 
   it('returns request-level errors to all results', async () => {
-    const [first, second] = await Promise.all([
+    const [first, second] = (await Promise.all([
       batchExec({ document: parse('{ field1 field2 }') }),
       batchExec({ document: parse('{ notgonnawork }') }),
-    ]) as ExecutionResult[];
+    ])) as ExecutionResult[];
 
     expect(first?.errors?.length).toEqual(1);
     expect(second?.errors?.length).toEqual(1);

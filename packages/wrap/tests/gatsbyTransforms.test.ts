@@ -37,7 +37,7 @@ class NamespaceUnderFieldTransform {
 
   transformSchema(schema: GraphQLSchema) {
     const QueryType = schema.getQueryType();
-    assertSome(QueryType)
+    assertSome(QueryType);
     const queryConfig = QueryType.toConfig();
 
     const nestedQuery = new GraphQLObjectType({
@@ -82,56 +82,56 @@ class StripNonQueryTransform {
 describe('Gatsby transforms', () => {
   test('work', async () => {
     let schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
-      directive @cacheControl(maxAge: Int, scope: CacheControlScope) on FIELD_DEFINITION | OBJECT | INTERFACE
+      typeDefs: /* GraphQL */ `
+        directive @cacheControl(maxAge: Int, scope: CacheControlScope) on FIELD_DEFINITION | OBJECT | INTERFACE
 
-      enum CacheControlScope {
-        PUBLIC
-        PRIVATE
-      }
+        enum CacheControlScope {
+          PUBLIC
+          PRIVATE
+        }
 
-      type Continent {
-        code: String
-        name: String
-        countries: [Country]
-      }
+        type Continent {
+          code: String
+          name: String
+          countries: [Country]
+        }
 
-      type Country {
-        code: String
-        name: String
-        native: String
-        phone: String
-        continent: Continent
-        currency: String
-        languages: [Language]
-        emoji: String
-        emojiU: String
-        states: [State]
-      }
+        type Country {
+          code: String
+          name: String
+          native: String
+          phone: String
+          continent: Continent
+          currency: String
+          languages: [Language]
+          emoji: String
+          emojiU: String
+          states: [State]
+        }
 
-      type Language {
-        code: String
-        name: String
-        native: String
-        rtl: Int
-      }
+        type Language {
+          code: String
+          name: String
+          native: String
+          rtl: Int
+        }
 
-      type Query {
-        continents: [Continent]
-        continent(code: String): Continent
-        countries: [Country]
-        country(code: String): Country
-        languages: [Language]
-        language(code: String): Language
-      }
+        type Query {
+          continents: [Continent]
+          continent(code: String): Continent
+          countries: [Country]
+          country(code: String): Country
+          languages: [Language]
+          language(code: String): Language
+        }
 
-      type State {
-        code: String
-        name: String
-        country: Country
-      }
+        type State {
+          code: String
+          name: String
+          country: Country
+        }
 
-      scalar Upload
+        scalar Upload
       `,
     });
 
@@ -141,7 +141,7 @@ describe('Gatsby transforms', () => {
       schema,
       transforms: [
         new StripNonQueryTransform(),
-        new RenameTypes((name) => `CountriesQuery_${name}`),
+        new RenameTypes(name => `CountriesQuery_${name}`),
         new NamespaceUnderFieldTransform({
           typeName: 'CountriesQuery',
           fieldName: 'countries',
@@ -154,7 +154,7 @@ describe('Gatsby transforms', () => {
 
     const result = await graphql({
       schema: transformedSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         {
           countries {
             language(code: "en") {
@@ -163,7 +163,7 @@ describe('Gatsby transforms', () => {
           }
         }
       `,
-      });
+    });
     expect(result).toEqual({
       data: {
         countries: {

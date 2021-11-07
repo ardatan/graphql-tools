@@ -1,11 +1,11 @@
 # import * from "./level4.graphql"
 
 type Cart {
-    total: Int
-    products: Products
+  total: Int
+  products: Products
 }
 
 type Account {
-    id: ID
-    cart: Cart
+  id: ID
+  cart: Cart
 }

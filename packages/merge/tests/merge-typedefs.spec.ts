@@ -2,7 +2,7 @@ import '../../testing/to-be-similar-gql-doc';
 import '../../testing/to-be-similar-string';
 import { mergeDirectives, mergeTypeDefs, mergeGraphQLTypes } from '../src';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas } from '@graphql-tools/stitch'
+import { stitchSchemas } from '@graphql-tools/stitch';
 import { buildSchema, buildClientSchema, print, parse, Kind, DirectiveNode } from 'graphql';
 import { stripWhitespaces } from './utils';
 import gql from 'graphql-tag';
@@ -12,7 +12,7 @@ import { assertSome } from '@graphql-tools/utils';
 
 const introspectionSchema = JSON.parse(readFileSync(join(__dirname, './schema.json'), 'utf8'));
 
-const clientType = /* GraphQL */`
+const clientType = /* GraphQL */ `
   type Client {
     id: ID!
     name: String
@@ -138,7 +138,7 @@ const productType = /* GraphQL */ `
 describe('Merge TypeDefs', () => {
   describe('AST Schema Fixing', () => {
     it('Should handle correctly schema without valid root AST node', () => {
-      const schema = buildSchema(/* GraphQL */`
+      const schema = buildSchema(/* GraphQL */ `
         type A {
           a: String
         }
@@ -172,21 +172,35 @@ describe('Merge TypeDefs', () => {
 
   describe('mergeGraphQLTypes', () => {
     it('should return the correct definition of Schema', () => {
-      const mergedArray = mergeGraphQLTypes(['type Query { f1: String }', 'type Query { f2: String }', 'type MyType { field: Int } type Query { f3: MyType }'], {
-        useSchemaDefinition: true,
-      });
+      const mergedArray = mergeGraphQLTypes(
+        [
+          'type Query { f1: String }',
+          'type Query { f2: String }',
+          'type MyType { field: Int } type Query { f3: MyType }',
+        ],
+        {
+          useSchemaDefinition: true,
+        }
+      );
 
       expect(mergedArray.length).toBe(3);
       expect(mergedArray[0].kind).toBe('ObjectTypeDefinition');
       expect(mergedArray[1].kind).toBe('ObjectTypeDefinition');
       expect(mergedArray[2].kind).toBe('SchemaDefinition');
-
     });
 
     it('should return the correct definition of Schema', () => {
-      const mergedArray = mergeGraphQLTypes(['type Query { f1: String }', 'type Query { f2: String }', 'schema { query: Query }', 'type MyType { field: Int } type Query { f3: MyType }'], {
-        useSchemaDefinition: true,
-      });
+      const mergedArray = mergeGraphQLTypes(
+        [
+          'type Query { f1: String }',
+          'type Query { f2: String }',
+          'schema { query: Query }',
+          'type MyType { field: Int } type Query { f3: MyType }',
+        ],
+        {
+          useSchemaDefinition: true,
+        }
+      );
 
       expect(mergedArray.length).toBe(3);
       expect(mergedArray[0].kind).toBe('ObjectTypeDefinition');
@@ -195,7 +209,12 @@ describe('Merge TypeDefs', () => {
     });
 
     it('should accept root schema object', () => {
-      const mergedSchema = mergeTypeDefs(['type RootQuery { f1: String }', 'type RootQuery { f2: String }', 'schema { query: RootQuery }', 'type MyType { field: Int } type RootQuery { f3: MyType }']);
+      const mergedSchema = mergeTypeDefs([
+        'type RootQuery { f1: String }',
+        'type RootQuery { f2: String }',
+        'schema { query: RootQuery }',
+        'type MyType { field: Int } type RootQuery { f3: MyType }',
+      ]);
 
       const schema = makeExecutableSchema({
         typeDefs: mergedSchema,
@@ -203,14 +222,24 @@ describe('Merge TypeDefs', () => {
       const queryType = schema.getQueryType();
 
       expect(queryType).toBeDefined();
-      assertSome(queryType)
+      assertSome(queryType);
       expect(queryType.name).toEqual('RootQuery');
     });
 
     it('should return the correct definition of Schema when it defined multiple times', () => {
-      const mergedArray = mergeGraphQLTypes(['type Query { f1: String }', 'type Query { f2: String }', 'schema { query: Query }', 'schema { query: Query }', 'schema { query: Query }', 'type MyType { field: Int } type Query { f3: MyType }'], {
-        useSchemaDefinition: true,
-      });
+      const mergedArray = mergeGraphQLTypes(
+        [
+          'type Query { f1: String }',
+          'type Query { f2: String }',
+          'schema { query: Query }',
+          'schema { query: Query }',
+          'schema { query: Query }',
+          'type MyType { field: Int } type Query { f3: MyType }',
+        ],
+        {
+          useSchemaDefinition: true,
+        }
+      );
 
       expect(mergedArray.length).toBe(3);
       expect(mergedArray[0].kind).toBe('ObjectTypeDefinition');
@@ -221,30 +250,42 @@ describe('Merge TypeDefs', () => {
 
   describe('mergeTypeDefs', () => {
     it('should return a Document with the correct values', () => {
-      const merged = mergeTypeDefs(['type Query { f1: String }', 'type Query { f2: String }', 'type MyType { field: Int } type Query { f3: MyType }']);
+      const merged = mergeTypeDefs([
+        'type Query { f1: String }',
+        'type Query { f2: String }',
+        'type MyType { field: Int } type Query { f3: MyType }',
+      ]);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
-        type Query {
-          f1: String
-          f2: String
-          f3: MyType
-        }
+        stripWhitespaces(/* GraphQL */ `
+          type Query {
+            f1: String
+            f2: String
+            f3: MyType
+          }
 
-        type MyType {
-          field: Int
-        }
+          type MyType {
+            field: Int
+          }
 
-        schema {
-          query: Query
-        }`)
+          schema {
+            query: Query
+          }
+        `)
       );
     });
 
     it('should skip printing schema definition object on session', () => {
-      const merged = mergeTypeDefs(['type Query { f1: String }', 'type Query { f2: String }', 'type MyType { field: Int } type Query { f3: MyType }'], {
-        useSchemaDefinition: false,
-      });
+      const merged = mergeTypeDefs(
+        [
+          'type Query { f1: String }',
+          'type Query { f2: String }',
+          'type MyType { field: Int } type Query { f3: MyType }',
+        ],
+        {
+          useSchemaDefinition: false,
+        }
+      );
 
       const output = stripWhitespaces(print(merged));
 
@@ -282,16 +323,16 @@ describe('Merge TypeDefs', () => {
         scalar JSON
         directive @sqlType(type: String!) on SCALAR
         extend scalar JSON @sqlType(type: "json")
-        `
+        `,
       ]);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
+        stripWhitespaces(/* GraphQL */ `
           scalar JSON @sqlType(type: "json")
 
           directive @sqlType(type: String!) on SCALAR
-          `
-        ));
+        `)
+      );
     });
 
     it('should merge descriptions', () => {
@@ -311,21 +352,22 @@ describe('Merge TypeDefs', () => {
       ]);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
-        " or she's not? "
-        type MyType {
-          field1: Int
-          field2: String
-        }
+        stripWhitespaces(/* GraphQL */ `
+          " or she's not? "
+          type MyType {
+            field1: Int
+            field2: String
+          }
 
-        " Contains f1 "
-        type Query {
-          f1: MyType
-        }
+          " Contains f1 "
+          type Query {
+            f1: MyType
+          }
 
-        schema {
-          query: Query
-        }`)
+          schema {
+            query: Query
+          }
+        `)
       );
     });
 
@@ -341,45 +383,51 @@ describe('Merge TypeDefs', () => {
       ]);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
-        type Query @test @test2 {
-          f1: String
-          f2: String
-          f3: MyType
-        }
-        type MyType {
-          field: Int
-        }
-        union MyUnion = MyType | MyType2
-        type MyType2 {
-          field: Int
-        }
-        interface MyInterface {
-          f: Int
-        }
-        type MyType3 implements MyInterface {
-          f: Int
-        } interface MyInterface2 {
-          f2: Int
-        }
-        type MyType4 implements MyInterface2 & MyInterface3 {
-          f2: Int f3: Int
-        }
-        interface MyInterface3 {
-          f3: Int
-        }
-        schema {
-          query: Query
-        }
+        stripWhitespaces(/* GraphQL */ `
+          type Query @test @test2 {
+            f1: String
+            f2: String
+            f3: MyType
+          }
+          type MyType {
+            field: Int
+          }
+          union MyUnion = MyType | MyType2
+          type MyType2 {
+            field: Int
+          }
+          interface MyInterface {
+            f: Int
+          }
+          type MyType3 implements MyInterface {
+            f: Int
+          }
+          interface MyInterface2 {
+            f2: Int
+          }
+          type MyType4 implements MyInterface2 & MyInterface3 {
+            f2: Int
+            f3: Int
+          }
+          interface MyInterface3 {
+            f3: Int
+          }
+          schema {
+            query: Query
+          }
         `)
       );
     });
 
     it('should include directives', () => {
-      const merged = mergeTypeDefs([`directive @id on FIELD_DEFINITION`, `type MyType { id: Int @id }`, `type Query { f1: MyType }`]);
+      const merged = mergeTypeDefs([
+        `directive @id on FIELD_DEFINITION`,
+        `type MyType { id: Int @id }`,
+        `type Query { f1: MyType }`,
+      ]);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
+        stripWhitespaces(/* GraphQL */ `
           directive @id on FIELD_DEFINITION
 
           type MyType {
@@ -409,7 +457,7 @@ describe('Merge TypeDefs', () => {
       ]);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
+        stripWhitespaces(/* GraphQL */ `
           directive @id(primitiveArg: String, arrayArg: [String]) on FIELD_DEFINITION
 
           type MyType {
@@ -429,7 +477,12 @@ describe('Merge TypeDefs', () => {
 
     it('should fail if inputs of the same directive are different from each other', (done: jest.DoneCallback) => {
       try {
-        mergeTypeDefs([`directive @id on FIELD_DEFINITION`, `directive @id(name: String) on FIELD_DEFINITION`, `type MyType { id: Int @id }`, `type Query { f1: MyType }`]);
+        mergeTypeDefs([
+          `directive @id on FIELD_DEFINITION`,
+          `directive @id(name: String) on FIELD_DEFINITION`,
+          `type MyType { id: Int @id }`,
+          `type Query { f1: MyType }`,
+        ]);
 
         done.fail('It should have failed');
       } catch (e: any) {
@@ -444,10 +497,15 @@ describe('Merge TypeDefs', () => {
     });
 
     it('should merge the same directives', () => {
-      const merged = mergeTypeDefs([`directive @id on FIELD_DEFINITION`, `directive @id on FIELD_DEFINITION`, `type MyType { id: Int @id }`, `type Query { f1: MyType }`]);
+      const merged = mergeTypeDefs([
+        `directive @id on FIELD_DEFINITION`,
+        `directive @id on FIELD_DEFINITION`,
+        `type MyType { id: Int @id }`,
+        `type Query { f1: MyType }`,
+      ]);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
+        stripWhitespaces(/* GraphQL */ `
           directive @id on FIELD_DEFINITION
 
           type MyType {
@@ -532,10 +590,15 @@ describe('Merge TypeDefs', () => {
     });
 
     it('should merge the same directives and its locations', () => {
-      const merged = mergeTypeDefs([`directive @id on FIELD_DEFINITION`, `directive @id on OBJECT`, `type MyType { id: Int @id }`, `type Query { f1: MyType }`]);
+      const merged = mergeTypeDefs([
+        `directive @id on FIELD_DEFINITION`,
+        `directive @id on OBJECT`,
+        `type MyType { id: Int @id }`,
+        `type Query { f1: MyType }`,
+      ]);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
+        stripWhitespaces(/* GraphQL */ `
           directive @id on FIELD_DEFINITION | OBJECT
 
           type MyType {
@@ -598,14 +661,15 @@ describe('Merge TypeDefs', () => {
       const merged = mergeTypeDefs(['type Query { f1: String }']);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
-        type Query {
-          f1: String
-        }
+        stripWhitespaces(/* GraphQL */ `
+          type Query {
+            f1: String
+          }
 
-        schema {
-          query: Query
-        }`)
+          schema {
+            query: Query
+          }
+        `)
       );
     });
 
@@ -619,14 +683,15 @@ describe('Merge TypeDefs', () => {
       ]);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
-        type Query {
-          f1: String
-        }
+        stripWhitespaces(/* GraphQL */ `
+          type Query {
+            f1: String
+          }
 
-        schema {
-          query: Query
-        }`)
+          schema {
+            query: Query
+          }
+        `)
       );
     });
 
@@ -641,15 +706,16 @@ describe('Merge TypeDefs', () => {
       ]);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
-        type Query {
-          f1: String
-          f2: String
-        }
+        stripWhitespaces(/* GraphQL */ `
+          type Query {
+            f1: String
+            f2: String
+          }
 
-        schema {
-          query: Query
-        }`)
+          schema {
+            query: Query
+          }
+        `)
       );
     });
 
@@ -662,15 +728,16 @@ describe('Merge TypeDefs', () => {
       ]);
 
       expect(stripWhitespaces(print(merged))).toBeSimilarString(
-        stripWhitespaces(/* GraphQL */`
-        schema {
-          query: Query
-        }
+        stripWhitespaces(/* GraphQL */ `
+          schema {
+            query: Query
+          }
 
-        type Query {
-          f1: String
-          f2: String
-        }`)
+          type Query {
+            f1: String
+            f2: String
+          }
+        `)
       );
     });
 
@@ -685,15 +752,16 @@ describe('Merge TypeDefs', () => {
       ]);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
-        type RootQuery {
-          f1: String
-          f2: String
-        }
+        stripWhitespaces(/* GraphQL */ `
+          type RootQuery {
+            f1: String
+            f2: String
+          }
 
-        schema {
-          query: RootQuery
-        }`)
+          schema {
+            query: RootQuery
+          }
+        `)
       );
     });
 
@@ -711,16 +779,17 @@ describe('Merge TypeDefs', () => {
       ]);
 
       expect(stripWhitespaces(print(merged))).toBeSimilarString(
-        stripWhitespaces(/* GraphQL */`
-        schema {
-          query: Query
-        }
+        stripWhitespaces(/* GraphQL */ `
+          schema {
+            query: Query
+          }
 
-        type Query {
-          f1: String
-          f2: String
-          f3: String
-        }`)
+          type Query {
+            f1: String
+            f2: String
+            f3: String
+          }
+        `)
       );
     });
 
@@ -732,8 +801,10 @@ describe('Merge TypeDefs', () => {
       ]);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
-        type MyType { f1: String }
+        stripWhitespaces(/* GraphQL */ `
+          type MyType {
+            f1: String
+          }
         `)
       );
     });
@@ -749,8 +820,11 @@ describe('Merge TypeDefs', () => {
       ]);
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
-        type MyType { f1: String f2: String }
+        stripWhitespaces(/* GraphQL */ `
+          type MyType {
+            f1: String
+            f2: String
+          }
         `)
       );
     });
@@ -768,12 +842,12 @@ describe('Merge TypeDefs', () => {
       `,
       ]);
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
-        type Test {
-          foo: String
-          bar: String
-        }
-      `)
+        stripWhitespaces(/* GraphQL */ `
+          type Test {
+            foo: String
+            bar: String
+          }
+        `)
       );
     });
     it('should handle extend types when GraphQLSchema is the source', () => {
@@ -803,20 +877,20 @@ describe('Merge TypeDefs', () => {
       const printed = stripWhitespaces(print(merged));
 
       expect(printed).toContain(
-        stripWhitespaces(/* GraphQL */`
-        type Query {
-          foo: String
-          bar: String
-        }
-      `)
+        stripWhitespaces(/* GraphQL */ `
+          type Query {
+            foo: String
+            bar: String
+          }
+        `)
       );
       expect(printed).toContain(
-        stripWhitespaces(/* GraphQL */`
-        type User {
-          name: String
-          id: ID
-        }
-      `)
+        stripWhitespaces(/* GraphQL */ `
+          type User {
+            name: String
+            id: ID
+          }
+        `)
       );
     });
 
@@ -843,9 +917,12 @@ describe('Merge TypeDefs', () => {
       const printed = stripWhitespaces(print(merged));
 
       expect(printed).toContain(
-        stripWhitespaces(/* GraphQL */`
-        input TestInput { t: String! t2: String! }
-      `)
+        stripWhitespaces(/* GraphQL */ `
+          input TestInput {
+            t: String!
+            t2: String!
+          }
+        `)
       );
     });
 
@@ -884,12 +961,12 @@ describe('Merge TypeDefs', () => {
       const printed = stripWhitespaces(print(merged));
 
       expect(printed).toContain(
-        stripWhitespaces(/* GraphQL */`
-        extend type Query {
-          foo: String
-          bar: String
-        }
-      `)
+        stripWhitespaces(/* GraphQL */ `
+          extend type Query {
+            foo: String
+            bar: String
+          }
+        `)
       );
     });
 
@@ -917,7 +994,11 @@ describe('Merge TypeDefs', () => {
 
       const printed = stripWhitespaces(print(merged));
 
-      expect(printed).toContain(stripWhitespaces(/* GraphQL */`union MyUnion = A | B | C`));
+      expect(printed).toContain(
+        stripWhitespaces(/* GraphQL */ `
+          union MyUnion = A | B | C
+        `)
+      );
     });
 
     it('should merge unions correctly without extend', () => {
@@ -944,7 +1025,11 @@ describe('Merge TypeDefs', () => {
 
       const printed = stripWhitespaces(print(merged));
 
-      expect(printed).toContain(stripWhitespaces(/* GraphQL */`union MyUnion = A | B | C`));
+      expect(printed).toContain(
+        stripWhitespaces(/* GraphQL */ `
+          union MyUnion = A | B | C
+        `)
+      );
     });
 
     it('should handle extend inputs', () => {
@@ -961,12 +1046,12 @@ describe('Merge TypeDefs', () => {
       `,
       ]);
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
-        input TestInput {
-          foo: String
-          bar: String
-        }
-      `)
+        stripWhitespaces(/* GraphQL */ `
+          input TestInput {
+            foo: String
+            bar: String
+          }
+        `)
       );
     });
     it('should extend extension types', () => {
@@ -983,12 +1068,12 @@ describe('Merge TypeDefs', () => {
       `,
       ]);
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
-        extend type Test {
-          foo: String
-          bar: String
-        }
-      `)
+        stripWhitespaces(/* GraphQL */ `
+          extend type Test {
+            foo: String
+            bar: String
+          }
+        `)
       );
     });
     it('should extend extension input types', () => {
@@ -1005,12 +1090,12 @@ describe('Merge TypeDefs', () => {
       `,
       ]);
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */`
-        extend input TestInput {
-          foo: String
-          bar: String
-        }
-      `)
+        stripWhitespaces(/* GraphQL */ `
+          extend input TestInput {
+            foo: String
+            bar: String
+          }
+        `)
       );
     });
   });
@@ -1019,9 +1104,8 @@ describe('Merge TypeDefs', () => {
     it('includes mutationType', () => {
       const types = [clientType, productType];
       const mergedTypes = mergeTypeDefs(types, { commentDescriptions: true });
-      const expectedMutationType = stripWhitespaces(/* GraphQL */`
+      const expectedMutationType = stripWhitespaces(/* GraphQL */ `
         type Mutation {
-
           # Creates a new client with their name & age
           create_client(name: String!, age: Int!): Client
           update_client(id: ID!, name: String!, age: Int!): Client
@@ -1034,7 +1118,8 @@ describe('Merge TypeDefs', () => {
             # product description
             description: String!
             # product price
-            price: Int! ): Product
+            price: Int!
+          ): Product
         }
       `);
       const schema = stripWhitespaces(mergedTypes);
@@ -1045,7 +1130,7 @@ describe('Merge TypeDefs', () => {
     it('includes first product ENUM type', () => {
       const types = [clientType, productType];
       const mergedTypes = mergeTypeDefs(types, { commentDescriptions: true });
-      const expectedEnumType = stripWhitespaces(/* GraphQL */`
+      const expectedEnumType = stripWhitespaces(/* GraphQL */ `
         enum ProductTypes {
           # New
           NEW
@@ -1064,7 +1149,7 @@ describe('Merge TypeDefs', () => {
       const types = [
         stripWhitespaces(/* GraphQL */ `
           """
-            Enum without comments
+          Enum without comments
           """
           enum TestEnum {
             Value1
@@ -1073,48 +1158,59 @@ describe('Merge TypeDefs', () => {
         `),
         stripWhitespaces(/* GraphQL */ `
           """
-            Extended Enum with comments and new Value
+          Extended Enum with comments and new Value
           """
           enum TestEnum {
-            """Value1"""
+            """
+            Value1
+            """
             Value1
 
-            """Value2"""
+            """
+            Value2
+            """
             Value2
 
-            """Value3"""
+            """
+            Value3
+            """
             Value3
           }
-        `)
+        `),
       ];
 
       const mergedTypes = mergeTypeDefs(types);
 
-      const expectedEnumType = stripWhitespaces(/* GraphQL */`
+      const expectedEnumType = stripWhitespaces(/* GraphQL */ `
         """
-          Extended Enum with comments and new Value
+        Extended Enum with comments and new Value
         """
         enum TestEnum {
-          """Value1"""
+          """
+          Value1
+          """
           Value1
 
-          """Value2"""
+          """
+          Value2
+          """
           Value2
 
-          """Value3"""
+          """
+          Value3
+          """
           Value3
         }
       `);
       const separateTypes = stripWhitespaces(print(mergedTypes));
 
       expect(separateTypes).toContain(expectedEnumType);
-
     });
 
     it('preserves the field comments', () => {
       const types = [clientType, productType];
       const mergedTypes = mergeTypeDefs(types, { commentDescriptions: true });
-      const expectedClientType = stripWhitespaces(/* GraphQL */`
+      const expectedClientType = stripWhitespaces(/* GraphQL */ `
         type ClientWithComment {
           # ClientID
           # Second comment line
@@ -1133,7 +1229,7 @@ describe('Merge TypeDefs', () => {
     it('preserves the type comments', () => {
       const types = [clientType, productType];
       const mergedTypes = mergeTypeDefs(types, { commentDescriptions: true });
-      const expectedClientType = stripWhitespaces(/* GraphQL */`
+      const expectedClientType = stripWhitespaces(/* GraphQL */ `
         # Comments on top of type definition
         # Second comment line
         # Third comment line
@@ -1153,7 +1249,7 @@ describe('Merge TypeDefs', () => {
     it('preserves the input field comments', () => {
       const types = [clientType, productType];
       const mergedTypes = mergeTypeDefs(types, { commentDescriptions: true });
-      const expectedClientType = stripWhitespaces(/* GraphQL */`
+      const expectedClientType = stripWhitespaces(/* GraphQL */ `
         input ClientFormInputWithComment {
           # Name
           name: String!
@@ -1170,7 +1266,7 @@ describe('Merge TypeDefs', () => {
       const parsedClientType = parse(clientType);
       const types = [parsedClientType, productType];
       const mergedTypes = mergeTypeDefs(types, { commentDescriptions: true });
-      const expectedClientType = stripWhitespaces(/* GraphQL */`
+      const expectedClientType = stripWhitespaces(/* GraphQL */ `
         input ClientFormInputWithComment {
           # Name
           name: String!
@@ -1188,7 +1284,7 @@ describe('Merge TypeDefs', () => {
     const parsedClientType = parse(clientType);
     const types = [parsedClientType, productType];
     const mergedTypes = mergeTypeDefs(types, { commentDescriptions: true });
-    const expectedClientType = stripWhitespaces(/* GraphQL */`
+    const expectedClientType = stripWhitespaces(/* GraphQL */ `
       input ClientFormInputWithComment {
         # Name
         name: String!
@@ -1202,12 +1298,12 @@ describe('Merge TypeDefs', () => {
     expect(separateTypes).toContain(expectedClientType);
   });
   it('excludes fields', () => {
-    const userF1Type = stripWhitespaces(/* GraphQL */`
+    const userF1Type = stripWhitespaces(/* GraphQL */ `
       type User {
         f1: String
       }
     `);
-    const userF2Type = stripWhitespaces(/* GraphQL */`
+    const userF2Type = stripWhitespaces(/* GraphQL */ `
       type User {
         f2: String
       }
@@ -1219,12 +1315,12 @@ describe('Merge TypeDefs', () => {
   });
 
   it('excludes types', () => {
-    const queryType = stripWhitespaces(/* GraphQL */`
+    const queryType = stripWhitespaces(/* GraphQL */ `
       type Query {
         user: User
       }
     `);
-    const userType = stripWhitespaces(/* GraphQL */`
+    const userType = stripWhitespaces(/* GraphQL */ `
       type User {
         name: String
       }
@@ -1236,46 +1332,48 @@ describe('Merge TypeDefs', () => {
   });
 
   it('should sort fields', () => {
-    const t1 = stripWhitespaces(/* GraphQL */`
+    const t1 = stripWhitespaces(/* GraphQL */ `
       type Query {
         A: String!
         C: String!
       }
     `);
-    const t2 = stripWhitespaces(/* GraphQL */`
+    const t2 = stripWhitespaces(/* GraphQL */ `
       extend type Query {
         B: String!
         D: String!
       }
     `);
     const mergedTypes = mergeTypeDefs([t1, t2], { sort: true });
-    expect(stripWhitespaces(print(mergedTypes))).toContain(stripWhitespaces(/* GraphQL */`
-      type Query {
-        A: String!
-        B: String!
-        C: String!
-        D: String!
-      }
-    `));
+    expect(stripWhitespaces(print(mergedTypes))).toContain(
+      stripWhitespaces(/* GraphQL */ `
+        type Query {
+          A: String!
+          B: String!
+          C: String!
+          D: String!
+        }
+      `)
+    );
   });
 
   it('should keep indentation in comment descriptions', () => {
-    const A = /* GraphQL */`
-    type Some {
-      # comment1
-      #  - first line1
-      #  - second line1
-      field1: Int
-    }
+    const A = /* GraphQL */ `
+      type Some {
+        # comment1
+        #  - first line1
+        #  - second line1
+        field1: Int
+      }
     `;
 
-    const B = /* GraphQL */`
-    type Some {
-      # comment2
-      #  - first line2
-      #  - second line2
-      field2: Int
-    }
+    const B = /* GraphQL */ `
+      type Some {
+        # comment2
+        #  - first line2
+        #  - second line2
+        field2: Int
+      }
     `;
 
     const result = mergeTypeDefs([A, B], { commentDescriptions: true });
@@ -1287,7 +1385,10 @@ describe('Merge TypeDefs', () => {
     expect(result).toContain(`#  - second line2`);
   });
 
-  describe.each([['normal', false], ['reverse', true]])('mergeDirectives', (direction, value) => {
+  describe.each([
+    ['normal', false],
+    ['reverse', true],
+  ])('mergeDirectives', (direction, value) => {
     const config = {
       reverseDirectives: value,
     };
@@ -1297,71 +1398,82 @@ describe('Merge TypeDefs', () => {
     });
 
     it(`should merge with first schema directives set in ${direction} order`, () => {
-      const directives: DirectiveNode[] = [{
-        kind: Kind.DIRECTIVE,
-        name: {
-          kind: Kind.NAME,
-          value: 'firstDirective'
-        }
-      }];
+      const directives: DirectiveNode[] = [
+        {
+          kind: Kind.DIRECTIVE,
+          name: {
+            kind: Kind.NAME,
+            value: 'firstDirective',
+          },
+        },
+      ];
       expect(mergeDirectives(directives, undefined, config)).toEqual(directives);
     });
 
     it(`should merge with second schema directives set in ${direction} order`, () => {
-      const directives: DirectiveNode[] = [{
-        kind: Kind.DIRECTIVE,
-        name: {
-          kind: Kind.NAME,
-          value: 'firstDirective'
-        }
-      }];
+      const directives: DirectiveNode[] = [
+        {
+          kind: Kind.DIRECTIVE,
+          name: {
+            kind: Kind.NAME,
+            value: 'firstDirective',
+          },
+        },
+      ];
       expect(mergeDirectives(undefined, directives, config)).toEqual(directives);
     });
 
     it(`should merge with both schema directives set in ${direction} order`, () => {
-      const directives: DirectiveNode[] = [{
-        kind: Kind.DIRECTIVE,
-        name: {
-          kind: Kind.NAME,
-          value: 'firstDirective'
-        }
-      }];
+      const directives: DirectiveNode[] = [
+        {
+          kind: Kind.DIRECTIVE,
+          name: {
+            kind: Kind.NAME,
+            value: 'firstDirective',
+          },
+        },
+      ];
       expect(mergeDirectives(directives, directives, config)).toEqual(directives);
     });
 
     it(`should merge with both schema directives set, one of which has arguments in ${direction} order`, () => {
-      const directivesOne: DirectiveNode[] = [{
-        kind: Kind.DIRECTIVE,
-        name: {
-          kind: Kind.NAME,
-          value: 'firstDirective'
-        }
-      }];
-      const directivesTwo: DirectiveNode[] = [{
-        kind: Kind.DIRECTIVE,
-        name: {
-          kind: Kind.NAME,
-          value: 'firstDirective'
-        },
-        arguments: [{
-          kind: Kind.ARGUMENT,
+      const directivesOne: DirectiveNode[] = [
+        {
+          kind: Kind.DIRECTIVE,
           name: {
             kind: Kind.NAME,
-            value: 'firstArg'
+            value: 'firstDirective',
           },
-          value: {
-            kind: Kind.STRING,
-            value: 'arg'
-          }
-        }]
-      }];
+        },
+      ];
+      const directivesTwo: DirectiveNode[] = [
+        {
+          kind: Kind.DIRECTIVE,
+          name: {
+            kind: Kind.NAME,
+            value: 'firstDirective',
+          },
+          arguments: [
+            {
+              kind: Kind.ARGUMENT,
+              name: {
+                kind: Kind.NAME,
+                value: 'firstArg',
+              },
+              value: {
+                kind: Kind.STRING,
+                value: 'arg',
+              },
+            },
+          ],
+        },
+      ];
 
       expect(mergeDirectives(directivesOne, directivesTwo, config)).toEqual(directivesTwo);
     });
-
-  })
+  });
   it('should handle tripe quote comments in schema documents', () => {
-    const schemaWithTripleQuotes = /* GraphQL */`
+    const schemaWithTripleQuotes = /* GraphQL */ `
       """
       Multi line description on a type
       """
@@ -1371,34 +1483,34 @@ describe('Merge TypeDefs', () => {
         """
         value: String!
       }
-    `
+    `;
     const reformulatedGraphQL = mergeTypeDefs([schemaWithTripleQuotes], { commentDescriptions: true });
 
     expect(reformulatedGraphQL).toBeSimilarString(schemaWithTripleQuotes);
-  })
+  });
 
   it('should handle single quote comments in schema documents', () => {
-    const schemaWithSingleQuote = /* GraphQL */`
+    const schemaWithSingleQuote = /* GraphQL */ `
       "Single line description on a type"
       type B {
         "Single line description on a field"
         value: String!
       }
-      `
+    `;
 
     const reformulatedGraphQL = mergeTypeDefs([schemaWithSingleQuote], { commentDescriptions: true });
     expect(reformulatedGraphQL).toBeSimilarString(schemaWithSingleQuote);
-  })
+  });
 
   it('should handle comment descriptions in schema documents', () => {
-    const schemaWithDescription = /* GraphQL */`
+    const schemaWithDescription = /* GraphQL */ `
       # Comment on a type
       type C {
         # Comment on a field
         value: String!
       }
-    `
+    `;
     const reformulatedGraphQL = mergeTypeDefs([schemaWithDescription], { commentDescriptions: true });
     expect(reformulatedGraphQL).toBeSimilarString(schemaWithDescription);
-  })
+  });
 });

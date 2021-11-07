@@ -6,12 +6,12 @@ import path from 'path';
 import { inspect } from '@graphql-tools/utils';
 
 const monorepo = useMonorepo({
-  dirname: __dirname
+  dirname: __dirname,
 });
 
 function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | undefined> {
   if (input == null) {
-    throw new Error(`Value should be neither null nor undefined. But received: ${inspect(input)}`)
+    throw new Error(`Value should be neither null nor undefined. But received: ${inspect(input)}`);
   }
 }
 
@@ -20,12 +20,12 @@ describe('schema from typedefs', () => {
 
   runTests({
     async: loadSchema,
-    sync: loadSchemaSync
+    sync: loadSchemaSync,
   })(load => {
     it('should work with glob correctly', async () => {
       const glob = './tests/loaders/schema/test-files/schema-dir/query.graphql';
       const schema = await load(glob, {
-        loaders: [new GraphQLFileLoader()]
+        loaders: [new GraphQLFileLoader()],
       });
 
       expect(schema.getTypeMap()['User']).toBeDefined();
@@ -37,7 +37,7 @@ describe('schema from typedefs', () => {
 
       try {
         await load(glob, {
-          loaders: [new GraphQLFileLoader()]
+          loaders: [new GraphQLFileLoader()],
         });
         expect(true).toBeFalsy();
       } catch (e: any) {
@@ -51,7 +51,7 @@ describe('schema from typedefs', () => {
 
       try {
         const schema = await load(glob, {
-          loaders: [new GraphQLFileLoader()]
+          loaders: [new GraphQLFileLoader()],
         });
         expect(schema).toBeFalsy();
       } catch (e: any) {
@@ -64,7 +64,7 @@ describe('schema from typedefs', () => {
 
       try {
         await load(glob, {
-          loaders: [new GraphQLFileLoader()]
+          loaders: [new GraphQLFileLoader()],
         });
         expect(true).toBeFalsy();
       } catch (e: any) {
@@ -77,7 +77,7 @@ describe('schema from typedefs', () => {
       const schemaPath = './tests/loaders/schema/test-files/schema-dir/*.ts';
 
       const schema = await load(schemaPath, {
-        loaders: [new CodeFileLoader()]
+        loaders: [new CodeFileLoader()],
       });
 
       expect(schema.getTypeMap()['User']).toBeDefined();
@@ -87,7 +87,7 @@ describe('schema from typedefs', () => {
     it('should work without globs correctly', async () => {
       const schemaPath = './tests/loaders/schema/test-files/schema-dir/type-defs/graphql-tag.ts';
       const schema = await load(schemaPath, {
-        loaders: [new CodeFileLoader()]
+        loaders: [new CodeFileLoader()],
       });
 
       expect(schema.getTypeMap()['User']).toBeDefined();
@@ -97,7 +97,7 @@ describe('schema from typedefs', () => {
     it('should work with import notations', async () => {
       const schemaPath = './tests/loaders/schema/test-files/schema-dir/query.graphql';
       const schema = await load(schemaPath, {
-        loaders: [new GraphQLFileLoader()]
+        loaders: [new GraphQLFileLoader()],
       });
 
       expect(schema.getTypeMap()['User']).toBeDefined();
@@ -107,7 +107,7 @@ describe('schema from typedefs', () => {
     it('should work with import notations multiple levels', async () => {
       const schemaPath = './tests/loaders/schema/test-files/level1.graphql';
       const schema = await load(schemaPath, {
-        loaders: [new GraphQLFileLoader()]
+        loaders: [new GraphQLFileLoader()],
       });
 
       expect(schema.getTypeMap()['User']).toBeDefined();
@@ -117,10 +117,10 @@ describe('schema from typedefs', () => {
     it('should work with extensions (static graphql file)', async () => {
       const schemaPath = './tests/loaders/schema/test-files/schema-dir/extensions/schema-with-extend.graphql';
       const schema = await load(schemaPath, {
-        loaders: [new GraphQLFileLoader()]
+        loaders: [new GraphQLFileLoader()],
       });
-      const QueryType = schema.getQueryType()
-      assertNonMaybe(QueryType)
+      const QueryType = schema.getQueryType();
+      assertNonMaybe(QueryType);
       const queryFields = Object.keys(QueryType.getFields());
 
       expect(queryFields).toContain('foo');
@@ -130,10 +130,10 @@ describe('schema from typedefs', () => {
     it('should work with extensions (multiple graphql files)', async () => {
       const schemaPath = './tests/loaders/schema/test-files/schema-dir/extensions/*.graphql';
       const schema = await load(schemaPath, {
-        loaders: [new GraphQLFileLoader()]
+        loaders: [new GraphQLFileLoader()],
       });
-      const QueryType = schema.getQueryType()
-      assertNonMaybe(QueryType)
+      const QueryType = schema.getQueryType();
+      assertNonMaybe(QueryType);
       const queryFields = Object.keys(QueryType.getFields());
 
       expect(queryFields).toContain('foo');
@@ -144,10 +144,10 @@ describe('schema from typedefs', () => {
     it('should work with extensions (static js file with typedefs)', async () => {
       const schemaPath = './tests/loaders/schema/test-files/schema-dir/extensions/type-defs.js';
       const schema = await load(schemaPath, {
-        loaders: [new CodeFileLoader()]
+        loaders: [new CodeFileLoader()],
       });
-      const QueryType = schema.getQueryType()
-      assertNonMaybe(QueryType)
+      const QueryType = schema.getQueryType();
+      assertNonMaybe(QueryType);
       const queryFields = Object.keys(QueryType.getFields());
 
       expect(queryFields).toContain('foo');
@@ -160,50 +160,58 @@ describe('schema from typedefs', () => {
         loaders: [new GraphQLFileLoader()],
         includeSources: true,
       });
-      assertNonMaybe(schemaWithSources.extensions)
+      assertNonMaybe(schemaWithSources.extensions);
       const sourcesFromExtensions = schemaWithSources.extensions['sources'] as any;
       expect(sourcesFromExtensions).toBeDefined();
       expect(sourcesFromExtensions).toHaveLength(1);
-      expect(sourcesFromExtensions[0]).toMatchObject(expect.objectContaining({
-        name: path.resolve(process.cwd(), glob).replace(/\\/g, '/')
-      }))
+      expect(sourcesFromExtensions[0]).toMatchObject(
+        expect.objectContaining({
+          name: path.resolve(process.cwd(), glob).replace(/\\/g, '/'),
+        })
+      );
 
       const schemaWithoutSources = await load(glob, {
-        loaders: [new GraphQLFileLoader()]
+        loaders: [new GraphQLFileLoader()],
       });
-      assertNonMaybe(schemaWithoutSources.extensions)
+      assertNonMaybe(schemaWithoutSources.extensions);
       expect(schemaWithoutSources.extensions['sources']).not.toBeDefined();
     });
 
     it('should be able to exclude documents via negative glob', async () => {
-      const result = await load([
-        './tests/loaders/schema/test-files/schema-dir/user.graphql',
-        './tests/loaders/schema/test-files/schema-dir/invalid.graphql',
-        '!./tests/loaders/schema/test-files/schema-dir/i*.graphql',
-      ], {
-        loaders: [new GraphQLFileLoader()],
-        includeSources: true,
-      });
-      expect(result.getTypeMap()["User"]).toBeDefined()
-    })
+      const result = await load(
+        [
+          './tests/loaders/schema/test-files/schema-dir/user.graphql',
+          './tests/loaders/schema/test-files/schema-dir/invalid.graphql',
+          '!./tests/loaders/schema/test-files/schema-dir/i*.graphql',
+        ],
+        {
+          loaders: [new GraphQLFileLoader()],
+          includeSources: true,
+        }
+      );
+      expect(result.getTypeMap()['User']).toBeDefined();
+    });
 
     it('should be able to exclude documents via nested negative glob', async () => {
-      await load([
-        './tests/loaders/schema/test-files/schema-dir/user.graphql',
-        './tests/loaders/schema/test-files/schema-dir/invalid.graphql',
+      await load(
+        [
+          './tests/loaders/schema/test-files/schema-dir/user.graphql',
+          './tests/loaders/schema/test-files/schema-dir/invalid.graphql',
+          {
+            '!./tests/loaders/schema/test-files/schema-dir/i*.graphql': {},
+          },
+        ],
         {
-          '!./tests/loaders/schema/test-files/schema-dir/i*.graphql': {}
+          loaders: [new GraphQLFileLoader()],
+          includeSources: true,
         }
-      ], {
-        loaders: [new GraphQLFileLoader()],
-        includeSources: true,
-      });
-    })
+      );
+    });
 
     it('should parse nested import types', async () => {
       const glob = './tests/loaders/schema/test-files/nested-imports/query.graphql';
       const schema = await load(glob, {
-        loaders: [new GraphQLFileLoader()]
+        loaders: [new GraphQLFileLoader()],
       });
 
       expect(schema.getTypeMap()['Query']).toBeDefined();
@@ -211,5 +219,5 @@ describe('schema from typedefs', () => {
       expect(schema.getTypeMap()['Bar']).toBeDefined();
       expect(schema.getTypeMap()['Ham']).toBeDefined();
     });
-  })
+  });
 });

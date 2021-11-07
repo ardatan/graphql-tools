@@ -9,7 +9,7 @@ import { assertSome } from '@graphql-tools/utils';
 describe('basic stitching example', () => {
   test('works', async () => {
     let chirpSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Chirp {
           id: ID!
           text: String
@@ -20,14 +20,14 @@ describe('basic stitching example', () => {
           chirpById(id: ID!): Chirp
           chirpsByAuthorId(authorId: ID!): [Chirp]
         }
-      `
+      `,
     });
 
     chirpSchema = addMocksToSchema({ schema: chirpSchema });
 
     // Mocked author schema
     let authorSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type User {
           id: ID!
           email: String
@@ -36,12 +36,12 @@ describe('basic stitching example', () => {
         type Query {
           userById(id: ID!): User
         }
-      `
+      `,
     });
 
     authorSchema = addMocksToSchema({ schema: authorSchema });
 
-    const linkTypeDefs = /* GraphQL */`
+    const linkTypeDefs = /* GraphQL */ `
       extend type User {
         chirps: [Chirp]
       }
@@ -52,46 +52,45 @@ describe('basic stitching example', () => {
     `;
 
     const stitchedSchema = stitchSchemas({
-      subschemas: [
-        { schema: chirpSchema, },
-        { schema: authorSchema, },
-      ],
+      subschemas: [{ schema: chirpSchema }, { schema: authorSchema }],
       typeDefs: linkTypeDefs,
       resolvers: {
         User: {
           chirps: {
             selectionSet: `{ id }`,
-            resolve: (user, _args, context, info) => delegateToSchema({
-              schema: chirpSchema,
-              operation: 'query' as OperationTypeNode,
-              fieldName: 'chirpsByAuthorId',
-              args: {
-                authorId: user.id,
-              },
-              context,
-              info,
-            }),
+            resolve: (user, _args, context, info) =>
+              delegateToSchema({
+                schema: chirpSchema,
+                operation: 'query' as OperationTypeNode,
+                fieldName: 'chirpsByAuthorId',
+                args: {
+                  authorId: user.id,
+                },
+                context,
+                info,
+              }),
           },
         },
         Chirp: {
           author: {
             selectionSet: `{ authorId }`,
-            resolve: (chirp, _args, context, info) => delegateToSchema({
-              schema: authorSchema,
-              operation: 'query' as OperationTypeNode,
-              fieldName: 'userById',
-              args: {
-                id: chirp.authorId,
-              },
-              context,
-              info,
-            }),
+            resolve: (chirp, _args, context, info) =>
+              delegateToSchema({
+                schema: authorSchema,
+                operation: 'query' as OperationTypeNode,
+                fieldName: 'userById',
+                args: {
+                  id: chirp.authorId,
+                },
+                context,
+                info,
+              }),
           },
         },
       },
     });
 
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       query {
         userById(id: 5) {
           chirps {
@@ -108,7 +107,7 @@ describe('basic stitching example', () => {
     const result = await graphql({ schema: stitchedSchema, source: query });
 
     expect(result.errors).toBeUndefined();
-    assertSome(result.data)
+    assertSome(result.data);
     const userByIdData: any = result.data['userById'];
     expect(userByIdData.chirps[1].id).not.toBe(null);
     expect(userByIdData.chirps[1].text).not.toBe(null);
@@ -120,7 +119,7 @@ describe('stitching to interfaces', () => {
   let stitchedSchema: GraphQLSchema;
   beforeAll(() => {
     let chirpSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         interface Node {
           id: ID!
         }
@@ -135,13 +134,13 @@ describe('stitching to interfaces', () => {
           node(id: ID!): Node
           chirpsByAuthorId(authorId: ID!): [Chirp]
         }
-      `
+      `,
     });
 
     chirpSchema = addMocksToSchema({ schema: chirpSchema });
 
     let authorSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         interface Node {
           id: ID!
         }
@@ -154,12 +153,12 @@ describe('stitching to interfaces', () => {
         type Query {
           node(id: ID!): Node
         }
-      `
+      `,
     });
 
     authorSchema = addMocksToSchema({ schema: authorSchema });
 
-    const linkTypeDefs = /* GraphQL */`
+    const linkTypeDefs = /* GraphQL */ `
       extend type User {
         chirps: [Chirp]
       }
@@ -170,40 +169,39 @@ describe('stitching to interfaces', () => {
     `;
 
     stitchedSchema = stitchSchemas({
-      subschemas: [
-        { schema: chirpSchema, },
-        { schema: authorSchema, },
-      ],
+      subschemas: [{ schema: chirpSchema }, { schema: authorSchema }],
       typeDefs: linkTypeDefs,
       resolvers: {
         User: {
           chirps: {
             selectionSet: `{ id }`,
-            resolve: (user, _args, context, info) => delegateToSchema({
-              schema: chirpSchema,
-              operation: 'query' as OperationTypeNode,
-              fieldName: 'chirpsByAuthorId',
-              args: {
-                authorId: user.id,
-              },
-              context,
-              info,
-            }),
+            resolve: (user, _args, context, info) =>
+              delegateToSchema({
+                schema: chirpSchema,
+                operation: 'query' as OperationTypeNode,
+                fieldName: 'chirpsByAuthorId',
+                args: {
+                  authorId: user.id,
+                },
+                context,
+                info,
+              }),
           },
         },
         Chirp: {
           author: {
             selectionSet: `{ authorId }`,
-            resolve: (chirp, _args, context, info) => delegateToSchema({
-              schema: authorSchema,
-              operation: 'query' as OperationTypeNode,
-              fieldName: 'node',
-              args: {
-                id: chirp.authorId,
-              },
-              context,
-              info,
-            }),
+            resolve: (chirp, _args, context, info) =>
+              delegateToSchema({
+                schema: authorSchema,
+                operation: 'query' as OperationTypeNode,
+                fieldName: 'node',
+                args: {
+                  id: chirp.authorId,
+                },
+                context,
+                info,
+              }),
           },
         },
       },
@@ -232,7 +230,7 @@ describe('stitching to interfaces', () => {
     const resultWithFragments = await graphql({ schema: stitchedSchema, source: queryWithFragments });
 
     expect(resultWithFragments.errors).toBeUndefined();
-    assertSome(resultWithFragments.data)
+    assertSome(resultWithFragments.data);
     const nodeData: any = resultWithFragments.data['node'];
     expect(nodeData.chirps[1].id).not.toBe(null);
     expect(nodeData.chirps[1].text).not.toBe(null);
@@ -258,11 +256,10 @@ describe('stitching to interfaces', () => {
     const resultWithoutFragments = await graphql({ schema: stitchedSchema, source: queryWithoutFragments });
 
     expect(resultWithoutFragments.errors).toBeUndefined();
-    assertSome(resultWithoutFragments.data)
+    assertSome(resultWithoutFragments.data);
     const nodeData: any = resultWithoutFragments.data['node'];
     expect(nodeData.chirps[1].id).not.toBe(null);
     expect(nodeData.chirps[1].text).not.toBe(null);
     expect(nodeData.chirps[1].author.email).not.toBe(null);
-
   });
 });

@@ -5,7 +5,7 @@ import { GraphQLSchema } from 'graphql';
 
 describe('getDirectives', () => {
   it('should return the correct directives when no directives specified', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       type Query {
         test: String
       }
@@ -17,7 +17,7 @@ describe('getDirectives', () => {
   });
 
   it('should return the correct directives built-in directive specified over FIELD_DEFINITION', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       type Query {
         test: String @deprecated
       }
@@ -25,16 +25,18 @@ describe('getDirectives', () => {
 
     const schema = makeExecutableSchema({ typeDefs, resolvers: {} }) as GraphQLSchema;
     const directives = getDirectives(schema, schema.getQueryType()!.getFields()['test']);
-    expect(directives).toEqual([{
-      name: 'deprecated',
-      args: {
-        reason: 'No longer supported',
+    expect(directives).toEqual([
+      {
+        name: 'deprecated',
+        args: {
+          reason: 'No longer supported',
+        },
       },
-    }]);
+    ]);
   });
 
   it('should return the correct directives when using custom directive without arguments', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       type Query {
         test: String @mydir
       }
@@ -44,14 +46,16 @@ describe('getDirectives', () => {
 
     const schema = makeExecutableSchema({ typeDefs, resolvers: {} }) as GraphQLSchema;
     const directives = getDirectives(schema, schema.getQueryType()!.getFields()['test']);
-    expect(directives).toEqual([{
-      name: 'mydir',
-      args: {},
-    }]);
+    expect(directives).toEqual([
+      {
+        name: 'mydir',
+        args: {},
+      },
+    ]);
   });
 
   it('should return the correct directives when using custom directive with optional argument', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       type Query {
         test: String @mydir(f1: "test")
       }
@@ -61,16 +65,18 @@ describe('getDirectives', () => {
 
     const schema = makeExecutableSchema({ typeDefs, resolvers: {} }) as GraphQLSchema;
     const directives = getDirectives(schema, schema.getQueryType()!.getFields()['test']);
-    expect(directives).toEqual([{
-      name: 'mydir',
-      args: {
-        f1: 'test',
+    expect(directives).toEqual([
+      {
+        name: 'mydir',
+        args: {
+          f1: 'test',
+        },
       },
-    }]);
+    ]);
   });
 
   it('should return the correct directives when using custom directive with optional argument an no value', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       type Query {
         test: String @mydir
       }
@@ -80,10 +86,12 @@ describe('getDirectives', () => {
 
     const schema = makeExecutableSchema({ typeDefs, resolvers: {} }) as GraphQLSchema;
     const directives = getDirectives(schema, schema.getQueryType()!.getFields()['test']);
-    expect(directives).toEqual([{
-      name: 'mydir',
-      args: {},
-    }]);
+    expect(directives).toEqual([
+      {
+        name: 'mydir',
+        args: {},
+      },
+    ]);
   });
 
   it('provides the extension definition', () => {
@@ -96,11 +104,11 @@ describe('getDirectives', () => {
         extend type Query @mydir(arg: "ext1") {
           second: String
         }
-      `
+      `,
     });
-    const QueryType = schema.getQueryType()
-    assertGraphQLObjectType(QueryType)
-    expect(getDirectives(schema,QueryType)).toEqual([{ name: 'mydir', args: { arg: 'ext1' } }]);
+    const QueryType = schema.getQueryType();
+    assertGraphQLObjectType(QueryType);
+    expect(getDirectives(schema, QueryType)).toEqual([{ name: 'mydir', args: { arg: 'ext1' } }]);
   });
 
   it('builds proper repeatable directives listing', () => {
@@ -110,16 +118,19 @@ describe('getDirectives', () => {
         type Query @mydir(arg: "first") @mydir(arg: "second") {
           first: String
         }
-      `
+      `,
     });
-    const QueryType = schema.getQueryType()
-    assertGraphQLObjectType(QueryType)
-    expect(getDirectives(schema, QueryType)).toEqual([{
-      name: 'mydir',
-      args: { arg: 'first' },
-    }, {
-      name: 'mydir',
-      args: { arg: 'second' },
-    }]);
+    const QueryType = schema.getQueryType();
+    assertGraphQLObjectType(QueryType);
+    expect(getDirectives(schema, QueryType)).toEqual([
+      {
+        name: 'mydir',
+        args: { arg: 'first' },
+      },
+      {
+        name: 'mydir',
+        args: { arg: 'second' },
+      },
+    ]);
   });
 });

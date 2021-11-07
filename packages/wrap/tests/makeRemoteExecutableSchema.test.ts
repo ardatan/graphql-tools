@@ -1,12 +1,4 @@
-import {
-  GraphQLSchema,
-  subscribe,
-  parse,
-  print,
-  ExecutionResult,
-  buildSchema,
-  graphql,
-} from 'graphql';
+import { GraphQLSchema, subscribe, parse, print, ExecutionResult, buildSchema, graphql } from 'graphql';
 
 import { wrapSchema } from '../src/index';
 
@@ -26,15 +18,15 @@ describe('remote queries', () => {
   });
 
   test('should work', async () => {
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       {
         interfaceTest(kind: ONE) {
           kind
           testString
-          ...on TestImpl1 {
+          ... on TestImpl1 {
             foo
           }
-          ...on TestImpl2 {
+          ... on TestImpl2 {
             bar
           }
         }
@@ -70,7 +62,7 @@ describe('remote subscriptions', () => {
       },
     };
 
-    const subscription = parse(/* GraphQL */`
+    const subscription = parse(/* GraphQL */ `
       subscription Subscription {
         notifications {
           text
@@ -78,7 +70,7 @@ describe('remote subscriptions', () => {
       }
     `);
 
-    const sub = await subscribe({ schema, document: subscription }) as AsyncIterableIterator<ExecutionResult>;
+    const sub = (await subscribe({ schema, document: subscription })) as AsyncIterableIterator<ExecutionResult>;
 
     const payload = sub.next();
 
@@ -87,24 +79,24 @@ describe('remote subscriptions', () => {
     expect(await payload).toEqual({ done: false, value: { data: mockNotification } });
   });
 
-  test('should work without triggering multiple times per notification', (done) => {
+  test('should work without triggering multiple times per notification', done => {
     const mockNotification = {
       notifications: {
         text: 'Hello world',
       },
     };
 
-    const subscription = parse(/* GraphQL */`
-        subscription Subscription {
-          notifications {
-            text
-          }
+    const subscription = parse(/* GraphQL */ `
+      subscription Subscription {
+        notifications {
+          text
         }
-      `);
+      }
+    `);
 
     let notificationCnt = 0;
     const sub1 = subscribe({ schema, document: subscription });
-    sub1.then(async (results) => {
+    sub1.then(async results => {
       for await (const result of results as AsyncIterable<ExecutionResult>) {
         expect(result).toHaveProperty('data');
         expect(result.data).toEqual(mockNotification);
@@ -113,40 +105,39 @@ describe('remote subscriptions', () => {
     });
 
     const sub2 = subscribe({ schema, document: subscription });
-    sub2.then(async (results) => {
+    sub2.then(async results => {
       for await (const result of results as AsyncIterable<ExecutionResult>) {
         expect(result).toHaveProperty('data');
         expect(result.data).toEqual(mockNotification);
       }
     });
 
-    Promise.all([sub1, sub2])
-      .then(() => {
-        subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
-        subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
-        setTimeout(() => {
-          expect(notificationCnt).toBe(2);
-          done();
-        }, 0);
-      })
+    Promise.all([sub1, sub2]).then(() => {
+      subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+      subscriptionPubSub.publish(subscriptionPubSubTrigger, mockNotification);
+      setTimeout(() => {
+        expect(notificationCnt).toBe(2);
+        done();
+      }, 0);
+    });
   });
 });
 
 describe('when query for multiple fields', () => {
-  const typeDefs = /* GraphQL */`
-      type Query {
-        fieldA: Int!
-        fieldB: Int!
-        field3: Int!
-      }
-    `;
-  const query = /* GraphQL */`
-      query {
-        fieldA
-        fieldB
-        field3
-      }
-    `;
+  const typeDefs = /* GraphQL */ `
+    type Query {
+      fieldA: Int!
+      fieldB: Int!
+      field3: Int!
+    }
+  `;
+  const query = /* GraphQL */ `
+    query {
+      fieldA
+      fieldB
+      field3
+    }
+  `;
   let calls: Array<any> = [];
   const executor = (args: any): any => {
     calls.push(args);
@@ -178,20 +169,26 @@ describe('when query for multiple fields', () => {
     });
 
     expect(calls).toHaveLength(3);
-    expect(print(calls[0].document).trim()).toEqual(`\
+    expect(print(calls[0].document).trim()).toEqual(
+      `\
 {
   fieldA
 }
-`.trim());
-    expect(print(calls[1].document).trim()).toEqual(`\
+`.trim()
+    );
+    expect(print(calls[1].document).trim()).toEqual(
+      `\
 {
   fieldB
 }
-`.trim());
-    expect(print(calls[2].document).trim()).toEqual(`\
+`.trim()
+    );
+    expect(print(calls[2].document).trim()).toEqual(
+      `\
 {
   field3
 }
-`.trim());
+`.trim()
+    );
   });
 });

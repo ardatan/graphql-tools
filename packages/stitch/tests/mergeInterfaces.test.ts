@@ -5,7 +5,7 @@ import { assertSome } from '@graphql-tools/utils';
 
 describe('merged interfaces via concrete type', () => {
   const namedItemSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       interface Placement {
         id: ID!
         name: String!
@@ -22,13 +22,13 @@ describe('merged interfaces via concrete type', () => {
       Query: {
         itemById(_obj, args) {
           return { id: args.id, name: `Item ${args.id}` };
-        }
-      }
-    }
+        },
+      },
+    },
   });
 
   const indexedItemSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       interface Placement {
         id: ID!
         index: Int!
@@ -45,9 +45,9 @@ describe('merged interfaces via concrete type', () => {
       Query: {
         placementById(_obj, args) {
           return { __typename: 'Item', id: args.id, index: Number(args.id) };
-        }
-      }
-    }
+        },
+      },
+    },
   });
 
   const stitchedSchema = stitchSchemas({
@@ -59,51 +59,52 @@ describe('merged interfaces via concrete type', () => {
             selectionSet: '{ id }',
             fieldName: 'itemById',
             args: ({ id }) => ({ id }),
-          }
-        }
+          },
+        },
       },
       { schema: indexedItemSchema },
     ],
   });
 
-
   test('works with selection set key', async () => {
     const result = await graphql({
       schema: stitchedSchema,
-      source: /* GraphQL */`
-      query {
-        placement: placementById(id: 23) {
-          id
-          index
-          name
+      source: /* GraphQL */ `
+        query {
+          placement: placementById(id: 23) {
+            id
+            index
+            name
+          }
         }
-      }
-    `});
+      `,
+    });
 
-    assertSome(result.data)
+    assertSome(result.data);
     expect(result.data['placement']).toEqual({ id: '23', index: 23, name: 'Item 23' });
   });
 
   test('works without selection set key', async () => {
     const result = await graphql({
       schema: stitchedSchema,
-      source: /* GraphQL */`
-      query {
-        placement: placementById(id: 23) {
-          index
-          name
+      source: /* GraphQL */ `
+        query {
+          placement: placementById(id: 23) {
+            index
+            name
+          }
         }
-      }
-    `});
+      `,
+    });
 
-    assertSome(result.data)
+    assertSome(result.data);
     expect(result.data['placement']).toEqual({ index: 23, name: 'Item 23' });
   });
 });
 
 describe('merged interfaces via abstract type', () => {
   const namedPlacementSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       interface Placement {
         id: ID!
         name: String!
@@ -120,13 +121,13 @@ describe('merged interfaces via abstract type', () => {
       Query: {
         namedPlacementById(_obj, args) {
           return { __typename: 'Item', id: args.id, name: `Item ${args.id}` };
-        }
-      }
-    }
+        },
+      },
+    },
   });
 
   const indexedItemSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       interface Placement {
         id: ID!
         index: Int!
@@ -143,9 +144,9 @@ describe('merged interfaces via abstract type', () => {
       Query: {
         placementById(_obj, args) {
           return { __typename: 'Item', id: args.id, index: Number(args.id) };
-        }
-      }
-    }
+        },
+      },
+    },
   });
 
   const stitchedSchema = stitchSchemas({
@@ -157,44 +158,44 @@ describe('merged interfaces via abstract type', () => {
             selectionSet: '{ id }',
             fieldName: 'namedPlacementById',
             args: ({ id }) => ({ id }),
-          }
-        }
+          },
+        },
       },
       { schema: indexedItemSchema },
     ],
   });
 
-
   test('works with selection set key', async () => {
     const result = await graphql({
       schema: stitchedSchema,
-      source: /* GraphQL */`
-      query {
-        placement: placementById(id: 23) {
-          id
-          index
-          name
+      source: /* GraphQL */ `
+        query {
+          placement: placementById(id: 23) {
+            id
+            index
+            name
+          }
         }
-      }
-    `});
+      `,
+    });
 
-
-    assertSome(result.data)
+    assertSome(result.data);
     expect(result.data['placement']).toEqual({ id: '23', index: 23, name: 'Item 23' });
   });
 
   test('works without selection set key', async () => {
     const result = await graphql({
       schema: stitchedSchema,
-      source: /* GraphQL */`
-      query {
-        placement: placementById(id: 23) {
-          index
-          name
+      source: /* GraphQL */ `
+        query {
+          placement: placementById(id: 23) {
+            index
+            name
+          }
         }
-      }
-    `});
-    assertSome(result.data)
+      `,
+    });
+    assertSome(result.data);
     expect(result.data['placement']).toEqual({ index: 23, name: 'Item 23' });
   });
 });

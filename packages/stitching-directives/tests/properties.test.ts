@@ -1,9 +1,9 @@
-import { addProperty, getProperties } from "../src/properties";
+import { addProperty, getProperties } from '../src/properties';
 
 describe('addProperty', () => {
   test('can add a key to an object', () => {
     const object = {};
-    addProperty(object, ['key'], 'value')
+    addProperty(object, ['key'], 'value');
     expect(object).toEqual({
       key: 'value',
     });
@@ -11,7 +11,7 @@ describe('addProperty', () => {
 
   test('can add an extended key to an object', () => {
     const object = {};
-    addProperty(object, ['key1', 'key2'], 'value')
+    addProperty(object, ['key1', 'key2'], 'value');
     expect(object).toEqual({
       key1: {
         key2: 'value',
@@ -21,7 +21,7 @@ describe('addProperty', () => {
 
   test('can set a key to null', () => {
     const object = { key1: { key2: 'value' } };
-    addProperty(object, ['key1'], null)
+    addProperty(object, ['key1'], null);
     expect(object).toEqual({
       key1: null,
     });
@@ -36,21 +36,21 @@ describe('getProperties', () => {
         subfieldA: 'valueA',
         subfieldB: 'valueB',
       },
-    }
+    };
 
     const extracted = getProperties(object, {
       field1: null,
       field2: {
         subfieldA: null,
-      }
-    })
+      },
+    });
 
     const expectedExtracted = {
       field1: 'value1',
       field2: {
         subfieldA: 'valueA',
-      }
-    }
+      },
+    };
 
     expect(extracted).toEqual(expectedExtracted);
   });

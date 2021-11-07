@@ -9,11 +9,11 @@ Batch execution is a technique for consolidating multiple operations that target
 For example, given the following GraphQL operations:
 
 ```graphql
-query($arg: String) {
+query ($arg: String) {
   field1
   field3(input: $arg)
 }
-query($arg: String) {
+query ($arg: String) {
   tricky: field2
   field3(input: $arg)
 }
@@ -22,7 +22,7 @@ query($arg: String) {
 These can be merged into one operation, and the resulting data can be unpacked into the original shape of the multiple requests:
 
 ```graphql
-query($_0_arg: String, $_1_arg: String) {
+query ($_0_arg: String, $_1_arg: String) {
   _0_field1: field1
   _0_field3: field3(input: $_0_arg)
   _1_tricky: field2
@@ -37,7 +37,7 @@ query($_0_arg: String, $_1_arg: String) {
 - Smaller and more granular GraphQL queries may be composed and cached individually, and then batched. This offers a strategy for sub-request caching.
 
 > _Note:_ an alternative batching pattern transmits multiple operations [as an array](https://www.apollographql.com/blog/apollo-client/performance/batching-client-graphql-queries/#5853), and requires services to be specially configured for array inputs.
-GraphQL Tools uses the plain GraphQL approach [devised by Gatsby](https://github.com/gatsbyjs/gatsby/pull/22347), and is compatible with any standard GraphQL service.
+> GraphQL Tools uses the plain GraphQL approach [devised by Gatsby](https://github.com/gatsbyjs/gatsby/pull/22347), and is compatible with any standard GraphQL service.
 
 ## Build an executor
 
@@ -68,7 +68,7 @@ async function myExecutor({ document, variables }) {
     body: JSON.stringify({ query, variables }),
   });
   return fetchResult.json();
-};
+}
 ```
 
 A simple executor for a **locally-executable schema** looks like this:
@@ -84,7 +84,7 @@ async function myExecutor({ document, variables }) {
     source: print(document),
     variableValues: variables,
   });
-};
+}
 ```
 
 ## Batch the executor

@@ -28,13 +28,16 @@ const schema = makeExecutableSchema({ typeDefs: schemaString });
 // Create a new schema with mocks
 const schemaWithMocks = addMocksToSchema({ schema });
 
-const query = /* GraphQL */`
-query tasksForUser {
-  user(id: 6) { id, name }
-}
+const query = /* GraphQL */ `
+  query tasksForUser {
+    user(id: 6) {
+      id
+      name
+    }
+  }
 `;
 
-graphql(schemaWithMocks, query).then((result) => console.log('Got result', result));
+graphql(schemaWithMocks, query).then(result => console.log('Got result', result));
 ```
 
 > Note: If your schema has custom scalar types, you still need to define the `__serialize`, `__parseValue`, and `__parseLiteral` functions, and pass them inside the second argument to `makeExecutableSchema`.
@@ -89,7 +92,7 @@ The next step is to define a function that returns a value (fixed or random) for
 
 ```js
 {
-  DateTime: () => '2011-01-05T17:08:49.000-0430'
+  DateTime: () => '2011-01-05T17:08:49.000-0430';
 }
 ```
 
@@ -97,7 +100,7 @@ Similarly, if you want to mock a **random** value for the Custom Scalar, you can
 
 ```js
 {
-  DateTime: () => casual.date(format = 'YYYY-MM-DDTHH:mm:ss.SSSZZ') // Output Example: 2011-11-11T11:43:31.000-0430
+  DateTime: () => casual.date((format = 'YYYY-MM-DDTHH:mm:ss.SSSZZ')); // Output Example: 2011-11-11T11:43:31.000-0430
 }
 ```
 
@@ -110,7 +113,7 @@ const mocks = {
   Int: () => 6,
   Float: () => 22.1,
   String: () => 'Hello',
-  DateTime: () => casual.date(format = 'YYYY-MM-DDTHH:mm:ss.SSSZZ')
+  DateTime: () => casual.date((format = 'YYYY-MM-DDTHH:mm:ss.SSSZZ')),
 };
 const preserveResolvers = false;
 // Mock the server passing the schema, mocks object and preserverResolvers arguments.
@@ -141,10 +144,11 @@ To define a mock for a list, simply return an empty array of the desired length 
 ```
 
 #### Abstract types
+
 If you'd like to provide a mock for an `Union` or `Interface` type, you need to provide the type with an extra `__typename`.
 
 ```ts
-const typeDefs = /* GraphQL */`
+const typeDefs = /* GraphQL */ `
   ...
   union Result = User | Book
 `;
@@ -152,8 +156,8 @@ const mocks = {
   Result: () => ({
     __typename: 'User',
     name: casual.name(),
-  })
-}
+  }),
+};
 ```
 
 ### Applying mutations
@@ -161,22 +165,22 @@ const mocks = {
 Use `resolvers` option of `addMocksToSchema` to implement custom resolvers that interact with the [`MockStore`](#mockstore), especially to mutate field values.
 
 ```ts
-const typeDefs = /* GraphQL */`
-type User {
-  id: Id!
-  name: String!
-}
-type Query {
-  me: User!
-}
-type Mutation {
-  changeMyName(newName: String!): User!
-}
-`
+const typeDefs = /* GraphQL */ `
+  type User {
+    id: Id!
+    name: String!
+  }
+  type Query {
+    me: User!
+  }
+  type Mutation {
+    changeMyName(newName: String!): User!
+  }
+`;
 const schema = makeExecutableSchema({ typeDefs: schemaString });
 const schemaWithMocks = addMocksToSchema({
   schema,
-  resolvers: (store) => ({
+  resolvers: store => ({
     Mutation: {
       changeMyName: (_, { newName }) => {
         // special singleton types `Query` and `Mutation` will use the key `ROOT`
@@ -186,9 +190,9 @@ const schemaWithMocks = addMocksToSchema({
         store.set('Query', 'ROOT', 'me', { name: newName });
 
         return store.get('Query', 'ROOT', 'me');
-      }
-    }
-  })
+      },
+    },
+  }),
 });
 ```
 
@@ -250,21 +254,21 @@ Note that, by default, the `id` or `_id` field will be used as storage key and t
 The idea is that the [`MockStore`](#mockstore) contains the full list, as field value, and that the resolver queries the store and slice the result:
 
 ```ts
-const typeDefs = /* GraphQL */`
-type User {
-  id: Id!
-  name: String!
-  friends(offset: Int!, limit: Int!): [User!]!
-}
-type Query {
-  me: User!
-}
-`
+const typeDefs = /* GraphQL */ `
+  type User {
+    id: Id!
+    name: String!
+    friends(offset: Int!, limit: Int!): [User!]!
+  }
+  type Query {
+    me: User!
+  }
+`;
 const schema = makeExecutableSchema({ typeDefs: schemaString });
 const schemaWithMocks = addMocksToSchema({
   schema,
   store,
-  resolvers: (store) => ({
+  resolvers: store => ({
     User: {
       // `addMocksToSchema` resolver will pass a `Ref` as `parent`
       // it contains a key to the `User` we are dealing with
@@ -275,14 +279,15 @@ const schemaWithMocks = addMocksToSchema({
         const fullList = store.get(userRef, 'friends') as Ref[];
 
         // actually apply pagination slicing
-        return fullList.slice(offset, offset + limit)
-      }
-    }
-  })
+        return fullList.slice(offset, offset + limit);
+      },
+    },
+  }),
 });
 ```
 
 #### Relay-style pagination
+
 The principles stay the same than for basic pagination:
 
 ```ts
@@ -336,7 +341,7 @@ import * as introspectionResult from 'schema.json';
 
 const schema = buildClientSchema(introspectionResult);
 
-const schemaWithMocks = addMocksToSchema({schema});
+const schemaWithMocks = addMocksToSchema({ schema });
 ```
 
 ## API
@@ -362,21 +367,24 @@ import { mockServer } from '@graphql-tools/mock';
 
 // This can be an SDL schema string (eg the result of `buildClientSchema` above)
 // or a GraphQLSchema object (eg the result of `buildSchema` from `graphql`)
-const schema = `...`
+const schema = `...`;
 
 // Same mocks object that `addMocksToSchema` takes above
-const mocks = {}
-preserveResolvers = false
+const mocks = {};
+preserveResolvers = false;
 
 const server = mockServer(schemaString, mocks, preserveResolvers);
 
-const query = /* GraphQL */`{ __typename }`
-const variables = {}
+const query = /* GraphQL */ `
+  {
+    __typename
+  }
+`;
+const variables = {};
 
-server.query(query, variables)
-  .then(response => {
-    console.log(response)
-  })
+server.query(query, variables).then(response => {
+  console.log(response);
+});
 ```
 
 `mockServer` is just a convenience wrapper on top of `addMocksToSchema`. It adds your mock resolvers to your schema and returns a client that will correctly execute
@@ -392,15 +400,15 @@ You can access the `MockStore` either as argument of `resolvers` option of `addM
 ```ts
 const schemaWithMocks = addMocksToSchema({
   schema,
-  resolvers: (store) => {
+  resolvers: store => {
     // store is your `MockStore`
     return {
       Query: {
         //... your custom resolvers
-      }
-    }
-  }
-  });
+      },
+    };
+  },
+});
 ```
 
 or by using `createMockStore` (and use the store in `addMocksToSchema`):
@@ -418,43 +426,44 @@ but here are some examples:
 Get a field value from the store for the given type, store key and field name. If the the value for this field is not set, a value will be generated according to field return type and mock functions:
 
 ```ts
-store.get('User', 'abc-737dh-djdjd', 'name')
-> "Hello World"
+store.get('User', 'abc-737dh-djdjd', 'name');
+// 'Hello World'
 ```
 
 If the field is the key field of this type, the store key itself is returned. By default, `id` and `_id` fields are considered as key fields but it can be customized with option `typePolicies`.
 
 ```ts
-store.get('User', 'abc-737dh-djdjd', 'id')
-> "abc-737dh-djdjd"
+store.get('User', 'abc-737dh-djdjd', 'id');
+// 'abc-737dh-djdjd'
 ```
 
 If the field's output type is a `ObjectType` (or list of `ObjectType`), it will return a `Ref` (or array of `Ref`), ie a reference to an entity in the store.
 
 ```ts
-store.get('User', 'abc-737dh-djdjd', 'organization')
-> { $ref: { key: 'acme', typeName: 'Organization' } }
+store.get('User', 'abc-737dh-djdjd', 'organization');
+// { $ref: { key: 'acme', typeName: 'Organization' } }
 ```
 
 `Ref` can then be used, for example to get a field value given of a `Ref`:
 
 ```ts
-const organizationRef = { $ref: { key: 'acme', typeName: 'Organization' } }
-store.get(organizationRef, 'name')
-> `Acme Group`
+const organizationRef = { $ref: { key: 'acme', typeName: 'Organization' } };
+store.get(organizationRef, 'name');
+// `Acme Group`
 ```
 
 As a shortcut, you can traverse the graph quickly with an array of field names (nested get):
 
 ```ts
-store.get('User', 'abc-737dh-djdjd', ['organization', 'name'])
-> `Acme Group`
+store.get('User', 'abc-737dh-djdjd', ['organization', 'name']);
+// `Acme Group`
 ```
 
 You can generate a entity reference `Ref` with:
+
 ```ts
-store.get('User', 'abc-737dh-djdjd')
-> { $ref: { key: 'abc-737dh-djdjd', typeName: 'User' } }
+store.get('User', 'abc-737dh-djdjd');
+// { $ref: { key: 'abc-737dh-djdjd', typeName: 'User' } }
 ```
 
 Root types (`Query`, `Mutation`), which necessarily have only one entity, will use the special store key `ROOT` to reference this only entity:
@@ -469,41 +478,42 @@ store.get('Query', 'ROOT', 'viewer');
 Set a field value in the store for the given type, store key and field name:
 
 ```ts
-store.set('User', '1', 'name', 'Alexandre')
+store.set('User', '1', 'name', 'Alexandre');
 
-store.get('User', '1', 'name')
-> "Alexandre"
+store.get('User', '1', 'name');
+// 'Alexandre'
 ```
 
 If the field's output type is a `ObjectType` (or list of `ObjectType`), you can set a `Ref` (or array of `Ref`):
+
 ```ts
-store.set('User', '1', 'organization', store.get('Organization', 'acme'))
+store.set('User', '1', 'organization', store.get('Organization', 'acme'));
 ```
 
 You can use a `Ref` to set field name:
 
 ```ts
-const organizationRef = { $ref: { key: 'acme', typeName: 'Organization' } }
-store.set(organizationRef, 'name', 'Acme Group')
+const organizationRef = { $ref: { key: 'acme', typeName: 'Organization' } };
+store.set(organizationRef, 'name', 'Acme Group');
 ```
 
 Set multiple field values at once:
+
 ```ts
-store.set('User', '1', { name: 'Alexandre', age: 31 })
+store.set('User', '1', { name: 'Alexandre', age: 31 });
 ```
 
 Set a field value via graph traversal (nested set):
+
 ```ts
 store.get('Query', 'ROOT', {
   viewer: {
     name: 'Alexandre',
-    friends: [
-      { name: 'Emily' },
-      { name: 'Caroline' }
-    ]
+    friends: [{ name: 'Emily' }, { name: 'Caroline' }],
   },
 });
 ```
+
 #### reset
 
 This method will reset `MockStore`.
@@ -519,7 +529,7 @@ This method checks to see if a mock is present in the store for the given `typeN
 ```ts
 store.has('User', '1'); // false
 
-store.get('User', '1', { name: 'Alexandre' }) // or store.set
+store.get('User', '1', { name: 'Alexandre' }); // or store.set
 
 store.has('User', '1'); // true
 ```
@@ -539,15 +549,15 @@ const mocks = {
   Person: () => ({
     paginatedFriends: (root, { numPages }) => new MockList(numPages * PAGE_SIZE),
   }),
-}
+};
 const schemaWithMocks = addMocksToSchema({ schema, mocks });
 
 // Now:
-const resolvers = (store) => ({
+const resolvers = store => ({
   Person: {
     paginatedFriends: (root, { numPages }) =>
       store.get(root, 'paginatedFriends').slice(numPages * PAGE_SIZE, (numPages + 1) * PAGE_SIZE),
-  }
+  },
 });
 const schemaWithMocks = addMocksToSchema({ schema, resolvers });
 ```
@@ -591,32 +601,32 @@ When preserved, resolvers will not receive plain mock data anymore as source but
 // Previously:
 const resolvers = {
   User: {
-    name: (data) => {
+    name: data => {
       return data.name.toLowerCase();
-    }
-  }
-}
+    },
+  },
+};
 const schema = makeExecutableSchema({
   typeDefs,
-  resolvers
-})
-const schemaWithMocks = addMocksToSchema({ schema, preserveResolvers: true })
+  resolvers,
+});
+const schemaWithMocks = addMocksToSchema({ schema, preserveResolvers: true });
 
 // Now:
-let schema = makeExecutableSchema({ typeDefs })
+let schema = makeExecutableSchema({ typeDefs });
 const store = createMockStore({ schema });
 
 const resolvers = {
   User: {
-    name: (source) => {
+    name: source => {
       // `source` is an entity `Ref`
       return store.get(source, 'name').toLowerCase();
-    }
-  }
-}
-schema = addResolversToSchema(schema, resolvers)
+    },
+  },
+};
+schema = addResolversToSchema(schema, resolvers);
 
-const schemaWithMocks = addMocksToSchema({ schema, preserveResolvers: true })
+const schemaWithMocks = addMocksToSchema({ schema, preserveResolvers: true });
 ```
 
 If you used `__resolveType` resolver for mocking interfaces and unions, rather use `__typename` directly in mocks. See [_Abstract types_](#abstract-types).
@@ -624,102 +634,104 @@ If you used `__resolveType` resolver for mocking interfaces and unions, rather u
 Example:
 
 ```js
-const typeDefs = /* GraphQL */`
-type Query {
-  fetchMore(listType: String!, amount: Int!, offset: Int!): List
-}
+const typeDefs = /* GraphQL */ `
+  type Query {
+    fetchMore(listType: String!, amount: Int!, offset: Int!): List
+  }
 
-type Distributor {
-  id: Int
-  name: String
-}
+  type Distributor {
+    id: Int
+    name: String
+  }
 
-type Product {
-  id: Int
-  name: String
-}
+  type Product {
+    id: Int
+    name: String
+  }
 
-interface List {
-  amount: Int
-  offset: Int
-  total: Int
-  remaining: Int
-}
+  interface List {
+    amount: Int
+    offset: Int
+    total: Int
+    remaining: Int
+  }
 
-type DistributorList implements List {
-  amount: Int
-  offset: Int
-  total: Int
-  remaining: Int
-  items: [Distributor]
-}
+  type DistributorList implements List {
+    amount: Int
+    offset: Int
+    total: Int
+    remaining: Int
+    items: [Distributor]
+  }
 
-type ProductList implements List {
-  amount: Int
-  offset: Int
-  total: Int
-  remaining: Int
-  items: [Product]
-}
-`
+  type ProductList implements List {
+    amount: Int
+    offset: Int
+    total: Int
+    remaining: Int
+    items: [Product]
+  }
+`;
 
 // Previously:
 const mocks = {
   List: () => ({
     typename: 'ProductList',
-  })
-}
+  }),
+};
 
 const resolvers = {
   List: {
     __resolveType(data) {
-      return data.typename
-    }
-  }
-}
+      return data.typename;
+    },
+  },
+};
 
 const schema = makeExecutableSchema({
   typeDefs,
-  resolvers
-})
+  resolvers,
+});
 
 const schemaWithMocks = addMocksToSchema({
   schema,
   mocks,
-  preserveResolvers: true
-})
+  preserveResolvers: true,
+});
 
 // Now:
 const mocks = {
   List: () => ({
     __typename: 'ProductList',
-  })
-}
+  }),
+};
 
 const schema = makeExecutableSchema({ typeDefs });
 
-const schemaWithMocks = addMocksToSchema({ schema, mocks })
+const schemaWithMocks = addMocksToSchema({ schema, mocks });
 ```
+
 ### Deprecated: MockList
 
 `MockList` is deprecated, use plain arrays instead. See [_Using lists in mocks_](#using-lists-in-mocks).
 
 Example:
+
 ```js
 // Previously:
 const mocks = {
   Person: () => ({
-    friends: () => new MockList([2,6]),
+    friends: () => new MockList([2, 6]),
     listOfLists: () => new MockList(3, () => new MockList(2)),
   }),
-}
+};
 
 // Now:
 var casual = require('casual');
 const mocks = {
   Person: () => ({
     friends: [...new Array(casual.integer(2, 6))],
-    listOfLists: () => [...new Array(3)].map((i) => [...new Array(2)]),
+    listOfLists: () => [...new Array(3)].map(i => [...new Array(2)]),
   }),
-}
+};
 ```

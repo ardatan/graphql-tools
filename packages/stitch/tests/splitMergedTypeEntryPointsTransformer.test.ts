@@ -10,16 +10,18 @@ describe('splitMergedTypeEntryPointsTransformer', () => {
       schema,
       merge: {
         Product: {
-          entryPoints: [{
-            selectionSet: '{ yep }',
-            fieldName: 'yep',
-          }],
-        }
-      }
+          entryPoints: [
+            {
+              selectionSet: '{ yep }',
+              fieldName: 'yep',
+            },
+          ],
+        },
+      },
     });
 
     expect(results.length).toEqual(1);
-    assertSome(results[0].merge)
+    assertSome(results[0].merge);
     expect(results[0].merge['Product']).toEqual({
       selectionSet: '{ yep }',
       fieldName: 'yep',
@@ -34,8 +36,8 @@ describe('splitMergedTypeEntryPointsTransformer', () => {
           Product: {
             entryPoints: [{ selectionSet: '{ yep }', fieldName: 'yep' }],
             selectionSet: '{ nope }',
-          }
-        }
+          },
+        },
       });
     }).toThrow();
 
@@ -46,8 +48,8 @@ describe('splitMergedTypeEntryPointsTransformer', () => {
           Product: {
             entryPoints: [{ selectionSet: '{ yep }', fieldName: 'yep' }],
             fieldName: 'thing',
-          }
-        }
+          },
+        },
       });
     }).toThrow();
 
@@ -58,8 +60,8 @@ describe('splitMergedTypeEntryPointsTransformer', () => {
           Product: {
             entryPoints: [{ resolve: () => null }],
             resolve: () => null,
-          }
-        }
+          },
+        },
       });
     }).toThrow();
   });
@@ -69,24 +71,27 @@ describe('splitMergedTypeEntryPointsTransformer', () => {
       schema,
       merge: {
         Product: {
-          entryPoints: [{
-            selectionSet: '{ id }',
-            fieldName: 'productById',
-          }, {
-            selectionSet: '{ upc }',
-            fieldName: 'productByUpc',
-          }]
-        }
-      }
+          entryPoints: [
+            {
+              selectionSet: '{ id }',
+              fieldName: 'productById',
+            },
+            {
+              selectionSet: '{ upc }',
+              fieldName: 'productByUpc',
+            },
+          ],
+        },
+      },
     });
 
     expect(results.length).toEqual(2);
-    assertSome(results[0].merge)
+    assertSome(results[0].merge);
     expect(results[0].merge['Product']).toEqual({
       selectionSet: '{ id }',
       fieldName: 'productById',
     });
-    assertSome(results[1].merge)
+    assertSome(results[1].merge);
     expect(results[1].merge['Product']).toEqual({
       selectionSet: '{ upc }',
       fieldName: 'productByUpc',
@@ -98,41 +103,50 @@ describe('splitMergedTypeEntryPointsTransformer', () => {
       schema,
       merge: {
         Product: {
-          entryPoints: [{
-            selectionSet: '{ id }',
-            fieldName: 'productById',
-          }, {
-            selectionSet: '{ upc }',
-            fieldName: 'productByUpc',
-          }, {
-            selectionSet: '{ key }',
-            fieldName: 'productByKey',
-          }]
+          entryPoints: [
+            {
+              selectionSet: '{ id }',
+              fieldName: 'productById',
+            },
+            {
+              selectionSet: '{ upc }',
+              fieldName: 'productByUpc',
+            },
+            {
+              selectionSet: '{ key }',
+              fieldName: 'productByKey',
+            },
+          ],
         },
         Video: {
-          entryPoints: [{
-            selectionSet: '{ id }',
-            fieldName: 'videoById',
-          }, {
-            selectionSet: '{ key }',
-            fieldName: 'videoByKey',
-          }],
+          entryPoints: [
+            {
+              selectionSet: '{ id }',
+              fieldName: 'videoById',
+            },
+            {
+              selectionSet: '{ key }',
+              fieldName: 'videoByKey',
+            },
+          ],
           fields: {
             duration: { canonical: true },
           },
           canonical: true,
         },
         User: {
-          entryPoints: [{
-            selectionSet: '{ id }',
-            fieldName: 'userById',
-          }]
+          entryPoints: [
+            {
+              selectionSet: '{ id }',
+              fieldName: 'userById',
+            },
+          ],
         },
         Thing: {
           selectionSet: '{ id }',
           fieldName: 'thingById',
-        }
-      }
+        },
+      },
     });
 
     expect(results.length).toEqual(3);

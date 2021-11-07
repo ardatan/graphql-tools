@@ -1,4 +1,4 @@
-# import C from 'c.graphql' 
+# import C from 'c.graphql'
 
 type Query {
   c: C

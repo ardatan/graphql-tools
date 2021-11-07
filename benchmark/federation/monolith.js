@@ -1,4 +1,4 @@
-const { gql } = require("graphql-tag");
+const { gql } = require('graphql-tag');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 
 const typeDefs = gql`
@@ -44,10 +44,10 @@ const resolvers = {
   },
   User: {
     reviews(user) {
-      return reviews.filter((review) => review.authorID === user.id);
+      return reviews.filter(review => review.authorID === user.id);
     },
     username(user) {
-      const found = usernames.find((username) => username.id === user.id);
+      const found = usernames.find(username => username.id === user.id);
       return found ? found.username : null;
     },
   },
@@ -59,48 +59,47 @@ const resolvers = {
       return object.weight * 0.5;
     },
     reviews(product) {
-      return reviews.filter((review) => review.productUpc === product.upc);
+      return reviews.filter(review => review.productUpc === product.upc);
     },
     inStock(product) {
-      return inventory.find((inv) => inv.upc === product.upc)?.inStock;
+      return inventory.find(inv => inv.upc === product.upc)?.inStock;
     },
   },
   Review: {
     author(review) {
-      return users.find((user) => user.id === review.authorID);
+      return users.find(user => user.id === review.authorID);
     },
     product(review) {
-      return products.find(product => review.productUpc === product.upc)
-    }
+      return products.find(product => review.productUpc === product.upc);
+    },
   },
 };
 
-
-
-module.exports = () => makeExecutableSchema({
-  typeDefs,
-  resolvers
-});
+module.exports = () =>
+  makeExecutableSchema({
+    typeDefs,
+    resolvers,
+  });
 
 const users = [
   {
-    id: "1",
-    name: "Ada Lovelace",
-    birthDate: "1815-12-10",
-    username: "@ada",
+    id: '1',
+    name: 'Ada Lovelace',
+    birthDate: '1815-12-10',
+    username: '@ada',
   },
   {
-    id: "2",
-    name: "Alan Turing",
-    birthDate: "1912-06-23",
-    username: "@complete",
+    id: '2',
+    name: 'Alan Turing',
+    birthDate: '1912-06-23',
+    username: '@complete',
   },
 ];
 
 const inventory = [
-  { upc: "1", inStock: true },
-  { upc: "2", inStock: false },
-  { upc: "3", inStock: true },
+  { upc: '1', inStock: true },
+  { upc: '2', inStock: false },
+  { upc: '3', inStock: true },
 ];
 
 const listSize = parseInt(process.env.PRODUCTS_SIZE || '3');
@@ -125,11 +124,13 @@ const definedProducts = [
     weight: 50,
   },
 ];
-const products = Array(listSize).fill({}).map((_, index) => definedProducts[index % 3]);
+const products = Array(listSize)
+  .fill({})
+  .map((_, index) => definedProducts[index % 3]);
 
 const usernames = [
-  { id: "1", username: "@ada" },
-  { id: "2", username: "@complete" },
+  { id: '1', username: '@ada' },
+  { id: '2', username: '@complete' },
 ];
 
 const reviews = [

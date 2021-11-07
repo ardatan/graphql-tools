@@ -10,7 +10,7 @@ describe('type merging directives', () => {
   const { allStitchingDirectivesTypeDefs, stitchingDirectivesTransformer } = stitchingDirectives();
 
   test('adds type selection sets', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -28,7 +28,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -37,7 +37,7 @@ describe('type merging directives', () => {
   });
 
   test('adds type selection sets when returns union', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -57,7 +57,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -66,7 +66,7 @@ describe('type merging directives', () => {
   });
 
   test('adds type selection sets when returns interface', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -88,7 +88,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -97,7 +97,7 @@ describe('type merging directives', () => {
   });
 
   test('adds type selection sets when returns list', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -114,7 +114,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -123,12 +123,12 @@ describe('type merging directives', () => {
     const originalResult = {
       relations: [
         {
-          id: 2
+          id: 2,
         },
         {
-          id: 3
-        }
-      ]
+          id: 3,
+        },
+      ],
     };
 
     const args = argsFn(originalResult);
@@ -137,18 +137,18 @@ describe('type merging directives', () => {
       key: {
         relations: [
           {
-            id: 2
+            id: 2,
           },
           {
-            id: 3
-          }
-        ]
+            id: 3,
+          },
+        ],
       },
     });
   });
 
   test('adds type selection sets when returns multi-layered list', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -165,7 +165,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -175,18 +175,18 @@ describe('type merging directives', () => {
       relationSets: [
         [
           {
-            id: 2
+            id: 2,
           },
           {
-            id: 3
-          }
+            id: 3,
+          },
         ],
         [
           {
-            id: 4
-          }
-        ]
-      ]
+            id: 4,
+          },
+        ],
+      ],
     };
 
     const args = argsFn(originalResult);
@@ -196,24 +196,24 @@ describe('type merging directives', () => {
         relationSets: [
           [
             {
-              id: 2
+              id: 2,
             },
             {
-              id: 3
-            }
+              id: 3,
+            },
           ],
           [
             {
-              id: 4
-            }
-          ]
-        ]
+              id: 4,
+            },
+          ],
+        ],
       },
     });
   });
 
   test('adds type selection sets when returns null', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -230,27 +230,27 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
     const argsFn = transformedSubschemaConfig.merge?.['User'].args!;
 
     const originalResult: { nestedField: null } = {
-      nestedField: null
+      nestedField: null,
     };
 
     const args = argsFn(originalResult);
 
     expect(args).toEqual({
       key: {
-        nestedField: null
+        nestedField: null,
       },
     });
   });
 
   test('adds computed selection sets', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -268,17 +268,19 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
-    expect(transformedSubschemaConfig.merge?.['User']?.fields?.['name']?.selectionSet).toEqual(print(parseSelectionSet('{ id }')));
+    expect(transformedSubschemaConfig.merge?.['User']?.fields?.['name']?.selectionSet).toEqual(
+      print(parseSelectionSet('{ id }'))
+    );
     expect(transformedSubschemaConfig.merge?.['User']?.fields?.['name']?.computed).toEqual(true);
     expect(transformedSubschemaConfig.merge?.['User'].fieldName).toEqual('_user');
   });
 
   test('adds args function when used without arguments', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -296,7 +298,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -317,7 +319,7 @@ describe('type merging directives', () => {
   });
 
   test('adds args function when used with argsExpr argument using an unqualified key', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -335,7 +337,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -356,7 +358,7 @@ describe('type merging directives', () => {
   });
 
   test('adds args function when used with argsExpr argument using a fully qualified key', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -374,7 +376,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -395,7 +397,7 @@ describe('type merging directives', () => {
   });
 
   test('adds args function when used with keyArg argument', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -413,7 +415,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -434,7 +436,7 @@ describe('type merging directives', () => {
   });
 
   test('adds args function when used with nested keyArg argument', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -443,7 +445,13 @@ describe('type merging directives', () => {
       }
 
       type Query {
-        _user(input: UserInput, scope: String): User @merge(keyArg: "input.key", additionalArgs: """ scope: "full" """)
+        _user(input: UserInput, scope: String): User
+          @merge(
+            keyArg: "input.key"
+            additionalArgs: """
+            scope: "full"
+            """
+          )
       }
 
       type User @key(selectionSet: "{ id }") {
@@ -456,7 +464,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -480,12 +488,18 @@ describe('type merging directives', () => {
   });
 
   test('adds args function when used with keyArg and additionalArgs arguments', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
       type Query {
-        _user(key: _Key, scope: String): User @merge(keyArg: "key", additionalArgs: """ scope: "full" """)
+        _user(key: _Key, scope: String): User
+          @merge(
+            keyArg: "key"
+            additionalArgs: """
+            scope: "full"
+            """
+          )
       }
 
       type User @key(selectionSet: "{ id }") {
@@ -498,7 +512,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -520,7 +534,7 @@ describe('type merging directives', () => {
   });
 
   test('adds key and args function when @merge is used with keyField argument', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       type Query {
         _user(id: ID): User @merge(keyField: "id")
@@ -536,7 +550,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -557,7 +571,7 @@ describe('type merging directives', () => {
   });
 
   test('adds args function when used with key argument', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -575,7 +589,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -603,7 +617,7 @@ describe('type merging directives', () => {
   });
 
   test('adds key and argsFromKeys functions when used without arguments', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -621,7 +635,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -640,14 +654,16 @@ describe('type merging directives', () => {
       id: '5',
     });
     expect(args).toEqual({
-      key: [{
-        id: '5',
-      }],
+      key: [
+        {
+          id: '5',
+        },
+      ],
     });
   });
 
   test('adds key and argsFromKeys functions when used without arguments and returns union', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -667,7 +683,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -688,15 +704,17 @@ describe('type merging directives', () => {
       id: '5',
     });
     expect(args).toEqual({
-      key: [{
-        __typename: 'User',
-        id: '5',
-      }],
+      key: [
+        {
+          __typename: 'User',
+          id: '5',
+        },
+      ],
     });
   });
 
   test('adds key and argsFromKeys functions when used without arguments and returns interface', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -718,7 +736,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -739,15 +757,17 @@ describe('type merging directives', () => {
       id: '5',
     });
     expect(args).toEqual({
-      key: [{
-        __typename: 'User',
-        id: '5',
-      }],
+      key: [
+        {
+          __typename: 'User',
+          id: '5',
+        },
+      ],
     });
   });
 
   test('adds key and argsFromKeys functions with argsExpr argument using an unqualified key', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -765,7 +785,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -784,14 +804,16 @@ describe('type merging directives', () => {
       id: '5',
     });
     expect(args).toEqual({
-      key: [{
-        id: '5',
-      }],
+      key: [
+        {
+          id: '5',
+        },
+      ],
     });
   });
 
   test('adds key and argsFromKeys functions with argsExpr argument using a fully qualified key', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar _Key
 
@@ -809,7 +831,7 @@ describe('type merging directives', () => {
 
     const subschemaConfig = {
       schema,
-    }
+    };
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
@@ -828,14 +850,16 @@ describe('type merging directives', () => {
       id: '5',
     });
     expect(args).toEqual({
-      key: [{
-        id: '5',
-      }],
+      key: [
+        {
+          id: '5',
+        },
+      ],
     });
   });
 
   test('applies canonical merge attributions', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
 
       type User implements IUser @canonical {
@@ -871,19 +895,19 @@ describe('type merging directives', () => {
         canonical: true,
         fields: {
           name: { canonical: true },
-        }
+        },
       },
       IUser: {
         canonical: true,
         fields: {
           name: { canonical: true },
-        }
+        },
       },
       UserInput: {
         canonical: true,
         fields: {
           name: { canonical: true },
-        }
+        },
       },
       UserEnum: {
         canonical: true,
@@ -893,7 +917,7 @@ describe('type merging directives', () => {
       },
       Key: {
         canonical: true,
-      }
+      },
     });
   });
 });

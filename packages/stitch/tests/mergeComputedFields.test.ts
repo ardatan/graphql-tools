@@ -4,7 +4,7 @@ import { graphql } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
 
 const productSchema = makeExecutableSchema({
-  typeDefs: /* GraphQL */`
+  typeDefs: /* GraphQL */ `
     type Product {
       id: ID!
       price: Float!
@@ -18,13 +18,13 @@ const productSchema = makeExecutableSchema({
   resolvers: {
     Query: {
       product: (_root, { id }) => ({ id, price: Number(id) + 0.99, weight: Number(id) }),
-    }
-  }
+    },
+  },
 });
 
 describe('merge computed fields via config', () => {
   const storefrontSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Product {
         id: ID!
         shippingEstimate: Float!
@@ -54,10 +54,11 @@ describe('merge computed fields via config', () => {
         _products: (_root, { representations }) => representations,
       },
       Product: {
-        shippingEstimate: (obj) => obj.price != null && obj.weight != null ? (obj.price > 50 ? 0 : obj.weight / 2) : null,
-        deliveryService: (obj) => obj.weight != null ? (obj.weight > 50 ? 'FREIGHT' : 'POSTAL') : null,
-      }
-    }
+        shippingEstimate: obj =>
+          obj.price != null && obj.weight != null ? (obj.price > 50 ? 0 : obj.weight / 2) : null,
+        deliveryService: obj => (obj.weight != null ? (obj.weight > 50 ? 'FREIGHT' : 'POSTAL') : null),
+      },
+    },
   });
 
   const gatewaySchema = stitchSchemas({
@@ -69,8 +70,8 @@ describe('merge computed fields via config', () => {
             selectionSet: '{ id }',
             fieldName: 'product',
             args: ({ id }) => ({ id }),
-          }
-        }
+          },
+        },
       },
       {
         schema: storefrontSchema,
@@ -89,45 +90,19 @@ describe('merge computed fields via config', () => {
             },
             fieldName: '_products',
             key: ({ id, price, weight }) => ({ id, price, weight }),
-            argsFromKeys: (representations) => ({ representations }),
-          }
-        }
-      }
+            argsFromKeys: representations => ({ representations }),
+          },
+        },
+      },
     ],
   });
 
   it('can stitch from product service to inventory service', async () => {
     const { data } = await graphql({
       schema: gatewaySchema,
-      source: /* GraphQL */`
-      query {
-        product(id: 77) {
-          id
-          price
-          weight
-          shippingEstimate
-          deliveryService
-        }
-      }
-    `});
-
-    assertSome(data)
-    expect(data['product']).toEqual({
-      id: '77',
-      price: 77.99,
-      weight: 77,
-      shippingEstimate: 0,
-      deliveryService: 'FREIGHT'
-    });
-  });
-
-  it('can stitch from inventory service to product service and back to inventory service', async () => {
-    const { data } = await graphql({
-      schema: gatewaySchema,
-      source: /* GraphQL */`
-      query {
-        storefront(id: 77) {
-          availableProducts {
+      source: /* GraphQL */ `
+        query {
+          product(id: 77) {
             id
             price
             weight
@@ -135,10 +110,38 @@ describe('merge computed fields via config', () => {
             deliveryService
           }
         }
-      }
-    `});
+      `,
+    });
 
-    assertSome(data)
+    assertSome(data);
+    expect(data['product']).toEqual({
+      id: '77',
+      price: 77.99,
+      weight: 77,
+      shippingEstimate: 0,
+      deliveryService: 'FREIGHT',
+    });
+  });
+
+  it('can stitch from inventory service to product service and back to inventory service', async () => {
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */ `
+        query {
+          storefront(id: 77) {
+            availableProducts {
+              id
+              price
+              weight
+              shippingEstimate
+              deliveryService
+            }
+          }
+        }
+      `,
+    });
+
+    assertSome(data);
     const storeFrontData: any = data['storefront'];
     expect(storeFrontData.availableProducts).toEqual([
       {
@@ -146,8 +149,8 @@ describe('merge computed fields via config', () => {
         price: 23.99,
         weight: 23,
         shippingEstimate: 11.5,
-        deliveryService: 'POSTAL'
-      }
+        deliveryService: 'POSTAL',
+      },
     ]);
   });
 
@@ -161,8 +164,8 @@ describe('merge computed fields via config', () => {
               selectionSet: '{ id }',
               fieldName: 'product',
               args: ({ id }) => ({ id }),
-            }
-          }
+            },
+          },
         },
         {
           schema: storefrontSchema,
@@ -174,39 +177,40 @@ describe('merge computed fields via config', () => {
               },
               fieldName: '_products',
               key: ({ id, price, weight }) => ({ id, price, weight }),
-              argsFromKeys: (representations) => ({ representations }),
-            }
-          }
-        }
+              argsFromKeys: representations => ({ representations }),
+            },
+          },
+        },
       ],
     });
 
     const { data } = await graphql({
       schema: oldComputedSchema,
-      source: /* GraphQL */`
-      query {
-        product(id: 77) {
-          id
-          price
-          weight
-          deliveryService
+      source: /* GraphQL */ `
+        query {
+          product(id: 77) {
+            id
+            price
+            weight
+            deliveryService
+          }
         }
-      }
-    `});
+      `,
+    });
 
-    assertSome(data)
+    assertSome(data);
     expect(data['product']).toEqual({
       id: '77',
       price: 77.99,
       weight: 77,
-      deliveryService: 'FREIGHT'
+      deliveryService: 'FREIGHT',
     });
   });
 });
 
 describe('merge computed fields via SDL (Apollo Federation-style directive annotation)', () => {
   const storefrontSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       directive @computed(selectionSet: String!) on FIELD_DEFINITION
 
       type Product {
@@ -235,10 +239,11 @@ describe('merge computed fields via SDL (Apollo Federation-style directive annot
         _entities: (_root, { representations }) => representations,
       },
       Product: {
-        shippingEstimate: (obj) => obj.price != null && obj.weight != null ? (obj.price > 50 ? 0 : obj.weight / 2) : null,
-        deliveryService: (obj) => obj.weight != null ? (obj.weight > 50 ? 'FREIGHT' : 'POSTAL') : null,
-      }
-    }
+        shippingEstimate: obj =>
+          obj.price != null && obj.weight != null ? (obj.price > 50 ? 0 : obj.weight / 2) : null,
+        deliveryService: obj => (obj.weight != null ? (obj.weight > 50 ? 'FREIGHT' : 'POSTAL') : null),
+      },
+    },
   });
 
   const gatewaySchema = stitchSchemas({
@@ -250,8 +255,8 @@ describe('merge computed fields via SDL (Apollo Federation-style directive annot
             selectionSet: '{ id }',
             fieldName: 'product',
             args: ({ id }) => ({ id }),
-          }
-        }
+          },
+        },
       },
       {
         schema: storefrontSchema,
@@ -260,9 +265,9 @@ describe('merge computed fields via SDL (Apollo Federation-style directive annot
             selectionSet: '{ id }',
             fieldName: '_entities',
             key: ({ id, price, weight }) => ({ id, price, weight, __typename: 'Product' }),
-            argsFromKeys: (representations) => ({ representations }),
-          }
-        }
+            argsFromKeys: representations => ({ representations }),
+          },
+        },
       },
     ],
   });
@@ -270,21 +275,22 @@ describe('merge computed fields via SDL (Apollo Federation-style directive annot
   it('can stitch from inventory service to product service and back to inventory service', async () => {
     const { data } = await graphql({
       schema: gatewaySchema,
-      source: /* GraphQL */`
-      query {
-        storefront(id: 77) {
-          availableProducts {
-            id
-            price
-            weight
-            shippingEstimate
-            deliveryService
+      source: /* GraphQL */ `
+        query {
+          storefront(id: 77) {
+            availableProducts {
+              id
+              price
+              weight
+              shippingEstimate
+              deliveryService
+            }
           }
         }
-      }
-    `});
+      `,
+    });
 
-    assertSome(data)
+    assertSome(data);
     const storeFrontData: any = data['storefront'];
     expect(storeFrontData.availableProducts).toEqual([
       {
@@ -292,8 +298,8 @@ describe('merge computed fields via SDL (Apollo Federation-style directive annot
         price: 23.99,
         weight: 23,
         shippingEstimate: 11.5,
-        deliveryService: 'POSTAL'
-      }
+        deliveryService: 'POSTAL',
+      },
     ]);
   });
 });

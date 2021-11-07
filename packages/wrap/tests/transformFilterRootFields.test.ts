@@ -5,7 +5,7 @@ import { GraphQLObjectType } from 'graphql';
 describe('FilterRootFields', () => {
   test('works', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Widget {
           alpha: String
           bravo: String
@@ -15,14 +15,12 @@ describe('FilterRootFields', () => {
           widget: Widget
           anotherWidget: Widget
         }
-      `
+      `,
     });
 
     const transformedSchema = wrapSchema({
       schema,
-      transforms: [
-        new FilterRootFields((_operationName, fieldName) => !fieldName.startsWith('a'))
-      ],
+      transforms: [new FilterRootFields((_operationName, fieldName) => !fieldName.startsWith('a'))],
     });
 
     const widget = transformedSchema.getType('Widget') as GraphQLObjectType;

@@ -4,7 +4,7 @@ import { TextEncoder } from 'util';
 describe('handleEventStreamResponse', () => {
   describe('ReadableStream', () => {
     if (parseInt(process.versions.node.split('.')[0]) < 16) {
-      it('dummy', () => { });
+      it('dummy', () => {});
     }
     const { TransformStream } = require('stream/web');
     it('should handle an event with data', async () => {
@@ -51,5 +51,4 @@ describe('handleEventStreamResponse', () => {
     `);
     });
   });
-
-})
+});

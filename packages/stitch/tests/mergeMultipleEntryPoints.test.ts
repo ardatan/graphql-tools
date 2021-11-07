@@ -5,7 +5,7 @@ import { stitchSchemas } from '../src/stitchSchemas';
 
 describe('merge on multiple keys', () => {
   const catalogSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Product {
         upc: ID!
         name: String
@@ -17,12 +17,12 @@ describe('merge on multiple keys', () => {
     resolvers: {
       Query: {
         productsByUpc: () => [{ upc: '1', name: 'Table' }],
-      }
-    }
+      },
+    },
   });
 
   const vendorSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Product {
         id: ID!
         upc: ID!
@@ -39,12 +39,12 @@ describe('merge on multiple keys', () => {
     resolvers: {
       Query: {
         productsByKey: () => [{ id: '101', upc: '1', price: 879 }],
-      }
-    }
+      },
+    },
   });
 
   const reviewsSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Product {
         id: ID!
         reviews: [String]
@@ -56,8 +56,8 @@ describe('merge on multiple keys', () => {
     resolvers: {
       Query: {
         productsById: () => [{ id: '101', reviews: ['works!'] }],
-      }
-    }
+      },
+    },
   });
 
   const gatewaySchema = stitchSchemas({
@@ -69,27 +69,30 @@ describe('merge on multiple keys', () => {
             selectionSet: '{ upc }',
             fieldName: 'productsByUpc',
             key: ({ upc }) => upc,
-            argsFromKeys: (upcs) => ({ upcs }),
-          }
-        }
+            argsFromKeys: upcs => ({ upcs }),
+          },
+        },
       },
       {
         schema: vendorSchema,
         merge: {
           Product: {
-            entryPoints: [{
-              selectionSet: '{ upc }',
-              fieldName: 'productsByKey',
-              key: ({ upc }) => ({ upc }),
-              argsFromKeys: (keys) => ({ keys }),
-            }, {
-              selectionSet: '{ id }',
-              fieldName: 'productsByKey',
-              key: ({ id }) => ({ id }),
-              argsFromKeys: (keys) => ({ keys }),
-            }],
-          }
-        }
+            entryPoints: [
+              {
+                selectionSet: '{ upc }',
+                fieldName: 'productsByKey',
+                key: ({ upc }) => ({ upc }),
+                argsFromKeys: keys => ({ keys }),
+              },
+              {
+                selectionSet: '{ id }',
+                fieldName: 'productsByKey',
+                key: ({ id }) => ({ id }),
+                argsFromKeys: keys => ({ keys }),
+              },
+            ],
+          },
+        },
       },
       {
         schema: reviewsSchema,
@@ -98,72 +101,77 @@ describe('merge on multiple keys', () => {
             selectionSet: '{ id }',
             fieldName: 'productsById',
             key: ({ id }) => id,
-            argsFromKeys: (ids) => ({ ids }),
-          }
-        }
-      }
-    ]
+            argsFromKeys: ids => ({ ids }),
+          },
+        },
+      },
+    ],
   });
 
-  const result = [{
-    id: '101',
-    upc: '1',
-    name: 'Table',
-    price: 879,
-    reviews: ['works!'],
-  }];
+  const result = [
+    {
+      id: '101',
+      upc: '1',
+      name: 'Table',
+      price: 879,
+      reviews: ['works!'],
+    },
+  ];
 
   test('works from middle join outward', async () => {
     const { data } = await graphql({
       schema: gatewaySchema,
-      source: /* GraphQL */`
-      query {
-        productsByKey(keys: [{ id: "101" }]) {
-          id
-          upc
-          name
-          price
-          reviews
+      source: /* GraphQL */ `
+        query {
+          productsByKey(keys: [{ id: "101" }]) {
+            id
+            upc
+            name
+            price
+            reviews
+          }
         }
-      }
-    `});
-    assertSome(data)
+      `,
+    });
+    assertSome(data);
     expect(data['productsByKey']).toEqual(result);
   });
 
   test('works from upc -> join -> id', async () => {
     const { data } = await graphql({
       schema: gatewaySchema,
-      source: /* GraphQL */`
-      query {
-        productsByUpc(upcs: ["1"]) {
-          id
-          upc
-          name
-          price
-          reviews
+      source: /* GraphQL */ `
+        query {
+          productsByUpc(upcs: ["1"]) {
+            id
+            upc
+            name
+            price
+            reviews
+          }
         }
-      }
-    `});
-    assertSome(data)
+      `,
+    });
+    assertSome(data);
     expect(data['productsByUpc']).toEqual(result);
   });
 
   test('works from id -> join -> upc', async () => {
     const { data } = await graphql({
       schema: gatewaySchema,
-      source: /* GraphQL */`
-      query {
-        productsById(ids: ["101"]) {
-          id
-          upc
-          name
-          price
-          reviews
+      source: /* GraphQL */ `
+        query {
+          productsById(ids: ["101"]) {
+            id
+            upc
+            name
+            price
+            reviews
+          }
         }
-      }
-    `});
-    assertSome(data)
+      `,
+    });
+    assertSome(data);
     expect(data['productsById']).toEqual(result);
   });
 });

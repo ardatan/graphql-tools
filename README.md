@@ -13,8 +13,7 @@ This package provides a few useful ways to create a GraphQL schema:
 
 1. Use the GraphQL schema language to [generate a schema](https://graphql-tools.com/docs/generate-schema) with full support for resolvers, interfaces, unions, and custom scalars. The schema produced is completely compatible with [GraphQL.js](https://github.com/graphql/graphql-js).
 2. [Mock your GraphQL API](https://graphql-tools.com/docs/mocking) with fine-grained per-type mocking
-3. Automatically [stitch multiple schemas together](https://www.graphql-tools.com/docs/stitch-combining-schemas
-) into one larger API
+3. Automatically [stitch multiple schemas together](https://www.graphql-tools.com/docs/stitch-combining-schemas) into one larger API
 
 ## Documentation
 
@@ -31,43 +30,40 @@ You can develop your JavaScript based GraphQL API with `graphql-tools` and `expr
 When using `graphql-tools`, you describe the schema as a GraphQL type language string:
 
 ```js
+const typeDefs = /* GraphQL */ `
+  type Author {
+    id: ID! # the ! means that every author object _must_ have an id
+    firstName: String
+    lastName: String
+    """
+    the list of Posts by this author
+    """
+    posts: [Post]
+  }
 
-const typeDefs = /* GraphQL */`
-type Author {
-  id: ID! # the ! means that every author object _must_ have an id
-  firstName: String
-  lastName: String
-  """
-  the list of Posts by this author
-  """
-  posts: [Post]
-}
+  type Post {
+    id: ID!
+    title: String
+    author: Author
+    votes: Int
+  }
 
-type Post {
-  id: ID!
-  title: String
-  author: Author
-  votes: Int
-}
+  # the schema allows the following query:
+  type Query {
+    posts: [Post]
+  }
 
-# the schema allows the following query:
-type Query {
-  posts: [Post]
-}
+  # this schema allows the following mutation:
+  type Mutation {
+    upvotePost(postId: ID!): Post
+  }
 
-# this schema allows the following mutation:
-type Mutation {
-  upvotePost (
-    postId: ID!
-  ): Post
-}
-
-# we need to tell the server which types represent the root query
-# and root mutation types. We call them RootQuery and RootMutation by convention.
-schema {
-  query: Query
-  mutation: Mutation
-}
+  # we need to tell the server which types represent the root query
+  # and root mutation types. We call them RootQuery and RootMutation by convention.
+  schema {
+    query: Query
+    mutation: Mutation
+  }
 `;
 
 export default typeDefs;
@@ -126,10 +122,13 @@ var express = require('express');
 var { graphqlHTTP } = require('express-graphql');
 
 var app = express();
-app.use('/graphql', graphqlHTTP({
-  schema: executableSchema,
-  graphiql: true,
-}));
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema: executableSchema,
+    graphiql: true,
+  })
+);
 app.listen(4000);
 console.log('Running a GraphQL API server at http://localhost:4000/graphql');
 ```

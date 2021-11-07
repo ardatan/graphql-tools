@@ -7,6 +7,27 @@ on:
   pull_request: {}
 
 jobs:
+  prettier-check:
+    name: 🧹 Prettier Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v2
+      - name: Use Node
+        uses: actions/setup-node@master
+        with:
+          node-version: 17
+      - name: Cache Yarn
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{runner.os}}-17-16-yarn-${{hashFiles('yarn.lock')}}
+          restore-keys: |
+            ${{runner.os}}-17-16-yarn
+      - name: Install Dependencies using Yarn
+        run: yarn install --ignore-engines && git checkout yarn.lock
+      - name: Prettier Check
+        run: yarn prettier:check
   lint:
     name: Lint
     runs-on: ubuntu-latest

@@ -17,7 +17,7 @@ describe('merging using type merging', () => {
       id: '1',
       name: 'Ada Lovelace',
       birthDate: '1815-12-10',
-      username: '@ada'
+      username: '@ada',
     },
     {
       id: '2',
@@ -28,7 +28,7 @@ describe('merging using type merging', () => {
   ];
 
   const accountsSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Query {
         me: User
         _userById(id: ID!): User
@@ -52,11 +52,11 @@ describe('merging using type merging', () => {
   const inventory = [
     { upc: '1', inStock: true },
     { upc: '2', inStock: false },
-    { upc: '3', inStock: true }
+    { upc: '3', inStock: true },
   ];
 
   const inventorySchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       input ProductRepresentation {
         upc: String!
         price: Int
@@ -76,15 +76,18 @@ describe('merging using type merging', () => {
       Product: {
         shippingEstimate: product => {
           if (product.price > 1000) {
-            return 0 // free for expensive items
+            return 0; // free for expensive items
           }
           return Math.round(product.weight * 0.5) || null; // estimate is based on weight
-        }
+        },
       },
       Query: {
         mostStockedProduct: () => inventory.find(i => i.upc === '3'),
         _products: (_root, { representations }) => {
-          return representations.map((rep: Record<string, any>) => ({ ...rep, ...inventory.find(i => i.upc === rep['upc']) }));
+          return representations.map((rep: Record<string, any>) => ({
+            ...rep,
+            ...inventory.find(i => i.upc === rep['upc']),
+          }));
         },
       },
     },
@@ -95,24 +98,24 @@ describe('merging using type merging', () => {
       upc: '1',
       name: 'Table',
       price: 899,
-      weight: 100
+      weight: 100,
     },
     {
       upc: '2',
       name: 'Couch',
       price: 1299,
-      weight: 1000
+      weight: 1000,
     },
     {
       upc: '3',
       name: 'Chair',
       price: 54,
-      weight: 50
-    }
+      weight: 50,
+    },
   ];
 
   const productsSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Query {
         topProducts(first: Int = 2): [Product]
         _productByUpc(upc: String!): Product
@@ -130,7 +133,7 @@ describe('merging using type merging', () => {
         topProducts: (_root, args) => products.slice(0, args.first),
         _productByUpc: (_root, { upc }) => products.find(product => product.upc === upc),
         _productsByUpc: (_root, { upcs }) => upcs.map((upc: any) => products.find(product => product.upc === upc)),
-      }
+      },
     },
   });
 
@@ -167,7 +170,7 @@ describe('merging using type merging', () => {
   ];
 
   const reviewsSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Review {
         id: ID!
         body: String
@@ -194,18 +197,18 @@ describe('merging using type merging', () => {
     `,
     resolvers: {
       Review: {
-        author: (review) => ({ __typename: 'User', id: review.authorId }),
+        author: review => ({ __typename: 'User', id: review.authorId }),
       },
       User: {
-        reviews: (user) => reviews.filter(review => review.authorId === user.id),
-        numberOfReviews: (user) => reviews.filter(review => review.authorId === user.id).length,
-        username: (user) => {
-          const found = usernames.find(username => username.id === user.id)
-          return found ? found.username : null
+        reviews: user => reviews.filter(review => review.authorId === user.id),
+        numberOfReviews: user => reviews.filter(review => review.authorId === user.id).length,
+        username: user => {
+          const found = usernames.find(username => username.id === user.id);
+          return found ? found.username : null;
         },
       },
       Product: {
-        reviews: (product) => reviews.filter(review => review.product.upc === product.upc),
+        reviews: product => reviews.filter(review => review.product.upc === product.upc),
       },
       Query: {
         _reviewById: (_root, { id }) => reviews.find(review => review.id === id),
@@ -214,7 +217,7 @@ describe('merging using type merging', () => {
         _productByUpc: (_, { upc }) => ({ upc }),
         _productsByUpc: (_, { upcs }) => upcs.map((upc: string) => ({ upc })),
       },
-    }
+    },
   });
 
   const stitchedSchema = stitchSchemas({
@@ -225,8 +228,8 @@ describe('merging using type merging', () => {
           User: {
             selectionSet: '{ id }',
             fieldName: '_userById',
-            args: ({ id }) => ({ id })
-          }
+            args: ({ id }) => ({ id }),
+          },
         },
         batch: true,
       },
@@ -243,8 +246,8 @@ describe('merging using type merging', () => {
             },
             fieldName: '_products',
             key: ({ upc, weight, price }) => ({ upc, weight, price }),
-            argsFromKeys: (representations) => ({ representations }),
-          }
+            argsFromKeys: representations => ({ representations }),
+          },
         },
         batch: true,
       },
@@ -255,7 +258,7 @@ describe('merging using type merging', () => {
             selectionSet: '{ upc }',
             fieldName: '_productByUpc',
             args: ({ upc }) => ({ upc }),
-          }
+          },
         },
         batch: true,
       },
@@ -265,7 +268,7 @@ describe('merging using type merging', () => {
           User: {
             selectionSet: '{ id }',
             fieldName: '_usersById',
-            argsFromKeys: (ids) => ({ ids }),
+            argsFromKeys: ids => ({ ids }),
             key: ({ id }) => id,
           },
           Product: {
@@ -275,13 +278,14 @@ describe('merging using type merging', () => {
           },
         },
         batch: true,
-      }],
+      },
+    ],
   });
 
   test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {
     const result = await graphql({
       schema: stitchedSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           topProducts {
             upc
@@ -294,15 +298,18 @@ describe('merging using type merging', () => {
 
     const expectedResult: ExecutionResult = {
       data: {
-        topProducts: [{
-          upc: '1',
-          inStock: true,
-          shippingEstimate: 50,
-        }, {
-          upc: '2',
-          inStock: false,
-          shippingEstimate: 0,
-        }],
+        topProducts: [
+          {
+            upc: '1',
+            inStock: true,
+            shippingEstimate: 50,
+          },
+          {
+            upc: '2',
+            inStock: false,
+            shippingEstimate: 0,
+          },
+        ],
       },
     };
 
@@ -312,7 +319,7 @@ describe('merging using type merging', () => {
   test('can stitch from accounts to reviews to products to inventory', async () => {
     const result = await graphql({
       schema: stitchedSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           me {
             reviews {
@@ -334,7 +341,7 @@ describe('merging using type merging', () => {
             { product: { price: 899, upc: '1', weight: 100 } },
             { product: { price: 1299, upc: '2', weight: 1000 } },
           ],
-        }
+        },
       },
     };
 
@@ -344,7 +351,7 @@ describe('merging using type merging', () => {
   test('can stitch from accounts to reviews to products to inventory', async () => {
     const result = await graphql({
       schema: stitchedSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           me {
             reviews {
@@ -357,7 +364,7 @@ describe('merging using type merging', () => {
             }
           }
         }
-      `
+      `,
     });
 
     const expectedResult: ExecutionResult = {
@@ -378,7 +385,7 @@ describe('merging using type merging', () => {
                 upc: '2',
                 weight: 1000,
                 shippingEstimate: 0,
-              }
+              },
             },
           ],
         },
@@ -391,7 +398,7 @@ describe('merging using type merging', () => {
   test('can stitch from accounts to reviews to products to inventory even when entire key not requested', async () => {
     const result = await graphql({
       schema: stitchedSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           me {
             reviews {
@@ -403,7 +410,7 @@ describe('merging using type merging', () => {
           }
         }
       `,
-  });
+    });
 
     const expectedResult: ExecutionResult = {
       data: {
@@ -419,7 +426,7 @@ describe('merging using type merging', () => {
               product: {
                 upc: '2',
                 shippingEstimate: 0,
-              }
+              },
             },
           ],
         },
@@ -432,7 +439,7 @@ describe('merging using type merging', () => {
   test('can stitch from inventory to products and then back to inventory', async () => {
     const result = await graphql({
       schema: stitchedSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           mostStockedProduct {
             upc

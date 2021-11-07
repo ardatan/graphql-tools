@@ -4,7 +4,7 @@ import { parse, separateOperations } from 'graphql';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { runTests } from '../../../../testing/utils';
-import '../../../../testing/to-be-similar-string'
+import '../../../../testing/to-be-similar-string';
 import globby from 'globby';
 import { readFileSync } from 'fs';
 import { removeLoc } from '@graphql-tools/optimize';
@@ -12,12 +12,12 @@ import { removeLoc } from '@graphql-tools/optimize';
 describe('documentsFromGlob', () => {
   runTests({
     async: loadDocuments,
-    sync: loadDocumentsSync
+    sync: loadDocumentsSync,
   })(load => {
     test(`Should load one GraphQL document from glob expression`, async () => {
       const glob = join(__dirname, 'test-files', '*.query.graphql');
       const result = await load(glob, {
-        loaders: [new GraphQLFileLoader()]
+        loaders: [new GraphQLFileLoader()],
       });
       expect(result).toHaveLength(1);
       const expectedFiles = globby.sync(glob);
@@ -35,7 +35,7 @@ describe('documentsFromGlob', () => {
     test(`Should load multiple GraphQL document from glob expression`, async () => {
       const glob = join(__dirname, 'test-files', '*.graphql');
       const result = await load(glob, {
-        loaders: [new GraphQLFileLoader()]
+        loaders: [new GraphQLFileLoader()],
       });
       expect(result).toHaveLength(2);
       const expectedFiles = globby.sync(glob);
@@ -53,7 +53,7 @@ describe('documentsFromGlob', () => {
     test(`Should load two GraphQL operations both for gatsby and graphql-tag by default`, async () => {
       const glob = join(__dirname, 'test-files', 'tags.js');
       const result = await load(glob, {
-        loaders: [new CodeFileLoader()]
+        loaders: [new CodeFileLoader()],
       });
 
       expect(result).toHaveLength(2);
@@ -72,9 +72,7 @@ describe('documentsFromGlob', () => {
           ],
           globalGqlIdentifierName: 'somethingElse',
         },
-        loaders: [
-          new CodeFileLoader()
-        ]
+        loaders: [new CodeFileLoader()],
       });
 
       expect(result[0]?.document).toBeDefined();
@@ -85,12 +83,12 @@ describe('documentsFromGlob', () => {
       try {
         const glob = join(__dirname, 'test-invalid-syntax', 'invalid-syntax.query.graphql');
         await load(glob, {
-          loaders: [new GraphQLFileLoader()]
+          loaders: [new GraphQLFileLoader()],
         });
         expect(true).toBeFalsy();
       } catch (e: any) {
         expect(e).toBeDefined();
-        expect(e.message).toContain("Syntax Error");
+        expect(e.message).toContain('Syntax Error');
       }
     });
 
@@ -98,7 +96,7 @@ describe('documentsFromGlob', () => {
       try {
         const glob = join(__dirname, 'test-files', '*.empty.graphql');
         await load(glob, {
-          loaders: [new GraphQLFileLoader()]
+          loaders: [new GraphQLFileLoader()],
         });
         expect(true).toBeFalsy();
       } catch (e: any) {
@@ -110,7 +108,7 @@ describe('documentsFromGlob', () => {
       try {
         const glob = join(__dirname, 'test-files', 'invalid*.*.graphql');
         await load(glob, {
-          loaders: [new GraphQLFileLoader()]
+          loaders: [new GraphQLFileLoader()],
         });
         expect(true).toBeFalsy();
       } catch (e: any) {
@@ -121,7 +119,7 @@ describe('documentsFromGlob', () => {
     test(`Should ignore schema definitions`, async () => {
       const glob = join(__dirname, 'test-files', '*.graphql');
       const result = await load(glob, {
-        loaders: [new GraphQLFileLoader()]
+        loaders: [new GraphQLFileLoader()],
       });
       expect(result.length).toBe(2);
     });
@@ -131,7 +129,7 @@ describe('documentsFromGlob', () => {
       const ignoreGlob = join(__dirname, 'test-files', '*.query.graphql');
       const result = await load([glob], {
         ignore: ignoreGlob,
-        loaders: [new GraphQLFileLoader()]
+        loaders: [new GraphQLFileLoader()],
       });
       expect(result.length).toBe(1);
     });
@@ -140,7 +138,7 @@ describe('documentsFromGlob', () => {
       const glob = join(__dirname, 'test-files', '*.graphql');
       const ignoreGlob = `!${join(__dirname, 'test-files', '*.query.graphql')}`;
       const result = await load([glob, ignoreGlob], {
-        loaders: [new GraphQLFileLoader()]
+        loaders: [new GraphQLFileLoader()],
       });
       expect(result.length).toBe(1);
     });
@@ -158,7 +156,7 @@ describe('documentsFromGlob', () => {
         loaders: [new GraphQLFileLoader(), new CodeFileLoader()],
       });
       expect(result.length).toBe(1);
-    })
+    });
     test(`should try loading using all loaders`, async () => {
       const glob = join(__dirname, 'test-files', '(tags.js|2.graphql)');
       const result = await load(glob, {
@@ -167,6 +165,6 @@ describe('documentsFromGlob', () => {
       // 1 from 2.graphql
       // 2 from tags.js
       expect(result.length).toEqual(3);
-    })
-  })
+    });
+  });
 });

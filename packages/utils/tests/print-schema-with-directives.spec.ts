@@ -1,7 +1,17 @@
 import { RenameTypes, wrapSchema } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { buildSchema, GraphQLDirective, printSchema, GraphQLSchema, specifiedDirectives, GraphQLObjectType, GraphQLNonNull, GraphQLID, GraphQLList } from 'graphql';
+import {
+  buildSchema,
+  GraphQLDirective,
+  printSchema,
+  GraphQLSchema,
+  specifiedDirectives,
+  GraphQLObjectType,
+  GraphQLNonNull,
+  GraphQLID,
+  GraphQLList,
+} from 'graphql';
 import { printSchemaWithDirectives } from '../src';
 import { GraphQLJSON } from 'graphql-scalars';
 
@@ -45,7 +55,7 @@ describe('printSchemaWithDirectives', () => {
           id: ID! @id
           friends: [User!]! @link
         }
-      `
+      `,
     });
 
     const printedSchema = printSchemaWithDirectives(schemaWithDirectives);
@@ -71,7 +81,7 @@ describe('printSchemaWithDirectives', () => {
         }
 
         extend type User @entity
-      `
+      `,
     });
 
     const printedSchemaAlternative = printSchemaWithDirectives(schemaWithDirectives);
@@ -84,7 +94,7 @@ describe('printSchemaWithDirectives', () => {
     schemaTypes.Query = new GraphQLObjectType({
       name: 'Query',
       fields: () => ({
-        me: { type: schemaTypes.User}
+        me: { type: schemaTypes.User },
       }),
     });
     schemaTypes.User = new GraphQLObjectType({
@@ -130,7 +140,7 @@ describe('printSchemaWithDirectives', () => {
           locations: ['FIELD_DEFINITION'] as any[],
         }),
       ]),
-    })
+    });
 
     const printedSchema = printSchemaWithDirectives(schemaWithDirectives);
     expect(printedSchema).toContain('directive @entity on OBJECT');
@@ -144,7 +154,7 @@ describe('printSchemaWithDirectives', () => {
     schemaTypes.Query = new GraphQLObjectType({
       name: 'Query',
       fields: () => ({
-        me: { type: schemaTypes.User}
+        me: { type: schemaTypes.User },
       }),
     });
     schemaTypes.User = new GraphQLObjectType({
@@ -176,7 +186,7 @@ describe('printSchemaWithDirectives', () => {
 
     const schemaWithDirectives = new GraphQLSchema({
       query: schemaTypes.Query,
-    })
+    });
 
     const printedSchema = printSchemaWithDirectives(schemaWithDirectives);
     expect(printedSchema).toContain(`id: ID! @id`);
@@ -212,7 +222,8 @@ describe('printSchemaWithDirectives', () => {
 
     const output = printSchemaWithDirectives(schema);
 
-    const specifiedByValue = ((GraphQLJSON as any)['specifiedByUrl'] || (GraphQLJSON as any)['specifiedByURL']) as string;
+    const specifiedByValue = ((GraphQLJSON as any)['specifiedByUrl'] ||
+      (GraphQLJSON as any)['specifiedByURL']) as string;
     if (specifiedByValue) {
       expect(output).toContain(`scalar JSON @specifiedBy(url: "${specifiedByValue}")`);
     } else {
@@ -225,10 +236,12 @@ describe('printSchemaWithDirectives', () => {
 
   it(`Should print directives correctly if they don't have astNode`, () => {
     const schema = new GraphQLSchema({
-      directives: [new GraphQLDirective({
-        name: 'dummy',
-        locations: ['QUERY'] as any[],
-      })]
+      directives: [
+        new GraphQLDirective({
+          name: 'dummy',
+          locations: ['QUERY'] as any[],
+        }),
+      ],
     } as any);
 
     const output = printSchemaWithDirectives(schema);
@@ -238,27 +251,25 @@ describe('printSchemaWithDirectives', () => {
 
   it('should print comments', () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         """
-          Test Query Comment
+        Test Query Comment
         """
         type Query {
           """
-            Test Field Comment
+          Test Field Comment
           """
           foo: String
         }
-      `
+      `,
     });
     const output = printSchemaWithDirectives(schema);
 
     expect(output).toContain('Test Query Comment');
     expect(output).toContain('Test Field Comment');
-
   });
   it('should print transformed schema correctly', () => {
-
-    const printedSchema = /* GraphQL */`
+    const printedSchema = /* GraphQL */ `
       type Foo {
         bar: String
       }
@@ -268,64 +279,62 @@ describe('printSchemaWithDirectives', () => {
       type Query {
         bar: Bar
       }
-   `;
+    `;
 
     const schema = buildSchema(printedSchema);
 
     const transformedSchema = wrapSchema({
       schema,
-      transforms: [
-        new RenameTypes(typeName => `My${typeName}`)
-      ]
+      transforms: [new RenameTypes(typeName => `My${typeName}`)],
     });
     const printedTransformedSchema = printSchemaWithDirectives(transformedSchema);
-    expect(printedTransformedSchema).not.toContain(/* GraphQL */`type Foo`);
-    expect(printedTransformedSchema).toContain(/* GraphQL */`type MyFoo`);
-    expect(printedTransformedSchema).not.toContain(/* GraphQL */`type Bar`);
-    expect(printedTransformedSchema).toContain(/* GraphQL */`type MyBar`);
-    expect(printedTransformedSchema).not.toContain(/* GraphQL */`bar: Bar`);
-    expect(printedTransformedSchema).toContain(/* GraphQL */`bar: MyBar`);
-    expect(printedTransformedSchema).not.toContain(/* GraphQL */`foo: Foo`);
-    expect(printedTransformedSchema).toContain(/* GraphQL */`foo: MyFoo`);
+    expect(printedTransformedSchema).not.toContain('type Foo');
+    expect(printedTransformedSchema).toContain('type MyFoo');
+    expect(printedTransformedSchema).not.toContain('type Bar');
+    expect(printedTransformedSchema).toContain('type MyBar');
+    expect(printedTransformedSchema).not.toContain('bar: Bar');
+    expect(printedTransformedSchema).toContain('bar: MyBar');
+    expect(printedTransformedSchema).not.toContain('foo: Foo');
+    expect(printedTransformedSchema).toContain('foo: MyFoo');
   });
   it('should print all directives', async () => {
-    const typeDefs = /* GraphQL */`
-        directive @SCHEMA on SCHEMA
-        directive @SCALAR on SCALAR
-        directive @OBJECT on OBJECT
-        directive @ARGUMENT_DEFINITION on ARGUMENT_DEFINITION
-        directive @FIELD_DEFINITION on FIELD_DEFINITION
-        directive @INTERFACE on INTERFACE
-        directive @UNION on UNION
-        directive @ENUM on ENUM
-        directive @ENUM_VALUE on ENUM_VALUE
-        directive @INPUT_OBJECT on INPUT_OBJECT
-        directive @INPUT_FIELD_DEFINITION on INPUT_FIELD_DEFINITION
+    const typeDefs = /* GraphQL */ `
+      directive @SCHEMA on SCHEMA
+      directive @SCALAR on SCALAR
+      directive @OBJECT on OBJECT
+      directive @ARGUMENT_DEFINITION on ARGUMENT_DEFINITION
+      directive @FIELD_DEFINITION on FIELD_DEFINITION
+      directive @INTERFACE on INTERFACE
+      directive @UNION on UNION
+      directive @ENUM on ENUM
+      directive @ENUM_VALUE on ENUM_VALUE
+      directive @INPUT_OBJECT on INPUT_OBJECT
+      directive @INPUT_FIELD_DEFINITION on INPUT_FIELD_DEFINITION
 
-        schema @SCHEMA {
-          query: SomeType
-        }
+      schema @SCHEMA {
+        query: SomeType
+      }
 
-        scalar DateTime @SCALAR
+      scalar DateTime @SCALAR
 
-        type SomeType @OBJECT {
-          someField(someArg: Int! @ARGUMENT_DEFINITION): String @FIELD_DEFINITION
-        }
+      type SomeType @OBJECT {
+        someField(someArg: Int! @ARGUMENT_DEFINITION): String @FIELD_DEFINITION
+      }
 
-        interface SomeInterface @INTERFACE {
-          someField: String
-        }
+      interface SomeInterface @INTERFACE {
+        someField: String
+      }
 
-        union SomeUnion @UNION = SomeType
+      union SomeUnion @UNION = SomeType
 
-        enum SomeEnum @ENUM {
-          someEnumValue @ENUM_VALUE
-        }
+      enum SomeEnum @ENUM {
+        someEnumValue @ENUM_VALUE
+      }
 
-        input SomeInputType @INPUT_OBJECT {
-          someInputField: String @INPUT_FIELD_DEFINITION
-          someOtherInputField: Int = 1
-        }
+      input SomeInputType @INPUT_OBJECT {
+        someInputField: String @INPUT_FIELD_DEFINITION
+        someOtherInputField: Int = 1
+      }
     `;
     const schema = buildSchema(typeDefs);
     const printedSchema = printSchemaWithDirectives(schema);
@@ -333,5 +342,5 @@ describe('printSchemaWithDirectives', () => {
     for (const line of printedSchemaLines) {
       expect(printedSchema).toContain(line.trim());
     }
-  })
+  });
 });

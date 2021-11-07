@@ -3,9 +3,18 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { SubscriptionProtocol, UrlLoader } from '../src';
 import { isAsyncIterable, printSchemaWithDirectives } from '@graphql-tools/utils';
 import { cwd } from 'process';
-import { execute, subscribe, parse, print, ExecutionResult, introspectionFromSchema, getIntrospectionQuery, getOperationAST } from 'graphql';
+import {
+  execute,
+  subscribe,
+  parse,
+  print,
+  ExecutionResult,
+  introspectionFromSchema,
+  getIntrospectionQuery,
+  getOperationAST,
+} from 'graphql';
 import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
-import { createReadStream, readFileSync, } from 'fs';
+import { createReadStream, readFileSync } from 'fs';
 import { join } from 'path';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { createHandler } from 'graphql-sse';
@@ -60,17 +69,17 @@ input TestInput {
       content: (file: any) => {
         const stream: NodeJS.ReadableStream = file.createReadStream();
         return new Promise((resolve, reject) => {
-          let data = "";
+          let data = '';
 
           // eslint-disable-next-line no-return-assign
-          stream.on("data", chunk => data += chunk);
-          stream.on("end", () => resolve(data));
-          stream.on("error", error => reject(error));
+          stream.on('data', chunk => (data += chunk));
+          stream.on('end', () => resolve(data));
+          stream.on('error', error => reject(error));
         });
-      }
+      },
     },
     Mutation: {
-      uploadFile: async (_: never, { file }: any) => file
+      uploadFile: async (_: never, { file }: any) => file,
     },
     Subscription: {
       testMessage: {
@@ -83,18 +92,18 @@ input TestInput {
               }
               const number = numbers.shift();
               return { value: { number }, done: false };
-            }
+            },
           };
 
           return {
             // Note that async iterables use `Symbol.asyncIterator`, **not**
             // `Symbol.iterator`.
-            [Symbol.asyncIterator]: () => asyncIterator
+            [Symbol.asyncIterator]: () => asyncIterator,
           };
         },
         resolve: (payload: any) => payload,
-      }
-    }
+      },
+    },
   };
 
   const testSchema = makeExecutableSchema({ typeDefs: testTypeDefs, resolvers: testResolvers });
@@ -105,7 +114,7 @@ input TestInput {
 
   function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | undefined> {
     if (input == null) {
-      throw new Error("Value should be neither null nor undefined.")
+      throw new Error('Value should be neither null nor undefined.');
     }
   }
 
@@ -113,12 +122,11 @@ input TestInput {
 
   afterEach(async () => {
     if (httpServer !== undefined) {
-      await new Promise<void>(resolve => httpServer.close(() => resolve()))
+      await new Promise<void>(resolve => httpServer.close(() => resolve()));
     }
-  })
+  });
 
   describe('handle', () => {
-
     it('Should throw an error when introspection is not valid', async () => {
       const brokenData = { data: {} };
 
@@ -127,23 +135,25 @@ input TestInput {
       try {
         await loader.load(testUrl, {
           customFetch: async () => {
-            return new Response(JSON.stringify(brokenData))
-          }
+            return new Response(JSON.stringify(brokenData));
+          },
         });
       } catch (e: any) {
-        expect(e.message).toBe('Could not obtain introspection result, received: ' + JSON.stringify(brokenData))
+        expect(e.message).toBe('Could not obtain introspection result, received: ' + JSON.stringify(brokenData));
       }
     });
 
     it('Should return a valid schema when request is valid', async () => {
       const [source] = await loader.load(testUrl, {
         customFetch: async () => {
-          return new Response(JSON.stringify({
-            data: introspectionFromSchema(testSchema)
-          }))
-        }
+          return new Response(
+            JSON.stringify({
+              data: introspectionFromSchema(testSchema),
+            })
+          );
+        },
       });
-      assertNonMaybe(source.schema)
+      assertNonMaybe(source.schema);
       expect(printSchemaWithDirectives(source.schema)).toBeSimilarGqlDoc(testTypeDefs);
     });
 
@@ -153,17 +163,21 @@ input TestInput {
       const [source] = await loader.load(testUrl, {
         customFetch: async (_, opts) => {
           headers = opts?.headers || {};
-          return new Response(JSON.stringify({
-            data: introspectionFromSchema(testSchema)
-          }))
-        }
+          return new Response(
+            JSON.stringify({
+              data: introspectionFromSchema(testSchema),
+            })
+          );
+        },
       });
 
       expect(source).toBeDefined();
-      assertNonMaybe(source.schema)
+      assertNonMaybe(source.schema);
       expect(printSchemaWithDirectives(source.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
-      expect(Array.isArray(headers['accept']) ? headers['accept'].join(',') : headers['accept']).toContain(`application/json`);
+      expect(Array.isArray(headers['accept']) ? headers['accept'].join(',') : headers['accept']).toContain(
+        `application/json`
+      );
       expect(headers['content-type']).toContain(`application/json`);
     });
 
@@ -174,25 +188,29 @@ input TestInput {
         headers: { auth: '1' },
         customFetch: async (_, opts) => {
           headers = opts?.headers || {};
-          return new Response(JSON.stringify({
-            data: introspectionFromSchema(testSchema)
-          }))
-        }
+          return new Response(
+            JSON.stringify({
+              data: introspectionFromSchema(testSchema),
+            })
+          );
+        },
       });
 
       expect(source).toBeDefined();
-      assertNonMaybe(source.schema)
+      assertNonMaybe(source.schema);
       expect(printSchemaWithDirectives(source.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
-      expect(Array.isArray(headers['accept']) ? headers['accept'].join(',') : headers['accept']).toContain(`application/json`);
+      expect(Array.isArray(headers['accept']) ? headers['accept'].join(',') : headers['accept']).toContain(
+        `application/json`
+      );
       expect(headers['content-type']).toContain(`application/json`);
       expect(headers['auth']).toContain(`1`);
     });
 
     it('Should utilize extra introspection options', async () => {
       const introspectionOptions = {
-        descriptions: false
-      }
+        descriptions: false,
+      };
       const [source] = await loader.load(testUrl, {
         ...introspectionOptions,
         customFetch: async (_, opts) => {
@@ -202,16 +220,18 @@ input TestInput {
           });
           const expectedAST = parse(getIntrospectionQuery(introspectionOptions), {
             noLocation: true,
-          })
+          });
           expect(receivedAST).toMatchObject(expectedAST);
-          return new Response(JSON.stringify({
-            data: introspectionFromSchema(testSchema, introspectionOptions)
-          }))
-        }
+          return new Response(
+            JSON.stringify({
+              data: introspectionFromSchema(testSchema, introspectionOptions),
+            })
+          );
+        },
       });
 
       expect(source).toBeDefined();
-      assertNonMaybe(source.schema)
+      assertNonMaybe(source.schema);
       expect(source.schema.getQueryType()!.description).toBeUndefined();
     });
 
@@ -240,14 +260,14 @@ input TestInput {
               operationName: receivedOperationName,
               variableValues: receivedVariables,
             })
-          )
+          );
           return new Response(responseBody);
-        }
+        },
       });
 
       const testVariableValue = 'A';
 
-      assertNonMaybe(source.schema)
+      assertNonMaybe(source.schema);
       const result = await execute({
         schema: source.schema,
         document: parse(/* GraphQL */ `
@@ -277,10 +297,12 @@ input TestInput {
       await loader.load(url, {
         customFetch: async url => {
           expect(url.toString()).toBe(address.host + address.path);
-          return new Response(JSON.stringify({
-            data: introspectionFromSchema(testSchema)
-          }));
-        }
+          return new Response(
+            JSON.stringify({
+              data: introspectionFromSchema(testSchema),
+            })
+          );
+        },
       });
       expect.assertions(1);
     });
@@ -294,10 +316,12 @@ input TestInput {
       await loader.load(url, {
         customFetch: async url => {
           expect(url.toString()).toBe('http://foo:8080/graphql');
-          return new Response(JSON.stringify({
-            data: introspectionFromSchema(testSchema)
-          }));
-        }
+          return new Response(
+            JSON.stringify({
+              data: introspectionFromSchema(testSchema),
+            })
+          );
+        },
       });
       expect.assertions(1);
     });
@@ -311,10 +335,12 @@ input TestInput {
       await loader.load(url, {
         customFetch: async url => {
           expect(url.toString()).toBe('https://foo:8080/graphql');
-          return new Response(JSON.stringify({
-            data: introspectionFromSchema(testSchema)
-          }));
-        }
+          return new Response(
+            JSON.stringify({
+              data: introspectionFromSchema(testSchema),
+            })
+          );
+        },
       });
       expect.assertions(1);
     });
@@ -324,13 +350,13 @@ input TestInput {
       const [result] = await loader.load(testHost + testPath, {
         customFetch: async () => {
           return new Response(testTypeDefs);
-        }
+        },
       });
 
-      assertNonMaybe(result.document)
+      assertNonMaybe(result.document);
       expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
-    })
-    it('should handle results with handleAsSDL option even if it doesn\'t end with .graphql', async () => {
+    });
+    it("should handle results with handleAsSDL option even if it doesn't end with .graphql", async () => {
       const testHost = 'http://localhost:3000';
       const testPath = '/sdl';
 
@@ -338,23 +364,27 @@ input TestInput {
         handleAsSDL: true,
         customFetch: async () => {
           return new Response(testTypeDefs);
-        }
+        },
       });
 
-      assertNonMaybe(result.document)
+      assertNonMaybe(result.document);
       expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
-    })
+    });
     it('should handle subscriptions - new graphql-ws', async () => {
       const testUrl = 'http://localhost:8081/graphql';
       const [{ schema }] = await loader.load(testUrl, {
-        customFetch: async () => new Response(JSON.stringify({
-          data: introspectionFromSchema(testSchema)
-        }), {
-          headers: {
-            'content-type': 'application/json'
-          }
-        }),
-        subscriptionsProtocol: SubscriptionProtocol.WS
+        customFetch: async () =>
+          new Response(
+            JSON.stringify({
+              data: introspectionFromSchema(testSchema),
+            }),
+            {
+              headers: {
+                'content-type': 'application/json',
+              },
+            }
+          ),
+        subscriptionsProtocol: SubscriptionProtocol.WS,
       });
 
       httpServer = http.createServer(function weServeSocketsOnly(_, res) {
@@ -364,7 +394,7 @@ input TestInput {
 
       const wsServer = new WSServer({
         server: httpServer,
-        path: '/graphql'
+        path: '/graphql',
       });
 
       const subscriptionServer = useServer(
@@ -373,14 +403,14 @@ input TestInput {
           execute,
           subscribe,
         },
-        wsServer,
+        wsServer
       );
 
       httpServer.listen(8081);
-      assertNonMaybe(schema)
-      const asyncIterator = await subscribe({
+      assertNonMaybe(schema);
+      const asyncIterator = (await subscribe({
         schema,
-        document: parse(/* GraphQL */`
+        document: parse(/* GraphQL */ `
           subscription TestMessage {
             testMessage {
               number
@@ -388,11 +418,10 @@ input TestInput {
           }
         `),
         contextValue: {},
-      }) as AsyncIterableIterator<ExecutionResult>;
+      })) as AsyncIterableIterator<ExecutionResult>;
 
       expect(asyncIterator['errors']).toBeFalsy();
       expect(asyncIterator['errors']?.length).toBeFalsy();
-
 
       // eslint-disable-next-line no-inner-declarations
       async function getNextResult() {
@@ -411,21 +440,24 @@ input TestInput {
     it('should handle subscriptions - legacy subscriptions-transport-ws', async () => {
       const testUrl = 'http://localhost:8081/graphql';
       const [{ schema }] = await loader.load(testUrl, {
-        customFetch: async () => new Response(JSON.stringify({
-          data: introspectionFromSchema(testSchema)
-        }), {
-          headers: {
-            'content-type': 'application/json'
-          }
-        }),
-        subscriptionsProtocol: SubscriptionProtocol.LEGACY_WS
+        customFetch: async () =>
+          new Response(
+            JSON.stringify({
+              data: introspectionFromSchema(testSchema),
+            }),
+            {
+              headers: {
+                'content-type': 'application/json',
+              },
+            }
+          ),
+        subscriptionsProtocol: SubscriptionProtocol.LEGACY_WS,
       });
 
       httpServer = http.createServer(function weServeSocketsOnly(_, res) {
         res.writeHead(404);
         res.end();
       });
-
 
       httpServer.listen(8081);
 
@@ -438,12 +470,12 @@ input TestInput {
         {
           server: httpServer,
           path: '/graphql',
-        },
+        }
       );
-      assertNonMaybe(schema)
-      const asyncIterator = await subscribe({
+      assertNonMaybe(schema);
+      const asyncIterator = (await subscribe({
         schema,
-        document: parse(/* GraphQL */`
+        document: parse(/* GraphQL */ `
           subscription TestMessage {
             testMessage {
               number
@@ -451,11 +483,10 @@ input TestInput {
           }
         `),
         contextValue: {},
-      }) as AsyncIterableIterator<ExecutionResult>;
+      })) as AsyncIterableIterator<ExecutionResult>;
 
       expect(asyncIterator['errors']).toBeFalsy();
       expect(asyncIterator['errors']?.length).toBeFalsy();
-
 
       // eslint-disable-next-line no-inner-declarations
       async function getNextResult() {
@@ -477,28 +508,33 @@ input TestInput {
       const [{ schema }] = await loader.load(testUrl, {
         customFetch: async (url, options) => {
           if (String(options?.body).includes('IntrospectionQuery')) {
-            return new Response(JSON.stringify({
-              data: introspectionFromSchema(testSchema)
-            }), {
-              headers: {
-                'content-type': 'application/json'
+            return new Response(
+              JSON.stringify({
+                data: introspectionFromSchema(testSchema),
+              }),
+              {
+                headers: {
+                  'content-type': 'application/json',
+                },
               }
-            })
+            );
           }
           return defaultAsyncFetch(url, options);
         },
-        subscriptionsProtocol: SubscriptionProtocol.GRAPHQL_SSE
+        subscriptionsProtocol: SubscriptionProtocol.GRAPHQL_SSE,
       });
 
-      httpServer = http.createServer(createHandler({
-        schema: testSchema,
-      }));
+      httpServer = http.createServer(
+        createHandler({
+          schema: testSchema,
+        })
+      );
       httpServer.listen(8081);
 
-      assertNonMaybe(schema)
-      const asyncIterator = await subscribe({
+      assertNonMaybe(schema);
+      const asyncIterator = (await subscribe({
         schema,
-        document: parse(/* GraphQL */`
+        document: parse(/* GraphQL */ `
           subscription TestMessage {
             testMessage {
               number
@@ -506,7 +542,7 @@ input TestInput {
           }
         `),
         contextValue: {},
-      }) as AsyncIterableIterator<ExecutionResult>;
+      })) as AsyncIterableIterator<ExecutionResult>;
 
       expect(asyncIterator['errors']).toBeFalsy();
       expect(asyncIterator['errors']?.length).toBeFalsy();
@@ -523,13 +559,16 @@ input TestInput {
       expect(await getNextResult()).toBe(2);
 
       await asyncIterator.return!();
-    })
+    });
     it('should handle file uploads', async () => {
-
       const app = express();
-      app.use(testPath, graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }), graphqlHTTP({
-        schema: testSchema,
-      }));
+      app.use(
+        testPath,
+        graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }),
+        graphqlHTTP({
+          schema: testSchema,
+        })
+      );
 
       httpServer = http.createServer(app);
       httpServer.listen(3000);
@@ -542,12 +581,12 @@ input TestInput {
 
       const absoluteFilePath = join(__dirname, fileName);
 
-      const content = readFileSync(absoluteFilePath, 'utf8')
-      assertNonMaybe(schema)
+      const content = readFileSync(absoluteFilePath, 'utf8');
+      assertNonMaybe(schema);
       const undici = require('undici');
       const result = await execute({
         schema,
-        document: parse(/* GraphQL */`
+        document: parse(/* GraphQL */ `
           mutation UploadFile($file: Upload!, $nullVar: TestInput, $nonObjectVar: String) {
             uploadFile(file: $file, dummyVar: $nullVar, secondDummyVar: $nonObjectVar) {
               filename
@@ -556,72 +595,76 @@ input TestInput {
           }
         `),
         variableValues: {
-          file: undici.File ? new undici.File([content], fileName, { type: 'text/plain' }) : createReadStream(absoluteFilePath),
+          file: undici.File
+            ? new undici.File([content], fileName, { type: 'text/plain' })
+            : createReadStream(absoluteFilePath),
           nullVar: null,
-          nonObjectVar: 'somefilename.txt'
+          nonObjectVar: 'somefilename.txt',
         },
-      })
+      });
 
       expect(result.errors).toBeFalsy();
-      assertNonMaybe(result.data)
+      assertNonMaybe(result.data);
       const uploadFileData: any = result.data?.['uploadFile'];
       expect(uploadFileData?.filename).toBe(fileName);
       expect(uploadFileData?.content).toBe(content);
     });
 
-    describe("helix compat", () => {
-      it("should handle helix multipart response result", async () => {
+    describe('helix compat', () => {
+      it('should handle helix multipart response result', async () => {
         const chunkDatas = [
           { data: { foo: {} }, hasNext: true },
-          { data: { a: 1 }, path: ["foo"], hasNext: true },
-          { data: { a: 1, b: 2 }, path: ["foo"], hasNext: false }
+          { data: { a: 1 }, path: ['foo'], hasNext: true },
+          { data: { a: 1, b: 2 }, path: ['foo'], hasNext: false },
         ];
         const expectedDatas: ExecutionResult[] = [
           {
             data: {
-              foo: {}
-            }
-          },
-          {
-            data: {
-              foo: {
-                a: 1
-              }
-            }
+              foo: {},
+            },
           },
           {
             data: {
               foo: {
                 a: 1,
-                b: 2
-              }
-            }
-          }
+              },
+            },
+          },
+          {
+            data: {
+              foo: {
+                a: 1,
+                b: 2,
+              },
+            },
+          },
         ];
         const serverPort = 1335;
-        const serverHost = "http://localhost:" + serverPort;
+        const serverHost = 'http://localhost:' + serverPort;
         httpServer = http.createServer((_, res) => {
           res.writeHead(200, {
             // prettier-ignore
             "Connection": "keep-alive",
-            "Content-Type": 'multipart/mixed; boundary="-"',
-            "Transfer-Encoding": "chunked",
+            'Content-Type': 'multipart/mixed; boundary="-"',
+            'Transfer-Encoding': 'chunked',
           });
 
           res.write(`---`);
 
-          chunkDatas.forEach(chunkData => sleep(300).then(() => {
-            const chunk = Buffer.from(JSON.stringify(chunkData), "utf8");
-            const data = ["", "Content-Type: application/json; charset=utf-8", "", chunk, "", `---`];
-            res.write(data.join("\r\n"));
-          }));
+          chunkDatas.forEach(chunkData =>
+            sleep(300).then(() => {
+              const chunk = Buffer.from(JSON.stringify(chunkData), 'utf8');
+              const data = ['', 'Content-Type: application/json; charset=utf-8', '', chunk, '', `---`];
+              res.write(data.join('\r\n'));
+            })
+          );
 
           sleep(1000).then(() => {
-            res.write("\r\n-----\r\n");
+            res.write('\r\n-----\r\n');
             res.end();
           });
         });
-        await new Promise<void>((resolve) => httpServer.listen(serverPort, resolve));
+        await new Promise<void>(resolve => httpServer.listen(serverPort, resolve));
 
         const executor = await loader.getExecutorAsync(serverHost);
         const result = await executor({
@@ -634,7 +677,7 @@ input TestInput {
                 }
               }
             }
-          `)
+          `),
         });
 
         assertAsyncIterable(result);
@@ -644,21 +687,17 @@ input TestInput {
         expect(expectedDatas.length).toBe(0);
       });
 
-      it("should handle SSE subscription result", async () => {
-        const expectedDatas: ExecutionResult[] = [
-          { data: { foo: 1 } },
-          { data: { foo: 2 } },
-          { data: { foo: 3 } }
-        ];
+      it('should handle SSE subscription result', async () => {
+        const expectedDatas: ExecutionResult[] = [{ data: { foo: 1 } }, { data: { foo: 2 } }, { data: { foo: 3 } }];
         const serverPort = 1336;
-        const serverHost = "http://localhost:" + serverPort;
+        const serverHost = 'http://localhost:' + serverPort;
 
         httpServer = http.createServer((_, res) => {
           res.writeHead(200, {
-            "Content-Type": "text/event-stream",
+            'Content-Type': 'text/event-stream',
             // prettier-ignore
             "Connection": "keep-alive",
-            "Cache-Control": "no-cache",
+            'Cache-Control': 'no-cache',
           });
 
           expectedDatas.forEach(result => sleep(300).then(() => res.write(`data: ${JSON.stringify(result)}\n\n`)));
@@ -666,38 +705,42 @@ input TestInput {
           sleep(1000).then(() => res.end());
         });
 
-        await new Promise<void>((resolve) => httpServer.listen(serverPort, () => resolve()));
+        await new Promise<void>(resolve => httpServer.listen(serverPort, () => resolve()));
 
         const executor = await loader.getExecutorAsync(`${serverHost}/graphql`, {
-          subscriptionsProtocol: SubscriptionProtocol.SSE
+          subscriptionsProtocol: SubscriptionProtocol.SSE,
         });
         const result = await executor({
-          document: parse(/* GraphQL */ ` subscription { foo } `)
-        })
-        assertAsyncIterable(result)
+          document: parse(/* GraphQL */ `
+            subscription {
+              foo
+            }
+          `),
+        });
+        assertAsyncIterable(result);
 
         for await (const singleResult of result) {
           expect(singleResult).toStrictEqual(expectedDatas.shift()!);
         }
         expect(expectedDatas.length).toBe(0);
-      })
-      it("terminates SSE subscriptions when calling return on the AsyncIterable", async () => {
+      });
+      it('terminates SSE subscriptions when calling return on the AsyncIterable', async () => {
         const sentDatas: ExecutionResult[] = [
           { data: { foo: 1 } },
           { data: { foo: 2 } },
           { data: { foo: 3 } },
-          { data: { foo: 4 } }
+          { data: { foo: 4 } },
         ];
         const serverPort = 1336;
-        const serverHost = "http://localhost:" + serverPort;
+        const serverHost = 'http://localhost:' + serverPort;
 
         let serverResponseEnded$: Promise<boolean>;
         httpServer = http.createServer((_, res) => {
           res.writeHead(200, {
-            "Content-Type": "text/event-stream",
+            'Content-Type': 'text/event-stream',
             // prettier-ignore
             "Connection": "keep-alive",
-            "Cache-Control": "no-cache",
+            'Cache-Control': 'no-cache',
           });
 
           const ping = setInterval(() => {
@@ -705,21 +748,27 @@ input TestInput {
             res.write(':\n\n');
           }, 50);
           sentDatas.forEach(result => sleep(300).then(() => res.write(`data: ${JSON.stringify(result)}\n\n`)));
-          serverResponseEnded$ = new Promise(resolve => res.once('close', () => {
-            resolve(true);
-            clearInterval(ping);
-          }));
+          serverResponseEnded$ = new Promise(resolve =>
+            res.once('close', () => {
+              resolve(true);
+              clearInterval(ping);
+            })
+          );
         });
 
-        await new Promise<void>((resolve) => httpServer.listen(serverPort, () => resolve()));
+        await new Promise<void>(resolve => httpServer.listen(serverPort, () => resolve()));
 
         const executor = await loader.getExecutorAsync(`${serverHost}/graphql`, {
-          subscriptionsProtocol: SubscriptionProtocol.SSE
+          subscriptionsProtocol: SubscriptionProtocol.SSE,
         });
         const result = await executor({
-          document: parse(/* GraphQL */ ` subscription { foo } `)
-        })
-        assertAsyncIterable(result)
+          document: parse(/* GraphQL */ `
+            subscription {
+              foo
+            }
+          `),
+        });
+        assertAsyncIterable(result);
 
         const iterator = result[Symbol.asyncIterator]();
 
@@ -732,15 +781,14 @@ input TestInput {
         const doneResult = await iterator.next();
         expect(doneResult).toStrictEqual({ done: true, value: undefined });
         expect(await serverResponseEnded$!).toBe(true);
-      })
-    })
+      });
+    });
   });
 });
 
-
 function assertAsyncIterable(input: unknown): asserts input is AsyncIterable<any> {
   if (!isAsyncIterable(input)) {
-    throw new Error("Expected AsyncIterable.")
+    throw new Error('Expected AsyncIterable.');
   }
 }
 
