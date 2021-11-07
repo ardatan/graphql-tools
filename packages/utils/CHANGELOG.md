@@ -1,5 +1,12 @@
 # @graphql-tools/utils
 
+## 8.5.3
+
+### Patch Changes
+
+- 960e178a: fix: isAsyncIterable should check if it is an object with iterator factory function
+- 947a3fe0: enhance(utils): show error with details in inspect fn
+
 ## 8.5.2
 
 ### Patch Changes
