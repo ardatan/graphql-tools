@@ -288,22 +288,14 @@ describe('printSchemaWithDirectives', () => {
       transforms: [new RenameTypes(typeName => `My${typeName}`)],
     });
     const printedTransformedSchema = printSchemaWithDirectives(transformedSchema);
-    expect(printedTransformedSchema).not.toContain(/* GraphQL */ `
-      type Foo
-    `);
-    expect(printedTransformedSchema).toContain(/* GraphQL */ `
-      type MyFoo
-    `);
-    expect(printedTransformedSchema).not.toContain(/* GraphQL */ `
-      type Bar
-    `);
-    expect(printedTransformedSchema).toContain(/* GraphQL */ `
-      type MyBar
-    `);
-    expect(printedTransformedSchema).not.toContain(/* GraphQL */ `bar: Bar`);
-    expect(printedTransformedSchema).toContain(/* GraphQL */ `bar: MyBar`);
-    expect(printedTransformedSchema).not.toContain(/* GraphQL */ `foo: Foo`);
-    expect(printedTransformedSchema).toContain(/* GraphQL */ `foo: MyFoo`);
+    expect(printedTransformedSchema).not.toContain('type Foo');
+    expect(printedTransformedSchema).toContain('type MyFoo');
+    expect(printedTransformedSchema).not.toContain('type Bar');
+    expect(printedTransformedSchema).toContain('type MyBar');
+    expect(printedTransformedSchema).not.toContain('bar: Bar');
+    expect(printedTransformedSchema).toContain('bar: MyBar');
+    expect(printedTransformedSchema).not.toContain('foo: Foo');
+    expect(printedTransformedSchema).toContain('foo: MyFoo');
   });
   it('should print all directives', async () => {
     const typeDefs = /* GraphQL */ `
