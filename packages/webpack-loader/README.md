@@ -28,7 +28,7 @@ query MyQuery {
 If you have configured [the webpack @graphql-tools/webpack-loader](#webpack-loading-and-preprocessing), you can import modules containing graphQL queries. The imported value will be the pre-built AST.
 
 ```typescript
-import MyQuery from './query.graphql'
+import MyQuery from './query.graphql';
 ```
 
 ### Preprocessing queries and fragments

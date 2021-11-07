@@ -93,10 +93,7 @@ export interface SubschemaConfig {
   merge?: Record<string, MergedTypeConfig>;
   batch?: boolean;
   batchingOptions?: {
-    extensionsReducer?: (
-      mergedExtensions: Record<string, any>,
-      request: Request
-    ) => Record<string, any>,
+    extensionsReducer?: (mergedExtensions: Record<string, any>, request: Request) => Record<string, any>,
     dataLoaderOptions?: DataLoader.Options<K, V, C>,
   };
 }

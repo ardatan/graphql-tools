@@ -26,30 +26,26 @@ const { UrlLoader } = require('@graphql-tools/url-loader');
 const { JsonFileLoader } = require('@graphql-tools/json-file-loader');
 const { GraphQLFileLoader } = require('@graphql-tools/graphql-file-loader');
 
-const schema1 = await loadSchema('type A { foo: String }');   // load from string w/ no loaders
+const schema1 = await loadSchema('type A { foo: String }'); // load from string w/ no loaders
 
-const schema2 = await loadSchema('http://localhost:3000/graphql', {   // load from endpoint
-    loaders: [
-        new UrlLoader()
-    ]
+const schema2 = await loadSchema('http://localhost:3000/graphql', {
+  // load from endpoint
+  loaders: [new UrlLoader()],
 });
 
-const schema3 = await loadSchema('./schema.json', {   // load from local json file
-    loaders: [
-        new JsonFileLoader()
-    ]
+const schema3 = await loadSchema('./schema.json', {
+  // load from local json file
+  loaders: [new JsonFileLoader()],
 });
 
-const schema4 = await loadSchema('schema.graphql', {  // load from a single schema file
-    loaders: [
-        new GraphQLFileLoader()
-    ]
+const schema4 = await loadSchema('schema.graphql', {
+  // load from a single schema file
+  loaders: [new GraphQLFileLoader()],
 });
 
-const schema5 = await loadSchema('./src/**/*.graphql', { // load from multiple files using glob
-    loaders: [
-        new GraphQLFileLoader()
-    ]
+const schema5 = await loadSchema('./src/**/*.graphql', {
+  // load from multiple files using glob
+  loaders: [new GraphQLFileLoader()],
 });
 ```
 
@@ -115,6 +111,7 @@ type Comment {
   text: String!
 }
 ```
+
 ### Binding to HTTP Server
 
 You can extend loaded schema with resolvers
@@ -129,9 +126,7 @@ import * as graphqlHTTP from 'express-graphql';
 
 // Load schema from the file
 const schema = loadSchemaSync(join(__dirname, './schema.graphql'), {
-  loaders: [
-    new GraphQLFileLoader(),
-  ]
+  loaders: [new GraphQLFileLoader()],
 });
 
 // Write some resolvers
@@ -139,27 +134,25 @@ const resolvers = {};
 
 // Add resolvers to the schema
 const schemaWithResolvers = addResolversToSchema({
-    schema,
-    resolvers,
+  schema,
+  resolvers,
 });
 
 const app = express();
 
 app.use(
-    graphqlHTTP({
-        schema: schemaWithResolvers,
-        graphiql: true,
-    })
+  graphqlHTTP({
+    schema: schemaWithResolvers,
+    graphiql: true,
+  })
 );
 
 app.listen(4000, () => {
-    console.info(`Server listening on http://localhost:4000`)
-})
-
+  console.info(`Server listening on http://localhost:4000`);
+});
 ```
 
 ## Loaders
-
 
 There are a lot of loaders that load your schemas and documents from different sources. You need to provide those loaders under `loaders` parameter like below;
 

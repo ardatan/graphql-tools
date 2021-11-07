@@ -11,7 +11,7 @@ The graphql-tools package allows you to create a GraphQL.js GraphQLSchema instan
 When using `graphql-tools`, you describe the schema as a GraphQL type language string:
 
 ```js
-const typeDefs = /* GraphQL */`
+const typeDefs = /* GraphQL */ `
   type Author {
     id: Int!
     firstName: String
@@ -37,9 +37,7 @@ const typeDefs = /* GraphQL */`
 
   # this schema allows the following mutation:
   type Mutation {
-    upvotePost (
-      postId: Int!
-    ): Post
+    upvotePost(postId: Int!): Post
   }
 `;
 ```
@@ -226,8 +224,8 @@ const jsSchema = makeExecutableSchema({
   resolvers, // optional
   logger, // optional
   resolverValidationOptions: {}, // optional
-  parseOptions: {},  // optional
-  inheritResolversFromInterfaces: false  // optional
+  parseOptions: {}, // optional
+  inheritResolversFromInterfaces: false, // optional
 });
 ```
 
@@ -250,4 +248,3 @@ const jsSchema = makeExecutableSchema({
   - `requireResolversToMatchSchema` requires every resolver within the resolver map to correspond to a GraphQL entity within the schema. Defaults to `error`, to help catch common errors.
 
 - `inheritResolversFromInterfaces` GraphQL Objects that implement interfaces will inherit missing resolvers from their interface types defined in the `resolvers` object.
-
