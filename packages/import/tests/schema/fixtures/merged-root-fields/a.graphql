@@ -1,9 +1,9 @@
 # import Query.*, Dummy.* from 'b.graphql'
 
 type Query {
-    helloA: String
+  helloA: String
 }
 
 type Dummy {
-    field: String
+  field: String
 }

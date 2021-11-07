@@ -15,16 +15,9 @@ type Viewer {
 }
 
 type Mutation {
+  signup(email: String!, password: String!, firstName: String!, lastName: String!, phone: String!): User!
 
-  signup(
-    email: String!
-    password: String!
-    firstName: String!
-    lastName: String!
-    phone: String!
-  ): User!
-
-  login(email: String! password: String!): User!
+  login(email: String!, password: String!): User!
 
   addPaymentMethod(
     cardNumber: String!
@@ -37,13 +30,7 @@ type Mutation {
     country: String!
   ): User!
 
-  book(
-    placeId: ID!
-    checkIn: String!
-    checkOut: String!
-    numGuests: Int!
-  ): BookingResult!
-
+  book(placeId: ID!, checkIn: String!, checkOut: String!, numGuests: Int!): BookingResult!
 }
 
 type BookingResult {

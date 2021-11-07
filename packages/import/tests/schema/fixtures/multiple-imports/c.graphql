@@ -6,4 +6,4 @@ type Query {
 
 type Mutation {
   c: B
-} 
+}

@@ -1,5 +1,5 @@
 # import User from './level2.graphql'
 
 type Query {
-    user: User
+  user: User
 }

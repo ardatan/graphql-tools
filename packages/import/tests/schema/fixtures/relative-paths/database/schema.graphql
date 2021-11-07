@@ -12,7 +12,6 @@ type Post implements Node {
   text: String!
 }
 
-
 #
 # Other Types
 #
@@ -121,8 +120,24 @@ input PostWhereUniqueInput {
 }
 
 type Query {
-  posts(where: PostFilter, orderBy: PostOrderBy, skip: Int, after: String, before: String, first: Int, last: Int): [Post!]!
+  posts(
+    where: PostFilter
+    orderBy: PostOrderBy
+    skip: Int
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): [Post!]!
   post(where: PostWhereUniqueInput!): Post
-  postsConnection(where: PostFilter, orderBy: PostOrderBy, skip: Int, after: String, before: String, first: Int, last: Int): PostConnection!
+  postsConnection(
+    where: PostFilter
+    orderBy: PostOrderBy
+    skip: Int
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostConnection!
   node(id: ID!): Node
 }

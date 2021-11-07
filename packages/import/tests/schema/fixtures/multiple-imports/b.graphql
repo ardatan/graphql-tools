@@ -8,4 +8,4 @@ type Mutation {
 
 type B {
   x: String
-} 
+}
