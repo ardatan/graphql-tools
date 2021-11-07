@@ -1,5 +1,15 @@
 # @graphql-tools/wrap
 
+## 8.3.2
+
+### Patch Changes
+
+- 960e178a: fix: isAsyncIterable should check if it is an object with iterator factory function
+- Updated dependencies [960e178a]
+- Updated dependencies [947a3fe0]
+  - @graphql-tools/delegate@8.4.2
+  - @graphql-tools/utils@8.5.3
+
 ## 8.3.1
 
 ### Patch Changes
