@@ -1,5 +1,9 @@
 // Taken from graphql-js
 // https://github.com/graphql/graphql-js/blob/main/src/jsutils/inspect.ts
+
+import { GraphQLError } from 'graphql';
+import { isAggregateError } from './AggregateError';
+
 /* eslint-disable @typescript-eslint/ban-types */
 const MAX_ARRAY_LENGTH = 10;
 const MAX_RECURSIVE_DEPTH = 2;
@@ -24,9 +28,23 @@ function formatValue(value: unknown, seenValues: ReadonlyArray<unknown>): string
   }
 }
 
+function formatError(value: Error): string {
+  if (value instanceof GraphQLError) {
+    return value.toString();
+  }
+  return `${value.name}: ${value.message};\n ${value.stack}`;
+}
+
 function formatObjectValue(value: object | null, previouslySeenValues: ReadonlyArray<unknown>): string {
   if (value === null) {
     return 'null';
+  }
+
+  if (value instanceof Error) {
+    if (isAggregateError(value)) {
+      return formatError(value) + '\n' + formatArray(value.errors, previouslySeenValues);
+    }
+    return formatError(value);
   }
 
   if (previouslySeenValues.includes(value)) {

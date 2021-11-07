@@ -25,3 +25,7 @@ if (typeof AggregateErrorImpl === 'undefined') {
 }
 
 export { AggregateErrorImpl as AggregateError };
+
+export function isAggregateError(error: Error): error is AggregateError {
+  return 'errors' in error && Array.isArray(error['errors']);
+}
