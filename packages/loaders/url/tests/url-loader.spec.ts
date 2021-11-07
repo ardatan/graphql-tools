@@ -721,13 +721,15 @@ input TestInput {
         })
         assertAsyncIterable(result)
 
-        const firstResult = await result.next();
+        const iterator = result[Symbol.asyncIterator]();
+
+        const firstResult = await iterator.next();
         expect(firstResult.value).toStrictEqual(sentDatas[0]);
-        const secondResult = await result.next();
+        const secondResult = await iterator.next();
         expect(secondResult.value).toStrictEqual(sentDatas[1]);
         // Stop the request
-        await result.return!();
-        const doneResult = await result.next();
+        await iterator.return!();
+        const doneResult = await iterator.next();
         expect(doneResult).toStrictEqual({ done: true, value: undefined });
         expect(await serverResponseEnded$!).toBe(true);
       })
@@ -737,10 +739,9 @@ input TestInput {
 
 
 function assertAsyncIterable(input: unknown): asserts input is AsyncIterable<any> {
-  if (isAsyncIterable(input)) {
-    return
+  if (!isAsyncIterable(input)) {
+    throw new Error("Expected AsyncIterable.")
   }
-  throw new Error("Expected AsyncIterable.")
 }
 
 function sleep(ms: number) {
