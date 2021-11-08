@@ -28,7 +28,7 @@
     "concurrently": "6.3.0",
     "cross-env": "7.0.3",
     "esbuild": "0.13.12",
-    "esbuild-register": "3.0.0",
+    "esbuild-register": "3.1.0",
     "next-remote-watch": "1.0.0",
     "open-cli": "7.0.1",
     "typescript": "4.4.4",
