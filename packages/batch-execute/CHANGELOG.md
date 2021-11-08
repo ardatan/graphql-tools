@@ -1,5 +1,47 @@
 # @graphql-tools/batch-execute
 
+## 8.3.1
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/utils@8.5.1
+
+## 8.3.0
+
+### Minor Changes
+
+- ad04dc79: enhance: make operationType optional
+
+### Patch Changes
+
+- Updated dependencies [ad04dc79]
+  - @graphql-tools/utils@8.5.0
+
+## 8.2.0
+
+### Minor Changes
+
+- 149afddb: fix: getting ready for GraphQL v16
+
+### Patch Changes
+
+- Updated dependencies [149afddb]
+  - @graphql-tools/utils@8.4.0
+
+## 8.1.1
+
+### Patch Changes
+
+- 014937db: batch-execute enhancements:
+  - fixes bugs with batched fragment definitions
+  - unpathed errors are now returned for all batch results
+  - the "graphqlTools" prefix is simplified down to just "\_"
+  - new tests and documentation
+- Updated dependencies [014937db]
+  - @graphql-tools/utils@8.2.4
+
 ## 8.1.0
 
 ### Minor Changes

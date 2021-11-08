@@ -3,12 +3,7 @@
   "parserOptions": {
     "project": "./tsconfig.json"
   },
-  "extends": [
-    "eslint:recommended",
-    "standard",
-    "prettier",
-    "plugin:@typescript-eslint/recommended"
-  ],
+  "extends": ["eslint:recommended", "standard", "prettier", "plugin:@typescript-eslint/recommended"],
   "plugins": ["@typescript-eslint"],
   "rules": {
     "no-empty": "off",
@@ -34,7 +29,8 @@
     "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/interface-name-prefix": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
-    "default-param-last": "off"
+    "default-param-last": "off",
+    "import/no-extraneous-dependencies": ["error", { "devDependencies": ["**/*.test.ts", "**/*.spec.ts"] }]
   },
   "env": {
     "es6": true,
@@ -42,15 +38,13 @@
   },
   "overrides": [
     {
-      "files": [
-        "**/test/**/*.{ts,js}",
-        "*.spec.ts"
-      ],
+      "files": ["**/{test,tests,testing}/**/*.{ts,js}", "*.{spec,test}.{ts,js}"],
       "env": {
         "jest": true
       },
       "rules": {
-        "@typescript-eslint/no-unused-vars": "off"
+        "@typescript-eslint/no-unused-vars": "off",
+        "import/no-extraneous-dependencies": "off"
       }
     }
   ],
@@ -63,7 +57,7 @@
     "packages/loaders/code-file/tests/test-files",
     "packages/loaders/git/tests/test-files"
   ],
-  "globals":{
+  "globals": {
     "BigInt": true
   }
 }

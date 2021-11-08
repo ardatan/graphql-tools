@@ -4,7 +4,7 @@ import { wrapSchema, WrapFields } from '@graphql-tools/wrap';
 
 describe('WrapFields', () => {
   const subschema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type User {
         id: ID!
         street: String
@@ -30,12 +30,7 @@ describe('WrapFields', () => {
 
   const schema = wrapSchema({
     schema: subschema,
-    transforms: [new WrapFields(
-      'User',
-      ['address'],
-      ['Address'],
-      ['street', 'city', 'zipcode'],
-    )]
+    transforms: [new WrapFields('User', ['address'], ['Address'], ['street', 'city', 'zipcode'])],
   });
 
   test('schema is transformed with new type and field', async () => {
@@ -43,11 +38,7 @@ describe('WrapFields', () => {
     const addressType = schema.getType('Address') as GraphQLObjectType;
 
     expect(userType.getFields()['address']).toBeDefined();
-    expect(Object.keys(addressType.getFields()).sort()).toEqual([
-      'city',
-      'street',
-      'zipcode',
-    ]);
+    expect(Object.keys(addressType.getFields()).sort()).toEqual(['city', 'street', 'zipcode']);
   });
 
   test('select fields are wrapped and queryable', async () => {
@@ -64,7 +55,7 @@ describe('WrapFields', () => {
             }
           }
         }
-      `
+      `,
     });
 
     expect(result).toEqual({

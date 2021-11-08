@@ -1,4 +1,4 @@
 type User @key(fields: "id") {
-    id: ID!
-    name: String
+  id: ID!
+  name: String
 }

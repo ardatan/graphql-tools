@@ -1,4 +1,4 @@
-import { parse } from 'graphql';
+import { OperationTypeNode, parse } from 'graphql';
 
 import { createRequest } from '@graphql-tools/delegate';
 import { parseSelectionSet } from '@graphql-tools/utils';
@@ -9,7 +9,7 @@ function removeLocations(value: any): any {
   }
 
   if (Array.isArray(value)) {
-    return value.map((v) => removeLocations(v));
+    return value.map(v => removeLocations(v));
   } else if (typeof value === 'object') {
     const newValue = {};
     for (const key in value) {
@@ -27,19 +27,19 @@ describe('requests', () => {
   test('should create requests', () => {
     const request = removeLocations(
       createRequest({
-        targetOperation: 'query',
+        targetOperation: 'query' as OperationTypeNode,
         targetFieldName: 'version',
         selectionSet: parseSelectionSet(`{
           major
           minor
           patch
         }`),
-        targetOperationName: 'test'
-      }),
+        targetOperationName: 'test',
+      })
     );
 
     const expectedRequest = removeLocations({
-      document: parse(/* GraphQL */`
+      document: parse(/* GraphQL */ `
         query test {
           version {
             major

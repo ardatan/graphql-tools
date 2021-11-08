@@ -7,9 +7,9 @@ const monorepo = useMonorepo({
   dirname: __dirname,
 });
 
-function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | undefined>{
+function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | undefined> {
   if (input == null) {
-    throw new Error("Value should be neither null nor undefined.")
+    throw new Error('Value should be neither null nor undefined.');
   }
 }
 
@@ -18,25 +18,25 @@ describe('Schema From Export', () => {
 
   runTests({
     async: loadSchema,
-    sync: loadSchemaSync
+    sync: loadSchemaSync,
   })(load => {
     it('should load the schema correctly from an introspection file', async () => {
       const schema = await load('./tests/loaders/schema/test-files/githunt.json', {
-        loaders: [new JsonFileLoader()]
+        loaders: [new JsonFileLoader()],
       });
       expect(isSchema(schema)).toBeTruthy();
     });
     it('should load the schema with correct descriptions', async () => {
       const schema = await load('./tests/loaders/schema/test-files/githunt.json', {
-        loaders: [new JsonFileLoader()]
+        loaders: [new JsonFileLoader()],
       });
       expect(isSchema(schema)).toBeTruthy();
       const introspectionSchema = require('./test-files/githunt.json').__schema;
       for (const typeName in schema.getTypeMap()) {
         if (!typeName.startsWith('__')) {
           const type = schema.getType(typeName);
-          assertNonMaybe(type)
-          const introspectionType = introspectionSchema.types.find((t: { name: string; }) => t.name === typeName);
+          assertNonMaybe(type);
+          const introspectionType = introspectionSchema.types.find((t: { name: string }) => t.name === typeName);
           if (type.description || introspectionType.description) {
             expect(type.description).toBe(introspectionType.description);
           }
@@ -44,9 +44,9 @@ describe('Schema From Export', () => {
             const fieldMap = type.getFields();
             for (const fieldName in fieldMap) {
               const field = fieldMap[fieldName];
-              const introspectionField = introspectionType.fields.find((f: { name: string; }) => f.name === fieldName);
+              const introspectionField = introspectionType.fields.find((f: { name: string }) => f.name === fieldName);
               if (field.description || introspectionField.description) {
-                assertNonMaybe(field.description)
+                assertNonMaybe(field.description);
                 expect(field.description.trim()).toBe(introspectionField.description.trim());
               }
             }
@@ -54,5 +54,5 @@ describe('Schema From Export', () => {
         }
       }
     });
-  })
+  });
 });

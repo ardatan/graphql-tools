@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/load",
-  "version": "7.3.2",
+  "version": "7.4.1",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -30,12 +30,12 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "devDependencies": {
-    "graphql-tag": "2.12.5",
+    "graphql-tag": "2.12.6",
     "graphql-type-json": "0.3.2"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^8.2.3",
-    "@graphql-tools/schema": "8.2.0",
+    "@graphql-tools/utils": "^8.5.1",
+    "@graphql-tools/schema": "8.3.1",
     "p-limit": "3.1.0",
     "tslib": "~2.3.0"
   },

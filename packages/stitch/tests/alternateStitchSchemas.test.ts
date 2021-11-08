@@ -13,6 +13,8 @@ import {
   GraphQLNamedType,
   Kind,
   execute,
+  OperationTypeNode,
+  GraphQLError,
 } from 'graphql';
 
 import {
@@ -47,7 +49,7 @@ import {
   subscriptionPubSubTrigger,
 } from '../../testing/fixtures/schemas';
 
-const linkSchema = /* GraphQL */`
+const linkSchema = /* GraphQL */ `
   """
   A new type linking the Property type.
   """
@@ -101,24 +103,16 @@ describe('merge schemas through transforms', () => {
     // namespace and strip schemas
     const propertySchemaTransforms = [
       new FilterRootFields(
-        (operation: string, rootField: string) =>
-          `${operation}.${rootField}` === 'Query.properties',
+        (operation: string, rootField: string) => `${operation}.${rootField}` === 'Query.properties'
       ),
       new RenameTypes((name: string) => `Properties_${name}`),
-      new RenameRootFields(
-        (_operation: string, name: string) => `Properties_${name}`,
-      ),
+      new RenameRootFields((_operation: string, name: string) => `Properties_${name}`),
       new PruneSchema(),
     ];
     const bookingSchemaTransforms = [
-      new FilterRootFields(
-        (operation: string, rootField: string) =>
-          `${operation}.${rootField}` === 'Query.bookings',
-      ),
+      new FilterRootFields((operation: string, rootField: string) => `${operation}.${rootField}` === 'Query.bookings'),
       new RenameTypes((name: string) => `Bookings_${name}`),
-      new RenameRootFields(
-        (_operation: string, name: string) => `Bookings_${name}`,
-      ),
+      new RenameRootFields((_operation: string, name: string) => `Bookings_${name}`),
       new PruneSchema(),
     ];
     const subscriptionSchemaTransforms = [
@@ -126,12 +120,10 @@ describe('merge schemas through transforms', () => {
         (operation: string, rootField: string) =>
           // must include a Query type otherwise graphql will error
           `${operation}.${rootField}` === 'Query.notifications' ||
-          `${operation}.${rootField}` === 'Subscription.notifications',
+          `${operation}.${rootField}` === 'Subscription.notifications'
       ),
       new RenameTypes((name: string) => `Subscriptions_${name}`),
-      new RenameRootFields(
-        (_operation: string, name: string) => `Subscriptions_${name}`,
-      ),
+      new RenameRootFields((_operation: string, name: string) => `Subscriptions_${name}`),
       new PruneSchema(),
     ];
 
@@ -161,7 +153,7 @@ describe('merge schemas through transforms', () => {
             if (args.id.startsWith('p')) {
               return delegateToSchema({
                 schema: propertySubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'propertyById',
                 args,
                 context,
@@ -171,7 +163,7 @@ describe('merge schemas through transforms', () => {
             } else if (args.id.startsWith('b')) {
               return delegateToSchema({
                 schema: bookingSubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'bookingById',
                 args,
                 context,
@@ -181,7 +173,7 @@ describe('merge schemas through transforms', () => {
             } else if (args.id.startsWith('c')) {
               return delegateToSchema({
                 schema: bookingSubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'customerById',
                 args,
                 context,
@@ -198,7 +190,7 @@ describe('merge schemas through transforms', () => {
             resolve: (parent, args, context, info) =>
               delegateToSchema({
                 schema: bookingSubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'bookingsByPropertyId',
                 args: {
                   propertyId: parent.id,
@@ -213,18 +205,20 @@ describe('merge schemas through transforms', () => {
           property: {
             selectionSet: () => ({
               kind: Kind.SELECTION_SET,
-              selections: [{
-                kind: Kind.FIELD,
-                name: {
-                  kind: Kind.NAME,
-                  value: 'propertyId',
-                }
-              }]
+              selections: [
+                {
+                  kind: Kind.FIELD,
+                  name: {
+                    kind: Kind.NAME,
+                    value: 'propertyId',
+                  },
+                },
+              ],
             }),
             resolve: (parent, _args, context, info) =>
               delegateToSchema({
                 schema: propertySubschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'propertyById',
                 args: {
                   id: parent.propertyId,
@@ -243,7 +237,7 @@ describe('merge schemas through transforms', () => {
     const result = await execute({
       schema: stitchedSchema,
       document: parse(/* GraphQL */ `
-        query($pid: ID!, $bid: ID!) {
+        query ($pid: ID!, $bid: ID!) {
           property: node(id: $pid) {
             __typename
             ... on Properties_Property {
@@ -270,7 +264,7 @@ describe('merge schemas through transforms', () => {
       variableValues: {
         pid: 'p1',
         bid: 'b1',
-      }
+      },
     });
 
     expect(result).toEqual({
@@ -318,7 +312,7 @@ describe('merge schemas through transforms', () => {
       Subscriptions_notifications: originalNotification.notifications,
     };
 
-    const subscription = parse(/* GraphQL */`
+    const subscription = parse(/* GraphQL */ `
       subscription Subscription {
         Subscriptions_notifications {
           text
@@ -326,14 +320,14 @@ describe('merge schemas through transforms', () => {
       }
     `);
 
-    const sub = await subscribe({ schema: stitchedSchema, document: subscription }) as AsyncIterableIterator<ExecutionResult>;
+    const sub = (await subscribe({
+      schema: stitchedSchema,
+      document: subscription,
+    })) as AsyncIterableIterator<ExecutionResult>;
 
     const payload = sub.next();
 
-    await subscriptionPubSub.publish(
-      subscriptionPubSubTrigger,
-      originalNotification,
-    );
+    await subscriptionPubSub.publish(subscriptionPubSubTrigger, originalNotification);
 
     expect(await payload).toEqual({ done: false, value: { data: transformedNotification } });
   });
@@ -345,11 +339,7 @@ describe('transform object fields', () => {
       schema: propertySchema,
       transforms: [
         new TransformObjectFields(
-          (
-            typeName: string,
-            fieldName: string,
-            fieldConfig: GraphQLFieldConfig<any, any>,
-          ) => {
+          (typeName: string, fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
             if (typeName !== 'Property' || fieldName !== 'name') {
               return undefined;
             }
@@ -371,15 +361,15 @@ describe('transform object fields', () => {
               },
             };
             return newFieldNode;
-          },
+          }
         ),
       ],
     });
 
     const result = await graphql({
       schema: transformedPropertySchema,
-      source: /* GraphQL */`
-        query($pid: ID!) {
+      source: /* GraphQL */ `
+        query ($pid: ID!) {
           propertyById(id: $pid) {
             id
             name
@@ -410,7 +400,7 @@ describe('transform object fields', () => {
 
 describe('optional arguments', () => {
   const schema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       enum Arg {
         possibleArg
       }
@@ -430,40 +420,40 @@ describe('optional arguments', () => {
   });
 
   it('work with schema stitching', async () => {
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       {
         test
       }
     `;
 
     const originalResult = await graphql({ schema, source: query });
-    assertSome(originalResult.data)
+    assertSome(originalResult.data);
     expect(originalResult.data['test']).toEqual(true);
 
     const stitchedResult = await graphql({ schema: stitchedSchema, source: query });
-    assertSome(stitchedResult.data)
+    assertSome(stitchedResult.data);
     expect(stitchedResult.data['test']).toEqual(true);
   });
 
   it('work with schema stitching when using variables', async () => {
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       query test($arg: Arg) {
         test(arg: $arg)
       }
     `;
 
     const originalResult = await graphql({ schema, source: query });
-    assertSome(originalResult.data)
+    assertSome(originalResult.data);
     expect(originalResult.data['test']).toEqual(true);
 
     const stitchedResult = await graphql({ schema: stitchedSchema, source: query });
-    assertSome(stitchedResult.data)
+    assertSome(stitchedResult.data);
     expect(stitchedResult.data['test']).toEqual(true);
   });
 
   // See https://github.com/graphql/graphql-js/issues/2533
   it('may not work as expected when explicitly passing in an undefined value', async () => {
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       query test($arg: Arg) {
         test(arg: $arg)
       }
@@ -474,7 +464,7 @@ describe('optional arguments', () => {
       source: query,
       variableValues: { arg: undefined },
     });
-    assertSome(originalResult.data)
+    assertSome(originalResult.data);
     expect(originalResult.data['test']).toEqual(false);
 
     const stitchedResult = await graphql({
@@ -482,7 +472,7 @@ describe('optional arguments', () => {
       source: query,
       variableValues: { arg: undefined },
     });
-    assertSome(stitchedResult.data)
+    assertSome(stitchedResult.data);
     expect(stitchedResult.data['test']).toEqual(false);
   });
 });
@@ -492,37 +482,31 @@ describe('default values', () => {
     const transformedPropertySchema = wrapSchema({
       schema: propertySchema,
       transforms: [
-        new TransformRootFields(
-          (
-            typeName,
-            fieldName,
-            fieldConfig,
-          ) => {
-            if (typeName === 'Query' && fieldName === 'jsonTest') {
-              assertSome(fieldConfig.args)
-              return [
-                'renamedJsonTest',
-                {
-                  ...fieldConfig,
-                  description: fieldConfig.deprecationReason,
-                  args: {
-                    ...fieldConfig.args,
-                    input: {
-                      ...fieldConfig.args['input'],
-                      defaultValue: { test: 'test' }
-                    }
-                  }
-                }
-              ];
-            }
-          },
-        ),
+        new TransformRootFields((typeName, fieldName, fieldConfig) => {
+          if (typeName === 'Query' && fieldName === 'jsonTest') {
+            assertSome(fieldConfig.args);
+            return [
+              'renamedJsonTest',
+              {
+                ...fieldConfig,
+                description: fieldConfig.deprecationReason,
+                args: {
+                  ...fieldConfig.args,
+                  input: {
+                    ...fieldConfig.args['input'],
+                    defaultValue: { test: 'test' },
+                  },
+                },
+              },
+            ];
+          }
+        }),
       ],
     });
 
     const result = await graphql({
       schema: transformedPropertySchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           renamedJsonTest
         }
@@ -547,7 +531,7 @@ describe('rename fields that implement interface fields', () => {
     };
 
     const originalSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         interface Node {
           id: ID!
         }
@@ -590,7 +574,7 @@ describe('rename fields that implement interface fields', () => {
       ],
     });
 
-    const originalQuery = /* GraphQL */`
+    const originalQuery = /* GraphQL */ `
       query {
         node {
           id
@@ -601,7 +585,7 @@ describe('rename fields that implement interface fields', () => {
       }
     `;
 
-    const newQuery = /* GraphQL */`
+    const newQuery = /* GraphQL */ `
       query {
         _node {
           id
@@ -631,7 +615,7 @@ describe('transform object fields', () => {
     };
 
     const itemSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Item {
           id: ID!
           camel_case: String
@@ -695,7 +679,7 @@ describe('transform object fields', () => {
   test('renaming should work', async () => {
     const result = await graphql({
       schema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           item {
             prefixCamelCase
@@ -732,7 +716,7 @@ describe('transform object fields', () => {
   test('filtering should work', async () => {
     const result = await graphql({
       schema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           items {
             edges {
@@ -745,18 +729,8 @@ describe('transform object fields', () => {
       `,
     });
 
-    const expectedResult: any = {
-      errors: [
-        {
-          locations: [
-            {
-              column: 17,
-              line: 6,
-            },
-          ],
-          message: 'Cannot query field "id" on type "Item".',
-        },
-      ],
+    const expectedResult: ExecutionResult = {
+      errors: [new GraphQLError('Cannot query field "id" on type "Item".', undefined, undefined, [17, 6])],
     };
 
     expect(result).toEqual(expectedResult);
@@ -773,18 +747,14 @@ describe('filter and rename object fields', () => {
         transforms: [
           new RenameTypes((name: string) => `New_${name}`),
           new RenameObjectFields((typeName: string, fieldName: string) =>
-            typeName === 'New_Property' ? `new_${fieldName}` : fieldName,
+            typeName === 'New_Property' ? `new_${fieldName}` : fieldName
           ),
         ],
       }),
-      rootFieldFilter: (operation: string, fieldName: string) =>
-        `${operation}.${fieldName}` === 'Query.propertyById',
-      objectFieldFilter: (typeName: string, fieldName: string) =>
-        typeName === 'New_Property' || fieldName === 'name',
+      rootFieldFilter: (operation: string, fieldName: string) => `${operation}.${fieldName}` === 'Query.propertyById',
+      objectFieldFilter: (typeName: string, fieldName: string) => typeName === 'New_Property' || fieldName === 'name',
       typeFilter: (typeName: string, type) =>
-        typeName === 'New_Property' ||
-        typeName === 'New_Location' ||
-        isSpecifiedScalarType(type as GraphQLNamedType),
+        typeName === 'New_Property' || typeName === 'New_Location' || isSpecifiedScalarType(type as GraphQLNamedType),
     });
   });
 
@@ -798,29 +768,29 @@ type New_Property {
   new_location: New_Location
   new_error: String
 }
-    `.trim(),
+    `.trim()
     );
     expect(printedSchema).toContain(
       `
 type New_Location {
   name: String!
 }
-    `.trim(),
+    `.trim()
     );
     expect(printedSchema).toContain(
       `
 type Query {
   propertyById(id: ID!): New_Property
 }
-    `.trim(),
+    `.trim()
     );
   });
 
   test('should work', async () => {
     const result = await graphql({
       schema: transformedPropertySchema,
-      source: /* GraphQL */`
-        query($pid: ID!) {
+      source: /* GraphQL */ `
+        query ($pid: ID!) {
           propertyById(id: $pid) {
             new_id
             new_name
@@ -836,7 +806,7 @@ type Query {
       },
     });
 
-    const expectedResult: any = {
+    const expectedResult: ExecutionResult = {
       data: {
         propertyById: {
           // eslint-disable-next-line camelcase
@@ -852,20 +822,17 @@ type Query {
         },
       },
       errors: [
-        {
-          locations: [
-            {
-              column: 13,
-              line: 9,
-            },
-          ],
-          message: 'Property.error error',
-          path: ['propertyById', 'new_error'],
-        },
+        new GraphQLError(
+          'Property.error error',
+          undefined,
+          undefined,
+          [13, 9],
+          ['propertyById, new_error'],
+          undefined,
+          { code: 'SOME_CUSTOM_CODE' }
+        ),
       ],
     };
-
-    expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
     expect(result).toEqual(expectedResult);
   });
@@ -896,7 +863,7 @@ describe('rename nested object fields with interfaces', () => {
     };
 
     const originalSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         interface _Linkable {
           _linkType: String!
         }
@@ -916,8 +883,7 @@ describe('rename nested object fields with interfaces', () => {
       `,
       resolvers: {
         _Linkable: {
-          __resolveType: (linkable: { _linkType: string }) =>
-            linkable._linkType,
+          __resolveType: (linkable: { _linkType: string }) => linkable._linkType,
         },
         Query: {
           node: () => originalNode,
@@ -943,7 +909,7 @@ describe('rename nested object fields with interfaces', () => {
       ],
     });
 
-    const originalQuery = /* GraphQL */`
+    const originalQuery = /* GraphQL */ `
       query {
         node {
           aList {
@@ -958,7 +924,7 @@ describe('rename nested object fields with interfaces', () => {
       }
     `;
 
-    const transformedQuery = /* GraphQL */`
+    const transformedQuery = /* GraphQL */ `
       query {
         node {
           ALIST {
@@ -987,14 +953,12 @@ describe('WrapType', () => {
   test('Query transform should work', async () => {
     const transformedBookingSchema = wrapSchema({
       schema: bookingSchema,
-      transforms: [
-        new WrapType('Query', 'Namespace_Query', 'namespace'),
-      ],
+      transforms: [new WrapType('Query', 'Namespace_Query', 'namespace')],
     });
     const result = await graphql({
       schema: transformedBookingSchema,
-      source: /* GraphQL */`
-        query($bid: ID!) {
+      source: /* GraphQL */ `
+        query ($bid: ID!) {
           namespace {
             bookingById(id: $bid) {
               id
@@ -1010,7 +974,7 @@ describe('WrapType', () => {
       },
     });
 
-    const expectedResult: any = {
+    const expectedResult: ExecutionResult = {
       data: {
         namespace: {
           bookingById: {
@@ -1022,16 +986,7 @@ describe('WrapType', () => {
         },
       },
       errors: [
-        {
-          locations: [
-            {
-              column: 15,
-              line: 8,
-            },
-          ],
-          message: 'Booking.error error',
-          path: ['namespace', 'bookingById', 'error'],
-        },
+        new GraphQLError('Booking.error error', undefined, undefined, [15, 8], ['namespace', 'bookingById, error']),
       ],
     };
 
@@ -1041,20 +996,18 @@ describe('WrapType', () => {
   test('Mutation transform should work', async () => {
     const transformedBookingSchema = wrapSchema({
       schema: bookingSchema,
-      transforms: [
-        new WrapType('Mutation', 'Namespace_Mutation', 'namespace'),
-      ],
+      transforms: [new WrapType('Mutation', 'Namespace_Mutation', 'namespace')],
     });
     const result = await graphql({
       schema: transformedBookingSchema,
-      source: /* GraphQL */`
-        mutation($bi: BookingInput!) {
+      source: /* GraphQL */ `
+        mutation ($bi: BookingInput!) {
           namespace {
             addBooking(input: $bi) {
               id
               propertyId
-              startTime,
-              endTime,
+              startTime
+              endTime
               error
             }
           }
@@ -1062,37 +1015,28 @@ describe('WrapType', () => {
       `,
       variableValues: {
         bi: {
-          propertyId: "p1",
-          customerId: "c1",
-          startTime: "2020-07-02",
-          endTime: "2020-07-03",
+          propertyId: 'p1',
+          customerId: 'c1',
+          startTime: '2020-07-02',
+          endTime: '2020-07-03',
         },
       },
     });
 
-    const expectedResult: any = {
+    const expectedResult: ExecutionResult = {
       data: {
         namespace: {
           addBooking: {
-            id: "newId",
-            propertyId: "p1",
-            startTime: "2020-07-02",
-            endTime: "2020-07-03",
+            id: 'newId',
+            propertyId: 'p1',
+            startTime: '2020-07-02',
+            endTime: '2020-07-03',
             error: null,
           },
         },
       },
       errors: [
-        {
-          locations: [
-            {
-              column: 15,
-              line: 9,
-            },
-          ],
-          message: 'Booking.error error',
-          path: ['namespace', 'addBooking', 'error'],
-        },
+        new GraphQLError('Booking.error error', undefined, undefined, [15, 9], ['namespace', 'addBooking', 'error']),
       ],
     };
 
@@ -1121,27 +1065,29 @@ describe('WrapType', () => {
     const subschemaGen = (i: number) => ({
       schema: makeExecutableSchema({
         typeDefs: typeDefGen(i),
-        resolvers: resolverGen(i)
+        resolvers: resolverGen(i),
       }),
-      transforms: [new WrapType(`Query`, `Test${i}_Query`, `test${i}`)]
+      transforms: [new WrapType(`Query`, `Test${i}_Query`, `test${i}`)],
     });
 
     const stitchedSchema = stitchSchemas({
-      subschemas: [subschemaGen(1), subschemaGen(2)]
+      subschemas: [subschemaGen(1), subschemaGen(2)],
     });
 
-    const query = /* GraphQL */`{
-      test1 {
-        test {
-          aString
+    const query = /* GraphQL */ `
+      {
+        test1 {
+          test {
+            aString
+          }
+        }
+        test2 {
+          test {
+            aString
+          }
         }
       }
-      test2 {
-        test {
-          aString
-        }
-      }
-    }`;
+    `;
 
     const result = await graphql({ schema: stitchedSchema, source: query });
 
@@ -1168,15 +1114,13 @@ describe('schema transformation with extraction of nested fields', () => {
   test('should work via HoistField transform', async () => {
     const transformedPropertySchema = wrapSchema({
       schema: propertySchema,
-      transforms: [
-        new HoistField('Property', ['location', 'name'], 'locationName'),
-      ],
+      transforms: [new HoistField('Property', ['location', 'name'], 'locationName')],
     });
 
     const result = await graphql({
       schema: transformedPropertySchema,
-      source: /* GraphQL */`
-        query($pid: ID!) {
+      source: /* GraphQL */ `
+        query ($pid: ID!) {
           propertyById(id: $pid) {
             test: locationName
           }
@@ -1195,12 +1139,11 @@ describe('schema transformation with extraction of nested fields', () => {
       },
     });
   });
-
 });
 
 describe('HoistField transform', () => {
   const schema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Query {
         query: Outer
       }
@@ -1222,15 +1165,15 @@ describe('HoistField transform', () => {
         test: (parent, args) => parent.innerArg ?? args.testArg,
       },
     },
-  })
+  });
 
   test('should work to hoist fields without using arguments', async () => {
     const wrappedSchema = wrapSchema({
       schema,
       transforms: [new HoistField('Outer', ['inner', 'test'], 'hoisted'), new PruneSchema({})],
-    })
+    });
 
-    const result = await graphql({ schema: wrappedSchema, source: '{ query { hoisted } }'});
+    const result = await graphql({ schema: wrappedSchema, source: '{ query { hoisted } }' });
 
     const expectedResult = {
       data: {
@@ -1247,9 +1190,9 @@ describe('HoistField transform', () => {
     const wrappedSchema = wrapSchema({
       schema,
       transforms: [new HoistField('Outer', ['inner', 'test'], 'hoisted'), new PruneSchema({})],
-    })
+    });
 
-    const result = await graphql({ schema: wrappedSchema, source: '{ query { hoisted(testArg: "custom") } }'});
+    const result = await graphql({ schema: wrappedSchema, source: '{ query { hoisted(testArg: "custom") } }' });
 
     const expectedResult = {
       data: {
@@ -1266,19 +1209,15 @@ describe('HoistField transform', () => {
     const wrappedSchema = wrapSchema({
       schema,
       transforms: [
-        new HoistField(
-          'Outer',
-          [
-            { fieldName: 'inner', argFilter: () => true },
-            'test'
-          ],
-          'hoisted'
-        ),
-        new PruneSchema({})
+        new HoistField('Outer', [{ fieldName: 'inner', argFilter: () => true }, 'test'], 'hoisted'),
+        new PruneSchema({}),
       ],
-    })
+    });
 
-    const result = await graphql({ schema: wrappedSchema, source: '{ query { hoisted(innerArg: "priority", testArg: "custom") } }'});
+    const result = await graphql({
+      schema: wrappedSchema,
+      source: '{ query { hoisted(innerArg: "priority", testArg: "custom") } }',
+    });
 
     const expectedResult = {
       data: {
@@ -1295,9 +1234,9 @@ describe('HoistField transform', () => {
     const wrappedSchema = wrapSchema({
       schema,
       transforms: [new HoistField('Query', ['query', 'inner', 'test'], 'hoisted'), new PruneSchema({})],
-    })
+    });
 
-    const result = await graphql({ schema: wrappedSchema, source: '{ hoisted }'});
+    const result = await graphql({ schema: wrappedSchema, source: '{ hoisted }' });
 
     const expectedResult = {
       data: {
@@ -1314,20 +1253,13 @@ describe('schema transformation with wrapping of object fields', () => {
     test('should work to wrap fields even with errors', async () => {
       const transformedPropertySchema = wrapSchema({
         schema: propertySchema,
-        transforms: [
-          new WrapFields(
-            'Property',
-            ['outerWrap'],
-            ['OuterWrap'],
-            ['id', 'name', 'error'],
-          ),
-        ],
+        transforms: [new WrapFields('Property', ['outerWrap'], ['OuterWrap'], ['id', 'name', 'error'])],
       });
 
       const result = await graphql({
         schema: transformedPropertySchema,
-        source: /* GraphQL */`
-          query($pid: ID!) {
+        source: /* GraphQL */ `
+          query ($pid: ID!) {
             propertyById(id: $pid) {
               test1: outerWrap {
                 ...W1
@@ -1348,9 +1280,9 @@ describe('schema transformation with wrapping of object fields', () => {
         variableValues: {
           pid: 'p1',
         },
-    });
+      });
 
-      const expectedResult: any = {
+      const expectedResult: ExecutionResult = {
         data: {
           propertyById: {
             test1: {
@@ -1363,20 +1295,17 @@ describe('schema transformation with wrapping of object fields', () => {
           },
         },
         errors: [
-          {
-            locations: [
-              {
-                column: 13,
-                line: 14,
-              },
-            ],
-            message: 'Property.error error',
-            path: ['propertyById', 'test1', 'two'],
-          },
+          new GraphQLError(
+            'Property.error error',
+            undefined,
+            undefined,
+            [13, 14],
+            ['propertyById', 'test1', 'two'],
+            undefined,
+            { code: 'SOME_CUSTOM_CODE' }
+          ),
         ],
       };
-
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
       expect(result).toEqual(expectedResult);
     });
@@ -1385,19 +1314,14 @@ describe('schema transformation with wrapping of object fields', () => {
       const transformedPropertySchema = wrapSchema({
         schema: propertySchema,
         transforms: [
-          new WrapFields(
-            'Property',
-            ['outerWrap', 'innerWrap'],
-            ['OuterWrap', 'InnerWrap'],
-            ['id', 'name', 'error'],
-          ),
+          new WrapFields('Property', ['outerWrap', 'innerWrap'], ['OuterWrap', 'InnerWrap'], ['id', 'name', 'error']),
         ],
       });
 
       const result = await graphql({
         schema: transformedPropertySchema,
-        source: /* GraphQL */`
-          query($pid: ID!) {
+        source: /* GraphQL */ `
+          query ($pid: ID!) {
             propertyById(id: $pid) {
               test1: outerWrap {
                 innerWrap {
@@ -1424,7 +1348,7 @@ describe('schema transformation with wrapping of object fields', () => {
         },
       });
 
-      const expectedResult: any = {
+      const expectedResult: ExecutionResult = {
         data: {
           propertyById: {
             test1: {
@@ -1441,27 +1365,24 @@ describe('schema transformation with wrapping of object fields', () => {
           },
         },
         errors: [
-          {
-            locations: [
-              {
-                column: 13,
-                line: 18,
-              },
-            ],
-            message: 'Property.error error',
-            path: ['propertyById', 'test1', 'innerWrap', 'two'],
-          },
+          new GraphQLError(
+            'Property.error error',
+            undefined,
+            undefined,
+            [13, 18],
+            ['propertyById', 'test1', 'innerWrap', 'two'],
+            undefined,
+            { code: 'SOME_CUSTOM_CODE' }
+          ),
         ],
       };
-
-      expectedResult.errors[0].extensions = { code: 'SOME_CUSTOM_CODE' };
 
       expect(result).toEqual(expectedResult);
     });
 
     test('should work with selectionSets', async () => {
       let subschema = makeExecutableSchema({
-        typeDefs: /* GraphQL */`
+        typeDefs: /* GraphQL */ `
           type Query {
             user: User
           }
@@ -1473,13 +1394,13 @@ describe('schema transformation with wrapping of object fields', () => {
 
       subschema = addMocksToSchema({ schema: subschema });
       const stitchedSchema = stitchSchemas({
-        subschemas: [{
-          schema: subschema,
-          transforms: [
-            new WrapFields('Query', ['wrapped'], [`WrappedQuery`]),
-          ],
-        }],
-        typeDefs: /* GraphQL */`
+        subschemas: [
+          {
+            schema: subschema,
+            transforms: [new WrapFields('Query', ['wrapped'], [`WrappedQuery`])],
+          },
+        ],
+        typeDefs: /* GraphQL */ `
           extend type User {
             dummy: String
           }
@@ -1496,7 +1417,7 @@ describe('schema transformation with wrapping of object fields', () => {
 
       const query = '{ wrapped { user { dummy } } }';
       const result = await graphql({ schema: stitchedSchema, source: query });
-      assertSome(result.data)
+      assertSome(result.data);
       const wrappedData: any = result.data?.['wrapped'];
       expect(wrappedData.user.dummy).not.toEqual(null);
     });
@@ -1504,7 +1425,7 @@ describe('schema transformation with wrapping of object fields', () => {
 });
 
 describe('interface resolver inheritance', () => {
-  const testSchemaWithInterfaceResolvers = /* GraphQL */`
+  const testSchemaWithInterfaceResolvers = /* GraphQL */ `
     interface Node {
       id: ID!
     }
@@ -1569,11 +1490,9 @@ describe('interface resolver inheritance', () => {
     });
     const query = '{ user { id name } }';
     const response = await graphql({ schema: stitchedSchema, source: query });
-    assertSome(response.errors)
+    assertSome(response.errors);
     expect(response.errors.length).toBe(1);
-    expect(response.errors[0].message).toBe(
-      'Cannot return null for non-nullable field User.id.',
-    );
+    expect(response.errors[0].message).toBe('Cannot return null for non-nullable field User.id.');
     expect(response.errors[0].path).toEqual(['user', 'id']);
   });
 
@@ -1589,11 +1508,9 @@ describe('interface resolver inheritance', () => {
     });
     const query = '{ user { id name } }';
     const response = await graphql({ schema: stitchedSchema, source: query });
-    assertSome(response.errors)
+    assertSome(response.errors);
     expect(response.errors.length).toBe(1);
-    expect(response.errors[0].message).toBe(
-      'Cannot return null for non-nullable field User.id.',
-    );
+    expect(response.errors[0].message).toBe('Cannot return null for non-nullable field User.id.');
     expect(response.errors[0].path).toEqual(['user', 'id']);
   });
 });
@@ -1601,7 +1518,7 @@ describe('interface resolver inheritance', () => {
 describe('stitchSchemas', () => {
   test('can merge null root fields', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Query {
           test: Test
         }
@@ -1621,14 +1538,14 @@ describe('stitchSchemas', () => {
 
     const query = '{ test { field } }';
     const response = await graphql({ schema: stitchedSchema, source: query });
-    assertSome(response.data)
+    assertSome(response.data);
     expect(response.data['test']).toBe(null);
     expect(response.errors).toBeUndefined();
   });
 
   test('can merge default input types', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         input InputWithDefault {
           field: String = "test"
         }
@@ -1655,21 +1572,21 @@ describe('stitchSchemas', () => {
 input InputWithDefault {
   field: String = "test"
 }
-    `.trim(),
+    `.trim()
     );
     expect(printedSchema).toContain(
       `
 type Query {
   getInput(input: InputWithDefault!): String
 }
-    `.trim(),
+    `.trim()
     );
     expect(response.data?.['getInput']).toBe('test');
   });
 
   test('can override scalars with new internal values', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         scalar TestScalar
         type Query {
           getTestScalar: TestScalar
@@ -1679,8 +1596,8 @@ type Query {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
           description: undefined,
-          serialize: (value) => (value as string).slice(1),
-          parseValue: (value) => `_${value as string}`,
+          serialize: value => (value as string).slice(1),
+          parseValue: value => `_${value as string}`,
           parseLiteral: (ast: any) => `_${ast.value as string}`,
         }),
         Query: {
@@ -1694,8 +1611,8 @@ type Query {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
           description: undefined,
-          serialize: (value) => (value as string).slice(2),
-          parseValue: (value) => `__${value as string}`,
+          serialize: value => (value as string).slice(2),
+          parseValue: value => `__${value as string}`,
           parseLiteral: (ast: any) => `__${ast.value as string}`,
         }),
       },
@@ -1709,18 +1626,18 @@ type Query {
 
   test('can override scalars with new internal values when using default input types', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
-          scalar TestScalar
-          type Query {
-            getTestScalar(input: TestScalar = "test"): TestScalar
-          }
-        `,
+      typeDefs: /* GraphQL */ `
+        scalar TestScalar
+        type Query {
+          getTestScalar(input: TestScalar = "test"): TestScalar
+        }
+      `,
       resolvers: {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
           description: undefined,
-          serialize: (value) => (value as string).slice(1),
-          parseValue: (value) => `_${value as string}`,
+          serialize: value => (value as string).slice(1),
+          parseValue: value => `_${value as string}`,
           parseLiteral: (ast: any) => `_${ast.value as string}`,
         }),
         Query: {
@@ -1734,8 +1651,8 @@ type Query {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
           description: undefined,
-          serialize: (value) => (value as string).slice(2),
-          parseValue: (value) => `__${value as string}`,
+          serialize: value => (value as string).slice(2),
+          parseValue: value => `__${value as string}`,
           parseLiteral: (ast: any) => `__${ast.value as string}`,
         }),
       },
@@ -1749,7 +1666,7 @@ type Query {
 
   test('can use @include directives', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type WrappingType {
           subfield: String
         }
@@ -1765,7 +1682,7 @@ type Query {
     });
     const stitchedSchema = stitchSchemas({
       subschemas: [schema],
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Query {
           get2: WrappingType
         }
@@ -1775,7 +1692,7 @@ type Query {
           get2: (_root, _args, context, info) =>
             delegateToSchema({
               schema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'get1',
               context,
               info,
@@ -1784,7 +1701,7 @@ type Query {
       },
     });
 
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       {
         get2 @include(if: true) {
           subfield
@@ -1798,7 +1715,7 @@ type Query {
 
   test('can use functions in subfields', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type WrappingObject {
           functionField: Int!
         }
@@ -1885,10 +1802,28 @@ describe('onTypeConflict', () => {
       subschemas: [schema1, schema2],
       mergeTypes: false,
     });
-    const result1 = await graphql({ schema: stitchedSchema, source: /* GraphQL */`{ test2 { fieldC } }`});
+    const result1 = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */ `
+        {
+          test2 {
+            fieldC
+          }
+        }
+      `,
+    });
     const test2Data: any = result1.data?.['test2'];
     expect(test2Data.fieldC).toBe('C');
-    const result2 = await graphql({ schema: stitchedSchema, source: /* GraphQL */`{ test2 { fieldB } }`});
+    const result2 = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */ `
+        {
+          test2 {
+            fieldB
+          }
+        }
+      `,
+    });
     expect(result2.data).toBeUndefined();
   });
 
@@ -1898,10 +1833,28 @@ describe('onTypeConflict', () => {
       mergeTypes: false,
       onTypeConflict: (_left, right) => right,
     });
-    const result1 = await graphql({ schema: stitchedSchema, source: /* GraphQL */`{ test2 { fieldC } }` });
+    const result1 = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */ `
+        {
+          test2 {
+            fieldC
+          }
+        }
+      `,
+    });
     const test2Data: any = result1.data?.['test2'];
     expect(test2Data.fieldC).toBe('C');
-    const result2 = await graphql({ schema: stitchedSchema, source: /* GraphQL */`{ test2 { fieldB } }`});
+    const result2 = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */ `
+        {
+          test2 {
+            fieldB
+          }
+        }
+      `,
+    });
     expect(result2.data).toBeUndefined();
   });
 
@@ -1909,12 +1862,30 @@ describe('onTypeConflict', () => {
     const stitchedSchema = stitchSchemas({
       subschemas: [schema1, schema2],
       mergeTypes: false,
-      onTypeConflict: (left) => left,
+      onTypeConflict: left => left,
     });
-    const result1 = await graphql({ schema: stitchedSchema, source: /* GraphQL */`{ test1 { fieldB } }` });
+    const result1 = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */ `
+        {
+          test1 {
+            fieldB
+          }
+        }
+      `,
+    });
     const test1Data: any = result1.data?.['test1'];
     expect(test1Data.fieldB).toBe('B');
-    const result2 = await graphql({ schema: stitchedSchema, source: /* GraphQL */`{ test1 { fieldC } }` });
+    const result2 = await graphql({
+      schema: stitchedSchema,
+      source: /* GraphQL */ `
+        {
+          test1 {
+            fieldC
+          }
+        }
+      `,
+    });
     expect(result2.data).toBeUndefined();
   });
 
@@ -1926,7 +1897,7 @@ describe('onTypeConflict', () => {
         expect(info?.right.subschema !== info?.left.subschema).toBe(true);
         expect(info?.right.transformedSubschema !== info?.left.transformedSubschema).toBe(true);
         return left;
-      }
+      },
     });
   });
 });
@@ -1980,7 +1951,7 @@ describe('basic type merging', () => {
           getTest: (_parent, { id }) => ({ id }),
         },
         Test: {
-          field1: (parent) => parent.id,
+          field1: parent => parent.id,
         },
       },
     });
@@ -1993,7 +1964,7 @@ describe('basic type merging', () => {
           getTest: (_parent, { id }) => ({ id }),
         },
         Test: {
-          field2: (parent) => parent.id,
+          field2: parent => parent.id,
         },
       },
     });
@@ -2008,7 +1979,7 @@ describe('basic type merging', () => {
           resolve: (originalResult, context, info, subschema, selectionSet) =>
             delegateToSchema({
               schema: subschema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'getTest',
               args: { id: originalResult.id },
               selectionSet,
@@ -2028,7 +1999,7 @@ describe('basic type merging', () => {
           resolve: (originalResult, context, info, subschema, selectionSet) =>
             delegateToSchema({
               schema: subschema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'getTest',
               args: { id: originalResult.id },
               selectionSet,
@@ -2046,7 +2017,7 @@ describe('basic type merging', () => {
 
     const result = await graphql({
       schema: stitchedSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         {
           rootField1 {
             test {
@@ -2120,7 +2091,7 @@ describe('unidirectional type merging', () => {
           rootField1: () => ({ test: { id: '1' } }),
         },
         Test: {
-          field1: (parent) => parent.id,
+          field1: parent => parent.id,
         },
       },
     });
@@ -2133,7 +2104,7 @@ describe('unidirectional type merging', () => {
           getTest: (_parent, { id }) => ({ id }),
         },
         Test: {
-          field2: (parent) => parent.id,
+          field2: parent => parent.id,
         },
       },
     });
@@ -2152,7 +2123,7 @@ describe('unidirectional type merging', () => {
           resolve: (originalResult, context, info, subschema, selectionSet) =>
             delegateToSchema({
               schema: subschema,
-              operation: 'query',
+              operation: 'query' as OperationTypeNode,
               fieldName: 'getTest',
               args: { id: originalResult.id },
               selectionSet,
@@ -2170,7 +2141,7 @@ describe('unidirectional type merging', () => {
 
     const result = await graphql({
       schema: stitchedSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         {
           rootField1 {
             test {
@@ -2199,7 +2170,7 @@ describe('unidirectional type merging', () => {
 
 describe('stitchSchemas handles typeDefs with default values', () => {
   test('it works', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       type Query {
         foo(arg: String = "1"): String
       }

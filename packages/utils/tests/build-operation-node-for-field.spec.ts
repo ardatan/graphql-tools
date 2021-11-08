@@ -1,4 +1,4 @@
-import { print, parse, buildSchema, ASTNode } from 'graphql';
+import { print, parse, buildSchema, ASTNode, OperationTypeNode } from 'graphql';
 
 import { buildOperationNodeForField } from '../src/build-operation-for-field';
 
@@ -76,7 +76,7 @@ const models = ['User', 'Book'];
 test('should work with Query', async () => {
   const document = buildOperationNodeForField({
     schema,
-    kind: 'query',
+    kind: 'query' as OperationTypeNode,
     field: 'me',
     models,
     ignore: [],
@@ -123,7 +123,7 @@ test('should work with Query', async () => {
 test('should work with Query and variables', async () => {
   const document = buildOperationNodeForField({
     schema,
-    kind: 'query',
+    kind: 'query' as OperationTypeNode,
     field: 'user',
     models,
     ignore: [],
@@ -170,7 +170,7 @@ test('should work with Query and variables', async () => {
 test('should work with Query and complicated variable', async () => {
   const document = buildOperationNodeForField({
     schema,
-    kind: 'query',
+    kind: 'query' as OperationTypeNode,
     field: 'menuByIngredients',
     models,
     ignore: [],
@@ -203,7 +203,7 @@ test('should work with Query and complicated variable', async () => {
 test('should work with Union', async () => {
   const document = buildOperationNodeForField({
     schema,
-    kind: 'query',
+    kind: 'query' as OperationTypeNode,
     field: 'menu',
     models,
     ignore: [],
@@ -236,7 +236,7 @@ test('should work with Union', async () => {
 test('should work with mutation', async () => {
   const document = buildOperationNodeForField({
     schema,
-    kind: 'mutation',
+    kind: 'mutation' as OperationTypeNode,
     field: 'addSalad',
     models,
     ignore: [],
@@ -275,10 +275,10 @@ test('should work with mutation + return a field of type Query', async () => {
     type Mutation {
       addPizza(name: String!): Pizza
     }
-  `)
+  `);
   const document = buildOperationNodeForField({
     schema,
-    kind: 'mutation',
+    kind: 'mutation' as OperationTypeNode,
     field: 'addPizza',
     models,
     ignore: [],
@@ -315,10 +315,10 @@ test('should work with mutation + Union + return a field of type Query', async (
     type Mutation {
       addRandomFood(name: String!): Food
     }
-  `)
+  `);
   const document = buildOperationNodeForField({
     schema,
-    kind: 'mutation',
+    kind: 'mutation' as OperationTypeNode,
     field: 'addRandomFood',
     models,
     ignore: [],
@@ -344,7 +344,7 @@ test('should work with mutation + Union + return a field of type Query', async (
 test('should work with mutation and unions', async () => {
   const document = buildOperationNodeForField({
     schema,
-    kind: 'mutation',
+    kind: 'mutation' as OperationTypeNode,
     field: 'addRandomFood',
     models,
     ignore: [],
@@ -377,7 +377,7 @@ test('should work with mutation and unions', async () => {
 test('should work with Query and nested variables', async () => {
   const document = buildOperationNodeForField({
     schema,
-    kind: 'query',
+    kind: 'query' as OperationTypeNode,
     field: 'feed',
     models,
     ignore: [],
@@ -397,7 +397,7 @@ test('should work with Query and nested variables', async () => {
 test('should be able to ignore using models when requested', async () => {
   const document = buildOperationNodeForField({
     schema,
-    kind: 'query',
+    kind: 'query' as OperationTypeNode,
     field: 'user',
     models,
     ignore: ['User.favoriteBook', 'User.shelf'],
@@ -446,7 +446,7 @@ test('should be able to ignore using models when requested', async () => {
 test('should work with Subscription', async () => {
   const document = buildOperationNodeForField({
     schema,
-    kind: 'subscription',
+    kind: 'subscription' as OperationTypeNode,
     field: 'onFood',
     models,
     ignore: [],
@@ -496,7 +496,7 @@ test('should work with circular ref (default depth limit === 1)', async () => {
         a: A
       }
     `),
-    kind: 'query',
+    kind: 'query' as OperationTypeNode,
     field: 'a',
     models,
     ignore: [],
@@ -537,7 +537,7 @@ test('should work with circular ref (custom depth limit)', async () => {
         a: A
       }
     `),
-    kind: 'query',
+    kind: 'query' as OperationTypeNode,
     field: 'a',
     models,
     ignore: [],
@@ -583,7 +583,7 @@ test('arguments', async () => {
         users(pageInfo: PageInfoInput!): [User]
       }
     `),
-    kind: 'query',
+    kind: 'query' as OperationTypeNode,
     field: 'users',
     models,
     ignore: [],
@@ -602,10 +602,9 @@ test('arguments', async () => {
 });
 
 test('selectedFields', async () => {
-
   const document = buildOperationNodeForField({
     schema,
-    kind: 'query',
+    kind: 'query' as OperationTypeNode,
     field: 'user',
     selectedFields: {
       favoriteFood: {
@@ -614,7 +613,7 @@ test('selectedFields', async () => {
         asian: true,
       },
       shelf: true, // Add all nested fields
-    }
+    },
   })!;
 
   expect(clean(document)).toEqual(
@@ -640,4 +639,4 @@ test('selectedFields', async () => {
       }
     `)
   );
-})
+});

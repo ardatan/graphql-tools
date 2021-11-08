@@ -1,11 +1,7 @@
 import { graphql, assertValidSchema } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import {
-  wrapSchema,
-  RenameRootTypes,
-  FilterObjectFields,
-} from '@graphql-tools/wrap';
+import { wrapSchema, RenameRootTypes, FilterObjectFields } from '@graphql-tools/wrap';
 import { addMocksToSchema } from '@graphql-tools/mock';
 
 import { stitchSchemas } from '../src/stitchSchemas';
@@ -15,7 +11,7 @@ import { propertySchema } from '../../testing/fixtures/schemas';
 describe('rename root type', () => {
   test('works with stitchSchemas', async () => {
     let schemaWithCustomRootTypeNames = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         schema {
           query: QueryRoot
           mutation: MutationRoot
@@ -39,7 +35,7 @@ describe('rename root type', () => {
     schemaWithCustomRootTypeNames = addMocksToSchema({ schema: schemaWithCustomRootTypeNames });
 
     let schemaWithDefaultRootTypeNames = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Query {
           bar: String!
         }
@@ -62,10 +58,10 @@ describe('rename root type', () => {
         schemaWithCustomRootTypeNames,
         {
           schema: schemaWithDefaultRootTypeNames,
-          transforms: [new RenameRootTypes((name) => `${name}Root`)],
+          transforms: [new RenameRootTypes(name => `${name}Root`)],
         },
       ],
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         schema {
           query: QueryRoot
           mutation: MutationRoot
@@ -75,7 +71,7 @@ describe('rename root type', () => {
 
     const result = await graphql({
       schema: stitchedSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         mutation {
           doSomething {
             query {
@@ -107,21 +103,14 @@ describe('filter fields', () => {
   it('should allow stitching a previously filtered field onto a type', () => {
     const filteredSchema = wrapSchema({
       schema: propertySchema,
-      transforms: [
-        new FilterObjectFields(
-          (typeName, fieldName) =>
-            `${typeName}.${fieldName}` !== 'Property.location',
-        ),
-      ],
+      transforms: [new FilterObjectFields((typeName, fieldName) => `${typeName}.${fieldName}` !== 'Property.location')],
     });
 
     assertValidSchema(filteredSchema);
 
     const stitchedSchema = stitchSchemas({
-      subschemas: [
-        filteredSchema,
-      ],
-      typeDefs: /* GraphQL */`
+      subschemas: [filteredSchema],
+      typeDefs: /* GraphQL */ `
         extend type Property {
           location: Location
         }

@@ -3,7 +3,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { execute, parse } from 'graphql';
 
 const baseSchema = makeExecutableSchema({
-  typeDefs: /* GraphQL */`
+  typeDefs: /* GraphQL */ `
     type Product {
       _id: ID!
     }
@@ -15,8 +15,8 @@ const baseSchema = makeExecutableSchema({
   resolvers: {
     Query: {
       product: () => ({ _id: 'r2d2c3p0' }),
-    }
-  }
+    },
+  },
 });
 
 describe('TransformCompositeFields', () => {
@@ -24,11 +24,9 @@ describe('TransformCompositeFields', () => {
     const transformedSchema = wrapSchema({
       schema: baseSchema,
       transforms: [
-        new TransformCompositeFields(
-          (typeName, _fieldName, fieldConfig) => {
-            return typeName === 'Product' ? ['id', fieldConfig] : fieldConfig;
-          }
-        )
+        new TransformCompositeFields((typeName, _fieldName, fieldConfig) => {
+          return typeName === 'Product' ? ['id', fieldConfig] : fieldConfig;
+        }),
       ],
     });
 
@@ -37,7 +35,7 @@ describe('TransformCompositeFields', () => {
       document: parse('{ product { id, theId: id } }'),
     });
     expect(result.data).toEqual({
-      product: { id: 'r2d2c3p0', theId: 'r2d2c3p0' }
+      product: { id: 'r2d2c3p0', theId: 'r2d2c3p0' },
     });
   });
 
@@ -45,19 +43,20 @@ describe('TransformCompositeFields', () => {
     const transformedSchema = wrapSchema({
       schema: baseSchema,
       transforms: [
-        new TransformCompositeFields(
-          (typeName, _fieldName, fieldConfig) => {
-            if (typeName === 'Product') {
-              return ['id', {
+        new TransformCompositeFields((typeName, _fieldName, fieldConfig) => {
+          if (typeName === 'Product') {
+            return [
+              'id',
+              {
                 ...fieldConfig,
                 resolve: (parent, _args, _context, info) => {
                   return parent[info.path.key].toUpperCase();
-                }
-              }];
-            }
-            return fieldConfig;
+                },
+              },
+            ];
           }
-        )
+          return fieldConfig;
+        }),
       ],
     });
 
@@ -66,7 +65,7 @@ describe('TransformCompositeFields', () => {
       document: parse('{ product { theId: id } }'),
     });
     expect(result.data).toEqual({
-      product: { theId: 'R2D2C3P0' }
+      product: { theId: 'R2D2C3P0' },
     });
   });
 
@@ -78,12 +77,12 @@ describe('TransformCompositeFields', () => {
         new TransformCompositeFields(
           (_typeName, _fieldName, fieldConfig) => fieldConfig,
           undefined,
-          (obj) => {
+          obj => {
             dataObjects.push(obj.__typename);
             if (obj._id) obj._id = obj._id.toUpperCase();
             return obj;
           }
-        )
+        ),
       ],
     });
 
@@ -93,7 +92,7 @@ describe('TransformCompositeFields', () => {
     });
     expect(dataObjects).toEqual(['Query', 'Product']);
     expect(result.data).toEqual({
-      product: { _id: 'R2D2C3P0' }
+      product: { _id: 'R2D2C3P0' },
     });
   });
 });

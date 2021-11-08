@@ -1,9 +1,9 @@
 import { loadFilesSync, loadFiles, LoadFilesOptions } from '@graphql-tools/load-files';
 import { print } from 'graphql';
 import { join } from 'path';
-import {jest} from '@jest/globals';
+import { jest } from '@jest/globals';
 
-const syncAndAsync = Object.entries({ 'SYNC': loadFilesSync, 'ASYNC': loadFiles });
+const syncAndAsync = Object.entries({ SYNC: loadFilesSync, ASYNC: loadFiles });
 
 function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: TestDirOptions) {
   let options: LoadFilesOptions;
@@ -12,7 +12,7 @@ function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: TestDi
     options = {
       ignoreIndex,
       globOptions: {
-        cwd: __dirname
+        cwd: __dirname,
       },
       requireMethod: jest.requireActual,
       ...(extensions && { extensions }),
@@ -25,19 +25,28 @@ function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: TestDi
         const result = await loadFiles(path, options);
 
         expect(result.length).toBe(expected.length);
-        expect(result.map(res => {
-          if (res.kind === 'Document') {
-            res = print(res);
-          }
-          return stripWhitespaces(res);
-        })).toEqual(expected.map(stripWhitespaces));
+        expect(
+          result.map(res => {
+            if (res.kind === 'Document') {
+              res = print(res);
+            }
+            return stripWhitespaces(res);
+          })
+        ).toEqual(expected.map(stripWhitespaces));
       });
     });
   }
-
 }
 
-function testResolversDir({ path, expected, note, extensions, compareValue, ignoreIndex, ignoredExtensions }: TestDirOptions) {
+function testResolversDir({
+  path,
+  expected,
+  note,
+  extensions,
+  compareValue,
+  ignoreIndex,
+  ignoredExtensions,
+}: TestDirOptions) {
   if (typeof compareValue === 'undefined') {
     compareValue = true;
   }
@@ -47,7 +56,7 @@ function testResolversDir({ path, expected, note, extensions, compareValue, igno
     options = {
       ignoreIndex,
       globOptions: {
-        cwd: __dirname
+        cwd: __dirname,
       },
       requireMethod: jest.requireActual,
       ...(extensions && { extensions }),
@@ -66,7 +75,7 @@ function testResolversDir({ path, expected, note, extensions, compareValue, igno
           expect(result).toEqual(expected);
         }
       });
-    })
+    });
   }
 }
 
@@ -74,7 +83,7 @@ function stripWhitespaces(str: any): string {
   return str.toString().replace(/\s+/g, ' ').trim();
 }
 
-describe('file scanner', function() {
+describe('file scanner', function () {
   describe('schema', () => {
     const schemaContent = `type MyType { f: String }`;
     testSchemaDir({
@@ -228,7 +237,7 @@ describe('file scanner', function() {
         return fileExport(customQueryTypeName);
       };
       const loadedFiles = await loadFiles(join(__dirname, './test-assets/custom-extractor/factory-func.js'), {
-        extractExports: customExtractExports
+        extractExports: customExtractExports,
       });
       expect(loadedFiles).toHaveLength(1);
       expect(customQueryTypeName in loadedFiles[0]).toBeTruthy();

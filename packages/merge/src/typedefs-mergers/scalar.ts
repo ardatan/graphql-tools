@@ -1,4 +1,4 @@
-import { ScalarTypeDefinitionNode, ScalarTypeExtensionNode } from 'graphql';
+import { Kind, ScalarTypeDefinitionNode, ScalarTypeExtensionNode } from 'graphql';
 import { mergeDirectives } from './directives';
 import { Config } from './merge-typedefs';
 
@@ -25,7 +25,7 @@ export function mergeScalar(
   return config?.convertExtensions
     ? {
         ...node,
-        kind: 'ScalarTypeDefinition',
+        kind: Kind.SCALAR_TYPE_DEFINITION,
       }
     : node;
 }

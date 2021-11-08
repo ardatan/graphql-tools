@@ -1,5 +1,11 @@
 # @graphql-tools/optimize
 
+## 1.1.1
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+
 ## 1.1.0
 
 ### Minor Changes

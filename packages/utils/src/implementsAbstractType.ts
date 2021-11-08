@@ -1,5 +1,5 @@
 import { GraphQLType, GraphQLSchema, doTypesOverlap, isCompositeType } from 'graphql';
-import { Maybe } from '@graphql-tools/utils';
+import { Maybe } from './types';
 
 export function implementsAbstractType(schema: GraphQLSchema, typeA: Maybe<GraphQLType>, typeB: Maybe<GraphQLType>) {
   if (typeB == null || typeA == null) {

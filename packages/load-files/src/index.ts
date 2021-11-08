@@ -2,8 +2,7 @@ import globby, { sync as globbySync, GlobbyOptions } from 'globby';
 import unixify from 'unixify';
 import { extname } from 'path';
 import { statSync, readFileSync, promises as fsPromises } from 'fs';
-import { DocumentNode } from '@apollo/client/core';
-import { parse } from 'graphql';
+import { DocumentNode, parse } from 'graphql';
 
 const { readFile, stat } = fsPromises;
 

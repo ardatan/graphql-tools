@@ -1,0 +1,30 @@
+fragment UserFields on User {
+  ...AnotherUserFields
+  posts {
+    ...PostFields
+  }
+}
+
+fragment AnotherUserFields on User {
+  firstName
+}
+
+fragment PostFields on Post {
+  title
+  ...AnotherPostFields
+}
+
+fragment AnotherPostFields on Post {
+  content
+  ...YetAnotherPostFields
+}
+
+fragment YetAnotherPostFields on Post {
+  content
+}
+
+# Next fragment should be not imported when default import is used
+fragment IgnoredPostFields on Post {
+  content
+  title
+}

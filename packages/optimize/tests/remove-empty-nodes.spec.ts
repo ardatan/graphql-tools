@@ -1,9 +1,9 @@
-import { parse, print } from "graphql"
-import { removeEmptyNodes } from "../src";
+import { parse, print } from 'graphql';
+import { removeEmptyNodes } from '../src';
 
 describe('removeEmptyNodes', () => {
   it('Should remove all empty notes', () => {
-    const doc = parse(/* GraphQL */`
+    const doc = parse(/* GraphQL */ `
       query findUser($userId: ID!) {
         user(id: $userId) {
           ...UserFields
@@ -29,5 +29,5 @@ describe('removeEmptyNodes', () => {
     expect(stringOut).not.toContain(`"directives":[]`);
     expect(stringOut).not.toContain(`"variableDefinitions":[]`);
     expect(() => print(out)).not.toThrow();
-  })
-})
+  });
+});

@@ -2,25 +2,31 @@ import { toPromise } from '@apollo/client/core';
 import { ApolloLink, execute } from '@apollo/client/link/core';
 import { Observable } from '@apollo/client/utilities';
 
-import { Executor, ExecutionRequest, ExecutionResult, observableToAsyncIterable } from '@graphql-tools/utils';
+import {
+  Executor,
+  ExecutionRequest,
+  ExecutionResult,
+  observableToAsyncIterable,
+  getOperationASTFromRequest,
+} from '@graphql-tools/utils';
 
-export const linkToExecutor =
-  (link: ApolloLink): Executor =>
-  async <TReturn, TArgs, TContext>(params: ExecutionRequest<TArgs, TContext>) => {
-    const { document, variables, extensions, context, operationType, operationName, info } = params;
+export function linkToExecutor(link: ApolloLink): Executor {
+  return function executorFromLink<TReturn, TArgs, TContext>(request: ExecutionRequest<TArgs, TContext>) {
     const observable = execute(link, {
-      query: document,
-      variables,
+      query: request.document,
+      operationName: request.operationName,
+      variables: request.variables,
       context: {
-        graphqlContext: context,
-        graphqlResolveInfo: info,
+        graphqlContext: request.context,
+        graphqlResolveInfo: request.info,
         clientAwareness: {},
       },
-      extensions,
-      operationName,
+      extensions: request.extensions,
     }) as Observable<ExecutionResult<TReturn>>;
-    if (operationType === 'subscription') {
-      return observableToAsyncIterable<ExecutionResult<TReturn>>(observable)[Symbol.asyncIterator]();
+    const operationAst = getOperationASTFromRequest(request);
+    if (operationAst.operation === 'subscription') {
+      return observableToAsyncIterable<ExecutionResult<TReturn>>(observable);
     }
     return toPromise(observable);
   };
+}

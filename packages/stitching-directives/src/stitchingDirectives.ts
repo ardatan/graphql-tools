@@ -39,7 +39,7 @@ export function stitchingDirectives(options: StitchingDirectivesOptions = {}): S
 
   const keyDirective = new GraphQLDirective({
     name: keyDirectiveName,
-    locations: ['OBJECT'],
+    locations: ['OBJECT'] as any[],
     args: {
       selectionSet: { type: new GraphQLNonNull(GraphQLString) },
     },
@@ -47,7 +47,7 @@ export function stitchingDirectives(options: StitchingDirectivesOptions = {}): S
 
   const computedDirective = new GraphQLDirective({
     name: computedDirectiveName,
-    locations: ['FIELD_DEFINITION'],
+    locations: ['FIELD_DEFINITION'] as any[],
     args: {
       selectionSet: { type: new GraphQLNonNull(GraphQLString) },
     },
@@ -55,7 +55,7 @@ export function stitchingDirectives(options: StitchingDirectivesOptions = {}): S
 
   const mergeDirective = new GraphQLDirective({
     name: mergeDirectiveName,
-    locations: ['FIELD_DEFINITION'],
+    locations: ['FIELD_DEFINITION'] as any[],
     args: {
       argsExpr: { type: GraphQLString },
       keyArg: { type: GraphQLString },
@@ -76,7 +76,7 @@ export function stitchingDirectives(options: StitchingDirectivesOptions = {}): S
       'SCALAR',
       'FIELD_DEFINITION',
       'INPUT_FIELD_DEFINITION',
-    ],
+    ] as any[],
   });
 
   const allStitchingDirectivesTypeDefs = [

@@ -1,5 +1,5 @@
 module.exports.resolvers = {
   Query: {
-    foo: () => 'FOO'
-  }
-}
+    foo: () => 'FOO',
+  },
+};

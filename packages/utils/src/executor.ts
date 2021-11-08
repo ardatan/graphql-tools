@@ -1,7 +1,7 @@
 import { ExecutionResult, ExecutionRequest } from './Interfaces';
 
 type MaybePromise<T> = Promise<T> | T;
-type MaybeAsyncIterableIterator<T> = AsyncIterableIterator<T> | T;
+type MaybeAsyncIterable<T> = AsyncIterable<T> | T;
 
 export type AsyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = Record<string, any>> = <
   TReturn = any,
@@ -11,7 +11,7 @@ export type AsyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = 
   TExtensions extends TBaseExtensions = TBaseExtensions
 >(
   request: ExecutionRequest<TArgs, TContext, TRoot, TExtensions>
-) => Promise<MaybeAsyncIterableIterator<ExecutionResult<TReturn>>>;
+) => Promise<MaybeAsyncIterable<ExecutionResult<TReturn>>>;
 
 export type SyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = Record<string, any>> = <
   TReturn = any,
@@ -31,4 +31,4 @@ export type Executor<TBaseContext = Record<string, any>, TBaseExtensions = Recor
   TExtensions extends TBaseExtensions = TBaseExtensions
 >(
   request: ExecutionRequest<TArgs, TContext, TRoot, TExtensions>
-) => MaybePromise<MaybeAsyncIterableIterator<ExecutionResult<TReturn>>>;
+) => MaybePromise<MaybeAsyncIterable<ExecutionResult<TReturn>>>;

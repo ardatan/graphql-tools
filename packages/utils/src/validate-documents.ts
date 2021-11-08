@@ -10,6 +10,7 @@ import {
   DefinitionNode,
   concatAST,
   DocumentNode,
+  versionInfo,
 } from 'graphql';
 import { Source } from './loaders';
 import { AggregateError } from './AggregateError';
@@ -24,9 +25,8 @@ export interface LoadDocumentError {
 export async function validateGraphQlDocuments(
   schema: GraphQLSchema,
   documentFiles: Source[],
-  effectiveRules?: ValidationRule[]
+  effectiveRules: ValidationRule[] = createDefaultRules()
 ): Promise<ReadonlyArray<LoadDocumentError>> {
-  effectiveRules = effectiveRules || createDefaultRules();
   const allFragmentMap = new Map<string, FragmentDefinitionNode>();
   const documentFileObjectsToValidate: {
     location?: string;
@@ -106,11 +106,11 @@ export function checkValidationErrors(loadDocumentErrors: ReadonlyArray<LoadDocu
   }
 }
 
-function createDefaultRules() {
-  const ignored = ['NoUnusedFragmentsRule', 'NoUnusedVariablesRule', 'KnownDirectivesRule'];
-  const v4ignored = ignored.map(rule => rule.replace(/Rule$/, ''));
+export function createDefaultRules() {
+  let ignored = ['NoUnusedFragmentsRule', 'NoUnusedVariablesRule', 'KnownDirectivesRule'];
+  if (versionInfo.major < 15) {
+    ignored = ignored.map(rule => rule.replace(/Rule$/, ''));
+  }
 
-  return specifiedRules.filter(
-    (f: (...args: any[]) => any) => !ignored.includes(f.name) && !v4ignored.includes(f.name)
-  );
+  return specifiedRules.filter((f: (...args: any[]) => any) => !ignored.includes(f.name));
 }

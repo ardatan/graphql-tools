@@ -59,15 +59,26 @@ describe('JsonFileLoader', () => {
       it('should load multiple files from glob expression', async () => {
         const results = await load(join(process.cwd(), getPointer('*.json')), {});
         expect(results).toHaveLength(2);
-      })
+      });
 
       it('should throw when the file content is malformed', async () => {
         await expect(load(getPointer('failing/malformed.json'), {})).rejects.toThrowError('Unable to read JSON file');
       });
+
       it('should skip file it cannot load', async () => {
         const result = await load(getPointer('id_do_not_exist.json'), {});
-        expect(result).toEqual([])
-      })
+        expect(result).toEqual([]);
+      });
+
+      it('should not raise an error when the glob matches valid and invalid schema files', async () => {
+        const result = await load(getPointer('{type-defs,failing/malformed}.json'), {});
+        expect(result).toBeTruthy();
+      });
+
+      it('should raise an error when the glob matches valid and invalid schema files with `noSilentErrors` set to true', async () => {
+        const result = load(getPointer('{type-defs,failing/malformed}.json'), { noSilentErrors: true });
+        await expect(result).rejects.toThrow();
+      });
     });
   });
 });

@@ -1,7 +1,7 @@
 type Product {
-    price: Int
+  price: Int
 }
 
 type Products {
-    items: [Product]
+  items: [Product]
 }

@@ -1,0 +1,16 @@
+diff --git a/node_modules/@apollo/core-schema/dist/schema.js b/node_modules/@apollo/core-schema/dist/schema.js
+index 3d0adfc..a8589af 100644
+--- a/node_modules/@apollo/core-schema/dist/schema.js
++++ b/node_modules/@apollo/core-schema/dist/schema.js
+@@ -202,9 +202,9 @@ const Purpose = new graphql_1.GraphQLEnumType({
+     },
+ });
+ const $core = new graphql_1.GraphQLDirective({
+-    name: '@core',
++    name: '_core',
+     args: {
+-        feature: { type: graphql_1.GraphQLNonNull(graphql_1.GraphQLString), },
++        feature: { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString), },
+         as: { type: graphql_1.GraphQLString },
+         'for': { type: Purpose }
+     },

@@ -1,5 +1,23 @@
 # @graphql-tools/load-files
 
+## 6.5.2
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+
+## 6.5.1
+
+### Patch Changes
+
+- 1043219f: fix implicit dependencies
+
+## 6.5.0
+
+### Minor Changes
+
+- eb80821d: enhance(load-files): return DocumentNode if it is an SDL
+
 ## 6.4.0
 
 ### Minor Changes

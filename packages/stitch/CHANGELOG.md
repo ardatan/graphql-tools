@@ -1,5 +1,36 @@
 # @graphql-tools/stitch
 
+## 8.4.1
+
+### Patch Changes
+
+- 981eef80: enhance: remove isPromise and cleanup file-upload handling
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [981eef80]
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/wrap@8.3.1
+  - @graphql-tools/batch-delegate@8.2.1
+  - @graphql-tools/delegate@8.4.1
+  - @graphql-tools/merge@8.2.1
+  - @graphql-tools/schema@8.3.1
+  - @graphql-tools/utils@8.5.1
+
+## 8.4.0
+
+### Minor Changes
+
+- 149afddb: fix: getting ready for GraphQL v16
+
+### Patch Changes
+
+- Updated dependencies [149afddb]
+  - @graphql-tools/batch-delegate@8.2.0
+  - @graphql-tools/delegate@8.3.0
+  - @graphql-tools/merge@8.2.0
+  - @graphql-tools/schema@8.3.0
+  - @graphql-tools/utils@8.4.0
+  - @graphql-tools/wrap@8.2.0
+
 ## 8.3.1
 
 ### Patch Changes

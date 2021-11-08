@@ -1,5 +1,21 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 7.1.3
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/utils@8.5.1
+
+## 7.1.2
+
+### Patch Changes
+
+- 1043219f: fix implicit dependencies
+- Updated dependencies [1043219f]
+  - @graphql-tools/utils@8.2.5
+
 ## 7.1.1
 
 ### Patch Changes

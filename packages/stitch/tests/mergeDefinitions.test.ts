@@ -2,16 +2,22 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { getDirective } from '@graphql-tools/utils';
 import { stitchingDirectives } from '@graphql-tools/stitching-directives';
+import { GraphQLObjectType, graphql } from 'graphql';
 import {
-  GraphQLObjectType,
-  graphql,
-} from 'graphql';
-import { assertGraphQLEnumType, assertGraphQLInputObjectType, assertGraphQLInterfaceType, assertGraphQLObjectType, assertGraphQLScalerType, assertGraphQLUnionType } from '../../testing/assertion';
+  assertGraphQLEnumType,
+  assertGraphQLInputObjectType,
+  assertGraphQLInterfaceType,
+  assertGraphQLObjectType,
+  assertGraphQLScalerType,
+  assertGraphQLUnionType,
+} from '../../testing/assertion';
 
 describe('merge canonical types', () => {
   const firstSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
-      directive @mydir(value: String) on OBJECT | INTERFACE | INPUT_OBJECT | UNION | ENUM | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+    typeDefs: /* GraphQL */ `
+      directive @mydir(
+        value: String
+      ) on OBJECT | INTERFACE | INPUT_OBJECT | UNION | ENUM | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
       "first"
       type Product implements IProduct @mydir(value: "first") {
@@ -63,13 +69,15 @@ describe('merge canonical types', () => {
       Query: {
         field1: () => 'first',
         field2: () => 'first',
-      }
-    }
+      },
+    },
   });
 
   const secondSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
-      directive @mydir(value: String) on OBJECT | INTERFACE | INPUT_OBJECT | UNION | ENUM | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+    typeDefs: /* GraphQL */ `
+      directive @mydir(
+        value: String
+      ) on OBJECT | INTERFACE | INPUT_OBJECT | UNION | ENUM | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
       "second"
       type Product implements IProduct @mydir(value: "second") {
@@ -123,8 +131,8 @@ describe('merge canonical types', () => {
       Query: {
         field1: () => 'second',
         field2: () => 'second',
-      }
-    }
+      },
+    },
   });
 
   const gatewaySchema = stitchSchemas({
@@ -156,7 +164,7 @@ describe('merge canonical types', () => {
           Query: {
             canonical: true,
           },
-        }
+        },
       },
       {
         schema: secondSchema,
@@ -167,28 +175,30 @@ describe('merge canonical types', () => {
             args: ({ id }) => ({ id }),
             fields: {
               url: { canonical: true },
-            }
+            },
           },
           IProduct: {
             fields: {
               url: { canonical: true },
-            }
+            },
           },
           ProductInput: {
             fields: {
               url: { canonical: true },
-            }
+            },
           },
           Query: {
             fields: {
               field2: { canonical: true },
-            }
+            },
           },
-        }
+        },
       },
     ],
-    typeDefs: /* GraphQL */`
-      directive @mydir(value: String) on OBJECT | INTERFACE | INPUT_OBJECT | UNION | ENUM | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+    typeDefs: /* GraphQL */ `
+      directive @mydir(
+        value: String
+      ) on OBJECT | INTERFACE | INPUT_OBJECT | UNION | ENUM | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
       "third"
       type Product implements IProduct @mydir(value: "third") {
@@ -227,7 +237,7 @@ describe('merge canonical types', () => {
 
       "third"
       scalar ProductScalar @mydir(value: "third")
-    `
+    `,
   });
 
   it('merges prioritized descriptions', () => {
@@ -240,15 +250,15 @@ describe('merge canonical types', () => {
     expect(gatewaySchema.getType('ProductScalar')?.description).toEqual('first');
 
     const queryType = gatewaySchema.getQueryType();
-    assertGraphQLObjectType(queryType)
-    const objectType = gatewaySchema.getType('Product')
-    assertGraphQLObjectType(objectType)
-    const interfaceType = gatewaySchema.getType('IProduct')
-    assertGraphQLInterfaceType(interfaceType)
+    assertGraphQLObjectType(queryType);
+    const objectType = gatewaySchema.getType('Product');
+    assertGraphQLObjectType(objectType);
+    const interfaceType = gatewaySchema.getType('IProduct');
+    assertGraphQLInterfaceType(interfaceType);
     const inputType = gatewaySchema.getType('ProductInput');
-    assertGraphQLInputObjectType(inputType)
+    assertGraphQLInputObjectType(inputType);
     const enumType = gatewaySchema.getType('ProductEnum');
-    assertGraphQLEnumType(enumType)
+    assertGraphQLEnumType(enumType);
 
     expect(queryType.getFields()['field1'].description).toEqual('first');
     expect(queryType.getFields()['field2'].description).toEqual('second');
@@ -268,19 +278,19 @@ describe('merge canonical types', () => {
 
   it('merges prioritized ASTs', () => {
     const queryType = gatewaySchema.getQueryType();
-    assertGraphQLObjectType(queryType)
+    assertGraphQLObjectType(queryType);
     const objectType = gatewaySchema.getType('Product');
-    assertGraphQLObjectType(objectType)
-    const interfaceType = gatewaySchema.getType('IProduct')
-    assertGraphQLInterfaceType(interfaceType)
+    assertGraphQLObjectType(objectType);
+    const interfaceType = gatewaySchema.getType('IProduct');
+    assertGraphQLInterfaceType(interfaceType);
     const inputType = gatewaySchema.getType('ProductInput');
-    assertGraphQLInputObjectType(inputType)
+    assertGraphQLInputObjectType(inputType);
     const enumType = gatewaySchema.getType('ProductEnum');
-    assertGraphQLEnumType(enumType)
+    assertGraphQLEnumType(enumType);
     const unionType = gatewaySchema.getType('ProductUnion');
-    assertGraphQLUnionType(unionType)
+    assertGraphQLUnionType(unionType);
     const scalarType = gatewaySchema.getType('ProductScalar');
-    assertGraphQLScalerType(scalarType)
+    assertGraphQLScalerType(scalarType);
 
     expect(getDirective(firstSchema, queryType.toConfig(), 'mydir')?.[0]['value']).toEqual('first');
     expect(getDirective(firstSchema, objectType.toConfig(), 'mydir')?.[0]['value']).toEqual('first');
@@ -314,7 +324,15 @@ describe('merge canonical types', () => {
   });
 
   it('promotes canonical root field definitions', async () => {
-    const { data } = await graphql({ schema: gatewaySchema, source: /* GraphQL */`{ field1 field2 }` });
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */ `
+        {
+          field1
+          field2
+        }
+      `,
+    });
     expect(data).toEqual({
       field1: 'first',
       field2: 'second',
@@ -325,7 +343,7 @@ describe('merge canonical types', () => {
 describe('merge @canonical directives', () => {
   const { stitchingDirectivesTransformer, stitchingDirectivesTypeDefs } = stitchingDirectives();
   const firstSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       ${stitchingDirectivesTypeDefs}
       "first"
       type Product @canonical {
@@ -348,10 +366,10 @@ describe('merge @canonical directives', () => {
         "first"
         product(input: ProductInput): Product @canonical
       }
-    `
+    `,
   });
   const secondSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       ${stitchingDirectivesTypeDefs}
       "second"
       type Product {
@@ -374,25 +392,22 @@ describe('merge @canonical directives', () => {
         "second"
         product(input: ProductInput): Product
       }
-    `
+    `,
   });
   const gatewaySchema = stitchSchemas({
     subschemaConfigTransforms: [stitchingDirectivesTransformer],
-    subschemas: [
-      { schema: firstSchema },
-      { schema: secondSchema },
-    ],
+    subschemas: [{ schema: firstSchema }, { schema: secondSchema }],
   });
 
   it('merges with directive', async () => {
-    const objectType = gatewaySchema.getType('Product') ;
-    assertGraphQLObjectType(objectType)
+    const objectType = gatewaySchema.getType('Product');
+    assertGraphQLObjectType(objectType);
     const inputType = gatewaySchema.getType('ProductInput');
-    assertGraphQLInputObjectType(inputType)
+    assertGraphQLInputObjectType(inputType);
     const enumType = gatewaySchema.getType('ProductEnum');
-    assertGraphQLEnumType(enumType)
-    const queryType = gatewaySchema.getQueryType()
-    assertGraphQLObjectType(queryType)
+    assertGraphQLEnumType(enumType);
+    const queryType = gatewaySchema.getQueryType();
+    assertGraphQLObjectType(queryType);
     expect(objectType.description).toEqual('first');
     expect(inputType.description).toEqual('first');
     expect(enumType.description).toEqual('first');

@@ -1,5 +1,27 @@
 # @graphql-tools/links
 
+## 8.2.1
+
+### Patch Changes
+
+- 981eef80: enhance: remove isPromise and cleanup file-upload handling
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/delegate@8.4.1
+  - @graphql-tools/utils@8.5.1
+
+## 8.2.0
+
+### Minor Changes
+
+- ad04dc79: enhance: make operationType optional
+
+### Patch Changes
+
+- Updated dependencies [ad04dc79]
+  - @graphql-tools/delegate@8.4.0
+  - @graphql-tools/utils@8.5.0
+
 ## 8.1.0
 
 ### Minor Changes

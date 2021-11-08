@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/import",
-  "version": "6.4.1",
+  "version": "6.6.1",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -34,6 +34,7 @@
     "directory": "dist"
   },
   "dependencies": {
+    "@graphql-tools/utils": "8.5.3",
     "resolve-from": "5.0.0",
     "tslib": "~2.3.0"
   }

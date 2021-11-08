@@ -1,5 +1,72 @@
 # @graphql-tools/url-loader
 
+## 7.5.2
+
+### Patch Changes
+
+- 63a29361: fix(url-loader): handle SSE ping event correctly
+
+## 7.5.1
+
+### Patch Changes
+
+- ef9c3853: fix: bump Node <v16.5 compatible version
+
+## 7.5.0
+
+### Minor Changes
+
+- 41d9a996: enhance: use undici instead of node-fetch if available
+
+## 7.4.2
+
+### Patch Changes
+
+- 981eef80: enhance: remove isPromise and cleanup file-upload handling
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [981eef80]
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/wrap@8.3.1
+  - @graphql-tools/delegate@8.4.1
+  - @graphql-tools/utils@8.5.1
+
+## 7.4.1
+
+### Patch Changes
+
+- 5dfea0b5: Correctly handle response cancelation for SSE (subscriptions and live queries) and HTTP Multipart responses (defer and stream).
+
+  `AbortController.signal` wasn't passed to `Request` while calling `fetch`, so it wasn't possible to stop the HTTP request by the user.
+
+## 7.4.0
+
+### Minor Changes
+
+- ad04dc79: enhance: make operationType optional
+
+### Patch Changes
+
+- Updated dependencies [ad04dc79]
+  - @graphql-tools/delegate@8.4.0
+  - @graphql-tools/utils@8.5.0
+  - @graphql-tools/wrap@8.3.0
+
+## 7.3.0
+
+### Minor Changes
+
+- 9b1026dd: replace heavy lodash dependency with dset/merge
+
+### Patch Changes
+
+- 2563447a: fix(url-loader): handle SSE correctly with ReadableStream
+
+## 7.2.1
+
+### Patch Changes
+
+- f895177e: fix(url-loader): incremental delivery for defer/stream and SSE
+
 ## 7.2.0
 
 ### Minor Changes

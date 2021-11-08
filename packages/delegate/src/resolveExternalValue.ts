@@ -168,7 +168,10 @@ function reportUnpathedErrorsViaNull(unpathedErrors: Array<GraphQLError>) {
         return unreportedErrors[0];
       }
 
-      const combinedError = new AggregateError(unreportedErrors);
+      const combinedError = new AggregateError(
+        unreportedErrors,
+        unreportedErrors.map(error => error.message).join(', \n')
+      );
       // We cast path as any for GraphQL.js 14 compat
       // locatedError path argument must be defined, but it is just forwarded to a constructor that allows a undefined value
       // https://github.com/graphql/graphql-js/blob/b4bff0ba9c15c9d7245dd68556e754c41f263289/src/error/locatedError.js#L25

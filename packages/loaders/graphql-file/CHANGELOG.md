@@ -1,5 +1,51 @@
 # @graphql-tools/graphql-file-loader
 
+## 7.3.2
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/import@6.5.7
+  - @graphql-tools/utils@8.5.1
+
+## 7.3.1
+
+### Patch Changes
+
+- 58262be7: enhance: show more clear error messages for aggregated error
+- Updated dependencies [58262be7]
+  - @graphql-tools/utils@8.3.0
+  - @graphql-tools/import@6.5.4
+
+## 7.3.0
+
+### Minor Changes
+
+- 94bee8ba: This change allows pkg - npm to have snapshot stored schema files read by graphql-tools.
+
+  [pkg](https://www.npmjs.com/package/pkg) generates cross platform binary executables of node apps and includes a packaged read-only filesystem called a snapshot.
+
+  This change was made because the pkg snapshot file system does not support use of globbing.
+
+  If you want to use the snapshot facilty with pkg for schema files then:
+
+  1. Access your snapshot schema file or files through a \_\_dirname join
+  2. Your file or files must be accessed by name without the glob '\*' character.
+  3. Do not add ignore files with ! (with or without a glob)
+  4. Do not specify includeSources: true
+
+## 7.2.0
+
+### Minor Changes
+
+- 00d06c2c: feat(loader): provide `noSilentErrors` option to allow raising errors during loader resolution
+
+### Patch Changes
+
+- Updated dependencies [1e90f094]
+  - @graphql-tools/import@6.5.0
+
 ## 7.1.0
 
 ### Minor Changes

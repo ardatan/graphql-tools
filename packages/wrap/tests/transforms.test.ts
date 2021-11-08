@@ -4,21 +4,15 @@ import {
   Kind,
   SelectionSetNode,
   graphql,
+  OperationTypeNode,
+  GraphQLError,
 } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-import {
-  wrapSchema,
-  WrapQuery,
-  ExtractField,
-  TransformQuery,
-} from '@graphql-tools/wrap';
+import { wrapSchema, WrapQuery, ExtractField, TransformQuery } from '@graphql-tools/wrap';
 
-import {
-  delegateToSchema,
-  defaultMergedResolver,
-} from '@graphql-tools/delegate';
+import { delegateToSchema, defaultMergedResolver } from '@graphql-tools/delegate';
 
 function createError<T>(message: string, extra?: T) {
   const error = new Error(message);
@@ -28,7 +22,7 @@ function createError<T>(message: string, extra?: T) {
 
 describe('transforms', () => {
   describe('base transform function', () => {
-    const scalarTest = /* GraphQL */`
+    const scalarTest = /* GraphQL */ `
       scalar TestScalar
       type TestingScalar {
         value: TestScalar
@@ -45,8 +39,8 @@ describe('transforms', () => {
         TestScalar: new GraphQLScalarType({
           name: 'TestScalar',
           description: undefined,
-          serialize: (value) => (value as string).slice(1),
-          parseValue: (value) => `_${value as string}`,
+          serialize: value => (value as string).slice(1),
+          parseValue: value => `_${value as string}`,
           parseLiteral: (ast: any) => `_${ast.value as string}`,
         }),
         Query: {
@@ -64,7 +58,7 @@ describe('transforms', () => {
       const result = await graphql({
         schema,
         source: /* GraphQL */ `
-          query($input: TestScalar) {
+          query ($input: TestScalar) {
             testingScalar(input: $input) {
               value
             }
@@ -92,7 +86,7 @@ describe('transforms', () => {
       const result = await graphql({
         schema,
         source: /* GraphQL */ `
-          query($input: TestScalar) {
+          query ($input: TestScalar) {
             testingScalar(input: $input) {
               value
             }
@@ -119,7 +113,7 @@ describe('transforms', () => {
       });
 
       const subschema = makeExecutableSchema({
-        typeDefs: /* GraphQL */`
+        typeDefs: /* GraphQL */ `
           type Query {
             errorTest: String
           }
@@ -132,7 +126,11 @@ describe('transforms', () => {
       });
       const schema = wrapSchema({ schema: subschema });
 
-      const query = /* GraphQL */`query { errorTest }`;
+      const query = /* GraphQL */ `
+        query {
+          errorTest
+        }
+      `;
       const originalResult = await graphql({
         schema: subschema,
         source: query,
@@ -169,38 +167,38 @@ describe('transforms', () => {
         },
       };
       subschema = makeExecutableSchema({
-        typeDefs: /* GraphQL */`
-        type User {
-          id: ID!
-          username: String
-          address: Address
-        }
+        typeDefs: /* GraphQL */ `
+          type User {
+            id: ID!
+            username: String
+            address: Address
+          }
 
-        type Address {
-          streetAddress: String
-          zip: String
-        }
+          type Address {
+            streetAddress: String
+            zip: String
+          }
 
-        input UserInput {
-          id: ID!
-          username: String
-        }
+          input UserInput {
+            id: ID!
+            username: String
+          }
 
-        input AddressInput {
-          id: ID!
-          streetAddress: String
-          zip: String
-        }
+          input AddressInput {
+            id: ID!
+            streetAddress: String
+            zip: String
+          }
 
-        type Query {
-          userById(id: ID!): User
-        }
+          type Query {
+            userById(id: ID!): User
+          }
 
-        type Mutation {
-          setUser(input: UserInput!): User
-          setAddress(input: AddressInput!): Address
-        }
-      `,
+          type Mutation {
+            setUser(input: UserInput!): User
+            setAddress(input: AddressInput!): Address
+          }
+        `,
         resolvers: {
           Query: {
             userById(_parent, { id }) {
@@ -228,39 +226,39 @@ describe('transforms', () => {
         },
       });
       schema = makeExecutableSchema({
-        typeDefs: /* GraphQL */`
-        type User {
-          id: ID!
-          username: String
-          address: Address
-        }
+        typeDefs: /* GraphQL */ `
+          type User {
+            id: ID!
+            username: String
+            address: Address
+          }
 
-        type Address {
-          streetAddress: String
-          zip: String
-        }
+          type Address {
+            streetAddress: String
+            zip: String
+          }
 
-        input UserInput {
-          id: ID!
-          username: String
-          streetAddress: String
-          zip: String
-        }
+          input UserInput {
+            id: ID!
+            username: String
+            streetAddress: String
+            zip: String
+          }
 
-        type Query {
-          addressByUser(id: ID!): Address
-        }
+          type Query {
+            addressByUser(id: ID!): Address
+          }
 
-        type Mutation {
-          setUserAndAddress(input: UserInput!): User
-        }
-      `,
+          type Mutation {
+            setUserAndAddress(input: UserInput!): User
+          }
+        `,
         resolvers: {
           Query: {
             addressByUser(_parent, { id }, context, info) {
               return delegateToSchema({
                 schema: subschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'userById',
                 args: { id },
                 context,
@@ -282,7 +280,7 @@ describe('transforms', () => {
                       selectionSet: subtree,
                     }),
                     // how to process the data result at path
-                    (result) => result?.address,
+                    result => result?.address
                   ),
                 ],
               });
@@ -292,7 +290,7 @@ describe('transforms', () => {
             async setUserAndAddress(_parent, { input }, context, info) {
               const addressResult = await delegateToSchema({
                 schema: subschema,
-                operation: 'mutation',
+                operation: 'mutation' as OperationTypeNode,
                 fieldName: 'setAddress',
                 args: {
                   input: {
@@ -314,7 +312,7 @@ describe('transforms', () => {
               });
               const userResult = await delegateToSchema({
                 schema: subschema,
-                operation: 'mutation',
+                operation: 'mutation' as OperationTypeNode,
                 fieldName: 'setUser',
                 args: {
                   input: {
@@ -338,7 +336,7 @@ describe('transforms', () => {
     test('wrapping delegation', async () => {
       const result = await graphql({
         schema,
-        source: /* GraphQL */`
+        source: /* GraphQL */ `
           query {
             addressByUser(id: "u1") {
               streetAddress
@@ -361,8 +359,8 @@ describe('transforms', () => {
     test('extracting delegation', async () => {
       const result = await graphql({
         schema,
-        source: /* GraphQL */`
-          mutation($input: UserInput!) {
+        source: /* GraphQL */ `
+          mutation ($input: UserInput!) {
             setUserAndAddress(input: $input) {
               username
               address {
@@ -430,7 +428,7 @@ describe('transforms', () => {
         },
       };
       subschema = makeExecutableSchema({
-        typeDefs: /* GraphQL */`
+        typeDefs: /* GraphQL */ `
           type User {
             id: ID!
             username: String
@@ -476,14 +474,14 @@ describe('transforms', () => {
                 nodes: Object.entries(data)
                   .filter(([id, _value]) => ids.includes(id))
                   .map(([_id, value]) => value),
-                pageInfo: "1"
-              }
-            }
+                pageInfo: '1',
+              };
+            },
           },
         },
       });
       schema = makeExecutableSchema({
-        typeDefs: /* GraphQL */`
+        typeDefs: /* GraphQL */ `
           type Address {
             streetAddress: String
             zip: String
@@ -500,7 +498,7 @@ describe('transforms', () => {
           type Query {
             addressByUser(id: ID!): Address
             errorTest(id: ID!): Address
-            addressesByUsers(ids:[ID!]): AddressConnection!
+            addressesByUsers(ids: [ID!]): AddressConnection!
           }
         `,
         resolvers: {
@@ -508,7 +506,7 @@ describe('transforms', () => {
             addressByUser(_parent, { id }, context, info) {
               return delegateToSchema({
                 schema: subschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'userById',
                 args: { id },
                 context,
@@ -535,8 +533,8 @@ describe('transforms', () => {
                       ],
                     }),
                     // how to process the data result at path
-                    resultTransformer: (result) => result?.address,
-                    errorPathTransformer: (path) => path.slice(1),
+                    resultTransformer: result => result?.address,
+                    errorPathTransformer: path => path.slice(1),
                   }),
                 ],
               });
@@ -544,7 +542,7 @@ describe('transforms', () => {
             addressesByUsers(_parent, { ids }, context, info) {
               return delegateToSchema({
                 schema: subschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'usersByIds',
                 args: { ids },
                 context,
@@ -569,16 +567,16 @@ describe('transforms', () => {
                       ],
                     }),
                     // how to process the data result at path
-                    resultTransformer: (result) => result.map((u: any) => u.address),
-                    errorPathTransformer: (path) => path.slice(1),
+                    resultTransformer: result => result.map((u: any) => u.address),
+                    errorPathTransformer: path => path.slice(1),
                   }),
                 ],
-              })
+              });
             },
             errorTest(_parent, { id }, context, info) {
               return delegateToSchema({
                 schema: subschema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'userById',
                 args: { id },
                 context,
@@ -599,8 +597,8 @@ describe('transforms', () => {
                         },
                       ],
                     }),
-                    resultTransformer: (result) => result?.address,
-                    errorPathTransformer: (path) => path.slice(1),
+                    resultTransformer: result => result?.address,
+                    errorPathTransformer: path => path.slice(1),
                   }),
                 ],
               });
@@ -613,7 +611,7 @@ describe('transforms', () => {
     test('wrapping delegation', async () => {
       const result = await graphql({
         schema,
-        source: /* GraphQL */`
+        source: /* GraphQL */ `
           query {
             addressByUser(id: "u1") {
               streetAddress
@@ -636,7 +634,7 @@ describe('transforms', () => {
     test('preserves errors from underlying fields', async () => {
       const result = await graphql({
         schema,
-        source: /* GraphQL */`
+        source: /* GraphQL */ `
           query {
             addressByUser(id: "u1") {
               errorTest
@@ -652,25 +650,14 @@ describe('transforms', () => {
             errorTest: null,
           },
         },
-        errors: [
-          {
-            locations: [
-              {
-                column: 15,
-                line: 4,
-              },
-            ],
-            message: 'Test Error!',
-            path: ['addressByUser', 'errorTest'],
-          },
-        ],
+        errors: [new GraphQLError('Test Error!', undefined, undefined, [15, 4], ['addressByUser', 'errorTest'])],
       });
     });
 
     test('preserves errors when delegating from a root field to an error', async () => {
       const result = await graphql({
         schema,
-        source: /* GraphQL */`
+        source: /* GraphQL */ `
           query {
             errorTest(id: "u1") {
               errorTest
@@ -691,7 +678,7 @@ describe('transforms', () => {
     test('nested path produces nested result, other fields get preserved', async () => {
       const result = await graphql({
         schema,
-        source: /* GraphQL */`
+        source: /* GraphQL */ `
           query {
             addressesByUsers(ids: ["u1", "u2"]) {
               nodes {
@@ -701,7 +688,7 @@ describe('transforms', () => {
               pageInfo
             }
           }
-        `
+        `,
       });
 
       expect(result).toEqual({
@@ -717,7 +704,7 @@ describe('transforms', () => {
                 zip: '54321',
               },
             ],
-            pageInfo: "1"
+            pageInfo: '1',
           },
         },
       });

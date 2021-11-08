@@ -5,7 +5,7 @@ import { graphql } from 'graphql';
 describe('RenameInterfaceFields', () => {
   test('works', async () => {
     const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         interface IWidget {
           name: String
         }
@@ -21,8 +21,8 @@ describe('RenameInterfaceFields', () => {
       resolvers: {
         Query: {
           namedWidget: () => ({ __typename: 'Widget', id: '1', name: 'gizmo' }),
-        }
-      }
+        },
+      },
     });
 
     const transformedSchema = wrapSchema({
@@ -35,17 +35,19 @@ describe('RenameInterfaceFields', () => {
 
     const result = await graphql({
       schema: transformedSchema,
-      source: /* GraphQL */`
-      {
-        titledWidget {
-          title
+      source: /* GraphQL */ `
+        {
+          titledWidget {
+            title
+          }
         }
-      }`});
+      `,
+    });
 
     expect(result.data).toEqual({
       titledWidget: {
-        title: 'gizmo'
-      }
+        title: 'gizmo',
+      },
     });
   });
 });

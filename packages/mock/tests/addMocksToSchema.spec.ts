@@ -1,69 +1,69 @@
 import { buildSchema, graphql } from 'graphql';
 import { addMocksToSchema, assertIsRef, createMockStore, isRef } from '../src';
 
-const typeDefs = /* GraphQL */`
-type User {
-  id: ID!
-  age: Int!
-  name: String!
-  image: UserImage!
-  book: Book!
-}
+const typeDefs = /* GraphQL */ `
+  type User {
+    id: ID!
+    age: Int!
+    name: String!
+    image: UserImage!
+    book: Book!
+  }
 
-type Author {
-  _id: ID!
-  name: String!
-  book: Book!
-}
+  type Author {
+    _id: ID!
+    name: String!
+    book: Book!
+  }
 
-union UserImage = UserImageSolidColor | UserImageURL
+  union UserImage = UserImageSolidColor | UserImageURL
 
-type UserImageSolidColor {
-  color: String!
-}
+  type UserImageSolidColor {
+    color: String!
+  }
 
-type UserImageURL {
-  url: String!
-}
+  type UserImageURL {
+    url: String!
+  }
 
-scalar Date
+  scalar Date
 
-interface Book {
-  id: ID!
-  title: String
-  publishedAt: Date
-}
+  interface Book {
+    id: ID!
+    title: String
+    publishedAt: Date
+  }
 
-type TextBook implements Book {
-  id: ID!
-  title: String
-  publishedAt: Date
-  text: String
-}
+  type TextBook implements Book {
+    id: ID!
+    title: String
+    publishedAt: Date
+    text: String
+  }
 
-type ColoringBook implements Book {
-  id: ID!
-  title: String
-  publishedAt: Date
-  colors: [String]
-}
+  type ColoringBook implements Book {
+    id: ID!
+    title: String
+    publishedAt: Date
+    colors: [String]
+  }
 
-type Query {
-  viewer: User!
-  userById(id: ID!): User!
-  author: Author!
-}
+  type Query {
+    viewer: User!
+    userById(id: ID!): User!
+    author: Author!
+  }
 
-type Mutation {
-  changeViewerName(newName: String!): User!
-}
+  type Mutation {
+    changeViewerName(newName: String!): User!
+  }
 `;
 
 const schema = buildSchema(typeDefs);
 
 describe('addMocksToSchema', () => {
   it('basic', async () => {
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       query {
         viewer {
           id
@@ -71,19 +71,18 @@ describe('addMocksToSchema', () => {
           age
         }
       }
-      `;
+    `;
     const mockedSchema = addMocksToSchema({ schema });
     const { data, errors } = await graphql({
       schema: mockedSchema,
       source: query,
     });
 
-
     expect(errors).not.toBeDefined();
     expect(data).toBeDefined();
     const viewerData = data?.['viewer'] as any;
-    expect(typeof viewerData['id']).toBe('string')
-    expect(typeof viewerData['name']).toBe('string')
+    expect(typeof viewerData['id']).toBe('string');
+    expect(typeof viewerData['name']).toBe('string');
     expect(typeof viewerData['age']).toBe('number');
 
     const { data: data2 } = await graphql({
@@ -97,26 +96,25 @@ describe('addMocksToSchema', () => {
   });
 
   it('handle _id key field', async () => {
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       query {
         author {
           _id
           name
         }
       }
-      `;
+    `;
     const mockedSchema = addMocksToSchema({ schema });
     const { data, errors } = await graphql({
       schema: mockedSchema,
       source: query,
     });
 
-
     expect(errors).not.toBeDefined();
     expect(data).toBeDefined();
     const viewerData = data?.['author'] as any;
-    expect(typeof viewerData['_id']).toBe('string')
-    expect(typeof viewerData['name']).toBe('string')
+    expect(typeof viewerData['_id']).toBe('string');
+    expect(typeof viewerData['name']).toBe('string');
 
     const { data: data2 } = await graphql({
       schema: mockedSchema,
@@ -130,17 +128,21 @@ describe('addMocksToSchema', () => {
 
   it('mutations resolver', async () => {
     const store = createMockStore({ schema });
-    const mockedSchema = addMocksToSchema({ schema, store, resolvers: {
-      Mutation: {
-        changeViewerName: (_, { newName }: { newName: string} ) => {
-          const viewer = store.get('Query', 'ROOT', 'viewer');
-          assertIsRef(viewer);
+    const mockedSchema = addMocksToSchema({
+      schema,
+      store,
+      resolvers: {
+        Mutation: {
+          changeViewerName: (_, { newName }: { newName: string }) => {
+            const viewer = store.get('Query', 'ROOT', 'viewer');
+            assertIsRef(viewer);
 
-          store.set('User', viewer.$ref.key, 'name', newName);
-          return store.get('Query', 'ROOT', 'viewer');
-        }
-      }
-    }});
+            store.set('User', viewer.$ref.key, 'name', newName);
+            return store.get('Query', 'ROOT', 'viewer');
+          },
+        },
+      },
+    });
 
     await graphql({
       schema: mockedSchema,
@@ -163,7 +165,7 @@ describe('addMocksToSchema', () => {
   });
 
   it('should handle arguments', async () => {
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       query {
         user1: userById(id: "1") {
           id
@@ -174,7 +176,7 @@ describe('addMocksToSchema', () => {
           name
         }
       }
-      `;
+    `;
     const store = createMockStore({ schema });
 
     const mockedSchema = addMocksToSchema({ schema, store });
@@ -182,7 +184,6 @@ describe('addMocksToSchema', () => {
       schema: mockedSchema,
       source: query,
     });
-
 
     expect(errors).not.toBeDefined();
     expect(data).toBeDefined();
@@ -192,7 +193,7 @@ describe('addMocksToSchema', () => {
   });
 
   it('should handle union type', async () => {
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       query {
         viewer {
           image {
@@ -206,7 +207,7 @@ describe('addMocksToSchema', () => {
           }
         }
       }
-      `;
+    `;
     const store = createMockStore({ schema });
 
     const mockedSchema = addMocksToSchema({ schema, store });
@@ -215,14 +216,13 @@ describe('addMocksToSchema', () => {
       source: query,
     });
 
-
     expect(errors).not.toBeDefined();
     expect(data).toBeDefined();
     expect((data!['viewer'] as any)['image']['__typename']).toBeDefined();
   });
 
   it('should handle interface type', async () => {
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       query {
         viewer {
           book {
@@ -237,7 +237,7 @@ describe('addMocksToSchema', () => {
           }
         }
       }
-      `;
+    `;
     const store = createMockStore({ schema });
 
     const mockedSchema = addMocksToSchema({ schema, store });
@@ -246,16 +246,14 @@ describe('addMocksToSchema', () => {
       source: query,
     });
 
-
     expect(errors).not.toBeDefined();
     expect(data).toBeDefined();
     expect((data!['viewer'] as any)['book']['__typename']).toBeDefined();
   });
   it('should handle custom scalars', async () => {
-
     const mockDate = new Date().toJSON().split('T')[0];
 
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       query {
         viewer {
           book {
@@ -266,22 +264,23 @@ describe('addMocksToSchema', () => {
       }
     `;
 
-    const mockedSchema = addMocksToSchema({ schema, mocks: {
-      Date: () => mockDate
-    }});
+    const mockedSchema = addMocksToSchema({
+      schema,
+      mocks: {
+        Date: () => mockDate,
+      },
+    });
     const { data, errors } = await graphql({
       schema: mockedSchema,
       source: query,
     });
 
-
     expect(errors).not.toBeDefined();
     expect(data).toBeDefined();
     expect((data!['viewer'] as any)['book']['publishedAt']).toBe(mockDate);
-
   });
   it('should handle null fields correctly', async () => {
-    const schema = buildSchema(/* GraphQL */`
+    const schema = buildSchema(/* GraphQL */ `
       type Query {
         foo: Foo
       }
@@ -295,11 +294,11 @@ describe('addMocksToSchema', () => {
       mocks: {
         Foo: () => ({
           field1: 'text',
-          field2: null
-        })
-      }
-    })
-    const query = /* GraphQL */`
+          field2: null,
+        }),
+      },
+    });
+    const query = /* GraphQL */ `
       {
         foo {
           field1
@@ -309,15 +308,15 @@ describe('addMocksToSchema', () => {
     `;
     const { data } = await graphql({
       schema: mockedSchema,
-      source: query
+      source: query,
     });
 
     const fooData = data?.['foo'] as any;
     expect(fooData.field1).toBe('text');
     expect(fooData.field2).toBe(null);
-  })
+  });
   it('should handle null fields correctly in nested fields', async () => {
-    const schema = buildSchema(/* GraphQL */`
+    const schema = buildSchema(/* GraphQL */ `
       type Query {
         foo: Foo
       }
@@ -328,18 +327,17 @@ describe('addMocksToSchema', () => {
       type Boo {
         boo_field: String
       }
-
     `);
     const mockedSchema = addMocksToSchema({
       schema,
       mocks: {
         Foo: () => ({
-          foo_field: "text",
-          boo: null
-        })
-      }
-    })
-    const query = /* GraphQL */`
+          foo_field: 'text',
+          boo: null,
+        }),
+      },
+    });
+    const query = /* GraphQL */ `
       {
         foo {
           foo_field
@@ -351,7 +349,7 @@ describe('addMocksToSchema', () => {
     `;
     const { data, errors } = await graphql({
       schema: mockedSchema,
-      source: query
+      source: query,
     });
 
     expect(errors).toBeFalsy();

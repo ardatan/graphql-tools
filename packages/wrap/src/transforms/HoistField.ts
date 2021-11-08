@@ -7,6 +7,7 @@ import {
   GraphQLError,
   GraphQLArgument,
   GraphQLFieldResolver,
+  OperationTypeNode,
 } from 'graphql';
 
 import {
@@ -112,7 +113,7 @@ export default class HoistField implements Transform {
         resolve = createProxyingResolver({
           subschemaConfig,
           transformedSchema,
-          operation,
+          operation: operation as OperationTypeNode,
           fieldName: this.newFieldName,
         });
       } else {

@@ -89,7 +89,8 @@ title: '${match.replace('# ', '')}'
 ${match}`;
       })
       // Fix links
-      .split('.md').join('')
+      .split('.md')
+      .join('')
       .replace(/\[([^\]]+)\]\((\.\.\/(classes|interfaces|enums)\/([^\)]+))\)/g, '[$1](/docs/api/$3/$4)');
     console.log(filePath);
     await fsPromises.writeFile(filePath, contentsTrimmed);

@@ -1,7 +1,7 @@
+import { getOperationASTFromRequest } from './getOperationASTFromRequest';
 import {
   GraphQLSchema,
   getOperationRootType,
-  getOperationAST,
   Kind,
   GraphQLObjectType,
   FieldNode,
@@ -103,7 +103,7 @@ export function visitResult(
   const errors = result.errors;
   const visitingErrors = errors != null && errorVisitorMap != null;
 
-  const operationDocumentNode = getOperationAST(request.document, undefined);
+  const operationDocumentNode = getOperationASTFromRequest(request);
 
   if (data != null && operationDocumentNode != null) {
     result.data = visitRoot(

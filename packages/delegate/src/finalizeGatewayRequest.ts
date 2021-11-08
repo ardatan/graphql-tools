@@ -1,6 +1,6 @@
 import {
   ArgumentNode,
-  ASTKindToNode,
+  DocumentNode,
   FragmentDefinitionNode,
   getNamedType,
   GraphQLField,
@@ -19,7 +19,6 @@ import {
   VariableDefinitionNode,
   versionInfo as graphqlVersionInfo,
   visit,
-  VisitorKeyMap,
   visitWithTypeInfo,
 } from 'graphql';
 
@@ -31,6 +30,7 @@ import {
   createVariableNameGenerator,
   implementsAbstractType,
   inspect,
+  ASTVisitorKeyMap,
 } from '@graphql-tools/utils';
 
 import { DelegationContext } from './types';
@@ -94,12 +94,14 @@ function finalizeGatewayDocument(
     });
   }
 
+  const newDocument: DocumentNode = {
+    kind: Kind.DOCUMENT,
+    definitions: [...newOperations, ...newFragments],
+  };
+
   return {
     usedVariables,
-    newDocument: {
-      kind: Kind.DOCUMENT,
-      definitions: [...newOperations, ...newFragments],
-    },
+    newDocument,
   };
 }
 
@@ -158,7 +160,7 @@ function addVariablesToRootFields(
 
     const type = getDefinedRootType(targetSchema, operation.operation);
 
-    const newSelectionSet: Array<SelectionNode> = [];
+    const newSelections: Array<SelectionNode> = [];
 
     for (const selection of operation.selectionSet.selections) {
       if (selection.kind === Kind.FIELD) {
@@ -178,22 +180,24 @@ function addVariablesToRootFields(
           updateArguments(targetField, argumentNodeMap, variableDefinitionMap, newVariables, args);
         }
 
-        newSelectionSet.push({
+        newSelections.push({
           ...selection,
           arguments: Object.values(argumentNodeMap),
         });
       } else {
-        newSelectionSet.push(selection);
+        newSelections.push(selection);
       }
     }
+
+    const newSelectionSet: SelectionSetNode = {
+      kind: Kind.SELECTION_SET,
+      selections: newSelections,
+    };
 
     return {
       ...operation,
       variableDefinitions: Object.values(variableDefinitionMap),
-      selectionSet: {
-        kind: Kind.SELECTION_SET,
-        selections: newSelectionSet,
-      },
+      selectionSet: newSelectionSet,
     };
   });
 
@@ -284,14 +288,14 @@ function collectFragmentVariables(
   };
 }
 
-const filteredSelectionSetVisitorKeys: Partial<VisitorKeyMap<ASTKindToNode>> = {
+const filteredSelectionSetVisitorKeys: ASTVisitorKeyMap = {
   SelectionSet: ['selections'],
   Field: ['selectionSet'],
   InlineFragment: ['selectionSet'],
   FragmentDefinition: ['selectionSet'],
 };
 
-const variablesVisitorKeys: Partial<VisitorKeyMap<ASTKindToNode>> = {
+const variablesVisitorKeys: ASTVisitorKeyMap = {
   SelectionSet: ['selections'],
   Field: ['arguments', 'directives', 'selectionSet'],
   Argument: ['value'],

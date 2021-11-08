@@ -6,6 +6,7 @@ import {
   IntrospectionOptions,
   IntrospectionQuery,
   ParseOptions,
+  OperationTypeNode,
 } from 'graphql';
 
 import { ValueOrPromise } from 'value-or-promise';
@@ -56,13 +57,14 @@ export function introspectSchema(
   return new ValueOrPromise(() =>
     executor({
       document: parsedIntrospectionQuery,
-      operationType: 'query',
       context,
+      operationType: 'query' as OperationTypeNode,
     })
   )
     .then(introspection => {
       if (isAsyncIterable(introspection)) {
-        return introspection.next().then(({ value }) => value);
+        const iterator = introspection[Symbol.asyncIterator]();
+        return iterator.next().then(({ value }) => value);
       }
       return introspection;
     })

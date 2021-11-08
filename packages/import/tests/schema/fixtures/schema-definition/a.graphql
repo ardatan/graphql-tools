@@ -2,6 +2,6 @@
 # import MyMutation from './c.graphql'
 
 schema {
-    query: MyQuery
-    mutation: MyMutation
+  query: MyQuery
+  mutation: MyMutation
 }

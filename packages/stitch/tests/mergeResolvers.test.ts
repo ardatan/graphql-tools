@@ -6,7 +6,7 @@ import { assertSome } from '@graphql-tools/utils';
 
 describe('Merge resolvers', () => {
   const firstSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Widget {
         id: ID!
       }
@@ -22,12 +22,12 @@ describe('Merge resolvers', () => {
       Query: {
         widget: (_root, { id }) => ({ id }),
         sprocket: (_root, { id }) => ({ id }),
-      }
-    }
+      },
+    },
   });
 
   const secondSchema = makeExecutableSchema({
-    typeDefs: /* GraphQL */`
+    typeDefs: /* GraphQL */ `
       type Widget {
         id: ID!
         source: String
@@ -45,8 +45,8 @@ describe('Merge resolvers', () => {
       Query: {
         _widgets: (_root, { ids }) => ids.map((id: any) => ({ id, source: 'service' })),
         _sprocket: (_root, { id }) => ({ id, source: 'service' }),
-      }
-    }
+      },
+    },
   });
 
   it('works with custom resolvers', async () => {
@@ -62,28 +62,35 @@ describe('Merge resolvers', () => {
               selectionSet: '{ id }',
               fieldName: '_widgets',
               key: ({ id }) => id,
-              argsFromKeys: (ids) => ({ ids }),
-              resolve: (originalResult) => ({ ...originalResult, source: 'resolve' }),
+              argsFromKeys: ids => ({ ids }),
+              resolve: originalResult => ({ ...originalResult, source: 'resolve' }),
             },
             Sprocket: {
               selectionSet: '{ id }',
               fieldName: '_sprocket',
               args: ({ id }) => ({ id }),
-              resolve: (originalResult) => ({ ...originalResult, source: 'resolve' }),
+              resolve: originalResult => ({ ...originalResult, source: 'resolve' }),
             },
           },
         },
-      ]
+      ],
     });
 
     const { data } = await graphql({
       schema: gatewaySchema,
-      source: /* GraphQL */`
-      query {
-        widget(id: 1) { id source }
-        sprocket(id: 1) { id source }
-      }
-    `});
+      source: /* GraphQL */ `
+        query {
+          widget(id: 1) {
+            id
+            source
+          }
+          sprocket(id: 1) {
+            id
+            source
+          }
+        }
+      `,
+    });
 
     expect(data).toEqual({
       widget: { id: '1', source: 'resolve' },
@@ -94,7 +101,7 @@ describe('Merge resolvers', () => {
   it('works with wrapped resolvers', async () => {
     function wrapResolve(mergedTypeResolverOptions: MergedTypeResolverOptions): MergedTypeResolver {
       const defaultResolve = createMergedTypeResolver(mergedTypeResolverOptions);
-      assertSome(defaultResolve)
+      assertSome(defaultResolve);
       return async (obj, ctx, inf, sch, sel, key) => {
         const result = await defaultResolve(obj, ctx, inf, sch, sel, key);
         result.source += '->resolve';
@@ -115,7 +122,7 @@ describe('Merge resolvers', () => {
               key: ({ id }) => id,
               resolve: wrapResolve({
                 fieldName: '_widgets',
-                argsFromKeys: (ids) => ({ ids }),
+                argsFromKeys: ids => ({ ids }),
               }),
             },
             Sprocket: {
@@ -127,22 +134,28 @@ describe('Merge resolvers', () => {
             },
           },
         },
-      ]
+      ],
     });
 
     const { data } = await graphql({
       schema: gatewaySchema,
-      source: /* GraphQL */`
-      query {
-        widget(id: 1) { id source }
-        sprocket(id: 1) { id source }
-      }
-    `});
+      source: /* GraphQL */ `
+        query {
+          widget(id: 1) {
+            id
+            source
+          }
+          sprocket(id: 1) {
+            id
+            source
+          }
+        }
+      `,
+    });
 
     expect(data).toEqual({
       widget: { id: '1', source: 'service->resolve' },
       sprocket: { id: '1', source: 'service->resolve' },
     });
   });
-
 });

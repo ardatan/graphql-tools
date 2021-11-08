@@ -1,5 +1,51 @@
 # @graphql-tools/wrap
 
+## 8.3.2
+
+### Patch Changes
+
+- 960e178a: fix: isAsyncIterable should check if it is an object with iterator factory function
+- Updated dependencies [960e178a]
+- Updated dependencies [947a3fe0]
+  - @graphql-tools/delegate@8.4.2
+  - @graphql-tools/utils@8.5.3
+
+## 8.3.1
+
+### Patch Changes
+
+- 981eef80: enhance: remove isPromise and cleanup file-upload handling
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/delegate@8.4.1
+  - @graphql-tools/schema@8.3.1
+  - @graphql-tools/utils@8.5.1
+
+## 8.3.0
+
+### Minor Changes
+
+- ad04dc79: enhance: make operationType optional
+
+### Patch Changes
+
+- Updated dependencies [ad04dc79]
+  - @graphql-tools/delegate@8.4.0
+  - @graphql-tools/utils@8.5.0
+
+## 8.2.0
+
+### Minor Changes
+
+- 149afddb: fix: getting ready for GraphQL v16
+
+### Patch Changes
+
+- Updated dependencies [149afddb]
+  - @graphql-tools/delegate@8.3.0
+  - @graphql-tools/schema@8.3.0
+  - @graphql-tools/utils@8.4.0
+
 ## 8.1.1
 
 ### Patch Changes

@@ -126,7 +126,7 @@ export function astFromSchema(
     ['query', undefined],
     ['mutation', undefined],
     ['subscription', undefined],
-  ]);
+  ] as [OperationTypeNode, OperationTypeDefinitionNode | undefined][]);
 
   const nodes: Array<SchemaDefinitionNode | SchemaExtensionNode> = [];
   if (schema.astNode != null) {
@@ -471,12 +471,10 @@ export function astFromScalarType(
     ? makeDirectiveNodes(schema, directivesInExtensions)
     : (type.astNode?.directives as DirectiveNode[]) || [];
 
-  if (
-    (type as any)['specifiedByUrl'] &&
-    !directives.some(directiveNode => directiveNode.name.value === 'specifiedBy')
-  ) {
+  const specifiedByValue = ((type as any)['specifiedByUrl'] || (type as any)['specifiedByURL']) as string;
+  if (specifiedByValue && !directives.some(directiveNode => directiveNode.name.value === 'specifiedBy')) {
     const specifiedByArgs = {
-      url: (type as any)['specifiedByUrl'],
+      url: specifiedByValue,
     };
     directives.push(makeDirectiveNode('specifiedBy', specifiedByArgs));
   }

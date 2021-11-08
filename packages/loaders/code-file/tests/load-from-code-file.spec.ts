@@ -21,6 +21,24 @@ describe('loadFromCodeFile', () => {
     }
   });
 
+  it('should raise an error when the glob matches valid and invalid schema files with `noSilentErrors` set to true', async () => {
+    const result = loader.load('./test-files/{valid,invalid-anon}-doc.js', {
+      cwd: __dirname,
+      noSilentErrors: true,
+    });
+    await expect(result).rejects.toThrow();
+  });
+
+  it('should not raise an error when the glob matches valid and invalid schema files without the `noSilentErrors` option present', async () => {
+    const result = await loader.load('./test-files/{valid,invalid-anon}-doc.js', {
+      cwd: __dirname,
+    });
+    const loaded = result?.[0];
+    const doc = loaded?.document ? loaded?.document : parse(loaded?.rawSDL!);
+
+    expect(doc?.kind).toEqual('Document');
+  });
+
   it('should load a valid file', async () => {
     const result = await loader.load('./test-files/valid-doc.js', {
       noRequire: true,
@@ -91,6 +109,25 @@ describe('loadFromCodeFileSync', () => {
 
       expect(doc?.kind).toEqual('Document');
     }).toThrowError('Syntax Error: Unexpected Name "InvalidGetUser"');
+  });
+
+  it('should raise an error when the glob matches valid and invalid schema files with `noSilentErrors` set to true', async () => {
+    const result = () =>
+      loader.loadSync('./test-files/{valid,invalid-anon}-doc.js', {
+        cwd: __dirname,
+        noSilentErrors: true,
+      });
+    expect(result).toThrow();
+  });
+
+  it('should not raise an error when the glob matches valid and invalid schema files without the `noSilentErrors` option present', async () => {
+    const result = loader.loadSync('./test-files/{valid,invalid-anon}-doc.js', {
+      cwd: __dirname,
+    });
+    const loaded = result?.[0];
+    const doc = loaded?.document;
+
+    expect(doc?.kind).toEqual('Document');
   });
 
   it('should load a valid file', () => {

@@ -1,7 +1,7 @@
 import { concat } from '@apollo/client/link/core';
 import { createUploadLink, formDataAppendFile, isExtractableFile } from 'apollo-upload-client';
 import FormData from 'form-data';
-import { fetch } from 'cross-fetch';
+import fetch from 'node-fetch';
 
 import { AwaitVariablesLink } from './AwaitVariablesLink';
 

@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/schema",
-  "version": "8.2.0",
+  "version": "8.3.1",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -29,16 +29,16 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "devDependencies": {
-    "graphql-scalars": "1.10.1"
+    "graphql-scalars": "1.13.1"
   },
   "buildOptions": {
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/merge": "^8.1.0",
-    "@graphql-tools/utils": "^8.2.0",
+    "@graphql-tools/merge": "^8.2.1",
+    "@graphql-tools/utils": "^8.5.1",
     "tslib": "~2.3.0",
-    "value-or-promise": "1.0.10"
+    "value-or-promise": "1.0.11"
   },
   "publishConfig": {
     "access": "public",

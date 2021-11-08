@@ -16,11 +16,9 @@ import {
   GraphQLOutputType,
   isObjectType,
   FieldNode,
-  VisitorKeyMap,
-  ASTKindToNode,
 } from 'graphql';
 
-import { implementsAbstractType, getRootTypeNames, memoize2 } from '@graphql-tools/utils';
+import { implementsAbstractType, getRootTypeNames, memoize2, ASTVisitorKeyMap } from '@graphql-tools/utils';
 
 import { getDocumentMetadata } from './getDocumentMetadata';
 import { StitchingInfo } from './types';
@@ -52,12 +50,12 @@ export function prepareGatewayDocument(
 
   const typeInfo = new TypeInfo(transformedSchema);
 
-  const expandedDocument = {
+  const expandedDocument: DocumentNode = {
     kind: Kind.DOCUMENT,
     definitions: [...operations, ...fragments, ...expandedFragments],
   };
 
-  const visitorKeyMap: Partial<VisitorKeyMap<ASTKindToNode>> = {
+  const visitorKeyMap: ASTVisitorKeyMap = {
     Document: ['definitions'],
     OperationDefinition: ['selectionSet'],
     SelectionSet: ['selections'],
@@ -392,7 +390,7 @@ function wrapConcreteTypes(
 
   const typeInfo = new TypeInfo(targetSchema);
 
-  const visitorKeys: Partial<VisitorKeyMap<ASTKindToNode>> = {
+  const visitorKeys: ASTVisitorKeyMap = {
     Document: ['definitions'],
     OperationDefinition: ['selectionSet'],
     SelectionSet: ['selections'],

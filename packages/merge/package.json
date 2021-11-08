@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/merge",
-  "version": "8.1.2",
+  "version": "8.2.1",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -33,7 +33,7 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^8.2.2",
+    "@graphql-tools/utils": "^8.5.1",
     "tslib": "~2.3.0"
   },
   "publishConfig": {

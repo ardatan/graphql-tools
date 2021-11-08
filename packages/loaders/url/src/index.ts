@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 /// <reference lib="dom" />
-import { print, IntrospectionOptions, GraphQLError, buildASTSchema, buildSchema, getOperationAST } from 'graphql';
+import { print, IntrospectionOptions, GraphQLError, buildASTSchema, buildSchema } from 'graphql';
 
 import {
   AsyncExecutor,
@@ -12,43 +12,25 @@ import {
   observableToAsyncIterable,
   isAsyncIterable,
   ExecutionRequest,
-  mapAsyncIterator,
-  withCancel,
   parseGraphQLSDL,
+  getOperationASTFromRequest,
 } from '@graphql-tools/utils';
 import { isWebUri } from 'valid-url';
-import { fetch as crossFetch } from 'cross-fetch';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
 import { ClientOptions as GraphQLSSEClientOptions, createClient as createGraphQLSSEClient } from 'graphql-sse';
 import WebSocket from 'isomorphic-ws';
-import syncFetchImported from 'sync-fetch';
-import isPromise from 'is-promise';
 import { extractFiles, isExtractableFile } from 'extract-files';
-import FormData from 'form-data';
-import { fetchEventSource, FetchEventSourceInit } from '@ardatan/fetch-event-source';
 import { ConnectionParamsOptions, SubscriptionClient as LegacySubscriptionClient } from 'subscriptions-transport-ws';
-import AbortController from 'abort-controller';
-import { meros } from 'meros';
-import _ from 'lodash';
 import { ValueOrPromise } from 'value-or-promise';
 import { isLiveQueryOperationDefinitionNode } from '@n1ru4l/graphql-live-query';
+import { AsyncFetchFn, defaultAsyncFetch } from './defaultAsyncFetch';
+import { defaultSyncFetch, SyncFetchFn } from './defaultSyncFetch';
+import { handleMultipartMixedResponse } from './handleMultipartMixedResponse';
+import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse';
+import { addCancelToResponseStream } from './addCancelToResponseStream';
+import { AbortController, FormData } from 'cross-undici-fetch';
 
-const syncFetch: SyncFetchFn = (input: RequestInfo, init?: RequestInit): SyncResponse => {
-  if (typeof input === 'string') {
-    delete init?.signal;
-  } else {
-    delete (input as any).signal;
-  }
-  return syncFetchImported(input, init);
-};
-
-export type AsyncFetchFn = typeof import('cross-fetch').fetch;
-export type SyncFetchFn = (input: RequestInfo, init?: RequestInit) => SyncResponse;
-export type SyncResponse = Omit<Response, 'json' | 'text'> & {
-  json: () => any;
-  text: () => string;
-};
 export type FetchFn = AsyncFetchFn | SyncFetchFn;
 
 export type AsyncImportFn = (moduleName: string) => PromiseLike<any>;
@@ -60,15 +42,6 @@ const syncImport: SyncImportFn = (moduleName: string) => require(moduleName);
 interface ExecutionResult<TData = { [key: string]: any }, TExtensions = { [key: string]: any }> {
   errors?: ReadonlyArray<GraphQLError>;
   data?: TData;
-  extensions?: TExtensions;
-}
-
-interface ExecutionPatchResult<TData = { [key: string]: any }, TExtensions = { [key: string]: any }> {
-  errors?: ReadonlyArray<GraphQLError>;
-  data?: TData;
-  path?: ReadonlyArray<string | number>;
-  label?: string;
-  hasNext: boolean;
   extensions?: TExtensions;
 }
 
@@ -124,10 +97,6 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Use multipart for POST requests
    */
   multipart?: boolean;
-  /**
-   * Additional options to pass to the constructor of the underlying EventSource instance.
-   */
-  eventSourceOptions?: FetchEventSourceInit;
   /**
    * Handle URL as schema SDL
    */
@@ -195,13 +164,21 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     const { clone, files } = extractFiles(
       vars,
       'variables',
-      ((v: any) => isExtractableFile(v) || v?.promise || isAsyncIterable(v) || isPromise(v)) as any
+      ((v: any) =>
+        isExtractableFile(v) ||
+        v?.promise ||
+        isAsyncIterable(v) ||
+        v?.then ||
+        typeof v?.arrayBuffer === 'function') as any
     );
-    const map = Array.from(files.values()).reduce((prev, curr, currIndex) => {
-      prev[currIndex] = curr;
-      return prev;
-    }, {});
-    const uploads: Map<number | string, any> = new Map(Array.from(files.keys()).map((u, i) => [i, u]));
+    const map: Record<number, string[]> = {};
+    const uploads: any[] = [];
+    let currIndex = 0;
+    for (const [file, curr] of files) {
+      map[currIndex] = curr;
+      uploads[currIndex] = file;
+      currIndex++;
+    }
     const form = new FormData();
     form.append(
       'operations',
@@ -214,28 +191,16 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     );
     form.append('map', JSON.stringify(map));
     return ValueOrPromise.all(
-      Array.from(uploads.entries()).map(params =>
-        new ValueOrPromise(() => {
-          const [i, u$] = params as any;
-          return new ValueOrPromise(() => u$).then(u => [i, u]).resolve();
-        }).then(([i, u]) => {
-          if (u?.promise) {
+      uploads.map((u$, i) =>
+        new ValueOrPromise(() => u$).then(u => {
+          const indexStr = i.toString();
+          if (u != null && 'promise' in u) {
             return u.promise.then((upload: any) => {
               const stream = upload.createReadStream();
-              form.append(i.toString(), stream, {
-                filename: upload.filename,
-                contentType: upload.mimetype,
-              } as any);
+              form.append(indexStr, stream, upload.filename);
             });
           } else {
-            form.append(
-              i.toString(),
-              u as any,
-              {
-                filename: 'name' in u ? u['name'] : i,
-                contentType: u.type,
-              } as any
-            );
+            form.append(indexStr, u, u.name || u.path || indexStr);
           }
         })
       )
@@ -304,43 +269,48 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       wss: 'https',
       ws: 'http',
     });
-    const executor = ({
-      document,
-      variables,
-      operationName,
-      extensions,
-      operationType,
-    }: ExecutionRequest<any, any, any, ExecutionExtensions>) => {
+    const executor = (request: ExecutionRequest<any, any, any, ExecutionExtensions>) => {
       const controller = new AbortController();
       let method = defaultMethod;
+
       if (options?.useGETForQueries) {
+        const operationAst = getOperationASTFromRequest(request);
+        const operationType = operationAst.operation;
         if (operationType === 'query') {
           method = 'GET';
-        } else {
-          method = defaultMethod;
         }
       }
 
-      const headers = Object.assign({}, options?.headers, extensions?.headers || {});
+      const headers = Object.assign({}, options?.headers, request.extensions?.headers || {});
+      const accept = 'application/json, multipart/mixed, text/event-stream';
+
+      const query = print(request.document);
+      const requestBody = {
+        query,
+        variables: request.variables,
+        operationName: request.operationName,
+        extensions: request.extensions,
+      };
 
       return new ValueOrPromise(() => {
-        const query = print(document);
         switch (method) {
           case 'GET':
-            const finalUrl = this.prepareGETUrl({ baseUrl: endpoint, query, variables, operationName, extensions });
+            const finalUrl = this.prepareGETUrl({
+              baseUrl: endpoint,
+              ...requestBody,
+            });
             return fetch(finalUrl, {
               method: 'GET',
               credentials: 'include',
               headers: {
-                accept: 'application/json',
+                accept,
                 ...headers,
               },
+              signal: controller.signal,
             });
           case 'POST':
             if (options?.multipart) {
-              return new ValueOrPromise(() =>
-                this.createFormDataFromVariables({ query, variables, operationName, extensions })
-              )
+              return new ValueOrPromise(() => this.createFormDataFromVariables(requestBody))
                 .then(
                   form =>
                     fetch(HTTP_URL, {
@@ -348,7 +318,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                       credentials: 'include',
                       body: form as any,
                       headers: {
-                        accept: 'application/json',
+                        accept,
                         ...headers,
                       },
                       signal: controller.signal,
@@ -359,14 +329,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
               return fetch(HTTP_URL, {
                 method: 'POST',
                 credentials: 'include',
-                body: JSON.stringify({
-                  query,
-                  variables,
-                  operationName,
-                  extensions,
-                }),
+                body: JSON.stringify(requestBody),
                 headers: {
-                  accept: 'application/json, multipart/mixed',
+                  accept,
                   'content-type': 'application/json',
                   ...headers,
                 },
@@ -376,43 +341,16 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         }
       })
         .then((fetchResult: Response) => {
-          const response: ExecutionResult = {};
-          const contentType = fetchResult.headers.get
-            ? fetchResult.headers.get('content-type')
-            : fetchResult['content-type'];
-          if (contentType?.includes('multipart/mixed')) {
-            return meros<ExecutionPatchResult>(fetchResult).then(maybeStream => {
-              if (isAsyncIterable(maybeStream)) {
-                return withCancel(
-                  mapAsyncIterator(maybeStream, part => {
-                    if (part.json) {
-                      const chunk = part.body;
-                      if (chunk.path) {
-                        if (chunk.data) {
-                          const path: Array<string | number> = ['data'];
-                          _.merge(response, _.set({}, path.concat(chunk.path), chunk.data));
-                        }
+          const contentType = fetchResult.headers.get('content-type');
 
-                        if (chunk.errors) {
-                          response.errors = (response.errors || []).concat(chunk.errors);
-                        }
-                      } else {
-                        if (chunk.data) {
-                          response.data = chunk.data;
-                        }
-                        if (chunk.errors) {
-                          response.errors = chunk.errors;
-                        }
-                      }
-                      return response;
-                    }
-                  }),
-                  () => controller.abort()
-                );
-              } else {
-                return maybeStream.json();
-              }
-            });
+          if (contentType?.includes('text/event-stream')) {
+            return handleEventStreamResponse(fetchResult).then(resultStream =>
+              addCancelToResponseStream(resultStream, controller)
+            );
+          } else if (contentType?.includes('multipart/mixed')) {
+            return handleMultipartMixedResponse(fetchResult).then(resultStream =>
+              addCancelToResponseStream(resultStream, controller)
+            );
           }
 
           return fetchResult.json();
@@ -488,58 +426,6 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     };
   }
 
-  buildSSEExecutor(
-    endpoint: string,
-    fetch: AsyncFetchFn,
-    options?: Omit<LoadFromUrlOptions, 'subscriptionEndpoint'>
-  ): AsyncExecutor<any, ExecutionExtensions> {
-    return async ({ document, variables, extensions, operationName }) => {
-      const controller = new AbortController();
-      const query = print(document);
-      const finalUrl = this.prepareGETUrl({ baseUrl: endpoint, query, variables, operationName, extensions });
-      return observableToAsyncIterable({
-        subscribe: observer => {
-          const headers = Object.assign({}, options?.headers || {}, extensions?.headers || {});
-          fetchEventSource(finalUrl, {
-            credentials: 'include',
-            headers,
-            method: 'GET',
-            onerror: error => {
-              observer.error(error);
-            },
-            onmessage: event => {
-              observer.next(JSON.parse(event.data || '{}'));
-            },
-            onopen: async response => {
-              const contentType = response.headers.get('content-type');
-              if (!contentType?.startsWith('text/event-stream')) {
-                let error;
-                try {
-                  const { errors } = await response.json();
-                  error = errors[0];
-                } catch (error: any) {
-                  // Failed to parse body
-                }
-
-                if (error) {
-                  throw error;
-                }
-
-                throw new Error(`Expected content-type to be ${'text/event-stream'} but got "${contentType}".`);
-              }
-            },
-            fetch,
-            signal: controller.signal,
-            ...(options?.eventSourceOptions || {}),
-          });
-          return {
-            unsubscribe: () => controller.abort(),
-          };
-        },
-      });
-    };
-  }
-
   buildGraphQLSSEExecutor(
     endpoint: string,
     fetch: AsyncFetchFn,
@@ -573,31 +459,31 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     };
   }
 
-  getFetch(customFetch: LoadFromUrlOptions['customFetch'], importFn: AsyncImportFn): PromiseLike<AsyncFetchFn>;
+  getFetch(
+    customFetch: LoadFromUrlOptions['customFetch'],
+    importFn: AsyncImportFn
+  ): PromiseLike<AsyncFetchFn> | AsyncFetchFn;
 
   getFetch(customFetch: LoadFromUrlOptions['customFetch'], importFn: SyncImportFn): SyncFetchFn;
 
   getFetch(
     customFetch: LoadFromUrlOptions['customFetch'],
     importFn: SyncImportFn | AsyncImportFn
-  ): SyncFetchFn | PromiseLike<AsyncFetchFn> {
+  ): FetchFn | PromiseLike<AsyncFetchFn> {
     if (customFetch) {
       if (typeof customFetch === 'string') {
         const [moduleName, fetchFnName] = customFetch.split('#');
         return new ValueOrPromise(() => importFn(moduleName))
           .then(module => (fetchFnName ? (module as Record<string, any>)[fetchFnName] : module))
           .resolve();
-      } else {
-        return customFetch as any;
+      } else if (typeof customFetch === 'function') {
+        return customFetch;
       }
     }
     if (importFn === asyncImport) {
-      if (typeof fetch === 'undefined') {
-        return crossFetch as any;
-      }
-      return fetch as any;
+      return defaultAsyncFetch;
     } else {
-      return syncFetch;
+      return defaultSyncFetch;
     }
   }
 
@@ -633,7 +519,10 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     options?: LoadFromUrlOptions
   ): Promise<AsyncExecutor> {
     if (options?.subscriptionsProtocol === SubscriptionProtocol.SSE) {
-      return this.buildSSEExecutor(subscriptionsEndpoint, fetch, options);
+      return this.buildHTTPExecutor(subscriptionsEndpoint, fetch, {
+        ...options,
+        method: 'GET',
+      });
     } else if (options?.subscriptionsProtocol === SubscriptionProtocol.GRAPHQL_SSE) {
       if (!options?.subscriptionsEndpoint) {
         // when no custom subscriptions endpoint is specified,
@@ -658,18 +547,15 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     const subscriptionsEndpoint = options?.subscriptionsEndpoint || endpoint;
     const subscriptionExecutor = await this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, options);
 
-    return params => {
-      const operationAst = getOperationAST(params.document, params.operationName);
-      if (!operationAst) {
-        throw new Error(`No valid operations found: ${params.operationName || ''}`);
-      }
+    return request => {
+      const operationAst = getOperationASTFromRequest(request);
       if (
-        params.operationType === 'subscription' ||
-        isLiveQueryOperationDefinitionNode(operationAst, params.variables as Record<string, any>)
+        operationAst.operation === 'subscription' ||
+        isLiveQueryOperationDefinitionNode(operationAst, request.variables as Record<string, any>)
       ) {
-        return subscriptionExecutor(params);
+        return subscriptionExecutor(request);
       }
-      return httpExecutor(params);
+      return httpExecutor(request);
     };
   }
 

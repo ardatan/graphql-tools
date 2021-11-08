@@ -1,5 +1,58 @@
 # @graphql-tools/utils
 
+## 8.5.3
+
+### Patch Changes
+
+- 960e178a: fix: isAsyncIterable should check if it is an object with iterator factory function
+- 947a3fe0: enhance(utils): show error with details in inspect fn
+
+## 8.5.2
+
+### Patch Changes
+
+- 233e0379: fix(utils): respect new specifiedByURL of GraphQL v16
+
+## 8.5.1
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+
+## 8.5.0
+
+### Minor Changes
+
+- ad04dc79: enhance: make operationType optional
+
+## 8.4.0
+
+### Minor Changes
+
+- 149afddb: fix: getting ready for GraphQL v16
+
+## 8.3.0
+
+### Minor Changes
+
+- 58262be7: feat(utils): export createDefaultRules
+
+## 8.2.5
+
+### Patch Changes
+
+- 1043219f: fix implicit dependencies
+
+## 8.2.4
+
+### Patch Changes
+
+- 014937db: batch-execute enhancements:
+  - fixes bugs with batched fragment definitions
+  - unpathed errors are now returned for all batch results
+  - the "graphqlTools" prefix is simplified down to just "\_"
+  - new tests and documentation
+
 ## 8.2.3
 
 ### Patch Changes

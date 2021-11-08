@@ -1,12 +1,12 @@
 import '../../testing/to-be-similar-string';
-import { federationToStitchingSDL } from "../src/federationToStitchingSDL";
-import { stitchingDirectives } from "../src/stitchingDirectives";
+import { federationToStitchingSDL } from '../src/federationToStitchingSDL';
+import { stitchingDirectives } from '../src/stitchingDirectives';
 
 const defaultStitchingDirectives = stitchingDirectives();
 
 describe('federation sdl', () => {
   test('translates to stitching annotations', async () => {
-    const federationSdl = /* GraphQL */`
+    const federationSdl = /* GraphQL */ `
       extend type Product implements IProduct @key(fields: "id") {
         id: ID! @external
         weight: Int @external
@@ -21,7 +21,7 @@ describe('federation sdl', () => {
       }
     `;
 
-    const stitchingSdl = /* GraphQL */`
+    const stitchingSdl = /* GraphQL */ `
       ${defaultStitchingDirectives.stitchingDirectivesTypeDefs}
       type Product implements IProduct @key(selectionSet: "{ id }") {
         id: ID!
@@ -45,7 +45,7 @@ describe('federation sdl', () => {
   });
 
   test('adds _entities to existing Query', async () => {
-    const federationSdl = /* GraphQL */`
+    const federationSdl = /* GraphQL */ `
       extend type Product @key(fields: "id") {
         id: ID!
       }
@@ -54,7 +54,7 @@ describe('federation sdl', () => {
       }
     `;
 
-    const stitchingSdl = /* GraphQL */`
+    const stitchingSdl = /* GraphQL */ `
       ${defaultStitchingDirectives.stitchingDirectivesTypeDefs}
       type Product @key(selectionSet: "{ id }") {
         id: ID!
@@ -72,7 +72,7 @@ describe('federation sdl', () => {
   });
 
   test('adds _entities to schema-defined query type', async () => {
-    const federationSdl = /* GraphQL */`
+    const federationSdl = /* GraphQL */ `
       extend type Product @key(fields: "id") {
         id: ID!
       }
@@ -84,7 +84,7 @@ describe('federation sdl', () => {
       }
     `;
 
-    const stitchingSdl = /* GraphQL */`
+    const stitchingSdl = /* GraphQL */ `
       ${defaultStitchingDirectives.stitchingDirectivesTypeDefs}
       type Product @key(selectionSet: "{ id }") {
         id: ID!
@@ -105,7 +105,7 @@ describe('federation sdl', () => {
   });
 
   test('only un-extends types without a base', async () => {
-    const federationSdl = /* GraphQL */`
+    const federationSdl = /* GraphQL */ `
       extend type Product {
         id: ID!
         name: String
@@ -118,7 +118,7 @@ describe('federation sdl', () => {
       }
     `;
 
-    const stitchingSdl = /* GraphQL */`
+    const stitchingSdl = /* GraphQL */ `
       ${defaultStitchingDirectives.stitchingDirectivesTypeDefs}
       type Product {
         id: ID!

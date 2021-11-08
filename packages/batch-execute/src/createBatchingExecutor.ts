@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader';
 
-import { Executor, ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
+import { Executor, ExecutionRequest, ExecutionResult, getOperationASTFromRequest } from '@graphql-tools/utils';
 
 import { mergeRequests } from './mergeRequests';
 import { splitResult } from './splitResult';
@@ -16,7 +16,8 @@ export function createBatchingExecutor(
   const loadFn = createLoadFn(executor, extensionsReducer);
   const loader = new DataLoader(loadFn, dataLoaderOptions);
   return function batchingExecutor(request: ExecutionRequest) {
-    return request.operationType === 'subscription' ? executor(request) : loader.load(request);
+    const operationAst = getOperationASTFromRequest(request);
+    return operationAst.operation === 'subscription' ? executor(request) : loader.load(request);
   };
 }
 
@@ -31,7 +32,8 @@ function createLoadFn(
     let currentBatch: Array<ExecutionRequest> = [request];
     execBatches.push(currentBatch);
 
-    const operationType = request.operationType;
+    const operationAst = getOperationASTFromRequest(request);
+    const operationType = operationAst.operation;
 
     if (operationType == null) {
       throw new Error('could not identify operation type of document');
@@ -39,7 +41,8 @@ function createLoadFn(
 
     while (++index < requests.length) {
       const currentRequest = requests[index];
-      const currentOperationType = currentRequest.operationType;
+      const currentOperationAST = getOperationASTFromRequest(currentRequest);
+      const currentOperationType = currentOperationAST.operation;
 
       if (operationType === currentOperationType) {
         currentBatch.push(currentRequest);
@@ -51,7 +54,7 @@ function createLoadFn(
 
     const results = await Promise.all(
       execBatches.map(async execBatch => {
-        const mergedRequests = mergeRequests(execBatch[0].operationType, execBatch, extensionsReducer);
+        const mergedRequests = mergeRequests(execBatch, extensionsReducer);
         const resultBatches = (await executor(mergedRequests)) as ExecutionResult;
         return splitResult(resultBatches, execBatch.length);
       })

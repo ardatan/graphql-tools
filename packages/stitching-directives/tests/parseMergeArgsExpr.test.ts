@@ -8,8 +8,12 @@ describe('can parse merge arguments', () => {
   });
 
   test('throws if expansions are mixed with key declarations', () => {
-    expect(() => parseMergeArgsExpr(`expansion: [[$key]], single: $key`)).toThrowError('Expansions cannot be mixed with single key declarations.');
-    expect(() => parseMergeArgsExpr(`expansion: [[$key.test]], single: $key.test`)).toThrowError('Expansions cannot be mixed with single key declarations.');
+    expect(() => parseMergeArgsExpr(`expansion: [[$key]], single: $key`)).toThrowError(
+      'Expansions cannot be mixed with single key declarations.'
+    );
+    expect(() => parseMergeArgsExpr(`expansion: [[$key.test]], single: $key.test`)).toThrowError(
+      'Expansions cannot be mixed with single key declarations.'
+    );
   });
 
   test('can parseMergeArgsExpr with key', () => {
@@ -56,9 +60,7 @@ describe('can parse merge arguments', () => {
         },
         __typename: null,
       },
-      mappingInstructions: [
-        { destinationPath: ['test'], sourcePath: [] },
-      ],
+      mappingInstructions: [{ destinationPath: ['test'], sourcePath: [] }],
     });
   });
 
@@ -68,11 +70,13 @@ describe('can parse merge arguments', () => {
     expect(result).toEqual({
       args: { test: null },
       usedProperties: { test: null },
-      expansions: [{
-        valuePath: ['test'],
-        value: null,
-        mappingInstructions: [{ destinationPath: [], sourcePath: ['test'] }],
-      }],
+      expansions: [
+        {
+          valuePath: ['test'],
+          value: null,
+          mappingInstructions: [{ destinationPath: [], sourcePath: ['test'] }],
+        },
+      ],
     });
   });
 
@@ -82,11 +86,13 @@ describe('can parse merge arguments', () => {
     expect(result).toEqual({
       args: { outer: { inner: null } },
       usedProperties: { test: null },
-      expansions: [{
-        valuePath: ['outer', 'inner'],
-        value: null,
-        mappingInstructions: [{ destinationPath: [], sourcePath: ['test'] }],
-      }],
+      expansions: [
+        {
+          valuePath: ['outer', 'inner'],
+          value: null,
+          mappingInstructions: [{ destinationPath: [], sourcePath: ['test'] }],
+        },
+      ],
     });
   });
 
@@ -96,11 +102,13 @@ describe('can parse merge arguments', () => {
     expect(result).toEqual({
       args: { outer: null },
       usedProperties: { test: null },
-      expansions: [{
-        valuePath: ['outer'],
-        value: { inner: null },
-        mappingInstructions: [{ destinationPath: ['inner'], sourcePath: ['test'] }],
-      }],
+      expansions: [
+        {
+          valuePath: ['outer'],
+          value: { inner: null },
+          mappingInstructions: [{ destinationPath: ['inner'], sourcePath: ['test'] }],
+        },
+      ],
     });
   });
 
@@ -110,11 +118,13 @@ describe('can parse merge arguments', () => {
     expect(result).toEqual({
       args: { test: null },
       usedProperties: { outer: { inner: null } },
-      expansions: [{
-        valuePath: ['test'],
-        value: null,
-        mappingInstructions: [{ destinationPath: [], sourcePath: ['outer', 'inner'] }],
-      }],
+      expansions: [
+        {
+          valuePath: ['test'],
+          value: null,
+          mappingInstructions: [{ destinationPath: [], sourcePath: ['outer', 'inner'] }],
+        },
+      ],
     });
   });
 
@@ -132,13 +142,13 @@ describe('can parse merge arguments', () => {
         },
         __typename: null,
       },
-      expansions: [{
-        valuePath: ['test'],
-        value: null,
-        mappingInstructions: [
-          { destinationPath: [], sourcePath: [] },
-        ],
-      }],
+      expansions: [
+        {
+          valuePath: ['test'],
+          value: null,
+          mappingInstructions: [{ destinationPath: [], sourcePath: [] }],
+        },
+      ],
     });
   });
 });

@@ -184,7 +184,10 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       if (errors.length === 1) {
         throw errors[0];
       }
-      throw new AggregateError(errors);
+      throw new AggregateError(
+        errors,
+        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n')
+      );
     }
 
     return finalResult;
@@ -256,7 +259,10 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       if (errors.length === 1) {
         throw errors[0];
       }
-      throw new AggregateError(errors);
+      throw new AggregateError(
+        errors,
+        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n')
+      );
     }
 
     return finalResult;

@@ -48,7 +48,9 @@ describe('validateGraphQlDocuments', () => {
     expect(result).toHaveLength(1);
     expect(result[0].filePath).toBe('query.graphql');
     expect(result[0].errors[0] instanceof GraphQLError).toBeTruthy();
-    expect(result[0].errors[0].message).toBe('Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".');
+    expect(result[0].errors[0].message).toBe(
+      'Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".'
+    );
 
     try {
       checkValidationErrors(result);
@@ -62,8 +64,15 @@ describe('validateGraphQlDocuments', () => {
 
       expect(error).toBeInstanceOf(Error);
       expect(error.name).toEqual('GraphQLDocumentError');
-      expect(error.message).toEqual('GraphQLDocumentError: Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".');
-      expect(error.stack).toEqual(['GraphQLDocumentError: Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".', '    at query.graphql:6:13'].join('\n'));
+      expect(error.message).toEqual(
+        'GraphQLDocumentError: Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".'
+      );
+      expect(error.stack).toEqual(
+        [
+          'GraphQLDocumentError: Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".',
+          '    at query.graphql:6:13',
+        ].join('\n')
+      );
     }
   });
 });
@@ -127,20 +136,35 @@ describe('checkValidationErrors', () => {
     expect(error).toBeInstanceOf(Error);
     expect(error.name).toEqual('GraphQLDocumentError');
     expect(error.message).toEqual('GraphQLDocumentError: Cannot query field "randomField" on type "CheckRun".');
-    expect(error.stack).toEqual(['GraphQLDocumentError: Cannot query field "randomField" on type "CheckRun".', '    at packages/server/src/modules/github-check-run/providers/documents/create-check-run.mutation.graphql:7:13'].join('\n'));
+    expect(error.stack).toEqual(
+      [
+        'GraphQLDocumentError: Cannot query field "randomField" on type "CheckRun".',
+        '    at packages/server/src/modules/github-check-run/providers/documents/create-check-run.mutation.graphql:7:13',
+      ].join('\n')
+    );
 
     error = generator.next().value;
 
     expect(error).toBeInstanceOf(Error);
     expect(error.name).toEqual('GraphQLDocumentError');
     expect(error.message).toEqual('GraphQLDocumentError: Cannot query field "randomField2" on type "CheckRun".');
-    expect(error.stack).toEqual(['GraphQLDocumentError: Cannot query field "randomField2" on type "CheckRun".', '    at packages/server/src/modules/github-check-run/providers/documents/create-check-run.mutation.graphql:8:13'].join('\n'));
+    expect(error.stack).toEqual(
+      [
+        'GraphQLDocumentError: Cannot query field "randomField2" on type "CheckRun".',
+        '    at packages/server/src/modules/github-check-run/providers/documents/create-check-run.mutation.graphql:8:13',
+      ].join('\n')
+    );
 
     error = generator.next().value;
 
     expect(error).toBeInstanceOf(Error);
     expect(error.name).toEqual('GraphQLDocumentError');
     expect(error.message).toEqual('GraphQLDocumentError: Cannot query field "randomField" on type "CheckRun".');
-    expect(error.stack).toEqual(['GraphQLDocumentError: Cannot query field "randomField" on type "CheckRun".', '    at packages/server/src/modules/github-check-run/providers/documents/check-run.query.graphql:7:13'].join('\n'));
+    expect(error.stack).toEqual(
+      [
+        'GraphQLDocumentError: Cannot query field "randomField" on type "CheckRun".',
+        '    at packages/server/src/modules/github-check-run/providers/documents/check-run.query.graphql:7:13',
+      ].join('\n')
+    );
   });
 });

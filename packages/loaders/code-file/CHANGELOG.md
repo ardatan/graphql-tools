@@ -1,5 +1,28 @@
 # @graphql-tools/code-file-loader
 
+## 7.2.2
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/graphql-tag-pluck@7.1.3
+  - @graphql-tools/utils@8.5.1
+
+## 7.2.1
+
+### Patch Changes
+
+- 58262be7: enhance: show more clear error messages for aggregated error
+- Updated dependencies [58262be7]
+  - @graphql-tools/utils@8.3.0
+
+## 7.2.0
+
+### Minor Changes
+
+- 00d06c2c: feat(loader): provide `noSilentErrors` option to allow raising errors during loader resolution
+
 ## 7.1.0
 
 ### Minor Changes

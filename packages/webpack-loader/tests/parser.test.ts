@@ -1,8 +1,8 @@
 import { print, parse } from 'graphql';
-import {parseDocument} from '../src/parser';
+import { parseDocument } from '../src/parser';
 
 test('basic query', () => {
-  const docStr = /* GraphQL */`
+  const docStr = /* GraphQL */ `
     query Foo {
       foo
     }
@@ -13,7 +13,7 @@ test('basic query', () => {
 });
 
 test('inline fragment', () => {
-  const docStr = /* GraphQL */`
+  const docStr = /* GraphQL */ `
     query Foo {
       foo {
         ... on Foo {
@@ -28,7 +28,7 @@ test('inline fragment', () => {
 });
 
 test('fragment spread', () => {
-  const docStr = /* GraphQL */`
+  const docStr = /* GraphQL */ `
     query Foo {
       foo {
         ...fooFragment

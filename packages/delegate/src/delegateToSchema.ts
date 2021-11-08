@@ -4,9 +4,7 @@ import {
   validate,
   GraphQLSchema,
   FieldDefinitionNode,
-  getOperationAST,
   OperationTypeNode,
-  OperationDefinitionNode,
   DocumentNode,
   GraphQLOutputType,
   ExecutionArgs,
@@ -25,6 +23,7 @@ import {
   isAsyncIterable,
   getDefinedRootType,
   memoize1,
+  getOperationASTFromRequest,
 } from '@graphql-tools/utils';
 
 import {
@@ -99,8 +98,9 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
   return new ValueOrPromise(() => executor(processedRequest))
     .then(originalResult => {
       if (isAsyncIterable(originalResult)) {
+        const iterator = originalResult[Symbol.asyncIterator]();
         // "subscribe" to the subscription result and map the result through the transforms
-        return mapAsyncIterator(originalResult, result => transformer.transformResult(result));
+        return mapAsyncIterator(iterator, result => transformer.transformResult(result));
       }
       return transformer.transformResult(originalResult);
     })
@@ -118,16 +118,11 @@ function getDelegationContext<TContext>({
   transformedSchema,
   skipTypeMerging = false,
 }: IDelegateRequestOptions<TContext>): DelegationContext<TContext> {
-  const { operationType: operation, context, operationName, document } = request;
-  let operationDefinition: Maybe<OperationDefinitionNode>;
+  const operationDefinition = getOperationASTFromRequest(request);
   let targetFieldName: string;
 
   if (fieldName == null) {
-    operationDefinition = getOperationAST(document, operationName);
-    if (operationDefinition == null) {
-      throw new Error('Cannot infer main operation from the provided document.');
-    }
-    targetFieldName = (operationDefinition?.selectionSet.selections[0] as unknown as FieldDefinitionNode).name.value;
+    targetFieldName = (operationDefinition.selectionSet.selections[0] as unknown as FieldDefinitionNode).name.value;
   } else {
     targetFieldName = fieldName;
   }
@@ -136,6 +131,8 @@ function getDelegationContext<TContext>({
 
   const subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig<any, any, any, any> =
     stitchingInfo?.subschemaMap.get(schema) ?? schema;
+
+  const operation = operationDefinition.operation;
 
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
     const targetSchema = subschemaOrSubschemaConfig.schema;
@@ -146,7 +143,7 @@ function getDelegationContext<TContext>({
       operation,
       fieldName: targetFieldName,
       args,
-      context,
+      context: request.context,
       info,
       returnType: returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, operation, targetFieldName),
       transforms:
@@ -167,7 +164,7 @@ function getDelegationContext<TContext>({
     operation,
     fieldName: targetFieldName,
     args,
-    context,
+    context: request.context,
     info,
     returnType:
       returnType ?? info?.returnType ?? getDelegationReturnType(subschemaOrSubschemaConfig, operation, targetFieldName),
@@ -181,7 +178,7 @@ function validateRequest(delegationContext: DelegationContext<any>, document: Do
   const errors = validate(delegationContext.targetSchema, document);
   if (errors.length > 0) {
     if (errors.length > 1) {
-      const combinedError = new AggregateError(errors);
+      const combinedError = new AggregateError(errors, errors.map(error => error.message).join(', \n'));
       throw combinedError;
     }
     const error = errors[0];
@@ -208,23 +205,17 @@ function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): 
 }
 
 export const createDefaultExecutor = memoize1(function createDefaultExecutor(schema: GraphQLSchema): Executor {
-  return function defaultExecutor({
-    document,
-    context,
-    variables,
-    rootValue,
-    operationName,
-    operationType,
-  }: ExecutionRequest) {
+  return function defaultExecutor(request: ExecutionRequest) {
+    const operationAst = getOperationASTFromRequest(request);
     const executionArgs: ExecutionArgs = {
       schema,
-      document,
-      contextValue: context,
-      variableValues: variables,
-      rootValue,
-      operationName,
+      document: request.document,
+      contextValue: request.context,
+      variableValues: request.variables,
+      rootValue: request.rootValue,
+      operationName: request.operationName,
     };
-    if (operationType === 'subscription') {
+    if (operationAst.operation === 'subscription') {
       return subscribe(executionArgs);
     }
     return execute(executionArgs);

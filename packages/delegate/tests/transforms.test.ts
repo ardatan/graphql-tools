@@ -14,7 +14,7 @@ describe('can delegate to subschema with transforms', () => {
     };
 
     const targetSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Item {
           id: ID!
           camel_case: String
@@ -59,11 +59,11 @@ describe('can delegate to subschema with transforms', () => {
           }
           return fieldName;
         }),
-      ]
+      ],
     });
 
     sourceSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Item {
           id: ID!
           camelCase: String
@@ -81,23 +81,25 @@ describe('can delegate to subschema with transforms', () => {
       `,
       resolvers: {
         Query: {
-          item: (_root, _args, _context, info) => delegateToSchema({
-            schema: subschema,
-            info,
-          }),
-          items: (_root, _args, _context, info) => delegateToSchema({
-            schema: subschema,
-            info,
-          }),
-        }
-      }
-    })
+          item: (_root, _args, _context, info) =>
+            delegateToSchema({
+              schema: subschema,
+              info,
+            }),
+          items: (_root, _args, _context, info) =>
+            delegateToSchema({
+              schema: subschema,
+              info,
+            }),
+        },
+      },
+    });
   });
 
   test('renaming should work', async () => {
     const result = await graphql({
       schema: sourceSchema,
-      source: /* GraphQL */`
+      source: /* GraphQL */ `
         query {
           item {
             camelCase
@@ -111,7 +113,7 @@ describe('can delegate to subschema with transforms', () => {
           }
         }
       `,
-      });
+    });
 
     const TRANSFORMED_ITEM = {
       camelCase: "I'm a camel!",

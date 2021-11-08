@@ -57,15 +57,12 @@ import { gqlPluckFromCodeStringSync, gqlPluckFromCodeString } from '@graphql-too
 
 // Returns promise
 gqlPluckFromCodeString(
-    filePath,  // this parameter is required to detect file type
-    fs.readFileSync(filePath, 'utf8'),
+  filePath, // this parameter is required to detect file type
+  fs.readFileSync(filePath, 'utf8')
 );
 
 // Returns string
-gqlPluckFromCodeStringSync(
-    filePath,
-    fs.readFileSync(filePath, 'utf8'),
-);
+gqlPluckFromCodeStringSync(filePath, fs.readFileSync(filePath, 'utf8'));
 ```
 
 Template literals leaded by magic comments will also be extracted :-)

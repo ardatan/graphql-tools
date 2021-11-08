@@ -5,7 +5,20 @@
 // https://github.com/ardatan/graphql-tools/issues/1710
 // https://github.com/ardatan/graphql-tools/issues/1959
 
-import { execute, GraphQLBoolean, GraphQLID, GraphQLInputObjectType, GraphQLInt, GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLScalarType, GraphQLSchema, GraphQLString, parse } from 'graphql';
+import {
+  execute,
+  GraphQLBoolean,
+  GraphQLID,
+  GraphQLInputObjectType,
+  GraphQLInt,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLScalarType,
+  GraphQLSchema,
+  GraphQLString,
+  parse,
+} from 'graphql';
 
 import { ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
@@ -21,7 +34,7 @@ describe('merging using type merging', () => {
       id: '1',
       name: 'Ada Lovelace',
       birthDate: '1815-12-10',
-      username: '@ada'
+      username: '@ada',
     },
     {
       id: '2',
@@ -47,16 +60,18 @@ describe('merging using type merging', () => {
         type: new GraphQLList(accountsSchemaTypes.User),
         args: {
           _keys: {
-            type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(accountsSchemaTypes._Key)))
+            type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(accountsSchemaTypes._Key))),
           },
         },
         resolve: (_root, { keys }) => keys.map((key: Record<string, any>) => users.find(u => u.id === key['id'])),
         extensions: {
-          directives: [{
-            name: 'merge',
-          }],
+          directives: [
+            {
+              name: 'merge',
+            },
+          ],
         },
-      }
+      },
     }),
   });
 
@@ -65,26 +80,30 @@ describe('merging using type merging', () => {
     fields: () => ({
       id: { type: GraphQLID },
       name: { type: GraphQLString },
-      username: { type: GraphQLString }
+      username: { type: GraphQLString },
     }),
     extensions: {
-      directives: [{
-        name: 'key',
-        args: {
-          selectionSet: '{ id }',
+      directives: [
+        {
+          name: 'key',
+          args: {
+            selectionSet: '{ id }',
+          },
         },
-      }],
+      ],
     },
   });
 
-  const accountsSchema = stitchingDirectivesValidator(new GraphQLSchema({
-    query: accountsSchemaTypes.Query,
-  }));
+  const accountsSchema = stitchingDirectivesValidator(
+    new GraphQLSchema({
+      query: accountsSchemaTypes.Query,
+    })
+  );
 
   const inventory = [
     { upc: '1', inStock: true },
     { upc: '2', inStock: false },
-    { upc: '3', inStock: true }
+    { upc: '3', inStock: true },
   ];
 
   const inventorySchemaTypes = Object.create(null);
@@ -105,7 +124,7 @@ describe('merging using type merging', () => {
         type: GraphQLInt,
         resolve: product => {
           if (product.price > 1000) {
-            return 0 // free for expensive items
+            return 0; // free for expensive items
           }
           return Math.round(product.weight * 0.5) || null; // estimate is based on weight
         },
@@ -113,10 +132,10 @@ describe('merging using type merging', () => {
           directives: {
             computed: {
               selectionSet: '{ price weight }',
-            }
-          }
-        }
-      }
+            },
+          },
+        },
+      },
     }),
     extensions: {
       directives: {
@@ -136,7 +155,7 @@ describe('merging using type merging', () => {
       _products: {
         type: new GraphQLNonNull(new GraphQLList(inventorySchemaTypes.Product)),
         args: {
-          keys: { type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(inventorySchemaTypes.ProductKey))) }
+          keys: { type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(inventorySchemaTypes.ProductKey))) },
         },
         resolve: (_root, { keys }) => {
           return keys.map((key: Record<string, any>) => ({ ...key, ...inventory.find(i => i.upc === key['upc']) }));
@@ -148,30 +167,32 @@ describe('merging using type merging', () => {
         },
       },
     }),
-  })
-  const inventorySchema = stitchingDirectivesValidator(new GraphQLSchema({
-    query: inventorySchemaTypes.Query,
-  }));
+  });
+  const inventorySchema = stitchingDirectivesValidator(
+    new GraphQLSchema({
+      query: inventorySchemaTypes.Query,
+    })
+  );
 
   const products = [
     {
       upc: '1',
       name: 'Table',
       price: 899,
-      weight: 100
+      weight: 100,
     },
     {
       upc: '2',
       name: 'Couch',
       price: 1299,
-      weight: 1000
+      weight: 1000,
     },
     {
       upc: '3',
       name: 'Chair',
       price: 54,
-      weight: 50
-    }
+      weight: 50,
+    },
   ];
 
   const productsSchemaTypes = Object.create(null);
@@ -222,11 +243,13 @@ describe('merging using type merging', () => {
         },
       },
     }),
-  })
+  });
 
-  const productsSchema = stitchingDirectivesValidator(new GraphQLSchema({
-    query: productsSchemaTypes.Query,
-  }));
+  const productsSchema = stitchingDirectivesValidator(
+    new GraphQLSchema({
+      query: productsSchemaTypes.Query,
+    })
+  );
 
   const usernames = [
     { id: '1', username: '@ada' },
@@ -268,7 +291,7 @@ describe('merging using type merging', () => {
       body: { type: GraphQLString },
       author: {
         type: reviewsSchemaTypes.User,
-        resolve: (review) => ({ __typename: 'User', id: review.authorId }),
+        resolve: review => ({ __typename: 'User', id: review.authorId }),
       },
       product: { type: reviewsSchemaTypes.Product },
     }),
@@ -287,18 +310,18 @@ describe('merging using type merging', () => {
       id: { type: new GraphQLNonNull(GraphQLID) },
       username: {
         type: GraphQLString,
-        resolve: (user) => {
-          const found = usernames.find(username => username.id === user.id)
-          return found ? found.username : null
+        resolve: user => {
+          const found = usernames.find(username => username.id === user.id);
+          return found ? found.username : null;
         },
       },
       numberOfReviews: {
         type: GraphQLInt,
-        resolve: (user) => reviews.filter(review => review.authorId === user.id).length,
+        resolve: user => reviews.filter(review => review.authorId === user.id).length,
       },
       reviews: {
         type: new GraphQLList(reviewsSchemaTypes.Review),
-        resolve: (user) => reviews.filter(review => review.authorId === user.id),
+        resolve: user => reviews.filter(review => review.authorId === user.id),
       },
     }),
     extensions: {
@@ -330,7 +353,7 @@ describe('merging using type merging', () => {
       upc: { type: new GraphQLNonNull(GraphQLString) },
       reviews: {
         type: new GraphQLList(reviewsSchemaTypes.Review),
-        resolve: (product) => reviews.filter(review => review.product.upc === product.upc)
+        resolve: product => reviews.filter(review => review.product.upc === product.upc),
       },
     }),
     extensions: {
@@ -381,9 +404,11 @@ describe('merging using type merging', () => {
     }),
   });
 
-  const reviewsSchema = stitchingDirectivesValidator(new GraphQLSchema({
-    query: reviewsSchemaTypes.Query,
-  }));
+  const reviewsSchema = stitchingDirectivesValidator(
+    new GraphQLSchema({
+      query: reviewsSchemaTypes.Query,
+    })
+  );
 
   const stitchedSchema = stitchSchemas({
     subschemas: [
@@ -402,11 +427,12 @@ describe('merging using type merging', () => {
       {
         schema: reviewsSchema,
         batch: true,
-      }],
+      },
+    ],
     subschemaConfigTransforms: [stitchingDirectivesTransformer],
     typeMergingOptions: {
-      validationSettings: { validationLevel: ValidationLevel.Off }
-    }
+      validationSettings: { validationLevel: ValidationLevel.Off },
+    },
   });
 
   test('can stitch from products to inventory schema including mixture of computed and non-computed fields', async () => {
@@ -420,20 +446,23 @@ describe('merging using type merging', () => {
             shippingEstimate
           }
         }
-      `)
+      `),
     });
 
     const expectedResult: ExecutionResult = {
       data: {
-        topProducts: [{
-          upc: '1',
-          inStock: true,
-          shippingEstimate: 50,
-        }, {
-          upc: '2',
-          inStock: false,
-          shippingEstimate: 0,
-        }],
+        topProducts: [
+          {
+            upc: '1',
+            inStock: true,
+            shippingEstimate: 50,
+          },
+          {
+            upc: '2',
+            inStock: false,
+            shippingEstimate: 0,
+          },
+        ],
       },
     };
 
@@ -455,7 +484,7 @@ describe('merging using type merging', () => {
             }
           }
         }
-      `)
+      `),
     });
 
     const expectedResult: ExecutionResult = {
@@ -465,7 +494,7 @@ describe('merging using type merging', () => {
             { product: { price: 899, upc: '1', weight: 100 } },
             { product: { price: 1299, upc: '2', weight: 1000 } },
           ],
-        }
+        },
       },
     };
 
@@ -488,8 +517,8 @@ describe('merging using type merging', () => {
             }
           }
         }
-      `)
-  });
+      `),
+    });
 
     const expectedResult: ExecutionResult = {
       data: {
@@ -509,7 +538,7 @@ describe('merging using type merging', () => {
                 upc: '2',
                 weight: 1000,
                 shippingEstimate: 0,
-              }
+              },
             },
           ],
         },
@@ -533,7 +562,7 @@ describe('merging using type merging', () => {
             }
           }
         }
-      `)
+      `),
     });
 
     const expectedResult: ExecutionResult = {
@@ -550,7 +579,7 @@ describe('merging using type merging', () => {
               product: {
                 upc: '2',
                 shippingEstimate: 0,
-              }
+              },
             },
           ],
         },
@@ -571,8 +600,8 @@ describe('merging using type merging', () => {
             shippingEstimate
           }
         }
-      `)
-  });
+      `),
+    });
 
     const expectedResult: ExecutionResult = {
       data: {

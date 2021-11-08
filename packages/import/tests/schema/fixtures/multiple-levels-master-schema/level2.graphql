@@ -1,13 +1,13 @@
 # import Account from "./level3.graphql"
 
 type User {
-    account: Account
+  account: Account
 }
 
-type PaginatedWrapper{
-    user: User
+type PaginatedWrapper {
+  user: User
 }
 
 type Query {
-    pagination: PaginatedWrapper
+  pagination: PaginatedWrapper
 }

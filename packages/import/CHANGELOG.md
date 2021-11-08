@@ -1,5 +1,86 @@
 # @graphql-tools/import
 
+## 6.6.1
+
+### Patch Changes
+
+- Updated dependencies [960e178a]
+- Updated dependencies [947a3fe0]
+  - @graphql-tools/utils@8.5.3
+
+## 6.6.0
+
+### Minor Changes
+
+- 61e00a6d: fix(import): allow import nested fragments
+
+## 6.5.8
+
+### Patch Changes
+
+- Updated dependencies [233e0379]
+  - @graphql-tools/utils@8.5.2
+
+## 6.5.7
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/utils@8.5.1
+
+## 6.5.6
+
+### Patch Changes
+
+- Updated dependencies [ad04dc79]
+  - @graphql-tools/utils@8.5.0
+
+## 6.5.5
+
+### Patch Changes
+
+- Updated dependencies [149afddb]
+  - @graphql-tools/utils@8.4.0
+
+## 6.5.4
+
+### Patch Changes
+
+- Updated dependencies [58262be7]
+  - @graphql-tools/utils@8.3.0
+
+## 6.5.3
+
+### Patch Changes
+
+- 8ffbb600: Remove code causing Maximum call stack size exceeded in @graphql-tools/import package.
+
+## 6.5.2
+
+### Patch Changes
+
+- Updated dependencies [1043219f]
+  - @graphql-tools/utils@8.2.5
+
+## 6.5.1
+
+### Patch Changes
+
+- be9fad09: fix(import): add missing dependency
+
+## 6.5.0
+
+### Minor Changes
+
+- 1e90f094: Refactor processImport and export helper functions for parsing GraphQL imports
+
+## 6.4.2
+
+### Patch Changes
+
+- a78fd76c: Schemata containing only imports will now resolve imported type's transitive dependencies.
+
 ## 6.4.1
 
 ### Patch Changes

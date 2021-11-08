@@ -1,5 +1,26 @@
 # @graphql-tools/stitching-directives
 
+## 2.2.1
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/delegate@8.4.1
+  - @graphql-tools/utils@8.5.1
+
+## 2.2.0
+
+### Minor Changes
+
+- 149afddb: fix: getting ready for GraphQL v16
+
+### Patch Changes
+
+- Updated dependencies [149afddb]
+  - @graphql-tools/delegate@8.3.0
+  - @graphql-tools/utils@8.4.0
+
 ## 2.1.1
 
 ### Patch Changes

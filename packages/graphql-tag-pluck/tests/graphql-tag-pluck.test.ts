@@ -5,10 +5,12 @@ import { runTests } from '../../testing/utils';
 describe('graphql-tag-pluck', () => {
   runTests({
     async: gqlPluckFromCodeString,
-    sync: gqlPluckFromCodeStringSync
+    sync: gqlPluckFromCodeStringSync,
   })(pluck => {
     it('should allow to pluck without indentation changes', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         import gql from 'graphql-tag'
 
         const fragment = gql(\`
@@ -26,15 +28,19 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `), {
-        skipIndent: true
-      });
+      `),
+        {
+          skipIndent: true,
+        }
+      );
 
       expect(sources.map(source => source.body).join('\n\n')).toMatchSnapshot();
     });
 
     it('should pluck graphql-tag template literals from .js file', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         import gql from 'graphql-tag'
 
         const fragment = gql(\`
@@ -52,9 +58,11 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -64,11 +72,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .js file when it has alias', async () => {
-      const sources = await pluck('tmp-XXXXXX.ts', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.ts',
+        freeText(`
         import { default as foo } from 'graphql-tag'
 
         const fragment = foo(\`
@@ -86,16 +97,19 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `), {
-        modules: [
-          {
-            identifier: 'default',
-            name: 'graphql-tag',
-          }
-        ]
-      });
+      `),
+        {
+          modules: [
+            {
+              identifier: 'default',
+              name: 'graphql-tag',
+            },
+          ],
+        }
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -105,11 +119,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .js file and remove replacements', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         import gql from 'graphql-tag'
 
         const fragment = gql(\`
@@ -134,9 +151,11 @@ describe('graphql-tag-pluck', () => {
           \${fragment}
           \${fragment2}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -151,11 +170,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo2
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .ts file', async () => {
-      const sources = await pluck('tmp-XXXXXX.ts', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.ts',
+        freeText(`
         import gql from 'graphql-tag'
         import { Document } from 'graphql'
 
@@ -180,9 +202,11 @@ describe('graphql-tag-pluck', () => {
             \${fragment}
           \`
         }
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -192,11 +216,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .tsx file', async () => {
-      const sources = await pluck('tmp-XXXXXX.tsx', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.tsx',
+        freeText(`
         import * as React from 'react';
         import gql from 'graphql-tag';
 
@@ -225,9 +252,11 @@ describe('graphql-tag-pluck', () => {
         //     }
         //   }
         // \`;
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query IndexQuery {
           site {
             siteMetadata {
@@ -235,11 +264,14 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .vue JavaScript file', async () => {
-      const sources = await pluck('tmp-XXXXXX.vue', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.vue',
+        freeText(`
         <template>
           <div>test</div>
         </template>
@@ -276,9 +308,11 @@ describe('graphql-tag-pluck', () => {
         <style>
         .test { color: red };
         </style>
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query IndexQuery {
           site {
             siteMetadata {
@@ -286,11 +320,14 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .vue TS/Pug/SCSS file', async () => {
-      const sources = await pluck('tmp-XXXXXX.vue', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.vue',
+        freeText(`
         <template lang="pug">
           <div>test</div>
         </template>
@@ -327,9 +364,11 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query IndexQuery {
           site {
             siteMetadata {
@@ -337,10 +376,13 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `));
+      `)
+      );
     });
     it('should pluck graphql-tag template literals from .vue 3 JavaScript file', async () => {
-      const sources = await pluck('tmp-XXXXXX.vue', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.vue',
+        freeText(`
         <template>
           <div>test</div>
         </template>
@@ -377,9 +419,11 @@ describe('graphql-tag-pluck', () => {
         <style>
         .test { color: red };
         </style>
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query IndexQuery {
           site {
             siteMetadata {
@@ -387,11 +431,14 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .vue 3 TS/Pug/SCSS file', async () => {
-      const sources = await pluck('tmp-XXXXXX.vue', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.vue',
+        freeText(`
         <template lang="pug">
           <div>test</div>
         </template>
@@ -428,9 +475,11 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query IndexQuery {
           site {
             siteMetadata {
@@ -438,11 +487,14 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .vue 3 setup sugar JavaScript file', async () => {
-      const sources = await pluck('tmp-XXXXXX.vue', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.vue',
+        freeText(`
         <template>
           <div>test</div>
         </template>
@@ -481,9 +533,11 @@ describe('graphql-tag-pluck', () => {
         <style>
         .test { color: red };
         </style>
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query IndexQuery {
           site {
             siteMetadata {
@@ -491,11 +545,14 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .vue 3 setup sugar TS/Pug/SCSS file', async () => {
-      const sources = await pluck('tmp-XXXXXX.vue', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.vue',
+        freeText(`
         <template lang="pug">
           <div>test</div>
         </template>
@@ -533,9 +590,11 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query IndexQuery {
           site {
             siteMetadata {
@@ -543,10 +602,13 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `));
+      `)
+      );
     });
     it('should pluck graphql-tag template literals from .vue 3 outside setup sugar JavaScript file', async () => {
-      const sources = await pluck('tmp-XXXXXX.vue', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.vue',
+        freeText(`
         <template>
           <div>test</div>
         </template>
@@ -583,9 +645,11 @@ describe('graphql-tag-pluck', () => {
         <style>
         .test { color: red };
         </style>
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query IndexQuery {
           site {
             siteMetadata {
@@ -593,11 +657,14 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .vue 3 outside setup sugar TS/Pug/SCSS file', async () => {
-      const sources = await pluck('tmp-XXXXXX.vue', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.vue',
+        freeText(`
         <template lang="pug">
           <div>test</div>
         </template>
@@ -634,9 +701,11 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query IndexQuery {
           site {
             siteMetadata {
@@ -644,11 +713,14 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .vue 3 setup JavaScript file', async () => {
-      const sources = await pluck('tmp-XXXXXX.vue', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.vue',
+        freeText(`
         <template>
           <div>test</div>
         </template>
@@ -688,9 +760,11 @@ describe('graphql-tag-pluck', () => {
         <style>
         .test { color: red };
         </style>
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query IndexQuery {
           site {
             siteMetadata {
@@ -698,11 +772,14 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .vue 3 setup TS/Pug/SCSS file', async () => {
-      const sources = await pluck('tmp-XXXXXX.vue', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.vue',
+        freeText(`
         <template lang="pug">
           <div>test</div>
         </template>
@@ -742,9 +819,11 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query IndexQuery {
           site {
             siteMetadata {
@@ -752,11 +831,14 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .tsx file with generic jsx elements', async () => {
-      const sources = await pluck('tmp-XXXXXX.tsx', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.tsx',
+        freeText(`
         import * as React from 'react';
         import gql from 'graphql-tag';
         import Generic from './Generic'
@@ -782,9 +864,11 @@ describe('graphql-tag-pluck', () => {
             }
           }
         \`;
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query IndexQuery {
           site {
             siteMetadata {
@@ -792,11 +876,14 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .ts file with the same const inside namespace and outside namespace', async () => {
-      const sources = await pluck('tmp-XXXXXX.ts', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.ts',
+        freeText(`
         import gql from 'graphql-tag';
 
         namespace Foo {
@@ -827,9 +914,11 @@ describe('graphql-tag-pluck', () => {
             fieldA
           }
         \`;
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query myQueryInNamespace {
           fieldA
         }
@@ -837,11 +926,14 @@ describe('graphql-tag-pluck', () => {
         query myQuery {
           fieldA
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .flow file', async () => {
-      const sources = await pluck('tmp-XXXXXX.flow', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.flow',
+        freeText(`
         import gql from 'graphql-tag'
         import { Document } from 'graphql'
 
@@ -860,9 +952,11 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -872,11 +966,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .js file with @flow header', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         // @flow
 
         import gql from 'graphql-tag'
@@ -897,9 +994,11 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -909,11 +1008,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .js file with @flow strict-local', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         // @flow strict-local
 
         import gql from 'graphql-tag'
@@ -934,9 +1036,11 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -946,14 +1050,17 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should NOT pluck graphql-tag template literals from .js file without a @flow header', async () => {
       const fail = Error('Function did not throw');
 
       try {
-        await pluck('tmp-XXXXXX.js', freeText(`
+        await pluck(
+          'tmp-XXXXXX.js',
+          freeText(`
           import gql from 'graphql-tag'
           import { Document } from 'graphql'
 
@@ -972,17 +1079,19 @@ describe('graphql-tag-pluck', () => {
 
             \${fragment}
           \`
-        `));
+        `)
+        );
 
         throw fail;
-      }
-      catch (e) {
+      } catch (e) {
         expect(e).not.toEqual(fail);
       }
     });
 
     it('should pluck graphql-tag template literals from .flow.jsx file', async () => {
-      const sources = await pluck('tmp-XXXXXX.flow.jsx', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.flow.jsx',
+        freeText(`
         import gql from 'graphql-tag'
         import { Document } from 'graphql'
 
@@ -1001,9 +1110,11 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -1013,11 +1124,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from .*.jsx file', async () => {
-      const sources = await pluck('tmp-XXXXXX.mutation.jsx', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.mutation.jsx',
+        freeText(`
         import gql from 'graphql-tag'
 
         const fragment = gql\`
@@ -1035,9 +1149,11 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -1047,49 +1163,62 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals leaded by a magic comment from .js file', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         const Message = /* GraphQL */ \`
           enum MessageTypes {
             text
             media
             draftjs
           }\`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         enum MessageTypes {
           text
           media
           draftjs
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag expression statements leaded by a magic comment from .js file', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         /* GraphQL */ \`
           enum MessageTypes {
             text
             media
             draftjs
           }\`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         enum MessageTypes {
           text
           media
           draftjs
         }
-      `));
+      `)
+      );
     });
 
     it(`should NOT pluck other template literals from a .js file`, async () => {
-      const sources = await pluck(`tmp-XXXXXX.js`, freeText(`
+      const sources = await pluck(
+        `tmp-XXXXXX.js`,
+        freeText(`
         test(
           \`test1\`
         )
@@ -1102,13 +1231,16 @@ describe('graphql-tag-pluck', () => {
         test.test\`
           test4
         \`
-      `));
+      `)
+      );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual('');
     });
 
     it('should pluck template literals when graphql-tag is imported differently', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         import graphqltag from 'graphql-tag'
 
         const fragment = graphqltag(\`
@@ -1126,9 +1258,11 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -1138,11 +1272,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck template literals from gql by default even if not imported from graphql-tag', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         const fragment = gql(\`
           fragment Foo on FooType {
             id
@@ -1158,9 +1295,11 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -1170,11 +1309,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from code string', async () => {
-      const sources = await pluck('test.js', freeText(`
+      const sources = await pluck(
+        'test.js',
+        freeText(`
         import gql from 'graphql-tag'
 
         const fragment = gql(\`
@@ -1192,9 +1334,11 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -1204,11 +1348,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql-tag template literals from code string with /* GraphQL */ comment', async () => {
-      const sources = await pluck('test.js', freeText(`
+      const sources = await pluck(
+        'test.js',
+        freeText(`
         import gql from 'graphql-tag'
 
         const doc = gql(/* GraphQL */ \`
@@ -1218,19 +1365,24 @@ describe('graphql-tag-pluck', () => {
             }
           }
         \`)
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         query foo {
           foo {
             foo
           }
         }
-      `));
-    })
+      `)
+      );
+    });
 
     it('should pluck graphql-tag template literals from a .js file', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         import gql from 'graphql-tag'
 
         const fragment = gql(\`
@@ -1248,9 +1400,11 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -1260,11 +1414,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should be able to specify the global GraphQL identifier name', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         const fragment = anothergql(\`
           fragment Foo on FooType {
             id
@@ -1280,11 +1437,14 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `), {
-        globalGqlIdentifierName: 'anothergql'
-      });
+      `),
+        {
+          globalGqlIdentifierName: 'anothergql',
+        }
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -1294,32 +1454,41 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should be able to specify the GraphQL magic comment to look for', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         const Message = /* GQL */ \`
           enum MessageTypes {
             text
             media
             draftjs
           }\`
-      `), {
-        gqlMagicComment: 'GQL'
-      });
+      `),
+        {
+          gqlMagicComment: 'GQL',
+        }
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         enum MessageTypes {
           text
           media
           draftjs
         }
-      `));
+      `)
+      );
     });
 
     it('should be able to specify the package name of which the GraphQL identifier should be imported from', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         import mygql from 'my-graphql-tag'
 
         const fragment = mygql(\`
@@ -1337,13 +1506,14 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `), {
-        modules: [
-          { name: 'my-graphql-tag' }
-        ]
-      });
+      `),
+        {
+          modules: [{ name: 'my-graphql-tag' }],
+        }
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -1353,11 +1523,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql template literal from gatsby package', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         import {graphql} from 'gatsby'
 
         const fragment = graphql(\`
@@ -1375,9 +1548,11 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -1387,11 +1562,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck gql template literal from apollo-server-express package', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         import { gql } from 'apollo-server-express'
 
         const fragment = gql(\`
@@ -1409,9 +1587,11 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -1421,11 +1601,14 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck gql template literal from @apollo/client package', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         import { gql } from '@apollo/client'
 
         const fragment = gql(\`
@@ -1443,9 +1626,11 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
         fragment Foo on FooType {
           id
         }
@@ -1455,7 +1640,8 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `));
+      `)
+      );
     });
 
     it('should pluck magic comment template literals with a trailing semicolon', async () => {
@@ -1464,7 +1650,9 @@ describe('graphql-tag-pluck', () => {
     });
 
     it('should pluck with comments having escaped backticks', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
       import gql from 'graphql-tag';
 
       export default gql\`
@@ -1475,20 +1663,25 @@ describe('graphql-tag-pluck', () => {
           email: String!
         }
       \`
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
           type User {
             id: ID!
             "Choose a nice username, so users can \`@mention\` you."
             username: String!
             email: String!
           }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql template literal imported lazily', async () => {
-      const sources = await pluck('tmp-XXXXXX.js', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
         async function getUserType() {
           const graphql = await import('graphql-tag');
 
@@ -1501,20 +1694,25 @@ describe('graphql-tag-pluck', () => {
             }
           \`
         }
-      `));
+      `)
+      );
 
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(`
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
           type User {
             id: ID!
             "Choose a nice username, so users can \`@mention\` you."
             username: String!
             email: String!
           }
-      `));
+      `)
+      );
     });
 
     it('should pluck graphql template literal in a code file that has decorators', async () => {
-      const sources = await pluck('tmp-XXXXXX.ts', freeText(`
+      const sources = await pluck(
+        'tmp-XXXXXX.ts',
+        freeText(`
         const CurrentUserForProfile = gql\`
           query CurrentUserForProfile {
             currentUser {
@@ -1542,18 +1740,19 @@ describe('graphql-tag-pluck', () => {
               .valueChanges.subscribe();
           }
         }
-      `));
+      `)
+      );
 
-
-      expect(sources.map(source => source.body).join('\n\n')).toEqual(freeText(/* GraphQL */`
-        query CurrentUserForProfile {
-          currentUser {
-            login
-            avatar_url
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(/* GraphQL */ `
+          query CurrentUserForProfile {
+            currentUser {
+              login
+              avatar_url
+            }
           }
-        }
-      `));
-
-    })
+        `)
+      );
+    });
   });
 });

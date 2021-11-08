@@ -6,8 +6,6 @@ sidebar_label: Federation to Stitching
 
 `federationToStitchingSDL` utility converts an [Apollo Federation SDL](https://www.apollographql.com/docs/federation/federation-spec/) string into a [Schema Stitching SDL](https://www.graphql-tools.com/docs/stitch-directives-sdl/) string.
 
-> ⚠️ NOTE: integration with Apollo Federation and its evolving roadmap is NOT a core concern of GraphQL Tools Schema Stitching. While the two systems have plenty of similarities and you can pull many strings to make them talk to each other, there is no formal contract that guarentees their interoperability. This package interfaces known commonalities between the two systems. Buyer beware that you're assuming your own testing and maintenance overhead if you choose to couple these systems in a production environment.
-
 Schema Stitching supports freeform service bindings that may integrate with any GraphQL query, including the `_entities` query setup by [Federation services](https://github.com/apollographql/federation). That means Federation SDLs may be converted to a Stitching SDL and added to a stitched gateway...
 
 **Federation SDL:**
@@ -72,7 +70,7 @@ A working example can be found in the [Schema Stitching Handbook](https://github
 const { stitchSchemas } = require('@graphql-tools/stitch');
 const { federationToStitchingSDL, stitchingDirectives } = require('@graphql-tools/stitching-directives');
 const { buildSchema, print } = require('graphql');
-const { fetch } = require('cross-fetch');
+const { fetch } = require('cross-undici-fetch');
 const stitchingConfig = stitchingDirectives();
 
 const executor = async ({ document, variables }) => {

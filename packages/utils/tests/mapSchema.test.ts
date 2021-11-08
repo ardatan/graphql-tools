@@ -1,4 +1,28 @@
-import { GraphQLObjectType, GraphQLSchema, graphqlSync, buildSchema, getNamedType, defaultFieldResolver, ExecutionResult, graphql, GraphQLEnumType, GraphQLFieldConfig, GraphQLID, GraphQLInputFieldConfig, GraphQLInt, GraphQLList, GraphQLNonNull, GraphQLOutputType, GraphQLScalarType, GraphQLString, GraphQLUnionType, isListType, isNonNullType, isScalarType, printSchema } from 'graphql';
+import {
+  GraphQLObjectType,
+  GraphQLSchema,
+  graphqlSync,
+  buildSchema,
+  getNamedType,
+  defaultFieldResolver,
+  ExecutionResult,
+  graphql,
+  GraphQLEnumType,
+  GraphQLFieldConfig,
+  GraphQLID,
+  GraphQLInputFieldConfig,
+  GraphQLInt,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLOutputType,
+  GraphQLScalarType,
+  GraphQLString,
+  GraphQLUnionType,
+  isListType,
+  isNonNullType,
+  isScalarType,
+  printSchema,
+} from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { MapperKind, mapSchema, getDirectives, getDirective } from '../src';
@@ -8,10 +32,10 @@ import formatDate from 'dateformat';
 
 describe('mapSchema', () => {
   test('does not throw', () => {
-    const schema = buildSchema(/* GraphQL */`
-        type Query {
-          version: String
-        }
+    const schema = buildSchema(/* GraphQL */ `
+      type Query {
+        version: String
+      }
     `);
 
     const newSchema = mapSchema(schema, {});
@@ -19,14 +43,14 @@ describe('mapSchema', () => {
   });
 
   test('can add a resolver', () => {
-    const schema = buildSchema(/* GraphQL */`
-        type Query {
-          version: Int
-        }
+    const schema = buildSchema(/* GraphQL */ `
+      type Query {
+        version: Int
+      }
     `);
 
     const newSchema = mapSchema(schema, {
-      [MapperKind.QUERY]: (type) => {
+      [MapperKind.QUERY]: type => {
         const queryConfig = type.toConfig();
         queryConfig.fields['version'].resolve = () => 1;
         return new GraphQLObjectType(queryConfig);
@@ -35,19 +59,26 @@ describe('mapSchema', () => {
 
     expect(newSchema).toBeInstanceOf(GraphQLSchema);
 
-    const result = graphqlSync({ schema: newSchema, source: /* GraphQL */`{ version }` });
+    const result = graphqlSync({
+      schema: newSchema,
+      source: /* GraphQL */ `
+        {
+          version
+        }
+      `,
+    });
     expect(result.data?.['version']).toBe(1);
   });
 
   test('can change the root query name', () => {
-    const schema = buildSchema(/* GraphQL */`
-        type Query {
-          version: Int
-        }
+    const schema = buildSchema(/* GraphQL */ `
+      type Query {
+        version: Int
+      }
     `);
 
     const newSchema = mapSchema(schema, {
-      [MapperKind.QUERY]: (type) => {
+      [MapperKind.QUERY]: type => {
         const queryConfig = type.toConfig();
         queryConfig.name = 'RootQuery';
         return new GraphQLObjectType(queryConfig);
@@ -58,7 +89,7 @@ describe('mapSchema', () => {
     expect(newSchema.getQueryType()?.name).toBe('RootQuery');
   });
 
-  const typeDefs = /* GraphQL */`
+  const typeDefs = /* GraphQL */ `
   directive @schemaDirective(role: String) on SCHEMA
   directive @schemaExtensionDirective(role: String) on SCHEMA
   directive @queryTypeDirective on OBJECT
@@ -130,18 +161,19 @@ describe('mapSchema', () => {
       const visited: Set<GraphQLObjectType> = new Set();
 
       function addObjectTypeToSetDirective(directiveNames: Array<string>): (schema: GraphQLSchema) => GraphQLSchema {
-        return schema => mapSchema(schema, {
-          [MapperKind.OBJECT_TYPE]: type => {
-            const directives = getDirectives(schema, type);
-            for (const directive of directives) {
-              if (directiveNames.includes(directive.name)) {
-                expect(type.name).toBe(schema.getQueryType()?.name);
-                visited.add(type);
+        return schema =>
+          mapSchema(schema, {
+            [MapperKind.OBJECT_TYPE]: type => {
+              const directives = getDirectives(schema, type);
+              for (const directive of directives) {
+                if (directiveNames.includes(directive.name)) {
+                  expect(type.name).toBe(schema.getQueryType()?.name);
+                  visited.add(type);
+                }
               }
-            }
-            return undefined;
-          }
-        })
+              return undefined;
+            },
+          });
       }
 
       const schema = buildSchema(typeDefs);
@@ -164,7 +196,7 @@ describe('mapSchema', () => {
             }
           }
           return schema;
-        }
+        };
       }
 
       let schema = makeExecutableSchema({ typeDefs });
@@ -184,22 +216,23 @@ describe('mapSchema', () => {
       function upperDirective(directiveName: string) {
         return {
           upperDirectiveTypeDefs: `directive @${directiveName} on FIELD_DEFINITION`,
-          upperDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
-            [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-              const upperDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
-              if (upperDirective) {
-                const { resolve = defaultFieldResolver } = fieldConfig;
-                fieldConfig.resolve = async function (source, args, context, info) {
-                  const result = await resolve(source, args, context, info);
-                  if (typeof result === 'string') {
-                    return result.toUpperCase();
-                  }
-                  return result;
+          upperDirectiveTransformer: (schema: GraphQLSchema) =>
+            mapSchema(schema, {
+              [MapperKind.OBJECT_FIELD]: fieldConfig => {
+                const upperDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
+                if (upperDirective) {
+                  const { resolve = defaultFieldResolver } = fieldConfig;
+                  fieldConfig.resolve = async function (source, args, context, info) {
+                    const result = await resolve(source, args, context, info);
+                    if (typeof result === 'string') {
+                      return result.toUpperCase();
+                    }
+                    return result;
+                  };
+                  return fieldConfig;
                 }
-                return fieldConfig;
-              }
-            }
-          })
+              },
+            }),
         };
       }
 
@@ -208,11 +241,11 @@ describe('mapSchema', () => {
       const schemaWithResolvers = makeExecutableSchema({
         typeDefs: [
           upperDirectiveTypeDefs,
-          /* GraphQL */`
+          /* GraphQL */ `
             type Query {
               hello: String @upper
             }
-          `
+          `,
         ],
         resolvers: {
           Query: {
@@ -227,11 +260,11 @@ describe('mapSchema', () => {
 
       return graphql({
         schema,
-        source: /* GraphQL */`
-        query {
-          hello
-        }
-      `,
+        source: /* GraphQL */ `
+          query {
+            hello
+          }
+        `,
       }).then(({ data }) => {
         expect(data).toEqual({
           hello: 'HELLO WORLD',
@@ -243,28 +276,29 @@ describe('mapSchema', () => {
       function deprecatedDirective(directiveName: string) {
         return {
           deprecatedDirectiveTypeDefs: `directive @${directiveName}(reason: String) on FIELD_DEFINITION | ENUM_VALUE`,
-          deprecatedDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
-            [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-              const deprecatedDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
-              if (deprecatedDirective) {
-                fieldConfig.deprecationReason = deprecatedDirective['reason'];
-                return fieldConfig;
-              }
-            },
-            [MapperKind.ENUM_VALUE]: (enumValueConfig) => {
-              const deprecatedDirective = getDirective(schema, enumValueConfig, directiveName)?.[0];
-              if (deprecatedDirective) {
-                enumValueConfig.deprecationReason = deprecatedDirective['reason'];
-                return enumValueConfig;
-              }
-            }
-          }),
+          deprecatedDirectiveTransformer: (schema: GraphQLSchema) =>
+            mapSchema(schema, {
+              [MapperKind.OBJECT_FIELD]: fieldConfig => {
+                const deprecatedDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
+                if (deprecatedDirective) {
+                  fieldConfig.deprecationReason = deprecatedDirective['reason'];
+                  return fieldConfig;
+                }
+              },
+              [MapperKind.ENUM_VALUE]: enumValueConfig => {
+                const deprecatedDirective = getDirective(schema, enumValueConfig, directiveName)?.[0];
+                if (deprecatedDirective) {
+                  enumValueConfig.deprecationReason = deprecatedDirective['reason'];
+                  return enumValueConfig;
+                }
+              },
+            }),
         };
       }
 
       const { deprecatedDirectiveTypeDefs, deprecatedDirectiveTransformer } = deprecatedDirective('deprecated');
 
-      const rawSchema = buildSchema(/* GraphQL */`
+      const rawSchema = buildSchema(/* GraphQL */ `
         ${deprecatedDirectiveTypeDefs}
         type ExampleType {
           newField: String
@@ -277,34 +311,37 @@ describe('mapSchema', () => {
 
       const schema = deprecatedDirectiveTransformer(rawSchema);
 
-      expect((schema.getType('ExampleType') as GraphQLObjectType).getFields()['oldField'].deprecationReason).toBe('Use \`newField\`.')
+      expect((schema.getType('ExampleType') as GraphQLObjectType).getFields()['oldField'].deprecationReason).toBe(
+        'Use `newField`.'
+      );
     });
 
     test('can be used to implement the @date example', () => {
       function dateDirective(directiveName: string) {
         return {
           dateDirectiveTypeDefs: `directive @${directiveName}(format: String) on FIELD_DEFINITION`,
-          dateDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
-            [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-              const dateDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
-              if (dateDirective) {
-                const { resolve = defaultFieldResolver } = fieldConfig;
-                const { format } = dateDirective;
-                fieldConfig.resolve = async (source, args, context, info) => {
-                  const date: any = await resolve(source, args, context, info);
-                  return formatDate(date, format, true);
-                };
-                return fieldConfig;
-              }
-            }
-          }),
+          dateDirectiveTransformer: (schema: GraphQLSchema) =>
+            mapSchema(schema, {
+              [MapperKind.OBJECT_FIELD]: fieldConfig => {
+                const dateDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
+                if (dateDirective) {
+                  const { resolve = defaultFieldResolver } = fieldConfig;
+                  const { format } = dateDirective;
+                  fieldConfig.resolve = async (source, args, context, info) => {
+                    const date: any = await resolve(source, args, context, info);
+                    return formatDate(date, format, true);
+                  };
+                  return fieldConfig;
+                }
+              },
+            }),
         };
       }
 
       const { dateDirectiveTypeDefs, dateDirectiveTransformer } = dateDirective('date');
 
       const rawSchema = makeExecutableSchema({
-        typeDefs: /* GraphQL */`
+        typeDefs: /* GraphQL */ `
           ${dateDirectiveTypeDefs}
           scalar Date
           type Query {
@@ -318,12 +355,12 @@ describe('mapSchema', () => {
             },
           },
         },
-      })
+      });
       const schema = dateDirectiveTransformer(rawSchema);
 
       return graphql({
         schema,
-        source: /* GraphQL */`
+        source: /* GraphQL */ `
           query {
             today
           }
@@ -342,43 +379,40 @@ describe('mapSchema', () => {
             defaultFormat: String = "mmmm d, yyyy"
           ) on FIELD_DEFINITION
         `,
-          formattableDateDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
-            [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-              const dateDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
-              if (dateDirective) {
-                const { resolve = defaultFieldResolver } = fieldConfig;
-                const { defaultFormat } = dateDirective;
+          formattableDateDirectiveTransformer: (schema: GraphQLSchema) =>
+            mapSchema(schema, {
+              [MapperKind.OBJECT_FIELD]: fieldConfig => {
+                const dateDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
+                if (dateDirective) {
+                  const { resolve = defaultFieldResolver } = fieldConfig;
+                  const { defaultFormat } = dateDirective;
 
-                if (!fieldConfig.args) {
-                  throw new Error("Unexpected Error. args should be defined.")
+                  if (!fieldConfig.args) {
+                    throw new Error('Unexpected Error. args should be defined.');
+                  }
+
+                  fieldConfig.args['format'] = {
+                    type: GraphQLString,
+                  };
+
+                  fieldConfig.type = GraphQLString;
+                  fieldConfig.resolve = async (source, { format, ...args }, context, info) => {
+                    const newFormat = format || defaultFormat;
+                    const date: any = await resolve(source, args, context, info);
+                    return formatDate(date, newFormat, true);
+                  };
+                  return fieldConfig;
                 }
-
-                fieldConfig.args['format'] = {
-                  type: GraphQLString,
-                };
-
-                fieldConfig.type = GraphQLString;
-                fieldConfig.resolve = async (
-                  source,
-                  { format, ...args },
-                  context,
-                  info,
-                ) => {
-                  const newFormat = format || defaultFormat;
-                  const date: any = await resolve(source, args, context, info);
-                  return formatDate(date, newFormat, true);
-                };
-                return fieldConfig;
-              }
-            }
-          }),
+              },
+            }),
         };
       }
 
-      const { formattableDateDirectiveTypeDefs, formattableDateDirectiveTransformer } = formattableDateDirective('date');
+      const { formattableDateDirectiveTypeDefs, formattableDateDirectiveTransformer } =
+        formattableDateDirective('date');
 
       const rawSchema = makeExecutableSchema({
-        typeDefs: /* GraphQL */`
+        typeDefs: /* GraphQL */ `
           ${formattableDateDirectiveTypeDefs}
           scalar Date
           type Query {
@@ -396,7 +430,7 @@ describe('mapSchema', () => {
 
       const schema = formattableDateDirectiveTransformer(rawSchema);
 
-      const resultNoArg = await graphql({schema, source: 'query { today }'});
+      const resultNoArg = await graphql({ schema, source: 'query { today }' });
 
       if (resultNoArg.errors != null) {
         expect(resultNoArg.errors).toEqual([]);
@@ -421,7 +455,10 @@ describe('mapSchema', () => {
     });
 
     test('can be used to implement the @auth example', async () => {
-      function authDirective(directiveName: string, getUserFn: (token: string) => { hasRole: (role: string) => boolean }) {
+      function authDirective(
+        directiveName: string,
+        getUserFn: (token: string) => { hasRole: (role: string) => boolean }
+      ) {
         const typeDirectiveArgumentMaps: Record<string, any> = {};
         return {
           authDirectiveTypeDefs: `directive @${directiveName}(
@@ -433,32 +470,34 @@ describe('mapSchema', () => {
           USER
           UNKNOWN
         }`,
-          authDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
-            [MapperKind.TYPE]: (type) => {
-              const authDirective = getDirective(schema, type, directiveName)?.[0];
-              if (authDirective) {
-                typeDirectiveArgumentMaps[type.name] = authDirective;
-              }
-              return undefined;
-            },
-            [MapperKind.OBJECT_FIELD]: (fieldConfig, _fieldName, typeName) => {
-              const authDirective = getDirective(schema, fieldConfig, directiveName)?.[0] ?? typeDirectiveArgumentMaps[typeName];
-              if (authDirective) {
-                const { requires } = authDirective;
-                if (requires) {
-                  const { resolve = defaultFieldResolver } = fieldConfig;
-                  fieldConfig.resolve = function (source, args, context, info) {
-                    const user = getUserFn(context.headers.authToken);
-                    if (!user.hasRole(requires)) {
-                      throw new Error('not authorized');
-                    }
-                    return resolve(source, args, context, info);
-                  }
-                  return fieldConfig;
+          authDirectiveTransformer: (schema: GraphQLSchema) =>
+            mapSchema(schema, {
+              [MapperKind.TYPE]: type => {
+                const authDirective = getDirective(schema, type, directiveName)?.[0];
+                if (authDirective) {
+                  typeDirectiveArgumentMaps[type.name] = authDirective;
                 }
-              }
-            }
-          })
+                return undefined;
+              },
+              [MapperKind.OBJECT_FIELD]: (fieldConfig, _fieldName, typeName) => {
+                const authDirective =
+                  getDirective(schema, fieldConfig, directiveName)?.[0] ?? typeDirectiveArgumentMaps[typeName];
+                if (authDirective) {
+                  const { requires } = authDirective;
+                  if (requires) {
+                    const { resolve = defaultFieldResolver } = fieldConfig;
+                    fieldConfig.resolve = function (source, args, context, info) {
+                      const user = getUserFn(context.headers.authToken);
+                      if (!user.hasRole(requires)) {
+                        throw new Error('not authorized');
+                      }
+                      return resolve(source, args, context, info);
+                    };
+                    return fieldConfig;
+                  }
+                }
+              },
+            }),
         };
       }
 
@@ -476,16 +515,19 @@ describe('mapSchema', () => {
       const { authDirectiveTypeDefs, authDirectiveTransformer } = authDirective('auth', getUser);
 
       const rawSchema = makeExecutableSchema({
-        typeDefs: [authDirectiveTypeDefs, /* GraphQL */`
-        type User @auth(requires: USER) {
-          name: String
-          banned: Boolean @auth(requires: ADMIN)
-          canPost: Boolean @auth(requires: REVIEWER)
-        }
-        type Query {
-          users: [User]
-        }
-      `],
+        typeDefs: [
+          authDirectiveTypeDefs,
+          /* GraphQL */ `
+            type User @auth(requires: USER) {
+              name: String
+              banned: Boolean @auth(requires: ADMIN)
+              canPost: Boolean @auth(requires: REVIEWER)
+            }
+            type Query {
+              users: [User]
+            }
+          `,
+        ],
         resolvers: {
           Query: {
             users() {
@@ -505,7 +547,7 @@ describe('mapSchema', () => {
       function execWithRole(role: string): Promise<ExecutionResult> {
         return graphql({
           schema,
-          source: /* GraphQL */`
+          source: /* GraphQL */ `
             query {
               users {
                 name
@@ -523,27 +565,19 @@ describe('mapSchema', () => {
       }
 
       function assertStringArray(input: Array<unknown>): asserts input is Array<string> {
-        if (input.some(item => typeof item !== "string")) {
-          throw new Error("All items in array should be strings.")
+        if (input.some(item => typeof item !== 'string')) {
+          throw new Error('All items in array should be strings.');
         }
       }
 
-      function checkErrors(
-        expectedCount: number,
-        ...expectedNames: Array<string>
-      ) {
-        return function ({
-          errors = [],
-          data,
-        }: ExecutionResult) {
+      function checkErrors(expectedCount: number, ...expectedNames: Array<string>) {
+        return function ({ errors = [], data }: ExecutionResult) {
           expect(errors.length).toBe(expectedCount);
-          expect(
-            errors.every((error) => error.message === 'not authorized'),
-          ).toBeTruthy();
-          const actualNames = errors.map((error) => error.path!.slice(-1)[0]);
-          assertStringArray(actualNames)
+          expect(errors.every(error => error.message === 'not authorized')).toBeTruthy();
+          const actualNames = errors.map(error => error.path!.slice(-1)[0]);
+          assertStringArray(actualNames);
           expect(expectedNames.sort((a, b) => a.localeCompare(b))).toEqual(
-            actualNames.sort((a, b) => a.localeCompare(b)),
+            actualNames.sort((a, b) => a.localeCompare(b))
           );
           return data;
         };
@@ -555,7 +589,7 @@ describe('mapSchema', () => {
         execWithRole('REVIEWER').then(checkErrors(1, 'banned')),
         execWithRole('ADMIN')
           .then(checkErrors(0))
-          .then((data) => {
+          .then(data => {
             const usersData: any = data?.['users'];
             expect(usersData?.length).toBe(1);
             expect(usersData?.[0].banned).toBe(true);
@@ -576,11 +610,7 @@ describe('mapSchema', () => {
                 const newValue = type.serialize(value) as string;
                 expect(typeof newValue.length).toBe('number');
                 if (newValue.length > maxLength) {
-                  throw new Error(
-                    `expected ${newValue.length.toString(
-                      10,
-                    )} to be at most ${maxLength.toString(10)}`,
-                  );
+                  throw new Error(`expected ${newValue.length.toString(10)} to be at most ${maxLength.toString(10)}`);
                 }
                 return newValue;
               },
@@ -599,10 +629,10 @@ describe('mapSchema', () => {
         const limitedLengthTypes: Record<string, Record<number, GraphQLScalarType>> = {};
 
         function getLimitedLengthType(type: GraphQLScalarType, maxLength: number): GraphQLScalarType {
-          const limitedLengthTypesByTypeName = limitedLengthTypes[type.name]
+          const limitedLengthTypesByTypeName = limitedLengthTypes[type.name];
           if (!limitedLengthTypesByTypeName) {
             const newType = new LimitedLengthType(type, maxLength);
-            limitedLengthTypes[type.name] = {}
+            limitedLengthTypes[type.name] = {};
             limitedLengthTypes[type.name][maxLength] = newType;
             return newType;
           }
@@ -617,7 +647,10 @@ describe('mapSchema', () => {
           return limitedLengthType;
         }
 
-        function wrapType<F extends GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig>(fieldConfig: F, directiveArgumentMap: Record<string, any>): void {
+        function wrapType<F extends GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig>(
+          fieldConfig: F,
+          directiveArgumentMap: Record<string, any>
+        ): void {
           if (isNonNullType(fieldConfig.type) && isScalarType(fieldConfig.type.ofType)) {
             fieldConfig.type = getLimitedLengthType(fieldConfig.type.ofType, directiveArgumentMap['max']);
           } else if (isScalarType(fieldConfig.type)) {
@@ -629,22 +662,25 @@ describe('mapSchema', () => {
 
         return {
           lengthDirectiveTypeDefs: `directive @${directiveName}(max: Int) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION`,
-          lengthDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
-            [MapperKind.FIELD]: (fieldConfig) => {
-              const lengthDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
-              if (lengthDirective) {
-                wrapType(fieldConfig, lengthDirective);
-                return fieldConfig;
-              }
-            }
-          }),
+          lengthDirectiveTransformer: (schema: GraphQLSchema) =>
+            mapSchema(schema, {
+              [MapperKind.FIELD]: fieldConfig => {
+                const lengthDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
+                if (lengthDirective) {
+                  wrapType(fieldConfig, lengthDirective);
+                  return fieldConfig;
+                }
+              },
+            }),
         };
       }
 
       const { lengthDirectiveTypeDefs, lengthDirectiveTransformer } = lengthDirective('length');
 
       const rawSchema = makeExecutableSchema({
-        typeDefs: [lengthDirectiveTypeDefs, `
+        typeDefs: [
+          lengthDirectiveTypeDefs,
+          `
         type Query {
           books: [Book]
         }
@@ -656,8 +692,8 @@ describe('mapSchema', () => {
         }
         input BookInput {
           title: String! @length(max: 10)
-        }`]
-        ,
+        }`,
+        ],
         resolvers: {
           Query: {
             books() {
@@ -716,36 +752,39 @@ describe('mapSchema', () => {
       function uniqueIDDirective(directiveName: string) {
         return {
           uniqueIDDirectiveTypeDefs: `directive @${directiveName}(name: String, from: [String]) on OBJECT`,
-          uniqueIDDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
-            [MapperKind.OBJECT_TYPE]: (type) => {
-              const uniqueIDDirective = getDirective(schema, type, directiveName)?.[0];
-              if (uniqueIDDirective) {
-                const { name, from } = uniqueIDDirective;
-                const config = type.toConfig();
-                config.fields[name] = {
-                  type: GraphQLID,
-                  description: 'Unique ID',
-                  args: {},
-                  resolve(object: any) {
-                    const hash = createHash('sha1');
-                    hash.update(type.name);
-                    for (const fieldName of from) {
-                      hash.update(String(object[fieldName]));
-                    }
-                    return hash.digest('hex');
-                  },
-                };
-                return new GraphQLObjectType(config);
-              }
-            }
-          }),
+          uniqueIDDirectiveTransformer: (schema: GraphQLSchema) =>
+            mapSchema(schema, {
+              [MapperKind.OBJECT_TYPE]: type => {
+                const uniqueIDDirective = getDirective(schema, type, directiveName)?.[0];
+                if (uniqueIDDirective) {
+                  const { name, from } = uniqueIDDirective;
+                  const config = type.toConfig();
+                  config.fields[name] = {
+                    type: GraphQLID,
+                    description: 'Unique ID',
+                    args: {},
+                    resolve(object: any) {
+                      const hash = createHash('sha1');
+                      hash.update(type.name);
+                      for (const fieldName of from) {
+                        hash.update(String(object[fieldName]));
+                      }
+                      return hash.digest('hex');
+                    },
+                  };
+                  return new GraphQLObjectType(config);
+                }
+              },
+            }),
         };
       }
 
       const { uniqueIDDirectiveTypeDefs, uniqueIDDirectiveTransformer } = uniqueIDDirective('uniqueID');
 
       const rawSchema = makeExecutableSchema({
-        typeDefs: [uniqueIDDirectiveTypeDefs, `
+        typeDefs: [
+          uniqueIDDirectiveTypeDefs,
+          `
         type Query {
           people: [Person]
           locations: [Location]
@@ -758,7 +797,8 @@ describe('mapSchema', () => {
           locationID: Int
           address: String
         }
-      `],
+      `,
+        ],
         resolvers: {
           Query: {
             people() {
@@ -797,7 +837,8 @@ describe('mapSchema', () => {
             address
           }
         }
-      `,}).then((result) => {
+      `,
+      }).then(result => {
         const { data } = result;
 
         expect(data?.['people']).toEqual([
@@ -820,16 +861,17 @@ describe('mapSchema', () => {
 
     test('automatically updates references to changed types', () => {
       function renameObjectTypeToHumanDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
-        return schema => mapSchema(schema, {
-          [MapperKind.OBJECT_TYPE]: (type) => {
-            const directive = getDirective(schema, type, directiveName)?.[0];
-            if (directive) {
-              const config = type.toConfig();
-              config.name = 'Human';
-              return new GraphQLObjectType(config);
-            }
-          }
-        });
+        return schema =>
+          mapSchema(schema, {
+            [MapperKind.OBJECT_TYPE]: type => {
+              const directive = getDirective(schema, type, directiveName)?.[0];
+              if (directive) {
+                const config = type.toConfig();
+                config.name = 'Human';
+                return new GraphQLObjectType(config);
+              }
+            },
+          });
       }
 
       const rawSchema = buildSchema(typeDefs);
@@ -845,12 +887,10 @@ describe('mapSchema', () => {
 
       const Mutation = schema.getType('Mutation') as GraphQLObjectType;
       const addPersonResultType = Mutation.getFields()['addPerson'].type;
-      expect(addPersonResultType).toBe(
-        schema.getType('Human') as GraphQLOutputType,
-      );
+      expect(addPersonResultType).toBe(schema.getType('Human') as GraphQLOutputType);
 
       const WhateverUnion = schema.getType('WhateverUnion') as GraphQLUnionType;
-      const found = WhateverUnion.getTypes().some((type) => {
+      const found = WhateverUnion.getTypes().some(type => {
         if (type.name === 'Human') {
           expect(type).toBe(schema.getType('Human'));
           return true;
@@ -865,48 +905,48 @@ describe('mapSchema', () => {
 
     test('can remove enum values', () => {
       function removeEnumValueDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
-        return schema => mapSchema(schema, {
-          [MapperKind.ENUM_VALUE]: (enumValueConfig) => {
-            const directive = getDirective(schema, enumValueConfig, directiveName)?.[0];
-            if (directive?.['if']) {
-              return null;
-            }
-          }
-        });
+        return schema =>
+          mapSchema(schema, {
+            [MapperKind.ENUM_VALUE]: enumValueConfig => {
+              const directive = getDirective(schema, enumValueConfig, directiveName)?.[0];
+              if (directive?.['if']) {
+                return null;
+              }
+            },
+          });
       }
 
-      const rawSchema = buildSchema(/* GraphQL */`
-      directive @remove(if: Boolean) on ENUM_VALUE
-      type Query {
-        age(unit: AgeUnit): Int
-      }
-      enum AgeUnit {
-        DOG_YEARS
-        TURTLE_YEARS @remove(if: true)
-        PERSON_YEARS @remove(if: false)
-      }`);
+      const rawSchema = buildSchema(/* GraphQL */ `
+        directive @remove(if: Boolean) on ENUM_VALUE
+        type Query {
+          age(unit: AgeUnit): Int
+        }
+        enum AgeUnit {
+          DOG_YEARS
+          TURTLE_YEARS @remove(if: true)
+          PERSON_YEARS @remove(if: false)
+        }
+      `);
       const schema = removeEnumValueDirective('remove')(rawSchema);
 
       const AgeUnit = schema.getType('AgeUnit') as GraphQLEnumType;
-      expect(AgeUnit.getValues().map((value) => value.name)).toEqual([
-        'DOG_YEARS',
-        'PERSON_YEARS',
-      ]);
+      expect(AgeUnit.getValues().map(value => value.name)).toEqual(['DOG_YEARS', 'PERSON_YEARS']);
     });
 
     test("can modify enum value's external value", () => {
       function modifyExternalEnumValueDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
-        return schema => mapSchema(schema, {
-          [MapperKind.ENUM_VALUE]: (enumValueConfig) => {
-            const directive = getDirective(schema, enumValueConfig, directiveName)?.[0];
-            if (directive) {
-              return [directive['new'], enumValueConfig];
-            }
-          }
-        });
+        return schema =>
+          mapSchema(schema, {
+            [MapperKind.ENUM_VALUE]: enumValueConfig => {
+              const directive = getDirective(schema, enumValueConfig, directiveName)?.[0];
+              if (directive) {
+                return [directive['new'], enumValueConfig];
+              }
+            },
+          });
       }
 
-      const rawSchema = buildSchema(/* GraphQL */`
+      const rawSchema = buildSchema(/* GraphQL */ `
         directive @value(new: String!) on ENUM_VALUE
         type Query {
           device: Device
@@ -921,27 +961,24 @@ describe('mapSchema', () => {
       const schema = modifyExternalEnumValueDirective('value')(rawSchema);
 
       const Device = schema.getType('Device') as GraphQLEnumType;
-      expect(Device.getValues().map((value) => value.name)).toEqual([
-        'PHONE',
-        'TABLET',
-        'COMPUTER',
-      ]);
+      expect(Device.getValues().map(value => value.name)).toEqual(['PHONE', 'TABLET', 'COMPUTER']);
     });
 
     test("can modify enum value's internal value", () => {
       function modifyInternalEnumValueDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
-        return schema => mapSchema(schema, {
-          [MapperKind.ENUM_VALUE]: (enumValueConfig) => {
-            const directive = getDirective(schema, enumValueConfig, directiveName)?.[0];
-            if (directive) {
-              enumValueConfig.value = directive['new'];
-              return enumValueConfig;
-            }
-          }
-        });
+        return schema =>
+          mapSchema(schema, {
+            [MapperKind.ENUM_VALUE]: enumValueConfig => {
+              const directive = getDirective(schema, enumValueConfig, directiveName)?.[0];
+              if (directive) {
+                enumValueConfig.value = directive['new'];
+                return enumValueConfig;
+              }
+            },
+          });
       }
 
-      const rawSchema = buildSchema(/* GraphQL */`
+      const rawSchema = buildSchema(/* GraphQL */ `
         directive @value(new: String!) on ENUM_VALUE
         type Query {
           device: Device
@@ -955,28 +992,25 @@ describe('mapSchema', () => {
       const schema = modifyInternalEnumValueDirective('value')(rawSchema);
 
       const Device = schema.getType('Device') as GraphQLEnumType;
-      expect(Device.getValues().map((value) => value.value)).toEqual([
-        'PHONE',
-        'TABLET',
-        'COMPUTER',
-      ]);
+      expect(Device.getValues().map(value => value.value)).toEqual(['PHONE', 'TABLET', 'COMPUTER']);
     });
 
     test('can swap names of GraphQLNamedType objects', () => {
       function renameObjectTypeDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
-        return schema => mapSchema(schema, {
-          [MapperKind.OBJECT_TYPE]: (type) => {
-            const directive = getDirective(schema, type, directiveName)?.[0];
-            if (directive) {
-              const config = type.toConfig();
-              config.name = directive['to'];
-              return new GraphQLObjectType(config);
-            }
-          }
-        });
+        return schema =>
+          mapSchema(schema, {
+            [MapperKind.OBJECT_TYPE]: type => {
+              const directive = getDirective(schema, type, directiveName)?.[0];
+              if (directive) {
+                const config = type.toConfig();
+                config.name = directive['to'];
+                return new GraphQLObjectType(config);
+              }
+            },
+          });
       }
 
-      const rawSchema = buildSchema(/* GraphQL */`
+      const rawSchema = buildSchema(/* GraphQL */ `
         directive @rename(to: String) on OBJECT
         type Query {
           people: [Person]
@@ -988,7 +1022,7 @@ describe('mapSchema', () => {
         type Human @rename(to: "Person") {
           born: Date
         }
-      `)
+      `);
 
       const schema = renameObjectTypeDirective('rename')(rawSchema);
 
@@ -998,34 +1032,31 @@ describe('mapSchema', () => {
 
       const Person = schema.getType('Person') as GraphQLObjectType;
       expect(Person.name).toBe('Person');
-      expect(Person.getFields()['born'].type).toBe(
-        schema.getType('Date') as GraphQLScalarType,
-      );
+      expect(Person.getFields()['born'].type).toBe(schema.getType('Date') as GraphQLScalarType);
 
       const Query = schema.getType('Query') as GraphQLObjectType;
-      const peopleType = Query.getFields()['people'].type as GraphQLList<
-        GraphQLObjectType
-      >;
+      const peopleType = Query.getFields()['people'].type as GraphQLList<GraphQLObjectType>;
       expect(peopleType.ofType).toBe(Human);
     });
 
     test('does not enforce query directive locations (issue #680)', () => {
       function addObjectTypeToSetDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
-        return schema => mapSchema(schema, {
-          [MapperKind.OBJECT_TYPE]: type => {
-            const directive = getDirective(schema, type, directiveName)?.[0];
-            if (directive) {
-              expect(type.name).toBe(schema.getQueryType()?.name);
-              visited.add(type);
-            }
-            return undefined;
-          }
-        })
+        return schema =>
+          mapSchema(schema, {
+            [MapperKind.OBJECT_TYPE]: type => {
+              const directive = getDirective(schema, type, directiveName)?.[0];
+              if (directive) {
+                expect(type.name).toBe(schema.getQueryType()?.name);
+                visited.add(type);
+              }
+              return undefined;
+            },
+          });
       }
 
       const visited = new Set<GraphQLObjectType>();
 
-      const schema = buildSchema(/* GraphQL */`
+      const schema = buildSchema(/* GraphQL */ `
         directive @hasScope(scope: [String]) on QUERY | FIELD | OBJECT
         type Query @hasScope {
           oyez: String
@@ -1040,58 +1071,60 @@ describe('mapSchema', () => {
 
     test('allows multiple directives when first replaces type (issue #851)', () => {
       function upperDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
-        return schema => mapSchema(schema, {
-          [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-            const upperDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
-            if (upperDirective) {
-              const { resolve = defaultFieldResolver } = fieldConfig;
-              fieldConfig.resolve = async function (source, args, context, info) {
-                const result = await resolve(source, args, context, info);
-                if (typeof result === 'string') {
-                  return result.toUpperCase();
-                }
-                return result;
+        return schema =>
+          mapSchema(schema, {
+            [MapperKind.OBJECT_FIELD]: fieldConfig => {
+              const upperDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
+              if (upperDirective) {
+                const { resolve = defaultFieldResolver } = fieldConfig;
+                fieldConfig.resolve = async function (source, args, context, info) {
+                  const result = await resolve(source, args, context, info);
+                  if (typeof result === 'string') {
+                    return result.toUpperCase();
+                  }
+                  return result;
+                };
+                return fieldConfig;
               }
-              return fieldConfig;
-            }
-          }
-        });
+            },
+          });
       }
 
       function reverseDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
-        return schema => mapSchema(schema, {
-          [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-            const reverseDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
-            if (reverseDirective) {
-              const { resolve = defaultFieldResolver } = fieldConfig;
-              fieldConfig.resolve = async function (source, args, context, info) {
-                const result = await resolve(source, args, context, info);
-                if (typeof result === 'string') {
-                  return result.split('').reverse().join('');
-                }
-                return result;
+        return schema =>
+          mapSchema(schema, {
+            [MapperKind.OBJECT_FIELD]: fieldConfig => {
+              const reverseDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
+              if (reverseDirective) {
+                const { resolve = defaultFieldResolver } = fieldConfig;
+                fieldConfig.resolve = async function (source, args, context, info) {
+                  const result = await resolve(source, args, context, info);
+                  if (typeof result === 'string') {
+                    return result.split('').reverse().join('');
+                  }
+                  return result;
+                };
+                return fieldConfig;
               }
-              return fieldConfig;
-            }
-          }
-        });
+            },
+          });
       }
 
       const schema = makeExecutableSchema({
-        typeDefs: /* GraphQL */`
-        directive @upper on FIELD_DEFINITION
-        directive @reverse on FIELD_DEFINITION
-        type Query {
-          hello: String @upper @reverse
-        }
-      `,
+        typeDefs: /* GraphQL */ `
+          directive @upper on FIELD_DEFINITION
+          directive @reverse on FIELD_DEFINITION
+          type Query {
+            hello: String @upper @reverse
+          }
+        `,
         resolvers: {
           Query: {
             hello() {
               return 'hello world';
             },
           },
-        }
+        },
       });
 
       const transformers = [upperDirective('upper'), reverseDirective('reverse')];
@@ -1129,20 +1162,23 @@ describe('mapSchema', () => {
 
             // 1. Creating the XListWrapper type and replace the type of the field with that
             if (!listWrapperTypes.has(itemTypeNameInList)) {
-              listWrapperTypes.set(itemTypeNameInList, new GraphQLObjectType({
-                name: `${itemTypeNameInList}ListWrapper`,
-                fields: {
-                  // Adding `size` field
-                  size: {
-                    type: new GraphQLNonNull(GraphQLInt),
-                    description: 'The number of items in the `items` field',
+              listWrapperTypes.set(
+                itemTypeNameInList,
+                new GraphQLObjectType({
+                  name: `${itemTypeNameInList}ListWrapper`,
+                  fields: {
+                    // Adding `size` field
+                    size: {
+                      type: new GraphQLNonNull(GraphQLInt),
+                      description: 'The number of items in the `items` field',
+                    },
+                    // Creating a new List which contains the same type than the original List
+                    items: {
+                      type: new GraphQLNonNull(new GraphQLList(itemTypeInList)),
+                    },
                   },
-                  // Creating a new List which contains the same type than the original List
-                  items: {
-                    type: new GraphQLNonNull(new GraphQLList(itemTypeInList))
-                  }
-                }
-              }));
+                })
+              );
             }
 
             fieldConfig.type = listWrapperTypes.get(itemTypeNameInList);
@@ -1156,7 +1192,7 @@ describe('mapSchema', () => {
 
               return {
                 size: items.length,
-                items
+                items,
               };
             };
 
@@ -1166,7 +1202,7 @@ describe('mapSchema', () => {
         });
       }
 
-      let schema = buildSchema(/* GraphQL */`
+      let schema = buildSchema(/* GraphQL */ `
         directive @addListWrapper on FIELD_DEFINITION
         type Query {
           me: Person
@@ -1175,7 +1211,7 @@ describe('mapSchema', () => {
           name: String!
           friends: [Person] @addListWrapper
         }
-      `)
+      `);
 
       schema = listWrapperTransformer(schema);
 
@@ -1196,7 +1232,7 @@ describe('mapSchema', () => {
       `,
       });
 
-      const expectedResult: any = {
+      const expectedResult = {
         me: {
           friends: {
             items: [
@@ -1206,9 +1242,9 @@ describe('mapSchema', () => {
               {
                 name: 'Hello World',
               },
-            ]
+            ],
           },
-        }
+        },
       };
 
       expect(result.data).toEqual(expectedResult);

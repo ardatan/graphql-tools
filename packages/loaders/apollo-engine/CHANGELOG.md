@@ -1,5 +1,33 @@
 # @graphql-tools/apollo-engine-loader
 
+## 7.2.1
+
+### Patch Changes
+
+- ef9c3853: fix: bump Node <v16.5 compatible version
+
+## 7.2.0
+
+### Minor Changes
+
+- 41d9a996: enhance: use undici instead of node-fetch if available
+
+## 7.1.2
+
+### Patch Changes
+
+- 4bfb3428: enhance: use ^ for tslib dependency
+- Updated dependencies [4bfb3428]
+  - @graphql-tools/utils@8.5.1
+
+## 7.1.1
+
+### Patch Changes
+
+- 58262be7: enhance: show more clear error messages for aggregated error
+- Updated dependencies [58262be7]
+  - @graphql-tools/utils@8.3.0
+
 ## 7.1.0
 
 ### Minor Changes

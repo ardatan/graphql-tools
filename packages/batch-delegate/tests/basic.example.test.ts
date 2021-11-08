@@ -1,4 +1,4 @@
-import { execute, parse } from 'graphql';
+import { execute, OperationTypeNode, parse } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
@@ -9,7 +9,7 @@ describe('batch delegation within basic stitching example', () => {
     let numCalls = 0;
 
     const chirpSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Chirp {
           chirpedAtUserId: ID!
         }
@@ -20,14 +20,14 @@ describe('batch delegation within basic stitching example', () => {
       `,
       resolvers: {
         Query: {
-          trendingChirps: () => [{ chirpedAtUserId: 1 }, { chirpedAtUserId: 2 }]
-        }
-      }
+          trendingChirps: () => [{ chirpedAtUserId: 1 }, { chirpedAtUserId: 2 }],
+        },
+      },
     });
 
     // Mocked author schema
     const authorSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type User {
           email: String
         }
@@ -40,13 +40,13 @@ describe('batch delegation within basic stitching example', () => {
         Query: {
           usersByIds: (_root, args) => {
             numCalls++;
-            return args.ids.map((id: string) => ({ email: `${id}@test.com`}));
-          }
-        }
-      }
+            return args.ids.map((id: string) => ({ email: `${id}@test.com` }));
+          },
+        },
+      },
     });
 
-    const linkTypeDefs = /* GraphQL */`
+    const linkTypeDefs = /* GraphQL */ `
       extend type Chirp {
         chirpedAtUser: User
       }
@@ -62,10 +62,10 @@ describe('batch delegation within basic stitching example', () => {
             resolve(chirp, _args, context, info) {
               return batchDelegateToSchema({
                 schema: authorSchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'usersByIds',
                 key: chirp.chirpedAtUserId,
-                argsFromKeys: (ids) => ({ ids }),
+                argsFromKeys: ids => ({ ids }),
                 context,
                 info,
               });
@@ -75,7 +75,7 @@ describe('batch delegation within basic stitching example', () => {
       },
     });
 
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       query {
         trendingChirps {
           chirpedAtUser {
@@ -97,7 +97,7 @@ describe('batch delegation within basic stitching example', () => {
     let numCalls = 0;
 
     const postsSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type Post {
           id: ID!
           title: String
@@ -112,13 +112,13 @@ describe('batch delegation within basic stitching example', () => {
           posts: (_, args) => {
             numCalls += 1;
             return args.ids.map((id: unknown) => ({ id, title: `Post ${id}` }));
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     const usersSchema = makeExecutableSchema({
-      typeDefs: /* GraphQL */`
+      typeDefs: /* GraphQL */ `
         type User {
           id: ID!
           postIds: [ID]!
@@ -132,14 +132,14 @@ describe('batch delegation within basic stitching example', () => {
         Query: {
           users: (_, args) => {
             return args.ids.map((id: unknown) => {
-              return { id, postIds: [Number(id)+1, Number(id)+2] };
+              return { id, postIds: [Number(id) + 1, Number(id) + 2] };
             });
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
-    const linkTypeDefs = /* GraphQL */`
+    const linkTypeDefs = /* GraphQL */ `
       extend type User {
         posts: [Post]!
       }
@@ -155,7 +155,7 @@ describe('batch delegation within basic stitching example', () => {
             resolve(user, _args, context, info) {
               return batchDelegateToSchema({
                 schema: postsSchema,
-                operation: 'query',
+                operation: 'query' as OperationTypeNode,
                 fieldName: 'posts',
                 key: user.postIds,
                 context,
@@ -167,7 +167,7 @@ describe('batch delegation within basic stitching example', () => {
       },
     });
 
-    const query = /* GraphQL */`
+    const query = /* GraphQL */ `
       query {
         users(ids: [1, 7]) {
           id
@@ -187,17 +187,17 @@ describe('batch delegation within basic stitching example', () => {
           id: '1',
           posts: [
             { id: '2', title: 'Post 2' },
-            { id: '3', title: 'Post 3' }
-          ]
+            { id: '3', title: 'Post 3' },
+          ],
         },
         {
           id: '7',
           posts: [
             { id: '8', title: 'Post 8' },
-            { id: '9', title: 'Post 9' }
-          ]
-        }
-      ]
+            { id: '9', title: 'Post 9' },
+          ],
+        },
+      ],
     });
   });
 });

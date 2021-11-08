@@ -3,61 +3,61 @@ import { createMockStore } from '../src';
 import { assertIsRef, Ref } from '../src/types';
 import { makeRef } from '../src/utils';
 
-const typeDefs = /* GraphQL */`
-type User {
-  id: ID!
-  age: Int!
-  name: String!
-  surnames: [String!]!
-  listOfList: [[String]]!
+const typeDefs = /* GraphQL */ `
+  type User {
+    id: ID!
+    age: Int!
+    name: String!
+    surnames: [String!]!
+    listOfList: [[String]]!
 
-  friends: [User!]!
+    friends: [User!]!
 
-  sex: Sex
+    sex: Sex
 
-  image: UserImage!
-}
+    image: UserImage!
+  }
 
-union UserImage = UserImageSolidColor | UserImageURL
+  union UserImage = UserImageSolidColor | UserImageURL
 
-type UserImageSolidColor {
-  id: ID!
-  color: String!
-}
+  type UserImageSolidColor {
+    id: ID!
+    color: String!
+  }
 
-type UserImageURL {
-  id: ID!
-  url: String!
-}
+  type UserImageURL {
+    id: ID!
+    url: String!
+  }
 
-enum Sex {
-  Male,
-  Female,
-  Other
-}
+  enum Sex {
+    Male
+    Female
+    Other
+  }
 
-interface Book {
-  id: ID!
-  title: String
-}
+  interface Book {
+    id: ID!
+    title: String
+  }
 
-type TextBook implements Book {
-  id: ID!
-  title: String
-  text: String
-}
+  type TextBook implements Book {
+    id: ID!
+    title: String
+    text: String
+  }
 
-type ColoringBook implements Book {
-  id: ID!
-  title: String
-  colors: [String]
-}
+  type ColoringBook implements Book {
+    id: ID!
+    title: String
+    colors: [String]
+  }
 
-type Query {
-  viewer: User!
-  userById(id: ID!): User!
-  bookById(id: ID!): Book!
-}
+  type Query {
+    viewer: User!
+    userById(id: ID!): User!
+    bookById(id: ID!): Book!
+  }
 `;
 
 const schema = buildSchema(typeDefs);
@@ -92,7 +92,7 @@ describe('MockStore', () => {
       typeName: 'Query',
       key: 'ROOT',
       fieldName: 'userById',
-      fieldArgs: { id: '1' }
+      fieldArgs: { id: '1' },
     });
 
     assertIsRef(user1);
@@ -101,7 +101,7 @@ describe('MockStore', () => {
       typeName: 'Query',
       key: 'ROOT',
       fieldName: 'userById',
-      fieldArgs: { id: '1' }
+      fieldArgs: { id: '1' },
     });
 
     assertIsRef(user1Bis);
@@ -115,7 +115,7 @@ describe('MockStore', () => {
       typeName: 'Query',
       key: 'ROOT',
       fieldName: 'viewer',
-      fieldArgs: {}
+      fieldArgs: {},
     });
 
     assertIsRef(user1);
@@ -129,7 +129,7 @@ describe('MockStore', () => {
     assertIsRef(user1Bis);
 
     expect(user1.$ref).toEqual(user1Bis.$ref);
-  })
+  });
 
   it('sould return a different value if called with different field args', () => {
     const store = createMockStore({ schema });
@@ -137,7 +137,7 @@ describe('MockStore', () => {
       typeName: 'Query',
       key: 'ROOT',
       fieldName: 'userById',
-      fieldArgs: { id: '1' }
+      fieldArgs: { id: '1' },
     });
 
     assertIsRef(user1);
@@ -146,7 +146,7 @@ describe('MockStore', () => {
       typeName: 'Query',
       key: 'ROOT',
       fieldName: 'userById',
-      fieldArgs: { id: '2' }
+      fieldArgs: { id: '2' },
     });
 
     assertIsRef(user2);
@@ -163,7 +163,7 @@ describe('MockStore', () => {
     assertIsRef(user);
 
     expect(user.$ref.key).toEqual('123');
-  })
+  });
 
   it('should return a random ref when called with no `fieldName` nor `key`', () => {
     const store = createMockStore({ schema });
@@ -171,7 +171,7 @@ describe('MockStore', () => {
     const user = store.get('User');
 
     expect(user).toHaveProperty('$ref');
-  })
+  });
 
   it('should support multiple `fieldnames` for ref traversal', () => {
     const store = createMockStore({ schema });
@@ -179,12 +179,12 @@ describe('MockStore', () => {
     const friends = store.get('Query', 'ROOT', ['viewer', 'friends']);
 
     expect(Array.isArray(friends)).toBeTruthy();
-  })
+  });
 
   it('should support passing a ref as first argument', () => {
     const store = createMockStore({ schema });
     expect(store.get(makeRef('User', '123'), 'name')).toEqual('Hello World');
-  })
+  });
 
   it('should respect provided mocks', () => {
     const store = createMockStore({
@@ -192,8 +192,8 @@ describe('MockStore', () => {
       mocks: {
         User: {
           name: () => 'Superman',
-        }
-      }
+        },
+      },
     });
     expect(store.get('User', '123', 'name')).toEqual('Superman');
   });
@@ -207,24 +207,24 @@ describe('MockStore', () => {
           return {
             age: charCode,
             name: String.fromCharCode(charCode),
-          }
-        }
-      }
+          };
+        },
+      },
     });
 
     const age = store.get('User', '123', 'age') as number;
 
     expect(store.get('User', '123', 'name')).toEqual(String.fromCharCode(age));
-  })
+  });
 
   it('should support nested mocks', () => {
     const store = createMockStore({
       schema,
       mocks: {
         User: {
-          friends: () => [{ age: 21 }, { age: 22 }]
-        }
-      }
+          friends: () => [{ age: 21 }, { age: 22 }],
+        },
+      },
     });
 
     const friendsRefs = store.get('User', '123', 'friends') as Ref[];
@@ -246,7 +246,6 @@ describe('MockStore', () => {
     expect(surnames).toBeInstanceOf(Array);
     expect(typeof surnames[0]).toBe('string');
   });
-
 
   it('should be able to generate a list of Object type', () => {
     const store = createMockStore({ schema });
@@ -283,14 +282,14 @@ describe('MockStore', () => {
       age: 31,
     });
 
-    expect(store.get('Query', 'ROOT', 'viewer')).toEqual({ $ref: { key: 'me', typeName: 'User' }});
+    expect(store.get('Query', 'ROOT', 'viewer')).toEqual({ $ref: { key: 'me', typeName: 'User' } });
     expect(store.get('User', 'me', 'name')).toEqual('Alexandre');
   });
 
   it('should support nested set with a ref', () => {
     const store = createMockStore({ schema });
 
-    store.set(makeRef('User', 'me'), { name: 'Alexandre'});
+    store.set(makeRef('User', 'me'), { name: 'Alexandre' });
     expect(store.get('User', 'me', 'name')).toEqual('Alexandre');
   });
 
@@ -314,12 +313,15 @@ describe('MockStore', () => {
 
     store.set('User', 'me', 'friends', [
       {
-        name: 'Ross'
-      }, {
-        name: 'Nico'
-      }, {
-        name: 'Trev'
-    }]);
+        name: 'Ross',
+      },
+      {
+        name: 'Nico',
+      },
+      {
+        name: 'Trev',
+      },
+    ]);
 
     const myFriendsRefs = store.get('User', 'me', 'friends') as Ref[];
     expect(myFriendsRefs).toHaveLength(3);
@@ -336,19 +338,22 @@ describe('MockStore', () => {
     const mySurnames = store.get('User', 'me', 'surnames') as string[];
     expect(mySurnames).toHaveLength(2);
 
-    expect(typeof mySurnames[0]).toBe('string')
+    expect(typeof mySurnames[0]).toBe('string');
   });
 
   it('should support nested set of lists of lists with empty list of scalars', () => {
     const store = createMockStore({ schema });
 
-    store.set('User', 'me', 'listOfList', [[undefined, undefined], [undefined, undefined]]);
+    store.set('User', 'me', 'listOfList', [
+      [undefined, undefined],
+      [undefined, undefined],
+    ]);
 
     const myListOfList = store.get('User', 'me', 'listOfList') as string[][];
     expect(myListOfList).toHaveLength(2);
     expect(myListOfList[0]).toHaveLength(2);
 
-    expect(typeof myListOfList[0][0]).toBe('string')
+    expect(typeof myListOfList[0][0]).toBe('string');
   });
 
   it('should support nested set with empty list of types', () => {
@@ -360,11 +365,11 @@ describe('MockStore', () => {
     expect(myFriendsRefs).toHaveLength(2);
 
     // should return array of valid refs
-    expect(myFriendsRefs[0]).toHaveProperty('$ref')
+    expect(myFriendsRefs[0]).toHaveProperty('$ref');
   });
 
   it('should support ID of type number', () => {
-    const typeDefs = /* GraphQL */`
+    const typeDefs = /* GraphQL */ `
       type User {
         id: Int!
         name: String!
@@ -394,7 +399,20 @@ describe('MockStore', () => {
       });
 
       expect(store.has('User', 'user-1')).toBe(true);
-    })
+    });
+
+    it('should return true if a mocked value has been generated via get without data', () => {
+      const store = createMockStore({ schema });
+
+      expect(store.has('User', 'user-1')).toBe(false);
+      expect(store.has('User', 'user-2')).toBe(false);
+
+      store.get('User', 'user-1');
+      store.get('User', 'user-2', {});
+
+      expect(store.has('User', 'user-1')).toBe(true);
+      expect(store.has('User', 'user-2')).toBe(true);
+    });
 
     it('should return true if a mocked value was generated using nested get', () => {
       const store = createMockStore({ schema });
@@ -409,7 +427,7 @@ describe('MockStore', () => {
       });
 
       expect(store.has('UserImageURL', 'user-image-1')).toBe(true);
-    })
+    });
 
     it('should return true if a mocked value has been set', () => {
       const store = createMockStore({ schema });
@@ -421,7 +439,17 @@ describe('MockStore', () => {
       });
 
       expect(store.has('User', 'user-1')).toBe(true);
-    })
+    });
+
+    it('should return true if a mocked value has been set without data', () => {
+      const store = createMockStore({ schema });
+
+      expect(store.has('User', 'user-1')).toBe(false);
+
+      store.set('User', 'user-1', {});
+
+      expect(store.has('User', 'user-1')).toBe(true);
+    });
 
     it('should return true if a mocked value was generated using nested set', () => {
       const store = createMockStore({ schema });
@@ -436,14 +464,14 @@ describe('MockStore', () => {
       });
 
       expect(store.has('UserImageURL', 'user-image-1')).toBe(true);
-    })
+    });
   });
 
   describe('default values', () => {
     it('should be inserted when called with no key', () => {
       const store = createMockStore({ schema });
 
-      const alexRef = store.get('User', { name: 'Alexandre'}) as Ref;
+      const alexRef = store.get('User', { name: 'Alexandre' }) as Ref;
 
       expect(store.get('User', alexRef.$ref.key, 'name')).toEqual('Alexandre');
     });
@@ -451,18 +479,18 @@ describe('MockStore', () => {
     it('should be inserted when called with a key', () => {
       const store = createMockStore({ schema });
 
-      store.get('User', 'me', { name: 'Alexandre'}) as Ref;
+      store.get('User', 'me', { name: 'Alexandre' }) as Ref;
 
-      expect(store.get('User','me', 'name')).toEqual('Alexandre');
+      expect(store.get('User', 'me', 'name')).toEqual('Alexandre');
     });
 
     it('should not override', () => {
       const store = createMockStore({ schema });
 
       store.set('User', 'me', 'name', 'Alexandre');
-      store.get('User', 'me', { name: 'Matthias'}) as Ref;
+      store.get('User', 'me', { name: 'Matthias' }) as Ref;
 
-      expect(store.get('User','me', 'name')).toEqual('Alexandre');
+      expect(store.get('User', 'me', 'name')).toEqual('Alexandre');
     });
 
     describe('union types', () => {
@@ -471,7 +499,7 @@ describe('MockStore', () => {
 
         const imageRef = store.get('User', 'me', 'image') as Ref;
 
-        expect(['UserImageSolidColor', 'UserImageURL'].includes(imageRef.$ref.typeName)).toBeTruthy()
+        expect(['UserImageSolidColor', 'UserImageURL'].includes(imageRef.$ref.typeName)).toBeTruthy();
       });
 
       it('should work with mocks', () => {
@@ -480,17 +508,17 @@ describe('MockStore', () => {
           mocks: {
             UserImage: () => {
               return {
-              __typename: 'UserImageSolidColor',
-              color: 'white',
-            }
-          }
-          }
+                __typename: 'UserImageSolidColor',
+                color: 'white',
+              };
+            },
+          },
         });
 
         const imageRef = store.get('User', 'me', 'image') as Ref;
 
         expect(imageRef.$ref.typeName).toEqual('UserImageSolidColor');
-        expect(store.get(imageRef, 'color')).toEqual('white')
+        expect(store.get(imageRef, 'color')).toEqual('white');
       });
 
       it('should work with mocks setting the id', () => {
@@ -501,15 +529,15 @@ describe('MockStore', () => {
               return {
                 id: 'UserImageSolidColor:1234',
                 __typename: 'UserImageSolidColor',
-              }
-            }
-          }
+              };
+            },
+          },
         });
 
         const imageRef = store.get('User', 'me', 'image') as Ref;
 
         expect(imageRef.$ref.typeName).toEqual('UserImageSolidColor');
-        expect(store.get(imageRef, 'id')).toEqual('UserImageSolidColor:1234')
+        expect(store.get(imageRef, 'id')).toEqual('UserImageSolidColor:1234');
       });
 
       it('should let nested sets', () => {
@@ -519,13 +547,13 @@ describe('MockStore', () => {
           image: {
             __typename: 'UserImageSolidColor',
             color: 'white',
-          }
+          },
         });
         const imageRef = store.get('User', 'me', 'image') as Ref;
 
         expect(imageRef.$ref.typeName).toEqual('UserImageSolidColor');
-        expect(store.get(imageRef, 'color')).toEqual('white')
-      })
+        expect(store.get(imageRef, 'color')).toEqual('white');
+      });
     });
 
     describe('interface types', () => {
@@ -534,7 +562,7 @@ describe('MockStore', () => {
 
         const bookRef = store.get('Query', 'ROOT', 'bookById') as Ref;
 
-        expect(['TextBook', 'ColoringBook'].includes(bookRef.$ref.typeName)).toBeTruthy()
+        expect(['TextBook', 'ColoringBook'].includes(bookRef.$ref.typeName)).toBeTruthy();
       });
 
       it('should work with mocks', () => {
@@ -545,15 +573,15 @@ describe('MockStore', () => {
               return {
                 __typename: 'TextBook',
                 text: 'long text',
-              }
-            }
-          }
+              };
+            },
+          },
         });
 
         const bookRef = store.get('Query', 'ROOT', 'bookById') as Ref;
 
         expect(bookRef.$ref.typeName).toEqual('TextBook');
-        expect(store.get(bookRef, 'text')).toEqual('long text')
+        expect(store.get(bookRef, 'text')).toEqual('long text');
       });
 
       it('should let nested sets', () => {
@@ -568,16 +596,15 @@ describe('MockStore', () => {
         const bookRef = store.get('Query', 'ROOT', 'bookById') as Ref;
 
         expect(bookRef.$ref.typeName).toEqual('TextBook');
-        expect(store.get(bookRef, 'text')).toEqual('long text')
-      })
-
-    })
-  })
+        expect(store.get(bookRef, 'text')).toEqual('long text');
+      });
+    });
+  });
   it('should reset the store', () => {
     const store = createMockStore({ schema });
 
     store.set(makeRef('User', 'me'), 'name', 'Alexandre');
     store.reset();
     expect(store.get('User', 'me', 'name')).not.toEqual('Alexandre');
-  })
+  });
 });

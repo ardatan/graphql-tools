@@ -63,8 +63,9 @@ export interface ExecutionRequest<
   TExtensions = Record<string, any>
 > {
   document: DocumentNode;
-  operationType: OperationTypeNode;
   variables?: TArgs;
+  // TODO: Will be removed in next major
+  operationType?: OperationTypeNode;
   operationName?: string;
   extensions?: TExtensions;
   // If the request will be executed locally, it may contain a rootValue
