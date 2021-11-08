@@ -855,14 +855,22 @@ describe('Mock retro-compatibility', () => {
     const resolvers = {
       RootQuery: {
         returnListOfListOfObject: () => {
-          return [[{}, {returnInt: 2}], [{}, {returnString: 'b'}]]
-        }
+          return [
+            [{}, { returnInt: 2 }],
+            [{}, { returnString: 'b' }],
+          ];
+        },
       },
     };
     jsSchema = addResolversToSchema(jsSchema, resolvers);
-    const testQuery = /* GraphQL */`{
-      returnListOfListOfObject { returnInt, returnString }
-    }`;
+    const testQuery = /* GraphQL */ `
+      {
+        returnListOfListOfObject {
+          returnInt
+          returnString
+        }
+      }
+    `;
     const expected = {
       returnListOfListOfObject: [
         [
@@ -875,7 +883,7 @@ describe('Mock retro-compatibility', () => {
         ],
       ],
     };
-    return graphql({ schema: jsSchema, source: testQuery }).then((res) => {
+    return graphql({ schema: jsSchema, source: testQuery }).then(res => {
       expect(res.data).toEqual(expected);
     });
   });
