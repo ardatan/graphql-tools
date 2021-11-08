@@ -796,7 +796,7 @@ describe('Mock retro-compatibility', () => {
     });
   });
 
-  test('Can mock a list of lists of objects, with preserveResolvers', () => {
+  test('can mock a list of lists of objects, with preserveResolvers', () => {
     let jsSchema = buildSchema(shorthand);
     const mockMap = {
       String: () => 'a',
