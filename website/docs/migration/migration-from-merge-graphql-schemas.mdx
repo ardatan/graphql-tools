@@ -14,12 +14,12 @@ Instead of `mergeTypes`, you need to use `mergeTypeDefs` from `@graphql-tools/me
 We were using the following implementation to proxy `mergeTypes` to `mergeTypeDefs` of GraphQL Toolkit.
 
 ```ts
-import { mergeTypeDefs } from '@graphql-toolkit/schema-merging';
+import { mergeTypeDefs } from '@graphql-toolkit/schema-merging'
 
-type Config = Parameters<typeof mergeTypeDefs>[1];
+type Config = Parameters<typeof mergeTypeDefs>[1]
 
 export const mergeTypes = (types: any[], options?: { schemaDefinition?: boolean; all?: boolean } & Partial<Config>) => {
-  const schemaDefinition = options && typeof options.schemaDefinition === 'boolean' ? options.schemaDefinition : true;
+  const schemaDefinition = options && typeof options.schemaDefinition === 'boolean' ? options.schemaDefinition : true
 
   return mergeTypeDefs(types, {
     useSchemaDefinition: schemaDefinition,
@@ -28,21 +28,21 @@ export const mergeTypes = (types: any[], options?: { schemaDefinition?: boolean;
     commentDescriptions: true,
     reverseDirectives: true,
     ...options,
-  });
-};
+  })
+}
 ```
 
 So if you want to have exact behavior, you can use the options above. Other than that, the API and behavior are almost same.
 
 ```ts
-import { mergeTypes, mergeResolvers, fileLoader } from 'merge-graphql-schemas';
+import { mergeTypes, mergeResolvers, fileLoader } from 'merge-graphql-schemas'
 ```
 
 should become
 
 ```ts
-import { mergeTypeDefs, mergeResolvers } from '@graphql-tools/merge';
-import { loadFilesSync } from '@graphql-tools/load-files';
+import { mergeTypeDefs, mergeResolvers } from '@graphql-tools/merge'
+import { loadFilesSync } from '@graphql-tools/load-files'
 ```
 
 So you can replace `mergeTypes` with `mergeTypeDefs` and `fileLoader` with `loadFilesSync`.

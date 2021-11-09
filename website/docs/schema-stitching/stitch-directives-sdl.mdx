@@ -83,12 +83,12 @@ The function of these directives are:
 You may use the `stitchingDirectives` helper to build your own type definitions and validator with custom names. For example, the configuration below creates the resources for `@myKey`, `@myMerge`, and `@myComputed` directives:
 
 ```js
-const { stitchingDirectives } = require('@graphql-tools/stitching-directives');
+const { stitchingDirectives } = require('@graphql-tools/stitching-directives')
 const { allStitchingDirectivesTypeDefs, stitchingDirectivesValidator } = stitchingDirectives({
   keyDirectiveName: 'myKey',
   mergeDirectiveName: 'myMerge',
   computedDirectiveName: 'myComputed',
-});
+})
 ```
 
 ## Schema setup
@@ -100,9 +100,9 @@ To setup stitching directives, you'll need to install their definitions into eac
 When setting up a subservice, you'll need to do three things:
 
 ```js
-const { makeExecutableSchema } = require('@graphql-tools/schema');
-const { stitchingDirectives } = require('@graphql-tools/stitching-directives');
-const { allStitchingDirectivesTypeDefs, stitchingDirectivesValidator } = stitchingDirectives();
+const { makeExecutableSchema } = require('@graphql-tools/schema')
+const { stitchingDirectives } = require('@graphql-tools/stitching-directives')
+const { allStitchingDirectivesTypeDefs, stitchingDirectivesValidator } = stitchingDirectives()
 
 // 1. include directive type definitions...
 const typeDefs = /* GraphQL */ `
@@ -112,7 +112,7 @@ const typeDefs = /* GraphQL */ `
     # schema here ...
     _sdl: String!
   }
-`;
+`
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -122,10 +122,10 @@ const schema = makeExecutableSchema({
       _sdl: () => typeDefs,
     },
   },
-});
+})
 
 // 3. include the stitching directives validator...
-module.exports = stitchingDirectivesValidator(schema);
+module.exports = stitchingDirectivesValidator(schema)
 ```
 
 1. Include `allStitchingDirectivesTypeDefs` in your schema's type definitions string (these define the schema of the directives themselves).
@@ -137,14 +137,14 @@ module.exports = stitchingDirectivesValidator(schema);
 When setting up the stitched gateway, you'll need to do two things:
 
 ```js
-const { stitchSchemas } = require('@graphql-tools/stitch');
-const { stitchingDirectivesTransformer } = require('@graphql-tools/stitching-directives')();
-const { print, buildSchema } = require('graphql');
-const { fetch } = require('cross-undici-fetch');
+const { stitchSchemas } = require('@graphql-tools/stitch')
+const { stitchingDirectivesTransformer } = require('@graphql-tools/stitching-directives')()
+const { print, buildSchema } = require('graphql')
+const { fetch } = require('cross-undici-fetch')
 
 async function createGatewaySchema() {
-  const usersExec = createRemoteExecutor('http://localhost:4001/graphql');
-  const postsExec = createRemoteExecutor('http://localhost:4002/graphql');
+  const usersExec = createRemoteExecutor('http://localhost:4001/graphql')
+  const postsExec = createRemoteExecutor('http://localhost:4002/graphql')
 
   return stitchSchemas({
     // 1. include directives transformer...
@@ -159,25 +159,25 @@ async function createGatewaySchema() {
         executor: postsExec,
       },
     ],
-  });
+  })
 }
 
 function createRemoteExecutor(url) {
   return async ({ document, variables }) => {
-    const query = typeof document === 'string' ? document : print(document);
+    const query = typeof document === 'string' ? document : print(document)
     const fetchResult = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query, variables }),
-    });
-    return fetchResult.json();
-  };
+    })
+    return fetchResult.json()
+  }
 }
 
 async function fetchRemoteSchema(executor) {
   // 2. fetch schemas from their raw SDL queries...
-  const result = await executor({ document: '{ _sdl }' });
-  return buildSchema(result.data._sdl);
+  const result = await executor({ document: '{ _sdl }' })
+  return buildSchema(result.data._sdl)
 }
 ```
 
@@ -299,7 +299,7 @@ Each generated object key will have a `__typename` and all _utilized_ selectionS
 [
   { __typename: 'Product', upc: '1', price: 899, weight: 100 },
   { __typename: 'Product', upc: '2', price: 1299, weight: 1000 },
-];
+]
 ```
 
 However, when `shippingEstimate` is NOT requested, the generated object keys will only contain fields from the base selectionSet:
@@ -308,7 +308,7 @@ However, when `shippingEstimate` is NOT requested, the generated object keys wil
 [
   { __typename: 'Product', upc: '1' },
   { __typename: 'Product', upc: '2' },
-];
+]
 ```
 
 ### Typed inputs
@@ -355,7 +355,7 @@ These typed inputs follow the same behavior as object keys with regards to only 
 [
   { upc: '1', price: 899, weight: 100 },
   { upc: '2', price: 1299, weight: 1000 },
-];
+]
 ```
 
 ### Nested inputs

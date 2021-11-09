@@ -27,14 +27,14 @@ You can use an executor with an HTTP Client implementation (like cross-fetch). A
 We've chosen to split this functionality up to give you the flexibility to choose when to do the introspection step. For example, you might already have the remote schema information, allowing you to skip the `introspectSchema` step entirely. Here's a complete example:
 
 ```js
-type Executor = (request: Request) => Promise<ExecutionResult>;
+type Executor = (request: Request) => Promise<ExecutionResult>
 
 type Request = {
   document: DocumentNode,
   variables?: Object,
   context?: Object,
   info?: GraphQLResolveInfo,
-};
+}
 ```
 
 ### Using cross-fetch
@@ -42,40 +42,40 @@ type Request = {
 Basic usage
 
 ```js
-import { fetch } from 'cross-undici-fetch';
-import { print } from 'graphql';
-import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
+import { fetch } from 'cross-undici-fetch'
+import { print } from 'graphql'
+import { introspectSchema, wrapSchema } from '@graphql-tools/wrap'
 
 const executor = async ({ document, variables }) => {
-  const query = print(document);
+  const query = print(document)
   const fetchResult = await fetch('http://example.com/graphql', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ query, variables }),
-  });
-  return fetchResult.json();
-};
+  })
+  return fetchResult.json()
+}
 
 export default async () => {
   const schema = wrapSchema({
     schema: await introspectSchema(executor),
     executor,
-  });
-  return schema;
-};
+  })
+  return schema
+}
 ```
 
 Authentication headers from context
 
 ```js
-import { fetch } from 'cross-undici-fetch';
-import { print } from 'graphql';
-import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
+import { fetch } from 'cross-undici-fetch'
+import { print } from 'graphql'
+import { introspectSchema, wrapSchema } from '@graphql-tools/wrap'
 
 const executor = async ({ document, variables, context }) => {
-  const query = print(document);
+  const query = print(document)
   const fetchResult = await fetch('http://example.com/graphql', {
     method: 'POST',
     headers: {
@@ -83,18 +83,18 @@ const executor = async ({ document, variables, context }) => {
       Authorization: `Bearer ${context.authKey}`,
     },
     body: JSON.stringify({ query, variables }),
-  });
-  return fetchResult.json();
-};
+  })
+  return fetchResult.json()
+}
 
 export default async () => {
   const schema = wrapSchema({
     schema: await introspectSchema(executor),
     executor,
-  });
+  })
 
-  return schema;
-};
+  return schema
+}
 ```
 
 ### Extending the executor for subscriptions
@@ -106,19 +106,19 @@ For subscriptions, we need to extend our executor by returning `AsyncIterator`.
 For the following example to work, the server must implement the [library's transport protocol](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md). Learn more about [`graphql-ws`](https://github.com/enisdenjo/graphql-ws).
 
 ```ts
-import { wrapSchema, introspectSchema } from '@graphql-tools/wrap';
-import { Executor } from '@graphql-tools/delegate';
-import { fetch } from 'cross-undici-fetch';
-import { print } from 'graphql';
-import { observableToAsyncIterable } from '@graphql-tools/utils';
-import { createClient } from 'graphql-ws';
+import { wrapSchema, introspectSchema } from '@graphql-tools/wrap'
+import { Executor } from '@graphql-tools/delegate'
+import { fetch } from 'cross-undici-fetch'
+import { print } from 'graphql'
+import { observableToAsyncIterable } from '@graphql-tools/utils'
+import { createClient } from 'graphql-ws'
 
-const HTTP_GRAPHQL_ENDPOINT = 'http://localhost:3000/graphql';
-const WS_GRAPHQL_ENDPOINT = 'ws://localhost:3000/graphql';
+const HTTP_GRAPHQL_ENDPOINT = 'http://localhost:3000/graphql'
+const WS_GRAPHQL_ENDPOINT = 'ws://localhost:3000/graphql'
 
 const subscriptionClient = createClient({
   url: WS_GRAPHQL_ENDPOINT,
-});
+})
 
 const executor: Executor = ({ document, variables }) =>
   observableToAsyncIterable({
@@ -131,30 +131,30 @@ const executor: Executor = ({ document, variables }) =>
         {
           next: data => observer.next && observer.next(data),
           error: err => {
-            if (!observer.error) return;
+            if (!observer.error) return
             if (err instanceof Error) {
-              observer.error(err);
+              observer.error(err)
             } else if (err instanceof CloseEvent) {
-              observer.error(new Error(`Socket closed with event ${err.code}`));
+              observer.error(new Error(`Socket closed with event ${err.code}`))
             } else {
               // GraphQLError[]
-              observer.error(new Error(err.map(({ message }) => message).join(', ')));
+              observer.error(new Error(err.map(({ message }) => message).join(', ')))
             }
           },
           complete: () => observer.complete && observer.complete(),
         }
       ),
     }),
-  });
+  })
 
 export default async () => {
   const schema = wrapSchema({
     schema: await introspectSchema(executor),
     executor,
-  });
+  })
 
-  return schema;
-};
+  return schema
+}
 ```
 
 #### Using `graphql-sse`
@@ -212,14 +212,14 @@ export default async () => {
 Use `executor` to obtain a non-executable client schema from a remote schema using a full introspection query. `introspectSchema` is used to acquire the non-executable form of a remote schema that must be passed to `wrapSchema`. It returns a promise to a non-executable GraphQL.js schema object. Accepts optional second argument `context`, which is passed to the executor; see the docs about executors above for more details.
 
 ```js
-import { introspectSchema } from '@graphql-tools/wrap';
+import { introspectSchema } from '@graphql-tools/wrap'
 
 introspectSchema(executor).then(schema => {
   // use the schema
-});
+})
 
 // or, with async/await:
-const schema = await introspectSchema(executor);
+const schema = await introspectSchema(executor)
 ```
 
 ### wrapSchema(schemaConfig)
@@ -227,13 +227,13 @@ const schema = await introspectSchema(executor);
 `wrapSchema` comes most in handy when wrapping a remote schema. When using the function to wrap a remote schema, it takes a single object: an subschema configuration object with properties describing how the schema should be accessed and wrapped. The `schema` and `executor` options are required.
 
 ```js
-import { wrapSchema } from '@graphql-tools/wrap';
+import { wrapSchema } from '@graphql-tools/wrap'
 
 const schema = wrapSchema({
   schema,
   executor,
   transforms,
-});
+})
 ```
 
 Transforms are further described within the [general schema wrapping section](/docs/schema-wrapping/). When using a schema configuration object, transforms should be placed as a property within the configuration, rather than as a separate argument to `wrapSchema`.
@@ -243,20 +243,20 @@ Batching and caching can be accomplished by specifying customized executors that
 For users who need to customize the root proxying resolvers at the time that the wrapping schema is generated, you can also specify a custom `createProxyingResolver` function that will create your own root resolvers for the new outer, wrapping schema. This function has the following signature:
 
 ```ts
-export type CreateProxyingResolverFn = (options: ICreateProxyingResolverOptions) => GraphQLFieldResolver<any, any>;
+export type CreateProxyingResolverFn = (options: ICreateProxyingResolverOptions) => GraphQLFieldResolver<any, any>
 
 export interface ICreateProxyingResolverOptions {
-  subschemaConfig: SubschemaConfig; // target schema config for delegation
-  transformedSchema?: GraphQLSchema; // pre-processed result of applying any transforms to the target schema
-  operation?: Operation; // target operation type = 'query' | 'mutation' | 'subscription'
-  fieldName?: string; // target root field name
+  subschemaConfig: SubschemaConfig // target schema config for delegation
+  transformedSchema?: GraphQLSchema // pre-processed result of applying any transforms to the target schema
+  operation?: Operation // target operation type = 'query' | 'mutation' | 'subscription'
+  fieldName?: string // target root field name
 }
 ```
 
 You may not need all the options to accomplish what you need. For example, the default proxying resolver creator just uses a subset of the passed arguments, with the fieldName inferred:
 
 ```ts
-import { delegateToSchema } from '@graphql-tools/delegate';
+import { delegateToSchema } from '@graphql-tools/delegate'
 
 export function defaultCreateProxyingResolver({
   subschemaConfig,
@@ -270,7 +270,7 @@ export function defaultCreateProxyingResolver({
       context,
       info,
       transformedSchema,
-    });
+    })
 }
 ```
 
@@ -279,13 +279,13 @@ Parenthetically, note that that `args` from the root field resolver are not dire
 The above can can all be put together like this:
 
 ```ts
-import { wrapSchema } from '@graphql-tools/wrap';
+import { wrapSchema } from '@graphql-tools/wrap'
 
 const schema = wrapSchema({
   schema,
   executor: myCustomExecutor,
   createProxyingResolver: myCustomCreateProxyingResolverFn,
-});
+})
 ```
 
 Note that within the `defaultCreateProxyingResolver` function, `delegateToSchema` receives `executor` function stored on the subschema config object originally passed to `wrapSchema`. As above, use of the the `createProxyingResolver` option is helpful when you want to customize additional functionality at resolver creation time. If you just want to customize how things are proxied at the time that they are proxied, you can make do just with custom executors.

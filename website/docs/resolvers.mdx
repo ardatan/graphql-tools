@@ -18,15 +18,15 @@ The `resolverMap` object (`IResolvers`) should have a map of resolvers for each 
 const resolverMap = {
   Query: {
     author(obj, args, context, info) {
-      return find(authors, { id: args.id });
+      return find(authors, { id: args.id })
     },
   },
   Author: {
     posts(author) {
-      return filter(posts, { authorId: author.id });
+      return filter(posts, { authorId: author.id })
     },
   },
-};
+}
 ```
 
 > Note: If you are using mocking, the `preserveResolvers` argument of [`addMocksToSchema`](/docs/mocking/#addmockstoschema) must be set to `true` if you don't want your resolvers to be overwritten by mock resolvers.
@@ -102,7 +102,7 @@ When returning an object or a class instance from a parent resolver, we are impl
 ```js
 class Type {
   fieldName(args, context, info) {
-    result;
+    result
   }
 }
 ```
@@ -138,17 +138,17 @@ const resolverMap = {
   Vehicle: {
     __resolveType(obj, context, info) {
       if (obj.wingspan) {
-        return 'Airplane';
+        return 'Airplane'
       }
 
       if (obj.licensePlate) {
-        return 'Car';
+        return 'Car'
       }
 
-      return null;
+      return null
     },
   },
-};
+}
 ```
 
 > Note: Returning the type name as a string from `__resolveType` is only supported starting with GraphQL.js 0.7.2. In previous versions, you had to get a reference using `info.schema.getType('Car')`.
@@ -162,29 +162,29 @@ In addition to using a resolver map with `makeExecutableSchema`, you can use it 
 `addResolversToSchema` takes an options object of `IAddResolveFunctionsToSchemaOptions` and returns a new schema with resolvers attached to the relevant types.
 
 ```js
-import { addResolversToSchema } from '@graphql-tools/schema';
+import { addResolversToSchema } from '@graphql-tools/schema'
 
 const resolvers = {
   RootQuery: {
     author(obj, { name }, context) {
-      console.log('RootQuery called with context', context, 'to find', name);
-      return Author.find({ name });
+      console.log('RootQuery called with context', context, 'to find', name)
+      return Author.find({ name })
     },
   },
-};
+}
 
-const schemaWithResolvers = addResolversToSchema({ schema, resolvers });
+const schemaWithResolvers = addResolversToSchema({ schema, resolvers })
 ```
 
 The `IAddResolveFunctionsToSchemaOptions` object consists of several of the underlying properties used to configure [`makeExecutableSchema` and described there](/docs/generate-schema/#makeexecutableschemaoptions).
 
 ```ts
 export interface IAddResolveFunctionsToSchemaOptions {
-  schema: GraphQLSchema;
-  resolvers: IResolvers;
-  resolverValidationOptions?: IResolverValidationOptions;
-  inheritResolversFromInterfaces?: boolean;
-  updateResolversInPlace?: boolean;
+  schema: GraphQLSchema
+  resolvers: IResolvers
+  resolverValidationOptions?: IResolverValidationOptions
+  inheritResolversFromInterfaces?: boolean
+  updateResolversInPlace?: boolean
 }
 ```
 

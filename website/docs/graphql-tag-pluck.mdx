@@ -9,13 +9,13 @@ sidebar_label: GraphQL Tag Pluck
 **Input:**
 
 ```js
-import gql from 'graphql-tag';
+import gql from 'graphql-tag'
 
 const fragment = gql`
   fragment Foo on FooType {
     id
   }
-`;
+`
 
 const doc = gql`
   query foo {
@@ -25,7 +25,7 @@ const doc = gql`
   }
 
   ${fragment}
-`;
+`
 ```
 
 **Output:**
@@ -53,16 +53,16 @@ Originally created because of https://graphql-code-generator.com/.
 Once installed you can pluck GraphQL template literals using one of the following methods:
 
 ```js
-import { gqlPluckFromCodeStringSync, gqlPluckFromCodeString } from '@graphql-tools/graphql-tag-pluck';
+import { gqlPluckFromCodeStringSync, gqlPluckFromCodeString } from '@graphql-tools/graphql-tag-pluck'
 
 // Returns promise
 gqlPluckFromCodeString(
   filePath, // this parameter is required to detect file type
   fs.readFileSync(filePath, 'utf8')
-);
+)
 
 // Returns string
-gqlPluckFromCodeStringSync(filePath, fs.readFileSync(filePath, 'utf8'));
+gqlPluckFromCodeStringSync(filePath, fs.readFileSync(filePath, 'utf8'))
 ```
 
 Template literals leaded by magic comments will also be extracted :-)
@@ -74,7 +74,7 @@ Template literals leaded by magic comments will also be extracted :-)
     media
     draftjs
   }
-`;
+`
 ```
 
 supported file extensions are: `.js`, `.jsx`, `.ts`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.graphqls`, `.graphql`, `.gqls`, `.gql`.
@@ -100,7 +100,7 @@ It is recommended to look at the [source code](https://github.com/ardatan/graphq
         name
       }
     }
-  `;
+  `
   ```
 
 - **`modules`**
@@ -170,6 +170,6 @@ It is recommended to look at the [source code](https://github.com/ardatan/graphq
         name: 'apollo-server-cloudflare',
         identifier: 'gql',
       },
-    ];
+    ]
   }
   ```
