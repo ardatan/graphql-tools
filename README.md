@@ -64,9 +64,9 @@ const typeDefs = /* GraphQL */ `
     query: Query
     mutation: Mutation
   }
-`;
+`
 
-export default typeDefs;
+export default typeDefs
 ```
 
 Then you define resolvers as a nested object that maps type and field names to resolver functions:
@@ -75,62 +75,62 @@ Then you define resolvers as a nested object that maps type and field names to r
 const resolvers = {
   Query: {
     posts() {
-      return posts;
-    },
+      return posts
+    }
   },
   Mutation: {
     upvotePost(_, { postId }) {
-      const post = find(posts, { id: postId });
+      const post = find(posts, { id: postId })
       if (!post) {
-        throw new Error(`Couldn't find post with id ${postId}`);
+        throw new Error(`Couldn't find post with id ${postId}`)
       }
-      post.votes += 1;
-      return post;
-    },
+      post.votes += 1
+      return post
+    }
   },
   Author: {
     posts(author) {
-      return filter(posts, { authorId: author.id });
-    },
+      return filter(posts, { authorId: author.id })
+    }
   },
   Post: {
     author(post) {
-      return find(authors, { id: post.authorId });
-    },
-  },
-};
+      return find(authors, { id: post.authorId })
+    }
+  }
+}
 
-export default resolvers;
+export default resolvers
 ```
 
 At the end, the schema and resolvers are combined using `makeExecutableSchema`:
 
 ```js
-import { makeExecutableSchema } from '@graphql-tools/schema';
+import { makeExecutableSchema } from '@graphql-tools/schema'
 
 const executableSchema = makeExecutableSchema({
   typeDefs,
-  resolvers,
-});
+  resolvers
+})
 ```
 
 GraphQL-Tools schema can be consumed by frameworks like Apollo GraphQL or express-graphql
 For example
 
 ```js
-const express = require('express');
-const { graphqlHTTP } = require('express-graphql');
+const express = require('express')
+const { graphqlHTTP } = require('express-graphql')
 
-const app = express();
+const app = express()
 app.use(
   '/graphql',
   graphqlHTTP({
     schema: executableSchema,
-    graphiql: true,
+    graphiql: true
   })
-);
-app.listen(4000);
-console.log('Running a GraphQL API server at http://localhost:4000/graphql');
+)
+app.listen(4000)
+console.log('Running a GraphQL API server at http://localhost:4000/graphql')
 ```
 
 This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing type definitions](https://graphql-tools.com/docs/schema-merging#merging-type-definitions) and [merging resolvers](https://graphql-tools.com/docs/schema-merging#merging-resolvers) section of the docs.

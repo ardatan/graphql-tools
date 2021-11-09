@@ -6,7 +6,7 @@ description: Using and implementing custom directives to transform schema types,
 
 A _directive_ is an identifier preceded by a `@` character, optionally followed by a list of named arguments, which can appear after almost any form of syntax in the GraphQL query or schema languages. Here's an example from the [GraphQL draft specification](http://facebook.github.io/graphql/draft/#sec-Type-System.Directives) that illustrates several of these possibilities:
 
-```typescript
+```ts
 directive @deprecated(
   reason: String = "No longer supported"
 ) on FIELD_DEFINITION | ENUM_VALUE
@@ -59,7 +59,7 @@ GraphQL Tools provides convenient yet powerful tools for implementing directive 
 
 Here is one possible implementation of the `@deprecated` directive we saw above:
 
-```typescript
+```ts
 import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils'
 import { GraphQLSchema } from 'graphql'
 
@@ -89,7 +89,7 @@ function deprecatedDirective(directiveName: string) {
 
 In order to apply this implementation to a schema that contains `@deprecated` directives, simply pass the necessary typeDefs and schema transformation function to the `makeExecutableSchema` function in the appropriate positions:
 
-```typescript
+```ts
 import { deprecatedDirective } from 'fake-deprecated-directive-package'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 
@@ -123,7 +123,7 @@ To appreciate the range of possibilities enabled by `mapSchema`, let's examine a
 
 Suppose you want to ensure a string-valued field is converted to uppercase. Though this use case is simple, it's a good example of a directive implementation that works by wrapping a field's `resolve` function:
 
-```typescript
+```ts
 function upperDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
   return schema =>
     mapSchema(schema, {
@@ -180,7 +180,7 @@ Notice how easy it is to handle both `@upper` and `@upperCase` with the same `up
 
 Suppose you've defined an object type that corresponds to a [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) resource, and you want to avoid implementing resolver functions for every field:
 
-```typescript
+```ts
 function restDirective(directiveName: string) {
   return {
     restDirectiveTypeDefs: `directive @${directiveName}(url: String) on FIELD_DEFINITION`;
@@ -216,7 +216,7 @@ There are many more issues to consider when implementing a real GraphQL wrapper 
 
 Suppose your resolver returns a `Date` object but you want to return a formatted string to the client:
 
-```typescript
+```ts
 function dateDirective(directiveName: string) {
   return {
     dateDirectiveTypeDefs: `directive @${directiveName}(format: String) on FIELD_DEFINITION`,
@@ -264,7 +264,7 @@ schema = dateDirectiveTransformer(schema)
 
 Of course, it would be even better if the schema author did not have to decide on a specific `Date` format, but could instead leave that decision to the client. To make this work, the directive just needs to add an additional argument to the field:
 
-```typescript
+```ts
 import formatDate from 'dateformat'
 
 function formattableDateDirective(directiveName: string) {
@@ -377,7 +377,7 @@ type User @auth(requires: USER) {
 }
 ```
 
-```typescript
+```ts
 function authDirective(directiveName: string, getUserFn: (token: string) => { hasRole: (role: string) => boolean }) {
   const typeDirectiveArgumentMaps: Record<string, any> = {}
   return {
@@ -473,7 +473,7 @@ One drawback of this approach is that it does not guarantee fields will be wrapp
 
 Suppose you want to enforce a maximum length for a string-valued field:
 
-```typescript
+```ts
 function lengthDirective(directiveName: string) {
   class LimitedLengthType extends GraphQLScalarType {
     constructor(type: GraphQLScalarType, maxLength: number) {
@@ -598,7 +598,7 @@ Note that new types can be added to the schema with ease, but that each type mus
 
 Suppose your database uses incrementing IDs for each resource type, so IDs are not unique across all resource types. Here’s how you might synthesize a field called `uid` that combines the object type with various field values to produce an ID that’s unique across your schema:
 
-```typescript
+```ts
 import { GraphQLID } from 'graphql'
 import { createHash } from 'crypto'
 
@@ -694,7 +694,7 @@ The `makeExecutableSchema` function used to take a `directiveResolvers` option t
 
 The new abstraction is more general, since it can visit any kind of schema syntax, and do much more than just wrap resolver functions. The old `directiveResolvers` API can be implemented with the above new API as follows:
 
-```typescript
+```ts
 export function attachDirectiveResolvers(
   schema: GraphQLSchema,
   directiveResolvers: IDirectiveResolvers
@@ -757,7 +757,7 @@ GraphQL objects are mapped according to the following algorithm:
 4. Arguments are mapped. Similar to above, you can subspecify `MapperKind.ARGUMENT` if you want to modify only an argument. `mapSchema` can iterate through the types and fields for you.
 5. Directives are mapped if `MapperKind.DIRECTIVE` is specified.
 
-```typescript
+```ts
 export interface SchemaMapper {
   [MapperKind.TYPE]?: NamedTypeMapper
   [MapperKind.SCALAR_TYPE]?: ScalarTypeMapper

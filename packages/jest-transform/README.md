@@ -18,13 +18,13 @@ In your `package.json`:
 
 or `jest.config.js`:
 
-```javascript
+```js
 module.exports = {
   // ...
   transform: {
-    '\\.(gql|graphql)$': '@graphql-tools/jest-transform',
-  },
-};
+    '\\.(gql|graphql)$': '@graphql-tools/jest-transform'
+  }
+}
 ```
 
 > How is it different from `jest-transform-graphql`? It doesn't use `graphql-tag/loader` under the hood but our own, more optimized and customisable `@graphql-tools/webpack-loader`.

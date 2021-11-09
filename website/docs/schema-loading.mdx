@@ -26,25 +26,26 @@ const { UrlLoader } = require('@graphql-tools/url-loader')
 const { JsonFileLoader } = require('@graphql-tools/json-file-loader')
 const { GraphQLFileLoader } = require('@graphql-tools/graphql-file-loader')
 
-const schema1 = await loadSchema('type A { foo: String }') // load from string w/ no loaders
+// load from string w/ no loaders
+const schema1 = await loadSchema('type A { foo: String }')
 
+// load from endpoint
 const schema2 = await loadSchema('http://localhost:3000/graphql', {
-  // load from endpoint
   loaders: [new UrlLoader()]
 })
 
+// load from local json file
 const schema3 = await loadSchema('./schema.json', {
-  // load from local json file
   loaders: [new JsonFileLoader()]
 })
 
+// load from a single schema file
 const schema4 = await loadSchema('schema.graphql', {
-  // load from a single schema file
   loaders: [new GraphQLFileLoader()]
 })
 
+// load from multiple files using glob
 const schema5 = await loadSchema('./src/**/*.graphql', {
-  // load from multiple files using glob
   loaders: [new GraphQLFileLoader()]
 })
 ```

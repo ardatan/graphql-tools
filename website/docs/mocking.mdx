@@ -98,14 +98,16 @@ The next step is to define a function that returns a value (fixed or random) for
 
 Similarly, if you want to mock a **random** value for the Custom Scalar, you can use a library. We're using [casual](https://github.com/boo1ean/casual), as in the example above:
 
+<!-- prettier-ignore -->
 ```js
 {
-  DateTime: () => casual.date((format = 'YYYY-MM-DDTHH:mm:ss.SSSZZ')); // Output Example: 2011-11-11T11:43:31.000-0430
+  DateTime: () => casual.date(format = 'YYYY-MM-DDTHH:mm:ss.SSSZZ') // Output Example: 2011-11-11T11:43:31.000-0430
 }
 ```
 
 The final step is to use the `mocks` object and `schema` to mock the server.
 
+<!-- prettier-ignore -->
 ```js
 import { addMocksToSchema, mockServer } from '@graphql-tools/mock'
 // Mock object.
@@ -113,7 +115,7 @@ const mocks = {
   Int: () => 6,
   Float: () => 22.1,
   String: () => 'Hello',
-  DateTime: () => casual.date((format = 'YYYY-MM-DDTHH:mm:ss.SSSZZ')),
+  DateTime: () => casual.date(format = 'YYYY-MM-DDTHH:mm:ss.SSSZZ'),
 }
 const preserveResolvers = false
 // Mock the server passing the schema, mocks object and preserverResolvers arguments.
@@ -469,8 +471,8 @@ store.get('User', 'abc-737dh-djdjd')
 Root types (`Query`, `Mutation`), which necessarily have only one entity, will use the special store key `ROOT` to reference this only entity:
 
 ```ts
-store.get('Query', 'ROOT', 'viewer');
-> { $ref: { key: 'abc-737dh-djdjd', typeName: 'User' } }
+store.get('Query', 'ROOT', 'viewer')
+// { $ref: { key: 'abc-737dh-djdjd', typeName: 'User' } }
 ```
 
 #### set
