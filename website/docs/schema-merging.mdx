@@ -15,7 +15,7 @@ const { mergeSchemas } = require('@graphql-tools/schema');
 
 const mergedSchema = mergeSchemas({
   schemas: [BarSchema, BazSchema],
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type ExtraType {
       foo: String
     }
@@ -64,7 +64,7 @@ Knowing that your app will grow, you want to move your definitions to separate f
 
 ```js
 // ./graphql/types/clientType.js
-module.exports = `
+module.exports = /* GraphQL */ `
   type Client {
     id: ID!
     name: String
@@ -83,7 +83,7 @@ module.exports = `
 `;
 
 // ./graphql/types/productType.js
-module.exports = `
+module.exports = /* GraphQL */ `
   type Product {
     id: ID!
     description: String

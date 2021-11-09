@@ -98,16 +98,16 @@ const { deprecatedDirectiveTypeDefs, deprecatedDirectiveTransformer } = deprecat
 let schema = makeExecutableSchema({
   typeDefs: [
     deprecatedDirectiveTypeDefs,
-    `
-    type ExampleType {
-      newField: String
-      oldField: String @deprecated(reason: "Use \`newField\`.")
-    }
+    /* GraphQL */ `
+      type ExampleType {
+        newField: String
+        oldField: String @deprecated(reason: "Use \`newField\`.")
+      }
 
-    type Query {
-      rootField: ExampleType
-    }
-  `,
+      type Query {
+        rootField: ExampleType
+      }
+    `,
   ],
 });
 schema = deprecatedDirectiveTransformer(schema);
@@ -152,12 +152,12 @@ let schema = makeExecutableSchema({
   typeDefs: [
     upperDirectiveTypeDefs,
     upperCaseDirectiveTypeDefs,
-    `
-    type Query {
-      hello: String @upper
-      hello2: String @upperCase
-    }
-  `,
+    /* GraphQL */ `
+      type Query {
+        hello: String @upper
+        hello2: String @upperCase
+      }
+    `,
   ],
   resolvers: {
     Query: {
@@ -200,7 +200,7 @@ function restDirective(directiveName: string) {
 const { restDirectiveTypeDefs, restDirectiveTransformer } = restDirective('rest');
 
 let schema = makeExecutableSchema({
-  typeDefs: [restDirectiveTypeDefs, `
+  typeDefs: [restDirectiveTypeDefs, /* GraphQL */ `
     type Query {
       people: [Person] @rest(url: "/api/v1/people")
     }
@@ -243,13 +243,13 @@ const { dateDirectiveTypeDefs, dateDirectiveTransformer } = dateDirective('date'
 let schema = makeExecutableSchema({
   typeDefs: [
     dateDirectiveTypeDefs,
-    `
-    scalar Date
+    /* GraphQL */ `
+      scalar Date
 
-    type Query {
-      today: Date @date(format: "mmmm d, yyyy")
-    }
-  `,
+      type Query {
+        today: Date @date(format: "mmmm d, yyyy")
+      }
+    `,
   ],
   resolvers: {
     Query: {
@@ -307,13 +307,13 @@ const { formattableDateDirectiveTypeDefs, formattableDateDirectiveTransformer } 
 let schema = makeExecutableSchema({
   typeDefs: [
     formattableDateDirectiveTypeDefs,
-    `
-    scalar Date
+    /* GraphQL */ `
+      scalar Date
 
-    type Query {
-      today: Date @date
-    }
-  `,
+      type Query {
+        today: Date @date
+      }
+    `,
   ],
   resolvers: {
     Query: {
@@ -333,7 +333,7 @@ import { graphql } from 'graphql';
 
 graphql(
   schema,
-  `
+  /* GraphQL */ `
     query {
       today
     }
@@ -345,7 +345,7 @@ graphql(
 
 graphql(
   schema,
-  `
+  /* GraphQL */ `
     query {
       today(format: "d mmm yyyy")
     }
@@ -438,17 +438,17 @@ const { authDirectiveTypeDefs, authDirectiveTransformer } = authDirective('auth'
 let schema = makeExecutableSchema({
   typeDefs: [
     authDirectiveTypeDefs,
-    `
-    type User @auth(requires: USER) {
-      name: String
-      banned: Boolean @auth(requires: ADMIN)
-      canPost: Boolean @auth(requires: REVIEWER)
-    }
+    /* GraphQL */ `
+      type User @auth(requires: USER) {
+        name: String
+        banned: Boolean @auth(requires: ADMIN)
+        canPost: Boolean @auth(requires: REVIEWER)
+      }
 
-    type Query {
-      users: [User]
-    }
-  `,
+      type Query {
+        users: [User]
+      }
+    `,
   ],
   resolvers: {
     Query: {
@@ -554,22 +554,23 @@ const { lengthDirectiveTypeDefs, lengthDirectiveTransformer } = lengthDirective(
 let schema = makeExecutableSchema({
   typeDefs: [
     lengthDirectiveTypeDefs,
-    `
-    type Query {
-      books: [Book]
-    }
+    /* GraphQL */ `
+      type Query {
+        books: [Book]
+      }
 
-    type Book {
-      title: String @length(max: 10)
-    }
+      type Book {
+        title: String @length(max: 10)
+      }
 
-    type Mutation {
-      createBook(book: BookInput): Book
-    }
+      type Mutation {
+        createBook(book: BookInput): Book
+      }
 
-    input BookInput {
-      title: String! @length(max: 10)
-    }`,
+      input BookInput {
+        title: String! @length(max: 10)
+      }
+    `,
   ],
   resolvers: {
     Query: {
@@ -636,22 +637,22 @@ const { uniqueIDDirectiveTypeDefs, uniqueIDDirectiveTransformer } = uniqueIDDire
 let schema = makeExecutableSchema({
   typeDefs: [
     uniqueIDDirectiveTypeDefs,
-    `
-    type Query {
-      people: [Person]
-      locations: [Location]
-    }
+    /* GraphQL */ `
+      type Query {
+        people: [Person]
+        locations: [Location]
+      }
 
-    type Person @uniqueID(name: "uid", from: ["personID"]) {
-      personID: Int
-      name: String
-    }
+      type Person @uniqueID(name: "uid", from: ["personID"]) {
+        personID: Int
+        name: String
+      }
 
-    type Location @uniqueID(name: "uid", from: ["locationID"]) {
-      locationID: Int
-      address: String
-    }
-  `,
+      type Location @uniqueID(name: "uid", from: ["locationID"]) {
+        locationID: Int
+        address: String
+      }
+    `,
   ],
   resolvers: {
     Query: {

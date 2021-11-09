@@ -17,7 +17,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
 
 let postSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type Post {
       id: ID!
       text: String
@@ -32,7 +32,7 @@ let postSchema = makeExecutableSchema({
 });
 
 let userSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type User {
       id: ID!
       email: String
@@ -65,7 +65,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 
 export const schema = stitchSchemas({
   subschemas: [postsSubschema, usersSubschema],
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     extend type Post {
       user: User!
     }
@@ -86,7 +86,7 @@ import { delegateToSchema } from '@graphql-tools/delegate';
 
 export const schema = stitchSchemas({
   subschemas: [postsSubschema, usersSubschema],
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     extend type Post {
       user: User!
     }
@@ -188,7 +188,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 
 const schema = stitchSchemas({
   subschemas: [postsSubschema, usersSubschema],
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     extend type Post {
       user: User!
     }
@@ -329,7 +329,7 @@ import { delegateToSchema } from '@graphql-tools/delegate';
 import { FilterRootFields, RenameTypes } from '@graphql-tools/wrap';
 
 const postSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type Post {
       id: ID!
       text: String
@@ -353,7 +353,7 @@ const postsSubschema = {
 };
 
 const userSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type User {
       id: ID!
       email: String
@@ -371,7 +371,7 @@ const usersSubschema = {
 
 const stitchedSchema = stitchSchemas({
   subschemas: [postsSubschema, usersSubschema],
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     extend type User {
       posts: [Post_Post!]!
     }

@@ -107,7 +107,7 @@ It's easy to add additional fields to existing types using the `extend` keyword.
 
 ```js
 const typeDefs = [
-  `
+  /* GraphQL */ `
   schema {
     query: Query
   }
@@ -120,15 +120,15 @@ const typeDefs = [
     id
   }
   `,
-  `
-  type Foo {
-    id: String!
-  }
+  /* GraphQL */ `
+    type Foo {
+      id: String!
+    }
 
-  extend type Query {
-    foos: [Foo]!
-  }
-`,
+    extend type Query {
+      foos: [Foo]!
+    }
+  `,
 ];
 ```
 
@@ -165,15 +165,15 @@ The type definitions must define a query type, which means a minimal schema woul
 
 ```js
 const typeDefs = [
-  `
-  schema {
-    query: RootQuery
-  }
+  /* GraphQL */ `
+    schema {
+      query: RootQuery
+    }
 
-  type RootQuery {
-    aNumber: Int
-  }
-`,
+    type RootQuery {
+      aNumber: Int
+    }
+  `,
 ];
 ```
 

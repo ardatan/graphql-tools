@@ -17,7 +17,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
 
 let postsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type Post {
       id: ID!
       message: String!
@@ -37,7 +37,7 @@ let postsSchema = makeExecutableSchema({
 });
 
 let usersSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type User {
       id: ID!
       email: String!
@@ -128,7 +128,7 @@ const postsData = [
 ];
 
 const postsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type Post {
       id: ID!
       message: String!
@@ -267,7 +267,7 @@ Type merging allows services to provide the bare minimum of fields they possess 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
 let postsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type Post {
       id: ID!
       message: String!
@@ -286,7 +286,7 @@ let postsSchema = makeExecutableSchema({
 });
 
 let usersSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type User {
       id: ID!
       email: String!
@@ -330,7 +330,7 @@ Type merging will automatically consolidate interfaces of the same name across s
 
 ```js
 const postsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     interface HomepageSlot {
       id: ID!
       title: String!
@@ -346,7 +346,7 @@ const postsSchema = makeExecutableSchema({
 });
 
 const layoutsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     interface HomepageSlot {
       id: ID!
     }
@@ -441,7 +441,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
 const productsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type Product {
       id: ID!
       price: Float!
@@ -456,7 +456,7 @@ const productsSchema = makeExecutableSchema({
 });
 
 const storefrontsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     directive @computed(selectionSet: String!) on FIELD_DEFINITION
 
     type Storefront {
