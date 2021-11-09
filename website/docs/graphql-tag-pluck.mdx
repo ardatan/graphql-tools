@@ -9,13 +9,13 @@ sidebar_label: GraphQL Tag Pluck
 **Input:**
 
 ```js
-import gql from 'graphql-tag';
+import gql from 'graphql-tag'
 
 const fragment = gql`
   fragment Foo on FooType {
     id
   }
-`;
+`
 
 const doc = gql`
   query foo {
@@ -25,7 +25,7 @@ const doc = gql`
   }
 
   ${fragment}
-`;
+`
 ```
 
 **Output:**
@@ -53,20 +53,22 @@ Originally created because of https://graphql-code-generator.com/.
 Once installed you can pluck GraphQL template literals using one of the following methods:
 
 ```js
-import { gqlPluckFromCodeStringSync, gqlPluckFromCodeString } from '@graphql-tools/graphql-tag-pluck';
+import { gqlPluckFromCodeStringSync, gqlPluckFromCodeString } from '@graphql-tools/graphql-tag-pluck'
 
 // Returns promise
 gqlPluckFromCodeString(
   filePath, // this parameter is required to detect file type
   fs.readFileSync(filePath, 'utf8')
-);
+)
 
 // Returns string
-gqlPluckFromCodeStringSync(filePath, fs.readFileSync(filePath, 'utf8'));
+gqlPluckFromCodeStringSync(filePath, fs.readFileSync(filePath, 'utf8'))
 ```
 
 Template literals leaded by magic comments will also be extracted :-)
 
+<!-- Prettier adds `;` at the beginning  -->
+<!-- prettier-ignore -->
 ```js
 /* GraphQL */ `
   enum MessageTypes {
@@ -74,7 +76,7 @@ Template literals leaded by magic comments will also be extracted :-)
     media
     draftjs
   }
-`;
+`
 ```
 
 supported file extensions are: `.js`, `.jsx`, `.ts`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.graphqls`, `.graphql`, `.gqls`, `.gql`.
@@ -100,7 +102,7 @@ It is recommended to look at the [source code](https://github.com/ardatan/graphq
         name
       }
     }
-  `;
+  `
   ```
 
 - **`modules`**
@@ -112,64 +114,64 @@ It is recommended to look at the [source code](https://github.com/ardatan/graphq
     modules: [
       {
         // import gql from 'graphql-tag'
-        name: 'graphql-tag',
+        name: 'graphql-tag'
       },
       {
-        name: 'graphql-tag.macro',
+        name: 'graphql-tag.macro'
       },
       {
         // import { graphql } from 'gatsby'
         name: 'gatsby',
-        identifier: 'graphql',
+        identifier: 'graphql'
       },
       {
         name: 'apollo-server-express',
-        identifier: 'gql',
+        identifier: 'gql'
       },
       {
         name: 'apollo-server',
-        identifier: 'gql',
+        identifier: 'gql'
       },
       {
         name: 'react-relay',
-        identifier: 'graphql',
+        identifier: 'graphql'
       },
       {
         name: 'apollo-boost',
-        identifier: 'gql',
+        identifier: 'gql'
       },
       {
         name: 'apollo-server-koa',
-        identifier: 'gql',
+        identifier: 'gql'
       },
       {
         name: 'apollo-server-hapi',
-        identifier: 'gql',
+        identifier: 'gql'
       },
       {
         name: 'apollo-server-fastify',
-        identifier: 'gql',
+        identifier: 'gql'
       },
       {
         name: ' apollo-server-lambda',
-        identifier: 'gql',
+        identifier: 'gql'
       },
       {
         name: 'apollo-server-micro',
-        identifier: 'gql',
+        identifier: 'gql'
       },
       {
         name: 'apollo-server-azure-functions',
-        identifier: 'gql',
+        identifier: 'gql'
       },
       {
         name: 'apollo-server-cloud-functions',
-        identifier: 'gql',
+        identifier: 'gql'
       },
       {
         name: 'apollo-server-cloudflare',
-        identifier: 'gql',
-      },
-    ];
+        identifier: 'gql'
+      }
+    ]
   }
   ```

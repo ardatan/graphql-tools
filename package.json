@@ -12,7 +12,7 @@
     "build": "yarn ts:transpile && bob build",
     "build:api-docs": "node scripts/build-api-docs.js",
     "lint": "eslint --ext .ts .",
-    "prettier": "prettier --ignore-path .gitignore --write --list-different \"**/*.{ts,tsx,graphql,yml}\"",
+    "prettier": "prettier --ignore-path .gitignore --ignore-path .prettierignore --write --list-different .",
     "prettier:check": "prettier --ignore-path .gitignore --ignore-path .prettierignore --check .",
     "test": "jest --no-watchman --forceExit",
     "prerelease": "yarn build",

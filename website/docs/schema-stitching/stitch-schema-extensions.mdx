@@ -13,11 +13,11 @@ When considering these capabilities, be sure to compare them with the newer auto
 Going back to the posts and users service example:
 
 ```js
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { addMocksToSchema } from '@graphql-tools/mock';
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { addMocksToSchema } from '@graphql-tools/mock'
 
 let postSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type Post {
       id: ID!
       text: String
@@ -28,11 +28,11 @@ let postSchema = makeExecutableSchema({
       postById(id: ID!): Post
       postsByUserId(userId: ID!): [Post!]!
     }
-  `,
-});
+  `
+})
 
 let userSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type User {
       id: ID!
       email: String
@@ -41,16 +41,16 @@ let userSchema = makeExecutableSchema({
     type Query {
       userById(id: ID!): User
     }
-  `,
-});
+  `
+})
 
 // just mock the schemas for now to make them return dummy data
-postSchema = addMocksToSchema({ schema: postSchema });
-userSchema = addMocksToSchema({ schema: userSchema });
+postSchema = addMocksToSchema({ schema: postSchema })
+userSchema = addMocksToSchema({ schema: userSchema })
 
 // setup subschema config objects
-export const postsSubschema = { schema: postSchema };
-export const usersSubschema = { schema: userSchema };
+export const postsSubschema = { schema: postSchema }
+export const usersSubschema = { schema: userSchema }
 ```
 
 We may want to navigate from a particular user to their posts, or from a post to its user. This is possible within our service architecture by connecting an existing key of each object to a corresponding root query:
@@ -61,19 +61,19 @@ We may want to navigate from a particular user to their posts, or from a post to
 To formalize this navigation within our gateway schema, we can _extend_ each type with a new field that will translate its respective key into an actual object association:
 
 ```js
-import { stitchSchemas } from '@graphql-tools/stitch';
+import { stitchSchemas } from '@graphql-tools/stitch'
 
 export const schema = stitchSchemas({
   subschemas: [postsSubschema, usersSubschema],
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     extend type Post {
       user: User!
     }
     extend type User {
       posts: [Post!]!
     }
-  `,
-});
+  `
+})
 ```
 
 The `typeDefs` option provides type extensions (using the `extend` keyword) that add additional fields into the _combined_ gateway schema, and therefore may cross-reference types from any subschema.
@@ -81,12 +81,12 @@ The `typeDefs` option provides type extensions (using the `extend` keyword) that
 However, these extensions alone won't do anything until they have corresponding resolvers. A complete example would look like this:
 
 ```js
-import { stitchSchemas } from '@graphql-tools/stitch';
-import { delegateToSchema } from '@graphql-tools/delegate';
+import { stitchSchemas } from '@graphql-tools/stitch'
+import { delegateToSchema } from '@graphql-tools/delegate'
 
 export const schema = stitchSchemas({
   subschemas: [postsSubschema, usersSubschema],
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     extend type Post {
       user: User!
     }
@@ -105,10 +105,10 @@ export const schema = stitchSchemas({
             fieldName: 'postsByUserId',
             args: { userId: user.id },
             context,
-            info,
-          });
-        },
-      },
+            info
+          })
+        }
+      }
     },
     Post: {
       user: {
@@ -120,13 +120,13 @@ export const schema = stitchSchemas({
             fieldName: 'userById',
             args: { id: post.userId },
             context,
-            info,
-          });
-        },
-      },
-    },
-  },
-});
+            info
+          })
+        }
+      }
+    }
+  }
+})
 ```
 
 When resolving `User.posts` and `Post.user`, we _delegate_ each key reference to its corresponding root query. Note that the structure of stitching resolvers has a `selectionSet` property and a `resolve` method.
@@ -183,12 +183,12 @@ usersByIds(ids: [ID!]!): [User]!
 With this many-users query available, we can now delegate the `Post.user` field in batches across many records:
 
 ```js
-import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
-import { stitchSchemas } from '@graphql-tools/stitch';
+import { batchDelegateToSchema } from '@graphql-tools/batch-delegate'
+import { stitchSchemas } from '@graphql-tools/stitch'
 
 const schema = stitchSchemas({
   subschemas: [postsSubschema, usersSubschema],
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     extend type Post {
       user: User!
     }
@@ -205,13 +205,13 @@ const schema = stitchSchemas({
             key: post.userId,
             argsFromKeys: ids => ({ ids }),
             context,
-            info,
-          });
-        },
-      },
-    },
-  },
-});
+            info
+          })
+        }
+      }
+    }
+  }
+})
 ```
 
 Internally, `batchDelegateToSchema` wraps a single `delegateToSchema` call in a [DataLoader](https://www.npmjs.com/package/dataloader) scoped by context, field, arguments, and query selection. It assumes that the delegated operation will return an array of objects matching the gateway field's named GraphQL type (ex: a `User` field delegates to a `[User]` query). If this is not the case, then you should manually provide a `returnType` option citing the expected GraphQL return type. Since it is a thin wrapper around `DataLoader`, it also makes the following assumptions on the results:
@@ -314,7 +314,7 @@ User: {
 By default, `forwardArgsToSelectionSet` will pass through all arguments from the gateway field to _all_ root fields in the selection set. For complex selections that request multiple fields, you may provide an additional mapping of selection names with their respective arguments:
 
 ```js
-forwardArgsToSelectionSet('{ id postIds }', { postIds: ['pageNumber'] });
+forwardArgsToSelectionSet('{ id postIds }', { postIds: ['pageNumber'] })
 ```
 
 ## Extending transformed schemas
@@ -322,14 +322,14 @@ forwardArgsToSelectionSet('{ id postIds }', { postIds: ['pageNumber'] });
 [Transformed schemas](/docs/stitch-combining-schemas#adding-transforms) are nuanced because they involve two versions of the same schema: the original schema, and the transformed gateway schema. When extending a transformed schema, we extend the gateway schema but delegate to the original schema. For example:
 
 ```js
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { addMocksToSchema } from '@graphql-tools/mock';
-import { stitchSchemas } from '@graphql-tools/stitch';
-import { delegateToSchema } from '@graphql-tools/delegate';
-import { FilterRootFields, RenameTypes } from '@graphql-tools/wrap';
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { addMocksToSchema } from '@graphql-tools/mock'
+import { stitchSchemas } from '@graphql-tools/stitch'
+import { delegateToSchema } from '@graphql-tools/delegate'
+import { FilterRootFields, RenameTypes } from '@graphql-tools/wrap'
 
 const postSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type Post {
       id: ID!
       text: String
@@ -339,8 +339,8 @@ const postSchema = makeExecutableSchema({
       postById(id: ID!): Post
       postsByUserId(userId: ID!): [Post]!
     }
-  `,
-});
+  `
+})
 
 const postsSubschema = {
   schema: addMocksToSchema({ schema: postSchema }),
@@ -348,12 +348,12 @@ const postsSubschema = {
     // remove the "postsByUserId" root field
     new FilterRootFields((op, field) => field !== 'postsByUserId'),
     // prefix all type names with "Post_"
-    new RenameTypes(name => `Post_${name}`),
-  ],
-};
+    new RenameTypes(name => `Post_${name}`)
+  ]
+}
 
 const userSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type User {
       id: ID!
       email: String
@@ -362,16 +362,16 @@ const userSchema = makeExecutableSchema({
     type Query {
       userById(id: ID!): User
     }
-  `,
-});
+  `
+})
 
 const usersSubschema = {
-  schema: addMocksToSchema({ schema: userSchema }),
-};
+  schema: addMocksToSchema({ schema: userSchema })
+}
 
 const stitchedSchema = stitchSchemas({
   subschemas: [postsSubschema, usersSubschema],
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     extend type User {
       posts: [Post_Post!]!
     }
@@ -390,10 +390,10 @@ const stitchedSchema = stitchSchemas({
             fieldName: 'postsByUserId',
             args: { userId: user.id },
             context,
-            info,
-          });
-        },
-      },
+            info
+          })
+        }
+      }
     },
     Post_Post: {
       user: {
@@ -405,13 +405,13 @@ const stitchedSchema = stitchSchemas({
             fieldName: 'userById',
             args: { id: post.userId },
             context,
-            info,
-          });
-        },
-      },
-    },
-  },
-});
+            info
+          })
+        }
+      }
+    }
+  }
+})
 ```
 
 A few key points to note here:

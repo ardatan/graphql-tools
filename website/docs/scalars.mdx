@@ -33,8 +33,8 @@ $ npm install --save graphql-scalars
 In your JavaScript code, require the type defined by in the npm package and use it :
 
 ```js
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { GraphQLJSON } from 'graphql-scalars';
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { GraphQLJSON } from 'graphql-scalars'
 
 const schemaString = `
 
@@ -48,13 +48,13 @@ type Query {
   foo: Foo
 }
 
-`;
+`
 
 const resolveFunctions = {
-  JSON: GraphQLJSON,
-};
+  JSON: GraphQLJSON
+}
 
-const jsSchema = makeExecutableSchema({ typeDefs: schemaString, resolvers: resolveFunctions });
+const jsSchema = makeExecutableSchema({ typeDefs: schemaString, resolvers: resolveFunctions })
 ```
 
 Remark : `GraphQLJSON` is a [`GraphQLScalarType`](http://graphql.org/graphql-js/type/#graphqlscalartype) instance.
@@ -66,21 +66,21 @@ For a set of popular scalar types that are ready to reuse, try out the [GraphQL 
 If needed, you can define your own [GraphQLScalarType](http://graphql.org/graphql-js/type/#graphqlscalartype) instance. This can be done the following way :
 
 ```js
-import { GraphQLScalarType } from 'graphql';
-import { makeExecutableSchema } from '@graphql-tools/schema';
+import { GraphQLScalarType } from 'graphql'
+import { makeExecutableSchema } from '@graphql-tools/schema'
 
 const myCustomScalarType = new GraphQLScalarType({
   name: 'MyCustomScalar',
   description: 'Description of my custom scalar type',
   serialize(value) {
-    let result;
+    let result
     // Implement your own behavior here by setting the 'result' variable
-    return result;
+    return result
   },
   parseValue(value) {
-    let result;
+    let result
     // Implement your own behavior here by setting the 'result' variable
-    return result;
+    return result
   },
   parseLiteral(ast) {
     switch (
@@ -89,8 +89,8 @@ const myCustomScalarType = new GraphQLScalarType({
       // depending on ast.kind
     ) {
     }
-  },
-});
+  }
+})
 
 const schemaString = `
 
@@ -104,16 +104,16 @@ type Query {
   foo: Foo
 }
 
-`;
+`
 
 const resolverFunctions = {
-  MyCustomScalar: myCustomScalarType,
-};
+  MyCustomScalar: myCustomScalarType
+}
 
 const jsSchema = makeExecutableSchema({
   typeDefs: schemaString,
-  resolvers: resolverFunctions,
-});
+  resolvers: resolverFunctions
+})
 ```
 
 ## Custom scalar examples
@@ -137,26 +137,26 @@ type MyType {
 Next, the resolver:
 
 ```js
-import { Kind, GraphQLScalarType } from 'graphql';
+import { Kind, GraphQLScalarType } from 'graphql'
 
 const resolverMap = {
   Date: new GraphQLScalarType({
     name: 'Date',
     description: 'Date custom scalar type',
     parseValue(value) {
-      return new Date(value); // value from the client
+      return new Date(value) // value from the client
     },
     serialize(value) {
-      return value.getTime(); // value sent to the client
+      return value.getTime() // value sent to the client
     },
     parseLiteral(ast) {
       if (ast.kind === Kind.INT) {
-        return new Date(+ast.value); // ast value is always in string format
+        return new Date(+ast.value) // ast value is always in string format
       }
-      return null;
-    },
-  }),
-};
+      return null
+    }
+  })
+}
 ```
 
 ### Validations
@@ -174,10 +174,10 @@ type MyType {
 Next, the resolver:
 
 ```js
-import { Kind, GraphQLScalarType } from 'graphql';
+import { Kind, GraphQLScalarType } from 'graphql'
 
 function oddValue(value) {
-  return value % 2 === 1 ? value : null;
+  return value % 2 === 1 ? value : null
 }
 
 const resolverMap = {
@@ -188,12 +188,12 @@ const resolverMap = {
     serialize: oddValue,
     parseLiteral(ast) {
       if (ast.kind === Kind.INT) {
-        return oddValue(parseInt(ast.value, 10));
+        return oddValue(parseInt(ast.value, 10))
       }
-      return null;
-    },
-  }),
-};
+      return null
+    }
+  })
+}
 ```
 
 ## Enums
@@ -244,7 +244,7 @@ query MyAvatar($color: AllowedColor) {
 Putting it all together:
 
 ```js
-import { makeExecutableSchema } from '@graphql-tools/schema';
+import { makeExecutableSchema } from '@graphql-tools/schema'
 
 const typeDefs = /* GraphQL */ `
   enum AllowedColor {
@@ -257,18 +257,18 @@ const typeDefs = /* GraphQL */ `
     favoriteColor: AllowedColor # As a return value
     avatar(borderColor: AllowedColor): String # As an argument
   }
-`;
+`
 
 const resolvers = {
   Query: {
     favoriteColor: () => 'RED',
     avatar: (root, args) => {
       // args.borderColor is 'RED', 'GREEN', or 'BLUE'
-    },
-  },
-};
+    }
+  }
+}
 
-const schema = makeExecutableSchema({ typeDefs, resolvers });
+const schema = makeExecutableSchema({ typeDefs, resolvers })
 ```
 
 ### Internal values
@@ -280,9 +280,9 @@ const resolvers = {
   AllowedColor: {
     RED: '#f00',
     GREEN: '#0f0',
-    BLUE: '#00f',
-  },
-};
+    BLUE: '#00f'
+  }
+}
 ```
 
 These don't change the public API at all, but they do allow you to use that value instead of the schema value in your resolvers, like so:
@@ -292,15 +292,15 @@ const resolvers = {
   AllowedColor: {
     RED: '#f00',
     GREEN: '#0f0',
-    BLUE: '#00f',
+    BLUE: '#00f'
   },
   Query: {
     favoriteColor: () => '#f00',
     avatar: (root, args) => {
       // args.favoriteColor is '#f00', '#0f0', or '#00f'
-    },
-  },
-};
+    }
+  }
+}
 ```
 
 Most of the time, you don't need to use this feature of enums unless you're interoperating with some other library which already expects its values in a different form.

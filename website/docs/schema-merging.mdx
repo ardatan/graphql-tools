@@ -11,21 +11,21 @@ Schema merging (`@graphql-tools/merge` and `@graphql-tools/schema`) consolidates
 You can use `mergeSchemas` to merge `GraphQLSchema` objects together with extra `typeDefs` and `resolvers`.
 
 ```ts
-const { mergeSchemas } = require('@graphql-tools/schema');
+const { mergeSchemas } = require('@graphql-tools/schema')
 
 const mergedSchema = mergeSchemas({
   schemas: [BarSchema, BazSchema],
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type ExtraType {
       foo: String
     }
   `,
   resolvers: {
     ExtraType: {
-      foo: () => 'FOO',
-    },
-  },
-});
+      foo: () => 'FOO'
+    }
+  }
+})
 ```
 
 ## Merging type definitions
@@ -64,7 +64,7 @@ Knowing that your app will grow, you want to move your definitions to separate f
 
 ```js
 // ./graphql/types/clientType.js
-module.exports = `
+module.exports = /* GraphQL */ `
   type Client {
     id: ID!
     name: String
@@ -80,10 +80,10 @@ module.exports = `
   type Mutation {
     addClient(name: String!, age: Int!): Client
   }
-`;
+`
 
 // ./graphql/types/productType.js
-module.exports = `
+module.exports = /* GraphQL */ `
   type Product {
     id: ID!
     description: String
@@ -95,28 +95,26 @@ module.exports = `
     products: [Product]
     product(id: ID!): Product
   }
-`;
+`
 ```
 
 There are two ways you can use this package:
 
 - manually import each type
-- import everything from a specified folde
-
-  r
+- imрort everything from a specified folder
 
 ### Manual imports
 
 If you decide to have manual control of each file that gets merged, all you need is the `mergeTypeDefs(types)` function from `@graphql-tools/merge` package:
 
 ```js
-const { mergeTypeDefs } = require('@graphql-tools/merge');
-const clientType = require('./clientType');
-const productType = require('./productType');
+const { mergeTypeDefs } = require('@graphql-tools/merge')
+const clientType = require('./clientType')
+const productType = require('./productType')
 
-const types = [clientType, productType];
+const types = [clientType, productType]
 
-module.exports = mergeTypeDefs(types);
+module.exports = mergeTypeDefs(types)
 ```
 
 See [`mergeTypeDefs`](https://www.graphql-tools.com/docs/api/modules/merge/#mergetypedefs) for more details.
@@ -127,13 +125,13 @@ In this way we use the `loadFilesSync` function from `@graphql-tools/load-files`
 
 ```js
 // ./graphql/typeDefs.js
-const path = require('path');
-const { loadFilesSync } = require('@graphql-tools/load-files');
-const { mergeTypeDefs } = require('@graphql-tools/merge');
+const path = require('path')
+const { loadFilesSync } = require('@graphql-tools/load-files')
+const { mergeTypeDefs } = require('@graphql-tools/merge')
 
-const typesArray = loadFilesSync(path.join(__dirname, './types'));
+const typesArray = loadFilesSync(path.join(__dirname, './types'))
 
-module.exports = mergeTypeDefs(typesArray);
+module.exports = mergeTypeDefs(typesArray)
 ```
 
 When using the `loadFilesSync` function you can also implement your type definitions using `.graphql` or `.gql` or `.graphqls` files.
@@ -143,13 +141,13 @@ Only these values are supported now. `'ts', 'js', 'gql', 'graphql', 'graphqls'`
 
 ```js
 // ./graphql/typeDefs.js
-const path = require('path');
-const { loadFilesSync } = require('@graphql-tools/load-files');
-const { mergeTypeDefs } = require('@graphql-tools/merge');
+const path = require('path')
+const { loadFilesSync } = require('@graphql-tools/load-files')
+const { mergeTypeDefs } = require('@graphql-tools/merge')
 
-const typesArray = loadFilesSync(path.join(__dirname, './types'), { extensions: ['graphql'] });
+const typesArray = loadFilesSync(path.join(__dirname, './types'), { extensions: ['graphql'] })
 
-module.exports = mergeTypeDefs(typesArray);
+module.exports = mergeTypeDefs(typesArray)
 ```
 
 > By default, the `loadFilesSync` function will not ignore files named `index.js` or `index.ts`, but you can set the `ignoreIndex` option to `true` to enable this behavior. This allows you to create your index file inside the actual types folder if desired.
@@ -205,13 +203,13 @@ Given the file structure below:
 Here's how your `index` file could look like:
 
 ```js
-const path = require('path');
-const { loadFilesSync } = require('@graphql-tools/load-files');
-const { mergeTypeDefs } = require('@graphql-tools/merge');
+const path = require('path')
+const { loadFilesSync } = require('@graphql-tools/load-files')
+const { mergeTypeDefs } = require('@graphql-tools/merge')
 
-const typesArray = loadFilesSync(path.join(__dirname, '.'), { recursive: true });
+const typesArray = loadFilesSync(path.join(__dirname, '.'), { recursive: true })
 
-module.exports = mergeTypeDefs(typesArray);
+module.exports = mergeTypeDefs(typesArray)
 ```
 
 You can also load files in different folders by passing a glob pattern in `loadFilesSync`.
@@ -232,13 +230,13 @@ Given the file structure below:
 Here's how your `index` file could look like:
 
 ```js
-const path = require('path');
-const { loadFilesSync } = require('@graphql-tools/load-files');
-const { mergeTypeDefs } = require('@graphql-tools/merge');
+const path = require('path')
+const { loadFilesSync } = require('@graphql-tools/load-files')
+const { mergeTypeDefs } = require('@graphql-tools/merge')
 
-const typesArray = loadFilesSync(path.join(__dirname, 'graphql/**/*.graphql'));
+const typesArray = loadFilesSync(path.join(__dirname, 'graphql/**/*.graphql'))
 
-module.exports = mergeTypeDefs(typesArray);
+module.exports = mergeTypeDefs(typesArray)
 ```
 
 ### Print merged typeDefs
@@ -246,15 +244,15 @@ module.exports = mergeTypeDefs(typesArray);
 Since the output of `mergeTypeDefs` is a GraphQL `DocumentNode`, you may print the merged result as a string to be passed around to other systems. For example:
 
 ```js
-const { loadFilesSync } = require('@graphql-tools/load-files');
-const { mergeTypeDefs } = require('@graphql-tools/merge');
-const { print } = require('graphql');
-const fs = require('fs');
+const { loadFilesSync } = require('@graphql-tools/load-files')
+const { mergeTypeDefs } = require('@graphql-tools/merge')
+const { print } = require('graphql')
+const fs = require('fs')
 
-const loadedFiles = loadFilesSync(`${__dirname}/schema/**/*.graphql`);
-const typeDefs = mergeTypeDefs(loadedFiles);
-const printedTypeDefs = print(typeDefs);
-fs.writeFileSync('joined.graphql', printedTypeDefs);
+const loadedFiles = loadFilesSync(`${__dirname}/schema/**/*.graphql`)
+const typeDefs = mergeTypeDefs(loadedFiles)
+const printedTypeDefs = print(typeDefs)
+fs.writeFileSync('joined.graphql', printedTypeDefs)
 ```
 
 ### Nested Types
@@ -290,7 +288,7 @@ type Query {
 
 Becomes:
 
-```
+```graphql
 type Query {
   client: Client @foo @bar
 }
@@ -305,52 +303,52 @@ Resolvers are implemented as simple JS objects and then merged using deep-merge.
 module.exports = {
   Query: {
     clients: () => {},
-    client: () => {},
+    client: () => {}
   },
   Mutation: {
-    addClient: () => {},
+    addClient: () => {}
   },
   Client: {
-    products: () => {},
-  },
-};
+    products: () => {}
+  }
+}
 
 // ./graphql/resolvers/productResolver.js
 module.exports = {
   Query: {
     products: () => {},
-    product: () => {},
+    product: () => {}
   },
   Product: {
-    client: () => {},
-  },
-};
+    client: () => {}
+  }
+}
 ```
 
 Just like your type definitions, you can choose to import files manually:
 
 ```js
 // ./graphql/resolvers/index.js
-const { mergeResolvers } = require('@graphql-tools/merge');
-const clientResolver = require('./clientResolver');
-const productResolver = require('./productResolver');
+const { mergeResolvers } = require('@graphql-tools/merge')
+const clientResolver = require('./clientResolver')
+const productResolver = require('./productResolver')
 
-const resolvers = [clientResolver, productResolver];
+const resolvers = [clientResolver, productResolver]
 
-module.exports = mergeResolvers(resolvers);
+module.exports = mergeResolvers(resolvers)
 ```
 
 Or automatically:
 
 ```js
 // ./graphql/resolvers.js
-const path = require('path');
-const { mergeResolvers } = require('@graphql-tools/merge');
-const { loadFilesSync } = require('@graphql-tools/load-files');
+const path = require('path')
+const { mergeResolvers } = require('@graphql-tools/merge')
+const { loadFilesSync } = require('@graphql-tools/load-files')
 
-const resolversArray = loadFilesSync(path.join(__dirname, './resolvers'));
+const resolversArray = loadFilesSync(path.join(__dirname, './resolvers'))
 
-module.exports = mergeResolvers(resolversArray);
+module.exports = mergeResolvers(resolversArray)
 ```
 
 > Beware that `mergeResolvers` is simply merging plain JavaScript objects together.
@@ -361,13 +359,13 @@ Only these values are supported now: `ts, js, gql, graphql, graphqls`.
 
 ```js
 // ./graphql/resolvers.js
-const path = require('path');
-const { mergeResolvers } = require('@graphql-tools/merge');
-const { loadFilesSync } = require('@graphql-tools/load-files');
+const path = require('path')
+const { mergeResolvers } = require('@graphql-tools/merge')
+const { loadFilesSync } = require('@graphql-tools/load-files')
 
-const resolversArray = loadFilesSync(path.join(__dirname, './resolvers'), { extensions: ['js'] });
+const resolversArray = loadFilesSync(path.join(__dirname, './resolvers'), { extensions: ['js'] })
 
-module.exports = mergeResolvers(resolversArray);
+module.exports = mergeResolvers(resolversArray)
 ```
 
 **Optional: Automatic with Resolver Naming Convention**
@@ -380,12 +378,12 @@ Then setup your `fileLoader` like so, and you're in business:
 
 ```js
 // ./graphql/resolvers/index.js/ts
-const path = require('path');
-const { mergeResolvers } = require('@graphql-tools/merge');
-const { loadFilesSync } = require('@graphql-tools/load-files');
+const path = require('path')
+const { mergeResolvers } = require('@graphql-tools/merge')
+const { loadFilesSync } = require('@graphql-tools/load-files')
 
-const resolversArray = loadFilesSync(path.join(__dirname, './**/*.resolvers.*'));
-module.exports = mergeResolvers(resolversArray);
+const resolversArray = loadFilesSync(path.join(__dirname, './**/*.resolvers.*'))
+module.exports = mergeResolvers(resolversArray)
 ```
 
 With this approach, you're free to structure resolver files as you see fit. Of course,
@@ -424,22 +422,22 @@ Let's say you have a factory function inside your resolvers like below;
 ```js
 module.exports = customQueryTypeName => ({
   [customQueryTypeName]: {
-    foo: () => 'FOO',
-  },
-});
+    foo: () => 'FOO'
+  }
+})
 ```
 
 And you can define custom `extractExports` like below;
 
 ```js
-const { loadFilesSync } = require('@graphql-tools/load-files');
+const { loadFilesSync } = require('@graphql-tools/load-files')
 
 const resolvers = loadFilesSync(join(__dirname, './resolvers/**/*.js'), {
   extractExports: fileExport => {
     if (typeof fileExport === 'function') {
-      return fileExport('query_root');
+      return fileExport('query_root')
     }
-    return fileExport;
-  },
-});
+    return fileExport
+  }
+})
 ```

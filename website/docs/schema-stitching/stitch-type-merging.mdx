@@ -13,11 +13,11 @@ Type merging is now the preferred method of including GraphQL types across subsc
 Type merging allows each subschema to provide subsets of a type that it has data for. For example:
 
 ```js
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { addMocksToSchema } from '@graphql-tools/mock';
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { addMocksToSchema } from '@graphql-tools/mock'
 
 let postsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type Post {
       id: ID!
       message: String!
@@ -33,11 +33,11 @@ let postsSchema = makeExecutableSchema({
       postById(id: ID!): Post
       postUserById(id: ID!): User
     }
-  `,
-});
+  `
+})
 
 let usersSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type User {
       id: ID!
       email: String!
@@ -46,18 +46,18 @@ let usersSchema = makeExecutableSchema({
     type Query {
       userById(id: ID!): User
     }
-  `,
-});
+  `
+})
 
 // just mock the schemas for now to make them return dummy data
-postsSchema = addMocksToSchema({ schema: postsSchema });
-usersSchema = addMocksToSchema({ schema: usersSchema });
+postsSchema = addMocksToSchema({ schema: postsSchema })
+usersSchema = addMocksToSchema({ schema: usersSchema })
 ```
 
 Note that both services define a _different_ `User` type. While the users service manages information about user accounts, the posts service simply provides posts associated with a user ID. Now we just have to configure the `User` type to be merged. Type merging requires a query from each subschema to provide its version of a merged type:
 
 ```js
-import { stitchSchemas } from '@graphql-tools/stitch';
+import { stitchSchemas } from '@graphql-tools/stitch'
 
 const gatewaySchema = stitchSchemas({
   subschemas: [
@@ -67,9 +67,9 @@ const gatewaySchema = stitchSchemas({
         User: {
           fieldName: 'postUserById',
           selectionSet: '{ id }',
-          args: originalObject => ({ id: originalObject.id }),
-        },
-      },
+          args: originalObject => ({ id: originalObject.id })
+        }
+      }
     },
     {
       schema: usersSchema,
@@ -77,13 +77,13 @@ const gatewaySchema = stitchSchemas({
         User: {
           fieldName: 'userById',
           selectionSet: '{ id }',
-          args: originalObject => ({ id: originalObject.id }),
-        },
-      },
-    },
+          args: originalObject => ({ id: originalObject.id })
+        }
+      }
+    }
   ],
-  mergeTypes: true, // << default in v7
-});
+  mergeTypes: true // << default in v7
+})
 ```
 
 That's it! Under the subschema config `merge` option, each merged type provides a query for accessing its respective partial type (services without an expression of the type may omit this). The query settings are:
@@ -120,15 +120,15 @@ type User {
 It's logical to assume that each `postUserById` query has a backing database table used to lookup the requested user ID. However, this is frequently not the case. Here's a simple example that demonstrates how `User.posts` can be resolved without the posts service having any formal database concept of a User:
 
 ```js
-import { makeExecutableSchema } from '@graphql-tools/schema';
+import { makeExecutableSchema } from '@graphql-tools/schema'
 
 const postsData = [
   { id: '1', message: 'Hello', authorId: '7' },
-  { id: '2', message: 'Goodbye', authorId: '5' },
-];
+  { id: '2', message: 'Goodbye', authorId: '5' }
+]
 
 const postsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type Post {
       id: ID!
       message: String!
@@ -148,15 +148,15 @@ const postsSchema = makeExecutableSchema({
   resolvers: {
     Query: {
       postById: (root, { id }) => postsData.find(post => post.id === id),
-      postUserById: (root, { id }) => ({ id }),
+      postUserById: (root, { id }) => ({ id })
     },
     User: {
       posts(user) {
-        return postsData.filter(post => post.authorId === user.id);
-      },
-    },
-  },
-});
+        return postsData.filter(post => post.authorId === user.id)
+      }
+    }
+  }
+})
 ```
 
 In this example, the `postUserById` resolver simply converts a submitted user ID into stub record that gets resolved as the local `User` type.
@@ -200,7 +200,7 @@ usersByIds(ids: [ID!]!): [User]!
 Once a service provides an array query for a merged type, batching may be enabled by adding a `key` method that picks a key from each partial record. The `argsFromKeys` method then transforms the list of picked keys into query arguments:
 
 ```js
-import { stitchSchemas } from '@graphql-tools/stitch';
+import { stitchSchemas } from '@graphql-tools/stitch'
 
 const gatewaySchema = stitchSchemas({
   subschemas: [
@@ -211,9 +211,9 @@ const gatewaySchema = stitchSchemas({
           fieldName: 'postUsersByIds',
           selectionSet: '{ id }',
           key: ({ id }) => id,
-          argsFromKeys: ids => ({ ids }),
-        },
-      },
+          argsFromKeys: ids => ({ ids })
+        }
+      }
     },
     {
       schema: usersSchema,
@@ -222,12 +222,12 @@ const gatewaySchema = stitchSchemas({
           fieldName: 'usersByIds',
           selectionSet: '{ id }',
           key: ({ id }) => id,
-          argsFromKeys: ids => ({ ids }),
-        },
-      },
-    },
-  ],
-});
+          argsFromKeys: ids => ({ ids })
+        }
+      }
+    }
+  ]
+})
 ```
 
 A `valuesFromResults` method may also be provided to map the raw query result into the batched set. With this array optimization in place, we'll now only perform one query _per merged field_ (versus per record). However, requesting multiple merged fields will still perform a query each. To optimize this further, we can enable [query batching](https://github.com/gmac/schema-stitching-handbook/wiki/Batching-Arrays-and-Queries#what-is-query-batching):
@@ -264,10 +264,10 @@ Using both array batching and query batching together is recommended, and should
 Type merging allows services to provide the bare minimum of fields they possess data for&mdash;and this is frequently nothing but an ID. For example:
 
 ```ts
-import { makeExecutableSchema } from '@graphql-tools/schema';
+import { makeExecutableSchema } from '@graphql-tools/schema'
 
 let postsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type Post {
       id: ID!
       message: String!
@@ -282,11 +282,11 @@ let postsSchema = makeExecutableSchema({
     type Query {
       postById(id: ID!): Post
     }
-  `,
-});
+  `
+})
 
 let usersSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type User {
       id: ID!
       email: String!
@@ -295,8 +295,8 @@ let usersSchema = makeExecutableSchema({
     type Query {
       usersByIds(ids: [ID!]!): [User]!
     }
-  `,
-});
+  `
+})
 ```
 
 When a stub type like the one above includes no unique fields beyond a key shared across services, then the type may be considered _unidirectional_ to the service&mdash;that is, the service holds no unique data that would require an inbound request to fetch it. In these cases, `merge` config may be omitted entirely for the stub type:
@@ -305,7 +305,7 @@ When a stub type like the one above includes no unique fields beyond a key share
 const gatewaySchema = stitchSchemas({
   subschemas: [
     {
-      schema: postsSchema,
+      schema: postsSchema
     },
     {
       schema: usersSchema,
@@ -314,12 +314,12 @@ const gatewaySchema = stitchSchemas({
           selectionSet: '{ id }',
           fieldName: 'usersByIds',
           key: ({ id }) => id,
-          argsFromKeys: ids => ({ ids }),
-        },
-      },
-    },
-  ],
-});
+          argsFromKeys: ids => ({ ids })
+        }
+      }
+    }
+  ]
+})
 ```
 
 Stubbed types are quick and easy to setup and effectively work as automatic [schema extensions](/docs/stitch-schema-extensions) (in fact, you might not need extensions). A stubbed type may always be expanded with additional service-specific fields (see the [basic example](#basic-example)), however it requires a query in `merge` config as soon as it offers unique data.
@@ -330,7 +330,7 @@ Type merging will automatically consolidate interfaces of the same name across s
 
 ```js
 const postsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     interface HomepageSlot {
       id: ID!
       title: String!
@@ -342,11 +342,11 @@ const postsSchema = makeExecutableSchema({
       title: String!
       url: URL!
     }
-  `,
-});
+  `
+})
 
 const layoutsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     interface HomepageSlot {
       id: ID!
     }
@@ -365,8 +365,8 @@ const layoutsSchema = makeExecutableSchema({
     type Homepage {
       slots: [HomepageSlot]!
     }
-  `,
-});
+  `
+})
 ```
 
 In the above, both `Post` and `Section` will have a common interface of `{ id title url }` in the gateway schema. The difference in interface fields between the gateway schema and the layouts subschema will automatically be expanded into typed fragments for compatibility. See related [handbook example](https://github.com/gmac/schema-stitching-handbook/tree/master/type-merging-interfaces) for a working demonstration.
@@ -382,7 +382,7 @@ Merged types may define multiple key fields across services that join through a 
 Given this graph, the Vendors service must provide lookups for its `Product` type by either `upc` _or_ `id` to enable all possible traversals. These multiple pathways can be configured as `entryPoints`:
 
 ```ts
-import { stitchSchemas } from '@graphql-tools/stitch';
+import { stitchSchemas } from '@graphql-tools/stitch'
 
 const gatewaySchema = stitchSchemas({
   subschemas: [
@@ -392,9 +392,9 @@ const gatewaySchema = stitchSchemas({
         Product: {
           selectionSet: '{ upc }',
           fieldName: 'productByUpc',
-          args: upc => ({ upc }),
-        },
-      },
+          args: upc => ({ upc })
+        }
+      }
     },
     {
       schema: vendorsSchema,
@@ -405,16 +405,16 @@ const gatewaySchema = stitchSchemas({
             {
               selectionSet: '{ upc }',
               fieldName: 'productByUpc',
-              args: upc => ({ upc }),
+              args: upc => ({ upc })
             },
             {
               selectionSet: '{ id }',
               fieldName: 'productById',
-              args: id => ({ id }),
-            },
-          ],
-        },
-      },
+              args: id => ({ id })
+            }
+          ]
+        }
+      }
     },
     {
       schema: reviewsSchema,
@@ -422,12 +422,12 @@ const gatewaySchema = stitchSchemas({
         Product: {
           selectionSet: '{ id }',
           fieldName: 'productById',
-          args: id => ({ id }),
-        },
-      },
-    },
-  ],
-});
+          args: id => ({ id })
+        }
+      }
+    }
+  ]
+})
 ```
 
 Note that the `entryPoints` option replaces a merged type's base `selectionSet` and `fieldName`. This configuration is not currently possible with SDL directives, though it may be statically configured alongside of SDL parsing.
@@ -441,7 +441,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
 const productsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     type Product {
       id: ID!
       price: Float!
@@ -456,7 +456,7 @@ const productsSchema = makeExecutableSchema({
 });
 
 const storefrontsSchema = makeExecutableSchema({
-  typeDefs: `
+  typeDefs: /* GraphQL */ `
     directive @computed(selectionSet: String!) on FIELD_DEFINITION
 
     type Storefront {
@@ -561,14 +561,14 @@ If you're familiar with [Apollo Federation](https://www.apollographql.com/docs/a
 If you have multiple services using [Relay Specification](https://relay.dev/docs/graphql-server-specification/#schema), you can easily combine them with the `handleRelaySubschemas` utility function from `@graphql-tools/stitch` package, and your unified schema will handle `Node` interface and `node` operation automatically using Type Merging.
 
 ```ts
-import { stitchSchemas, handleRelaySubschemas } from '@graphql-tools/stitch';
+import { stitchSchemas, handleRelaySubschemas } from '@graphql-tools/stitch'
 
 const stitchedSchema = stitchSchemas({
   subschemas: handleRelaySubschemas(
     [userSchema, postSchema, bookSchema],
     id => getTypeNameFromGlobalID(id) // This is an optional parameter. If not exists, it will inherit the typename from the type condition of the fragment inside the query
-  ),
-});
+  )
+})
 ```
 
 You can check [the unit tests to see the complete usage](https://github.com/ardatan/graphql-tools/blob/master/packages/stitch/tests/relay.spec.ts)!
@@ -652,7 +652,7 @@ Only one of any given type or field may be made canonical. Fields that are uniqu
 The above SDL directives can also be written as static configuration:
 
 ```js
-import { stitchSchemas } from '@graphql-tools/stitch';
+import { stitchSchemas } from '@graphql-tools/stitch'
 
 const gatewaySchema = stitchSchemas({
   subschemas: [
@@ -661,14 +661,14 @@ const gatewaySchema = stitchSchemas({
       merge: {
         User: {
           // ...
-          canonical: true,
+          canonical: true
         },
         Query: {
           fields: {
-            user: { canonical: true },
-          },
-        },
-      },
+            user: { canonical: true }
+          }
+        }
+      }
     },
     {
       schema: postsSchema,
@@ -676,13 +676,13 @@ const gatewaySchema = stitchSchemas({
         User: {
           // ...
           fields: {
-            email: { canonical: true },
-          },
-        },
-      },
-    },
-  ],
-});
+            email: { canonical: true }
+          }
+        }
+      }
+    }
+  ]
+})
 ```
 
 > **Implementation note:** canonical settings are _only_ used for building the combined gateway schema definition and defaulting root field targets; otherwise, they are given no special priority in runtime query planning (which always selects necessary fields from as few subschemas as possible). You may override the assembly of canonical definitions using [`typeMergingOptions`](/docs/stitch-combining-schemas#automatic-merge).
@@ -699,7 +699,7 @@ export type MergedTypeResolver = (
   subschema: SubschemaConfig, // target subschema configuration
   selectionSet: SelectionSetNode, // target subschema selection
   key?: any // the batch key being requested
-) => any;
+) => any
 ```
 
 ### Wrapped resolvers

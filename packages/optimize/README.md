@@ -39,7 +39,7 @@ const optimizedDocument = optimizeDocumentNode(myDocument, [removeDescriptions])
 You can create your own optimizer to manipulate `DocumentNode`, the API signature is pretty simple:
 
 ```ts
-export type DocumentOptimizer = (input: DocumentNode) => DocumentNode;
+export type DocumentOptimizer = (input: DocumentNode) => DocumentNode
 ```
 
 Take a look at [./optimizers](this directory for inspiration and implementation reference).

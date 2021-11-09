@@ -44,46 +44,46 @@ query ($_0_arg: String, $_1_arg: String) {
 An executor is a generic function that wraps a GraphQL execution with the following interface:
 
 ```js
-type Executor = (request: ExecutionRequest) => Promise<ExecutionResult>;
+type Executor = (request: ExecutionRequest) => Promise<ExecutionResult>
 
 type ExecutionRequest = {
   document: DocumentNode,
   variables?: Object,
   context?: Object,
-  info?: GraphQLResolveInfo,
-};
+  info?: GraphQLResolveInfo
+}
 ```
 
 A simple executor for a **remote service** looks like this:
 
 ```js
-import { fetch } from 'cross-undici-fetch';
-import { print } from 'graphql';
+import { fetch } from 'cross-undici-fetch'
+import { print } from 'graphql'
 
 async function myExecutor({ document, variables }) {
-  const query = print(document);
+  const query = print(document)
   const fetchResult = await fetch('http://example.com/graphql', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, variables }),
-  });
-  return fetchResult.json();
+    body: JSON.stringify({ query, variables })
+  })
+  return fetchResult.json()
 }
 ```
 
 A simple executor for a **locally-executable schema** looks like this:
 
 ```js
-import { graphql, print } from 'graphql';
+import { graphql, print } from 'graphql'
 
-const schema = buildMyExecutableSchema();
+const schema = buildMyExecutableSchema()
 
 async function myExecutor({ document, variables }) {
   return graphql({
     schema,
     source: print(document),
-    variableValues: variables,
-  });
+    variableValues: variables
+  })
 }
 ```
 
