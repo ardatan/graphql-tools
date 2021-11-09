@@ -50,7 +50,7 @@ type ExecutionRequest = {
   document: DocumentNode,
   variables?: Object,
   context?: Object,
-  info?: GraphQLResolveInfo,
+  info?: GraphQLResolveInfo
 }
 ```
 
@@ -65,7 +65,7 @@ async function myExecutor({ document, variables }) {
   const fetchResult = await fetch('http://example.com/graphql', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, variables }),
+    body: JSON.stringify({ query, variables })
   })
   return fetchResult.json()
 }
@@ -82,7 +82,7 @@ async function myExecutor({ document, variables }) {
   return graphql({
     schema,
     source: print(document),
-    variableValues: variables,
+    variableValues: variables
   })
 }
 ```

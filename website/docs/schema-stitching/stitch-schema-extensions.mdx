@@ -28,7 +28,7 @@ let postSchema = makeExecutableSchema({
       postById(id: ID!): Post
       postsByUserId(userId: ID!): [Post!]!
     }
-  `,
+  `
 })
 
 let userSchema = makeExecutableSchema({
@@ -41,7 +41,7 @@ let userSchema = makeExecutableSchema({
     type Query {
       userById(id: ID!): User
     }
-  `,
+  `
 })
 
 // just mock the schemas for now to make them return dummy data
@@ -72,7 +72,7 @@ export const schema = stitchSchemas({
     extend type User {
       posts: [Post!]!
     }
-  `,
+  `
 })
 ```
 
@@ -105,10 +105,10 @@ export const schema = stitchSchemas({
             fieldName: 'postsByUserId',
             args: { userId: user.id },
             context,
-            info,
+            info
           })
-        },
-      },
+        }
+      }
     },
     Post: {
       user: {
@@ -120,12 +120,12 @@ export const schema = stitchSchemas({
             fieldName: 'userById',
             args: { id: post.userId },
             context,
-            info,
+            info
           })
-        },
-      },
-    },
-  },
+        }
+      }
+    }
+  }
 })
 ```
 
@@ -205,12 +205,12 @@ const schema = stitchSchemas({
             key: post.userId,
             argsFromKeys: ids => ({ ids }),
             context,
-            info,
+            info
           })
-        },
-      },
-    },
-  },
+        }
+      }
+    }
+  }
 })
 ```
 
@@ -339,7 +339,7 @@ const postSchema = makeExecutableSchema({
       postById(id: ID!): Post
       postsByUserId(userId: ID!): [Post]!
     }
-  `,
+  `
 })
 
 const postsSubschema = {
@@ -348,8 +348,8 @@ const postsSubschema = {
     // remove the "postsByUserId" root field
     new FilterRootFields((op, field) => field !== 'postsByUserId'),
     // prefix all type names with "Post_"
-    new RenameTypes(name => `Post_${name}`),
-  ],
+    new RenameTypes(name => `Post_${name}`)
+  ]
 }
 
 const userSchema = makeExecutableSchema({
@@ -362,11 +362,11 @@ const userSchema = makeExecutableSchema({
     type Query {
       userById(id: ID!): User
     }
-  `,
+  `
 })
 
 const usersSubschema = {
-  schema: addMocksToSchema({ schema: userSchema }),
+  schema: addMocksToSchema({ schema: userSchema })
 }
 
 const stitchedSchema = stitchSchemas({
@@ -390,10 +390,10 @@ const stitchedSchema = stitchSchemas({
             fieldName: 'postsByUserId',
             args: { userId: user.id },
             context,
-            info,
+            info
           })
-        },
-      },
+        }
+      }
     },
     Post_Post: {
       user: {
@@ -405,12 +405,12 @@ const stitchedSchema = stitchSchemas({
             fieldName: 'userById',
             args: { id: post.userId },
             context,
-            info,
+            info
           })
-        },
-      },
-    },
-  },
+        }
+      }
+    }
+  }
 })
 ```
 

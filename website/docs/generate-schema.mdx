@@ -51,20 +51,20 @@ import { find, filter } from 'lodash'
 const authors = [
   { id: 1, firstName: 'Tom', lastName: 'Coleman' },
   { id: 2, firstName: 'Sashko', lastName: 'Stubailo' },
-  { id: 3, firstName: 'Mikhail', lastName: 'Novikov' },
+  { id: 3, firstName: 'Mikhail', lastName: 'Novikov' }
 ]
 
 const posts = [
   { id: 1, authorId: 1, title: 'Introduction to GraphQL', votes: 2 },
   { id: 2, authorId: 2, title: 'Welcome to Meteor', votes: 3 },
   { id: 3, authorId: 2, title: 'Advanced GraphQL', votes: 1 },
-  { id: 4, authorId: 3, title: 'Launchpad is Cool', votes: 7 },
+  { id: 4, authorId: 3, title: 'Launchpad is Cool', votes: 7 }
 ]
 
 const resolvers = {
   Query: {
     posts: () => posts,
-    author: (_, { id }) => find(authors, { id }),
+    author: (_, { id }) => find(authors, { id })
   },
 
   Mutation: {
@@ -75,16 +75,16 @@ const resolvers = {
       }
       post.votes += 1
       return post
-    },
+    }
   },
 
   Author: {
-    posts: author => filter(posts, { authorId: author.id }),
+    posts: author => filter(posts, { authorId: author.id })
   },
 
   Post: {
-    author: post => find(authors, { id: post.authorId }),
-  },
+    author: post => find(authors, { id: post.authorId })
+  }
 }
 ```
 
@@ -95,7 +95,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 
 export const schema = makeExecutableSchema({
   typeDefs,
-  resolvers,
+  resolvers
 })
 ```
 
@@ -128,7 +128,7 @@ const typeDefs = [
     extend type Query {
       foos: [Foo]!
     }
-  `,
+  `
 ]
 ```
 
@@ -139,21 +139,21 @@ const barsResolver = {
   Query: {
     bars(parent, args, context, info) {
       // ...
-    },
-  },
+    }
+  }
 }
 
 const foosResolver = {
   Query: {
     foos(parent, args, context, info) {
       // ...
-    },
-  },
+    }
+  }
 }
 
 const schema = makeExecutableSchema({
   typeDefs,
-  resolvers: [barsResolver, foosResolver],
+  resolvers: [barsResolver, foosResolver]
 })
 ```
 
@@ -173,7 +173,7 @@ const typeDefs = [
     type RootQuery {
       aNumber: Int
     }
-  `,
+  `
 ]
 ```
 
@@ -225,7 +225,7 @@ const jsSchema = makeExecutableSchema({
   logger, // optional
   resolverValidationOptions: {}, // optional
   parseOptions: {}, // optional
-  inheritResolversFromInterfaces: false, // optional
+  inheritResolversFromInterfaces: false // optional
 })
 ```
 

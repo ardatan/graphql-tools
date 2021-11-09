@@ -87,7 +87,7 @@ const { stitchingDirectives } = require('@graphql-tools/stitching-directives')
 const { allStitchingDirectivesTypeDefs, stitchingDirectivesValidator } = stitchingDirectives({
   keyDirectiveName: 'myKey',
   mergeDirectiveName: 'myMerge',
-  computedDirectiveName: 'myComputed',
+  computedDirectiveName: 'myComputed'
 })
 ```
 
@@ -119,9 +119,9 @@ const schema = makeExecutableSchema({
   resolvers: {
     Query: {
       // 2. setup a query that exposes the raw SDL...
-      _sdl: () => typeDefs,
-    },
-  },
+      _sdl: () => typeDefs
+    }
+  }
 })
 
 // 3. include the stitching directives validator...
@@ -152,13 +152,13 @@ async function createGatewaySchema() {
     subschemas: [
       {
         schema: await fetchRemoteSchema(usersExec),
-        executor: usersExec,
+        executor: usersExec
       },
       {
         schema: await fetchRemoteSchema(postsExec),
-        executor: postsExec,
-      },
-    ],
+        executor: postsExec
+      }
+    ]
   })
 }
 
@@ -168,7 +168,7 @@ function createRemoteExecutor(url) {
     const fetchResult = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, variables }),
+      body: JSON.stringify({ query, variables })
     })
     return fetchResult.json()
   }

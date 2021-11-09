@@ -18,7 +18,7 @@ const typeDefs = importSchema(join(__dirname, 'schema.graphql'))
 const resolvers = {
   Query: {
     /**...*/
-  },
+  }
 }
 const schema = makeExecutableSchema({ typeDefs, resolvers })
 ```
@@ -35,12 +35,12 @@ const schema = loadSchemaSync(join(__dirname, 'schema.graphql'), { loaders: [new
 const resolvers = {
   Query: {
     /**...*/
-  },
+  }
 }
 
 const schemaWithResolvers = addResolversToSchema({
   schema,
-  resolvers,
+  resolvers
 })
 ```
 

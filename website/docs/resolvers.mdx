@@ -19,13 +19,13 @@ const resolverMap = {
   Query: {
     author(obj, args, context, info) {
       return find(authors, { id: args.id })
-    },
+    }
   },
   Author: {
     posts(author) {
       return filter(posts, { authorId: author.id })
-    },
-  },
+    }
+  }
 }
 ```
 
@@ -146,8 +146,8 @@ const resolverMap = {
       }
 
       return null
-    },
-  },
+    }
+  }
 }
 ```
 
@@ -169,8 +169,8 @@ const resolvers = {
     author(obj, { name }, context) {
       console.log('RootQuery called with context', context, 'to find', name)
       return Author.find({ name })
-    },
-  },
+    }
+  }
 }
 
 const schemaWithResolvers = addResolversToSchema({ schema, resolvers })

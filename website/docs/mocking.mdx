@@ -155,8 +155,8 @@ const typeDefs = /* GraphQL */ `
 const mocks = {
   Result: () => ({
     __typename: 'User',
-    name: casual.name(),
-  }),
+    name: casual.name()
+  })
 }
 ```
 
@@ -190,9 +190,9 @@ const schemaWithMocks = addMocksToSchema({
         store.set('Query', 'ROOT', 'me', { name: newName })
 
         return store.get('Query', 'ROOT', 'me')
-      },
-    },
-  }),
+      }
+    }
+  })
 })
 ```
 
@@ -280,9 +280,9 @@ const schemaWithMocks = addMocksToSchema({
 
         // actually apply pagination slicing
         return fullList.slice(offset, offset + limit)
-      },
-    },
-  }),
+      }
+    }
+  })
 })
 ```
 
@@ -354,7 +354,7 @@ import { addMocksToSchema } from '@graphql-tools/mock'
 const schemaWithMocks = addMocksToSchema({
   schema,
   mocks: {},
-  preserveResolvers: false,
+  preserveResolvers: false
 })
 ```
 
@@ -405,9 +405,9 @@ const schemaWithMocks = addMocksToSchema({
     return {
       Query: {
         //... your custom resolvers
-      },
+      }
     }
-  },
+  }
 })
 ```
 
@@ -509,8 +509,8 @@ Set a field value via graph traversal (nested set):
 store.get('Query', 'ROOT', {
   viewer: {
     name: 'Alexandre',
-    friends: [{ name: 'Emily' }, { name: 'Caroline' }],
-  },
+    friends: [{ name: 'Emily' }, { name: 'Caroline' }]
+  }
 })
 ```
 
@@ -547,8 +547,8 @@ Example:
 // Previously:
 const mocks = {
   Person: () => ({
-    paginatedFriends: (root, { numPages }) => new MockList(numPages * PAGE_SIZE),
-  }),
+    paginatedFriends: (root, { numPages }) => new MockList(numPages * PAGE_SIZE)
+  })
 }
 const schemaWithMocks = addMocksToSchema({ schema, mocks })
 
@@ -556,8 +556,8 @@ const schemaWithMocks = addMocksToSchema({ schema, mocks })
 const resolvers = store => ({
   Person: {
     paginatedFriends: (root, { numPages }) =>
-      store.get(root, 'paginatedFriends').slice(numPages * PAGE_SIZE, (numPages + 1) * PAGE_SIZE),
-  },
+      store.get(root, 'paginatedFriends').slice(numPages * PAGE_SIZE, (numPages + 1) * PAGE_SIZE)
+  }
 })
 const schemaWithMocks = addMocksToSchema({ schema, resolvers })
 ```
@@ -603,12 +603,12 @@ const resolvers = {
   User: {
     name: data => {
       return data.name.toLowerCase()
-    },
-  },
+    }
+  }
 }
 const schema = makeExecutableSchema({
   typeDefs,
-  resolvers,
+  resolvers
 })
 const schemaWithMocks = addMocksToSchema({ schema, preserveResolvers: true })
 
@@ -621,8 +621,8 @@ const resolvers = {
     name: source => {
       // `source` is an entity `Ref`
       return store.get(source, 'name').toLowerCase()
-    },
-  },
+    }
+  }
 }
 schema = addResolversToSchema(schema, resolvers)
 
@@ -676,34 +676,34 @@ const typeDefs = /* GraphQL */ `
 // Previously:
 const mocks = {
   List: () => ({
-    typename: 'ProductList',
-  }),
+    typename: 'ProductList'
+  })
 }
 
 const resolvers = {
   List: {
     __resolveType(data) {
       return data.typename
-    },
-  },
+    }
+  }
 }
 
 const schema = makeExecutableSchema({
   typeDefs,
-  resolvers,
+  resolvers
 })
 
 const schemaWithMocks = addMocksToSchema({
   schema,
   mocks,
-  preserveResolvers: true,
+  preserveResolvers: true
 })
 
 // Now:
 const mocks = {
   List: () => ({
-    __typename: 'ProductList',
-  }),
+    __typename: 'ProductList'
+  })
 }
 
 const schema = makeExecutableSchema({ typeDefs })
@@ -722,8 +722,8 @@ Example:
 const mocks = {
   Person: () => ({
     friends: () => new MockList([2, 6]),
-    listOfLists: () => new MockList(3, () => new MockList(2)),
-  }),
+    listOfLists: () => new MockList(3, () => new MockList(2))
+  })
 }
 
 // Now:
@@ -731,7 +731,7 @@ var casual = require('casual')
 const mocks = {
   Person: () => ({
     friends: [...new Array(casual.integer(2, 6))],
-    listOfLists: () => [...new Array(3)].map(i => [...new Array(2)]),
-  }),
+    listOfLists: () => [...new Array(3)].map(i => [...new Array(2)])
+  })
 }
 ```

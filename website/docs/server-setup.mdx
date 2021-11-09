@@ -17,7 +17,7 @@ const { makeExecutableSchema } = require('@graphql-tools/schema')
 
 const schema = makeExecutableSchema({
   typeDefs,
-  resolvers,
+  resolvers
 })
 
 const app = express()
@@ -25,7 +25,7 @@ app.use(
   '/graphql',
   graphqlHTTP({
     schema,
-    graphiql: true,
+    graphiql: true
   })
 )
 
@@ -62,7 +62,7 @@ const { makeExecutableSchema } = require('@graphql-tools/schema')
 
 const schema = makeExecutableSchema({
   typeDefs,
-  resolvers,
+  resolvers
 })
 
 const app = express()
@@ -70,7 +70,7 @@ app.use(
   '/graphql',
   graphqlHTTP({
     schema,
-    graphiql: true,
+    graphiql: true
   })
 )
 
@@ -78,7 +78,7 @@ const server = http.createServer(app)
 
 const wsServer = new ws.Server({
   server,
-  path: '/graphql',
+  path: '/graphql'
 })
 
 server.listen(3000, () => {
@@ -101,7 +101,7 @@ const { makeExecutableSchema } = require('@graphql-tools/schema')
 
 const schema = makeExecutableSchema({
   typeDefs,
-  resolvers,
+  resolvers
 })
 
 const app = express()
@@ -109,13 +109,13 @@ app.use(
   '/graphql',
   graphqlHTTP({
     schema,
-    graphiql: true,
+    graphiql: true
   })
 )
 app.use(
   '/graphql/stream',
   createHandler({
-    schema,
+    schema
   })
 )
 

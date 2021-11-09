@@ -30,22 +30,22 @@ const schema1 = await loadSchema('type A { foo: String }') // load from string w
 
 const schema2 = await loadSchema('http://localhost:3000/graphql', {
   // load from endpoint
-  loaders: [new UrlLoader()],
+  loaders: [new UrlLoader()]
 })
 
 const schema3 = await loadSchema('./schema.json', {
   // load from local json file
-  loaders: [new JsonFileLoader()],
+  loaders: [new JsonFileLoader()]
 })
 
 const schema4 = await loadSchema('schema.graphql', {
   // load from a single schema file
-  loaders: [new GraphQLFileLoader()],
+  loaders: [new GraphQLFileLoader()]
 })
 
 const schema5 = await loadSchema('./src/**/*.graphql', {
   // load from multiple files using glob
-  loaders: [new GraphQLFileLoader()],
+  loaders: [new GraphQLFileLoader()]
 })
 ```
 
@@ -126,7 +126,7 @@ import * as graphqlHTTP from 'express-graphql'
 
 // Load schema from the file
 const schema = loadSchemaSync(join(__dirname, './schema.graphql'), {
-  loaders: [new GraphQLFileLoader()],
+  loaders: [new GraphQLFileLoader()]
 })
 
 // Write some resolvers
@@ -135,7 +135,7 @@ const resolvers = {}
 // Add resolvers to the schema
 const schemaWithResolvers = addResolversToSchema({
   schema,
-  resolvers,
+  resolvers
 })
 
 const app = express()
@@ -143,7 +143,7 @@ const app = express()
 app.use(
   graphqlHTTP({
     schema: schemaWithResolvers,
-    graphiql: true,
+    graphiql: true
   })
 )
 
@@ -189,7 +189,7 @@ import { loadSchema } from '@graphql-tools/load'
 
 const schema = await loadSchema('graphql/**/*.graphql', {
   // load files and merge them into a single schema object
-  loaders: [new GraphQLFileLoader()],
+  loaders: [new GraphQLFileLoader()]
 })
 ```
 
@@ -201,7 +201,7 @@ import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader'
 
 const documents = await loadDocuments('graphql/**/*.graphql', {
   // load files and merge them into a single schema object
-  loaders: [new GraphQLFileLoader()],
+  loaders: [new GraphQLFileLoader()]
 })
 ```
 
@@ -219,7 +219,7 @@ import { JsonFileLoader } from '@graphql-tools/json-file-loader'
 import { addMocksToSchema } from '@graphql-tools/mock'
 
 const schema = await loadSchema('schema-introspection.json', {
-  loaders: [new JsonFileLoader()],
+  loaders: [new JsonFileLoader()]
 })
 
 // Mocked non-executable schema generated from an introspection
@@ -233,7 +233,7 @@ import { loadDocuments } from '@graphql-tools/load'
 import { JsonFileLoader } from '@graphql-tools/json-file-loader'
 
 const documents = await loadDocuments('**/*-document.json', {
-  loaders: [new JsonFileLoader()],
+  loaders: [new JsonFileLoader()]
 })
 ```
 
@@ -301,7 +301,7 @@ import { loadSchema } from '@graphql-tools/load'
 import { UrlLoader } from '@graphql-tools/url-loader'
 
 const schema = await loadSchema('http://localhost:3000/graphql', {
-  loaders: [new UrlLoader()],
+  loaders: [new UrlLoader()]
 })
 ```
 
@@ -314,10 +314,10 @@ import { UrlLoader } from '@graphql-tools/url-loader'
 const schema = await loadSchema('http://localhost:3000/graphql', {
   loaders: [new UrlLoader()],
   headers: {
-    Accept: 'application/json',
+    Accept: 'application/json'
   },
   method: 'POST',
-  fetch: myFetch,
+  fetch: myFetch
 })
 ```
 
@@ -331,7 +331,7 @@ import { UrlLoader } from '@graphql-tools/url-loader'
 import { graphql } from 'graphql'
 
 const schema = await loadSchema('http://localhost:3000/graphql', {
-  loaders: [new UrlLoader()],
+  loaders: [new UrlLoader()]
 })
 
 const response = await graphql(

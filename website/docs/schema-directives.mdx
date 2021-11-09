@@ -41,7 +41,7 @@ const typeDefs = /* GraphQL */ `
 `
 
 let schema = makeExecutableSchema({
-  typeDefs,
+  typeDefs
 })
 
 schema = renameDirective('rename')(schema)
@@ -81,8 +81,8 @@ function deprecatedDirective(directiveName: string) {
             enumValueConfig.deprecationReason = deprecatedDirective['reason']
             return enumValueConfig
           }
-        },
-      }),
+        }
+      })
   }
 }
 ```
@@ -107,8 +107,8 @@ let schema = makeExecutableSchema({
       type Query {
         rootField: ExampleType
       }
-    `,
-  ],
+    `
+  ]
 })
 schema = deprecatedDirectiveTransformer(schema)
 ```
@@ -140,7 +140,7 @@ function upperDirective(directiveName: string): (schema: GraphQLSchema) => Graph
           }
           return fieldConfig
         }
-      },
+      }
     })
 }
 
@@ -157,7 +157,7 @@ let schema = makeExecutableSchema({
         hello: String @upper
         hello2: String @upperCase
       }
-    `,
+    `
   ],
   resolvers: {
     Query: {
@@ -166,9 +166,9 @@ let schema = makeExecutableSchema({
       },
       hello2() {
         return 'hello world'
-      },
-    },
-  },
+      }
+    }
+  }
 })
 
 schema = upperDirectiveTransformer(schema)
@@ -233,8 +233,8 @@ function dateDirective(directiveName: string) {
             }
             return fieldConfig
           }
-        },
-      }),
+        }
+      })
   }
 }
 
@@ -249,15 +249,15 @@ let schema = makeExecutableSchema({
       type Query {
         today: Date @date(format: "mmmm d, yyyy")
       }
-    `,
+    `
   ],
   resolvers: {
     Query: {
       today() {
         return new Date(1519688273858).toUTCString()
-      },
-    },
-  },
+      }
+    }
+  }
 })
 schema = dateDirectiveTransformer(schema)
 ```
@@ -286,7 +286,7 @@ function formattableDateDirective(directiveName: string) {
             }
 
             fieldConfig.args['format'] = {
-              type: GraphQLString,
+              type: GraphQLString
             }
 
             fieldConfig.type = GraphQLString
@@ -297,8 +297,8 @@ function formattableDateDirective(directiveName: string) {
             }
             return fieldConfig
           }
-        },
-      }),
+        }
+      })
   }
 }
 
@@ -313,15 +313,15 @@ let schema = makeExecutableSchema({
       type Query {
         today: Date @date
       }
-    `,
+    `
   ],
   resolvers: {
     Query: {
       today() {
         return new Date(1521131357195)
-      },
-    },
-  },
+      }
+    }
+  }
 })
 schema = formattableDateDirectiveTransformer(schema)
 ```
@@ -417,8 +417,8 @@ function authDirective(directiveName: string, getUserFn: (token: string) => { ha
               return fieldConfig
             }
           }
-        },
-      }),
+        }
+      })
   }
 }
 
@@ -429,7 +429,7 @@ function getUser(token: string) {
       const tokenIndex = roles.indexOf(token)
       const roleIndex = roles.indexOf(role)
       return roleIndex >= 0 && tokenIndex >= roleIndex
-    },
+    }
   }
 }
 
@@ -448,7 +448,7 @@ let schema = makeExecutableSchema({
       type Query {
         users: [User]
       }
-    `,
+    `
   ],
   resolvers: {
     Query: {
@@ -457,12 +457,12 @@ let schema = makeExecutableSchema({
           {
             banned: true,
             canPost: false,
-            name: 'Ben',
-          },
+            name: 'Ben'
+          }
         ]
-      },
-    },
-  },
+      }
+    }
+  }
 })
 schema = authDirectiveTransformer(schema)
 ```
@@ -495,7 +495,7 @@ function lengthDirective(directiveName: string) {
 
         parseLiteral(ast) {
           return type.parseLiteral(ast, {})
-        },
+        }
       })
     }
   }
@@ -544,8 +544,8 @@ function lengthDirective(directiveName: string) {
             wrapType(fieldConfig, lengthDirective)
             return fieldConfig
           }
-        },
-      }),
+        }
+      })
   }
 }
 
@@ -570,24 +570,24 @@ let schema = makeExecutableSchema({
       input BookInput {
         title: String! @length(max: 10)
       }
-    `,
+    `
   ],
   resolvers: {
     Query: {
       books() {
         return [
           {
-            title: 'abcdefghijklmnopqrstuvwxyz',
-          },
+            title: 'abcdefghijklmnopqrstuvwxyz'
+          }
         ]
-      },
+      }
     },
     Mutation: {
       createBook(_parent, args) {
         return args.book
-      },
-    },
-  },
+      }
+    }
+  }
 })
 schema = lengthDirectiveTransformer(schema)
 ```
@@ -623,12 +623,12 @@ function uniqueIDDirective(directiveName: string) {
                   hash.update(String(object[fieldName]))
                 }
                 return hash.digest('hex')
-              },
+              }
             }
             return new GraphQLObjectType(config)
           }
-        },
-      }),
+        }
+      })
   }
 }
 
@@ -652,7 +652,7 @@ let schema = makeExecutableSchema({
         locationID: Int
         address: String
       }
-    `,
+    `
   ],
   resolvers: {
     Query: {
@@ -660,20 +660,20 @@ let schema = makeExecutableSchema({
         return [
           {
             personID: 1,
-            name: 'Ben',
-          },
+            name: 'Ben'
+          }
         ]
       },
       locations() {
         return [
           {
             locationID: 1,
-            address: '140 10th St',
-          },
+            address: '140 10th St'
+          }
         ]
-      },
-    },
-  },
+      }
+    }
+  }
 })
 schema = uniqueIDDirectiveTransformer(schema)
 ```
@@ -732,7 +732,7 @@ export function attachDirectiveResolvers(
       }
 
       return newFieldConfig
-    },
+    }
   })
 }
 ```

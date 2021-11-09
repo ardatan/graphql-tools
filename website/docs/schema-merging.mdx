@@ -22,9 +22,9 @@ const mergedSchema = mergeSchemas({
   `,
   resolvers: {
     ExtraType: {
-      foo: () => 'FOO',
-    },
-  },
+      foo: () => 'FOO'
+    }
+  }
 })
 ```
 
@@ -305,25 +305,25 @@ Resolvers are implemented as simple JS objects and then merged using deep-merge.
 module.exports = {
   Query: {
     clients: () => {},
-    client: () => {},
+    client: () => {}
   },
   Mutation: {
-    addClient: () => {},
+    addClient: () => {}
   },
   Client: {
-    products: () => {},
-  },
+    products: () => {}
+  }
 }
 
 // ./graphql/resolvers/productResolver.js
 module.exports = {
   Query: {
     products: () => {},
-    product: () => {},
+    product: () => {}
   },
   Product: {
-    client: () => {},
-  },
+    client: () => {}
+  }
 }
 ```
 
@@ -424,8 +424,8 @@ Let's say you have a factory function inside your resolvers like below;
 ```js
 module.exports = customQueryTypeName => ({
   [customQueryTypeName]: {
-    foo: () => 'FOO',
-  },
+    foo: () => 'FOO'
+  }
 })
 ```
 
@@ -440,6 +440,6 @@ const resolvers = loadFilesSync(join(__dirname, './resolvers/**/*.js'), {
       return fileExport('query_root')
     }
     return fileExport
-  },
+  }
 })
 ```

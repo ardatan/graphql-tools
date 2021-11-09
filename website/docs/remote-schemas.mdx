@@ -33,7 +33,7 @@ type Request = {
   document: DocumentNode,
   variables?: Object,
   context?: Object,
-  info?: GraphQLResolveInfo,
+  info?: GraphQLResolveInfo
 }
 ```
 
@@ -51,9 +51,9 @@ const executor = async ({ document, variables }) => {
   const fetchResult = await fetch('http://example.com/graphql', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ query, variables }),
+    body: JSON.stringify({ query, variables })
   })
   return fetchResult.json()
 }
@@ -61,7 +61,7 @@ const executor = async ({ document, variables }) => {
 export default async () => {
   const schema = wrapSchema({
     schema: await introspectSchema(executor),
-    executor,
+    executor
   })
   return schema
 }
@@ -80,9 +80,9 @@ const executor = async ({ document, variables, context }) => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${context.authKey}`,
+      Authorization: `Bearer ${context.authKey}`
     },
-    body: JSON.stringify({ query, variables }),
+    body: JSON.stringify({ query, variables })
   })
   return fetchResult.json()
 }
@@ -90,7 +90,7 @@ const executor = async ({ document, variables, context }) => {
 export default async () => {
   const schema = wrapSchema({
     schema: await introspectSchema(executor),
-    executor,
+    executor
   })
 
   return schema
@@ -117,7 +117,7 @@ const HTTP_GRAPHQL_ENDPOINT = 'http://localhost:3000/graphql'
 const WS_GRAPHQL_ENDPOINT = 'ws://localhost:3000/graphql'
 
 const subscriptionClient = createClient({
-  url: WS_GRAPHQL_ENDPOINT,
+  url: WS_GRAPHQL_ENDPOINT
 })
 
 const executor: Executor = ({ document, variables }) =>
@@ -126,7 +126,7 @@ const executor: Executor = ({ document, variables }) =>
       unsubscribe: subscriptionClient.subscribe(
         {
           query: document,
-          variables,
+          variables
         },
         {
           next: data => observer.next && observer.next(data),
@@ -141,16 +141,16 @@ const executor: Executor = ({ document, variables }) =>
               observer.error(new Error(err.map(({ message }) => message).join(', ')))
             }
           },
-          complete: () => observer.complete && observer.complete(),
+          complete: () => observer.complete && observer.complete()
         }
-      ),
-    }),
+      )
+    })
   })
 
 export default async () => {
   const schema = wrapSchema({
     schema: await introspectSchema(executor),
-    executor,
+    executor
   })
 
   return schema
@@ -232,7 +232,7 @@ import { wrapSchema } from '@graphql-tools/wrap'
 const schema = wrapSchema({
   schema,
   executor,
-  transforms,
+  transforms
 })
 ```
 
@@ -261,7 +261,7 @@ import { delegateToSchema } from '@graphql-tools/delegate'
 export function defaultCreateProxyingResolver({
   subschemaConfig,
   operation,
-  transformedSchema,
+  transformedSchema
 }: ICreateProxyingResolverOptions): GraphQLFieldResolver<any, any> {
   return (_parent, _args, context, info) =>
     delegateToSchema({
@@ -269,7 +269,7 @@ export function defaultCreateProxyingResolver({
       operation,
       context,
       info,
-      transformedSchema,
+      transformedSchema
     })
 }
 ```
@@ -284,7 +284,7 @@ import { wrapSchema } from '@graphql-tools/wrap'
 const schema = wrapSchema({
   schema,
   executor: myCustomExecutor,
-  createProxyingResolver: myCustomCreateProxyingResolverFn,
+  createProxyingResolver: myCustomCreateProxyingResolverFn
 })
 ```
 

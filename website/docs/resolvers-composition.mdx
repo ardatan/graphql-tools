@@ -32,8 +32,8 @@ const resolvers = {
       }
 
       return false
-    },
-  },
+    }
+  }
 }
 ```
 
@@ -50,8 +50,8 @@ const resolvers = {
       }
 
       return false
-    },
-  },
+    }
+  }
 }
 
 const isAuthenticated = () => next => async (root, args, context, info) => {
@@ -71,7 +71,7 @@ const hasRole = (role: string) => next => async (root, args, context, info) => {
 }
 
 const resolversComposition = {
-  'Query.myQuery': [isAuthenticated(), hasRole('EDITOR')],
+  'Query.myQuery': [isAuthenticated(), hasRole('EDITOR')]
 }
 
 const composedResolvers = composeResolvers(resolvers, resolversComposition)

@@ -94,7 +94,7 @@ export interface SubschemaConfig {
   batch?: boolean;
   batchingOptions?: {
     extensionsReducer?: (mergedExtensions: Record<string, any>, request: Request) => Record<string, any>,
-    dataLoaderOptions?: DataLoader.Options<K, V, C>,
+    dataLoaderOptions?: DataLoader.Options<K, V, C>
   };
 }
 ```
@@ -117,14 +117,14 @@ async function remoteExecutor({ document, variables }) {
   const fetchResult = await fetch('https://my.remote.service/graphql', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, variables }),
+    body: JSON.stringify({ query, variables })
   })
   return fetchResult.json()
 }
 
 export const postsSubschema = {
   schema: await introspectSchema(remoteExecutor),
-  executor: remoteExecutor,
+  executor: remoteExecutor
 }
 ```
 
@@ -214,8 +214,8 @@ const postsSubschema = {
   schema: postsSchema,
   transforms: [
     new FilterRootFields((operation, rootField) => rootField !== 'postsByUserId'),
-    new RenameTypes(name => `Post_${name}`),
-  ],
+    new RenameTypes(name => `Post_${name}`)
+  ]
 }
 ```
 
