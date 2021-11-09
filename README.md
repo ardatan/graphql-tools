@@ -118,10 +118,10 @@ GraphQL-Tools schema can be consumed by frameworks like Apollo GraphQL or expres
 For example
 
 ```js
-var express = require('express');
-var { graphqlHTTP } = require('express-graphql');
+const express = require('express');
+const { graphqlHTTP } = require('express-graphql');
 
-var app = express();
+const app = express();
 app.use(
   '/graphql',
   graphqlHTTP({
