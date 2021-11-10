@@ -1,5 +1,11 @@
 # @graphql-tools/mock
 
+## 8.4.3
+
+### Patch Changes
+
+- dc7c9984: fix(mock): allow mocking of objects nested in arrays
+
 ## 8.4.2
 
 ### Patch Changes

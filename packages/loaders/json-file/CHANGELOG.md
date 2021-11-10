@@ -1,5 +1,11 @@
 # @graphql-tools/json-file-loader
 
+## 7.3.3
+
+### Patch Changes
+
+- 3173a69f: fix(graphql/json-loader): raise error if one of the found files fails
+
 ## 7.3.2
 
 ### Patch Changes
