@@ -1781,15 +1781,15 @@
   dependencies:
     "@chakra-ui/utils" "1.8.4"
 
-"@changesets/apply-release-plan@5.0.1", "@changesets/apply-release-plan@^5.0.2":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@changesets/apply-release-plan/-/apply-release-plan-5.0.1.tgz#ed3e30550f787ef1b72f0a51e29a54d244123109"
-  integrity sha512-ltYLM/PPoL1Un9hnNCbUac25FWonJvIZ/9C3O4UyZ/k4rir9FGvH6KLtMOiPEAJWnXmaHeRDr06MzohuXOnmvw==
+"@changesets/apply-release-plan@5.0.2", "@changesets/apply-release-plan@^5.0.2":
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/@changesets/apply-release-plan/-/apply-release-plan-5.0.2.tgz#8abcbbce338a0ac10d67b1cc777b0b893b452198"
+  integrity sha512-grNaIzOjAd34VV5493hyL7a9Y5P2v0dLXWaSfcUUIREemzkkpuVtsqAQRtot2JIjOcpGMyTn3tnaMpErJ1ZByw==
   dependencies:
     "@babel/runtime" "^7.10.4"
-    "@changesets/config" "^1.6.1"
+    "@changesets/config" "^1.6.2"
     "@changesets/get-version-range-type" "^0.3.2"
-    "@changesets/git" "^1.1.2"
+    "@changesets/git" "^1.2.0"
     "@changesets/types" "^4.0.1"
     "@manypkg/get-packages" "^1.0.1"
     detect-indent "^6.0.0"
@@ -1848,7 +1848,7 @@
     term-size "^2.1.0"
     tty-table "^2.8.10"
 
-"@changesets/config@^1.6.1", "@changesets/config@^1.6.2":
+"@changesets/config@^1.6.2":
   version "1.6.2"
   resolved "https://registry.yarnpkg.com/@changesets/config/-/config-1.6.2.tgz#42ade5ec516560e33698f207804b3560223ea334"
   integrity sha512-CJV71tDz/A4TmpyYRIdT4pwGg0GWuem7ahNR01VnOHhmXoXFbXrISX1TYGYo611N7vO9RQHmV8cnhmlHU0LlNA==
@@ -1897,7 +1897,7 @@
   resolved "https://registry.yarnpkg.com/@changesets/get-version-range-type/-/get-version-range-type-0.3.2.tgz#8131a99035edd11aa7a44c341cbb05e668618c67"
   integrity sha512-SVqwYs5pULYjYT4op21F2pVbcrca4qA/bAA3FmFXKMN7Y+HcO8sbZUTx3TAy2VXulP2FACd1aC7f2nTuqSPbqg==
 
-"@changesets/git@^1.1.2", "@changesets/git@^1.2.0":
+"@changesets/git@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@changesets/git/-/git-1.2.0.tgz#9b6c4bcf101ecf2f870df6771bb1ca12d863984e"
   integrity sha512-9EM+04/6TIImnNTgagxrwtimITtHEDaBYKubPPA6WDzd+KiTOf9g7i/6aUhhdwbwqQQfPAn5gzgfFB0KvwEHeA==
