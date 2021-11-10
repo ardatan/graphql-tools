@@ -67,9 +67,6 @@ test('load schema from GitHub', () => {
   assertNonMaybe(params);
 
   // headers
-  console.log({
-    params,
-  });
   expect(params.headers['content-type']).toContain('application/json; charset=utf-8');
   expect(params.headers.authorization).toContain(`bearer ${token}`);
 
