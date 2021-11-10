@@ -145,6 +145,13 @@ export function addMocksToSchema({
       });
     }
 
+    if (defaultResolvedValue === undefined) {
+      const mockFn = mocks?.[info.returnType.toString()];
+      if (typeof mockFn === 'function') {
+        return mockFn(source, args, contex, info);
+      }
+    }
+
     return undefined;
   };
 
