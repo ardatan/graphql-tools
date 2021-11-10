@@ -508,7 +508,7 @@ store.set('User', '1', { name: 'Alexandre', age: 31 })
 Set a field value via graph traversal (nested set):
 
 ```ts
-store.get('Query', 'ROOT', {
+store.set('Query', 'ROOT', {
   viewer: {
     name: 'Alexandre',
     friends: [{ name: 'Emily' }, { name: 'Caroline' }]
