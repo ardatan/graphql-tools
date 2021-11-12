@@ -242,8 +242,8 @@ const schemaWithMocks = addMocksToSchema({
   schema,
   store,
   resolvers: (store) => ({
-    Query {
-      userById(_, { id }) => store.get('User', id),
+    Query: {
+      userById: (_, { id }) => store.get('User', id),
     }
   })
 });
