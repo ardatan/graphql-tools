@@ -228,25 +228,25 @@ const result = await server.query(query, variables)
 By default, `*byId` (like `userById(id: ID!)`) field will return an entity that does not have the same `id` as the one queried. We can fix that:
 
 ```ts
-const typeDefs = /* GraphQL */`
-type User {
-  id: Id!
-  name: String!
-}
-type Query {
-  userById(id: ID!): User!
-}
+const typeDefs = /* GraphQL */ `
+  type User {
+    id: Id!
+    name: String!
+  }
+  type Query {
+    userById(id: ID!): User!
+  }
 `
-const schema = makeExecutableSchema({ typeDefs: schemaString });
+const schema = makeExecutableSchema({ typeDefs: schemaString })
 const schemaWithMocks = addMocksToSchema({
   schema,
   store,
-  resolvers: (store) => ({
+  resolvers: store => ({
     Query: {
-      userById: (_, { id }) => store.get('User', id),
+      userById: (_, { id }) => store.get('User', id)
     }
   })
-});
+})
 ```
 
 Note that, by default, the `id` or `_id` field will be used as storage key and the store will make sure the storage key and the field value are equal. You can change the key field using the option `typePolicies`.
