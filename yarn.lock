@@ -2120,7 +2120,7 @@
     use-immer "^0.6.0"
     zustand "^3.6.5"
 
-"@guild-docs/mdx-remote@^1.0.0", "@guild-docs/mdx-remote@^1.0.1":
+"@guild-docs/mdx-remote@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@guild-docs/mdx-remote/-/mdx-remote-1.0.1.tgz#e5db16b20550fbbba74423d077bbf3ecf13733ce"
   integrity sha512-x5AMrnbGRRbTsju3FEyi6jzLDHwFhoAzef3fTNVFU442XDkB5JMwi7yA5Q52yaFur+l6LFYjkeT2hHfjSZn5EA==
@@ -2131,19 +2131,19 @@
     unified "^10.1.0"
     unist-util-remove "^3.1.0"
 
-"@guild-docs/server@2.1.1":
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-2.1.1.tgz#eb76e47cfbee76bfce4337542db248284319dba3"
-  integrity sha512-Ph/Uv/a5rkO1NLvgOarc6FPUvNx2aQNi4IfcG0sNC5iUJz5xufFUr5OH3s+YnfoQzu5LpR/wf/oyC2952LbijQ==
+"@guild-docs/server@2.1.2":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-2.1.2.tgz#d13392ccf1ca5bc550ad3a8f25763c44d700e8e5"
+  integrity sha512-tlD9MYZVyU+elFnxgKRkBSAUKgO2RouE6TPtHzV3HBFkP2CZgk6KETVCklGc9W+ETYnzR2J9oHFBDB4T3jesng==
   dependencies:
-    "@guild-docs/mdx-remote" "^1.0.0"
+    "@guild-docs/mdx-remote" "^1.0.1"
     "@guild-docs/types" "^1.0.3"
     github-slugger "^1.4.0"
     globby "^11.0.4"
     gray-matter "^4.0.3"
     node-fetch "^2.6.6"
     rehype-slug "^5.0.0"
-    remark-emoji "^3.0.1"
+    remark-emoji "^3.0.2"
     tiny-lru "^7.0.6"
     unified "^10.1.0"
     unist-util-visit "^4.1.0"
@@ -10379,14 +10379,14 @@ remark-admonitions@1.2.1:
     unified "^8.4.2"
     unist-util-visit "^2.0.1"
 
-remark-emoji@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/remark-emoji/-/remark-emoji-3.0.1.tgz#984286b79f708405519e8d09e79b650bee7fde30"
-  integrity sha512-fjHrb2Znv3Y7rTVswpqtxp+UHECq27eQ6uN5JJC/weAr1Tt9ddMMqi0jl8TU32VNqErIV2ez1g6RYoSDyO7lyQ==
+remark-emoji@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/remark-emoji/-/remark-emoji-3.0.2.tgz#786e88af1ecae682d74d7e1219989f34708205da"
+  integrity sha512-hEgxEv2sBtvhT3tNG/tQeeFY3EbslftaOoG14dDZndLo25fWJ6Fbg4ukFbIotOWWrfXyASjXjyHT+6n366k3mg==
   dependencies:
     emoticon "^4.0.0"
     node-emoji "^1.11.0"
-    unist-util-visit "^4.0.0"
+    unist-util-visit "^4.1.0"
 
 remark-footnotes@2.0.0:
   version "2.0.0"
