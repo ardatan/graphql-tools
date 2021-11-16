@@ -2,28 +2,28 @@
 # yarn lockfile v1
 
 
-"@apollo/core-schema@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@apollo/core-schema/-/core-schema-0.1.0.tgz#a9444f60deaded118657eb3373ddd64ced9ba0cd"
-  integrity sha512-BwOWRnDLj1Y3mMdfjdcv8/h7jcfVnUqb+LfpWRX3siXWtGCGsrg+OTj0l7M7uJGOnN6ZM0XJyY9Pk5Lisb7q6Q==
+"@apollo/core-schema@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@apollo/core-schema/-/core-schema-0.2.0.tgz#4eb529ee27553eeb6c18cd27eb0b94f2bd8b22a8"
+  integrity sha512-bhzZMIyzP3rynXwtUuEt2ENJIgKd9P/iR98VsuA3tOyYdWPjD5BfsrdWO0oIJXW/pjbbr0oHX5gqutFRKYuwAA==
 
-"@apollo/federation@0.33.6", "@apollo/federation@^0.33.6":
-  version "0.33.6"
-  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.33.6.tgz#cd9fd983fdc6d007f4a09b085126845368feb525"
-  integrity sha512-RF72EtX4ofRyDz8p2ZBVLGQsO0LGgScFB7zS+pGLq1zuixQY5h71VYH7BvdUk8Ae6C7zkCG6IS+aUuhr4aABMQ==
+"@apollo/federation@0.33.7", "@apollo/federation@^0.33.7":
+  version "0.33.7"
+  resolved "https://registry.yarnpkg.com/@apollo/federation/-/federation-0.33.7.tgz#ec233f4becb492a0d4d080e00d9950cfcd4aa987"
+  integrity sha512-sUIyJUdgni5DivFo8AeqMtaArqDTLh6ItXxYZb1LxhPXPhD1n8tnO8Vp50aS8SslKtmGUcm+eyUvkc3ZxRxiIg==
   dependencies:
     "@apollo/subgraph" "^0.1.4"
     apollo-graphql "^0.9.3"
     apollo-server-types "^3.0.2"
     lodash.xorby "^4.7.0"
 
-"@apollo/gateway@0.43.1":
-  version "0.43.1"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.43.1.tgz#af53302279ec00089796f37bae9c4fea131848f0"
-  integrity sha512-HqiFCAKpiThtoV9Phz6FBA5v9sZk632a4tcdZHtI0DHKRGEYfANp+tGxh+YyfvqCy5EAT+WL8d49A+B8KSAUpg==
+"@apollo/gateway@0.44.0":
+  version "0.44.0"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.44.0.tgz#6ae52c1f8263b7cfc73e700d01d35dd0414358ed"
+  integrity sha512-KmyjQKBYA/ldQE7IKIHUDqn55utayeBCMqC5fKkFkRjDprIUquSial46fCsMu2A3MI9iMh1l2b7iYxHcGsbWkQ==
   dependencies:
-    "@apollo/core-schema" "^0.1.0"
-    "@apollo/federation" "^0.33.6"
+    "@apollo/core-schema" "^0.2.0"
+    "@apollo/federation" "^0.33.7"
     "@apollo/query-planner" "^0.6.0"
     "@opentelemetry/api" "^1.0.1"
     "@types/node-fetch" "2.5.12"
