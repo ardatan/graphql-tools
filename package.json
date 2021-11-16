@@ -41,7 +41,7 @@
   "devDependencies": {
     "@babel/core": "7.16.0",
     "@babel/plugin-proposal-class-properties": "7.16.0",
-    "@babel/preset-env": "7.16.0",
+    "@babel/preset-env": "7.16.4",
     "@babel/preset-typescript": "7.16.0",
     "@changesets/cli": "2.18.0",
     "@types/debug": "4.1.7",
