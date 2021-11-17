@@ -9,9 +9,15 @@ import { addResolversToSchema, makeExecutableSchema } from '@graphql-tools/schem
 describe('Mock retro-compatibility', () => {
   const shorthand = /* GraphQL */ `
     scalar MissingMockType
+    scalar CustomScalar
 
     type Ability {
       name: String!
+    }
+
+    type Color {
+      name: String
+      hex: String!
     }
 
     interface Flying {
@@ -28,6 +34,11 @@ describe('Mock retro-compatibility', () => {
       returnString: String
       returnStringArgument(s: String): String
       returnAbility: Ability!
+      returnColors: [Color!]!
+      nullableReturnColors: [Color]!
+      returnRelatives: [Bird!]!
+      returnRelativeIds: [String!]!
+      returnCustomScalarArr: [CustomScalar]
     }
 
     type Bee implements Flying {
@@ -850,14 +861,16 @@ describe('Mock retro-compatibility', () => {
     const mockMap = {
       String: () => 'a',
       Int: () => 1,
+      Color: () => ({ hex: '#333' }),
+      CustomScalar: () => 'cs',
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap, preserveResolvers: true });
     const resolvers = {
       RootQuery: {
         returnListOfListOfObject: () => {
           return [
-            [{}, { returnInt: 2 }],
-            [{}, { returnString: 'b' }],
+            [{}, { returnInt: 2, returnColors: [{ hex: '#ccc' }], nullableReturnColors: [null] }],
+            [{}, { returnString: 'b', returnColors: [] }],
           ];
         },
       },
@@ -866,25 +879,173 @@ describe('Mock retro-compatibility', () => {
     const testQuery = /* GraphQL */ `
       {
         returnListOfListOfObject {
+          id
           returnInt
           returnString
+          returnColors {
+            name
+            hex
+          }
+          nullableReturnColors {
+            name
+          }
+          returnRelatives {
+            id
+          }
+          returnRelativeIds
+          returnCustomScalarArr
         }
       }
     `;
-    const expected = {
-      returnListOfListOfObject: [
-        [
-          { returnInt: 1, returnString: 'a' },
-          { returnInt: 2, returnString: 'a' },
-        ],
-        [
-          { returnInt: 1, returnString: 'a' },
-          { returnInt: 1, returnString: 'b' },
-        ],
-      ],
-    };
     return graphql({ schema: jsSchema, source: testQuery }).then(res => {
-      expect(res.data).toEqual(expected);
+      expect(res.data).toMatchInlineSnapshot(`
+        Object {
+          "returnListOfListOfObject": Array [
+            Array [
+              Object {
+                "id": "a",
+                "nullableReturnColors": Array [
+                  Object {
+                    "name": "a",
+                  },
+                  Object {
+                    "name": "a",
+                  },
+                ],
+                "returnColors": Array [
+                  Object {
+                    "hex": "#333",
+                    "name": "a",
+                  },
+                  Object {
+                    "hex": "#333",
+                    "name": "a",
+                  },
+                ],
+                "returnCustomScalarArr": Array [
+                  "cs",
+                  "cs",
+                ],
+                "returnInt": 1,
+                "returnRelativeIds": Array [
+                  "a",
+                  "a",
+                ],
+                "returnRelatives": Array [
+                  Object {
+                    "id": "a",
+                  },
+                  Object {
+                    "id": "a",
+                  },
+                ],
+                "returnString": "a",
+              },
+              Object {
+                "id": "a",
+                "nullableReturnColors": Array [
+                  null,
+                ],
+                "returnColors": Array [
+                  Object {
+                    "hex": "#ccc",
+                    "name": "a",
+                  },
+                ],
+                "returnCustomScalarArr": Array [
+                  "cs",
+                  "cs",
+                ],
+                "returnInt": 2,
+                "returnRelativeIds": Array [
+                  "a",
+                  "a",
+                ],
+                "returnRelatives": Array [
+                  Object {
+                    "id": "a",
+                  },
+                  Object {
+                    "id": "a",
+                  },
+                ],
+                "returnString": "a",
+              },
+            ],
+            Array [
+              Object {
+                "id": "a",
+                "nullableReturnColors": Array [
+                  Object {
+                    "name": "a",
+                  },
+                  Object {
+                    "name": "a",
+                  },
+                ],
+                "returnColors": Array [
+                  Object {
+                    "hex": "#333",
+                    "name": "a",
+                  },
+                  Object {
+                    "hex": "#333",
+                    "name": "a",
+                  },
+                ],
+                "returnCustomScalarArr": Array [
+                  "cs",
+                  "cs",
+                ],
+                "returnInt": 1,
+                "returnRelativeIds": Array [
+                  "a",
+                  "a",
+                ],
+                "returnRelatives": Array [
+                  Object {
+                    "id": "a",
+                  },
+                  Object {
+                    "id": "a",
+                  },
+                ],
+                "returnString": "a",
+              },
+              Object {
+                "id": "a",
+                "nullableReturnColors": Array [
+                  Object {
+                    "name": "a",
+                  },
+                  Object {
+                    "name": "a",
+                  },
+                ],
+                "returnColors": Array [],
+                "returnCustomScalarArr": Array [
+                  "cs",
+                  "cs",
+                ],
+                "returnInt": 1,
+                "returnRelativeIds": Array [
+                  "a",
+                  "a",
+                ],
+                "returnRelatives": Array [
+                  Object {
+                    "id": "a",
+                  },
+                  Object {
+                    "id": "a",
+                  },
+                ],
+                "returnString": "b",
+              },
+            ],
+          ],
+        }
+      `);
     });
   });
 
