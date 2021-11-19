@@ -2103,10 +2103,10 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.0.tgz#0eee6373e11418bfe0b5638f654df7a4ca6a3950"
   integrity sha512-wYn6r8zVZyQJ6rQaALBEln5B1pzxb9shV5Ef97kTvn6yVGrqyXVnDqnU24MXnFubR+rZjBY9NWuxX3FB2sTsjg==
 
-"@guild-docs/client@1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.2.2.tgz#1c3a0b11e06de4b86867be25aab1f271f7c823d9"
-  integrity sha512-rH2osnI3DkLH4qZLwbw2O9cJVs8J8SVdyP57WTX0RFHaY7nvgS01znADrmRnV7oUBq7bEZ4UWkhlIH4a4jzl+g==
+"@guild-docs/client@1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.2.3.tgz#0fedb7b3593a6501df55e71990eede7e0c053af7"
+  integrity sha512-amY6lxx1HozoUe8DTvZGmM6WwEX0iciAHxpPCxaM4KDcMwaO3ZDsSBjLD+kTKIINOvN6qqz13md95NAYx9Patg==
   dependencies:
     "@guild-docs/mdx-remote" "^1.0.1"
     "@guild-docs/types" "^1.0.3"
