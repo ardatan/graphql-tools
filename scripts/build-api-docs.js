@@ -84,7 +84,10 @@ async function buildApiDocs() {
       // Fix title
       .replace(/^# .+/g, function (match) {
         return `---
-title: '${match.replace('# ', '')}'
+title: '${match
+          .replace('# ', '')
+          .replace(/(Class|Interface|Enumeration): /, '')
+          .replace(/<.+/, '')}'
 ---
 ${match}`;
       })
