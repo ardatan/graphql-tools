@@ -37,6 +37,20 @@ describe('graphql-tag-pluck', () => {
       expect(sources.map(source => source.body).join('\n\n')).toMatchSnapshot();
     });
 
+    it('should treat empty results the same', async () => {
+      const content = freeText(`
+      import gql from 'graphql-tag'
+
+      const doc = gql\`
+
+      \`
+    `);
+      let sources = await pluck('tmp-XXXXXX.js', content);
+      expect(sources.length).toEqual(0);
+      sources = await pluck('tmp-XXXXXX.js', content, { skipIndent: true });
+      expect(sources.length).toEqual(0);
+    });
+
     it('should pluck graphql-tag template literals from .js file', async () => {
       const sources = await pluck(
         'tmp-XXXXXX.js',

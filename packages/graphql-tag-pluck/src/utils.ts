@@ -14,6 +14,9 @@ export const freeText = (text: string | string[], skipIndentation = false) => {
   });
 
   if (skipIndentation) {
+    if (text.trim() === '') {
+      return '';
+    }
     return text;
   }
 
