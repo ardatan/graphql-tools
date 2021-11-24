@@ -282,7 +282,15 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       }
 
       const headers = Object.assign({}, options?.headers, request.extensions?.headers || {});
-      const accept = 'application/json, multipart/mixed, text/event-stream';
+      const acceptedProtocols = [`application/json`];
+
+      if (method === 'GET' && options?.subscriptionsProtocol === SubscriptionProtocol.SSE) {
+        acceptedProtocols.push('text/event-stream');
+      } else {
+        acceptedProtocols.push('multipart/mixed');
+      }
+
+      const accept = acceptedProtocols.join(', ');
 
       const query = print(request.document);
       const requestBody = {
