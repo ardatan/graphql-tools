@@ -3,7 +3,7 @@ import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode 
 import DataLoader from 'dataloader';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
-import { memoize2, relocatedError } from '@graphql-tools/utils';
+import { memoize3, relocatedError } from '@graphql-tools/utils';
 
 import { BatchDelegateOptions } from './types';
 
@@ -53,7 +53,8 @@ function defaultCacheKeyFn(key: any) {
   return key;
 }
 
-const getLoadersMap = memoize2(function getLoadersMap<K, V, C>(
+const getLoadersMap = memoize3(function getLoadersMap<K, V, C>(
+  _context: Record<string, any>,
   _fieldNodes: readonly FieldNode[],
   _schema: GraphQLSchema | SubschemaConfig<any, any, any, any>
 ) {
@@ -61,21 +62,20 @@ const getLoadersMap = memoize2(function getLoadersMap<K, V, C>(
 });
 
 export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
-  const fieldName = options.fieldName ?? options.info.fieldName;
-  const loaders = getLoadersMap<K, V, C>(options.info.fieldNodes, options.schema);
+  const { schema, fieldName, context, info, dataLoaderOptions } = options;
+  const targetFieldName = fieldName ?? info.fieldName;
+  const loaders = getLoadersMap<K, V, C>(context ?? globalThis ?? window ?? global, info.fieldNodes, schema);
 
-  let loader = loaders.get(fieldName);
-
-  // Prevents the keys to be passed with the same structure
-  const dataLoaderOptions: DataLoader.Options<any, any, any> = {
-    cacheKeyFn: defaultCacheKeyFn,
-    ...options.dataLoaderOptions,
-  };
+  let loader = loaders.get(targetFieldName);
 
   if (loader === undefined) {
     const batchFn = createBatchFn(options);
-    loader = new DataLoader<K, V, C>(batchFn, dataLoaderOptions);
-    loaders.set(fieldName, loader);
+    loader = new DataLoader<K, V, C>(batchFn, {
+      // Prevents the keys to be passed with the same structure
+      cacheKeyFn: defaultCacheKeyFn,
+      ...dataLoaderOptions,
+    });
+    loaders.set(targetFieldName, loader);
   }
 
   return loader;
