@@ -1,4 +1,6 @@
 import {
+  subscribe,
+  execute,
   validate,
   GraphQLSchema,
   FieldDefinitionNode,
@@ -7,8 +9,6 @@ import {
   GraphQLOutputType,
   ExecutionArgs,
 } from 'graphql';
-
-import { execute } from 'graphql-executor';
 
 import { ValueOrPromise } from 'value-or-promise';
 
@@ -206,6 +206,7 @@ function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): 
 
 export const createDefaultExecutor = memoize1(function createDefaultExecutor(schema: GraphQLSchema): Executor {
   return function defaultExecutor(request: ExecutionRequest) {
+    const operationAst = getOperationASTFromRequest(request);
     const executionArgs: ExecutionArgs = {
       schema,
       document: request.document,
@@ -214,6 +215,9 @@ export const createDefaultExecutor = memoize1(function createDefaultExecutor(sch
       rootValue: request.rootValue,
       operationName: request.operationName,
     };
+    if (operationAst.operation === 'subscription') {
+      return subscribe(executionArgs);
+    }
     return execute(executionArgs);
   } as Executor;
 });
