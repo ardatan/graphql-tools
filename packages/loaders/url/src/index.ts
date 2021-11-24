@@ -286,9 +286,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
 
       if (method === 'GET' && options?.subscriptionsProtocol === SubscriptionProtocol.SSE) {
         acceptedProtocols.push('text/event-stream');
-      }
-
-      if (method === 'POST') {
+      } else {
         acceptedProtocols.push('multipart/mixed');
       }
 
