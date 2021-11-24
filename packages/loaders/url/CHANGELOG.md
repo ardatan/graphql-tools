@@ -1,5 +1,14 @@
 # @graphql-tools/url-loader
 
+## 7.5.3
+
+### Patch Changes
+
+- 3a33c9d8: adjust accept headers sent to the server.
+
+  - `text/event-stream` is only sent if Subscriptions are executed over SSE (GET).
+  - `multipart/mixed` is only send for POST requests
+
 ## 7.5.2
 
 ### Patch Changes

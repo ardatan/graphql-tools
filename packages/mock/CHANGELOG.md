@@ -1,5 +1,11 @@
 # @graphql-tools/mock
 
+## 8.4.4
+
+### Patch Changes
+
+- 3eef5e2e: Update deep mocking feature with preserveResolvers for more scenarios
+
 ## 8.4.3
 
 ### Patch Changes
