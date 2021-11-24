@@ -6738,6 +6738,11 @@ grapheme-splitter@^1.0.4:
   resolved "https://registry.yarnpkg.com/grapheme-splitter/-/grapheme-splitter-1.0.4.tgz#9cf3a665c6247479896834af35cf1dbb4400767e"
   integrity sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==
 
+graphql-executor@0.0.10:
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/graphql-executor/-/graphql-executor-0.0.10.tgz#7adc7ebb4175cf3532751a946ca91a3177d71017"
+  integrity sha512-cmVmfxnRQw3uvamK6qaoCXLiA4/1veB9ErMfmZrV2RaMa+xt/o+mUdTqBgsUXAP8ryBkg8aNSjQrM0xxcWWV1g==
+
 graphql-helix@1.10.2:
   version "1.10.2"
   resolved "https://registry.yarnpkg.com/graphql-helix/-/graphql-helix-1.10.2.tgz#88a6d3869277dde2c30c770affc5d9ead27fb7e9"
