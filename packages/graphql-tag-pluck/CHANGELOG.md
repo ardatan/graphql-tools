@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 7.1.4
+
+### Patch Changes
+
+- 6bb127b0: Fix returning whitespace only results if skipIndent is set to true
+
 ## 7.1.3
 
 ### Patch Changes
