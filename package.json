@@ -62,7 +62,7 @@
     "eslint-plugin-standard": "5.0.0",
     "globby": "11.0.4",
     "graphql": "16.0.1",
-    "graphql-helix": "1.10.2",
+    "graphql-helix": "1.10.3",
     "graphql-subscriptions": "2.0.0",
     "husky": "7.0.4",
     "jest": "27.3.1",
