@@ -71,7 +71,6 @@ input TestInput {
         return new Promise((resolve, reject) => {
           let data = '';
 
-          // eslint-disable-next-line no-return-assign
           stream.on('data', chunk => (data += chunk));
           stream.on('end', () => resolve(data));
           stream.on('error', error => reject(error));
@@ -423,7 +422,6 @@ input TestInput {
       expect(asyncIterator['errors']).toBeFalsy();
       expect(asyncIterator['errors']?.length).toBeFalsy();
 
-      // eslint-disable-next-line no-inner-declarations
       async function getNextResult() {
         const result = await asyncIterator.next();
         expect(result?.done).toBeFalsy();
@@ -488,7 +486,6 @@ input TestInput {
       expect(asyncIterator['errors']).toBeFalsy();
       expect(asyncIterator['errors']?.length).toBeFalsy();
 
-      // eslint-disable-next-line no-inner-declarations
       async function getNextResult() {
         const result = await asyncIterator.next();
         expect(result?.done).toBeFalsy();
@@ -547,7 +544,6 @@ input TestInput {
       expect(asyncIterator['errors']).toBeFalsy();
       expect(asyncIterator['errors']?.length).toBeFalsy();
 
-      // eslint-disable-next-line no-inner-declarations
       async function getNextResult() {
         const result = await asyncIterator.next();
         expect(result?.done).toBeFalsy();

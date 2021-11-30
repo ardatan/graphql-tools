@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 import { ExecutionResult, GraphQLError } from 'graphql';
 import { meros as merosIncomingMessage } from 'meros/node';
 import { meros as merosReadableStream } from 'meros/browser';

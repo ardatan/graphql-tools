@@ -1,4 +1,3 @@
-/* eslint-disable import/unambiguous */
 declare global {
   type Reducer<T, R> = (prev: Partial<R>, curr: T) => R;
 

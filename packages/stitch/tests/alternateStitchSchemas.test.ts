@@ -308,7 +308,6 @@ describe('merge schemas through transforms', () => {
     };
 
     const transformedNotification = {
-      // eslint-disable-next-line camelcase
       Subscriptions_notifications: originalNotification.notifications,
     };
 
@@ -610,7 +609,6 @@ describe('transform object fields', () => {
   beforeAll(() => {
     const ITEM = {
       id: '123',
-      // eslint-disable-next-line camelcase
       camel_case: "I'm a camel!",
     };
 
@@ -809,15 +807,11 @@ type Query {
     const expectedResult: ExecutionResult = {
       data: {
         propertyById: {
-          // eslint-disable-next-line camelcase
           new_id: 'p1',
-          // eslint-disable-next-line camelcase
           new_name: 'Super great hotel',
-          // eslint-disable-next-line camelcase
           new_location: {
             name: 'Helsinki',
           },
-          // eslint-disable-next-line camelcase
           new_error: null,
         },
       },

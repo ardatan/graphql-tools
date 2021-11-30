@@ -36,7 +36,6 @@ export function getArgumentValues(
 
   const coercedValues = {};
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const argumentNodes = node.arguments ?? [];
   const argNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce(
     (prev, arg) => ({

@@ -9,7 +9,6 @@ describe('can delegate to subschema with transforms', () => {
   beforeAll(() => {
     const ITEM = {
       id: '123',
-      // eslint-disable-next-line camelcase
       camel_case: "I'm a camel!",
     };
 

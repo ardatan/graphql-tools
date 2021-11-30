@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
 // TODO: reduce code repetition in this file.
 // see https://github.com/apollostack/graphql-tools/issues/26
 
@@ -32,12 +31,10 @@ interface Bird {
 }
 
 function expectWarning(fn: () => void, warnMatcher?: string) {
-  // eslint-disable-next-line no-console
   const originalWarn = console.warn;
   let warning: string | null = null;
 
   try {
-    // eslint-disable-next-line no-console
     console.warn = function warn(message: string) {
       warning = message;
     };
@@ -50,7 +47,6 @@ function expectWarning(fn: () => void, warnMatcher?: string) {
       expect(warning).toMatch(warnMatcher);
     }
   } finally {
-    // eslint-disable-next-line no-console
     console.warn = originalWarn;
   }
 }

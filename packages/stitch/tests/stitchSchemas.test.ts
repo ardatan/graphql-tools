@@ -30,7 +30,6 @@ import {
   subscriptionPubSubTrigger,
 } from '../../testing/fixtures/schemas';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const removeLocations = ({ locations, positions, source, originalError, nodes, ...rest }: any): any => ({ ...rest });
 
 const testCombinations = [

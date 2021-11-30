@@ -4,7 +4,6 @@
 import { GraphQLError } from 'graphql';
 import { isAggregateError } from './AggregateError';
 
-/* eslint-disable @typescript-eslint/ban-types */
 const MAX_ARRAY_LENGTH = 10;
 const MAX_RECURSIVE_DEPTH = 2;
 

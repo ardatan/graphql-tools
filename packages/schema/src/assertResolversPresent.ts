@@ -54,7 +54,6 @@ To disable this validator, use:
     }
 
     if (behavior === 'warn') {
-      // eslint-disable-next-line no-console
       console.warn(message);
     }
 
