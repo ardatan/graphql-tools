@@ -42,7 +42,7 @@
     "express": "4.17.1",
     "express-graphql": "0.12.0",
     "graphql-upload": "12.0.0",
-    "puppeteer": "11.0.0",
+    "puppeteer": "12.0.1",
     "webpack": "5.64.4"
   },
   "dependencies": {
