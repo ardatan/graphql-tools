@@ -72,12 +72,11 @@ export async function* handleReadableStream(stream: ReadableStream<Uint8Array>) 
               }
               break;
             }
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
             case ControlChars.CarriageReturn: {
               discardTrailingNewline = true;
+              break;
             }
-            // eslint-disable-next-line no-fallthrough
+
             case ControlChars.NewLine: {
               lineEnd = position;
               break;

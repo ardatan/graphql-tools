@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /* eslint-disable spaced-comment */
-/* eslint-disable node/no-deprecated-api */
 
 ///<reference path="declarations.d.ts" />
 

@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 import { ExecutionResult } from 'graphql';
 import { handleReadable } from './handleReadable';
 import { handleReadableStream } from './handleReadableStream';

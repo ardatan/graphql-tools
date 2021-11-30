@@ -15,7 +15,6 @@ export function checkForResolveTypeResolver(schema: GraphQLSchema, requireResolv
         }
 
         if (requireResolversForResolveType === 'warn') {
-          // eslint-disable-next-line no-console
           console.warn(message);
         }
       }
