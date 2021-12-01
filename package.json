@@ -65,7 +65,7 @@
     "graphql-helix": "1.10.3",
     "graphql-subscriptions": "2.0.0",
     "husky": "7.0.4",
-    "jest": "27.4.2",
+    "jest": "27.4.3",
     "lint-staged": "12.1.2",
     "patch-package": "6.4.7",
     "prettier": "2.5.0",
