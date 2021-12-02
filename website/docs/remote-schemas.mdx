@@ -45,9 +45,9 @@ Basic usage
 import { fetch } from 'cross-undici-fetch'
 import { print } from 'graphql'
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap'
-import { Executor } from '@graphql-tools/utils'
+import { AsyncExecutor } from '@graphql-tools/utils'
 
-const executor: Executor = async ({ document, variables }) => {
+const executor: AsyncExecutor = async ({ document, variables }) => {
   const query = print(document)
   const fetchResult = await fetch('http://example.com/graphql', {
     method: 'POST',
@@ -74,9 +74,9 @@ Authentication headers from context
 import { fetch } from 'cross-undici-fetch'
 import { print } from 'graphql'
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap'
-import { Executor } from '@graphql-tools/utils'
+import { AsyncExecutor } from '@graphql-tools/utils'
 
-const executor: Executor = async ({ document, variables, context }) => {
+const executor: AsyncExecutor = async ({ document, variables, context }) => {
   const query = print(document)
   const fetchResult = await fetch('http://example.com/graphql', {
     method: 'POST',
@@ -111,8 +111,9 @@ With this executor all operations (query, mutation and subscription) will be exe
 
 ```ts
 import { wrapSchema, introspectSchema } from '@graphql-tools/wrap'
-import { observableToAsyncIterable, Executor } from '@graphql-tools/utils'
+import { observableToAsyncIterable, AsyncExecutor } from '@graphql-tools/utils'
 import { createClient } from 'graphql-ws'
+import { print } from 'graphql'
 
 const WS_GRAPHQL_ENDPOINT = 'ws://localhost:3000/graphql'
 
@@ -120,7 +121,7 @@ const subscriptionClient = createClient({
   url: WS_GRAPHQL_ENDPOINT
 })
 
-const executor: Executor = ({ document, variables }) =>
+const executor: AsyncExecutor = async ({ document, variables }) =>
   observableToAsyncIterable({
     subscribe: observer => ({
       unsubscribe: subscriptionClient.subscribe(
@@ -164,88 +165,32 @@ For the following example to work, the server must implement the [GraphQL over S
 With this executor all operations (query, mutation and subscription) will be executed over `graphql-sse`.
 
 ```ts
-import { wrapSchema, introspectSchema } from '@graphql-tools/wrap';
-import { Executor } from '@graphql-tools/delegate';
-import { fetch } from 'cross-undici-fetch';
-import AbortController from 'abort-controller'; // node < v15
-import { observableToAsyncIterable } from '@graphql-tools/utils';
-import { createClient } from 'graphql-sse';
+import { wrapSchema, introspectSchema } from '@graphql-tools/wrap'
+import { AsyncExecutor } from '@graphql-tools/utils'
+import { fetch } from 'cross-undici-fetch'
+import AbortController from 'abort-controller' // node < v15
+import { observableToAsyncIterable } from '@graphql-tools/utils'
+import { createClient } from 'graphql-sse'
+import { print } from 'graphql'
 
-const SSE_GRAPHQL_ENDPOINT = 'http://localhost:3000/graphql/stream';
+const SSE_GRAPHQL_ENDPOINT = 'http://localhost:3000/graphql/stream'
 
 const subscriptionClient = createClient({
   singleConnection: true,
   url: SSE_GRAPHQL_ENDPOINT,
   fetchFn: fetch,
-  abortControllerImpl: AbortController, // node < v15
-});
-
-const executor: Executor = ({ document, variables }) =>
-  observableToAsyncIterable({
-    subscribe: observer => ({
-      unsubscribe: subscriptionClient.subscribe(
-        {
-          query: document,
-          variables,
-        },
-        {
-          next: data => observer.next && observer.next(data),
-          error: error => observer.next && observer.error(err),,
-          complete: () => observer.complete && observer.complete(),
-        }
-      ),
-    }),
-  });
-
-export default async () => {
-  const schema = wrapSchema({
-    schema: await introspectSchema(executor),
-    executor,
-  });
-
-  return schema;
-};
-```
-
-#### Hybrid GraphQL over HTTP and GraphQL over WebSocket (`graphql-ws`)
-
-Sometimes you only want to do subscription operations over WebSocket. In that case you have identify the operation and then call the corresponding executor for the operation type.
-
-With this executor query and mutation operations will be executed over HTTP (using `cross-undici-fetch`) and subscription operations will be executed WebSocket (using `graphql-ws`).
-
-```ts
-import { wrapSchema, introspectSchema } from '@graphql-tools/wrap'
-import { fetch } from 'cross-undici-fetch'
-import { print, getOperationAST, OperationTypeNode } from 'graphql'
-import { observableToAsyncIterable, Executor } from '@graphql-tools/utils'
-import { createClient } from 'graphql-ws'
-
-const HTTP_GRAPHQL_ENDPOINT = 'http://localhost:3000/graphql'
-const WS_GRAPHQL_ENDPOINT = 'ws://localhost:3000/graphql'
-
-const subscriptionClient = createClient({
-  url: WS_GRAPHQL_ENDPOINT
+  abortControllerImpl: AbortController // node < v15
 })
 
-const httpExecutor: Executor = async ({ document, variables }) => {
-  const query = print(document)
-  const fetchResult = await fetch(HTTP_GRAPHQL_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ query, variables })
-  })
-  return fetchResult.json()
-}
-
-const wsExecutor: Executor = ({ document, variables }) =>
+const executor: AsyncExecutor = async ({ document, variables, operationName, extensions }) =>
   observableToAsyncIterable({
     subscribe: observer => ({
       unsubscribe: subscriptionClient.subscribe(
         {
           query: print(document),
-          variables: variables as Record<string, any>
+          variables: variables as Record<string, unknown>,
+          operationName,
+          extensions
         },
         {
           next: data => observer.next && observer.next(data as unknown),
@@ -266,7 +211,78 @@ const wsExecutor: Executor = ({ document, variables }) =>
     })
   })
 
-const executor: Executor = args => {
+export default async () => {
+  const schema = wrapSchema({
+    schema: await introspectSchema(executor),
+    executor
+  })
+
+  return schema
+}
+```
+
+#### Hybrid GraphQL over HTTP and GraphQL over WebSocket (`graphql-ws`)
+
+Sometimes you only want to do subscription operations over WebSocket. In that case you have identify the operation and then call the corresponding executor for the operation type.
+
+With this executor query and mutation operations will be executed over HTTP (using `cross-undici-fetch`) and subscription operations will be executed WebSocket (using `graphql-ws`).
+
+```ts
+import { wrapSchema, introspectSchema } from '@graphql-tools/wrap'
+import { fetch } from 'cross-undici-fetch'
+import { print, getOperationAST, OperationTypeNode } from 'graphql'
+import { observableToAsyncIterable, AsyncExecutor } from '@graphql-tools/utils'
+import { createClient } from 'graphql-ws'
+
+const HTTP_GRAPHQL_ENDPOINT = 'http://localhost:3000/graphql'
+const WS_GRAPHQL_ENDPOINT = 'ws://localhost:3000/graphql'
+
+const subscriptionClient = createClient({
+  url: WS_GRAPHQL_ENDPOINT
+})
+
+const httpExecutor: AsyncExecutor = async ({ document, variables, operationName, extensions }) => {
+  const query = print(document)
+  const fetchResult = await fetch(HTTP_GRAPHQL_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ query, variables, operationName, extensions })
+  })
+  return fetchResult.json()
+}
+
+const wsExecutor: AsyncExecutor = async ({ document, variables, operationName, extensions }) =>
+  observableToAsyncIterable({
+    subscribe: observer => ({
+      unsubscribe: subscriptionClient.subscribe(
+        {
+          query: print(document),
+          variables: variables as Record<string, any>,
+          operationName,
+          extensions
+        },
+        {
+          next: data => observer.next && observer.next(data as unknown),
+          error: err => {
+            if (!observer.error) return
+            if (err instanceof Error) {
+              observer.error(err)
+            } else if (err instanceof CloseEvent) {
+              observer.error(new Error(`Socket closed with event ${err.code}`))
+            } else if (Array.isArray(err)) {
+              // GraphQLError[]
+              observer.error(new Error(err.map(({ message }) => message).join(', ')))
+            }
+          },
+          complete: () => observer.complete && observer.complete()
+        }
+      )
+    })
+  })
+
+const executor: AsyncExecutor = async args => {
   // get the operation node of from the document that should be executed
   const operation = getOperationAST(args.document, args.operationName)
   // subscription operations should be handled by the wsExecutor
