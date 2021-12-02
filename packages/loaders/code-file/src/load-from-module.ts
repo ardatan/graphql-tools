@@ -12,7 +12,7 @@ export async function tryToLoadFromExport(rawFilePath: string): Promise<GraphQLS
 
     return await pickExportFromModule({ module: mod, filepath });
   } catch (e: any) {
-    throw new Error(`Unable to load from file "${rawFilePath}": ${e.message}`);
+    throw new Error(`Unable to load from file "${rawFilePath}": ${e.stack || e.message}`);
   }
 }
 
@@ -27,7 +27,7 @@ export function tryToLoadFromExportSync(rawFilePath: string): GraphQLSchema | Do
 
     return pickExportFromModuleSync({ module: mod, filepath });
   } catch (e: any) {
-    throw new Error(`Unable to load from file "${rawFilePath}": ${e.message}`);
+    throw new Error(`Unable to load from file "${rawFilePath}": ${e.stack || e.message}`);
   }
 }
 
