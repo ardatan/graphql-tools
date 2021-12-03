@@ -1,9 +1,9 @@
 /* eslint-disable no-labels */
-import type { Readable } from 'stream';
 
-export async function* handleReadable(readable: Readable) {
+export async function* handleReadable(readable: AsyncIterable<Uint8Array>) {
+  const decoder = new TextDecoder();
   outer: for await (const chunk of readable) {
-    const chunkStr = chunk.toString();
+    const chunkStr = decoder.decode(chunk);
     for (const part of chunkStr.split('\n\n')) {
       if (part) {
         const eventStr = part.split('event: ')[1];

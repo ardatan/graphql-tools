@@ -29,7 +29,8 @@ import { defaultSyncFetch, SyncFetchFn } from './defaultSyncFetch';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse';
 import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse';
 import { addCancelToResponseStream } from './addCancelToResponseStream';
-import { AbortController, FormData } from 'cross-undici-fetch';
+import { AbortController, FormData, File } from 'cross-undici-fetch';
+import { Readable } from 'stream';
 
 export type FetchFn = AsyncFetchFn | SyncFetchFn;
 
@@ -195,9 +196,19 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         new ValueOrPromise(() => u$).then(u => {
           const indexStr = i.toString();
           if (u != null && 'promise' in u) {
-            return u.promise.then((upload: any) => {
-              const stream = upload.createReadStream();
-              form.append(indexStr, stream, upload.filename);
+            return u.promise.then(async (upload: any) => {
+              if ('arrayBuffer' in upload) {
+                form.append(indexStr, new File([upload.arrayBuffer()], upload.filename), upload.filename);
+              } else if ('createReadStream' in upload) {
+                const stream: Readable = upload.createReadStream();
+                const chunks: number[] = [];
+                for await (const chunk of stream) {
+                  if (chunk) {
+                    chunks.push(...chunk);
+                  }
+                }
+                form.append(indexStr, new File([new Uint8Array(chunks)], upload.filename), upload.filename);
+              }
             });
           } else {
             form.append(indexStr, u, u.name || u.path || indexStr);
@@ -430,7 +441,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           variables,
           operationName,
         })
-      ) as AsyncIterableIterator<ExecutionResult<TReturn>>;
+      ) as AsyncIterable<ExecutionResult<TReturn>>;
     };
   }
 

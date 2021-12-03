@@ -2,13 +2,13 @@ import { ExecutionResult } from 'graphql';
 import { handleReadable } from './handleReadable';
 import { handleReadableStream } from './handleReadableStream';
 
-export async function handleEventStreamResponse(response: Response): Promise<AsyncIterableIterator<ExecutionResult>> {
+export async function handleEventStreamResponse(response: Response): Promise<AsyncIterable<ExecutionResult>> {
   const body = await response.body;
   if (body) {
-    if ('pipe' in body) {
-      return handleReadable(body);
+    if (Symbol.asyncIterator in body) {
+      return handleReadable(body as any);
     }
-    return handleReadableStream(body) as any;
+    return handleReadableStream(body);
   }
-  throw new Error('Body is null???');
+  return null;
 }
