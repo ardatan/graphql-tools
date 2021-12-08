@@ -1,7 +1,6 @@
 ---
-'@graphql-tools/apollo-engine-loader': patch
-'@graphql-tools/github-loader': patch
-'@graphql-tools/url-loader': patch
+'@graphql-tools/url-loader': minor
 ---
 
-fix(url-loader): update code for new cross-undici-fetch
+- Handle W3C File/Blob Inputs with multipart request
+- Better error message in case of bad response type
