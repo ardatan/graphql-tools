@@ -203,7 +203,7 @@ As a result, any query that queries the field `name` of the `User` referenced in
 Note the sugar signature of `set`:
 
 ```ts
-import { Ref } from '@graphql-tools/mock';
+import { Ref } from '@graphql-tools/mock'
 
 store.set('Query', 'ROOT', 'me', { name: newName })
 
@@ -215,9 +215,9 @@ store.set(meRef, 'name', newName)
 Usage with `mockServer`:
 
 ```ts
-import { buildSchema } from 'graphql';
-import { addResolversToSchema } from '@graphql-tools/schema';
-import { mockServer } from '@graphql-tools/mock';
+import { buildSchema } from 'graphql'
+import { addResolversToSchema } from '@graphql-tools/schema'
+import { mockServer } from '@graphql-tools/mock'
 
 const schema = buildSchema(typeDefs)
 const mySchema = addResolversToSchema(schema, resolvers)
@@ -234,8 +234,8 @@ const result = await server.query(query, variables)
 By default, `*byId` (like `userById(id: ID!)`) field will return an entity that does not have the same `id` as the one queried. We can fix that:
 
 ```ts
-import { buildSchema } from 'graphql';
-import { addMocksToSchema } from '@graphql-tools/mock';
+import { buildSchema } from 'graphql'
+import { addMocksToSchema } from '@graphql-tools/mock'
 
 const typeDefs = /* GraphQL */ `
   type User {
@@ -246,7 +246,7 @@ const typeDefs = /* GraphQL */ `
     userById(id: ID!): User!
   }
 `
-const schema = buildSchema(typeDefs);
+const schema = buildSchema(typeDefs)
 const schemaWithMocks = addMocksToSchema({
   schema,
   store,
@@ -265,8 +265,8 @@ Note that, by default, the `id` or `_id` field will be used as storage key and t
 The idea is that the [`MockStore`](#mockstore) contains the full list, as field value, and that the resolver queries the store and slice the result:
 
 ```ts
-import { buildSchema } from 'graphql';
-import { addMocksToSchema, Ref } from '@graphql-tools/mock';
+import { buildSchema } from 'graphql'
+import { addMocksToSchema, Ref } from '@graphql-tools/mock'
 
 const typeDefs = /* GraphQL */ `
   type User {
@@ -278,7 +278,7 @@ const typeDefs = /* GraphQL */ `
     me: User!
   }
 `
-const schema = buildSchema(typeDefs);
+const schema = buildSchema(typeDefs)
 const schemaWithMocks = addMocksToSchema({
   schema,
   store,

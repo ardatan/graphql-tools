@@ -29,7 +29,8 @@ import { defaultSyncFetch, SyncFetchFn } from './defaultSyncFetch';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse';
 import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse';
 import { addCancelToResponseStream } from './addCancelToResponseStream';
-import { AbortController, FormData } from 'cross-undici-fetch';
+import { AbortController, FormData, File } from 'cross-undici-fetch';
+import { isBlob, isGraphQLUpload, isPromiseLike } from './utils';
 
 export type FetchFn = AsyncFetchFn | SyncFetchFn;
 
@@ -190,21 +191,35 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       })
     );
     form.append('map', JSON.stringify(map));
-    return ValueOrPromise.all(
-      uploads.map((u$, i) =>
-        new ValueOrPromise(() => u$).then(u => {
-          const indexStr = i.toString();
-          if (u != null && 'promise' in u) {
-            return u.promise.then((upload: any) => {
-              const stream = upload.createReadStream();
-              form.append(indexStr, stream, upload.filename);
-            });
-          } else {
-            form.append(indexStr, u, u.name || u.path || indexStr);
-          }
-        })
-      )
-    )
+    function handleUpload(upload: any, i: number): void | PromiseLike<void> {
+      const indexStr = i.toString();
+      if (upload != null) {
+        const filename = upload.filename || upload.name || upload.path || `blob-${indexStr}`;
+        if (isPromiseLike(upload)) {
+          return upload.then((resolvedUpload: any) => handleUpload(resolvedUpload, i));
+          // If Blob
+        } else if (isBlob(upload)) {
+          return upload.arrayBuffer().then((arrayBuffer: ArrayBuffer) => {
+            form.append(indexStr, new File([arrayBuffer], filename, { type: upload.type }), filename);
+          });
+        } else if (isGraphQLUpload(upload)) {
+          const stream = upload.createReadStream();
+          const chunks: number[] = [];
+          return Promise.resolve().then(async () => {
+            for await (const chunk of stream) {
+              if (chunk) {
+                chunks.push(...chunk);
+              }
+            }
+            const blobPart = new Uint8Array(chunks);
+            form.append(indexStr, new File([blobPart], filename, { type: upload.mimetype }), filename);
+          });
+        } else {
+          form.append(indexStr, new File([upload], filename), filename);
+        }
+      }
+    }
+    return ValueOrPromise.all(uploads.map((upload, i) => new ValueOrPromise(() => handleUpload(upload, i))))
       .then(() => form)
       .resolve();
   }
@@ -430,7 +445,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           variables,
           operationName,
         })
-      ) as AsyncIterableIterator<ExecutionResult<TReturn>>;
+      ) as AsyncIterable<ExecutionResult<TReturn>>;
     };
   }
 

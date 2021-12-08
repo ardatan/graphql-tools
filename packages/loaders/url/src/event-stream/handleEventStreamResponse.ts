@@ -1,14 +1,16 @@
 import { ExecutionResult } from 'graphql';
+import { inspect, isAsyncIterable } from '@graphql-tools/utils';
 import { handleReadable } from './handleReadable';
 import { handleReadableStream } from './handleReadableStream';
 
-export async function handleEventStreamResponse(response: Response): Promise<AsyncIterableIterator<ExecutionResult>> {
-  const body = await response.body;
+export async function handleEventStreamResponse(response: Response): Promise<AsyncGenerator<ExecutionResult>> {
+  // node-fetch returns body as a promise so we need to resolve it
+  const body = await (response.body as unknown as Promise<any>);
   if (body) {
-    if ('pipe' in body) {
+    if (isAsyncIterable<Uint8Array | string>(body)) {
       return handleReadable(body);
     }
-    return handleReadableStream(body) as any;
+    return handleReadableStream(body);
   }
-  throw new Error('Body is null???');
+  throw new Error('Response body is expected to be a readable stream but got; ' + inspect(body));
 }

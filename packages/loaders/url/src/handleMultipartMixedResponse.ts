@@ -1,7 +1,7 @@
-import { ExecutionResult, GraphQLError } from 'graphql';
+import type { ExecutionResult, GraphQLError } from 'graphql';
+import type { IncomingMessage } from 'http';
 import { meros as merosIncomingMessage } from 'meros/node';
 import { meros as merosReadableStream } from 'meros/browser';
-import { IncomingMessage } from 'http';
 import { mapAsyncIterator } from '@graphql-tools/utils';
 import { dset } from 'dset/merge';
 

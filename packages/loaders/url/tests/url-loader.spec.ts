@@ -14,7 +14,7 @@ import {
   getOperationAST,
 } from 'graphql';
 import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
-import { createReadStream, readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import { join } from 'path';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { createHandler } from 'graphql-sse';
@@ -22,9 +22,10 @@ import { Server as WSServer } from 'ws';
 import http from 'http';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { defaultAsyncFetch } from '../src/defaultAsyncFetch';
-import { Response } from 'cross-undici-fetch';
+import { Response, File } from 'cross-undici-fetch';
 import express from 'express';
 import { graphqlHTTP } from 'express-graphql';
+import { inspect } from 'util';
 
 describe('Schema URL Loader', () => {
   const loader = new UrlLoader();
@@ -66,15 +67,13 @@ input TestInput {
     },
     Upload: GraphQLUpload,
     File: {
-      content: (file: any) => {
+      content: async (file: any) => {
         const stream: NodeJS.ReadableStream = file.createReadStream();
-        return new Promise((resolve, reject) => {
-          let data = '';
-
-          stream.on('data', chunk => (data += chunk));
-          stream.on('end', () => resolve(data));
-          stream.on('error', error => reject(error));
-        });
+        let data = '';
+        for await (const chunk of stream) {
+          data += chunk;
+        }
+        return data;
       },
     },
     Mutation: {
@@ -82,23 +81,10 @@ input TestInput {
     },
     Subscription: {
       testMessage: {
-        subscribe: () => {
-          const numbers = [0, 1, 2];
-          const asyncIterator = {
-            next: async () => {
-              if (numbers.length === 0) {
-                return { value: null, done: true };
-              }
-              const number = numbers.shift();
-              return { value: { number }, done: false };
-            },
-          };
-
-          return {
-            // Note that async iterables use `Symbol.asyncIterator`, **not**
-            // `Symbol.iterator`.
-            [Symbol.asyncIterator]: () => asyncIterator,
-          };
+        subscribe: async function* () {
+          for (let i = 0; i < 3; i++) {
+            yield { number: i };
+          }
         },
         resolve: (payload: any) => payload,
       },
@@ -579,7 +565,6 @@ input TestInput {
 
       const content = readFileSync(absoluteFilePath, 'utf8');
       assertNonMaybe(schema);
-      const undici = require('undici');
       const result = await execute({
         schema,
         document: parse(/* GraphQL */ `
@@ -591,9 +576,7 @@ input TestInput {
           }
         `),
         variableValues: {
-          file: undici.File
-            ? new undici.File([content], fileName, { type: 'text/plain' })
-            : createReadStream(absoluteFilePath),
+          file: new File([content], fileName, { type: 'text/plain' }),
           nullVar: null,
           nonObjectVar: 'somefilename.txt',
         },
@@ -773,7 +756,7 @@ input TestInput {
         const secondResult = await iterator.next();
         expect(secondResult.value).toStrictEqual(sentDatas[1]);
         // Stop the request
-        await iterator.return!();
+        await iterator.return!().catch(() => null);
         const doneResult = await iterator.next();
         expect(doneResult).toStrictEqual({ done: true, value: undefined });
         expect(await serverResponseEnded$!).toBe(true);
@@ -784,7 +767,7 @@ input TestInput {
 
 function assertAsyncIterable(input: unknown): asserts input is AsyncIterable<any> {
   if (!isAsyncIterable(input)) {
-    throw new Error('Expected AsyncIterable.');
+    throw new Error(`Expected AsyncIterable. but received: ${inspect(input)}`);
   }
 }
 
