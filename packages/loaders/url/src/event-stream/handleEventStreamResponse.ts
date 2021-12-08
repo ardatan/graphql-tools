@@ -3,7 +3,7 @@ import { inspect, isAsyncIterable } from '@graphql-tools/utils';
 import { handleReadable } from './handleReadable';
 import { handleReadableStream } from './handleReadableStream';
 
-export async function handleEventStreamResponse(response: Response): Promise<AsyncIterable<ExecutionResult>> {
+export async function handleEventStreamResponse(response: Response): Promise<AsyncGenerator<ExecutionResult>> {
   // node-fetch returns body as a promise so we need to resolve it
   const body = await (response.body as unknown as Promise<any>);
   if (body) {
