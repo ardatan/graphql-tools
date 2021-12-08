@@ -756,7 +756,7 @@ input TestInput {
         const secondResult = await iterator.next();
         expect(secondResult.value).toStrictEqual(sentDatas[1]);
         // Stop the request
-        await iterator.return!();
+        await iterator.return!().catch(() => null);
         const doneResult = await iterator.next();
         expect(doneResult).toStrictEqual({ done: true, value: undefined });
         expect(await serverResponseEnded$!).toBe(true);

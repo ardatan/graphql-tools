@@ -5100,10 +5100,10 @@ cross-spawn@^7.0.1, cross-spawn@^7.0.2, cross-spawn@^7.0.3:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-cross-undici-fetch@^0.1.0:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.1.1.tgz#c3f8666d59a95248115e28029b58d1472a3ebcb2"
-  integrity sha512-RRNXXFiqCtCBN0K9POGAcBXzcrEI8tI/DHGEViZ9IicZzrRZG0HC/dT5TN8aojnHtv2xtOWxaxsd+PmZYrkd/A==
+cross-undici-fetch@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.1.4.tgz#6058950dc6bf451f81a51582258f4e5a5a01b702"
+  integrity sha512-jIcyxjQ6mEvUS3y2yhIVktOR7wlGZuyjFAK8woo7pMb+BR1f2ylfTxsN01UPwhqT8gtYPmZ2rPdyoInr1Cdrrw==
   dependencies:
     abort-controller "^3.0.0"
     form-data-encoder "^1.7.1"
