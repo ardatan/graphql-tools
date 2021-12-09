@@ -1,5 +1,14 @@
 # @graphql-tools/batch-delegate
 
+## 8.2.3
+
+### Patch Changes
+
+- 51315610: enhance: avoid using globalThis
+- Updated dependencies [51315610]
+  - @graphql-tools/delegate@8.4.3
+  - @graphql-tools/utils@8.5.4
+
 ## 8.2.2
 
 ### Patch Changes

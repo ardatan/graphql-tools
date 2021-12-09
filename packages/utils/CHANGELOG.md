@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.5.4
+
+### Patch Changes
+
+- 51315610: enhance: avoid using globalThis
+
 ## 8.5.3
 
 ### Patch Changes
@@ -348,7 +354,7 @@
 
   ```js
   {
-    mydir: [{ arg: 'first' }, { arg: 'second' }]
+    mydir: [{ arg: 'first' }, { arg: 'second' }];
   }
   ```
 
