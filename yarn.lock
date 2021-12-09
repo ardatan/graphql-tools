@@ -2103,12 +2103,12 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.0.tgz#0eee6373e11418bfe0b5638f654df7a4ca6a3950"
   integrity sha512-wYn6r8zVZyQJ6rQaALBEln5B1pzxb9shV5Ef97kTvn6yVGrqyXVnDqnU24MXnFubR+rZjBY9NWuxX3FB2sTsjg==
 
-"@guild-docs/client@1.3.2":
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.3.2.tgz#660b367ebaabd65f6f84316d4a32da75cb93834e"
-  integrity sha512-IrYoqtx08n3xhegBNbiSHqoB2o5ECU3tih7uKvjqoMIDz+EiBdqjRwHh0ME/H4C2zc167irj6QErcwNSHjaVXA==
+"@guild-docs/client@1.3.3":
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-1.3.3.tgz#815b94953f9deb83fd5ce810c455cead6da6ecfb"
+  integrity sha512-BGCYc4eRj+DCdiFM6we11QUohYmSf1Mm9jqufJH0nijj6hLTgYcUnDPuwlm7YuAY1UOpEyknFQLWn2hrED4gRQ==
   dependencies:
-    "@guild-docs/mdx-remote" "^1.0.1"
+    "@guild-docs/mdx-remote" "^1.0.2"
     "@guild-docs/types" "^1.1.0"
     immer "^9.0.7"
     next-seo "^4.28.1"
@@ -2119,9 +2119,9 @@
     react-use "^17.3.1"
     remove-markdown "^0.3.0"
     use-immer "^0.6.0"
-    zustand "^3.6.5"
+    zustand "^3.6.6"
 
-"@guild-docs/mdx-remote@^1.0.1", "@guild-docs/mdx-remote@^1.0.2":
+"@guild-docs/mdx-remote@^1.0.2":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@guild-docs/mdx-remote/-/mdx-remote-1.0.2.tgz#c9e69e8c032d6d7da900ba9b45965140f1d7748a"
   integrity sha512-1wQBiZwm8o2AS2fW8cGh5Kwvl371PFt+tnvzB5umO3zV5eVdKtbdYe0ukMLcPxy9He5YOnAyceQ/hGaSjbIyww==
@@ -12806,10 +12806,10 @@ zen-observable@0.8.15:
   resolved "https://registry.yarnpkg.com/zen-observable/-/zen-observable-0.8.15.tgz#96415c512d8e3ffd920afd3889604e30b9eaac15"
   integrity sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==
 
-zustand@^3.6.5:
-  version "3.6.5"
-  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.6.5.tgz#42a459397907d6bf0e2375351394733b2f83ee44"
-  integrity sha512-/WfLJuXiEJimt61KGMHebrFBwckkCHGhAgVXTgPQHl6IMzjqm6MREb1OnDSnCRiSmRdhgdFCctceg6tSm79hiw==
+zustand@^3.6.6:
+  version "3.6.7"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.6.7.tgz#aab5ac0a9d6d21dce752aecd390f373ed9c9d70a"
+  integrity sha512-bYWKXMfoJwZyliFgidcQ3tJC/F2f2hHq1+lhTk8dVPX2k28i4VnpnKjBGNxAd2QNliV0m455Vm+gDL8LShrV3g==
 
 zwitch@^1.0.0:
   version "1.0.5"
