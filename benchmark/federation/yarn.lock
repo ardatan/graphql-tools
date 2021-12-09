@@ -93,10 +93,10 @@
   dependencies:
     tslib "~2.0.1"
 
-"@graphql-tools/batch-delegate@8.2.1":
-  version "8.2.1"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/batch-delegate/-/batch-delegate-8.2.1.tgz#e6e4b5364ffa66ea9f7c28d5f5ad13cfadcb0f7e"
-  integrity sha512-gE4zLRzJnWQeg3GySjPgY9s4YmCXsR/b13lLIJKGupT3yhdSgGov687ZAaOixRZY/PrOlE3BGBoaFmi7/IowCw==
+"@graphql-tools/batch-delegate@8.2.2":
+  version "8.2.2"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/batch-delegate/-/batch-delegate-8.2.2.tgz#bc5b494ae6196ea67366b4db35962039dfa598e3"
+  integrity sha512-zFQvr1cPnPuw0kqivzN20Xyni/pKht0Jy9o6TaopjXMpM5TtlKltr8E+CroA1UfZKELlqkbkncmwtdyu50l6og==
   dependencies:
     "@graphql-tools/delegate" "^8.4.1"
     "@graphql-tools/utils" "^8.5.1"
@@ -172,12 +172,12 @@
     tslib "~2.3.0"
     value-or-promise "1.0.11"
 
-"@graphql-tools/stitch@8.4.1":
-  version "8.4.1"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/stitch/-/stitch-8.4.1.tgz#4db431a3f5ec3b31a022deb3386ce344bceca2a6"
-  integrity sha512-WfbWyTo+6Jo9dLvfmIubnmpwUbma2WU1Ygnv/ePxgTDZfcnRbpYi/dAMOZ0Aqq18ecui8RwoyzR+VjmTrQjecg==
+"@graphql-tools/stitch@8.4.2":
+  version "8.4.2"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/stitch/-/stitch-8.4.2.tgz#3357be03e4f59910e404c46d177d3435b6acb38e"
+  integrity sha512-lgwyb1pqKUVSz98cyhQ6sU39sdpk+6wFkVU4q2kx4GCm3uIChAf4QCSt5uqO35MwsXw4JGwlp5jfWKp5VIgMWg==
   dependencies:
-    "@graphql-tools/batch-delegate" "8.2.1"
+    "@graphql-tools/batch-delegate" "8.2.2"
     "@graphql-tools/delegate" "^8.4.1"
     "@graphql-tools/merge" "^8.2.1"
     "@graphql-tools/schema" "^8.3.1"
@@ -987,10 +987,10 @@ graphql-tag@2.12.6, graphql-tag@^2.11.0:
   dependencies:
     tslib "^2.1.0"
 
-graphql@16.0.1:
-  version "16.0.1"
-  resolved "https://registry.yarnpkg.com/graphql/-/graphql-16.0.1.tgz#93a13cd4e0e38ca8d0832e79614c8578bfd34f10"
-  integrity sha512-oPvCuu6dlLdiz8gZupJ47o1clgb72r1u8NDBcQYjcV6G/iEdmE11B1bBlkhXRvV0LisP/SXRFP7tT6AgaTjpzg==
+graphql@16.1.0:
+  version "16.1.0"
+  resolved "https://registry.yarnpkg.com/graphql/-/graphql-16.1.0.tgz#83bebeae6e119766d04966f09de9305be7fd44e5"
+  integrity sha512-+PIjmhqGHMIxtnlEirRXDHIzs0cAHAozKG5M2w2N4TnS8VzCxO3bbv1AW9UTeycBfl2QsPduxcVrBvANFKQhiw==
 
 has-bigints@^1.0.1:
   version "1.0.1"
