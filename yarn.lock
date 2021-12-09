@@ -2121,23 +2121,23 @@
     use-immer "^0.6.0"
     zustand "^3.6.5"
 
-"@guild-docs/mdx-remote@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@guild-docs/mdx-remote/-/mdx-remote-1.0.1.tgz#e5db16b20550fbbba74423d077bbf3ecf13733ce"
-  integrity sha512-x5AMrnbGRRbTsju3FEyi6jzLDHwFhoAzef3fTNVFU442XDkB5JMwi7yA5Q52yaFur+l6LFYjkeT2hHfjSZn5EA==
+"@guild-docs/mdx-remote@^1.0.1", "@guild-docs/mdx-remote@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@guild-docs/mdx-remote/-/mdx-remote-1.0.2.tgz#c9e69e8c032d6d7da900ba9b45965140f1d7748a"
+  integrity sha512-1wQBiZwm8o2AS2fW8cGh5Kwvl371PFt+tnvzB5umO3zV5eVdKtbdYe0ukMLcPxy9He5YOnAyceQ/hGaSjbIyww==
   dependencies:
-    "@guild-docs/types" "^1.0.3"
+    "@guild-docs/types" "^1.1.0"
     "@mdx-js/mdx" "^1.6.22"
     "@mdx-js/react" "^1.6.22"
-    unified "^10.1.0"
+    unified "^10.1.1"
     unist-util-remove "^3.1.0"
 
-"@guild-docs/server@2.1.4":
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-2.1.4.tgz#87824282434c45827011251b343a859a053205e5"
-  integrity sha512-OKYoiISL1MI4VwbicUylFmFLg1GkxakqPg+UjKChux25LZdECIu+3iEt5aY4ri8cMXC519f7TxbuWT1xfYKcoA==
+"@guild-docs/server@2.1.5":
+  version "2.1.5"
+  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-2.1.5.tgz#2ec6fa50044cc5d3bc3ba8dc94b0786c86564d1d"
+  integrity sha512-weiowwsXOzd2GGr+7hIiNGOHPW1KSjJzidQeA46BEK/KpQT2NUCXSBDzHHIUiFYzcupGHZsCa3iAvd6sCGzkJQ==
   dependencies:
-    "@guild-docs/mdx-remote" "^1.0.1"
+    "@guild-docs/mdx-remote" "^1.0.2"
     "@guild-docs/types" "^1.1.0"
     github-slugger "^1.4.0"
     globby "^11.0.4"
@@ -2149,7 +2149,7 @@
     unified "^10.1.1"
     unist-util-visit "^4.1.0"
 
-"@guild-docs/types@^1.0.3", "@guild-docs/types@^1.1.0":
+"@guild-docs/types@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@guild-docs/types/-/types-1.1.0.tgz#edfbb34f57be26bf7e03643eb1134f918647b3a6"
   integrity sha512-ivBhwKj5+u/YsKvDA45+zwrWPt7ByAVWqGFmKn67PdyCfeG8QMDSZt5mS2ET7RNaVe1PTTiXd3sWEaj3U2Ndag==
@@ -11991,7 +11991,7 @@ unified@9.2.0:
     trough "^1.0.0"
     vfile "^4.0.0"
 
-unified@^10.0.0, unified@^10.1.0, unified@^10.1.1:
+unified@^10.0.0, unified@^10.1.1:
   version "10.1.1"
   resolved "https://registry.yarnpkg.com/unified/-/unified-10.1.1.tgz#345e349e3ab353ab612878338eb9d57b4dea1d46"
   integrity sha512-v4ky1+6BN9X3pQrOdkFIPWAaeDsHPE1svRDxq7YpTc2plkIqFMwukfqM+l0ewpP9EfwARlt9pPFAeWYhHm8X9w==
