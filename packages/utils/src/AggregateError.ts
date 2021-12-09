@@ -9,9 +9,9 @@ interface AggregateErrorConstructor {
   readonly prototype: AggregateError;
 }
 
-let AggregateErrorImpl: AggregateErrorConstructor = globalThis.AggregateError;
+let AggregateErrorImpl: AggregateErrorConstructor;
 
-if (typeof AggregateErrorImpl === 'undefined') {
+if (typeof AggregateError === 'undefined') {
   class AggregateErrorClass extends Error implements AggregateError {
     constructor(public errors: any[], message = '') {
       super(message);
@@ -22,6 +22,8 @@ if (typeof AggregateErrorImpl === 'undefined') {
   AggregateErrorImpl = function (errors: any[], message?: string) {
     return new AggregateErrorClass(errors, message);
   } as AggregateErrorConstructor;
+} else {
+  AggregateErrorImpl = AggregateError;
 }
 
 export { AggregateErrorImpl as AggregateError };

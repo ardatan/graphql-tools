@@ -61,10 +61,12 @@ const getLoadersMap = memoize3(function getLoadersMap<K, V, C>(
   return new Map<string, DataLoader<K, V, C>>();
 });
 
+const GLOBAL_CONTEXT = {};
+
 export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
   const { schema, fieldName, context, info, dataLoaderOptions } = options;
   const targetFieldName = fieldName ?? info.fieldName;
-  const loaders = getLoadersMap<K, V, C>(context ?? globalThis ?? window ?? global, info.fieldNodes, schema);
+  const loaders = getLoadersMap<K, V, C>(context ?? GLOBAL_CONTEXT, info.fieldNodes, schema);
 
   let loader = loaders.get(targetFieldName);
 
