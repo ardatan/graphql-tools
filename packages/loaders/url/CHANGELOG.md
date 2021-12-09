@@ -1,5 +1,12 @@
 # @graphql-tools/url-loader
 
+## 7.6.0
+
+### Minor Changes
+
+- 21abe270: - Handle W3C File/Blob Inputs with multipart request
+  - Better error message in case of bad response type
+
 ## 7.5.3
 
 ### Patch Changes
