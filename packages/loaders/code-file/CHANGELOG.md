@@ -1,5 +1,11 @@
 # @graphql-tools/code-file-loader
 
+## 7.2.3
+
+### Patch Changes
+
+- 5fb1f11b: fix(code-file-loader): do not swallow stack traces
+
 ## 7.2.2
 
 ### Patch Changes
