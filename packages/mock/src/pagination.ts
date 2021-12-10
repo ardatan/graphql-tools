@@ -140,12 +140,12 @@ export const relayStylePaginationMock = <TContext, TArgs extends RelayPagination
       const beforeIndex = foundBeforeIndex !== -1 ? foundBeforeIndex : allNodes.length;
       start = allEdges.length - (allEdges.length - beforeIndex) - last;
 
-      // negative index on Array.slice indicate offsert from end of sequence => we don't want
+      // negative index on Array.slice indicate offset from end of sequence => we don't want
       if (start < 0) start = 0;
 
       end = beforeIndex;
     } else {
-      throw new Error('if `first` or  `last` should be provided');
+      throw new Error('A `first` or a `last` arguments should be provided');
     }
 
     const edges = allEdges.slice(start, end);
