@@ -299,45 +299,46 @@ const schemaWithMocks = addMocksToSchema({
 ```
 
 #### Relay-style pagination
+
 To mock a pagination that complies to [Relay-style pagination](https://relay.dev/graphql/connections.htm),
 you can use the provided helper [`relayStylePaginationMock`](/docs/api/modules/mock_src#relaystylepaginationmock):
 
 ```ts
-import { buildSchema } from 'graphql';
-import { addMocksToSchema, relayStylePaginationMock } from '@graphql-tools/mock';
+import { buildSchema } from 'graphql'
+import { addMocksToSchema, relayStylePaginationMock } from '@graphql-tools/mock'
 
-const typeDefs = /* GraphQL */`
-type User {
-  id: Id!
-  name: String!
-  friends(first: Int!, after: String): FriendsConnection!
-}
-type PageInfo {
-  hasNextPage: Boolean!
-  endCursor: String!
-}
-type FriendsConnection {
-  totalCount: Int!
-  edges: [FriendConnectionEdge!]!
-  pageInfo: PageInfo!
-}
-type FriendsConnectionEdge {
-  node: User!
-  cursor: String!
-}
-type Query {
-  me: User!
-}
+const typeDefs = /* GraphQL */ `
+  type User {
+    id: Id!
+    name: String!
+    friends(first: Int!, after: String): FriendsConnection!
+  }
+  type PageInfo {
+    hasNextPage: Boolean!
+    endCursor: String!
+  }
+  type FriendsConnection {
+    totalCount: Int!
+    edges: [FriendConnectionEdge!]!
+    pageInfo: PageInfo!
+  }
+  type FriendsConnectionEdge {
+    node: User!
+    cursor: String!
+  }
+  type Query {
+    me: User!
+  }
 `
-const schema = buildSchema(typeDefs);
+const schema = buildSchema(typeDefs)
 const schemaWithMocks = addMocksToSchema({
   schema,
-  resolvers: (store) => ({
+  resolvers: store => ({
     User: {
       friends: relayStylePaginationMock(store)
     }
   })
-});
+})
 ```
 
 ## Mocking a schema using introspection
