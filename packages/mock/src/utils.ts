@@ -1,3 +1,5 @@
+import { getRootTypeNames } from '@graphql-tools/utils';
+import { GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { Ref, KeyTypeConstraints } from './types';
 
 export function uuidv4() {
@@ -44,3 +46,9 @@ export function copyOwnProps(target: Record<string, any>, ...sources: Array<Reco
   }
   return target;
 }
+
+export const isRootType = (type: GraphQLObjectType, schema: GraphQLSchema) => {
+  const rootTypeNames = getRootTypeNames(schema);
+
+  return rootTypeNames.has(type.name);
+};
