@@ -613,7 +613,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     };
     const fetch = await this.getFetch(options?.customFetch, asyncImport);
     let executor = await this.getExecutorAsync(pointer, options);
-    if (options?.handleAsSDL || pointer.endsWith('.graphql')) {
+    if (options?.handleAsSDL || pointer.endsWith('.graphql') || pointer.endsWith('.graphqls')) {
       source = await this.handleSDL(pointer, fetch, options);
       if (!source.schema && !source.document && !source.rawSDL) {
         throw new Error(`Invalid SDL response`);
@@ -655,7 +655,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     };
     const fetch = this.getFetch(options?.customFetch, syncImport);
     let executor = this.getExecutorSync(pointer, options);
-    if (options?.handleAsSDL || pointer.endsWith('.graphql')) {
+    if (options?.handleAsSDL || pointer.endsWith('.graphql') || pointer.endsWith('.graphqls')) {
       source = this.handleSDL(pointer, fetch, options);
       if (!source.schema && !source.document && !source.rawSDL) {
         throw new Error(`Invalid SDL response`);
