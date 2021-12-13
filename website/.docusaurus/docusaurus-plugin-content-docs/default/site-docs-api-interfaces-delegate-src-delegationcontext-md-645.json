@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/delegate_src.delegationcontext",
+  "id": "api/interfaces/delegate_src.delegationcontext",
+  "isDocsHomePage": false,
+  "title": "delegate_src.delegationcontext",
+  "description": "Interface: DelegationContext",
+  "source": "@site/docs/api/interfaces/delegate_src.delegationcontext.md",
+  "slug": "/api/interfaces/delegate_src.delegationcontext",
+  "permalink": "/docs/api/interfaces/delegate_src.delegationcontext",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/delegate_src.delegationcontext.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "batch_delegate_src.createbatchdelegatefnoptions",
+    "permalink": "/docs/api/interfaces/batch_delegate_src.createbatchdelegatefnoptions"
+  },
+  "next": {
+    "title": "delegate_src.executionparams",
+    "permalink": "/docs/api/interfaces/delegate_src.executionparams"
+  }
+}

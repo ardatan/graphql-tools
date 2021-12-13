@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/delegate_src.addtypenametoabstract",
+  "id": "api/classes/delegate_src.addtypenametoabstract",
+  "isDocsHomePage": false,
+  "title": "delegate_src.addtypenametoabstract",
+  "description": "Class: AddTypenameToAbstract",
+  "source": "@site/docs/api/classes/delegate_src.addtypenametoabstract.md",
+  "slug": "/api/classes/delegate_src.addtypenametoabstract",
+  "permalink": "/docs/api/classes/delegate_src.addtypenametoabstract",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/delegate_src.addtypenametoabstract.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "delegate_src.addselectionsets",
+    "permalink": "/docs/api/classes/delegate_src.addselectionsets"
+  },
+  "next": {
+    "title": "loaders_apollo_engine_src.apolloengineloader",
+    "permalink": "/docs/api/classes/loaders_apollo_engine_src.apolloengineloader"
+  }
+}

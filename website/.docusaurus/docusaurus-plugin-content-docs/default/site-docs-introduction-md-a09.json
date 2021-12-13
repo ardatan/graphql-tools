@@ -1,0 +1,17 @@
+{
+  "unversionedId": "introduction",
+  "id": "introduction",
+  "isDocsHomePage": false,
+  "title": "Introduction",
+  "description": "A set of utilities to build your JavaScript GraphQL schema in a concise and powerful way.",
+  "source": "@site/docs/introduction.md",
+  "slug": "/introduction",
+  "permalink": "/docs/introduction",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/introduction.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "next": {
+    "title": "Executable schemas",
+    "permalink": "/docs/generate-schema"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "unversionedId": "api/modules/batch-delegate",
+  "id": "api/modules/batch-delegate",
+  "isDocsHomePage": false,
+  "title": "@graphql-tools/batch-delegate",
+  "description": "- BatchDelegateOptions",
+  "source": "@site/docs/api/modules/batch_delegate_src.md",
+  "slug": "/api/modules/batch-delegate",
+  "permalink": "/docs/api/modules/batch-delegate",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/modules/batch_delegate_src.md",
+  "version": "current",
+  "sidebar_label": "batch-delegate",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "Migration from GraphQL Import",
+    "permalink": "/docs/migration-from-import"
+  },
+  "next": {
+    "title": "@graphql-tools/batch-execute",
+    "permalink": "/docs/api/modules/batch-execute"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/wrap_src.pruneschema",
+  "id": "api/classes/wrap_src.pruneschema",
+  "isDocsHomePage": false,
+  "title": "wrap_src.pruneschema",
+  "description": "Class: PruneSchema",
+  "source": "@site/docs/api/classes/wrap_src.pruneschema.md",
+  "slug": "/api/classes/wrap_src.pruneschema",
+  "permalink": "/docs/api/classes/wrap_src.pruneschema",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/wrap_src.pruneschema.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "loaders_prisma_src.prismaloader",
+    "permalink": "/docs/api/classes/loaders_prisma_src.prismaloader"
+  },
+  "next": {
+    "title": "wrap_src.removeobjectfielddeprecations",
+    "permalink": "/docs/api/classes/wrap_src.removeobjectfielddeprecations"
+  }
+}

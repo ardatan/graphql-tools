@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/loaders_code_file_src.codefileloader",
+  "id": "api/classes/loaders_code_file_src.codefileloader",
+  "isDocsHomePage": false,
+  "title": "loaders_code_file_src.codefileloader",
+  "description": "Class: CodeFileLoader",
+  "source": "@site/docs/api/classes/loaders_code_file_src.codefileloader.md",
+  "slug": "/api/classes/loaders_code_file_src.codefileloader",
+  "permalink": "/docs/api/classes/loaders_code_file_src.codefileloader",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/loaders_code_file_src.codefileloader.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "delegate_src.checkresultandhandleerrors",
+    "permalink": "/docs/api/classes/delegate_src.checkresultandhandleerrors"
+  },
+  "next": {
+    "title": "delegate_src.expandabstracttypes",
+    "permalink": "/docs/api/classes/delegate_src.expandabstracttypes"
+  }
+}

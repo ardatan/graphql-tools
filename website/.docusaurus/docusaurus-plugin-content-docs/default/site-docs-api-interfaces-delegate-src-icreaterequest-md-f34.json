@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/delegate_src.icreaterequest",
+  "id": "api/interfaces/delegate_src.icreaterequest",
+  "isDocsHomePage": false,
+  "title": "delegate_src.icreaterequest",
+  "description": "Interface: ICreateRequest",
+  "source": "@site/docs/api/interfaces/delegate_src.icreaterequest.md",
+  "slug": "/api/interfaces/delegate_src.icreaterequest",
+  "permalink": "/docs/api/interfaces/delegate_src.icreaterequest",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/delegate_src.icreaterequest.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "delegate_src.icreateproxyingresolveroptions",
+    "permalink": "/docs/api/interfaces/delegate_src.icreateproxyingresolveroptions"
+  },
+  "next": {
+    "title": "delegate_src.icreaterequestfrominfo",
+    "permalink": "/docs/api/interfaces/delegate_src.icreaterequestfrominfo"
+  }
+}

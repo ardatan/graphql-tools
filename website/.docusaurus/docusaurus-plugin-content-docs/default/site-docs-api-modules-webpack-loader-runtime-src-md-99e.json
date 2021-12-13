@@ -1,0 +1,22 @@
+{
+  "unversionedId": "api/modules/webpack-loader-runtime",
+  "id": "api/modules/webpack-loader-runtime",
+  "isDocsHomePage": false,
+  "title": "@graphql-tools/webpack-loader-runtime",
+  "description": "- uniqueCode",
+  "source": "@site/docs/api/modules/webpack_loader_runtime_src.md",
+  "slug": "/api/modules/webpack-loader-runtime",
+  "permalink": "/docs/api/modules/webpack-loader-runtime",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/modules/webpack_loader_runtime_src.md",
+  "version": "current",
+  "sidebar_label": "webpack-loader-runtime",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "@graphql-tools/webpack-loader",
+    "permalink": "/docs/api/modules/webpack-loader"
+  },
+  "next": {
+    "title": "@graphql-tools/wrap",
+    "permalink": "/docs/api/modules/wrap"
+  }
+}

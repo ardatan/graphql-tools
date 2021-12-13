@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/utils_src.observer",
+  "id": "api/interfaces/utils_src.observer",
+  "isDocsHomePage": false,
+  "title": "utils_src.observer",
+  "description": "Interface: Observer&lt;T\\&gt;",
+  "source": "@site/docs/api/interfaces/utils_src.observer.md",
+  "slug": "/api/interfaces/utils_src.observer",
+  "permalink": "/docs/api/interfaces/utils_src.observer",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/utils_src.observer.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "utils_src.observable",
+    "permalink": "/docs/api/interfaces/utils_src.observable"
+  },
+  "next": {
+    "title": "stitching_directives_src.parsedmergeargsexpr",
+    "permalink": "/docs/api/interfaces/stitching_directives_src.parsedmergeargsexpr"
+  }
+}

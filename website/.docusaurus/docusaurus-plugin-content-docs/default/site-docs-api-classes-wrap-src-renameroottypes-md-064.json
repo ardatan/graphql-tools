@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/wrap_src.renameroottypes",
+  "id": "api/classes/wrap_src.renameroottypes",
+  "isDocsHomePage": false,
+  "title": "wrap_src.renameroottypes",
+  "description": "Class: RenameRootTypes",
+  "source": "@site/docs/api/classes/wrap_src.renameroottypes.md",
+  "slug": "/api/classes/wrap_src.renameroottypes",
+  "permalink": "/docs/api/classes/wrap_src.renameroottypes",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/wrap_src.renameroottypes.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "wrap_src.renamerootfields",
+    "permalink": "/docs/api/classes/wrap_src.renamerootfields"
+  },
+  "next": {
+    "title": "wrap_src.renametypes",
+    "permalink": "/docs/api/classes/wrap_src.renametypes"
+  }
+}

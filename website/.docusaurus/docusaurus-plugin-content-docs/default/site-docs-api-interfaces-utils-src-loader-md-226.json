@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/utils_src.loader",
+  "id": "api/interfaces/utils_src.loader",
+  "isDocsHomePage": false,
+  "title": "utils_src.loader",
+  "description": "Interface: Loader&lt;TPointer, TOptions\\&gt;",
+  "source": "@site/docs/api/interfaces/utils_src.loader.md",
+  "slug": "/api/interfaces/utils_src.loader",
+  "permalink": "/docs/api/interfaces/utils_src.loader",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/utils_src.loader.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "utils_src.loaddocumenterror",
+    "permalink": "/docs/api/interfaces/utils_src.loaddocumenterror"
+  },
+  "next": {
+    "title": "load_files_src.loadfilesoptions",
+    "permalink": "/docs/api/interfaces/load_files_src.loadfilesoptions"
+  }
+}

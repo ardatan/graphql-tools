@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/delegate_src.batchingoptions",
+  "id": "api/interfaces/delegate_src.batchingoptions",
+  "isDocsHomePage": false,
+  "title": "delegate_src.batchingoptions",
+  "description": "Interface: BatchingOptions&lt;K, V, C\\&gt;",
+  "source": "@site/docs/api/interfaces/delegate_src.batchingoptions.md",
+  "slug": "/api/interfaces/delegate_src.batchingoptions",
+  "permalink": "/docs/api/interfaces/delegate_src.batchingoptions",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/delegate_src.batchingoptions.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "batch_delegate_src.batchdelegateoptions",
+    "permalink": "/docs/api/interfaces/batch_delegate_src.batchdelegateoptions"
+  },
+  "next": {
+    "title": "merge_src.config",
+    "permalink": "/docs/api/interfaces/merge_src.config"
+  }
+}

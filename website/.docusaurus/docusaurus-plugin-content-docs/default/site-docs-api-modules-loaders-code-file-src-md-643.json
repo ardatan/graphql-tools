@@ -1,0 +1,22 @@
+{
+  "unversionedId": "api/modules/code-file-loader",
+  "id": "api/modules/code-file-loader",
+  "isDocsHomePage": false,
+  "title": "@graphql-tools/code-file-loader",
+  "description": "- CodeFileLoader",
+  "source": "@site/docs/api/modules/loaders_code_file_src.md",
+  "slug": "/api/modules/code-file-loader",
+  "permalink": "/docs/api/modules/code-file-loader",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/modules/loaders_code_file_src.md",
+  "version": "current",
+  "sidebar_label": "code-file-loader",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "@graphql-tools/apollo-engine-loader",
+    "permalink": "/docs/api/modules/apollo-engine-loader"
+  },
+  "next": {
+    "title": "@graphql-tools/git-loader",
+    "permalink": "/docs/api/modules/git-loader"
+  }
+}

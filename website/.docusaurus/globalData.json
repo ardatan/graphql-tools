@@ -1,0 +1,896 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/docs",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/docs",
+          "mainDocId": "introduction",
+          "docs": [
+            {
+              "id": "api/classes/delegate_src.addargumentsasvariables",
+              "path": "/docs/api/classes/delegate_src.addargumentsasvariables",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/delegate_src.addselectionsets",
+              "path": "/docs/api/classes/delegate_src.addselectionsets",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/delegate_src.addtypenametoabstract",
+              "path": "/docs/api/classes/delegate_src.addtypenametoabstract",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/delegate_src.checkresultandhandleerrors",
+              "path": "/docs/api/classes/delegate_src.checkresultandhandleerrors",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/delegate_src.expandabstracttypes",
+              "path": "/docs/api/classes/delegate_src.expandabstracttypes",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/delegate_src.filtertoschema",
+              "path": "/docs/api/classes/delegate_src.filtertoschema",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/delegate_src.subschema",
+              "path": "/docs/api/classes/delegate_src.subschema",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/delegate_src.visitselectionsets",
+              "path": "/docs/api/classes/delegate_src.visitselectionsets",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/links_src.awaitvariableslink",
+              "path": "/docs/api/classes/links_src.awaitvariableslink",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/loaders_apollo_engine_src.apolloengineloader",
+              "path": "/docs/api/classes/loaders_apollo_engine_src.apolloengineloader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/loaders_code_file_src.codefileloader",
+              "path": "/docs/api/classes/loaders_code_file_src.codefileloader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/loaders_git_src.gitloader",
+              "path": "/docs/api/classes/loaders_git_src.gitloader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/loaders_github_src.githubloader",
+              "path": "/docs/api/classes/loaders_github_src.githubloader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/loaders_graphql_file_src.graphqlfileloader",
+              "path": "/docs/api/classes/loaders_graphql_file_src.graphqlfileloader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/loaders_json_file_src.jsonfileloader",
+              "path": "/docs/api/classes/loaders_json_file_src.jsonfileloader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/loaders_module_src.moduleloader",
+              "path": "/docs/api/classes/loaders_module_src.moduleloader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/loaders_prisma_src.prismaloader",
+              "path": "/docs/api/classes/loaders_prisma_src.prismaloader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/loaders_url_src.urlloader",
+              "path": "/docs/api/classes/loaders_url_src.urlloader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/mock_src.mocklist",
+              "path": "/docs/api/classes/mock_src.mocklist",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/mock_src.mockstore",
+              "path": "/docs/api/classes/mock_src.mockstore",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/utils_src.schemadirectivevisitor",
+              "path": "/docs/api/classes/utils_src.schemadirectivevisitor",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/utils_src.schemavisitor",
+              "path": "/docs/api/classes/utils_src.schemavisitor",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.extractfield",
+              "path": "/docs/api/classes/wrap_src.extractfield",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.filterinputobjectfields",
+              "path": "/docs/api/classes/wrap_src.filterinputobjectfields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.filterinterfacefields",
+              "path": "/docs/api/classes/wrap_src.filterinterfacefields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.filterobjectfielddirectives",
+              "path": "/docs/api/classes/wrap_src.filterobjectfielddirectives",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.filterobjectfields",
+              "path": "/docs/api/classes/wrap_src.filterobjectfields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.filterrootfields",
+              "path": "/docs/api/classes/wrap_src.filterrootfields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.filtertypes",
+              "path": "/docs/api/classes/wrap_src.filtertypes",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.hoistfield",
+              "path": "/docs/api/classes/wrap_src.hoistfield",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.mapfields",
+              "path": "/docs/api/classes/wrap_src.mapfields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.mapleafvalues",
+              "path": "/docs/api/classes/wrap_src.mapleafvalues",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.pruneschema",
+              "path": "/docs/api/classes/wrap_src.pruneschema",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.removeobjectfielddeprecations",
+              "path": "/docs/api/classes/wrap_src.removeobjectfielddeprecations",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.removeobjectfielddirectives",
+              "path": "/docs/api/classes/wrap_src.removeobjectfielddirectives",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.removeobjectfieldswithdeprecation",
+              "path": "/docs/api/classes/wrap_src.removeobjectfieldswithdeprecation",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.removeobjectfieldswithdirective",
+              "path": "/docs/api/classes/wrap_src.removeobjectfieldswithdirective",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.renameinputobjectfields",
+              "path": "/docs/api/classes/wrap_src.renameinputobjectfields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.renameinterfacefields",
+              "path": "/docs/api/classes/wrap_src.renameinterfacefields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.renameobjectfields",
+              "path": "/docs/api/classes/wrap_src.renameobjectfields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.renamerootfields",
+              "path": "/docs/api/classes/wrap_src.renamerootfields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.renameroottypes",
+              "path": "/docs/api/classes/wrap_src.renameroottypes",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.renametypes",
+              "path": "/docs/api/classes/wrap_src.renametypes",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.transformcompositefields",
+              "path": "/docs/api/classes/wrap_src.transformcompositefields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.transformenumvalues",
+              "path": "/docs/api/classes/wrap_src.transformenumvalues",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.transforminputobjectfields",
+              "path": "/docs/api/classes/wrap_src.transforminputobjectfields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.transforminterfacefields",
+              "path": "/docs/api/classes/wrap_src.transforminterfacefields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.transformobjectfields",
+              "path": "/docs/api/classes/wrap_src.transformobjectfields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.transformquery",
+              "path": "/docs/api/classes/wrap_src.transformquery",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.transformrootfields",
+              "path": "/docs/api/classes/wrap_src.transformrootfields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.wrapfields",
+              "path": "/docs/api/classes/wrap_src.wrapfields",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.wrapquery",
+              "path": "/docs/api/classes/wrap_src.wrapquery",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/classes/wrap_src.wraptype",
+              "path": "/docs/api/classes/wrap_src.wraptype",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/enums/utils_src.mapperkind",
+              "path": "/docs/api/enums/utils_src.mapperkind",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/enums/utils_src.visitschemakind",
+              "path": "/docs/api/enums/utils_src.visitschemakind",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/batch_delegate_src.batchdelegateoptions",
+              "path": "/docs/api/interfaces/batch_delegate_src.batchdelegateoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/batch_delegate_src.createbatchdelegatefnoptions",
+              "path": "/docs/api/interfaces/batch_delegate_src.createbatchdelegatefnoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.batchingoptions",
+              "path": "/docs/api/interfaces/delegate_src.batchingoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.delegationcontext",
+              "path": "/docs/api/interfaces/delegate_src.delegationcontext",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.executionparams",
+              "path": "/docs/api/interfaces/delegate_src.executionparams",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.externalobject",
+              "path": "/docs/api/interfaces/delegate_src.externalobject",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.icreateproxyingresolveroptions",
+              "path": "/docs/api/interfaces/delegate_src.icreateproxyingresolveroptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.icreaterequest",
+              "path": "/docs/api/interfaces/delegate_src.icreaterequest",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.icreaterequestfrominfo",
+              "path": "/docs/api/interfaces/delegate_src.icreaterequestfrominfo",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.idelegaterequestoptions",
+              "path": "/docs/api/interfaces/delegate_src.idelegaterequestoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.idelegatetoschemaoptions",
+              "path": "/docs/api/interfaces/delegate_src.idelegatetoschemaoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.mergedfieldconfig",
+              "path": "/docs/api/interfaces/delegate_src.mergedfieldconfig",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.mergedtypeconfig",
+              "path": "/docs/api/interfaces/delegate_src.mergedtypeconfig",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.mergedtypeinfo",
+              "path": "/docs/api/interfaces/delegate_src.mergedtypeinfo",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.mergedtyperesolveroptions",
+              "path": "/docs/api/interfaces/delegate_src.mergedtyperesolveroptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.stitchinginfo",
+              "path": "/docs/api/interfaces/delegate_src.stitchinginfo",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.subschemaconfig",
+              "path": "/docs/api/interfaces/delegate_src.subschemaconfig",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/delegate_src.transform",
+              "path": "/docs/api/interfaces/delegate_src.transform",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/graphql_tag_pluck_src.graphqltagpluckoptions",
+              "path": "/docs/api/interfaces/graphql_tag_pluck_src.graphqltagpluckoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/load_files_src.loadfilesoptions",
+              "path": "/docs/api/interfaces/load_files_src.loadfilesoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/loaders_apollo_engine_src.apolloengineoptions",
+              "path": "/docs/api/interfaces/loaders_apollo_engine_src.apolloengineoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/loaders_github_src.githubloaderoptions",
+              "path": "/docs/api/interfaces/loaders_github_src.githubloaderoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/loaders_graphql_file_src.graphqlfileloaderoptions",
+              "path": "/docs/api/interfaces/loaders_graphql_file_src.graphqlfileloaderoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/loaders_json_file_src.jsonfileloaderoptions",
+              "path": "/docs/api/interfaces/loaders_json_file_src.jsonfileloaderoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/loaders_prisma_src.prismaloaderoptions",
+              "path": "/docs/api/interfaces/loaders_prisma_src.prismaloaderoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/loaders_url_src.loadfromurloptions",
+              "path": "/docs/api/interfaces/loaders_url_src.loadfromurloptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/merge_src.config",
+              "path": "/docs/api/interfaces/merge_src.config",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/merge_src.mergeresolversoptions",
+              "path": "/docs/api/interfaces/merge_src.mergeresolversoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/merge_src.mergeschemasconfig",
+              "path": "/docs/api/interfaces/merge_src.mergeschemasconfig",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/mock_src.imockserver",
+              "path": "/docs/api/interfaces/mock_src.imockserver",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/mock_src.imockstore",
+              "path": "/docs/api/interfaces/mock_src.imockstore",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/schema_src.iexecutableschemadefinition",
+              "path": "/docs/api/interfaces/schema_src.iexecutableschemadefinition",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/schema_src.ilogger",
+              "path": "/docs/api/interfaces/schema_src.ilogger",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/stitching_directives_src.expansion",
+              "path": "/docs/api/interfaces/stitching_directives_src.expansion",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/stitching_directives_src.keydeclaration",
+              "path": "/docs/api/interfaces/stitching_directives_src.keydeclaration",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/stitching_directives_src.mergedtyperesolverinfo",
+              "path": "/docs/api/interfaces/stitching_directives_src.mergedtyperesolverinfo",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/stitching_directives_src.parsedmergeargsexpr",
+              "path": "/docs/api/interfaces/stitching_directives_src.parsedmergeargsexpr",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/stitching_directives_src.propertytree",
+              "path": "/docs/api/interfaces/stitching_directives_src.propertytree",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/stitching_directives_src.stitchingdirectivesoptions",
+              "path": "/docs/api/interfaces/stitching_directives_src.stitchingdirectivesoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.executionresult",
+              "path": "/docs/api/interfaces/utils_src.executionresult",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.graphqlexecutioncontext",
+              "path": "/docs/api/interfaces/utils_src.graphqlexecutioncontext",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.graphqlparseoptions",
+              "path": "/docs/api/interfaces/utils_src.graphqlparseoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.iaddresolverstoschemaoptions",
+              "path": "/docs/api/interfaces/utils_src.iaddresolverstoschemaoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.idirectiveresolvers",
+              "path": "/docs/api/interfaces/utils_src.idirectiveresolvers",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.ifieldresolveroptions",
+              "path": "/docs/api/interfaces/utils_src.ifieldresolveroptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.iresolvervalidationoptions",
+              "path": "/docs/api/interfaces/utils_src.iresolvervalidationoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.loaddocumenterror",
+              "path": "/docs/api/interfaces/utils_src.loaddocumenterror",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.loader",
+              "path": "/docs/api/interfaces/utils_src.loader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.observable",
+              "path": "/docs/api/interfaces/utils_src.observable",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.observer",
+              "path": "/docs/api/interfaces/utils_src.observer",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.printschemawithdirectivesoptions",
+              "path": "/docs/api/interfaces/utils_src.printschemawithdirectivesoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.pruneschemaoptions",
+              "path": "/docs/api/interfaces/utils_src.pruneschemaoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.request",
+              "path": "/docs/api/interfaces/utils_src.request",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.schemamapper",
+              "path": "/docs/api/interfaces/utils_src.schemamapper",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.schemaprintoptions",
+              "path": "/docs/api/interfaces/utils_src.schemaprintoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.schemavisitormap",
+              "path": "/docs/api/interfaces/utils_src.schemavisitormap",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/utils_src.source",
+              "path": "/docs/api/interfaces/utils_src.source",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/interfaces/wrap_src.imakeremoteexecutableschemaoptions",
+              "path": "/docs/api/interfaces/wrap_src.imakeremoteexecutableschemaoptions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/apollo-engine-loader",
+              "path": "/docs/api/modules/apollo-engine-loader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/batch-delegate",
+              "path": "/docs/api/modules/batch-delegate",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/batch-execute",
+              "path": "/docs/api/modules/batch-execute",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/code-file-loader",
+              "path": "/docs/api/modules/code-file-loader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/delegate",
+              "path": "/docs/api/modules/delegate",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/git-loader",
+              "path": "/docs/api/modules/git-loader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/github-loader",
+              "path": "/docs/api/modules/github-loader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/graphql-file-loader",
+              "path": "/docs/api/modules/graphql-file-loader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/graphql-tag-pluck",
+              "path": "/docs/api/modules/graphql-tag-pluck",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/import",
+              "path": "/docs/api/modules/import",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/json-file-loader",
+              "path": "/docs/api/modules/json-file-loader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/links",
+              "path": "/docs/api/modules/links",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/load",
+              "path": "/docs/api/modules/load",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/load-files",
+              "path": "/docs/api/modules/load-files",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/merge",
+              "path": "/docs/api/modules/merge",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/mock",
+              "path": "/docs/api/modules/mock",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/module-loader",
+              "path": "/docs/api/modules/module-loader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/node-require",
+              "path": "/docs/api/modules/node-require",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/optimize",
+              "path": "/docs/api/modules/optimize",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/prisma-loader",
+              "path": "/docs/api/modules/prisma-loader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/relay-operation-optimizer",
+              "path": "/docs/api/modules/relay-operation-optimizer",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/resolvers-composition",
+              "path": "/docs/api/modules/resolvers-composition",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/schema",
+              "path": "/docs/api/modules/schema",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/stitch",
+              "path": "/docs/api/modules/stitch",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/stitching-directives",
+              "path": "/docs/api/modules/stitching-directives",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/url-loader",
+              "path": "/docs/api/modules/url-loader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/utils",
+              "path": "/docs/api/modules/utils",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/webpack-loader",
+              "path": "/docs/api/modules/webpack-loader",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/webpack-loader-runtime",
+              "path": "/docs/api/modules/webpack-loader-runtime",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/modules/wrap",
+              "path": "/docs/api/modules/wrap",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "api/README",
+              "path": "/docs/api/README"
+            },
+            {
+              "id": "connectors",
+              "path": "/docs/connectors",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "directive-resolvers",
+              "path": "/docs/directive-resolvers",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "documents-loading",
+              "path": "/docs/documents-loading",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "generate-schema",
+              "path": "/docs/generate-schema",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "graphql-tag-pluck",
+              "path": "/docs/graphql-tag-pluck",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "introduction",
+              "path": "/docs/introduction",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "legacy-schema-directives",
+              "path": "/docs/legacy-schema-directives"
+            },
+            {
+              "id": "loaders",
+              "path": "/docs/loaders"
+            },
+            {
+              "id": "merge-resolvers",
+              "path": "/docs/merge-resolvers"
+            },
+            {
+              "id": "merge-schemas",
+              "path": "/docs/merge-schemas"
+            },
+            {
+              "id": "merge-typedefs",
+              "path": "/docs/merge-typedefs"
+            },
+            {
+              "id": "migration-from-import",
+              "path": "/docs/migration-from-import",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "migration-from-merge-graphql-schemas",
+              "path": "/docs/migration-from-merge-graphql-schemas",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "migration-from-toolkit",
+              "path": "/docs/migration-from-toolkit",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "migration-from-tools",
+              "path": "/docs/migration-from-tools",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "mocking",
+              "path": "/docs/mocking",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "relay-operation-optimizer",
+              "path": "/docs/relay-operation-optimizer",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "remote-schemas",
+              "path": "/docs/remote-schemas",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "resolvers",
+              "path": "/docs/resolvers",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "resolvers-composition",
+              "path": "/docs/resolvers-composition",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "scalars",
+              "path": "/docs/scalars",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "schema-delegation",
+              "path": "/docs/schema-delegation",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "schema-directives",
+              "path": "/docs/schema-directives",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "schema-loading",
+              "path": "/docs/schema-loading",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "schema-merging",
+              "path": "/docs/schema-merging",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "schema-stitching",
+              "path": "/docs/schema-stitching"
+            },
+            {
+              "id": "schema-wrapping",
+              "path": "/docs/schema-wrapping",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "server-setup",
+              "path": "/docs/server-setup",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "stitch-api",
+              "path": "/docs/stitch-api",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "stitch-combining-schemas",
+              "path": "/docs/stitch-combining-schemas",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "stitch-directives-sdl",
+              "path": "/docs/stitch-directives-sdl",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "stitch-schema-extensions",
+              "path": "/docs/stitch-schema-extensions",
+              "sidebar": "someSidebar"
+            },
+            {
+              "id": "stitch-type-merging",
+              "path": "/docs/stitch-type-merging",
+              "sidebar": "someSidebar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

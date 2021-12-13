@@ -1,0 +1,22 @@
+{
+  "unversionedId": "server-setup",
+  "id": "server-setup",
+  "isDocsHomePage": false,
+  "title": "Setup an HTTP server",
+  "description": "Here's an example using express-graphql:",
+  "source": "@site/docs/server-setup.md",
+  "slug": "/server-setup",
+  "permalink": "/docs/server-setup",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/server-setup.md",
+  "version": "current",
+  "sidebar_label": "Setup an HTTP server",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "Stitching API",
+    "permalink": "/docs/stitch-api"
+  },
+  "next": {
+    "title": "Loading GraphQL Schemas from different sources",
+    "permalink": "/docs/schema-loading"
+  }
+}

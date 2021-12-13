@@ -1,0 +1,22 @@
+{
+  "unversionedId": "api/modules/utils",
+  "id": "api/modules/utils",
+  "isDocsHomePage": false,
+  "title": "@graphql-tools/utils",
+  "description": "- MapperKind",
+  "source": "@site/docs/api/modules/utils_src.md",
+  "slug": "/api/modules/utils",
+  "permalink": "/docs/api/modules/utils",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/modules/utils_src.md",
+  "version": "current",
+  "sidebar_label": "utils",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "@graphql-tools/stitching-directives",
+    "permalink": "/docs/api/modules/stitching-directives"
+  },
+  "next": {
+    "title": "@graphql-tools/webpack-loader",
+    "permalink": "/docs/api/modules/webpack-loader"
+  }
+}

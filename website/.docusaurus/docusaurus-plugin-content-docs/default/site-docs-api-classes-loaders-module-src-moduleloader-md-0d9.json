@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/loaders_module_src.moduleloader",
+  "id": "api/classes/loaders_module_src.moduleloader",
+  "isDocsHomePage": false,
+  "title": "loaders_module_src.moduleloader",
+  "description": "Class: ModuleLoader",
+  "source": "@site/docs/api/classes/loaders_module_src.moduleloader.md",
+  "slug": "/api/classes/loaders_module_src.moduleloader",
+  "permalink": "/docs/api/classes/loaders_module_src.moduleloader",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/loaders_module_src.moduleloader.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "mock_src.mockstore",
+    "permalink": "/docs/api/classes/mock_src.mockstore"
+  },
+  "next": {
+    "title": "loaders_prisma_src.prismaloader",
+    "permalink": "/docs/api/classes/loaders_prisma_src.prismaloader"
+  }
+}

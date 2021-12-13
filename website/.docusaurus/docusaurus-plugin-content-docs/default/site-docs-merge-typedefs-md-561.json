@@ -1,0 +1,13 @@
+{
+  "unversionedId": "merge-typedefs",
+  "id": "merge-typedefs",
+  "isDocsHomePage": false,
+  "title": "Type definitions (SDL) merging",
+  "description": "Schema merging (@graphql-tools/merge) combines the type definitions and resolvers from many local schema instances into a single executable schema. This is useful for building a local service schema from many individually-managed parts.",
+  "source": "@site/docs/merge-typedefs.md",
+  "slug": "/merge-typedefs",
+  "permalink": "/docs/merge-typedefs",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/merge-typedefs.md",
+  "version": "current",
+  "sidebar_label": "Type definitions (SDL) merging"
+}

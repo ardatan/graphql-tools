@@ -1,0 +1,22 @@
+{
+  "unversionedId": "schema-loading",
+  "id": "schema-loading",
+  "isDocsHomePage": false,
+  "title": "Loading GraphQL Schemas from different sources",
+  "description": "These utils are useful for scanning, loading and building a GraphQL schema from any input.",
+  "source": "@site/docs/schema-loading.md",
+  "slug": "/schema-loading",
+  "permalink": "/docs/schema-loading",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/schema-loading.md",
+  "version": "current",
+  "sidebar_label": "Schema loading",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "Setup an HTTP server",
+    "permalink": "/docs/server-setup"
+  },
+  "next": {
+    "title": "Loading GraphQL operation documents from different sources",
+    "permalink": "/docs/documents-loading"
+  }
+}

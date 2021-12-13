@@ -1,0 +1,21 @@
+{
+  "unversionedId": "resolvers",
+  "id": "resolvers",
+  "isDocsHomePage": false,
+  "title": "Resolvers",
+  "description": "Writing resolvers with graphql-tools",
+  "source": "@site/docs/resolvers.md",
+  "slug": "/resolvers",
+  "permalink": "/docs/resolvers",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/resolvers.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "Executable schemas",
+    "permalink": "/docs/generate-schema"
+  },
+  "next": {
+    "title": "Resolvers composition",
+    "permalink": "/docs/resolvers-composition"
+  }
+}

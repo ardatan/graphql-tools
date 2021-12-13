@@ -1,0 +1,22 @@
+{
+  "unversionedId": "api/modules/github-loader",
+  "id": "api/modules/github-loader",
+  "isDocsHomePage": false,
+  "title": "@graphql-tools/github-loader",
+  "description": "- GithubLoader",
+  "source": "@site/docs/api/modules/loaders_github_src.md",
+  "slug": "/api/modules/github-loader",
+  "permalink": "/docs/api/modules/github-loader",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/modules/loaders_github_src.md",
+  "version": "current",
+  "sidebar_label": "github-loader",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "@graphql-tools/git-loader",
+    "permalink": "/docs/api/modules/git-loader"
+  },
+  "next": {
+    "title": "@graphql-tools/graphql-file-loader",
+    "permalink": "/docs/api/modules/graphql-file-loader"
+  }
+}

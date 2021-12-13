@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/wrap_src.transformcompositefields",
+  "id": "api/classes/wrap_src.transformcompositefields",
+  "isDocsHomePage": false,
+  "title": "wrap_src.transformcompositefields",
+  "description": "Class: TransformCompositeFields",
+  "source": "@site/docs/api/classes/wrap_src.transformcompositefields.md",
+  "slug": "/api/classes/wrap_src.transformcompositefields",
+  "permalink": "/docs/api/classes/wrap_src.transformcompositefields",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/wrap_src.transformcompositefields.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "delegate_src.subschema",
+    "permalink": "/docs/api/classes/delegate_src.subschema"
+  },
+  "next": {
+    "title": "wrap_src.transformenumvalues",
+    "permalink": "/docs/api/classes/wrap_src.transformenumvalues"
+  }
+}

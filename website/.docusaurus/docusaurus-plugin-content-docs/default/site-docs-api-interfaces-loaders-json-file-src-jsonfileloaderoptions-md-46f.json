@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/loaders_json_file_src.jsonfileloaderoptions",
+  "id": "api/interfaces/loaders_json_file_src.jsonfileloaderoptions",
+  "isDocsHomePage": false,
+  "title": "loaders_json_file_src.jsonfileloaderoptions",
+  "description": "Interface: JsonFileLoaderOptions",
+  "source": "@site/docs/api/interfaces/loaders_json_file_src.jsonfileloaderoptions.md",
+  "slug": "/api/interfaces/loaders_json_file_src.jsonfileloaderoptions",
+  "permalink": "/docs/api/interfaces/loaders_json_file_src.jsonfileloaderoptions",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/loaders_json_file_src.jsonfileloaderoptions.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "utils_src.iresolvervalidationoptions",
+    "permalink": "/docs/api/interfaces/utils_src.iresolvervalidationoptions"
+  },
+  "next": {
+    "title": "stitching_directives_src.keydeclaration",
+    "permalink": "/docs/api/interfaces/stitching_directives_src.keydeclaration"
+  }
+}

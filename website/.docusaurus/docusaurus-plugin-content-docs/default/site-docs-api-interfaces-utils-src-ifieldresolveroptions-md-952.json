@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/utils_src.ifieldresolveroptions",
+  "id": "api/interfaces/utils_src.ifieldresolveroptions",
+  "isDocsHomePage": false,
+  "title": "utils_src.ifieldresolveroptions",
+  "description": "Interface: IFieldResolverOptions&lt;TSource, TContext, TArgs\\&gt;",
+  "source": "@site/docs/api/interfaces/utils_src.ifieldresolveroptions.md",
+  "slug": "/api/interfaces/utils_src.ifieldresolveroptions",
+  "permalink": "/docs/api/interfaces/utils_src.ifieldresolveroptions",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/utils_src.ifieldresolveroptions.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "schema_src.iexecutableschemadefinition",
+    "permalink": "/docs/api/interfaces/schema_src.iexecutableschemadefinition"
+  },
+  "next": {
+    "title": "schema_src.ilogger",
+    "permalink": "/docs/api/interfaces/schema_src.ilogger"
+  }
+}

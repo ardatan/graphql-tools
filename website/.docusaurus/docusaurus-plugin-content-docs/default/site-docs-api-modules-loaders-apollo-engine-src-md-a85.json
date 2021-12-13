@@ -1,0 +1,22 @@
+{
+  "unversionedId": "api/modules/apollo-engine-loader",
+  "id": "api/modules/apollo-engine-loader",
+  "isDocsHomePage": false,
+  "title": "@graphql-tools/apollo-engine-loader",
+  "description": "- ApolloEngineLoader",
+  "source": "@site/docs/api/modules/loaders_apollo_engine_src.md",
+  "slug": "/api/modules/apollo-engine-loader",
+  "permalink": "/docs/api/modules/apollo-engine-loader",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/modules/loaders_apollo_engine_src.md",
+  "version": "current",
+  "sidebar_label": "apollo-engine-loader",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "@graphql-tools/wrap",
+    "permalink": "/docs/api/modules/wrap"
+  },
+  "next": {
+    "title": "@graphql-tools/code-file-loader",
+    "permalink": "/docs/api/modules/code-file-loader"
+  }
+}

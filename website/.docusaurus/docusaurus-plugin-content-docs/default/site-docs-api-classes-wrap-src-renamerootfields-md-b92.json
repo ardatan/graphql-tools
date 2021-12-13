@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/wrap_src.renamerootfields",
+  "id": "api/classes/wrap_src.renamerootfields",
+  "isDocsHomePage": false,
+  "title": "wrap_src.renamerootfields",
+  "description": "Class: RenameRootFields",
+  "source": "@site/docs/api/classes/wrap_src.renamerootfields.md",
+  "slug": "/api/classes/wrap_src.renamerootfields",
+  "permalink": "/docs/api/classes/wrap_src.renamerootfields",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/wrap_src.renamerootfields.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "wrap_src.renameobjectfields",
+    "permalink": "/docs/api/classes/wrap_src.renameobjectfields"
+  },
+  "next": {
+    "title": "wrap_src.renameroottypes",
+    "permalink": "/docs/api/classes/wrap_src.renameroottypes"
+  }
+}

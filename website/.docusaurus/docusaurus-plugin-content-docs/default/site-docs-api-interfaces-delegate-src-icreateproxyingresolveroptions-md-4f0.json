@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/delegate_src.icreateproxyingresolveroptions",
+  "id": "api/interfaces/delegate_src.icreateproxyingresolveroptions",
+  "isDocsHomePage": false,
+  "title": "delegate_src.icreateproxyingresolveroptions",
+  "description": "Interface: ICreateProxyingResolverOptions",
+  "source": "@site/docs/api/interfaces/delegate_src.icreateproxyingresolveroptions.md",
+  "slug": "/api/interfaces/delegate_src.icreateproxyingresolveroptions",
+  "permalink": "/docs/api/interfaces/delegate_src.icreateproxyingresolveroptions",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/delegate_src.icreateproxyingresolveroptions.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "utils_src.iaddresolverstoschemaoptions",
+    "permalink": "/docs/api/interfaces/utils_src.iaddresolverstoschemaoptions"
+  },
+  "next": {
+    "title": "delegate_src.icreaterequest",
+    "permalink": "/docs/api/interfaces/delegate_src.icreaterequest"
+  }
+}

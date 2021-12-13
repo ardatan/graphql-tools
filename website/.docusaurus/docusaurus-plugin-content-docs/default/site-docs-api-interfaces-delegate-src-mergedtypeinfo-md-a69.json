@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/delegate_src.mergedtypeinfo",
+  "id": "api/interfaces/delegate_src.mergedtypeinfo",
+  "isDocsHomePage": false,
+  "title": "delegate_src.mergedtypeinfo",
+  "description": "Interface: MergedTypeInfo",
+  "source": "@site/docs/api/interfaces/delegate_src.mergedtypeinfo.md",
+  "slug": "/api/interfaces/delegate_src.mergedtypeinfo",
+  "permalink": "/docs/api/interfaces/delegate_src.mergedtypeinfo",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/delegate_src.mergedtypeinfo.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "delegate_src.mergedtypeconfig",
+    "permalink": "/docs/api/interfaces/delegate_src.mergedtypeconfig"
+  },
+  "next": {
+    "title": "stitching_directives_src.mergedtyperesolverinfo",
+    "permalink": "/docs/api/interfaces/stitching_directives_src.mergedtyperesolverinfo"
+  }
+}

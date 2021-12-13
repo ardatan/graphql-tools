@@ -1,0 +1,21 @@
+{
+  "unversionedId": "remote-schemas",
+  "id": "remote-schemas",
+  "isDocsHomePage": false,
+  "title": "Remote schemas",
+  "description": "Generate GraphQL schema objects that delegate to a remote server",
+  "source": "@site/docs/remote-schemas.md",
+  "slug": "/remote-schemas",
+  "permalink": "/docs/remote-schemas",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/remote-schemas.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "Schema delegation",
+    "permalink": "/docs/schema-delegation"
+  },
+  "next": {
+    "title": "Schema wrapping",
+    "permalink": "/docs/schema-wrapping"
+  }
+}

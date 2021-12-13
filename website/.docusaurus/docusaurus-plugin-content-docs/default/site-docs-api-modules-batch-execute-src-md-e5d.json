@@ -1,0 +1,22 @@
+{
+  "unversionedId": "api/modules/batch-execute",
+  "id": "api/modules/batch-execute",
+  "isDocsHomePage": false,
+  "title": "@graphql-tools/batch-execute",
+  "description": "- createBatchingExecutor",
+  "source": "@site/docs/api/modules/batch_execute_src.md",
+  "slug": "/api/modules/batch-execute",
+  "permalink": "/docs/api/modules/batch-execute",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/modules/batch_execute_src.md",
+  "version": "current",
+  "sidebar_label": "batch-execute",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "@graphql-tools/batch-delegate",
+    "permalink": "/docs/api/modules/batch-delegate"
+  },
+  "next": {
+    "title": "@graphql-tools/delegate",
+    "permalink": "/docs/api/modules/delegate"
+  }
+}

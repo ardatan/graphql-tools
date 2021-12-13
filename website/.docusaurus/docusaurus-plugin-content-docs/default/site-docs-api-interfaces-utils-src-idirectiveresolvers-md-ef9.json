@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/utils_src.idirectiveresolvers",
+  "id": "api/interfaces/utils_src.idirectiveresolvers",
+  "isDocsHomePage": false,
+  "title": "utils_src.idirectiveresolvers",
+  "description": "Interface: IDirectiveResolvers&lt;TSource, TContext\\&gt;",
+  "source": "@site/docs/api/interfaces/utils_src.idirectiveresolvers.md",
+  "slug": "/api/interfaces/utils_src.idirectiveresolvers",
+  "permalink": "/docs/api/interfaces/utils_src.idirectiveresolvers",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/utils_src.idirectiveresolvers.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "delegate_src.idelegatetoschemaoptions",
+    "permalink": "/docs/api/interfaces/delegate_src.idelegatetoschemaoptions"
+  },
+  "next": {
+    "title": "schema_src.iexecutableschemadefinition",
+    "permalink": "/docs/api/interfaces/schema_src.iexecutableschemadefinition"
+  }
+}

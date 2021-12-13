@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/wrap_src.filterobjectfields",
+  "id": "api/classes/wrap_src.filterobjectfields",
+  "isDocsHomePage": false,
+  "title": "wrap_src.filterobjectfields",
+  "description": "Class: FilterObjectFields",
+  "source": "@site/docs/api/classes/wrap_src.filterobjectfields.md",
+  "slug": "/api/classes/wrap_src.filterobjectfields",
+  "permalink": "/docs/api/classes/wrap_src.filterobjectfields",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/wrap_src.filterobjectfields.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "wrap_src.filterobjectfielddirectives",
+    "permalink": "/docs/api/classes/wrap_src.filterobjectfielddirectives"
+  },
+  "next": {
+    "title": "wrap_src.filterrootfields",
+    "permalink": "/docs/api/classes/wrap_src.filterrootfields"
+  }
+}

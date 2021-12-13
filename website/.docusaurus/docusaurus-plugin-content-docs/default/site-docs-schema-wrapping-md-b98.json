@@ -1,0 +1,21 @@
+{
+  "unversionedId": "schema-wrapping",
+  "id": "schema-wrapping",
+  "isDocsHomePage": false,
+  "title": "Schema wrapping",
+  "description": "Wrap schemas to automatically modify schemas, requests and results",
+  "source": "@site/docs/schema-wrapping.md",
+  "slug": "/schema-wrapping",
+  "permalink": "/docs/schema-wrapping",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/schema-wrapping.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "Remote schemas",
+    "permalink": "/docs/remote-schemas"
+  },
+  "next": {
+    "title": "Schema merging",
+    "permalink": "/docs/schema-merging"
+  }
+}

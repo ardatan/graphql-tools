@@ -1,0 +1,22 @@
+{
+  "unversionedId": "migration-from-merge-graphql-schemas",
+  "id": "migration-from-merge-graphql-schemas",
+  "isDocsHomePage": false,
+  "title": "Migration from Merge GraphQL Schemas",
+  "description": "Migration from Merge GraphQL Schemas",
+  "source": "@site/docs/migration-from-merge-graphql-schemas.md",
+  "slug": "/migration-from-merge-graphql-schemas",
+  "permalink": "/docs/migration-from-merge-graphql-schemas",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/migration-from-merge-graphql-schemas.md",
+  "version": "current",
+  "sidebar_label": "From Merge GraphQL Schemas",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "Migration from GraphQL Toolkit",
+    "permalink": "/docs/migration-from-toolkit"
+  },
+  "next": {
+    "title": "Migration from GraphQL Import",
+    "permalink": "/docs/migration-from-import"
+  }
+}

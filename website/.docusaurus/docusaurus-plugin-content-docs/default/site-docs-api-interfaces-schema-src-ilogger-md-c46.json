@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/schema_src.ilogger",
+  "id": "api/interfaces/schema_src.ilogger",
+  "isDocsHomePage": false,
+  "title": "schema_src.ilogger",
+  "description": "Interface: ILogger",
+  "source": "@site/docs/api/interfaces/schema_src.ilogger.md",
+  "slug": "/api/interfaces/schema_src.ilogger",
+  "permalink": "/docs/api/interfaces/schema_src.ilogger",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/schema_src.ilogger.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "utils_src.ifieldresolveroptions",
+    "permalink": "/docs/api/interfaces/utils_src.ifieldresolveroptions"
+  },
+  "next": {
+    "title": "wrap_src.imakeremoteexecutableschemaoptions",
+    "permalink": "/docs/api/interfaces/wrap_src.imakeremoteexecutableschemaoptions"
+  }
+}

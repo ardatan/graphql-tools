@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/stitching_directives_src.expansion",
+  "id": "api/interfaces/stitching_directives_src.expansion",
+  "isDocsHomePage": false,
+  "title": "stitching_directives_src.expansion",
+  "description": "Interface: Expansion",
+  "source": "@site/docs/api/interfaces/stitching_directives_src.expansion.md",
+  "slug": "/api/interfaces/stitching_directives_src.expansion",
+  "permalink": "/docs/api/interfaces/stitching_directives_src.expansion",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/stitching_directives_src.expansion.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "utils_src.executionresult",
+    "permalink": "/docs/api/interfaces/utils_src.executionresult"
+  },
+  "next": {
+    "title": "delegate_src.externalobject",
+    "permalink": "/docs/api/interfaces/delegate_src.externalobject"
+  }
+}

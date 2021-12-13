@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/delegate_src.idelegaterequestoptions",
+  "id": "api/interfaces/delegate_src.idelegaterequestoptions",
+  "isDocsHomePage": false,
+  "title": "delegate_src.idelegaterequestoptions",
+  "description": "Interface: IDelegateRequestOptions",
+  "source": "@site/docs/api/interfaces/delegate_src.idelegaterequestoptions.md",
+  "slug": "/api/interfaces/delegate_src.idelegaterequestoptions",
+  "permalink": "/docs/api/interfaces/delegate_src.idelegaterequestoptions",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/delegate_src.idelegaterequestoptions.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "delegate_src.icreaterequestfrominfo",
+    "permalink": "/docs/api/interfaces/delegate_src.icreaterequestfrominfo"
+  },
+  "next": {
+    "title": "delegate_src.idelegatetoschemaoptions",
+    "permalink": "/docs/api/interfaces/delegate_src.idelegatetoschemaoptions"
+  }
+}

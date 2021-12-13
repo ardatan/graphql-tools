@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/utils_src.printschemawithdirectivesoptions",
+  "id": "api/interfaces/utils_src.printschemawithdirectivesoptions",
+  "isDocsHomePage": false,
+  "title": "utils_src.printschemawithdirectivesoptions",
+  "description": "Interface: PrintSchemaWithDirectivesOptions",
+  "source": "@site/docs/api/interfaces/utils_src.printschemawithdirectivesoptions.md",
+  "slug": "/api/interfaces/utils_src.printschemawithdirectivesoptions",
+  "permalink": "/docs/api/interfaces/utils_src.printschemawithdirectivesoptions",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/utils_src.printschemawithdirectivesoptions.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "stitching_directives_src.parsedmergeargsexpr",
+    "permalink": "/docs/api/interfaces/stitching_directives_src.parsedmergeargsexpr"
+  },
+  "next": {
+    "title": "loaders_prisma_src.prismaloaderoptions",
+    "permalink": "/docs/api/interfaces/loaders_prisma_src.prismaloaderoptions"
+  }
+}

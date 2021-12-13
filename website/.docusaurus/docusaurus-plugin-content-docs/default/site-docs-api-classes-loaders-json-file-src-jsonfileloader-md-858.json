@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/loaders_json_file_src.jsonfileloader",
+  "id": "api/classes/loaders_json_file_src.jsonfileloader",
+  "isDocsHomePage": false,
+  "title": "loaders_json_file_src.jsonfileloader",
+  "description": "Class: JsonFileLoader",
+  "source": "@site/docs/api/classes/loaders_json_file_src.jsonfileloader.md",
+  "slug": "/api/classes/loaders_json_file_src.jsonfileloader",
+  "permalink": "/docs/api/classes/loaders_json_file_src.jsonfileloader",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/loaders_json_file_src.jsonfileloader.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "wrap_src.hoistfield",
+    "permalink": "/docs/api/classes/wrap_src.hoistfield"
+  },
+  "next": {
+    "title": "wrap_src.mapfields",
+    "permalink": "/docs/api/classes/wrap_src.mapfields"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/delegate_src.visitselectionsets",
+  "id": "api/classes/delegate_src.visitselectionsets",
+  "isDocsHomePage": false,
+  "title": "delegate_src.visitselectionsets",
+  "description": "Class: VisitSelectionSets",
+  "source": "@site/docs/api/classes/delegate_src.visitselectionsets.md",
+  "slug": "/api/classes/delegate_src.visitselectionsets",
+  "permalink": "/docs/api/classes/delegate_src.visitselectionsets",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/delegate_src.visitselectionsets.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "loaders_url_src.urlloader",
+    "permalink": "/docs/api/classes/loaders_url_src.urlloader"
+  },
+  "next": {
+    "title": "wrap_src.wrapfields",
+    "permalink": "/docs/api/classes/wrap_src.wrapfields"
+  }
+}

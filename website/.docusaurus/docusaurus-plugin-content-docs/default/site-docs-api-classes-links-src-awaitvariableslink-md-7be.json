@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/links_src.awaitvariableslink",
+  "id": "api/classes/links_src.awaitvariableslink",
+  "isDocsHomePage": false,
+  "title": "links_src.awaitvariableslink",
+  "description": "Class: AwaitVariablesLink",
+  "source": "@site/docs/api/classes/links_src.awaitvariableslink.md",
+  "slug": "/api/classes/links_src.awaitvariableslink",
+  "permalink": "/docs/api/classes/links_src.awaitvariableslink",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/links_src.awaitvariableslink.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "loaders_apollo_engine_src.apolloengineloader",
+    "permalink": "/docs/api/classes/loaders_apollo_engine_src.apolloengineloader"
+  },
+  "next": {
+    "title": "delegate_src.checkresultandhandleerrors",
+    "permalink": "/docs/api/classes/delegate_src.checkresultandhandleerrors"
+  }
+}

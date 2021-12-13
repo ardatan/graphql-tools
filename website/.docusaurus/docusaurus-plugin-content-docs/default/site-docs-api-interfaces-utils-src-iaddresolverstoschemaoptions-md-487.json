@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/utils_src.iaddresolverstoschemaoptions",
+  "id": "api/interfaces/utils_src.iaddresolverstoschemaoptions",
+  "isDocsHomePage": false,
+  "title": "utils_src.iaddresolverstoschemaoptions",
+  "description": "Interface: IAddResolversToSchemaOptions",
+  "source": "@site/docs/api/interfaces/utils_src.iaddresolverstoschemaoptions.md",
+  "slug": "/api/interfaces/utils_src.iaddresolverstoschemaoptions",
+  "permalink": "/docs/api/interfaces/utils_src.iaddresolverstoschemaoptions",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/utils_src.iaddresolverstoschemaoptions.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "graphql_tag_pluck_src.graphqltagpluckoptions",
+    "permalink": "/docs/api/interfaces/graphql_tag_pluck_src.graphqltagpluckoptions"
+  },
+  "next": {
+    "title": "delegate_src.icreateproxyingresolveroptions",
+    "permalink": "/docs/api/interfaces/delegate_src.icreateproxyingresolveroptions"
+  }
+}

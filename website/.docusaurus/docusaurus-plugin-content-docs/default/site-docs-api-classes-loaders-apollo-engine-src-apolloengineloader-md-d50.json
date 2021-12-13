@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/loaders_apollo_engine_src.apolloengineloader",
+  "id": "api/classes/loaders_apollo_engine_src.apolloengineloader",
+  "isDocsHomePage": false,
+  "title": "loaders_apollo_engine_src.apolloengineloader",
+  "description": "Class: ApolloEngineLoader",
+  "source": "@site/docs/api/classes/loaders_apollo_engine_src.apolloengineloader.md",
+  "slug": "/api/classes/loaders_apollo_engine_src.apolloengineloader",
+  "permalink": "/docs/api/classes/loaders_apollo_engine_src.apolloengineloader",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/loaders_apollo_engine_src.apolloengineloader.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "delegate_src.addtypenametoabstract",
+    "permalink": "/docs/api/classes/delegate_src.addtypenametoabstract"
+  },
+  "next": {
+    "title": "links_src.awaitvariableslink",
+    "permalink": "/docs/api/classes/links_src.awaitvariableslink"
+  }
+}

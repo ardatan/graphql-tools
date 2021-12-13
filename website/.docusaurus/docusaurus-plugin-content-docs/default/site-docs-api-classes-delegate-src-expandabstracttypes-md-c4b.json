@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/delegate_src.expandabstracttypes",
+  "id": "api/classes/delegate_src.expandabstracttypes",
+  "isDocsHomePage": false,
+  "title": "delegate_src.expandabstracttypes",
+  "description": "Class: ExpandAbstractTypes",
+  "source": "@site/docs/api/classes/delegate_src.expandabstracttypes.md",
+  "slug": "/api/classes/delegate_src.expandabstracttypes",
+  "permalink": "/docs/api/classes/delegate_src.expandabstracttypes",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/delegate_src.expandabstracttypes.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "loaders_code_file_src.codefileloader",
+    "permalink": "/docs/api/classes/loaders_code_file_src.codefileloader"
+  },
+  "next": {
+    "title": "wrap_src.extractfield",
+    "permalink": "/docs/api/classes/wrap_src.extractfield"
+  }
+}

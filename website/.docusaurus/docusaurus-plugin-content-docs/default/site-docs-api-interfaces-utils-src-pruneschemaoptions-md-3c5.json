@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/utils_src.pruneschemaoptions",
+  "id": "api/interfaces/utils_src.pruneschemaoptions",
+  "isDocsHomePage": false,
+  "title": "utils_src.pruneschemaoptions",
+  "description": "Interface: PruneSchemaOptions",
+  "source": "@site/docs/api/interfaces/utils_src.pruneschemaoptions.md",
+  "slug": "/api/interfaces/utils_src.pruneschemaoptions",
+  "permalink": "/docs/api/interfaces/utils_src.pruneschemaoptions",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/utils_src.pruneschemaoptions.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "stitching_directives_src.propertytree",
+    "permalink": "/docs/api/interfaces/stitching_directives_src.propertytree"
+  },
+  "next": {
+    "title": "utils_src.request",
+    "permalink": "/docs/api/interfaces/utils_src.request"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "unversionedId": "api/modules/mock",
+  "id": "api/modules/mock",
+  "isDocsHomePage": false,
+  "title": "@graphql-tools/mock",
+  "description": "- MockList",
+  "source": "@site/docs/api/modules/mock_src.md",
+  "slug": "/api/modules/mock",
+  "permalink": "/docs/api/modules/mock",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/modules/mock_src.md",
+  "version": "current",
+  "sidebar_label": "mock",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "@graphql-tools/merge",
+    "permalink": "/docs/api/modules/merge"
+  },
+  "next": {
+    "title": "@graphql-tools/node-require",
+    "permalink": "/docs/api/modules/node-require"
+  }
+}

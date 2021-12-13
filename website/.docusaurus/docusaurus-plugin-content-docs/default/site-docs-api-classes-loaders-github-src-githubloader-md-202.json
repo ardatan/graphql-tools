@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/loaders_github_src.githubloader",
+  "id": "api/classes/loaders_github_src.githubloader",
+  "isDocsHomePage": false,
+  "title": "loaders_github_src.githubloader",
+  "description": "Class: GithubLoader",
+  "source": "@site/docs/api/classes/loaders_github_src.githubloader.md",
+  "slug": "/api/classes/loaders_github_src.githubloader",
+  "permalink": "/docs/api/classes/loaders_github_src.githubloader",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/loaders_github_src.githubloader.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "wrap_src.filtertypes",
+    "permalink": "/docs/api/classes/wrap_src.filtertypes"
+  },
+  "next": {
+    "title": "loaders_git_src.gitloader",
+    "permalink": "/docs/api/classes/loaders_git_src.gitloader"
+  }
+}

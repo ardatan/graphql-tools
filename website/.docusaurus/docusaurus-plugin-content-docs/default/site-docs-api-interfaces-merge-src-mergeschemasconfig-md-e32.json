@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/merge_src.mergeschemasconfig",
+  "id": "api/interfaces/merge_src.mergeschemasconfig",
+  "isDocsHomePage": false,
+  "title": "merge_src.mergeschemasconfig",
+  "description": "Interface: MergeSchemasConfig&lt;Resolvers\\&gt;",
+  "source": "@site/docs/api/interfaces/merge_src.mergeschemasconfig.md",
+  "slug": "/api/interfaces/merge_src.mergeschemasconfig",
+  "permalink": "/docs/api/interfaces/merge_src.mergeschemasconfig",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/merge_src.mergeschemasconfig.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "merge_src.mergeresolversoptions",
+    "permalink": "/docs/api/interfaces/merge_src.mergeresolversoptions"
+  },
+  "next": {
+    "title": "utils_src.observable",
+    "permalink": "/docs/api/interfaces/utils_src.observable"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/wrap_src.removeobjectfieldswithdeprecation",
+  "id": "api/classes/wrap_src.removeobjectfieldswithdeprecation",
+  "isDocsHomePage": false,
+  "title": "wrap_src.removeobjectfieldswithdeprecation",
+  "description": "Class: RemoveObjectFieldsWithDeprecation",
+  "source": "@site/docs/api/classes/wrap_src.removeobjectfieldswithdeprecation.md",
+  "slug": "/api/classes/wrap_src.removeobjectfieldswithdeprecation",
+  "permalink": "/docs/api/classes/wrap_src.removeobjectfieldswithdeprecation",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/wrap_src.removeobjectfieldswithdeprecation.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "wrap_src.removeobjectfielddirectives",
+    "permalink": "/docs/api/classes/wrap_src.removeobjectfielddirectives"
+  },
+  "next": {
+    "title": "wrap_src.removeobjectfieldswithdirective",
+    "permalink": "/docs/api/classes/wrap_src.removeobjectfieldswithdirective"
+  }
+}

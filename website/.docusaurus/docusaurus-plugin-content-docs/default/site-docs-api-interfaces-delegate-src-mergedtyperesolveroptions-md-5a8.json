@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/delegate_src.mergedtyperesolveroptions",
+  "id": "api/interfaces/delegate_src.mergedtyperesolveroptions",
+  "isDocsHomePage": false,
+  "title": "delegate_src.mergedtyperesolveroptions",
+  "description": "Interface: MergedTypeResolverOptions&lt;K, V\\&gt;",
+  "source": "@site/docs/api/interfaces/delegate_src.mergedtyperesolveroptions.md",
+  "slug": "/api/interfaces/delegate_src.mergedtyperesolveroptions",
+  "permalink": "/docs/api/interfaces/delegate_src.mergedtyperesolveroptions",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/delegate_src.mergedtyperesolveroptions.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "stitching_directives_src.mergedtyperesolverinfo",
+    "permalink": "/docs/api/interfaces/stitching_directives_src.mergedtyperesolverinfo"
+  },
+  "next": {
+    "title": "merge_src.mergeresolversoptions",
+    "permalink": "/docs/api/interfaces/merge_src.mergeresolversoptions"
+  }
+}

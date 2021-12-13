@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/utils_src.loaddocumenterror",
+  "id": "api/interfaces/utils_src.loaddocumenterror",
+  "isDocsHomePage": false,
+  "title": "utils_src.loaddocumenterror",
+  "description": "Interface: LoadDocumentError",
+  "source": "@site/docs/api/interfaces/utils_src.loaddocumenterror.md",
+  "slug": "/api/interfaces/utils_src.loaddocumenterror",
+  "permalink": "/docs/api/interfaces/utils_src.loaddocumenterror",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/utils_src.loaddocumenterror.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "stitching_directives_src.keydeclaration",
+    "permalink": "/docs/api/interfaces/stitching_directives_src.keydeclaration"
+  },
+  "next": {
+    "title": "utils_src.loader",
+    "permalink": "/docs/api/interfaces/utils_src.loader"
+  }
+}

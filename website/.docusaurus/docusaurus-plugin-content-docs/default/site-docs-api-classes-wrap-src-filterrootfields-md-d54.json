@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/wrap_src.filterrootfields",
+  "id": "api/classes/wrap_src.filterrootfields",
+  "isDocsHomePage": false,
+  "title": "wrap_src.filterrootfields",
+  "description": "Class: FilterRootFields",
+  "source": "@site/docs/api/classes/wrap_src.filterrootfields.md",
+  "slug": "/api/classes/wrap_src.filterrootfields",
+  "permalink": "/docs/api/classes/wrap_src.filterrootfields",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/wrap_src.filterrootfields.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "wrap_src.filterobjectfields",
+    "permalink": "/docs/api/classes/wrap_src.filterobjectfields"
+  },
+  "next": {
+    "title": "delegate_src.filtertoschema",
+    "permalink": "/docs/api/classes/delegate_src.filtertoschema"
+  }
+}

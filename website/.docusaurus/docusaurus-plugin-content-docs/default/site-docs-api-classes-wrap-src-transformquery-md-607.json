@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/wrap_src.transformquery",
+  "id": "api/classes/wrap_src.transformquery",
+  "isDocsHomePage": false,
+  "title": "wrap_src.transformquery",
+  "description": "Class: TransformQuery",
+  "source": "@site/docs/api/classes/wrap_src.transformquery.md",
+  "slug": "/api/classes/wrap_src.transformquery",
+  "permalink": "/docs/api/classes/wrap_src.transformquery",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/wrap_src.transformquery.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "wrap_src.transformobjectfields",
+    "permalink": "/docs/api/classes/wrap_src.transformobjectfields"
+  },
+  "next": {
+    "title": "wrap_src.transformrootfields",
+    "permalink": "/docs/api/classes/wrap_src.transformrootfields"
+  }
+}

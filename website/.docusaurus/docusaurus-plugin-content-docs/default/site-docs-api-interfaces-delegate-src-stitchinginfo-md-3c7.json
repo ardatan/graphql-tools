@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/delegate_src.stitchinginfo",
+  "id": "api/interfaces/delegate_src.stitchinginfo",
+  "isDocsHomePage": false,
+  "title": "delegate_src.stitchinginfo",
+  "description": "Interface: StitchingInfo",
+  "source": "@site/docs/api/interfaces/delegate_src.stitchinginfo.md",
+  "slug": "/api/interfaces/delegate_src.stitchinginfo",
+  "permalink": "/docs/api/interfaces/delegate_src.stitchinginfo",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/delegate_src.stitchinginfo.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "stitching_directives_src.stitchingdirectivesoptions",
+    "permalink": "/docs/api/interfaces/stitching_directives_src.stitchingdirectivesoptions"
+  },
+  "next": {
+    "title": "delegate_src.subschemaconfig",
+    "permalink": "/docs/api/interfaces/delegate_src.subschemaconfig"
+  }
+}

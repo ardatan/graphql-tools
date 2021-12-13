@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/utils_src.graphqlparseoptions",
+  "id": "api/interfaces/utils_src.graphqlparseoptions",
+  "isDocsHomePage": false,
+  "title": "utils_src.graphqlparseoptions",
+  "description": "Interface: GraphQLParseOptions",
+  "source": "@site/docs/api/interfaces/utils_src.graphqlparseoptions.md",
+  "slug": "/api/interfaces/utils_src.graphqlparseoptions",
+  "permalink": "/docs/api/interfaces/utils_src.graphqlparseoptions",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/utils_src.graphqlparseoptions.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "loaders_graphql_file_src.graphqlfileloaderoptions",
+    "permalink": "/docs/api/interfaces/loaders_graphql_file_src.graphqlfileloaderoptions"
+  },
+  "next": {
+    "title": "graphql_tag_pluck_src.graphqltagpluckoptions",
+    "permalink": "/docs/api/interfaces/graphql_tag_pluck_src.graphqltagpluckoptions"
+  }
+}

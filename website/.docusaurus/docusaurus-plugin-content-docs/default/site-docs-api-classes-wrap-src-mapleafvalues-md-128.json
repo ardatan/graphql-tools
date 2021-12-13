@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/wrap_src.mapleafvalues",
+  "id": "api/classes/wrap_src.mapleafvalues",
+  "isDocsHomePage": false,
+  "title": "wrap_src.mapleafvalues",
+  "description": "Class: MapLeafValues",
+  "source": "@site/docs/api/classes/wrap_src.mapleafvalues.md",
+  "slug": "/api/classes/wrap_src.mapleafvalues",
+  "permalink": "/docs/api/classes/wrap_src.mapleafvalues",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/wrap_src.mapleafvalues.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "wrap_src.mapfields",
+    "permalink": "/docs/api/classes/wrap_src.mapfields"
+  },
+  "next": {
+    "title": "mock_src.mocklist",
+    "permalink": "/docs/api/classes/mock_src.mocklist"
+  }
+}

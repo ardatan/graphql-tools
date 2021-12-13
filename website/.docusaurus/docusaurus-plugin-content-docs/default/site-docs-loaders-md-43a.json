@@ -1,0 +1,13 @@
+{
+  "unversionedId": "loaders",
+  "id": "loaders",
+  "isDocsHomePage": false,
+  "title": "Loaders",
+  "description": "There are a lot of loaders that load your schemas and documents from different sources. You need to provide those loaders under loaders parameter like below;",
+  "source": "@site/docs/loaders.md",
+  "slug": "/loaders",
+  "permalink": "/docs/loaders",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/loaders.md",
+  "version": "current",
+  "sidebar_label": "Loaders"
+}

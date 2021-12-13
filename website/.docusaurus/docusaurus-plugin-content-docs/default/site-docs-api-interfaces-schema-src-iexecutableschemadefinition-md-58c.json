@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/schema_src.iexecutableschemadefinition",
+  "id": "api/interfaces/schema_src.iexecutableschemadefinition",
+  "isDocsHomePage": false,
+  "title": "schema_src.iexecutableschemadefinition",
+  "description": "Interface: IExecutableSchemaDefinition&lt;TContext\\&gt;",
+  "source": "@site/docs/api/interfaces/schema_src.iexecutableschemadefinition.md",
+  "slug": "/api/interfaces/schema_src.iexecutableschemadefinition",
+  "permalink": "/docs/api/interfaces/schema_src.iexecutableschemadefinition",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/schema_src.iexecutableschemadefinition.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "utils_src.idirectiveresolvers",
+    "permalink": "/docs/api/interfaces/utils_src.idirectiveresolvers"
+  },
+  "next": {
+    "title": "utils_src.ifieldresolveroptions",
+    "permalink": "/docs/api/interfaces/utils_src.ifieldresolveroptions"
+  }
+}

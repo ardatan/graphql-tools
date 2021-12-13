@@ -1,0 +1,21 @@
+{
+  "unversionedId": "stitch-api",
+  "id": "stitch-api",
+  "isDocsHomePage": false,
+  "title": "Stitching API",
+  "description": "Stitching API",
+  "source": "@site/docs/stitch-api.md",
+  "slug": "/stitch-api",
+  "permalink": "/docs/stitch-api",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/stitch-api.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "Extending stitched schemas",
+    "permalink": "/docs/stitch-schema-extensions"
+  },
+  "next": {
+    "title": "Setup an HTTP server",
+    "permalink": "/docs/server-setup"
+  }
+}

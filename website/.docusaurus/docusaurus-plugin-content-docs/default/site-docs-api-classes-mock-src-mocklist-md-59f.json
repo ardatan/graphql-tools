@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/mock_src.mocklist",
+  "id": "api/classes/mock_src.mocklist",
+  "isDocsHomePage": false,
+  "title": "mock_src.mocklist",
+  "description": "Class: MockList",
+  "source": "@site/docs/api/classes/mock_src.mocklist.md",
+  "slug": "/api/classes/mock_src.mocklist",
+  "permalink": "/docs/api/classes/mock_src.mocklist",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/mock_src.mocklist.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "wrap_src.mapleafvalues",
+    "permalink": "/docs/api/classes/wrap_src.mapleafvalues"
+  },
+  "next": {
+    "title": "mock_src.mockstore",
+    "permalink": "/docs/api/classes/mock_src.mockstore"
+  }
+}

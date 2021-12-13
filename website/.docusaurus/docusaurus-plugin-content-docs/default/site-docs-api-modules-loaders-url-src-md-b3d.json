@@ -1,0 +1,22 @@
+{
+  "unversionedId": "api/modules/url-loader",
+  "id": "api/modules/url-loader",
+  "isDocsHomePage": false,
+  "title": "@graphql-tools/url-loader",
+  "description": "- UrlLoader",
+  "source": "@site/docs/api/modules/loaders_url_src.md",
+  "slug": "/api/modules/url-loader",
+  "permalink": "/docs/api/modules/url-loader",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/modules/loaders_url_src.md",
+  "version": "current",
+  "sidebar_label": "url-loader",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "@graphql-tools/prisma-loader",
+    "permalink": "/docs/api/modules/prisma-loader"
+  },
+  "next": {
+    "title": "delegate_src.addargumentsasvariables",
+    "permalink": "/docs/api/classes/delegate_src.addargumentsasvariables"
+  }
+}

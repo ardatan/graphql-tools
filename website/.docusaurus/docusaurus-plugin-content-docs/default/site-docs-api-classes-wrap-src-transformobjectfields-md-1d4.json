@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/wrap_src.transformobjectfields",
+  "id": "api/classes/wrap_src.transformobjectfields",
+  "isDocsHomePage": false,
+  "title": "wrap_src.transformobjectfields",
+  "description": "Class: TransformObjectFields",
+  "source": "@site/docs/api/classes/wrap_src.transformobjectfields.md",
+  "slug": "/api/classes/wrap_src.transformobjectfields",
+  "permalink": "/docs/api/classes/wrap_src.transformobjectfields",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/wrap_src.transformobjectfields.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "wrap_src.transforminterfacefields",
+    "permalink": "/docs/api/classes/wrap_src.transforminterfacefields"
+  },
+  "next": {
+    "title": "wrap_src.transformquery",
+    "permalink": "/docs/api/classes/wrap_src.transformquery"
+  }
+}

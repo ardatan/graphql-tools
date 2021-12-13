@@ -1,0 +1,22 @@
+{
+  "unversionedId": "api/modules/node-require",
+  "id": "api/modules/node-require",
+  "isDocsHomePage": false,
+  "title": "@graphql-tools/node-require",
+  "description": "- registerGraphQLExtensions",
+  "source": "@site/docs/api/modules/node_require_src.md",
+  "slug": "/api/modules/node-require",
+  "permalink": "/docs/api/modules/node-require",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/modules/node_require_src.md",
+  "version": "current",
+  "sidebar_label": "node-require",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "@graphql-tools/mock",
+    "permalink": "/docs/api/modules/mock"
+  },
+  "next": {
+    "title": "@graphql-tools/optimize",
+    "permalink": "/docs/api/modules/optimize"
+  }
+}

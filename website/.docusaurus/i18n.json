@@ -1,0 +1,12 @@
+{
+  "defaultLocale": "en",
+  "locales": [
+    "en"
+  ],
+  "localeConfigs": {
+    "en": {
+      "label": "en"
+    }
+  },
+  "currentLocale": "en"
+}

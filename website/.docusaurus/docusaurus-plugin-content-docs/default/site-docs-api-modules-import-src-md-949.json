@@ -1,0 +1,22 @@
+{
+  "unversionedId": "api/modules/import",
+  "id": "api/modules/import",
+  "isDocsHomePage": false,
+  "title": "@graphql-tools/import",
+  "description": "- parseImportLine",
+  "source": "@site/docs/api/modules/import_src.md",
+  "slug": "/api/modules/import",
+  "permalink": "/docs/api/modules/import",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/modules/import_src.md",
+  "version": "current",
+  "sidebar_label": "import",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "@graphql-tools/graphql-tag-pluck",
+    "permalink": "/docs/api/modules/graphql-tag-pluck"
+  },
+  "next": {
+    "title": "@graphql-tools/links",
+    "permalink": "/docs/api/modules/links"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/utils_src.schemavisitor",
+  "id": "api/classes/utils_src.schemavisitor",
+  "isDocsHomePage": false,
+  "title": "utils_src.schemavisitor",
+  "description": "Class: SchemaVisitor",
+  "source": "@site/docs/api/classes/utils_src.schemavisitor.md",
+  "slug": "/api/classes/utils_src.schemavisitor",
+  "permalink": "/docs/api/classes/utils_src.schemavisitor",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/utils_src.schemavisitor.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "utils_src.schemadirectivevisitor",
+    "permalink": "/docs/api/classes/utils_src.schemadirectivevisitor"
+  },
+  "next": {
+    "title": "delegate_src.subschema",
+    "permalink": "/docs/api/classes/delegate_src.subschema"
+  }
+}

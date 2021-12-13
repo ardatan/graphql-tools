@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/wrap_src.wrapquery",
+  "id": "api/classes/wrap_src.wrapquery",
+  "isDocsHomePage": false,
+  "title": "wrap_src.wrapquery",
+  "description": "Class: WrapQuery",
+  "source": "@site/docs/api/classes/wrap_src.wrapquery.md",
+  "slug": "/api/classes/wrap_src.wrapquery",
+  "permalink": "/docs/api/classes/wrap_src.wrapquery",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/wrap_src.wrapquery.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "wrap_src.wrapfields",
+    "permalink": "/docs/api/classes/wrap_src.wrapfields"
+  },
+  "next": {
+    "title": "wrap_src.wraptype",
+    "permalink": "/docs/api/classes/wrap_src.wraptype"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "unversionedId": "api/modules/json-file-loader",
+  "id": "api/modules/json-file-loader",
+  "isDocsHomePage": false,
+  "title": "@graphql-tools/json-file-loader",
+  "description": "- JsonFileLoader",
+  "source": "@site/docs/api/modules/loaders_json_file_src.md",
+  "slug": "/api/modules/json-file-loader",
+  "permalink": "/docs/api/modules/json-file-loader",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/modules/loaders_json_file_src.md",
+  "version": "current",
+  "sidebar_label": "json-file-loader",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "@graphql-tools/graphql-file-loader",
+    "permalink": "/docs/api/modules/graphql-file-loader"
+  },
+  "next": {
+    "title": "@graphql-tools/module-loader",
+    "permalink": "/docs/api/modules/module-loader"
+  }
+}

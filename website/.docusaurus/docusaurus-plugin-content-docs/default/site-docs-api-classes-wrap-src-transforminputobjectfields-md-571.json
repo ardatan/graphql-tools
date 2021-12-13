@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/wrap_src.transforminputobjectfields",
+  "id": "api/classes/wrap_src.transforminputobjectfields",
+  "isDocsHomePage": false,
+  "title": "wrap_src.transforminputobjectfields",
+  "description": "Class: TransformInputObjectFields",
+  "source": "@site/docs/api/classes/wrap_src.transforminputobjectfields.md",
+  "slug": "/api/classes/wrap_src.transforminputobjectfields",
+  "permalink": "/docs/api/classes/wrap_src.transforminputobjectfields",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/wrap_src.transforminputobjectfields.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "wrap_src.transformenumvalues",
+    "permalink": "/docs/api/classes/wrap_src.transformenumvalues"
+  },
+  "next": {
+    "title": "wrap_src.transforminterfacefields",
+    "permalink": "/docs/api/classes/wrap_src.transforminterfacefields"
+  }
+}

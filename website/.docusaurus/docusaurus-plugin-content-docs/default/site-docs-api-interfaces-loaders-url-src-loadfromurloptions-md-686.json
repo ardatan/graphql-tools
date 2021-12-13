@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/loaders_url_src.loadfromurloptions",
+  "id": "api/interfaces/loaders_url_src.loadfromurloptions",
+  "isDocsHomePage": false,
+  "title": "loaders_url_src.loadfromurloptions",
+  "description": "Interface: LoadFromUrlOptions",
+  "source": "@site/docs/api/interfaces/loaders_url_src.loadfromurloptions.md",
+  "slug": "/api/interfaces/loaders_url_src.loadfromurloptions",
+  "permalink": "/docs/api/interfaces/loaders_url_src.loadfromurloptions",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/loaders_url_src.loadfromurloptions.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "load_files_src.loadfilesoptions",
+    "permalink": "/docs/api/interfaces/load_files_src.loadfilesoptions"
+  },
+  "next": {
+    "title": "delegate_src.mergedfieldconfig",
+    "permalink": "/docs/api/interfaces/delegate_src.mergedfieldconfig"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "unversionedId": "legacy-schema-directives",
+  "id": "legacy-schema-directives",
+  "isDocsHomePage": false,
+  "title": "Schema directives",
+  "description": "Using and implementing custom directives to transform schema types, fields, and arguments",
+  "source": "@site/docs/legacy-schema-directives.md",
+  "slug": "/legacy-schema-directives",
+  "permalink": "/docs/legacy-schema-directives",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/legacy-schema-directives.md",
+  "version": "current"
+}

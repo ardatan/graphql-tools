@@ -1,0 +1,13 @@
+{
+  "unversionedId": "merge-schemas",
+  "id": "merge-schemas",
+  "isDocsHomePage": false,
+  "title": "GraphQLSchema merging",
+  "description": "Schema merging (@graphql-tools/merge) combines the type definitions and resolvers from many local schema instances into a single executable schema. This is useful for building a local service schema from many individually-managed parts.",
+  "source": "@site/docs/merge-schemas.md",
+  "slug": "/merge-schemas",
+  "permalink": "/docs/merge-schemas",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/merge-schemas.md",
+  "version": "current",
+  "sidebar_label": "GraphQLSchema merging"
+}

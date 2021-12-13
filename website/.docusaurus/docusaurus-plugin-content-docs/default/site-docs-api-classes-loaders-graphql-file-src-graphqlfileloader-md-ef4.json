@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/loaders_graphql_file_src.graphqlfileloader",
+  "id": "api/classes/loaders_graphql_file_src.graphqlfileloader",
+  "isDocsHomePage": false,
+  "title": "loaders_graphql_file_src.graphqlfileloader",
+  "description": "Class: GraphQLFileLoader",
+  "source": "@site/docs/api/classes/loaders_graphql_file_src.graphqlfileloader.md",
+  "slug": "/api/classes/loaders_graphql_file_src.graphqlfileloader",
+  "permalink": "/docs/api/classes/loaders_graphql_file_src.graphqlfileloader",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/loaders_graphql_file_src.graphqlfileloader.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "loaders_git_src.gitloader",
+    "permalink": "/docs/api/classes/loaders_git_src.gitloader"
+  },
+  "next": {
+    "title": "wrap_src.hoistfield",
+    "permalink": "/docs/api/classes/wrap_src.hoistfield"
+  }
+}

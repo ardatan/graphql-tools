@@ -1,0 +1,22 @@
+{
+  "unversionedId": "stitch-type-merging",
+  "id": "stitch-type-merging",
+  "isDocsHomePage": false,
+  "title": "Type merging",
+  "description": "Type merging allows partial definitions of a type to exist in any subschema, all of which are merged into one unified type in the gateway schema. When querying for a merged type, the gateway smartly delegates portions of a request to each relevant subschema in dependency order, and then combines all results for the final return.",
+  "source": "@site/docs/stitch-type-merging.md",
+  "slug": "/stitch-type-merging",
+  "permalink": "/docs/stitch-type-merging",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/stitch-type-merging.md",
+  "version": "current",
+  "sidebar_label": "Type merging",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "Combining schemas",
+    "permalink": "/docs/stitch-combining-schemas"
+  },
+  "next": {
+    "title": "Directives SDL",
+    "permalink": "/docs/stitch-directives-sdl"
+  }
+}

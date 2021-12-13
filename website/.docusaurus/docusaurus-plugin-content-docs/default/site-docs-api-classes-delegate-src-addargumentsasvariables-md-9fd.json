@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/delegate_src.addargumentsasvariables",
+  "id": "api/classes/delegate_src.addargumentsasvariables",
+  "isDocsHomePage": false,
+  "title": "delegate_src.addargumentsasvariables",
+  "description": "Class: AddArgumentsAsVariables",
+  "source": "@site/docs/api/classes/delegate_src.addargumentsasvariables.md",
+  "slug": "/api/classes/delegate_src.addargumentsasvariables",
+  "permalink": "/docs/api/classes/delegate_src.addargumentsasvariables",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/delegate_src.addargumentsasvariables.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "@graphql-tools/url-loader",
+    "permalink": "/docs/api/modules/url-loader"
+  },
+  "next": {
+    "title": "delegate_src.addselectionsets",
+    "permalink": "/docs/api/classes/delegate_src.addselectionsets"
+  }
+}

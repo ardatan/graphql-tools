@@ -1,0 +1,22 @@
+{
+  "unversionedId": "api/modules/stitch",
+  "id": "api/modules/stitch",
+  "isDocsHomePage": false,
+  "title": "@graphql-tools/stitch",
+  "description": "- defaultSubschemaConfigTransforms",
+  "source": "@site/docs/api/modules/stitch_src.md",
+  "slug": "/api/modules/stitch",
+  "permalink": "/docs/api/modules/stitch",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/modules/stitch_src.md",
+  "version": "current",
+  "sidebar_label": "stitch",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "@graphql-tools/schema",
+    "permalink": "/docs/api/modules/schema"
+  },
+  "next": {
+    "title": "@graphql-tools/stitching-directives",
+    "permalink": "/docs/api/modules/stitching-directives"
+  }
+}

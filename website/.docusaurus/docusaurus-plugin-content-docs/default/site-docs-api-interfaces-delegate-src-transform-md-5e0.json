@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/delegate_src.transform",
+  "id": "api/interfaces/delegate_src.transform",
+  "isDocsHomePage": false,
+  "title": "delegate_src.transform",
+  "description": "Interface: Transform&lt;T\\&gt;",
+  "source": "@site/docs/api/interfaces/delegate_src.transform.md",
+  "slug": "/api/interfaces/delegate_src.transform",
+  "permalink": "/docs/api/interfaces/delegate_src.transform",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/delegate_src.transform.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "delegate_src.subschemaconfig",
+    "permalink": "/docs/api/interfaces/delegate_src.subschemaconfig"
+  },
+  "next": {
+    "title": "utils_src.mapperkind",
+    "permalink": "/docs/api/enums/utils_src.mapperkind"
+  }
+}

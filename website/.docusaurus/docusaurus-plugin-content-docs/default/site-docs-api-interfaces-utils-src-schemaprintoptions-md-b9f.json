@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/interfaces/utils_src.schemaprintoptions",
+  "id": "api/interfaces/utils_src.schemaprintoptions",
+  "isDocsHomePage": false,
+  "title": "utils_src.schemaprintoptions",
+  "description": "Interface: SchemaPrintOptions",
+  "source": "@site/docs/api/interfaces/utils_src.schemaprintoptions.md",
+  "slug": "/api/interfaces/utils_src.schemaprintoptions",
+  "permalink": "/docs/api/interfaces/utils_src.schemaprintoptions",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/interfaces/utils_src.schemaprintoptions.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "utils_src.schemamapper",
+    "permalink": "/docs/api/interfaces/utils_src.schemamapper"
+  },
+  "next": {
+    "title": "utils_src.schemavisitormap",
+    "permalink": "/docs/api/interfaces/utils_src.schemavisitormap"
+  }
+}

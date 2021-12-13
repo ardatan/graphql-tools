@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/delegate_src.subschema",
+  "id": "api/classes/delegate_src.subschema",
+  "isDocsHomePage": false,
+  "title": "delegate_src.subschema",
+  "description": "Class: Subschema&lt;K, V, C\\&gt;",
+  "source": "@site/docs/api/classes/delegate_src.subschema.md",
+  "slug": "/api/classes/delegate_src.subschema",
+  "permalink": "/docs/api/classes/delegate_src.subschema",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/delegate_src.subschema.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "utils_src.schemavisitor",
+    "permalink": "/docs/api/classes/utils_src.schemavisitor"
+  },
+  "next": {
+    "title": "wrap_src.transformcompositefields",
+    "permalink": "/docs/api/classes/wrap_src.transformcompositefields"
+  }
+}

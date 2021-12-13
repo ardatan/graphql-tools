@@ -1,0 +1,21 @@
+{
+  "unversionedId": "api/classes/delegate_src.addselectionsets",
+  "id": "api/classes/delegate_src.addselectionsets",
+  "isDocsHomePage": false,
+  "title": "delegate_src.addselectionsets",
+  "description": "Class: AddSelectionSets",
+  "source": "@site/docs/api/classes/delegate_src.addselectionsets.md",
+  "slug": "/api/classes/delegate_src.addselectionsets",
+  "permalink": "/docs/api/classes/delegate_src.addselectionsets",
+  "editUrl": "https://github.com/ardatan/graphql-tools/edit/master/website/docs/api/classes/delegate_src.addselectionsets.md",
+  "version": "current",
+  "sidebar": "someSidebar",
+  "previous": {
+    "title": "delegate_src.addargumentsasvariables",
+    "permalink": "/docs/api/classes/delegate_src.addargumentsasvariables"
+  },
+  "next": {
+    "title": "delegate_src.addtypenametoabstract",
+    "permalink": "/docs/api/classes/delegate_src.addtypenametoabstract"
+  }
+}
