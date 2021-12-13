@@ -31,7 +31,7 @@
     "esbuild-register": "3.2.0",
     "next-remote-watch": "1.0.0",
     "open-cli": "7.0.1",
-    "typescript": "4.5.2",
+    "typescript": "4.5.3",
     "wait-on": "6.0.0"
   },
   "dependencies": {
