@@ -341,6 +341,20 @@ input TestInput {
       assertNonMaybe(result.document);
       expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
     });
+
+    it('should handle .graphqls files', async () => {
+      const testHost = 'http://localhost:3000';
+      const testPath = '/schema.graphqls';
+      const [result] = await loader.load(testHost + testPath, {
+        customFetch: async () => {
+          return new Response(testTypeDefs);
+        },
+      });
+
+      assertNonMaybe(result.document);
+      expect(print(result.document)).toBeSimilarGqlDoc(testTypeDefs);
+    });
+
     it("should handle results with handleAsSDL option even if it doesn't end with .graphql", async () => {
       const testHost = 'http://localhost:3000';
       const testPath = '/sdl';
