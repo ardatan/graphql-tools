@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.7.0
+
+### Minor Changes
+
+- 787f4b94: Added support for .graphqls extension to url-loader
+
 ## 7.6.0
 
 ### Minor Changes
