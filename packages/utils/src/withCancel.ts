@@ -2,23 +2,19 @@ async function defaultReturn(value?: any) {
   return { value, done: true } as const;
 }
 
-export function withCancel<T>(
-  asyncIterable: AsyncIterable<T>,
+export function withCancel<T, TAsyncIterable extends AsyncIterable<T>>(
+  asyncIterable: TAsyncIterable,
   onCancel: (value?: any) => void | Promise<void>
-): AsyncIterable<T | undefined> {
+): TAsyncIterable {
   return new Proxy(asyncIterable, {
     get(asyncIterable, prop) {
       if (Symbol.asyncIterator === prop) {
         return function getAsyncIteratorWithCancel() {
           const asyncIterator = asyncIterable[Symbol.asyncIterator]();
-          if (!asyncIterator.return) {
-            asyncIterator.return = defaultReturn;
-          }
-
-          const savedReturn = asyncIterator.return.bind(asyncIterator);
+          const existingReturn = asyncIterator.return?.bind(asyncIterator) || defaultReturn;
           asyncIterator.return = async function extendedReturn(value?: any) {
             const returnValue = await onCancel(value);
-            return savedReturn(returnValue);
+            return existingReturn(returnValue);
           };
           return asyncIterator;
         };
