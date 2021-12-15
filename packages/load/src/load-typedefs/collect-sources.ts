@@ -1,10 +1,12 @@
-import { Source, isDocumentString, parseGraphQLSDL, getDocumentNodeFromSchema } from '@graphql-tools/utils';
+import { Source, isDocumentString, parseGraphQLSDL, getDocumentNodeFromSchema, asArray } from '@graphql-tools/utils';
 import { isSchema, Kind } from 'graphql';
 import { LoadTypedefsOptions } from '../load-typedefs';
 import { loadFile, loadFileSync } from './load-file';
 import { stringToHash, useStack, StackNext, StackFn } from '../utils/helpers';
 import { useCustomLoader, useCustomLoaderSync } from '../utils/custom-loader';
 import { useQueue, useSyncQueue } from '../utils/queue';
+import { createRequire } from 'module';
+import { cwd } from 'process';
 
 type AddSource = (data: { pointer: string; source: Source; noCache?: boolean }) => void;
 type AddToQueue<T> = (fn: () => Promise<T> | T) => void;
@@ -168,6 +170,7 @@ function collectCustomLoader<T>(
 ) {
   if (pointerOptions.loader) {
     return queue(async () => {
+      await Promise.all(asArray(pointerOptions.require).map(m => import(m)));
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TODO options.cwd is possibly undefined, but it seems like no test covers this path
       const loader = await useCustomLoader(pointerOptions.loader, options.cwd);
@@ -190,6 +193,10 @@ function collectCustomLoaderSync<T>(
 ) {
   if (pointerOptions.loader) {
     return queue(() => {
+      const cwdRequire = createRequire(options.cwd || cwd());
+      for (const m of asArray(pointerOptions.require)) {
+        cwdRequire(m);
+      }
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TODO options.cwd is possibly undefined, but it seems like no test covers this path
       const loader = useCustomLoaderSync(pointerOptions.loader, options.cwd);
