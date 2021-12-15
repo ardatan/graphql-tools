@@ -1,5 +1,16 @@
 # @graphql-tools/load
 
+## 7.5.0
+
+### Minor Changes
+
+- b107413a: feat(load): support custom require for custom loaders
+
+### Patch Changes
+
+- Updated dependencies [7b5d72c5]
+  - @graphql-tools/utils@8.5.5
+
 ## 7.4.1
 
 ### Patch Changes
