@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.5.5
+
+### Patch Changes
+
+- 7b5d72c5: enhance(utils): better typing for withCancel
+
 ## 8.5.4
 
 ### Patch Changes
