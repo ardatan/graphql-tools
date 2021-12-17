@@ -1,5 +1,11 @@
 # @graphql-tools/load-files
 
+## 6.5.3
+
+### Patch Changes
+
+- 525e3910: fix(load-files): use createRequire in case of ESM
+
 ## 6.5.2
 
 ### Patch Changes
