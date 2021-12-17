@@ -1,5 +1,11 @@
 # @graphql-tools/mock
 
+## 8.5.0
+
+### Minor Changes
+
+- e6e9f91f: Added relayStylePaginationMock helper
+
 ## 8.4.4
 
 ### Patch Changes
