@@ -249,7 +249,6 @@ const typeDefs = /* GraphQL */ `
 const schema = buildSchema(typeDefs)
 const schemaWithMocks = addMocksToSchema({
   schema,
-  store,
   resolvers: store => ({
     Query: {
       userById: (_, { id }) => store.get('User', id)
@@ -281,7 +280,6 @@ const typeDefs = /* GraphQL */ `
 const schema = buildSchema(typeDefs)
 const schemaWithMocks = addMocksToSchema({
   schema,
-  store,
   resolvers: store => ({
     User: {
       // `addMocksToSchema` resolver will pass a `Ref` as `parent`
@@ -302,45 +300,45 @@ const schemaWithMocks = addMocksToSchema({
 
 #### Relay-style pagination
 
-The principles stay the same than for basic pagination:
+To mock a pagination that complies to [Relay-style pagination](https://relay.dev/graphql/connections.htm),
+you can use the provided helper [`relayStylePaginationMock`](/docs/api/modules/mock_src#relaystylepaginationmock):
 
 ```ts
-import { buildSchema } from 'graphql';
-import { addMocksToSchema, Ref } from '@graphql-tools/mock';
+import { buildSchema } from 'graphql'
+import { addMocksToSchema, relayStylePaginationMock } from '@graphql-tools/mock'
 
-const typeDefs = /* GraphQL */`
-type User {
-  id: Id!
-  name: String!
-  friends(offset: Int!, limit: Int!): FriendsConnection;
-}
-type FriendsConnection {
-  totalCount: Int!
-  edges: [FriendConnectionEdge!]!
-}
-type FriendsConnectionEdge {
-  node: User!
-}
-type Query {
-  me: User!
-}
+const typeDefs = /* GraphQL */ `
+  type User {
+    id: Id!
+    name: String!
+    friends(first: Int!, after: String): FriendsConnection!
+  }
+  type PageInfo {
+    hasNextPage: Boolean!
+    endCursor: String!
+  }
+  type FriendsConnection {
+    totalCount: Int!
+    edges: [FriendConnectionEdge!]!
+    pageInfo: PageInfo!
+  }
+  type FriendsConnectionEdge {
+    node: User!
+    cursor: String!
+  }
+  type Query {
+    me: User!
+  }
 `
-const schema = buildSchema(typeDefs);
+const schema = buildSchema(typeDefs)
 const schemaWithMocks = addMocksToSchema({
   schema,
-  store,
-  resolvers: (store) => ({
+  resolvers: store => ({
     User: {
-      friends: (userRef, { offset, limit }) => {
-        const edgesFullList = store.get(userRef, 'friends', 'edges') as Ref[];
-
-        return {
-          totalCount: edgesFullList.length,
-          edges: edgesFullList.slice(offset, offset + limit)
-      }
+      friends: relayStylePaginationMock(store)
     }
   })
-});
+})
 ```
 
 ## Mocking a schema using introspection

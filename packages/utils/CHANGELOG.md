@@ -360,7 +360,7 @@
 
   ```js
   {
-    mydir: [{ arg: 'first' }, { arg: 'second' }];
+    mydir: [{ arg: 'first' }, { arg: 'second' }]
   }
   ```
 

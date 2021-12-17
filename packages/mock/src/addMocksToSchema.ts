@@ -2,17 +2,16 @@ import {
   GraphQLSchema,
   GraphQLFieldResolver,
   defaultFieldResolver,
-  GraphQLObjectType,
   GraphQLTypeResolver,
   isUnionType,
   GraphQLUnionType,
   GraphQLInterfaceType,
   isSchema,
 } from 'graphql';
-import { mapSchema, MapperKind, IResolvers, getRootTypeNames } from '@graphql-tools/utils';
+import { mapSchema, MapperKind, IResolvers } from '@graphql-tools/utils';
 import { addResolversToSchema } from '@graphql-tools/schema';
 import { isRef, IMockStore, IMocks, TypePolicy } from './types';
-import { copyOwnProps, isObject } from './utils';
+import { copyOwnProps, isObject, isRootType } from './utils';
 import { createMockStore } from './MockStore';
 
 type IMockOptions = {
@@ -246,9 +245,3 @@ export function addMocksToSchema({
 
   return resolvers ? addResolversToSchema(schemaWithMocks, resolvers) : schemaWithMocks;
 }
-
-const isRootType = (type: GraphQLObjectType, schema: GraphQLSchema) => {
-  const rootTypeNames = getRootTypeNames(schema);
-
-  return rootTypeNames.has(type.name);
-};
