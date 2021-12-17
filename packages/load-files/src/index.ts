@@ -1,8 +1,10 @@
 import globby, { sync as globbySync, GlobbyOptions } from 'globby';
 import unixify from 'unixify';
-import { extname } from 'path';
+import { extname, join } from 'path';
 import { statSync, readFileSync, promises as fsPromises } from 'fs';
 import { DocumentNode, parse } from 'graphql';
+import { createRequire } from 'module';
+import { cwd } from 'process';
 
 const { readFile, stat } = fsPromises;
 
@@ -113,6 +115,7 @@ const LoadFilesDefaultOptions: LoadFilesOptions = {
   requireMethod: null,
   globOptions: {
     absolute: true,
+    cwd: cwd(),
   },
   exportNames: DEFAULT_EXPORT_NAMES,
   recursive: true,
@@ -139,7 +142,7 @@ export function loadFilesSync<T = any>(
   );
 
   const extractExports = execOptions.extractExports || DEFAULT_EXTRACT_EXPORTS_FACTORY(execOptions.exportNames ?? []);
-  const requireMethod = execOptions.requireMethod || require;
+  const requireMethod = execOptions.requireMethod || createRequire(join(options?.globOptions?.cwd || cwd(), 'noop.js'));
 
   return relevantPaths
     .map(path => {
@@ -225,7 +228,15 @@ export async function loadFiles(
   );
 
   const extractExports = execOptions.extractExports || DEFAULT_EXTRACT_EXPORTS_FACTORY(execOptions.exportNames ?? []);
-  const defaultRequireMethod = (path: string) => import(path).catch(async () => require(path));
+  const defaultRequireMethod = (path: string) =>
+    import(path).catch(importError => {
+      const cwdRequire = createRequire(join(options?.globOptions?.cwd || cwd(), 'noop.js'));
+      try {
+        return cwdRequire(path);
+      } catch (e) {
+        throw importError;
+      }
+    });
   const requireMethod = execOptions.requireMethod || defaultRequireMethod;
 
   return Promise.all(
