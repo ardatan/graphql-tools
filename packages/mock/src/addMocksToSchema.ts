@@ -145,8 +145,8 @@ export function addMocksToSchema({
     }
 
     if (defaultResolvedValue === undefined) {
-      // any is used here because generateValueFromType is a private method at time of writing
-      return (mockStore as any).generateValueFromType(info.returnType);
+      // any is used here because generateFieldValue is a private method at time of writing
+      return (mockStore as any).generateFieldValue(info.parentType.name, info.fieldName);
     }
 
     return undefined;

@@ -861,7 +861,7 @@ describe('Mock retro-compatibility', () => {
     const mockMap = {
       String: () => 'a',
       Int: () => 1,
-      Color: () => ({ hex: '#333' }),
+      Color: () => ({ name: 'red', hex: '#333' }),
       CustomScalar: () => 'cs',
     };
     jsSchema = addMocksToSchema({ schema: jsSchema, mocks: mockMap, preserveResolvers: true });
@@ -906,20 +906,20 @@ describe('Mock retro-compatibility', () => {
                 "id": "a",
                 "nullableReturnColors": Array [
                   Object {
-                    "name": "a",
+                    "name": "red",
                   },
                   Object {
-                    "name": "a",
+                    "name": "red",
                   },
                 ],
                 "returnColors": Array [
                   Object {
                     "hex": "#333",
-                    "name": "a",
+                    "name": "red",
                   },
                   Object {
                     "hex": "#333",
-                    "name": "a",
+                    "name": "red",
                   },
                 ],
                 "returnCustomScalarArr": Array [
@@ -949,7 +949,7 @@ describe('Mock retro-compatibility', () => {
                 "returnColors": Array [
                   Object {
                     "hex": "#ccc",
-                    "name": "a",
+                    "name": "red",
                   },
                 ],
                 "returnCustomScalarArr": Array [
@@ -977,20 +977,20 @@ describe('Mock retro-compatibility', () => {
                 "id": "a",
                 "nullableReturnColors": Array [
                   Object {
-                    "name": "a",
+                    "name": "red",
                   },
                   Object {
-                    "name": "a",
+                    "name": "red",
                   },
                 ],
                 "returnColors": Array [
                   Object {
                     "hex": "#333",
-                    "name": "a",
+                    "name": "red",
                   },
                   Object {
                     "hex": "#333",
-                    "name": "a",
+                    "name": "red",
                   },
                 ],
                 "returnCustomScalarArr": Array [
@@ -1016,10 +1016,10 @@ describe('Mock retro-compatibility', () => {
                 "id": "a",
                 "nullableReturnColors": Array [
                   Object {
-                    "name": "a",
+                    "name": "red",
                   },
                   Object {
-                    "name": "a",
+                    "name": "red",
                   },
                 ],
                 "returnColors": Array [],
