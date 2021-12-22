@@ -1,5 +1,9 @@
 name: Benchmark
 
+env:
+  NODE_NO_WARNINGS: true
+  CI: true
+
 on:
   pull_request: {}
   workflow_dispatch: {}

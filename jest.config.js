@@ -1,5 +1,5 @@
 const { resolve } = require('path');
-const { pathsToModuleNameMapper } = require('ts-jest/utils');
+const { pathsToModuleNameMapper } = require('ts-jest');
 const CI = !!process.env.CI;
 
 const ROOT_DIR = __dirname;
