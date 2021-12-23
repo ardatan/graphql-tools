@@ -35,6 +35,7 @@ export const removeEmptyNodes: DocumentOptimizer = input => {
   }
 
   return visit(input, {
+    // Request/Operation:
     FragmentDefinition: transformNode,
     OperationDefinition: transformNode,
     VariableDefinition: transformNode,
@@ -43,7 +44,7 @@ export const removeEmptyNodes: DocumentOptimizer = input => {
     InlineFragment: transformNode,
     Name: transformNode,
     Directive: transformNode,
-    // SDL:
+    // Schema Definition:
     SchemaDefinition: transformNode,
     ScalarTypeDefinition: transformNode,
     ObjectTypeDefinition: transformNode,
@@ -54,7 +55,7 @@ export const removeEmptyNodes: DocumentOptimizer = input => {
     InputObjectTypeDefinition: transformNode,
     FieldDefinition: transformNode,
     InputValueDefinition: transformNode,
-    // SDL extensions:
+    // Schema Extension:
     SchemaExtension: transformNode,
     ScalarTypeExtension: transformNode,
     ObjectTypeExtension: transformNode,
