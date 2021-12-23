@@ -43,5 +43,24 @@ export const removeEmptyNodes: DocumentOptimizer = input => {
     InlineFragment: transformNode,
     Name: transformNode,
     Directive: transformNode,
+    // SDL:
+    SchemaDefinition: transformNode,
+    ScalarTypeDefinition: transformNode,
+    ObjectTypeDefinition: transformNode,
+    InterfaceTypeDefinition: transformNode,
+    UnionTypeDefinition: transformNode,
+    EnumTypeDefinition: transformNode,
+    EnumValueDefinition: transformNode,
+    InputObjectTypeDefinition: transformNode,
+    FieldDefinition: transformNode,
+    InputValueDefinition: transformNode,
+    // SDL extensions:
+    SchemaExtension: transformNode,
+    ScalarTypeExtension: transformNode,
+    ObjectTypeExtension: transformNode,
+    InterfaceTypeExtension: transformNode,
+    UnionTypeExtension: transformNode,
+    EnumTypeExtension: transformNode,
+    InputObjectTypeExtension: transformNode,
   });
 };
