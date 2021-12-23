@@ -35,6 +35,7 @@ export const removeEmptyNodes: DocumentOptimizer = input => {
   }
 
   return visit(input, {
+    // Request/Operation:
     FragmentDefinition: transformNode,
     OperationDefinition: transformNode,
     VariableDefinition: transformNode,
@@ -43,5 +44,24 @@ export const removeEmptyNodes: DocumentOptimizer = input => {
     InlineFragment: transformNode,
     Name: transformNode,
     Directive: transformNode,
+    // Schema Definition:
+    SchemaDefinition: transformNode,
+    ScalarTypeDefinition: transformNode,
+    ObjectTypeDefinition: transformNode,
+    InterfaceTypeDefinition: transformNode,
+    UnionTypeDefinition: transformNode,
+    EnumTypeDefinition: transformNode,
+    EnumValueDefinition: transformNode,
+    InputObjectTypeDefinition: transformNode,
+    FieldDefinition: transformNode,
+    InputValueDefinition: transformNode,
+    // Schema Extension:
+    SchemaExtension: transformNode,
+    ScalarTypeExtension: transformNode,
+    ObjectTypeExtension: transformNode,
+    InterfaceTypeExtension: transformNode,
+    UnionTypeExtension: transformNode,
+    EnumTypeExtension: transformNode,
+    InputObjectTypeExtension: transformNode,
   });
 };
