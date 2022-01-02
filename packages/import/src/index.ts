@@ -64,6 +64,7 @@ export type VisitedFilesMap = Map<string, Map<string, Set<DefinitionNode>>>;
 /**
  * Loads the GraphQL document and recursively resolves all the imports
  * and copies them into the final document.
+ * processImport does not merge the typeDefs as designed ( https://github.com/ardatan/graphql-tools/issues/2980#issuecomment-1003692728 )
  */
 export function processImport(
   filePath: string,
