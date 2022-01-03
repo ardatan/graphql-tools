@@ -19,8 +19,12 @@ export function normalizePointers(
     if (typeof rawPointer === 'string') {
       handlePointer(rawPointer);
     } else if (typeof rawPointer === 'object') {
-      for (const [path, options] of Object.entries(rawPointer)) {
-        handlePointer(path, options);
+      if ('require' in rawPointer && 'config' in rawPointer) {
+        handlePointer(rawPointer['require'], rawPointer['config']);
+      } else {
+        for (const [path, options] of Object.entries(rawPointer)) {
+          handlePointer(path, options);
+        }
       }
     } else {
       throw new Error(`Invalid pointer '${rawPointer}'.`);
