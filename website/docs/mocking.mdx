@@ -118,7 +118,7 @@ const mocks = {
   DateTime: () => casual.date(format = 'YYYY-MM-DDTHH:mm:ss.SSSZZ'),
 }
 const preserveResolvers = false
-// Mock the server passing the schema, mocks object and preserverResolvers arguments.
+// Mock the server passing the schema, mocks object and preserveResolvers arguments.
 const server = mockServer(schema, mocks, preserveResolvers)
 // Alternatively, you can call addMocksToSchema with the same arguments.
 const schemaWithMocks = addMocksToSchema({
