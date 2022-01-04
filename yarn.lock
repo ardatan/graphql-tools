@@ -2966,10 +2966,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/graphql-upload@8.0.7":
-  version "8.0.7"
-  resolved "https://registry.yarnpkg.com/@types/graphql-upload/-/graphql-upload-8.0.7.tgz#71dd5d4a8d9ddb598df91298d6e98a943061b255"
-  integrity sha512-uXhInuUY/W6n9a+PdCt9vcZ7z2m+NzByBJFvvDM+46pljqEwXXnIAjsEI1Dka2FKRTGthetm/imN//RhtEEYSA==
+"@types/graphql-upload@8.0.8":
+  version "8.0.8"
+  resolved "https://registry.yarnpkg.com/@types/graphql-upload/-/graphql-upload-8.0.8.tgz#694473dda78bc3309908a24f128d66f4a48a80a0"
+  integrity sha512-jrAJGnfK4qqRlKoofK14mGsYF/k21q3Q3Kl2aYDjUBEVSFtnM61NcvV6eMSjFnrXYe5FetWINpTtEcSNzbvNMQ==
   dependencies:
     "@types/express" "*"
     "@types/fs-capacitor" "*"
