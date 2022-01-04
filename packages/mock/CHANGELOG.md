@@ -1,5 +1,13 @@
 # @graphql-tools/mock
 
+## 8.5.1
+
+### Patch Changes
+
+- 9c03ac88: Resolve an issue with custom scalar mocks being ignored in deep mocking when preserveResolvers option is turned on.
+- Updated dependencies [69b316c2]
+  - @graphql-tools/utils@8.6.0
+
 ## 8.5.0
 
 ### Minor Changes

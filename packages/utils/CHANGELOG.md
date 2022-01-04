@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.6.0
+
+### Minor Changes
+
+- 69b316c2: feat(utils): more withCancel utils
+
 ## 8.5.5
 
 ### Patch Changes
@@ -360,7 +366,7 @@
 
   ```js
   {
-    mydir: [{ arg: 'first' }, { arg: 'second' }]
+    mydir: [{ arg: 'first' }, { arg: 'second' }];
   }
   ```
 

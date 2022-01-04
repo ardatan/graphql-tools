@@ -1,5 +1,14 @@
 # @graphql-tools/load
 
+## 7.5.1
+
+### Patch Changes
+
+- 2e437eba: Fix type error on NON_OPERATION_KINDS when using with graphql@15
+- 7c6b28e6: Changes to the documentation regarding processImport
+- Updated dependencies [69b316c2]
+  - @graphql-tools/utils@8.6.0
+
 ## 7.5.0
 
 ### Minor Changes

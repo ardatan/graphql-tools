@@ -1,5 +1,13 @@
 # @graphql-tools/import
 
+## 6.6.4
+
+### Patch Changes
+
+- 7c6b28e6: Changes to the documentation regarding processImport
+- Updated dependencies [69b316c2]
+  - @graphql-tools/utils@8.6.0
+
 ## 6.6.3
 
 ### Patch Changes
