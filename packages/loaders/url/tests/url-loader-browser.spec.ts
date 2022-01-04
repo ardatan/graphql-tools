@@ -312,7 +312,7 @@ describe('[url-loader] webpack bundle compat', () => {
           for await (const currentResult of result) {
             results.push(currentResult);
             if (results.length === 2) {
-              await result.return!().catch(() => null);
+              break;
             }
           }
           return results;
