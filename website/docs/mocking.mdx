@@ -582,7 +582,7 @@ const schemaWithMocks = addMocksToSchema({ schema, resolvers })
 
 _Read more about mocking pagination [here](#mocking-a-pagination)_
 
-Mock functions can't return a `Promise` anymore: it has to be a plain value. You can also use resolvers to work around this:
+Mock functions can't return a `Promise` anymore: it has to be a plain value. However, resolvers can still return functions or `Promise`s, so you can use resolvers to work around this:
 
 ```js
 cont getName = () => Promise.resolve('Vlad');
