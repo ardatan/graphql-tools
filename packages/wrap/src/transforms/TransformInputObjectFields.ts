@@ -100,7 +100,7 @@ export default class TransformInputObjectFields implements Transform {
           // Cast to NamedTypeNode required until upcomming graphql releases will have TypeNode paramter
           const varType = typeFromAST(delegationContext.transformedSchema, variableDef.type as NamedTypeNode);
           if (!isInputType(varType)) {
-            throw new Error(`Expected ${varType} to be an input type`);
+            continue;
           }
           variableValues[varName] = transformInputValue(
             varType,
