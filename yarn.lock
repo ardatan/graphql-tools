@@ -111,7 +111,7 @@
     "@algolia/logger-common" "4.11.0"
     "@algolia/requester-common" "4.11.0"
 
-"@apollo/client@3.5.6", "@apollo/client@^3.1.3", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0":
+"@apollo/client@3.5.6", "@apollo/client@^3.0.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0":
   version "3.5.6"
   resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.5.6.tgz#911929df073280689efd98e5603047b79e0c39a2"
   integrity sha512-XHoouuEJ4L37mtfftcHHO1caCRrKKAofAwqRoq28UQIPMJk+e7n3X9OtRRNXKk/9tmhNkwelSary+EilfPwI7A==
@@ -2806,14 +2806,14 @@
   dependencies:
     "@types/node" "*"
 
-"@types/apollo-upload-client@14.1.0":
-  version "14.1.0"
-  resolved "https://registry.yarnpkg.com/@types/apollo-upload-client/-/apollo-upload-client-14.1.0.tgz#21a57d7e3f29ff946ba51a53b3d7da46ddd21fbc"
-  integrity sha512-ZLvcEqu+l9qKGdrIpASt/A2WY1ghAC9L3qaoegkiBOccjxvQmWN9liZzVFiuHTuWseWpVbMklqbs/z+KEjll9Q==
+"@types/apollo-upload-client@17.0.0":
+  version "17.0.0"
+  resolved "https://registry.yarnpkg.com/@types/apollo-upload-client/-/apollo-upload-client-17.0.0.tgz#e9ae78c3c3f1a70b5724616c83f5af2ad902f1d0"
+  integrity sha512-S1HUj9g+wn0fM29vLsnD87hTW2h2k/ELlTTJ+mUHTnF6oxmm46KkqxrzFPR7u2rQBjjSiKQEaXLqBn76s8bzBg==
   dependencies:
-    "@apollo/client" "^3.1.3"
+    "@apollo/client" "^3.0.0"
     "@types/extract-files" "*"
-    graphql "^15.3.0"
+    graphql "14 - 16"
 
 "@types/babel__core@^7.0.0", "@types/babel__core@^7.1.14":
   version "7.1.15"
@@ -6902,7 +6902,7 @@ graphql-ws@^5.4.1:
   resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.4.1.tgz#76fb4c39dfa44a961546995b6bb5320726ff5f71"
   integrity sha512-maBduPneZOFYb3otLgc9/U+fU3f9MVXLKg6lVVLqA9BDQQ6YR7YhQO21Rf9+44IRBi4l8m35lynFMFQTzN3eAQ==
 
-graphql@16.2.0, graphql@^14.5.3, graphql@^15.3.0:
+"graphql@14 - 16", graphql@16.2.0, graphql@^14.5.3, graphql@^15.3.0:
   version "16.2.0"
   resolved "https://registry.yarnpkg.com/graphql/-/graphql-16.2.0.tgz#de3150e80f1fc009590b92a9d16ab1b46e12b656"
   integrity sha512-MuQd7XXrdOcmfwuLwC2jNvx0n3rxIuNYOxUtiee5XOmfrWo613ar2U8pE7aHAKh8VwfpifubpD9IP+EdEAEOsA==
