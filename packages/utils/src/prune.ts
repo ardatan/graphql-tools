@@ -40,65 +40,66 @@ interface PruningContext {
  * @param options Additional options for removing unused types from the schema
  */
 export function pruneSchema(schema: GraphQLSchema, options: PruneSchemaOptions = {}): GraphQLSchema {
-  const pruningContext: PruningContext = {
-    schema,
-    unusedTypes: Object.create(null),
-    implementations: Object.create(null),
-  };
+  const pruningContext: PruningContext = createPruningContext(schema);
 
-  for (const typeName in schema.getTypeMap()) {
-    const type = schema.getType(typeName);
-    if (type && 'getInterfaces' in type) {
-      for (const iface of type.getInterfaces()) {
-        const implementations = getImplementations(pruningContext, iface);
-        if (implementations == null) {
-          pruningContext.implementations[iface.name] = Object.create(null);
-        }
-        pruningContext.implementations[iface.name][type.name] = true;
+  visitTypes(pruningContext);
+
+  const types = Object.values(schema.getTypeMap());
+
+  const typesToPrune: Set<string> = new Set();
+
+  for (const type of types) {
+    if (type.name.startsWith('__')) {
+      continue;
+    }
+
+    // If we should NOT prune the type, return it immediately as unmodified
+    if (options.skipPruning && options.skipPruning(type)) {
+      continue;
+    }
+
+    if (isObjectType(type) || isInputObjectType(type)) {
+      if (
+        (!Object.keys(type.getFields()).length && !options.skipEmptyCompositeTypePruning) ||
+        (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning)
+      ) {
+        typesToPrune.add(type.name);
+      }
+    } else if (isUnionType(type)) {
+      if (
+        (!type.getTypes().length && !options.skipEmptyUnionPruning) ||
+        (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning)
+      ) {
+        typesToPrune.add(type.name);
+      }
+    } else if (isInterfaceType(type)) {
+      const implementations = getImplementations(pruningContext, type);
+
+      if (
+        (!Object.keys(type.getFields()).length && !options.skipEmptyCompositeTypePruning) ||
+        (implementations && !Object.keys(implementations).length && !options.skipUnimplementedInterfacesPruning) ||
+        (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning)
+      ) {
+        typesToPrune.add(type.name);
+      }
+    } else {
+      if (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning) {
+        typesToPrune.add(type.name);
       }
     }
   }
 
-  visitTypes(pruningContext, schema);
-
-  return mapSchema(schema, {
+  // TODO: consider not returning a new schema if there was nothing to prune. This would be a breaking change.
+  const prunedSchema = mapSchema(schema, {
     [MapperKind.TYPE]: (type: GraphQLNamedType) => {
-      // If we should NOT prune the type, return it immediately as unmodified
-      if (options.skipPruning && options.skipPruning(type)) {
-        return type;
-      }
-
-      if (isObjectType(type) || isInputObjectType(type)) {
-        if (
-          (!Object.keys(type.getFields()).length && !options.skipEmptyCompositeTypePruning) ||
-          (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning)
-        ) {
-          return null;
-        }
-      } else if (isUnionType(type)) {
-        if (
-          (!type.getTypes().length && !options.skipEmptyUnionPruning) ||
-          (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning)
-        ) {
-          return null;
-        }
-      } else if (isInterfaceType(type)) {
-        const implementations = getImplementations(pruningContext, type);
-
-        if (
-          (!Object.keys(type.getFields()).length && !options.skipEmptyCompositeTypePruning) ||
-          (implementations && !Object.keys(implementations).length && !options.skipUnimplementedInterfacesPruning) ||
-          (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning)
-        ) {
-          return null;
-        }
-      } else {
-        if (pruningContext.unusedTypes[type.name] && !options.skipUnusedTypesPruning) {
-          return null;
-        }
+      if (typesToPrune.has(type.name)) {
+        return null;
       }
     },
   });
+
+  // if we pruned something, we need to prune again in case there are now objects without fields
+  return typesToPrune.size ? pruneSchema(prunedSchema, options) : prunedSchema;
 }
 
 function visitOutputType(
@@ -149,6 +150,32 @@ function visitOutputType(
 }
 
 /**
+ * Initialize a pruneContext given a schema.
+ */
+function createPruningContext(schema: GraphQLSchema): PruningContext {
+  const pruningContext: PruningContext = {
+    schema,
+    unusedTypes: Object.create(null),
+    implementations: Object.create(null),
+  };
+
+  for (const typeName in schema.getTypeMap()) {
+    const type = schema.getType(typeName);
+    if (type && 'getInterfaces' in type) {
+      for (const iface of type.getInterfaces()) {
+        const implementations = getImplementations(pruningContext, iface);
+        if (implementations == null) {
+          pruningContext.implementations[iface.name] = Object.create(null);
+        }
+        pruningContext.implementations[iface.name][type.name] = true;
+      }
+    }
+  }
+
+  return pruningContext;
+}
+
+/**
  * Get the implementations of an interface. May return undefined.
  */
 function getImplementations(
@@ -180,7 +207,9 @@ function visitInputType(
   }
 }
 
-function visitTypes(pruningContext: PruningContext, schema: GraphQLSchema): void {
+function visitTypes(pruningContext: PruningContext): void {
+  const schema = pruningContext.schema;
+
   for (const typeName in schema.getTypeMap()) {
     if (!typeName.startsWith('__')) {
       pruningContext.unusedTypes[typeName] = true;
