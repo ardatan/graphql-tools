@@ -65,7 +65,7 @@ export function getArgumentValues(
 
     if (valueNode.kind === Kind.VARIABLE) {
       const variableName = valueNode.name.value;
-      if (variableValues == null || !variableMap[variableName]) {
+      if (variableValues == null || variableMap[variableName] == null) {
         if (defaultValue !== undefined) {
           coercedValues[name] = defaultValue;
         } else if (isNonNullType(argType)) {
