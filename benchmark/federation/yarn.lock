@@ -17,10 +17,10 @@
     apollo-server-types "^3.0.2"
     lodash.xorby "^4.7.0"
 
-"@apollo/gateway@0.45.0":
-  version "0.45.0"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.45.0.tgz#e2a1d02a594df15d4a4dcd4459cb887e599866ae"
-  integrity sha512-amfZeJsQC2ETALEJNX4mVkJFiICRSn+WQePkvy5caHIeye1NF1KK6JKtqogfKxUALjFd7n1KOAEDcicJjNEDhg==
+"@apollo/gateway@0.45.1":
+  version "0.45.1"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-0.45.1.tgz#b82e6e8fac3570a923a4b61cbd85f7ef4658188a"
+  integrity sha512-5x0xwhFrJUS159qcKaA/pR5lhFZ8xGGZ01I4JaxAScbENgI93rCEX/KvfobopEPPUJR2OYbVtNZoN9NvjzHT+w==
   dependencies:
     "@apollo/core-schema" "^0.2.0"
     "@apollo/federation" "^0.33.8"
