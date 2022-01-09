@@ -1108,7 +1108,7 @@ describe('schema transformation with extraction of nested fields', () => {
   test('should work via HoistField transform', async () => {
     const transformedPropertySchema = wrapSchema({
       schema: propertySchema,
-      transforms: [new HoistField('Property', ['location', 'name'], 'locationName')],
+      transforms: [new HoistField('Property', ['location', 'name'], 'locationName'), new PruneSchema()],
     });
 
     const result = await graphql({
