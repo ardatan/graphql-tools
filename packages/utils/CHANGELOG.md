@@ -1,5 +1,14 @@
 # @graphql-tools/utils
 
+## 8.6.1
+
+### Patch Changes
+
+- 43a60f93: Improve getArgumentValues check for null values
+- 20e1058b: fix pruneSchema
+
+  Schema pruning must be done in rounds, as pruning types will automatically prune any fields that rely on them (within mapSchema), but then the empty types may also require pruning.
+
 ## 8.6.0
 
 ### Minor Changes
