@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@types/is-glob": "4.0.2",
-    "@types/micromatch": "4.0.1"
+    "@types/micromatch": "4.0.2"
   },
   "publishConfig": {
     "access": "public",
