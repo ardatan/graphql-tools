@@ -30,8 +30,8 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "devDependencies": {
-    "@types/dateformat": "3.0.1",
-    "dateformat": "4.6.3",
+    "@types/dateformat": "5.0.0",
+    "dateformat": "5.0.2",
     "graphql-scalars": "1.14.1"
   },
   "dependencies": {
