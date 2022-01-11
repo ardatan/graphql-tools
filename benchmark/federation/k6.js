@@ -7,7 +7,7 @@ const isPrinted = __ENV.PRODUCTS_SIZE == 10;
 
 export const options = {
   vus: 1,
-  duration: '30s',
+  duration: '10s',
   thresholds: {
     no_errors: ['rate=1.0'],
     expected_result: ['rate=1.0'],
