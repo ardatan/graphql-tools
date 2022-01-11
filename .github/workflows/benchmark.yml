@@ -49,7 +49,7 @@ jobs:
       - name: Federation
         run: k6 -e ENDPOINT=federation run --out json=federation.json benchmark/federation/k6.js
       - name: Stitching
-        run: k6 -e ENDPOINT=stitching run --out json=stitching.json benchmark/federation/k6.js
+        run: k6 -e ENDPOINT=stitching -e PRODUCTS_SIZE=${{matrix.products_size}} -e GITHUB_PR=${{ github.event.number }} -e GITHUB_SHA=${{ github.sha }} -e GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}} run --out json=stitching.json benchmark/federation/k6.js
       - name: Monolith
         run: k6 -e ENDPOINT=monolith run --out json=monolith.json benchmark/federation/k6.js
       - name: Compare
