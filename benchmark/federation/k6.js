@@ -21,8 +21,8 @@ export function handleSummary(data) {
       token: __ENV.GITHUB_TOKEN,
       commit: __ENV.GITHUB_SHA,
       pr: __ENV.GITHUB_PR,
-      org: 'dotansimha',
-      repo: 'graphql-yoga',
+      org: 'ardatan',
+      repo: 'graphql-tools',
       renderTitle({ passes }) {
         return passes ? '✅ Benchmark Results' : '❌ Benchmark Failed';
       },
