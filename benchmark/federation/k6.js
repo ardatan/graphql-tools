@@ -3,18 +3,20 @@ import { graphql, checkNoErrors } from '../utils.js';
 import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
 import { githubComment } from 'https://raw.githubusercontent.com/dotansimha/k6-github-pr-comment/master/lib.js';
 
+const isPrinted = __ENV.PRODUCTS_SIZE == 10;
+
 export const options = {
   vus: 1,
   duration: '30s',
   thresholds: {
     no_errors: ['rate=1.0'],
     expected_result: ['rate=1.0'],
-    http_req_duration: __ENV.PRODUCTS_SIZE === 10 ? ['avg<=6ms'] : [],
+    http_req_duration: isPrinted ? ['avg<=7ms'] : [],
   },
 };
 
 export function handleSummary(data) {
-  if (__ENV.GITHUB_TOKEN && __ENV.PRODUCTS_SIZE === 10) {
+  if (__ENV.GITHUB_TOKEN && isPrinted) {
     githubComment(data, {
       token: __ENV.GITHUB_TOKEN,
       commit: __ENV.GITHUB_SHA,
