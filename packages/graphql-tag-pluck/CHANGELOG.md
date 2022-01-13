@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 7.1.5
+
+### Patch Changes
+
+- 7e205e26: Don't pin babel dependencies to an exact version
+
 ## 7.1.4
 
 ### Patch Changes
