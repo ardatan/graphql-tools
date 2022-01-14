@@ -5948,6 +5948,13 @@ extract-files@^11.0.0:
   resolved "https://registry.yarnpkg.com/extract-files/-/extract-files-11.0.0.tgz#b72d428712f787eef1f5193aff8ab5351ca8469a"
   integrity sha512-FuoE1qtbJ4bBVvv94CC7s0oTnKUGvQs+Rjf1L2SJFfS+HTVVjhPFtehPdQ0JiGPqVNfSSZvL5yzHHQq2Z4WNhQ==
 
+extract-files@^12.0.0:
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/extract-files/-/extract-files-12.0.0.tgz#cbd7debbe326a995b24b4be03c03b19f7e41d673"
+  integrity sha512-jdD7Bz6W0u5lnycs6Xl7lna+v5TDEkBOi760OX0nUTVTaAro4h63v3wOFiH7e7YfQyTbtFZ763PIhAt+RvX3Sg==
+  dependencies:
+    is-plain-obj "^4.0.0"
+
 extract-files@^9.0.0:
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/extract-files/-/extract-files-9.0.0.tgz#8a7744f2437f81f5ed3250ed9f1550de902fe54a"
