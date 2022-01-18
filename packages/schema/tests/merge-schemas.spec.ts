@@ -372,7 +372,7 @@ describe('Merge Schemas', () => {
     expect(data['a']).toEqual(now.toISOString());
   });
 
-  it.only('should not duplicate directives of scalars', () => {
+  it('should not duplicate directives of scalars', () => {
     const schema = buildSchema(/* GraphQL */ `
       directive @sqlType(type: String!) on SCALAR
       scalar JSON @sqlType(type: "json")
