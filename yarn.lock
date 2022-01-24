@@ -1800,15 +1800,15 @@
   dependencies:
     "@chakra-ui/utils" "1.9.1"
 
-"@changesets/apply-release-plan@5.0.3", "@changesets/apply-release-plan@^5.0.2":
-  version "5.0.3"
-  resolved "https://registry.yarnpkg.com/@changesets/apply-release-plan/-/apply-release-plan-5.0.3.tgz#3f516ef881fa1278cb9795ef282db57cfd6dd0e2"
-  integrity sha512-V15OPq/GyaRB3FA0hEV0V21OhsxXcPAOUeXFF9VKKPl9XkB+nDndvUcqUfr06OeeXczP8+1aCB9N+bazbfa0TQ==
+"@changesets/apply-release-plan@5.0.4", "@changesets/apply-release-plan@^5.0.2":
+  version "5.0.4"
+  resolved "https://registry.yarnpkg.com/@changesets/apply-release-plan/-/apply-release-plan-5.0.4.tgz#fefffecf73b59dbee7ae905b3c6a2e64c489f0cb"
+  integrity sha512-czayDIrgC8qBnqwClvh9nxjCMem+XZG7xtfdYwq3dxpzA30qGppcI0i088VYug5RCFR+l1N+HUvkujSZuBK65w==
   dependencies:
     "@babel/runtime" "^7.10.4"
-    "@changesets/config" "^1.6.3"
+    "@changesets/config" "^1.6.4"
     "@changesets/get-version-range-type" "^0.3.2"
-    "@changesets/git" "^1.2.1"
+    "@changesets/git" "^1.3.0"
     "@changesets/types" "^4.0.2"
     "@manypkg/get-packages" "^1.1.3"
     detect-indent "^6.0.0"
@@ -1867,13 +1867,13 @@
     term-size "^2.1.0"
     tty-table "^2.8.10"
 
-"@changesets/config@^1.6.2", "@changesets/config@^1.6.3":
-  version "1.6.3"
-  resolved "https://registry.yarnpkg.com/@changesets/config/-/config-1.6.3.tgz#f33f040b2b01cebbb5aacf040ff0e78698e38350"
-  integrity sha512-J1PwxgAdvUZpvASFnzPQ1ixl20Pn42UmaqozqBlWENQDbCO/VlmianctCmwwBeR0RR/cx7oIC/ACbR1fy7mXTw==
+"@changesets/config@^1.6.2", "@changesets/config@^1.6.4":
+  version "1.6.4"
+  resolved "https://registry.yarnpkg.com/@changesets/config/-/config-1.6.4.tgz#c904c84f067b49c09b378618b751089dd29ed0b7"
+  integrity sha512-WWa8eR8GzS/p2atLc/+5UEDn7fsRCZ+/sShLkB/3efVbTkSTB1PwoKwQRXLYXM1DY289T7UnJT4HLZA3Gcreww==
   dependencies:
     "@changesets/errors" "^0.1.4"
-    "@changesets/get-dependents-graph" "^1.2.4"
+    "@changesets/get-dependents-graph" "^1.3.0"
     "@changesets/logger" "^0.0.5"
     "@changesets/types" "^4.0.2"
     "@manypkg/get-packages" "^1.1.3"
@@ -1887,10 +1887,10 @@
   dependencies:
     extendable-error "^0.1.5"
 
-"@changesets/get-dependents-graph@^1.2.3", "@changesets/get-dependents-graph@^1.2.4":
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/@changesets/get-dependents-graph/-/get-dependents-graph-1.2.4.tgz#809226aa424ff5ec990696fc7c031f02b1380470"
-  integrity sha512-53lYhG9RFW5YIilMSo2TpZ3ocAkK3KENkiWhXYrbyXSt6SPOsIWW1wtialTJOqiuC7Lrdlazd5AHvGH7nlV4fg==
+"@changesets/get-dependents-graph@^1.2.3", "@changesets/get-dependents-graph@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@changesets/get-dependents-graph/-/get-dependents-graph-1.3.0.tgz#892bbb63406911baac1f77a31303620492d466ec"
+  integrity sha512-4VHQWEluWySPgDdkL94YNxrEjDb9nwNFw515sWDmVrlfpQN5qaP1hdaotrp4mJm4ky85t4cTlrWSP+CTY7IDbw==
   dependencies:
     "@changesets/types" "^4.0.2"
     "@manypkg/get-packages" "^1.1.3"
@@ -1916,10 +1916,10 @@
   resolved "https://registry.yarnpkg.com/@changesets/get-version-range-type/-/get-version-range-type-0.3.2.tgz#8131a99035edd11aa7a44c341cbb05e668618c67"
   integrity sha512-SVqwYs5pULYjYT4op21F2pVbcrca4qA/bAA3FmFXKMN7Y+HcO8sbZUTx3TAy2VXulP2FACd1aC7f2nTuqSPbqg==
 
-"@changesets/git@^1.2.0", "@changesets/git@^1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@changesets/git/-/git-1.2.1.tgz#c429d70ca616a4f03872f82e2ca6f7eef707a6af"
-  integrity sha512-Qkubed8zg4/YOXnR97ZOocKXncjLMc185jSKu3ah5TgCpwMcK1EMkGcmpf3U8EHtQbh9pRKAxlfGq376WPPyPA==
+"@changesets/git@^1.2.0", "@changesets/git@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@changesets/git/-/git-1.3.0.tgz#7f62e1983552efecb738054db5178eef77f41241"
+  integrity sha512-Ydj4lWX33d2PCDaTXOMSbyTjgk1go1V6EyXjKTmOV7nB/qvgKdDZLSt+AexKWKp3Ac2FTrtVnl9G5gMNVYNmuQ==
   dependencies:
     "@babel/runtime" "^7.10.4"
     "@changesets/errors" "^0.1.4"
@@ -8781,14 +8781,7 @@ node-fetch@2.6.5:
   dependencies:
     whatwg-url "^5.0.0"
 
-node-fetch@^2.6.1, node-fetch@^2.6.5, node-fetch@^2.6.6:
-  version "2.6.6"
-  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.6.tgz#1751a7c01834e8e1697758732e9efb6eeadfaf89"
-  integrity sha512-Z8/6vRlTUChSdIgMa51jxQ4lrw/Jy5SOW10ObaA47/RElsAN2c5Pn8bTgFGWn/ibwzXTE8qwr1Yzx28vsecXEA==
-  dependencies:
-    whatwg-url "^5.0.0"
-
-node-fetch@^2.6.7:
+node-fetch@^2.6.1, node-fetch@^2.6.5, node-fetch@^2.6.6, node-fetch@^2.6.7:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
   integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==
