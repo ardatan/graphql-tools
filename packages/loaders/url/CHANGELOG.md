@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.7.1
+
+### Patch Changes
+
+- d57c56d2: bump cross-undici-fetch
+
 ## 7.7.0
 
 ### Minor Changes
