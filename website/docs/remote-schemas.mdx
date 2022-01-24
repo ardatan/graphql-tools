@@ -167,8 +167,7 @@ With this executor all operations (query, mutation and subscription) will be exe
 ```ts
 import { wrapSchema, introspectSchema } from '@graphql-tools/wrap'
 import { AsyncExecutor } from '@graphql-tools/utils'
-import { fetch } from 'cross-undici-fetch'
-import AbortController from 'abort-controller' // node < v15
+import { fetch, AbortController } from 'cross-undici-fetch'
 import { observableToAsyncIterable } from '@graphql-tools/utils'
 import { createClient } from 'graphql-sse'
 import { print } from 'graphql'
@@ -179,7 +178,7 @@ const subscriptionClient = createClient({
   singleConnection: true,
   url: SSE_GRAPHQL_ENDPOINT,
   fetchFn: fetch,
-  abortControllerImpl: AbortController // node < v15
+  abortControllerImpl: AbortController
 })
 
 const executor: AsyncExecutor = async ({ document, variables, operationName, extensions }) =>

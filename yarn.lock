@@ -4890,16 +4890,17 @@ cross-spawn@^7.0.1, cross-spawn@^7.0.2, cross-spawn@^7.0.3:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-cross-undici-fetch@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.1.4.tgz#6058950dc6bf451f81a51582258f4e5a5a01b702"
-  integrity sha512-jIcyxjQ6mEvUS3y2yhIVktOR7wlGZuyjFAK8woo7pMb+BR1f2ylfTxsN01UPwhqT8gtYPmZ2rPdyoInr1Cdrrw==
+cross-undici-fetch@^0.1.19:
+  version "0.1.19"
+  resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.1.19.tgz#1bef41652c33ec812b51cd3b4e1295114cd62d4c"
+  integrity sha512-bNBuesVn09Iy15mAM/hpt97fLWSexblVYpUYa5FjbtLHA7om9w3g1uRGGwrEnmVxy3wouNvZyJwQzAPHXgOrxQ==
   dependencies:
     abort-controller "^3.0.0"
     form-data-encoder "^1.7.1"
     formdata-node "^4.3.1"
-    node-fetch "^2.6.5"
+    node-fetch "^2.6.7"
     undici "^4.9.3"
+    web-streams-polyfill "^3.2.0"
 
 crypto-random-string@^2.0.0:
   version "2.0.0"
@@ -8787,6 +8788,13 @@ node-fetch@^2.6.1, node-fetch@^2.6.5, node-fetch@^2.6.6:
   dependencies:
     whatwg-url "^5.0.0"
 
+node-fetch@^2.6.7:
+  version "2.6.7"
+  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
+  integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==
+  dependencies:
+    whatwg-url "^5.0.0"
+
 node-int64@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/node-int64/-/node-int64-0.4.0.tgz#87a9065cdb355d3182d8f94ce11188b825c68a3b"
@@ -11858,6 +11866,11 @@ web-streams-polyfill@4.0.0-beta.1:
   version "4.0.0-beta.1"
   resolved "https://registry.yarnpkg.com/web-streams-polyfill/-/web-streams-polyfill-4.0.0-beta.1.tgz#3b19b9817374b7cee06d374ba7eeb3aeb80e8c95"
   integrity sha512-3ux37gEX670UUphBF9AMCq8XM6iQ8Ac6A+DSRRjDoRBm1ufCkaCDdNVbaqq60PsEkdNlLKrGtv/YBP4EJXqNtQ==
+
+web-streams-polyfill@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/web-streams-polyfill/-/web-streams-polyfill-3.2.0.tgz#a6b74026b38e4885869fb5c589e90b95ccfc7965"
+  integrity sha512-EqPmREeOzttaLRm5HS7io98goBgZ7IVz79aDvqjD0kYXLtFZTc0T/U6wHTPKyIjb+MdN7DFIIX6hgdBEpWmfPA==
 
 webidl-conversions@^3.0.0:
   version "3.0.1"
