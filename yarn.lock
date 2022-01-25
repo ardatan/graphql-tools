@@ -1734,12 +1734,20 @@
     "@chakra-ui/form-control" "1.5.3"
     "@chakra-ui/utils" "1.9.1"
 
-"@chakra-ui/theme-tools@1.3.1", "@chakra-ui/theme-tools@^1.3.1":
+"@chakra-ui/theme-tools@1.3.1":
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/@chakra-ui/theme-tools/-/theme-tools-1.3.1.tgz#3c1d490a0c3157ba83c5e82ef60de4605cdb0f3a"
   integrity sha512-D8arJ5uFGuYZrrFGpXqgov8FhsJYWRyar5oBZY5TJR9gsVYBlJ8Ai91pwM/NflCFqzerTOgyt7bNSGQMdZ8ghA==
   dependencies:
     "@chakra-ui/utils" "1.9.1"
+    "@ctrl/tinycolor" "^3.4.0"
+
+"@chakra-ui/theme-tools@1.3.2", "@chakra-ui/theme-tools@^1.3.1":
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/@chakra-ui/theme-tools/-/theme-tools-1.3.2.tgz#6f3f3212fa603bb42b061bc2a0c69b8bcc15934d"
+  integrity sha512-7UyUv6k6CXr3WX7BrR7vAZ2Iobxyyy2INZtlUqS2JK+6/YV1FCmBKsNaTSFHvcSYb/eAPYJwgeQdhkzA1HTKpQ==
+  dependencies:
+    "@chakra-ui/utils" "1.10.0"
     "@ctrl/tinycolor" "^3.4.0"
 
 "@chakra-ui/theme@1.12.3":
@@ -1783,7 +1791,17 @@
   dependencies:
     "@chakra-ui/utils" "1.9.1"
 
-"@chakra-ui/utils@1.9.1", "@chakra-ui/utils@^1.9.1":
+"@chakra-ui/utils@1.10.0", "@chakra-ui/utils@^1.9.1":
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/@chakra-ui/utils/-/utils-1.10.0.tgz#c7d35c831ee0972841efe3a5171d22c16141d718"
+  integrity sha512-Zm0RoZRBDXEhDCuj2oPeLyGTEH+SwCgbFPTSuwpKSVXOXCtjvA2zWC7cY6Fk1RDcMCVbL2cPlQTTgKnKPh79Lg==
+  dependencies:
+    "@types/lodash.mergewith" "4.6.6"
+    css-box-model "1.2.1"
+    framesync "5.3.0"
+    lodash.mergewith "4.6.2"
+
+"@chakra-ui/utils@1.9.1":
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/@chakra-ui/utils/-/utils-1.9.1.tgz#e34bf74f9f6048da1ec2a5728db4cc80d0158e0e"
   integrity sha512-Tue8JfpzOqeHd8vSqAnX1l/Y3Gg456+BXFP/TH6mCIeqMAMbrvv25vDskds0wlXRjMYdmpqHxCEzkalFrscGHA==
