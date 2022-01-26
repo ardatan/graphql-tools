@@ -35,7 +35,7 @@
   "dependencies": {
     "@graphql-tools/import": "^6.5.7",
     "@graphql-tools/utils": "^8.5.1",
-    "globby": "^11.0.3",
+    "globby": "^13.0.0",
     "unixify": "^1.0.0",
     "tslib": "~2.3.0"
   },
