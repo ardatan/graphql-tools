@@ -46,7 +46,7 @@
     "@mdx-js/react": "1.6.22",
     "@theguild/components": "1.8.7",
     "framer-motion": "6.2.3",
-    "next": "12.0.8",
+    "next": "12.0.9",
     "next-i18next": "10.2.0",
     "next-seo": "4.29.0",
     "react": "17.0.2",
