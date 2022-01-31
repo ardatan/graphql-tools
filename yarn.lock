@@ -5262,10 +5262,10 @@ dot-case@^3.0.4:
     no-case "^3.0.4"
     tslib "^2.0.3"
 
-dotenv@^14.0.0:
-  version "14.0.0"
-  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-14.0.0.tgz#a993719c572eb39066922fa2031f0bc40ad88311"
-  integrity sha512-lO8c74ruYOG0hCK6fWT7t/PVxqcLKhfOqTahXZQN2UCyfN+ZTJmu48wRUVpkBAXsUGjPOG+ndTh8rjZxyf2xqw==
+dotenv@^15.0.0:
+  version "15.0.0"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-15.0.0.tgz#2a585639429bf2c2c62f387f0fffde9c75aafde0"
+  integrity sha512-/l1sXXm79ry34KwwS0y4oVZjB468iw/6u9g1W26dtexKcIJAnVL2pMF+hxQwzZ7LutxOwEgtym9eIxvX33CMKg==
 
 dset@^2.0.1:
   version "2.1.0"
