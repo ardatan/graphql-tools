@@ -19,7 +19,7 @@
     "esbuild": "0.14.14"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "12.0.8",
+    "@next/bundle-analyzer": "12.0.9",
     "@types/concurrently": "6.4.0",
     "@types/mdx-js__react": "1.5.5",
     "@types/node": "16.11.21",
