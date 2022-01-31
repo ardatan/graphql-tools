@@ -1,9 +1,10 @@
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { printSchema, buildSchema } from 'graphql';
+import { printSchema, buildSchema, GraphQLSchema } from 'graphql';
 import { runTests, useMonorepo } from '../../../../testing/utils';
 import '../../../../testing/to-be-similar-gql-doc';
+import { join } from 'path';
 
 const monorepo = useMonorepo({
   dirname: __dirname,
@@ -124,6 +125,26 @@ describe('loadSchema', () => {
           aa: String
         }
       `);
+    });
+    test(`should pass custom loader context to the custom loader correctly`, async () => {
+      const customLoaderContext = {
+        loaderType: 'schema',
+      };
+      const pointerOptions = {
+        loader: join(__dirname, '../../custom-loader.js'),
+        fooFieldName: 'myFooField',
+      };
+      const result = await load(
+        {
+          pointer: pointerOptions,
+        },
+        {
+          loaders: [],
+          customLoaderContext,
+        }
+      );
+      expect(result).toBeInstanceOf(GraphQLSchema);
+      expect(result.getQueryType()?.getFields()?.['myFooField']).toBeDefined();
     });
   });
 });
