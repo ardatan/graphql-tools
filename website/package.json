@@ -16,7 +16,7 @@
     }
   },
   "resolutions": {
-    "esbuild": "0.14.16"
+    "esbuild": "0.14.18"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "12.0.10",
@@ -27,7 +27,7 @@
     "@types/react-dom": "17.0.11",
     "concurrently": "7.0.0",
     "cross-env": "7.0.3",
-    "esbuild": "0.14.16",
+    "esbuild": "0.14.18",
     "esbuild-register": "3.3.2",
     "next-remote-watch": "1.0.0",
     "open-cli": "7.0.1",
