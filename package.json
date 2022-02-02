@@ -46,7 +46,7 @@
     "@changesets/cli": "2.18.0",
     "@types/debug": "4.1.7",
     "@types/jest": "27.4.0",
-    "@types/node": "16.11.21",
+    "@types/node": "16.11.22",
     "@typescript-eslint/eslint-plugin": "5.10.2",
     "@typescript-eslint/parser": "5.10.2",
     "babel-jest": "27.4.6",
