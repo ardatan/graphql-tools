@@ -912,10 +912,10 @@ glob@^7.1.3, glob@^7.1.4:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-graphql-executor@0.0.17:
-  version "0.0.17"
-  resolved "https://registry.yarnpkg.com/graphql-executor/-/graphql-executor-0.0.17.tgz#d75a5ffed0d3fd7cddcb89fd4e8d5c7797c1196c"
-  integrity sha512-4TIx13trChKbXIWr/ha7CZ9r2r8dQbFkqyTTUph0THvWNb/faBviaeQLhZojosgox12plbC7by/ZOP5tq1eBUA==
+graphql-executor@0.0.18:
+  version "0.0.18"
+  resolved "https://registry.yarnpkg.com/graphql-executor/-/graphql-executor-0.0.18.tgz#6aa4b39e1ca773e159c2a602621e90606df0109a"
+  integrity sha512-upUSl7tfZCZ5dWG1XkOvpG70Yk3duZKcCoi/uJso4WxJVT6KIrcK4nZ4+2X/hzx46pL8wAukgYHY6iNmocRN+g==
 
 graphql-tag@2.12.6, graphql-tag@^2.11.0:
   version "2.12.6"
