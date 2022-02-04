@@ -60,7 +60,7 @@ GraphQL Tools provides convenient yet powerful tools for implementing directive 
 Here is one possible implementation of the `@deprecated` directive we saw above:
 
 ```ts
-import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils'
+import { mapSchema, getDirectives, MapperKind } from '@graphql-tools/utils'
 import { GraphQLSchema } from 'graphql'
 
 function deprecatedDirective(directiveName: string) {
@@ -69,14 +69,14 @@ function deprecatedDirective(directiveName: string) {
     deprecatedDirectiveTransformer: (schema: GraphQLSchema) =>
       mapSchema(schema, {
         [MapperKind.OBJECT_FIELD]: fieldConfig => {
-          const deprecatedDirective = getDirective(schema, fieldConfig, directiveName)?.[0]
+          const deprecatedDirective = getDirectives(schema, fieldConfig, directiveName)?.[0]
           if (deprecatedDirective) {
             fieldConfig.deprecationReason = deprecatedDirective['reason']
             return fieldConfig
           }
         },
         [MapperKind.ENUM_VALUE]: enumValueConfig => {
-          const deprecatedDirective = getDirective(schema, enumValueConfig, directiveName)?.[0]
+          const deprecatedDirective = getDirectives(schema, enumValueConfig, directiveName)?.[0]
           if (deprecatedDirective) {
             enumValueConfig.deprecationReason = deprecatedDirective['reason']
             return enumValueConfig
@@ -186,7 +186,7 @@ function restDirective(directiveName: string) {
     restDirectiveTypeDefs: `directive @${directiveName}(url: String) on FIELD_DEFINITION`;
     restDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
       [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-        const restDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
+        const restDirective = getDirectives(schema, fieldConfig, directiveName)?.[0];
         if (restDirective) {
           const { url } = restDirective;
           fieldConfig.resolve = () => fetch(url);
