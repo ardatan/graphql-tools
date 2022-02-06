@@ -1,5 +1,11 @@
 # @graphql-tools/merge
 
+## 8.2.2
+
+### Patch Changes
+
+- 12691405: Update `mergeTypeDefs` to merge `implements` definitions defined within interface extensions.
+
 ## 8.2.1
 
 ### Patch Changes
