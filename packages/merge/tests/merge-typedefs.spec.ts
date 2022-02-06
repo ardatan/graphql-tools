@@ -836,15 +836,23 @@ describe('Merge TypeDefs', () => {
         }
       `,
         `
-        extend type Test {
+        extend type Test implements Interface {
+          bar: String
+        }
+
+        interface Interface {
           bar: String
         }
       `,
       ]);
       expect(stripWhitespaces(print(merged))).toBe(
         stripWhitespaces(/* GraphQL */ `
-          type Test {
+          type Test implements Interface {
             foo: String
+            bar: String
+          }
+
+          interface Interface {
             bar: String
           }
         `)
@@ -889,6 +897,37 @@ describe('Merge TypeDefs', () => {
           type User {
             name: String
             id: ID
+          }
+        `)
+      );
+    });
+
+    it('should handle extend interfaces', () => {
+      const merged = mergeTypeDefs([
+        `
+        interface Interface {
+          foo: String
+        }
+      `,
+        `
+        extend interface Interface implements AdditionalInterface {
+          bar: String
+        }
+
+        interface AdditionalInterface {
+          bar: String
+        }
+      `,
+      ]);
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          interface Interface implements AdditionalInterface {
+            foo: String
+            bar: String
+          }
+
+          interface AdditionalInterface {
+            bar: String
           }
         `)
       );

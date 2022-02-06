@@ -2,6 +2,7 @@ import { Config } from './merge-typedefs';
 import { InterfaceTypeDefinitionNode, InterfaceTypeExtensionNode, Kind } from 'graphql';
 import { mergeFields } from './fields';
 import { mergeDirectives } from './directives';
+import { mergeNamedTypeArray } from '.';
 
 export function mergeInterface(
   node: InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode,
@@ -22,6 +23,7 @@ export function mergeInterface(
         loc: node.loc,
         fields: mergeFields(node, node.fields, existingNode.fields, config),
         directives: mergeDirectives(node.directives, existingNode.directives, config),
+        interfaces: mergeNamedTypeArray(node.interfaces, existingNode.interfaces, config),
       } as any;
     } catch (e: any) {
       throw new Error(`Unable to merge GraphQL interface "${node.name.value}": ${e.message}`);
