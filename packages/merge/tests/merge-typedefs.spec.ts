@@ -3,7 +3,7 @@ import '../../testing/to-be-similar-string';
 import { mergeDirectives, mergeTypeDefs, mergeGraphQLTypes } from '../src';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { buildSchema, buildClientSchema, print, parse, Kind, DirectiveNode } from 'graphql';
+import { buildSchema, buildClientSchema, print, parse, Kind, DirectiveNode, version as graphqlVersion } from 'graphql';
 import { stripWhitespaces } from './utils';
 import gql from 'graphql-tag';
 import { readFileSync } from 'fs';
@@ -836,15 +836,23 @@ describe('Merge TypeDefs', () => {
         }
       `,
         `
-        extend type Test {
+        extend type Test implements Interface {
+          bar: String
+        }
+
+        interface Interface {
           bar: String
         }
       `,
       ]);
       expect(stripWhitespaces(print(merged))).toBe(
         stripWhitespaces(/* GraphQL */ `
-          type Test {
+          type Test implements Interface {
             foo: String
+            bar: String
+          }
+
+          interface Interface {
             bar: String
           }
         `)
@@ -892,6 +900,39 @@ describe('Merge TypeDefs', () => {
           }
         `)
       );
+    });
+
+    it('should handle extend interfaces', () => {
+      if (!graphqlVersion.startsWith('14.')) {
+        const merged = mergeTypeDefs([
+          `
+          interface Interface {
+            foo: String
+          }
+        `,
+          `
+          extend interface Interface implements AdditionalInterface {
+            bar: String
+          }
+
+          interface AdditionalInterface {
+            bar: String
+          }
+        `,
+        ]);
+        expect(stripWhitespaces(print(merged))).toBe(
+          stripWhitespaces(/* GraphQL */ `
+            interface Interface implements AdditionalInterface {
+              foo: String
+              bar: String
+            }
+
+            interface AdditionalInterface {
+              bar: String
+            }
+          `)
+        );
+      }
     });
 
     it('should handle extend input types', () => {
