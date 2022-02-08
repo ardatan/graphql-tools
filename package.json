@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/ardatan/graphql-tools#readme",
   "devDependencies": {
-    "@babel/core": "7.17.0",
+    "@babel/core": "7.17.2",
     "@babel/plugin-proposal-class-properties": "7.16.7",
     "@babel/preset-env": "7.16.11",
     "@babel/preset-typescript": "7.16.7",
