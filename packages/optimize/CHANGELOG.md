@@ -1,5 +1,11 @@
 # @graphql-tools/optimize
 
+## 1.2.0
+
+### Minor Changes
+
+- 6d4abf29: feat(optimize): Remove empty nodes from SDL definitions
+
 ## 1.1.1
 
 ### Patch Changes
