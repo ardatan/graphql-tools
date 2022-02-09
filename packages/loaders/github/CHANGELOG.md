@@ -1,5 +1,11 @@
 # @graphql-tools/github-loader
 
+## 7.2.3
+
+### Patch Changes
+
+- 6e15b992: fix(github-loader): use named export instead of default one
+
 ## 7.2.2
 
 ### Patch Changes
