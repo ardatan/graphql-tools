@@ -17,7 +17,7 @@
     "graphql": "16.3.0",
     "graphql-executor": "0.0.18",
     "graphql-tag": "2.12.6",
-    "wait-on": "6.0.0",
+    "wait-on": "6.0.1",
     "cross-env": "7.0.3"
   }
 }
