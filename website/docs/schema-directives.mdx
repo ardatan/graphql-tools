@@ -55,12 +55,12 @@ Everything you read below addresses some aspect of how a directive like `@rename
 
 Since the GraphQL specification does not discuss any specific implementation strategy for directives, it's up to each GraphQL server framework to expose an API for implementing new directives.
 
-GraphQL Tools provides convenient yet powerful tools for implementing directive syntax: the [`mapSchema`](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/mapSchema.ts) and [`getDirectives`](https://github.com/ardatan/graphql-tools/blob/master/packages/utils/src/get-directives.ts) functions. `mapSchema` takes two arguments: the original schema, and an object map -- pardon the pun -- of functions that can be used to transform each GraphQL object within the original schema. `mapSchema` is a powerful tool, in that it creates a new copy of the original schema, transforms GraphQL objects as specified, and then rewires the entire schema such that all GraphQL objects that refer to other GraphQL objects correctly point to the new set. The `getDirectives` function is straightforward; it extracts any directives (with their arguments) from the SDL originally used to create any GraphQL object.
+GraphQL Tools provides convenient yet powerful tools for implementing directive syntax: the [`mapSchema`](https://www.graphql-tools.com/docs/api/modules/utils_src#mapschema) and [`getDirective`](https://www.graphql-tools.com/docs/api/modules/utils_src#getdirective) functions. `mapSchema` takes two arguments: the original schema, and an object map -- pardon the pun -- of functions that can be used to transform each GraphQL object within the original schema. `mapSchema` is a powerful tool, in that it creates a new copy of the original schema, transforms GraphQL objects as specified, and then rewires the entire schema such that all GraphQL objects that refer to other GraphQL objects correctly point to the new set. The `getDirective` function is straightforward; it extracts any directives (with their arguments) from the SDL originally used to create any GraphQL object.
 
 Here is one possible implementation of the `@deprecated` directive we saw above:
 
 ```ts
-import { mapSchema, getDirectives, MapperKind } from '@graphql-tools/utils'
+import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils'
 import { GraphQLSchema } from 'graphql'
 
 function deprecatedDirective(directiveName: string) {
@@ -69,14 +69,14 @@ function deprecatedDirective(directiveName: string) {
     deprecatedDirectiveTransformer: (schema: GraphQLSchema) =>
       mapSchema(schema, {
         [MapperKind.OBJECT_FIELD]: fieldConfig => {
-          const deprecatedDirective = getDirectives(schema, fieldConfig, directiveName)?.[0]
+          const deprecatedDirective = getDirective(schema, fieldConfig, directiveName)?.[0]
           if (deprecatedDirective) {
             fieldConfig.deprecationReason = deprecatedDirective['reason']
             return fieldConfig
           }
         },
         [MapperKind.ENUM_VALUE]: enumValueConfig => {
-          const deprecatedDirective = getDirectives(schema, enumValueConfig, directiveName)?.[0]
+          const deprecatedDirective = getDirective(schema, enumValueConfig, directiveName)?.[0]
           if (deprecatedDirective) {
             enumValueConfig.deprecationReason = deprecatedDirective['reason']
             return enumValueConfig
@@ -186,7 +186,7 @@ function restDirective(directiveName: string) {
     restDirectiveTypeDefs: `directive @${directiveName}(url: String) on FIELD_DEFINITION`;
     restDirectiveTransformer: (schema: GraphQLSchema) => mapSchema(schema, {
       [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-        const restDirective = getDirectives(schema, fieldConfig, directiveName)?.[0];
+        const restDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
         if (restDirective) {
           const { url } = restDirective;
           fieldConfig.resolve = () => fetch(url);
@@ -739,7 +739,7 @@ export function attachDirectiveResolvers(
 
 ## What about code-first schemas?
 
-You can use schema transformation functions with code-first schemas as well. By default, if a `directives` key exists within the `extensions` field for a given GraphQL entity, the `getDirectives` function will retrieve the directive data from the GraphQL entity's `extensions.directives` data rather than from the SDL. This, of course, allows schemas created without SDL to use any schema transformation functions created for directive use, as long as they define the necessary data within the GraphQL entity extensions.
+You can use schema transformation functions with code-first schemas as well. By default, if a `directives` key exists within the `extensions` field for a given GraphQL entity, the [`getDirectives`](https://www.graphql-tools.com/docs/api/modules/utils_src#getdirectives) function will retrieve the directive data from the GraphQL entity's `extensions.directives` data rather than from the SDL. This, of course, allows schemas created without SDL to use any schema transformation functions created for directive use, as long as they define the necessary data within the GraphQL entity extensions.
 
 This behavior can be customized! The `getDirectives` function takes a third argument, `pathToDirectivesInExtensions`, an array of strings, that allows customization of this path to directive data within extensions, which is set to `['directives']` by default. We recommend allowing end users to customize this path similar to how the directive name can be customized above.
 
