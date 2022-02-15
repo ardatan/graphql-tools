@@ -8,12 +8,12 @@ import { RootFieldTransformer, FieldNodeTransformer } from '../types';
 
 import TransformObjectFields from './TransformObjectFields';
 
-export default class TransformRootFields implements Transform {
-  private readonly rootFieldTransformer: RootFieldTransformer;
+export default class TransformRootFields<T = any, TContext = Record<string, any>> implements Transform<T, TContext> {
+  private readonly rootFieldTransformer: RootFieldTransformer<TContext>;
   private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
-  private transformer: TransformObjectFields | undefined;
+  private transformer: TransformObjectFields<T, TContext> | undefined;
 
-  constructor(rootFieldTransformer: RootFieldTransformer, fieldNodeTransformer?: FieldNodeTransformer) {
+  constructor(rootFieldTransformer: RootFieldTransformer<TContext>, fieldNodeTransformer?: FieldNodeTransformer) {
     this.rootFieldTransformer = rootFieldTransformer;
     this.fieldNodeTransformer = fieldNodeTransformer;
   }
@@ -30,7 +30,7 @@ export default class TransformRootFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const rootToObjectFieldTransformer = (
@@ -53,7 +53,7 @@ export default class TransformRootFields implements Transform {
       return undefined;
     };
 
-    this.transformer = new TransformObjectFields(rootToObjectFieldTransformer, this.fieldNodeTransformer);
+    this.transformer = new TransformObjectFields<T, TContext>(rootToObjectFieldTransformer, this.fieldNodeTransformer);
 
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
   }

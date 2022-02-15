@@ -4,7 +4,7 @@ import { PruneSchemaOptions, pruneSchema } from '@graphql-tools/utils';
 
 import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
-export default class PruneTypes implements Transform {
+export default class PruneTypes<T = any, TContext = Record<string, any>> implements Transform<T, TContext> {
   private readonly options: PruneSchemaOptions;
 
   constructor(options: PruneSchemaOptions = {}) {
@@ -13,7 +13,7 @@ export default class PruneTypes implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig,
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     _transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     return pruneSchema(originalWrappingSchema, this.options);

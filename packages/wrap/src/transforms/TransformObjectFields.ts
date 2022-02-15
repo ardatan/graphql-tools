@@ -8,12 +8,12 @@ import { FieldTransformer, FieldNodeTransformer } from '../types';
 
 import TransformCompositeFields from './TransformCompositeFields';
 
-export default class TransformObjectFields implements Transform {
-  private readonly objectFieldTransformer: FieldTransformer;
+export default class TransformObjectFields<T = any, TContext = Record<string, any>> implements Transform<T, TContext> {
+  private readonly objectFieldTransformer: FieldTransformer<TContext>;
   private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
-  private transformer: TransformCompositeFields | undefined;
+  private transformer: TransformCompositeFields<TContext> | undefined;
 
-  constructor(objectFieldTransformer: FieldTransformer, fieldNodeTransformer?: FieldNodeTransformer) {
+  constructor(objectFieldTransformer: FieldTransformer<TContext>, fieldNodeTransformer?: FieldNodeTransformer) {
     this.objectFieldTransformer = objectFieldTransformer;
     this.fieldNodeTransformer = fieldNodeTransformer;
   }
@@ -30,13 +30,13 @@ export default class TransformObjectFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const compositeToObjectFieldTransformer = (
       typeName: string,
       fieldName: string,
-      fieldConfig: GraphQLFieldConfig<any, any>
+      fieldConfig: GraphQLFieldConfig<any, TContext>
     ) => {
       if (isObjectType(originalWrappingSchema.getType(typeName))) {
         return this.objectFieldTransformer(typeName, fieldName, fieldConfig);
@@ -45,7 +45,10 @@ export default class TransformObjectFields implements Transform {
       return undefined;
     };
 
-    this.transformer = new TransformCompositeFields(compositeToObjectFieldTransformer, this.fieldNodeTransformer);
+    this.transformer = new TransformCompositeFields<TContext>(
+      compositeToObjectFieldTransformer,
+      this.fieldNodeTransformer
+    );
 
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
   }

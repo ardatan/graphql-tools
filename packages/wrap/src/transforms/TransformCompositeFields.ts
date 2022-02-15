@@ -18,7 +18,7 @@ import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/de
 import { FieldTransformer, FieldNodeTransformer, DataTransformer, ErrorsTransformer } from '../types';
 
 export default class TransformCompositeFields<TContext = Record<string, any>> implements Transform<any, TContext> {
-  private readonly fieldTransformer: FieldTransformer;
+  private readonly fieldTransformer: FieldTransformer<TContext>;
   private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
   private readonly dataTransformer: DataTransformer | undefined;
   private readonly errorsTransformer: ErrorsTransformer | undefined;
@@ -28,7 +28,7 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
   private subscriptionTypeName: string | undefined;
 
   constructor(
-    fieldTransformer: FieldTransformer,
+    fieldTransformer: FieldTransformer<TContext>,
     fieldNodeTransformer?: FieldNodeTransformer,
     dataTransformer?: DataTransformer,
     errorsTransformer?: ErrorsTransformer

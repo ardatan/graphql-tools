@@ -6,11 +6,11 @@ import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
 import TransformRootFields from './TransformRootFields';
 
-export default class FilterRootFields implements Transform {
-  private readonly transformer: TransformRootFields;
+export default class FilterRootFields<T = any, TContext = Record<string, any>> implements Transform<T, TContext> {
+  private readonly transformer: TransformRootFields<T, TContext>;
 
   constructor(filter: RootFieldFilter) {
-    this.transformer = new TransformRootFields(
+    this.transformer = new TransformRootFields<T, TContext>(
       (
         operation: 'Query' | 'Mutation' | 'Subscription',
         fieldName: string,
@@ -27,7 +27,7 @@ export default class FilterRootFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
