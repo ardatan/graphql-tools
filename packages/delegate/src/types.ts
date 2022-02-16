@@ -25,21 +25,21 @@ export type SchemaTransform<TContext = Record<any, string>> = (
   subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   transformedSchema?: GraphQLSchema
 ) => GraphQLSchema;
-export type RequestTransform<T = Record<string, any>> = (
+export type RequestTransform<T = Record<string, any>, TContext = Record<any, string>> = (
   originalRequest: ExecutionRequest,
-  delegationContext: DelegationContext,
+  delegationContext: DelegationContext<TContext>,
   transformationContext: T
 ) => ExecutionRequest;
-export type ResultTransform<T = Record<string, any>> = (
+export type ResultTransform<T = Record<string, any>, TContext = Record<any, string>> = (
   originalResult: ExecutionResult,
-  delegationContext: DelegationContext,
+  delegationContext: DelegationContext<TContext>,
   transformationContext: T
 ) => ExecutionResult;
 
 export interface Transform<T = any, TContext = Record<string, any>> {
   transformSchema?: SchemaTransform<TContext>;
-  transformRequest?: RequestTransform<T>;
-  transformResult?: ResultTransform<T>;
+  transformRequest?: RequestTransform<T, TContext>;
+  transformResult?: ResultTransform<T, TContext>;
 }
 
 export interface DelegationContext<TContext = Record<string, any>> {

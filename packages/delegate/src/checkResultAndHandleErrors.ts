@@ -5,7 +5,10 @@ import { AggregateError, getResponseKeyFromInfo, ExecutionResult, relocatedError
 import { DelegationContext } from './types';
 import { resolveExternalValue } from './resolveExternalValue';
 
-export function checkResultAndHandleErrors(result: ExecutionResult, delegationContext: DelegationContext): any {
+export function checkResultAndHandleErrors<TContext>(
+  result: ExecutionResult,
+  delegationContext: DelegationContext<TContext>
+): any {
   const {
     context,
     info,
