@@ -166,5 +166,25 @@ describe('documentsFromGlob', () => {
       // 2 from tags.js
       expect(result.length).toEqual(3);
     });
+    test(`should pass custom loader context to the custom loader correctly`, async () => {
+      const customLoaderContext = {
+        loaderType: 'documents',
+      };
+      const pointerOptions = {
+        loader: join(__dirname, '../../custom-loader.js'),
+        fooFieldName: 'myFooField',
+      };
+      const result = await load(
+        {
+          pointer: pointerOptions,
+        },
+        {
+          loaders: [],
+          customLoaderContext,
+        }
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0].rawSDL).toContain(pointerOptions.fooFieldName);
+    });
   });
 });
