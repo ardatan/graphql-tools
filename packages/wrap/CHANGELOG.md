@@ -1,5 +1,16 @@
 # @graphql-tools/wrap
 
+## 8.4.0
+
+### Minor Changes
+
+- 081b97e8: Add better type support for stitchSchemas using subschema transformations
+
+### Patch Changes
+
+- Updated dependencies [081b97e8]
+  - @graphql-tools/delegate@8.5.0
+
 ## 8.3.3
 
 ### Patch Changes
