@@ -8,9 +8,13 @@ import { EnumValueTransformer, LeafValueTransformer } from '../types';
 
 import MapLeafValues, { MapLeafValuesTransformationContext } from './MapLeafValues';
 
-export default class TransformEnumValues implements Transform<MapLeafValuesTransformationContext> {
+interface TransformEnumValuesTransformationContext extends MapLeafValuesTransformationContext {}
+
+export default class TransformEnumValues<TContext = Record<string, any>>
+  implements Transform<TransformEnumValuesTransformationContext, TContext>
+{
   private readonly enumValueTransformer: EnumValueTransformer;
-  private readonly transformer: MapLeafValues;
+  private readonly transformer: MapLeafValues<TContext>;
   private transformedSchema: GraphQLSchema | undefined;
   private mapping: Record<string, Record<string, string>>;
   private reverseMapping: Record<string, Record<string, string>>;
@@ -31,7 +35,7 @@ export default class TransformEnumValues implements Transform<MapLeafValuesTrans
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const mappingSchema = this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
@@ -44,16 +48,16 @@ export default class TransformEnumValues implements Transform<MapLeafValuesTrans
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    delegationContext: DelegationContext,
-    transformationContext: MapLeafValuesTransformationContext
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: TransformEnumValuesTransformationContext
   ): ExecutionRequest {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext: DelegationContext,
-    transformationContext: MapLeafValuesTransformationContext
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: TransformEnumValuesTransformationContext
   ) {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }

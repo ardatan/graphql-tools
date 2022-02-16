@@ -6,7 +6,11 @@ import { Transform, DelegationContext } from '@graphql-tools/delegate';
 
 export type QueryWrapper = (subtree: SelectionSetNode) => SelectionNode | SelectionSetNode;
 
-export default class WrapQuery implements Transform {
+interface WrapQueryTransformationContext extends Record<string, any> {}
+
+export default class WrapQuery<TContext = Record<string, any>>
+  implements Transform<WrapQueryTransformationContext, TContext>
+{
   private readonly wrapper: QueryWrapper;
   private readonly extractor: (result: any) => any;
   private readonly path: Array<string>;
@@ -19,8 +23,8 @@ export default class WrapQuery implements Transform {
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    _delegationContext: DelegationContext,
-    _transformationContext: Record<string, any>
+    _delegationContext: DelegationContext<TContext>,
+    _transformationContext: WrapQueryTransformationContext
   ): ExecutionRequest {
     const fieldPath: Array<string> = [];
     const ourPath = JSON.stringify(this.path);
@@ -60,8 +64,8 @@ export default class WrapQuery implements Transform {
 
   public transformResult(
     originalResult: ExecutionResult,
-    _delegationContext: DelegationContext,
-    _transformationContext: Record<string, any>
+    _delegationContext: DelegationContext<TContext>,
+    _transformationContext: WrapQueryTransformationContext
   ): ExecutionResult {
     const rootData = originalResult.data;
     if (rootData != null) {

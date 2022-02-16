@@ -6,7 +6,11 @@ import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
 import FilterObjectFields from './FilterObjectFields';
 
-export default class RemoveObjectFieldsWithDirective implements Transform {
+interface RemoveObjectFieldsWithDirectiveTransformationContext extends Record<string, any> {}
+
+export default class RemoveObjectFieldsWithDirective<TContext = Record<string, any>>
+  implements Transform<RemoveObjectFieldsWithDirectiveTransformationContext, TContext>
+{
   private readonly directiveName: string | RegExp;
   private readonly args: Record<string, any>;
 
@@ -17,10 +21,10 @@ export default class RemoveObjectFieldsWithDirective implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
-    const transformer = new FilterObjectFields((_typeName, _fieldName, fieldConfig) => {
+    const transformer = new FilterObjectFields<TContext>((_typeName, _fieldName, fieldConfig) => {
       const directives = getDirectives(originalWrappingSchema, fieldConfig);
       return !directives.some(
         directive =>

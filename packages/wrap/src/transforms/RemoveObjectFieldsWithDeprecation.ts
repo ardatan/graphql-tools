@@ -6,8 +6,12 @@ import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
 import FilterObjectFields from './FilterObjectFields';
 
-export default class RemoveObjectFieldsWithDeprecation implements Transform {
-  private readonly transformer: FilterObjectFields;
+interface RemoveObjectFieldsWithDeprecationTransformationContext extends Record<string, any> {}
+
+export default class RemoveObjectFieldsWithDeprecation<TContext = Record<string, any>>
+  implements Transform<RemoveObjectFieldsWithDeprecationTransformationContext, TContext>
+{
+  private readonly transformer: FilterObjectFields<TContext>;
 
   constructor(reason: string | RegExp) {
     this.transformer = new FilterObjectFields((_typeName, _fieldName, fieldConfig) => {
@@ -20,7 +24,7 @@ export default class RemoveObjectFieldsWithDeprecation implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);

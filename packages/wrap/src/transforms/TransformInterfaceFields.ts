@@ -8,12 +8,16 @@ import { FieldTransformer, FieldNodeTransformer } from '../types';
 
 import TransformCompositeFields from './TransformCompositeFields';
 
-export default class TransformInterfaceFields implements Transform {
-  private readonly interfaceFieldTransformer: FieldTransformer;
-  private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
-  private transformer: TransformCompositeFields | undefined;
+interface TransformInterfaceFieldsTransformationContext extends Record<string, any> {}
 
-  constructor(interfaceFieldTransformer: FieldTransformer, fieldNodeTransformer?: FieldNodeTransformer) {
+export default class TransformInterfaceFields<TContext = Record<string, any>>
+  implements Transform<TransformInterfaceFieldsTransformationContext, TContext>
+{
+  private readonly interfaceFieldTransformer: FieldTransformer<TContext>;
+  private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
+  private transformer: TransformCompositeFields<TContext> | undefined;
+
+  constructor(interfaceFieldTransformer: FieldTransformer<TContext>, fieldNodeTransformer?: FieldNodeTransformer) {
     this.interfaceFieldTransformer = interfaceFieldTransformer;
     this.fieldNodeTransformer = fieldNodeTransformer;
   }
@@ -30,7 +34,7 @@ export default class TransformInterfaceFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const compositeToObjectFieldTransformer = (
@@ -45,23 +49,26 @@ export default class TransformInterfaceFields implements Transform {
       return undefined;
     };
 
-    this.transformer = new TransformCompositeFields(compositeToObjectFieldTransformer, this.fieldNodeTransformer);
+    this.transformer = new TransformCompositeFields<TContext>(
+      compositeToObjectFieldTransformer,
+      this.fieldNodeTransformer
+    );
 
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
   }
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: TransformInterfaceFieldsTransformationContext
   ): ExecutionRequest {
     return this._getTransformer().transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: TransformInterfaceFieldsTransformationContext
   ): ExecutionResult {
     return this._getTransformer().transformResult(originalResult, delegationContext, transformationContext);
   }

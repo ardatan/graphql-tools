@@ -8,8 +8,12 @@ import { InputObjectNodeTransformer } from '../types';
 
 import TransformInputObjectFields from './TransformInputObjectFields';
 
-export default class FilterInputObjectFields implements Transform {
-  private readonly transformer: TransformInputObjectFields;
+interface FilterInputObjectFieldsTransformationContext extends Record<string, any> {}
+
+export default class FilterInputObjectFields<TContext = Record<string, any>>
+  implements Transform<FilterInputObjectFieldsTransformationContext, TContext>
+{
+  private readonly transformer: TransformInputObjectFields<TContext>;
 
   constructor(filter: InputFieldFilter, inputObjectNodeTransformer?: InputObjectNodeTransformer) {
     this.transformer = new TransformInputObjectFields(
@@ -22,7 +26,7 @@ export default class FilterInputObjectFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
@@ -30,8 +34,8 @@ export default class FilterInputObjectFields implements Transform {
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: FilterInputObjectFieldsTransformationContext
   ): ExecutionRequest {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }

@@ -6,11 +6,15 @@ import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
 import TransformRootFields from './TransformRootFields';
 
-export default class FilterRootFields<T = any, TContext = Record<string, any>> implements Transform<T, TContext> {
-  private readonly transformer: TransformRootFields<T, TContext>;
+interface FilterRootFieldsTransformationContext extends Record<string, any> {}
+
+export default class FilterRootFields<TContext = Record<string, any>>
+  implements Transform<FilterRootFieldsTransformationContext, TContext>
+{
+  private readonly transformer: TransformRootFields<TContext>;
 
   constructor(filter: RootFieldFilter) {
-    this.transformer = new TransformRootFields<T, TContext>(
+    this.transformer = new TransformRootFields(
       (
         operation: 'Query' | 'Mutation' | 'Subscription',
         fieldName: string,

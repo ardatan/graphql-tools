@@ -7,9 +7,13 @@ import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 import FilterObjectFieldDirectives from './FilterObjectFieldDirectives';
 import TransformObjectFields from './TransformObjectFields';
 
-export default class RemoveObjectFieldDeprecations implements Transform {
-  private readonly removeDirectives: FilterObjectFieldDirectives;
-  private readonly removeDeprecations: TransformObjectFields;
+interface RemoveObjectFieldDeprecationsTransformationContext extends Record<string, any> {}
+
+export default class RemoveObjectFieldDeprecations<TContext = Record<string, any>>
+  implements Transform<RemoveObjectFieldDeprecationsTransformationContext, TContext>
+{
+  private readonly removeDirectives: FilterObjectFieldDirectives<TContext>;
+  private readonly removeDeprecations: TransformObjectFields<TContext>;
 
   constructor(reason: string | RegExp) {
     const args = { reason };
@@ -29,7 +33,7 @@ export default class RemoveObjectFieldDeprecations implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     return this.removeDeprecations.transformSchema(

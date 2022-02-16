@@ -4,7 +4,11 @@ import { ExecutionRequest } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext } from '@graphql-tools/delegate';
 
-export default class ExtractField implements Transform {
+interface ExtractFieldTransformationContext extends Record<string, any> {}
+
+export default class ExtractField<TContext = Record<string, any>>
+  implements Transform<ExtractFieldTransformationContext, TContext>
+{
   private readonly from: Array<string>;
   private readonly to: Array<string>;
 
@@ -15,8 +19,8 @@ export default class ExtractField implements Transform {
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    _delegationContext: DelegationContext,
-    _transformationContext: Record<string, any>
+    _delegationContext: DelegationContext<TContext>,
+    _transformationContext: ExtractFieldTransformationContext
   ): ExecutionRequest {
     let fromSelection: SelectionSetNode | undefined;
     const ourPathFrom = JSON.stringify(this.from);

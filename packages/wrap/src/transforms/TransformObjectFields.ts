@@ -8,7 +8,11 @@ import { FieldTransformer, FieldNodeTransformer } from '../types';
 
 import TransformCompositeFields from './TransformCompositeFields';
 
-export default class TransformObjectFields<T = any, TContext = Record<string, any>> implements Transform<T, TContext> {
+interface TransformObjectFieldsTransformationContext extends Record<string, any> {}
+
+export default class TransformObjectFields<TContext = Record<string, any>>
+  implements Transform<TransformObjectFieldsTransformationContext, TContext>
+{
   private readonly objectFieldTransformer: FieldTransformer<TContext>;
   private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
   private transformer: TransformCompositeFields<TContext> | undefined;
@@ -55,16 +59,16 @@ export default class TransformObjectFields<T = any, TContext = Record<string, an
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: TransformObjectFieldsTransformationContext
   ): ExecutionRequest {
     return this._getTransformer().transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: TransformObjectFieldsTransformationContext
   ): ExecutionResult {
     return this._getTransformer().transformResult(originalResult, delegationContext, transformationContext);
   }

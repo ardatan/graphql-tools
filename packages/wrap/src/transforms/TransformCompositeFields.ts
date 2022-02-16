@@ -17,7 +17,11 @@ import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/de
 
 import { FieldTransformer, FieldNodeTransformer, DataTransformer, ErrorsTransformer } from '../types';
 
-export default class TransformCompositeFields<TContext = Record<string, any>> implements Transform<any, TContext> {
+interface TransformCompositeFieldsTransformationContext extends Record<string, any> {}
+
+export default class TransformCompositeFields<TContext = Record<string, any>>
+  implements Transform<TransformCompositeFieldsTransformationContext, TContext>
+{
   private readonly fieldTransformer: FieldTransformer<TContext>;
   private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
   private readonly dataTransformer: DataTransformer | undefined;
@@ -79,8 +83,8 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    _delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    _delegationContext: DelegationContext<TContext>,
+    transformationContext: TransformCompositeFieldsTransformationContext
   ): ExecutionRequest {
     const document = originalRequest.document;
     return {
@@ -91,8 +95,8 @@ export default class TransformCompositeFields<TContext = Record<string, any>> im
 
   public transformResult(
     result: ExecutionResult,
-    _delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    _delegationContext: DelegationContext<TContext>,
+    transformationContext: TransformCompositeFieldsTransformationContext
   ): ExecutionResult {
     const dataTransformer = this.dataTransformer;
     if (dataTransformer != null) {

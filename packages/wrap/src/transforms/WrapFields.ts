@@ -155,7 +155,7 @@ export default class WrapFields<TContext> implements Transform<WrapFieldsTransfo
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    delegationContext: DelegationContext,
+    delegationContext: DelegationContext<TContext>,
     transformationContext: WrapFieldsTransformationContext
   ): ExecutionRequest {
     transformationContext.nextIndex = 0;
@@ -165,7 +165,7 @@ export default class WrapFields<TContext> implements Transform<WrapFieldsTransfo
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext: DelegationContext,
+    delegationContext: DelegationContext<TContext>,
     transformationContext: WrapFieldsTransformationContext
   ): ExecutionResult {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);

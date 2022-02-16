@@ -6,7 +6,11 @@ import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
 import TransformObjectFields from './TransformObjectFields';
 
-export default class FilterObjectFieldDirectives implements Transform {
+interface FilterObjectFieldDirectivesTransformationContext extends Record<string, any> {}
+
+export default class FilterObjectFieldDirectives<TContext = Record<string, any>>
+  implements Transform<FilterObjectFieldDirectivesTransformationContext, TContext>
+{
   private readonly filter: (dirName: string, dirValue: any) => boolean;
 
   constructor(filter: (dirName: string, dirValue: any) => boolean) {
@@ -15,7 +19,7 @@ export default class FilterObjectFieldDirectives implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const transformer = new TransformObjectFields(
