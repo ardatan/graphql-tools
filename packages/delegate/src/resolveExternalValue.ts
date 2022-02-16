@@ -19,10 +19,10 @@ import { StitchingInfo, SubschemaConfig } from './types';
 import { annotateExternalObject, isExternalObject, mergeFields } from './mergeFields';
 import { Subschema } from './Subschema';
 
-export function resolveExternalValue(
+export function resolveExternalValue<TContext>(
   result: any,
   unpathedErrors: Array<GraphQLError>,
-  subschema: GraphQLSchema | SubschemaConfig,
+  subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
   context?: Record<string, any>,
   info?: GraphQLResolveInfo,
   returnType = getReturnType(info),
@@ -47,11 +47,11 @@ export function resolveExternalValue(
   }
 }
 
-function resolveExternalObject(
+function resolveExternalObject<TContext>(
   type: GraphQLCompositeType,
   object: any,
   unpathedErrors: Array<GraphQLError>,
-  subschema: GraphQLSchema | SubschemaConfig,
+  subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
   context?: Record<string, any>,
   info?: GraphQLResolveInfo,
   skipTypeMerging?: boolean
@@ -103,11 +103,11 @@ function resolveExternalObject(
   return mergeFields(mergedTypeInfo, object, subschema as Subschema, context, info);
 }
 
-function resolveExternalList(
+function resolveExternalList<TContext>(
   type: GraphQLList<any>,
   list: Array<any>,
   unpathedErrors: Array<GraphQLError>,
-  subschema: GraphQLSchema | SubschemaConfig,
+  subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
   context?: Record<string, any>,
   info?: GraphQLResolveInfo,
   skipTypeMerging?: boolean
@@ -125,11 +125,11 @@ function resolveExternalList(
   );
 }
 
-function resolveExternalListMember(
+function resolveExternalListMember<TContext>(
   type: GraphQLType,
   listMember: any,
   unpathedErrors: Array<GraphQLError>,
-  subschema: GraphQLSchema | SubschemaConfig,
+  subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
   context?: Record<string, any>,
   info?: GraphQLResolveInfo,
   skipTypeMerging?: boolean

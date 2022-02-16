@@ -6,8 +6,12 @@ import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/de
 
 import TransformObjectFields from './TransformObjectFields';
 
-export default class RenameObjectFields implements Transform {
-  private readonly transformer: TransformObjectFields;
+interface RenameObjectFieldsTransformationContext extends Record<string, any> {}
+
+export default class RenameObjectFields<TContext = Record<string, any>>
+  implements Transform<RenameObjectFieldsTransformationContext, TContext>
+{
+  private readonly transformer: TransformObjectFields<TContext>;
 
   constructor(renamer: (typeName: string, fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => string) {
     this.transformer = new TransformObjectFields(
@@ -20,7 +24,7 @@ export default class RenameObjectFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
@@ -28,8 +32,8 @@ export default class RenameObjectFields implements Transform {
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: RenameObjectFieldsTransformationContext
   ): ExecutionRequest {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }

@@ -4,7 +4,11 @@ import { mapSchema, MapperKind } from '@graphql-tools/utils';
 
 import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
-export default class FilterTypes implements Transform {
+interface FilterTypesTransformationContext extends Record<string, any> {}
+
+export default class FilterTypes<TContext = Record<string, any>>
+  implements Transform<FilterTypesTransformationContext, TContext>
+{
   private readonly filter: (type: GraphQLNamedType) => boolean;
 
   constructor(filter: (type: GraphQLNamedType) => boolean) {
@@ -13,7 +17,7 @@ export default class FilterTypes implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig,
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     _transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     return mapSchema(originalWrappingSchema, {

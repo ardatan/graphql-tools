@@ -19,10 +19,10 @@ export function isExternalObject(data: any): data is ExternalObject {
   return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
 }
 
-export function annotateExternalObject(
+export function annotateExternalObject<TContext>(
   object: any,
   errors: Array<GraphQLError>,
-  subschema: GraphQLSchema | SubschemaConfig | undefined,
+  subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext> | undefined,
   subschemaMap: Record<string, GraphQLSchema | SubschemaConfig<any, any, any, Record<string, any>>>
 ): ExternalObject {
   Object.defineProperties(object, {

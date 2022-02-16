@@ -32,7 +32,9 @@ export interface MapLeafValuesTransformationContext {
   transformedRequest: ExecutionRequest;
 }
 
-export default class MapLeafValues implements Transform<MapLeafValuesTransformationContext> {
+export default class MapLeafValues<TContext = Record<string, any>>
+  implements Transform<MapLeafValuesTransformationContext, TContext>
+{
   private readonly inputValueTransformer: LeafValueTransformer;
   private readonly outputValueTransformer: LeafValueTransformer;
   private readonly resultVisitorMap: ResultVisitorMap;
@@ -67,7 +69,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig,
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     _transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     this.originalWrappingSchema = originalWrappingSchema;
@@ -86,7 +88,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    _delegationContext: DelegationContext,
+    _delegationContext: DelegationContext<TContext>,
     transformationContext: MapLeafValuesTransformationContext
   ): ExecutionRequest {
     const document = originalRequest.document;
@@ -117,7 +119,7 @@ export default class MapLeafValues implements Transform<MapLeafValuesTransformat
 
   public transformResult(
     originalResult: ExecutionResult,
-    _delegationContext: DelegationContext,
+    _delegationContext: DelegationContext<TContext>,
     transformationContext: MapLeafValuesTransformationContext
   ): ExecutionResult {
     return visitResult(

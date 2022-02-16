@@ -4,7 +4,11 @@ import { ExecutionRequest, ExecutionResult, MapperKind, mapSchema, renameType, v
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-export default class RenameRootTypes implements Transform {
+interface RenameRootTypesTransformationContext extends Record<string, any> {}
+
+export default class RenameRootTypes<TContext = Record<string, any>>
+  implements Transform<RenameRootTypesTransformationContext, TContext>
+{
   private readonly renamer: (name: string) => string | undefined;
   private map: Record<string, string>;
   private reverseMap: Record<string, string>;
@@ -17,7 +21,7 @@ export default class RenameRootTypes implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig,
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     _transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     return mapSchema(originalWrappingSchema, {
@@ -36,8 +40,8 @@ export default class RenameRootTypes implements Transform {
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    _delegationContext: DelegationContext,
-    _transformationContext: Record<string, any>
+    _delegationContext: DelegationContext<TContext>,
+    _transformationContext: RenameRootTypesTransformationContext
   ): ExecutionRequest {
     const document = visit(originalRequest.document, {
       [Kind.NAMED_TYPE]: (node: NamedTypeNode) => {
@@ -61,8 +65,8 @@ export default class RenameRootTypes implements Transform {
 
   public transformResult(
     originalResult: ExecutionResult,
-    _delegationContext: DelegationContext,
-    _transformationContext?: Record<string, any>
+    _delegationContext: DelegationContext<TContext>,
+    _transformationContext?: RenameRootTypesTransformationContext
   ): ExecutionResult {
     return {
       ...originalResult,

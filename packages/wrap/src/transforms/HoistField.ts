@@ -24,14 +24,18 @@ import { defaultCreateProxyingResolver } from '../generateProxyingResolvers';
 
 import MapFields from './MapFields';
 
-export default class HoistField implements Transform {
+interface HoistFieldTransformationContext extends Record<string, any> {}
+
+export default class HoistField<TContext = Record<string, any>>
+  implements Transform<HoistFieldTransformationContext, TContext>
+{
   private readonly typeName: string;
   private readonly newFieldName: string;
   private readonly pathToField: Array<string>;
   private readonly oldFieldName: string;
   private readonly argFilters: Array<(arg: GraphQLArgument) => boolean>;
   private readonly argLevels: Record<string, number>;
-  private readonly transformer: MapFields<any>;
+  private readonly transformer: MapFields<TContext>;
 
   constructor(
     typeName: string,
@@ -77,7 +81,7 @@ export default class HoistField implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const argsMap: Record<string, GraphQLArgument> = Object.create(null);
@@ -161,16 +165,16 @@ export default class HoistField implements Transform {
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: HoistFieldTransformationContext
   ): ExecutionRequest {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: HoistFieldTransformationContext
   ): ExecutionResult {
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }

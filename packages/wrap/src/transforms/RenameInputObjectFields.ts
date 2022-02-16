@@ -12,9 +12,13 @@ type RenamerFunction = (
   inputFieldConfig: GraphQLInputFieldConfig
 ) => string | undefined;
 
-export default class RenameInputObjectFields implements Transform {
+interface RenameInputObjectFieldsTransformationContext extends Record<string, any> {}
+
+export default class RenameInputObjectFields<TContext = Record<string, any>>
+  implements Transform<RenameInputObjectFieldsTransformationContext, TContext>
+{
   private readonly renamer: RenamerFunction;
-  private readonly transformer: TransformInputObjectFields;
+  private readonly transformer: TransformInputObjectFields<TContext>;
   private reverseMap: Record<string, Record<string, string>>;
 
   constructor(renamer: RenamerFunction) {
@@ -53,7 +57,7 @@ export default class RenameInputObjectFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     mapSchema(originalWrappingSchema, {
@@ -82,8 +86,8 @@ export default class RenameInputObjectFields implements Transform {
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: RenameInputObjectFieldsTransformationContext
   ): ExecutionRequest {
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }

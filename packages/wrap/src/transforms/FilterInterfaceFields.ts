@@ -6,8 +6,12 @@ import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
 import TransformInterfaceFields from './TransformInterfaceFields';
 
-export default class FilterInterfaceFields implements Transform {
-  private readonly transformer: TransformInterfaceFields;
+interface FilterInterfaceFieldsTransformationContext extends Record<string, any> {}
+
+export default class FilterInterfaceFields<TContext = Record<string, any>>
+  implements Transform<FilterInterfaceFieldsTransformationContext, TContext>
+{
+  private readonly transformer: TransformInterfaceFields<TContext>;
 
   constructor(filter: FieldFilter) {
     this.transformer = new TransformInterfaceFields(
@@ -18,7 +22,7 @@ export default class FilterInterfaceFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);

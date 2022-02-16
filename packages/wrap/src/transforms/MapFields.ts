@@ -8,7 +8,9 @@ import { ObjectValueTransformerMap, ErrorsTransformer } from '../types';
 
 import TransformCompositeFields from './TransformCompositeFields';
 
-export default class MapFields<TContext> implements Transform<any, TContext> {
+interface MapFieldsTransformationContext extends Record<string, any> {}
+
+export default class MapFields<TContext> implements Transform<MapFieldsTransformationContext, TContext> {
   private fieldNodeTransformerMap: FieldNodeMappers;
   private objectValueTransformerMap?: ObjectValueTransformerMap;
   private errorsTransformer?: ErrorsTransformer;
@@ -86,16 +88,16 @@ export default class MapFields<TContext> implements Transform<any, TContext> {
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: MapFieldsTransformationContext
   ): ExecutionRequest {
     return this._getTransformer().transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: MapFieldsTransformationContext
   ): ExecutionResult {
     return this._getTransformer().transformResult(originalResult, delegationContext, transformationContext);
   }

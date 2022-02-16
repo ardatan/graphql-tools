@@ -6,14 +6,14 @@ import { prepareGatewayDocument } from './prepareGatewayDocument';
 import { finalizeGatewayRequest } from './finalizeGatewayRequest';
 import { checkResultAndHandleErrors } from './checkResultAndHandleErrors';
 
-interface Transformation {
-  transform: Transform;
+interface Transformation<TContext> {
+  transform: Transform<any, TContext>;
   context: Record<string, any>;
 }
 
 export class Transformer<TContext = Record<string, any>> {
-  private transformations: Array<Transformation> = [];
-  private delegationContext: DelegationContext<any>;
+  private transformations: Array<Transformation<TContext>> = [];
+  private delegationContext: DelegationContext<TContext>;
 
   constructor(context: DelegationContext<TContext>) {
     this.delegationContext = context;
@@ -24,7 +24,7 @@ export class Transformer<TContext = Record<string, any>> {
     }
   }
 
-  private addTransform(transform: Transform, context = {}) {
+  private addTransform(transform: Transform<any, TContext>, context = {}) {
     this.transformations.push({ transform, context });
   }
 

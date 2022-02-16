@@ -21,7 +21,11 @@ import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/de
 
 import { InputFieldTransformer, InputFieldNodeTransformer, InputObjectNodeTransformer } from '../types';
 
-export default class TransformInputObjectFields implements Transform {
+interface TransformInputObjectFieldsTransformationContext extends Record<string, any> {}
+
+export default class TransformInputObjectFields<TContext = Record<string, any>>
+  implements Transform<TransformInputObjectFieldsTransformationContext, TContext>
+{
   private readonly inputFieldTransformer: InputFieldTransformer;
   private readonly inputFieldNodeTransformer: InputFieldNodeTransformer | undefined;
   private readonly inputObjectNodeTransformer: InputObjectNodeTransformer | undefined;
@@ -51,7 +55,7 @@ export default class TransformInputObjectFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig,
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     _transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     this.transformedSchema = mapSchema(originalWrappingSchema, {
@@ -76,8 +80,8 @@ export default class TransformInputObjectFields implements Transform {
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    delegationContext: DelegationContext,
-    _transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    _transformationContext: TransformInputObjectFieldsTransformationContext
   ): ExecutionRequest {
     const variableValues = originalRequest.variables ?? {};
     const fragments = Object.create(null);
@@ -151,7 +155,7 @@ export default class TransformInputObjectFields implements Transform {
     inputFieldNodeTransformer: InputFieldNodeTransformer | undefined,
     inputObjectNodeTransformer: InputObjectNodeTransformer | undefined,
     request: ExecutionRequest,
-    delegationContext?: DelegationContext
+    delegationContext?: DelegationContext<TContext>
   ): DocumentNode {
     const typeInfo = new TypeInfo(this._getTransformedSchema());
     const newDocument: DocumentNode = visit(

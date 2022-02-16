@@ -18,19 +18,19 @@ export type InputFieldTransformer = (
   inputFieldConfig: GraphQLInputFieldConfig
 ) => GraphQLInputFieldConfig | [string, GraphQLInputFieldConfig] | null | undefined;
 
-export type InputFieldNodeTransformer = (
+export type InputFieldNodeTransformer = <TContext>(
   typeName: string,
   fieldName: string,
   inputFieldNode: ObjectFieldNode,
   request: ExecutionRequest,
-  delegationContext?: DelegationContext
+  delegationContext?: DelegationContext<TContext>
 ) => ObjectFieldNode | Array<ObjectFieldNode>;
 
-export type InputObjectNodeTransformer = (
+export type InputObjectNodeTransformer = <TContext>(
   typeName: string,
   inputObjectNode: ObjectValueNode,
   request: ExecutionRequest,
-  delegationContext?: DelegationContext
+  delegationContext?: DelegationContext<TContext>
 ) => ObjectValueNode | undefined;
 
 export type FieldTransformer<TContext = Record<string, any>> = (

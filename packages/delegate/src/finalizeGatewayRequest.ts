@@ -105,9 +105,9 @@ function finalizeGatewayDocument(
   };
 }
 
-export function finalizeGatewayRequest(
+export function finalizeGatewayRequest<TContext>(
   originalRequest: ExecutionRequest,
-  delegationContext: DelegationContext
+  delegationContext: DelegationContext<TContext>
 ): ExecutionRequest {
   let { document, variables } = originalRequest;
 

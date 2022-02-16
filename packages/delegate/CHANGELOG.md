@@ -213,7 +213,7 @@
 
   - Replace `CheckResultAndHandleErrors` with `checkResultAndHandleErrors`
   - Remove `delegationBindings`
-  - Replace `AddArgumentsAsVariables`, `AddSelectionSets`, `AddTypenameToAbstract`, `ExpandAbstractTypes`, `FilterToSchema`, `VisitSelectionSets` and `WrapConcreteTypes` with `prepareGatewayRequest` and `finalizeGatewayRequest`
+  - Replace `AddArgumentsAsVariables`, `AddSelectionSets`, `AddTypenameToAbstract`, `ExpandAbstractTypes`, `FilterToSchema`, `VisitSelectionSets` and `WrapConcreteTypes` with `prepareGatewayDocument` and `finalizeGatewayRequest`
 
 - dae6dc7b: refactor: ExecutionParams type replaced by Request type
 

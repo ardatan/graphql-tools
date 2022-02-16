@@ -8,12 +8,16 @@ import { RootFieldTransformer, FieldNodeTransformer } from '../types';
 
 import TransformObjectFields from './TransformObjectFields';
 
-export default class TransformRootFields implements Transform {
-  private readonly rootFieldTransformer: RootFieldTransformer;
-  private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
-  private transformer: TransformObjectFields | undefined;
+interface TransformRootFieldsTransformationContext extends Record<string, any> {}
 
-  constructor(rootFieldTransformer: RootFieldTransformer, fieldNodeTransformer?: FieldNodeTransformer) {
+export default class TransformRootFields<TContext = Record<string, any>>
+  implements Transform<TransformRootFieldsTransformationContext, TContext>
+{
+  private readonly rootFieldTransformer: RootFieldTransformer<TContext>;
+  private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
+  private transformer: TransformObjectFields<TContext> | undefined;
+
+  constructor(rootFieldTransformer: RootFieldTransformer<TContext>, fieldNodeTransformer?: FieldNodeTransformer) {
     this.rootFieldTransformer = rootFieldTransformer;
     this.fieldNodeTransformer = fieldNodeTransformer;
   }
@@ -30,7 +34,7 @@ export default class TransformRootFields implements Transform {
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig,
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
     transformedSchema?: GraphQLSchema
   ): GraphQLSchema {
     const rootToObjectFieldTransformer = (
@@ -60,16 +64,16 @@ export default class TransformRootFields implements Transform {
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: TransformRootFieldsTransformationContext
   ): ExecutionRequest {
     return this._getTransformer().transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext: DelegationContext,
-    transformationContext: Record<string, any>
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: TransformRootFieldsTransformationContext
   ): ExecutionResult {
     return this._getTransformer().transformResult(originalResult, delegationContext, transformationContext);
   }
