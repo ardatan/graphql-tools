@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 8.5.0
+
+### Minor Changes
+
+- 081b97e8: Add better type support for stitchSchemas using subschema transformations
+
 ## 8.4.3
 
 ### Patch Changes
