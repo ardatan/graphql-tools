@@ -13,7 +13,7 @@
     "@apollo/federation": "0.33.9",
     "@graphql-tools/stitch": "8.4.3",
     "@graphql-tools/stitching-directives": "2.2.1",
-    "express": "4.17.2",
+    "express": "4.17.3",
     "graphql": "16.3.0",
     "graphql-executor": "0.0.18",
     "graphql-tag": "2.12.6",

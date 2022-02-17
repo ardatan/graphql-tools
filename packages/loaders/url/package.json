@@ -38,7 +38,7 @@
     "@types/extract-files": "8.1.1",
     "@types/valid-url": "1.0.3",
     "babel-loader": "8.2.3",
-    "express": "4.17.2",
+    "express": "4.17.3",
     "express-graphql": "0.12.0",
     "graphql-upload": "13.0.0",
     "puppeteer": "13.3.2",
