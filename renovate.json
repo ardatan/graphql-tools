@@ -1,11 +1,5 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base"],
-  "postUpdateOptions": ["yarnDedupeFewer"],
-  "automerge": true,
-  "major": {
-    "automerge": false
-  },
-  "labels": ["dependencies"],
+  "extends": ["github>the-guild-org/shared-config:renovate"],
   "ignoreDeps": ["typedoc", "typedoc-plugin-markdown"]
 }
