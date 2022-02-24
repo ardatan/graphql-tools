@@ -222,7 +222,7 @@ function visitObjectValue(
 
   for (const [responseKey, subFieldNodes] of fieldNodeMap) {
     const fieldName = subFieldNodes[0].name.value;
-    const fieldType = fieldName === '__typename' ? TypeNameMetaFieldDef.type : fieldMap[fieldName].type;
+    const fieldType = fieldName === '__typename' ? TypeNameMetaFieldDef.type : fieldMap[fieldName]?.type;
 
     const newPathIndex = pathIndex + 1;
 
