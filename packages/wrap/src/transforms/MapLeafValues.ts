@@ -21,7 +21,6 @@ import {
   updateArgument,
   transformInputValue,
   createVariableNameGenerator,
-  assertSome,
 } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
