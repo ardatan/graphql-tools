@@ -1,5 +1,14 @@
 # @graphql-tools/github-loader
 
+## 7.2.4
+
+### Patch Changes
+
+- 18341363: feat(visitResult): ignore if field not present in visited object
+- Updated dependencies [18341363]
+  - @graphql-tools/graphql-tag-pluck@7.1.6
+  - @graphql-tools/utils@8.6.2
+
 ## 7.2.3
 
 ### Patch Changes

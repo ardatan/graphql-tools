@@ -1,5 +1,15 @@
 # @graphql-tools/node-require
 
+## 6.3.2
+
+### Patch Changes
+
+- 18341363: feat(visitResult): ignore if field not present in visited object
+- Updated dependencies [18341363]
+  - @graphql-tools/load@7.5.2
+  - @graphql-tools/graphql-file-loader@7.3.4
+  - @graphql-tools/utils@8.6.2
+
 ## 6.3.1
 
 ### Patch Changes

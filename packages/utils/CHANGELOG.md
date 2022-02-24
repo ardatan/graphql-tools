@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.6.2
+
+### Patch Changes
+
+- 18341363: feat(visitResult): ignore if field not present in visited object
+
 ## 8.6.1
 
 ### Patch Changes

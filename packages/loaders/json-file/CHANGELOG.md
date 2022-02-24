@@ -1,5 +1,13 @@
 # @graphql-tools/json-file-loader
 
+## 7.3.4
+
+### Patch Changes
+
+- 18341363: feat(visitResult): ignore if field not present in visited object
+- Updated dependencies [18341363]
+  - @graphql-tools/utils@8.6.2
+
 ## 7.3.3
 
 ### Patch Changes

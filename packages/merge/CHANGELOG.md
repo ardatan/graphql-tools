@@ -1,5 +1,13 @@
 # @graphql-tools/merge
 
+## 8.2.3
+
+### Patch Changes
+
+- 18341363: feat(visitResult): ignore if field not present in visited object
+- Updated dependencies [18341363]
+  - @graphql-tools/utils@8.6.2
+
 ## 8.2.2
 
 ### Patch Changes
