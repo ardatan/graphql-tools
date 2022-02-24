@@ -30,7 +30,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^8.5.1",
+    "@graphql-tools/utils": "^8.6.1",
     "@graphql-tools/graphql-tag-pluck": "^7.1.3",
     "globby": "^11.0.3",
     "tslib": "~2.3.0",
