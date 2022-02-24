@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 8.4.1
+
+### Patch Changes
+
+- 639c1133: fix(wrap): return if transformed field node isn't in the schema
+
 ## 8.4.0
 
 ### Minor Changes
