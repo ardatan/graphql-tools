@@ -166,7 +166,9 @@ export default class MapLeafValues<TContext = Record<string, any>>
   ): FieldNode | undefined {
     const targetField = this._getTypeInfo().getFieldDef();
 
-    assertSome(targetField);
+    if (!targetField) {
+      return;
+    }
 
     const generateVariableName = createVariableNameGenerator(variableDefinitionMap);
 
