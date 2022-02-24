@@ -1,5 +1,15 @@
 # @graphql-tools/delegate
 
+## 8.5.1
+
+### Patch Changes
+
+- 18341363: feat(visitResult): ignore if field not present in visited object
+- Updated dependencies [18341363]
+  - @graphql-tools/batch-execute@8.3.2
+  - @graphql-tools/schema@8.3.2
+  - @graphql-tools/utils@8.6.2
+
 ## 8.5.0
 
 ### Minor Changes

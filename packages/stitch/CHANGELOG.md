@@ -1,5 +1,18 @@
 # @graphql-tools/stitch
 
+## 8.4.4
+
+### Patch Changes
+
+- 18341363: feat(visitResult): ignore if field not present in visited object
+- Updated dependencies [18341363]
+  - @graphql-tools/batch-delegate@8.2.4
+  - @graphql-tools/delegate@8.5.1
+  - @graphql-tools/merge@8.2.3
+  - @graphql-tools/schema@8.3.2
+  - @graphql-tools/wrap@8.4.2
+  - @graphql-tools/utils@8.6.2
+
 ## 8.4.3
 
 ### Patch Changes

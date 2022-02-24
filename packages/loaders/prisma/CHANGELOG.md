@@ -1,5 +1,14 @@
 # @graphql-tools/prisma-loader
 
+## 7.1.2
+
+### Patch Changes
+
+- 18341363: feat(visitResult): ignore if field not present in visited object
+- Updated dependencies [18341363]
+  - @graphql-tools/url-loader@7.7.2
+  - @graphql-tools/utils@8.6.2
+
 ## 7.1.1
 
 ### Patch Changes
