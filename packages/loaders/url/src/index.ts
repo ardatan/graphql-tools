@@ -119,6 +119,14 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Additional options to pass to the graphql-sse client.
    */
   graphqlSseOptions?: Omit<GraphQLSSEClientOptions, 'url' | 'headers' | 'fetchFn' | 'abortControllerImpl'>;
+  /**
+   * Retry attempts
+   */
+  retry?: number;
+  /**
+   * Timeout in milliseconds
+   */
+  timeout?: number;
 }
 
 const isCompatibleUri = (uri: string): boolean => {
@@ -317,6 +325,15 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         extensions: request.extensions,
       };
 
+      let timeoutId: any;
+      if (options?.timeout) {
+        timeoutId = setTimeout(() => {
+          if (!controller.signal.aborted) {
+            controller.abort();
+          }
+        }, options.timeout);
+      }
+
       return new ValueOrPromise(() => {
         switch (method) {
           case 'GET':
@@ -366,6 +383,10 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         }
       })
         .then((fetchResult: Response) => {
+          if (timeoutId != null) {
+            clearTimeout(timeoutId);
+          }
+
           const contentType = fetchResult.headers.get('content-type');
 
           if (contentType?.includes('text/event-stream')) {
@@ -382,6 +403,40 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         })
         .resolve();
     };
+
+    if (options?.retry != null) {
+      return function retryExecutor(request: ExecutionRequest) {
+        let result: ExecutionResult<any> | undefined;
+        let error: Error | undefined;
+        let attempt = 0;
+        function retryAttempt(): Promise<ExecutionResult<any>> | ExecutionResult<any> {
+          attempt++;
+          if (attempt > options!.retry!) {
+            if (result != null) {
+              return result;
+            }
+            if (error != null) {
+              throw error;
+            }
+            throw new Error('No result');
+          }
+          return new ValueOrPromise(() => executor(request))
+            .then(res => {
+              result = res;
+              if (result?.errors?.length) {
+                return retryAttempt();
+              }
+              return result;
+            })
+            .catch((e: any) => {
+              error = e;
+              return retryAttempt();
+            })
+            .resolve();
+        }
+        return retryAttempt();
+      };
+    }
 
     return executor;
   }
