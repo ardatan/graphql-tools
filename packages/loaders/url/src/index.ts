@@ -387,6 +387,11 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             clearTimeout(timeoutId);
           }
 
+          // Retry should respect HTTP Errors
+          if (options?.retry != null && !fetchResult.status.toString().startsWith('2')) {
+            throw new Error(fetchResult.statusText || `HTTP Error: ${fetchResult.status}`);
+          }
+
           const contentType = fetchResult.headers.get('content-type');
 
           if (contentType?.includes('text/event-stream')) {
