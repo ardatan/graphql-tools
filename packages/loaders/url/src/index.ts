@@ -50,6 +50,7 @@ type HeadersConfig = Record<string, string>;
 
 interface ExecutionExtensions {
   headers?: HeadersConfig;
+  endpoint?: string;
 }
 
 export enum SubscriptionProtocol {
@@ -275,12 +276,12 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   ): AsyncExecutor<any, ExecutionExtensions>;
 
   buildHTTPExecutor(
-    endpoint: string,
+    initialEndpoint: string,
     fetch: FetchFn,
     options?: LoadFromUrlOptions
   ): Executor<any, ExecutionExtensions> {
     const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'POST');
-    const HTTP_URL = switchProtocols(endpoint, {
+    const HTTP_URL = switchProtocols(initialEndpoint, {
       wss: 'https',
       ws: 'http',
     });
@@ -296,6 +297,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         }
       }
 
+      const endpoint = request.extensions?.endpoint || initialEndpoint;
       const headers = Object.assign({}, options?.headers, request.extensions?.headers || {});
       const acceptedProtocols = [`application/json`];
 
