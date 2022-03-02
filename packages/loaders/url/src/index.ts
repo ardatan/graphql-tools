@@ -127,6 +127,10 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Timeout in milliseconds
    */
   timeout?: number;
+  /**
+   * Request Credentials
+   */
+  credentials?: RequestCredentials;
 }
 
 const isCompatibleUri = (uri: string): boolean => {
@@ -334,6 +338,8 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         }, options.timeout);
       }
 
+      const credentials = options?.credentials || 'include';
+
       return new ValueOrPromise(() => {
         switch (method) {
           case 'GET':
@@ -343,7 +349,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             });
             return fetch(finalUrl, {
               method: 'GET',
-              credentials: 'include',
+              credentials,
               headers: {
                 accept,
                 ...headers,
@@ -357,7 +363,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                   form =>
                     fetch(HTTP_URL, {
                       method: 'POST',
-                      credentials: 'include',
+                      credentials,
                       body: form as any,
                       headers: {
                         accept,
@@ -370,7 +376,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             } else {
               return fetch(HTTP_URL, {
                 method: 'POST',
-                credentials: 'include',
+                credentials,
                 body: JSON.stringify(requestBody),
                 headers: {
                   accept,
