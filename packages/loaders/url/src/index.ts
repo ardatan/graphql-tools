@@ -338,7 +338,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         }, options.timeout);
       }
 
-      const credentials = options?.credentials || 'include';
+      const credentials = options?.credentials || 'same-origin';
 
       return new ValueOrPromise(() => {
         switch (method) {
