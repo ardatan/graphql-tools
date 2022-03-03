@@ -35,7 +35,6 @@ export default class RenameObjectFieldArguments<TContext = Record<string, any>>
         return [fieldName, { ...fieldConfig, args: argsConfig }];
       },
       (typeName: string, fieldName: string, inputFieldNode: FieldNode) => {
-        console.log(this.reverseMap);
         if (!(typeName in this.reverseMap)) {
           return inputFieldNode;
         }
