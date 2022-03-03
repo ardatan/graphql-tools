@@ -1,5 +1,5 @@
 ---
-"@graphql-tools/wrap": patch
+'@graphql-tools/wrap': patch
 ---
 
 feat(wrap): RenameObjectFieldArguments transform
