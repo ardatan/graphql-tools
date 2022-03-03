@@ -1,5 +1,12 @@
 # @graphql-tools/url-loader
 
+## 7.8.0
+
+### Minor Changes
+
+- e351f661: feat(url-loader): retry/timeout
+- e351f661: feat(url-loader): provide custom endpoint url in the extensions
+
 ## 7.7.2
 
 ### Patch Changes
