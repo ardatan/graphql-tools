@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Master
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Configure Git Credientials
         run: |
           git config --global user.email "theguild-bot@users.noreply.github.com"
