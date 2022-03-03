@@ -50,6 +50,7 @@ type HeadersConfig = Record<string, string>;
 
 interface ExecutionExtensions {
   headers?: HeadersConfig;
+  endpoint?: string;
 }
 
 export enum SubscriptionProtocol {
@@ -118,6 +119,18 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Additional options to pass to the graphql-sse client.
    */
   graphqlSseOptions?: Omit<GraphQLSSEClientOptions, 'url' | 'headers' | 'fetchFn' | 'abortControllerImpl'>;
+  /**
+   * Retry attempts
+   */
+  retry?: number;
+  /**
+   * Timeout in milliseconds
+   */
+  timeout?: number;
+  /**
+   * Request Credentials
+   */
+  credentials?: RequestCredentials;
 }
 
 const isCompatibleUri = (uri: string): boolean => {
@@ -275,12 +288,12 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   ): AsyncExecutor<any, ExecutionExtensions>;
 
   buildHTTPExecutor(
-    endpoint: string,
+    initialEndpoint: string,
     fetch: FetchFn,
     options?: LoadFromUrlOptions
   ): Executor<any, ExecutionExtensions> {
     const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'POST');
-    const HTTP_URL = switchProtocols(endpoint, {
+    const HTTP_URL = switchProtocols(initialEndpoint, {
       wss: 'https',
       ws: 'http',
     });
@@ -296,6 +309,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         }
       }
 
+      const endpoint = request.extensions?.endpoint || initialEndpoint;
       const headers = Object.assign({}, options?.headers, request.extensions?.headers || {});
       const acceptedProtocols = [`application/json`];
 
@@ -315,6 +329,17 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         extensions: request.extensions,
       };
 
+      let timeoutId: any;
+      if (options?.timeout) {
+        timeoutId = setTimeout(() => {
+          if (!controller.signal.aborted) {
+            controller.abort();
+          }
+        }, options.timeout);
+      }
+
+      const credentials = options?.credentials || 'same-origin';
+
       return new ValueOrPromise(() => {
         switch (method) {
           case 'GET':
@@ -324,7 +349,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             });
             return fetch(finalUrl, {
               method: 'GET',
-              credentials: 'include',
+              credentials,
               headers: {
                 accept,
                 ...headers,
@@ -338,7 +363,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                   form =>
                     fetch(HTTP_URL, {
                       method: 'POST',
-                      credentials: 'include',
+                      credentials,
                       body: form as any,
                       headers: {
                         accept,
@@ -351,7 +376,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             } else {
               return fetch(HTTP_URL, {
                 method: 'POST',
-                credentials: 'include',
+                credentials,
                 body: JSON.stringify(requestBody),
                 headers: {
                   accept,
@@ -364,6 +389,15 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         }
       })
         .then((fetchResult: Response) => {
+          if (timeoutId != null) {
+            clearTimeout(timeoutId);
+          }
+
+          // Retry should respect HTTP Errors
+          if (options?.retry != null && !fetchResult.status.toString().startsWith('2')) {
+            throw new Error(fetchResult.statusText || `HTTP Error: ${fetchResult.status}`);
+          }
+
           const contentType = fetchResult.headers.get('content-type');
 
           if (contentType?.includes('text/event-stream')) {
@@ -380,6 +414,40 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         })
         .resolve();
     };
+
+    if (options?.retry != null) {
+      return function retryExecutor(request: ExecutionRequest) {
+        let result: ExecutionResult<any> | undefined;
+        let error: Error | undefined;
+        let attempt = 0;
+        function retryAttempt(): Promise<ExecutionResult<any>> | ExecutionResult<any> {
+          attempt++;
+          if (attempt > options!.retry!) {
+            if (result != null) {
+              return result;
+            }
+            if (error != null) {
+              throw error;
+            }
+            throw new Error('No result');
+          }
+          return new ValueOrPromise(() => executor(request))
+            .then(res => {
+              result = res;
+              if (result?.errors?.length) {
+                return retryAttempt();
+              }
+              return result;
+            })
+            .catch((e: any) => {
+              error = e;
+              return retryAttempt();
+            })
+            .resolve();
+        }
+        return retryAttempt();
+      };
+    }
 
     return executor;
   }
