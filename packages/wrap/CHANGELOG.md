@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 8.4.3
+
+### Patch Changes
+
+- 304da972: feat(wrap): RenameObjectFieldArguments transform
+
 ## 8.4.2
 
 ### Patch Changes
