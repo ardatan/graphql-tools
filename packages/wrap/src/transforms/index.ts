@@ -7,6 +7,7 @@ export { default as RenameRootFields } from './RenameRootFields';
 export { default as FilterRootFields } from './FilterRootFields';
 export { default as TransformObjectFields } from './TransformObjectFields';
 export { default as RenameObjectFields } from './RenameObjectFields';
+export { default as RenameObjectFieldArguments } from './RenameObjectFieldArguments';
 export { default as FilterObjectFields } from './FilterObjectFields';
 export { default as TransformInterfaceFields } from './TransformInterfaceFields';
 export { default as RenameInterfaceFields } from './RenameInterfaceFields';
