@@ -124,6 +124,10 @@ To appreciate the range of possibilities enabled by `mapSchema`, let's examine a
 Suppose you want to ensure a string-valued field is converted to uppercase. Though this use case is simple, it's a good example of a directive implementation that works by wrapping a field's `resolve` function:
 
 ```ts
+import { GraphQLSchema, defaultFieldResolver } from 'graphql'
+import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+
 function upperDirective(directiveName: string): (schema: GraphQLSchema) => GraphQLSchema {
   return schema =>
     mapSchema(schema, {
@@ -131,27 +135,29 @@ function upperDirective(directiveName: string): (schema: GraphQLSchema) => Graph
         const upperDirective = getDirective(schema, fieldConfig, directiveName)?.[0]
         if (upperDirective) {
           const { resolve = defaultFieldResolver } = fieldConfig
-          fieldConfig.resolve = async function (source, args, context, info) {
-            const result = await resolve(source, args, context, info)
-            if (typeof result === 'string') {
-              return result.toUpperCase()
+          return {
+            ...fieldConfig,
+            resolver: async function (source, args, context, info) {
+              const result = await resolve(source, args, context, info)
+              if (typeof result === 'string') {
+                return result.toUpperCase()
+              }
+              return result
             }
-            return result
           }
-          return fieldConfig
         }
       }
     })
 }
 
-const { upperDirectiveTypeDefs, upperDirectiveTransformer } = upperDirective('upper')
-const { upperDirectiveTypeDefs: upperCaseDirectiveTypeDefs, upperDirectiveTransformer: upperCaseDirectiveTransformer } =
-  upperDirective('upperCase')
+const upperDirectiveTypeDefs = (directiveName: string) => /* GraphQL */ `
+  directive @${directiveName} on FIELD_DEFINITION
+`
+const applyUpperSchemaTransform = upperDirective('upper')
 
 let schema = makeExecutableSchema({
   typeDefs: [
-    upperDirectiveTypeDefs,
-    upperCaseDirectiveTypeDefs,
+    upperDirectiveTypeDefs('upper'),
     /* GraphQL */ `
       type Query {
         hello: String @upper
@@ -171,7 +177,7 @@ let schema = makeExecutableSchema({
   }
 })
 
-schema = upperDirectiveTransformer(schema)
+schema = applyUpperSchemaTransform(schema)
 ```
 
 Notice how easy it is to handle both `@upper` and `@upperCase` with the same `upperDirective` implementation.
