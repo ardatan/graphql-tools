@@ -1,3 +1,4 @@
+export { default as AddArgumentsAsVariables } from './AddArgumentsAsVariables';
 export { default as RenameTypes } from './RenameTypes';
 export { default as FilterTypes } from './FilterTypes';
 export { default as RenameRootTypes } from './RenameRootTypes';
