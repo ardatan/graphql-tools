@@ -107,13 +107,11 @@ export function addMocksToSchema({
     throw new Error('mocks must be of type Object');
   }
 
-  const mockStore = createMockStore({
+  const store = maybeStore || createMockStore({
     schema,
     mocks,
     typePolicies,
   });
-
-  const store = maybeStore || mockStore;
 
   const resolvers =
     typeof resolversOrFnResolvers === 'function' ? resolversOrFnResolvers(store) : resolversOrFnResolvers;
