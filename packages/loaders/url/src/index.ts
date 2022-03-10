@@ -388,7 +388,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             }
         }
       })
-        .then((fetchResult: Response) => {
+        .then((fetchResult: Response): any => {
           if (timeoutId != null) {
             clearTimeout(timeoutId);
           }
@@ -410,7 +410,14 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             );
           }
 
-          return fetchResult.json();
+          return fetchResult.text();
+        })
+        .then(result => {
+          if (typeof result === 'string') {
+            return JSON.parse(result);
+          } else {
+            return result;
+          }
         })
         .resolve();
     };
