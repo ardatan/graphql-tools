@@ -1510,6 +1510,45 @@ bookingById(id: "b1") {
         };
         expect(stitchedResult).toEqual(expected);
       });
+
+      test('forward operation name to stitched schema', async () => {
+        const operationNameFragment = /* GraphQL */ `
+operationNameTest {
+  testString
+}
+  `;
+
+        const localOperationName = 'MyLocalQuery';
+        const localResult = await graphql({
+          schema: localPropertySchema,
+          source: /* GraphQL */ `query ${localOperationName} { ${operationNameFragment} }`,
+        });
+        expect(localResult).toEqual({
+          data: {
+            operationNameTest: {
+              testString: localOperationName,
+            },
+          },
+        });
+
+        const stitchedOperationName = 'MyStitchedQuery';
+        const stitchedResult = await graphql({
+          schema: stitchedSchema,
+          source: /* GraphQL */ `
+              query ${stitchedOperationName} {
+                ${operationNameFragment}
+              }
+            `,
+        });
+
+        expect(stitchedResult).toEqual({
+          data: {
+            operationNameTest: {
+              testString: stitchedOperationName,
+            },
+          },
+        });
+      });
     });
 
     describe('fragments', () => {
