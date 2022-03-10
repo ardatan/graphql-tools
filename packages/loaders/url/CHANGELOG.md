@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.9.0
+
+### Minor Changes
+
+- 2c647764: enhance(url-loader): use JSON.parse(response.text()) to respect JSON.parse & stringify polyfills
+
 ## 7.8.0
 
 ### Minor Changes
