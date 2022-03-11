@@ -61,7 +61,6 @@
     "subscriptions-transport-ws": "^0.11.0",
     "sync-fetch": "^0.3.1",
     "tslib": "^2.3.0",
-    "valid-url": "^1.0.9",
     "value-or-promise": "^1.0.11",
     "ws": "^8.3.0"
   },

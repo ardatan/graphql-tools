@@ -15,7 +15,6 @@ import {
   parseGraphQLSDL,
   getOperationASTFromRequest,
 } from '@graphql-tools/utils';
-import { isWebUri } from 'valid-url';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
 import { ClientOptions as GraphQLSSEClientOptions, createClient as createGraphQLSSEClient } from 'graphql-sse';
@@ -133,14 +132,15 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
   credentials?: RequestCredentials;
 }
 
-const isCompatibleUri = (uri: string): boolean => {
-  if (isWebUri(uri)) {
+function isCompatibleUri(uri: string): boolean {
+  try {
+    // eslint-disable-next-line no-new
+    new URL(uri);
     return true;
+  } catch {
+    return false;
   }
-  // we just replace the url part, the remaining validation is the same
-  const wsUri = uri.replace('wss://', 'http://').replace('ws://', 'http://');
-  return !!isWebUri(wsUri);
-};
+}
 
 /**
  * This loader loads a schema from a URL. The loaded schema is a fully-executable,
@@ -155,14 +155,6 @@ const isCompatibleUri = (uri: string): boolean => {
  * ```
  */
 export class UrlLoader implements Loader<LoadFromUrlOptions> {
-  async canLoad(pointer: string, options: LoadFromUrlOptions): Promise<boolean> {
-    return this.canLoadSync(pointer, options);
-  }
-
-  canLoadSync(pointer: string, _options: LoadFromUrlOptions): boolean {
-    return isCompatibleUri(pointer);
-  }
-
   createFormDataFromVariables<TVariables>({
     query,
     variables,
@@ -463,7 +455,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     subscriptionsEndpoint: string,
     webSocketImpl: typeof WebSocket,
     connectionParams?: ClientOptions['connectionParams']
-  ): AsyncExecutor {
+  ): Executor {
     const WS_URL = switchProtocols(subscriptionsEndpoint, {
       https: 'wss',
       http: 'ws',
@@ -474,7 +466,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       connectionParams,
       lazy: true,
     });
-    return async ({ document, variables, operationName, extensions }) => {
+    return ({ document, variables, operationName, extensions }) => {
       const query = print(document);
       return observableToAsyncIterable({
         subscribe: observer => {
@@ -499,7 +491,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     subscriptionsEndpoint: string,
     webSocketImpl: typeof WebSocket,
     connectionParams?: ConnectionParamsOptions
-  ): AsyncExecutor {
+  ): Executor {
     const WS_URL = switchProtocols(subscriptionsEndpoint, {
       https: 'wss',
       http: 'ws',
@@ -513,7 +505,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       webSocketImpl
     );
 
-    return async <TReturn, TArgs>({ document, variables, operationName }: ExecutionRequest<TArgs>) => {
+    return <TReturn, TArgs>({ document, variables, operationName }: ExecutionRequest<TArgs>) => {
       return observableToAsyncIterable(
         subscriptionClient.request({
           query: document,
@@ -611,11 +603,26 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     }
   }
 
-  async buildSubscriptionExecutor(
+  buildSubscriptionExecutor(
+    subscriptionsEndpoint: string,
+    fetch: SyncFetchFn,
+    syncImport: SyncImportFn,
+    options?: LoadFromUrlOptions
+  ): SyncExecutor;
+
+  buildSubscriptionExecutor(
     subscriptionsEndpoint: string,
     fetch: AsyncFetchFn,
+    asyncImport: AsyncImportFn,
     options?: LoadFromUrlOptions
-  ): Promise<AsyncExecutor> {
+  ): Promise<AsyncExecutor> | AsyncExecutor;
+
+  buildSubscriptionExecutor(
+    subscriptionsEndpoint: string,
+    fetch: any,
+    importFn: AsyncImportFn | SyncImportFn,
+    options?: LoadFromUrlOptions
+  ): Promise<Executor> | Executor {
     if (options?.subscriptionsProtocol === SubscriptionProtocol.SSE) {
       return this.buildHTTPExecutor(subscriptionsEndpoint, fetch, {
         ...options,
@@ -629,39 +636,65 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       }
       return this.buildGraphQLSSEExecutor(subscriptionsEndpoint, fetch, options);
     } else {
-      const webSocketImpl = await this.getWebSocketImpl(asyncImport, options);
+      const webSocketImpl$ = new ValueOrPromise(() => this.getWebSocketImpl(importFn, options));
       const connectionParams = () => ({ headers: options?.headers });
-      if (options?.subscriptionsProtocol === SubscriptionProtocol.LEGACY_WS) {
-        return this.buildWSLegacyExecutor(subscriptionsEndpoint, webSocketImpl, connectionParams);
-      } else {
-        return this.buildWSExecutor(subscriptionsEndpoint, webSocketImpl, connectionParams);
-      }
+      const executor$ = webSocketImpl$.then(webSocketImpl => {
+        if (options?.subscriptionsProtocol === SubscriptionProtocol.LEGACY_WS) {
+          return this.buildWSLegacyExecutor(subscriptionsEndpoint, webSocketImpl, connectionParams);
+        } else {
+          return this.buildWSExecutor(subscriptionsEndpoint, webSocketImpl, connectionParams);
+        }
+      });
+      return request => executor$.then(executor => executor(request)).resolve();
     }
   }
 
-  async getExecutorAsync(endpoint: string, options?: Omit<LoadFromUrlOptions, 'endpoint'>): Promise<AsyncExecutor> {
-    const fetch = await this.getFetch(options?.customFetch, asyncImport);
-    const httpExecutor = this.buildHTTPExecutor(endpoint, fetch, options);
-    const subscriptionsEndpoint = options?.subscriptionsEndpoint || endpoint;
-    const subscriptionExecutor = await this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, options);
+  getExecutor(
+    endpoint: string,
+    asyncImport: AsyncImportFn,
+    options?: Omit<LoadFromUrlOptions, 'endpoint'>
+  ): AsyncExecutor;
 
-    return request => {
+  getExecutor(endpoint: string, syncImport: SyncImportFn, options?: Omit<LoadFromUrlOptions, 'endpoint'>): SyncExecutor;
+  getExecutor(
+    endpoint: string,
+    importFn: AsyncImportFn | SyncImportFn,
+    options?: Omit<LoadFromUrlOptions, 'endpoint'>
+  ): Executor {
+    const fetch$ = new ValueOrPromise(() => this.getFetch(options?.customFetch, asyncImport));
+
+    const httpExecutor$ = fetch$.then(fetch => {
+      return this.buildHTTPExecutor(endpoint, fetch, options);
+    });
+    const subscriptionExecutor$ = fetch$.then(fetch => {
+      const subscriptionsEndpoint = options?.subscriptionsEndpoint || endpoint;
+      return this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, importFn, options);
+    });
+
+    function getExecutorByRequest(request: ExecutionRequest<any>): ValueOrPromise<AsyncExecutor> {
       const operationAst = getOperationASTFromRequest(request);
       if (
         operationAst.operation === 'subscription' ||
         isLiveQueryOperationDefinitionNode(operationAst, request.variables as Record<string, any>)
       ) {
-        return subscriptionExecutor(request);
+        return subscriptionExecutor$;
+      } else {
+        return httpExecutor$;
       }
-      return httpExecutor(request);
-    };
+    }
+
+    return request =>
+      getExecutorByRequest(request)
+        .then(executor => executor(request))
+        .resolve();
   }
 
-  getExecutorSync(endpoint: string, options: Omit<LoadFromUrlOptions, 'endpoint'>): SyncExecutor {
-    const fetch = this.getFetch(options?.customFetch, syncImport);
-    const executor = this.buildHTTPExecutor(endpoint, fetch, options);
+  getExecutorAsync(endpoint: string, options?: Omit<LoadFromUrlOptions, 'endpoint'>): AsyncExecutor {
+    return this.getExecutor(endpoint, asyncImport, options);
+  }
 
-    return executor;
+  getExecutorSync(endpoint: string, options?: Omit<LoadFromUrlOptions, 'endpoint'>): SyncExecutor {
+    return this.getExecutor(endpoint, syncImport, options);
   }
 
   handleSDL(pointer: string, fetch: SyncFetchFn, options: LoadFromUrlOptions): Source;
@@ -680,15 +713,15 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   }
 
   async load(pointer: string, options: LoadFromUrlOptions): Promise<Source[]> {
-    if (!(await this.canLoad(pointer, options))) {
+    if (!isCompatibleUri(pointer)) {
       return [];
     }
     let source: Source = {
       location: pointer,
     };
-    const fetch = await this.getFetch(options?.customFetch, asyncImport);
-    let executor = await this.getExecutorAsync(pointer, options);
+    let executor: Executor | undefined;
     if (options?.handleAsSDL || pointer.endsWith('.graphql') || pointer.endsWith('.graphqls')) {
+      const fetch = await this.getFetch(options?.customFetch, asyncImport);
       source = await this.handleSDL(pointer, fetch, options);
       if (!source.schema && !source.document && !source.rawSDL) {
         throw new Error(`Invalid SDL response`);
@@ -701,7 +734,8 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           ? buildSchema(source.rawSDL, options)
           : undefined);
     } else {
-      source.schema = await introspectSchema(executor, {}, options);
+      executor = this.getExecutorAsync(pointer, options);
+      source.schema = await introspectSchema(executor as AsyncExecutor, {}, options);
     }
 
     if (!source.schema) {
@@ -709,7 +743,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     }
 
     if (options?.endpoint) {
-      executor = await this.getExecutorAsync(options.endpoint, options);
+      executor = this.getExecutorAsync(options.endpoint, options);
     }
 
     source.schema = wrapSchema({
@@ -721,16 +755,16 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   }
 
   loadSync(pointer: string, options: LoadFromUrlOptions): Source[] {
-    if (!this.canLoadSync(pointer, options)) {
+    if (!isCompatibleUri(pointer)) {
       return [];
     }
 
     let source: Source = {
       location: pointer,
     };
-    const fetch = this.getFetch(options?.customFetch, syncImport);
-    let executor = this.getExecutorSync(pointer, options);
+    let executor: SyncExecutor | undefined;
     if (options?.handleAsSDL || pointer.endsWith('.graphql') || pointer.endsWith('.graphqls')) {
+      const fetch = this.getFetch(options?.customFetch, syncImport);
       source = this.handleSDL(pointer, fetch, options);
       if (!source.schema && !source.document && !source.rawSDL) {
         throw new Error(`Invalid SDL response`);
@@ -743,6 +777,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           ? buildSchema(source.rawSDL, options)
           : undefined);
     } else {
+      executor = this.getExecutorSync(pointer, options);
       source.schema = introspectSchema(executor, {}, options);
     }
 

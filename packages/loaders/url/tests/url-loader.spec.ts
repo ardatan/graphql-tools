@@ -220,9 +220,6 @@ input TestInput {
       expect(source.schema.getQueryType()!.description).toBeUndefined();
     });
 
-    it('Absolute file path should not be accepted as URL', async () => {
-      expect(await loader.canLoad(cwd(), {})).toBeFalsy();
-    });
     it('should handle useGETForQueries correctly', async () => {
       const [source] = await loader.load(testUrl, {
         descriptions: false,
@@ -603,8 +600,8 @@ input TestInput {
       expect(uploadFileData?.content).toBe(content);
     });
 
-    describe('helix compat', () => {
-      it('should handle helix multipart response result', async () => {
+    describe('helix/yoga compat', () => {
+      it('should handle multipart response result', async () => {
         const chunkDatas = [
           { data: { foo: {} }, hasNext: true },
           { data: { a: 1 }, path: ['foo'], hasNext: true },
