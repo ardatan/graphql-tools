@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 8.5.2
+
+### Patch Changes
+
+- b84a7809: fix(delegate): do not resolve the type twice
+
 ## 8.5.1
 
 ### Patch Changes

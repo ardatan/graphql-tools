@@ -1,5 +1,11 @@
 # @graphql-tools/mock
 
+## 8.5.3
+
+### Patch Changes
+
+- 72e073f5: Resolve an issue with addMocksToSchema where the provided store is ignored
+
 ## 8.5.2
 
 ### Patch Changes
