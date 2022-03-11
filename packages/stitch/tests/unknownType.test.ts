@@ -99,7 +99,7 @@ describe('test delegateToSchema() with type renaming', () => {
       },
       errors: [
         new GraphQLError(
-          `Unable to resolve type 'Item'. Did you forget to include a transform that renames types? Did you delegate to the original subschema rather that the subschema config object containing the transform?`
+          `Abstract type "ClassicItemInterface" was resolved to a type "Item" that does not exist inside the schema.`
         ),
       ],
     });

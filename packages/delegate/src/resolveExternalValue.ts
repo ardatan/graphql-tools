@@ -72,19 +72,7 @@ function resolveExternalObject<TContext>(
     return object;
   }
 
-  let typeName: string;
-
-  if (isAbstractType(type)) {
-    const resolvedType = info.schema.getType(object.__typename);
-    if (resolvedType == null) {
-      throw new Error(
-        `Unable to resolve type '${object.__typename}'. Did you forget to include a transform that renames types? Did you delegate to the original subschema rather that the subschema config object containing the transform?`
-      );
-    }
-    typeName = resolvedType.name;
-  } else {
-    typeName = type.name;
-  }
+  const typeName = isAbstractType(type) ? object.__typename : type.name;
 
   const mergedTypeInfo = stitchingInfo.mergedTypes[typeName];
   let targetSubschemas: undefined | Array<Subschema>;

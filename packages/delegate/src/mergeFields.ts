@@ -44,10 +44,10 @@ export function getUnpathedErrors(object: ExternalObject): Array<GraphQLError> {
 const EMPTY_ARRAY: any[] = [];
 const EMPTY_OBJECT = Object.create(null);
 
-export async function mergeFields(
+export async function mergeFields<TContext>(
   mergedTypeInfo: MergedTypeInfo,
   object: any,
-  sourceSubschema: Subschema<any, any, any, any>,
+  sourceSubschema: Subschema<any, any, any, TContext>,
   context: any,
   info: GraphQLResolveInfo
 ): Promise<any> {
