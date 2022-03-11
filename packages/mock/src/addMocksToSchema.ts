@@ -107,13 +107,13 @@ export function addMocksToSchema({
     throw new Error('mocks must be of type Object');
   }
 
-  const mockStore = createMockStore({
-    schema,
-    mocks,
-    typePolicies,
-  });
-
-  const store = maybeStore || mockStore;
+  const store =
+    maybeStore ||
+    createMockStore({
+      schema,
+      mocks,
+      typePolicies,
+    });
 
   const resolvers =
     typeof resolversOrFnResolvers === 'function' ? resolversOrFnResolvers(store) : resolversOrFnResolvers;
@@ -146,7 +146,7 @@ export function addMocksToSchema({
 
     if (defaultResolvedValue === undefined) {
       // any is used here because generateFieldValue is a private method at time of writing
-      return (mockStore as any).generateFieldValue(info.parentType.name, info.fieldName);
+      return (store as any).generateFieldValue(info.parentType.name, info.fieldName);
     }
 
     return undefined;

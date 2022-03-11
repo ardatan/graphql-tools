@@ -363,4 +363,29 @@ describe('addMocksToSchema', () => {
     maybeRef.$ref = {};
     expect(isRef(maybeRef)).toBeTruthy();
   });
+  it('resolves fields without defaultResolvedValue correctly', async () => {
+    const store = createMockStore({
+      schema,
+      mocks: {
+        String: () => 'custom mock for String',
+      },
+    });
+    const mockedSchema = addMocksToSchema({
+      schema,
+      store,
+      resolvers: {
+        Query: {
+          viewer: () => ({}),
+        },
+      },
+    });
+
+    const { data } = await graphql({
+      schema: mockedSchema,
+      source: `query { viewer { name }}`,
+    });
+    const viewer = data?.['viewer'] as any;
+
+    expect(viewer.name).toEqual('custom mock for String');
+  });
 });
