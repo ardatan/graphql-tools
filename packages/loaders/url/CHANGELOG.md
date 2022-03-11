@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.9.1
+
+### Patch Changes
+
+- 6609981d: enhance(url-loader): improve executor generation
+
 ## 7.9.0
 
 ### Minor Changes
