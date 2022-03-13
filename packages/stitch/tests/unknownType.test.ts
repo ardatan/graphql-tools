@@ -1,4 +1,4 @@
-import { graphql, GraphQLError, GraphQLSchema, version, versionInfo } from 'graphql';
+import { graphql, GraphQLError, GraphQLSchema, versionInfo } from 'graphql';
 
 import { delegateToSchema } from '@graphql-tools/delegate';
 
