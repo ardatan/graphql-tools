@@ -16,7 +16,11 @@ import { IMockServer, IMocks } from './types';
  * overwritten to provide mock data. This can be used to mock some parts of the
  * server and not others.
  */
-export function mockServer(schema: TypeSource, mocks: IMocks, preserveResolvers = false): IMockServer {
+export function mockServer<TResolvers>(
+  schema: TypeSource,
+  mocks: IMocks<TResolvers>,
+  preserveResolvers = false
+): IMockServer {
   const mockedSchema = addMocksToSchema({
     schema: isSchema(schema)
       ? schema

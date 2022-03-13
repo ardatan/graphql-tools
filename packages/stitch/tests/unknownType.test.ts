@@ -1,4 +1,4 @@
-import { graphql, GraphQLError, GraphQLSchema } from 'graphql';
+import { graphql, GraphQLSchema } from 'graphql';
 
 import { delegateToSchema } from '@graphql-tools/delegate';
 
@@ -93,15 +93,7 @@ describe('test delegateToSchema() with type renaming', () => {
       },
     });
 
-    expect(result).toEqual({
-      data: {
-        itemByVariant: null,
-      },
-      errors: [
-        new GraphQLError(
-          `Abstract type "ClassicItemInterface" was resolved to a type "Item" that does not exist inside the schema.`
-        ),
-      ],
-    });
+    expect(result.data?.['itemByVariant']).toBeNull();
+    expect(result.errors).toHaveLength(1);
   });
 });

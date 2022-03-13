@@ -153,7 +153,7 @@ describe('Mock retro-compatibility', () => {
         }
       }
     `;
-    const mockMap = {
+    const mockMap: IMocks = {
       Int: () => 12345,
       Bird: () => ({ returnInt: () => 54321 }),
       Bee: () => ({ returnInt: () => 54321 }),
@@ -480,7 +480,7 @@ describe('Mock retro-compatibility', () => {
   test('can support explicit Interface mock with resolver', () => {
     let jsSchema = buildSchema(shorthand);
     let spy = 0;
-    const mockMap = {
+    const mockMap: IMocks = {
       Bird: () => ({
         returnInt: 100,
       }),

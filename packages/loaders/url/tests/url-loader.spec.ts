@@ -2,7 +2,6 @@ import '../../../testing/to-be-similar-gql-doc';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { SubscriptionProtocol, UrlLoader } from '../src';
 import { isAsyncIterable, printSchemaWithDirectives } from '@graphql-tools/utils';
-import { cwd } from 'process';
 import {
   execute,
   subscribe,

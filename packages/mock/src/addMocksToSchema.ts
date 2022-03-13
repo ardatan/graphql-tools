@@ -14,14 +14,14 @@ import { isRef, IMockStore, IMocks, TypePolicy } from './types';
 import { copyOwnProps, isObject, isRootType } from './utils';
 import { createMockStore } from './MockStore';
 
-type IMockOptions = {
+type IMockOptions<TResolvers = IResolvers> = {
   schema: GraphQLSchema;
   store?: IMockStore;
-  mocks?: IMocks;
+  mocks?: IMocks<TResolvers>;
   typePolicies?: {
     [typeName: string]: TypePolicy;
   };
-  resolvers?: IResolvers | ((store: IMockStore) => IResolvers);
+  resolvers?: Partial<TResolvers> | ((store: IMockStore) => Partial<TResolvers>);
   /**
    * Set to `true` to prevent existing resolvers from being
    * overwritten to provide mock data. This can be used to mock some parts of the
@@ -89,14 +89,14 @@ type IMockOptions = {
  *
  * `Query` and `Mutation` type will use `key` `'ROOT'`.
  */
-export function addMocksToSchema({
+export function addMocksToSchema<TResolvers = IResolvers>({
   schema,
   store: maybeStore,
   mocks,
   typePolicies,
   resolvers: resolversOrFnResolvers,
   preserveResolvers = false,
-}: IMockOptions): GraphQLSchema {
+}: IMockOptions<TResolvers>): GraphQLSchema {
   if (!schema) {
     throw new Error('Must provide schema to mock');
   }
@@ -116,7 +116,9 @@ export function addMocksToSchema({
     });
 
   const resolvers =
-    typeof resolversOrFnResolvers === 'function' ? resolversOrFnResolvers(store) : resolversOrFnResolvers;
+    typeof resolversOrFnResolvers === 'function'
+      ? (resolversOrFnResolvers as (store: IMockStore) => TResolvers)(store)
+      : resolversOrFnResolvers;
 
   const mockResolver: GraphQLFieldResolver<any, any> = (source, args, contex, info) => {
     const defaultResolvedValue = defaultFieldResolver(source, args, contex, info);
@@ -243,5 +245,5 @@ export function addMocksToSchema({
     },
   });
 
-  return resolvers ? addResolversToSchema(schemaWithMocks, resolvers) : schemaWithMocks;
+  return resolvers ? addResolversToSchema(schemaWithMocks, resolvers as any) : schemaWithMocks;
 }

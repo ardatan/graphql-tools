@@ -1,10 +1,17 @@
+import { IResolvers } from '@graphql-tools/utils';
 import { ExecutionResult, GraphQLSchema } from 'graphql';
 
 export type IMockFn = () => unknown;
 export type IScalarMock = unknown | IMockFn;
 export type ITypeMock = () => { [fieldName: string]: unknown | IMockFn } | { [fieldName: string]: IMockFn };
 
-export type IMocks = {
+export type IMocks<TResolvers = IResolvers> = {
+  [TTypeName in keyof TResolvers]?: {
+    [TFieldName in keyof TResolvers[TTypeName]]: TResolvers[TTypeName][TFieldName] extends (args: any) => any
+      ? () => ReturnType<TResolvers[TTypeName][TFieldName]> | ReturnType<TResolvers[TTypeName][TFieldName]>
+      : TResolvers[TTypeName][TFieldName];
+  };
+} & {
   [typeOrScalarName: string]: IScalarMock | ITypeMock;
 };
 

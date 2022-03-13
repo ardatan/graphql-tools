@@ -102,8 +102,8 @@ describe('Merge resolvers', () => {
     function wrapResolve(mergedTypeResolverOptions: MergedTypeResolverOptions): MergedTypeResolver {
       const defaultResolve = createMergedTypeResolver(mergedTypeResolverOptions);
       assertSome(defaultResolve);
-      return async (obj, ctx, inf, sch, sel, key) => {
-        const result = await defaultResolve(obj, ctx, inf, sch, sel, key);
+      return async (obj, ctx, inf, sch, sel, key, type) => {
+        const result = await defaultResolve(obj, ctx, inf, sch, sel, key, type);
         result.source += '->resolve';
         return result;
       };
