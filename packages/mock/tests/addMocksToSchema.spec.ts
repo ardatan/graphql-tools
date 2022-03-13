@@ -133,7 +133,7 @@ describe('addMocksToSchema', () => {
       store,
       resolvers: {
         Mutation: {
-          changeViewerName: (_, { newName }: { newName: string }) => {
+          changeViewerName: (_: any, { newName }: { newName: string }) => {
             const viewer = store.get('Query', 'ROOT', 'viewer');
             assertIsRef(viewer);
 
