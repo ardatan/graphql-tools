@@ -1,4 +1,4 @@
-import { graphql, GraphQLError, GraphQLSchema } from 'graphql';
+import { graphql, GraphQLError, GraphQLSchema, version, versionInfo } from 'graphql';
 
 import { delegateToSchema } from '@graphql-tools/delegate';
 
@@ -99,7 +99,9 @@ describe('test delegateToSchema() with type renaming', () => {
       },
       errors: [
         new GraphQLError(
-          `Abstract type "ClassicItemInterface" was resolved to a type "Item" that does not exist inside the schema.`
+          versionInfo.major > 15
+            ? `Abstract type "ClassicItemInterface" was resolved to a type "Item" that does not exist inside the schema.`
+            : `Abstract type "ClassicItemInterface" was resolve to a type "Item" that does not exist inside the schema.`
         ),
       ],
     });
