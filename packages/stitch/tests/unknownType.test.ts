@@ -101,7 +101,7 @@ describe('test delegateToSchema() with type renaming', () => {
         new GraphQLError(
           versionInfo.major > 15
             ? `Abstract type "ClassicItemInterface" was resolved to a type "Item" that does not exist inside the schema.`
-            : `Abstract type "ClassicItemInterface" was resolve to a type "Item" that does not exist inside the schema.`
+            : `Abstract type "ClassicItemInterface" was resolve to a type "Item" that does not exist inside schema.`
         ),
       ],
     });
