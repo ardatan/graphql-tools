@@ -1,5 +1,11 @@
 # @graphql-tools/mock
 
+## 8.6.0
+
+### Minor Changes
+
+- 7dcf3d9a: feat(mock): ability to add typesafety to IMocks with custom resolver signature
+
 ## 8.5.3
 
 ### Patch Changes
