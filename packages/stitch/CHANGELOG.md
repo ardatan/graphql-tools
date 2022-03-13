@@ -1,5 +1,17 @@
 # @graphql-tools/stitch
 
+## 8.5.0
+
+### Minor Changes
+
+- 70081f8f: enhance(stitch): support promises in key functions
+
+### Patch Changes
+
+- Updated dependencies [70081f8f]
+- Updated dependencies [70081f8f]
+  - @graphql-tools/delegate@8.5.3
+
 ## 8.4.4
 
 ### Patch Changes

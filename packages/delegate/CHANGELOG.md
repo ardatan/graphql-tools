@@ -1,5 +1,12 @@
 # @graphql-tools/delegate
 
+## 8.5.3
+
+### Patch Changes
+
+- 70081f8f: enhance(delegate): type is now inferred from the transformed subschema instead of unified schema
+- 70081f8f: enhance(stitch): support promises in key functions
+
 ## 8.5.2
 
 ### Patch Changes
