@@ -23,6 +23,7 @@ import { MergeTypeCandidate, MergeTypeFilter } from './types';
 
 import { createMergedTypeResolver } from './createMergedTypeResolver';
 import { createDelegationPlanBuilder } from './createDelegationPlanBuilder';
+import { ValueOrPromise } from 'value-or-promise';
 
 export function createStitchingInfo<TContext = Record<string, any>>(
   subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>,
@@ -118,9 +119,10 @@ function createMergedTypes<TContext = Record<string, any>>(
           resolvers.set(
             subschema,
             keyFn
-              ? (originalResult, context, info, subschema, selectionSet) => {
-                  const key = keyFn(originalResult);
-                  return resolver(originalResult, context, info, subschema, selectionSet, key);
+              ? function batchMergedTypeResolverWrapper(originalResult, context, info, subschema, selectionSet, type) {
+                  return new ValueOrPromise(() => keyFn(originalResult))
+                    .then(key => resolver(originalResult, context, info, subschema, selectionSet, key, type))
+                    .resolve();
                 }
               : resolver
           );

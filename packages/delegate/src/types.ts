@@ -170,7 +170,7 @@ export interface MergedTypeConfig<K = any, V = any, TContext = Record<string, an
 export interface MergedTypeEntryPoint<K = any, V = any, TContext = Record<string, any>>
   extends MergedTypeResolverOptions<K, V> {
   selectionSet?: string;
-  key?: (originalResult: any) => K;
+  key?: (originalResult: any) => K | PromiseLike<K>;
   resolve?: MergedTypeResolver<TContext>;
 }
 
@@ -191,9 +191,10 @@ export type MergedTypeResolver<TContext = Record<string, any>> = (
   originalResult: any,
   context: TContext,
   info: GraphQLResolveInfo,
-  subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
+  subschema: Subschema<any, any, any, TContext>,
   selectionSet: SelectionSetNode,
-  key?: any
+  key: any | undefined,
+  type: GraphQLOutputType
 ) => any;
 
 export interface StitchingInfo<TContext = Record<string, any>> {

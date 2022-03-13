@@ -1,4 +1,4 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, OperationTypeNode } from 'graphql';
+import { getNamedType, GraphQLList, OperationTypeNode } from 'graphql';
 import { delegateToSchema, MergedTypeResolver, MergedTypeResolverOptions } from '@graphql-tools/delegate';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 
@@ -8,14 +8,20 @@ export function createMergedTypeResolver<TContext = any>(
   const { fieldName, argsFromKeys, valuesFromResults, args } = mergedTypeResolverOptions;
 
   if (argsFromKeys != null) {
-    return function mergedBatchedTypeResolver(originalResult, context, info, subschema, selectionSet, key) {
+    return function mergedBatchedTypeResolver(
+      _originalResult,
+      context,
+      info,
+      subschema,
+      selectionSet,
+      key,
+      type = getNamedType(info.returnType)
+    ) {
       return batchDelegateToSchema({
         schema: subschema,
         operation: 'query' as OperationTypeNode,
         fieldName,
-        returnType: new GraphQLList(
-          getNamedType(info.schema.getType(originalResult.__typename) ?? info.returnType) as GraphQLOutputType
-        ),
+        returnType: new GraphQLList(type),
         key,
         argsFromKeys,
         valuesFromResults,
@@ -28,14 +34,20 @@ export function createMergedTypeResolver<TContext = any>(
   }
 
   if (args != null) {
-    return function mergedTypeResolver(originalResult, context, info, subschema, selectionSet) {
+    return function mergedTypeResolver(
+      originalResult,
+      context,
+      info,
+      subschema,
+      selectionSet,
+      _key,
+      type = getNamedType(info.returnType)
+    ) {
       return delegateToSchema({
         schema: subschema,
         operation: 'query' as OperationTypeNode,
         fieldName,
-        returnType: getNamedType(
-          info.schema.getType(originalResult.__typename) ?? info.returnType
-        ) as GraphQLOutputType,
+        returnType: type,
         args: args(originalResult),
         selectionSet,
         context,

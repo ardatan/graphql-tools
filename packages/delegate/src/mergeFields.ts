@@ -79,20 +79,28 @@ async function executeDelegationStage(
 
   const combinedFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL];
 
-  const type = info.schema.getType(object.__typename) as GraphQLObjectType;
-
   await Promise.all(
-    [...delegationMap.entries()].map(async ([s, selectionSet]) => {
-      const resolver = mergedTypeInfo.resolvers.get(s);
+    [...delegationMap.entries()].map(async ([subschema, selectionSet]) => {
+      const schema = subschema.transformedSchema || info.schema;
+      const type = schema.getType(object.__typename) as GraphQLObjectType;
+      const resolver = mergedTypeInfo.resolvers.get(subschema);
       if (resolver) {
         let source: any;
         try {
-          source = await resolver(object, context, info, s, selectionSet);
+          source = await resolver(object, context, info, subschema, selectionSet, undefined, type);
         } catch (error: any) {
           source = error;
         }
         if (source instanceof Error || source == null) {
-          const fieldNodeResponseKeyMap = collectFields(info.schema, {}, {}, type, selectionSet, new Map(), new Set());
+          const fieldNodeResponseKeyMap = collectFields(
+            schema,
+            EMPTY_OBJECT,
+            EMPTY_OBJECT,
+            type,
+            selectionSet,
+            new Map(),
+            new Set()
+          );
           const nullResult = {};
           for (const [responseKey, fieldNodes] of fieldNodeResponseKeyMap) {
             const combinedPath = [...path, responseKey];
