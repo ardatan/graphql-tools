@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/url-loader",
-  "version": "7.9.1",
+  "version": "7.9.2",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -47,7 +47,7 @@
   "dependencies": {
     "@graphql-tools/delegate": "^8.5.1",
     "@graphql-tools/utils": "^8.6.2",
-    "@graphql-tools/wrap": "^8.4.2",
+    "@graphql-tools/wrap": "^8.4.4",
     "@n1ru4l/graphql-live-query": "^0.9.0",
     "@types/websocket": "^1.0.4",
     "@types/ws": "^8.0.0",

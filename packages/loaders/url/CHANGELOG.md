@@ -1,5 +1,13 @@
 # @graphql-tools/url-loader
 
+## 7.9.2
+
+### Patch Changes
+
+- c84840cd: fix(url-loader): get dynamic endpoint value correctly
+- Updated dependencies [c84840cd]
+  - @graphql-tools/wrap@8.4.4
+
 ## 7.9.1
 
 ### Patch Changes
