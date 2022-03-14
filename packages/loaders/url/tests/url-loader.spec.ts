@@ -21,7 +21,7 @@ import { Server as WSServer } from 'ws';
 import http from 'http';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { defaultAsyncFetch } from '../src/defaultAsyncFetch';
-import { Response, File } from 'cross-undici-fetch';
+import { Response, File, Headers } from 'cross-undici-fetch';
 import express from 'express';
 import { graphqlHTTP } from 'express-graphql';
 import { inspect } from 'util';
@@ -267,6 +267,30 @@ input TestInput {
 
       // 2 requests done; one for introspection and second for the actual query
       expect.assertions(6);
+    });
+
+    it('should respect dynamic values given in extensions', async () => {
+      const executor = loader.getExecutorAsync('SOME_ENDPOINT', {
+        customFetch: async (info, init) => {
+          expect(info.toString()).toBe('DYNAMIC_ENDPOINT');
+          expect(new Headers(init?.headers).get('TEST_HEADER')).toBe('TEST_HEADER_VALUE');
+          return new Response(
+            JSON.stringify({
+              data: introspectionFromSchema(testSchema),
+            })
+          );
+        },
+      });
+      await executor({
+        document: parse(getIntrospectionQuery()),
+        extensions: {
+          endpoint: 'DYNAMIC_ENDPOINT',
+          headers: {
+            TEST_HEADER: 'TEST_HEADER_VALUE',
+          },
+        },
+      });
+      expect.assertions(2);
     });
 
     it('Should preserve "ws" and "http" in the middle of a pointer', async () => {

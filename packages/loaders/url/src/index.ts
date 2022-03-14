@@ -301,7 +301,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         }
       }
 
-      const endpoint = request.extensions?.endpoint || initialEndpoint;
+      const endpoint = request.extensions?.endpoint || HTTP_URL;
       const headers = Object.assign({}, options?.headers, request.extensions?.headers || {});
       const acceptedProtocols = [`application/json`];
 
@@ -353,7 +353,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
               return new ValueOrPromise(() => this.createFormDataFromVariables(requestBody))
                 .then(
                   form =>
-                    fetch(HTTP_URL, {
+                    fetch(endpoint, {
                       method: 'POST',
                       credentials,
                       body: form as any,
@@ -366,7 +366,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                 )
                 .resolve();
             } else {
-              return fetch(HTTP_URL, {
+              return fetch(endpoint, {
                 method: 'POST',
                 credentials,
                 body: JSON.stringify(requestBody),
