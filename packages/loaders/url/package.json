@@ -41,8 +41,8 @@
     "express": "4.17.3",
     "express-graphql": "0.12.0",
     "graphql-upload": "13.0.0",
-    "puppeteer": "13.4.1",
-    "webpack": "5.69.1"
+    "puppeteer": "13.5.1",
+    "webpack": "5.70.0"
   },
   "dependencies": {
     "@graphql-tools/delegate": "^8.5.3",
