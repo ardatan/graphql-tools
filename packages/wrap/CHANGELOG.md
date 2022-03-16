@@ -1,5 +1,13 @@
 # @graphql-tools/wrap
 
+## 8.4.5
+
+### Patch Changes
+
+- 3da3d66c: fix - align versions
+- Updated dependencies [3da3d66c]
+  - @graphql-tools/utils@8.6.3
+
 ## 8.4.4
 
 ### Patch Changes
