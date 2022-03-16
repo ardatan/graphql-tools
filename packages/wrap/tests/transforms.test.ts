@@ -516,7 +516,7 @@ describe('transforms', () => {
                   new TransformQuery({
                     // path at which to apply wrapping and extracting
                     path: ['userById'],
-                    queryTransformer: (subtree: SelectionSetNode) => ({
+                    queryTransformer: (subtree: SelectionSetNode | undefined) => ({
                       kind: Kind.SELECTION_SET,
                       selections: [
                         {
@@ -552,7 +552,7 @@ describe('transforms', () => {
                   new TransformQuery({
                     // longer path, useful when transforming paginated results
                     path: ['usersByIds', 'nodes'],
-                    queryTransformer: (subtree: SelectionSetNode) => ({
+                    queryTransformer: (subtree: SelectionSetNode | undefined) => ({
                       // same query transformation as above
                       kind: Kind.SELECTION_SET,
                       selections: [
@@ -584,7 +584,7 @@ describe('transforms', () => {
                 transforms: [
                   new TransformQuery({
                     path: ['userById'],
-                    queryTransformer: (subtree: SelectionSetNode) => ({
+                    queryTransformer: (subtree: SelectionSetNode | undefined) => ({
                       kind: Kind.SELECTION_SET,
                       selections: [
                         {
