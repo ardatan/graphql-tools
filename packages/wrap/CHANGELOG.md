@@ -1,5 +1,14 @@
 # @graphql-tools/wrap
 
+## 8.4.6
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+- Updated dependencies [0c0c6857]
+  - @graphql-tools/delegate@8.5.4
+  - @graphql-tools/schema@8.3.3
+
 ## 8.4.5
 
 ### Patch Changes

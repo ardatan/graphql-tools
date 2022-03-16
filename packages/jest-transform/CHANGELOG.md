@@ -1,5 +1,13 @@
 # @graphql-tools/jest-transform
 
+## 1.1.2
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+- Updated dependencies [0c0c6857]
+  - @graphql-tools/webpack-loader@6.6.2
+
 ## 1.1.1
 
 ### Patch Changes

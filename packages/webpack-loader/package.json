@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/webpack-loader",
-  "version": "6.6.1",
+  "version": "6.6.2",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",

@@ -1,5 +1,11 @@
 # @graphql-tools/module-loader
 
+## 7.1.3
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+
 ## 7.1.2
 
 ### Patch Changes

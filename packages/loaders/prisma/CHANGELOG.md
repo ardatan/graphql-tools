@@ -1,5 +1,13 @@
 # @graphql-tools/prisma-loader
 
+## 7.1.3
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+- Updated dependencies [0c0c6857]
+  - @graphql-tools/url-loader@7.9.4
+
 ## 7.1.2
 
 ### Patch Changes

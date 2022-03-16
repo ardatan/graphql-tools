@@ -1,5 +1,11 @@
 # @graphql-tools/json-file-loader
 
+## 7.3.5
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+
 ## 7.3.4
 
 ### Patch Changes

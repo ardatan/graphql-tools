@@ -1,5 +1,14 @@
 # @graphql-tools/node-require
 
+## 6.3.3
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+- Updated dependencies [0c0c6857]
+  - @graphql-tools/load@7.5.3
+  - @graphql-tools/graphql-file-loader@7.3.5
+
 ## 6.3.2
 
 ### Patch Changes

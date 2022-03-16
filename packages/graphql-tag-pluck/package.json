@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/graphql-tag-pluck",
-  "version": "7.1.6",
+  "version": "7.1.7",
   "description": "Pluck graphql-tag template literals",
   "license": "MIT",
   "repository": {

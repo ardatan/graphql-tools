@@ -1,5 +1,11 @@
 # @graphql-tools/resolvers-composition
 
+## 6.4.3
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+
 ## 6.4.2
 
 ### Patch Changes

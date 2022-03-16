@@ -1,5 +1,17 @@
 # @graphql-tools/stitch
 
+## 8.5.2
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+- Updated dependencies [0c0c6857]
+  - @graphql-tools/batch-delegate@8.2.6
+  - @graphql-tools/delegate@8.5.4
+  - @graphql-tools/merge@8.2.4
+  - @graphql-tools/schema@8.3.3
+  - @graphql-tools/wrap@8.4.6
+
 ## 8.5.1
 
 ### Patch Changes

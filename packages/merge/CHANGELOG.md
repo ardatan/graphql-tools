@@ -1,5 +1,11 @@
 # @graphql-tools/merge
 
+## 8.2.4
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+
 ## 8.2.3
 
 ### Patch Changes
