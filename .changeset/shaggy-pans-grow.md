@@ -5,6 +5,7 @@
 '@graphql-tools/stitch': patch
 '@graphql-tools/stitching-directives': patch
 '@graphql-tools/wrap': patch
+'@graphql-tools/utils': patch
 ---
 
 fix - align versions
