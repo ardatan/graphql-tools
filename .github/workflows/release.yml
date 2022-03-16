@@ -40,7 +40,7 @@ jobs:
         id: changesets
         uses: changesets/action@master
         with:
-          publish: yarn install --ignore-engines && git checkout yarn.lock && yarn release
+          publish: yarn release
           commit: 'chore(release): update monorepo packages versions'
           title: 'Upcoming Release Changes'
         env:
