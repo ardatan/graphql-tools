@@ -36,13 +36,11 @@ jobs:
           key: ${{ runner.os }}-17-16-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-17-16-yarn-
-      - name: Install Dependencies using Yarn
-        run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@master
         with:
-          publish: yarn release
+          publish: yarn install --ignore-engines && git checkout yarn.lock && yarn release
           commit: 'chore(release): update monorepo packages versions'
           title: 'Upcoming Release Changes'
         env:
