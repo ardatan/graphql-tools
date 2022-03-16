@@ -1,5 +1,13 @@
 # @graphql-tools/mock
 
+## 8.6.1
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+- Updated dependencies [0c0c6857]
+  - @graphql-tools/schema@8.3.3
+
 ## 8.6.0
 
 ### Minor Changes

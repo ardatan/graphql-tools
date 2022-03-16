@@ -1,5 +1,13 @@
 # @graphql-tools/stitching-directives
 
+## 2.2.4
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+- Updated dependencies [0c0c6857]
+  - @graphql-tools/delegate@8.5.4
+
 ## 2.2.3
 
 ### Patch Changes

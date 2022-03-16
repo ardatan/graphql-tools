@@ -1,5 +1,13 @@
 # @graphql-tools/schema
 
+## 8.3.3
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+- Updated dependencies [0c0c6857]
+  - @graphql-tools/merge@8.2.4
+
 ## 8.3.2
 
 ### Patch Changes

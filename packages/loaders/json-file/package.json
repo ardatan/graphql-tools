@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/json-file-loader",
-  "version": "7.3.4",
+  "version": "7.3.5",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",

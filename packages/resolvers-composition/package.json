@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/resolvers-composition",
-  "version": "6.4.2",
+  "version": "6.4.3",
   "description": "Common package containing utils and types for GraphQL tools",
   "repository": {
     "type": "git",

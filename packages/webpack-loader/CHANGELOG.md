@@ -1,5 +1,11 @@
 # @graphql-tools/webpack-loader
 
+## 6.6.2
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+
 ## 6.6.1
 
 ### Patch Changes

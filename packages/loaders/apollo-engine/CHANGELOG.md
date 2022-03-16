@@ -1,5 +1,11 @@
 # @graphql-tools/apollo-engine-loader
 
+## 7.2.4
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+
 ## 7.2.3
 
 ### Patch Changes

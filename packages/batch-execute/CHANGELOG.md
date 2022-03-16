@@ -1,5 +1,11 @@
 # @graphql-tools/batch-execute
 
+## 8.3.3
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+
 ## 8.3.2
 
 ### Patch Changes

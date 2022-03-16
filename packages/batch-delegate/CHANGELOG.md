@@ -1,5 +1,13 @@
 # @graphql-tools/batch-delegate
 
+## 8.2.6
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+- Updated dependencies [0c0c6857]
+  - @graphql-tools/delegate@8.5.4
+
 ## 8.2.5
 
 ### Patch Changes

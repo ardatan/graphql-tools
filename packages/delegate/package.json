@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/delegate",
-  "version": "8.5.3",
+  "version": "8.5.4",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -32,8 +32,8 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/batch-execute": "8.3.2",
-    "@graphql-tools/schema": "8.3.2",
+    "@graphql-tools/batch-execute": "8.3.3",
+    "@graphql-tools/schema": "8.3.3",
     "@graphql-tools/utils": "8.6.3",
     "dataloader": "2.0.0",
     "graphql-executor": "0.0.19",

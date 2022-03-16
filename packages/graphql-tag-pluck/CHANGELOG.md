@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 7.1.7
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+
 ## 7.1.6
 
 ### Patch Changes

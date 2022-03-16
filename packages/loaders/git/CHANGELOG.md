@@ -1,5 +1,13 @@
 # @graphql-tools/git-loader
 
+## 7.1.4
+
+### Patch Changes
+
+- 0c0c6857: fix - align versions
+- Updated dependencies [0c0c6857]
+  - @graphql-tools/graphql-tag-pluck@7.1.7
+
 ## 7.1.3
 
 ### Patch Changes

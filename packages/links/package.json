@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/links",
-  "version": "8.2.3",
+  "version": "8.2.4",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -45,7 +45,7 @@
     "graphql-upload": "13.0.0"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "8.5.3",
+    "@graphql-tools/delegate": "8.5.4",
     "@graphql-tools/utils": "8.6.3",
     "apollo-upload-client": "17.0.0",
     "node-fetch": "^2.6.5",
