@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/wrap",
-  "version": "8.4.4",
+  "version": "8.4.5",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -34,7 +34,7 @@
   "dependencies": {
     "@graphql-tools/delegate": "^8.5.3",
     "@graphql-tools/schema": "^8.3.2",
-    "@graphql-tools/utils": "^8.6.2",
+    "@graphql-tools/utils": "^8.6.3",
     "tslib": "~2.3.0",
     "value-or-promise": "1.0.11"
   },

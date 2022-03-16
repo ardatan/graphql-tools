@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.6.3
+
+### Patch Changes
+
+- 3da3d66c: fix - align versions
+
 ## 8.6.2
 
 ### Patch Changes

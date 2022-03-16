@@ -1,5 +1,14 @@
 # @graphql-tools/url-loader
 
+## 7.9.3
+
+### Patch Changes
+
+- 3da3d66c: fix - align versions
+- Updated dependencies [3da3d66c]
+  - @graphql-tools/wrap@8.4.5
+  - @graphql-tools/utils@8.6.3
+
 ## 7.9.2
 
 ### Patch Changes
