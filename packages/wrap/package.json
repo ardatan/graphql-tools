@@ -32,9 +32,9 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "^8.5.3",
-    "@graphql-tools/schema": "^8.3.2",
-    "@graphql-tools/utils": "^8.6.3",
+    "@graphql-tools/delegate": "8.5.3",
+    "@graphql-tools/schema": "8.3.2",
+    "@graphql-tools/utils": "8.6.3",
     "tslib": "~2.3.0",
     "value-or-promise": "1.0.11"
   },

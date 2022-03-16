@@ -32,9 +32,9 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/load": "^7.5.2",
-    "@graphql-tools/graphql-file-loader": "^7.3.4",
-    "@graphql-tools/utils": "^8.6.2",
+    "@graphql-tools/load": "7.5.2",
+    "@graphql-tools/graphql-file-loader": "7.3.4",
+    "@graphql-tools/utils": "8.6.3",
     "tslib": "~2.3.0"
   },
   "publishConfig": {

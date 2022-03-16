@@ -33,7 +33,7 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^8.6.2",
+    "@graphql-tools/utils": "8.6.3",
     "tslib": "~2.3.0"
   },
   "publishConfig": {

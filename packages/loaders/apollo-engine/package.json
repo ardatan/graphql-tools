@@ -30,7 +30,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^8.6.2",
+    "@graphql-tools/utils": "8.6.3",
     "cross-undici-fetch": "^0.1.19",
     "tslib": "~2.3.0",
     "sync-fetch": "0.3.1"

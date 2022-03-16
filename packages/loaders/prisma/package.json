@@ -30,8 +30,8 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "dependencies": {
-    "@graphql-tools/url-loader": "^7.7.2",
-    "@graphql-tools/utils": "^8.6.2",
+    "@graphql-tools/url-loader": "7.9.3",
+    "@graphql-tools/utils": "8.6.3",
     "@types/js-yaml": "^4.0.0",
     "@types/json-stable-stringify": "^1.0.32",
     "@types/jsonwebtoken": "^8.5.0",

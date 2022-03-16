@@ -32,14 +32,14 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "^8.5.3",
-    "@graphql-tools/utils": "^8.6.3",
+    "@graphql-tools/delegate": "8.5.3",
+    "@graphql-tools/utils": "8.6.3",
     "dataloader": "2.0.0",
     "tslib": "~2.3.0"
   },
   "devDependencies": {
-    "@graphql-tools/schema": "^8.3.2",
-    "@graphql-tools/stitch": "^8.5.1"
+    "@graphql-tools/schema": "8.3.2",
+    "@graphql-tools/stitch": "8.5.1"
   },
   "publishConfig": {
     "access": "public",

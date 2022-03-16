@@ -41,7 +41,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^8.6.2",
+    "@graphql-tools/utils": "8.6.3",
     "relay-compiler": "12.0.0",
     "tslib": "~2.3.0"
   },
