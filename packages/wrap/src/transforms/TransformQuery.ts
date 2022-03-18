@@ -5,7 +5,7 @@ import { ExecutionRequest, ExecutionResult, relocatedError } from '@graphql-tool
 import { Transform, DelegationContext } from '@graphql-tools/delegate';
 
 export type QueryTransformer = <TContext>(
-  selectionSet: SelectionSetNode,
+  selectionSet: SelectionSetNode | undefined,
   fragments: Record<string, FragmentDefinitionNode>,
   delegationContext: DelegationContext<TContext>,
   transformationContext: Record<string, any>
@@ -60,7 +60,7 @@ export default class TransformQuery<TContext = Record<string, any>>
     const document = visit(originalRequest.document, {
       [Kind.FIELD]: {
         enter: node => {
-          if (index === pathLength || node.name.value !== this.path[index] || node.selectionSet == null) {
+          if (index === pathLength || node.name.value !== this.path[index]) {
             return false;
           }
 
