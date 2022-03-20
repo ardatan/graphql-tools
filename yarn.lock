@@ -2750,10 +2750,10 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@theguild/components@1.10.1":
-  version "1.10.1"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-1.10.1.tgz#62bb0089b5e999f45c80f6aed4ab71352166b51d"
-  integrity sha512-xegO3ZnjlIJpigSwpC8UMiyOxN0S+invrkl3T34zn/XVP7G3WqGU8n3mJ/7DbJuK5V9SRZUG3+CaXvQYYXfOVw==
+"@theguild/components@1.10.2":
+  version "1.10.2"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-1.10.2.tgz#414d74a2090496b2acf86f3918172c3704b30801"
+  integrity sha512-0LC2A2GKXknEo/Rson6yTB3wxyZz2YeUapPC77gWKrN4bA0HO7CXszeiRY4ncVn/nN9KezAOmvm25lr8t2n/FQ==
   dependencies:
     "@emotion/react" "11.7.1"
     "@emotion/styled" "11.6.0"
@@ -6451,10 +6451,10 @@ grapheme-splitter@^1.0.4:
   resolved "https://registry.yarnpkg.com/grapheme-splitter/-/grapheme-splitter-1.0.4.tgz#9cf3a665c6247479896834af35cf1dbb4400767e"
   integrity sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==
 
-graphql-executor@0.0.19:
-  version "0.0.19"
-  resolved "https://registry.yarnpkg.com/graphql-executor/-/graphql-executor-0.0.19.tgz#cab902c91444181944a6bbb3e6cab7107b933f33"
-  integrity sha512-AFOcsk/yMtl9jcO/f/0Our7unWxJ5m3FS5HjWfsXRHCyjjaubXpSHiOZO/hSYv6brayIrupDoVAzCuJpBc3elg==
+graphql-executor@0.0.20:
+  version "0.0.20"
+  resolved "https://registry.yarnpkg.com/graphql-executor/-/graphql-executor-0.0.20.tgz#8718e11fd86cb2eb9a175790dffb8e4314f176ee"
+  integrity sha512-T37QUBWZ4LsJ58J4e9DtnxQiQld8XdcJNS/knaoPyKbzP3eBWFIvXLm73SIW1/LMgyWH07fkj4AwbtIT26rEFA==
 
 graphql-request@^4.0.0:
   version "4.0.0"
