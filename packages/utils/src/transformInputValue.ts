@@ -41,11 +41,23 @@ export function transformInputValue(
 }
 
 export function serializeInputValue(type: GraphQLInputType, value: any) {
-  return transformInputValue(type, value, (t, v) => t.serialize(v));
+  return transformInputValue(type, value, (t, v) => {
+    try {
+      return t.serialize(v);
+    } catch {
+      return v;
+    }
+  });
 }
 
 export function parseInputValue(type: GraphQLInputType, value: any) {
-  return transformInputValue(type, value, (t, v) => t.parseValue(v));
+  return transformInputValue(type, value, (t, v) => {
+    try {
+      return t.parseValue(v);
+    } catch {
+      return v;
+    }
+  });
 }
 
 export function parseInputValueLiteral(type: GraphQLInputType, value: any) {
