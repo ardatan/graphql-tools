@@ -93,6 +93,13 @@ export function mergeRequests(
       selections: mergedSelections,
     },
   };
+  const operationName = firstRequest.operationName ?? firstRequest.info?.operation?.name?.value;
+  if (operationName) {
+    (mergedOperationDefinition as any).name = {
+      kind: Kind.NAME,
+      value: operationName,
+    };
+  }
 
   return {
     document: {
