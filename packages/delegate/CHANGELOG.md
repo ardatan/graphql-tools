@@ -1,5 +1,14 @@
 # @graphql-tools/delegate
 
+## 8.6.1
+
+### Patch Changes
+
+- Updated dependencies [be2c02d7]
+  - @graphql-tools/utils@8.6.5
+  - @graphql-tools/batch-execute@8.4.1
+  - @graphql-tools/schema@8.3.5
+
 ## 8.6.0
 
 ### Minor Changes

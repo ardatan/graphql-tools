@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/json-file-loader",
-  "version": "7.3.6",
+  "version": "7.3.7",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -30,7 +30,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "8.6.4",
+    "@graphql-tools/utils": "8.6.5",
     "globby": "^11.0.3",
     "unixify": "^1.0.0",
     "tslib": "~2.3.0"

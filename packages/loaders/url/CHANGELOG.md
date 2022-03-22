@@ -1,5 +1,14 @@
 # @graphql-tools/url-loader
 
+## 7.9.6
+
+### Patch Changes
+
+- Updated dependencies [be2c02d7]
+  - @graphql-tools/utils@8.6.5
+  - @graphql-tools/delegate@8.6.1
+  - @graphql-tools/wrap@8.4.8
+
 ## 7.9.5
 
 ### Patch Changes

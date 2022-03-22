@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.6.5
+
+### Patch Changes
+
+- be2c02d7: fix(utils): use 3 as inspect recursive depth
+
 ## 8.6.4
 
 ### Patch Changes
