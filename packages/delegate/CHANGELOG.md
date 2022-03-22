@@ -1,5 +1,19 @@
 # @graphql-tools/delegate
 
+## 8.6.0
+
+### Minor Changes
+
+- c40e801f: feat: forward gateway operation's name to subschema executors
+
+### Patch Changes
+
+- Updated dependencies [c40e801f]
+- Updated dependencies [d36d530b]
+  - @graphql-tools/batch-execute@8.4.0
+  - @graphql-tools/utils@8.6.4
+  - @graphql-tools/schema@8.3.4
+
 ## 8.5.4
 
 ### Patch Changes

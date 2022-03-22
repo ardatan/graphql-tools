@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/git-loader",
-  "version": "7.1.4",
+  "version": "7.1.5",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -30,8 +30,8 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "dependencies": {
-    "@graphql-tools/graphql-tag-pluck": "7.1.7",
-    "@graphql-tools/utils": "8.6.3",
+    "@graphql-tools/graphql-tag-pluck": "7.1.8",
+    "@graphql-tools/utils": "8.6.4",
     "is-glob": "4.0.3",
     "micromatch": "^4.0.4",
     "tslib": "~2.3.0",

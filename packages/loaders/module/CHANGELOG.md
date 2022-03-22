@@ -1,5 +1,12 @@
 # @graphql-tools/module-loader
 
+## 7.1.4
+
+### Patch Changes
+
+- Updated dependencies [d36d530b]
+  - @graphql-tools/utils@8.6.4
+
 ## 7.1.3
 
 ### Patch Changes

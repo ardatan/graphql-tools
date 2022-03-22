@@ -1,5 +1,16 @@
 # @graphql-tools/batch-execute
 
+## 8.4.0
+
+### Minor Changes
+
+- c40e801f: feat: forward gateway operation's name to subschema executors
+
+### Patch Changes
+
+- Updated dependencies [d36d530b]
+  - @graphql-tools/utils@8.6.4
+
 ## 8.3.3
 
 ### Patch Changes
