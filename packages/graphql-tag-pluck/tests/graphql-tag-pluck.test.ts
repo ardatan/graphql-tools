@@ -1733,6 +1733,86 @@ describe('graphql-tag-pluck', () => {
       );
     });
 
+    it('should be able to specify a custom Vue block to pluck from', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.vue',
+        freeText(`
+        <template lang="pug">
+          <div>test</div>
+        </template>
+
+        <script lang="ts">
+        import { defineComponent } from 'vue'
+        import gql from 'graphql-tag';
+
+        export default defineComponent({
+          name: 'TestComponent',
+          setup(){
+            return {
+              pageQuery: gql\`
+              query IndexQuery {
+                site {
+                  siteMetadata {
+                    title
+                  }
+                }
+              }
+            \`
+            }
+          }
+        })
+
+        // export const pageQuery = gql\`
+        //   query OtherQuery {
+        //     site {
+        //       siteMetadata {
+        //         title
+        //       }
+        //     }
+        //   }
+        // \`;
+        </script>
+
+        <style lang="scss">
+        .test { color: red };
+        </style>
+
+        <graphql lang="gql">
+        query CustomBlockQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+        </graphql>
+      `),
+        {
+          gqlVueBlock: 'graphql',
+        }
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+
+        query CustomBlockQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `)
+      );
+    });
+
     it('should be able to specify the package name of which the GraphQL identifier should be imported from', async () => {
       const sources = await pluck(
         'tmp-XXXXXX.js',
