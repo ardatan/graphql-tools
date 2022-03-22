@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.6.4
+
+### Patch Changes
+
+- d36d530b: fix(utils): pass the value as-is if it cannot be parsed by the actual type
+
 ## 8.6.3
 
 ### Patch Changes

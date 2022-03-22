@@ -1,5 +1,11 @@
 # graphql-tools
 
+## 8.2.2
+
+### Patch Changes
+
+- @graphql-tools/schema@8.3.4
+
 ## 8.2.1
 
 ### Patch Changes
