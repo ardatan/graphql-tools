@@ -83,17 +83,6 @@ export interface IDelegateRequestOptions<TContext = Record<string, any>, TArgs =
   request: ExecutionRequest;
 }
 
-export interface ICreateRequestFromInfo {
-  info: GraphQLResolveInfo;
-  rootValue?: any;
-  operationName?: string;
-  operation?: OperationTypeNode;
-  fieldName?: string;
-  selectionSet?: SelectionSetNode;
-  fieldNodes?: ReadonlyArray<FieldNode>;
-  context?: any;
-}
-
 export interface ICreateRequest {
   sourceSchema?: GraphQLSchema;
   sourceParentType?: GraphQLObjectType;

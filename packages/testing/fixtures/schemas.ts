@@ -304,6 +304,7 @@ const propertyRootTypeDefs = /* GraphQL */ `
     errorTestNonNull: String!
     relay: Query!
     defaultInputTest(input: InputWithDefault!): String
+    operationNameTest: TestInterface!
   }
 `;
 
@@ -320,6 +321,14 @@ const propertyResolvers: IResolvers = {
   Query: {
     propertyById(_root, { id }) {
       return sampleData.Property[id];
+    },
+
+    operationNameTest(_root, _args, _context, info) {
+      const operationDefinition = info.operation.name;
+      if (operationDefinition !== undefined) {
+        return { testString: operationDefinition.value };
+      }
+      return { testString: null };
     },
 
     properties(_root, { limit }) {

@@ -23,7 +23,7 @@ import {
   serializeInputValue,
   updateArgument,
 } from '@graphql-tools/utils';
-import { ICreateRequestFromInfo, ICreateRequest } from './types';
+import { ICreateRequest } from './types';
 
 export function getDelegatingOperation(parentType: GraphQLObjectType, schema: GraphQLSchema): OperationTypeNode {
   if (parentType === schema.getMutationType()) {
@@ -33,34 +33,6 @@ export function getDelegatingOperation(parentType: GraphQLObjectType, schema: Gr
   }
 
   return 'query' as OperationTypeNode;
-}
-
-export function createRequestFromInfo({
-  info,
-  rootValue,
-  operationName,
-  operation = getDelegatingOperation(info.parentType, info.schema),
-  fieldName = info.fieldName,
-  selectionSet,
-  fieldNodes = info.fieldNodes,
-  context,
-}: ICreateRequestFromInfo): ExecutionRequest {
-  return createRequest({
-    sourceSchema: info.schema,
-    sourceParentType: info.parentType,
-    sourceFieldName: info.fieldName,
-    fragments: info.fragments,
-    variableDefinitions: info.operation.variableDefinitions,
-    variableValues: info.variableValues,
-    targetRootValue: rootValue,
-    targetOperationName: operationName,
-    targetOperation: operation,
-    targetFieldName: fieldName,
-    selectionSet,
-    fieldNodes,
-    context,
-    info,
-  });
 }
 
 export function createRequest({

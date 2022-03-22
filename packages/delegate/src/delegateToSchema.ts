@@ -37,7 +37,7 @@ import {
 
 import { isSubschemaConfig } from './subschemaConfig';
 import { Subschema } from './Subschema';
-import { createRequestFromInfo, getDelegatingOperation } from './createRequest';
+import { createRequest, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
 
 export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
@@ -46,24 +46,30 @@ export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
   const {
     info,
     schema,
-    rootValue,
-    operationName,
+    rootValue = (schema as SubschemaConfig).rootValue ?? info.rootValue,
+    operationName = info.operation.name?.value,
     operation = getDelegatingOperation(info.parentType, info.schema),
     fieldName = info.fieldName,
     selectionSet,
-    fieldNodes,
+    fieldNodes = info.fieldNodes,
     context,
   } = options;
 
-  const request = createRequestFromInfo({
-    info,
-    operation,
-    fieldName,
+  const request = createRequest({
+    sourceSchema: info.schema,
+    sourceParentType: info.parentType,
+    sourceFieldName: info.fieldName,
+    fragments: info.fragments,
+    variableDefinitions: info.operation.variableDefinitions,
+    variableValues: info.variableValues,
+    targetRootValue: rootValue,
+    targetOperationName: operationName,
+    targetOperation: operation,
+    targetFieldName: fieldName,
     selectionSet,
     fieldNodes,
-    rootValue: rootValue ?? (schema as SubschemaConfig).rootValue,
-    operationName,
     context,
+    info,
   });
 
   return delegateRequest({
