@@ -47,7 +47,7 @@ export const splitWords = (str: string) => {
 
 // upper -> Upper
 export const toUpperFirst = (str: string) => {
-  return str.substr(0, 1).toUpperCase() + str.substr(1).toLowerCase();
+  return str.slice(0, 1).toUpperCase() + str.slice(1).toLowerCase();
 };
 
 // foo-bar-baz -> fooBarBaz
