@@ -42,7 +42,7 @@
     "@emotion/react": "11.8.2",
     "@emotion/styled": "11.8.1",
     "@guild-docs/client": "1.4.0",
-    "@guild-docs/server": "2.2.0",
+    "@guild-docs/server": "3.0.0",
     "@mdx-js/react": "2.1.0",
     "@theguild/components": "1.10.2",
     "framer-motion": "6.2.8",
