@@ -18,13 +18,22 @@ jobs:
         uses: actions/setup-node@master
         with:
           node-version: 17
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
       - name: Cache Yarn
+        id: yarn-cache-17-16
         uses: actions/cache@v3
         with:
-          path: '**/node_modules'
-          key: ${{runner.os}}-17-16-yarn-${{hashFiles('yarn.lock')}}
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            **/node_modules
+          key: ${{ runner.os }}-17-16-node-modules-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{runner.os}}-17-16-yarn
+            ${{ runner.os }}-17-16-node-modules-
+
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Prettier Check
@@ -39,13 +48,22 @@ jobs:
         uses: actions/setup-node@master
         with:
           node-version: 17
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
       - name: Cache Yarn
+        id: yarn-cache-17-16
         uses: actions/cache@v3
         with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-17-16-yarn-${{ hashFiles('yarn.lock') }}
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            **/node_modules
+          key: ${{ runner.os }}-17-16-node-modules-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-17-16-yarn
+            ${{ runner.os }}-17-16-node-modules-
+
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Lint
@@ -66,13 +84,22 @@ jobs:
         uses: actions/setup-node@master
         with:
           node-version: 17
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
       - name: Cache Yarn
+        id: yarn-cache-17-16
         uses: actions/cache@v3
         with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-17-${{matrix.graphql_version}}-yarn-${{ hashFiles('yarn.lock') }}
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            **/node_modules
+          key: ${{ runner.os }}-17-16-node-modules-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-17-${{matrix.graphql_version}}-yarn
+            ${{ runner.os }}-17-16-node-modules-
+
       - name: Use GraphQL v${{matrix.graphql_version}}
         run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
       - name: Install Dependencies using Yarn
@@ -101,13 +128,22 @@ jobs:
         uses: actions/setup-node@master
         with:
           node-version: ${{ matrix.node-version }}
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
       - name: Cache Yarn
+        # id: yarn-cache-17-16
         uses: actions/cache@v3
         with:
-          path: '**/node_modules'
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            **/node_modules
           key: ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-yarn
+
       - name: Use GraphQL v${{matrix.graphql_version}}
         run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
       - name: Install Dependencies using Yarn
@@ -131,13 +167,18 @@ jobs:
         uses: actions/setup-node@master
         with:
           node-version: 17
+
       - name: Cache Yarn
+        id: yarn-cache-17-16
         uses: actions/cache@v3
         with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-17-16-yarn-${{ hashFiles('yarn.lock') }}
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            **/node_modules
+          key: ${{ runner.os }}-17-16-node-modules-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-17-16-yarn
+            ${{ runner.os }}-17-16-node-modules-
+
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Build Packages
@@ -154,13 +195,18 @@ jobs:
         uses: actions/setup-node@master
         with:
           node-version: 17
+
       - name: Cache Yarn
+        id: yarn-cache-17-16
         uses: actions/cache@v3
         with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-17-16-yarn-${{ hashFiles('yarn.lock') }}
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            **/node_modules
+          key: ${{ runner.os }}-17-16-node-modules-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-17-16-yarn
+            ${{ runner.os }}-17-16-node-modules-
+
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Build Packages
