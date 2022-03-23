@@ -15,7 +15,7 @@
     "prettier": "prettier --ignore-path .gitignore --ignore-path .prettierignore --write --list-different .",
     "prettier:check": "prettier --ignore-path .gitignore --ignore-path .prettierignore --check .",
     "test": "jest --no-watchman --forceExit",
-    "prerelease": "yarn install && yarn build",
+    "prerelease": "yarn build",
     "prerelease-canary": "yarn build",
     "release": "changeset publish",
     "release:canary": "(node scripts/canary-release.js && yarn build && yarn changeset publish --tag $NPM_TAG) || echo Skipping Canary..."
