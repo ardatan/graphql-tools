@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 7.2.0
+
+### Minor Changes
+
+- eb657d9c: refactor: replace deprecated String.prototype.substr()
+
 ## 7.1.9
 
 ### Patch Changes
