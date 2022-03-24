@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 8.7.0
+
+### Minor Changes
+
+- d8fd6b94: enhance(delegate): use graphql-executor for subscriptions
+
 ## 8.6.1
 
 ### Patch Changes
