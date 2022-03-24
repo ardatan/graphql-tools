@@ -803,7 +803,7 @@ input TestInput {
       it('should handle introspection', () => {
         const [{ schema }] = loader.loadSync(`https://swapi-graphql.netlify.app/.netlify/functions/index`, {});
         expect(schema).toBeInstanceOf(GraphQLSchema);
-        expect(printSchemaWithDirectives(schema!)).toMatchSnapshot();
+        expect(printSchemaWithDirectives(schema!).trim()).toMatchSnapshot();
       });
       it('should handle queries', () => {
         const [{ schema }] = loader.loadSync(`https://swapi-graphql.netlify.app/.netlify/functions/index`, {});
