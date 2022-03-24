@@ -615,16 +615,16 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     fetch: AsyncFetchFn,
     asyncImport: AsyncImportFn,
     options?: LoadFromUrlOptions
-  ): Promise<AsyncExecutor> | AsyncExecutor;
+  ): AsyncExecutor;
 
   buildSubscriptionExecutor(
     subscriptionsEndpoint: string,
-    fetch: any,
+    fetch: FetchFn,
     importFn: AsyncImportFn | SyncImportFn,
     options?: LoadFromUrlOptions
-  ): Promise<Executor> | Executor {
+  ): Executor {
     if (options?.subscriptionsProtocol === SubscriptionProtocol.SSE) {
-      return this.buildHTTPExecutor(subscriptionsEndpoint, fetch, {
+      return this.buildHTTPExecutor(subscriptionsEndpoint, fetch as any, {
         ...options,
         method: 'GET',
       });
@@ -634,7 +634,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         // graphql-sse is recommended to be used on `/graphql/stream`
         subscriptionsEndpoint += '/stream';
       }
-      return this.buildGraphQLSSEExecutor(subscriptionsEndpoint, fetch, options);
+      return this.buildGraphQLSSEExecutor(subscriptionsEndpoint, fetch as any, options);
     } else {
       const webSocketImpl$ = new ValueOrPromise(() => this.getWebSocketImpl(importFn, options));
       const connectionParams = () => ({ headers: options?.headers });
@@ -661,7 +661,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     importFn: AsyncImportFn | SyncImportFn,
     options?: Omit<LoadFromUrlOptions, 'endpoint'>
   ): Executor {
-    const fetch$ = new ValueOrPromise(() => this.getFetch(options?.customFetch, asyncImport));
+    const fetch$ = new ValueOrPromise(() => this.getFetch(options?.customFetch, importFn));
 
     const httpExecutor$ = fetch$.then(fetch => {
       return this.buildHTTPExecutor(endpoint, fetch, options);
@@ -671,7 +671,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       return this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, importFn, options);
     });
 
-    function getExecutorByRequest(request: ExecutionRequest<any>): ValueOrPromise<AsyncExecutor> {
+    function getExecutorByRequest(request: ExecutionRequest<any>): ValueOrPromise<Executor> {
       const operationAst = getOperationASTFromRequest(request);
       if (
         operationAst.operation === 'subscription' ||
