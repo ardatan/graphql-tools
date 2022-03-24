@@ -6,7 +6,6 @@ import {
   IntrospectionOptions,
   IntrospectionQuery,
   ParseOptions,
-  OperationTypeNode,
 } from 'graphql';
 
 import { ValueOrPromise } from 'value-or-promise';
