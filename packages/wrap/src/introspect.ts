@@ -43,7 +43,6 @@ export function introspectSchema(
     executor({
       document: parsedIntrospectionQuery,
       context,
-      operationType: 'query' as OperationTypeNode,
     })
   )
     .then(introspection => {
