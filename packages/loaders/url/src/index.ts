@@ -746,10 +746,12 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       executor = this.getExecutorAsync(options.endpoint, options);
     }
 
-    source.schema = wrapSchema({
-      schema: source.schema,
-      executor,
-    });
+    if (executor) {
+      source.schema = wrapSchema({
+        schema: source.schema,
+        executor,
+      });
+    }
 
     return [source];
   }
