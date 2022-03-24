@@ -12,7 +12,7 @@ import {
   getIntrospectionQuery,
   getOperationAST,
   GraphQLSchema,
-  executeSync,
+  graphqlSync,
 } from 'graphql';
 import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
 import { readFileSync } from 'fs';
@@ -807,15 +807,15 @@ input TestInput {
       });
       it('should handle queries', () => {
         const [{ schema }] = loader.loadSync(`https://swapi-graphql.netlify.app/.netlify/functions/index`, {});
-        const result = executeSync({
+        const result = graphqlSync({
           schema: schema!,
-          document: parse(/* GraphQL */ `
+          source: /* GraphQL */ `
             {
               allFilms {
                 totalCount
               }
             }
-          `),
+          `,
         });
         expect(result).toMatchSnapshot();
       });
