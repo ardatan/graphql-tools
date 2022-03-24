@@ -220,7 +220,6 @@ export const createDefaultExecutor = memoize1(function createDefaultExecutor(sch
       contextValue: request.context,
       variableValues: request.variables,
       operationName: request.operationName,
-      enableIncremental: true,
     };
     return executorInstance.execute(executionArgs);
   } as Executor;
