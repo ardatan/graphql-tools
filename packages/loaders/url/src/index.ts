@@ -719,7 +719,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     let source: Source = {
       location: pointer,
     };
-    let executor: Executor | undefined;
+    let executor: AsyncExecutor | undefined;
     if (options?.handleAsSDL || pointer.endsWith('.graphql') || pointer.endsWith('.graphqls')) {
       const fetch = await this.getFetch(options?.customFetch, asyncImport);
       source = await this.handleSDL(pointer, fetch, options);
@@ -735,7 +735,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           : undefined);
     } else {
       executor = this.getExecutorAsync(pointer, options);
-      source.schema = await introspectSchema(executor as AsyncExecutor, {}, options);
+      source.schema = await introspectSchema(executor, {}, options);
     }
 
     if (!source.schema) {
