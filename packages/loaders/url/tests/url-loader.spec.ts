@@ -11,6 +11,8 @@ import {
   introspectionFromSchema,
   getIntrospectionQuery,
   getOperationAST,
+  GraphQLSchema,
+  graphqlSync,
 } from 'graphql';
 import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
 import { readFileSync } from 'fs';
@@ -794,6 +796,28 @@ input TestInput {
         const doneResult = await iterator.next();
         expect(doneResult).toStrictEqual({ done: true, value: undefined });
         expect(await serverResponseEnded$!).toBe(true);
+      });
+    });
+
+    describe('sync', () => {
+      it('should handle introspection', () => {
+        const [{ schema }] = loader.loadSync(`https://swapi-graphql.netlify.app/.netlify/functions/index`, {});
+        expect(schema).toBeInstanceOf(GraphQLSchema);
+        expect(printSchemaWithDirectives(schema!).trim()).toMatchSnapshot();
+      });
+      it('should handle queries', () => {
+        const [{ schema }] = loader.loadSync(`https://swapi-graphql.netlify.app/.netlify/functions/index`, {});
+        const result = graphqlSync({
+          schema: schema!,
+          source: /* GraphQL */ `
+            {
+              allFilms {
+                totalCount
+              }
+            }
+          `,
+        });
+        expect(result).toMatchSnapshot();
       });
     });
   });
