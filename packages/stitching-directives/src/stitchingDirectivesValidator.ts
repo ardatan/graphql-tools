@@ -84,7 +84,7 @@ export function stitchingDirectivesValidator(
 
           const keyArg = mergeDirective['keyArg'];
           if (keyArg == null) {
-            if (!mergeArgsExpr && args.length !== 1) {
+            if (!mergeArgsExpr && args.length > 1) {
               throw new Error(
                 'Cannot use @merge directive without `keyArg` argument if resolver takes more than one argument.'
               );
