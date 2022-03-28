@@ -14,7 +14,7 @@
     "lint": "eslint --ext .ts .",
     "prettier": "prettier --ignore-path .prettierignore --write --list-different .",
     "prettier:check": "prettier --ignore-path .prettierignore --check .",
-    "test": "jest --no-watchman --forceExit",
+    "test": "jest --no-watchman --forceExit --detectLeaks",
     "prerelease": "yarn build",
     "prerelease-canary": "yarn build",
     "release": "changeset publish",
@@ -72,7 +72,8 @@
     "ts-node": "10.7.0",
     "typedoc": "0.22.15",
     "typedoc-plugin-markdown": "3.11.14",
-    "typescript": "4.6.3"
+    "typescript": "4.6.3",
+    "weak-napi": "2.0.2"
   },
   "lint-staged": {
     "packages/**/src/**/*.{ts,tsx}": [
