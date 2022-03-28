@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 7.2.1
+
+### Patch Changes
+
+- 4e6fe1c1: adding svelte file support
+
 ## 7.2.0
 
 ### Minor Changes
