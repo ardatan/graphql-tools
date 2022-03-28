@@ -111,7 +111,7 @@ export interface GraphQLTagPluckOptions {
   skipIndent?: boolean;
 }
 
-const supportedExtensions = ['.js', '.jsx', '.ts', '.tsx', '.flow', '.flow.js', '.flow.jsx', '.vue'];
+const supportedExtensions = ['.js', '.jsx', '.ts', '.tsx', '.flow', '.flow.js', '.flow.jsx', '.vue', '.svelte'];
 
 // tslint:disable-next-line: no-implicit-dependencies
 function parseWithVue(vueTemplateCompiler: typeof import('@vue/compiler-sfc'), fileData: string) {
@@ -122,10 +122,16 @@ function parseWithVue(vueTemplateCompiler: typeof import('@vue/compiler-sfc'), f
     : '';
 }
 
+// tslint:disable-next-line: no-implicit-dependencies
+function parseWithSvelte(svelte2tsx: typeof import('svelte2tsx'), fileData: string) {
+  const fileInTsx = svelte2tsx.svelte2tsx(fileData);
+  return fileInTsx.code;
+}
+
 /**
  * Asynchronously plucks GraphQL template literals from a single file.
  *
- * Supported file extensions include: `.js`, `.jsx`, `.ts`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`
+ * Supported file extensions include: `.js`, `.jsx`, `.ts`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`, `.svelte`
  *
  * @param filePath Path to the file containing the code. Required to detect the file type
  * @param code The contents of the file being parsed.
@@ -139,9 +145,10 @@ export const gqlPluckFromCodeString = async (
   validate({ code, options });
 
   const fileExt = extractExtension(filePath);
-
   if (fileExt === '.vue') {
     code = await pluckVueFileScript(code);
+  } else if (fileExt === '.svelte') {
+    code = await pluckSvelteFileScript(code);
   }
 
   return parseCode({ code, filePath, options }).map(t => new Source(t.content, filePath, t.loc.start));
@@ -150,7 +157,7 @@ export const gqlPluckFromCodeString = async (
 /**
  * Synchronously plucks GraphQL template literals from a single file
  *
- * Supported file extensions include: `.js`, `.jsx`, `.ts`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`
+ * Supported file extensions include: `.js`, `.jsx`, `.ts`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`, `.svelte`
  *
  * @param filePath Path to the file containing the code. Required to detect the file type
  * @param code The contents of the file being parsed.
@@ -164,9 +171,10 @@ export const gqlPluckFromCodeStringSync = (
   validate({ code, options });
 
   const fileExt = extractExtension(filePath);
-
   if (fileExt === '.vue') {
     code = pluckVueFileScriptSync(code);
+  } else if (fileExt === '.svelte') {
+    code = pluckSvelteFileScriptSync(code);
   }
 
   return parseCode({ code, filePath, options }).map(t => new Source(t.content, filePath, t.loc.start));
@@ -227,6 +235,21 @@ const MissingVueTemplateCompilerError = new Error(
   `)
 );
 
+const MissingSvelteTemplateCompilerError = new Error(
+  freeText(`
+    GraphQL template literals cannot be plucked from a Svelte template code without having the "svelte2tsx" & "svelte" package installed.
+    Please install it and try again.
+
+    Via NPM:
+
+        $ npm install svelte2tsx svelte
+
+    Via Yarn:
+
+        $ yarn add svelte2tsx svelte
+  `)
+);
+
 async function pluckVueFileScript(fileData: string) {
   let vueTemplateCompiler: typeof import('@vue/compiler-sfc');
   try {
@@ -250,4 +273,29 @@ function pluckVueFileScriptSync(fileData: string) {
   }
 
   return parseWithVue(vueTemplateCompiler, fileData);
+}
+
+async function pluckSvelteFileScript(fileData: string) {
+  let svelte2tsx: typeof import('svelte2tsx');
+  try {
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    svelte2tsx = await import('svelte2tsx');
+  } catch (e: any) {
+    throw MissingSvelteTemplateCompilerError;
+  }
+
+  return parseWithSvelte(svelte2tsx, fileData);
+}
+
+function pluckSvelteFileScriptSync(fileData: string) {
+  let svelte2tsx: typeof import('svelte2tsx');
+
+  try {
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    svelte2tsx = require('svelte2tsx');
+  } catch (e: any) {
+    throw MissingSvelteTemplateCompilerError;
+  }
+
+  return parseWithSvelte(svelte2tsx, fileData);
 }

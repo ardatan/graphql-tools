@@ -40,11 +40,14 @@
     "@babel/traverse": "7.17.3",
     "@babel/types": "7.17.0",
     "@types/babel__traverse": "7.14.2",
-    "@vue/compiler-sfc": "3.2.31"
+    "@vue/compiler-sfc": "3.2.31",
+    "svelte": "3.46.4",
+    "svelte2tsx": "0.5.6"
   },
   "buildOptions": {
     "external": [
-      "@vue/compiler-sfc"
+      "@vue/compiler-sfc",
+      "svelte2tsx"
     ]
   },
   "publishConfig": {

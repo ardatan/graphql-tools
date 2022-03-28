@@ -849,6 +849,240 @@ describe('graphql-tag-pluck', () => {
       );
     });
 
+    it('should pluck graphql-tag template literals from .svelte file context module', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.svelte',
+        freeText(`
+        <script context="module" lang="ts">
+          import gql from 'graphql-tag';
+
+          let q = gql\`
+            query IndexQuery {
+              site {
+                siteMetadata {
+                  title
+                }
+              }
+            }
+          \`;
+        </script>
+
+        <style lang="scss">
+        .test { color: red };
+        </style>
+      `)
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `)
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .svelte file not context module', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.svelte',
+        freeText(`
+        <script lang="ts">
+          import gql from 'graphql-tag';
+
+          let q = gql\`
+            query IndexQuery {
+              site {
+                siteMetadata {
+                  title
+                }
+              }
+            }
+          \`;
+        </script>
+
+        <style lang="scss">
+        .test { color: red };
+        </style>
+      `)
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `)
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .svelte file with 2 queries', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.svelte',
+        freeText(`
+        <script lang="ts">
+          import gql from 'graphql-tag';
+
+          let q = gql\`
+            query IndexQuery {
+              site {
+                siteMetadata {
+                  title
+                }
+              }
+            }
+          \`;
+          let q2 = gql\`
+            query IndexQuery2 {
+              site {
+                siteMetadata {
+                  title
+                }
+              }
+            }
+          \`;
+        </script>
+
+        <style lang="scss">
+        .test { color: red };
+        </style>
+      `)
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+
+        query IndexQuery2 {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `)
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .svelte with 2 scripts tags', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.svelte',
+        freeText(`
+        <script context="module" lang="ts">
+          let q = gql\`
+            query IndexQuery {
+              site {
+                siteMetadata {
+                  title
+                }
+              }
+            }
+          \`;
+        </script>
+
+        <script lang="ts">
+          import gql from 'graphql-tag';
+
+          let q2 = gql\`
+            query IndexQuery2 {
+              site {
+                siteMetadata {
+                  title
+                }
+              }
+            }
+          \`;
+        </script>
+
+        <style lang="scss">
+        .test { color: red };
+        </style>
+      `)
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+
+        query IndexQuery2 {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `)
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .svelte removing comments', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.svelte',
+        freeText(`
+        <script context="module" lang="ts">
+          let q = gql\`
+            query IndexQuery {
+              site {
+                siteMetadata {
+                  title
+                }
+              }
+            }
+          \`;
+        </script>
+
+        <script lang="ts">
+          import gql from 'graphql-tag';
+
+          // let q2 = gql\`
+          //   query IndexQuery2 {
+          //     site {
+          //       siteMetadata {
+          //         title
+          //       }
+          //     }
+          //   }
+          // \`;
+        </script>
+
+        <style lang="scss">
+        .test { color: red };
+        </style>
+      `)
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `)
+      );
+    });
+
     it('should pluck graphql-tag template literals from .tsx file with generic jsx elements', async () => {
       const sources = await pluck(
         'tmp-XXXXXX.tsx',
