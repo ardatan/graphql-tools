@@ -67,6 +67,9 @@ export default function generateConfig(
     case '.vue':
       plugins.push('typescript', 'vue');
       break;
+    case '.svelte':
+      plugins.push('typescript', 'svelte');
+      break;
     default:
       plugins.push('jsx', ...dynamicFlowPlugins);
       break;
