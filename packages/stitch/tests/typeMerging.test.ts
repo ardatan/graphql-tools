@@ -114,6 +114,82 @@ describe('merging using type merging', () => {
     expect(userByIdData.chirps[1].author.email).not.toBe(null);
   });
 
+  test('works without resolver args', async () => {
+    let chirpSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Stats {
+          totalChirps: Int!
+        }
+
+        type Query {
+          stats: Stats!
+        }
+      `,
+    });
+
+    chirpSchema = addMocksToSchema({ schema: chirpSchema });
+
+    let authorSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Stats {
+          totalUsers: Int!
+        }
+        type Query {
+          stats: Stats!
+        }
+      `,
+    });
+
+    authorSchema = addMocksToSchema({ schema: authorSchema });
+
+    const stitchedSchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: chirpSchema,
+          merge: {
+            Stats: {
+              fieldName: 'stats',
+              args: () => ({}),
+            },
+          },
+          batch: true,
+        },
+        {
+          schema: authorSchema,
+          merge: {
+            Stats: {
+              fieldName: 'stats',
+              args: () => ({}),
+            },
+          },
+          batch: true,
+        },
+      ],
+    });
+
+    const query = /* GraphQL */ `
+      query {
+        stats {
+          __typename
+          totalChirps
+          totalUsers
+        }
+      }
+    `;
+
+    const result = await graphql({
+      schema: stitchedSchema,
+      source: query,
+    });
+
+    expect(result.errors).toBeUndefined();
+    assertSome(result.data);
+    const statsData: any = result.data['stats'];
+    expect(statsData.__typename).toBe('Stats');
+    expect(statsData.totalChirps).not.toBe(null);
+    expect(statsData.totalUsers).not.toBe(null);
+  });
+
   test('handle top level failures on subschema queries', async () => {
     let userSchema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
