@@ -256,7 +256,7 @@ export function getDirectiveNodes(
 }
 
 export function getDeprecatableDirectiveNodes(
-  entity: GraphQLArgument | GraphQLField<any, any> | GraphQLInputField,
+  entity: GraphQLArgument | GraphQLField<any, any> | GraphQLInputField | GraphQLEnumValue,
   schema?: GraphQLSchema,
   pathToDirectivesInExtensions?: Array<string>
 ): Array<DirectiveNode> {
@@ -574,7 +574,7 @@ export function astFromEnumValue(
       value: value.name,
     },
     // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
-    directives: getDirectiveNodes(value, schema, pathToDirectivesInExtensions) as any,
+    directives: getDeprecatableDirectiveNodes(value, schema, pathToDirectivesInExtensions) as any,
   };
 }
 

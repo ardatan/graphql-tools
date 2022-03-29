@@ -4,6 +4,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 import {
   buildSchema,
   GraphQLDirective,
+  GraphQLEnumType,
   printSchema,
   GraphQLSchema,
   specifiedDirectives,
@@ -247,6 +248,33 @@ describe('printSchemaWithDirectives', () => {
     const output = printSchemaWithDirectives(schema);
 
     expect(output).toContain('directive @dummy on QUERY');
+  });
+
+  it(`Should print enum value deprecations correctly if they don't have astNode`, () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {},
+      }),
+      types: [
+        new GraphQLEnumType({
+          name: 'Color',
+          values: {
+            RED: {
+              value: 'RED',
+              deprecationReason: 'No longer supported',
+            },
+            BLUE: {
+              value: 'BLUE',
+            },
+          },
+        }),
+      ],
+    });
+
+    const output = printSchemaWithDirectives(schema);
+
+    expect(output).toContain('RED @deprecated(reason: "No longer supported")');
   });
 
   it('should print comments', () => {
