@@ -77,7 +77,7 @@ export function addResolversToSchema(
 
     if (type == null) {
       if (requireResolversToMatchSchema === 'ignore') {
-        break;
+        continue;
       }
 
       throw new Error(`"${typeName}" defined in resolvers, but not in schema`);
@@ -235,7 +235,7 @@ function addResolversToExistingSchema(
         if (fieldName.startsWith('__')) {
           // this is for isTypeOf and resolveType and all the other stuff.
           type[fieldName.substring(2)] = resolverValue[fieldName];
-          break;
+          continue;
         }
 
         const fields = type.getFields();
