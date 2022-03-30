@@ -1,5 +1,12 @@
 # @graphql-tools/url-loader
 
+## 7.9.8
+
+### Patch Changes
+
+- @graphql-tools/delegate@8.7.1
+- @graphql-tools/wrap@8.4.10
+
 ## 7.9.7
 
 ### Patch Changes

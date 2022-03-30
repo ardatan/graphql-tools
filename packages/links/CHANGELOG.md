@@ -1,5 +1,11 @@
 # @graphql-tools/links
 
+## 8.2.8
+
+### Patch Changes
+
+- @graphql-tools/delegate@8.7.1
+
 ## 8.2.7
 
 ### Patch Changes
