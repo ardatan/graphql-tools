@@ -32,7 +32,7 @@
   "devDependencies": {
     "@types/dateformat": "3.0.1",
     "dateformat": "4.6.3",
-    "graphql-scalars": "1.16.0"
+    "graphql-scalars": "1.16.1"
   },
   "dependencies": {
     "tslib": "~2.3.0"
