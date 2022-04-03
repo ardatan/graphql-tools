@@ -170,9 +170,7 @@ describe('merging using type merging', () => {
     const query = /* GraphQL */ `
       query {
         stats {
-          __typename
           totalChirps
-          totalUsers
         }
       }
     `;
@@ -185,9 +183,7 @@ describe('merging using type merging', () => {
     expect(result.errors).toBeUndefined();
     assertSome(result.data);
     const statsData: any = result.data['stats'];
-    expect(statsData.__typename).toBe('Stats');
     expect(statsData.totalChirps).not.toBe(null);
-    expect(statsData.totalUsers).not.toBe(null);
   });
 
   test('handle top level failures on subschema queries', async () => {
