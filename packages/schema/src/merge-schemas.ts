@@ -21,7 +21,7 @@ export type MergeSchemasConfig<T = any> = Partial<IExecutableSchemaDefinition<T>
  */
 export function mergeSchemas(config: MergeSchemasConfig) {
   const extractedTypeDefs: TypeSource = asArray(config.typeDefs || []);
-  const extractedResolvers: IResolvers<any, any>[] = asArray(config.resolvers || []);
+  const extractedResolvers: IResolvers<any, any>[] = [];
   const extractedSchemaExtensions: SchemaExtensions[] = asArray(config.schemaExtensions || []);
 
   const schemas = config.schemas || [];
@@ -30,7 +30,8 @@ export function mergeSchemas(config: MergeSchemasConfig) {
     extractedResolvers.push(getResolversFromSchema(schema));
     extractedSchemaExtensions.push(extractExtensionsFromSchema(schema));
   }
-
+  extractedResolvers.push(asArray(config.resolvers || []))
+  
   return makeExecutableSchema({
     parseOptions: config,
     ...config,
