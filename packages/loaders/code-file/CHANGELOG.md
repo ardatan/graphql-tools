@@ -1,5 +1,13 @@
 # @graphql-tools/code-file-loader
 
+## 7.2.11
+
+### Patch Changes
+
+- Updated dependencies [904c0847]
+  - @graphql-tools/utils@8.6.6
+  - @graphql-tools/graphql-tag-pluck@7.2.3
+
 ## 7.2.10
 
 ### Patch Changes

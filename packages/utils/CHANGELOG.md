@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.6.6
+
+### Patch Changes
+
+- 904c0847: Support deprecated directive on enum values
+
 ## 8.6.5
 
 ### Patch Changes
