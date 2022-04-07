@@ -16,7 +16,7 @@
     }
   },
   "resolutions": {
-    "esbuild": "0.14.31"
+    "esbuild": "0.14.33"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "12.1.4",
@@ -27,7 +27,7 @@
     "@types/react-dom": "17.0.14",
     "concurrently": "7.1.0",
     "cross-env": "7.0.3",
-    "esbuild": "0.14.31",
+    "esbuild": "0.14.33",
     "esbuild-register": "3.3.2",
     "next-remote-watch": "1.0.0",
     "open-cli": "7.0.1",
@@ -39,16 +39,16 @@
     "@chakra-ui/react": "1.8.7",
     "@chakra-ui/theme-tools": "1.3.6",
     "@chakra-ui/utils": "1.10.4",
-    "@emotion/react": "11.8.2",
+    "@emotion/react": "11.9.0",
     "@emotion/styled": "11.8.1",
     "@guild-docs/client": "2.0.1",
     "@guild-docs/server": "3.0.1",
     "@mdx-js/react": "2.1.1",
     "@theguild/components": "1.10.3",
-    "framer-motion": "6.2.8",
+    "framer-motion": "6.2.9",
     "next": "12.1.4",
     "next-i18next": "10.5.0",
-    "next-seo": "5.3.0",
+    "next-seo": "5.4.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-icons": "4.3.1",
