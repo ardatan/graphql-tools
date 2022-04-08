@@ -27,6 +27,9 @@ import { Response, File, Headers } from 'cross-undici-fetch';
 import express from 'express';
 import { graphqlHTTP } from 'express-graphql';
 import { inspect } from 'util';
+import { createServer } from '@graphql-yoga/node';
+import { GraphQLLiveDirectiveSDL, useLiveQuery } from '@envelop/live-query';
+import { InMemoryLiveQueryStore } from '@n1ru4l/in-memory-live-query-store';
 
 describe('Schema URL Loader', () => {
   const loader = new UrlLoader();
@@ -834,6 +837,69 @@ input TestInput {
         });
         expect(result).toMatchSnapshot();
       });
+    });
+  });
+  describe('yoga', () => {
+    const urlLoader = new UrlLoader();
+    let yogaApp: ReturnType<typeof createServer>;
+    let interval: any;
+    beforeAll(async () => {
+      const liveQueryStore = new InMemoryLiveQueryStore();
+      interval = setInterval(() => {
+        liveQueryStore.invalidate('Query.time');
+      }, 1000);
+      yogaApp = createServer({
+        schema: {
+          typeDefs: [
+            /* GraphQL */ `
+              type Query {
+                time: String!
+              }
+            `,
+            GraphQLLiveDirectiveSDL,
+          ],
+          resolvers: {
+            Query: {
+              time: () => new Date().toISOString(),
+            },
+          },
+        },
+        plugins: [
+          useLiveQuery({
+            liveQueryStore,
+          }),
+        ],
+        logging: false,
+        port: 4000 + Math.floor(Math.random() * 1000),
+      });
+      await yogaApp.start();
+    });
+    afterAll(async () => {
+      clearInterval(interval);
+      await yogaApp.stop();
+    });
+    it('should handle live queries', async () => {
+      const executor = urlLoader.getExecutorAsync(yogaApp.getServerUrl(), {
+        subscriptionsProtocol: SubscriptionProtocol.SSE,
+      });
+      const result = await executor({
+        document: parse(/* GraphQL */ `
+          query Time @live {
+            time
+          }
+        `),
+      });
+      assertAsyncIterable(result);
+      const results = [];
+      for await (const data of result) {
+        results.push(data);
+        const date = new Date(data.data.time);
+        const now = new Date();
+        expect(date.getSeconds()).toBe(now.getSeconds());
+        if (results.length === 3) {
+          break;
+        }
+      }
     });
   });
 });
