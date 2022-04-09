@@ -2118,10 +2118,10 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.0.tgz#0eee6373e11418bfe0b5638f654df7a4ca6a3950"
   integrity sha512-wYn6r8zVZyQJ6rQaALBEln5B1pzxb9shV5Ef97kTvn6yVGrqyXVnDqnU24MXnFubR+rZjBY9NWuxX3FB2sTsjg==
 
-"@guild-docs/client@2.0.2":
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-2.0.2.tgz#80e25d891966ede2a1e5b80ac02804d00e0d6f3e"
-  integrity sha512-JGb+ro+wxkZy+c9bfsh+k+WxlL9lxfdUY7BY6pB6B1OsLqzg9kfsIFCZj3YdnoQG6hz9TuRJxxneOQgw61J8VQ==
+"@guild-docs/client@2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@guild-docs/client/-/client-2.1.1.tgz#1a3b8df7c1fb1da2e9b507695cc7abb0a76221bd"
+  integrity sha512-ikdcOnjeLvwih+V+WvDCKwP6u8752mVtzK1zjm01H7O+EosmiHHgilHPER7lvvwf7DJ/tBjZJJfqTtvSSrw1zQ==
   dependencies:
     "@guild-docs/mdx-remote" "^2.0.1"
     "@guild-docs/types" "^2.0.0"
@@ -2134,7 +2134,7 @@
     react-sticky-box "1.0.2"
     remove-markdown "0.3.0"
     use-immer "0.6.0"
-    zustand "3.7.1"
+    zustand "3.7.2"
 
 "@guild-docs/mdx-remote@^2.0.1":
   version "2.0.1"
@@ -6312,10 +6312,10 @@ eslint-visitor-keys@^3.0.0, eslint-visitor-keys@^3.3.0:
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-3.3.0.tgz#f6480fa6b1f30efe2d1968aa8ac745b862469826"
   integrity sha512-mQ+suqKJVyeuwGYHAdjMFqjCyfl8+Ldnxuyp3ldiMBFKkvytrXUZWaiPCEav8qDHKty44bD+qV1IP4T+w+xXRA==
 
-eslint@8.12.0:
-  version "8.12.0"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-8.12.0.tgz#c7a5bd1cfa09079aae64c9076c07eada66a46e8e"
-  integrity sha512-it1oBL9alZg1S8UycLm5YDMAkIhtH6FtAzuZs6YvoGVldWjbS08BkAdb/ymP9LlAyq8koANu32U7Ib/w+UNh8Q==
+eslint@8.13.0:
+  version "8.13.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-8.13.0.tgz#6fcea43b6811e655410f5626cfcf328016badcd7"
+  integrity sha512-D+Xei61eInqauAyTJ6C0q6x9mx7kTUC1KZ0m0LSEexR0V+e94K12LmWX076ZIsldwfQ2RONdaJe0re0TRGQbRQ==
   dependencies:
     "@eslint/eslintrc" "^1.2.1"
     "@humanwhocodes/config-array" "^0.9.2"
@@ -12551,18 +12551,18 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-svelte2tsx@0.5.7:
-  version "0.5.7"
-  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.5.7.tgz#6d462461d5f109eba7ad2d23d3d4c2cf5337545f"
-  integrity sha512-rekPWR5at7DNvIlJRSCyKFZ6Go/KyqjDRL/zRWQSNMbvTIocsm/gDtSbLz64ZP5Qz3tUeod7QzDqX13lF60kCg==
+svelte2tsx@0.5.8:
+  version "0.5.8"
+  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.5.8.tgz#a946920d8c192b29664db61ed290722f65cb60a4"
+  integrity sha512-z5Mfpmy/jkpFIiePAocgWxGRJg+Ka0zlxyvFlpP2X1BoQuXjFC6pnIR9CGebOTmi+W1JnSUAdxrCCj/sEMXZ8Q==
   dependencies:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@3.46.6:
-  version "3.46.6"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.46.6.tgz#23046a361ba5f8bafcc9cf9f6fca6d011fb005a7"
-  integrity sha512-o9nNft/OzCz/9kJpmWa1S52GAM+huCjPIsNWydYmgei74ZWlOA9/hN9+Z12INdklghu31seEXZMRHhS1+8DETw==
+svelte@3.47.0:
+  version "3.47.0"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.47.0.tgz#ba46fe4aea99fc650d6939c215cd4694f5325a19"
+  integrity sha512-4JaJp3HEoTCGARRWZQIZDUanhYv0iyoHikklVHVLH9xFE9db22g4TDv7CPeNA8HD1JgjXI1vlhR1JZvvhaTu2Q==
 
 symbol-observable@^1.0.4:
   version "1.2.0"
@@ -14023,10 +14023,10 @@ zen-observable@0.8.15:
   resolved "https://registry.yarnpkg.com/zen-observable/-/zen-observable-0.8.15.tgz#96415c512d8e3ffd920afd3889604e30b9eaac15"
   integrity sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==
 
-zustand@3.7.1:
-  version "3.7.1"
-  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.7.1.tgz#7388f0a7175a6c2fd9a2880b383a4bf6cdf6b7c6"
-  integrity sha512-wHBCZlKj+bg03/hP+Tzv24YhnqqP8MCeN9ECPDXoF01062SIbnfl3j9O0znkDw1lNTY0a8WN3F///a0UhhaEqg==
+zustand@3.7.2:
+  version "3.7.2"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.7.2.tgz#7b44c4f4a5bfd7a8296a3957b13e1c346f42514d"
+  integrity sha512-PIJDIZKtokhof+9+60cpockVOq05sJzHCriyvaLBmEJixseQ1a5Kdov6fWZfWOu5SK9c+FhH1jU0tntLxRJYMA==
 
 zwitch@^2.0.0:
   version "2.0.2"
