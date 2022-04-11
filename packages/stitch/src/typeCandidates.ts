@@ -34,7 +34,7 @@ type CandidateSelector<TContext = Record<string, any>> = (
   candidates: Array<MergeTypeCandidate<TContext>>
 ) => MergeTypeCandidate<TContext>;
 
-export function buildTypeCandidates<TContext = Record<string, any>>({
+export function buildTypeCandidates<TContext extends Record<string, any> = Record<string, any>>({
   subschemas,
   originalSubschemaMap,
   types,

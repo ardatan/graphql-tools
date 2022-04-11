@@ -5,7 +5,7 @@ import { AggregateError, getResponseKeyFromInfo, ExecutionResult, relocatedError
 import { DelegationContext } from './types';
 import { resolveExternalValue } from './resolveExternalValue';
 
-export function checkResultAndHandleErrors<TContext>(
+export function checkResultAndHandleErrors<TContext extends Record<string, any>>(
   result: ExecutionResult,
   delegationContext: DelegationContext<TContext>
 ): any {

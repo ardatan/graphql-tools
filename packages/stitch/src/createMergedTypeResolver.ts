@@ -2,7 +2,7 @@ import { getNamedType, GraphQLList, GraphQLOutputType, OperationTypeNode } from 
 import { delegateToSchema, MergedTypeResolver, MergedTypeResolverOptions } from '@graphql-tools/delegate';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 
-export function createMergedTypeResolver<TContext = any>(
+export function createMergedTypeResolver<TContext extends Record<string, any> = any>(
   mergedTypeResolverOptions: MergedTypeResolverOptions
 ): MergedTypeResolver<TContext> | undefined {
   const { fieldName, argsFromKeys, valuesFromResults, args } = mergedTypeResolverOptions;

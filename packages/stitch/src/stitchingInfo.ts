@@ -25,7 +25,7 @@ import { createMergedTypeResolver } from './createMergedTypeResolver';
 import { createDelegationPlanBuilder } from './createDelegationPlanBuilder';
 import { ValueOrPromise } from 'value-or-promise';
 
-export function createStitchingInfo<TContext = Record<string, any>>(
+export function createStitchingInfo<TContext extends Record<string, any> = Record<string, any>>(
   subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>,
   typeCandidates: Record<string, Array<MergeTypeCandidate<TContext>>>,
   mergeTypes?: boolean | Array<string> | MergeTypeFilter<TContext>
@@ -41,7 +41,7 @@ export function createStitchingInfo<TContext = Record<string, any>>(
   };
 }
 
-function createMergedTypes<TContext = Record<string, any>>(
+function createMergedTypes<TContext extends Record<string, any> = Record<string, any>>(
   typeCandidates: Record<string, Array<MergeTypeCandidate<TContext>>>,
   mergeTypes?: boolean | Array<string> | MergeTypeFilter<TContext>
 ): Record<string, MergedTypeInfo<TContext>> {

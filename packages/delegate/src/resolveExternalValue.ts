@@ -19,7 +19,7 @@ import { StitchingInfo, SubschemaConfig } from './types';
 import { annotateExternalObject, isExternalObject, mergeFields } from './mergeFields';
 import { Subschema } from './Subschema';
 
-export function resolveExternalValue<TContext>(
+export function resolveExternalValue<TContext extends Record<string, any>>(
   result: any,
   unpathedErrors: Array<GraphQLError>,
   subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
@@ -47,7 +47,7 @@ export function resolveExternalValue<TContext>(
   }
 }
 
-function resolveExternalObject<TContext>(
+function resolveExternalObject<TContext extends Record<string, any>>(
   type: GraphQLCompositeType,
   object: any,
   unpathedErrors: Array<GraphQLError>,
@@ -91,7 +91,7 @@ function resolveExternalObject<TContext>(
   return mergeFields(mergedTypeInfo, object, subschema as Subschema, context, info);
 }
 
-function resolveExternalList<TContext>(
+function resolveExternalList<TContext extends Record<string, any>>(
   type: GraphQLList<any>,
   list: Array<any>,
   unpathedErrors: Array<GraphQLError>,
@@ -113,7 +113,7 @@ function resolveExternalList<TContext>(
   );
 }
 
-function resolveExternalListMember<TContext>(
+function resolveExternalListMember<TContext extends Record<string, any>>(
   type: GraphQLType,
   listMember: any,
   unpathedErrors: Array<GraphQLError>,
