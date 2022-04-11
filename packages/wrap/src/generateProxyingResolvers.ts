@@ -58,7 +58,7 @@ function identical<T>(value: T): T {
   return value;
 }
 
-function createPossiblyNestedProxyingResolver<TContext>(
+function createPossiblyNestedProxyingResolver<TContext extends Record<string, any>>(
   subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   proxyingResolver: GraphQLFieldResolver<any, any>
 ): GraphQLFieldResolver<any, TContext, any> {
