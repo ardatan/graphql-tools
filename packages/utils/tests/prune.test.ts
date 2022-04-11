@@ -60,6 +60,32 @@ describe('pruneSchema', () => {
     expect(result.getType('Unused')).toBeDefined();
   });
 
+  test('removes unused custom scalar', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      scalar CustomScalar
+
+      type Query {
+        foo: Boolean
+      }
+    `);
+    const result = pruneSchema(schema);
+    expect(result.getType('CustomScalar')).toBeUndefined();
+  });
+
+  test('does not remove unused custom scalar when skipUnusedTypesPruning set to true', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      scalar CustomScalar
+
+      type Query {
+        foo: Boolean
+      }
+    `);
+    const result = pruneSchema(schema, {
+      skipUnusedTypesPruning: true,
+    });
+    expect(result.getType('CustomScalar')).toBeDefined();
+  });
+
   test('removes unused input objects', () => {
     const schema = buildSchema(/* GraphQL */ `
       input Unused {
@@ -146,6 +172,30 @@ describe('pruneSchema', () => {
       skipUnusedTypesPruning: true,
     });
     expect(result.getType('Unused')).toBeDefined();
+  });
+
+  test('removes unused implementations of interfaces', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Query {
+        operation: SomeType
+      }
+
+      interface SomeInterface {
+        field: String
+      }
+
+      type SomeType implements SomeInterface {
+        field: String
+      }
+
+      type ShouldPrune implements SomeInterface {
+        field: String
+      }
+    `);
+
+    const result = pruneSchema(schema);
+
+    expect(result.getType('ShouldPrune')).toBeUndefined();
   });
 
   test('removes top level objects with no fields', () => {
@@ -248,5 +298,35 @@ describe('pruneSchema', () => {
     });
 
     expect(result.getType('CustomType')).toBeDefined();
+  });
+
+  test('does not prune types or its leaves that match the filter', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      directive @bar on OBJECT
+
+      type SomeInterface {
+        value: String
+      }
+
+      type CustomType implements SomeInterface @bar {
+        value: String
+      }
+
+      type Query {
+        foo: Boolean
+      }
+    `);
+
+    // Do not prune any type that has the @bar directive
+    const doNotPruneTypeWithBar: PruneSchemaFilter = (type: GraphQLNamedType) => {
+      return !!type.astNode?.directives?.find(it => it.name.value === 'bar');
+    };
+
+    const result = pruneSchema(schema, {
+      skipPruning: doNotPruneTypeWithBar,
+    });
+
+    expect(result.getType('CustomType')).toBeDefined();
+    expect(result.getType('SomeInterface')).toBeDefined();
   });
 });
