@@ -22,7 +22,7 @@ import { createHandler } from 'graphql-sse';
 import { Server as WSServer } from 'ws';
 import http from 'http';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { defaultAsyncFetch } from '../src/defaultAsyncFetch';
+import { AsyncFetchFn, defaultAsyncFetch } from '../src/defaultAsyncFetch';
 import { Response, File, Headers } from 'cross-undici-fetch';
 import express from 'express';
 import { graphqlHTTP } from 'express-graphql';
@@ -145,16 +145,17 @@ input TestInput {
 
     it('Should pass default headers', async () => {
       let headers: HeadersInit = {};
+      const customFetch: AsyncFetchFn = async (_, opts) => {
+        headers = opts?.headers || {};
+        return new Response(
+          JSON.stringify({
+            data: introspectionFromSchema(testSchema),
+          })
+        );
+      };
 
       const [source] = await loader.load(testUrl, {
-        customFetch: async (_, opts) => {
-          headers = opts?.headers || {};
-          return new Response(
-            JSON.stringify({
-              data: introspectionFromSchema(testSchema),
-            })
-          );
-        },
+        customFetch,
       });
 
       expect(source).toBeDefined();
@@ -169,17 +170,18 @@ input TestInput {
 
     it('Should pass extra headers when they are specified as object', async () => {
       let headers: HeadersInit = {};
+      const customFetch: AsyncFetchFn = async (_, opts) => {
+        headers = opts?.headers || {};
+        return new Response(
+          JSON.stringify({
+            data: introspectionFromSchema(testSchema),
+          })
+        );
+      };
 
       const [source] = await loader.load(testUrl, {
         headers: { auth: '1' },
-        customFetch: async (_, opts) => {
-          headers = opts?.headers || {};
-          return new Response(
-            JSON.stringify({
-              data: introspectionFromSchema(testSchema),
-            })
-          );
-        },
+        customFetch,
       });
 
       expect(source).toBeDefined();
@@ -197,23 +199,25 @@ input TestInput {
       const introspectionOptions = {
         descriptions: false,
       };
+      const customFetch: AsyncFetchFn = async (_, opts) => {
+        const receivedBody = JSON.parse(opts?.body?.toString() || '{}');
+        const receivedAST = parse(receivedBody.query, {
+          noLocation: true,
+        });
+        const expectedAST = parse(getIntrospectionQuery(introspectionOptions), {
+          noLocation: true,
+        });
+        expect(receivedAST).toMatchObject(expectedAST);
+        return new Response(
+          JSON.stringify({
+            data: introspectionFromSchema(testSchema, introspectionOptions),
+          })
+        );
+      };
+
       const [source] = await loader.load(testUrl, {
         ...introspectionOptions,
-        customFetch: async (_, opts) => {
-          const receivedBody = JSON.parse(opts?.body?.toString() || '{}');
-          const receivedAST = parse(receivedBody.query, {
-            noLocation: true,
-          });
-          const expectedAST = parse(getIntrospectionQuery(introspectionOptions), {
-            noLocation: true,
-          });
-          expect(receivedAST).toMatchObject(expectedAST);
-          return new Response(
-            JSON.stringify({
-              data: introspectionFromSchema(testSchema, introspectionOptions),
-            })
-          );
-        },
+        customFetch,
       });
 
       expect(source).toBeDefined();
@@ -222,30 +226,32 @@ input TestInput {
     });
 
     it('should handle useGETForQueries correctly', async () => {
+      const customFetch: AsyncFetchFn = async (url, opts) => {
+        expect(opts?.method).toBe('GET');
+        const { searchParams } = new URL(url.toString());
+        const receivedQuery = searchParams.get('query')!;
+        const receivedAST = parse(receivedQuery, {
+          noLocation: true,
+        });
+        const receivedOperationName = searchParams.get('operationName');
+        const receivedVariables = JSON.parse(searchParams.get('variables') || '{}');
+        const operationAST = getOperationAST(receivedAST, receivedOperationName);
+        expect(operationAST?.operation).toBe('query');
+        const responseBody = JSON.stringify(
+          await execute({
+            schema: testSchema,
+            document: receivedAST,
+            operationName: receivedOperationName,
+            variableValues: receivedVariables,
+          })
+        );
+        return new Response(responseBody);
+      };
+
       const [source] = await loader.load(testUrl, {
         descriptions: false,
         useGETForQueries: true,
-        customFetch: async (url, opts) => {
-          expect(opts?.method).toBe('GET');
-          const { searchParams } = new URL(url.toString());
-          const receivedQuery = searchParams.get('query')!;
-          const receivedAST = parse(receivedQuery, {
-            noLocation: true,
-          });
-          const receivedOperationName = searchParams.get('operationName');
-          const receivedVariables = JSON.parse(searchParams.get('variables') || '{}');
-          const operationAST = getOperationAST(receivedAST, receivedOperationName);
-          expect(operationAST?.operation).toBe('query');
-          const responseBody = JSON.stringify(
-            await execute({
-              schema: testSchema,
-              document: receivedAST,
-              operationName: receivedOperationName,
-              variableValues: receivedVariables,
-            })
-          );
-          return new Response(responseBody);
-        },
+        customFetch,
       });
 
       const testVariableValue = 'A';
@@ -272,16 +278,18 @@ input TestInput {
     });
 
     it('should respect dynamic values given in extensions', async () => {
+      const customFetch: AsyncFetchFn = async (info, init) => {
+        expect(info.toString()).toBe('DYNAMIC_ENDPOINT');
+        expect(new Headers(init?.headers).get('TEST_HEADER')).toBe('TEST_HEADER_VALUE');
+        return new Response(
+          JSON.stringify({
+            data: introspectionFromSchema(testSchema),
+          })
+        );
+      };
+
       const executor = loader.getExecutorAsync('SOME_ENDPOINT', {
-        customFetch: async (info, init) => {
-          expect(info.toString()).toBe('DYNAMIC_ENDPOINT');
-          expect(new Headers(init?.headers).get('TEST_HEADER')).toBe('TEST_HEADER_VALUE');
-          return new Response(
-            JSON.stringify({
-              data: introspectionFromSchema(testSchema),
-            })
-          );
-        },
+        customFetch,
       });
       await executor({
         document: parse(getIntrospectionQuery()),
@@ -301,15 +309,17 @@ input TestInput {
         path: '/graphql',
       };
       const url = address.host + address.path;
+      const customFetch: AsyncFetchFn = async url => {
+        expect(url.toString()).toBe(address.host + address.path);
+        return new Response(
+          JSON.stringify({
+            data: introspectionFromSchema(testSchema),
+          })
+        );
+      };
+
       await loader.load(url, {
-        customFetch: async url => {
-          expect(url.toString()).toBe(address.host + address.path);
-          return new Response(
-            JSON.stringify({
-              data: introspectionFromSchema(testSchema),
-            })
-          );
-        },
+        customFetch,
       });
       expect.assertions(1);
     });
@@ -320,15 +330,17 @@ input TestInput {
         path: '/graphql',
       };
       const url = address.host + address.path;
+      const customFetch: AsyncFetchFn = async url => {
+        expect(url.toString()).toBe('http://foo:8080/graphql');
+        return new Response(
+          JSON.stringify({
+            data: introspectionFromSchema(testSchema),
+          })
+        );
+      };
+
       await loader.load(url, {
-        customFetch: async url => {
-          expect(url.toString()).toBe('http://foo:8080/graphql');
-          return new Response(
-            JSON.stringify({
-              data: introspectionFromSchema(testSchema),
-            })
-          );
-        },
+        customFetch,
       });
       expect.assertions(1);
     });
@@ -339,15 +351,17 @@ input TestInput {
         path: '/graphql',
       };
       const url = address.host + address.path;
+      const customFetch: AsyncFetchFn = async url => {
+        expect(url.toString()).toBe('https://foo:8080/graphql');
+        return new Response(
+          JSON.stringify({
+            data: introspectionFromSchema(testSchema),
+          })
+        );
+      };
+
       await loader.load(url, {
-        customFetch: async url => {
-          expect(url.toString()).toBe('https://foo:8080/graphql');
-          return new Response(
-            JSON.stringify({
-              data: introspectionFromSchema(testSchema),
-            })
-          );
-        },
+        customFetch,
       });
       expect.assertions(1);
     });
@@ -523,23 +537,24 @@ input TestInput {
     });
     it('should handle subscriptions - graphql-sse', async () => {
       const testUrl = 'http://localhost:8081/graphql';
+      const customFetch: AsyncFetchFn = async (url, options) => {
+        if (String(options?.body).includes('IntrospectionQuery')) {
+          return new Response(
+            JSON.stringify({
+              data: introspectionFromSchema(testSchema),
+            }),
+            {
+              headers: {
+                'content-type': 'application/json',
+              },
+            }
+          );
+        }
+        return defaultAsyncFetch(url, options);
+      };
 
       const [{ schema }] = await loader.load(testUrl, {
-        customFetch: async (url, options) => {
-          if (String(options?.body).includes('IntrospectionQuery')) {
-            return new Response(
-              JSON.stringify({
-                data: introspectionFromSchema(testSchema),
-              }),
-              {
-                headers: {
-                  'content-type': 'application/json',
-                },
-              }
-            );
-          }
-          return defaultAsyncFetch(url, options);
-        },
+        customFetch,
         subscriptionsProtocol: SubscriptionProtocol.GRAPHQL_SSE,
       });
 
