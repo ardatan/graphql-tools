@@ -58,13 +58,13 @@ typings/
 .env
 
 # next.js build output
-.next
+.next/
 
 
-dist
+dist/
 build
 temp
-.idea
+.idea/
 .bob
 .cache
 .DS_Store
@@ -72,10 +72,8 @@ temp
 test-results/
 junit.xml
 
-*.tgz
-
 package-lock.json
 website/yarn.lock
 website/api-sidebar.json
-website/docs/api
+website/docs/api/
 website/out

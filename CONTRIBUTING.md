@@ -28,7 +28,7 @@ Creating a good reproduction really helps contributors investigate and resolve y
 Improving the documentation, examples, and other open source content can be the easiest way to contribute to the library. If you see a piece of content that can be better, open a PR with an improvement, no matter how small! If you would like to suggest a big change or major rewrite, we’d love to hear your ideas but please open an issue for discussion before writing the PR.
 
 If you want to edit the documentation locally you have to clone this project, install the dependencies using `yarn` and run the command `yarn build:api-docs`.
-Afterwards, run `yarn workspace @graphql-tools/website dev` and visit `http://localhost:3000`. All the documentation can be found within `website/src/pages/docs`.
+Afterwards, run `yarn workspace website dev` and visit `http://localhost:3000`. All the documentation can be found within `website/src/pages/docs`.
 
 ### Responding to issues
 

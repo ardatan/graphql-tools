@@ -10,10 +10,10 @@
     "ts:transpile": "tsc --project tsconfig.build.json",
     "clean-dist": "rimraf \"packages/**/dist\" && rimraf \".bob\"",
     "build": "yarn ts:transpile && bob build",
-    "build:api-docs": "node scripts/build-api-docs.js",
+    "build:api-docs": "ts-node --compiler-options='{\"module\":\"commonjs\"}' scripts/build-api-docs",
     "lint": "eslint --ext .ts .",
-    "prettier": "prettier --ignore-path .gitignore --ignore-path .prettierignore --write --list-different .",
-    "prettier:check": "prettier --ignore-path .gitignore --ignore-path .prettierignore --check .",
+    "prettier": "prettier --ignore-path .prettierignore --write --list-different .",
+    "prettier:check": "prettier --ignore-path .prettierignore --check .",
     "test": "jest --no-watchman --forceExit",
     "prerelease": "yarn build",
     "prerelease-canary": "yarn build",
@@ -69,8 +69,9 @@
     "patch-package": "6.4.7",
     "prettier": "2.6.2",
     "ts-jest": "27.1.4",
-    "typedoc": "0.21.9",
-    "typedoc-plugin-markdown": "3.10.4",
+    "ts-node": "10.7.0",
+    "typedoc": "0.22.15",
+    "typedoc-plugin-markdown": "3.11.14",
     "typescript": "4.6.3"
   },
   "lint-staged": {
@@ -87,9 +88,6 @@
       "./packages/loaders/*",
       "./website",
       "./benchmark/*"
-    ],
-    "nohoist": [
-      "@graphql-tools/website/@docusaurus/*"
     ]
   },
   "resolutions": {
