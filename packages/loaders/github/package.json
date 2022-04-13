@@ -32,7 +32,7 @@
   "dependencies": {
     "@graphql-tools/utils": "8.6.6",
     "@graphql-tools/graphql-tag-pluck": "7.2.3",
-    "cross-undici-fetch": "^0.2.0",
+    "cross-undici-fetch": "^0.2.4",
     "sync-fetch": "0.3.1",
     "tslib": "~2.3.0"
   },

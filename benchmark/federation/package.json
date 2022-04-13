@@ -15,7 +15,7 @@
     "@graphql-tools/stitching-directives": "2.2.9",
     "express": "4.17.3",
     "graphql": "16.3.0",
-    "graphql-executor": "0.0.22",
+    "graphql-executor": "0.0.23",
     "graphql-tag": "2.12.6",
     "wait-on": "6.0.1",
     "cross-env": "7.0.3"
