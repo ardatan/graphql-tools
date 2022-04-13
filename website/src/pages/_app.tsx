@@ -2,10 +2,11 @@ import 'remark-admonitions/styles/infima.css';
 import '../../public/style.css';
 
 import { appWithTranslation } from 'next-i18next';
+import Script from 'next/script';
 
 import { extendTheme, theme as chakraTheme } from '@chakra-ui/react';
 import { mode } from '@chakra-ui/theme-tools';
-import { handlePushRoute, CombinedThemeProvider, DocsPage, AppSeoProps } from '@guild-docs/client';
+import { handlePushRoute, CombinedThemeProvider, DocsPage, AppSeoProps, useGoogleAnalytics } from '@guild-docs/client';
 import { Header, Subheader, FooterExtended } from '@theguild/components';
 
 import type { AppProps } from 'next/app';
@@ -52,6 +53,10 @@ const mdxRoutes = { data: serializedMdx && JSON.parse(serializedMdx) };
 
 function AppContent(appProps: AppProps) {
   const { Component, pageProps, router } = appProps;
+  const googleAnalytics = useGoogleAnalytics({
+    router,
+    trackingId: 'G-TPQZLLF5T5',
+  });
   const isDocs = router.asPath.startsWith('/docs');
 
   return (
@@ -96,6 +101,8 @@ function AppContent(appProps: AppProps) {
           onClick: e => handlePushRoute('/docs/introduction', e),
         }}
       />
+      <Script {...googleAnalytics.loadScriptProps} />
+      <Script {...googleAnalytics.configScriptProps} />
       {isDocs ? (
         <DocsPage appProps={appProps} accentColor={accentColor} mdxRoutes={mdxRoutes} />
       ) : (

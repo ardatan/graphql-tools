@@ -1,5 +1,5 @@
 {
-  "name": "@graphql-tools/website",
+  "name": "website",
   "version": "6.2.3",
   "private": true,
   "scripts": {

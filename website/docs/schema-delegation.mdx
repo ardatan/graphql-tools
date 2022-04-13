@@ -138,7 +138,7 @@ The operation type to use during the delegation.
 
 A root field in a subschema from which the query should start.
 
-#### args: Record<string, any>
+#### args: `Record<string, any>`
 
 Additional arguments to be passed to the field. Arguments passed to the field that is being resolved will be preserved if the subschema expects them, so you don't have to pass existing arguments explicitly, though you could use the additional arguments to override the existing ones. For example:
 
@@ -190,7 +190,7 @@ const resolvers = {
 };
 ```
 
-#### context: Record<string, any>
+#### context: `Record<string, any>`
 
 GraphQL context that is going to be passed to the subschema execution or subscription call.
 
@@ -198,7 +198,7 @@ GraphQL context that is going to be passed to the subschema execution or subscri
 
 GraphQL resolve info of the current resolver. Provides access to the subquery that starts at the current resolver.
 
-#### transforms: Array < Transform >
+#### transforms: `Transform[]`
 
 Any additional operation [transforms](/docs/schema-wrapping/) to apply to the query and results. Transforms are specified similarly to the transforms used in conjunction with schema wrapping, but only the operational components of transforms will be used by `delegateToSchema`, i.e. any specified `transformRequest` and `transformResult` functions. The following transforms are automatically applied during schema delegation to translate between source and target types and fields:
 
