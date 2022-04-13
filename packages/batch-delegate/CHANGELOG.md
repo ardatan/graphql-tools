@@ -1,5 +1,13 @@
 # @graphql-tools/batch-delegate
 
+## 8.2.12
+
+### Patch Changes
+
+- fe9402af: Bump data-loader and cross-undici-fetch
+- Updated dependencies [fe9402af]
+  - @graphql-tools/delegate@8.7.3
+
 ## 8.2.11
 
 ### Patch Changes

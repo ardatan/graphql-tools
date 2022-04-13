@@ -1,5 +1,11 @@
 # @graphql-tools/batch-execute
 
+## 8.4.3
+
+### Patch Changes
+
+- fe9402af: Bump data-loader and cross-undici-fetch
+
 ## 8.4.2
 
 ### Patch Changes
