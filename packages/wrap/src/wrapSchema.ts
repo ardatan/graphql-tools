@@ -11,7 +11,7 @@ import { MapperKind, mapSchema } from '@graphql-tools/utils';
 import { SubschemaConfig, defaultMergedResolver, applySchemaTransforms } from '@graphql-tools/delegate';
 import { generateProxyingResolvers } from './generateProxyingResolvers';
 
-export function wrapSchema<TConfig = Record<string, any>>(
+export function wrapSchema<TConfig extends Record<string, any> = Record<string, any>>(
   subschemaConfig: SubschemaConfig<any, any, any, TConfig>
 ): GraphQLSchema {
   const targetSchema = subschemaConfig.schema;

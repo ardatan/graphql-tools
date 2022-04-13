@@ -31,7 +31,9 @@ interface WrapFieldsTransformationContext {
   paths: Record<string, { pathToField: Array<string>; alias: string }>;
 }
 
-export default class WrapFields<TContext> implements Transform<WrapFieldsTransformationContext, TContext> {
+export default class WrapFields<TContext extends Record<string, any>>
+  implements Transform<WrapFieldsTransformationContext, TContext>
+{
   private readonly outerTypeName: string;
   private readonly wrappingFieldNames: Array<string>;
   private readonly wrappingTypeNames: Array<string>;

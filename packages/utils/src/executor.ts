@@ -5,7 +5,7 @@ type MaybeAsyncIterable<T> = AsyncIterable<T> | T;
 
 export type AsyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = Record<string, any>> = <
   TReturn = any,
-  TArgs = Record<string, any>,
+  TArgs extends Record<string, any> = Record<string, any>,
   TContext extends TBaseContext = TBaseContext,
   TRoot = any,
   TExtensions extends TBaseExtensions = TBaseExtensions
@@ -15,7 +15,7 @@ export type AsyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = 
 
 export type SyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = Record<string, any>> = <
   TReturn = any,
-  TArgs = Record<string, any>,
+  TArgs extends Record<string, any> = Record<string, any>,
   TContext extends TBaseContext = TBaseContext,
   TRoot = any,
   TExtensions extends TBaseExtensions = TBaseExtensions
@@ -25,7 +25,7 @@ export type SyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = R
 
 export type Executor<TBaseContext = Record<string, any>, TBaseExtensions = Record<string, any>> = <
   TReturn = any,
-  TArgs = Record<string, any>,
+  TArgs extends Record<string, any> = Record<string, any>,
   TContext extends TBaseContext = TBaseContext,
   TRoot = any,
   TExtensions extends TBaseExtensions = TBaseExtensions

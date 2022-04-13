@@ -505,7 +505,11 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       webSocketImpl
     );
 
-    return <TReturn, TArgs>({ document, variables, operationName }: ExecutionRequest<TArgs>) => {
+    return <TReturn, TArgs extends Record<string, any>>({
+      document,
+      variables,
+      operationName,
+    }: ExecutionRequest<TArgs>) => {
       return observableToAsyncIterable(
         subscriptionClient.request({
           query: document,
