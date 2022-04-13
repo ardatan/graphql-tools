@@ -1,5 +1,11 @@
 # @graphql-tools/github-loader
 
+## 7.2.12
+
+### Patch Changes
+
+- fe9402af: Bump data-loader and cross-undici-fetch
+
 ## 7.2.11
 
 ### Patch Changes

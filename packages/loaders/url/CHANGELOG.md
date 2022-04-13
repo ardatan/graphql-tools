@@ -1,5 +1,14 @@
 # @graphql-tools/url-loader
 
+## 7.9.10
+
+### Patch Changes
+
+- fe9402af: Bump data-loader and cross-undici-fetch
+- Updated dependencies [fe9402af]
+  - @graphql-tools/delegate@8.7.3
+  - @graphql-tools/wrap@8.4.12
+
 ## 7.9.9
 
 ### Patch Changes
