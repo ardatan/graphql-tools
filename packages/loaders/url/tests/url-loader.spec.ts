@@ -874,9 +874,9 @@ input TestInput {
       });
       await yogaApp.start();
     });
-    afterAll(async () => {
+    afterAll(() => {
       clearInterval(interval);
-      await yogaApp.stop();
+      return yogaApp.stop();
     });
     it('should handle live queries', async () => {
       const executor = urlLoader.getExecutorAsync(yogaApp.getServerUrl(), {
