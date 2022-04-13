@@ -5210,7 +5210,7 @@ cross-spawn@^7.0.1, cross-spawn@^7.0.2, cross-spawn@^7.0.3:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-cross-undici-fetch@^0.2.4:
+cross-undici-fetch@^0.2.3:
   version "0.2.4"
   resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.2.4.tgz#eaf54f08202110f9b0a107e44ebab4aa5366553d"
   integrity sha512-VcMfe1lUzh+QOyGzsZTpKsQksZIsFWueBBuyKsk74OMRfIMtkK62QmXofq6uOouXJpRV44kTczO6D2NfCxQW2w==
