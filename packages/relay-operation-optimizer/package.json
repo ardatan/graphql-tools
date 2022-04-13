@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/relay-operation-optimizer",
-  "version": "6.4.6",
+  "version": "6.4.7",
   "description": "Package for optimizing your GraphQL operations relay style.",
   "author": {
     "name": "Laurin Quast",
@@ -41,7 +41,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "8.6.6",
+    "@graphql-tools/utils": "8.6.7",
     "relay-compiler": "12.0.0",
     "tslib": "~2.3.0"
   },
