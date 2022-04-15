@@ -17,7 +17,6 @@ import {
 } from '@graphql-tools/utils';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
-import { ClientOptions as GraphQLSSEClientOptions, createClient as createGraphQLSSEClient } from 'graphql-sse';
 import WebSocket from 'isomorphic-ws';
 import { extractFiles, isExtractableFile } from 'extract-files';
 import { ValueOrPromise } from 'value-or-promise';
@@ -114,9 +113,9 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    */
   subscriptionsProtocol?: SubscriptionProtocol;
   /**
-   * Additional options to pass to the graphql-sse client.
+   * @deprecated This is no longer used. Will be removed in the next release
    */
-  graphqlSseOptions?: Omit<GraphQLSSEClientOptions, 'url' | 'headers' | 'fetchFn' | 'abortControllerImpl'>;
+  graphqlSseOptions?: any;
   /**
    * Retry attempts
    */
@@ -292,25 +291,21 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       const controller = new AbortController();
       let method = defaultMethod;
 
-      if (options?.useGETForQueries) {
-        const operationAst = getOperationASTFromRequest(request);
-        const operationType = operationAst.operation;
-        if (operationType === 'query') {
-          method = 'GET';
-        }
+      const operationAst = getOperationASTFromRequest(request);
+      const operationType = operationAst.operation;
+
+      if (options?.useGETForQueries && operationType === 'query') {
+        method = 'GET';
+      }
+
+      let accept = 'application/json, multipart/mixed';
+      if (operationType === 'subscription') {
+        method = 'GET';
+        accept = 'text/event-stream';
       }
 
       const endpoint = request.extensions?.endpoint || HTTP_URL;
       const headers = Object.assign({}, options?.headers, request.extensions?.headers || {});
-      const acceptedProtocols = [`application/json`];
-
-      if (method === 'GET' && options?.subscriptionsProtocol === SubscriptionProtocol.SSE) {
-        acceptedProtocols.push('text/event-stream');
-      } else {
-        acceptedProtocols.push('multipart/mixed');
-      }
-
-      const accept = acceptedProtocols.join(', ');
 
       const query = print(request.document);
       const requestBody = {
@@ -405,7 +400,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         })
         .then(result => {
           if (typeof result === 'string') {
-            return JSON.parse(result);
+            if (result) {
+              return JSON.parse(result);
+            }
           } else {
             return result;
           }
@@ -578,39 +575,6 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     };
   }
 
-  buildGraphQLSSEExecutor(
-    endpoint: string,
-    fetch: AsyncFetchFn,
-    options: Omit<LoadFromUrlOptions, 'subscriptionEndpoint'> = {}
-  ): AsyncExecutor {
-    const { headers } = options;
-    const client = createGraphQLSSEClient({
-      ...options.graphqlSseOptions,
-      url: endpoint,
-      fetchFn: fetch,
-      abortControllerImpl: AbortController,
-      headers,
-    });
-    return async ({ document, variables, operationName, extensions }) => {
-      return observableToAsyncIterable({
-        subscribe: observer => {
-          const unsubscribe = client.subscribe(
-            {
-              query: document,
-              variables: variables as Record<string, any>,
-              operationName,
-              extensions,
-            },
-            observer
-          );
-          return {
-            unsubscribe,
-          };
-        },
-      });
-    };
-  }
-
   getFetch(
     customFetch: LoadFromUrlOptions['customFetch'],
     importFn: AsyncImportFn
@@ -686,17 +650,14 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     options?: LoadFromUrlOptions
   ): Executor {
     if (options?.subscriptionsProtocol === SubscriptionProtocol.SSE) {
-      return this.buildHTTPExecutor(subscriptionsEndpoint, fetch as any, {
-        ...options,
-        method: 'GET',
-      });
+      return this.buildHTTPExecutor(subscriptionsEndpoint, fetch as any, options);
     } else if (options?.subscriptionsProtocol === SubscriptionProtocol.GRAPHQL_SSE) {
       if (!options?.subscriptionsEndpoint) {
         // when no custom subscriptions endpoint is specified,
         // graphql-sse is recommended to be used on `/graphql/stream`
         subscriptionsEndpoint += '/stream';
       }
-      return this.buildGraphQLSSEExecutor(subscriptionsEndpoint, fetch as any, options);
+      return this.buildHTTPExecutor(subscriptionsEndpoint, fetch as any, options);
     } else {
       const webSocketImpl$ = new ValueOrPromise(() => this.getWebSocketImpl(importFn, options));
       const connectionParams = () => ({ headers: options?.headers });

@@ -35,6 +35,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "devDependencies": {
+    "@envelop/live-query": "3.3.1",
     "@types/extract-files": "8.1.1",
     "@types/valid-url": "1.0.3",
     "babel-loader": "8.2.4",
@@ -51,9 +52,7 @@
     "@graphql-tools/utils": "8.6.8",
     "@graphql-tools/wrap": "8.4.14",
     "@graphql-yoga/node": "2.3.0",
-    "@envelop/live-query": "3.3.1",
     "@n1ru4l/graphql-live-query": "^0.9.0",
-    "@types/websocket": "^1.0.4",
     "@types/ws": "^8.0.0",
     "cross-undici-fetch": "^0.2.4",
     "dset": "^3.1.0",

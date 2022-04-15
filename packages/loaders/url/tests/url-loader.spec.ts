@@ -558,7 +558,8 @@ input TestInput {
 
       const [{ schema }] = await loader.load(testUrl, {
         customFetch,
-        subscriptionsProtocol: SubscriptionProtocol.GRAPHQL_SSE,
+        subscriptionsProtocol: SubscriptionProtocol.SSE,
+        subscriptionsEndpoint: testUrl + '/stream',
       });
 
       httpServer = http.createServer(
