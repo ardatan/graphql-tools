@@ -42,6 +42,7 @@
     "express-graphql": "0.12.0",
     "graphql-upload": "13.0.0",
     "puppeteer": "13.5.2",
+    "subscriptions-transport-ws": "^0.11.0",
     "webpack": "5.72.0"
   },
   "dependencies": {
@@ -60,7 +61,6 @@
     "graphql-ws": "^5.4.1",
     "isomorphic-ws": "^4.0.1",
     "meros": "^1.1.4",
-    "subscriptions-transport-ws": "^0.11.0",
     "sync-fetch": "^0.3.1",
     "tslib": "^2.3.0",
     "value-or-promise": "^1.0.11",

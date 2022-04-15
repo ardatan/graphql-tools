@@ -14,7 +14,7 @@
     "lint": "eslint --ext .ts .",
     "prettier": "prettier --ignore-path .prettierignore --write --list-different .",
     "prettier:check": "prettier --ignore-path .prettierignore --check .",
-    "test": "jest --no-watchman --forceExit --detectLeaks",
+    "test": "jest --no-watchman --detectOpenHandles",
     "prerelease": "yarn build",
     "prerelease-canary": "yarn build",
     "release": "changeset publish",

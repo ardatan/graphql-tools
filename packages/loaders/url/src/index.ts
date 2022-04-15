@@ -20,7 +20,6 @@ import { ClientOptions, createClient } from 'graphql-ws';
 import { ClientOptions as GraphQLSSEClientOptions, createClient as createGraphQLSSEClient } from 'graphql-sse';
 import WebSocket from 'isomorphic-ws';
 import { extractFiles, isExtractableFile } from 'extract-files';
-import { ConnectionParamsOptions, SubscriptionClient as LegacySubscriptionClient } from 'subscriptions-transport-ws';
 import { ValueOrPromise } from 'value-or-promise';
 import { isLiveQueryOperationDefinitionNode } from '@n1ru4l/graphql-live-query';
 import { AsyncFetchFn, defaultAsyncFetch } from './defaultAsyncFetch';
@@ -29,7 +28,7 @@ import { handleMultipartMixedResponse } from './handleMultipartMixedResponse';
 import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse';
 import { addCancelToResponseStream } from './addCancelToResponseStream';
 import { AbortController, FormData, File } from 'cross-undici-fetch';
-import { isBlob, isGraphQLUpload, isPromiseLike } from './utils';
+import { isBlob, isGraphQLUpload, isPromiseLike, LEGACY_WS } from './utils';
 
 export type FetchFn = AsyncFetchFn | SyncFetchFn;
 
@@ -489,34 +488,93 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
 
   buildWSLegacyExecutor(
     subscriptionsEndpoint: string,
-    webSocketImpl: typeof WebSocket,
-    connectionParams?: ConnectionParamsOptions
+    WebSocketImpl: typeof WebSocket,
+    options?: LoadFromUrlOptions
   ): Executor {
     const WS_URL = switchProtocols(subscriptionsEndpoint, {
       https: 'wss',
       http: 'ws',
     });
-    const subscriptionClient = new LegacySubscriptionClient(
-      WS_URL,
-      {
-        connectionParams,
-        lazy: true,
-      },
-      webSocketImpl
-    );
 
-    return <TReturn, TArgs extends Record<string, any>>({
-      document,
-      variables,
-      operationName,
-    }: ExecutionRequest<TArgs>) => {
-      return observableToAsyncIterable(
-        subscriptionClient.request({
-          query: document,
-          variables,
-          operationName,
-        })
-      ) as AsyncIterable<ExecutionResult<TReturn>>;
+    return function legacyExecutor(request: ExecutionRequest) {
+      const id = Date.now().toString();
+      return observableToAsyncIterable({
+        subscribe(observer) {
+          const websocket = new WebSocketImpl(WS_URL, 'graphql-ws', {
+            followRedirects: true,
+            headers: options?.headers,
+            rejectUnauthorized: false,
+            skipUTF8Validation: true,
+          });
+          websocket.onopen = () => {
+            websocket.send(
+              JSON.stringify({
+                type: LEGACY_WS.CONNECTION_INIT,
+                payload: {
+                  ...request.extensions,
+                },
+              })
+            );
+          };
+          websocket.onmessage = event => {
+            const data = JSON.parse(event.data.toString('utf-8'));
+            switch (data.type) {
+              case LEGACY_WS.CONNECTION_ACK: {
+                websocket.send(
+                  JSON.stringify({
+                    type: LEGACY_WS.START,
+                    id,
+                    payload: {
+                      query: print(request.document),
+                      variables: request.variables,
+                      operationName: request.operationName,
+                    },
+                  })
+                );
+                break;
+              }
+              case LEGACY_WS.CONNECTION_ERROR: {
+                observer.error(data.payload);
+                break;
+              }
+              case LEGACY_WS.CONNECTION_KEEP_ALIVE: {
+                break;
+              }
+              case LEGACY_WS.DATA: {
+                observer.next(data.payload);
+                break;
+              }
+              case LEGACY_WS.COMPLETE: {
+                websocket.send(
+                  JSON.stringify({
+                    type: LEGACY_WS.CONNECTION_TERMINATE,
+                  })
+                );
+                websocket.terminate();
+                observer.complete();
+                break;
+              }
+            }
+          };
+
+          return {
+            unsubscribe: () => {
+              websocket.send(
+                JSON.stringify({
+                  type: LEGACY_WS.STOP,
+                  id,
+                })
+              );
+              websocket.send(
+                JSON.stringify({
+                  type: LEGACY_WS.CONNECTION_TERMINATE,
+                })
+              );
+              websocket.terminate();
+            },
+          };
+        },
+      });
     };
   }
 
@@ -644,7 +702,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       const connectionParams = () => ({ headers: options?.headers });
       const executor$ = webSocketImpl$.then(webSocketImpl => {
         if (options?.subscriptionsProtocol === SubscriptionProtocol.LEGACY_WS) {
-          return this.buildWSLegacyExecutor(subscriptionsEndpoint, webSocketImpl, connectionParams);
+          return this.buildWSLegacyExecutor(subscriptionsEndpoint, webSocketImpl, options);
         } else {
           return this.buildWSExecutor(subscriptionsEndpoint, webSocketImpl, connectionParams);
         }
