@@ -1,5 +1,15 @@
 # @graphql-tools/url-loader
 
+## 7.9.12
+
+### Patch Changes
+
+- 43758d61: Remove subscriptions-transport-ws and graphql-sse dependency
+- Updated dependencies [cb238877]
+  - @graphql-tools/utils@8.6.8
+  - @graphql-tools/delegate@8.7.5
+  - @graphql-tools/wrap@8.4.14
+
 ## 7.9.11
 
 ### Patch Changes

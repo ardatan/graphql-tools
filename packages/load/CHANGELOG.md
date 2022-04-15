@@ -1,5 +1,13 @@
 # @graphql-tools/load
 
+## 7.5.9
+
+### Patch Changes
+
+- Updated dependencies [cb238877]
+  - @graphql-tools/utils@8.6.8
+  - @graphql-tools/schema@8.3.9
+
 ## 7.5.8
 
 ### Patch Changes

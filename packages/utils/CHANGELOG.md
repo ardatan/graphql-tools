@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.6.8
+
+### Patch Changes
+
+- cb238877: pruneSchema will now prune unused implementations of interfaces
+
 ## 8.6.7
 
 ### Patch Changes
