@@ -558,8 +558,7 @@ input TestInput {
 
       const [{ schema }] = await loader.load(testUrl, {
         customFetch,
-        subscriptionsProtocol: SubscriptionProtocol.SSE,
-        subscriptionsEndpoint: testUrl + '/stream',
+        subscriptionsProtocol: SubscriptionProtocol.GRAPHQL_SSE,
       });
 
       httpServer = http.createServer(
@@ -595,7 +594,7 @@ input TestInput {
       expect(await getNextResult()).toBe(1);
       expect(await getNextResult()).toBe(2);
 
-      await asyncIterator.return!();
+      asyncIterator.return!();
     });
     it('should handle file uploads', async () => {
       const app = express();
