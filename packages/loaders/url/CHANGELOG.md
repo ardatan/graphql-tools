@@ -1,5 +1,14 @@
 # @graphql-tools/url-loader
 
+## 7.9.13
+
+### Patch Changes
+
+- 8d9f48bc: Remove graphql-sse dependency completely
+- Updated dependencies [26e4b464]
+  - @graphql-tools/delegate@8.7.6
+  - @graphql-tools/wrap@8.4.15
+
 ## 7.9.12
 
 ### Patch Changes

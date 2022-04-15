@@ -1,5 +1,13 @@
 # @graphql-tools/delegate
 
+## 8.7.6
+
+### Patch Changes
+
+- 26e4b464: relax subschema error path check
+
+  ...as (apparently) some implementations may return path as `null` rather than not returning a path.
+
 ## 8.7.5
 
 ### Patch Changes

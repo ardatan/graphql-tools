@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/delegate",
-  "version": "8.7.5",
+  "version": "8.7.6",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
