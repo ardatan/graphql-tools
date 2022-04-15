@@ -1,5 +1,5 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["github>the-guild-org/shared-config:renovate"],
-  "ignoreDeps": ["typedoc", "typedoc-plugin-markdown"]
+  "ignoreDeps": ["typedoc", "typedoc-plugin-markdown", "@types/react"]
 }
