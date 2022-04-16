@@ -872,7 +872,7 @@ input TestInput {
           }),
         ],
         logging: false,
-        port: 4000 + Math.floor(Math.random() * 1000),
+        port: 9876,
       });
       return yogaApp.start();
     });
@@ -894,7 +894,7 @@ input TestInput {
       assertAsyncIterable(result);
       for await (const data of result) {
         expect(data.data.cnt).toBe(cnt);
-        if (cnt >= 10) {
+        if (cnt >= 3) {
           break;
         }
       }
