@@ -843,7 +843,7 @@ input TestInput {
     const urlLoader = new UrlLoader();
     let yogaApp: ReturnType<typeof createServer>;
     let interval: any;
-    beforeAll(async () => {
+    beforeAll(() => {
       const liveQueryStore = new InMemoryLiveQueryStore();
       interval = setInterval(() => {
         liveQueryStore.invalidate('Query.time');
@@ -872,11 +872,11 @@ input TestInput {
         logging: false,
         port: 4000 + Math.floor(Math.random() * 1000),
       });
-      await yogaApp.start();
+      yogaApp.start();
     });
     afterAll(() => {
       clearInterval(interval);
-      return yogaApp.stop();
+      yogaApp.stop();
     });
     it('should handle live queries', async () => {
       const executor = urlLoader.getExecutorAsync(yogaApp.getServerUrl(), {
@@ -896,7 +896,7 @@ input TestInput {
         const date = new Date(data.data.time);
         const now = new Date();
         expect(date.getSeconds()).toBe(now.getSeconds());
-        if (results.length === 3) {
+        if (results.length === 2) {
           break;
         }
       }
