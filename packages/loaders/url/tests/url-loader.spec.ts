@@ -843,24 +843,26 @@ input TestInput {
     const urlLoader = new UrlLoader();
     let yogaApp: ReturnType<typeof createServer>;
     let interval: any;
-    beforeAll(async () => {
+    let cnt = 0;
+    beforeAll(() => {
       const liveQueryStore = new InMemoryLiveQueryStore();
       interval = setInterval(() => {
-        liveQueryStore.invalidate('Query.time');
-      }, 1000);
+        cnt++;
+        liveQueryStore.invalidate('Query.cnt');
+      }, 100);
       yogaApp = createServer({
         schema: {
           typeDefs: [
             /* GraphQL */ `
               type Query {
-                time: String!
+                cnt: Int!
               }
             `,
             GraphQLLiveDirectiveSDL,
           ],
           resolvers: {
             Query: {
-              time: () => new Date().toISOString(),
+              cnt: () => cnt,
             },
           },
         },
@@ -870,9 +872,9 @@ input TestInput {
           }),
         ],
         logging: false,
-        port: 4000 + Math.floor(Math.random() * 1000),
+        port: 9876,
       });
-      await yogaApp.start();
+      return yogaApp.start();
     });
     afterAll(() => {
       clearInterval(interval);
@@ -884,19 +886,15 @@ input TestInput {
       });
       const result = await executor({
         document: parse(/* GraphQL */ `
-          query Time @live {
-            time
+          query Count @live {
+            cnt
           }
         `),
       });
       assertAsyncIterable(result);
-      const results = [];
       for await (const data of result) {
-        results.push(data);
-        const date = new Date(data.data.time);
-        const now = new Date();
-        expect(date.getSeconds()).toBe(now.getSeconds());
-        if (results.length === 3) {
+        expect(data.data.cnt).toBe(cnt);
+        if (cnt >= 3) {
           break;
         }
       }

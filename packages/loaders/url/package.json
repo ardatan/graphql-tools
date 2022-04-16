@@ -42,7 +42,7 @@
     "express": "4.17.3",
     "express-graphql": "0.12.0",
     "graphql-upload": "13.0.0",
-    "graphql-sse": "^1.0.1",
+    "graphql-sse": "1.2.0",
     "puppeteer": "13.5.2",
     "subscriptions-transport-ws": "^0.11.0",
     "webpack": "5.72.0"
@@ -54,7 +54,7 @@
     "@graphql-yoga/node": "2.3.0",
     "@n1ru4l/graphql-live-query": "^0.9.0",
     "@types/ws": "^8.0.0",
-    "cross-undici-fetch": "^0.2.4",
+    "cross-undici-fetch": "^0.3.0",
     "dset": "^3.1.0",
     "extract-files": "^11.0.0",
     "graphql-ws": "^5.4.1",
