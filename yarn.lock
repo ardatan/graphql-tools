@@ -5352,10 +5352,22 @@ cross-spawn@^7.0.1, cross-spawn@^7.0.2, cross-spawn@^7.0.3:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-cross-undici-fetch@^0.2.4, cross-undici-fetch@^0.2.5:
+cross-undici-fetch@^0.2.5:
   version "0.2.5"
   resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.2.5.tgz#0dd5bb3809a2fc4524fc777f1e6eb052203a6b68"
   integrity sha512-6IR+JN6o2UMNj2f3fu0ZVkZeP0h22DRKzq78SiMenkqyBYyGIT1AkZjHkItvh0A80LdsAlWENHUpvapapePucw==
+  dependencies:
+    abort-controller "^3.0.0"
+    form-data-encoder "^1.7.1"
+    formdata-node "^4.3.1"
+    node-fetch "^2.6.7"
+    undici "^5.0.0"
+    web-streams-polyfill "^3.2.0"
+
+cross-undici-fetch@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.3.0.tgz#d03764f0a1bcb745855bba8464c231d46ee14cfa"
+  integrity sha512-as3gHg3EJrc4QMS11/GdHtyY+m3LnIf8GrziHQRe/dGxSHqEP4RcONJ/3UVaPeA1j687aYvwzWMPWKgqsdXbtA==
   dependencies:
     abort-controller "^3.0.0"
     form-data-encoder "^1.7.1"
@@ -7401,10 +7413,10 @@ graphql-scalars@1.17.0:
   dependencies:
     tslib "~2.3.0"
 
-graphql-sse@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/graphql-sse/-/graphql-sse-1.0.1.tgz#d263a8077865b06eaf1b074204683d72a92a5e25"
-  integrity sha512-CByxV9oKmUv/k9tlv8Bg/Hn9CcRlfsRQnU5YKI7Z2MfMckLBrXKq6Y1ln9GZh81Id/n5YV4O4X+p+QUHCu24sQ==
+graphql-sse@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/graphql-sse/-/graphql-sse-1.2.0.tgz#e5e6f8b0c0af1b371aac972deba70b843a82a9bd"
+  integrity sha512-W6XLGLqmwSDUzyUF8dcEPwNmhYe8g90P+wWETZ+6cmk/2kS3zJ1SXgeglWQ2tFKC/FXrc68hTHdHdmLjetJn+Q==
 
 graphql-subscriptions@2.0.0:
   version "2.0.0"
