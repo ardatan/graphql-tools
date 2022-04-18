@@ -139,7 +139,7 @@ function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string>
         }
 
         for (const [, field] of entries) {
-          if (isInputObjectType(type)) {
+          if (isObjectType(type)) {
             for (const arg of field.args) {
               queue.push(getNamedType(arg.type).name); // Visit arg types
             }

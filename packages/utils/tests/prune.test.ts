@@ -86,6 +86,20 @@ describe('pruneSchema', () => {
     expect(result.getType('CustomScalar')).toBeDefined();
   });
 
+  test('does not remove used input objects', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      input UsedInput {
+        value: String
+      }
+
+      type Query {
+        foo(input: UsedInput): Boolean
+      }
+    `);
+    const result = pruneSchema(schema);
+    expect(result.getType('UsedInput')).toBeDefined();
+  });
+
   test('removes unused input objects', () => {
     const schema = buildSchema(/* GraphQL */ `
       input Unused {
