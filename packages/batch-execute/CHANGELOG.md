@@ -1,5 +1,12 @@
 # @graphql-tools/batch-execute
 
+## 8.4.6
+
+### Patch Changes
+
+- Updated dependencies [31a33e2b]
+  - @graphql-tools/utils@8.6.9
+
 ## 8.4.5
 
 ### Patch Changes
