@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.6.9
+
+### Patch Changes
+
+- 31a33e2b: pruneSchema will no longer removed used input object type.
+
 ## 8.6.8
 
 ### Patch Changes

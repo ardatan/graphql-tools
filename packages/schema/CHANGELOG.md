@@ -1,5 +1,13 @@
 # @graphql-tools/schema
 
+## 8.3.10
+
+### Patch Changes
+
+- Updated dependencies [31a33e2b]
+  - @graphql-tools/utils@8.6.9
+  - @graphql-tools/merge@8.2.10
+
 ## 8.3.9
 
 ### Patch Changes

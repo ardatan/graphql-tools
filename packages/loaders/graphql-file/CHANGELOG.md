@@ -1,5 +1,13 @@
 # @graphql-tools/graphql-file-loader
 
+## 7.3.11
+
+### Patch Changes
+
+- Updated dependencies [31a33e2b]
+  - @graphql-tools/utils@8.6.9
+  - @graphql-tools/import@6.6.13
+
 ## 7.3.10
 
 ### Patch Changes
