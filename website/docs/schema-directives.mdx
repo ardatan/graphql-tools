@@ -137,7 +137,7 @@ function upperDirective(directiveName: string): (schema: GraphQLSchema) => Graph
           const { resolve = defaultFieldResolver } = fieldConfig
           return {
             ...fieldConfig,
-            resolver: async function (source, args, context, info) {
+            resolve: async function (source, args, context, info) {
               const result = await resolve(source, args, context, info)
               if (typeof result === 'string') {
                 return result.toUpperCase()
