@@ -874,11 +874,11 @@ input TestInput {
         logging: false,
         port: 9876,
       });
-      return yogaApp.start();
+      yogaApp.start();
     });
     afterAll(() => {
       clearInterval(interval);
-      return yogaApp.stop();
+      yogaApp.stop();
     });
     it('should handle live queries', async () => {
       const executor = urlLoader.getExecutorAsync(yogaApp.getServerUrl(), {
