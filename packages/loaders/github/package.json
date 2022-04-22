@@ -34,7 +34,7 @@
     "@graphql-tools/graphql-tag-pluck": "7.2.6",
     "cross-undici-fetch": "^0.3.0",
     "sync-fetch": "0.3.1",
-    "tslib": "~2.3.0"
+    "tslib": "~2.4.0"
   },
   "publishConfig": {
     "access": "public",

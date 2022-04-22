@@ -34,7 +34,7 @@
   "dependencies": {
     "@graphql-tools/optimize": "1.2.0",
     "@graphql-tools/webpack-loader-runtime": "6.3.1",
-    "tslib": "~2.3.0"
+    "tslib": "~2.4.0"
   },
   "devDependencies": {
     "@types/webpack": "5.28.0"

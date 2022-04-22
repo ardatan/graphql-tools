@@ -32,7 +32,7 @@
   "dependencies": {
     "globby": "11.1.0",
     "unixify": "1.0.0",
-    "tslib": "~2.3.0"
+    "tslib": "~2.4.0"
   },
   "publishConfig": {
     "access": "public",
