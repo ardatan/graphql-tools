@@ -699,7 +699,7 @@ input TestInput {
         });
         await new Promise<void>(resolve => httpServer.listen(serverPort, resolve));
 
-        const executor = await loader.getExecutorAsync(serverHost);
+        const executor = loader.getExecutorAsync(serverHost);
         const result = await executor({
           document: parse(/* GraphQL */ `
             query {
@@ -740,7 +740,7 @@ input TestInput {
 
         await new Promise<void>(resolve => httpServer.listen(serverPort, () => resolve()));
 
-        const executor = await loader.getExecutorAsync(`${serverHost}/graphql`, {
+        const executor = loader.getExecutorAsync(`${serverHost}/graphql`, {
           subscriptionsProtocol: SubscriptionProtocol.SSE,
         });
         const result = await executor({
@@ -791,7 +791,7 @@ input TestInput {
 
         await new Promise<void>(resolve => httpServer.listen(serverPort, () => resolve()));
 
-        const executor = await loader.getExecutorAsync(`${serverHost}/graphql`, {
+        const executor = loader.getExecutorAsync(`${serverHost}/graphql`, {
           subscriptionsProtocol: SubscriptionProtocol.SSE,
         });
         const result = await executor({
