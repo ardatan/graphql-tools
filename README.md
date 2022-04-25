@@ -21,9 +21,9 @@ This package provides a few useful ways to create a GraphQL schema:
 
 ## Binding to HTTP
 
-If you want to bind your JavaScript GraphQL schema to an HTTP server, you can use [`express-graphql`](https://github.com/graphql/express-graphql) .
+If you want to bind your JavaScript GraphQL schema to an HTTP server, you can use [`GraphQL Yoga`](https://www.graphql-yoga.com) .
 
-You can develop your JavaScript based GraphQL API with `graphql-tools` and `express-graphql` together: One to write the schema and resolver code, and the other to connect it to a web server.
+You can develop your JavaScript based GraphQL API with `graphql-tools` and `GraphQL Yoga` together: One to write the schema and resolver code, and the other to connect it to a web server.
 
 ## Example
 
@@ -114,24 +114,20 @@ const executableSchema = makeExecutableSchema({
 })
 ```
 
-GraphQL-Tools schema can be consumed by frameworks like Apollo GraphQL or express-graphql
-For example
+GraphQL-Tools schema can be consumed by frameworks like GraphQL Yoga, Apollo GraphQL or express-graphql
+For example in Node.js;
 
 ```js
-const express = require('express')
-const { graphqlHTTP } = require('express-graphql')
+const { createServer } = require('@graphql-yoga/node');
 
-const app = express()
-app.use(
-  '/graphql',
-  graphqlHTTP({
-    schema: executableSchema,
-    graphiql: true
-  })
-)
-app.listen(4000)
-console.log('Running a GraphQL API server at http://localhost:4000/graphql')
+const server = createServer({
+  schema: executableSchema
+});
+
+server.start()
 ```
+
+You can check [GraphQL Yoga](https://www.graphql-yoga.com) for other JavaScript platforms and frameworks besides vanilla Node.js HTTP.
 
 This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing type definitions](https://graphql-tools.com/docs/schema-merging#merging-type-definitions) and [merging resolvers](https://graphql-tools.com/docs/schema-merging#merging-resolvers) section of the docs.
 
