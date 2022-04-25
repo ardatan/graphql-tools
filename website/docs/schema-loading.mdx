@@ -122,8 +122,7 @@ import { join } from 'path'
 import { loadSchemaSync } from '@graphql-tools/load'
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader'
 import { addResolversToSchema } from '@graphql-tools/schema'
-import * as express from 'express'
-import * as graphqlHTTP from 'express-graphql'
+import { createServer } from '@graphql-yoga/node'
 
 // Load schema from the file
 const schema = loadSchemaSync(join(__dirname, './schema.graphql'), {
@@ -139,18 +138,11 @@ const schemaWithResolvers = addResolversToSchema({
   resolvers
 })
 
-const app = express()
-
-app.use(
-  graphqlHTTP({
-    schema: schemaWithResolvers,
-    graphiql: true
-  })
-)
-
-app.listen(4000, () => {
-  console.info(`Server listening on http://localhost:4000`)
+const server = createServer({
+  schema: schemaWithResolvers
 })
+
+server.start()
 ```
 
 ## Loaders

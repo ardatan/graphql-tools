@@ -4,11 +4,10 @@ title: Setup an HTTP server
 sidebar_label: Setup an HTTP server
 ---
 
-Here's an example using express-graphql:
+Here's an example using **GraphQL Yoga**:
 
 ```js
-const express = require('express')
-const { graphqlHTTP } = require('express-graphql')
+const { createServer } = require('@graphql-yoga/node')
 
 const typeDefs = require('./graphql/types')
 const resolvers = require('./graphql/resolvers')
@@ -20,108 +19,21 @@ const schema = makeExecutableSchema({
   resolvers
 })
 
-const app = express()
-app.use(
-  '/graphql',
-  graphqlHTTP({
-    schema,
-    graphiql: true
-  })
-)
-
-app.listen(3000, () => {
-  console.info('Listening on http://localhost:3000/graphql')
-})
+const server = createServer({ schema })
+server.start()
 ```
 
 And you can test your queries using built-in [GraphiQL](https://github.com/graphql/graphiql/tree/master/packages/graphiql);
 
 <iframe
-  src="https://codesandbox.io/embed/angry-night-e3x06?autoresize=1&fontsize=14&hidenavigation=1&theme=dark"
+  src="https://codesandbox.io/s/github/dotansimha/graphql-yoga/tree/master/examples/hello-world"
   style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }}
-  title="express-graphql-tools-example"
+  title="yoga-hello-world"
   allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr"
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
 ## Adding Subscriptions support
 
-[`graphql-ws`](https://github.com/enisdenjo/graphql-ws) offers a server and client implementation for transporting subscription events over WebSockets.
-
-```js
-const http = require('http')
-const express = require('express')
-const { graphqlHTTP } = require('express-graphql')
-const ws = require('ws') // yarn add ws
-const { useServer } = require('graphql-ws/lib/use/ws')
-
-const typeDefs = require('./graphql/types')
-const resolvers = require('./graphql/resolvers')
-
-const { makeExecutableSchema } = require('@graphql-tools/schema')
-
-const schema = makeExecutableSchema({
-  typeDefs,
-  resolvers
-})
-
-const app = express()
-app.use(
-  '/graphql',
-  graphqlHTTP({
-    schema,
-    graphiql: true
-  })
-)
-
-const server = http.createServer(app)
-
-const wsServer = new ws.Server({
-  server,
-  path: '/graphql'
-})
-
-server.listen(3000, () => {
-  useServer({ schema }, wsServer)
-  console.info('Listening on http://localhost:3000/graphql')
-})
-```
-
-[`graphql-sse`](https://github.com/enisdenjo/graphql-sse) offers a server and client implementation for transporting subscriptions over Server-Sent Events.
-
-```js
-const http = require('http')
-const express = require('express')
-const { graphqlHTTP } = require('express-graphql')
-const { createHandler } = require('graphql-sse')
-
-const typeDefs = require('./graphql/types')
-const resolvers = require('./graphql/resolvers')
-const { makeExecutableSchema } = require('@graphql-tools/schema')
-
-const schema = makeExecutableSchema({
-  typeDefs,
-  resolvers
-})
-
-const app = express()
-app.use(
-  '/graphql',
-  graphqlHTTP({
-    schema,
-    graphiql: true
-  })
-)
-app.use(
-  '/graphql/stream',
-  createHandler({
-    schema
-  })
-)
-
-const server = http.createServer(app)
-
-server.listen(3000, () => {
-  console.info('Listening on http://localhost:3000/graphql')
-})
-```
+You can check **GraphQL Yoga**'s dedicated docs for more information about Subscriptions;
+https://www.graphql-yoga.com/docs/features/subscriptions#subscriptions

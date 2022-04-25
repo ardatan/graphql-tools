@@ -25,7 +25,6 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { AsyncFetchFn, defaultAsyncFetch } from '../src/defaultAsyncFetch';
 import { Response, File, Headers } from 'cross-undici-fetch';
 import express from 'express';
-import { graphqlHTTP } from 'express-graphql';
 import { inspect } from 'util';
 import { createServer } from '@graphql-yoga/node';
 import { GraphQLLiveDirectiveSDL, useLiveQuery } from '@envelop/live-query';
@@ -596,12 +595,12 @@ input TestInput {
 
       asyncIterator.return!();
     });
-    it('should handle file uploads', async () => {
+    it('should handle file uploads in graphql-upload way', async () => {
       const app = express();
       app.use(
         testPath,
         graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }),
-        graphqlHTTP({
+        createServer({
           schema: testSchema,
         })
       );
