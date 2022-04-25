@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.9.15
+
+### Patch Changes
+
+- dd8563f1: Remove GraphQL Yoga dependency from url-loader
+
 ## 7.9.14
 
 ### Patch Changes
