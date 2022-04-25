@@ -55,7 +55,7 @@ function AppContent(appProps: AppProps) {
   const { Component, pageProps, router } = appProps;
   const googleAnalytics = useGoogleAnalytics({
     router,
-    trackingId: 'G-TPQZLLF5T5',
+    trackingId: 'G-PMHEPTBCZS',
   });
   const isDocs = router.asPath.startsWith('/docs');
 
