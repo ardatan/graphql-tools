@@ -1,5 +1,11 @@
 # @graphql-tools/github-loader
 
+## 7.2.16
+
+### Patch Changes
+
+- 4b70d2be: Bump cross-undici-fetch for Node 18 compatibility
+
 ## 7.2.15
 
 ### Patch Changes

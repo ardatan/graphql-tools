@@ -1,5 +1,11 @@
 # @graphql-tools/apollo-engine-loader
 
+## 7.2.12
+
+### Patch Changes
+
+- 4b70d2be: Bump cross-undici-fetch for Node 18 compatibility
+
 ## 7.2.11
 
 ### Patch Changes
