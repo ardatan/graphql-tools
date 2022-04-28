@@ -48,7 +48,7 @@
     "@graphql-tools/delegate": "8.7.7",
     "@graphql-tools/utils": "8.6.9",
     "apollo-upload-client": "17.0.0",
-    "node-fetch": "^2.6.5",
+    "node-fetch": "^3.0.0",
     "form-data": "^4.0.0",
     "tslib": "~2.4.0"
   },
