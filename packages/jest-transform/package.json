@@ -33,8 +33,8 @@
   },
   "dependencies": {
     "@graphql-tools/webpack-loader": "6.6.2",
-    "@jest/transform": "^27.0.2",
-    "@jest/types": "^27.0.2",
+    "@jest/transform": "^28.0.0",
+    "@jest/types": "^28.0.0",
     "tslib": "~2.4.0"
   },
   "publishConfig": {
