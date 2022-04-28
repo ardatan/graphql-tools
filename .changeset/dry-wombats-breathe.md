@@ -1,5 +1,5 @@
 ---
-'@graphql-tools/jest-transform': major
+'@graphql-tools/jest-transform': patch
 ---
 
 Jest 18 support
