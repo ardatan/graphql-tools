@@ -41,7 +41,7 @@
     "@babel/types": "7.17.10",
     "@types/babel__traverse": "7.17.1",
     "@vue/compiler-sfc": "3.2.33",
-    "svelte": "3.47.0",
+    "svelte": "3.48.0",
     "svelte2tsx": "0.5.9"
   },
   "buildOptions": {
