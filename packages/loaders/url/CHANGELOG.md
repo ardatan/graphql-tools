@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.9.17
+
+### Patch Changes
+
+- 3d89a26e: Bump cross-undici-fetch for Node 14 compat
+
 ## 7.9.16
 
 ### Patch Changes
