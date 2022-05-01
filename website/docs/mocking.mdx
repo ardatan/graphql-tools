@@ -37,7 +37,10 @@ const query = /* GraphQL */ `
   }
 `
 
-graphql(schemaWithMocks, query).then(result => console.log('Got result', result))
+graphql({
+  schema: schemaWithMocks,
+  source: query,
+}).then(result => console.log('Got result', result))
 ```
 
 > Note: If your schema has custom scalar types, you still need to define the `__serialize`, `__parseValue`, and `__parseLiteral` functions, and pass them inside the second argument to `makeExecutableSchema`.
