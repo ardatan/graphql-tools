@@ -5566,10 +5566,10 @@ cross-undici-fetch@^0.2.5:
     undici "^5.0.0"
     web-streams-polyfill "^3.2.0"
 
-cross-undici-fetch@^0.3.4:
-  version "0.3.4"
-  resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.3.4.tgz#dbac4245a4036484008ef3dd2ec829f5dd6b4f5a"
-  integrity sha512-kQMFlk/HPeVQGgmaol87fNsZCQpECNI7BCIBI4b7zA6zx8VQ1YrXBV5fICJ0uVFBVF/snYAnyNj6eky21okeuQ==
+cross-undici-fetch@^0.3.5:
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.3.5.tgz#36e3219a9b0a8ba30c3d0ea9838c2c0d6eb1be52"
+  integrity sha512-z1IpxDnhK3ohQH0kE3Fu8xoAC3Dkpziu90HqE7IKP/FRKiEUvimWhTmAJ7EAuoOIbyAZZi2WXuUTXfHO9D6C1A==
   dependencies:
     abort-controller "^3.0.0"
     form-data-encoder "^1.7.1"
