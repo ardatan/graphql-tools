@@ -1,5 +1,11 @@
 # @graphql-tools/apollo-engine-loader
 
+## 7.2.15
+
+### Patch Changes
+
+- 627565a8: Bump cross-undici-fetch
+
 ## 7.2.14
 
 ### Patch Changes
