@@ -36,3 +36,9 @@ function defaultTransformer(): GraphQLTransformer {
 export function process(...args: any[]): any {
   return (defaultTransformer().process as any)(...args);
 }
+
+const transformerFactory = {
+  process,
+};
+
+export default transformerFactory;
