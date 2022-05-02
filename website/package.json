@@ -19,7 +19,7 @@
     "esbuild": "0.14.38"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "12.1.5",
+    "@next/bundle-analyzer": "12.1.6",
     "@types/concurrently": "6.4.0",
     "@types/mdx-js__react": "1.5.5",
     "@types/node": "16.11.33",
@@ -46,7 +46,7 @@
     "@mdx-js/react": "2.1.1",
     "@theguild/components": "1.11.2",
     "framer-motion": "6.3.3",
-    "next": "12.1.5",
+    "next": "12.1.6",
     "next-i18next": "11.0.0",
     "next-seo": "5.4.0",
     "react": "18.1.0",
