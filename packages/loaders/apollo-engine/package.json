@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "8.6.9",
-    "cross-undici-fetch": "^0.3.5",
+    "cross-undici-fetch": "^0.4.0",
     "tslib": "~2.4.0",
     "sync-fetch": "0.3.1"
   },
