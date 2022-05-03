@@ -137,13 +137,13 @@
     use-sync-external-store "^1.0.0"
     zen-observable-ts "^1.2.0"
 
-"@apollo/composition@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@apollo/composition/-/composition-2.0.1.tgz#59c02de751d4fb4be85a497d9fa49a204895b5ff"
-  integrity sha512-5WCtpOomn1fV+JWbXAxKctjEjHSxmFLC3XYZkm1j4q3m/rtYDyqpRZBoqIE+j7dot3pRJjD6aSgCKvE1P8tyPg==
+"@apollo/composition@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@apollo/composition/-/composition-2.0.2.tgz#2fdcd5581111e23b330f8a06c83d33051e8c9831"
+  integrity sha512-ZKvgRL+1SefdoCbFHGhm8uYokwWftkJ8GR77TzXDWLyU0Xy+LLajCuTkEiG+CMNi3fW1xtkFXcqYFzYdAwR1lw==
   dependencies:
-    "@apollo/federation-internals" "^2.0.1"
-    "@apollo/query-graphs" "^2.0.1"
+    "@apollo/federation-internals" "^2.0.2"
+    "@apollo/query-graphs" "^2.0.2"
 
 "@apollo/core-schema@~0.3.0":
   version "0.3.0"
@@ -152,10 +152,10 @@
   dependencies:
     "@protoplasm/recall" "^0.2"
 
-"@apollo/federation-internals@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@apollo/federation-internals/-/federation-internals-2.0.1.tgz#582bbc732015ec63117da958e79ded7495fbbf79"
-  integrity sha512-as2lL0tChwQx3PgBKQ8hELal2paBFsbucXSba+Gi84ZP1wGtYtl5kJmE7DVImsC+/CAVjEFWM7aWQGJg6Im8Ow==
+"@apollo/federation-internals@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@apollo/federation-internals/-/federation-internals-2.0.2.tgz#f10e7d8c9a54846a5056055ec345813ca9e05fc3"
+  integrity sha512-yLooPy6q0FX351fDdBqNEm6hWz1tiV/oVOi2j8NYDL1sjPKR2cFedUjvQuAFmH8WfNXPOTIjMPJpO3XNMc4qCA==
   dependencies:
     "@apollo/core-schema" "~0.3.0"
     chalk "^4.1.0"
@@ -170,14 +170,18 @@
     apollo-server-types "^3.0.2"
     lodash.xorby "^4.7.0"
 
-"@apollo/gateway@2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-2.0.1.tgz#eb6d8179712de885cf3a0cb46cc69998f80fa3cf"
-  integrity sha512-h1cnXtm2ZyR2guIJtv5fnwJoarcst/G4j1VQRbvYoKkbB/EWjeKY12ykHOfOt/BhYPoIo7gdT9c2AnAwa1+ZAA==
+"@apollo/gateway@2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-2.0.2.tgz#c95a9b6ea588f07de9cd542b81accae28778f803"
+  integrity sha512-Jvytd/bdoU2Rc7YKevQBiHlQZR0oO5g4FEoyWAwZgd/kezjTbXuX7GCW1PKBY+v3DsoqWCSHQnyb0Ioe48oXzg==
   dependencies:
-    "@apollo/composition" "^2.0.1"
+    "@apollo/composition" "^2.0.2"
     "@apollo/core-schema" "~0.3.0"
-    "@apollo/query-planner" "^2.0.1"
+    "@apollo/federation-internals" "^2.0.2"
+    "@apollo/query-planner" "^2.0.2"
+    "@apollo/utils.createhash" "^1.0.0"
+    "@apollo/utils.fetcher" "^1.0.0"
+    "@apollo/utils.isnodelike" "^1.0.0"
     "@apollo/utils.logger" "^1.0.0"
     "@josephg/resolvable" "^1.0.1"
     "@opentelemetry/api" "^1.0.1"
@@ -185,14 +189,12 @@
     apollo-reporting-protobuf "^0.8.0 || ^3.0.0"
     apollo-server-caching "^0.7.0 || ^3.0.0"
     apollo-server-core "^2.23.0 || ^3.0.0"
-    apollo-server-env "^3.0.0 || ^4.0.0"
     apollo-server-errors "^2.5.0 || ^3.0.0"
     apollo-server-types "^0.9.0 || ^3.0.0"
     async-retry "^1.3.3"
     loglevel "^1.6.1"
-    make-fetch-happen "^8.0.0"
+    make-fetch-happen "^10.1.2"
     pretty-format "^27.0.0"
-    sha.js "^2.4.11"
 
 "@apollo/protobufjs@1.2.2":
   version "1.2.2"
@@ -213,22 +215,22 @@
     "@types/node" "^10.1.0"
     long "^4.0.0"
 
-"@apollo/query-graphs@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@apollo/query-graphs/-/query-graphs-2.0.1.tgz#e4ecf5a8c7dda74ba41f843a37371db0773c52c8"
-  integrity sha512-jZ0Ljbzfn99XKzmH8QparOiv78xOSbJ3IzccBsPIwz7/QgcBuy82vvTTIoAGApDtPoqivP/rGinVN6ocigtHMQ==
+"@apollo/query-graphs@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@apollo/query-graphs/-/query-graphs-2.0.2.tgz#bdce6093878b40cb9bbed7102517b02776572503"
+  integrity sha512-TFs5dDfhuHq3LDh0ZFxDlfC/hl8hal8UMahGvHfRkib2c4annTDaQqdTQAM9SR4bFzOMHgTNMjs9nZtEv+oG1w==
   dependencies:
-    "@apollo/federation-internals" "^2.0.1"
+    "@apollo/federation-internals" "^2.0.2"
     deep-equal "^2.0.5"
     ts-graphviz "^0.16.0"
 
-"@apollo/query-planner@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-2.0.1.tgz#7cc5318bdf838d6cd7e9a4955b8b9ccbc37b40ee"
-  integrity sha512-4a6mmPGd6PrKCUSBWaSoYks6hTZ1nWEi1mlBCLHVKCseBiQyj2/eOp7UoIe/0737HMRyQh/LCBPGgMPTEsPzHQ==
+"@apollo/query-planner@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-2.0.2.tgz#42638ae1cb51193a6a3be2707c3126bb676c0243"
+  integrity sha512-gA10oLDVIjL0wGmpoarmHB1wunUZoLhQE7EJxIWlqqT27YgbcwpOL4z+udM4KZNSTnuGOCA270r/oUO1HcDWMw==
   dependencies:
-    "@apollo/federation-internals" "^2.0.1"
-    "@apollo/query-graphs" "^2.0.1"
+    "@apollo/federation-internals" "^2.0.2"
+    "@apollo/query-graphs" "^2.0.2"
     chalk "^4.1.0"
     deep-equal "^2.0.5"
     pretty-format "^27.0.0"
@@ -237,6 +239,24 @@
   version "0.4.1"
   resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-0.4.1.tgz#7bc4f0a133a8558607b99f83138cbb313fe39b42"
   integrity sha512-4tm9sY/aYGwB20xccVRJiLupEpEhXBbhbJNlpqigtXnE6A5uQvvKn7qgDdZn5fZr6rw4kX5N9lLSliU03QwTfA==
+
+"@apollo/utils.createhash@^1.0.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@apollo/utils.createhash/-/utils.createhash-1.1.0.tgz#b18a353008d2583a34eaebaf471aff6e15360172"
+  integrity sha512-5fT4ZiW75515OlikWpIQzaVDws1yy9VgYSoHoJCrvI2UH6/7YNKXQjbjT5qVYu6ytch2wBxFMfFfYWMn/2bSCQ==
+  dependencies:
+    "@apollo/utils.isnodelike" "^1.1.0"
+    sha.js "^2.4.11"
+
+"@apollo/utils.fetcher@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@apollo/utils.fetcher/-/utils.fetcher-1.0.0.tgz#467c99e97c1a81841435280707fcf2fb0b5768b7"
+  integrity sha512-SpJH69ffk91BoYSVb12Dt/jFQKVOrm4NE59XUeHXRsha1xBmxjvZNN6qvYySAcGjloW4TtFZYlPkBpwjMRWymw==
+
+"@apollo/utils.isnodelike@^1.0.0", "@apollo/utils.isnodelike@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@apollo/utils.isnodelike/-/utils.isnodelike-1.1.0.tgz#24d3f36276b6ba4b08117925083bc5c5f2513c3d"
+  integrity sha512-q/Q82kBUSEcx1ED11JO1TYBY781mWluUnBD8NvhjHVsu1K1C5R9BZVUxShyK/V8XcePcRUB5fdWOcBMGwS0KOA==
 
 "@apollo/utils.logger@^1.0.0":
   version "1.0.0"
@@ -2201,15 +2221,20 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@gar/promisify@^1.1.3":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@gar/promisify/-/promisify-1.1.3.tgz#555193ab2e3bb3b6adc3d551c9c030d9e860daf6"
+  integrity sha512-k2Ty1JcVojjJFwrg/ThKi2ujJ7XNLYaFGNB/bWT9wGR+oSMJHMa5w+CUq6p/pVrKeNNgA7pCqEcjSnHVoqJQFw==
+
 "@graphql-typed-document-node/core@^3.1.1":
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.1.tgz#076d78ce99822258cf813ecc1e7fa460fa74d052"
   integrity sha512-NQ17ii0rK1b34VZonlmT2QMJFI70m0TRwbknO/ihlbatXyaktDhN/98vBiUU6kNBPljqGqyIrl2T4nY2RpFANg==
 
-"@graphql-yoga/common@2.4.0":
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/common/-/common-2.4.0.tgz#f95706ebe2b317a348942cfc940cbdfb1aa4b704"
-  integrity sha512-R9EYH9s8Gw9hZe7zoGpIWfHT+nmDy3T0DvVJkBFnZbroniVtp1SXLYGjbXzfz03i2eUi+Voj3f3mRvStmQ+Kug==
+"@graphql-yoga/common@2.4.1":
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/common/-/common-2.4.1.tgz#55f43e8514108fd2340e55e0cd4b51771c611290"
+  integrity sha512-jFRyb7+jt9bGarypGzQnv8Jvd3UW0RVqb3Y5KjabEeD0WSGHrB5t/7+Q2AJ9hOzUxUJQvrTrpr5OrPDQSga+Fg==
   dependencies:
     "@envelop/core" "^2.0.0"
     "@envelop/disable-introspection" "^3.0.0"
@@ -2223,14 +2248,14 @@
     dset "^3.1.1"
     tslib "^2.3.1"
 
-"@graphql-yoga/node@2.4.0":
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/node/-/node-2.4.0.tgz#cf2bdba78e6fba74c11c9387a24ec0a8c6493ec8"
-  integrity sha512-GkhovdpAeD18oi+FePZIyi+T3Ju1dDTo0FIIUyvFoEqzMqOexFGjkXOFdiMrM6kfesh3fhUGU0DXcIjhtxUILg==
+"@graphql-yoga/node@2.4.1":
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/node/-/node-2.4.1.tgz#86015b4c9169e43df7c91fb4371b86fe02002fd9"
+  integrity sha512-4dX2mNo8VewrLRPD9emzqh6FQ5bu7tAxpQOiFTvNKqaaZn04pZgHYnVw89FOmQyldh+gyNrilFIxeqT9+DchJA==
   dependencies:
     "@envelop/core" "^2.0.0"
     "@graphql-tools/utils" "^8.6.0"
-    "@graphql-yoga/common" "2.4.0"
+    "@graphql-yoga/common" "2.4.1"
     "@graphql-yoga/subscription" "2.0.0"
     cross-undici-fetch "^0.3.0"
     tslib "^2.3.1"
@@ -2740,10 +2765,18 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@npmcli/move-file@^1.0.1":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@npmcli/move-file/-/move-file-1.1.2.tgz#1a82c3e372f7cae9253eb66d72543d6b8685c674"
-  integrity sha512-1SUf/Cg2GzGDyaf15aR9St9TWlb+XvbZXWpDx8YKs7MLzMH/BCeopv+y9vzrzgkfykCGuWOlSu3mZhj2+FQcrg==
+"@npmcli/fs@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@npmcli/fs/-/fs-2.1.0.tgz#f2a21c28386e299d1a9fae8051d35ad180e33109"
+  integrity sha512-DmfBvNXGaetMxj9LTp8NAN9vEidXURrf5ZTslQzEAi/6GbW+4yjaLFQc6Tue5cpZ9Frlk4OBo/Snf1Bh/S7qTQ==
+  dependencies:
+    "@gar/promisify" "^1.1.3"
+    semver "^7.3.5"
+
+"@npmcli/move-file@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@npmcli/move-file/-/move-file-2.0.0.tgz#417f585016081a0184cef3e38902cd917a9bbd02"
+  integrity sha512-UR6D5f4KEGWJV6BGPH3Qb2EtgH+t+1XQ1Tt85c7qicN6cezzuHPdZwwAxqZr4JLtnQu0LZsTza/5gmNmSl8XLg==
   dependencies:
     mkdirp "^1.0.4"
     rimraf "^3.0.2"
@@ -3234,11 +3267,6 @@
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@tokenizer/token/-/token-0.3.0.tgz#fe98a93fe789247e998c75e74e9c7c63217aa276"
   integrity sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A==
-
-"@tootallnate/once@1":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
-  integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
 "@tootallnate/once@2":
   version "2.0.0"
@@ -4196,10 +4224,10 @@ agent-base@6, agent-base@^6.0.2:
   dependencies:
     debug "4"
 
-agentkeepalive@^4.1.3:
-  version "4.1.4"
-  resolved "https://registry.yarnpkg.com/agentkeepalive/-/agentkeepalive-4.1.4.tgz#d928028a4862cb11718e55227872e842a44c945b"
-  integrity sha512-+V/rGa3EuU74H6wR04plBb7Ks10FbtUQgRj/FQOG7uUIEuaINI+AiqJR1k6t3SVNs7o7ZjIdus6706qqzVq8jQ==
+agentkeepalive@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/agentkeepalive/-/agentkeepalive-4.2.1.tgz#a7975cbb9f83b367f06c90cc51ff28fe7d499717"
+  integrity sha512-Zn4cw2NEqd+9fiSVWMscnjyQ1a8Yfoc5oBajLeo5w+YBHgDUcEBY2hS4YpTz6iN5f/2zQiktcuM6tS8x1p9dpA==
   dependencies:
     debug "^4.1.0"
     depd "^1.1.2"
@@ -4373,7 +4401,7 @@ apollo-datasource@^3.3.0:
     sha.js "^2.4.11"
     uuid "^8.0.0"
 
-"apollo-server-env@^3.0.0 || ^4.0.0", apollo-server-env@^4.2.0:
+apollo-server-env@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/apollo-server-env/-/apollo-server-env-4.2.0.tgz#d7cb08a81cee3025cd47b08be80b359d61d85913"
   integrity sha512-4xJ+PCoWsFLj4rU6iXrIhqD7nI42goi4Iqrhsof9680ljSzkzd+PCwZsja3mHOFXKUQQUvJ7StVSgwaiRu45+A==
@@ -4961,27 +4989,28 @@ cac@^6.7.12:
   resolved "https://registry.yarnpkg.com/cac/-/cac-6.7.12.tgz#6fb5ea2ff50bd01490dbda497f4ae75a99415193"
   integrity sha512-rM7E2ygtMkJqD9c7WnFU6fruFcN3xe4FM5yUmgxhZzIKJk4uHl9U/fhwdajGFQbQuv43FAUo1Fe8gX/oIKDeSA==
 
-cacache@^15.0.5:
-  version "15.2.0"
-  resolved "https://registry.yarnpkg.com/cacache/-/cacache-15.2.0.tgz#73af75f77c58e72d8c630a7a2858cb18ef523389"
-  integrity sha512-uKoJSHmnrqXgthDFx/IU6ED/5xd+NNGe+Bb+kLZy7Ku4P+BaiWEUflAKPZ7eAzsYGcsAGASJZsybXp+quEcHTw==
+cacache@^16.0.2:
+  version "16.0.7"
+  resolved "https://registry.yarnpkg.com/cacache/-/cacache-16.0.7.tgz#74a5d9bc4c17b4c0b373c1f5d42dadf5dc06638d"
+  integrity sha512-a4zfQpp5vm4Ipdvbj+ZrPonikRhm6WBEd4zT1Yc1DXsmAxrPgDwWBLF/u/wTVXSFPIgOJ1U3ghSa2Xm4s3h28w==
   dependencies:
-    "@npmcli/move-file" "^1.0.1"
+    "@npmcli/fs" "^2.1.0"
+    "@npmcli/move-file" "^2.0.0"
     chownr "^2.0.0"
-    fs-minipass "^2.0.0"
-    glob "^7.1.4"
+    fs-minipass "^2.1.0"
+    glob "^8.0.1"
     infer-owner "^1.0.4"
-    lru-cache "^6.0.0"
-    minipass "^3.1.1"
+    lru-cache "^7.7.1"
+    minipass "^3.1.6"
     minipass-collect "^1.0.2"
     minipass-flush "^1.0.5"
-    minipass-pipeline "^1.2.2"
-    mkdirp "^1.0.3"
+    minipass-pipeline "^1.2.4"
+    mkdirp "^1.0.4"
     p-map "^4.0.0"
     promise-inflight "^1.0.1"
     rimraf "^3.0.2"
-    ssri "^8.0.1"
-    tar "^6.0.2"
+    ssri "^9.0.0"
+    tar "^6.1.11"
     unique-filename "^1.1.1"
 
 cache-base@^1.0.1:
@@ -6299,7 +6328,7 @@ encodeurl@~1.0.2:
   resolved "https://registry.yarnpkg.com/encodeurl/-/encodeurl-1.0.2.tgz#ad3ff4c86ec2d029322f5a02c3a9a606c95b3f59"
   integrity sha1-rT/0yG7C0CkyL1oCw6mmBslbP1k=
 
-encoding@^0.1.12:
+encoding@^0.1.13:
   version "0.1.13"
   resolved "https://registry.yarnpkg.com/encoding/-/encoding-0.1.13.tgz#56574afdd791f54a8e9b2785c0582a2d26210fa9"
   integrity sha512-ETBauow1T35Y/WZMkio9jiM0Z5xjHHmJ4XmjZOq1l/dXz3lr2sRn87nJy20RupqSh1F2m3HHPSp8ShIPQJrJ3A==
@@ -7341,7 +7370,7 @@ fs-extra@^7.0.1:
     jsonfile "^4.0.0"
     universalify "^0.1.0"
 
-fs-minipass@^2.0.0:
+fs-minipass@^2.0.0, fs-minipass@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/fs-minipass/-/fs-minipass-2.1.0.tgz#7f5036fdbf12c63c169190cbe4199c852271f9fb"
   integrity sha512-V/JgOLFCS+R6Vcq0slCuaeWEdNC3ouDlJMNIsacH2VtALiu9mV4LPrHc5cDl8k5aw6J8jwgWWpiTo5RYhmIzvg==
@@ -7489,6 +7518,18 @@ glob@^7.0.0, glob@^7.1.1, glob@^7.1.3, glob@^7.1.4, glob@^7.2.0:
     inflight "^1.0.4"
     inherits "2"
     minimatch "^3.0.4"
+    once "^1.3.0"
+    path-is-absolute "^1.0.0"
+
+glob@^8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/glob/-/glob-8.0.1.tgz#00308f5c035aa0b2a447cd37ead267ddff1577d3"
+  integrity sha512-cF7FYZZ47YzmCu7dDy50xSRRfO3ErRfrXuLZcNIuyiJEco0XSrGtuilG19L5xp3NcwTx7Gn+X6Tv3fmsUPTbow==
+  dependencies:
+    fs.realpath "^1.0.0"
+    inflight "^1.0.4"
+    inherits "2"
+    minimatch "^5.0.1"
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
@@ -7890,15 +7931,6 @@ http-errors@^1.8.1:
     setprototypeof "1.2.0"
     statuses ">= 1.5.0 < 2"
     toidentifier "1.0.1"
-
-http-proxy-agent@^4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/http-proxy-agent/-/http-proxy-agent-4.0.1.tgz#8a8c8ef7f5932ccf953c296ca8291b95aa74aa3a"
-  integrity sha512-k0zdNgqWTGA6aeIRVpvfVob4fL52dTfaehylg0Y4UvSySvOq/Y+BOyPrgpUrA7HylqvU8vIZGsRuXmspskV0Tg==
-  dependencies:
-    "@tootallnate/once" "1"
-    agent-base "6"
-    debug "4"
 
 http-proxy-agent@^5.0.0:
   version "5.0.0"
@@ -9489,6 +9521,11 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
+lru-cache@^7.7.1:
+  version "7.9.0"
+  resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-7.9.0.tgz#29c2a989b6c10f32ceccc66ff44059e1490af3e1"
+  integrity sha512-lkcNMUKqdJk96TuIXUidxaPuEg5sJo/+ZyVE2BDFnuZGzwXem7d8582eG8vbu4todLfT14snP6iHriCHXXi5Rw==
+
 lunr@^2.3.9:
   version "2.3.9"
   resolved "https://registry.yarnpkg.com/lunr/-/lunr-2.3.9.tgz#18b123142832337dd6e964df1a5a7707b25d35e1"
@@ -9521,26 +9558,27 @@ make-error@1.x, make-error@^1.1.1:
   resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.3.6.tgz#2eb2e37ea9b67c4891f684a1394799af484cf7a2"
   integrity sha512-s8UhlNe7vPKomQhC1qFelMokr/Sc3AgNbso3n74mVPA5LTZwkB9NlXf4XPamLxJE8h0gh73rM94xvwRT2CVInw==
 
-make-fetch-happen@^8.0.0:
-  version "8.0.14"
-  resolved "https://registry.yarnpkg.com/make-fetch-happen/-/make-fetch-happen-8.0.14.tgz#aaba73ae0ab5586ad8eaa68bd83332669393e222"
-  integrity sha512-EsS89h6l4vbfJEtBZnENTOFk8mCRpY5ru36Xe5bcX1KYIli2mkSHqoFsp5O1wMDvTJJzxe/4THpCTtygjeeGWQ==
+make-fetch-happen@^10.1.2:
+  version "10.1.2"
+  resolved "https://registry.yarnpkg.com/make-fetch-happen/-/make-fetch-happen-10.1.2.tgz#acffef43f86250602b932eecc0ad3acc992ae233"
+  integrity sha512-GWMGiZsKVeJACQGJ1P3Z+iNec7pLsU6YW1q11eaPn3RR8nRXHppFWfP7Eu0//55JK3hSjrAQRl8sDa5uXpq1Ew==
   dependencies:
-    agentkeepalive "^4.1.3"
-    cacache "^15.0.5"
+    agentkeepalive "^4.2.1"
+    cacache "^16.0.2"
     http-cache-semantics "^4.1.0"
-    http-proxy-agent "^4.0.1"
+    http-proxy-agent "^5.0.0"
     https-proxy-agent "^5.0.0"
     is-lambda "^1.0.1"
-    lru-cache "^6.0.0"
-    minipass "^3.1.3"
+    lru-cache "^7.7.1"
+    minipass "^3.1.6"
     minipass-collect "^1.0.2"
-    minipass-fetch "^1.3.2"
+    minipass-fetch "^2.0.3"
     minipass-flush "^1.0.5"
     minipass-pipeline "^1.2.4"
+    negotiator "^0.6.3"
     promise-retry "^2.0.1"
-    socks-proxy-agent "^5.0.0"
-    ssri "^8.0.0"
+    socks-proxy-agent "^6.1.1"
+    ssri "^9.0.0"
 
 makeerror@1.0.x:
   version "1.0.11"
@@ -10331,16 +10369,16 @@ minipass-collect@^1.0.2:
   dependencies:
     minipass "^3.0.0"
 
-minipass-fetch@^1.3.2:
-  version "1.3.4"
-  resolved "https://registry.yarnpkg.com/minipass-fetch/-/minipass-fetch-1.3.4.tgz#63f5af868a38746ca7b33b03393ddf8c291244fe"
-  integrity sha512-TielGogIzbUEtd1LsjZFs47RWuHHfhl6TiCx1InVxApBAmQ8bL0dL5ilkLGcRvuyW/A9nE+Lvn855Ewz8S0PnQ==
+minipass-fetch@^2.0.3:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/minipass-fetch/-/minipass-fetch-2.1.0.tgz#ca1754a5f857a3be99a9271277246ac0b44c3ff8"
+  integrity sha512-H9U4UVBGXEyyWJnqYDCLp1PwD8XIkJ4akNHp1aGVI+2Ym7wQMlxDKi4IB4JbmyU+pl9pEs/cVrK6cOuvmbK4Sg==
   dependencies:
-    minipass "^3.1.0"
+    minipass "^3.1.6"
     minipass-sized "^1.0.3"
-    minizlib "^2.0.0"
+    minizlib "^2.1.2"
   optionalDependencies:
-    encoding "^0.1.12"
+    encoding "^0.1.13"
 
 minipass-flush@^1.0.5:
   version "1.0.5"
@@ -10349,7 +10387,7 @@ minipass-flush@^1.0.5:
   dependencies:
     minipass "^3.0.0"
 
-minipass-pipeline@^1.2.2, minipass-pipeline@^1.2.4:
+minipass-pipeline@^1.2.4:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/minipass-pipeline/-/minipass-pipeline-1.2.4.tgz#68472f79711c084657c067c5c6ad93cddea8214c"
   integrity sha512-xuIq7cIOt09RPRJ19gdi4b+RiNvDFYe5JH+ggNvBqGqpQXcru3PcRmOZuHBKWK1Txf9+cQ+HMVN4d6z46LZP7A==
@@ -10363,14 +10401,14 @@ minipass-sized@^1.0.3:
   dependencies:
     minipass "^3.0.0"
 
-minipass@^3.0.0, minipass@^3.1.0, minipass@^3.1.1, minipass@^3.1.3:
-  version "3.1.5"
-  resolved "https://registry.yarnpkg.com/minipass/-/minipass-3.1.5.tgz#71f6251b0a33a49c01b3cf97ff77eda030dff732"
-  integrity sha512-+8NzxD82XQoNKNrl1d/FSi+X8wAEWR+sbYAfIvub4Nz0d22plFG72CEVVaufV8PNf4qSslFTD8VMOxNVhHCjTw==
+minipass@^3.0.0, minipass@^3.1.1, minipass@^3.1.6:
+  version "3.1.6"
+  resolved "https://registry.yarnpkg.com/minipass/-/minipass-3.1.6.tgz#3b8150aa688a711a1521af5e8779c1d3bb4f45ee"
+  integrity sha512-rty5kpw9/z8SX9dmxblFA6edItUmwJgMeYDZRrwlIVN27i8gysGbznJwUggw2V/FVqFSDdWy040ZPS811DYAqQ==
   dependencies:
     yallist "^4.0.0"
 
-minizlib@^2.0.0, minizlib@^2.1.1:
+minizlib@^2.1.1, minizlib@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/minizlib/-/minizlib-2.1.2.tgz#e90d3466ba209b932451508a11ce3d3632145931"
   integrity sha512-bAxsR8BVfj60DWXHE3u30oHzfl4G7khkSuPW+qvpd7jFRHm7dLxOjUk1EHACJ/hxLY8phGJ0YhYHZo7jil7Qdg==
@@ -10491,7 +10529,7 @@ natural-compare@^1.4.0:
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=
 
-negotiator@0.6.3:
+negotiator@0.6.3, negotiator@^0.6.3:
   version "0.6.3"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.3.tgz#58e323a72fedc0d6f9cd4d31fe49f51479590ccd"
   integrity sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==
@@ -12377,7 +12415,7 @@ slice-ansi@^5.0.0:
     ansi-styles "^6.0.0"
     is-fullwidth-code-point "^4.0.0"
 
-smart-buffer@^4.1.0:
+smart-buffer@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz#6e1d71fa4f18c05f7d0ff216dd16a481d0e8d9ae"
   integrity sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==
@@ -12423,22 +12461,22 @@ snapdragon@^0.8.1:
     source-map-resolve "^0.5.0"
     use "^3.1.0"
 
-socks-proxy-agent@^5.0.0:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/socks-proxy-agent/-/socks-proxy-agent-5.0.1.tgz#032fb583048a29ebffec2e6a73fca0761f48177e"
-  integrity sha512-vZdmnjb9a2Tz6WEQVIurybSwElwPxMZaIc7PzqbJTrezcKNznv6giT7J7tZDZ1BojVaa1jvO/UiUdhDVB0ACoQ==
+socks-proxy-agent@^6.1.1:
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/socks-proxy-agent/-/socks-proxy-agent-6.2.0.tgz#f6b5229cc0cbd6f2f202d9695f09d871e951c85e"
+  integrity sha512-wWqJhjb32Q6GsrUqzuFkukxb/zzide5quXYcMVpIjxalDBBYy2nqKCFQ/9+Ie4dvOYSQdOk3hUlZSdzZOd3zMQ==
   dependencies:
     agent-base "^6.0.2"
-    debug "4"
-    socks "^2.3.3"
+    debug "^4.3.3"
+    socks "^2.6.2"
 
-socks@^2.3.3:
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/socks/-/socks-2.6.1.tgz#989e6534a07cf337deb1b1c94aaa44296520d30e"
-  integrity sha512-kLQ9N5ucj8uIcxrDwjm0Jsqk06xdpBjGNQtpXy4Q8/QY2k+fY7nZH8CARy+hkbG+SGAovmzzuauCpBlb8FrnBA==
+socks@^2.6.2:
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/socks/-/socks-2.6.2.tgz#ec042d7960073d40d94268ff3bb727dc685f111a"
+  integrity sha512-zDZhHhZRY9PxRruRMR7kMhnf3I8hDs4S3f9RecfnGxvcBHQcKcIH/oUcEWffsfl1XxdYlA7nnlGbbTvPz9D8gA==
   dependencies:
     ip "^1.1.5"
-    smart-buffer "^4.1.0"
+    smart-buffer "^4.2.0"
 
 sort-keys@^2.0.0:
   version "2.0.0"
@@ -12570,10 +12608,10 @@ sprintf-js@~1.0.2:
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
   integrity sha1-BOaSb2YolTVPPdAVIDYzuFcpfiw=
 
-ssri@^8.0.0, ssri@^8.0.1:
-  version "8.0.1"
-  resolved "https://registry.yarnpkg.com/ssri/-/ssri-8.0.1.tgz#638e4e439e2ffbd2cd289776d5ca457c4f51a2af"
-  integrity sha512-97qShzy1AiyxvPNIkLWoGua7xoQzzPjQ0HAH4B0rWKo7SZ6USuPcrUiAFrws0UH8RrbWmgq3LMTObhPIHbbBeQ==
+ssri@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/ssri/-/ssri-9.0.0.tgz#70ad90e339eb910f1a7ff1dcf4afc268326c4547"
+  integrity sha512-Y1Z6J8UYnexKFN1R/hxUaYoY2LVdKEzziPmVAFKiKX8fiwvCJTVzn/xYE9TEWod5OVyNfIHHuVfIEuBClL/uJQ==
   dependencies:
     minipass "^3.1.1"
 
@@ -12990,7 +13028,7 @@ tar-stream@^2.1.4:
     inherits "^2.0.3"
     readable-stream "^3.1.1"
 
-tar@^6.0.2:
+tar@^6.1.11:
   version "6.1.11"
   resolved "https://registry.yarnpkg.com/tar/-/tar-6.1.11.tgz#6760a38f003afa1b2ffd0ffe9e9abbd0eab3d621"
   integrity sha512-an/KZQzQUkZCkuoAA64hM92X0Urb6VpRhAFllDzz44U2mcD5scmT3zBc4VgVpkugF580+DQn8eAFSyoQt0tznA==
