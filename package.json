@@ -50,7 +50,7 @@
     "@typescript-eslint/eslint-plugin": "5.22.0",
     "@typescript-eslint/parser": "5.22.0",
     "babel-jest": "28.0.3",
-    "bob-the-bundler": "1.6.2",
+    "bob-the-bundler": "1.7.1",
     "chalk": "4.1.2",
     "concurrently": "7.1.0",
     "eslint": "8.14.0",
