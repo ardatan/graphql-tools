@@ -115,12 +115,19 @@ function visitSchema(schema: GraphQLSchema): Set<string> {
 function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string> = new Set<string>()): Set<string> {
   // Type encountered that are attribute return types
   // If a interface is not returned directly, then it is not necessary to include all its unused implementations
-  const returnedTypes: Set<string> = new Set<string>();
+  // The boolean value is to indicate that it is a interface that must be reprocessed
+  const returnedTypes: { string: boolean } = Object.create(null);
 
   // This function will push to both the return types set and queue
-  function pushAll(values: string[]) {
-    values.forEach(name => returnedTypes.add(name));
-    queue.push(...values);
+  function pushAll(typeNames: string[]) {
+    for (const typeName of typeNames) {
+      // Only add once
+      if (typeName in returnedTypes) {
+        continue;
+      }
+      returnedTypes[typeName] = false;
+    }
+    queue.push(...typeNames);
   }
 
   // Navigate all types starting with pre-queued types (root types)
@@ -130,7 +137,17 @@ function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string>
 
     // Skip types we already visited
     if (visited.has(typeName)) {
-      continue;
+      // Unless it is an interface that hasn't been flagged as a return type
+      if (isInterfaceType(type) && typeName in returnedTypes) {
+        // Ignore if flag is false to process again
+        if (returnedTypes[typeName] === false) {
+          continue;
+        }
+        // Only reprocess it once
+        returnedTypes[typeName] = false;
+      } else {
+        continue;
+      }
     }
 
     if (type) {
@@ -139,7 +156,7 @@ function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string>
         pushAll(type.getTypes().map(type => type.name));
       }
       // If it is an interface and it is a returned type, grab all implementations so we can use proper __typename in fragments
-      if (isInterfaceType(type) && returnedTypes.has(typeName)) {
+      if (isInterfaceType(type) && typeName in returnedTypes) {
         pushAll(getImplementingTypes(type.name, schema));
       }
       // Visit interfaces this type is implementing if they haven't been visited yet
@@ -162,7 +179,15 @@ function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string>
             pushAll(field.args.map(arg => getNamedType(arg.type).name));
           }
 
-          pushAll([getNamedType(field.type).name]);
+          const namedType = getNamedType(field.type);
+
+          queue.push(namedType.name);
+
+          // Add to return types for interface decisions
+          if (!(namedType.name in returnedTypes)) {
+            // If it is an interface type that hasn't been encountered yet, it should be flagged to reprocess
+            returnedTypes[namedType.name] = !!isInterfaceType(namedType);
+          }
         }
       }
 

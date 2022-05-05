@@ -243,14 +243,20 @@ describe('pruneSchema', () => {
         operation: SomeType
       }
 
-      # SomeInterface is declared as an interface so it should be not a return type but still visited
-      type SomeType implements SomeInterface {
-        field: String
-        bfield: AnotherType
+      type SomeType {
+        # This will be processed last
+        afield: AsReturnType
+        # This will be processed first
+        bField: AsInterfaceType
       }
 
-      type AnotherType {
-        # SomeInterface is a return type and should have all its implementations kept
+      # SomeInterface is declared as an interface so it should be not a return type but still visited
+      type AsInterfaceType implements SomeInterface {
+        field: String
+      }
+
+      # SomeInterface is a return type and should have all its implementations kept
+      type AsReturnType {
         field: SomeInterface
       }
 
