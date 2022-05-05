@@ -2231,10 +2231,10 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.1.tgz#076d78ce99822258cf813ecc1e7fa460fa74d052"
   integrity sha512-NQ17ii0rK1b34VZonlmT2QMJFI70m0TRwbknO/ihlbatXyaktDhN/98vBiUU6kNBPljqGqyIrl2T4nY2RpFANg==
 
-"@graphql-yoga/common@2.4.1":
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/common/-/common-2.4.1.tgz#55f43e8514108fd2340e55e0cd4b51771c611290"
-  integrity sha512-jFRyb7+jt9bGarypGzQnv8Jvd3UW0RVqb3Y5KjabEeD0WSGHrB5t/7+Q2AJ9hOzUxUJQvrTrpr5OrPDQSga+Fg==
+"@graphql-yoga/common@2.5.0":
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/common/-/common-2.5.0.tgz#036e28a30d6395678907f80a1e358ecf19494c7e"
+  integrity sha512-fSaTt5JhUvyPcYISEPqRdxb7g7PshN+1reKH5yighRNcX6ouMhNAXWb2MG4kG2pVAg4YCbUAjy1k2TMmN9AYjw==
   dependencies:
     "@envelop/core" "^2.0.0"
     "@envelop/disable-introspection" "^3.0.0"
@@ -2244,20 +2244,20 @@
     "@graphql-tools/utils" "^8.6.0"
     "@graphql-typed-document-node/core" "^3.1.1"
     "@graphql-yoga/subscription" "2.0.0"
-    cross-undici-fetch "^0.3.0"
+    cross-undici-fetch "^0.4.2"
     dset "^3.1.1"
     tslib "^2.3.1"
 
-"@graphql-yoga/node@2.4.1":
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/node/-/node-2.4.1.tgz#86015b4c9169e43df7c91fb4371b86fe02002fd9"
-  integrity sha512-4dX2mNo8VewrLRPD9emzqh6FQ5bu7tAxpQOiFTvNKqaaZn04pZgHYnVw89FOmQyldh+gyNrilFIxeqT9+DchJA==
+"@graphql-yoga/node@2.5.0":
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/node/-/node-2.5.0.tgz#29726338738ff113da8f5f307f74249a3ce17002"
+  integrity sha512-mhKAGe5rUc4NcMPNcSepQUiVw37w036C4wteLlySntsrQKu3sTkz2+6/KgtR64B/yV3XYoSzQto8OQySkqiDsw==
   dependencies:
     "@envelop/core" "^2.0.0"
     "@graphql-tools/utils" "^8.6.0"
-    "@graphql-yoga/common" "2.4.1"
+    "@graphql-yoga/common" "2.5.0"
     "@graphql-yoga/subscription" "2.0.0"
-    cross-undici-fetch "^0.3.0"
+    cross-undici-fetch "^0.4.2"
     tslib "^2.3.1"
 
 "@graphql-yoga/subscription@2.0.0":
@@ -4810,10 +4810,10 @@ bl@^4.0.3, bl@^4.1.0:
     inherits "^2.0.4"
     readable-stream "^3.4.0"
 
-bob-the-bundler@1.6.2:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/bob-the-bundler/-/bob-the-bundler-1.6.2.tgz#17c2354ee1d46a79f4f9beaaec76bee5a542fc04"
-  integrity sha512-Xi8hIzjawp/0H+Gro7m93xBx2GkuMJ1lyzdgdEdj2SVYyyi3G14ySaOvPmEObFvxysklTph/yYoPo/w7N8FdYA==
+bob-the-bundler@1.7.1:
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/bob-the-bundler/-/bob-the-bundler-1.7.1.tgz#42fdf6a5426343ad956d70eedeae447add78b527"
+  integrity sha512-jycXxGEXysR522hIMqtGg3zKoLYxGrwCxsDOTjQN8fxREFx6lP9xk4cIMi7SVt9ma0UVPlWCzpsK9eLh3cX0Hw==
   dependencies:
     "@rollup/plugin-json" "4.1.0"
     "@rollup/plugin-node-resolve" "7.1.1"
@@ -5590,22 +5590,10 @@ cross-spawn@^7.0.1, cross-spawn@^7.0.2, cross-spawn@^7.0.3:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-cross-undici-fetch@^0.3.0:
-  version "0.3.6"
-  resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.3.6.tgz#da1476842ddf79a301f8b8e026129877d619117d"
-  integrity sha512-2SKnxOcYMkWM0RsEqx1JUycqorU0bqG2ALMKWnnoYN/91lt7nQWb9mXGC6V7D9P45ASPrDT16dir+wkBd73nmA==
-  dependencies:
-    abort-controller "^3.0.0"
-    form-data-encoder "^1.7.1"
-    formdata-node "^4.3.1"
-    node-fetch "^2.6.7"
-    undici "^5.1.0"
-    web-streams-polyfill "^3.2.0"
-
-cross-undici-fetch@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.4.0.tgz#5c74ec5e2c73f0b5119dea850aac0a65400d8c5e"
-  integrity sha512-JAejVs/dL+qE/dt4LfSWVq7F6IGSWJGj9MUCZDHIw/AtD9kIKXdsO60ojM/6OvQvodtvDtmii96xojuEquGo2A==
+cross-undici-fetch@^0.4.0, cross-undici-fetch@^0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.4.2.tgz#c7621cc9220fba061f39e43ff30f4748d058c736"
+  integrity sha512-hJUDzSl3vHoqg+EAmMlFY9s550rwEpfYGRqU6Qkkceve5d+Juxle1zXxF92VwVdxyOedbRUvBr798hsf+gawDg==
   dependencies:
     abort-controller "^3.0.0"
     busboy "^1.6.0"
