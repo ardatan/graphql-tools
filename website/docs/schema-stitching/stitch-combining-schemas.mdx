@@ -2,6 +2,7 @@
 id: stitch-combining-schemas
 title: Combining schemas
 sidebar_label: Combining schemas
+type: Guide
 ---
 
 Schema stitching (`@graphql-tools/stitch`) creates a single GraphQL gateway schema from multiple underlying GraphQL services. Unlike [schema merging](/docs/schema-merging), which simply combines local schema instances, stitching builds a combined proxy layer that delegates requests through to underlying service APIs. As of GraphQL Tools v7, stitching is fairly comparable to [Apollo Federation](https://www.apollographql.com/docs/federation/) with automated query planning, merged types, and declarative schema directives.

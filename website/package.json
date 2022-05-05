@@ -3,6 +3,7 @@
   "version": "6.2.3",
   "private": true,
   "scripts": {
+    "algolia-sync": "node scripts/algolia-ci.mjs",
     "build": "next build",
     "dev": "concurrently -r \"next-remote-watch ./docs ./src/pages/_app.tsx ./src/pages/_document.tsx\" \"wait-on -s 1 http://localhost:3000 && open-cli http://localhost:3000\"",
     "next": "next",
@@ -19,6 +20,7 @@
     "esbuild": "0.14.38"
   },
   "devDependencies": {
+    "@guild-docs/algolia": "0.0.2-alpha-356ec63.0",
     "@next/bundle-analyzer": "12.1.6",
     "@types/concurrently": "6.4.0",
     "@types/mdx-js__react": "1.5.5",
@@ -44,7 +46,7 @@
     "@guild-docs/client": "2.1.1",
     "@guild-docs/server": "3.0.1",
     "@mdx-js/react": "2.1.1",
-    "@theguild/components": "1.11.2",
+    "@theguild/components": "1.11.3-alpha-85bced1.0",
     "framer-motion": "6.3.3",
     "next": "12.1.6",
     "next-i18next": "11.0.0",
