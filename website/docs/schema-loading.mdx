@@ -18,7 +18,28 @@ Specifying the loader is not necessary. The user need only provide the inputs. T
 
 For notes on typescript, refer to [loaders](/docs/schema-loading#loaders)
 
-## Usage
+> Schema and documents loading doesn't work non Node.js environments, and if you are using a bundler like webpack, rollup or vite, you cannot use dynamic loaders.
+
+## Load `typeDefs`/`DocumentNode` and `resolvers` from files
+
+```ts
+const { loadFiles } = require('@graphql-tools/load-files');
+const { createServer } = require('@graphql-yoga/node')
+
+async function main() {
+  const server = createServer({
+    server: {
+      typeDefs: await loadFiles('src/typeDefs/**/*.graphql'),
+      resolvers: await loadFiles('src/resolvers/**/*.{js,ts}'),
+    }
+  })
+  await server.start();
+}
+```
+
+> `loadFiles` doesn't support `#import` syntax. See below if you need that.
+
+## Load `GraphQLSchema` by using different loaders from different sources
 
 ```ts
 const { loadSchema } = require('@graphql-tools/load')
@@ -26,28 +47,32 @@ const { UrlLoader } = require('@graphql-tools/url-loader')
 const { JsonFileLoader } = require('@graphql-tools/json-file-loader')
 const { GraphQLFileLoader } = require('@graphql-tools/graphql-file-loader')
 
-// load from string w/ no loaders
-const schema1 = await loadSchema('type A { foo: String }')
+async function main() {
+  // load from string w/ no loaders
+  const schema1 = await loadSchema('type A { foo: String }')
 
-// load from endpoint
-const schema2 = await loadSchema('http://localhost:3000/graphql', {
-  loaders: [new UrlLoader()]
-})
+  // load from endpoint
+  const schema2 = await loadSchema('http://localhost:3000/graphql', {
+    loaders: [new UrlLoader()]
+  })
 
-// load from local json file
-const schema3 = await loadSchema('./schema.json', {
-  loaders: [new JsonFileLoader()]
-})
+  // load from local json file
+  const schema3 = await loadSchema('./schema.json', {
+    loaders: [new JsonFileLoader()]
+  })
 
-// load from a single schema file
-const schema4 = await loadSchema('schema.graphql', {
-  loaders: [new GraphQLFileLoader()]
-})
+  // load from a single schema file
+  const schema4 = await loadSchema('schema.graphql', {
+    loaders: [new GraphQLFileLoader()]
+  })
 
-// load from multiple files using glob
-const schema5 = await loadSchema('./src/**/*.graphql', {
-  loaders: [new GraphQLFileLoader()]
-})
+  // load from multiple files using glob
+  const schema5 = await loadSchema('./src/**/*.graphql', {
+    loaders: [new GraphQLFileLoader()]
+  })
+}
+
+main()
 ```
 
 ### Using `#import` expression
@@ -124,25 +149,30 @@ import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader'
 import { addResolversToSchema } from '@graphql-tools/schema'
 import { createServer } from '@graphql-yoga/node'
 
-// Load schema from the file
-const schema = loadSchemaSync(join(__dirname, './schema.graphql'), {
-  loaders: [new GraphQLFileLoader()]
-})
+async function main() {
+  // Load schema from the file
+  const schema = await loadSchema(join(__dirname, './schema.graphql'), {
+    loaders: [new GraphQLFileLoader()]
+  })
 
-// Write some resolvers
-const resolvers = {}
+  // Write some resolvers
+  const resolvers = {}
 
-// Add resolvers to the schema
-const schemaWithResolvers = addResolversToSchema({
-  schema,
-  resolvers
-})
+  // Add resolvers to the schema
+  const schemaWithResolvers = addResolversToSchema({
+    schema,
+    resolvers
+  })
 
-const server = createServer({
-  schema: schemaWithResolvers
-})
+  const server = createServer({
+    schema: schemaWithResolvers
+  })
 
-server.start()
+  await server.start()
+}
+
+main().catch(error => console.error(error))
+
 ```
 
 ## Loaders
