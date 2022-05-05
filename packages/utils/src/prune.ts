@@ -15,6 +15,7 @@ import { PruneSchemaOptions } from './types';
 import { mapSchema } from './mapSchema';
 import { MapperKind } from './Interfaces';
 import { getRootTypes } from './rootTypes';
+import { getImplementingTypes } from './get-implementing-types';
 
 /**
  * Prunes the provided schema, removing unused and empty types
@@ -112,23 +113,40 @@ function visitSchema(schema: GraphQLSchema): Set<string> {
 }
 
 function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string> = new Set<string>()): Set<string> {
+  // Type encountered that are attribute return types
+  // If a interface is not returned directly, then it is not necessary to include all its unused implementations
+  const returnedTypes: Set<string> = new Set<string>();
+
+  // This function will push to both the return types set and queue
+  function pushAll(values: string[]) {
+    values.forEach(name => returnedTypes.add(name));
+    queue.push(...values);
+  }
+
   // Navigate all types starting with pre-queued types (root types)
   while (queue.length) {
     const typeName = queue.pop() as string;
+    const type = schema.getType(typeName);
 
     // Skip types we already visited
     if (visited.has(typeName)) {
       continue;
     }
 
-    const type = schema.getType(typeName);
-
     if (type) {
       // Get types for union
       if (isUnionType(type)) {
-        queue.push(...type.getTypes().map(type => type.name));
+        pushAll(type.getTypes().map(type => type.name));
       }
-
+      // If it is an interface and it is a returned type, grab all implementations so we can use proper __typename in fragments
+      if (isInterfaceType(type) && returnedTypes.has(typeName)) {
+        pushAll(getImplementingTypes(type.name, schema));
+      }
+      // Visit interfaces this type is implementing if they haven't been visited yet
+      if ('getInterfaces' in type) {
+        // Only pushes to queue to visit but not return types
+        queue.push(...type.getInterfaces().map(iface => iface.name));
+      }
       // If the type has files visit those field types
       if ('getFields' in type) {
         const fields = type.getFields() as GraphQLFieldMap<any, any>;
@@ -140,18 +158,12 @@ function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string>
 
         for (const [, field] of entries) {
           if (isObjectType(type)) {
-            for (const arg of field.args) {
-              queue.push(getNamedType(arg.type).name); // Visit arg types
-            }
+            // Visit arg types
+            pushAll(field.args.map(arg => getNamedType(arg.type).name));
           }
 
-          queue.push(getNamedType(field.type).name);
+          pushAll([getNamedType(field.type).name]);
         }
-      }
-
-      // Visit interfaces this type is implementing if they haven't been visited yet
-      if ('getInterfaces' in type) {
-        queue.push(...type.getInterfaces().map(iface => iface.name));
       }
 
       visited.add(typeName); // Mark as visited (and therefore it is used and should be kept)
