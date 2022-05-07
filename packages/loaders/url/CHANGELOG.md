@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.9.20
+
+### Patch Changes
+
+- ab0549cc: fix(url-loader): handle live queries as subscriptions correctly
+
 ## 7.9.19
 
 ### Patch Changes
