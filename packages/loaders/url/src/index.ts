@@ -299,7 +299,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       }
 
       let accept = 'application/json, multipart/mixed';
-      if (operationType === 'subscription') {
+      if (operationType === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
         method = 'GET';
         accept = 'text/event-stream';
       }
@@ -689,27 +689,33 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     const httpExecutor$ = fetch$.then(fetch => {
       return this.buildHTTPExecutor(endpoint, fetch, options);
     });
-    const subscriptionExecutor$ = fetch$.then(fetch => {
-      const subscriptionsEndpoint = options?.subscriptionsEndpoint || endpoint;
-      return this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, importFn, options);
-    });
 
-    function getExecutorByRequest(request: ExecutionRequest<any>): ValueOrPromise<Executor> {
-      const operationAst = getOperationASTFromRequest(request);
-      if (
-        operationAst.operation === 'subscription' ||
-        isLiveQueryOperationDefinitionNode(operationAst, request.variables as Record<string, any>)
-      ) {
-        return subscriptionExecutor$;
-      } else {
-        return httpExecutor$;
+    if (options?.subscriptionsEndpoint != null || options?.subscriptionsProtocol !== SubscriptionProtocol.SSE) {
+      const subscriptionExecutor$ = fetch$.then(fetch => {
+        const subscriptionsEndpoint = options?.subscriptionsEndpoint || endpoint;
+        return this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, importFn, options);
+      });
+
+      // eslint-disable-next-line no-inner-declarations
+      function getExecutorByRequest(request: ExecutionRequest<any>): ValueOrPromise<Executor> {
+        const operationAst = getOperationASTFromRequest(request);
+        if (
+          operationAst.operation === 'subscription' ||
+          isLiveQueryOperationDefinitionNode(operationAst, request.variables as Record<string, any>)
+        ) {
+          return subscriptionExecutor$;
+        } else {
+          return httpExecutor$;
+        }
       }
-    }
 
-    return request =>
-      getExecutorByRequest(request)
-        .then(executor => executor(request))
-        .resolve();
+      return request =>
+        getExecutorByRequest(request)
+          .then(executor => executor(request))
+          .resolve();
+    } else {
+      return request => httpExecutor$.then(executor => executor(request)).resolve();
+    }
   }
 
   getExecutorAsync(endpoint: string, options?: Omit<LoadFromUrlOptions, 'endpoint'>): AsyncExecutor {
