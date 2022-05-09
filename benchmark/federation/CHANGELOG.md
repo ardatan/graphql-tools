@@ -1,5 +1,12 @@
 # federation-benchmark
 
+## 0.0.36
+
+### Patch Changes
+
+- @graphql-tools/stitch@8.6.10
+- @graphql-tools/stitching-directives@2.2.15
+
 ## 0.0.35
 
 ### Patch Changes

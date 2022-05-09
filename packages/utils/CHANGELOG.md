@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.6.10
+
+### Patch Changes
+
+- 0fc510cb: Interface implementations should be included when a return type is an interface.
+
 ## 8.6.9
 
 ### Patch Changes
