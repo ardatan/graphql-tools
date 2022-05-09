@@ -212,6 +212,68 @@ describe('pruneSchema', () => {
     expect(result.getType('ShouldPrune')).toBeUndefined();
   });
 
+  test('does not remove implementations of interfaces used as return', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Query {
+        operation: SomeType
+      }
+
+      type SomeType {
+        # SomeInterface is inline and should have all its implementations kept
+        field: SomeInterface
+      }
+
+      interface SomeInterface {
+        field: String
+      }
+
+      type KeepMe implements SomeInterface {
+        field: String
+      }
+    `);
+
+    const result = pruneSchema(schema);
+
+    expect(result.getType('KeepMe')).toBeDefined();
+  });
+
+  test('does not remove interfaces despite first pass', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Query {
+        operation: SomeType
+      }
+
+      type SomeType {
+        # This will be processed last
+        afield: AsReturnType
+        # This will be processed first
+        bField: AsInterfaceType
+      }
+
+      # SomeInterface is declared as an interface so it should be not a return type but still visited
+      type AsInterfaceType implements SomeInterface {
+        field: String
+      }
+
+      # SomeInterface is a return type and should have all its implementations kept
+      type AsReturnType {
+        field: SomeInterface
+      }
+
+      interface SomeInterface {
+        field: String
+      }
+
+      type KeepMe implements SomeInterface {
+        field: String
+      }
+    `);
+
+    const result = pruneSchema(schema);
+
+    expect(result.getType('KeepMe')).toBeDefined();
+  });
+
   test('removes top level objects with no fields', () => {
     const schema = buildSchema(/* GraphQL */ `
       type Query {
