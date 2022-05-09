@@ -47,8 +47,8 @@
     "@types/debug": "4.1.7",
     "@types/jest": "27.5.0",
     "@types/node": "16.11.33",
-    "@typescript-eslint/eslint-plugin": "5.22.0",
-    "@typescript-eslint/parser": "5.22.0",
+    "@typescript-eslint/eslint-plugin": "5.23.0",
+    "@typescript-eslint/parser": "5.23.0",
     "babel-jest": "28.1.0",
     "bob-the-bundler": "1.7.1",
     "chalk": "4.1.2",
@@ -61,7 +61,7 @@
     "eslint-plugin-promise": "6.0.0",
     "eslint-plugin-standard": "5.0.0",
     "globby": "11.1.0",
-    "graphql": "16.4.0",
+    "graphql": "16.5.0",
     "graphql-subscriptions": "2.0.0",
     "husky": "8.0.1",
     "jest": "28.1.0",
@@ -92,7 +92,7 @@
     ]
   },
   "resolutions": {
-    "graphql": "16.4.0",
+    "graphql": "16.5.0",
     "esbuild": "^0.14.0",
     "@changesets/apply-release-plan": "5.0.5"
   },
