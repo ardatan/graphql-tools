@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/url-loader",
-  "version": "7.9.19",
+  "version": "7.9.20",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@envelop/live-query": "3.3.1",
-    "@graphql-yoga/node": "2.4.1",
+    "@graphql-yoga/node": "2.5.0",
     "@types/extract-files": "8.1.1",
     "@types/valid-url": "1.0.3",
     "babel-loader": "8.2.5",
