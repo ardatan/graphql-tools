@@ -1,11 +1,7 @@
 [
   {
     "objectID": "tools-batch-execution",
-    "headings": [
-      "Build an executor",
-      "Batch the executor",
-      "Merging algorithm"
-    ],
+    "headings": ["Build an executor", "Batch the executor", "Merging algorithm"],
     "toc": [
       {
         "children": [],
@@ -24,24 +20,16 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/batch-execution",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Batch execution"
-    ],
+    "url": "https://www.graphql-tools.com/docs/batch-execution",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Batch execution"],
     "source": "Tools",
     "title": "Batch execution",
     "type": "Guide"
   },
   {
     "objectID": "tools-connectors",
-    "headings": [
-      "Basic fetching",
-      "Factoring out fetching details",
-      "DataLoader and caching"
-    ],
+    "headings": ["Basic fetching", "Factoring out fetching details", "DataLoader and caching"],
     "toc": [
       {
         "children": [],
@@ -66,22 +54,16 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/connectors",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Data fetching"
-    ],
+    "url": "https://www.graphql-tools.com/docs/connectors",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Data fetching"],
     "source": "Tools",
     "title": "Data fetching",
     "type": "Guide"
   },
   {
     "objectID": "tools-documents-loading",
-    "headings": [
-      "Usage"
-    ],
+    "headings": ["Usage"],
     "toc": [
       {
         "children": [],
@@ -90,13 +72,9 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/documents-loading",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Loading GraphQL operation documents from different sources"
-    ],
+    "url": "https://www.graphql-tools.com/docs/documents-loading",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Loading GraphQL operation documents from different sources"],
     "source": "Tools",
     "title": "Loading GraphQL operation documents from different sources",
     "type": "Guide"
@@ -144,13 +122,9 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/generate-schema",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Executable schemas"
-    ],
+    "url": "https://www.graphql-tools.com/docs/generate-schema",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Executable schemas"],
     "source": "Tools",
     "title": "Executable schemas",
     "type": "Guide"
@@ -160,23 +134,16 @@
     "headings": [],
     "toc": [],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/graphql-tag-pluck",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Extracting GraphQL definitions from code files"
-    ],
+    "url": "https://www.graphql-tools.com/docs/graphql-tag-pluck",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Extracting GraphQL definitions from code files"],
     "source": "Tools",
     "title": "Extracting GraphQL definitions from code files",
     "type": "Guide"
   },
   {
     "objectID": "tools-introduction",
-    "headings": [
-      "Using GraphQL with HTTP",
-      "The GraphQL-first philosophy"
-    ],
+    "headings": ["Using GraphQL with HTTP", "The GraphQL-first philosophy"],
     "toc": [
       {
         "children": [],
@@ -190,13 +157,9 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/introduction",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Introduction"
-    ],
+    "url": "https://www.graphql-tools.com/docs/introduction",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Introduction"],
     "source": "Tools",
     "title": "Introduction",
     "type": "Guide"
@@ -206,23 +169,16 @@
     "headings": [],
     "toc": [],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/migration/migration-from-import",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Migration",
-      "Migration from GraphQL Import"
-    ],
+    "url": "https://www.graphql-tools.com/docs/migration/migration-from-import",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Migration", "Migration from GraphQL Import"],
     "source": "Tools",
     "title": "Migration from GraphQL Import",
     "type": "Guide"
   },
   {
     "objectID": "tools-migration-migration-from-merge-graphql-schemas",
-    "headings": [
-      "Merging Type Definitions"
-    ],
+    "headings": ["Merging Type Definitions"],
     "toc": [
       {
         "children": [],
@@ -231,14 +187,9 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/migration/migration-from-merge-graphql-schemas",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Migration",
-      "Migration from Merge GraphQL Schemas"
-    ],
+    "url": "https://www.graphql-tools.com/docs/migration/migration-from-merge-graphql-schemas",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Migration", "Migration from Merge GraphQL Schemas"],
     "source": "Tools",
     "title": "Migration from Merge GraphQL Schemas",
     "type": "Guide"
@@ -248,24 +199,16 @@
     "headings": [],
     "toc": [],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/migration/migration-from-toolkit",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Migration",
-      "Migration from GraphQL Toolkit"
-    ],
+    "url": "https://www.graphql-tools.com/docs/migration/migration-from-toolkit",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Migration", "Migration from GraphQL Toolkit"],
     "source": "Tools",
     "title": "Migration from GraphQL Toolkit",
     "type": "Guide"
   },
   {
     "objectID": "tools-migration-migration-from-tools",
-    "headings": [
-      "Upgrading from v6",
-      "Upgrading from v4/v5"
-    ],
+    "headings": ["Upgrading from v6", "Upgrading from v4/v5"],
     "toc": [
       {
         "children": [],
@@ -279,14 +222,9 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/migration/migration-from-tools",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Migration",
-      "Migration to v7"
-    ],
+    "url": "https://www.graphql-tools.com/docs/migration/migration-from-tools",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Migration", "Migration to v7"],
     "source": "Tools",
     "title": "Migration to v7",
     "type": "Guide"
@@ -389,23 +327,16 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/mocking",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Mocking"
-    ],
+    "url": "https://www.graphql-tools.com/docs/mocking",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Mocking"],
     "source": "Tools",
     "title": "Mocking",
     "type": "Guide"
   },
   {
     "objectID": "tools-relay-operation-optimizer",
-    "headings": [
-      "Install Instructions",
-      "Usage"
-    ],
+    "headings": ["Install Instructions", "Usage"],
     "toc": [
       {
         "children": [],
@@ -419,13 +350,9 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/relay-operation-optimizer",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Optimizing operations using Relay Compiler"
-    ],
+    "url": "https://www.graphql-tools.com/docs/relay-operation-optimizer",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Optimizing operations using Relay Compiler"],
     "source": "Tools",
     "title": "Optimizing operations using Relay Compiler",
     "type": "Guide"
@@ -484,25 +411,16 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/remote-schemas",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Remote schemas"
-    ],
+    "url": "https://www.graphql-tools.com/docs/remote-schemas",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Remote schemas"],
     "source": "Tools",
     "title": "Remote schemas",
     "type": "Guide"
   },
   {
     "objectID": "tools-resolvers",
-    "headings": [
-      "Resolver map",
-      "Resolver function signature",
-      "Unions and interfaces",
-      "API"
-    ],
+    "headings": ["Resolver map", "Resolver function signature", "Unions and interfaces", "API"],
     "toc": [
       {
         "children": [],
@@ -560,13 +478,9 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/resolvers",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Resolvers"
-    ],
+    "url": "https://www.graphql-tools.com/docs/resolvers",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Resolvers"],
     "source": "Tools",
     "title": "Resolvers",
     "type": "Guide"
@@ -576,24 +490,16 @@
     "headings": [],
     "toc": [],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/resolvers-composition",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Resolvers composition"
-    ],
+    "url": "https://www.graphql-tools.com/docs/resolvers-composition",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Resolvers composition"],
     "source": "Tools",
     "title": "Resolvers composition",
     "type": "Guide"
   },
   {
     "objectID": "tools-scalars",
-    "headings": [
-      "Custom scalars",
-      "Custom scalar examples",
-      "Enums"
-    ],
+    "headings": ["Custom scalars", "Custom scalar examples", "Enums"],
     "toc": [
       {
         "children": [
@@ -642,23 +548,16 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/scalars",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Custom scalars and enums"
-    ],
+    "url": "https://www.graphql-tools.com/docs/scalars",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Custom scalars and enums"],
     "source": "Tools",
     "title": "Custom scalars and enums",
     "type": "Guide"
   },
   {
     "objectID": "tools-schema-delegation",
-    "headings": [
-      "Motivational example",
-      "API"
-    ],
+    "headings": ["Motivational example", "API"],
     "toc": [
       {
         "children": [],
@@ -678,13 +577,9 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/schema-delegation",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Schema delegation"
-    ],
+    "url": "https://www.graphql-tools.com/docs/schema-delegation",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Schema delegation"],
     "source": "Tools",
     "title": "Schema delegation",
     "type": "Guide"
@@ -776,13 +671,9 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/schema-directives",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Schema directives"
-    ],
+    "url": "https://www.graphql-tools.com/docs/schema-directives",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Schema directives"],
     "source": "Tools",
     "title": "Schema directives",
     "type": "Guide"
@@ -846,24 +737,16 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/schema-loading",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Loading GraphQL Schemas from different sources"
-    ],
+    "url": "https://www.graphql-tools.com/docs/schema-loading",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Loading GraphQL Schemas from different sources"],
     "source": "Tools",
     "title": "Loading GraphQL Schemas from different sources",
     "type": "Guide"
   },
   {
     "objectID": "tools-schema-merging",
-    "headings": [
-      "Getting started",
-      "Merging type definitions",
-      "Merging resolvers"
-    ],
+    "headings": ["Getting started", "Merging type definitions", "Merging resolvers"],
     "toc": [
       {
         "children": [],
@@ -909,13 +792,9 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/schema-merging",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Schema merging"
-    ],
+    "url": "https://www.graphql-tools.com/docs/schema-merging",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Schema merging"],
     "source": "Tools",
     "title": "Schema merging",
     "type": "Guide"
@@ -925,14 +804,9 @@
     "headings": [],
     "toc": [],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/schema-stitching/stitch-api",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Schema Stitching",
-      "Stitching API"
-    ],
+    "url": "https://www.graphql-tools.com/docs/schema-stitching/stitch-api",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Schema Stitching", "Stitching API"],
     "source": "Tools",
     "title": "Stitching API",
     "type": "Documentation"
@@ -998,27 +872,16 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/schema-stitching/stitch-combining-schemas",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Schema Stitching",
-      "Combining schemas"
-    ],
+    "url": "https://www.graphql-tools.com/docs/schema-stitching/stitch-combining-schemas",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Schema Stitching", "Combining schemas"],
     "source": "Tools",
     "title": "Combining schemas",
     "type": "Guide"
   },
   {
     "objectID": "tools-schema-stitching-stitch-directives-sdl",
-    "headings": [
-      "Overview",
-      "Directives glossary",
-      "Schema setup",
-      "Recipes",
-      "Versioning &amp; release"
-    ],
+    "headings": ["Overview", "Directives glossary", "Schema setup", "Recipes", "Versioning &amp; release"],
     "toc": [
       {
         "children": [],
@@ -1086,25 +949,16 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/schema-stitching/stitch-directives-sdl",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Schema Stitching",
-      "Directives SDL"
-    ],
+    "url": "https://www.graphql-tools.com/docs/schema-stitching/stitch-directives-sdl",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Schema Stitching", "Directives SDL"],
     "source": "Tools",
     "title": "Directives SDL",
     "type": "Guide"
   },
   {
     "objectID": "tools-schema-stitching-stitch-federation",
-    "headings": [
-      "Usage",
-      "Example",
-      "Translation logic"
-    ],
+    "headings": ["Usage", "Example", "Translation logic"],
     "toc": [
       {
         "children": [],
@@ -1123,26 +977,16 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/schema-stitching/stitch-federation",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Schema Stitching",
-      "Federation SDL to Stitching SDL"
-    ],
+    "url": "https://www.graphql-tools.com/docs/schema-stitching/stitch-federation",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Schema Stitching", "Federation SDL to Stitching SDL"],
     "source": "Tools",
     "title": "Federation SDL to Stitching SDL",
     "type": "Guide"
   },
   {
     "objectID": "tools-schema-stitching-stitch-schema-extensions",
-    "headings": [
-      "Basic example",
-      "Batch delegation",
-      "Passing gateway arguments",
-      "Extending transformed schemas"
-    ],
+    "headings": ["Basic example", "Batch delegation", "Passing gateway arguments", "Extending transformed schemas"],
     "toc": [
       {
         "children": [
@@ -1190,14 +1034,9 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/schema-stitching/stitch-schema-extensions",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Schema Stitching",
-      "Extending stitched schemas"
-    ],
+    "url": "https://www.graphql-tools.com/docs/schema-stitching/stitch-schema-extensions",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Schema Stitching", "Extending stitched schemas"],
     "source": "Tools",
     "title": "Extending stitched schemas",
     "type": "Guide"
@@ -1299,26 +1138,16 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/schema-stitching/stitch-type-merging",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Schema Stitching",
-      "Type merging"
-    ],
+    "url": "https://www.graphql-tools.com/docs/schema-stitching/stitch-type-merging",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Schema Stitching", "Type merging"],
     "source": "Tools",
     "title": "Type merging",
     "type": "Guide"
   },
   {
     "objectID": "tools-schema-wrapping",
-    "headings": [
-      "Getting started",
-      "Built-in transforms",
-      "Custom transforms",
-      "Subschema delegation"
-    ],
+    "headings": ["Getting started", "Built-in transforms", "Custom transforms", "Subschema delegation"],
     "toc": [
       {
         "children": [],
@@ -1369,22 +1198,16 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/schema-wrapping",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Schema wrapping"
-    ],
+    "url": "https://www.graphql-tools.com/docs/schema-wrapping",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Schema wrapping"],
     "source": "Tools",
     "title": "Schema wrapping",
     "type": "Guide"
   },
   {
     "objectID": "tools-server-setup",
-    "headings": [
-      "Adding Subscriptions support"
-    ],
+    "headings": ["Adding Subscriptions support"],
     "toc": [
       {
         "children": [],
@@ -1393,13 +1216,9 @@
       }
     ],
     "content": "-",
-    "url": "https://graphql-tools.com/docs/server-setup",
-    "domain": "https://graphql-tools.com/",
-    "hierarchy": [
-      "Tools",
-      "Topics",
-      "Setup an HTTP server"
-    ],
+    "url": "https://www.graphql-tools.com/docs/server-setup",
+    "domain": "https://www.graphql-tools.com/",
+    "hierarchy": ["Tools", "Topics", "Setup an HTTP server"],
     "source": "Tools",
     "title": "Setup an HTTP server",
     "type": "Guide"
