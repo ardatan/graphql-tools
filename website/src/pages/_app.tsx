@@ -11,6 +11,9 @@ import { Header, Subheader, FooterExtended } from '@theguild/components';
 
 import type { AppProps } from 'next/app';
 
+import '@algolia/autocomplete-theme-classic';
+import '@theguild/components/dist/static/css/SearchBarV2.css';
+
 const styles: typeof chakraTheme['styles'] = {
   global: props => ({
     body: {
@@ -61,7 +64,7 @@ function AppContent(appProps: AppProps) {
 
   return (
     <>
-      <Header accentColor={accentColor} activeLink="/open-source" themeSwitch />
+      <Header accentColor={accentColor} activeLink="/open-source" themeSwitch searchBarProps={{ version: 'v2' }} />
       <Subheader
         activeLink={router.asPath}
         product={{

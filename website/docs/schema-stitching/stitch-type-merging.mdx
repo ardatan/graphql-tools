@@ -2,6 +2,7 @@
 id: stitch-type-merging
 title: Type merging
 sidebar_label: Type merging
+type: Guide
 ---
 
 Type merging allows _partial definitions_ of a type to exist in any subschema, all of which are merged into one unified type in the gateway schema. When querying for a merged type, the gateway smartly delegates portions of a request to each relevant subschema in dependency order, and then combines all results for the final return.
