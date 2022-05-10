@@ -1,5 +1,20 @@
 # @graphql-tools/url-loader
 
+## 7.9.21
+
+### Patch Changes
+
+- Updated dependencies [0fc510cb]
+  - @graphql-tools/utils@8.6.10
+  - @graphql-tools/delegate@8.7.8
+  - @graphql-tools/wrap@8.4.17
+
+## 7.9.20
+
+### Patch Changes
+
+- ab0549cc: fix(url-loader): handle live queries as subscriptions correctly
+
 ## 7.9.19
 
 ### Patch Changes

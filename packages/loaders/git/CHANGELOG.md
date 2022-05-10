@@ -1,5 +1,13 @@
 # @graphql-tools/git-loader
 
+## 7.1.14
+
+### Patch Changes
+
+- Updated dependencies [0fc510cb]
+  - @graphql-tools/utils@8.6.10
+  - @graphql-tools/graphql-tag-pluck@7.2.7
+
 ## 7.1.13
 
 ### Patch Changes

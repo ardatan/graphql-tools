@@ -24,17 +24,17 @@ For notes on typescript, refer to [loaders](/docs/schema-loading#loaders)
 ## Load `typeDefs`/`DocumentNode` and `resolvers` from files
 
 ```ts
-const { loadFiles } = require('@graphql-tools/load-files');
+const { loadFiles } = require('@graphql-tools/load-files')
 const { createServer } = require('@graphql-yoga/node')
 
 async function main() {
   const server = createServer({
     server: {
       typeDefs: await loadFiles('src/typeDefs/**/*.graphql'),
-      resolvers: await loadFiles('src/resolvers/**/*.{js,ts}'),
+      resolvers: await loadFiles('src/resolvers/**/*.{js,ts}')
     }
   })
-  await server.start();
+  await server.start()
 }
 ```
 
@@ -173,7 +173,6 @@ async function main() {
 }
 
 main().catch(error => console.error(error))
-
 ```
 
 ## Loaders

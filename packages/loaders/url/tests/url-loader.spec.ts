@@ -29,6 +29,7 @@ import { inspect } from 'util';
 import { createServer } from '@graphql-yoga/node';
 import { GraphQLLiveDirectiveSDL, useLiveQuery } from '@envelop/live-query';
 import { InMemoryLiveQueryStore } from '@n1ru4l/in-memory-live-query-store';
+import { LiveExecutionResult } from '@n1ru4l/graphql-live-query';
 
 describe('Schema URL Loader', () => {
   const loader = new UrlLoader();
@@ -891,8 +892,9 @@ input TestInput {
         `),
       });
       assertAsyncIterable(result);
-      for await (const data of result) {
-        expect(data.data.cnt).toBe(cnt);
+      for await (const singleResult of result) {
+        expect(singleResult.data.cnt).toBe(cnt);
+        expect((singleResult as LiveExecutionResult).isLive);
         if (cnt >= 3) {
           break;
         }

@@ -1,5 +1,13 @@
 # @graphql-tools/stitching-directives
 
+## 2.2.15
+
+### Patch Changes
+
+- Updated dependencies [0fc510cb]
+  - @graphql-tools/utils@8.6.10
+  - @graphql-tools/delegate@8.7.8
+
 ## 2.2.14
 
 ### Patch Changes
