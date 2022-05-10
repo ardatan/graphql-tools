@@ -22,9 +22,6 @@ jobs:
       - name: Build Packages
         run: yarn build
 
-      - name: Typecheck
-        run: yarn workspace website build
-
       - name: Algolia generate
         run: yarn workspace website algolia-sync
         env:
