@@ -25,6 +25,9 @@ jobs:
       - name: Build Packages
         run: yarn build
 
+      - name: Build API docs JSON
+        run: yarn build:api-docs
+
       - name: Algolia push
         run: yarn workspace website algolia-sync
         env:
