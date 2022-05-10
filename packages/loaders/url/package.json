@@ -45,7 +45,7 @@
     "graphql-sse": "1.2.0",
     "puppeteer": "13.7.0",
     "subscriptions-transport-ws": "0.11.0",
-    "webpack": "5.72.0"
+    "webpack": "5.72.1"
   },
   "dependencies": {
     "@graphql-tools/delegate": "8.7.8",
