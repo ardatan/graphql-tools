@@ -30,8 +30,12 @@ export function mergeSchemas(config: MergeSchemasConfig) {
     extractedResolvers.push(getResolversFromSchema(schema));
     extractedSchemaExtensions.push(extractExtensionsFromSchema(schema));
   }
-  extractedResolvers.push(asArray(config.resolvers || []))
-  
+
+  const resolvers = config.resolvers || [];
+  for (const resolver of asArray(resolvers)) {
+    extractedResolvers.push(resolver);
+  }
+
   return makeExecutableSchema({
     parseOptions: config,
     ...config,
