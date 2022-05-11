@@ -40,6 +40,19 @@ export function getRoutes(): IRoutes {
               'stitch-federation',
             ],
           },
+          migration: {
+            $name: 'Migration',
+            $routes: [
+              ['migration-from-import', 'Migration from GraphQL Import', 'From GraphQL Import'],
+              [
+                'migration-from-merge-graphql-schemas',
+                'Migration from Merge GraphQL Schemas',
+                'From Merge GraphQL Schemas',
+              ],
+              ['migration-from-toolkit', 'Migration from GraphQL Toolkit', 'From GraphQL Toolkit'],
+              ['migration-from-tools', 'Migration to v7', 'From tools v4 - v6'],
+            ],
+          },
           api: apiSidebar,
         },
       },

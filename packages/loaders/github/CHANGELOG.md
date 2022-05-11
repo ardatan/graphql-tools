@@ -1,5 +1,75 @@
 # @graphql-tools/github-loader
 
+## 7.2.20
+
+### Patch Changes
+
+- Updated dependencies [0fc510cb]
+  - @graphql-tools/utils@8.6.10
+  - @graphql-tools/graphql-tag-pluck@7.2.7
+
+## 7.2.19
+
+### Patch Changes
+
+- 627565a8: Bump cross-undici-fetch
+
+## 7.2.18
+
+### Patch Changes
+
+- 84ae31ea: Bump cross-undici-fetch
+
+## 7.2.17
+
+### Patch Changes
+
+- 3d89a26e: Bump cross-undici-fetch for Node 14 compat
+
+## 7.2.16
+
+### Patch Changes
+
+- 4b70d2be: Bump cross-undici-fetch for Node 18 compatibility
+
+## 7.2.15
+
+### Patch Changes
+
+- Updated dependencies [31a33e2b]
+  - @graphql-tools/utils@8.6.9
+  - @graphql-tools/graphql-tag-pluck@7.2.6
+
+## 7.2.14
+
+### Patch Changes
+
+- Updated dependencies [cb238877]
+  - @graphql-tools/utils@8.6.8
+  - @graphql-tools/graphql-tag-pluck@7.2.5
+
+## 7.2.13
+
+### Patch Changes
+
+- Updated dependencies [0bbb1769]
+  - @graphql-tools/utils@8.6.7
+  - @graphql-tools/graphql-tag-pluck@7.2.4
+
+## 7.2.12
+
+### Patch Changes
+
+- fe9402af: Bump data-loader and cross-undici-fetch
+
+## 7.2.11
+
+### Patch Changes
+
+- Updated dependencies [904c0847]
+  - @graphql-tools/utils@8.6.6
+  - @graphql-tools/graphql-tag-pluck@7.2.3
+
 ## 7.2.10
 
 ### Patch Changes

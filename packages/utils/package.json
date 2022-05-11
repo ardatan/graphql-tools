@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/utils",
-  "version": "8.6.5",
+  "version": "8.6.10",
   "description": "Common package containing utils and types for GraphQL tools",
   "repository": {
     "type": "git",
@@ -35,7 +35,7 @@
     "graphql-scalars": "1.17.0"
   },
   "dependencies": {
-    "tslib": "~2.3.0"
+    "tslib": "~2.4.0"
   },
   "publishConfig": {
     "access": "public",

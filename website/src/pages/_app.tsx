@@ -2,13 +2,17 @@ import 'remark-admonitions/styles/infima.css';
 import '../../public/style.css';
 
 import { appWithTranslation } from 'next-i18next';
+import Script from 'next/script';
 
 import { extendTheme, theme as chakraTheme } from '@chakra-ui/react';
 import { mode } from '@chakra-ui/theme-tools';
-import { handlePushRoute, CombinedThemeProvider, DocsPage, AppSeoProps } from '@guild-docs/client';
+import { handlePushRoute, CombinedThemeProvider, DocsPage, AppSeoProps, useGoogleAnalytics } from '@guild-docs/client';
 import { Header, Subheader, FooterExtended } from '@theguild/components';
 
 import type { AppProps } from 'next/app';
+
+import '@algolia/autocomplete-theme-classic';
+import '@theguild/components/dist/static/css/SearchBarV2.css';
 
 const styles: typeof chakraTheme['styles'] = {
   global: props => ({
@@ -52,11 +56,15 @@ const mdxRoutes = { data: serializedMdx && JSON.parse(serializedMdx) };
 
 function AppContent(appProps: AppProps) {
   const { Component, pageProps, router } = appProps;
+  const googleAnalytics = useGoogleAnalytics({
+    router,
+    trackingId: 'G-PMHEPTBCZS',
+  });
   const isDocs = router.asPath.startsWith('/docs');
 
   return (
     <>
-      <Header accentColor={accentColor} activeLink="/open-source" themeSwitch />
+      <Header accentColor={accentColor} activeLink="/open-source" themeSwitch searchBarProps={{ version: 'v2' }} />
       <Subheader
         activeLink={router.asPath}
         product={{
@@ -96,6 +104,8 @@ function AppContent(appProps: AppProps) {
           onClick: e => handlePushRoute('/docs/introduction', e),
         }}
       />
+      <Script {...googleAnalytics.loadScriptProps} />
+      <Script {...googleAnalytics.configScriptProps} />
       {isDocs ? (
         <DocsPage appProps={appProps} accentColor={accentColor} mdxRoutes={mdxRoutes} />
       ) : (

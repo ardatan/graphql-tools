@@ -1,5 +1,57 @@
 # @graphql-tools/git-loader
 
+## 7.1.14
+
+### Patch Changes
+
+- Updated dependencies [0fc510cb]
+  - @graphql-tools/utils@8.6.10
+  - @graphql-tools/graphql-tag-pluck@7.2.7
+
+## 7.1.13
+
+### Patch Changes
+
+- Updated dependencies [31a33e2b]
+  - @graphql-tools/utils@8.6.9
+  - @graphql-tools/graphql-tag-pluck@7.2.6
+
+## 7.1.12
+
+### Patch Changes
+
+- Updated dependencies [cb238877]
+  - @graphql-tools/utils@8.6.8
+  - @graphql-tools/graphql-tag-pluck@7.2.5
+
+## 7.1.11
+
+### Patch Changes
+
+- 0bbb1769: Refine generic typings using `extends X` when appropriate
+
+  Typescript 4.7 has stricter requirements around generics
+  which is explained well in the related PR:
+  https://github.com/microsoft/TypeScript/pull/48366
+
+  These changes resolve the errors that these packages will
+  face when attempting to upgrade to TS 4.7 (still in beta
+  at the time of writing this). Landing these changes now
+  will allow other TS libraries which depend on these
+  packages to experiment with TS 4.7 in the meantime.
+
+- Updated dependencies [0bbb1769]
+  - @graphql-tools/utils@8.6.7
+  - @graphql-tools/graphql-tag-pluck@7.2.4
+
+## 7.1.10
+
+### Patch Changes
+
+- Updated dependencies [904c0847]
+  - @graphql-tools/utils@8.6.6
+  - @graphql-tools/graphql-tag-pluck@7.2.3
+
 ## 7.1.9
 
 ### Patch Changes

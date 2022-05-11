@@ -1,5 +1,46 @@
 # @graphql-tools/batch-execute
 
+## 8.4.7
+
+### Patch Changes
+
+- Updated dependencies [0fc510cb]
+  - @graphql-tools/utils@8.6.10
+
+## 8.4.6
+
+### Patch Changes
+
+- Updated dependencies [31a33e2b]
+  - @graphql-tools/utils@8.6.9
+
+## 8.4.5
+
+### Patch Changes
+
+- Updated dependencies [cb238877]
+  - @graphql-tools/utils@8.6.8
+
+## 8.4.4
+
+### Patch Changes
+
+- Updated dependencies [0bbb1769]
+  - @graphql-tools/utils@8.6.7
+
+## 8.4.3
+
+### Patch Changes
+
+- fe9402af: Bump data-loader and cross-undici-fetch
+
+## 8.4.2
+
+### Patch Changes
+
+- Updated dependencies [904c0847]
+  - @graphql-tools/utils@8.6.6
+
 ## 8.4.1
 
 ### Patch Changes

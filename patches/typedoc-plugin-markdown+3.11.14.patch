@@ -1,0 +1,97 @@
+diff --git a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/declaration-title.js b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/declaration-title.js
+index ecf2699..3953091 100644
+--- a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/declaration-title.js
++++ b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/declaration-title.js
+@@ -21,9 +21,9 @@ function default_1() {
+         }
+         md.push(`${this.flags.isRest ? '... ' : ''} **${(0, utils_1.escapeChars)(this.name)}**`);
+         if (this instanceof typedoc_1.DeclarationReflection && this.typeParameters) {
+-            md.push(`<${this.typeParameters
++            md.push(`\\<${this.typeParameters // Escape `<` because MDX2 parse him as JSX tags
+                 .map((typeParameter) => `\`${typeParameter.name}\``)
+-                .join(', ')}\\>`);
++                .join(', ')}>`);
+         }
+         if (!((_a = this.parent) === null || _a === void 0 ? void 0 : _a.kindOf(typedoc_1.ReflectionKind.Enum))) {
+             md.push(getType(this));
+diff --git a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/reflection-title.js b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/reflection-title.js
+index 6363a66..52b1ae3 100644
+--- a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/reflection-title.js
++++ b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/reflection-title.js
+@@ -19,7 +19,7 @@ function default_1(theme) {
+                 const typeParameters = this.model.typeParameters
+                     .map((typeParameter) => typeParameter.name)
+                     .join(', ');
+-                title.push(`<${typeParameters}${shouldEscape ? '\\>' : '>'}`);
++                title.push(`\\<${typeParameters}>`); // Escape `<` because MDX2 parse him as JSX tag
+             }
+         }
+         return title.join('');
+diff --git a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/signature-title.js b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/signature-title.js
+index 9046905..1d3fdb3 100644
+--- a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/signature-title.js
++++ b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/signature-title.js
+@@ -20,9 +20,9 @@ function default_1() {
+             md.push(`**${this.name}**`);
+         }
+         if (this.typeParameters) {
+-            md.push(`<${this.typeParameters
++            md.push(`\\<${this.typeParameters // Escape `<` because MDX2 parse him as JSX tag
+                 .map((typeParameter) => `\`${typeParameter.name}\``)
+-                .join(', ')}\\>`);
++                .join(', ')}>`);
+         }
+         md.push(`(${getParameters(this.parameters)})`);
+         if (this.type && !((_b = this.parent) === null || _b === void 0 ? void 0 : _b.kindOf(typedoc_1.ReflectionKind.Constructor))) {
+diff --git a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/type.js b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/type.js
+index d2afa18..9becfd8 100644
+--- a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/type.js
++++ b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/type.js
+@@ -90,7 +90,8 @@ function getDeclarationType(model) {
+                     ? `= ${(0, utils_1.escapeChars)(obj.defaultValue)}`
+                     : ''}`;
+             });
+-        return `{ ${indexSignature ? indexSignature : ''}${types ? types.join('; ') : ''} }${model.defaultValue && model.defaultValue !== '...'
++        // Escape `{` because MDX2 parse him as JS expression
++        return `\\{ ${indexSignature ? indexSignature : ''}${types ? types.join('; ') : ''}}${model.defaultValue && model.defaultValue !== '...'
+             ? `= ${(0, utils_1.escapeChars)(model.defaultValue)}`
+             : ''}`;
+     }
+@@ -99,9 +100,9 @@ function getDeclarationType(model) {
+ function getFunctionType(modelSignatures) {
+     const functions = modelSignatures.map((fn) => {
+         const typeParams = fn.typeParameters
+-            ? `<${fn.typeParameters
++            ? `\\<${fn.typeParameters // Escape `<` because MDX2 parse him as JSX tag
+                 .map((typeParameter) => typeParameter.name)
+-                .join(', ')}\\>`
++                .join(', ')}>`
+             : [];
+         const params = fn.parameters
+             ? fn.parameters.map((param) => {
+@@ -128,9 +129,9 @@ function getReferenceType(model, emphasis) {
+                 : `\`${model.name}\``);
+         }
+         if (model.typeArguments && model.typeArguments.length > 0) {
+-            reflection.push(`<${model.typeArguments
++            reflection.push(`\\<${model.typeArguments // Escape `<` because MDX2 parse him as JSX tag
+                 .map((typeArgument) => Handlebars.helpers.type.call(typeArgument))
+-                .join(', ')}\\>`);
++                .join(', ')}>`);
+         }
+         return reflection.join('');
+     }
+diff --git a/node_modules/typedoc-plugin-markdown/dist/utils.js b/node_modules/typedoc-plugin-markdown/dist/utils.js
+index dc6b9e1..991fe79 100644
+--- a/node_modules/typedoc-plugin-markdown/dist/utils.js
++++ b/node_modules/typedoc-plugin-markdown/dist/utils.js
+@@ -11,7 +11,8 @@ function formatContents(contents) {
+ exports.formatContents = formatContents;
+ function escapeChars(str) {
+     return str
+-        .replace(/>/g, '\\>')
++        .replace(/</g, '\\<') // Escape `<` because MDX2 parse him as JSX tag
++        .replace(/{/g, '\\{') // Escape `{` because MDX2 parse him as JS expression
+         .replace(/_/g, '\\_')
+         .replace(/`/g, '\\`')
+         .replace(/\|/g, '\\|');

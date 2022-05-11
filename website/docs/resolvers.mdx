@@ -2,6 +2,7 @@
 id: resolvers
 title: Resolvers
 description: Writing resolvers with graphql-tools
+type: Guide
 ---
 
 When using `graphql-tools`, you define your field resolvers separately from the schema. Since the schema already describes all of the fields, arguments, and result types, the only thing left is a collection of functions that are called to actually execute these fields.
@@ -157,7 +158,7 @@ const resolverMap = {
 
 In addition to using a resolver map with `makeExecutableSchema`, you can use it with any GraphQL.js schema by importing the following function from `graphql-tools`:
 
-### addResolversToSchema({ schema, resolvers, resolverValidationOptions?, inheritResolversFromInterfaces? })
+### `addResolversToSchema({ schema, resolvers, resolverValidationOptions?, inheritResolversFromInterfaces? })`
 
 `addResolversToSchema` takes an options object of `IAddResolveFunctionsToSchemaOptions` and returns a new schema with resolvers attached to the relevant types.
 

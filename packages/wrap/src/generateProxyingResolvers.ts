@@ -12,7 +12,7 @@ import {
   getUnpathedErrors,
 } from '@graphql-tools/delegate';
 
-export function generateProxyingResolvers<TContext>(
+export function generateProxyingResolvers<TContext extends Record<string, any>>(
   subschemaConfig: SubschemaConfig<any, any, any, TContext>
 ): Record<string, Record<string, GraphQLFieldResolver<any, any>>> {
   const targetSchema = subschemaConfig.schema;
@@ -58,7 +58,7 @@ function identical<T>(value: T): T {
   return value;
 }
 
-function createPossiblyNestedProxyingResolver<TContext>(
+function createPossiblyNestedProxyingResolver<TContext extends Record<string, any>>(
   subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   proxyingResolver: GraphQLFieldResolver<any, any>
 ): GraphQLFieldResolver<any, TContext, any> {
@@ -84,7 +84,7 @@ function createPossiblyNestedProxyingResolver<TContext>(
   };
 }
 
-export function defaultCreateProxyingResolver<TContext>({
+export function defaultCreateProxyingResolver<TContext extends Record<string, any>>({
   subschemaConfig,
   operation,
   transformedSchema,

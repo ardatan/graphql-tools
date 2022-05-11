@@ -1,5 +1,45 @@
 # @graphql-tools/schema
 
+## 8.3.11
+
+### Patch Changes
+
+- Updated dependencies [0fc510cb]
+  - @graphql-tools/utils@8.6.10
+  - @graphql-tools/merge@8.2.11
+
+## 8.3.10
+
+### Patch Changes
+
+- Updated dependencies [31a33e2b]
+  - @graphql-tools/utils@8.6.9
+  - @graphql-tools/merge@8.2.10
+
+## 8.3.9
+
+### Patch Changes
+
+- Updated dependencies [cb238877]
+  - @graphql-tools/utils@8.6.8
+  - @graphql-tools/merge@8.2.9
+
+## 8.3.8
+
+### Patch Changes
+
+- Updated dependencies [0bbb1769]
+  - @graphql-tools/utils@8.6.7
+  - @graphql-tools/merge@8.2.8
+
+## 8.3.7
+
+### Patch Changes
+
+- Updated dependencies [904c0847]
+  - @graphql-tools/utils@8.6.6
+  - @graphql-tools/merge@8.2.7
+
 ## 8.3.6
 
 ### Patch Changes

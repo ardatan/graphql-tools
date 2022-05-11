@@ -1,5 +1,102 @@
 # @graphql-tools/prisma-loader
 
+## 7.1.20
+
+### Patch Changes
+
+- Updated dependencies [0fc510cb]
+  - @graphql-tools/utils@8.6.10
+  - @graphql-tools/url-loader@7.9.21
+
+## 7.1.19
+
+### Patch Changes
+
+- Updated dependencies [ab0549cc]
+  - @graphql-tools/url-loader@7.9.20
+
+## 7.1.18
+
+### Patch Changes
+
+- Updated dependencies [627565a8]
+  - @graphql-tools/url-loader@7.9.19
+
+## 7.1.17
+
+### Patch Changes
+
+- Updated dependencies [84ae31ea]
+  - @graphql-tools/url-loader@7.9.18
+
+## 7.1.16
+
+### Patch Changes
+
+- Updated dependencies [3d89a26e]
+  - @graphql-tools/url-loader@7.9.17
+
+## 7.1.15
+
+### Patch Changes
+
+- Updated dependencies [4b70d2be]
+  - @graphql-tools/url-loader@7.9.16
+
+## 7.1.14
+
+### Patch Changes
+
+- Updated dependencies [dd8563f1]
+  - @graphql-tools/url-loader@7.9.15
+
+## 7.1.13
+
+### Patch Changes
+
+- Updated dependencies [31a33e2b]
+  - @graphql-tools/utils@8.6.9
+  - @graphql-tools/url-loader@7.9.14
+
+## 7.1.12
+
+### Patch Changes
+
+- Updated dependencies [8d9f48bc]
+  - @graphql-tools/url-loader@7.9.13
+
+## 7.1.11
+
+### Patch Changes
+
+- Updated dependencies [cb238877]
+- Updated dependencies [43758d61]
+  - @graphql-tools/utils@8.6.8
+  - @graphql-tools/url-loader@7.9.12
+
+## 7.1.10
+
+### Patch Changes
+
+- Updated dependencies [0bbb1769]
+  - @graphql-tools/url-loader@7.9.11
+  - @graphql-tools/utils@8.6.7
+
+## 7.1.9
+
+### Patch Changes
+
+- Updated dependencies [fe9402af]
+  - @graphql-tools/url-loader@7.9.10
+
+## 7.1.8
+
+### Patch Changes
+
+- Updated dependencies [904c0847]
+  - @graphql-tools/utils@8.6.6
+  - @graphql-tools/url-loader@7.9.9
+
 ## 7.1.7
 
 ### Patch Changes

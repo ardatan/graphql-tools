@@ -1,9 +1,9 @@
-import { parseGraphQLSDL, parseGraphQLJSON, Source } from '@graphql-tools/utils';
+import { parseGraphQLSDL, parseGraphQLJSON, Source, GraphQLParseOptions } from '@graphql-tools/utils';
 
 /**
  * @internal
  */
-export function parse<T>({
+export function parse<T extends GraphQLParseOptions>({
   path,
   pointer,
   content,

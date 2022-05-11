@@ -11,7 +11,9 @@ import {
 } from '@graphql-tools/utils';
 
 export function linkToExecutor(link: ApolloLink): Executor {
-  return function executorFromLink<TReturn, TArgs, TContext>(request: ExecutionRequest<TArgs, TContext>) {
+  return function executorFromLink<TReturn, TArgs extends Record<string, any>, TContext>(
+    request: ExecutionRequest<TArgs, TContext>
+  ) {
     const observable = execute(link, {
       query: request.document,
       operationName: request.operationName,

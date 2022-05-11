@@ -1,3 +1,3 @@
 module.exports = {
-  ignore: ['@graphql-tools/website'],
+  ignore: ['website'],
 };

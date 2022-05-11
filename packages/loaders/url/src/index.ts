@@ -17,10 +17,8 @@ import {
 } from '@graphql-tools/utils';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
-import { ClientOptions as GraphQLSSEClientOptions, createClient as createGraphQLSSEClient } from 'graphql-sse';
 import WebSocket from 'isomorphic-ws';
 import { extractFiles, isExtractableFile } from 'extract-files';
-import { ConnectionParamsOptions, SubscriptionClient as LegacySubscriptionClient } from 'subscriptions-transport-ws';
 import { ValueOrPromise } from 'value-or-promise';
 import { isLiveQueryOperationDefinitionNode } from '@n1ru4l/graphql-live-query';
 import { AsyncFetchFn, defaultAsyncFetch } from './defaultAsyncFetch';
@@ -29,7 +27,7 @@ import { handleMultipartMixedResponse } from './handleMultipartMixedResponse';
 import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse';
 import { addCancelToResponseStream } from './addCancelToResponseStream';
 import { AbortController, FormData, File } from 'cross-undici-fetch';
-import { isBlob, isGraphQLUpload, isPromiseLike } from './utils';
+import { isBlob, isGraphQLUpload, isPromiseLike, LEGACY_WS } from './utils';
 
 export type FetchFn = AsyncFetchFn | SyncFetchFn;
 
@@ -115,9 +113,9 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    */
   subscriptionsProtocol?: SubscriptionProtocol;
   /**
-   * Additional options to pass to the graphql-sse client.
+   * @deprecated This is no longer used. Will be removed in the next release
    */
-  graphqlSseOptions?: Omit<GraphQLSSEClientOptions, 'url' | 'headers' | 'fetchFn' | 'abortControllerImpl'>;
+  graphqlSseOptions?: any;
   /**
    * Retry attempts
    */
@@ -293,25 +291,21 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       const controller = new AbortController();
       let method = defaultMethod;
 
-      if (options?.useGETForQueries) {
-        const operationAst = getOperationASTFromRequest(request);
-        const operationType = operationAst.operation;
-        if (operationType === 'query') {
-          method = 'GET';
-        }
+      const operationAst = getOperationASTFromRequest(request);
+      const operationType = operationAst.operation;
+
+      if (options?.useGETForQueries && operationType === 'query') {
+        method = 'GET';
+      }
+
+      let accept = 'application/json, multipart/mixed';
+      if (operationType === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
+        method = 'GET';
+        accept = 'text/event-stream';
       }
 
       const endpoint = request.extensions?.endpoint || HTTP_URL;
       const headers = Object.assign({}, options?.headers, request.extensions?.headers || {});
-      const acceptedProtocols = [`application/json`];
-
-      if (method === 'GET' && options?.subscriptionsProtocol === SubscriptionProtocol.SSE) {
-        acceptedProtocols.push('text/event-stream');
-      } else {
-        acceptedProtocols.push('multipart/mixed');
-      }
-
-      const accept = acceptedProtocols.join(', ');
 
       const query = print(request.document);
       const requestBody = {
@@ -406,7 +400,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         })
         .then(result => {
           if (typeof result === 'string') {
-            return JSON.parse(result);
+            if (result) {
+              return JSON.parse(result);
+            }
           } else {
             return result;
           }
@@ -489,60 +485,90 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
 
   buildWSLegacyExecutor(
     subscriptionsEndpoint: string,
-    webSocketImpl: typeof WebSocket,
-    connectionParams?: ConnectionParamsOptions
+    WebSocketImpl: typeof WebSocket,
+    options?: LoadFromUrlOptions
   ): Executor {
     const WS_URL = switchProtocols(subscriptionsEndpoint, {
       https: 'wss',
       http: 'ws',
     });
-    const subscriptionClient = new LegacySubscriptionClient(
-      WS_URL,
-      {
-        connectionParams,
-        lazy: true,
-      },
-      webSocketImpl
-    );
 
-    return <TReturn, TArgs>({ document, variables, operationName }: ExecutionRequest<TArgs>) => {
-      return observableToAsyncIterable(
-        subscriptionClient.request({
-          query: document,
-          variables,
-          operationName,
-        })
-      ) as AsyncIterable<ExecutionResult<TReturn>>;
-    };
-  }
-
-  buildGraphQLSSEExecutor(
-    endpoint: string,
-    fetch: AsyncFetchFn,
-    options: Omit<LoadFromUrlOptions, 'subscriptionEndpoint'> = {}
-  ): AsyncExecutor {
-    const { headers } = options;
-    const client = createGraphQLSSEClient({
-      ...options.graphqlSseOptions,
-      url: endpoint,
-      fetchFn: fetch,
-      abortControllerImpl: AbortController,
-      headers,
-    });
-    return async ({ document, variables, operationName, extensions }) => {
+    return function legacyExecutor(request: ExecutionRequest) {
+      const id = Date.now().toString();
       return observableToAsyncIterable({
-        subscribe: observer => {
-          const unsubscribe = client.subscribe(
-            {
-              query: document,
-              variables: variables as Record<string, any>,
-              operationName,
-              extensions,
-            },
-            observer
-          );
+        subscribe(observer) {
+          const websocket = new WebSocketImpl(WS_URL, 'graphql-ws', {
+            followRedirects: true,
+            headers: options?.headers,
+            rejectUnauthorized: false,
+            skipUTF8Validation: true,
+          });
+          websocket.onopen = () => {
+            websocket.send(
+              JSON.stringify({
+                type: LEGACY_WS.CONNECTION_INIT,
+                payload: {
+                  ...request.extensions,
+                },
+              })
+            );
+          };
+          websocket.onmessage = event => {
+            const data = JSON.parse(event.data.toString('utf-8'));
+            switch (data.type) {
+              case LEGACY_WS.CONNECTION_ACK: {
+                websocket.send(
+                  JSON.stringify({
+                    type: LEGACY_WS.START,
+                    id,
+                    payload: {
+                      query: print(request.document),
+                      variables: request.variables,
+                      operationName: request.operationName,
+                    },
+                  })
+                );
+                break;
+              }
+              case LEGACY_WS.CONNECTION_ERROR: {
+                observer.error(data.payload);
+                break;
+              }
+              case LEGACY_WS.CONNECTION_KEEP_ALIVE: {
+                break;
+              }
+              case LEGACY_WS.DATA: {
+                observer.next(data.payload);
+                break;
+              }
+              case LEGACY_WS.COMPLETE: {
+                websocket.send(
+                  JSON.stringify({
+                    type: LEGACY_WS.CONNECTION_TERMINATE,
+                  })
+                );
+                websocket.terminate();
+                observer.complete();
+                break;
+              }
+            }
+          };
+
           return {
-            unsubscribe,
+            unsubscribe: () => {
+              websocket.send(
+                JSON.stringify({
+                  type: LEGACY_WS.STOP,
+                  id,
+                })
+              );
+              websocket.send(
+                JSON.stringify({
+                  type: LEGACY_WS.CONNECTION_TERMINATE,
+                })
+              );
+              websocket.terminate();
+            },
           };
         },
       });
@@ -624,23 +650,20 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     options?: LoadFromUrlOptions
   ): Executor {
     if (options?.subscriptionsProtocol === SubscriptionProtocol.SSE) {
-      return this.buildHTTPExecutor(subscriptionsEndpoint, fetch as any, {
-        ...options,
-        method: 'GET',
-      });
+      return this.buildHTTPExecutor(subscriptionsEndpoint, fetch as any, options);
     } else if (options?.subscriptionsProtocol === SubscriptionProtocol.GRAPHQL_SSE) {
       if (!options?.subscriptionsEndpoint) {
         // when no custom subscriptions endpoint is specified,
         // graphql-sse is recommended to be used on `/graphql/stream`
         subscriptionsEndpoint += '/stream';
       }
-      return this.buildGraphQLSSEExecutor(subscriptionsEndpoint, fetch as any, options);
+      return this.buildHTTPExecutor(subscriptionsEndpoint, fetch as any, options);
     } else {
       const webSocketImpl$ = new ValueOrPromise(() => this.getWebSocketImpl(importFn, options));
       const connectionParams = () => ({ headers: options?.headers });
       const executor$ = webSocketImpl$.then(webSocketImpl => {
         if (options?.subscriptionsProtocol === SubscriptionProtocol.LEGACY_WS) {
-          return this.buildWSLegacyExecutor(subscriptionsEndpoint, webSocketImpl, connectionParams);
+          return this.buildWSLegacyExecutor(subscriptionsEndpoint, webSocketImpl, options);
         } else {
           return this.buildWSExecutor(subscriptionsEndpoint, webSocketImpl, connectionParams);
         }
@@ -666,27 +689,33 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     const httpExecutor$ = fetch$.then(fetch => {
       return this.buildHTTPExecutor(endpoint, fetch, options);
     });
-    const subscriptionExecutor$ = fetch$.then(fetch => {
-      const subscriptionsEndpoint = options?.subscriptionsEndpoint || endpoint;
-      return this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, importFn, options);
-    });
 
-    function getExecutorByRequest(request: ExecutionRequest<any>): ValueOrPromise<Executor> {
-      const operationAst = getOperationASTFromRequest(request);
-      if (
-        operationAst.operation === 'subscription' ||
-        isLiveQueryOperationDefinitionNode(operationAst, request.variables as Record<string, any>)
-      ) {
-        return subscriptionExecutor$;
-      } else {
-        return httpExecutor$;
+    if (options?.subscriptionsEndpoint != null || options?.subscriptionsProtocol !== SubscriptionProtocol.SSE) {
+      const subscriptionExecutor$ = fetch$.then(fetch => {
+        const subscriptionsEndpoint = options?.subscriptionsEndpoint || endpoint;
+        return this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, importFn, options);
+      });
+
+      // eslint-disable-next-line no-inner-declarations
+      function getExecutorByRequest(request: ExecutionRequest<any>): ValueOrPromise<Executor> {
+        const operationAst = getOperationASTFromRequest(request);
+        if (
+          operationAst.operation === 'subscription' ||
+          isLiveQueryOperationDefinitionNode(operationAst, request.variables as Record<string, any>)
+        ) {
+          return subscriptionExecutor$;
+        } else {
+          return httpExecutor$;
+        }
       }
-    }
 
-    return request =>
-      getExecutorByRequest(request)
-        .then(executor => executor(request))
-        .resolve();
+      return request =>
+        getExecutorByRequest(request)
+          .then(executor => executor(request))
+          .resolve();
+    } else {
+      return request => httpExecutor$.then(executor => executor(request)).resolve();
+    }
   }
 
   getExecutorAsync(endpoint: string, options?: Omit<LoadFromUrlOptions, 'endpoint'>): AsyncExecutor {

@@ -74,7 +74,7 @@ describe('dataloader', () => {
         args: {
           ids: keys.map((k: { id: any }) => k.id),
         },
-        context: null,
+        context: undefined,
         info: keys[0].info,
         returnType: new GraphQLList(keys[0].info.returnType),
       });

@@ -1,5 +1,45 @@
 # @graphql-tools/code-file-loader
 
+## 7.2.15
+
+### Patch Changes
+
+- Updated dependencies [0fc510cb]
+  - @graphql-tools/utils@8.6.10
+  - @graphql-tools/graphql-tag-pluck@7.2.7
+
+## 7.2.14
+
+### Patch Changes
+
+- Updated dependencies [31a33e2b]
+  - @graphql-tools/utils@8.6.9
+  - @graphql-tools/graphql-tag-pluck@7.2.6
+
+## 7.2.13
+
+### Patch Changes
+
+- Updated dependencies [cb238877]
+  - @graphql-tools/utils@8.6.8
+  - @graphql-tools/graphql-tag-pluck@7.2.5
+
+## 7.2.12
+
+### Patch Changes
+
+- Updated dependencies [0bbb1769]
+  - @graphql-tools/utils@8.6.7
+  - @graphql-tools/graphql-tag-pluck@7.2.4
+
+## 7.2.11
+
+### Patch Changes
+
+- Updated dependencies [904c0847]
+  - @graphql-tools/utils@8.6.6
+  - @graphql-tools/graphql-tag-pluck@7.2.3
+
 ## 7.2.10
 
 ### Patch Changes

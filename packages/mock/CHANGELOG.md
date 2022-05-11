@@ -1,5 +1,45 @@
 # @graphql-tools/mock
 
+## 8.6.9
+
+### Patch Changes
+
+- Updated dependencies [0fc510cb]
+  - @graphql-tools/utils@8.6.10
+  - @graphql-tools/schema@8.3.11
+
+## 8.6.8
+
+### Patch Changes
+
+- Updated dependencies [31a33e2b]
+  - @graphql-tools/utils@8.6.9
+  - @graphql-tools/schema@8.3.10
+
+## 8.6.7
+
+### Patch Changes
+
+- Updated dependencies [cb238877]
+  - @graphql-tools/utils@8.6.8
+  - @graphql-tools/schema@8.3.9
+
+## 8.6.6
+
+### Patch Changes
+
+- Updated dependencies [0bbb1769]
+  - @graphql-tools/utils@8.6.7
+  - @graphql-tools/schema@8.3.8
+
+## 8.6.5
+
+### Patch Changes
+
+- Updated dependencies [904c0847]
+  - @graphql-tools/utils@8.6.6
+  - @graphql-tools/schema@8.3.7
+
 ## 8.6.4
 
 ### Patch Changes

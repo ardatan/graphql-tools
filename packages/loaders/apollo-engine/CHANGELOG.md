@@ -1,5 +1,70 @@
 # @graphql-tools/apollo-engine-loader
 
+## 7.2.16
+
+### Patch Changes
+
+- Updated dependencies [0fc510cb]
+  - @graphql-tools/utils@8.6.10
+
+## 7.2.15
+
+### Patch Changes
+
+- 627565a8: Bump cross-undici-fetch
+
+## 7.2.14
+
+### Patch Changes
+
+- 84ae31ea: Bump cross-undici-fetch
+
+## 7.2.13
+
+### Patch Changes
+
+- 3d89a26e: Bump cross-undici-fetch for Node 14 compat
+
+## 7.2.12
+
+### Patch Changes
+
+- 4b70d2be: Bump cross-undici-fetch for Node 18 compatibility
+
+## 7.2.11
+
+### Patch Changes
+
+- Updated dependencies [31a33e2b]
+  - @graphql-tools/utils@8.6.9
+
+## 7.2.10
+
+### Patch Changes
+
+- Updated dependencies [cb238877]
+  - @graphql-tools/utils@8.6.8
+
+## 7.2.9
+
+### Patch Changes
+
+- Updated dependencies [0bbb1769]
+  - @graphql-tools/utils@8.6.7
+
+## 7.2.8
+
+### Patch Changes
+
+- fe9402af: Bump data-loader and cross-undici-fetch
+
+## 7.2.7
+
+### Patch Changes
+
+- Updated dependencies [904c0847]
+  - @graphql-tools/utils@8.6.6
+
 ## 7.2.6
 
 ### Patch Changes

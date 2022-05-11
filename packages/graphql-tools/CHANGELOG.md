@@ -1,5 +1,35 @@
 # graphql-tools
 
+## 8.2.9
+
+### Patch Changes
+
+- @graphql-tools/schema@8.3.11
+
+## 8.2.8
+
+### Patch Changes
+
+- @graphql-tools/schema@8.3.10
+
+## 8.2.7
+
+### Patch Changes
+
+- @graphql-tools/schema@8.3.9
+
+## 8.2.6
+
+### Patch Changes
+
+- @graphql-tools/schema@8.3.8
+
+## 8.2.5
+
+### Patch Changes
+
+- @graphql-tools/schema@8.3.7
+
 ## 8.2.4
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @graphql-tools/jest-transform
 
+## 1.1.3
+
+### Patch Changes
+
+- fc7fe4a4: Jest 18 support
+
 ## 1.1.2
 
 ### Patch Changes

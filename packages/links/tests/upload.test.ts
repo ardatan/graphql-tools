@@ -3,7 +3,7 @@ import { AddressInfo } from 'net';
 import { Readable } from 'stream';
 
 import express, { Express } from 'express';
-import { graphqlHTTP } from 'express-graphql';
+import { createServer } from '@graphql-yoga/node';
 import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
@@ -86,7 +86,12 @@ describe('graphql upload', () => {
       },
     });
 
-    const remoteApp = express().use(graphqlUploadExpress(), graphqlHTTP({ schema: remoteSchema }));
+    const remoteApp = express().use(
+      graphqlUploadExpress(),
+      createServer({
+        schema: remoteSchema,
+      })
+    );
 
     remoteServer = await startServer(remoteApp);
     remotePort = (remoteServer.address() as AddressInfo).port;
@@ -117,7 +122,12 @@ describe('graphql upload', () => {
       },
     });
 
-    const gatewayApp = express().use(graphqlUploadExpress(), graphqlHTTP({ schema: gatewaySchema }));
+    const gatewayApp = express().use(
+      graphqlUploadExpress(),
+      createServer({
+        schema: gatewaySchema,
+      })
+    );
 
     gatewayServer = await startServer(gatewayApp);
     gatewayPort = (gatewayServer.address() as AddressInfo).port;

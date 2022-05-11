@@ -1,5 +1,60 @@
 # @graphql-tools/batch-delegate
 
+## 8.2.17
+
+### Patch Changes
+
+- Updated dependencies [0fc510cb]
+  - @graphql-tools/utils@8.6.10
+  - @graphql-tools/delegate@8.7.8
+
+## 8.2.16
+
+### Patch Changes
+
+- Updated dependencies [31a33e2b]
+  - @graphql-tools/utils@8.6.9
+  - @graphql-tools/delegate@8.7.7
+
+## 8.2.15
+
+### Patch Changes
+
+- Updated dependencies [26e4b464]
+  - @graphql-tools/delegate@8.7.6
+
+## 8.2.14
+
+### Patch Changes
+
+- Updated dependencies [cb238877]
+  - @graphql-tools/utils@8.6.8
+  - @graphql-tools/delegate@8.7.5
+
+## 8.2.13
+
+### Patch Changes
+
+- Updated dependencies [0bbb1769]
+  - @graphql-tools/delegate@8.7.4
+  - @graphql-tools/utils@8.6.7
+
+## 8.2.12
+
+### Patch Changes
+
+- fe9402af: Bump data-loader and cross-undici-fetch
+- Updated dependencies [fe9402af]
+  - @graphql-tools/delegate@8.7.3
+
+## 8.2.11
+
+### Patch Changes
+
+- Updated dependencies [904c0847]
+  - @graphql-tools/utils@8.6.6
+  - @graphql-tools/delegate@8.7.2
+
 ## 8.2.10
 
 ### Patch Changes

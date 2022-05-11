@@ -2,6 +2,7 @@
 id: graphql-tag-pluck
 title: Extracting GraphQL definitions from code files
 sidebar_label: GraphQL Tag Pluck
+type: Guide
 ---
 
 `@graphql-tools/graphql-tag-pluck` will take JavaScript code as an input and will pluck all template literals provided to `graphql-tag`.
@@ -67,8 +68,8 @@ gqlPluckFromCodeStringSync(filePath, fs.readFileSync(filePath, 'utf8'))
 
 Template literals leaded by magic comments will also be extracted :-)
 
-<!-- Prettier adds `;` at the beginning  -->
-<!-- prettier-ignore -->
+/* Prettier adds `;` at the beginning */
+/* prettier-ignore */
 ```js
 /* GraphQL */ `
   enum MessageTypes {

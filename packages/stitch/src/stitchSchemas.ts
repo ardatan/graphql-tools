@@ -24,7 +24,7 @@ import {
 } from './subschemaConfigTransforms';
 import { applyExtensions, mergeExtensions, mergeResolvers } from '@graphql-tools/merge';
 
-export function stitchSchemas<TContext = Record<string, any>>({
+export function stitchSchemas<TContext extends Record<string, any> = Record<string, any>>({
   subschemas = [],
   types = [],
   typeDefs,

@@ -11,7 +11,7 @@ interface Transformation<TContext> {
   context: Record<string, any>;
 }
 
-export class Transformer<TContext = Record<string, any>> {
+export class Transformer<TContext extends Record<string, any> = Record<string, any>> {
   private transformations: Array<Transformation<TContext>> = [];
   private delegationContext: DelegationContext<TContext>;
 
@@ -51,7 +51,7 @@ export class Transformer<TContext = Record<string, any>> {
   public transformResult(originalResult: ExecutionResult) {
     let result = originalResult;
 
-    // from rigth to left
+    // from right to left
     for (let i = this.transformations.length - 1; i >= 0; i--) {
       const transformation = this.transformations[i];
       if (transformation.transform.transformResult) {

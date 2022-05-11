@@ -5,7 +5,7 @@ import { AggregateError, getResponseKeyFromInfo, ExecutionResult, relocatedError
 import { DelegationContext } from './types';
 import { resolveExternalValue } from './resolveExternalValue';
 
-export function checkResultAndHandleErrors<TContext>(
+export function checkResultAndHandleErrors<TContext extends Record<string, any>>(
   result: ExecutionResult,
   delegationContext: DelegationContext<TContext>
 ): any {
@@ -43,8 +43,7 @@ export function mergeDataAndErrors(
 
     if (errors.length === 1) {
       const error = onLocatedError ? onLocatedError(errors[0]) : errors[0];
-      const newPath =
-        path === undefined ? error.path : error.path === undefined ? path : path.concat(error.path.slice(1));
+      const newPath = path === undefined ? error.path : !error.path ? path : path.concat(error.path.slice(1));
 
       return { data: relocatedError(errors[0], newPath), unpathedErrors: [] };
     }

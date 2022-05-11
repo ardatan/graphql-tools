@@ -8,7 +8,7 @@ import WrapFields from './WrapFields';
 
 interface WrapTypeTransformationContext extends Record<string, any> {}
 
-export default class WrapType<TContext = Record<string, any>>
+export default class WrapType<TContext extends Record<string, any> = Record<string, any>>
   implements Transform<WrapTypeTransformationContext, TContext>
 {
   private readonly transformer: WrapFields<TContext>;

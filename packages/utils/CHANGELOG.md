@@ -1,5 +1,45 @@
 # @graphql-tools/utils
 
+## 8.6.10
+
+### Patch Changes
+
+- 0fc510cb: Interface implementations should be included when a return type is an interface.
+
+## 8.6.9
+
+### Patch Changes
+
+- 31a33e2b: pruneSchema will no longer removed used input object type.
+
+## 8.6.8
+
+### Patch Changes
+
+- cb238877: pruneSchema will now prune unused implementations of interfaces
+
+## 8.6.7
+
+### Patch Changes
+
+- 0bbb1769: Refine generic typings using `extends X` when appropriate
+
+  Typescript 4.7 has stricter requirements around generics
+  which is explained well in the related PR:
+  https://github.com/microsoft/TypeScript/pull/48366
+
+  These changes resolve the errors that these packages will
+  face when attempting to upgrade to TS 4.7 (still in beta
+  at the time of writing this). Landing these changes now
+  will allow other TS libraries which depend on these
+  packages to experiment with TS 4.7 in the meantime.
+
+## 8.6.6
+
+### Patch Changes
+
+- 904c0847: Support deprecated directive on enum values
+
 ## 8.6.5
 
 ### Patch Changes

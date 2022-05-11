@@ -38,9 +38,10 @@ import { Subschema } from './Subschema';
 import { createRequest, getDelegatingOperation } from './createRequest';
 import { Transformer } from './Transformer';
 
-export function delegateToSchema<TContext = Record<string, any>, TArgs = any>(
-  options: IDelegateToSchemaOptions<TContext, TArgs>
-): any {
+export function delegateToSchema<
+  TContext extends Record<string, any> = Record<string, any>,
+  TArgs extends Record<string, any> = any
+>(options: IDelegateToSchemaOptions<TContext, TArgs>): any {
   const {
     info,
     schema,
@@ -85,9 +86,10 @@ function getDelegationReturnType(
   return rootType.getFields()[fieldName].type;
 }
 
-export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
-  options: IDelegateRequestOptions<TContext, TArgs>
-) {
+export function delegateRequest<
+  TContext extends Record<string, any> = Record<string, any>,
+  TArgs extends Record<string, any> = any
+>(options: IDelegateRequestOptions<TContext, TArgs>) {
   const delegationContext = getDelegationContext(options);
 
   const transformer = new Transformer<TContext>(delegationContext);
@@ -112,7 +114,7 @@ export function delegateRequest<TContext = Record<string, any>, TArgs = any>(
     .resolve();
 }
 
-function getDelegationContext<TContext>({
+function getDelegationContext<TContext extends Record<string, any>>({
   request,
   schema,
   fieldName,
@@ -193,7 +195,9 @@ function validateRequest(delegationContext: DelegationContext<any>, document: Do
 
 const GLOBAL_CONTEXT = {};
 
-function getExecutor<TContext>(delegationContext: DelegationContext<TContext>): Executor<TContext> {
+function getExecutor<TContext extends Record<string, any>>(
+  delegationContext: DelegationContext<TContext>
+): Executor<TContext> {
   const { subschemaConfig, targetSchema, context } = delegationContext;
 
   let executor: Executor = subschemaConfig?.executor || createDefaultExecutor(targetSchema);

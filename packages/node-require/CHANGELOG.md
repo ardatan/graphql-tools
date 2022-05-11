@@ -1,5 +1,50 @@
 # @graphql-tools/node-require
 
+## 6.3.11
+
+### Patch Changes
+
+- Updated dependencies [0fc510cb]
+  - @graphql-tools/utils@8.6.10
+  - @graphql-tools/load@7.5.11
+  - @graphql-tools/graphql-file-loader@7.3.12
+
+## 6.3.10
+
+### Patch Changes
+
+- Updated dependencies [31a33e2b]
+  - @graphql-tools/utils@8.6.9
+  - @graphql-tools/load@7.5.10
+  - @graphql-tools/graphql-file-loader@7.3.11
+
+## 6.3.9
+
+### Patch Changes
+
+- Updated dependencies [cb238877]
+  - @graphql-tools/utils@8.6.8
+  - @graphql-tools/load@7.5.9
+  - @graphql-tools/graphql-file-loader@7.3.10
+
+## 6.3.8
+
+### Patch Changes
+
+- Updated dependencies [0bbb1769]
+  - @graphql-tools/utils@8.6.7
+  - @graphql-tools/load@7.5.8
+  - @graphql-tools/graphql-file-loader@7.3.9
+
+## 6.3.7
+
+### Patch Changes
+
+- Updated dependencies [904c0847]
+  - @graphql-tools/utils@8.6.6
+  - @graphql-tools/load@7.5.7
+  - @graphql-tools/graphql-file-loader@7.3.8
+
 ## 6.3.6
 
 ### Patch Changes

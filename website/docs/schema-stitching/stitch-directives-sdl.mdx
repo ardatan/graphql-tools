@@ -2,6 +2,7 @@
 id: stitch-directives-sdl
 title: Directives SDL
 sidebar_label: Directives SDL
+type: Guide
 ---
 
 Stitching directives (`@graphql-tools/stitching-directives`) may be used to configure a stitched gateway directly through the Schema Definition Language (SDL) of its subservices. The advantage of this approach is that all schema _and type merging configuration_ is represented in a single document managed by each subservice, and can be reloaded by the gateway on the fly without a formal deploy or server restart.
@@ -295,23 +296,23 @@ merge: {
 
 Each generated object key will have a `__typename` and all _utilized_ selectionSet fields on the type. For example, when the `shippingEstimate` field is requested, the resulting object keys will look like this:
 
-<!-- Prettier adds `;` at the beginning  -->
-<!-- prettier-ignore  -->
+/* Prettier adds `;` at the beginning */
+/* prettier-ignore */
 ```js
 [
   { __typename: 'Product', upc: '1', price: 899, weight: 100 },
-  { __typename: 'Product', upc: '2', price: 1299, weight: 1000 },
+  { __typename: 'Product', upc: '2', price: 1299, weight: 1000 }
 ]
 ```
 
 However, when `shippingEstimate` is NOT requested, the generated object keys will only contain fields from the base selectionSet:
 
-<!-- Prettier adds `;` at the beginning  -->
-<!-- prettier-ignore -->
+/* Prettier adds `;` at the beginning */
+/* prettier-ignore */
 ```js
 [
   { __typename: 'Product', upc: '1' },
-  { __typename: 'Product', upc: '2' },
+  { __typename: 'Product', upc: '2' }
 ]
 ```
 
@@ -355,12 +356,12 @@ merge: {
 
 These typed inputs follow the same behavior as object keys with regards to only including fields from _utilized_ selectionSets. The resulting objects will only ever include fields whitelisted by their input schema, and are subject to nullability mismatch errors:
 
-<!-- Prettier adds `;` at the beginning  -->
-<!-- prettier-ignore -->
+/* Prettier adds `;` at the beginning */
+/* prettier-ignore */
 ```js
 [
   { upc: '1', price: 899, weight: 100 },
-  { upc: '2', price: 1299, weight: 1000 },
+  { upc: '2', price: 1299, weight: 1000 }
 ]
 ```
 

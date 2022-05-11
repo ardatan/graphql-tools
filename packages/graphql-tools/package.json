@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools",
-  "version": "8.2.4",
+  "version": "8.2.9",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "repository": {
     "type": "git",
@@ -29,14 +29,14 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "optionalDependencies": {
-    "@apollo/client": "~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0"
+    "@apollo/client": "~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0"
   },
   "publishConfig": {
     "access": "public",
     "directory": "dist"
   },
   "dependencies": {
-    "@graphql-tools/schema": "8.3.6",
-    "tslib": "~2.3.0"
+    "@graphql-tools/schema": "8.3.11",
+    "tslib": "~2.4.0"
   }
 }

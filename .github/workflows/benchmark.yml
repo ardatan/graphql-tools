@@ -21,22 +21,22 @@ jobs:
       - name: Use Node
         uses: actions/setup-node@master
         with:
-          node-version: 17
+          node-version: 18
 
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
       - name: Cache Yarn
-        id: yarn-cache-17-16
+        id: yarn-cache-18-16
         uses: actions/cache@v3
         with:
           path: |
             ${{ steps.yarn-cache-dir-path.outputs.dir }}
             **/node_modules
-          key: ${{ runner.os }}-17-16-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-18-16-node-modules-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-17-16-node-modules-
+            ${{ runner.os }}-18-16-node-modules-
 
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
@@ -47,7 +47,7 @@ jobs:
           sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
           echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
           sudo apt-get update
-          sudo apt-get install k6
+          sudo apt-get install k6=0.37.0
       - name: GraphQL API
         working-directory: ./benchmark/federation
         run: |
