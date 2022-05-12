@@ -3586,10 +3586,10 @@
   dependencies:
     "@types/istanbul-lib-report" "*"
 
-"@types/jest@27.5.0":
-  version "27.5.0"
-  resolved "https://registry.yarnpkg.com/@types/jest/-/jest-27.5.0.tgz#e04ed1824ca6b1dd0438997ba60f99a7405d4c7b"
-  integrity sha512-9RBFx7r4k+msyj/arpfaa0WOOEcaAZNmN+j80KFbFCoSqCJGHTz7YMAMGQW9Xmqm5w6l5c25vbSjMwlikJi5+g==
+"@types/jest@27.5.1":
+  version "27.5.1"
+  resolved "https://registry.yarnpkg.com/@types/jest/-/jest-27.5.1.tgz#2c8b6dc6ff85c33bcd07d0b62cb3d19ddfdb3ab9"
+  integrity sha512-fUy7YRpT+rHXto1YlL+J9rs0uLGyiqVt3ZOTQR+4ROc47yNl8WLdVLgUloBRhOxP1PZvguHl44T3H0wAWxahYQ==
   dependencies:
     jest-matcher-utils "^27.0.0"
     pretty-format "^27.0.0"
@@ -6531,7 +6531,7 @@ esbuild-windows-arm64@0.14.0:
   resolved "https://registry.yarnpkg.com/esbuild-windows-arm64/-/esbuild-windows-arm64-0.14.0.tgz#5ddc6134e766da3c7b62a9a463e91ad3127483b5"
   integrity sha512-66KsVlT6lGDWgDKQsAlojxgUhZkkjVeosMVRdb913OwtcOjszceg6zFD748jzp9CUgAseHCNJqFmYOyBzneSEQ==
 
-esbuild@0.14.38, esbuild@^0.14.0, esbuild@^0.14.2:
+esbuild@0.14.39, esbuild@^0.14.0, esbuild@^0.14.2:
   version "0.14.0"
   resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.14.0.tgz#9a3d21c9876b280e3b0186e36d372354ade51938"
   integrity sha512-UOnSKRAyZondxdLrOXnI/mesUmU/GvDTcajCvxoIaObzMeQcn0HyoGtvbfATnazlx799ZqFSyIZGLXFszkjy3A==
