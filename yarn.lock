@@ -2202,11 +2202,6 @@
   dependencies:
     "@envelop/types" "2.2.0"
 
-"@envelop/disable-introspection@^3.0.0":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/@envelop/disable-introspection/-/disable-introspection-3.3.0.tgz#1f4b4a71308de4c207eb2d48da88879dd89a0091"
-  integrity sha512-hV8ywDjmHz+IxxXxlBVVcVGwkUfUKZPudV88EzATJ3fCMirm+7ZkBRgjLUAt5aL5cN23XUAE2NMCew8LUUCqqg==
-
 "@envelop/live-query@3.3.2":
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-3.3.2.tgz#5bdc8fa0f91e41b3a35c3fbfd91341082487c211"
@@ -2260,13 +2255,12 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.1.tgz#076d78ce99822258cf813ecc1e7fa460fa74d052"
   integrity sha512-NQ17ii0rK1b34VZonlmT2QMJFI70m0TRwbknO/ihlbatXyaktDhN/98vBiUU6kNBPljqGqyIrl2T4nY2RpFANg==
 
-"@graphql-yoga/common@2.5.0":
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/common/-/common-2.5.0.tgz#036e28a30d6395678907f80a1e358ecf19494c7e"
-  integrity sha512-fSaTt5JhUvyPcYISEPqRdxb7g7PshN+1reKH5yighRNcX6ouMhNAXWb2MG4kG2pVAg4YCbUAjy1k2TMmN9AYjw==
+"@graphql-yoga/common@2.6.0":
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/common/-/common-2.6.0.tgz#ce38f6317642d633ec96a9f2b63fa9fd0eb602b2"
+  integrity sha512-iG33wMQlBujB1+Q2D/CLEVDW3xTeBVhHKsbaUmVSHV4zpmGRRQMg/YROJ2mU1lONOyZDPIC+9j3AR7+x0dSzoA==
   dependencies:
     "@envelop/core" "^2.0.0"
-    "@envelop/disable-introspection" "^3.0.0"
     "@envelop/parser-cache" "^4.0.0"
     "@envelop/validation-cache" "^4.0.0"
     "@graphql-tools/schema" "^8.3.1"
@@ -2277,14 +2271,14 @@
     dset "^3.1.1"
     tslib "^2.3.1"
 
-"@graphql-yoga/node@2.5.0":
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/node/-/node-2.5.0.tgz#29726338738ff113da8f5f307f74249a3ce17002"
-  integrity sha512-mhKAGe5rUc4NcMPNcSepQUiVw37w036C4wteLlySntsrQKu3sTkz2+6/KgtR64B/yV3XYoSzQto8OQySkqiDsw==
+"@graphql-yoga/node@2.6.0":
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/node/-/node-2.6.0.tgz#37ce10a6549fcdbc4e0ec7e971969d53550cb842"
+  integrity sha512-VkHaiIwDYx+WJI/NnT2x+mGknk1YoNTP/auweDvKzPXdsWR5Za8rEYUloKZX4TxHTpyqbBLMtCt+4TDITriVbA==
   dependencies:
     "@envelop/core" "^2.0.0"
     "@graphql-tools/utils" "^8.6.0"
-    "@graphql-yoga/common" "2.5.0"
+    "@graphql-yoga/common" "2.6.0"
     "@graphql-yoga/subscription" "2.0.0"
     cross-undici-fetch "^0.4.2"
     tslib "^2.3.1"
@@ -3723,10 +3717,10 @@
     "@types/node" "*"
     form-data "^3.0.0"
 
-"@types/node@*", "@types/node@16.11.34":
-  version "16.11.34"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.34.tgz#520224e4be4448c279ecad09639ab460cc441a50"
-  integrity sha512-UrWGDyLAlQ2Z8bNOGWTsqbP9ZcBeTYBVuTRNxXTztBy5KhWUFI3BaeDWoCP/CzV/EVGgO1NTYzv9ZytBI9GAEw==
+"@types/node@*", "@types/node@16.11.35":
+  version "16.11.35"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.35.tgz#6642bdce5b5cee23314b91a7c069981c6bd68791"
+  integrity sha512-QXu45LyepgnhUfnIAj/FyT4uM87ug5KpIrgXfQtUPNAlx8w5hmd8z8emqCLNvG11QkpRSCG9Qg2buMxvqfjfsQ==
 
 "@types/node@^10.1.0":
   version "10.17.60"
@@ -3768,10 +3762,10 @@
   resolved "https://registry.yarnpkg.com/@types/range-parser/-/range-parser-1.2.4.tgz#cd667bcfdd025213aafb7ca5915a932590acdcdc"
   integrity sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw==
 
-"@types/react-dom@18.0.3":
-  version "18.0.3"
-  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-18.0.3.tgz#a022ea08c75a476fe5e96b675c3e673363853831"
-  integrity sha512-1RRW9kst+67gveJRYPxGmVy8eVJ05O43hg77G2j5m76/RFJtMbcfAs2viQ2UNsvvDg8F7OfQZx8qQcl6ymygaQ==
+"@types/react-dom@18.0.4":
+  version "18.0.4"
+  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-18.0.4.tgz#dcbcadb277bcf6c411ceff70069424c57797d375"
+  integrity sha512-FgTtbqPOCI3dzZPZoC2T/sx3L34qxy99ITWn4eoSA95qPyXDMH0ALoAqUp49ITniiJFsXUVBtalh/KffMpg21Q==
   dependencies:
     "@types/react" "*"
 
@@ -12889,10 +12883,10 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-svelte2tsx@0.5.9:
-  version "0.5.9"
-  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.5.9.tgz#f2e67098f55b8ad129f863bb4f2e645a4c50b6ab"
-  integrity sha512-xTDASjlh+rKo4QRhTRYSH87sS7fRoyX67xhGIMPKa3FYqftRHRmMes6nVgEskiuhBovslNHYYpMMg5YM5n/STg==
+svelte2tsx@0.5.10:
+  version "0.5.10"
+  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.5.10.tgz#32f244534361325e40f8976173ce2569c7e71fdb"
+  integrity sha512-nokQ0HTTWMcNX6tLrDLiOmJCuqjKZU9nCZ6/mVuCL3nusXdbp+9nv69VG2pCy7uQC66kV4Ls+j0WfvvJuGVnkg==
   dependencies:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
