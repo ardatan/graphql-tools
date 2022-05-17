@@ -181,7 +181,10 @@ describe('Mock retro-compatibility', () => {
         returnString: () => 'someString',
       },
     };
-    jsSchema = addResolversToSchema(jsSchema, resolvers);
+    jsSchema = addResolversToSchema({
+      schema: jsSchema,
+      resolvers,
+    });
     const testQuery = /* GraphQL */ `
       {
         returnInt
@@ -266,7 +269,10 @@ describe('Mock retro-compatibility', () => {
         },
       },
     };
-    jsSchema = addResolversToSchema(jsSchema, resolvers);
+    jsSchema = addResolversToSchema({
+      schema: jsSchema,
+      resolvers,
+    });
     jsSchema = addMocksToSchema({
       schema: jsSchema,
       mocks: {},
@@ -625,7 +631,10 @@ describe('Mock retro-compatibility', () => {
         returnMockError: () => undefined,
       },
     };
-    jsSchema = addResolversToSchema(jsSchema, resolvers);
+    jsSchema = addResolversToSchema({
+      schema: jsSchema,
+      resolvers,
+    });
 
     const mockMap = {};
     jsSchema = addMocksToSchema({
@@ -656,7 +665,10 @@ describe('Mock retro-compatibility', () => {
         returnMockError: () => '10-11-2012',
       },
     };
-    jsSchema = addResolversToSchema(jsSchema, resolvers);
+    jsSchema = addResolversToSchema({
+      schema: jsSchema,
+      resolvers,
+    });
 
     const mockMap = {};
     addMocksToSchema({
@@ -875,7 +887,10 @@ describe('Mock retro-compatibility', () => {
         },
       },
     };
-    jsSchema = addResolversToSchema(jsSchema, resolvers);
+    jsSchema = addResolversToSchema({
+      schema: jsSchema,
+      resolvers,
+    });
     const testQuery = /* GraphQL */ `
       {
         returnListOfListOfObject {
@@ -1064,7 +1079,10 @@ describe('Mock retro-compatibility', () => {
         returnString: () => Promise.resolve('bar'), // see c)
       },
     };
-    jsSchema = addResolversToSchema(jsSchema, resolvers);
+    jsSchema = addResolversToSchema({
+      schema: jsSchema,
+      resolvers,
+    });
     jsSchema = addMocksToSchema({
       schema: jsSchema,
       mocks: mockMap,
@@ -1129,7 +1147,10 @@ describe('Mock retro-compatibility', () => {
         }),
       },
     };
-    jsSchema = addResolversToSchema(jsSchema, resolvers);
+    jsSchema = addResolversToSchema({
+      schema: jsSchema,
+      resolvers,
+    });
     const mockMap = {
       returnListOfInt: () => [5, 6, 7],
       Bird: () => ({
@@ -1174,7 +1195,10 @@ describe('Mock retro-compatibility', () => {
           }),
       },
     };
-    jsSchema = addResolversToSchema(jsSchema, resolvers);
+    jsSchema = addResolversToSchema({
+      schema: jsSchema,
+      resolvers,
+    });
     const mockMap = {
       Bird: () => ({
         returnInt: 3, // see a)
@@ -1218,7 +1242,10 @@ describe('Mock retro-compatibility', () => {
         returnObject: () => objProxy,
       },
     };
-    jsSchema = addResolversToSchema(jsSchema, resolvers);
+    jsSchema = addResolversToSchema({
+      schema: jsSchema,
+      resolvers,
+    });
     const mockMap = {
       Bird: () => ({
         returnInt: 3, // see a)
@@ -1295,7 +1322,10 @@ describe('Mock retro-compatibility', () => {
         returnString: () => null, // a) resolve of a string
       },
     };
-    jsSchema = addResolversToSchema(jsSchema, resolvers);
+    jsSchema = addResolversToSchema({
+      schema: jsSchema,
+      resolvers,
+    });
     const mockMap = {
       Int: () => 666, // b) mock of Int.
     };

@@ -245,5 +245,10 @@ export function addMocksToSchema<TResolvers = IResolvers>({
     },
   });
 
-  return resolvers ? addResolversToSchema(schemaWithMocks, resolvers as any) : schemaWithMocks;
+  return resolvers
+    ? addResolversToSchema({
+        schema: schemaWithMocks,
+        resolvers: resolvers as any,
+      })
+    : schemaWithMocks;
 }

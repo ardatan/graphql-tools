@@ -11,7 +11,7 @@ import { BuildSchemaOptions } from 'graphql';
 /**
  * Configuration object for creating an executable schema
  */
-export interface IExecutableSchemaDefinition<TContext = any> {
+export interface IExecutableSchemaDefinition<TContext = any> extends BuildSchemaOptions, GraphQLParseOptions {
   /**
    * The type definitions used to create the schema
    */
@@ -24,11 +24,6 @@ export interface IExecutableSchemaDefinition<TContext = any> {
    * Additional options for validating the provided resolvers
    */
   resolverValidationOptions?: IResolverValidationOptions;
-  /**
-   * Additional options for parsing the type definitions if they are provided
-   * as a string
-   */
-  parseOptions?: BuildSchemaOptions & GraphQLParseOptions;
   /**
    * GraphQL object types that implement interfaces will inherit any missing
    * resolvers from their interface types defined in the `resolvers` object

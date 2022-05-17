@@ -15,12 +15,11 @@ import { applyExtensions, mergeExtensions, mergeResolvers, mergeTypeDefs } from 
  * of these. If a function is provided, it will be passed no arguments and
  * should return an array of strings or `DocumentNode`s.
  *
- * Note: You can use `graphql-tag` to not only parse a string into a
- * `DocumentNode` but also to provide additional syntax highlighting in your
- * editor (with the appropriate editor plugin).
+ * Note: You can use GraphQL magic comment provide additional syntax
+ * highlighting in your editor (with the appropriate editor plugin).
  *
  * ```js
- * const typeDefs = gql`
+ * const typeDefs = /* GraphQL *\/ `
  *   type Query {
  *     posts: [Post]
  *     author(id: Int!): Author
@@ -55,11 +54,11 @@ export function makeExecutableSchema<TContext = any>({
   typeDefs,
   resolvers = {},
   resolverValidationOptions = {},
-  parseOptions = {},
   inheritResolversFromInterfaces = false,
   pruningOptions,
   updateResolversInPlace = false,
   schemaExtensions,
+  ...otherOptions
 }: IExecutableSchemaDefinition<TContext>) {
   // Validate and clean up arguments
   if (typeof resolverValidationOptions !== 'object') {
@@ -74,15 +73,15 @@ export function makeExecutableSchema<TContext = any>({
 
   if (isSchema(typeDefs)) {
     schema = typeDefs;
-  } else if (parseOptions?.commentDescriptions) {
+  } else if (otherOptions?.commentDescriptions) {
     const mergedTypeDefs = mergeTypeDefs(typeDefs, {
-      ...parseOptions,
+      ...otherOptions,
       commentDescriptions: true,
     });
-    schema = buildSchema(mergedTypeDefs, parseOptions);
+    schema = buildSchema(mergedTypeDefs, otherOptions);
   } else {
-    const mergedTypeDefs = mergeTypeDefs(typeDefs, parseOptions);
-    schema = buildASTSchema(mergedTypeDefs, parseOptions);
+    const mergedTypeDefs = mergeTypeDefs(typeDefs, otherOptions);
+    schema = buildASTSchema(mergedTypeDefs, otherOptions);
   }
 
   if (pruningOptions) {

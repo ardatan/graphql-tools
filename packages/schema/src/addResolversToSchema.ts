@@ -1,7 +1,6 @@
 import {
   GraphQLEnumType,
   GraphQLSchema,
-  isSchema,
   GraphQLScalarType,
   GraphQLUnionType,
   GraphQLInterfaceType,
@@ -19,7 +18,6 @@ import {
 
 import {
   IResolvers,
-  IResolverValidationOptions,
   IAddResolversToSchemaOptions,
   mapSchema,
   MapperKind,
@@ -33,28 +31,14 @@ import {
 import { checkForResolveTypeResolver } from './checkForResolveTypeResolver.js';
 import { extendResolversFromInterfaces } from './extendResolversFromInterfaces.js';
 
-export function addResolversToSchema(
-  schemaOrOptions: GraphQLSchema | IAddResolversToSchemaOptions,
-  legacyInputResolvers?: IResolvers,
-  legacyInputValidationOptions?: IResolverValidationOptions
-): GraphQLSchema {
-  const options: IAddResolversToSchemaOptions = isSchema(schemaOrOptions)
-    ? {
-        schema: schemaOrOptions,
-        resolvers: legacyInputResolvers ?? {},
-        resolverValidationOptions: legacyInputValidationOptions,
-      }
-    : schemaOrOptions;
-
-  let {
-    schema,
-    resolvers: inputResolvers,
-    defaultFieldResolver,
-    resolverValidationOptions = {},
-    inheritResolversFromInterfaces = false,
-    updateResolversInPlace = false,
-  } = options;
-
+export function addResolversToSchema({
+  schema,
+  resolvers: inputResolvers,
+  defaultFieldResolver,
+  resolverValidationOptions = {},
+  inheritResolversFromInterfaces = false,
+  updateResolversInPlace = false,
+}: IAddResolversToSchemaOptions): GraphQLSchema {
   const { requireResolversToMatchSchema = 'error', requireResolversForResolveType } = resolverValidationOptions;
 
   const resolvers = inheritResolversFromInterfaces

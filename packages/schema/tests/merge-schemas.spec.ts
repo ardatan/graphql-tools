@@ -40,6 +40,61 @@ describe('Merge Schemas', () => {
     expect(mergedSchema.extensions).toEqual({ schemaA: true, schemaB: true });
   });
 
+  it('should override resolver in schema with resolver passed into config', async () => {
+    const fooSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          foo: String
+        }
+      `,
+      resolvers: {
+        Query: {
+          foo: () => 'FOO',
+        },
+      },
+    });
+    const barSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          bar: String
+        }
+      `,
+      resolvers: {
+        Query: {
+          bar: () => 'BAR',
+        },
+      },
+    });
+    const { errors, data } = await graphql({
+      schema: mergeSchemas({
+        schemas: [fooSchema, barSchema],
+        typeDefs: /* GraphQL */ `
+          type Query {
+            qux: String
+          }
+        `,
+        resolvers: {
+          Query: {
+            qux: () => 'QUX',
+            foo: () => 'FOO_BAR_QUX',
+          },
+        },
+      }),
+      source: `
+                {
+                    foo
+                    bar
+                    qux
+                }
+            `,
+    });
+    expect(errors).toBeFalsy();
+    assertSome(data);
+    expect(data['foo']).toBe('FOO_BAR_QUX');
+    expect(data['bar']).toBe('BAR');
+    expect(data['qux']).toBe('QUX');
+  });
+
   it('should merge two valid executable schemas', async () => {
     const fooSchema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
