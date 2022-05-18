@@ -50,7 +50,7 @@
     "apollo-upload-client": "17.0.0",
     "node-fetch": "^2.6.5",
     "form-data": "^4.0.0",
-    "tslib": "~2.4.0"
+    "tslib": "^2.4.0"
   },
   "publishConfig": {
     "access": "public",

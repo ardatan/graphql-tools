@@ -37,6 +37,6 @@
   },
   "dependencies": {
     "@graphql-tools/schema": "8.3.13",
-    "tslib": "~2.4.0"
+    "tslib": "^2.4.0"
   }
 }

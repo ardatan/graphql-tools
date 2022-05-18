@@ -34,7 +34,7 @@
     "@graphql-tools/utils": "8.6.12",
     "is-glob": "4.0.3",
     "micromatch": "^4.0.4",
-    "tslib": "~2.4.0",
+    "tslib": "^2.4.0",
     "unixify": "^1.0.0"
   },
   "devDependencies": {
