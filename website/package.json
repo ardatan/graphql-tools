@@ -20,7 +20,7 @@
     "esbuild": "0.14.39"
   },
   "devDependencies": {
-    "@guild-docs/algolia": "0.0.5",
+    "@guild-docs/algolia": "0.0.6",
     "@next/bundle-analyzer": "12.1.6",
     "@types/concurrently": "6.4.0",
     "@types/mdx-js__react": "1.5.5",
