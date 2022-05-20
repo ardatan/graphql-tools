@@ -26,7 +26,7 @@
     "definition": "dist/index.d.ts"
   },
   "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
+    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "buildOptions": {
     "input": "./src/index.ts"

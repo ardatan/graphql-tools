@@ -26,10 +26,9 @@ import {
   getDirectiveValues,
   GraphQLDeprecatedDirective,
   TypeDefinitionNode,
-  DirectiveLocationEnum,
 } from 'graphql';
 
-import { createStub, createNamedStub, Maybe, getDescription } from '@graphql-tools/utils';
+import { createStub, createNamedStub, Maybe, getDescription, DirectiveLocationEnum } from '@graphql-tools/utils';
 
 const backcompatOptions = { commentDescriptions: true };
 

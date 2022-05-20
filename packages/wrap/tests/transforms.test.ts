@@ -1,18 +1,11 @@
-import {
-  GraphQLSchema,
-  GraphQLScalarType,
-  Kind,
-  SelectionSetNode,
-  graphql,
-  OperationTypeNode,
-  GraphQLError,
-} from 'graphql';
+import { GraphQLSchema, GraphQLScalarType, Kind, SelectionSetNode, graphql, OperationTypeNode } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
 import { wrapSchema, WrapQuery, ExtractField, TransformQuery } from '@graphql-tools/wrap';
 
 import { delegateToSchema, defaultMergedResolver } from '@graphql-tools/delegate';
+import { createGraphQLError } from '@graphql-tools/utils';
 
 function createError<T>(message: string, extra?: T) {
   const error = new Error(message);
@@ -650,7 +643,12 @@ describe('transforms', () => {
             errorTest: null,
           },
         },
-        errors: [new GraphQLError('Test Error!', undefined, undefined, [15, 4], ['addressByUser', 'errorTest'])],
+        errors: [
+          createGraphQLError('Test Error!', {
+            positions: [15, 4],
+            path: ['addressByUser', 'errorTest'],
+          }),
+        ],
       });
     });
 

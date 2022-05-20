@@ -1,19 +1,13 @@
 import { GraphQLError, GraphQLResolveInfo, locatedError, graphql, OperationTypeNode } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { ExecutionResult } from '@graphql-tools/utils';
+import { createGraphQLError, ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
 import { checkResultAndHandleErrors } from '../src/checkResultAndHandleErrors';
 import { UNPATHED_ERRORS_SYMBOL } from '../src/symbols';
 import { getUnpathedErrors } from '../src/mergeFields';
 import { delegateToSchema, defaultMergedResolver, DelegationContext } from '../src';
-
-class ErrorWithExtensions extends GraphQLError {
-  constructor(message: string, code: string) {
-    super(message, null as any, null, null, null, null, { code });
-  }
-}
 
 describe('Errors', () => {
   describe('getUnpathedErrors', () => {
@@ -61,7 +55,13 @@ describe('Errors', () => {
 
     test('persists single error with extensions', () => {
       const result = {
-        errors: [new ErrorWithExtensions('Test error', 'UNAUTHENTICATED')],
+        errors: [
+          createGraphQLError('Test error', {
+            extensions: {
+              code: 'UNAUTHENTICATED',
+            },
+          }),
+        ],
       };
       try {
         checkResultAndHandleErrors(result, {

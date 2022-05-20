@@ -5,11 +5,11 @@ import {
   DirectiveNode,
   FieldNode,
   isNonNullType,
-  GraphQLError,
   Kind,
   print,
   ArgumentNode,
 } from 'graphql';
+import { createGraphQLError } from './errors';
 
 import { inspect } from './inspect';
 
@@ -52,10 +52,9 @@ export function getArgumentValues(
       if (defaultValue !== undefined) {
         coercedValues[name] = defaultValue;
       } else if (isNonNullType(argType)) {
-        throw new GraphQLError(
-          `Argument "${name}" of required type "${inspect(argType)}" ` + 'was not provided.',
-          node
-        );
+        throw createGraphQLError(`Argument "${name}" of required type "${inspect(argType)}" ` + 'was not provided.', {
+          nodes: [node],
+        });
       }
       continue;
     }
@@ -69,10 +68,12 @@ export function getArgumentValues(
         if (defaultValue !== undefined) {
           coercedValues[name] = defaultValue;
         } else if (isNonNullType(argType)) {
-          throw new GraphQLError(
+          throw createGraphQLError(
             `Argument "${name}" of required type "${inspect(argType)}" ` +
               `was provided the variable "$${variableName}" which was not provided a runtime value.`,
-            valueNode
+            {
+              nodes: [valueNode],
+            }
           );
         }
         continue;
@@ -81,10 +82,9 @@ export function getArgumentValues(
     }
 
     if (isNull && isNonNullType(argType)) {
-      throw new GraphQLError(
-        `Argument "${name}" of non-null type "${inspect(argType)}" ` + 'must not be null.',
-        valueNode
-      );
+      throw createGraphQLError(`Argument "${name}" of non-null type "${inspect(argType)}" ` + 'must not be null.', {
+        nodes: [valueNode],
+      });
     }
 
     const coercedValue = valueFromAST(valueNode, argType, variableValues);
@@ -92,7 +92,9 @@ export function getArgumentValues(
       // Note: ValuesOfCorrectTypeRule validation should catch this before
       // execution. This is a runtime check to ensure execution does not
       // continue with an invalid argument value.
-      throw new GraphQLError(`Argument "${name}" has invalid value ${print(valueNode)}.`, valueNode);
+      throw createGraphQLError(`Argument "${name}" has invalid value ${print(valueNode)}.`, {
+        nodes: [valueNode],
+      });
     }
     coercedValues[name] = coercedValue;
   }
