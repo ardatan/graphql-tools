@@ -14,22 +14,18 @@ interface GraphQLErrorOptions {
   extensions?: any;
 }
 
-export function createGraphQLError(message: string, options: GraphQLErrorOptions): GraphQLError {
-  if (versionInfo.major > 15) {
-    const error = new GraphQLError(message, options);
-    Object.defineProperty(error, 'extensions', {
-      value: options.extensions || {},
-    });
-    return error;
+export function createGraphQLError(message: string, options?: GraphQLErrorOptions): GraphQLError {
+  if (versionInfo.major >= 17) {
+    return new (GraphQLError as any)(message, options);
   }
   return new (GraphQLError as any)(
     message,
-    options.nodes,
-    options.source,
-    options.positions,
-    options.path,
-    options.originalError,
-    options.extensions
+    options?.nodes,
+    options?.source,
+    options?.positions,
+    options?.path,
+    options?.originalError,
+    options?.extensions
   );
 }
 
