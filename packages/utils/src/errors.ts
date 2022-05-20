@@ -1,4 +1,4 @@
-import { ASTNode, GraphQLError, GraphQLErrorExtensions, Source, versionInfo } from 'graphql';
+import { ASTNode, GraphQLError, Source, versionInfo } from 'graphql';
 import { Maybe } from './types';
 
 interface GraphQLErrorOptions {
@@ -11,7 +11,7 @@ interface GraphQLErrorOptions {
       readonly extensions?: unknown;
     }
   >;
-  extensions?: Maybe<GraphQLErrorExtensions>;
+  extensions?: any;
 }
 
 export function createGraphQLError(message: string, options: GraphQLErrorOptions): GraphQLError {
@@ -22,9 +22,7 @@ export function createGraphQLError(message: string, options: GraphQLErrorOptions
     });
     return error;
   }
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  return new GraphQLError(
+  return new (GraphQLError as any)(
     message,
     options.nodes,
     options.source,
