@@ -14,7 +14,6 @@ import {
   Kind,
   execute,
   OperationTypeNode,
-  GraphQLError,
 } from 'graphql';
 
 import {
@@ -36,7 +35,7 @@ import {
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
-import { filterSchema, ExecutionResult, assertSome } from '@graphql-tools/utils';
+import { filterSchema, ExecutionResult, assertSome, createGraphQLError } from '@graphql-tools/utils';
 
 import { stitchSchemas } from '../src/stitchSchemas';
 
@@ -728,7 +727,11 @@ describe('transform object fields', () => {
     });
 
     const expectedResult: ExecutionResult = {
-      errors: [new GraphQLError('Cannot query field "id" on type "Item".', undefined, undefined, [17, 6])],
+      errors: [
+        createGraphQLError('Cannot query field "id" on type "Item".', {
+          positions: [17, 6],
+        }),
+      ],
     };
 
     expect(result).toEqual(expectedResult);
@@ -816,15 +819,13 @@ type Query {
         },
       },
       errors: [
-        new GraphQLError(
-          'Property.error error',
-          undefined,
-          undefined,
-          [13, 9],
-          ['propertyById, new_error'],
-          undefined,
-          { code: 'SOME_CUSTOM_CODE' }
-        ),
+        createGraphQLError('Property.error error', {
+          positions: [13, 9],
+          path: ['propertyById', 'new_error'],
+          extensions: {
+            code: 'SOME_CUSTOM_CODE',
+          },
+        }),
       ],
     };
 
@@ -980,7 +981,10 @@ describe('WrapType', () => {
         },
       },
       errors: [
-        new GraphQLError('Booking.error error', undefined, undefined, [15, 8], ['namespace', 'bookingById, error']),
+        createGraphQLError('Booking.error error', {
+          positions: [15, 8],
+          path: ['namespace', 'bookingById', 'error'],
+        }),
       ],
     };
 
@@ -1030,7 +1034,10 @@ describe('WrapType', () => {
         },
       },
       errors: [
-        new GraphQLError('Booking.error error', undefined, undefined, [15, 9], ['namespace', 'addBooking', 'error']),
+        createGraphQLError('Booking.error error', {
+          positions: [15, 9],
+          path: ['namespace', 'addBooking', 'error'],
+        }),
       ],
     };
 
@@ -1289,15 +1296,13 @@ describe('schema transformation with wrapping of object fields', () => {
           },
         },
         errors: [
-          new GraphQLError(
-            'Property.error error',
-            undefined,
-            undefined,
-            [13, 14],
-            ['propertyById', 'test1', 'two'],
-            undefined,
-            { code: 'SOME_CUSTOM_CODE' }
-          ),
+          createGraphQLError('Property.error error', {
+            positions: [13, 14],
+            path: ['propertyById', 'test1', 'two'],
+            extensions: {
+              code: 'SOME_CUSTOM_CODE',
+            },
+          }),
         ],
       };
 
@@ -1359,15 +1364,13 @@ describe('schema transformation with wrapping of object fields', () => {
           },
         },
         errors: [
-          new GraphQLError(
-            'Property.error error',
-            undefined,
-            undefined,
-            [13, 18],
-            ['propertyById', 'test1', 'innerWrap', 'two'],
-            undefined,
-            { code: 'SOME_CUSTOM_CODE' }
-          ),
+          createGraphQLError('Property.error error', {
+            positions: [13, 18],
+            path: ['propertyById', 'test1', 'innerWrap', 'two'],
+            extensions: {
+              code: 'SOME_CUSTOM_CODE',
+            },
+          }),
         ],
       };
 

@@ -8,13 +8,18 @@ import {
   printSchema,
   GraphQLResolveInfo,
   OperationTypeNode,
-  GraphQLError,
 } from 'graphql';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '../src/stitchSchemas';
-import { getResolversFromSchema, IResolvers, ExecutionResult, assertSome } from '@graphql-tools/utils';
+import {
+  getResolversFromSchema,
+  IResolvers,
+  ExecutionResult,
+  assertSome,
+  createGraphQLError,
+} from '@graphql-tools/utils';
 
 import { addMocksToSchema } from '@graphql-tools/mock';
 
@@ -843,13 +848,10 @@ bookingById(id: "b1") {
             },
           } as any,
           errors: [
-            new GraphQLError(
-              'subscription field error',
-              undefined,
-              undefined,
-              [4, 15],
-              ['notifications', 'throwError']
-            ),
+            createGraphQLError('subscription field error', {
+              positions: [4, 15],
+              path: ['notifications', 'throwError'],
+            }),
           ],
         };
 
@@ -2504,9 +2506,11 @@ bookingById(id: "b1") {
         expect(stitchedResult2.data).toBe(null);
         assertSome(stitchedResult2.errors);
         expect(stitchedResult2.errors.map(removeLocations)).toEqual(
-          [new GraphQLError('Sample error non-null!', undefined, undefined, undefined, ['errorTestNonNull'])].map(
-            removeLocations
-          )
+          [
+            createGraphQLError('Sample error non-null!', {
+              path: ['errorTestNonNull'],
+            }),
+          ].map(removeLocations)
         );
       });
 
@@ -2556,60 +2560,36 @@ bookingById(id: "b1") {
         const errorsWithoutLocations = result.errors.map(removeLocations);
 
         const expectedErrors = [
-          new GraphQLError(
-            'Property.error error',
-            undefined,
-            undefined,
-            undefined,
-            ['propertyById', 'error'],
-            undefined,
-            { code: 'SOME_CUSTOM_CODE' }
-          ),
-          new GraphQLError(
-            'Property.error error',
-            undefined,
-            undefined,
-            undefined,
-            ['propertyById', 'errorAlias'],
-            undefined,
-            { code: 'SOME_CUSTOM_CODE' }
-          ),
-          new GraphQLError('Booking.error error', undefined, undefined, undefined, [
-            'propertyById',
-            'bookings',
-            0,
-            'error',
-          ]),
-          new GraphQLError('Booking.error error', undefined, undefined, undefined, [
-            'propertyById',
-            'bookings',
-            0,
-            'bookingErrorAlias',
-          ]),
-          new GraphQLError('Booking.error error', undefined, undefined, undefined, [
-            'propertyById',
-            'bookings',
-            1,
-            'error',
-          ]),
-          new GraphQLError('Booking.error error', undefined, undefined, undefined, [
-            'propertyById',
-            'bookings',
-            1,
-            'bookingErrorAlias',
-          ]),
-          new GraphQLError('Booking.error error', undefined, undefined, undefined, [
-            'propertyById',
-            'bookings',
-            2,
-            'error',
-          ]),
-          new GraphQLError('Booking.error error', undefined, undefined, undefined, [
-            'propertyById',
-            'bookings',
-            2,
-            'bookingErrorAlias',
-          ]),
+          createGraphQLError('Property.error error', {
+            path: ['propertyById', 'error'],
+            extensions: {
+              code: 'SOME_CUSTOM_CODE',
+            },
+          }),
+          createGraphQLError('Property.error error', {
+            path: ['propertyById', 'errorAlias'],
+            extensions: {
+              code: 'SOME_CUSTOM_CODE',
+            },
+          }),
+          createGraphQLError('Booking.error error', {
+            path: ['propertyById', 'bookings', 0, 'error'],
+          }),
+          createGraphQLError('Booking.error error', {
+            path: ['propertyById', 'bookings', 0, 'bookingErrorAlias'],
+          }),
+          createGraphQLError('Booking.error error', {
+            path: ['propertyById', 'bookings', 1, 'error'],
+          }),
+          createGraphQLError('Booking.error error', {
+            path: ['propertyById', 'bookings', 1, 'bookingErrorAlias'],
+          }),
+          createGraphQLError('Booking.error error', {
+            path: ['propertyById', 'bookings', 2, 'error'],
+          }),
+          createGraphQLError('Booking.error error', {
+            path: ['propertyById', 'bookings', 2, 'bookingErrorAlias'],
+          }),
         ].map(removeLocations);
 
         expect(errorsWithoutLocations).toEqual(expectedErrors.map(removeLocations));

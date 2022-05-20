@@ -1,12 +1,16 @@
-import { GraphQLError } from 'graphql';
+import { createGraphQLError } from '../src/createGraphQLError';
 import { relocatedError } from '../src/errors';
 
 describe('Errors', () => {
   describe('relocatedError', () => {
     test('should adjust the path of a GraphqlError', () => {
-      const originalError = new GraphQLError('test', null as any, null, null, ['test']);
+      const originalError = createGraphQLError('test', {
+        path: ['test'],
+      });
       const newError = relocatedError(originalError, ['test', 1]);
-      const expectedError = new GraphQLError('test', null as any, null, null, ['test', 1]);
+      const expectedError = createGraphQLError('test', {
+        path: ['test', 1],
+      });
       expect(newError).toEqual(expectedError);
     });
   });

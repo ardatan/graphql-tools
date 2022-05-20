@@ -1,25 +1,11 @@
 import { PubSub } from 'graphql-subscriptions';
-import {
-  GraphQLSchema,
-  Kind,
-  GraphQLScalarType,
-  ValueNode,
-  GraphQLResolveInfo,
-  GraphQLError,
-  GraphQLInterfaceType,
-} from 'graphql';
+import { GraphQLSchema, Kind, GraphQLScalarType, ValueNode, GraphQLResolveInfo, GraphQLInterfaceType } from 'graphql';
 
 import { introspectSchema } from '@graphql-tools/wrap';
-import { AsyncExecutor, IResolvers } from '@graphql-tools/utils';
+import { AsyncExecutor, createGraphQLError, IResolvers } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
 import { SubschemaConfig, createDefaultExecutor } from '@graphql-tools/delegate';
-
-export class CustomError extends GraphQLError {
-  constructor(message: string, extensions: Record<string, any>) {
-    super(message, undefined, undefined, undefined, undefined, undefined, extensions);
-  }
-}
 
 export type Location = {
   name: string;
@@ -403,8 +389,10 @@ const propertyResolvers: IResolvers = {
 
   Property: {
     error() {
-      throw new CustomError('Property.error error', {
-        code: 'SOME_CUSTOM_CODE',
+      throw createGraphQLError('Property.error error', {
+        extensions: {
+          code: 'SOME_CUSTOM_CODE',
+        },
       });
     },
   },

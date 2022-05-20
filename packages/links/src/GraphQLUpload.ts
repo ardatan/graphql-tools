@@ -1,4 +1,5 @@
 import { GraphQLScalarType, GraphQLError } from 'graphql';
+import { createGraphQLError } from '@graphql-tools/utils';
 
 const GraphQLUpload = new GraphQLScalarType({
   name: 'Upload',
@@ -15,7 +16,9 @@ const GraphQLUpload = new GraphQLScalarType({
   // serialization requires to support schema stitching
   serialize: value => value,
   parseLiteral: ast => {
-    throw new GraphQLError('Upload literal unsupported.', ast);
+    throw createGraphQLError('Upload scalar literal unsupported', {
+      nodes: ast,
+    });
   },
 });
 

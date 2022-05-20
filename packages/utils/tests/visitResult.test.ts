@@ -1,6 +1,6 @@
 import { buildSchema, parse, GraphQLError } from 'graphql';
 
-import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
+import { createGraphQLError, ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
 import { relocatedError } from '../src/errors';
 
@@ -376,7 +376,9 @@ describe('visiting errors', () => {
       },
       errors: [
         new GraphQLError('unpathed error'),
-        new GraphQLError('pathed error', undefined, undefined, undefined, ['test', 'field']),
+        createGraphQLError('pathed error', {
+          path: ['test', 'field'],
+        }),
       ],
     };
 
@@ -394,7 +396,9 @@ describe('visiting errors', () => {
       },
       errors: [
         new GraphQLError('unpathed error'),
-        new GraphQLError('pathed error', undefined, undefined, undefined, ['test', 'field']),
+        createGraphQLError('pathed error', {
+          path: ['test', 'field'],
+        }),
       ],
     };
 

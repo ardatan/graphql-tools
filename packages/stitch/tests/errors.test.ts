@@ -2,7 +2,7 @@ import { graphql, GraphQLError, buildSchema } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { assertSome, ExecutionResult, Executor } from '@graphql-tools/utils';
+import { assertSome, createGraphQLError, ExecutionResult, Executor } from '@graphql-tools/utils';
 
 describe('passes along errors for missing fields on list', () => {
   test('if non-null', async () => {
@@ -227,7 +227,11 @@ describe('passes along errors for remote schemas', () => {
 
     const expectedResult: ExecutionResult<any> = {
       data: null,
-      errors: [new GraphQLError('INVALID_CREDENTIALS', undefined, undefined, undefined, ['test'])],
+      errors: [
+        createGraphQLError('INVALID_CREDENTIALS', {
+          path: ['test'],
+        }),
+      ],
     };
 
     const query = /* GraphQL */ `

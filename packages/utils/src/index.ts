@@ -48,3 +48,4 @@ export * from './inspect';
 export * from './memoize';
 export * from './fixSchemaAst';
 export * from './getOperationASTFromRequest';
+export * from './createGraphQLError';
