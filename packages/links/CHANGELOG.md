@@ -1,5 +1,14 @@
 # @graphql-tools/links
 
+## 8.2.17
+
+### Patch Changes
+
+- da7ad43b: Fix GraphQL v17 incompatibility issues and introduce `createGraphQLError` helper function for backwards compatibility.
+- Updated dependencies [da7ad43b]
+  - @graphql-tools/utils@8.6.12
+  - @graphql-tools/delegate@8.7.10
+
 ## 8.2.16
 
 ### Patch Changes

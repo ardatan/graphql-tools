@@ -1,5 +1,12 @@
 # @graphql-tools/json-file-loader
 
+## 7.3.14
+
+### Patch Changes
+
+- Updated dependencies [da7ad43b]
+  - @graphql-tools/utils@8.6.12
+
 ## 7.3.13
 
 ### Patch Changes

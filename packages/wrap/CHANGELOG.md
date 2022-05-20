@@ -1,5 +1,15 @@
 # @graphql-tools/wrap
 
+## 8.4.19
+
+### Patch Changes
+
+- 7c3b2797: fix(wrap): wrapped types and fields should be non null
+- Updated dependencies [da7ad43b]
+  - @graphql-tools/utils@8.6.12
+  - @graphql-tools/delegate@8.7.10
+  - @graphql-tools/schema@8.3.13
+
 ## 8.4.18
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @graphql-tools/module-loader
 
+## 7.1.12
+
+### Patch Changes
+
+- Updated dependencies [da7ad43b]
+  - @graphql-tools/utils@8.6.12
+
 ## 7.1.11
 
 ### Patch Changes
