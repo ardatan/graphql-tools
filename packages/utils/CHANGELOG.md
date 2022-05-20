@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.6.11
+
+### Patch Changes
+
+- c0762ee3: Incoming GraphQL v17 compatibility #4468
+
 ## 8.6.10
 
 ### Patch Changes
