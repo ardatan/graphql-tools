@@ -545,6 +545,8 @@ function visitObjectTypeDefinitionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName)
   );
+  // all interfaces should be dependent to each other
+  const allDependencies = [typeName, ...(node.interfaces?.map(namedTypeNode => namedTypeNode.name.value) || [])];
   node.interfaces?.forEach(namedTypeNode => {
     visitNamedTypeNode(namedTypeNode, dependencySet);
     const interfaceName = namedTypeNode.name.value;
@@ -554,7 +556,11 @@ function visitObjectTypeDefinitionNode(
       set = new Set();
       dependenciesByDefinitionName.set(interfaceName, set);
     }
-    set.add(typeName);
+    allDependencies.forEach(dependency => {
+      if (dependency !== interfaceName) {
+        set!.add(dependency);
+      }
+    });
   });
 }
 
@@ -638,7 +644,9 @@ function visitInterfaceTypeDefinitionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName)
   );
-  (node as any).interfaces?.forEach((namedTypeNode: NamedTypeNode) => {
+  // all interfaces should be dependent to each other
+  const allDependencies = [typeName, ...(node.interfaces?.map(namedTypeNode => namedTypeNode.name.value) || [])];
+  node.interfaces?.forEach(namedTypeNode => {
     visitNamedTypeNode(namedTypeNode, dependencySet);
     const interfaceName = namedTypeNode.name.value;
     let set = dependenciesByDefinitionName.get(interfaceName);
@@ -647,7 +655,11 @@ function visitInterfaceTypeDefinitionNode(
       set = new Set();
       dependenciesByDefinitionName.set(interfaceName, set);
     }
-    set.add(typeName);
+    allDependencies.forEach(dependency => {
+      if (dependency !== interfaceName) {
+        set!.add(dependency);
+      }
+    });
   });
 }
 
@@ -696,6 +708,8 @@ function visitObjectTypeExtensionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName)
   );
+  // all interfaces should be dependent to each other
+  const allDependencies = [typeName, ...(node.interfaces?.map(namedTypeNode => namedTypeNode.name.value) || [])];
   node.interfaces?.forEach(namedTypeNode => {
     visitNamedTypeNode(namedTypeNode, dependencySet);
     const interfaceName = namedTypeNode.name.value;
@@ -705,7 +719,11 @@ function visitObjectTypeExtensionNode(
       set = new Set();
       dependenciesByDefinitionName.set(interfaceName, set);
     }
-    set.add(typeName);
+    allDependencies.forEach(dependency => {
+      if (dependency !== interfaceName) {
+        set!.add(dependency);
+      }
+    });
   });
 }
 
@@ -720,6 +738,11 @@ function visitInterfaceTypeExtensionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName)
   );
+  // all interfaces should be dependent to each other
+  const allDependencies = [
+    typeName,
+    ...((node as any).interfaces?.map((namedTypeNode: NamedTypeNode) => namedTypeNode.name.value) || []),
+  ];
   (node as any).interfaces?.forEach((namedTypeNode: NamedTypeNode) => {
     visitNamedTypeNode(namedTypeNode, dependencySet);
     const interfaceName = namedTypeNode.name.value;
@@ -729,7 +752,11 @@ function visitInterfaceTypeExtensionNode(
       set = new Set();
       dependenciesByDefinitionName.set(interfaceName, set);
     }
-    set.add(typeName);
+    allDependencies.forEach(dependency => {
+      if (dependency !== interfaceName) {
+        set!.add(dependency);
+      }
+    });
   });
 }
 

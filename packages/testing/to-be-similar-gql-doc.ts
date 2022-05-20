@@ -1,5 +1,6 @@
 import { ASTNode, parse, DocumentNode, DefinitionNode, print } from 'graphql';
 import { compareNodes } from '@graphql-tools/utils';
+import { diff } from 'jest-diff';
 
 declare global {
   namespace jest {
@@ -49,11 +50,7 @@ expect.extend({
       };
     } else {
       return {
-        message: () =>
-          `expected
-       ${received}
-       to be a string containing (ignoring indents)
-       ${expected}`,
+        message: () => diff(strippedExpected, strippedReceived) || '',
         pass: false,
       };
     }

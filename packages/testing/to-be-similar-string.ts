@@ -1,4 +1,5 @@
 import { normalizeString } from './utils';
+import { diff } from 'jest-diff';
 
 declare global {
   namespace jest {
@@ -27,11 +28,7 @@ expect.extend({
       };
     } else {
       return {
-        message: () =>
-          `expected
-       ${received}
-       to be a string containing (ignoring indents)
-       ${expected}`,
+        message: () => diff(expected, received) || '',
         pass: false,
       };
     }

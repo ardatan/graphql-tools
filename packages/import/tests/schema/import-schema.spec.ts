@@ -1077,4 +1077,32 @@ describe('importSchema', () => {
     `;
     expect(importSchema('fixtures/deep/a.graphql')).toBeSimilarGqlDoc(expectedSDL);
   });
+
+  it('should get types with specific imports and multiple interfaces', async () => {
+    const document = importSchema('./fixtures/types-with-many-interfaces/a.graphql');
+
+    expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
+      type Query {
+        test: Foo
+      }
+
+      type Foo {
+        field: Imported
+      }
+
+      interface AnotherInterface {
+        field: String
+      }
+
+      interface Imported {
+        anotherField: String
+      }
+
+      type Implementation implements Imported & AnotherInterface {
+        field: String
+        anotherField: String
+        localField: String
+      }
+    `);
+  });
 });
