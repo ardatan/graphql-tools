@@ -50,6 +50,34 @@ describe('import in documents', () => {
     `);
   });
 
+  it('should get documents with specific imports and multiple interfaces', async () => {
+    const document = importDocuments('./import-test/default/e.graphql');
+
+    expect(document).toBeSimilarGqlDoc(/* GraphQL */ `
+      type Query {
+        test: Foo
+      }
+
+      type Foo {
+        field: Imported
+      }
+
+      interface AnotherInterface {
+        field: String
+      }
+
+      interface Imported {
+        anotherField: String
+      }
+
+      type Implementation implements Imported & AnotherInterface {
+        field: String
+        anotherField: String
+        localField: String
+      }
+    `);
+  });
+
   it('should accept a map as fourth argument for users to get visited file paths with details', () => {
     const visitedFiles: VisitedFilesMap = new Map();
     processImport('./import-test/default/a.graphql', __dirname, undefined, visitedFiles);
