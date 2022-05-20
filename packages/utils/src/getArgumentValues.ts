@@ -9,7 +9,7 @@ import {
   print,
   ArgumentNode,
 } from 'graphql';
-import { createGraphQLError } from './createGraphQLError';
+import { createGraphQLError } from './errors';
 
 import { inspect } from './inspect';
 
