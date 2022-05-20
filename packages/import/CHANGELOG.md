@@ -1,5 +1,13 @@
 # @graphql-tools/import
 
+## 6.6.16
+
+### Patch Changes
+
+- a5386350: fix(import): import dependent interfaces correctly
+- Updated dependencies [da7ad43b]
+  - @graphql-tools/utils@8.6.12
+
 ## 6.6.15
 
 ### Patch Changes

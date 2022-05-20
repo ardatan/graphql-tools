@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/apollo-engine-loader",
-  "version": "7.2.17",
+  "version": "7.2.18",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -30,7 +30,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "8.6.11",
+    "@graphql-tools/utils": "8.6.12",
     "cross-undici-fetch": "^0.4.0",
     "tslib": "~2.4.0",
     "sync-fetch": "0.3.1"
