@@ -10,6 +10,7 @@ import {
   GraphQLFieldConfig,
   GraphQLFieldResolver,
   OperationTypeNode,
+  GraphQLNonNull,
 } from 'graphql';
 
 import {
@@ -115,7 +116,7 @@ export default class WrapFields<TContext extends Record<string, any>>
 
       newSchema = appendObjectFields(newSchema, nextWrappingTypeName, {
         [wrappingFieldName]: {
-          type: newSchema.getType(wrappingTypeName) as GraphQLObjectType,
+          type: new GraphQLNonNull(newSchema.getType(wrappingTypeName) as GraphQLObjectType),
           resolve: defaultMergedResolver,
         },
       });
@@ -147,7 +148,7 @@ export default class WrapFields<TContext extends Record<string, any>>
 
     [newSchema] = modifyObjectFields(newSchema, this.outerTypeName, fieldName => !!newTargetFieldConfigMap[fieldName], {
       [wrappingFieldName]: {
-        type: newSchema.getType(wrappingTypeName) as GraphQLObjectType,
+        type: new GraphQLNonNull(newSchema.getType(wrappingTypeName) as GraphQLObjectType),
         resolve,
       },
     });
