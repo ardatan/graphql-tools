@@ -1,7 +1,6 @@
 import { getOperationASTFromRequest } from './getOperationASTFromRequest';
 import {
   GraphQLSchema,
-  getOperationRootType,
   Kind,
   GraphQLObjectType,
   FieldNode,
@@ -157,6 +156,17 @@ function visitErrorsByType(
   });
 }
 
+function getOperationRootType(schema: GraphQLSchema, operationDef: OperationDefinitionNode) {
+  switch (operationDef.operation) {
+    case 'query':
+      return schema.getQueryType();
+    case 'mutation':
+      return schema.getMutationType();
+    case 'subscription':
+      return schema.getSubscriptionType();
+  }
+}
+
 function visitRoot(
   root: any,
   operation: OperationDefinitionNode,
@@ -167,7 +177,7 @@ function visitRoot(
   errors: Maybe<ReadonlyArray<GraphQLError>>,
   errorInfo: ErrorInfo
 ): any {
-  const operationRootType = getOperationRootType(schema, operation);
+  const operationRootType = getOperationRootType(schema, operation)!;
   const collectedFields = collectFields(
     schema,
     fragments,
