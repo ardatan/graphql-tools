@@ -534,6 +534,34 @@ function visitFragmentDefinitionNode(node: FragmentDefinitionNode, dependencySet
   node.selectionSet.selections.forEach(selectionNode => visitSelectionNode(selectionNode, dependencySet));
 }
 
+function addInterfaceDependencies(
+  node: any,
+  dependencySet: Set<string>,
+  dependenciesByDefinitionName: Map<string, Set<string>>
+) {
+  const typeName: string = node.name.value;
+  // all interfaces should be dependent to each other
+  const allDependencies = [
+    typeName,
+    ...((node as any).interfaces?.map((namedTypeNode: NamedTypeNode) => namedTypeNode.name.value) || []),
+  ];
+  (node as any).interfaces?.forEach((namedTypeNode: NamedTypeNode) => {
+    visitNamedTypeNode(namedTypeNode, dependencySet);
+    const interfaceName = namedTypeNode.name.value;
+    let set = dependenciesByDefinitionName.get(interfaceName);
+    // interface should be dependent to the type as well
+    if (set == null) {
+      set = new Set();
+      dependenciesByDefinitionName.set(interfaceName, set);
+    }
+    allDependencies.forEach(dependency => {
+      if (dependency !== interfaceName) {
+        set!.add(dependency);
+      }
+    });
+  });
+}
+
 function visitObjectTypeDefinitionNode(
   node: ObjectTypeDefinitionNode,
   dependencySet: Set<string>,
@@ -545,17 +573,7 @@ function visitObjectTypeDefinitionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName)
   );
-  node.interfaces?.forEach(namedTypeNode => {
-    visitNamedTypeNode(namedTypeNode, dependencySet);
-    const interfaceName = namedTypeNode.name.value;
-    let set = dependenciesByDefinitionName.get(interfaceName);
-    // interface should be dependent to the type as well
-    if (set == null) {
-      set = new Set();
-      dependenciesByDefinitionName.set(interfaceName, set);
-    }
-    set.add(typeName);
-  });
+  addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
 }
 
 function visitDirectiveNode(node: DirectiveNode, dependencySet: Set<string>) {
@@ -638,17 +656,7 @@ function visitInterfaceTypeDefinitionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName)
   );
-  (node as any).interfaces?.forEach((namedTypeNode: NamedTypeNode) => {
-    visitNamedTypeNode(namedTypeNode, dependencySet);
-    const interfaceName = namedTypeNode.name.value;
-    let set = dependenciesByDefinitionName.get(interfaceName);
-    // interface should be dependent to the type as well
-    if (set == null) {
-      set = new Set();
-      dependenciesByDefinitionName.set(interfaceName, set);
-    }
-    set.add(typeName);
-  });
+  addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
 }
 
 function visitUnionTypeDefinitionNode(node: UnionTypeDefinitionNode, dependencySet: Set<string>) {
@@ -696,17 +704,7 @@ function visitObjectTypeExtensionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName)
   );
-  node.interfaces?.forEach(namedTypeNode => {
-    visitNamedTypeNode(namedTypeNode, dependencySet);
-    const interfaceName = namedTypeNode.name.value;
-    let set = dependenciesByDefinitionName.get(interfaceName);
-    // interface should be dependent to the type as well
-    if (set == null) {
-      set = new Set();
-      dependenciesByDefinitionName.set(interfaceName, set);
-    }
-    set.add(typeName);
-  });
+  addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
 }
 
 function visitInterfaceTypeExtensionNode(
@@ -720,17 +718,7 @@ function visitInterfaceTypeExtensionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName)
   );
-  (node as any).interfaces?.forEach((namedTypeNode: NamedTypeNode) => {
-    visitNamedTypeNode(namedTypeNode, dependencySet);
-    const interfaceName = namedTypeNode.name.value;
-    let set = dependenciesByDefinitionName.get(interfaceName);
-    // interface should be dependent to the type as well
-    if (set == null) {
-      set = new Set();
-      dependenciesByDefinitionName.set(interfaceName, set);
-    }
-    set.add(typeName);
-  });
+  addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
 }
 
 function visitUnionTypeExtensionNode(node: UnionTypeExtensionNode, dependencySet: Set<string>) {

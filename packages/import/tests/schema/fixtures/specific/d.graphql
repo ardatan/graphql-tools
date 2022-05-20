@@ -1,0 +1,13 @@
+interface AnotherInterface {
+  field: String
+}
+
+interface Imported {
+  anotherField: String
+}
+
+type Implementation implements Imported & AnotherInterface {
+  field: String
+  anotherField: String
+  localField: String
+}
