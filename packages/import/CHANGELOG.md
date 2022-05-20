@@ -1,5 +1,12 @@
 # @graphql-tools/import
 
+## 6.6.15
+
+### Patch Changes
+
+- Updated dependencies [c0762ee3]
+  - @graphql-tools/utils@8.6.11
+
 ## 6.6.14
 
 ### Patch Changes
