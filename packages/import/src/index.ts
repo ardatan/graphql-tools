@@ -573,6 +573,7 @@ function visitObjectTypeDefinitionNode(
   node.fields?.forEach(fieldDefinitionNode =>
     visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName)
   );
+  addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
 }
 
 function visitDirectiveNode(node: DirectiveNode, dependencySet: Set<string>) {
