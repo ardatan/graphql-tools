@@ -14,7 +14,7 @@ if (pkg.resolutions.graphql.startsWith(version)) {
   return;
 }
 
-const npmVersion = version.includes('-') || !(version === 'alpha') ? version : `^${version}`;
+const npmVersion = version.includes('-') || version === 'alpha' ? version : `^${version}`;
 pkg.resolutions.graphql = npmVersion;
 pkg.devDependencies.graphql = npmVersion;
 
