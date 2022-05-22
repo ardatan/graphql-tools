@@ -35,7 +35,7 @@
     "@types/js-yaml": "^4.0.0",
     "@types/json-stable-stringify": "^1.0.32",
     "@types/jsonwebtoken": "^8.5.0",
-    "chalk": "^4.1.0",
+    "chalk": "^5.0.0",
     "debug": "^4.3.1",
     "dotenv": "^16.0.0",
     "graphql-request": "^4.0.0",
