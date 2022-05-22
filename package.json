@@ -52,7 +52,7 @@
     "babel-jest": "28.1.0",
     "bob-the-bundler": "1.7.3",
     "chalk": "4.1.2",
-    "concurrently": "7.2.0",
+    "concurrently": "7.2.1",
     "eslint": "8.16.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-config-standard": "17.0.0",
