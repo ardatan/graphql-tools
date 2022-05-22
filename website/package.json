@@ -27,7 +27,7 @@
     "@types/node": "16.11.36",
     "@types/react": "18.0.9",
     "@types/react-dom": "18.0.4",
-    "concurrently": "7.2.0",
+    "concurrently": "7.2.1",
     "cross-env": "7.0.3",
     "esbuild": "0.14.39",
     "esbuild-register": "3.3.2",
@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@chakra-ui/icons": "2.0.0",
-    "@chakra-ui/react": "2.0.2",
+    "@chakra-ui/react": "2.1.0",
     "@chakra-ui/theme-tools": "2.0.0",
     "@chakra-ui/utils": "2.0.0",
     "@emotion/react": "11.9.0",
