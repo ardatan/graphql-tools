@@ -38,7 +38,7 @@
     ]
   },
   "devDependencies": {
-    "@apollo/client": "3.6.4",
+    "@apollo/client": "3.6.5",
     "@types/apollo-upload-client": "17.0.0",
     "@types/graphql-upload": "8.0.11",
     "@graphql-yoga/node": "2.6.1",
