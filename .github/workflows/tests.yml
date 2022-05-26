@@ -159,14 +159,9 @@ jobs:
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
       - name: Test
         run: yarn test --ci
-  test_esm:
-    name: ESM Test
+  test_jest_esm:
+    name: Test GraphQL v17 with ESM
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        graphql_version:
-          - 16
-          - '17.0.0-alpha.1'
     steps:
       - name: Checkout Master
         uses: actions/checkout@v3
@@ -176,28 +171,59 @@ jobs:
           node-version: 18
 
       - name: Cache Yarn
-        # id: yarn-cache-18-16
+        id: yarn-cache-18-17.0.0-alpha.1
         uses: actions/cache@v3
         with:
           path: |
             ${{ steps.yarn-cache-dir-path.outputs.dir }}
             **/node_modules
-          key: ${{ runner.os }}-18-${{matrix.graphql_version}}-node-modules-${{ hashFiles('yarn.lock') }}
+          key: ${{ runner.os }}-18-17.0.0-alpha.1-node-modules-${{ hashFiles('yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-18-${{matrix.graphql_version}}-node-modules-
+            ${{ runner.os }}-18-17.0.0-alpha.1-node-modules-
+      - name: Use GraphQL v17.0.0-alpha.1
+        run: node ./scripts/match-graphql.js 17.0.0-alpha.1
+      - name: Install Dependencies using Yarn
+        run: yarn install --ignore-engines && git checkout yarn.lock
+      - name: Cache Jest
+        uses: actions/cache@v3
+        with:
+          path: .cache/jest
+          key: ${{ runner.os }}-${{matrix.node-version}}-17.0.0-alpha.1-jest-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{matrix.node-version}}-17.0.0-alpha.1-jest-
+      - name: Test
+        run: npx jest
+        env:
+          NODE_OPTIONS: --experimental-vm-modules
 
-      - name: Use GraphQL v${{matrix.graphql_version}}
-        run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
+  test_esm:
+    name: ESM Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@v3
+      - name: Use Node
+        uses: actions/setup-node@master
+        with:
+          node-version: 18
+
+      - name: Cache Yarn
+        id: yarn-cache-18-16
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            **/node_modules
+          key: ${{ runner.os }}-18-16-node-modules-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-18-16-node-modules-
+
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Build Packages
         run: yarn build
       - name: Test ESM
         run: node scripts/test-esm.mjs
-      - name: Jest in ESM
-        run: npx jest
-        env:
-          NODE_OPTIONS: --experimental-vm-modules
   test_browser:
     name: Browser Test
     runs-on: ubuntu-latest
