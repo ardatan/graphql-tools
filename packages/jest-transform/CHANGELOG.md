@@ -1,5 +1,11 @@
 # @graphql-tools/jest-transform
 
+## 1.1.4
+
+### Patch Changes
+
+- bf89eae0: fix(jest-transform): add default export for Jest 28 support
+
 ## 1.1.3
 
 ### Patch Changes
