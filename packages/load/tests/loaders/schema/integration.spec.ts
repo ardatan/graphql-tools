@@ -104,7 +104,20 @@ describe('loadSchema', () => {
       const schema = await load(schemaPath, {
         loaders: [new GraphQLFileLoader()],
         sort: true,
-        schemas: [buildSchema(`scalar DateTime`)],
+        schemas: [
+          buildSchema(/* GraphQL */ `
+            scalar DateTime
+
+            type B {
+              c: String
+              d: DateTime
+            }
+
+            type Query {
+              b: B
+            }
+          `),
+        ],
       });
       expect(printSchema(schema)).toBeSimilarGqlDoc(/* GraphQL */ `
         scalar DateTime
@@ -116,8 +129,14 @@ describe('loadSchema', () => {
 
         type Query {
           a: String
+          b: B
           d: String
           z: String
+        }
+
+        type B {
+          c: String
+          d: DateTime
         }
 
         type User {
