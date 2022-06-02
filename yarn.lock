@@ -11305,10 +11305,10 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
-puppeteer@14.2.0:
-  version "14.2.0"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-14.2.0.tgz#edcb37b2e83c1892e630a830dd3daea040b1cd50"
-  integrity sha512-JLHGePg1W3V+CShk6veNug+Ip2BoeZmbIbJFJqS/L5YK/DCWRkJZpJ+4OzNY5Mf+lYR9srKp5pXV84bcBWnX7w==
+puppeteer@14.2.1:
+  version "14.2.1"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-14.2.1.tgz#e343379061e0211b4c02d0c535883c26a39f825e"
+  integrity sha512-cIEsAbEbNYqHbkvdZY4+YSdxVwh4YFqOHSezuLpu46XAYlKkQeAMdJQ+mDAxg9v77gIn8PHJ6PlftIVsWKRACA==
   dependencies:
     cross-fetch "3.1.5"
     debug "4.3.4"
@@ -13938,10 +13938,10 @@ webpack-sources@^3.2.3:
   resolved "https://registry.yarnpkg.com/webpack-sources/-/webpack-sources-3.2.3.tgz#2d4daab8451fd4b240cc27055ff6a0c2ccea0cde"
   integrity sha512-/DyMEOrDgLKKIG0fmvtz+4dUX/3Ghozwgm6iPp8KRhvn+eQf9+Q7GWxVNMk3+uCPWfdXYC4ExGBckIXdFEfH1w==
 
-webpack@5.72.1, webpack@^5:
-  version "5.72.1"
-  resolved "https://registry.yarnpkg.com/webpack/-/webpack-5.72.1.tgz#3500fc834b4e9ba573b9f430b2c0a61e1bb57d13"
-  integrity sha512-dXG5zXCLspQR4krZVR6QgajnZOjW2K/djHvdcRaDQvsjV9z9vaW6+ja5dZOYbqBBjF6kGXka/2ZyxNdc+8Jung==
+webpack@5.73.0, webpack@^5:
+  version "5.73.0"
+  resolved "https://registry.yarnpkg.com/webpack/-/webpack-5.73.0.tgz#bbd17738f8a53ee5760ea2f59dce7f3431d35d38"
+  integrity sha512-svjudQRPPa0YiOYa2lM/Gacw0r6PvxptHj4FuEKQ2kX05ZLkjbVc5MnPs6its5j7IZljnIqSVo/OsY2X0IpHGA==
   dependencies:
     "@types/eslint-scope" "^3.7.3"
     "@types/estree" "^0.0.51"
