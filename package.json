@@ -53,7 +53,7 @@
     "bob-the-bundler": "1.7.3",
     "chalk": "4.1.2",
     "concurrently": "7.2.1",
-    "eslint": "8.16.0",
+    "eslint": "8.17.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-config-standard": "17.0.0",
     "eslint-plugin-import": "2.26.0",
