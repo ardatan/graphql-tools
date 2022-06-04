@@ -6476,10 +6476,10 @@ esbuild-openbsd-64@0.14.0:
   resolved "https://registry.yarnpkg.com/esbuild-openbsd-64/-/esbuild-openbsd-64-0.14.0.tgz#2d8c0689731605c68da816ac40095a1685c12e11"
   integrity sha512-HiaqQX9HMb9u3eYvKZ86+m/paQwASJSIjXiRTFpFusypjtU2NJqWb/LiRvhfmwC6rb7YHwCSPx+juSM7M+20bA==
 
-esbuild-register@3.3.2:
-  version "3.3.2"
-  resolved "https://registry.yarnpkg.com/esbuild-register/-/esbuild-register-3.3.2.tgz#1c3dc7179cabb4c7bd640a393eb916b18b12a223"
-  integrity sha512-jceAtTO6zxPmCfSD5cBb3rgIK1vmuqCKYwgylHiS1BF4pq0jJiJb4K2QMuqF4BEw7XDBRatYzip0upyTzfkgsQ==
+esbuild-register@3.3.3:
+  version "3.3.3"
+  resolved "https://registry.yarnpkg.com/esbuild-register/-/esbuild-register-3.3.3.tgz#5bd80025c80caf77e6484ced5cc77233b1d39688"
+  integrity sha512-eFHOkutgIMJY5gc8LUp/7c+LLlDqzNi9T6AwCZ2WKKl3HmT+5ef3ZRyPPxDOynInML0fgaC50yszPKfPnjC0NQ==
 
 esbuild-sunos-64@0.14.0:
   version "0.14.0"
