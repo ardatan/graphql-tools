@@ -15,7 +15,7 @@
     ".": {
       "require": "./dist/index.js",
       "import": "./dist/index.mjs",
-      "types": "./index.d.ts"
+      "types": "./dist/index.d.ts"
     },
     "./*": {
       "require": "./dist/*.js",
