@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/schema",
-  "version": "8.3.13",
+  "version": "8.3.14",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -35,8 +35,8 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/merge": "8.2.13",
-    "@graphql-tools/utils": "8.6.12",
+    "@graphql-tools/merge": "8.2.14",
+    "@graphql-tools/utils": "8.6.13",
     "tslib": "^2.4.0",
     "value-or-promise": "1.0.11"
   },

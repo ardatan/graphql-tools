@@ -1,5 +1,15 @@
 # @graphql-tools/node-require
 
+## 6.3.14
+
+### Patch Changes
+
+- 041c5ba1: Use caret range for the tslib dependency
+- Updated dependencies [041c5ba1]
+  - @graphql-tools/load@7.5.14
+  - @graphql-tools/graphql-file-loader@7.3.15
+  - @graphql-tools/utils@8.6.13
+
 ## 6.3.13
 
 ### Patch Changes

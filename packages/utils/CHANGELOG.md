@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.6.13
+
+### Patch Changes
+
+- 041c5ba1: Use caret range for the tslib dependency
+
 ## 8.6.12
 
 ### Patch Changes

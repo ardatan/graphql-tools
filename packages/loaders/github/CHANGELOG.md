@@ -1,5 +1,14 @@
 # @graphql-tools/github-loader
 
+## 7.2.23
+
+### Patch Changes
+
+- 041c5ba1: Use caret range for the tslib dependency
+- Updated dependencies [041c5ba1]
+  - @graphql-tools/graphql-tag-pluck@7.2.10
+  - @graphql-tools/utils@8.6.13
+
 ## 7.2.22
 
 ### Patch Changes

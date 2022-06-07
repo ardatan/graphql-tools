@@ -1,5 +1,13 @@
 # @graphql-tools/jest-transform
 
+## 1.1.5
+
+### Patch Changes
+
+- 041c5ba1: Use caret range for the tslib dependency
+- Updated dependencies [041c5ba1]
+  - @graphql-tools/webpack-loader@6.6.3
+
 ## 1.1.4
 
 ### Patch Changes

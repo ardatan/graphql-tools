@@ -1,5 +1,14 @@
 # @graphql-tools/mock
 
+## 8.6.12
+
+### Patch Changes
+
+- 041c5ba1: Use caret range for the tslib dependency
+- Updated dependencies [041c5ba1]
+  - @graphql-tools/schema@8.3.14
+  - @graphql-tools/utils@8.6.13
+
 ## 8.6.11
 
 ### Patch Changes
