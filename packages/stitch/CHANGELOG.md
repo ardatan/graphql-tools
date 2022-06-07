@@ -1,5 +1,18 @@
 # @graphql-tools/stitch
 
+## 8.6.13
+
+### Patch Changes
+
+- 041c5ba1: Use caret range for the tslib dependency
+- Updated dependencies [041c5ba1]
+  - @graphql-tools/batch-delegate@8.2.20
+  - @graphql-tools/delegate@8.7.11
+  - @graphql-tools/merge@8.2.14
+  - @graphql-tools/schema@8.3.14
+  - @graphql-tools/utils@8.6.13
+  - @graphql-tools/wrap@8.4.20
+
 ## 8.6.12
 
 ### Patch Changes

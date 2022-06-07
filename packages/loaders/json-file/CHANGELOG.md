@@ -1,5 +1,13 @@
 # @graphql-tools/json-file-loader
 
+## 7.3.15
+
+### Patch Changes
+
+- 041c5ba1: Use caret range for the tslib dependency
+- Updated dependencies [041c5ba1]
+  - @graphql-tools/utils@8.6.13
+
 ## 7.3.14
 
 ### Patch Changes

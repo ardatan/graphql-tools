@@ -1,5 +1,13 @@
 # @graphql-tools/apollo-engine-loader
 
+## 7.2.19
+
+### Patch Changes
+
+- 041c5ba1: Use caret range for the tslib dependency
+- Updated dependencies [041c5ba1]
+  - @graphql-tools/utils@8.6.13
+
 ## 7.2.18
 
 ### Patch Changes

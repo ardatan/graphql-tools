@@ -1,5 +1,13 @@
 # @graphql-tools/batch-execute
 
+## 8.4.10
+
+### Patch Changes
+
+- 041c5ba1: Use caret range for the tslib dependency
+- Updated dependencies [041c5ba1]
+  - @graphql-tools/utils@8.6.13
+
 ## 8.4.9
 
 ### Patch Changes

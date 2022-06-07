@@ -1,5 +1,13 @@
 # @graphql-tools/resolvers-composition
 
+## 6.4.13
+
+### Patch Changes
+
+- 041c5ba1: Use caret range for the tslib dependency
+- Updated dependencies [041c5ba1]
+  - @graphql-tools/utils@8.6.13
+
 ## 6.4.12
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @graphql-tools/webpack-loader
 
+## 6.6.3
+
+### Patch Changes
+
+- 041c5ba1: Use caret range for the tslib dependency
+- Updated dependencies [041c5ba1]
+  - @graphql-tools/optimize@1.2.1
+
 ## 6.6.2
 
 ### Patch Changes

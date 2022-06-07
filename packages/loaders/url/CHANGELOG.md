@@ -1,5 +1,15 @@
 # @graphql-tools/url-loader
 
+## 7.9.24
+
+### Patch Changes
+
+- 041c5ba1: Use caret range for the tslib dependency
+- Updated dependencies [041c5ba1]
+  - @graphql-tools/delegate@8.7.11
+  - @graphql-tools/utils@8.6.13
+  - @graphql-tools/wrap@8.4.20
+
 ## 7.9.23
 
 ### Patch Changes
