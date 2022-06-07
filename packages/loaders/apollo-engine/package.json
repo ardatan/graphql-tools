@@ -32,8 +32,8 @@
   "dependencies": {
     "@graphql-tools/utils": "8.6.12",
     "cross-undici-fetch": "^0.4.0",
-    "tslib": "~2.4.0",
-    "sync-fetch": "0.4.1"
+    "sync-fetch": "0.4.1",
+    "tslib": "^2.4.0"
   },
   "publishConfig": {
     "access": "public",

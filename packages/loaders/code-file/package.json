@@ -33,7 +33,7 @@
     "@graphql-tools/utils": "8.6.12",
     "@graphql-tools/graphql-tag-pluck": "7.2.9",
     "globby": "^11.0.3",
-    "tslib": "~2.4.0",
+    "tslib": "^2.4.0",
     "unixify": "^1.0.0"
   },
   "publishConfig": {
