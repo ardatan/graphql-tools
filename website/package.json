@@ -17,19 +17,19 @@
     }
   },
   "resolutions": {
-    "esbuild": "0.14.42"
+    "esbuild": "0.14.43"
   },
   "devDependencies": {
     "@guild-docs/algolia": "0.0.6",
     "@next/bundle-analyzer": "12.1.6",
     "@types/concurrently": "6.4.0",
     "@types/mdx-js__react": "1.5.5",
-    "@types/node": "16.11.38",
+    "@types/node": "16.11.39",
     "@types/react": "18.0.12",
     "@types/react-dom": "18.0.5",
     "concurrently": "7.2.1",
     "cross-env": "7.0.3",
-    "esbuild": "0.14.42",
+    "esbuild": "0.14.43",
     "esbuild-register": "3.3.3",
     "next-remote-watch": "1.0.0",
     "open-cli": "7.0.1",
@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@chakra-ui/icons": "2.0.2",
-    "@chakra-ui/react": "2.2.0",
+    "@chakra-ui/react": "2.2.1",
     "@chakra-ui/theme-tools": "2.0.2",
     "@chakra-ui/utils": "2.0.2",
     "@emotion/react": "11.9.0",
