@@ -46,7 +46,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@types/relay-compiler": "8.0.2"
+    "@types/relay-compiler": "8.0.3"
   },
   "buildOptions": {
     "external": [
