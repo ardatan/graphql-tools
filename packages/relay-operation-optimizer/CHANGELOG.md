@@ -1,5 +1,11 @@
 # @graphql-tools/relay-operation-optimizer
 
+## 6.4.14
+
+### Patch Changes
+
+- ceab8242: Use JS fork of relay-compiler to relax peer dependencies
+
 ## 6.4.13
 
 ### Patch Changes
