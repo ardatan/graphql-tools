@@ -1,14 +1,14 @@
 import { printSchemaWithDirectives, SchemaPrintOptions } from '@graphql-tools/utils';
 import { parse, GraphQLSchema, DefinitionNode, DocumentNode, ParseOptions, concatAST } from 'graphql';
 
-import { transform as skipRedundantNodesTransform } from 'relay-compiler/lib/transforms/SkipRedundantNodesTransform.js';
-import { transform as inlineFragmentsTransform } from 'relay-compiler/lib/transforms/InlineFragmentsTransform.js';
-import { transform as applyFragmentArgumentTransform } from 'relay-compiler/lib/transforms/ApplyFragmentArgumentTransform.js';
-import { transformWithOptions as flattenTransformWithOptions } from 'relay-compiler/lib/transforms/FlattenTransform.js';
-import CompilerContext from 'relay-compiler/lib/core/CompilerContext.js';
-import { transform as relayTransform } from 'relay-compiler/lib/core/RelayParser.js';
-import { print as relayPrint } from 'relay-compiler/lib/core/IRPrinter.js';
-import { create as relayCreate } from 'relay-compiler/lib/core/Schema.js';
+import { transform as skipRedundantNodesTransform } from '@ardatan/relay-compiler/lib/transforms/SkipRedundantNodesTransform.js';
+import { transform as inlineFragmentsTransform } from '@ardatan/relay-compiler/lib/transforms/InlineFragmentsTransform.js';
+import { transform as applyFragmentArgumentTransform } from '@ardatan/relay-compiler/lib/transforms/ApplyFragmentArgumentTransform.js';
+import { transformWithOptions as flattenTransformWithOptions } from '@ardatan/relay-compiler/lib/transforms/FlattenTransform.js';
+import CompilerContext from '@ardatan/relay-compiler/lib/core/CompilerContext.js';
+import { transform as relayTransform } from '@ardatan/relay-compiler/lib/core/RelayParser.js';
+import { print as relayPrint } from '@ardatan/relay-compiler/lib/core/IRPrinter.js';
+import { create as relayCreate } from '@ardatan/relay-compiler/lib/core/Schema.js';
 
 export type OptimizeDocumentsOptions = SchemaPrintOptions &
   ParseOptions & {
