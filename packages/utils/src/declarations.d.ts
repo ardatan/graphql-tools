@@ -9,4 +9,4 @@ declare global {
     reduce<R>(reducer: Reducer<T, R>, target: Partial<R>): R;
   }
 }
-declare module 'graphql-upload';
+declare module 'graphql-upload/*.js';

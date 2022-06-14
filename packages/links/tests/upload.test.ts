@@ -4,7 +4,8 @@ import { Readable } from 'stream';
 
 import express, { Express } from 'express';
 import { createServer } from '@graphql-yoga/node';
-import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
 import { buildSchema } from 'graphql';
