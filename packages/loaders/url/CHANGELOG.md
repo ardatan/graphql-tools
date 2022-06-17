@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.9.25
+
+### Patch Changes
+
+- 05218bfe: Handle legacy protocol properly
+
 ## 7.9.24
 
 ### Patch Changes
