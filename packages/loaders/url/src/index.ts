@@ -14,6 +14,7 @@ import {
   ExecutionRequest,
   parseGraphQLSDL,
   getOperationASTFromRequest,
+  Observer,
 } from '@graphql-tools/utils';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
@@ -128,6 +129,10 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Request Credentials
    */
   credentials?: RequestCredentials;
+  /**
+   * Connection Parameters for WebSockets connection
+   */
+  connectionParams?: any;
 }
 
 function isCompatibleUri(uri: string): boolean {
@@ -493,30 +498,64 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       http: 'ws',
     });
 
+    const observerById = new Map<string, Observer<ExecutionResult<any>>>();
+
+    let websocket: WebSocket | null = null;
+
+    const ensureWebsocket = () => {
+      websocket = new WebSocketImpl(WS_URL, 'graphql-ws', {
+        followRedirects: true,
+        headers: options?.headers,
+        rejectUnauthorized: false,
+        skipUTF8Validation: true,
+      });
+
+      websocket.onopen = () => {
+        let payload: any = {};
+        switch (typeof options?.connectionParams) {
+          case 'function':
+            payload = options?.connectionParams();
+            break;
+          case 'object':
+            payload = options?.connectionParams;
+            break;
+        }
+        websocket!.send(
+          JSON.stringify({
+            type: LEGACY_WS.CONNECTION_INIT,
+            payload,
+          })
+        );
+      };
+    };
+
+    const cleanupWebsocket = () => {
+      if (websocket != null && observerById.size === 0) {
+        websocket.send(
+          JSON.stringify({
+            type: LEGACY_WS.CONNECTION_TERMINATE,
+          })
+        );
+        websocket.terminate();
+        websocket = null;
+      }
+    };
+
     return function legacyExecutor(request: ExecutionRequest) {
       const id = Date.now().toString();
       return observableToAsyncIterable({
         subscribe(observer) {
-          const websocket = new WebSocketImpl(WS_URL, 'graphql-ws', {
-            followRedirects: true,
-            headers: options?.headers,
-            rejectUnauthorized: false,
-            skipUTF8Validation: true,
-          });
-          websocket.onopen = () => {
-            websocket.send(
-              JSON.stringify({
-                type: LEGACY_WS.CONNECTION_INIT,
-                payload: {
-                  ...request.extensions,
-                },
-              })
-            );
-          };
+          ensureWebsocket();
+          if (websocket == null) {
+            throw new Error(`WebSocket connection is not found!`);
+          }
           websocket.onmessage = event => {
             const data = JSON.parse(event.data.toString('utf-8'));
             switch (data.type) {
               case LEGACY_WS.CONNECTION_ACK: {
+                if (websocket == null) {
+                  throw new Error(`WebSocket connection is not found!`);
+                }
                 websocket.send(
                   JSON.stringify({
                     type: LEGACY_WS.START,
@@ -542,13 +581,16 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                 break;
               }
               case LEGACY_WS.COMPLETE: {
+                if (websocket == null) {
+                  throw new Error(`WebSocket connection is not found!`);
+                }
                 websocket.send(
                   JSON.stringify({
                     type: LEGACY_WS.CONNECTION_TERMINATE,
                   })
                 );
-                websocket.terminate();
                 observer.complete();
+                cleanupWebsocket();
                 break;
               }
             }
@@ -556,18 +598,13 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
 
           return {
             unsubscribe: () => {
-              websocket.send(
+              websocket?.send(
                 JSON.stringify({
                   type: LEGACY_WS.STOP,
                   id,
                 })
               );
-              websocket.send(
-                JSON.stringify({
-                  type: LEGACY_WS.CONNECTION_TERMINATE,
-                })
-              );
-              websocket.terminate();
+              cleanupWebsocket();
             },
           };
         },
@@ -660,12 +697,11 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       return this.buildHTTPExecutor(subscriptionsEndpoint, fetch as any, options);
     } else {
       const webSocketImpl$ = new ValueOrPromise(() => this.getWebSocketImpl(importFn, options));
-      const connectionParams = () => ({ headers: options?.headers });
       const executor$ = webSocketImpl$.then(webSocketImpl => {
         if (options?.subscriptionsProtocol === SubscriptionProtocol.LEGACY_WS) {
           return this.buildWSLegacyExecutor(subscriptionsEndpoint, webSocketImpl, options);
         } else {
-          return this.buildWSExecutor(subscriptionsEndpoint, webSocketImpl, connectionParams);
+          return this.buildWSExecutor(subscriptionsEndpoint, webSocketImpl, options?.connectionParams);
         }
       });
       return request => executor$.then(executor => executor(request)).resolve();
