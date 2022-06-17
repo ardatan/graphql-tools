@@ -1,8 +1,8 @@
 diff --git a/node_modules/@changesets/apply-release-plan/dist/apply-release-plan.cjs.dev.js b/node_modules/@changesets/apply-release-plan/dist/apply-release-plan.cjs.dev.js
-index 4bbfe2e..8e90921 100644
+index 94500b3..40513eb 100644
 --- a/node_modules/@changesets/apply-release-plan/dist/apply-release-plan.cjs.dev.js
 +++ b/node_modules/@changesets/apply-release-plan/dist/apply-release-plan.cjs.dev.js
-@@ -117,7 +117,8 @@ const DEPENDENCY_TYPES = ["dependencies", "devDependencies", "peerDependencies",
+@@ -115,7 +115,8 @@ const DEPENDENCY_TYPES = ["dependencies", "devDependencies", "peerDependencies",
  function versionPackage(release, versionsToUpdate, {
    updateInternalDependencies,
    onlyUpdatePeerDependentsWhenOutOfRange,
@@ -12,7 +12,7 @@ index 4bbfe2e..8e90921 100644
  }) {
    let {
      newVersion,
-@@ -173,7 +174,7 @@ function versionPackage(release, versionsToUpdate, {
+@@ -171,7 +172,7 @@ function versionPackage(release, versionsToUpdate, {
          // leaving those as is would leave the package in a non-installable state (wrong dep versions would get installed)
          semver__default['default'].prerelease(version) !== null) {
            let rangeType = getVersionRangeType__default['default'](depCurrentVersion);
@@ -21,16 +21,16 @@ index 4bbfe2e..8e90921 100644
            if (usesWorkspaceRange) newNewRange = `workspace:${newNewRange}`;
            deps[name] = newNewRange;
          }
-@@ -287,7 +288,7 @@ async function getCommitsThatAddChangesets(changesetIds, cwd) {
+@@ -270,7 +271,7 @@ async function getCommitsThatAddChangesets(changesetIds, cwd) {
    return commits;
  }
-
+ 
 -async function applyReleasePlan(releasePlan, packages, config$1 = config.defaultConfig, snapshot) {
 +async function applyReleasePlan(releasePlan, packages, config$1 = config.defaultConfig, snapshot, ignoreRange = false) {
    let cwd = packages.root.dir;
    let touchedFiles = [];
    const packagesByName = new Map(packages.packages.map(x => [x.packageJson.name, x]));
-@@ -325,6 +326,7 @@ async function applyReleasePlan(releasePlan, packages, config$1 = config.default
+@@ -307,6 +308,7 @@ async function applyReleasePlan(releasePlan, packages, config$1 = config.default
    let finalisedRelease = releaseWithChangelogs.map(release => {
      return versionPackage(release, versionsToUpdate, {
        updateInternalDependencies: config$1.updateInternalDependencies,

@@ -17,19 +17,19 @@
     }
   },
   "resolutions": {
-    "esbuild": "0.14.43"
+    "esbuild": "0.14.45"
   },
   "devDependencies": {
     "@guild-docs/algolia": "0.0.6",
     "@next/bundle-analyzer": "12.1.6",
     "@types/concurrently": "6.4.0",
     "@types/mdx-js__react": "1.5.5",
-    "@types/node": "16.11.39",
-    "@types/react": "18.0.12",
+    "@types/node": "16.11.41",
+    "@types/react": "18.0.14",
     "@types/react-dom": "18.0.5",
-    "concurrently": "7.2.1",
+    "concurrently": "7.2.2",
     "cross-env": "7.0.3",
-    "esbuild": "0.14.43",
+    "esbuild": "0.14.45",
     "esbuild-register": "3.3.3",
     "next-remote-watch": "1.0.0",
     "open-cli": "7.0.1",
@@ -51,8 +51,8 @@
     "next": "12.1.6",
     "next-i18next": "11.0.0",
     "next-seo": "5.4.0",
-    "react": "18.1.0",
-    "react-dom": "18.1.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "react-icons": "4.4.0",
     "react-use": "17.4.0",
     "remark-admonitions": "1.2.1",
