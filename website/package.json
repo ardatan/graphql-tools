@@ -17,7 +17,7 @@
     }
   },
   "resolutions": {
-    "esbuild": "0.14.45"
+    "esbuild": "0.14.46"
   },
   "devDependencies": {
     "@guild-docs/algolia": "0.0.6",
@@ -29,11 +29,11 @@
     "@types/react-dom": "18.0.5",
     "concurrently": "7.2.2",
     "cross-env": "7.0.3",
-    "esbuild": "0.14.45",
+    "esbuild": "0.14.46",
     "esbuild-register": "3.3.3",
     "next-remote-watch": "1.0.0",
     "open-cli": "7.0.1",
-    "typescript": "4.7.3",
+    "typescript": "4.7.4",
     "wait-on": "6.0.1"
   },
   "dependencies": {
@@ -45,7 +45,7 @@
     "@emotion/styled": "11.9.3",
     "@guild-docs/client": "3.1.0",
     "@guild-docs/server": "4.0.0",
-    "@mdx-js/react": "2.1.1",
+    "@mdx-js/react": "2.1.2",
     "@theguild/components": "1.11.8",
     "framer-motion": "6.3.11",
     "next": "12.1.6",
