@@ -5,9 +5,10 @@ import {
   OperationTypeNode,
   DocumentNode,
   GraphQLOutputType,
+  ExecutionArgs,
+  subscribe,
+  execute,
 } from 'graphql';
-
-import { Executor as GraphQLExecutor, ExecutorExecutionArgs } from 'graphql-executor';
 
 import { ValueOrPromise } from 'value-or-promise';
 
@@ -216,15 +217,19 @@ function getExecutor<TContext extends Record<string, any>>(
 }
 
 export const createDefaultExecutor = memoize1(function createDefaultExecutor(schema: GraphQLSchema): Executor {
-  const executorInstance = new GraphQLExecutor({ schema });
   return function defaultExecutor(request: ExecutionRequest) {
-    const executionArgs: ExecutorExecutionArgs = {
+    const executionArgs: ExecutionArgs = {
+      schema,
       document: request.document,
       rootValue: request.rootValue,
       contextValue: request.context,
       variableValues: request.variables,
       operationName: request.operationName,
     };
-    return executorInstance.execute(executionArgs);
+    const operationType = request.operationType || getOperationASTFromRequest(request).operation;
+    if (operationType === 'subscription') {
+      return subscribe(executionArgs);
+    }
+    return execute(executionArgs);
   } as Executor;
 });
