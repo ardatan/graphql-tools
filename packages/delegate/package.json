@@ -36,8 +36,7 @@
     "@graphql-tools/schema": "8.3.14",
     "@graphql-tools/utils": "8.6.13",
     "dataloader": "2.1.0",
-    "graphql-executor": "0.0.23",
-    "tslib": "^2.4.0",
+    "tslib": "~2.4.0",
     "value-or-promise": "1.0.11"
   },
   "publishConfig": {
