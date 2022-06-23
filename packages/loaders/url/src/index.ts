@@ -133,6 +133,10 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Connection Parameters for WebSockets connection
    */
   connectionParams?: any;
+  /**
+   * Enable Batching
+   */
+  batch?: boolean;
 }
 
 function isCompatibleUri(uri: string): boolean {
@@ -815,6 +819,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       source.schema = wrapSchema({
         schema: source.schema,
         executor,
+        batch: options?.batch,
       });
     }
 

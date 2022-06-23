@@ -27,7 +27,7 @@ export function mergeSchemas(config: MergeSchemasConfig) {
   const schemas = config.schemas || [];
   for (const schema of schemas) {
     extractedTypeDefs.push(schema);
-    extractedResolvers.push(getResolversFromSchema(schema));
+    extractedResolvers.push(getResolversFromSchema(schema, true));
     extractedSchemaExtensions.push(extractExtensionsFromSchema(schema));
   }
 

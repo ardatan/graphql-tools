@@ -31,6 +31,7 @@ import { createServer } from '@graphql-yoga/node';
 import { GraphQLLiveDirectiveSDL, useLiveQuery } from '@envelop/live-query';
 import { InMemoryLiveQueryStore } from '@n1ru4l/in-memory-live-query-store';
 import { LiveExecutionResult } from '@n1ru4l/graphql-live-query';
+import { loadSchema } from '@graphql-tools/load';
 
 describe('Schema URL Loader', () => {
   const loader = new UrlLoader();
@@ -45,7 +46,27 @@ scalar Upload
 type CustomQuery {
   """Test field comment"""
   a(testVariable: String): String
+
+  complexField(complexArg: ComplexInput): ComplexType
 }
+
+input ComplexInput {
+  id: ID
+}
+
+input ComplexChildInput {
+  id: ID
+}
+
+type ComplexType {
+  id: ID
+  complexChildren(complexChildArg: ComplexChildInput): [ComplexChild]
+}
+
+type ComplexChild {
+  id: ID
+}
+
 type Mutation {
   uploadFile(file: Upload, dummyVar: TestInput, secondDummyVar: String): File
 }
@@ -69,6 +90,14 @@ input TestInput {
   const testResolvers = {
     CustomQuery: {
       a: (_: never, { testVariable }: { testVariable: string }) => testVariable || 'a',
+      complexField: (_: never, { complexArg }: { complexArg: { id: string } }) => {
+        return complexArg;
+      },
+    },
+    ComplexType: {
+      complexChildren: (_: never, { complexChildArg }: { complexChildArg: { id: string } }) => {
+        return [{ id: complexChildArg.id }];
+      },
     },
     Upload: GraphQLUpload,
     File: {
@@ -816,6 +845,36 @@ input TestInput {
         expect(doneResult).toStrictEqual({ done: true, value: undefined });
         expect(await serverResponseEnded$!).toBe(true);
       });
+    });
+
+    it('should handle aliases properly', async () => {
+      const yoga = createServer({
+        schema: testSchema,
+        port: 9876,
+        logging: false,
+      });
+      httpServer = await yoga.start();
+      const schema = await loadSchema(`http://0.0.0.0:9876/graphql`, {
+        loaders: [loader],
+      });
+      const document = parse(/* GraphQL */ `
+        query {
+          b: a
+          foo: complexField(complexArg: { id: "FOO" }) {
+            id
+            bar: complexChildren(complexChildArg: { id: "BAR" }) {
+              id
+            }
+          }
+        }
+      `);
+      const result: any = await execute({
+        schema,
+        document,
+      });
+      expect(result?.data?.['b']).toBe('a');
+      expect(result?.data?.['foo']?.id).toBe('FOO');
+      expect(result?.data?.['foo']?.bar?.[0]?.id).toBe('BAR');
     });
 
     describe('sync', () => {

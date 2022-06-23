@@ -37,13 +37,14 @@ export async function loadSchema(
   });
 
   const { schemas, typeDefs } = collectSchemasAndTypeDefs(sources);
+  schemas.push(...(options.schemas ?? []));
   const mergeSchemasOptions: MergeSchemasConfig = {
     ...options,
     schemas: schemas.concat(options.schemas ?? []),
     typeDefs,
   };
 
-  const schema = mergeSchemas(mergeSchemasOptions);
+  const schema = typeDefs?.length === 0 && schemas?.length === 1 ? schemas[0] : mergeSchemas(mergeSchemasOptions);
 
   if (options?.includeSources) {
     includeSources(schema, sources);
