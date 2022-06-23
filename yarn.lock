@@ -171,10 +171,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "^0.3.0"
 
-"@apollo/client@3.6.8", "@apollo/client@^3.0.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0":
-  version "3.6.8"
-  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.6.8.tgz#97e876fdbc4c287652a61895fd2b6f0b157a7667"
-  integrity sha512-p/J6KRHZZPGX0bZtMLvRFAIcReYsRYGg+Jz9MkgabWPy0L8rwgyolq9fvKsNqkH888Tj9Yvwrxz9V84KfcORJA==
+"@apollo/client@3.6.9", "@apollo/client@^3.0.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0":
+  version "3.6.9"
+  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.6.9.tgz#ad0ee2e3a3c92dbed4acd6917b6158a492739d94"
+  integrity sha512-Y1yu8qa2YeaCUBVuw08x8NHenFi0sw2I3KCu7Kw9mDSu86HmmtHJkCAifKVrN2iPgDTW/BbP3EpSV8/EQCcxZA==
   dependencies:
     "@graphql-typed-document-node/core" "^3.1.1"
     "@wry/context" "^0.6.0"
@@ -3558,10 +3558,10 @@
   dependencies:
     "@types/istanbul-lib-report" "*"
 
-"@types/jest@28.1.2":
-  version "28.1.2"
-  resolved "https://registry.yarnpkg.com/@types/jest/-/jest-28.1.2.tgz#c678569bb2d8e5474dd88f0851613611aeed9809"
-  integrity sha512-5dNM7mMuIrCtNJsFfvUO/5xCrG8swuT2c7ND+sl3XwlwxJf3k7e7o+PRvcFN/iIm8XhCqHqxLOj9yutDDOJoRg==
+"@types/jest@28.1.3":
+  version "28.1.3"
+  resolved "https://registry.yarnpkg.com/@types/jest/-/jest-28.1.3.tgz#52f3f3e50ce59191ff5fbb1084896cc0cf30c9ce"
+  integrity sha512-Tsbjk8Y2hkBaY/gJsataeb4q9Mubw9EOz7+4RjPkzD5KjTvHHs7cpws22InaoXxAVAhF5HfFbzJjo6oKWqSZLw==
   dependencies:
     jest-matcher-utils "^28.0.0"
     pretty-format "^28.0.0"
@@ -6467,7 +6467,7 @@ esbuild-windows-arm64@0.14.0:
   resolved "https://registry.yarnpkg.com/esbuild-windows-arm64/-/esbuild-windows-arm64-0.14.0.tgz#5ddc6134e766da3c7b62a9a463e91ad3127483b5"
   integrity sha512-66KsVlT6lGDWgDKQsAlojxgUhZkkjVeosMVRdb913OwtcOjszceg6zFD748jzp9CUgAseHCNJqFmYOyBzneSEQ==
 
-esbuild@0.14.46, esbuild@^0.14.0, esbuild@^0.14.2:
+esbuild@0.14.47, esbuild@^0.14.0, esbuild@^0.14.2:
   version "0.14.0"
   resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.14.0.tgz#9a3d21c9876b280e3b0186e36d372354ade51938"
   integrity sha512-UOnSKRAyZondxdLrOXnI/mesUmU/GvDTcajCvxoIaObzMeQcn0HyoGtvbfATnazlx799ZqFSyIZGLXFszkjy3A==
@@ -7253,10 +7253,10 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-framer-motion@6.3.11:
-  version "6.3.11"
-  resolved "https://registry.yarnpkg.com/framer-motion/-/framer-motion-6.3.11.tgz#c304ce9728601ad9377d47d5d9264e43d741d470"
-  integrity sha512-xQLk+ZSklNs5QNCUmdWPpKMOuWiB8ZETsvcIOWw8xvri9K3TamuifgCI/B6XpaEDR0/V2ZQF2Wm+gUAZrXo+rw==
+framer-motion@6.3.13:
+  version "6.3.13"
+  resolved "https://registry.yarnpkg.com/framer-motion/-/framer-motion-6.3.13.tgz#a1ac202ab41bdf25c566b02a2ab8ff8ee200ebc4"
+  integrity sha512-z6UIxENuqa9bh/xE1fit7IUT+07TKSp81TE+C0DDBe9ly4bdEafpZUbcDZxNiN6UBU5hYdEY7rKhk+X1JlIkhg==
   dependencies:
     framesync "6.0.1"
     hey-listen "^1.0.8"
