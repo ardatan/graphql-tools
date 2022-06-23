@@ -17,7 +17,7 @@ describe('remote queries', () => {
     schema = wrapSchema(remoteSubschemaConfig);
   });
 
-  test('should work', async () => {
+  test('should handle interfaces correctly', async () => {
     const query = /* GraphQL */ `
       {
         interfaceTest(kind: ONE) {
@@ -45,6 +45,28 @@ describe('remote queries', () => {
 
     const result = await graphql({ schema, source: query });
     expect(result).toEqual(expected);
+  });
+
+  test('should handle aliases properly', async () => {
+    const query = /* GraphQL */ `
+      query AliasedExample {
+        propertyInAnArray: properties(limit: 1) {
+          id
+          name
+          loc: location {
+            title: name
+          }
+        }
+      }
+    `;
+
+    const result: any = await graphql({ schema, source: query });
+
+    expect(result?.data?.['propertyInAnArray']).toHaveLength(1);
+    expect(result?.data?.['propertyInAnArray'][0]['id']).toBeTruthy();
+    expect(result?.data?.['propertyInAnArray'][0]['name']).toBeTruthy();
+    expect(result?.data?.['propertyInAnArray'][0]['loc']).toBeTruthy();
+    expect(result?.data?.['propertyInAnArray'][0]['loc']['title']).toBeTruthy();
   });
 });
 
