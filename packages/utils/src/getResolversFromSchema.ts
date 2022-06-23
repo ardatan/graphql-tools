@@ -11,12 +11,10 @@ import {
 
 import { IResolvers } from './Interfaces';
 
-const DEFAULT_FIELD_RESOLVERS = ['defaultFieldResolver', 'defaultMergedResolver'];
-
 export function getResolversFromSchema(
   schema: GraphQLSchema,
-  // Include default field resolvers
-  all?: boolean
+  // Include default merged resolvers
+  includeDefaultMergedResolver?: boolean
 ): IResolvers {
   const resolvers = Object.create(null);
 
@@ -65,7 +63,16 @@ export function getResolversFromSchema(
             resolvers[typeName][fieldName] = resolvers[typeName][fieldName] || {};
             resolvers[typeName][fieldName].subscribe = field.subscribe;
           }
-          if (field.resolve != null && (all || !DEFAULT_FIELD_RESOLVERS.includes(field.resolve.name))) {
+          if (field.resolve != null && field.resolve?.name !== 'defaultFieldResolver') {
+            switch (field.resolve?.name) {
+              case 'defaultMergedResolver':
+                if (!includeDefaultMergedResolver) {
+                  continue;
+                }
+                break;
+              case 'defaultFieldResolver':
+                continue;
+            }
             resolvers[typeName][fieldName] = resolvers[typeName][fieldName] || {};
             resolvers[typeName][fieldName].resolve = field.resolve;
           }
