@@ -55,7 +55,7 @@
     "@n1ru4l/graphql-live-query": "^0.9.0",
     "@types/ws": "^8.0.0",
     "cross-undici-fetch": "^0.4.0",
-    "dset": "^3.1.0",
+    "dset": "^3.1.2",
     "extract-files": "^11.0.0",
     "graphql-ws": "^5.4.1",
     "isomorphic-ws": "^4.0.1",
