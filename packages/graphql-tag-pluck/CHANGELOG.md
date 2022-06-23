@@ -1,5 +1,12 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 7.2.11
+
+### Patch Changes
+
+- Updated dependencies [4914970b]
+  - @graphql-tools/utils@8.7.0
+
 ## 7.2.10
 
 ### Patch Changes

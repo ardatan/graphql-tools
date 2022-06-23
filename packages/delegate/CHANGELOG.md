@@ -1,5 +1,15 @@
 # @graphql-tools/delegate
 
+## 8.7.12
+
+### Patch Changes
+
+- 6df204de: Remove graphql-executor to have smaller bundle size
+- Updated dependencies [4914970b]
+  - @graphql-tools/schema@8.4.0
+  - @graphql-tools/utils@8.7.0
+  - @graphql-tools/batch-execute@8.4.11
+
 ## 8.7.11
 
 ### Patch Changes

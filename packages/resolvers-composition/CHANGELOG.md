@@ -1,5 +1,12 @@
 # @graphql-tools/resolvers-composition
 
+## 6.4.14
+
+### Patch Changes
+
+- Updated dependencies [4914970b]
+  - @graphql-tools/utils@8.7.0
+
 ## 6.4.13
 
 ### Patch Changes

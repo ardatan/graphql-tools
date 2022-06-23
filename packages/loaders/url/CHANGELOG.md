@@ -1,5 +1,19 @@
 # @graphql-tools/url-loader
 
+## 7.10.0
+
+### Minor Changes
+
+- 4914970b: New 'batch' flag! Now you can configure your remote schema to batch parallel queries to the upstream.
+
+### Patch Changes
+
+- Updated dependencies [6df204de]
+- Updated dependencies [4914970b]
+  - @graphql-tools/delegate@8.7.12
+  - @graphql-tools/utils@8.7.0
+  - @graphql-tools/wrap@8.4.21
+
 ## 7.9.25
 
 ### Patch Changes
