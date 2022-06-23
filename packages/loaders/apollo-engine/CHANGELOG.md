@@ -1,5 +1,12 @@
 # @graphql-tools/apollo-engine-loader
 
+## 7.2.20
+
+### Patch Changes
+
+- Updated dependencies [4914970b]
+  - @graphql-tools/utils@8.7.0
+
 ## 7.2.19
 
 ### Patch Changes
