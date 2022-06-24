@@ -22,7 +22,7 @@ describe('[url-loader] webpack bundle compat', () => {
         webpack(
           {
             mode: 'development',
-            entry: path.resolve(__dirname, '..', 'dist', 'index.mjs'),
+            entry: path.resolve(__dirname, '..', 'dist', 'esm', 'index.js'),
             output: {
               path: path.resolve(__dirname),
               filename: 'webpack.js',
