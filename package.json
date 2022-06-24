@@ -7,9 +7,8 @@
     "predeploy:website": "yarn build:api-docs",
     "deploy:website": "cd website && yarn deploy",
     "ts:check": "tsc --noEmit",
-    "ts:transpile": "tsc --project tsconfig.build.json",
     "clean-dist": "rimraf \"packages/**/dist\" && rimraf \".bob\"",
-    "build": "yarn ts:transpile && bob build",
+    "build": "bob build",
     "build:api-docs": "ts-node --compiler-options='{\"module\":\"commonjs\"}' scripts/build-api-docs",
     "lint": "eslint --ext .ts .",
     "prettier": "prettier --ignore-path .prettierignore --write --list-different .",
@@ -50,7 +49,7 @@
     "@typescript-eslint/eslint-plugin": "5.29.0",
     "@typescript-eslint/parser": "5.29.0",
     "babel-jest": "28.1.1",
-    "bob-the-bundler": "1.7.3",
+    "bob-the-bundler": "2.0.0-canary-909c1bd.0",
     "chalk": "4.1.2",
     "concurrently": "7.2.2",
     "eslint": "8.18.0",
@@ -79,18 +78,16 @@
     "packages/**/src/**/*.{ts,tsx}": [
       "eslint --fix"
     ],
-    "**/*.{ts,tsx,graphql,yml,md,mdx}": [
+    "**/*.{ts,tsx,graphql,yml,md,mdx,json}": [
       "prettier --write"
     ]
   },
-  "workspaces": {
-    "packages": [
-      "./packages/*",
-      "./packages/loaders/*",
-      "./website",
-      "./benchmark/*"
-    ]
-  },
+  "workspaces": [
+    "./packages/*",
+    "./packages/loaders/*",
+    "./website",
+    "./benchmark/*"
+  ],
   "resolutions": {
     "graphql": "16.5.0",
     "esbuild": "^0.14.0",

@@ -2,9 +2,9 @@ import { buildSchema, parse, GraphQLError } from 'graphql';
 
 import { createGraphQLError, ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
-import { relocatedError } from '../src/errors';
+import { relocatedError } from '../src/errors.js';
 
-import { visitData, visitResult } from '../src/visitResult';
+import { visitData, visitResult } from '../src/visitResult.js';
 
 describe('visiting results', () => {
   const schema = buildSchema(/* GraphQL */ `

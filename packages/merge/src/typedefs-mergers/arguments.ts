@@ -1,5 +1,5 @@
 import { InputValueDefinitionNode } from 'graphql';
-import { Config } from '.';
+import { Config } from './index.js';
 import { compareNodes, isSome } from '@graphql-tools/utils';
 
 export function mergeArguments(

@@ -2,9 +2,9 @@ import { defaultFieldResolver, GraphQLResolveInfo } from 'graphql';
 
 import { getResponseKeyFromInfo } from '@graphql-tools/utils';
 
-import { resolveExternalValue } from './resolveExternalValue';
-import { getSubschema, getUnpathedErrors, isExternalObject } from './mergeFields';
-import { ExternalObject } from './types';
+import { resolveExternalValue } from './resolveExternalValue.js';
+import { getSubschema, getUnpathedErrors, isExternalObject } from './mergeFields.js';
+import { ExternalObject } from './types.js';
 
 /**
  * Resolver that knows how to:

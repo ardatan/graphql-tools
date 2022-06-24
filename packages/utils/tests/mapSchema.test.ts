@@ -25,7 +25,7 @@ import {
 } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { MapperKind, mapSchema, getDirectives, getDirective } from '../src';
+import { MapperKind, mapSchema, getDirectives, getDirective } from '../src/index.js';
 import { createHash } from 'crypto';
 import { addMocksToSchema } from '@graphql-tools/mock';
 import formatDate from 'dateformat';

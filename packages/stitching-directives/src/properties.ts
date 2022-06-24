@@ -1,4 +1,4 @@
-import { PropertyTree } from './types';
+import { PropertyTree } from './types.js';
 
 export function addProperty(object: Record<string, any>, path: Array<string | number>, value: any) {
   const initialSegment = path[0];

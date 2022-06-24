@@ -1,19 +1,19 @@
-import { readDefinition } from './yaml';
-import { PrismaDefinition } from './prisma-json-schema';
+import { readDefinition } from './yaml.js';
+import { PrismaDefinition } from './prisma-json-schema.js';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 // eslint-disable-next-line
 // @ts-ignore
 import jwt from 'jsonwebtoken';
-import { Args } from './types/common';
-import { Environment } from './Environment';
-import { IOutput } from './Output';
-import { Cluster } from './Cluster';
-import { FunctionInput, Header } from './types/rc';
+import { Args } from './types/common.js';
+import { Environment } from './Environment.js';
+import { IOutput } from './Output.js';
+import { Cluster } from './Cluster.js';
+import { FunctionInput, Header } from './types/rc.js';
 import chalk from 'chalk';
-import { replaceYamlValue } from './utils/yamlComment';
-import { parseEndpoint, ParseEndpointResult } from './utils/parseEndpoint';
+import { replaceYamlValue } from './utils/yamlComment.js';
+import { parseEndpoint, ParseEndpointResult } from './utils/parseEndpoint.js';
 
 export interface EnvVars {
   [key: string]: string | undefined;

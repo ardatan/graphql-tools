@@ -1,9 +1,9 @@
 import { Source, BaseLoaderOptions, Loader, compareStrings, asArray } from '@graphql-tools/utils';
-import { normalizePointers } from './utils/pointers';
-import { applyDefaultOptions } from './load-typedefs/options';
-import { collectSources, collectSourcesSync } from './load-typedefs/collect-sources';
-import { parseSource } from './load-typedefs/parse';
-import { useLimit } from './utils/helpers';
+import { normalizePointers } from './utils/pointers.js';
+import { applyDefaultOptions } from './load-typedefs/options.js';
+import { collectSources, collectSourcesSync } from './load-typedefs/collect-sources.js';
+import { parseSource } from './load-typedefs/parse.js';
+import { useLimit } from './utils/helpers.js';
 
 const CONCURRENCY_LIMIT = 100;
 

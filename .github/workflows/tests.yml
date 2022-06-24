@@ -186,7 +186,7 @@ jobs:
       - name: Build Packages
         run: yarn build
       - name: Test ESM
-        run: node scripts/test-esm.mjs
+        run: yarn bob check
   test_browser:
     name: Browser Test
     runs-on: ubuntu-latest

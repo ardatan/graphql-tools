@@ -1,4 +1,4 @@
-import { memoize5 } from './memoize';
+import { memoize5 } from './memoize.js';
 import {
   GraphQLSchema,
   FragmentDefinitionNode,

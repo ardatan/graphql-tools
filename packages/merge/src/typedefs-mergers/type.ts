@@ -1,8 +1,8 @@
-import { Config } from './merge-typedefs';
+import { Config } from './merge-typedefs.js';
 import { Kind, ObjectTypeDefinitionNode, ObjectTypeExtensionNode } from 'graphql';
-import { mergeFields } from './fields';
-import { mergeDirectives } from './directives';
-import { mergeNamedTypeArray } from './merge-named-type-array';
+import { mergeFields } from './fields.js';
+import { mergeDirectives } from './directives.js';
+import { mergeNamedTypeArray } from './merge-named-type-array.js';
 
 export function mergeType(
   node: ObjectTypeDefinitionNode | ObjectTypeExtensionNode,

@@ -1,13 +1,13 @@
-import { Config } from './merge-typedefs';
+import { Config } from './merge-typedefs.js';
 import { DefinitionNode, Kind, SchemaDefinitionNode, SchemaExtensionNode } from 'graphql';
-import { mergeType } from './type';
-import { mergeEnum } from './enum';
-import { mergeScalar } from './scalar';
-import { mergeUnion } from './union';
-import { mergeInputType } from './input-type';
-import { mergeInterface } from './interface';
-import { mergeDirective } from './directives';
-import { mergeSchemaDefs } from './schema-def';
+import { mergeType } from './type.js';
+import { mergeEnum } from './enum.js';
+import { mergeScalar } from './scalar.js';
+import { mergeUnion } from './union.js';
+import { mergeInputType } from './input-type.js';
+import { mergeInterface } from './interface.js';
+import { mergeDirective } from './directives.js';
+import { mergeSchemaDefs } from './schema-def.js';
 import { NamedDefinitionNode, collectComment } from '@graphql-tools/utils';
 
 export const schemaDefSymbol = 'SCHEMA_DEF_SYMBOL';

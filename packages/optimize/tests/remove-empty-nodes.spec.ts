@@ -1,5 +1,5 @@
 import { DocumentNode, parse, print, visit } from 'graphql';
-import { removeEmptyNodes } from '../src';
+import { removeEmptyNodes } from '../src/index.js';
 
 describe('removeEmptyNodes', () => {
   it('Should remove all empty notes from GraphQL operations', () => {

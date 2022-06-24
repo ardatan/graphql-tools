@@ -4,7 +4,7 @@ import { ExecutionRequest } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-import TransformRootFields from './TransformRootFields';
+import TransformRootFields from './TransformRootFields.js';
 
 interface RenameRootFieldsTransformationContext extends Record<string, any> {}
 

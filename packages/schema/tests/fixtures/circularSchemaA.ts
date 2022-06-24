@@ -1,4 +1,4 @@
-import TypeB from './circularSchemaB';
+import TypeB from './circularSchemaB.js';
 
 const TypeA = () => [
   `

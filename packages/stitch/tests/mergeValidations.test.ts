@@ -1,6 +1,6 @@
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { buildSchema } from 'graphql';
-import { ValidationLevel } from '../src/types';
+import { ValidationLevel } from '../src/types.js';
 
 describe('Field validations', () => {
   describe('fieldTypeConsistency', () => {

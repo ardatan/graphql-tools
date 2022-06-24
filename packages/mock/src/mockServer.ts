@@ -1,8 +1,8 @@
 import { TypeSource } from '@graphql-tools/utils';
 import { isSchema, graphql } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { addMocksToSchema } from './addMocksToSchema';
-import { IMockServer, IMocks } from './types';
+import { addMocksToSchema } from './addMocksToSchema.js';
+import { IMockServer, IMocks } from './types.js';
 
 /**
  * A convenience wrapper on top of addMocksToSchema. It adds your mock resolvers

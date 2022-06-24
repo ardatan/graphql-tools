@@ -1,9 +1,9 @@
 import * as yaml from 'js-yaml';
 import * as fs from 'fs';
-import { PrismaDefinition } from './prisma-json-schema';
-import { Variables } from './Variables';
-import { Args } from './types/common';
-import { Output, IOutput } from './Output';
+import { PrismaDefinition } from './prisma-json-schema.js';
+import { Variables } from './Variables.js';
+import { Args } from './types/common.js';
+import { Output, IOutput } from './Output.js';
 
 const cache = {};
 

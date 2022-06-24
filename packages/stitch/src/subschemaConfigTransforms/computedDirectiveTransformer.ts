@@ -1,7 +1,7 @@
 import { getDirective, MapperKind, mapSchema } from '@graphql-tools/utils';
 import { cloneSubschemaConfig, SubschemaConfig } from '@graphql-tools/delegate';
 
-import { SubschemaConfigTransform } from '../types';
+import { SubschemaConfigTransform } from '../types.js';
 
 export function computedDirectiveTransformer(computedDirectiveName: string): SubschemaConfigTransform {
   return (subschemaConfig: SubschemaConfig): SubschemaConfig => {

@@ -9,9 +9,9 @@ import {
   print,
   ArgumentNode,
 } from 'graphql';
-import { createGraphQLError } from './errors';
+import { createGraphQLError } from './errors.js';
 
-import { inspect } from './inspect';
+import { inspect } from './inspect.js';
 
 /**
  * Prepares an object map of argument values given a list of argument

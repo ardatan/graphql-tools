@@ -4,7 +4,7 @@ import { print } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { parseSelectionSet } from '@graphql-tools/utils';
 
-import { stitchingDirectives } from '../src';
+import { stitchingDirectives } from '../src/index.js';
 
 describe('type merging directives', () => {
   const { allStitchingDirectivesTypeDefs, stitchingDirectivesTransformer } = stitchingDirectives();

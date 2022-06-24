@@ -1,4 +1,4 @@
-import { checkValidationErrors, validateGraphQlDocuments } from '../src';
+import { checkValidationErrors, validateGraphQlDocuments } from '../src/index.js';
 import { buildSchema, parse, GraphQLError } from 'graphql';
 
 describe('validateGraphQlDocuments', () => {

@@ -6,9 +6,9 @@ import {
   assertGraphQLInterfaceType,
   assertGraphQLUnionType,
   assertGraphQLScalerType,
-} from '../../testing/assertion';
+} from '../../testing/assertion.js';
 import { assertSome } from '@graphql-tools/utils';
-import { extractExtensionsFromSchema, mergeExtensions, applyExtensions } from '../src/extensions';
+import { extractExtensionsFromSchema, mergeExtensions, applyExtensions } from '../src/extensions.js';
 
 describe('extensions', () => {
   let schema: GraphQLSchema;

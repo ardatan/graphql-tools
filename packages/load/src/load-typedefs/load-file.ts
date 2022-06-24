@@ -1,6 +1,6 @@
 import { Source, AggregateError } from '@graphql-tools/utils';
 import { env } from 'process';
-import { LoadTypedefsOptions } from '../load-typedefs';
+import { LoadTypedefsOptions } from '../load-typedefs.js';
 
 export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Source[]> {
   let results = options.cache?.[pointer];

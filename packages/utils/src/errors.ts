@@ -1,5 +1,5 @@
 import { ASTNode, GraphQLError, Source, versionInfo } from 'graphql';
-import { Maybe } from './types';
+import { Maybe } from './types.js';
 
 interface GraphQLErrorOptions {
   nodes?: ReadonlyArray<ASTNode> | ASTNode | null;

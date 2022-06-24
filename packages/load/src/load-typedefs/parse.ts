@@ -5,7 +5,7 @@ import {
   printWithComments,
   resetComments,
 } from '@graphql-tools/utils';
-import { filterKind } from '../filter-document-kind';
+import { filterKind } from '../filter-document-kind.js';
 
 type Options = any;
 type Input = {

@@ -33,8 +33,8 @@ import {
   ASTVisitorKeyMap,
 } from '@graphql-tools/utils';
 
-import { DelegationContext } from './types';
-import { getDocumentMetadata } from './getDocumentMetadata';
+import { DelegationContext } from './types.js';
+import { getDocumentMetadata } from './getDocumentMetadata.js';
 
 function finalizeGatewayDocument(
   targetSchema: GraphQLSchema,

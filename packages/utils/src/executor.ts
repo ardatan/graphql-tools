@@ -1,4 +1,4 @@
-import { ExecutionResult, ExecutionRequest } from './Interfaces';
+import { ExecutionResult, ExecutionRequest } from './Interfaces.js';
 
 type MaybePromise<T> = Promise<T> | T;
 type MaybeAsyncIterable<T> = AsyncIterable<T> | T;

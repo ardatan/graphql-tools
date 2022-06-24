@@ -1,4 +1,4 @@
-import { getOperationASTFromRequest } from './getOperationASTFromRequest';
+import { getOperationASTFromRequest } from './getOperationASTFromRequest.js';
 import {
   GraphQLSchema,
   Kind,
@@ -14,10 +14,10 @@ import {
   TypeNameMetaFieldDef,
   FragmentDefinitionNode,
 } from 'graphql';
-import { collectFields, collectSubFields } from './collectFields';
+import { collectFields, collectSubFields } from './collectFields.js';
 
-import { ExecutionRequest, ExecutionResult } from './Interfaces';
-import { Maybe } from './types';
+import { ExecutionRequest, ExecutionResult } from './Interfaces.js';
+import { Maybe } from './types.js';
 
 export type ValueVisitor = (value: any) => any;
 

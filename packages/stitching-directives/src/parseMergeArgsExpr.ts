@@ -1,11 +1,11 @@
 import { parseValue, SelectionSetNode, valueFromASTUntyped } from 'graphql';
 
-import { Expansion, MappingInstruction, ParsedMergeArgsExpr } from './types';
+import { Expansion, MappingInstruction, ParsedMergeArgsExpr } from './types.js';
 
-import { extractVariables } from './extractVariables';
-import { EXPANSION_PREFIX, KEY_DELIMITER, preparseMergeArgsExpr } from './preparseMergeArgsExpr';
-import { propertyTreeFromPaths } from './properties';
-import { getSourcePaths } from './getSourcePaths';
+import { extractVariables } from './extractVariables.js';
+import { EXPANSION_PREFIX, KEY_DELIMITER, preparseMergeArgsExpr } from './preparseMergeArgsExpr.js';
+import { propertyTreeFromPaths } from './properties.js';
+import { getSourcePaths } from './getSourcePaths.js';
 
 type VariablePaths = Record<string, Array<string | number>>;
 

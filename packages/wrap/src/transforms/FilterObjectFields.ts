@@ -4,7 +4,7 @@ import { ObjectFieldFilter } from '@graphql-tools/utils';
 
 import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
-import TransformObjectFields from './TransformObjectFields';
+import TransformObjectFields from './TransformObjectFields.js';
 
 interface FilterObjectFieldsTransformationContext extends Record<string, any> {}
 

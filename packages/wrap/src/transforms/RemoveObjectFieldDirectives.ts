@@ -4,7 +4,7 @@ import { valueMatchesCriteria } from '@graphql-tools/utils';
 
 import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
-import FilterObjectFieldDirectives from './FilterObjectFieldDirectives';
+import FilterObjectFieldDirectives from './FilterObjectFieldDirectives.js';
 
 interface RemoveObjectFieldDirectivesTransformationContext extends Record<string, any> {}
 

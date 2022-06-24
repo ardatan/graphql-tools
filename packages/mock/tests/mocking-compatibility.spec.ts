@@ -3,7 +3,7 @@ import { graphql, GraphQLSchema, buildSchema, subscribe, parse } from 'graphql';
 
 import { sentence, first_name } from 'casual';
 
-import { addMocksToSchema, MockList, mockServer, IMocks, IMockStore } from '../src';
+import { addMocksToSchema, MockList, mockServer, IMocks, IMockStore } from '../src/index.js';
 import { addResolversToSchema, makeExecutableSchema } from '@graphql-tools/schema';
 
 describe('Mock retro-compatibility', () => {

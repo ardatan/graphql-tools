@@ -1,5 +1,5 @@
 import { buildSchema, graphql, GraphQLSchema } from 'graphql';
-import { addMocksToSchema, RelayPaginationParams, relayStylePaginationMock } from '../src';
+import { addMocksToSchema, RelayPaginationParams, relayStylePaginationMock } from '../src/index.js';
 
 const typeDefs = /* GraphQL */ `
   type Item {

@@ -1,16 +1,16 @@
-import { Args } from './types/common';
-import { Cluster } from './Cluster';
+import { Args } from './types/common.js';
+import { Cluster } from './Cluster.js';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
-import { ClusterNotFound } from './errors/ClusterNotFound';
-import { Variables } from './Variables';
-import { IOutput, Output } from './Output';
+import { ClusterNotFound } from './errors/ClusterNotFound.js';
+import { Variables } from './Variables.js';
+import { IOutput, Output } from './Output.js';
 import * as path from 'path';
 import 'isomorphic-fetch';
-import { RC } from './index';
-import { ClusterNotSet } from './errors/ClusterNotSet';
-import { clusterEndpointMap } from './constants';
-import { getProxyAgent } from './utils/getProxyAgent';
+import { RC } from './index.js';
+import { ClusterNotSet } from './errors/ClusterNotSet.js';
+import { clusterEndpointMap } from './constants.js';
+import { getProxyAgent } from './utils/getProxyAgent.js';
 // eslint-disable-next-line
 // @ts-ignore
 import jwt from 'jsonwebtoken';

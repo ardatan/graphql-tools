@@ -12,7 +12,7 @@ import { ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
 import { stitchingDirectives } from '@graphql-tools/stitching-directives';
-import { ValidationLevel } from '../src/types';
+import { ValidationLevel } from '../src/types.js';
 
 describe('merging using type merging with directives', () => {
   const { allStitchingDirectivesTypeDefs, stitchingDirectivesTransformer } = stitchingDirectives();

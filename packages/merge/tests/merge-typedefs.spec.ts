@@ -1,10 +1,10 @@
 import '../../testing/to-be-similar-gql-doc';
 import '../../testing/to-be-similar-string';
-import { mergeDirectives, mergeTypeDefs, mergeGraphQLTypes } from '../src';
+import { mergeDirectives, mergeTypeDefs, mergeGraphQLTypes } from '../src/index.js';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { buildSchema, buildClientSchema, print, parse, Kind, DirectiveNode, version as graphqlVersion } from 'graphql';
-import { stripWhitespaces } from './utils';
+import { stripWhitespaces } from './utils.js';
 import gql from 'graphql-tag';
 import { readFileSync } from 'fs';
 import { join } from 'path';

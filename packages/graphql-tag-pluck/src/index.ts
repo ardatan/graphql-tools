@@ -1,9 +1,9 @@
-import generateConfig from './config';
+import generateConfig from './config.js';
 import { parse } from '@babel/parser';
-import { getExtNameFromFilePath } from './libs/extname';
-import createVisitor, { PluckedContent } from './visitor';
+import { getExtNameFromFilePath } from './libs/extname.js';
+import createVisitor, { PluckedContent } from './visitor.js';
 import traversePkg from '@babel/traverse';
-import { freeText } from './utils';
+import { freeText } from './utils.js';
 import { Source } from 'graphql';
 
 function getDefault<T>(module: T & { default?: T }): T {

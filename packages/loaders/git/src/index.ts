@@ -6,8 +6,8 @@ import {
 import micromatch from 'micromatch';
 import unixify from 'unixify';
 
-import { loadFromGit, loadFromGitSync, readTreeAtRef, readTreeAtRefSync } from './load-git';
-import { parse as handleStuff } from './parse';
+import { loadFromGit, loadFromGitSync, readTreeAtRef, readTreeAtRefSync } from './load-git.js';
+import { parse as handleStuff } from './parse.js';
 import { parse } from 'graphql';
 import { asArray, BaseLoaderOptions, Loader, Source, AggregateError } from '@graphql-tools/utils';
 import isGlob from 'is-glob';

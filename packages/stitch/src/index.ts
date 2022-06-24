@@ -1,7 +1,7 @@
-export { stitchSchemas } from './stitchSchemas';
-export { createMergedTypeResolver } from './createMergedTypeResolver';
-export { forwardArgsToSelectionSet } from './selectionSetArgs';
+export { stitchSchemas } from './stitchSchemas.js';
+export { createMergedTypeResolver } from './createMergedTypeResolver.js';
+export { forwardArgsToSelectionSet } from './selectionSetArgs.js';
 
-export * from './subschemaConfigTransforms';
-export * from './types';
-export * from './relay';
+export * from './subschemaConfigTransforms/index.js';
+export * from './types.js';
+export * from './relay.js';

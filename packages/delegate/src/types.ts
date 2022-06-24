@@ -17,8 +17,8 @@ import DataLoader from 'dataloader';
 
 import { ExecutionRequest, ExecutionResult, Executor } from '@graphql-tools/utils';
 
-import { Subschema } from './Subschema';
-import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
+import { Subschema } from './Subschema.js';
+import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols.js';
 
 export type SchemaTransform<TContext = Record<any, string>> = (
   originalWrappingSchema: GraphQLSchema,

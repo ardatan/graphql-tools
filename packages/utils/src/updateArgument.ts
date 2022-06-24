@@ -1,6 +1,6 @@
 import { GraphQLInputType, ArgumentNode, VariableDefinitionNode, Kind } from 'graphql';
 
-import { astFromType } from './astFromType';
+import { astFromType } from './astFromType.js';
 
 export function updateArgument(
   argumentNodes: Record<string, ArgumentNode>,

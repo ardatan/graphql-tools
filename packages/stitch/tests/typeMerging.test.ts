@@ -12,7 +12,7 @@ import { delegateToSchema } from '@graphql-tools/delegate';
 import { RenameRootFields, RenameTypes } from '@graphql-tools/wrap';
 import { assertSome } from '@graphql-tools/utils';
 
-import { stitchSchemas } from '../src/stitchSchemas';
+import { stitchSchemas } from '../src/stitchSchemas.js';
 
 describe('merging using type merging', () => {
   test('works', async () => {

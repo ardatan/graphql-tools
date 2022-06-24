@@ -1,5 +1,5 @@
 import { printSchema, buildSchema, parse, print } from 'graphql';
-import { GithubLoader } from '../src';
+import { GithubLoader } from '../src/index.js';
 import { Response } from 'sync-fetch';
 
 const owner = 'kamilkisiela';

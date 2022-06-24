@@ -1,6 +1,6 @@
 import { assertSome, parseSelectionSet } from '@graphql-tools/utils';
 import { FieldNode, SelectionNode, IntValueNode, ValueNode } from 'graphql';
-import { forwardArgsToSelectionSet } from '../src';
+import { forwardArgsToSelectionSet } from '../src/index.js';
 
 function assertIntValueNode(input: ValueNode): asserts input is IntValueNode {
   if (input.kind !== 'IntValue') {

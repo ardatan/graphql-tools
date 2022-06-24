@@ -3,7 +3,7 @@ import { createUploadLink, formDataAppendFile, isExtractableFile } from 'apollo-
 import FormData from 'form-data';
 import fetch from 'node-fetch';
 
-import { AwaitVariablesLink } from './AwaitVariablesLink';
+import { AwaitVariablesLink } from './AwaitVariablesLink.js';
 
 export const createServerHttpLink = (options: any) =>
   concat(

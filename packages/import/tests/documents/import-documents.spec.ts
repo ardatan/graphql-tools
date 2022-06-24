@@ -1,5 +1,5 @@
 import '../../../testing/to-be-similar-gql-doc';
-import { processImport, VisitedFilesMap } from '../../src';
+import { processImport, VisitedFilesMap } from '../../src/index.js';
 import { print } from 'graphql';
 import { relative } from 'path';
 

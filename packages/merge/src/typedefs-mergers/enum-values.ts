@@ -1,6 +1,6 @@
 import { EnumValueDefinitionNode } from 'graphql';
-import { mergeDirectives } from './directives';
-import { Config } from './merge-typedefs';
+import { mergeDirectives } from './directives.js';
+import { Config } from './merge-typedefs.js';
 import { compareNodes } from '@graphql-tools/utils';
 
 export function mergeEnumValues(

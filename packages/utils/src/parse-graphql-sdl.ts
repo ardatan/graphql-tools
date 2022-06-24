@@ -9,8 +9,8 @@ import {
   StringValueNode,
   print,
 } from 'graphql';
-import { dedentBlockStringValue, getLeadingCommentBlock } from './comments';
-import { GraphQLParseOptions } from './Interfaces';
+import { dedentBlockStringValue, getLeadingCommentBlock } from './comments.js';
+import { GraphQLParseOptions } from './Interfaces.js';
 
 export function parseGraphQLSDL(location: string | undefined, rawSDL: string, options: GraphQLParseOptions = {}) {
   let document: DocumentNode;

@@ -1,5 +1,5 @@
 import gql from 'graphql-tag';
-import { composeResolvers, ResolversComposerMapping } from '../src';
+import { composeResolvers, ResolversComposerMapping } from '../src/index.js';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { execute, GraphQLScalarType, Kind } from 'graphql';
 import { inspect } from '@graphql-tools/utils';

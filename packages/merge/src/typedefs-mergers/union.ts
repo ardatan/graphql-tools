@@ -1,7 +1,7 @@
 import { Kind, UnionTypeDefinitionNode, UnionTypeExtensionNode } from 'graphql';
-import { mergeDirectives } from './directives';
-import { mergeNamedTypeArray } from './merge-named-type-array';
-import { Config } from './merge-typedefs';
+import { mergeDirectives } from './directives.js';
+import { mergeNamedTypeArray } from './merge-named-type-array.js';
+import { Config } from './merge-typedefs.js';
 
 export function mergeUnion(
   first: UnionTypeDefinitionNode | UnionTypeExtensionNode,

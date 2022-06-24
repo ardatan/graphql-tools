@@ -8,11 +8,11 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import { MapperKind, FieldFilter, RootFieldFilter, TypeFilter, ArgumentFilter } from './Interfaces';
+import { MapperKind, FieldFilter, RootFieldFilter, TypeFilter, ArgumentFilter } from './Interfaces.js';
 
-import { mapSchema } from './mapSchema';
+import { mapSchema } from './mapSchema.js';
 
-import { Constructor } from './types';
+import { Constructor } from './types.js';
 
 export function filterSchema({
   schema,

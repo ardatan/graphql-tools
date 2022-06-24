@@ -4,7 +4,7 @@ import { ExecutionResult, GraphQLError } from 'graphql';
 
 import { relocatedError } from '@graphql-tools/utils';
 
-import { parseKey } from './prefix';
+import { parseKey } from './prefix.js';
 
 /**
  * Split and transform result of the query produced by the `merge` function

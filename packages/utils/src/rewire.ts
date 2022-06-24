@@ -26,7 +26,7 @@ import {
   isSpecifiedDirective,
 } from 'graphql';
 
-import { getBuiltInForStub, isNamedStub } from './stub';
+import { getBuiltInForStub, isNamedStub } from './stub.js';
 
 export function rewireTypes(
   originalTypeMap: Record<string, GraphQLNamedType | null>,

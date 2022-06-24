@@ -9,7 +9,7 @@ import {
   isSpecifiedScalarType,
 } from 'graphql';
 
-import { IResolvers } from './Interfaces';
+import { IResolvers } from './Interfaces.js';
 
 export function getResolversFromSchema(
   schema: GraphQLSchema,

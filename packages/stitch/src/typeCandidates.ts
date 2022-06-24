@@ -24,10 +24,10 @@ import {
   getRootTypes,
 } from '@graphql-tools/utils';
 
-import typeFromAST from './typeFromAST';
-import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, TypeMergingOptions } from './types';
-import { mergeCandidates } from './mergeCandidates';
-import { extractDefinitions } from './definitions';
+import typeFromAST from './typeFromAST.js';
+import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, TypeMergingOptions } from './types.js';
+import { mergeCandidates } from './mergeCandidates.js';
+import { extractDefinitions } from './definitions.js';
 import { mergeTypeDefs } from '@graphql-tools/merge';
 
 type CandidateSelector<TContext = Record<string, any>> = (

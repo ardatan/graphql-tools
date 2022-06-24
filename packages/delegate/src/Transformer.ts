@@ -1,10 +1,10 @@
 import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
-import { DelegationContext, Transform } from './types';
+import { DelegationContext, Transform } from './types.js';
 
-import { prepareGatewayDocument } from './prepareGatewayDocument';
-import { finalizeGatewayRequest } from './finalizeGatewayRequest';
-import { checkResultAndHandleErrors } from './checkResultAndHandleErrors';
+import { prepareGatewayDocument } from './prepareGatewayDocument.js';
+import { finalizeGatewayRequest } from './finalizeGatewayRequest.js';
+import { checkResultAndHandleErrors } from './checkResultAndHandleErrors.js';
 
 interface Transformation<TContext> {
   transform: Transform<any, TContext>;

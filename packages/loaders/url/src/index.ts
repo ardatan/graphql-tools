@@ -22,13 +22,13 @@ import WebSocket from 'isomorphic-ws';
 import { extractFiles, isExtractableFile } from 'extract-files';
 import { ValueOrPromise } from 'value-or-promise';
 import { isLiveQueryOperationDefinitionNode } from '@n1ru4l/graphql-live-query';
-import { AsyncFetchFn, defaultAsyncFetch } from './defaultAsyncFetch';
-import { defaultSyncFetch, SyncFetchFn } from './defaultSyncFetch';
-import { handleMultipartMixedResponse } from './handleMultipartMixedResponse';
-import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse';
-import { addCancelToResponseStream } from './addCancelToResponseStream';
+import { AsyncFetchFn, defaultAsyncFetch } from './defaultAsyncFetch.js';
+import { defaultSyncFetch, SyncFetchFn } from './defaultSyncFetch.js';
+import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
+import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse.js';
+import { addCancelToResponseStream } from './addCancelToResponseStream.js';
 import { AbortController, FormData, File } from 'cross-undici-fetch';
-import { isBlob, isGraphQLUpload, isPromiseLike, LEGACY_WS } from './utils';
+import { isBlob, isGraphQLUpload, isPromiseLike, LEGACY_WS } from './utils.js';
 
 export type FetchFn = AsyncFetchFn | SyncFetchFn;
 

@@ -1,6 +1,6 @@
 import { buildSchema, GraphQLNamedType } from 'graphql';
-import { pruneSchema } from '../src/prune';
-import { PruneSchemaFilter } from '../src';
+import { pruneSchema } from '../src/prune.js';
+import { PruneSchemaFilter } from '../src/index.js';
 
 describe('pruneSchema', () => {
   test('can handle recursive input types', () => {

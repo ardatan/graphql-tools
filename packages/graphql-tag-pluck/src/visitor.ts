@@ -1,5 +1,5 @@
-import { freeText } from './utils';
-import { GraphQLTagPluckOptions } from '.';
+import { freeText } from './utils.js';
+import { GraphQLTagPluckOptions } from './index.js';
 import {
   isVariableDeclarator,
   isIdentifier,

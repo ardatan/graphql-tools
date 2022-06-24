@@ -9,7 +9,7 @@ import {
 import { MapperKind, mapSchema } from '@graphql-tools/utils';
 
 import { SubschemaConfig, defaultMergedResolver, applySchemaTransforms } from '@graphql-tools/delegate';
-import { generateProxyingResolvers } from './generateProxyingResolvers';
+import { generateProxyingResolvers } from './generateProxyingResolvers.js';
 
 export function wrapSchema<TConfig extends Record<string, any> = Record<string, any>>(
   subschemaConfig: SubschemaConfig<any, any, any, TConfig>

@@ -20,9 +20,9 @@ import {
 
 import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-import { defaultCreateProxyingResolver } from '../generateProxyingResolvers';
+import { defaultCreateProxyingResolver } from '../generateProxyingResolvers.js';
 
-import MapFields from './MapFields';
+import MapFields from './MapFields.js';
 
 interface HoistFieldTransformationContext extends Record<string, any> {}
 

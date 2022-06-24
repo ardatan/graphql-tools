@@ -10,12 +10,12 @@ import {
   isScalarType,
 } from 'graphql';
 
-import { PruneSchemaOptions } from './types';
+import { PruneSchemaOptions } from './types.js';
 
-import { mapSchema } from './mapSchema';
-import { MapperKind } from './Interfaces';
-import { getRootTypes } from './rootTypes';
-import { getImplementingTypes } from './get-implementing-types';
+import { mapSchema } from './mapSchema.js';
+import { MapperKind } from './Interfaces.js';
+import { getRootTypes } from './rootTypes.js';
+import { getImplementingTypes } from './get-implementing-types.js';
 
 /**
  * Prunes the provided schema, removing unused and empty types

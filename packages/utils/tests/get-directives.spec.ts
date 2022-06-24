@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { getDirectives } from '../src';
-import { assertGraphQLObjectType } from '../../testing/assertion';
+import { getDirectives } from '../src/index.js';
+import { assertGraphQLObjectType } from '../../testing/assertion.js';
 import { GraphQLSchema } from 'graphql';
 
 describe('getDirectives', () => {

@@ -1,6 +1,6 @@
 import { GraphQLNamedType, GraphQLObjectType, isObjectType } from 'graphql';
 
-import { Maybe } from './types';
+import { Maybe } from './types.js';
 
 export function getObjectTypeFromTypeMap(
   typeMap: Record<string, GraphQLNamedType>,

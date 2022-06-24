@@ -1,6 +1,6 @@
 import { Kind, OperationTypeDefinitionNode, SchemaDefinitionNode, SchemaExtensionNode } from 'graphql';
-import { mergeDirectives } from './directives';
-import { Config } from './merge-typedefs';
+import { mergeDirectives } from './directives.js';
+import { Config } from './merge-typedefs.js';
 
 export const DEFAULT_OPERATION_TYPE_NAME_MAP = {
   query: 'Query',

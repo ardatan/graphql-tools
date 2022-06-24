@@ -1,4 +1,4 @@
-import { CodeFileLoader } from '../src';
+import { CodeFileLoader } from '../src/index.js';
 
 describe('Schema From Export', () => {
   const loader = new CodeFileLoader();

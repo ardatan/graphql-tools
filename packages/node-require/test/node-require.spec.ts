@@ -1,4 +1,4 @@
-import { handleModule } from '../src';
+import { handleModule } from '../src/index.js';
 import { print } from 'graphql';
 import { readFileSync } from 'fs';
 import { join } from 'path';

@@ -1,6 +1,6 @@
-import { gqlPluckFromCodeString, gqlPluckFromCodeStringSync } from '../src';
-import { freeText } from '../src/utils';
-import { runTests } from '../../testing/utils';
+import { gqlPluckFromCodeString, gqlPluckFromCodeStringSync } from '../src/index.js';
+import { freeText } from '../src/utils.js';
+import { runTests } from '../../testing/utils.js';
 
 describe('graphql-tag-pluck', () => {
   runTests({
@@ -1089,7 +1089,7 @@ describe('graphql-tag-pluck', () => {
         freeText(`
         import * as React from 'react';
         import gql from 'graphql-tag';
-        import Generic from './Generic'
+        import Generic from './Generic.js'
 
         export default class extends React.Component<{}, {}> {
           public render() {

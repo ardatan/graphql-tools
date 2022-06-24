@@ -4,10 +4,10 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createGraphQLError, ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
-import { checkResultAndHandleErrors } from '../src/checkResultAndHandleErrors';
-import { UNPATHED_ERRORS_SYMBOL } from '../src/symbols';
-import { getUnpathedErrors } from '../src/mergeFields';
-import { delegateToSchema, defaultMergedResolver, DelegationContext } from '../src';
+import { checkResultAndHandleErrors } from '../src/checkResultAndHandleErrors.js';
+import { UNPATHED_ERRORS_SYMBOL } from '../src/symbols.js';
+import { getUnpathedErrors } from '../src/mergeFields.js';
+import { delegateToSchema, defaultMergedResolver, DelegationContext } from '../src/index.js';
 
 describe('Errors', () => {
   describe('getUnpathedErrors', () => {

@@ -1,7 +1,7 @@
 import '../../testing/to-be-similar-string';
 import { print, parse } from 'graphql';
 import { uniqueCode } from '@graphql-tools/webpack-loader-runtime';
-import loader from '../src/index';
+import loader from '../src/index.js';
 
 function useLoader(source: string, options: any): string {
   return loader.call({ cacheable() {}, query: options } as any, source);

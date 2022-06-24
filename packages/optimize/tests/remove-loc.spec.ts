@@ -1,5 +1,5 @@
 import { parse, print } from 'graphql';
-import { removeLoc } from '../src/optimizers/remove-loc';
+import { removeLoc } from '../src/optimizers/remove-loc.js';
 
 describe('removeLoc', () => {
   it('Should remove location field', () => {

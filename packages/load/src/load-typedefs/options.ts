@@ -1,4 +1,4 @@
-import { LoadTypedefsOptions } from './../load-typedefs';
+import { LoadTypedefsOptions } from './../load-typedefs.js';
 import { cwd } from 'process';
 
 export function applyDefaultOptions<T>(options: LoadTypedefsOptions<Partial<T>>) {

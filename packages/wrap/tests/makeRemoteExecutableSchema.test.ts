@@ -1,6 +1,6 @@
 import { GraphQLSchema, subscribe, parse, print, ExecutionResult, buildSchema, graphql } from 'graphql';
 
-import { wrapSchema } from '../src/index';
+import { wrapSchema } from '../src/index.js';
 
 import {
   propertySchema,
@@ -8,7 +8,7 @@ import {
   subscriptionPubSubTrigger,
   subscriptionPubSub,
   makeSchemaRemote,
-} from '../../testing/fixtures/schemas';
+} from '../../testing/fixtures/schemas.js';
 
 describe('remote queries', () => {
   let schema: GraphQLSchema;

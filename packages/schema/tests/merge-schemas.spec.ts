@@ -1,8 +1,8 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { graphql, buildSchema, GraphQLScalarType, Kind, GraphQLSchema, print } from 'graphql';
-import { mergeSchemas } from '../src/merge-schemas';
+import { mergeSchemas } from '../src/merge-schemas.js';
 import { assertSome, printSchemaWithDirectives } from '@graphql-tools/utils';
-import { assertListValueNode } from '../../testing/assertion';
+import { assertListValueNode } from '../../testing/assertion.js';
 
 describe('Merge Schemas', () => {
   it('Should include extensions in merged schemas', () => {

@@ -10,7 +10,7 @@ import {
   assertGraphQLObjectType,
   assertGraphQLScalerType,
   assertGraphQLUnionType,
-} from '../../testing/assertion';
+} from '../../testing/assertion.js';
 
 describe('merge canonical types', () => {
   const firstSchema = makeExecutableSchema({

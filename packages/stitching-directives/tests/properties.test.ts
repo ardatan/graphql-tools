@@ -1,4 +1,4 @@
-import { addProperty, getProperties } from '../src/properties';
+import { addProperty, getProperties } from '../src/properties.js';
 
 describe('addProperty', () => {
   test('can add a key to an object', () => {

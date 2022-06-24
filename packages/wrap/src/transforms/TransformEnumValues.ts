@@ -4,9 +4,9 @@ import { ExecutionRequest, MapperKind, mapSchema, Maybe } from '@graphql-tools/u
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-import { EnumValueTransformer, LeafValueTransformer } from '../types';
+import { EnumValueTransformer, LeafValueTransformer } from '../types.js';
 
-import MapLeafValues, { MapLeafValuesTransformationContext } from './MapLeafValues';
+import MapLeafValues, { MapLeafValuesTransformationContext } from './MapLeafValues.js';
 
 interface TransformEnumValuesTransformationContext extends MapLeafValuesTransformationContext {}
 

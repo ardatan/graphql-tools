@@ -1,5 +1,5 @@
 import { parse } from 'graphql';
-import { getFieldsWithDirectives } from '../src';
+import { getFieldsWithDirectives } from '../src/index.js';
 
 describe('getFieldsWithDirectives', () => {
   it('Should detect single basic directive', () => {

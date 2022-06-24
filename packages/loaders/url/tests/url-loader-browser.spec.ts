@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import http from 'http';
 import puppeteer from 'puppeteer';
-import type * as UrlLoaderModule from '../src';
+import type * as UrlLoaderModule from '../src/index.js';
 import { ExecutionResult, parse } from 'graphql';
 
 describe('[url-loader] webpack bundle compat', () => {

@@ -1,5 +1,5 @@
 import { print, parse } from 'graphql';
-import { parseDocument } from '../src/parser';
+import { parseDocument } from '../src/parser.js';
 
 test('basic query', () => {
   const docStr = /* GraphQL */ `

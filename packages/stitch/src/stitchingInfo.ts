@@ -19,10 +19,10 @@ import { collectFields, parseSelectionSet, IResolvers, IFieldResolverOptions, is
 
 import { MergedTypeResolver, Subschema, SubschemaConfig, MergedTypeInfo, StitchingInfo } from '@graphql-tools/delegate';
 
-import { MergeTypeCandidate, MergeTypeFilter } from './types';
+import { MergeTypeCandidate, MergeTypeFilter } from './types.js';
 
-import { createMergedTypeResolver } from './createMergedTypeResolver';
-import { createDelegationPlanBuilder } from './createDelegationPlanBuilder';
+import { createMergedTypeResolver } from './createMergedTypeResolver.js';
+import { createDelegationPlanBuilder } from './createDelegationPlanBuilder.js';
 import { ValueOrPromise } from 'value-or-promise';
 
 export function createStitchingInfo<TContext extends Record<string, any> = Record<string, any>>(

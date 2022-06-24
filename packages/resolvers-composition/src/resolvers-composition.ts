@@ -1,4 +1,4 @@
-import { chainFunctions } from './chain-functions';
+import { chainFunctions } from './chain-functions.js';
 import _ from 'lodash';
 import { GraphQLFieldResolver, GraphQLScalarTypeConfig } from 'graphql';
 import { asArray } from '@graphql-tools/utils';

@@ -23,7 +23,7 @@ import { makeExecutableSchema, addResolversToSchema, chainResolvers } from '@gra
 
 import { IResolverValidationOptions, IResolvers, ExecutionResult, TypeSource } from '@graphql-tools/utils';
 
-import TypeA from './fixtures/circularSchemaA';
+import TypeA from './fixtures/circularSchemaA.js';
 
 interface Bird {
   name: string;

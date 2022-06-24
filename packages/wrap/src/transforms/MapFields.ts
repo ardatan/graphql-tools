@@ -4,9 +4,9 @@ import { ExecutionRequest, FieldNodeMappers, ExecutionResult } from '@graphql-to
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-import { ObjectValueTransformerMap, ErrorsTransformer } from '../types';
+import { ObjectValueTransformerMap, ErrorsTransformer } from '../types.js';
 
-import TransformCompositeFields from './TransformCompositeFields';
+import TransformCompositeFields from './TransformCompositeFields.js';
 
 interface MapFieldsTransformationContext extends Record<string, any> {}
 

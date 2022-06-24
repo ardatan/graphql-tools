@@ -23,7 +23,7 @@ import {
   serializeInputValue,
   updateArgument,
 } from '@graphql-tools/utils';
-import { ICreateRequest } from './types';
+import { ICreateRequest } from './types.js';
 
 export function getDelegatingOperation(parentType: GraphQLObjectType, schema: GraphQLSchema): OperationTypeNode {
   if (parentType === schema.getMutationType()) {

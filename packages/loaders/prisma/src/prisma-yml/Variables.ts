@@ -2,8 +2,8 @@ import _ from 'lodash';
 // eslint-disable-next-line
 // @ts-ignore
 import replaceall from 'replaceall';
-import { Args } from './types/common';
-import { Output, IOutput } from './Output';
+import { Args } from './types/common.js';
+import { Output, IOutput } from './Output.js';
 
 export class Variables {
   json: any;

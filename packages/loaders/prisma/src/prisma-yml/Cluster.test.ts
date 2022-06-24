@@ -1,4 +1,4 @@
-import { Cluster, Output } from '.';
+import { Cluster, Output } from './index.js';
 
 describe('cluster endpoint generation', () => {
   test('local cluster', () => {

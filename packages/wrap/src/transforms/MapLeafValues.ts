@@ -25,7 +25,7 @@ import {
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-import { LeafValueTransformer } from '../types';
+import { LeafValueTransformer } from '../types.js';
 
 export interface MapLeafValuesTransformationContext {
   transformedRequest: ExecutionRequest;

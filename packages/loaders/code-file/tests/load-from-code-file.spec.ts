@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import * as path from 'path';
-import { CodeFileLoader } from '../src';
+import { CodeFileLoader } from '../src/index.js';
 import { parse } from 'graphql';
 
 describe('loadFromCodeFile', () => {

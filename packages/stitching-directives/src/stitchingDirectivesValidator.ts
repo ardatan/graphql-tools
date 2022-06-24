@@ -19,10 +19,10 @@ import {
   parseSelectionSet,
 } from '@graphql-tools/utils';
 
-import { StitchingDirectivesOptions } from './types';
+import { StitchingDirectivesOptions } from './types.js';
 
-import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions';
-import { parseMergeArgsExpr } from './parseMergeArgsExpr';
+import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions.js';
+import { parseMergeArgsExpr } from './parseMergeArgsExpr.js';
 
 const dottedNameRegEx = /^[_A-Za-z][_0-9A-Za-z]*(.[_A-Za-z][_0-9A-Za-z]*)*$/;
 

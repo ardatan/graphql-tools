@@ -48,13 +48,13 @@ import {
   DocumentNode,
   StringValueNode,
 } from 'graphql';
-import { GetDocumentNodeFromSchemaOptions, PrintSchemaWithDirectivesOptions, Maybe } from './types';
+import { GetDocumentNodeFromSchemaOptions, PrintSchemaWithDirectivesOptions, Maybe } from './types.js';
 
-import { astFromType } from './astFromType';
-import { getDirectivesInExtensions } from './get-directives';
-import { astFromValueUntyped } from './astFromValueUntyped';
-import { isSome } from './helpers';
-import { getRootTypeMap } from './rootTypes';
+import { astFromType } from './astFromType.js';
+import { getDirectivesInExtensions } from './get-directives.js';
+import { astFromValueUntyped } from './astFromValueUntyped.js';
+import { isSome } from './helpers.js';
+import { getRootTypeMap } from './rootTypes.js';
 
 export function getDocumentNodeFromSchema(
   schema: GraphQLSchema,

@@ -1,7 +1,7 @@
-export { wrapSchema } from './wrapSchema';
-export { defaultCreateProxyingResolver, generateProxyingResolvers } from './generateProxyingResolvers';
+export { wrapSchema } from './wrapSchema.js';
+export { defaultCreateProxyingResolver, generateProxyingResolvers } from './generateProxyingResolvers.js';
 
-export * from './transforms/index';
+export * from './transforms/index.js';
 
-export * from './types';
-export * from './introspect';
+export * from './types.js';
+export * from './introspect.js';

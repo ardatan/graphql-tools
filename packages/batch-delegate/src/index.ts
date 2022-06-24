@@ -1,4 +1,4 @@
-export * from './batchDelegateToSchema';
-export * from './createBatchDelegateFn';
+export * from './batchDelegateToSchema.js';
+export * from './createBatchDelegateFn.js';
 
-export * from './types';
+export * from './types.js';

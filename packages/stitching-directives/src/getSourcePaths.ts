@@ -1,8 +1,8 @@
 import { SelectionSetNode, TypeNameMetaFieldDef } from 'graphql';
 
-import { MappingInstruction } from './types';
+import { MappingInstruction } from './types.js';
 
-import { pathsFromSelectionSet } from './pathsFromSelectionSet';
+import { pathsFromSelectionSet } from './pathsFromSelectionSet.js';
 
 export function getSourcePaths(
   mappingInstructions: Array<MappingInstruction>,

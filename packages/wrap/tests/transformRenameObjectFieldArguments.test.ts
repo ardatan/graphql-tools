@@ -3,7 +3,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { execute, parse } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
 
-import RenameObjectFieldArguments from '../src/transforms/RenameObjectFieldArguments';
+import RenameObjectFieldArguments from '../src/transforms/RenameObjectFieldArguments.js';
 
 describe('RenameObjectFieldArguments', () => {
   test('renaming with arguments works', async () => {

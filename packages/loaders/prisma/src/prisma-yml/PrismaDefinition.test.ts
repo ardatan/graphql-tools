@@ -1,9 +1,9 @@
-import { PrismaDefinitionClass } from './PrismaDefinition';
+import { PrismaDefinitionClass } from './PrismaDefinition.js';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getTmpDir } from './test/getTmpDir';
-import { makeEnv } from './Environment.test';
-import { Args } from './types/common';
+import { getTmpDir } from './test/getTmpDir.js';
+import { makeEnv } from './Environment.test.js';
+import { Args } from './types/common.js';
 
 const defaultGlobalRC = `prisma-1.0:
   clusters:

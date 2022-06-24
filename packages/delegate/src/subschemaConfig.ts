@@ -1,4 +1,4 @@
-import { SubschemaConfig } from './types';
+import { SubschemaConfig } from './types.js';
 
 export function isSubschemaConfig(value: any): value is SubschemaConfig<any, any, any, any> {
   return Boolean(value?.schema);

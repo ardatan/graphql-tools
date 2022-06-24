@@ -17,7 +17,7 @@ import {
 
 import { ExecutionRequest, getOperationASTFromRequest } from '@graphql-tools/utils';
 
-import { createPrefix } from './prefix';
+import { createPrefix } from './prefix.js';
 
 /**
  * Merge multiple queries into a single query in such a way that query results

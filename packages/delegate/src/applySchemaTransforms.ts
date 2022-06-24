@@ -1,6 +1,6 @@
 import { GraphQLSchema } from 'graphql';
 
-import { SubschemaConfig } from './types';
+import { SubschemaConfig } from './types.js';
 
 export function applySchemaTransforms(
   originalWrappingSchema: GraphQLSchema,

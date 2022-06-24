@@ -9,8 +9,8 @@ import {
   isDefinitionNode,
   ParseOptions,
 } from 'graphql';
-import { CompareFn, defaultStringComparator, isSourceTypes, isStringTypes } from './utils';
-import { MergedResultMap, mergeGraphQLNodes, schemaDefSymbol } from './merge-nodes';
+import { CompareFn, defaultStringComparator, isSourceTypes, isStringTypes } from './utils.js';
+import { MergedResultMap, mergeGraphQLNodes, schemaDefSymbol } from './merge-nodes.js';
 import {
   getDocumentNodeFromSchema,
   GetDocumentNodeFromSchemaOptions,
@@ -19,7 +19,7 @@ import {
   resetComments,
   printWithComments,
 } from '@graphql-tools/utils';
-import { DEFAULT_OPERATION_TYPE_NAME_MAP } from './schema-def';
+import { DEFAULT_OPERATION_TYPE_NAME_MAP } from './schema-def.js';
 
 type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
 

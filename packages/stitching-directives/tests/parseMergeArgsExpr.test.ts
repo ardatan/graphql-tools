@@ -1,6 +1,6 @@
 import { parseSelectionSet } from '@graphql-tools/utils';
 
-import { parseMergeArgsExpr } from '../src/parseMergeArgsExpr';
+import { parseMergeArgsExpr } from '../src/parseMergeArgsExpr.js';
 
 describe('can parse merge arguments', () => {
   test('throws if no key declared', () => {

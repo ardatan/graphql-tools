@@ -1,7 +1,7 @@
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
-import { runTests, useMonorepo } from '../../../../testing/utils';
+import { runTests, useMonorepo } from '../../../../testing/utils.js';
 import path from 'path';
 import { inspect } from '@graphql-tools/utils';
 
