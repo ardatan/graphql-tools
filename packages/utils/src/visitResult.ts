@@ -13,6 +13,7 @@ import {
   GraphQLError,
   TypeNameMetaFieldDef,
   FragmentDefinitionNode,
+  SchemaMetaFieldDef,
 } from 'graphql';
 import { collectFields, collectSubFields } from './collectFields';
 
@@ -232,7 +233,17 @@ function visitObjectValue(
 
   for (const [responseKey, subFieldNodes] of fieldNodeMap) {
     const fieldName = subFieldNodes[0].name.value;
-    const fieldType = fieldName === '__typename' ? TypeNameMetaFieldDef.type : fieldMap[fieldName]?.type;
+    let fieldType = fieldMap[fieldName]?.type;
+    if (fieldType == null) {
+      switch (fieldName) {
+        case '__typename':
+          fieldType = TypeNameMetaFieldDef.type;
+          break;
+        case '__schema':
+          fieldType = SchemaMetaFieldDef.type;
+          break;
+      }
+    }
 
     const newPathIndex = pathIndex + 1;
 

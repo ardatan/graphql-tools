@@ -1,4 +1,4 @@
-import { buildSchema, parse, GraphQLError } from 'graphql';
+import { buildSchema, parse, GraphQLError, getIntrospectionQuery, introspectionFromSchema } from 'graphql';
 
 import { createGraphQLError, ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
@@ -42,7 +42,7 @@ describe('visiting results', () => {
     expect(visitedResult).toEqual(result);
   });
 
-  it('should visit with a request with introspection fields without throwing', async () => {
+  it('should visit with a request with typename fields without throwing', async () => {
     const introspectionRequest: ExecutionRequest = {
       document: parse('{ test { field __typename } }'),
       variables: {},
@@ -56,6 +56,25 @@ describe('visiting results', () => {
       },
     };
     expect(() => visitResult(result, introspectionRequest, schema, undefined)).not.toThrow();
+  });
+
+  it('should visit with a request with introspection fields without throwing', async () => {
+    const introspectionRequest: ExecutionRequest = {
+      document: parse(getIntrospectionQuery()),
+      variables: {},
+    };
+    const result: any = {
+      data: introspectionFromSchema(schema),
+    };
+    expect(() =>
+      visitResult(result, introspectionRequest, schema, {
+        Query: {
+          __enter(val) {
+            return val;
+          },
+        },
+      })
+    ).not.toThrow();
   });
 
   it('should successfully modify the result using an object type result visitor', async () => {
