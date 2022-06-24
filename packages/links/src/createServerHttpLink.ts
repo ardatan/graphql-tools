@@ -1,12 +1,14 @@
-import { concat } from '@apollo/client/link/core';
+import * as apolloImport from '@apollo/client';
 import { createUploadLink, formDataAppendFile, isExtractableFile } from 'apollo-upload-client';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
 
 import { AwaitVariablesLink } from './AwaitVariablesLink.js';
 
+const apollo: typeof apolloImport = (apolloImport as any)?.default ?? apolloImport;
+
 export const createServerHttpLink = (options: any) =>
-  concat(
+  apollo.concat(
     new AwaitVariablesLink(),
     createUploadLink({
       ...options,
