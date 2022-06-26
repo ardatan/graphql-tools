@@ -44,7 +44,7 @@
     "express": "4.18.1",
     "graphql-upload": "15.0.1",
     "graphql-sse": "1.2.3",
-    "puppeteer": "15.1.0",
+    "puppeteer": "15.1.1",
     "subscriptions-transport-ws": "0.11.0",
     "webpack": "5.73.0"
   },
