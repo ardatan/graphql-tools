@@ -185,7 +185,7 @@ jobs:
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Build Packages
         run: yarn build
-      - name: Test ESM
+      - name: Test ESM and CJS integrity
         run: yarn bob check
   test_browser:
     name: Browser Test
