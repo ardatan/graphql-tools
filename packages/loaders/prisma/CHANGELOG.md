@@ -1,5 +1,18 @@
 # @graphql-tools/prisma-loader
 
+## 7.2.0
+
+### Minor Changes
+
+- d76a299c: Support TypeScript module resolution.
+
+### Patch Changes
+
+- Updated dependencies [a0abbbcd]
+- Updated dependencies [d76a299c]
+  - @graphql-tools/utils@8.8.0
+  - @graphql-tools/url-loader@7.11.0
+
 ## 7.1.25
 
 ### Patch Changes

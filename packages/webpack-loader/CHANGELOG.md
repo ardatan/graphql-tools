@@ -1,5 +1,17 @@
 # @graphql-tools/webpack-loader
 
+## 6.7.0
+
+### Minor Changes
+
+- d76a299c: Support TypeScript module resolution.
+
+### Patch Changes
+
+- Updated dependencies [d76a299c]
+  - @graphql-tools/optimize@1.3.0
+  - @graphql-tools/webpack-loader-runtime@6.4.0
+
 ## 6.6.3
 
 ### Patch Changes

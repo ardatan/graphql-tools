@@ -1,5 +1,15 @@
 # @graphql-tools/utils
 
+## 8.8.0
+
+### Minor Changes
+
+- d76a299c: Support TypeScript module resolution.
+
+### Patch Changes
+
+- a0abbbcd: fix(visitResult): handle introspection fields correctly with an introspection query result
+
 ## 8.7.0
 
 ### Minor Changes

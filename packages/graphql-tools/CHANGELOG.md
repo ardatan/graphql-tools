@@ -1,5 +1,16 @@
 # graphql-tools
 
+## 8.3.0
+
+### Minor Changes
+
+- d76a299c: Support TypeScript module resolution.
+
+### Patch Changes
+
+- Updated dependencies [d76a299c]
+  - @graphql-tools/schema@8.5.0
+
 ## 8.2.13
 
 ### Patch Changes
