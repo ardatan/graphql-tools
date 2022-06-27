@@ -2,8 +2,8 @@ import DataLoader from 'dataloader';
 
 import { Executor, ExecutionRequest, ExecutionResult, getOperationASTFromRequest } from '@graphql-tools/utils';
 
-import { mergeRequests } from './mergeRequests';
-import { splitResult } from './splitResult';
+import { mergeRequests } from './mergeRequests.js';
+import { splitResult } from './splitResult.js';
 
 export function createBatchingExecutor(
   executor: Executor,

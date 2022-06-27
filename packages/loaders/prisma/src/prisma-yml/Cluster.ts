@@ -1,10 +1,10 @@
 import 'isomorphic-fetch';
 import jwt from 'jsonwebtoken';
-import { cloudApiEndpoint } from './constants';
+import { cloudApiEndpoint } from './constants.js';
 import { GraphQLClient } from 'graphql-request';
 import chalk from 'chalk';
-import { IOutput } from './Output';
-import { getProxyAgent } from './utils/getProxyAgent';
+import { IOutput } from './Output.js';
+import { getProxyAgent } from './utils/getProxyAgent.js';
 import debugPkg from 'debug';
 
 const debug = debugPkg('Environment');

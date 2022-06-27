@@ -19,7 +19,7 @@ import { Maybe, ExecutionRequest, MapperKind, mapSchema, transformInputValue } f
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-import { InputFieldTransformer, InputFieldNodeTransformer, InputObjectNodeTransformer } from '../types';
+import { InputFieldTransformer, InputFieldNodeTransformer, InputObjectNodeTransformer } from '../types.js';
 
 interface TransformInputObjectFieldsTransformationContext extends Record<string, any> {}
 

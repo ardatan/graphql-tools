@@ -1,4 +1,4 @@
-import { EXPANSION_PREFIX, KEY_DELIMITER, preparseMergeArgsExpr } from '../src/preparseMergeArgsExpr';
+import { EXPANSION_PREFIX, KEY_DELIMITER, preparseMergeArgsExpr } from '../src/preparseMergeArgsExpr.js';
 
 describe('can preparse merge arguments', () => {
   test('throws if nested key expansions used', () => {

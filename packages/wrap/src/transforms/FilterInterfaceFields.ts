@@ -4,7 +4,7 @@ import { FieldFilter } from '@graphql-tools/utils';
 
 import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
-import TransformInterfaceFields from './TransformInterfaceFields';
+import TransformInterfaceFields from './TransformInterfaceFields.js';
 
 interface FilterInterfaceFieldsTransformationContext extends Record<string, any> {}
 

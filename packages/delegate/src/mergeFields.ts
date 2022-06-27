@@ -11,9 +11,9 @@ import {
 
 import { collectFields, relocatedError } from '@graphql-tools/utils';
 
-import { ExternalObject, MergedTypeInfo, SubschemaConfig } from './types';
-import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols';
-import { Subschema } from './Subschema';
+import { ExternalObject, MergedTypeInfo, SubschemaConfig } from './types.js';
+import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols.js';
+import { Subschema } from './Subschema.js';
 
 export function isExternalObject(data: any): data is ExternalObject {
   return data[UNPATHED_ERRORS_SYMBOL] !== undefined;

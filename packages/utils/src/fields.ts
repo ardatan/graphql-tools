@@ -1,7 +1,7 @@
 import { GraphQLFieldConfigMap, GraphQLObjectType, GraphQLFieldConfig, GraphQLSchema } from 'graphql';
-import { MapperKind } from './Interfaces';
-import { mapSchema, correctASTNodes } from './mapSchema';
-import { addTypes } from './addTypes';
+import { MapperKind } from './Interfaces.js';
+import { mapSchema, correctASTNodes } from './mapSchema.js';
+import { addTypes } from './addTypes.js';
 
 export function appendObjectFields(
   schema: GraphQLSchema,

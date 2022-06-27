@@ -12,7 +12,7 @@ import {
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas } from '../src/stitchSchemas';
+import { stitchSchemas } from '../src/stitchSchemas.js';
 import {
   getResolversFromSchema,
   IResolvers,
@@ -33,7 +33,7 @@ import {
   remoteProductSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
-} from '../../testing/fixtures/schemas';
+} from '../../testing/fixtures/schemas.js';
 
 const removeLocations = ({ locations, positions, source, originalError, nodes, ...rest }: any): any => ({ ...rest });
 

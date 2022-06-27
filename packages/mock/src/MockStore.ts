@@ -27,9 +27,9 @@ import {
   KeyTypeConstraints,
   IScalarMock,
   ITypeMock,
-} from './types';
-import { uuidv4, randomListLength, takeRandom, makeRef } from './utils';
-import { deepResolveMockList, isMockList } from './MockList';
+} from './types.js';
+import { uuidv4, randomListLength, takeRandom, makeRef } from './utils.js';
+import { deepResolveMockList, isMockList } from './MockList.js';
 
 export const defaultMocks = {
   Int: () => Math.round(Math.random() * 200) - 100,

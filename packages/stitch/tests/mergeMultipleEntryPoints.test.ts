@@ -1,7 +1,7 @@
 import { graphql } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { assertSome } from '@graphql-tools/utils';
-import { stitchSchemas } from '../src/stitchSchemas';
+import { stitchSchemas } from '../src/stitchSchemas.js';
 
 describe('merge on multiple keys', () => {
   const catalogSchema = makeExecutableSchema({

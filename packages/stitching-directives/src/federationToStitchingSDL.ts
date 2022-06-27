@@ -12,7 +12,7 @@ import {
   parse,
   SchemaDefinitionNode,
 } from 'graphql';
-import { stitchingDirectives, StitchingDirectivesResult } from './stitchingDirectives';
+import { stitchingDirectives, StitchingDirectivesResult } from './stitchingDirectives.js';
 
 const extensionKind = /Extension$/;
 

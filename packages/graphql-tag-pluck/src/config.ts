@@ -1,6 +1,6 @@
-import { GraphQLTagPluckOptions } from '.';
+import { GraphQLTagPluckOptions } from './index.js';
 import { ParserOptions } from '@babel/parser';
-import { getExtNameFromFilePath } from './libs/extname';
+import { getExtNameFromFilePath } from './libs/extname.js';
 
 export default function generateConfig(
   filePath: string,

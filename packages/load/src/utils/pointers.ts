@@ -1,5 +1,5 @@
 import { asArray } from '@graphql-tools/utils';
-import { UnnormalizedTypeDefPointer } from './../load-typedefs';
+import { UnnormalizedTypeDefPointer } from './../load-typedefs.js';
 
 export function normalizePointers(
   unnormalizedPointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[]

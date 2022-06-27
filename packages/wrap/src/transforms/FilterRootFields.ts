@@ -4,7 +4,7 @@ import { RootFieldFilter } from '@graphql-tools/utils';
 
 import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
-import TransformRootFields from './TransformRootFields';
+import TransformRootFields from './TransformRootFields.js';
 
 interface FilterRootFieldsTransformationContext extends Record<string, any> {}
 

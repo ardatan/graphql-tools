@@ -1,6 +1,6 @@
 import { GraphQLSchema, BuildSchemaOptions, buildASTSchema } from 'graphql';
-import { SchemaPrintOptions } from './types';
-import { getDocumentNodeFromSchema } from './print-schema-with-directives';
+import { SchemaPrintOptions } from './types.js';
+import { getDocumentNodeFromSchema } from './print-schema-with-directives.js';
 
 function buildFixedSchema(schema: GraphQLSchema, options: BuildSchemaOptions & SchemaPrintOptions) {
   const document = getDocumentNodeFromSchema(schema);

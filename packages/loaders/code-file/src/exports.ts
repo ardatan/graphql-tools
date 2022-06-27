@@ -1,5 +1,5 @@
 import { DocumentNode, GraphQLSchema, parse, IntrospectionQuery, buildClientSchema, isSchema } from 'graphql';
-import { isSchemaAst, isSchemaJson, isSchemaText, isWrappedSchemaJson, pick } from './helpers';
+import { isSchemaAst, isSchemaJson, isSchemaText, isWrappedSchemaJson, pick } from './helpers.js';
 
 const identifiersToLookFor = ['default', 'schema', 'typeDefs', 'data'];
 

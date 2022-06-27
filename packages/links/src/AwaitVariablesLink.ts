@@ -1,5 +1,6 @@
-import { ApolloLink, FetchResult, NextLink, Operation } from '@apollo/client/link/core';
-import { Observable } from '@apollo/client/utilities';
+import * as apolloImport from '@apollo/client';
+
+const apollo: typeof apolloImport = (apolloImport as any)?.default ?? apolloImport;
 
 function getFinalPromise(object: any): Promise<any> {
   return Promise.resolve(object).then(resolvedObject => {
@@ -23,9 +24,12 @@ function getFinalPromise(object: any): Promise<any> {
   });
 }
 
-export class AwaitVariablesLink extends ApolloLink {
-  request(operation: Operation, forward: NextLink): Observable<FetchResult> {
-    return new Observable(observer => {
+export class AwaitVariablesLink extends apollo.ApolloLink {
+  request(
+    operation: apolloImport.Operation,
+    forward: apolloImport.NextLink
+  ): apolloImport.Observable<apolloImport.FetchResult> {
+    return new apollo.Observable(observer => {
       let subscription: any;
       getFinalPromise(operation.variables)
         .then(resolvedVariables => {

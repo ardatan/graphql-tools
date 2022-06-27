@@ -13,7 +13,7 @@ import {
   GraphQLID,
   GraphQLList,
 } from 'graphql';
-import { printSchemaWithDirectives } from '../src';
+import { printSchemaWithDirectives } from '../src/index.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
 describe('printSchemaWithDirectives', () => {

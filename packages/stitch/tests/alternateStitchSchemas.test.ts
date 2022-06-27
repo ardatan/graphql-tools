@@ -37,7 +37,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
 import { filterSchema, ExecutionResult, assertSome, createGraphQLError } from '@graphql-tools/utils';
 
-import { stitchSchemas } from '../src/stitchSchemas';
+import { stitchSchemas } from '../src/stitchSchemas.js';
 
 import {
   bookingSchema,
@@ -46,7 +46,7 @@ import {
   subscriptionSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
-} from '../../testing/fixtures/schemas';
+} from '../../testing/fixtures/schemas.js';
 
 const linkSchema = /* GraphQL */ `
   """

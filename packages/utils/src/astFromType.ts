@@ -1,5 +1,5 @@
 import { isNonNullType, Kind, GraphQLType, TypeNode, isListType } from 'graphql';
-import { inspect } from './inspect';
+import { inspect } from './inspect.js';
 
 export function astFromType(type: GraphQLType): TypeNode {
   if (isNonNullType(type)) {

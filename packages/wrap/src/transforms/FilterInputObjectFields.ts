@@ -4,9 +4,9 @@ import { ExecutionRequest, InputFieldFilter } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-import { InputObjectNodeTransformer } from '../types';
+import { InputObjectNodeTransformer } from '../types.js';
 
-import TransformInputObjectFields from './TransformInputObjectFields';
+import TransformInputObjectFields from './TransformInputObjectFields.js';
 
 interface FilterInputObjectFieldsTransformationContext extends Record<string, any> {}
 

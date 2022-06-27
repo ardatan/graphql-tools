@@ -11,9 +11,10 @@ module.exports = {
   rootDir: ROOT_DIR,
   restoreMocks: true,
   reporters: ['default'],
-  modulePathIgnorePatterns: ['dist', 'test-assets', 'test-files', 'fixtures'],
+  modulePathIgnorePatterns: ['dist', 'test-assets', 'test-files', 'fixtures', '.bob'],
   moduleNameMapper: pathsToModuleNameMapper(tsconfig.compilerOptions.paths, { prefix: `${ROOT_DIR}/` }),
   collectCoverage: false,
   cacheDirectory: resolve(ROOT_DIR, `${CI ? '' : 'node_modules/'}.cache/jest`),
   transformIgnorePatterns: ['node_modules/(?!graphql)'],
+  resolver: 'bob-the-bundler/jest-resolver.js',
 };

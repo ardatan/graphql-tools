@@ -10,9 +10,9 @@ import {
 } from 'graphql';
 import { mapSchema, MapperKind, IResolvers } from '@graphql-tools/utils';
 import { addResolversToSchema } from '@graphql-tools/schema';
-import { isRef, IMockStore, IMocks, TypePolicy } from './types';
-import { copyOwnProps, isObject, isRootType } from './utils';
-import { createMockStore } from './MockStore';
+import { isRef, IMockStore, IMocks, TypePolicy } from './types.js';
+import { copyOwnProps, isObject, isRootType } from './utils.js';
+import { createMockStore } from './MockStore.js';
 
 type IMockOptions<TResolvers = IResolvers> = {
   schema: GraphQLSchema;

@@ -15,7 +15,7 @@ import { ExecutionRequest, MapperKind, mapSchema, visitData, ExecutionResult, Ma
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-import { FieldTransformer, FieldNodeTransformer, DataTransformer, ErrorsTransformer } from '../types';
+import { FieldTransformer, FieldNodeTransformer, DataTransformer, ErrorsTransformer } from '../types.js';
 
 interface TransformCompositeFieldsTransformationContext extends Record<string, any> {}
 

@@ -1,6 +1,6 @@
 import { graphql } from 'graphql';
 
-import { wrapSchema } from '../src';
+import { wrapSchema } from '../src/index.js';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
 import { ExecutionResult } from '@graphql-tools/utils';

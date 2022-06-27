@@ -1,6 +1,6 @@
 import '../../../testing/to-be-similar-gql-doc';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { SubscriptionProtocol, UrlLoader } from '../src';
+import { SubscriptionProtocol, UrlLoader } from '../src/index.js';
 import { isAsyncIterable, printSchemaWithDirectives } from '@graphql-tools/utils';
 import {
   execute,
@@ -23,7 +23,7 @@ import { createHandler } from 'graphql-sse';
 import { Server as WSServer } from 'ws';
 import http from 'http';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { AsyncFetchFn, defaultAsyncFetch } from '../src/defaultAsyncFetch';
+import { AsyncFetchFn, defaultAsyncFetch } from '../src/defaultAsyncFetch.js';
 import { Response, File, Headers } from 'cross-undici-fetch';
 import express from 'express';
 import { inspect } from 'util';

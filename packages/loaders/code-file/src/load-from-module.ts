@@ -1,5 +1,5 @@
 import { DocumentNode, GraphQLSchema } from 'graphql';
-import { pickExportFromModule, pickExportFromModuleSync } from './exports';
+import { pickExportFromModule, pickExportFromModuleSync } from './exports.js';
 
 /**
  * @internal

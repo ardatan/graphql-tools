@@ -1,4 +1,4 @@
-import { valueMatchesCriteria } from '../src/index';
+import { valueMatchesCriteria } from '../src/index.js';
 
 describe('valueMatchesCriteria', () => {
   test('matches empty values', () => {

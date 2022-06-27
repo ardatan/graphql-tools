@@ -1,7 +1,7 @@
-import { Config } from './merge-typedefs';
+import { Config } from './merge-typedefs.js';
 import { InputObjectTypeDefinitionNode, InputValueDefinitionNode, InputObjectTypeExtensionNode, Kind } from 'graphql';
-import { mergeFields } from './fields';
-import { mergeDirectives } from './directives';
+import { mergeFields } from './fields.js';
+import { mergeDirectives } from './directives.js';
 
 export function mergeInputType(
   node: InputObjectTypeDefinitionNode | InputObjectTypeExtensionNode,

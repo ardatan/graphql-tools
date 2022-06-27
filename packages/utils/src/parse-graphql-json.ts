@@ -1,6 +1,6 @@
 import { buildClientSchema, ParseOptions } from 'graphql';
-import { Source } from './loaders';
-import { SchemaPrintOptions } from './types';
+import { Source } from './loaders.js';
+import { SchemaPrintOptions } from './types.js';
 
 function stripBOM(content: string): string {
   content = content.toString();

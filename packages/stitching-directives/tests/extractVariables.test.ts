@@ -1,6 +1,6 @@
 import { parseValue } from 'graphql';
 
-import { extractVariables } from '../src/extractVariables';
+import { extractVariables } from '../src/extractVariables.js';
 
 describe('can extract variables', () => {
   test('return unmodified input value if no variables present', () => {

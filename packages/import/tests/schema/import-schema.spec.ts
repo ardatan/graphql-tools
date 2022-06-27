@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import '../../../testing/to-be-similar-gql-doc';
-import { parseImportLine, processImport } from '../../src';
+import { parseImportLine, processImport } from '../../src/index.js';
 import { mergeTypeDefs } from '@graphql-tools/merge';
 import { Kind, print } from 'graphql';
 

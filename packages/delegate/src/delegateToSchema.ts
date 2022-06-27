@@ -32,12 +32,12 @@ import {
   StitchingInfo,
   DelegationContext,
   SubschemaConfig,
-} from './types';
+} from './types.js';
 
-import { isSubschemaConfig } from './subschemaConfig';
-import { Subschema } from './Subschema';
-import { createRequest, getDelegatingOperation } from './createRequest';
-import { Transformer } from './Transformer';
+import { isSubschemaConfig } from './subschemaConfig.js';
+import { Subschema } from './Subschema.js';
+import { createRequest, getDelegatingOperation } from './createRequest.js';
+import { Transformer } from './Transformer.js';
 
 export function delegateToSchema<
   TContext extends Record<string, any> = Record<string, any>,

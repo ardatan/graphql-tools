@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import http from 'http';
 import puppeteer from 'puppeteer';
-import type * as UrlLoaderModule from '../src';
+import type * as UrlLoaderModule from '../src/index.js';
 import { ExecutionResult, parse } from 'graphql';
 
 describe('[url-loader] webpack bundle compat', () => {
@@ -22,7 +22,7 @@ describe('[url-loader] webpack bundle compat', () => {
         webpack(
           {
             mode: 'development',
-            entry: path.resolve(__dirname, '..', 'dist', 'index.mjs'),
+            entry: path.resolve(__dirname, '..', 'dist', 'esm', 'index.js'),
             output: {
               path: path.resolve(__dirname),
               filename: 'webpack.js',

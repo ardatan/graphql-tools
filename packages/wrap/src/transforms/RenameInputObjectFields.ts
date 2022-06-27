@@ -4,7 +4,7 @@ import { ExecutionRequest, mapSchema, MapperKind } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-import TransformInputObjectFields from './TransformInputObjectFields';
+import TransformInputObjectFields from './TransformInputObjectFields.js';
 
 type RenamerFunction = (
   typeName: string,

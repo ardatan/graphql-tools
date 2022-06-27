@@ -1,4 +1,4 @@
-import { normalizeString } from './utils';
+import { normalizeString } from './utils.js';
 import { diff } from 'jest-diff';
 
 declare global {

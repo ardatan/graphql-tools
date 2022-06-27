@@ -1,4 +1,4 @@
-import { parseEndpoint } from './parseEndpoint';
+import { parseEndpoint } from './parseEndpoint.js';
 
 describe('parseEndpoint', () => {
   test('work for minimal url', () => {

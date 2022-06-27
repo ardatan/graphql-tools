@@ -18,7 +18,7 @@ import {
 } from '@graphql-tools/graphql-tag-pluck';
 import globby from 'globby';
 import unixify from 'unixify';
-import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module';
+import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module.js';
 import { isAbsolute, resolve } from 'path';
 import { cwd, env } from 'process';
 import { readFileSync, promises as fsPromises, existsSync } from 'fs';

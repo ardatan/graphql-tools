@@ -1,6 +1,6 @@
 import { print, parse, buildSchema, ASTNode, OperationTypeNode } from 'graphql';
 
-import { buildOperationNodeForField } from '../src/build-operation-for-field';
+import { buildOperationNodeForField } from '../src/build-operation-for-field.js';
 
 function clean(doc: string | ASTNode) {
   return print(typeof doc === 'string' ? parse(doc) : doc).trim();

@@ -3,7 +3,7 @@ import { join } from 'path';
 import { parse, separateOperations } from 'graphql';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
-import { runTests } from '../../../../testing/utils';
+import { runTests } from '../../../../testing/utils.js';
 import '../../../../testing/to-be-similar-string';
 import globby from 'globby';
 import { readFileSync } from 'fs';

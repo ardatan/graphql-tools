@@ -1,8 +1,8 @@
 import DataLoader from 'dataloader';
 
-import { CreateBatchDelegateFnOptions, BatchDelegateOptionsFn, BatchDelegateFn } from './types';
+import { CreateBatchDelegateFnOptions, BatchDelegateOptionsFn, BatchDelegateFn } from './types.js';
 
-import { getLoader } from './getLoader';
+import { getLoader } from './getLoader.js';
 
 export function createBatchDelegateFn<K = any, V = any, C = K>(
   optionsOrArgsFromKeys: CreateBatchDelegateFnOptions | ((keys: ReadonlyArray<K>) => Record<string, any>),

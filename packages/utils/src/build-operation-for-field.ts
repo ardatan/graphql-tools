@@ -28,7 +28,7 @@ import {
   Kind,
 } from 'graphql';
 
-import { getDefinedRootType, getRootTypeNames } from './rootTypes';
+import { getDefinedRootType, getRootTypeNames } from './rootTypes.js';
 
 let operationVariables: VariableDefinitionNode[] = [];
 let fieldTypeMap = new Map();
@@ -326,7 +326,7 @@ function resolveSelectionSet({
           const selectedSubFields = typeof selectedFields === 'object' ? selectedFields[fieldName] : true;
           if (selectedSubFields) {
             return resolveField({
-              type: type,
+              type,
               field: fields[fieldName],
               models,
               path: [...path, fieldName],

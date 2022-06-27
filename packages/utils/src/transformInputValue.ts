@@ -1,6 +1,6 @@
 import { GraphQLInputType, getNullableType, isLeafType, isListType, isInputObjectType } from 'graphql';
 
-import { InputLeafValueTransformer, InputObjectValueTransformer, Maybe } from './types';
+import { InputLeafValueTransformer, InputObjectValueTransformer, Maybe } from './types.js';
 
 export function transformInputValue(
   type: GraphQLInputType,

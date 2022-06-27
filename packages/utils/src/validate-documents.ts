@@ -12,8 +12,8 @@ import {
   DocumentNode,
   versionInfo,
 } from 'graphql';
-import { Source } from './loaders';
-import { AggregateError } from './AggregateError';
+import { Source } from './loaders.js';
+import { AggregateError } from './AggregateError.js';
 
 export type ValidationRule = (context: ValidationContext) => ASTVisitor;
 

@@ -4,7 +4,7 @@ import { graphql, GraphQLList, GraphQLResolveInfo, OperationTypeNode } from 'gra
 import { delegateToSchema } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-import { stitchSchemas } from '../src/stitchSchemas';
+import { stitchSchemas } from '../src/stitchSchemas.js';
 
 describe('dataloader', () => {
   test('should work', async () => {

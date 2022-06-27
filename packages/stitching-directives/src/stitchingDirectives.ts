@@ -2,11 +2,11 @@ import { GraphQLDirective, GraphQLList, GraphQLNonNull, GraphQLSchema, GraphQLSt
 
 import { SubschemaConfig } from '@graphql-tools/delegate';
 
-import { StitchingDirectivesFinalOptions, StitchingDirectivesOptions } from './types';
+import { StitchingDirectivesFinalOptions, StitchingDirectivesOptions } from './types.js';
 
-import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions';
-import { stitchingDirectivesValidator } from './stitchingDirectivesValidator';
-import { stitchingDirectivesTransformer } from './stitchingDirectivesTransformer';
+import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions.js';
+import { stitchingDirectivesValidator } from './stitchingDirectivesValidator.js';
+import { stitchingDirectivesTransformer } from './stitchingDirectivesTransformer.js';
 
 export interface StitchingDirectivesResult {
   keyDirectiveTypeDefs: string;

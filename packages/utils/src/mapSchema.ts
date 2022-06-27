@@ -30,7 +30,7 @@ import {
   EnumValueDefinitionNode,
 } from 'graphql';
 
-import { getObjectTypeFromTypeMap } from './getObjectTypeFromTypeMap';
+import { getObjectTypeFromTypeMap } from './getObjectTypeFromTypeMap.js';
 
 import {
   SchemaMapper,
@@ -42,10 +42,10 @@ import {
   ArgumentMapper,
   EnumValueMapper,
   SchemaFieldMapperTypes,
-} from './Interfaces';
+} from './Interfaces.js';
 
-import { rewireTypes } from './rewire';
-import { serializeInputValue, parseInputValue } from './transformInputValue';
+import { rewireTypes } from './rewire.js';
+import { serializeInputValue, parseInputValue } from './transformInputValue.js';
 
 export function mapSchema(schema: GraphQLSchema, schemaMapper: SchemaMapper = {}): GraphQLSchema {
   const newTypeMap = mapArguments(

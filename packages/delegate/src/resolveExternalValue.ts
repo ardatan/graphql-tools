@@ -15,9 +15,9 @@ import {
 
 import { AggregateError, Maybe } from '@graphql-tools/utils';
 
-import { StitchingInfo, SubschemaConfig } from './types';
-import { annotateExternalObject, isExternalObject, mergeFields } from './mergeFields';
-import { Subschema } from './Subschema';
+import { StitchingInfo, SubschemaConfig } from './types.js';
+import { annotateExternalObject, isExternalObject, mergeFields } from './mergeFields.js';
+import { Subschema } from './Subschema.js';
 
 export function resolveExternalValue<TContext extends Record<string, any>>(
   result: any,

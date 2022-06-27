@@ -4,7 +4,7 @@ import { ExecutionRequest } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-import TransformInterfaceFields from './TransformInterfaceFields';
+import TransformInterfaceFields from './TransformInterfaceFields.js';
 
 interface RenameInterfaceFieldsTransformationContext extends Record<string, any> {}
 

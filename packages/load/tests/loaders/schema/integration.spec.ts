@@ -2,7 +2,7 @@ import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { printSchema, buildSchema, GraphQLSchema } from 'graphql';
-import { runTests, useMonorepo } from '../../../../testing/utils';
+import { runTests, useMonorepo } from '../../../../testing/utils.js';
 import '../../../../testing/to-be-similar-gql-doc';
 import { join } from 'path';
 

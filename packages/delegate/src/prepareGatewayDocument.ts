@@ -20,8 +20,8 @@ import {
 
 import { implementsAbstractType, getRootTypeNames, memoize2, ASTVisitorKeyMap } from '@graphql-tools/utils';
 
-import { getDocumentMetadata } from './getDocumentMetadata';
-import { StitchingInfo } from './types';
+import { getDocumentMetadata } from './getDocumentMetadata.js';
+import { StitchingInfo } from './types.js';
 
 export function prepareGatewayDocument(
   originalDocument: DocumentNode,

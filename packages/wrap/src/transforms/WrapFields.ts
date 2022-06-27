@@ -24,8 +24,8 @@ import {
 
 import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-import MapFields from './MapFields';
-import { defaultCreateProxyingResolver } from '../generateProxyingResolvers';
+import MapFields from './MapFields.js';
+import { defaultCreateProxyingResolver } from '../generateProxyingResolvers.js';
 
 interface WrapFieldsTransformationContext {
   nextIndex: number;

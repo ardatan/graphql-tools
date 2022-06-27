@@ -1,4 +1,4 @@
-import { getCustomLoaderByPath } from '../src/utils/custom-loader';
+import { getCustomLoaderByPath } from '../src/utils/custom-loader.js';
 
 describe('getCustomLoaderByPath', () => {
   it('can load a custom loader from a file path', async () => {

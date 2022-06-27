@@ -1,7 +1,7 @@
 import { wrapSchema, FilterTypes } from '@graphql-tools/wrap';
 import { graphql, GraphQLSchema, GraphQLNamedType } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
-import { bookingSchema } from '../../testing/fixtures/schemas';
+import { bookingSchema } from '../../testing/fixtures/schemas.js';
 
 describe('FilterTypes', () => {
   let schema: GraphQLSchema;

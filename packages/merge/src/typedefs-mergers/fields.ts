@@ -1,9 +1,9 @@
-import { Config } from './merge-typedefs';
+import { Config } from './merge-typedefs.js';
 import { FieldDefinitionNode, InputValueDefinitionNode, TypeNode, NameNode } from 'graphql';
-import { extractType, isWrappingTypeNode, isListTypeNode, isNonNullTypeNode, printTypeNode } from './utils';
-import { mergeDirectives } from './directives';
+import { extractType, isWrappingTypeNode, isListTypeNode, isNonNullTypeNode, printTypeNode } from './utils.js';
+import { mergeDirectives } from './directives.js';
 import { compareNodes } from '@graphql-tools/utils';
-import { mergeArguments } from './arguments';
+import { mergeArguments } from './arguments.js';
 
 function fieldAlreadyExists(fieldsArr: ReadonlyArray<any>, otherField: any, config?: Config): boolean {
   const result: FieldDefinitionNode | null = fieldsArr.find(field => field.name.value === otherField.name.value);

@@ -1,4 +1,4 @@
-export { createServerHttpLink } from './createServerHttpLink';
-export { AwaitVariablesLink } from './AwaitVariablesLink';
-export { linkToExecutor } from './linkToExecutor';
-export { GraphQLUpload } from './GraphQLUpload';
+export { createServerHttpLink } from './createServerHttpLink.js';
+export { AwaitVariablesLink } from './AwaitVariablesLink.js';
+export { linkToExecutor } from './linkToExecutor.js';
+export { GraphQLUpload } from './GraphQLUpload.js';

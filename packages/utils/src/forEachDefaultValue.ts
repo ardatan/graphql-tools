@@ -1,6 +1,6 @@
 import { getNamedType, GraphQLSchema, isObjectType, isInputObjectType } from 'graphql';
 
-import { IDefaultValueIteratorFn } from './Interfaces';
+import { IDefaultValueIteratorFn } from './Interfaces.js';
 
 export function forEachDefaultValue(schema: GraphQLSchema, fn: IDefaultValueIteratorFn): void {
   const typeMap = schema.getTypeMap();

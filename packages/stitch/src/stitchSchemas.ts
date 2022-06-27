@@ -13,15 +13,15 @@ import { addResolversToSchema, assertResolversPresent, extendResolversFromInterf
 
 import { SubschemaConfig, isSubschemaConfig, Subschema, defaultMergedResolver } from '@graphql-tools/delegate';
 
-import { IStitchSchemasOptions, SubschemaConfigTransform } from './types';
+import { IStitchSchemasOptions, SubschemaConfigTransform } from './types.js';
 
-import { buildTypeCandidates, buildTypes } from './typeCandidates';
-import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo';
+import { buildTypeCandidates, buildTypes } from './typeCandidates.js';
+import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo.js';
 import {
   defaultSubschemaConfigTransforms,
   isolateComputedFieldsTransformer,
   splitMergedTypeEntryPointsTransformer,
-} from './subschemaConfigTransforms';
+} from './subschemaConfigTransforms/index.js';
 import { applyExtensions, mergeExtensions, mergeResolvers } from '@graphql-tools/merge';
 
 export function stitchSchemas<TContext extends Record<string, any> = Record<string, any>>({

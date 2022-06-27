@@ -1,8 +1,8 @@
 import { DocumentNode } from 'graphql';
-import { removeDescriptions } from './optimizers/remove-description';
-import { removeEmptyNodes } from './optimizers/remove-empty-nodes';
-import { removeLoc } from './optimizers/remove-loc';
-import { DocumentOptimizer } from './types';
+import { removeDescriptions } from './optimizers/remove-description.js';
+import { removeEmptyNodes } from './optimizers/remove-empty-nodes.js';
+import { removeLoc } from './optimizers/remove-loc.js';
+import { DocumentOptimizer } from './types.js';
 
 const DEFAULT_OPTIMIZERS: DocumentOptimizer[] = [removeDescriptions, removeEmptyNodes, removeLoc];
 

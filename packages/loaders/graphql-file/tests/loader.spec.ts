@@ -2,8 +2,8 @@ import { join } from 'path';
 
 import { print } from 'graphql';
 
-import { GraphQLFileLoader } from '../src';
-import { runTests } from '../../../testing/utils';
+import { GraphQLFileLoader } from '../src/index.js';
+import { runTests } from '../../../testing/utils.js';
 import '../../../testing/to-be-similar-gql-doc';
 
 describe('GraphQLFileLoader', () => {

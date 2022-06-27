@@ -1,1 +1,1 @@
-export * from './resolvers-composition';
+export * from './resolvers-composition.js';

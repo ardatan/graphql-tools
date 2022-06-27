@@ -4,9 +4,9 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { wrapSchema, RenameRootTypes, FilterObjectFields } from '@graphql-tools/wrap';
 import { addMocksToSchema } from '@graphql-tools/mock';
 
-import { stitchSchemas } from '../src/stitchSchemas';
+import { stitchSchemas } from '../src/stitchSchemas.js';
 
-import { propertySchema } from '../../testing/fixtures/schemas';
+import { propertySchema } from '../../testing/fixtures/schemas.js';
 
 describe('rename root type', () => {
   test('works with stitchSchemas', async () => {

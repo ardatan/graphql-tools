@@ -5,9 +5,9 @@ import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { assertSome, IResolvers } from '@graphql-tools/utils';
 
-import { stitchSchemas } from '../src/stitchSchemas';
+import { stitchSchemas } from '../src/stitchSchemas.js';
 
-import { propertySchema, bookingSchema, sampleData, Property } from '../../testing/fixtures/schemas';
+import { propertySchema, bookingSchema, sampleData, Property } from '../../testing/fixtures/schemas.js';
 
 describe('delegateToSchema ', () => {
   test('should add selection sets for deep types', async () => {

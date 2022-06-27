@@ -19,7 +19,7 @@ import {
   TypeMergingOptions,
   ValidationSettings,
   ValidationLevel,
-} from './types';
+} from './types.js';
 
 export function validateFieldConsistency<TContext = Record<string, any>>(
   finalFieldConfig: GraphQLFieldConfig<any, any>,

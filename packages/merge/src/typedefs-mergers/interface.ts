@@ -1,8 +1,8 @@
-import { Config } from './merge-typedefs';
+import { Config } from './merge-typedefs.js';
 import { InterfaceTypeDefinitionNode, InterfaceTypeExtensionNode, Kind } from 'graphql';
-import { mergeFields } from './fields';
-import { mergeDirectives } from './directives';
-import { mergeNamedTypeArray } from '.';
+import { mergeFields } from './fields.js';
+import { mergeDirectives } from './directives.js';
+import { mergeNamedTypeArray } from './index.js';
 
 export function mergeInterface(
   node: InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode,

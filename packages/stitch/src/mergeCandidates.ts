@@ -42,13 +42,13 @@ import {
   MergeFieldConfigCandidate,
   MergeInputFieldConfigCandidate,
   MergeEnumValueConfigCandidate,
-} from './types';
+} from './types.js';
 
 import {
   validateFieldConsistency,
   validateInputFieldConsistency,
   validateInputObjectConsistency,
-} from './mergeValidations';
+} from './mergeValidations.js';
 
 import { isSubschemaConfig } from '@graphql-tools/delegate';
 import { Maybe } from '@graphql-tools/utils';

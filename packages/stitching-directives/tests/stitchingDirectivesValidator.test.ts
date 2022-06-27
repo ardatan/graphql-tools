@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-import { stitchingDirectives } from '../src';
+import { stitchingDirectives } from '../src/index.js';
 
 describe('type merging directives', () => {
   const { allStitchingDirectivesTypeDefs, stitchingDirectivesValidator } = stitchingDirectives();

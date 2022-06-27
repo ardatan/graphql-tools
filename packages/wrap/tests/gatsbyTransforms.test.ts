@@ -8,7 +8,7 @@ import {
 } from 'graphql';
 
 import { mapSchema, MapperKind, addTypes, modifyObjectFields, assertSome } from '@graphql-tools/utils';
-import { wrapSchema, RenameTypes } from '../src';
+import { wrapSchema, RenameTypes } from '../src/index.js';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
 

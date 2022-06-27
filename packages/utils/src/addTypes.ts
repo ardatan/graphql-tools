@@ -28,8 +28,8 @@
 
 import { GraphQLSchema, GraphQLNamedType, GraphQLDirective, isNamedType, isDirective } from 'graphql';
 
-import { getObjectTypeFromTypeMap } from './getObjectTypeFromTypeMap';
-import { rewireTypes } from './rewire';
+import { getObjectTypeFromTypeMap } from './getObjectTypeFromTypeMap.js';
+import { rewireTypes } from './rewire.js';
 
 export function addTypes(
   schema: GraphQLSchema,

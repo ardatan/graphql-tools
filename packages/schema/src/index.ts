@@ -1,8 +1,8 @@
-export { assertResolversPresent } from './assertResolversPresent';
-export { chainResolvers } from './chainResolvers';
-export { addResolversToSchema } from './addResolversToSchema';
-export { checkForResolveTypeResolver } from './checkForResolveTypeResolver';
-export { extendResolversFromInterfaces } from './extendResolversFromInterfaces';
-export * from './makeExecutableSchema';
-export * from './types';
-export * from './merge-schemas';
+export { assertResolversPresent } from './assertResolversPresent.js';
+export { chainResolvers } from './chainResolvers.js';
+export { addResolversToSchema } from './addResolversToSchema.js';
+export { checkForResolveTypeResolver } from './checkForResolveTypeResolver.js';
+export { extendResolversFromInterfaces } from './extendResolversFromInterfaces.js';
+export * from './makeExecutableSchema.js';
+export * from './types.js';
+export * from './merge-schemas.js';

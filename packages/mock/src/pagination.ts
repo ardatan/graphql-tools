@@ -1,7 +1,7 @@
 import { IFieldResolver } from '@graphql-tools/utils';
 import { GraphQLResolveInfo } from 'graphql';
-import { IMockStore, Ref } from './types';
-import { isRootType, makeRef } from './utils';
+import { IMockStore, Ref } from './types.js';
+import { isRootType, makeRef } from './utils.js';
 
 export type AllNodesFn<TContext, TArgs extends RelayPaginationParams> = (
   parent: Ref,

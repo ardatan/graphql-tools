@@ -21,6 +21,7 @@ packages/loaders/git/tests/test-files/type-defs-invalid.graphql
 packages/loaders/json-file/tests/test-files/failing/malformed.json
 website/.next
 website/out
+.bob
 CHANGELOG.md
 
 # temporarly ignore follow files because prettier-ignore comments don't work in mdx2

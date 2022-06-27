@@ -4,7 +4,7 @@ import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-import WrapFields from './WrapFields';
+import WrapFields from './WrapFields.js';
 
 interface WrapTypeTransformationContext extends Record<string, any> {}
 

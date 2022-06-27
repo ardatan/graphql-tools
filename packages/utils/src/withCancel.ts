@@ -1,4 +1,4 @@
-import { memoize2 } from './memoize';
+import { memoize2 } from './memoize.js';
 
 async function defaultAsyncIteratorReturn(value?: any) {
   return { value, done: true } as const;

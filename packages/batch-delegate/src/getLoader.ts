@@ -5,7 +5,7 @@ import DataLoader from 'dataloader';
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
 import { memoize3, relocatedError } from '@graphql-tools/utils';
 
-import { BatchDelegateOptions } from './types';
+import { BatchDelegateOptions } from './types.js';
 
 function createBatchFn<K = any>(options: BatchDelegateOptions) {
   const argsFromKeys = options.argsFromKeys ?? ((keys: ReadonlyArray<K>) => ({ ids: keys }));

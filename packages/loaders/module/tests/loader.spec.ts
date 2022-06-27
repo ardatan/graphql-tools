@@ -1,7 +1,7 @@
 import { join } from 'path';
 
-import { ModuleLoader } from '../src';
-import { runTests } from '../../../testing/utils';
+import { ModuleLoader } from '../src/index.js';
+import { runTests } from '../../../testing/utils.js';
 
 describe('ModuleLoader', () => {
   const loader = new ModuleLoader();

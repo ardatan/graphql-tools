@@ -1,5 +1,5 @@
 import { parse, print } from 'graphql';
-import { removeDescriptions } from '../src';
+import { removeDescriptions } from '../src/index.js';
 
 describe('removeDescription', () => {
   it('Should remove description', () => {

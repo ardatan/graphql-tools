@@ -1,7 +1,7 @@
 import { isSchema } from 'graphql';
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
-import { runTests, useMonorepo } from '../../../../testing/utils';
+import { runTests, useMonorepo } from '../../../../testing/utils.js';
 
 const monorepo = useMonorepo({
   dirname: __dirname,

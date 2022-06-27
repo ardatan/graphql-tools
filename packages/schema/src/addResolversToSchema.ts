@@ -30,8 +30,8 @@ import {
   forEachField,
 } from '@graphql-tools/utils';
 
-import { checkForResolveTypeResolver } from './checkForResolveTypeResolver';
-import { extendResolversFromInterfaces } from './extendResolversFromInterfaces';
+import { checkForResolveTypeResolver } from './checkForResolveTypeResolver.js';
+import { extendResolversFromInterfaces } from './extendResolversFromInterfaces.js';
 
 export function addResolversToSchema(
   schemaOrOptions: GraphQLSchema | IAddResolversToSchemaOptions,

@@ -4,9 +4,9 @@ import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
-import { FieldTransformer, FieldNodeTransformer } from '../types';
+import { FieldTransformer, FieldNodeTransformer } from '../types.js';
 
-import TransformCompositeFields from './TransformCompositeFields';
+import TransformCompositeFields from './TransformCompositeFields.js';
 
 interface TransformInterfaceFieldsTransformationContext extends Record<string, any> {}
 

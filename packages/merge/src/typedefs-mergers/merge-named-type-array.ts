@@ -1,5 +1,5 @@
 import { NamedTypeNode } from 'graphql';
-import { Config } from '.';
+import { Config } from '../index.js';
 import { compareNodes } from '@graphql-tools/utils';
 
 function alreadyExists(arr: ReadonlyArray<NamedTypeNode>, other: NamedTypeNode): boolean {

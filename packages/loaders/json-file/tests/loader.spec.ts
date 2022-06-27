@@ -1,7 +1,7 @@
 import { join } from 'path';
 
-import { JsonFileLoader } from '../src';
-import { runTests } from '../../../testing/utils';
+import { JsonFileLoader } from '../src/index.js';
+import { runTests } from '../../../testing/utils.js';
 
 describe('JsonFileLoader', () => {
   const loader = new JsonFileLoader();

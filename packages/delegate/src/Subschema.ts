@@ -1,8 +1,8 @@
 import { GraphQLSchema } from 'graphql';
 
-import { SubschemaConfig, Transform, MergedTypeConfig, CreateProxyingResolverFn, BatchingOptions } from './types';
+import { SubschemaConfig, Transform, MergedTypeConfig, CreateProxyingResolverFn, BatchingOptions } from './types.js';
 
-import { applySchemaTransforms } from './applySchemaTransforms';
+import { applySchemaTransforms } from './applySchemaTransforms.js';
 import { Executor } from '@graphql-tools/utils';
 
 export function isSubschema(value: any): value is Subschema {

@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 
-import { GitLoader } from '../src';
-import { runTests } from '../../../testing/utils';
+import { GitLoader } from '../src/index.js';
+import { runTests } from '../../../testing/utils.js';
 
 describe('GitLoader', () => {
   const loader = new GitLoader();

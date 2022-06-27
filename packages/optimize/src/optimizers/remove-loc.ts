@@ -1,5 +1,5 @@
 import { visit } from 'graphql';
-import { DocumentOptimizer } from '../types';
+import { DocumentOptimizer } from '../types.js';
 
 /**
  * This optimizer removes "loc" fields

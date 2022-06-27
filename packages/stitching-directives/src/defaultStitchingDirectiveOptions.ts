@@ -1,4 +1,4 @@
-import { StitchingDirectivesFinalOptions } from './types';
+import { StitchingDirectivesFinalOptions } from './types.js';
 
 export const defaultStitchingDirectiveOptions: StitchingDirectivesFinalOptions = {
   keyDirectiveName: 'key',

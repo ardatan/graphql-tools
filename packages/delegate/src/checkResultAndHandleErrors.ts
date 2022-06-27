@@ -2,8 +2,8 @@ import { GraphQLResolveInfo, GraphQLOutputType, GraphQLError, responsePathAsArra
 
 import { AggregateError, getResponseKeyFromInfo, ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
-import { DelegationContext } from './types';
-import { resolveExternalValue } from './resolveExternalValue';
+import { DelegationContext } from './types.js';
+import { resolveExternalValue } from './resolveExternalValue.js';
 
 export function checkResultAndHandleErrors<TContext extends Record<string, any>>(
   result: ExecutionResult,

@@ -1,5 +1,5 @@
 import { buildSchema, graphql } from 'graphql';
-import { addMocksToSchema, assertIsRef, createMockStore, isRef } from '../src';
+import { addMocksToSchema, assertIsRef, createMockStore, isRef } from '../src/index.js';
 
 const typeDefs = /* GraphQL */ `
   type User {

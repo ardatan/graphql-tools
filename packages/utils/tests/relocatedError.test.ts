@@ -1,4 +1,4 @@
-import { relocatedError, createGraphQLError } from '../src/errors';
+import { relocatedError, createGraphQLError } from '../src/errors.js';
 
 describe('Errors', () => {
   describe('relocatedError', () => {

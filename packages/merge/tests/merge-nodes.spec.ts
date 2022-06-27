@@ -1,4 +1,4 @@
-import { mergeGraphQLNodes } from '../src';
+import { mergeGraphQLNodes } from '../src/index.js';
 import { parse } from 'graphql';
 import {
   assertEnumTypeDefinitionNode,
@@ -7,7 +7,7 @@ import {
   assertObjectTypeDefinitionNode,
   assertScalarTypeDefinitionNode,
   assertUnionTypeDefinitionNode,
-} from '../../testing/assertion';
+} from '../../testing/assertion.js';
 import { assertSome } from '@graphql-tools/utils';
 
 describe('Merge Nodes', () => {

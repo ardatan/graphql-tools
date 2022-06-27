@@ -13,7 +13,7 @@ import { buildSchema } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { SubschemaConfig } from '@graphql-tools/delegate';
-import { createServerHttpLink, GraphQLUpload as ServerGraphQLUpload, linkToExecutor } from '../src';
+import { createServerHttpLink, GraphQLUpload as ServerGraphQLUpload, linkToExecutor } from '../src/index.js';
 
 function streamToString(stream: Readable) {
   const chunks: Array<Buffer> = [];

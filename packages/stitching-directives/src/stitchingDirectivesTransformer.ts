@@ -25,12 +25,12 @@ import {
   parseSelectionSet,
 } from '@graphql-tools/utils';
 
-import { MergedTypeResolverInfo, StitchingDirectivesOptions } from './types';
+import { MergedTypeResolverInfo, StitchingDirectivesOptions } from './types.js';
 
-import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions';
-import { parseMergeArgsExpr } from './parseMergeArgsExpr';
-import { addProperty, getProperty, getProperties } from './properties';
-import { stitchingDirectivesValidator } from './stitchingDirectivesValidator';
+import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions.js';
+import { parseMergeArgsExpr } from './parseMergeArgsExpr.js';
+import { addProperty, getProperty, getProperties } from './properties.js';
+import { stitchingDirectivesValidator } from './stitchingDirectivesValidator.js';
 
 export function stitchingDirectivesTransformer(
   options: StitchingDirectivesOptions = {}

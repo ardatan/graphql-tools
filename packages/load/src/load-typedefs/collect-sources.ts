@@ -1,10 +1,10 @@
 import { Source, isDocumentString, parseGraphQLSDL, getDocumentNodeFromSchema, asArray } from '@graphql-tools/utils';
 import { isSchema, Kind } from 'graphql';
-import { LoadTypedefsOptions } from '../load-typedefs';
-import { loadFile, loadFileSync } from './load-file';
-import { stringToHash, useStack, StackNext, StackFn } from '../utils/helpers';
-import { useCustomLoader, useCustomLoaderSync } from '../utils/custom-loader';
-import { useQueue, useSyncQueue } from '../utils/queue';
+import { LoadTypedefsOptions } from '../load-typedefs.js';
+import { loadFile, loadFileSync } from './load-file.js';
+import { stringToHash, useStack, StackNext, StackFn } from '../utils/helpers.js';
+import { useCustomLoader, useCustomLoaderSync } from '../utils/custom-loader.js';
+import { useQueue, useSyncQueue } from '../utils/queue.js';
 import { createRequire } from 'module';
 import { cwd } from 'process';
 

@@ -1,7 +1,7 @@
 import { EnumTypeDefinitionNode, EnumTypeExtensionNode, Kind } from 'graphql';
-import { mergeDirectives } from './directives';
-import { mergeEnumValues } from './enum-values';
-import { Config } from './merge-typedefs';
+import { mergeDirectives } from './directives.js';
+import { mergeEnumValues } from './enum-values.js';
+import { Config } from './merge-typedefs.js';
 
 export function mergeEnum(
   e1: EnumTypeDefinitionNode | EnumTypeExtensionNode,

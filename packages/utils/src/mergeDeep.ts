@@ -1,4 +1,4 @@
-import { isSome } from './helpers';
+import { isSome } from './helpers.js';
 
 type BoxedTupleTypes<T extends any[]> = { [P in keyof T]: [T[P]] }[Exclude<keyof T, keyof any[]>];
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;

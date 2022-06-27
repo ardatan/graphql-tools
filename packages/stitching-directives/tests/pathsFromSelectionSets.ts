@@ -1,6 +1,6 @@
 import { parseSelectionSet } from '@graphql-tools/utils';
 
-import { pathsFromSelectionSet } from '../src/pathsFromSelectionSet';
+import { pathsFromSelectionSet } from '../src/pathsFromSelectionSet.js';
 
 describe('can convert selectionSet hints to paths', () => {
   test('can convert a simple selection set', () => {

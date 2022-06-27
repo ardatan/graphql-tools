@@ -1,6 +1,6 @@
 import { graphql, OperationTypeNode } from 'graphql';
 
-import { delegateToSchema } from '../src/delegateToSchema';
+import { delegateToSchema } from '../src/delegateToSchema.js';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { wrapSchema } from '@graphql-tools/wrap';
 import { stitchSchemas } from '@graphql-tools/stitch';

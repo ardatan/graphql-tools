@@ -1,6 +1,6 @@
 import '../../testing/to-be-similar-string';
-import { federationToStitchingSDL } from '../src/federationToStitchingSDL';
-import { stitchingDirectives } from '../src/stitchingDirectives';
+import { federationToStitchingSDL } from '../src/federationToStitchingSDL.js';
+import { stitchingDirectives } from '../src/stitchingDirectives.js';
 
 const defaultStitchingDirectives = stitchingDirectives();
 

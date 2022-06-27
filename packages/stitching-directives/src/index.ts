@@ -1,3 +1,3 @@
-export * from './stitchingDirectives';
-export * from './types';
-export * from './federationToStitchingSDL';
+export * from './stitchingDirectives.js';
+export * from './types.js';
+export * from './federationToStitchingSDL.js';

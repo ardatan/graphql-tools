@@ -1,7 +1,7 @@
 import { graphql } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { createDefaultExecutor, delegateToSchema, SubschemaConfig } from '../src';
+import { createDefaultExecutor, delegateToSchema, SubschemaConfig } from '../src/index.js';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { FilterObjectFields } from '@graphql-tools/wrap';
 import { Executor } from '@graphql-tools/utils';

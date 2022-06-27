@@ -1,5 +1,5 @@
 import { DocumentNode, GraphQLSchema, BuildSchemaOptions } from 'graphql';
-import { GraphQLParseOptions } from './Interfaces';
+import { GraphQLParseOptions } from './Interfaces.js';
 
 export interface Source {
   document?: DocumentNode;

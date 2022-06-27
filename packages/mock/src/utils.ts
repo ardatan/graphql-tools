@@ -1,6 +1,6 @@
 import { getRootTypeNames } from '@graphql-tools/utils';
 import { GraphQLObjectType, GraphQLSchema } from 'graphql';
-import { Ref, KeyTypeConstraints } from './types';
+import { Ref, KeyTypeConstraints } from './types.js';
 
 export function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {

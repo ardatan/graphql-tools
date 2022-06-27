@@ -1,7 +1,7 @@
 import os from 'os';
 import { isExecutableDefinitionNode, Kind, DocumentNode } from 'graphql';
 import { uniqueCode } from '@graphql-tools/webpack-loader-runtime';
-import { parseDocument } from './parser';
+import { parseDocument } from './parser.js';
 import { optimizeDocumentNode, removeDescriptions, removeEmptyNodes } from '@graphql-tools/optimize';
 import type { LoaderContext } from 'webpack';
 
