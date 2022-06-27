@@ -1,5 +1,19 @@
 # @graphql-tools/node-require
 
+## 6.4.0
+
+### Minor Changes
+
+- d76a299c: Support TypeScript module resolution.
+
+### Patch Changes
+
+- Updated dependencies [a0abbbcd]
+- Updated dependencies [d76a299c]
+  - @graphql-tools/utils@8.8.0
+  - @graphql-tools/load@7.7.0
+  - @graphql-tools/graphql-file-loader@7.4.0
+
 ## 6.3.15
 
 ### Patch Changes

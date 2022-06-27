@@ -1,5 +1,16 @@
 # @graphql-tools/jest-transform
 
+## 1.2.0
+
+### Minor Changes
+
+- d76a299c: Support TypeScript module resolution.
+
+### Patch Changes
+
+- Updated dependencies [d76a299c]
+  - @graphql-tools/webpack-loader@6.7.0
+
 ## 1.1.5
 
 ### Patch Changes

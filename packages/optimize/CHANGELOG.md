@@ -1,5 +1,11 @@
 # @graphql-tools/optimize
 
+## 1.3.0
+
+### Minor Changes
+
+- d76a299c: Support TypeScript module resolution.
+
 ## 1.2.1
 
 ### Patch Changes

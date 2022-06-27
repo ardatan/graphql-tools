@@ -1,5 +1,19 @@
 # @graphql-tools/wrap
 
+## 8.5.0
+
+### Minor Changes
+
+- d76a299c: Support TypeScript module resolution.
+
+### Patch Changes
+
+- Updated dependencies [a0abbbcd]
+- Updated dependencies [d76a299c]
+  - @graphql-tools/utils@8.8.0
+  - @graphql-tools/delegate@8.8.0
+  - @graphql-tools/schema@8.5.0
+
 ## 8.4.21
 
 ### Patch Changes

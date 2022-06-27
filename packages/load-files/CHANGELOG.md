@@ -1,5 +1,11 @@
 # @graphql-tools/load-files
 
+## 6.6.0
+
+### Minor Changes
+
+- d76a299c: Support TypeScript module resolution.
+
 ## 6.5.4
 
 ### Patch Changes

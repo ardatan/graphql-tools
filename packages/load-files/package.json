@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/load-files",
-  "version": "6.5.4",
+  "version": "6.6.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",

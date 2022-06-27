@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/stitch",
-  "version": "8.6.14",
+  "version": "8.7.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -57,12 +57,12 @@
     "value-or-promise": "1.0.11"
   },
   "dependencies": {
-    "@graphql-tools/batch-delegate": "8.2.21",
-    "@graphql-tools/delegate": "8.7.12",
-    "@graphql-tools/merge": "8.2.15",
-    "@graphql-tools/schema": "8.4.0",
-    "@graphql-tools/utils": "8.7.0",
-    "@graphql-tools/wrap": "8.4.21",
+    "@graphql-tools/batch-delegate": "8.3.0",
+    "@graphql-tools/delegate": "8.8.0",
+    "@graphql-tools/merge": "8.3.0",
+    "@graphql-tools/schema": "8.5.0",
+    "@graphql-tools/utils": "8.8.0",
+    "@graphql-tools/wrap": "8.5.0",
     "tslib": "^2.4.0",
     "value-or-promise": "^1.0.11"
   },
