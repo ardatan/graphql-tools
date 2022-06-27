@@ -26,6 +26,7 @@ import {
   serializeInputValue,
   parseInputValue,
   forEachField,
+  healSchema,
 } from '@graphql-tools/utils';
 
 import { checkForResolveTypeResolver } from './checkForResolveTypeResolver';
@@ -160,6 +161,9 @@ function addResolversToExistingSchemaWithHealing(
 
   // reparse all default values with new parsing functions.
   forEachDefaultValue(schema, parseInputValue);
+
+  // schema may have new scalar/enum types that require healing
+  healSchema(schema);
 
   if (defaultFieldResolver != null) {
     forEachField(schema, field => {
