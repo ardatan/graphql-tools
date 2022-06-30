@@ -126,9 +126,11 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    */
   timeout?: number;
   /**
-   * Request Credentials
+   * Request Credentials (default: 'same-origin')
+   * You can pass `disable` if you don't want this to be set in `Request`
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials
    */
-  credentials?: RequestCredentials;
+  credentials?: RequestCredentials | 'disable';
   /**
    * Connection Parameters for WebSockets connection
    */
@@ -314,7 +316,13 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       }
 
       const endpoint = request.extensions?.endpoint || HTTP_URL;
-      const headers = Object.assign({}, options?.headers, request.extensions?.headers || {});
+      const headers = Object.assign(
+        {
+          accept,
+        },
+        options?.headers,
+        request.extensions?.headers || {}
+      );
 
       const query = print(request.document);
       const requestBody = {
@@ -333,7 +341,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         }, options.timeout);
       }
 
-      const credentials = options?.credentials || 'same-origin';
+      const credentials = options?.credentials !== 'disable' ? options?.credentials || 'same-origin' : null;
 
       return new ValueOrPromise(() => {
         switch (method) {
@@ -344,11 +352,8 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             });
             return fetch(finalUrl, {
               method: 'GET',
-              credentials,
-              headers: {
-                accept,
-                ...headers,
-              },
+              ...(credentials != null ? { credentials } : {}),
+              headers,
               signal: controller.signal,
             });
           case 'POST':
@@ -358,12 +363,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                   form =>
                     fetch(endpoint, {
                       method: 'POST',
-                      credentials,
+                      ...(credentials != null ? { credentials } : {}),
                       body: form as any,
-                      headers: {
-                        accept,
-                        ...headers,
-                      },
+                      headers,
                       signal: controller.signal,
                     }) as any
                 )
@@ -371,10 +373,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             } else {
               return fetch(endpoint, {
                 method: 'POST',
-                credentials,
+                ...(credentials != null ? { credentials } : {}),
                 body: JSON.stringify(requestBody),
                 headers: {
-                  accept,
                   'content-type': 'application/json',
                   ...headers,
                 },
