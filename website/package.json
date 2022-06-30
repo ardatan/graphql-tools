@@ -17,7 +17,7 @@
     }
   },
   "resolutions": {
-    "esbuild": "0.14.47"
+    "esbuild": "0.14.48"
   },
   "devDependencies": {
     "@guild-docs/algolia": "0.0.6",
@@ -29,7 +29,7 @@
     "@types/react-dom": "18.0.5",
     "concurrently": "7.2.2",
     "cross-env": "7.0.3",
-    "esbuild": "0.14.47",
+    "esbuild": "0.14.48",
     "esbuild-register": "3.3.3",
     "next-remote-watch": "1.0.0",
     "open-cli": "7.0.1",
