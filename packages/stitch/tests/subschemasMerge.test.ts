@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '../src/stitchSchemas.js';
 import { graphql } from 'graphql';
