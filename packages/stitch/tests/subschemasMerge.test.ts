@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '../src/stitchSchemas.js';
 import { graphql } from 'graphql';
@@ -25,12 +24,10 @@ describe('Mutation of stitched schema merge', () => {
       `,
       resolvers: {
         Mutation: {
-          // @ts-ignore
-          zeroUser: (o, { id }) => ({ id }),
+          zeroUser: ({} = {}, { id }) => ({ id }),
         },
         User: {
-          // @ts-ignore
-          zeroValue: (p, a, c, i) => `0: User: ${i.operation.operation}`,
+          zeroValue: ({} = {}, {} = {}, {} = {}, i) => `0: User: ${i.operation.operation}`,
           user: ({ id }) => ({ id }),
         },
       },
@@ -55,12 +52,10 @@ describe('Mutation of stitched schema merge', () => {
       `,
       resolvers: {
         Mutation: {
-          // @ts-ignore
-          oneUser: (o, { id }) => ({ id }),
+          oneUser: ({} = {}, { id }) => ({ id }),
         },
         User: {
-          // @ts-ignore
-          oneValue: (p, a, c, i) => `1: User: ${i.operation.operation}`,
+          oneValue: ({} = {}, {} = {}, {} = {}, i) => `1: User: ${i.operation.operation}`,
           user: ({ id }) => ({ id }),
         },
       },
