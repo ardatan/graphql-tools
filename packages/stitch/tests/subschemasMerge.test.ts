@@ -25,9 +25,11 @@ describe('Mutation of stitched schema merge', () => {
       `,
       resolvers: {
         Mutation: {
+          // @ts-ignore
           zeroUser: (o, { id }) => ({ id }),
         },
         User: {
+          // @ts-ignore
           zeroValue: (p, a, c, i) => `0: User: ${i.operation.operation}`,
           user: ({ id }) => ({ id }),
         },
@@ -53,9 +55,11 @@ describe('Mutation of stitched schema merge', () => {
       `,
       resolvers: {
         Mutation: {
+          // @ts-ignore
           oneUser: (o, { id }) => ({ id }),
         },
         User: {
+          // @ts-ignore
           oneValue: (p, a, c, i) => `1: User: ${i.operation.operation}`,
           user: ({ id }) => ({ id }),
         },
