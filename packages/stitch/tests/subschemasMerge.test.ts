@@ -24,10 +24,10 @@ describe('Mutation of stitched schema merge', () => {
       `,
       resolvers: {
         Mutation: {
-          zeroUser: ({} = {}, { id }) => ({ id }),
+          zeroUser: (_p, { id }) => ({ id }),
         },
         User: {
-          zeroValue: ({} = {}, {} = {}, {} = {}, i) => `0: User: ${i.operation.operation}`,
+          zeroValue: (_p, _a, _c, i) => `0: User: ${i.operation.operation}`,
           user: ({ id }) => ({ id }),
         },
       },
@@ -52,10 +52,10 @@ describe('Mutation of stitched schema merge', () => {
       `,
       resolvers: {
         Mutation: {
-          oneUser: ({} = {}, { id }) => ({ id }),
+          oneUser: (_p, { id }) => ({ id }),
         },
         User: {
-          oneValue: ({} = {}, {} = {}, {} = {}, i) => `1: User: ${i.operation.operation}`,
+          oneValue: (_p, _a, _c, i) => `1: User: ${i.operation.operation}`,
           user: ({ id }) => ({ id }),
         },
       },
