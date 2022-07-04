@@ -53,7 +53,7 @@
   "dependencies": {
     "@graphql-tools/utils": "8.8.0",
     "@graphql-tools/graphql-tag-pluck": "7.3.0",
-    "cross-undici-fetch": "^0.4.0",
+    "cross-undici-fetch": "^0.4.11",
     "sync-fetch": "0.4.1",
     "tslib": "^2.4.0"
   },

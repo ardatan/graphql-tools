@@ -899,7 +899,7 @@ input TestInput {
       });
     });
   });
-  describe('yoga', () => {
+  describe.skip('yoga', () => {
     const urlLoader = new UrlLoader();
     let yogaApp: ReturnType<typeof createServer>;
     let interval: any;
