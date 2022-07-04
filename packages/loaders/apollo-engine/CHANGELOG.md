@@ -1,5 +1,11 @@
 # @graphql-tools/apollo-engine-loader
 
+## 7.3.1
+
+### Patch Changes
+
+- ead60ca3: Upgrade cross-undici-fetch to the latest that uses undici@5.5.1 as pinned dependency until the issues with 5.6.0 fixed
+
 ## 7.3.0
 
 ### Minor Changes
