@@ -3,8 +3,8 @@ import { stitchSchemas } from '../src/stitchSchemas.js';
 import { graphql } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
 
-describe('Mutation of stitched schema merge', () => {
-  test('Has Mutation.*User, not Query.*User', async () => {
+describe('Mutations executed as mutation on stitched schema', () => {
+  test('Mutation executed when only mutation type is available', async () => {
     const sub0Schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
         type Query {
@@ -121,7 +121,7 @@ describe('Mutation of stitched schema merge', () => {
     });
   });
 
-  test('Added Query.*User to both server', async () => {
+  test('Mutation executed when both mutation and query are available', async () => {
     const sub0Schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
         type Query {
