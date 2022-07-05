@@ -15,3 +15,7 @@ Previously we were applying the transforms multiple times. We needed to introduc
 **`stitchSchemas` doesn't take nested arrays of subschemas**
 
 `stitchSchemas` no longer accepts an array of arrays of subschema configuration objects. Instead, it accepts an array of subschema configuration objects or schema objects directly.
+
+**`stitchSchemas` no longer prunes the schema with `pruningOptions`**
+
+You can use `pruneSchema` from `@graphql-tools/utils` to prune the schema instead.

@@ -1,6 +1,6 @@
 import { GraphQLObjectType, GraphQLSchema, GraphQLDirective, specifiedDirectives, extendSchema } from 'graphql';
 
-import { IResolvers, pruneSchema } from '@graphql-tools/utils';
+import { IResolvers } from '@graphql-tools/utils';
 
 import { addResolversToSchema, assertResolversPresent, extendResolversFromInterfaces } from '@graphql-tools/schema';
 
@@ -30,14 +30,9 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
   inheritResolversFromInterfaces = false,
   resolverValidationOptions = {},
   parseOptions = {},
-  pruningOptions,
   updateResolversInPlace = true,
   schemaExtensions,
 }: IStitchSchemasOptions<TContext>): GraphQLSchema {
-  if (typeof resolverValidationOptions !== 'object') {
-    throw new Error('Expected `resolverValidationOptions` to be an object');
-  }
-
   const transformedSubschemas: Array<Subschema<any, any, any, TContext>> = [];
   const subschemaMap: Map<
     GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
@@ -48,10 +43,10 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
     GraphQLSchema | SubschemaConfig<any, any, any, TContext>
   > = new Map();
 
-  for (const s of subschemas) {
+  for (const subschema of subschemas) {
     for (const transformedSubschemaConfig of applySubschemaConfigTransforms(
       subschemaConfigTransforms,
-      s,
+      subschema,
       subschemaMap,
       originalSubschemaMap
     )) {
@@ -130,10 +125,6 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
   }
 
   addStitchingInfo(schema, stitchingInfo);
-
-  if (pruningOptions) {
-    schema = pruneSchema(schema, pruningOptions);
-  }
 
   if (schemaExtensions) {
     if (Array.isArray(schemaExtensions)) {
