@@ -34,8 +34,7 @@ export default class TransformInterfaceFields<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    transformedSchema?: GraphQLSchema
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
     const compositeToObjectFieldTransformer = (
       typeName: string,
@@ -54,7 +53,7 @@ export default class TransformInterfaceFields<TContext = Record<string, any>>
       this.fieldNodeTransformer
     );
 
-    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 
   public transformRequest(

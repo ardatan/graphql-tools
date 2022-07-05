@@ -81,8 +81,7 @@ export default class HoistField<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    transformedSchema?: GraphQLSchema
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
     const argsMap: Record<string, GraphQLArgument> = Object.create(null);
     const innerType: GraphQLObjectType = this.pathToField.reduce((acc, pathSegment, index) => {
@@ -105,24 +104,21 @@ export default class HoistField<TContext = Record<string, any>>
     const targetField = targetFieldConfigMap[this.oldFieldName];
 
     let resolve: GraphQLFieldResolver<any, any>;
-    if (transformedSchema) {
-      const hoistingToRootField =
-        this.typeName === originalWrappingSchema.getQueryType()?.name ||
-        this.typeName === originalWrappingSchema.getMutationType()?.name;
+    const hoistingToRootField =
+      this.typeName === originalWrappingSchema.getQueryType()?.name ||
+      this.typeName === originalWrappingSchema.getMutationType()?.name;
 
-      if (hoistingToRootField) {
-        const targetSchema = subschemaConfig.schema;
-        const operation = this.typeName === targetSchema.getQueryType()?.name ? 'query' : 'mutation';
-        const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
-        resolve = createProxyingResolver({
-          subschemaConfig,
-          transformedSchema,
-          operation: operation as OperationTypeNode,
-          fieldName: this.newFieldName,
-        });
-      } else {
-        resolve = defaultMergedResolver;
-      }
+    if (hoistingToRootField) {
+      const targetSchema = subschemaConfig.schema;
+      const operation = this.typeName === targetSchema.getQueryType()?.name ? 'query' : 'mutation';
+      const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
+      resolve = createProxyingResolver({
+        subschemaConfig,
+        operation: operation as OperationTypeNode,
+        fieldName: this.newFieldName,
+      });
+    } else {
+      resolve = defaultMergedResolver;
     }
 
     const newTargetField = {
@@ -160,7 +156,7 @@ export default class HoistField<TContext = Record<string, any>>
       [this.newFieldName]: newTargetField,
     });
 
-    return this.transformer.transformSchema(newSchema, subschemaConfig, transformedSchema);
+    return this.transformer.transformSchema(newSchema, subschemaConfig);
   }
 
   public transformRequest(

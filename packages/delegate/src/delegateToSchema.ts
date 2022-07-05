@@ -38,6 +38,7 @@ import { isSubschemaConfig } from './subschemaConfig.js';
 import { Subschema } from './Subschema.js';
 import { createRequest, getDelegatingOperation } from './createRequest.js';
 import { Transformer } from './Transformer.js';
+import { applySchemaTransforms } from './applySchemaTransforms.js';
 
 export function delegateToSchema<
   TContext extends Record<string, any> = Record<string, any>,
@@ -160,7 +161,9 @@ function getDelegationContext<TContext extends Record<string, any>>({
           : transforms,
       transformedSchema:
         transformedSchema ??
-        (subschemaOrSubschemaConfig instanceof Subschema ? subschemaOrSubschemaConfig.transformedSchema : targetSchema),
+        (subschemaOrSubschemaConfig instanceof Subschema
+          ? subschemaOrSubschemaConfig.transformedSchema
+          : applySchemaTransforms(targetSchema, subschemaOrSubschemaConfig)),
       skipTypeMerging,
     };
   }

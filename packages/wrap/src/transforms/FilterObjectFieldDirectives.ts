@@ -19,8 +19,7 @@ export default class FilterObjectFieldDirectives<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    transformedSchema?: GraphQLSchema
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
     const transformer = new TransformObjectFields(
       (_typeName: string, _fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
@@ -47,6 +46,6 @@ export default class FilterObjectFieldDirectives<TContext = Record<string, any>>
       }
     );
 
-    return transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
+    return transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 }

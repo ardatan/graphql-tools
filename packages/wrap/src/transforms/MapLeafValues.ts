@@ -68,8 +68,7 @@ export default class MapLeafValues<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    _transformedSchema?: GraphQLSchema
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
     this.originalWrappingSchema = originalWrappingSchema;
     const typeMap = originalWrappingSchema.getTypeMap();

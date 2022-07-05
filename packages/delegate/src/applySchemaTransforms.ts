@@ -4,8 +4,7 @@ import { SubschemaConfig } from './types.js';
 
 export function applySchemaTransforms(
   originalWrappingSchema: GraphQLSchema,
-  subschemaConfig: SubschemaConfig<any, any, any, any>,
-  transformedSchema?: GraphQLSchema
+  subschemaConfig: SubschemaConfig<any, any, any, any>
 ): GraphQLSchema {
   const schemaTransforms = subschemaConfig.transforms;
 
@@ -15,9 +14,7 @@ export function applySchemaTransforms(
 
   return schemaTransforms.reduce(
     (schema: GraphQLSchema, transform) =>
-      transform.transformSchema != null
-        ? transform.transformSchema(schema, subschemaConfig, transformedSchema)
-        : schema,
+      transform.transformSchema != null ? transform.transformSchema(schema, subschemaConfig) : schema,
     originalWrappingSchema
   );
 }

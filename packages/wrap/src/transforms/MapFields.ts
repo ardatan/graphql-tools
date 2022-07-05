@@ -38,8 +38,7 @@ export default class MapFields<TContext> implements Transform<MapFieldsTransform
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    transformedSchema?: GraphQLSchema
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
     const subscriptionTypeName = originalWrappingSchema.getSubscriptionType()?.name;
     const objectValueTransformerMap = this.objectValueTransformerMap;
@@ -83,7 +82,7 @@ export default class MapFields<TContext> implements Transform<MapFieldsTransform
         : undefined,
       this.errorsTransformer != null ? this.errorsTransformer : undefined
     );
-    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 
   public transformRequest(

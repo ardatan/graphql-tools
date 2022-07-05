@@ -7,7 +7,6 @@ import {
   resolveExternalValue,
   SubschemaConfig,
   ICreateProxyingResolverOptions,
-  applySchemaTransforms,
   isExternalObject,
   getUnpathedErrors,
 } from '@graphql-tools/delegate';
@@ -17,8 +16,6 @@ export function generateProxyingResolvers<TContext extends Record<string, any>>(
 ): Record<string, Record<string, GraphQLFieldResolver<any, any>>> {
   const targetSchema = subschemaConfig.schema;
   const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
-
-  const transformedSchema = applySchemaTransforms(targetSchema, subschemaConfig);
 
   const rootTypeMap = getRootTypeMap(targetSchema);
 
@@ -31,7 +28,6 @@ export function generateProxyingResolvers<TContext extends Record<string, any>>(
     for (const fieldName in fields) {
       const proxyingResolver = createProxyingResolver({
         subschemaConfig,
-        transformedSchema,
         operation,
         fieldName,
       });
@@ -87,7 +83,6 @@ function createPossiblyNestedProxyingResolver<TContext extends Record<string, an
 export function defaultCreateProxyingResolver<TContext extends Record<string, any>>({
   subschemaConfig,
   operation,
-  transformedSchema,
 }: ICreateProxyingResolverOptions<TContext>): GraphQLFieldResolver<any, any> {
   return function proxyingResolver(_parent, _args, context, info) {
     return delegateToSchema({
@@ -95,7 +90,6 @@ export function defaultCreateProxyingResolver<TContext extends Record<string, an
       operation,
       context,
       info,
-      transformedSchema,
     });
   };
 }
