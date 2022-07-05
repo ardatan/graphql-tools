@@ -48,27 +48,14 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
     GraphQLSchema | SubschemaConfig<any, any, any, TContext>
   > = new Map();
 
-  for (const subschemaOrSubschemaArray of subschemas) {
-    if (Array.isArray(subschemaOrSubschemaArray)) {
-      for (const s of subschemaOrSubschemaArray) {
-        for (const transformedSubschemaConfig of applySubschemaConfigTransforms(
-          subschemaConfigTransforms,
-          s,
-          subschemaMap,
-          originalSubschemaMap
-        )) {
-          transformedSubschemas.push(transformedSubschemaConfig);
-        }
-      }
-    } else {
-      for (const transformedSubschemaConfig of applySubschemaConfigTransforms(
-        subschemaConfigTransforms,
-        subschemaOrSubschemaArray,
-        subschemaMap,
-        originalSubschemaMap
-      )) {
-        transformedSubschemas.push(transformedSubschemaConfig);
-      }
+  for (const s of subschemas) {
+    for (const transformedSubschemaConfig of applySubschemaConfigTransforms(
+      subschemaConfigTransforms,
+      s,
+      subschemaMap,
+      originalSubschemaMap
+    )) {
+      transformedSubschemas.push(transformedSubschemaConfig);
     }
   }
 
@@ -136,10 +123,9 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
     updateResolversInPlace,
   });
 
-  if (
-    Object.keys(resolverValidationOptions).length > 0 &&
-    Object.values(resolverValidationOptions).some(o => o !== 'ignore')
-  ) {
+  const resolverValidationOptionsEntries = Object.entries(resolverValidationOptions);
+
+  if (resolverValidationOptionsEntries.length > 0 && resolverValidationOptionsEntries.some(([, o]) => o !== 'ignore')) {
     assertResolversPresent(schema, resolverValidationOptions);
   }
 
