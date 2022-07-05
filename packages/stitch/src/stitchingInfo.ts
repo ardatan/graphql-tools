@@ -336,14 +336,11 @@ function updateArrayMap<T>(
 export function addStitchingInfo<TContext = Record<string, any>>(
   stitchedSchema: GraphQLSchema,
   stitchingInfo: StitchingInfo<TContext>
-): GraphQLSchema {
-  return new GraphQLSchema({
-    ...stitchedSchema.toConfig(),
-    extensions: {
-      ...stitchedSchema.extensions,
-      stitchingInfo,
-    },
-  });
+) {
+  stitchedSchema.extensions = {
+    ...stitchedSchema.extensions,
+    stitchingInfo,
+  };
 }
 
 export function selectionSetContainsTopLevelField(selectionSet: SelectionSetNode, fieldName: string) {

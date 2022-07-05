@@ -1,11 +1,4 @@
-import {
-  DocumentNode,
-  GraphQLObjectType,
-  GraphQLSchema,
-  GraphQLDirective,
-  specifiedDirectives,
-  extendSchema,
-} from 'graphql';
+import { GraphQLObjectType, GraphQLSchema, GraphQLDirective, specifiedDirectives, extendSchema } from 'graphql';
 
 import { IResolvers, pruneSchema } from '@graphql-tools/utils';
 
@@ -27,7 +20,7 @@ import { applyExtensions, mergeExtensions, mergeResolvers } from '@graphql-tools
 export function stitchSchemas<TContext extends Record<string, any> = Record<string, any>>({
   subschemas = [],
   types = [],
-  typeDefs,
+  typeDefs = [],
   onTypeConflict,
   mergeDirectives,
   mergeTypes = true,
@@ -38,7 +31,7 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
   resolverValidationOptions = {},
   parseOptions = {},
   pruningOptions,
-  updateResolversInPlace,
+  updateResolversInPlace = true,
   schemaExtensions,
 }: IStitchSchemasOptions<TContext>): GraphQLSchema {
   if (typeof resolverValidationOptions !== 'object') {
@@ -79,21 +72,18 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
     }
   }
 
-  const extensions: Array<DocumentNode> = [];
-
   const directiveMap: Record<string, GraphQLDirective> = Object.create(null);
   for (const directive of specifiedDirectives) {
     directiveMap[directive.name] = directive;
   }
   const schemaDefs = Object.create(null);
 
-  const [typeCandidates, rootTypeNameMap] = buildTypeCandidates({
+  const [typeCandidates, rootTypeNameMap, extensions] = buildTypeCandidates({
     subschemas: transformedSubschemas,
     originalSubschemaMap,
     types,
-    typeDefs: typeDefs || [],
+    typeDefs,
     parseOptions,
-    extensions,
     directiveMap,
     schemaDefs,
     mergeDirectives,
@@ -153,7 +143,7 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
     assertResolversPresent(schema, resolverValidationOptions);
   }
 
-  schema = addStitchingInfo(schema, stitchingInfo);
+  addStitchingInfo(schema, stitchingInfo);
 
   if (pruningOptions) {
     schema = pruneSchema(schema, pruningOptions);
