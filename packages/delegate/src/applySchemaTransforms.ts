@@ -1,8 +1,10 @@
+import { memoize2 } from '@graphql-tools/utils';
 import { GraphQLSchema } from 'graphql';
 
 import { SubschemaConfig } from './types.js';
 
-export function applySchemaTransforms(
+// TODO: Instead of memoization, we can make sure that this isn't called multiple times
+export const applySchemaTransforms = memoize2(function applySchemaTransforms(
   originalWrappingSchema: GraphQLSchema,
   subschemaConfig: SubschemaConfig<any, any, any, any>
 ): GraphQLSchema {
@@ -13,8 +15,7 @@ export function applySchemaTransforms(
   }
 
   return schemaTransforms.reduce(
-    (schema: GraphQLSchema, transform) =>
-      transform.transformSchema != null ? transform.transformSchema(schema, subschemaConfig) : schema,
+    (schema: GraphQLSchema, transform) => transform.transformSchema?.(schema, subschemaConfig) || schema,
     originalWrappingSchema
   );
-}
+});
