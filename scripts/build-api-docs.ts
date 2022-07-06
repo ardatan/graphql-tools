@@ -14,8 +14,8 @@ const SIDEBAR_PATH = path.join(CWD, 'website/api-sidebar.json');
 async function buildApiDocs() {
   // An array of tuples where the first element is the package's name and the
   // the second element is the relative path to the package's entry point
-  const packageJsonFiles = globby.sync(workspacePackageJson.workspaces.packages.map(f => `${f}/package.json`));
-  const modules = [];
+  const packageJsonFiles = globby.sync(workspacePackageJson.workspaces.map(f => `${f}/package.json`));
+  const modules: [string, string][] = [];
 
   for (const packageJsonPath of packageJsonFiles) {
     const packageJsonContent = require(path.join(CWD, packageJsonPath));
@@ -49,7 +49,7 @@ async function buildApiDocs() {
     // @ts-ignore -- typedoc-plugin-markdown option
     hideBreadcrumbs: true,
     gitRevision: 'master',
-    tsconfig: path.resolve(CWD, 'tsconfig.build.json'),
+    tsconfig: path.resolve(CWD, 'tsconfig.json'),
     entryPoints: modules.map(([_name, filePath]) => filePath),
   });
 
