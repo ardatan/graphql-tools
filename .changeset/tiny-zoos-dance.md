@@ -19,3 +19,7 @@ Previously we were applying the transforms multiple times. We needed to introduc
 **`stitchSchemas` no longer prunes the schema with `pruningOptions`**
 
 You can use `pruneSchema` from `@graphql-tools/utils` to prune the schema instead.
+
+**`stitchSchemas` no longer respect "@computed" directive if stitchingDirectivesTransformer isn't applied**
+Also `@graphql-tools/stitch` no longer exports `computedDirectiveTransformer` and `defaultSubschemaConfigTransforms`.
+Instead, use `@graphql-tools/stitching-directives` for `@computed` directive.

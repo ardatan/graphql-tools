@@ -1,6 +1,6 @@
 import { GraphQLObjectType, GraphQLSchema, GraphQLDirective, specifiedDirectives, extendSchema } from 'graphql';
 
-import { IResolvers } from '@graphql-tools/utils';
+import { inspect, IResolvers } from '@graphql-tools/utils';
 
 import { addResolversToSchema, assertResolversPresent, extendResolversFromInterfaces } from '@graphql-tools/schema';
 
@@ -11,7 +11,6 @@ import { IStitchSchemasOptions, SubschemaConfigTransform } from './types.js';
 import { buildTypeCandidates, buildTypes } from './typeCandidates.js';
 import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo.js';
 import {
-  defaultSubschemaConfigTransforms,
   isolateComputedFieldsTransformer,
   splitMergedTypeEntryPointsTransformer,
 } from './subschemaConfigTransforms/index.js';
@@ -25,7 +24,7 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
   mergeDirectives,
   mergeTypes = true,
   typeMergingOptions,
-  subschemaConfigTransforms = defaultSubschemaConfigTransforms,
+  subschemaConfigTransforms = [],
   resolvers = {},
   inheritResolversFromInterfaces = false,
   resolverValidationOptions = {},
@@ -156,7 +155,7 @@ function applySubschemaConfigTransforms<TContext = Record<string, any>>(
   } else if (subschemaOrSubschemaConfig instanceof GraphQLSchema) {
     subschemaConfig = { schema: subschemaOrSubschemaConfig };
   } else {
-    throw new TypeError('Received invalid input.');
+    throw new TypeError(`Received invalid input; ${inspect(subschemaOrSubschemaConfig)}`);
   }
 
   const transformedSubschemaConfigs = subschemaConfigTransforms

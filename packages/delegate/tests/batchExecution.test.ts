@@ -162,7 +162,7 @@ describe('batch execution', () => {
     };
 
     const outerSchemaWithSubschemasAsArray = stitchSchemas({
-      subschemas: [innerSubschemaConfigA, innerSubschemaConfigB],
+      subschemas: [...innerSubschemaConfigA, innerSubschemaConfigB],
     });
 
     const resultWhenAsArray = await graphql({ schema: outerSchemaWithSubschemasAsArray, source: query });
