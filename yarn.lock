@@ -4866,17 +4866,16 @@ bl@^4.0.3, bl@^4.1.0:
     inherits "^2.0.4"
     readable-stream "^3.4.0"
 
-bob-the-bundler@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/bob-the-bundler/-/bob-the-bundler-2.0.0.tgz#a0b5971e557d15f53c942e559a979542786677fc"
-  integrity sha512-3/qnKDSlUc/65hDgJLK/t7P2eWYKJF8Siz3Cu5mJRgMvtvYnbhKc5lbJyda/Y1sox1fnePHfBn+mFd/L/Z9KtA==
+bob-the-bundler@3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/bob-the-bundler/-/bob-the-bundler-3.0.0.tgz#72d809940a2a8a29c988b65aff6e4189677e505d"
+  integrity sha512-FK0fsnCSn6W43CxTLkJRAvD76HMlr0i//m+p4BrifE5JcNLZ7Ah7vWsdrqQjKUm9yqeIeoCUEuA7xSJZ3OtIkQ==
   dependencies:
     "@rollup/plugin-json" "^4.1.0"
     "@rollup/plugin-node-resolve" "^13.3.0"
     "@vercel/ncc" "^0.34.0"
     builtins "^5.0.1"
     consola "^2.15.3"
-    cosmiconfig "^7.0.1"
     cross-spawn "^7.0.3"
     dependency-graph "^0.11.0"
     fs-extra "^10.1.0"
