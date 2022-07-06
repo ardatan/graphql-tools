@@ -3,10 +3,10 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 
-const ignore = ['../packages/node-require/dist/index.mjs', '../packages/links/dist/index.mjs'];
+const ignore = ['../packages/node-require/dist/esm/index.js', '../packages/links/dist/esm/index.js'];
 
 async function main() {
-  const mjsFiles = await globby(['../packages/*/dist/*.mjs', '../packages/loaders/*/dist/*.mjs'], {
+  const mjsFiles = await globby(['../packages/*/dist/esm/*.js', '../packages/loaders/*/dist/*.js'], {
     cwd: dirname(fileURLToPath(import.meta.url)),
   });
 
