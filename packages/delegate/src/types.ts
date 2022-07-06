@@ -150,7 +150,6 @@ export interface MergedTypeConfig<K = any, V = any, TContext = Record<string, an
   extends MergedTypeEntryPoint<K, V, TContext> {
   entryPoints?: Array<MergedTypeEntryPoint>;
   fields?: Record<string, MergedFieldConfig>;
-  computedFields?: Record<string, { selectionSet?: string }>;
   canonical?: boolean;
 }
 

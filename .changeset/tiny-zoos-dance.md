@@ -21,5 +21,26 @@ Previously we were applying the transforms multiple times. We needed to introduc
 You can use `pruneSchema` from `@graphql-tools/utils` to prune the schema instead.
 
 **`stitchSchemas` no longer respect "@computed" directive if stitchingDirectivesTransformer isn't applied**
+
 Also `@graphql-tools/stitch` no longer exports `computedDirectiveTransformer` and `defaultSubschemaConfigTransforms`.
-Instead, use `@graphql-tools/stitching-directives` for `@computed` directive.
+Instead, use `@graphql-tools/stitching-directives` package for `@computed` directive.
+[Learn more about setting it up](https://www.graphql-tools.com/docs/schema-stitching/stitch-directives-sdl#directives-glossary)
+
+**`computedFields` has been removed from the merged type configuration**
+
+`MergeTypeConfig.computedFields` setting has been removed in favor of new computed field configuration written as:
+
+```js
+merge: {
+  MyType: {
+    fields: {
+      myComputedField: {
+        selectionSet: '{ weight }',
+        computed: true,
+      }
+    }
+  }
+}
+```
+
+A field-level `selectionSet` specifies field dependencies while the `computed` setting structures the field in a way that assures it is always selected with this data provided. The `selectionSet` is intentionally generic to support possible future uses. This new pattern organizes all field-level configuration (including `canonical`) into a single structure.
