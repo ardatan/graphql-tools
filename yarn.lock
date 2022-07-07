@@ -2309,10 +2309,10 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.1.tgz#076d78ce99822258cf813ecc1e7fa460fa74d052"
   integrity sha512-NQ17ii0rK1b34VZonlmT2QMJFI70m0TRwbknO/ihlbatXyaktDhN/98vBiUU6kNBPljqGqyIrl2T4nY2RpFANg==
 
-"@graphql-yoga/common@^2.10.0":
-  version "2.10.0"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/common/-/common-2.10.0.tgz#dd377082bf81cc26506ab9781028f16415fb0a91"
-  integrity sha512-Ugrj5FbhCmogSn2Ji0qG2kMkYEbCAha60qAIw+c6StYZBRxuE25RnRAw+2mEM1PqEE/UHMZ2bh/UvormAKJGoQ==
+"@graphql-yoga/common@^2.11.0":
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/common/-/common-2.11.0.tgz#7522bf40cf048f98e9adcf1e9129973ab8310d19"
+  integrity sha512-mF11D8hSP9v71aRg5xiMhlfwbvW9KZR4PqIqDgqXKaplJypF+42RFLRFum5hKZloxQojHw2zvAUCfiGQVuKu0g==
   dependencies:
     "@envelop/core" "^2.4.0"
     "@envelop/parser-cache" "^4.4.0"
@@ -2325,14 +2325,14 @@
     dset "^3.1.1"
     tslib "^2.3.1"
 
-"@graphql-yoga/node@2.11.2":
-  version "2.11.2"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/node/-/node-2.11.2.tgz#87ee50ba650e6527180054303144e73cebd9edbf"
-  integrity sha512-/mS9G1bpM6aRKIQVyKkfaPJeLYWlwPftlB1MMKjfoiukVUCtVM9sAUaHHL4q/z+jgL3AaYHu4oYKMJvH1Hd2kA==
+"@graphql-yoga/node@2.12.0":
+  version "2.12.0"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/node/-/node-2.12.0.tgz#0b51661414bbf91d933e87d10db9a1a4c1bbbe8f"
+  integrity sha512-p0hcNyOHGX2jsisEfVX+Wl1zPMwBqCuZiC0UH9681DZxkyqLvBYR6tyO9AQRePhQbkBHFlHxiKIMpklWtnx2zA==
   dependencies:
     "@envelop/core" "^2.4.0"
     "@graphql-tools/utils" "^8.8.0"
-    "@graphql-yoga/common" "^2.10.0"
+    "@graphql-yoga/common" "^2.11.0"
     "@graphql-yoga/subscription" "^2.1.0"
     cross-undici-fetch "^0.4.2"
     tslib "^2.3.1"
@@ -2813,10 +2813,10 @@
     "@n1ru4l/graphql-live-query" "0.9.0"
     "@repeaterjs/repeater" "^3.0.4"
 
-"@next/bundle-analyzer@12.2.0":
-  version "12.2.0"
-  resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-12.2.0.tgz#8abe89e23c6a9bf5afba3a15ee4d5f432d3db3b9"
-  integrity sha512-Ac+lPLMUW2TBjUi29CwQQu8ay74+mjFoSiI4O3ZlnBVD0xOeQPKwPca/9T9ScO/6/Axx4+B+42eEr2UtgNXeiw==
+"@next/bundle-analyzer@12.2.1":
+  version "12.2.1"
+  resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-12.2.1.tgz#9b15f487496aa1e137f640c5906e84a5daca6ebc"
+  integrity sha512-P5rj+mty9sB/58H32TFiLihy/W2Pd6vw9EorcpoyatI8tfpnyrBQOTW77QUFSeI3G4W9ovvv6ozUS/GkQvPwyQ==
   dependencies:
     webpack-bundle-analyzer "4.3.0"
 
@@ -12858,10 +12858,10 @@ svelte2tsx@0.5.11:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@3.48.0:
-  version "3.48.0"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.48.0.tgz#f98c866d45e155bad8e1e88f15f9c03cd28753d3"
-  integrity sha512-fN2YRm/bGumvjUpu6yI3BpvZnpIm9I6A7HR4oUNYd7ggYyIwSA/BX7DJ+UXXffLp6XNcUijyLvttbPVCYa/3xQ==
+svelte@3.49.0:
+  version "3.49.0"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-3.49.0.tgz#5baee3c672306de1070c3b7888fc2204e36a4029"
+  integrity sha512-+lmjic1pApJWDfPCpUUTc1m8azDqYCG1JN9YEngrx/hUyIcFJo6VZhj0A1Ai0wqoHcEIuQy+e9tk+4uDgdtsFA==
 
 symbol-observable@^1.0.4:
   version "1.2.0"
