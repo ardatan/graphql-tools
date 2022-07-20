@@ -1,4 +1,4 @@
-import { fetch } from 'cross-undici-fetch';
+import { fetch } from '@whatwg-node/fetch';
 
 export type AsyncFetchFn = typeof fetch;
 export const defaultAsyncFetch: AsyncFetchFn = async (input, init) => {

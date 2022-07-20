@@ -58,7 +58,7 @@ type ExecutionRequest = {
 A simple executor for a **remote service** looks like this:
 
 ```js
-import { fetch } from 'cross-undici-fetch'
+import { fetch } from '@whatwg-node/fetch'
 import { print } from 'graphql'
 
 async function myExecutor({ document, variables }) {

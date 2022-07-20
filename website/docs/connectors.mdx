@@ -12,7 +12,7 @@ By this point in the documentation, you know how to generate a GraphQL.js schema
 As you have read on the [resolvers page](/docs/resolvers/#resolver-result-format), resolvers in GraphQL.js can return Promises. This means it's easy to fetch data using any library that returns a promise for the result:
 
 ```js
-import { fetch } from 'cross-undici-fetch'
+import { fetch } from '@whatwg-node/fetch'
 
 const resolverMap = {
   Query: {
@@ -30,7 +30,7 @@ As you start to have more different resolvers that need to access the GitHub API
 
 ```js
 // github-connector.js
-import { fetch } from 'cross-undici-fetch'
+import { fetch } from '@whatwg-node/fetch'
 
 // This gives you a place to put GitHub API keys, for example
 const { GITHUB_API_KEY, GITHUB_API_SECRET } = process.env

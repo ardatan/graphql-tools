@@ -2,7 +2,7 @@ import { Loader, parseGraphQLSDL, parseGraphQLJSON, BaseLoaderOptions, Source } 
 import { GraphQLTagPluckOptions, gqlPluckFromCodeStringSync } from '@graphql-tools/graphql-tag-pluck';
 import { parse } from 'graphql';
 import syncFetch from 'sync-fetch';
-import { fetch as asyncFetch } from 'cross-undici-fetch';
+import { fetch as asyncFetch } from '@whatwg-node/fetch';
 
 // github:owner/name#ref:path/to/file
 function extractData(pointer: string): {
