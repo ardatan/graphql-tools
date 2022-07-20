@@ -376,8 +376,8 @@
             "children": [
               {
                 "children": [],
-                "title": "GraphQL over HTTP executor with `cross-undici-fetch`",
-                "anchor": "graphql-over-http-executor-with-cross-undici-fetch"
+                "title": "GraphQL over HTTP executor with `@whatwg-node/fetch`",
+                "anchor": "graphql-over-http-executor-with-whatwg-nodefetch"
               },
               {
                 "children": [],
