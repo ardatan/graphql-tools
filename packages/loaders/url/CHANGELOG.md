@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.12.2
+
+### Patch Changes
+
+- eda0da95: Replace 'cross-undici-fetch' with '@whatwg-node/fetch' since the previous one is deprecated
+
 ## 7.12.1
 
 ### Patch Changes

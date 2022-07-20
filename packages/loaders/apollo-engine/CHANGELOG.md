@@ -1,5 +1,11 @@
 # @graphql-tools/apollo-engine-loader
 
+## 7.3.2
+
+### Patch Changes
+
+- eda0da95: Replace 'cross-undici-fetch' with '@whatwg-node/fetch' since the previous one is deprecated
+
 ## 7.3.1
 
 ### Patch Changes
