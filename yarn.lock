@@ -7669,10 +7669,10 @@ graphql-scalars@1.17.0:
   dependencies:
     tslib "~2.3.0"
 
-graphql-sse@1.2.5:
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/graphql-sse/-/graphql-sse-1.2.5.tgz#aba4e975d72440100770ab65463492bb0a31bac7"
-  integrity sha512-52IJYiiVJwT0YfCmFof6h8HXME9nJZCw2nw+z+qPl0j6kJXUEiPoLIaFvUJczw77DSTyTCA8IGJkvQNXhf2JvA==
+graphql-sse@1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/graphql-sse/-/graphql-sse-1.3.0.tgz#7e598a45b3ba563fcff99edcf28981b2f9dc31f9"
+  integrity sha512-/MxpNxMJxniVQ6Bj0SKyoxFB6H4J1ouxkBr9uMOUY9GjD7oxwuG7+p8YhDu5DfWA4x/urTqP5cgqmOIjwXjN/A==
 
 graphql-subscriptions@2.0.0:
   version "2.0.0"
@@ -10570,10 +10570,10 @@ next-remote-watch@1.0.0:
     commander "^5.0.0"
     express "^4.17.1"
 
-next-seo@5.4.0:
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/next-seo/-/next-seo-5.4.0.tgz#37a7784b30b3f70cec3fa0d77f9dde5990822d24"
-  integrity sha512-R9DhajPwJnR/lsF2hZ8cN8uqr5CVITsRrCG1AF5+ufcaybKYOvnH8sH9MaH4/hpkps3PQ9H71S7J7SPYixAYzQ==
+next-seo@5.5.0:
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/next-seo/-/next-seo-5.5.0.tgz#12bdfce60a6ae098f49617357a166c2d44dbc29e"
+  integrity sha512-5ouBHFtx8YrSDW44lj0qIEQ+oMcz6stgoITB+SqHUZbhgizoJsyLmq73gJ0lxtEKpcN8vG2QgRIJfdb8OAPChw==
 
 next@12.2.2:
   version "12.2.2"
