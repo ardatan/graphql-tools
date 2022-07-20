@@ -27,7 +27,7 @@ import { defaultSyncFetch, SyncFetchFn } from './defaultSyncFetch.js';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
 import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse.js';
 import { addCancelToResponseStream } from './addCancelToResponseStream.js';
-import { AbortController, FormData, File } from 'cross-undici-fetch';
+import { AbortController, FormData, File } from '@whatwg-node/fetch';
 import { isBlob, isGraphQLUpload, isPromiseLike, LEGACY_WS } from './utils.js';
 
 export type FetchFn = AsyncFetchFn | SyncFetchFn;

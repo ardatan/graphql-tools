@@ -1,5 +1,5 @@
 import { handleEventStreamResponse } from '../src/event-stream/handleEventStreamResponse.js';
-import { ReadableStream, Response } from 'cross-undici-fetch';
+import { ReadableStream, Response } from '@whatwg-node/fetch';
 
 describe('handleEventStreamResponse', () => {
   const encoder = new TextEncoder();

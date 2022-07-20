@@ -141,7 +141,7 @@ When setting up the stitched gateway, you'll need to do two things:
 const { stitchSchemas } = require('@graphql-tools/stitch')
 const { stitchingDirectivesTransformer } = require('@graphql-tools/stitching-directives')()
 const { print, buildSchema } = require('graphql')
-const { fetch } = require('cross-undici-fetch')
+const { fetch } = require('@whatwg-node/fetch')
 
 async function createGatewaySchema() {
   const usersExec = createRemoteExecutor('http://localhost:4001/graphql')

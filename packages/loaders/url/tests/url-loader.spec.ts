@@ -24,7 +24,7 @@ import { Server as WSServer } from 'ws';
 import http from 'http';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { AsyncFetchFn, defaultAsyncFetch } from '../src/defaultAsyncFetch.js';
-import { Response, File, Headers } from 'cross-undici-fetch';
+import { Response, File, Headers } from '@whatwg-node/fetch';
 import express from 'express';
 import { inspect } from 'util';
 import { createServer } from '@graphql-yoga/node';

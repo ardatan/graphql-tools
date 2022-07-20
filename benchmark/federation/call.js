@@ -1,4 +1,4 @@
-const { fetch } = require('cross-undici-fetch');
+const { fetch } = require('@whatwg-node/fetch');
 
 fetch('http://localhost:3000/stitching', {
   method: 'POST',

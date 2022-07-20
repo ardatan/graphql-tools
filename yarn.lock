@@ -4195,6 +4195,19 @@
     "@webassemblyjs/ast" "1.11.1"
     "@xtuc/long" "4.2.2"
 
+"@whatwg-node/fetch@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.0.2.tgz#4242c4e36714b5018ccac0ab76f4ab5a208fbc1c"
+  integrity sha512-qiZn8dYRg0POzUvmHBs7blLxl6DPL+b+Z0JUsGaj7/8PFe2BJG9onrUVX6OWh6Z9YhcYw8yu+wtCAme5ZMiCKQ==
+  dependencies:
+    abort-controller "^3.0.0"
+    busboy "^1.6.0"
+    form-data-encoder "^1.7.1"
+    formdata-node "^4.3.1"
+    node-fetch "^2.6.7"
+    undici "5.5.1"
+    web-streams-polyfill "^3.2.0"
+
 "@wry/context@^0.6.0":
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/@wry/context/-/context-0.6.1.tgz#c3c29c0ad622adb00f6a53303c4f965ee06ebeb2"
@@ -5649,7 +5662,7 @@ cross-spawn@^7.0.1, cross-spawn@^7.0.2, cross-spawn@^7.0.3:
     shebang-command "^2.0.0"
     which "^2.0.1"
 
-cross-undici-fetch@^0.4.11, cross-undici-fetch@^0.4.2:
+cross-undici-fetch@^0.4.2:
   version "0.4.11"
   resolved "https://registry.yarnpkg.com/cross-undici-fetch/-/cross-undici-fetch-0.4.11.tgz#bef38dc729a01db6e07c84fee6de1089b5d3d0a4"
   integrity sha512-pRp+EWewyOPYIeUvwOqCIqylCFWqlBwwr6nlZB38v3PhWxS1RYfSgHUJApYTT8jm71SbL5p4qg5kUQv6ZyS24A==

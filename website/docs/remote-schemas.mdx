@@ -50,12 +50,12 @@ type Request = {
 }
 ```
 
-### GraphQL over HTTP executor with `cross-undici-fetch`
+### GraphQL over HTTP executor with `@whatwg-node/fetch`
 
 Basic usage
 
 ```js
-import { fetch } from 'cross-undici-fetch'
+import { fetch } from '@whatwg-node/fetch'
 import { print } from 'graphql'
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap'
 import { AsyncExecutor } from '@graphql-tools/utils'
@@ -84,7 +84,7 @@ export default async () => {
 Authentication headers from context
 
 ```js
-import { fetch } from 'cross-undici-fetch'
+import { fetch } from '@whatwg-node/fetch'
 import { print } from 'graphql'
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap'
 import { AsyncExecutor } from '@graphql-tools/utils'
@@ -180,7 +180,7 @@ With this executor all operations (query, mutation and subscription) will be exe
 ```ts
 import { wrapSchema, introspectSchema } from '@graphql-tools/wrap'
 import { AsyncExecutor } from '@graphql-tools/utils'
-import { fetch, AbortController } from 'cross-undici-fetch'
+import { fetch, AbortController } from '@whatwg-node/fetch'
 import { observableToAsyncIterable } from '@graphql-tools/utils'
 import { createClient } from 'graphql-sse'
 import { print } from 'graphql'
@@ -237,11 +237,11 @@ export default async () => {
 
 Sometimes you only want to do subscription operations over WebSocket. In that case you have identify the operation and then call the corresponding executor for the operation type.
 
-With this executor query and mutation operations will be executed over HTTP (using `cross-undici-fetch`) and subscription operations will be executed WebSocket (using `graphql-ws`).
+With this executor query and mutation operations will be executed over HTTP (using `@whatwg-node/fetch`) and subscription operations will be executed WebSocket (using `graphql-ws`).
 
 ```ts
 import { wrapSchema, introspectSchema } from '@graphql-tools/wrap'
-import { fetch } from 'cross-undici-fetch'
+import { fetch } from '@whatwg-node/fetch'
 import { print, getOperationAST, OperationTypeNode } from 'graphql'
 import { observableToAsyncIterable, AsyncExecutor } from '@graphql-tools/utils'
 import { createClient } from 'graphql-ws'
