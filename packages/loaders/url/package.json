@@ -44,11 +44,6 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "buildOptions": {
-    "external": [
-      "eventsource/lib/eventsource-polyfill"
-    ]
-  },
   "typescript": {
     "definition": "dist/typings/index.d.ts"
   },
