@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.13.0
+
+### Minor Changes
+
+- e98c84a3: Handle SSE responses by using TextDecoderStream if fetch API returns ReadableStream but not AsyncIterable. Previously we handle that with some extra logic that is already available in TextDecoderStream
+
 ## 7.12.2
 
 ### Patch Changes
