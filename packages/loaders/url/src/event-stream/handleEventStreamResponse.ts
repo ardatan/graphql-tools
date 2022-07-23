@@ -1,14 +1,14 @@
 import { ExecutionResult } from 'graphql';
 import { inspect, isAsyncIterable } from '@graphql-tools/utils';
-import { handleReadable } from './handleReadable.js';
+import { handleAsyncIterable } from './handleAsyncIterable.js';
 import { handleReadableStream } from './handleReadableStream.js';
 
 export async function handleEventStreamResponse(response: Response): Promise<AsyncGenerator<ExecutionResult>> {
   // node-fetch returns body as a promise so we need to resolve it
-  const body = await (response.body as unknown as Promise<any>);
+  const body = response.body;
   if (body) {
     if (isAsyncIterable<Uint8Array | string>(body)) {
-      return handleReadable(body);
+      return handleAsyncIterable(body);
     }
     return handleReadableStream(body);
   }
