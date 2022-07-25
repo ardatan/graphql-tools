@@ -165,12 +165,12 @@ describe('Type System: Objects', () => {
       },
     });
 
-    expect(TypeWithDeprecatedField.getFields().bar).toMatchObject({
+    expect(TypeWithDeprecatedField.getFields()['bar']).toMatchObject({
       name: 'bar',
       deprecationReason: 'A terrible reason',
     });
 
-    expect(TypeWithDeprecatedField.getFields().baz).toMatchObject({
+    expect(TypeWithDeprecatedField.getFields()['baz']).toMatchObject({
       name: 'baz',
       deprecationReason: '',
     });

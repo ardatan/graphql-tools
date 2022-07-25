@@ -237,8 +237,8 @@ function serializeObject(outputValue: unknown): unknown {
         return valueOfResult;
       }
     }
-    if (typeof outputValue.toJSON === 'function') {
-      return outputValue.toJSON();
+    if (typeof outputValue['toJSON'] === 'function') {
+      return outputValue['toJSON']();
     }
   }
   return outputValue;

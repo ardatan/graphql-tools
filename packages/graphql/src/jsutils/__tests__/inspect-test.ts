@@ -116,8 +116,8 @@ describe('inspect', () => {
 
   it('detect circular objects', () => {
     const obj: { [name: string]: unknown } = {};
-    obj.self = obj;
-    obj.deepSelf = { self: obj };
+    obj['self'] = obj;
+    obj['deepSelf'] = { self: obj };
 
     expect(inspect(obj)).toEqual('{ self: [Circular], deepSelf: { self: [Circular] } }');
 
@@ -165,7 +165,6 @@ describe('inspect', () => {
     }
     expect(inspect([[new Foo2()]])).toEqual('[[[Bar]]]');
 
-     
     const objectWithoutClassName = new (function (this: any) {
       this.foo = 1;
     } as any)();

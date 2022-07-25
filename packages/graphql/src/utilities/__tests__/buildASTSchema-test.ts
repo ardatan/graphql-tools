@@ -631,36 +631,36 @@ describe('Schema Builder', () => {
     });
 
     const rootFields = assertObjectType(schema.getType('Query')).getFields();
-    expect(rootFields.field1).toMatchObject({
+    expect(rootFields['field1']).toMatchObject({
       deprecationReason: 'No longer supported',
     });
-    expect(rootFields.field2).toMatchObject({
+    expect(rootFields['field2']).toMatchObject({
       deprecationReason: 'Because I said so',
     });
 
     const inputFields = assertInputObjectType(schema.getType('MyInput')).getFields();
 
-    const newInput = inputFields.newInput;
+    const newInput = inputFields['newInput'];
     expect(newInput).toMatchObject({
       deprecationReason: undefined,
     });
 
-    const oldInput = inputFields.oldInput;
+    const oldInput = inputFields['oldInput'];
     expect(oldInput).toMatchObject({
       deprecationReason: 'No longer supported',
     });
 
-    const otherInput = inputFields.otherInput;
+    const otherInput = inputFields['otherInput'];
     expect(otherInput).toMatchObject({
       deprecationReason: 'Use newInput',
     });
 
-    const field3OldArg = rootFields.field3.args[0];
+    const field3OldArg = rootFields['field3'].args[0];
     expect(field3OldArg).toMatchObject({
       deprecationReason: 'No longer supported',
     });
 
-    const field4OldArg = rootFields.field4.args[0];
+    const field4OldArg = rootFields['field4'].args[0];
     expect(field4OldArg).toMatchObject({
       deprecationReason: 'Why not?',
     });
@@ -950,15 +950,15 @@ describe('Schema Builder', () => {
       testDirective.astNode,
     ]).toEqual(ast.definitions);
 
-    const testField = query.getFields().testField;
+    const testField = query.getFields()['testField'];
     expectASTNode(testField).toEqual('testField(testArg: TestInput): TestUnion');
     expectASTNode(testField.args[0]).toEqual('testArg: TestInput');
-    expectASTNode(testInput.getFields().testInputField).toEqual('testInputField: TestEnum');
+    expectASTNode(testInput.getFields()['testInputField']).toEqual('testInputField: TestEnum');
 
     expectASTNode(testEnum.getValue('TEST_VALUE')).toEqual('TEST_VALUE');
 
-    expectASTNode(testInterface.getFields().interfaceField).toEqual('interfaceField: String');
-    expectASTNode(testType.getFields().interfaceField).toEqual('interfaceField: String');
+    expectASTNode(testInterface.getFields()['interfaceField']).toEqual('interfaceField: String');
+    expectASTNode(testType.getFields()['interfaceField']).toEqual('interfaceField: String');
     expectASTNode(testDirective.args[0]).toEqual('arg: TestScalar');
   });
 
