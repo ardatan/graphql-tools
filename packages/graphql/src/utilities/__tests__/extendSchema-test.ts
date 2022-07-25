@@ -451,25 +451,25 @@ describe('extendSchema', () => {
       ...someInterface.extensionASTNodes,
     ]).toEqual(expect.arrayContaining([...firstExtensionAST.definitions, ...secondExtensionAST.definitions]));
 
-    const newField = query.getFields().newField;
+    const newField = query.getFields()['newField'];
     expectASTNode(newField).toEqual('newField(testArg: TestInput): TestEnum');
     expectASTNode(newField.args[0]).toEqual('testArg: TestInput');
-    expectASTNode(query.getFields().oneMoreNewField).toEqual('oneMoreNewField: TestUnion');
+    expectASTNode(query.getFields()['oneMoreNewField']).toEqual('oneMoreNewField: TestUnion');
 
     expectASTNode(someEnum.getValue('NEW_VALUE')).toEqual('NEW_VALUE');
     expectASTNode(someEnum.getValue('ONE_MORE_NEW_VALUE')).toEqual('ONE_MORE_NEW_VALUE');
 
-    expectASTNode(someInput.getFields().newField).toEqual('newField: String');
-    expectASTNode(someInput.getFields().oneMoreNewField).toEqual('oneMoreNewField: String');
-    expectASTNode(someInterface.getFields().newField).toEqual('newField: String');
-    expectASTNode(someInterface.getFields().oneMoreNewField).toEqual('oneMoreNewField: String');
+    expectASTNode(someInput.getFields()['newField']).toEqual('newField: String');
+    expectASTNode(someInput.getFields()['oneMoreNewField']).toEqual('oneMoreNewField: String');
+    expectASTNode(someInterface.getFields()['newField']).toEqual('newField: String');
+    expectASTNode(someInterface.getFields()['oneMoreNewField']).toEqual('oneMoreNewField: String');
 
-    expectASTNode(testInput.getFields().testInputField).toEqual('testInputField: TestEnum');
+    expectASTNode(testInput.getFields()['testInputField']).toEqual('testInputField: TestEnum');
 
     expectASTNode(testEnum.getValue('TEST_VALUE')).toEqual('TEST_VALUE');
 
-    expectASTNode(testInterface.getFields().interfaceField).toEqual('interfaceField: String');
-    expectASTNode(testType.getFields().interfaceField).toEqual('interfaceField: String');
+    expectASTNode(testInterface.getFields()['interfaceField']).toEqual('interfaceField: String');
+    expectASTNode(testType.getFields()['interfaceField']).toEqual('interfaceField: String');
     expectASTNode(testDirective.args[0]).toEqual('arg: Int');
   });
 
@@ -487,7 +487,7 @@ describe('extendSchema', () => {
     const extendedSchema = extendSchema(schema, extendAST);
 
     const someType = assertObjectType(extendedSchema.getType('SomeObject'));
-    expect(someType.getFields().deprecatedField).toMatchObject({
+    expect(someType.getFields()['deprecatedField']).toMatchObject({
       deprecationReason: 'not used anymore',
     });
 
@@ -507,7 +507,7 @@ describe('extendSchema', () => {
     const extendedSchema = extendSchema(schema, extendAST);
 
     const someType = assertObjectType(extendedSchema.getType('SomeObject'));
-    expect(someType.getFields().deprecatedField).toMatchObject({
+    expect(someType.getFields()['deprecatedField']).toMatchObject({
       deprecationReason: 'not used anymore',
     });
   });

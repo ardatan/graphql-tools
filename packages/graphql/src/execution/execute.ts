@@ -42,7 +42,6 @@ import { collectFields, collectSubfields as _collectSubfields } from './collectF
 import { mapAsyncIterator } from './mapAsyncIterator.js';
 import { getArgumentValues, getVariableValues } from './values.js';
 
- 
 // This file contains a lot of such errors but we plan to refactor it anyway
 // so just disable it for entire file.
 
@@ -600,11 +599,10 @@ async function completeAsyncIteratorValue(
   let containsPromise = false;
   const completedResults = [];
   let index = 0;
-   
+
   while (true) {
     const fieldPath = addPath(path, index, undefined);
     try {
-       
       const { value, done } = await iterator.next();
       if (done) {
         break;
@@ -861,7 +859,6 @@ function invalidReturnTypeError(
  * Otherwise, test each possible type for the abstract type by calling
  * isTypeOf for the object being coerced, returning the first type that matches.
  */
-// @ts-expect-error
 export const defaultTypeResolver: GraphQLTypeResolver<unknown, unknown> = function (
   value,
   contextValue,
@@ -869,8 +866,8 @@ export const defaultTypeResolver: GraphQLTypeResolver<unknown, unknown> = functi
   abstractType
 ) {
   // First, look for `__typename`.
-  if (isObjectLike(value) && typeof value.__typename === 'string') {
-    return value.__typename;
+  if (isObjectLike(value) && typeof value['__typename'] === 'string') {
+    return value['__typename'];
   }
 
   // Otherwise, test each possible type.
@@ -892,7 +889,6 @@ export const defaultTypeResolver: GraphQLTypeResolver<unknown, unknown> = functi
   }
 
   if (promisedIsTypeOfResults.length) {
-    // @ts-expect-error
     return Promise.all(promisedIsTypeOfResults).then(isTypeOfResults => {
       for (let i = 0; i < isTypeOfResults.length; i++) {
         if (isTypeOfResults[i]) {

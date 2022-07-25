@@ -373,10 +373,10 @@ describe('Type System: Schema', () => {
     }
 
     it('returns known fields', () => {
-      expectField(petType, 'name').toEqual(petType.getFields().name);
-      expectField(catType, 'name').toEqual(catType.getFields().name);
+      expectField(petType, 'name').toEqual(petType.getFields()['name']);
+      expectField(catType, 'name').toEqual(catType.getFields()['name']);
 
-      expectField(queryType, 'catOrDog').toEqual(queryType.getFields().catOrDog);
+      expectField(queryType, 'catOrDog').toEqual(queryType.getFields()['catOrDog']);
     });
 
     it('returns `undefined` for unknown fields', () => {

@@ -60,7 +60,7 @@ describe('isIterableObject', () => {
     arrayLike[0] = 'Alpha';
     arrayLike[1] = 'Bravo';
     arrayLike[2] = 'Charlie';
-    arrayLike.length = 3;
+    arrayLike['length'] = 3;
 
     expect(isIterableObject(arrayLike)).toEqual(false);
   });

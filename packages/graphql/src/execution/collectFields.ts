@@ -75,7 +75,6 @@ export function collectSubfields(
   return subFieldNodes;
 }
 
- 
 function collectFieldsImpl(
   schema: GraphQLSchema,
   fragments: ObjMap<FragmentDefinitionNode>,
@@ -146,12 +145,12 @@ function shouldIncludeNode(
   node: FragmentSpreadNode | FieldNode | InlineFragmentNode
 ): boolean {
   const skip = getDirectiveValues(GraphQLSkipDirective, node, variableValues);
-  if (skip?.if === true) {
+  if (skip?.['if'] === true) {
     return false;
   }
 
   const include = getDirectiveValues(GraphQLIncludeDirective, node, variableValues);
-  if (include?.if === false) {
+  if (include?.['if'] === false) {
     return false;
   }
   return true;

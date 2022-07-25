@@ -58,14 +58,14 @@ describe('Type System: Extensions', () => {
       });
 
       expect(someObject.extensions).toEqual({});
-      const someField = someObject.getFields().someField;
+      const someField = someObject.getFields()['someField'];
       expect(someField.extensions).toEqual({});
       const someArg = someField.args[0];
       expect(someArg.extensions).toEqual({});
 
       const config = someObject.toConfig();
       expect(config.extensions).toEqual({});
-      const someFieldConfig = config.fields.someField;
+      const someFieldConfig = config.fields['someField'];
       expect(someFieldConfig.extensions).toEqual({});
       expect(someFieldConfig.args != null).toBeTruthy();
       // @ts-expect-error
@@ -96,14 +96,14 @@ describe('Type System: Extensions', () => {
       });
 
       expectObjMap(someObject.extensions).toEqual(objectExtensions);
-      const someField = someObject.getFields().someField;
+      const someField = someObject.getFields()['someField'];
       expectObjMap(someField.extensions).toEqual(fieldExtensions);
       const someArg = someField.args[0];
       expectObjMap(someArg.extensions).toEqual(argExtensions);
 
       const config = someObject.toConfig();
       expectObjMap(config.extensions).toEqual(objectExtensions);
-      const someFieldConfig = config.fields.someField;
+      const someFieldConfig = config.fields['someField'];
       expectObjMap(someFieldConfig.extensions).toEqual(fieldExtensions);
       expect(someFieldConfig.args != null).toBeTruthy();
       // @ts-expect-error
@@ -129,14 +129,14 @@ describe('Type System: Extensions', () => {
       });
 
       expect(someInterface.extensions).toEqual({});
-      const someField = someInterface.getFields().someField;
+      const someField = someInterface.getFields()['someField'];
       expect(someField.extensions).toEqual({});
       const someArg = someField.args[0];
       expect(someArg.extensions).toEqual({});
 
       const config = someInterface.toConfig();
       expect(config.extensions).toEqual({});
-      const someFieldConfig = config.fields.someField;
+      const someFieldConfig = config.fields['someField'];
       expect(someFieldConfig.extensions).toEqual({});
       expect(someFieldConfig.args != null).toBeTruthy();
       // @ts-expect-error
@@ -169,14 +169,14 @@ describe('Type System: Extensions', () => {
       });
 
       expectObjMap(someInterface.extensions).toEqual(interfaceExtensions);
-      const someField = someInterface.getFields().someField;
+      const someField = someInterface.getFields()['someField'];
       expectObjMap(someField.extensions).toEqual(fieldExtensions);
       const someArg = someField.args[0];
       expectObjMap(someArg.extensions).toEqual(argExtensions);
 
       const config = someInterface.toConfig();
       expectObjMap(config.extensions).toEqual(interfaceExtensions);
-      const someFieldConfig = config.fields.someField;
+      const someFieldConfig = config.fields['someField'];
       expectObjMap(someFieldConfig.extensions).toEqual(fieldExtensions);
       expect(someFieldConfig.args != null).toBeTruthy();
       // @ts-expect-error
@@ -229,7 +229,7 @@ describe('Type System: Extensions', () => {
 
       const config = someEnum.toConfig();
       expect(config.extensions).toEqual({});
-      const someValueConfig = config.values.SOME_VALUE;
+      const someValueConfig = config.values['SOME_VALUE'];
       expect(someValueConfig.extensions).toEqual({});
     });
 
@@ -253,7 +253,7 @@ describe('Type System: Extensions', () => {
 
       const config = someEnum.toConfig();
       expectObjMap(config.extensions).toEqual(enumExtensions);
-      const someValueConfig = config.values.SOME_VALUE;
+      const someValueConfig = config.values['SOME_VALUE'];
       expectObjMap(someValueConfig.extensions).toEqual(valueExtensions);
     });
   });
@@ -270,12 +270,12 @@ describe('Type System: Extensions', () => {
       });
 
       expect(someInputObject.extensions).toEqual({});
-      const someInputField = someInputObject.getFields().someInputField;
+      const someInputField = someInputObject.getFields()['someInputField'];
       expect(someInputField.extensions).toEqual({});
 
       const config = someInputObject.toConfig();
       expect(config.extensions).toEqual({});
-      const someInputFieldConfig = config.fields.someInputField;
+      const someInputFieldConfig = config.fields['someInputField'];
       expect(someInputFieldConfig.extensions).toEqual({});
     });
 
@@ -299,12 +299,12 @@ describe('Type System: Extensions', () => {
       });
 
       expectObjMap(someInputObject.extensions).toEqual(inputObjectExtensions);
-      const someInputField = someInputObject.getFields().someInputField;
+      const someInputField = someInputObject.getFields()['someInputField'];
       expectObjMap(someInputField.extensions).toEqual(inputFieldExtensions);
 
       const config = someInputObject.toConfig();
       expectObjMap(config.extensions).toEqual(inputObjectExtensions);
-      const someInputFieldConfig = config.fields.someInputField;
+      const someInputFieldConfig = config.fields['someInputField'];
       expectObjMap(someInputFieldConfig.extensions).toEqual(inputFieldExtensions);
     });
   });
@@ -327,7 +327,7 @@ describe('Type System: Extensions', () => {
 
       const config = someDirective.toConfig();
       expect(config.extensions).toEqual({});
-      const someArgConfig = config.args.someArg;
+      const someArgConfig = config.args['someArg'];
       expect(someArgConfig.extensions).toEqual({});
     });
 
@@ -355,7 +355,7 @@ describe('Type System: Extensions', () => {
 
       const config = someDirective.toConfig();
       expectObjMap(config.extensions).toEqual(directiveExtensions);
-      const someArgConfig = config.args.someArg;
+      const someArgConfig = config.args['someArg'];
       expectObjMap(someArgConfig.extensions).toEqual(argExtensions);
     });
   });
