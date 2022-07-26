@@ -100,12 +100,12 @@ export type { TypedQueryDocumentNode } from './typedQueryDocumentNode.js';
 export { addResolversToExistingSchema } from './addResolversToSchema.js';
 
 // Get DocumentNode from a GraphQLSchema object.
-export { getDocumentNodeFromSchema } from './getDocumentNodeFromSchema';
+export { getDocumentNodeFromSchema } from './getDocumentNodeFromSchema.js';
 
 // Better backwards compat print function
-export { printSchemaWithDirectives } from './printSchemaWithDirectives';
+export { printSchemaWithDirectives } from './printSchemaWithDirectives.js';
 
-export { getRootTypeMap } from './getRootTypeMap';
+export { getRootTypeMap } from './getRootTypeMap.js';
 
 export {
   astFromArg,
@@ -122,4 +122,4 @@ export {
   astFromType,
   astFromUnionType,
   astFromValueUntyped,
-} from './astFromSchema';
+} from './astFromSchema.js';

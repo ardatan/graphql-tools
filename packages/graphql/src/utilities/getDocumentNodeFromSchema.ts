@@ -1,7 +1,7 @@
 // TODO: add tests for me
 
-import { DefinitionNode, DocumentNode } from '../language/ast';
-import { Kind } from '../language';
+import { DefinitionNode, DocumentNode } from '../language/ast.js';
+import { Kind } from '../language/index.js';
 import {
   GraphQLSchema,
   isSpecifiedDirective,
@@ -13,7 +13,7 @@ import {
   isScalarType,
   isInputObjectType,
   isUnionType,
-} from '../type';
+} from '../type/index.js';
 import {
   astFromDirective,
   astFromEnumType,
@@ -23,7 +23,7 @@ import {
   astFromScalarType,
   astFromSchema,
   astFromUnionType,
-} from './astFromSchema';
+} from './astFromSchema.js';
 
 export interface GetDocumentNodeFromSchemaOptions {
   pathToDirectivesInExtensions?: Array<string>;

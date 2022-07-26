@@ -1,6 +1,6 @@
-import { memoize1 } from '../jsutils/memoize1';
-import { OperationTypeNode } from '../language';
-import { GraphQLSchema, GraphQLObjectType } from '../type';
+import { memoize1 } from '../jsutils/memoize1.js';
+import { OperationTypeNode } from '../language/index.js';
+import { GraphQLSchema, GraphQLObjectType } from '../type/index.js';
 
 export const getRootTypeMap = memoize1(function getRootTypeMap(
   schema: GraphQLSchema
