@@ -1,6 +1,5 @@
 import { mapAsyncIterator } from '../mapAsyncIterator.js';
 
- 
 describe('mapAsyncIterator', () => {
   it('maps over async generator', async () => {
     async function* source() {

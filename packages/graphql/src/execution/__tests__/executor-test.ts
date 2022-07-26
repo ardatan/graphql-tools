@@ -389,7 +389,6 @@ describe('Execute: Handles basic execution tasks', () => {
         throw new Error('Error getting syncError');
       },
       syncRawError() {
-         
         throw 'Error getting syncRawError';
       },
       syncReturnError() {
@@ -424,7 +423,6 @@ describe('Execute: Handles basic execution tasks', () => {
       },
       asyncRawError() {
         return new Promise(() => {
-           
           throw 'Error getting asyncRawError';
         });
       },

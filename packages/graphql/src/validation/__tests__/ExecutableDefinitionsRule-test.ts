@@ -1,4 +1,3 @@
- 
 import { ExecutableDefinitionsRule } from '../rules/ExecutableDefinitionsRule.js';
 
 import { expectValidationErrors } from './harness.js';

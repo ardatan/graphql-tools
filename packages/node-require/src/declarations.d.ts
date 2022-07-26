@@ -1,4 +1,3 @@
- 
 declare module '*.graphql' {
   import { DocumentNode } from '@graphql-tools/graphql';
 
