@@ -46,13 +46,11 @@
   "typescript": {
     "definition": "dist/typings/index.d.ts"
   },
-  "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
-  },
   "buildOptions": {
     "input": "./src/index.ts"
   },
   "dependencies": {
+    "@graphql-tools/graphql": "*",
     "@graphql-tools/webpack-loader": "6.7.0",
     "@jest/transform": "^28.0.0",
     "@jest/types": "^28.0.0",

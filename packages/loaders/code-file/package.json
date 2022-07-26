@@ -47,10 +47,8 @@
   "typescript": {
     "definition": "dist/typings/index.d.ts"
   },
-  "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
-  },
   "dependencies": {
+    "@graphql-tools/graphql": "*",
     "@graphql-tools/utils": "8.8.0",
     "@graphql-tools/graphql-tag-pluck": "7.3.0",
     "globby": "^11.0.3",

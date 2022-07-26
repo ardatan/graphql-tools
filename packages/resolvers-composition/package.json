@@ -47,14 +47,12 @@
   "typescript": {
     "definition": "dist/typings/index.d.ts"
   },
-  "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
-  },
   "devDependencies": {
     "@types/lodash": "4.14.182",
     "@types/micromatch": "4.0.2"
   },
   "dependencies": {
+    "@graphql-tools/graphql": "*",
     "@graphql-tools/utils": "8.8.0",
     "lodash": "4.17.21",
     "micromatch": "^4.0.4",
