@@ -90,6 +90,7 @@ describe('graphql upload', () => {
     const remoteApp = express().use(
       graphqlUploadExpress(),
       createServer({
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         schema: remoteSchema,
       })
     );
@@ -126,6 +127,7 @@ describe('graphql upload', () => {
     const gatewayApp = express().use(
       graphqlUploadExpress(),
       createServer({
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         schema: gatewaySchema,
       })
     );

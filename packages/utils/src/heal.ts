@@ -195,6 +195,7 @@ export function healTypes(
       return healedType != null ? new GraphQLList(healedType) : null;
     } else if (isNonNullType(type)) {
       const healedType = healType(type.ofType);
+      // @ts-expect-error TODO: What is going on here?
       return healedType != null ? new GraphQLNonNull(healedType) : null;
     } else if (isNamedType(type)) {
       // If a type annotation on a field or an argument or a union member is

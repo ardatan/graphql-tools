@@ -31,6 +31,7 @@ export function optimizeDocuments(
 
   const documentAsts = concatAST(documents);
 
+  // @ts-expect-error Uses graphql-js so it doesn't like us
   const relayDocuments = relayTransform(adjustedSchema, documentAsts.definitions as DefinitionNode[]);
 
   const result: DocumentNode[] = [];

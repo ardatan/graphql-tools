@@ -41,13 +41,14 @@ describe('Resolvers composition', () => {
     };
     const composedResolvers = composeResolvers(resolvers, resolversComposition);
     const schema = makeExecutableSchema({
+      // @ts-expect-error Uses graphql-js so it doesn't like us
       typeDefs,
       resolvers: composedResolvers,
     });
 
     const result = await execute({
       schema,
-
+      // @ts-expect-error Uses graphql-js so it doesn't like us
       document: gql`
         query {
           foo
@@ -81,13 +82,14 @@ describe('Resolvers composition', () => {
     };
     const composedResolvers = composeResolvers(resolvers, resolversComposition);
     const schema = makeExecutableSchema({
+      // @ts-expect-error Uses graphql-js so it doesn't like us
       typeDefs,
       resolvers: composedResolvers,
     });
 
     const result = await execute({
       schema,
-
+      // @ts-expect-error Uses graphql-js so it doesn't like us
       document: gql`
         query {
           foo
@@ -161,12 +163,14 @@ describe('Resolvers composition', () => {
     };
     const composedResolvers = composeResolvers(resolvers, resolversComposition);
     const schema = makeExecutableSchema({
+      // @ts-expect-error Uses graphql-js so it doesn't like us
       typeDefs,
       resolvers: composedResolvers,
     });
 
     const result = await execute({
       schema,
+      // @ts-expect-error Uses graphql-js so it doesn't like us
       document: gql`
         query {
           foo

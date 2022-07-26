@@ -574,6 +574,7 @@ describe('Merge TypeDefs', () => {
     });
 
     it('should merge when directive uses enum', () => {
+      // @ts-expect-error Uses graphql-js so it doesn't like us
       const merged = mergeTypeDefs([
         gql`
           directive @date(format: DateFormat) on FIELD_DEFINITION
@@ -683,6 +684,7 @@ describe('Merge TypeDefs', () => {
 
     it('should handle compiled gql correctly', () => {
       const merged = mergeTypeDefs([
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         gql`
           type Query {
             f1: String
@@ -705,6 +707,7 @@ describe('Merge TypeDefs', () => {
 
     it('should handle compiled gql and strings correctly', () => {
       const merged = mergeTypeDefs([
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         gql`
           type Query {
             f1: String
@@ -779,6 +782,7 @@ describe('Merge TypeDefs', () => {
           typeDefs: ['type Query { f1: String }'],
         }),
         'type Query { f2: String }',
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         gql`
           type Query {
             f3: String

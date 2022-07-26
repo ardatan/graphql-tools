@@ -467,8 +467,11 @@ input TestInput {
 
       const subscriptionServer = useServer(
         {
+          // @ts-expect-error Uses graphql-js so it doesn't like us
           schema: testSchema, // from the previous step
+          // @ts-expect-error Uses graphql-js so it doesn't like us
           execute,
+          // @ts-expect-error Uses graphql-js so it doesn't like us
           subscribe,
         },
         wsServer
@@ -530,8 +533,11 @@ input TestInput {
 
       const subscriptionServer = SubscriptionServer.create(
         {
+          // @ts-expect-error Uses graphql-js so it doesn't like us
           schema: testSchema,
+          // @ts-expect-error Uses graphql-js so it doesn't like us
           execute,
+          // @ts-expect-error Uses graphql-js so it doesn't like us
           subscribe,
         },
         {
@@ -593,6 +599,7 @@ input TestInput {
 
       httpServer = http.createServer(
         createHandler({
+          // @ts-expect-error Uses graphql-js so it doesn't like us
           schema: testSchema,
         })
       );
@@ -632,6 +639,7 @@ input TestInput {
         testPath,
         graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }),
         createServer({
+          // @ts-expect-error Uses graphql-js so it doesn't like us
           schema: testSchema,
         })
       );
@@ -849,6 +857,7 @@ input TestInput {
 
     it('should handle aliases properly', async () => {
       const yoga = createServer({
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         schema: testSchema,
         port: 9876,
         logging: false,

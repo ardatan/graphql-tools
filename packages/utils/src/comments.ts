@@ -11,7 +11,7 @@ import {
   TokenKind,
   NamedTypeNode,
 } from '@graphql-tools/graphql';
-import type { ASTVisitor } from 'graphql/language/visitor';
+import type { ASTVisitor } from '@graphql-tools/graphql';
 
 export type NamedDefinitionNode = DefinitionNode & { name?: NameNode };
 
