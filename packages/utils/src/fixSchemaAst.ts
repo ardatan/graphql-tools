@@ -1,4 +1,4 @@
-import { GraphQLSchema, BuildSchemaOptions, buildASTSchema } from 'graphql';
+import { GraphQLSchema, BuildSchemaOptions, buildASTSchema } from '@graphql-tools/graphql';
 import { SchemaPrintOptions } from './types.js';
 import { getDocumentNodeFromSchema } from './print-schema-with-directives.js';
 

@@ -5,7 +5,7 @@ import {
   GraphQLDirective,
   specifiedDirectives,
   extendSchema,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { IResolvers, pruneSchema } from '@graphql-tools/utils';
 

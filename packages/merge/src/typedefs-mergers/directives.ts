@@ -1,4 +1,11 @@
-import { ArgumentNode, DirectiveNode, DirectiveDefinitionNode, ListValueNode, NameNode, print } from 'graphql';
+import {
+  ArgumentNode,
+  DirectiveNode,
+  DirectiveDefinitionNode,
+  ListValueNode,
+  NameNode,
+  print,
+} from '@graphql-tools/graphql';
 import { Config } from './merge-typedefs.js';
 import { isSome } from '@graphql-tools/utils';
 

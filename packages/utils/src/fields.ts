@@ -1,4 +1,4 @@
-import { GraphQLFieldConfigMap, GraphQLObjectType, GraphQLFieldConfig, GraphQLSchema } from 'graphql';
+import { GraphQLFieldConfigMap, GraphQLObjectType, GraphQLFieldConfig, GraphQLSchema } from '@graphql-tools/graphql';
 import { MapperKind } from './Interfaces.js';
 import { mapSchema, correctASTNodes } from './mapSchema.js';
 import { addTypes } from './addTypes.js';

@@ -1,5 +1,5 @@
 import DataLoader from 'dataloader';
-import { graphql, GraphQLList, GraphQLResolveInfo, OperationTypeNode } from 'graphql';
+import { graphql, GraphQLList, GraphQLResolveInfo, OperationTypeNode } from '@graphql-tools/graphql';
 
 import { delegateToSchema } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';

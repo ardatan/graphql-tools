@@ -13,7 +13,7 @@ import {
   isInputObjectType,
   isUnionType,
   GraphQLNamedType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { collectFields, parseSelectionSet, IResolvers, IFieldResolverOptions, isSome } from '@graphql-tools/utils';
 

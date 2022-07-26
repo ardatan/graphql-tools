@@ -6,7 +6,7 @@ import {
   Source as GraphQLSource,
   print,
   lexicographicSortSchema,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import { OPERATION_KINDS } from './documents.js';
 import { mergeSchemas, MergeSchemasConfig } from '@graphql-tools/schema';
 import { Source } from '@graphql-tools/utils';

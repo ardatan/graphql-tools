@@ -1,4 +1,4 @@
-import { ExecutionResult } from 'graphql';
+import { ExecutionResult } from '@graphql-tools/graphql';
 import { inspect, isAsyncIterable } from '@graphql-tools/utils';
 import { handleAsyncIterable } from './handleAsyncIterable.js';
 import { handleReadableStream } from './handleReadableStream.js';

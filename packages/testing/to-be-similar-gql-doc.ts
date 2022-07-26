@@ -1,4 +1,4 @@
-import { ASTNode, parse, DocumentNode, DefinitionNode, print } from 'graphql';
+import { ASTNode, parse, DocumentNode, DefinitionNode, print } from '@graphql-tools/graphql';
 import { compareNodes } from '@graphql-tools/utils';
 import { diff } from 'jest-diff';
 

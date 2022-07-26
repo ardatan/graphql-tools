@@ -11,7 +11,7 @@ import {
   ObjectTypeExtensionNode,
   parse,
   SchemaDefinitionNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import { stitchingDirectives, StitchingDirectivesResult } from './stitchingDirectives.js';
 
 const extensionKind = /Extension$/;

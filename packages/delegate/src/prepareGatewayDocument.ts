@@ -16,7 +16,7 @@ import {
   GraphQLOutputType,
   isObjectType,
   FieldNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { implementsAbstractType, getRootTypeNames, memoize2, ASTVisitorKeyMap } from '@graphql-tools/utils';
 

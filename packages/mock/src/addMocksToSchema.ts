@@ -7,7 +7,7 @@ import {
   GraphQLUnionType,
   GraphQLInterfaceType,
   isSchema,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import { mapSchema, MapperKind, IResolvers } from '@graphql-tools/utils';
 import { addResolversToSchema } from '@graphql-tools/schema';
 import { isRef, IMockStore, IMocks, TypePolicy } from './types.js';

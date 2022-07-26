@@ -11,7 +11,7 @@ import {
   concatAST,
   DocumentNode,
   versionInfo,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import { Source } from './loaders.js';
 import { AggregateError } from './AggregateError.js';
 

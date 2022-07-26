@@ -1,4 +1,4 @@
-import { GraphQLScalarType } from 'graphql';
+import { GraphQLScalarType } from '@graphql-tools/graphql';
 import { createGraphQLError } from '@graphql-tools/utils';
 
 const GraphQLUpload = new GraphQLScalarType({

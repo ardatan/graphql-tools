@@ -1,4 +1,4 @@
-import { parse, print } from 'graphql';
+import { parse, print } from '@graphql-tools/graphql';
 import { removeDescriptions } from '../src/index.js';
 
 describe('removeDescription', () => {

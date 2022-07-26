@@ -24,7 +24,7 @@ import {
   isUnionType,
   isSpecifiedScalarType,
   isSpecifiedDirective,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { getBuiltInForStub, isNamedStub } from './stub.js';
 

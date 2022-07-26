@@ -11,7 +11,7 @@ import {
   isCompositeType,
   isNullableType,
   isInterfaceType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import stringify from 'fast-json-stable-stringify';
 
 import {

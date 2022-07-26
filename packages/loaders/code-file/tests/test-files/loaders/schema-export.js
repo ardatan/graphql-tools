@@ -1,4 +1,4 @@
-var graphql = require('graphql');
+var graphql = require('@graphql-tools/graphql');
 
 var schema = new graphql.GraphQLSchema({
   query: new graphql.GraphQLObjectType({

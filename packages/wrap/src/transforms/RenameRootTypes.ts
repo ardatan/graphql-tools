@@ -1,4 +1,4 @@
-import { visit, GraphQLSchema, NamedTypeNode, Kind } from 'graphql';
+import { visit, GraphQLSchema, NamedTypeNode, Kind } from '@graphql-tools/graphql';
 
 import { ExecutionRequest, ExecutionResult, MapperKind, mapSchema, renameType, visitData } from '@graphql-tools/utils';
 

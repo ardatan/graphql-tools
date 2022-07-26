@@ -22,7 +22,7 @@ import {
   isNonNullType,
   isScalarType,
   printSchema,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { MapperKind, mapSchema, getDirectives, getDirective } from '../src/index.js';

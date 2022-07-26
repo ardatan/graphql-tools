@@ -1,4 +1,4 @@
-const { buildSchema } = require('graphql');
+const { buildSchema } = require('@graphql-tools/graphql');
 
 module.exports = buildSchema(`
   type Query {

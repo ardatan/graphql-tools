@@ -1,4 +1,4 @@
-import { GraphQLSchema, isObjectType } from 'graphql';
+import { GraphQLSchema, isObjectType } from '@graphql-tools/graphql';
 
 export function getImplementingTypes(interfaceName: string, schema: GraphQLSchema): string[] {
   const allTypesMap = schema.getTypeMap();

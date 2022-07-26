@@ -32,7 +32,7 @@ import {
   UnionTypeExtensionNode,
   EnumTypeExtensionNode,
   ScalarTypeExtensionNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { mergeType, mergeInputType, mergeInterface, mergeUnion, mergeEnum, mergeScalar } from '@graphql-tools/merge';
 

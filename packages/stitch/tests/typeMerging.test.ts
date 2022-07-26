@@ -1,7 +1,7 @@
 // The below is meant to be an alternative canonical schema stitching example
 // which relies on type merging.
 
-import { graphql, OperationTypeNode } from 'graphql';
+import { graphql, OperationTypeNode } from '@graphql-tools/graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 

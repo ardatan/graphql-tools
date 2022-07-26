@@ -47,7 +47,7 @@ import {
   DefinitionNode,
   DocumentNode,
   StringValueNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import { GetDocumentNodeFromSchemaOptions, PrintSchemaWithDirectivesOptions, Maybe } from './types.js';
 
 import { astFromType } from './astFromType.js';

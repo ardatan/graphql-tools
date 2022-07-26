@@ -6,7 +6,7 @@ import {
   PruneSchemaOptions,
 } from '@graphql-tools/utils';
 import { SchemaExtensions } from '@graphql-tools/merge';
-import { BuildSchemaOptions } from 'graphql';
+import { BuildSchemaOptions } from '@graphql-tools/graphql';
 
 /**
  * Configuration object for creating an executable schema

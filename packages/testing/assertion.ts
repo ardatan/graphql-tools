@@ -14,7 +14,7 @@ import {
   ObjectTypeDefinitionNode,
   ScalarTypeDefinitionNode,
   UnionTypeDefinitionNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 export function assertGraphQLObjectType(input: unknown): asserts input is GraphQLObjectType {
   if (input instanceof GraphQLObjectType) {

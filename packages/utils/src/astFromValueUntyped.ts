@@ -1,4 +1,4 @@
-import { Kind, ObjectFieldNode, ValueNode } from 'graphql';
+import { Kind, ObjectFieldNode, ValueNode } from '@graphql-tools/graphql';
 
 /**
  * Produces a GraphQL Value AST given a JavaScript object.

@@ -1,6 +1,6 @@
 /* eslint-disable no-case-declarations */
 /// <reference lib="dom" />
-import { print, IntrospectionOptions, GraphQLError, buildASTSchema, buildSchema } from 'graphql';
+import { print, IntrospectionOptions, GraphQLError, buildASTSchema, buildSchema } from '@graphql-tools/graphql';
 
 import {
   AsyncExecutor,

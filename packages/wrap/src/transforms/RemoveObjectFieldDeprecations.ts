@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
+import { GraphQLSchema, GraphQLFieldConfig } from '@graphql-tools/graphql';
 
 import { valueMatchesCriteria } from '@graphql-tools/utils';
 

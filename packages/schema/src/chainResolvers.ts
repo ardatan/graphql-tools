@@ -1,4 +1,4 @@
-import { defaultFieldResolver, GraphQLResolveInfo, GraphQLFieldResolver } from 'graphql';
+import { defaultFieldResolver, GraphQLResolveInfo, GraphQLFieldResolver } from '@graphql-tools/graphql';
 import { Maybe } from '@graphql-tools/utils';
 
 export function chainResolvers<TArgs extends { [argName: string]: any }>(

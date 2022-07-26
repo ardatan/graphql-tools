@@ -1,5 +1,5 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { execute, parse } from 'graphql';
+import { execute, parse } from '@graphql-tools/graphql';
 import { handleRelaySubschemas, stitchSchemas } from '../src/index.js';
 
 const users = [

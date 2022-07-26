@@ -1,5 +1,5 @@
 import { parseSelectionSet } from '@graphql-tools/utils';
-import { SelectionSetNode, SelectionNode, FieldNode, Kind } from 'graphql';
+import { SelectionSetNode, SelectionNode, FieldNode, Kind } from '@graphql-tools/graphql';
 
 export const forwardArgsToSelectionSet: (
   selectionSet: string,

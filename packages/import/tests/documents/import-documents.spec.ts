@@ -1,6 +1,6 @@
 import '../../../testing/to-be-similar-gql-doc';
 import { processImport, VisitedFilesMap } from '../../src/index.js';
-import { print } from 'graphql';
+import { print } from '@graphql-tools/graphql';
 import { relative } from 'path';
 
 const importDocuments = (documentPath: string) => print(processImport(documentPath, __dirname));

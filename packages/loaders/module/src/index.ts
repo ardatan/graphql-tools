@@ -1,4 +1,4 @@
-import { DocumentNode, GraphQLSchema, isSchema } from 'graphql';
+import { DocumentNode, GraphQLSchema, isSchema } from '@graphql-tools/graphql';
 import { Loader, Source } from '@graphql-tools/utils';
 import { existsSync, promises as fsPromises } from 'fs';
 

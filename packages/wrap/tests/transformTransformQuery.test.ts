@@ -1,4 +1,4 @@
-import { execute, GraphQLSchema, Kind, OperationTypeNode, parse } from 'graphql';
+import { execute, GraphQLSchema, Kind, OperationTypeNode, parse } from '@graphql-tools/graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { TransformQuery } from '@graphql-tools/wrap';
 import { QueryTransformer } from '@graphql-tools/wrap/src/transforms/TransformQuery';

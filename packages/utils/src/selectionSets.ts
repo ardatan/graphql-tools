@@ -1,4 +1,4 @@
-import { OperationDefinitionNode, SelectionSetNode, parse } from 'graphql';
+import { OperationDefinitionNode, SelectionSetNode, parse } from '@graphql-tools/graphql';
 import { GraphQLParseOptions } from './Interfaces.js';
 
 export function parseSelectionSet(selectionSet: string, options?: GraphQLParseOptions): SelectionSetNode {

@@ -1,4 +1,4 @@
-import { parse, ASTNode } from 'graphql';
+import { parse, ASTNode } from '@graphql-tools/graphql';
 
 export const asArray = <T>(fns: T | T[]) => (Array.isArray(fns) ? fns : fns ? [fns] : []);
 

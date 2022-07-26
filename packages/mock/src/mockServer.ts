@@ -1,5 +1,5 @@
 import { TypeSource } from '@graphql-tools/utils';
-import { isSchema, graphql } from 'graphql';
+import { isSchema, graphql } from '@graphql-tools/graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from './addMocksToSchema.js';
 import { IMockServer, IMocks } from './types.js';

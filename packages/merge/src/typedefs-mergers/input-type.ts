@@ -1,5 +1,10 @@
 import { Config } from './merge-typedefs.js';
-import { InputObjectTypeDefinitionNode, InputValueDefinitionNode, InputObjectTypeExtensionNode, Kind } from 'graphql';
+import {
+  InputObjectTypeDefinitionNode,
+  InputValueDefinitionNode,
+  InputObjectTypeExtensionNode,
+  Kind,
+} from '@graphql-tools/graphql';
 import { mergeFields } from './fields.js';
 import { mergeDirectives } from './directives.js';
 

@@ -1,5 +1,5 @@
 import { Source, isDocumentString, parseGraphQLSDL, getDocumentNodeFromSchema, asArray } from '@graphql-tools/utils';
-import { isSchema, Kind } from 'graphql';
+import { isSchema, Kind } from '@graphql-tools/graphql';
 import { LoadTypedefsOptions } from '../load-typedefs.js';
 import { loadFile, loadFileSync } from './load-file.js';
 import { stringToHash, useStack, StackNext, StackFn } from '../utils/helpers.js';

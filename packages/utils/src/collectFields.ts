@@ -13,7 +13,7 @@ import {
   GraphQLIncludeDirective,
   isAbstractType,
   typeFromAST,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 // Taken from GraphQL-JS v16 for backwards compat
 export function collectFields(

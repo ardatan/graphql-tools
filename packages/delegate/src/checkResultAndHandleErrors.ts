@@ -1,4 +1,10 @@
-import { GraphQLResolveInfo, GraphQLOutputType, GraphQLError, responsePathAsArray, locatedError } from 'graphql';
+import {
+  GraphQLResolveInfo,
+  GraphQLOutputType,
+  GraphQLError,
+  responsePathAsArray,
+  locatedError,
+} from '@graphql-tools/graphql';
 
 import { AggregateError, getResponseKeyFromInfo, ExecutionResult, relocatedError } from '@graphql-tools/utils';
 

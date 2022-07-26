@@ -6,7 +6,7 @@ import {
   SchemaDefinitionNode,
   TypeDefinitionNode,
   DirectiveDefinitionNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 export function extractDefinitions(ast: DocumentNode) {
   const typeDefinitions: TypeDefinitionNode[] = [];

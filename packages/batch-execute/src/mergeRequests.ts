@@ -13,7 +13,7 @@ import {
   VariableNode,
   InlineFragmentNode,
   FieldNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { ExecutionRequest, getOperationASTFromRequest } from '@graphql-tools/utils';
 

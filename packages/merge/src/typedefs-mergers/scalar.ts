@@ -1,4 +1,4 @@
-import { Kind, ScalarTypeDefinitionNode, ScalarTypeExtensionNode } from 'graphql';
+import { Kind, ScalarTypeDefinitionNode, ScalarTypeExtensionNode } from '@graphql-tools/graphql';
 import { mergeDirectives } from './directives.js';
 import { Config } from './merge-typedefs.js';
 

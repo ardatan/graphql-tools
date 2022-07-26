@@ -1,4 +1,4 @@
-import { buildSchema, graphql } from 'graphql';
+import { buildSchema, graphql } from '@graphql-tools/graphql';
 import { addMocksToSchema, assertIsRef, createMockStore, isRef } from '../src/index.js';
 
 const typeDefs = /* GraphQL */ `

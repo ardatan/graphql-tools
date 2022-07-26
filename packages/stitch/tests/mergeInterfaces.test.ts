@@ -1,4 +1,4 @@
-import { graphql } from 'graphql';
+import { graphql } from '@graphql-tools/graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '../src/stitchSchemas.js';
 import { assertSome } from '@graphql-tools/utils';

@@ -1,5 +1,5 @@
 import { transformCommentsToDescriptions, parseGraphQLSDL } from '../src/parse-graphql-sdl.js';
-import { Kind, print, ObjectTypeDefinitionNode } from 'graphql';
+import { Kind, print, ObjectTypeDefinitionNode } from '@graphql-tools/graphql';
 
 describe('parse sdl', () => {
   describe('parseGraphQLSDL', () => {

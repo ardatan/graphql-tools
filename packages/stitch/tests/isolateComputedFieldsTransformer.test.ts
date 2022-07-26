@@ -1,7 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { isolateComputedFieldsTransformer } from '@graphql-tools/stitch';
 import { Subschema } from '@graphql-tools/delegate';
-import { GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
+import { GraphQLObjectType, GraphQLInterfaceType } from '@graphql-tools/graphql';
 import { assertSome } from '@graphql-tools/utils';
 
 describe('isolateComputedFieldsTransformer', () => {

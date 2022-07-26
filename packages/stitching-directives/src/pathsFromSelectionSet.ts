@@ -1,4 +1,4 @@
-import { Kind, SelectionNode, SelectionSetNode } from 'graphql';
+import { Kind, SelectionNode, SelectionSetNode } from '@graphql-tools/graphql';
 
 export function pathsFromSelectionSet(selectionSet: SelectionSetNode, path: Array<string> = []): Array<Array<string>> {
   const paths: Array<Array<string>> = [];

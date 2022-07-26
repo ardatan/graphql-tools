@@ -1,4 +1,4 @@
-import { GraphQLInputType, ArgumentNode, VariableDefinitionNode, Kind } from 'graphql';
+import { GraphQLInputType, ArgumentNode, VariableDefinitionNode, Kind } from '@graphql-tools/graphql';
 
 import { astFromType } from './astFromType.js';
 

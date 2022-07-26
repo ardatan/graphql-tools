@@ -1,4 +1,4 @@
-import type { ExecutionResult, GraphQLError } from 'graphql';
+import type { ExecutionResult, GraphQLError } from '@graphql-tools/graphql';
 import type { IncomingMessage } from 'http';
 import { meros as merosIncomingMessage } from 'meros/node';
 import { meros as merosReadableStream } from 'meros/browser';

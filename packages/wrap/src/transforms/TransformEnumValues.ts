@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLEnumValueConfig, ExecutionResult } from 'graphql';
+import { GraphQLSchema, GraphQLEnumValueConfig, ExecutionResult } from '@graphql-tools/graphql';
 
 import { ExecutionRequest, MapperKind, mapSchema, Maybe } from '@graphql-tools/utils';
 

@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLInputFieldConfig } from 'graphql';
+import { GraphQLSchema, GraphQLInputFieldConfig } from '@graphql-tools/graphql';
 
 import { ExecutionRequest, InputFieldFilter } from '@graphql-tools/utils';
 

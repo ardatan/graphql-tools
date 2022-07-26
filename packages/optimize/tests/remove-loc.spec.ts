@@ -1,4 +1,4 @@
-import { parse, print } from 'graphql';
+import { parse, print } from '@graphql-tools/graphql';
 import { removeLoc } from '../src/optimizers/remove-loc.js';
 
 describe('removeLoc', () => {

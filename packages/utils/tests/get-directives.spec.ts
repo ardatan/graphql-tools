@@ -1,7 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { getDirectives } from '../src/index.js';
 import { assertGraphQLObjectType } from '../../testing/assertion.js';
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from '@graphql-tools/graphql';
 
 describe('getDirectives', () => {
   it('should return the correct directives when no directives specified', () => {

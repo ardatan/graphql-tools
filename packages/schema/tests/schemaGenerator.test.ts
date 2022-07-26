@@ -17,7 +17,7 @@ import {
   GraphQLBoolean,
   graphqlSync,
   GraphQLFieldResolver,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { makeExecutableSchema, addResolversToSchema, chainResolvers } from '@graphql-tools/schema';
 

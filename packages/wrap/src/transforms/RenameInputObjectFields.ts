@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLInputFieldConfig, ObjectFieldNode } from 'graphql';
+import { GraphQLSchema, GraphQLInputFieldConfig, ObjectFieldNode } from '@graphql-tools/graphql';
 
 import { ExecutionRequest, mapSchema, MapperKind } from '@graphql-tools/utils';
 

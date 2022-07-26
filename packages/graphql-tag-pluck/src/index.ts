@@ -4,7 +4,7 @@ import { getExtNameFromFilePath } from './libs/extname.js';
 import createVisitor, { PluckedContent } from './visitor.js';
 import traversePkg from '@babel/traverse';
 import { freeText } from './utils.js';
-import { Source } from 'graphql';
+import { Source } from '@graphql-tools/graphql';
 
 function getDefault<T>(module: T & { default?: T }): T {
   return module.default || module;

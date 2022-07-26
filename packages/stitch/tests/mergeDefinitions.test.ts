@@ -2,7 +2,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { getDirective } from '@graphql-tools/utils';
 import { stitchingDirectives } from '@graphql-tools/stitching-directives';
-import { GraphQLObjectType, graphql } from 'graphql';
+import { GraphQLObjectType, graphql } from '@graphql-tools/graphql';
 import {
   assertGraphQLEnumType,
   assertGraphQLInputObjectType,

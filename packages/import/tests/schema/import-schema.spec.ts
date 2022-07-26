@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import '../../../testing/to-be-similar-gql-doc';
 import { parseImportLine, processImport } from '../../src/index.js';
 import { mergeTypeDefs } from '@graphql-tools/merge';
-import { Kind, print } from 'graphql';
+import { Kind, print } from '@graphql-tools/graphql';
 
 const importSchema = (schema: string, schemas?: Record<string, string>) => {
   const document = processImport(schema, __dirname, schemas);

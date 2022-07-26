@@ -1,4 +1,4 @@
-import { SelectionSetNode, TypeNameMetaFieldDef } from 'graphql';
+import { SelectionSetNode, TypeNameMetaFieldDef } from '@graphql-tools/graphql';
 
 import { MappingInstruction } from './types.js';
 

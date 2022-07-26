@@ -19,7 +19,7 @@ import {
   isLeafType,
   isListType,
   isNonNullType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 // Update any references to named schema types that disagree with the named
 // types found in schema.getTypeMap().

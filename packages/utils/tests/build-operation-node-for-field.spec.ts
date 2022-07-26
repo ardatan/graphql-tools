@@ -1,4 +1,4 @@
-import { print, parse, buildSchema, ASTNode, OperationTypeNode } from 'graphql';
+import { print, parse, buildSchema, ASTNode, OperationTypeNode } from '@graphql-tools/graphql';
 
 import { buildOperationNodeForField } from '../src/build-operation-for-field.js';
 

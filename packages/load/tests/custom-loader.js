@@ -1,4 +1,4 @@
-const { parse, buildSchema } = require('graphql');
+const { parse, buildSchema } = require('@graphql-tools/graphql');
 
 module.exports = function (_, { customLoaderContext: { loaderType }, fooFieldName }) {
   if (loaderType === 'documents') {

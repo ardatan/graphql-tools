@@ -1,5 +1,12 @@
 import { PubSub } from 'graphql-subscriptions';
-import { GraphQLSchema, Kind, GraphQLScalarType, ValueNode, GraphQLResolveInfo, GraphQLInterfaceType } from 'graphql';
+import {
+  GraphQLSchema,
+  Kind,
+  GraphQLScalarType,
+  ValueNode,
+  GraphQLResolveInfo,
+  GraphQLInterfaceType,
+} from '@graphql-tools/graphql';
 
 import { introspectSchema } from '@graphql-tools/wrap';
 import { AsyncExecutor, createGraphQLError, IResolvers } from '@graphql-tools/utils';

@@ -10,7 +10,7 @@ import {
   GraphQLInputObjectType,
   GraphQLEnumValueConfig,
   GraphQLEnumType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import { Maybe, TypeSource } from '@graphql-tools/utils';
 import { Subschema, SubschemaConfig } from '@graphql-tools/delegate';
 import { IExecutableSchemaDefinition } from '@graphql-tools/schema';

@@ -1,7 +1,7 @@
 import { wrapSchema, RenameRootTypes } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
-import { graphql } from 'graphql';
+import { graphql } from '@graphql-tools/graphql';
 
 describe('RenameRootTypes', () => {
   test('should work', async () => {

@@ -1,4 +1,4 @@
-import { GraphQLObjectType, isObjectType, isInterfaceType } from 'graphql';
+import { GraphQLObjectType, isObjectType, isInterfaceType } from '@graphql-tools/graphql';
 
 import { SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 

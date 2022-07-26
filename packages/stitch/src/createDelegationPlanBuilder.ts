@@ -7,7 +7,7 @@ import {
   getNamedType,
   GraphQLSchema,
   FragmentDefinitionNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { DelegationPlanBuilder, MergedTypeInfo, StitchingInfo, Subschema } from '@graphql-tools/delegate';
 

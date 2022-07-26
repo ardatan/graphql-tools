@@ -13,7 +13,7 @@ import {
   getOperationAST,
   GraphQLSchema,
   graphqlSync,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 import { readFileSync } from 'fs';

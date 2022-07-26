@@ -14,7 +14,7 @@ import {
   Kind,
   execute,
   OperationTypeNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import {
   wrapSchema,

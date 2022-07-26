@@ -1,5 +1,5 @@
 import os from 'os';
-import { isExecutableDefinitionNode, Kind, DocumentNode } from 'graphql';
+import { isExecutableDefinitionNode, Kind, DocumentNode } from '@graphql-tools/graphql';
 import { uniqueCode } from '@graphql-tools/webpack-loader-runtime';
 import { parseDocument } from './parser.js';
 import { optimizeDocumentNode, removeDescriptions, removeEmptyNodes } from '@graphql-tools/optimize';

@@ -12,7 +12,7 @@ import {
   GraphQLNonNull,
   GraphQLID,
   GraphQLList,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import { printSchemaWithDirectives } from '../src/index.js';
 import { GraphQLJSON } from 'graphql-scalars';
 

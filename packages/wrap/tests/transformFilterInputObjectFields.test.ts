@@ -1,6 +1,6 @@
 import { wrapSchema, FilterInputObjectFields } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { graphql, astFromValue, Kind, GraphQLString, parse, execute } from 'graphql';
+import { graphql, astFromValue, Kind, GraphQLString, parse, execute } from '@graphql-tools/graphql';
 import { assertSome } from '@graphql-tools/utils';
 
 describe('FilterInputObjectFields', () => {

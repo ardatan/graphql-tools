@@ -18,7 +18,7 @@ import {
   GraphQLEnumType,
   GraphQLEnumValue,
   GraphQLInterfaceType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import { Maybe, mergeDeep } from '@graphql-tools/utils';
 
 export type ExtensionsObject = Record<string, any>;

@@ -1,4 +1,4 @@
-import { DocumentNode, GraphQLSchema } from 'graphql';
+import { DocumentNode, GraphQLSchema } from '@graphql-tools/graphql';
 import { pickExportFromModule, pickExportFromModuleSync } from './exports.js';
 
 /**

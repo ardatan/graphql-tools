@@ -1,5 +1,5 @@
 import { IFieldResolver } from '@graphql-tools/utils';
-import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolveInfo } from '@graphql-tools/graphql';
 import { IMockStore, Ref } from './types.js';
 import { isRootType, makeRef } from './utils.js';
 

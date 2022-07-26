@@ -2,12 +2,12 @@ diff --git a/node_modules/@n1ru4l/in-memory-live-query-store/index.js b/node_mod
 index 92f82df..a2cdd2b 100644
 --- a/node_modules/@n1ru4l/in-memory-live-query-store/index.js
 +++ b/node_modules/@n1ru4l/in-memory-live-query-store/index.js
-@@ -6,7 +6,7 @@ const graphql = require('graphql');
+@@ -6,7 +6,7 @@ const graphql = require('@graphql-tools/graphql')
  const utils = require('@graphql-tools/utils');
  const repeater = require('@repeaterjs/repeater');
  const graphqlLiveQuery = require('@n1ru4l/graphql-live-query');
 -const values_js = require('graphql/execution/values.js');
 +const values_js = require('graphql/execution/values');
- 
+
  const isSome = (input) => input != null;
  const isNone = (input) => input == null;

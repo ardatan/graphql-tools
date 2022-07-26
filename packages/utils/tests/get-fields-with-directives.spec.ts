@@ -1,4 +1,4 @@
-import { parse } from 'graphql';
+import { parse } from '@graphql-tools/graphql';
 import { getFieldsWithDirectives } from '../src/index.js';
 
 describe('getFieldsWithDirectives', () => {

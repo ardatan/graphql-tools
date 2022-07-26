@@ -1,4 +1,4 @@
-import { GraphQLError, GraphQLResolveInfo, locatedError, graphql, OperationTypeNode } from 'graphql';
+import { GraphQLError, GraphQLResolveInfo, locatedError, graphql, OperationTypeNode } from '@graphql-tools/graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createGraphQLError, ExecutionResult } from '@graphql-tools/utils';

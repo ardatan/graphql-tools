@@ -1,4 +1,4 @@
-import { DocumentNode, DefinitionNode, Kind } from 'graphql';
+import { DocumentNode, DefinitionNode, Kind } from '@graphql-tools/graphql';
 import { env } from 'process';
 
 /**

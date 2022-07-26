@@ -1,4 +1,4 @@
-import { print, parse } from 'graphql';
+import { print, parse } from '@graphql-tools/graphql';
 import { parseDocument } from '../src/parser.js';
 
 test('basic query', () => {

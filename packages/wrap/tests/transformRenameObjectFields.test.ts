@@ -1,6 +1,6 @@
 import { wrapSchema, RenameObjectFields } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { graphql } from 'graphql';
+import { graphql } from '@graphql-tools/graphql';
 
 describe('RenameObjectFields', () => {
   test('works', async () => {

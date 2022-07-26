@@ -9,7 +9,7 @@ import {
   SelectionSetNode,
   SelectionNode,
   FragmentDefinitionNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { ExecutionRequest, MapperKind, mapSchema, visitData, ExecutionResult, Maybe } from '@graphql-tools/utils';
 

@@ -15,7 +15,7 @@ import {
   GraphQLNonNull,
   GraphQLOutputType,
   GraphQLInputType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 export function createNamedStub(name: string, type: 'object'): GraphQLObjectType;
 export function createNamedStub(name: string, type: 'interface'): GraphQLInterfaceType;

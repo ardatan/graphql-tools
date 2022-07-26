@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { graphql } from 'graphql';
+import { graphql } from '@graphql-tools/graphql';
 import { assertSome } from '@graphql-tools/utils';
 
 const productSchema = makeExecutableSchema({

@@ -1,4 +1,4 @@
-import { visit, Kind, SelectionSetNode, FragmentDefinitionNode, GraphQLError } from 'graphql';
+import { visit, Kind, SelectionSetNode, FragmentDefinitionNode, GraphQLError } from '@graphql-tools/graphql';
 
 import { ExecutionRequest, ExecutionResult, relocatedError } from '@graphql-tools/utils';
 

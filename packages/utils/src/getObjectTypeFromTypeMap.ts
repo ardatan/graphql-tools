@@ -1,4 +1,4 @@
-import { GraphQLNamedType, GraphQLObjectType, isObjectType } from 'graphql';
+import { GraphQLNamedType, GraphQLObjectType, isObjectType } from '@graphql-tools/graphql';
 
 import { Maybe } from './types.js';
 

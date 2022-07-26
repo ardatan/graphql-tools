@@ -8,7 +8,7 @@ import {
   isObjectType,
   isUnionType,
   parseValue,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import {
   getDirective,

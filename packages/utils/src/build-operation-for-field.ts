@@ -26,7 +26,7 @@ import {
   isInterfaceType,
   isEnumType,
   Kind,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { getDefinedRootType, getRootTypeNames } from './rootTypes.js';
 

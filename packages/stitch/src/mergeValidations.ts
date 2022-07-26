@@ -10,7 +10,7 @@ import {
   isListType,
   isScalarType,
   GraphQLType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import {
   MergeTypeCandidate,

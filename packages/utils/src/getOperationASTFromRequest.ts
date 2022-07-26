@@ -1,4 +1,4 @@
-import { DocumentNode, getOperationAST, OperationDefinitionNode } from 'graphql';
+import { DocumentNode, getOperationAST, OperationDefinitionNode } from '@graphql-tools/graphql';
 import { ExecutionRequest } from './Interfaces.js';
 import { memoize1 } from './memoize.js';
 

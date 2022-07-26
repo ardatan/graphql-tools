@@ -1,4 +1,11 @@
-import { GraphQLSchema, GraphQLScalarType, Kind, SelectionSetNode, graphql, OperationTypeNode } from 'graphql';
+import {
+  GraphQLSchema,
+  GraphQLScalarType,
+  Kind,
+  SelectionSetNode,
+  graphql,
+  OperationTypeNode,
+} from '@graphql-tools/graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 

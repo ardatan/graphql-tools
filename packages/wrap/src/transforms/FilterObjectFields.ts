@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
+import { GraphQLSchema, GraphQLFieldConfig } from '@graphql-tools/graphql';
 
 import { ObjectFieldFilter } from '@graphql-tools/utils';
 

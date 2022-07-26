@@ -1,4 +1,4 @@
-import { print, parse } from 'graphql';
+import { print, parse } from '@graphql-tools/graphql';
 import { DelegationContext } from '@graphql-tools/delegate';
 import { bookingSchema, propertySchema } from '../../testing/fixtures/schemas.js';
 import { finalizeGatewayRequest } from '../src/finalizeGatewayRequest.js';

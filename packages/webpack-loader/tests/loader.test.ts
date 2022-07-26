@@ -1,5 +1,5 @@
 import '../../testing/to-be-similar-string';
-import { print, parse } from 'graphql';
+import { print, parse } from '@graphql-tools/graphql';
 import { uniqueCode } from '@graphql-tools/webpack-loader-runtime';
 import loader from '../src/index.js';
 

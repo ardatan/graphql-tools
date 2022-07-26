@@ -1,4 +1,4 @@
-import { graphql, Kind, GraphQLError, OperationTypeNode } from 'graphql';
+import { graphql, Kind, GraphQLError, OperationTypeNode } from '@graphql-tools/graphql';
 
 import { createRequest } from '../src/createRequest.js';
 import { makeExecutableSchema } from '@graphql-tools/schema';

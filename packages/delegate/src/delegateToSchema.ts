@@ -8,7 +8,7 @@ import {
   ExecutionArgs,
   subscribe,
   execute,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { ValueOrPromise } from 'value-or-promise';
 

@@ -1,4 +1,4 @@
-import { graphql } from 'graphql';
+import { graphql } from '@graphql-tools/graphql';
 
 import { wrapSchema } from '../src/index.js';
 import { makeExecutableSchema } from '@graphql-tools/schema';

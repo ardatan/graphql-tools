@@ -1,4 +1,4 @@
-import { buildSchema, GraphQLSchema, printSchema, buildASTSchema, parse } from 'graphql';
+import { buildSchema, GraphQLSchema, printSchema, buildASTSchema, parse } from '@graphql-tools/graphql';
 import {
   assertGraphQLEnumType,
   assertGraphQLInputObjectType,

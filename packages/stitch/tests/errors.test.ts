@@ -1,4 +1,4 @@
-import { graphql, GraphQLError, buildSchema } from 'graphql';
+import { graphql, GraphQLError, buildSchema } from '@graphql-tools/graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';

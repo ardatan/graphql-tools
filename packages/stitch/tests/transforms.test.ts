@@ -1,4 +1,4 @@
-import { graphql, assertValidSchema } from 'graphql';
+import { graphql, assertValidSchema } from '@graphql-tools/graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { wrapSchema, RenameRootTypes, FilterObjectFields } from '@graphql-tools/wrap';

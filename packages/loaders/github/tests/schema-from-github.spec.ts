@@ -1,4 +1,4 @@
-import { printSchema, buildSchema, parse, print } from 'graphql';
+import { printSchema, buildSchema, parse, print } from '@graphql-tools/graphql';
 import { GithubLoader } from '../src/index.js';
 import { Response } from 'sync-fetch';
 

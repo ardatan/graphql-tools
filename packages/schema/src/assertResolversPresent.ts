@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLField, getNamedType, isScalarType } from 'graphql';
+import { GraphQLSchema, GraphQLField, getNamedType, isScalarType } from '@graphql-tools/graphql';
 
 import { IResolverValidationOptions, forEachField, ValidatorBehavior } from '@graphql-tools/utils';
 

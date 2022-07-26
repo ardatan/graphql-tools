@@ -1,5 +1,5 @@
 import { Config } from './merge-typedefs.js';
-import { DefinitionNode, Kind, SchemaDefinitionNode, SchemaExtensionNode } from 'graphql';
+import { DefinitionNode, Kind, SchemaDefinitionNode, SchemaExtensionNode } from '@graphql-tools/graphql';
 import { mergeType } from './type.js';
 import { mergeEnum } from './enum.js';
 import { mergeScalar } from './scalar.js';

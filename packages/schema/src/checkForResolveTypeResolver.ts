@@ -1,4 +1,4 @@
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from '@graphql-tools/graphql';
 
 import { MapperKind, mapSchema, ValidatorBehavior } from '@graphql-tools/utils';
 

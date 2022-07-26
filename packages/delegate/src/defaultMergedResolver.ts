@@ -1,4 +1,4 @@
-import { defaultFieldResolver, GraphQLResolveInfo } from 'graphql';
+import { defaultFieldResolver, GraphQLResolveInfo } from '@graphql-tools/graphql';
 
 import { getResponseKeyFromInfo } from '@graphql-tools/utils';
 

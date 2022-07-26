@@ -1,4 +1,4 @@
-import { GraphQLSchema, FieldNode, GraphQLObjectType, FragmentDefinitionNode } from 'graphql';
+import { GraphQLSchema, FieldNode, GraphQLObjectType, FragmentDefinitionNode } from '@graphql-tools/graphql';
 
 import { StitchingInfo } from '@graphql-tools/delegate';
 import { collectSubFields } from '@graphql-tools/utils';
