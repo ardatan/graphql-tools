@@ -7,7 +7,7 @@ import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
-import { buildSchema, execute, GraphQLSchema, parse } from 'graphql';
+import { buildSchema, execute, GraphQLSchema, parse } from '@graphql-tools/graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
@@ -104,6 +104,7 @@ describe('graphql upload', () => {
     const remoteApp = express().use(
       graphqlUploadExpress(),
       // Yoga causes leak, so we are removing that for now
+      // @ts-expect-error Uses graphql-js so it doesn't like us
       getBasicGraphQLMiddleware(remoteSchema)
     );
 
@@ -136,6 +137,7 @@ describe('graphql upload', () => {
       },
     });
 
+    // @ts-expect-error Uses graphql-js so it doesn't like us
     const gatewayApp = express().use(graphqlUploadExpress(), getBasicGraphQLMiddleware(gatewaySchema));
 
     gatewayServer = await startServer(gatewayApp);

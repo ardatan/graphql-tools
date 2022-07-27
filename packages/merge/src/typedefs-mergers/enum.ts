@@ -1,4 +1,4 @@
-import { EnumTypeDefinitionNode, EnumTypeExtensionNode, Kind } from 'graphql';
+import { EnumTypeDefinitionNode, EnumTypeExtensionNode, Kind } from '@graphql-tools/graphql';
 import { mergeDirectives } from './directives.js';
 import { mergeEnumValues } from './enum-values.js';
 import { Config } from './merge-typedefs.js';

@@ -14,7 +14,7 @@ import {
   TypeNameMetaFieldDef,
   FragmentDefinitionNode,
   SchemaMetaFieldDef,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import { collectFields, collectSubFields } from './collectFields.js';
 
 import { ExecutionRequest, ExecutionResult } from './Interfaces.js';

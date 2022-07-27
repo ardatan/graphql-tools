@@ -5,7 +5,7 @@ import {
   graphql,
   GraphQLObjectType,
   GraphQLFieldConfigMap,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { mapSchema, MapperKind, addTypes, modifyObjectFields, assertSome } from '@graphql-tools/utils';
 import { wrapSchema, RenameTypes } from '../src/index.js';

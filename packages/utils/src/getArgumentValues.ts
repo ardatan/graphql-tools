@@ -8,7 +8,7 @@ import {
   Kind,
   print,
   ArgumentNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import { createGraphQLError } from './errors.js';
 
 import { inspect } from './inspect.js';

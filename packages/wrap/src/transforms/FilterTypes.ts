@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLNamedType } from 'graphql';
+import { GraphQLSchema, GraphQLNamedType } from '@graphql-tools/graphql';
 
 import { mapSchema, MapperKind } from '@graphql-tools/utils';
 

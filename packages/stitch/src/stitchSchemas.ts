@@ -1,4 +1,10 @@
-import { GraphQLObjectType, GraphQLSchema, GraphQLDirective, specifiedDirectives, extendSchema } from 'graphql';
+import {
+  GraphQLObjectType,
+  GraphQLSchema,
+  GraphQLDirective,
+  specifiedDirectives,
+  extendSchema,
+} from '@graphql-tools/graphql';
 
 import { IResolvers } from '@graphql-tools/utils';
 

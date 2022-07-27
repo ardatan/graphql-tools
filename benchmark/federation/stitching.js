@@ -1,7 +1,7 @@
 const { stitchSchemas } = require('@graphql-tools/stitch');
 const { federationToStitchingSDL, stitchingDirectives } = require('@graphql-tools/stitching-directives');
 const { stitchingDirectivesTransformer } = stitchingDirectives();
-const { buildSchema, print } = require('graphql');
+const { buildSchema, print } = require('@graphql-tools/graphql');
 const { createDefaultExecutor } = require('@graphql-tools/delegate');
 
 const services = [

@@ -46,9 +46,6 @@
   "typescript": {
     "definition": "dist/typings/index.d.ts"
   },
-  "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
-  },
   "buildOptions": {
     "input": "./src/index.ts"
   },
@@ -56,6 +53,7 @@
     "@graphql-tools/load": "7.7.4",
     "@graphql-tools/graphql-file-loader": "7.5.2",
     "@graphql-tools/utils": "8.10.0",
+    "@graphql-tools/graphql": "*",
     "tslib": "^2.4.0"
   },
   "publishConfig": {

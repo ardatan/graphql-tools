@@ -1,4 +1,4 @@
-import { visit } from 'graphql';
+import { visit } from '@graphql-tools/graphql';
 import { DocumentOptimizer } from '../types.js';
 
 /**

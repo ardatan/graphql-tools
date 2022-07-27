@@ -13,7 +13,7 @@ import {
   SelectionNode,
   SelectionSetNode,
   valueFromASTUntyped,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { cloneSubschemaConfig, SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 import {

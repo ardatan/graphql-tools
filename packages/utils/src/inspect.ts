@@ -1,7 +1,7 @@
 // Taken from graphql-js
 // https://github.com/graphql/graphql-js/blob/main/src/jsutils/inspect.ts
 
-import { GraphQLError } from 'graphql';
+import { GraphQLError } from '@graphql-tools/graphql';
 import { isAggregateError } from './AggregateError.js';
 
 const MAX_RECURSIVE_DEPTH = 3;

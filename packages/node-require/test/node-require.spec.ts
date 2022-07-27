@@ -1,5 +1,5 @@
 import { handleModule } from '../src/index.js';
-import { print } from 'graphql';
+import { print } from '@graphql-tools/graphql';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 

@@ -10,8 +10,8 @@ import {
   Location,
   TokenKind,
   NamedTypeNode,
-} from 'graphql';
-import type { ASTVisitor } from 'graphql/language/visitor';
+} from '@graphql-tools/graphql';
+import type { ASTVisitor } from '@graphql-tools/graphql';
 
 export type NamedDefinitionNode = DefinitionNode & { name?: NameNode };
 

@@ -47,15 +47,13 @@
   "typescript": {
     "definition": "dist/typings/index.d.ts"
   },
-  "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
-  },
   "devDependencies": {
     "@types/dateformat": "3.0.1",
     "dateformat": "4.6.3",
     "graphql-scalars": "1.18.0"
   },
   "dependencies": {
+    "@graphql-tools/graphql": "*",
     "tslib": "^2.4.0"
   },
   "publishConfig": {

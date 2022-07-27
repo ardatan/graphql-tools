@@ -47,14 +47,13 @@
   "typescript": {
     "definition": "dist/typings/index.d.ts"
   },
-  "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
-  },
   "dependencies": {
     "@ardatan/sync-fetch": "0.0.1",
     "@graphql-tools/utils": "8.10.0",
     "@graphql-tools/graphql-tag-pluck": "7.3.3",
     "@whatwg-node/fetch": "^0.2.9",
+    "@graphql-tools/graphql": "*",
+    "sync-fetch": "0.4.1",
     "tslib": "^2.4.0"
   },
   "publishConfig": {

@@ -1,4 +1,4 @@
-import { graphql, GraphQLSchema } from 'graphql';
+import { graphql, GraphQLSchema } from '@graphql-tools/graphql';
 
 import { delegateToSchema } from '@graphql-tools/delegate';
 

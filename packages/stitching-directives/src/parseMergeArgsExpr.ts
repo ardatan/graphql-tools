@@ -1,4 +1,4 @@
-import { parseValue, SelectionSetNode, valueFromASTUntyped } from 'graphql';
+import { parseValue, SelectionSetNode, valueFromASTUntyped } from '@graphql-tools/graphql';
 
 import { Expansion, MappingInstruction, ParsedMergeArgsExpr } from './types.js';
 

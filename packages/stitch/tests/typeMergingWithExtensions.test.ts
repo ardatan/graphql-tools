@@ -18,7 +18,7 @@ import {
   GraphQLSchema,
   GraphQLString,
   parse,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';

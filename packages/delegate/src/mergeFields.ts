@@ -7,7 +7,7 @@ import {
   locatedError,
   GraphQLSchema,
   FieldNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { collectFields, relocatedError } from '@graphql-tools/utils';
 

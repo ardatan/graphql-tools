@@ -15,7 +15,7 @@ import {
   DefinitionNode,
   DocumentNode,
   NameNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import {
   createVariableNameGenerator,

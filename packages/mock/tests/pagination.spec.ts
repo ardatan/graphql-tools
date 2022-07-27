@@ -1,4 +1,4 @@
-import { buildSchema, graphql, GraphQLSchema } from 'graphql';
+import { buildSchema, graphql, GraphQLSchema } from '@graphql-tools/graphql';
 import { addMocksToSchema, RelayPaginationParams, relayStylePaginationMock } from '../src/index.js';
 
 const typeDefs = /* GraphQL */ `

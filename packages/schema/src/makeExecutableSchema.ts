@@ -1,4 +1,4 @@
-import { buildASTSchema, buildSchema, GraphQLSchema, isSchema } from 'graphql';
+import { buildASTSchema, buildSchema, GraphQLSchema, isSchema } from '@graphql-tools/graphql';
 
 import { asArray } from '@graphql-tools/utils';
 import { addResolversToSchema } from './addResolversToSchema.js';

@@ -11,7 +11,7 @@ import {
   GraphQLType,
   locatedError,
   GraphQLOutputType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { AggregateError, Maybe } from '@graphql-tools/utils';
 

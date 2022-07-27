@@ -7,7 +7,7 @@ import {
   isUnionType,
   isObjectType,
   isSpecifiedScalarType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { IResolvers } from './Interfaces.js';
 

@@ -6,7 +6,7 @@ import {
   GraphQLScalarType,
   GraphQLUnionType,
   GraphQLSchema,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { MapperKind, FieldFilter, RootFieldFilter, TypeFilter, ArgumentFilter } from './Interfaces.js';
 

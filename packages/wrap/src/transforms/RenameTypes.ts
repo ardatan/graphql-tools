@@ -6,7 +6,7 @@ import {
   isScalarType,
   isSpecifiedScalarType,
   visit,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import {
   ExecutionRequest,

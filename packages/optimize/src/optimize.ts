@@ -1,4 +1,4 @@
-import { DocumentNode } from 'graphql';
+import { DocumentNode } from '@graphql-tools/graphql';
 import { removeDescriptions } from './optimizers/remove-description.js';
 import { removeEmptyNodes } from './optimizers/remove-empty-nodes.js';
 import { removeLoc } from './optimizers/remove-loc.js';

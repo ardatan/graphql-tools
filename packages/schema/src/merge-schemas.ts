@@ -1,11 +1,11 @@
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from '@graphql-tools/graphql';
 import {
   IResolvers,
   asArray,
   getResolversFromSchema,
   TypeSource,
   SchemaExtensions,
-  extractExtensionsFromSchema,
+  extractExtensionsFromSchema
 } from '@graphql-tools/utils';
 import { makeExecutableSchema } from './makeExecutableSchema.js';
 import { IExecutableSchemaDefinition } from './types.js';

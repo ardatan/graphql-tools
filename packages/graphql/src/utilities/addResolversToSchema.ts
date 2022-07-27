@@ -11,7 +11,7 @@ import {
   isObjectType,
   isScalarType,
   isUnionType,
-} from '../type';
+} from '../type/index.js';
 
 function setFieldProperties(
   field: GraphQLField<any, any> | GraphQLFieldConfig<any, any>,

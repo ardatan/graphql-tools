@@ -1,4 +1,4 @@
-import { graphql, parse, print, OperationDefinitionNode, ExecutionResult } from 'graphql';
+import { graphql, parse, print, OperationDefinitionNode, ExecutionResult } from '@graphql-tools/graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createBatchingExecutor } from '@graphql-tools/batch-execute';
 import { Executor } from '@graphql-tools/utils';

@@ -1,5 +1,5 @@
 import { Config } from './merge-typedefs.js';
-import { FieldDefinitionNode, InputValueDefinitionNode, TypeNode, NameNode } from 'graphql';
+import { FieldDefinitionNode, InputValueDefinitionNode, TypeNode, NameNode } from '@graphql-tools/graphql';
 import { extractType, isWrappingTypeNode, isListTypeNode, isNonNullTypeNode, printTypeNode } from './utils.js';
 import { mergeDirectives } from './directives.js';
 import { compareNodes } from '@graphql-tools/utils';

@@ -1,5 +1,5 @@
 import { getRootTypeNames } from '@graphql-tools/utils';
-import { GraphQLObjectType, GraphQLSchema } from 'graphql';
+import { GraphQLObjectType, GraphQLSchema } from '@graphql-tools/graphql';
 import { Ref, KeyTypeConstraints } from './types.js';
 
 export function uuidv4() {

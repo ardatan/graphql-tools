@@ -94,7 +94,7 @@ Once you have an executor for your service, you may call it directly or wrap it 
 
 ```js
 import { createBatchingExecutor } from '@graphql-tools/batch-execute';
-import { parse } from 'graphql';
+import { parse } from '@graphql-tools/graphql'
 
 const myExec = ({ document, variables }) => { ... };
 const myBatchExec = createBatchingExecutor(myExec);

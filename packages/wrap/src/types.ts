@@ -8,7 +8,7 @@ import {
   ObjectValueNode,
   GraphQLError,
   GraphQLEnumValueConfig,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import { DelegationContext } from '@graphql-tools/delegate';
 import { ExecutionRequest, Maybe } from '@graphql-tools/utils';
 

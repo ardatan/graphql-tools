@@ -185,7 +185,6 @@ function subscribeWithBadArgs(args: ExecutionArgs): PromiseOrValue<ExecutionResu
   return expectEqualPromisesOrValues(subscribe(args), createSourceEventStream(args));
 }
 
- 
 // Check all error cases when initializing the subscription.
 describe('Subscription Initialization Phase', () => {
   it('accepts multiple subscription fields defined in schema', async () => {

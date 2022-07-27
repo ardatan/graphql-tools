@@ -1,4 +1,4 @@
-import { FieldNode, visit, Kind, SelectionNode, SelectionSetNode } from 'graphql';
+import { FieldNode, visit, Kind, SelectionNode, SelectionSetNode } from '@graphql-tools/graphql';
 
 import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 

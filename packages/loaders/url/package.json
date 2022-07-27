@@ -47,9 +47,6 @@
   "typescript": {
     "definition": "dist/typings/index.d.ts"
   },
-  "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
-  },
   "devDependencies": {
     "@envelop/live-query": "4.0.1",
     "@types/express": "4.17.13",
@@ -69,6 +66,7 @@
     "@graphql-tools/wrap": "9.0.4",
     "@ardatan/sync-fetch": "0.0.1",
     "@n1ru4l/graphql-live-query": "^0.10.0",
+    "@graphql-tools/graphql": "*",
     "@types/ws": "^8.0.0",
     "@whatwg-node/fetch": "^0.2.9",
     "dset": "^3.1.2",

@@ -1,4 +1,4 @@
-import { Kind, ObjectFieldNode, ValueNode, VariableNode, visit } from 'graphql';
+import { Kind, ObjectFieldNode, ValueNode, VariableNode, visit } from '@graphql-tools/graphql';
 
 type VariablePaths = Record<string, Array<string | number>>;
 

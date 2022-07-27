@@ -1,4 +1,4 @@
-import { GraphQLSchema, GraphQLObjectType, GraphQLEnumType } from 'graphql';
+import { GraphQLSchema, GraphQLObjectType, GraphQLEnumType } from '@graphql-tools/graphql';
 import { ExtensionsObject, Maybe, mergeDeep, SchemaExtensions } from '@graphql-tools/utils';
 export { extractExtensionsFromSchema } from '@graphql-tools/utils';
 

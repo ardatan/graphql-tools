@@ -12,7 +12,7 @@ import {
   isObjectType,
   isScalarType,
   isUnionType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 export function renameType(type: GraphQLObjectType, newTypeName: string): GraphQLObjectType;
 export function renameType(type: GraphQLInterfaceType, newTypeName: string): GraphQLInterfaceType;

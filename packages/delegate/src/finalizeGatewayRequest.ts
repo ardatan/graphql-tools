@@ -20,7 +20,7 @@ import {
   versionInfo as graphqlVersionInfo,
   visit,
   visitWithTypeInfo,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import {
   getDefinedRootType,

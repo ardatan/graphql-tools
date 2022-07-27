@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { filterSchema } from '@graphql-tools/utils';
-import { GraphQLObjectType, GraphQLInterfaceType, GraphQLInputObjectType } from 'graphql';
+import { GraphQLObjectType, GraphQLInterfaceType, GraphQLInputObjectType } from '@graphql-tools/graphql';
 
 describe('filterSchema', () => {
   it('filters root fields', () => {

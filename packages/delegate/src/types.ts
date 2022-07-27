@@ -11,7 +11,7 @@ import {
   OperationTypeNode,
   GraphQLError,
   GraphQLNamedType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import DataLoader from 'dataloader';
 

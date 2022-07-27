@@ -1,4 +1,4 @@
-import { DocumentNode, parse, print, visit } from 'graphql';
+import { DocumentNode, parse, print, visit } from '@graphql-tools/graphql';
 import { removeEmptyNodes } from '../src/index.js';
 
 describe('removeEmptyNodes', () => {

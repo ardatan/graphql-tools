@@ -11,7 +11,7 @@ import {
   FieldNode,
   valueFromAST,
   isLeafType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import {
   ExecutionRequest,

@@ -1,4 +1,4 @@
-import { parseValue } from 'graphql';
+import { parseValue } from '@graphql-tools/graphql';
 
 import { extractVariables } from '../src/extractVariables.js';
 

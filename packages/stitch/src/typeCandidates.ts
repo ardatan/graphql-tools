@@ -11,7 +11,7 @@ import {
   isDirective,
   GraphQLObjectType,
   OperationTypeNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { Subschema, SubschemaConfig, StitchingInfo } from '@graphql-tools/delegate';
 import {

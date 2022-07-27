@@ -1,5 +1,5 @@
 import { Config } from './merge-typedefs.js';
-import { InterfaceTypeDefinitionNode, InterfaceTypeExtensionNode, Kind } from 'graphql';
+import { InterfaceTypeDefinitionNode, InterfaceTypeExtensionNode, Kind } from '@graphql-tools/graphql';
 import { mergeFields } from './fields.js';
 import { mergeDirectives } from './directives.js';
 import { mergeNamedTypeArray } from './index.js';

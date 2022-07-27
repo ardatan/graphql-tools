@@ -11,7 +11,7 @@ import {
   GraphQLFieldResolver,
   OperationTypeNode,
   GraphQLNonNull,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import {
   ExecutionRequest,

@@ -1,4 +1,4 @@
-import { execute, GraphQLSchema, Kind, OperationTypeNode, parse, SelectionSetNode } from 'graphql';
+import { execute, GraphQLSchema, Kind, OperationTypeNode, parse, SelectionSetNode } from '@graphql-tools/graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { WrapQuery } from '@graphql-tools/wrap';
 import { delegateToSchema } from '@graphql-tools/delegate';

@@ -14,7 +14,7 @@ import {
   isInterfaceType,
   isObjectType,
   GraphQLField,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import {
   IResolvers,

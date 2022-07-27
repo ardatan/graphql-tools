@@ -21,7 +21,6 @@ import type { SDLValidationContext, ValidationContext } from '../ValidationConte
  */
 export function KnownArgumentNamesRule(context: ValidationContext): ASTVisitor {
   return {
-     
     ...KnownArgumentNamesOnDirectivesRule(context),
     Argument(argNode) {
       const argDef = context.getArgument();

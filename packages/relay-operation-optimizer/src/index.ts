@@ -1,5 +1,5 @@
 import { printSchemaWithDirectives, SchemaPrintOptions } from '@graphql-tools/utils';
-import { parse, GraphQLSchema, DefinitionNode, DocumentNode, ParseOptions, concatAST } from 'graphql';
+import { parse, GraphQLSchema, DefinitionNode, DocumentNode, ParseOptions, concatAST } from '@graphql-tools/graphql';
 
 import { transform as skipRedundantNodesTransform } from '@ardatan/relay-compiler/lib/transforms/SkipRedundantNodesTransform.js';
 import { transform as inlineFragmentsTransform } from '@ardatan/relay-compiler/lib/transforms/InlineFragmentsTransform.js';
@@ -31,6 +31,7 @@ export function optimizeDocuments(
 
   const documentAsts = concatAST(documents);
 
+  // @ts-expect-error Uses graphql-js so it doesn't like us
   const relayDocuments = relayTransform(adjustedSchema, documentAsts.definitions as DefinitionNode[]);
 
   const result: DocumentNode[] = [];

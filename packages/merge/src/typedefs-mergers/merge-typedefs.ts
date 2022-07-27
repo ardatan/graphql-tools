@@ -8,7 +8,7 @@ import {
   OperationTypeNode,
   isDefinitionNode,
   ParseOptions,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import { CompareFn, defaultStringComparator, isSourceTypes, isStringTypes } from './utils.js';
 import { MergedResultMap, mergeGraphQLNodes, schemaDefSymbol } from './merge-nodes.js';
 import {

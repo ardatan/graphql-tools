@@ -1,4 +1,4 @@
-import { getNamedType, GraphQLSchema, isObjectType } from 'graphql';
+import { getNamedType, GraphQLSchema, isObjectType } from '@graphql-tools/graphql';
 
 import { IFieldIteratorFn } from './Interfaces.js';
 

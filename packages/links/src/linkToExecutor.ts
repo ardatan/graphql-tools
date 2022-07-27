@@ -15,6 +15,7 @@ export function linkToExecutor(link: apolloImport.ApolloLink): Executor {
     request: ExecutionRequest<TArgs, TContext>
   ) {
     const observable = apollo.execute(link, {
+      // @ts-expect-error Apollo uses graphql-js so it doesn't like us
       query: request.document,
       operationName: request.operationName,
       variables: request.variables,

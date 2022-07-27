@@ -1,4 +1,4 @@
-import { GraphQLSchema, subscribe, parse, print, ExecutionResult, buildSchema, graphql } from 'graphql';
+import { GraphQLSchema, subscribe, parse, print, ExecutionResult, buildSchema, graphql } from '@graphql-tools/graphql';
 
 import { wrapSchema } from '../src/index.js';
 
@@ -118,7 +118,7 @@ describe('remote subscriptions', () => {
 
     let notificationCnt = 0;
     const sub1 = subscribe({ schema, document: subscription });
-    sub1.then(async results => {
+    Promise.resolve(sub1).then(async results => {
       for await (const result of results as AsyncIterable<ExecutionResult>) {
         expect(result).toHaveProperty('data');
         expect(result.data).toEqual(mockNotification);
@@ -127,7 +127,7 @@ describe('remote subscriptions', () => {
     });
 
     const sub2 = subscribe({ schema, document: subscription });
-    sub2.then(async results => {
+    Promise.resolve(sub2).then(async results => {
       for await (const result of results as AsyncIterable<ExecutionResult>) {
         expect(result).toHaveProperty('data');
         expect(result.data).toEqual(mockNotification);

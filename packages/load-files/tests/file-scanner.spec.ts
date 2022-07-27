@@ -1,5 +1,5 @@
 import { loadFilesSync, loadFiles, LoadFilesOptions } from '@graphql-tools/load-files';
-import { print } from 'graphql';
+import { print } from '@graphql-tools/graphql';
 import { join } from 'path';
 import { jest } from '@jest/globals';
 

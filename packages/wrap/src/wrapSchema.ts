@@ -4,7 +4,7 @@ import {
   GraphQLInterfaceType,
   GraphQLUnionType,
   GraphQLFieldResolver,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { MapperKind, mapSchema, memoize1 } from '@graphql-tools/utils';
 

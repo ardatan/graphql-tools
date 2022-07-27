@@ -1,6 +1,6 @@
 import { wrapSchema, FilterInterfaceFields } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
+import { GraphQLObjectType, GraphQLInterfaceType } from '@graphql-tools/graphql';
 
 describe('FilterInterfaceFields', () => {
   test('works', async () => {

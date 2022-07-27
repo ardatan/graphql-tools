@@ -2,7 +2,7 @@ import globby, { sync as globbySync, GlobbyOptions } from 'globby';
 import unixify from 'unixify';
 import { extname, join } from 'path';
 import { statSync, readFileSync, promises as fsPromises } from 'fs';
-import { DocumentNode, parse } from 'graphql';
+import { DocumentNode, parse } from '@graphql-tools/graphql';
 import { createRequire } from 'module';
 import { cwd } from 'process';
 

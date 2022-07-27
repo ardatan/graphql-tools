@@ -1,4 +1,4 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode } from 'graphql';
+import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode } from '@graphql-tools/graphql';
 
 import DataLoader from 'dataloader';
 

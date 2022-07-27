@@ -1,6 +1,6 @@
 import type { GlobbyOptions } from 'globby';
 
-import { isSchema, GraphQLSchema, DocumentNode, parse } from 'graphql';
+import { isSchema, GraphQLSchema, DocumentNode, parse } from '@graphql-tools/graphql';
 import {
   Source,
   asArray,

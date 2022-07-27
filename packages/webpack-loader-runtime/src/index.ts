@@ -1,4 +1,4 @@
-import { DefinitionNode } from 'graphql';
+import { DefinitionNode } from '@graphql-tools/graphql';
 
 export const uniqueCode = `
   var names = {};

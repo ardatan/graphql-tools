@@ -1,4 +1,4 @@
-import { graphql, OperationTypeNode } from 'graphql';
+import { graphql, OperationTypeNode } from '@graphql-tools/graphql';
 
 import { delegateToSchema } from '@graphql-tools/delegate';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';

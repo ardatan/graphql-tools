@@ -1,4 +1,4 @@
-import { graphql, GraphQLObjectType } from 'graphql';
+import { graphql, GraphQLObjectType } from '@graphql-tools/graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { wrapSchema, WrapFields } from '@graphql-tools/wrap';
 

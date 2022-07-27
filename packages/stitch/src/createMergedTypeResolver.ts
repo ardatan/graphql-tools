@@ -1,4 +1,4 @@
-import { getNamedType, GraphQLList, GraphQLOutputType, OperationTypeNode } from 'graphql';
+import { getNamedType, GraphQLList, GraphQLOutputType, OperationTypeNode } from '@graphql-tools/graphql';
 import { delegateToSchema, MergedTypeResolver, MergedTypeResolverOptions } from '@graphql-tools/delegate';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 

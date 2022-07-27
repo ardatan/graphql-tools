@@ -1,6 +1,6 @@
 import { wrapSchema, RenameRootFields } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { graphql } from 'graphql';
+import { graphql } from '@graphql-tools/graphql';
 
 describe('RenameRootFields', () => {
   test('works', async () => {

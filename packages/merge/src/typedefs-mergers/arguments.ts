@@ -1,4 +1,4 @@
-import { InputValueDefinitionNode } from 'graphql';
+import { InputValueDefinitionNode } from '@graphql-tools/graphql';
 import { Config } from './index.js';
 import { compareNodes, isSome } from '@graphql-tools/utils';
 

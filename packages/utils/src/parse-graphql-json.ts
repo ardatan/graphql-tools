@@ -1,4 +1,4 @@
-import { buildClientSchema, ParseOptions } from 'graphql';
+import { buildClientSchema, ParseOptions } from '@graphql-tools/graphql';
 import { Source } from './loaders.js';
 import { SchemaPrintOptions } from './types.js';
 

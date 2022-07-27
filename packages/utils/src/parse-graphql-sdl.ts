@@ -8,7 +8,7 @@ import {
   isTypeSystemDefinitionNode,
   StringValueNode,
   print,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 import { dedentBlockStringValue, getLeadingCommentBlock } from './comments.js';
 import { GraphQLParseOptions } from './Interfaces.js';
 

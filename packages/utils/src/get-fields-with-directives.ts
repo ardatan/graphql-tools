@@ -6,7 +6,7 @@ import {
   InputObjectTypeExtensionNode,
   ValueNode,
   Kind,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 export type DirectiveArgs = { [name: string]: any };
 export type DirectiveUsage = { name: string; args: DirectiveArgs };

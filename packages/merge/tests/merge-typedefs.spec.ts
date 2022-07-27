@@ -3,7 +3,15 @@ import '../../testing/to-be-similar-string';
 import { mergeDirectives, mergeTypeDefs, mergeGraphQLTypes } from '../src/index.js';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { buildSchema, buildClientSchema, print, parse, Kind, DirectiveNode, version as graphqlVersion } from 'graphql';
+import {
+  buildSchema,
+  buildClientSchema,
+  print,
+  parse,
+  Kind,
+  DirectiveNode,
+  version as graphqlVersion,
+} from '@graphql-tools/graphql';
 import { stripWhitespaces } from './utils.js';
 import gql from 'graphql-tag';
 import { readFileSync } from 'fs';
@@ -566,6 +574,7 @@ describe('Merge TypeDefs', () => {
     });
 
     it('should merge when directive uses enum', () => {
+      // @ts-expect-error Uses graphql-js so it doesn't like us
       const merged = mergeTypeDefs([
         gql`
           directive @date(format: DateFormat) on FIELD_DEFINITION
@@ -675,6 +684,7 @@ describe('Merge TypeDefs', () => {
 
     it('should handle compiled gql correctly', () => {
       const merged = mergeTypeDefs([
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         gql`
           type Query {
             f1: String
@@ -697,6 +707,7 @@ describe('Merge TypeDefs', () => {
 
     it('should handle compiled gql and strings correctly', () => {
       const merged = mergeTypeDefs([
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         gql`
           type Query {
             f1: String
@@ -771,6 +782,7 @@ describe('Merge TypeDefs', () => {
           typeDefs: ['type Query { f1: String }'],
         }),
         'type Query { f2: String }',
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         gql`
           type Query {
             f3: String

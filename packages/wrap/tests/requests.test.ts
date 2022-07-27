@@ -1,4 +1,4 @@
-import { OperationTypeNode, parse } from 'graphql';
+import { OperationTypeNode, parse } from '@graphql-tools/graphql';
 
 import { createRequest } from '@graphql-tools/delegate';
 import { parseSelectionSet } from '@graphql-tools/utils';

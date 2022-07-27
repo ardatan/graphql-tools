@@ -1,4 +1,4 @@
-import { ASTNode, GraphQLError, Source, versionInfo } from 'graphql';
+import { ASTNode, GraphQLError, Source, versionInfo } from '@graphql-tools/graphql';
 import { Maybe } from './types.js';
 
 interface GraphQLErrorOptions {

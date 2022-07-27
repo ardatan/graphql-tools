@@ -13,7 +13,7 @@ import {
   OperationDefinitionNode,
   isInputType,
   NamedTypeNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { Maybe, ExecutionRequest, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
 

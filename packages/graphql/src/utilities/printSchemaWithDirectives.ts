@@ -1,6 +1,6 @@
-import { print } from '../language';
-import { GraphQLSchema } from '../type';
-import { getDocumentNodeFromSchema } from './getDocumentNodeFromSchema';
+import { print } from '../language/index.js';
+import { GraphQLSchema } from '../type/index.js';
+import { getDocumentNodeFromSchema } from './getDocumentNodeFromSchema.js';
 
 interface PrintSchemaWithDirectivesOptions {
   /**

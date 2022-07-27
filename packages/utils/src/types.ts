@@ -1,4 +1,10 @@
-import { GraphQLEnumType, GraphQLInputObjectType, GraphQLNamedType, GraphQLScalarType, visit } from 'graphql';
+import {
+  GraphQLEnumType,
+  GraphQLInputObjectType,
+  GraphQLNamedType,
+  GraphQLScalarType,
+  visit,
+} from '@graphql-tools/graphql';
 
 export interface SchemaPrintOptions {
   /**

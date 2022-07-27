@@ -1,4 +1,4 @@
-import { DocumentNode, IntrospectionQuery } from 'graphql';
+import { DocumentNode, IntrospectionQuery } from '@graphql-tools/graphql';
 
 /**
  * @internal

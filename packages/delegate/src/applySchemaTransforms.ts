@@ -1,5 +1,5 @@
 import { memoize2 } from '@graphql-tools/utils';
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from '@graphql-tools/graphql';
 
 import { SubschemaConfig } from './types.js';
 

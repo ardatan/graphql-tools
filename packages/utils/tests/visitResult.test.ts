@@ -1,4 +1,10 @@
-import { buildSchema, parse, GraphQLError, getIntrospectionQuery, introspectionFromSchema } from 'graphql';
+import {
+  buildSchema,
+  parse,
+  GraphQLError,
+  getIntrospectionQuery,
+  introspectionFromSchema,
+} from '@graphql-tools/graphql';
 
 import { createGraphQLError, ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 

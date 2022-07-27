@@ -46,9 +46,6 @@
   "typescript": {
     "definition": "dist/typings/index.d.ts"
   },
-  "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
-  },
   "optionalDependencies": {
     "@apollo/client": "~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0"
   },
@@ -58,6 +55,7 @@
   },
   "dependencies": {
     "@graphql-tools/schema": "9.0.1",
+    "@graphql-tools/graphql": "*",
     "tslib": "^2.4.0"
   },
   "type": "module"

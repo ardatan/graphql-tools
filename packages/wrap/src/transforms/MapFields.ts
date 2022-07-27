@@ -1,4 +1,4 @@
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from '@graphql-tools/graphql';
 
 import { ExecutionRequest, FieldNodeMappers, ExecutionResult } from '@graphql-tools/utils';
 

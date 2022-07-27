@@ -1,5 +1,5 @@
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { buildSchema } from 'graphql';
+import { buildSchema } from '@graphql-tools/graphql';
 import { ValidationLevel } from '../src/types.js';
 
 describe('Field validations', () => {

@@ -1,6 +1,6 @@
 import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
 import { join } from 'path';
-import { parse, separateOperations } from 'graphql';
+import { parse, separateOperations } from '@graphql-tools/graphql';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { runTests } from '../../../../testing/utils.js';

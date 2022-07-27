@@ -15,7 +15,7 @@ import {
   GraphQLNonNull,
   GraphQLOutputType,
   GraphQLInputType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 export function createNamedStub(name: string, type: 'object'): GraphQLObjectType;
 export function createNamedStub(name: string, type: 'interface'): GraphQLInterfaceType;
@@ -51,6 +51,7 @@ export function createStub(node: TypeNode, type: any): any {
     case Kind.LIST_TYPE:
       return new GraphQLList(createStub(node.type, type));
     case Kind.NON_NULL_TYPE:
+      // @ts-expect-error TODO: What is going on here?
       return new GraphQLNonNull(createStub(node.type, type));
     default:
       if (type === 'output') {

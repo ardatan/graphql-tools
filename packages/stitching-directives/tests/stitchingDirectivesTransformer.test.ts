@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-import { print } from 'graphql';
+import { print } from '@graphql-tools/graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { parseSelectionSet } from '@graphql-tools/utils';

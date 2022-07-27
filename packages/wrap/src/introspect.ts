@@ -6,7 +6,7 @@ import {
   IntrospectionOptions,
   IntrospectionQuery,
   ParseOptions,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { ValueOrPromise } from 'value-or-promise';
 

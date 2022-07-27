@@ -158,10 +158,9 @@ export function buildClientSchema(
   // Given a type's introspection result, construct the correct
   // GraphQLType instance.
   function buildType(type: IntrospectionType): GraphQLNamedType {
-     
     if (type != null && type.name != null && type.kind != null) {
       // FIXME: Properly type IntrospectionType, it's a breaking change so fix in v17
-       
+
       switch (type.kind) {
         case TypeKind.SCALAR:
           return buildScalarDef(type);

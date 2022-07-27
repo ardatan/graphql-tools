@@ -1,4 +1,4 @@
-import { NamedTypeNode } from 'graphql';
+import { NamedTypeNode } from '@graphql-tools/graphql';
 import { Config } from '../index.js';
 import { compareNodes } from '@graphql-tools/utils';
 

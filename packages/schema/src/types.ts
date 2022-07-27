@@ -5,7 +5,7 @@ import {
   GraphQLParseOptions,
   SchemaExtensions,
 } from '@graphql-tools/utils';
-import { BuildSchemaOptions, GraphQLSchema } from 'graphql';
+import { BuildSchemaOptions, GraphQLSchema } from '@graphql-tools/graphql';
 
 export interface GraphQLSchemaWithContext<TContext> extends GraphQLSchema {
   __context?: TContext;

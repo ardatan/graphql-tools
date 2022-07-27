@@ -1,4 +1,4 @@
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from '@graphql-tools/graphql';
 
 import { getDirectives, valueMatchesCriteria } from '@graphql-tools/utils';
 

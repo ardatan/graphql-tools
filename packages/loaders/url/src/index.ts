@@ -7,7 +7,7 @@ import {
   buildASTSchema,
   buildSchema,
   OperationDefinitionNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import {
   AsyncExecutor,
@@ -322,7 +322,8 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         method = 'GET';
       }
 
-      let accept = 'application/json';
+      let accept = 'application/json, multipart/mixed';
+      // @ts-expect-error Uses graphql-js so it doesn't like us
       if (operationType === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
         method = 'GET';
         accept = 'text/event-stream';
@@ -501,6 +502,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
               operationName,
               extensions,
             },
+            // @ts-expect-error Uses graphql-js so it doesn't like us
             observer
           );
           return {
@@ -760,6 +762,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         const operationAst = getOperationASTFromRequest(request);
         if (
           operationAst.operation === 'subscription' ||
+          // @ts-expect-error Uses graphql-js so it doesn't like us
           isLiveQueryOperationDefinitionNode(operationAst, request.variables as Record<string, any>)
         ) {
           return subscriptionExecutor$;

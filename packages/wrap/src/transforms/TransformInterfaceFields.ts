@@ -1,4 +1,4 @@
-import { GraphQLSchema, isInterfaceType, GraphQLFieldConfig } from 'graphql';
+import { GraphQLSchema, isInterfaceType, GraphQLFieldConfig } from '@graphql-tools/graphql';
 
 import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 

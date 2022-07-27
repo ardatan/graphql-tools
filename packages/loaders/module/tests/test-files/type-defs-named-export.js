@@ -1,4 +1,4 @@
-const { parse } = require('graphql');
+const { parse } = require('@graphql-tools/graphql');
 
 module.exports = {
   typeDefs: parse(/* GraphQL */ `

@@ -24,7 +24,6 @@ import { typeFromAST } from '../../utilities/typeFromAST.js';
 
 import type { ValidationContext } from '../ValidationContext.js';
 
- 
 // This file contains a lot of such errors but we plan to refactor it anyway
 // so just disable it for entire file.
 

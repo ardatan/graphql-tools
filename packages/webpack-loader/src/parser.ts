@@ -1,4 +1,4 @@
-import { parse, DocumentNode, print, Kind, DefinitionNode, FragmentDefinitionNode } from 'graphql';
+import { parse, DocumentNode, print, Kind, DefinitionNode, FragmentDefinitionNode } from '@graphql-tools/graphql';
 
 /**
  * Strip insignificant whitespace

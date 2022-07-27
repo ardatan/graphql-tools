@@ -26,7 +26,7 @@ import {
   getDirectiveValues,
   GraphQLDeprecatedDirective,
   TypeDefinitionNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { createStub, createNamedStub, Maybe, getDescription, DirectiveLocationEnum } from '@graphql-tools/utils';
 

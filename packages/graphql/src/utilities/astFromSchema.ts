@@ -1,5 +1,5 @@
-import { inspect } from '../jsutils/inspect';
-import { Maybe } from '../jsutils/Maybe';
+import { inspect } from '../jsutils/inspect.js';
+import { Maybe } from '../jsutils/Maybe.js';
 import {
   OperationTypeNode,
   SchemaDefinitionNode,
@@ -25,7 +25,7 @@ import {
   ArgumentNode,
   ValueNode,
   ObjectFieldNode,
-} from '../language';
+} from '../language/index.js';
 import {
   GraphQLArgument,
   GraphQLDeprecatedDirective,
@@ -54,9 +54,9 @@ import {
   GraphQLUnionTypeConfig,
   isListType,
   isNonNullType,
-} from '../type';
-import { astFromValue } from './astFromValue';
-import { getRootTypeMap } from './getRootTypeMap';
+} from '../type/index.js';
+import { astFromValue } from './astFromValue.js';
+import { getRootTypeMap } from './getRootTypeMap.js';
 
 function isSome<T>(input: T): input is Exclude<T, null | undefined> {
   return input != null;

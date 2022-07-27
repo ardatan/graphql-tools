@@ -48,14 +48,13 @@ export class Token {
   readonly prev: Token | null;
   readonly next: Token | null;
 
-   
   constructor(kind: TokenKind, start: number, end: number, line: number, column: number, value?: string) {
     this.kind = kind;
     this.start = start;
     this.end = end;
     this.line = line;
     this.column = column;
-     
+
     this.value = value!;
     this.prev = null;
     this.next = null;

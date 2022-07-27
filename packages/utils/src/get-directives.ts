@@ -22,7 +22,7 @@ import {
   GraphQLEnumValue,
   GraphQLEnumValueConfig,
   EnumValueDefinitionNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { getArgumentValues } from './getArgumentValues.js';
 

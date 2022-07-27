@@ -4,7 +4,7 @@ import fs from 'fs';
 import http from 'http';
 import puppeteer from 'puppeteer';
 import type * as UrlLoaderModule from '../src/index.js';
-import { ExecutionResult, parse } from 'graphql';
+import { ExecutionResult, parse } from '@graphql-tools/graphql';
 
 describe('[url-loader] webpack bundle compat', () => {
   if (process.env['TEST_BROWSER']) {

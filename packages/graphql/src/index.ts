@@ -30,6 +30,9 @@
 export type { GraphQLArgs } from './graphql.js';
 export { graphql, graphqlSync } from './graphql.js';
 
+// The GraphQL.js version info.
+export { version, versionInfo } from './version.js';
+
 // Create and operate on GraphQL type definitions and schema.
 export {
   resolveObjMapThunk,

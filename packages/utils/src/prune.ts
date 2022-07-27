@@ -8,7 +8,7 @@ import {
   GraphQLFieldMap,
   isSpecifiedScalarType,
   isScalarType,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { PruneSchemaOptions } from './types.js';
 

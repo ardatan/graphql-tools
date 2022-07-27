@@ -1,4 +1,4 @@
-import { DocumentNode, FragmentDefinitionNode, Kind, OperationDefinitionNode } from 'graphql';
+import { DocumentNode, FragmentDefinitionNode, Kind, OperationDefinitionNode } from '@graphql-tools/graphql';
 
 export function getDocumentMetadata(document: DocumentNode): {
   operations: Array<OperationDefinitionNode>;

@@ -5,7 +5,7 @@
 // https://github.com/ardatan/graphql-tools/issues/1710
 // https://github.com/ardatan/graphql-tools/issues/1959
 
-import { execute, parse } from 'graphql';
+import { execute, parse } from '@graphql-tools/graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ExecutionResult } from '@graphql-tools/utils';

@@ -1,4 +1,3 @@
- 
 import { GraphQLError } from '../GraphQLError.js';
 import { locatedError } from '../locatedError.js';
 

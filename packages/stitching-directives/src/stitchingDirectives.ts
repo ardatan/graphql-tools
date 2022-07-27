@@ -1,4 +1,4 @@
-import { GraphQLDirective, GraphQLList, GraphQLNonNull, GraphQLSchema, GraphQLString } from 'graphql';
+import { GraphQLDirective, GraphQLList, GraphQLNonNull, GraphQLSchema, GraphQLString } from '@graphql-tools/graphql';
 
 import { SubschemaConfig } from '@graphql-tools/delegate';
 

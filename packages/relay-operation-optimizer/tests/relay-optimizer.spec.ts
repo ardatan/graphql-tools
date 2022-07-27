@@ -1,4 +1,4 @@
-import { buildSchema, parse, print } from 'graphql';
+import { buildSchema, parse, print } from '@graphql-tools/graphql';
 import { optimizeDocuments } from '@graphql-tools/relay-operation-optimizer';
 import '../../testing/to-be-similar-gql-doc';
 

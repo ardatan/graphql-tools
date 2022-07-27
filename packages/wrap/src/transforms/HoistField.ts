@@ -8,7 +8,7 @@ import {
   GraphQLArgument,
   GraphQLFieldResolver,
   OperationTypeNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import {
   appendObjectFields,

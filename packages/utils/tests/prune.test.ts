@@ -1,4 +1,4 @@
-import { buildSchema, GraphQLNamedType } from 'graphql';
+import { buildSchema, GraphQLNamedType } from '@graphql-tools/graphql';
 import { pruneSchema } from '../src/prune.js';
 import { PruneSchemaFilter } from '../src/index.js';
 

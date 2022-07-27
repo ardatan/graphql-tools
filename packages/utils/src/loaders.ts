@@ -1,4 +1,4 @@
-import { DocumentNode, GraphQLSchema, BuildSchemaOptions } from 'graphql';
+import { DocumentNode, GraphQLSchema, BuildSchemaOptions } from '@graphql-tools/graphql';
 import { GraphQLParseOptions } from './Interfaces.js';
 
 export interface Source {

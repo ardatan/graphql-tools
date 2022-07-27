@@ -1,4 +1,4 @@
-import { TypeNode, NamedTypeNode, ListTypeNode, NonNullTypeNode, Source, Kind } from 'graphql';
+import { TypeNode, NamedTypeNode, ListTypeNode, NonNullTypeNode, Source, Kind } from '@graphql-tools/graphql';
 
 export function isStringTypes(types: any): types is string {
   return typeof types === 'string';

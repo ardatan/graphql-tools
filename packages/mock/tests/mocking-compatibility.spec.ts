@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { graphql, GraphQLSchema, buildSchema, subscribe, parse } from 'graphql';
+import { graphql, GraphQLSchema, buildSchema, subscribe, parse } from '@graphql-tools/graphql';
 
 import { sentence, first_name } from 'casual';
 

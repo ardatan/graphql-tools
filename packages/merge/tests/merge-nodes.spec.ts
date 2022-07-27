@@ -1,5 +1,5 @@
 import { mergeGraphQLNodes } from '../src/index.js';
-import { parse } from 'graphql';
+import { parse } from '@graphql-tools/graphql';
 import {
   assertEnumTypeDefinitionNode,
   assertInputObjectTypeDefinitionNode,

@@ -1,4 +1,4 @@
-import { GraphQLObjectType, GraphQLSchema, OperationTypeNode } from 'graphql';
+import { GraphQLObjectType, GraphQLSchema, OperationTypeNode } from '@graphql-tools/graphql';
 import { memoize1 } from './memoize.js';
 
 export function getDefinedRootType(schema: GraphQLSchema, operation: OperationTypeNode): GraphQLObjectType {

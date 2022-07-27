@@ -28,7 +28,7 @@ import {
   FieldDefinitionNode,
   Kind,
   EnumValueDefinitionNode,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { getObjectTypeFromTypeMap } from './getObjectTypeFromTypeMap.js';
 

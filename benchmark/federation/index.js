@@ -2,7 +2,7 @@ const express = require('express');
 const runStitchingGateway = require('./stitching');
 const runApolloGateway = require('./federation');
 const makeMonolithSchema = require('./monolith');
-const { parse, execute } = require('graphql');
+const { parse, execute } = require('@graphql-tools/graphql');
 
 function memoize1(fn) {
   const memoize1cache = new Map();

@@ -1,4 +1,4 @@
-import { GraphQLFieldResolver } from 'graphql';
+import { GraphQLFieldResolver } from '@graphql-tools/graphql';
 
 import { getResponseKeyFromInfo, getRootTypeMap } from '@graphql-tools/utils';
 import {

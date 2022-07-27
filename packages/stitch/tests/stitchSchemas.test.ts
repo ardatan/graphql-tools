@@ -9,7 +9,7 @@ import {
   GraphQLResolveInfo,
   OperationTypeNode,
   execute,
-} from 'graphql';
+} from '@graphql-tools/graphql';
 
 import { delegateToSchema, SubschemaConfig, Transform } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
