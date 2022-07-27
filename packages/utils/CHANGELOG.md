@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 8.9.0
+
+### Minor Changes
+
+- 2a3b45e3: Allow `&` in filenames.
+
+  Related to https://github.com/dotansimha/graphql-code-generator/issues/6174
+
 ## 8.8.0
 
 ### Minor Changes
