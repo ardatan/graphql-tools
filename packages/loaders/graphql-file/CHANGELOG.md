@@ -1,5 +1,19 @@
 # @graphql-tools/graphql-file-loader
 
+## 7.5.0
+
+### Minor Changes
+
+- 2a3b45e3: Allow `&` in filenames.
+
+  Related to https://github.com/dotansimha/graphql-code-generator/issues/6174
+
+### Patch Changes
+
+- Updated dependencies [2a3b45e3]
+  - @graphql-tools/utils@8.9.0
+  - @graphql-tools/import@6.7.1
+
 ## 7.4.0
 
 ### Minor Changes
