@@ -25,7 +25,7 @@ export function isDocumentString(str: any): boolean {
   return false;
 }
 
-const invalidPathRegex = /[‘“!%&^<=>`]/;
+const invalidPathRegex = /[‘“!%^<=>`]/;
 export function isValidPath(str: any): boolean {
   return typeof str === 'string' && !invalidPathRegex.test(str);
 }
