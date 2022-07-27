@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "author": "Saihajpreet Singh <saihajpreet.singh@gmail.com>",
   "license": "MIT",
-  "private": true,
   "sideEffects": false,
   "repository": {
     "type": "git",
