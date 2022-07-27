@@ -1,19 +1,17 @@
 import '../../../testing/to-be-similar-gql-doc';
+import { compatSchema } from '@graphql-tools/compat';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { SubscriptionProtocol, UrlLoader } from '../src/index.js';
 import { isAsyncIterable, printSchemaWithDirectives } from '@graphql-tools/utils';
 import {
-  execute,
-  subscribe,
-  parse,
   print,
   ExecutionResult,
   introspectionFromSchema,
   getIntrospectionQuery,
-  getOperationAST,
   GraphQLSchema,
   graphqlSync,
 } from '@graphql-tools/graphql';
+import { execute, subscribe, parse, getOperationAST } from 'graphql';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
 import { readFileSync } from 'fs';
@@ -272,7 +270,7 @@ input TestInput {
         expect(operationAST?.operation).toBe('query');
         const responseBody = JSON.stringify(
           await execute({
-            schema: testSchema,
+            schema: compatSchema(testSchema),
             document: receivedAST,
             operationName: receivedOperationName,
             variableValues: receivedVariables,
@@ -291,7 +289,7 @@ input TestInput {
 
       assertNonMaybe(source.schema);
       const result = await execute({
-        schema: source.schema,
+        schema: compatSchema(source.schema),
         document: parse(/* GraphQL */ `
           query TestQuery($testVariable: String) {
             a(testVariable: $testVariable)
@@ -467,11 +465,8 @@ input TestInput {
 
       const subscriptionServer = useServer(
         {
-          // @ts-expect-error Uses graphql-js so it doesn't like us
-          schema: testSchema, // from the previous step
-          // @ts-expect-error Uses graphql-js so it doesn't like us
+          schema: compatSchema(testSchema), // from the previous step
           execute,
-          // @ts-expect-error Uses graphql-js so it doesn't like us
           subscribe,
         },
         wsServer
@@ -533,11 +528,8 @@ input TestInput {
 
       const subscriptionServer = SubscriptionServer.create(
         {
-          // @ts-expect-error Uses graphql-js so it doesn't like us
-          schema: testSchema,
-          // @ts-expect-error Uses graphql-js so it doesn't like us
+          schema: compatSchema(testSchema),
           execute,
-          // @ts-expect-error Uses graphql-js so it doesn't like us
           subscribe,
         },
         {
@@ -547,7 +539,7 @@ input TestInput {
       );
       assertNonMaybe(schema);
       const asyncIterator = (await subscribe({
-        schema,
+        schema: compatSchema(schema),
         document: parse(/* GraphQL */ `
           subscription TestMessage {
             testMessage {
@@ -639,8 +631,7 @@ input TestInput {
         testPath,
         graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }),
         createServer({
-          // @ts-expect-error Uses graphql-js so it doesn't like us
-          schema: testSchema,
+          schema: compatSchema(testSchema),
         })
       );
 
@@ -658,7 +649,7 @@ input TestInput {
       const content = readFileSync(absoluteFilePath, 'utf8');
       assertNonMaybe(schema);
       const result = await execute({
-        schema,
+        schema: compatSchema(schema),
         document: parse(/* GraphQL */ `
           mutation UploadFile($file: Upload!, $nullVar: TestInput, $nonObjectVar: String) {
             uploadFile(file: $file, dummyVar: $nullVar, secondDummyVar: $nonObjectVar) {
@@ -878,7 +869,7 @@ input TestInput {
         }
       `);
       const result: any = await execute({
-        schema,
+        schema: compatSchema(schema),
         document,
       });
       expect(result?.data?.['b']).toBe('a');

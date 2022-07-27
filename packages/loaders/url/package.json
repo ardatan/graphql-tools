@@ -59,7 +59,8 @@
     "graphql-sse": "1.3.0",
     "puppeteer": "15.5.0",
     "subscriptions-transport-ws": "0.11.0",
-    "webpack": "5.73.0"
+    "webpack": "5.73.0",
+    "@graphql-tools/comat": "*"
   },
   "dependencies": {
     "@graphql-tools/graphql": "*",

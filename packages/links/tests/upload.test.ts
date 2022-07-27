@@ -1,7 +1,7 @@
 import { Server } from 'http';
 import { AddressInfo } from 'net';
 import { Readable } from 'stream';
-
+import { compatSchema } from '@graphql-tools/compat';
 import express, { Express } from 'express';
 import { createServer } from '@graphql-yoga/node';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
@@ -90,8 +90,7 @@ describe('graphql upload', () => {
     const remoteApp = express().use(
       graphqlUploadExpress(),
       createServer({
-        // @ts-expect-error Uses graphql-js so it doesn't like us
-        schema: remoteSchema,
+        schema: compatSchema(remoteSchema),
       })
     );
 
@@ -127,8 +126,7 @@ describe('graphql upload', () => {
     const gatewayApp = express().use(
       graphqlUploadExpress(),
       createServer({
-        // @ts-expect-error Uses graphql-js so it doesn't like us
-        schema: gatewaySchema,
+        schema: compatSchema(gatewaySchema),
       })
     );
 
