@@ -19,6 +19,7 @@ describe('GraphQLFileLoader', () => {
     })(canLoad => {
       it('should return true for a valid pointer', async () => {
         await expect(canLoad(getPointer('type-defs.graphql'), {})).resolves.toBe(true);
+        await expect(canLoad(getPointer('typedefs-&-copy.graphql'), {})).resolves.toBe(true);
       });
 
       it('should return true for a valid absolute path', async () => {
