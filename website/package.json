@@ -17,19 +17,19 @@
     }
   },
   "resolutions": {
-    "esbuild": "0.14.49"
+    "esbuild": "0.14.50"
   },
   "devDependencies": {
-    "@guild-docs/algolia": "0.0.6",
+    "@guild-docs/algolia": "0.2.0",
     "@next/bundle-analyzer": "12.2.3",
     "@types/concurrently": "6.4.0",
     "@types/mdx-js__react": "1.5.5",
-    "@types/node": "16.11.45",
+    "@types/node": "16.11.46",
     "@types/react": "18.0.15",
     "@types/react-dom": "18.0.6",
     "concurrently": "7.3.0",
     "cross-env": "7.0.3",
-    "esbuild": "0.14.49",
+    "esbuild": "0.14.50",
     "esbuild-register": "3.3.3",
     "next-remote-watch": "1.0.0",
     "open-cli": "7.0.1",
