@@ -1,5 +1,11 @@
 # @graphql-tools/apollo-engine-loader
 
+## 7.3.6
+
+### Patch Changes
+
+- 3c8fb360: chore(deps): update @whatwg-node/fetch to fix vulnerability
+
 ## 7.3.5
 
 ### Patch Changes

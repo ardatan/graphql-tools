@@ -1,5 +1,13 @@
 # @graphql-tools/prisma-loader
 
+## 7.2.7
+
+### Patch Changes
+
+- 49ced0e7: Replace and remove unnecessary `replaceall` dependency
+- Updated dependencies [3c8fb360]
+  - @graphql-tools/url-loader@7.13.2
+
 ## 7.2.6
 
 ### Patch Changes
