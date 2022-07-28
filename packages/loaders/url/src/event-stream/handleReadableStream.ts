@@ -2,7 +2,7 @@ import { observableToAsyncIterable } from '@graphql-tools/utils';
 import { TextDecoder } from '@whatwg-node/fetch';
 import { ExecutionResult } from 'graphql';
 
-const textDecoder = new TextDecoder('handleReadableStream');
+const textDecoder = new TextDecoder();
 
 export function handleReadableStream(readableStream: ReadableStream<Uint8Array>) {
   return observableToAsyncIterable<ExecutionResult>({

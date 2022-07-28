@@ -1,6 +1,6 @@
 import { Source, parseGraphQLSDL, AggregateError, BaseLoaderOptions, Loader } from '@graphql-tools/utils';
 import { fetch } from '@whatwg-node/fetch';
-import syncFetch from 'sync-fetch';
+import syncFetch from '@ardatan/sync-fetch';
 
 /**
  * Additional options for loading from Apollo Engine

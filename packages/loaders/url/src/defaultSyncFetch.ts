@@ -1,4 +1,4 @@
-import syncFetchImported from 'sync-fetch';
+import syncFetchImported from '@ardatan/sync-fetch';
 
 export const defaultSyncFetch: SyncFetchFn = (input: RequestInfo, init?: RequestInit): SyncResponse => {
   if (typeof input === 'string') {
