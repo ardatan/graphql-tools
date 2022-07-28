@@ -6,7 +6,7 @@
   "license": "MIT",
   "dependencies": {
     "@graphql-tools/graphql": "*",
-    "@graphql-tools/utils": "8.8.0"
+    "@graphql-tools/utils": "8.9.0"
   },
   "peerDependencies": {
     "graphql": "^14 || ^15 || 16"
