@@ -6,6 +6,8 @@ const ROOT_DIR = __dirname;
 const TSCONFIG = resolve(ROOT_DIR, 'tsconfig.json');
 const tsconfig = require(TSCONFIG);
 
+const ESM_PACKAGES = ['graphql', 'graphql-upload', 'fs-capacitor'];
+
 module.exports = {
   testEnvironment: 'node',
   rootDir: ROOT_DIR,
@@ -15,6 +17,11 @@ module.exports = {
   moduleNameMapper: pathsToModuleNameMapper(tsconfig.compilerOptions.paths, { prefix: `${ROOT_DIR}/` }),
   collectCoverage: false,
   cacheDirectory: resolve(ROOT_DIR, `${CI ? '' : 'node_modules/'}.cache/jest`),
-  transformIgnorePatterns: ['node_modules/(?!graphql)'],
+  transform: {
+    '^.+\\.mjs?$': 'babel-jest',
+    '^.+\\.ts?$': 'babel-jest',
+    '^.+\\.js$': 'babel-jest',
+  },
+  transformIgnorePatterns: [`node_modules/(?!(${ESM_PACKAGES.join('|')})/)`],
   resolver: 'bob-the-bundler/jest-resolver.js',
 };

@@ -14,8 +14,8 @@ import {
   GraphQLSchema,
   graphqlSync,
 } from 'graphql';
-import GraphQLUpload from 'graphql-upload/GraphQLUpload.js';
-import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.js';
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { useServer } from 'graphql-ws/lib/use/ws';

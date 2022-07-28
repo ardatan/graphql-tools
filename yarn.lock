@@ -7457,10 +7457,10 @@ fresh@0.5.2:
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
   integrity sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=
 
-fs-capacitor@^6.2.0:
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/fs-capacitor/-/fs-capacitor-6.2.0.tgz#fa79ac6576629163cb84561995602d8999afb7f5"
-  integrity sha512-nKcE1UduoSKX27NSZlg879LdQc94OtbOsEmKMN2MBNudXREvijRKx2GEBsTMTfws+BrbkJoEuynbGSVRSpauvw==
+fs-capacitor@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/fs-capacitor/-/fs-capacitor-8.0.0.tgz#a95cbcf58dd50750fe718a03ec051961ef4e61f4"
+  integrity sha512-+Lk6iSKajdGw+7XYxUkwIzreJ2G1JFlYOdnKJv5PzwFLVsoJYBpCuS7WPIUSNT1IbQaEWT1nhYU63Ud03DyzLA==
 
 fs-constants@^1.0.0:
   version "1.0.0"
@@ -7743,16 +7743,16 @@ graphql-type-json@0.3.2:
   resolved "https://registry.yarnpkg.com/graphql-type-json/-/graphql-type-json-0.3.2.tgz#f53a851dbfe07bd1c8157d24150064baab41e115"
   integrity sha512-J+vjof74oMlCWXSvt0DOf2APEdZOCdubEvGDUAlqH//VBYcOYsGgRW7Xzorr44LvkjiuvecWc8fChxuZZbChtg==
 
-graphql-upload@15.0.2:
-  version "15.0.2"
-  resolved "https://registry.yarnpkg.com/graphql-upload/-/graphql-upload-15.0.2.tgz#851667589439ee617238e2d90253000a2601ac04"
-  integrity sha512-ufJAkZJBKWRDD/4wJR3VZMy9QWTwqIYIciPtCEF5fCNgWF+V1p7uIgz+bP2YYLiS4OJBhCKR8rnqE/Wg3XPUiw==
+graphql-upload@16.0.0:
+  version "16.0.0"
+  resolved "https://registry.yarnpkg.com/graphql-upload/-/graphql-upload-16.0.0.tgz#c19888aabb8e44d1214b607449396610728b0d6b"
+  integrity sha512-pJOYAcc8Hv9IcZzyQ462LRfVdfiYwqmpHctN2erp5WvdMLo76T+mzvY1RWPqsB3pyBrzQG7iNkt0nQxnlY5Y4w==
   dependencies:
     "@types/busboy" "^1.5.0"
     "@types/node" "*"
     "@types/object-path" "^0.11.1"
     busboy "^1.6.0"
-    fs-capacitor "^6.2.0"
+    fs-capacitor "^8.0.0"
     http-errors "^2.0.0"
     object-path "^0.11.8"
 
