@@ -91,7 +91,7 @@
   "resolutions": {
     "graphql": "16.5.0",
     "esbuild": "^0.14.0",
-    "@changesets/apply-release-plan": "6.0.0"
+    "@changesets/apply-release-plan": "6.0.3"
   },
   "yarn": {
     "args": [
