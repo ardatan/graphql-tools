@@ -1,4 +1,3 @@
- 
 import { observableToAsyncIterable } from '@graphql-tools/utils';
 import { TextDecoder } from '@whatwg-node/fetch';
 import { ExecutionResult } from 'graphql';
