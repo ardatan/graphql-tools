@@ -1,28 +1,50 @@
-/* eslint-disable no-labels */
+ 
+import { observableToAsyncIterable } from '@graphql-tools/utils';
+import { TextDecoder } from '@whatwg-node/fetch';
+import { ExecutionResult } from 'graphql';
 
-export async function* handleReadableStream(readableStream: ReadableStream<Uint8Array>) {
-  const textDecoderStream = new TextDecoderStream();
-  const decodedStream = readableStream.pipeThrough(textDecoderStream);
-  const reader = decodedStream.getReader();
-  outer: while (true) {
-    const { value, done } = await reader.read();
-    if (value) {
-      for (const part of value.split('\n\n')) {
-        if (part) {
-          const eventStr = part.split('event: ')[1];
-          const dataStr = part.split('data: ')[1];
-          if (eventStr === 'complete') {
-            break outer;
+const textDecoder = new TextDecoder('handleReadableStream');
+
+export function handleReadableStream(readableStream: ReadableStream<Uint8Array>) {
+  return observableToAsyncIterable<ExecutionResult>({
+    subscribe: observer => {
+      const reader = readableStream.getReader();
+      let completed = false;
+      function pump() {
+        return reader.read().then(({ done, value }) => {
+          if (completed) {
+            return;
           }
-          if (dataStr) {
-            const data = JSON.parse(dataStr);
-            yield data.payload || data;
+          if (value) {
+            const chunk = typeof value === 'string' ? value : textDecoder.decode(value, { stream: true });
+            for (const part of chunk.split('\n\n')) {
+              if (part) {
+                const eventStr = part.split('event: ')[1];
+                const dataStr = part.split('data: ')[1];
+                if (eventStr === 'complete') {
+                  observer.complete();
+                }
+                if (dataStr) {
+                  const data = JSON.parse(dataStr);
+                  observer.next(data.payload || data);
+                }
+              }
+            }
           }
-        }
+          if (done) {
+            observer.complete();
+          } else {
+            pump();
+          }
+        });
       }
-    }
-    if (done) {
-      break;
-    }
-  }
+      pump();
+      return {
+        unsubscribe: () => {
+          reader.cancel();
+          completed = true;
+        },
+      };
+    },
+  });
 }

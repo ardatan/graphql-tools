@@ -4222,10 +4222,10 @@
     "@webassemblyjs/ast" "1.11.1"
     "@xtuc/long" "4.2.2"
 
-"@whatwg-node/fetch@^0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.2.3.tgz#616da791dd5dcd939fbe556c93d6f808fd523c00"
-  integrity sha512-ONxX5y7M4QvOqGWO5WVQz3Mrj5yMJI17Qf42vHJU1xCQIgZRNiCqTKfmJwyQ7Qtp66GAnv5smL1OlyVbWMNrDQ==
+"@whatwg-node/fetch@^0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.2.4.tgz#2290257d089cf3b85bcb59f4b0c2429512833d18"
+  integrity sha512-/bCrTp7TYUiP37hFjBb6aIAxS3VR2jSTxKArrV8UVwKeqP2yxadmgJDPBO8lQYDKvnVVf8ipP8rCu/jUMSR0kQ==
   dependencies:
     "@peculiar/webcrypto" "^1.4.0"
     abort-controller "^3.0.0"

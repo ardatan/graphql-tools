@@ -70,7 +70,7 @@
     "@graphql-tools/wrap": "8.5.1",
     "@n1ru4l/graphql-live-query": "^0.9.0",
     "@types/ws": "^8.0.0",
-    "@whatwg-node/fetch": "^0.2.3",
+    "@whatwg-node/fetch": "^0.2.4",
     "dset": "^3.1.2",
     "extract-files": "^11.0.0",
     "graphql-ws": "^5.4.1",

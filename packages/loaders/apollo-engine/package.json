@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "8.9.0",
-    "@whatwg-node/fetch": "^0.2.3",
+    "@whatwg-node/fetch": "^0.2.4",
     "sync-fetch": "0.4.1",
     "tslib": "^2.4.0"
   },
