@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.13.2
+
+### Patch Changes
+
+- 3c8fb360: chore(deps): update @whatwg-node/fetch to fix vulnerability
+
 ## 7.13.1
 
 ### Patch Changes
