@@ -31,6 +31,7 @@
 '@graphql-tools/webpack-loader': patch
 '@graphql-tools/webpack-loader-runtime': patch
 '@graphql-tools/wrap': patch
+'@graphql-tools/compat': patch
 ---
 
 Create a custom GraphQL implementation.
