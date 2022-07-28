@@ -1,6 +1,6 @@
 import { printSchema, buildSchema, parse, print } from 'graphql';
 import { GithubLoader } from '../src/index.js';
-import { Response } from 'sync-fetch';
+import { Response } from '@ardatan/sync-fetch';
 
 const owner = 'kamilkisiela';
 const name = 'graphql-inspector-example';

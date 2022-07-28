@@ -68,6 +68,7 @@
     "@graphql-tools/delegate": "8.8.1",
     "@graphql-tools/utils": "8.9.0",
     "@graphql-tools/wrap": "8.5.1",
+    "@ardatan/sync-fetch": "0.0.1",
     "@n1ru4l/graphql-live-query": "^0.9.0",
     "@types/ws": "^8.0.0",
     "@whatwg-node/fetch": "^0.2.4",
@@ -76,7 +77,6 @@
     "graphql-ws": "^5.4.1",
     "isomorphic-ws": "^5.0.0",
     "meros": "^1.1.4",
-    "sync-fetch": "^0.4.0",
     "tslib": "^2.4.0",
     "value-or-promise": "^1.0.11",
     "ws": "^8.3.0"

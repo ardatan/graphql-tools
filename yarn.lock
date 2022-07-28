@@ -350,6 +350,13 @@
     signedsource "^1.0.0"
     yargs "^15.3.1"
 
+"@ardatan/sync-fetch@0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@ardatan/sync-fetch/-/sync-fetch-0.0.1.tgz#3385d3feedceb60a896518a1db857ec1e945348f"
+  integrity sha512-xhlTqH0m31mnsG0tIP4ETgfSB6gXDaYYsUWTrlUV93fFQPI9dd8hE0Ot6MHLCtqgB32hwJAC3YZMWlXZw7AleA==
+  dependencies:
+    node-fetch "^2.6.1"
+
 "@babel/code-frame@7.16.7":
   version "7.16.7"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.16.7.tgz#44416b6bd7624b998f5b1af5d470856c40138789"
@@ -5066,7 +5073,7 @@ buffer-from@^1.0.0:
   resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.2.tgz#2b146a6fd72e80b4f55d255f35ed59a3a9a41bd5"
   integrity sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==
 
-buffer@^5.2.1, buffer@^5.5.0, buffer@^5.7.1:
+buffer@^5.2.1, buffer@^5.5.0:
   version "5.7.1"
   resolved "https://registry.yarnpkg.com/buffer/-/buffer-5.7.1.tgz#ba62e7c13133053582197160851a8f648e99eed0"
   integrity sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==
@@ -12957,14 +12964,6 @@ symbol-observable@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-4.0.0.tgz#5b425f192279e87f2f9b937ac8540d1984b39205"
   integrity sha512-b19dMThMV4HVFynSAM1++gBHAbk2Tc/osgLIBZMKsyqh34jb2e8Os7T6ZW/Bt3pJFdBTd2JwAnAAEQV7rSNvcQ==
-
-sync-fetch@0.4.1, sync-fetch@^0.4.0:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/sync-fetch/-/sync-fetch-0.4.1.tgz#87b8684eef2fa25c96c4683ae308473a4e5c571f"
-  integrity sha512-JDtyFEvnKUzt1CxRtzzsGgkBanEv8XRmLyJo0F0nGkpCR8EjYmpOJJXz8GA/SWtlPU0nAYh0+CNMNnFworGyOA==
-  dependencies:
-    buffer "^5.7.1"
-    node-fetch "^2.6.1"
 
 tabbable@^5.3.3:
   version "5.3.3"

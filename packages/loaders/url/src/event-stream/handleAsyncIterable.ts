@@ -1,7 +1,7 @@
 /* eslint-disable no-labels */
 import { TextDecoder } from '@whatwg-node/fetch';
 
-const textDecoder = new TextDecoder('handleAsyncIterable');
+const textDecoder = new TextDecoder();
 
 export async function* handleAsyncIterable(asyncIterable: AsyncIterable<Uint8Array | string>) {
   outer: for await (const chunk of asyncIterable) {

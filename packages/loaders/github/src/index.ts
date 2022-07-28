@@ -1,7 +1,7 @@
 import { Loader, parseGraphQLSDL, parseGraphQLJSON, BaseLoaderOptions, Source } from '@graphql-tools/utils';
 import { GraphQLTagPluckOptions, gqlPluckFromCodeStringSync } from '@graphql-tools/graphql-tag-pluck';
 import { parse } from 'graphql';
-import syncFetch from 'sync-fetch';
+import syncFetch from '@ardatan/sync-fetch';
 import { fetch as asyncFetch } from '@whatwg-node/fetch';
 
 // github:owner/name#ref:path/to/file
