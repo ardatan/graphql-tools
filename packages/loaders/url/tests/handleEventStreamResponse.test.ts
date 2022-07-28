@@ -13,8 +13,9 @@ describe('handleEventStreamResponse', () => {
     });
 
     const response = new Response(readableStream);
-    const generator = await handleEventStreamResponse(response);
-    const { value } = await generator.next();
+    const asyncIterable = await handleEventStreamResponse(response);
+    const iterator = asyncIterable[Symbol.asyncIterator]();
+    const { value } = await iterator.next();
 
     expect(value).toMatchInlineSnapshot(`
           Object {
@@ -32,8 +33,9 @@ describe('handleEventStreamResponse', () => {
       },
     });
     const response = new Response(readableStream);
-    const generator = await handleEventStreamResponse(response);
-    const iteratorResult = await generator.next();
+    const asyncIterable = await handleEventStreamResponse(response);
+    const iterator = asyncIterable[Symbol.asyncIterator]();
+    const iteratorResult = await iterator.next();
 
     expect(iteratorResult).toMatchInlineSnapshot(`
       Object {
