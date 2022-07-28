@@ -6,11 +6,7 @@ const ROOT_DIR = __dirname;
 const TSCONFIG = resolve(ROOT_DIR, 'tsconfig.json');
 const tsconfig = require(TSCONFIG);
 
-const ESM_PACKAGES = [
-  'graphql',
-  'graphql-upload',
-  'fs-capacitor'
-]
+const ESM_PACKAGES = ['graphql', 'graphql-upload', 'fs-capacitor'];
 
 module.exports = {
   testEnvironment: 'node',
