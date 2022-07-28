@@ -108,3 +108,85 @@ test('simply skips schema for path that cannot be loaded', async () => {
   });
   expect(result).toEqual([]);
 });
+
+test('expect loadSync to handle 401 request errors gracefully', async () => {
+  const result = () => {
+    const loader = new GithubLoader();
+    return loader.loadSync(pointer, {
+      token,
+      customFetch: () => {
+        const response = new Response(
+          JSON.stringify({ message: 'Bad credentials', documentation_url: 'https://docs.github.com/graphql' }),
+          { status: 401 }
+        );
+        return response;
+      },
+    });
+  };
+  expect(result).toThrowError('Unable to download schema from github: Bad credentials');
+});
+
+describe('expect handleResponse to handle error messages gracefully', () => {
+  it('Should handle string responses', () => {
+    const expectedMessage = 'I am not a json object';
+    const result = () => {
+      const loader = new GithubLoader();
+
+      loader.handleResponse({
+        pointer: '',
+        path: '',
+        options: {},
+        response: expectedMessage,
+        status: 200,
+      });
+    };
+
+    expect(result).toThrowError(`Unable to download schema from github: ${expectedMessage}`);
+  });
+
+  it('Should handle multiple error messages', () => {
+    type ErrorMessage = { message: string };
+
+    // An arbirary number of error messages
+    const errorMessages: ErrorMessage[] = [...Array(Math.floor(Math.random() * 10))].map((_, index) => ({
+      message: `Error message ${index}`,
+    }));
+
+    const result = () => {
+      const loader = new GithubLoader();
+
+      loader.handleResponse({
+        pointer: '',
+        path: '',
+        options: {},
+        response: {
+          errors: errorMessages,
+        },
+        status: 200,
+      });
+    };
+
+    const expectedMessage = errorMessages.map(e => e.message).join(', ');
+
+    expect(result).toThrowError(`Unable to download schema from github: ${expectedMessage}`);
+  });
+
+  it('Should handle 401 error codes', () => {
+    const result = () => {
+      const loader = new GithubLoader();
+
+      loader.handleResponse({
+        pointer: '',
+        path: '',
+        options: {},
+        response: {
+          message: 'Bad credentials',
+          documentation_url: 'https://docs.github.com/graphql',
+        },
+        status: 401,
+      });
+    };
+
+    expect(result).toThrowError('Unable to download schema from github: Bad credentials');
+  });
+});

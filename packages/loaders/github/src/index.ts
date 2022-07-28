@@ -68,7 +68,8 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
       this.prepareRequest({ owner, ref, path, name, options })
     );
     const response = await request.json();
-    return this.handleResponse({ pointer, path, options, response });
+    const status = request.status;
+    return this.handleResponse({ pointer, path, options, response, status });
   }
 
   loadSync(pointer: string, options: GithubLoaderOptions): Source[] {
@@ -79,14 +80,29 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
     const fetch = options.customFetch || syncFetch;
     const request = fetch('https://api.github.com/graphql', this.prepareRequest({ owner, ref, path, name, options }));
     const response = request.json();
-    return this.handleResponse({ pointer, path, options, response });
+    const status = request.status;
+    return this.handleResponse({ pointer, path, options, response, status });
   }
 
-  handleResponse({ pointer, path, options, response }: { pointer: string; path: string; options: any; response: any }) {
+  handleResponse({
+    pointer,
+    path,
+    options,
+    response,
+    status,
+  }: {
+    pointer: string;
+    path: string;
+    options: any;
+    response: any;
+    status: number;
+  }) {
     let errorMessage: string | null = null;
 
     if (response.errors && response.errors.length > 0) {
       errorMessage = response.errors.map((item: Error) => item.message).join(', ');
+    } else if (status === 401) {
+      errorMessage = response.message;
     } else if (!response.data) {
       errorMessage = response;
     }
