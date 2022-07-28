@@ -1,7 +1,4 @@
 import _ from 'lodash';
-// eslint-disable-next-line
-// @ts-ignore
-import replaceall from 'replaceall';
 import { Args } from './types/common.js';
 import { Output, IOutput } from './Output.js';
 
@@ -114,11 +111,13 @@ export class Variables {
   populateVariable(propertyParam: any, matchedString: any, valueToPopulate: any) {
     let property = propertyParam;
     if (typeof valueToPopulate === 'string') {
-      property = replaceall(matchedString, valueToPopulate, property);
+      // TODO: Replace `split` and `join` with `replaceAll` once Node v14 is no longer supported
+      property = (property as string).split(matchedString).join(valueToPopulate);
     } else {
       if (property !== matchedString) {
         if (typeof valueToPopulate === 'number') {
-          property = replaceall(matchedString, String(valueToPopulate), property);
+          // TODO: Replace `split` and `join` with `replaceAll` once Node v14 is no longer supported
+          property = (property as string).split(matchedString).join(String(valueToPopulate));
         } else {
           const errorMessage = [
             'Trying to populate non string value into',
