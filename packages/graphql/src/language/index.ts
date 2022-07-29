@@ -13,7 +13,7 @@ export type { TokenKindEnum } from './tokenKind';
 
 export { Lexer } from './lexer.js';
 
-export { parse, parseValue, parseConstValue, parseType } from './parser.js';
+export { parse, parseValue, parseConstValue, parseType, Parser } from './parser.js';
 export type { ParseOptions } from './parser';
 
 export { print } from './printer.js';

@@ -216,6 +216,7 @@ export {
   parseValue,
   parseConstValue,
   parseType,
+  Parser,
   // Print
   print,
   // Visit
