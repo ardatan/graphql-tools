@@ -8,7 +8,7 @@ import {
   GraphQLInterfaceType,
   isSchema,
 } from 'graphql';
-import { mapSchema, MapperKind, IResolvers } from '@graphql-tools/utils';
+import { mapSchema, MapperKind, IResolvers, IResolverValidationOptions } from '@graphql-tools/utils';
 import { addResolversToSchema } from '@graphql-tools/schema';
 import { isRef, IMockStore, IMocks, TypePolicy } from './types.js';
 import { copyOwnProps, isObject, isRootType } from './utils.js';
@@ -28,6 +28,7 @@ type IMockOptions<TResolvers = IResolvers> = {
    * server and not others.
    */
   preserveResolvers?: boolean;
+  legacyInputValidationOptions?: IResolverValidationOptions;
 };
 
 // todo: add option to preserve resolver
@@ -96,6 +97,7 @@ export function addMocksToSchema<TResolvers = IResolvers>({
   typePolicies,
   resolvers: resolversOrFnResolvers,
   preserveResolvers = false,
+  legacyInputValidationOptions,
 }: IMockOptions<TResolvers>): GraphQLSchema {
   if (!schema) {
     throw new Error('Must provide schema to mock');
@@ -245,5 +247,7 @@ export function addMocksToSchema<TResolvers = IResolvers>({
     },
   });
 
-  return resolvers ? addResolversToSchema(schemaWithMocks, resolvers as any) : schemaWithMocks;
+  return resolvers
+    ? addResolversToSchema(schemaWithMocks, resolvers as any, legacyInputValidationOptions)
+    : schemaWithMocks;
 }

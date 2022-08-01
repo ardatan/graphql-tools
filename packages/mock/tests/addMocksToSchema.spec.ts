@@ -388,4 +388,31 @@ describe('addMocksToSchema', () => {
 
     expect(viewer.name).toEqual('custom mock for String');
   });
+  it('should handling passing validation options to addResolversToSchema', async () => {
+    const query = /* GraphQL */ `
+      query {
+        viewer {
+          id
+        }
+      }
+    `;
+    const mockedSchema = addMocksToSchema({
+      schema,
+      resolvers: {
+        SomeUnknownType: {
+          someUnknownField: () => null,
+        },
+      },
+      legacyInputValidationOptions: {
+        requireResolversToMatchSchema: 'ignore',
+      },
+    });
+    const { data, errors } = await graphql({
+      schema: mockedSchema,
+      source: query,
+    });
+
+    expect(errors).not.toBeDefined();
+    expect(data).toBeDefined();
+  });
 });
