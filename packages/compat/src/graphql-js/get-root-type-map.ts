@@ -1,4 +1,4 @@
-import { memoize1 } from 'graphql/jsutils/memoize1';
+import { memoize1 } from '@graphql-tools/utils';
 import { GraphQLSchema, GraphQLObjectType, OperationTypeNode } from 'graphql';
 
 export const getRootTypeMap = memoize1(function getRootTypeMap(
