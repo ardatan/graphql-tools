@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.13.3
+
+### Patch Changes
+
+- 4dc7c3a0: Ignore readable stream errors after completion (browsers raise errors after canceling fetch requests)
+
 ## 7.13.2
 
 ### Patch Changes
