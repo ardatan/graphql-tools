@@ -298,6 +298,9 @@ describe('[url-loader] webpack bundle compat', () => {
         }
       `);
 
+      const pageerrorFn = jest.fn();
+      page.on('pageerror', pageerrorFn);
+
       const result = await page.evaluate(
         async (httpAddress, document) => {
           const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
@@ -324,6 +327,9 @@ describe('[url-loader] webpack bundle compat', () => {
       expect(await responseClosed$!).toBe(true);
 
       expect(result).toStrictEqual(sentDatas.slice(0, 2));
+
+      // no uncaught errors should be reported (browsers raise errors when canceling requests)
+      expect(pageerrorFn).not.toBeCalled();
     });
   } else {
     it('dummy', () => {});
