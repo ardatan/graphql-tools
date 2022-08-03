@@ -1,0 +1,13 @@
+diff --git a/node_modules/@n1ru4l/in-memory-live-query-store/cjs/extractLiveQueryRootFieldCoordinates.js b/node_modules/@n1ru4l/in-memory-live-query-store/cjs/extractLiveQueryRootFieldCoordinates.js
+index 5b04d50..bd86ea9 100644
+--- a/node_modules/@n1ru4l/in-memory-live-query-store/cjs/extractLiveQueryRootFieldCoordinates.js
++++ b/node_modules/@n1ru4l/in-memory-live-query-store/cjs/extractLiveQueryRootFieldCoordinates.js
+@@ -2,7 +2,7 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.extractLiveQueryRootFieldCoordinates = void 0;
+ const graphql_1 = require("graphql");
+-const values_js_1 = require("graphql/execution/values.js");
++const values_js_1 = require("graphql/execution/values");
+ const Maybe_js_1 = require("./Maybe.js");
+ const gatherFields = (selectionSet, documentNode) => {
+     var _a, _b;
