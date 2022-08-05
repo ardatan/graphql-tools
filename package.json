@@ -83,10 +83,10 @@
     ]
   },
   "workspaces": [
-    "./packages/*",
-    "./packages/loaders/*",
-    "./website",
-    "./benchmark/*"
+    "packages/*",
+    "packages/loaders/*",
+    "website",
+    "benchmark/*"
   ],
   "resolutions": {
     "graphql": "16.5.0",
