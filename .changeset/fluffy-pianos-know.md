@@ -33,4 +33,4 @@
 '@graphql-tools/wrap': patch
 ---
 
-Fix CommonJS TypeScript resolution
+Fix CommonJS TypeScript resolution with `moduleResolution` `node16` or `nodenext`
