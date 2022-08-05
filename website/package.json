@@ -37,10 +37,10 @@
     "wait-on": "6.0.1"
   },
   "dependencies": {
-    "@chakra-ui/icons": "2.0.4",
-    "@chakra-ui/react": "2.2.4",
-    "@chakra-ui/theme-tools": "2.0.5",
-    "@chakra-ui/utils": "2.0.4",
+    "@chakra-ui/icons": "2.0.6",
+    "@chakra-ui/react": "2.2.6",
+    "@chakra-ui/theme-tools": "2.0.7",
+    "@chakra-ui/utils": "2.0.6",
     "@emotion/react": "11.10.0",
     "@emotion/styled": "11.10.0",
     "@guild-docs/client": "3.1.0",
