@@ -4960,10 +4960,10 @@ bl@^4.0.3, bl@^4.1.0:
     inherits "^2.0.4"
     readable-stream "^3.4.0"
 
-bob-the-bundler@4.0.0-canary-0724200.0:
-  version "4.0.0-canary-0724200.0"
-  resolved "https://registry.yarnpkg.com/bob-the-bundler/-/bob-the-bundler-4.0.0-canary-0724200.0.tgz#f9ebadda8181b3ab3bdcf3997d3fc53d81fed8e2"
-  integrity sha512-D7wE7liHb2TMuL+pwA/faTPeXBHD/ltZ+Ep8rXRYOOar1NpMAFh0vCiR1RpizjfWx/e778hnV5gDfNKa+hNJAg==
+bob-the-bundler@4.0.0-canary-6319e92.0:
+  version "4.0.0-canary-6319e92.0"
+  resolved "https://registry.yarnpkg.com/bob-the-bundler/-/bob-the-bundler-4.0.0-canary-6319e92.0.tgz#876597f57bbad6653f19cad9ef39056a7501c0e7"
+  integrity sha512-1usJ+VFUTtzwYp2Q9la/qmzLcxKL4JwEhtXhfKVWVtUGPkG8G4nldgs8KslfNNBiI5AP8PzdQQWENgxOh29h3Q==
   dependencies:
     "@rollup/plugin-json" "^4.1.0"
     "@rollup/plugin-node-resolve" "^13.3.0"
