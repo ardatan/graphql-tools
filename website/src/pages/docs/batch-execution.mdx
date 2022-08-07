@@ -1,0 +1,148 @@
+---
+description: Batch multiple GraphQL requests into a single operation
+---
+
+import { Callout } from '@theguild/components'
+
+# Batch Execution
+
+Batch execution is a technique for consolidating multiple operations that target a single schema. Rather than executing each operation individually, all operations can be combined and executed as one.
+
+For example, given the following GraphQL operations:
+
+```graphql
+query ($arg: String) {
+  field1
+  field3(input: $arg)
+}
+query ($arg: String) {
+  tricky: field2
+  field3(input: $arg)
+}
+```
+
+These can be merged into one operation, and the resulting data can be unpacked into the original shape of the multiple requests:
+
+```graphql
+query ($_0_arg: String, $_1_arg: String) {
+  _0_field1: field1
+  _0_field3: field3(input: $_0_arg)
+  _1_tricky: field2
+  _1_field3: field3(input: $_1_arg)
+}
+```
+
+**Batch execution is useful because:**
+
+- Multiple operations can be combined into one network request when targeting remote services.
+- Combined operations are guaranteed to multiplex, even with servers that execute incoming requests serially.
+- Smaller and more granular GraphQL queries may be composed and cached individually, and then batched. This offers a strategy for sub-request caching.
+
+<Callout type="warning" emoji="⚠️">
+  **Note**: an alternative batching pattern transmits multiple operations [as an
+  array](https://apollographql.com/blog/apollo-client/performance/batching-client-graphql-queries/#5853), and requires
+  services to be specially configured for array inputs.
+</Callout>
+
+<Callout>
+  GraphQL Tools uses the plain GraphQL approach [devised by Gatsby](https://github.com/gatsbyjs/gatsby/pull/22347) and
+  is compatible with any standard GraphQL service.
+</Callout>
+
+## Build an Executor
+
+An executor is a generic function that wraps a GraphQL execution with the following interface:
+
+```ts
+type Executor = (request: ExecutionRequest) => Promise<ExecutionResult>
+
+type ExecutionRequest = {
+  document: DocumentNode
+  variables?: Object
+  context?: Object
+  info?: GraphQLResolveInfo
+}
+```
+
+A simple executor for a **remote service** looks like this:
+
+```js
+import { fetch } from '@whatwg-node/fetch'
+import { print } from 'graphql'
+
+async function myExecutor({ document, variables }) {
+  const query = print(document)
+  const response = await fetch('http://example.com/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  })
+  return response.json()
+}
+```
+
+A simple executor for a **locally-executable schema** looks like this:
+
+```js
+import { graphql, print } from 'graphql'
+
+const schema = buildMyExecutableSchema()
+
+async function myExecutor({ document, variables }) {
+  return graphql({
+    schema,
+    source: print(document),
+    variableValues: variables
+  })
+}
+```
+
+## Batch the Executor
+
+Once you have an executor for your service, you may call it directly or wrap it with a batch executor using the `createBatchingExecutor` method from `@graphql-tools/batch-execute`:
+
+```js
+import { createBatchingExecutor } from '@graphql-tools/batch-execute'
+import { parse } from 'graphql'
+
+const myExec = ({ document, variables }) => {
+  /* ... */
+}
+const myBatchExec = createBatchingExecutor(myExec)
+
+// Perform a batch:
+const [first, second] = await Promise.all([
+  myBatchExec({
+    document: parse('query($input:String) { a:field1 b:field2(input: $input) }'),
+    variables: { input: 'hello' }
+  }),
+  myBatchExec({
+    document: parse('query($input:String) { field2(input: $input) }'),
+    variables: { input: 'world' }
+  })
+])
+
+// query($_0_input: String, $_1_input: String) {
+//   _0_a: field1
+//   _0_b: field2(input: $_0_input)
+//   _1_field2: field2(input: $_1_input)
+// }
+```
+
+When using a batch executor, remember that multiple calls must be performed synchronously and all results awaited as one. Awaiting the results of each batching call individually will behave like a normal executor.
+
+## Merging Algorithm
+
+Batch merging uses several transformations to build a request:
+
+1. Replace root-level fragment spreads with inline fragments.
+1. Add uniquely prefixed aliases to all root-level fields.
+1. Uniquely prefix all variable definitions and their references.
+1. Uniquely prefix all fragment definitions and their spreads.
+1. Prune orphaned fragment definitions.
+
+The results are then extracted with a series of reversals:
+
+1. Redistribute prefixed fields among original requests.
+1. Restore original root field aliases.
+1. Redistribute errors among their corresponding requests.

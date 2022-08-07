@@ -1,0 +1,28 @@
+# Setup an HTTP Server
+
+## GraphQL Yoga Example
+
+```js
+const { createServer } = require('@graphql-yoga/node')
+const { makeExecutableSchema } = require('@graphql-tools/schema')
+
+const typeDefs = require('./graphql/types')
+const resolvers = require('./graphql/resolvers')
+
+const schema = makeExecutableSchema({ typeDefs, resolvers })
+const server = createServer({ schema })
+
+server.start()
+```
+
+And you can test your queries using built-in [GraphiQL](https://github.com/graphql/graphiql/tree/master/packages/graphiql):
+
+<iframe
+  src="https://codesandbox.io/s/github/dotansimha/graphql-yoga/tree/v3/examples/hello-world"
+  className="!h-[600px]"
+  title="Yoga Hello world example"
+/>
+
+## Adding Subscriptions Support
+
+You can check GraphQL Yoga's [dedicated docs](https://graphql-yoga.com/docs/features/subscriptions#subscriptions) for more information about Subscriptions.
