@@ -9,8 +9,10 @@ import { GraphQLSchema, buildASTSchema as buildASTGraphQLJSSchema } from 'graphq
 import { addResolversToExistingSchema as addResolversToExistingGraphQLJSSchema } from './add-resolvers-to-schema.js';
 import { getDocumentNodeFromSchema as getDocumentNodeFromGraphqlJSSchema } from './graphql-js/get-document-node-from-schema';
 import { getResolversFromSchema as getResolversFromGraphQLJSSchema } from './graphql-js/get-resolvers-from-schema';
+import * as ASTHelperGraphQLJS from './graphql-js/ast-from-schema.js';
 
-export const compatSchema = {
+export const compat = {
+  ASTHelperGraphQLJS,
   /**
    * Covert a Tools Schema to GraphQL.js compatible Schema
    */
