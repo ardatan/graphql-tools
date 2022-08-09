@@ -1,4 +1,4 @@
-import { loadTypedefs, LoadTypedefsOptions, UnnormalizedTypeDefPointer, loadTypedefsSync } from './load-typedefs';
+import { loadTypedefs, LoadTypedefsOptions, UnnormalizedTypeDefPointer, loadTypedefsSync } from './load-typedefs.js';
 import { GraphQLSchema, BuildSchemaOptions, Source as GraphQLSource, print, lexicographicSortSchema } from 'graphql';
 import { OPERATION_KINDS } from './documents';
 import { IExecutableSchemaDefinition, mergeSchemas, extractExtensionsFromSchema } from '@graphql-tools/schema';
