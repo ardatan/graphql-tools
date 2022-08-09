@@ -1,0 +1,18 @@
+name: Dependencies Changeset
+
+on: pull_request
+
+jobs:
+  changeset:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Create/Update Changesets
+        uses: 'the-guild-org/changesets-dependencies-action@main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
