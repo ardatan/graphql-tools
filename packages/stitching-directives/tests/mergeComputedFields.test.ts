@@ -1,5 +1,5 @@
 import { assertSome } from '@graphql-tools/utils';
-import { graphql } from 'graphql';
+import { graphql } from '@graphql-tools/graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { stitchingDirectives } from '../src';

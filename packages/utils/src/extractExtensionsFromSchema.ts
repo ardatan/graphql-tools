@@ -1,7 +1,7 @@
 import { mapSchema } from './mapSchema.js';
-import { GraphQLFieldConfig, GraphQLSchema } from 'graphql';
 import { EnumTypeExtensions, InputTypeExtensions, ObjectTypeExtensions, SchemaExtensions } from './types.js';
 import { MapperKind } from './Interfaces.js';
+import { GraphQLFieldConfig, GraphQLSchema } from '@graphql-tools/graphql';
 
 export function extractExtensionsFromSchema(schema: GraphQLSchema): SchemaExtensions {
   const result: SchemaExtensions = {
