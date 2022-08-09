@@ -1,60 +1,48 @@
 name: Release
+
 on:
   push:
     branches:
       - master
+
 jobs:
-  build:
+  release:
+    name: stable
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Master
+      - name: Checkout
         uses: actions/checkout@v3
-      - name: Configure Git Credientials
-        run: |
-          git config --global user.email "theguild-bot@users.noreply.github.com"
-          git config --global user.name "theguild-bot"
-          echo "machine github.com login theguild-bot password ${{secrets.GH_API_TOKEN}}" > ~/.netrc
-      - name: Add origin remote and refetch master
-        run: |
-          git remote rm origin
-          git remote add origin "https://github.com/${{github.repository}}"
-          git fetch
-          git checkout master
-          git reset --hard
+        with:
+          fetch-depth: 0
+
       - name: Use Node
         uses: actions/setup-node@v3
         with:
           node-version: 18
-      - name: Setup NPM credentials
-        run: echo "//registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN" >> ~/.npmrc
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
-
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-
-      - name: Cache Yarn
-        id: yarn-cache-18-16
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ steps.yarn-cache-dir-path.outputs.dir }}
-            **/node_modules
-          key: ${{ runner.os }}-18-16-node-modules-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-18-16-node-modules-
+          cache: 'yarn'
 
       - name: Install Dependencies using Yarn
-        run: yarn install --ignore-engines && git checkout yarn.lock
+        run: yarn
+
+      - name: Build Packages
+        run: yarn build
+
+      - name: set version variables
+        id: vars
+        shell: bash
+        run: |
+          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
-        uses: changesets/action@master
+        uses: dotansimha/changesets-action@1bd10e16a393db098c8f537c719621962c0d5571
         with:
           publish: yarn release
           commit: 'chore(release): update monorepo packages versions'
           title: 'Upcoming Release Changes'
+          createGithubReleases: aggregate
+          githubReleaseName: 'Release ${{ steps.vars.outputs.sha_short }} (from ${{ steps.vars.outputs.branch }})'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NODE_AUTH_TOKEN  }}
