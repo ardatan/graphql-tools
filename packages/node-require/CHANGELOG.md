@@ -1,5 +1,16 @@
 # @graphql-tools/node-require
 
+## 6.4.2
+
+### Patch Changes
+
+- [#4624](https://github.com/ardatan/graphql-tools/pull/4624) [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with `moduleResolution` `node16` or `nodenext`
+
+- Updated dependencies [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)]:
+  - @graphql-tools/load@7.7.2
+  - @graphql-tools/graphql-file-loader@7.5.1
+  - @graphql-tools/utils@8.9.1
+
 ## 6.4.1
 
 ### Patch Changes

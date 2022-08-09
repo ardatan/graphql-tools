@@ -1,5 +1,14 @@
 # @graphql-tools/jest-transform
 
+## 1.2.1
+
+### Patch Changes
+
+- [#4624](https://github.com/ardatan/graphql-tools/pull/4624) [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with `moduleResolution` `node16` or `nodenext`
+
+- Updated dependencies [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)]:
+  - @graphql-tools/webpack-loader@6.7.1
+
 ## 1.2.0
 
 ### Minor Changes
