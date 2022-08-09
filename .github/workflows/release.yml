@@ -45,4 +45,4 @@ jobs:
           githubReleaseName: 'Release ${{ steps.vars.outputs.sha_short }} (from ${{ steps.vars.outputs.branch }})'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NODE_AUTH_TOKEN  }}
