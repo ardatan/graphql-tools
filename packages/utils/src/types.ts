@@ -88,3 +88,46 @@ export enum DirectiveLocation {
   INPUT_OBJECT = 'INPUT_OBJECT',
   INPUT_FIELD_DEFINITION = 'INPUT_FIELD_DEFINITION',
 }
+
+export type ExtensionsObject = Record<string, any>;
+
+export type ObjectTypeExtensions = {
+  type: 'object';
+  fields: Record<string, { extensions: ExtensionsObject; arguments: Record<string, ExtensionsObject> }>;
+};
+
+export type InputTypeExtensions = {
+  type: 'input';
+  fields: Record<string, { extensions: ExtensionsObject }>;
+};
+
+export type InterfaceTypeExtensions = {
+  type: 'interface';
+  fields: Record<string, { extensions: ExtensionsObject; arguments: Record<string, ExtensionsObject> }>;
+};
+
+export type UnionTypeExtensions = {
+  type: 'union';
+};
+
+export type ScalarTypeExtensions = {
+  type: 'scalar';
+};
+
+export type EnumTypeExtensions = {
+  type: 'enum';
+  values: Record<string, ExtensionsObject>;
+};
+
+export type PossibleTypeExtensions =
+  | InputTypeExtensions
+  | InterfaceTypeExtensions
+  | ObjectTypeExtensions
+  | UnionTypeExtensions
+  | ScalarTypeExtensions
+  | EnumTypeExtensions;
+
+export type SchemaExtensions = {
+  schemaExtensions: ExtensionsObject;
+  types: Record<string, { extensions: ExtensionsObject } & PossibleTypeExtensions>;
+};

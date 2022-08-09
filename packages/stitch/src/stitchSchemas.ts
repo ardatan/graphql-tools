@@ -28,9 +28,9 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
   resolvers = {},
   inheritResolversFromInterfaces = false,
   resolverValidationOptions = {},
-  parseOptions = {},
   updateResolversInPlace = true,
   schemaExtensions,
+  ...rest
 }: IStitchSchemasOptions<TContext>): GraphQLSchema {
   const transformedSubschemas: Array<Subschema<any, any, any, TContext>> = [];
   const subschemaMap: Map<
@@ -63,8 +63,8 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
     subschemas: transformedSubschemas,
     originalSubschemaMap,
     types,
-    typeDefs,
-    parseOptions,
+    typeDefs: typeDefs || [],
+    parseOptions: rest,
     directiveMap,
     schemaDefs,
     mergeDirectives,

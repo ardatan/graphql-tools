@@ -3,7 +3,7 @@
 '@graphql-tools/wrap': major
 ---
 
-Breaking changes;
+## Breaking changes
 
 **Schema generation optimization by removing `transfomedSchema` parameter**
 

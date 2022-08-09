@@ -6,3 +6,4 @@ export { extendResolversFromInterfaces } from './extendResolversFromInterfaces.j
 export * from './makeExecutableSchema.js';
 export * from './types.js';
 export * from './merge-schemas.js';
+export * from './extractExtensionsFromSchema.js';

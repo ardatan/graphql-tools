@@ -1,19 +1,12 @@
 import { loadTypedefs, LoadTypedefsOptions, UnnormalizedTypeDefPointer, loadTypedefsSync } from './load-typedefs.js';
-import {
-  GraphQLSchema,
-  BuildSchemaOptions,
-  DocumentNode,
-  Source as GraphQLSource,
-  print,
-  lexicographicSortSchema,
-} from 'graphql';
-import { OPERATION_KINDS } from './documents.js';
-import { mergeSchemas, MergeSchemasConfig } from '@graphql-tools/schema';
-import { Source } from '@graphql-tools/utils';
+import { GraphQLSchema, BuildSchemaOptions, Source as GraphQLSource, print, lexicographicSortSchema } from 'graphql';
+import { OPERATION_KINDS } from './documents';
+import { IExecutableSchemaDefinition, mergeSchemas, extractExtensionsFromSchema } from '@graphql-tools/schema';
+import { getResolversFromSchema, IResolvers, SchemaExtensions, Source, TypeSource } from '@graphql-tools/utils';
 
 export type LoadSchemaOptions = BuildSchemaOptions &
   LoadTypedefsOptions &
-  Partial<MergeSchemasConfig> & {
+  Partial<IExecutableSchemaDefinition> & {
     /**
      * Adds a list of Sources in to `extensions.sources`
      *
@@ -35,22 +28,7 @@ export async function loadSchema(
     ...options,
     filterKinds: OPERATION_KINDS,
   });
-
-  const { schemas, typeDefs } = collectSchemasAndTypeDefs(sources);
-  schemas.push(...(options.schemas ?? []));
-  const mergeSchemasOptions: MergeSchemasConfig = {
-    ...options,
-    schemas: schemas.concat(options.schemas ?? []),
-    typeDefs,
-  };
-
-  const schema = typeDefs?.length === 0 && schemas?.length === 1 ? schemas[0] : mergeSchemas(mergeSchemasOptions);
-
-  if (options?.includeSources) {
-    includeSources(schema, sources);
-  }
-
-  return options.sort ? lexicographicSortSchema(schema) : schema;
+  return getSchemaFromSources(sources, options);
 }
 
 /**
@@ -66,20 +44,7 @@ export function loadSchemaSync(
     filterKinds: OPERATION_KINDS,
     ...options,
   });
-
-  const { schemas, typeDefs } = collectSchemasAndTypeDefs(sources);
-
-  const schema = mergeSchemas({
-    schemas,
-    typeDefs,
-    ...options,
-  });
-
-  if (options?.includeSources) {
-    includeSources(schema, sources);
-  }
-
-  return options.sort ? lexicographicSortSchema(schema) : schema;
+  return getSchemaFromSources(sources, options);
 }
 
 function includeSources(schema: GraphQLSchema, sources: Source[]) {
@@ -98,20 +63,47 @@ function includeSources(schema: GraphQLSchema, sources: Source[]) {
   };
 }
 
-function collectSchemasAndTypeDefs(sources: Source[]) {
-  const schemas: GraphQLSchema[] = [];
-  const typeDefs: DocumentNode[] = [];
+function getSchemaFromSources(sources: Source[], options: LoadSchemaOptions) {
+  if (sources.length === 1 && sources[0].schema != null && options.typeDefs == null && options.resolvers == null) {
+    return options.sort ? lexicographicSortSchema(sources[0].schema) : sources[0].schema;
+  }
+  const { typeDefs, resolvers, schemaExtensions } = collectSchemaParts(sources);
+
+  const schema = mergeSchemas({
+    ...options,
+    typeDefs,
+    resolvers,
+    schemaExtensions,
+  });
+
+  if (options?.includeSources) {
+    includeSources(schema, sources);
+  }
+
+  return options.sort ? lexicographicSortSchema(schema) : schema;
+}
+
+function collectSchemaParts(sources: Source[]) {
+  const typeDefs: TypeSource[] = [];
+  const resolvers: IResolvers[] = [];
+  const schemaExtensions: SchemaExtensions[] = [];
 
   for (const source of sources) {
     if (source.schema) {
-      schemas.push(source.schema);
-    } else if (source.document) {
-      typeDefs.push(source.document);
+      typeDefs.push(source.schema);
+      resolvers.push(getResolversFromSchema(source.schema));
+      schemaExtensions.push(extractExtensionsFromSchema(source.schema));
+    } else {
+      const typeDef = source.document || source.rawSDL;
+      if (typeDef) {
+        typeDefs.push(typeDef);
+      }
     }
   }
 
   return {
-    schemas,
     typeDefs,
+    resolvers,
+    schemaExtensions,
   };
 }

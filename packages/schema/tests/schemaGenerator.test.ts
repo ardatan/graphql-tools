@@ -1961,9 +1961,7 @@ describe('can specify lexical parser options', () => {
         }
       `,
       resolvers: {},
-      parseOptions: {
-        noLocation: true,
-      },
+      noLocation: true,
     });
 
     expect(schema.astNode!.loc).toBeUndefined();
@@ -1986,9 +1984,7 @@ describe('can specify lexical parser options', () => {
       makeExecutableSchema({
         typeDefs,
         resolvers,
-        parseOptions: {
-          experimentalFragmentVariables: true,
-        },
+        experimentalFragmentVariables: true,
       });
     }).not.toThrowError();
   });
@@ -2264,7 +2260,7 @@ describe('interface resolver inheritance', () => {
       },
     };
     const schema = makeExecutableSchema({
-      parseOptions: { allowLegacySDLImplementsInterfaces: true },
+      allowLegacySDLImplementsInterfaces: true,
       typeDefs: testSchemaWithInterfaceResolvers,
       resolvers,
       inheritResolversFromInterfaces: true,
