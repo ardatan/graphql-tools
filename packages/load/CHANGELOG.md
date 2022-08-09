@@ -1,5 +1,11 @@
 # @graphql-tools/load
 
+## 7.7.3
+
+### Patch Changes
+
+- [`821ef03c`](https://github.com/ardatan/graphql-tools/commit/821ef03cf04ed7a0bb58fd5e6ce2ed8439e34f54) Thanks [@ardatan](https://github.com/ardatan)! - Fix import for ESM support
+
 ## 7.7.2
 
 ### Patch Changes
