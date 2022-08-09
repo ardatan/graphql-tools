@@ -73,3 +73,4 @@ makeExecutableSchema({
 You can use `pruneSchema` from `@graphql-tools/utils` if you need.
 
 `extractExtensionsFromSchema` moved from `@graphql-tools/merge` to `@graphql-tools/schema`.
+And `travelSchemaPossibleExtensions` has been dropped in favor of `mapSchema`.
