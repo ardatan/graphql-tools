@@ -1,8 +1,8 @@
 import { GraphQLSchema } from 'graphql';
-import { extractExtensionsFromSchema, SchemaExtensions } from '@graphql-tools/merge';
-import { IResolvers, asArray, getResolversFromSchema, TypeSource } from '@graphql-tools/utils';
+import { IResolvers, asArray, getResolversFromSchema, TypeSource, SchemaExtensions } from '@graphql-tools/utils';
 import { makeExecutableSchema } from './makeExecutableSchema.js';
 import { IExecutableSchemaDefinition } from './types.js';
+import { extractExtensionsFromSchema } from './extractExtensionsFromSchema.js';
 
 /**
  * Configuration object for schema merging

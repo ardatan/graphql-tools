@@ -1,9 +1,8 @@
 import { loadTypedefs, LoadTypedefsOptions, UnnormalizedTypeDefPointer, loadTypedefsSync } from './load-typedefs';
 import { GraphQLSchema, BuildSchemaOptions, Source as GraphQLSource, print, lexicographicSortSchema } from 'graphql';
 import { OPERATION_KINDS } from './documents';
-import { IExecutableSchemaDefinition, mergeSchemas } from '@graphql-tools/schema';
-import { getResolversFromSchema, IResolvers, Source, TypeSource } from '@graphql-tools/utils';
-import { extractExtensionsFromSchema, SchemaExtensions } from '@graphql-tools/merge';
+import { IExecutableSchemaDefinition, mergeSchemas, extractExtensionsFromSchema } from '@graphql-tools/schema';
+import { getResolversFromSchema, IResolvers, SchemaExtensions, Source, TypeSource } from '@graphql-tools/utils';
 
 export type LoadSchemaOptions = BuildSchemaOptions &
   LoadTypedefsOptions &

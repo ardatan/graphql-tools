@@ -8,7 +8,8 @@ import {
   assertGraphQLScalerType,
 } from '../../testing/assertion.js';
 import { assertSome } from '@graphql-tools/utils';
-import { extractExtensionsFromSchema, mergeExtensions, applyExtensions } from '../src/extensions.js';
+import { mergeExtensions, applyExtensions } from '../src/extensions.js';
+import { extractExtensionsFromSchema } from '@graphql-tools/schema';
 
 describe('extensions', () => {
   let schema: GraphQLSchema;

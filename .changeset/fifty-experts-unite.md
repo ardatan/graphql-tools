@@ -4,6 +4,8 @@
 
 Thanks @mattkrick and @borisno2!
 
+## Breaking changes
+
 `addResolversToSchema`;
 
 If you are using the legacy parameters like below, you should update them to the new usage. Other than that, there is no functional change;
@@ -66,3 +68,5 @@ makeExecutableSchema({
   assumeValid: true
 })
 ```
+
+`extractExtensionsFromSchema` moved from `@graphql-tools/merge` to `@graphql-tools/schema`.
