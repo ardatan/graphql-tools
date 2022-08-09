@@ -19,10 +19,9 @@ export default class WrapType<TContext extends Record<string, any> = Record<stri
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    transformedSchema?: GraphQLSchema
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
-    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 
   public transformRequest(

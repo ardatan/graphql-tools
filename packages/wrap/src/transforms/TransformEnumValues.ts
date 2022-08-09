@@ -35,10 +35,9 @@ export default class TransformEnumValues<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    transformedSchema?: GraphQLSchema
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
-    const mappingSchema = this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
+    const mappingSchema = this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
     this.transformedSchema = mapSchema(mappingSchema, {
       [MapperKind.ENUM_VALUE]: (valueConfig, typeName, _schema, externalValue) =>
         this.transformEnumValue(typeName, externalValue, valueConfig),

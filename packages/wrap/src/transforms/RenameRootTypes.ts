@@ -21,8 +21,7 @@ export default class RenameRootTypes<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    _transformedSchema?: GraphQLSchema
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
     return mapSchema(originalWrappingSchema, {
       [MapperKind.ROOT_OBJECT]: type => {

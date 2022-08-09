@@ -370,16 +370,14 @@ import { delegateToSchema } from '@graphql-tools/delegate'
 
 export function defaultCreateProxyingResolver({
   subschemaConfig,
-  operation,
-  transformedSchema
+  operation
 }: ICreateProxyingResolverOptions): GraphQLFieldResolver<any, any> {
   return (_parent, _args, context, info) =>
     delegateToSchema({
       schema: subschemaConfig,
       operation,
       context,
-      info,
-      transformedSchema
+      info
     })
 }
 ```

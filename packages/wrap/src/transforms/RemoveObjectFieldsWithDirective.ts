@@ -21,8 +21,7 @@ export default class RemoveObjectFieldsWithDirective<TContext = Record<string, a
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    transformedSchema?: GraphQLSchema
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
     const transformer = new FilterObjectFields<TContext>((_typeName, _fieldName, fieldConfig) => {
       const directives = getDirectives(originalWrappingSchema, fieldConfig);
@@ -32,6 +31,6 @@ export default class RemoveObjectFieldsWithDirective<TContext = Record<string, a
       );
     });
 
-    return transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
+    return transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 }

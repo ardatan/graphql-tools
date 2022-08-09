@@ -19,23 +19,6 @@ export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfi
 
     baseSchemaTypes[typeName] = mergedTypeConfig;
 
-    if (mergedTypeConfig.computedFields) {
-      const mergeConfigFields = mergedTypeConfig.fields ?? Object.create(null);
-      for (const fieldName in mergedTypeConfig.computedFields) {
-        const mergedFieldConfig = mergedTypeConfig.computedFields[fieldName];
-        console.warn(
-          `The "computedFields" setting is deprecated. Update your @graphql-tools/stitching-directives package, and/or update static merged type config to "${typeName}.fields.${fieldName} = { selectionSet: '${mergedFieldConfig.selectionSet}', computed: true }"`
-        );
-        mergeConfigFields[fieldName] = {
-          ...(mergeConfigFields[fieldName] ?? {}),
-          ...mergedFieldConfig,
-          computed: true,
-        };
-      }
-      delete mergedTypeConfig.computedFields;
-      mergedTypeConfig.fields = mergeConfigFields;
-    }
-
     if (mergedTypeConfig.fields) {
       const baseFields: Record<string, MergedFieldConfig> = Object.create(null);
       const isolatedFields: Record<string, MergedFieldConfig> = Object.create(null);

@@ -22,8 +22,7 @@ import { OBJECT_SUBSCHEMA_SYMBOL, FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SY
 
 export type SchemaTransform<TContext = Record<any, string>> = (
   originalWrappingSchema: GraphQLSchema,
-  subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-  transformedSchema?: GraphQLSchema
+  subschemaConfig: SubschemaConfig<any, any, any, TContext>
 ) => GraphQLSchema;
 export type RequestTransform<T = Record<string, any>, TContext = Record<any, string>> = (
   originalRequest: ExecutionRequest,
@@ -123,7 +122,6 @@ export interface MergedTypeInfo<TContext = Record<string, any>> {
 
 export interface ICreateProxyingResolverOptions<TContext = Record<string, any>> {
   subschemaConfig: SubschemaConfig<any, any, any, TContext>;
-  transformedSchema?: GraphQLSchema;
   operation?: OperationTypeNode;
   fieldName?: string;
 }
@@ -152,7 +150,6 @@ export interface MergedTypeConfig<K = any, V = any, TContext = Record<string, an
   extends MergedTypeEntryPoint<K, V, TContext> {
   entryPoints?: Array<MergedTypeEntryPoint>;
   fields?: Record<string, MergedFieldConfig>;
-  computedFields?: Record<string, { selectionSet?: string }>;
   canonical?: boolean;
 }
 

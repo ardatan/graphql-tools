@@ -40,7 +40,6 @@ export function buildTypeCandidates<TContext extends Record<string, any> = Recor
   types,
   typeDefs,
   parseOptions,
-  extensions,
   directiveMap,
   schemaDefs,
   mergeDirectives,
@@ -53,14 +52,14 @@ export function buildTypeCandidates<TContext extends Record<string, any> = Recor
   types: Array<GraphQLNamedType>;
   typeDefs: TypeSource;
   parseOptions: GraphQLParseOptions;
-  extensions: Array<DocumentNode>;
   directiveMap: Record<string, GraphQLDirective>;
   schemaDefs: {
     schemaDef: SchemaDefinitionNode;
     schemaExtensions: Array<SchemaExtensionNode>;
   };
   mergeDirectives?: boolean | undefined;
-}): [Record<string, Array<MergeTypeCandidate<TContext>>>, Record<OperationTypeNode, string>] {
+}): [Record<string, Array<MergeTypeCandidate<TContext>>>, Record<OperationTypeNode, string>, DocumentNode[]] {
+  const extensions: Array<DocumentNode> = [];
   const typeCandidates: Record<string, Array<MergeTypeCandidate<TContext>>> = Object.create(null);
 
   let schemaDef: SchemaDefinitionNode | undefined;
@@ -148,7 +147,7 @@ export function buildTypeCandidates<TContext extends Record<string, any> = Recor
     addTypeCandidate(typeCandidates, type.name, { type });
   }
 
-  return [typeCandidates, rootTypeNameMap];
+  return [typeCandidates, rootTypeNameMap, extensions];
 }
 
 function getRootTypeNameMap({

@@ -19,9 +19,7 @@ export function wrapSchema<TConfig extends Record<string, any> = Record<string, 
   const proxyingResolvers = generateProxyingResolvers(subschemaConfig);
   const schema = createWrappingSchema(targetSchema, proxyingResolvers);
 
-  const transformedSchema = applySchemaTransforms(schema, subschemaConfig);
-
-  return applySchemaTransforms(schema, subschemaConfig, transformedSchema);
+  return applySchemaTransforms(schema, subschemaConfig);
 }
 
 function createWrappingSchema(

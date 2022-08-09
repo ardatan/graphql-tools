@@ -24,10 +24,9 @@ export default class RenameInterfaceFields<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    transformedSchema?: GraphQLSchema
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
-    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema);
+    return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
 
   public transformRequest(

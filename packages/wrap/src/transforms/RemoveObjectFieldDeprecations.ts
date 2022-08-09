@@ -33,13 +33,11 @@ export default class RemoveObjectFieldDeprecations<TContext = Record<string, any
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    transformedSchema?: GraphQLSchema
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
     return this.removeDeprecations.transformSchema(
-      this.removeDirectives.transformSchema(originalWrappingSchema, subschemaConfig, transformedSchema),
-      subschemaConfig,
-      transformedSchema
+      this.removeDirectives.transformSchema(originalWrappingSchema, subschemaConfig),
+      subschemaConfig
     );
   }
 }

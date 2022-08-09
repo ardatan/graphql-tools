@@ -1,7 +1,8 @@
+import { assertSome } from '@graphql-tools/utils';
+import { graphql } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { graphql } from 'graphql';
-import { assertSome } from '@graphql-tools/utils';
+import { stitchingDirectives } from '../src';
 
 const productSchema = makeExecutableSchema({
   typeDefs: /* GraphQL */ `
@@ -22,13 +23,15 @@ const productSchema = makeExecutableSchema({
   },
 });
 
-describe('merge computed fields via config', () => {
+describe('merge computed fields via SDL (Apollo Federation-style directive annotation)', () => {
   const storefrontSchema = makeExecutableSchema({
     typeDefs: /* GraphQL */ `
+      directive @computed(selectionSet: String!) on FIELD_DEFINITION
+
       type Product {
         id: ID!
-        shippingEstimate: Float!
-        deliveryService: DeliveryService!
+        shippingEstimate: Float! @computed(selectionSet: "{ price weight }")
+        deliveryService: DeliveryService! @computed(selectionSet: "{ weight }")
       }
       enum DeliveryService {
         POSTAL
@@ -38,20 +41,17 @@ describe('merge computed fields via config', () => {
         id: ID!
         availableProducts: [Product]!
       }
-      input ProductRepresentation {
-        id: ID!
-        price: Float
-        weight: Int
-      }
+      scalar _Any
+      union _Entity = Product
       type Query {
         storefront(id: ID!): Storefront
-        _products(representations: [ProductRepresentation!]!): [Product]!
+        _entities(representations: [_Any!]!): [_Entity]!
       }
     `,
     resolvers: {
       Query: {
         storefront: (_root, { id }) => ({ id, availableProducts: [{ id: '23' }] }),
-        _products: (_root, { representations }) => representations,
+        _entities: (_root, { representations }) => representations,
       },
       Product: {
         shippingEstimate: obj =>
@@ -61,6 +61,7 @@ describe('merge computed fields via config', () => {
     },
   });
 
+  const { stitchingDirectivesTransformer } = stitchingDirectives();
   const gatewaySchema = stitchSchemas({
     subschemas: [
       {
@@ -78,49 +79,14 @@ describe('merge computed fields via config', () => {
         merge: {
           Product: {
             selectionSet: '{ id }',
-            fields: {
-              shippingEstimate: {
-                selectionSet: '{ price weight }',
-                computed: true,
-              },
-              deliveryService: {
-                selectionSet: '{ weight }',
-                computed: true,
-              },
-            },
-            fieldName: '_products',
-            key: ({ id, price, weight }) => ({ id, price, weight }),
+            fieldName: '_entities',
+            key: ({ id, price, weight }) => ({ id, price, weight, __typename: 'Product' }),
             argsFromKeys: representations => ({ representations }),
           },
         },
       },
     ],
-  });
-
-  it('can stitch from product service to inventory service', async () => {
-    const { data } = await graphql({
-      schema: gatewaySchema,
-      source: /* GraphQL */ `
-        query {
-          product(id: 77) {
-            id
-            price
-            weight
-            shippingEstimate
-            deliveryService
-          }
-        }
-      `,
-    });
-
-    assertSome(data);
-    expect(data['product']).toEqual({
-      id: '77',
-      price: 77.99,
-      weight: 77,
-      shippingEstimate: 0,
-      deliveryService: 'FREIGHT',
-    });
+    subschemaConfigTransforms: [stitchingDirectivesTransformer],
   });
 
   it('can stitch from inventory service to product service and back to inventory service', async () => {

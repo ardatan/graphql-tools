@@ -17,8 +17,7 @@ export default class PruneTypes<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    _transformedSchema?: GraphQLSchema
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
     return pruneSchema(originalWrappingSchema, this.options);
   }

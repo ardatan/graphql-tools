@@ -1,13 +1,6 @@
-import {
-  DocumentNode,
-  GraphQLObjectType,
-  GraphQLSchema,
-  GraphQLDirective,
-  specifiedDirectives,
-  extendSchema,
-} from 'graphql';
+import { GraphQLObjectType, GraphQLSchema, GraphQLDirective, specifiedDirectives, extendSchema } from 'graphql';
 
-import { IResolvers, pruneSchema } from '@graphql-tools/utils';
+import { IResolvers } from '@graphql-tools/utils';
 
 import { addResolversToSchema, assertResolversPresent, extendResolversFromInterfaces } from '@graphql-tools/schema';
 
@@ -18,7 +11,6 @@ import { IStitchSchemasOptions, SubschemaConfigTransform } from './types.js';
 import { buildTypeCandidates, buildTypes } from './typeCandidates.js';
 import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo.js';
 import {
-  defaultSubschemaConfigTransforms,
   isolateComputedFieldsTransformer,
   splitMergedTypeEntryPointsTransformer,
 } from './subschemaConfigTransforms/index.js';
@@ -27,24 +19,19 @@ import { applyExtensions, mergeExtensions, mergeResolvers } from '@graphql-tools
 export function stitchSchemas<TContext extends Record<string, any> = Record<string, any>>({
   subschemas = [],
   types = [],
-  typeDefs,
+  typeDefs = [],
   onTypeConflict,
   mergeDirectives,
   mergeTypes = true,
   typeMergingOptions,
-  subschemaConfigTransforms = defaultSubschemaConfigTransforms,
+  subschemaConfigTransforms = [],
   resolvers = {},
   inheritResolversFromInterfaces = false,
   resolverValidationOptions = {},
   parseOptions = {},
-  pruningOptions,
-  updateResolversInPlace,
+  updateResolversInPlace = true,
   schemaExtensions,
 }: IStitchSchemasOptions<TContext>): GraphQLSchema {
-  if (typeof resolverValidationOptions !== 'object') {
-    throw new Error('Expected `resolverValidationOptions` to be an object');
-  }
-
   const transformedSubschemas: Array<Subschema<any, any, any, TContext>> = [];
   const subschemaMap: Map<
     GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
@@ -55,31 +42,16 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
     GraphQLSchema | SubschemaConfig<any, any, any, TContext>
   > = new Map();
 
-  for (const subschemaOrSubschemaArray of subschemas) {
-    if (Array.isArray(subschemaOrSubschemaArray)) {
-      for (const s of subschemaOrSubschemaArray) {
-        for (const transformedSubschemaConfig of applySubschemaConfigTransforms(
-          subschemaConfigTransforms,
-          s,
-          subschemaMap,
-          originalSubschemaMap
-        )) {
-          transformedSubschemas.push(transformedSubschemaConfig);
-        }
-      }
-    } else {
-      for (const transformedSubschemaConfig of applySubschemaConfigTransforms(
-        subschemaConfigTransforms,
-        subschemaOrSubschemaArray,
-        subschemaMap,
-        originalSubschemaMap
-      )) {
-        transformedSubschemas.push(transformedSubschemaConfig);
-      }
+  for (const subschema of subschemas) {
+    for (const transformedSubschemaConfig of applySubschemaConfigTransforms(
+      subschemaConfigTransforms,
+      subschema,
+      subschemaMap,
+      originalSubschemaMap
+    )) {
+      transformedSubschemas.push(transformedSubschemaConfig);
     }
   }
-
-  const extensions: Array<DocumentNode> = [];
 
   const directiveMap: Record<string, GraphQLDirective> = Object.create(null);
   for (const directive of specifiedDirectives) {
@@ -87,13 +59,12 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
   }
   const schemaDefs = Object.create(null);
 
-  const [typeCandidates, rootTypeNameMap] = buildTypeCandidates({
+  const [typeCandidates, rootTypeNameMap, extensions] = buildTypeCandidates({
     subschemas: transformedSubschemas,
     originalSubschemaMap,
     types,
-    typeDefs: typeDefs || [],
+    typeDefs,
     parseOptions,
-    extensions,
     directiveMap,
     schemaDefs,
     mergeDirectives,
@@ -146,18 +117,13 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
     updateResolversInPlace,
   });
 
-  if (
-    Object.keys(resolverValidationOptions).length > 0 &&
-    Object.values(resolverValidationOptions).some(o => o !== 'ignore')
-  ) {
+  const resolverValidationOptionsEntries = Object.entries(resolverValidationOptions);
+
+  if (resolverValidationOptionsEntries.length > 0 && resolverValidationOptionsEntries.some(([, o]) => o !== 'ignore')) {
     assertResolversPresent(schema, resolverValidationOptions);
   }
 
-  schema = addStitchingInfo(schema, stitchingInfo);
-
-  if (pruningOptions) {
-    schema = pruneSchema(schema, pruningOptions);
-  }
+  addStitchingInfo(schema, stitchingInfo);
 
   if (schemaExtensions) {
     if (Array.isArray(schemaExtensions)) {

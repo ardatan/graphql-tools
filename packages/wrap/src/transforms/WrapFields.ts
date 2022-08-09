@@ -85,8 +85,7 @@ export default class WrapFields<TContext extends Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    transformedSchema?: GraphQLSchema
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
     const fieldNames = this.fieldNames;
     const targetFieldConfigMap = selectObjectFields(
@@ -130,20 +129,17 @@ export default class WrapFields<TContext extends Record<string, any>>
       this.outerTypeName === originalWrappingSchema.getMutationType()?.name;
 
     let resolve: GraphQLFieldResolver<any, any> | undefined;
-    if (transformedSchema) {
-      if (wrappingRootField) {
-        const targetSchema = subschemaConfig.schema;
-        const operation = this.outerTypeName === targetSchema.getQueryType()?.name ? 'query' : 'mutation';
-        const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
-        resolve = createProxyingResolver({
-          subschemaConfig,
-          transformedSchema,
-          operation: operation as OperationTypeNode,
-          fieldName: wrappingFieldName,
-        });
-      } else {
-        resolve = defaultMergedResolver;
-      }
+    if (wrappingRootField) {
+      const targetSchema = subschemaConfig.schema;
+      const operation = this.outerTypeName === targetSchema.getQueryType()?.name ? 'query' : 'mutation';
+      const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
+      resolve = createProxyingResolver({
+        subschemaConfig,
+        operation: operation as OperationTypeNode,
+        fieldName: wrappingFieldName,
+      });
+    } else {
+      resolve = defaultMergedResolver;
     }
 
     [newSchema] = modifyObjectFields(newSchema, this.outerTypeName, fieldName => !!newTargetFieldConfigMap[fieldName], {
@@ -153,7 +149,7 @@ export default class WrapFields<TContext extends Record<string, any>>
       },
     });
 
-    return this.transformer.transformSchema(newSchema, subschemaConfig, transformedSchema);
+    return this.transformer.transformSchema(newSchema, subschemaConfig);
   }
 
   public transformRequest(

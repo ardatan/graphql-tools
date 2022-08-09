@@ -55,8 +55,7 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    _transformedSchema?: GraphQLSchema
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
     this.transformedSchema = mapSchema(originalWrappingSchema, {
       [MapperKind.INPUT_OBJECT_FIELD]: (inputFieldConfig, fieldName, typeName) => {

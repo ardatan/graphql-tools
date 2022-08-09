@@ -17,8 +17,7 @@ export default class FilterTypes<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-    _transformedSchema?: GraphQLSchema
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
     return mapSchema(originalWrappingSchema, {
       [MapperKind.TYPE]: (type: GraphQLNamedType) => {
