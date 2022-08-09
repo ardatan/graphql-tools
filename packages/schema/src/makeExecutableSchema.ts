@@ -1,6 +1,6 @@
 import { buildASTSchema, buildSchema, GraphQLSchema, isSchema } from 'graphql';
 
-import { asArray, pruneSchema } from '@graphql-tools/utils';
+import { asArray } from '@graphql-tools/utils';
 import { addResolversToSchema } from './addResolversToSchema.js';
 
 import { assertResolversPresent } from './assertResolversPresent.js';
@@ -55,7 +55,6 @@ export function makeExecutableSchema<TContext = any>({
   resolvers = {},
   resolverValidationOptions = {},
   inheritResolversFromInterfaces = false,
-  pruningOptions,
   updateResolversInPlace = false,
   schemaExtensions,
   ...otherOptions
@@ -82,10 +81,6 @@ export function makeExecutableSchema<TContext = any>({
   } else {
     const mergedTypeDefs = mergeTypeDefs(typeDefs, otherOptions);
     schema = buildASTSchema(mergedTypeDefs, otherOptions);
-  }
-
-  if (pruningOptions) {
-    schema = pruneSchema(schema);
   }
 
   // We allow passing in an array of resolver maps, in which case we merge them

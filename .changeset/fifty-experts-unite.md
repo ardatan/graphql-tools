@@ -69,4 +69,7 @@ makeExecutableSchema({
 })
 ```
 
+`makeExecutableSchema` no longer does pruning and it doesn't take `pruningOptions` anymore.
+You can use `pruneSchema` from `@graphql-tools/utils` if you need.
+
 `extractExtensionsFromSchema` moved from `@graphql-tools/merge` to `@graphql-tools/schema`.

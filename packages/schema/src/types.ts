@@ -3,10 +3,13 @@ import {
   IResolvers,
   IResolverValidationOptions,
   GraphQLParseOptions,
-  PruneSchemaOptions,
+  SchemaExtensions,
 } from '@graphql-tools/utils';
-import { SchemaExtensions } from '@graphql-tools/merge';
-import { BuildSchemaOptions } from 'graphql';
+import { BuildSchemaOptions, GraphQLSchema } from 'graphql';
+
+export interface GraphQLSchemaWithContext<TContext> extends GraphQLSchema {
+  __context?: TContext;
+}
 
 /**
  * Configuration object for creating an executable schema
@@ -29,10 +32,6 @@ export interface IExecutableSchemaDefinition<TContext = any> extends BuildSchema
    * resolvers from their interface types defined in the `resolvers` object
    */
   inheritResolversFromInterfaces?: boolean;
-  /**
-   * Additional options for removing unused types from the schema
-   */
-  pruningOptions?: PruneSchemaOptions;
   /**
    * Do not create a schema again and use the one from `buildASTSchema`
    */
