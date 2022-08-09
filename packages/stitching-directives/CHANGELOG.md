@@ -1,5 +1,15 @@
 # @graphql-tools/stitching-directives
 
+## 2.3.2
+
+### Patch Changes
+
+- [#4624](https://github.com/ardatan/graphql-tools/pull/4624) [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with `moduleResolution` `node16` or `nodenext`
+
+- Updated dependencies [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67), [`d8dc67aa`](https://github.com/ardatan/graphql-tools/commit/d8dc67aa6cb05bf10f5f16e90690e5ccc87b3426)]:
+  - @graphql-tools/delegate@9.0.0
+  - @graphql-tools/utils@8.9.1
+
 ## 2.3.1
 
 ### Patch Changes
