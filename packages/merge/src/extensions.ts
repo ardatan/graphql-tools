@@ -1,5 +1,6 @@
 import { GraphQLSchema, GraphQLObjectType, GraphQLEnumType } from 'graphql';
 import { ExtensionsObject, Maybe, mergeDeep, SchemaExtensions } from '@graphql-tools/utils';
+export { extractExtensionsFromSchema } from '@graphql-tools/utils';
 
 export function mergeExtensions(extensions: SchemaExtensions[]): SchemaExtensions {
   return mergeDeep(extensions);
