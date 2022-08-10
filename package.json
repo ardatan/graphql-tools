@@ -88,7 +88,7 @@
   ],
   "resolutions": {
     "graphql": "16.5.0",
-    "esbuild": "^0.14.0"
+    "esbuild": "^0.15.0"
   },
   "yarn": {
     "args": [
