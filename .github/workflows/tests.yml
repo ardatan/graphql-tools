@@ -111,6 +111,7 @@ jobs:
     name: Unit Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL v${{matrix.graphql_version}}
     runs-on: ${{matrix.os}}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest] # remove windows to speed up the tests
         node-version: [14, 16, 18]
