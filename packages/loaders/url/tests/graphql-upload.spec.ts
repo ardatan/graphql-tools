@@ -14,7 +14,15 @@ describe('GraphQL Upload compatibility', () => {
 
   afterEach(async () => {
     if (httpServer !== undefined) {
-      await new Promise<void>(resolve => httpServer.close(() => resolve()));
+      await new Promise<void>((resolve, reject) =>
+        httpServer.close(err => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        })
+      );
     }
   });
 
@@ -22,16 +30,12 @@ describe('GraphQL Upload compatibility', () => {
     httpServer = http.createServer((req, res) => {
       let process$;
       if (req.headers['content-type'] === 'application/json') {
-        process$ = new Promise((resolve, reject) => {
+        process$ = Promise.resolve().then(async () => {
           let body = '';
-          req
-            .on('data', chunk => {
-              body += chunk;
-            })
-            .on('end', () => {
-              resolve(JSON.parse(body));
-            })
-            .on('error', reject);
+          for await (const chunk of req) {
+            body += chunk;
+          }
+          return JSON.parse(body);
         });
       } else {
         process$ = processRequest(req, res);

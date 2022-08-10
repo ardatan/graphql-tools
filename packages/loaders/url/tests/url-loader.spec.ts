@@ -485,7 +485,7 @@ describe('Schema URL Loader', () => {
     await new Promise<void>(resolve => httpServer.listen(8081, resolve));
 
     assertNonMaybe(schema);
-    const asyncIterator = (await subscribe({
+    const asyncIterable = (await subscribe({
       schema,
       document: parse(/* GraphQL */ `
         subscription TestMessage {
@@ -495,22 +495,18 @@ describe('Schema URL Loader', () => {
         }
       `),
       contextValue: {},
-    })) as AsyncIterableIterator<ExecutionResult>;
+    })) as AsyncIterable<ExecutionResult<any>>;
 
-    expect(asyncIterator['errors']).toBeFalsy();
-    expect(asyncIterator['errors']?.length).toBeFalsy();
+    expect(asyncIterable['errors']).toBeFalsy();
+    expect(asyncIterable['errors']?.length).toBeFalsy();
 
-    async function getNextResult() {
-      const result = await asyncIterator.next();
-      expect(result?.done).toBeFalsy();
-      return result?.value?.data?.testMessage?.number;
+    let i = 0;
+    for await (const result of asyncIterable) {
+      expect(result?.data?.testMessage?.number).toBe(i);
+      i++;
     }
 
-    expect(await getNextResult()).toBe(0);
-    expect(await getNextResult()).toBe(1);
-    expect(await getNextResult()).toBe(2);
-
-    asyncIterator.return!();
+    expect.assertions(5);
   });
   it('should handle aliases properly', async () => {
     const customFetch: AsyncFetchFn = async (_, options) => {
