@@ -214,6 +214,6 @@ jobs:
       - name: Build Packages
         run: yarn build
       - name: Test
-        run: yarn test --ci browser
+        run: yarn jest --no-watchman --ci browser
         env:
           TEST_BROWSER: true
