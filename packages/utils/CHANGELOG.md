@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.10.0
+
+### Minor Changes
+
+- [#4643](https://github.com/ardatan/graphql-tools/pull/4643) [`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27) Thanks [@ardatan](https://github.com/ardatan)! - Revert the breaking change introduced in `@graphql-tools/merge`
+
 ## 8.9.1
 
 ### Patch Changes

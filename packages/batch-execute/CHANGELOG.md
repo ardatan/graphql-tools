@@ -1,5 +1,12 @@
 # @graphql-tools/batch-execute
 
+## 8.5.3
+
+### Patch Changes
+
+- Updated dependencies [[`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27)]:
+  - @graphql-tools/utils@8.10.0
+
 ## 8.5.2
 
 ### Patch Changes
