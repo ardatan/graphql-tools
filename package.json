@@ -13,7 +13,7 @@
     "lint": "eslint --ext .ts .",
     "prettier": "prettier --ignore-path .prettierignore --write --list-different .",
     "prettier:check": "prettier --ignore-path .prettierignore --check .",
-    "test": "jest --no-watchman --detectOpenHandles --logHeapUsage",
+    "test": "node --expose-gc ./node_modules/.bin/jest --no-watchman --detectOpenHandles --logHeapUsage --detectLeaks",
     "prerelease": "yarn build",
     "release": "changeset publish"
   },

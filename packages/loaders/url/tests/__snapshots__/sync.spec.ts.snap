@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Schema URL Loader handle sync should handle introspection 1`] = `
+exports[`sync should handle introspection 1`] = `
 "schema {
   query: Root
 }
@@ -1006,7 +1006,7 @@ type VehiclesEdge {
 }"
 `;
 
-exports[`Schema URL Loader handle sync should handle queries 1`] = `
+exports[`sync should handle queries 1`] = `
 Object {
   "data": Object {
     "allFilms": Object {

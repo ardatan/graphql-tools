@@ -186,6 +186,14 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         v?.then ||
         typeof v?.arrayBuffer === 'function') as any
     );
+    if (files.size === 0) {
+      return JSON.stringify({
+        query,
+        variables,
+        operationName,
+        extensions,
+      });
+    }
     const map: Record<number, string[]> = {};
     const uploads: any[] = [];
     let currIndex = 0;
@@ -360,12 +368,15 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             if (options?.multipart) {
               return new ValueOrPromise(() => this.createFormDataFromVariables(requestBody))
                 .then(
-                  form =>
+                  body =>
                     fetch(endpoint, {
                       method: 'POST',
                       ...(credentials != null ? { credentials } : {}),
-                      body: form as any,
-                      headers,
+                      body,
+                      headers: {
+                        ...headers,
+                        ...(typeof body === 'string' ? { 'content-type': 'application/json' } : {}),
+                      },
                       signal: controller.signal,
                     }) as any
                 )
