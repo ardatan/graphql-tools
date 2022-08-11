@@ -17,7 +17,7 @@
     }
   },
   "resolutions": {
-    "esbuild": "0.15.0"
+    "esbuild": "0.15.1"
   },
   "devDependencies": {
     "@guild-docs/algolia": "0.2.2",
@@ -29,7 +29,7 @@
     "@types/react-dom": "18.0.6",
     "concurrently": "7.3.0",
     "cross-env": "7.0.3",
-    "esbuild": "0.15.0",
+    "esbuild": "0.15.1",
     "esbuild-register": "3.3.3",
     "next-remote-watch": "1.0.0",
     "open-cli": "7.0.1",
@@ -47,7 +47,7 @@
     "@guild-docs/server": "3.0.1",
     "@mdx-js/react": "2.1.2",
     "@theguild/components": "1.12.0",
-    "framer-motion": "7.0.1",
+    "framer-motion": "7.1.0",
     "next": "12.2.4",
     "next-i18next": "11.3.0",
     "next-seo": "5.5.0",
@@ -56,6 +56,6 @@
     "react-icons": "4.4.0",
     "react-use": "17.4.0",
     "remark-admonitions": "1.2.1",
-    "shiki": "0.10.1"
+    "shiki": "0.11.0"
   }
 }
