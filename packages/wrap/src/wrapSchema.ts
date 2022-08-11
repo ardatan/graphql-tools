@@ -6,13 +6,13 @@ import {
   GraphQLFieldResolver,
 } from 'graphql';
 
-import { MapperKind, mapSchema } from '@graphql-tools/utils';
+import { MapperKind, mapSchema, memoize1 } from '@graphql-tools/utils';
 
-import { SubschemaConfig, defaultMergedResolver, applySchemaTransforms } from '@graphql-tools/delegate';
+import { SubschemaConfig, defaultMergedResolver, applySchemaTransforms, Subschema } from '@graphql-tools/delegate';
 import { generateProxyingResolvers } from './generateProxyingResolvers.js';
 
-export function wrapSchema<TConfig extends Record<string, any> = Record<string, any>>(
-  subschemaConfig: SubschemaConfig<any, any, any, TConfig>
+export const wrapSchema = memoize1(function wrapSchema<TConfig extends Record<string, any> = Record<string, any>>(
+  subschemaConfig: SubschemaConfig<any, any, any, TConfig> | Subschema<any, any, any, TConfig>
 ): GraphQLSchema {
   const targetSchema = subschemaConfig.schema;
 
@@ -20,7 +20,7 @@ export function wrapSchema<TConfig extends Record<string, any> = Record<string, 
   const schema = createWrappingSchema(targetSchema, proxyingResolvers);
 
   return applySchemaTransforms(schema, subschemaConfig);
-}
+});
 
 function createWrappingSchema(
   schema: GraphQLSchema,
