@@ -1,48 +1,15 @@
-name: Release
-
+name: release
 on:
   push:
     branches:
       - master
 
 jobs:
-  release:
-    name: stable
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Use Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: 'yarn'
-
-      - name: Install Dependencies using Yarn
-        run: yarn
-
-      - name: Build Packages
-        run: yarn build
-
-      - name: set version variables
-        id: vars
-        shell: bash
-        run: |
-          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: dotansimha/changesets-action@v1.3.1
-        with:
-          publish: yarn release
-          commit: 'chore(release): update monorepo packages versions'
-          title: 'Upcoming Release Changes'
-          createGithubReleases: aggregate
-          githubReleaseName: 'Release ${{ steps.vars.outputs.sha_short }} (from ${{ steps.vars.outputs.branch }})'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NODE_AUTH_TOKEN  }}
+  stable:
+    uses: the-guild-org/shared-config/.github/workflows/release-stable.yml@main
+    with:
+      releaseScript: release
+      nodeVersion: 18
+    secrets:
+      githubToken: ${{ secrets.GITHUB_TOKEN }}
+      npmToken: ${{ secrets.NODE_AUTH_TOKEN }}
