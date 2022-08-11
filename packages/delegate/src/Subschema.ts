@@ -25,7 +25,7 @@ export class Subschema<K = any, V = any, C = K, TContext = Record<string, any>>
 
   public createProxyingResolver?: CreateProxyingResolverFn<TContext>;
   public transforms: Array<Transform<any, TContext>>;
-  public transformedSchema: GraphQLSchema;
+  private _transformedSchema: GraphQLSchema | undefined;
 
   public merge?: Record<string, MergedTypeConfig<any, any, TContext>>;
 
@@ -38,8 +38,19 @@ export class Subschema<K = any, V = any, C = K, TContext = Record<string, any>>
 
     this.createProxyingResolver = config.createProxyingResolver;
     this.transforms = config.transforms ?? [];
-    this.transformedSchema = applySchemaTransforms(this.schema, config);
 
     this.merge = config.merge;
+  }
+
+  get transformedSchema(): GraphQLSchema {
+    if (!this._transformedSchema) {
+      console.warn('Transformed schema is not set yet. Returning a dummy one.');
+      this._transformedSchema = applySchemaTransforms(this.schema, this);
+    }
+    return this._transformedSchema;
+  }
+
+  set transformedSchema(value: GraphQLSchema) {
+    this._transformedSchema = value;
   }
 }

@@ -8,9 +8,10 @@ import {
   printSchema,
   GraphQLResolveInfo,
   OperationTypeNode,
+  execute,
 } from 'graphql';
 
-import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
+import { delegateToSchema, SubschemaConfig, Transform } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '../src/stitchSchemas.js';
 import {
@@ -3413,3 +3414,50 @@ bookingById(id: "b1") {
     });
   });
 }
+
+it(`stitchSchemas shouldn't call transformSchema more than once`, async () => {
+  const transform: Transform = {
+    transformSchema: jest.fn(schema => schema),
+  };
+
+  const schema = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Query {
+        hello: String
+      }
+    `,
+    resolvers: {
+      Query: {
+        hello: () => 'world',
+      },
+    },
+  });
+
+  const stitchedSchema = stitchSchemas({
+    subschemas: [
+      {
+        schema,
+        transforms: [transform],
+      },
+    ],
+  });
+
+  expect(transform.transformSchema).toHaveBeenCalledTimes(1);
+
+  const result = await execute({
+    schema: stitchedSchema,
+    document: parse(/* GraphQL */ `
+      query {
+        hello
+      }
+    `),
+  });
+
+  expect(result).toEqual({
+    data: {
+      hello: 'world',
+    },
+  });
+
+  expect(transform.transformSchema).toHaveBeenCalledTimes(1);
+});

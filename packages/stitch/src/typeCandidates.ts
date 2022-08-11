@@ -13,7 +13,6 @@ import {
   OperationTypeNode,
 } from 'graphql';
 
-import { wrapSchema } from '@graphql-tools/wrap';
 import { Subschema, SubschemaConfig, StitchingInfo } from '@graphql-tools/delegate';
 import {
   GraphQLParseOptions,
@@ -29,6 +28,7 @@ import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, TypeMergingOptions
 import { mergeCandidates } from './mergeCandidates.js';
 import { extractDefinitions } from './definitions.js';
 import { mergeTypeDefs } from '@graphql-tools/merge';
+import { wrapSchema } from '@graphql-tools/wrap';
 
 type CandidateSelector<TContext = Record<string, any>> = (
   candidates: Array<MergeTypeCandidate<TContext>>
@@ -80,7 +80,7 @@ export function buildTypeCandidates<TContext extends Record<string, any> = Recor
   const rootTypeNameMap = getRootTypeNameMap(schemaDefs);
 
   for (const subschema of subschemas) {
-    const schema = wrapSchema(subschema);
+    const schema = (subschema.transformedSchema = wrapSchema(subschema));
 
     const rootTypeMap = getRootTypeMap(schema);
     const rootTypes = getRootTypes(schema);
