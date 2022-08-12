@@ -4,7 +4,7 @@ import { meros as merosIncomingMessage } from 'meros/node';
 import { meros as merosReadableStream } from 'meros/browser';
 import { mapAsyncIterator } from '@graphql-tools/utils';
 import { dset } from 'dset/merge';
-import { addCancelToResponseStream } from './event-stream/addCancelToResponseStream';
+import { addCancelToResponseStream } from './event-stream/addCancelToResponseStream.js';
 
 interface ExecutionPatchResult<TData = { [key: string]: any }, TExtensions = { [key: string]: any }> {
   errors?: ReadonlyArray<GraphQLError>;
