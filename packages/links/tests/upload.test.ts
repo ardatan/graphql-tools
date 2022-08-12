@@ -3,12 +3,11 @@ import { AddressInfo } from 'net';
 import { Readable } from 'stream';
 
 import express, { Express } from 'express';
-import { createServer } from '@graphql-yoga/node';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
-import { buildSchema } from 'graphql';
+import { buildSchema, execute, GraphQLSchema, parse } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
@@ -57,6 +56,21 @@ function testGraphqlMultipartRequest(query: string, port: number) {
   });
 }
 
+function getBasicGraphQLMiddleware(schema: GraphQLSchema) {
+  return (req: any, res: any) => {
+    Promise.resolve().then(async () => {
+      const { query, variables, operationName } = req.body;
+      const result = await execute({
+        schema,
+        document: parse(query),
+        variableValues: variables,
+        operationName,
+      });
+      res.json(result);
+    });
+  };
+}
+
 describe('graphql upload', () => {
   let remoteServer: Server;
   let remotePort: number;
@@ -89,9 +103,8 @@ describe('graphql upload', () => {
 
     const remoteApp = express().use(
       graphqlUploadExpress(),
-      createServer({
-        schema: remoteSchema,
-      })
+      // Yoga causes leak, so we are removing that for now
+      getBasicGraphQLMiddleware(remoteSchema)
     );
 
     remoteServer = await startServer(remoteApp);
@@ -123,12 +136,7 @@ describe('graphql upload', () => {
       },
     });
 
-    const gatewayApp = express().use(
-      graphqlUploadExpress(),
-      createServer({
-        schema: gatewaySchema,
-      })
-    );
+    const gatewayApp = express().use(graphqlUploadExpress(), getBasicGraphQLMiddleware(gatewaySchema));
 
     gatewayServer = await startServer(gatewayApp);
     gatewayPort = (gatewayServer.address() as AddressInfo).port;

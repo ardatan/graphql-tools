@@ -149,7 +149,7 @@ describe('[url-loader] webpack bundle compat', () => {
         async (httpAddress, document) => {
           const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
-          const executor = await loader.getExecutorAsync(httpAddress + '/graphql');
+          const executor = loader.getExecutorAsync(httpAddress + '/graphql');
           const result = await executor({
             document,
           });
@@ -164,7 +164,7 @@ describe('[url-loader] webpack bundle compat', () => {
     it('handles executing a operation using multipart responses', async () => {
       page = await browser.newPage();
       await page.goto(httpAddress);
-      graphqlHandler = async (_req, res) => {
+      graphqlHandler = (_req, res) => {
         res.writeHead(200, {
           // prettier-ignore
           "Connection": "keep-alive",
@@ -175,11 +175,12 @@ describe('[url-loader] webpack bundle compat', () => {
         let chunk = Buffer.from(JSON.stringify({ data: {} }), 'utf8');
         let data = ['', 'Content-Type: application/json; charset=utf-8', '', chunk, '', `---`];
         res.write(data.join('\r\n'));
-        await new Promise(resolve => setTimeout(resolve, 300));
-        chunk = Buffer.from(JSON.stringify({ data: true, path: ['foo'] }), 'utf8');
-        data = ['', 'Content-Type: application/json; charset=utf-8', '', chunk, '', `---`];
-        res.write(data.join('\r\n'));
-        res.end();
+        setTimeout(() => {
+          chunk = Buffer.from(JSON.stringify({ data: true, path: ['foo'] }), 'utf8');
+          data = ['', 'Content-Type: application/json; charset=utf-8', '', chunk, '', `---`];
+          res.write(data.join('\r\n'));
+          res.end();
+        }, 300);
       };
 
       const document = parse(/* GraphQL */ `
@@ -194,7 +195,7 @@ describe('[url-loader] webpack bundle compat', () => {
         async (httpAddress, document) => {
           const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
-          const executor = await loader.getExecutorAsync(httpAddress + '/graphql');
+          const executor = loader.getExecutorAsync(httpAddress + '/graphql');
           const result = await executor({
             document,
           });
@@ -216,7 +217,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       const expectedDatas = [{ data: { foo: true } }, { data: { foo: false } }];
 
-      graphqlHandler = async (_req, res) => {
+      graphqlHandler = (_req, res) => {
         res.writeHead(200, {
           'Content-Type': 'text/event-stream',
           // prettier-ignore
@@ -224,13 +225,15 @@ describe('[url-loader] webpack bundle compat', () => {
           'Cache-Control': 'no-cache',
         });
 
-        for (const data of expectedDatas) {
-          await new Promise(resolve => setTimeout(resolve, 300));
-          res.write(`data: ${JSON.stringify(data)}\n\n`);
-          await new Promise(resolve => setTimeout(resolve, 300));
-        }
+        Promise.resolve().then(async () => {
+          for (const data of expectedDatas) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            res.write(`data: ${JSON.stringify(data)}\n\n`);
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
 
-        res.end();
+          res.end();
+        });
       };
 
       const document = parse(/* GraphQL */ `
@@ -243,7 +246,7 @@ describe('[url-loader] webpack bundle compat', () => {
         async (httpAddress, document) => {
           const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
-          const executor = await loader.getExecutorAsync(httpAddress + '/graphql', {
+          const executor = loader.getExecutorAsync(httpAddress + '/graphql', {
             subscriptionsProtocol: module.SubscriptionProtocol.SSE,
           });
           const result = await executor({
@@ -268,7 +271,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       let responseClosed$: Promise<boolean>;
 
-      graphqlHandler = async (_req, res) => {
+      graphqlHandler = (_req, res) => {
         res.writeHead(200, {
           'Content-Type': 'text/event-stream',
           // prettier-ignore
@@ -283,13 +286,15 @@ describe('[url-loader] webpack bundle compat', () => {
           res.write(':\n\n');
         }, 100);
 
-        for (const data of sentDatas) {
-          await new Promise(resolve => setTimeout(resolve, 300));
-          res.write(`data: ${JSON.stringify(data)}\n\n`);
-          await new Promise(resolve => setTimeout(resolve, 300));
-        }
+        Promise.resolve().then(async () => {
+          for (const data of sentDatas) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            res.write(`data: ${JSON.stringify(data)}\n\n`);
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
 
-        clearInterval(ping);
+          clearInterval(ping);
+        });
       };
 
       const document = parse(/* GraphQL */ `
@@ -305,7 +310,7 @@ describe('[url-loader] webpack bundle compat', () => {
         async (httpAddress, document) => {
           const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
-          const executor = await loader.getExecutorAsync(httpAddress + '/graphql', {
+          const executor = loader.getExecutorAsync(httpAddress + '/graphql', {
             subscriptionsProtocol: module.SubscriptionProtocol.SSE,
           });
           const result = (await executor({

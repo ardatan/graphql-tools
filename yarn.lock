@@ -2295,13 +2295,6 @@
   resolved "https://registry.yarnpkg.com/@emotion/weak-memoize/-/weak-memoize-0.3.0.tgz#ea89004119dc42db2e1dba0f97d553f7372f6fcb"
   integrity sha512-AHPmaAx+RYfZz0eYu6Gviiagpmiyw98ySSlQvCUhVGDRtDFe4DBS0x1bSjdF3gqUDYOczB+yYvBTtEylYSdRhg==
 
-"@envelop/core@^2.4.0":
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/@envelop/core/-/core-2.4.0.tgz#4319bd681a83fa0964c8be77f7535f728e2e05bb"
-  integrity sha512-ZA8d3sg69+IrZH0seB/HxHi+IYaOOu5OLzZBAHw7MrT2mBI0RyboM6QZv0gGvYJjQIUeJ1I2Zz4bqjOKNmgpxA==
-  dependencies:
-    "@envelop/types" "2.3.0"
-
 "@envelop/live-query@4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-4.0.1.tgz#69784353f216faf9ac4397e47c1d9295611f0449"
@@ -2310,25 +2303,6 @@
     "@graphql-tools/utils" "^8.8.0"
     "@n1ru4l/graphql-live-query" "^0.10.0"
     "@n1ru4l/in-memory-live-query-store" "^0.10.0"
-
-"@envelop/parser-cache@^4.4.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@envelop/parser-cache/-/parser-cache-4.4.0.tgz#be4685b8fbed46a54ba740ae8e264a35328637ac"
-  integrity sha512-m/RhbWlkKmRftqytWfBGLJCtiUqSOb3gxXsk4/TOlABZZ8KPeI4Yiq5SwZh6UrFOaup00QZK+fWmfjdniLi/sA==
-  dependencies:
-    tiny-lru "7.0.6"
-
-"@envelop/types@2.3.0":
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/@envelop/types/-/types-2.3.0.tgz#d633052eb3c7e7913380165ce041e2c0e358d5b6"
-  integrity sha512-K20KxpGlY+HKenms4Kccuh/YcCm0ytj1Zk0Ak6b6hKA68JI4YQ2GwGMq7A7gSOb1MxlbKqrnVdeQdXaDpQfCmA==
-
-"@envelop/validation-cache@^4.4.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@envelop/validation-cache/-/validation-cache-4.4.0.tgz#4700415730a6e3cd5114aaf2c2f557d0fe8bde5f"
-  integrity sha512-mvKc1GU9xtQC1yKYYoEbkmjXXEGB7U/ESqlFO33oaMB7z3ctoQpvldBSJj+xj3hF9OchMb1nQKKSYf0GYpF/Gw==
-  dependencies:
-    tiny-lru "7.0.6"
 
 "@esbuild/linux-loong64@0.15.0":
   version "0.15.0"
@@ -2363,7 +2337,7 @@
     "@graphql-tools/utils" "8.9.0"
     tslib "^2.4.0"
 
-"@graphql-tools/schema@^8.0.0", "@graphql-tools/schema@^8.5.0":
+"@graphql-tools/schema@^8.0.0":
   version "8.5.1"
   resolved "https://registry.yarnpkg.com/@graphql-tools/schema/-/schema-8.5.1.tgz#c2f2ff1448380919a330312399c9471db2580b58"
   integrity sha512-0Esilsh0P/qYcB5DKQpiKeQs/jevzIadNTaT0jeWklPMwNbT7yMX4EqZany7mbeRRlSRwMzNzL5olyFdffHBZg==
@@ -2384,51 +2358,6 @@
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.1.tgz#076d78ce99822258cf813ecc1e7fa460fa74d052"
   integrity sha512-NQ17ii0rK1b34VZonlmT2QMJFI70m0TRwbknO/ihlbatXyaktDhN/98vBiUU6kNBPljqGqyIrl2T4nY2RpFANg==
-
-"@graphql-yoga/common@^2.12.5":
-  version "2.12.5"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/common/-/common-2.12.5.tgz#930cf3599a3398f6a56f2f1755e6c9785e60bedb"
-  integrity sha512-5p634xtfphiHNPd39kyDc3VSIX8shkinywalNiMHEAal1DGYCn4x/mKbA6Q7tgWvrCqC4fAAuklHoxxi7TIyxA==
-  dependencies:
-    "@envelop/core" "^2.4.0"
-    "@envelop/parser-cache" "^4.4.0"
-    "@envelop/validation-cache" "^4.4.0"
-    "@graphql-tools/schema" "^8.5.0"
-    "@graphql-tools/utils" "^8.8.0"
-    "@graphql-typed-document-node/core" "^3.1.1"
-    "@graphql-yoga/subscription" "^2.2.3"
-    "@whatwg-node/fetch" "^0.2.6"
-    dset "^3.1.1"
-    tslib "^2.3.1"
-
-"@graphql-yoga/node@2.13.6":
-  version "2.13.6"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/node/-/node-2.13.6.tgz#536b9e9b63d56c87e4886dd86808eab8ff83a979"
-  integrity sha512-gQDP2pZ88lR6+ZZbq6VosiCmhKR9cMWIAbtjTqcFu5k3isKdJnJvCSzk8vZuMjdwWl+IlyJaTVZTN8Xor+Z2tQ==
-  dependencies:
-    "@envelop/core" "^2.4.0"
-    "@graphql-tools/utils" "^8.8.0"
-    "@graphql-yoga/common" "^2.12.5"
-    "@graphql-yoga/subscription" "^2.2.3"
-    "@whatwg-node/fetch" "^0.2.6"
-    tslib "^2.3.1"
-
-"@graphql-yoga/subscription@^2.2.3":
-  version "2.2.3"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/subscription/-/subscription-2.2.3.tgz#e378fa17a12675ae7b34b2f51e39bc02df312ba0"
-  integrity sha512-It/Dfh+nW2ClTtmOylAa+o7fbKIRYRTH6jfKLj3YB75tkv/rFZ70bjlChDCrEMa46I+zDMg7+cdkrQOXov2fDg==
-  dependencies:
-    "@graphql-yoga/typed-event-target" "^0.1.1"
-    "@repeaterjs/repeater" "^3.0.4"
-    tslib "^2.3.1"
-
-"@graphql-yoga/typed-event-target@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/typed-event-target/-/typed-event-target-0.1.1.tgz#248d56a76046d805af8c0da3ef590cdb95d2c192"
-  integrity sha512-l23kLKHKhfD7jmv4OUlzxMTihSqgIjGWCSb0KdlLkeiaF2jjuo8pRhX200hFTrtjRHGSYS1fx2lltK/xWci+vw==
-  dependencies:
-    "@repeaterjs/repeater" "^3.0.4"
-    tslib "^2.3.1"
 
 "@guild-docs/algolia@0.2.2":
   version "0.2.2"
@@ -4312,10 +4241,10 @@
     "@webassemblyjs/ast" "1.11.1"
     "@xtuc/long" "4.2.2"
 
-"@whatwg-node/fetch@^0.2.4", "@whatwg-node/fetch@^0.2.6":
-  version "0.2.6"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.2.6.tgz#eb8e68624c55aecfa4c6d7ea36b3ce3ad5d5f79e"
-  integrity sha512-NhHiqeGcKjgqUZvJTZSou9qsFEPBBG1LPm2Npz0cmcPvukhhQfjX+p3quRx6b9AyjNPp1f73VB1z4ApHy9FcNg==
+"@whatwg-node/fetch@^0.2.9":
+  version "0.2.9"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.2.9.tgz#0f0e72f79957a0544d2a9455082802d87be93ffe"
+  integrity sha512-h+ehuqE/ZqJdRy+xywHyKpBIPmST0ms8Itgf4gGSu10pJrmod3/t9DbG/GlATvLBE4pvqYHrxKAKo3NNQVJc3g==
   dependencies:
     "@peculiar/webcrypto" "^1.4.0"
     abort-controller "^3.0.0"
@@ -6441,7 +6370,7 @@ dset@^2.0.1:
   resolved "https://registry.yarnpkg.com/dset/-/dset-2.1.0.tgz#cd1e99e55cf32366d8f144f906c42f7fb3bf431e"
   integrity sha512-hlQYwNEdW7Qf8zxysy+yN1E8C/SxRst3Z9n+IvXOR35D9bPVwNHhnL8ZBeoZjvinuGrlvGg6pAMDwhmjqFDgjA==
 
-dset@^3.1.1, dset@^3.1.2:
+dset@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/dset/-/dset-3.1.2.tgz#89c436ca6450398396dc6538ea00abc0c54cd45a"
   integrity sha512-g/M9sqy3oHe477Ar4voQxWtaPIFw1jTdKZuomOjhCcBx9nHUNn0pu6NopuFFrTh/TRZIKEj+76vLWFu9BNKk+Q==
@@ -13279,11 +13208,6 @@ tiny-invariant@^1.0.6:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/tiny-invariant/-/tiny-invariant-1.1.0.tgz#634c5f8efdc27714b7f386c35e6760991d230875"
   integrity sha512-ytxQvrb1cPc9WBEI/HSeYYoGD0kWnGEOR8RY6KomWLBVhqz0RgTwVO9dLrGz7dC+nN9llyI7OKAgRq8Vq4ZBSw==
-
-tiny-lru@7.0.6:
-  version "7.0.6"
-  resolved "https://registry.yarnpkg.com/tiny-lru/-/tiny-lru-7.0.6.tgz#b0c3cdede1e5882aa2d1ae21cb2ceccf2a331f24"
-  integrity sha512-zNYO0Kvgn5rXzWpL0y3RS09sMK67eGaQj9805jlK9G6pSadfriTczzLHFXa/xcW4mIRfmlB9HyQ/+SgL0V1uow==
 
 tiny-lru@8.0.2:
   version "8.0.2"

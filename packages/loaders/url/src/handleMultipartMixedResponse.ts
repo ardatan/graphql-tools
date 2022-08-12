@@ -4,6 +4,7 @@ import { meros as merosIncomingMessage } from 'meros/node';
 import { meros as merosReadableStream } from 'meros/browser';
 import { mapAsyncIterator } from '@graphql-tools/utils';
 import { dset } from 'dset/merge';
+import { addCancelToResponseStream } from './event-stream/addCancelToResponseStream.js';
 
 interface ExecutionPatchResult<TData = { [key: string]: any }, TExtensions = { [key: string]: any }> {
   errors?: ReadonlyArray<GraphQLError>;
@@ -28,7 +29,7 @@ function isIncomingMessage(body: any): body is IncomingMessage {
   return body != null && typeof body === 'object' && 'pipe' in body;
 }
 
-export async function handleMultipartMixedResponse(response: Response) {
+export async function handleMultipartMixedResponse(response: Response, controller?: AbortController) {
   const body = await (response.body as unknown as Promise<IncomingMessage> | ReadableStream);
   const contentType = response.headers.get('content-type') || '';
   let asyncIterator: AsyncIterator<Part>;
@@ -45,7 +46,8 @@ export async function handleMultipartMixedResponse(response: Response) {
   }
 
   const executionResult: ExecutionResult = {};
-  return mapAsyncIterator(asyncIterator, (part: Part) => {
+
+  const resultStream = mapAsyncIterator(asyncIterator, (part: Part) => {
     if (part.json) {
       const chunk = part.body;
       if (chunk.path) {
@@ -67,4 +69,10 @@ export async function handleMultipartMixedResponse(response: Response) {
       return executionResult;
     }
   });
+
+  if (controller) {
+    return addCancelToResponseStream(resultStream, controller);
+  }
+
+  return resultStream;
 }
