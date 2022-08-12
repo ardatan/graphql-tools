@@ -26,7 +26,7 @@ import { AsyncFetchFn, defaultAsyncFetch } from './defaultAsyncFetch.js';
 import { defaultSyncFetch, SyncFetchFn } from './defaultSyncFetch.js';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
 import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse.js';
-import { addCancelToResponseStream } from './addCancelToResponseStream.js';
+import { cancelNeeded } from './event-stream/addCancelToResponseStream.js';
 import { AbortController, FormData, File } from '@whatwg-node/fetch';
 import { isBlob, isGraphQLUpload, isPromiseLike, LEGACY_WS } from './utils.js';
 
@@ -221,9 +221,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           return upload.then((resolvedUpload: any) => handleUpload(resolvedUpload, i));
           // If Blob
         } else if (isBlob(upload)) {
-          return upload.arrayBuffer().then((arrayBuffer: ArrayBuffer) => {
-            form.append(indexStr, new File([arrayBuffer], filename, { type: upload.type }), filename);
-          });
+          form.append(indexStr, upload, filename);
         } else if (isGraphQLUpload(upload)) {
           const stream = upload.createReadStream();
           const chunks: number[] = [];
@@ -307,7 +305,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       ws: 'http',
     });
     const executor = (request: ExecutionRequest<any, any, any, ExecutionExtensions>) => {
-      const controller = new AbortController();
+      const controller = cancelNeeded() ? new AbortController() : undefined;
       let method = defaultMethod;
 
       const operationAst = getOperationASTFromRequest(request);
@@ -317,7 +315,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         method = 'GET';
       }
 
-      let accept = 'application/json, multipart/mixed';
+      let accept = 'application/json';
       if (operationType === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
         method = 'GET';
         accept = 'text/event-stream';
@@ -343,8 +341,8 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       let timeoutId: any;
       if (options?.timeout) {
         timeoutId = setTimeout(() => {
-          if (!controller.signal.aborted) {
-            controller.abort();
+          if (!controller?.signal.aborted) {
+            controller?.abort();
           }
         }, options.timeout);
       }
@@ -362,7 +360,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
               method: 'GET',
               ...(credentials != null ? { credentials } : {}),
               headers,
-              signal: controller.signal,
+              signal: controller?.signal,
             });
           case 'POST':
             if (options?.multipart) {
@@ -377,7 +375,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                         ...headers,
                         ...(typeof body === 'string' ? { 'content-type': 'application/json' } : {}),
                       },
-                      signal: controller.signal,
+                      signal: controller?.signal,
                     }) as any
                 )
                 .resolve();
@@ -390,7 +388,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                   'content-type': 'application/json',
                   ...headers,
                 },
-                signal: controller.signal,
+                signal: controller?.signal,
               });
             }
         }
@@ -408,13 +406,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           const contentType = fetchResult.headers.get('content-type');
 
           if (contentType?.includes('text/event-stream')) {
-            return handleEventStreamResponse(fetchResult).then(resultStream =>
-              addCancelToResponseStream(resultStream, controller)
-            );
+            return handleEventStreamResponse(fetchResult, controller);
           } else if (contentType?.includes('multipart/mixed')) {
-            return handleMultipartMixedResponse(fetchResult).then(resultStream =>
-              addCancelToResponseStream(resultStream, controller)
-            );
+            return handleMultipartMixedResponse(fetchResult, controller);
           }
 
           return fetchResult.text();

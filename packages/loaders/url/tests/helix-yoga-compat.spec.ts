@@ -133,15 +133,14 @@ describe('helix/yoga compat', () => {
   });
   it('terminates SSE subscriptions when calling return on the AsyncIterable', async () => {
     const sentDatas: ExecutionResult[] = [
+      { data: { foo: 0 } },
       { data: { foo: 1 } },
       { data: { foo: 2 } },
       { data: { foo: 3 } },
-      { data: { foo: 4 } },
     ];
-    const serverPort = 1336;
+    const serverPort = 1336 + Math.floor(Math.random() * 5);
     const serverHost = 'http://localhost:' + serverPort;
 
-    let serverResponseEnded$: Promise<boolean>;
     httpServer = http.createServer((_, res) => {
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
@@ -150,17 +149,21 @@ describe('helix/yoga compat', () => {
         'Cache-Control': 'no-cache',
       });
 
+      let foo = 0;
       const ping = setInterval(() => {
         // Ping
-        res.write(':\n\n');
-      }, 50);
-      sentDatas.forEach(result => sleep(300).then(() => res.write(`data: ${JSON.stringify(result)}\n\n`)));
-      serverResponseEnded$ = new Promise(resolve =>
-        res.once('close', () => {
-          resolve(true);
-          clearInterval(ping);
-        })
-      );
+        res.write(
+          `data: ${JSON.stringify({
+            data: {
+              foo,
+            },
+          })}\n\n`
+        );
+        foo++;
+      }, 300);
+      res.once('close', () => {
+        clearInterval(ping);
+      });
     });
 
     await new Promise<void>(resolve => httpServer.listen(serverPort, () => resolve()));
@@ -177,17 +180,15 @@ describe('helix/yoga compat', () => {
     });
     assertAsyncIterable(result);
 
-    const iterator = result[Symbol.asyncIterator]();
+    for await (const singleResult of result) {
+      const expectedData = sentDatas.shift();
+      if (expectedData == null) {
+        break;
+      }
+      expect(singleResult).toStrictEqual(expectedData);
+    }
 
-    const firstResult = await iterator.next();
-    expect(firstResult.value).toStrictEqual(sentDatas[0]);
-    const secondResult = await iterator.next();
-    expect(secondResult.value).toStrictEqual(sentDatas[1]);
-    // Stop the request
-    await iterator.return?.();
-    const doneResult = await iterator.next();
-    expect(doneResult).toStrictEqual({ done: true, value: undefined });
-    expect(await serverResponseEnded$!).toBe(true);
+    expect(sentDatas.length).toBe(0);
   });
   describe('live queries', () => {
     const urlLoader = new UrlLoader();
