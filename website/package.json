@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@guild-docs/algolia": "0.2.2",
-    "@next/bundle-analyzer": "12.2.4",
+    "@next/bundle-analyzer": "12.2.5",
     "@types/concurrently": "6.4.0",
     "@types/mdx-js__react": "1.5.5",
     "@types/node": "16.11.47",
@@ -48,7 +48,7 @@
     "@mdx-js/react": "2.1.2",
     "@theguild/components": "1.12.0",
     "framer-motion": "7.1.0",
-    "next": "12.2.4",
+    "next": "12.2.5",
     "next-i18next": "11.3.0",
     "next-seo": "5.5.0",
     "react": "18.2.0",
