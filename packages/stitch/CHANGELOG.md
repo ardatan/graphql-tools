@@ -1,5 +1,16 @@
 # @graphql-tools/stitch
 
+## 8.7.4
+
+### Patch Changes
+
+- [#4648](https://github.com/ardatan/graphql-tools/pull/4648) [`29ee7542`](https://github.com/ardatan/graphql-tools/commit/29ee7542649e9c938bdb9c751bd3a2f56d17cb55) Thanks [@ardatan](https://github.com/ardatan)! - Do not call `Transform.transformSchema` more than once
+
+- Updated dependencies [[`29ee7542`](https://github.com/ardatan/graphql-tools/commit/29ee7542649e9c938bdb9c751bd3a2f56d17cb55)]:
+  - @graphql-tools/delegate@9.0.2
+  - @graphql-tools/wrap@9.0.2
+  - @graphql-tools/batch-delegate@8.3.4
+
 ## 8.7.3
 
 ### Patch Changes

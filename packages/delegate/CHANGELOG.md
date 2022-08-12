@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 9.0.2
+
+### Patch Changes
+
+- [#4648](https://github.com/ardatan/graphql-tools/pull/4648) [`29ee7542`](https://github.com/ardatan/graphql-tools/commit/29ee7542649e9c938bdb9c751bd3a2f56d17cb55) Thanks [@ardatan](https://github.com/ardatan)! - Do not call `Transform.transformSchema` more than once
+
 ## 9.0.1
 
 ### Patch Changes
