@@ -1,12 +1,37 @@
 import { File } from '@whatwg-node/fetch';
 import { readFileSync } from 'fs';
-import { execute, parse } from 'graphql';
+import { execute, GraphQLSchema, parse } from 'graphql';
 import { join } from 'path';
 import { assertNonMaybe, testSchema } from './test-utils';
-import processRequest from 'graphql-upload/processRequest.mjs';
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
 import http from 'http';
 import { UrlLoader } from '../src';
-import { ExecutionResult } from '@graphql-tools/utils';
+import express from 'express';
+
+function getBasicGraphQLMiddleware(schema: GraphQLSchema) {
+  return (req: any, res: any) => {
+    Promise.resolve()
+      .then(async () => {
+        const { query, variables, operationName } = req.body;
+        const result = await execute({
+          schema,
+          document: parse(query),
+          variableValues: variables,
+          operationName,
+        });
+        res.json(result);
+      })
+      .catch(err => {
+        res.status(500).json({
+          errors: [
+            {
+              message: err.message,
+            },
+          ],
+        });
+      });
+  };
+}
 
 describe('GraphQL Upload compatibility', () => {
   const loader = new UrlLoader();
@@ -27,44 +52,13 @@ describe('GraphQL Upload compatibility', () => {
   });
 
   it('should handle file uploads in graphql-upload way', async () => {
-    httpServer = http.createServer((req, res) => {
-      let process$;
-      if (req.headers['content-type'] === 'application/json') {
-        process$ = Promise.resolve().then(async () => {
-          let body = '';
-          for await (const chunk of req) {
-            body += chunk;
-          }
-          return JSON.parse(body);
-        });
-      } else {
-        process$ = processRequest(req, res);
-      }
-      process$
-        .then((body: any) => {
-          const { query, variables } = body;
-          return execute({
-            schema: testSchema,
-            document: parse(query),
-            variableValues: variables,
-          });
-        })
-        .catch((err: Error) => {
-          return {
-            errors: [
-              {
-                message: err.message,
-              },
-            ],
-          };
-        })
-        .then((result: ExecutionResult) => {
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.write(JSON.stringify(result));
-          res.end();
-        });
+    const expressApp = express().use(express.json(), graphqlUploadExpress(), getBasicGraphQLMiddleware(testSchema));
+
+    httpServer = await new Promise<http.Server>(resolve => {
+      const server = expressApp.listen(9871, () => {
+        resolve(server);
+      });
     });
-    await new Promise<void>(resolve => httpServer.listen(9871, resolve));
 
     const [{ schema }] = await loader.load(`http://0.0.0.0:9871/graphql`, {
       multipart: true,
