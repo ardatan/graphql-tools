@@ -1,6 +1,13 @@
 /* eslint-disable no-case-declarations */
 /// <reference lib="dom" />
-import { print, IntrospectionOptions, GraphQLError, buildASTSchema, buildSchema } from 'graphql';
+import {
+  print,
+  IntrospectionOptions,
+  GraphQLError,
+  buildASTSchema,
+  buildSchema,
+  OperationDefinitionNode,
+} from 'graphql';
 
 import {
   AsyncExecutor,
@@ -319,6 +326,12 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       if (operationType === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
         method = 'GET';
         accept = 'text/event-stream';
+      } else if (
+        (operationAst as OperationDefinitionNode).directives?.some(
+          ({ name }) => name.value === 'defer' || name.value === 'stream'
+        )
+      ) {
+        accept += ', multipart/mixed';
       }
 
       const endpoint = request.extensions?.endpoint || HTTP_URL;
