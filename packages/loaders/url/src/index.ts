@@ -320,6 +320,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         method = 'GET';
         accept = 'text/event-stream';
       }
+      if (operationAst.directives?.some(({ name }) => name.value === 'defer' || name.value === 'stream')) {
+        accept = 'multipart/mixed';
+      }
 
       const endpoint = request.extensions?.endpoint || HTTP_URL;
       const headers = Object.assign(
