@@ -12,6 +12,7 @@ describe('sync', () => {
   it('should handle queries', () => {
     const [{ schema }] = loader.loadSync(`https://swapi-graphql.netlify.app/.netlify/functions/index`, {});
     const result = graphqlSync({
+      // @ts-expect-error Uses graphql-js so it doesn't like us
       schema: schema!,
       source: /* GraphQL */ `
         {

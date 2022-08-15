@@ -1,5 +1,5 @@
-import { inspect } from 'graphql/jsutils/inspect';
-import { Maybe } from 'graphql/jsutils/Maybe';
+import { inspect } from 'graphql/jsutils/inspect.js';
+import { Maybe } from 'graphql/jsutils/Maybe.js';
 import {
   OperationTypeNode,
   SchemaDefinitionNode,
@@ -54,7 +54,7 @@ import {
   isNonNullType,
 } from 'graphql';
 import { astFromValue } from './ast-from-value.js';
-import { getRootTypeMap } from './get-root-type-map';
+import { getRootTypeMap } from './get-root-type-map.js';
 
 function isSome<T>(input: T): input is Exclude<T, null | undefined> {
   return input != null;

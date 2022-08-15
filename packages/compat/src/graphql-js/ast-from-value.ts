@@ -1,8 +1,8 @@
-import { inspect } from 'graphql/jsutils/inspect';
-import { invariant } from 'graphql/jsutils/invariant';
-import { isIterableObject } from 'graphql/jsutils/isIterableObject';
-import { isObjectLike } from 'graphql/jsutils/isObjectLike';
-import type { Maybe } from 'graphql/jsutils/Maybe';
+import { inspect } from 'graphql/jsutils/inspect.js';
+import { invariant } from 'graphql/jsutils/invariant.js';
+import { isIterableObject } from 'graphql/jsutils/isIterableObject.js';
+import { isObjectLike } from 'graphql/jsutils/isObjectLike.js';
+import type { Maybe } from 'graphql/jsutils/Maybe.js';
 import type { ObjectFieldNode, ValueNode, GraphQLInputType } from 'graphql';
 import { Kind, isEnumType, isInputObjectType, isLeafType, isListType, isNonNullType, GraphQLID } from 'graphql';
 

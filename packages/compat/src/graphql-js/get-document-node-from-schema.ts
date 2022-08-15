@@ -23,7 +23,7 @@ import {
   astFromScalarType,
   astFromSchema,
   astFromUnionType,
-} from './ast-from-schema';
+} from './ast-from-schema.js';
 
 export interface GetDocumentNodeFromSchemaOptions {
   pathToDirectivesInExtensions?: Array<string>;

@@ -104,7 +104,6 @@ describe('graphql upload', () => {
     const remoteApp = express().use(
       graphqlUploadExpress(),
       // Yoga causes leak, so we are removing that for now
-      // @ts-expect-error Uses graphql-js so it doesn't like us
       getBasicGraphQLMiddleware(remoteSchema)
     );
 
@@ -137,7 +136,6 @@ describe('graphql upload', () => {
       },
     });
 
-    // @ts-expect-error Uses graphql-js so it doesn't like us
     const gatewayApp = express().use(graphqlUploadExpress(), getBasicGraphQLMiddleware(gatewaySchema));
 
     gatewayServer = await startServer(gatewayApp);

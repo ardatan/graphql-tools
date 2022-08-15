@@ -355,7 +355,9 @@ describe('Schema URL Loader', () => {
       {
         // @ts-expect-error Uses graphql-js so it doesn't like us
         schema: testSchema, // from the previous step
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         execute,
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         subscribe,
       },
       wsServer
@@ -364,7 +366,6 @@ describe('Schema URL Loader', () => {
     await new Promise<void>(resolve => httpServer.listen(8081, resolve));
     assertNonMaybe(schema);
     const asyncIterator = (await subscribe({
-      // @ts-expect-error Uses graphql-js so it doesn't like us
       schema,
       document: parse(/* GraphQL */ `
         subscription TestMessage {
@@ -420,7 +421,9 @@ describe('Schema URL Loader', () => {
       {
         // @ts-expect-error Uses graphql-js so it doesn't like us
         schema: testSchema,
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         execute,
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         subscribe,
       },
       {
@@ -430,7 +433,6 @@ describe('Schema URL Loader', () => {
     );
     assertNonMaybe(schema);
     const asyncIterator = (await subscribe({
-      // @ts-expect-error Uses graphql-js so it doesn't like us
       schema,
       document: parse(/* GraphQL */ `
         subscription TestMessage {
@@ -491,7 +493,6 @@ describe('Schema URL Loader', () => {
 
     assertNonMaybe(schema);
     const asyncIterable = (await subscribe({
-      // @ts-expect-error Uses graphql-js so it doesn't like us
       schema,
       document: parse(/* GraphQL */ `
         subscription TestMessage {

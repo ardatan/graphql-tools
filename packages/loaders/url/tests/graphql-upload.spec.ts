@@ -52,6 +52,7 @@ describe('GraphQL Upload compatibility', () => {
   });
 
   it('should handle file uploads in graphql-upload way', async () => {
+    // @ts-expect-error Uses graphql-js so it doesn't like us
     const expressApp = express().use(express.json(), graphqlUploadExpress(), getBasicGraphQLMiddleware(testSchema));
 
     httpServer = await new Promise<http.Server>(resolve => {
@@ -71,6 +72,7 @@ describe('GraphQL Upload compatibility', () => {
     const content = readFileSync(absoluteFilePath, 'utf8');
     assertNonMaybe(schema);
     const result = await execute({
+      // @ts-expect-error Uses graphql-js so it doesn't like us
       schema,
       document: parse(/* GraphQL */ `
         mutation UploadFile($file: Upload!, $nullVar: TestInput, $nonObjectVar: String) {

@@ -1,4 +1,4 @@
-import { execute, ExecutionResult, parse } from 'graphql';
+import { execute, ExecutionResult, parse } from '@graphql-tools/graphql';
 import { assertAsyncIterable, sleep } from './test-utils';
 import http from 'http';
 import { SubscriptionProtocol, UrlLoader } from '../src';
@@ -209,6 +209,7 @@ describe('helix/yoga compat', () => {
       }
       active = true;
       pump();
+      // @ts-expect-error Uses graphql-js so it doesn't like us
       const liveExecute = liveQueryStore.makeExecute(execute);
       const schema = makeExecutableSchema({
         typeDefs: [
@@ -237,6 +238,7 @@ describe('helix/yoga compat', () => {
         if (variablesStr) {
           variables = JSON.parse(variablesStr);
         }
+        // @ts-expect-error Uses graphql-js so it doesn't like us
         Promise.resolve(liveExecute({ schema, document: parse(query), variableValues: variables })).then(
           async result => {
             if (isAsyncIterable(result)) {
