@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.13.9
+
+### Patch Changes
+
+- [#4655](https://github.com/ardatan/graphql-tools/pull/4655) [`b6f1f5ce`](https://github.com/ardatan/graphql-tools/commit/b6f1f5ce847cc1e12da29f7adc1be298c32d1162) Thanks [@ardatan](https://github.com/ardatan)! - Fix defer/stream multipart response support
+
 ## 7.13.8
 
 ### Patch Changes
