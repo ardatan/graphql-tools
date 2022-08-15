@@ -48,7 +48,9 @@ describe('helix/yoga compat', () => {
     ];
     const serverPort = 1335;
     const serverHost = 'http://localhost:' + serverPort;
-    httpServer = http.createServer((_, res) => {
+    let receivedAcceptHeader: string | undefined;
+    httpServer = http.createServer((req, res) => {
+      receivedAcceptHeader = req.headers['accept'];
       res.writeHead(200, {
         // prettier-ignore
         "Connection": "keep-alive",
@@ -92,6 +94,7 @@ describe('helix/yoga compat', () => {
       expect(data).toEqual(expectedDatas.shift()!);
     }
     expect(expectedDatas.length).toBe(0);
+    expect(receivedAcceptHeader).toBe('application/json');
   });
 
   it('should handle SSE subscription result', async () => {
