@@ -19,5 +19,3 @@ import type { ExecutionArgs } from '../execution/execute.js';
  */
 
 export interface SubscriptionArgs extends ExecutionArgs {}
-
-export { subscribe, createSourceEventStream } from '../execution/subscribe.js';
