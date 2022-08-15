@@ -17,19 +17,19 @@
     }
   },
   "resolutions": {
-    "esbuild": "0.15.1"
+    "esbuild": "0.15.3"
   },
   "devDependencies": {
     "@guild-docs/algolia": "0.2.2",
     "@next/bundle-analyzer": "12.2.5",
     "@types/concurrently": "6.4.0",
     "@types/mdx-js__react": "1.5.5",
-    "@types/node": "16.11.47",
+    "@types/node": "16.11.48",
     "@types/react": "18.0.17",
     "@types/react-dom": "18.0.6",
     "concurrently": "7.3.0",
     "cross-env": "7.0.3",
-    "esbuild": "0.15.1",
+    "esbuild": "0.15.3",
     "esbuild-register": "3.3.3",
     "next-remote-watch": "1.0.0",
     "open-cli": "7.0.1",
@@ -37,10 +37,10 @@
     "wait-on": "6.0.1"
   },
   "dependencies": {
-    "@chakra-ui/icons": "2.0.6",
+    "@chakra-ui/icons": "2.0.8",
     "@chakra-ui/react": "2.0.2",
-    "@chakra-ui/theme-tools": "2.0.7",
-    "@chakra-ui/utils": "2.0.6",
+    "@chakra-ui/theme-tools": "2.0.9",
+    "@chakra-ui/utils": "2.0.8",
     "@emotion/react": "11.10.0",
     "@emotion/styled": "11.10.0",
     "@guild-docs/client": "2.1.1",
@@ -56,6 +56,6 @@
     "react-icons": "4.4.0",
     "react-use": "17.4.0",
     "remark-admonitions": "1.2.1",
-    "shiki": "0.11.0"
+    "shiki": "0.11.1"
   }
 }
