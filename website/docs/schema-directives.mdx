@@ -50,9 +50,9 @@ schema = renameDirective('rename')(schema)
 
 That's it. The implementation of `renameDirective` takes care of everything else. If you understand what the directive is supposed to do to your schema, then you do not have to worry about how it works.
 
-For mapping mulitple custom schemas you can use a reduce function like so:
+For mapping multiple custom schemas you can use a reduce function like so:
 
-```ts
+```js
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { renameDirective } from 'fake-rename-directive-package'
 import { authDirective } from 'fake-auth-directive-package'
@@ -64,10 +64,10 @@ const typeDefs = /* GraphQL */ `
     currentDateMinusDateOfBirth: Int @rename(to: "age")
     email: String! @auth(requires: "member") @lower
     phoneNumber: String! @auth(requires: "member")
-  }  
+  }
 `
 
-const directiveTransformers = [ 
+const directiveTransformers = [
   renameDirective('rename').renameDirectiveTransformer,
   authDirective('auth').authDirectiveTransformer,
   lowerDirective('lower').lowerDirectiveTransformer,
