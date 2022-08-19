@@ -26,14 +26,14 @@ export function getArgumentsWithDirectives(documentNode: DocumentNode): TypeAndF
     for (const field of type.fields) {
       const argsWithDirectives = field.arguments?.filter(arg => arg.directives?.length);
 
-      if (!argsWithDirectives.length) {
+      if (!argsWithDirectives?.length) {
         continue;
       }
 
       const typeFieldResult = (result[`${type.name.value}.${field.name.value}`] = {});
 
       for (const arg of argsWithDirectives) {
-        const directives: DirectiveUsage[] = arg.directives.map(d => ({
+        const directives: DirectiveUsage[] = arg.directives!.map(d => ({
           name: d.name.value,
           args: (d.arguments || []).reduce(
             (prev, dArg) => ({ ...prev, [dArg.name.value]: valueFromASTUntyped(dArg.value) }),
