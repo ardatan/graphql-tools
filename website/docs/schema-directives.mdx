@@ -70,15 +70,14 @@ const typeDefs = /* GraphQL */ `
 const directiveTransformers = [
   renameDirective('rename').renameDirectiveTransformer,
   authDirective('auth').authDirectiveTransformer,
-  lowerDirective('lower').lowerDirectiveTransformer,
+  lowerDirective('lower').lowerDirectiveTransformer
 ]
 
 let schema = makeExecutableSchema({
   typeDefs
 })
 
-schema = directiveTransformers.reduce((curSchema, transformer) => transformer(curSchema), schema);
-
+schema = directiveTransformers.reduce((curSchema, transformer) => transformer(curSchema), schema)
 ```
 
 Everything you read below addresses some aspect of how a directive like `@rename(to: ...)` could be implemented. If that's not something you care about right now, feel free to skip the rest of this document. When you need it, it will be here.
