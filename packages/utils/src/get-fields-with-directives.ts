@@ -4,12 +4,10 @@ import {
   ObjectTypeExtensionNode,
   InputObjectTypeDefinitionNode,
   InputObjectTypeExtensionNode,
-  ValueNode,
-  Kind,
+  valueFromASTUntyped,
 } from 'graphql';
+import { DirectiveUsage } from './types.js';
 
-export type DirectiveArgs = { [name: string]: any };
-export type DirectiveUsage = { name: string; args: DirectiveArgs };
 export type TypeAndFieldToDirectives = {
   [typeAndField: string]: DirectiveUsage[];
 };
@@ -23,28 +21,6 @@ type SelectedNodes =
   | ObjectTypeExtensionNode
   | InputObjectTypeDefinitionNode
   | InputObjectTypeExtensionNode;
-
-function parseDirectiveValue(value: ValueNode): any {
-  switch (value.kind) {
-    case Kind.INT:
-      return parseInt(value.value);
-    case Kind.FLOAT:
-      return parseFloat(value.value);
-    case Kind.BOOLEAN:
-      return Boolean(value.value);
-    case Kind.STRING:
-    case Kind.ENUM:
-      return value.value;
-    case Kind.LIST:
-      return value.values.map(v => parseDirectiveValue(v));
-    case Kind.OBJECT:
-      return value.fields.reduce((prev, v) => ({ ...prev, [v.name.value]: parseDirectiveValue(v.value) }), {});
-    case Kind.NULL:
-      return null;
-    default:
-      return null;
-  }
-}
 
 export function getFieldsWithDirectives(documentNode: DocumentNode, options: Options = {}): TypeAndFieldToDirectives {
   const result: TypeAndFieldToDirectives = {};
@@ -71,7 +47,7 @@ export function getFieldsWithDirectives(documentNode: DocumentNode, options: Opt
         const directives: DirectiveUsage[] = field.directives.map(d => ({
           name: d.name.value,
           args: (d.arguments || []).reduce(
-            (prev, arg) => ({ ...prev, [arg.name.value]: parseDirectiveValue(arg.value) }),
+            (prev, arg) => ({ ...prev, [arg.name.value]: valueFromASTUntyped(arg.value) }),
             {}
           ),
         }));
