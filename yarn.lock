@@ -3897,18 +3897,12 @@
     "@types/scheduler" "*"
     csstype "^3.0.2"
 
-"@types/relay-compiler@8.0.4":
-  version "8.0.4"
-  resolved "https://registry.yarnpkg.com/@types/relay-compiler/-/relay-compiler-8.0.4.tgz#8f55655cccf6646e43ae80837dab278b5e6dc9ed"
-  integrity sha512-XXjrtzn3swJhOCVkqc5zKXj+w2VkGjXIcOsUUiWX07LBp4XuC//NxZAiCYCZKNwfIpHTtJKiuPyBkytEhRHhZA==
+"@types/relay-compiler@14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@types/relay-compiler/-/relay-compiler-14.0.0.tgz#f9dc89fec30bedf67f44126c8eae827585da1076"
+  integrity sha512-zzeuNLHdz1Dvum1/WVeiCZU3jHArch23DXWUD8kXPWVD+/XrG0M3jx+J1VtvC1+Qi9lwDnmAxZa4NT5iX7nYYg==
   dependencies:
-    "@types/relay-runtime" "*"
     graphql "^14.5.3"
-
-"@types/relay-runtime@*":
-  version "11.0.2"
-  resolved "https://registry.yarnpkg.com/@types/relay-runtime/-/relay-runtime-11.0.2.tgz#3e7a1371c13ee731288c751a53e7392c6afff2b5"
-  integrity sha512-GDw27MCYF45medCb0Ug08EPJVHA/K0yNKZ4N4LOGMaclUnLmzZJz9w6ja6pZMhBT84PQ9wsPZbHRPyXl57Am1Q==
 
 "@types/resolve@1.17.1":
   version "1.17.1"
