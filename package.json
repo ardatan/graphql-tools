@@ -44,7 +44,7 @@
     "@changesets/changelog-github": "0.4.6",
     "@types/debug": "4.1.7",
     "@types/jest": "28.1.7",
-    "@types/node": "16.11.49",
+    "@types/node": "16.11.52",
     "@typescript-eslint/eslint-plugin": "5.33.1",
     "@typescript-eslint/parser": "5.33.1",
     "babel-jest": "28.1.3",

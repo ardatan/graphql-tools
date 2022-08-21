@@ -51,7 +51,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "devDependencies": {
-    "@types/lodash": "4.14.183",
+    "@types/lodash": "4.14.184",
     "@types/micromatch": "4.0.2"
   },
   "dependencies": {
