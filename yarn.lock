@@ -3767,10 +3767,10 @@
   dependencies:
     "@types/lodash" "*"
 
-"@types/lodash@*", "@types/lodash@4.14.183":
-  version "4.14.183"
-  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.183.tgz#1173e843e858cff5b997c234df2789a4a54c2374"
-  integrity sha512-UXavyuxzXKMqJPEpFPri6Ku5F9af6ZJXUneHhvQJxavrEjuHkFp2YnDWHcxJiG7hk8ZkWqjcyNeW1s/smZv5cw==
+"@types/lodash@*", "@types/lodash@4.14.184":
+  version "4.14.184"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.184.tgz#23f96cd2a21a28e106dc24d825d4aa966de7a9fe"
+  integrity sha512-RoZphVtHbxPZizt4IcILciSWiC6dcn+eZ8oX9IWEYfDMcocdd42f7NPI6fQj+6zI8y4E0L7gu2pcZKLGTRaV9Q==
 
 "@types/long@^4.0.0":
   version "4.0.1"
@@ -3831,10 +3831,10 @@
     "@types/node" "*"
     form-data "^3.0.0"
 
-"@types/node@*", "@types/node@16.11.49":
-  version "16.11.49"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.49.tgz#560b1ea774b61e19a89c3fc72d2dcaa3863f38b2"
-  integrity sha512-Abq9fBviLV93OiXMu+f6r0elxCzRwc0RC5f99cU892uBITL44pTvgvEqlRlPRi8EGcO1z7Cp8A4d0s/p3J/+Nw==
+"@types/node@*", "@types/node@16.11.52":
+  version "16.11.52"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.52.tgz#d797437435455f237800c171d05639f0335c37b9"
+  integrity sha512-GnstYouCa9kbYokBCWEVrszJ1P2rGAQpKrqACHKuixkaT8XGu8nsqHvEUIGqDs5vwtsJ7LrYqnPDKRD1V+M39A==
 
 "@types/node@^10.1.0":
   version "10.17.60"
@@ -11256,19 +11256,19 @@ pirates@^4.0.1, pirates@^4.0.4, pirates@^4.0.5:
   resolved "https://registry.yarnpkg.com/pirates/-/pirates-4.0.5.tgz#feec352ea5c3268fb23a37c702ab1699f35a5f3b"
   integrity sha512-8V9+HQPupnaXMA23c5hvl69zXvTwTzyAYasnkb0Tts4XvO4CliqONMOnvlq26rkhLC3nWDFBJf73LU1e1VZLaQ==
 
-pkg-dir@4.2.0, pkg-dir@^4.1.0, pkg-dir@^4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-4.2.0.tgz#f099133df7ede422e81d1d8448270eeb3e4261f3"
-  integrity sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==
-  dependencies:
-    find-up "^4.0.0"
-
 pkg-dir@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-3.0.0.tgz#2749020f239ed990881b1f71210d51eb6523bea3"
   integrity sha512-/E57AYkoeQ25qkxMj5PBOVgF8Kiu/h7cYS30Z5+R7WaiCCBfLq58ZI/dSeaEKb9WVJV5n/03QwrN3IeWIFllvw==
   dependencies:
     find-up "^3.0.0"
+
+pkg-dir@^4.1.0, pkg-dir@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-4.2.0.tgz#f099133df7ede422e81d1d8448270eeb3e4261f3"
+  integrity sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==
+  dependencies:
+    find-up "^4.0.0"
 
 polished@^4.1.4:
   version "4.2.2"
@@ -11481,17 +11481,16 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
-puppeteer@16.1.1:
-  version "16.1.1"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-16.1.1.tgz#1bb8ec3b86f755c34b913421b81e9cd2cfad3588"
-  integrity sha512-lBneizsNF0zi1/iog9c0ogVnvDHJG4IWpkdIAgE2oiDKhr0MJRV8JeM2xbhUwCwhDJXjjVS2TNCZdLsMp9Ojdg==
+puppeteer@16.2.0:
+  version "16.2.0"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-16.2.0.tgz#3fc9cc0c461d3166a98562a7dcd0bf3424a0523c"
+  integrity sha512-7Au6iC98rS6WEAD110V4Bxd0iIbqoFtzz9XzkG1BSofidS1VAJ881E1+GFR7Xn2Yea0hbj8n0ErzRyseMp1Ctg==
   dependencies:
     cross-fetch "3.1.5"
     debug "4.3.4"
     devtools-protocol "0.0.1019158"
     extract-zip "2.0.1"
     https-proxy-agent "5.0.1"
-    pkg-dir "4.2.0"
     progress "2.0.3"
     proxy-from-env "1.1.0"
     rimraf "3.0.2"
