@@ -369,40 +369,55 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
               baseUrl: endpoint,
               ...requestBody,
             });
-            return fetch(finalUrl, {
-              method: 'GET',
-              ...(credentials != null ? { credentials } : {}),
-              headers,
-              signal: controller?.signal,
-            });
+            return fetch(
+              finalUrl,
+              {
+                method: 'GET',
+                ...(credentials != null ? { credentials } : {}),
+                headers,
+                signal: controller?.signal,
+              },
+              request.context,
+              request.info
+            );
           case 'POST':
             if (options?.multipart) {
               return new ValueOrPromise(() => this.createFormDataFromVariables(requestBody))
                 .then(
                   body =>
-                    fetch(endpoint, {
-                      method: 'POST',
-                      ...(credentials != null ? { credentials } : {}),
-                      body,
-                      headers: {
-                        ...headers,
-                        ...(typeof body === 'string' ? { 'content-type': 'application/json' } : {}),
+                    fetch(
+                      endpoint,
+                      {
+                        method: 'POST',
+                        ...(credentials != null ? { credentials } : {}),
+                        body,
+                        headers: {
+                          ...headers,
+                          ...(typeof body === 'string' ? { 'content-type': 'application/json' } : {}),
+                        },
+                        signal: controller?.signal,
                       },
-                      signal: controller?.signal,
-                    }) as any
+                      request.context,
+                      request.info
+                    ) as any
                 )
                 .resolve();
             } else {
-              return fetch(endpoint, {
-                method: 'POST',
-                ...(credentials != null ? { credentials } : {}),
-                body: JSON.stringify(requestBody),
-                headers: {
-                  'content-type': 'application/json',
-                  ...headers,
+              return fetch(
+                endpoint,
+                {
+                  method: 'POST',
+                  ...(credentials != null ? { credentials } : {}),
+                  body: JSON.stringify(requestBody),
+                  headers: {
+                    'content-type': 'application/json',
+                    ...headers,
+                  },
+                  signal: controller?.signal,
                 },
-                signal: controller?.signal,
-              });
+                request.context,
+                request.info
+              );
             }
         }
       })
