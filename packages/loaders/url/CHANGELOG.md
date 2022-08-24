@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.14.0
+
+### Minor Changes
+
+- [`768432c8`](https://github.com/ardatan/graphql-tools/commit/768432c8f75a5684de802988bed1df814a9ef191) Thanks [@ardatan](https://github.com/ardatan)! - Pass GraphQL context and GraphQLResolveInfo to the fetch function
+
 ## 7.13.9
 
 ### Patch Changes
