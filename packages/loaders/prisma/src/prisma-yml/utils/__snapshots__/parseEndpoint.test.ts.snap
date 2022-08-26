@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`parseEndpoint custom hosted url as ip in internet 1`] = `
-Object {
+{
   "clusterBaseUrl": "http://13.228.39.83:4466",
   "clusterName": "default",
   "isPrivate": true,
@@ -14,7 +14,7 @@ Object {
 `;
 
 exports[`parseEndpoint custom hosted url in internet 1`] = `
-Object {
+{
   "clusterBaseUrl": "https://api-prisma.divyendusingh.com",
   "clusterName": "default",
   "isPrivate": true,
@@ -27,7 +27,7 @@ Object {
 `;
 
 exports[`parseEndpoint local behind a proxy 1`] = `
-Object {
+{
   "clusterBaseUrl": "http://local.dev",
   "clusterName": "default",
   "isPrivate": true,
@@ -40,7 +40,7 @@ Object {
 `;
 
 exports[`parseEndpoint private url 1`] = `
-Object {
+{
   "clusterBaseUrl": "https://test1_workspace.prisma.sh",
   "clusterName": "test1",
   "isPrivate": true,
@@ -53,7 +53,7 @@ Object {
 `;
 
 exports[`parseEndpoint shared url 1`] = `
-Object {
+{
   "clusterBaseUrl": "https://eu1.prisma.sh",
   "clusterName": "prisma-eu1",
   "isPrivate": false,
@@ -66,7 +66,7 @@ Object {
 `;
 
 exports[`parseEndpoint url on a subdomain 1`] = `
-Object {
+{
   "clusterBaseUrl": "https://db.cloud.prisma.sh",
   "clusterName": "db.cloud.prisma.sh",
   "isPrivate": true,
@@ -79,7 +79,7 @@ Object {
 `;
 
 exports[`parseEndpoint work for minimal docker url 1`] = `
-Object {
+{
   "clusterBaseUrl": "http://prisma:4466",
   "clusterName": "default",
   "isPrivate": false,
@@ -92,7 +92,7 @@ Object {
 `;
 
 exports[`parseEndpoint work for minimal url 1`] = `
-Object {
+{
   "clusterBaseUrl": "http://localhost:4466",
   "clusterName": "local",
   "isPrivate": false,
@@ -105,7 +105,7 @@ Object {
 `;
 
 exports[`parseEndpoint work for url with service 1`] = `
-Object {
+{
   "clusterBaseUrl": "http://localhost:4466",
   "clusterName": "local",
   "isPrivate": false,
@@ -118,7 +118,7 @@ Object {
 `;
 
 exports[`parseEndpoint work for url with service and stage 1`] = `
-Object {
+{
   "clusterBaseUrl": "http://localhost:4466",
   "clusterName": "local",
   "isPrivate": false,

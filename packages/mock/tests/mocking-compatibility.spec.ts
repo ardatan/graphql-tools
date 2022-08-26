@@ -913,154 +913,126 @@ describe('Mock retro-compatibility', () => {
       }
     `;
     return graphql({ schema: jsSchema, source: testQuery }).then(res => {
-      expect(res.data).toMatchInlineSnapshot(`
-        Object {
-          "returnListOfListOfObject": Array [
-            Array [
-              Object {
-                "id": "a",
-                "nullableReturnColors": Array [
-                  Object {
-                    "name": "red",
-                  },
-                  Object {
-                    "name": "red",
-                  },
-                ],
-                "returnColors": Array [
-                  Object {
-                    "hex": "#333",
-                    "name": "red",
-                  },
-                  Object {
-                    "hex": "#333",
-                    "name": "red",
-                  },
-                ],
-                "returnCustomScalarArr": Array [
-                  "cs",
-                  "cs",
-                ],
-                "returnInt": 1,
-                "returnRelativeIds": Array [
-                  "a",
-                  "a",
-                ],
-                "returnRelatives": Array [
-                  Object {
-                    "id": "a",
-                  },
-                  Object {
-                    "id": "a",
-                  },
-                ],
-                "returnString": "a",
-              },
-              Object {
-                "id": "a",
-                "nullableReturnColors": Array [
-                  null,
-                ],
-                "returnColors": Array [
-                  Object {
-                    "hex": "#ccc",
-                    "name": "red",
-                  },
-                ],
-                "returnCustomScalarArr": Array [
-                  "cs",
-                  "cs",
-                ],
-                "returnInt": 2,
-                "returnRelativeIds": Array [
-                  "a",
-                  "a",
-                ],
-                "returnRelatives": Array [
-                  Object {
-                    "id": "a",
-                  },
-                  Object {
-                    "id": "a",
-                  },
-                ],
-                "returnString": "a",
-              },
-            ],
-            Array [
-              Object {
-                "id": "a",
-                "nullableReturnColors": Array [
-                  Object {
-                    "name": "red",
-                  },
-                  Object {
-                    "name": "red",
-                  },
-                ],
-                "returnColors": Array [
-                  Object {
-                    "hex": "#333",
-                    "name": "red",
-                  },
-                  Object {
-                    "hex": "#333",
-                    "name": "red",
-                  },
-                ],
-                "returnCustomScalarArr": Array [
-                  "cs",
-                  "cs",
-                ],
-                "returnInt": 1,
-                "returnRelativeIds": Array [
-                  "a",
-                  "a",
-                ],
-                "returnRelatives": Array [
-                  Object {
-                    "id": "a",
-                  },
-                  Object {
-                    "id": "a",
-                  },
-                ],
-                "returnString": "a",
-              },
-              Object {
-                "id": "a",
-                "nullableReturnColors": Array [
-                  Object {
-                    "name": "red",
-                  },
-                  Object {
-                    "name": "red",
-                  },
-                ],
-                "returnColors": Array [],
-                "returnCustomScalarArr": Array [
-                  "cs",
-                  "cs",
-                ],
-                "returnInt": 1,
-                "returnRelativeIds": Array [
-                  "a",
-                  "a",
-                ],
-                "returnRelatives": Array [
-                  Object {
-                    "id": "a",
-                  },
-                  Object {
-                    "id": "a",
-                  },
-                ],
-                "returnString": "b",
-              },
-            ],
+      expect(res.data).toMatchObject({
+        returnListOfListOfObject: [
+          [
+            {
+              id: 'a',
+              nullableReturnColors: [
+                {
+                  name: 'red',
+                },
+                {
+                  name: 'red',
+                },
+              ],
+              returnColors: [
+                {
+                  hex: '#333',
+                  name: 'red',
+                },
+                {
+                  hex: '#333',
+                  name: 'red',
+                },
+              ],
+              returnCustomScalarArr: ['cs', 'cs'],
+              returnInt: 1,
+              returnRelativeIds: ['a', 'a'],
+              returnRelatives: [
+                {
+                  id: 'a',
+                },
+                {
+                  id: 'a',
+                },
+              ],
+              returnString: 'a',
+            },
+            {
+              id: 'a',
+              nullableReturnColors: [null],
+              returnColors: [
+                {
+                  hex: '#ccc',
+                  name: 'red',
+                },
+              ],
+              returnCustomScalarArr: ['cs', 'cs'],
+              returnInt: 2,
+              returnRelativeIds: ['a', 'a'],
+              returnRelatives: [
+                {
+                  id: 'a',
+                },
+                {
+                  id: 'a',
+                },
+              ],
+              returnString: 'a',
+            },
           ],
-        }
-      `);
+          [
+            {
+              id: 'a',
+              nullableReturnColors: [
+                {
+                  name: 'red',
+                },
+                {
+                  name: 'red',
+                },
+              ],
+              returnColors: [
+                {
+                  hex: '#333',
+                  name: 'red',
+                },
+                {
+                  hex: '#333',
+                  name: 'red',
+                },
+              ],
+              returnCustomScalarArr: ['cs', 'cs'],
+              returnInt: 1,
+              returnRelativeIds: ['a', 'a'],
+              returnRelatives: [
+                {
+                  id: 'a',
+                },
+                {
+                  id: 'a',
+                },
+              ],
+              returnString: 'a',
+            },
+            {
+              id: 'a',
+              nullableReturnColors: [
+                {
+                  name: 'red',
+                },
+                {
+                  name: 'red',
+                },
+              ],
+              returnColors: [],
+              returnCustomScalarArr: ['cs', 'cs'],
+              returnInt: 1,
+              returnRelativeIds: ['a', 'a'],
+              returnRelatives: [
+                {
+                  id: 'a',
+                },
+                {
+                  id: 'a',
+                },
+              ],
+              returnString: 'b',
+            },
+          ],
+        ],
+      });
     });
   });
 

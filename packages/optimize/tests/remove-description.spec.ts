@@ -15,6 +15,10 @@ describe('removeDescription', () => {
       }
     `);
     const out = removeDescriptions(doc);
-    expect(print(out).trim()).toMatchSnapshot();
+    expect(print(out).trim()).toMatchInlineSnapshot(`
+      "type Query {
+        f: String
+      }"
+    `);
   });
 });

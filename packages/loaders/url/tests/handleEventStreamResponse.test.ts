@@ -17,11 +17,9 @@ describe('handleEventStreamResponse', () => {
     const iterator = asyncIterable[Symbol.asyncIterator]();
     const { value } = await iterator.next();
 
-    expect(value).toMatchInlineSnapshot(`
-          Object {
-            "foo": "bar",
-          }
-      `);
+    expect(value).toMatchObject({
+      foo: 'bar',
+    });
   });
 
   it('should ignore server pings', async () => {
@@ -37,13 +35,11 @@ describe('handleEventStreamResponse', () => {
     const iterator = asyncIterable[Symbol.asyncIterator]();
     const iteratorResult = await iterator.next();
 
-    expect(iteratorResult).toMatchInlineSnapshot(`
-      Object {
-        "done": false,
-        "value": Object {
-          "foo": "bar",
-        },
-      }
-    `);
+    expect(iteratorResult).toMatchObject({
+      done: false,
+      value: {
+        foo: 'bar',
+      },
+    });
   });
 });

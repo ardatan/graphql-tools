@@ -1,38 +1,38 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`GitLoader load async should load type definitions from a pluckable file 1`] = `
-Object {
-  "definitions": Array [
-    Object {
+{
+  "definitions": [
+    {
       "description": undefined,
-      "directives": Array [],
-      "fields": Array [
-        Object {
-          "arguments": Array [],
+      "directives": [],
+      "fields": [
+        {
+          "arguments": [],
           "description": undefined,
-          "directives": Array [],
+          "directives": [],
           "kind": "FieldDefinition",
-          "loc": Object {
+          "loc": {
             "end": 28,
             "start": 15,
           },
-          "name": Object {
+          "name": {
             "kind": "Name",
-            "loc": Object {
+            "loc": {
               "end": 20,
               "start": 15,
             },
             "value": "hello",
           },
-          "type": Object {
+          "type": {
             "kind": "NamedType",
-            "loc": Object {
+            "loc": {
               "end": 28,
               "start": 22,
             },
-            "name": Object {
+            "name": {
               "kind": "Name",
-              "loc": Object {
+              "loc": {
                 "end": 28,
                 "start": 22,
               },
@@ -41,15 +41,15 @@ Object {
           },
         },
       ],
-      "interfaces": Array [],
+      "interfaces": [],
       "kind": "ObjectTypeDefinition",
-      "loc": Object {
+      "loc": {
         "end": 30,
         "start": 0,
       },
-      "name": Object {
+      "name": {
         "kind": "Name",
-        "loc": Object {
+        "loc": {
           "end": 10,
           "start": 5,
         },
@@ -58,7 +58,7 @@ Object {
     },
   ],
   "kind": "Document",
-  "loc": Object {
+  "loc": {
     "end": 30,
     "start": 0,
   },
@@ -66,38 +66,38 @@ Object {
 `;
 
 exports[`GitLoader load sync should load type definitions from a pluckable file 1`] = `
-Object {
-  "definitions": Array [
-    Object {
+{
+  "definitions": [
+    {
       "description": undefined,
-      "directives": Array [],
-      "fields": Array [
-        Object {
-          "arguments": Array [],
+      "directives": [],
+      "fields": [
+        {
+          "arguments": [],
           "description": undefined,
-          "directives": Array [],
+          "directives": [],
           "kind": "FieldDefinition",
-          "loc": Object {
+          "loc": {
             "end": 28,
             "start": 15,
           },
-          "name": Object {
+          "name": {
             "kind": "Name",
-            "loc": Object {
+            "loc": {
               "end": 20,
               "start": 15,
             },
             "value": "hello",
           },
-          "type": Object {
+          "type": {
             "kind": "NamedType",
-            "loc": Object {
+            "loc": {
               "end": 28,
               "start": 22,
             },
-            "name": Object {
+            "name": {
               "kind": "Name",
-              "loc": Object {
+              "loc": {
                 "end": 28,
                 "start": 22,
               },
@@ -106,15 +106,15 @@ Object {
           },
         },
       ],
-      "interfaces": Array [],
+      "interfaces": [],
       "kind": "ObjectTypeDefinition",
-      "loc": Object {
+      "loc": {
         "end": 30,
         "start": 0,
       },
-      "name": Object {
+      "name": {
         "kind": "Name",
-        "loc": Object {
+        "loc": {
           "end": 10,
           "start": 5,
         },
@@ -123,7 +123,7 @@ Object {
     },
   ],
   "kind": "Document",
-  "loc": Object {
+  "loc": {
     "end": 30,
     "start": 0,
   },
