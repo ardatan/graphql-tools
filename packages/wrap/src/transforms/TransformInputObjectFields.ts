@@ -167,7 +167,10 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
             // The casting is kind of legit here as we are in a visitor
             const parentType = typeInfo.getInputType() as Maybe<GraphQLInputObjectType>;
             if (parentType != null) {
-              const parentTypeName = isWrappingType(parentType) && isInputObjectType(parentType.ofType) ? parentType.ofType.name : parentType.name;
+              const parentTypeName =
+                isWrappingType(parentType) && isInputObjectType(parentType.ofType)
+                  ? parentType.ofType.name
+                  : parentType.name;
               const newInputFields: Array<ObjectFieldNode> = [];
 
               for (const inputField of node.fields) {
