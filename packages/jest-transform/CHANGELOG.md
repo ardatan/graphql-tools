@@ -1,5 +1,14 @@
 # @graphql-tools/jest-transform
 
+## 1.2.2
+
+### Patch Changes
+
+- [#4671](https://github.com/ardatan/graphql-tools/pull/4671) [`96c9e4df`](https://github.com/ardatan/graphql-tools/commit/96c9e4dff2866776661b992b9e481c4eabfcf2a0) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+
+  - Updated dependency [`@jest/transform@^29.0.0` ↗︎](https://www.npmjs.com/package/@jest/transform/v/null) (from `^28.0.0`, in `dependencies`)
+  - Updated dependency [`@jest/types@^29.0.0` ↗︎](https://www.npmjs.com/package/@jest/types/v/null) (from `^28.0.0`, in `dependencies`)
+
 ## 1.2.1
 
 ### Patch Changes

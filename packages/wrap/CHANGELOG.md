@@ -1,5 +1,18 @@
 # @graphql-tools/wrap
 
+## 9.0.5
+
+### Patch Changes
+
+- [#4673](https://github.com/ardatan/graphql-tools/pull/4673) [`4fe3d9c0`](https://github.com/ardatan/graphql-tools/commit/4fe3d9c037e9c138bd8a9b04b3977d74eba32c97) Thanks [@thgreasi](https://github.com/thgreasi)! - Fix typings for TypeScript 4.8
+
+* [#4676](https://github.com/ardatan/graphql-tools/pull/4676) [`4e4fac0a`](https://github.com/ardatan/graphql-tools/commit/4e4fac0a8a46b5498a30a81932ef28d1f788efaa) Thanks [@NullScope](https://github.com/NullScope)! - Fix transforming/renaming Wrapped GraphQL Arguments
+
+* Updated dependencies [[`4fe3d9c0`](https://github.com/ardatan/graphql-tools/commit/4fe3d9c037e9c138bd8a9b04b3977d74eba32c97)]:
+  - @graphql-tools/utils@8.10.1
+  - @graphql-tools/delegate@9.0.4
+  - @graphql-tools/schema@9.0.2
+
 ## 9.0.4
 
 ### Patch Changes

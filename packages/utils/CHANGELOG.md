@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.10.1
+
+### Patch Changes
+
+- [#4673](https://github.com/ardatan/graphql-tools/pull/4673) [`4fe3d9c0`](https://github.com/ardatan/graphql-tools/commit/4fe3d9c037e9c138bd8a9b04b3977d74eba32c97) Thanks [@thgreasi](https://github.com/thgreasi)! - Fix typings for TypeScript 4.8
+
 ## 8.10.0
 
 ### Minor Changes
