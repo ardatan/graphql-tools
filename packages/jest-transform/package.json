@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/jest-transform",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Jest Plugin to load and parse imported GraphQL files",
   "repository": {
     "type": "git",
