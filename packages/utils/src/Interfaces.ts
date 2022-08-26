@@ -51,7 +51,7 @@ import {
 // graphql-js < v15 backwards compatible ExecutionResult
 // See: https://github.com/graphql/graphql-js/pull/2490
 
-export type ExecutionResult<TData = Record<string, any>> = GraphQLExecutionResult & {
+export type ExecutionResult<TData = Record<string, any>> = GraphQLExecutionResult<TData> & {
   data?: TData | null;
   extensions?: Record<string, any>;
 };
