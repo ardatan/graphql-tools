@@ -7,17 +7,15 @@ import {
   visitWithTypeInfo,
   Kind,
   FragmentDefinitionNode,
-  GraphQLInputObjectType,
   ObjectValueNode,
   ObjectFieldNode,
   OperationDefinitionNode,
   isInputType,
   NamedTypeNode,
-  isWrappingType,
-  isInputObjectType,
+  getNamedType,
 } from 'graphql';
 
-import { Maybe, ExecutionRequest, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
+import { ExecutionRequest, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -164,13 +162,9 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
       visitWithTypeInfo(typeInfo, {
         [Kind.OBJECT]: {
           leave: (node: ObjectValueNode): ObjectValueNode | undefined => {
-            // The casting is kind of legit here as we are in a visitor
-            const parentType = typeInfo.getInputType() as Maybe<GraphQLInputObjectType>;
+            const parentType = typeInfo.getInputType();
             if (parentType != null) {
-              const parentTypeName =
-                isWrappingType(parentType) && isInputObjectType(parentType.ofType)
-                  ? parentType.ofType.name
-                  : parentType.name;
+              const parentTypeName = getNamedType(parentType).name;
               const newInputFields: Array<ObjectFieldNode> = [];
 
               for (const inputField of node.fields) {
