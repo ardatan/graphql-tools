@@ -72,7 +72,7 @@
     "@types/ws": "^8.0.0",
     "@whatwg-node/fetch": "^0.3.0",
     "dset": "^3.1.2",
-    "extract-files": "^11.0.0",
+    "extract-files": "^13.0.0",
     "graphql-ws": "^5.4.1",
     "isomorphic-ws": "^5.0.0",
     "meros": "^1.1.4",
