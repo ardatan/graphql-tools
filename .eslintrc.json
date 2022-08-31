@@ -47,6 +47,26 @@
         "@typescript-eslint/no-unused-vars": "off",
         "import/no-extraneous-dependencies": "off"
       }
+    },
+    {
+      "files": ["packages/graphql/**"],
+      "env": {
+        "jest": true
+      },
+      "rules": {
+        "unicorn/filename-case": "off", // we keep the same file names as GraphQL.js
+        // TODO: Enable us incrementally
+        "no-use-before-define": "off",
+        "@typescript-eslint/prefer-as-const": "off",
+        "@typescript-eslint/ban-ts-comment": "off",
+        "@typescript-eslint/no-inferrable-types": "off",
+        "unicorn/no-lonely-if": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "prefer-rest-params": "off",
+        "no-throw-literal": "off",
+        "promise/param-names": "off",
+        "eqeqeq": "off"
+      }
     }
   ],
   "ignorePatterns": [
