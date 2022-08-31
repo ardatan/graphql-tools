@@ -6,4 +6,4 @@ export * from './type/index.js';
 export * from './utilities/index.js';
 export * from './validation/index.js';
 export * from './version.js';
-export * from './subscription/index';
+export * from './subscription/index.js';
