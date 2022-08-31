@@ -55,20 +55,20 @@ interface DocumentSource {
 In case no documents were found and loaded via the provided glob an exception is thrown.
 
 ```ts
-import { loadDocuments } from '@graphql-tools/load';
-import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
+import { loadDocuments } from '@graphql-tools/load'
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader'
 
 const documents = await loadDocuments(['i-do-not-exist.graphql'], {
-  loaders: [new GraphQLFileLoader()],
-});
+  loaders: [new GraphQLFileLoader()]
+})
 ```
 
 If `i-do-not-exist.graphql` does not exist this throws the following error:
 
 ```
-Error: 
+Error:
       Unable to find any GraphQL type definitions for the following pointers:
-        
+
           - *.graphql
 ```
 
@@ -79,19 +79,19 @@ In case you try to load a GraphQL file with invalid syntax, the `loadDocuments` 
 You can identify the exact file that caused this GraphQLError by using the errors source property.
 
 ```ts
-import { loadDocuments } from '@graphql-tools/load';
-import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { CodeFileLoader } from '@graphql-tools/code-file-loader';
-import { GraphQLError } from 'graphql';
+import { loadDocuments } from '@graphql-tools/load'
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader'
+import { CodeFileLoader } from '@graphql-tools/code-file-loader'
+import { GraphQLError } from 'graphql'
 
 try {
   const documents = await loadDocuments(['packages/**/*.graphql', 'packages/**/*.ts(x)'], {
-    loaders: [new GraphQLFileLoader(), new CodeFileLoader()],
-  });
-  console.log(documents);
+    loaders: [new GraphQLFileLoader(), new CodeFileLoader()]
+  })
+  console.log(documents)
 } catch (err) {
   if (err instanceof GraphQLError) {
-    console.log(err.message + `\n in ${err.source?.name}`);
+    console.log(err.message + `\n in ${err.source?.name}`)
   }
   throw err
 }
