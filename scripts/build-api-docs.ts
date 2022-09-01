@@ -24,6 +24,8 @@ async function buildApiDocs() {
       !packageJsonPath.includes('./website/') &&
       !packageJsonContent.private &&
       packageJsonContent.name !== MONOREPO &&
+      // Skipping the fork for now
+      !packageJsonContent.name.endsWith('/graphql') &&
       !packageJsonContent.name.endsWith('/container')
     ) {
       modules.push([
