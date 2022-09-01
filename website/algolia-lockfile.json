@@ -63,15 +63,32 @@
   },
   {
     "objectID": "tools-documents-loading",
-    "headings": ["Usage"],
+    "headings": ["Usage", "Error handling"],
     "toc": [
       {
         "children": [],
         "title": "Usage",
         "anchor": "usage"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [],
+                "title": "Syntax error within a file",
+                "anchor": "syntax-error-within-a-file"
+              }
+            ],
+            "title": "No files found",
+            "anchor": "no-files-found"
+          }
+        ],
+        "title": "Error handling",
+        "anchor": "error-handling"
       }
     ],
-    "content": "cd739a23b8e549927d4d78500d2fa800",
+    "content": "a91743a026e1c7f18cafb3a15c4b399e",
     "url": "https://www.graphql-tools.com/docs/documents-loading",
     "domain": "https://www.graphql-tools.com/",
     "hierarchy": ["Tools", "Topics", "Loading GraphQL operation documents from different sources"],
