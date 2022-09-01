@@ -2,6 +2,7 @@
 /// <reference lib="dom" />
 import {
   print,
+  stripIgnoredCharacters,
   IntrospectionOptions,
   GraphQLError,
   buildASTSchema,
@@ -275,7 +276,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       ? `${dummyHostname}${HTTP_URL}`
       : `${dummyHostname}/${HTTP_URL}`;
     const urlObj = new URL(validUrl);
-    urlObj.searchParams.set('query', query);
+    urlObj.searchParams.set('query', stripIgnoredCharacters(query));
     if (variables && Object.keys(variables).length > 0) {
       urlObj.searchParams.set('variables', JSON.stringify(variables));
     }
