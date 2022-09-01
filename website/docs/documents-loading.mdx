@@ -20,6 +20,11 @@ const { loadDocuments } = require('@graphql-tools/load')
 const { GraphQLFileLoader } = require('@graphql-tools/graphql-file-loader')
 const { CodeFileLoader } = require('@graphql-tools/code-file-loader')
 
+// load from string
+const document1 = loadDocuments('query { f }', {
+  loaders: []
+})
+
 // load from a single file
 const document2 = loadDocuments('./users.query.graphql', {
   loaders: [new GraphQLFileLoader()]
