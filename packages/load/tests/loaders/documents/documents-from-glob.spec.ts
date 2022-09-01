@@ -186,5 +186,11 @@ describe('documentsFromGlob', () => {
       expect(result).toHaveLength(1);
       expect(result[0].rawSDL).toContain(pointerOptions.fooFieldName);
     });
+    test('should work only with a document string', async () => {
+      const result = await load('query { foo }', {
+        loaders: [],
+      });
+      expect(result).toHaveLength(1);
+    });
   });
 });
