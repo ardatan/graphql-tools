@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.14.2
+
+### Patch Changes
+
+- [#4689](https://github.com/ardatan/graphql-tools/pull/4689) [`f8610d24`](https://github.com/ardatan/graphql-tools/commit/f8610d240083a621852c21342139c12d736ac6af) Thanks [@paales](https://github.com/paales)! - When using useGETForQueries make the URL as short as possible by stripping out all ignored characters
+
 ## 7.14.1
 
 ### Patch Changes
