@@ -61,7 +61,7 @@
   "devDependencies": {
     "@apollo/client": "3.6.9",
     "@types/apollo-upload-client": "17.0.1",
-    "graphql-upload": "16.0.1"
+    "graphql-upload": "16.0.2"
   },
   "dependencies": {
     "@graphql-tools/delegate": "9.0.4",
