@@ -131,3 +131,6 @@ export type SchemaExtensions = {
   schemaExtensions: ExtensionsObject;
   types: Record<string, { extensions: ExtensionsObject } & PossibleTypeExtensions>;
 };
+
+export type DirectiveArgs = { [name: string]: any };
+export type DirectiveUsage = { name: string; args: DirectiveArgs };

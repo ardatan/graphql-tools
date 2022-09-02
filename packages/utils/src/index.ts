@@ -2,6 +2,7 @@ export * from './loaders.js';
 export * from './helpers.js';
 export * from './get-directives.js';
 export * from './get-fields-with-directives.js';
+export * from './get-arguments-with-directives.js';
 export * from './get-implementing-types.js';
 export * from './print-schema-with-directives.js';
 export * from './get-fields-with-directives.js';
