@@ -8,6 +8,8 @@ import {
   GraphQLFieldMap,
   isSpecifiedScalarType,
   isScalarType,
+  isEnumType,
+  ASTNode,
 } from 'graphql';
 
 import { PruneSchemaOptions } from './types.js';
@@ -138,12 +140,23 @@ function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string>
         // No need to revisit this interface again
         revisit[typeName] = false;
       }
+      if (isEnumType(type)) {
+        // Visit enum values directives argument types
+        queue.push(
+          ...type.getValues().flatMap(value => {
+            if (value.astNode) {
+              return getDirectivesArgumentsTypeNames(schema, value.astNode);
+            }
+            return [];
+          })
+        );
+      }
       // Visit interfaces this type is implementing if they haven't been visited yet
       if ('getInterfaces' in type) {
         // Only pushes to queue to visit but not return types
         queue.push(...type.getInterfaces().map(iface => iface.name));
       }
-      // If the type has files visit those field types
+      // If the type has fields visit those field types
       if ('getFields' in type) {
         const fields = type.getFields() as GraphQLFieldMap<any, any>;
         const entries = Object.entries(fields);
@@ -154,13 +167,25 @@ function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string>
 
         for (const [, field] of entries) {
           if (isObjectType(type)) {
-            // Visit arg types
-            queue.push(...field.args.map(arg => getNamedType(arg.type).name));
+            // Visit arg types and arg directives arguments types
+            queue.push(
+              ...field.args.flatMap(arg => {
+                const typeNames = [getNamedType(arg.type).name];
+                if (arg.astNode) {
+                  typeNames.push(...getDirectivesArgumentsTypeNames(schema, arg.astNode));
+                }
+                return typeNames;
+              })
+            );
           }
 
           const namedType = getNamedType(field.type);
 
           queue.push(namedType.name);
+
+          if (field.astNode) {
+            queue.push(...getDirectivesArgumentsTypeNames(schema, field.astNode));
+          }
 
           // Interfaces returned on fields need to be revisited to add their implementations
           if (isInterfaceType(namedType) && !(namedType.name in revisit)) {
@@ -169,8 +194,21 @@ function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string>
         }
       }
 
+      if (type.astNode) {
+        queue.push(...getDirectivesArgumentsTypeNames(schema, type.astNode));
+      }
+
       visited.add(typeName); // Mark as visited (and therefore it is used and should be kept)
     }
   }
   return visited;
+}
+
+function getDirectivesArgumentsTypeNames(
+  schema: GraphQLSchema,
+  astNode: Extract<ASTNode, { readonly directives?: any }>
+) {
+  return (astNode.directives ?? []).flatMap(
+    directive => schema.getDirective(directive.name.value)?.args.map(arg => getNamedType(arg.type).name) ?? []
+  );
 }

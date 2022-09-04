@@ -405,4 +405,89 @@ describe('pruneSchema', () => {
     expect(result.getType('CustomType')).toBeDefined();
     expect(result.getType('SomeInterface')).toBeDefined();
   });
+
+  test('does not remove type used in object type directive argument', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      directive @bar(arg: DirectiveArg) on OBJECT
+
+      enum DirectiveArg {
+        VALUE1
+        VALUE2
+      }
+
+      type CustomType @bar(arg: VALUE1) {
+        value: String
+      }
+
+      type Query {
+        foo: CustomType
+      }
+    `);
+
+    const result = pruneSchema(schema);
+    expect(result.getType('DirectiveArg')).toBeDefined();
+  });
+
+  test('does not remove type used in field definition directive argument', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      directive @bar(arg: DirectiveArg) on FIELD_DEFINITION
+
+      enum DirectiveArg {
+        VALUE1
+        VALUE2
+      }
+
+      type CustomType {
+        value: String @bar(arg: VALUE1)
+      }
+
+      type Query {
+        foo: CustomType
+      }
+    `);
+
+    const result = pruneSchema(schema);
+    expect(result.getType('DirectiveArg')).toBeDefined();
+  });
+
+  test('does not remove type used in enum value directive argument', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      directive @bar(arg: DirectiveArg) on ENUM_VALUE
+
+      enum DirectiveArg {
+        VALUE1
+        VALUE2
+      }
+
+      enum MyEnum {
+        VALUE3 @bar(arg: VALUE1)
+        VALUE4
+      }
+
+      type Query {
+        foo: MyEnum
+      }
+    `);
+
+    const result = pruneSchema(schema);
+    expect(result.getType('DirectiveArg')).toBeDefined();
+  });
+
+  test('does not remove type used in argument definition directive argument', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      directive @bar(arg: DirectiveArg) on ARGUMENT_DEFINITION
+
+      enum DirectiveArg {
+        VALUE1
+        VALUE2
+      }
+
+      type Query {
+        foo(arg: String @bar(arg: VALUE1)): Boolean
+      }
+    `);
+
+    const result = pruneSchema(schema);
+    expect(result.getType('DirectiveArg')).toBeDefined();
+  });
 });
