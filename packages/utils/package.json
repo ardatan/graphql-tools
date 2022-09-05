@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/utils",
-  "version": "8.10.1",
+  "version": "8.11.0",
   "description": "Common package containing utils and types for GraphQL tools",
   "repository": {
     "type": "git",

@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/url-loader",
-  "version": "7.14.2",
+  "version": "7.14.3",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -64,9 +64,9 @@
     "webpack": "5.74.0"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "9.0.4",
-    "@graphql-tools/utils": "8.10.1",
-    "@graphql-tools/wrap": "9.0.5",
+    "@graphql-tools/delegate": "9.0.5",
+    "@graphql-tools/utils": "8.11.0",
+    "@graphql-tools/wrap": "9.0.6",
     "@ardatan/sync-fetch": "0.0.1",
     "@n1ru4l/graphql-live-query": "^0.10.0",
     "@types/ws": "^8.0.0",

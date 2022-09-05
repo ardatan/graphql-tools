@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/node-require",
-  "version": "6.4.5",
+  "version": "6.4.6",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -53,9 +53,9 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/load": "7.7.5",
-    "@graphql-tools/graphql-file-loader": "7.5.3",
-    "@graphql-tools/utils": "8.10.1",
+    "@graphql-tools/load": "7.7.6",
+    "@graphql-tools/graphql-file-loader": "7.5.4",
+    "@graphql-tools/utils": "8.11.0",
     "tslib": "^2.4.0"
   },
   "publishConfig": {
