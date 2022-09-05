@@ -135,10 +135,9 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
   timeout?: number;
   /**
    * Request Credentials (default: 'same-origin')
-   * You can pass `disable` if you don't want this to be set in `Request`
    * @see https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials
    */
-  credentials?: RequestCredentials | 'disable';
+  credentials?: RequestCredentials;
   /**
    * Connection Parameters for WebSockets connection
    */
@@ -361,8 +360,6 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         }, options.timeout);
       }
 
-      const credentials = options?.credentials !== 'disable' ? options?.credentials || 'same-origin' : null;
-
       return new ValueOrPromise(() => {
         switch (method) {
           case 'GET':
@@ -374,7 +371,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
               finalUrl,
               {
                 method: 'GET',
-                ...(credentials != null ? { credentials } : {}),
+                ...(options?.credentials != null ? { credentials: options.credentials } : {}),
                 headers,
                 signal: controller?.signal,
               },
@@ -390,7 +387,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                       endpoint,
                       {
                         method: 'POST',
-                        ...(credentials != null ? { credentials } : {}),
+                        ...(options?.credentials != null ? { credentials: options.credentials } : {}),
                         body,
                         headers: {
                           ...headers,
@@ -408,7 +405,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                 endpoint,
                 {
                   method: 'POST',
-                  ...(credentials != null ? { credentials } : {}),
+                  ...(options?.credentials != null ? { credentials: options.credentials } : {}),
                   body: JSON.stringify(requestBody),
                   headers: {
                     'content-type': 'application/json',
