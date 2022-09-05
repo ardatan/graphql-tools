@@ -1,5 +1,13 @@
 # @graphql-tools/url-loader
 
+## 7.15.0
+
+### Minor Changes
+
+- [`2926a270`](https://github.com/ardatan/graphql-tools/commit/2926a27098a94469306664add1f8c232ac6de6e7) Thanks [@ardatan](https://github.com/ardatan)! - Do not pass credentials: same-origin by default because it is already default per spec
+
+  This prevents an error like (The 'credentials' field on 'RequestInitializerDict' is not implemented.) on the environments that don't support `credentials` flag like CF Workers.
+
 ## 7.14.3
 
 ### Patch Changes
