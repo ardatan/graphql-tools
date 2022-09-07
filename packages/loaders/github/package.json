@@ -54,7 +54,7 @@
     "@ardatan/sync-fetch": "0.0.1",
     "@graphql-tools/utils": "8.11.0",
     "@graphql-tools/graphql-tag-pluck": "7.3.5",
-    "@whatwg-node/fetch": "^0.3.0",
+    "@whatwg-node/fetch": "^0.4.0",
     "tslib": "^2.4.0"
   },
   "publishConfig": {
