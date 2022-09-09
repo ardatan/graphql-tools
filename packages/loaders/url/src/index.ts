@@ -7,7 +7,6 @@ import {
   GraphQLError,
   buildASTSchema,
   buildSchema,
-  OperationDefinitionNode,
 } from 'graphql';
 
 import {
@@ -23,7 +22,6 @@ import {
   parseGraphQLSDL,
   getOperationASTFromRequest,
   Observer,
-  memoize1,
 } from '@graphql-tools/utils';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
@@ -36,7 +34,7 @@ import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js'
 import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse.js';
 import { cancelNeeded } from './event-stream/addCancelToResponseStream.js';
 import { AbortController, FormData, File } from '@whatwg-node/fetch';
-import { isBlob, isGraphQLUpload, isPromiseLike, LEGACY_WS } from './utils.js';
+import { isBlob, isGraphQLUpload, isLiveQueryOperationDefinitionNode, isPromiseLike, LEGACY_WS } from './utils.js';
 
 export type FetchFn = AsyncFetchFn | SyncFetchFn;
 
@@ -58,12 +56,6 @@ interface ExecutionExtensions {
   headers?: HeadersConfig;
   endpoint?: string;
 }
-
-const isLiveQueryOperationDefinitionNode = memoize1(function isLiveQueryOperationDefinitionNode(
-  node: OperationDefinitionNode
-) {
-  return node.directives?.some(directive => directive.name.value === 'live');
-});
 
 export enum SubscriptionProtocol {
   WS = 'WS',
@@ -108,10 +100,6 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    */
   useGETForQueries?: boolean;
   /**
-   * Use multipart for POST requests
-   */
-  multipart?: boolean;
-  /**
    * Handle URL as schema SDL
    */
   handleAsSDL?: boolean;
@@ -127,10 +115,6 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Use specific protocol for subscriptions
    */
   subscriptionsProtocol?: SubscriptionProtocol;
-  /**
-   * @deprecated This is no longer used. Will be removed in the next release
-   */
-  graphqlSseOptions?: any;
   /**
    * Retry attempts
    */
@@ -379,44 +363,26 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
               request.info
             );
           case 'POST':
-            if (options?.multipart) {
-              return new ValueOrPromise(() => this.createFormDataFromVariables(requestBody))
-                .then(
-                  body =>
-                    fetch(
-                      endpoint,
-                      {
-                        method: 'POST',
-                        ...(options?.credentials != null ? { credentials: options.credentials } : {}),
-                        body,
-                        headers: {
-                          ...headers,
-                          ...(typeof body === 'string' ? { 'content-type': 'application/json' } : {}),
-                        },
-                        signal: controller?.signal,
+            return new ValueOrPromise(() => this.createFormDataFromVariables(requestBody))
+              .then(
+                body =>
+                  fetch(
+                    endpoint,
+                    {
+                      method: 'POST',
+                      ...(options?.credentials != null ? { credentials: options.credentials } : {}),
+                      body,
+                      headers: {
+                        ...headers,
+                        ...(typeof body === 'string' ? { 'content-type': 'application/json' } : {}),
                       },
-                      request.context,
-                      request.info
-                    ) as any
-                )
-                .resolve();
-            } else {
-              return fetch(
-                endpoint,
-                {
-                  method: 'POST',
-                  ...(options?.credentials != null ? { credentials: options.credentials } : {}),
-                  body: JSON.stringify(requestBody),
-                  headers: {
-                    'content-type': 'application/json',
-                    ...headers,
-                  },
-                  signal: controller?.signal,
-                },
-                request.context,
-                request.info
-              );
-            }
+                      signal: controller?.signal,
+                    },
+                    request.context,
+                    request.info
+                  ) as any
+              )
+              .resolve();
         }
       })
         .then((fetchResult: Response): any => {
