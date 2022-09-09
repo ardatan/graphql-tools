@@ -60,9 +60,7 @@ describe('GraphQL Upload compatibility', () => {
       });
     });
 
-    const [{ schema }] = await loader.load(`http://0.0.0.0:9871/graphql`, {
-      multipart: true,
-    });
+    const [{ schema }] = await loader.load(`http://0.0.0.0:9871/graphql`, {});
 
     const fileName = 'testfile.txt';
 

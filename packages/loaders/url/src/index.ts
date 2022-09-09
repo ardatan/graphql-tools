@@ -137,6 +137,17 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Enable Batching
    */
   batch?: boolean;
+
+  // Deprecated options
+
+  /**
+   * @deprecated This is no longer used. Will be removed in the next release
+   */
+  graphqlSseOptions?: any;
+  /**
+   * @deprecated This is no longer used. Will be removed in the next release
+   */
+  multipart?: boolean;
 }
 
 function isCompatibleUri(uri: string): boolean {
