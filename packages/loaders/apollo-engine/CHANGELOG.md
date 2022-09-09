@@ -1,5 +1,13 @@
 # @graphql-tools/apollo-engine-loader
 
+## 7.3.12
+
+### Patch Changes
+
+- [#4700](https://github.com/ardatan/graphql-tools/pull/4700) [`939e07ca`](https://github.com/ardatan/graphql-tools/commit/939e07cae38ff179e00c2ff2a23b70f6259971ef) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+
+  - Updated dependency [`@whatwg-node/fetch@^0.4.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/null) (from `^0.3.0`, in `dependencies`)
+
 ## 7.3.11
 
 ### Patch Changes
