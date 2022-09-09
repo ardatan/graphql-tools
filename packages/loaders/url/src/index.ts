@@ -7,7 +7,6 @@ import {
   GraphQLError,
   buildASTSchema,
   buildSchema,
-  OperationDefinitionNode,
 } from 'graphql';
 
 import {
@@ -23,20 +22,20 @@ import {
   parseGraphQLSDL,
   getOperationASTFromRequest,
   Observer,
+  createGraphQLError,
 } from '@graphql-tools/utils';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
 import WebSocket from 'isomorphic-ws';
 import { extractFiles, isExtractableFile } from 'extract-files';
 import { ValueOrPromise } from 'value-or-promise';
-import { isLiveQueryOperationDefinitionNode } from '@n1ru4l/graphql-live-query';
 import { AsyncFetchFn, defaultAsyncFetch } from './defaultAsyncFetch.js';
 import { defaultSyncFetch, SyncFetchFn } from './defaultSyncFetch.js';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
 import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse.js';
 import { cancelNeeded } from './event-stream/addCancelToResponseStream.js';
 import { AbortController, FormData, File } from '@whatwg-node/fetch';
-import { isBlob, isGraphQLUpload, isPromiseLike, LEGACY_WS } from './utils.js';
+import { isBlob, isGraphQLUpload, isLiveQueryOperationDefinitionNode, isPromiseLike, LEGACY_WS } from './utils.js';
 
 export type FetchFn = AsyncFetchFn | SyncFetchFn;
 
@@ -102,10 +101,6 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    */
   useGETForQueries?: boolean;
   /**
-   * Use multipart for POST requests
-   */
-  multipart?: boolean;
-  /**
    * Handle URL as schema SDL
    */
   handleAsSDL?: boolean;
@@ -121,10 +116,6 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Use specific protocol for subscriptions
    */
   subscriptionsProtocol?: SubscriptionProtocol;
-  /**
-   * @deprecated This is no longer used. Will be removed in the next release
-   */
-  graphqlSseOptions?: any;
   /**
    * Retry attempts
    */
@@ -146,6 +137,17 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Enable Batching
    */
   batch?: boolean;
+
+  // Deprecated options
+
+  /**
+   * @deprecated This is no longer used. Will be removed in the next release
+   */
+  graphqlSseOptions?: any;
+  /**
+   * @deprecated This is no longer used. Will be removed in the next release
+   */
+  multipart?: boolean;
 }
 
 function isCompatibleUri(uri: string): boolean {
@@ -322,16 +324,10 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         method = 'GET';
       }
 
-      let accept = 'application/json';
+      let accept = 'application/graphql-response+json, application/json, multipart/mixed';
       if (operationType === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
         method = 'GET';
         accept = 'text/event-stream';
-      } else if (
-        (operationAst as OperationDefinitionNode).directives?.some(
-          ({ name }) => name.value === 'defer' || name.value === 'stream'
-        )
-      ) {
-        accept += ', multipart/mixed';
       }
 
       const endpoint = request.extensions?.endpoint || HTTP_URL;
@@ -379,44 +375,26 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
               request.info
             );
           case 'POST':
-            if (options?.multipart) {
-              return new ValueOrPromise(() => this.createFormDataFromVariables(requestBody))
-                .then(
-                  body =>
-                    fetch(
-                      endpoint,
-                      {
-                        method: 'POST',
-                        ...(options?.credentials != null ? { credentials: options.credentials } : {}),
-                        body,
-                        headers: {
-                          ...headers,
-                          ...(typeof body === 'string' ? { 'content-type': 'application/json' } : {}),
-                        },
-                        signal: controller?.signal,
+            return new ValueOrPromise(() => this.createFormDataFromVariables(requestBody))
+              .then(
+                body =>
+                  fetch(
+                    endpoint,
+                    {
+                      method: 'POST',
+                      ...(options?.credentials != null ? { credentials: options.credentials } : {}),
+                      body,
+                      headers: {
+                        ...headers,
+                        ...(typeof body === 'string' ? { 'content-type': 'application/json' } : {}),
                       },
-                      request.context,
-                      request.info
-                    ) as any
-                )
-                .resolve();
-            } else {
-              return fetch(
-                endpoint,
-                {
-                  method: 'POST',
-                  ...(options?.credentials != null ? { credentials: options.credentials } : {}),
-                  body: JSON.stringify(requestBody),
-                  headers: {
-                    'content-type': 'application/json',
-                    ...headers,
-                  },
-                  signal: controller?.signal,
-                },
-                request.context,
-                request.info
-              );
-            }
+                      signal: controller?.signal,
+                    },
+                    request.context,
+                    request.info
+                  ) as any
+              )
+              .resolve();
         }
       })
         .then((fetchResult: Response): any => {
@@ -448,13 +426,62 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             return result;
           }
         })
+        .catch((e: any) => {
+          if (typeof e === 'string') {
+            return {
+              errors: [
+                createGraphQLError(e, {
+                  extensions: {
+                    requestBody,
+                  },
+                }),
+              ],
+            };
+          } else if (e.name === 'GraphQLError') {
+            return {
+              errors: [e],
+            };
+          } else if (e.name === 'TypeError' && e.message === 'fetch failed') {
+            return {
+              errors: [
+                createGraphQLError(`fetch failed to ${endpoint}`, {
+                  extensions: {
+                    requestBody,
+                  },
+                  originalError: e,
+                }),
+              ],
+            };
+          } else if (e.message) {
+            return {
+              errors: [
+                createGraphQLError(e.message, {
+                  extensions: {
+                    requestBody,
+                  },
+                  originalError: e,
+                }),
+              ],
+            };
+          } else {
+            return {
+              errors: [
+                createGraphQLError('Unknown error', {
+                  extensions: {
+                    requestBody,
+                  },
+                  originalError: e,
+                }),
+              ],
+            };
+          }
+        })
         .resolve();
     };
 
     if (options?.retry != null) {
       return function retryExecutor(request: ExecutionRequest) {
         let result: ExecutionResult<any> | undefined;
-        let error: Error | undefined;
         let attempt = 0;
         function retryAttempt(): Promise<ExecutionResult<any>> | ExecutionResult<any> {
           attempt++;
@@ -462,10 +489,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             if (result != null) {
               return result;
             }
-            if (error != null) {
-              throw error;
-            }
-            throw new Error('No result');
+            return {
+              errors: [createGraphQLError('No response returned from fetch')],
+            };
           }
           return new ValueOrPromise(() => executor(request))
             .then(res => {
@@ -474,10 +500,6 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                 return retryAttempt();
               }
               return result;
-            })
-            .catch((e: any) => {
-              error = e;
-              return retryAttempt();
             })
             .resolve();
         }
@@ -771,10 +793,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       // eslint-disable-next-line no-inner-declarations
       function getExecutorByRequest(request: ExecutionRequest<any>): ValueOrPromise<Executor> {
         const operationAst = getOperationASTFromRequest(request);
-        if (
-          operationAst.operation === 'subscription' ||
-          isLiveQueryOperationDefinitionNode(operationAst, request.variables as Record<string, any>)
-        ) {
+        if (operationAst.operation === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
           return subscriptionExecutor$;
         } else {
           return httpExecutor$;

@@ -10,7 +10,16 @@ import {
 
 import { ValueOrPromise } from 'value-or-promise';
 
-import { AsyncExecutor, Executor, ExecutionResult, isAsyncIterable, SyncExecutor } from '@graphql-tools/utils';
+import {
+  AsyncExecutor,
+  Executor,
+  ExecutionResult,
+  isAsyncIterable,
+  SyncExecutor,
+  AggregateError,
+  createGraphQLError,
+  inspect,
+} from '@graphql-tools/utils';
 
 function getSchemaFromIntrospection(
   introspectionResult: ExecutionResult<IntrospectionQuery>,
@@ -19,7 +28,17 @@ function getSchemaFromIntrospection(
   if (introspectionResult?.data?.__schema) {
     return buildClientSchema(introspectionResult.data, options);
   }
-  throw new Error('Could not obtain introspection result, received: ' + JSON.stringify(introspectionResult));
+  if (introspectionResult?.errors) {
+    const graphqlErrors = introspectionResult.errors.map(error => createGraphQLError(error.message, error));
+    if (introspectionResult.errors.length === 1) {
+      throw graphqlErrors[0];
+    } else {
+      throw new AggregateError(graphqlErrors, 'Could not obtain introspection result');
+    }
+  }
+  throw createGraphQLError(
+    `Could not obtain introspection result, received the following as response; \n ${inspect(introspectionResult)}`
+  );
 }
 
 export function introspectSchema(

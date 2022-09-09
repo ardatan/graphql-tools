@@ -1,3 +1,5 @@
+import { memoize1 } from '@graphql-tools/utils';
+import { OperationDefinitionNode } from 'graphql';
 import type { Readable } from 'stream';
 
 export function isBlob(obj: any): obj is Blob {
@@ -17,6 +19,12 @@ export function isGraphQLUpload(upload: any): upload is GraphQLUpload {
 export function isPromiseLike(obj: any): obj is PromiseLike<any> {
   return typeof obj.then === 'function';
 }
+
+export const isLiveQueryOperationDefinitionNode = memoize1(function isLiveQueryOperationDefinitionNode(
+  node: OperationDefinitionNode
+) {
+  return node.directives?.some(directive => directive.name.value === 'live');
+});
 
 export enum LEGACY_WS {
   CONNECTION_INIT = 'connection_init',

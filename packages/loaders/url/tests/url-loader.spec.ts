@@ -44,7 +44,9 @@ describe('Schema URL Loader', () => {
         },
       });
     } catch (e: any) {
-      expect(e.message).toBe('Could not obtain introspection result, received: ' + JSON.stringify(brokenData));
+      expect(e.message).toBe(
+        'Could not obtain introspection result, received the following as response; \n { data: {} }'
+      );
     }
   });
 
@@ -84,7 +86,6 @@ describe('Schema URL Loader', () => {
     expect(Array.isArray(headers['accept']) ? headers['accept'].join(',') : headers['accept']).toContain(
       `application/json`
     );
-    expect(headers['content-type']).toContain(`application/json`);
   });
 
   it('Should pass extra headers when they are specified as object', async () => {
@@ -110,7 +111,6 @@ describe('Schema URL Loader', () => {
     expect(Array.isArray(headers['accept']) ? headers['accept'].join(',') : headers['accept']).toContain(
       `application/json`
     );
-    expect(headers['content-type']).toContain(`application/json`);
     expect(headers['auth']).toContain(`1`);
   });
 
@@ -229,7 +229,11 @@ describe('Schema URL Loader', () => {
     };
     const url = address.host + address.path;
     const customFetch: AsyncFetchFn = async url => {
-      expect(url.toString()).toBe(address.host + address.path);
+      const urlObj = new URL(url.toString());
+      expect(urlObj.protocol).toBe('http:');
+      expect(urlObj.hostname).toBe('foo.ws');
+      expect(urlObj.port).toBe('8080');
+      expect(urlObj.pathname).toBe('/graphql');
       return new Response(
         JSON.stringify({
           data: introspectionFromSchema(testSchema),
@@ -240,7 +244,7 @@ describe('Schema URL Loader', () => {
     await loader.load(url, {
       customFetch,
     });
-    expect.assertions(1);
+    expect.assertions(4);
   });
 
   it('Should replace ws:// with http:// in buildAsyncExecutor', async () => {
@@ -248,9 +252,12 @@ describe('Schema URL Loader', () => {
       host: 'ws://foo:8080',
       path: '/graphql',
     };
-    const url = address.host + address.path;
     const customFetch: AsyncFetchFn = async url => {
-      expect(url.toString()).toBe('http://foo:8080/graphql');
+      const urlObj = new URL(url.toString());
+      expect(urlObj.protocol).toBe('http:');
+      expect(urlObj.hostname).toBe('foo');
+      expect(urlObj.port).toBe('8080');
+      expect(urlObj.pathname).toBe('/graphql');
       return new Response(
         JSON.stringify({
           data: introspectionFromSchema(testSchema),
@@ -258,10 +265,11 @@ describe('Schema URL Loader', () => {
       );
     };
 
+    const url = address.host + address.path;
     await loader.load(url, {
       customFetch,
     });
-    expect.assertions(1);
+    expect.assertions(4);
   });
 
   it('Should replace wss:// with https:// in buildAsyncExecutor', async () => {
@@ -271,7 +279,11 @@ describe('Schema URL Loader', () => {
     };
     const url = address.host + address.path;
     const customFetch: AsyncFetchFn = async url => {
-      expect(url.toString()).toBe('https://foo:8080/graphql');
+      const urlObj = new URL(url.toString());
+      expect(urlObj.protocol).toBe('https:');
+      expect(urlObj.hostname).toBe('foo');
+      expect(urlObj.port).toBe('8080');
+      expect(urlObj.pathname).toBe('/graphql');
       return new Response(
         JSON.stringify({
           data: introspectionFromSchema(testSchema),
@@ -282,7 +294,7 @@ describe('Schema URL Loader', () => {
     await loader.load(url, {
       customFetch,
     });
-    expect.assertions(1);
+    expect.assertions(4);
   });
   it('should handle .graphql files', async () => {
     const testHost = 'http://localhost:3000';
@@ -559,5 +571,20 @@ describe('Schema URL Loader', () => {
     expect(result?.data?.['b']).toBe('a');
     expect(result?.data?.['foo']?.id).toBe('FOO');
     expect(result?.data?.['foo']?.bar?.[0]?.id).toBe('BAR');
+  });
+  it('should return errors correctly if fetch fails', async () => {
+    const executor = loader.getExecutorAsync('http://127.0.0.1:9777/graphql');
+
+    const result = (await executor({
+      document: parse(/* GraphQL */ `
+        query TestQuery {
+          a
+        }
+      `),
+    })) as ExecutionResult;
+    expect(result.data).toBeUndefined();
+    expect(result.errors).toBeDefined();
+    expect(result.errors?.[0].message).toBe('fetch failed to http://127.0.0.1:9777/graphql');
+    expect(result.errors?.[0].originalError?.message).toContain('failed');
   });
 });
