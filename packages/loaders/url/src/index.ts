@@ -322,7 +322,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         method = 'GET';
       }
 
-      let accept = 'application/json';
+      let accept = 'application/graphql-response+json, application/json';
       if (operationType === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
         method = 'GET';
         accept = 'text/event-stream';
