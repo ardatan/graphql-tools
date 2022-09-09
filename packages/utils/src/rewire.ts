@@ -54,7 +54,8 @@ export function rewireTypes(
     }
 
     if (newTypeMap[newName] != null) {
-      throw new Error(`Duplicate schema type name ${newName}`);
+      console.warn(`Duplicate schema type name ${newName} found; keeping the existing one found in the schema`);
+      continue;
     }
 
     newTypeMap[newName] = namedType;

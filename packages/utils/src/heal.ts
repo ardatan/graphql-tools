@@ -75,8 +75,9 @@ export function healTypes(
       continue;
     }
 
-    if (actualName in actualNamedTypeMap) {
-      throw new Error(`Duplicate schema type name ${actualName}`);
+    if (actualNamedTypeMap[actualName] != null) {
+      console.warn(`Duplicate schema type name ${actualName} found; keeping the existing one found in the schema`);
+      continue;
     }
 
     actualNamedTypeMap[actualName] = namedType;
