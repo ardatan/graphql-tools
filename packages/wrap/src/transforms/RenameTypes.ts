@@ -44,6 +44,7 @@ export default class RenameTypes<TContext = Record<string, any>>
     originalWrappingSchema: GraphQLSchema,
     _subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
+    const typeNames = new Set<string>(Object.keys(originalWrappingSchema.getTypeMap()));
     return mapSchema(originalWrappingSchema, {
       [MapperKind.TYPE]: (type: GraphQLNamedType) => {
         if (isSpecifiedScalarType(type) && !this.renameBuiltins) {
@@ -54,9 +55,12 @@ export default class RenameTypes<TContext = Record<string, any>>
         }
         const oldName = type.name;
         const newName = this.renamer(oldName);
-        if (newName !== undefined && newName !== oldName) {
+        if (newName !== undefined && newName !== oldName && !typeNames.has(newName)) {
           this.map[oldName] = newName;
           this.reverseMap[newName] = oldName;
+
+          typeNames.delete(oldName);
+          typeNames.add(newName);
 
           return renameType(type, newName);
         }
