@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/url-loader",
-  "version": "7.15.0",
+  "version": "7.16.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -66,7 +66,7 @@
   "dependencies": {
     "@graphql-tools/delegate": "9.0.5",
     "@graphql-tools/utils": "8.11.0",
-    "@graphql-tools/wrap": "9.0.6",
+    "@graphql-tools/wrap": "9.1.0",
     "@ardatan/sync-fetch": "0.0.1",
     "@types/ws": "^8.0.0",
     "@whatwg-node/fetch": "^0.4.0",

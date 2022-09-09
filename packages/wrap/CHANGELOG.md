@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 9.1.0
+
+### Minor Changes
+
+- [#4703](https://github.com/ardatan/graphql-tools/pull/4703) [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b) Thanks [@ardatan](https://github.com/ardatan)! - Better error handling for introspectSchema
+
 ## 9.0.6
 
 ### Patch Changes

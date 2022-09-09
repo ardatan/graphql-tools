@@ -1,5 +1,28 @@
 # @graphql-tools/url-loader
 
+## 7.16.0
+
+### Minor Changes
+
+- [#4703](https://github.com/ardatan/graphql-tools/pull/4703) [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b) Thanks [@ardatan](https://github.com/ardatan)! - Support application/graphql-response+json per GraphQL over HTTP spec
+
+- [#4703](https://github.com/ardatan/graphql-tools/pull/4703) [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b) Thanks [@ardatan](https://github.com/ardatan)! - URL Loader no longer throws but returns an execution result with errors
+
+### Patch Changes
+
+- [#4700](https://github.com/ardatan/graphql-tools/pull/4700) [`939e07ca`](https://github.com/ardatan/graphql-tools/commit/939e07cae38ff179e00c2ff2a23b70f6259971ef) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+
+  - Updated dependency [`@whatwg-node/fetch@^0.4.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/null) (from `^0.3.0`, in `dependencies`)
+
+- [#4703](https://github.com/ardatan/graphql-tools/pull/4703) [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+
+  - Removed dependency [`@n1ru4l/graphql-live-query@^0.10.0` ↗︎](https://www.npmjs.com/package/@n1ru4l/graphql-live-query/v/null) (from `dependencies`)
+
+- [#4703](https://github.com/ardatan/graphql-tools/pull/4703) [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b) Thanks [@ardatan](https://github.com/ardatan)! - `multipart` and `graphqlSSEOptions` options have been removed. Multipart request will be done only if variables have extractable file or blob objects
+
+- Updated dependencies [[`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b)]:
+  - @graphql-tools/wrap@9.1.0
+
 ## 7.15.0
 
 ### Minor Changes
