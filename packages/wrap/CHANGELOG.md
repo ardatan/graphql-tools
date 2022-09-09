@@ -1,5 +1,18 @@
 # @graphql-tools/wrap
 
+## 9.2.0
+
+### Minor Changes
+
+- [#4706](https://github.com/ardatan/graphql-tools/pull/4706) [`43c736bd`](https://github.com/ardatan/graphql-tools/commit/43c736bd1865c00898966a7ed14060496c9e6a0c) Thanks [@ardatan](https://github.com/ardatan)! - RenameTypes: do not rename type if the new name already exists in the schema
+
+### Patch Changes
+
+- Updated dependencies [[`43c736bd`](https://github.com/ardatan/graphql-tools/commit/43c736bd1865c00898966a7ed14060496c9e6a0c)]:
+  - @graphql-tools/utils@8.12.0
+  - @graphql-tools/delegate@9.0.6
+  - @graphql-tools/schema@9.0.4
+
 ## 9.1.0
 
 ### Minor Changes

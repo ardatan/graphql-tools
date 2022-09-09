@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.12.0
+
+### Minor Changes
+
+- [#4706](https://github.com/ardatan/graphql-tools/pull/4706) [`43c736bd`](https://github.com/ardatan/graphql-tools/commit/43c736bd1865c00898966a7ed14060496c9e6a0c) Thanks [@ardatan](https://github.com/ardatan)! - Do not throw duplicate type error name while rewiring types
+
 ## 8.11.0
 
 ### Minor Changes
