@@ -94,7 +94,7 @@ describe('helix/yoga compat', () => {
       expect(data).toEqual(expectedDatas.shift()!);
     }
     expect(expectedDatas.length).toBe(0);
-    expect(receivedAcceptHeader).toBe('application/json');
+    expect(receivedAcceptHeader).toContain('multipart/mixed');
   });
 
   it('should handle SSE subscription result', async () => {

@@ -23,13 +23,13 @@ import {
   parseGraphQLSDL,
   getOperationASTFromRequest,
   Observer,
+  memoize1,
 } from '@graphql-tools/utils';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
 import WebSocket from 'isomorphic-ws';
 import { extractFiles, isExtractableFile } from 'extract-files';
 import { ValueOrPromise } from 'value-or-promise';
-import { isLiveQueryOperationDefinitionNode } from '@n1ru4l/graphql-live-query';
 import { AsyncFetchFn, defaultAsyncFetch } from './defaultAsyncFetch.js';
 import { defaultSyncFetch, SyncFetchFn } from './defaultSyncFetch.js';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
@@ -58,6 +58,12 @@ interface ExecutionExtensions {
   headers?: HeadersConfig;
   endpoint?: string;
 }
+
+const isLiveQueryOperationDefinitionNode = memoize1(function isLiveQueryOperationDefinitionNode(
+  node: OperationDefinitionNode
+) {
+  return node.directives?.some(directive => directive.name.value === 'live');
+});
 
 export enum SubscriptionProtocol {
   WS = 'WS',
@@ -322,16 +328,10 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         method = 'GET';
       }
 
-      let accept = 'application/graphql-response+json, application/json';
+      let accept = 'application/graphql-response+json, application/json, multipart/mixed';
       if (operationType === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
         method = 'GET';
         accept = 'text/event-stream';
-      } else if (
-        (operationAst as OperationDefinitionNode).directives?.some(
-          ({ name }) => name.value === 'defer' || name.value === 'stream'
-        )
-      ) {
-        accept += ', multipart/mixed';
       }
 
       const endpoint = request.extensions?.endpoint || HTTP_URL;
@@ -771,10 +771,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       // eslint-disable-next-line no-inner-declarations
       function getExecutorByRequest(request: ExecutionRequest<any>): ValueOrPromise<Executor> {
         const operationAst = getOperationASTFromRequest(request);
-        if (
-          operationAst.operation === 'subscription' ||
-          isLiveQueryOperationDefinitionNode(operationAst, request.variables as Record<string, any>)
-        ) {
+        if (operationAst.operation === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
           return subscriptionExecutor$;
         } else {
           return httpExecutor$;
