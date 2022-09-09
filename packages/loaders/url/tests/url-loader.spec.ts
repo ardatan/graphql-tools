@@ -44,7 +44,9 @@ describe('Schema URL Loader', () => {
         },
       });
     } catch (e: any) {
-      expect(e.message).toBe('Could not obtain introspection result, received: ' + JSON.stringify(brokenData));
+      expect(e.message).toBe(
+        'Could not obtain introspection result, received the following as response; \n { data: {} }'
+      );
     }
   });
 
@@ -583,6 +585,6 @@ describe('Schema URL Loader', () => {
     expect(result.data).toBeUndefined();
     expect(result.errors).toBeDefined();
     expect(result.errors?.[0].message).toBe('fetch failed to http://127.0.0.1:9777/graphql');
-    expect(result.errors?.[0].originalError?.message).toBe('fetch failed');
+    expect(result.errors?.[0].originalError?.message).toContain('failed');
   });
 });
