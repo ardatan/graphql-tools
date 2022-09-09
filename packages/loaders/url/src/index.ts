@@ -22,6 +22,7 @@ import {
   parseGraphQLSDL,
   getOperationASTFromRequest,
   Observer,
+  createGraphQLError,
 } from '@graphql-tools/utils';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import { ClientOptions, createClient } from 'graphql-ws';
@@ -414,13 +415,62 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             return result;
           }
         })
+        .catch((e: any) => {
+          if (typeof e === 'string') {
+            return {
+              errors: [
+                createGraphQLError(e, {
+                  extensions: {
+                    requestBody,
+                  },
+                }),
+              ],
+            };
+          } else if (e.name === 'GraphQLError') {
+            return {
+              errors: [e],
+            };
+          } else if (e.name === 'TypeError' && e.message === 'fetch failed') {
+            return {
+              errors: [
+                createGraphQLError(`fetch failed to ${endpoint}`, {
+                  extensions: {
+                    requestBody,
+                  },
+                  originalError: e,
+                }),
+              ],
+            };
+          } else if (e.message) {
+            return {
+              errors: [
+                createGraphQLError(e.message, {
+                  extensions: {
+                    requestBody,
+                  },
+                  originalError: e,
+                }),
+              ],
+            };
+          } else {
+            return {
+              errors: [
+                createGraphQLError('Unknown error', {
+                  extensions: {
+                    requestBody,
+                  },
+                  originalError: e,
+                }),
+              ],
+            };
+          }
+        })
         .resolve();
     };
 
     if (options?.retry != null) {
       return function retryExecutor(request: ExecutionRequest) {
         let result: ExecutionResult<any> | undefined;
-        let error: Error | undefined;
         let attempt = 0;
         function retryAttempt(): Promise<ExecutionResult<any>> | ExecutionResult<any> {
           attempt++;
@@ -428,10 +478,9 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
             if (result != null) {
               return result;
             }
-            if (error != null) {
-              throw error;
-            }
-            throw new Error('No result');
+            return {
+              errors: [createGraphQLError('No response returned from fetch')],
+            };
           }
           return new ValueOrPromise(() => executor(request))
             .then(res => {
@@ -440,10 +489,6 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
                 return retryAttempt();
               }
               return result;
-            })
-            .catch((e: any) => {
-              error = e;
-              return retryAttempt();
             })
             .resolve();
         }
