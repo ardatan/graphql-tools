@@ -55,7 +55,11 @@ export default class RenameTypes<TContext = Record<string, any>>
         }
         const oldName = type.name;
         const newName = this.renamer(oldName);
-        if (newName !== undefined && newName !== oldName && !typeNames.has(newName)) {
+        if (newName != null && typeNames.has(newName)) {
+          console.warn(`New type name ${newName} for ${oldName} already exists in the schema. Skip renaming.`);
+          return;
+        }
+        if (newName !== undefined && newName !== oldName) {
           this.map[oldName] = newName;
           this.reverseMap[newName] = oldName;
 
