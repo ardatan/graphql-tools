@@ -25,7 +25,6 @@ import {
   isSpecifiedScalarType,
   isSpecifiedDirective,
 } from 'graphql';
-import { inspect } from './inspect.js';
 
 import { getBuiltInForStub, isNamedStub } from './stub.js';
 
@@ -55,9 +54,8 @@ export function rewireTypes(
     }
 
     if (newTypeMap[newName] != null) {
-      console.warn(`Duplicate schema type name ${newName} found; using the last one found in the schema;
-Existing one is ${inspect(newTypeMap[newName].toConfig())}
-The new one is ${namedType.toConfig()}`);
+      console.warn(`Duplicate schema type name ${newName} found; keeping the existing one found in the schema`);
+      continue;
     }
 
     newTypeMap[newName] = namedType;

@@ -20,7 +20,6 @@ import {
   isListType,
   isNonNullType,
 } from 'graphql';
-import { inspect } from './inspect';
 
 // Update any references to named schema types that disagree with the named
 // types found in schema.getTypeMap().
@@ -77,9 +76,8 @@ export function healTypes(
     }
 
     if (actualNamedTypeMap[actualName] != null) {
-      console.warn(`Duplicate schema type name ${actualName} found; using the last one found in the schema;
-Existing one is ${inspect(actualNamedTypeMap[actualName].toConfig())}
-The new one is ${namedType.toConfig()}`);
+      console.warn(`Duplicate schema type name ${actualName} found; keeping the existing one found in the schema`);
+      continue;
     }
 
     actualNamedTypeMap[actualName] = namedType;
