@@ -61,8 +61,8 @@
     "@babel/traverse": "7.19.0",
     "@babel/types": "7.19.0",
     "@types/babel__traverse": "7.18.1",
-    "@vue/compiler-sfc": "3.2.38",
-    "svelte": "3.50.0",
+    "@vue/compiler-sfc": "3.2.39",
+    "svelte": "3.50.1",
     "svelte2tsx": "0.5.16"
   },
   "buildOptions": {
