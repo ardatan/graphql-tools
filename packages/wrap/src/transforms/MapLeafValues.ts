@@ -6,11 +6,12 @@ import {
   visitWithTypeInfo,
   OperationDefinitionNode,
   FragmentDefinitionNode,
-  VariableDefinitionNode,
   ArgumentNode,
   FieldNode,
   valueFromAST,
   isLeafType,
+  astFromValue,
+  valueFromASTUntyped,
 } from 'graphql';
 
 import {
@@ -18,9 +19,7 @@ import {
   ExecutionResult,
   visitResult,
   ResultVisitorMap,
-  updateArgument,
   transformInputValue,
-  createVariableNameGenerator,
 } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
@@ -133,42 +132,21 @@ export default class MapLeafValues<TContext = Record<string, any>>
     variableValues: Record<string, any>
   ): Array<OperationDefinitionNode> {
     return operations.map((operation: OperationDefinitionNode) => {
-      const variableDefinitionMap: Record<string, VariableDefinitionNode> = (
-        operation.variableDefinitions ?? []
-      ).reduce(
-        (prev, def) => ({
-          ...prev,
-          [def.variable.name.value]: def,
-        }),
-        {}
-      );
-
-      const newOperation = visit(
+      return visit(
         operation,
         visitWithTypeInfo(this._getTypeInfo(), {
-          [Kind.FIELD]: node => this.transformFieldNode(node, variableDefinitionMap, variableValues),
+          [Kind.FIELD]: node => this.transformFieldNode(node, variableValues),
         })
       );
-
-      return {
-        ...newOperation,
-        variableDefinitions: Object.values(variableDefinitionMap),
-      };
     });
   }
 
-  private transformFieldNode(
-    field: FieldNode,
-    variableDefinitionMap: Record<string, VariableDefinitionNode>,
-    variableValues: Record<string, any>
-  ): FieldNode | undefined {
+  private transformFieldNode(field: FieldNode, variableValues: Record<string, any>): FieldNode | undefined {
     const targetField = this._getTypeInfo().getFieldDef();
 
     if (!targetField) {
       return;
     }
-
-    const generateVariableName = createVariableNameGenerator(variableDefinitionMap);
 
     if (!targetField.name.startsWith('__')) {
       const argumentNodes = field.arguments;
@@ -191,20 +169,25 @@ export default class MapLeafValues<TContext = Record<string, any>>
           let value: any;
           if (argValue != null) {
             value = valueFromAST(argValue, argType, variableValues);
+            if (value == null) {
+              value = valueFromASTUntyped(argValue, variableValues);
+            }
           }
 
-          updateArgument(
-            argumentNodeMap,
-            variableDefinitionMap,
-            variableValues,
-            argName,
-            generateVariableName(argName),
-            argType,
-            transformInputValue(argType, value, (t, v) => {
-              const newValue = this.inputValueTransformer(t.name, v);
-              return newValue === undefined ? v : newValue;
-            })
-          );
+          const transformedValue = transformInputValue(argType, value, (t, v) => {
+            const newValue = this.inputValueTransformer(t.name, v);
+            return newValue === undefined ? v : newValue;
+          });
+
+          if (argValue.kind === Kind.VARIABLE) {
+            variableValues[argValue.name.value] = transformedValue;
+          } else {
+            const newValueNode = astFromValue(transformedValue, argType);
+            argumentNodeMap[argName] = {
+              ...argumentNode,
+              value: newValueNode!,
+            };
+          }
         }
 
         return {
