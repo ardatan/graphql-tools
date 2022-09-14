@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 9.2.1
+
+### Patch Changes
+
+- [#4713](https://github.com/ardatan/graphql-tools/pull/4713) [`c21a895a`](https://github.com/ardatan/graphql-tools/commit/c21a895a19721f73037d43e664aa8346f59356e8) Thanks [@ardatan](https://github.com/ardatan)! - Just rename the existing variable instead of creating a new one
+
 ## 9.2.0
 
 ### Minor Changes
