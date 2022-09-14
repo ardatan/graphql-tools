@@ -193,18 +193,25 @@ export default class MapLeafValues<TContext = Record<string, any>>
             value = valueFromAST(argValue, argType, variableValues);
           }
 
-          updateArgument(
-            argumentNodeMap,
-            variableDefinitionMap,
-            variableValues,
-            argName,
-            generateVariableName(argName),
-            argType,
-            transformInputValue(argType, value, (t, v) => {
+          if (argValue.kind === Kind.VARIABLE) {
+            variableValues[argValue.name.value] = transformInputValue(argType, value, (t, v) => {
               const newValue = this.inputValueTransformer(t.name, v);
               return newValue === undefined ? v : newValue;
-            })
-          );
+            });
+          } else {
+            updateArgument(
+              argumentNodeMap,
+              variableDefinitionMap,
+              variableValues,
+              argName,
+              generateVariableName(argName),
+              argType,
+              transformInputValue(argType, value, (t, v) => {
+                const newValue = this.inputValueTransformer(t.name, v);
+                return newValue === undefined ? v : newValue;
+              })
+            );
+          }
         }
 
         return {
