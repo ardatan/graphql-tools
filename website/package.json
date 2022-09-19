@@ -17,7 +17,7 @@
     }
   },
   "resolutions": {
-    "esbuild": "0.15.7"
+    "esbuild": "0.15.8"
   },
   "devDependencies": {
     "@guild-docs/algolia": "0.2.2",
@@ -29,7 +29,7 @@
     "@types/react-dom": "18.0.6",
     "concurrently": "7.4.0",
     "cross-env": "7.0.3",
-    "esbuild": "0.15.7",
+    "esbuild": "0.15.8",
     "esbuild-register": "3.3.3",
     "next-remote-watch": "1.0.0",
     "open-cli": "7.0.1",
@@ -37,10 +37,10 @@
     "wait-on": "6.0.1"
   },
   "dependencies": {
-    "@chakra-ui/icons": "2.0.9",
+    "@chakra-ui/icons": "2.0.10",
     "@chakra-ui/react": "2.0.2",
     "@chakra-ui/theme-tools": "2.0.11",
-    "@chakra-ui/utils": "2.0.9",
+    "@chakra-ui/utils": "2.0.10",
     "@emotion/react": "11.10.4",
     "@emotion/styled": "11.10.4",
     "@guild-docs/client": "2.1.1",
