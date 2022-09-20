@@ -4964,7 +4964,7 @@ bob-the-bundler@4.0.0:
     yargs "^17.5.1"
     zod "^3.17.3"
 
-body-parser@1.20.0, body-parser@^1.19.0:
+body-parser@1.20.0:
   version "1.20.0"
   resolved "https://registry.yarnpkg.com/body-parser/-/body-parser-1.20.0.tgz#3de69bd89011c11573d7bfee6a64f11b6bd27cc5"
   integrity sha512-DfJ+q6EPcGKZD1QWUjSpqp+Q7bDQTsQIF4zfUAtZ6qk+H/3/QRhg9CEp39ss+/T2vw0+HaidC0ecJj/DRLIaKg==
@@ -10622,12 +10622,11 @@ next-i18next@11.3.0:
     i18next-fs-backend "^1.1.4"
     react-i18next "^11.18.0"
 
-next-remote-watch@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/next-remote-watch/-/next-remote-watch-1.0.0.tgz#34c5a015b1bd191f906479c00baabd1a33cf04f5"
-  integrity sha512-kV+pglCwcnKyqJIXPHUUrnZr9d3rCqCIEQWBkFYC02GDXHyKVmcFytoY6q0+wMIQqh/izIAQL1x6OKXZhksjLA==
+next-remote-watch@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/next-remote-watch/-/next-remote-watch-2.0.0.tgz#416af12af6abc7633429d2c0e09d27a522d4d06d"
+  integrity sha512-FyKDFMwbjKCPdu8ypZ8WTkDBzuxnH6rgfR89vgQwsND4ErrfXnDFZcZJAmSpwND6QA7G9f0DRzYMSdspY6t8Uw==
   dependencies:
-    body-parser "^1.19.0"
     chalk "^4.0.0"
     chokidar "^3.4.0"
     commander "^5.0.0"
