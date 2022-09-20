@@ -10,8 +10,8 @@ const ESM_PACKAGES = ['graphql', 'graphql-upload', 'fs-capacitor'];
 
 const moduleNameMap = {
   //This line is to enable testing import with require.resolve, which would normally get intercepted
-  '^@graphql\-tools\/import\/(.*).graphql$': `${ROOT_DIR}/packages/import/$1.graphql`,
-  ...pathsToModuleNameMapper(tsconfig.compilerOptions.paths, { prefix: `${ROOT_DIR}/` })
+  '^@graphql-tools/import/(.*).graphql$': `${ROOT_DIR}/packages/import/$1.graphql`,
+  ...pathsToModuleNameMapper(tsconfig.compilerOptions.paths, { prefix: `${ROOT_DIR}/` }),
 };
 
 module.exports = {
