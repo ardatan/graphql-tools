@@ -13,8 +13,8 @@ import { clusterEndpointMap } from './constants.js';
 import { getProxyAgent } from './utils/getProxyAgent.js';
 // eslint-disable-next-line
 // @ts-ignore
-import jwt from 'jsonwebtoken';
 import debugPkg from 'debug';
+import * as jose from 'jose';
 
 const debug = debugPkg('Environment');
 
@@ -57,7 +57,7 @@ export class Environment {
 
   async renewToken() {
     if (this.cloudSessionKey) {
-      const data: any = jwt.decode(this.cloudSessionKey);
+      const data = jose.decodeJwt(this.cloudSessionKey);
       if (!data.exp) {
         return;
       }

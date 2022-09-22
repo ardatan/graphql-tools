@@ -62,7 +62,7 @@ export class PrismaLoader extends UrlLoader {
       You can use \`docker-compose up -d\` to start a new cluster.`
       );
     }
-    const token = definition.getToken(serviceName, stage);
+    const token = await definition.getToken(serviceName, stage);
     const url = cluster.getApiEndpoint(serviceName, stage, definition.getWorkspace() || undefined);
     const headers = token
       ? {

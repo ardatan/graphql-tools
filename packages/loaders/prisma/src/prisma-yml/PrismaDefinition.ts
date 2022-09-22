@@ -5,7 +5,6 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 // eslint-disable-next-line
 // @ts-ignore
-import jwt from 'jsonwebtoken';
 import { Args } from './types/common.js';
 import { Environment } from './Environment.js';
 import { IOutput } from './Output.js';
@@ -14,6 +13,7 @@ import { FunctionInput, Header } from './types/rc.js';
 import chalk from 'chalk';
 import { replaceYamlValue } from './utils/yamlComment.js';
 import { parseEndpoint, ParseEndpointResult } from './utils/parseEndpoint.js';
+import * as jose from 'jose';
 
 export interface EnvVars {
   [key: string]: string | undefined;
@@ -183,7 +183,7 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
     }
   }
 
-  getToken(serviceName: string, stageName: string): string | undefined {
+  async getToken(serviceName: string, stageName: string): Promise<string | undefined> {
     if (this.secrets) {
       const data = {
         data: {
@@ -191,9 +191,11 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
           roles: ['admin'],
         },
       };
-      return jwt.sign(data, this.secrets[0], {
-        expiresIn: '7d',
-      });
+      return new jose.SignJWT(data)
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('7d')
+        .sign(Buffer.from(this.secrets[0]));
     }
 
     return undefined;
