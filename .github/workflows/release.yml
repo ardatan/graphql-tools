@@ -4,8 +4,12 @@ on:
     branches:
       - master
 
+permissions: {}
 jobs:
   stable:
+    permissions:
+      contents: write # to create release
+
     uses: the-guild-org/shared-config/.github/workflows/release-stable.yml@main
     with:
       releaseScript: release
