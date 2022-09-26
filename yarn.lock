@@ -2407,7 +2407,7 @@
     use-immer "0.6.0"
     zustand "3.7.2"
 
-"@guild-docs/mdx-remote@^2.0.1":
+"@guild-docs/mdx-remote@^2.0.1", "@guild-docs/mdx-remote@^2.0.2":
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/@guild-docs/mdx-remote/-/mdx-remote-2.0.2.tgz#9c6b14399021a84f02978951dac9ea0fae644b1a"
   integrity sha512-g35B/Lo7s4l3HLcB9Z7jvTYrhMjCLMbfeS4i3rEhzhP54S0lvQ6gFTbVY25nDGZjZGMgMpkykY4Rk/p73UF2qQ==
@@ -2422,13 +2422,13 @@
     vfile "5.3.2"
     vfile-matter "3.0.1"
 
-"@guild-docs/server@3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-3.0.1.tgz#040a6fca0dd5516462fa41fda1e21872596b1825"
-  integrity sha512-KRXoSqbpBmSAtm1u3iQVpm1oz+vrng+F95NkSf8+uWr6vmxgAscE1hq9/2wrTaNfwwQFUd+GIm6FRlhy4eG2pA==
+"@guild-docs/server@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@guild-docs/server/-/server-4.0.0.tgz#f0ef566c95f2c47a20d10d3ca41b2156644f5989"
+  integrity sha512-LlDr4U8LMwoE3LEmbMgUXlmFBUdHVKzGIOofKG1SR6VNwZEQ8/qAR5eEIdl3xA5VyOCs4PJ0lDJg5pzoECxq8w==
   dependencies:
-    "@guild-docs/mdx-remote" "^2.0.1"
-    "@guild-docs/types" "^2.0.0"
+    "@guild-docs/mdx-remote" "^2.0.2"
+    "@guild-docs/types" "^3.0.0"
     "@stefanprobst/remark-shiki" "2.1.0"
     github-slugger "1.4.0"
     globby "13.1.1"
@@ -2436,7 +2436,7 @@
     rehype-slug "5.0.1"
     remark-emoji "3.0.2"
     tiny-lru "8.0.2"
-    undici "4.16.0"
+    undici "5.0.0"
 
 "@guild-docs/types@^2.0.0":
   version "2.0.0"
@@ -13545,10 +13545,10 @@ unbzip2-stream@1.4.3:
     buffer "^5.2.1"
     through "^2.3.8"
 
-undici@4.16.0:
-  version "4.16.0"
-  resolved "https://registry.yarnpkg.com/undici/-/undici-4.16.0.tgz#469bb87b3b918818d3d7843d91a1d08da357d5ff"
-  integrity sha512-tkZSECUYi+/T1i4u+4+lwZmQgLXd4BLGlrc7KZPcLIW7Jpq99+Xpc30ONv7nS6F5UNOxp/HBZSSL9MafUrvJbw==
+undici@5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/undici/-/undici-5.0.0.tgz#3c1e08c7f0df90c485d5d8dbb0517e11e34f2090"
+  integrity sha512-VhUpiZ3No1DOPPQVQnsDZyfcbTTcHdcgWej1PdFnSvOeJmOVDgiOHkunJmBLfmjt4CqgPQddPVjSWW0dsTs5Yg==
 
 undici@^5.8.0:
   version "5.8.0"
