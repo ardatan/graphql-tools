@@ -331,7 +331,7 @@ describe('executor errors are propagated', () => {
 });
 
 describe('Original errors are propagated properly', () => {
-  let stop: any
+  let stop: any;
 
   beforeAll(async () => {
     const typeDefs = /* GraphQL */ `
@@ -343,10 +343,10 @@ describe('Original errors are propagated properly', () => {
     const resolvers = {
       Query: {
         fail: () => {
-        throw new ControlledError('Custom fail!', 'CUSTOM_FAIL')
+          throw new ControlledError('Custom fail!', 'CUSTOM_FAIL');
         },
       },
-    }
+    };
 
     const schema = makeExecutableSchema({
       typeDefs,
@@ -358,8 +358,8 @@ describe('Original errors are propagated properly', () => {
       mergeDirectives: true,
     });
 
-    const e2eServer = await startTestServer(typeDefs, resolvers, stitchedSchema)
-    stop = e2eServer.stop
+    const e2eServer = await startTestServer(typeDefs, resolvers, stitchedSchema);
+    stop = e2eServer.stop;
   });
 
   afterAll(async () => {
@@ -367,16 +367,20 @@ describe('Original errors are propagated properly', () => {
   });
 
   it('it contains custom fields', async () => {
-    const query = /* GraphQL */ `{ fail }`;
-    const response = await makeRequest(query, {})
+    const query = /* GraphQL */ `
+      {
+        fail
+      }
+    `;
+    const response = await makeRequest(query, {});
 
-    expect(response.data?.action_blocked).toEqual(undefined)
-    expect(response.errors?.length).toEqual(1)
+    expect(response.data?.action_blocked).toEqual(undefined);
+    expect(response.errors?.length).toEqual(1);
 
-    const errors = response.errors || []
-    const error = errors[0] as any
+    const errors = response.errors || [];
+    const error = errors[0] as any;
 
-    expect(error.errorCode).toEqual('CUSTOM_FAIL')
-    expect(error.message).toEqual('Custom fail!')
+    expect(error.errorCode).toEqual('CUSTOM_FAIL');
+    expect(error.message).toEqual('Custom fail!');
   });
 });
