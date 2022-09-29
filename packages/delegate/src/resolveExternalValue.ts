@@ -8,7 +8,6 @@ import {
   GraphQLCompositeType,
   isAbstractType,
   GraphQLList,
-  GraphQLType,
   locatedError,
   GraphQLOutputType,
 } from 'graphql';
@@ -43,7 +42,10 @@ export function resolveExternalValue<TContext extends Record<string, any>>(
   } else if (isCompositeType(type)) {
     return resolveExternalObject(type, result, unpathedErrors, subschema, context, info, skipTypeMerging);
   } else if (isListType(type)) {
-    return resolveExternalList(type, result, unpathedErrors, subschema, context, info, skipTypeMerging);
+    if (Array.isArray(result)) {
+      return resolveExternalList(type, result, unpathedErrors, subschema, context, info, skipTypeMerging);
+    }
+    return resolveExternalValue(result, unpathedErrors, subschema, context, info, type.ofType, skipTypeMerging);
   }
 }
 
@@ -101,53 +103,8 @@ function resolveExternalList<TContext extends Record<string, any>>(
   skipTypeMerging?: boolean
 ) {
   return list.map(listMember =>
-    resolveExternalListMember(
-      getNullableType(type.ofType),
-      listMember,
-      unpathedErrors,
-      subschema,
-      context,
-      info,
-      skipTypeMerging
-    )
+    resolveExternalValue(listMember, unpathedErrors, subschema, context, info, type.ofType, skipTypeMerging)
   );
-}
-
-function resolveExternalListMember<TContext extends Record<string, any>>(
-  type: GraphQLType,
-  listMember: any,
-  unpathedErrors: Array<GraphQLError>,
-  subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
-  context?: Record<string, any>,
-  info?: GraphQLResolveInfo,
-  skipTypeMerging?: boolean
-): any {
-  if (listMember instanceof Error) {
-    return listMember;
-  }
-
-  if (listMember == null) {
-    return reportUnpathedErrorsViaNull(unpathedErrors);
-  }
-
-  if ('parseValue' in type) {
-    return type.parseValue(listMember);
-  } else if (isCompositeType(type)) {
-    return resolveExternalObject(type, listMember, unpathedErrors, subschema, context, info, skipTypeMerging);
-  } else if (isListType(type)) {
-    if (Array.isArray(listMember)) {
-      return resolveExternalList(type, listMember, unpathedErrors, subschema, context, info, skipTypeMerging);
-    }
-    return resolveExternalListMember(
-      type.ofType,
-      listMember,
-      unpathedErrors,
-      subschema,
-      context,
-      info,
-      skipTypeMerging
-    );
-  }
 }
 
 const reportedErrors = new WeakMap<GraphQLError, boolean>();
