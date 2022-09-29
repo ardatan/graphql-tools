@@ -16,7 +16,11 @@ import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SY
 import { Subschema } from './Subschema.js';
 
 export function isExternalObject(data: any): data is ExternalObject {
-  return data[UNPATHED_ERRORS_SYMBOL] !== undefined;
+  const unpathedErrors = data[UNPATHED_ERRORS_SYMBOL]
+  if(Array.isArray(unpathedErrors) && !unpathedErrors.length){
+    return false
+  }
+  return  unpathedErrors !== undefined;
 }
 
 export function annotateExternalObject<TContext>(
