@@ -1,9 +1,9 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, FieldNode } from 'graphql';
+import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, print } from 'graphql';
 
 import DataLoader from 'dataloader';
 
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
-import { memoize3, relocatedError } from '@graphql-tools/utils';
+import { memoize1, memoize2, relocatedError } from '@graphql-tools/utils';
 
 import { BatchDelegateOptions } from './types.js';
 
@@ -46,16 +46,8 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
   };
 }
 
-function defaultCacheKeyFn(key: any) {
-  if (typeof key === 'object') {
-    return JSON.stringify(key);
-  }
-  return key;
-}
-
-const getLoadersMap = memoize3(function getLoadersMap<K, V, C>(
+const getLoadersMap = memoize2(function getLoadersMap<K, V, C>(
   _context: Record<string, any>,
-  _fieldNodes: readonly FieldNode[],
   _schema: GraphQLSchema | SubschemaConfig<any, any, any, any>
 ) {
   return new Map<string, DataLoader<K, V, C>>();
@@ -63,12 +55,38 @@ const getLoadersMap = memoize3(function getLoadersMap<K, V, C>(
 
 const GLOBAL_CONTEXT = {};
 
-export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
-  const { schema, fieldName, context, info, dataLoaderOptions } = options;
-  const targetFieldName = fieldName ?? info.fieldName;
-  const loaders = getLoadersMap<K, V, C>(context ?? GLOBAL_CONTEXT, info.fieldNodes, schema);
+const memoizedJsonStringify = memoize1(function jsonStringify(value: any) {
+  return JSON.stringify(value);
+});
 
-  let loader = loaders.get(targetFieldName);
+const memoizedPrint = memoize1(print);
+
+function defaultCacheKeyFn(key: any) {
+  if (typeof key === 'object') {
+    return memoizedJsonStringify(key);
+  }
+  return key;
+}
+
+export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
+  const {
+    schema,
+    context,
+    info,
+    fieldName = info.fieldName,
+    dataLoaderOptions,
+    fieldNodes = info.fieldNodes,
+    selectionSet = fieldNodes[0].selectionSet,
+  } = options;
+  const loaders = getLoadersMap<K, V, C>(context ?? GLOBAL_CONTEXT, schema);
+
+  let cacheKey = fieldName;
+
+  if (selectionSet != null) {
+    cacheKey += memoizedPrint(selectionSet);
+  }
+
+  let loader = loaders.get(cacheKey);
 
   if (loader === undefined) {
     const batchFn = createBatchFn(options);
@@ -77,7 +95,7 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
       cacheKeyFn: defaultCacheKeyFn,
       ...dataLoaderOptions,
     });
-    loaders.set(targetFieldName, loader);
+    loaders.set(cacheKey, loader);
   }
 
   return loader;
