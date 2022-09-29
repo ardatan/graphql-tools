@@ -1,11 +1,11 @@
 import 'isomorphic-fetch';
-import jwt from 'jsonwebtoken';
 import { cloudApiEndpoint } from './constants.js';
 import { GraphQLClient } from 'graphql-request';
 import chalk from 'chalk';
 import { IOutput } from './Output.js';
 import { getProxyAgent } from './utils/getProxyAgent.js';
 import debugPkg from 'debug';
+import * as jose from 'jose';
 
 const debug = debugPkg('Environment');
 
@@ -70,7 +70,7 @@ export class Cluster {
     }
   }
 
-  getLocalToken(): string | null {
+  async getLocalToken(): Promise<string | null> {
     if (!this.clusterSecret && !process.env['PRISMA_MANAGEMENT_API_SECRET']) {
       return null;
     }
@@ -88,10 +88,11 @@ export class Cluster {
 
       try {
         const algorithm = process.env['PRISMA_MANAGEMENT_API_SECRET'] ? 'HS256' : 'RS256';
-        this.cachedToken = jwt.sign({ grants }, secret, {
-          expiresIn: '5y',
-          algorithm,
-        });
+        this.cachedToken = await new jose.SignJWT({ grants })
+          .setProtectedHeader({ alg: algorithm })
+          .setExpirationTime('5y')
+          .setIssuedAt()
+          .sign(algorithm === 'HS256' ? Buffer.from(secret) : await jose.importPKCS8(secret, 'RS256'));
       } catch (e: any) {
         throw new Error(
           `Could not generate token for cluster ${chalk.bold(this.getDeployEndpoint())}.
