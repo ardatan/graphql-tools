@@ -17,7 +17,7 @@ export const startTestServer = async (typeDefs: IExecutableSchemaDefinition['typ
     resolvers,
     formatError: (error: any) => {
       const actualError = error.originalError || error
-      console.log('FORMATTING ERROR:', actualError)
+
       return {
         message: actualError.message,
         errorCode: actualError.errorCode,

@@ -375,7 +375,7 @@ describe('Original errors are propagated properly', () => {
 
     const errors = response.errors || []
     const error = errors[0] as any
-    console.log(error)
+
     expect(error.errorCode).toEqual('CUSTOM_FAIL')
     expect(error.message).toEqual('Custom fail!')
   });
