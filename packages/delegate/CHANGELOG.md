@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 9.0.7
+
+### Patch Changes
+
+- [`00c4a1a4`](https://github.com/ardatan/graphql-tools/commit/00c4a1a44e14b9950f44d56f44967ab7a0121706) Thanks [@ardatan](https://github.com/ardatan)! - If type is a list but the provided value isn't, do not fail and resolve that value as the member of that list type
+
 ## 9.0.6
 
 ### Patch Changes
