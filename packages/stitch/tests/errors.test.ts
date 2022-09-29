@@ -374,7 +374,6 @@ describe('Original errors are propagated properly', () => {
     `;
     const response = await makeRequest(query, {});
 
-    expect(response.data?.action_blocked).toEqual(undefined);
     expect(response.errors?.length).toEqual(1);
 
     const errors = response.errors || [];
