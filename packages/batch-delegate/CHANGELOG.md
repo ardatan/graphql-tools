@@ -1,5 +1,16 @@
 # @graphql-tools/batch-delegate
 
+## 8.4.0
+
+### Minor Changes
+
+- [#4738](https://github.com/ardatan/graphql-tools/pull/4738) [`614a5622`](https://github.com/ardatan/graphql-tools/commit/614a56224aed6224be708a601c816647e679a4fe) Thanks [@ardatan](https://github.com/ardatan)! - Smarter caching for batch delegation by using the selectionSet input
+
+### Patch Changes
+
+- Updated dependencies [[`00c4a1a4`](https://github.com/ardatan/graphql-tools/commit/00c4a1a44e14b9950f44d56f44967ab7a0121706)]:
+  - @graphql-tools/delegate@9.0.7
+
 ## 8.3.9
 
 ### Patch Changes
