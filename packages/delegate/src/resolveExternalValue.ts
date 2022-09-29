@@ -135,7 +135,18 @@ function resolveExternalListMember<TContext extends Record<string, any>>(
   } else if (isCompositeType(type)) {
     return resolveExternalObject(type, listMember, unpathedErrors, subschema, context, info, skipTypeMerging);
   } else if (isListType(type)) {
-    return resolveExternalList(type, listMember, unpathedErrors, subschema, context, info, skipTypeMerging);
+    if (Array.isArray(listMember)) {
+      return resolveExternalList(type, listMember, unpathedErrors, subschema, context, info, skipTypeMerging);
+    }
+    return resolveExternalListMember(
+      type.ofType,
+      listMember,
+      unpathedErrors,
+      subschema,
+      context,
+      info,
+      skipTypeMerging
+    );
   }
 }
 
