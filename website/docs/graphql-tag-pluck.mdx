@@ -80,7 +80,7 @@ Template literals leaded by magic comments will also be extracted :-)
 `
 ```
 
-supported file extensions are: `.js`, `.jsx`, `.ts`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.graphqls`, `.graphql`, `.gqls`, `.gql`.
+supported file extensions are: `.js`, `.jsx`, `.ts`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`, `.graphqls`, `.graphql`, `.gqls`, `.gql`.
 
 ### Options
 
@@ -89,6 +89,10 @@ It is recommended to look at the [source code](https://github.com/ardatan/graphq
 - **`gqlMagicComment`**
 
   The magic comment anchor to look for when parsing GraphQL strings. Defaults to `graphql`, which may be translated into `/* GraphQL */` in code.
+
+- **`gqlVueBlock`**
+
+  The name of a custom Vue block that contains raw GraphQL to be plucked.
 
 - **`globalGqlIdentifierName`**
 
