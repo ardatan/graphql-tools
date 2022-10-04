@@ -650,6 +650,20 @@ describe('importSchema', () => {
     expect(actualSDL).toBeSimilarGqlDoc(expectedSDL);
   });
 
+  test('require paths', () => {
+    const expectedSDL = /* GraphQL */ `
+      type A {
+        field: String
+      }
+
+      type B {
+        a: A
+      }
+    `;
+    const actualSDL = importSchema('./fixtures/require-paths/b.graphql');
+    expect(actualSDL).toBeSimilarGqlDoc(expectedSDL);
+  });
+
   test('root field imports', () => {
     const expectedSDL = /* GraphQL */ `
       type Query {

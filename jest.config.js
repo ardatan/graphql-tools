@@ -8,13 +8,19 @@ const tsconfig = require(TSCONFIG);
 
 const ESM_PACKAGES = ['graphql', 'graphql-upload', 'fs-capacitor'];
 
+const moduleNameMap = {
+  //This line is to enable testing import with require.resolve, which would normally get intercepted
+  '^@graphql-tools/import/(.*).graphql$': `${ROOT_DIR}/packages/import/$1.graphql`,
+  ...pathsToModuleNameMapper(tsconfig.compilerOptions.paths, { prefix: `${ROOT_DIR}/` }),
+};
+
 module.exports = {
   testEnvironment: 'node',
   rootDir: ROOT_DIR,
   restoreMocks: true,
   reporters: ['default'],
   modulePathIgnorePatterns: ['dist', 'test-assets', 'test-files', 'fixtures', '.bob'],
-  moduleNameMapper: pathsToModuleNameMapper(tsconfig.compilerOptions.paths, { prefix: `${ROOT_DIR}/` }),
+  moduleNameMapper: moduleNameMap,
   collectCoverage: false,
   cacheDirectory: resolve(ROOT_DIR, `${CI ? '' : 'node_modules/'}.cache/jest`),
   transform: {

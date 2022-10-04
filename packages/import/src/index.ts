@@ -93,12 +93,24 @@ export function processImport(
       };
 }
 
+function isRequirePath(filePath: string): boolean {
+  return filePath.startsWith('require:');
+}
+
+function resolveRequirePath(filePath: string): string {
+  return require.resolve(filePath.slice(8));
+}
+
 function visitFile(
   filePath: string,
   cwd: string,
   visitedFiles: VisitedFilesMap,
   predefinedImports: Record<string, string>
 ): Map<string, Set<DefinitionNode>> {
+  // Support paths to npm modules
+  if (isRequirePath(filePath)) {
+    filePath = resolveRequirePath(filePath);
+  }
   if (!isAbsolute(filePath) && !(filePath in predefinedImports)) {
     filePath = resolveFilePath(cwd, filePath);
   }

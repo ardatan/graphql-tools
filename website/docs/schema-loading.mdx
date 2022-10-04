@@ -139,6 +139,14 @@ type Comment {
 }
 ```
 
+Import also supports paths to installed modules. Example:
+
+```graphql
+# import Post, Comment from "require:blog-graphql-types/schema.graphql
+```
+
+Note: this functionality resolves using `require.resolve` on matching paths.
+
 ### Binding to HTTP Server
 
 You can extend loaded schema with resolvers

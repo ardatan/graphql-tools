@@ -1,0 +1,5 @@
+# import A from "require:@graphql-tools/import/tests/schema/fixtures/require-paths/a.graphql"
+
+type B {
+  a: A
+}
