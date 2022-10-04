@@ -4,8 +4,6 @@
   "private": true,
   "scripts": {
     "postinstall": "patch-package && husky install",
-    "predeploy:website": "yarn build:api-docs",
-    "deploy:website": "cd website && yarn deploy",
     "ts:check": "tsc --noEmit",
     "clean-dist": "rimraf \"packages/**/dist\" && rimraf \".bob\"",
     "build": "bob build",
