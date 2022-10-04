@@ -60,12 +60,11 @@ typings/
 # next.js build output
 .next/
 
-
 dist/
-build
+build/
 temp
 .idea/
-.bob
+.bob/
 .cache
 .DS_Store
 
@@ -73,7 +72,6 @@ test-results/
 junit.xml
 
 package-lock.json
-website/yarn.lock
-website/api-sidebar.json
-website/docs/api/
-website/out
+website/public/_redirects
+website/public/sitemap.xml
+website/src/pages/docs/api/
