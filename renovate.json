@@ -1,5 +1,18 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["github>the-guild-org/shared-config:renovate"],
-  "ignoreDeps": ["typedoc", "typedoc-plugin-markdown", "@chakra-ui/react"]
+  "packageRules": [
+    {
+      "excludePackagePatters": [
+        "@changesets/*",
+        "typescript",
+        "typedoc*", 
+        "^@theguild/"
+      ],
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch"
+    }
+  ]
 }
