@@ -3,7 +3,7 @@
   "extends": ["github>the-guild-org/shared-config:renovate"],
   "packageRules": [
     {
-      "excludePackagePatters": [
+      "excludePackagePatterns": [
         "@changesets/*",
         "typescript",
         "typedoc*", 
