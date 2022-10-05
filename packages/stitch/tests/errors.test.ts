@@ -3,6 +3,7 @@ import { graphql, GraphQLError, buildSchema } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { assertSome, createGraphQLError, ExecutionResult, Executor } from '@graphql-tools/utils';
+import { ControlledError, makeRequest, startTestServer } from './utils';
 
 describe('passes along errors for missing fields on list', () => {
   test('if non-null', async () => {
@@ -326,5 +327,59 @@ describe('executor errors are propagated', () => {
     });
 
     expect(result.errors).toEqual([new GraphQLError('Service is down')]);
+  });
+});
+
+describe('Original errors are propagated properly', () => {
+  let stop: any;
+
+  beforeAll(async () => {
+    const typeDefs = /* GraphQL */ `
+      type Query {
+        fail: String
+      }
+    `;
+
+    const resolvers = {
+      Query: {
+        fail: () => {
+          throw new ControlledError('Custom fail!', 'CUSTOM_FAIL');
+        },
+      },
+    };
+
+    const schema = makeExecutableSchema({
+      typeDefs,
+      resolvers,
+    });
+
+    const stitchedSchema = stitchSchemas({
+      subschemas: [schema],
+      mergeDirectives: true,
+    });
+
+    const e2eServer = await startTestServer(typeDefs, resolvers, stitchedSchema);
+    stop = e2eServer.stop;
+  });
+
+  afterAll(async () => {
+    await stop();
+  });
+
+  it('it contains custom fields', async () => {
+    const query = /* GraphQL */ `
+      {
+        fail
+      }
+    `;
+    const response = await makeRequest(query, {});
+
+    expect(response.errors?.length).toEqual(1);
+
+    const errors = response.errors || [];
+    const error = errors[0] as any;
+
+    expect(error.errorCode).toEqual('CUSTOM_FAIL');
+    expect(error.message).toEqual('Custom fail!');
   });
 });
