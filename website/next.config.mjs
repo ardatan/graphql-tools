@@ -18,6 +18,14 @@ export default withGuildDocs({
       '/docs/migration-from-merge-graphql-schemas': '/docs/migration/migration-from-merge-graphql-schemas',
       '/docs/migration-from-toolkit': '/docs/migration/migration-from-toolkit',
       '/docs/migration-from-tools': '/docs/migration/migration-from-tools',
+      '/docs': '/docs/introduction',
+      '/docs/api/modules/:name': '/docs/api/modules/:name_src',
+      '/docs/api/classes/loaders_graphql_file_src.graphqlfileloader':
+        '/docs/api/classes/loaders_graphql_file_src.GraphQLFileLoader',
+      '/docs/api/interfaces/batch_delegate_src.createbatchdelegatefnoptions':
+        '/docs/api/interfaces/batch_delegate_src.CreateBatchDelegateFnOptions',
+      '/docs/api/classes/wrap_src.pruneschema': '/docs/api/classes/wrap_src.PruneSchema',
+      '/docs/legacy-schema-directives': '/docs/schema-directives',
     }).map(([from, to]) => ({
       source: from,
       destination: to,
