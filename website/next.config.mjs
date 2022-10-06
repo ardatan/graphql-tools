@@ -19,7 +19,7 @@ export default withGuildDocs({
       '/docs/migration-from-toolkit': '/docs/migration/migration-from-toolkit',
       '/docs/migration-from-tools': '/docs/migration/migration-from-tools',
       '/docs': '/docs/introduction',
-      '/docs/api/modules/:name': '/docs/api/modules/:name_src',
+      '/docs/api/modules/:name': '/docs/api/modules/:name\\_src',
       '/docs/api/classes/loaders_graphql_file_src.graphqlfileloader':
         '/docs/api/classes/loaders_graphql_file_src.GraphQLFileLoader',
       '/docs/api/interfaces/batch_delegate_src.createbatchdelegatefnoptions':
