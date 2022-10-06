@@ -20,7 +20,13 @@ export default withGuildDocs({
       '/docs/migration-from-tools': '/docs/migration/migration-from-tools',
       '/docs': '/docs/introduction',
       '/docs/api/modules/:name': '/docs/api/modules/:name\\_src',
+      '/api/modules/:name': '/docs/api/modules/:name\\_src',
       '/docs/legacy-schema-directives': '/docs/schema-directives',
+      '/docs/merge-resolvers': '/docs/resolvers',
+      '/docs/migration-from-tools-v5': '/docs/migration/migration-from-tools',
+      '/docs/graphql-tools/mocking': '/docs/mocking',
+      '/docs/schema-transforms': '/docs/schema-wrapping',
+      '/docs/merge-typedefs': '/docs/migration/migration-from-merge-graphql-schemas',
     }).map(([from, to]) => ({
       source: from,
       destination: to,
