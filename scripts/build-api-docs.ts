@@ -93,6 +93,7 @@ async function buildApiDocs(): Promise<void> {
     }
     const filesInDirectory = await fsPromises.readdir(filePath);
     await Promise.all(filesInDirectory.map(fileName => visitMarkdownFile(path.join(filePath, fileName))));
+
     await fsPromises.writeFile(
       path.join(filePath, '_meta.json'),
       JSON.stringify(
@@ -100,7 +101,14 @@ async function buildApiDocs(): Promise<void> {
           filesInDirectory
             .map(fileName => {
               fileName = fileName.replace(/\.md$/, '');
-              return [fileName, fileName.replace(/^.*\./, '')];
+              const key = fileName.toLowerCase();
+              const value = fileName.replace(/^.*\./, '');
+
+              if (filePath.endsWith('/modules')) {
+                return [key, `${value.replace('_src', '').replace(/_/g, '-')}`];
+              }
+
+              return [key, value];
             })
             .sort((a, b) => a[1].localeCompare(b[1]))
         ),
@@ -121,9 +129,12 @@ async function buildApiDocs(): Promise<void> {
   await fsPromises.writeFile(
     path.join(OUTPUT_PATH, '_meta.json'),
     JSON.stringify(
-      Object.fromEntries(
-        ['classes', 'enums', 'interfaces', 'modules'].map(name => [name, name[0].toUpperCase() + name.slice(1)])
-      ),
+      {
+        modules: 'Packages',
+        classes: 'Classes',
+        enums: 'Enums',
+        interfaces: 'Interfaces',
+      },
       null,
       2
     )

@@ -27,6 +27,8 @@ export default withGuildDocs({
       '/docs/graphql-tools/mocking': '/docs/mocking',
       '/docs/schema-transforms': '/docs/schema-wrapping',
       '/docs/merge-typedefs': '/docs/migration/migration-from-merge-graphql-schemas',
+      '/install': '/docs/introduction',
+      '/docs/api/modules': '/docs/api/modules/batch_delegate_src',
     }).map(([from, to]) => ({
       source: from,
       destination: to,
