@@ -51,7 +51,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "devDependencies": {
-    "@envelop/live-query": "4.2.0",
+    "@envelop/live-query": "5.0.2",
     "@types/express": "4.17.14",
     "@types/extract-files": "8.1.1",
     "@types/valid-url": "1.0.3",

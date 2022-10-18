@@ -1597,10 +1597,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@envelop/live-query@4.2.0":
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-4.2.0.tgz#170249026addcf07a58813dcbdb948e9b3c9f711"
-  integrity sha512-ady8RXwFx6bsoREkv4qeBPlpv/5smPvA/0x85gFWFWNI4HP0U0v4qWxOH8iZg59Gpwes/ADmvPkqwrKFI6JYoA==
+"@envelop/live-query@5.0.2":
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-5.0.2.tgz#685a6ddef226344496cc5feef098cae9e6d96750"
+  integrity sha512-VVRn4gPHp/dJJos6ZPAjwWuoa6/pIH0seiFHvoRHz1vRpYMg6Urgi4PY6WY7iZ4bL5920nMGCxEqRDzR2Jk3Tw==
   dependencies:
     "@graphql-tools/utils" "^8.8.0"
     "@n1ru4l/graphql-live-query" "^0.10.0"
