@@ -1,5 +1,6 @@
 /* eslint sort-keys: error */
-import { ToolsLogo, defineConfig } from '@theguild/components';
+import { defineConfig, Giscus, ToolsLogo, useTheme } from '@theguild/components';
+import { useRouter } from 'next/router';
 
 const SITE_NAME = 'GraphQL Tools';
 
@@ -21,5 +22,27 @@ export default defineConfig({
       </div>
     </>
   ),
+  main: {
+    extraContent() {
+      const { resolvedTheme } = useTheme();
+      const { route } = useRouter();
+
+      if (route === '/') {
+        return null;
+      }
+      return (
+        <Giscus
+          // ensure giscus is reloaded when client side route is changed
+          key={route}
+          repo="ardatan/graphql-tools"
+          repoId="MDEwOlJlcG9zaXRvcnk1NDQzMjE2OA=="
+          category="Docs Discussions"
+          categoryId="DIC_kwDOAz6RqM4CSDSV"
+          mapping="pathname"
+          theme={resolvedTheme}
+        />
+      );
+    },
+  },
   titleSuffix: ` – ${SITE_NAME}`,
 });
