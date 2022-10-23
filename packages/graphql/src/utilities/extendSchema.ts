@@ -202,7 +202,7 @@ export function extendSchemaImpl(
       // @ts-expect-error
       return new GraphQLNonNull(replaceType(type.ofType));
     }
-    return replaceNamedType(type);
+    return replaceNamedType(type) as T;
   }
 
   function replaceNamedType<T extends GraphQLNamedType>(type: T): T {
