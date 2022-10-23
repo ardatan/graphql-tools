@@ -1,5 +1,17 @@
 # @graphql-tools/links
 
+## 8.3.12
+
+### Patch Changes
+
+- [#4701](https://github.com/ardatan/graphql-tools/pull/4701) [`4689bd6d`](https://github.com/ardatan/graphql-tools/commit/4689bd6d2f0530819aa14f8f40fe62a7a54c9da9) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+
+  - Updated dependency [`@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0` ↗︎](https://www.npmjs.com/package/@apollo/client/v/3.2.5) (from `~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0`, in `peerDependencies`)
+
+- [#4736](https://github.com/ardatan/graphql-tools/pull/4736) [`f807a537`](https://github.com/ardatan/graphql-tools/commit/f807a537acdcd843fef082108a94b264a3662a61) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+
+  - Updated dependency [`@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0` ↗︎](https://www.npmjs.com/package/@apollo/client/v/3.2.5) (from `~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0`, in `peerDependencies`)
+
 ## 8.3.11
 
 ### Patch Changes
