@@ -1,5 +1,11 @@
 # @graphql-tools/load
 
+## 7.8.0
+
+### Minor Changes
+
+- [#4752](https://github.com/ardatan/graphql-tools/pull/4752) [`19762665`](https://github.com/ardatan/graphql-tools/commit/19762665815425c597e186ada436b3359c6ba1e9) Thanks [@ardatan](https://github.com/ardatan)! - More verbose output to the log about durations taken by individual phases if `DEBUG=1` is provided as an env var
+
 ## 7.7.7
 
 ### Patch Changes
