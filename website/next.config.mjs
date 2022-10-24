@@ -19,7 +19,6 @@ export default withGuildDocs({
       '/docs/migration-from-toolkit': '/docs/migration/migration-from-toolkit',
       '/docs/migration-from-tools': '/docs/migration/migration-from-tools',
       '/docs': '/docs/introduction',
-      '/docs/api/modules/:name': '/docs/api/modules/:name\\_src',
       '/api/modules/:name': '/docs/api/modules/:name\\_src',
       '/docs/legacy-schema-directives': '/docs/schema-directives',
       '/docs/merge-resolvers': '/docs/resolvers',
