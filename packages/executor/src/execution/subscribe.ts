@@ -5,9 +5,11 @@ import {
   isAsyncIterable,
   createGraphQLError,
   Maybe,
+  addPath,
+  pathToArray,
+  getArgumentValues,
 } from '@graphql-tools/utils';
 import { GraphQLError, locatedError, DocumentNode, GraphQLFieldResolver, GraphQLSchema } from 'graphql';
-import { addPath, pathToArray } from 'graphql/jsutils/Path.js';
 import type { ExecutionArgs, ExecutionContext, ExecutionResult } from './execute.js';
 import {
   assertValidExecutionArguments,
@@ -16,7 +18,6 @@ import {
   execute,
   getFieldDef,
 } from './execute.js';
-import { getArgumentValues } from './values.js';
 
 /**
  * Implements the "Subscribe" algorithm described in the GraphQL specification.

@@ -1,6 +1,3 @@
-import type { Path } from 'graphql/jsutils/Path.js';
-import { addPath, pathToArray } from 'graphql/jsutils/Path.js';
-
 import {
   GraphQLFormattedError,
   locatedError,
@@ -31,16 +28,20 @@ import {
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
 } from 'graphql';
-import { getArgumentValues, getVariableValues } from './values.js';
+import { getVariableValues } from './values.js';
 import {
+  addPath,
   collectFields,
   collectSubFields,
   createGraphQLError,
+  getArgumentValues,
   getRootTypeMap,
   inspect,
   isAsyncIterable,
   mapAsyncIterator,
   Maybe,
+  Path,
+  pathToArray,
 } from '@graphql-tools/utils';
 
 // This file contains a lot of such errors but we plan to refactor it anyway

@@ -1,3 +1,4 @@
+import { inspect } from '@graphql-tools/utils';
 import {
   parse,
   Kind,
@@ -12,7 +13,6 @@ import {
   GraphQLString,
   GraphQLSchema,
 } from 'graphql';
-import { inspect } from 'graphql/jsutils/inspect.js';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { execute, executeSync } from '../execute.js';
 
