@@ -29,11 +29,9 @@ import {
 } from 'graphql';
 import { getVariableValues } from './values.js';
 import {
-  addPath,
   collectFields,
   collectSubFields,
   createGraphQLError,
-  getArgumentValues,
   getRootTypeMap,
   inspect,
   isAsyncIterable,
@@ -45,6 +43,8 @@ import {
   Path,
   pathToArray,
   PromiseOrValue,
+  addPath,
+  getArgumentValues,
   promiseReduce,
 } from '@graphql-tools/utils';
 
