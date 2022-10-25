@@ -27,7 +27,6 @@ import {
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
 } from 'graphql';
-import { getVariableValues } from './values.js';
 import {
   collectFields,
   collectSubFields,
@@ -47,6 +46,7 @@ import {
   getArgumentValues,
   promiseReduce,
 } from '@graphql-tools/utils';
+import { getVariableValues } from './values.js';
 
 // This file contains a lot of such errors but we plan to refactor it anyway
 // so just disable it for entire file.

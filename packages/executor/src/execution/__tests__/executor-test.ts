@@ -12,7 +12,7 @@ import {
   GraphQLString,
   GraphQLSchema,
 } from 'graphql';
-import { inspect } from 'graphql/jsutils/inspect.js';
+import { inspect } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { execute, executeSync } from '../execute.js';
 
