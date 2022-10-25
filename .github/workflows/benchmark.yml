@@ -13,6 +13,7 @@ jobs:
     name: Federation Benchmark with ${{matrix.products_size}} Products
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         products_size: [3, 10, 50, 100, 1000]
     steps:
