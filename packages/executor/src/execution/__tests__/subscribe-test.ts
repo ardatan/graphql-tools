@@ -1,10 +1,6 @@
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
 
-import { isAsyncIterable } from 'graphql/jsutils/isAsyncIterable.js';
-import { isPromise } from 'graphql/jsutils/isPromise.js';
-import type { PromiseOrValue } from 'graphql/jsutils/PromiseOrValue.js';
-
 import {
   parse,
   GraphQLList,
@@ -19,6 +15,7 @@ import type { ExecutionArgs, ExecutionResult } from '../execute.js';
 import { createSourceEventStream, subscribe } from '../execute.js';
 
 import { SimplePubSub } from './simplePubSub.js';
+import { isAsyncIterable, isPromise, PromiseOrValue } from '@graphql-tools/utils';
 
 interface Email {
   from: string;

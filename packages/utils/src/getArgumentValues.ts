@@ -1,3 +1,4 @@
+import { hasOwnProperty } from './jsutils.js';
 import {
   valueFromAST,
   GraphQLField,
@@ -26,14 +27,6 @@ export function getArgumentValues(
   node: FieldNode | DirectiveNode,
   variableValues: Record<string, any> = {}
 ): Record<string, any> {
-  const variableMap: Record<string, any> = Object.entries(variableValues).reduce(
-    (prev, [key, value]) => ({
-      ...prev,
-      [key]: value,
-    }),
-    {}
-  );
-
   const coercedValues = {};
 
   const argumentNodes = node.arguments ?? [];
@@ -64,7 +57,7 @@ export function getArgumentValues(
 
     if (valueNode.kind === Kind.VARIABLE) {
       const variableName = valueNode.name.value;
-      if (variableValues == null || !(variableName in variableValues)) {
+      if (variableValues == null || !hasOwnProperty(variableValues, variableName)) {
         if (defaultValue !== undefined) {
           coercedValues[name] = defaultValue;
         } else if (isNonNullType(argType)) {

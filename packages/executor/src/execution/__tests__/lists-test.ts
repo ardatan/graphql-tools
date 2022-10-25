@@ -1,3 +1,4 @@
+import { PromiseOrValue } from '@graphql-tools/utils';
 import {
   parse,
   buildSchema,
@@ -7,7 +8,6 @@ import {
   GraphQLObjectType,
   GraphQLFieldResolver,
 } from 'graphql';
-import type { PromiseOrValue } from 'graphql/jsutils/PromiseOrValue.js';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import type { ExecutionResult } from '../execute.js';
 import { execute, executeSync } from '../execute.js';

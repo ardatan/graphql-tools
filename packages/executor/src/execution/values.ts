@@ -1,5 +1,3 @@
-import { printPathArray } from 'graphql/jsutils/printPathArray.js';
-
 import {
   GraphQLError,
   VariableDefinitionNode,
@@ -11,7 +9,7 @@ import {
   typeFromAST,
   valueFromAST,
 } from 'graphql';
-import { createGraphQLError, inspect } from '@graphql-tools/utils';
+import { createGraphQLError, hasOwnProperty, inspect, printPathArray } from '@graphql-tools/utils';
 
 type CoercedVariableValues =
   | { errors: ReadonlyArray<GraphQLError>; coerced?: never }
@@ -116,8 +114,4 @@ function coerceVariableValues(
   }
 
   return coercedValues;
-}
-
-function hasOwnProperty(obj: unknown, prop: string): boolean {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
 }

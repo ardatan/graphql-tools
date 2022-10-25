@@ -51,3 +51,4 @@ export * from './fixSchemaAst.js';
 export * from './getOperationASTFromRequest.js';
 export * from './extractExtensionsFromSchema.js';
 export * from './Path.js';
+export * from './jsutils.js';

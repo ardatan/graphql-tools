@@ -38,10 +38,15 @@ import {
   getRootTypeMap,
   inspect,
   isAsyncIterable,
+  isIterableObject,
+  isObjectLike,
+  isPromise,
   mapAsyncIterator,
   Maybe,
   Path,
   pathToArray,
+  PromiseOrValue,
+  promiseReduce,
 } from '@graphql-tools/utils';
 
 // This file contains a lot of such errors but we plan to refactor it anyway
@@ -629,36 +634,6 @@ async function completeAsyncIteratorValue(
     index += 1;
   }
   return containsPromise ? Promise.all(completedResults) : completedResults;
-}
-
-type PromiseOrValue<T> = Promise<T> | T;
-
-function isIterableObject(value: unknown): value is Iterable<unknown> {
-  return value != null && typeof value === 'object' && Symbol.iterator in value;
-}
-
-function isObjectLike(value: unknown): value is { [key: string]: unknown } {
-  return typeof value === 'object' && value !== null;
-}
-
-function isPromise<T>(value: unknown): value is Promise<T> {
-  return isObjectLike(value) && typeof value['then'] === 'function';
-}
-
-function promiseReduce<T, U>(
-  values: Iterable<T>,
-  callbackFn: (accumulator: U, currentValue: T) => PromiseOrValue<U>,
-  initialValue: PromiseOrValue<U>
-): PromiseOrValue<U> {
-  let accumulator = initialValue;
-
-  for (const value of values) {
-    accumulator = isPromise(accumulator)
-      ? accumulator.then(resolved => callbackFn(resolved, value))
-      : callbackFn(accumulator, value);
-  }
-
-  return accumulator;
 }
 
 /**
