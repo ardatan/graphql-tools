@@ -68,6 +68,20 @@ module.exports = {
         eqeqeq: 'off',
       },
     },
+    {
+      files: ['packages/executor/**'],
+      env: {
+        jest: true,
+      },
+      rules: {
+        // TODO: Enable us incrementally
+        '@typescript-eslint/ban-ts-comment': 'off',
+        '@typescript-eslint/no-inferrable-types': 'off',
+        'prefer-rest-params': 'off',
+        'no-throw-literal': 'off',
+        'promise/param-names': 'off',
+      },
+    },
   ],
   ignorePatterns: [
     'dist',
