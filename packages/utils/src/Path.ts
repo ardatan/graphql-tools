@@ -1,4 +1,4 @@
-import type { Maybe } from './Maybe.js';
+import { Maybe } from './types';
 
 export interface Path {
   readonly prev: Path | undefined;
