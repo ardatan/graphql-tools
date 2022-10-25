@@ -22,8 +22,8 @@ export function collectFields(
   variableValues: { [variable: string]: unknown },
   runtimeType: GraphQLObjectType,
   selectionSet: SelectionSetNode,
-  fields: Map<string, Array<FieldNode>>,
-  visitedFragmentNames: Set<string>
+  fields: Map<string, Array<FieldNode>> = new Map(),
+  visitedFragmentNames: Set<string> = new Set()
 ): Map<string, Array<FieldNode>> {
   for (const selection of selectionSet.selections) {
     switch (selection.kind) {

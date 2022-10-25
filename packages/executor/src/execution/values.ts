@@ -1,7 +1,3 @@
-import { inspect } from 'graphql/jsutils/inspect.js';
-import { keyMap } from 'graphql/jsutils/keyMap.js';
-import type { Maybe } from 'graphql/jsutils/Maybe.js';
-import type { ObjMap } from 'graphql/jsutils/ObjMap.js';
 import { printPathArray } from 'graphql/jsutils/printPathArray.js';
 
 import {
@@ -20,6 +16,7 @@ import {
   typeFromAST,
   valueFromAST,
 } from 'graphql';
+import { createGraphQLError, inspect, Maybe } from '@graphql-tools/utils';
 
 type CoercedVariableValues =
   | { errors: ReadonlyArray<GraphQLError>; coerced?: never }
@@ -45,7 +42,7 @@ export function getVariableValues(
   try {
     const coerced = coerceVariableValues(schema, varDefNodes, inputs, error => {
       if (maxErrors != null && errors.length >= maxErrors) {
-        throw new GraphQLError('Too many errors processing variables, error limit reached. Execution aborted.');
+        throw createGraphQLError('Too many errors processing variables, error limit reached. Execution aborted.');
       }
       errors.push(error);
     });
@@ -76,7 +73,7 @@ function coerceVariableValues(
       // validation, however is checked again here for safety.
       const varTypeStr = print(varDefNode.type);
       onError(
-        new GraphQLError(
+        createGraphQLError(
           `Variable "$${varName}" expected value of type "${varTypeStr}" which cannot be used as an input type.`,
           { nodes: varDefNode.type }
         )
@@ -90,7 +87,7 @@ function coerceVariableValues(
       } else if (isNonNullType(varType)) {
         const varTypeStr = inspect(varType);
         onError(
-          new GraphQLError(`Variable "$${varName}" of required type "${varTypeStr}" was not provided.`, {
+          createGraphQLError(`Variable "$${varName}" of required type "${varTypeStr}" was not provided.`, {
             nodes: varDefNode,
           })
         );
@@ -102,7 +99,7 @@ function coerceVariableValues(
     if (value === null && isNonNullType(varType)) {
       const varTypeStr = inspect(varType);
       onError(
-        new GraphQLError(`Variable "$${varName}" of non-null type "${varTypeStr}" must not be null.`, {
+        createGraphQLError(`Variable "$${varName}" of non-null type "${varTypeStr}" must not be null.`, {
           nodes: varDefNode,
         })
       );
@@ -115,7 +112,7 @@ function coerceVariableValues(
         prefix += ` at "${varName}${printPathArray(path)}"`;
       }
       onError(
-        new GraphQLError(prefix + '; ' + error.message, {
+        createGraphQLError(prefix + '; ' + error.message, {
           nodes: varDefNode,
           originalError: error.originalError,
         })
@@ -137,14 +134,18 @@ function coerceVariableValues(
 export function getArgumentValues(
   def: GraphQLField<unknown, unknown> | GraphQLDirective,
   node: FieldNode | DirectiveNode,
-  variableValues?: Maybe<ObjMap<unknown>>
+  variableValues?: Maybe<Record<string, unknown>>
 ): { [argument: string]: unknown } {
   const coercedValues: { [argument: string]: unknown } = {};
 
   // FIXME: https://github.com/graphql/graphql-js/issues/2203
   /* c8 ignore next */
   const argumentNodes = node.arguments ?? [];
-  const argNodeMap = keyMap(argumentNodes, arg => arg.name.value);
+  const argNodeMap = Object.create(null);
+
+  for (const arg of argumentNodes) {
+    argNodeMap[arg.name.value] = arg.value;
+  }
 
   for (const argDef of def.args) {
     const name = argDef.name;
@@ -155,7 +156,7 @@ export function getArgumentValues(
       if (argDef.defaultValue !== undefined) {
         coercedValues[name] = argDef.defaultValue;
       } else if (isNonNullType(argType)) {
-        throw new GraphQLError(`Argument "${name}" of required type "${inspect(argType)}" ` + 'was not provided.', {
+        throw createGraphQLError(`Argument "${name}" of required type "${inspect(argType)}" ` + 'was not provided.', {
           nodes: node,
         });
       }
@@ -171,7 +172,7 @@ export function getArgumentValues(
         if (argDef.defaultValue !== undefined) {
           coercedValues[name] = argDef.defaultValue;
         } else if (isNonNullType(argType)) {
-          throw new GraphQLError(
+          throw createGraphQLError(
             `Argument "${name}" of required type "${inspect(argType)}" ` +
               `was provided the variable "$${variableName}" which was not provided a runtime value.`,
             { nodes: valueNode }
@@ -183,7 +184,7 @@ export function getArgumentValues(
     }
 
     if (isNull && isNonNullType(argType)) {
-      throw new GraphQLError(`Argument "${name}" of non-null type "${inspect(argType)}" ` + 'must not be null.', {
+      throw createGraphQLError(`Argument "${name}" of non-null type "${inspect(argType)}" ` + 'must not be null.', {
         nodes: valueNode,
       });
     }
@@ -193,7 +194,7 @@ export function getArgumentValues(
       // Note: ValuesOfCorrectTypeRule validation should catch this before
       // execution. This is a runtime check to ensure execution does not
       // continue with an invalid argument value.
-      throw new GraphQLError(`Argument "${name}" has invalid value ${print(valueNode)}.`, { nodes: valueNode });
+      throw createGraphQLError(`Argument "${name}" has invalid value ${print(valueNode)}.`, { nodes: valueNode });
     }
     coercedValues[name] = coercedValue;
   }
@@ -214,7 +215,7 @@ export function getArgumentValues(
 export function getDirectiveValues(
   directiveDef: GraphQLDirective,
   node: { readonly directives?: ReadonlyArray<DirectiveNode> },
-  variableValues?: Maybe<ObjMap<unknown>>
+  variableValues?: Maybe<Record<string, unknown>>
 ): undefined | { [argument: string]: unknown } {
   const directiveNode = node.directives?.find(directive => directive.name.value === directiveDef.name);
 

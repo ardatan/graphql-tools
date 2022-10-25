@@ -1,18 +1,5 @@
-import { devAssert } from 'graphql/jsutils/devAssert.js';
-import { inspect } from 'graphql/jsutils/inspect.js';
-import { invariant } from 'graphql/jsutils/invariant.js';
-import { isAsyncIterable } from 'graphql/jsutils/isAsyncIterable.js';
-import { isIterableObject } from 'graphql/jsutils/isIterableObject.js';
-import { isObjectLike } from 'graphql/jsutils/isObjectLike.js';
-import { isPromise } from 'graphql/jsutils/isPromise.js';
-import type { Maybe } from 'graphql/jsutils/Maybe.js';
-import { memoize3 } from 'graphql/jsutils/memoize3.js';
-import type { ObjMap } from 'graphql/jsutils/ObjMap.js';
 import type { Path } from 'graphql/jsutils/Path.js';
 import { addPath, pathToArray } from 'graphql/jsutils/Path.js';
-import { promiseForObject } from 'graphql/jsutils/promiseForObject.js';
-import type { PromiseOrValue } from 'graphql/jsutils/PromiseOrValue.js';
-import { promiseReduce } from 'graphql/jsutils/promiseReduce.js';
 
 import {
   GraphQLFormattedError,
@@ -44,22 +31,19 @@ import {
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
 } from 'graphql';
-import { collectFields, collectSubfields as _collectSubfields } from './collectFields.js';
-import { mapAsyncIterator } from './mapAsyncIterator.js';
 import { getArgumentValues, getVariableValues } from './values.js';
+import {
+  collectFields,
+  collectSubFields,
+  createGraphQLError,
+  inspect,
+  isAsyncIterable,
+  mapAsyncIterator,
+  Maybe,
+} from '@graphql-tools/utils';
 
 // This file contains a lot of such errors but we plan to refactor it anyway
 // so just disable it for entire file.
-
-/**
- * A memoized collection of relevant subfields with regard to the return
- * type. Memoizing ensures the subfields are not repeatedly calculated, which
- * saves overhead when resolving lists of values.
- */
-const collectSubfields = memoize3(
-  (exeContext: ExecutionContext, returnType: GraphQLObjectType, fieldNodes: ReadonlyArray<FieldNode>) =>
-    _collectSubfields(exeContext.schema, exeContext.fragments, exeContext.variableValues, returnType, fieldNodes)
-);
 
 /**
  * Terminology
@@ -89,7 +73,7 @@ const collectSubfields = memoize3(
  */
 export interface ExecutionContext {
   schema: GraphQLSchema;
-  fragments: ObjMap<FragmentDefinitionNode>;
+  fragments: Record<string, FragmentDefinitionNode>;
   rootValue: unknown;
   contextValue: unknown;
   operation: OperationDefinitionNode;
@@ -107,13 +91,13 @@ export interface ExecutionContext {
  *   - `data` is the result of a successful execution of the query.
  *   - `extensions` is reserved for adding non-standard properties.
  */
-export interface ExecutionResult<TData = ObjMap<unknown>, TExtensions = ObjMap<unknown>> {
+export interface ExecutionResult<TData = Record<string, unknown>, TExtensions = Record<string, unknown>> {
   errors?: ReadonlyArray<GraphQLError>;
   data?: TData | null;
   extensions?: TExtensions;
 }
 
-export interface FormattedExecutionResult<TData = ObjMap<unknown>, TExtensions = ObjMap<unknown>> {
+export interface FormattedExecutionResult<TData = Record<string, unknown>, TExtensions = Record<string, unknown>> {
   errors?: ReadonlyArray<GraphQLFormattedError>;
   data?: TData | null;
   extensions?: TExtensions;
@@ -204,7 +188,7 @@ export function executeSync(args: ExecutionArgs): ExecutionResult {
  * Given a completed execution context and data, build the `{ errors, data }`
  * response defined by the "Response" section of the GraphQL specification.
  */
-function buildResponse(data: ObjMap<unknown> | null, errors: ReadonlyArray<GraphQLError>): ExecutionResult {
+function buildResponse(data: Record<string, unknown> | null, errors: ReadonlyArray<GraphQLError>): ExecutionResult {
   return errors.length === 0 ? { data } : { errors, data };
 }
 
@@ -219,13 +203,13 @@ export function assertValidExecutionArguments(
   document: DocumentNode,
   rawVariableValues: Maybe<{ readonly [variable: string]: unknown }>
 ): void {
-  devAssert(!!document, 'Must provide document.');
+  console.assert(!!document, 'Must provide document.');
 
   // If the schema used for execution is invalid, throw an error.
   assertValidSchema(schema);
 
   // Variables, if provided, must be an object.
-  devAssert(
+  console.assert(
     rawVariableValues == null || isObjectLike(rawVariableValues),
     'Variables must be provided as an Object where each property is a variable value. Perhaps look to see if an unparsed JSON string was provided.'
   );
@@ -257,13 +241,13 @@ export function buildExecutionContext(args: ExecutionArgs): ReadonlyArray<GraphQ
   assertValidSchema(schema);
 
   let operation: OperationDefinitionNode | undefined;
-  const fragments: ObjMap<FragmentDefinitionNode> = Object.create(null);
+  const fragments: Record<string, FragmentDefinitionNode> = Object.create(null);
   for (const definition of document.definitions) {
     switch (definition.kind) {
       case Kind.OPERATION_DEFINITION:
         if (operationName == null) {
           if (operation !== undefined) {
-            return [new GraphQLError('Must provide operation name if query contains multiple operations.')];
+            return [createGraphQLError('Must provide operation name if query contains multiple operations.')];
           }
           operation = definition;
         } else if (definition.name?.value === operationName) {
@@ -280,9 +264,9 @@ export function buildExecutionContext(args: ExecutionArgs): ReadonlyArray<GraphQ
 
   if (!operation) {
     if (operationName != null) {
-      return [new GraphQLError(`Unknown operation named "${operationName}".`)];
+      return [createGraphQLError(`Unknown operation named "${operationName}".`)];
     }
-    return [new GraphQLError('Must provide an operation.')];
+    return [createGraphQLError('Must provide an operation.')];
   }
 
   // FIXME: https://github.com/graphql/graphql-js/issues/2203
@@ -322,11 +306,11 @@ function buildPerEventExecutionContext(exeContext: ExecutionContext, payload: un
 /**
  * Implements the "Executing operations" section of the spec.
  */
-function executeOperation(exeContext: ExecutionContext): PromiseOrValue<ObjMap<unknown>> {
+function executeOperation(exeContext: ExecutionContext): PromiseOrValue<Record<string, unknown>> {
   const { operation, schema, fragments, variableValues, rootValue } = exeContext;
   const rootType = schema.getRootType(operation.operation);
   if (rootType == null) {
-    throw new GraphQLError(`Schema is not configured to execute ${operation.operation} operation.`, {
+    throw createGraphQLError(`Schema is not configured to execute ${operation.operation} operation.`, {
       nodes: operation,
     });
   }
@@ -356,7 +340,7 @@ function executeFieldsSerially(
   sourceValue: unknown,
   path: Path | undefined,
   fields: Map<string, ReadonlyArray<FieldNode>>
-): PromiseOrValue<ObjMap<unknown>> {
+): PromiseOrValue<Record<string, unknown>> {
   return promiseReduce(
     fields.entries(),
     (results, [responseName, fieldNodes]) => {
@@ -388,7 +372,7 @@ function executeFields(
   sourceValue: unknown,
   path: Path | undefined,
   fields: Map<string, ReadonlyArray<FieldNode>>
-): PromiseOrValue<ObjMap<unknown>> {
+): PromiseOrValue<Record<string, unknown>> {
   const results = Object.create(null);
   let containsPromise = false;
 
@@ -412,7 +396,15 @@ function executeFields(
   // Otherwise, results is a map from field name to the result of resolving that
   // field, which is possibly a promise. Return a promise that will return this
   // same map, but with any promises replaced with the values they resolved to.
-  return promiseForObject(results);
+  return Promise.all(Object.values(results)).then(resolvedValues => {
+    const resolvedObject = Object.create(null);
+
+    for (const [i, key] of Object.keys(results).entries()) {
+      resolvedObject[key] = resolvedValues[i];
+    }
+
+    return resolvedObject;
+  });
 }
 
 /**
@@ -586,7 +578,7 @@ function completeValue(
   }
   /* c8 ignore next 6 */
   // Not reachable, all possible output types have been considered.
-  invariant(false, 'Cannot complete value of unexpected output type: ' + inspect(returnType));
+  console.assert(false, 'Cannot complete value of unexpected output type: ' + inspect(returnType));
 }
 
 /**
@@ -636,6 +628,36 @@ async function completeAsyncIteratorValue(
   return containsPromise ? Promise.all(completedResults) : completedResults;
 }
 
+type PromiseOrValue<T> = Promise<T> | T;
+
+function isIterableObject(value: unknown): value is Iterable<unknown> {
+  return value != null && typeof value === 'object' && Symbol.iterator in value;
+}
+
+function isObjectLike(value: unknown): value is { [key: string]: unknown } {
+  return typeof value === 'object' && value !== null;
+}
+
+function isPromise<T>(value: unknown): value is Promise<T> {
+  return isObjectLike(value) && typeof value['then'] === 'function';
+}
+
+function promiseReduce<T, U>(
+  values: Iterable<T>,
+  callbackFn: (accumulator: U, currentValue: T) => PromiseOrValue<U>,
+  initialValue: PromiseOrValue<U>
+): PromiseOrValue<U> {
+  let accumulator = initialValue;
+
+  for (const value of values) {
+    accumulator = isPromise(accumulator)
+      ? accumulator.then(resolved => callbackFn(resolved, value))
+      : callbackFn(accumulator, value);
+  }
+
+  return accumulator;
+}
+
 /**
  * Complete a list value by completing each item in the list with the
  * inner type
@@ -657,7 +679,7 @@ function completeListValue(
   }
 
   if (!isIterableObject(result)) {
-    throw new GraphQLError(
+    throw createGraphQLError(
       `Expected Iterable, but did not find one for field "${info.parentType.name}.${info.fieldName}".`
     );
   }
@@ -724,7 +746,7 @@ function completeAbstractValue(
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown
-): PromiseOrValue<ObjMap<unknown>> {
+): PromiseOrValue<Record<string, unknown>> {
   const resolveTypeFn = returnType.resolveType ?? exeContext.typeResolver;
   const contextValue = exeContext.contextValue;
   const runtimeType = resolveTypeFn(result, contextValue, info, returnType);
@@ -761,7 +783,7 @@ function ensureValidRuntimeType(
   result: unknown
 ): GraphQLObjectType {
   if (runtimeTypeName == null) {
-    throw new GraphQLError(
+    throw createGraphQLError(
       `Abstract type "${returnType.name}" must resolve to an Object type at runtime for field "${info.parentType.name}.${info.fieldName}". Either the "${returnType.name}" type should provide a "resolveType" function or each possible type should provide an "isTypeOf" function.`,
       { nodes: fieldNodes }
     );
@@ -770,13 +792,13 @@ function ensureValidRuntimeType(
   // releases before 16.0.0 supported returning `GraphQLObjectType` from `resolveType`
   // TODO: remove in 17.0.0 release
   if (isObjectType(runtimeTypeName)) {
-    throw new GraphQLError(
+    throw createGraphQLError(
       'Support for returning GraphQLObjectType from resolveType was removed in graphql-js@16.0.0 please return type name instead.'
     );
   }
 
   if (typeof runtimeTypeName !== 'string') {
-    throw new GraphQLError(
+    throw createGraphQLError(
       `Abstract type "${returnType.name}" must resolve to an Object type at runtime for field "${info.parentType.name}.${info.fieldName}" with ` +
         `value ${inspect(result)}, received "${inspect(runtimeTypeName)}".`
     );
@@ -784,21 +806,21 @@ function ensureValidRuntimeType(
 
   const runtimeType = exeContext.schema.getType(runtimeTypeName);
   if (runtimeType == null) {
-    throw new GraphQLError(
+    throw createGraphQLError(
       `Abstract type "${returnType.name}" was resolved to a type "${runtimeTypeName}" that does not exist inside the schema.`,
       { nodes: fieldNodes }
     );
   }
 
   if (!isObjectType(runtimeType)) {
-    throw new GraphQLError(
+    throw createGraphQLError(
       `Abstract type "${returnType.name}" was resolved to a non-object type "${runtimeTypeName}".`,
       { nodes: fieldNodes }
     );
   }
 
   if (!exeContext.schema.isSubType(returnType, runtimeType)) {
-    throw new GraphQLError(
+    throw createGraphQLError(
       `Runtime Object type "${runtimeType.name}" is not a possible type for "${returnType.name}".`,
       { nodes: fieldNodes }
     );
@@ -817,9 +839,15 @@ function completeObjectValue(
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown
-): PromiseOrValue<ObjMap<unknown>> {
+): PromiseOrValue<Record<string, unknown>> {
   // Collect sub-fields to execute to complete this value.
-  const subFieldNodes = collectSubfields(exeContext, returnType, fieldNodes);
+  const subFieldNodes = collectSubFields(
+    exeContext.schema,
+    exeContext.fragments,
+    exeContext.variableValues,
+    returnType,
+    fieldNodes as FieldNode[]
+  );
 
   // If there is an isTypeOf predicate function, call it with the
   // current result. If isTypeOf returns false, then raise an error rather
@@ -849,7 +877,7 @@ function invalidReturnTypeError(
   result: unknown,
   fieldNodes: ReadonlyArray<FieldNode>
 ): GraphQLError {
-  return new GraphQLError(`Expected value of type "${returnType.name}" but got: ${inspect(result)}.`, {
+  return createGraphQLError(`Expected value of type "${returnType.name}" but got: ${inspect(result)}.`, {
     nodes: fieldNodes,
   });
 }
@@ -947,9 +975,7 @@ export const defaultFieldResolver: GraphQLFieldResolver<unknown, unknown> = func
  *
  * Accepts either an object with named arguments, or individual arguments.
  */
-export function subscribe(
-  args: ExecutionArgs
-): PromiseOrValue<AsyncGenerator<ExecutionResult, void, void> | ExecutionResult> {
+export function subscribe(args: ExecutionArgs): PromiseOrValue<AsyncIterable<ExecutionResult> | ExecutionResult> {
   // If a valid execution context cannot be created due to incorrect arguments,
   // a "Response" with only errors is returned.
   const exeContext = buildExecutionContext(args);
@@ -971,7 +997,7 @@ export function subscribe(
 function mapSourceToResponse(
   exeContext: ExecutionContext,
   resultOrStream: ExecutionResult | AsyncIterable<unknown>
-): PromiseOrValue<AsyncGenerator<ExecutionResult, void, void> | ExecutionResult> {
+): PromiseOrValue<AsyncIterable<ExecutionResult> | ExecutionResult> {
   if (!isAsyncIterable(resultOrStream)) {
     return resultOrStream;
   }
@@ -982,7 +1008,7 @@ function mapSourceToResponse(
   // the GraphQL specification. The `execute` function provides the
   // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
   // "ExecuteQuery" algorithm, for which `execute` is also used.
-  return mapAsyncIterator(resultOrStream, (payload: unknown) =>
+  return mapAsyncIterator(resultOrStream[Symbol.asyncIterator](), (payload: unknown) =>
     executeImpl(buildPerEventExecutionContext(exeContext, payload))
   );
 }
@@ -1048,7 +1074,7 @@ function executeSubscription(exeContext: ExecutionContext): PromiseOrValue<Async
 
   const rootType = schema.getSubscriptionType();
   if (rootType == null) {
-    throw new GraphQLError('Schema is not configured to execute subscription operation.', { nodes: operation });
+    throw createGraphQLError('Schema is not configured to execute subscription operation.', { nodes: operation });
   }
 
   const rootFields = collectFields(schema, fragments, variableValues, rootType, operation.selectionSet);
@@ -1057,7 +1083,7 @@ function executeSubscription(exeContext: ExecutionContext): PromiseOrValue<Async
   const fieldDef = getFieldDef(schema, rootType, fieldNodes[0]);
 
   if (!fieldDef) {
-    throw new GraphQLError(`The subscription field "${fieldName}" is not defined.`, { nodes: fieldNodes });
+    throw createGraphQLError(`The subscription field "${fieldName}" is not defined.`, { nodes: fieldNodes });
   }
 
   const path = addPath(undefined, responseName, rootType.name);
@@ -1100,7 +1126,7 @@ function assertEventStream(result: unknown): AsyncIterable<unknown> {
 
   // Assert field returned an event stream, otherwise yield an error.
   if (!isAsyncIterable(result)) {
-    throw new GraphQLError('Subscription field must return Async Iterable. ' + `Received: ${inspect(result)}.`);
+    throw createGraphQLError('Subscription field must return Async Iterable. ' + `Received: ${inspect(result)}.`);
   }
 
   return result;

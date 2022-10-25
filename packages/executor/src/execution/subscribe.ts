@@ -1,10 +1,13 @@
+import {
+  collectFields,
+  mapAsyncIterator,
+  inspect,
+  isAsyncIterable,
+  createGraphQLError,
+  Maybe,
+} from '@graphql-tools/utils';
 import { GraphQLError, locatedError, DocumentNode, GraphQLFieldResolver, GraphQLSchema } from 'graphql';
-import { devAssert } from 'graphql/jsutils/devAssert.js';
-import { inspect } from 'graphql/jsutils/inspect.js';
-import { isAsyncIterable } from 'graphql/jsutils/isAsyncIterable.js';
-import type { Maybe } from 'graphql/jsutils/Maybe.js';
 import { addPath, pathToArray } from 'graphql/jsutils/Path.js';
-import { collectFields } from './collectFields.js';
 import type { ExecutionArgs, ExecutionContext, ExecutionResult } from './execute.js';
 import {
   assertValidExecutionArguments,
@@ -13,7 +16,6 @@ import {
   execute,
   getFieldDef,
 } from './execute.js';
-import { mapAsyncIterator } from './mapAsyncIterator.js';
 import { getArgumentValues } from './values.js';
 
 /**
@@ -37,11 +39,9 @@ import { getArgumentValues } from './values.js';
  *
  * Accepts either an object with named arguments, or individual arguments.
  */
-export async function subscribe(
-  args: ExecutionArgs
-): Promise<AsyncGenerator<ExecutionResult, void, void> | ExecutionResult> {
+export async function subscribe(args: ExecutionArgs): Promise<AsyncIterable<ExecutionResult> | ExecutionResult> {
   // Temporary for v15 to v16 migration. Remove in v17
-  devAssert(
+  console.assert(
     arguments.length < 2,
     'graphql@16 dropped long-deprecated support for positional arguments, please pass an object instead.'
   );
@@ -89,7 +89,7 @@ export async function subscribe(
     });
 
   // Map every source value to a ExecutionResult value as described above.
-  return mapAsyncIterator(resultOrStream, mapSourceToResponse);
+  return mapAsyncIterator(resultOrStream[Symbol.asyncIterator](), mapSourceToResponse);
 }
 
 /**
@@ -174,7 +174,7 @@ async function executeSubscription(exeContext: ExecutionContext): Promise<unknow
 
   const rootType = schema.getSubscriptionType();
   if (rootType == null) {
-    throw new GraphQLError('Schema is not configured to execute subscription operation.', { nodes: operation });
+    throw createGraphQLError('Schema is not configured to execute subscription operation.', { nodes: operation });
   }
 
   const rootFields = collectFields(schema, fragments, variableValues, rootType, operation.selectionSet);
@@ -183,7 +183,7 @@ async function executeSubscription(exeContext: ExecutionContext): Promise<unknow
 
   if (!fieldDef) {
     const fieldName = fieldNodes[0].name.value;
-    throw new GraphQLError(`The subscription field "${fieldName}" is not defined.`, { nodes: fieldNodes });
+    throw createGraphQLError(`The subscription field "${fieldName}" is not defined.`, { nodes: fieldNodes });
   }
 
   const path = addPath(undefined, responseName, rootType.name);

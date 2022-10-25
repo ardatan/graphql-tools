@@ -93,17 +93,10 @@ function formatArray(array: ReadonlyArray<unknown>, seenValues: ReadonlyArray<un
   }
 
   const len = array.length;
-  const remaining = array.length;
   const items = [];
 
   for (let i = 0; i < len; ++i) {
     items.push(formatValue(array[i], seenValues));
-  }
-
-  if (remaining === 1) {
-    items.push('... 1 more item');
-  } else if (remaining > 1) {
-    items.push(`... ${remaining} more items`);
   }
 
   return '[' + items.join(', ') + ']';
