@@ -36,6 +36,7 @@ import {
   collectFields,
   collectSubFields,
   createGraphQLError,
+  getRootTypeMap,
   inspect,
   isAsyncIterable,
   mapAsyncIterator,
@@ -308,7 +309,8 @@ function buildPerEventExecutionContext(exeContext: ExecutionContext, payload: un
  */
 function executeOperation(exeContext: ExecutionContext): PromiseOrValue<Record<string, unknown>> {
   const { operation, schema, fragments, variableValues, rootValue } = exeContext;
-  const rootType = schema.getRootType(operation.operation);
+  const rootTypeMap = getRootTypeMap(schema);
+  const rootType = rootTypeMap.get(operation.operation);
   if (rootType == null) {
     throw createGraphQLError(`Schema is not configured to execute ${operation.operation} operation.`, {
       nodes: operation,
