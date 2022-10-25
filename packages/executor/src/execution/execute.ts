@@ -6,7 +6,6 @@ import {
   FieldNode,
   FragmentDefinitionNode,
   OperationDefinitionNode,
-  OperationTypeNode,
   Kind,
   GraphQLAbstractType,
   GraphQLField,
@@ -327,15 +326,16 @@ function executeOperation(exeContext: ExecutionContext): PromiseOrValue<Record<s
   const path = undefined;
 
   switch (operation.operation) {
-    case OperationTypeNode.QUERY:
+    case 'query':
       return executeFields(exeContext, rootType, rootValue, path, rootFields);
-    case OperationTypeNode.MUTATION:
+    case 'mutation':
       return executeFieldsSerially(exeContext, rootType, rootValue, path, rootFields);
-    case OperationTypeNode.SUBSCRIPTION:
+    case 'subscription':
       // TODO: deprecate `subscribe` and move all logic here
       // Temporary solution until we finish merging execute and subscribe together
       return executeFields(exeContext, rootType, rootValue, path, rootFields);
   }
+  throw new Error(`Can only execute queries, mutations and subscriptions, got "${operation.operation}".`);
 }
 
 /**
