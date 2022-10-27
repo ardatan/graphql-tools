@@ -1,5 +1,13 @@
 # @graphql-tools/links
 
+## 8.3.13
+
+### Patch Changes
+
+- Updated dependencies [[`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f)]:
+  - @graphql-tools/delegate@9.0.9
+  - @graphql-tools/utils@8.13.0
+
 ## 8.3.12
 
 ### Patch Changes

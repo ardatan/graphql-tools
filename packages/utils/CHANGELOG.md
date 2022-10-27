@@ -1,5 +1,17 @@
 # @graphql-tools/utils
 
+## 8.13.0
+
+### Minor Changes
+
+- [#4778](https://github.com/ardatan/graphql-tools/pull/4778) [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f) Thanks [@saihaj](https://github.com/saihaj)! - add isIterableObject, isObjectLike, isPromise, promiseReduce, hasOwnProperty
+
+- [#4778](https://github.com/ardatan/graphql-tools/pull/4778) [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f) Thanks [@saihaj](https://github.com/saihaj)! - add `Path` util from `graphql/jsutils`
+
+### Patch Changes
+
+- [#4778](https://github.com/ardatan/graphql-tools/pull/4778) [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f) Thanks [@saihaj](https://github.com/saihaj)! - improve inpsect util
+
 ## 8.12.0
 
 ### Minor Changes
