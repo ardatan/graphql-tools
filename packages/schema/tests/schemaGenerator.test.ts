@@ -712,8 +712,8 @@ describe('generating schema from shorthand', () => {
       },
     };
     const jsSchema = makeExecutableSchema({
-      typeDefs: typeDefs,
-      resolvers: resolvers,
+      typeDefs,
+      resolvers,
       resolverValidationOptions: {
         requireResolversToMatchSchema: 'ignore',
       },

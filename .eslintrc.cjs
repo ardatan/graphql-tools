@@ -32,6 +32,20 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     'default-param-last': 'off',
     'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/*.test.ts', '**/*.spec.ts'] }],
+    'no-restricted-imports': ['error', {
+      'paths': [
+        {
+          'name': 'graphql',
+          'importNames': ['execute'],
+          'message': 'Please use `execute` from `graphql-lfg` instead.',
+        },
+        {
+          'name': 'graphql',
+          'importNames': ['subscribe'],
+          'message': 'Please use `subscribe` from `graphql-lfg` instead.',
+        }
+      ],
+    }],
   },
   env: {
     es6: true,

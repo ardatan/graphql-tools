@@ -20,7 +20,7 @@ function parseNoProxyZone(zone: any) {
   const zonePort = zoneParts[1];
   const hasPort = zone.indexOf(':') > -1;
 
-  return { hostname: zoneHost, port: zonePort, hasPort: hasPort };
+  return { hostname: zoneHost, port: zonePort, hasPort };
 }
 
 function uriInNoProxy(uri: any, noProxy: any) {
