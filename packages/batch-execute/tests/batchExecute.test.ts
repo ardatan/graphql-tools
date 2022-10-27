@@ -1,7 +1,7 @@
-import { parse, print, OperationDefinitionNode } from 'graphql';
+import { parse, print, OperationDefinitionNode, validate } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createBatchingExecutor } from '@graphql-tools/batch-execute';
-import { ExecutionResult, Executor } from '@graphql-tools/utils';
+import { createGraphQLError, ExecutionResult, Executor } from '@graphql-tools/utils';
 import { execute } from '@graphql-tools/executor';
 
 describe('batch execution', () => {
@@ -33,10 +33,14 @@ describe('batch execution', () => {
     },
   });
 
-  const exec: Executor = ({ document, variables }) => {
+  const exec: Executor = async ({ document, variables }) => {
     executorCalls += 1;
     executorDocument = print(document);
     executorVariables = variables;
+    const errors = validate(schema, document);
+    if (errors.length > 0) {
+      return { errors };
+    }
     return execute({
       schema,
       document,
