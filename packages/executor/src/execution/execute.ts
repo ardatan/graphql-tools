@@ -318,12 +318,7 @@ function buildPerEventExecutionContext(exeContext: ExecutionContext, payload: un
  */
 function executeOperation(exeContext: ExecutionContext): MaybePromise<Record<string, unknown>> {
   const { operation, schema, fragments, variableValues, rootValue } = exeContext;
-  const rootType = getDefinedRootType(schema, operation.operation);
-  if (rootType == null) {
-    throw createGraphQLError(`Schema is not configured to execute ${operation.operation} operation.`, {
-      nodes: operation,
-    });
-  }
+  const rootType = getDefinedRootType(schema, operation.operation, [operation]);
 
   const rootFields = collectFields(schema, fragments, variableValues, rootType, operation.selectionSet);
   const path = undefined;
