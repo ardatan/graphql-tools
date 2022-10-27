@@ -1,8 +1,9 @@
-import { graphql, Kind, GraphQLError, OperationTypeNode } from 'graphql';
+import { graphql, Kind, OperationTypeNode } from 'graphql';
 
 import { createRequest } from '../src/createRequest.js';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { delegateRequest } from '../src/delegateToSchema.js';
+import { createGraphQLError } from '@graphql-tools/utils';
 
 describe('bare requests', () => {
   test('should work', async () => {
@@ -254,7 +255,7 @@ describe('bare requests', () => {
       data: {
         delegate: null,
       },
-      errors: [new GraphQLError('test')],
+      errors: [createGraphQLError('test')],
     });
   });
 });

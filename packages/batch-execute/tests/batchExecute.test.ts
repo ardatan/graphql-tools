@@ -1,7 +1,7 @@
 import { parse, print, OperationDefinitionNode, validate } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createBatchingExecutor } from '@graphql-tools/batch-execute';
-import { createGraphQLError, ExecutionResult, Executor } from '@graphql-tools/utils';
+import { ExecutionResult, Executor } from '@graphql-tools/utils';
 import { execute } from '@graphql-tools/executor';
 
 describe('batch execution', () => {
