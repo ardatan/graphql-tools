@@ -325,6 +325,6 @@ describe('executor errors are propagated', () => {
       },
     });
 
-    expect(result.errors).toEqual([new GraphQLError('Service is down')]);
+    expect(result.errors).toEqual([createGraphQLError('Service is down')]);
   });
 });

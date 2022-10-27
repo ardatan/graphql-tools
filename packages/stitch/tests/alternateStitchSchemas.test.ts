@@ -1,7 +1,6 @@
 import {
   graphql,
   GraphQLSchema,
-  subscribe,
   parse,
   GraphQLScalarType,
   FieldNode,
@@ -12,7 +11,6 @@ import {
   isSpecifiedScalarType,
   GraphQLNamedType,
   Kind,
-  execute,
   OperationTypeNode,
 } from 'graphql';
 
@@ -47,6 +45,7 @@ import {
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from '../../testing/fixtures/schemas.js';
+import { execute, subscribe } from '@graphql-tools/executor';
 
 const linkSchema = /* GraphQL */ `
   """

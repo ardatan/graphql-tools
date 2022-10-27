@@ -34,9 +34,9 @@ jobs:
     name: Type Check on GraphQL v${{matrix.graphql_version}}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         graphql_version:
-          - 14
           - 15
           - 16
           - '17.0.0-alpha.1'
@@ -64,7 +64,6 @@ jobs:
         os: [ubuntu-latest] # remove windows to speed up the tests
         node-version: [14, 16, 18]
         graphql_version:
-          - 14
           - 15
           - 16
           - '17.0.0-alpha.1'

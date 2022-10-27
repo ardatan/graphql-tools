@@ -1,5 +1,6 @@
+import { execute } from '@graphql-tools/executor';
 import { wrapSchema, RenameTypes } from '@graphql-tools/wrap';
-import { execute, GraphQLSchema, parse } from 'graphql';
+import { GraphQLSchema, parse } from 'graphql';
 import { propertySchema } from '../../testing/fixtures/schemas.js';
 
 describe('RenameTypes', () => {

@@ -11,7 +11,6 @@ import {
   parse,
   GraphQLError,
   GraphQLEnumType,
-  execute,
   VariableDefinitionNode,
   DocumentNode,
   GraphQLBoolean,
@@ -24,6 +23,7 @@ import { makeExecutableSchema, addResolversToSchema, chainResolvers } from '@gra
 import { IResolverValidationOptions, IResolvers, ExecutionResult, TypeSource } from '@graphql-tools/utils';
 
 import TypeA from './fixtures/circularSchemaA.js';
+import { execute } from '@graphql-tools/executor';
 
 interface Bird {
   name: string;
@@ -712,8 +712,8 @@ describe('generating schema from shorthand', () => {
       },
     };
     const jsSchema = makeExecutableSchema({
-      typeDefs: typeDefs,
-      resolvers: resolvers,
+      typeDefs,
+      resolvers,
       resolverValidationOptions: {
         requireResolversToMatchSchema: 'ignore',
       },

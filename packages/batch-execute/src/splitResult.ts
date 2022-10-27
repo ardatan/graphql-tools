@@ -1,8 +1,8 @@
 // adapted from https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
 
-import { ExecutionResult, GraphQLError } from 'graphql';
+import { GraphQLError } from 'graphql';
 
-import { relocatedError } from '@graphql-tools/utils';
+import { createGraphQLError, ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
 import { parseKey } from './prefix.js';
 
@@ -41,7 +41,7 @@ export function splitResult({ data, errors }: ExecutionResult, numResults: numbe
       } else {
         splitResults.forEach(result => {
           const resultErrors = (result.errors = (result.errors || []) as GraphQLError[]);
-          resultErrors.push(new GraphQLError(error.message));
+          resultErrors.push(createGraphQLError(error.message));
         });
       }
     }

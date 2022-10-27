@@ -1,7 +1,8 @@
 import { wrapSchema, FilterInputObjectFields } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { graphql, astFromValue, Kind, GraphQLString, parse, execute } from 'graphql';
+import { graphql, astFromValue, Kind, GraphQLString, parse } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
+import { execute } from '@graphql-tools/executor';
 
 describe('FilterInputObjectFields', () => {
   const schema = makeExecutableSchema({

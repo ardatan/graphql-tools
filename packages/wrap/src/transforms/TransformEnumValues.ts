@@ -1,6 +1,6 @@
-import { GraphQLSchema, GraphQLEnumValueConfig, ExecutionResult } from 'graphql';
+import { GraphQLSchema, GraphQLEnumValueConfig } from 'graphql';
 
-import { ExecutionRequest, MapperKind, mapSchema, Maybe } from '@graphql-tools/utils';
+import { ExecutionRequest, ExecutionResult, MapperKind, mapSchema, Maybe } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 

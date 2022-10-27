@@ -1,4 +1,4 @@
-import { buildSchema, parse, GraphQLError, getIntrospectionQuery, introspectionFromSchema } from 'graphql';
+import { buildSchema, parse, getIntrospectionQuery, introspectionFromSchema } from 'graphql';
 
 import { createGraphQLError, ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 
@@ -394,7 +394,7 @@ describe('visiting errors', () => {
         },
       },
       errors: [
-        new GraphQLError('unpathed error'),
+        createGraphQLError('unpathed error'),
         createGraphQLError('pathed error', {
           path: ['test', 'field'],
         }),
@@ -414,7 +414,7 @@ describe('visiting errors', () => {
         },
       },
       errors: [
-        new GraphQLError('unpathed error'),
+        createGraphQLError('unpathed error'),
         createGraphQLError('pathed error', {
           path: ['test', 'field'],
         }),

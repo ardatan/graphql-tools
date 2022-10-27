@@ -1,5 +1,4 @@
-import { ExecutionResult } from 'graphql';
-import { inspect, isAsyncIterable } from '@graphql-tools/utils';
+import { ExecutionResult, inspect, isAsyncIterable } from '@graphql-tools/utils';
 import { handleAsyncIterable } from './handleAsyncIterable.js';
 import { handleReadableStream } from './handleReadableStream.js';
 import { addCancelToResponseStream } from './addCancelToResponseStream.js';

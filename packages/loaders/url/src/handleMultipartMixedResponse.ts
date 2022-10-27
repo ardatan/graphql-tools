@@ -1,8 +1,8 @@
-import type { ExecutionResult, GraphQLError } from 'graphql';
+import type { GraphQLError } from 'graphql';
 import type { IncomingMessage } from 'http';
 import { meros as merosIncomingMessage } from 'meros/node';
 import { meros as merosReadableStream } from 'meros/browser';
-import { mapAsyncIterator } from '@graphql-tools/utils';
+import { ExecutionResult, mapAsyncIterator } from '@graphql-tools/utils';
 import { dset } from 'dset/merge';
 import { addCancelToResponseStream } from './event-stream/addCancelToResponseStream.js';
 

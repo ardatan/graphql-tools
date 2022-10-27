@@ -1,6 +1,7 @@
 import { File } from '@whatwg-node/fetch';
 import { readFileSync } from 'fs';
-import { execute, GraphQLSchema, parse } from 'graphql';
+import { execute } from '@graphql-tools/executor';
+import { GraphQLSchema, parse } from 'graphql';
 import { join } from 'path';
 import { assertNonMaybe, testSchema } from './test-utils';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';

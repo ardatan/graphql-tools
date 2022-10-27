@@ -1,7 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { assertSome, ExecutionResult } from '@graphql-tools/utils';
-import { graphql, GraphQLError, GraphQLSchema } from 'graphql';
+import { assertSome, createGraphQLError, ExecutionResult } from '@graphql-tools/utils';
+import { graphql, GraphQLSchema } from 'graphql';
 
 describe('merge failures', () => {
   const firstSchema = makeExecutableSchema({
@@ -82,7 +82,7 @@ describe('merge failures', () => {
 
     const expectedResult: ExecutionResult = {
       data: { thing: null },
-      errors: [new GraphQLError('unable to produce the thing')],
+      errors: [createGraphQLError('unable to produce the thing')],
     };
 
     expect(result).toEqual(expectedResult);
@@ -188,7 +188,7 @@ describe('merge failures', () => {
 
     const expectedResult: ExecutionResult = {
       data: { thing: null },
-      errors: [new GraphQLError('Cannot return null for non-nullable field Thing.description.')],
+      errors: [createGraphQLError('Cannot return null for non-nullable field Thing.description.')],
     };
 
     expect(result).toEqual(expectedResult);
@@ -229,7 +229,7 @@ describe('merge failures', () => {
 
     const expectedResult: ExecutionResult = {
       data: { thing: null },
-      errors: [new GraphQLError('Cannot return null for non-nullable field Thing.id.')],
+      errors: [createGraphQLError('Cannot return null for non-nullable field Thing.id.')],
     };
 
     expect(result).toEqual(expectedResult);

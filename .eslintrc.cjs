@@ -32,6 +32,18 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     'default-param-last': 'off',
     'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/*.test.ts', '**/*.spec.ts'] }],
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: [
+          {
+            name: 'graphql',
+            importNames: ['ExecutionResult', 'ExecutionArgs', 'execute', 'subscribe'],
+            message: 'Please use `execute` and `subscribe` from `@graphql-tools/executro` instead.',
+          },
+        ],
+      },
+    ],
   },
   env: {
     es6: true,
@@ -66,6 +78,20 @@ module.exports = {
         'no-throw-literal': 'off',
         'promise/param-names': 'off',
         eqeqeq: 'off',
+      },
+    },
+    {
+      files: ['packages/executor/**'],
+      env: {
+        jest: true,
+      },
+      rules: {
+        // TODO: Enable us incrementally
+        '@typescript-eslint/ban-ts-comment': 'off',
+        '@typescript-eslint/no-inferrable-types': 'off',
+        'prefer-rest-params': 'off',
+        'no-throw-literal': 'off',
+        'promise/param-names': 'off',
       },
     },
   ],

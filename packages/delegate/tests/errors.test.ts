@@ -1,4 +1,4 @@
-import { GraphQLError, GraphQLResolveInfo, locatedError, graphql, OperationTypeNode } from 'graphql';
+import { GraphQLResolveInfo, locatedError, graphql, OperationTypeNode } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createGraphQLError, ExecutionResult } from '@graphql-tools/utils';
@@ -40,7 +40,7 @@ describe('Errors', () => {
 
     test('persists single error', () => {
       const result = {
-        errors: [new GraphQLError('Test error')],
+        errors: [createGraphQLError('Test error')],
       };
       try {
         checkResultAndHandleErrors(result, {
@@ -77,7 +77,7 @@ describe('Errors', () => {
 
     test('combines errors and persists the original errors', () => {
       const result = {
-        errors: [new GraphQLError('Error1'), new GraphQLError('Error2')],
+        errors: [createGraphQLError('Error1'), createGraphQLError('Error2')],
       };
       try {
         checkResultAndHandleErrors(result, {

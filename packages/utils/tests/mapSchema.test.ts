@@ -5,7 +5,6 @@ import {
   buildSchema,
   getNamedType,
   defaultFieldResolver,
-  ExecutionResult,
   graphql,
   GraphQLEnumType,
   GraphQLFieldConfig,
@@ -25,7 +24,7 @@ import {
 } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { MapperKind, mapSchema, getDirectives, getDirective } from '../src/index.js';
+import { MapperKind, mapSchema, getDirectives, getDirective, ExecutionResult } from '../src/index.js';
 import { createHash } from 'crypto';
 import { addMocksToSchema } from '@graphql-tools/mock';
 import formatDate from 'dateformat';

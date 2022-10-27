@@ -18,7 +18,6 @@ import {
   GraphQLDirective,
   FragmentDefinitionNode,
   SelectionNode,
-  ExecutionResult as GraphQLExecutionResult,
   GraphQLOutputType,
   FieldDefinitionNode,
   GraphQLFieldConfig,
@@ -46,15 +45,21 @@ import {
   Source,
   DefinitionNode,
   OperationTypeNode,
+  GraphQLError,
 } from 'graphql';
 
-// graphql-js < v15 backwards compatible ExecutionResult
-// See: https://github.com/graphql/graphql-js/pull/2490
-
-export type ExecutionResult<TData = Record<string, any>> = GraphQLExecutionResult<TData> & {
+/**
+ * The result of GraphQL execution.
+ *
+ *   - `errors` is included when any errors occurred as a non-empty array.
+ *   - `data` is the result of a successful execution of the query.
+ *   - `extensions` is reserved for adding non-standard properties.
+ */
+export interface ExecutionResult<TData = any, TExtensions = any> {
+  errors?: ReadonlyArray<GraphQLError>;
   data?: TData | null;
-  extensions?: Record<string, any>;
-};
+  extensions?: TExtensions;
+}
 
 export interface ExecutionRequest<
   TArgs extends Record<string, any> = Record<string, any>,

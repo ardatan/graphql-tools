@@ -1,6 +1,7 @@
 import { wrapSchema } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { execute, parse } from 'graphql';
+import { execute } from '@graphql-tools/executor';
+import { parse } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
 
 import RenameObjectFieldArguments from '../src/transforms/RenameObjectFieldArguments.js';
