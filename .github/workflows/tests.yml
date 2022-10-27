@@ -37,7 +37,6 @@ jobs:
       fail-fast: false
       matrix:
         graphql_version:
-          - 14
           - 15
           - 16
           - '17.0.0-alpha.1'
