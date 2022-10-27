@@ -1125,3 +1125,5 @@ export function getFieldDef(
   }
   return parentType.getFields()[fieldName];
 }
+
+export { ExecutionResult } from '@graphql-tools/utils';
