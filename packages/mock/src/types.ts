@@ -1,5 +1,5 @@
-import { IResolvers } from '@graphql-tools/utils';
-import { ExecutionResult, GraphQLSchema } from 'graphql';
+import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
+import { GraphQLSchema } from 'graphql';
 
 export type IMockFn = () => unknown;
 export type IScalarMock = unknown | IMockFn;

@@ -38,7 +38,7 @@ module.exports = {
         paths: [
           {
             name: 'graphql',
-            importNames: ['ExecutionArgs', 'execute', 'subscribe'],
+            importNames: ['ExecutionResult', 'ExecutionArgs', 'execute', 'subscribe'],
             message: 'Please use `execute` and `subscribe` from `@graphql-tools/executro` instead.',
           },
         ],

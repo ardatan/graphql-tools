@@ -11,11 +11,11 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import type { ExecutionArgs, ExecutionResult } from '../execute.js';
+import type { ExecutionArgs } from '../execute.js';
 import { createSourceEventStream, subscribe } from '../execute.js';
 
 import { SimplePubSub } from './simplePubSub.js';
-import { isAsyncIterable, isPromise, MaybePromise } from '@graphql-tools/utils';
+import { ExecutionResult, isAsyncIterable, isPromise, MaybePromise } from '@graphql-tools/utils';
 
 interface Email {
   from: string;

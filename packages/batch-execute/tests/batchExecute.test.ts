@@ -1,7 +1,8 @@
-import { graphql, parse, print, OperationDefinitionNode, ExecutionResult } from 'graphql';
+import { parse, print, OperationDefinitionNode } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createBatchingExecutor } from '@graphql-tools/batch-execute';
-import { Executor } from '@graphql-tools/utils';
+import { ExecutionResult, Executor } from '@graphql-tools/utils';
+import { execute } from '@graphql-tools/executor';
 
 describe('batch execution', () => {
   let executorCalls = 0;
@@ -32,16 +33,16 @@ describe('batch execution', () => {
     },
   });
 
-  const exec = (({ document, variables }) => {
+  const exec: Executor = ({ document, variables }) => {
     executorCalls += 1;
     executorDocument = print(document);
     executorVariables = variables;
-    return graphql({
+    return execute({
       schema,
-      source: executorDocument,
+      document,
       variableValues: executorVariables,
     });
-  }) as Executor;
+  };
 
   const batchExec = createBatchingExecutor(exec);
 

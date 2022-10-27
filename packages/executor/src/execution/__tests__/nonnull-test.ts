@@ -1,6 +1,6 @@
+import { ExecutionResult } from '@graphql-tools/utils';
 import { GraphQLNonNull, GraphQLObjectType, GraphQLSchema, GraphQLString, parse, buildSchema } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
-import type { ExecutionResult } from '../execute.js';
 import { execute, executeSync } from '../execute.js';
 
 const syncError = new Error('sync');

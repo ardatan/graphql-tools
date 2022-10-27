@@ -232,5 +232,5 @@ export const createDefaultExecutor = memoize1(function createDefaultExecutor(sch
       return subscribe(executionArgs);
     }
     return execute(executionArgs);
-  } as Executor;
+  };
 });

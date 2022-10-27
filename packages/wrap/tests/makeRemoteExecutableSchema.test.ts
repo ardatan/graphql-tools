@@ -1,4 +1,4 @@
-import { GraphQLSchema, parse, print, ExecutionResult, buildSchema, graphql } from 'graphql';
+import { GraphQLSchema, parse, print, buildSchema, graphql } from 'graphql';
 
 import { wrapSchema } from '../src/index.js';
 
@@ -10,6 +10,7 @@ import {
   makeSchemaRemote,
 } from '../../testing/fixtures/schemas.js';
 import { subscribe } from '@graphql-tools/executor';
+import { ExecutionResult } from '@graphql-tools/utils';
 
 describe('remote queries', () => {
   let schema: GraphQLSchema;

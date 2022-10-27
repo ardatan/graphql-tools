@@ -44,6 +44,7 @@ import {
   getArgumentValues,
   promiseReduce,
   getDefinedRootType,
+  ExecutionResult,
 } from '@graphql-tools/utils';
 import { getVariableValues } from './values.js';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
@@ -77,39 +78,26 @@ import { TypedDocumentNode } from '@graphql-typed-document-node/core';
  * Namely, schema of the type system that is currently executing,
  * and the fragments defined in the query document
  */
-export interface ExecutionContext {
+export interface ExecutionContext<TContext = any> {
   schema: GraphQLSchema;
   fragments: Record<string, FragmentDefinitionNode>;
   rootValue: unknown;
-  contextValue: unknown;
+  contextValue: TContext;
   operation: OperationDefinitionNode;
   variableValues: { [variable: string]: unknown };
-  fieldResolver: GraphQLFieldResolver<any, any>;
-  typeResolver: GraphQLTypeResolver<any, any>;
-  subscribeFieldResolver: GraphQLFieldResolver<any, any>;
+  fieldResolver: GraphQLFieldResolver<any, TContext>;
+  typeResolver: GraphQLTypeResolver<any, TContext>;
+  subscribeFieldResolver: GraphQLFieldResolver<any, TContext>;
   errors: Array<GraphQLError>;
 }
 
-/**
- * The result of GraphQL execution.
- *
- *   - `errors` is included when any errors occurred as a non-empty array.
- *   - `data` is the result of a successful execution of the query.
- *   - `extensions` is reserved for adding non-standard properties.
- */
-export interface ExecutionResult<TData = Record<string, unknown>, TExtensions = Record<string, unknown>> {
-  errors?: ReadonlyArray<GraphQLError>;
-  data?: TData | null;
-  extensions?: TExtensions;
-}
-
-export interface FormattedExecutionResult<TData = Record<string, unknown>, TExtensions = Record<string, unknown>> {
+export interface FormattedExecutionResult<TData = any, TExtensions = any> {
   errors?: ReadonlyArray<GraphQLFormattedError>;
   data?: TData | null;
   extensions?: TExtensions;
 }
 
-export interface ExecutionArgs<TData = { [key: string]: any }, TVariables = { [key: string]: any }, TContext = any> {
+export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
   schema: GraphQLSchema;
   document: TypedDocumentNode<TData, TVariables>;
   rootValue?: unknown;
@@ -131,7 +119,9 @@ export interface ExecutionArgs<TData = { [key: string]: any }, TVariables = { [k
  * If the arguments to this function do not result in a legal execution context,
  * a GraphQLError will be thrown immediately explaining the invalid input.
  */
-export function execute(args: ExecutionArgs): MaybePromise<ExecutionResult> {
+export function execute<TData = { [key: string]: any }, TVariables = { [key: string]: any }, TContext = any>(
+  args: ExecutionArgs<TData, TVariables, TContext>
+): MaybePromise<ExecutionResult<TData>> {
   // If a valid execution context cannot be created due to incorrect arguments,
   // a "Response" with only errors is returned.
   const exeContext = buildExecutionContext(args);

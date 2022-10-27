@@ -1,14 +1,7 @@
 import '../../../testing/to-be-similar-gql-doc';
 import { SubscriptionProtocol, UrlLoader } from '../src/index.js';
-import { printSchemaWithDirectives } from '@graphql-tools/utils';
-import {
-  parse,
-  print,
-  ExecutionResult,
-  introspectionFromSchema,
-  getIntrospectionQuery,
-  getOperationAST,
-} from 'graphql';
+import { ExecutionResult, printSchemaWithDirectives } from '@graphql-tools/utils';
+import { parse, print, introspectionFromSchema, getIntrospectionQuery, getOperationAST } from 'graphql';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { createHandler } from 'graphql-sse';
 import { Server as WSServer } from 'ws';

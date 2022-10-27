@@ -1,4 +1,4 @@
-import { MaybePromise } from '@graphql-tools/utils';
+import { ExecutionResult, MaybePromise } from '@graphql-tools/utils';
 import {
   parse,
   buildSchema,
@@ -9,7 +9,6 @@ import {
   GraphQLFieldResolver,
 } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
-import type { ExecutionResult } from '../execute.js';
 import { execute, executeSync } from '../execute.js';
 
 describe('Execute: Accepts any iterable as list value', () => {

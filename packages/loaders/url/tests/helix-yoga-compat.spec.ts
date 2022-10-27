@@ -1,12 +1,12 @@
 import { execute } from '@graphql-tools/executor';
-import { ExecutionResult, parse } from 'graphql';
+import { parse } from 'graphql';
 import { assertAsyncIterable, sleep } from './test-utils';
 import http from 'http';
 import { SubscriptionProtocol, UrlLoader } from '../src';
 import { GraphQLLiveDirectiveSDL } from '@envelop/live-query';
 import { InMemoryLiveQueryStore } from '@n1ru4l/in-memory-live-query-store';
 import { LiveExecutionResult } from '@n1ru4l/graphql-live-query';
-import { isAsyncIterable } from '@graphql-tools/utils';
+import { ExecutionResult, isAsyncIterable } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
 describe('helix/yoga compat', () => {

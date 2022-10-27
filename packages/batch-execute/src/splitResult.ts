@@ -1,8 +1,8 @@
 // adapted from https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
 
-import { ExecutionResult, GraphQLError } from 'graphql';
+import { GraphQLError } from 'graphql';
 
-import { relocatedError } from '@graphql-tools/utils';
+import { ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
 import { parseKey } from './prefix.js';
 

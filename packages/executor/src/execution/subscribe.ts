@@ -9,8 +9,9 @@ import {
   addPath,
   pathToArray,
   getArgumentValues,
+  ExecutionResult,
 } from '@graphql-tools/utils';
-import type { ExecutionArgs, ExecutionContext, ExecutionResult } from './execute.js';
+import type { ExecutionArgs, ExecutionContext } from './execute.js';
 import {
   assertValidExecutionArguments,
   buildExecutionContext,
