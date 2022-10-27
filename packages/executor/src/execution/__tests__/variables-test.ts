@@ -63,7 +63,7 @@ function fieldWithInputArg(inputArg: GraphQLArgumentConfig): GraphQLFieldConfig<
   return {
     type: GraphQLString,
     args: { input: inputArg },
-    resolve(_, args) {
+    resolve(_, args: any) {
       if ('input' in args) {
         return inspect(args.input);
       }

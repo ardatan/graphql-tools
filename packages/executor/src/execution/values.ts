@@ -8,6 +8,7 @@ import {
   coerceInputValue,
   typeFromAST,
   valueFromAST,
+  NamedTypeNode,
 } from 'graphql';
 import { createGraphQLError, hasOwnProperty, inspect, printPathArray } from '@graphql-tools/utils';
 
@@ -60,7 +61,7 @@ function coerceVariableValues(
   const coercedValues: { [variable: string]: unknown } = {};
   for (const varDefNode of varDefNodes) {
     const varName = varDefNode.variable.name.value;
-    const varType = typeFromAST(schema, varDefNode.type);
+    const varType = typeFromAST(schema, varDefNode.type as NamedTypeNode);
     if (!isInputType(varType)) {
       // Must use input types for variables. This should be caught during
       // validation, however is checked again here for safety.

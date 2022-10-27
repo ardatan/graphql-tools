@@ -846,7 +846,7 @@ describe('Execute: Handles basic execution tasks', () => {
   });
 
   it('resolves to an error if schema does not support operation', () => {
-    const schema = new GraphQLSchema({ assumeValid: true });
+    const schema = new GraphQLSchema({ assumeValid: true } as any);
 
     const document = parse(`
       query Q { __typename }
