@@ -1,8 +1,9 @@
-import { execute, GraphQLSchema, Kind, OperationTypeNode, parse } from 'graphql';
+import { GraphQLSchema, Kind, OperationTypeNode, parse } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { TransformQuery } from '@graphql-tools/wrap';
 import { QueryTransformer } from '@graphql-tools/wrap/src/transforms/TransformQuery';
 import { delegateToSchema } from '@graphql-tools/delegate';
+import { execute } from '@graphql-tools/executor';
 
 describe('TransformQuery', () => {
   let data: any;

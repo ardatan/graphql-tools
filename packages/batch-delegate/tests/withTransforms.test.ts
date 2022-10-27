@@ -1,4 +1,5 @@
-import { execute, GraphQLList, GraphQLObjectType, Kind, OperationTypeNode, parse } from 'graphql';
+import { execute } from '@graphql-tools/executor';
+import { GraphQLList, GraphQLObjectType, Kind, OperationTypeNode, parse } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';

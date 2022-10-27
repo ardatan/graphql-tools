@@ -6,7 +6,6 @@
 // https://github.com/ardatan/graphql-tools/issues/1959
 
 import {
-  execute,
   GraphQLBoolean,
   GraphQLID,
   GraphQLInputObjectType,
@@ -25,6 +24,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 
 import { stitchingDirectives } from '@graphql-tools/stitching-directives';
 import { ValidationLevel } from '../src/types.js';
+import { execute } from '@graphql-tools/executor';
 
 describe('merging using type merging', () => {
   const { stitchingDirectivesValidator, stitchingDirectivesTransformer } = stitchingDirectives();

@@ -2,8 +2,6 @@ import '../../../testing/to-be-similar-gql-doc';
 import { SubscriptionProtocol, UrlLoader } from '../src/index.js';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import {
-  execute,
-  subscribe,
   parse,
   print,
   ExecutionResult,
@@ -20,6 +18,7 @@ import { AsyncFetchFn, defaultAsyncFetch } from '../src/defaultAsyncFetch.js';
 import { Response, Headers } from '@whatwg-node/fetch';
 import { loadSchema } from '@graphql-tools/load';
 import { testUrl, testSchema, testTypeDefs, assertNonMaybe } from './test-utils';
+import { execute, subscribe } from '@graphql-tools/executor';
 
 describe('Schema URL Loader', () => {
   const loader = new UrlLoader();
@@ -366,8 +365,8 @@ describe('Schema URL Loader', () => {
     const subscriptionServer = useServer(
       {
         schema: testSchema, // from the previous step
-        execute,
-        subscribe,
+        execute: execute as any,
+        subscribe: subscribe as any,
       },
       wsServer
     );
@@ -429,8 +428,8 @@ describe('Schema URL Loader', () => {
     const subscriptionServer = SubscriptionServer.create(
       {
         schema: testSchema,
-        execute,
-        subscribe,
+        execute: execute as any,
+        subscribe: subscribe as any,
       },
       {
         server: httpServer,

@@ -1,6 +1,7 @@
 import { wrapSchema, TransformCompositeFields } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { execute, parse } from 'graphql';
+import { parse } from 'graphql';
+import { execute } from '@graphql-tools/executor';
 
 const baseSchema = makeExecutableSchema({
   typeDefs: /* GraphQL */ `

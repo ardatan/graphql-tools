@@ -1,4 +1,5 @@
-import { execute, ExecutionResult, parse } from 'graphql';
+import { execute } from '@graphql-tools/executor';
+import { ExecutionResult, parse } from 'graphql';
 import { assertAsyncIterable, sleep } from './test-utils';
 import http from 'http';
 import { SubscriptionProtocol, UrlLoader } from '../src';
@@ -209,7 +210,7 @@ describe('helix/yoga compat', () => {
       }
       active = true;
       pump();
-      const liveExecute = liveQueryStore.makeExecute(execute);
+      const liveExecute = liveQueryStore.makeExecute(execute as any);
       const schema = makeExecutableSchema({
         typeDefs: [
           /* GraphQL */ `

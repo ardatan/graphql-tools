@@ -1,10 +1,11 @@
 /* eslint-disable camelcase */
-import { graphql, GraphQLSchema, buildSchema, subscribe, parse } from 'graphql';
+import { graphql, GraphQLSchema, buildSchema, parse } from 'graphql';
 
 import { sentence, first_name } from 'casual';
 
 import { addMocksToSchema, MockList, mockServer, IMocks, IMockStore } from '../src/index.js';
 import { addResolversToSchema, makeExecutableSchema } from '@graphql-tools/schema';
+import { subscribe } from '@graphql-tools/executor';
 
 describe('Mock retro-compatibility', () => {
   const shorthand = /* GraphQL */ `

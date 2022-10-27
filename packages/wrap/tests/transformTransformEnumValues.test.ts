@@ -1,6 +1,7 @@
 import { wrapSchema, TransformEnumValues } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { execute, GraphQLEnumType, parse } from 'graphql';
+import { GraphQLEnumType, parse } from 'graphql';
+import { execute } from '@graphql-tools/executor';
 
 function assertGraphQLEnumType(input: unknown): asserts input is GraphQLEnumType {
   if (input instanceof GraphQLEnumType) {

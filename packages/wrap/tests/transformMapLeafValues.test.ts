@@ -1,6 +1,7 @@
 import { wrapSchema, MapLeafValues } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { execute, GraphQLSchema, parse } from 'graphql';
+import { execute } from '@graphql-tools/executor';
+import { GraphQLSchema, parse } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
 
 describe('MapLeafValues', () => {

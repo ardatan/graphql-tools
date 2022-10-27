@@ -7,12 +7,13 @@ import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
 import FormData from 'form-data';
 import fetch from 'node-fetch';
-import { buildSchema, execute, GraphQLSchema, parse } from 'graphql';
+import { buildSchema, GraphQLSchema, parse } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { SubschemaConfig } from '@graphql-tools/delegate';
 import { createServerHttpLink, GraphQLUpload as ServerGraphQLUpload, linkToExecutor } from '../src/index.js';
+import { execute } from '@graphql-tools/executor';
 
 function streamToString(stream: Readable) {
   const chunks: Array<Buffer> = [];

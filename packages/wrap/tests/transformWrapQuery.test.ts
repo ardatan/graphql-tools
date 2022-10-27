@@ -1,7 +1,8 @@
-import { execute, GraphQLSchema, Kind, OperationTypeNode, parse, SelectionSetNode } from 'graphql';
+import { GraphQLSchema, Kind, OperationTypeNode, parse, SelectionSetNode } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { WrapQuery } from '@graphql-tools/wrap';
 import { delegateToSchema } from '@graphql-tools/delegate';
+import { execute } from '@graphql-tools/executor';
 
 describe('WrapQuery', () => {
   let data: any;

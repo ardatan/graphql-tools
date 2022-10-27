@@ -3,12 +3,10 @@ import {
   GraphQLSchema,
   GraphQLObjectType,
   GraphQLScalarType,
-  subscribe,
   parse,
   printSchema,
   GraphQLResolveInfo,
   OperationTypeNode,
-  execute,
 } from 'graphql';
 
 import { delegateToSchema, SubschemaConfig, Transform } from '@graphql-tools/delegate';
@@ -35,6 +33,7 @@ import {
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from '../../testing/fixtures/schemas.js';
+import { execute, subscribe } from '@graphql-tools/executor';
 
 const removeLocations = ({ locations, positions, source, originalError, nodes, ...rest }: any): any => ({ ...rest });
 

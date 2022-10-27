@@ -15,7 +15,7 @@ import type { ExecutionArgs, ExecutionResult } from '../execute.js';
 import { createSourceEventStream, subscribe } from '../execute.js';
 
 import { SimplePubSub } from './simplePubSub.js';
-import { isAsyncIterable, isPromise, PromiseOrValue } from '@graphql-tools/utils';
+import { isAsyncIterable, isPromise, MaybePromise } from '@graphql-tools/utils';
 
 interface Email {
   from: string;
@@ -146,7 +146,7 @@ function expectPromise(maybePromise: unknown) {
 }
 
 // TODO: consider adding this method to testUtils (with tests)
-function expectEqualPromisesOrValues<T>(value1: PromiseOrValue<T>, value2: PromiseOrValue<T>): PromiseOrValue<T> {
+function expectEqualPromisesOrValues<T>(value1: MaybePromise<T>, value2: MaybePromise<T>): MaybePromise<T> {
   if (isPromise(value1)) {
     expect(isPromise(value2)).toBeTruthy();
     return Promise.all([value1, value2]).then(resolved => {
@@ -167,7 +167,7 @@ const DummyQueryType = new GraphQLObjectType({
   },
 });
 
-function subscribeWithBadFn(subscribeFn: () => unknown): PromiseOrValue<ExecutionResult | AsyncIterable<unknown>> {
+function subscribeWithBadFn(subscribeFn: () => unknown): MaybePromise<ExecutionResult | AsyncIterable<unknown>> {
   const schema = new GraphQLSchema({
     query: DummyQueryType,
     subscription: new GraphQLObjectType({
@@ -182,7 +182,7 @@ function subscribeWithBadFn(subscribeFn: () => unknown): PromiseOrValue<Executio
   return subscribeWithBadArgs({ schema, document });
 }
 
-function subscribeWithBadArgs(args: ExecutionArgs): PromiseOrValue<ExecutionResult | AsyncIterable<unknown>> {
+function subscribeWithBadArgs(args: ExecutionArgs): MaybePromise<ExecutionResult | AsyncIterable<unknown>> {
   return expectEqualPromisesOrValues(subscribe(args), createSourceEventStream(args));
 }
 

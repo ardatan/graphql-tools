@@ -1,4 +1,4 @@
-import { GraphQLError, locatedError, DocumentNode, GraphQLFieldResolver, GraphQLSchema } from 'graphql';
+import { GraphQLError, locatedError, GraphQLFieldResolver, GraphQLSchema } from 'graphql';
 import {
   collectFields,
   mapAsyncIterator,
@@ -18,6 +18,7 @@ import {
   execute,
   getFieldDef,
 } from './execute.js';
+import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 
 /**
  * Implements the "Subscribe" algorithm described in the GraphQL specification.
@@ -121,14 +122,18 @@ export async function subscribe(args: ExecutionArgs): Promise<AsyncIterable<Exec
  * or otherwise separating these two steps. For more on this, see the
  * "Supporting Subscriptions at Scale" information in the GraphQL specification.
  */
-export async function createSourceEventStream(
+export async function createSourceEventStream<
+  TData = { [key: string]: any },
+  TVariables = { [key: string]: any },
+  TContext = any
+>(
   schema: GraphQLSchema,
-  document: DocumentNode,
+  document: TypedDocumentNode<TData, TVariables>,
   rootValue?: unknown,
-  contextValue?: unknown,
-  variableValues?: Maybe<{ readonly [variable: string]: unknown }>,
+  contextValue?: TContext,
+  variableValues?: TVariables,
   operationName?: Maybe<string>,
-  subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, any>>
+  subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>
 ): Promise<AsyncIterable<unknown> | ExecutionResult> {
   // If arguments are missing or incorrectly typed, this is an internal
   // developer mistake which should throw an early error.

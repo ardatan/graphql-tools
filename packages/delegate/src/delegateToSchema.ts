@@ -5,9 +5,6 @@ import {
   OperationTypeNode,
   DocumentNode,
   GraphQLOutputType,
-  ExecutionArgs,
-  subscribe,
-  execute,
 } from 'graphql';
 
 import { ValueOrPromise } from 'value-or-promise';
@@ -39,6 +36,7 @@ import { Subschema } from './Subschema.js';
 import { createRequest, getDelegatingOperation } from './createRequest.js';
 import { Transformer } from './Transformer.js';
 import { applySchemaTransforms } from './applySchemaTransforms.js';
+import { ExecutionArgs, execute, subscribe } from '@graphql-tools/executor';
 
 export function delegateToSchema<
   TContext extends Record<string, any> = Record<string, any>,

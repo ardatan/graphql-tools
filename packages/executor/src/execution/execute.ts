@@ -2,7 +2,6 @@ import {
   GraphQLFormattedError,
   locatedError,
   GraphQLError,
-  DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
   OperationDefinitionNode,
@@ -31,7 +30,6 @@ import {
   collectFields,
   collectSubFields,
   createGraphQLError,
-  getRootTypeMap,
   inspect,
   isAsyncIterable,
   isIterableObject,
@@ -41,12 +39,14 @@ import {
   Maybe,
   Path,
   pathToArray,
-  PromiseOrValue,
+  MaybePromise,
   addPath,
   getArgumentValues,
   promiseReduce,
+  getDefinedRootType,
 } from '@graphql-tools/utils';
 import { getVariableValues } from './values.js';
+import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 
 // This file contains a lot of such errors but we plan to refactor it anyway
 // so just disable it for entire file.
@@ -109,16 +109,16 @@ export interface FormattedExecutionResult<TData = Record<string, unknown>, TExte
   extensions?: TExtensions;
 }
 
-export interface ExecutionArgs {
+export interface ExecutionArgs<TData = { [key: string]: any }, TVariables = { [key: string]: any }, TContext = any> {
   schema: GraphQLSchema;
-  document: DocumentNode;
+  document: TypedDocumentNode<TData, TVariables>;
   rootValue?: unknown;
-  contextValue?: unknown;
-  variableValues?: Maybe<{ readonly [variable: string]: unknown }>;
+  contextValue?: TContext;
+  variableValues?: TVariables;
   operationName?: Maybe<string>;
-  fieldResolver?: Maybe<GraphQLFieldResolver<any, any>>;
-  typeResolver?: Maybe<GraphQLTypeResolver<any, any>>;
-  subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, any>>;
+  fieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
+  typeResolver?: Maybe<GraphQLTypeResolver<any, TContext>>;
+  subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
 }
 
 /**
@@ -131,7 +131,7 @@ export interface ExecutionArgs {
  * If the arguments to this function do not result in a legal execution context,
  * a GraphQLError will be thrown immediately explaining the invalid input.
  */
-export function execute(args: ExecutionArgs): PromiseOrValue<ExecutionResult> {
+export function execute(args: ExecutionArgs): MaybePromise<ExecutionResult> {
   // If a valid execution context cannot be created due to incorrect arguments,
   // a "Response" with only errors is returned.
   const exeContext = buildExecutionContext(args);
@@ -144,7 +144,7 @@ export function execute(args: ExecutionArgs): PromiseOrValue<ExecutionResult> {
   return executeImpl(exeContext);
 }
 
-function executeImpl(exeContext: ExecutionContext): PromiseOrValue<ExecutionResult> {
+function executeImpl(exeContext: ExecutionContext): MaybePromise<ExecutionResult> {
   // Return a Promise that will eventually resolve to the data described by
   // The "Response" section of the GraphQL specification.
   //
@@ -204,10 +204,10 @@ function buildResponse(data: Record<string, unknown> | null, errors: ReadonlyArr
  *
  * @internal
  */
-export function assertValidExecutionArguments(
+export function assertValidExecutionArguments<TVariables>(
   schema: GraphQLSchema,
-  document: DocumentNode,
-  rawVariableValues: Maybe<{ readonly [variable: string]: unknown }>
+  document: TypedDocumentNode<any, TVariables>,
+  rawVariableValues: Maybe<TVariables>
 ): void {
   console.assert(!!document, 'Must provide document.');
 
@@ -230,7 +230,11 @@ export function assertValidExecutionArguments(
  * TODO: consider no longer exporting this function
  * @internal
  */
-export function buildExecutionContext(args: ExecutionArgs): ReadonlyArray<GraphQLError> | ExecutionContext {
+export function buildExecutionContext<
+  TData = { [key: string]: any },
+  TVariables = { [key: string]: any },
+  TContext = any
+>(args: ExecutionArgs<TData, TVariables, TContext>): ReadonlyArray<GraphQLError> | ExecutionContext {
   const {
     schema,
     document,
@@ -312,10 +316,9 @@ function buildPerEventExecutionContext(exeContext: ExecutionContext, payload: un
 /**
  * Implements the "Executing operations" section of the spec.
  */
-function executeOperation(exeContext: ExecutionContext): PromiseOrValue<Record<string, unknown>> {
+function executeOperation(exeContext: ExecutionContext): MaybePromise<Record<string, unknown>> {
   const { operation, schema, fragments, variableValues, rootValue } = exeContext;
-  const rootTypeMap = getRootTypeMap(schema);
-  const rootType = rootTypeMap.get(operation.operation);
+  const rootType = getDefinedRootType(schema, operation.operation);
   if (rootType == null) {
     throw createGraphQLError(`Schema is not configured to execute ${operation.operation} operation.`, {
       nodes: operation,
@@ -348,7 +351,7 @@ function executeFieldsSerially(
   sourceValue: unknown,
   path: Path | undefined,
   fields: Map<string, ReadonlyArray<FieldNode>>
-): PromiseOrValue<Record<string, unknown>> {
+): MaybePromise<Record<string, unknown>> {
   return promiseReduce(
     fields.entries(),
     (results, [responseName, fieldNodes]) => {
@@ -380,7 +383,7 @@ function executeFields(
   sourceValue: unknown,
   path: Path | undefined,
   fields: Map<string, ReadonlyArray<FieldNode>>
-): PromiseOrValue<Record<string, unknown>> {
+): MaybePromise<Record<string, unknown>> {
   const results = Object.create(null);
   let containsPromise = false;
 
@@ -427,7 +430,7 @@ function executeField(
   source: unknown,
   fieldNodes: ReadonlyArray<FieldNode>,
   path: Path
-): PromiseOrValue<unknown> {
+): MaybePromise<unknown> {
   const fieldDef = getFieldDef(exeContext.schema, parentType, fieldNodes[0]);
   if (!fieldDef) {
     return;
@@ -542,7 +545,7 @@ function completeValue(
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown
-): PromiseOrValue<unknown> {
+): MaybePromise<unknown> {
   // If result is an Error, throw a located error.
   if (result instanceof Error) {
     throw result;
@@ -647,7 +650,7 @@ function completeListValue(
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown
-): PromiseOrValue<ReadonlyArray<unknown>> {
+): MaybePromise<ReadonlyArray<unknown>> {
   const itemType = returnType.ofType;
 
   if (isAsyncIterable(result)) {
@@ -724,7 +727,7 @@ function completeAbstractValue(
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown
-): PromiseOrValue<Record<string, unknown>> {
+): MaybePromise<Record<string, unknown>> {
   const resolveTypeFn = returnType.resolveType ?? exeContext.typeResolver;
   const contextValue = exeContext.contextValue;
   const runtimeType = resolveTypeFn(result, contextValue, info, returnType);
@@ -817,7 +820,7 @@ function completeObjectValue(
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown
-): PromiseOrValue<Record<string, unknown>> {
+): MaybePromise<Record<string, unknown>> {
   // Collect sub-fields to execute to complete this value.
   const subFieldNodes = collectSubFields(
     exeContext.schema,
@@ -953,7 +956,7 @@ export const defaultFieldResolver: GraphQLFieldResolver<unknown, unknown> = func
  *
  * Accepts either an object with named arguments, or individual arguments.
  */
-export function subscribe(args: ExecutionArgs): PromiseOrValue<AsyncIterable<ExecutionResult> | ExecutionResult> {
+export function subscribe(args: ExecutionArgs): MaybePromise<AsyncIterable<ExecutionResult> | ExecutionResult> {
   // If a valid execution context cannot be created due to incorrect arguments,
   // a "Response" with only errors is returned.
   const exeContext = buildExecutionContext(args);
@@ -975,7 +978,7 @@ export function subscribe(args: ExecutionArgs): PromiseOrValue<AsyncIterable<Exe
 function mapSourceToResponse(
   exeContext: ExecutionContext,
   resultOrStream: ExecutionResult | AsyncIterable<unknown>
-): PromiseOrValue<AsyncIterable<ExecutionResult> | ExecutionResult> {
+): MaybePromise<AsyncIterable<ExecutionResult> | ExecutionResult> {
   if (!isAsyncIterable(resultOrStream)) {
     return resultOrStream;
   }
@@ -1019,7 +1022,7 @@ function mapSourceToResponse(
  * or otherwise separating these two steps. For more on this, see the
  * "Supporting Subscriptions at Scale" information in the GraphQL specification.
  */
-export function createSourceEventStream(args: ExecutionArgs): PromiseOrValue<AsyncIterable<unknown> | ExecutionResult> {
+export function createSourceEventStream(args: ExecutionArgs): MaybePromise<AsyncIterable<unknown> | ExecutionResult> {
   // If a valid execution context cannot be created due to incorrect arguments,
   // a "Response" with only errors is returned.
   const exeContext = buildExecutionContext(args);
@@ -1034,7 +1037,7 @@ export function createSourceEventStream(args: ExecutionArgs): PromiseOrValue<Asy
 
 function createSourceEventStreamImpl(
   exeContext: ExecutionContext
-): PromiseOrValue<AsyncIterable<unknown> | ExecutionResult> {
+): MaybePromise<AsyncIterable<unknown> | ExecutionResult> {
   try {
     const eventStream = executeSubscription(exeContext);
     if (isPromise(eventStream)) {
@@ -1047,7 +1050,7 @@ function createSourceEventStreamImpl(
   }
 }
 
-function executeSubscription(exeContext: ExecutionContext): PromiseOrValue<AsyncIterable<unknown>> {
+function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIterable<unknown>> {
   const { schema, fragments, operation, variableValues, rootValue } = exeContext;
 
   const rootType = schema.getSubscriptionType();

@@ -1,4 +1,4 @@
-import { PromiseOrValue } from '@graphql-tools/utils';
+import { MaybePromise } from '@graphql-tools/utils';
 import {
   parse,
   buildSchema,
@@ -79,7 +79,7 @@ describe('Execute: Accepts async iterables as list value', () => {
 
   function completeObjectList(
     resolve: GraphQLFieldResolver<{ index: number }, unknown>
-  ): PromiseOrValue<ExecutionResult> {
+  ): MaybePromise<ExecutionResult> {
     const schema = new GraphQLSchema({
       query: new GraphQLObjectType({
         name: 'Query',

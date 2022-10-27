@@ -13,7 +13,7 @@ export function preparseMergeArgsExpr(mergeArgsExpr: string): {
 
   const expansionExpressions = Object.create(null);
   if (segments.length === 1) {
-    return { mergeArgsExpr: mergeArgsExpr, expansionExpressions };
+    return { mergeArgsExpr, expansionExpressions };
   }
 
   let finalSegments = [segments[0]];

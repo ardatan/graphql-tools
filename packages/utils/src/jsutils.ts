@@ -1,4 +1,4 @@
-export type PromiseOrValue<T> = Promise<T> | T;
+import { MaybePromise } from './executor';
 
 export function isIterableObject(value: unknown): value is Iterable<unknown> {
   return value != null && typeof value === 'object' && Symbol.iterator in value;
@@ -14,9 +14,9 @@ export function isPromise<T>(value: unknown): value is Promise<T> {
 
 export function promiseReduce<T, U>(
   values: Iterable<T>,
-  callbackFn: (accumulator: U, currentValue: T) => PromiseOrValue<U>,
-  initialValue: PromiseOrValue<U>
-): PromiseOrValue<U> {
+  callbackFn: (accumulator: U, currentValue: T) => MaybePromise<U>,
+  initialValue: MaybePromise<U>
+): MaybePromise<U> {
   let accumulator = initialValue;
 
   for (const value of values) {
