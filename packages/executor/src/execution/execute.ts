@@ -1,7 +1,6 @@
 import {
   GraphQLFormattedError,
   locatedError,
-  GraphQLError,
   FieldNode,
   FragmentDefinitionNode,
   OperationDefinitionNode,
@@ -28,6 +27,7 @@ import {
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
 } from 'graphql';
+import type { GraphQLError } from 'graphql';
 import {
   createGraphQLError,
   inspect,
@@ -238,7 +238,7 @@ export function execute(args: ExecutionArgs): PromiseOrValue<ExecutionResult> {
   return result.then(incrementalResult => {
     if ('initialResult' in incrementalResult) {
       return {
-        errors: [new GraphQLError(UNEXPECTED_MULTIPLE_PAYLOADS)],
+        errors: [createGraphQLError(UNEXPECTED_MULTIPLE_PAYLOADS)],
       };
     }
     return incrementalResult;
@@ -902,7 +902,7 @@ function completeListValue(
   }
 
   if (!isIterableObject(result)) {
-    throw new GraphQLError(
+    createGraphQLError(
       `Expected Iterable, but did not find one for field "${info.parentType.name}.${info.fieldName}".`
     );
   }
@@ -1308,7 +1308,7 @@ function ensureSingleExecutionResult(
 ): ExecutionResult {
   if ('hasNext' in result) {
     return {
-      errors: [new GraphQLError(UNEXPECTED_MULTIPLE_PAYLOADS)],
+      errors: [createGraphQLError(UNEXPECTED_MULTIPLE_PAYLOADS)],
     };
   }
   return result;
