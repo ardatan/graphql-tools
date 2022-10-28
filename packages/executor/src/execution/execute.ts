@@ -21,7 +21,6 @@ import {
   isObjectType,
   assertValidSchema,
   GraphQLSchema,
-  OperationTypeNode,
   getDirectiveValues,
   SchemaMetaFieldDef,
   TypeMetaFieldDef,
@@ -486,13 +485,13 @@ function executeOperation(exeContext: ExecutionContext): PromiseOrValue<ObjMap<u
   let result;
 
   switch (operation.operation) {
-    case OperationTypeNode.QUERY:
+    case 'query':
       result = executeFields(exeContext, rootType, rootValue, path, rootFields);
       break;
-    case OperationTypeNode.MUTATION:
+    case 'mutation':
       result = executeFieldsSerially(exeContext, rootType, rootValue, path, rootFields);
       break;
-    case OperationTypeNode.SUBSCRIPTION:
+    case 'subscription':
       // TODO: deprecate `subscribe` and move all logic here
       // Temporary solution until we finish merging execute and subscribe together
       result = executeFields(exeContext, rootType, rootValue, path, rootFields);
