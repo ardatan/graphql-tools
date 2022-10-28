@@ -11,7 +11,7 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import { ExecutionArgs, experimentalSubscribeIncrementally , createSourceEventStream, subscribe } from '../execute.js';
+import { ExecutionArgs, experimentalSubscribeIncrementally, createSourceEventStream, subscribe } from '../execute.js';
 
 import { SimplePubSub } from './simplePubSub.js';
 import { ExecutionResult, isAsyncIterable, isPromise, MaybePromise } from '@graphql-tools/utils';
