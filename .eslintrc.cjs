@@ -4,8 +4,14 @@ module.exports = {
   parserOptions: {
     project: './tsconfig.json',
   },
-  extends: ['eslint:recommended', 'standard', 'prettier', 'plugin:@typescript-eslint/recommended'],
-  plugins: ['@typescript-eslint'],
+  extends: [
+    'eslint:recommended',
+    'standard',
+    'prettier',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:import/typescript',
+  ],
+  plugins: ['@typescript-eslint', 'import'],
   rules: {
     'no-empty': 'off',
     'no-console': 'off',
@@ -93,6 +99,14 @@ module.exports = {
         'no-throw-literal': 'off',
         'promise/param-names': 'off',
       },
+    },
+    {
+      // Require extensions on all imports (other than package imports) outside
+      // of tests, as some ESM environments expect this when loading files.
+      // We don't check tests because they don't get compiled into the packages.
+      files: ['**/*.ts'],
+      excludedFiles: ['**/{test,tests,testing}/**/*.{ts,js}', '*.{spec,test}.{ts,js}'],
+      rules: { 'import/extensions': ['error', 'ignorePackages'] },
     },
   ],
   ignorePatterns: [
