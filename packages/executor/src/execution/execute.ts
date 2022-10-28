@@ -42,6 +42,7 @@ import {
   promiseReduce,
   Maybe,
   memoize3,
+  getDefinedRootType,
 } from '@graphql-tools/utils';
 import { getVariableValues } from './values.js';
 import { ObjMap, PromiseOrValue } from './types.js';
@@ -467,9 +468,9 @@ function buildPerEventExecutionContext(exeContext: ExecutionContext, payload: un
  */
 function executeOperation(exeContext: ExecutionContext): PromiseOrValue<ObjMap<unknown>> {
   const { operation, schema, fragments, variableValues, rootValue } = exeContext;
-  const rootType = schema.getRootType(operation.operation);
+  const rootType = getDefinedRootType(schema, operation.operation, [operation]);
   if (rootType == null) {
-    throw new GraphQLError(`Schema is not configured to execute ${operation.operation} operation.`, {
+    createGraphQLError(`Schema is not configured to execute ${operation.operation} operation.`, {
       nodes: operation,
     });
   }
