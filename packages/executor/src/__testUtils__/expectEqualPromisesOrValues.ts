@@ -1,5 +1,4 @@
-import { isPromise } from '@graphql-tools/utils';
-import { PromiseOrValue } from '../execution/types.js';
+import { isPromise, MaybePromise } from '@graphql-tools/utils';
 import { expectJSON } from './expectJSON.js';
 
 export function expectMatchingValues<T>(values: ReadonlyArray<T>): T {
@@ -10,7 +9,7 @@ export function expectMatchingValues<T>(values: ReadonlyArray<T>): T {
   return firstValue;
 }
 
-export function expectEqualPromisesOrValues<T>(items: ReadonlyArray<PromiseOrValue<T>>): PromiseOrValue<T> {
+export function expectEqualPromisesOrValues<T>(items: ReadonlyArray<MaybePromise<T>>): MaybePromise<T> {
   const [firstItem, ...remainingItems] = items;
   if (isPromise(firstItem)) {
     if (remainingItems.every(isPromise)) {

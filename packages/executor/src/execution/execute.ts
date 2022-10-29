@@ -44,6 +44,7 @@ import {
   getDefinedRootType,
   MaybePromise,
   mapAsyncIterator,
+  ExecutionResult,
 } from '@graphql-tools/utils';
 import { getVariableValues } from './values.js';
 import { promiseForObject } from './promiseForObject.js';
@@ -104,21 +105,6 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   subscribeFieldResolver: GraphQLFieldResolver<any, TContext>;
   errors: Array<GraphQLError>;
   subsequentPayloads: Set<AsyncPayloadRecord>;
-}
-
-/**
- * The result of GraphQL execution.
- *
- *   - `errors` is included when any errors occurred as a non-empty array.
- *   - `data` is the result of a successful execution of the query.
- *   - `hasNext` is true if a future payload is expected.
- *   - `extensions` is reserved for adding non-standard properties.
- *   - `incremental` is a list of the results from defer/stream directives.
- */
-export interface ExecutionResult<TData = Record<string, unknown>, TExtensions = Record<string, unknown>> {
-  errors?: ReadonlyArray<GraphQLError>;
-  data?: TData | null;
-  extensions?: TExtensions;
 }
 
 export interface FormattedExecutionResult<TData = Record<string, unknown>, TExtensions = Record<string, unknown>> {
@@ -238,7 +224,7 @@ const UNEXPECTED_MULTIPLE_PAYLOADS =
  * Use `experimentalExecuteIncrementally` if you want to support incremental
  * delivery.
  */
-export function execute<TData extends Record<string, unknown> = any, TVariables = any, TContext = any>(
+export function execute<TData = any, TVariables = any, TContext = any>(
   args: ExecutionArgs<TData, TVariables, TContext>
 ): MaybePromise<ExecutionResult<TData>> {
   const result = experimentalExecuteIncrementally(args);
@@ -271,11 +257,7 @@ export function execute<TData extends Record<string, unknown> = any, TVariables 
  * If the arguments to this function do not result in a legal execution context,
  * a GraphQLError will be thrown immediately explaining the invalid input.
  */
-export function experimentalExecuteIncrementally<
-  TData extends Record<string, unknown> = any,
-  TVariables = any,
-  TContext = any
->(
+export function experimentalExecuteIncrementally<TData = any, TVariables = any, TContext = any>(
   args: ExecutionArgs<TData, TVariables, TContext>
 ): MaybePromise<ExecutionResult<TData> | ExperimentalIncrementalExecutionResults<TData>> {
   // If a valid execution context cannot be created due to incorrect arguments,
@@ -290,7 +272,7 @@ export function experimentalExecuteIncrementally<
   return executeImpl(exeContext);
 }
 
-function executeImpl<TData extends Record<string, unknown> = any, TVariables = any, TContext = any>(
+function executeImpl<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>
 ): MaybePromise<ExecutionResult<TData> | ExperimentalIncrementalExecutionResults<TData>> {
   // Return a Promise that will eventually resolve to the data described by
@@ -486,7 +468,7 @@ function buildPerEventExecutionContext(exeContext: ExecutionContext, payload: un
 /**
  * Implements the "Executing operations" section of the spec.
  */
-function executeOperation<TData extends Record<string, unknown> = any, TVariables = any, TContext = any>(
+function executeOperation<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>
 ): MaybePromise<TData> {
   const { operation, schema, fragments, variableValues, rootValue } = exeContext;
@@ -510,7 +492,7 @@ function executeOperation<TData extends Record<string, unknown> = any, TVariable
   if (operation.operation === 'mutation') {
     result = executeFieldsSerially(exeContext, rootType, rootValue, path, rootFields);
   } else {
-    result = executeFields(exeContext, rootType, rootValue, path, rootFields);
+    result = executeFields(exeContext, rootType, rootValue, path, rootFields) as TData;
   }
 
   for (const patch of patches) {
@@ -557,14 +539,14 @@ function executeFieldsSerially<TData>(
  * Implements the "Executing selection sets" section of the spec
  * for fields that may be executed in parallel.
  */
-function executeFields<TData extends Record<string, unknown>>(
+function executeFields(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
   sourceValue: unknown,
   path: Path | undefined,
   fields: Map<string, ReadonlyArray<FieldNode>>,
   asyncPayloadRecord?: AsyncPayloadRecord
-): MaybePromise<TData> {
+): MaybePromise<Record<string, unknown>> {
   const results = Object.create(null);
   let containsPromise = false;
 
