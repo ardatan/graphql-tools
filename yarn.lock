@@ -2604,10 +2604,10 @@
     unist-util-visit "^4.1.1"
     use-debounce "8.0.4"
 
-"@theguild/tailwind-config@0.1.3":
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/@theguild/tailwind-config/-/tailwind-config-0.1.3.tgz#fbd3b438c89a36f6bae35023c79dc129a6263d7c"
-  integrity sha512-kUkxM5NJeBczrC+go4pGD2sKlFSV7B2KuMjqP3LvyZOJYiDTCUargL9X7j4C0EsIhf3ktD6FLuEyk4u82viL2w==
+"@theguild/tailwind-config@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@theguild/tailwind-config/-/tailwind-config-0.2.1.tgz#efb57366f42603e8eb462b050498f1bef8e449a2"
+  integrity sha512-oYuiFhsqWX8r3dFZHGS9retccEajVrbP9640x/umWsZtlbpR0TKpob05aisAZCEolGls1XQ10NqBPtIkB28ujA==
   dependencies:
     autoprefixer "^10.4.12"
     cssnano "^5.1.13"
