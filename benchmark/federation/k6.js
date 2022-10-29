@@ -11,7 +11,6 @@ export const options = {
   thresholds: {
     no_errors: ['rate>0.98'],
     expected_result: ['rate>0.98'],
-    http_req_duration: isPrinted ? ['avg<=25'] : [],
   },
 };
 
