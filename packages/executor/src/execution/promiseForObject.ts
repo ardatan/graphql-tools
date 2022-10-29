@@ -1,15 +1,17 @@
-import { ObjMap } from './types';
+type ResolvedObject<TData> = {
+  [TKey in keyof TData]: TData[TKey] extends Promise<infer TValue> ? TValue : TData[TKey];
+};
 
 /**
- * This function transforms a JS object `ObjMap<Promise<T>>` into
- * a `Promise<ObjMap<T>>`
+ * This function transforms a JS object `Record<string, Promise<T>>` into
+ * a `Promise<Record<string, T>>`
  *
  * This is akin to bluebird's `Promise.props`, but implemented only using
  * `Promise.all` so it will work with any implementation of ES6 promises.
  */
-export async function promiseForObject<T>(object: ObjMap<Promise<T>>): Promise<ObjMap<T>> {
-  const keys = Object.keys(object);
-  const values = Object.values(object);
+export async function promiseForObject<TData>(object: TData): Promise<ResolvedObject<TData>> {
+  const keys = Object.keys(object as any);
+  const values = Object.values(object as any);
 
   const resolvedValues = await Promise.all(values);
   const resolvedObject = Object.create(null);

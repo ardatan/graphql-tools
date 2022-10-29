@@ -89,7 +89,7 @@ export function collectFields(
  * directives, where `@skip` has higher precedence than `@include`.
  */
 export function shouldIncludeNode(
-  variableValues: { [variable: string]: unknown },
+  variableValues: any,
   node: FragmentSpreadNode | FieldNode | InlineFragmentNode
 ): boolean {
   const skip = getDirectiveValues(GraphQLSkipDirective, node, variableValues);
