@@ -1,4 +1,4 @@
-import { MaybePromise } from './executor';
+import { MaybePromise } from './executor.js';
 
 export function isIterableObject(value: unknown): value is Iterable<unknown> {
   return value != null && typeof value === 'object' && Symbol.iterator in value;
