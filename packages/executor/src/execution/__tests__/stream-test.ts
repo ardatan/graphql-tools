@@ -1,3 +1,4 @@
+import { MaybePromise } from '@graphql-tools/utils';
 import {
   DocumentNode,
   parse,
@@ -11,7 +12,6 @@ import {
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import type { InitialIncrementalExecutionResult, SubsequentIncrementalExecutionResult } from '../execute.js';
 import { experimentalExecuteIncrementally } from '../execute.js';
-import { PromiseOrValue } from '../types.js';
 
 const friendType = new GraphQLObjectType({
   fields: {
@@ -104,7 +104,7 @@ async function completeAsync(document: DocumentNode, numCalls: number, rootValue
   const iterator = result.subsequentResults[Symbol.asyncIterator]();
 
   const promises: Array<
-    PromiseOrValue<IteratorResult<InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult>>
+    MaybePromise<IteratorResult<InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult>>
     // @ts-expect-error once we assert that initialResult is in result then it should work fine
   > = [{ done: false, value: result.initialResult }];
   for (let i = 0; i < numCalls; i++) {
