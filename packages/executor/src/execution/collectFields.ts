@@ -10,7 +10,7 @@ import {
   GraphQLSchema,
 } from 'graphql';
 import { doesFragmentConditionMatch, getFieldEntryKey, memoize5, shouldIncludeNode } from '@graphql-tools/utils';
-import { AccumulatorMap } from './AccumulatorMap';
+import { AccumulatorMap } from './AccumulatorMap.js';
 import { GraphQLDeferDirective } from '../directives';
 
 export interface PatchFields {
