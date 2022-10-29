@@ -11,7 +11,6 @@ import {
 } from 'graphql';
 import { doesFragmentConditionMatch, getFieldEntryKey, memoize5, shouldIncludeNode } from '@graphql-tools/utils';
 import { AccumulatorMap } from './AccumulatorMap';
-import { ObjMap } from './types';
 import { GraphQLDeferDirective } from '../directives';
 
 export interface PatchFields {
@@ -33,10 +32,10 @@ export interface FieldsAndPatches {
  *
  * @internal
  */
-export function collectFields(
+export function collectFields<TVariables = any>(
   schema: GraphQLSchema,
-  fragments: ObjMap<FragmentDefinitionNode>,
-  variableValues: { [variable: string]: unknown },
+  fragments: Record<string, FragmentDefinitionNode>,
+  variableValues: TVariables,
   runtimeType: GraphQLObjectType,
   selectionSet: SelectionSetNode
 ): FieldsAndPatches {
@@ -58,7 +57,7 @@ export function collectFields(
  */
 export const collectSubfields = memoize5(function collectSubfields(
   schema: GraphQLSchema,
-  fragments: ObjMap<FragmentDefinitionNode>,
+  fragments: Record<string, FragmentDefinitionNode>,
   variableValues: { [variable: string]: unknown },
   returnType: GraphQLObjectType,
   fieldNodes: ReadonlyArray<FieldNode>
@@ -89,10 +88,10 @@ export const collectSubfields = memoize5(function collectSubfields(
   return subFieldsAndPatches;
 });
 
-function collectFieldsImpl(
+function collectFieldsImpl<TVariables = any>(
   schema: GraphQLSchema,
-  fragments: ObjMap<FragmentDefinitionNode>,
-  variableValues: { [variable: string]: unknown },
+  fragments: Record<string, FragmentDefinitionNode>,
+  variableValues: TVariables,
   runtimeType: GraphQLObjectType,
   selectionSet: SelectionSetNode,
   fields: AccumulatorMap<string, FieldNode>,
@@ -209,7 +208,7 @@ function collectFieldsImpl(
  * not disabled by the "if" argument.
  */
 function getDeferValues(
-  variableValues: { [variable: string]: unknown },
+  variableValues: any,
   node: FragmentSpreadNode | InlineFragmentNode
 ): undefined | { label: string | undefined } {
   const defer = getDirectiveValues(GraphQLDeferDirective, node, variableValues);

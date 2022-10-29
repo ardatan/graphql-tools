@@ -42,12 +42,12 @@ import {
   Maybe,
   memoize3,
   getDefinedRootType,
+  MaybePromise,
+  mapAsyncIterator,
 } from '@graphql-tools/utils';
 import { getVariableValues } from './values.js';
-import { ObjMap, PromiseOrValue } from './types.js';
 import { promiseForObject } from './promiseForObject.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
-import { mapAsyncIterable } from './mapAsyncIterable.js';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { collectFields, collectSubfields as _collectSubfields } from './collectFields.js';
 import { GraphQLStreamDirective } from '../directives/index.js';
@@ -92,16 +92,16 @@ const collectSubfields = memoize3(
  * Namely, schema of the type system that is currently executing,
  * and the fragments defined in the query document
  */
-export interface ExecutionContext {
+export interface ExecutionContext<TVariables = any, TContext = any> {
   schema: GraphQLSchema;
-  fragments: ObjMap<FragmentDefinitionNode>;
+  fragments: Record<string, FragmentDefinitionNode>;
   rootValue: unknown;
-  contextValue: unknown;
+  contextValue: TContext;
   operation: OperationDefinitionNode;
-  variableValues: { [variable: string]: unknown };
-  fieldResolver: GraphQLFieldResolver<any, any>;
-  typeResolver: GraphQLTypeResolver<any, any>;
-  subscribeFieldResolver: GraphQLFieldResolver<any, any>;
+  variableValues: TVariables;
+  fieldResolver: GraphQLFieldResolver<any, TContext>;
+  typeResolver: GraphQLTypeResolver<any, TContext>;
+  subscribeFieldResolver: GraphQLFieldResolver<any, TContext>;
   errors: Array<GraphQLError>;
   subsequentPayloads: Set<AsyncPayloadRecord>;
 }
@@ -115,62 +115,75 @@ export interface ExecutionContext {
  *   - `extensions` is reserved for adding non-standard properties.
  *   - `incremental` is a list of the results from defer/stream directives.
  */
-export interface ExecutionResult<TData = ObjMap<unknown>, TExtensions = ObjMap<unknown>> {
+export interface ExecutionResult<TData = Record<string, unknown>, TExtensions = Record<string, unknown>> {
   errors?: ReadonlyArray<GraphQLError>;
   data?: TData | null;
   extensions?: TExtensions;
 }
 
-export interface FormattedExecutionResult<TData = ObjMap<unknown>, TExtensions = ObjMap<unknown>> {
+export interface FormattedExecutionResult<TData = Record<string, unknown>, TExtensions = Record<string, unknown>> {
   errors?: ReadonlyArray<GraphQLFormattedError>;
   data?: TData | null;
   extensions?: TExtensions;
 }
 
-export interface ExperimentalIncrementalExecutionResults<TData = ObjMap<unknown>, TExtensions = ObjMap<unknown>> {
+export interface ExperimentalIncrementalExecutionResults<
+  TData = Record<string, unknown>,
+  TExtensions = Record<string, unknown>
+> {
   initialResult: InitialIncrementalExecutionResult<TData, TExtensions>;
   subsequentResults: AsyncGenerator<SubsequentIncrementalExecutionResult<TData, TExtensions>, void, void>;
 }
 
-export interface InitialIncrementalExecutionResult<TData = ObjMap<unknown>, TExtensions = ObjMap<unknown>>
-  extends ExecutionResult<TData, TExtensions> {
+export interface InitialIncrementalExecutionResult<
+  TData = Record<string, unknown>,
+  TExtensions = Record<string, unknown>
+> extends ExecutionResult<TData, TExtensions> {
   hasNext: boolean;
   incremental?: ReadonlyArray<IncrementalResult<TData, TExtensions>>;
   extensions?: TExtensions;
 }
 
-export interface FormattedInitialIncrementalExecutionResult<TData = ObjMap<unknown>, TExtensions = ObjMap<unknown>>
-  extends FormattedExecutionResult<TData, TExtensions> {
+export interface FormattedInitialIncrementalExecutionResult<
+  TData = Record<string, unknown>,
+  TExtensions = Record<string, unknown>
+> extends FormattedExecutionResult<TData, TExtensions> {
   hasNext: boolean;
   incremental?: ReadonlyArray<FormattedIncrementalResult<TData, TExtensions>>;
   extensions?: TExtensions;
 }
 
-export interface SubsequentIncrementalExecutionResult<TData = ObjMap<unknown>, TExtensions = ObjMap<unknown>> {
+export interface SubsequentIncrementalExecutionResult<
+  TData = Record<string, unknown>,
+  TExtensions = Record<string, unknown>
+> {
   hasNext: boolean;
   incremental?: ReadonlyArray<IncrementalResult<TData, TExtensions>>;
   extensions?: TExtensions;
 }
 
-export interface FormattedSubsequentIncrementalExecutionResult<TData = ObjMap<unknown>, TExtensions = ObjMap<unknown>> {
+export interface FormattedSubsequentIncrementalExecutionResult<
+  TData = Record<string, unknown>,
+  TExtensions = Record<string, unknown>
+> {
   hasNext: boolean;
   incremental?: ReadonlyArray<FormattedIncrementalResult<TData, TExtensions>>;
   extensions?: TExtensions;
 }
 
-export interface IncrementalDeferResult<TData = ObjMap<unknown>, TExtensions = ObjMap<unknown>>
+export interface IncrementalDeferResult<TData = Record<string, unknown>, TExtensions = Record<string, unknown>>
   extends ExecutionResult<TData, TExtensions> {
   path?: ReadonlyArray<string | number>;
   label?: string;
 }
 
-export interface FormattedIncrementalDeferResult<TData = ObjMap<unknown>, TExtensions = ObjMap<unknown>>
+export interface FormattedIncrementalDeferResult<TData = Record<string, unknown>, TExtensions = Record<string, unknown>>
   extends FormattedExecutionResult<TData, TExtensions> {
   path?: ReadonlyArray<string | number>;
   label?: string;
 }
 
-export interface IncrementalStreamResult<TData = Array<unknown>, TExtensions = ObjMap<unknown>> {
+export interface IncrementalStreamResult<TData = Array<unknown>, TExtensions = Record<string, unknown>> {
   errors?: ReadonlyArray<GraphQLError>;
   items?: TData | null;
   path?: ReadonlyArray<string | number>;
@@ -178,7 +191,7 @@ export interface IncrementalStreamResult<TData = Array<unknown>, TExtensions = O
   extensions?: TExtensions;
 }
 
-export interface FormattedIncrementalStreamResult<TData = Array<unknown>, TExtensions = ObjMap<unknown>> {
+export interface FormattedIncrementalStreamResult<TData = Array<unknown>, TExtensions = Record<string, unknown>> {
   errors?: ReadonlyArray<GraphQLFormattedError>;
   items?: TData | null;
   path?: ReadonlyArray<string | number>;
@@ -186,11 +199,11 @@ export interface FormattedIncrementalStreamResult<TData = Array<unknown>, TExten
   extensions?: TExtensions;
 }
 
-export type IncrementalResult<TData = ObjMap<unknown>, TExtensions = ObjMap<unknown>> =
+export type IncrementalResult<TData = Record<string, unknown>, TExtensions = Record<string, unknown>> =
   | IncrementalDeferResult<TData, TExtensions>
   | IncrementalStreamResult<TData, TExtensions>;
 
-export type FormattedIncrementalResult<TData = ObjMap<unknown>, TExtensions = ObjMap<unknown>> =
+export type FormattedIncrementalResult<TData = Record<string, unknown>, TExtensions = Record<string, unknown>> =
   | FormattedIncrementalDeferResult<TData, TExtensions>
   | FormattedIncrementalStreamResult<TData, TExtensions>;
 
@@ -225,7 +238,9 @@ const UNEXPECTED_MULTIPLE_PAYLOADS =
  * Use `experimentalExecuteIncrementally` if you want to support incremental
  * delivery.
  */
-export function execute(args: ExecutionArgs): PromiseOrValue<ExecutionResult> {
+export function execute<TData extends Record<string, unknown> = any, TVariables = any, TContext = any>(
+  args: ExecutionArgs<TData, TVariables, TContext>
+): MaybePromise<ExecutionResult<TData>> {
   const result = experimentalExecuteIncrementally(args);
   if (!isPromise(result)) {
     if ('initialResult' in result) {
@@ -256,9 +271,13 @@ export function execute(args: ExecutionArgs): PromiseOrValue<ExecutionResult> {
  * If the arguments to this function do not result in a legal execution context,
  * a GraphQLError will be thrown immediately explaining the invalid input.
  */
-export function experimentalExecuteIncrementally(
-  args: ExecutionArgs
-): PromiseOrValue<ExecutionResult | ExperimentalIncrementalExecutionResults> {
+export function experimentalExecuteIncrementally<
+  TData extends Record<string, unknown> = any,
+  TVariables = any,
+  TContext = any
+>(
+  args: ExecutionArgs<TData, TVariables, TContext>
+): MaybePromise<ExecutionResult<TData> | ExperimentalIncrementalExecutionResults<TData>> {
   // If a valid execution context cannot be created due to incorrect arguments,
   // a "Response" with only errors is returned.
   const exeContext = buildExecutionContext(args);
@@ -271,9 +290,9 @@ export function experimentalExecuteIncrementally(
   return executeImpl(exeContext);
 }
 
-function executeImpl(
-  exeContext: ExecutionContext
-): PromiseOrValue<ExecutionResult | ExperimentalIncrementalExecutionResults> {
+function executeImpl<TData extends Record<string, unknown> = any, TVariables = any, TContext = any>(
+  exeContext: ExecutionContext<TVariables, TContext>
+): MaybePromise<ExecutionResult<TData> | ExperimentalIncrementalExecutionResults<TData>> {
   // Return a Promise that will eventually resolve to the data described by
   // The "Response" section of the GraphQL specification.
   //
@@ -286,7 +305,7 @@ function executeImpl(
   // at which point we still log the error and null the parent field, which
   // in this case is the entire response.
   try {
-    const result = executeOperation(exeContext);
+    const result = executeOperation<TData, TVariables, TContext>(exeContext);
     if (isPromise(result)) {
       return result.then(
         data => {
@@ -304,7 +323,7 @@ function executeImpl(
         },
         error => {
           exeContext.errors.push(error);
-          return buildResponse(null, exeContext.errors);
+          return buildResponse<TData>(null, exeContext.errors);
         }
       );
     }
@@ -321,7 +340,7 @@ function executeImpl(
     return initialResult;
   } catch (error) {
     exeContext.errors.push(error as GraphQLError);
-    return buildResponse(null, exeContext.errors);
+    return buildResponse<TData>(null, exeContext.errors);
   }
 }
 
@@ -345,7 +364,7 @@ export function executeSync(args: ExecutionArgs): ExecutionResult {
  * Given a completed execution context and data, build the `{ errors, data }`
  * response defined by the "Response" section of the GraphQL specification.
  */
-function buildResponse(data: ObjMap<unknown> | null, errors: ReadonlyArray<GraphQLError>): ExecutionResult {
+function buildResponse<TData>(data: TData | null, errors: ReadonlyArray<GraphQLError>): ExecutionResult<TData> {
   return errors.length === 0 ? { data } : { errors, data };
 }
 
@@ -381,7 +400,9 @@ export function assertValidExecutionArguments<TVariables>(
  * TODO: consider no longer exporting this function
  * @internal
  */
-export function buildExecutionContext(args: ExecutionArgs): ReadonlyArray<GraphQLError> | ExecutionContext {
+export function buildExecutionContext<TData = any, TVariables = any, TContext = any>(
+  args: ExecutionArgs<TData, TVariables, TContext>
+): ReadonlyArray<GraphQLError> | ExecutionContext {
   const {
     schema,
     document,
@@ -398,7 +419,7 @@ export function buildExecutionContext(args: ExecutionArgs): ReadonlyArray<GraphQ
   assertValidSchema(schema);
 
   let operation: OperationDefinitionNode | undefined;
-  const fragments: ObjMap<FragmentDefinitionNode> = Object.create(null);
+  const fragments: Record<string, FragmentDefinitionNode> = Object.create(null);
   for (const definition of document.definitions) {
     switch (definition.kind) {
       case Kind.OPERATION_DEFINITION:
@@ -465,7 +486,9 @@ function buildPerEventExecutionContext(exeContext: ExecutionContext, payload: un
 /**
  * Implements the "Executing operations" section of the spec.
  */
-function executeOperation(exeContext: ExecutionContext): PromiseOrValue<ObjMap<unknown>> {
+function executeOperation<TData extends Record<string, unknown> = any, TVariables = any, TContext = any>(
+  exeContext: ExecutionContext<TVariables, TContext>
+): MaybePromise<TData> {
   const { operation, schema, fragments, variableValues, rootValue } = exeContext;
   const rootType = getDefinedRootType(schema, operation.operation, [operation]);
   if (rootType == null) {
@@ -482,19 +505,12 @@ function executeOperation(exeContext: ExecutionContext): PromiseOrValue<ObjMap<u
     operation.selectionSet
   );
   const path = undefined;
-  let result;
+  let result: MaybePromise<TData>;
 
-  switch (operation.operation) {
-    case 'query':
-      result = executeFields(exeContext, rootType, rootValue, path, rootFields);
-      break;
-    case 'mutation':
-      result = executeFieldsSerially(exeContext, rootType, rootValue, path, rootFields);
-      break;
-    case 'subscription':
-      // TODO: deprecate `subscribe` and move all logic here
-      // Temporary solution until we finish merging execute and subscribe together
-      result = executeFields(exeContext, rootType, rootValue, path, rootFields);
+  if (operation.operation === 'mutation') {
+    result = executeFieldsSerially(exeContext, rootType, rootValue, path, rootFields);
+  } else {
+    result = executeFields(exeContext, rootType, rootValue, path, rootFields);
   }
 
   for (const patch of patches) {
@@ -509,13 +525,13 @@ function executeOperation(exeContext: ExecutionContext): PromiseOrValue<ObjMap<u
  * Implements the "Executing selection sets" section of the spec
  * for fields that must be executed serially.
  */
-function executeFieldsSerially(
+function executeFieldsSerially<TData>(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
   sourceValue: unknown,
   path: Path | undefined,
   fields: Map<string, ReadonlyArray<FieldNode>>
-): PromiseOrValue<ObjMap<unknown>> {
+): MaybePromise<TData> {
   return promiseReduce(
     fields,
     (results, [responseName, fieldNodes]) => {
@@ -541,14 +557,14 @@ function executeFieldsSerially(
  * Implements the "Executing selection sets" section of the spec
  * for fields that may be executed in parallel.
  */
-function executeFields(
+function executeFields<TData extends Record<string, unknown>>(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
   sourceValue: unknown,
   path: Path | undefined,
   fields: Map<string, ReadonlyArray<FieldNode>>,
   asyncPayloadRecord?: AsyncPayloadRecord
-): PromiseOrValue<ObjMap<unknown>> {
+): MaybePromise<TData> {
   const results = Object.create(null);
   let containsPromise = false;
 
@@ -598,7 +614,7 @@ function executeField(
   fieldNodes: ReadonlyArray<FieldNode>,
   path: Path,
   asyncPayloadRecord?: AsyncPayloadRecord
-): PromiseOrValue<unknown> {
+): MaybePromise<unknown> {
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
   const fieldDef = getFieldDef(exeContext.schema, parentType, fieldNodes[0]);
   if (!fieldDef) {
@@ -721,7 +737,7 @@ function completeValue(
   path: Path,
   result: unknown,
   asyncPayloadRecord?: AsyncPayloadRecord
-): PromiseOrValue<unknown> {
+): MaybePromise<unknown> {
   // If result is an Error, throw a located error.
   if (result instanceof Error) {
     throw result;
@@ -765,7 +781,7 @@ function completeValue(
   }
   /* c8 ignore next 6 */
   // Not reachable, all possible output types have been considered.
-  invariant(false, 'Cannot complete value of unexpected output type: ' + inspect(returnType));
+  console.assert(false, 'Cannot complete value of unexpected output type: ' + inspect(returnType));
 }
 
 /**
@@ -790,7 +806,10 @@ function getStreamValues(
 
   // validation only allows equivalent streams on multiple fields, so it is
   // safe to only check the first fieldNode for the stream directive
-  const stream = getDirectiveValues(GraphQLStreamDirective, fieldNodes[0], exeContext.variableValues);
+  const stream = getDirectiveValues(GraphQLStreamDirective, fieldNodes[0], exeContext.variableValues) as {
+    initialCount: number;
+    label: string;
+  };
 
   if (!stream) {
     return;
@@ -890,7 +909,7 @@ function completeListValue(
   path: Path,
   result: unknown,
   asyncPayloadRecord?: AsyncPayloadRecord
-): PromiseOrValue<ReadonlyArray<unknown>> {
+): MaybePromise<ReadonlyArray<unknown>> {
   const itemType = returnType.ofType;
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
 
@@ -901,7 +920,7 @@ function completeListValue(
   }
 
   if (!isIterableObject(result)) {
-    createGraphQLError(
+    throw createGraphQLError(
       `Expected Iterable, but did not find one for field "${info.parentType.name}.${info.fieldName}".`
     );
   }
@@ -1036,7 +1055,7 @@ function completeAbstractValue(
   path: Path,
   result: unknown,
   asyncPayloadRecord?: AsyncPayloadRecord
-): PromiseOrValue<ObjMap<unknown>> {
+): MaybePromise<Record<string, unknown>> {
   const resolveTypeFn = returnType.resolveType ?? exeContext.typeResolver;
   const contextValue = exeContext.contextValue;
   const runtimeType = resolveTypeFn(result, contextValue, info, returnType);
@@ -1132,7 +1151,7 @@ function completeObjectValue(
   path: Path,
   result: unknown,
   asyncPayloadRecord?: AsyncPayloadRecord
-): PromiseOrValue<ObjMap<unknown>> {
+): MaybePromise<Record<string, unknown>> {
   // If there is an isTypeOf predicate function, call it with the
   // current result. If isTypeOf returns false, then raise an error rather
   // than continuing execution.
@@ -1173,7 +1192,7 @@ function collectAndExecuteSubfields(
   path: Path,
   result: unknown,
   asyncPayloadRecord?: AsyncPayloadRecord
-): PromiseOrValue<ObjMap<unknown>> {
+): MaybePromise<Record<string, unknown>> {
   // Collect sub-fields to execute to complete this value.
   const { fields: subFieldNodes, patches: subPatches } = collectSubfields(exeContext, returnType, fieldNodes);
 
@@ -1288,18 +1307,16 @@ export const defaultFieldResolver: GraphQLFieldResolver<unknown, unknown> = func
  *
  * Accepts an object with named arguments.
  */
-export function subscribe(
-  args: ExecutionArgs
-): PromiseOrValue<AsyncGenerator<ExecutionResult, void, void> | ExecutionResult> {
+export function subscribe(args: ExecutionArgs): MaybePromise<AsyncIterable<ExecutionResult> | ExecutionResult> {
   const maybePromise = experimentalSubscribeIncrementally(args);
   if (isPromise(maybePromise)) {
     return maybePromise.then(resultOrIterable =>
       isAsyncIterable(resultOrIterable)
-        ? mapAsyncIterable(resultOrIterable, ensureSingleExecutionResult)
+        ? mapAsyncIterator(resultOrIterable, ensureSingleExecutionResult)
         : resultOrIterable
     );
   }
-  return isAsyncIterable(maybePromise) ? mapAsyncIterable(maybePromise, ensureSingleExecutionResult) : maybePromise;
+  return isAsyncIterable(maybePromise) ? mapAsyncIterator(maybePromise, ensureSingleExecutionResult) : maybePromise;
 }
 
 function ensureSingleExecutionResult(
@@ -1348,7 +1365,7 @@ function ensureSingleExecutionResult(
  */
 export function experimentalSubscribeIncrementally(
   args: ExecutionArgs
-): PromiseOrValue<
+): MaybePromise<
   | AsyncGenerator<
       ExecutionResult | InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult,
       void,
@@ -1392,7 +1409,7 @@ async function* ensureAsyncIterable(
 function mapSourceToResponse(
   exeContext: ExecutionContext,
   resultOrStream: ExecutionResult | AsyncIterable<unknown>
-): PromiseOrValue<
+): MaybePromise<
   | AsyncGenerator<
       ExecutionResult | InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult,
       void,
@@ -1411,7 +1428,7 @@ function mapSourceToResponse(
   // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
   // "ExecuteQuery" algorithm, for which `execute` is also used.
   return flattenAsyncIterable(
-    mapAsyncIterable(resultOrStream, async (payload: unknown) =>
+    mapAsyncIterator(resultOrStream[Symbol.asyncIterator](), async (payload: unknown) =>
       ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload)))
     )
   );
@@ -1445,7 +1462,7 @@ function mapSourceToResponse(
  * or otherwise separating these two steps. For more on this, see the
  * "Supporting Subscriptions at Scale" information in the GraphQL specification.
  */
-export function createSourceEventStream(args: ExecutionArgs): PromiseOrValue<AsyncIterable<unknown> | ExecutionResult> {
+export function createSourceEventStream(args: ExecutionArgs): MaybePromise<AsyncIterable<unknown> | ExecutionResult> {
   // If a valid execution context cannot be created due to incorrect arguments,
   // a "Response" with only errors is returned.
   const exeContext = buildExecutionContext(args);
@@ -1460,7 +1477,7 @@ export function createSourceEventStream(args: ExecutionArgs): PromiseOrValue<Asy
 
 function createSourceEventStreamImpl(
   exeContext: ExecutionContext
-): PromiseOrValue<AsyncIterable<unknown> | ExecutionResult> {
+): MaybePromise<AsyncIterable<unknown> | ExecutionResult> {
   try {
     const eventStream = executeSubscription(exeContext);
     if (isPromise(eventStream)) {
@@ -1473,7 +1490,7 @@ function createSourceEventStreamImpl(
   }
 }
 
-function executeSubscription(exeContext: ExecutionContext): PromiseOrValue<AsyncIterable<unknown>> {
+function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIterable<unknown>> {
   const { schema, fragments, operation, variableValues, rootValue } = exeContext;
 
   const rootType = schema.getSubscriptionType();
@@ -1571,7 +1588,7 @@ function executeDeferredFragment(
 function executeStreamField(
   path: Path,
   itemPath: Path,
-  item: PromiseOrValue<unknown>,
+  item: MaybePromise<unknown>,
   exeContext: ExecutionContext,
   fieldNodes: ReadonlyArray<FieldNode>,
   info: GraphQLResolveInfo,
@@ -1585,7 +1602,7 @@ function executeStreamField(
     parentContext,
     exeContext,
   });
-  let completedItem: PromiseOrValue<unknown>;
+  let completedItem: MaybePromise<unknown>;
   try {
     try {
       if (isPromise(item)) {
@@ -1618,7 +1635,7 @@ function executeStreamField(
     return asyncPayloadRecord;
   }
 
-  let completedItems: PromiseOrValue<Array<unknown> | null>;
+  let completedItems: MaybePromise<Array<unknown> | null>;
   if (isPromise(completedItem)) {
     completedItems = completedItem.then(
       value => [value],
@@ -1729,7 +1746,7 @@ async function executeStreamIterator(
 
     const { done, value: completedItem } = iteration;
 
-    let completedItems: PromiseOrValue<Array<unknown> | null>;
+    let completedItems: MaybePromise<Array<unknown> | null>;
     if (isPromise(completedItem)) {
       completedItems = completedItem.then(
         value => [value],
@@ -1880,11 +1897,11 @@ class DeferredFragmentRecord {
   label: string | undefined;
   path: Array<string | number>;
   promise: Promise<void>;
-  data: ObjMap<unknown> | null;
+  data: Record<string, unknown> | null;
   parentContext: AsyncPayloadRecord | undefined;
   isCompleted: boolean;
   _exeContext: ExecutionContext;
-  _resolve?: (arg: PromiseOrValue<ObjMap<unknown> | null>) => void;
+  _resolve?: (arg: MaybePromise<Record<string, unknown> | null>) => void;
   constructor(opts: {
     label: string | undefined;
     path: Path | undefined;
@@ -1900,9 +1917,9 @@ class DeferredFragmentRecord {
     this._exeContext.subsequentPayloads.add(this);
     this.isCompleted = false;
     this.data = null;
-    this.promise = new Promise<ObjMap<unknown> | null>(resolve => {
-      this._resolve = promiseOrValue => {
-        resolve(promiseOrValue);
+    this.promise = new Promise<Record<string, unknown> | null>(resolve => {
+      this._resolve = MaybePromise => {
+        resolve(MaybePromise);
       };
     }).then(data => {
       this.data = data;
@@ -1910,7 +1927,7 @@ class DeferredFragmentRecord {
     });
   }
 
-  addData(data: PromiseOrValue<ObjMap<unknown> | null>) {
+  addData(data: MaybePromise<Record<string, unknown> | null>) {
     const parentData = this.parentContext?.promise;
     if (parentData) {
       this._resolve?.(parentData.then(() => data));
@@ -1932,7 +1949,7 @@ class StreamRecord {
   isCompletedIterator?: boolean;
   isCompleted: boolean;
   _exeContext: ExecutionContext;
-  _resolve?: (arg: PromiseOrValue<Array<unknown> | null>) => void;
+  _resolve?: (arg: MaybePromise<Array<unknown> | null>) => void;
   constructor(opts: {
     label: string | undefined;
     path: Path | undefined;
@@ -1952,8 +1969,8 @@ class StreamRecord {
     this.isCompleted = false;
     this.items = null;
     this.promise = new Promise<Array<unknown> | null>(resolve => {
-      this._resolve = promiseOrValue => {
-        resolve(promiseOrValue);
+      this._resolve = MaybePromise => {
+        resolve(MaybePromise);
       };
     }).then(items => {
       this.items = items;
@@ -1961,7 +1978,7 @@ class StreamRecord {
     });
   }
 
-  addItems(items: PromiseOrValue<Array<unknown> | null>) {
+  addItems(items: MaybePromise<Array<unknown> | null>) {
     const parentData = this.parentContext?.promise;
     if (parentData) {
       this._resolve?.(parentData.then(() => items));
