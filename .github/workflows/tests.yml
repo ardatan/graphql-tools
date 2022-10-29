@@ -92,7 +92,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
       - name: Test
-        run: yarn test --ci
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: yarn test --ci
   test_esm:
     name: ESM Test
     runs-on: ubuntu-latest
