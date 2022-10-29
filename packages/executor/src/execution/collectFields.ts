@@ -11,7 +11,7 @@ import {
 } from 'graphql';
 import { doesFragmentConditionMatch, getFieldEntryKey, memoize5, shouldIncludeNode } from '@graphql-tools/utils';
 import { AccumulatorMap } from './AccumulatorMap.js';
-import { GraphQLDeferDirective } from '../directives';
+import { GraphQLDeferDirective } from '../directives/index.js';
 
 export interface PatchFields {
   label: string | undefined;
