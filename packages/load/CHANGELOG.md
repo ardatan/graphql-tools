@@ -1,5 +1,13 @@
 # @graphql-tools/load
 
+## 7.8.2
+
+### Patch Changes
+
+- Updated dependencies [[`f7daf777`](https://github.com/ardatan/graphql-tools/commit/f7daf7777cc214801886e4a45c0389bc5837d175)]:
+  - @graphql-tools/utils@8.13.1
+  - @graphql-tools/schema@9.0.6
+
 ## 7.8.1
 
 ### Patch Changes
