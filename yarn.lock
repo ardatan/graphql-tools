@@ -1416,10 +1416,10 @@
     "@changesets/types" "^5.2.0"
     dotenv "^8.1.0"
 
-"@changesets/cli@2.25.0":
-  version "2.25.0"
-  resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.25.0.tgz#c338fefe69daa8348a504e7f54382eb1a4bb7a10"
-  integrity sha512-Svu5KD2enurVHGEEzCRlaojrHjVYgF9srmMP9VQSy9c1TspX6C9lDPpulsSNIjYY9BuU/oiWpjBgR7RI9eQiAA==
+"@changesets/cli@2.25.1":
+  version "2.25.1"
+  resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.25.1.tgz#78ae1a185e8dcbe5420fac44ed22fb03836de55e"
+  integrity sha512-e65ZJ7QKq7aERV/vAeuG0DTkkuEnTZK8eVNYqnd6wBsc9YTK+5iuuzp8aG0E80AngxeOaI4u77OIfzE9fv2T5Q==
   dependencies:
     "@babel/runtime" "^7.10.4"
     "@changesets/apply-release-plan" "^6.1.1"
