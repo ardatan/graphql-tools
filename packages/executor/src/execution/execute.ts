@@ -45,13 +45,14 @@ import {
   MaybePromise,
   mapAsyncIterator,
   ExecutionResult,
+  GraphQLStreamDirective,
+  collectFields,
+  collectSubFields as _collectSubfields,
 } from '@graphql-tools/utils';
 import { getVariableValues } from './values.js';
 import { promiseForObject } from './promiseForObject.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
-import { collectFields, collectSubfields as _collectSubfields } from './collectFields.js';
-import { GraphQLStreamDirective } from '../directives/index.js';
 import { invariant } from './invariant.js';
 
 /**
@@ -60,7 +61,7 @@ import { invariant } from './invariant.js';
  * saves overhead when resolving lists of values.
  */
 const collectSubfields = memoize3(
-  (exeContext: ExecutionContext, returnType: GraphQLObjectType, fieldNodes: ReadonlyArray<FieldNode>) =>
+  (exeContext: ExecutionContext, returnType: GraphQLObjectType, fieldNodes: Array<FieldNode>) =>
     _collectSubfields(exeContext.schema, exeContext.fragments, exeContext.variableValues, returnType, fieldNodes)
 );
 
@@ -512,7 +513,7 @@ function executeFieldsSerially<TData>(
   parentType: GraphQLObjectType,
   sourceValue: unknown,
   path: Path | undefined,
-  fields: Map<string, ReadonlyArray<FieldNode>>
+  fields: Map<string, Array<FieldNode>>
 ): MaybePromise<TData> {
   return promiseReduce(
     fields,
@@ -544,7 +545,7 @@ function executeFields(
   parentType: GraphQLObjectType,
   sourceValue: unknown,
   path: Path | undefined,
-  fields: Map<string, ReadonlyArray<FieldNode>>,
+  fields: Map<string, Array<FieldNode>>,
   asyncPayloadRecord?: AsyncPayloadRecord
 ): MaybePromise<Record<string, unknown>> {
   const results = Object.create(null);
@@ -593,7 +594,7 @@ function executeField(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
   source: unknown,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   path: Path,
   asyncPayloadRecord?: AsyncPayloadRecord
 ): MaybePromise<unknown> {
@@ -657,7 +658,7 @@ function executeField(
 export function buildResolveInfo(
   exeContext: ExecutionContext,
   fieldDef: GraphQLField<unknown, unknown>,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   parentType: GraphQLObjectType,
   path: Path
 ): GraphQLResolveInfo {
@@ -714,7 +715,7 @@ function handleFieldError(error: GraphQLError, returnType: GraphQLOutputType, er
 function completeValue(
   exeContext: ExecutionContext,
   returnType: GraphQLOutputType,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown,
@@ -773,7 +774,7 @@ function completeValue(
  */
 function getStreamValues(
   exeContext: ExecutionContext,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   path: Path
 ):
   | undefined
@@ -818,7 +819,7 @@ function getStreamValues(
 async function completeAsyncIteratorValue(
   exeContext: ExecutionContext,
   itemType: GraphQLOutputType,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   info: GraphQLResolveInfo,
   path: Path,
   iterator: AsyncIterator<unknown>,
@@ -886,7 +887,7 @@ async function completeAsyncIteratorValue(
 function completeListValue(
   exeContext: ExecutionContext,
   returnType: GraphQLList<GraphQLOutputType>,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown,
@@ -969,7 +970,7 @@ function completeListItemValue(
   errors: Array<GraphQLError>,
   exeContext: ExecutionContext,
   itemType: GraphQLOutputType,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   info: GraphQLResolveInfo,
   itemPath: Path,
   asyncPayloadRecord?: AsyncPayloadRecord
@@ -1032,7 +1033,7 @@ function completeLeafValue(returnType: GraphQLLeafType, result: unknown): unknow
 function completeAbstractValue(
   exeContext: ExecutionContext,
   returnType: GraphQLAbstractType,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown,
@@ -1071,7 +1072,7 @@ function ensureValidRuntimeType(
   runtimeTypeName: unknown,
   exeContext: ExecutionContext,
   returnType: GraphQLAbstractType,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   info: GraphQLResolveInfo,
   result: unknown
 ): GraphQLObjectType {
@@ -1128,7 +1129,7 @@ function ensureValidRuntimeType(
 function completeObjectValue(
   exeContext: ExecutionContext,
   returnType: GraphQLObjectType,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown,
@@ -1160,7 +1161,7 @@ function completeObjectValue(
 function invalidReturnTypeError(
   returnType: GraphQLObjectType,
   result: unknown,
-  fieldNodes: ReadonlyArray<FieldNode>
+  fieldNodes: Array<FieldNode>
 ): GraphQLError {
   return createGraphQLError(`Expected value of type "${returnType.name}" but got: ${inspect(result)}.`, {
     nodes: fieldNodes,
@@ -1170,7 +1171,7 @@ function invalidReturnTypeError(
 function collectAndExecuteSubfields(
   exeContext: ExecutionContext,
   returnType: GraphQLObjectType,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   path: Path,
   result: unknown,
   asyncPayloadRecord?: AsyncPayloadRecord
@@ -1539,7 +1540,7 @@ function executeDeferredFragment(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
   sourceValue: unknown,
-  fields: Map<string, ReadonlyArray<FieldNode>>,
+  fields: Map<string, Array<FieldNode>>,
   label?: string,
   path?: Path,
   parentContext?: AsyncPayloadRecord
@@ -1572,7 +1573,7 @@ function executeStreamField(
   itemPath: Path,
   item: MaybePromise<unknown>,
   exeContext: ExecutionContext,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   info: GraphQLResolveInfo,
   itemType: GraphQLOutputType,
   label?: string,
@@ -1638,7 +1639,7 @@ function executeStreamField(
 async function executeStreamIteratorItem(
   iterator: AsyncIterator<unknown>,
   exeContext: ExecutionContext,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   info: GraphQLResolveInfo,
   itemType: GraphQLOutputType,
   asyncPayloadRecord: StreamRecord,
@@ -1683,7 +1684,7 @@ async function executeStreamIterator(
   initialIndex: number,
   iterator: AsyncIterator<unknown>,
   exeContext: ExecutionContext,
-  fieldNodes: ReadonlyArray<FieldNode>,
+  fieldNodes: Array<FieldNode>,
   info: GraphQLResolveInfo,
   itemType: GraphQLOutputType,
   path: Path,

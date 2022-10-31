@@ -12,7 +12,13 @@ export function getFieldsNotInSubschema(
   fragments: Record<string, FragmentDefinitionNode>,
   variableValues: Record<string, any>
 ): Array<FieldNode> {
-  const subFieldNodesByResponseKey = collectSubFields(schema, fragments, variableValues, gatewayType, fieldNodes);
+  const { fields: subFieldNodesByResponseKey } = collectSubFields(
+    schema,
+    fragments,
+    variableValues,
+    gatewayType,
+    fieldNodes
+  );
 
   // TODO: Verify whether it is safe that extensions always exists.
   const fieldNodesByField = stitchingInfo?.fieldNodesByField;
