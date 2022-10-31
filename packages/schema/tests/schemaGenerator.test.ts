@@ -23,7 +23,7 @@ import { makeExecutableSchema, addResolversToSchema, chainResolvers } from '@gra
 import { IResolverValidationOptions, IResolvers, ExecutionResult, TypeSource } from '@graphql-tools/utils';
 
 import TypeA from './fixtures/circularSchemaA.js';
-import { execute } from '@graphql-tools/executor';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
 
 interface Bird {
   name: string;
@@ -2045,6 +2045,7 @@ describe('can specify lexical parser options', () => {
     const hoistedQuery = hoist(parsedQuery);
 
     const result = await execute({ schema: jsSchema, document: hoistedQuery });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     expect(result.data).toEqual({ hello: 'hello world' });
 
     const result2 = await execute({
@@ -2054,6 +2055,7 @@ describe('can specify lexical parser options', () => {
         phrase: 'world again!',
       },
     });
+    if (isIncrementalResult(result2)) throw Error('result is incremental');
     expect(result2.data).toEqual({ hello: 'hello world again!' });
   });
 });

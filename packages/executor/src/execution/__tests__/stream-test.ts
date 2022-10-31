@@ -11,7 +11,7 @@ import {
 } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import type { InitialIncrementalExecutionResult, SubsequentIncrementalExecutionResult } from '../execute.js';
-import { experimentalExecuteIncrementally } from '../execute.js';
+import { execute } from '../execute.js';
 
 const friendType = new GraphQLObjectType({
   fields: {
@@ -74,7 +74,7 @@ const query = new GraphQLObjectType({
 const schema = new GraphQLSchema({ query });
 
 async function complete(document: DocumentNode, rootValue: unknown = {}) {
-  const result = await experimentalExecuteIncrementally({
+  const result = await execute({
     schema,
     document,
     rootValue,
@@ -93,7 +93,7 @@ async function complete(document: DocumentNode, rootValue: unknown = {}) {
 }
 
 async function completeAsync(document: DocumentNode, numCalls: number, rootValue: unknown = {}) {
-  const result = await experimentalExecuteIncrementally({
+  const result = await execute({
     schema,
     document,
     rootValue,
@@ -1304,7 +1304,7 @@ describe('Execute: stream directive', () => {
       }
     `);
 
-    const executeResult = await experimentalExecuteIncrementally({
+    const executeResult = await execute({
       schema,
       document,
       rootValue: {
@@ -1423,7 +1423,7 @@ describe('Execute: stream directive', () => {
         }
       }
     `);
-    const executeResult = await experimentalExecuteIncrementally({
+    const executeResult = await execute({
       schema,
       document,
       rootValue: {
@@ -1518,7 +1518,7 @@ describe('Execute: stream directive', () => {
     }
   `);
 
-    const executeResult = await experimentalExecuteIncrementally({
+    const executeResult = await execute({
       schema,
       document,
       rootValue: {
@@ -1606,7 +1606,7 @@ describe('Execute: stream directive', () => {
     }
   `);
 
-    const executeResult = await experimentalExecuteIncrementally({
+    const executeResult = await execute({
       schema,
       document,
       rootValue: {
@@ -1713,7 +1713,7 @@ describe('Execute: stream directive', () => {
       }
     `);
 
-    const executeResult = await experimentalExecuteIncrementally({
+    const executeResult = await execute({
       schema,
       document,
       rootValue: {
@@ -1769,7 +1769,7 @@ describe('Execute: stream directive', () => {
       }
     `);
 
-    const executeResult = await experimentalExecuteIncrementally({
+    const executeResult = await execute({
       schema,
       document,
       rootValue: {
@@ -1831,7 +1831,7 @@ describe('Execute: stream directive', () => {
       }
     `);
 
-    const executeResult = await experimentalExecuteIncrementally({
+    const executeResult = await execute({
       schema,
       document,
       rootValue: {

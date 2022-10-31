@@ -1,7 +1,7 @@
 import { wrapSchema, TransformCompositeFields } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { parse } from 'graphql';
-import { execute } from '@graphql-tools/executor';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
 
 const baseSchema = makeExecutableSchema({
   typeDefs: /* GraphQL */ `
@@ -35,6 +35,7 @@ describe('TransformCompositeFields', () => {
       schema: transformedSchema,
       document: parse('{ product { id, theId: id } }'),
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     expect(result.data).toEqual({
       product: { id: 'r2d2c3p0', theId: 'r2d2c3p0' },
     });
@@ -65,6 +66,7 @@ describe('TransformCompositeFields', () => {
       schema: transformedSchema,
       document: parse('{ product { theId: id } }'),
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     expect(result.data).toEqual({
       product: { theId: 'R2D2C3P0' },
     });
@@ -91,6 +93,7 @@ describe('TransformCompositeFields', () => {
       schema: transformedSchema,
       document: parse('{ product { _id } }'),
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     expect(dataObjects).toEqual(['Query', 'Product']);
     expect(result.data).toEqual({
       product: { _id: 'R2D2C3P0' },

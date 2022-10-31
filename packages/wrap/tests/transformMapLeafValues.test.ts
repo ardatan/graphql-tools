@@ -1,6 +1,6 @@
 import { wrapSchema, MapLeafValues } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { execute } from '@graphql-tools/executor';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { GraphQLSchema, parse } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
 
@@ -55,6 +55,8 @@ describe('MapLeafValues', () => {
       schema: transformedSchema,
       document: parse(query),
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
+
     assertSome(result.data);
     expect(result.data['testEnum']).toBe('THREE');
     expect(result.data['testScalar']).toBe(15);
@@ -74,6 +76,7 @@ describe('MapLeafValues', () => {
         argument: 5,
       },
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     assertSome(result.data);
     expect(result.data['testEnum']).toBe('THREE');
     expect(result.data['testScalar']).toBe(15);

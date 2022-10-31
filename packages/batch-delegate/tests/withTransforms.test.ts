@@ -1,4 +1,4 @@
-import { execute } from '@graphql-tools/executor';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { GraphQLList, GraphQLObjectType, Kind, OperationTypeNode, parse } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -121,6 +121,7 @@ describe('works with complex transforms', () => {
     `;
 
     const result = await execute({ schema: stitchedSchema, document: parse(query) });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
 
     expect(result.errors).toBeUndefined();
     expect(result.data).toEqual({

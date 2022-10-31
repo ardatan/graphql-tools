@@ -114,10 +114,7 @@ export interface FormattedExecutionResult<TData = Record<string, unknown>, TExte
   extensions?: TExtensions;
 }
 
-export interface ExperimentalIncrementalExecutionResults<
-  TData = Record<string, unknown>,
-  TExtensions = Record<string, unknown>
-> {
+export interface IncrementalExecutionResults<TData = Record<string, unknown>, TExtensions = Record<string, unknown>> {
   initialResult: InitialIncrementalExecutionResult<TData, TExtensions>;
   subsequentResults: AsyncGenerator<SubsequentIncrementalExecutionResult<TData, TExtensions>, void, void>;
 }
@@ -210,57 +207,20 @@ const UNEXPECTED_MULTIPLE_PAYLOADS =
   'Executing this GraphQL operation would unexpectedly produce multiple payloads (due to @defer or @stream directive)';
 
 /**
- * Implements the "Executing requests" section of the GraphQL specification.
- *
- * Returns either a synchronous ExecutionResult (if all encountered resolvers
- * are synchronous), or a Promise of an ExecutionResult that will eventually be
- * resolved and never rejected.
- *
- * If the arguments to this function do not result in a legal execution context,
- * a GraphQLError will be thrown immediately explaining the invalid input.
- *
- * This function does not support incremental delivery (`@defer` and `@stream`).
- * If an operation which would defer or stream data is executed with this
- * function, it will throw or resolve to an object containing an error instead.
- * Use `experimentalExecuteIncrementally` if you want to support incremental
- * delivery.
- */
-export function execute<TData = any, TVariables = any, TContext = any>(
-  args: ExecutionArgs<TData, TVariables, TContext>
-): MaybePromise<ExecutionResult<TData>> {
-  const result = experimentalExecuteIncrementally(args);
-  if (!isPromise(result)) {
-    if ('initialResult' in result) {
-      throw new Error(UNEXPECTED_MULTIPLE_PAYLOADS);
-    }
-    return result;
-  }
-
-  return result.then(incrementalResult => {
-    if ('initialResult' in incrementalResult) {
-      return {
-        errors: [createGraphQLError(UNEXPECTED_MULTIPLE_PAYLOADS)],
-      };
-    }
-    return incrementalResult;
-  });
-}
-
-/**
  * Implements the "Executing requests" section of the GraphQL specification,
  * including `@defer` and `@stream` as proposed in
  * https://github.com/graphql/graphql-spec/pull/742
  *
- * This function returns a Promise of an ExperimentalIncrementalExecutionResults
+ * This function returns a Promise of an IncrementalExecutionResults
  * object. This object either consists of a single ExecutionResult, or an
  * object containing an `initialResult` and a stream of `subsequentResults`.
  *
  * If the arguments to this function do not result in a legal execution context,
  * a GraphQLError will be thrown immediately explaining the invalid input.
  */
-export function experimentalExecuteIncrementally<TData = any, TVariables = any, TContext = any>(
+export function execute<TData = any, TVariables = any, TContext = any>(
   args: ExecutionArgs<TData, TVariables, TContext>
-): MaybePromise<ExecutionResult<TData> | ExperimentalIncrementalExecutionResults<TData>> {
+): MaybePromise<ExecutionResult<TData> | IncrementalExecutionResults<TData>> {
   // If a valid execution context cannot be created due to incorrect arguments,
   // a "Response" with only errors is returned.
   const exeContext = buildExecutionContext(args);
@@ -275,7 +235,7 @@ export function experimentalExecuteIncrementally<TData = any, TVariables = any, 
 
 function executeImpl<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>
-): MaybePromise<ExecutionResult<TData> | ExperimentalIncrementalExecutionResults<TData>> {
+): MaybePromise<ExecutionResult<TData> | IncrementalExecutionResults<TData>> {
   // Return a Promise that will eventually resolve to the data described by
   // The "Response" section of the GraphQL specification.
   //
@@ -333,7 +293,7 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
  * that all field resolvers are also synchronous.
  */
 export function executeSync(args: ExecutionArgs): ExecutionResult {
-  const result = experimentalExecuteIncrementally(args);
+  const result = execute(args);
 
   // Assert that the execution was synchronous.
   if (isPromise(result) || 'initialResult' in result) {
@@ -1375,7 +1335,7 @@ export function experimentalSubscribeIncrementally(
 }
 
 async function* ensureAsyncIterable(
-  someExecutionResult: ExecutionResult | ExperimentalIncrementalExecutionResults
+  someExecutionResult: ExecutionResult | IncrementalExecutionResults
 ): AsyncGenerator<
   ExecutionResult | InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult,
   void,
@@ -2007,4 +1967,10 @@ export function getFieldDef(
     return TypeNameMetaFieldDef;
   }
   return parentType.getFields()[fieldName];
+}
+
+export function isIncrementalResult<TData>(
+  result: ExecutionResult<TData> | IncrementalExecutionResults<TData>
+): result is IncrementalExecutionResults<TData> {
+  return 'incremental' in result;
 }
