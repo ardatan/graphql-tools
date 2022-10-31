@@ -1,5 +1,16 @@
 # @graphql-tools/wrap
 
+## 9.2.5
+
+### Patch Changes
+
+- [`c1d01f3d`](https://github.com/ardatan/graphql-tools/commit/c1d01f3dd19b35dae4d4838af7f27490655549c6) Thanks [@ardatan](https://github.com/ardatan)! - Do not transform request if there is no value transformed during the schema transformation
+
+- Updated dependencies [[`f7daf777`](https://github.com/ardatan/graphql-tools/commit/f7daf7777cc214801886e4a45c0389bc5837d175)]:
+  - @graphql-tools/utils@8.13.1
+  - @graphql-tools/delegate@9.0.10
+  - @graphql-tools/schema@9.0.6
+
 ## 9.2.4
 
 ### Patch Changes

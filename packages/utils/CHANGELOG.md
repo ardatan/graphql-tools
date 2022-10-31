@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 8.13.1
+
+### Patch Changes
+
+- [#4795](https://github.com/ardatan/graphql-tools/pull/4795) [`f7daf777`](https://github.com/ardatan/graphql-tools/commit/f7daf7777cc214801886e4a45c0389bc5837d175) Thanks [@glasser](https://github.com/glasser)! - Fix build break in v8.13.0 in some ESM environments.
+
 ## 8.13.0
 
 ### Minor Changes
