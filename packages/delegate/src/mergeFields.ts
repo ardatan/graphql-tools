@@ -92,17 +92,9 @@ async function executeDelegationStage(
           source = error;
         }
         if (source instanceof Error || source == null) {
-          const fieldNodeResponseKeyMap = collectFields(
-            schema,
-            EMPTY_OBJECT,
-            EMPTY_OBJECT,
-            type,
-            selectionSet,
-            new Map(),
-            new Set()
-          );
+          const { fields } = collectFields(schema, EMPTY_OBJECT, EMPTY_OBJECT, type, selectionSet);
           const nullResult = {};
-          for (const [responseKey, fieldNodes] of fieldNodeResponseKeyMap) {
+          for (const [responseKey, fieldNodes] of fields) {
             const combinedPath = [...path, responseKey];
             if (source instanceof GraphQLError) {
               nullResult[responseKey] = relocatedError(source, combinedPath);

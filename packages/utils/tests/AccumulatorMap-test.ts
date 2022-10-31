@@ -1,4 +1,4 @@
-import { AccumulatorMap } from '../AccumulatorMap.js';
+import { AccumulatorMap } from '../src/AccumulatorMap';
 
 function expectMap<K, V>(map: Map<K, V>) {
   return expect(Object.fromEntries(map));

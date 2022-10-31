@@ -14,30 +14,36 @@ import {
   isAbstractType,
   typeFromAST,
 } from 'graphql';
+import { GraphQLDeferDirective } from './directives.js';
+import { AccumulatorMap } from './AccumulatorMap.js';
 
-// Taken from GraphQL-JS v16 for backwards compat
-export function collectFields(
+export interface PatchFields {
+  label: string | undefined;
+  fields: Map<string, Array<FieldNode>>;
+}
+
+export interface FieldsAndPatches {
+  fields: Map<string, Array<FieldNode>>;
+  patches: Array<PatchFields>;
+}
+
+function collectFieldsImpl<TVariables = any>(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: { [variable: string]: unknown },
+  variableValues: TVariables,
   runtimeType: GraphQLObjectType,
   selectionSet: SelectionSetNode,
-  fields: Map<string, Array<FieldNode>> = new Map(),
-  visitedFragmentNames: Set<string> = new Set()
-): Map<string, Array<FieldNode>> {
+  fields: AccumulatorMap<string, FieldNode>,
+  patches: Array<PatchFields>,
+  visitedFragmentNames: Set<string>
+): void {
   for (const selection of selectionSet.selections) {
     switch (selection.kind) {
       case Kind.FIELD: {
         if (!shouldIncludeNode(variableValues, selection)) {
           continue;
         }
-        const name = getFieldEntryKey(selection);
-        const fieldList = fields.get(name);
-        if (fieldList !== undefined) {
-          fieldList.push(selection);
-        } else {
-          fields.set(name, [selection]);
-        }
+        fields.add(getFieldEntryKey(selection), selection);
         break;
       }
       case Kind.INLINE_FRAGMENT: {
@@ -47,41 +53,113 @@ export function collectFields(
         ) {
           continue;
         }
-        collectFields(
-          schema,
-          fragments,
-          variableValues,
-          runtimeType,
-          selection.selectionSet,
-          fields,
-          visitedFragmentNames
-        );
+
+        const defer = getDeferValues(variableValues, selection);
+
+        if (defer) {
+          const patchFields = new AccumulatorMap<string, FieldNode>();
+          collectFieldsImpl(
+            schema,
+            fragments,
+            variableValues,
+            runtimeType,
+            selection.selectionSet,
+            patchFields,
+            patches,
+            visitedFragmentNames
+          );
+          patches.push({
+            label: defer.label,
+            fields: patchFields,
+          });
+        } else {
+          collectFieldsImpl(
+            schema,
+            fragments,
+            variableValues,
+            runtimeType,
+            selection.selectionSet,
+            fields,
+            patches,
+            visitedFragmentNames
+          );
+        }
         break;
       }
       case Kind.FRAGMENT_SPREAD: {
         const fragName = selection.name.value;
-        if (visitedFragmentNames.has(fragName) || !shouldIncludeNode(variableValues, selection)) {
+
+        if (!shouldIncludeNode(variableValues, selection)) {
           continue;
         }
-        visitedFragmentNames.add(fragName);
+
+        const defer = getDeferValues(variableValues, selection);
+        if (visitedFragmentNames.has(fragName) && !defer) {
+          continue;
+        }
+
         const fragment = fragments[fragName];
         if (!fragment || !doesFragmentConditionMatch(schema, fragment, runtimeType)) {
           continue;
         }
-        collectFields(
-          schema,
-          fragments,
-          variableValues,
-          runtimeType,
-          fragment.selectionSet,
-          fields,
-          visitedFragmentNames
-        );
+
+        if (!defer) {
+          visitedFragmentNames.add(fragName);
+        }
+
+        if (defer) {
+          const patchFields = new AccumulatorMap<string, FieldNode>();
+          collectFieldsImpl(
+            schema,
+            fragments,
+            variableValues,
+            runtimeType,
+            fragment.selectionSet,
+            patchFields,
+            patches,
+            visitedFragmentNames
+          );
+          patches.push({
+            label: defer.label,
+            fields: patchFields,
+          });
+        } else {
+          collectFieldsImpl(
+            schema,
+            fragments,
+            variableValues,
+            runtimeType,
+            fragment.selectionSet,
+            fields,
+            patches,
+            visitedFragmentNames
+          );
+        }
         break;
       }
     }
   }
-  return fields;
+}
+
+/**
+ * Given a selectionSet, collects all of the fields and returns them.
+ *
+ * CollectFields requires the "runtime type" of an object. For a field that
+ * returns an Interface or Union type, the "runtime type" will be the actual
+ * object type returned by that field.
+ *
+ */
+export function collectFields<TVariables = any>(
+  schema: GraphQLSchema,
+  fragments: Record<string, FragmentDefinitionNode>,
+  variableValues: TVariables,
+  runtimeType: GraphQLObjectType,
+  selectionSet: SelectionSetNode
+): FieldsAndPatches {
+  const fields = new AccumulatorMap<string, FieldNode>();
+  const patches: Array<PatchFields> = [];
+  collectFieldsImpl(schema, fragments, variableValues, runtimeType, selectionSet, fields, patches, new Set());
+  return { fields, patches };
 }
 
 /**
@@ -134,29 +212,68 @@ export function getFieldEntryKey(node: FieldNode): string {
   return node.alias ? node.alias.value : node.name.value;
 }
 
-export const collectSubFields = memoize5(function collectSubFields(
+/**
+ * Returns an object containing the `@defer` arguments if a field should be
+ * deferred based on the experimental flag, defer directive present and
+ * not disabled by the "if" argument.
+ */
+export function getDeferValues(
+  variableValues: any,
+  node: FragmentSpreadNode | InlineFragmentNode
+): undefined | { label: string | undefined } {
+  const defer = getDirectiveValues(GraphQLDeferDirective, node, variableValues);
+
+  if (!defer) {
+    return;
+  }
+
+  if (defer['if'] === false) {
+    return;
+  }
+
+  return {
+    label: typeof defer['label'] === 'string' ? defer['label'] : undefined,
+  };
+}
+
+/**
+ * Given an array of field nodes, collects all of the subfields of the passed
+ * in fields, and returns them at the end.
+ *
+ * CollectSubFields requires the "return type" of an object. For a field that
+ * returns an Interface or Union type, the "return type" will be the actual
+ * object type returned by that field.
+ *
+ */
+export const collectSubFields = memoize5(function collectSubfields(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: Record<string, any>,
-  type: GraphQLObjectType,
+  variableValues: { [variable: string]: unknown },
+  returnType: GraphQLObjectType,
   fieldNodes: Array<FieldNode>
-): Map<string, Array<FieldNode>> {
-  const subFieldNodes = new Map<string, Array<FieldNode>>();
+): FieldsAndPatches {
+  const subFieldNodes = new AccumulatorMap<string, FieldNode>();
   const visitedFragmentNames = new Set<string>();
 
-  for (const fieldNode of fieldNodes) {
-    if (fieldNode.selectionSet) {
-      collectFields(
+  const subPatches: Array<PatchFields> = [];
+  const subFieldsAndPatches = {
+    fields: subFieldNodes,
+    patches: subPatches,
+  };
+
+  for (const node of fieldNodes) {
+    if (node.selectionSet) {
+      collectFieldsImpl(
         schema,
         fragments,
         variableValues,
-        type,
-        fieldNode.selectionSet,
+        returnType,
+        node.selectionSet,
         subFieldNodes,
+        subPatches,
         visitedFragmentNames
       );
     }
   }
-
-  return subFieldNodes;
+  return subFieldsAndPatches;
 });
