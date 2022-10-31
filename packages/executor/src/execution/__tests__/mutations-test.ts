@@ -1,7 +1,7 @@
 import { parse, GraphQLObjectType, GraphQLInt, GraphQLSchema } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
-import { execute, executeSync, experimentalExecuteIncrementally } from '../execute.js';
+import { execute, executeSync } from '../execute.js';
 
 class NumberHolder {
   theNumber: number;
@@ -206,7 +206,7 @@ describe('Execute: Handles mutation execution ordering', () => {
     `);
 
     const rootValue = new Root(6);
-    const mutationResult = await experimentalExecuteIncrementally({
+    const mutationResult = await execute({
       schema,
       document,
       rootValue,
@@ -286,7 +286,7 @@ describe('Execute: Handles mutation execution ordering', () => {
     `);
 
     const rootValue = new Root(6);
-    const mutationResult = await experimentalExecuteIncrementally({
+    const mutationResult = await execute({
       schema,
       document,
       rootValue,

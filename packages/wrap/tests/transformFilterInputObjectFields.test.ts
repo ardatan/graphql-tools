@@ -2,7 +2,7 @@ import { wrapSchema, FilterInputObjectFields } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { graphql, astFromValue, Kind, GraphQLString, parse } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
-import { execute } from '@graphql-tools/executor';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
 
 describe('FilterInputObjectFields', () => {
   const schema = makeExecutableSchema({
@@ -73,6 +73,7 @@ describe('FilterInputObjectFields', () => {
       schema: transformedSchema,
       document: parse(query),
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     assertSome(result.data);
     expect(result.errors).toBeUndefined();
     const dataTest: any = result.data['test'];

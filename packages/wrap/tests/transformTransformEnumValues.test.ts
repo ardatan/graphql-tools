@@ -1,7 +1,7 @@
 import { wrapSchema, TransformEnumValues } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { GraphQLEnumType, parse } from 'graphql';
-import { execute } from '@graphql-tools/executor';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
 
 function assertGraphQLEnumType(input: unknown): asserts input is GraphQLEnumType {
   if (input instanceof GraphQLEnumType) {
@@ -44,6 +44,7 @@ describe('TransformEnumValues', () => {
       schema: transformedSchema,
       document: parse(query),
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     expect(result.errors).toBeUndefined();
   });
 
@@ -88,6 +89,7 @@ describe('TransformEnumValues', () => {
       schema: transformedSchema,
       document: parse(query),
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     expect(result.errors).toBeUndefined();
     const TestEnum = transformedSchema.getType('TestEnum');
     assertGraphQLEnumType(TestEnum);
@@ -130,6 +132,7 @@ describe('TransformEnumValues', () => {
         test: 'UNO',
       },
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     expect(result.errors).toBeUndefined();
   });
 });
