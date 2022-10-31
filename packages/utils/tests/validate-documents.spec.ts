@@ -1,5 +1,5 @@
-import { checkValidationErrors, validateGraphQlDocuments } from '../src/index.js';
-import { buildSchema, parse, GraphQLError } from 'graphql';
+import { validateGraphQlDocuments } from '../src/index.js';
+import { buildSchema, parse, GraphQLError, Source } from 'graphql';
 
 describe('validateGraphQlDocuments', () => {
   it('Should throw an informative error when validation errors happens, also check for fragments validation even why they are duplicated', async () => {
@@ -25,146 +25,33 @@ describe('validateGraphQlDocuments', () => {
       }
     `;
 
-    const result = await validateGraphQlDocuments(schema, [
-      {
-        location: 'fragment.graphql',
-        document: parse(fragment),
-      },
-      {
-        location: 'query.graphql',
-        document: parse(/* GraphQL */ `
-          query searchPage {
-            otherStuff {
-              foo
+    const result = validateGraphQlDocuments(schema, [
+      parse(new Source(fragment, 'packages/client/src/fragments/pizzeriaFragment.fragment.graphql')),
+      parse(
+        new Source(
+          /* GraphQL */ `
+            query searchPage {
+              otherStuff {
+                foo
+              }
+              ...pizzeriaFragment
             }
-            ...pizzeriaFragment
-          }
 
-          ${fragment}
-        `),
-      },
+            ${fragment}
+          `,
+          'packages/client/src/pages/search/searchPage.query.graphql'
+        )
+      ),
     ]);
 
     expect(result).toHaveLength(1);
-    expect(result[0].filePath).toBe('query.graphql');
-    expect(result[0].errors[0] instanceof GraphQLError).toBeTruthy();
-    expect(result[0].errors[0].message).toBe(
+    expect(result[0].source?.name).toBe('packages/client/src/pages/search/searchPage.query.graphql');
+    expect(result[0] instanceof GraphQLError).toBeTruthy();
+    expect(result[0].message).toBe(
       'Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".'
     );
-
-    try {
-      checkValidationErrors(result);
-      expect(true).toBeFalsy();
-    } catch (aggregateError: any) {
-      const { errors } = aggregateError;
-      expect(Symbol.iterator in errors).toBeTruthy();
-      const generator = errors[Symbol.iterator]();
-
-      const error = generator.next().value;
-
-      expect(error).toBeInstanceOf(Error);
-      expect(error.name).toEqual('GraphQLDocumentError');
-      expect(error.message).toEqual(
-        'GraphQLDocumentError: Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".'
-      );
-      expect(error.stack).toEqual(
-        [
-          'GraphQLDocumentError: Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".',
-          '    at query.graphql:6:13',
-        ].join('\n')
-      );
-    }
-  });
-});
-
-describe('checkValidationErrors', () => {
-  it('Should throw errors source files and locations', async () => {
-    const loadDocumentErrors = [
-      {
-        filePath: 'packages/server/src/modules/github-check-run/providers/documents/create-check-run.mutation.graphql',
-        errors: [
-          {
-            message: 'Cannot query field "randomField" on type "CheckRun".',
-            locations: [
-              {
-                line: 7,
-                column: 13,
-              },
-            ],
-          },
-          {
-            message: 'Cannot query field "randomField2" on type "CheckRun".',
-            locations: [
-              {
-                line: 8,
-                column: 13,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        filePath: 'packages/server/src/modules/github-check-run/providers/documents/check-run.query.graphql',
-        errors: [
-          {
-            message: 'Cannot query field "randomField" on type "CheckRun".',
-            locations: [
-              {
-                line: 7,
-                column: 13,
-              },
-            ],
-          },
-        ],
-      },
-    ];
-
-    let errors;
-    try {
-      checkValidationErrors(loadDocumentErrors as any);
-    } catch (aggregateError: any) {
-      errors = aggregateError.errors;
-    }
-
-    expect(Symbol.iterator in errors).toBeTruthy();
-
-    let error;
-    const generator = errors[Symbol.iterator]();
-
-    error = generator.next().value;
-
-    expect(error).toBeInstanceOf(Error);
-    expect(error.name).toEqual('GraphQLDocumentError');
-    expect(error.message).toEqual('GraphQLDocumentError: Cannot query field "randomField" on type "CheckRun".');
-    expect(error.stack).toEqual(
-      [
-        'GraphQLDocumentError: Cannot query field "randomField" on type "CheckRun".',
-        '    at packages/server/src/modules/github-check-run/providers/documents/create-check-run.mutation.graphql:7:13',
-      ].join('\n')
-    );
-
-    error = generator.next().value;
-
-    expect(error).toBeInstanceOf(Error);
-    expect(error.name).toEqual('GraphQLDocumentError');
-    expect(error.message).toEqual('GraphQLDocumentError: Cannot query field "randomField2" on type "CheckRun".');
-    expect(error.stack).toEqual(
-      [
-        'GraphQLDocumentError: Cannot query field "randomField2" on type "CheckRun".',
-        '    at packages/server/src/modules/github-check-run/providers/documents/create-check-run.mutation.graphql:8:13',
-      ].join('\n')
-    );
-
-    error = generator.next().value;
-
-    expect(error).toBeInstanceOf(Error);
-    expect(error.name).toEqual('GraphQLDocumentError');
-    expect(error.message).toEqual('GraphQLDocumentError: Cannot query field "randomField" on type "CheckRun".');
-    expect(error.stack).toEqual(
-      [
-        'GraphQLDocumentError: Cannot query field "randomField" on type "CheckRun".',
-        '    at packages/server/src/modules/github-check-run/providers/documents/check-run.query.graphql:7:13',
-      ].join('\n')
-    );
+    expect(result[0].stack)
+      .toBe(`Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".
+    at packages/client/src/pages/search/searchPage.query.graphql:6:15`);
   });
 });
