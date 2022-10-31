@@ -18,6 +18,7 @@ export default class TransformEnumValues<TContext = Record<string, any>>
   private transformedSchema: GraphQLSchema | undefined;
   private mapping: Record<string, Record<string, string>>;
   private reverseMapping: Record<string, Record<string, string>>;
+  private noTransformation = true;
 
   constructor(
     enumValueTransformer: EnumValueTransformer,
@@ -50,6 +51,9 @@ export default class TransformEnumValues<TContext = Record<string, any>>
     delegationContext: DelegationContext<TContext>,
     transformationContext: TransformEnumValuesTransformationContext
   ): ExecutionRequest {
+    if (this.noTransformation) {
+      return originalRequest;
+    }
     return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
   }
 
@@ -58,6 +62,9 @@ export default class TransformEnumValues<TContext = Record<string, any>>
     delegationContext: DelegationContext<TContext>,
     transformationContext: TransformEnumValuesTransformationContext
   ) {
+    if (this.noTransformation) {
+      return originalResult;
+    }
     return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
   }
 
@@ -77,6 +84,7 @@ export default class TransformEnumValues<TContext = Record<string, any>>
         }
         this.mapping[typeName][externalValue] = newExternalValue;
         this.reverseMapping[typeName][newExternalValue] = externalValue;
+        this.noTransformation = false;
       }
     }
     return transformedEnumValue;
