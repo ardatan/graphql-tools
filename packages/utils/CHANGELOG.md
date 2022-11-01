@@ -1,5 +1,21 @@
 # @graphql-tools/utils
 
+## 9.0.0
+
+### Major Changes
+
+- [#4801](https://github.com/ardatan/graphql-tools/pull/4801) [`8f6d3efc`](https://github.com/ardatan/graphql-tools/commit/8f6d3efc92b25236f5a3a761ea7ba2f0a7c7f550) Thanks [@ardatan](https://github.com/ardatan)! - _BREAKING_: `checkValidationErrors` has been dropped and `validateGraphQlDocuments` now accepts `DocumentNode[]` instead and it throws the original `GraphQLError`s with the correct stack trace
+
+- [#4796](https://github.com/ardatan/graphql-tools/pull/4796) [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931) Thanks [@saihaj](https://github.com/saihaj)! - update `collectFields` to support collecting deffered values
+
+### Minor Changes
+
+- [#4796](https://github.com/ardatan/graphql-tools/pull/4796) [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931) Thanks [@saihaj](https://github.com/saihaj)! - add `@defer` directive
+
+- [#4796](https://github.com/ardatan/graphql-tools/pull/4796) [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931) Thanks [@saihaj](https://github.com/saihaj)! - export collect field helpers
+
+- [#4796](https://github.com/ardatan/graphql-tools/pull/4796) [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931) Thanks [@saihaj](https://github.com/saihaj)! - add `@stream` directive
+
 ## 8.13.1
 
 ### Patch Changes

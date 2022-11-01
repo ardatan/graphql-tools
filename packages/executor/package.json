@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Saihajpreet Singh <saihajpreet.singh@gmail.com>",
   "license": "MIT",
   "sideEffects": false,
@@ -53,7 +53,7 @@
   },
   "dependencies": {
     "@repeaterjs/repeater": "3.0.4",
-    "@graphql-tools/utils": "8.13.1",
+    "@graphql-tools/utils": "9.0.0",
     "@graphql-typed-document-node/core": "3.1.1",
     "value-or-promise": "1.0.1"
   },
