@@ -1,5 +1,11 @@
 # @graphql-tools/executor
 
+## 0.0.4
+
+### Patch Changes
+
+- [`f47f3559`](https://github.com/ardatan/graphql-tools/commit/f47f35593d4e5b785359f4d5dbdb2981156fecba) Thanks [@ardatan](https://github.com/ardatan)! - Do not push the following result until the latest one consumed
+
 ## 0.0.3
 
 ### Patch Changes

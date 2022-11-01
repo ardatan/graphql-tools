@@ -1,5 +1,12 @@
 # @graphql-tools/prisma-loader
 
+## 7.2.28
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/url-loader@7.16.8
+
 ## 7.2.27
 
 ### Patch Changes
