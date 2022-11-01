@@ -1,23 +1,14 @@
-import type { GraphQLError } from 'graphql';
 import type { IncomingMessage } from 'http';
 import { meros as merosIncomingMessage } from 'meros/node';
 import { meros as merosReadableStream } from 'meros/browser';
 import { ExecutionResult, mapAsyncIterator } from '@graphql-tools/utils';
 import { dset } from 'dset/merge';
 import { addCancelToResponseStream } from './event-stream/addCancelToResponseStream.js';
-
-interface ExecutionPatchResult<TData = { [key: string]: any }, TExtensions = { [key: string]: any }> {
-  errors?: ReadonlyArray<GraphQLError>;
-  data?: TData;
-  path?: ReadonlyArray<string | number>;
-  label?: string;
-  hasNext: boolean;
-  extensions?: TExtensions;
-}
+import { GraphQLError } from 'graphql';
 
 type Part =
   | {
-      body: ExecutionPatchResult;
+      body: ExecutionResult;
       json: true;
     }
   | {
@@ -47,25 +38,27 @@ export async function handleMultipartMixedResponse(response: Response, controlle
 
   const executionResult: ExecutionResult = {};
 
+  function handleResult(result: ExecutionResult) {
+    if (result.path && result.data) {
+      executionResult.data = executionResult.data || {};
+      dset(executionResult.data, result.path, result.data);
+    } else if (result.data) {
+      executionResult.data = executionResult.data || {};
+      Object.assign(executionResult.data, result.data);
+    }
+    if (result.errors) {
+      executionResult.errors = executionResult.errors || [];
+      (executionResult.errors as GraphQLError[]).push(...result.errors);
+    }
+    if (result.incremental) {
+      result.incremental.forEach(handleResult);
+    }
+  }
+
   const resultStream = mapAsyncIterator(asyncIterator, (part: Part) => {
     if (part.json) {
       const chunk = part.body;
-      if (chunk.path) {
-        if (chunk.data) {
-          const path: Array<string | number> = ['data'];
-          dset(executionResult, path.concat(chunk.path), chunk.data);
-        }
-        if (chunk.errors) {
-          executionResult.errors = (executionResult.errors || []).concat(chunk.errors);
-        }
-      } else {
-        if (chunk.data) {
-          executionResult.data = chunk.data;
-        }
-        if (chunk.errors) {
-          executionResult.errors = chunk.errors;
-        }
-      }
+      handleResult(chunk);
       return executionResult;
     }
   });
