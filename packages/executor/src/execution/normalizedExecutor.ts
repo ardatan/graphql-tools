@@ -26,6 +26,7 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
               }
               push(value);
             }
+            stop();
           });
         }
         return result;
@@ -47,6 +48,7 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
             }
             push(value);
           }
+          stop();
         });
       }
       return result;
