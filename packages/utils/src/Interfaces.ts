@@ -45,7 +45,6 @@ import {
   Source,
   DefinitionNode,
   OperationTypeNode,
-  GraphQLError,
 } from 'graphql';
 
 /**
@@ -57,7 +56,7 @@ import {
  *   - `extensions` is reserved for adding non-standard properties.
  */
 export interface ExecutionResult<TData = any, TExtensions = any> {
-  errors?: ReadonlyArray<GraphQLError>;
+  incremental?: ReadonlyArray<ExecutionResult<TData, TExtensions>>;
   data?: TData | null;
   hasNext?: boolean;
   extensions?: TExtensions;

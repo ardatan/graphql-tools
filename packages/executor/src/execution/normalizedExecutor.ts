@@ -24,18 +24,7 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
               if (stopped) {
                 break;
               }
-              if ('incremental' in value && value.incremental) {
-                const incrementalLength = value.incremental.length;
-                value.incremental.forEach((item, index) => {
-                  const hasNext = index === incrementalLength - 1;
-                  push({
-                    ...item,
-                    hasNext,
-                  });
-                });
-              } else {
-                push(value);
-              }
+              push(value);
             }
           });
         }
@@ -56,19 +45,7 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
             if (stopped) {
               break;
             }
-            if (value.incremental) {
-              const incrementalLength = value.incremental.length;
-              value.incremental.forEach((item, index) => {
-                const hasNext = index === incrementalLength - 1;
-                push({
-                  ...item,
-                  hasNext,
-                });
-              });
-            }
-            push({
-              hasNext: false,
-            });
+            push(value);
           }
         });
       }
