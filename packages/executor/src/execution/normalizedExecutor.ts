@@ -20,13 +20,18 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
             stop.then(() => {
               stopped = true;
             });
-            for await (const value of result) {
-              if (stopped) {
-                break;
+            let err: any;
+            try {
+              for await (const value of result) {
+                if (stopped) {
+                  break;
+                }
+                await push(value);
               }
-              push(value);
+            } catch (e) {
+              err = e;
             }
-            stop();
+            stop(err);
           });
         }
         return result;
@@ -41,14 +46,19 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
           stop.then(() => {
             stopped = true;
           });
-          push(result.initialResult);
-          for await (const value of result.subsequentResults) {
-            if (stopped) {
-              break;
+          let err: any;
+          try {
+            await push(result.initialResult);
+            for await (const value of result.subsequentResults) {
+              if (stopped) {
+                break;
+              }
+              await push(value);
             }
-            push(value);
+          } catch (e) {
+            err = e;
           }
-          stop();
+          stop(err);
         });
       }
       return result;
