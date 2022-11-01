@@ -1,4 +1,4 @@
-import { execute } from '@graphql-tools/executor';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { OperationTypeNode, parse } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -89,6 +89,9 @@ describe('batch delegation within basic stitching example', () => {
     const result = await execute({ schema: stitchedSchema, document: parse(query) });
 
     expect(numCalls).toEqual(1);
+
+    if (isIncrementalResult(result)) throw Error('result is incremental');
+
     expect(result.errors).toBeUndefined();
     const chirps: any = result.data!['trendingChirps'];
     expect(chirps[0].chirpedAtUser.email).not.toBe(null);
@@ -182,6 +185,9 @@ describe('batch delegation within basic stitching example', () => {
 
     const result = await execute({ schema: stitchedSchema, document: parse(query) });
     expect(numCalls).toEqual(1);
+
+    if (isIncrementalResult(result)) throw Error('result is incremental');
+
     expect(result.data).toEqual({
       users: [
         {

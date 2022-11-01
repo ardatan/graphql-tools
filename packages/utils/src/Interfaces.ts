@@ -53,12 +53,17 @@ import {
  *
  *   - `errors` is included when any errors occurred as a non-empty array.
  *   - `data` is the result of a successful execution of the query.
+ *   - `hasNext` is true if a future payload is expected.
  *   - `extensions` is reserved for adding non-standard properties.
  */
 export interface ExecutionResult<TData = any, TExtensions = any> {
-  errors?: ReadonlyArray<GraphQLError>;
+  incremental?: ReadonlyArray<ExecutionResult<TData, TExtensions>>;
   data?: TData | null;
+  errors?: ReadonlyArray<GraphQLError>;
+  hasNext?: boolean;
   extensions?: TExtensions;
+  label?: string;
+  path?: ReadonlyArray<string | number>;
 }
 
 export interface ExecutionRequest<

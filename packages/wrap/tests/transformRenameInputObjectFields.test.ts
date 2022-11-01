@@ -1,6 +1,6 @@
 import { wrapSchema, RenameInputObjectFields } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { execute } from '@graphql-tools/executor';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { parse } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
 
@@ -55,6 +55,7 @@ describe('RenameInputObjectFields', () => {
       schema: transformedSchema,
       document: parse(query),
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     assertSome(result.data);
     const testData: any = result.data['test'];
     expect(testData.field1).toBe('field1');
@@ -111,6 +112,8 @@ describe('RenameInputObjectFields', () => {
       schema: transformedSchema,
       document: parse(query),
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
+
     assertSome(result.data);
     const testData: any = result.data['test'];
     expect(testData.field1).toBe('field1');
@@ -176,6 +179,7 @@ describe('RenameInputObjectFields', () => {
       },
     };
     const result = await execute({ schema: transformedSchema, document: parse(query), variableValues: variables });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     assertSome(result.data);
     const testData: any = result.data['test'];
     expect(testData.field1).toBe('field1');

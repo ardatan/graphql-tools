@@ -36,7 +36,7 @@ import { Subschema } from './Subschema.js';
 import { createRequest, getDelegatingOperation } from './createRequest.js';
 import { Transformer } from './Transformer.js';
 import { applySchemaTransforms } from './applySchemaTransforms.js';
-import { ExecutionArgs, execute, subscribe } from '@graphql-tools/executor';
+import { normalizedExecutor } from '@graphql-tools/executor';
 
 export function delegateToSchema<
   TContext extends Record<string, any> = Record<string, any>,
@@ -219,18 +219,13 @@ function getExecutor<TContext extends Record<string, any>>(
 
 export const createDefaultExecutor = memoize1(function createDefaultExecutor(schema: GraphQLSchema): Executor {
   return function defaultExecutor(request: ExecutionRequest) {
-    const executionArgs: ExecutionArgs = {
+    return normalizedExecutor({
       schema,
       document: request.document,
       rootValue: request.rootValue,
       contextValue: request.context,
       variableValues: request.variables,
       operationName: request.operationName,
-    };
-    const operationType = request.operationType || getOperationASTFromRequest(request).operation;
-    if (operationType === 'subscription') {
-      return subscribe(executionArgs);
-    }
-    return execute(executionArgs);
+    });
   };
 });

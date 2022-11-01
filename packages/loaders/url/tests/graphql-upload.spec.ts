@@ -1,6 +1,6 @@
 import { File } from '@whatwg-node/fetch';
 import { readFileSync } from 'fs';
-import { execute } from '@graphql-tools/executor';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { GraphQLSchema, parse } from 'graphql';
 import { join } from 'path';
 import { assertNonMaybe, testSchema } from './test-utils';
@@ -85,7 +85,7 @@ describe('GraphQL Upload compatibility', () => {
         nonObjectVar: 'somefilename.txt',
       },
     });
-
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     expect(result.errors).toBeFalsy();
     assertNonMaybe(result.data);
     const uploadFileData: any = result.data?.['uploadFile'];

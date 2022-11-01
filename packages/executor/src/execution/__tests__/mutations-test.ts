@@ -41,6 +41,13 @@ class Root {
 const numberHolderType = new GraphQLObjectType({
   fields: {
     theNumber: { type: GraphQLInt },
+    promiseToGetTheNumber: {
+      type: GraphQLInt,
+      resolve: async root => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+        return root.theNumber;
+      },
+    },
   },
   name: 'NumberHolder',
 });
@@ -181,5 +188,140 @@ describe('Execute: Handles mutation execution ordering', () => {
         },
       ],
     });
+  });
+
+  it('Mutation fields with @defer do not block next mutation', async () => {
+    const document = parse(`
+      mutation M {
+        first: promiseToChangeTheNumber(newNumber: 1) {
+          ...DeferFragment @defer(label: "defer-label")
+        },
+        second: immediatelyChangeTheNumber(newNumber: 2) {
+          theNumber
+        }
+      }
+      fragment DeferFragment on NumberHolder {
+        promiseToGetTheNumber
+      }
+    `);
+
+    const rootValue = new Root(6);
+    const mutationResult = await execute({
+      schema,
+      document,
+      rootValue,
+    });
+    const patches = [];
+
+    expect('initialResult' in mutationResult).toBeTruthy();
+    // @ts-expect-error once we assert that initialResult is in mutationResult then it should work fine
+    patches.push(mutationResult.initialResult);
+    // @ts-expect-error once we assert that initialResult is in mutationResult then it should work fine
+    for await (const patch of mutationResult.subsequentResults) {
+      patches.push(patch);
+    }
+
+    expectJSON(patches).toDeepEqual([
+      {
+        data: {
+          first: {},
+          second: { theNumber: 2 },
+        },
+        hasNext: true,
+      },
+      {
+        incremental: [
+          {
+            label: 'defer-label',
+            path: ['first'],
+            data: {
+              promiseToGetTheNumber: 2,
+            },
+          },
+        ],
+        hasNext: false,
+      },
+    ]);
+  });
+
+  it('Mutation inside of a fragment', async () => {
+    const document = parse(`
+      mutation M {
+        ...MutationFragment
+        second: immediatelyChangeTheNumber(newNumber: 2) {
+          theNumber
+        }
+      }
+      fragment MutationFragment on Mutation {
+        first: promiseToChangeTheNumber(newNumber: 1) {
+          theNumber
+        },
+      }
+    `);
+
+    const rootValue = new Root(6);
+    const mutationResult = await execute({ schema, document, rootValue });
+
+    expectJSON(mutationResult).toDeepEqual({
+      data: {
+        first: { theNumber: 1 },
+        second: { theNumber: 2 },
+      },
+    });
+  });
+
+  it('Mutation with @defer is not executed serially', async () => {
+    const document = parse(`
+      mutation M {
+        ...MutationFragment @defer(label: "defer-label")
+        second: immediatelyChangeTheNumber(newNumber: 2) {
+          theNumber
+        }
+      }
+      fragment MutationFragment on Mutation {
+        first: promiseToChangeTheNumber(newNumber: 1) {
+          theNumber
+        },
+      }
+    `);
+
+    const rootValue = new Root(6);
+    const mutationResult = await execute({
+      schema,
+      document,
+      rootValue,
+    });
+    const patches = [];
+
+    expect('initialResult' in mutationResult).toBeTruthy();
+    // @ts-expect-error once we assert that initialResult is in mutationResult then it should work fine
+    patches.push(mutationResult.initialResult);
+    // @ts-expect-error once we assert that initialResult is in mutationResult then it should work fine
+    for await (const patch of mutationResult.subsequentResults) {
+      patches.push(patch);
+    }
+
+    expect(patches).toEqual([
+      {
+        data: {
+          second: { theNumber: 2 },
+        },
+        hasNext: true,
+      },
+      {
+        incremental: [
+          {
+            label: 'defer-label',
+            path: [],
+            data: {
+              first: {
+                theNumber: 1,
+              },
+            },
+          },
+        ],
+        hasNext: false,
+      },
+    ]);
   });
 });

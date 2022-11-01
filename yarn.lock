@@ -1416,7 +1416,7 @@
     "@changesets/types" "^5.2.0"
     dotenv "^8.1.0"
 
-"@changesets/cli@2.25.2":
+"@changesets/cli@2.25.2", "@changesets/cli@^2.16.0":
   version "2.25.2"
   resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.25.2.tgz#fc5e894aa6f85c60749a035352dec3dcbd275c71"
   integrity sha512-ACScBJXI3kRyMd2R8n8SzfttDHi4tmKSwVwXBazJOylQItSRSF4cGmej2E4FVf/eNfGy6THkL9GzAahU9ErZrA==
@@ -2480,7 +2480,7 @@
     tiny-warning "^1.0.3"
     tslib "^2.3.0"
 
-"@repeaterjs/repeater@^3.0.4":
+"@repeaterjs/repeater@3.0.4", "@repeaterjs/repeater@^3.0.4":
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/@repeaterjs/repeater/-/repeater-3.0.4.tgz#a04d63f4d1bf5540a41b01a921c9a7fddc3bd1ca"
   integrity sha512-AW8PKd6iX3vAZ0vA43nOUOnbq/X5ihgU+mSXXqunMkeQADGiqw/PY0JNeYtD5sr0PAy51YPgAPbDoeapv9r8WA==
@@ -12035,6 +12035,13 @@ validate-npm-package-license@^3.0.1:
   dependencies:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
+
+value-or-promise@1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.1.tgz#7021919262c7a13605da701bcbd3c9ae8219bf68"
+  integrity sha512-luIWMQACiZgNXrrCVX0B1Lm5bTT+osgLG/uiBMVvxYa52oqHGoF9YGpW+azBThx84N6bAm5MyaodRvsWaYmVbQ==
+  dependencies:
+    "@changesets/cli" "^2.16.0"
 
 value-or-promise@1.0.11, value-or-promise@^1.0.11:
   version "1.0.11"

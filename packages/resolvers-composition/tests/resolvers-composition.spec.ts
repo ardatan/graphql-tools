@@ -1,7 +1,7 @@
 import gql from 'graphql-tag';
 import { composeResolvers, ResolversComposerMapping } from '../src/index.js';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { execute } from '@graphql-tools/executor';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { GraphQLScalarType, Kind } from 'graphql';
 import { inspect } from '@graphql-tools/utils';
 
@@ -55,6 +55,7 @@ describe('Resolvers composition', () => {
         }
       `,
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     expect(result.errors).toBeFalsy();
     expect(result.data!['foo']).toBe('FOOFOO');
   });
@@ -95,6 +96,7 @@ describe('Resolvers composition', () => {
         }
       `,
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     expect(result.errors).toBeFalsy();
     expect(result.data!['foo']).toBe('FOOFOO');
   });
@@ -174,6 +176,7 @@ describe('Resolvers composition', () => {
         }
       `,
     });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
     expect(result.errors).toBeFalsy();
     expect(result.data!['foo']).toBe('FOOFOO');
   });

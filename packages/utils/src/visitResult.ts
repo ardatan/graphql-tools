@@ -179,14 +179,12 @@ function visitRoot(
   errorInfo: ErrorInfo
 ): any {
   const operationRootType = getOperationRootType(schema, operation)!;
-  const collectedFields = collectFields(
+  const { fields: collectedFields } = collectFields(
     schema,
     fragments,
     variableValues,
     operationRootType,
-    operation.selectionSet,
-    new Map(),
-    new Set()
+    operation.selectionSet
   );
 
   return visitObjectValue(
@@ -378,7 +376,7 @@ function visitFieldValue(
     );
   } else if (isAbstractType(nullableType)) {
     const finalType = schema.getType(value.__typename) as GraphQLObjectType;
-    const collectedFields = collectSubFields(schema, fragments, variableValues, finalType, fieldNodes);
+    const { fields: collectedFields } = collectSubFields(schema, fragments, variableValues, finalType, fieldNodes);
     return visitObjectValue(
       value,
       finalType,
@@ -392,7 +390,7 @@ function visitFieldValue(
       errorInfo
     );
   } else if (isObjectType(nullableType)) {
-    const collectedFields = collectSubFields(schema, fragments, variableValues, nullableType, fieldNodes);
+    const { fields: collectedFields } = collectSubFields(schema, fragments, variableValues, nullableType, fieldNodes);
     return visitObjectValue(
       value,
       nullableType,

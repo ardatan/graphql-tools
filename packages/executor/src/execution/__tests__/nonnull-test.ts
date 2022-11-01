@@ -95,7 +95,7 @@ const schema = buildSchema(`
   }
 `);
 
-function executeQuery(query: string, rootValue: unknown): ExecutionResult | Promise<ExecutionResult> {
+function executeQuery(query: string, rootValue: unknown) {
   return execute({ schema, document: parse(query), rootValue });
 }
 
