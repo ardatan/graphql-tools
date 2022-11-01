@@ -12,7 +12,7 @@ import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
 
 import type { InitialIncrementalExecutionResult, SubsequentIncrementalExecutionResult } from '../execute.js';
-import { execute } from '../execute.js';
+import { experimentalSubscribeIncrementally as execute } from '../execute.js';
 
 const friendType = new GraphQLObjectType({
   fields: {

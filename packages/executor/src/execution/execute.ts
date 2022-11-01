@@ -235,7 +235,7 @@ export function execute<TData = any, TVariables = any, TContext = any>(
 
 function executeImpl<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>
-): MaybePromise<ExecutionResult<TData> | IncrementalExecutionResults<TData>> {
+): MaybePromise<AsyncIterable<ExecutionResult<TData>> | ExecutionResult<TData>> {
   // Return a Promise that will eventually resolve to the data described by
   // The "Response" section of the GraphQL specification.
   //
@@ -254,13 +254,14 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
         data => {
           const initialResult = buildResponse(data, exeContext.errors);
           if (exeContext.subsequentPayloads.size > 0) {
-            return {
-              initialResult: {
-                ...initialResult,
-                hasNext: true,
-              },
-              subsequentResults: yieldSubsequentPayloads(exeContext),
-            };
+            return isAsyncIterable(result) ? mapAsyncIterator(result, ensureSingleExecutionResult) : result;
+            // return {
+            //   initialResult: {
+            //     ...initialResult,
+            //     hasNext: true,
+            //   },
+            //   subsequentResults: yieldSubsequentPayloads(exeContext),
+            // };
           }
           return initialResult;
         },
@@ -1422,12 +1423,23 @@ function createSourceEventStreamImpl(
   exeContext: ExecutionContext
 ): MaybePromise<AsyncIterable<unknown> | ExecutionResult> {
   try {
-    const eventStream = executeSubscription(exeContext);
-    if (isPromise(eventStream)) {
-      return eventStream.then(undefined, error => ({ errors: [error] }));
-    }
+    switch (exeContext.operation.operation) {
+      case 'query':
+      case 'mutation': {
+        return executeOperation(exeContext);
+      }
+      case 'subscription': {
+        const eventStream = executeSubscription(exeContext);
+        if (isPromise(eventStream)) {
+          return eventStream.then(undefined, error => ({ errors: [error] }));
+        }
 
-    return eventStream;
+        return eventStream;
+      }
+      default: {
+        return { errors: [createGraphQLError('Unknown operation type.')] };
+      }
+    }
   } catch (error) {
     return { errors: [error as GraphQLError] };
   }
