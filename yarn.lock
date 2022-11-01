@@ -1416,7 +1416,7 @@
     "@changesets/types" "^5.2.0"
     dotenv "^8.1.0"
 
-"@changesets/cli@2.25.2", "@changesets/cli@^2.16.0":
+"@changesets/cli@2.25.2":
   version "2.25.2"
   resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.25.2.tgz#fc5e894aa6f85c60749a035352dec3dcbd275c71"
   integrity sha512-ACScBJXI3kRyMd2R8n8SzfttDHi4tmKSwVwXBazJOylQItSRSF4cGmej2E4FVf/eNfGy6THkL9GzAahU9ErZrA==
@@ -1644,6 +1644,13 @@
   integrity sha512-MXjKAQyO85ZdC8OVApNQsJhPvTJcuUf5GmQw2KdvNcBVivUpVrA+NUppdwsrI+lK6jEX4ZMVOCnbJ5GaQddaAA==
   dependencies:
     giscus "^1.2.0"
+
+"@graphql-tools/utils@^8.5.2", "@graphql-tools/utils@^8.8.0":
+  version "8.13.1"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/utils/-/utils-8.13.1.tgz#b247607e400365c2cd87ff54654d4ad25a7ac491"
+  integrity sha512-qIh9yYpdUFmctVqovwMdheVNJqFh+DQNWIhX87FJStfXYnmweBUDATok9fWPleKeFwxnW8IapKmY8m8toJEkAw==
+  dependencies:
+    tslib "^2.4.0"
 
 "@graphql-typed-document-node/core@3.1.1", "@graphql-typed-document-node/core@^3.1.1":
   version "3.1.1"
@@ -12035,13 +12042,6 @@ validate-npm-package-license@^3.0.1:
   dependencies:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
-
-value-or-promise@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.1.tgz#7021919262c7a13605da701bcbd3c9ae8219bf68"
-  integrity sha512-luIWMQACiZgNXrrCVX0B1Lm5bTT+osgLG/uiBMVvxYa52oqHGoF9YGpW+azBThx84N6bAm5MyaodRvsWaYmVbQ==
-  dependencies:
-    "@changesets/cli" "^2.16.0"
 
 value-or-promise@1.0.11, value-or-promise@^1.0.11:
   version "1.0.11"
