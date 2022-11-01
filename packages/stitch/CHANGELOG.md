@@ -1,5 +1,19 @@
 # @graphql-tools/stitch
 
+## 8.7.16
+
+### Patch Changes
+
+- [#4796](https://github.com/ardatan/graphql-tools/pull/4796) [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931) Thanks [@saihaj](https://github.com/saihaj)! - update `collectFields` to support collecting deffered values
+
+- Updated dependencies [[`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`8f6d3efc`](https://github.com/ardatan/graphql-tools/commit/8f6d3efc92b25236f5a3a761ea7ba2f0a7c7f550), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931)]:
+  - @graphql-tools/utils@9.0.0
+  - @graphql-tools/delegate@9.0.11
+  - @graphql-tools/batch-delegate@8.4.4
+  - @graphql-tools/merge@8.3.9
+  - @graphql-tools/schema@9.0.7
+  - @graphql-tools/wrap@9.2.6
+
 ## 8.7.15
 
 ### Patch Changes
