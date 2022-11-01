@@ -55,12 +55,14 @@ import {
  *   - `data` is the result of a successful execution of the query.
  *   - `hasNext` is true if a future payload is expected.
  *   - `extensions` is reserved for adding non-standard properties.
- *   - `incremental` is a list of the results from defer/stream directives.
  */
 export interface ExecutionResult<TData = any, TExtensions = any> {
   errors?: ReadonlyArray<GraphQLError>;
   data?: TData | null;
+  hasNext?: boolean;
   extensions?: TExtensions;
+  label?: string;
+  path?: ReadonlyArray<string | number>;
 }
 
 export interface ExecutionRequest<

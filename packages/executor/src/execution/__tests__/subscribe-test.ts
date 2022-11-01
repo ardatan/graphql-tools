@@ -11,7 +11,7 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import { ExecutionArgs, experimentalSubscribeIncrementally, createSourceEventStream, subscribe } from '../execute.js';
+import { ExecutionArgs, createSourceEventStream, subscribe } from '../execute.js';
 
 import { SimplePubSub } from './simplePubSub.js';
 import { ExecutionResult, isAsyncIterable, isPromise, MaybePromise } from '@graphql-tools/utils';
@@ -82,11 +82,7 @@ const emailSchema = new GraphQLSchema({
   }),
 });
 
-function createSubscription(
-  pubsub: SimplePubSub<Email>,
-  variableValues?: { readonly [variable: string]: unknown },
-  originalSubscribe: boolean = false
-) {
+function createSubscription(pubsub: SimplePubSub<Email>, variableValues?: { readonly [variable: string]: unknown }) {
   const document = parse(`
     subscription ($priority: Int = 0, $shouldDefer: Boolean = false, $asyncResolver: Boolean = false) {
       importantEmail(priority: $priority) {
@@ -131,7 +127,7 @@ function createSubscription(
     }),
   };
 
-  return (originalSubscribe ? subscribe : experimentalSubscribeIncrementally)({
+  return subscribe({
     schema: emailSchema,
     document,
     rootValue: data,
@@ -857,81 +853,6 @@ describe('Subscription Publish Phase', () => {
         hasNext: true,
       },
     });
-
-    // The client disconnects before the deferred payload is consumed.
-    // @ts-expect-error we have asserted it is an async iterable
-    expectJSON(await subscription.return()).toDeepEqual({
-      done: true,
-      value: undefined,
-    });
-
-    // Awaiting a subscription after closing it results in completed results.
-    // @ts-expect-error we have asserted it is an async iterable
-    expectJSON(await subscription.next()).toDeepEqual({
-      done: true,
-      value: undefined,
-    });
-  });
-
-  it('original subscribe function returns errors with @defer', async () => {
-    const pubsub = new SimplePubSub<Email>();
-    const subscription = await createSubscription(
-      pubsub,
-      {
-        shouldDefer: true,
-      },
-      true
-    );
-    expect(isAsyncIterable(subscription)).toBeTruthy();
-    // Wait for the next subscription payload.
-    // @ts-expect-error we have asserted it is an async iterable
-    const payload = subscription.next();
-
-    // A new email arrives!
-    expect(
-      pubsub.emit({
-        from: 'yuzhi@graphql.org',
-        subject: 'Alright',
-        message: 'Tests are good',
-        unread: true,
-      })
-    ).toBeTruthy();
-
-    const errorPayload = {
-      done: false,
-      value: {
-        errors: [
-          {
-            message:
-              'Executing this GraphQL operation would unexpectedly produce multiple payloads (due to @defer or @stream directive)',
-          },
-        ],
-      },
-    };
-
-    // The previously waited on payload now has a value.
-    expectJSON(await payload).toDeepEqual(errorPayload);
-
-    // Wait for the next payload from @defer
-    // @ts-expect-error we have asserted it is an async iterable
-    expectJSON(await subscription.next()).toDeepEqual(errorPayload);
-
-    // Another new email arrives, after all incrementally delivered payloads are received.
-    expect(
-      pubsub.emit({
-        from: 'hyo@graphql.org',
-        subject: 'Tools',
-        message: 'I <3 making things',
-        unread: true,
-      })
-    ).toBeTruthy();
-
-    // The next waited on payload will have a value.
-    // @ts-expect-error we have asserted it is an async iterable
-    expectJSON(await subscription.next()).toDeepEqual(errorPayload);
-    // The next waited on payload will have a value.
-    // @ts-expect-error we have asserted it is an async iterable
-    expectJSON(await subscription.next()).toDeepEqual(errorPayload);
 
     // The client disconnects before the deferred payload is consumed.
     // @ts-expect-error we have asserted it is an async iterable

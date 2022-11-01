@@ -44,7 +44,6 @@ import {
   getDefinedRootType,
   MaybePromise,
   mapAsyncIterator,
-  ExecutionResult,
   GraphQLStreamDirective,
   collectFields,
   collectSubFields as _collectSubfields,
@@ -54,6 +53,12 @@ import { promiseForObject } from './promiseForObject.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { invariant } from './invariant.js';
+
+export interface SingularExecutionResult<TData = any, TExtensions = any> {
+  errors?: ReadonlyArray<GraphQLError>;
+  data?: TData | null;
+  extensions?: TExtensions;
+}
 
 /**
  * A memoized collection of relevant subfields with regard to the return
@@ -122,7 +127,7 @@ export interface IncrementalExecutionResults<TData = Record<string, unknown>, TE
 export interface InitialIncrementalExecutionResult<
   TData = Record<string, unknown>,
   TExtensions = Record<string, unknown>
-> extends ExecutionResult<TData, TExtensions> {
+> extends SingularExecutionResult<TData, TExtensions> {
   hasNext: boolean;
   incremental?: ReadonlyArray<IncrementalResult<TData, TExtensions>>;
   extensions?: TExtensions;
@@ -156,7 +161,7 @@ export interface FormattedSubsequentIncrementalExecutionResult<
 }
 
 export interface IncrementalDeferResult<TData = Record<string, unknown>, TExtensions = Record<string, unknown>>
-  extends ExecutionResult<TData, TExtensions> {
+  extends SingularExecutionResult<TData, TExtensions> {
   path?: ReadonlyArray<string | number>;
   label?: string;
 }
@@ -203,9 +208,6 @@ export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
   subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
 }
 
-const UNEXPECTED_MULTIPLE_PAYLOADS =
-  'Executing this GraphQL operation would unexpectedly produce multiple payloads (due to @defer or @stream directive)';
-
 /**
  * Implements the "Executing requests" section of the GraphQL specification,
  * including `@defer` and `@stream` as proposed in
@@ -220,7 +222,7 @@ const UNEXPECTED_MULTIPLE_PAYLOADS =
  */
 export function execute<TData = any, TVariables = any, TContext = any>(
   args: ExecutionArgs<TData, TVariables, TContext>
-): MaybePromise<ExecutionResult<TData> | IncrementalExecutionResults<TData>> {
+): MaybePromise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>> {
   // If a valid execution context cannot be created due to incorrect arguments,
   // a "Response" with only errors is returned.
   const exeContext = buildExecutionContext(args);
@@ -235,7 +237,7 @@ export function execute<TData = any, TVariables = any, TContext = any>(
 
 function executeImpl<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>
-): MaybePromise<ExecutionResult<TData> | IncrementalExecutionResults<TData>> {
+): MaybePromise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>> {
   // Return a Promise that will eventually resolve to the data described by
   // The "Response" section of the GraphQL specification.
   //
@@ -292,7 +294,7 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
  * However, it guarantees to complete synchronously (or throw an error) assuming
  * that all field resolvers are also synchronous.
  */
-export function executeSync(args: ExecutionArgs): ExecutionResult {
+export function executeSync(args: ExecutionArgs): SingularExecutionResult {
   const result = execute(args);
 
   // Assert that the execution was synchronous.
@@ -307,7 +309,7 @@ export function executeSync(args: ExecutionArgs): ExecutionResult {
  * Given a completed execution context and data, build the `{ errors, data }`
  * response defined by the "Response" section of the GraphQL specification.
  */
-function buildResponse<TData>(data: TData | null, errors: ReadonlyArray<GraphQLError>): ExecutionResult<TData> {
+function buildResponse<TData>(data: TData | null, errors: ReadonlyArray<GraphQLError>): SingularExecutionResult<TData> {
   return errors.length === 0 ? { data } : { errors, data };
 }
 
@@ -1222,58 +1224,6 @@ export const defaultFieldResolver: GraphQLFieldResolver<unknown, unknown> = func
 };
 
 /**
- * Implements the "Subscribe" algorithm described in the GraphQL specification.
- *
- * Returns a Promise which resolves to either an AsyncIterator (if successful)
- * or an ExecutionResult (error). The promise will be rejected if the schema or
- * other arguments to this function are invalid, or if the resolved event stream
- * is not an async iterable.
- *
- * If the client-provided arguments to this function do not result in a
- * compliant subscription, a GraphQL Response (ExecutionResult) with descriptive
- * errors and no data will be returned.
- *
- * If the source stream could not be created due to faulty subscription resolver
- * logic or underlying systems, the promise will resolve to a single
- * ExecutionResult containing `errors` and no `data`.
- *
- * If the operation succeeded, the promise resolves to an AsyncIterator, which
- * yields a stream of ExecutionResults representing the response stream.
- *
- * This function does not support incremental delivery (`@defer` and `@stream`).
- * If an operation which would defer or stream data is executed with this
- * function, each `InitialIncrementalExecutionResult` and
- * `SubsequentIncrementalExecutionResult` in the result stream will be replaced
- * with an `ExecutionResult` with a single error stating that defer/stream is
- * not supported.  Use `experimentalSubscribeIncrementally` if you want to
- * support incremental delivery.
- *
- * Accepts an object with named arguments.
- */
-export function subscribe(args: ExecutionArgs): MaybePromise<AsyncIterable<ExecutionResult> | ExecutionResult> {
-  const maybePromise = experimentalSubscribeIncrementally(args);
-  if (isPromise(maybePromise)) {
-    return maybePromise.then(resultOrIterable =>
-      isAsyncIterable(resultOrIterable)
-        ? mapAsyncIterator(resultOrIterable, ensureSingleExecutionResult)
-        : resultOrIterable
-    );
-  }
-  return isAsyncIterable(maybePromise) ? mapAsyncIterator(maybePromise, ensureSingleExecutionResult) : maybePromise;
-}
-
-function ensureSingleExecutionResult(
-  result: ExecutionResult | InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult
-): ExecutionResult {
-  if ('hasNext' in result) {
-    return {
-      errors: [createGraphQLError(UNEXPECTED_MULTIPLE_PAYLOADS)],
-    };
-  }
-  return result;
-}
-
-/**
  * Implements the "Subscribe" algorithm described in the GraphQL specification,
  * including `@defer` and `@stream` as proposed in
  * https://github.com/graphql/graphql-spec/pull/742
@@ -1306,15 +1256,17 @@ function ensureSingleExecutionResult(
  *
  * Accepts an object with named arguments.
  */
-export function experimentalSubscribeIncrementally(
-  args: ExecutionArgs
+export function subscribe<TData = any, TVariables = any, TContext = any>(
+  args: ExecutionArgs<TData, TVariables, TContext>
 ): MaybePromise<
   | AsyncGenerator<
-      ExecutionResult | InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult,
+      | SingularExecutionResult<TData>
+      | InitialIncrementalExecutionResult<TData>
+      | SubsequentIncrementalExecutionResult<TData>,
       void,
       void
     >
-  | ExecutionResult
+  | SingularExecutionResult<TData>
 > {
   // If a valid execution context cannot be created due to incorrect arguments,
   // a "Response" with only errors is returned.
@@ -1335,9 +1287,9 @@ export function experimentalSubscribeIncrementally(
 }
 
 async function* ensureAsyncIterable(
-  someExecutionResult: ExecutionResult | IncrementalExecutionResults
+  someExecutionResult: SingularExecutionResult | IncrementalExecutionResults
 ): AsyncGenerator<
-  ExecutionResult | InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult,
+  SingularExecutionResult | InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult,
   void,
   void
 > {
@@ -1351,14 +1303,14 @@ async function* ensureAsyncIterable(
 
 function mapSourceToResponse(
   exeContext: ExecutionContext,
-  resultOrStream: ExecutionResult | AsyncIterable<unknown>
+  resultOrStream: SingularExecutionResult | AsyncIterable<unknown>
 ): MaybePromise<
   | AsyncGenerator<
-      ExecutionResult | InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult,
+      SingularExecutionResult | InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult,
       void,
       void
     >
-  | ExecutionResult
+  | SingularExecutionResult
 > {
   if (!isAsyncIterable(resultOrStream)) {
     return resultOrStream;
@@ -1405,7 +1357,9 @@ function mapSourceToResponse(
  * or otherwise separating these two steps. For more on this, see the
  * "Supporting Subscriptions at Scale" information in the GraphQL specification.
  */
-export function createSourceEventStream(args: ExecutionArgs): MaybePromise<AsyncIterable<unknown> | ExecutionResult> {
+export function createSourceEventStream(
+  args: ExecutionArgs
+): MaybePromise<AsyncIterable<unknown> | SingularExecutionResult> {
   // If a valid execution context cannot be created due to incorrect arguments,
   // a "Response" with only errors is returned.
   const exeContext = buildExecutionContext(args);
@@ -1420,7 +1374,7 @@ export function createSourceEventStream(args: ExecutionArgs): MaybePromise<Async
 
 function createSourceEventStreamImpl(
   exeContext: ExecutionContext
-): MaybePromise<AsyncIterable<unknown> | ExecutionResult> {
+): MaybePromise<AsyncIterable<unknown> | SingularExecutionResult> {
   try {
     const eventStream = executeSubscription(exeContext);
     if (isPromise(eventStream)) {
@@ -1970,7 +1924,7 @@ export function getFieldDef(
 }
 
 export function isIncrementalResult<TData>(
-  result: ExecutionResult<TData> | IncrementalExecutionResults<TData>
+  result: SingularExecutionResult<TData> | IncrementalExecutionResults<TData>
 ): result is IncrementalExecutionResults<TData> {
   return 'incremental' in result;
 }
