@@ -2,7 +2,7 @@ import { parse, print, OperationDefinitionNode, validate } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createBatchingExecutor } from '@graphql-tools/batch-execute';
 import { ExecutionResult, Executor } from '@graphql-tools/utils';
-import { execute } from '@graphql-tools/executor';
+import { normalizedExecutor } from '@graphql-tools/executor';
 
 describe('batch execution', () => {
   let executorCalls = 0;
@@ -41,7 +41,7 @@ describe('batch execution', () => {
     if (errors.length > 0) {
       return { errors };
     }
-    return execute({
+    return normalizedExecutor({
       schema,
       document,
       variableValues: executorVariables,
