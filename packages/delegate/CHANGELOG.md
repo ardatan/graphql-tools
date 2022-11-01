@@ -1,5 +1,12 @@
 # @graphql-tools/delegate
 
+## 9.0.12
+
+### Patch Changes
+
+- Updated dependencies [[`f47f3559`](https://github.com/ardatan/graphql-tools/commit/f47f35593d4e5b785359f4d5dbdb2981156fecba)]:
+  - @graphql-tools/executor@0.0.4
+
 ## 9.0.11
 
 ### Patch Changes
