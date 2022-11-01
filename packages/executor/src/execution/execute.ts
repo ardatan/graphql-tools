@@ -53,6 +53,7 @@ import { promiseForObject } from './promiseForObject.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { invariant } from './invariant.js';
+import { ValueOrPromise } from 'value-or-promise';
 
 export interface SingularExecutionResult<TData = any, TExtensions = any> {
   errors?: ReadonlyArray<GraphQLError>;
@@ -249,44 +250,27 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
   // Errors from sub-fields of a NonNull type may propagate to the top level,
   // at which point we still log the error and null the parent field, which
   // in this case is the entire response.
-  try {
-    const result = executeOperation<TData, TVariables, TContext>(exeContext);
-    if (isPromise(result)) {
-      return result.then(
-        data => {
-          const initialResult = buildResponse(data, exeContext.errors);
-          if (exeContext.subsequentPayloads.size > 0) {
-            return {
-              initialResult: {
-                ...initialResult,
-                hasNext: true,
-              },
-              subsequentResults: yieldSubsequentPayloads(exeContext),
-            };
-          }
-          return initialResult;
-        },
-        error => {
-          exeContext.errors.push(error);
-          return buildResponse<TData>(null, exeContext.errors);
+  return new ValueOrPromise(() => executeOperation<TData, TVariables, TContext>(exeContext))
+    .then(
+      data => {
+        const initialResult = buildResponse(data, exeContext.errors);
+        if (exeContext.subsequentPayloads.size > 0) {
+          return {
+            initialResult: {
+              ...initialResult,
+              hasNext: true,
+            },
+            subsequentResults: yieldSubsequentPayloads(exeContext),
+          };
         }
-      );
-    }
-    const initialResult = buildResponse(result, exeContext.errors);
-    if (exeContext.subsequentPayloads.size > 0) {
-      return {
-        initialResult: {
-          ...initialResult,
-          hasNext: true,
-        },
-        subsequentResults: yieldSubsequentPayloads(exeContext),
-      };
-    }
-    return initialResult;
-  } catch (error) {
-    exeContext.errors.push(error as GraphQLError);
-    return buildResponse<TData>(null, exeContext.errors);
-  }
+        return initialResult;
+      },
+      (error: any) => {
+        exeContext.errors.push(error);
+        return buildResponse<TData>(null, exeContext.errors);
+      }
+    )
+    .resolve();
 }
 
 /**
@@ -481,18 +465,16 @@ function executeFieldsSerially<TData>(
     fields,
     (results, [responseName, fieldNodes]) => {
       const fieldPath = addPath(path, responseName, parentType.name);
-      const result = executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath);
-      if (result === undefined) {
-        return results;
-      }
-      if (isPromise(result)) {
-        return result.then(resolvedResult => {
-          results[responseName] = resolvedResult;
+      return new ValueOrPromise(() => executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath))
+        .then(result => {
+          if (result === undefined) {
+            return results;
+          }
+
+          results[responseName] = result;
           return results;
-        });
-      }
-      results[responseName] = result;
-      return results;
+        })
+        .resolve();
     },
     Object.create(null)
   );
