@@ -1369,10 +1369,10 @@
   resolved "https://registry.yarnpkg.com/@braintree/sanitize-url/-/sanitize-url-6.0.0.tgz#fe364f025ba74f6de6c837a84ef44bdb1d61e68f"
   integrity sha512-mgmE7XBYY/21erpzhexk4Cj1cyTQ9LzvnTxtzM17BJ7ERMNE6W72mQRo0I1Ud8eFJ+RVVIcBNhLFZ3GX4XFz5w==
 
-"@changesets/apply-release-plan@^6.1.1":
-  version "6.1.1"
-  resolved "https://registry.yarnpkg.com/@changesets/apply-release-plan/-/apply-release-plan-6.1.1.tgz#14ec261c11c9b90d110a83b8b96412ddb7303ddf"
-  integrity sha512-LaQiP/Wf0zMVR0HNrLQAjz3rsNsr0d/RlnP6Ef4oi8VafOwnY1EoWdK4kssuUJGgNgDyHpomS50dm8CU3D7k7g==
+"@changesets/apply-release-plan@^6.1.2":
+  version "6.1.2"
+  resolved "https://registry.yarnpkg.com/@changesets/apply-release-plan/-/apply-release-plan-6.1.2.tgz#cfb7da323f34e9e9173ffd9bf9f03c0b8cecc8fe"
+  integrity sha512-H8TV9E/WtJsDfoDVbrDGPXmkZFSv7W2KLqp4xX4MKZXshb0hsQZUNowUa8pnus9qb/5OZrFFRVsUsDCVHNW/AQ==
   dependencies:
     "@babel/runtime" "^7.10.4"
     "@changesets/config" "^2.2.0"
@@ -1416,13 +1416,13 @@
     "@changesets/types" "^5.2.0"
     dotenv "^8.1.0"
 
-"@changesets/cli@2.25.1":
-  version "2.25.1"
-  resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.25.1.tgz#78ae1a185e8dcbe5420fac44ed22fb03836de55e"
-  integrity sha512-e65ZJ7QKq7aERV/vAeuG0DTkkuEnTZK8eVNYqnd6wBsc9YTK+5iuuzp8aG0E80AngxeOaI4u77OIfzE9fv2T5Q==
+"@changesets/cli@2.25.2":
+  version "2.25.2"
+  resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.25.2.tgz#fc5e894aa6f85c60749a035352dec3dcbd275c71"
+  integrity sha512-ACScBJXI3kRyMd2R8n8SzfttDHi4tmKSwVwXBazJOylQItSRSF4cGmej2E4FVf/eNfGy6THkL9GzAahU9ErZrA==
   dependencies:
     "@babel/runtime" "^7.10.4"
-    "@changesets/apply-release-plan" "^6.1.1"
+    "@changesets/apply-release-plan" "^6.1.2"
     "@changesets/assemble-release-plan" "^5.2.2"
     "@changesets/changelog-git" "^0.1.13"
     "@changesets/config" "^2.2.0"
@@ -1434,7 +1434,7 @@
     "@changesets/pre" "^1.0.13"
     "@changesets/read" "^0.5.8"
     "@changesets/types" "^5.2.0"
-    "@changesets/write" "^0.2.1"
+    "@changesets/write" "^0.2.2"
     "@manypkg/get-packages" "^1.1.3"
     "@types/is-ci" "^3.0.0"
     "@types/semver" "^6.0.0"
@@ -1574,10 +1574,10 @@
   resolved "https://registry.yarnpkg.com/@changesets/types/-/types-5.2.0.tgz#c4927f5bf9668f778c12b4226cfd07a1f5b79c9b"
   integrity sha512-km/66KOqJC+eicZXsm2oq8A8bVTSpkZJ60iPV/Nl5Z5c7p9kk8xxh6XGRTlnludHldxOOfudhnDN2qPxtHmXzA==
 
-"@changesets/write@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@changesets/write/-/write-0.2.1.tgz#c00d95851e2ca70385434a360a90ead9a1d07c74"
-  integrity sha512-KUd49nt2fnYdGixIqTi1yVE1nAoZYUMdtB3jBfp77IMqjZ65hrmZE5HdccDlTeClZN0420ffpnfET3zzeY8pdw==
+"@changesets/write@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@changesets/write/-/write-0.2.2.tgz#f3ffb1be06f7c31265eb4ec3d7166b91f9c25c9b"
+  integrity sha512-kCYNHyF3xaId1Q/QE+DF3UTrHTyg3Cj/f++T8S8/EkC+jh1uK2LFnM9h+EzV+fsmnZDrs7r0J4LLpeI/VWC5Hg==
   dependencies:
     "@babel/runtime" "^7.10.4"
     "@changesets/types" "^5.2.0"
