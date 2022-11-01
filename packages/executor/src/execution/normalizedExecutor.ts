@@ -41,7 +41,7 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
         }
         return result;
       })
-      .resolve();
+      .resolve()!;
   }
   return new ValueOrPromise(() => execute(args))
     .then((result): MaybeAsyncIterable<ExecutionResult<TData>> => {
@@ -74,5 +74,5 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
       }
       return result;
     })
-    .resolve();
+    .resolve()!;
 }

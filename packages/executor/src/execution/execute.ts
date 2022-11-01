@@ -270,7 +270,7 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
         return buildResponse<TData>(null, exeContext.errors);
       }
     )
-    .resolve();
+    .resolve()!;
 }
 
 /**

@@ -1,6 +1,6 @@
 import { ExecutionResult, ExecutionRequest } from './Interfaces.js';
 
-export type MaybePromise<T> = Promise<T> | T;
+export type MaybePromise<T> = PromiseLike<T> | T;
 export type MaybeAsyncIterable<T> = AsyncIterable<T> | T;
 
 export type AsyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = Record<string, any>> = <

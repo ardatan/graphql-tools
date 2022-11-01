@@ -8,7 +8,7 @@ export function isObjectLike(value: unknown): value is { [key: string]: unknown 
   return typeof value === 'object' && value !== null;
 }
 
-export function isPromise<T>(value: unknown): value is Promise<T> {
+export function isPromise<T>(value: unknown): value is PromiseLike<T> {
   return isObjectLike(value) && typeof value['then'] === 'function';
 }
 
