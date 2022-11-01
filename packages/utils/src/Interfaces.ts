@@ -45,6 +45,7 @@ import {
   Source,
   DefinitionNode,
   OperationTypeNode,
+  GraphQLError,
 } from 'graphql';
 
 /**
@@ -58,6 +59,7 @@ import {
 export interface ExecutionResult<TData = any, TExtensions = any> {
   incremental?: ReadonlyArray<ExecutionResult<TData, TExtensions>>;
   data?: TData | null;
+  errors?: ReadonlyArray<GraphQLError>;
   hasNext?: boolean;
   extensions?: TExtensions;
   label?: string;
