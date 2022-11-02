@@ -408,7 +408,6 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           }
 
           const contentType = fetchResult.headers.get('content-type');
-
           if (contentType?.includes('text/event-stream')) {
             return handleEventStreamResponse(fetchResult, controller);
           } else if (contentType?.includes('multipart/mixed')) {
