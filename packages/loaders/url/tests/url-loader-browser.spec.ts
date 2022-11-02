@@ -22,6 +22,7 @@ describe('[url-loader] webpack bundle compat', () => {
         typeDefs: /* GraphQL */ `
           type Query {
             foo: Boolean
+            countdown(from: Int): [Int]
           }
           type Subscription {
             foo: Boolean
@@ -30,6 +31,12 @@ describe('[url-loader] webpack bundle compat', () => {
         resolvers: {
           Query: {
             foo: () => new Promise(resolve => setTimeout(() => resolve(true), 300)),
+            countdown: async function* (_, { from }) {
+              for (let i = from; i >= 0; i--) {
+                yield i;
+                await new Promise(resolve => setTimeout(resolve, 100));
+              }
+            },
           },
           Subscription: {
             foo: {
@@ -175,7 +182,7 @@ describe('[url-loader] webpack bundle compat', () => {
       expect(result).toStrictEqual(expectedData);
     });
 
-    it('handles executing a operation using multipart responses', async () => {
+    it('handles executing a @defer operation using multipart responses', async () => {
       const document = parse(/* GraphQL */ `
         query {
           ... on Query @defer {
@@ -204,6 +211,43 @@ describe('[url-loader] webpack bundle compat', () => {
         document as any
       );
       expect(results).toEqual([{ data: {} }, { data: { foo: true } }]);
+    });
+
+    it('handles executing a @stream operation using multipart responses', async () => {
+      const document = parse(/* GraphQL */ `
+        query {
+          countdown(from: 3) @stream
+        }
+      `);
+
+      const results = await page.evaluate(
+        async (httpAddress, document) => {
+          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const loader = new module.UrlLoader();
+          const executor = loader.getExecutorAsync(httpAddress + '/graphql');
+          const result = await executor({
+            document,
+          });
+          const results = [];
+          for await (const currentResult of result as any[]) {
+            if (currentResult) {
+              results.push(JSON.parse(JSON.stringify(currentResult)));
+            }
+          }
+          return results;
+        },
+        httpAddress,
+        document as any
+      );
+
+      expect(results).toEqual([
+        { data: { countdown: [] } },
+        { data: { countdown: [3] } },
+        { data: { countdown: [3, 2] } },
+        { data: { countdown: [3, 2, 1] } },
+        { data: { countdown: [3, 2, 1, 0] } },
+        { data: { countdown: [3, 2, 1, 0] } },
+      ]);
     });
 
     it('handles SSE subscription operations', async () => {

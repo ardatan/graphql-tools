@@ -39,9 +39,17 @@ export async function handleMultipartMixedResponse(response: Response, controlle
   const executionResult: ExecutionResult = {};
 
   function handleResult(result: ExecutionResult) {
-    if (result.path && result.data) {
+    if (result.path) {
+      const path = ['data', ...result.path];
       executionResult.data = executionResult.data || {};
-      dset(executionResult, ['data', ...result.path], result.data);
+      if (result.items) {
+        for (const item of result.items) {
+          dset(executionResult, path, item);
+        }
+      }
+      if (result.data) {
+        dset(executionResult, ['data', ...result.path], result.data);
+      }
     } else if (result.data) {
       executionResult.data = executionResult.data || {};
       Object.assign(executionResult.data, result.data);

@@ -64,6 +64,7 @@ export interface ExecutionResult<TData = any, TExtensions = any> {
   extensions?: TExtensions;
   label?: string;
   path?: ReadonlyArray<string | number>;
+  items?: TData | null;
 }
 
 export interface ExecutionRequest<

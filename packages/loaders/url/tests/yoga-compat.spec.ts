@@ -18,7 +18,34 @@ describe('Yoga Compatibility', () => {
   let serverPath: string;
   let active = false;
   let cnt = 0;
-
+  const alphabet = [
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+    'f',
+    'g',
+    'h',
+    'i',
+    'j',
+    'k',
+    'l',
+    'm',
+    'n',
+    'o',
+    'p',
+    'q',
+    'r',
+    's',
+    't',
+    'u',
+    'v',
+    'w',
+    'x',
+    'y',
+    'z',
+  ];
   beforeAll(async () => {
     const yoga = createYoga({
       schema: createSchema({
@@ -27,6 +54,11 @@ describe('Yoga Compatibility', () => {
           type Query {
             foo: Foo
             cnt: Int
+            """
+            Resolves the alphabet slowly. 1 character per second
+            Maybe you want to @stream this field ;)
+            """
+            alphabet(waitFor: Int! = 1000): [String]
           }
           type Foo {
             a: Int
@@ -40,10 +72,22 @@ describe('Yoga Compatibility', () => {
           Query: {
             foo: () => ({}),
             cnt: () => cnt,
+            async *alphabet(_, { waitFor }) {
+              for (const character of alphabet) {
+                yield character;
+                await sleep(waitFor);
+              }
+            },
           },
           Foo: {
-            a: () => new Promise(resolve => setTimeout(() => resolve(1), 300)),
-            b: () => new Promise(resolve => setTimeout(() => resolve(2), 600)),
+            a: async () => {
+              await sleep(300);
+              return 1;
+            },
+            b: async () => {
+              await sleep(600);
+              return 2;
+            },
           },
           Subscription: {
             foo: {
@@ -91,7 +135,7 @@ describe('Yoga Compatibility', () => {
     }
   });
 
-  it('should handle multipart response result', async () => {
+  it('should handle defer', async () => {
     expect.assertions(5);
     const expectedDatas: ExecutionResult[] = [
       {
@@ -136,6 +180,35 @@ describe('Yoga Compatibility', () => {
       expect(data).toEqual(expectedDatas.shift()!);
     }
     expect(expectedDatas.length).toBe(0);
+  });
+
+  it('should handle stream', async () => {
+    const document = parse(/* GraphQL */ `
+      query StreamAlphabet {
+        alphabet(waitFor: 100) @stream
+      }
+    `);
+
+    const executor = loader.getExecutorAsync(serverPath);
+    const result = await executor({
+      document,
+    });
+
+    assertAsyncIterable(result);
+
+    let i = 0;
+    let finalResult: ExecutionResult | undefined;
+    for await (const chunk of result) {
+      if (chunk) {
+        expect(chunk.data?.alphabet?.length).toBe(i);
+        i++;
+        if (i > alphabet.length) {
+          finalResult = chunk;
+          break;
+        }
+      }
+    }
+    expect(finalResult?.data?.alphabet).toEqual(alphabet);
   });
 
   it('should handle SSE subscription result', async () => {
