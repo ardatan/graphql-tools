@@ -1,5 +1,16 @@
 # @graphql-tools/url-loader
 
+## 7.16.10
+
+### Patch Changes
+
+- [`d83b1960`](https://github.com/ardatan/graphql-tools/commit/d83b19605be71481ccf8effd80d5254423ea811a) Thanks [@ardatan](https://github.com/ardatan)! - Fix @stream support
+
+- Updated dependencies [[`d83b1960`](https://github.com/ardatan/graphql-tools/commit/d83b19605be71481ccf8effd80d5254423ea811a)]:
+  - @graphql-tools/utils@9.0.1
+  - @graphql-tools/delegate@9.0.14
+  - @graphql-tools/wrap@9.2.9
+
 ## 7.16.9
 
 ### Patch Changes
