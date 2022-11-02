@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "Saihajpreet Singh <saihajpreet.singh@gmail.com>",
   "license": "MIT",
   "sideEffects": false,

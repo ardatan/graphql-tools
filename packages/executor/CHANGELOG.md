@@ -1,5 +1,15 @@
 # @graphql-tools/executor
 
+## 0.0.5
+
+### Patch Changes
+
+- [#4814](https://github.com/ardatan/graphql-tools/pull/4814) [`79e5554b`](https://github.com/ardatan/graphql-tools/commit/79e5554b524d1404f70c932cb43bdd55869ddfff) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+
+  - Updated dependency [`value-or-promise@1.0.11` ↗︎](https://www.npmjs.com/package/value-or-promise/v/1.0.11) (from `1.0.1`, in `dependencies`)
+
+- [#4811](https://github.com/ardatan/graphql-tools/pull/4811) [`185f1e97`](https://github.com/ardatan/graphql-tools/commit/185f1e9738fbd53a894948d769e827a6e9e0ff60) Thanks [@owenallenaz](https://github.com/owenallenaz)! - add `tslib` as a dependency
+
 ## 0.0.4
 
 ### Patch Changes
