@@ -178,7 +178,7 @@ describe('[url-loader] webpack bundle compat', () => {
     it('handles executing a operation using multipart responses', async () => {
       const document = parse(/* GraphQL */ `
         query {
-          ... on Query @defer(label: "foo") {
+          ... on Query @defer {
             foo
           }
         }
@@ -193,8 +193,10 @@ describe('[url-loader] webpack bundle compat', () => {
             document,
           });
           const results = [];
-          for await (const currentResult of result as any) {
-            results.push(currentResult);
+          for await (const currentResult of result as any[]) {
+            if (currentResult) {
+              results.push(JSON.parse(JSON.stringify(currentResult)));
+            }
           }
           return results;
         },
