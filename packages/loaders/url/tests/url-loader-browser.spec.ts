@@ -137,6 +137,7 @@ describe('[url-loader] webpack bundle compat', () => {
           resolve();
         });
       });
+      await fs.promises.unlink(webpackBundlePath);
     });
 
     it('can be exposed as a global', async () => {
