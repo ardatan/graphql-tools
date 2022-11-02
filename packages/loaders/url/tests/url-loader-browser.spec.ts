@@ -6,16 +6,50 @@ import puppeteer from 'puppeteer';
 import type * as UrlLoaderModule from '../src/index.js';
 import { parse } from 'graphql';
 import { ExecutionResult } from '@graphql-tools/utils';
+import { createSchema, createYoga, useEngine } from 'graphql-yoga';
+import { normalizedExecutor } from '@graphql-tools/executor';
 
 describe('[url-loader] webpack bundle compat', () => {
   if (process.env['TEST_BROWSER']) {
     let httpServer: http.Server;
     let browser: puppeteer.Browser;
-    let page: puppeteer.Page | undefined;
+    let page: puppeteer.Page;
     const port = 8712;
     const httpAddress = 'http://localhost:8712';
     const webpackBundlePath = path.resolve(__dirname, 'webpack.js');
-    let graphqlHandler: http.RequestListener | undefined;
+    const yoga = createYoga({
+      schema: createSchema({
+        typeDefs: /* GraphQL */ `
+          type Query {
+            foo: Boolean
+          }
+          type Subscription {
+            foo: Boolean
+          }
+        `,
+        resolvers: {
+          Query: {
+            foo: () => new Promise(resolve => setTimeout(() => resolve(true), 300)),
+          },
+          Subscription: {
+            foo: {
+              async *subscribe() {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                yield { foo: true };
+                await new Promise(resolve => setTimeout(resolve, 300));
+                yield { foo: false };
+              },
+            },
+          },
+        },
+      }),
+      plugins: [
+        useEngine({
+          execute: normalizedExecutor,
+          subscribe: normalizedExecutor,
+        }),
+      ],
+    });
 
     beforeAll(async () => {
       // bundle webpack js
@@ -80,12 +114,7 @@ describe('[url-loader] webpack bundle compat', () => {
           return;
         }
 
-        if (graphqlHandler) {
-          graphqlHandler(req, res);
-          return;
-        }
-
-        res.writeHead(404, 'Not found :(');
+        yoga(req, res);
       });
 
       await new Promise<void>(resolve => {
@@ -96,15 +125,9 @@ describe('[url-loader] webpack bundle compat', () => {
       browser = await puppeteer.launch({
         // headless: false,
       });
+      page = await browser.newPage();
+      await page.goto(httpAddress);
     }, 90_000);
-
-    beforeEach(async () => {
-      if (page !== undefined) {
-        await page.close();
-        page = undefined;
-      }
-      graphqlHandler = undefined;
-    });
 
     afterAll(async () => {
       await browser.close();
@@ -117,8 +140,6 @@ describe('[url-loader] webpack bundle compat', () => {
     });
 
     it('can be exposed as a global', async () => {
-      page = await browser.newPage();
-      await page.goto(httpAddress);
       const result = await page.evaluate(async () => {
         return typeof window['GraphQLToolsUrlLoader'];
       });
@@ -126,19 +147,10 @@ describe('[url-loader] webpack bundle compat', () => {
     });
 
     it('can be used for executing a basic http query operation', async () => {
-      page = await browser.newPage();
-      await page.goto(httpAddress);
       const expectedData = {
         data: {
           foo: true,
         },
-      };
-      graphqlHandler = (_req, res) => {
-        res.writeHead(200, {
-          'Content-Type': 'application/json',
-        });
-        res.write(JSON.stringify(expectedData));
-        res.end();
       };
       const document = parse(/* GraphQL */ `
         query {
@@ -163,27 +175,6 @@ describe('[url-loader] webpack bundle compat', () => {
     });
 
     it('handles executing a operation using multipart responses', async () => {
-      page = await browser.newPage();
-      await page.goto(httpAddress);
-      graphqlHandler = (_req, res) => {
-        res.writeHead(200, {
-          // prettier-ignore
-          "Connection": "keep-alive",
-          'Content-Type': 'multipart/mixed; boundary="-"',
-          'Transfer-Encoding': 'chunked',
-        });
-        res.write(`---`);
-        let chunk = Buffer.from(JSON.stringify({ data: {} }), 'utf8');
-        let data = ['', 'Content-Type: application/json; charset=utf-8', '', chunk, '', `---`];
-        res.write(data.join('\r\n'));
-        setTimeout(() => {
-          chunk = Buffer.from(JSON.stringify({ data: true, path: ['foo'] }), 'utf8');
-          data = ['', 'Content-Type: application/json; charset=utf-8', '', chunk, '', `---`];
-          res.write(data.join('\r\n'));
-          res.end();
-        }, 300);
-      };
-
       const document = parse(/* GraphQL */ `
         query {
           ... on Query @defer(label: "foo") {
@@ -192,7 +183,7 @@ describe('[url-loader] webpack bundle compat', () => {
         }
       `);
 
-      const result = await page.evaluate(
+      const results = await page.evaluate(
         async (httpAddress, document) => {
           const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
@@ -202,40 +193,18 @@ describe('[url-loader] webpack bundle compat', () => {
           });
           const results = [];
           for await (const currentResult of result as any) {
-            results.push(JSON.parse(JSON.stringify(currentResult)));
+            results.push(currentResult);
           }
           return results;
         },
         httpAddress,
         document as any
       );
-      expect(result).toEqual([{ data: {} }, { data: { foo: true } }]);
+      expect(results).toEqual([{ data: {} }, { data: { foo: true } }]);
     });
 
     it('handles SSE subscription operations', async () => {
-      page = await browser.newPage();
-      await page.goto(httpAddress);
-
       const expectedDatas = [{ data: { foo: true } }, { data: { foo: false } }];
-
-      graphqlHandler = (_req, res) => {
-        res.writeHead(200, {
-          'Content-Type': 'text/event-stream',
-          // prettier-ignore
-          "Connection": "keep-alive",
-          'Cache-Control': 'no-cache',
-        });
-
-        Promise.resolve().then(async () => {
-          for (const data of expectedDatas) {
-            await new Promise(resolve => setTimeout(resolve, 300));
-            res.write(`data: ${JSON.stringify(data)}\n\n`);
-            await new Promise(resolve => setTimeout(resolve, 300));
-          }
-
-          res.end();
-        });
-      };
 
       const document = parse(/* GraphQL */ `
         subscription {
@@ -265,38 +234,7 @@ describe('[url-loader] webpack bundle compat', () => {
       expect(result).toStrictEqual(expectedDatas);
     });
     it('terminates SSE subscriptions when calling return on the AsyncIterator', async () => {
-      page = await browser.newPage();
-      await page.goto(httpAddress);
-
       const sentDatas = [{ data: { foo: true } }, { data: { foo: false } }, { data: { foo: true } }];
-
-      let responseClosed$: Promise<boolean>;
-
-      graphqlHandler = (_req, res) => {
-        res.writeHead(200, {
-          'Content-Type': 'text/event-stream',
-          // prettier-ignore
-          "Connection": "keep-alive",
-          'Cache-Control': 'no-cache',
-        });
-
-        responseClosed$ = new Promise(resolve => res.once('close', () => resolve(true)));
-
-        const ping = setInterval(() => {
-          // Ping
-          res.write(':\n\n');
-        }, 100);
-
-        Promise.resolve().then(async () => {
-          for (const data of sentDatas) {
-            await new Promise(resolve => setTimeout(resolve, 300));
-            res.write(`data: ${JSON.stringify(data)}\n\n`);
-            await new Promise(resolve => setTimeout(resolve, 300));
-          }
-
-          clearInterval(ping);
-        });
-      };
 
       const document = parse(/* GraphQL */ `
         subscription {
@@ -329,8 +267,6 @@ describe('[url-loader] webpack bundle compat', () => {
         httpAddress,
         document as any
       );
-
-      expect(await responseClosed$!).toBe(true);
 
       expect(result).toStrictEqual(sentDatas.slice(0, 2));
 
