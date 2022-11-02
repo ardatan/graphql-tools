@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 9.0.1
+
+### Patch Changes
+
+- [`d83b1960`](https://github.com/ardatan/graphql-tools/commit/d83b19605be71481ccf8effd80d5254423ea811a) Thanks [@ardatan](https://github.com/ardatan)! - Fix @stream support
+
 ## 9.0.0
 
 ### Major Changes

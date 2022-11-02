@@ -1,6 +1,6 @@
 {
   "name": "graphql-tools",
-  "version": "8.3.9",
+  "version": "8.3.10",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "repository": {
     "type": "git",
@@ -57,7 +57,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@graphql-tools/schema": "9.0.7",
+    "@graphql-tools/schema": "9.0.8",
     "tslib": "^2.4.0"
   },
   "type": "module"
