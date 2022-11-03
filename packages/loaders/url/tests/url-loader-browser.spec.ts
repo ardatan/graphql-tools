@@ -7,6 +7,7 @@ import type * as UrlLoaderModule from '../src/index.js';
 import { parse } from 'graphql';
 import { ExecutionResult } from '@graphql-tools/utils';
 import { createSchema, createYoga, useEngine } from 'graphql-yoga';
+import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 import { normalizedExecutor } from '@graphql-tools/executor';
 
 describe('[url-loader] webpack bundle compat', () => {
@@ -55,6 +56,7 @@ describe('[url-loader] webpack bundle compat', () => {
           execute: normalizedExecutor,
           subscribe: normalizedExecutor,
         }),
+        useDeferStream(),
       ],
     });
 

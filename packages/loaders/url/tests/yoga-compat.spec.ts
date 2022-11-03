@@ -8,6 +8,7 @@ import { InMemoryLiveQueryStore } from '@n1ru4l/in-memory-live-query-store';
 import { LiveExecutionResult } from '@n1ru4l/graphql-live-query';
 import { ExecutionResult } from '@graphql-tools/utils';
 import { createYoga, createSchema, useEngine } from 'graphql-yoga';
+import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 
 describe('Yoga Compatibility', () => {
   const loader = new UrlLoader();
@@ -106,6 +107,7 @@ describe('Yoga Compatibility', () => {
           execute: normalizedExecutor,
           subscribe: normalizedExecutor,
         }),
+        useDeferStream(),
         useLiveQuery({
           liveQueryStore,
         }),
