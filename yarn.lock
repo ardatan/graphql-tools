@@ -1416,7 +1416,7 @@
     "@changesets/types" "^5.2.0"
     dotenv "^8.1.0"
 
-"@changesets/cli@2.25.2", "@changesets/cli@^2.16.0":
+"@changesets/cli@2.25.2":
   version "2.25.2"
   resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.25.2.tgz#fc5e894aa6f85c60749a035352dec3dcbd275c71"
   integrity sha512-ACScBJXI3kRyMd2R8n8SzfttDHi4tmKSwVwXBazJOylQItSRSF4cGmej2E4FVf/eNfGy6THkL9GzAahU9ErZrA==
@@ -1676,16 +1676,6 @@
   dependencies:
     giscus "^1.2.0"
 
-"@graphql-tools/executor@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/executor/-/executor-0.0.4.tgz#384aad9260a6dfb644f3f08b114d3f7196afa547"
-  integrity sha512-EBV3wBslLfYOJERjFHrV2iy2U0XCIsXkDKC383lw2b0mpBHZP8y7s8dDLGLxEvuPgou2qer511O/gqI2NEVUNw==
-  dependencies:
-    "@graphql-tools/utils" "9.0.0"
-    "@graphql-typed-document-node/core" "3.1.1"
-    "@repeaterjs/repeater" "3.0.4"
-    value-or-promise "1.0.1"
-
 "@graphql-tools/utils@^8.5.2", "@graphql-tools/utils@^8.8.0":
   version "8.13.1"
   resolved "https://registry.yarnpkg.com/@graphql-tools/utils/-/utils-8.13.1.tgz#b247607e400365c2cd87ff54654d4ad25a7ac491"
@@ -1698,20 +1688,20 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.1.tgz#076d78ce99822258cf813ecc1e7fa460fa74d052"
   integrity sha512-NQ17ii0rK1b34VZonlmT2QMJFI70m0TRwbknO/ihlbatXyaktDhN/98vBiUU6kNBPljqGqyIrl2T4nY2RpFANg==
 
-"@graphql-yoga/subscription@3.0.0-alpha-20221102013553-a64fa7c4":
-  version "3.0.0-alpha-20221102013553-a64fa7c4"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/subscription/-/subscription-3.0.0-alpha-20221102013553-a64fa7c4.tgz#a6d7d4a8da99070697865d558b31aa762c2b7b62"
-  integrity sha512-Kng7f6eLQKzNmPg/XLX+s8qcDwDiNaMApC1RKGGweuQ+l3bCt8nPU/Y7euN1Ckm+4NTl8iUULzwgOBZ4Yk3NAQ==
+"@graphql-yoga/subscription@^3.0.0-next.0":
+  version "3.0.0-next.0"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/subscription/-/subscription-3.0.0-next.0.tgz#fce94b540ec8837c7667e24b556b70553ccb558b"
+  integrity sha512-ne+0p7CUHK8XOZRymKzYCLtllKNLqHnL+DiAOMCsvTm7NwgRXBBWiVwN/Bkp/JUTS8+PTssuTSLG8cUTR55p7g==
   dependencies:
-    "@graphql-yoga/typed-event-target" "1.0.0-alpha-20221102013553-a64fa7c4"
+    "@graphql-yoga/typed-event-target" "^1.0.0-next.0"
     "@repeaterjs/repeater" "^3.0.4"
     "@whatwg-node/events" "0.0.2"
     tslib "^2.3.1"
 
-"@graphql-yoga/typed-event-target@1.0.0-alpha-20221102013553-a64fa7c4":
-  version "1.0.0-alpha-20221102013553-a64fa7c4"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/typed-event-target/-/typed-event-target-1.0.0-alpha-20221102013553-a64fa7c4.tgz#16a6c15288914f2c88df59504ca944b700108756"
-  integrity sha512-2BHZm6je9wfdiFwC0KTisPiPVE3TsnWwqqZklcDR52ilYWCYVToy3ZLB/MCecO8fHE95gIRGMsEWGx/wT9UG+A==
+"@graphql-yoga/typed-event-target@^1.0.0-next.0":
+  version "1.0.0-next.0"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/typed-event-target/-/typed-event-target-1.0.0-next.0.tgz#d0c8ad24eef46edff1a0e3618a745361d01a58f1"
+  integrity sha512-OP+6WpeP2eJBdQ4aVdP6m+dhVXPQX1xJ0T2GVmBMiRD3NQeaIMbAP0FPrB3gvh2VGVH0UaAPspQSKsxwEe8YtQ==
   dependencies:
     "@repeaterjs/repeater" "^3.0.4"
     tslib "^2.3.1"
@@ -3438,7 +3428,7 @@
   resolved "https://registry.yarnpkg.com/@whatwg-node/events/-/events-0.0.2.tgz#7b7107268d2982fc7b7aff5ee6803c64018f84dd"
   integrity sha512-WKj/lI4QjnLuPrim0cfO7i+HsDSXHxNv1y0CrJhdntuO3hxWZmnXCwNDnwOvry11OjRin6cgWNF+j/9Pn8TN4w==
 
-"@whatwg-node/fetch@0.5.1":
+"@whatwg-node/fetch@0.5.1", "@whatwg-node/fetch@^0.5.0":
   version "0.5.1"
   resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.5.1.tgz#62c7e902ddfb7d16b0b31599d81628bbd22350a9"
   integrity sha512-RBZS60EU6CbRJ370BVVKW4F9csZuGh0OQNrUDhJ0IaIFLsXsJorFCM2iwaDWZTAPMqxW1TmuVcVKJ3d/H1dV1g==
@@ -3450,20 +3440,6 @@
     formdata-node "^4.3.1"
     node-fetch "^2.6.7"
     undici "^5.12.0"
-    web-streams-polyfill "^3.2.0"
-
-"@whatwg-node/fetch@^0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.5.0.tgz#7e7fd706ec667c951a5664aa6a3623ec0b8e39c1"
-  integrity sha512-nTHF6qVIWFHU/F8JfXc6u5GwTg1F1UWLc1F3eaGAGjUACvMJ/iy9256xu80KgylwbOzUZgKnRtdWdPDPf16OmQ==
-  dependencies:
-    "@peculiar/webcrypto" "^1.4.0"
-    abort-controller "^3.0.0"
-    busboy "^1.6.0"
-    form-data-encoder "^1.7.1"
-    formdata-node "^4.3.1"
-    node-fetch "^2.6.7"
-    undici "^5.10.0"
     web-streams-polyfill "^3.2.0"
 
 "@whatwg-node/server@0.4.14":
@@ -3898,10 +3874,10 @@ babel-jest@29.2.2, babel-jest@^29.2.2:
     graceful-fs "^4.2.9"
     slash "^3.0.0"
 
-babel-loader@9.0.1:
-  version "9.0.1"
-  resolved "https://registry.yarnpkg.com/babel-loader/-/babel-loader-9.0.1.tgz#d473f30a6ffc2f2abca610c01775c40fc5c2a970"
-  integrity sha512-szYjslOXFlj/po5KfrVmiuBAcI6GVHFuAgC96Qd6mMPHdwl4lmAJkYtvjQ1RxxPjgdkKjd3LQgXDE4jxEutNuw==
+babel-loader@9.1.0:
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/babel-loader/-/babel-loader-9.1.0.tgz#839e9ae88aea930864ef9ec0f356dfca96ecf238"
+  integrity sha512-Antt61KJPinUMwHwIIz9T5zfMgevnfZkEVWYDWlG888fgdvRRGD0JTuf/fFozQnfT+uq64sk1bmdHDy/mOEWnA==
   dependencies:
     find-cache-dir "^3.3.2"
     schema-utils "^4.0.0"
@@ -6895,18 +6871,19 @@ graphql-ws@^5.4.1:
   resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.4.1.tgz#76fb4c39dfa44a961546995b6bb5320726ff5f71"
   integrity sha512-maBduPneZOFYb3otLgc9/U+fU3f9MVXLKg6lVVLqA9BDQQ6YR7YhQO21Rf9+44IRBi4l8m35lynFMFQTzN3eAQ==
 
-graphql-yoga@3.0.0-alpha-20221102013553-a64fa7c4:
-  version "3.0.0-alpha-20221102013553-a64fa7c4"
-  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-3.0.0-alpha-20221102013553-a64fa7c4.tgz#f9003e126aa7017eaabaf498d282181b466a2a27"
-  integrity sha512-f7pX6mr5QIil1+SeHrJnp79PmYZQ9BGnU3NqDUN+2K0/F9KTdo4KyrziFMux2bYWFzRBCJXZ5ReEVyj555nQ6w==
+graphql-yoga@3.0.0-next.10:
+  version "3.0.0-next.10"
+  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-3.0.0-next.10.tgz#f4f3f3e79deb827ce3aeb672334e6c166432cac7"
+  integrity sha512-czCtyko8ODUAeFKd65sqQgfTKelU3Foyg8H6Oc9L35VlA3n+gCigsucKE3zOKyJ3E+ObJ648LQEsBVlA1zPoYA==
   dependencies:
     "@envelop/core" "3.0.3"
     "@envelop/parser-cache" "5.0.3"
     "@envelop/validation-cache" "5.0.3"
-    "@graphql-tools/executor" "^0.0.4"
+    "@graphql-tools/executor" "0.0.6"
     "@graphql-tools/schema" "^9.0.0"
+    "@graphql-tools/utils" "^9.0.1"
     "@graphql-typed-document-node/core" "^3.1.1"
-    "@graphql-yoga/subscription" "3.0.0-alpha-20221102013553-a64fa7c4"
+    "@graphql-yoga/subscription" "^3.0.0-next.0"
     "@whatwg-node/fetch" "0.5.1"
     "@whatwg-node/server" "0.4.14"
     dset "^3.1.1"
@@ -10284,10 +10261,10 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
-puppeteer-core@19.2.0:
-  version "19.2.0"
-  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-19.2.0.tgz#b2502a74b01725bfdd92f984faa4915166aee996"
-  integrity sha512-wdoZDzf46y1ScpPEUDAzIWDmvG272BbdqSvDMvtYNjy2UJZT/j5OS5k813o2lfT4HtOle79eByCLs24iXbat1g==
+puppeteer-core@19.2.2:
+  version "19.2.2"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-19.2.2.tgz#a9b7b25099d87d550c224c660c205b7ebdd03eb4"
+  integrity sha512-faojf+1pZ/tHXSr4x1q+9MVd9FrL3rpdbC0w7qN7MNClMoLuCvMbpR4vzcjoiJYgclt1n+SOPUOmHQViTw6frw==
   dependencies:
     cross-fetch "3.1.5"
     debug "4.3.4"
@@ -10300,17 +10277,17 @@ puppeteer-core@19.2.0:
     unbzip2-stream "1.4.3"
     ws "8.10.0"
 
-puppeteer@19.2.0:
-  version "19.2.0"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-19.2.0.tgz#6d39c6b6da4a648928d8dc736b864de493f175f7"
-  integrity sha512-rhr5ery8htpOTikmm/wrDU707wtmJ7ccX2WLkBf0A8eYYpscck5/iz04/fHOiIRWMFfnYOvaO9wNb4jcO3Mjyg==
+puppeteer@19.2.2:
+  version "19.2.2"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-19.2.2.tgz#e6f7bc089ac9bffea78b2f792bf3affd93e16803"
+  integrity sha512-m1T5Mog5qu5+dMBptWYTn6pXRdnFbydbVUCthqwbfd8/kOiMlzZBR9ywjX79LpvI1Sj+/z8+FKeIsjnMul8ZYA==
   dependencies:
     cosmiconfig "7.0.1"
     devtools-protocol "0.0.1056733"
     https-proxy-agent "5.0.1"
     progress "2.0.3"
     proxy-from-env "1.1.0"
-    puppeteer-core "19.2.0"
+    puppeteer-core "19.2.2"
 
 pvtsutils@^1.3.2:
   version "1.3.2"
@@ -11743,7 +11720,7 @@ tsconfig-paths@^3.14.1:
     minimist "^1.2.6"
     strip-bom "^3.0.0"
 
-tslib@2.4.0, tslib@^2.0.0, tslib@^2.0.3, tslib@^2.1.0, tslib@^2.3.0, tslib@^2.4.0, tslib@~2.4.0:
+tslib@2.4.0, tslib@^2.0.0, tslib@^2.0.3, tslib@^2.1.0, tslib@^2.3.0, tslib@^2.3.1, tslib@^2.4.0, tslib@~2.4.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.4.0.tgz#7cecaa7f073ce680a05847aa77be941098f36dc3"
   integrity sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==
@@ -11752,11 +11729,6 @@ tslib@^1.8.1:
   version "1.11.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.11.1.tgz#eb15d128827fbee2841549e171f45ed338ac7e35"
   integrity sha512-aZW88SY8kQbU7gpV19lN24LtXh/yD4ZZg6qieAJDDg+YBsJcSmLGK9QpnUjAKVG/xefmvJGd1WUmfpT/g6AJGA==
-
-tslib@^2.3.1:
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.4.1.tgz#0d0bfbaac2880b91e22df0768e55be9753a5b17e"
-  integrity sha512-tGyy4dAjRIEwI7BzsB0lynWgOpfqjUdq91XXAlIWD2OwKBH7oCl/GZG/HT4BOHrTlPMOASlMQ7veyTqpmRcrNA==
 
 tsup@^5.11.6:
   version "5.11.6"
@@ -11902,13 +11874,6 @@ unbzip2-stream@1.4.3:
   dependencies:
     buffer "^5.2.1"
     through "^2.3.8"
-
-undici@^5.10.0:
-  version "5.11.0"
-  resolved "https://registry.yarnpkg.com/undici/-/undici-5.11.0.tgz#1db25f285821828fc09d3804b9e2e934ae86fc13"
-  integrity sha512-oWjWJHzFet0Ow4YZBkyiJwiK5vWqEYoH7BINzJAJOLedZ++JpAlCbUktW2GQ2DS2FpKmxD/JMtWUUWl1BtghGw==
-  dependencies:
-    busboy "^1.6.0"
 
 undici@^5.12.0:
   version "5.12.0"
@@ -12157,13 +12122,6 @@ validate-npm-package-license@^3.0.1:
   dependencies:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
-
-value-or-promise@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.1.tgz#7021919262c7a13605da701bcbd3c9ae8219bf68"
-  integrity sha512-luIWMQACiZgNXrrCVX0B1Lm5bTT+osgLG/uiBMVvxYa52oqHGoF9YGpW+azBThx84N6bAm5MyaodRvsWaYmVbQ==
-  dependencies:
-    "@changesets/cli" "^2.16.0"
 
 value-or-promise@1.0.11, value-or-promise@^1.0.11:
   version "1.0.11"
