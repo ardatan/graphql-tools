@@ -95,7 +95,7 @@ jobs:
         uses: nick-fields/retry@v2
         with:
           timeout_minutes: 10
-          max_attempts: 3
+          max_attempts: 5
           command: yarn test --ci
   test_esm:
     name: ESM Test
