@@ -38,7 +38,7 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     'default-param-last': 'off',
     'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/*.test.ts', '**/*.spec.ts'] }],
-    'no-restricted-imports': [
+    '@typescript-eslint/no-restricted-imports': [
       'error',
       {
         paths: [
