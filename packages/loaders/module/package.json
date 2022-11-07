@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/module-loader",
-  "version": "7.2.10",
+  "version": "7.2.11",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -51,7 +51,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "9.0.1",
+    "@graphql-tools/utils": "9.1.0",
     "tslib": "^2.4.0"
   },
   "publishConfig": {

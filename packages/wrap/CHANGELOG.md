@@ -1,5 +1,16 @@
 # @graphql-tools/wrap
 
+## 9.2.11
+
+### Patch Changes
+
+- [#4825](https://github.com/ardatan/graphql-tools/pull/4825) [`1270b75a`](https://github.com/ardatan/graphql-tools/commit/1270b75a01ffca0d3f301bb809a572e0ee7b1c88) Thanks [@NullScope](https://github.com/NullScope)! - Fixed \_\_typename being added more than once in TransformCompositeFields
+
+- Updated dependencies [[`c0639dd0`](https://github.com/ardatan/graphql-tools/commit/c0639dd0065db1b5bcedaabf58b11945714bab8d)]:
+  - @graphql-tools/utils@9.1.0
+  - @graphql-tools/delegate@9.0.15
+  - @graphql-tools/schema@9.0.9
+
 ## 9.2.10
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/stitching-directives",
-  "version": "2.3.17",
+  "version": "2.3.18",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -53,12 +53,12 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "9.0.14",
-    "@graphql-tools/utils": "9.0.1",
+    "@graphql-tools/delegate": "9.0.15",
+    "@graphql-tools/utils": "9.1.0",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@graphql-tools/schema": "9.0.8"
+    "@graphql-tools/schema": "9.0.9"
   },
   "publishConfig": {
     "directory": "dist",
