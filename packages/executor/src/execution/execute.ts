@@ -230,7 +230,20 @@ export function execute<TData = any, TVariables = any, TContext = any>(
 
   // Return early errors if execution context failed.
   if (!('schema' in exeContext)) {
-    return { errors: exeContext };
+    return {
+      errors: exeContext.map(e => {
+        Object.defineProperty(e, 'extensions', {
+          value: {
+            ...e.extensions,
+            http: {
+              ...e.extensions?.http,
+              status: 400,
+            },
+          },
+        });
+        return e;
+      }),
+    };
   }
 
   return executeImpl(exeContext);
@@ -1256,7 +1269,20 @@ export function subscribe<TData = any, TVariables = any, TContext = any>(
 
   // Return early errors if execution context failed.
   if (!('schema' in exeContext)) {
-    return { errors: exeContext };
+    return {
+      errors: exeContext.map(e => {
+        Object.defineProperty(e, 'extensions', {
+          value: {
+            ...e.extensions,
+            http: {
+              ...e.extensions?.http,
+              status: 400,
+            },
+          },
+        });
+        return e;
+      }),
+    };
   }
 
   const resultOrStream = createSourceEventStreamImpl(exeContext);
@@ -1348,7 +1374,20 @@ export function createSourceEventStream(
 
   // Return early errors if execution context failed.
   if (!('schema' in exeContext)) {
-    return { errors: exeContext };
+    return {
+      errors: exeContext.map(e => {
+        Object.defineProperty(e, 'extensions', {
+          value: {
+            ...e.extensions,
+            http: {
+              ...e.extensions?.http,
+              status: 400,
+            },
+          },
+        });
+        return e;
+      }),
+    };
   }
 
   return createSourceEventStreamImpl(exeContext);
