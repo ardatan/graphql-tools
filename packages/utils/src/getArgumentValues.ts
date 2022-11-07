@@ -93,12 +93,12 @@ export function getArgumentValues(
       }
       coercedValues[name] = coercedValue;
     } catch (e) {
-      if (e instanceof GraphQLError && e.extensions?.http?.status == null) {
+      if (e instanceof GraphQLError && e.extensions?.['http']?.status == null) {
         Object.defineProperty(e, 'extensions', {
           value: {
             ...e.extensions,
             http: {
-              ...e.extensions?.http,
+              ...e.extensions?.['http'],
               status: 400,
             },
           },
