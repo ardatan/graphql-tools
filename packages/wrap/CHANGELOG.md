@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 9.2.10
+
+### Patch Changes
+
+- [#4823](https://github.com/ardatan/graphql-tools/pull/4823) [`a58cd6d3`](https://github.com/ardatan/graphql-tools/commit/a58cd6d38d7856edbf9404a3694d592cd1c383d1) Thanks [@ardatan](https://github.com/ardatan)! - Fix the bug when an optional argument's value is not provided with MapLeafValues transform
+
 ## 9.2.9
 
 ### Patch Changes
