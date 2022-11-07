@@ -81,4 +81,21 @@ describe('MapLeafValues', () => {
     expect(result.data['testEnum']).toBe('THREE');
     expect(result.data['testScalar']).toBe(15);
   });
+  test('works if optional argument is not provided', async () => {
+    const query = /* GraphQL */ `
+      query MyQuery {
+        testEnum
+        testScalar
+      }
+    `;
+
+    const result = await execute({
+      schema: transformedSchema,
+      document: parse(query),
+    });
+    if (isIncrementalResult(result)) throw Error('result is incremental');
+    assertSome(result.data);
+    expect(result.data['testEnum']).toBe(null);
+    expect(result.data['testScalar']).toBe(null);
+  });
 });

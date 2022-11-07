@@ -179,14 +179,16 @@ export default class MapLeafValues<TContext = Record<string, any>>
             return newValue === undefined ? v : newValue;
           });
 
-          if (argValue.kind === Kind.VARIABLE) {
+          if (argValue?.kind === Kind.VARIABLE) {
             variableValues[argValue.name.value] = transformedValue;
           } else {
             const newValueNode = astFromValue(transformedValue, argType);
-            argumentNodeMap[argName] = {
-              ...argumentNode,
-              value: newValueNode!,
-            };
+            if (newValueNode != null) {
+              argumentNodeMap[argName] = {
+                ...argumentNode,
+                value: newValueNode,
+              };
+            }
           }
         }
 
