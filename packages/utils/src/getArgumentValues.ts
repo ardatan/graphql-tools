@@ -9,6 +9,7 @@ import {
   Kind,
   print,
   ArgumentNode,
+  GraphQLError,
 } from 'graphql';
 import { createGraphQLError } from './errors.js';
 
@@ -80,16 +81,41 @@ export function getArgumentValues(
       });
     }
 
-    const coercedValue = valueFromAST(valueNode, argType, variableValues);
-    if (coercedValue === undefined) {
-      // Note: ValuesOfCorrectTypeRule validation should catch this before
-      // execution. This is a runtime check to ensure execution does not
-      // continue with an invalid argument value.
-      throw createGraphQLError(`Argument "${name}" has invalid value ${print(valueNode)}.`, {
-        nodes: [valueNode],
-      });
+    try {
+      const coercedValue = valueFromAST(valueNode, argType, variableValues);
+      if (coercedValue === undefined) {
+        // Note: ValuesOfCorrectTypeRule validation should catch this before
+        // execution. This is a runtime check to ensure execution does not
+        // continue with an invalid argument value.
+        throw createGraphQLError(`Argument "${name}" has invalid value ${print(valueNode)}.`, {
+          nodes: [valueNode],
+        });
+      }
+      coercedValues[name] = coercedValue;
+    } catch (e) {
+      if (e instanceof GraphQLError && e.extensions?.http?.status == null) {
+        Object.defineProperty(e, 'extensions', {
+          value: {
+            ...e.extensions,
+            http: {
+              ...e.extensions?.http,
+              status: 400,
+            },
+          },
+        });
+        throw e;
+      } else if (e instanceof TypeError) {
+        throw createGraphQLError(e.message, {
+          nodes: [valueNode],
+          extensions: {
+            http: {
+              status: 400,
+            },
+          },
+        });
+      }
+      throw e;
     }
-    coercedValues[name] = coercedValue;
   }
   return coercedValues;
 }
