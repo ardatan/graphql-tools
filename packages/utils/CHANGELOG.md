@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 9.1.0
+
+### Minor Changes
+
+- [#4827](https://github.com/ardatan/graphql-tools/pull/4827) [`c0639dd0`](https://github.com/ardatan/graphql-tools/commit/c0639dd0065db1b5bcedaabf58b11945714bab8d) Thanks [@ardatan](https://github.com/ardatan)! - TypeError and all other GraphQLError s from argument value parsing should return 400
+
 ## 9.0.1
 
 ### Patch Changes
