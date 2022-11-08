@@ -8,6 +8,9 @@ import { AddressInfo } from 'net';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 
 describe('Apollo Link', () => {
+  if (!process.env['TEST_BROWSER']) {
+    it('skips', () => {});
+  }
   const endpoint = '/graphql';
   const hostname = '127.0.0.1';
   const yoga = createYoga({
@@ -61,16 +64,6 @@ describe('Apollo Link', () => {
     client = new ApolloClient({
       link: new ExecutorLink(buildHTTPExecutor(url, yoga.fetch as any)),
       cache: new InMemoryCache(),
-      defaultOptions: {
-        watchQuery: {
-          fetchPolicy: 'no-cache',
-          errorPolicy: 'ignore',
-        },
-        query: {
-          fetchPolicy: 'no-cache',
-          errorPolicy: 'all',
-        },
-      },
     });
   });
   afterAll(done => {

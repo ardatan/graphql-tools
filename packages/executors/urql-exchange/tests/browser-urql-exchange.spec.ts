@@ -7,7 +7,10 @@ import { createServer, Server } from 'http';
 import { AddressInfo } from 'net';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 
-describe.skip('URQL Yoga Exchange', () => {
+describe('URQL Yoga Exchange', () => {
+  if (!process.env['TEST_BROWSER']) {
+    it('skips', () => {});
+  }
   const endpoint = '/graphql';
   const hostname = '127.0.0.1';
   const yoga = createYoga({
