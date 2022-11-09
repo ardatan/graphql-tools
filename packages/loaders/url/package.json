@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/url-loader",
-  "version": "7.16.12",
+  "version": "7.16.13",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -67,9 +67,9 @@
   },
   "dependencies": {
     "@graphql-tools/delegate": "9.0.15",
-    "@graphql-tools/executor-http": "0.0.0",
-    "@graphql-tools/executor-graphql-ws": "0.0.0",
-    "@graphql-tools/executor-legacy-ws": "0.0.0",
+    "@graphql-tools/executor-http": "0.0.1",
+    "@graphql-tools/executor-graphql-ws": "0.0.1",
+    "@graphql-tools/executor-legacy-ws": "0.0.1",
     "@graphql-tools/utils": "9.1.0",
     "@graphql-tools/wrap": "9.2.11",
     "@ardatan/sync-fetch": "0.0.1",
