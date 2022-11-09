@@ -6,7 +6,7 @@ import puppeteer from 'puppeteer';
 import type * as UrlLoaderModule from '../src/index.js';
 import { parse } from 'graphql';
 import { ExecutionResult } from '@graphql-tools/utils';
-import { createSchema, createYoga, Repeater, useEngine } from 'graphql-yoga';
+import { createSchema, createYoga, useEngine } from 'graphql-yoga';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import { sleep } from './test-utils.js';
