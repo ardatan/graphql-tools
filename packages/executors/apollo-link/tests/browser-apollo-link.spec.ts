@@ -10,6 +10,7 @@ import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 describe('Apollo Link', () => {
   if (!process.env['TEST_BROWSER']) {
     it('skips', () => {});
+    return;
   }
   const endpoint = '/graphql';
   const hostname = '127.0.0.1';
