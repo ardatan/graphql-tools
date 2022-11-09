@@ -57,9 +57,9 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@babel/parser": "7.20.1",
+    "@babel/parser": "7.20.3",
     "@babel/traverse": "7.20.1",
-    "@babel/types": "7.20.0",
+    "@babel/types": "7.20.2",
     "@types/babel__traverse": "7.18.2",
     "@vue/compiler-sfc": "3.2.41",
     "svelte": "3.52.0",
