@@ -64,7 +64,13 @@ describe('URQL Yoga Exchange', () => {
     url = `http://${hostname}:${port}${endpoint}`;
     client = createClient({
       url,
-      exchanges: [executorExchange(buildHTTPExecutor(url, yoga.fetch as any))],
+      exchanges: [
+        executorExchange(
+          buildHTTPExecutor({
+            fetch: yoga.fetch as any,
+          })
+        ),
+      ],
     });
   });
   afterAll(done => {

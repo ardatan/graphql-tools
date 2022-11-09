@@ -63,7 +63,12 @@ describe('Apollo Link', () => {
     const port = (server.address() as AddressInfo).port;
     url = `http://${hostname}:${port}${endpoint}`;
     client = new ApolloClient({
-      link: new ExecutorLink(buildHTTPExecutor(url, yoga.fetch as any)),
+      link: new ExecutorLink(
+        buildHTTPExecutor({
+          endpoint: url,
+          fetch: yoga.fetch as any,
+        })
+      ),
       cache: new InMemoryCache(),
     });
   });
