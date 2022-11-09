@@ -1,5 +1,16 @@
 # @graphql-tools/url-loader
 
+## 7.16.14
+
+### Patch Changes
+
+- [`e2fc041e`](https://github.com/ardatan/graphql-tools/commit/e2fc041e6f751c70efc20e8a02cbf88da0b905d2) Thanks [@ardatan](https://github.com/ardatan)! - Improve typings
+
+- Updated dependencies [[`e2fc041e`](https://github.com/ardatan/graphql-tools/commit/e2fc041e6f751c70efc20e8a02cbf88da0b905d2)]:
+  - @graphql-tools/executor-graphql-ws@0.0.2
+  - @graphql-tools/executor-http@0.0.2
+  - @graphql-tools/executor-legacy-ws@0.0.2
+
 ## 7.16.13
 
 ### Patch Changes

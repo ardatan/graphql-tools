@@ -1,5 +1,11 @@
 # @graphql-tools/executor-http
 
+## 0.0.2
+
+### Patch Changes
+
+- [`e2fc041e`](https://github.com/ardatan/graphql-tools/commit/e2fc041e6f751c70efc20e8a02cbf88da0b905d2) Thanks [@ardatan](https://github.com/ardatan)! - Improve typings
+
 ## 0.0.1
 
 ### Patch Changes
