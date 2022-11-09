@@ -1,7 +1,7 @@
 import { stripIgnoredCharacters } from 'graphql';
 
 export function prepareGETUrl({
-  baseUrl,
+  baseUrl = '',
   query,
   variables,
   operationName,
@@ -9,14 +9,14 @@ export function prepareGETUrl({
 }: {
   baseUrl: string;
   query: string;
-  variables: any;
+  variables?: any;
   operationName?: string;
   extensions?: any;
 }) {
   const dummyHostname = 'https://dummyhostname.com';
   const validUrl = baseUrl.startsWith('http')
     ? baseUrl
-    : baseUrl.startsWith('/')
+    : baseUrl?.startsWith('/')
     ? `${dummyHostname}${baseUrl}`
     : `${dummyHostname}/${baseUrl}`;
   const urlObj = new URL(validUrl);

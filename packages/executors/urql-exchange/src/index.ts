@@ -35,10 +35,10 @@ export function executorExchange(executor: Executor): Exchange {
       context: operation.context,
       extensions: {
         endpoint: operation.context.url,
-        customFetch: operation.context.fetch,
-        useGETForQueries: !!operation.context.preferGetMethod,
+        fetch: operation.context.fetch,
+        useGETForQueries: operation.context.preferGetMethod,
         headers: extraFetchOptions?.headers,
-        method: extraFetchOptions?.method as 'GET' | 'POST',
+        method: extraFetchOptions?.method,
       },
     };
     return make<OperationResult<TData>>(observer => {

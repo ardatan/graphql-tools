@@ -36,6 +36,8 @@ export type AsyncImportFn = (moduleName: string) => PromiseLike<any>;
 export type SyncImportFn = (moduleName: string) => any;
 
 export interface HTTPExecutorOptions {
+  endpoint?: string;
+  fetch?: FetchFn;
   /**
    * Whether to use the GET HTTP method for queries when querying the original schema
    */
@@ -65,37 +67,24 @@ export interface HTTPExecutorOptions {
 
 export type HeadersConfig = Record<string, string>;
 
-export interface ExecutionExtensions {
-  headers?: HeadersConfig;
-  endpoint?: string;
-}
+export function buildHTTPExecutor(
+  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: SyncFetchFn }
+): SyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
-  endpoint: string,
-  syncFetchFn: SyncFetchFn,
-  options?: HTTPExecutorOptions
-): SyncExecutor<any, ExecutionExtensions>;
+  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: AsyncFetchFn }
+): AsyncExecutor<any, HTTPExecutorOptions>;
 
-export function buildHTTPExecutor(
-  endpoint: string,
-  asyncFetchFn: AsyncFetchFn,
-  options?: HTTPExecutorOptions
-): AsyncExecutor<any, ExecutionExtensions>;
-
-export function buildHTTPExecutor(
-  initialEndpoint: string,
-  fetchFn: FetchFn = defaultFetch,
-  options?: HTTPExecutorOptions
-): Executor<any, ExecutionExtensions> {
-  const defaultMethod = options?.method || 'POST';
-  const executor = (request: ExecutionRequest<any, any, any, ExecutionExtensions>) => {
+export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, HTTPExecutorOptions> {
+  const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
+    const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
     const controller = cancelNeeded() ? new AbortController() : undefined;
-    let method = defaultMethod;
+    let method = request.extensions?.method || options?.method || 'POST';
 
     const operationAst = getOperationASTFromRequest(request);
     const operationType = operationAst.operation;
 
-    if (options?.useGETForQueries && operationType === 'query') {
+    if (options?.useGETForQueries || (request.extensions?.useGETForQueries && operationType === 'query')) {
       method = 'GET';
     }
 
@@ -105,7 +94,7 @@ export function buildHTTPExecutor(
       accept = 'text/event-stream';
     }
 
-    const endpoint = request.extensions?.endpoint || initialEndpoint;
+    const endpoint = request.extensions?.endpoint || options?.endpoint || '/graphql';
     const headers = Object.assign(
       {
         accept,

@@ -123,19 +123,19 @@ function isCompatibleUri(uri: string): boolean {
 export class UrlLoader implements Loader<LoadFromUrlOptions> {
   buildHTTPExecutor(
     endpoint: string,
-    fetch: SyncFetchFn,
+    fetchFn: SyncFetchFn,
     options?: LoadFromUrlOptions
   ): SyncExecutor<any, ExecutionExtensions>;
 
   buildHTTPExecutor(
     endpoint: string,
-    fetch: AsyncFetchFn,
+    fetchFn: AsyncFetchFn,
     options?: LoadFromUrlOptions
   ): AsyncExecutor<any, ExecutionExtensions>;
 
   buildHTTPExecutor(
     initialEndpoint: string,
-    fetch: FetchFn,
+    fetchFn: FetchFn,
     options?: LoadFromUrlOptions
   ): Executor<any, ExecutionExtensions> {
     const HTTP_URL = switchProtocols(initialEndpoint, {
@@ -143,7 +143,11 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       ws: 'http',
     });
 
-    return buildHTTPExecutor(HTTP_URL, fetch as any, options);
+    return buildHTTPExecutor({
+      endpoint: HTTP_URL,
+      fetch: fetchFn as any,
+      ...options,
+    });
   }
 
   buildWSExecutor(
@@ -241,7 +245,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
 
   buildSubscriptionExecutor(
     subscriptionsEndpoint: string,
-    fetch: FetchFn,
+    fetch: AsyncFetchFn | SyncFetchFn,
     importFn: AsyncImportFn | SyncImportFn,
     options?: LoadFromUrlOptions
   ): Executor {
