@@ -47,6 +47,7 @@ describe('Yoga Compatibility', () => {
     'y',
     'z',
   ];
+  let intervalStreamActive = false;
   let streamActive = false;
   beforeAll(async () => {
     const yoga = createYoga({
@@ -62,6 +63,7 @@ describe('Yoga Compatibility', () => {
             """
             alphabet(waitFor: Int! = 1000): [String]
             pingStream: [Boolean]
+            pingIntervalStream: [Boolean]
           }
           type Foo {
             a: Int
@@ -84,12 +86,24 @@ describe('Yoga Compatibility', () => {
             pingStream: () =>
               new Repeater(async (push, stop) => {
                 streamActive = true;
+                stop.then(() => {
+                  streamActive = false;
+                });
+                // eslint-disable-next-line no-unmodified-loop-condition
+                while (streamActive) {
+                  await sleep(300);
+                  await push(true);
+                }
+              }),
+            pingIntervalStream: () =>
+              new Repeater(async (push, stop) => {
+                intervalStreamActive = true;
                 const interval = setInterval(() => {
                   push(true);
                 }, 300);
                 stop.then(() => {
                   clearInterval(interval);
-                  streamActive = false;
+                  intervalStreamActive = false;
                 });
               }),
           },
@@ -291,7 +305,8 @@ describe('Yoga Compatibility', () => {
       }
     }
   });
-  it('terminates stream queries correctly', async () => {
+  it('terminates stream queries correctly with pingStream', async () => {
+    expect.assertions(2);
     const executor = loader.getExecutorAsync(serverPath);
     const result = await executor({
       document: parse(/* GraphQL */ `
@@ -302,12 +317,32 @@ describe('Yoga Compatibility', () => {
     });
     assertAsyncIterable(result);
     for await (const singleResult of result) {
-      if (singleResult?.data?.pingStream) {
+      if (singleResult?.data?.pingStream?.length > 1) {
         expect(streamActive).toBe(true);
         break;
       }
     }
     await sleep(300);
     expect(streamActive).toBe(false);
+  });
+  it('terminates stream queries correctly with pingIntervalStream', async () => {
+    expect.assertions(2);
+    const executor = loader.getExecutorAsync(serverPath);
+    const result = await executor({
+      document: parse(/* GraphQL */ `
+        query StreamExample {
+          pingIntervalStream @stream
+        }
+      `),
+    });
+    assertAsyncIterable(result);
+    for await (const singleResult of result) {
+      if (singleResult?.data?.pingIntervalStream?.length > 1) {
+        expect(intervalStreamActive).toBe(true);
+        break;
+      }
+    }
+    await sleep(300);
+    expect(intervalStreamActive).toBe(false);
   });
 });

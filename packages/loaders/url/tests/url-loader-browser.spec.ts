@@ -16,6 +16,7 @@ describe('[url-loader] webpack bundle compat', () => {
     let httpServer: http.Server;
     let browser: puppeteer.Browser;
     let page: puppeteer.Page;
+    let intervalStreamActive = false;
     let streamActive = false;
     const port = 8712;
     const httpAddress = 'http://localhost:8712';
@@ -27,6 +28,7 @@ describe('[url-loader] webpack bundle compat', () => {
             foo: Boolean
             countdown(from: Int): [Int]
             pingStream: [Boolean]
+            pingIntervalStream: [Boolean]
           }
           type Subscription {
             foo: Boolean
@@ -44,12 +46,24 @@ describe('[url-loader] webpack bundle compat', () => {
             pingStream: () =>
               new Repeater(async (push, stop) => {
                 streamActive = true;
+                stop.then(() => {
+                  streamActive = false;
+                });
+                // eslint-disable-next-line no-unmodified-loop-condition
+                while (streamActive) {
+                  await push(true);
+                  await new Promise(resolve => setTimeout(resolve, 300));
+                }
+              }),
+            pingIntervalStream: () =>
+              new Repeater(async (push, stop) => {
+                intervalStreamActive = true;
                 const interval = setInterval(() => {
                   push(true);
                 }, 300);
                 stop.then(() => {
                   clearInterval(interval);
-                  streamActive = false;
+                  intervalStreamActive = false;
                 });
               }),
           },
@@ -336,7 +350,7 @@ describe('[url-loader] webpack bundle compat', () => {
       // no uncaught errors should be reported (browsers raise errors when canceling requests)
       expect(pageerrorFn).not.toBeCalled();
     });
-    it('terminates stream queries correctly', async () => {
+    it('terminates stream correctly with pingStream', async () => {
       const document = parse(/* GraphQL */ `
         query {
           pingStream @stream
@@ -355,7 +369,7 @@ describe('[url-loader] webpack bundle compat', () => {
             document,
           })) as AsyncIterableIterator<ExecutionResult>;
           for await (const currentResult of result) {
-            if (currentResult?.data?.pingStream) {
+            if (currentResult?.data?.pingStream?.length > 1) {
               return currentResult;
             }
           }
@@ -364,13 +378,48 @@ describe('[url-loader] webpack bundle compat', () => {
         document as any
       );
 
-      console.log(currentResult);
-
-      expect(currentResult?.data?.pingStream).toBeTruthy();
+      expect(currentResult?.data?.pingStream?.length).toBe(2);
 
       await sleep(500);
 
       expect(streamActive).toBe(false);
+
+      // no uncaught errors should be reported (browsers raise errors when canceling requests)
+      expect(pageerrorFn).not.toBeCalled();
+    });
+    it('terminates stream queries correctly with pingStreamInterval', async () => {
+      const document = parse(/* GraphQL */ `
+        query {
+          pingIntervalStream @stream
+        }
+      `);
+
+      const pageerrorFn = jest.fn();
+      page.on('pageerror', pageerrorFn);
+
+      const currentResult = await page.evaluate(
+        async (httpAddress, document) => {
+          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const loader = new module.UrlLoader();
+          const executor = loader.getExecutorAsync(httpAddress + '/graphql');
+          const result = (await executor({
+            document,
+          })) as AsyncIterableIterator<ExecutionResult>;
+          for await (const currentResult of result) {
+            if (currentResult?.data?.pingIntervalStream?.length > 1) {
+              return currentResult;
+            }
+          }
+        },
+        httpAddress,
+        document as any
+      );
+
+      expect(currentResult?.data?.pingIntervalStream?.length).toBe(2);
+
+      await sleep(500);
+
+      expect(intervalStreamActive).toBe(false);
 
       // no uncaught errors should be reported (browsers raise errors when canceling requests)
       expect(pageerrorFn).not.toBeCalled();
