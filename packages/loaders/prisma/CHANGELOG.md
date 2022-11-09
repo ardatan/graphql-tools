@@ -1,5 +1,12 @@
 # @graphql-tools/prisma-loader
 
+## 7.2.33
+
+### Patch Changes
+
+- Updated dependencies [[`61812ccb`](https://github.com/ardatan/graphql-tools/commit/61812ccb97d6e179e74d72661dd0736f6ca0a7ff), [`61812ccb`](https://github.com/ardatan/graphql-tools/commit/61812ccb97d6e179e74d72661dd0736f6ca0a7ff)]:
+  - @graphql-tools/url-loader@7.16.13
+
 ## 7.2.32
 
 ### Patch Changes
