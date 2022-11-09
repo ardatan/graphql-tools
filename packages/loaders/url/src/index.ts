@@ -10,15 +10,12 @@ import {
   ExecutionRequest,
   parseGraphQLSDL,
   getOperationASTFromRequest,
-  createGraphQLError,
-  ExecutionResult,
 } from '@graphql-tools/utils';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
 import WebSocket from 'isomorphic-ws';
 import { ValueOrPromise } from 'value-or-promise';
 import { defaultAsyncFetch } from './defaultAsyncFetch.js';
 import { defaultSyncFetch } from './defaultSyncFetch.js';
-import { isLiveQueryOperationDefinitionNode } from './utils.js';
 import { buildGraphQLWSExecutor } from '@graphql-tools/executor-graphql-ws';
 import {
   AsyncFetchFn,
@@ -26,6 +23,7 @@ import {
   FetchFn,
   HTTPExecutorOptions,
   SyncFetchFn,
+  isLiveQueryOperationDefinitionNode,
 } from '@graphql-tools/executor-http';
 import { buildWSLegacyExecutor } from '@graphql-tools/executor-legacy-ws';
 
@@ -145,37 +143,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       ws: 'http',
     });
 
-    const executor = buildHTTPExecutor(HTTP_URL, fetch as any, options);
-
-    if (options?.retry != null) {
-      return function retryExecutor(request: ExecutionRequest) {
-        let result: ExecutionResult<any> | undefined;
-        let attempt = 0;
-        function retryAttempt(): Promise<ExecutionResult<any>> | ExecutionResult<any> {
-          attempt++;
-          if (attempt > options!.retry!) {
-            if (result != null) {
-              return result;
-            }
-            return {
-              errors: [createGraphQLError('No response returned from fetch')],
-            };
-          }
-          return new ValueOrPromise(() => executor(request))
-            .then(res => {
-              result = res;
-              if (result?.errors?.length) {
-                return retryAttempt();
-              }
-              return result;
-            })
-            .resolve();
-        }
-        return retryAttempt();
-      };
-    }
-
-    return executor;
+    return buildHTTPExecutor(HTTP_URL, fetch as any, options);
   }
 
   buildWSExecutor(

@@ -57,7 +57,8 @@
     "@repeaterjs/repeater": "3.0.4",
     "dset": "3.1.2",
     "meros": "1.2.1",
-    "extract-files": "^11.0.0"
+    "extract-files": "^11.0.0",
+    "tslib": "^2.4.0"
   },
   "publishConfig": {
     "directory": "dist",

@@ -284,3 +284,5 @@ export function buildHTTPExecutor(
 
   return executor;
 }
+
+export { isLiveQueryOperationDefinitionNode };

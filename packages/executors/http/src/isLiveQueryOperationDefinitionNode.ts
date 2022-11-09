@@ -4,5 +4,5 @@ import { OperationDefinitionNode } from 'graphql';
 export const isLiveQueryOperationDefinitionNode = memoize1(function isLiveQueryOperationDefinitionNode(
   node: OperationDefinitionNode
 ) {
-  return node.directives?.some(directive => directive.name.value === 'live');
+  return node.operation === 'query' && node.directives?.some(directive => directive.name.value === 'live');
 });

@@ -52,11 +52,12 @@
   },
   "dependencies": {
     "@types/ws": "^8.0.0",
+    "ws": "8.11.0",
+    "isomorphic-ws": "5.0.0",
     "@graphql-tools/utils": "9.1.0",
     "@repeaterjs/repeater": "3.0.4",
     "graphql-ws": "5.11.2",
-    "isomorphic-ws": "5.0.0",
-    "ws": "8.11.0"
+    "tslib": "^2.4.0"
   },
   "publishConfig": {
     "directory": "dist",
