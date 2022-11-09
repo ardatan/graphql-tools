@@ -7,7 +7,7 @@ import { GraphQLLiveDirectiveSDL, useLiveQuery } from '@envelop/live-query';
 import { InMemoryLiveQueryStore } from '@n1ru4l/in-memory-live-query-store';
 import { LiveExecutionResult } from '@n1ru4l/graphql-live-query';
 import { ExecutionResult } from '@graphql-tools/utils';
-import { createYoga, createSchema, useEngine } from 'graphql-yoga';
+import { createYoga, createSchema, useEngine, Repeater } from 'graphql-yoga';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 
 describe('Yoga Compatibility', () => {
@@ -47,6 +47,7 @@ describe('Yoga Compatibility', () => {
     'y',
     'z',
   ];
+  let streamActive = false;
   beforeAll(async () => {
     const yoga = createYoga({
       schema: createSchema({
@@ -60,6 +61,7 @@ describe('Yoga Compatibility', () => {
             Maybe you want to @stream this field ;)
             """
             alphabet(waitFor: Int! = 1000): [String]
+            pingStream: [Boolean]
           }
           type Foo {
             a: Int
@@ -79,6 +81,17 @@ describe('Yoga Compatibility', () => {
                 await sleep(waitFor);
               }
             },
+            pingStream: () =>
+              new Repeater(async (push, stop) => {
+                streamActive = true;
+                const interval = setInterval(() => {
+                  push(true);
+                }, 300);
+                stop.then(() => {
+                  clearInterval(interval);
+                  streamActive = false;
+                });
+              }),
           },
           Foo: {
             a: async () => {
@@ -277,5 +290,24 @@ describe('Yoga Compatibility', () => {
         break;
       }
     }
+  });
+  it('terminates stream queries correctly', async () => {
+    const executor = loader.getExecutorAsync(serverPath);
+    const result = await executor({
+      document: parse(/* GraphQL */ `
+        query StreamExample {
+          pingStream @stream
+        }
+      `),
+    });
+    assertAsyncIterable(result);
+    for await (const singleResult of result) {
+      if (singleResult?.data?.pingStream) {
+        expect(streamActive).toBe(true);
+        break;
+      }
+    }
+    await sleep(300);
+    expect(streamActive).toBe(false);
   });
 });

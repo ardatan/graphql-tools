@@ -6,15 +6,17 @@ import puppeteer from 'puppeteer';
 import type * as UrlLoaderModule from '../src/index.js';
 import { parse } from 'graphql';
 import { ExecutionResult } from '@graphql-tools/utils';
-import { createSchema, createYoga, useEngine } from 'graphql-yoga';
+import { createSchema, createYoga, Repeater, useEngine } from 'graphql-yoga';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 import { normalizedExecutor } from '@graphql-tools/executor';
+import { sleep } from './test-utils.js';
 
 describe('[url-loader] webpack bundle compat', () => {
   if (process.env['TEST_BROWSER']) {
     let httpServer: http.Server;
     let browser: puppeteer.Browser;
     let page: puppeteer.Page;
+    let streamActive = false;
     const port = 8712;
     const httpAddress = 'http://localhost:8712';
     const webpackBundlePath = path.resolve(__dirname, 'webpack.js');
@@ -24,6 +26,7 @@ describe('[url-loader] webpack bundle compat', () => {
           type Query {
             foo: Boolean
             countdown(from: Int): [Int]
+            pingStream: [Boolean]
           }
           type Subscription {
             foo: Boolean
@@ -38,6 +41,17 @@ describe('[url-loader] webpack bundle compat', () => {
                 await new Promise(resolve => setTimeout(resolve, 100));
               }
             },
+            pingStream: () =>
+              new Repeater(async (push, stop) => {
+                streamActive = true;
+                const interval = setInterval(() => {
+                  push(true);
+                }, 300);
+                stop.then(() => {
+                  clearInterval(interval);
+                  streamActive = false;
+                });
+              }),
           },
           Subscription: {
             foo: {
@@ -318,6 +332,45 @@ describe('[url-loader] webpack bundle compat', () => {
       );
 
       expect(result).toStrictEqual(sentDatas.slice(0, 2));
+
+      // no uncaught errors should be reported (browsers raise errors when canceling requests)
+      expect(pageerrorFn).not.toBeCalled();
+    });
+    it('terminates stream queries correctly', async () => {
+      const document = parse(/* GraphQL */ `
+        query {
+          pingStream @stream
+        }
+      `);
+
+      const pageerrorFn = jest.fn();
+      page.on('pageerror', pageerrorFn);
+
+      const currentResult = await page.evaluate(
+        async (httpAddress, document) => {
+          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const loader = new module.UrlLoader();
+          const executor = loader.getExecutorAsync(httpAddress + '/graphql');
+          const result = (await executor({
+            document,
+          })) as AsyncIterableIterator<ExecutionResult>;
+          for await (const currentResult of result) {
+            if (currentResult?.data?.pingStream) {
+              return currentResult;
+            }
+          }
+        },
+        httpAddress,
+        document as any
+      );
+
+      console.log(currentResult);
+
+      expect(currentResult?.data?.pingStream).toBeTruthy();
+
+      await sleep(500);
+
+      expect(streamActive).toBe(false);
 
       // no uncaught errors should be reported (browsers raise errors when canceling requests)
       expect(pageerrorFn).not.toBeCalled();
