@@ -16,8 +16,19 @@ describe('[url-loader] webpack bundle compat', () => {
     let httpServer: http.Server;
     let browser: puppeteer.Browser;
     let page: puppeteer.Page;
-    let intervalStreamActive = false;
-    let streamActive = false;
+    let resolveOnReturn: VoidFunction;
+    const timeouts = new Set<NodeJS.Timeout>();
+    const fakeAsyncIterable = {
+      [Symbol.asyncIterator]() {
+        return this;
+      },
+      next: () => sleep(300, timeout => timeouts.add(timeout)).then(() => ({ value: true, done: false })),
+      return: () => {
+        resolveOnReturn();
+        timeouts.forEach(clearTimeout);
+        return Promise.resolve({ done: true });
+      },
+    };
     const port = 8712;
     const httpAddress = 'http://localhost:8712';
     const webpackBundlePath = path.resolve(__dirname, 'webpack.js');
@@ -27,8 +38,7 @@ describe('[url-loader] webpack bundle compat', () => {
           type Query {
             foo: Boolean
             countdown(from: Int): [Int]
-            pingStream: [Boolean]
-            pingIntervalStream: [Boolean]
+            fakeStream: [Boolean]
           }
           type Subscription {
             foo: Boolean
@@ -43,29 +53,7 @@ describe('[url-loader] webpack bundle compat', () => {
                 await new Promise(resolve => setTimeout(resolve, 100));
               }
             },
-            pingStream: () =>
-              new Repeater(async (push, stop) => {
-                streamActive = true;
-                stop.then(() => {
-                  streamActive = false;
-                });
-                // eslint-disable-next-line no-unmodified-loop-condition
-                while (streamActive) {
-                  await push(true);
-                  await new Promise(resolve => setTimeout(resolve, 300));
-                }
-              }),
-            pingIntervalStream: () =>
-              new Repeater(async (push, stop) => {
-                intervalStreamActive = true;
-                const interval = setInterval(() => {
-                  push(true);
-                }, 300);
-                stop.then(() => {
-                  clearInterval(interval);
-                  intervalStreamActive = false;
-                });
-              }),
+            fakeStream: () => fakeAsyncIterable,
           },
           Subscription: {
             foo: {
@@ -350,17 +338,21 @@ describe('[url-loader] webpack bundle compat', () => {
       // no uncaught errors should be reported (browsers raise errors when canceling requests)
       expect(pageerrorFn).not.toBeCalled();
     });
-    it('terminates stream correctly with pingStream', async () => {
+    it('terminates stream correctly', async () => {
       const document = parse(/* GraphQL */ `
         query {
-          pingStream @stream
+          fakeStream @stream
         }
       `);
 
       const pageerrorFn = jest.fn();
       page.on('pageerror', pageerrorFn);
 
-      const currentResult = await page.evaluate(
+      const returnPromise$ = new Promise<void>(resolve => {
+        resolveOnReturn = resolve;
+      });
+
+      await page.evaluate(
         async (httpAddress, document) => {
           const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
@@ -369,8 +361,8 @@ describe('[url-loader] webpack bundle compat', () => {
             document,
           })) as AsyncIterableIterator<ExecutionResult>;
           for await (const currentResult of result) {
-            if (currentResult?.data?.pingStream?.length > 1) {
-              return currentResult;
+            if (currentResult?.data?.fakeStream?.length > 1) {
+              break;
             }
           }
         },
@@ -378,48 +370,7 @@ describe('[url-loader] webpack bundle compat', () => {
         document as any
       );
 
-      expect(currentResult?.data?.pingStream?.length).toBe(2);
-
-      await sleep(500);
-
-      expect(streamActive).toBe(false);
-
-      // no uncaught errors should be reported (browsers raise errors when canceling requests)
-      expect(pageerrorFn).not.toBeCalled();
-    });
-    it('terminates stream queries correctly with pingStreamInterval', async () => {
-      const document = parse(/* GraphQL */ `
-        query {
-          pingIntervalStream @stream
-        }
-      `);
-
-      const pageerrorFn = jest.fn();
-      page.on('pageerror', pageerrorFn);
-
-      const currentResult = await page.evaluate(
-        async (httpAddress, document) => {
-          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
-          const loader = new module.UrlLoader();
-          const executor = loader.getExecutorAsync(httpAddress + '/graphql');
-          const result = (await executor({
-            document,
-          })) as AsyncIterableIterator<ExecutionResult>;
-          for await (const currentResult of result) {
-            if (currentResult?.data?.pingIntervalStream?.length > 1) {
-              return currentResult;
-            }
-          }
-        },
-        httpAddress,
-        document as any
-      );
-
-      expect(currentResult?.data?.pingIntervalStream?.length).toBe(2);
-
-      await sleep(500);
-
-      expect(intervalStreamActive).toBe(false);
+      await returnPromise$;
 
       // no uncaught errors should be reported (browsers raise errors when canceling requests)
       expect(pageerrorFn).not.toBeCalled();

@@ -7,7 +7,7 @@ import { GraphQLLiveDirectiveSDL, useLiveQuery } from '@envelop/live-query';
 import { InMemoryLiveQueryStore } from '@n1ru4l/in-memory-live-query-store';
 import { LiveExecutionResult } from '@n1ru4l/graphql-live-query';
 import { ExecutionResult } from '@graphql-tools/utils';
-import { createYoga, createSchema, useEngine, Repeater } from 'graphql-yoga';
+import { createYoga, createSchema, useEngine } from 'graphql-yoga';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 
 describe('Yoga Compatibility', () => {
@@ -17,8 +17,8 @@ describe('Yoga Compatibility', () => {
   let serverPort: number;
   let serverHost: string;
   let serverPath: string;
-  let active = false;
   let cnt = 0;
+  let active = false;
   const alphabet = [
     'a',
     'b',
@@ -47,8 +47,19 @@ describe('Yoga Compatibility', () => {
     'y',
     'z',
   ];
-  let intervalStreamActive = false;
-  let streamActive = false;
+  let resolveOnReturn: VoidFunction;
+  const timeouts = new Set<NodeJS.Timeout>();
+  const fakeAsyncIterable = {
+    [Symbol.asyncIterator]() {
+      return this;
+    },
+    next: () => sleep(300, timeout => timeouts.add(timeout)).then(() => ({ value: true, done: false })),
+    return: () => {
+      resolveOnReturn();
+      timeouts.forEach(clearTimeout);
+      return Promise.resolve({ done: true });
+    },
+  };
   beforeAll(async () => {
     const yoga = createYoga({
       schema: createSchema({
@@ -62,8 +73,7 @@ describe('Yoga Compatibility', () => {
             Maybe you want to @stream this field ;)
             """
             alphabet(waitFor: Int! = 1000): [String]
-            pingStream: [Boolean]
-            pingIntervalStream: [Boolean]
+            fakeStream: [Boolean]
           }
           type Foo {
             a: Int
@@ -83,29 +93,7 @@ describe('Yoga Compatibility', () => {
                 await sleep(waitFor);
               }
             },
-            pingStream: () =>
-              new Repeater(async (push, stop) => {
-                streamActive = true;
-                stop.then(() => {
-                  streamActive = false;
-                });
-                // eslint-disable-next-line no-unmodified-loop-condition
-                while (streamActive) {
-                  await sleep(300);
-                  await push(true);
-                }
-              }),
-            pingIntervalStream: () =>
-              new Repeater(async (push, stop) => {
-                intervalStreamActive = true;
-                const interval = setInterval(() => {
-                  push(true);
-                }, 300);
-                stop.then(() => {
-                  clearInterval(interval);
-                  intervalStreamActive = false;
-                });
-              }),
+            fakeStream: () => fakeAsyncIterable,
           },
           Foo: {
             a: async () => {
@@ -305,44 +293,24 @@ describe('Yoga Compatibility', () => {
       }
     }
   });
-  it('terminates stream queries correctly with pingStream', async () => {
-    expect.assertions(2);
+  it('terminates stream queries correctly', async () => {
     const executor = loader.getExecutorAsync(serverPath);
     const result = await executor({
       document: parse(/* GraphQL */ `
         query StreamExample {
-          pingStream @stream
+          fakeStream @stream
         }
       `),
     });
-    assertAsyncIterable(result);
-    for await (const singleResult of result) {
-      if (singleResult?.data?.pingStream?.length > 1) {
-        expect(streamActive).toBe(true);
-        break;
-      }
-    }
-    await sleep(300);
-    expect(streamActive).toBe(false);
-  });
-  it('terminates stream queries correctly with pingIntervalStream', async () => {
-    expect.assertions(2);
-    const executor = loader.getExecutorAsync(serverPath);
-    const result = await executor({
-      document: parse(/* GraphQL */ `
-        query StreamExample {
-          pingIntervalStream @stream
-        }
-      `),
+    const returnPromise$ = new Promise<void>(resolve => {
+      resolveOnReturn = resolve;
     });
     assertAsyncIterable(result);
     for await (const singleResult of result) {
-      if (singleResult?.data?.pingIntervalStream?.length > 1) {
-        expect(intervalStreamActive).toBe(true);
+      if (singleResult?.data?.fakeStream?.length > 1) {
         break;
       }
     }
-    await sleep(300);
-    expect(intervalStreamActive).toBe(false);
+    await returnPromise$;
   });
 });
