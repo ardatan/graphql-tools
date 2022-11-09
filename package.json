@@ -84,6 +84,7 @@
   "workspaces": [
     "packages/*",
     "packages/loaders/*",
+    "packages/executors/*",
     "website",
     "benchmark/*"
   ],

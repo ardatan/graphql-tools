@@ -1,4 +1,4 @@
-import { handleEventStreamResponse } from '../src/event-stream/handleEventStreamResponse.js';
+import { handleEventStreamResponse } from '../src/handleEventStreamResponse.js';
 import { ReadableStream, Response } from '@whatwg-node/fetch';
 
 describe('handleEventStreamResponse', () => {
@@ -13,7 +13,7 @@ describe('handleEventStreamResponse', () => {
     });
 
     const response = new Response(readableStream);
-    const asyncIterable = await handleEventStreamResponse(response);
+    const asyncIterable = handleEventStreamResponse(response);
     const iterator = asyncIterable[Symbol.asyncIterator]();
     const { value } = await iterator.next();
 
@@ -31,7 +31,7 @@ describe('handleEventStreamResponse', () => {
       },
     });
     const response = new Response(readableStream);
-    const asyncIterable = await handleEventStreamResponse(response);
+    const asyncIterable = handleEventStreamResponse(response);
     const iterator = asyncIterable[Symbol.asyncIterator]();
     const iteratorResult = await iterator.next();
 

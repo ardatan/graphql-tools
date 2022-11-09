@@ -1,13 +1,4 @@
-/* eslint-disable no-case-declarations */
-/// <reference lib="dom" />
-import {
-  print,
-  stripIgnoredCharacters,
-  IntrospectionOptions,
-  GraphQLError,
-  buildASTSchema,
-  buildSchema,
-} from 'graphql';
+import { IntrospectionOptions, buildASTSchema, buildSchema } from 'graphql';
 
 import {
   AsyncExecutor,
@@ -16,40 +7,33 @@ import {
   Source,
   Loader,
   BaseLoaderOptions,
-  observableToAsyncIterable,
-  isAsyncIterable,
   ExecutionRequest,
   parseGraphQLSDL,
   getOperationASTFromRequest,
-  Observer,
-  createGraphQLError,
 } from '@graphql-tools/utils';
 import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
-import { ClientOptions, createClient } from 'graphql-ws';
 import WebSocket from 'isomorphic-ws';
-import { extractFiles, isExtractableFile } from 'extract-files';
 import { ValueOrPromise } from 'value-or-promise';
-import { AsyncFetchFn, defaultAsyncFetch } from './defaultAsyncFetch.js';
-import { defaultSyncFetch, SyncFetchFn } from './defaultSyncFetch.js';
-import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
-import { handleEventStreamResponse } from './event-stream/handleEventStreamResponse.js';
-import { cancelNeeded } from './event-stream/addCancelToResponseStream.js';
-import { AbortController, FormData, File } from '@whatwg-node/fetch';
-import { isBlob, isGraphQLUpload, isLiveQueryOperationDefinitionNode, isPromiseLike, LEGACY_WS } from './utils.js';
+import { defaultAsyncFetch } from './defaultAsyncFetch.js';
+import { defaultSyncFetch } from './defaultSyncFetch.js';
+import { buildGraphQLWSExecutor } from '@graphql-tools/executor-graphql-ws';
+import {
+  AsyncFetchFn,
+  buildHTTPExecutor,
+  FetchFn,
+  HTTPExecutorOptions,
+  SyncFetchFn,
+  isLiveQueryOperationDefinitionNode,
+} from '@graphql-tools/executor-http';
+import { buildWSLegacyExecutor } from '@graphql-tools/executor-legacy-ws';
 
-export type FetchFn = AsyncFetchFn | SyncFetchFn;
+export { FetchFn };
 
 export type AsyncImportFn = (moduleName: string) => PromiseLike<any>;
 export type SyncImportFn = (moduleName: string) => any;
 
 const asyncImport: AsyncImportFn = (moduleName: string) => import(moduleName);
 const syncImport: SyncImportFn = (moduleName: string) => require(moduleName);
-
-interface ExecutionResult<TData = { [key: string]: any }, TExtensions = { [key: string]: any }> {
-  errors?: ReadonlyArray<GraphQLError>;
-  data?: TData;
-  extensions?: TExtensions;
-}
 
 type HeadersConfig = Record<string, string>;
 
@@ -77,29 +61,17 @@ export enum SubscriptionProtocol {
 /**
  * Additional options for loading from a URL
  */
-export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<IntrospectionOptions> {
-  /**
-   * Additional headers to include when querying the original schema
-   */
-  headers?: HeadersConfig;
+export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<IntrospectionOptions>, HTTPExecutorOptions {
   /**
    * A custom `fetch` implementation to use when querying the original schema.
    * Defaults to `cross-fetch`
    */
   customFetch?: FetchFn | string;
   /**
-   * HTTP method to use when querying the original schema.
-   */
-  method?: 'GET' | 'POST';
-  /**
    * Custom WebSocket implementation used by the loaded schema if subscriptions
    * are enabled
    */
   webSocketImpl?: typeof WebSocket | string;
-  /**
-   * Whether to use the GET HTTP method for queries when querying the original schema
-   */
-  useGETForQueries?: boolean;
   /**
    * Handle URL as schema SDL
    */
@@ -117,19 +89,6 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    */
   subscriptionsProtocol?: SubscriptionProtocol;
   /**
-   * Retry attempts
-   */
-  retry?: number;
-  /**
-   * Timeout in milliseconds
-   */
-  timeout?: number;
-  /**
-   * Request Credentials (default: 'same-origin')
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials
-   */
-  credentials?: RequestCredentials;
-  /**
    * Connection Parameters for WebSockets connection
    */
   connectionParams?: any;
@@ -137,17 +96,6 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
    * Enable Batching
    */
   batch?: boolean;
-
-  // Deprecated options
-
-  /**
-   * @deprecated This is no longer used. Will be removed in the next release
-   */
-  graphqlSseOptions?: any;
-  /**
-   * @deprecated This is no longer used. Will be removed in the next release
-   */
-  multipart?: boolean;
 }
 
 function isCompatibleUri(uri: string): boolean {
@@ -173,124 +121,6 @@ function isCompatibleUri(uri: string): boolean {
  * ```
  */
 export class UrlLoader implements Loader<LoadFromUrlOptions> {
-  createFormDataFromVariables<TVariables>({
-    query,
-    variables,
-    operationName,
-    extensions,
-  }: {
-    query: string;
-    variables: TVariables;
-    operationName?: string;
-    extensions?: any;
-  }) {
-    const vars = Object.assign({}, variables);
-    const { clone, files } = extractFiles(
-      vars,
-      'variables',
-      ((v: any) =>
-        isExtractableFile(v) ||
-        v?.promise ||
-        isAsyncIterable(v) ||
-        v?.then ||
-        typeof v?.arrayBuffer === 'function') as any
-    );
-    if (files.size === 0) {
-      return JSON.stringify({
-        query,
-        variables,
-        operationName,
-        extensions,
-      });
-    }
-    const map: Record<number, string[]> = {};
-    const uploads: any[] = [];
-    let currIndex = 0;
-    for (const [file, curr] of files) {
-      map[currIndex] = curr;
-      uploads[currIndex] = file;
-      currIndex++;
-    }
-    const form = new FormData();
-    form.append(
-      'operations',
-      JSON.stringify({
-        query,
-        variables: clone,
-        operationName,
-        extensions,
-      })
-    );
-    form.append('map', JSON.stringify(map));
-    function handleUpload(upload: any, i: number): void | PromiseLike<void> {
-      const indexStr = i.toString();
-      if (upload != null) {
-        const filename = upload.filename || upload.name || upload.path || `blob-${indexStr}`;
-        if (isPromiseLike(upload)) {
-          return upload.then((resolvedUpload: any) => handleUpload(resolvedUpload, i));
-          // If Blob
-        } else if (isBlob(upload)) {
-          form.append(indexStr, upload, filename);
-        } else if (isGraphQLUpload(upload)) {
-          const stream = upload.createReadStream();
-          const chunks: number[] = [];
-          return Promise.resolve().then(async () => {
-            for await (const chunk of stream) {
-              if (chunk) {
-                chunks.push(...chunk);
-              }
-            }
-            const blobPart = new Uint8Array(chunks);
-            form.append(indexStr, new File([blobPart], filename, { type: upload.mimetype }), filename);
-          });
-        } else {
-          form.append(indexStr, new File([upload], filename), filename);
-        }
-      }
-    }
-    return ValueOrPromise.all(uploads.map((upload, i) => new ValueOrPromise(() => handleUpload(upload, i))))
-      .then(() => form)
-      .resolve();
-  }
-
-  prepareGETUrl({
-    baseUrl,
-    query,
-    variables,
-    operationName,
-    extensions,
-  }: {
-    baseUrl: string;
-    query: string;
-    variables: any;
-    operationName?: string;
-    extensions?: any;
-  }) {
-    const HTTP_URL = switchProtocols(baseUrl, {
-      wss: 'https',
-      ws: 'http',
-    });
-    const dummyHostname = 'https://dummyhostname.com';
-    const validUrl = HTTP_URL.startsWith('http')
-      ? HTTP_URL
-      : HTTP_URL.startsWith('/')
-      ? `${dummyHostname}${HTTP_URL}`
-      : `${dummyHostname}/${HTTP_URL}`;
-    const urlObj = new URL(validUrl);
-    urlObj.searchParams.set('query', stripIgnoredCharacters(query));
-    if (variables && Object.keys(variables).length > 0) {
-      urlObj.searchParams.set('variables', JSON.stringify(variables));
-    }
-    if (operationName) {
-      urlObj.searchParams.set('operationName', operationName);
-    }
-    if (extensions) {
-      urlObj.searchParams.set('extensions', JSON.stringify(extensions));
-    }
-    const finalUrl = urlObj.toString().replace(dummyHostname, '');
-    return finalUrl;
-  }
-
   buildHTTPExecutor(
     endpoint: string,
     fetch: SyncFetchFn,
@@ -308,241 +138,24 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     fetch: FetchFn,
     options?: LoadFromUrlOptions
   ): Executor<any, ExecutionExtensions> {
-    const defaultMethod = this.getDefaultMethodFromOptions(options?.method, 'POST');
     const HTTP_URL = switchProtocols(initialEndpoint, {
       wss: 'https',
       ws: 'http',
     });
-    const executor = (request: ExecutionRequest<any, any, any, ExecutionExtensions>) => {
-      const controller = cancelNeeded() ? new AbortController() : undefined;
-      let method = defaultMethod;
 
-      const operationAst = getOperationASTFromRequest(request);
-      const operationType = operationAst.operation;
-
-      if (options?.useGETForQueries && operationType === 'query') {
-        method = 'GET';
-      }
-
-      let accept = 'application/graphql-response+json, application/json, multipart/mixed';
-      if (operationType === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
-        method = 'GET';
-        accept = 'text/event-stream';
-      }
-
-      const endpoint = request.extensions?.endpoint || HTTP_URL;
-      const headers = Object.assign(
-        {
-          accept,
-        },
-        options?.headers,
-        request.extensions?.headers || {}
-      );
-
-      const query = print(request.document);
-      const requestBody = {
-        query,
-        variables: request.variables,
-        operationName: request.operationName,
-        extensions: request.extensions,
-      };
-
-      let timeoutId: any;
-      if (options?.timeout) {
-        timeoutId = setTimeout(() => {
-          if (!controller?.signal.aborted) {
-            controller?.abort();
-          }
-        }, options.timeout);
-      }
-
-      return new ValueOrPromise(() => {
-        switch (method) {
-          case 'GET':
-            const finalUrl = this.prepareGETUrl({
-              baseUrl: endpoint,
-              ...requestBody,
-            });
-            return fetch(
-              finalUrl,
-              {
-                method: 'GET',
-                ...(options?.credentials != null ? { credentials: options.credentials } : {}),
-                headers,
-                signal: controller?.signal,
-              },
-              request.context,
-              request.info
-            );
-          case 'POST':
-            return new ValueOrPromise(() => this.createFormDataFromVariables(requestBody))
-              .then(
-                body =>
-                  fetch(
-                    endpoint,
-                    {
-                      method: 'POST',
-                      ...(options?.credentials != null ? { credentials: options.credentials } : {}),
-                      body,
-                      headers: {
-                        ...headers,
-                        ...(typeof body === 'string' ? { 'content-type': 'application/json' } : {}),
-                      },
-                      signal: controller?.signal,
-                    },
-                    request.context,
-                    request.info
-                  ) as any
-              )
-              .resolve();
-        }
-      })
-        .then((fetchResult: Response): any => {
-          if (timeoutId != null) {
-            clearTimeout(timeoutId);
-          }
-
-          // Retry should respect HTTP Errors
-          if (options?.retry != null && !fetchResult.status.toString().startsWith('2')) {
-            throw new Error(fetchResult.statusText || `HTTP Error: ${fetchResult.status}`);
-          }
-
-          const contentType = fetchResult.headers.get('content-type');
-          if (contentType?.includes('text/event-stream')) {
-            return handleEventStreamResponse(fetchResult, controller);
-          } else if (contentType?.includes('multipart/mixed')) {
-            return handleMultipartMixedResponse(fetchResult, controller);
-          }
-
-          return fetchResult.text();
-        })
-        .then(result => {
-          if (typeof result === 'string') {
-            if (result) {
-              return JSON.parse(result);
-            }
-          } else {
-            return result;
-          }
-        })
-        .catch((e: any) => {
-          if (typeof e === 'string') {
-            return {
-              errors: [
-                createGraphQLError(e, {
-                  extensions: {
-                    requestBody,
-                  },
-                }),
-              ],
-            };
-          } else if (e.name === 'GraphQLError') {
-            return {
-              errors: [e],
-            };
-          } else if (e.name === 'TypeError' && e.message === 'fetch failed') {
-            return {
-              errors: [
-                createGraphQLError(`fetch failed to ${endpoint}`, {
-                  extensions: {
-                    requestBody,
-                  },
-                  originalError: e,
-                }),
-              ],
-            };
-          } else if (e.message) {
-            return {
-              errors: [
-                createGraphQLError(e.message, {
-                  extensions: {
-                    requestBody,
-                  },
-                  originalError: e,
-                }),
-              ],
-            };
-          } else {
-            return {
-              errors: [
-                createGraphQLError('Unknown error', {
-                  extensions: {
-                    requestBody,
-                  },
-                  originalError: e,
-                }),
-              ],
-            };
-          }
-        })
-        .resolve();
-    };
-
-    if (options?.retry != null) {
-      return function retryExecutor(request: ExecutionRequest) {
-        let result: ExecutionResult<any> | undefined;
-        let attempt = 0;
-        function retryAttempt(): Promise<ExecutionResult<any>> | ExecutionResult<any> {
-          attempt++;
-          if (attempt > options!.retry!) {
-            if (result != null) {
-              return result;
-            }
-            return {
-              errors: [createGraphQLError('No response returned from fetch')],
-            };
-          }
-          return new ValueOrPromise(() => executor(request))
-            .then(res => {
-              result = res;
-              if (result?.errors?.length) {
-                return retryAttempt();
-              }
-              return result;
-            })
-            .resolve();
-        }
-        return retryAttempt();
-      };
-    }
-
-    return executor;
+    return buildHTTPExecutor(HTTP_URL, fetch as any, options);
   }
 
   buildWSExecutor(
     subscriptionsEndpoint: string,
     webSocketImpl: typeof WebSocket,
-    connectionParams?: ClientOptions['connectionParams']
+    connectionParams?: Record<string, any>
   ): Executor {
     const WS_URL = switchProtocols(subscriptionsEndpoint, {
       https: 'wss',
       http: 'ws',
     });
-    const subscriptionClient = createClient({
-      url: WS_URL,
-      webSocketImpl,
-      connectionParams,
-      lazy: true,
-    });
-    return ({ document, variables, operationName, extensions }) => {
-      const query = print(document);
-      return observableToAsyncIterable({
-        subscribe: observer => {
-          const unsubscribe = subscriptionClient.subscribe(
-            {
-              query,
-              variables: variables as Record<string, any>,
-              operationName,
-              extensions,
-            },
-            observer
-          );
-          return {
-            unsubscribe,
-          };
-        },
-      });
-    };
+    return buildGraphQLWSExecutor(WS_URL, webSocketImpl, connectionParams);
   }
 
   buildWSLegacyExecutor(
@@ -555,118 +168,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       http: 'ws',
     });
 
-    const observerById = new Map<string, Observer<ExecutionResult<any>>>();
-
-    let websocket: WebSocket | null = null;
-
-    const ensureWebsocket = () => {
-      websocket = new WebSocketImpl(WS_URL, 'graphql-ws', {
-        followRedirects: true,
-        headers: options?.headers,
-        rejectUnauthorized: false,
-        skipUTF8Validation: true,
-      });
-
-      websocket.onopen = () => {
-        let payload: any = {};
-        switch (typeof options?.connectionParams) {
-          case 'function':
-            payload = options?.connectionParams();
-            break;
-          case 'object':
-            payload = options?.connectionParams;
-            break;
-        }
-        websocket!.send(
-          JSON.stringify({
-            type: LEGACY_WS.CONNECTION_INIT,
-            payload,
-          })
-        );
-      };
-    };
-
-    const cleanupWebsocket = () => {
-      if (websocket != null && observerById.size === 0) {
-        websocket.send(
-          JSON.stringify({
-            type: LEGACY_WS.CONNECTION_TERMINATE,
-          })
-        );
-        websocket.terminate();
-        websocket = null;
-      }
-    };
-
-    return function legacyExecutor(request: ExecutionRequest) {
-      const id = Date.now().toString();
-      return observableToAsyncIterable({
-        subscribe(observer) {
-          ensureWebsocket();
-          if (websocket == null) {
-            throw new Error(`WebSocket connection is not found!`);
-          }
-          websocket.onmessage = event => {
-            const data = JSON.parse(event.data.toString('utf-8'));
-            switch (data.type) {
-              case LEGACY_WS.CONNECTION_ACK: {
-                if (websocket == null) {
-                  throw new Error(`WebSocket connection is not found!`);
-                }
-                websocket.send(
-                  JSON.stringify({
-                    type: LEGACY_WS.START,
-                    id,
-                    payload: {
-                      query: print(request.document),
-                      variables: request.variables,
-                      operationName: request.operationName,
-                    },
-                  })
-                );
-                break;
-              }
-              case LEGACY_WS.CONNECTION_ERROR: {
-                observer.error(data.payload);
-                break;
-              }
-              case LEGACY_WS.CONNECTION_KEEP_ALIVE: {
-                break;
-              }
-              case LEGACY_WS.DATA: {
-                observer.next(data.payload);
-                break;
-              }
-              case LEGACY_WS.COMPLETE: {
-                if (websocket == null) {
-                  throw new Error(`WebSocket connection is not found!`);
-                }
-                websocket.send(
-                  JSON.stringify({
-                    type: LEGACY_WS.CONNECTION_TERMINATE,
-                  })
-                );
-                observer.complete();
-                cleanupWebsocket();
-                break;
-              }
-            }
-          };
-
-          return {
-            unsubscribe: () => {
-              websocket?.send(
-                JSON.stringify({
-                  type: LEGACY_WS.STOP,
-                  id,
-                })
-              );
-              cleanupWebsocket();
-            },
-          };
-        },
-      });
-    };
+    return buildWSLegacyExecutor(WS_URL, WebSocketImpl, options);
   }
 
   getFetch(

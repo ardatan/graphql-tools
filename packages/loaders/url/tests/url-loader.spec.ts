@@ -7,11 +7,12 @@ import { createHandler } from 'graphql-sse';
 import { Server as WSServer } from 'ws';
 import http from 'http';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { AsyncFetchFn, defaultAsyncFetch } from '../src/defaultAsyncFetch.js';
+import { defaultAsyncFetch } from '../src/defaultAsyncFetch.js';
 import { Response, Headers } from '@whatwg-node/fetch';
 import { loadSchema } from '@graphql-tools/load';
 import { testUrl, testSchema, testTypeDefs, assertNonMaybe } from './test-utils';
 import { execute, isIncrementalResult, subscribe } from '@graphql-tools/executor';
+import { AsyncFetchFn } from '@graphql-tools/executor-http';
 
 describe('Schema URL Loader', () => {
   const loader = new UrlLoader();
