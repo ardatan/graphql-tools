@@ -17,8 +17,8 @@ describe('Yoga Compatibility', () => {
   let serverPort: number;
   let serverHost: string;
   let serverPath: string;
-  let active = false;
   let cnt = 0;
+  let active = false;
   const alphabet = [
     'a',
     'b',
@@ -47,6 +47,19 @@ describe('Yoga Compatibility', () => {
     'y',
     'z',
   ];
+  let resolveOnReturn: VoidFunction;
+  const timeouts = new Set<NodeJS.Timeout>();
+  const fakeAsyncIterable = {
+    [Symbol.asyncIterator]() {
+      return this;
+    },
+    next: () => sleep(300, timeout => timeouts.add(timeout)).then(() => ({ value: true, done: false })),
+    return: () => {
+      resolveOnReturn();
+      timeouts.forEach(clearTimeout);
+      return Promise.resolve({ done: true });
+    },
+  };
   beforeAll(async () => {
     const yoga = createYoga({
       schema: createSchema({
@@ -60,6 +73,7 @@ describe('Yoga Compatibility', () => {
             Maybe you want to @stream this field ;)
             """
             alphabet(waitFor: Int! = 1000): [String]
+            fakeStream: [Boolean]
           }
           type Foo {
             a: Int
@@ -79,6 +93,7 @@ describe('Yoga Compatibility', () => {
                 await sleep(waitFor);
               }
             },
+            fakeStream: () => fakeAsyncIterable,
           },
           Foo: {
             a: async () => {
@@ -277,5 +292,25 @@ describe('Yoga Compatibility', () => {
         break;
       }
     }
+  });
+  it('terminates stream queries correctly', async () => {
+    const executor = loader.getExecutorAsync(serverPath);
+    const result = await executor({
+      document: parse(/* GraphQL */ `
+        query StreamExample {
+          fakeStream @stream
+        }
+      `),
+    });
+    const returnPromise$ = new Promise<void>(resolve => {
+      resolveOnReturn = resolve;
+    });
+    assertAsyncIterable(result);
+    for await (const singleResult of result) {
+      if (singleResult?.data?.fakeStream?.length > 1) {
+        break;
+      }
+    }
+    await returnPromise$;
   });
 });

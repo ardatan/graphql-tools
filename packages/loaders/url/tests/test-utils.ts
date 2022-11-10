@@ -14,8 +14,13 @@ export function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | 
   }
 }
 
-export function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+export function sleep<T = void>(
+  ms: number,
+  onTimeout: (timeout: NodeJS.Timeout) => T = () => {
+    return undefined as T;
+  }
+) {
+  return new Promise(resolve => onTimeout(setTimeout(resolve, ms)));
 }
 
 export const testTypeDefs = /* GraphQL */ `

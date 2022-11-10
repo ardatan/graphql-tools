@@ -9,12 +9,26 @@ import { ExecutionResult } from '@graphql-tools/utils';
 import { createSchema, createYoga, useEngine } from 'graphql-yoga';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 import { normalizedExecutor } from '@graphql-tools/executor';
+import { sleep } from './test-utils.js';
 
 describe('[url-loader] webpack bundle compat', () => {
   if (process.env['TEST_BROWSER']) {
     let httpServer: http.Server;
     let browser: puppeteer.Browser;
     let page: puppeteer.Page;
+    let resolveOnReturn: VoidFunction;
+    const timeouts = new Set<NodeJS.Timeout>();
+    const fakeAsyncIterable = {
+      [Symbol.asyncIterator]() {
+        return this;
+      },
+      next: () => sleep(300, timeout => timeouts.add(timeout)).then(() => ({ value: true, done: false })),
+      return: () => {
+        resolveOnReturn();
+        timeouts.forEach(clearTimeout);
+        return Promise.resolve({ done: true });
+      },
+    };
     const port = 8712;
     const httpAddress = 'http://localhost:8712';
     const webpackBundlePath = path.resolve(__dirname, 'webpack.js');
@@ -24,6 +38,7 @@ describe('[url-loader] webpack bundle compat', () => {
           type Query {
             foo: Boolean
             countdown(from: Int): [Int]
+            fakeStream: [Boolean]
           }
           type Subscription {
             foo: Boolean
@@ -38,6 +53,7 @@ describe('[url-loader] webpack bundle compat', () => {
                 await new Promise(resolve => setTimeout(resolve, 100));
               }
             },
+            fakeStream: () => fakeAsyncIterable,
           },
           Subscription: {
             foo: {
@@ -318,6 +334,43 @@ describe('[url-loader] webpack bundle compat', () => {
       );
 
       expect(result).toStrictEqual(sentDatas.slice(0, 2));
+
+      // no uncaught errors should be reported (browsers raise errors when canceling requests)
+      expect(pageerrorFn).not.toBeCalled();
+    });
+    it('terminates stream correctly', async () => {
+      const document = parse(/* GraphQL */ `
+        query {
+          fakeStream @stream
+        }
+      `);
+
+      const pageerrorFn = jest.fn();
+      page.on('pageerror', pageerrorFn);
+
+      const returnPromise$ = new Promise<void>(resolve => {
+        resolveOnReturn = resolve;
+      });
+
+      await page.evaluate(
+        async (httpAddress, document) => {
+          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const loader = new module.UrlLoader();
+          const executor = loader.getExecutorAsync(httpAddress + '/graphql');
+          const result = (await executor({
+            document,
+          })) as AsyncIterableIterator<ExecutionResult>;
+          for await (const currentResult of result) {
+            if (currentResult?.data?.fakeStream?.length > 1) {
+              break;
+            }
+          }
+        },
+        httpAddress,
+        document as any
+      );
+
+      await returnPromise$;
 
       // no uncaught errors should be reported (browsers raise errors when canceling requests)
       expect(pageerrorFn).not.toBeCalled();
