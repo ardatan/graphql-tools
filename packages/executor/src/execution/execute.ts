@@ -1294,6 +1294,11 @@ export function subscribe<TData = any, TVariables = any, TContext = any>(
   return mapSourceToResponse(exeContext, resultOrStream);
 }
 
+export async function* flattenIncrementalResults<TData>(incrementalResults: IncrementalExecutionResults<TData>) {
+  yield incrementalResults.initialResult;
+  yield* incrementalResults.subsequentResults;
+}
+
 async function* ensureAsyncIterable(
   someExecutionResult: SingularExecutionResult | IncrementalExecutionResults
 ): AsyncGenerator<
@@ -1302,8 +1307,7 @@ async function* ensureAsyncIterable(
   void
 > {
   if ('initialResult' in someExecutionResult) {
-    yield someExecutionResult.initialResult;
-    yield* someExecutionResult.subsequentResults;
+    yield* flattenIncrementalResults(someExecutionResult);
   } else {
     yield someExecutionResult;
   }
