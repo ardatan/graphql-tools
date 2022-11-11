@@ -1294,9 +1294,41 @@ export function subscribe<TData = any, TVariables = any, TContext = any>(
   return mapSourceToResponse(exeContext, resultOrStream);
 }
 
-export async function* flattenIncrementalResults<TData>(incrementalResults: IncrementalExecutionResults<TData>) {
-  yield incrementalResults.initialResult;
-  yield* incrementalResults.subsequentResults;
+export function flattenIncrementalResults<TData>(
+  incrementalResults: IncrementalExecutionResults<TData>
+): AsyncGenerator<SubsequentIncrementalExecutionResult<TData, Record<string, unknown>>, void, void> {
+  const subsequentIterator = incrementalResults.subsequentResults;
+  let initialResultSent = false;
+  let done = false;
+  return {
+    [Symbol.asyncIterator]() {
+      return this;
+    },
+    async next() {
+      if (done) {
+        return {
+          value: undefined,
+          done,
+        };
+      }
+      if (initialResultSent) {
+        return subsequentIterator.next();
+      }
+      initialResultSent = true;
+      return Promise.resolve({
+        value: incrementalResults.initialResult,
+        done,
+      });
+    },
+    return() {
+      done = true;
+      return subsequentIterator.return();
+    },
+    throw(error: any) {
+      done = true;
+      return subsequentIterator.throw(error);
+    },
+  };
 }
 
 async function* ensureAsyncIterable(
