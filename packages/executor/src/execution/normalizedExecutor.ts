@@ -1,7 +1,6 @@
-import { MaybeAsyncIterable, ExecutionResult, isAsyncIterable, MaybePromise } from '@graphql-tools/utils';
+import { MaybeAsyncIterable, ExecutionResult, MaybePromise } from '@graphql-tools/utils';
 import { getOperationAST } from 'graphql';
-import { execute, ExecutionArgs, subscribe } from './execute.js';
-import { Repeater } from '@repeaterjs/repeater';
+import { execute, ExecutionArgs, flattenIncrementalResults, subscribe } from './execute.js';
 import { ValueOrPromise } from 'value-or-promise';
 
 export function normalizedExecutor<TData = any, TVariables = any, TContext = any>(
@@ -12,54 +11,12 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
     throw new Error('Must provide an operation.');
   }
   if (operationAST.operation === 'subscription') {
-    return new ValueOrPromise(() => subscribe(args))
-      .then((result): MaybeAsyncIterable<ExecutionResult<TData>> => {
-        if (isAsyncIterable(result)) {
-          return new Repeater(async (push, stop) => {
-            let stopped = false;
-            stop.then(() => {
-              stopped = true;
-            });
-            let err: any;
-            try {
-              for await (const value of result) {
-                if (stopped) {
-                  break;
-                }
-                await push(value);
-              }
-            } catch (e) {
-              err = e;
-            }
-            stop(err);
-          });
-        }
-        return result;
-      })
-      .resolve()!;
+    return subscribe(args);
   }
   return new ValueOrPromise(() => execute(args))
     .then((result): MaybeAsyncIterable<ExecutionResult<TData>> => {
       if ('initialResult' in result) {
-        return new Repeater(async (push, stop) => {
-          let stopped = false;
-          stop.then(() => {
-            stopped = true;
-          });
-          let err: any;
-          try {
-            await push(result.initialResult);
-            for await (const value of result.subsequentResults) {
-              if (stopped) {
-                break;
-              }
-              await push(value);
-            }
-          } catch (e) {
-            err = e;
-          }
-          stop(err);
-        });
+        return flattenIncrementalResults(result);
       }
       return result;
     })

@@ -1294,6 +1294,43 @@ export function subscribe<TData = any, TVariables = any, TContext = any>(
   return mapSourceToResponse(exeContext, resultOrStream);
 }
 
+export function flattenIncrementalResults<TData>(
+  incrementalResults: IncrementalExecutionResults<TData>
+): AsyncGenerator<SubsequentIncrementalExecutionResult<TData, Record<string, unknown>>, void, void> {
+  const subsequentIterator = incrementalResults.subsequentResults;
+  let initialResultSent = false;
+  let done = false;
+  return {
+    [Symbol.asyncIterator]() {
+      return this;
+    },
+    async next() {
+      if (done) {
+        return {
+          value: undefined,
+          done,
+        };
+      }
+      if (initialResultSent) {
+        return subsequentIterator.next();
+      }
+      initialResultSent = true;
+      return Promise.resolve({
+        value: incrementalResults.initialResult,
+        done,
+      });
+    },
+    return() {
+      done = true;
+      return subsequentIterator.return();
+    },
+    throw(error: any) {
+      done = true;
+      return subsequentIterator.throw(error);
+    },
+  };
+}
+
 async function* ensureAsyncIterable(
   someExecutionResult: SingularExecutionResult | IncrementalExecutionResults
 ): AsyncGenerator<
@@ -1302,8 +1339,7 @@ async function* ensureAsyncIterable(
   void
 > {
   if ('initialResult' in someExecutionResult) {
-    yield someExecutionResult.initialResult;
-    yield* someExecutionResult.subsequentResults;
+    yield* flattenIncrementalResults(someExecutionResult);
   } else {
     yield someExecutionResult;
   }

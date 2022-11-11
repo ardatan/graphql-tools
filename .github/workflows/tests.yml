@@ -2,7 +2,7 @@ name: Tests
 
 env:
   NODE_NO_WARNINGS: true
-  NODE_OPTIONS: "--max-old-space-size=8192"
+  NODE_OPTIONS: '--max-old-space-size=8192'
   CI: true
 
 on:
