@@ -1,5 +1,11 @@
 # @graphql-tools/executor
 
+## 0.0.8
+
+### Patch Changes
+
+- [#4837](https://github.com/ardatan/graphql-tools/pull/4837) [`1d3856dc`](https://github.com/ardatan/graphql-tools/commit/1d3856dccaaafe2da96c91dd38dcce356bc734a3) Thanks [@ardatan](https://github.com/ardatan)! - Fix backpressure logic in normalizedExecutor
+
 ## 0.0.7
 
 ### Patch Changes
