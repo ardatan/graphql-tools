@@ -1,5 +1,12 @@
 # @graphql-tools/links
 
+## 8.3.20
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/delegate@9.0.16
+
 ## 8.3.19
 
 ### Patch Changes
