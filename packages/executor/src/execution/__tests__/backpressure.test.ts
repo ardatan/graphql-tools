@@ -34,6 +34,22 @@ describe('Defer Stream cancellation', () => {
       },
     },
   });
+  it('should cancel the resolved async iterable cancelled immediately', async () => {
+    const result = await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          countdownStream(from: 10) @stream(initialCount: 0) {
+            value
+          }
+        }
+      `),
+    });
+    assertAsyncIterable(result);
+    const resultIterator = result[Symbol.asyncIterator]();
+    await resultIterator.return?.();
+    expect(active).toBe(false);
+  });
   it('should cancel the resolved async iterable after cancelled immediately when the empty initialValue is received', async () => {
     const results = await normalizedExecutor({
       schema,
