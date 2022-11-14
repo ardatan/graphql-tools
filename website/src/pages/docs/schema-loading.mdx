@@ -16,7 +16,7 @@ Specifying the loader is not necessary. The user needs only provide the inputs. 
 
 For notes on typescript, refer to [loaders](/docs/schema-loading#loaders)
 
-<Callout type="warning" emoji="⚠️">
+<Callout type="warning">
   Schema and document loading doesn't work non Node.js environments, and if you are using a bundler like webpack, rollup
   or Vite, you cannot use dynamic loaders.
 </Callout>
@@ -38,9 +38,7 @@ async function main() {
 }
 ```
 
-<Callout type="warning" emoji="⚠️">
-  `loadFiles` doesn't support `#import` syntax. See below if you need that.
-</Callout>
+<Callout type="warning">`loadFiles` doesn't support `#import` syntax. See below if you need that.</Callout>
 
 ## Load `GraphQLSchema` by Using Different Loaders from Different Sources
 
@@ -302,11 +300,11 @@ export const typeDefs = /* GraphQL */ `
 export const schema = new GraphQLSchema(/* ... */)
 ```
 
-<Callout type="warning" emoji="⚠️">
+<Callout type="warning">
   This loader only supports Node.js environment because it relies on File System of your platform.
 </Callout>
 
-<Callout type="warning" emoji="⚠️">
+<Callout type="warning">
   **Note**: If you are using typescript and [path aliases](https://typescriptlang.org/tsconfig#paths), you may also need
   [tsconfig-paths](https://npmjs.com/package/tsconfig-paths). Further reading can be found at the [GitHub
   issue.](https://github.com/ardatan/graphql-tools/issues/1544)

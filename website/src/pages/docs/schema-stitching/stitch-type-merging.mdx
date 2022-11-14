@@ -551,7 +551,7 @@ The `@computed` SDL directive is a convenience syntax for static configuration t
 
 A field-level `selectionSet` specifies field dependencies while the `computed` setting structures the field in a way that assures it is always selected with this data provided. The `selectionSet` is intentionally generic to support possible future uses.
 
-<Callout type="warning" emoji="⚠️">
+<Callout type="warning">
   **Implementation note:** to assure that computed fields are always requested directly by the gateway with their
   dependencies provided, computed and non-computed fields of a type in the same subservice are automatically split apart
   into separate schemas. This means that computed and non-computed fields may require separate resolution steps. You may
@@ -689,7 +689,7 @@ const gatewaySchema = stitchSchemas({
 })
 ```
 
-<Callout type="warning" emoji="⚠️">
+<Callout type="warning">
   **Implementation note:** canonical settings are _only_ used for building the combined gateway schema definition and
   defaulting root field targets; otherwise, they are given no special priority in runtime query planning (which always
   selects necessary fields from as few subschemas as possible). You may override the assembly of canonical definitions
