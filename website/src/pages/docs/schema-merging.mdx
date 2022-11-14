@@ -153,7 +153,7 @@ const typesArray = loadFilesSync(path.join(__dirname, './types'), { extensions: 
 module.exports = mergeTypeDefs(typesArray)
 ```
 
-<Callout type="warning" emoji="⚠️">
+<Callout type="warning">
   By default, the `loadFilesSync` function will not ignore files named `index.js` or `index.ts`, but you can set the
   `ignoreIndex` option to `true` to enable this behavior. This allows you to create your index file inside the actual
   types folder if desired.
