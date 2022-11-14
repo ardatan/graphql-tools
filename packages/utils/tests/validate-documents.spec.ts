@@ -54,4 +54,41 @@ describe('validateGraphQlDocuments', () => {
       .toBe(`Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".
     at packages/client/src/pages/search/searchPage.query.graphql:6:15`);
   });
+
+  it('Should not swallow fragments on operation/fragment name conflict', async () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Query {
+        currentUser(id: ID!): User!
+      }
+
+      type User {
+        id: ID!
+        username: String
+        email: String!
+      }
+    `);
+
+    const result = validateGraphQlDocuments(schema, [
+      parse(
+        new Source(
+          /* GraphQL */ `
+            fragment CurrentUser on User {
+              id
+              email
+              username
+            }
+
+            query CurrentUser {
+              currentUser(id: "1") {
+                ...CurrentUser
+              }
+            }
+          `,
+          'packages/client/src/pages/search/operations.graphql'
+        )
+      ),
+    ]);
+
+    expect(result).toHaveLength(0);
+  });
 });
