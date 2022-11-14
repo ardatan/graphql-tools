@@ -1673,6 +1673,17 @@
   dependencies:
     giscus "^1.2.0"
 
+"@graphql-tools/executor@0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor/-/executor-0.0.7.tgz#e890e2c3ddb00297ecd517692a3d441ed17d0598"
+  integrity sha512-NfTru2DjgvuRF1PlYBHFhfsUwNiNBsby8LPlvPtB5duizbw0rQW14h1RM2IfBowR0wH42NRAJZWEW8Nbvlf0Dg==
+  dependencies:
+    "@graphql-tools/utils" "9.1.0"
+    "@graphql-typed-document-node/core" "3.1.1"
+    "@repeaterjs/repeater" "3.0.4"
+    tslib "^2.4.0"
+    value-or-promise "1.0.11"
+
 "@graphql-tools/utils@^8.5.2", "@graphql-tools/utils@^8.8.0":
   version "8.13.1"
   resolved "https://registry.yarnpkg.com/@graphql-tools/utils/-/utils-8.13.1.tgz#b247607e400365c2cd87ff54654d4ad25a7ac491"
@@ -11847,10 +11858,10 @@ typedoc-plugin-rename-defaults@0.6.4:
   resolved "https://registry.yarnpkg.com/typedoc-plugin-rename-defaults/-/typedoc-plugin-rename-defaults-0.6.4.tgz#8019bbfdbb4616682a0af8ecf1e8f42d053d4a40"
   integrity sha512-0rAeNttAfu6ixbi1yu6d+DqNZN8SfRivj2QbnZ4zVa+5HcCPcmQrlR6WHjNzdDfpkGytiiqPTtRD6pAfW/yACg==
 
-typedoc@0.23.20:
-  version "0.23.20"
-  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.23.20.tgz#c6fa221762322837161932990b79416afcdc895c"
-  integrity sha512-nfb4Mx05ZZZXux3zPcLuc7+3TVePDW3jTdEBqXdQzJUyEILxoprgPIiTChbvci9crkqNJG9YESmfCptuh9Gn3g==
+typedoc@0.23.21:
+  version "0.23.21"
+  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.23.21.tgz#2a6b0e155f91ffa9689086706ad7e3e4bc11d241"
+  integrity sha512-VNE9Jv7BgclvyH9moi2mluneSviD43dCE9pY8RWkO88/DrEgJZk9KpUk7WO468c9WWs/+aG6dOnoH7ccjnErhg==
   dependencies:
     lunr "^2.3.9"
     marked "^4.0.19"
