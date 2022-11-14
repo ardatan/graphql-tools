@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 9.1.1
+
+### Patch Changes
+
+- [#4842](https://github.com/ardatan/graphql-tools/pull/4842) [`7411a5e7`](https://github.com/ardatan/graphql-tools/commit/7411a5e71a8138d9ccfe907b1fb01e62fcbb0cdb) Thanks [@charlypoly](https://github.com/charlypoly)! - Fix validation swallowing fragments on naming conflicts
+
 ## 9.1.0
 
 ### Minor Changes
