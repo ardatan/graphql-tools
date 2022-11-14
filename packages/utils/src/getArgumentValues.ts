@@ -1,18 +1,5 @@
-import { hasOwnProperty } from './jsutils.js';
-import {
-  valueFromAST,
-  GraphQLField,
-  GraphQLDirective,
-  DirectiveNode,
-  FieldNode,
-  isNonNullType,
-  Kind,
-  print,
-  ArgumentNode,
-} from 'graphql';
-import { createGraphQLError } from './errors.js';
-
-import { inspect } from './inspect.js';
+import type { GraphQLField, GraphQLDirective, FieldNode, DirectiveNode } from 'graphql';
+import { getArgumentValues as gqljsGetArgumentValues } from 'graphql';
 
 /**
  * Prepares an object map of argument values given a list of argument
@@ -27,69 +14,5 @@ export function getArgumentValues(
   node: FieldNode | DirectiveNode,
   variableValues: Record<string, any> = {}
 ): Record<string, any> {
-  const coercedValues = {};
-
-  const argumentNodes = node.arguments ?? [];
-  const argNodeMap: Record<string, ArgumentNode> = argumentNodes.reduce(
-    (prev, arg) => ({
-      ...prev,
-      [arg.name.value]: arg,
-    }),
-    {}
-  );
-
-  for (const { name, type: argType, defaultValue } of def.args) {
-    const argumentNode = argNodeMap[name];
-
-    if (!argumentNode) {
-      if (defaultValue !== undefined) {
-        coercedValues[name] = defaultValue;
-      } else if (isNonNullType(argType)) {
-        throw createGraphQLError(`Argument "${name}" of required type "${inspect(argType)}" ` + 'was not provided.', {
-          nodes: [node],
-        });
-      }
-      continue;
-    }
-
-    const valueNode = argumentNode.value;
-    let isNull = valueNode.kind === Kind.NULL;
-
-    if (valueNode.kind === Kind.VARIABLE) {
-      const variableName = valueNode.name.value;
-      if (variableValues == null || !hasOwnProperty(variableValues, variableName)) {
-        if (defaultValue !== undefined) {
-          coercedValues[name] = defaultValue;
-        } else if (isNonNullType(argType)) {
-          throw createGraphQLError(
-            `Argument "${name}" of required type "${inspect(argType)}" ` +
-              `was provided the variable "$${variableName}" which was not provided a runtime value.`,
-            {
-              nodes: [valueNode],
-            }
-          );
-        }
-        continue;
-      }
-      isNull = variableValues[variableName] == null;
-    }
-
-    if (isNull && isNonNullType(argType)) {
-      throw createGraphQLError(`Argument "${name}" of non-null type "${inspect(argType)}" ` + 'must not be null.', {
-        nodes: [valueNode],
-      });
-    }
-
-    const coercedValue = valueFromAST(valueNode, argType, variableValues);
-    if (coercedValue === undefined) {
-      // Note: ValuesOfCorrectTypeRule validation should catch this before
-      // execution. This is a runtime check to ensure execution does not
-      // continue with an invalid argument value.
-      throw createGraphQLError(`Argument "${name}" has invalid value ${print(valueNode)}.`, {
-        nodes: [valueNode],
-      });
-    }
-    coercedValues[name] = coercedValue;
-  }
-  return coercedValues;
+  return gqljsGetArgumentValues(def, node, variableValues);
 }

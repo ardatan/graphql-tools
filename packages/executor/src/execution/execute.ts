@@ -34,20 +34,18 @@ import {
   isIterableObject,
   isObjectLike,
   isPromise,
-  Path,
   pathToArray,
   addPath,
   getArgumentValues,
   promiseReduce,
-  Maybe,
-  memoize3,
   getDefinedRootType,
   MaybePromise,
   mapAsyncIterator,
   GraphQLStreamDirective,
   collectFields,
-  collectSubFields as _collectSubfields,
+  collectSubFields,
 } from '@graphql-tools/utils';
+import type { Maybe, Path } from '@graphql-tools/utils';
 import { getVariableValues } from './values.js';
 import { promiseForObject } from './promiseForObject.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
@@ -60,16 +58,6 @@ export interface SingularExecutionResult<TData = any, TExtensions = any> {
   data?: TData | null;
   extensions?: TExtensions;
 }
-
-/**
- * A memoized collection of relevant subfields with regard to the return
- * type. Memoizing ensures the subfields are not repeatedly calculated, which
- * saves overhead when resolving lists of values.
- */
-const collectSubfields = memoize3(
-  (exeContext: ExecutionContext, returnType: GraphQLObjectType, fieldNodes: Array<FieldNode>) =>
-    _collectSubfields(exeContext.schema, exeContext.fragments, exeContext.variableValues, returnType, fieldNodes)
-);
 
 // This file contains a lot of such errors but we plan to refactor it anyway
 // so just disable it for entire file.
@@ -1134,7 +1122,13 @@ function collectAndExecuteSubfields(
   asyncPayloadRecord?: AsyncPayloadRecord
 ): MaybePromise<Record<string, unknown>> {
   // Collect sub-fields to execute to complete this value.
-  const { fields: subFieldNodes, patches: subPatches } = collectSubfields(exeContext, returnType, fieldNodes);
+  const { fields: subFieldNodes, patches: subPatches } = collectSubFields(
+    exeContext.schema,
+    exeContext.fragments,
+    exeContext.variableValues,
+    returnType,
+    fieldNodes
+  );
 
   const subFields = executeFields(exeContext, returnType, result, path, subFieldNodes, asyncPayloadRecord);
 
