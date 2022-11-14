@@ -21,7 +21,7 @@ export function validateGraphQlDocuments(
   for (const document of documents) {
     for (const docDefinition of document.definitions) {
       if ('name' in docDefinition && docDefinition.name) {
-        definitionMap.set(docDefinition.name.value, docDefinition);
+        definitionMap.set(`${docDefinition.kind}_${docDefinition.name.value}`, docDefinition);
       } else {
         definitionMap.set(Date.now().toString(), docDefinition);
       }
