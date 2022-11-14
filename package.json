@@ -89,7 +89,7 @@
     "benchmark/*"
   ],
   "resolutions": {
-    "graphql": "15^",
+    "graphql": "16.6.0",
     "esbuild": "^0.15.0"
   },
   "yarn": {

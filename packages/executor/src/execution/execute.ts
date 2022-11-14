@@ -25,6 +25,7 @@ import {
   SchemaMetaFieldDef,
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
+  getArgumentValues,
 } from 'graphql';
 import type { GraphQLError } from 'graphql';
 import {
@@ -36,7 +37,6 @@ import {
   isPromise,
   pathToArray,
   addPath,
-  getArgumentValues,
   promiseReduce,
   getDefinedRootType,
   MaybePromise,
