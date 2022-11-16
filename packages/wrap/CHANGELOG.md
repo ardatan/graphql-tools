@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 9.2.14
+
+### Patch Changes
+
+- [`df81034c`](https://github.com/ardatan/graphql-tools/commit/df81034c48b49ed5690f0c8cc61dc8dc47830bf8) Thanks [@ardatan](https://github.com/ardatan)! - Replace internal values with the external ones while wrapping schemas
+
 ## 9.2.13
 
 ### Patch Changes
