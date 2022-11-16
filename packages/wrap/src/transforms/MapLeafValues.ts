@@ -22,7 +22,7 @@ import {
   transformInputValue,
 } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig, Subschema } from '@graphql-tools/delegate';
 
 import { LeafValueTransformer } from '../types.js';
 
@@ -36,7 +36,6 @@ export default class MapLeafValues<TContext = Record<string, any>>
   private readonly inputValueTransformer: LeafValueTransformer;
   private readonly outputValueTransformer: LeafValueTransformer;
   private readonly resultVisitorMap: ResultVisitorMap;
-  private originalWrappingSchema: GraphQLSchema | undefined;
   private typeInfo: TypeInfo | undefined;
 
   constructor(inputValueTransformer: LeafValueTransformer, outputValueTransformer: LeafValueTransformer) {
@@ -55,22 +54,11 @@ export default class MapLeafValues<TContext = Record<string, any>>
     return typeInfo;
   }
 
-  private _getOriginalWrappingSchema() {
-    const originalWrappingSchema = this.originalWrappingSchema;
-    if (originalWrappingSchema === undefined) {
-      throw new Error(
-        `The MapLeafValues transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
-      );
-    }
-    return originalWrappingSchema;
-  }
-
   public transformSchema(
-    originalWrappingSchema: GraphQLSchema,
+    schema: GraphQLSchema,
     _subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
-    this.originalWrappingSchema = originalWrappingSchema;
-    const typeMap = originalWrappingSchema.getTypeMap();
+    const typeMap = schema.getTypeMap();
     for (const typeName in typeMap) {
       const type = typeMap[typeName];
       if (!typeName.startsWith('__')) {
@@ -79,8 +67,8 @@ export default class MapLeafValues<TContext = Record<string, any>>
         }
       }
     }
-    this.typeInfo = new TypeInfo(originalWrappingSchema);
-    return originalWrappingSchema;
+    this.typeInfo = new TypeInfo(schema);
+    return schema;
   }
 
   public transformRequest(
@@ -116,13 +104,13 @@ export default class MapLeafValues<TContext = Record<string, any>>
 
   public transformResult(
     originalResult: ExecutionResult,
-    _delegationContext: DelegationContext<TContext>,
+    delegationContext: DelegationContext<TContext>,
     transformationContext: MapLeafValuesTransformationContext
   ): ExecutionResult {
     return visitResult(
       originalResult,
       transformationContext.transformedRequest,
-      this._getOriginalWrappingSchema(),
+      (delegationContext.subschema as Subschema<any, any, any, TContext>).schema,
       this.resultVisitorMap
     );
   }

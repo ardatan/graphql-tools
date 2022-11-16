@@ -2,6 +2,7 @@ import { wrapSchema, TransformEnumValues } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { GraphQLEnumType, parse } from 'graphql';
 import { execute, isIncrementalResult } from '@graphql-tools/executor';
+import { printSchemaWithDirectives } from '@graphql-tools/utils';
 
 function assertGraphQLEnumType(input: unknown): asserts input is GraphQLEnumType {
   if (input instanceof GraphQLEnumType) {
@@ -134,5 +135,48 @@ describe('TransformEnumValues', () => {
     });
     if (isIncrementalResult(result)) throw Error('result is incremental');
     expect(result.errors).toBeUndefined();
+  });
+
+  test('transforms default values', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        enum TestEnum {
+          ONE
+          TWO
+          THREE
+        }
+
+        type Query {
+          test(argument: TestEnum = ONE): TestEnum
+        }
+      `,
+      resolvers: {
+        Query: {
+          test: (_root, { argument }) => argument,
+        },
+        TestEnum: {
+          ONE: 1,
+          TWO: 2,
+          THREE: 3,
+        },
+      },
+    });
+
+    const transformedSchema = wrapSchema({
+      schema,
+      transforms: [
+        new TransformEnumValues((_typeName, _externalValue, valueConfig) => {
+          switch (valueConfig.value) {
+            case 1:
+              return ['UNO', valueConfig];
+            case 2:
+              return ['DOS', valueConfig];
+            case 3:
+              return ['TRES', valueConfig];
+          }
+        }),
+      ],
+    });
+    console.log(printSchemaWithDirectives(transformedSchema));
   });
 });

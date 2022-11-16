@@ -69,5 +69,11 @@ function createWrappingSchema(
       delete config.resolveType;
       return new GraphQLUnionType(config);
     },
+    [MapperKind.ENUM_VALUE]: (valueConfig, _typeName, _schema, externalValue) => {
+      return {
+        ...valueConfig,
+        value: externalValue,
+      };
+    },
   });
 }
