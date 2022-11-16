@@ -22,7 +22,7 @@ import {
   transformInputValue,
 } from '@graphql-tools/utils';
 
-import { Transform, DelegationContext, SubschemaConfig, Subschema } from '@graphql-tools/delegate';
+import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 import { LeafValueTransformer } from '../types.js';
 
@@ -107,12 +107,9 @@ export default class MapLeafValues<TContext = Record<string, any>>
     delegationContext: DelegationContext<TContext>,
     transformationContext: MapLeafValuesTransformationContext
   ): ExecutionResult {
-    return visitResult(
-      originalResult,
-      transformationContext.transformedRequest,
-      (delegationContext.subschema as Subschema<any, any, any, TContext>).schema,
-      this.resultVisitorMap
-    );
+    const schema =
+      'schema' in delegationContext.subschema ? delegationContext.subschema.schema : delegationContext.subschema;
+    return visitResult(originalResult, transformationContext.transformedRequest, schema, this.resultVisitorMap);
   }
 
   private transformOperations(
