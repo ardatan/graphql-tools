@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 9.2.16
+
+### Patch Changes
+
+- [`5bd8c0dc`](https://github.com/ardatan/graphql-tools/commit/5bd8c0dc565ec46b3ae2b507ed3f039e96a63ddb) Thanks [@ardatan](https://github.com/ardatan)! - Restore the old schema visiting behavior
+
 ## 9.2.15
 
 ### Patch Changes
