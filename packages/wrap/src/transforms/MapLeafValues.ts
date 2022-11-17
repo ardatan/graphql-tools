@@ -36,7 +36,7 @@ export default class MapLeafValues<TContext = Record<string, any>>
   private readonly inputValueTransformer: LeafValueTransformer;
   private readonly outputValueTransformer: LeafValueTransformer;
   private readonly resultVisitorMap: ResultVisitorMap;
-  private typeInfo: TypeInfo | undefined;
+  private typeInfo?: TypeInfo;
 
   constructor(inputValueTransformer: LeafValueTransformer, outputValueTransformer: LeafValueTransformer) {
     this.inputValueTransformer = inputValueTransformer;
@@ -44,21 +44,14 @@ export default class MapLeafValues<TContext = Record<string, any>>
     this.resultVisitorMap = Object.create(null);
   }
 
-  private _getTypeInfo() {
-    const typeInfo = this.typeInfo;
-    if (typeInfo === undefined) {
-      throw new Error(
-        `The MapLeafValues transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
-      );
-    }
-    return typeInfo;
-  }
+  private originalWrappingSchema?: GraphQLSchema;
 
   public transformSchema(
-    schema: GraphQLSchema,
+    originalWrappingSchema: GraphQLSchema,
     _subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
-    const typeMap = schema.getTypeMap();
+    this.originalWrappingSchema = originalWrappingSchema;
+    const typeMap = originalWrappingSchema.getTypeMap();
     for (const typeName in typeMap) {
       const type = typeMap[typeName];
       if (!typeName.startsWith('__')) {
@@ -67,8 +60,8 @@ export default class MapLeafValues<TContext = Record<string, any>>
         }
       }
     }
-    this.typeInfo = new TypeInfo(schema);
-    return schema;
+    this.typeInfo = new TypeInfo(originalWrappingSchema);
+    return originalWrappingSchema;
   }
 
   public transformRequest(
@@ -104,22 +97,35 @@ export default class MapLeafValues<TContext = Record<string, any>>
 
   public transformResult(
     originalResult: ExecutionResult,
-    delegationContext: DelegationContext<TContext>,
+    _delegationContext: DelegationContext<TContext>,
     transformationContext: MapLeafValuesTransformationContext
   ): ExecutionResult {
-    const schema =
-      'schema' in delegationContext.subschema ? delegationContext.subschema.schema : delegationContext.subschema;
-    return visitResult(originalResult, transformationContext.transformedRequest, schema, this.resultVisitorMap);
+    if (!this.originalWrappingSchema) {
+      throw new Error(
+        `The MapLeafValues transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+      );
+    }
+    return visitResult(
+      originalResult,
+      transformationContext.transformedRequest,
+      this.originalWrappingSchema,
+      this.resultVisitorMap
+    );
   }
 
   private transformOperations(
     operations: Array<OperationDefinitionNode>,
     variableValues: Record<string, any>
   ): Array<OperationDefinitionNode> {
+    if (this.typeInfo == null) {
+      throw new Error(
+        `The MapLeafValues transform's "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+      );
+    }
     return operations.map((operation: OperationDefinitionNode) => {
       return visit(
         operation,
-        visitWithTypeInfo(this._getTypeInfo(), {
+        visitWithTypeInfo(this.typeInfo!, {
           [Kind.FIELD]: node => this.transformFieldNode(node, variableValues),
         })
       );
@@ -127,7 +133,12 @@ export default class MapLeafValues<TContext = Record<string, any>>
   }
 
   private transformFieldNode(field: FieldNode, variableValues: Record<string, any>): FieldNode | undefined {
-    const targetField = this._getTypeInfo().getFieldDef();
+    if (this.typeInfo == null) {
+      throw new Error(
+        `The MapLeafValues transform's "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+      );
+    }
+    const targetField = this.typeInfo.getFieldDef();
 
     if (!targetField) {
       return;
