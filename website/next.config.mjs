@@ -28,6 +28,7 @@ export default withGuildDocs({
       '/docs/merge-typedefs': '/docs/migration/migration-from-merge-graphql-schemas',
       '/install': '/docs/introduction',
       '/docs/api/modules': '/docs/api/modules/batch_delegate_src',
+      '/docs/api/modules/merge#mergetypedefs': '/docs/api/modules/merge_src#mergetypedefs'
     }).map(([from, to]) => ({
       source: from,
       destination: to,
