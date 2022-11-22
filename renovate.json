@@ -7,10 +7,6 @@
   },
   "packageRules": [
     {
-      "matchPackageNames": ["graphql-yoga"],
-      "followTag": "three"
-    },
-    {
       "excludePackagePatterns": [
         "@changesets/*",
         "typescript",
