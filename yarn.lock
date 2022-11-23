@@ -1666,12 +1666,12 @@
   resolved "https://registry.yarnpkg.com/@gar/promisify/-/promisify-1.1.3.tgz#555193ab2e3bb3b6adc3d551c9c030d9e860daf6"
   integrity sha512-k2Ty1JcVojjJFwrg/ThKi2ujJ7XNLYaFGNB/bWT9wGR+oSMJHMa5w+CUq6p/pVrKeNNgA7pCqEcjSnHVoqJQFw==
 
-"@giscus/react@2.2.2":
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/@giscus/react/-/react-2.2.2.tgz#3b06c03bea6965ccbc6d26bd3abe038d91fb4cfc"
-  integrity sha512-UXU2pzJEnsjEh36//UlqmWd7j3FJTGL7ijZIaijwbrsERtzkPkRhOkJ7eqRytCOdpcJSji3XX07/5rPGknmm3w==
+"@giscus/react@2.2.3":
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/@giscus/react/-/react-2.2.3.tgz#adf6f886e8359d3e7086835c27ccf3143846c654"
+  integrity sha512-zsu+ADvxR12PyGZBYMFxYfSQL1eefq/Wkh5g0Eg75BWBiaIT8jSFss4l0Xb2BLQpNAjZ5bzLfJcirz/dPQOkGQ==
   dependencies:
-    giscus "^1.2.2"
+    giscus "^1.2.3"
 
 "@graphql-tools/executor@0.0.7":
   version "0.0.7"
@@ -2657,16 +2657,16 @@
     lodash "^4.17.21"
     remove-markdown "0.5.0"
 
-"@theguild/components@4.3.3":
-  version "4.3.3"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-4.3.3.tgz#7fe41745d33174c139c3aeae6fa3d47ca260b740"
-  integrity sha512-dDetmW5Au6OzfDN0ZcQdAtbhlekHkr5Si/fhy8PXdGD9spLFTx/lSTJofbwT0/Mm6OksXZ/+gze5ydzhfhWxtA==
+"@theguild/components@4.3.6":
+  version "4.3.6"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-4.3.6.tgz#0a56ca87e04ecb281dfec4a9d42036939999e243"
+  integrity sha512-d31sH22IqolPMzjuOOnbEw6DRp6j+6Pkf3u4fZZlG9fh87lKma/VyH2TL5SvGxQipyy3tF1oojUMW3i4GMioXA==
   dependencies:
     "@algolia/autocomplete-js" "1.7.3"
     "@algolia/autocomplete-plugin-algolia-insights" "1.7.3"
     "@algolia/autocomplete-plugin-query-suggestions" "1.7.3"
     "@algolia/autocomplete-theme-classic" "1.7.3"
-    "@giscus/react" "2.2.2"
+    "@giscus/react" "2.2.3"
     "@headlessui/react" "^1.7.3"
     "@next/bundle-analyzer" "12.3.3"
     "@radix-ui/react-navigation-menu" "1.1.1"
@@ -2677,7 +2677,7 @@
     next-videos "1.5.0"
     nextra "2.0.0-beta.41"
     nextra-theme-docs "2.0.0-beta.41"
-    react-instantsearch-dom "6.38.0"
+    react-instantsearch-dom "6.38.1"
     react-paginate "8.1.4"
     react-player "2.11.0"
     remark-mdx-disable-explicit-jsx "0.1.0"
@@ -6755,10 +6755,10 @@ get-uv-event-loop-napi-h@^1.0.5:
   dependencies:
     get-symbol-from-current-process-h "^1.0.1"
 
-giscus@^1.2.2:
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/giscus/-/giscus-1.2.3.tgz#33e5015b1ea5a9c7647ebddc3722ce033f1f781e"
-  integrity sha512-1sYu6B3cUzPVZHH93f1DX5PJHf5ak2bPp8N1xZrAPxqccN7C/R6r93usllmCVESJ8cvnyYUaNVyXzOYz9B6OxQ==
+giscus@^1.2.3:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/giscus/-/giscus-1.2.4.tgz#6454e28fca1d385480fd9ab296371678b920bed1"
+  integrity sha512-c//t+vrEDNJ3jcM2TLz6UG7gZHyRDdYtj2PV0TaKk8eKMfq4OB8K1BFclaQ0UbUh6UN6hp89BNJTTcnibkiILA==
   dependencies:
     lit "^2.4.1"
 
@@ -10442,27 +10442,27 @@ react-fast-compare@^3.0.0, react-fast-compare@^3.0.1:
   resolved "https://registry.yarnpkg.com/react-fast-compare/-/react-fast-compare-3.2.0.tgz#641a9da81b6a6320f270e89724fb45a0b39e43bb"
   integrity sha512-rtGImPZ0YyLrscKI9xTpV8psd6I8VAtjKCzQDlzyDvqJA8XOW78TXYQwNRNd8g8JZnDu8q9Fu/1v4HPAVwVdHA==
 
-react-instantsearch-core@6.38.0:
-  version "6.38.0"
-  resolved "https://registry.yarnpkg.com/react-instantsearch-core/-/react-instantsearch-core-6.38.0.tgz#5a0f9f52dd37f27449ee138f8d9a43dba5d582ff"
-  integrity sha512-Y5denvptL+qDOHY3LxipULNun8f3t2WeO9UdiWJd9FER1vn1VBrDdSyZ5b+idxqVWhSeVbncbf98zr7EW/kFvA==
+react-instantsearch-core@6.38.1:
+  version "6.38.1"
+  resolved "https://registry.yarnpkg.com/react-instantsearch-core/-/react-instantsearch-core-6.38.1.tgz#74a123c81537c1f0ed51f34d36248795f14d30f9"
+  integrity sha512-14gy/jsakJELVeMEO+QmsHcugIyaU1pRyyuQjuXuBvF+TMHiWUjfYw7de3Lc4oYcTYIeSllYIxLHxdUoxLWZaA==
   dependencies:
     "@babel/runtime" "^7.1.2"
     algoliasearch-helper "^3.11.1"
     prop-types "^15.6.2"
     react-fast-compare "^3.0.0"
 
-react-instantsearch-dom@6.38.0:
-  version "6.38.0"
-  resolved "https://registry.yarnpkg.com/react-instantsearch-dom/-/react-instantsearch-dom-6.38.0.tgz#9f17aacb81ee22e7cd85ba867bf99affded501f0"
-  integrity sha512-yE0y9U1GCPZ/Jqzbd2BHTdx83/DYIEbXqAt7a+a5TLi4qQgwjTpVrtAkqzhT8f1/TRhNqu0wYAT4HFixVsW8FA==
+react-instantsearch-dom@6.38.1:
+  version "6.38.1"
+  resolved "https://registry.yarnpkg.com/react-instantsearch-dom/-/react-instantsearch-dom-6.38.1.tgz#caf29a3a5ced3a3db184aae6ec485ee145ea0de5"
+  integrity sha512-Wyzm4JW8O79zwsaWqOBdKbg69O7OcUDiF+p+/LW7zdRZ3RK4mO/q5CZDcziwDbNKqC4OEuG+IpIZuCjcJQrFcQ==
   dependencies:
     "@babel/runtime" "^7.1.2"
     algoliasearch-helper "^3.11.1"
     classnames "^2.2.5"
     prop-types "^15.6.2"
     react-fast-compare "^3.0.0"
-    react-instantsearch-core "6.38.0"
+    react-instantsearch-core "6.38.1"
 
 react-is@^16.13.1, react-is@^16.7.0:
   version "16.13.1"
