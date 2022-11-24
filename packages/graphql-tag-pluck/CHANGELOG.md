@@ -1,5 +1,16 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 7.4.0
+
+### Minor Changes
+
+- [#4863](https://github.com/ardatan/graphql-tools/pull/4863) [`238f0707`](https://github.com/ardatan/graphql-tools/commit/238f07071305dddf153dc996437dcdfe45b87619) Thanks [@charlypoly](https://github.com/charlypoly)! - Add support for import assertion
+
+### Patch Changes
+
+- [#4863](https://github.com/ardatan/graphql-tools/pull/4863) [`238f0707`](https://github.com/ardatan/graphql-tools/commit/238f07071305dddf153dc996437dcdfe45b87619) Thanks [@charlypoly](https://github.com/charlypoly)! - dependencies updates:
+  - Added dependency [`@babel/plugin-syntax-import-assertions@7.20.0` ↗︎](https://www.npmjs.com/package/@babel/plugin-syntax-import-assertions/v/7.20.0) (to `dependencies`)
+
 ## 7.3.12
 
 ### Patch Changes
