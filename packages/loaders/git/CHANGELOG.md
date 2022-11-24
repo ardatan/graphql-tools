@@ -1,5 +1,12 @@
 # @graphql-tools/git-loader
 
+## 7.2.13
+
+### Patch Changes
+
+- Updated dependencies [[`238f0707`](https://github.com/ardatan/graphql-tools/commit/238f07071305dddf153dc996437dcdfe45b87619), [`238f0707`](https://github.com/ardatan/graphql-tools/commit/238f07071305dddf153dc996437dcdfe45b87619)]:
+  - @graphql-tools/graphql-tag-pluck@7.4.0
+
 ## 7.2.12
 
 ### Patch Changes
