@@ -42,9 +42,11 @@ export default function generateConfig(
   switch (fileExt) {
     case '.ts':
       plugins.push('typescript');
+      plugins.push('importAssertions');
       break;
     case '.tsx':
       plugins.push('typescript', 'jsx');
+      plugins.push('importAssertions');
       break;
     // Adding .jsx extension by default because it doesn't affect other syntax features
     // (unlike .tsx) and because people are seem to use it with regular file extensions
