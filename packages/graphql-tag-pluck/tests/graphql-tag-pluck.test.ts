@@ -188,6 +188,48 @@ describe('graphql-tag-pluck', () => {
       );
     });
 
+    it('should pluck graphql-tag template literals from .ts file that uses `assert` keyword', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.ts',
+        freeText(`
+        import gql from 'graphql-tag'
+        import { Document } from 'graphql'
+
+        import any from "./package.json" assert { type: "json" };
+
+        const fragment: Document = gql\`
+            fragment Foo on FooType {
+              id
+            }
+          \`
+
+          const doc: Document = gql\`
+            query foo {
+              foo {
+                ...Foo
+              }
+            }
+
+            \${fragment}
+          \`
+      `)
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        fragment Foo on FooType {
+          id
+        }
+
+        query foo {
+          foo {
+            ...Foo
+          }
+        }
+      `)
+      );
+    });
+
     it('should pluck graphql-tag template literals from .ts file', async () => {
       const sources = await pluck(
         'tmp-XXXXXX.ts',
