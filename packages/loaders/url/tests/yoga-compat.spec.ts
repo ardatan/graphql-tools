@@ -7,7 +7,8 @@ import { GraphQLLiveDirectiveSDL, useLiveQuery } from '@envelop/live-query';
 import { InMemoryLiveQueryStore } from '@n1ru4l/in-memory-live-query-store';
 import { LiveExecutionResult } from '@n1ru4l/graphql-live-query';
 import { ExecutionResult } from '@graphql-tools/utils';
-import { createYoga, createSchema, useEngine } from 'graphql-yoga';
+import { createYoga, createSchema } from 'graphql-yoga';
+import { useEngine } from '@envelop/core';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 
 describe('Yoga Compatibility', () => {
