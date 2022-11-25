@@ -339,7 +339,11 @@ function enumValueConfigMapFromTypeCandidates(
     const valueMap = (candidate.type as GraphQLEnumType).toConfig().values;
     for (const enumValue in valueMap) {
       const enumValueConfigCandidate = {
-        enumValueConfig: valueMap[enumValue],
+        enumValueConfig: {
+          ...valueMap[enumValue],
+          // Clear value in the stitching schema
+          value: undefined,
+        },
         enumValue,
         type: candidate.type as GraphQLEnumType,
         subschema: candidate.subschema,
