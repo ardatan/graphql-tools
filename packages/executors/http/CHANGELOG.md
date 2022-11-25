@@ -1,5 +1,12 @@
 # @graphql-tools/executor-http
 
+## 0.0.4
+
+### Patch Changes
+
+- [#4839](https://github.com/ardatan/graphql-tools/pull/4839) [`92dd4714`](https://github.com/ardatan/graphql-tools/commit/92dd4714acc3881f0bccf5734339c4f34f9fe2d4) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`@whatwg-node/fetch@0.5.3` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.5.3) (from `0.5.1`, in `dependencies`)
+
 ## 0.0.3
 
 ### Patch Changes
