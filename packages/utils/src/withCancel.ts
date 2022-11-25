@@ -49,11 +49,15 @@ export function getAsyncIterableWithCancel<T, TAsyncIterable extends AsyncIterab
       const existingPropValue = Reflect.get(asyncIterable, prop, receiver);
       if (Symbol.asyncIterator === prop) {
         return function asyncIteratorFactory() {
-          const asyncIterator: AsyncIterator<T> = Reflect.apply(existingPropValue, asyncIterable, []);
+          const asyncIterator: AsyncIterator<T> = Reflect.apply(
+            existingPropValue[Symbol.asyncIterator],
+            asyncIterable,
+            []
+          );
           return getAsyncIteratorWithCancel(asyncIterator, onCancel);
         };
       } else if (typeof existingPropValue === 'function') {
-        return proxyMethodFactory(asyncIterable, existingPropValue);
+        return proxyMethodFactory(asyncIterable, existingPropValue[Symbol.asyncIterator]);
       }
       return existingPropValue;
     },
