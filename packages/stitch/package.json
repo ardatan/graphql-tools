@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/stitch",
-  "version": "8.7.26",
+  "version": "8.7.27",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",

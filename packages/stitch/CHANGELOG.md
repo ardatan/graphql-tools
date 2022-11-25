@@ -1,5 +1,11 @@
 # @graphql-tools/stitch
 
+## 8.7.27
+
+### Patch Changes
+
+- [#4866](https://github.com/ardatan/graphql-tools/pull/4866) [`44fe1ef1`](https://github.com/ardatan/graphql-tools/commit/44fe1ef1ef371bfa71b9b015aedc4ee205b0f19f) Thanks [@ardatan](https://github.com/ardatan)! - Do not keep internal enum values while stitching
+
 ## 8.7.26
 
 ### Patch Changes
