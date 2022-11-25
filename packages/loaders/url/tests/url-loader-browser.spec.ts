@@ -2,11 +2,12 @@ import webpack, { Stats } from 'webpack';
 import path from 'path';
 import fs from 'fs';
 import http from 'http';
-import puppeteer from 'puppeteer';
+import puppeteer, { Browser, Page } from 'puppeteer';
 import type * as UrlLoaderModule from '../src/index.js';
 import { parse } from 'graphql';
 import { ExecutionResult } from '@graphql-tools/utils';
-import { createSchema, createYoga, useEngine } from 'graphql-yoga';
+import { createSchema, createYoga } from 'graphql-yoga';
+import { useEngine } from '@envelop/core';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import { sleep } from './test-utils.js';
@@ -14,8 +15,8 @@ import { sleep } from './test-utils.js';
 describe('[url-loader] webpack bundle compat', () => {
   if (process.env['TEST_BROWSER']) {
     let httpServer: http.Server;
-    let browser: puppeteer.Browser;
-    let page: puppeteer.Page;
+    let browser: Browser;
+    let page: Page;
     let resolveOnReturn: VoidFunction;
     const timeouts = new Set<NodeJS.Timeout>();
     const fakeAsyncIterable = {
