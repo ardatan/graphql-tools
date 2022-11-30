@@ -8,6 +8,9 @@ import {
   GraphQLArgument,
   GraphQLFieldResolver,
   OperationTypeNode,
+  isListType,
+  getNamedType,
+  GraphQLList,
 } from 'graphql';
 
 import {
@@ -84,6 +87,7 @@ export default class HoistField<TContext extends Record<string, any> = Record<st
     subschemaConfig: SubschemaConfig<any, any, any, TContext>
   ): GraphQLSchema {
     const argsMap: Record<string, GraphQLArgument> = Object.create(null);
+    let isList = false;
     const innerType: GraphQLObjectType = this.pathToField.reduce((acc, pathSegment, index) => {
       const field = acc.getFields()[pathSegment];
       for (const arg of field.args) {
@@ -92,7 +96,13 @@ export default class HoistField<TContext extends Record<string, any> = Record<st
           this.argLevels[arg.name] = index;
         }
       }
-      return getNullableType(field.type) as GraphQLObjectType;
+      const nullableType = getNullableType(field.type);
+      if (isListType(nullableType)) {
+        isList = true;
+        return getNamedType(nullableType) as any;
+      }
+
+      return nullableType as GraphQLObjectType;
     }, originalWrappingSchema.getType(this.typeName) as GraphQLObjectType);
 
     let [newSchema, targetFieldConfigMap] = removeObjectFields(
@@ -151,6 +161,17 @@ export default class HoistField<TContext extends Record<string, any> = Record<st
     }
 
     newTargetField.args = argsMap;
+
+    if (isList) {
+      newTargetField.type = new GraphQLList(newTargetField.type);
+      const resolver = newTargetField.resolve;
+      newTargetField.resolve = (parent, args, context, info) =>
+        Promise.all(
+          Object.keys(parent)
+            .filter(key => !key.startsWith('__'))
+            .map(key => resolver(parent[key], args, context, info))
+        );
+    }
 
     newSchema = appendObjectFields(newSchema, this.typeName, {
       [this.newFieldName]: newTargetField,

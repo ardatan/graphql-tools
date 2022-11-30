@@ -1146,6 +1146,20 @@ describe('HoistField transform', () => {
     typeDefs: /* GraphQL */ `
       type Query {
         query: Outer
+        me: User
+      }
+      type User {
+        id: ID!
+        name: String
+        friends: Friends
+      }
+      type Friends {
+        count: Int
+        entries: [Friend]
+      }
+      type Friend {
+        id: ID!
+        user: User
       }
       type Outer {
         inner(innerArg: String): Inner
@@ -1157,6 +1171,21 @@ describe('HoistField transform', () => {
     resolvers: {
       Query: {
         query: () => ({ inner: {} }),
+        me: () => ({ id: '1', name: 'John Doe' }),
+      },
+      User: {
+        friends: () => ({
+          count: 1,
+          entries: [
+            {
+              id: '0',
+              user: {
+                id: '2',
+                name: 'Jane Doe',
+              },
+            },
+          ],
+        }),
       },
       Outer: {
         inner: (_parent, args) => ({ innerArg: args.innerArg }),
@@ -1241,6 +1270,29 @@ describe('HoistField transform', () => {
     const expectedResult = {
       data: {
         hoisted: 'test',
+      },
+    };
+
+    expect(result).toEqual(expectedResult);
+  });
+  it('should work to hoist fields in arrays', async () => {
+    const wrappedSchema = wrapSchema({
+      schema,
+      transforms: [new HoistField('User', ['friends', 'entries', 'user'], 'friendUsers'), new PruneSchema({})],
+    });
+
+    const result = await graphql({ schema: wrappedSchema, source: '{ me { friendUsers { id name } } }' });
+
+    const expectedResult = {
+      data: {
+        me: {
+          friendUsers: [
+            {
+              id: '2',
+              name: 'Jane Doe',
+            },
+          ],
+        },
       },
     };
 
