@@ -230,6 +230,44 @@ describe('graphql-tag-pluck', () => {
       );
     });
 
+    it("should pluck graphql template literals from .ts that use an 'as const' assertion", async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.ts',
+        freeText(`
+        import { graphql } from '../somewhere'
+        import { Document } from 'graphql'
+
+        const fragment: Document = graphql(\`
+            fragment Foo on FooType {
+              id
+            }
+          \`as const)
+
+          const doc: Document = graphql(\`
+            query foo {
+              foo {
+                ...Foo
+              }
+            }
+            \` as const)
+      `)
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        fragment Foo on FooType {
+          id
+        }
+
+        query foo {
+          foo {
+            ...Foo
+          }
+        }
+      `)
+      );
+    });
+
     it('should pluck graphql-tag template literals from .ts file', async () => {
       const sources = await pluck(
         'tmp-XXXXXX.ts',
