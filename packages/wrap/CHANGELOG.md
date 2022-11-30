@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 9.2.18
+
+### Patch Changes
+
+- [`02126e63`](https://github.com/ardatan/graphql-tools/commit/02126e631b103617e0f07b90e157d5be5678ef84) Thanks [@ardatan](https://github.com/ardatan)! - Fix handling nested list fields in HoistField
+
 ## 9.2.17
 
 ### Patch Changes
