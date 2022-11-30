@@ -168,7 +168,7 @@ export default class HoistField<TContext extends Record<string, any> = Record<st
       newTargetField.resolve = (parent, args, context, info) =>
         Promise.all(
           Object.keys(parent)
-            .filter(key => !key.startsWith('__'))
+            .filter(key => !isNaN(parseInt(key, 10)))
             .map(key => resolver(parent[key], args, context, info))
         );
     }
