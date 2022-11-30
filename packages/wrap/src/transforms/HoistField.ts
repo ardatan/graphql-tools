@@ -99,7 +99,7 @@ export default class HoistField<TContext extends Record<string, any> = Record<st
       const nullableType = getNullableType(field.type);
       if (isListType(nullableType)) {
         isList = true;
-        return getNamedType(nullableType) as GraphQLObjectType;
+        return getNamedType(nullableType) as any;
       }
 
       return nullableType as GraphQLObjectType;
