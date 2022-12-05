@@ -84,7 +84,7 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
     const operationAst = getOperationASTFromRequest(request);
     const operationType = operationAst.operation;
 
-    if (options?.useGETForQueries || (request.extensions?.useGETForQueries && operationType === 'query')) {
+    if ((options?.useGETForQueries || request.extensions?.useGETForQueries) && operationType === 'query') {
       method = 'GET';
     }
 
