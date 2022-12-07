@@ -1,11 +1,9 @@
 import { Source, AggregateError } from '@graphql-tools/utils';
-import { env } from 'process';
 import { LoadTypedefsOptions } from '../load-typedefs.js';
+import { logError, time, timeEnd } from '../utils/debug.js';
 
 export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Source[]> {
-  if (env['DEBUG'] != null) {
-    console.time(`@graphql-tools/load: loadFile ${pointer}`);
-  }
+  time(`loadFile ${pointer}`);
   let results = options.cache?.[pointer];
 
   if (!results) {
@@ -17,9 +15,7 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
           const loaderResults = await loader.load(pointer, options);
           loaderResults?.forEach(result => results!.push(result));
         } catch (error: any) {
-          if (env['DEBUG']) {
-            console.error(error);
-          }
+          logError(error);
           if (error instanceof AggregateError) {
             for (const errorElement of error.errors) {
               errors.push(errorElement);
@@ -47,17 +43,13 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
     }
   }
 
-  if (env['DEBUG'] != null) {
-    console.timeEnd(`@graphql-tools/load: loadFile ${pointer}`);
-  }
+  timeEnd(`loadFile ${pointer}`);
 
   return results;
 }
 
 export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Source[] {
-  if (env['DEBUG'] != null) {
-    console.time(`@graphql-tools/load: loadFileSync ${pointer}`);
-  }
+  time(`loadFileSync ${pointer}`);
   let results = options.cache?.[pointer];
 
   if (!results) {
@@ -69,9 +61,7 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Sou
         const loaderResults = loader.loadSync!(pointer, options);
         loaderResults?.forEach(result => results!.push(result));
       } catch (error: any) {
-        if (env['DEBUG']) {
-          console.error(error);
-        }
+        error(error);
         if (error instanceof AggregateError) {
           for (const errorElement of error.errors) {
             errors.push(errorElement);
@@ -99,9 +89,7 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Sou
     }
   }
 
-  if (env['DEBUG'] != null) {
-    console.timeEnd(`@graphql-tools/load: loadFileSync ${pointer}`);
-  }
+  timeEnd(`loadFileSync ${pointer}`);
 
   return results;
 }

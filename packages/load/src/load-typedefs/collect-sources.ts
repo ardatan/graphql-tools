@@ -6,7 +6,8 @@ import { stringToHash, useStack, StackNext, StackFn } from '../utils/helpers.js'
 import { useCustomLoader, useCustomLoaderSync } from '../utils/custom-loader.js';
 import { useQueue, useSyncQueue } from '../utils/queue.js';
 import { createRequire } from 'module';
-import { cwd, env } from 'process';
+import { cwd } from 'process';
+import { time, timeEnd } from '../utils/debug.js';
 
 type AddSource = (data: { pointer: string; source: Source; noCache?: boolean }) => void;
 type AddToQueue<T> = (fn: () => Promise<T> | T) => void;
@@ -22,9 +23,7 @@ export async function collectSources<TOptions>({
   };
   options: LoadTypedefsOptions<Partial<TOptions>>;
 }): Promise<Source[]> {
-  if (env['DEBUG'] != null) {
-    console.time('@graphql-tools/load: collectSources');
-  }
+  time('collectSources');
   const sources: Source[] = [];
   const queue = useQueue<void>({ concurrency: CONCURRENCY_LIMIT });
 
@@ -36,9 +35,7 @@ export async function collectSources<TOptions>({
   for (const pointer in pointerOptionMap) {
     const pointerOptions = pointerOptionMap[pointer];
 
-    if (env['DEBUG'] != null) {
-      console.time(`@graphql-tools/load: collectSources ${pointer}`);
-    }
+    time(`collectSources ${pointer}`);
     collect({
       pointer,
       pointerOptions,
@@ -47,18 +44,12 @@ export async function collectSources<TOptions>({
       addSource,
       queue: queue.add as AddToQueue<void>,
     });
-    if (env['DEBUG'] != null) {
-      console.timeEnd(`@graphql-tools/load: collectSources ${pointer}`);
-    }
+    timeEnd(`collectSources ${pointer}`);
   }
 
-  if (env['DEBUG'] != null) {
-    console.time('@graphql-tools/load: collectSources queue');
-  }
+  time('collectSources queue');
   await queue.runAll();
-  if (env['DEBUG'] != null) {
-    console.timeEnd('@graphql-tools/load: collectSources queue');
-  }
+  timeEnd('collectSources queue');
   return sources;
 }
 
@@ -79,16 +70,12 @@ export function collectSourcesSync<TOptions>({
     stack: [collectDocumentString, collectCustomLoaderSync, collectFallbackSync],
   });
 
-  if (env['DEBUG'] != null) {
-    console.time('@graphql-tools/load: collectSourcesSync');
-  }
+  time('collectSourcesSync');
 
   for (const pointer in pointerOptionMap) {
     const pointerOptions = pointerOptionMap[pointer];
 
-    if (env['DEBUG'] != null) {
-      console.time(`@graphql-tools/load: collectSourcesSync ${pointer}`);
-    }
+    time(`collectSourcesSync ${pointer}`);
     collect({
       pointer,
       pointerOptions,
@@ -97,19 +84,13 @@ export function collectSourcesSync<TOptions>({
       addSource,
       queue: queue.add,
     });
-    if (env['DEBUG'] != null) {
-      console.timeEnd(`@graphql-tools/load: collectSourcesSync ${pointer}`);
-    }
+    timeEnd(`collectSourcesSync ${pointer}`);
   }
 
-  if (env['DEBUG'] != null) {
-    console.time('@graphql-tools/load: collectSourcesSync queue');
-  }
+  time('collectSourcesSync queue');
   queue.runAll();
 
-  if (env['DEBUG'] != null) {
-    console.timeEnd('@graphql-tools/load: collectSourcesSync queue');
-  }
+  timeEnd('collectSourcesSync queue');
   return sources;
 }
 
@@ -144,9 +125,7 @@ function addResultOfCustomLoader({
   result: any;
   addSource: AddSource;
 }) {
-  if (env['DEBUG'] != null) {
-    console.time(`@graphql-tools/load: addResultOfCustomLoader ${pointer}`);
-  }
+  time(`addResultOfCustomLoader ${pointer}`);
   if (isSchema(result)) {
     addSource({
       source: {
@@ -174,18 +153,14 @@ function addResultOfCustomLoader({
       pointer,
     });
   }
-  if (env['DEBUG'] != null) {
-    console.timeEnd(`@graphql-tools/load: addResultOfCustomLoader ${pointer}`);
-  }
+  timeEnd(`addResultOfCustomLoader ${pointer}`);
 }
 
 function collectDocumentString<T>(
   { pointer, pointerOptions, options, addSource, queue }: CollectOptions<T>,
   next: StackNext
 ) {
-  if (env['DEBUG'] != null) {
-    console.time(`@graphql-tools/load: collectDocumentString ${pointer}`);
-  }
+  time(`collectDocumentString ${pointer}`);
   if (isDocumentString(pointer)) {
     return queue(() => {
       const source = parseGraphQLSDL(`${stringToHash(pointer)}.graphql`, pointer, {
@@ -199,9 +174,7 @@ function collectDocumentString<T>(
       });
     });
   }
-  if (env['DEBUG'] != null) {
-    console.timeEnd(`@graphql-tools/load: collectDocumentString ${pointer}`);
-  }
+  timeEnd(`collectDocumentString ${pointer}`);
 
   next();
 }
@@ -212,18 +185,14 @@ function collectCustomLoader<T>(
 ) {
   if (pointerOptions.loader) {
     return queue(async () => {
-      if (env['DEBUG'] != null) {
-        console.time(`@graphql-tools/load: collectCustomLoader ${pointer}`);
-      }
+      time(`collectCustomLoader ${pointer}`);
       await Promise.all(asArray(pointerOptions.require).map(m => import(m)));
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TODO options.cwd is possibly undefined, but it seems like no test covers this path
       const loader = await useCustomLoader(pointerOptions.loader, options.cwd);
       const result = await loader(pointer, { ...options, ...pointerOptions }, pointerOptionMap);
 
-      if (env['DEBUG'] != null) {
-        console.timeEnd(`@graphql-tools/load: collectCustomLoader ${pointer}`);
-      }
+      timeEnd(`collectCustomLoader ${pointer}`);
       if (!result) {
         return;
       }
@@ -241,9 +210,7 @@ function collectCustomLoaderSync<T>(
 ) {
   if (pointerOptions.loader) {
     return queue(() => {
-      if (env['DEBUG'] != null) {
-        console.time(`@graphql-tools/load: collectCustomLoaderSync ${pointer}`);
-      }
+      time(`collectCustomLoaderSync ${pointer}`);
       const cwdRequire = createRequire(options.cwd || cwd());
       for (const m of asArray(pointerOptions.require)) {
         cwdRequire(m);
@@ -253,9 +220,7 @@ function collectCustomLoaderSync<T>(
       const loader = useCustomLoaderSync(pointerOptions.loader, options.cwd);
       const result = loader(pointer, { ...options, ...pointerOptions }, pointerOptionMap);
 
-      if (env['DEBUG'] != null) {
-        console.timeEnd(`@graphql-tools/load: collectCustomLoaderSync ${pointer}`);
-      }
+      timeEnd(`collectCustomLoaderSync ${pointer}`);
       if (result) {
         addResultOfCustomLoader({ pointer, result, addSource });
       }
@@ -267,9 +232,7 @@ function collectCustomLoaderSync<T>(
 
 function collectFallback<T>({ queue, pointer, options, pointerOptions, addSource }: CollectOptions<T>) {
   return queue(async () => {
-    if (env['DEBUG'] != null) {
-      console.time(`@graphql-tools/load: collectFallback ${pointer}`);
-    }
+    time(`collectFallback ${pointer}`);
     const sources = await loadFile(pointer, {
       ...options,
       ...pointerOptions,
@@ -280,17 +243,13 @@ function collectFallback<T>({ queue, pointer, options, pointerOptions, addSource
         addSource({ source, pointer });
       }
     }
-    if (env['DEBUG'] != null) {
-      console.timeEnd(`@graphql-tools/load: collectFallback ${pointer}`);
-    }
+    timeEnd(`collectFallback ${pointer}`);
   });
 }
 
 function collectFallbackSync<T>({ queue, pointer, options, pointerOptions, addSource }: CollectOptions<T>) {
   return queue(() => {
-    if (env['DEBUG'] != null) {
-      console.time(`@graphql-tools/load: collectFallbackSync ${pointer}`);
-    }
+    time(`collectFallbackSync ${pointer}`);
     const sources = loadFileSync(pointer, {
       ...options,
       ...pointerOptions,
@@ -301,8 +260,6 @@ function collectFallbackSync<T>({ queue, pointer, options, pointerOptions, addSo
         addSource({ source, pointer });
       }
     }
-    if (env['DEBUG'] != null) {
-      console.timeEnd(`@graphql-tools/load: collectFallbackSync ${pointer}`);
-    }
+    timeEnd(`collectFallbackSync ${pointer}`);
   });
 }
