@@ -259,14 +259,11 @@ describe('[url-loader] webpack bundle compat', () => {
         document as any
       );
 
-      expect(results).toEqual([
-        { data: { countdown: [] } },
-        { data: { countdown: [3] } },
-        { data: { countdown: [3, 2] } },
-        { data: { countdown: [3, 2, 1] } },
-        { data: { countdown: [3, 2, 1, 0] } },
-        { data: { countdown: [3, 2, 1, 0] } },
-      ]);
+      expect(results[0]).toEqual({ data: { countdown: [] } });
+      expect(results[1]).toEqual({ data: { countdown: [3] } });
+      expect(results[2]).toEqual({ data: { countdown: [3, 2] } });
+      expect(results[3]).toEqual({ data: { countdown: [3, 2, 1] } });
+      expect(results[4]).toEqual({ data: { countdown: [3, 2, 1, 0] } });
     });
 
     it('handles SSE subscription operations', async () => {

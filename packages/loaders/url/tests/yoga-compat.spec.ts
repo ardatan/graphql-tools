@@ -12,6 +12,7 @@ import { useEngine } from '@envelop/core';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 
 describe('Yoga Compatibility', () => {
+  jest.setTimeout(10000);
   const loader = new UrlLoader();
   let httpServer: http.Server;
   const liveQueryStore = new InMemoryLiveQueryStore();
@@ -151,6 +152,7 @@ describe('Yoga Compatibility', () => {
     if (httpServer !== undefined) {
       await new Promise<void>(resolve => httpServer.close(() => resolve()));
     }
+    await sleep(1000);
   });
 
   it('should handle defer', async () => {

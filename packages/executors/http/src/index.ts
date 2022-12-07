@@ -8,7 +8,6 @@ import {
   SyncExecutor,
 } from '@graphql-tools/utils';
 import { GraphQLResolveInfo, print } from 'graphql';
-import { cancelNeeded } from './addCancelToResponseStream.js';
 import { isLiveQueryOperationDefinitionNode } from './isLiveQueryOperationDefinitionNode.js';
 import { prepareGETUrl } from './prepareGETUrl.js';
 import { ValueOrPromise } from 'value-or-promise';
@@ -16,6 +15,7 @@ import { createFormDataFromVariables } from './createFormDataFromVariables.js';
 import { handleEventStreamResponse } from './handleEventStreamResponse.js';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
 import { fetch as defaultFetch, AbortController } from '@whatwg-node/fetch';
+import { cancelNeeded } from './addCancelToResponseStream.js';
 
 export type SyncFetchFn = (url: string, init?: RequestInit, context?: any, info?: GraphQLResolveInfo) => SyncResponse;
 export type SyncResponse = Omit<Response, 'json' | 'text'> & {
@@ -78,7 +78,7 @@ export function buildHTTPExecutor(
 export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, HTTPExecutorOptions> {
   const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
     const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
-    const controller = cancelNeeded() ? new AbortController() : undefined;
+    let controller: AbortController | undefined;
     let method = request.extensions?.method || options?.method || 'POST';
 
     const operationAst = getOperationASTFromRequest(request);
@@ -113,11 +113,16 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
 
     let timeoutId: any;
     if (options?.timeout) {
+      controller = new AbortController();
       timeoutId = setTimeout(() => {
         if (!controller?.signal.aborted) {
           controller?.abort();
         }
       }, options.timeout);
+    }
+
+    if (!controller && cancelNeeded()) {
+      controller = new AbortController();
     }
 
     return new ValueOrPromise(() => {
