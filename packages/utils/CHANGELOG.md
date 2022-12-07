@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 9.1.3
+
+### Patch Changes
+
+- [#4887](https://github.com/ardatan/graphql-tools/pull/4887) [`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759) Thanks [@ardatan](https://github.com/ardatan)! - Fix leak on Node 14 and add cancellation to async iterables correctly
+
 ## 9.1.2
 
 ### Patch Changes
