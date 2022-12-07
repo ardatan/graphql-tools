@@ -8,7 +8,6 @@ import {
   SyncExecutor,
 } from '@graphql-tools/utils';
 import { GraphQLResolveInfo, print } from 'graphql';
-import { cancelNeeded } from './addCancelToResponseStream.js';
 import { isLiveQueryOperationDefinitionNode } from './isLiveQueryOperationDefinitionNode.js';
 import { prepareGETUrl } from './prepareGETUrl.js';
 import { ValueOrPromise } from 'value-or-promise';
@@ -78,7 +77,7 @@ export function buildHTTPExecutor(
 export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, HTTPExecutorOptions> {
   const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
     const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
-    const controller = cancelNeeded() ? new AbortController() : undefined;
+    let controller: AbortController;
     let method = request.extensions?.method || options?.method || 'POST';
 
     const operationAst = getOperationASTFromRequest(request);
@@ -113,6 +112,7 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
 
     let timeoutId: any;
     if (options?.timeout) {
+      controller = new AbortController();
       timeoutId = setTimeout(() => {
         if (!controller?.signal.aborted) {
           controller?.abort();
