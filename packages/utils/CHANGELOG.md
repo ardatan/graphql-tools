@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 9.1.2
+
+### Patch Changes
+
+- [`13c24883`](https://github.com/ardatan/graphql-tools/commit/13c24883004d5330f7402cb20566e37535c5729b) Thanks [@ardatan](https://github.com/ardatan)! - Fix handling argument values in gateway request
+
 ## 9.1.1
 
 ### Patch Changes

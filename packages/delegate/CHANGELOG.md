@@ -1,5 +1,19 @@
 # @graphql-tools/delegate
 
+## 9.0.18
+
+### Patch Changes
+
+- [`13c24883`](https://github.com/ardatan/graphql-tools/commit/13c24883004d5330f7402cb20566e37535c5729b) Thanks [@ardatan](https://github.com/ardatan)! - Fix handling argument values in gateway request
+
+- [`b5e6459f`](https://github.com/ardatan/graphql-tools/commit/b5e6459f87cd8720457ce9bff38f3dfa0cb3c150) Thanks [@ardatan](https://github.com/ardatan)! - Show warning only if DEBUG env var is present
+
+- Updated dependencies [[`13c24883`](https://github.com/ardatan/graphql-tools/commit/13c24883004d5330f7402cb20566e37535c5729b)]:
+  - @graphql-tools/utils@9.1.2
+  - @graphql-tools/batch-execute@8.5.13
+  - @graphql-tools/executor@0.0.10
+  - @graphql-tools/schema@9.0.11
+
 ## 9.0.17
 
 ### Patch Changes

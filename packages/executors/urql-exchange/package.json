@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-urql-exchange",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "repository": {
     "type": "git",
@@ -49,7 +49,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@graphql-tools/utils": "9.1.1",
+    "@graphql-tools/utils": "9.1.2",
     "tslib": "^2.4.0"
   },
   "devDependencies": {

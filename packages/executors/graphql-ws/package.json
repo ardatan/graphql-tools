@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-graphql-ws",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -54,7 +54,7 @@
     "@types/ws": "^8.0.0",
     "ws": "8.11.0",
     "isomorphic-ws": "5.0.0",
-    "@graphql-tools/utils": "9.1.1",
+    "@graphql-tools/utils": "9.1.2",
     "@repeaterjs/repeater": "3.0.4",
     "graphql-ws": "5.11.2",
     "tslib": "^2.4.0"
