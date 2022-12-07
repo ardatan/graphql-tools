@@ -151,6 +151,7 @@ describe('Yoga Compatibility', () => {
     if (httpServer !== undefined) {
       await new Promise<void>(resolve => httpServer.close(() => resolve()));
     }
+    await sleep(1000);
   });
 
   it('should handle defer', async () => {

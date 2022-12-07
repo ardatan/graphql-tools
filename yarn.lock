@@ -1670,6 +1670,24 @@
   dependencies:
     giscus "^1.2.3"
 
+"@graphql-tools/executor@0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor/-/executor-0.0.9.tgz#f55f8cbe12d7989b0ff58cca9a041fbdde3dbd40"
+  integrity sha512-qLhQWXTxTS6gbL9INAQa4FJIqTd2tccnbs4HswOx35KnyLaLtREuQ8uTfU+5qMrRIBhuzpGdkP2ssqxLyOJ5rA==
+  dependencies:
+    "@graphql-tools/utils" "9.1.1"
+    "@graphql-typed-document-node/core" "3.1.1"
+    "@repeaterjs/repeater" "3.0.4"
+    tslib "^2.4.0"
+    value-or-promise "1.0.11"
+
+"@graphql-tools/utils@9.1.1":
+  version "9.1.1"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/utils/-/utils-9.1.1.tgz#b47ea8f0d18c038c5c1c429e72caa5c25039fbab"
+  integrity sha512-DXKLIEDbihK24fktR2hwp/BNIVwULIHaSTNTNhXS+19vgT50eX9wndx1bPxGwHnVBOONcwjXy0roQac49vdt/w==
+  dependencies:
+    tslib "^2.4.0"
+
 "@graphql-tools/utils@^8.5.2", "@graphql-tools/utils@^8.8.0":
   version "8.13.1"
   resolved "https://registry.yarnpkg.com/@graphql-tools/utils/-/utils-8.13.1.tgz#b247607e400365c2cd87ff54654d4ad25a7ac491"

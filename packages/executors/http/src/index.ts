@@ -15,6 +15,7 @@ import { createFormDataFromVariables } from './createFormDataFromVariables.js';
 import { handleEventStreamResponse } from './handleEventStreamResponse.js';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
 import { fetch as defaultFetch, AbortController } from '@whatwg-node/fetch';
+import { cancelNeeded } from './addCancelToResponseStream.js';
 
 export type SyncFetchFn = (url: string, init?: RequestInit, context?: any, info?: GraphQLResolveInfo) => SyncResponse;
 export type SyncResponse = Omit<Response, 'json' | 'text'> & {
@@ -77,7 +78,7 @@ export function buildHTTPExecutor(
 export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, HTTPExecutorOptions> {
   const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
     const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
-    let controller: AbortController;
+    let controller: AbortController | undefined;
     let method = request.extensions?.method || options?.method || 'POST';
 
     const operationAst = getOperationASTFromRequest(request);
@@ -118,6 +119,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
           controller?.abort();
         }
       }, options.timeout);
+    }
+
+    if (!controller && cancelNeeded()) {
+      controller = new AbortController();
     }
 
     return new ValueOrPromise(() => {
