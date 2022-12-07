@@ -22,7 +22,7 @@ export function timeEnd(label: string) {
   const start = times[label];
   const stop = performance.now();
   const duration = stop - start;
-  debugLog(`label: ${duration.toFixed(1)}ms`);
+  debugLog(`${label}: ${duration.toFixed(1)}ms`);
   delete times[label];
 }
 

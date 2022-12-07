@@ -61,7 +61,7 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Sou
         const loaderResults = loader.loadSync!(pointer, options);
         loaderResults?.forEach(result => results!.push(result));
       } catch (error: any) {
-        error(error);
+        logError(error);
         if (error instanceof AggregateError) {
           for (const errorElement of error.errors) {
             errors.push(errorElement);
