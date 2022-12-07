@@ -127,6 +127,8 @@ jobs:
       - name: Build Packages
         run: yarn build
       - name: Test
-        run: yarn jest --no-watchman --ci browser
-        env:
-          TEST_BROWSER: true
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: TEST_BROWSER=true yarn jest --no-watchman --ci browser
