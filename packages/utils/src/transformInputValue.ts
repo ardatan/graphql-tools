@@ -1,4 +1,5 @@
 import { GraphQLInputType, getNullableType, isLeafType, isListType, isInputObjectType } from 'graphql';
+import { asArray } from './helpers.js';
 
 import { InputLeafValueTransformer, InputObjectValueTransformer, Maybe } from './types.js';
 
@@ -17,7 +18,7 @@ export function transformInputValue(
   if (isLeafType(nullableType)) {
     return inputLeafValueTransformer != null ? inputLeafValueTransformer(nullableType, value) : value;
   } else if (isListType(nullableType)) {
-    return value.map((listMember: any) =>
+    return asArray(value).map((listMember: any) =>
       transformInputValue(nullableType.ofType, listMember, inputLeafValueTransformer, inputObjectValueTransformer)
     );
   } else if (isInputObjectType(nullableType)) {
