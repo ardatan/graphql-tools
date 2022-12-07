@@ -265,7 +265,6 @@ describe('[url-loader] webpack bundle compat', () => {
         { data: { countdown: [3, 2] } },
         { data: { countdown: [3, 2, 1] } },
         { data: { countdown: [3, 2, 1, 0] } },
-        { data: { countdown: [3, 2, 1, 0] } },
       ]);
     });
 
