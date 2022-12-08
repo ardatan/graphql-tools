@@ -66,7 +66,7 @@ export default class MapLeafValues<TContext = Record<string, any>>
 
   public transformRequest(
     originalRequest: ExecutionRequest,
-    _delegationContext: DelegationContext<TContext>,
+    delegationContext: DelegationContext<TContext>,
     transformationContext: MapLeafValuesTransformationContext
   ): ExecutionRequest {
     const document = originalRequest.document;
@@ -79,7 +79,7 @@ export default class MapLeafValues<TContext = Record<string, any>>
       def => def.kind === Kind.FRAGMENT_DEFINITION
     ) as Array<FragmentDefinitionNode>;
 
-    const newOperations = this.transformOperations(operations, variableValues);
+    const newOperations = this.transformOperations(operations, variableValues, delegationContext.args);
 
     const transformedRequest = {
       ...originalRequest,
@@ -115,7 +115,8 @@ export default class MapLeafValues<TContext = Record<string, any>>
 
   private transformOperations(
     operations: Array<OperationDefinitionNode>,
-    variableValues: Record<string, any>
+    variableValues: Record<string, any>,
+    args?: Record<string, any>
   ): Array<OperationDefinitionNode> {
     if (this.typeInfo == null) {
       throw new Error(
@@ -126,13 +127,17 @@ export default class MapLeafValues<TContext = Record<string, any>>
       return visit(
         operation,
         visitWithTypeInfo(this.typeInfo!, {
-          [Kind.FIELD]: node => this.transformFieldNode(node, variableValues),
+          [Kind.FIELD]: node => this.transformFieldNode(node, variableValues, args),
         })
       );
     });
   }
 
-  private transformFieldNode(field: FieldNode, variableValues: Record<string, any>): FieldNode | undefined {
+  private transformFieldNode(
+    field: FieldNode,
+    variableValues: Record<string, any>,
+    args?: Record<string, any>
+  ): FieldNode | undefined {
     if (this.typeInfo == null) {
       throw new Error(
         `The MapLeafValues transform's "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
@@ -158,11 +163,17 @@ export default class MapLeafValues<TContext = Record<string, any>>
         for (const argument of targetField.args) {
           const argName = argument.name;
           const argType = argument.type;
+          if (args?.[argName] != null) {
+            args[argName] = transformInputValue(argType, args[argName], (t, v) => {
+              const newValue = this.inputValueTransformer(t.name, v);
+              return newValue === undefined ? v : newValue;
+            });
+          }
 
           const argumentNode = argumentNodeMap[argName];
-          const argValue = argumentNode?.value;
 
           let value: any;
+          const argValue = argumentNode?.value;
           if (argValue != null) {
             value = valueFromAST(argValue, argType, variableValues);
             if (value == null) {

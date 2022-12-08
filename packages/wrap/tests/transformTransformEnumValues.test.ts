@@ -211,12 +211,17 @@ describe('TransformEnumValues', () => {
         id: 2,
         type: 'jpg',
       },
+      {
+        id: 3,
+        type: 'webp',
+      },
     ];
     const schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
         enum ImageType {
           png
           jpg
+          webp
         }
         type Image {
           id: ID!
@@ -224,11 +229,13 @@ describe('TransformEnumValues', () => {
         }
         type Query {
           image(id: ID!): Image
+          imageByType(type: ImageType!): [Image!]
         }
       `,
       resolvers: {
         Query: {
           image: (_root, { id }) => images.find(image => image.id === parseInt(id)),
+          imageByType: (_root, { type }) => images.filter(image => image.type === type),
         },
       },
     });
@@ -243,7 +250,8 @@ describe('TransformEnumValues', () => {
       subschemas: [subschema],
       typeDefs: /* GraphQL */ `
         extend type Query {
-          newImageField(id: ID!): Image
+          adjacentImage(id: ID!): Image
+          imageByTypeAndId(type: ImageType!, id: ID!): Image
         }
         extend type Image {
           path: String!
@@ -262,14 +270,28 @@ describe('TransformEnumValues', () => {
           },
         },
         Query: {
-          newImageField: (_root, args, context, info) =>
+          adjacentImage: (_root, args, context, info) =>
             delegateToSchema({
               schema: subschema,
               fieldName: 'image',
-              args,
+              args: {
+                id: parseInt(args.id) + 1,
+              },
               context,
               info,
             }),
+          imageByTypeAndId: async (_root, args, context, info) => {
+            const images: any[] = await delegateToSchema({
+              schema: subschema,
+              fieldName: 'imageByType',
+              args: {
+                type: args.type,
+              },
+              context,
+              info,
+            });
+            return images.find(image => image.id === args.id);
+          },
         },
       },
     });
@@ -282,11 +304,21 @@ describe('TransformEnumValues', () => {
           path
           newTypeField
         }
-        newImageField(id: 2) {
+        adjacentImage(id: 2) {
           id
           type
           path
           newTypeField
+        }
+        imageByType(type: PNG) {
+          id
+          type
+          path
+          newTypeField
+        }
+        imageByTypeAndId(type: PNG, id: 1) {
+          id
+          type
         }
       }
     `;
@@ -304,11 +336,23 @@ describe('TransformEnumValues', () => {
           path: '/1.PNG',
           newTypeField: 'PNG',
         },
-        newImageField: {
-          id: '2',
-          type: 'JPG',
-          path: '/2.JPG',
-          newTypeField: 'JPG',
+        adjacentImage: {
+          id: '3',
+          type: 'WEBP',
+          path: '/3.WEBP',
+          newTypeField: 'WEBP',
+        },
+        imageByType: [
+          {
+            id: '1',
+            type: 'PNG',
+            path: '/1.PNG',
+            newTypeField: 'PNG',
+          },
+        ],
+        imageByTypeAndId: {
+          id: '1',
+          type: 'PNG',
         },
       },
     });

@@ -16,7 +16,6 @@ import {
   SelectionSetNode,
   TypeInfo,
   TypeNameMetaFieldDef,
-  valueFromASTUntyped,
   VariableDefinitionNode,
   versionInfo as graphqlVersionInfo,
   visit,
@@ -222,14 +221,6 @@ function updateArguments(
     const argType = argument.type;
 
     if (argName in newArgs) {
-      let value: any;
-      const existingValueNode = argumentNodeMap[argName]?.value;
-      if (existingValueNode != null) {
-        value = valueFromASTUntyped(existingValueNode, variableValues);
-      }
-      if (value == null) {
-        value = serializeInputValue(argType, newArgs[argName]);
-      }
       updateArgument(
         argumentNodeMap,
         variableDefinitionMap,
@@ -237,7 +228,7 @@ function updateArguments(
         argName,
         generateVariableName(argName),
         argType,
-        value
+        serializeInputValue(argType, newArgs[argName])
       );
     }
   }
