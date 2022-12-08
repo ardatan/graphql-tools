@@ -1,5 +1,11 @@
 # @graphql-tools/executor-http
 
+## 0.0.7
+
+### Patch Changes
+
+- [#4885](https://github.com/ardatan/graphql-tools/pull/4885) [`969e264d`](https://github.com/ardatan/graphql-tools/commit/969e264df43bab2a7d0d21c09cb3d73c938b0895) Thanks [@paales](https://github.com/paales)! - useGETForQueries was also activating GET for mutations
+
 ## 0.0.6
 
 ### Patch Changes
