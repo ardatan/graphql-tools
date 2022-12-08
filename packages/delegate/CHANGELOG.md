@@ -1,5 +1,13 @@
 # @graphql-tools/delegate
 
+## 9.0.20
+
+### Patch Changes
+
+- [#4890](https://github.com/ardatan/graphql-tools/pull/4890) [`eb6cd8b6`](https://github.com/ardatan/graphql-tools/commit/eb6cd8b65dc72434348c259538b233e57a58eb1a) Thanks [@ardatan](https://github.com/ardatan)! - Transform provided argument values properly
+
+- [#4890](https://github.com/ardatan/graphql-tools/pull/4890) [`eb6cd8b6`](https://github.com/ardatan/graphql-tools/commit/eb6cd8b65dc72434348c259538b233e57a58eb1a) Thanks [@ardatan](https://github.com/ardatan)! - Handle argument definitions correctly during delegation and transformations
+
 ## 9.0.19
 
 ### Patch Changes
