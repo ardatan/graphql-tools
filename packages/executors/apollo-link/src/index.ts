@@ -1,13 +1,9 @@
-import * as apolloImport from '@apollo/client';
+import { ApolloLink, FetchResult, Observable, Operation, RequestHandler } from '@apollo/client/core';
 import { ExecutionRequest, Executor, isAsyncIterable } from '@graphql-tools/utils';
 
-const apollo: typeof apolloImport = (apolloImport as any)?.default ?? apolloImport;
-
-function createApolloRequestHandler(executor: Executor): apolloImport.RequestHandler {
-  return function ApolloRequestHandler(
-    operation: apolloImport.Operation
-  ): apolloImport.Observable<apolloImport.FetchResult> {
-    return new apollo.Observable(observer => {
+function createApolloRequestHandler(executor: Executor): RequestHandler {
+  return function ApolloRequestHandler(operation: Operation): Observable<FetchResult> {
+    return new Observable(observer => {
       const executionRequest: ExecutionRequest = {
         document: operation.query,
         variables: operation.variables,
@@ -39,7 +35,7 @@ function createApolloRequestHandler(executor: Executor): apolloImport.RequestHan
   };
 }
 
-export class ExecutorLink extends apollo.ApolloLink {
+export class ExecutorLink extends ApolloLink {
   constructor(executor: Executor) {
     super(createApolloRequestHandler(executor));
   }

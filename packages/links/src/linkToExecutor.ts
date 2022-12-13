@@ -1,5 +1,4 @@
-import * as apolloImport from '@apollo/client';
-
+import { ApolloLink, execute, Observable, toPromise } from '@apollo/client/core';
 import {
   Executor,
   ExecutionRequest,
@@ -8,13 +7,11 @@ import {
   getOperationASTFromRequest,
 } from '@graphql-tools/utils';
 
-const apollo: typeof apolloImport = (apolloImport as any)?.default ?? apolloImport;
-
-export function linkToExecutor(link: apolloImport.ApolloLink): Executor {
+export function linkToExecutor(link: ApolloLink): Executor {
   return function executorFromLink<TReturn, TArgs extends Record<string, any>, TContext>(
     request: ExecutionRequest<TArgs, TContext>
   ) {
-    const observable = apollo.execute(link, {
+    const observable = execute(link, {
       query: request.document,
       operationName: request.operationName,
       variables: request.variables,
@@ -24,11 +21,11 @@ export function linkToExecutor(link: apolloImport.ApolloLink): Executor {
         clientAwareness: {},
       },
       extensions: request.extensions,
-    }) as apolloImport.Observable<ExecutionResult<TReturn>>;
+    }) as Observable<ExecutionResult<TReturn>>;
     const operationAst = getOperationASTFromRequest(request);
     if (operationAst.operation === 'subscription') {
       return observableToAsyncIterable<ExecutionResult<TReturn>>(observable);
     }
-    return apollo.toPromise(observable);
+    return toPromise(observable);
   };
 }

@@ -1899,7 +1899,7 @@ describe('graphql-tag-pluck', () => {
       const sources = await pluck(
         'tmp-XXXXXX.js',
         freeText(`
-        import { gql } from '@apollo/client'
+        import { gql } from '@apollo/client/core'
 
         const fragment = gql(\`
           fragment Foo on FooType {
