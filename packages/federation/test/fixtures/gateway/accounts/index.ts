@@ -1,7 +1,7 @@
-const { gql } = require('graphql-tag');
-const { buildSubgraphSchema } = require('@apollo/subgraph');
+import { IResolvers } from '@graphql-tools/utils';
+import { buildSubgraphSchema } from '../../../../src';
 
-const typeDefs = gql`
+export const typeDefs = /* GraphQL */ `
   extend type Query {
     me: User
     users: [User]
@@ -10,11 +10,12 @@ const typeDefs = gql`
   type User @key(fields: "id") {
     id: ID!
     name: String
+    birthDate: String
     username: String
   }
 `;
 
-const resolvers = {
+const resolvers: IResolvers = {
   Query: {
     me() {
       return users[0];
@@ -30,18 +31,10 @@ const resolvers = {
   },
 };
 
-const schema = buildSubgraphSchema([
-  {
-    typeDefs,
-    resolvers,
-  },
-]);
-
-module.exports = {
+export const schema = buildSubgraphSchema({
   typeDefs,
-  resolvers,
-  schema,
-};
+  resolvers: resolvers as any,
+});
 
 const users = [
   {

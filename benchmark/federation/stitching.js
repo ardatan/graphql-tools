@@ -1,8 +1,5 @@
 const { stitchSchemas } = require('@graphql-tools/stitch');
-const { federationToStitchingSDL, stitchingDirectives } = require('@graphql-tools/stitching-directives');
-const { stitchingDirectivesTransformer } = stitchingDirectives();
-const { buildSchema, print } = require('graphql');
-const { createDefaultExecutor } = require('@graphql-tools/delegate');
+const { useFederation } = require('@graphql-tools/federation');
 
 const services = [
   require('./services/accounts'),
@@ -13,18 +10,8 @@ const services = [
 
 async function makeGatewaySchema() {
   return stitchSchemas({
-    subschemaConfigTransforms: [stitchingDirectivesTransformer],
-    subschemas: services.map(service => fetchFederationSubschema(service)),
+    subschemas: await Promise.all(services.map(service => useFederation(service))),
   });
-}
-
-function fetchFederationSubschema({ schema, typeDefs }) {
-  const sdl = federationToStitchingSDL(print(typeDefs));
-  return {
-    schema: buildSchema(sdl),
-    executor: createDefaultExecutor(schema),
-    batch: true,
-  };
 }
 
 module.exports = makeGatewaySchema;

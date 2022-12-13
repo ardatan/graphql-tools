@@ -18,20 +18,6 @@ function memoize1(fn) {
   };
 }
 
-function memoize1(fn) {
-  const memoize1cache = new Map();
-  return function memoized(a1) {
-    const cachedValue = memoize1cache.get(a1);
-    if (cachedValue === undefined) {
-      const newValue = fn(a1);
-      memoize1cache.set(a1, newValue);
-      return newValue;
-    }
-
-    return cachedValue;
-  };
-}
-
 async function main() {
   const scenarios = await Promise.all([runStitchingGateway(), runApolloGateway(), makeMonolithSchema()]);
 
