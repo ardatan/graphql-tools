@@ -1,20 +1,17 @@
+import { ExecutionResult } from '@graphql-tools/utils';
+import { Response } from '@whatwg-node/fetch';
 import { parse } from 'graphql';
-import { buildHTTPExecutor, SyncFetchFn } from '../src/index.js';
+import { buildHTTPExecutor } from '../src/index.js';
 
 describe('buildHTTPExecutor', () => {
-  it('should be a GET operation when useGETForQueries=true', async () => {
-    const syncFetch: SyncFetchFn = (input, init) => {
-      return {
-        ...new Response(),
-        url: input,
-        headers: new Headers(init?.headers),
-        text: () => JSON.stringify({ data: init }),
-      };
-    };
-
+  it('method should be POST for mutations even if useGETForQueries=true', async () => {
     const executor = buildHTTPExecutor({
       useGETForQueries: true,
-      fetch: syncFetch,
+      async fetch(url, init) {
+        return new Response(JSON.stringify({ data: init }), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      },
     });
 
     const mutation = parse(/* GraphQL */ `
@@ -23,7 +20,7 @@ describe('buildHTTPExecutor', () => {
       }
     `);
 
-    const res = executor({ document: mutation });
+    const res = (await executor({ document: mutation })) as ExecutionResult;
     expect(res.data.method).toBe('POST');
   });
 });
