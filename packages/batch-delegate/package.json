@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@graphql-tools/schema": "9.0.12",
-    "@graphql-tools/stitch": "8.7.32"
+    "@graphql-tools/stitch": "8.7.33"
   },
   "publishConfig": {
     "directory": "dist",
