@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 9.2.22
+
+### Patch Changes
+
+- [#4915](https://github.com/ardatan/graphql-tools/pull/4915) [`55e24643`](https://github.com/ardatan/graphql-tools/commit/55e24643fac7eb25b7e4a6fefb15bd48ee562593) Thanks [@ardatan](https://github.com/ardatan)! - Transform provided args correctly during delegation
+
 ## 9.2.21
 
 ### Patch Changes
