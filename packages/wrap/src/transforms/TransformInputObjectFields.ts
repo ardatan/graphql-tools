@@ -15,7 +15,7 @@ import {
   getNamedType,
 } from 'graphql';
 
-import { ExecutionRequest, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
+import { ExecutionRequest, getDefinedRootType, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -141,6 +141,44 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
       originalRequest,
       delegationContext
     );
+
+    if (delegationContext.args != null) {
+      const targetRootType = getDefinedRootType(delegationContext.transformedSchema, delegationContext.operation);
+
+      if (targetRootType) {
+        const targetField = targetRootType.getFields()[delegationContext.fieldName];
+        if (targetField) {
+          const newArgs = Object.create(null);
+          for (const targetArg of targetField.args) {
+            if (targetArg.name in delegationContext.args) {
+              newArgs[targetArg.name] = transformInputValue(
+                targetArg.type,
+                delegationContext.args[targetArg.name],
+                undefined,
+                (type, originalValue) => {
+                  const newValue = Object.create(null);
+                  const fields = type.getFields();
+                  for (const key in originalValue) {
+                    const field = fields[key];
+                    if (field != null) {
+                      const newFieldName = this.mapping[type.name]?.[field.name];
+                      if (newFieldName != null) {
+                        newValue[newFieldName] = originalValue[field.name];
+                      } else {
+                        newValue[field.name] = originalValue[field.name];
+                      }
+                    }
+                  }
+                  return newValue;
+                }
+              );
+            }
+          }
+          delegationContext.args = newArgs;
+        }
+      }
+    }
+
     return {
       ...originalRequest,
       document,
