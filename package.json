@@ -47,7 +47,7 @@
     "@typescript-eslint/eslint-plugin": "5.46.0",
     "@typescript-eslint/parser": "5.46.0",
     "babel-jest": "29.3.1",
-    "bob-the-bundler": "4.1.0",
+    "bob-the-bundler": "4.1.1",
     "chalk": "4.1.2",
     "concurrently": "7.6.0",
     "eslint": "8.30.0",
