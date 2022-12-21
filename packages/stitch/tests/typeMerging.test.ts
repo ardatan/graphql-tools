@@ -1,7 +1,7 @@
 // The below is meant to be an alternative canonical schema stitching example
 // which relies on type merging.
 
-import { graphql, OperationTypeNode } from 'graphql';
+import { graphql, OperationTypeNode, parse } from 'graphql';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
@@ -13,6 +13,7 @@ import { RenameRootFields, RenameTypes } from '@graphql-tools/wrap';
 import { assertSome } from '@graphql-tools/utils';
 
 import { stitchSchemas } from '../src/stitchSchemas.js';
+import { normalizedExecutor } from '@graphql-tools/executor';
 
 describe('merging using type merging', () => {
   test('works', async () => {
@@ -551,6 +552,114 @@ describe('merging using type merging when renaming', () => {
     expect(userByIdData.chirps[1].id).not.toBe(null);
     expect(userByIdData.chirps[1].text).not.toBe(null);
     expect(userByIdData.chirps[1].author.email).not.toBe(null);
+  });
+  it('union merge', async () => {
+    const carVehicle = {
+      id: '1',
+      brand: 'Tesla',
+      __typename: 'Car',
+    };
+
+    const vehiclesSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          getVehicle: Vehicle!
+        }
+
+        union Vehicle = Car | Bike
+
+        type Car {
+          id: ID!
+          brand: String!
+        }
+
+        type Bike {
+          id: ID!
+          brand: String!
+        }
+      `,
+      resolvers: {
+        Query: {
+          getVehicle: () => carVehicle,
+        },
+        Vehicle: {
+          __resolveType: () => 'Car',
+        },
+      },
+    });
+    const licensePlateSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        scalar Any
+        type Query {
+          _entities(representations: [Any]!): [Entity]!
+        }
+        union Entity = Car
+        type Car {
+          id: ID!
+          licensePlate: String!
+        }
+      `,
+      resolvers: {
+        Query: {
+          _entities: (_, { representations }: { representations: any[] }) => representations,
+        },
+        Entity: {
+          __resolveType: (root: any) => root.__typename,
+        },
+        Car: {
+          licensePlate: () => 'ZH 1234',
+        },
+      },
+    });
+    const stitchedSchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: vehiclesSchema,
+          merge: {
+            Vehicle: {
+              fieldName: 'getVehicle',
+              selectionSet: '{ id }',
+              key: representation => representation,
+              argsFromKeys: representations => ({ representations }),
+            },
+          },
+        },
+        {
+          schema: licensePlateSchema,
+          merge: {
+            Car: {
+              fieldName: '_entities',
+              selectionSet: '{ id }',
+              key: representation => representation,
+              argsFromKeys: representations => ({ representations }),
+            },
+          },
+        },
+      ],
+    });
+    const result = await normalizedExecutor({
+      schema: stitchedSchema,
+      document: parse(/* GraphQL */ `
+        {
+          getVehicle {
+            ... on Car {
+              id
+              brand
+              licensePlate ## 💥
+            }
+          }
+        }
+      `),
+    });
+    expect(result).toEqual({
+      data: {
+        getVehicle: {
+          id: '1',
+          brand: 'Tesla',
+          licensePlate: 'ZH 1234',
+        },
+      },
+    });
   });
 });
 

@@ -14,7 +14,7 @@ import {
   visitWithTypeInfo,
   InlineFragmentNode,
   GraphQLOutputType,
-  isObjectType,
+  isCompositeType,
   FieldNode,
 } from 'graphql';
 
@@ -382,7 +382,7 @@ function wrapConcreteTypes(
 ): DocumentNode {
   const namedType = getNamedType(returnType);
 
-  if (!isObjectType(namedType)) {
+  if (!isCompositeType(namedType)) {
     return document;
   }
 
