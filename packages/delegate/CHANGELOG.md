@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 9.0.21
+
+### Patch Changes
+
+- [#4920](https://github.com/ardatan/graphql-tools/pull/4920) [`13177794`](https://github.com/ardatan/graphql-tools/commit/131777947d111e6a952d9e0e581fd651664101a1) Thanks [@ardatan](https://github.com/ardatan)! - Handle type merging with union types correctly -> See https://github.com/ardatan/graphql-tools/issues/4902
+
 ## 9.0.20
 
 ### Patch Changes
