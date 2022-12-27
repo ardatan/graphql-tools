@@ -3,7 +3,7 @@ import { SubscriptionProtocol, UrlLoader } from '../src/index.js';
 import { ExecutionResult, printSchemaWithDirectives } from '@graphql-tools/utils';
 import { parse, print, introspectionFromSchema, getIntrospectionQuery, getOperationAST } from 'graphql';
 import { useServer } from 'graphql-ws/lib/use/ws';
-import { createHandler } from 'graphql-sse';
+import { createHandler } from 'graphql-sse/lib/use/http';
 import { Server as WSServer } from 'ws';
 import http from 'http';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
