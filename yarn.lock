@@ -3546,10 +3546,24 @@
   resolved "https://registry.yarnpkg.com/@whatwg-node/events/-/events-0.0.2.tgz#7b7107268d2982fc7b7aff5ee6803c64018f84dd"
   integrity sha512-WKj/lI4QjnLuPrim0cfO7i+HsDSXHxNv1y0CrJhdntuO3hxWZmnXCwNDnwOvry11OjRin6cgWNF+j/9Pn8TN4w==
 
-"@whatwg-node/fetch@0.5.3", "@whatwg-node/fetch@^0.5.0":
+"@whatwg-node/fetch@0.5.3":
   version "0.5.3"
   resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.5.3.tgz#afbd38a2e5392d91318845b967529076ca654b9e"
   integrity sha512-cuAKL3Z7lrJJuUrfF1wxkQTb24Qd1QO/lsjJpM5ZSZZzUMms5TPnbGeGUKWA3hVKNHh30lVfr2MyRCT5Jfkucw==
+  dependencies:
+    "@peculiar/webcrypto" "^1.4.0"
+    abort-controller "^3.0.0"
+    busboy "^1.6.0"
+    form-data-encoder "^1.7.1"
+    formdata-node "^4.3.1"
+    node-fetch "^2.6.7"
+    undici "^5.12.0"
+    web-streams-polyfill "^3.2.0"
+
+"@whatwg-node/fetch@0.5.4", "@whatwg-node/fetch@^0.5.0":
+  version "0.5.4"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.5.4.tgz#ef7c409078fc4a5087415043f87c9d9589cda8d6"
+  integrity sha512-dR5PCzvOeS7OaW6dpIlPt+Ou3pak7IEG+ZVAV26ltcaiDB3+IpuvjqRdhsY6FKHcqBo1qD+S99WXY9Z6+9Rwnw==
   dependencies:
     "@peculiar/webcrypto" "^1.4.0"
     abort-controller "^3.0.0"
