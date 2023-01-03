@@ -57,7 +57,7 @@
     "@graphql-tools/schema": "9.0.12",
     "@graphql-tools/utils": "9.1.3",
     "tslib": "^2.4.0",
-    "value-or-promise": "1.0.11"
+    "value-or-promise": "1.0.12"
   },
   "publishConfig": {
     "directory": "dist",
