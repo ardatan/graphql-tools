@@ -14,14 +14,14 @@ import { normalizeWhiteSpace } from './normalize-whitespace.js';
 // Cache the sorted nodes to avoid sorting the same nodes multiple times
 const nodeSortCache = new WeakMap<readonly ASTNode[], readonly ASTNode[]>();
 
-export function sortNodes(nodes: readonly DefinitionNode[]): readonly DefinitionNode[];
-export function sortNodes(nodes: readonly SelectionNode[]): readonly SelectionNode[];
-export function sortNodes(nodes: readonly ArgumentNode[] | undefined): readonly ArgumentNode[] | undefined;
-export function sortNodes(
+export function sortExecutableNodes(nodes: readonly DefinitionNode[]): readonly DefinitionNode[];
+export function sortExecutableNodes(nodes: readonly SelectionNode[]): readonly SelectionNode[];
+export function sortExecutableNodes(nodes: readonly ArgumentNode[] | undefined): readonly ArgumentNode[] | undefined;
+export function sortExecutableNodes(
   nodes: readonly VariableDefinitionNode[] | undefined
 ): readonly VariableDefinitionNode[] | undefined;
-export function sortNodes(nodes: readonly DirectiveNode[] | undefined): readonly DirectiveNode[] | undefined;
-export function sortNodes(nodes: readonly ASTNode[] | undefined): readonly ASTNode[] | undefined {
+export function sortExecutableNodes(nodes: readonly DirectiveNode[] | undefined): readonly DirectiveNode[] | undefined;
+export function sortExecutableNodes(nodes: readonly ASTNode[] | undefined): readonly ASTNode[] | undefined {
   if (nodes) {
     const shortcutNodes = nodeSortCache.get(nodes);
     if (shortcutNodes) {
@@ -59,10 +59,8 @@ export function sortNodes(nodes: readonly ASTNode[] | undefined): readonly ASTNo
           } else {
             const typeCondition = node.typeCondition?.name.value ?? '';
             // if you have a better idea, send a PR :)
-            const sortedNodes = normalizeWhiteSpace(
-              cacheResult(sortNodes(node.selectionSet.selections))
-                .map(node => print(node))
-                .join(' ')
+            const sortedNodes = buildInlineFragmentSelectionSetKey(
+              cacheResult(sortExecutableNodes(node.selectionSet.selections))
             );
             return `2` + typeCondition + sortedNodes;
           }
@@ -78,4 +76,6 @@ function isOfKindList<T extends ASTNode>(nodes: readonly ASTNode[], kind: string
   return typeof kind === 'string' ? nodes[0].kind === kind : kind.includes(nodes[0].kind);
 }
 
-// function buildSelectionSetKey
+function buildInlineFragmentSelectionSetKey(nodes: readonly ASTNode[]): string {
+  return normalizeWhiteSpace(nodes.map(node => print(node)).join(' '));
+}
