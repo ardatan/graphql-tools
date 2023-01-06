@@ -53,16 +53,16 @@ export function sortExecutableNodes(nodes: readonly ASTNode[] | undefined): read
       return cacheResult(
         sortBy(nodes, node => {
           if (node.kind === Kind.FIELD) {
-            return `0` + node.name.value;
+            return sortPrefixField + node.name.value;
           } else if (node.kind === Kind.FRAGMENT_SPREAD) {
-            return `1` + node.name.value;
+            return sortPrefixFragmentSpread + node.name.value;
           } else {
             const typeCondition = node.typeCondition?.name.value ?? '';
             // if you have a better idea, send a PR :)
             const sortedNodes = buildInlineFragmentSelectionSetKey(
               cacheResult(sortExecutableNodes(node.selectionSet.selections))
             );
-            return `2` + typeCondition + sortedNodes;
+            return sortPrefixInlineFragmentNode + typeCondition + sortedNodes;
           }
         })
       );
@@ -71,6 +71,10 @@ export function sortExecutableNodes(nodes: readonly ASTNode[] | undefined): read
     return cacheResult(sortBy(nodes, 'kind', 'name.value'));
   }
 }
+
+const sortPrefixField = '0';
+const sortPrefixFragmentSpread = '1';
+const sortPrefixInlineFragmentNode = '2';
 
 function isOfKindList<T extends ASTNode>(nodes: readonly ASTNode[], kind: string | string[]): nodes is T[] {
   return typeof kind === 'string' ? nodes[0].kind === kind : kind.includes(nodes[0].kind);
