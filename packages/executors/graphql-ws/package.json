@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@types/ws": "^8.0.0",
-    "ws": "8.11.0",
+    "ws": "8.12.0",
     "isomorphic-ws": "5.0.0",
     "@graphql-tools/utils": "9.1.3",
     "@repeaterjs/repeater": "3.0.4",
