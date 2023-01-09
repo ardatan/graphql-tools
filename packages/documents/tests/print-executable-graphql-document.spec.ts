@@ -1,4 +1,4 @@
-import { printExecutableGraphQLDocument } from '@graphql-tools/print-graphql-document-stable';
+import { printExecutableGraphQLDocument } from '@graphql-tools/documents';
 import { parse } from 'graphql';
 
 describe('printExecutableGraphQLDocument', () => {

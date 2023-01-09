@@ -1,11 +1,11 @@
 {
-  "name": "@graphql-tools/print-graphql-document-stable",
+  "name": "@graphql-tools/documents",
   "version": "0.0.0",
-  "description": "Print a GraphQL document in a stable way.",
+  "description": "Utilities for GraphQL documents.",
   "repository": {
     "type": "git",
     "url": "ardatan/graphql-tools",
-    "directory": "packages/print-graphql-document-stable"
+    "directory": "packages/documents"
   },
   "license": "MIT",
   "sideEffects": false,
