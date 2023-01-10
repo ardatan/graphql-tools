@@ -1,4 +1,4 @@
-import { GraphQLObjectType, isObjectType, isInterfaceType } from 'graphql';
+import { GraphQLObjectType, isObjectType, isInterfaceType, getNamedType } from 'graphql';
 
 import { SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 
@@ -166,8 +166,9 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
     for (const [fieldName, field] of Object.entries(type.getFields())) {
       const mergeConfig = subschemaConfig.merge[typeName].fields?.[fieldName];
       if (mergeConfig) {
-        if (isObjectType(field.type)) {
-          returnTypes[field.type.name] = true;
+        const namedType = getNamedType(field.type);
+        if (isObjectType(namedType)) {
+          returnTypes[namedType.name] = true;
         }
       }
     }
