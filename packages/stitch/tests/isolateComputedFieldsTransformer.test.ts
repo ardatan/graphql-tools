@@ -175,7 +175,7 @@ describe('isolateComputedFieldsTransformer', () => {
 
       expect(
         Object.keys((computedSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields())
-      ).toEqual([]);
+      ).toEqual(['_products']);
       expect(
         Object.keys((computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())
       ).toEqual(['shippingEstimate']);
