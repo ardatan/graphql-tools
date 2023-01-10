@@ -114,7 +114,7 @@ describe('isolateComputedFieldsTransformer', () => {
     });
   });
 
-  describe.only('object return type', () => {
+  describe('object return type', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
         type ShippingEstimate {
