@@ -144,6 +144,7 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
   }
 
   const interfaceFields: Record<string, Record<string, boolean>> = {};
+  const returnTypes: Record<string, boolean> = {};
   for (const typeName in subschemaConfig.merge) {
     const type = subschemaConfig.schema.getType(typeName);
     if (!type || !('getInterfaces' in type)) {
@@ -161,13 +162,23 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
         }
       }
     }
+
+    for (const [fieldName, field] of Object.entries(type.getFields())) {
+      const mergeConfig = subschemaConfig.merge[typeName].fields?.[fieldName];
+      if (mergeConfig) {
+        if (isObjectType(field.type)) {
+          returnTypes[field.type.name] = true;
+        }
+      }
+    }
   }
 
   const filteredSchema = pruneSchema(
     filterSchema({
       schema: subschemaConfig.schema,
       rootFieldFilter: (operation, fieldName) => operation === 'Query' && rootFields[fieldName] != null,
-      objectFieldFilter: (typeName, fieldName) => subschemaConfig.merge[typeName]?.fields?.[fieldName] != null,
+      objectFieldFilter: (typeName, fieldName) =>
+        returnTypes[typeName] || subschemaConfig.merge[typeName]?.fields?.[fieldName] != null,
       interfaceFieldFilter: (typeName, fieldName) => interfaceFields[typeName]?.[fieldName] != null,
     })
   );
