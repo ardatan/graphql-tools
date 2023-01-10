@@ -119,6 +119,75 @@ describe('isolateComputedFieldsTransformer', () => {
     });
   });
 
+  describe.only('object return type', () => {
+    const storefrontSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type ShippingEstimate {
+          amount: Float!
+          vat: Float!
+        }
+
+        type Product {
+          id: ID!
+          shippingEstimate: ShippingEstimate!
+        }
+
+        input ProductRepresentation {
+          id: ID!
+          price: Float
+          weight: Int
+        }
+
+        type Query {
+          _products(representations: [ProductRepresentation!]!): [Product]!
+        }
+      `,
+    });
+
+    it('splits a subschema into base and computed portions', async () => {
+      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+        schema: storefrontSchema,
+        merge: {
+          Product: {
+            selectionSet: '{ id weight }',
+            fields: {
+              shippingEstimate: {
+                selectionSet: '{ price }',
+                computed: true,
+              },
+            },
+            fieldName: '_products',
+            key: ({ id, price, weight }) => ({ id, price, weight }),
+            argsFromKeys: representations => ({ representations }),
+          },
+        },
+      });
+
+      const baseSubschema = new Subschema(baseConfig);
+      const computedSubschema = new Subschema(computedConfig);
+
+      expect(Object.keys((baseSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields())).toEqual([
+        '_products',
+      ]);
+      expect(
+        Object.keys((baseSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())
+      ).toEqual(['id']);
+
+      expect(
+        Object.keys((computedSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields())
+      ).toEqual([]);
+      expect(
+        Object.keys((computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())
+      ).toEqual(['shippingEstimate']);
+
+      assertSome(baseSubschema.merge);
+      assertSome(computedSubschema.merge);
+      expect(computedSubschema.merge['Product'].fields).toEqual({
+        shippingEstimate: { selectionSet: '{ price }', computed: true },
+      });
+    });
+  });
+
   describe('fully computed type', () => {
     const storefrontSchema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
