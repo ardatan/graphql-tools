@@ -528,14 +528,14 @@
               }
             ],
             "title": "`schemaFromExecutor(executor, [context])`",
-            "anchor": "introspectschemaexecutor-context"
+            "anchor": "schemafromexecutorexecutor-context"
           }
         ],
         "title": "API",
         "anchor": "api"
       }
     ],
-    "content": "75febe30c3f0f67a21685bbc8dfa74dd",
+    "content": "bc673efc7a7d8bb9af5f82baa040f44f",
     "url": "https://www.the-guild.dev/graphql/tools/docs/remote-schemas",
     "domain": "https://www.the-guild.dev/graphql/tools/",
     "hierarchy": ["Docs"],
