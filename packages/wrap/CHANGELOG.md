@@ -1,5 +1,20 @@
 # @graphql-tools/wrap
 
+## 9.3.0
+
+### Minor Changes
+
+- [#4960](https://github.com/ardatan/graphql-tools/pull/4960) [`499365aa`](https://github.com/ardatan/graphql-tools/commit/499365aa3f33148a47e708351416b6a54c17655a) Thanks [@ardatan](https://github.com/ardatan)! - Deprecate \`introspectSchema\` in favor of the new \`schemaFromExecutor\`
+
+### Patch Changes
+
+- [#4943](https://github.com/ardatan/graphql-tools/pull/4943) [`a4d36fcc`](https://github.com/ardatan/graphql-tools/commit/a4d36fccce6113843a55b77c96328727f4c748bc) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`value-or-promise@1.0.12` ↗︎](https://www.npmjs.com/package/value-or-promise/v/1.0.12) (from `1.0.11`, in `dependencies`)
+- Updated dependencies [[`a4d36fcc`](https://github.com/ardatan/graphql-tools/commit/a4d36fccce6113843a55b77c96328727f4c748bc), [`a4d36fcc`](https://github.com/ardatan/graphql-tools/commit/a4d36fccce6113843a55b77c96328727f4c748bc), [`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591)]:
+  - @graphql-tools/delegate@9.0.22
+  - @graphql-tools/schema@9.0.13
+  - @graphql-tools/utils@9.1.4
+
 ## 9.2.23
 
 ### Patch Changes

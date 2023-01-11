@@ -1,5 +1,14 @@
 # @graphql-tools/batch-execute
 
+## 8.5.15
+
+### Patch Changes
+
+- [#4943](https://github.com/ardatan/graphql-tools/pull/4943) [`a4d36fcc`](https://github.com/ardatan/graphql-tools/commit/a4d36fccce6113843a55b77c96328727f4c748bc) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`value-or-promise@1.0.12` ↗︎](https://www.npmjs.com/package/value-or-promise/v/1.0.12) (from `1.0.11`, in `dependencies`)
+- Updated dependencies [[`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591)]:
+  - @graphql-tools/utils@9.1.4
+
 ## 8.5.14
 
 ### Patch Changes
