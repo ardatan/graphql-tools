@@ -476,7 +476,7 @@ function resolveField({
   const fieldPathStr = fieldPath.join('.');
   let fieldName = field.name;
   if (fieldTypeMap.has(fieldPathStr) && fieldTypeMap.get(fieldPathStr) !== field.type.toString()) {
-    fieldName += (field.type as any).toString().replace('!', 'NonNull');
+    fieldName += (field.type as any).toString().replace('!', 'NonNull').replace('[', 'List').replace(']', '');
   }
   fieldTypeMap.set(fieldPathStr, field.type.toString());
 
