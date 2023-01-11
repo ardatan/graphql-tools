@@ -1,7 +1,7 @@
 import { PubSub } from 'graphql-subscriptions';
 import { GraphQLSchema, Kind, GraphQLScalarType, ValueNode, GraphQLResolveInfo, GraphQLInterfaceType } from 'graphql';
 
-import { introspectSchema } from '@graphql-tools/wrap';
+import { schemaFromExecutor } from '@graphql-tools/wrap';
 import { AsyncExecutor, createGraphQLError, IResolvers } from '@graphql-tools/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
@@ -648,7 +648,7 @@ export const subscriptionSchema: GraphQLSchema = makeExecutableSchema({
 
 export async function makeSchemaRemote(schema: GraphQLSchema): Promise<SubschemaConfig> {
   const executor = createDefaultExecutor(schema);
-  const clientSchema = await introspectSchema(executor as AsyncExecutor);
+  const clientSchema = await schemaFromExecutor(executor as AsyncExecutor);
   return {
     schema: clientSchema,
     executor,
