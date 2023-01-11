@@ -19,6 +19,7 @@ import {
   AggregateError,
   createGraphQLError,
   inspect,
+  MaybePromise,
 } from '@graphql-tools/utils';
 
 function getSchemaFromIntrospection(
@@ -41,21 +42,32 @@ function getSchemaFromIntrospection(
   );
 }
 
-export function introspectSchema(
+export type SchemaFromExecutorOptions = Partial<IntrospectionOptions> &
+  Parameters<typeof buildClientSchema>[1] &
+  ParseOptions;
+
+export const introspectSchema = function introspectSchema(...args) {
+  console.warn(
+    `\`introspectSchema\` is deprecated, and will be removed in the next major. Please use \`schemaFromExecutor\` instead.`
+  );
+  return schemaFromExecutor(...(args as Parameters<typeof schemaFromExecutor>));
+} as typeof schemaFromExecutor;
+
+export function schemaFromExecutor(
   executor: SyncExecutor,
   context?: Record<string, any>,
-  options?: Partial<IntrospectionOptions> & Parameters<typeof buildClientSchema>[1] & ParseOptions
+  options?: SchemaFromExecutorOptions
 ): GraphQLSchema;
-export function introspectSchema(
+export function schemaFromExecutor(
   executor: AsyncExecutor,
   context?: Record<string, any>,
-  options?: Partial<IntrospectionOptions> & Parameters<typeof buildClientSchema>[1] & ParseOptions
+  options?: SchemaFromExecutorOptions
 ): Promise<GraphQLSchema>;
-export function introspectSchema(
+export function schemaFromExecutor(
   executor: Executor,
   context?: Record<string, any>,
-  options?: Partial<IntrospectionOptions> & Parameters<typeof buildClientSchema>[1] & ParseOptions
-): Promise<GraphQLSchema> | GraphQLSchema {
+  options?: SchemaFromExecutorOptions
+): MaybePromise<GraphQLSchema> {
   const parsedIntrospectionQuery = parse(getIntrospectionQuery(options as any), options);
   return new ValueOrPromise(() =>
     executor({

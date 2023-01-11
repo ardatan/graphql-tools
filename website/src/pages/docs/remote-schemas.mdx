@@ -26,14 +26,14 @@ Check out [Schema Loading](/docs/schema-loading) to load schemas from an URL and
 Generally, to create a remote schema, you generally need just three steps:
 
 1. Create an [executor](#creating-an-executor) that can retrieve results from that schema
-2. Use [`introspectSchema`](#introspectschemaexecutor-context) to get the non-executable schema of the remote server
+2. Use [`schemaFromExecutor`](#introspectschemaexecutor-context) to get the non-executable schema of the remote server
 3. Use [`wrapSchema`](#wrapschemaschemaconfig) to create a schema that uses the executor to delegate requests to the underlying service
 
 ### Creating an Executor
 
 You can use an executor with an HTTP Client implementation (like cross-fetch). An executor is a function capable of retrieving GraphQL results. It is the same way that a GraphQL Client handles fetching data and is used by several `graphql-tools` features to do introspection or fetch results during execution.
 
-We've chosen to split this functionality up to give you the flexibility to choose when to do the introspection step. For example, you might already have the remote schema information, allowing you to skip the `introspectSchema` step entirely. Here's a complete example:
+We've chosen to split this functionality up to give you the flexibility to choose when to do the introspection step. For example, you might already have the remote schema information, allowing you to skip the `schemaFromExecutor` step entirely. Here's a complete example:
 
 ```ts
 type Executor = (request: Request) => Promise<ExecutionResult>
@@ -53,7 +53,7 @@ Basic usage
 ```js
 import { fetch } from '@whatwg-node/fetch'
 import { print } from 'graphql'
-import { introspectSchema, wrapSchema } from '@graphql-tools/wrap'
+import { schemaFromExecutor, wrapSchema } from '@graphql-tools/wrap'
 import { AsyncExecutor } from '@graphql-tools/utils'
 
 const executor: AsyncExecutor = async ({ document, variables }) => {
@@ -70,7 +70,7 @@ const executor: AsyncExecutor = async ({ document, variables }) => {
 
 export default async () => {
   const schema = wrapSchema({
-    schema: await introspectSchema(executor),
+    schema: await schemaFromExecutor(executor),
     executor
   })
   return schema
@@ -82,7 +82,7 @@ Authentication headers from the context
 ```js
 import { fetch } from '@whatwg-node/fetch'
 import { print } from 'graphql'
-import { introspectSchema, wrapSchema } from '@graphql-tools/wrap'
+import { schemaFromExecutor, wrapSchema } from '@graphql-tools/wrap'
 import { AsyncExecutor } from '@graphql-tools/utils'
 
 const executor: AsyncExecutor = async ({ document, variables, context }) => {
@@ -100,7 +100,7 @@ const executor: AsyncExecutor = async ({ document, variables, context }) => {
 
 export default async () => {
   const schema = wrapSchema({
-    schema: await introspectSchema(executor),
+    schema: await schemaFromExecutor(executor),
     executor
   })
 
@@ -119,7 +119,7 @@ For the following example to work, the server must implement the [library's tran
 With this executor, all operations (query, mutation and subscription) will be executed over `graphql-ws`.
 
 ```ts
-import { wrapSchema, introspectSchema } from '@graphql-tools/wrap'
+import { wrapSchema, schemaFromExecutor } from '@graphql-tools/wrap'
 import { observableToAsyncIterable, AsyncExecutor } from '@graphql-tools/utils'
 import { createClient } from 'graphql-ws'
 import { print } from 'graphql'
@@ -159,7 +159,7 @@ const executor: AsyncExecutor = async ({ document, variables }) =>
 
 export default async () => {
   const schema = wrapSchema({
-    schema: await introspectSchema(executor),
+    schema: await schemaFromExecutor(executor),
     executor
   })
 
@@ -174,7 +174,7 @@ For the following example to work, the server must implement the [GraphQL over S
 With this executor, all operations (query, mutation and subscription) will be executed over `graphql-sse`.
 
 ```ts
-import { wrapSchema, introspectSchema } from '@graphql-tools/wrap'
+import { wrapSchema, schemaFromExecutor } from '@graphql-tools/wrap'
 import { AsyncExecutor } from '@graphql-tools/utils'
 import { fetch, AbortController } from '@whatwg-node/fetch'
 import { observableToAsyncIterable } from '@graphql-tools/utils'
@@ -221,7 +221,7 @@ const executor: AsyncExecutor = async ({ document, variables, operationName, ext
 
 export default async () => {
   const schema = wrapSchema({
-    schema: await introspectSchema(executor),
+    schema: await schemaFromExecutor(executor),
     executor
   })
 
@@ -236,7 +236,7 @@ Sometimes you only want to do subscription operations over WebSocket. In that ca
 With this executor query and mutation operations will be executed over HTTP (using `@whatwg-node/fetch`) and subscription operations will be executed via WebSocket (using `graphql-ws`).
 
 ```ts
-import { wrapSchema, introspectSchema } from '@graphql-tools/wrap'
+import { wrapSchema, schemaFromExecutor } from '@graphql-tools/wrap'
 import { fetch } from '@whatwg-node/fetch'
 import { print, getOperationAST, OperationTypeNode } from 'graphql'
 import { observableToAsyncIterable, AsyncExecutor } from '@graphql-tools/utils'
@@ -303,7 +303,7 @@ const executor: AsyncExecutor = async args => {
 
 export default async () => {
   const schema = wrapSchema({
-    schema: await introspectSchema(executor),
+    schema: await schemaFromExecutor(executor),
     executor
   })
 
@@ -313,19 +313,19 @@ export default async () => {
 
 ## API
 
-### `introspectSchema(executor, [context])`
+### `schemaFromExecutor(executor, [context])`
 
-Use `executor` to obtain a non-executable client schema from a remote schema using a full introspection query. `introspectSchema` is used to acquire the non-executable form of a remote schema that must be passed to `wrapSchema`. It returns a promise to a non-executable GraphQL.js schema object. Accepts optional second argument `context`, which is passed to the executor; see the docs about executors above for more details.
+Use `executor` to obtain a non-executable client schema from a remote schema using a full introspection query. `schemaFromExecutor` is used to acquire the non-executable form of a remote schema that must be passed to `wrapSchema`. It returns a promise to a non-executable GraphQL.js schema object. Accepts optional second argument `context`, which is passed to the executor; see the docs about executors above for more details.
 
 ```js
-import { introspectSchema } from '@graphql-tools/wrap'
+import { schemaFromExecutor } from '@graphql-tools/wrap'
 
-introspectSchema(executor).then(schema => {
+schemaFromExecutor(executor).then(schema => {
   // use the schema
 })
 
 // or with async/await:
-const schema = await introspectSchema(executor)
+const schema = await schemaFromExecutor(executor)
 ```
 
 ### `wrapSchema(schemaConfig)`

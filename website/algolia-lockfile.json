@@ -527,7 +527,7 @@
                 "anchor": "wrapschemaschemaconfig"
               }
             ],
-            "title": "`introspectSchema(executor, [context])`",
+            "title": "`schemaFromExecutor(executor, [context])`",
             "anchor": "introspectschemaexecutor-context"
           }
         ],

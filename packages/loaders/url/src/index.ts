@@ -11,7 +11,7 @@ import {
   parseGraphQLSDL,
   getOperationASTFromRequest,
 } from '@graphql-tools/utils';
-import { introspectSchema, wrapSchema } from '@graphql-tools/wrap';
+import { schemaFromExecutor, wrapSchema } from '@graphql-tools/wrap';
 import WebSocket from 'isomorphic-ws';
 import { ValueOrPromise } from 'value-or-promise';
 import { defaultAsyncFetch } from './defaultAsyncFetch.js';
@@ -360,7 +360,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           : undefined);
     } else {
       executor = this.getExecutorAsync(pointer, options);
-      source.schema = await introspectSchema(executor, {}, options);
+      source.schema = await schemaFromExecutor(executor, {}, options);
     }
 
     if (!source.schema) {
@@ -406,7 +406,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           : undefined);
     } else {
       executor = this.getExecutorSync(pointer, options);
-      source.schema = introspectSchema(executor, {}, options);
+      source.schema = schemaFromExecutor(executor, {}, options);
     }
 
     if (!source.schema) {
