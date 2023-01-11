@@ -1,6 +1,7 @@
 import { print, parse, buildSchema, ASTNode, OperationTypeNode } from 'graphql';
 
 import { buildOperationNodeForField } from '../src/build-operation-for-field.js';
+import { parseGraphQLSDL } from '../src/parse-graphql-sdl.js';
 
 function clean(doc: string | ASTNode) {
   return print(typeof doc === 'string' ? parse(doc) : doc).trim();
@@ -46,6 +47,16 @@ const schema = buildSchema(/* GraphQL */ `
     comments(filter: String!): [String!]!
   }
 
+  type BestFood {
+    recommendation: Food
+  }
+
+  type BestFoods {
+    recommendation: [Food]
+  }
+
+  union Recommendations = BestFood | BestFoods
+
   type Query {
     me: User
     user(id: ID!): User
@@ -53,6 +64,7 @@ const schema = buildSchema(/* GraphQL */ `
     menu: [Food]
     menuByIngredients(ingredients: [String!]!): [Food]
     feed: [Post]
+    recommendations: Recommendations
   }
 
   type Mutation {
@@ -639,4 +651,17 @@ test('selectedFields', async () => {
       }
     `)
   );
+});
+
+test('should handle array field types used for alias field names', async () => {
+  const document = buildOperationNodeForField({
+    schema,
+    kind: 'query' as OperationTypeNode,
+    field: 'recommendations',
+    depthLimit: 3,
+  })!;
+  const virtualFileName = document.name?.value || 'defaultName';
+  const rawSDL = print(document);
+  const source = parseGraphQLSDL(`${virtualFileName}.graphql`, rawSDL);
+  expect(source).toBeDefined();
 });
