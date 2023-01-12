@@ -45,7 +45,7 @@ export interface HTTPExecutorOptions {
   /**
    * Additional headers to include when querying the original schema
    */
-  headers?: HeadersConfig | ((executorRequest: ExecutionRequest) => HeadersConfig);
+  headers?: HeadersConfig | ((executorRequest?: ExecutionRequest) => HeadersConfig);
   /**
    * HTTP method to use when querying the original schema.
    */
