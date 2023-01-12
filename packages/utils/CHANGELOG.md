@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 9.1.4
+
+### Patch Changes
+
+- [#4961](https://github.com/ardatan/graphql-tools/pull/4961) [`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591) Thanks [@gilgardosh](https://github.com/gilgardosh)! - Bug fix: better handle array field types used for alias field names
+
 ## 9.1.3
 
 ### Patch Changes

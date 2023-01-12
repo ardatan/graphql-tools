@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/github-loader",
-  "version": "7.3.22",
+  "version": "7.3.23",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -52,8 +52,8 @@
   },
   "dependencies": {
     "@ardatan/sync-fetch": "0.0.1",
-    "@graphql-tools/utils": "9.1.3",
-    "@graphql-tools/graphql-tag-pluck": "7.4.2",
+    "@graphql-tools/utils": "9.1.4",
+    "@graphql-tools/graphql-tag-pluck": "7.4.3",
     "@whatwg-node/fetch": "^0.6.0",
     "tslib": "^2.4.0"
   },
