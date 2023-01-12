@@ -329,7 +329,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
     return new ValueOrPromise<any>(() =>
       fetch(pointer, {
         method: defaultMethod,
-        headers: options.headers,
+        headers: typeof options?.headers === 'function' ? options.headers() : options?.headers,
       })
     )
       .then(response => response.text())
