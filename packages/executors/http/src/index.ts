@@ -75,6 +75,10 @@ export function buildHTTPExecutor(
   options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: AsyncFetchFn }
 ): AsyncExecutor<any, HTTPExecutorOptions>;
 
+export function buildHTTPExecutor(
+  options?: Omit<HTTPExecutorOptions, 'fetch'>
+): AsyncExecutor<any, HTTPExecutorOptions>;
+
 export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, HTTPExecutorOptions> {
   const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
     const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
