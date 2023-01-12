@@ -45,7 +45,7 @@ export interface HTTPExecutorOptions {
   /**
    * Additional headers to include when querying the original schema
    */
-  headers?: HeadersConfig;
+  headers?: HeadersConfig | ((executorRequest: ExecutionRequest) => HeadersConfig);
   /**
    * HTTP method to use when querying the original schema.
    */
@@ -103,7 +103,7 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
       {
         accept,
       },
-      options?.headers,
+      (typeof options?.headers === 'function' ? options.headers(request) : options?.headers) || {},
       request.extensions?.headers || {}
     );
 
