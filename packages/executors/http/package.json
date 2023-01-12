@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-http",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",

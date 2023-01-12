@@ -1,5 +1,15 @@
 # @graphql-tools/executor-http
 
+## 0.1.0
+
+### Minor Changes
+
+- [#4963](https://github.com/ardatan/graphql-tools/pull/4963) [`be24e9ef`](https://github.com/ardatan/graphql-tools/commit/be24e9efaaf0f159e32d8f6271275df202240ad5) Thanks [@ardatan](https://github.com/ardatan)! - Support factory function for headers
+
+### Patch Changes
+
+- [#4963](https://github.com/ardatan/graphql-tools/pull/4963) [`be24e9ef`](https://github.com/ardatan/graphql-tools/commit/be24e9efaaf0f159e32d8f6271275df202240ad5) Thanks [@ardatan](https://github.com/ardatan)! - Fix signature of default http executor
+
 ## 0.0.9
 
 ### Patch Changes
