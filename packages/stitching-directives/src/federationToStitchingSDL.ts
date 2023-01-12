@@ -22,7 +22,7 @@ type EntityKind =
   | InterfaceTypeDefinitionNode
   | InterfaceTypeExtensionNode;
 
-const entityKinds: typeof Kind[keyof typeof Kind][] = [
+const entityKinds: (typeof Kind)[keyof typeof Kind][] = [
   Kind.OBJECT_TYPE_DEFINITION,
   Kind.OBJECT_TYPE_EXTENSION,
   Kind.INTERFACE_TYPE_DEFINITION,
