@@ -1,16 +1,10 @@
 import { wrapSchema, TransformEnumValues } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { GraphQLEnumType, parse, printType } from 'graphql';
+import { buildSchema, parse, printType } from 'graphql';
 import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { delegateToSchema } from '@graphql-tools/delegate';
-
-function assertGraphQLEnumType(input: unknown): asserts input is GraphQLEnumType {
-  if (input instanceof GraphQLEnumType) {
-    return;
-  }
-  throw new Error('Expected GraphQLEnumType.');
-}
+import { printSchemaWithDirectives } from '@graphql-tools/utils';
 
 describe('TransformEnumValues', () => {
   test('works', async () => {
@@ -48,54 +42,6 @@ describe('TransformEnumValues', () => {
     });
     if (isIncrementalResult(result)) throw Error('result is incremental');
     expect(result.errors).toBeUndefined();
-  });
-
-  test('allows modification of external and internal values', async () => {
-    const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */ `
-        enum TestEnum {
-          ONE
-        }
-
-        type Query {
-          test(argument: TestEnum): TestEnum
-        }
-      `,
-      resolvers: {
-        Query: {
-          test: (_root, { argument }) => argument,
-        },
-      },
-    });
-
-    const transformedSchema = wrapSchema({
-      schema,
-      transforms: [
-        new TransformEnumValues((_typeName, _externalValue, valueConfig) => [
-          'UNO',
-          {
-            ...valueConfig,
-            value: 'ONE',
-          },
-        ]),
-      ],
-    });
-
-    const query = /* GraphQL */ `
-      {
-        test(argument: UNO)
-      }
-    `;
-
-    const result = await execute({
-      schema: transformedSchema,
-      document: parse(query),
-    });
-    if (isIncrementalResult(result)) throw Error('result is incremental');
-    expect(result.errors).toBeUndefined();
-    const TestEnum = transformedSchema.getType('TestEnum');
-    assertGraphQLEnumType(TestEnum);
-    expect(TestEnum.getValue('UNO')?.value).toBe('ONE');
   });
 
   test('works with variables', async () => {
@@ -356,5 +302,44 @@ describe('TransformEnumValues', () => {
         },
       },
     });
+  });
+  it('should print a stitched schema with a transformed default value', () => {
+    const typeDefs = /* GraphQL */ `
+      enum TestEnum {
+        one
+        two
+        three
+      }
+      type Query {
+        testEnum(argument: TestEnum = one): TestEnum
+      }
+    `;
+    const schema = stitchSchemas({
+      subschemas: [
+        {
+          schema: buildSchema(typeDefs),
+          transforms: [
+            new TransformEnumValues((_typeName, externalValue, valueConfig) => {
+              return [externalValue.toUpperCase(), valueConfig];
+            }),
+          ],
+        },
+      ],
+    });
+    expect(printSchemaWithDirectives(schema)).toMatchInlineSnapshot(`
+      "schema {
+        query: Query
+      }
+
+      type Query {
+        testEnum(argument: TestEnum = ONE): TestEnum
+      }
+
+      enum TestEnum {
+        ONE
+        TWO
+        THREE
+      }"
+    `);
   });
 });

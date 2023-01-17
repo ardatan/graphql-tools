@@ -18,8 +18,8 @@ export const wrapSchema = memoize1(function wrapSchema<TConfig extends Record<st
 
   const proxyingResolvers = generateProxyingResolvers(subschemaConfig);
   const schema = createWrappingSchema(targetSchema, proxyingResolvers);
-
-  return applySchemaTransforms(schema, subschemaConfig);
+  const transformed = applySchemaTransforms(schema, subschemaConfig);
+  return transformed;
 });
 
 function createWrappingSchema(
@@ -27,52 +27,44 @@ function createWrappingSchema(
   proxyingResolvers: Record<string, Record<string, GraphQLFieldResolver<any, any>>>
 ) {
   return mapSchema(schema, {
-    [MapperKind.ROOT_OBJECT]: type => {
-      const config = type.toConfig();
-
-      const fieldConfigMap = config.fields;
-      for (const fieldName in fieldConfigMap) {
-        const field = fieldConfigMap[fieldName];
-        if (field == null) {
-          continue;
-        }
-        fieldConfigMap[fieldName] = {
-          ...field,
-          ...proxyingResolvers[type.name]?.[fieldName],
-        };
-      }
-
-      return new GraphQLObjectType(config);
+    [MapperKind.ROOT_FIELD]: (fieldConfig, fieldName, typeName) => {
+      return {
+        ...fieldConfig,
+        ...proxyingResolvers[typeName]?.[fieldName],
+      };
+    },
+    [MapperKind.OBJECT_FIELD]: fieldConfig => {
+      return {
+        ...fieldConfig,
+        resolve: defaultMergedResolver,
+        subscribe: undefined,
+      };
     },
     [MapperKind.OBJECT_TYPE]: type => {
       const config = type.toConfig();
-      config.isTypeOf = undefined;
-
-      for (const fieldName in config.fields) {
-        const field = config.fields[fieldName];
-        if (field == null) {
-          continue;
-        }
-        field.resolve = defaultMergedResolver;
-        field.subscribe = undefined;
-      }
-
-      return new GraphQLObjectType(config);
+      return new GraphQLObjectType({
+        ...config,
+        isTypeOf: undefined,
+      });
     },
     [MapperKind.INTERFACE_TYPE]: type => {
       const config = type.toConfig();
-      delete config.resolveType;
-      return new GraphQLInterfaceType(config);
+      return new GraphQLInterfaceType({
+        ...config,
+        resolveType: undefined,
+      });
     },
     [MapperKind.UNION_TYPE]: type => {
       const config = type.toConfig();
-      delete config.resolveType;
-      return new GraphQLUnionType(config);
+      return new GraphQLUnionType({
+        ...config,
+        resolveType: undefined,
+      });
     },
-    [MapperKind.ENUM_VALUE]: (valueConfig, _typeName, _schema, externalValue) => {
+    [MapperKind.ENUM_VALUE]: valueConfig => {
       return {
         ...valueConfig,
-        value: externalValue,
+        value: undefined,
       };
     },
   });

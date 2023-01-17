@@ -1,6 +1,13 @@
 import { GraphQLSchema, GraphQLEnumValueConfig } from 'graphql';
 
-import { ExecutionRequest, ExecutionResult, MapperKind, mapSchema, Maybe } from '@graphql-tools/utils';
+import {
+  ExecutionRequest,
+  ExecutionResult,
+  MapperKind,
+  mapSchema,
+  Maybe,
+  transformInputValue,
+} from '@graphql-tools/utils';
 
 import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
@@ -42,6 +49,17 @@ export default class TransformEnumValues<TContext = Record<string, any>>
     this.transformedSchema = mapSchema(mappingSchema, {
       [MapperKind.ENUM_VALUE]: (valueConfig, typeName, _schema, externalValue) =>
         this.transformEnumValue(typeName, externalValue, valueConfig),
+      [MapperKind.ARGUMENT]: argConfig => {
+        if (argConfig.defaultValue != null) {
+          const newValue = transformInputValue(argConfig.type, argConfig.defaultValue, (type, value) => {
+            return this.mapping[type.name]?.[value] ?? value;
+          });
+          return {
+            ...argConfig,
+            defaultValue: newValue,
+          };
+        }
+      },
     });
     return this.transformedSchema;
   }
@@ -86,8 +104,18 @@ export default class TransformEnumValues<TContext = Record<string, any>>
         this.reverseMapping[typeName][newExternalValue] = externalValue;
         this.noTransformation = false;
       }
+      return [
+        newExternalValue,
+        {
+          ...transformedEnumValue[1],
+          value: undefined,
+        },
+      ];
     }
-    return transformedEnumValue;
+    return {
+      ...transformedEnumValue,
+      value: undefined,
+    };
   }
 }
 
