@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/stitch",
-  "version": "8.7.35",
+  "version": "8.7.36",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -62,7 +62,7 @@
     "@graphql-tools/merge": "8.3.15",
     "@graphql-tools/schema": "9.0.13",
     "@graphql-tools/utils": "9.1.4",
-    "@graphql-tools/wrap": "9.3.0",
+    "@graphql-tools/wrap": "9.3.1",
     "tslib": "^2.4.0",
     "value-or-promise": "^1.0.11"
   },

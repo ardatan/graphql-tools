@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 9.3.1
+
+### Patch Changes
+
+- [`fdb3e4c4`](https://github.com/ardatan/graphql-tools/commit/fdb3e4c4bbd004c92b52c55a0733793339822639) Thanks [@ardatan](https://github.com/ardatan)! - Fix enum value transformation with `stitchSchemas`
+
 ## 9.3.0
 
 ### Minor Changes

@@ -1,5 +1,13 @@
 # @graphql-tools/url-loader
 
+## 7.17.2
+
+### Patch Changes
+
+- Updated dependencies [[`d9bcb5b6`](https://github.com/ardatan/graphql-tools/commit/d9bcb5b642d7e9724cc1cc6499cf6cdcfd42c102), [`fdb3e4c4`](https://github.com/ardatan/graphql-tools/commit/fdb3e4c4bbd004c92b52c55a0733793339822639)]:
+  - @graphql-tools/executor-http@0.1.1
+  - @graphql-tools/wrap@9.3.1
+
 ## 7.17.1
 
 ### Patch Changes
