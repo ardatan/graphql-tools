@@ -1,5 +1,11 @@
 # @graphql-tools/executor-graphql-ws
 
+## 0.0.7
+
+### Patch Changes
+
+- [`1c291f33`](https://github.com/ardatan/graphql-tools/commit/1c291f33ba5e42126b5335530c1ac4cd6b3eaf6a) Thanks [@ardatan](https://github.com/ardatan)! - Support regular queries and mutations in WS Executor
+
 ## 0.0.6
 
 ### Patch Changes

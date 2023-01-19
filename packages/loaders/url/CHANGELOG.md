@@ -1,5 +1,14 @@
 # @graphql-tools/url-loader
 
+## 7.17.3
+
+### Patch Changes
+
+- [`1c291f33`](https://github.com/ardatan/graphql-tools/commit/1c291f33ba5e42126b5335530c1ac4cd6b3eaf6a) Thanks [@ardatan](https://github.com/ardatan)! - Support regular queries and mutations in WS Executor
+
+- Updated dependencies [[`1c291f33`](https://github.com/ardatan/graphql-tools/commit/1c291f33ba5e42126b5335530c1ac4cd6b3eaf6a)]:
+  - @graphql-tools/executor-graphql-ws@0.0.7
+
 ## 7.17.2
 
 ### Patch Changes
