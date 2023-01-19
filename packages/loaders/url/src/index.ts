@@ -1,4 +1,4 @@
-import { IntrospectionOptions, buildASTSchema, buildSchema } from 'graphql';
+import { IntrospectionOptions, buildASTSchema, buildSchema, OperationTypeNode } from 'graphql';
 
 import {
   AsyncExecutor,
@@ -159,7 +159,11 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
       https: 'wss',
       http: 'ws',
     });
-    return buildGraphQLWSExecutor(WS_URL, webSocketImpl, connectionParams);
+    return buildGraphQLWSExecutor({
+      url: WS_URL,
+      webSocketImpl,
+      connectionParams,
+    });
   }
 
   buildWSLegacyExecutor(
@@ -297,8 +301,14 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
 
       // eslint-disable-next-line no-inner-declarations
       function getExecutorByRequest(request: ExecutionRequest<any>): ValueOrPromise<Executor> {
-        const operationAst = getOperationASTFromRequest(request);
-        if (operationAst.operation === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
+        request.operationType = request.operationType || getOperationASTFromRequest(request)?.operation;
+        if (
+          request.operationType === 'subscription' &&
+          isLiveQueryOperationDefinitionNode(getOperationASTFromRequest(request))
+        ) {
+          request.operationType = OperationTypeNode.SUBSCRIPTION;
+        }
+        if (request.operationType === 'subscription') {
           return subscriptionExecutor$;
         } else {
           return httpExecutor$;
