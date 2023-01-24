@@ -1,4 +1,4 @@
-import { IntrospectionOptions, buildASTSchema, buildSchema, OperationTypeNode } from 'graphql';
+import { IntrospectionOptions, buildASTSchema, buildSchema } from 'graphql';
 
 import {
   AsyncExecutor,
@@ -306,7 +306,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
           request.operationType === 'subscription' &&
           isLiveQueryOperationDefinitionNode(getOperationASTFromRequest(request))
         ) {
-          request.operationType = OperationTypeNode.SUBSCRIPTION;
+          request.operationType = 'subscription' as any;
         }
         if (request.operationType === 'subscription') {
           return subscriptionExecutor$;

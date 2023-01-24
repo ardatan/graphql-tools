@@ -326,7 +326,7 @@ describe('TransformEnumValues', () => {
         },
       ],
     });
-    expect(printSchemaWithDirectives(schema)).toMatchInlineSnapshot(`
+    expect(printSchemaWithDirectives(schema).trim()).toMatchInlineSnapshot(`
       "schema {
         query: Query
       }
