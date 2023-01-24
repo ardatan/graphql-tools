@@ -3,16 +3,17 @@
 ## GraphQL Yoga Example
 
 ```js
-const { createServer } = require('@graphql-yoga/node')
-const { makeExecutableSchema } = require('@graphql-tools/schema')
+import { createSchema, createYoga } from 'graphql-yoga';
+import { createServer } from 'http'
 
 const typeDefs = require('./graphql/types')
 const resolvers = require('./graphql/resolvers')
 
-const schema = makeExecutableSchema({ typeDefs, resolvers })
-const server = createServer({ schema })
-
-server.start()
+createServer(
+  createYoga({ schema: createSchema({ typeDefs, resolvers })
+).listen(4000, () => {
+  console.log('GraphQL Server is listening on http://localhost:4000/graphql');
+})
 ```
 
 And you can test your queries using built-in [GraphiQL](https://github.com/graphql/graphiql/tree/master/packages/graphiql):
