@@ -18,6 +18,7 @@ import {
   ExecutionResult,
   assertSome,
   createGraphQLError,
+  isAsyncIterable,
 } from '@graphql-tools/utils';
 
 import { addMocksToSchema } from '@graphql-tools/mock';
@@ -33,7 +34,7 @@ import {
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from '../../testing/fixtures/schemas.js';
-import { execute, subscribe } from '@graphql-tools/executor';
+import { execute, normalizedExecutor, subscribe } from '@graphql-tools/executor';
 
 const removeLocations = ({ locations, positions, source, originalError, nodes, ...rest }: any): any => ({ ...rest });
 
@@ -3459,4 +3460,298 @@ it(`stitchSchemas shouldn't call transformSchema more than once`, async () => {
   });
 
   expect(transform.transformSchema).toHaveBeenCalledTimes(1);
+});
+
+it.only('should work', async () => {
+  const projects = [
+    {
+      id: '1',
+      name: 'Project 1',
+    },
+    {
+      id: '2',
+      name: 'Project 2',
+    },
+  ];
+  const projectSchema = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Project {
+        id: ID!
+        name: String!
+      }
+      type Query {
+        project(id: ID!): Project
+      }
+    `,
+    resolvers: {
+      Query: {
+        project: (_, { id }) => projects.find(project => project.id === id),
+      },
+    },
+  });
+  const folders = [
+    {
+      id: '1',
+      name: 'Folder 1',
+      projectId: '1',
+      assetIds: ['1', '2'],
+    },
+    {
+      id: '2',
+      name: 'Folder 2',
+      projectId: '2',
+      assetIds: ['3', '4'],
+    },
+  ];
+  const folderSchema = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Folder {
+        id: ID!
+        name: String!
+        assetIds: [ID!]!
+      }
+      type Query {
+        foldersByProjectId(projectId: ID!): [Folder!]!
+      }
+    `,
+    resolvers: {
+      Query: {
+        foldersByProjectId: (_, { projectId }) => folders.filter(folder => folder.projectId === projectId),
+      },
+    },
+  });
+  const assets = [
+    {
+      id: '1',
+      name: 'Asset 1',
+    },
+    {
+      id: '2',
+      name: 'Asset 2',
+    },
+    {
+      id: '3',
+      name: 'Asset 3',
+    },
+    {
+      id: '4',
+      name: 'Asset 4',
+    },
+  ];
+  const assetSchema = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Asset {
+        id: ID!
+        name: String!
+      }
+      type Query {
+        assetsByIds(ids: [ID!]!): [Asset!]!
+      }
+    `,
+    resolvers: {
+      Query: {
+        assetsByIds: (_, { ids }) => assets.filter(asset => ids.includes(asset.id)),
+      },
+    },
+  });
+  const subscriptionSchema = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Query {
+        _: String
+      }
+      type Subscription {
+        projectUsed: ProjectUsed!
+      }
+      type ProjectUsed {
+        projectId: ID!
+      }
+    `,
+    resolvers: {
+      Subscription: {
+        projectUsed: {
+          async *subscribe() {
+            for (const project of projects) {
+              yield {
+                projectUsed: {
+                  projectId: project.id,
+                },
+              };
+            }
+          },
+        },
+      },
+    },
+  });
+
+  const projectSubschema = {
+    schema: projectSchema,
+  };
+
+  const folderSubschema = {
+    schema: folderSchema,
+  };
+
+  const assetSubschema = {
+    schema: assetSchema,
+  };
+
+  const subscriptionSubschema = {
+    schema: subscriptionSchema,
+  };
+
+  const stitchedSchema = stitchSchemas({
+    subschemas: [projectSubschema, folderSubschema, assetSubschema, subscriptionSubschema],
+    typeDefs: /* GraphQL */ `
+      extend type Project {
+        folders: [Folder!]!
+      }
+      extend type Folder {
+        assets: [Asset!]!
+      }
+      extend type ProjectUsed {
+        project: Project!
+      }
+    `,
+    resolvers: {
+      Project: {
+        folders: {
+          selectionSet: '{ id }',
+          resolve: (project, _, context, info) => {
+            return delegateToSchema({
+              schema: folderSubschema,
+              operation: 'query' as any,
+              fieldName: 'foldersByProjectId',
+              args: {
+                projectId: project.id,
+              },
+              context,
+              info,
+            });
+          },
+        },
+      },
+      Folder: {
+        assets: {
+          selectionSet: '{ assetIds }',
+          resolve: (folder, _, context, info) => {
+            return delegateToSchema({
+              schema: assetSubschema,
+              operation: 'query' as any,
+              fieldName: 'assetsByIds',
+              args: {
+                ids: folder.assetIds,
+              },
+              context,
+              info,
+            });
+          },
+        },
+      },
+      ProjectUsed: {
+        project: {
+          selectionSet: '{ projectId }',
+          resolve: (projectUsed, _, context, info) => {
+            return delegateToSchema({
+              schema: projectSubschema,
+              operation: 'query' as any,
+              fieldName: 'project',
+              args: {
+                id: projectUsed.projectId,
+              },
+              context,
+              info,
+            });
+          },
+        },
+      },
+    },
+  });
+
+  const result = await normalizedExecutor({
+    schema: stitchedSchema,
+    document: parse(/* GraphQL */ `
+      subscription {
+        projectUsed {
+          projectId
+          project {
+            id
+            name
+            folders {
+              id
+              name
+              assets {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    `),
+  });
+  if (!isAsyncIterable(result)) {
+    throw new Error('Expected async iterable');
+  }
+  const payloads = [];
+  for await (const payload of result) {
+    payloads.push(payload);
+  }
+  expect(payloads).toMatchInlineSnapshot(`
+    [
+      {
+        "data": {
+          "projectUsed": {
+            "project": {
+              "folders": [
+                {
+                  "assets": [
+                    {
+                      "id": "1",
+                      "name": "Asset 1",
+                    },
+                    {
+                      "id": "2",
+                      "name": "Asset 2",
+                    },
+                  ],
+                  "id": "1",
+                  "name": "Folder 1",
+                },
+              ],
+              "id": "1",
+              "name": "Project 1",
+            },
+            "projectId": "1",
+          },
+        },
+      },
+      {
+        "data": {
+          "projectUsed": {
+            "project": {
+              "folders": [
+                {
+                  "assets": [
+                    {
+                      "id": "3",
+                      "name": "Asset 3",
+                    },
+                    {
+                      "id": "4",
+                      "name": "Asset 4",
+                    },
+                  ],
+                  "id": "2",
+                  "name": "Folder 2",
+                },
+              ],
+              "id": "2",
+              "name": "Project 2",
+            },
+            "projectId": "2",
+          },
+        },
+      },
+    ]
+  `);
 });
