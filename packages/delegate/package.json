@@ -58,7 +58,7 @@
     "@graphql-tools/schema": "9.0.14",
     "@graphql-tools/utils": "9.1.4",
     "dataloader": "2.1.0",
-    "tslib": "~2.4.0",
+    "tslib": "~2.5.0",
     "value-or-promise": "1.0.12"
   },
   "publishConfig": {
