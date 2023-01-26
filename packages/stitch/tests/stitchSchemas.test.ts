@@ -18,6 +18,7 @@ import {
   ExecutionResult,
   assertSome,
   createGraphQLError,
+  isAsyncIterable,
 } from '@graphql-tools/utils';
 
 import { addMocksToSchema } from '@graphql-tools/mock';
@@ -33,7 +34,8 @@ import {
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from '../../testing/fixtures/schemas.js';
-import { execute, subscribe } from '@graphql-tools/executor';
+import { execute, normalizedExecutor, subscribe } from '@graphql-tools/executor';
+import { stitchingDirectives } from '@graphql-tools/stitching-directives';
 
 const removeLocations = ({ locations, positions, source, originalError, nodes, ...rest }: any): any => ({ ...rest });
 
@@ -3459,4 +3461,244 @@ it(`stitchSchemas shouldn't call transformSchema more than once`, async () => {
   });
 
   expect(transform.transformSchema).toHaveBeenCalledTimes(1);
+});
+
+it.only('should be able to extend a transformed schema', async () => {
+  const projects = [
+    {
+      id: '1',
+      name: 'Project 1',
+      rootFolderId: '1',
+    },
+    {
+      id: '2',
+      name: 'Project 2',
+      rootFolderId: '2',
+    },
+  ];
+  const projectSchema = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      directive @key(selectionSet: String!) on OBJECT
+      type Project @key(selectionSet: "{ id }") {
+        id: ID!
+        name: String!
+        rootFolderId: ID!
+      }
+      type Query {
+        project(id: ID!): Project
+      }
+    `,
+    resolvers: {
+      Query: {
+        project: (_, { id }) => projects.find(project => project.id === id),
+      },
+    },
+  });
+
+  const folders = [
+    {
+      id: '1',
+      name: 'Folder 1',
+    },
+    {
+      id: '2',
+      name: 'Folder 2',
+    },
+  ];
+  const folderSchema = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      directive @key(selectionSet: String!) on OBJECT
+      directive @merge(
+        argsExpr: String
+        keyArg: String
+        keyField: String
+        key: [String!]
+        additionalArgs: String
+      ) on FIELD_DEFINITION
+      scalar _Any
+      union _Entity = Folder | Project
+      type Folder {
+        id: ID!
+        name: String!
+      }
+      type Project @key(selectionSet: "{ rootFolderId }") {
+        id: ID!
+        rootFolder: Folder!
+      }
+      type Query {
+        folder(id: ID!): Folder!
+        _entities(representations: [_Any!]!): [_Entity]! @merge
+      }
+    `,
+    resolvers: {
+      Query: {
+        folder: (_, { id }) => folders.find(folder => folder.id === id),
+        _entities: (_, { representations }: { representations: any[] }) =>
+          representations.map(rep => ({
+            ...rep,
+            rootFolder: folders.find(folder => folder.id === rep.rootFolderId),
+          })),
+      },
+    },
+  });
+  const subscriptionSchema = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Query {
+        _: String
+      }
+      type Subscription {
+        projectUsed: ProjectUsed!
+      }
+      type ProjectUsed {
+        projectId: ID!
+      }
+    `,
+    resolvers: {
+      Subscription: {
+        projectUsed: {
+          async *subscribe() {
+            for (const project of projects) {
+              yield {
+                projectUsed: {
+                  projectId: project.id,
+                },
+              };
+            }
+          },
+        },
+      },
+    },
+  });
+
+  const projectSubschema = {
+    schema: projectSchema,
+  };
+
+  const folderSubschema = {
+    schema: folderSchema,
+  };
+
+  const subscriptionSubschema = {
+    schema: subscriptionSchema,
+  };
+
+  const stitchedSchema = stitchSchemas({
+    subschemas: [projectSubschema, folderSubschema, subscriptionSubschema],
+    subschemaConfigTransforms: [stitchingDirectives().stitchingDirectivesTransformer],
+    typeDefs: /* GraphQL */ `
+      extend type ProjectUsed {
+        project: Project!
+      }
+    `,
+    resolvers: {
+      ProjectUsed: {
+        project: {
+          selectionSet: '{ projectId }',
+          resolve: (projectUsed, _, context, info) => {
+            return delegateToSchema({
+              schema: projectSubschema,
+              operation: 'query' as any,
+              fieldName: 'project',
+              args: {
+                id: projectUsed.projectId,
+              },
+              context,
+              info,
+            });
+          },
+        },
+      },
+    },
+  });
+
+  // Make sure first that the transformed schemas work before trying to extend them.
+  const resultWithoutSchemaExtension = await normalizedExecutor({
+    schema: stitchedSchema,
+    document: parse(/* GraphQL */ `
+      query {
+        project(id: "1") {
+          id
+          name
+          rootFolder {
+            id
+            name
+          }
+        }
+      }
+    `),
+  });
+  expect(resultWithoutSchemaExtension).toMatchInlineSnapshot(`
+    {
+      "data": {
+        "project": {
+          "id": "1",
+          "name": "Project 1",
+          "rootFolder": {
+            "id": "1",
+            "name": "Folder 1",
+          },
+        },
+      },
+    }
+  `);
+
+  const result = await normalizedExecutor({
+    schema: stitchedSchema,
+    document: parse(/* GraphQL */ `
+      subscription {
+        projectUsed {
+          projectId
+          project {
+            id
+            name
+            rootFolder {
+              id
+              name
+            }
+          }
+        }
+      }
+    `),
+  });
+  if (!isAsyncIterable(result)) {
+    throw new Error('Expected async iterable');
+  }
+  const payloads = [];
+  for await (const payload of result) {
+    payloads.push(payload);
+  }
+  expect(payloads).toMatchInlineSnapshot(`
+    [
+      {
+        "data": {
+          "projectUsed": {
+            "project": {
+              "id": "1",
+              "name": "Project 1",
+              "rootFolder": {
+                "id": "1",
+                "name": "Folder 1",
+              },
+            },
+            "projectId": "1",
+          },
+        },
+      },
+      {
+        "data": {
+          "projectUsed": {
+            "project": {
+              "id": "2",
+              "name": "Project 2",
+              "rootFolder": {
+                "id": "2",
+                "name": "Folder 2",
+              },
+            },
+            "projectId": "2",
+          },
+        },
+      },
+    ]
+  `);
 });
