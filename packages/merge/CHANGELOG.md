@@ -1,5 +1,11 @@
 # @graphql-tools/merge
 
+## 8.3.16
+
+### Patch Changes
+
+- [#4986](https://github.com/ardatan/graphql-tools/pull/4986) [`8555c5c5`](https://github.com/ardatan/graphql-tools/commit/8555c5c57094e14b6ed1380c6572e0681444496b) Thanks [@sramam](https://github.com/sramam)! - #4985 removing circular dependency
+
 ## 8.3.15
 
 ### Patch Changes

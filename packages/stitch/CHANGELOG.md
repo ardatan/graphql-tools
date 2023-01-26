@@ -1,5 +1,16 @@
 # @graphql-tools/stitch
 
+## 8.7.37
+
+### Patch Changes
+
+- Updated dependencies [[`8555c5c5`](https://github.com/ardatan/graphql-tools/commit/8555c5c57094e14b6ed1380c6572e0681444496b)]:
+  - @graphql-tools/merge@8.3.16
+  - @graphql-tools/schema@9.0.14
+  - @graphql-tools/batch-delegate@8.4.16
+  - @graphql-tools/delegate@9.0.23
+  - @graphql-tools/wrap@9.3.2
+
 ## 8.7.36
 
 ### Patch Changes
