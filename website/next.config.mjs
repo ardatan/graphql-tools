@@ -10,7 +10,7 @@ export default withGuildDocs({
       '/docs/schema-directives-legacy': '/docs/schema-directives',
       '/docs/schema-stitching': 'https://the-guild.dev/graphql/stitching',
       '/docs/stitch-api': 'https://the-guild.dev/graphql/stitching',
-      '/docs/stitch-combining-schemas': 'https://3274ca7d.schema-stitching.pages.dev/docs/approaches',
+      '/docs/stitch-combining-schemas': 'https://the-guild.dev/graphql/stitching/docs/approaches',
       '/docs/stitch-directives-sdl': 'https://the-guild.dev/graphql/stitching/docs/approaches/stitching-directives',
       '/docs/stitch-schema-extensions': 'https://the-guild.dev/graphql/stitching/docs/approaches/schema-extensions',
       '/docs/stitch-type-merging': 'https://the-guild.dev/graphql/stitching/docs/approaches/type-merging',

@@ -18,7 +18,7 @@ const FEATURE_LIST: IFeatureListProps['items'] = [
     },
     link: {
       children: 'Learn more',
-      href: '/docs/introduction',
+      href: '/docs/introduction#the-graphql-first-philosophy',
     },
   },
   {
@@ -33,7 +33,7 @@ const FEATURE_LIST: IFeatureListProps['items'] = [
     },
     link: {
       children: 'Learn more',
-      href: '/docs/introduction',
+      href: '/docs/mocking',
     },
   },
   {
@@ -48,7 +48,7 @@ const FEATURE_LIST: IFeatureListProps['items'] = [
     },
     link: {
       children: 'Learn more',
-      href: '/docs/introduction',
+      href: 'https://the-guild.dev/graphql/stitching',
     },
   },
 ];
