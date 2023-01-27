@@ -1,5 +1,12 @@
 # @graphql-tools/delegate
 
+## 9.0.24
+
+### Patch Changes
+
+- [#4995](https://github.com/ardatan/graphql-tools/pull/4995) [`772b948a`](https://github.com/ardatan/graphql-tools/commit/772b948ae536ac23520e704b33f450c94252f113) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`tslib@~2.5.0` ↗︎](https://www.npmjs.com/package/tslib/v/2.5.0) (from `~2.4.0`, in `dependencies`)
+
 ## 9.0.23
 
 ### Patch Changes
