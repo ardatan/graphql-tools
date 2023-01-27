@@ -3,20 +3,34 @@ import { execute } from '@graphql-tools/executor';
 import { parse } from 'graphql';
 import { handleRelaySubschemas, stitchSchemas } from '../src/index.js';
 
+function decodeBase64(str: string) {
+  return Buffer.from(str, 'base64').toString('utf-8');
+}
+function encodeBase64(str: string) {
+  return Buffer.from(str, 'utf-8').toString('base64');
+}
+function extractGlobalId(globalId: string) {
+  const [type, id] = decodeBase64(globalId).split(':');
+  return { type, id };
+}
+function makeGlobalId(type: string, id: string) {
+  return encodeBase64(`${type}:${id}`);
+}
+
 const users = [
   {
-    id: 'User_0',
+    id: 0,
     name: 'John Doe',
   },
   {
-    id: 'User_1',
+    id: 1,
     name: 'Jane Doe',
   },
 ];
 
 const posts = [
-  { id: 'Post_0', content: 'Lorem Ipsum', userId: 'User_1' },
-  { id: 'Post_1', content: 'Dolor Sit Amet', userId: 'User_0' },
+  { id: 0, content: 'Lorem Ipsum', userId: users[1] },
+  { id: 1, content: 'Dolor Sit Amet', userId: users[0] },
 ];
 
 describe('Relay', () => {
@@ -36,16 +50,16 @@ describe('Relay', () => {
       `,
       resolvers: {
         Node: {
-          __resolveType: ({ id }: { id: string }) => id.split('_')[0],
+          __resolveType: ({ id }: { id: string }) => extractGlobalId(id)?.type,
+          id: ({ __typename, id }: { __typename: string; id: string }) => makeGlobalId(__typename, id),
         },
         Query: {
-          node: (_, { id }) => {
-            if (id.startsWith('User_')) {
-              return users.find(user => user.id === id);
+          node: (_, { id: globalId }) => {
+            const { type, id } = extractGlobalId(globalId);
+            switch (type) {
+              case 'User':
+                return users.find(user => user.id === id);
             }
-            return {
-              id,
-            };
           },
         },
       },
@@ -58,10 +72,10 @@ describe('Relay', () => {
           name
         }
         query UserSchemaQuery {
-          user0: node(id: "User_0") {
+          user0: node(id: "${users[0].id}") {
             ...User
           }
-          user1: node(id: "User_1") {
+          user1: node(id: "${users[1].id}") {
             ...User
           }
         }
@@ -88,16 +102,18 @@ describe('Relay', () => {
       `,
       resolvers: {
         Node: {
-          __resolveType: ({ id }: { id: string }) => id.split('_')[0],
+          __resolveType: ({ id }: { id: string }) => extractGlobalId(id)?.type,
+          id: ({ __typename, id }: { __typename: string; id: string }) => makeGlobalId(__typename, id),
         },
         Query: {
-          node: (_, { id }) => {
-            if (id.startsWith('Post_')) {
-              return posts.find(post => post.id === id);
+          node: (_, { id: globalId }) => {
+            const { type, id } = extractGlobalId(globalId);
+            switch (type) {
+              case 'Post':
+                return posts.find(post => post.id === id);
+              case 'User':
+                return { id };
             }
-            return {
-              id,
-            };
           },
         },
         User: {
@@ -120,16 +136,16 @@ describe('Relay', () => {
           }
         }
         query PostSchemaQuery {
-          post0: node(id: "Post_0") {
+          post0: node(id: "${posts[0].id}") {
             ...Post
           }
-          post1: node(id: "Post_1") {
+          post1: node(id: "${posts[1].id}") {
             ...Post
           }
-          user0: node(id: "User_0") {
+          user0: node(id: "${users[0].id}") {
             ...User
           }
-          user1: node(id: "User_1") {
+          user1: node(id: "${users[1].id}") {
             ...User
           }
         }
@@ -143,7 +159,7 @@ describe('Relay', () => {
     expect(postResult.data?.['user1']?.posts[0].content).toBe(posts[0].content);
 
     const stitchedSchema = stitchSchemas({
-      subschemas: handleRelaySubschemas([{ schema: postSchema }, { schema: userSchema }], id => id.split('_')[0]),
+      subschemas: handleRelaySubschemas([{ schema: postSchema }, { schema: userSchema }], id => id.split(':')[0]),
     });
 
     const stitchedResult = (await execute({

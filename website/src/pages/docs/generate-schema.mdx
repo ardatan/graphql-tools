@@ -2,6 +2,8 @@
 description: Generate a GraphQL schema from the concise type definition language.
 ---
 
+import { PackageCmd } from '@theguild/components'
+
 # Executable Schemas
 
 The GraphQL-Tools package allows you to create a GraphQL.js GraphQLSchema instance from GraphQL schema language using the function `makeExecutableSchema`.
@@ -44,9 +46,7 @@ const typeDefs = /* GraphQL */ `
 
 Then you define resolvers as a nested object that maps type and field names to resolver functions:
 
-```js
-import { find, filter } from 'lodash'
-
+```ts
 // example data
 const authors = [
   { id: 1, firstName: 'Tom', lastName: 'Coleman' },
@@ -69,7 +69,7 @@ const resolvers = {
 
   Mutation: {
     upvotePost(_, { postId }) {
-      const post = find(posts, { id: postId })
+      const post = posts.find(post => post.id === postId)
       if (!post) {
         throw new Error(`Couldn't find post with id ${postId}`)
       }
@@ -79,14 +79,18 @@ const resolvers = {
   },
 
   Author: {
-    posts: author => filter(posts, { authorId: author.id })
+    posts: author => posts.filter(post => post.authorId === author.id)
   },
 
   Post: {
-    author: post => find(authors, { id: post.authorId })
+    author: post => authors.find(author => author.id === post.authorId)
   }
 }
 ```
+
+## Install the package
+
+<PackageCmd packages={['@graphql-tools/schema']} />
 
 In the end, the schema and resolvers are combined using `makeExecutableSchema`:
 
