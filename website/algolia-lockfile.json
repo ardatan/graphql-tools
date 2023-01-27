@@ -72,6 +72,7 @@
     "objectID": "tools-docs-generate-schema",
     "headings": [
       "Example",
+      "Install the package",
       "Extending Types",
       "Learning the GraphQL Schema Language",
       "Descriptions & Deprecations",
@@ -82,6 +83,11 @@
         "children": [],
         "title": "Example",
         "anchor": "example"
+      },
+      {
+        "children": [],
+        "title": "Install the package",
+        "anchor": "install-the-package"
       },
       {
         "children": [],
@@ -110,7 +116,7 @@
         "anchor": "api"
       }
     ],
-    "content": "1e99de1d365f76a9134d087db6f27de1",
+    "content": "8125abe99bc2852d996734098d83cfb1",
     "url": "https://www.the-guild.dev/graphql/tools/docs/generate-schema",
     "domain": "https://www.the-guild.dev/graphql/tools/",
     "hierarchy": ["Docs"],
