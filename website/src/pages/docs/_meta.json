@@ -10,7 +10,7 @@
   "schema-merging": "Schema Merging",
   "schema-stitching": {
     "title": "Schema Stitching ↗",
-    "href": "https://the-guild.dev/graphql/stitching/docs"
+    "href": "https://the-guild.dev/graphql/stitching"
   },
   "server-setup": "Setup an HTTP Server",
   "schema-loading": "Schema Loading",
