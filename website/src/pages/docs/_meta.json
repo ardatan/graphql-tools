@@ -8,6 +8,10 @@
   "connectors": "Data Fetching",
   "schema-directives": "Schema Directives",
   "schema-merging": "Schema Merging",
+  "schema-stitching": {
+    "title": "Schema Stitching ↗",
+    "href": "https://the-guild.dev/graphql/stitching/docs"
+  },
   "server-setup": "Setup an HTTP Server",
   "schema-loading": "Schema Loading",
   "documents-loading": "Documents Loading",
