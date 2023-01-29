@@ -58,7 +58,7 @@ describe('Relay', () => {
             const { type, id } = extractGlobalId(globalId);
             switch (type) {
               case 'User':
-                return users.find(user => user.id === id);
+                return users.find(user => user.id.toString() === id);
             }
           },
         },
@@ -110,7 +110,7 @@ describe('Relay', () => {
             const { type, id } = extractGlobalId(globalId);
             switch (type) {
               case 'Post':
-                return posts.find(post => post.id === id);
+                return posts.find(post => post.id.toString() === id);
               case 'User':
                 return { id };
             }
