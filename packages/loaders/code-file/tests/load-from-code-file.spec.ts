@@ -243,6 +243,48 @@ describe('loadFromCodeFileSync', () => {
     `);
   });
 
+  it('can merge config.pluckConfig options correctly', () => {
+    const loader = new CodeFileLoader({
+      pluckConfig: {
+        skipIndent: true,
+      },
+    });
+    const loadedSources = loader.loadSync('./test-files/multiple-from-file.ts', {
+      cwd: __dirname,
+      pluckConfig: {},
+    });
+    expect(loadedSources?.length).toEqual(3);
+    expect(loadedSources![0].rawSDL).toBeDefined();
+    expect(loadedSources![0].rawSDL).toMatchInlineSnapshot(`
+      "
+        query Foo {
+          Tweets {
+            id
+          }
+        }
+      "
+    `);
+    expect(loadedSources![1].rawSDL).toBeDefined();
+    expect(loadedSources![1].rawSDL).toMatchInlineSnapshot(`
+      "
+        fragment Lel on Tweet {
+          id
+          body
+        }
+      "
+    `);
+    expect(loadedSources![2].rawSDL).toBeDefined();
+    expect(loadedSources![2].rawSDL).toMatchInlineSnapshot(`
+      "
+        query Bar {
+          Tweets {
+            ...Lel
+          }
+        }
+      "
+    `);
+  });
+
   it('does not try to load single file it cannot load', async () => {
     const loader = new CodeFileLoader({
       pluckConfig: {

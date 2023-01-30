@@ -74,7 +74,11 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
   }
 
   private getMergedOptions(options: CodeFileLoaderOptions): CodeFileLoaderOptions {
-    return { ...this.config, ...options };
+    return {
+      ...this.config,
+      ...options,
+      pluckConfig: { ...(this.config.pluckConfig || {}), ...(options.pluckConfig || {}) },
+    };
   }
 
   async canLoad(pointer: string, options: CodeFileLoaderOptions): Promise<boolean> {
