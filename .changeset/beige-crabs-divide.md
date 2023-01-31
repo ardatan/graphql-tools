@@ -1,5 +1,5 @@
 ---
-'@graphql-tools/code-file-loader': major
+'@graphql-tools/code-file-loader': patch
 ---
 
 # Fix CodeFile Loader's Bug
