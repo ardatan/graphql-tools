@@ -1,10 +1,8 @@
-import { Client, createClient } from '@urql/core';
+import { createClient } from '@urql/core';
 import { executorExchange } from '../src/index.js';
 import { pipe, toObservable } from 'wonka';
 import { createYoga, createSchema } from 'graphql-yoga';
 import { File } from '@whatwg-node/fetch';
-import { createServer, Server } from 'http';
-import { AddressInfo } from 'net';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 
 describe('URQL Yoga Exchange', () => {
@@ -12,10 +10,7 @@ describe('URQL Yoga Exchange', () => {
     it('skips', () => {});
     return;
   }
-  const endpoint = '/graphql';
-  const hostname = '127.0.0.1';
   const yoga = createYoga({
-    graphqlEndpoint: endpoint,
     logging: false,
     maskedErrors: false,
     schema: createSchema({
@@ -53,29 +48,17 @@ describe('URQL Yoga Exchange', () => {
     }),
   });
 
-  let server: Server;
-  let url: string;
-  let client: Client;
+  const client = createClient({
+    url: 'http://localhost:4000/graphql',
+    exchanges: [
+      executorExchange(
+        buildHTTPExecutor({
+          fetch: yoga.fetch as any,
+        })
+      ),
+    ],
+  });
 
-  beforeAll(async () => {
-    server = createServer(yoga);
-    await new Promise<void>(resolve => server.listen(0, hostname, resolve));
-    const port = (server.address() as AddressInfo).port;
-    url = `http://${hostname}:${port}${endpoint}`;
-    client = createClient({
-      url,
-      exchanges: [
-        executorExchange(
-          buildHTTPExecutor({
-            fetch: yoga.fetch as any,
-          })
-        ),
-      ],
-    });
-  });
-  afterAll(done => {
-    server.close(done);
-  });
   it('should handle queries correctly', async () => {
     const result = await client
       .query(
