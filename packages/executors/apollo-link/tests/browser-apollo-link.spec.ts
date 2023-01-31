@@ -1,10 +1,8 @@
 import { ApolloClient, FetchResult, InMemoryCache } from '@apollo/client/core';
 import { createYoga, createSchema } from 'graphql-yoga';
-import { createServer, Server } from 'http';
 import { parse } from 'graphql';
 import { ExecutorLink } from '../src/index.js';
 import { File } from '@whatwg-node/fetch';
-import { AddressInfo } from 'net';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 
 describe('Apollo Link', () => {
@@ -12,10 +10,7 @@ describe('Apollo Link', () => {
     it('skips', () => {});
     return;
   }
-  const endpoint = '/graphql';
-  const hostname = '127.0.0.1';
   const yoga = createYoga({
-    graphqlEndpoint: endpoint,
     logging: false,
     maskedErrors: false,
     schema: createSchema({
@@ -53,28 +48,15 @@ describe('Apollo Link', () => {
     }),
   });
 
-  let server: Server;
-  let url: string;
-  let client: ApolloClient<any>;
+  const client = new ApolloClient({
+    link: new ExecutorLink(
+      buildHTTPExecutor({
+        fetch: yoga.fetch as any,
+      })
+    ),
+    cache: new InMemoryCache(),
+  });
 
-  beforeAll(async () => {
-    server = createServer(yoga);
-    await new Promise<void>(resolve => server.listen(0, hostname, resolve));
-    const port = (server.address() as AddressInfo).port;
-    url = `http://${hostname}:${port}${endpoint}`;
-    client = new ApolloClient({
-      link: new ExecutorLink(
-        buildHTTPExecutor({
-          endpoint: url,
-          fetch: yoga.fetch as any,
-        })
-      ),
-      cache: new InMemoryCache(),
-    });
-  });
-  afterAll(done => {
-    server.close(() => done());
-  });
   it('should handle queries correctly', async () => {
     const result = await client.query({
       query: parse(/* GraphQL */ `

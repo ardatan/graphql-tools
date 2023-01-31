@@ -8,15 +8,16 @@ function createApolloRequestHandler(executor: Executor): apolloImport.RequestHan
     operation: apolloImport.Operation
   ): apolloImport.Observable<apolloImport.FetchResult> {
     return new apollo.Observable(observer => {
-      const executionRequest: ExecutionRequest = {
-        document: operation.query,
-        variables: operation.variables,
-        operationName: operation.operationName,
-        extensions: operation.extensions,
-        context: operation.getContext(),
-      };
-      Promise.resolve(executor(executionRequest))
-        .then(async results => {
+      Promise.resolve().then(async () => {
+        const executionRequest: ExecutionRequest = {
+          document: operation.query,
+          variables: operation.variables,
+          operationName: operation.operationName,
+          extensions: operation.extensions,
+          context: operation.getContext(),
+        };
+        try {
+          const results = await executor(executionRequest);
           if (isAsyncIterable(results)) {
             for await (const result of results) {
               if (observer.closed) {
@@ -29,12 +30,12 @@ function createApolloRequestHandler(executor: Executor): apolloImport.RequestHan
             observer.next(results);
             observer.complete();
           }
-        })
-        .catch(error => {
+        } catch (e) {
           if (!observer.closed) {
-            observer.error(error);
+            observer.error(e);
           }
-        });
+        }
+      });
     });
   };
 }

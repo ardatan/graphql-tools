@@ -1,9 +1,8 @@
 /* eslint-disable no-labels */
 import { TextDecoder } from '@whatwg-node/fetch';
 
-const textDecoder = new TextDecoder();
-
 export async function* handleAsyncIterable(asyncIterable: AsyncIterable<Uint8Array | string>) {
+  const textDecoder = new TextDecoder();
   outer: for await (const chunk of asyncIterable) {
     const chunkStr = typeof chunk === 'string' ? chunk : textDecoder.decode(chunk, { stream: true });
     for (const part of chunkStr.split('\n\n')) {

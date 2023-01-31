@@ -14,9 +14,6 @@ export function handleEventStreamResponse(
   // node-fetch returns body as a promise so we need to resolve it
   const body = response.body;
   if (body) {
-    if (isReadableStream(body)) {
-      return handleReadableStream(body);
-    }
     if (isAsyncIterable<Uint8Array | string>(body)) {
       const resultStream = handleAsyncIterable(body);
       if (controller) {
@@ -24,6 +21,9 @@ export function handleEventStreamResponse(
       } else {
         return resultStream;
       }
+    }
+    if (isReadableStream(body)) {
+      return handleReadableStream(body);
     }
   }
   throw new Error('Response body is expected to be a readable stream but got; ' + inspect(body));
