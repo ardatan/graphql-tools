@@ -7,7 +7,7 @@ describe('buildHTTPExecutor', () => {
   it('method should be POST for mutations even if useGETForQueries=true', async () => {
     const executor = buildHTTPExecutor({
       useGETForQueries: true,
-      async fetch(_url, init) {
+      fetch(_url, init) {
         return new Response(JSON.stringify({ data: init }), {
           headers: { 'Content-Type': 'application/json' },
         });

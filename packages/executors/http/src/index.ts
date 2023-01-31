@@ -27,9 +27,11 @@ export type AsyncFetchFn = (
   options?: RequestInit,
   context?: any,
   info?: GraphQLResolveInfo
-) => Promise<Response>;
+) => Promise<Response> | Response;
 
-export type FetchFn = AsyncFetchFn | SyncFetchFn;
+export type RegularFetchFn = (url: string) => Promise<Response> | Response;
+
+export type FetchFn = AsyncFetchFn | SyncFetchFn | RegularFetchFn;
 
 export type AsyncImportFn = (moduleName: string) => PromiseLike<any>;
 export type SyncImportFn = (moduleName: string) => any;
@@ -72,6 +74,10 @@ export function buildHTTPExecutor(
 
 export function buildHTTPExecutor(
   options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: AsyncFetchFn }
+): AsyncExecutor<any, HTTPExecutorOptions>;
+
+export function buildHTTPExecutor(
+  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: RegularFetchFn }
 ): AsyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
