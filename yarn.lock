@@ -2266,10 +2266,10 @@
     "@napi-rs/simple-git-win32-arm64-msvc" "0.1.8"
     "@napi-rs/simple-git-win32-x64-msvc" "0.1.8"
 
-"@next/bundle-analyzer@13.1.5":
-  version "13.1.5"
-  resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-13.1.5.tgz#c580bce87e95aaf96e0c61040475781bf93f7b35"
-  integrity sha512-Z+1gyS0Hy+Lpt2k/067YIxmYoKQt0RtHy3EMyR3SMZyZGmx3muZPUBS0Aj+tdfdReVNOK2nQdT8ghSZG9Lwmbw==
+"@next/bundle-analyzer@13.1.6":
+  version "13.1.6"
+  resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-13.1.6.tgz#36ff2f9c4b19aa75cd589ee080b1e2edb24f1192"
+  integrity sha512-rJS9CtLoGT58mL+v2ISKANosFFWP/0YKYByHQ3vTaZrbQP8b1rYRxd2QVMJmnSXaFkiP9URt1XJ6OdGyVq5b6g==
   dependencies:
     webpack-bundle-analyzer "4.7.0"
 
@@ -2700,13 +2700,13 @@
   dependencies:
     tslib "^2.4.0"
 
-"@theguild/algolia@1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@theguild/algolia/-/algolia-1.1.1.tgz#53a0a6ad7c0a2467f26805c2bdf6deb134c03a33"
-  integrity sha512-FRidmSY/RY9SUpsueerO337eSujNzIH14c578ftPfPmOxPeRzQLjsLNGScHTAeDbJPL1fmmZ9BBoqFNRdg8wOQ==
+"@theguild/algolia@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@theguild/algolia/-/algolia-1.1.2.tgz#e653f8074ee3d5ed88c3dabda6dae0a6275f0250"
+  integrity sha512-AaaHLVQoNYZ8quJI8knQe50NyEhnkV6cgrBWXgMa9bwWxGxqMTg6PtO734rLeiYlPf/u3JtpFfOXjZ2IryrsFg==
   dependencies:
     algoliasearch "^4.14.3"
-    commander "^9.5.0"
+    commander "^10.0.0"
     github-slugger "^2.0.0"
     glob "^8.1.0"
     gray-matter "^4.0.3"
@@ -2714,17 +2714,17 @@
     lodash.sortby "^4.7.0"
     remove-markdown "^0.5.0"
 
-"@theguild/components@4.5.2":
-  version "4.5.2"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-4.5.2.tgz#466ac98eb9496a448115e14ce9a0cf54f859c8d7"
-  integrity sha512-pK7f6w91aSl8APHGG0a2Ru88yBZwkTwhW8+xlD6lQcLlbaaScnI3WIJvBRNZsm5ai+WCYesmQAqzHapgMcqXlA==
+"@theguild/components@4.5.4":
+  version "4.5.4"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-4.5.4.tgz#3f5d0c5500dc2eef46ff00bc8dbaab0c2d09c543"
+  integrity sha512-p9IQC6lkEduz2qG9nMFClOEUB4TA3jcbsf2F08dQqa4oESMbpx3DwlBhd8sLTvGl0K07qh1DP0vjWggmEh3iig==
   dependencies:
     "@algolia/autocomplete-js" "1.7.4"
     "@algolia/autocomplete-plugin-algolia-insights" "1.7.4"
     "@algolia/autocomplete-plugin-query-suggestions" "1.7.4"
     "@algolia/autocomplete-theme-classic" "1.7.4"
     "@giscus/react" "2.2.6"
-    "@next/bundle-analyzer" "13.1.5"
+    "@next/bundle-analyzer" "13.1.6"
     "@radix-ui/react-navigation-menu" "1.1.1"
     algoliasearch "4.14.3"
     clsx "1.2.1"
@@ -2732,15 +2732,15 @@
     fuzzy "^0.1.3"
     mermaid "9.3.0"
     next-videos "1.5.0"
-    nextra "2.2.13"
-    nextra-theme-docs "2.2.13"
-    react-instantsearch-dom "6.38.3"
+    nextra "2.2.14"
+    nextra-theme-docs "2.2.14"
+    react-instantsearch-dom "6.39.0"
     react-paginate "8.1.4"
     react-player "2.11.0"
     remark-mdx-disable-explicit-jsx "0.1.0"
     search-insights "2.2.3"
     semver "^7.3.8"
-    unist-util-visit "4.1.1"
+    unist-util-visit "4.1.2"
     use-debounce "9.0.3"
 
 "@theguild/tailwind-config@0.2.1":
@@ -3714,10 +3714,10 @@ ajv@^8.0.0, ajv@^8.8.0:
     require-from-string "^2.0.2"
     uri-js "^4.2.2"
 
-algoliasearch-helper@^3.11.2:
-  version "3.11.2"
-  resolved "https://registry.yarnpkg.com/algoliasearch-helper/-/algoliasearch-helper-3.11.2.tgz#f42db10433e6264f1d1ba503699cbdbff7b48dff"
-  integrity sha512-eKvSM5hz5w9RcUowu8LnQ5v0KRrFLCvF4K3KF/Ab3VwCT726rWgZUWUIQUPjr9qDENUMukQ/IHZ7bGUVYRGP0g==
+algoliasearch-helper@^3.11.3:
+  version "3.11.3"
+  resolved "https://registry.yarnpkg.com/algoliasearch-helper/-/algoliasearch-helper-3.11.3.tgz#6e7af8afe6f9a9e55186abffb7b6cf7ca8de3301"
+  integrity sha512-TbaEvLwiuGygHQIB8y+OsJKQQ40+JKUua5B91X66tMUHyyhbNHvqyr0lqd3wCoyKx7WybyQrC0WJvzoIeh24Aw==
   dependencies:
     "@algolia/events" "^4.0.1"
 
@@ -4631,6 +4631,11 @@ commander@7, commander@^7.2.0:
   resolved "https://registry.yarnpkg.com/commander/-/commander-7.2.0.tgz#a36cb57d0b501ce108e4d20559a150a391d97ab7"
   integrity sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==
 
+commander@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-10.0.0.tgz#71797971162cd3cf65f0b9d24eb28f8d303acdf1"
+  integrity sha512-zS5PnTI22FIRM6ylNW8G4Ap0IEOyk62fhLSD0+uHRT9McRCLGpkVNvao4bjimpK/GShynyQkFFxHhwMcETmduA==
+
 commander@^2.20.0:
   version "2.20.3"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"
@@ -4646,7 +4651,7 @@ commander@^8.0.0:
   resolved "https://registry.yarnpkg.com/commander/-/commander-8.3.0.tgz#4837ea1b2da67b9c616a67afbb0fafee567bca66"
   integrity sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==
 
-commander@^9.4.1, commander@^9.5.0:
+commander@^9.4.1:
   version "9.5.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-9.5.0.tgz#bc08d1eb5cedf7ccb797a96199d41c7bc3e60d30"
   integrity sha512-KRs7WVDKg86PWiuAqhDrAQnTXZKraVcCc6vFdL14qrZ/DcWwuRo7VoiYXalXO7S5GKpqYiVEwCbgFDfxNHKJBQ==
@@ -9266,10 +9271,10 @@ next@13.1.6:
     "@next/swc-win32-ia32-msvc" "13.1.6"
     "@next/swc-win32-x64-msvc" "13.1.6"
 
-nextra-theme-docs@2.2.13:
-  version "2.2.13"
-  resolved "https://registry.yarnpkg.com/nextra-theme-docs/-/nextra-theme-docs-2.2.13.tgz#bdbc6f4a268b383c0e900364aa8ab7dbc3368c34"
-  integrity sha512-cMjxK/ooLaobm/3xxioKnyUrdTXcejMh1hB0bJirKZ7Vm5GdI3hHsvlE4hCj3mV3/JvusEaUx8VvApb2LsJ/FQ==
+nextra-theme-docs@2.2.14:
+  version "2.2.14"
+  resolved "https://registry.yarnpkg.com/nextra-theme-docs/-/nextra-theme-docs-2.2.14.tgz#389a8fbdee3cd4cb9355a924ed78fd16f7176fdb"
+  integrity sha512-QQcHOcAXSfrpbSX3FqXgcQ2favKLnBAczqKWbSDVEtgHiUG6s7pVpxclpKm5F1c/fP47v19USRq3BL/SZ4JEIQ==
   dependencies:
     "@headlessui/react" "^1.7.7"
     "@popperjs/core" "^2.11.6"
@@ -9284,10 +9289,10 @@ nextra-theme-docs@2.2.13:
     scroll-into-view-if-needed "^3.0.0"
     zod "^3.20.2"
 
-nextra@2.2.13:
-  version "2.2.13"
-  resolved "https://registry.yarnpkg.com/nextra/-/nextra-2.2.13.tgz#4df4ada4660c5f2b4c184e323f79e7cde36116a3"
-  integrity sha512-COTh3Dw00qkiOMKynJlJlWNbhjHwawoL3oc206+C9x8V0zRmWg0bbwpRYpVeJXw7E627G/zL2jw8iZG01pk8ZQ==
+nextra@2.2.14:
+  version "2.2.14"
+  resolved "https://registry.yarnpkg.com/nextra/-/nextra-2.2.14.tgz#390e737acb27536f7077c779d4c70b637c1231c5"
+  integrity sha512-kToTiTiE4qrQsQ9snFRqCGLLSjKSFgFV/BJm3yp/SRmkmCr1WaWrlmUTAuXlxM7PREbNaZouNSOJ0hGS92rM8A==
   dependencies:
     "@mdx-js/mdx" "^2.2.1"
     "@mdx-js/react" "^2.2.1"
@@ -10277,27 +10282,27 @@ react-fast-compare@^3.0.0, react-fast-compare@^3.0.1:
   resolved "https://registry.yarnpkg.com/react-fast-compare/-/react-fast-compare-3.2.0.tgz#641a9da81b6a6320f270e89724fb45a0b39e43bb"
   integrity sha512-rtGImPZ0YyLrscKI9xTpV8psd6I8VAtjKCzQDlzyDvqJA8XOW78TXYQwNRNd8g8JZnDu8q9Fu/1v4HPAVwVdHA==
 
-react-instantsearch-core@6.38.3:
-  version "6.38.3"
-  resolved "https://registry.yarnpkg.com/react-instantsearch-core/-/react-instantsearch-core-6.38.3.tgz#aea403bdc36667180cf4c00c8af58102d1c56083"
-  integrity sha512-m7sL8NR5SlqctZJqoRYyBUFSUplK221EHESC+g6+fZ9Vd1fUX07MNvnbZ9+8Uyn0v+Hi8nL/3qGesJZ/xbJ/dg==
+react-instantsearch-core@6.39.0:
+  version "6.39.0"
+  resolved "https://registry.yarnpkg.com/react-instantsearch-core/-/react-instantsearch-core-6.39.0.tgz#4b37e764677589d4640c90b7fad9eb4b0cbf3877"
+  integrity sha512-UROe0jjXI56pu1uHuP5lDhyXMIrodkDBISBv5pLU9/1LIYMNF3o4C9FllTdfia3Jz3lDDsSEcPpc/77so2x3Ww==
   dependencies:
     "@babel/runtime" "^7.1.2"
-    algoliasearch-helper "^3.11.2"
+    algoliasearch-helper "^3.11.3"
     prop-types "^15.6.2"
     react-fast-compare "^3.0.0"
 
-react-instantsearch-dom@6.38.3:
-  version "6.38.3"
-  resolved "https://registry.yarnpkg.com/react-instantsearch-dom/-/react-instantsearch-dom-6.38.3.tgz#6e76b9781fda349dc56b086c12de25a4987a95c0"
-  integrity sha512-1VQxMq23pAaeJjyBdTuC+U2DHa35ygnKd4fCTWHv0YK/GwneoSOubxKf24QtNLsHfswJ/qjpW21xXv6IVRA90g==
+react-instantsearch-dom@6.39.0:
+  version "6.39.0"
+  resolved "https://registry.yarnpkg.com/react-instantsearch-dom/-/react-instantsearch-dom-6.39.0.tgz#4d42efd4f92de14437e57c9a66c01e0fde92d5ae"
+  integrity sha512-wdFGDFugoCpO9buxjybyLTs7cblQ6g+NIiYIsZ9ua0FLUIdoeawXQYDV83dDzcNgbml5RTiKJsAFxlne8gguMg==
   dependencies:
     "@babel/runtime" "^7.1.2"
-    algoliasearch-helper "^3.11.2"
+    algoliasearch-helper "^3.11.3"
     classnames "^2.2.5"
     prop-types "^15.6.2"
     react-fast-compare "^3.0.0"
-    react-instantsearch-core "6.38.3"
+    react-instantsearch-core "6.39.0"
 
 react-is@^16.13.1, react-is@^16.7.0:
   version "16.13.1"
@@ -12005,10 +12010,10 @@ unist-util-visit-parents@^5.0.0, unist-util-visit-parents@^5.1.1:
     "@types/unist" "^2.0.0"
     unist-util-is "^5.0.0"
 
-unist-util-visit@4.1.1, unist-util-visit@^4.0.0, unist-util-visit@^4.1.0, unist-util-visit@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/unist-util-visit/-/unist-util-visit-4.1.1.tgz#1c4842d70bd3df6cc545276f5164f933390a9aad"
-  integrity sha512-n9KN3WV9k4h1DxYR1LoajgN93wpEi/7ZplVe02IoB4gH5ctI1AaF2670BLHQYbwj+pY83gFtyeySFiyMHJklrg==
+unist-util-visit@4.1.2, unist-util-visit@^4.0.0, unist-util-visit@^4.1.0, unist-util-visit@^4.1.1:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/unist-util-visit/-/unist-util-visit-4.1.2.tgz#125a42d1eb876283715a3cb5cceaa531828c72e2"
+  integrity sha512-MSd8OUGISqHdVvfY9TPhyK2VdUrPgxkUtWSuMHF6XAAFuL4LokseigBnZtPnJMu+FbynTkFNnFlyjxpVKujMRg==
   dependencies:
     "@types/unist" "^2.0.0"
     unist-util-is "^5.0.0"
