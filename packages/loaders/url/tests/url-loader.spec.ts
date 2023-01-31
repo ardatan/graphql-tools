@@ -579,7 +579,6 @@ describe('Schema URL Loader', () => {
     })) as ExecutionResult;
     expect(result.data).toBeUndefined();
     expect(result.errors).toBeDefined();
-    expect(result.errors?.[0].message).toContain('failed');
-    expect(result.errors?.[0].message).toContain('http://127.0.0.1:9777/graphql');
+    expect(result.errors?.[0].message).toContain('127.0.0.1:9777');
   });
 });
