@@ -1,5 +1,13 @@
 # @graphql-tools/code-file-loader
 
+## 7.3.17
+
+### Patch Changes
+
+- [#5005](https://github.com/ardatan/graphql-tools/pull/5005) [`02e3f149`](https://github.com/ardatan/graphql-tools/commit/02e3f149383bb7ad43da74e7db9a97ed15371242) Thanks [@Solo-steven](https://github.com/Solo-steven)! - # Fix CodeFile Loader's Bug
+
+  Original CodeFileLoader's `mergeOption` method only does shadow copy, but option.pluckConfig is an object, shadow copy method would cause the coming option to overwrite the old option (pass when object construct).So we should change `mergeOption` to Deep copy, which would not cause overwrite.
+
 ## 7.3.16
 
 ### Patch Changes
