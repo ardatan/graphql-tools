@@ -64,7 +64,7 @@ const posts = [
 const resolvers = {
   Query: {
     posts: () => posts,
-    author: (_, { id }) => find(authors, { id })
+    author: (_, { id }) => authors.find(author => author.id === id)
   },
 
   Mutation: {
