@@ -1,5 +1,11 @@
 # @graphql-tools/executor-http
 
+## 0.1.3
+
+### Patch Changes
+
+- [`cecf4c90`](https://github.com/ardatan/graphql-tools/commit/cecf4c90dc6b0cef51bc8ef7a54205455f4d94e4) Thanks [@ardatan](https://github.com/ardatan)! - Fix fetch signature
+
 ## 0.1.2
 
 ### Patch Changes
