@@ -58,6 +58,22 @@ describe('visiting results', () => {
     expect(() => visitResult(result, introspectionRequest, schema, undefined)).not.toThrow();
   });
 
+  it('should visit with type query and visitor map without throwing', async () => {
+    const introspectionRequest: ExecutionRequest = {
+      document: parse('{ __type(name: "Test") { __typename name } }'),
+      variables: {},
+    };
+
+    const result = {
+      data: {
+        __type: {
+          __typename: '__Type',
+        },
+      },
+    };
+    expect(() => visitResult(result, introspectionRequest, schema, {})).not.toThrow();
+  });
+
   it('should visit with a request with introspection fields without throwing', async () => {
     const introspectionRequest: ExecutionRequest = {
       document: parse(getIntrospectionQuery()),
