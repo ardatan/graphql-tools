@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/schema",
-  "version": "9.0.14",
+  "version": "9.0.15",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -56,8 +56,8 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/merge": "8.3.16",
-    "@graphql-tools/utils": "9.1.4",
+    "@graphql-tools/merge": "8.3.17",
+    "@graphql-tools/utils": "9.2.0",
     "tslib": "^2.4.0",
     "value-or-promise": "1.0.12"
   },
