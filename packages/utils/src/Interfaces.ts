@@ -1,3 +1,4 @@
+import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import {
   GraphQLSchema,
   GraphQLField,
@@ -68,13 +69,14 @@ export interface ExecutionResult<TData = any, TExtensions = any> {
 }
 
 export interface ExecutionRequest<
-  TArgs extends Record<string, any> = Record<string, any>,
+  TVariables extends Record<string, any> = any,
   TContext = any,
   TRootValue = any,
-  TExtensions = Record<string, any>
+  TExtensions = Record<string, any>,
+  TReturn = any
 > {
-  document: DocumentNode;
-  variables?: TArgs;
+  document: TypedDocumentNode<TReturn, TVariables>;
+  variables?: TVariables;
   // TODO: Will be removed in next major
   operationType?: OperationTypeNode;
   operationName?: string;

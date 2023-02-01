@@ -1,5 +1,5 @@
 diff --git a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/declaration-title.js b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/declaration-title.js
-index c8529a5..4dadab7 100644
+index c8529a5..7f884c9 100644
 --- a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/declaration-title.js
 +++ b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/declaration-title.js
 @@ -20,9 +20,9 @@ function default_1(theme) {
@@ -15,7 +15,7 @@ index c8529a5..4dadab7 100644
          md.push(getType(this));
          if (!(this.type instanceof typedoc_1.LiteralType) &&
 diff --git a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/reflection-title.js b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/reflection-title.js
-index 24bbd50..70a032d 100644
+index 24bbd50..12e5c61 100644
 --- a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/reflection-title.js
 +++ b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/reflection-title.js
 @@ -19,7 +19,7 @@ function default_1(theme) {
@@ -28,7 +28,7 @@ index 24bbd50..70a032d 100644
          }
          return title.join('');
 diff --git a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/signature-title.js b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/signature-title.js
-index 1d547e1..69766f8 100644
+index 38ade0b..77b86c1 100644
 --- a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/signature-title.js
 +++ b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/signature-title.js
 @@ -20,9 +20,9 @@ function default_1(theme) {
@@ -44,7 +44,7 @@ index 1d547e1..69766f8 100644
          md.push(`(${getParameters(this.parameters)})`);
          if (this.type && !((_b = this.parent) === null || _b === void 0 ? void 0 : _b.kindOf(typedoc_1.ReflectionKind.Constructor))) {
 diff --git a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/type.js b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/type.js
-index 14c33a7..cad815e 100644
+index 8569286..88fe68d 100644
 --- a/node_modules/typedoc-plugin-markdown/dist/resources/helpers/type.js
 +++ b/node_modules/typedoc-plugin-markdown/dist/resources/helpers/type.js
 @@ -90,7 +90,7 @@ function getDeclarationType(model) {
@@ -68,7 +68,7 @@ index 14c33a7..cad815e 100644
              : [];
          const params = fn.parameters
              ? fn.parameters.map((param) => {
-@@ -128,9 +128,9 @@ function getReferenceType(model, emphasis) {
+@@ -127,9 +127,9 @@ function getReferenceType(model, emphasis) {
                  : `\`${model.name}\``);
          }
          if (model.typeArguments && model.typeArguments.length > 0) {
@@ -81,7 +81,7 @@ index 14c33a7..cad815e 100644
          return reflection.join('');
      }
 diff --git a/node_modules/typedoc-plugin-markdown/dist/utils.js b/node_modules/typedoc-plugin-markdown/dist/utils.js
-index 051d9c6..4dc54b5 100644
+index f254aed..5e1e3b1 100644
 --- a/node_modules/typedoc-plugin-markdown/dist/utils.js
 +++ b/node_modules/typedoc-plugin-markdown/dist/utils.js
 @@ -11,7 +11,8 @@ function formatContents(contents) {

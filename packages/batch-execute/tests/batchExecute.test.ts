@@ -7,7 +7,7 @@ import { normalizedExecutor } from '@graphql-tools/executor';
 describe('batch execution', () => {
   let executorCalls = 0;
   let executorDocument: string | undefined;
-  let executorVariables: Record<string, any> | undefined;
+  let executorVariables: any | undefined;
 
   const schema = makeExecutableSchema({
     typeDefs: /* GraphQL */ `

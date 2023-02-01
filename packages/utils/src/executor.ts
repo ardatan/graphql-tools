@@ -10,7 +10,7 @@ export type AsyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = 
   TRoot = any,
   TExtensions extends TBaseExtensions = TBaseExtensions
 >(
-  request: ExecutionRequest<TArgs, TContext, TRoot, TExtensions>
+  request: ExecutionRequest<TArgs, TContext, TRoot, TExtensions, TReturn>
 ) => Promise<MaybeAsyncIterable<ExecutionResult<TReturn>>>;
 
 export type SyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = Record<string, any>> = <
@@ -20,7 +20,7 @@ export type SyncExecutor<TBaseContext = Record<string, any>, TBaseExtensions = R
   TRoot = any,
   TExtensions extends TBaseExtensions = TBaseExtensions
 >(
-  request: ExecutionRequest<TArgs, TContext, TRoot, TExtensions>
+  request: ExecutionRequest<TArgs, TContext, TRoot, TExtensions, TReturn>
 ) => ExecutionResult<TReturn>;
 
 export type Executor<TBaseContext = Record<string, any>, TBaseExtensions = Record<string, any>> = <
@@ -30,5 +30,5 @@ export type Executor<TBaseContext = Record<string, any>, TBaseExtensions = Recor
   TRoot = any,
   TExtensions extends TBaseExtensions = TBaseExtensions
 >(
-  request: ExecutionRequest<TArgs, TContext, TRoot, TExtensions>
+  request: ExecutionRequest<TArgs, TContext, TRoot, TExtensions, TReturn>
 ) => MaybePromise<MaybeAsyncIterable<ExecutionResult<TReturn>>>;
