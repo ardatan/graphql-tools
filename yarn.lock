@@ -1772,6 +1772,24 @@
   dependencies:
     giscus "^1.2.6"
 
+"@graphql-tools/executor@0.0.12":
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor/-/executor-0.0.12.tgz#d885c7fa98a8aaeaa771163b71fb98ce9f52f9bd"
+  integrity sha512-bWpZcYRo81jDoTVONTnxS9dDHhEkNVjxzvFCH4CRpuyzD3uL+5w3MhtxIh24QyWm4LvQ4f+Bz3eMV2xU2I5+FA==
+  dependencies:
+    "@graphql-tools/utils" "9.1.4"
+    "@graphql-typed-document-node/core" "3.1.1"
+    "@repeaterjs/repeater" "3.0.4"
+    tslib "^2.4.0"
+    value-or-promise "1.0.12"
+
+"@graphql-tools/utils@9.1.4":
+  version "9.1.4"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/utils/-/utils-9.1.4.tgz#2c9e0aefc9655dd73247667befe3c850ec014f3f"
+  integrity sha512-hgIeLt95h9nQgQuzbbdhuZmh+8WV7RZ/6GbTj6t3IU4Zd2zs9yYJ2jgW/krO587GMOY8zCwrjNOMzD40u3l7Vg==
+  dependencies:
+    tslib "^2.4.0"
+
 "@graphql-tools/utils@^8.5.2", "@graphql-tools/utils@^8.8.0":
   version "8.13.1"
   resolved "https://registry.yarnpkg.com/@graphql-tools/utils/-/utils-8.13.1.tgz#b247607e400365c2cd87ff54654d4ad25a7ac491"
@@ -9207,10 +9225,10 @@ next-seo@^5.5.0:
   resolved "https://registry.yarnpkg.com/next-seo/-/next-seo-5.14.1.tgz#d07322edc37634fbd9beca51fb04177910d8031c"
   integrity sha512-NiJeQbxYP3z+EMp52q8k3Q+OfX2+Yv2WehERDj98r2wjXxL+woKpRBdsSVYolTD0Hm8IWs42SzaISE93RoQdOw==
 
-next-sitemap@3.1.48:
-  version "3.1.48"
-  resolved "https://registry.yarnpkg.com/next-sitemap/-/next-sitemap-3.1.48.tgz#11e11e87ae482bbe5c232d02d204d693ae7777a4"
-  integrity sha512-cUyjkoac+HeYrn8m3Pwq7DbcSK9+wW+AgPI7Q0Ipv85p4qDKTznS95ihahJXVKLZNRMTV6V45cxStiXW8+I2dA==
+next-sitemap@3.1.49:
+  version "3.1.49"
+  resolved "https://registry.yarnpkg.com/next-sitemap/-/next-sitemap-3.1.49.tgz#ed661fc800ead8a32728783c710ca28ef1a2d76d"
+  integrity sha512-bxBq+MQdi580PKn/8ert4X0RL8Kp9scvyiq6TmIpkCQC3bd4DResTyxHY2AuCGKz83ut2udHwKMZu3ztj3aq3w==
   dependencies:
     "@corex/deepmerge" "^4.0.29"
     minimist "^1.2.7"
