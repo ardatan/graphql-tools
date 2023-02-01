@@ -11,6 +11,7 @@ import {
   isObjectType,
   OperationDefinitionNode,
   GraphQLError,
+  TypeMetaFieldDef,
   TypeNameMetaFieldDef,
   FragmentDefinitionNode,
   SchemaMetaFieldDef,
@@ -239,6 +240,9 @@ function visitObjectValue(
           break;
         case '__schema':
           fieldType = SchemaMetaFieldDef.type;
+          break;
+        case '__type':
+          fieldType = TypeMetaFieldDef.type;
           break;
       }
     }
