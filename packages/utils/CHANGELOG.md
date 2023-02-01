@@ -1,5 +1,15 @@
 # @graphql-tools/utils
 
+## 9.2.0
+
+### Minor Changes
+
+- [`a94217e9`](https://github.com/ardatan/graphql-tools/commit/a94217e920c5d6237471ab6ad4d96cf230984177) Thanks [@ardatan](https://github.com/ardatan)! - Support TypedDocumentNode in ExecutionRequest
+
+### Patch Changes
+
+- [#5016](https://github.com/ardatan/graphql-tools/pull/5016) [`62d074be`](https://github.com/ardatan/graphql-tools/commit/62d074be48779b1e096e056ca1233822c421dc99) Thanks [@mayrn-techdivision](https://github.com/mayrn-techdivision)! - Fixes introspection query issues when visiting field '\_\_type'
+
 ## 9.1.4
 
 ### Patch Changes
