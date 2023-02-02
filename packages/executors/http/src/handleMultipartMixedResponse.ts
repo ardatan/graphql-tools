@@ -21,19 +21,25 @@ function isIncomingMessage(body: any): body is IncomingMessage {
 }
 
 export async function handleMultipartMixedResponse(response: Response, controller?: AbortController) {
-  const body = await (response.body as unknown as Promise<IncomingMessage> | ReadableStream);
+  const body = response.body;
   const contentType = response.headers.get('content-type') || '';
-  let asyncIterator: AsyncIterator<Part>;
+  let asyncIterator: AsyncIterator<Part> | undefined;
   if (isIncomingMessage(body)) {
     // Meros/node expects headers as an object map with the content-type prop
     body.headers = {
       'content-type': contentType,
     };
     // And it expects `IncomingMessage` and `node-fetch` returns `body` as `Promise<PassThrough>`
-    asyncIterator = (await merosIncomingMessage(body)) as any;
+    const result = await merosIncomingMessage<ExecutionResult>(body);
+    if ('next' in result) {
+      asyncIterator = result;
+    }
   } else {
     // Nothing is needed for regular `Response`.
-    asyncIterator = (await merosReadableStream(response)) as any;
+    const result = await merosReadableStream<ExecutionResult>(response);
+    if ('next' in result) {
+      asyncIterator = result;
+    }
   }
 
   const executionResult: ExecutionResult = {};
@@ -61,6 +67,10 @@ export async function handleMultipartMixedResponse(response: Response, controlle
     if (result.incremental) {
       result.incremental.forEach(handleResult);
     }
+  }
+
+  if (asyncIterator == null) {
+    return executionResult;
   }
 
   const resultStream = mapAsyncIterator(asyncIterator, (part: Part) => {
