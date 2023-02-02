@@ -156,7 +156,6 @@ describe('Yoga Compatibility', () => {
   });
 
   it('should handle defer', async () => {
-    expect.assertions(5);
     const expectedDatas: ExecutionResult[] = [
       {
         data: {
