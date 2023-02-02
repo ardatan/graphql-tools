@@ -46,10 +46,15 @@ export type SchemaFromExecutorOptions = Partial<IntrospectionOptions> &
   Parameters<typeof buildClientSchema>[1] &
   ParseOptions;
 
+let hasWarned = false;
+
 export const introspectSchema = function introspectSchema(...args) {
-  console.warn(
-    `\`introspectSchema\` is deprecated, and will be removed in the next major. Please use \`schemaFromExecutor\` instead.`
-  );
+  if (!hasWarned) {
+    hasWarned = true;
+    console.warn(
+      `\`introspectSchema\` is deprecated, and will be removed in the next major. Please use \`schemaFromExecutor\` instead.`
+    );
+  }
   return schemaFromExecutor(...(args as Parameters<typeof schemaFromExecutor>));
 } as typeof schemaFromExecutor;
 
