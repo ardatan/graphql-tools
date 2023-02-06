@@ -2,7 +2,6 @@ import { ApolloClient, FetchResult, InMemoryCache } from '@apollo/client/core';
 import { createYoga, createSchema } from 'graphql-yoga';
 import { parse } from 'graphql';
 import { ExecutorLink } from '../src/index.js';
-import { File } from '@whatwg-node/fetch';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 
 describe('Apollo Link', () => {
@@ -51,7 +50,9 @@ describe('Apollo Link', () => {
   const client = new ApolloClient({
     link: new ExecutorLink(
       buildHTTPExecutor({
-        fetch: yoga.fetch as any,
+        fetch: yoga.fetch,
+        File: yoga.fetchAPI.File,
+        FormData: yoga.fetchAPI.FormData,
       })
     ),
     cache: new InMemoryCache(),
@@ -107,7 +108,7 @@ describe('Apollo Link', () => {
         }
       `),
       variables: {
-        file: new File(['Hello World'], 'file.txt', { type: 'text/plain' }),
+        file: new yoga.fetchAPI.File(['Hello World'], 'file.txt', { type: 'text/plain' }),
       },
     });
     expect(result.errors?.length).toBeFalsy();

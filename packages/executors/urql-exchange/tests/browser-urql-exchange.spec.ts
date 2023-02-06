@@ -2,7 +2,6 @@ import { createClient } from '@urql/core';
 import { executorExchange } from '../src/index.js';
 import { pipe, toObservable } from 'wonka';
 import { createYoga, createSchema } from 'graphql-yoga';
-import { File } from '@whatwg-node/fetch';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 
 describe('URQL Yoga Exchange', () => {
@@ -53,7 +52,9 @@ describe('URQL Yoga Exchange', () => {
     exchanges: [
       executorExchange(
         buildHTTPExecutor({
-          fetch: yoga.fetch as any,
+          fetch: yoga.fetch,
+          File: yoga.fetchAPI.File,
+          FormData: yoga.fetchAPI.FormData,
         })
       ),
     ],
@@ -123,7 +124,7 @@ describe('URQL Yoga Exchange', () => {
     `;
     const result = await client
       .mutation(query, {
-        file: new File(['Hello World'], 'file.txt', { type: 'text/plain' }),
+        file: new yoga.fetchAPI.File(['Hello World'], 'file.txt', { type: 'text/plain' }),
       })
       .toPromise();
     expect(result.error).toBeFalsy();

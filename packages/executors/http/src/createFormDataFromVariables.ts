@@ -2,19 +2,28 @@ import { isAsyncIterable, isPromise } from '@graphql-tools/utils';
 import { extractFiles, isExtractableFile } from 'extract-files';
 import { isGraphQLUpload } from './isGraphQLUpload.js';
 import { ValueOrPromise } from 'value-or-promise';
-import { FormData, File } from '@whatwg-node/fetch';
+import { FormData as DefaultFormData, File as DefaultFile } from '@whatwg-node/fetch';
 
-export function createFormDataFromVariables<TVariables>({
-  query,
-  variables,
-  operationName,
-  extensions,
-}: {
-  query: string;
-  variables: TVariables;
-  operationName?: string;
-  extensions?: any;
-}) {
+export function createFormDataFromVariables<TVariables>(
+  {
+    query,
+    variables,
+    operationName,
+    extensions,
+  }: {
+    query: string;
+    variables: TVariables;
+    operationName?: string;
+    extensions?: any;
+  },
+  {
+    File: FileCtor = DefaultFile,
+    FormData: FormDataCtor = DefaultFormData,
+  }: {
+    File?: typeof File;
+    FormData?: typeof DefaultFormData;
+  }
+) {
   const vars = Object.assign({}, variables);
   const { clone, files } = extractFiles(
     vars,
@@ -42,7 +51,7 @@ export function createFormDataFromVariables<TVariables>({
     uploads[currIndex] = file;
     currIndex++;
   }
-  const form = new FormData();
+  const form = new FormDataCtor();
   form.append(
     'operations',
     JSON.stringify({
@@ -72,10 +81,10 @@ export function createFormDataFromVariables<TVariables>({
             }
           }
           const blobPart = new Uint8Array(chunks);
-          form.append(indexStr, new File([blobPart], filename, { type: upload.mimetype }), filename);
+          form.append(indexStr, new FileCtor([blobPart], filename, { type: upload.mimetype }), filename);
         });
       } else {
-        form.append(indexStr, new File([upload], filename), filename);
+        form.append(indexStr, new FileCtor([upload], filename), filename);
       }
     }
   }

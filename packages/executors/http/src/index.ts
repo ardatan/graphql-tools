@@ -64,6 +64,16 @@ export interface HTTPExecutorOptions {
    * Retry attempts
    */
   retry?: number;
+  /**
+   * WHATWG compatible File implementation
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/File
+   */
+  File?: typeof File;
+  /**
+   * WHATWG compatible FormData implementation
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/FormData
+   */
+  FormData?: typeof FormData;
 }
 
 export type HeadersConfig = Record<string, string>;
@@ -150,7 +160,12 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
           );
         }
         case 'POST':
-          return new ValueOrPromise(() => createFormDataFromVariables(requestBody))
+          return new ValueOrPromise(() =>
+            createFormDataFromVariables(requestBody, {
+              File: options?.File,
+              FormData: options?.FormData,
+            })
+          )
             .then(
               body =>
                 fetchFn(
