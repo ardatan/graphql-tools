@@ -50,7 +50,9 @@ describe('Apollo Link', () => {
   const client = new ApolloClient({
     link: new ExecutorLink(
       buildHTTPExecutor({
-        fetch: yoga.fetch as any,
+        fetch: yoga.fetch,
+        File: yoga.fetchAPI.File,
+        FormData: yoga.fetchAPI.FormData,
       })
     ),
     cache: new InMemoryCache(),

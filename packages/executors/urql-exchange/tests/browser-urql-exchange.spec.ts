@@ -53,6 +53,8 @@ describe('URQL Yoga Exchange', () => {
       executorExchange(
         buildHTTPExecutor({
           fetch: yoga.fetch,
+          File: yoga.fetchAPI.File,
+          FormData: yoga.fetchAPI.FormData,
         })
       ),
     ],
