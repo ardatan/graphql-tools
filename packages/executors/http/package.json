@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-http",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -51,7 +51,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^9.2.0",
+    "@graphql-tools/utils": "^9.2.1",
     "value-or-promise": "^1.0.12",
     "@whatwg-node/fetch": "^0.6.9",
     "@repeaterjs/repeater": "^3.0.4",

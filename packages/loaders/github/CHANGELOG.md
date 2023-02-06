@@ -1,5 +1,18 @@
 # @graphql-tools/github-loader
 
+## 7.3.25
+
+### Patch Changes
+
+- [#5025](https://github.com/ardatan/graphql-tools/pull/5025) [`b09ea282`](https://github.com/ardatan/graphql-tools/commit/b09ea282f0945fb19f354af57aabddcd23b2a155) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`@ardatan/sync-fetch@^0.0.1` ↗︎](https://www.npmjs.com/package/@ardatan/sync-fetch/v/0.0.1) (from `0.0.1`, in `dependencies`)
+  - Updated dependency [`@graphql-tools/utils@^9.2.0` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/9.2.0) (from `9.2.0`, in `dependencies`)
+  - Updated dependency [`@graphql-tools/graphql-tag-pluck@^7.4.4` ↗︎](https://www.npmjs.com/package/@graphql-tools/graphql-tag-pluck/v/7.4.4) (from `7.4.4`, in `dependencies`)
+  - Updated dependency [`@whatwg-node/fetch@^0.6.9` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.6.9) (from `^0.6.0`, in `dependencies`)
+- Updated dependencies [[`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af)]:
+  - @graphql-tools/utils@9.2.1
+  - @graphql-tools/graphql-tag-pluck@7.4.5
+
 ## 7.3.24
 
 ### Patch Changes

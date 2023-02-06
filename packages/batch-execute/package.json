@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/batch-execute",
-  "version": "8.5.16",
+  "version": "8.5.17",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -53,7 +53,7 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/utils": "9.2.0",
+    "@graphql-tools/utils": "9.2.1",
     "dataloader": "2.2.1",
     "tslib": "^2.4.0",
     "value-or-promise": "1.0.12"

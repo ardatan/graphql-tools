@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 9.2.1
+
+### Patch Changes
+
+- [`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af) Thanks [@ardatan](https://github.com/ardatan)! - Do not use a global `WeakMap` for `memoize2of4`, and introduce `memoize2of5`
+
 ## 9.2.0
 
 ### Minor Changes
