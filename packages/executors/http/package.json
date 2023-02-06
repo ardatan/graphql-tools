@@ -51,12 +51,12 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "9.2.0",
-    "value-or-promise": "1.0.12",
-    "@whatwg-node/fetch": "0.6.8",
-    "@repeaterjs/repeater": "3.0.4",
-    "dset": "3.1.2",
-    "meros": "1.2.1",
+    "@graphql-tools/utils": "^9.2.0",
+    "value-or-promise": "^1.0.12",
+    "@whatwg-node/fetch": "^0.6.9",
+    "@repeaterjs/repeater": "^3.0.4",
+    "dset": "^3.1.2",
+    "meros": "^1.2.1",
     "extract-files": "^11.0.0",
     "tslib": "^2.4.0"
   },

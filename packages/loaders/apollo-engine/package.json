@@ -51,9 +51,9 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@ardatan/sync-fetch": "0.0.1",
-    "@graphql-tools/utils": "9.2.0",
-    "@whatwg-node/fetch": "^0.6.0",
+    "@ardatan/sync-fetch": "^0.0.1",
+    "@graphql-tools/utils": "^9.2.0",
+    "@whatwg-node/fetch": "^0.6.9",
     "tslib": "^2.4.0"
   },
   "publishConfig": {
