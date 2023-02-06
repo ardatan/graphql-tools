@@ -1,5 +1,15 @@
 # @graphql-tools/batch-delegate
 
+## 8.4.19
+
+### Patch Changes
+
+- [#5025](https://github.com/ardatan/graphql-tools/pull/5025) [`b09ea282`](https://github.com/ardatan/graphql-tools/commit/b09ea282f0945fb19f354af57aabddcd23b2a155) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`dataloader@2.2.1` ↗︎](https://www.npmjs.com/package/dataloader/v/2.2.1) (from `2.1.0`, in `dependencies`)
+- Updated dependencies [[`b09ea282`](https://github.com/ardatan/graphql-tools/commit/b09ea282f0945fb19f354af57aabddcd23b2a155), [`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af)]:
+  - @graphql-tools/delegate@9.0.26
+  - @graphql-tools/utils@9.2.1
+
 ## 8.4.18
 
 ### Patch Changes

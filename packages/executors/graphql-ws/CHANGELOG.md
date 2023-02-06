@@ -1,5 +1,12 @@
 # @graphql-tools/executor-graphql-ws
 
+## 0.0.10
+
+### Patch Changes
+
+- Updated dependencies [[`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af)]:
+  - @graphql-tools/utils@9.2.1
+
 ## 0.0.9
 
 ### Patch Changes
