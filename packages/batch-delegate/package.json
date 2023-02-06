@@ -55,7 +55,7 @@
   "dependencies": {
     "@graphql-tools/delegate": "9.0.25",
     "@graphql-tools/utils": "9.2.0",
-    "dataloader": "2.1.0",
+    "dataloader": "2.2.1",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
