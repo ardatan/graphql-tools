@@ -111,7 +111,21 @@ export interface GraphQLTagPluckOptions {
   skipIndent?: boolean;
 }
 
-const supportedExtensions = ['.js', '.jsx', '.ts', '.tsx', '.flow', '.flow.js', '.flow.jsx', '.vue', '.svelte'];
+const supportedExtensions = [
+  '.js',
+  '.mjs',
+  '.cjs',
+  '.jsx',
+  '.ts',
+  '.mts',
+  '.cts',
+  '.tsx',
+  '.flow',
+  '.flow.js',
+  '.flow.jsx',
+  '.vue',
+  '.svelte',
+];
 
 // tslint:disable-next-line: no-implicit-dependencies
 function parseWithVue(vueTemplateCompiler: typeof import('@vue/compiler-sfc'), fileData: string) {
@@ -131,7 +145,7 @@ function parseWithSvelte(svelte2tsx: typeof import('svelte2tsx'), fileData: stri
 /**
  * Asynchronously plucks GraphQL template literals from a single file.
  *
- * Supported file extensions include: `.js`, `.jsx`, `.ts`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`, `.svelte`
+ * Supported file extensions include: `.js`, `.mjs`, `.cjs`, `.jsx`, `.ts`, `.mts`, `.cts`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`, `.svelte`
  *
  * @param filePath Path to the file containing the code. Required to detect the file type
  * @param code The contents of the file being parsed.
@@ -157,7 +171,7 @@ export const gqlPluckFromCodeString = async (
 /**
  * Synchronously plucks GraphQL template literals from a single file
  *
- * Supported file extensions include: `.js`, `.jsx`, `.ts`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`, `.svelte`
+ * Supported file extensions include: `.js`, `.mjs`, `.cjs`, `.jsx`, `.ts`, `.mjs`, `.cjs`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`, `.svelte`
  *
  * @param filePath Path to the file containing the code. Required to detect the file type
  * @param code The contents of the file being parsed.
