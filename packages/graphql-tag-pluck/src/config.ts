@@ -41,6 +41,8 @@ export default function generateConfig(
   const fileExt = getExtNameFromFilePath(filePath);
   switch (fileExt) {
     case '.ts':
+    case '.cts':
+    case '.mts':
       plugins.push('typescript');
       plugins.push('importAssertions');
       break;
@@ -52,6 +54,8 @@ export default function generateConfig(
     // (unlike .tsx) and because people are seem to use it with regular file extensions
     // (e.g. .js) see https://github.com/dotansimha/graphql-code-generator/issues/1967
     case '.js':
+    case '.mjs':
+    case '.cjs':
       plugins.push('jsx', ...dynamicFlowPlugins);
       break;
     case '.jsx':

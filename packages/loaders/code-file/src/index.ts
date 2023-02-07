@@ -45,7 +45,7 @@ export type CodeFileLoaderOptions = {
 } & CodeFileLoaderConfig &
   BaseLoaderOptions;
 
-const FILE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue', '.svelte'];
+const FILE_EXTENSIONS = ['.ts', '.mts', '.cts', '.tsx', '.js', '.mjs', 'cjs', '.jsx', '.vue', '.svelte'];
 
 function createGlobbyOptions(options: CodeFileLoaderOptions): GlobbyOptions {
   return { absolute: true, ...options, ignore: [] };
@@ -65,7 +65,8 @@ const buildIgnoreGlob = (path: string) => `!${path}`;
  * });
  * ```
  *
- * Supported extensions include: `.ts`, `.tsx`, `.js`, `.jsx`, `.vue`, `.svelte`
+ * Supported extensions include: `.ts`, `.mts`, `.cts`, `.tsx`, `.js`, `.mjs`,
+ * `.cjs`, `.jsx`, `.vue`, `.svelte`
  */
 export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
   private config: CodeFileLoaderConfig;
