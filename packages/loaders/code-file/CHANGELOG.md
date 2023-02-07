@@ -1,5 +1,14 @@
 # @graphql-tools/code-file-loader
 
+## 7.3.20
+
+### Patch Changes
+
+- [#5030](https://github.com/ardatan/graphql-tools/pull/5030) [`bb2d257b`](https://github.com/ardatan/graphql-tools/commit/bb2d257b079ad053024d860902bb31eab8ccfe76) Thanks [@mscharley](https://github.com/mscharley)! - Added the ability to parse cjs/mjs files for graphql documents
+
+- Updated dependencies [[`bb2d257b`](https://github.com/ardatan/graphql-tools/commit/bb2d257b079ad053024d860902bb31eab8ccfe76)]:
+  - @graphql-tools/graphql-tag-pluck@7.4.6
+
 ## 7.3.19
 
 ### Patch Changes

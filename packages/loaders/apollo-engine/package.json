@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/apollo-engine-loader",
-  "version": "7.3.24",
+  "version": "7.3.25",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
