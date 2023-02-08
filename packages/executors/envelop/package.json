@@ -1,0 +1,67 @@
+{
+  "name": "@graphql-tools/executor-envelop",
+  "version": "0.0.0",
+  "description": "A set of utils for faster development of GraphQL tools",
+  "repository": {
+    "type": "git",
+    "url": "ardatan/graphql-tools",
+    "directory": "packages/executors/envelop"
+  },
+  "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/typings/index.d.cts",
+        "default": "./dist/cjs/index.js"
+      },
+      "import": {
+        "types": "./dist/typings/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "default": {
+        "types": "./dist/typings/index.d.ts",
+        "default": "./dist/esm/index.js"
+      }
+    },
+    "./*": {
+      "require": {
+        "types": "./dist/typings/*.d.cts",
+        "default": "./dist/cjs/*.js"
+      },
+      "import": {
+        "types": "./dist/typings/*.d.ts",
+        "default": "./dist/esm/*.js"
+      },
+      "default": {
+        "types": "./dist/typings/*.d.ts",
+        "default": "./dist/esm/*.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "typings": "dist/typings/index.d.ts",
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
+  },
+  "publishConfig": {
+    "directory": "dist",
+    "access": "public"
+  },
+  "dependencies": {
+    "@graphql-tools/utils": "^9.2.1",
+    "tslib": "^2.3.1"
+  },
+  "devDependencies": {
+    "@envelop/core": "3.0.4",
+    "@envelop/testing": "5.0.4"
+  },
+  "peerDependencies": {
+    "graphql": "^15.2.0 || ^16.0.0",
+    "@envelop/core": "^3.0.4"
+  },
+  "type": "module"
+}

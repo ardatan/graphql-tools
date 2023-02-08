@@ -1635,6 +1635,14 @@
     lru-cache "^6.0.0"
     tslib "^2.4.0"
 
+"@envelop/testing@5.0.4":
+  version "5.0.4"
+  resolved "https://registry.yarnpkg.com/@envelop/testing/-/testing-5.0.4.tgz#28bcda39c263d1e7ee94e9511d8ea3c2ac97c72d"
+  integrity sha512-O8lwOLic5EirquvWsYzO/zrvzGtl+rDzNMk8vSl+59PHCrftgf2V8PeJ11orz7ZsKUf1j6gvqYe3K+uixtbj9Q==
+  dependencies:
+    "@graphql-tools/utils" "^8.8.0"
+    tslib "^2.4.0"
+
 "@envelop/types@3.0.1":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@envelop/types/-/types-3.0.1.tgz#0afec3b3f1ab282bc828e6c42c5e26d76ffe363c"
