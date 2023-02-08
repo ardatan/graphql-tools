@@ -1,11 +1,11 @@
 {
-  "name": "@graphql-tools/executor-envelop",
+  "name": "@graphql-tools/executor-yoga",
   "version": "1.0.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
     "url": "ardatan/graphql-tools",
-    "directory": "packages/executors/envelop"
+    "directory": "packages/executors/yoga"
   },
   "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",
   "license": "MIT",
@@ -52,15 +52,17 @@
     "access": "public"
   },
   "dependencies": {
+    "@graphql-tools/wrap": "^9.3.5",
     "@graphql-tools/utils": "^9.2.1",
     "tslib": "^2.3.1"
   },
   "devDependencies": {
-    "@envelop/core": "3.0.4",
-    "@envelop/testing": "5.0.4"
+    "@graphql-tools/executor-envelop": "^1.0.0",
+    "graphql-yoga": "^3.5.1"
   },
   "peerDependencies": {
-    "@envelop/core": "^3.0.4"
+    "graphql": "^15.2.0 || ^16.0.0",
+    "graphql-yoga": "^3.5.1"
   },
   "type": "module"
 }

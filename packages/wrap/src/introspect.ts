@@ -72,6 +72,11 @@ export function schemaFromExecutor(
   executor: Executor,
   context?: Record<string, any>,
   options?: SchemaFromExecutorOptions
+): MaybePromise<GraphQLSchema>;
+export function schemaFromExecutor(
+  executor: Executor,
+  context?: Record<string, any>,
+  options?: SchemaFromExecutorOptions
 ): MaybePromise<GraphQLSchema> {
   const parsedIntrospectionQuery = parse(getIntrospectionQuery(options as any), options);
   return new ValueOrPromise(() =>
