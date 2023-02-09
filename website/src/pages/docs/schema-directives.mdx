@@ -706,7 +706,7 @@ SDL syntax requires declaring the names, argument types, default argument values
 
 ## What about Query Directives?
 
-The directive syntax can also appear in GraphQL queries sent from the client. Query directive implementation can be performed within GraphQL resolver using similar techniques as the above. In general, however, schema authors should consider using field arguments wherever possible instead of query directives, with query directives most useful for annotating the query with metadata affecting the execution algorithm itself, e.g. [`defer`, `stream`](https://github.com/graphql/graphql-spec/blob/master/rfcs/DeferStream.md), etc.
+The directive syntax can also appear in GraphQL queries sent from the client. Query directive implementation can be performed within GraphQL resolver using similar techniques as the above. In general, however, schema authors should consider using field arguments wherever possible instead of query directives, with query directives most useful for annotating the query with metadata affecting the execution algorithm itself, e.g. [`defer`, `stream`](https://github.com/graphql/graphql-wg/blob/main/rfcs/DeferStream.md), etc.
 
 In theory, access to the query directives is available within the `info` resolver argument by iterating through each `fieldNode` of `info.fieldNodes`, although, as above use of query directives within standard resolvers is not necessarily recommended.
 
