@@ -1,5 +1,14 @@
 # @graphql-tools/url-loader
 
+## 7.17.12
+
+### Patch Changes
+
+- [#5041](https://github.com/ardatan/graphql-tools/pull/5041) [`1b948acc`](https://github.com/ardatan/graphql-tools/commit/1b948accf76366f45f69fe212e0d600a85eb6a89) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`@whatwg-node/fetch@^0.8.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.8.0) (from `^0.7.0`, in `dependencies`)
+- Updated dependencies [[`1b948acc`](https://github.com/ardatan/graphql-tools/commit/1b948accf76366f45f69fe212e0d600a85eb6a89)]:
+  - @graphql-tools/executor-http@0.1.7
+
 ## 7.17.11
 
 ### Patch Changes
