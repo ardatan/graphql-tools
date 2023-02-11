@@ -3,6 +3,7 @@ import { executorExchange } from '../src/index.js';
 import { pipe, toObservable } from 'wonka';
 import { createYoga, createSchema } from 'graphql-yoga';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
+import { ExecutionResult } from '@graphql-tools/utils';
 
 describe('URQL Yoga Exchange', () => {
   if (!process.env['TEST_BROWSER']) {
@@ -93,8 +94,8 @@ describe('URQL Yoga Exchange', () => {
     let i = 0;
     await new Promise<void>((resolve, reject) => {
       const subscription = observable.subscribe({
-        next: result => {
-          collectedValues.push(result.data?.time);
+        next: (result: ExecutionResult) => {
+          collectedValues.push(result.data?.time as string);
           i++;
           if (i > 2) {
             subscription.unsubscribe();
@@ -104,7 +105,7 @@ describe('URQL Yoga Exchange', () => {
         complete: () => {
           resolve();
         },
-        error: error => {
+        error: (error: Error) => {
           reject(error);
         },
       });
