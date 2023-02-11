@@ -86,12 +86,13 @@ export function executorExchange(executor: Executor): Exchange {
       const executedOps$ = pipe(
         sharedOps$,
         filter(
-          operation => operation.kind === 'query' || operation.kind === 'mutation' || operation.kind === 'subscription'
+          (operation: Operation<TData, TVariables>) =>
+            operation.kind === 'query' || operation.kind === 'mutation' || operation.kind === 'subscription'
         ),
-        mergeMap(operation => {
+        mergeMap((operation: Operation<TData, TVariables>) => {
           const teardown$ = pipe(
             sharedOps$,
-            filter(op => op.kind === 'teardown' && op.key === operation.key)
+            filter((op: Operation<TData, TVariables>) => op.kind === 'teardown' && op.key === operation.key)
           );
 
           return pipe(makeYogaSource(operation), takeUntil(teardown$));
@@ -100,7 +101,7 @@ export function executorExchange(executor: Executor): Exchange {
 
       const forwardedOps$ = pipe(
         sharedOps$,
-        filter(operation => operation.kind === 'teardown'),
+        filter((operation: Operation<TData, TVariables>) => operation.kind === 'teardown'),
         forward
       );
 
