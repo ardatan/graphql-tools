@@ -12337,10 +12337,10 @@ which@^2.0.1:
   dependencies:
     isexe "^2.0.0"
 
-wonka@6.2.1, wonka@^6.1.2:
-  version "6.2.1"
-  resolved "https://registry.yarnpkg.com/wonka/-/wonka-6.2.1.tgz#b09ccdceb7053c1753f6c1bb52d338ae21599059"
-  integrity sha512-6et7xfxG/HtMwenqNsphz59PbYT1joKL11q9sY2en3JvzJZtR1alOROIl/1ibgBFdHJqKarF82Uqo1tr1ijzfQ==
+wonka@6.2.2, wonka@^6.1.2:
+  version "6.2.2"
+  resolved "https://registry.yarnpkg.com/wonka/-/wonka-6.2.2.tgz#d43bf37a086d5854f833082cd83fd8a57387b977"
+  integrity sha512-ajwayFBbenJPx27+3gUjqRJrZdLu6/10FWaLMDut8Wf9Y18qc5XGtCcWfsSV6W7ojmPVHVd9Qk924KGac0RL8g==
 
 word-wrap@^1.2.3:
   version "1.2.3"
