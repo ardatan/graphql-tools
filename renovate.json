@@ -7,6 +7,15 @@
   },
   "packageRules": [
     {
+      "groupName": "whatwg-node",
+      "matchPackageNames": ["@whatwg-node/*"],
+      "prPriority": 21,
+      "ignoreUnstable": false,
+      "respectLatest": false,
+      "automerge": false,
+      "allowedVersions": "/^([0-9]+).([0-9]+)(?:.([0-9]+))?(-rc-.+)?$/"
+    },
+    {
       "excludePackagePatterns": [
         "@changesets/*",
         "typescript",
