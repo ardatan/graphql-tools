@@ -62,7 +62,7 @@
     "graphql-subscriptions": "2.0.0",
     "husky": "8.0.3",
     "jest": "29.4.2",
-    "lint-staged": "13.1.1",
+    "lint-staged": "13.1.2",
     "patch-package": "6.5.1",
     "prettier": "2.8.4",
     "ts-jest": "29.0.5",
