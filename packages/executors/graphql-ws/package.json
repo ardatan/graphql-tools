@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-graphql-ws",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
