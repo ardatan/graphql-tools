@@ -6,6 +6,9 @@ import {
   isTemplateLiteral,
   isImportDefaultSpecifier,
   isImportSpecifier,
+  isTSAsExpression,
+  isTSTypeReference,
+  TSAsExpression,
 } from '@babel/types';
 import { asArray } from '@graphql-tools/utils';
 import { Visitor } from '@babel/traverse';
@@ -261,10 +264,28 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
           return;
         }
 
+        // Checks to see if a node represents a typescript '<expression> as const' expression
+        function isTSAsConstExpression(node: object | null | undefined): node is TSAsExpression {
+          return (
+            isTSAsExpression(node) &&
+            isTSTypeReference(node.typeAnnotation) &&
+            isIdentifier(node.typeAnnotation.typeName) &&
+            node.typeAnnotation.typeName.name === 'const'
+          );
+        }
+
+        // Extract template literal from as const expression if applicable
+        // e.g. gql(`query myQuery {}` as const)
+        const unwrappedExpression = isTSAsConstExpression(arg0) ? arg0.expression : arg0;
+
         // Push strings template literals to gql calls
         // e.g. gql(`query myQuery {}`) -> query myQuery {}
-        if (isIdentifier(path.node.callee) && isValidIdentifier(path.node.callee.name) && isTemplateLiteral(arg0)) {
-          const { start, end, loc } = arg0;
+        if (
+          isIdentifier(path.node.callee) &&
+          isValidIdentifier(path.node.callee.name) &&
+          isTemplateLiteral(unwrappedExpression)
+        ) {
+          const { start, end, loc } = unwrappedExpression;
           if (start != null && end != null && start != null && loc != null) {
             const gqlTemplateLiteral = pluckStringFromFile({ start, end });
 
