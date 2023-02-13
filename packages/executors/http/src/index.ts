@@ -135,7 +135,7 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
       controller = new AbortController();
       timeoutId = setTimeout(() => {
         if (!controller?.signal.aborted) {
-          controller?.abort();
+          controller?.abort('timeout');
         }
       }, options.timeout);
     }
