@@ -3531,7 +3531,7 @@
     urlpattern-polyfill "^6.0.2"
     web-streams-polyfill "^3.2.1"
 
-"@whatwg-node/fetch@^0.8.0":
+"@whatwg-node/fetch@^0.8.0", "@whatwg-node/fetch@^0.8.1":
   version "0.8.1"
   resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.8.1.tgz#ee3c94746132f217e17f78f9e073bb342043d630"
   integrity sha512-Fkd1qQHK2tAWxKlC85h9L86Lgbq3BzxMnHSnTsnzNZMMzn6Xi+HlN8/LJ90LxorhSqD54td+Q864LgwUaYDj1Q==

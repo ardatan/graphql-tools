@@ -53,7 +53,7 @@
   "dependencies": {
     "@graphql-tools/utils": "^9.2.1",
     "value-or-promise": "^1.0.12",
-    "@whatwg-node/fetch": "^0.8.0",
+    "@whatwg-node/fetch": "^0.8.1",
     "@repeaterjs/repeater": "^3.0.4",
     "dset": "^3.1.2",
     "meros": "^1.2.1",
