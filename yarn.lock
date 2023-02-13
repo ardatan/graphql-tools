@@ -1820,10 +1820,10 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.1.tgz#076d78ce99822258cf813ecc1e7fa460fa74d052"
   integrity sha512-NQ17ii0rK1b34VZonlmT2QMJFI70m0TRwbknO/ihlbatXyaktDhN/98vBiUU6kNBPljqGqyIrl2T4nY2RpFANg==
 
-"@graphql-yoga/plugin-defer-stream@1.5.1":
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-1.5.1.tgz#748b389bd23890d3fd7577a4dd2f6f22af4af5c8"
-  integrity sha512-AR3neuio5tm13c609u2Vp/QB6c/K6uVcp78NiupaWxUbeN1m1d7w5qDbHO2CmmxtoHmGmsE4TSvwmjhILv217A==
+"@graphql-yoga/plugin-defer-stream@1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-1.6.0.tgz#500d308a30851073433f87d07e9d528828bb418c"
+  integrity sha512-xgnyvFuuzpa6sV4OLNfGGeq/3aTrFHt4WDxGRDTaxiPjp8n26NCB1I5FM83OBonuOKKi4QJFYDeQ7aWMT2UYOA==
   dependencies:
     "@graphql-tools/utils" "^9.0.1"
 
@@ -5169,10 +5169,10 @@ dagre-d3-es@7.0.6:
     d3 "^7.7.0"
     lodash-es "^4.17.21"
 
-dataloader@2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/dataloader/-/dataloader-2.2.1.tgz#f07ab712514313a34b1507a308dbb7dc14bac715"
-  integrity sha512-Zn+tVZo1RKu120rgoe0JsRk56UiKdefPSH47QROJsMHrX8/S9UJvi5A/A6+Sbuk6rE88z5JoM/wIJ09Z7BTfYA==
+dataloader@2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/dataloader/-/dataloader-2.2.2.tgz#216dc509b5abe39d43a9b9d97e6e5e473dfbe3e0"
+  integrity sha512-8YnDaaf7N3k/q5HnTJVuzSyLETjoZjVmHc4AeKAzOvKHEFQKcn64OKBfzHYtE9zGjctNM7V9I0MfnUVLpi7M5g==
 
 dataloader@^1.4.0:
   version "1.4.0"
