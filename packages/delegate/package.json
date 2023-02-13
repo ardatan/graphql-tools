@@ -57,7 +57,7 @@
     "@graphql-tools/executor": "0.0.14",
     "@graphql-tools/schema": "9.0.16",
     "@graphql-tools/utils": "9.2.1",
-    "dataloader": "2.2.1",
+    "dataloader": "2.2.2",
     "tslib": "~2.5.0",
     "value-or-promise": "1.0.12"
   },
