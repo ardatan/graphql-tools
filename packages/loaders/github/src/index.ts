@@ -171,6 +171,7 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
       'content-type': 'application/json; charset=utf-8',
       'user-agent': 'graphql-tools',
       authorization: `bearer ${token}`,
+      ...options.headers,
     };
     return {
       method: 'POST',
