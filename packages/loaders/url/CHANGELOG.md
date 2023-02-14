@@ -1,5 +1,15 @@
 # @graphql-tools/url-loader
 
+## 7.17.13
+
+### Patch Changes
+
+- Updated dependencies [[`30bd4d0c`](https://github.com/ardatan/graphql-tools/commit/30bd4d0c10f59147faba925dc0941c731b0532a9), [`1298727c`](https://github.com/ardatan/graphql-tools/commit/1298727c629b4d535b023dcf920639ae43571692), [`1298727c`](https://github.com/ardatan/graphql-tools/commit/1298727c629b4d535b023dcf920639ae43571692)]:
+  - @graphql-tools/delegate@9.0.27
+  - @graphql-tools/executor-graphql-ws@0.0.11
+  - @graphql-tools/executor-legacy-ws@0.0.9
+  - @graphql-tools/wrap@9.3.6
+
 ## 7.17.12
 
 ### Patch Changes

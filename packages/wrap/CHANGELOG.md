@@ -1,5 +1,12 @@
 # @graphql-tools/wrap
 
+## 9.3.6
+
+### Patch Changes
+
+- Updated dependencies [[`30bd4d0c`](https://github.com/ardatan/graphql-tools/commit/30bd4d0c10f59147faba925dc0941c731b0532a9)]:
+  - @graphql-tools/delegate@9.0.27
+
 ## 9.3.5
 
 ### Patch Changes

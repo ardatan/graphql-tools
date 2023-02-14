@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 7.5.0
+
+### Minor Changes
+
+- [#4877](https://github.com/ardatan/graphql-tools/pull/4877) [`42ad8df8`](https://github.com/ardatan/graphql-tools/commit/42ad8df8b2dc0bbe576df894074ebac3e437bc1d) Thanks [@tristanmenzel](https://github.com/tristanmenzel)! - Adds support for matching graphql queries declared with typescript's 'as const' expression. eg. graphql(`query myQuery(...)` as const)
+
 ## 7.4.6
 
 ### Patch Changes
