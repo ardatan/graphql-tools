@@ -1,5 +1,11 @@
 # @graphql-tools/executor-http
 
+## 0.1.9
+
+### Patch Changes
+
+- [#5061](https://github.com/ardatan/graphql-tools/pull/5061) [`42c4a8da`](https://github.com/ardatan/graphql-tools/commit/42c4a8da2626bc7c39244712bb79550671b62a72) Thanks [@ardatan](https://github.com/ardatan)! - Handle unexpected non-json responses
+
 ## 0.1.8
 
 ### Patch Changes
