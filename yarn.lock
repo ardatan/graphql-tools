@@ -1794,10 +1794,10 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.1.tgz#076d78ce99822258cf813ecc1e7fa460fa74d052"
   integrity sha512-NQ17ii0rK1b34VZonlmT2QMJFI70m0TRwbknO/ihlbatXyaktDhN/98vBiUU6kNBPljqGqyIrl2T4nY2RpFANg==
 
-"@graphql-yoga/plugin-defer-stream@1.6.0":
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-1.6.0.tgz#500d308a30851073433f87d07e9d528828bb418c"
-  integrity sha512-xgnyvFuuzpa6sV4OLNfGGeq/3aTrFHt4WDxGRDTaxiPjp8n26NCB1I5FM83OBonuOKKi4QJFYDeQ7aWMT2UYOA==
+"@graphql-yoga/plugin-defer-stream@1.6.1":
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-1.6.1.tgz#ca59ac827dd007aac4a00079b9d69cb8ab56b881"
+  integrity sha512-aLREcJkFiVGbOiSD1c6F1TlEqkWDlRUl6KiZ1IZpi6gfzKTEdIvdRlVV72wfOZKfwv8wXjPLUOGQ/ea9luUc+A==
   dependencies:
     "@graphql-tools/utils" "^9.0.1"
 
