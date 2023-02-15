@@ -140,6 +140,11 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
       }, options.timeout);
     }
 
+    const responseDetailsForError: {
+      status?: number;
+      statusText?: string;
+    } = {};
+
     return new ValueOrPromise(() => {
       switch (method) {
         case 'GET': {
@@ -188,6 +193,8 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
       }
     })
       .then((fetchResult: Response): any => {
+        responseDetailsForError.status = fetchResult.status;
+        responseDetailsForError.statusText = fetchResult.statusText;
         if (timeoutId != null) {
           clearTimeout(timeoutId);
         }
@@ -209,7 +216,21 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
       .then(result => {
         if (typeof result === 'string') {
           if (result) {
-            return JSON.parse(result);
+            try {
+              return JSON.parse(result);
+            } catch (e: any) {
+              return {
+                errors: [
+                  createGraphQLError(`Unexpected response: ${JSON.stringify(result)}`, {
+                    extensions: {
+                      requestBody,
+                      responseDetails: responseDetailsForError,
+                    },
+                    originalError: e,
+                  }),
+                ],
+              };
+            }
           }
         } else {
           return result;
@@ -222,6 +243,7 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
               createGraphQLError(e, {
                 extensions: {
                   requestBody,
+                  responseDetails: responseDetailsForError,
                 },
               }),
             ],
@@ -236,6 +258,7 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
               createGraphQLError(`fetch failed to ${endpoint}`, {
                 extensions: {
                   requestBody,
+                  responseDetails: responseDetailsForError,
                 },
                 originalError: e,
               }),
@@ -247,6 +270,7 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
               createGraphQLError(e.message, {
                 extensions: {
                   requestBody,
+                  responseDetails: responseDetailsForError,
                 },
                 originalError: e,
               }),
@@ -258,6 +282,7 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
               createGraphQLError('Unknown error', {
                 extensions: {
                   requestBody,
+                  responseDetails: responseDetailsForError,
                 },
                 originalError: e,
               }),
