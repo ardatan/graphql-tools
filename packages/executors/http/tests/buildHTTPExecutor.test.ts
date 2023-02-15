@@ -23,4 +23,23 @@ describe('buildHTTPExecutor', () => {
     const res = (await executor({ document: mutation })) as ExecutionResult;
     expect(res.data.method).toBe('POST');
   });
+  it('handle unexpected json responses', async () => {
+    const executor = buildHTTPExecutor({
+      fetch: () => new Response('NOT JSON'),
+    });
+    const result = await executor({
+      document: parse(/* GraphQL */ `
+        query {
+          hello
+        }
+      `),
+    });
+    expect(result).toMatchObject({
+      errors: [
+        {
+          message: 'Unexpected response: "NOT JSON"',
+        },
+      ],
+    });
+  });
 });
