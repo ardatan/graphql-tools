@@ -679,36 +679,25 @@ describe('Merge TypeDefs', () => {
       );
     });
 
-    it('should overwrite existing queries', () => {
-      const merged = mergeTypeDefs(['type Query { f1: String! }', 'type Query { f1: String }']);
+    it('should overwrite existing fields for types when using extend', () => {
+      const merged = mergeTypeDefs(['type MyType { field: Int! }', 'extend type MyType { field: Int }']);
 
       expect(stripWhitespaces(print(merged))).toBe(
         stripWhitespaces(/* GraphQL */ `
-          type Query {
-            f1: String
-          }
-
-          schema {
-            query: Query
+          type MyType {
+            field: Int
           }
         `)
       );
     });
 
-    it('should overwrite existing mutations', () => {
-      const merged = mergeTypeDefs([
-        'type Mutation { myTestInput(name: String!): Boolean }',
-        'type Mutation { myTestInput(name: String): Boolean }',
-      ]);
+    it('should overwrite existing fields for inputs when using extend', () => {
+      const merged = mergeTypeDefs(['input TestInput { field: Int! }', 'extend input TestInput { field: Int }']);
 
       expect(stripWhitespaces(print(merged))).toBe(
         stripWhitespaces(/* GraphQL */ `
-          type Mutation {
-            myTestInput(name: String): Boolean
-          }
-
-          schema {
-            mutation: Mutation
+          input TestInput {
+            field: Int
           }
         `)
       );
