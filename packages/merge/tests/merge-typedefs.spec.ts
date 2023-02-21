@@ -654,6 +654,65 @@ describe('Merge TypeDefs', () => {
         `)
       );
     });
+
+    it('should overwrite existing fields for types', () => {
+      const merged = mergeTypeDefs(['type MyType { field: Int! }', 'type MyType { field: Int }']);
+
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          type MyType {
+            field: Int
+          }
+        `)
+      );
+    });
+
+    it('should overwrite existing fields for inputs', () => {
+      const merged = mergeTypeDefs(['input TestInput { field: Int! }', 'input TestInput { field: Int }']);
+
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          input TestInput {
+            field: Int
+          }
+        `)
+      );
+    });
+
+    it('should overwrite existing queries', () => {
+      const merged = mergeTypeDefs(['type Query { f1: String! }', 'type Query { f1: String }']);
+
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          type Query {
+            f1: String
+          }
+
+          schema {
+            query: Query
+          }
+        `)
+      );
+    });
+
+    it('should overwrite existing mutations', () => {
+      const merged = mergeTypeDefs([
+        'type Mutation { myTestInput(name: String!): Boolean }',
+        'type Mutation { myTestInput(name: String): Boolean }',
+      ]);
+
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          type Mutation {
+            myTestInput(name: String): Boolean
+          }
+
+          schema {
+            mutation: Mutation
+          }
+        `)
+      );
+    });
   });
 
   describe('input arguments', () => {
