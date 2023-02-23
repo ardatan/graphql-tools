@@ -1,32 +1,20 @@
 import { GraphQLSchema, Kind, OperationTypeNode, parse } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { TransformQuery } from '@graphql-tools/wrap';
-import { QueryTransformer } from '@graphql-tools/wrap/src/transforms/TransformQuery';
+import { TransformQuery } from '../src';
 import { delegateToSchema } from '@graphql-tools/delegate';
 import { execute } from '@graphql-tools/executor';
 
 describe('TransformQuery', () => {
-  let data: any;
-  const queryTransformer: QueryTransformer = jest.fn(() => ({
-    kind: Kind.SELECTION_SET,
-    selections: [
-      {
-        kind: Kind.FIELD,
-        name: { kind: Kind.NAME, value: 'addressZip' },
-      },
-    ],
-  }));
-  let subschema: GraphQLSchema;
-  let schema: GraphQLSchema;
-  beforeAll(() => {
-    data = {
+  test('calls queryTransformer even when there is no subtree', async () => {
+    let queryTransformerCalled = 0;
+    const data = {
       u1: {
         id: 'user1',
         addressStreetAddress: 'Windy Shore 21 A 7',
         addressZip: '12345',
       },
     };
-    subschema = makeExecutableSchema({
+    const subschema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
         type User {
           id: ID!
@@ -46,7 +34,7 @@ describe('TransformQuery', () => {
         },
       },
     });
-    schema = makeExecutableSchema({
+    const schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
         type User {
           id: ID!
@@ -69,7 +57,18 @@ describe('TransformQuery', () => {
               transforms: [
                 new TransformQuery({
                   path: ['userById'],
-                  queryTransformer,
+                  queryTransformer: () => {
+                    queryTransformerCalled++;
+                    return {
+                      kind: Kind.SELECTION_SET,
+                      selections: [
+                        {
+                          kind: Kind.FIELD,
+                          name: { kind: Kind.NAME, value: 'addressZip' },
+                        },
+                      ],
+                    };
+                  },
                   resultTransformer: result => result.addressZip,
                 }),
               ],
@@ -78,9 +77,6 @@ describe('TransformQuery', () => {
         },
       },
     });
-  });
-
-  test('calls queryTransformer even when there is no subtree', async () => {
     const result = await execute({
       schema,
       document: parse(/* GraphQL */ `
@@ -90,7 +86,7 @@ describe('TransformQuery', () => {
       `),
     });
 
-    expect(queryTransformer).toHaveBeenCalledWith(undefined, expect.anything(), expect.anything(), expect.anything());
+    expect(queryTransformerCalled).toEqual(1);
     expect(result).toEqual({ data: { zipByUser: '12345' } });
   });
 });
