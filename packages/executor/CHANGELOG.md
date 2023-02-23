@@ -1,5 +1,12 @@
 # @graphql-tools/executor
 
+## 0.0.15
+
+### Patch Changes
+
+- [#5065](https://github.com/ardatan/graphql-tools/pull/5065) [`77c1002e`](https://github.com/ardatan/graphql-tools/commit/77c1002e2165a913508fb505513f9289db4f8cd3) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`@graphql-typed-document-node/core@3.1.2` ↗︎](https://www.npmjs.com/package/@graphql-typed-document-node/core/v/3.1.2) (from `3.1.1`, in `dependencies`)
+
 ## 0.0.14
 
 ### Patch Changes
