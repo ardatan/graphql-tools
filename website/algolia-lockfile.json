@@ -1,5 +1,17 @@
 [
   {
+    "objectID": "tools-",
+    "headings": [],
+    "toc": [],
+    "content": "d41d8cd98f00b204e9800998ecf8427e",
+    "url": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
+    "hierarchy": [],
+    "source": "Tools",
+    "title": "Home",
+    "type": "Documentation"
+  },
+  {
     "objectID": "tools-docs-connectors",
     "headings": ["Basic Fetching", "Factoring Out Fetching Details", "DataLoader and Caching"],
     "toc": [
@@ -25,9 +37,9 @@
         "anchor": "dataloader-and-caching"
       }
     ],
-    "content": "068d8072c8cab7e79e7b7794cfce2841",
+    "content": "1004f425a6233193205bf23a921f0fc8",
     "url": "https://www.the-guild.dev/graphql/tools/docs/connectors",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "Data Fetching",
@@ -60,9 +72,9 @@
         "anchor": "error-handling"
       }
     ],
-    "content": "105652e8e076593ec8fb15d02e8f80f9",
+    "content": "38934170f2d60231cb98aca1db7b3c73",
     "url": "https://www.the-guild.dev/graphql/tools/docs/documents-loading",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "Documents Loading",
@@ -116,9 +128,9 @@
         "anchor": "api"
       }
     ],
-    "content": "8125abe99bc2852d996734098d83cfb1",
+    "content": "0c23d49e72994f671749a8e4195b85f2",
     "url": "https://www.the-guild.dev/graphql/tools/docs/generate-schema",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "Executable Schemas",
@@ -156,9 +168,9 @@
         "anchor": "options"
       }
     ],
-    "content": "c69d30d63a0daf4373afac135e67ae4c",
+    "content": "995f3cca7f7a8cccd08461a58171a146",
     "url": "https://www.the-guild.dev/graphql/tools/docs/graphql-tag-pluck",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "GraphQL Tag Pluck",
@@ -179,9 +191,9 @@
         "anchor": "the-graphql-first-philosophy"
       }
     ],
-    "content": "e1ce7f1d12f054ffa69743c217b9ca96",
+    "content": "7c430e85979cf4b7b403426fe685c392",
     "url": "https://www.the-guild.dev/graphql/tools/docs/introduction",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "Introduction",
@@ -202,9 +214,9 @@
         "anchor": "after"
       }
     ],
-    "content": "466843a8f94e785f87274470417d25b5",
+    "content": "af53c5dcedb18c8b55efb956ea40f840",
     "url": "https://www.the-guild.dev/graphql/tools/docs/migration/migration-from-import",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs", "Migration"],
     "source": "Tools",
     "title": "From GraphQL Import",
@@ -220,9 +232,9 @@
         "anchor": "merging-type-definitions"
       }
     ],
-    "content": "b6e00df30623a78fc62d92c1c183a18e",
+    "content": "3185de3dc51568b858b7174610f06093",
     "url": "https://www.the-guild.dev/graphql/tools/docs/migration/migration-from-merge-graphql-schemas",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs", "Migration"],
     "source": "Tools",
     "title": "From Merge GraphQL Schemas",
@@ -232,9 +244,9 @@
     "objectID": "tools-docs-migration-migration-from-toolkit",
     "headings": [],
     "toc": [],
-    "content": "f95ea3b88e5a78b5aa3d1ab475ab238f",
+    "content": "05cf24b8402f395f8e8f0ddc92976c43",
     "url": "https://www.the-guild.dev/graphql/tools/docs/migration/migration-from-toolkit",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs", "Migration"],
     "source": "Tools",
     "title": "From GraphQL Toolkit",
@@ -319,9 +331,9 @@
         "anchor": "upgrading-from-v4v5"
       }
     ],
-    "content": "4b9b178dbf741ca07b5c2c5475876024",
+    "content": "99bbcdb9ef52a93bbeb7d7959e43ef5a",
     "url": "https://www.the-guild.dev/graphql/tools/docs/migration/migration-from-tools",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs", "Migration"],
     "source": "Tools",
     "title": "From Tools v4 - v6",
@@ -424,9 +436,9 @@
         "anchor": "migration-from-v7-and-below"
       }
     ],
-    "content": "320f766c9e2fc5cc25d5c56c586a1890",
+    "content": "ba3543d8071fcff812c5c9bcf1c1b300",
     "url": "https://www.the-guild.dev/graphql/tools/docs/mocking",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "Mocking",
@@ -452,9 +464,9 @@
         "anchor": "usage"
       }
     ],
-    "content": "9ee844950832ef1791709b1e3a5ed90b",
+    "content": "c629f467ffdff51609befff56210bf94",
     "url": "https://www.the-guild.dev/graphql/tools/docs/relay-operation-optimizer",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "Relay Operation Optimizer",
@@ -519,9 +531,9 @@
         "anchor": "api"
       }
     ],
-    "content": "06992744cc1dce5c34c2754abaa7a687",
+    "content": "e1b49b60027f05805a4e372830138844",
     "url": "https://www.the-guild.dev/graphql/tools/docs/resolvers",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "Resolvers",
@@ -537,9 +549,9 @@
         "anchor": "supported-path-matcher-format"
       }
     ],
-    "content": "ce744deaf2b1c969111b227252454a53",
+    "content": "13abf5e23892d6d0f5bfb4994edec884",
     "url": "https://www.the-guild.dev/graphql/tools/docs/resolvers-composition",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "Resolvers Composition",
@@ -595,9 +607,9 @@
         "anchor": "enums"
       }
     ],
-    "content": "c2764d5f47d54ceaf061606d1bd2acec",
+    "content": "93d76960e079aa168decfdc5f573b01d",
     "url": "https://www.the-guild.dev/graphql/tools/docs/scalars",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "Custom Scalars and Enums",
@@ -689,9 +701,9 @@
         "anchor": "full-mapschema-api"
       }
     ],
-    "content": "d2146f4f54d5a2487b36a7eb3d18697b",
+    "content": "f8c1ea0c6b116e82b47de16bf9b7abbb",
     "url": "https://www.the-guild.dev/graphql/tools/docs/schema-directives",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "Schema Directives",
@@ -755,9 +767,9 @@
         "anchor": "loaders"
       }
     ],
-    "content": "8463f8760107491fe54bdf528d99eae5",
+    "content": "5fbf8c94f1c12ddbbc333748fb9fe46d",
     "url": "https://www.the-guild.dev/graphql/tools/docs/schema-loading",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "Schema Loading",
@@ -822,9 +834,9 @@
         "anchor": "merging-resolvers"
       }
     ],
-    "content": "9efe512050c7137d82ac2350dba164b3",
+    "content": "4d51f925804d2c6b68e534c5f7f6f553",
     "url": "https://www.the-guild.dev/graphql/tools/docs/schema-merging",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "Schema Merging",
@@ -845,24 +857,12 @@
         "anchor": "adding-subscriptions-support"
       }
     ],
-    "content": "61a58369de09e24788589008ebf2197a",
+    "content": "5ac5a4343a45e2f5b6a9ddbb45df0698",
     "url": "https://www.the-guild.dev/graphql/tools/docs/server-setup",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
+    "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["Docs"],
     "source": "Tools",
     "title": "Setup an HTTP Server",
-    "type": "Documentation"
-  },
-  {
-    "objectID": "tools-index",
-    "headings": [],
-    "toc": [],
-    "content": "d41d8cd98f00b204e9800998ecf8427e",
-    "url": "https://www.the-guild.dev/graphql/tools//index",
-    "domain": "https://www.the-guild.dev/graphql/tools/",
-    "hierarchy": [],
-    "source": "Tools",
-    "title": "Home",
     "type": "Documentation"
   }
 ]
