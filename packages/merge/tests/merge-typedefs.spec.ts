@@ -654,6 +654,87 @@ describe('Merge TypeDefs', () => {
         `)
       );
     });
+
+    it('should call onFieldTypeConflict if there are two different types', () => {
+      const onFieldTypeConflict = jest.fn().mockImplementation((_, r) => r);
+      const merged = mergeTypeDefs(['type MyType { field: Int! }', 'type MyType { field: String }'], {
+        onFieldTypeConflict,
+      });
+
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          type MyType {
+            field: String
+          }
+        `)
+      );
+    });
+
+    it('should call onFieldTypeConflict if there are two same types but with different nullability', () => {
+      const onFieldTypeConflict = jest.fn().mockImplementation((_, r) => r);
+      const merged = mergeTypeDefs(['type MyType { field: Int! }', 'type MyType { field: Int }'], {
+        onFieldTypeConflict,
+      });
+
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          type MyType {
+            field: Int
+          }
+        `)
+      );
+    });
+
+    it('should call onFieldTypeConflict if there are two same mutations with different types', () => {
+      const onFieldTypeConflict = jest.fn().mockImplementation((_, r) => r);
+      const merged = mergeTypeDefs(
+        [
+          'type Mutation { doSomething(argA: Int!, argB: Int!, argC: Int, argD: Int!, argE: Int!): Boolean! } schema { mutation: Mutation }',
+          'type Mutation { doSomething(argA: Int!, argB: Int, argC: Int!, argD: String, argF: Boolean): Boolean! } schema { mutation: Mutation }',
+        ],
+        {
+          onFieldTypeConflict,
+        }
+      );
+
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          type Mutation {
+            doSomething(argA: Int!, argB: Int, argC: Int!, argD: String, argE: Int!, argF: Boolean): Boolean!
+          }
+
+          schema {
+            mutation: Mutation
+          }
+        `)
+      );
+    });
+
+    it('should call onFieldTypeConflict if there are two same mutations with different types but preserve original arguments types', () => {
+      const onFieldTypeConflict = jest.fn().mockImplementation((l, _) => l);
+      const merged = mergeTypeDefs(
+        [
+          'type Mutation { doSomething(argA: Int!, argB: Int!, argC: Int, argD: Int!, argE: Int!): Boolean! } schema { mutation: Mutation }',
+          'type Mutation { doSomething(argA: Int!, argB: Int, argC: Int!, argD: String, argF: Boolean): Boolean! } schema { mutation: Mutation }',
+        ],
+        {
+          onFieldTypeConflict,
+          reverseArguments: true,
+        }
+      );
+
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          type Mutation {
+            doSomething(argA: Int!, argB: Int!, argC: Int, argD: Int!, argE: Int!, argF: Boolean): Boolean!
+          }
+
+          schema {
+            mutation: Mutation
+          }
+        `)
+      );
+    });
   });
 
   describe('input arguments', () => {

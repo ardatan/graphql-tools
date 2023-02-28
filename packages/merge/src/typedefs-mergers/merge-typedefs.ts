@@ -20,6 +20,7 @@ import {
   printWithComments,
 } from '@graphql-tools/utils';
 import { DEFAULT_OPERATION_TYPE_NAME_MAP } from './schema-def.js';
+import { OnFieldTypeConflict } from './fields.js';
 
 type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
 
@@ -75,6 +76,23 @@ export interface Config extends ParseOptions, GetDocumentNodeFromSchemaOptions {
   convertExtensions?: boolean;
   consistentEnumMerge?: boolean;
   ignoreFieldConflicts?: boolean;
+  /**
+   * Called if types of the same fields are different
+   *
+   * Default: false
+   *
+   * @example:
+   * Given:
+   * ```graphql
+   *  type User { a: String }
+   *  type User { a: Int }
+   * ```
+   *
+   * Instead of throwing `already defined with a different type` error,
+   * `onFieldTypeConflict` function is called.
+   */
+  onFieldTypeConflict?: OnFieldTypeConflict;
+  reverseArguments?: boolean;
 }
 
 /**
