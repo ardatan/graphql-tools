@@ -655,8 +655,26 @@ describe('Merge TypeDefs', () => {
       );
     });
 
-    it('should overwrite existing fields for types', () => {
-      const merged = mergeTypeDefs(['type MyType { field: Int! }', 'type MyType { field: Int }']);
+    it('should call onFieldTypeConflict if there are two different types', () => {
+      const onFieldTypeConflict = jest.fn().mockImplementation((_, r) => r);
+      const merged = mergeTypeDefs(['type MyType { field: Int! }', 'type MyType { field: String }'], {
+        onFieldTypeConflict,
+      });
+
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          type MyType {
+            field: String
+          }
+        `)
+      );
+    });
+
+    it('should call onFieldTypeConflict if there are two same types but with different nullability', () => {
+      const onFieldTypeConflict = jest.fn().mockImplementation((_, r) => r);
+      const merged = mergeTypeDefs(['type MyType { field: Int! }', 'type MyType { field: Int }'], {
+        onFieldTypeConflict,
+      });
 
       expect(stripWhitespaces(print(merged))).toBe(
         stripWhitespaces(/* GraphQL */ `
@@ -667,37 +685,52 @@ describe('Merge TypeDefs', () => {
       );
     });
 
-    it('should overwrite existing fields for inputs', () => {
-      const merged = mergeTypeDefs(['input TestInput { field: Int! }', 'input TestInput { field: Int }']);
+    it('should call onFieldTypeConflict if there are two same mutations with different types', () => {
+      const onFieldTypeConflict = jest.fn().mockImplementation((_, r) => r);
+      const merged = mergeTypeDefs(
+        [
+          'type Mutation { doSomething(argA: Int!, argB: Int!, argC: Int, argD: Int!, argE: Int!): Boolean! } schema { mutation: Mutation }',
+          'type Mutation { doSomething(argA: Int!, argB: Int, argC: Int!, argD: String, argF: Boolean): Boolean! } schema { mutation: Mutation }',
+        ],
+        {
+          onFieldTypeConflict,
+        }
+      );
 
       expect(stripWhitespaces(print(merged))).toBe(
         stripWhitespaces(/* GraphQL */ `
-          input TestInput {
-            field: Int
+          type Mutation {
+            doSomething(argA: Int!, argB: Int, argC: Int!, argD: String, argE: Int!, argF: Boolean): Boolean!
+          }
+
+          schema {
+            mutation: Mutation
           }
         `)
       );
     });
 
-    it('should overwrite existing fields for types when using extend', () => {
-      const merged = mergeTypeDefs(['type MyType { field: Int! }', 'extend type MyType { field: Int }']);
-
-      expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */ `
-          type MyType {
-            field: Int
-          }
-        `)
+    it('should call onFieldTypeConflict if there are two same mutations with different types but preserve original arguments types', () => {
+      const onFieldTypeConflict = jest.fn().mockImplementation((l, _) => l);
+      const merged = mergeTypeDefs(
+        [
+          'type Mutation { doSomething(argA: Int!, argB: Int!, argC: Int, argD: Int!, argE: Int!): Boolean! } schema { mutation: Mutation }',
+          'type Mutation { doSomething(argA: Int!, argB: Int, argC: Int!, argD: String, argF: Boolean): Boolean! } schema { mutation: Mutation }',
+        ],
+        {
+          onFieldTypeConflict,
+          reverseArguments: true,
+        }
       );
-    });
-
-    it('should overwrite existing fields for inputs when using extend', () => {
-      const merged = mergeTypeDefs(['input TestInput { field: Int! }', 'extend input TestInput { field: Int }']);
 
       expect(stripWhitespaces(print(merged))).toBe(
         stripWhitespaces(/* GraphQL */ `
-          input TestInput {
-            field: Int
+          type Mutation {
+            doSomething(argA: Int!, argB: Int!, argC: Int, argD: Int!, argE: Int!, argF: Boolean): Boolean!
+          }
+
+          schema {
+            mutation: Mutation
           }
         `)
       );

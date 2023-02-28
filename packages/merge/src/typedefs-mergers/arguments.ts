@@ -7,19 +7,24 @@ export function mergeArguments(
   args2: InputValueDefinitionNode[],
   config?: Config
 ): InputValueDefinitionNode[] {
-  const result = deduplicateArguments([...args2, ...args1].filter(isSome));
+  const result = deduplicateArguments([...args2, ...args1].filter(isSome), config);
   if (config && config.sort) {
     result.sort(compareNodes);
   }
   return result;
 }
 
-function deduplicateArguments(args: ReadonlyArray<InputValueDefinitionNode>): InputValueDefinitionNode[] {
+function deduplicateArguments(
+  args: ReadonlyArray<InputValueDefinitionNode>,
+  config?: Config
+): InputValueDefinitionNode[] {
   return args.reduce<InputValueDefinitionNode[]>((acc, current) => {
-    const dup = acc.find(arg => arg.name.value === current.name.value);
+    const dupIndex = acc.findIndex(arg => arg.name.value === current.name.value);
 
-    if (!dup) {
+    if (dupIndex === -1) {
       return acc.concat([current]);
+    } else if (!config?.reverseArguments) {
+      acc[dupIndex] = current;
     }
 
     return acc;
