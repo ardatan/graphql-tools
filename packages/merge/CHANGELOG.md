@@ -1,5 +1,11 @@
 # @graphql-tools/merge
 
+## 8.4.0
+
+### Minor Changes
+
+- [#5075](https://github.com/ardatan/graphql-tools/pull/5075) [`04e3ecb9`](https://github.com/ardatan/graphql-tools/commit/04e3ecb9c377834984ab0a272add29a1709e305d) Thanks [@simplecommerce](https://github.com/simplecommerce)! - Added onFieldTypeConflict option to handle manual conflicts for mergeTypeDef and reverseArguments option to select left side arguments if specified.
+
 ## 8.3.18
 
 ### Patch Changes
