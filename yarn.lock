@@ -1812,10 +1812,10 @@
   dependencies:
     tslib "^2.3.1"
 
-"@graphql-yoga/plugin-defer-stream@1.7.1":
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-1.7.1.tgz#896c13463d77563c5e643d2b336162d330cda420"
-  integrity sha512-ML8SRFcqcDxlnX5bvm243eTZPAOEy6/lNtz4yE3WgRlXI/DuT/qSeTGxhhU/VnmPkmPkZoeewnsnrgKEr6t1AA==
+"@graphql-yoga/plugin-defer-stream@1.7.2":
+  version "1.7.2"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-1.7.2.tgz#018c9ad4ee9376576eed04b3f8b889ccc4609154"
+  integrity sha512-iGrHF3HS3n3ts+M12o67Ek9pWszJwZVZfoTjVqWlWzZ7z8UDH8wV/bd1Hx8St0goNuvV8dy/FQf2rnEm3XQ/mA==
   dependencies:
     "@graphql-tools/utils" "^9.0.1"
 
@@ -5685,10 +5685,10 @@ escape-string-regexp@^5.0.0:
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-5.0.0.tgz#4683126b500b61762f2dbebace1806e8be31b1c8"
   integrity sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==
 
-eslint-config-prettier@8.6.0:
-  version "8.6.0"
-  resolved "https://registry.yarnpkg.com/eslint-config-prettier/-/eslint-config-prettier-8.6.0.tgz#dec1d29ab728f4fa63061774e1672ac4e363d207"
-  integrity sha512-bAF0eLpLVqP5oEVUFKpMA+NnRFICwn9X8B5jrR9FcqnYBuPbqWEjTEspPWMj5ye6czoSLDweCzSo3Ko7gGrZaA==
+eslint-config-prettier@8.7.0:
+  version "8.7.0"
+  resolved "https://registry.yarnpkg.com/eslint-config-prettier/-/eslint-config-prettier-8.7.0.tgz#f1cc58a8afebc50980bd53475451df146c13182d"
+  integrity sha512-HHVXLSlVUhMSmyW4ZzEuvjpwqamgmlfkutD53cYXLikh4pt/modINRcCIApJ84czDxM4GZInwUrromsDdTImTA==
 
 eslint-config-standard@17.0.0:
   version "17.0.0"
