@@ -59,7 +59,7 @@
     ]
   },
   "devDependencies": {
-    "@apollo/client": "3.7.9",
+    "@apollo/client": "3.7.10",
     "@types/apollo-upload-client": "17.0.2",
     "graphql-upload": "16.0.2"
   },
