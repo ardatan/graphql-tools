@@ -1,4 +1,4 @@
-import { getNamedType, GraphQLList, GraphQLOutputType, GraphQLSchema, print } from 'graphql';
+import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, print } from 'graphql';
 
 import DataLoader from 'dataloader';
 
