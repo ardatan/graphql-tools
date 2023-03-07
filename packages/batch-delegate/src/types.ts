@@ -17,7 +17,7 @@ export interface BatchDelegateOptions<TContext = Record<string, any>, K = any, V
   key: K;
   argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
   valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
-  lazyOptionsFn?: BatchDelegateOptionsFn;
+  lazyOptionsFn?: BatchDelegateOptionsFn<TContext, K>;
 }
 
 export interface CreateBatchDelegateFnOptions<TContext = Record<string, any>, K = any, V = any, C = K>
@@ -25,5 +25,5 @@ export interface CreateBatchDelegateFnOptions<TContext = Record<string, any>, K 
   dataLoaderOptions?: DataLoader.Options<K, V, C>;
   argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
   valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
-  lazyOptionsFn?: (batchDelegateOptions: BatchDelegateOptions<TContext, K>) => IDelegateToSchemaOptions<TContext>;
+  lazyOptionsFn?: BatchDelegateOptionsFn<TContext, K>;
 }
