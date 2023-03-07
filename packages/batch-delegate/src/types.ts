@@ -7,7 +7,8 @@ export type BatchDelegateFn<TContext = Record<string, any>, K = any> = (
 ) => any;
 
 export type BatchDelegateOptionsFn<TContext = Record<string, any>, K = any> = (
-  batchDelegateOptions: BatchDelegateOptions<TContext, K>
+  batchDelegateOptions: BatchDelegateOptions<TContext, K>,
+  keys: ReadonlyArray<K>
 ) => IDelegateToSchemaOptions<TContext>;
 
 export interface BatchDelegateOptions<TContext = Record<string, any>, K = any, V = any, C = K>

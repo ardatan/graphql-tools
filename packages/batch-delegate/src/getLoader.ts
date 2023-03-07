@@ -1,4 +1,4 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, print } from 'graphql';
+import { getNamedType, GraphQLList, GraphQLOutputType, GraphQLSchema, print } from 'graphql';
 
 import DataLoader from 'dataloader';
 
@@ -33,7 +33,7 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
         return relocatedError(originalError, originalError.path.slice(0, 0).concat(originalError.path.slice(2)));
       },
       args: argsFromKeys(keys),
-      ...(lazyOptionsFn == null ? options : lazyOptionsFn(options)),
+      ...(lazyOptionsFn == null ? options : lazyOptionsFn(options, keys)),
     });
 
     if (results instanceof Error) {
