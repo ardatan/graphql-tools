@@ -44,7 +44,7 @@ describe('mapSchema', () => {
   test('can add a resolver', () => {
     const schema = buildSchema(/* GraphQL */ `
       type Query {
-        version: Int
+        version:
       }
     `);
 
@@ -67,6 +67,45 @@ describe('mapSchema', () => {
       `,
     });
     expect(result.data?.['version']).toBe(1);
+  });
+
+  test('can add custom serializer to enum', () => {
+    const schema = buildSchema(/* GraphQL */ `
+      enum TestEnum {
+        VALUE1
+        VALUE2
+      }
+      type Query {
+        version: TestEnum
+      }
+    `);
+
+    const testReturnVal = 'NEW_VALUE';
+    const newSchema = mapSchema(schema, {
+      [MapperKind.ENUM_TYPE]: enumType => {
+        enumType.serialize = function newSerialize(_outputValue: unknown): string {
+          return testReturnVal;
+        };
+        return enumType;
+      },
+      [MapperKind.QUERY]: type => {
+        const queryConfig = type.toConfig();
+        queryConfig.fields['version'].resolve = () => 'VALUE1';
+        return new GraphQLObjectType(queryConfig);
+      },
+    });
+
+    expect(newSchema).toBeInstanceOf(GraphQLSchema);
+    const result = graphqlSync({
+      schema: newSchema,
+      source: /* GraphQL */ `
+        {
+          version
+        }
+      `,
+    });
+
+    expect(result.data?.['version']).toBe(testReturnVal);
   });
 
   test('can change the root query name', () => {

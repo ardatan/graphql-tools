@@ -130,7 +130,11 @@ export function rewireTypes(
       return new GraphQLInputObjectType(newConfig);
     } else if (isEnumType(type)) {
       const enumConfig = (type as GraphQLEnumType).toConfig();
-      return new GraphQLEnumType(enumConfig);
+      const newGraphQLEnum = new GraphQLEnumType(enumConfig);
+      if (type.serialize) {
+        newGraphQLEnum.serialize = type.serialize;
+      }
+      return newGraphQLEnum;
     } else if (isScalarType(type)) {
       if (isSpecifiedScalarType(type)) {
         return type;
