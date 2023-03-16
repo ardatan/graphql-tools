@@ -44,7 +44,7 @@ describe('mapSchema', () => {
   test('can add a resolver', () => {
     const schema = buildSchema(/* GraphQL */ `
       type Query {
-        version:
+        version: Int
       }
     `);
 
