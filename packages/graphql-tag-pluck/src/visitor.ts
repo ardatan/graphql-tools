@@ -142,6 +142,44 @@ export type PluckedContent = {
   };
 };
 
+function defaultPluckStringFromFile(
+  code: string,
+  { start, end }: { start: number; end: number },
+  options: { skipIndent?: boolean } = {}
+) {
+  return freeText(
+    code
+      // Slice quotes
+      .slice(start + 1, end - 1)
+      // Erase string interpolations as we gonna export everything as a single
+      // string anyway
+      .replace(/\$\{[^}]*\}/g, '')
+      .split('\\`')
+      .join('`'),
+    options.skipIndent
+  );
+}
+
+function defaultIsGqlTemplateLiteral(node: any, options: { gqlMagicComment?: string }) {
+  const leadingComments = node.leadingComments;
+
+  if (!leadingComments) {
+    return;
+  }
+  if (!leadingComments.length) {
+    return;
+  }
+
+  const leadingComment = leadingComments[leadingComments.length - 1];
+  const leadingCommentValue = leadingComment.value.trim().toLowerCase();
+
+  if (leadingCommentValue === options.gqlMagicComment) {
+    return true;
+  }
+
+  return false;
+}
+
 export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) => {
   // Apply defaults to options
   let {
@@ -152,6 +190,9 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
     ...defaults,
     ...options,
   };
+
+  const isGqlTemplateLiteral = options.isGqlTemplateLiteral || defaultIsGqlTemplateLiteral;
+  const pluckStringFromFile = options.pluckStringFromFile || defaultPluckStringFromFile;
 
   // Prevent case related potential errors
   gqlMagicComment = gqlMagicComment!.toLowerCase();
@@ -184,20 +225,6 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
     return definedIdentifierNames.some(id => id === name) || globalGqlIdentifierName!.includes(name);
   }
 
-  const pluckStringFromFile = ({ start, end }: { start: number; end: number }) => {
-    return freeText(
-      code
-        // Slice quotes
-        .slice(start + 1, end - 1)
-        // Erase string interpolations as we gonna export everything as a single
-        // string anyway
-        .replace(/\$\{[^}]*\}/g, '')
-        .split('\\`')
-        .join('`'),
-      options.skipIndent
-    );
-  };
-
   const addTemplateLiteralToResult = (content: PluckedContent) => {
     const cacheKey = `end/${content.end}/start/${content.start}/${content.content}`;
     if (alreadyProcessedOperationsCache.has(cacheKey)) {
@@ -210,24 +237,12 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
   // Push all template literals leaded by graphql magic comment
   // e.g. /* GraphQL */ `query myQuery {}` -> query myQuery {}
   const pluckMagicTemplateLiteral = (node: any, takeExpression = false) => {
-    const leadingComments = node.leadingComments;
-
-    if (!leadingComments) {
-      return;
-    }
-    if (!leadingComments.length) {
-      return;
-    }
-
-    const leadingComment = leadingComments[leadingComments.length - 1];
-    const leadingCommentValue = leadingComment.value.trim().toLowerCase();
-
-    if (leadingCommentValue !== gqlMagicComment) {
+    if (!isGqlTemplateLiteral(node, { ...defaults, ...options })) {
       return;
     }
 
     const nodeToUse = takeExpression ? node.expression : node;
-    const gqlTemplateLiteral = pluckStringFromFile(nodeToUse);
+    const gqlTemplateLiteral = pluckStringFromFile(code, nodeToUse, { ...defaults, ...options });
     if (gqlTemplateLiteral) {
       addTemplateLiteralToResult({
         content: gqlTemplateLiteral,
@@ -287,7 +302,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
         ) {
           const { start, end, loc } = unwrappedExpression;
           if (start != null && end != null && start != null && loc != null) {
-            const gqlTemplateLiteral = pluckStringFromFile({ start, end });
+            const gqlTemplateLiteral = pluckStringFromFile(code, { start, end }, options);
 
             // If the entire template was made out of interpolations it should be an empty
             // string by now and thus should be ignored
@@ -371,7 +386,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
           return;
         }
 
-        const gqlTemplateLiteral = pluckStringFromFile(path.node.quasi);
+        const gqlTemplateLiteral = pluckStringFromFile(code, path.node.quasi, options);
 
         if (gqlTemplateLiteral) {
           addTemplateLiteralToResult({
