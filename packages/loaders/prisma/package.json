@@ -51,6 +51,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
+    "@whatwg-node/fetch": "^0.8.2",
     "@graphql-tools/url-loader": "7.17.14",
     "@graphql-tools/utils": "9.2.1",
     "@types/js-yaml": "^4.0.0",
@@ -61,7 +62,6 @@
     "graphql-request": "^5.0.0",
     "http-proxy-agent": "^5.0.0",
     "https-proxy-agent": "^5.0.0",
-    "isomorphic-fetch": "^3.0.0",
     "jose": "^4.11.4",
     "js-yaml": "^4.0.0",
     "json-stable-stringify": "^1.0.1",

@@ -1,4 +1,4 @@
-import 'isomorphic-fetch';
+import { fetch } from '@whatwg-node/fetch';
 import { createPrivateKey } from 'crypto';
 import { Buffer } from 'buffer';
 import { cloudApiEndpoint } from './constants.js';
@@ -256,7 +256,6 @@ Original error: ${e.message}`
         query,
         variables,
       }),
-      agent: getProxyAgent(this.getDeployEndpoint()),
     } as any);
   }
 

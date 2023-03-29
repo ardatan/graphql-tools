@@ -6,7 +6,7 @@ import { ClusterNotFound } from './errors/ClusterNotFound.js';
 import { Variables } from './Variables.js';
 import { IOutput, Output } from './Output.js';
 import * as path from 'path';
-import 'isomorphic-fetch';
+import { fetch } from '@whatwg-node/fetch';
 import { RC } from './index.js';
 import { ClusterNotSet } from './errors/ClusterNotSet.js';
 import { clusterEndpointMap } from './constants.js';
@@ -283,7 +283,6 @@ export class Environment {
       body: JSON.stringify({
         query,
       }),
-      proxy: getProxyAgent('https://api.cloud.prisma.sh'),
     } as any);
     const json = await res.json();
     return json.data;
