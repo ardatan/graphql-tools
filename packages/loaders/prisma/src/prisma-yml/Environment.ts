@@ -10,7 +10,6 @@ import { fetch } from '@whatwg-node/fetch';
 import { RC } from './index.js';
 import { ClusterNotSet } from './errors/ClusterNotSet.js';
 import { clusterEndpointMap } from './constants.js';
-import { getProxyAgent } from './utils/getProxyAgent.js';
 // eslint-disable-next-line
 // @ts-ignore
 import debugPkg from 'debug';

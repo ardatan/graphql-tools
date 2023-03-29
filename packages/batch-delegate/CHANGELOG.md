@@ -1,5 +1,11 @@
 # @graphql-tools/batch-delegate
 
+## 8.4.22
+
+### Patch Changes
+
+- [#5104](https://github.com/ardatan/graphql-tools/pull/5104) [`1913bf91`](https://github.com/ardatan/graphql-tools/commit/1913bf913130f20582152f3cbb1a4bfb49d85a13) Thanks [@PatrykWalach](https://github.com/PatrykWalach)! - Pass `keys` to lazyOptionsFn
+
 ## 8.4.21
 
 ### Patch Changes

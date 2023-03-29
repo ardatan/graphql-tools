@@ -1,5 +1,11 @@
 # @graphql-tools/prisma-loader
 
+## 7.2.66
+
+### Patch Changes
+
+- [`6df5c021`](https://github.com/ardatan/graphql-tools/commit/6df5c021c18e9ec10f700c910e79e7cae5558ce2) Thanks [@ardatan](https://github.com/ardatan)! - Replace isomorphic-fetch with @whatwg-node/fetch
+
 ## 7.2.65
 
 ### Patch Changes
