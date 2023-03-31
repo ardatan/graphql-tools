@@ -53,11 +53,11 @@
   "dependencies": {
     "@ardatan/sync-fetch": "^0.0.1",
     "@graphql-tools/executor-http": "^0.1.9",
-    "@graphql-tools/utils": "^9.2.1",
     "@graphql-tools/graphql-tag-pluck": "^7.4.6",
+    "@graphql-tools/utils": "^9.2.1",
     "@whatwg-node/fetch": "^0.8.0",
-    "value-or-promise": "^1.0.12",
-    "tslib": "^2.4.0"
+    "tslib": "^2.4.0",
+    "value-or-promise": "^1.0.12"
   },
   "publishConfig": {
     "directory": "dist",

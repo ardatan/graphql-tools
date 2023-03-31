@@ -59,8 +59,8 @@
     "@apollo/client": "3.7.11"
   },
   "peerDependencies": {
-    "graphql": "^15.2.0 || ^16.0.0",
-    "@apollo/client": "^3.5.9"
+    "@apollo/client": "^3.5.9",
+    "graphql": "^15.2.0 || ^16.0.0"
   },
   "type": "module"
 }
