@@ -87,5 +87,6 @@ export default function generateConfig(
     sourceType: 'module',
     plugins,
     allowUndeclaredExports: true,
+    sourceFilename: filePath,
   };
 }
