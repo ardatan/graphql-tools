@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 9.4.0
+
+### Minor Changes
+
+- [`68c158d2`](https://github.com/ardatan/graphql-tools/commit/68c158d2b4e0f8bdd94daafd63ea6b3efb29d7eb) Thanks [@ardatan](https://github.com/ardatan)! - New transform `MoveRootField`
+
 ## 9.3.9
 
 ### Patch Changes
