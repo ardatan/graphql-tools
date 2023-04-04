@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 9.0.29
+
+### Patch Changes
+
+- [#5131](https://github.com/ardatan/graphql-tools/pull/5131) [`f26392a6`](https://github.com/ardatan/graphql-tools/commit/f26392a66299956da1e66253b181f85332c93db5) Thanks [@neumark](https://github.com/neumark)! - Create symbols with Symbol.for() because multiple copies of delegate cause stitching bugs otherwise.
+
 ## 9.0.28
 
 ### Patch Changes
