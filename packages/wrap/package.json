@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/wrap",
-  "version": "9.3.9",
+  "version": "9.4.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
