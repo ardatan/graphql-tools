@@ -4168,10 +4168,10 @@ bl@^4.0.3:
     inherits "^2.0.4"
     readable-stream "^3.4.0"
 
-bob-the-bundler@5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/bob-the-bundler/-/bob-the-bundler-5.0.1.tgz#4c41534737ed04de822a09e5c2cf959967bf7d68"
-  integrity sha512-oFl2AuEaEQgCVk+nDf2wqSyCzgzE4e4bRZb0/kRynRH+wRGT7725K/99bp2PTJof6nM2GJRD7PfMPHgfuE1bIQ==
+bob-the-bundler@6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/bob-the-bundler/-/bob-the-bundler-6.0.0.tgz#963a796962925b6c3f3231f4852a72ead3e2ce5b"
+  integrity sha512-QsqJzXFOm1Tq7AxqZ8ZEEhC4G5RceWdC21VUsZm6UKB2PmruszDrlh/sufJmR/NIUbTueFARueja8UzSSirmPA==
   dependencies:
     "@vercel/ncc" "^0.36.0"
     consola "^2.15.3"

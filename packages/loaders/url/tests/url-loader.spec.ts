@@ -510,7 +510,7 @@ describe('Schema URL Loader', () => {
       i++;
     }
 
-    expect.assertions(5);
+    expect(i).toBe(3);
   });
   it('should handle aliases properly', async () => {
     const customFetch: AsyncFetchFn = async (_, options) => {
