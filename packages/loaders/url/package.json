@@ -58,12 +58,12 @@
     "babel-loader": "9.1.2",
     "express": "4.18.2",
     "graphql-upload": "16.0.2",
-    "graphql-sse": "2.1.0",
-    "graphql-yoga": "3.7.2",
-    "@graphql-yoga/plugin-defer-stream": "1.7.2",
-    "puppeteer": "19.7.3",
+    "graphql-sse": "2.1.1",
+    "graphql-yoga": "3.8.0",
+    "@graphql-yoga/plugin-defer-stream": "1.8.0",
+    "puppeteer": "19.8.3",
     "subscriptions-transport-ws": "0.11.0",
-    "webpack": "5.76.0"
+    "webpack": "5.78.0"
   },
   "dependencies": {
     "@graphql-tools/delegate": "^9.0.27",

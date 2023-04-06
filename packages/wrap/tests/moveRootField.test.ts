@@ -25,7 +25,7 @@ describe('MoveRootField', () => {
         }),
       ],
     });
-    expect(printSchemaWithDirectives(newSchema)).toMatchInlineSnapshot(`
+    expect(printSchemaWithDirectives(newSchema).trim()).toMatchInlineSnapshot(`
       "schema {
         query: Query
         mutation: Mutation
