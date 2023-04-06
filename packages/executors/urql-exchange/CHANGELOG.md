@@ -1,5 +1,11 @@
 # @graphql-tools/executor-urql-exchange
 
+## 0.0.9
+
+### Patch Changes
+
+- [`61f040c8`](https://github.com/ardatan/graphql-tools/commit/61f040c8098deb0145d46dc8a2d5a6c8d99215fe) Thanks [@ardatan](https://github.com/ardatan)! - Support urql v4
+
 ## 0.0.8
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @graphql-tools/wrap
 
+## 9.4.1
+
+### Patch Changes
+
+- [`c8d5e0df`](https://github.com/ardatan/graphql-tools/commit/c8d5e0dfccdfc40d2a586650b56c124f3e4c5d42) Thanks [@ardatan](https://github.com/ardatan)! - Fix GraphQL v14 support
+
+- Updated dependencies []:
+  - @graphql-tools/delegate@9.0.30
+
 ## 9.4.0
 
 ### Minor Changes
