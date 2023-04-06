@@ -12,6 +12,7 @@ export type BaseLoaderOptions = GraphQLParseOptions &
   BuildSchemaOptions & {
     cwd?: string;
     ignore?: string | string[];
+    includeSources?: boolean;
   };
 
 export type WithList<T> = T | T[];

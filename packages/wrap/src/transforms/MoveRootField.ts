@@ -1,5 +1,12 @@
 import { GraphQLFieldConfigMap, GraphQLObjectType, GraphQLSchema, Kind, OperationTypeNode, visit } from 'graphql';
-import { ExecutionRequest, ExecutionResult, MapperKind, getRootTypeMap, mapSchema } from '@graphql-tools/utils';
+import {
+  ExecutionRequest,
+  ExecutionResult,
+  MapperKind,
+  getDefinedRootType,
+  getRootTypeMap,
+  mapSchema,
+} from '@graphql-tools/utils';
 import { DelegationContext, Transform } from '@graphql-tools/delegate';
 
 const defaultRootTypeNames = {
@@ -92,7 +99,7 @@ export class MoveRootField implements Transform {
     if (result.data?.__typename) {
       const newOperation = this.to[delegationContext.operation][delegationContext.fieldName];
       if (newOperation && newOperation !== delegationContext.operation) {
-        result.data.__typename = delegationContext.targetSchema.getRootType(newOperation)?.name;
+        result.data.__typename = getDefinedRootType(delegationContext.targetSchema, newOperation)?.name;
       }
     }
     return result;

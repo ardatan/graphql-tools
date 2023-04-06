@@ -5,7 +5,7 @@ import { Variables } from './Variables.js';
 import { Args } from './types/common.js';
 import { Output, IOutput } from './Output.js';
 
-const cache = {};
+const cache: Record<string, any> = {};
 
 export async function readDefinition(
   filePath: string,

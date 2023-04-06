@@ -10,7 +10,7 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { defaultAsyncFetch } from '../src/defaultAsyncFetch.js';
 import { Response, Headers } from '@whatwg-node/fetch';
 import { loadSchema } from '@graphql-tools/load';
-import { testUrl, testSchema, testTypeDefs, assertNonMaybe } from './test-utils';
+import { testUrl, testSchema, testTypeDefs, assertNonMaybe, assertAsyncIterable } from './test-utils';
 import { execute, isIncrementalResult, subscribe } from '@graphql-tools/executor';
 import { AsyncFetchFn } from '@graphql-tools/executor-http';
 
@@ -381,8 +381,7 @@ describe('Schema URL Loader', () => {
       contextValue: {},
     })) as AsyncIterableIterator<ExecutionResult>;
 
-    expect(asyncIterator['errors']).toBeFalsy();
-    expect(asyncIterator['errors']?.length).toBeFalsy();
+    assertAsyncIterable(asyncIterator);
 
     async function getNextResult() {
       const result = await asyncIterator.next();
@@ -445,8 +444,7 @@ describe('Schema URL Loader', () => {
       contextValue: {},
     })) as AsyncIterableIterator<ExecutionResult>;
 
-    expect(asyncIterator['errors']).toBeFalsy();
-    expect(asyncIterator['errors']?.length).toBeFalsy();
+    assertAsyncIterable(asyncIterator);
 
     async function getNextResult() {
       const result = await asyncIterator.next();
@@ -504,8 +502,7 @@ describe('Schema URL Loader', () => {
       contextValue: {},
     })) as AsyncIterable<ExecutionResult<any>>;
 
-    expect(asyncIterable['errors']).toBeFalsy();
-    expect(asyncIterable['errors']?.length).toBeFalsy();
+    assertAsyncIterable(asyncIterable);
 
     let i = 0;
     for await (const result of asyncIterable) {

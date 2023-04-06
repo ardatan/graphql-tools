@@ -749,13 +749,14 @@ function getStreamValues(
   const stream = getDirectiveValues(GraphQLStreamDirective, fieldNodes[0], exeContext.variableValues) as {
     initialCount: number;
     label: string;
+    if?: boolean;
   };
 
   if (!stream) {
     return;
   }
 
-  if (stream['if'] === false) {
+  if (stream.if === false) {
     return;
   }
 

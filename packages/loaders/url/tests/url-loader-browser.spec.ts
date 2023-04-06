@@ -168,7 +168,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
     it('can be exposed as a global', async () => {
       const result = await page.evaluate(async () => {
-        return typeof window['GraphQLToolsUrlLoader'];
+        return typeof (window as any)['GraphQLToolsUrlLoader'];
       });
       expect(result).toEqual('object');
     });
@@ -187,7 +187,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       const result = await page.evaluate(
         async (httpAddress, document) => {
-          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
           const executor = loader.getExecutorAsync(httpAddress + '/graphql');
           const result = await executor({
@@ -212,7 +212,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       const results = await page.evaluate(
         async (httpAddress, document) => {
-          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
           const executor = loader.getExecutorAsync(httpAddress + '/graphql');
           const result = await executor({
@@ -241,7 +241,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       const results = await page.evaluate(
         async (httpAddress, document) => {
-          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
           const executor = loader.getExecutorAsync(httpAddress + '/graphql');
           const result = await executor({
@@ -277,7 +277,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       const result = await page.evaluate(
         async (httpAddress, document) => {
-          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
           const executor = loader.getExecutorAsync(httpAddress + '/graphql', {
             subscriptionsProtocol: module.SubscriptionProtocol.SSE,
@@ -310,7 +310,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       const result = await page.evaluate(
         async (httpAddress, document) => {
-          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
           const executor = loader.getExecutorAsync(httpAddress + '/graphql', {
             subscriptionsProtocol: module.SubscriptionProtocol.SSE,
@@ -352,7 +352,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       await page.evaluate(
         async (httpAddress, document) => {
-          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
           const executor = loader.getExecutorAsync(httpAddress + '/graphql');
           const result = (await executor({

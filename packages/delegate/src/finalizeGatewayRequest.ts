@@ -122,7 +122,7 @@ export function finalizeGatewayRequest<TContext>(
 
   const { usedVariables, newDocument } = finalizeGatewayDocument(targetSchema, fragments, operations);
 
-  const newVariables = {};
+  const newVariables: Record<string, any> = {};
   if (variables != null) {
     for (const variableName of usedVariables) {
       const variableValue = variables[variableName];

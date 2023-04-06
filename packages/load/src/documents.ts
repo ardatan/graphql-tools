@@ -13,7 +13,7 @@ export const OPERATION_KINDS: KindList = [Kind.OPERATION_DEFINITION, Kind.FRAGME
  * Kinds of AST nodes that are included in type system definition documents
  */
 export const NON_OPERATION_KINDS: KindList = Object.keys(Kind)
-  .reduce((prev, v) => [...prev, Kind[v]], [] as KindList)
+  .reduce((prev, v) => [...prev, (Kind as any)[v]], [] as KindList)
   .filter(v => !OPERATION_KINDS.includes(v));
 
 /**

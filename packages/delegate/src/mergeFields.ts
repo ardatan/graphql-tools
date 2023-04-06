@@ -93,7 +93,7 @@ async function executeDelegationStage(
         }
         if (source instanceof Error || source == null) {
           const { fields } = collectFields(schema, EMPTY_OBJECT, EMPTY_OBJECT, type, selectionSet);
-          const nullResult = {};
+          const nullResult: Record<string, any> = {};
           for (const [responseKey, fieldNodes] of fields) {
             const combinedPath = [...path, responseKey];
             if (source instanceof GraphQLError) {

@@ -59,8 +59,7 @@
     "value-or-promise": "1.0.12"
   },
   "devDependencies": {
-    "graphql": "^16.6.0",
-    "typescript": "4.9.5"
+    "graphql": "^16.6.0"
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"

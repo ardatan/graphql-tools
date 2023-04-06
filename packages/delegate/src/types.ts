@@ -197,4 +197,5 @@ export interface ExternalObject<TContext = Record<string, any>> {
   [OBJECT_SUBSCHEMA_SYMBOL]: GraphQLSchema | SubschemaConfig<any, any, any, TContext>;
   [FIELD_SUBSCHEMA_MAP_SYMBOL]: Record<string, GraphQLSchema | SubschemaConfig<any, any, any, TContext>>;
   [UNPATHED_ERRORS_SYMBOL]: Array<GraphQLError>;
+  [key: string]: unknown;
 }

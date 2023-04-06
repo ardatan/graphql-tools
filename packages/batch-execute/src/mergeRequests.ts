@@ -139,7 +139,7 @@ function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequ
     }) as DocumentNode;
   }
 
-  const prefixedVariables = {};
+  const prefixedVariables: Record<string, any> = {};
 
   for (const variableName of executionVariableNames) {
     prefixedVariables[prefix + variableName] = executionVariables[variableName];
