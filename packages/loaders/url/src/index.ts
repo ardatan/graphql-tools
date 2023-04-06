@@ -32,8 +32,8 @@ export { FetchFn };
 export type AsyncImportFn = (moduleName: string) => PromiseLike<any>;
 export type SyncImportFn = (moduleName: string) => any;
 
-const asyncImport: AsyncImportFn = (moduleName: string) => import(moduleName);
-const syncImport: SyncImportFn = (moduleName: string) => require(moduleName);
+const asyncImport: AsyncImportFn = (moduleName: string) => import(`${moduleName}`);
+const syncImport: SyncImportFn = (moduleName: string) => require(`${moduleName}`);
 
 type HeadersConfig = Record<string, string>;
 
