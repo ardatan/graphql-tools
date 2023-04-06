@@ -10,6 +10,7 @@ describe('URQL Yoga Exchange', () => {
     it('skips', () => {});
     return;
   }
+  const aCharCode = 'a'.charCodeAt(0);
   const yoga = createYoga({
     logging: false,
     maskedErrors: false,
@@ -23,7 +24,7 @@ describe('URQL Yoga Exchange', () => {
           readFile(file: File!): String!
         }
         type Subscription {
-          time: String
+          alphabet: String
         }
       `,
       resolvers: {
@@ -34,11 +35,13 @@ describe('URQL Yoga Exchange', () => {
           readFile: (_, args: { file: File }) => args.file.text(),
         },
         Subscription: {
-          time: {
+          alphabet: {
             async *subscribe() {
+              let i = 0;
               while (true) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                yield new Date().toISOString();
+                yield String.fromCharCode(aCharCode + i);
+                await new Promise(resolve => setTimeout(resolve, 300));
+                i++;
               }
             },
             resolve: str => str,
@@ -81,8 +84,8 @@ describe('URQL Yoga Exchange', () => {
     const observable = pipe(
       client.subscription(
         /* GraphQL */ `
-          subscription Time {
-            time
+          subscription Alphabet {
+            alphabet
           }
         `,
         {}
@@ -95,7 +98,7 @@ describe('URQL Yoga Exchange', () => {
     await new Promise<void>((resolve, reject) => {
       const subscription = observable.subscribe({
         next: (result: ExecutionResult) => {
-          collectedValues.push(result.data?.time as string);
+          collectedValues.push(result.data?.alphabet as string);
           i++;
           if (i > 2) {
             subscription.unsubscribe();
@@ -103,6 +106,7 @@ describe('URQL Yoga Exchange', () => {
           }
         },
         complete: () => {
+          console.log('bitti');
           resolve();
         },
         error: (error: Error) => {
@@ -110,12 +114,8 @@ describe('URQL Yoga Exchange', () => {
         },
       });
     });
-    expect(collectedValues.length).toBe(3);
+    expect(collectedValues).toEqual(['a', 'b', 'c']);
     expect(i).toBe(3);
-    const now = new Date();
-    for (const value of collectedValues) {
-      expect(new Date(value).getFullYear()).toBe(now.getFullYear());
-    }
   });
   it('should handle file uploads correctly', async () => {
     const query = /* GraphQL */ `

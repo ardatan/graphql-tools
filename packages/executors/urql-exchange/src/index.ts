@@ -8,7 +8,6 @@ import {
   mergeResultPatch,
   Operation,
   OperationResult,
-  getOperationName,
   OperationContext,
   ExchangeIO,
   AnyVariables,
@@ -21,15 +20,12 @@ export function executorExchange(executor: Executor): Exchange {
   function makeYogaSource<TData extends Record<string, any>>(
     operation: Operation<TData>
   ): Source<OperationResult<TData>> {
-    const operationName = getOperationName(operation.query);
-
     const extraFetchOptions =
       typeof operation.context.fetchOptions === 'function'
         ? operation.context.fetchOptions()
         : operation.context.fetchOptions;
     const executionRequest: ExecutionRequest<any, OperationContext> = {
       document: operation.query,
-      operationName,
       operationType: operation.kind as OperationTypeNode,
       variables: operation.variables,
       context: operation.context,
@@ -44,18 +40,22 @@ export function executorExchange(executor: Executor): Exchange {
     return make<OperationResult<TData>>(observer => {
       let ended = false;
       Promise.resolve(executor(executionRequest))
-        .then(async (result: ExecutionResult | AsyncIterable<ExecutionResult>) => {
+        .then(async result => {
           if (ended || !result) {
             return;
           }
           if (!isAsyncIterable(result)) {
-            observer.next(makeResult(operation, result));
+            observer.next(makeResult(operation, result as ExecutionResult));
           } else {
             let prevResult: OperationResult<TData, AnyVariables> | null = null;
 
             for await (const value of result) {
               if (value) {
-                prevResult = prevResult ? mergeResultPatch(prevResult, value) : makeResult(operation, value);
+                if (prevResult && value.incremental) {
+                  prevResult = mergeResultPatch(prevResult, value as ExecutionResult);
+                } else {
+                  prevResult = makeResult(operation, value as ExecutionResult);
+                }
                 observer.next(prevResult);
               }
               if (ended) {
