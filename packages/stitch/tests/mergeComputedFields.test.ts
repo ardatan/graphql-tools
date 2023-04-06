@@ -154,3 +154,145 @@ describe('merge computed fields via config', () => {
     ]);
   });
 });
+
+describe('test recursive computed fields', () => {
+  const schemaA = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type T {
+        id: ID!
+        value: Int!
+      }
+
+      type Query {
+        byId(id: ID!): T
+      }
+    `,
+    resolvers: {
+      T: {
+        value: (obj: { id: string }) => parseInt(obj.id),
+      },
+      Query: {
+        byId: (_: never, { id }: { id: string }) => ({ id }),
+      },
+    },
+  });
+
+  const schemaB = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type T {
+        id: ID!
+        next: T!
+      }
+
+      input TInput {
+        id: ID!
+        value: Int
+      }
+
+      type Query {
+        byRepresentation(representation: TInput!): T
+      }
+    `,
+    resolvers: {
+      T: {
+        next: (obj: { id: string; value: number }) => ({ id: `${obj.value + 1}` }),
+      },
+      Query: {
+        byRepresentation: (
+          _: never,
+          { representation: { id, value } }: { representation: { id: string; value: number } }
+        ) => ({ id, value }),
+      },
+    },
+  });
+
+  const gatewaySchema = stitchSchemas({
+    subschemas: [
+      {
+        schema: schemaA,
+        merge: {
+          T: {
+            selectionSet: '{ id }',
+            fieldName: 'byId',
+            args: ({ id }) => ({ id }),
+          },
+        },
+      },
+      {
+        schema: schemaB,
+        merge: {
+          T: {
+            selectionSet: '{ id }',
+            fieldName: 'byRepresentation',
+            args: ({ id, value }) => ({ representation: { id, value } }),
+            fields: {
+              next: {
+                selectionSet: '{ value }',
+                computed: true,
+              },
+            },
+          },
+        },
+      },
+    ],
+  });
+
+  it('computed field selection set available locally', async () => {
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */ `
+        query {
+          byId(id: "1") {
+            value
+            next {
+              value
+            }
+          }
+        }
+      `,
+    });
+
+    assertSome(data);
+    expect(data).toEqual({
+      byId: {
+        value: 1,
+        next: {
+          value: 2,
+        },
+      },
+    });
+  });
+
+  it('computed field selection set is remote', async () => {
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */ `
+        query {
+          byId(id: "1") {
+            value
+            next {
+              value
+              next {
+                value
+              }
+            }
+          }
+        }
+      `,
+    });
+
+    assertSome(data);
+
+    expect(data).toEqual({
+      byId: {
+        value: 1,
+        next: {
+          value: 2,
+          next: {
+            value: 3,
+          },
+        },
+      },
+    });
+  });
+});
