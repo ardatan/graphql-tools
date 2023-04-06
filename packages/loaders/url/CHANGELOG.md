@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.17.16
+
+### Patch Changes
+
+- [`58414b26`](https://github.com/ardatan/graphql-tools/commit/58414b2606c13c77f2d3a3015b9931c587272b6b) Thanks [@ardatan](https://github.com/ardatan)! - Suppress dynamic import warnings from webpack
+
 ## 7.17.15
 
 ### Patch Changes
