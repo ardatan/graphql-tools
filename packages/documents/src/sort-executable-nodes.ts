@@ -38,20 +38,20 @@ export function sortExecutableNodes(nodes: readonly ASTNode[] | undefined): read
     }
 
     if (isOfKindList<DirectiveNode>(nodes, Kind.DIRECTIVE)) {
-      return cacheResult(sortBy(nodes, 'name.value'));
+      return cacheResult(sortBy(nodes as any, 'name.value'));
     }
 
     if (isOfKindList<VariableDefinitionNode>(nodes, Kind.VARIABLE_DEFINITION)) {
-      return cacheResult(sortBy(nodes, 'variable.name.value'));
+      return cacheResult(sortBy(nodes as any, 'variable.name.value'));
     }
 
     if (isOfKindList<ArgumentNode>(nodes, Kind.ARGUMENT)) {
-      return cacheResult(sortBy(nodes, 'name.value'));
+      return cacheResult(sortBy(nodes as any, 'name.value'));
     }
 
     if (isOfKindList<SelectionNode>(nodes, [Kind.FIELD, Kind.FRAGMENT_SPREAD, Kind.INLINE_FRAGMENT])) {
       return cacheResult(
-        sortBy(nodes, node => {
+        sortBy(nodes as any, node => {
           if (node.kind === Kind.FIELD) {
             return sortPrefixField + node.name.value;
           } else if (node.kind === Kind.FRAGMENT_SPREAD) {
@@ -68,7 +68,7 @@ export function sortExecutableNodes(nodes: readonly ASTNode[] | undefined): read
       );
     }
 
-    return cacheResult(sortBy(nodes, 'kind', 'name.value'));
+    return cacheResult(sortBy(nodes as any, 'kind', 'name.value'));
   }
 }
 
