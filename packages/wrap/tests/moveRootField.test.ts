@@ -18,7 +18,7 @@ describe('MoveRootField', () => {
       transforms: [
         new MoveRootField({
           query: {
-            foo: OperationTypeNode.MUTATION,
+            foo: 'mutation' as OperationTypeNode,
           },
           mutation: {},
           subscription: {},
@@ -60,7 +60,7 @@ describe('MoveRootField', () => {
       transforms: [
         new MoveRootField({
           query: {
-            foo: OperationTypeNode.MUTATION,
+            foo: 'mutation' as OperationTypeNode,
           },
           mutation: {},
           subscription: {},

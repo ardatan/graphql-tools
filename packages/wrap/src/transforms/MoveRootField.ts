@@ -28,9 +28,9 @@ export class MoveRootField implements Transform {
   public transformSchema(schema: GraphQLSchema, _subschemaConfig: Record<string, any>): GraphQLSchema {
     const rootTypeMap = getRootTypeMap(schema);
     const newRootFieldsMap: Record<OperationTypeNode, GraphQLFieldConfigMap<any, any>> = {
-      query: rootTypeMap.get(OperationTypeNode.QUERY)?.toConfig()?.fields || {},
-      mutation: rootTypeMap.get(OperationTypeNode.MUTATION)?.toConfig()?.fields || {},
-      subscription: rootTypeMap.get(OperationTypeNode.SUBSCRIPTION)?.toConfig()?.fields || {},
+      query: rootTypeMap.get('query' as OperationTypeNode)?.toConfig()?.fields || {},
+      mutation: rootTypeMap.get('mutation' as OperationTypeNode)?.toConfig()?.fields || {},
+      subscription: rootTypeMap.get('subscription' as OperationTypeNode)?.toConfig()?.fields || {},
     };
     for (const operation in this.from) {
       const removedFields = this.from[operation as OperationTypeNode];
