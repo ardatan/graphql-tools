@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/url-loader",
-  "version": "7.17.16",
+  "version": "7.17.17",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
