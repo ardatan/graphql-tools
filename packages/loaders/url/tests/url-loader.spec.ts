@@ -578,4 +578,9 @@ describe('Schema URL Loader', () => {
     expect(result.errors).toBeDefined();
     expect(result.errors?.[0].message).toContain('127.0.0.1:9777');
   });
+  it('should not accept invalid protocols', async () => {
+    const testUrl = 'myprotocol://localhost:8081/graphql';
+    const result = await loader.load(testUrl, {});
+    expect(result).toEqual([]);
+  });
 });

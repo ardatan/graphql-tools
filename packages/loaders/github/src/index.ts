@@ -3,6 +3,8 @@ import { GraphQLTagPluckOptions, gqlPluckFromCodeStringSync } from '@graphql-too
 import { parse } from 'graphql';
 import syncFetch from '@ardatan/sync-fetch';
 import { fetch as asyncFetch } from '@whatwg-node/fetch';
+import { AsyncFetchFn, FetchFn, SyncFetchFn } from '@graphql-tools/executor-http';
+import { ValueOrPromise } from 'value-or-promise';
 
 // github:owner/name#ref:path/to/file
 function extractData(pointer: string): {
@@ -30,12 +32,12 @@ export interface GithubLoaderOptions extends BaseLoaderOptions {
   /**
    * A GitHub access token
    */
-  token: string;
+  token?: string;
   /**
    * Additional options to pass to `graphql-tag-pluck`
    */
   pluckConfig?: GraphQLTagPluckOptions;
-  customFetch?: typeof asyncFetch | typeof syncFetch;
+  customFetch?: FetchFn;
 }
 
 /**
@@ -57,31 +59,39 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
     return typeof pointer === 'string' && pointer.toLowerCase().startsWith('github:');
   }
 
-  async load(pointer: string, options: GithubLoaderOptions): Promise<Source[]> {
-    if (!(await this.canLoad(pointer))) {
-      return [];
-    }
-    const { owner, name, ref, path } = extractData(pointer);
-    const fetch = options.customFetch || asyncFetch;
-    const request = await fetch(
-      'https://api.github.com/graphql',
-      this.prepareRequest({ owner, ref, path, name, options })
-    );
-    const response = await request.json();
-    const status = request.status;
-    return this.handleResponse({ pointer, path, options, response, status });
-  }
-
-  loadSync(pointer: string, options: GithubLoaderOptions): Source[] {
+  loadSyncOrAsync(pointer: string, options: GithubLoaderOptions, asyncFetchFn: AsyncFetchFn): Promise<Source[]>;
+  loadSyncOrAsync(pointer: string, options: GithubLoaderOptions, syncFetchFn: SyncFetchFn): Source[];
+  loadSyncOrAsync(pointer: string, options: GithubLoaderOptions, fetchFn: FetchFn): Promise<Source[]> | Source[] {
     if (!this.canLoadSync(pointer)) {
       return [];
     }
     const { owner, name, ref, path } = extractData(pointer);
-    const fetch = options.customFetch || syncFetch;
-    const request = fetch('https://api.github.com/graphql', this.prepareRequest({ owner, ref, path, name, options }));
-    const response = request.json();
-    const status = request.status;
-    return this.handleResponse({ pointer, path, options, response, status });
+    return new ValueOrPromise(() =>
+      fetchFn('https://api.github.com/graphql', this.prepareRequest({ owner, ref, path, name, options }))
+    )
+      .then(response => {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          return response.json();
+        } else {
+          return response.text();
+        }
+      })
+      .then(response => {
+        const status = response.status;
+        return this.handleResponse({ pointer, path, options, response, status });
+      })
+      .resolve();
+  }
+
+  load(pointer: string, options: GithubLoaderOptions): Promise<Source[]> {
+    const fetchFn = (options.customFetch as AsyncFetchFn) || asyncFetch;
+    return this.loadSyncOrAsync(pointer, options, fetchFn);
+  }
+
+  loadSync(pointer: string, options: GithubLoaderOptions): Source[] {
+    const fetchFn: SyncFetchFn = options.customFetch || syncFetch;
+    return this.loadSyncOrAsync(pointer, options, fetchFn);
   }
 
   handleResponse({
@@ -103,12 +113,18 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
       errorMessage = response.errors.map((item: Error) => item.message).join(', ');
     } else if (status === 401) {
       errorMessage = response.message;
+    } else if (response.message) {
+      errorMessage = response.message;
     } else if (!response.data) {
       errorMessage = response;
     }
 
     if (errorMessage) {
       throw new Error('Unable to download schema from github: ' + errorMessage);
+    }
+
+    if (!response.data.repository.object) {
+      throw new Error(`Unable to find file: ${path} on ${pointer.replace(`:${path}`, '')}`);
     }
 
     const content = response.data.repository.object.text;
@@ -145,12 +161,16 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
     name: string;
     options: GithubLoaderOptions;
   }): RequestInit {
+    const headers: Record<string, string> = {
+      'content-type': 'application/json; charset=utf-8',
+      'user-agent': 'graphql-tools',
+    };
+    if (options.token) {
+      headers['authorization'] = `bearer ${options.token}`;
+    }
     return {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json; charset=utf-8',
-        authorization: `bearer ${options.token}`,
-      },
+      headers,
       body: JSON.stringify({
         query: `
           query GetGraphQLSchemaForGraphQLtools($owner: String!, $name: String!, $expression: String!) {
