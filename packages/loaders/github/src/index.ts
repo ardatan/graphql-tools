@@ -31,6 +31,8 @@ function extractData(pointer: string): {
 export interface GithubLoaderOptions extends BaseLoaderOptions {
   /**
    * A GitHub access token
+   *
+   * @default process.env.GITHUB_TOKEN
    */
   token?: string;
   /**
@@ -161,13 +163,15 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
     name: string;
     options: GithubLoaderOptions;
   }): RequestInit {
+    const token = options.token || globalThis.process?.env?.['GITHUB_TOKEN'];
+    if (!token) {
+      throw new Error('You must provide a token to use the GitHub loader');
+    }
     const headers: Record<string, string> = {
       'content-type': 'application/json; charset=utf-8',
       'user-agent': 'graphql-tools',
+      authorization: `bearer ${token}`,
     };
-    if (options.token) {
-      headers['authorization'] = `bearer ${options.token}`;
-    }
     return {
       method: 'POST',
       headers,
