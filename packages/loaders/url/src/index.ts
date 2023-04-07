@@ -98,11 +98,12 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
   batch?: boolean;
 }
 
+const acceptableProtocols = ['http:', 'https:', 'ws:', 'wss:'];
+
 function isCompatibleUri(uri: string): boolean {
   try {
-    // eslint-disable-next-line no-new
-    new URL(uri);
-    return true;
+    const url = new URL(uri);
+    return acceptableProtocols.includes(url.protocol);
   } catch {
     return false;
   }
