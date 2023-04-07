@@ -1,5 +1,11 @@
 # @graphql-tools/url-loader
 
+## 7.17.17
+
+### Patch Changes
+
+- [#5151](https://github.com/ardatan/graphql-tools/pull/5151) [`07589ae9`](https://github.com/ardatan/graphql-tools/commit/07589ae97499a4668b0bd24caa1e52ef8fcfd0e5) Thanks [@ardatan](https://github.com/ardatan)! - Do not accept incompatible protocols conflicting other loaders like `github:`
+
 ## 7.17.16
 
 ### Patch Changes
