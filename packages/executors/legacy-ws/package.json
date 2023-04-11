@@ -51,11 +51,11 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "9.2.1",
     "@types/ws": "^8.0.0",
+    "@graphql-tools/utils": "9.2.1",
     "isomorphic-ws": "5.0.0",
-    "tslib": "^2.4.0",
-    "ws": "8.13.0"
+    "ws": "8.13.0",
+    "tslib": "^2.4.0"
   },
   "publishConfig": {
     "directory": "dist",

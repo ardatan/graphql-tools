@@ -53,8 +53,8 @@
   },
   "dependencies": {
     "@graphql-tools/executor-envelop": "^1.0.0",
-    "@graphql-tools/utils": "^9.2.1",
     "@graphql-tools/wrap": "^9.3.5",
+    "@graphql-tools/utils": "^9.2.1",
     "tslib": "^2.3.1"
   },
   "devDependencies": {

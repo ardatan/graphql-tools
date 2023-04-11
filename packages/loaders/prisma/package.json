@@ -51,11 +51,11 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
+    "@whatwg-node/fetch": "^0.8.2",
     "@graphql-tools/url-loader": "7.17.17",
     "@graphql-tools/utils": "9.2.1",
     "@types/js-yaml": "^4.0.0",
     "@types/json-stable-stringify": "^1.0.32",
-    "@whatwg-node/fetch": "^0.8.2",
     "chalk": "^4.1.0",
     "debug": "^4.3.1",
     "dotenv": "^16.0.0",

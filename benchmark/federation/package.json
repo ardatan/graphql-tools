@@ -9,14 +9,14 @@
     "loadtest:monolith": "k6 -e ENDPOINT=monolith run k6.js"
   },
   "dependencies": {
-    "@apollo/federation": "0.38.1",
     "@apollo/gateway": "2.4.1",
+    "@apollo/federation": "0.38.1",
     "@graphql-tools/stitch": "8.7.47",
     "@graphql-tools/stitching-directives": "2.3.33",
-    "cross-env": "7.0.3",
     "express": "4.18.2",
     "graphql": "16.6.0",
     "graphql-tag": "2.12.6",
-    "wait-on": "7.0.1"
+    "wait-on": "7.0.1",
+    "cross-env": "7.0.3"
   }
 }

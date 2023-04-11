@@ -52,13 +52,13 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "^9.2.1",
-    "@repeaterjs/repeater": "^3.0.4",
+    "value-or-promise": "^1.0.12",
     "@whatwg-node/fetch": "^0.8.1",
+    "@repeaterjs/repeater": "^3.0.4",
     "dset": "^3.1.2",
-    "extract-files": "^11.0.0",
     "meros": "^1.2.1",
-    "tslib": "^2.4.0",
-    "value-or-promise": "^1.0.12"
+    "extract-files": "^11.0.0",
+    "tslib": "^2.4.0"
   },
   "publishConfig": {
     "directory": "dist",

@@ -53,8 +53,8 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "lodash.sortby": "^4.7.0",
-    "tslib": "^2.4.0"
+    "tslib": "^2.4.0",
+    "lodash.sortby": "^4.7.0"
   },
   "devDependencies": {
     "@types/lodash.sortby": "^4.7.7"
