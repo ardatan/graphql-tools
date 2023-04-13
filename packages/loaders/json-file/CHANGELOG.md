@@ -1,5 +1,11 @@
 # @graphql-tools/json-file-loader
 
+## 7.4.18
+
+### Patch Changes
+
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+
 ## 7.4.17
 
 ### Patch Changes

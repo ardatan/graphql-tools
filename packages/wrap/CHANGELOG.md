@@ -1,5 +1,15 @@
 # @graphql-tools/wrap
 
+## 9.4.2
+
+### Patch Changes
+
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+
+- Updated dependencies [[`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41)]:
+  - @graphql-tools/schema@9.0.18
+  - @graphql-tools/delegate@9.0.31
+
 ## 9.4.1
 
 ### Patch Changes

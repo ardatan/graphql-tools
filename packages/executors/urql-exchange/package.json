@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-urql-exchange",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "",
   "repository": {
     "type": "git",
