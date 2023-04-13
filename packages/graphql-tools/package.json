@@ -57,7 +57,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@graphql-tools/schema": "9.0.17",
+    "@graphql-tools/schema": "^9.0.17",
     "tslib": "^2.4.0"
   },
   "type": "module"

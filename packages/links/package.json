@@ -64,8 +64,8 @@
     "graphql-upload": "16.0.2"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "9.0.30",
-    "@graphql-tools/utils": "9.2.1",
+    "@graphql-tools/delegate": "^9.0.30",
+    "@graphql-tools/utils": "^9.2.1",
     "apollo-upload-client": "17.0.0",
     "node-fetch": "^2.6.5",
     "form-data": "^4.0.0",
