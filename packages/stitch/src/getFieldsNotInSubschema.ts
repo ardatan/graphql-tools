@@ -28,6 +28,7 @@ export function getFieldsNotInSubschema(
   const fieldsNotInSchema = new Set<FieldNode>();
   for (const [, subFieldNodes] of subFieldNodesByResponseKey) {
     const fieldName = subFieldNodes[0].name.value;
+
     if (!fields[fieldName]) {
       for (const subFieldNode of subFieldNodes) {
         fieldsNotInSchema.add(subFieldNode);
@@ -36,7 +37,12 @@ export function getFieldsNotInSubschema(
     const fieldNodesForField = fieldNodesByField?.[gatewayType.name]?.[fieldName];
     if (fieldNodesForField) {
       for (const fieldNode of fieldNodesForField) {
-        if (!fields[fieldNode.name.value]) {
+        if (fieldNode.name.value !== '__typename' && !fields[fieldNode.name.value]) {
+          // consider node that depends on something not in the schema as not in the schema
+          for (const subFieldNode of subFieldNodes) {
+            fieldsNotInSchema.add(subFieldNode);
+          }
+
           fieldsNotInSchema.add(fieldNode);
         }
       }
