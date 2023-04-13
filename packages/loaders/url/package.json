@@ -59,8 +59,8 @@
     "express": "4.18.2",
     "graphql-upload": "16.0.2",
     "graphql-sse": "2.1.1",
-    "graphql-yoga": "3.8.0",
-    "@graphql-yoga/plugin-defer-stream": "1.8.0",
+    "graphql-yoga": "3.9.0",
+    "@graphql-yoga/plugin-defer-stream": "1.8.1",
     "puppeteer": "19.8.5",
     "subscriptions-transport-ws": "0.11.0",
     "webpack": "5.79.0"
