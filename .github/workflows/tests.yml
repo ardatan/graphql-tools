@@ -59,7 +59,7 @@ jobs:
       - uses: the-guild-org/shared-config/release-trackback@main
         if: ${{ always() }}}
         with:
-          token: ${{ secrets.GUILD_BOT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           relevantPackages: |
             @whatwg-node/*
   test:
