@@ -28,6 +28,28 @@ describe('filterSchema', () => {
     expect((filtered.getType('Mutation') as GraphQLObjectType).getFields()['omitThis']).toBeUndefined();
   });
 
+  it('filters root type', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          keep: String
+        }
+        type Mutation {
+          omitThis(id: ID): String
+        }
+      `,
+    });
+
+    const filtered = filterSchema({
+      schema,
+      rootFieldFilter: (_opName, fieldName) => fieldName?.startsWith('keep') ?? false,
+    });
+
+    expect((filtered.getType('Query') as GraphQLObjectType).getFields()['keep']).toBeDefined();
+    expect((filtered.getType('Query') as GraphQLObjectType).getFields()['omit']).toBeUndefined();
+    expect(filtered.getType('Mutation')).toBeUndefined();
+  });
+
   it('filters types', () => {
     const schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `

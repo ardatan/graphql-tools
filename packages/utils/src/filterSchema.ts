@@ -78,7 +78,7 @@ function filterRootFields(
   operation: 'Query' | 'Mutation' | 'Subscription',
   rootFieldFilter?: RootFieldFilter,
   argumentFilter?: ArgumentFilter
-): GraphQLObjectType {
+): GraphQLObjectType | null {
   if (rootFieldFilter || argumentFilter) {
     const config = type.toConfig();
     for (const fieldName in config.fields) {
@@ -93,7 +93,7 @@ function filterRootFields(
         }
       }
     }
-    return new GraphQLObjectType(config);
+    return Object.keys(config.fields).length > 0 ? new GraphQLObjectType(config) : null;
   }
   return type;
 }
