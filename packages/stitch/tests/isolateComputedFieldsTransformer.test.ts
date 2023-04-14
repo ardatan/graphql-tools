@@ -80,9 +80,7 @@ describe('isolateComputedFieldsTransformer', () => {
 
       // pruning does not yet remove unused scalars/enums
       // expect(computedSubschema.transformedSchema.getType('DeliveryService')).toBeUndefined();
-      expect(
-        Object.keys((computedSubschema.transformedSchema.getType('Storefront') as GraphQLObjectType).getFields()).length
-      ).toEqual(0);
+      expect(computedSubschema.transformedSchema.getType('Storefront')).toBeUndefined();
       expect(computedSubschema.transformedSchema.getType('ProductRepresentation')).toBeDefined();
 
       assertSome(baseSubschema.merge);
@@ -425,10 +423,10 @@ describe('isolateComputedFieldsTransformer', () => {
       const computedQueryType = computedSubschema.transformedSchema.getType('Query') as GraphQLObjectType;
       const computedQueryTypeFields = computedQueryType.getFields();
       expect(computedQueryTypeFields['_item']).toBeDefined();
-      expect(computedQueryTypeFields['_giftOptions']).toBeUndefined(); // TODO: not sure if this should rathr go onto computed?
+      expect(computedQueryTypeFields['_giftOptions']).toBeDefined();
 
       const baseGiftOptionsType = baseSchema.transformedSchema.getType('GiftOptions') as GraphQLObjectType;
-      expect(Object.keys(baseGiftOptionsType.getFields()).length).toEqual(0);
+      expect(baseGiftOptionsType).toBeUndefined();
 
       const baseQueryType = baseSchema.transformedSchema.getType('Query') as GraphQLObjectType;
       const baseQueryTypeFields = baseQueryType.getFields();

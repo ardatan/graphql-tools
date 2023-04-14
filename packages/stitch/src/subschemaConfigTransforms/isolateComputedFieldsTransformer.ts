@@ -1,10 +1,18 @@
-import { GraphQLObjectType, getNamedType, isObjectType, isInterfaceType, isScalarType, FieldNode } from 'graphql';
+import {
+  GraphQLObjectType,
+  getNamedType,
+  isObjectType,
+  isInterfaceType,
+  isScalarType,
+  FieldNode,
+  GraphQLNamedOutputType,
+} from 'graphql';
 
 import { SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 
 import { getImplementingTypes, pruneSchema, filterSchema, parseSelectionSet } from '@graphql-tools/utils';
 
-import { TransformCompositeFields } from '@graphql-tools/wrap';
+import { FilterTypes, TransformCompositeFields } from '@graphql-tools/wrap';
 
 interface ComputedTypeConfig<K = any, V = any, TContext = Record<string, any>>
   extends MergedTypeConfig<K, V, TContext> {
@@ -148,6 +156,9 @@ function filterBaseSubschema(
         (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null),
         (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null)
       ),
+      new FilterTypes(
+        type => (!isObjectType(type) && !isInterfaceType(type)) || Object.keys(type.getFields()).length > 0
+      ),
     ]),
   };
 
@@ -176,6 +187,43 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
   const rootFields: Record<string, boolean> = {};
   const computedFieldTypes: Record<string, boolean> = {}; // contains types of computed fields that have no root field
 
+  function listReachableTypesToIsolate(
+    subschemaConfig: SubschemaConfig,
+    type: GraphQLNamedOutputType,
+    typeNames?: string[]
+  ) {
+    typeNames = typeNames || [];
+
+    if (isScalarType(type)) {
+      return typeNames;
+    } else if (
+      (isObjectType(type) || isInterfaceType(type)) &&
+      subschemaConfig.merge &&
+      subschemaConfig.merge[type.name] &&
+      subschemaConfig.merge[type.name].selectionSet
+    ) {
+      // this is a merged type, no need to descend further
+      if (!typeNames.includes(type.name)) {
+        typeNames.push(type.name);
+      }
+      return typeNames;
+    } else if (isObjectType(type) || isInterfaceType(type)) {
+      if (!typeNames.includes(type.name)) {
+        typeNames.push(type.name);
+      }
+      for (const f of Object.values(type.getFields())) {
+        const fieldType = getNamedType(f.type);
+        if (!typeNames.includes(fieldType.name) && (isObjectType(fieldType) || isInterfaceType(fieldType))) {
+          typeNames.push(...listReachableTypesToIsolate(subschemaConfig, fieldType));
+        }
+      }
+      return typeNames;
+    } else {
+      // TODO: Unions
+      return typeNames;
+    }
+  }
+
   for (const typeName in subschemaConfig.merge) {
     const mergedTypeConfig = subschemaConfig.merge[typeName];
     const entryPoints = mergedTypeConfig.entryPoints ?? [mergedTypeConfig];
@@ -197,9 +245,9 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
 
     for (const fieldName of computedFields) {
       const fieldType = getNamedType(type.getFields()[fieldName!].type);
-      if (!isScalarType(fieldType)) {
-        computedFieldTypes[fieldType.name] = true;
-      }
+      listReachableTypesToIsolate(subschemaConfig, fieldType).forEach(tn => {
+        computedFieldTypes[tn] = true;
+      });
     }
   }
 
@@ -226,7 +274,8 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
   const filteredSchema = pruneSchema(
     filterSchema({
       schema: subschemaConfig.schema,
-      rootFieldFilter: (operation, fieldName) => operation === 'Query' && rootFields[fieldName] != null,
+      rootFieldFilter: (operation, fieldName, config) =>
+        operation === 'Query' && (rootFields[fieldName] != null || computedFieldTypes[getNamedType(config.type).name]),
       objectFieldFilter: (typeName, fieldName) =>
         subschemaConfig.merge[typeName]?.fields?.[fieldName] != null ||
         (subschemaConfig.merge[typeName]?.keyFieldNames ?? []).includes(fieldName),
@@ -259,6 +308,9 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
       new TransformCompositeFields(
         (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null),
         (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null)
+      ),
+      new FilterTypes(
+        type => (!isObjectType(type) && !isInterfaceType(type)) || Object.keys(type.getFields()).length > 0
       ),
     ]),
   };
