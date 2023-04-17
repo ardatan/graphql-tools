@@ -1,5 +1,11 @@
 # @graphql-tools/optimize
 
+## 1.4.0
+
+### Minor Changes
+
+- [#5177](https://github.com/ardatan/graphql-tools/pull/5177) [`c6817c59`](https://github.com/ardatan/graphql-tools/commit/c6817c596314795165f531feca408f78d29e9f6d) Thanks [@AaronMoat](https://github.com/AaronMoat)! - feat(optimize): update optimize to also remove descriptions from directives
+
 ## 1.3.1
 
 ### Patch Changes
