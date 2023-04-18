@@ -186,7 +186,16 @@ describe('batch execution', () => {
     expect(executorCalls).toEqual(1);
   });
 
-  it('returns original error fields when no path', async () => {
+  it('pathed errors contain extensions', async () => {
+    const [first] = (await Promise.all([batchExec({ document: parse('{ extension }') })])) as ExecutionResult[];
+
+    expect(first?.errors?.length).toEqual(1);
+    expect(first?.errors?.[0].message).toMatch(/boom/);
+    expect(first?.errors?.[0].extensions).toEqual({ foo: 'bar' });
+    expect(executorCalls).toEqual(1);
+  });
+
+  it('non pathed errors contain extensions', async () => {
     const errorExec: Executor = (): MaybeAsyncIterable<ExecutionResult> => {
       return { errors: [new GraphQLError('boom', { extensions: { foo: 'bar' } })] };
     };
