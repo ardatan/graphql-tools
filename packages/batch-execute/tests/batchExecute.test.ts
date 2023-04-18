@@ -1,7 +1,7 @@
-import { parse, print, OperationDefinitionNode, validate } from 'graphql';
+import { parse, print, OperationDefinitionNode, validate, GraphQLError } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createBatchingExecutor } from '@graphql-tools/batch-execute';
-import { ExecutionResult, Executor } from '@graphql-tools/utils';
+import { ExecutionResult, Executor, MaybeAsyncIterable } from '@graphql-tools/utils';
 import { normalizedExecutor } from '@graphql-tools/executor';
 
 describe('batch execution', () => {
@@ -15,7 +15,7 @@ describe('batch execution', () => {
         field1: String
         field2: String
         field3(input: String): String
-        boom(message: String): String
+        extension: String
         widget: Widget
       }
       type Widget {
@@ -27,7 +27,7 @@ describe('batch execution', () => {
         field1: () => '1',
         field2: () => '2',
         field3: (_root, { input }) => String(input),
-        boom: (_root, { message }) => new Error(message),
+        extension: () => new GraphQLError('boom', { extensions: { foo: 'bar' } }),
         widget: () => ({ name: 'wingnut' }),
       },
     },
@@ -184,5 +184,18 @@ describe('batch execution', () => {
     expect(first?.errors?.[0].message).toMatch(/notgonnawork/);
     expect(second?.errors?.[0].message).toMatch(/notgonnawork/);
     expect(executorCalls).toEqual(1);
+  });
+
+  it('returns original error fields when no path', async () => {
+    const errorExec: Executor = (): MaybeAsyncIterable<ExecutionResult> => {
+      return { errors: [new GraphQLError('boom', { extensions: { foo: 'bar' } })] };
+    };
+    const batchExec = createBatchingExecutor(errorExec);
+
+    const [first] = (await Promise.all([batchExec({ document: parse('{ boom }') })])) as ExecutionResult[];
+
+    expect(first?.errors?.length).toEqual(1);
+    expect(first?.errors?.[0].message).toMatch(/boom/);
+    expect(first?.errors?.[0].extensions).toEqual({ foo: 'bar' });
   });
 });
