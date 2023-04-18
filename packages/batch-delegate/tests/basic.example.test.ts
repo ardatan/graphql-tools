@@ -97,6 +97,94 @@ describe('batch delegation within basic stitching example', () => {
     expect(chirps[0].chirpedAtUser.email).not.toBe(null);
   });
 
+  test.only('uses a single call even when delegating the same field multiple times', async () => {
+    let numCalls = 0;
+
+    const chirpSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Chirp {
+          chirpedAtUserId: ID!
+        }
+
+        type Query {
+          trendingChirps: [Chirp]
+        }
+      `,
+      resolvers: {
+        Query: {
+          trendingChirps: () => [{ chirpedAtUserId: 1 }, { chirpedAtUserId: 2 }],
+        },
+      },
+    });
+
+    // Mocked author schema
+    const authorSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type User {
+          email: String
+        }
+
+        type Query {
+          usersByIds(ids: [ID!]): [User]
+        }
+      `,
+      resolvers: {
+        Query: {
+          usersByIds: (_root, args) => {
+            numCalls++;
+            return args.ids.map((id: string) => ({ email: `${id}@test.com` }));
+          },
+        },
+      },
+    });
+
+    const linkTypeDefs = /* GraphQL */ `
+      extend type Chirp {
+        chirpedAtUser: User
+      }
+    `;
+
+    const stitchedSchema = stitchSchemas({
+      subschemas: [chirpSchema, authorSchema],
+      typeDefs: linkTypeDefs,
+      resolvers: {
+        Chirp: {
+          chirpedAtUser: {
+            selectionSet: `{ chirpedAtUserId }`,
+            resolve(chirp, _args, context, info) {
+              return batchDelegateToSchema({
+                schema: authorSchema,
+                operation: 'query' as OperationTypeNode,
+                fieldName: 'usersByIds',
+                key: chirp.chirpedAtUserId,
+                argsFromKeys: ids => ({ ids }),
+                context,
+                info,
+              });
+            },
+          },
+        },
+      },
+    });
+
+    const query = /* GraphQL */ `
+      query {
+        trendingChirps {
+          chirp1: chirpedAtUser {
+            email
+          }
+          chirp2: chirpedAtUser {
+            email
+          }
+        }
+      }
+    `;
+
+    await execute({ schema: stitchedSchema, document: parse(query) });
+
+    expect(numCalls).toEqual(1);
+  });
+
   test('works with key arrays', async () => {
     let numCalls = 0;
 
