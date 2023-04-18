@@ -81,7 +81,7 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
 
   let cacheKey = fieldName;
 
-  if (fieldNodes[0]?.selectionSet != null) {
+  if (fieldNodes[0]) {
     const fieldNode = {
       ...fieldNodes[0],
       alias: undefined,

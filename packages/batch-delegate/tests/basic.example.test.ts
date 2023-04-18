@@ -97,7 +97,7 @@ describe('batch delegation within basic stitching example', () => {
     expect(chirps[0].chirpedAtUser.email).not.toBe(null);
   });
 
-  test.only('uses a single call even when delegating the same field multiple times', async () => {
+  test('uses a single call even when delegating the same field multiple times', async () => {
     let numCalls = 0;
 
     const chirpSchema = makeExecutableSchema({
