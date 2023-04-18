@@ -1291,5 +1291,11 @@ describe('Subscription Publish Phase', () => {
         ],
       },
     });
+
+    const endResult = await iterator.next();
+
+    expect(endResult).toEqual({
+      done: true,
+    });
   });
 });
