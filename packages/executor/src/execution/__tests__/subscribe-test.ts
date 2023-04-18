@@ -162,21 +162,6 @@ function expectPromise(maybePromise: unknown) {
   };
 }
 
-// TODO: consider adding this method to testUtils (with tests)
-function expectEqualPromisesOrValues<T>(value1: MaybePromise<T>, value2: MaybePromise<T>): MaybePromise<T> {
-  if (isPromise(value1)) {
-    expect(isPromise(value2)).toBeTruthy();
-    return Promise.all([value1, value2]).then(resolved => {
-      expectJSON(resolved[1]).toDeepEqual(resolved[0]);
-      return resolved[0];
-    });
-  }
-
-  expect(!isPromise(value2)).toBeTruthy();
-  expectJSON(value2).toDeepEqual(value1);
-  return value1;
-}
-
 const DummyQueryType = new GraphQLObjectType({
   name: 'Query',
   fields: {
