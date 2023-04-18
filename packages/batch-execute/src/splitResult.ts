@@ -2,7 +2,7 @@
 
 import { GraphQLError } from 'graphql';
 
-import { createGraphQLError, ExecutionResult, relocatedError } from '@graphql-tools/utils';
+import { ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
 import { parseKey } from './prefix.js';
 
