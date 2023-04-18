@@ -1,5 +1,11 @@
 # @graphql-tools/prisma-loader
 
+## 7.2.71
+
+### Patch Changes
+
+- [`bba3d32f`](https://github.com/ardatan/graphql-tools/commit/bba3d32f6c60c32530ba2e48aadb9baaf985978c) Thanks [@ardatan](https://github.com/ardatan)! - Unpin url loader
+
 ## 7.2.70
 
 ### Patch Changes
