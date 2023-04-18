@@ -8,6 +8,7 @@ describe('batch execution', () => {
   let executorCalls = 0;
   let executorDocument: string | undefined;
   let executorVariables: any | undefined;
+  const extensions = { foo: 'bar' };
 
   const schema = makeExecutableSchema({
     typeDefs: /* GraphQL */ `
@@ -15,6 +16,7 @@ describe('batch execution', () => {
         field1: String
         field2: String
         field3(input: String): String
+        boom(message: String): String
         extension: String
         widget: Widget
       }
@@ -27,7 +29,8 @@ describe('batch execution', () => {
         field1: () => '1',
         field2: () => '2',
         field3: (_root, { input }) => String(input),
-        extension: () => new GraphQLError('boom', { extensions: { foo: 'bar' } }),
+        boom: (_root, { message }) => new Error(message),
+        extension: () => new GraphQLError('boom', { extensions: extensions }),
         widget: () => ({ name: 'wingnut' }),
       },
     },
@@ -191,13 +194,13 @@ describe('batch execution', () => {
 
     expect(first?.errors?.length).toEqual(1);
     expect(first?.errors?.[0].message).toMatch(/boom/);
-    expect(first?.errors?.[0].extensions).toEqual({ foo: 'bar' });
+    expect(first?.errors?.[0].extensions).toEqual(extensions);
     expect(executorCalls).toEqual(1);
   });
 
   it('non pathed errors contain extensions', async () => {
     const errorExec: Executor = (): MaybeAsyncIterable<ExecutionResult> => {
-      return { errors: [new GraphQLError('boom', { extensions: { foo: 'bar' } })] };
+      return { errors: [new GraphQLError('boom', { extensions })] };
     };
     const batchExec = createBatchingExecutor(errorExec);
 
@@ -205,6 +208,6 @@ describe('batch execution', () => {
 
     expect(first?.errors?.length).toEqual(1);
     expect(first?.errors?.[0].message).toMatch(/boom/);
-    expect(first?.errors?.[0].extensions).toEqual({ foo: 'bar' });
+    expect(first?.errors?.[0].extensions).toEqual(extensions);
   });
 });
