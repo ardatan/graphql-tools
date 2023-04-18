@@ -1220,7 +1220,7 @@ describe('Subscription Publish Phase', () => {
     });
   });
 
-  it('should handle errors thrown in `subscribe`', async () => {
+  it('should handle errors thrown in the field subscriber', async () => {
     const schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
         type Query {
