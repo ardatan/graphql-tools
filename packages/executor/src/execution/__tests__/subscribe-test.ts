@@ -11,10 +11,14 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import { ExecutionArgs, createSourceEventStream, subscribe } from '../execute.js';
+import { ExecutionArgs, subscribe } from '../execute.js';
 
 import { SimplePubSub } from './simplePubSub.js';
 import { ExecutionResult, isAsyncIterable, isPromise, MaybePromise } from '@graphql-tools/utils';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { normalizedExecutor } from '../normalizedExecutor.js';
+import { assertAsyncIterable } from '../../../../loaders/url/tests/test-utils.js';
 
 interface Email {
   from: string;
@@ -158,21 +162,6 @@ function expectPromise(maybePromise: unknown) {
   };
 }
 
-// TODO: consider adding this method to testUtils (with tests)
-function expectEqualPromisesOrValues<T>(value1: MaybePromise<T>, value2: MaybePromise<T>): MaybePromise<T> {
-  if (isPromise(value1)) {
-    expect(isPromise(value2)).toBeTruthy();
-    return Promise.all([value1, value2]).then(resolved => {
-      expectJSON(resolved[1]).toDeepEqual(resolved[0]);
-      return resolved[0];
-    });
-  }
-
-  expect(!isPromise(value2)).toBeTruthy();
-  expectJSON(value2).toDeepEqual(value1);
-  return value1;
-}
-
 const DummyQueryType = new GraphQLObjectType({
   name: 'Query',
   fields: {
@@ -196,7 +185,7 @@ function subscribeWithBadFn(subscribeFn: () => unknown): MaybePromise<ExecutionR
 }
 
 function subscribeWithBadArgs(args: ExecutionArgs): MaybePromise<ExecutionResult | AsyncIterable<unknown>> {
-  return expectEqualPromisesOrValues(subscribe(args), createSourceEventStream(args));
+  return subscribe(args);
 }
 
 // Check all error cases when initializing the subscription.
@@ -1228,6 +1217,85 @@ describe('Subscription Publish Phase', () => {
     expect(await subscription.next()).toEqual({
       done: true,
       value: undefined,
+    });
+  });
+
+  it('should handle errors thrown in the field subscriber', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          _: String
+        }
+        type Subscription {
+          oneTwoThree: Int
+        }
+      `,
+      resolvers: {
+        Subscription: {
+          oneTwoThree: {
+            async *subscribe() {
+              yield 1;
+              yield 2;
+              throw new Error('test error');
+            },
+            resolve: (value: number) => value,
+          },
+        },
+      },
+    });
+    const result = await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        subscription {
+          oneTwoThree
+        }
+      `),
+    });
+
+    assertAsyncIterable(result);
+
+    const iterator = result[Symbol.asyncIterator]();
+
+    const resultOne = await iterator.next();
+
+    expect(resultOne).toEqual({
+      done: false,
+      value: {
+        data: {
+          oneTwoThree: 1,
+        },
+      },
+    });
+
+    const resultTwo = await iterator.next();
+
+    expect(resultTwo).toEqual({
+      done: false,
+      value: {
+        data: {
+          oneTwoThree: 2,
+        },
+      },
+    });
+
+    const resultThree = await iterator.next();
+
+    expect(JSON.parse(JSON.stringify(resultThree))).toEqual({
+      done: false,
+      value: {
+        errors: [
+          {
+            message: 'test error',
+            locations: [{ line: 2, column: 9 }],
+          },
+        ],
+      },
+    });
+
+    const endResult = await iterator.next();
+
+    expect(endResult).toEqual({
+      done: true,
     });
   });
 });
