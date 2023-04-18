@@ -1,5 +1,11 @@
 # @graphql-tools/executor
 
+## 0.0.18
+
+### Patch Changes
+
+- [#5187](https://github.com/ardatan/graphql-tools/pull/5187) [`91a895be`](https://github.com/ardatan/graphql-tools/commit/91a895bea32dc4226da08e8981ded3f55f4c53f3) Thanks [@ardatan](https://github.com/ardatan)! - Handle errors thrown from the field subscriber
+
 ## 0.0.17
 
 ### Patch Changes
