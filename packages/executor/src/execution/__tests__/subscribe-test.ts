@@ -11,10 +11,14 @@ import {
   GraphQLSchema,
 } from 'graphql';
 
-import { ExecutionArgs, createSourceEventStream, subscribe } from '../execute.js';
+import { ExecutionArgs, subscribe } from '../execute.js';
 
 import { SimplePubSub } from './simplePubSub.js';
 import { ExecutionResult, isAsyncIterable, isPromise, MaybePromise } from '@graphql-tools/utils';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { normalizedExecutor } from '../normalizedExecutor.js';
+import { assertAsyncIterable } from '../../../../loaders/url/tests/test-utils.js';
 
 interface Email {
   from: string;
@@ -196,7 +200,7 @@ function subscribeWithBadFn(subscribeFn: () => unknown): MaybePromise<ExecutionR
 }
 
 function subscribeWithBadArgs(args: ExecutionArgs): MaybePromise<ExecutionResult | AsyncIterable<unknown>> {
-  return expectEqualPromisesOrValues(subscribe(args), createSourceEventStream(args));
+  return subscribe(args);
 }
 
 // Check all error cases when initializing the subscription.
@@ -1228,6 +1232,79 @@ describe('Subscription Publish Phase', () => {
     expect(await subscription.next()).toEqual({
       done: true,
       value: undefined,
+    });
+  });
+
+  it('should handle errors thrown in `subscribe`', async () => {
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          _: String
+        }
+        type Subscription {
+          oneTwoThree: Int
+        }
+      `,
+      resolvers: {
+        Subscription: {
+          oneTwoThree: {
+            async *subscribe() {
+              yield 1;
+              yield 2;
+              throw new Error('test error');
+            },
+            resolve: (value: number) => value,
+          },
+        },
+      },
+    });
+    const result = await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        subscription {
+          oneTwoThree
+        }
+      `),
+    });
+
+    assertAsyncIterable(result);
+
+    const iterator = result[Symbol.asyncIterator]();
+
+    const resultOne = await iterator.next();
+
+    expect(resultOne).toEqual({
+      done: false,
+      value: {
+        data: {
+          oneTwoThree: 1,
+        },
+      },
+    });
+
+    const resultTwo = await iterator.next();
+
+    expect(resultTwo).toEqual({
+      done: false,
+      value: {
+        data: {
+          oneTwoThree: 2,
+        },
+      },
+    });
+
+    const resultThree = await iterator.next();
+
+    expect(JSON.parse(JSON.stringify(resultThree))).toEqual({
+      done: false,
+      value: {
+        errors: [
+          {
+            message: 'test error',
+            locations: [{ line: 2, column: 9 }],
+          },
+        ],
+      },
     });
   });
 });
