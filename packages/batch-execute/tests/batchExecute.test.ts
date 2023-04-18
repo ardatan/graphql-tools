@@ -30,7 +30,7 @@ describe('batch execution', () => {
         field2: () => '2',
         field3: (_root, { input }) => String(input),
         boom: (_root, { message }) => new Error(message),
-        extension: () => new GraphQLError('boom', { extensions: extensions }),
+        extension: () => new GraphQLError('boom', undefined, undefined, undefined, undefined, undefined, extensions),
         widget: () => ({ name: 'wingnut' }),
       },
     },
@@ -200,7 +200,7 @@ describe('batch execution', () => {
 
   it('non pathed errors contain extensions', async () => {
     const errorExec: Executor = (): MaybeAsyncIterable<ExecutionResult> => {
-      return { errors: [new GraphQLError('boom', { extensions })] };
+      return { errors: [new GraphQLError('boom', undefined, undefined, undefined, undefined, undefined, extensions)] };
     };
     const batchExec = createBatchingExecutor(errorExec);
 
