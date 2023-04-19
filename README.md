@@ -118,13 +118,18 @@ GraphQL-Tools schema can be consumed by frameworks like GraphQL Yoga, Apollo Gra
 For example in Node.js;
 
 ```js
-const { createServer } = require('@graphql-yoga/node')
+const { createYoga } = require('graphql-yoga')
+const { createServer } = require('http')
 
-const server = createServer({
+const yoga = createYoga({
   schema: executableSchema
 })
 
-server.start()
+const server = createServer(yoga)
+
+server.listen(4000, () => {
+  console.log('Yoga is listening at http://localhost:4000/graphql')
+})
 ```
 
 You can check [GraphQL Yoga](https://www.graphql-yoga.com) for other JavaScript platforms and frameworks besides vanilla Node.js HTTP.

@@ -25,17 +25,30 @@ For notes on typescript, refer to [loaders](/docs/schema-loading#loaders)
 
 ```ts
 const { loadFiles } = require('@graphql-tools/load-files')
-const { createServer } = require('@graphql-yoga/node')
+const { createYoga, createSchema } = require('graphql-yoga')
+const { createServer } = require('http')
 
 async function main() {
-  const server = createServer({
-    server: {
-      typeDefs: await loadFiles('src/typeDefs/**/*.graphql'),
-      resolvers: await loadFiles('src/resolvers/**/*.{js,ts}')
-    }
+  const schema = createSchema({
+    typeDefs: await loadFiles('src/typeDefs/**/*.graphql'),
+    resolvers: await loadFiles('src/resolvers/**/*.{js,ts}')
   })
-  await server.start()
+
+  const yoga = createYoga({
+    schema
+  })
+
+  const server = createServer(yoga)
+
+  server.listen(4000, () => {
+    console.log('Server is running on http://localhost:4000')
+  })
 }
+
+main().catch(error => {
+  console.error(error)
+  process.exit(1)
+})
 ```
 
 <Callout type="warning">`loadFiles` doesn't support `#import` syntax. See below if you need that.</Callout>
@@ -134,7 +147,8 @@ import { join } from 'node:path'
 import { loadSchema } from '@graphql-tools/load'
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader'
 import { addResolversToSchema } from '@graphql-tools/schema'
-import { createServer } from '@graphql-yoga/node'
+import { createServer } from 'http'
+import { createYoga } from 'graphql-yoga'
 
 async function main() {
   // Load schema from the file
@@ -148,14 +162,21 @@ async function main() {
   // Add resolvers to the schema
   const schemaWithResolvers = addResolversToSchema({ schema, resolvers })
 
-  const server = createServer({
+  const yoga = createYoga({
     schema: schemaWithResolvers
   })
 
-  await server.start()
+  const server = createServer(yoga)
+
+  server.listen(4000, () => {
+    console.log('Server is running on http://localhost:4000')
+  })
 }
 
-main().catch(error => console.error(error))
+main().catch(error => {
+  console.error(error)
+  process.exit(1)
+})
 ```
 
 ## Loaders
