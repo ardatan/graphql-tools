@@ -133,7 +133,7 @@ export function addResolversToSchema({
   return schema;
 }
 
-function addResolversToExistingSchema(
+export function addResolversToExistingSchema(
   schema: GraphQLSchema,
   resolvers: IResolvers,
   defaultFieldResolver?: GraphQLFieldResolver<any, any>
@@ -256,7 +256,7 @@ function addResolversToExistingSchema(
   return schema;
 }
 
-function createNewSchemaWithResolvers(
+export function createNewSchemaWithResolvers(
   schema: GraphQLSchema,
   resolvers: IResolvers,
   defaultFieldResolver?: GraphQLFieldResolver<any, any>

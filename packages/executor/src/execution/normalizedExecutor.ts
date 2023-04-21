@@ -1,4 +1,4 @@
-import { MaybeAsyncIterable, ExecutionResult, MaybePromise } from '@graphql-tools/utils';
+import type { MaybeAsyncIterable, ExecutionResult, MaybePromise } from '@graphql-tools/utils';
 import { getOperationAST } from 'graphql';
 import { execute, ExecutionArgs, flattenIncrementalResults, subscribe } from './execute.js';
 import { ValueOrPromise } from 'value-or-promise';

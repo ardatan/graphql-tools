@@ -22,9 +22,8 @@ import {
   GraphQLEnumValue,
   GraphQLEnumValueConfig,
   EnumValueDefinitionNode,
+  getArgumentValues,
 } from 'graphql';
-
-import { getArgumentValues } from './getArgumentValues.js';
 
 export interface DirectiveAnnotation {
   name: string;

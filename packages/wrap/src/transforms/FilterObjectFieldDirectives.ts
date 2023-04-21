@@ -1,6 +1,4 @@
-import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
-
-import { getArgumentValues } from '@graphql-tools/utils';
+import { GraphQLSchema, GraphQLFieldConfig, getArgumentValues } from 'graphql';
 
 import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
 
