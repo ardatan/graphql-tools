@@ -61,7 +61,7 @@
     "graphql-sse": "2.1.1",
     "graphql-yoga": "3.9.1",
     "@graphql-yoga/plugin-defer-stream": "1.9.1",
-    "puppeteer": "19.9.1",
+    "puppeteer": "19.10.0",
     "subscriptions-transport-ws": "0.11.0",
     "webpack": "5.80.0"
   },
