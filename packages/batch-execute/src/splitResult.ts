@@ -2,7 +2,7 @@
 
 import { GraphQLError } from 'graphql';
 
-import { createGraphQLError, ExecutionResult, relocatedError } from '@graphql-tools/utils';
+import { ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
 import { parseKey } from './prefix.js';
 
@@ -41,7 +41,7 @@ export function splitResult({ data, errors }: ExecutionResult, numResults: numbe
       } else {
         splitResults.forEach(result => {
           const resultErrors = (result.errors = (result.errors || []) as GraphQLError[]);
-          resultErrors.push(createGraphQLError(error.message));
+          resultErrors.push(error);
         });
       }
     }
