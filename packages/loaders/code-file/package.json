@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/code-file-loader",
-  "version": "7.3.22",
+  "version": "7.3.23",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "^9.2.1",
-    "@graphql-tools/graphql-tag-pluck": "7.5.1",
+    "@graphql-tools/graphql-tag-pluck": "7.5.2",
     "globby": "^11.0.3",
     "tslib": "^2.4.0",
     "unixify": "^1.0.0"

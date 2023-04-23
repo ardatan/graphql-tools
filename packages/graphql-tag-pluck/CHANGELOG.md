@@ -1,5 +1,12 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 7.5.2
+
+### Patch Changes
+
+- [#5202](https://github.com/ardatan/graphql-tools/pull/5202) [`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency [`@babel/plugin-syntax-import-assertions@^7.20.0` ↗︎](https://www.npmjs.com/package/@babel/plugin-syntax-import-assertions/v/7.20.0) (from `7.20.0`, in `dependencies`)
+
 ## 7.5.1
 
 ### Patch Changes

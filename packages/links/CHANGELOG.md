@@ -1,5 +1,14 @@
 # @graphql-tools/links
 
+## 8.3.36
+
+### Patch Changes
+
+- [#5202](https://github.com/ardatan/graphql-tools/pull/5202) [`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency [`@apollo/client@^3` ↗︎](https://www.npmjs.com/package/@apollo/client/v/3.0.0) (from `~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0`, in `peerDependencies`)
+- Updated dependencies []:
+  - @graphql-tools/delegate@9.0.33
+
 ## 8.3.35
 
 ### Patch Changes
