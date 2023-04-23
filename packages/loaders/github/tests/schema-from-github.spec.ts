@@ -45,7 +45,7 @@ if (token) {
       customFetch,
       headers: {
         'x-custom-header': 'custom-header-value',
-      }
+      },
     });
 
     const [source] = result;
