@@ -1,5 +1,12 @@
 # @graphql-tools/schema
 
+## 9.0.19
+
+### Patch Changes
+
+- [#5202](https://github.com/ardatan/graphql-tools/pull/5202) [`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency [`value-or-promise@^1.0.12` ↗︎](https://www.npmjs.com/package/value-or-promise/v/1.0.12) (from `1.0.12`, in `dependencies`)
+
 ## 9.0.18
 
 ### Patch Changes

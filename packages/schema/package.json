@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/schema",
-  "version": "9.0.18",
+  "version": "9.0.19",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",

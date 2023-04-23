@@ -1,5 +1,16 @@
 # @graphql-tools/batch-execute
 
+## 8.5.20
+
+### Patch Changes
+
+- [#5202](https://github.com/ardatan/graphql-tools/pull/5202) [`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+
+  - Updated dependency [`dataloader@^2.2.2` ↗︎](https://www.npmjs.com/package/dataloader/v/2.2.2) (from `2.2.2`, in `dependencies`)
+  - Updated dependency [`value-or-promise@^1.0.12` ↗︎](https://www.npmjs.com/package/value-or-promise/v/1.0.12) (from `1.0.12`, in `dependencies`)
+
+- [#5191](https://github.com/ardatan/graphql-tools/pull/5191) [`f24f018a`](https://github.com/ardatan/graphql-tools/commit/f24f018aa94394766f4201b1964d473d08946bd3) Thanks [@darren-west](https://github.com/darren-west)! - fix: batched executor returns original error when it has no path
+
 ## 8.5.19
 
 ### Patch Changes
