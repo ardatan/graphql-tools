@@ -52,11 +52,11 @@
     "definition": "dist/typings/index.d.ts"
   },
   "dependencies": {
-    "@repeaterjs/repeater": "3.0.4",
+    "@repeaterjs/repeater": "^3.0.4",
     "@graphql-tools/utils": "^9.2.1",
     "@graphql-typed-document-node/core": "3.2.0",
     "tslib": "^2.4.0",
-    "value-or-promise": "1.0.12"
+    "value-or-promise": "^1.0.12"
   },
   "devDependencies": {
     "graphql": "^16.6.0"

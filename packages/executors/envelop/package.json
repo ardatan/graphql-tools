@@ -56,8 +56,7 @@
     "tslib": "^2.3.1"
   },
   "devDependencies": {
-    "@envelop/core": "3.0.6",
-    "@envelop/testing": "5.0.6"
+    "@envelop/core": "3.0.6"
   },
   "peerDependencies": {
     "@envelop/core": "^3.0.4"

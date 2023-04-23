@@ -53,8 +53,7 @@
     "input": "./src/index.ts"
   },
   "devDependencies": {
-    "dataloader": "2.2.2",
-    "value-or-promise": "1.0.12"
+    "dataloader": "2.2.2"
   },
   "dependencies": {
     "@graphql-tools/batch-delegate": "^8.4.25",
