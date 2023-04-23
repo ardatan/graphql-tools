@@ -40,6 +40,10 @@ export interface GithubLoaderOptions extends BaseLoaderOptions {
    */
   pluckConfig?: GraphQLTagPluckOptions;
   customFetch?: FetchFn;
+  /**
+   * Additional headers to pass to the fetch request
+   */
+  headers?: Record<string, string>;
 }
 
 /**
