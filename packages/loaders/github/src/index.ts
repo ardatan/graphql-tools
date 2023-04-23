@@ -40,6 +40,10 @@ export interface GithubLoaderOptions extends BaseLoaderOptions {
    */
   pluckConfig?: GraphQLTagPluckOptions;
   customFetch?: FetchFn;
+  /**
+   * Additional headers to pass to the fetch request
+   */
+  headers?: Record<string, string>;
 }
 
 /**
@@ -171,6 +175,7 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
       'content-type': 'application/json; charset=utf-8',
       'user-agent': 'graphql-tools',
       authorization: `bearer ${token}`,
+      ...options.headers,
     };
     return {
       method: 'POST',

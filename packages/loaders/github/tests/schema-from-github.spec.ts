@@ -43,6 +43,9 @@ if (token) {
     const result = await loader.load(pointer, {
       token,
       customFetch,
+      headers: {
+        'x-custom-header': 'custom-header-value',
+      },
     });
 
     const [source] = result;
@@ -54,6 +57,7 @@ if (token) {
     if (token) {
       expect(params?.headers?.['authorization']).toContain(`bearer ${token}`);
     }
+    expect(params?.headers?.['x-custom-header']).toContain('custom-header-value');
 
     const paramsBody = JSON.parse(params?.body as string);
 
