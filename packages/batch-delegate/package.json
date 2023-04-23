@@ -56,6 +56,7 @@
     "@graphql-tools/delegate": "^9.0.31",
     "@graphql-tools/utils": "^9.2.1",
     "dataloader": "2.2.2",
+    "value-or-promise": "^1.0.12",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
