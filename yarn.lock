@@ -851,7 +851,7 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.16.7"
 
-"@babel/plugin-syntax-import-assertions@7.20.0", "@babel/plugin-syntax-import-assertions@^7.20.0":
+"@babel/plugin-syntax-import-assertions@^7.20.0":
   version "7.20.0"
   resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-import-assertions/-/plugin-syntax-import-assertions-7.20.0.tgz#bb50e0d4bea0957235390641209394e87bdb9cc4"
   integrity sha512-IUh1vakzNoWalR8ch/areW7qFopR2AEw03JlG7BbrDqmQ4X3q9uuipQwSGrUn7oGiemKjtSLDhNtQHzMHr1JdQ==
@@ -1634,14 +1634,6 @@
     "@n1ru4l/graphql-live-query" "^0.10.0"
     "@n1ru4l/graphql-live-query-patch" "^0.7.0"
     "@n1ru4l/in-memory-live-query-store" "^0.10.0"
-    tslib "^2.5.0"
-
-"@envelop/testing@5.0.6":
-  version "5.0.6"
-  resolved "https://registry.yarnpkg.com/@envelop/testing/-/testing-5.0.6.tgz#01d1c0f8c8f4dd68f1e5e12c8c76c1d910025fa5"
-  integrity sha512-HP+j+w+/L1C2taznPOFCWkGBdrIBbqRo5suPPRKdS8GKRxsd8tQPOZz851TA65WEpZdc+fmzZMxV87nBPiTrqw==
-  dependencies:
-    "@graphql-tools/utils" "^8.8.0"
     tslib "^2.5.0"
 
 "@envelop/types@3.0.2":
@@ -12084,7 +12076,7 @@ validate-npm-package-license@^3.0.1:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
 
-value-or-promise@1.0.12, value-or-promise@^1.0.11, value-or-promise@^1.0.12:
+value-or-promise@^1.0.11, value-or-promise@^1.0.12:
   version "1.0.12"
   resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.12.tgz#0e5abfeec70148c78460a849f6b003ea7986f15c"
   integrity sha512-Z6Uz+TYwEqE7ZN50gwn+1LCVo9ZVrpxRPOhOLnncYkY1ZzOYtrX8Fwf/rFktZ8R5mJms6EZf5TqNOMeZmnPq9Q==

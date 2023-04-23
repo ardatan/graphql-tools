@@ -54,9 +54,9 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "^9.2.1",
-    "dataloader": "2.2.2",
+    "dataloader": "^2.2.2",
     "tslib": "^2.4.0",
-    "value-or-promise": "1.0.12"
+    "value-or-promise": "^1.0.12"
   },
   "publishConfig": {
     "directory": "dist",
