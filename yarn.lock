@@ -1802,6 +1802,17 @@
   dependencies:
     giscus "^1.2.8"
 
+"@graphql-tools/executor@^0.0.18":
+  version "0.0.18"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor/-/executor-0.0.18.tgz#5b9f881d59484ea55278de3b4743ece8d68bc6e7"
+  integrity sha512-xZC0C+/npXoSHBB5bsJdwxDLgtl1Gu4fL9J2TPQmXoZC3L2N506KJoppf9LgWdHU/xK04luJrhP6WjhfkIN0pQ==
+  dependencies:
+    "@graphql-tools/utils" "^9.2.1"
+    "@graphql-typed-document-node/core" "3.2.0"
+    "@repeaterjs/repeater" "3.0.4"
+    tslib "^2.4.0"
+    value-or-promise "1.0.12"
+
 "@graphql-tools/utils@^8.5.2", "@graphql-tools/utils@^8.8.0":
   version "8.13.1"
   resolved "https://registry.yarnpkg.com/@graphql-tools/utils/-/utils-8.13.1.tgz#b247607e400365c2cd87ff54654d4ad25a7ac491"
@@ -3522,14 +3533,14 @@
   integrity sha512-IqnKIDWfXBJkvy/k6tzskWTc2NK3LcqHlb+KHGCrjOCH4jfQckRX0NAiIcC/vIqQkzLYw2r2CTSwAxcrtcD6lA==
 
 "@whatwg-node/fetch@^0.8.0", "@whatwg-node/fetch@^0.8.1", "@whatwg-node/fetch@^0.8.2", "@whatwg-node/fetch@^0.8.4":
-  version "0.8.6"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.8.6.tgz#067c930e79ef0af45de9382bd3318216b01e56b1"
-  integrity sha512-DCduwI3yZdQMDUWtCU+CeuI7iKMtb/X3QrVrTYwLssWBUC+T2MRj5teoGFh5eylAMtPw6v7dY1lRbMV3aebVKw==
+  version "0.8.7"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.8.7.tgz#d145f9b6d8c981965c076a3213c2a3783a0f4fd4"
+  integrity sha512-/xEwk5Q+hTvSYOVZIskGI1EtG9P7n0SFcqH99cjOtRSLdUH2P0T3F4354yFwtJJ+dP7fXMm9cAZZMczUkeVYOQ==
   dependencies:
     "@peculiar/webcrypto" "^1.4.0"
     "@whatwg-node/node-fetch" "^0.3.6"
     busboy "^1.6.0"
-    urlpattern-polyfill "^7.0.0"
+    urlpattern-polyfill "^8.0.0"
     web-streams-polyfill "^3.2.1"
 
 "@whatwg-node/node-fetch@^0.3.6":
@@ -12022,10 +12033,10 @@ uri-js@^4.2.2:
   dependencies:
     punycode "^2.1.0"
 
-urlpattern-polyfill@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/urlpattern-polyfill/-/urlpattern-polyfill-7.0.0.tgz#dc9e5098efc492b4f09bc9fc6acfba545dfb149d"
-  integrity sha512-fErMjbZwveQIk+EY4vxM5GKDuInBOigxmjM6WT2R/cV2ETVyFtDHeU+VmbnfuJ5sp0qNbyUBelTO/60/d+/SSQ==
+urlpattern-polyfill@^8.0.0:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/urlpattern-polyfill/-/urlpattern-polyfill-8.0.1.tgz#aa302bf8d584d36fbbe90dac0c1a6c28bf914d6b"
+  integrity sha512-uRsgZkqvviY4s6XsG3Jc5ti7L+tH0lH14PuAXAJRsxldtPtXZjIhlPnoAimds6c9JJaFhxXW8qCJQB/WknPJUw==
   dependencies:
     braces "^3.0.2"
 
@@ -12081,7 +12092,7 @@ validate-npm-package-license@^3.0.1:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
 
-value-or-promise@^1.0.11, value-or-promise@^1.0.12:
+value-or-promise@1.0.12, value-or-promise@^1.0.11, value-or-promise@^1.0.12:
   version "1.0.12"
   resolved "https://registry.yarnpkg.com/value-or-promise/-/value-or-promise-1.0.12.tgz#0e5abfeec70148c78460a849f6b003ea7986f15c"
   integrity sha512-Z6Uz+TYwEqE7ZN50gwn+1LCVo9ZVrpxRPOhOLnncYkY1ZzOYtrX8Fwf/rFktZ8R5mJms6EZf5TqNOMeZmnPq9Q==
