@@ -478,19 +478,19 @@ function executeFieldsSerially<TData>(
     fields,
     (results, [responseName, fieldNodes]) => {
       const fieldPath = addPath(path, responseName, parentType.name);
-      return new ValueOrPromise(() => executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath))
-        .then(result => {
+      return new ValueOrPromise(() => executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath)).then(
+        result => {
           if (result === undefined) {
             return results;
           }
 
           results[responseName] = result;
           return results;
-        })
-        .resolve();
+        }
+      );
     },
     Object.create(null)
-  );
+  ).resolve();
 }
 
 /**
