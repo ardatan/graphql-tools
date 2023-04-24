@@ -1,5 +1,18 @@
 # @graphql-tools/batch-delegate
 
+## 8.4.26
+
+### Patch Changes
+
+- [#5205](https://github.com/ardatan/graphql-tools/pull/5205) [`a33097f7`](https://github.com/ardatan/graphql-tools/commit/a33097f734992105ca13e1774da90842780c6467) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+
+  - Added dependency [`value-or-promise@^1.0.12` ↗︎](https://www.npmjs.com/package/value-or-promise/v/1.0.12) (to `dependencies`)
+
+- [`2f342e43`](https://github.com/ardatan/graphql-tools/commit/2f342e430ba0d0097d1d8cb31a6abb97ed46f971) Thanks [@ardatan](https://github.com/ardatan)! - Do not use promises if not async
+
+- Updated dependencies [[`2f342e43`](https://github.com/ardatan/graphql-tools/commit/2f342e430ba0d0097d1d8cb31a6abb97ed46f971)]:
+  - @graphql-tools/delegate@9.0.34
+
 ## 8.4.25
 
 ### Patch Changes

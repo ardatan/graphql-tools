@@ -1,5 +1,14 @@
 # @graphql-tools/delegate
 
+## 9.0.34
+
+### Patch Changes
+
+- [`2f342e43`](https://github.com/ardatan/graphql-tools/commit/2f342e430ba0d0097d1d8cb31a6abb97ed46f971) Thanks [@ardatan](https://github.com/ardatan)! - Do not use promises if not async
+
+- Updated dependencies [[`2f342e43`](https://github.com/ardatan/graphql-tools/commit/2f342e430ba0d0097d1d8cb31a6abb97ed46f971)]:
+  - @graphql-tools/batch-execute@8.5.21
+
 ## 9.0.33
 
 ### Patch Changes
