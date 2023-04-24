@@ -90,7 +90,7 @@ function resolveExternalObject<TContext extends Record<string, any>>(
     return object;
   }
 
-  return mergeFields(mergedTypeInfo, object, subschema as Subschema, context, info);
+  return mergeFields(mergedTypeInfo, object, subschema as Subschema, context, info).resolve();
 }
 
 function resolveExternalList<TContext extends Record<string, any>>(

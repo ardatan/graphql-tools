@@ -4,6 +4,7 @@ import { Executor, ExecutionRequest, ExecutionResult, getOperationASTFromRequest
 
 import { mergeRequests } from './mergeRequests.js';
 import { splitResult } from './splitResult.js';
+import { ValueOrPromise } from 'value-or-promise';
 
 export function createBatchingExecutor(
   executor: Executor,
@@ -25,7 +26,9 @@ function createLoadFn(
   executor: Executor,
   extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
 ) {
-  return async function batchExecuteLoadFn(requests: ReadonlyArray<ExecutionRequest>): Promise<Array<ExecutionResult>> {
+  return function batchExecuteLoadFn(
+    requests: ReadonlyArray<ExecutionRequest>
+  ): ValueOrPromise<Array<ExecutionResult>> {
     const execBatches: Array<Array<ExecutionRequest>> = [];
     let index = 0;
     const request = requests[index];
@@ -52,15 +55,14 @@ function createLoadFn(
       }
     }
 
-    const results = await Promise.all(
-      execBatches.map(async execBatch => {
-        const mergedRequests = mergeRequests(execBatch, extensionsReducer);
-        const resultBatches = (await executor(mergedRequests)) as ExecutionResult;
-        return splitResult(resultBatches, execBatch.length);
-      })
-    );
-
-    return results.flat();
+    return ValueOrPromise.all(
+      execBatches.map(execBatch =>
+        new ValueOrPromise(() => {
+          const mergedRequests = mergeRequests(execBatch, extensionsReducer);
+          return executor(mergedRequests) as ExecutionResult;
+        }).then(resultBatches => splitResult(resultBatches, execBatch.length))
+      )
+    ).then(results => results.flat());
   };
 }
 
