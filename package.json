@@ -67,7 +67,7 @@
     "prettier": "2.8.8",
     "ts-jest": "29.1.0",
     "ts-node": "10.9.1",
-    "typedoc": "0.23.28",
+    "typedoc": "0.24.6",
     "typedoc-plugin-markdown": "3.14.0",
     "typedoc-plugin-rename-defaults": "0.6.5",
     "typescript": "5.0.4",
