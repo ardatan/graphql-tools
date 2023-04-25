@@ -11,7 +11,6 @@ import {
   getSubschemaForFederationWithSchema,
 } from '@graphql-tools/federation';
 import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
-import { ApolloGateway, LocalGraphQLDataSource } from '@apollo/gateway';
 
 interface ServiceInput {
   typeDefs: string;
@@ -44,7 +43,8 @@ describe('Federation', () => {
         document,
       }) as Promise<ExecutionResult>;
   };
-  const { buildSubgraphSchema: buildApolloSubgraph }: any = require('@apollo/subgraph');
+  const { buildSubgraphSchema: buildApolloSubgraph }: typeof import('@apollo/subgraph') = require('@apollo/subgraph');
+  const { ApolloGateway, LocalGraphQLDataSource }: typeof import('@apollo/gateway') = require('@apollo/gateway');
   const buildApolloGateway = async (services: ServiceInput[]) => {
     const gateway = new ApolloGateway({
       serviceList: services.map((_, i) => ({
