@@ -1,10 +1,8 @@
 import { IResolvers } from '@graphql-tools/utils';
-import { buildSubgraphSchema } from '@apollo/subgraph';
-import { parse } from 'graphql';
 import { inspect } from 'util';
 
 export const typeDefs = /* GraphQL */ `
-  extend type Product @key(fields: "upc") {
+  type Product @key(fields: "upc") @extends {
     upc: String! @external
     weight: Int @external
     price: Int @external
@@ -13,7 +11,7 @@ export const typeDefs = /* GraphQL */ `
   }
 `;
 
-const resolvers: IResolvers = {
+export const resolvers: IResolvers = {
   Product: {
     __resolveReference(object) {
       return {
@@ -32,13 +30,6 @@ const resolvers: IResolvers = {
     },
   },
 };
-
-export const schema = buildSubgraphSchema([
-  {
-    typeDefs: parse(typeDefs),
-    resolvers: resolvers as any,
-  },
-]);
 
 const inventory = [
   { upc: '1', inStock: true },

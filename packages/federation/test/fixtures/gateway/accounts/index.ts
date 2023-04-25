@@ -1,8 +1,7 @@
 import { IResolvers } from '@graphql-tools/utils';
-import { buildSubgraphSchema } from '../../../../src';
 
 export const typeDefs = /* GraphQL */ `
-  extend type Query {
+  type Query @extends {
     me: User
     users: [User]
   }
@@ -15,7 +14,7 @@ export const typeDefs = /* GraphQL */ `
   }
 `;
 
-const resolvers: IResolvers = {
+export const resolvers: IResolvers = {
   Query: {
     me() {
       return users[0];
@@ -30,11 +29,6 @@ const resolvers: IResolvers = {
     },
   },
 };
-
-export const schema = buildSubgraphSchema({
-  typeDefs,
-  resolvers: resolvers as any,
-});
 
 const users = [
   {

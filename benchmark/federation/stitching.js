@@ -12,14 +12,7 @@ const services = [
 
 async function makeGatewaySchema() {
   return stitchSchemas({
-    subschemas: services.map(service => ({
-      schema: buildSchema(service.typeDefs, {
-        assumeValid: true,
-        assumeValidSDL: true,
-      }),
-      executor: createDefaultExecutor(service.schema),
-    })),
-    subschemaConfigTransforms: [federationSubschemaTransformer],
+    subschemas: await Promise.all(services.map(service => getSubschemaForFederationWithSchema(service.schema))),
   });
 }
 

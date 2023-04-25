@@ -1,9 +1,7 @@
 import { IResolvers } from '@graphql-tools/utils';
-import { buildSubgraphSchema } from '@apollo/subgraph';
-import { parse } from 'graphql';
 
 export const typeDefs = /* GraphQL */ `
-  extend type Query {
+  type Query @extends {
     topProducts(first: Int): [Product]
   }
 
@@ -39,7 +37,7 @@ const definedProducts = [
 ];
 const products = [...Array(listSize)].map((_, index) => definedProducts[index % 3]);
 
-const resolvers: IResolvers = {
+export const resolvers: IResolvers = {
   Product: {
     __resolveReference(object) {
       return products.find(product => product.upc === object.upc);
@@ -51,10 +49,3 @@ const resolvers: IResolvers = {
     },
   },
 };
-
-export const schema = buildSubgraphSchema([
-  {
-    typeDefs: parse(typeDefs),
-    resolvers: resolvers as any,
-  },
-]);

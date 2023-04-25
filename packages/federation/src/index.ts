@@ -26,7 +26,7 @@ import {
 
 export const SubgraphBaseSDL = /* GraphQL */ `
   scalar _Any
-  scalar FieldSet
+  scalar _FieldSet
   scalar link__Import
 
   enum link__Purpose {
@@ -44,9 +44,9 @@ export const SubgraphBaseSDL = /* GraphQL */ `
   }
 
   directive @external on FIELD_DEFINITION | OBJECT
-  directive @requires(fields: FieldSet!) on FIELD_DEFINITION
-  directive @provides(fields: FieldSet!) on FIELD_DEFINITION
-  directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+  directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
+  directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
+  directive @key(fields: _FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
   directive @link(url: String!, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
   directive @shareable repeatable on OBJECT | FIELD_DEFINITION
   directive @inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
@@ -114,7 +114,7 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
         return node;
       }
       const typeMergingTypeConfig = (typeMergingConfig[typeName] = typeMergingConfig[typeName] || {});
-      if (node.kind === Kind.OBJECT_TYPE_DEFINITION) {
+      if (node.kind === Kind.OBJECT_TYPE_DEFINITION && !node.directives?.some(d => d.name.value === 'extends')) {
         typeMergingTypeConfig.canonical = true;
       }
       entityTypes.push(typeName);
@@ -267,6 +267,8 @@ export function buildSubgraphSchema<TContext = any>(opts: IExecutableSchemaDefin
     },
   };
   return makeExecutableSchema({
+    assumeValid: true,
+    assumeValidSDL: true,
     ...opts,
     typeDefs: [entityTypeDefinition, typeDefs],
     resolvers: [subgraphResolvers, givenResolvers],

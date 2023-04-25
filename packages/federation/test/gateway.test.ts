@@ -3,69 +3,154 @@ import * as Products from './fixtures/gateway/products';
 import * as Reviews from './fixtures/gateway/reviews';
 import * as Inventory from './fixtures/gateway/inventory';
 import { SubschemaConfig } from '@graphql-tools/delegate';
-import { parse } from 'graphql';
+import { DocumentNode, GraphQLSchema, parse, print } from 'graphql';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { normalizedExecutor } from '@graphql-tools/executor';
-import { getSubschemaForFederationWithSchema } from '@graphql-tools/federation';
+import {
+  buildSubgraphSchema as buildToolsSubgraphSchema,
+  federationSubschemaTransformer,
+  getSubschemaForFederationWithSchema,
+} from '@graphql-tools/federation';
+import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
+import { buildSubgraphSchema as buildApolloSubgraph } from '@apollo/subgraph';
+import { ApolloGateway, LocalGraphQLDataSource } from '@apollo/gateway';
+
+interface ServiceInput {
+  typeDefs: string;
+  schema: GraphQLSchema;
+}
+
+interface TestScenario {
+  name: string;
+  buildSubgraphSchema(options: { typeDefs: string; resolvers: IResolvers }): GraphQLSchema;
+  buildGateway(services: ServiceInput[]): Promise<(document: DocumentNode) => Promise<ExecutionResult>>;
+}
+
+const buildStitchingGateway = async (services: ServiceInput[]) => {
+  const subschemas: SubschemaConfig[] = await Promise.all(
+    services.map(({ schema }) => getSubschemaForFederationWithSchema(schema))
+  );
+  const gatewaySchema = stitchSchemas({
+    subschemas,
+  });
+
+  return (document: DocumentNode) =>
+    normalizedExecutor({
+      schema: gatewaySchema,
+      document,
+    }) as Promise<ExecutionResult>;
+};
+
+const buildApolloGateway = async (services: ServiceInput[]) => {
+  const gateway = new ApolloGateway({
+    serviceList: services.map((_, i) => ({
+      name: `service${i}`,
+      url: `http://www.service-${i}.com`,
+    })),
+    buildService({ name }) {
+      const [, i] = name.split('service');
+      return new LocalGraphQLDataSource(services[parseInt(i)].schema);
+    },
+  });
+  await gateway.load();
+  return (document: DocumentNode) =>
+    gateway.executor({
+      document,
+      request: {
+        query: print(document),
+      },
+      cache: {
+        get: async () => undefined,
+        set: async () => {},
+        delete: async () => true,
+      },
+      schema: gateway.schema!,
+      context: {},
+    } as any) as Promise<ExecutionResult>;
+};
+const scenarios: TestScenario[] = [
+  {
+    name: 'Tools Gateway vs. Tools Subgraph',
+    buildSubgraphSchema: buildToolsSubgraphSchema,
+    buildGateway: buildStitchingGateway,
+  },
+  {
+    name: 'Tools Gateway vs. Apollo Subgraph',
+    buildSubgraphSchema: options =>
+      buildApolloSubgraph([
+        {
+          typeDefs: parse(options.typeDefs),
+          resolvers: options.resolvers as any,
+        },
+      ]),
+    buildGateway: buildStitchingGateway,
+  },
+  {
+    name: 'Apollo Gateway vs. Tools Subgraph',
+    buildSubgraphSchema: buildToolsSubgraphSchema,
+    buildGateway: buildApolloGateway,
+  },
+];
 
 describe('Gateway', () => {
-  it('should give the correct result', async () => {
-    const services = [Accounts, Products, Reviews, Inventory];
-    const subschemas: SubschemaConfig[] = await Promise.all(
-      services.map(({ schema }) => getSubschemaForFederationWithSchema(schema))
-    );
+  for (const { name, buildSubgraphSchema, buildGateway } of scenarios) {
+    describe(name, () => {
+      it('should give the correct result', async () => {
+        const services = [Accounts, Products, Reviews, Inventory];
 
-    const gatewaySchema = stitchSchemas({
-      subschemas,
-    });
+        const serviceInputs = services.map(service => ({
+          typeDefs: service.typeDefs,
+          schema: buildSubgraphSchema(service),
+        }));
 
-    const result = await normalizedExecutor({
-      schema: gatewaySchema,
-      document: parse(/* GraphQL */ `
-        fragment User on User {
-          id
-          username
-          name
-        }
+        const gatewayExecutor = await buildGateway(serviceInputs);
 
-        fragment Review on Review {
-          id
-          body
-        }
-
-        fragment Product on Product {
-          inStock
-          name
-          price
-          shippingEstimate
-          upc
-          weight
-        }
-
-        query TestQuery {
-          users {
-            ...User
-            reviews {
-              ...Review
-              product {
-                ...Product
-              }
+        const result = await gatewayExecutor(
+          parse(/* GraphQL */ `
+            fragment User on User {
+              id
+              username
+              name
             }
-          }
-          topProducts {
-            ...Product
-            reviews {
-              ...Review
-              author {
+
+            fragment Review on Review {
+              id
+              body
+            }
+
+            fragment Product on Product {
+              inStock
+              name
+              price
+              shippingEstimate
+              upc
+              weight
+            }
+
+            query TestQuery {
+              users {
                 ...User
+                reviews {
+                  ...Review
+                  product {
+                    ...Product
+                  }
+                }
+              }
+              topProducts {
+                ...Product
+                reviews {
+                  ...Review
+                  author {
+                    ...User
+                  }
+                }
               }
             }
-          }
-        }
-      `),
-    });
+          `)
+        );
 
-    expect(result).toMatchInlineSnapshot(`
+        expect(result).toMatchInlineSnapshot(`
       {
         "data": {
           "topProducts": [
@@ -203,5 +288,7 @@ describe('Gateway', () => {
         },
       }
     `);
-  });
+      });
+    });
+  }
 });

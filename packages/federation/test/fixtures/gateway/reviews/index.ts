@@ -1,6 +1,4 @@
 import { IResolvers } from '@graphql-tools/utils';
-import { buildSubgraphSchema } from '@apollo/subgraph';
-import { parse } from 'graphql';
 
 export const typeDefs = /* GraphQL */ `
   type Review @key(fields: "id") {
@@ -10,20 +8,24 @@ export const typeDefs = /* GraphQL */ `
     product: Product
   }
 
-  extend type User @key(fields: "id") {
+  type User @key(fields: "id") @extends {
     id: ID! @external
     username: String @external
+    numberOfReviews: Int
     reviews: [Review]
   }
 
-  extend type Product @key(fields: "upc") {
+  type Product @key(fields: "upc") @extends {
     upc: String! @external
     reviews: [Review]
   }
 `;
 
-const resolvers: IResolvers = {
+export const resolvers: IResolvers = {
   Review: {
+    __resolveReference(object) {
+      return reviews.find(review => review.id === object.id);
+    },
     author(review) {
       return { __typename: 'User', id: review.authorID };
     },
@@ -46,13 +48,6 @@ const resolvers: IResolvers = {
     },
   },
 };
-
-export const schema = buildSubgraphSchema([
-  {
-    typeDefs: parse(typeDefs),
-    resolvers: resolvers as any,
-  },
-]);
 
 const usernames = [
   { id: '1', username: '@ada' },
