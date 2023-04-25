@@ -11,7 +11,6 @@ import {
   printSchemaWithDirectives,
 } from '@graphql-tools/utils';
 import {
-  ASTVisitFn,
   buildASTSchema,
   concatAST,
   DocumentNode,
@@ -85,7 +84,7 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
   const subschemaConfig = {} as SubschemaConfig;
   const typeMergingConfig = (subschemaConfig.merge = subschemaConfig.merge || {});
   const entityTypes: string[] = [];
-  const visitor: ASTVisitFn<ObjectTypeDefinitionNode | ObjectTypeExtensionNode> = node => {
+  const visitor = (node: ObjectTypeDefinitionNode | ObjectTypeExtensionNode) => {
     if (node.directives) {
       const typeName = node.name.value;
       const selections: string[] = [];
