@@ -1,7 +1,5 @@
 const { stitchSchemas } = require('@graphql-tools/stitch');
-const { federationSubschemaTransformer } = require('@graphql-tools/federation');
-const { buildSchema } = require('graphql');
-const { createDefaultExecutor } = require('@graphql-tools/delegate');
+const { getSubschemaForFederationWithSchema } = require('@graphql-tools/federation');
 
 const services = [
   require('./services/accounts'),
