@@ -8,7 +8,6 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import {
   buildSubgraphSchema as buildToolsSubgraphSchema,
-  federationSubschemaTransformer,
   getSubschemaForFederationWithSchema,
 } from '@graphql-tools/federation';
 import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
