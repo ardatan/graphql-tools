@@ -23,6 +23,7 @@ import {
   parse,
   visit,
 } from 'graphql';
+import { ValueOrPromise } from 'value-or-promise';
 
 export const SubgraphBaseSDL = /* GraphQL */ `
   scalar _Any
@@ -247,18 +248,17 @@ export function buildSubgraphSchema<TContext = any>(opts: IExecutableSchemaDefin
       __resolveType: (obj: { __typename: string }) => obj.__typename,
     },
     Query: {
-      _entities: async (_root: never, args: { representations: any[] }, context: TContext, info: GraphQLResolveInfo) =>
-        args.representations.map(async representation => {
-          const resolvedEntity = await givenResolvers[representation.__typename]?.__resolveReference?.(
-            representation,
-            context,
-            info
-          );
-          return {
-            ...representation,
-            ...resolvedEntity,
-          };
-        }),
+      _entities: (_root: never, args: { representations: any[] }, context: TContext, info: GraphQLResolveInfo) =>
+        ValueOrPromise.all(
+          args.representations.map(representation =>
+            new ValueOrPromise(() =>
+              givenResolvers[representation.__typename]?.__resolveReference?.(representation, context, info)
+            ).then(resolvedEntity => ({
+              ...representation,
+              ...resolvedEntity,
+            }))
+          )
+        ).resolve(),
       _service: () => ({}),
     },
     _Service: {
