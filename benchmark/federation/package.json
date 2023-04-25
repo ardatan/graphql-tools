@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@apollo/gateway": "2.4.2",
-    "@apollo/subgraph": "2.2.2",
+    "@apollo/subgraph": "2.4.2",
     "@graphql-tools/stitch": "8.7.48",
     "@graphql-tools/federation": "0.0.1",
     "express": "4.18.2",
