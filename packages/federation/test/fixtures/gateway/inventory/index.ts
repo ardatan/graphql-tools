@@ -1,8 +1,8 @@
-const { gql } = require('graphql-tag');
-const { buildSubgraphSchema } = require('@apollo/subgraph');
+import { IResolvers } from '@graphql-tools/utils';
+import { inspect } from 'util';
 
-const typeDefs = gql`
-  extend type Product @key(fields: "upc") {
+export const typeDefs = /* GraphQL */ `
+  type Product @key(fields: "upc") @extends {
     upc: String! @external
     weight: Int @external
     price: Int @external
@@ -11,7 +11,7 @@ const typeDefs = gql`
   }
 `;
 
-const resolvers = {
+export const resolvers: IResolvers = {
   Product: {
     __resolveReference(object) {
       return {
@@ -20,25 +20,15 @@ const resolvers = {
       };
     },
     shippingEstimate(object) {
+      if (object.price == null || object.weight == null) {
+        throw new Error(`${inspect(object)} doesn't have required fields; "price" and "weight".`);
+      }
       // free for expensive items
       if (object.price > 1000) return 0;
       // estimate is based on weight
       return object.weight * 0.5;
     },
   },
-};
-
-const schema = buildSubgraphSchema([
-  {
-    typeDefs,
-    resolvers,
-  },
-]);
-
-module.exports = {
-  typeDefs,
-  resolvers,
-  schema,
 };
 
 const inventory = [

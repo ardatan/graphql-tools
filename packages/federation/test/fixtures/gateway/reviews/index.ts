@@ -1,7 +1,6 @@
-const { gql } = require('graphql-tag');
-const { buildSubgraphSchema } = require('@apollo/subgraph');
+import { IResolvers } from '@graphql-tools/utils';
 
-const typeDefs = gql`
+export const typeDefs = /* GraphQL */ `
   type Review @key(fields: "id") {
     id: ID!
     body: String
@@ -9,20 +8,24 @@ const typeDefs = gql`
     product: Product
   }
 
-  extend type User @key(fields: "id") {
+  type User @key(fields: "id") @extends {
     id: ID! @external
     username: String @external
+    numberOfReviews: Int
     reviews: [Review]
   }
 
-  extend type Product @key(fields: "upc") {
+  type Product @key(fields: "upc") @extends {
     upc: String! @external
     reviews: [Review]
   }
 `;
 
-const resolvers = {
+export const resolvers: IResolvers = {
   Review: {
+    __resolveReference(object) {
+      return reviews.find(review => review.id === object.id);
+    },
     author(review) {
       return { __typename: 'User', id: review.authorID };
     },
@@ -44,19 +47,6 @@ const resolvers = {
       return reviews.filter(review => review.product.upc === product.upc);
     },
   },
-};
-
-const schema = buildSubgraphSchema([
-  {
-    typeDefs,
-    resolvers,
-  },
-]);
-
-module.exports = {
-  typeDefs,
-  resolvers,
-  schema,
 };
 
 const usernames = [

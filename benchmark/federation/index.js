@@ -2,21 +2,8 @@ const express = require('express');
 const runStitchingGateway = require('./stitching');
 const runApolloGateway = require('./federation');
 const makeMonolithSchema = require('./monolith');
-const { parse, execute } = require('graphql');
-
-function memoize1(fn) {
-  const memoize1cache = new Map();
-  return function memoized(a1) {
-    const cachedValue = memoize1cache.get(a1);
-    if (cachedValue === undefined) {
-      const newValue = fn(a1);
-      memoize1cache.set(a1, newValue);
-      return newValue;
-    }
-
-    return cachedValue;
-  };
-}
+const { normalizedExecutor } = require('@graphql-tools/executor');
+const { parse } = require('graphql');
 
 function memoize1(fn) {
   const memoize1cache = new Map();
@@ -62,7 +49,7 @@ async function main() {
   });
 
   app.post('/stitching', (req, res) => {
-    execute({
+    normalizedExecutor({
       schema: stitching,
       document: stitchingParse(req.body.query),
       contextValue: {},
@@ -73,9 +60,9 @@ async function main() {
       .catch(error => res.status(500).send(error));
   });
 
-  app.post('/monolith', (req, res) => {
+  app.post('/monolith', async (req, res) => {
     try {
-      const result = execute({
+      const result = await normalizedExecutor({
         schema: monolith,
         document: monolithParse(req.body.query),
         contextValue: {},
