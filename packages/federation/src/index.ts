@@ -2,7 +2,7 @@ import { createDefaultExecutor, SubschemaConfig } from '@graphql-tools/delegate'
 import { buildHTTPExecutor, HTTPExecutorOptions } from '@graphql-tools/executor-http';
 import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
 import { IExecutableSchemaDefinition, makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas } from '@graphql-tools/stitch';
+import { stitchSchemas, SubschemaConfigTransform } from '@graphql-tools/stitch';
 import {
   AsyncExecutor,
   ExecutionResult,
@@ -215,7 +215,9 @@ export async function getStitchedSchemaWithUrls(configs: HTTPExecutorOptions[]) 
   });
 }
 
-export function federationSubschemaTransformer(subschemaConfig: SubschemaConfig): SubschemaConfig {
+export const federationSubschemaTransformer: SubschemaConfigTransform = function federationSubschemaTransformer(
+  subschemaConfig: SubschemaConfig
+): SubschemaConfig {
   const typeDefs = getDocumentNodeFromSchema(subschemaConfig.schema);
   const newSubschema = getSubschemaForFederationWithTypeDefs(typeDefs);
   return {
@@ -226,7 +228,7 @@ export function federationSubschemaTransformer(subschemaConfig: SubschemaConfig)
       ...subschemaConfig.merge,
     },
   };
-}
+};
 
 export function buildSubgraphSchema<TContext = any>(opts: IExecutableSchemaDefinition<TContext>) {
   const typeDefs = mergeTypeDefs([SubgraphBaseSDL, opts.typeDefs]);
