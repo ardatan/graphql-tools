@@ -11,7 +11,6 @@ import {
   getSubschemaForFederationWithSchema,
 } from '@graphql-tools/federation';
 import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
-import { buildSubgraphSchema as buildApolloSubgraph } from '@apollo/subgraph';
 import { ApolloGateway, LocalGraphQLDataSource } from '@apollo/gateway';
 
 interface ServiceInput {
@@ -25,77 +24,77 @@ interface TestScenario {
   buildGateway(services: ServiceInput[]): Promise<(document: DocumentNode) => Promise<ExecutionResult>>;
 }
 
-const buildStitchingGateway = async (services: ServiceInput[]) => {
-  const subschemas: SubschemaConfig[] = await Promise.all(
-    services.map(({ schema }) => getSubschemaForFederationWithSchema(schema))
-  );
-  const gatewaySchema = stitchSchemas({
-    subschemas,
-  });
-
-  return (document: DocumentNode) =>
-    normalizedExecutor({
-      schema: gatewaySchema,
-      document,
-    }) as Promise<ExecutionResult>;
-};
-
-const buildApolloGateway = async (services: ServiceInput[]) => {
-  const gateway = new ApolloGateway({
-    serviceList: services.map((_, i) => ({
-      name: `service${i}`,
-      url: `http://www.service-${i}.com`,
-    })),
-    buildService({ name }) {
-      const [, i] = name.split('service');
-      return new LocalGraphQLDataSource(services[parseInt(i)].schema);
-    },
-  });
-  await gateway.load();
-  return (document: DocumentNode) =>
-    gateway.executor({
-      document,
-      request: {
-        query: print(document),
-      },
-      cache: {
-        get: async () => undefined,
-        set: async () => {},
-        delete: async () => true,
-      },
-      schema: gateway.schema!,
-      context: {},
-    } as any) as Promise<ExecutionResult>;
-};
-const scenarios: TestScenario[] = [
-  {
-    name: 'Tools Gateway vs. Tools Subgraph',
-    buildSubgraphSchema: buildToolsSubgraphSchema,
-    buildGateway: buildStitchingGateway,
-  },
-  {
-    name: 'Tools Gateway vs. Apollo Subgraph',
-    buildSubgraphSchema: options =>
-      buildApolloSubgraph([
-        {
-          typeDefs: parse(options.typeDefs),
-          resolvers: options.resolvers as any,
-        },
-      ]),
-    buildGateway: buildStitchingGateway,
-  },
-  {
-    name: 'Apollo Gateway vs. Tools Subgraph',
-    buildSubgraphSchema: buildToolsSubgraphSchema,
-    buildGateway: buildApolloGateway,
-  },
-];
-
 describe('Federation', () => {
   if (versionInfo.major < 16) {
     it('should work', () => {});
     return;
   }
+
+  const buildStitchingGateway = async (services: ServiceInput[]) => {
+    const subschemas: SubschemaConfig[] = await Promise.all(
+      services.map(({ schema }) => getSubschemaForFederationWithSchema(schema))
+    );
+    const gatewaySchema = stitchSchemas({
+      subschemas,
+    });
+
+    return (document: DocumentNode) =>
+      normalizedExecutor({
+        schema: gatewaySchema,
+        document,
+      }) as Promise<ExecutionResult>;
+  };
+  const { buildSubgraphSchema: buildApolloSubgraph }: any = require('@apollo/subgraph');
+  const buildApolloGateway = async (services: ServiceInput[]) => {
+    const gateway = new ApolloGateway({
+      serviceList: services.map((_, i) => ({
+        name: `service${i}`,
+        url: `http://www.service-${i}.com`,
+      })),
+      buildService({ name }) {
+        const [, i] = name.split('service');
+        return new LocalGraphQLDataSource(services[parseInt(i)].schema);
+      },
+    });
+    await gateway.load();
+    return (document: DocumentNode) =>
+      gateway.executor({
+        document,
+        request: {
+          query: print(document),
+        },
+        cache: {
+          get: async () => undefined,
+          set: async () => {},
+          delete: async () => true,
+        },
+        schema: gateway.schema!,
+        context: {},
+      } as any) as Promise<ExecutionResult>;
+  };
+  const scenarios: TestScenario[] = [
+    {
+      name: 'Tools Gateway vs. Tools Subgraph',
+      buildSubgraphSchema: buildToolsSubgraphSchema,
+      buildGateway: buildStitchingGateway,
+    },
+    {
+      name: 'Tools Gateway vs. Apollo Subgraph',
+      buildSubgraphSchema: options =>
+        buildApolloSubgraph([
+          {
+            typeDefs: parse(options.typeDefs),
+            resolvers: options.resolvers as any,
+          },
+        ]),
+      buildGateway: buildStitchingGateway,
+    },
+    {
+      name: 'Apollo Gateway vs. Tools Subgraph',
+      buildSubgraphSchema: buildToolsSubgraphSchema,
+      buildGateway: buildApolloGateway,
+    },
+  ];
   for (const { name, buildSubgraphSchema, buildGateway } of scenarios) {
     describe(name, () => {
       it('should give the correct result', async () => {
