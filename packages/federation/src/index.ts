@@ -253,10 +253,15 @@ export function buildSubgraphSchema<TContext = any>(opts: IExecutableSchemaDefin
           args.representations.map(representation =>
             new ValueOrPromise(() =>
               givenResolvers[representation.__typename]?.__resolveReference?.(representation, context, info)
-            ).then(resolvedEntity => ({
-              ...representation,
-              ...resolvedEntity,
-            }))
+            ).then(resolvedEntity => {
+              if (!resolvedEntity) {
+                return representation;
+              }
+              if (!resolvedEntity.__typename) {
+                resolvedEntity.__typename = representation.__typename;
+              }
+              return resolvedEntity;
+            })
           )
         ).resolve(),
       _service: () => ({}),
