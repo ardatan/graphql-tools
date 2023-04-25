@@ -1,5 +1,5 @@
 import { Config } from './merge-typedefs.js';
-import { FieldDefinitionNode, InputValueDefinitionNode, TypeNode, NameNode } from 'graphql';
+import { FieldDefinitionNode, InputValueDefinitionNode, TypeNode, NameNode, DirectiveDefinitionNode } from 'graphql';
 import { extractType, isWrappingTypeNode, isListTypeNode, isNonNullTypeNode, printTypeNode } from './utils.js';
 import { mergeDirectives } from './directives.js';
 import { compareNodes } from '@graphql-tools/utils';
@@ -25,7 +25,8 @@ export function mergeFields<T extends FieldDefNode>(
   type: { name: NameNode },
   f1: ReadonlyArray<T> | undefined,
   f2: ReadonlyArray<T> | undefined,
-  config?: Config
+  config?: Config,
+  directives?: Record<string, DirectiveDefinitionNode>
 ): T[] {
   const result: T[] = [];
   if (f2 != null) {
@@ -41,7 +42,7 @@ export function mergeFields<T extends FieldDefNode>(
           preventConflicts(type, existing, field, config?.throwOnConflict);
 
         newField.arguments = mergeArguments(field['arguments'] || [], existing['arguments'] || [], config);
-        newField.directives = mergeDirectives(field.directives, existing.directives, config);
+        newField.directives = mergeDirectives(field.directives, existing.directives, config, directives);
         newField.description = field.description || existing.description;
         result[existingIndex] = newField;
       } else {

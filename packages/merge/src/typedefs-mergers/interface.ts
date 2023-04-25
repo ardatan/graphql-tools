@@ -1,5 +1,5 @@
 import { Config } from './merge-typedefs.js';
-import { InterfaceTypeDefinitionNode, InterfaceTypeExtensionNode, Kind } from 'graphql';
+import { DirectiveDefinitionNode, InterfaceTypeDefinitionNode, InterfaceTypeExtensionNode, Kind } from 'graphql';
 import { mergeFields } from './fields.js';
 import { mergeDirectives } from './directives.js';
 import { mergeNamedTypeArray } from './merge-named-type-array.js';
@@ -7,7 +7,8 @@ import { mergeNamedTypeArray } from './merge-named-type-array.js';
 export function mergeInterface(
   node: InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode,
   existingNode: InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode,
-  config?: Config
+  config?: Config,
+  directives?: Record<string, DirectiveDefinitionNode>
 ): InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode {
   if (existingNode) {
     try {
@@ -22,7 +23,7 @@ export function mergeInterface(
             : 'InterfaceTypeExtension',
         loc: node.loc,
         fields: mergeFields(node, node.fields, existingNode.fields, config),
-        directives: mergeDirectives(node.directives, existingNode.directives, config),
+        directives: mergeDirectives(node.directives, existingNode.directives, config, directives),
         interfaces: node['interfaces']
           ? mergeNamedTypeArray(node['interfaces'], existingNode['interfaces'], config)
           : undefined,
