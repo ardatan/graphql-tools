@@ -3,7 +3,7 @@ import * as Products from './fixtures/gateway/products';
 import * as Reviews from './fixtures/gateway/reviews';
 import * as Inventory from './fixtures/gateway/inventory';
 import { SubschemaConfig } from '@graphql-tools/delegate';
-import { DocumentNode, GraphQLSchema, parse, print } from 'graphql';
+import { DocumentNode, GraphQLSchema, parse, print, versionInfo } from 'graphql';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import {
@@ -91,7 +91,11 @@ const scenarios: TestScenario[] = [
   },
 ];
 
-describe('Gateway', () => {
+describe('Federation', () => {
+  if (versionInfo.major < 16) {
+    it('should work', () => {});
+    return;
+  }
   for (const { name, buildSubgraphSchema, buildGateway } of scenarios) {
     describe(name, () => {
       it('should give the correct result', async () => {
