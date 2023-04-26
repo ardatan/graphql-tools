@@ -79,14 +79,17 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
     fieldName = info.fieldName,
     dataLoaderOptions,
     fieldNodes = info.fieldNodes,
-    selectionSet = fieldNodes[0].selectionSet,
   } = options;
   const loaders = getLoadersMap<K, V, C>(context ?? GLOBAL_CONTEXT, schema);
 
   let cacheKey = fieldName;
 
-  if (selectionSet != null) {
-    cacheKey += memoizedPrint(selectionSet);
+  if (fieldNodes[0]) {
+    const fieldNode = {
+      ...fieldNodes[0],
+      alias: undefined,
+    };
+    cacheKey += memoizedPrint(fieldNode);
   }
 
   let loader = loaders.get(cacheKey);
