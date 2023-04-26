@@ -23,6 +23,49 @@ interface TestScenario {
   buildGateway(services: ServiceInput[]): Promise<(document: DocumentNode) => Promise<ExecutionResult>>;
 }
 
+const exampleQuery = parse(/* GraphQL */ `
+  fragment User on User {
+    id
+    username
+    name
+  }
+
+  fragment Review on Review {
+    id
+    body
+  }
+
+  fragment Product on Product {
+    inStock
+    name
+    price
+    shippingEstimate
+    upc
+    weight
+  }
+
+  query TestQuery {
+    users {
+      ...User
+      reviews {
+        ...Review
+        product {
+          ...Product
+        }
+      }
+    }
+    topProducts {
+      ...Product
+      reviews {
+        ...Review
+        author {
+          ...User
+        }
+      }
+    }
+  }
+`);
+
 describe('Federation', () => {
   if (versionInfo.major < 16) {
     it('should work', () => {});
@@ -107,50 +150,7 @@ describe('Federation', () => {
 
         const gatewayExecutor = await buildGateway(serviceInputs);
 
-        const result = await gatewayExecutor(
-          parse(/* GraphQL */ `
-            fragment User on User {
-              id
-              username
-              name
-            }
-
-            fragment Review on Review {
-              id
-              body
-            }
-
-            fragment Product on Product {
-              inStock
-              name
-              price
-              shippingEstimate
-              upc
-              weight
-            }
-
-            query TestQuery {
-              users {
-                ...User
-                reviews {
-                  ...Review
-                  product {
-                    ...Product
-                  }
-                }
-              }
-              topProducts {
-                ...Product
-                reviews {
-                  ...Review
-                  author {
-                    ...User
-                  }
-                }
-              }
-            }
-          `)
-        );
+        const result = await gatewayExecutor(exampleQuery);
 
         expect(result).toMatchInlineSnapshot(`
       {

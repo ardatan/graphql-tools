@@ -83,7 +83,11 @@ function getDelegationReturnType(
   fieldName: string
 ): GraphQLOutputType {
   const rootType = getDefinedRootType(targetSchema, operation);
-  return rootType.getFields()[fieldName].type;
+  const rootFieldType = rootType.getFields()[fieldName];
+  if (!rootFieldType) {
+    throw new Error(`Unable to find field '${fieldName}' in type '${rootType}'.`);
+  }
+  return rootFieldType.type;
 }
 
 export function delegateRequest<

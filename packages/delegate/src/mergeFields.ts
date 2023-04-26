@@ -9,7 +9,7 @@ import {
   FieldNode,
 } from 'graphql';
 
-import { collectFields, relocatedError } from '@graphql-tools/utils';
+import { collectFields, memoize1, relocatedError } from '@graphql-tools/utils';
 
 import { ExternalObject, MergedTypeInfo, SubschemaConfig } from './types.js';
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, OBJECT_SUBSCHEMA_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols.js';
@@ -49,6 +49,10 @@ function asyncForEach<T>(array: T[], fn: (item: T) => ValueOrPromise<void>) {
   return array.reduce((prev, curr) => prev.then(() => fn(curr)), new ValueOrPromise(() => {}));
 }
 
+export const getActualFieldNodes = memoize1(function (fieldNode: FieldNode) {
+  return [fieldNode];
+});
+
 export function mergeFields<TContext>(
   mergedTypeInfo: MergedTypeInfo,
   object: any,
@@ -61,7 +65,11 @@ export function mergeFields<TContext>(
     sourceSubschema,
     info.variableValues != null && Object.keys(info.variableValues).length > 0 ? info.variableValues : EMPTY_OBJECT,
     info.fragments != null && Object.keys(info.fragments).length > 0 ? info.fragments : EMPTY_OBJECT,
-    info.fieldNodes?.length ? (info.fieldNodes as FieldNode[]) : EMPTY_ARRAY
+    info.fieldNodes?.length
+      ? info.fieldNodes.length === 1
+        ? getActualFieldNodes(info.fieldNodes[0])
+        : (info.fieldNodes as FieldNode[])
+      : EMPTY_ARRAY
   );
 
   return asyncForEach(delegationMaps, delegationMap =>

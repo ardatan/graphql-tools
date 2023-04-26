@@ -76,9 +76,13 @@ function getKeyForFederation(root: any) {
   return root;
 }
 
-export function getSubschemaForFederationWithURL(config: HTTPExecutorOptions): Promise<SubschemaConfig> {
+export async function getSubschemaForFederationWithURL(config: HTTPExecutorOptions): Promise<SubschemaConfig> {
   const executor = buildHTTPExecutor(config as any) as AsyncExecutor;
-  return getSubschemaForFederationWithExecutor(executor);
+  const subschemaConfig = await getSubschemaForFederationWithExecutor(executor);
+  return {
+    batch: true,
+    ...subschemaConfig,
+  };
 }
 
 export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): SubschemaConfig {
@@ -187,7 +191,7 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
       assumeValid: true,
     }
   );
-  subschemaConfig.batch = true;
+  // subschemaConfig.batch = true;
   return subschemaConfig;
 }
 

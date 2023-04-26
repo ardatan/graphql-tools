@@ -2,7 +2,7 @@ import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, print } fr
 
 import DataLoader from 'dataloader';
 
-import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
+import { delegateToSchema, getActualFieldNodes, SubschemaConfig } from '@graphql-tools/delegate';
 import { memoize1, memoize2, relocatedError } from '@graphql-tools/utils';
 import { ValueOrPromise } from 'value-or-promise';
 
@@ -78,7 +78,7 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
     info,
     fieldName = info.fieldName,
     dataLoaderOptions,
-    fieldNodes = info.fieldNodes,
+    fieldNodes = getActualFieldNodes(info.fieldNodes[0]),
     selectionSet = fieldNodes[0].selectionSet,
   } = options;
   const loaders = getLoadersMap<K, V, C>(context ?? GLOBAL_CONTEXT, schema);
