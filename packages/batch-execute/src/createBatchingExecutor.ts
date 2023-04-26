@@ -29,6 +29,11 @@ function createLoadFn(
   return function batchExecuteLoadFn(
     requests: ReadonlyArray<ExecutionRequest>
   ): ValueOrPromise<Array<ExecutionResult>> {
+    if (requests.length === 1) {
+      return new ValueOrPromise(() => executor(requests[0]) as any)
+        .then((result: ExecutionResult) => [result])
+        .catch((err: any) => [err]);
+    }
     const execBatches: Array<Array<ExecutionRequest>> = [];
     let index = 0;
     const request = requests[index];

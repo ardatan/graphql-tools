@@ -25,6 +25,7 @@ import {
   SchemaMetaFieldDef,
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
+  DocumentNode,
 } from 'graphql';
 import type { GraphQLError } from 'graphql';
 import {
@@ -47,6 +48,7 @@ import {
   GraphQLStreamDirective,
   collectFields,
   collectSubFields as _collectSubfields,
+  memoize1,
 } from '@graphql-tools/utils';
 import { getVariableValues } from './values.js';
 import { promiseForObject } from './promiseForObject.js';
@@ -333,6 +335,18 @@ export function assertValidExecutionArguments<TVariables>(
   );
 }
 
+const getFragmentsFromDocument = memoize1(function getFragmentsFromDocument(
+  document: DocumentNode
+): Record<string, FragmentDefinitionNode> {
+  const fragments: Record<string, FragmentDefinitionNode> = Object.create(null);
+  for (const definition of document.definitions) {
+    if (definition.kind === Kind.FRAGMENT_DEFINITION) {
+      fragments[definition.name.value] = definition;
+    }
+  }
+  return fragments;
+});
+
 /**
  * Constructs a ExecutionContext object from the arguments passed to
  * execute, which we will pass throughout the other execution methods.
@@ -360,8 +374,9 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   // If the schema used for execution is invalid, throw an error.
   assertValidSchema(schema);
 
+  const fragments: Record<string, FragmentDefinitionNode> = getFragmentsFromDocument(document);
+
   let operation: OperationDefinitionNode | undefined;
-  const fragments: Record<string, FragmentDefinitionNode> = Object.create(null);
   for (const definition of document.definitions) {
     switch (definition.kind) {
       case Kind.OPERATION_DEFINITION:
@@ -374,15 +389,12 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
           operation = definition;
         }
         break;
-      case Kind.FRAGMENT_DEFINITION:
-        fragments[definition.name.value] = definition;
-        break;
       default:
       // ignore non-executable definitions
     }
   }
 
-  if (!operation) {
+  if (operation == null) {
     if (operationName != null) {
       return [createGraphQLError(`Unknown operation named "${operationName}".`)];
     }
