@@ -1,14 +1,19 @@
 import { ExecutionRequest, collectFields, getDefinedRootType, getOperationASTFromRequest } from '@graphql-tools/utils';
-import { stitchSchemas } from './stitchSchemas.js';
-import { IStitchSchemasOptions } from './types.js';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { getFragmentsFromDocument } from '@graphql-tools/executor';
 import { StitchingInfo, delegateToSchema, isSubschemaConfig } from '@graphql-tools/delegate';
 import { GraphQLSchema } from 'graphql';
 
-export function createStitchingExecutor(opts: IStitchSchemasOptions) {
-  const stitchedSchema = stitchSchemas(opts);
-  const subschemas = [...(stitchedSchema.extensions['stitchingInfo'] as StitchingInfo).subschemaMap.values()];
+/**
+ * Creates an executor that uses the schema created by stitching together multiple subschemas.
+ * Not ready for production
+ * Breaking changes can be introduced in the meanwhile
+ *
+ * @experimental
+ *
+ */
+export function createStitchingExecutor(stitchedSchema: GraphQLSchema) {
+  const subschemas = [...(stitchedSchema.extensions?.['stitchingInfo'] as StitchingInfo).subschemaMap.values()];
   return async function stitchingExecutor(executorRequest: ExecutionRequest) {
     const fragments = getFragmentsFromDocument(executorRequest.document);
     const operation = getOperationASTFromRequest(executorRequest);

@@ -3,6 +3,7 @@ import { addMocksToSchema } from '@graphql-tools/mock';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { parse } from 'graphql';
 import { createStitchingExecutor } from '../src/executor';
+import { stitchSchemas } from '../src/stitchSchemas';
 
 describe('gateway', () => {
   test('works', async () => {
@@ -90,9 +91,11 @@ describe('gateway', () => {
       }
     `);
 
-    const helloExec = createStitchingExecutor({
+    const stitchedSchema = stitchSchemas({
       subschemas,
     });
+
+    const helloExec = createStitchingExecutor(stitchedSchema);
 
     const result = await helloExec({
       document,
@@ -101,42 +104,6 @@ describe('gateway', () => {
       },
     });
 
-    console.log('result', result);
-    /*
-    const userByIdData = await delegateToSchema({
-      schema: subschemas[0],
-      info: {
-        schema: stitchedSchema,
-        fieldNodes: [
-          {
-            kind: Kind.FIELD,
-            selectionSet,
-            name: {
-              kind: Kind.NAME,
-              value: 'userById'
-            },
-            arguments: [
-              {
-                kind: Kind.ARGUMENT,
-                name: {
-                  kind: Kind.NAME,
-                  value: 'id'
-                },
-                value: {
-                  kind: Kind.INT,
-                  value: '5'
-                }
-              }
-            ]
-          }
-        ],
-        returnType: stitchedSchema.getType('User') as any,
-        fieldName: 'userById',
-        operation: document.definitions[0] as any,
-        parentType: stitchedSchema.getQueryType() as any,
-      }
-    })
-*/
     const userByIdData = result.data['userById'];
     expect(userByIdData.__typename).toBe('User');
     expect(userByIdData.chirps[1].id).not.toBe(null);
