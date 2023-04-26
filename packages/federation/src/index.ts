@@ -187,7 +187,7 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
       assumeValid: true,
     }
   );
-  subschemaConfig.batch = true;
+  // subschemaConfig.batch = true;
   return subschemaConfig;
 }
 

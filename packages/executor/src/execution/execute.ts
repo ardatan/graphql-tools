@@ -335,7 +335,7 @@ export function assertValidExecutionArguments<TVariables>(
   );
 }
 
-const getFragmentsFromDocument = memoize1(function getFragmentsFromDocument(
+export const getFragmentsFromDocument = memoize1(function getFragmentsFromDocument(
   document: DocumentNode
 ): Record<string, FragmentDefinitionNode> {
   const fragments: Record<string, FragmentDefinitionNode> = Object.create(null);
