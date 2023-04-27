@@ -5,9 +5,11 @@ import { IExecutableSchemaDefinition, makeExecutableSchema } from '@graphql-tool
 import { stitchSchemas, SubschemaConfigTransform } from '@graphql-tools/stitch';
 import {
   AsyncExecutor,
+  createGraphQLError,
   ExecutionResult,
   Executor,
   getDocumentNodeFromSchema,
+  inspect,
   printSchemaWithDirectives,
 } from '@graphql-tools/utils';
 import {
@@ -199,9 +201,20 @@ export async function getSubschemaForFederationWithExecutor(executor: Executor) 
   const sdlQueryResult = (await executor({
     document: parse(SubgraphSDLQuery),
   })) as ExecutionResult;
+
+  if (sdlQueryResult.errors?.length) {
+    const error = sdlQueryResult.errors[0];
+    throw createGraphQLError(error.message, error);
+  }
+
+  if (!sdlQueryResult.data?._service?.sdl) {
+    throw new Error(`Unexpected result: ${inspect(sdlQueryResult)}`);
+  }
+
   const typeDefs = parse(sdlQueryResult.data._service.sdl);
 
   const subschemaConfig = getSubschemaForFederationWithTypeDefs(typeDefs);
+
   return {
     ...subschemaConfig,
     executor,
