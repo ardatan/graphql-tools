@@ -1,5 +1,12 @@
 # @graphql-tools/federation
 
+## 0.0.3
+
+### Patch Changes
+
+- [#5223](https://github.com/ardatan/graphql-tools/pull/5223) [`24c13616`](https://github.com/ardatan/graphql-tools/commit/24c136160fe675c08c1c1fe06bfb8883cdf0b466) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency [`@graphql-tools/executor-http@^0.1.9` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/0.1.9) (from `^0.0.7`, in `dependencies`)
+
 ## 0.0.2
 
 ### Patch Changes
