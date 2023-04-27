@@ -7826,9 +7826,9 @@ joi@^17.7.0:
     "@sideway/pinpoint" "^2.0.0"
 
 jose@^4.11.4:
-  version "4.14.2"
-  resolved "https://registry.yarnpkg.com/jose/-/jose-4.14.2.tgz#f126e2805555882f0d86d1f84bcf00481d5ab3bf"
-  integrity sha512-Fcbi5lskAiSvs8qhdQBusANZWwyATdp7IxgHJTXiaU74sbVjX9uAw+myDPvI8pNo2wXKHECXCR63hqhRkN/SSQ==
+  version "4.14.3"
+  resolved "https://registry.yarnpkg.com/jose/-/jose-4.14.3.tgz#3c42f3677d47f74a506f18a811ec82a6e095df98"
+  integrity sha512-YPM9Q+dmsna4CGWNn5+oHFsuXJdxvKAOVoNjpe2nje3odSoX5Xz4s71rP50vM8uUKJyQtMnEGPmbVCVR+G4W5g==
 
 joycon@^3.0.1:
   version "3.1.1"
