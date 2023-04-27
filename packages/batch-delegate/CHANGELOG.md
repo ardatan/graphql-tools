@@ -1,5 +1,14 @@
 # @graphql-tools/batch-delegate
 
+## 8.4.27
+
+### Patch Changes
+
+- [#5220](https://github.com/ardatan/graphql-tools/pull/5220) [`8e80b689`](https://github.com/ardatan/graphql-tools/commit/8e80b6893d2342353731610d5da9db633d806083) Thanks [@ardatan](https://github.com/ardatan)! - Performance improvements
+
+- Updated dependencies [[`8e80b689`](https://github.com/ardatan/graphql-tools/commit/8e80b6893d2342353731610d5da9db633d806083)]:
+  - @graphql-tools/delegate@9.0.35
+
 ## 8.4.26
 
 ### Patch Changes

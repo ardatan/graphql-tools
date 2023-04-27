@@ -1,5 +1,13 @@
 # @graphql-tools/executor
 
+## 0.0.20
+
+### Patch Changes
+
+- [#5215](https://github.com/ardatan/graphql-tools/pull/5215) [`88244048`](https://github.com/ardatan/graphql-tools/commit/882440487551abcb5bdd4f626f3b56ac2e886f11) Thanks [@ardatan](https://github.com/ardatan)! - Improve `promiseForObject`
+
+- [#5220](https://github.com/ardatan/graphql-tools/pull/5220) [`8e80b689`](https://github.com/ardatan/graphql-tools/commit/8e80b6893d2342353731610d5da9db633d806083) Thanks [@ardatan](https://github.com/ardatan)! - Performance improvements
+
 ## 0.0.19
 
 ### Patch Changes
