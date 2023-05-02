@@ -155,89 +155,146 @@ describe('merge computed fields via config', () => {
   });
 });
 
-describe('test recursive computed fields', () => {
+describe('test merged composite computed fields', () => {
   const schemaA = makeExecutableSchema({
     typeDefs: /* GraphQL */ `
-      type T {
+      interface I {
         id: ID!
         value: Int!
       }
 
+      type T implements I {
+        id: ID!
+        value: Int!
+      }
+
+      type U {
+        id: ID!
+        value: Int!
+      }
+
+      union W = T | U
+
       type Query {
         byId(id: ID!): T
+        uById(id: ID!): U
       }
     `,
     resolvers: {
       T: {
         value: (obj: { id: string }) => parseInt(obj.id),
       },
+      U: {
+        value: (obj: { id: string }) => parseInt(obj.id),
+      },
+      I: {
+        __resolveType: () => 'T',
+      },
       Query: {
         byId: (_: never, { id }: { id: string }) => ({ id }),
+        uById: (_: never, { id }: { id: string }) => ({ id }),
       },
     },
-  });
-
-  const schemaB = makeExecutableSchema({
-    typeDefs: /* GraphQL */ `
-      type T {
-        id: ID!
-        next: T!
-      }
-
-      input TInput {
-        id: ID!
-        value: Int
-      }
-
-      type Query {
-        byRepresentation(representation: TInput!): T
-      }
-    `,
-    resolvers: {
-      T: {
-        next: (obj: { id: string; value: number }) => ({ id: `${obj.value + 1}` }),
-      },
-      Query: {
-        byRepresentation: (
-          _: never,
-          { representation: { id, value } }: { representation: { id: string; value: number } }
-        ) => ({ id, value }),
-      },
-    },
-  });
-
-  const gatewaySchema = stitchSchemas({
-    subschemas: [
-      {
-        schema: schemaA,
-        merge: {
-          T: {
-            selectionSet: '{ id }',
-            fieldName: 'byId',
-            args: ({ id }) => ({ id }),
-          },
-        },
-      },
-      {
-        schema: schemaB,
-        merge: {
-          T: {
-            selectionSet: '{ id }',
-            fieldName: 'byRepresentation',
-            args: ({ id, value }) => ({ representation: { id, value } }),
-            fields: {
-              next: {
-                selectionSet: '{ value }',
-                computed: true,
-              },
-            },
-          },
-        },
-      },
-    ],
   });
 
   it('computed field selection set available locally', async () => {
+    const schemaB = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        interface I {
+          id: ID!
+          value2: Int!
+        }
+
+        type T implements I {
+          id: ID!
+          next: T!
+          value2: Int!
+        }
+
+        type U {
+          id: ID!
+          value2: Int!
+        }
+
+        type V {
+          id: ID!
+        }
+
+        union W = T | U
+
+        union X = T | V
+
+        input TInput {
+          id: ID!
+          value: Int
+        }
+
+        type Query {
+          byRepresentation(representation: TInput!): T
+          uByRepresentation(representation: TInput!): U
+        }
+      `,
+      resolvers: {
+        T: {
+          next: (obj: { id: string; value: number }) => ({ id: `${obj.value + 1}` }),
+        },
+        U: {
+          value2: (obj: { id: string }) => parseInt(obj.id),
+        },
+        Query: {
+          byRepresentation: (
+            _: never,
+            { representation: { id, value } }: { representation: { id: string; value: number } }
+          ) => ({ id, value }),
+          uByRepresentation: (
+            _: never,
+            { representation: { id, value } }: { representation: { id: string; value: number } }
+          ) => ({ id, value }),
+        },
+      },
+    });
+
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: schemaA,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byId',
+              args: ({ id }) => ({ id }),
+            },
+            U: {
+              selectionSet: '{ id }',
+              fieldName: 'uById',
+              args: ({ id }) => ({ id }),
+            },
+          },
+        },
+        {
+          schema: schemaB,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byRepresentation',
+              args: ({ id, value }) => ({ representation: { id, value } }),
+              fields: {
+                next: {
+                  selectionSet: '{ value }',
+                  computed: true,
+                },
+              },
+            },
+            U: {
+              selectionSet: '{ id }',
+              fieldName: 'uByRepresentation',
+              args: ({ id, value }) => ({ representation: { id, value } }),
+            },
+          },
+        },
+      ],
+    });
+
     const { data } = await graphql({
       schema: gatewaySchema,
       source: /* GraphQL */ `
@@ -263,7 +320,302 @@ describe('test recursive computed fields', () => {
     });
   });
 
+  it('interface-valued computed field with selection set available locally', async () => {
+    const schemaB = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        interface I {
+          id: ID!
+          next: I!
+        }
+
+        type T implements I {
+          id: ID!
+          next: I!
+        }
+
+        input TInput {
+          id: ID!
+          value: Int
+        }
+
+        type Query {
+          byRepresentation(representation: TInput!): T
+        }
+      `,
+      resolvers: {
+        T: {
+          next: (obj: { id: string; value: number }) => ({ id: `${obj.value + 1}` }),
+        },
+        I: {
+          __resolveType: () => 'T',
+        },
+        Query: {
+          byRepresentation: (
+            _: never,
+            { representation: { id, value } }: { representation: { id: string; value: number } }
+          ) => ({ id, value }),
+        },
+      },
+    });
+
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: schemaA,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byId',
+              args: ({ id }) => ({ id }),
+            },
+          },
+        },
+        {
+          schema: schemaB,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byRepresentation',
+              args: ({ id, value }) => ({ representation: { id, value } }),
+              fields: {
+                next: {
+                  selectionSet: '{ value }',
+                  computed: true,
+                },
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */ `
+        query {
+          byId(id: "1") {
+            value
+            next {
+              id
+            }
+          }
+        }
+      `,
+    });
+
+    assertSome(data);
+    expect(data).toEqual({
+      byId: {
+        value: 1,
+        next: {
+          id: '2',
+        },
+      },
+    });
+  });
+
+  it('union-valued computed field with selection set available locally', async () => {
+    const schemaB = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type T {
+          id: ID!
+          next: W!
+        }
+
+        type U {
+          id: ID!
+        }
+
+        type V {
+          id: ID!
+        }
+
+        union W = T | U | V
+
+        input TInput {
+          id: ID!
+          value: Int
+        }
+
+        type Query {
+          byRepresentation(representation: TInput!): T
+        }
+      `,
+      resolvers: {
+        T: {
+          next: (obj: { id: string; value: number }) => ({ id: `${obj.value + 1}` }),
+        },
+        W: {
+          __resolveType: () => 'T',
+        },
+        Query: {
+          byRepresentation: (
+            _: never,
+            { representation: { id, value } }: { representation: { id: string; value: number } }
+          ) => ({ id, value }),
+        },
+      },
+    });
+
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: schemaA,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byId',
+              args: ({ id }) => ({ id }),
+            },
+          },
+        },
+        {
+          schema: schemaB,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byRepresentation',
+              args: ({ id, value }) => ({ representation: { id, value } }),
+              fields: {
+                next: {
+                  selectionSet: '{ value }',
+                  computed: true,
+                },
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */ `
+        query {
+          byId(id: "1") {
+            value
+            next {
+              ... on T {
+                id
+              }
+              ... on U {
+                id
+              }
+              ... on V {
+                id
+              }
+            }
+          }
+        }
+      `,
+    });
+
+    assertSome(data);
+    expect(data).toEqual({
+      byId: {
+        value: 1,
+        next: {
+          id: '2',
+        },
+      },
+    });
+  });
+
   it('computed field selection set is remote', async () => {
+    const schemaB = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        interface I {
+          id: ID!
+          value2: Int!
+        }
+
+        type T implements I {
+          id: ID!
+          next: T!
+          value2: Int!
+        }
+
+        type U implements I {
+          id: ID!
+          value2: Int!
+        }
+
+        type V {
+          id: ID!
+        }
+
+        union W = T | U
+
+        union X = T | V
+
+        input TInput {
+          id: ID!
+          value: Int
+        }
+
+        type Query {
+          byRepresentation(representation: TInput!): T
+          uByRepresentation(representation: TInput!): U
+        }
+      `,
+      resolvers: {
+        T: {
+          next: (obj: { id: string; value: number }) => ({ id: `${obj.value + 1}` }),
+        },
+        Query: {
+          byRepresentation: (
+            _: never,
+            { representation: { id, value } }: { representation: { id: string; value: number } }
+          ) => ({ id, value }),
+          uByRepresentation: (
+            _: never,
+            { representation: { id, value } }: { representation: { id: string; value: number } }
+          ) => ({ id, value }),
+        },
+      },
+    });
+
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: schemaA,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byId',
+              args: ({ id }) => ({ id }),
+            },
+            U: {
+              selectionSet: '{ id }',
+              fieldName: 'uById',
+              args: ({ id }) => ({ id }),
+            },
+          },
+        },
+        {
+          schema: schemaB,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byRepresentation',
+              args: ({ id, value }) => ({ representation: { id, value } }),
+              fields: {
+                next: {
+                  selectionSet: '{ value }',
+                  computed: true,
+                },
+              },
+            },
+            U: {
+              selectionSet: '{ id }',
+              fieldName: 'uByRepresentation',
+              args: ({ id, value }) => ({ representation: { id, value } }),
+            },
+          },
+        },
+      ],
+    });
+
     const { data } = await graphql({
       schema: gatewaySchema,
       source: /* GraphQL */ `
@@ -292,6 +644,630 @@ describe('test recursive computed fields', () => {
             value: 3,
           },
         },
+      },
+    });
+  });
+
+  it('interface-valued computed field with selection set is remote', async () => {
+    const schemaB = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        interface I {
+          id: ID!
+          next: I!
+        }
+
+        type T implements I {
+          id: ID!
+          next: I!
+        }
+
+        input TInput {
+          id: ID!
+          value: Int
+        }
+
+        type Query {
+          byRepresentation(representation: TInput!): T
+        }
+      `,
+      resolvers: {
+        T: {
+          next: (obj: { id: string; value: number }) => ({ id: `${obj.value + 1}` }),
+        },
+        I: {
+          __resolveType: () => 'T',
+        },
+        Query: {
+          byRepresentation: (
+            _: never,
+            { representation: { id, value } }: { representation: { id: string; value: number } }
+          ) => ({ id, value }),
+        },
+      },
+    });
+
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: schemaA,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byId',
+              args: ({ id }) => ({ id }),
+            },
+          },
+        },
+        {
+          schema: schemaB,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byRepresentation',
+              args: ({ id, value }) => ({ representation: { id, value } }),
+              fields: {
+                next: {
+                  selectionSet: '{ value }',
+                  computed: true,
+                },
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */ `
+        query {
+          byId(id: "1") {
+            value
+            next {
+              value
+              next {
+                id
+              }
+            }
+          }
+        }
+      `,
+    });
+
+    assertSome(data);
+    expect(data).toEqual({
+      byId: {
+        value: 1,
+        next: {
+          value: 2,
+          next: {
+            id: '3',
+          },
+        },
+      },
+    });
+  });
+
+  it('union-valued computed field with selection set is remote', async () => {
+    const schemaB = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type T {
+          id: ID!
+          next: W!
+        }
+
+        type U {
+          id: ID!
+        }
+
+        type V {
+          id: ID!
+        }
+
+        union W = T | U | V
+
+        input TInput {
+          id: ID!
+          value: Int
+        }
+
+        type Query {
+          byRepresentation(representation: TInput!): T
+        }
+      `,
+      resolvers: {
+        T: {
+          next: (obj: { id: string; value: number }) => ({ id: `${obj.value + 1}` }),
+        },
+        W: {
+          __resolveType: () => 'T',
+        },
+        Query: {
+          byRepresentation: (
+            _: never,
+            { representation: { id, value } }: { representation: { id: string; value: number } }
+          ) => ({ id, value }),
+        },
+      },
+    });
+
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: schemaA,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byId',
+              args: ({ id }) => ({ id }),
+            },
+          },
+        },
+        {
+          schema: schemaB,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byRepresentation',
+              args: ({ id, value }) => ({ representation: { id, value } }),
+              fields: {
+                next: {
+                  selectionSet: '{ value }',
+                  computed: true,
+                },
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */ `
+        query {
+          byId(id: "1") {
+            value
+            next {
+              ... on T {
+                value
+                next {
+                  ... on T {
+                    id
+                  }
+                  ... on U {
+                    id
+                  }
+                  ... on V {
+                    id
+                  }
+                }
+              }
+              ... on U {
+                id
+              }
+              ... on V {
+                id
+              }
+            }
+          }
+        }
+      `,
+    });
+
+    assertSome(data);
+    expect(data).toEqual({
+      byId: {
+        value: 1,
+        next: {
+          value: 2,
+          next: {
+            id: '3',
+          },
+        },
+      },
+    });
+  });
+});
+
+describe('test unmerged composite computed fields', () => {
+  const schemaA = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type T {
+        id: ID!
+        value: Int!
+      }
+
+      type Query {
+        byId(id: ID!): T
+      }
+    `,
+    resolvers: {
+      T: {
+        value: (obj: { id: string }) => parseInt(obj.id),
+      },
+      Query: {
+        byId: (_: never, { id }: { id: string }) => ({ id }),
+      },
+    },
+  });
+
+  it('object-valued computed field', async () => {
+    const schemaB = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type T {
+          id: ID!
+          next: U!
+        }
+
+        type U {
+          id: ID!
+        }
+
+        input TInput {
+          id: ID!
+          value: Int
+        }
+
+        type Query {
+          byRepresentation(representation: TInput!): T
+        }
+      `,
+      resolvers: {
+        T: {
+          next: (obj: { id: string; value: number }) => ({ id: `${obj.value + 1}` }),
+        },
+        Query: {
+          byRepresentation: (
+            _: never,
+            { representation: { id, value } }: { representation: { id: string; value: number } }
+          ) => ({ id, value }),
+        },
+      },
+    });
+
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: schemaA,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byId',
+              args: ({ id }) => ({ id }),
+            },
+          },
+        },
+        {
+          schema: schemaB,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byRepresentation',
+              args: ({ id, value }) => ({ representation: { id, value } }),
+              fields: {
+                next: {
+                  selectionSet: '{ value }',
+                  computed: true,
+                },
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */ `
+        query {
+          byId(id: "1") {
+            value
+            next {
+              id
+            }
+          }
+        }
+      `,
+    });
+
+    assertSome(data);
+    expect(data).toEqual({
+      byId: {
+        value: 1,
+        next: {
+          id: '2',
+        },
+      },
+    });
+  });
+
+  it('interface-valued computed field', async () => {
+    const schemaB = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type T {
+          id: ID!
+          next: Node!
+        }
+
+        interface Node {
+          id: ID!
+        }
+
+        type U implements Node {
+          id: ID!
+        }
+
+        input TInput {
+          id: ID!
+          value: Int
+        }
+
+        type Query {
+          byRepresentation(representation: TInput!): T
+        }
+      `,
+      resolvers: {
+        Node: {
+          __resolveType: () => 'U',
+        },
+        T: {
+          next: (obj: { id: string; value: number }) => ({ id: `${obj.value + 1}` }),
+        },
+        Query: {
+          byRepresentation: (
+            _: never,
+            { representation: { id, value } }: { representation: { id: string; value: number } }
+          ) => ({ id, value }),
+        },
+      },
+    });
+
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: schemaA,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byId',
+              args: ({ id }) => ({ id }),
+            },
+          },
+        },
+        {
+          schema: schemaB,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byRepresentation',
+              args: ({ id, value }) => ({ representation: { id, value } }),
+              fields: {
+                next: {
+                  selectionSet: '{ value }',
+                  computed: true,
+                },
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */ `
+        query {
+          byId(id: "1") {
+            value
+            next {
+              id
+            }
+          }
+        }
+      `,
+    });
+
+    assertSome(data);
+    expect(data).toEqual({
+      byId: {
+        value: 1,
+        next: {
+          id: '2',
+        },
+      },
+    });
+  });
+
+  it('union-valued computed field', async () => {
+    const schemaB = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type T {
+          id: ID!
+          next: W!
+        }
+
+        type U {
+          id: ID!
+        }
+
+        type V {
+          id: ID!
+        }
+
+        union W = U | V
+
+        input TInput {
+          id: ID!
+          value: Int
+        }
+
+        type Query {
+          byRepresentation(representation: TInput!): T
+        }
+      `,
+      resolvers: {
+        T: {
+          next: (obj: { id: string; value: number }) => ({ id: `${obj.value + 1}` }),
+        },
+        W: {
+          __resolveType: () => 'U',
+        },
+        Query: {
+          byRepresentation: (
+            _: never,
+            { representation: { id, value } }: { representation: { id: string; value: number } }
+          ) => ({ id, value }),
+        },
+      },
+    });
+
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: schemaA,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byId',
+              args: ({ id }) => ({ id }),
+            },
+          },
+        },
+        {
+          schema: schemaB,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byRepresentation',
+              args: ({ id, value }) => ({ representation: { id, value } }),
+              fields: {
+                next: {
+                  selectionSet: '{ value }',
+                  computed: true,
+                },
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */ `
+        query {
+          byId(id: "1") {
+            value
+            next {
+              ... on U {
+                id
+              }
+              ... on V {
+                id
+              }
+            }
+          }
+        }
+      `,
+    });
+
+    assertSome(data);
+    expect(data).toEqual({
+      byId: {
+        value: 1,
+        next: {
+          id: '2',
+        },
+      },
+    });
+  });
+
+  it('enum-valued computed field', async () => {
+    const schemaB = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type T {
+          id: ID!
+          next: U!
+        }
+
+        enum U {
+          ZERO
+          ONE
+          TWO
+          THREE
+        }
+
+        input TInput {
+          id: ID!
+          value: Int
+        }
+
+        type Query {
+          byRepresentation(representation: TInput!): T
+        }
+      `,
+      resolvers: {
+        T: {
+          next: (obj: { id: string; value: number }) => ['ZERO', 'ONE', 'TWO', 'THREE'][obj.value],
+        },
+        Query: {
+          byRepresentation: (
+            _: never,
+            { representation: { id, value } }: { representation: { id: string; value: number } }
+          ) => ({ id, value }),
+        },
+      },
+    });
+
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: schemaA,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byId',
+              args: ({ id }) => ({ id }),
+            },
+          },
+        },
+        {
+          schema: schemaB,
+          merge: {
+            T: {
+              selectionSet: '{ id }',
+              fieldName: 'byRepresentation',
+              args: ({ id, value }) => ({ representation: { id, value } }),
+              fields: {
+                next: {
+                  selectionSet: '{ value }',
+                  computed: true,
+                },
+              },
+            },
+          },
+        },
+      ],
+    });
+
+    const { data } = await graphql({
+      schema: gatewaySchema,
+      source: /* GraphQL */ `
+        query {
+          byId(id: "1") {
+            value
+            next
+          }
+        }
+      `,
+    });
+
+    assertSome(data);
+    expect(data).toEqual({
+      byId: {
+        value: 1,
+        next: 'ONE',
       },
     });
   });

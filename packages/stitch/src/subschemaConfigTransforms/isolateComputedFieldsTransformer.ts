@@ -6,6 +6,8 @@ import {
   isScalarType,
   FieldNode,
   GraphQLNamedOutputType,
+  isUnionType,
+  isCompositeType,
 } from 'graphql';
 
 import { SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
@@ -65,33 +67,49 @@ export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfi
 
         for (const fieldName in isolatedFields) {
           const returnType = getNamedType(objectType.getFields()[fieldName].type);
-          // TODO: handle Union, List, NonNull?
-          if (isObjectType(returnType) || isInterfaceType(returnType)) {
-            const returnTypeMergeConfig = subschemaConfig.merge[returnType.name];
+          const returnTypes: GraphQLNamedOutputType[] = [returnType];
 
-            if (returnTypeMergeConfig?.selectionSet) {
-              // this is a merged type, include the selection set
-              // TODO: how to handle entryPoints?
-              const parsedSelectionSet = parseSelectionSet(returnTypeMergeConfig.selectionSet!);
-              const keyFieldNames = parsedSelectionSet.selections.map(s => (s as FieldNode).name.value);
+          // for interfaces and unions the implementations/members need to be handled as well
+          if (isInterfaceType(returnType)) {
+            returnTypes.push(
+              ...getImplementingTypes(returnType.name, subschemaConfig.schema).map(
+                name => subschemaConfig.schema.getType(name)! as GraphQLNamedOutputType
+              )
+            );
+          } else if (isUnionType(returnType)) {
+            returnTypes.push(...returnType.getTypes());
+          }
 
-              isolatedSchemaTypes[returnType.name] = {
-                ...returnTypeMergeConfig,
-                keyFieldNames,
-                fields: {
-                  ...(isolatedSchemaTypes[returnType.name]?.fields ?? {}),
-                },
-              };
-            } else if (!returnTypeMergeConfig) {
-              // this is an unmerged type, add all fields to the isolated schema
-              isolatedSchemaTypes[returnType.name] = {
-                keyFieldNames: [],
-                fields: {
-                  ...(isolatedSchemaTypes[returnType.name]?.fields ?? {}),
-                  ...Object.fromEntries(Object.keys(returnType.getFields()).map(f => [f, {}])),
-                },
-                canonical: true,
-              };
+          for (const type of returnTypes) {
+            const returnTypeMergeConfig = subschemaConfig.merge[type.name];
+
+            if (isCompositeType(type)) {
+              if (returnTypeMergeConfig?.selectionSet) {
+                // this is a merged type, include the selection set
+                // TODO: how to handle entryPoints?
+                const parsedSelectionSet = parseSelectionSet(returnTypeMergeConfig.selectionSet!);
+                const keyFieldNames = parsedSelectionSet.selections.map(s => (s as FieldNode).name.value);
+
+                isolatedSchemaTypes[type.name] = {
+                  ...returnTypeMergeConfig,
+                  keyFieldNames,
+                  fields: {
+                    ...(isolatedSchemaTypes[type.name]?.fields ?? {}),
+                  },
+                };
+              } else if (!returnTypeMergeConfig) {
+                // this is an unmerged type, add all fields to the isolated schema
+                const fields = isUnionType(type) ? {} : type.getFields();
+
+                isolatedSchemaTypes[type.name] = {
+                  keyFieldNames: [],
+                  fields: {
+                    ...(isolatedSchemaTypes[type.name]?.fields ?? {}),
+                    ...Object.fromEntries(Object.keys(fields).map(f => [f, {}])),
+                  },
+                  canonical: true,
+                };
+              }
             }
           }
         }
@@ -207,16 +225,38 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
         typeNames.push(type.name);
       }
       return typeNames;
-    } else if (isObjectType(type) || isInterfaceType(type)) {
+    } else if (isCompositeType(type)) {
       if (!typeNames.includes(type.name)) {
         typeNames.push(type.name);
       }
-      for (const f of Object.values(type.getFields())) {
-        const fieldType = getNamedType(f.type);
-        if (!typeNames.includes(fieldType.name) && (isObjectType(fieldType) || isInterfaceType(fieldType))) {
-          typeNames.push(...listReachableTypesToIsolate(subschemaConfig, fieldType));
+
+      // descent into all field types potentially via interfaces implementations/unions members
+      const types: GraphQLObjectType[] = [];
+      if (isObjectType(type)) {
+        types.push(type);
+      } else if (isInterfaceType(type)) {
+        types.push(
+          ...getImplementingTypes(type.name, subschemaConfig.schema).map(
+            name => subschemaConfig.schema.getType(name)! as GraphQLObjectType
+          )
+        );
+      } else if (isUnionType(type)) {
+        types.push(...type.getTypes());
+      }
+
+      for (const type of types) {
+        if (!typeNames.includes(type.name)) {
+          typeNames.push(type.name);
+        }
+
+        for (const f of Object.values(type.getFields())) {
+          const fieldType = getNamedType(f.type);
+          if (!typeNames.includes(fieldType.name) && isCompositeType(fieldType)) {
+            typeNames.push(...listReachableTypesToIsolate(subschemaConfig, fieldType));
+          }
         }
       }
+
       return typeNames;
     } else {
       // TODO: Unions
@@ -254,18 +294,23 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
   const interfaceFields: Record<string, Record<string, boolean>> = {};
   for (const typeName in subschemaConfig.merge) {
     const type = subschemaConfig.schema.getType(typeName);
-    if (!type || !('getInterfaces' in type)) {
-      throw new Error(`${typeName} expected to have 'getInterfaces' method`);
-    }
-    for (const int of type.getInterfaces()) {
-      const intType = subschemaConfig.schema.getType(int.name);
-      if (!intType || !('getFields' in intType)) {
-        throw new Error(`${int.name} expected to have 'getFields' method`);
+    if (!type || isObjectType(type)) {
+      if (!type || !('getInterfaces' in type)) {
+        throw new Error(`${typeName} expected to have 'getInterfaces' method`);
       }
-      for (const intFieldName in intType.getFields()) {
-        if (subschemaConfig.merge[typeName].fields?.[intFieldName]) {
-          interfaceFields[int.name] = interfaceFields[int.name] || {};
-          interfaceFields[int.name][intFieldName] = true;
+      for (const int of type.getInterfaces()) {
+        const intType = subschemaConfig.schema.getType(int.name);
+        if (!intType || !('getFields' in intType)) {
+          throw new Error(`${int.name} expected to have 'getFields' method`);
+        }
+        for (const intFieldName in intType.getFields()) {
+          if (
+            subschemaConfig.merge[typeName].fields?.[intFieldName] ||
+            subschemaConfig.merge[typeName].keyFieldNames.includes(intFieldName)
+          ) {
+            interfaceFields[int.name] = interfaceFields[int.name] || {};
+            interfaceFields[int.name][intFieldName] = true;
+          }
         }
       }
     }
