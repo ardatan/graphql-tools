@@ -17,7 +17,7 @@ const traverse = getDefault(traversePkg);
  */
 export interface GraphQLTagPluckOptions {
   /**
-   * Additional options for determining how a file is parsed.An array of packages that are responsible for exporting the GraphQL string parser function. The following modules are supported by default:
+   * Additional options for determining how a file is parsed. An array of packages that are responsible for exporting the GraphQL string parser function. The following modules are supported by default:
    * ```js
    * {
    *   modules: [

@@ -82,10 +82,14 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       refsForPaths.get(ref).push(`!${unixify(path)}`);
     }
 
+    const filePathPrefix = path.startsWith('./') ? './' : '';
+
     const resolved: string[] = [];
     await Promise.all(
       [...refsForPaths.entries()].map(async ([ref, paths]) => {
-        resolved.push(...micromatch(await readTreeAtRef(ref), paths).map(filePath => `git:${ref}:${filePath}`));
+        resolved.push(
+          ...micromatch(await readTreeAtRef(ref), paths).map(filePath => `git:${ref}:${filePathPrefix}${filePath}`)
+        );
       })
     );
     return resolved;
@@ -116,9 +120,13 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       refsForPaths.get(ref).push(`!${unixify(path)}`);
     }
 
+    const filePathPrefix = path.startsWith('./') ? './' : '';
+
     const resolved: string[] = [];
     for (const [ref, paths] of refsForPaths.entries()) {
-      resolved.push(...micromatch(readTreeAtRefSync(ref), paths).map(filePath => `git:${ref}:${filePath}`));
+      resolved.push(
+        ...micromatch(readTreeAtRefSync(ref), paths).map(filePath => `git:${ref}:${filePathPrefix}${filePath}`)
+      );
     }
     return resolved;
   }
