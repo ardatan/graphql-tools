@@ -64,7 +64,7 @@
     "@types/babel__traverse": "7.18.5",
     "@vue/compiler-sfc": "3.2.47",
     "svelte": "3.58.0",
-    "svelte2tsx": "0.6.11"
+    "svelte2tsx": "0.6.12"
   },
   "buildOptions": {
     "external": [
