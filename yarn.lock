@@ -3070,10 +3070,10 @@
     "@types/node" "*"
     form-data "^3.0.0"
 
-"@types/node@*", "@types/node@18.16.3":
-  version "18.16.3"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.16.3.tgz#6bda7819aae6ea0b386ebc5b24bdf602f1b42b01"
-  integrity sha512-OPs5WnnT1xkCBiuQrZA4+YAV4HEJejmHneyraIaxsbev5yCEr6KMwINNFP9wQeFIw8FWcoTqF3vQsa5CDaI+8Q==
+"@types/node@*", "@types/node@18.16.4":
+  version "18.16.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.16.4.tgz#dfb38f0f3fb045fca84ffa7783233c63009d8a92"
+  integrity sha512-LUhvPmAKAbgm+p/K11IWszLZVoZDlMF4NRmqbhEzDz/CnCuehPkZXwZbBCKGJsgjnuVejotBwM7B3Scrq4EqDw==
 
 "@types/node@^12.7.1":
   version "12.20.19"
@@ -11285,10 +11285,10 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-svelte2tsx@0.6.12:
-  version "0.6.12"
-  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.6.12.tgz#bb9aa56717043506c4446109b33bc0f415332891"
-  integrity sha512-i8GMpEWhx4oc8h4l0FIgyilFO013otB3IGaaeewaES3xWV3n5xL+HzHSndQz+tvI2t3sTb4JKzkY48Li6iHTOw==
+svelte2tsx@0.6.13:
+  version "0.6.13"
+  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.6.13.tgz#62385f5697378e25258fa22590f0d447079e5cd9"
+  integrity sha512-QmAkVvItJGyAcBElRqOqqXrkbH8CO5kWypRcTQ5IgQIVSosLmpJ5wcG2Hhyos4aqox0GNJ2JzBFSgXZjfllmiQ==
   dependencies:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
