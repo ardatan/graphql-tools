@@ -237,7 +237,6 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     try {
       if (isGlob(path)) {
         const resolvedPaths = this.resolveGlobsSync(pointer, asArray(options.ignore || []));
-        const finalResult: Source[] = [];
         for (const path of resolvedPaths) {
           if (this.canLoadSync(path)) {
             const results = this.loadSync(path, options);
