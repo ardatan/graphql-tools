@@ -328,9 +328,9 @@ describe('Merge TypeDefs', () => {
 
       expect(stripWhitespaces(print(merged))).toBe(
         stripWhitespaces(/* GraphQL */ `
-          scalar JSON @sqlType(type: "json")
-
           directive @sqlType(type: String!) on SCALAR
+
+          scalar JSON @sqlType(type: "json")
         `)
       );
     });
@@ -462,6 +462,52 @@ describe('Merge TypeDefs', () => {
 
           type MyType {
             id: Int @id(primitiveArg: "1", arrayArg: ["1", "2"])
+          }
+
+          type Query {
+            f1: MyType
+          }
+
+          schema {
+            query: Query
+          }
+        `)
+      );
+    });
+
+    it('should merge repeatable directives', () => {
+      const merged = mergeTypeDefs([
+        `
+        directive @fields(name: String!, args: [String]) repeatable on INTERFACE
+        type CoreType
+          @fields(name: "id")
+          @fields(name: "name")
+        { id: Int, name: String }
+        `,
+        `type MyType { id: Int }`,
+        `type MyType @fields(name: "id") { id: Int }`,
+        `type MyType @fields(name: "id", args: ["1"]) { id: Int }`,
+        `type MyType @fields(name: "id", args: ["2"]) { id: Int }`,
+        `type MyType @fields(name: "name") { name: String }`,
+        `type Query { f1: MyType }`,
+      ]);
+
+      expect(stripWhitespaces(print(merged))).toBe(
+        stripWhitespaces(/* GraphQL */ `
+          directive @fields(name: String!, args: [String]) repeatable on INTERFACE
+
+          type CoreType @fields(name: "id") @fields(name: "name") {
+            id: Int
+            name: String
+          }
+
+          type MyType
+            @fields(name: "id")
+            @fields(name: "id", args: ["1"])
+            @fields(name: "id", args: ["2"])
+            @fields(name: "name") {
+            id: Int
+            name: String
           }
 
           type Query {

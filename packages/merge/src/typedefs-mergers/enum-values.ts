@@ -1,4 +1,4 @@
-import { EnumValueDefinitionNode } from 'graphql';
+import { DirectiveDefinitionNode, EnumValueDefinitionNode } from 'graphql';
 import { mergeDirectives } from './directives.js';
 import { Config } from './merge-typedefs.js';
 import { compareNodes } from '@graphql-tools/utils';
@@ -6,7 +6,8 @@ import { compareNodes } from '@graphql-tools/utils';
 export function mergeEnumValues(
   first: ReadonlyArray<EnumValueDefinitionNode> | undefined,
   second: ReadonlyArray<EnumValueDefinitionNode> | undefined,
-  config?: Config
+  config?: Config,
+  directives?: Record<string, DirectiveDefinitionNode>
 ): EnumValueDefinitionNode[] {
   if (config?.consistentEnumMerge) {
     const reversed: Array<EnumValueDefinitionNode> = [];
@@ -28,7 +29,7 @@ export function mergeEnumValues(
       if (enumValueMap.has(enumValue)) {
         const firstValue: any = enumValueMap.get(enumValue);
         firstValue.description = secondValue.description || firstValue.description;
-        firstValue.directives = mergeDirectives(secondValue.directives, firstValue.directives);
+        firstValue.directives = mergeDirectives(secondValue.directives, firstValue.directives, directives);
       } else {
         enumValueMap.set(enumValue, secondValue);
       }

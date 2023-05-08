@@ -1,12 +1,19 @@
 import { Config } from './merge-typedefs.js';
-import { InputObjectTypeDefinitionNode, InputValueDefinitionNode, InputObjectTypeExtensionNode, Kind } from 'graphql';
+import {
+  InputObjectTypeDefinitionNode,
+  InputValueDefinitionNode,
+  InputObjectTypeExtensionNode,
+  Kind,
+  DirectiveDefinitionNode,
+} from 'graphql';
 import { mergeFields } from './fields.js';
 import { mergeDirectives } from './directives.js';
 
 export function mergeInputType(
   node: InputObjectTypeDefinitionNode | InputObjectTypeExtensionNode,
   existingNode: InputObjectTypeDefinitionNode | InputObjectTypeExtensionNode,
-  config?: Config
+  config?: Config,
+  directives?: Record<string, DirectiveDefinitionNode>
 ): InputObjectTypeDefinitionNode | InputObjectTypeExtensionNode {
   if (existingNode) {
     try {
@@ -21,7 +28,7 @@ export function mergeInputType(
             : 'InputObjectTypeExtension',
         loc: node.loc,
         fields: mergeFields<InputValueDefinitionNode>(node, node.fields, existingNode.fields, config),
-        directives: mergeDirectives(node.directives, existingNode.directives, config),
+        directives: mergeDirectives(node.directives, existingNode.directives, config, directives),
       } as any;
     } catch (e: any) {
       throw new Error(`Unable to merge GraphQL input type "${node.name.value}": ${e.message}`);

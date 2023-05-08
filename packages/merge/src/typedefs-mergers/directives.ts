@@ -6,6 +6,13 @@ function directiveAlreadyExists(directivesArr: ReadonlyArray<DirectiveNode>, oth
   return !!directivesArr.find(directive => directive.name.value === otherDirective.name.value);
 }
 
+function isRepeatableDirective(
+  directive: DirectiveNode,
+  directives?: Record<string, DirectiveDefinitionNode>
+): boolean {
+  return !!directives?.[directive.name.value]?.repeatable;
+}
+
 function nameAlreadyExists(name: NameNode, namesArr: ReadonlyArray<NameNode>): boolean {
   return namesArr.some(({ value }) => value === name.value);
 }
@@ -39,12 +46,15 @@ function mergeArguments(a1: readonly ArgumentNode[], a2: readonly ArgumentNode[]
   return result;
 }
 
-function deduplicateDirectives(directives: ReadonlyArray<DirectiveNode>): DirectiveNode[] {
+function deduplicateDirectives(
+  directives: ReadonlyArray<DirectiveNode>,
+  definitions?: Record<string, DirectiveDefinitionNode>
+): DirectiveNode[] {
   return directives
     .map((directive, i, all) => {
       const firstAt = all.findIndex(d => d.name.value === directive.name.value);
 
-      if (firstAt !== i) {
+      if (firstAt !== i && !isRepeatableDirective(directive, definitions)) {
         const dup = all[firstAt];
 
         (directive as any).arguments = mergeArguments(directive.arguments as any, dup.arguments as any);
@@ -59,15 +69,16 @@ function deduplicateDirectives(directives: ReadonlyArray<DirectiveNode>): Direct
 export function mergeDirectives(
   d1: ReadonlyArray<DirectiveNode> = [],
   d2: ReadonlyArray<DirectiveNode> = [],
-  config?: Config
+  config?: Config,
+  directives?: Record<string, DirectiveDefinitionNode>
 ): DirectiveNode[] {
   const reverseOrder: boolean | undefined = config && config.reverseDirectives;
   const asNext = reverseOrder ? d1 : d2;
   const asFirst = reverseOrder ? d2 : d1;
-  const result = deduplicateDirectives([...asNext]);
+  const result = deduplicateDirectives([...asNext], directives);
 
   for (const directive of asFirst) {
-    if (directiveAlreadyExists(result, directive)) {
+    if (directiveAlreadyExists(result, directive) && !isRepeatableDirective(directive, directives)) {
       const existingDirectiveIndex = result.findIndex(d => d.name.value === directive.name.value);
       const existingDirective = result[existingDirectiveIndex];
       (result[existingDirectiveIndex] as any).arguments = mergeArguments(
