@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import * as path from 'path';
 
 import { GitLoader } from '../src/index.js';
 import { runTests } from '../../../testing/utils.js';
@@ -63,6 +64,16 @@ describe('GitLoader', () => {
       it('should simply ignore a non git path', async () => {
         const result = await load('./pluckable.ts', {});
         expect(result).toEqual([]);
+      });
+
+      it("should work when loading glob paths that start with './'", async () => {
+        const saveCwd = process.cwd();
+        process.chdir(path.resolve(__dirname, 'test-files', 'a'));
+
+        const [result] = await load(`git:${lastCommit}:./**/*.graphql`, {});
+        expect(result.document).toMatchSnapshot();
+
+        process.chdir(saveCwd);
       });
     });
   });
