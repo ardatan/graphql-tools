@@ -1,5 +1,11 @@
 # @graphql-tools/merge
 
+## 8.4.2
+
+### Patch Changes
+
+- [#5216](https://github.com/ardatan/graphql-tools/pull/5216) [`33005c48`](https://github.com/ardatan/graphql-tools/commit/33005c48e8aa9d5eae53c720bd39dca655c645f1) Thanks [@wKich](https://github.com/wKich)! - Don't merge/override arguments for repeatable directives
+
 ## 8.4.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @graphql-tools/git-loader
 
+## 7.3.0
+
+### Minor Changes
+
+- [#5244](https://github.com/ardatan/graphql-tools/pull/5244) [`ad430952`](https://github.com/ardatan/graphql-tools/commit/ad430952ed24d63aec7ca8310faa5cd529489476) Thanks [@jeengbe](https://github.com/jeengbe)! - respect leading './' for globs
+
 ## 7.2.22
 
 ### Patch Changes
