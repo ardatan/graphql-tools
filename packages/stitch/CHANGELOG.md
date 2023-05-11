@@ -1,5 +1,14 @@
 # @graphql-tools/stitch
 
+## 8.7.50
+
+### Patch Changes
+
+- [#5235](https://github.com/ardatan/graphql-tools/pull/5235) [`2bbbe1af`](https://github.com/ardatan/graphql-tools/commit/2bbbe1af0bb7d04685bdceab9252a5ded6809c78) Thanks [@belgattitude](https://github.com/belgattitude)! - Add missing dependency on @graphql-tools/executor.
+
+- Updated dependencies [[`33005c48`](https://github.com/ardatan/graphql-tools/commit/33005c48e8aa9d5eae53c720bd39dca655c645f1)]:
+  - @graphql-tools/merge@8.4.2
+
 ## 8.7.49
 
 ### Patch Changes
