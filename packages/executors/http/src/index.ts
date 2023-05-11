@@ -223,7 +223,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
                 errors: [
                   createGraphQLError(`Unexpected response: ${JSON.stringify(result)}`, {
                     extensions: {
-                      requestBody,
+                      requestBody: {
+                        query,
+                        operationName: request.operationName,
+                      },
                       responseDetails: responseDetailsForError,
                     },
                     originalError: e,
@@ -242,7 +245,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
             errors: [
               createGraphQLError(e, {
                 extensions: {
-                  requestBody,
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
                   responseDetails: responseDetailsForError,
                 },
               }),
@@ -257,7 +263,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
             errors: [
               createGraphQLError(`fetch failed to ${endpoint}`, {
                 extensions: {
-                  requestBody,
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
                   responseDetails: responseDetailsForError,
                 },
                 originalError: e,
@@ -269,7 +278,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
             errors: [
               createGraphQLError(e.message, {
                 extensions: {
-                  requestBody,
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
                   responseDetails: responseDetailsForError,
                 },
                 originalError: e,
@@ -281,7 +293,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
             errors: [
               createGraphQLError('Unknown error', {
                 extensions: {
-                  requestBody,
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
                   responseDetails: responseDetailsForError,
                 },
                 originalError: e,
