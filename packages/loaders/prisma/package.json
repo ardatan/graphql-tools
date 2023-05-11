@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/prisma-loader",
-  "version": "7.2.71",
+  "version": "7.2.72",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",

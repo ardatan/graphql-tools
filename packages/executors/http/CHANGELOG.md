@@ -1,5 +1,11 @@
 # @graphql-tools/executor-http
 
+## 0.1.10
+
+### Patch Changes
+
+- [`05fd1fd4`](https://github.com/ardatan/graphql-tools/commit/05fd1fd4cc788e6ac19402d3158e3e5386a92894) Thanks [@ardatan](https://github.com/ardatan)! - Avoid passing sensitive data through errors
+
 ## 0.1.9
 
 ### Patch Changes
