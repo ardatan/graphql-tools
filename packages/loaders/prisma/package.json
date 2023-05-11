@@ -61,7 +61,7 @@
     "dotenv": "^16.0.0",
     "graphql-request": "^6.0.0",
     "http-proxy-agent": "^5.0.0",
-    "https-proxy-agent": "^5.0.0",
+    "https-proxy-agent": "^6.0.0",
     "jose": "^4.11.4",
     "js-yaml": "^4.0.0",
     "json-stable-stringify": "^1.0.1",
