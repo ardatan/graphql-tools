@@ -6,7 +6,11 @@ import { DelegationContext } from './types.js';
 import { resolveExternalValue } from './resolveExternalValue.js';
 
 export function checkResultAndHandleErrors<TContext extends Record<string, any>>(
-  result: ExecutionResult,
+  // TODO: investigate the reason
+  result: ExecutionResult = {
+    data: null,
+    errors: [],
+  },
   delegationContext: DelegationContext<TContext>
 ): any {
   const {
