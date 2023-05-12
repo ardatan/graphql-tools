@@ -9,14 +9,14 @@
     "start": "next start"
   },
   "devDependencies": {
-    "@theguild/algolia": "1.1.6",
+    "@theguild/algolia": "1.1.7",
     "@theguild/tailwind-config": "0.2.1",
     "@types/node": "18.16.8",
     "@types/react": "18.2.6",
     "typescript": "5.0.4"
   },
   "dependencies": {
-    "@theguild/components": "4.5.10",
+    "@theguild/components": "4.5.11",
     "next": "13.4.2",
     "next-sitemap": "4.0.9",
     "react": "18.2.0",
