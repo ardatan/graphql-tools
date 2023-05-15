@@ -12,7 +12,7 @@ import {
   GraphQLOutputType,
 } from 'graphql';
 
-import { AggregateError, Maybe } from '@graphql-tools/utils';
+import { Maybe } from '@graphql-tools/utils';
 
 import { StitchingInfo, SubschemaConfig } from './types.js';
 import { annotateExternalObject, isExternalObject, mergeFields } from './mergeFields.js';

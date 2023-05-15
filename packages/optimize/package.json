@@ -1,5 +1,8 @@
 {
   "name": "@graphql-tools/optimize",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "version": "1.4.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {

@@ -61,5 +61,8 @@
   "peerDependencies": {
     "@envelop/core": "^3.0.4"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": ">=16.0.0"
+  }
 }

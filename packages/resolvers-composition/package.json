@@ -2,6 +2,9 @@
   "name": "@graphql-tools/resolvers-composition",
   "version": "6.5.18",
   "description": "Common package containing utils and types for GraphQL tools",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "ardatan/graphql-tools",

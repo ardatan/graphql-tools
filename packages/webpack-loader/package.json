@@ -1,5 +1,8 @@
 {
   "name": "@graphql-tools/webpack-loader",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "version": "6.7.2",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {

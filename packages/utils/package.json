@@ -1,5 +1,8 @@
 {
   "name": "@graphql-tools/utils",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "version": "9.2.1",
   "description": "Common package containing utils and types for GraphQL tools",
   "repository": {

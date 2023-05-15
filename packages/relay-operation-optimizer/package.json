@@ -1,5 +1,8 @@
 {
   "name": "@graphql-tools/relay-operation-optimizer",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "version": "6.5.18",
   "description": "Package for optimizing your GraphQL operations relay style.",
   "author": {

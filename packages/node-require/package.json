@@ -1,5 +1,8 @@
 {
   "name": "@graphql-tools/node-require",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "version": "6.4.22",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {

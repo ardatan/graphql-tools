@@ -1,14 +1,6 @@
 import type { GlobbyOptions } from 'globby';
 
-import {
-  Source,
-  Loader,
-  isValidPath,
-  BaseLoaderOptions,
-  asArray,
-  parseGraphQLJSON,
-  AggregateError,
-} from '@graphql-tools/utils';
+import { Source, Loader, isValidPath, BaseLoaderOptions, asArray, parseGraphQLJSON } from '@graphql-tools/utils';
 import { isAbsolute, resolve } from 'path';
 import { readFileSync, promises as fsPromises, existsSync } from 'fs';
 import { cwd as processCwd, env } from 'process';

@@ -59,5 +59,8 @@
     "resolve-from": "5.0.0",
     "tslib": "^2.4.0"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": ">=16.0.0"
+  }
 }
