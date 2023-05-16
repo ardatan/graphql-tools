@@ -8,8 +8,8 @@
   "packageRules": [
     {
       "groupName": "whatwg-node",
-      "matchPackageNames": ["@whatwg-node/*"],
-      "prPriority": 21,
+      "matchPackagePrefixes": ["@whatwg-node"],
+      "prPriority": 30,
       "ignoreUnstable": false,
       "respectLatest": false,
       "automerge": false,
