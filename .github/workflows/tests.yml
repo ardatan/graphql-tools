@@ -56,12 +56,7 @@ jobs:
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Type Check
         run: yarn ts:check
-      - uses: the-guild-org/shared-config/release-trackback@main
-        if: ${{ always() }}}
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          relevantPackages: |
-            @whatwg-node/*
+
   test:
     name: Unit Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL v${{matrix.graphql_version}}
     runs-on: ${{matrix.os}}
@@ -104,6 +99,19 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           command: yarn test --ci
+
+  trackback:
+    name: trackback rc dependencies
+    needs: test
+    if: ${{ always() }}}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: the-guild-org/shared-config/release-trackback@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          relevantPackages: |
+            @whatwg-node/*
+
   test_esm:
     name: ESM Test
     runs-on: ubuntu-latest
