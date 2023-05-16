@@ -59,7 +59,7 @@
     "babel-loader": "9.1.2",
     "express": "4.18.2",
     "graphql-upload": "16.0.2",
-    "graphql-sse": "2.1.2",
+    "graphql-sse": "2.1.3",
     "graphql-yoga": "3.9.1",
     "@graphql-yoga/plugin-defer-stream": "1.9.1",
     "puppeteer": "19.11.1",
