@@ -94,10 +94,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
       - name: Test
-        if: ${{ matrix.node-version === 20 }}
+        if: ${{ matrix.node-version == 20 }}
         run: yarn test --ci
       - name: Test
-        if: ${{ matrix.node-version !== 20 }}
+        if: ${{ matrix.node-version != 20 }}
         uses: nick-fields/retry@v2
         with:
           timeout_minutes: 10
