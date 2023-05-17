@@ -3496,12 +3496,17 @@
   resolved "https://registry.yarnpkg.com/@whatwg-node/events/-/events-0.0.2.tgz#7b7107268d2982fc7b7aff5ee6803c64018f84dd"
   integrity sha512-WKj/lI4QjnLuPrim0cfO7i+HsDSXHxNv1y0CrJhdntuO3hxWZmnXCwNDnwOvry11OjRin6cgWNF+j/9Pn8TN4w==
 
+"@whatwg-node/events@0.1.0-rc-20230517001623-e05e3a0":
+  version "0.1.0-rc-20230517001623-e05e3a0"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/events/-/events-0.1.0-rc-20230517001623-e05e3a0.tgz#fe13c7466cb21c333809028a7f85d468834ab774"
+  integrity sha512-bwX3cOsK6JRBNCFDqSk9+ptyu7I1GvefOk3rlSlRU34MvJfF1l8KXqvTE3FMsL6HVj3LWL9WdFVFSm8jTz1A4g==
+
 "@whatwg-node/events@^0.0.3":
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/@whatwg-node/events/-/events-0.0.3.tgz#13a65dd4f5893f55280f766e29ae48074927acad"
   integrity sha512-IqnKIDWfXBJkvy/k6tzskWTc2NK3LcqHlb+KHGCrjOCH4jfQckRX0NAiIcC/vIqQkzLYw2r2CTSwAxcrtcD6lA==
 
-"@whatwg-node/fetch@^0.8.0", "@whatwg-node/fetch@^0.8.1", "@whatwg-node/fetch@^0.8.2", "@whatwg-node/fetch@^0.8.4":
+"@whatwg-node/fetch@^0.8.2", "@whatwg-node/fetch@^0.8.4":
   version "0.8.8"
   resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.8.8.tgz#48c6ad0c6b7951a73e812f09dd22d75e9fa18cae"
   integrity sha512-CdcjGC2vdKhc13KKxgsc6/616BQ7ooDIgPeTuAiE8qfCnS0mGzcfCOoZXypQSz73nxI+GWc7ZReIAVhxoE1KCg==
@@ -3511,6 +3516,25 @@
     busboy "^1.6.0"
     urlpattern-polyfill "^8.0.0"
     web-streams-polyfill "^3.2.1"
+
+"@whatwg-node/fetch@^0.9.0-rc-20230517001623-e05e3a0":
+  version "0.9.0-rc-20230517001623-e05e3a0"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.9.0-rc-20230517001623-e05e3a0.tgz#7811563cd111e6ad6ff087b27cac55a74c3b11ae"
+  integrity sha512-XgxzQU81wCec5sGikdXo8DdwmzXIZEp2aM0mffKQIlAuZLRo4AaPsc7mudAbfabxhBso1ZzdZHutcU9o1MevFA==
+  dependencies:
+    "@whatwg-node/node-fetch" "0.4.0-rc-20230517001623-e05e3a0"
+    urlpattern-polyfill "^8.0.0"
+
+"@whatwg-node/node-fetch@0.4.0-rc-20230517001623-e05e3a0":
+  version "0.4.0-rc-20230517001623-e05e3a0"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/node-fetch/-/node-fetch-0.4.0-rc-20230517001623-e05e3a0.tgz#595c67bc8eaea914856bd1d923fe6f16632926d6"
+  integrity sha512-wa5NfxbN50I3Fcp+/3GSIeYIhZ3737cHBQ8b8F3+JHANTzMv+NdQkNQbdwXumXFrQ4e1ou/YJRk2kgYlSY7Bew==
+  dependencies:
+    "@whatwg-node/events" "0.1.0-rc-20230517001623-e05e3a0"
+    busboy "^1.6.0"
+    fast-querystring "^1.1.1"
+    fast-url-parser "^1.1.3"
+    tslib "^2.3.1"
 
 "@whatwg-node/node-fetch@^0.3.6":
   version "0.3.6"

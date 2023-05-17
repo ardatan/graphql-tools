@@ -74,7 +74,7 @@
     "@graphql-tools/utils": "^9.2.1",
     "@graphql-tools/wrap": "^9.4.2",
     "@ardatan/sync-fetch": "^0.0.1",
-    "@whatwg-node/fetch": "^0.8.0",
+    "@whatwg-node/fetch": "^0.9.0-rc-20230517001623-e05e3a0",
     "@types/ws": "^8.0.0",
     "ws": "^8.12.0",
     "isomorphic-ws": "^5.0.0",
