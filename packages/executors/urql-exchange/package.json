@@ -61,5 +61,8 @@
     "@urql/core": "^3.0.0 || ^4.0.0",
     "wonka": "^6.0.0"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": ">=16.0.0"
+  }
 }

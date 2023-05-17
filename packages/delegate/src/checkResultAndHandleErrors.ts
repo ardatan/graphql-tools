@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo, GraphQLOutputType, GraphQLError, responsePathAsArray, locatedError } from 'graphql';
 
-import { AggregateError, getResponseKeyFromInfo, ExecutionResult, relocatedError } from '@graphql-tools/utils';
+import { getResponseKeyFromInfo, ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
 import { DelegationContext } from './types.js';
 import { resolveExternalValue } from './resolveExternalValue.js';

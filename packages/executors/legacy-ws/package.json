@@ -12,6 +12,9 @@
   "sideEffects": false,
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "exports": {
     ".": {
       "require": {

@@ -16,7 +16,6 @@ import {
   Executor,
   ExecutionRequest,
   Maybe,
-  AggregateError,
   isAsyncIterable,
   getDefinedRootType,
   memoize1,

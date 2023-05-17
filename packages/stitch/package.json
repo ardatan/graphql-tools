@@ -43,6 +43,9 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "typescript": {
     "definition": "dist/typings/index.d.ts"
   },

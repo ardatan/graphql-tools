@@ -53,12 +53,15 @@
   "dependencies": {
     "@ardatan/sync-fetch": "^0.0.1",
     "@graphql-tools/utils": "^9.2.1",
-    "@whatwg-node/fetch": "^0.8.0",
+    "@whatwg-node/fetch": "^0.9.0",
     "tslib": "^2.4.0"
   },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": ">=16.0.0"
+  }
 }

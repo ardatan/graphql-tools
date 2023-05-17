@@ -1,4 +1,4 @@
-import { Source, AggregateError } from '@graphql-tools/utils';
+import { Source } from '@graphql-tools/utils';
 import { env } from 'process';
 import { LoadTypedefsOptions } from '../load-typedefs.js';
 

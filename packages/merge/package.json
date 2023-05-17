@@ -1,5 +1,8 @@
 {
   "name": "@graphql-tools/merge",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "version": "8.4.2",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
