@@ -9,8 +9,8 @@
     "loadtest:monolith": "k6 -e ENDPOINT=monolith run k6.js"
   },
   "dependencies": {
-    "@apollo/gateway": "2.4.3",
-    "@apollo/subgraph": "2.4.3",
+    "@apollo/gateway": "2.4.5",
+    "@apollo/subgraph": "2.4.5",
     "@graphql-tools/stitch": "8.7.50",
     "@graphql-tools/federation": "0.0.3",
     "express": "4.18.2",
