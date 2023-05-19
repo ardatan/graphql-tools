@@ -1,5 +1,18 @@
 # @graphql-tools/node-require
 
+## 7.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/graphql-file-loader@8.0.0
+  - @graphql-tools/utils@10.0.0
+  - @graphql-tools/load@8.0.0
+
 ## 6.4.22
 
 ### Patch Changes

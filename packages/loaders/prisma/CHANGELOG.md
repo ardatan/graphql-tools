@@ -1,5 +1,19 @@
 # @graphql-tools/prisma-loader
 
+## 8.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency [`@whatwg-node/fetch@^0.9.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.9.0) (from `^0.8.2`, in `dependencies`)
+- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/url-loader@8.0.0
+  - @graphql-tools/utils@10.0.0
+
 ## 7.2.72
 
 ### Patch Changes

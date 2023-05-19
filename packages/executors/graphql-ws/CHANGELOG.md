@@ -1,5 +1,22 @@
 # @graphql-tools/executor-graphql-ws
 
+## 1.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- [#5272](https://github.com/ardatan/graphql-tools/pull/5272) [`3a870139`](https://github.com/ardatan/graphql-tools/commit/3a870139e13236f3ecc744666dd1c6fdb9f6be59) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+
+  - Updated dependency [`graphql-ws@5.13.0` ↗︎](https://www.npmjs.com/package/graphql-ws/v/5.13.0) (from `5.12.1`, in `dependencies`)
+
+- [#5277](https://github.com/ardatan/graphql-tools/pull/5277) [`853db708`](https://github.com/ardatan/graphql-tools/commit/853db70824fc86350a61bae415b7965fa2c06355) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`graphql-ws@5.13.1` ↗︎](https://www.npmjs.com/package/graphql-ws/v/5.13.1) (from `5.13.0`, in `dependencies`)
+- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/utils@10.0.0
+
 ## 0.0.14
 
 ### Patch Changes
