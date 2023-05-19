@@ -43,4 +43,4 @@
 '@graphql-tools/webpack-loader-runtime': major
 ---
 
-Drop Node 14 support
+Drop Node 14 support. Require Node.js `>= 16`
