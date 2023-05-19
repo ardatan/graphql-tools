@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-legacy-ws",
-  "version": "0.0.11",
+  "version": "1.0.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -55,7 +55,7 @@
   },
   "dependencies": {
     "@types/ws": "^8.0.0",
-    "@graphql-tools/utils": "^9.2.1",
+    "@graphql-tools/utils": "^10.0.0",
     "isomorphic-ws": "5.0.0",
     "ws": "8.13.0",
     "tslib": "^2.4.0"
