@@ -120,6 +120,7 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   subscribeFieldResolver: GraphQLFieldResolver<any, TContext>;
   errors: Array<GraphQLError>;
   subsequentPayloads: Set<AsyncPayloadRecord>;
+  signal?: AbortSignal;
 }
 
 export interface FormattedExecutionResult<
@@ -239,6 +240,7 @@ export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
   fieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
   typeResolver?: Maybe<GraphQLTypeResolver<any, TContext>>;
   subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
+  signal?: AbortSignal;
 }
 
 /**
@@ -402,6 +404,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     fieldResolver,
     typeResolver,
     subscribeFieldResolver,
+    signal,
   } = args;
 
   // If the schema used for execution is invalid, throw an error.
@@ -467,6 +470,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     subscribeFieldResolver: subscribeFieldResolver ?? defaultFieldResolver,
     subsequentPayloads: new Set(),
     errors: [],
+    signal,
   };
 }
 
@@ -531,20 +535,34 @@ function executeFieldsSerially<TData>(
   path: Path | undefined,
   fields: Map<string, Array<FieldNode>>,
 ): MaybePromise<TData> {
+  let abortErrorThrown = false;
   return promiseReduce(
     fields,
     (results, [responseName, fieldNodes]) => {
       const fieldPath = addPath(path, responseName, parentType.name);
-      return new ValueOrPromise(() =>
-        executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath),
-      ).then(result => {
-        if (result === undefined) {
-          return results;
-        }
-
-        results[responseName] = result;
+      if (exeContext.signal?.aborted) {
+        results[responseName] = null;
         return results;
-      });
+      }
+      return new ValueOrPromise(() => executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath)).then(
+        result => {
+          if (result === undefined) {
+            return results;
+          }
+
+          results[responseName] = result;
+          if (exeContext.signal?.aborted && !abortErrorThrown) {
+            exeContext.errors.push(
+              createGraphQLError('Execution aborted', {
+                nodes: fieldNodes,
+                path: pathToArray(fieldPath),
+                originalError: exeContext.signal?.reason,
+              })
+            );
+            abortErrorThrown = true;
+          }
+          return results;
+        });
     },
     Object.create(null),
   ).resolve();
@@ -564,9 +582,14 @@ function executeFields(
 ): MaybePromise<Record<string, unknown>> {
   const results = Object.create(null);
   let containsPromise = false;
+  let abortErrorThrown = false;
 
   try {
     for (const [responseName, fieldNodes] of fields) {
+      if (exeContext.signal?.aborted) {
+        results[responseName] = null;
+        continue;
+      }
       const fieldPath = addPath(path, responseName, parentType.name);
       const result = executeField(
         exeContext,
@@ -583,11 +606,22 @@ function executeFields(
           containsPromise = true;
         }
       }
+
+      if (exeContext.signal?.aborted && !abortErrorThrown) {
+        exeContext.errors.push(
+          createGraphQLError('Execution aborted', {
+            nodes: fieldNodes,
+            path: pathToArray(fieldPath),
+            originalError: exeContext.signal?.reason,
+          })
+        );
+        abortErrorThrown = true;
+      }
     }
   } catch (error) {
     if (containsPromise) {
       // Ensure that any promises returned by other fields are handled, as they may also reject.
-      return promiseForObject(results).finally(() => {
+      return promiseForObject(results, exeContext.signal).finally(() => {
         throw error;
       });
     }
@@ -602,7 +636,7 @@ function executeFields(
   // Otherwise, results is a map from field name to the result of resolving that
   // field, which is possibly a promise. Return a promise that will return this
   // same map, but with any promises replaced with the values they resolved to.
-  return promiseForObject(results);
+  return promiseForObject(results, exeContext.signal);
 }
 
 /**
@@ -897,6 +931,16 @@ async function completeAsyncIteratorValue(
   iterator: AsyncIterator<unknown>,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): Promise<ReadonlyArray<unknown>> {
+  exeContext.signal?.addEventListener('abort', () => {
+    iterator.return?.();
+    exeContext.errors.push(
+      createGraphQLError('Execution aborted', {
+        nodes: fieldNodes,
+        path: pathToArray(path),
+        originalError: exeContext.signal?.reason,
+      })
+    );
+  });
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
   const stream = getStreamValues(exeContext, fieldNodes, path);
   let containsPromise = false;
@@ -1494,6 +1538,7 @@ export function subscribe<TData = any, TVariables = any, TContext = any>(
 
 export function flattenIncrementalResults<TData>(
   incrementalResults: IncrementalExecutionResults<TData>,
+  signal?: AbortSignal
 ): AsyncGenerator<
   SubsequentIncrementalExecutionResult<TData, Record<string, unknown>>,
   void,
@@ -1502,16 +1547,20 @@ export function flattenIncrementalResults<TData>(
   const subsequentIterator = incrementalResults.subsequentResults;
   let initialResultSent = false;
   let done = false;
+  signal?.addEventListener('abort', () => {
+    done = true;
+    subsequentIterator.throw?.(signal?.reason);
+  });
   return {
     [Symbol.asyncIterator]() {
       return this;
     },
-    async next() {
+    next() {
       if (done) {
-        return {
+        return Promise.resolve({
           value: undefined,
           done,
-        };
+        });
       }
       if (initialResultSent) {
         return subsequentIterator.next();
@@ -1535,6 +1584,7 @@ export function flattenIncrementalResults<TData>(
 
 async function* ensureAsyncIterable(
   someExecutionResult: SingularExecutionResult | IncrementalExecutionResults,
+  signal?: AbortSignal
 ): AsyncGenerator<
   | SingularExecutionResult
   | InitialIncrementalExecutionResult
@@ -1543,7 +1593,7 @@ async function* ensureAsyncIterable(
   void
 > {
   if ('initialResult' in someExecutionResult) {
-    yield* flattenIncrementalResults(someExecutionResult);
+    yield* flattenIncrementalResults(someExecutionResult, signal);
   } else {
     yield someExecutionResult;
   }
@@ -1576,7 +1626,7 @@ function mapSourceToResponse(
     mapAsyncIterator(
       resultOrStream[Symbol.asyncIterator](),
       async (payload: unknown) =>
-        ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload))),
+        ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload)), exeContext.signal),
       async function* (error: Error) {
         const wrappedError = createGraphQLError(error.message, {
           originalError: error,
@@ -1659,13 +1709,13 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
       });
     }
 
-    return assertEventStream(result);
+    return assertEventStream(result, exeContext.signal);
   } catch (error) {
     throw locatedError(error, fieldNodes, pathToArray(path));
   }
 }
 
-function assertEventStream(result: unknown): AsyncIterable<unknown> {
+function assertEventStream(result: unknown, signal?: AbortSignal): AsyncIterable<unknown> {
   if (result instanceof Error) {
     throw result;
   }
@@ -1676,8 +1726,15 @@ function assertEventStream(result: unknown): AsyncIterable<unknown> {
       'Subscription field must return Async Iterable. ' + `Received: ${inspect(result)}.`,
     );
   }
-
-  return result;
+  return {
+    [Symbol.asyncIterator]() {
+      const asyncIterator = result[Symbol.asyncIterator]();
+      signal?.addEventListener('abort', () => {
+        asyncIterator.return?.();
+      });
+      return asyncIterator;
+    },
+  };
 }
 
 function executeDeferredFragment(
