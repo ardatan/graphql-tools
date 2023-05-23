@@ -26,8 +26,8 @@ import {
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
   DocumentNode,
+  GraphQLError,
 } from 'graphql';
-import type { GraphQLError } from 'graphql';
 import {
   createGraphQLError,
   inspect,
@@ -995,8 +995,8 @@ function completeLeafValue(returnType: GraphQLLeafType, result: unknown): unknow
   try {
     serializedResult = returnType.serialize(result);
   } catch (err) {
-    if (err && typeof err['message'] === 'string') {
-      throw new Error(err['message']);
+    if (err instanceof GraphQLError) {
+      throw new Error(err.message);
     }
     throw err;
   }
