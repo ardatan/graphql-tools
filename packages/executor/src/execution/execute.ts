@@ -986,7 +986,21 @@ function completeListItemValue(
  * null if serialization is not possible.
  */
 function completeLeafValue(returnType: GraphQLLeafType, result: unknown): unknown {
-  const serializedResult = returnType.serialize(result);
+  let serializedResult: unknown;
+
+  // Note: We transform GraphQLError to Error in order to be consistent with
+  // how non-null checks work later on.
+  // See https://github.com/kamilkisiela/graphql-hive/pull/2299
+  // See https://github.com/n1ru4l/envelop/issues/1808
+  try {
+    serializedResult = returnType.serialize(result);
+  } catch (err) {
+    if (err && typeof err['message'] === 'string') {
+      throw new Error(err['message']);
+    }
+    throw err;
+  }
+
   if (serializedResult == null) {
     throw new Error(
       `Expected \`${inspect(returnType)}.serialize(${inspect(result)})\` to ` +

@@ -1198,4 +1198,26 @@ describe('Execute: Handles basic execution tasks', () => {
     expect(result).toEqual({ data: { foo: { bar: 'bar' } } });
     expect(possibleTypes).toEqual([fooObject]);
   });
+
+  it('scalar serialization error originalError is Error not GraphQLError', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          foo: { type: GraphQLInt, resolve: () => Number.MAX_SAFE_INTEGER },
+        },
+      }),
+    });
+
+    const document = parse('{ foo }');
+
+    const result = executeSync({
+      schema,
+      document,
+    });
+
+    expect(result.errors).toHaveLength(1);
+    const [error] = result.errors!;
+    expect(error.originalError?.name).toBe('Error');
+  });
 });
