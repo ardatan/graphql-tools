@@ -1,5 +1,11 @@
 # @graphql-tools/executor
 
+## 1.1.0
+
+### Minor Changes
+
+- [#5295](https://github.com/ardatan/graphql-tools/pull/5295) [`b255b62c`](https://github.com/ardatan/graphql-tools/commit/b255b62c9e79076648b4d3a710584a237dead529) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Ensure errors thrown within scalars serialize function are mapped to `Error`.
+
 ## 1.0.0
 
 ### Major Changes
