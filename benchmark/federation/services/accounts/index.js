@@ -1,5 +1,5 @@
 const { gql } = require('graphql-tag');
-const { buildFederatedSchema } = require('@apollo/federation');
+const { buildSubgraphSchema } = require('@apollo/subgraph');
 
 const typeDefs = gql`
   extend type Query {
@@ -30,7 +30,7 @@ const resolvers = {
   },
 };
 
-const schema = buildFederatedSchema([
+const schema = buildSubgraphSchema([
   {
     typeDefs,
     resolvers,

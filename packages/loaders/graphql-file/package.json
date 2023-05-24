@@ -1,11 +1,14 @@
 {
   "name": "@graphql-tools/graphql-file-loader",
-  "version": "7.5.16",
+  "version": "8.0.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
     "url": "ardatan/graphql-tools",
     "directory": "packages/loaders/graphql-file"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   },
   "author": "Dotan Simha <dotansimha@gmail.com>",
   "license": "MIT",
@@ -54,8 +57,8 @@
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/import": "6.7.17",
-    "@graphql-tools/utils": "9.2.1",
+    "@graphql-tools/import": "7.0.0",
+    "@graphql-tools/utils": "^10.0.0",
     "globby": "^11.0.3",
     "unixify": "^1.0.0",
     "tslib": "^2.4.0"

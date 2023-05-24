@@ -1,5 +1,39 @@
 # @graphql-tools/git-loader
 
+## 8.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/graphql-tag-pluck@8.0.0
+  - @graphql-tools/utils@10.0.0
+
+## 7.3.0
+
+### Minor Changes
+
+- [#5244](https://github.com/ardatan/graphql-tools/pull/5244) [`ad430952`](https://github.com/ardatan/graphql-tools/commit/ad430952ed24d63aec7ca8310faa5cd529489476) Thanks [@jeengbe](https://github.com/jeengbe)! - respect leading './' for globs
+
+## 7.2.22
+
+### Patch Changes
+
+- Updated dependencies [[`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0)]:
+  - @graphql-tools/graphql-tag-pluck@7.5.2
+
+## 7.2.21
+
+### Patch Changes
+
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+
+- Updated dependencies [[`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41)]:
+  - @graphql-tools/graphql-tag-pluck@7.5.1
+
 ## 7.2.20
 
 ### Patch Changes

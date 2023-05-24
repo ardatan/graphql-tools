@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/schema",
-  "version": "9.0.17",
+  "version": "10.0.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -49,17 +49,20 @@
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "devDependencies": {
-    "graphql-scalars": "1.21.3"
+    "graphql-scalars": "1.22.0"
   },
   "buildOptions": {
     "input": "./src/index.ts"
   },
   "dependencies": {
-    "@graphql-tools/merge": "8.4.0",
-    "@graphql-tools/utils": "9.2.1",
+    "@graphql-tools/merge": "^9.0.0",
+    "@graphql-tools/utils": "^10.0.0",
     "tslib": "^2.4.0",
-    "value-or-promise": "1.0.12"
+    "value-or-promise": "^1.0.12"
   },
   "publishConfig": {
     "directory": "dist",

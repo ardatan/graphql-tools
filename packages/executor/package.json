@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor",
-  "version": "0.0.16",
+  "version": "1.1.0",
   "author": "Saihajpreet Singh <saihajpreet.singh@gmail.com>",
   "license": "MIT",
   "sideEffects": false,
@@ -52,11 +52,11 @@
     "definition": "dist/typings/index.d.ts"
   },
   "dependencies": {
-    "@repeaterjs/repeater": "3.0.4",
-    "@graphql-tools/utils": "9.2.1",
+    "@repeaterjs/repeater": "^3.0.4",
+    "@graphql-tools/utils": "^10.0.0",
     "@graphql-typed-document-node/core": "3.2.0",
     "tslib": "^2.4.0",
-    "value-or-promise": "1.0.12"
+    "value-or-promise": "^1.0.12"
   },
   "devDependencies": {
     "graphql": "^16.6.0"
@@ -71,5 +71,8 @@
     "directory": "dist",
     "access": "public"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": ">=16.0.0"
+  }
 }

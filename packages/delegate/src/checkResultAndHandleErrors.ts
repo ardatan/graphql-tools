@@ -1,12 +1,16 @@
 import { GraphQLResolveInfo, GraphQLOutputType, GraphQLError, responsePathAsArray, locatedError } from 'graphql';
 
-import { AggregateError, getResponseKeyFromInfo, ExecutionResult, relocatedError } from '@graphql-tools/utils';
+import { getResponseKeyFromInfo, ExecutionResult, relocatedError } from '@graphql-tools/utils';
 
 import { DelegationContext } from './types.js';
 import { resolveExternalValue } from './resolveExternalValue.js';
 
 export function checkResultAndHandleErrors<TContext extends Record<string, any>>(
-  result: ExecutionResult,
+  // TODO: investigate the reason
+  result: ExecutionResult = {
+    data: null,
+    errors: [],
+  },
   delegationContext: DelegationContext<TContext>
 ): any {
   const {

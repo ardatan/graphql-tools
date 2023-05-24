@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-apollo-link",
-  "version": "0.0.8",
+  "version": "1.0.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -52,15 +52,18 @@
     "access": "public"
   },
   "dependencies": {
-    "@graphql-tools/utils": "9.2.1",
+    "@graphql-tools/utils": "^10.0.0",
     "tslib": "^2.3.1"
   },
   "devDependencies": {
-    "@apollo/client": "3.7.11"
+    "@apollo/client": "3.7.14"
   },
   "peerDependencies": {
     "graphql": "^15.2.0 || ^16.0.0",
     "@apollo/client": "^3.5.9"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": ">=16.0.0"
+  }
 }

@@ -2,8 +2,9 @@ import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, print } fr
 
 import DataLoader from 'dataloader';
 
-import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
+import { delegateToSchema, getActualFieldNodes, SubschemaConfig } from '@graphql-tools/delegate';
 import { memoize1, memoize2, relocatedError } from '@graphql-tools/utils';
+import { ValueOrPromise } from 'value-or-promise';
 
 import { BatchDelegateOptions } from './types.js';
 
@@ -12,37 +13,39 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
   const fieldName = options.fieldName ?? options.info.fieldName;
   const { valuesFromResults, lazyOptionsFn } = options;
 
-  return async function batchFn(keys: ReadonlyArray<K>) {
-    const results = await delegateToSchema({
-      returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
-      onLocatedError: originalError => {
-        if (originalError.path == null) {
-          return originalError;
-        }
+  return function batchFn(keys: ReadonlyArray<K>) {
+    return new ValueOrPromise(() =>
+      delegateToSchema({
+        returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
+        onLocatedError: originalError => {
+          if (originalError.path == null) {
+            return originalError;
+          }
 
-        const [pathFieldName, pathNumber] = originalError.path;
+          const [pathFieldName, pathNumber] = originalError.path;
 
-        if (pathFieldName !== fieldName) {
-          return originalError;
-        }
-        const pathNumberType = typeof pathNumber;
-        if (pathNumberType !== 'number') {
-          return originalError;
-        }
+          if (pathFieldName !== fieldName) {
+            return originalError;
+          }
+          const pathNumberType = typeof pathNumber;
+          if (pathNumberType !== 'number') {
+            return originalError;
+          }
 
-        return relocatedError(originalError, originalError.path.slice(0, 0).concat(originalError.path.slice(2)));
-      },
-      args: argsFromKeys(keys),
-      ...(lazyOptionsFn == null ? options : lazyOptionsFn(options, keys)),
+          return relocatedError(originalError, originalError.path.slice(0, 0).concat(originalError.path.slice(2)));
+        },
+        args: argsFromKeys(keys),
+        ...(lazyOptionsFn == null ? options : lazyOptionsFn(options, keys)),
+      })
+    ).then(results => {
+      if (results instanceof Error) {
+        return keys.map(() => results);
+      }
+
+      const values = valuesFromResults == null ? results : valuesFromResults(results, keys);
+
+      return Array.isArray(values) ? values : keys.map(() => values);
     });
-
-    if (results instanceof Error) {
-      return keys.map(() => results);
-    }
-
-    const values = valuesFromResults == null ? results : valuesFromResults(results, keys);
-
-    return Array.isArray(values) ? values : keys.map(() => values);
   };
 }
 
@@ -75,7 +78,7 @@ export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions
     info,
     fieldName = info.fieldName,
     dataLoaderOptions,
-    fieldNodes = info.fieldNodes,
+    fieldNodes = getActualFieldNodes(info.fieldNodes[0]),
     selectionSet = fieldNodes[0].selectionSet,
   } = options;
   const loaders = getLoadersMap<K, V, C>(context ?? GLOBAL_CONTEXT, schema);

@@ -175,6 +175,9 @@ function updateArgumentsWithDefaults(
   const generateVariableName = createVariableNameGenerator(variableDefinitionMap);
 
   const sourceField = sourceParentType.getFields()[sourceFieldName];
+  if (!sourceField) {
+    throw new Error(`Field "${sourceFieldName}" was not found in type "${sourceParentType}".`);
+  }
   for (const argument of sourceField.args) {
     const argName = argument.name;
     const sourceArgType = argument.type;

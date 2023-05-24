@@ -1,13 +1,14 @@
 import { parse, print, OperationDefinitionNode, validate } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createBatchingExecutor } from '@graphql-tools/batch-execute';
-import { ExecutionResult, Executor } from '@graphql-tools/utils';
+import { createGraphQLError, ExecutionResult, Executor, MaybeAsyncIterable } from '@graphql-tools/utils';
 import { normalizedExecutor } from '@graphql-tools/executor';
 
 describe('batch execution', () => {
   let executorCalls = 0;
   let executorDocument: string | undefined;
   let executorVariables: any | undefined;
+  const extensions = { foo: 'bar' };
 
   const schema = makeExecutableSchema({
     typeDefs: /* GraphQL */ `
@@ -16,6 +17,7 @@ describe('batch execution', () => {
         field2: String
         field3(input: String): String
         boom(message: String): String
+        extension: String
         widget: Widget
       }
       type Widget {
@@ -28,6 +30,7 @@ describe('batch execution', () => {
         field2: () => '2',
         field3: (_root, { input }) => String(input),
         boom: (_root, { message }) => new Error(message),
+        extension: () => createGraphQLError('boom', { extensions }),
         widget: () => ({ name: 'wingnut' }),
       },
     },
@@ -184,5 +187,27 @@ describe('batch execution', () => {
     expect(first?.errors?.[0].message).toMatch(/notgonnawork/);
     expect(second?.errors?.[0].message).toMatch(/notgonnawork/);
     expect(executorCalls).toEqual(1);
+  });
+
+  it('pathed errors contain extensions', async () => {
+    const [first] = (await Promise.all([batchExec({ document: parse('{ extension }') })])) as ExecutionResult[];
+
+    expect(first?.errors?.length).toEqual(1);
+    expect(first?.errors?.[0].message).toMatch(/boom/);
+    expect(first?.errors?.[0].extensions).toEqual(extensions);
+    expect(executorCalls).toEqual(1);
+  });
+
+  it('non pathed errors contain extensions', async () => {
+    const errorExec: Executor = (): MaybeAsyncIterable<ExecutionResult> => {
+      return { errors: [createGraphQLError('boom', { extensions })] };
+    };
+    const batchExec = createBatchingExecutor(errorExec);
+
+    const [first] = (await Promise.all([batchExec({ document: parse('{ boom }') })])) as ExecutionResult[];
+
+    expect(first?.errors?.length).toEqual(1);
+    expect(first?.errors?.[0].message).toMatch(/boom/);
+    expect(first?.errors?.[0].extensions).toEqual(extensions);
   });
 });

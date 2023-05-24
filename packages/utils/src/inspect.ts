@@ -2,7 +2,6 @@
 // https://github.com/graphql/graphql-js/blob/main/src/jsutils/inspect.ts
 
 import { GraphQLError } from 'graphql';
-import { isAggregateError } from './AggregateError.js';
 
 const MAX_RECURSIVE_DEPTH = 3;
 
@@ -39,8 +38,8 @@ function formatObjectValue(value: object | null, previouslySeenValues: ReadonlyA
   }
 
   if (value instanceof Error) {
-    if (isAggregateError(value)) {
-      return formatError(value) + '\n' + formatArray(value.errors, previouslySeenValues);
+    if (value.name === 'AggregateError') {
+      return formatError(value) + '\n' + formatArray((value as AggregateError).errors, previouslySeenValues);
     }
     return formatError(value);
   }

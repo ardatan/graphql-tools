@@ -41,7 +41,6 @@ export * from './isDocumentNode.js';
 export * from './astFromValueUntyped.js';
 export * from './executor.js';
 export * from './withCancel.js';
-export * from './AggregateError.js';
 export * from './rootTypes.js';
 export * from './comments.js';
 export * from './collectFields.js';

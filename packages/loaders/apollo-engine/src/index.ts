@@ -1,4 +1,4 @@
-import { Source, parseGraphQLSDL, AggregateError, BaseLoaderOptions, Loader } from '@graphql-tools/utils';
+import { Source, parseGraphQLSDL, BaseLoaderOptions, Loader } from '@graphql-tools/utils';
 import { fetch } from '@whatwg-node/fetch';
 import syncFetch from '@ardatan/sync-fetch';
 

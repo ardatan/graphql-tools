@@ -9,7 +9,7 @@ import unixify from 'unixify';
 import { loadFromGit, loadFromGitSync, readTreeAtRef, readTreeAtRefSync } from './load-git.js';
 import { parse as handleStuff } from './parse.js';
 import { parse } from 'graphql';
-import { asArray, BaseLoaderOptions, Loader, Source, AggregateError } from '@graphql-tools/utils';
+import { asArray, BaseLoaderOptions, Loader, Source } from '@graphql-tools/utils';
 import isGlob from 'is-glob';
 import { env } from 'process';
 
@@ -82,10 +82,16 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       refsForPaths.get(ref).push(`!${unixify(path)}`);
     }
 
+    const maybeLeadingDotSlash = path.startsWith('./') ? './' : '';
+
     const resolved: string[] = [];
     await Promise.all(
       [...refsForPaths.entries()].map(async ([ref, paths]) => {
-        resolved.push(...micromatch(await readTreeAtRef(ref), paths).map(filePath => `git:${ref}:${filePath}`));
+        resolved.push(
+          ...micromatch(await readTreeAtRef(ref), paths).map(
+            filePath => `git:${ref}:${maybeLeadingDotSlash}${filePath}`
+          )
+        );
       })
     );
     return resolved;
@@ -116,9 +122,13 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       refsForPaths.get(ref).push(`!${unixify(path)}`);
     }
 
+    const maybeLeadingDotSlash = path.startsWith('./') ? './' : '';
+
     const resolved: string[] = [];
     for (const [ref, paths] of refsForPaths.entries()) {
-      resolved.push(...micromatch(readTreeAtRefSync(ref), paths).map(filePath => `git:${ref}:${filePath}`));
+      resolved.push(
+        ...micromatch(readTreeAtRefSync(ref), paths).map(filePath => `git:${ref}:${maybeLeadingDotSlash}${filePath}`)
+      );
     }
     return resolved;
   }
@@ -227,7 +237,6 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     try {
       if (isGlob(path)) {
         const resolvedPaths = this.resolveGlobsSync(pointer, asArray(options.ignore || []));
-        const finalResult: Source[] = [];
         for (const path of resolvedPaths) {
           if (this.canLoadSync(path)) {
             const results = this.loadSync(path, options);

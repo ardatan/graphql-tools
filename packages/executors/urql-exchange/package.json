@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-urql-exchange",
-  "version": "0.0.9",
+  "version": "1.0.0",
   "description": "",
   "repository": {
     "type": "git",
@@ -49,17 +49,20 @@
     "access": "public"
   },
   "dependencies": {
-    "@graphql-tools/utils": "9.2.1",
+    "@graphql-tools/utils": "^10.0.0",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@urql/core": "4.0.4",
-    "wonka": "6.3.1"
+    "@urql/core": "4.0.7",
+    "wonka": "6.3.2"
   },
   "peerDependencies": {
     "graphql": "^15.2.0 || ^16.0.0",
     "@urql/core": "^3.0.0 || ^4.0.0",
     "wonka": "^6.0.0"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": ">=16.0.0"
+  }
 }

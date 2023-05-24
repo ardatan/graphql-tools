@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/links",
-  "version": "8.3.34",
+  "version": "9.0.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -47,8 +47,8 @@
     "definition": "dist/typings/index.d.ts"
   },
   "peerDependencies": {
-    "@apollo/client": "~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0",
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
+    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0",
+    "@apollo/client": "^3"
   },
   "buildOptions": {
     "input": "./src/index.ts",
@@ -59,13 +59,13 @@
     ]
   },
   "devDependencies": {
-    "@apollo/client": "3.7.11",
+    "@apollo/client": "3.7.14",
     "@types/apollo-upload-client": "17.0.2",
     "graphql-upload": "16.0.2"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "9.0.30",
-    "@graphql-tools/utils": "9.2.1",
+    "@graphql-tools/delegate": "^10.0.0",
+    "@graphql-tools/utils": "^10.0.0",
     "apollo-upload-client": "17.0.0",
     "form-data": "^4.0.0",
     "node-fetch": "^2.6.5",
@@ -75,5 +75,8 @@
     "directory": "dist",
     "access": "public"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": ">=16.0.0"
+  }
 }

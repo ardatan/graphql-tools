@@ -1,5 +1,24 @@
 # @graphql-tools/executor-http
 
+## 1.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency [`@whatwg-node/fetch@^0.9.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.9.0) (from `^0.8.1`, in `dependencies`)
+- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/utils@10.0.0
+
+## 0.1.10
+
+### Patch Changes
+
+- [`05fd1fd4`](https://github.com/ardatan/graphql-tools/commit/05fd1fd4cc788e6ac19402d3158e3e5386a92894) Thanks [@ardatan](https://github.com/ardatan)! - Avoid passing sensitive data through errors
+
 ## 0.1.9
 
 ### Patch Changes

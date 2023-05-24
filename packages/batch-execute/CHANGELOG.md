@@ -1,5 +1,45 @@
 # @graphql-tools/batch-execute
 
+## 9.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/utils@10.0.0
+
+## 8.5.22
+
+### Patch Changes
+
+- [#5220](https://github.com/ardatan/graphql-tools/pull/5220) [`8e80b689`](https://github.com/ardatan/graphql-tools/commit/8e80b6893d2342353731610d5da9db633d806083) Thanks [@ardatan](https://github.com/ardatan)! - Performance improvements
+
+## 8.5.21
+
+### Patch Changes
+
+- [`2f342e43`](https://github.com/ardatan/graphql-tools/commit/2f342e430ba0d0097d1d8cb31a6abb97ed46f971) Thanks [@ardatan](https://github.com/ardatan)! - Do not use promises if not async
+
+## 8.5.20
+
+### Patch Changes
+
+- [#5202](https://github.com/ardatan/graphql-tools/pull/5202) [`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+
+  - Updated dependency [`dataloader@^2.2.2` ↗︎](https://www.npmjs.com/package/dataloader/v/2.2.2) (from `2.2.2`, in `dependencies`)
+  - Updated dependency [`value-or-promise@^1.0.12` ↗︎](https://www.npmjs.com/package/value-or-promise/v/1.0.12) (from `1.0.12`, in `dependencies`)
+
+- [#5191](https://github.com/ardatan/graphql-tools/pull/5191) [`f24f018a`](https://github.com/ardatan/graphql-tools/commit/f24f018aa94394766f4201b1964d473d08946bd3) Thanks [@darren-west](https://github.com/darren-west)! - fix: batched executor returns original error when it has no path
+
+## 8.5.19
+
+### Patch Changes
+
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+
 ## 8.5.18
 
 ### Patch Changes

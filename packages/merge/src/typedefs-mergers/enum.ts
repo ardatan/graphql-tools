@@ -1,4 +1,4 @@
-import { EnumTypeDefinitionNode, EnumTypeExtensionNode, Kind } from 'graphql';
+import { DirectiveDefinitionNode, EnumTypeDefinitionNode, EnumTypeExtensionNode, Kind } from 'graphql';
 import { mergeDirectives } from './directives.js';
 import { mergeEnumValues } from './enum-values.js';
 import { Config } from './merge-typedefs.js';
@@ -6,7 +6,8 @@ import { Config } from './merge-typedefs.js';
 export function mergeEnum(
   e1: EnumTypeDefinitionNode | EnumTypeExtensionNode,
   e2: EnumTypeDefinitionNode | EnumTypeExtensionNode,
-  config?: Config
+  config?: Config,
+  directives?: Record<string, DirectiveDefinitionNode>
 ): EnumTypeDefinitionNode | EnumTypeExtensionNode {
   if (e2) {
     return {
@@ -17,7 +18,7 @@ export function mergeEnum(
           ? 'EnumTypeDefinition'
           : 'EnumTypeExtension',
       loc: e1.loc,
-      directives: mergeDirectives(e1.directives, e2.directives, config),
+      directives: mergeDirectives(e1.directives, e2.directives, config, directives),
       values: mergeEnumValues(e1.values, e2.values, config),
     } as any;
   }

@@ -25,8 +25,9 @@ import {
   SchemaMetaFieldDef,
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
+  DocumentNode,
+  GraphQLError,
 } from 'graphql';
-import type { GraphQLError } from 'graphql';
 import {
   createGraphQLError,
   inspect,
@@ -47,6 +48,7 @@ import {
   GraphQLStreamDirective,
   collectFields,
   collectSubFields as _collectSubfields,
+  memoize1,
 } from '@graphql-tools/utils';
 import { getVariableValues } from './values.js';
 import { promiseForObject } from './promiseForObject.js';
@@ -333,6 +335,18 @@ export function assertValidExecutionArguments<TVariables>(
   );
 }
 
+export const getFragmentsFromDocument = memoize1(function getFragmentsFromDocument(
+  document: DocumentNode
+): Record<string, FragmentDefinitionNode> {
+  const fragments: Record<string, FragmentDefinitionNode> = Object.create(null);
+  for (const definition of document.definitions) {
+    if (definition.kind === Kind.FRAGMENT_DEFINITION) {
+      fragments[definition.name.value] = definition;
+    }
+  }
+  return fragments;
+});
+
 /**
  * Constructs a ExecutionContext object from the arguments passed to
  * execute, which we will pass throughout the other execution methods.
@@ -360,8 +374,9 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
   // If the schema used for execution is invalid, throw an error.
   assertValidSchema(schema);
 
+  const fragments: Record<string, FragmentDefinitionNode> = getFragmentsFromDocument(document);
+
   let operation: OperationDefinitionNode | undefined;
-  const fragments: Record<string, FragmentDefinitionNode> = Object.create(null);
   for (const definition of document.definitions) {
     switch (definition.kind) {
       case Kind.OPERATION_DEFINITION:
@@ -374,15 +389,12 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
           operation = definition;
         }
         break;
-      case Kind.FRAGMENT_DEFINITION:
-        fragments[definition.name.value] = definition;
-        break;
       default:
       // ignore non-executable definitions
     }
   }
 
-  if (!operation) {
+  if (operation == null) {
     if (operationName != null) {
       return [createGraphQLError(`Unknown operation named "${operationName}".`)];
     }
@@ -478,19 +490,19 @@ function executeFieldsSerially<TData>(
     fields,
     (results, [responseName, fieldNodes]) => {
       const fieldPath = addPath(path, responseName, parentType.name);
-      return new ValueOrPromise(() => executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath))
-        .then(result => {
+      return new ValueOrPromise(() => executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath)).then(
+        result => {
           if (result === undefined) {
             return results;
           }
 
           results[responseName] = result;
           return results;
-        })
-        .resolve();
+        }
+      );
     },
     Object.create(null)
-  );
+  ).resolve();
 }
 
 /**
@@ -974,7 +986,21 @@ function completeListItemValue(
  * null if serialization is not possible.
  */
 function completeLeafValue(returnType: GraphQLLeafType, result: unknown): unknown {
-  const serializedResult = returnType.serialize(result);
+  let serializedResult: unknown;
+
+  // Note: We transform GraphQLError to Error in order to be consistent with
+  // how non-null checks work later on.
+  // See https://github.com/kamilkisiela/graphql-hive/pull/2299
+  // See https://github.com/n1ru4l/envelop/issues/1808
+  try {
+    serializedResult = returnType.serialize(result);
+  } catch (err) {
+    if (err instanceof GraphQLError) {
+      throw new Error(err.message);
+    }
+    throw err;
+  }
+
   if (serializedResult == null) {
     throw new Error(
       `Expected \`${inspect(returnType)}.serialize(${inspect(result)})\` to ` +
@@ -1368,66 +1394,21 @@ function mapSourceToResponse(
   // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
   // "ExecuteQuery" algorithm, for which `execute` is also used.
   return flattenAsyncIterable(
-    mapAsyncIterator(resultOrStream[Symbol.asyncIterator](), async (payload: unknown) =>
-      ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload)))
+    mapAsyncIterator(
+      resultOrStream[Symbol.asyncIterator](),
+      async (payload: unknown) =>
+        ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload))),
+      async function* (error: Error) {
+        const wrappedError = createGraphQLError(error.message, {
+          originalError: error,
+          nodes: [exeContext.operation],
+        });
+        yield {
+          errors: [wrappedError],
+        };
+      }
     )
   );
-}
-
-/**
- * Implements the "CreateSourceEventStream" algorithm described in the
- * GraphQL specification, resolving the subscription source event stream.
- *
- * Returns a Promise which resolves to either an AsyncIterable (if successful)
- * or an ExecutionResult (error). The promise will be rejected if the schema or
- * other arguments to this function are invalid, or if the resolved event stream
- * is not an async iterable.
- *
- * If the client-provided arguments to this function do not result in a
- * compliant subscription, a GraphQL Response (ExecutionResult) with
- * descriptive errors and no data will be returned.
- *
- * If the the source stream could not be created due to faulty subscription
- * resolver logic or underlying systems, the promise will resolve to a single
- * ExecutionResult containing `errors` and no `data`.
- *
- * If the operation succeeded, the promise resolves to the AsyncIterable for the
- * event stream returned by the resolver.
- *
- * A Source Event Stream represents a sequence of events, each of which triggers
- * a GraphQL execution for that event.
- *
- * This may be useful when hosting the stateful subscription service in a
- * different process or machine than the stateless GraphQL execution engine,
- * or otherwise separating these two steps. For more on this, see the
- * "Supporting Subscriptions at Scale" information in the GraphQL specification.
- */
-export function createSourceEventStream(
-  args: ExecutionArgs
-): MaybePromise<AsyncIterable<unknown> | SingularExecutionResult> {
-  // If a valid execution context cannot be created due to incorrect arguments,
-  // a "Response" with only errors is returned.
-  const exeContext = buildExecutionContext(args);
-
-  // Return early errors if execution context failed.
-  if (!('schema' in exeContext)) {
-    return {
-      errors: exeContext.map(e => {
-        Object.defineProperty(e, 'extensions', {
-          value: {
-            ...e.extensions,
-            http: {
-              ...e.extensions?.['http'],
-              status: 400,
-            },
-          },
-        });
-        return e;
-      }),
-    };
-  }
-
-  return createSourceEventStreamImpl(exeContext);
 }
 
 function createSourceEventStreamImpl(

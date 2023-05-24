@@ -10,13 +10,11 @@ type ResolvedObject<TData> = {
  * `Promise.all` so it will work with any implementation of ES6 promises.
  */
 export async function promiseForObject<TData>(object: TData): Promise<ResolvedObject<TData>> {
-  const keys = Object.keys(object as any);
-  const values = Object.values(object as any);
-
-  const resolvedValues = await Promise.all(values);
   const resolvedObject = Object.create(null);
-  for (let i = 0; i < keys.length; ++i) {
-    resolvedObject[keys[i]] = resolvedValues[i];
-  }
+  await Promise.all(
+    Object.entries(object as any).map(async ([key, value]) => {
+      resolvedObject[key] = await value;
+    })
+  );
   return resolvedObject;
 }

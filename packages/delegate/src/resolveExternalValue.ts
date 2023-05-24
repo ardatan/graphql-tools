@@ -12,7 +12,7 @@ import {
   GraphQLOutputType,
 } from 'graphql';
 
-import { AggregateError, Maybe } from '@graphql-tools/utils';
+import { Maybe } from '@graphql-tools/utils';
 
 import { StitchingInfo, SubschemaConfig } from './types.js';
 import { annotateExternalObject, isExternalObject, mergeFields } from './mergeFields.js';
@@ -90,7 +90,7 @@ function resolveExternalObject<TContext extends Record<string, any>>(
     return object;
   }
 
-  return mergeFields(mergedTypeInfo, object, subschema as Subschema, context, info);
+  return mergeFields(mergedTypeInfo, object, subschema as Subschema, context, info).resolve();
 }
 
 function resolveExternalList<TContext extends Record<string, any>>(

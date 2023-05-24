@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/prisma-loader",
-  "version": "7.2.69",
+  "version": "8.0.0",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -47,21 +47,24 @@
   "typescript": {
     "definition": "dist/typings/index.d.ts"
   },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@whatwg-node/fetch": "^0.8.2",
-    "@graphql-tools/url-loader": "7.17.17",
-    "@graphql-tools/utils": "9.2.1",
+    "@whatwg-node/fetch": "^0.9.0",
+    "@graphql-tools/url-loader": "^8.0.0",
+    "@graphql-tools/utils": "^10.0.0",
     "@types/js-yaml": "^4.0.0",
     "@types/json-stable-stringify": "^1.0.32",
     "chalk": "^4.1.0",
     "debug": "^4.3.1",
     "dotenv": "^16.0.0",
-    "graphql-request": "^5.0.0",
-    "http-proxy-agent": "^5.0.0",
-    "https-proxy-agent": "^5.0.0",
+    "graphql-request": "^6.0.0",
+    "http-proxy-agent": "^6.0.0",
+    "https-proxy-agent": "^6.0.0",
     "jose": "^4.11.4",
     "js-yaml": "^4.0.0",
     "json-stable-stringify": "^1.0.1",

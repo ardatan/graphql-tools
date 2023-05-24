@@ -14,7 +14,7 @@ import { ValueOrPromise } from 'value-or-promise';
 import { createFormDataFromVariables } from './createFormDataFromVariables.js';
 import { handleEventStreamResponse } from './handleEventStreamResponse.js';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
-import { fetch as defaultFetch, AbortController } from '@whatwg-node/fetch';
+import { fetch as defaultFetch } from '@whatwg-node/fetch';
 
 export type SyncFetchFn = (url: string, init?: RequestInit, context?: any, info?: GraphQLResolveInfo) => SyncResponse;
 export type SyncResponse = Omit<Response, 'json' | 'text'> & {
@@ -223,7 +223,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
                 errors: [
                   createGraphQLError(`Unexpected response: ${JSON.stringify(result)}`, {
                     extensions: {
-                      requestBody,
+                      requestBody: {
+                        query,
+                        operationName: request.operationName,
+                      },
                       responseDetails: responseDetailsForError,
                     },
                     originalError: e,
@@ -242,7 +245,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
             errors: [
               createGraphQLError(e, {
                 extensions: {
-                  requestBody,
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
                   responseDetails: responseDetailsForError,
                 },
               }),
@@ -257,7 +263,25 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
             errors: [
               createGraphQLError(`fetch failed to ${endpoint}`, {
                 extensions: {
-                  requestBody,
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
+                  responseDetails: responseDetailsForError,
+                },
+                originalError: e,
+              }),
+            ],
+          };
+        } else if (e.name === 'AbortError' && controller?.signal?.reason) {
+          return {
+            errors: [
+              createGraphQLError('The operation was aborted. reason: ' + controller.signal.reason, {
+                extensions: {
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
                   responseDetails: responseDetailsForError,
                 },
                 originalError: e,
@@ -269,7 +293,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
             errors: [
               createGraphQLError(e.message, {
                 extensions: {
-                  requestBody,
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
                   responseDetails: responseDetailsForError,
                 },
                 originalError: e,
@@ -281,7 +308,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
             errors: [
               createGraphQLError('Unknown error', {
                 extensions: {
-                  requestBody,
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
                   responseDetails: responseDetailsForError,
                 },
                 originalError: e,

@@ -1,5 +1,26 @@
 # @graphql-tools/stitching-directives
 
+## 3.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- Updated dependencies [[`8fba6cc1`](https://github.com/ardatan/graphql-tools/commit/8fba6cc1876e914d587f5b253332aaedbcaa65e6), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/delegate@10.0.0
+  - @graphql-tools/utils@10.0.0
+
+## 2.3.34
+
+### Patch Changes
+
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+
+- Updated dependencies []:
+  - @graphql-tools/delegate@9.0.31
+
 ## 2.3.33
 
 ### Patch Changes
