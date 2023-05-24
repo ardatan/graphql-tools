@@ -4,7 +4,6 @@ import {
   isObjectType,
   isInterfaceType,
   isScalarType,
-  FieldNode,
   GraphQLNamedOutputType,
   isUnionType,
   isCompositeType,
@@ -12,7 +11,13 @@ import {
 
 import { SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 
-import { getImplementingTypes, pruneSchema, filterSchema, parseSelectionSet } from '@graphql-tools/utils';
+import {
+  getImplementingTypes,
+  pruneSchema,
+  filterSchema,
+  parseSelectionSet,
+  collectFields,
+} from '@graphql-tools/utils';
 
 import { FilterTypes, TransformCompositeFields } from '@graphql-tools/wrap';
 
@@ -83,12 +88,18 @@ export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfi
           for (const type of returnTypes) {
             const returnTypeMergeConfig = subschemaConfig.merge[type.name];
 
-            if (isCompositeType(type)) {
+            if (isObjectType(type)) {
               if (returnTypeMergeConfig?.selectionSet) {
                 // this is a merged type, include the selection set
                 // TODO: how to handle entryPoints?
-                const parsedSelectionSet = parseSelectionSet(returnTypeMergeConfig.selectionSet!);
-                const keyFieldNames = parsedSelectionSet.selections.map(s => (s as FieldNode).name.value);
+                const keyFieldNames: string[] = [];
+                if (isObjectType(type)) {
+                  const parsedSelectionSet = parseSelectionSet(returnTypeMergeConfig.selectionSet!);
+                  // const keyFieldNames = parsedSelectionSet.selections.map(s => (s as FieldNode).name.value);
+                  const keyFields = collectFields(subschemaConfig.schema, {}, {}, type, parsedSelectionSet);
+                  keyFieldNames.push(...Array.from(keyFields.fields.keys()));
+                  // keyFieldNames.push(...parsedSelectionSet.selections.map(s => (s as FieldNode).name.value));
+                }
 
                 isolatedSchemaTypes[type.name] = {
                   ...returnTypeMergeConfig,
