@@ -12,7 +12,7 @@
     "@theguild/algolia": "1.1.7",
     "@theguild/tailwind-config": "0.2.1",
     "@types/node": "18.16.14",
-    "@types/react": "18.2.6",
+    "@types/react": "18.2.7",
     "typescript": "5.0.4"
   },
   "dependencies": {
