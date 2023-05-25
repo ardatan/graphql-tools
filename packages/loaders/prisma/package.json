@@ -63,7 +63,7 @@
     "debug": "^4.3.1",
     "dotenv": "^16.0.0",
     "graphql-request": "^6.0.0",
-    "http-proxy-agent": "^6.0.0",
+    "http-proxy-agent": "^7.0.0",
     "https-proxy-agent": "^7.0.0",
     "jose": "^4.11.4",
     "js-yaml": "^4.0.0",
