@@ -7,6 +7,7 @@ import {
   GraphQLNamedOutputType,
   isUnionType,
   isCompositeType,
+  GraphQLSchema,
 } from 'graphql';
 
 import { SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
@@ -91,14 +92,12 @@ export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfi
             if (isObjectType(type)) {
               if (returnTypeMergeConfig?.selectionSet) {
                 // this is a merged type, include the selection set
-                // TODO: how to handle entryPoints?
+                // TODO: how to handle entryPoints
                 const keyFieldNames: string[] = [];
                 if (isObjectType(type)) {
                   const parsedSelectionSet = parseSelectionSet(returnTypeMergeConfig.selectionSet!);
-                  // const keyFieldNames = parsedSelectionSet.selections.map(s => (s as FieldNode).name.value);
                   const keyFields = collectFields(subschemaConfig.schema, {}, {}, type, parsedSelectionSet);
                   keyFieldNames.push(...Array.from(keyFields.fields.keys()));
-                  // keyFieldNames.push(...parsedSelectionSet.selections.map(s => (s as FieldNode).name.value));
                 }
 
                 isolatedSchemaTypes[type.name] = {
@@ -138,6 +137,25 @@ export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfi
   return [subschemaConfig];
 }
 
+function _createCompositeFieldFilter(schema: GraphQLSchema) {
+  // create TransformCompositeFields that will remove any field not in schema,
+  const filteredFields: Record<string, Record<string, boolean>> = {};
+  for (const typeName in schema.getTypeMap()) {
+    const type = schema.getType(typeName);
+    if (isObjectType(type) || isInterfaceType(type)) {
+      filteredFields[typeName] = { __typename: true };
+      const fieldMap = type.getFields();
+      for (const fieldName in fieldMap) {
+        filteredFields[typeName][fieldName] = true;
+      }
+    }
+  }
+  return new TransformCompositeFields(
+    (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null),
+    (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null)
+  );
+}
+
 function filterBaseSubschema(
   subschemaConfig: SubschemaConfig,
   isolatedSchemaTypes: Record<string, ComputedTypeConfig>
@@ -161,18 +179,6 @@ function filterBaseSubschema(
     })
   );
 
-  const filteredFields: Record<string, Record<string, boolean>> = {};
-  for (const typeName in filteredSchema.getTypeMap()) {
-    const type = filteredSchema.getType(typeName);
-    if (isObjectType(type) || isInterfaceType(type)) {
-      filteredFields[typeName] = { __typename: true };
-      const fieldMap = type.getFields();
-      for (const fieldName in fieldMap) {
-        filteredFields[typeName][fieldName] = true;
-      }
-    }
-  }
-
   const filteredSubschema = {
     ...subschemaConfig,
     merge: subschemaConfig.merge
@@ -181,11 +187,8 @@ function filterBaseSubschema(
         }
       : undefined,
     transforms: (subschemaConfig.transforms ?? []).concat([
-      new TransformCompositeFields(
-        (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null),
-        (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null)
-      ),
-      new FilterTypes(
+      _createCompositeFieldFilter(filteredSchema),
+      new FilterTypes( // filter out empty types
         type => (!isObjectType(type) && !isInterfaceType(type)) || Object.keys(type.getFields()).length > 0
       ),
     ]),
@@ -340,18 +343,6 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
     { skipPruning: typ => computedFieldTypes[typ.name] != null }
   );
 
-  const filteredFields: Record<string, Record<string, boolean>> = {};
-  for (const typeName in filteredSchema.getTypeMap()) {
-    const type = filteredSchema.getType(typeName);
-    if (isObjectType(type) || isInterfaceType(type)) {
-      filteredFields[typeName] = { __typename: true };
-      const fieldMap = type.getFields();
-      for (const fieldName in fieldMap) {
-        filteredFields[typeName][fieldName] = true;
-      }
-    }
-  }
-
   const merge = Object.fromEntries(
     // get rid of keyFieldNames again
     Object.entries(subschemaConfig.merge).map(([typeName, { keyFieldNames, ...config }]) => [typeName, config])
@@ -361,11 +352,8 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
     ...subschemaConfig,
     merge,
     transforms: (subschemaConfig.transforms ?? []).concat([
-      new TransformCompositeFields(
-        (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null),
-        (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null)
-      ),
-      new FilterTypes(
+      _createCompositeFieldFilter(filteredSchema),
+      new FilterTypes( // filter out empty types
         type => (!isObjectType(type) && !isInterfaceType(type)) || Object.keys(type.getFields()).length > 0
       ),
     ]),
