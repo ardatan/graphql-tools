@@ -1,5 +1,16 @@
 # @graphql-tools/prisma-loader
 
+## 8.0.1
+
+### Patch Changes
+
+- [#5304](https://github.com/ardatan/graphql-tools/pull/5304) [`a97b78f2`](https://github.com/ardatan/graphql-tools/commit/a97b78f2bef939c3bd34953f9ad41a618b2a2376) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+
+  - Updated dependency [`http-proxy-agent@^7.0.0` ↗︎](https://www.npmjs.com/package/http-proxy-agent/v/7.0.0) (from `^6.0.0`, in `dependencies`)
+
+- [#5305](https://github.com/ardatan/graphql-tools/pull/5305) [`cfd44c61`](https://github.com/ardatan/graphql-tools/commit/cfd44c6105276b6e93d6a13e5035b5093a71c326) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`https-proxy-agent@^7.0.0` ↗︎](https://www.npmjs.com/package/https-proxy-agent/v/7.0.0) (from `^6.0.0`, in `dependencies`)
+
 ## 8.0.0
 
 ### Major Changes
