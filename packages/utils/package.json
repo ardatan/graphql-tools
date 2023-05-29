@@ -56,7 +56,7 @@
   "devDependencies": {
     "@types/dateformat": "3.0.1",
     "dateformat": "4.6.3",
-    "graphql-scalars": "1.22.0"
+    "graphql-scalars": "1.22.1"
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.1.1",
