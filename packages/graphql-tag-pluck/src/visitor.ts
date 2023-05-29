@@ -265,7 +265,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
         }
 
         // Checks to see if a node represents a typescript '<expression> as const' expression
-        function isTSAsConstExpression(node: object | null | undefined): node is TSAsExpression {
+        function isTSAsConstExpression(node: any): node is TSAsExpression {
           return (
             isTSAsExpression(node) &&
             isTSTypeReference(node.typeAnnotation) &&
