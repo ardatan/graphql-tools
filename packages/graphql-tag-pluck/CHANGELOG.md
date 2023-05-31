@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.0.1
+
+### Patch Changes
+
+- [#5310](https://github.com/ardatan/graphql-tools/pull/5310) [`c7fc12cc`](https://github.com/ardatan/graphql-tools/commit/c7fc12cc17c75cf797201cb8129a8f2a85cdfc6c) Thanks [@renovate](https://github.com/apps/renovate)! - Fix typings
+
 ## 8.0.0
 
 ### Major Changes
