@@ -67,7 +67,7 @@
     "@graphql-yoga/plugin-defer-stream": "2.0.0",
     "puppeteer": "20.5.0",
     "subscriptions-transport-ws": "0.11.0",
-    "webpack": "5.85.0"
+    "webpack": "5.85.1"
   },
   "dependencies": {
     "@graphql-tools/delegate": "^10.0.0",
