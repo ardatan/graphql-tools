@@ -62,7 +62,7 @@
   },
   "peerDependencies": {
     "graphql": "^15.2.0 || ^16.0.0",
-    "graphql-yoga": "^3.5.1"
+    "graphql-yoga": "^3.5.1 || ^4.0.0"
   },
   "type": "module",
   "engines": {
