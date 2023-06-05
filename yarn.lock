@@ -3521,17 +3521,17 @@
   integrity sha512-PnnAP/o6QkgAdjcExKugzl5ZUqPVcv9lvgGz/to3Xe5Du/P5Zw6MzB8P8mI/B4mplYOYsr6AkXkb4plG0ydCow==
 
 "@whatwg-node/fetch@^0.9.0":
-  version "0.9.2"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.9.2.tgz#891c0cccd46976bbc65173d76e9a705d39bce9a1"
-  integrity sha512-BYc8l6nTx5S3gjKhZlQcWtTtSc46CEeAabSbHoo9VGVDwfgxb2jxbHrF8w38jEp4WbGvHAvIWUt54jvAd4puHA==
+  version "0.9.3"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.9.3.tgz#2408f92e9336e18be7758bbd0e90fabdd6e252bf"
+  integrity sha512-zj56zQUj2w+N4UAFvyVlI9VCsGDw2UiiwjTJ3pwXpKolBXYJJYUB47emGxFe8BVBpo/slaIoCkRkGHaeS+aw+A==
   dependencies:
-    "@whatwg-node/node-fetch" "^0.4.1"
+    "@whatwg-node/node-fetch" "^0.4.2"
     urlpattern-polyfill "^9.0.0"
 
-"@whatwg-node/node-fetch@^0.4.1":
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/node-fetch/-/node-fetch-0.4.1.tgz#1bcb608ace49db54c0000661293c2d4675774439"
-  integrity sha512-pO27RvU5fIWdCcOXOm17dtS2Kd7pWAxO4RYiX1wBumP6WXqI+OPr/resrwn5dk7oQl8JuHf+hPoy2/Qqx9dCHw==
+"@whatwg-node/node-fetch@^0.4.2":
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/node-fetch/-/node-fetch-0.4.2.tgz#89bd5f956ef03a58d0c811f2963c92d02bc0cbb0"
+  integrity sha512-fxrgqr1Yo3OrTFyLNOeUfFEoK/495jcuTrAvelqw2bPwg6xT23+9xzuJ3ukl425WWmxvbRjU+rUr1vVdfsAFmg==
   dependencies:
     "@whatwg-node/events" "^0.1.0"
     busboy "^1.6.0"
