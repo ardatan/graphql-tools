@@ -14,7 +14,6 @@ import {
   isSpecifiedDirective,
   GraphQLDirective,
   DirectiveDefinitionNode,
-  astFromValue,
   ArgumentNode,
   SchemaDefinitionNode,
   OperationTypeDefinitionNode,
@@ -55,6 +54,7 @@ import { getDirectivesInExtensions } from './get-directives.js';
 import { astFromValueUntyped } from './astFromValueUntyped.js';
 import { isSome } from './helpers.js';
 import { getRootTypeMap } from './rootTypes.js';
+import { astFromValue } from './astFromValue.js';
 
 export function getDocumentNodeFromSchema(
   schema: GraphQLSchema,

@@ -12,6 +12,7 @@ import { Kind, ObjectFieldNode, ValueNode } from 'graphql';
  * | Boolean       | Boolean              |
  * | String        | String               |
  * | Number        | Int / Float          |
+ * | BigInt        | Int                  |
  * | null          | NullValue            |
  *
  */
@@ -58,6 +59,10 @@ export function astFromValueUntyped(value: any): ValueNode | null {
   // Others serialize based on their corresponding JavaScript scalar types.
   if (typeof value === 'boolean') {
     return { kind: Kind.BOOLEAN, value };
+  }
+
+  if (typeof value === 'bigint') {
+    return { kind: Kind.INT, value: String(value) };
   }
 
   // JavaScript numbers can be Int or Float values.
