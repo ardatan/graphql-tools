@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 10.0.1
+
+### Patch Changes
+
+- [`dcdc6eb7`](https://github.com/ardatan/graphql-tools/commit/dcdc6eb787ca77d741d98d68b70d4083f4d72b91) Thanks [@ardatan](https://github.com/ardatan)! - Support BigInt values
+
 ## 10.0.0
 
 ### Major Changes
