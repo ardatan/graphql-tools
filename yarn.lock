@@ -2705,10 +2705,10 @@
   dependencies:
     tslib "^2.4.0"
 
-"@theguild/algolia@1.1.7":
-  version "1.1.7"
-  resolved "https://registry.yarnpkg.com/@theguild/algolia/-/algolia-1.1.7.tgz#b368b215ba5b180f8eac82e6c259e1ea669bc454"
-  integrity sha512-ywNXpDN1qgYDo0UxAOI819VaqSJdEixLDTSfAoENwN5vPtQwtmKu6ejOqBR3rSf/KDFMc3KTYJ8fh+zYj2ZhvA==
+"@theguild/algolia@1.1.8":
+  version "1.1.8"
+  resolved "https://registry.yarnpkg.com/@theguild/algolia/-/algolia-1.1.8.tgz#aed5864edbabf7f82b7e37bd1c4a23b0605a20f7"
+  integrity sha512-UUxgLcl4OIVumjfjHfeFwsH/iOMuqCvqDU4XjP/WmmzCUrFTk88vGRbWyXCeCdzlkpWBz+3dcI57ZgQvF+R66g==
   dependencies:
     algoliasearch "^4.14.3"
     commander "^10.0.0"
