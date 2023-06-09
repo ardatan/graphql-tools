@@ -128,7 +128,7 @@
         "anchor": "api"
       }
     ],
-    "content": "0c23d49e72994f671749a8e4195b85f2",
+    "content": "5f98e0762fe49c3c21f6492d353e5f41",
     "url": "https://www.the-guild.dev/graphql/tools/docs/generate-schema",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
@@ -168,7 +168,7 @@
         "anchor": "options"
       }
     ],
-    "content": "995f3cca7f7a8cccd08461a58171a146",
+    "content": "bedca5cebda33c9ae1e84a9066e032ff",
     "url": "https://www.the-guild.dev/graphql/tools/docs/graphql-tag-pluck",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
@@ -464,7 +464,7 @@
         "anchor": "usage"
       }
     ],
-    "content": "c629f467ffdff51609befff56210bf94",
+    "content": "9e599c0a4c7d2c1e99220587957c34d8",
     "url": "https://www.the-guild.dev/graphql/tools/docs/relay-operation-optimizer",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
@@ -607,7 +607,7 @@
         "anchor": "enums"
       }
     ],
-    "content": "93d76960e079aa168decfdc5f573b01d",
+    "content": "41e3ae96fb0d0963c80db2ea2d9b34ec",
     "url": "https://www.the-guild.dev/graphql/tools/docs/scalars",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
