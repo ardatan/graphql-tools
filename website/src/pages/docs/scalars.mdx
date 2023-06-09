@@ -2,7 +2,7 @@
 description: Add custom scalar and enum types to your graphql-tools generated schema.
 ---
 
-import { PackageCmd, Callout } from '@theguild/components'
+import { Callout } from '@theguild/components'
 
 # Custom Scalars and Enums
 
@@ -28,7 +28,9 @@ Here, we'll take the [graphql-scalars](https://github.com/Urigo/graphql-scalars)
 
 Add the `graphql-scalars` package to your project's dependencies:
 
-<PackageCmd packages={['graphql-scalars']} />
+```sh npm2yarn
+npm i graphql-scalars
+```
 
 In your JavaScript code, require the type defined in the npm package and use it:
 

@@ -2,8 +2,6 @@
 description: Generate a GraphQL schema from the concise type definition language.
 ---
 
-import { PackageCmd } from '@theguild/components'
-
 # Executable Schemas
 
 The GraphQL-Tools package allows you to create a GraphQL.js GraphQLSchema instance from GraphQL schema language using the function `makeExecutableSchema`.
@@ -90,7 +88,9 @@ const resolvers = {
 
 ## Install the package
 
-<PackageCmd packages={['@graphql-tools/schema']} />
+```sh npm2yarn
+npm i @graphql-tools/schema
+```
 
 In the end, the schema and resolvers are combined using `makeExecutableSchema`:
 
