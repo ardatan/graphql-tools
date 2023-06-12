@@ -27,35 +27,46 @@ export function buildWSLegacyExecutor(
 ): Executor {
   let websocket: WebSocket | null = null;
 
-  const ensureWebsocket = () => {
-    websocket = new WebSocketImpl(subscriptionsEndpoint, 'graphql-ws', {
-      followRedirects: true,
-      headers: options?.headers,
-      rejectUnauthorized: false,
-      skipUTF8Validation: true,
-    });
+  const ensureWebsocket = (errorHandler: (error: Error) => void = err => console.error(err)) => {
+    if (websocket == null || websocket.readyState !== WebSocket.OPEN) {
+      websocket = new WebSocketImpl(subscriptionsEndpoint, 'graphql-ws', {
+        followRedirects: true,
+        headers: options?.headers,
+        rejectUnauthorized: false,
+        skipUTF8Validation: true,
+      });
 
-    websocket.onopen = () => {
-      let payload: any = {};
-      switch (typeof options?.connectionParams) {
-        case 'function':
-          payload = options?.connectionParams();
-          break;
-        case 'object':
-          payload = options?.connectionParams;
-          break;
-      }
-      websocket!.send(
-        JSON.stringify({
-          type: LEGACY_WS.CONNECTION_INIT,
-          payload,
-        })
-      );
-    };
+      websocket.onopen = () => {
+        let payload: any = {};
+        switch (typeof options?.connectionParams) {
+          case 'function':
+            payload = options?.connectionParams();
+            break;
+          case 'object':
+            payload = options?.connectionParams;
+            break;
+        }
+        websocket!.send(
+          JSON.stringify({
+            type: LEGACY_WS.CONNECTION_INIT,
+            payload,
+          }),
+          (error: any) => {
+            if (error) {
+              errorHandler(error);
+            }
+          }
+        );
+      };
 
-    websocket.onclose = () => {
-      websocket = null;
-    };
+      websocket.onerror = event => {
+        errorHandler(event.error);
+      };
+
+      websocket.onclose = () => {
+        websocket = null;
+      };
+    }
   };
 
   const cleanupWebsocket = () => {
@@ -74,6 +85,9 @@ export function buildWSLegacyExecutor(
     const id = Date.now().toString();
     return observableToAsyncIterable({
       subscribe(observer) {
+        function errorHandler(err: Error) {
+          observer.error(err);
+        }
         ensureWebsocket();
         if (websocket == null) {
           throw new Error(`WebSocket connection is not found!`);
@@ -94,7 +108,12 @@ export function buildWSLegacyExecutor(
                     variables: request.variables,
                     operationName: request.operationName,
                   },
-                })
+                }),
+                (error: any) => {
+                  if (error) {
+                    errorHandler(error);
+                  }
+                }
               );
               break;
             }
@@ -110,14 +129,18 @@ export function buildWSLegacyExecutor(
               break;
             }
             case LEGACY_WS.COMPLETE: {
-              if (websocket == null) {
-                throw new Error(`WebSocket connection is not found!`);
+              if (websocket != null) {
+                websocket.send(
+                  JSON.stringify({
+                    type: LEGACY_WS.CONNECTION_TERMINATE,
+                  }),
+                  (error: any) => {
+                    if (error) {
+                      errorHandler(error);
+                    }
+                  }
+                );
               }
-              websocket.send(
-                JSON.stringify({
-                  type: LEGACY_WS.CONNECTION_TERMINATE,
-                })
-              );
               observer.complete();
               cleanupWebsocket();
               break;
