@@ -1,4 +1,4 @@
-import { ExecutionRequest, ExecutionResult, Executor, observableToAsyncIterable, Observer } from '@graphql-tools/utils';
+import { ExecutionRequest, Executor, observableToAsyncIterable } from '@graphql-tools/utils';
 import { print } from 'graphql';
 import WebSocket from 'isomorphic-ws';
 
@@ -25,8 +25,6 @@ export function buildWSLegacyExecutor(
   WebSocketImpl: typeof WebSocket,
   options?: LegacyWSExecutorOpts
 ): Executor {
-  const observerById = new Map<string, Observer<ExecutionResult<any>>>();
-
   let websocket: WebSocket | null = null;
 
   const ensureWebsocket = () => {
@@ -54,10 +52,14 @@ export function buildWSLegacyExecutor(
         })
       );
     };
+
+    websocket.onclose = () => {
+      websocket = null;
+    };
   };
 
   const cleanupWebsocket = () => {
-    if (websocket != null && observerById.size === 0) {
+    if (websocket != null) {
       websocket.send(
         JSON.stringify({
           type: LEGACY_WS.CONNECTION_TERMINATE,
@@ -125,12 +127,14 @@ export function buildWSLegacyExecutor(
 
         return {
           unsubscribe: () => {
-            websocket?.send(
-              JSON.stringify({
-                type: LEGACY_WS.STOP,
-                id,
-              })
-            );
+            if (websocket?.readyState === WebSocket.OPEN) {
+              websocket?.send(
+                JSON.stringify({
+                  type: LEGACY_WS.STOP,
+                  id,
+                })
+              );
+            }
             cleanupWebsocket();
           },
         };
