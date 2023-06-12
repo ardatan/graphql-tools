@@ -1,5 +1,13 @@
 # @graphql-tools/executor-legacy-ws
 
+## 1.0.1
+
+### Patch Changes
+
+- [`621d848b`](https://github.com/ardatan/graphql-tools/commit/621d848bba5abe8cb21ec0cc466ea0e80fe40cf5) Thanks [@ardatan](https://github.com/ardatan)! - Clean websocket pointer if the connection is closed
+
+- [`ffdf1c63`](https://github.com/ardatan/graphql-tools/commit/ffdf1c632db9b37b6ddc25075339a3a2aa2e8aca) Thanks [@ardatan](https://github.com/ardatan)! - Handle WS errors gracefully
+
 ## 1.0.0
 
 ### Major Changes
