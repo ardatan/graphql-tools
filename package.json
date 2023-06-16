@@ -12,8 +12,8 @@
     "ci:lint": "eslint --ext .ts . --output-file eslint_report.json --format json",
     "prettier": "prettier --ignore-path .prettierignore --write --list-different .",
     "prettier:check": "prettier --ignore-path .prettierignore --check .",
-    "test": "jest --no-watchman",
-    "test:leaks": "jest --no-watchman --detectOpenHandles --detectLeaks --logHeapUsage",
+    "test": "cross-env=\"NODE_TLS_REJECT_UNAUTHORIZED=0\" jest --no-watchman",
+    "test:leaks": "cross-env=\"NODE_TLS_REJECT_UNAUTHORIZED=0\" jest --no-watchman --detectOpenHandles --detectLeaks --logHeapUsage",
     "prerelease": "yarn build",
     "release": "changeset publish"
   },
@@ -51,6 +51,7 @@
     "bob-the-bundler": "7.0.1",
     "chalk": "4.1.2",
     "concurrently": "8.2.0",
+    "cross-env": "7.0.3",
     "eslint": "8.42.0",
     "eslint-config-prettier": "8.8.0",
     "eslint-config-standard": "17.1.0",
