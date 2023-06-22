@@ -1,5 +1,12 @@
 # @graphql-tools/executor-graphql-ws
 
+## 1.0.1
+
+### Patch Changes
+
+- [#5374](https://github.com/ardatan/graphql-tools/pull/5374) [`88a7de96`](https://github.com/ardatan/graphql-tools/commit/88a7de96c7766d94f9ac0adbe54523e585f8566c) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`graphql-ws@5.14.0` ↗︎](https://www.npmjs.com/package/graphql-ws/v/5.14.0) (from `5.13.1`, in `dependencies`)
+
 ## 1.0.0
 
 ### Major Changes
