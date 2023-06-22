@@ -6679,10 +6679,10 @@ graphql-yoga@4.0.2, graphql-yoga@^4.0.0:
     lru-cache "^10.0.0"
     tslib "^2.5.2"
 
-"graphql@14 - 16", graphql@16.7.0, graphql@^14.5.3, graphql@^16.6.0:
-  version "16.7.0"
-  resolved "https://registry.yarnpkg.com/graphql/-/graphql-16.7.0.tgz#717051b8c183fcf8c3ad0a3668aeb5ffd1e9bc33"
-  integrity sha512-kdNG+ZGNf0E4dezSA2N9cRq8UdOMCcz9Wzh1dDSrCzGCz0nj6p8qlE+utY6iqr9y1sh3MZxUb7K794neZ2oT1w==
+"graphql@14 - 16", graphql@16.7.1, graphql@^14.5.3, graphql@^16.6.0:
+  version "16.7.1"
+  resolved "https://registry.yarnpkg.com/graphql/-/graphql-16.7.1.tgz#11475b74a7bff2aefd4691df52a0eca0abd9b642"
+  integrity sha512-DRYR9tf+UGU0KOsMcKAlXeFfX89UiiIZ0dRU3mR0yJfu6OjZqUcp68NnFLnqQU5RexygFoDy1EW+ccOYcPfmHg==
 
 gray-matter@^4.0.3:
   version "4.0.3"
