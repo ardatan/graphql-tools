@@ -42,4 +42,23 @@ describe('buildHTTPExecutor', () => {
       ],
     });
   });
+  it('handle responses other than 2XX', async () => {
+    const executor = buildHTTPExecutor({
+      fetch: (_url, init) => new Response(JSON.stringify({ data: init }), { status: 500 }),
+    });
+    const result = await executor({
+      document: parse(/* GraphQL */ `
+        query {
+          hello
+        }
+      `),
+    });
+    expect(result).toMatchObject({
+      errors: [
+        {
+          message: 'Internal Server Error',
+        },
+      ],
+    });
+  });
 });
