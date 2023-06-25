@@ -91,6 +91,34 @@ describe('Retry & Timeout', () => {
       });
       expect(cnt).toEqual(3);
     });
+    it('retry and fail with HTTP error', async () => {
+      let cnt = 0;
+      const executor = buildHTTPExecutor({
+        async fetch() {
+          cnt++;
+          return new Response(
+            JSON.stringify({
+              data: null,
+              errors: [{ message: 'Unexpected HTTP error' }],
+            }),
+            { status: 500 }
+          );
+        },
+        retry: 3,
+      });
+      const result = await executor({
+        document: parse(/* GraphQL */ `
+          query {
+            hello
+          }
+        `),
+      });
+      expect(result).toMatchObject({
+        data: null,
+        errors: [{ message: 'Unexpected HTTP error' }],
+      });
+      expect(cnt).toEqual(3);
+    });
   });
   it('timeout', async () => {
     server = new Server((req, res) => {
