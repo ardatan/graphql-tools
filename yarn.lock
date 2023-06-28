@@ -1838,10 +1838,10 @@
   dependencies:
     tslib "^2.5.2"
 
-"@graphql-yoga/plugin-defer-stream@2.0.2":
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-2.0.2.tgz#ffe3985a1e212c594f6f850c7aadc453f97a139d"
-  integrity sha512-UiH/ctc9S4R4Hug+XAq691YuReUN3J5fLlrVR3q/lFuWLdqohLD1/gRpCQb+1ORgjSBSbZMvKs+IdZb5BwnJ3Q==
+"@graphql-yoga/plugin-defer-stream@2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-2.0.3.tgz#744bf8127674841c7915684750b3c509e5f90dec"
+  integrity sha512-C1XALXDF0YuKUOuRomdP8ePLFjTpWgphNxkCNsBFN28bH47s3X+j+inrCqHmgaJgK6S/jm2YjDpUa8yqdSa8Sg==
   dependencies:
     "@graphql-tools/utils" "^10.0.0"
 
@@ -3507,7 +3507,7 @@
   resolved "https://registry.yarnpkg.com/@whatwg-node/events/-/events-0.1.0.tgz#1e7b4e4fd0d149b247ec0132b1030fe522282295"
   integrity sha512-PnnAP/o6QkgAdjcExKugzl5ZUqPVcv9lvgGz/to3Xe5Du/P5Zw6MzB8P8mI/B4mplYOYsr6AkXkb4plG0ydCow==
 
-"@whatwg-node/fetch@^0.9.0":
+"@whatwg-node/fetch@^0.9.0", "@whatwg-node/fetch@^0.9.7":
   version "0.9.7"
   resolved "https://registry.yarnpkg.com/@whatwg-node/fetch/-/fetch-0.9.7.tgz#86b5cda576581beea300191d5c1f626fc7abfff7"
   integrity sha512-heClS5ctTmoEvVbFd+6ztX0SyQduI3/Q+77vtNApDU/+Mwajy6ugxaoDGgSzJUoQ37McSV09kcGCt1Jcc6z9lQ==
@@ -3526,12 +3526,12 @@
     fast-url-parser "^1.1.3"
     tslib "^2.3.1"
 
-"@whatwg-node/server@^0.8.1":
-  version "0.8.1"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/server/-/server-0.8.1.tgz#dc22ca2cf4b834d1437c0ef97c3e79d63e4d10b4"
-  integrity sha512-5nzOE61W5VA43rE4MeUVHLDPpZGDfGiQ5LnEwJNbVehUI6Ua8QD566C8dhBmXxFuT8pXTlxWZHe3sjjGZCc4ng==
+"@whatwg-node/server@^0.9.1":
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/server/-/server-0.9.1.tgz#1c69c47768e1aef14de53deba468a411413bbcbf"
+  integrity sha512-Zq0FWafIlJzYyyAL7UwzsEhqSMzvKci/XqIFKpC4V031PxKKPBmZSP1mXCew5eZFW8Z5Sj6bZNi2CIsHd062ug==
   dependencies:
-    "@whatwg-node/fetch" "^0.9.0"
+    "@whatwg-node/fetch" "^0.9.7"
     tslib "^2.3.1"
 
 "@wry/context@^0.7.0":
@@ -6657,10 +6657,10 @@ graphql-ws@5.14.0:
   resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.14.0.tgz#766f249f3974fc2c48fae0d1fb20c2c4c79cd591"
   integrity sha512-itrUTQZP/TgswR4GSSYuwWUzrE/w5GhbwM2GX3ic2U7aw33jgEsayfIlvaj7/GcIvZgNMzsPTrE5hqPuFUiE5g==
 
-graphql-yoga@4.0.2, graphql-yoga@^4.0.0:
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-4.0.2.tgz#7fa34af1531ddbba144fa1180d701e8d2c0a452d"
-  integrity sha512-frDoqKD+b9JvUY2vgqfeWW5LT1iqibyW4//i7hNBKh7mhA1cSR4eK8C/DT//v0Sado8KQphrVThjDxVH+07wFA==
+graphql-yoga@4.0.3, graphql-yoga@^4.0.0:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-4.0.3.tgz#28a6f9c8999a1dc5f490fca635b14785873e7fec"
+  integrity sha512-MP+v+yxCqM3lXg95vaA+kXjyRvyRxHUlgZryTecN7ugzEEnyQKKu8JBXA4ziEuLi3liRriyjCAyV4pqFzhHujA==
   dependencies:
     "@envelop/core" "^4.0.0"
     "@graphql-tools/executor" "^1.0.0"
@@ -6668,8 +6668,8 @@ graphql-yoga@4.0.2, graphql-yoga@^4.0.0:
     "@graphql-tools/utils" "^10.0.0"
     "@graphql-yoga/logger" "^1.0.0"
     "@graphql-yoga/subscription" "^4.0.0"
-    "@whatwg-node/fetch" "^0.9.0"
-    "@whatwg-node/server" "^0.8.1"
+    "@whatwg-node/fetch" "^0.9.7"
+    "@whatwg-node/server" "^0.9.1"
     dset "^3.1.1"
     lru-cache "^10.0.0"
     tslib "^2.5.2"
@@ -8015,10 +8015,10 @@ lines-and-columns@^1.1.6:
   resolved "https://registry.yarnpkg.com/lines-and-columns/-/lines-and-columns-1.1.6.tgz#1c00c743b433cd0a4e80758f7b64a57440d9ff00"
   integrity sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA=
 
-lint-staged@13.2.2:
-  version "13.2.2"
-  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-13.2.2.tgz#5e711d3139c234f73402177be2f8dd312e6508ca"
-  integrity sha512-71gSwXKy649VrSU09s10uAT0rWCcY3aewhMaHyl2N84oBk4Xs9HgxvUp3AYu+bNsK4NrOYYxvSgg7FyGJ+jGcA==
+lint-staged@13.2.3:
+  version "13.2.3"
+  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-13.2.3.tgz#f899aad6c093473467e9c9e316e3c2d8a28f87a7"
+  integrity sha512-zVVEXLuQIhr1Y7R7YAWx4TZLdvuzk7DnmrsTNL0fax6Z3jrpFcas+vKbzxhhvp6TA55m1SQuWkpzI1qbfDZbAg==
   dependencies:
     chalk "5.2.0"
     cli-truncate "^3.1.0"
