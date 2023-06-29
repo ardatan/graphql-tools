@@ -13,7 +13,7 @@
     "@theguild/tailwind-config": "0.2.2",
     "@types/node": "18.16.18",
     "@types/react": "18.2.14",
-    "typescript": "5.1.5"
+    "typescript": "5.1.6"
   },
   "dependencies": {
     "@theguild/components": "5.0.0",
