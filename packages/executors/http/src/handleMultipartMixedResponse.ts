@@ -1,10 +1,8 @@
 import type { IncomingMessage } from 'http';
 import { meros as merosIncomingMessage } from 'meros/node';
 import { meros as merosReadableStream } from 'meros/browser';
-import { ExecutionResult, mapAsyncIterator } from '@graphql-tools/utils';
-import { dset } from 'dset/merge';
+import { ExecutionResult, mapAsyncIterator, mergeIncrementalResult } from '@graphql-tools/utils';
 import { addCancelToResponseStream } from './addCancelToResponseStream.js';
-import { GraphQLError } from 'graphql';
 
 type Part =
   | {
@@ -44,39 +42,17 @@ export async function handleMultipartMixedResponse(response: Response, controlle
 
   const executionResult: ExecutionResult = {};
 
-  function handleResult(result: ExecutionResult) {
-    if (result.path) {
-      const path = ['data', ...result.path];
-      executionResult.data = executionResult.data || {};
-      if (result.items) {
-        for (const item of result.items) {
-          dset(executionResult, path, item);
-        }
-      }
-      if (result.data) {
-        dset(executionResult, ['data', ...result.path], result.data);
-      }
-    } else if (result.data) {
-      executionResult.data = executionResult.data || {};
-      Object.assign(executionResult.data, result.data);
-    }
-    if (result.errors) {
-      executionResult.errors = executionResult.errors || [];
-      (executionResult.errors as GraphQLError[]).push(...result.errors);
-    }
-    if (result.incremental) {
-      result.incremental.forEach(handleResult);
-    }
-  }
-
   if (asyncIterator == null) {
     return executionResult;
   }
 
   const resultStream = mapAsyncIterator(asyncIterator, (part: Part) => {
     if (part.json) {
-      const chunk = part.body;
-      handleResult(chunk);
+      const incrementalResult = part.body;
+      mergeIncrementalResult({
+        incrementalResult,
+        executionResult,
+      });
       return executionResult;
     }
   });
