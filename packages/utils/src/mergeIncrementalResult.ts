@@ -28,6 +28,10 @@ export function mergeIncrementalResult({
     executionResult.errors = executionResult.errors || [];
     (executionResult.errors as GraphQLError[]).push(...executionResult.errors);
   }
+  if (incrementalResult.extensions) {
+    executionResult.extensions = executionResult.extensions || {};
+    Object.assign(executionResult.extensions, incrementalResult.extensions);
+  }
   if (incrementalResult.incremental) {
     incrementalResult.incremental.forEach(incrementalSubResult => {
       mergeIncrementalResult({
