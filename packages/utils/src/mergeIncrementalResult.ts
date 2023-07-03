@@ -29,6 +29,11 @@ export function mergeIncrementalResult({
     (executionResult.errors as GraphQLError[]).push(...executionResult.errors);
   }
   if (incrementalResult.incremental) {
-    incrementalResult.incremental.forEach(mergeIncrementalResults);
+    incrementalResult.incremental.forEach(incrementalSubResult => {
+      mergeIncrementalResult({
+        incrementalResult: incrementalSubResult,
+        executionResult,
+      });
+    });
   }
 }
