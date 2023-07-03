@@ -9,29 +9,29 @@ export function mergeIncrementalResult({
   incrementalResult: ExecutionResult;
   executionResult: ExecutionResult;
 }) {
-  if (incrementalResult.path) {
-    const path = ['data', ...incrementalResult.path];
-    executionResult.data = executionResult.data || {};
-    if (incrementalResult.items) {
-      for (const item of incrementalResult.items) {
-        dset(executionResult, path, item);
-      }
+  const path = ['data', ...(incrementalResult.path ?? [])];
+
+  if (incrementalResult.items) {
+    for (const item of incrementalResult.items) {
+      dset(executionResult, path, item);
+      // Increment the last path segment (the array index) to merge the next item at the next index
+      (path[path.length - 1] as number)++;
     }
-    if (incrementalResult.data) {
-      dset(executionResult, ['data', ...incrementalResult.path], incrementalResult.data);
-    }
-  } else if (incrementalResult.data) {
-    executionResult.data = executionResult.data || {};
-    Object.assign(executionResult.data, incrementalResult.data);
   }
+
+  if (incrementalResult.data) {
+    dset(executionResult, path, incrementalResult.data);
+  }
+
   if (incrementalResult.errors) {
     executionResult.errors = executionResult.errors || [];
-    (executionResult.errors as GraphQLError[]).push(...executionResult.errors);
+    (executionResult.errors as GraphQLError[]).push(...incrementalResult.errors);
   }
+
   if (incrementalResult.extensions) {
-    executionResult.extensions = executionResult.extensions || {};
-    Object.assign(executionResult.extensions, incrementalResult.extensions);
+    dset(executionResult, 'extensions', incrementalResult.extensions);
   }
+
   if (incrementalResult.incremental) {
     incrementalResult.incremental.forEach(incrementalSubResult => {
       mergeIncrementalResult({
