@@ -1,5 +1,14 @@
 # @graphql-tools/executor-graphql-ws
 
+## 1.0.2
+
+### Patch Changes
+
+- [#5396](https://github.com/ardatan/graphql-tools/pull/5396) [`bb8f169e`](https://github.com/ardatan/graphql-tools/commit/bb8f169e21a8a7002b66d3bc6e4e4b40cc2a5f5c) Thanks [@ardatan](https://github.com/ardatan)! - Simplify GraphQL WS executor
+
+- Updated dependencies [[`bb8f169e`](https://github.com/ardatan/graphql-tools/commit/bb8f169e21a8a7002b66d3bc6e4e4b40cc2a5f5c), [`bb8f169e`](https://github.com/ardatan/graphql-tools/commit/bb8f169e21a8a7002b66d3bc6e4e4b40cc2a5f5c)]:
+  - @graphql-tools/utils@10.0.2
+
 ## 1.0.1
 
 ### Patch Changes
