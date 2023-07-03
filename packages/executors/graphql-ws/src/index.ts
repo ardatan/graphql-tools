@@ -1,5 +1,4 @@
 import { ExecutionRequest, Executor, ExecutionResult, getOperationASTFromRequest } from '@graphql-tools/utils';
-import { Repeater } from '@repeaterjs/repeater';
 import { print } from 'graphql';
 import { Client, ClientOptions, createClient } from 'graphql-ws';
 import WebSocket from 'isomorphic-ws';
@@ -33,7 +32,7 @@ export function buildGraphQLWSExecutor(clientOptionsOrClient: GraphQLWSExecutorO
     TExtensions extends Record<string, any>
   >(
     executionRequest: ExecutionRequest<TArgs, any, TRoot, TExtensions>
-  ): Repeater<ExecutionResult<TData>> | Promise<ExecutionResult<TData>> {
+  ): AsyncIterableIterator<ExecutionResult<TData>> | Promise<ExecutionResult<TData>> {
     const {
       document,
       variables,
@@ -42,50 +41,15 @@ export function buildGraphQLWSExecutor(clientOptionsOrClient: GraphQLWSExecutorO
       operationType = getOperationASTFromRequest(executionRequest).operation,
     } = executionRequest;
     const query = print(document);
-    if (operationType === 'subscription') {
-      return new Repeater(function repeaterExecutor(push, stop) {
-        const unsubscribe = graphqlWSClient.subscribe<TData, TExtensions>(
-          {
-            query,
-            variables,
-            operationName,
-            extensions,
-          },
-          {
-            next(data) {
-              return push(data);
-            },
-            error(error) {
-              return stop(error);
-            },
-            complete() {
-              return stop();
-            },
-          }
-        );
-        return stop.finally(unsubscribe);
-      });
-    }
-    return new Promise((resolve, reject) => {
-      const unsubscribe = graphqlWSClient.subscribe<TData, TExtensions>(
-        {
-          query,
-          variables,
-          operationName,
-          extensions,
-        },
-        {
-          next(data) {
-            return resolve(data);
-          },
-          error(error) {
-            return reject(error);
-          },
-          complete() {
-            unsubscribe();
-          },
-        }
-      );
+    const iterableIterator = graphqlWSClient.iterate<TData, TExtensions>({
+      query,
+      variables,
+      operationName,
+      extensions,
     });
+    if (operationType === 'subscription') {
+      return iterableIterator;
+    }
+    return iterableIterator.next().then(({ value }) => value);
   };
 }
