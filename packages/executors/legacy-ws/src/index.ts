@@ -16,7 +16,7 @@ export enum LEGACY_WS {
 }
 
 export interface LegacyWSExecutorOpts {
-  connectionParams?: Record<string, any>;
+  connectionParams?: Record<string, unknown> | (() => Record<string, unknown>);
   headers?: Record<string, any>;
 }
 
@@ -25,6 +25,7 @@ export function buildWSLegacyExecutor(
   WebSocketImpl: typeof WebSocket,
   options?: LegacyWSExecutorOpts
 ): Executor {
+  let executorConnectionParams = {};
   let websocket: WebSocket | null = null;
 
   const ensureWebsocket = (errorHandler: (error: Error) => void = err => console.error(err)) => {
@@ -46,6 +47,7 @@ export function buildWSLegacyExecutor(
             payload = options?.connectionParams;
             break;
         }
+        payload = Object.assign(payload, executorConnectionParams);
         websocket!.send(
           JSON.stringify({
             type: LEGACY_WS.CONNECTION_INIT,
@@ -82,6 +84,12 @@ export function buildWSLegacyExecutor(
   };
 
   return function legacyExecutor(request: ExecutionRequest) {
+    // additional connection params can be supplied through the "connectionParams" field in extensions.
+    // TODO: connection params only from the FIRST operation in lazy mode will be used (detect connectionParams changes and reconnect, too implicit?)
+    if (request.extensions?.['connectionParams'] && typeof request.extensions?.['connectionParams'] === 'object') {
+      executorConnectionParams = Object.assign(executorConnectionParams, request.extensions['connectionParams']);
+    }
+
     const id = Date.now().toString();
     return observableToAsyncIterable({
       subscribe(observer) {

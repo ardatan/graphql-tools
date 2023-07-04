@@ -91,7 +91,7 @@ export interface LoadFromUrlOptions extends BaseLoaderOptions, Partial<Introspec
   /**
    * Connection Parameters for WebSockets connection
    */
-  connectionParams?: any;
+  connectionParams?: Record<string, unknown> | (() => Record<string, unknown>);
   /**
    * Enable Batching
    */
@@ -154,7 +154,7 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
   buildWSExecutor(
     subscriptionsEndpoint: string,
     webSocketImpl: typeof WebSocket,
-    connectionParams?: Record<string, any>
+    connectionParams?: Record<string, unknown> | (() => Record<string, unknown>)
   ): Executor {
     const WS_URL = switchProtocols(subscriptionsEndpoint, {
       https: 'wss',

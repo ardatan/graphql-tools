@@ -13,12 +13,20 @@ function isClient(client: Client | GraphQLWSExecutorOptions): client is Client {
 
 export function buildGraphQLWSExecutor(clientOptionsOrClient: GraphQLWSExecutorOptions | Client): Executor {
   let graphqlWSClient: Client;
+  let executorConnectionParams = {};
   if (isClient(clientOptionsOrClient)) {
     graphqlWSClient = clientOptionsOrClient;
   } else {
     graphqlWSClient = createClient({
       webSocketImpl: WebSocket,
       lazy: true,
+      connectionParams: () => {
+        const optionsConnectionParams =
+          (typeof clientOptionsOrClient.connectionParams === 'function'
+            ? clientOptionsOrClient.connectionParams()
+            : clientOptionsOrClient.connectionParams) || {};
+        return Object.assign(optionsConnectionParams, executorConnectionParams);
+      },
       ...clientOptionsOrClient,
     });
     if (clientOptionsOrClient.onClient) {
@@ -40,6 +48,11 @@ export function buildGraphQLWSExecutor(clientOptionsOrClient: GraphQLWSExecutorO
       extensions,
       operationType = getOperationASTFromRequest(executionRequest).operation,
     } = executionRequest;
+    // additional connection params can be supplied through the "connectionParams" field in extensions.
+    // TODO: connection params only from the FIRST operation in lazy mode will be used (detect connectionParams changes and reconnect, too implicit?)
+    if (extensions?.['connectionParams'] && typeof extensions?.['connectionParams'] === 'object') {
+      executorConnectionParams = Object.assign(executorConnectionParams, extensions['connectionParams']);
+    }
     const query = print(document);
     const iterableIterator = graphqlWSClient.iterate<TData, TExtensions>({
       query,
