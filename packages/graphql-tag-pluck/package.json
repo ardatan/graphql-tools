@@ -58,13 +58,13 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@babel/parser": "7.22.6",
-    "@babel/traverse": "7.22.6",
+    "@babel/parser": "7.22.7",
+    "@babel/traverse": "7.22.8",
     "@babel/types": "7.22.5",
     "@types/babel__traverse": "7.20.1",
     "@vue/compiler-sfc": "3.3.4",
-    "svelte": "4.0.4",
-    "svelte2tsx": "0.6.16"
+    "svelte": "4.0.5",
+    "svelte2tsx": "0.6.19"
   },
   "buildOptions": {
     "external": [
