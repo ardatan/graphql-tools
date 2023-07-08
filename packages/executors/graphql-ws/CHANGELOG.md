@@ -1,5 +1,11 @@
 # @graphql-tools/executor-graphql-ws
 
+## 1.1.0
+
+### Minor Changes
+
+- [#4781](https://github.com/ardatan/graphql-tools/pull/4781) [`104921ff`](https://github.com/ardatan/graphql-tools/commit/104921ffc066bde737d4cb36a3bbd1b3b2ad4094) Thanks [@enisdenjo](https://github.com/enisdenjo)! - Read and use `connectionParams` from operation extensions
+
 ## 1.0.2
 
 ### Patch Changes
