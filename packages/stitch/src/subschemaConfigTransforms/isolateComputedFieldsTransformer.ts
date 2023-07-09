@@ -1,4 +1,4 @@
-import { GraphQLObjectType, isObjectType, isInterfaceType } from 'graphql';
+import { GraphQLObjectType, isObjectType, isInterfaceType, getNamedType } from 'graphql';
 
 import { SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
 
@@ -144,6 +144,7 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
   }
 
   const interfaceFields: Record<string, Record<string, boolean>> = {};
+  const returnTypes: Record<string, boolean> = {};
   for (const typeName in subschemaConfig.merge) {
     const type = subschemaConfig.schema.getType(typeName);
     if (!type || !('getInterfaces' in type)) {
@@ -161,13 +162,24 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
         }
       }
     }
+
+    for (const [fieldName, field] of Object.entries(type.getFields())) {
+      const mergeConfig = subschemaConfig.merge[typeName].fields?.[fieldName];
+      if (mergeConfig) {
+        const namedType = getNamedType(field.type);
+        if (isObjectType(namedType)) {
+          returnTypes[namedType.name] = true;
+        }
+      }
+    }
   }
 
   const filteredSchema = pruneSchema(
     filterSchema({
       schema: subschemaConfig.schema,
       rootFieldFilter: (operation, fieldName) => operation === 'Query' && rootFields[fieldName] != null,
-      objectFieldFilter: (typeName, fieldName) => subschemaConfig.merge[typeName]?.fields?.[fieldName] != null,
+      objectFieldFilter: (typeName, fieldName) =>
+        returnTypes[typeName] || subschemaConfig.merge[typeName]?.fields?.[fieldName] != null,
       interfaceFieldFilter: (typeName, fieldName) => interfaceFields[typeName]?.[fieldName] != null,
     })
   );
