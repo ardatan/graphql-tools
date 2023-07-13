@@ -72,7 +72,7 @@
         "anchor": "error-handling"
       }
     ],
-    "content": "38934170f2d60231cb98aca1db7b3c73",
+    "content": "c7f818f5a2f26cc4abf1a46eddb6a3ce",
     "url": "https://www.the-guild.dev/graphql/tools/docs/documents-loading",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
@@ -128,7 +128,7 @@
         "anchor": "api"
       }
     ],
-    "content": "5f98e0762fe49c3c21f6492d353e5f41",
+    "content": "cac836f766694c02c36e5807511b4bcc",
     "url": "https://www.the-guild.dev/graphql/tools/docs/generate-schema",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
@@ -191,7 +191,7 @@
         "anchor": "the-graphql-first-philosophy"
       }
     ],
-    "content": "7c430e85979cf4b7b403426fe685c392",
+    "content": "72bfc5daaad7227d58c311a61c084d8f",
     "url": "https://www.the-guild.dev/graphql/tools/docs/introduction",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
@@ -214,7 +214,7 @@
         "anchor": "after"
       }
     ],
-    "content": "af53c5dcedb18c8b55efb956ea40f840",
+    "content": "7afefdb223a7f5c9202ecc79c563ad1b",
     "url": "https://www.the-guild.dev/graphql/tools/docs/migration/migration-from-import",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs", "migration"],
@@ -436,7 +436,7 @@
         "anchor": "migration-from-v7-and-below"
       }
     ],
-    "content": "ba3543d8071fcff812c5c9bcf1c1b300",
+    "content": "09eee297a573208a7b62d54a1451817f",
     "url": "https://www.the-guild.dev/graphql/tools/docs/mocking",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
@@ -464,7 +464,7 @@
         "anchor": "usage"
       }
     ],
-    "content": "9e599c0a4c7d2c1e99220587957c34d8",
+    "content": "f9dfe906075564d4fd3f465aaa56a792",
     "url": "https://www.the-guild.dev/graphql/tools/docs/relay-operation-optimizer",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
@@ -531,7 +531,7 @@
         "anchor": "api"
       }
     ],
-    "content": "e1b49b60027f05805a4e372830138844",
+    "content": "6ac21d4b94c346847f3f3b83b6f59835",
     "url": "https://www.the-guild.dev/graphql/tools/docs/resolvers",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
@@ -607,7 +607,7 @@
         "anchor": "enums"
       }
     ],
-    "content": "41e3ae96fb0d0963c80db2ea2d9b34ec",
+    "content": "05f387859267ed30bb6e594cbec69898",
     "url": "https://www.the-guild.dev/graphql/tools/docs/scalars",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
@@ -701,7 +701,7 @@
         "anchor": "full-mapschema-api"
       }
     ],
-    "content": "f8c1ea0c6b116e82b47de16bf9b7abbb",
+    "content": "3bd1d27df8168636d06d41381451ab84",
     "url": "https://www.the-guild.dev/graphql/tools/docs/schema-directives",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
@@ -767,7 +767,7 @@
         "anchor": "loaders"
       }
     ],
-    "content": "5fbf8c94f1c12ddbbc333748fb9fe46d",
+    "content": "863d7c8ed089d87c4079282596569b43",
     "url": "https://www.the-guild.dev/graphql/tools/docs/schema-loading",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
@@ -834,7 +834,7 @@
         "anchor": "merging-resolvers"
       }
     ],
-    "content": "4d51f925804d2c6b68e534c5f7f6f553",
+    "content": "42a2599596599bd904557231756afd6d",
     "url": "https://www.the-guild.dev/graphql/tools/docs/schema-merging",
     "domain": "https://www.the-guild.dev/graphql/tools",
     "hierarchy": ["docs"],
