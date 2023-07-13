@@ -2,7 +2,10 @@ import { Kind, ObjectFieldNode, ValueNode, VariableNode, visit } from 'graphql';
 
 type VariablePaths = Record<string, Array<string | number>>;
 
-export function extractVariables(inputValue: ValueNode): { inputValue: ValueNode; variablePaths: VariablePaths } {
+export function extractVariables(inputValue: ValueNode): {
+  inputValue: ValueNode;
+  variablePaths: VariablePaths;
+} {
   const path: Array<string | number> = [];
   const variablePaths = Object.create(null);
 

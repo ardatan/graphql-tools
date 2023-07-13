@@ -1,11 +1,15 @@
-import { GraphQLSchema, GraphQLScalarType, Kind, SelectionSetNode, graphql, OperationTypeNode } from 'graphql';
-
+import {
+  graphql,
+  GraphQLScalarType,
+  GraphQLSchema,
+  Kind,
+  OperationTypeNode,
+  SelectionSetNode,
+} from 'graphql';
+import { defaultMergedResolver, delegateToSchema } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-
-import { wrapSchema, WrapQuery, ExtractField, TransformQuery } from '@graphql-tools/wrap';
-
-import { delegateToSchema, defaultMergedResolver } from '@graphql-tools/delegate';
 import { createGraphQLError } from '@graphql-tools/utils';
+import { ExtractField, TransformQuery, WrapQuery, wrapSchema } from '@graphql-tools/wrap';
 
 function createError<T>(message: string, extra?: T) {
   const error = new Error(message);
@@ -273,7 +277,7 @@ describe('transforms', () => {
                       selectionSet: subtree,
                     }),
                     // how to process the data result at path
-                    result => result?.address
+                    result => result?.address,
                   ),
                 ],
               });

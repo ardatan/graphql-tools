@@ -1,6 +1,6 @@
-import { isAsyncIterable, inspect } from '@graphql-tools/utils';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { inspect, isAsyncIterable } from '@graphql-tools/utils';
 
 export function assertAsyncIterable(input: unknown): asserts input is AsyncIterable<any> {
   if (!isAsyncIterable(input)) {
@@ -18,7 +18,7 @@ export function sleep<T = void>(
   ms: number,
   onTimeout: (timeout: NodeJS.Timeout) => T = () => {
     return undefined as T;
-  }
+  },
 ) {
   return new Promise(resolve => onTimeout(setTimeout(resolve, ms)));
 }
@@ -112,7 +112,10 @@ export const testResolvers = {
   },
 };
 
-export const testSchema = makeExecutableSchema({ typeDefs: testTypeDefs, resolvers: testResolvers });
+export const testSchema = makeExecutableSchema({
+  typeDefs: testTypeDefs,
+  resolvers: testResolvers,
+});
 
 export const testHost = `http://localhost:3000`;
 export const testPath = '/graphql';

@@ -1,15 +1,15 @@
-import { normalizedExecutor } from '@graphql-tools/executor';
-import { parse } from 'graphql';
-import { assertAsyncIterable, sleep } from './test-utils';
 import http, { createServer } from 'http';
-import { SubscriptionProtocol, UrlLoader } from '../src';
-import { GraphQLLiveDirectiveSDL, useLiveQuery } from '@envelop/live-query';
-import { InMemoryLiveQueryStore } from '@n1ru4l/in-memory-live-query-store';
-import { LiveExecutionResult } from '@n1ru4l/graphql-live-query';
-import { ExecutionResult } from '@graphql-tools/utils';
-import { createYoga, createSchema } from 'graphql-yoga';
+import { parse } from 'graphql';
+import { createSchema, createYoga } from 'graphql-yoga';
 import { useEngine } from '@envelop/core';
+import { GraphQLLiveDirectiveSDL, useLiveQuery } from '@envelop/live-query';
+import { normalizedExecutor } from '@graphql-tools/executor';
+import { ExecutionResult } from '@graphql-tools/utils';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
+import { LiveExecutionResult } from '@n1ru4l/graphql-live-query';
+import { InMemoryLiveQueryStore } from '@n1ru4l/in-memory-live-query-store';
+import { SubscriptionProtocol, UrlLoader } from '../src';
+import { assertAsyncIterable, sleep } from './test-utils';
 
 describe('Yoga Compatibility', () => {
   jest.setTimeout(10000);
@@ -55,7 +55,8 @@ describe('Yoga Compatibility', () => {
     [Symbol.asyncIterator]() {
       return this;
     },
-    next: () => sleep(300, timeout => timeouts.add(timeout)).then(() => ({ value: true, done: false })),
+    next: () =>
+      sleep(300, timeout => timeouts.add(timeout)).then(() => ({ value: true, done: false })),
     return: () => {
       resolveOnReturn();
       timeouts.forEach(clearTimeout);
@@ -231,7 +232,11 @@ describe('Yoga Compatibility', () => {
   });
 
   it('should handle SSE subscription result', async () => {
-    const expectedDatas: ExecutionResult[] = [{ data: { foo: 1 } }, { data: { foo: 2 } }, { data: { foo: 3 } }];
+    const expectedDatas: ExecutionResult[] = [
+      { data: { foo: 1 } },
+      { data: { foo: 2 } },
+      { data: { foo: 3 } },
+    ];
 
     const executor = loader.getExecutorAsync(serverPath, {
       subscriptionsProtocol: SubscriptionProtocol.SSE,
@@ -251,7 +256,11 @@ describe('Yoga Compatibility', () => {
     expect(expectedDatas.length).toBe(0);
   });
   it('terminates SSE subscriptions when calling return on the AsyncIterable', async () => {
-    const sentDatas: ExecutionResult[] = [{ data: { foo: 1 } }, { data: { foo: 2 } }, { data: { foo: 3 } }];
+    const sentDatas: ExecutionResult[] = [
+      { data: { foo: 1 } },
+      { data: { foo: 2 } },
+      { data: { foo: 3 } },
+    ];
 
     const executor = loader.getExecutorAsync(serverPath, {
       subscriptionsProtocol: SubscriptionProtocol.SSE,

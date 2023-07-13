@@ -1,9 +1,7 @@
 import DataLoader from 'dataloader';
 import { graphql, GraphQLList, GraphQLResolveInfo, OperationTypeNode } from 'graphql';
-
 import { delegateToSchema } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-
 import { stitchSchemas } from '../src/stitchSchemas.js';
 
 describe('dataloader', () => {
@@ -42,7 +40,8 @@ describe('dataloader', () => {
       `,
       resolvers: {
         Query: {
-          usersByIds: (_root, { ids }) => ids.map((id: string) => ({ id, email: `${id}@tasks.com` })),
+          usersByIds: (_root, { ids }) =>
+            ids.map((id: string) => ({ id, email: `${id}@tasks.com` })),
         },
       },
     });
@@ -66,28 +65,30 @@ describe('dataloader', () => {
       },
     });
 
-    const usersLoader = new DataLoader(async (keys: ReadonlyArray<{ id: any; info: GraphQLResolveInfo }>) => {
-      const users = await delegateToSchema({
-        schema: userSchema,
-        operation: 'query' as OperationTypeNode,
-        fieldName: 'usersByIds',
-        args: {
-          ids: keys.map((k: { id: any }) => k.id),
-        },
-        context: undefined,
-        info: keys[0].info,
-        returnType: new GraphQLList(keys[0].info.returnType),
-      });
+    const usersLoader = new DataLoader(
+      async (keys: ReadonlyArray<{ id: any; info: GraphQLResolveInfo }>) => {
+        const users = await delegateToSchema({
+          schema: userSchema,
+          operation: 'query' as OperationTypeNode,
+          fieldName: 'usersByIds',
+          args: {
+            ids: keys.map((k: { id: any }) => k.id),
+          },
+          context: undefined,
+          info: keys[0].info,
+          returnType: new GraphQLList(keys[0].info.returnType),
+        });
 
-      expect(users).toContainEqual(
-        expect.objectContaining({
-          id: '1',
-          email: '1@tasks.com',
-        })
-      );
+        expect(users).toContainEqual(
+          expect.objectContaining({
+            id: '1',
+            email: '1@tasks.com',
+          }),
+        );
 
-      return users;
-    });
+        return users;
+      },
+    );
 
     const query = /* GraphQL */ `
       {

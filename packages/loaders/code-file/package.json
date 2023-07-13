@@ -1,6 +1,7 @@
 {
   "name": "@graphql-tools/code-file-loader",
   "version": "8.0.1",
+  "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -9,7 +10,6 @@
   },
   "author": "Dotan Simha <dotansimha@gmail.com>",
   "license": "MIT",
-  "sideEffects": false,
   "engines": {
     "node": ">=16.0.0"
   },
@@ -47,15 +47,12 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
-  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^10.0.0",
     "@graphql-tools/graphql-tag-pluck": "8.0.1",
+    "@graphql-tools/utils": "^10.0.0",
     "globby": "^11.0.3",
     "tslib": "^2.4.0",
     "unixify": "^1.0.0"
@@ -64,5 +61,8 @@
     "directory": "dist",
     "access": "public"
   },
-  "type": "module"
+  "sideEffects": false,
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
+  }
 }

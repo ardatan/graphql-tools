@@ -1,45 +1,40 @@
 import {
-  validate,
-  GraphQLSchema,
-  FieldDefinitionNode,
-  OperationTypeNode,
   DocumentNode,
+  FieldDefinitionNode,
   GraphQLOutputType,
+  GraphQLSchema,
+  OperationTypeNode,
+  validate,
 } from 'graphql';
-
 import { ValueOrPromise } from 'value-or-promise';
-
 import { getBatchingExecutor } from '@graphql-tools/batch-execute';
-
+import { normalizedExecutor } from '@graphql-tools/executor';
 import {
-  mapAsyncIterator,
-  Executor,
   ExecutionRequest,
-  Maybe,
-  isAsyncIterable,
+  Executor,
   getDefinedRootType,
-  memoize1,
   getOperationASTFromRequest,
+  isAsyncIterable,
+  mapAsyncIterator,
+  Maybe,
+  memoize1,
 } from '@graphql-tools/utils';
-
+import { applySchemaTransforms } from './applySchemaTransforms.js';
+import { createRequest, getDelegatingOperation } from './createRequest.js';
+import { Subschema } from './Subschema.js';
+import { isSubschemaConfig } from './subschemaConfig.js';
+import { Transformer } from './Transformer.js';
 import {
-  IDelegateToSchemaOptions,
-  IDelegateRequestOptions,
-  StitchingInfo,
   DelegationContext,
+  IDelegateRequestOptions,
+  IDelegateToSchemaOptions,
+  StitchingInfo,
   SubschemaConfig,
 } from './types.js';
 
-import { isSubschemaConfig } from './subschemaConfig.js';
-import { Subschema } from './Subschema.js';
-import { createRequest, getDelegatingOperation } from './createRequest.js';
-import { Transformer } from './Transformer.js';
-import { applySchemaTransforms } from './applySchemaTransforms.js';
-import { normalizedExecutor } from '@graphql-tools/executor';
-
 export function delegateToSchema<
   TContext extends Record<string, any> = Record<string, any>,
-  TArgs extends Record<string, any> = any
+  TArgs extends Record<string, any> = any,
 >(options: IDelegateToSchemaOptions<TContext, TArgs>): any {
   const {
     info,
@@ -79,7 +74,7 @@ export function delegateToSchema<
 function getDelegationReturnType(
   targetSchema: GraphQLSchema,
   operation: OperationTypeNode,
-  fieldName: string
+  fieldName: string,
 ): GraphQLOutputType {
   const rootType = getDefinedRootType(targetSchema, operation);
   const rootFieldType = rootType.getFields()[fieldName];
@@ -91,7 +86,7 @@ function getDelegationReturnType(
 
 export function delegateRequest<
   TContext extends Record<string, any> = Record<string, any>,
-  TArgs extends Record<string, any> = any
+  TArgs extends Record<string, any> = any,
 >(options: IDelegateRequestOptions<TContext, TArgs>) {
   const delegationContext = getDelegationContext(options);
 
@@ -132,12 +127,16 @@ function getDelegationContext<TContext extends Record<string, any>>({
   let targetFieldName: string;
 
   if (fieldName == null) {
-    targetFieldName = (operationDefinition.selectionSet.selections[0] as unknown as FieldDefinitionNode).name.value;
+    targetFieldName = (
+      operationDefinition.selectionSet.selections[0] as unknown as FieldDefinitionNode
+    ).name.value;
   } else {
     targetFieldName = fieldName;
   }
 
-  const stitchingInfo = info?.schema.extensions?.['stitchingInfo'] as Maybe<StitchingInfo<TContext>>;
+  const stitchingInfo = info?.schema.extensions?.['stitchingInfo'] as Maybe<
+    StitchingInfo<TContext>
+  >;
 
   const subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig<any, any, any, any> =
     stitchingInfo?.subschemaMap.get(schema) ?? schema;
@@ -155,7 +154,10 @@ function getDelegationContext<TContext extends Record<string, any>>({
       args,
       context: request.context,
       info,
-      returnType: returnType ?? info?.returnType ?? getDelegationReturnType(targetSchema, operation, targetFieldName),
+      returnType:
+        returnType ??
+        info?.returnType ??
+        getDelegationReturnType(targetSchema, operation, targetFieldName),
       transforms:
         subschemaOrSubschemaConfig.transforms != null
           ? subschemaOrSubschemaConfig.transforms.concat(transforms)
@@ -179,7 +181,9 @@ function getDelegationContext<TContext extends Record<string, any>>({
     context: request.context,
     info,
     returnType:
-      returnType ?? info?.returnType ?? getDelegationReturnType(subschemaOrSubschemaConfig, operation, targetFieldName),
+      returnType ??
+      info?.returnType ??
+      getDelegationReturnType(subschemaOrSubschemaConfig, operation, targetFieldName),
     transforms,
     transformedSchema: transformedSchema ?? subschemaOrSubschemaConfig,
     skipTypeMerging,
@@ -190,7 +194,10 @@ function validateRequest(delegationContext: DelegationContext<any>, document: Do
   const errors = validate(delegationContext.targetSchema, document);
   if (errors.length > 0) {
     if (errors.length > 1) {
-      const combinedError = new AggregateError(errors, errors.map(error => error.message).join(', \n'));
+      const combinedError = new AggregateError(
+        errors,
+        errors.map(error => error.message).join(', \n'),
+      );
       throw combinedError;
     }
     const error = errors[0];
@@ -201,7 +208,7 @@ function validateRequest(delegationContext: DelegationContext<any>, document: Do
 const GLOBAL_CONTEXT = {};
 
 function getExecutor<TContext extends Record<string, any>>(
-  delegationContext: DelegationContext<TContext>
+  delegationContext: DelegationContext<TContext>,
 ): Executor<TContext> {
   const { subschemaConfig, targetSchema, context } = delegationContext;
 
@@ -213,14 +220,16 @@ function getExecutor<TContext extends Record<string, any>>(
       context ?? GLOBAL_CONTEXT,
       executor,
       batchingOptions?.dataLoaderOptions,
-      batchingOptions?.extensionsReducer
+      batchingOptions?.extensionsReducer,
     );
   }
 
   return executor;
 }
 
-export const createDefaultExecutor = memoize1(function createDefaultExecutor(schema: GraphQLSchema): Executor {
+export const createDefaultExecutor = memoize1(function createDefaultExecutor(
+  schema: GraphQLSchema,
+): Executor {
   return function defaultExecutor(request: ExecutionRequest) {
     return normalizedExecutor({
       schema,

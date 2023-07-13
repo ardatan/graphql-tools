@@ -1,8 +1,12 @@
-import { ExecutionRequest, collectFields, getDefinedRootType, getOperationASTFromRequest } from '@graphql-tools/utils';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { getFragmentsFromDocument } from '@graphql-tools/executor';
-import { StitchingInfo, delegateToSchema, isSubschemaConfig } from '@graphql-tools/delegate';
 import { GraphQLSchema } from 'graphql';
+import { delegateToSchema, isSubschemaConfig, StitchingInfo } from '@graphql-tools/delegate';
+import { getFragmentsFromDocument } from '@graphql-tools/executor';
+import {
+  collectFields,
+  ExecutionRequest,
+  getDefinedRootType,
+  getOperationASTFromRequest,
+} from '@graphql-tools/utils';
 
 /**
  * Creates an executor that uses the schema created by stitching together multiple subschemas.
@@ -13,7 +17,9 @@ import { GraphQLSchema } from 'graphql';
  *
  */
 export function createStitchingExecutor(stitchedSchema: GraphQLSchema) {
-  const subschemas = [...(stitchedSchema.extensions?.['stitchingInfo'] as StitchingInfo).subschemaMap.values()];
+  const subschemas = [
+    ...(stitchedSchema.extensions?.['stitchingInfo'] as StitchingInfo).subschemaMap.values(),
+  ];
   return async function stitchingExecutor(executorRequest: ExecutionRequest) {
     const fragments = getFragmentsFromDocument(executorRequest.document);
     const operation = getOperationASTFromRequest(executorRequest);
@@ -23,13 +29,15 @@ export function createStitchingExecutor(stitchedSchema: GraphQLSchema) {
       fragments,
       executorRequest.variables,
       rootType,
-      operation.selectionSet
+      operation.selectionSet,
     );
     const data: Record<string, any> = {};
     for (const [fieldName, fieldNodes] of fields) {
       const responseKey = fieldNodes[0].alias?.value ?? fieldName;
       const subschemaForField = subschemas.find(subschema => {
-        const subschemaSchema = isSubschemaConfig(subschema) ? subschema.schema : (subschema as GraphQLSchema);
+        const subschemaSchema = isSubschemaConfig(subschema)
+          ? subschema.schema
+          : (subschema as GraphQLSchema);
         const rootType = getDefinedRootType(subschemaSchema, operation.operation);
         return rootType.getFields()[fieldName] != null;
       });

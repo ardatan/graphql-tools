@@ -1,10 +1,10 @@
-import generateConfig from './config.js';
-import { parse } from '@babel/parser';
-import { getExtNameFromFilePath } from './libs/extname.js';
-import createVisitor, { PluckedContent } from './visitor.js';
-import traversePkg from '@babel/traverse';
-import { freeText } from './utils.js';
 import { Source } from 'graphql';
+import { parse } from '@babel/parser';
+import traversePkg from '@babel/traverse';
+import generateConfig from './config.js';
+import { getExtNameFromFilePath } from './libs/extname.js';
+import { freeText } from './utils.js';
+import createVisitor, { PluckedContent } from './visitor.js';
 
 function getDefault<T>(module: T & { default?: T }): T {
   return module.default || module;
@@ -154,7 +154,7 @@ function parseWithSvelte(svelte2tsx: typeof import('svelte2tsx'), fileData: stri
 export const gqlPluckFromCodeString = async (
   filePath: string,
   code: string,
-  options: GraphQLTagPluckOptions = {}
+  options: GraphQLTagPluckOptions = {},
 ): Promise<Source[]> => {
   validate({ code, options });
 
@@ -165,7 +165,9 @@ export const gqlPluckFromCodeString = async (
     code = await pluckSvelteFileScript(code);
   }
 
-  return parseCode({ code, filePath, options }).map(t => new Source(t.content, filePath, t.loc.start));
+  return parseCode({ code, filePath, options }).map(
+    t => new Source(t.content, filePath, t.loc.start),
+  );
 };
 
 /**
@@ -180,7 +182,7 @@ export const gqlPluckFromCodeString = async (
 export const gqlPluckFromCodeStringSync = (
   filePath: string,
   code: string,
-  options: GraphQLTagPluckOptions = {}
+  options: GraphQLTagPluckOptions = {},
 ): Source[] => {
   validate({ code, options });
 
@@ -191,7 +193,9 @@ export const gqlPluckFromCodeStringSync = (
     code = pluckSvelteFileScriptSync(code);
   }
 
-  return parseCode({ code, filePath, options }).map(t => new Source(t.content, filePath, t.loc.start));
+  return parseCode({ code, filePath, options }).map(
+    t => new Source(t.content, filePath, t.loc.start),
+  );
 };
 
 export function parseCode({
@@ -246,7 +250,7 @@ const MissingVueTemplateCompilerError = new Error(
     Via Yarn:
 
         $ yarn add @vue/compiler-sfc
-  `)
+  `),
 );
 
 const MissingSvelteTemplateCompilerError = new Error(
@@ -261,7 +265,7 @@ const MissingSvelteTemplateCompilerError = new Error(
     Via Yarn:
 
         $ yarn add svelte2tsx svelte
-  `)
+  `),
 );
 
 async function pluckVueFileScript(fileData: string) {

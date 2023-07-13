@@ -1,10 +1,12 @@
 # GraphQL Tools: `DocumentNode` Optimizer
 
-This package is intended to allow developers to optimize `DocumentNode` objects created by `graphql` library.
+This package is intended to allow developers to optimize `DocumentNode` objects created by `graphql`
+library.
 
 It's built as a set of small optimizers you can compose to get the most out of your GraphQL setup.
 
-The goal of this package is mostly around making optimizations for the way the data is stored in `DocumentNode`, and not to the essence of the `DocumentNode`.
+The goal of this package is mostly around making optimizations for the way the data is stored in
+`DocumentNode`, and not to the essence of the `DocumentNode`.
 
 ## Getting Started
 
@@ -23,7 +25,8 @@ const optimizedDocument = optimizeDocumentNode(myDocument);
 
 ### Customizing Optimizers
 
-By default, we apply all optimizers available in this repo over your document. It shouldn't effect any runtime since we just remove dead or unused areas.
+By default, we apply all optimizers available in this repo over your document. It shouldn't effect
+any runtime since we just remove dead or unused areas.
 
 You can modify the list of optimizers this way:
 

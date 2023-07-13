@@ -1,13 +1,13 @@
-import { File } from '@whatwg-node/fetch';
 import { readFileSync } from 'fs';
-import { execute, isIncrementalResult } from '@graphql-tools/executor';
-import { GraphQLSchema, parse } from 'graphql';
-import { join } from 'path';
-import { assertNonMaybe, testSchema } from './test-utils';
-import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
 import http from 'http';
-import { UrlLoader } from '../src';
+import { join } from 'path';
 import express from 'express';
+import { GraphQLSchema, parse } from 'graphql';
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
+import { File } from '@whatwg-node/fetch';
+import { UrlLoader } from '../src';
+import { assertNonMaybe, testSchema } from './test-utils';
 
 function getBasicGraphQLMiddleware(schema: GraphQLSchema) {
   return (req: any, res: any) => {
@@ -47,13 +47,17 @@ describe('GraphQL Upload compatibility', () => {
           } else {
             resolve();
           }
-        })
+        }),
       );
     }
   });
 
   it('should handle file uploads in graphql-upload way', async () => {
-    const expressApp = express().use(express.json(), graphqlUploadExpress(), getBasicGraphQLMiddleware(testSchema));
+    const expressApp = express().use(
+      express.json(),
+      graphqlUploadExpress(),
+      getBasicGraphQLMiddleware(testSchema),
+    );
 
     httpServer = await new Promise<http.Server>(resolve => {
       const server = expressApp.listen(9871, () => {

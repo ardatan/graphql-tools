@@ -49,7 +49,9 @@ describe('mergeIncrementalResult', () => {
   });
 
   it('should push items at path', () => {
-    const executionResult = { data: { user: { name: 'John', comments: ['comment 1', 'comment 2'] } } };
+    const executionResult = {
+      data: { user: { name: 'John', comments: ['comment 1', 'comment 2'] } },
+    };
     const incrementalResult = {
       path: ['user', 'comments', 2],
       items: ['comment 3', 'comment 4'],
@@ -99,7 +101,9 @@ describe('mergeIncrementalResult', () => {
 
   it('should add errors', () => {
     const executionResult = { data: { user: { name: 'John' } } };
-    const incrementalResult = { errors: [new GraphQLError('error 1'), new GraphQLError('error 2')] };
+    const incrementalResult = {
+      errors: [new GraphQLError('error 1'), new GraphQLError('error 2')],
+    };
 
     mergeIncrementalResult({ incrementalResult, executionResult });
 
@@ -124,12 +128,18 @@ describe('mergeIncrementalResult', () => {
   it('should merge errors', () => {
     const executionResult = { errors: [new GraphQLError('error 1')] };
 
-    const incrementalResult = { errors: [new GraphQLError('error 2'), new GraphQLError('error 3')] };
+    const incrementalResult = {
+      errors: [new GraphQLError('error 2'), new GraphQLError('error 3')],
+    };
 
     mergeIncrementalResult({ incrementalResult, executionResult });
 
     expect(executionResult).toEqual({
-      errors: [new GraphQLError('error 1'), new GraphQLError('error 2'), new GraphQLError('error 3')],
+      errors: [
+        new GraphQLError('error 1'),
+        new GraphQLError('error 2'),
+        new GraphQLError('error 3'),
+      ],
     });
   });
 
@@ -147,7 +157,11 @@ describe('mergeIncrementalResult', () => {
 
   it('should add extensions', () => {
     const exeuctionResult = { data: { user: { name: 'John' } } };
-    const incrementalResult = { data: { user: { age: 42 } }, path: [], extensions: { ext1: 'ext1' } };
+    const incrementalResult = {
+      data: { user: { age: 42 } },
+      path: [],
+      extensions: { ext1: 'ext1' },
+    };
 
     mergeIncrementalResult({ incrementalResult, executionResult: exeuctionResult });
 
@@ -159,7 +173,11 @@ describe('mergeIncrementalResult', () => {
 
   it('should merge extensions', () => {
     const exeuctionResult = { data: { user: { name: 'John' } }, extensions: { ext1: { a: 'a' } } };
-    const incrementalResult = { data: { user: { age: 42 } }, path: [], extensions: { ext1: { b: 'b' }, ext2: 'ext2' } };
+    const incrementalResult = {
+      data: { user: { age: 42 } },
+      path: [],
+      extensions: { ext1: { b: 'b' }, ext2: 'ext2' },
+    };
 
     mergeIncrementalResult({ incrementalResult, executionResult: exeuctionResult });
 

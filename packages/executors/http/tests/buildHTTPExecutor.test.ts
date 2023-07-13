@@ -1,6 +1,6 @@
+import { parse } from 'graphql';
 import { ExecutionResult } from '@graphql-tools/utils';
 import { Response } from '@whatwg-node/fetch';
-import { parse } from 'graphql';
 import { buildHTTPExecutor } from '../src/index.js';
 
 describe('buildHTTPExecutor', () => {

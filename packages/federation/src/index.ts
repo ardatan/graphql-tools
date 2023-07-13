@@ -1,17 +1,3 @@
-import { createDefaultExecutor, SubschemaConfig } from '@graphql-tools/delegate';
-import { buildHTTPExecutor, HTTPExecutorOptions } from '@graphql-tools/executor-http';
-import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
-import { IExecutableSchemaDefinition, makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas, SubschemaConfigTransform } from '@graphql-tools/stitch';
-import {
-  AsyncExecutor,
-  createGraphQLError,
-  ExecutionResult,
-  Executor,
-  getDocumentNodeFromSchema,
-  inspect,
-  printSchemaWithDirectives,
-} from '@graphql-tools/utils';
 import {
   buildASTSchema,
   concatAST,
@@ -26,6 +12,20 @@ import {
   visit,
 } from 'graphql';
 import { ValueOrPromise } from 'value-or-promise';
+import { createDefaultExecutor, SubschemaConfig } from '@graphql-tools/delegate';
+import { buildHTTPExecutor, HTTPExecutorOptions } from '@graphql-tools/executor-http';
+import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
+import { IExecutableSchemaDefinition, makeExecutableSchema } from '@graphql-tools/schema';
+import { stitchSchemas, SubschemaConfigTransform } from '@graphql-tools/stitch';
+import {
+  AsyncExecutor,
+  createGraphQLError,
+  ExecutionResult,
+  Executor,
+  getDocumentNodeFromSchema,
+  inspect,
+  printSchemaWithDirectives,
+} from '@graphql-tools/utils';
 
 export const SubgraphBaseSDL = /* GraphQL */ `
   scalar _Any
@@ -50,7 +50,12 @@ export const SubgraphBaseSDL = /* GraphQL */ `
   directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
   directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
   directive @key(fields: _FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
-  directive @link(url: String!, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
+  directive @link(
+    url: String!
+    as: String
+    for: link__Purpose
+    import: [link__Import]
+  ) repeatable on SCHEMA
   directive @shareable repeatable on OBJECT | FIELD_DEFINITION
   directive @inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
   directive @tag(
@@ -78,7 +83,9 @@ function getKeyForFederation(root: any) {
   return root;
 }
 
-export async function getSubschemaForFederationWithURL(config: HTTPExecutorOptions): Promise<SubschemaConfig> {
+export async function getSubschemaForFederationWithURL(
+  config: HTTPExecutorOptions,
+): Promise<SubschemaConfig> {
   const executor = buildHTTPExecutor(config as any) as AsyncExecutor;
   const subschemaConfig = await getSubschemaForFederationWithExecutor(executor);
   return {
@@ -101,12 +108,16 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
           case 'key': {
             if (
               directiveArgs.some(
-                arg => arg.name.value === 'resolvable' && arg.value.kind === Kind.BOOLEAN && arg.value.value === false
+                arg =>
+                  arg.name.value === 'resolvable' &&
+                  arg.value.kind === Kind.BOOLEAN &&
+                  arg.value.value === false,
               )
             ) {
               continue;
             }
-            const selectionValueNode = directiveArgs.find(arg => arg.name.value === 'fields')?.value;
+            const selectionValueNode = directiveArgs.find(arg => arg.name.value === 'fields')
+              ?.value;
             if (selectionValueNode?.kind === Kind.STRING) {
               selections.push(selectionValueNode.value);
             }
@@ -120,8 +131,12 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
       if (selections.length === 0) {
         return node;
       }
-      const typeMergingTypeConfig = (typeMergingConfig[typeName] = typeMergingConfig[typeName] || {});
-      if (node.kind === Kind.OBJECT_TYPE_DEFINITION && !node.directives?.some(d => d.name.value === 'extends')) {
+      const typeMergingTypeConfig = (typeMergingConfig[typeName] =
+        typeMergingConfig[typeName] || {});
+      if (
+        node.kind === Kind.OBJECT_TYPE_DEFINITION &&
+        !node.directives?.some(d => d.name.value === 'extends')
+      ) {
         typeMergingTypeConfig.canonical = true;
       }
       entityTypes.push(typeName);
@@ -139,19 +154,25 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
               const directiveArgs = directive.arguments || [];
               switch (directive.name.value) {
                 case 'requires': {
-                  const typeMergingFieldsConfig = (typeMergingTypeConfig.fields = typeMergingTypeConfig.fields || {});
+                  const typeMergingFieldsConfig = (typeMergingTypeConfig.fields =
+                    typeMergingTypeConfig.fields || {});
                   typeMergingFieldsConfig[fieldName] = typeMergingFieldsConfig[fieldName] || {};
                   if (
                     directiveArgs.some(
                       arg =>
-                        arg.name.value === 'resolvable' && arg.value.kind === Kind.BOOLEAN && arg.value.value === false
+                        arg.name.value === 'resolvable' &&
+                        arg.value.kind === Kind.BOOLEAN &&
+                        arg.value.value === false,
                     )
                   ) {
                     continue;
                   }
-                  const selectionValueNode = directiveArgs.find(arg => arg.name.value === 'fields')?.value;
+                  const selectionValueNode = directiveArgs.find(arg => arg.name.value === 'fields')
+                    ?.value;
                   if (selectionValueNode?.kind === Kind.STRING) {
-                    typeMergingFieldsConfig[fieldName].selectionSet = `{ ${selectionValueNode.value} }`;
+                    typeMergingFieldsConfig[
+                      fieldName
+                    ].selectionSet = `{ ${selectionValueNode.value} }`;
                     typeMergingFieldsConfig[fieldName].computed = true;
                   }
                   break;
@@ -162,7 +183,8 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
                   break;
                 }
                 case 'override': {
-                  const typeMergingFieldsConfig = (typeMergingTypeConfig.fields = typeMergingTypeConfig.fields || {});
+                  const typeMergingFieldsConfig = (typeMergingTypeConfig.fields =
+                    typeMergingTypeConfig.fields || {});
                   typeMergingFieldsConfig[fieldName] = typeMergingFieldsConfig[fieldName] || {};
                   typeMergingFieldsConfig[fieldName].canonical = true;
                   break;
@@ -191,7 +213,7 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
     {
       assumeValidSDL: true,
       assumeValid: true,
-    }
+    },
   );
   // subschemaConfig.batch = true;
   return subschemaConfig;
@@ -227,26 +249,27 @@ export async function getSubschemaForFederationWithSchema(schema: GraphQLSchema)
 }
 
 export async function getStitchedSchemaWithUrls(configs: HTTPExecutorOptions[]) {
-  const subschemas = await Promise.all(configs.map(config => getSubschemaForFederationWithURL(config)));
+  const subschemas = await Promise.all(
+    configs.map(config => getSubschemaForFederationWithURL(config)),
+  );
   return stitchSchemas({
     subschemas,
   });
 }
 
-export const federationSubschemaTransformer: SubschemaConfigTransform = function federationSubschemaTransformer(
-  subschemaConfig: SubschemaConfig
-): SubschemaConfig {
-  const typeDefs = getDocumentNodeFromSchema(subschemaConfig.schema);
-  const newSubschema = getSubschemaForFederationWithTypeDefs(typeDefs);
-  return {
-    ...subschemaConfig,
-    ...newSubschema,
-    merge: {
-      ...newSubschema.merge,
-      ...subschemaConfig.merge,
-    },
+export const federationSubschemaTransformer: SubschemaConfigTransform =
+  function federationSubschemaTransformer(subschemaConfig: SubschemaConfig): SubschemaConfig {
+    const typeDefs = getDocumentNodeFromSchema(subschemaConfig.schema);
+    const newSubschema = getSubschemaForFederationWithTypeDefs(typeDefs);
+    return {
+      ...subschemaConfig,
+      ...newSubschema,
+      merge: {
+        ...newSubschema.merge,
+        ...subschemaConfig.merge,
+      },
+    };
   };
-};
 
 export function buildSubgraphSchema<TContext = any>(opts: IExecutableSchemaDefinition<TContext>) {
   const typeDefs = mergeTypeDefs([SubgraphBaseSDL, opts.typeDefs]);
@@ -265,11 +288,21 @@ export function buildSubgraphSchema<TContext = any>(opts: IExecutableSchemaDefin
       __resolveType: (obj: { __typename: string }) => obj.__typename,
     },
     Query: {
-      _entities: (_root: never, args: { representations: any[] }, context: TContext, info: GraphQLResolveInfo) =>
+      _entities: (
+        _root: never,
+        args: { representations: any[] },
+        context: TContext,
+        info: GraphQLResolveInfo,
+      ) =>
         ValueOrPromise.all(
           args.representations.map(representation =>
-            new ValueOrPromise(() =>
-              givenResolvers[representation.__typename]?.__resolveReference?.(representation, context, info)
+            new ValueOrPromise(
+              () =>
+                givenResolvers[representation.__typename]?.__resolveReference?.(
+                  representation,
+                  context,
+                  info,
+                ),
             ).then(resolvedEntity => {
               if (!resolvedEntity) {
                 return representation;
@@ -278,8 +311,8 @@ export function buildSubgraphSchema<TContext = any>(opts: IExecutableSchemaDefin
                 resolvedEntity.__typename = representation.__typename;
               }
               return resolvedEntity;
-            })
-          )
+            }),
+          ),
         ).resolve(),
       _service: () => ({}),
     },

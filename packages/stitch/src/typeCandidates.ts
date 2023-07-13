@@ -1,37 +1,40 @@
 import {
   DocumentNode,
-  GraphQLNamedType,
   getNamedType,
-  isNamedType,
   GraphQLDirective,
-  SchemaDefinitionNode,
-  SchemaExtensionNode,
-  isSpecifiedScalarType,
+  GraphQLNamedType,
+  GraphQLObjectType,
   GraphQLSchema,
   isDirective,
-  GraphQLObjectType,
+  isNamedType,
+  isSpecifiedScalarType,
   OperationTypeNode,
+  SchemaDefinitionNode,
+  SchemaExtensionNode,
 } from 'graphql';
-
-import { Subschema, SubschemaConfig, StitchingInfo } from '@graphql-tools/delegate';
-import {
-  GraphQLParseOptions,
-  TypeSource,
-  rewireTypes,
-  getRootTypeMap,
-  inspect,
-  getRootTypes,
-} from '@graphql-tools/utils';
-
-import typeFromAST from './typeFromAST.js';
-import { MergeTypeCandidate, MergeTypeFilter, OnTypeConflict, TypeMergingOptions } from './types.js';
-import { mergeCandidates } from './mergeCandidates.js';
-import { extractDefinitions } from './definitions.js';
+import { StitchingInfo, Subschema, SubschemaConfig } from '@graphql-tools/delegate';
 import { mergeTypeDefs } from '@graphql-tools/merge';
+import {
+  getRootTypeMap,
+  getRootTypes,
+  GraphQLParseOptions,
+  inspect,
+  rewireTypes,
+  TypeSource,
+} from '@graphql-tools/utils';
 import { wrapSchema } from '@graphql-tools/wrap';
+import { extractDefinitions } from './definitions.js';
+import { mergeCandidates } from './mergeCandidates.js';
+import typeFromAST from './typeFromAST.js';
+import {
+  MergeTypeCandidate,
+  MergeTypeFilter,
+  OnTypeConflict,
+  TypeMergingOptions,
+} from './types.js';
 
 type CandidateSelector<TContext = Record<string, any>> = (
-  candidates: Array<MergeTypeCandidate<TContext>>
+  candidates: Array<MergeTypeCandidate<TContext>>,
 ) => MergeTypeCandidate<TContext>;
 
 export function buildTypeCandidates<TContext extends Record<string, any> = Record<string, any>>({
@@ -58,7 +61,11 @@ export function buildTypeCandidates<TContext extends Record<string, any> = Recor
     schemaExtensions: Array<SchemaExtensionNode>;
   };
   mergeDirectives?: boolean | undefined;
-}): [Record<string, Array<MergeTypeCandidate<TContext>>>, Record<OperationTypeNode, string>, DocumentNode[]] {
+}): [
+  Record<string, Array<MergeTypeCandidate<TContext>>>,
+  Record<OperationTypeNode, string>,
+  DocumentNode[],
+] {
   const extensions: Array<DocumentNode> = [];
   const typeCandidates: Record<string, Array<MergeTypeCandidate<TContext>>> = Object.create(null);
 
@@ -182,7 +189,7 @@ function getRootTypeNameMap({
 function addTypeCandidate<TContext = Record<string, any>>(
   typeCandidates: Record<string, Array<MergeTypeCandidate<TContext>>>,
   name: string,
-  typeCandidate: MergeTypeCandidate<TContext>
+  typeCandidate: MergeTypeCandidate<TContext>,
 ) {
   if (!(name in typeCandidates)) {
     typeCandidates[name] = [];
@@ -212,7 +219,8 @@ export function buildTypes<TContext = Record<string, any>>({
   for (const typeName in typeCandidates) {
     if (
       rootTypeNames.includes(typeName) ||
-      (mergeTypes === true && !typeCandidates[typeName].some(candidate => isSpecifiedScalarType(candidate.type))) ||
+      (mergeTypes === true &&
+        !typeCandidates[typeName].some(candidate => isSpecifiedScalarType(candidate.type))) ||
       (typeof mergeTypes === 'function' && mergeTypes(typeCandidates[typeName], typeName)) ||
       (Array.isArray(mergeTypes) && mergeTypes.includes(typeName)) ||
       (stitchingInfo != null && typeName in stitchingInfo.mergedTypes)
@@ -231,7 +239,7 @@ export function buildTypes<TContext = Record<string, any>>({
 }
 
 function onTypeConflictToCandidateSelector<TContext = Record<string, any>>(
-  onTypeConflict: OnTypeConflict<TContext>
+  onTypeConflict: OnTypeConflict<TContext>,
 ): CandidateSelector<TContext> {
   return cands =>
     cands.reduce((prev, next) => {

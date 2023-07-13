@@ -1,8 +1,8 @@
-import { wrapSchema, FilterInputObjectFields } from '@graphql-tools/wrap';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { graphql, astFromValue, Kind, GraphQLString, parse } from 'graphql';
-import { assertSome } from '@graphql-tools/utils';
+import { astFromValue, graphql, GraphQLString, Kind, parse } from 'graphql';
 import { execute, isIncrementalResult } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { assertSome } from '@graphql-tools/utils';
+import { FilterInputObjectFields, wrapSchema } from '@graphql-tools/wrap';
 
 describe('FilterInputObjectFields', () => {
   const schema = makeExecutableSchema({
@@ -54,7 +54,7 @@ describe('FilterInputObjectFields', () => {
               ],
             };
           }
-        }
+        },
       ),
     ],
   });

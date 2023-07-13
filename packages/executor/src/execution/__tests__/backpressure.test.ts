@@ -1,8 +1,9 @@
+import { parse } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { inspect, isAsyncIterable } from '@graphql-tools/utils';
 import { Repeater } from '@repeaterjs/repeater';
-import { parse } from 'graphql';
 import { normalizedExecutor } from '../normalizedExecutor';
+
 function assertAsyncIterable(input: unknown): asserts input is AsyncIterable<any> {
   if (!isAsyncIterable(input)) {
     throw new Error(`Expected AsyncIterable. but received: ${inspect(input)}`);

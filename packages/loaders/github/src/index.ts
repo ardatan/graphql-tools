@@ -1,10 +1,19 @@
-import { Loader, parseGraphQLSDL, parseGraphQLJSON, BaseLoaderOptions, Source } from '@graphql-tools/utils';
-import { GraphQLTagPluckOptions, gqlPluckFromCodeStringSync } from '@graphql-tools/graphql-tag-pluck';
 import { parse } from 'graphql';
-import syncFetch from '@ardatan/sync-fetch';
-import { fetch as asyncFetch } from '@whatwg-node/fetch';
-import { AsyncFetchFn, FetchFn, SyncFetchFn } from '@graphql-tools/executor-http';
 import { ValueOrPromise } from 'value-or-promise';
+import syncFetch from '@ardatan/sync-fetch';
+import { AsyncFetchFn, FetchFn, SyncFetchFn } from '@graphql-tools/executor-http';
+import {
+  gqlPluckFromCodeStringSync,
+  GraphQLTagPluckOptions,
+} from '@graphql-tools/graphql-tag-pluck';
+import {
+  BaseLoaderOptions,
+  Loader,
+  parseGraphQLJSON,
+  parseGraphQLSDL,
+  Source,
+} from '@graphql-tools/utils';
+import { fetch as asyncFetch } from '@whatwg-node/fetch';
 
 // github:owner/name#ref:path/to/file
 function extractData(pointer: string): {
@@ -65,15 +74,32 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
     return typeof pointer === 'string' && pointer.toLowerCase().startsWith('github:');
   }
 
-  loadSyncOrAsync(pointer: string, options: GithubLoaderOptions, asyncFetchFn: AsyncFetchFn): Promise<Source[]>;
-  loadSyncOrAsync(pointer: string, options: GithubLoaderOptions, syncFetchFn: SyncFetchFn): Source[];
-  loadSyncOrAsync(pointer: string, options: GithubLoaderOptions, fetchFn: FetchFn): Promise<Source[]> | Source[] {
+  loadSyncOrAsync(
+    pointer: string,
+    options: GithubLoaderOptions,
+    asyncFetchFn: AsyncFetchFn,
+  ): Promise<Source[]>;
+
+  loadSyncOrAsync(
+    pointer: string,
+    options: GithubLoaderOptions,
+    syncFetchFn: SyncFetchFn,
+  ): Source[];
+
+  loadSyncOrAsync(
+    pointer: string,
+    options: GithubLoaderOptions,
+    fetchFn: FetchFn,
+  ): Promise<Source[]> | Source[] {
     if (!this.canLoadSync(pointer)) {
       return [];
     }
     const { owner, name, ref, path } = extractData(pointer);
     return new ValueOrPromise(() =>
-      fetchFn('https://api.github.com/graphql', this.prepareRequest({ owner, ref, path, name, options }))
+      fetchFn(
+        'https://api.github.com/graphql',
+        this.prepareRequest({ owner, ref, path, name, options }),
+      ),
     )
       .then(response => {
         const contentType = response.headers.get('content-type');
@@ -143,7 +169,12 @@ export class GithubLoader implements Loader<GithubLoaderOptions> {
       return [parseGraphQLJSON(pointer, content, options)];
     }
 
-    if (path.endsWith('.tsx') || path.endsWith('.ts') || path.endsWith('.js') || path.endsWith('.jsx')) {
+    if (
+      path.endsWith('.tsx') ||
+      path.endsWith('.ts') ||
+      path.endsWith('.js') ||
+      path.endsWith('.jsx')
+    ) {
       const sources = gqlPluckFromCodeStringSync(pointer, content, options.pluckConfig);
       return sources.map(source => ({
         location: pointer,

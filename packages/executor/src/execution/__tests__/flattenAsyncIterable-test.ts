@@ -7,13 +7,13 @@ describe('flattenAsyncIterable', () => {
         (async function* nested(): AsyncGenerator<number, void, void> {
           yield await Promise.resolve(1.1);
           yield await Promise.resolve(1.2);
-        })()
+        })(),
       );
       yield await Promise.resolve(
         (async function* nested(): AsyncGenerator<number, void, void> {
           yield await Promise.resolve(2.1);
           yield await Promise.resolve(2.2);
-        })()
+        })(),
       );
     }
 
@@ -32,21 +32,21 @@ describe('flattenAsyncIterable', () => {
         (async function* nested(): AsyncGenerator<number, void, void> {
           yield await Promise.resolve(1.1);
           yield await Promise.resolve(1.2);
-        })()
+        })(),
       );
       yield await Promise.resolve(
         (async function* nested(): AsyncGenerator<number, void, void> {
           yield await Promise.resolve(2.1); /* c8 ignore start */
           // Not reachable, early return
           yield await Promise.resolve(2.2);
-        })()
+        })(),
       );
       // Not reachable, early return
       yield await Promise.resolve(
         (async function* nested(): AsyncGenerator<number, void, void> {
           yield await Promise.resolve(3.1);
           yield await Promise.resolve(3.2);
-        })()
+        })(),
       );
     }
     /* c8 ignore stop */
@@ -80,21 +80,21 @@ describe('flattenAsyncIterable', () => {
         (async function* nested(): AsyncGenerator<number, void, void> {
           yield await Promise.resolve(1.1);
           yield await Promise.resolve(1.2);
-        })()
+        })(),
       );
       yield await Promise.resolve(
         (async function* nested(): AsyncGenerator<number, void, void> {
           yield await Promise.resolve(2.1); /* c8 ignore start */
           // Not reachable, early return
           yield await Promise.resolve(2.2);
-        })()
+        })(),
       );
       // Not reachable, early return
       yield await Promise.resolve(
         (async function* nested(): AsyncGenerator<number, void, void> {
           yield await Promise.resolve(3.1);
           yield await Promise.resolve(3.2);
-        })()
+        })(),
       );
     }
     /* c8 ignore stop */
@@ -120,13 +120,13 @@ describe('flattenAsyncIterable', () => {
         (async function* nested(): AsyncGenerator<number, void, void> {
           yield await Promise.resolve(1.1);
           yield await Promise.resolve(1.2);
-        })()
+        })(),
       );
       yield await Promise.resolve(
         (async function* nested(): AsyncGenerator<number, void, void> {
           yield await Promise.resolve(2.1);
           yield await Promise.resolve(2.2);
-        })()
+        })(),
       );
     }
 

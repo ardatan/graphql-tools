@@ -1,4 +1,9 @@
-import { parseGraphQLSDL, parseGraphQLJSON, Source, GraphQLParseOptions } from '@graphql-tools/utils';
+import {
+  GraphQLParseOptions,
+  parseGraphQLJSON,
+  parseGraphQLSDL,
+  Source,
+} from '@graphql-tools/utils';
 
 /**
  * @internal

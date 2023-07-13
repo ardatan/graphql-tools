@@ -1,29 +1,22 @@
 {
   "name": "@graphql-tools/relay-operation-optimizer",
-  "engines": {
-    "node": ">=16.0.0"
-  },
   "version": "7.0.0",
+  "type": "module",
   "description": "Package for optimizing your GraphQL operations relay style.",
+  "repository": {
+    "type": "git",
+    "url": "ardatan/graphql-tools",
+    "directory": "packages/relay-operation-optimizer"
+  },
   "author": {
     "name": "Laurin Quast",
     "email": "laurinquast@googlemail.com",
     "url": "https://github.com/n1ru4l"
   },
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "ardatan/graphql-tools",
-    "directory": "packages/relay-operation-optimizer"
+  "engines": {
+    "node": ">=16.0.0"
   },
-  "keywords": [
-    "graphql",
-    "codegen",
-    "graphql-codegen",
-    "plugin",
-    "relay"
-  ],
-  "sideEffects": false,
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "exports": {
@@ -58,20 +51,29 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
-  },
+  "keywords": [
+    "graphql",
+    "codegen",
+    "graphql-codegen",
+    "plugin",
+    "relay"
+  ],
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^10.0.0",
     "@ardatan/relay-compiler": "12.0.0",
+    "@graphql-tools/utils": "^10.0.0",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
     "@types/relay-compiler": "8.0.4"
   },
+  "publishConfig": {
+    "directory": "dist",
+    "access": "public"
+  },
+  "sideEffects": false,
   "buildOptions": {
     "external": [
       "@ardatan/relay-compiler/lib/transforms/SkipRedundantNodesTransform",
@@ -84,9 +86,7 @@
       "@ardatan/relay-compiler/lib/core/Schema"
     ]
   },
-  "publishConfig": {
-    "directory": "dist",
-    "access": "public"
-  },
-  "type": "module"
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
+  }
 }

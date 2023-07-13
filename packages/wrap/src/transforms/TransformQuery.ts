@@ -1,20 +1,18 @@
-import { visit, Kind, SelectionSetNode, FragmentDefinitionNode, GraphQLError } from 'graphql';
-
+import { FragmentDefinitionNode, GraphQLError, Kind, SelectionSetNode, visit } from 'graphql';
+import { DelegationContext, Transform } from '@graphql-tools/delegate';
 import { ExecutionRequest, ExecutionResult, relocatedError } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
 
 export type QueryTransformer = <TContext>(
   selectionSet: SelectionSetNode | undefined,
   fragments: Record<string, FragmentDefinitionNode>,
   delegationContext: DelegationContext<TContext>,
-  transformationContext: Record<string, any>
+  transformationContext: Record<string, any>,
 ) => SelectionSetNode;
 
 export type ResultTransformer = <TContext>(
   result: any,
   delegationContext: DelegationContext<TContext>,
-  transformationContext: Record<string, any>
+  transformationContext: Record<string, any>,
 ) => any;
 
 export type ErrorPathTransformer = (path: ReadonlyArray<string | number>) => Array<string | number>;
@@ -53,7 +51,7 @@ export default class TransformQuery<TContext = Record<string, any>>
   public transformRequest(
     originalRequest: ExecutionRequest,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: TransformQueryTransformationContext
+    transformationContext: TransformQueryTransformationContext,
   ): ExecutionRequest {
     const pathLength = this.path.length;
     let index = 0;
@@ -71,7 +69,7 @@ export default class TransformQuery<TContext = Record<string, any>>
               node.selectionSet,
               this.fragments,
               delegationContext,
-              transformationContext
+              transformationContext,
             );
 
             return {
@@ -95,7 +93,7 @@ export default class TransformQuery<TContext = Record<string, any>>
   public transformResult(
     originalResult: ExecutionResult,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: TransformQueryTransformationContext
+    transformationContext: TransformQueryTransformationContext,
   ): ExecutionResult {
     const data = this.transformData(originalResult.data, delegationContext, transformationContext);
     const errors = originalResult.errors;
@@ -108,7 +106,7 @@ export default class TransformQuery<TContext = Record<string, any>>
   private transformData(
     data: any,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: TransformQueryTransformationContext
+    transformationContext: TransformQueryTransformationContext,
   ): any {
     const leafIndex = this.path.length - 1;
     let index = 0;
@@ -124,7 +122,11 @@ export default class TransformQuery<TContext = Record<string, any>>
         index++;
         next = this.path[index];
       }
-      newData[next] = this.resultTransformer(newData[next], delegationContext, transformationContext);
+      newData[next] = this.resultTransformer(
+        newData[next],
+        delegationContext,
+        transformationContext,
+      );
     }
     return data;
   }
@@ -147,7 +149,9 @@ export default class TransformQuery<TContext = Record<string, any>>
         index++;
       }
 
-      const newPath = match ? path.slice(0, index).concat(this.errorPathTransformer(path.slice(index))) : path;
+      const newPath = match
+        ? path.slice(0, index).concat(this.errorPathTransformer(path.slice(index)))
+        : path;
 
       return relocatedError(error, newPath);
     });

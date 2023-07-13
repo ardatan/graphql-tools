@@ -1,4 +1,4 @@
-import { parse, ASTNode } from 'graphql';
+import { ASTNode, parse } from 'graphql';
 
 export const asArray = <T>(fns: T | T[]) => (Array.isArray(fns) ? fns : fns ? [fns] : []);
 
@@ -74,7 +74,7 @@ export function isSome<T>(input: T): input is Exclude<T, null | undefined> {
 
 export function assertSome<T>(
   input: T,
-  message = 'Value should be something'
+  message = 'Value should be something',
 ): asserts input is Exclude<T, null | undefined> {
   if (input == null) {
     throw new Error(message);

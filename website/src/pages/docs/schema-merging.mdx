@@ -2,10 +2,15 @@ import { Callout } from '@theguild/components'
 
 # Schema Merging
 
-Schema merging (`@graphql-tools/merge` and `@graphql-tools/schema`) consolidates the type definitions and resolvers from many local schema instances into a single executable schema. This is useful for building a single local service schema from many individually-managed parts. This should not be confused with [schema stitching](https://the-guild.dev/graphql/stitching), which builds a combined proxy schema atop numerous subservice APIs.
+Schema merging (`@graphql-tools/merge` and `@graphql-tools/schema`) consolidates the type
+definitions and resolvers from many local schema instances into a single executable schema. This is
+useful for building a single local service schema from many individually-managed parts. This should
+not be confused with [schema stitching](https://the-guild.dev/graphql/stitching), which builds a
+combined proxy schema atop numerous subservice APIs.
 
 <Callout>
-  Watch [Episode #23 of `graphql.wtf`](https://graphql.wtf/episodes/23-merge-resolvers-with-graphql-tools) for a quick
+  Watch [Episode #23 of
+  `graphql.wtf`](https://graphql.wtf/episodes/23-merge-resolvers-with-graphql-tools) for a quick
   introduction to schema merging:
 </Callout>
 
@@ -13,7 +18,8 @@ Schema merging (`@graphql-tools/merge` and `@graphql-tools/schema`) consolidates
 
 ## Getting Started
 
-You can use `mergeSchemas` to merge `GraphQLSchema` objects together with extra `typeDefs` and `resolvers`.
+You can use `mergeSchemas` to merge `GraphQLSchema` objects together with extra `typeDefs` and
+`resolvers`.
 
 ```ts
 const { mergeSchemas } = require('@graphql-tools/schema')
@@ -35,7 +41,9 @@ const mergedSchema = mergeSchemas({
 
 ## Merging Type Definitions
 
-Originally implemented in [graphql-modules](https://github.com/Urigo/graphql-modules). This tool merges GraphQL type definitions and schema. It aims to merge all possible types, interfaces, enums and unions, without conflicts.
+Originally implemented in [graphql-modules](https://github.com/Urigo/graphql-modules). This tool
+merges GraphQL type definitions and schema. It aims to merge all possible types, interfaces, enums
+and unions, without conflicts.
 
 Let's say this is your current schema:
 
@@ -65,7 +73,8 @@ type Mutation {
 }
 ```
 
-Knowing that your app will grow, you want to move your definitions to separate files that should look like the following.
+Knowing that your app will grow, you want to move your definitions to separate files that should
+look like the following.
 
 ```js filename="graphql/types/clientType.js"
 module.exports = /* GraphQL */ `
@@ -110,7 +119,8 @@ There are two ways you can use this package:
 
 ### Manual Imports
 
-If you decide to have manual control of each file that gets merged, all you need is the `mergeTypeDefs(types)` function from `@graphql-tools/merge` package:
+If you decide to have manual control of each file that gets merged, all you need is the
+`mergeTypeDefs(types)` function from `@graphql-tools/merge` package:
 
 ```js
 const { mergeTypeDefs } = require('@graphql-tools/merge')
@@ -122,11 +132,13 @@ const types = [clientType, productType]
 module.exports = mergeTypeDefs(types)
 ```
 
-See [`mergeTypeDefs`](https://www.graphql-tools.com/docs/api/modules/merge/#mergetypedefs) for more details.
+See [`mergeTypeDefs`](https://www.graphql-tools.com/docs/api/modules/merge/#mergetypedefs) for more
+details.
 
 ### File Loading
 
-In this way, we use the `loadFilesSync` function from `@graphql-tools/load-files` to import all files from the specified folder.
+In this way, we use the `loadFilesSync` function from `@graphql-tools/load-files` to import all
+files from the specified folder.
 
 ```js filename="graphql/typeDefs.js"
 const path = require('path')
@@ -138,10 +150,11 @@ const typesArray = loadFilesSync(path.join(__dirname, './types'))
 module.exports = mergeTypeDefs(typesArray)
 ```
 
-When using the `loadFilesSync` function you can also implement your type definitions using `.graphql` or `.gql` or `.graphqls` files.
+When using the `loadFilesSync` function you can also implement your type definitions using
+`.graphql` or `.gql` or `.graphqls` files.
 
-You can also load files with specified extensions by setting the extensions option.
-Only these values are supported now. `'ts', 'js', 'gql', 'graphql', 'graphqls'`
+You can also load files with specified extensions by setting the extensions option. Only these
+values are supported now. `'ts', 'js', 'gql', 'graphql', 'graphqls'`
 
 ```js filename="graphql/typeDefs.js"
 const path = require('path')
@@ -154,9 +167,9 @@ module.exports = mergeTypeDefs(typesArray)
 ```
 
 <Callout type="warning">
-  By default, the `loadFilesSync` function will not ignore files named `index.js` or `index.ts`, but you can set the
-  `ignoreIndex` option to `true` to enable this behavior. This allows you to create your index file inside the actual
-  types folder if desired.
+  By default, the `loadFilesSync` function will not ignore files named `index.js` or `index.ts`, but
+  you can set the `ignoreIndex` option to `true` to enable this behavior. This allows you to create
+  your index file inside the actual types folder if desired.
 </Callout>
 
 ```graphql filename="graphql/types/clientType.graphql"
@@ -248,7 +261,8 @@ module.exports = mergeTypeDefs(typesArray)
 
 ### Print Merged `typeDefs`
 
-Since the output of `mergeTypeDefs` is a GraphQL `DocumentNode`, you may print the merged result as a string to be passed around to other systems. For example:
+Since the output of `mergeTypeDefs` is a GraphQL `DocumentNode`, you may print the merged result as
+a string to be passed around to other systems. For example:
 
 ```js
 const { loadFilesSync } = require('@graphql-tools/load-files')
@@ -264,7 +278,9 @@ fs.writeFileSync('joined.graphql', printedTypeDefs)
 
 ### Nested Types
 
-The `mergeTypeDefs` function also allows merging multiple schemas. In situations where you would like to have nested subfolders, you can merge your types by subfolder, and then everything into one single schema. For example:
+The `mergeTypeDefs` function also allows merging multiple schemas. In situations where you would
+like to have nested subfolders, you can merge your types by subfolder, and then everything into one
+single schema. For example:
 
 ```
 +-- graphql
@@ -304,7 +320,10 @@ type Query {
 
 ## Merging Resolvers
 
-Resolvers are implemented as simple JS objects and then merged using deep-merge. Resolver implementations can be separated across multiple objects and then merged into a single `resolvers` object. Following the previous examples, for the types we implemented our resolvers should look like the following:
+Resolvers are implemented as simple JS objects and then merged using deep-merge. Resolver
+implementations can be separated across multiple objects and then merged into a single `resolvers`
+object. Following the previous examples, for the types we implemented our resolvers should look like
+the following:
 
 ```js filename="graphql/resolvers/clientResolver.js"
 module.exports = {
@@ -365,8 +384,8 @@ conflicts.
 
 </Callout>
 
-You can also load files with specified extensions by setting the extensions option.
-Only these values are supported now: `ts`, `js`, `gql`, `graphql`, `graphqls`.
+You can also load files with specified extensions by setting the extensions option. Only these
+values are supported now: `ts`, `js`, `gql`, `graphql`, `graphqls`.
 
 ```js filename="graphql/resolvers.js"
 const path = require('path')
@@ -380,9 +399,9 @@ module.exports = mergeResolvers(resolversArray)
 
 ### Optional: Automatic with Resolver Naming Convention
 
-If you would like to use the automated `fileLoader` approach _but_ would like complete
-freedom over the structure of your resolver files, then simply use a resolver file naming
-convention like, `[file].resolvers.js/ts`.
+If you would like to use the automated `fileLoader` approach _but_ would like complete freedom over
+the structure of your resolver files, then simply use a resolver file naming convention like,
+`[file].resolvers.js/ts`.
 
 Then setup your `fileLoader` like so, and you're in business:
 
@@ -395,8 +414,8 @@ const resolversArray = loadFilesSync(path.join(__dirname, './**/*.resolvers.*'))
 module.exports = mergeResolvers(resolversArray)
 ```
 
-With this approach, you're free to structure resolver files as you see fit.
-Of course, the unique naming of Queries, Mutations and Subscriptions still applies!
+With this approach, you're free to structure resolver files as you see fit. Of course, the unique
+naming of Queries, Mutations and Subscriptions still applies!
 
 Now you can structure by **function**...
 
@@ -424,7 +443,8 @@ Or by **type**...
 
 ### Custom Extraction From Exports
 
-By default, `loadFiles` checks export names `typeDefs`, `resolvers` and `schema`. But you can change the way it extracts the content from the exported values.
+By default, `loadFiles` checks export names `typeDefs`, `resolvers` and `schema`. But you can change
+the way it extracts the content from the exported values.
 
 Let's say you have a factory function inside your resolvers like the below:
 

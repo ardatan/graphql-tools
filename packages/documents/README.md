@@ -12,9 +12,8 @@ yarn install @graphql-tools/documents
 
 ### Print GraphQL Documents
 
-A stable way to print a GraphQL document.
-All executable/fragment variable definitions, fields are printed in a stable way.
-Useful for stuff like persisted GraphQL operations.
+A stable way to print a GraphQL document. All executable/fragment variable definitions, fields are
+printed in a stable way. Useful for stuff like persisted GraphQL operations.
 
 #### Usage
 
@@ -44,7 +43,8 @@ const inputDocument = parse(/* GraphQL */ `
 `)
 const outputStr = printExecutableGraphQLDocument(inputDocument)
 console.assert(
-  outputStr === 'fragment B on Query { c } query A { ... on Query { a { a ...B } } ... on Query { a { b ...B } } }',
+  outputStr ===
+    'fragment B on Query { c } query A { ... on Query { a { a ...B } } ... on Query { a { b ...B } } }',
   'Stuff is not equal.'
 )
 ```
@@ -54,4 +54,5 @@ console.assert(
 - Fragments are always printed before executable operations
 - Executable operations are sorted alphabetically by name.
 - Arguments (Directive, Fields) are sorted alphabetical
-- Selections sets are sorted Field, FragmentSpread, InlineFragmentSpread (sorted based on TypeCondition, inner SelectionSet)
+- Selections sets are sorted Field, FragmentSpread, InlineFragmentSpread (sorted based on
+  TypeCondition, inner SelectionSet)

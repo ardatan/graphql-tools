@@ -14,7 +14,11 @@ function createReport(pointer) {
     if (line.trim().length) {
       const metric = JSON.parse(line);
 
-      if (metric.type === 'Point' && metric.metric === 'http_req_duration' && metric.data.tags.status === '200') {
+      if (
+        metric.type === 'Point' &&
+        metric.metric === 'http_req_duration' &&
+        metric.data.tags.status === '200'
+      ) {
         count++;
         sum += metric.data.value;
       }

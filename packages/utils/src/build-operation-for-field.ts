@@ -1,33 +1,32 @@
 import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  isObjectType,
-  getNamedType,
-  isUnionType,
-  OperationDefinitionNode,
-  VariableDefinitionNode,
-  isNonNullType,
-  SelectionNode,
-  InlineFragmentNode,
-  GraphQLNamedType,
-  SelectionSetNode,
-  isScalarType,
-  TypeNode,
-  isListType,
   ArgumentNode,
-  GraphQLField,
+  getNamedType,
   GraphQLArgument,
+  GraphQLField,
   GraphQLInputType,
   GraphQLList,
-  ListTypeNode,
+  GraphQLNamedType,
   GraphQLNonNull,
-  NonNullTypeNode,
-  OperationTypeNode,
-  isInterfaceType,
+  GraphQLObjectType,
+  GraphQLSchema,
+  InlineFragmentNode,
   isEnumType,
+  isInterfaceType,
+  isListType,
+  isNonNullType,
+  isObjectType,
+  isScalarType,
+  isUnionType,
   Kind,
+  ListTypeNode,
+  NonNullTypeNode,
+  OperationDefinitionNode,
+  OperationTypeNode,
+  SelectionNode,
+  SelectionSetNode,
+  TypeNode,
+  VariableDefinitionNode,
 } from 'graphql';
-
 import { getDefinedRootType, getRootTypeNames } from './rootTypes.js';
 
 let operationVariables: VariableDefinitionNode[] = [];
@@ -215,7 +214,7 @@ function resolveSelectionSet({
           t =>
             !hasCircularRef([...ancestors, t], {
               depth: circularReferenceDepth,
-            })
+            }),
         )
         .map<InlineFragmentNode>(t => {
           return {
@@ -250,7 +249,7 @@ function resolveSelectionSet({
 
   if (isInterfaceType(type)) {
     const types = Object.values(schema.getTypeMap()).filter(
-      (t: any) => isObjectType(t) && t.getInterfaces().includes(type)
+      (t: any) => isObjectType(t) && t.getInterfaces().includes(type),
     ) as GraphQLObjectType[];
 
     return {
@@ -260,7 +259,7 @@ function resolveSelectionSet({
           t =>
             !hasCircularRef([...ancestors, t], {
               depth: circularReferenceDepth,
-            })
+            }),
         )
         .map<InlineFragmentNode>(t => {
           return {
@@ -294,7 +293,8 @@ function resolveSelectionSet({
   }
 
   if (isObjectType(type) && !rootTypeNames.has(type.name)) {
-    const isIgnored = ignore.includes(type.name) || ignore.includes(`${parent.name}.${path[path.length - 1]}`);
+    const isIgnored =
+      ignore.includes(type.name) || ignore.includes(`${parent.name}.${path[path.length - 1]}`);
     const isModel = models.includes(type.name);
 
     if (!firstCall && isModel && !isIgnored) {
@@ -323,7 +323,8 @@ function resolveSelectionSet({
           });
         })
         .map(fieldName => {
-          const selectedSubFields = typeof selectedFields === 'object' ? selectedFields[fieldName] : true;
+          const selectedSubFields =
+            typeof selectedFields === 'object' ? selectedFields[fieldName] : true;
           if (selectedSubFields) {
             return resolveField({
               type,
@@ -476,7 +477,11 @@ function resolveField({
   const fieldPathStr = fieldPath.join('.');
   let fieldName = field.name;
   if (fieldTypeMap.has(fieldPathStr) && fieldTypeMap.get(fieldPathStr) !== field.type.toString()) {
-    fieldName += (field.type as any).toString().replace('!', 'NonNull').replace('[', 'List').replace(']', '');
+    fieldName += (field.type as any)
+      .toString()
+      .replace('!', 'NonNull')
+      .replace('[', 'List')
+      .replace(']', '');
   }
   fieldTypeMap.set(fieldPathStr, field.type.toString());
 
@@ -526,7 +531,7 @@ function hasCircularRef(
     depth: number;
   } = {
     depth: 1,
-  }
+  },
 ): boolean {
   const type = types[types.length - 1];
 

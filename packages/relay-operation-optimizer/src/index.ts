@@ -1,14 +1,20 @@
-import { printSchemaWithDirectives, SchemaPrintOptions } from '@graphql-tools/utils';
-import { parse, GraphQLSchema, DefinitionNode, DocumentNode, ParseOptions, concatAST } from 'graphql';
-
-import { transform as skipRedundantNodesTransform } from '@ardatan/relay-compiler/lib/transforms/SkipRedundantNodesTransform.js';
-import { transform as inlineFragmentsTransform } from '@ardatan/relay-compiler/lib/transforms/InlineFragmentsTransform.js';
+import {
+  concatAST,
+  DefinitionNode,
+  DocumentNode,
+  GraphQLSchema,
+  parse,
+  ParseOptions,
+} from 'graphql';
+import CompilerContext from '@ardatan/relay-compiler/lib/core/CompilerContext.js';
+import { print as relayPrint } from '@ardatan/relay-compiler/lib/core/IRPrinter.js';
+import { transform as relayTransform } from '@ardatan/relay-compiler/lib/core/RelayParser.js';
+import { create as relayCreate } from '@ardatan/relay-compiler/lib/core/Schema.js';
 import { transform as applyFragmentArgumentTransform } from '@ardatan/relay-compiler/lib/transforms/ApplyFragmentArgumentTransform.js';
 import { transformWithOptions as flattenTransformWithOptions } from '@ardatan/relay-compiler/lib/transforms/FlattenTransform.js';
-import CompilerContext from '@ardatan/relay-compiler/lib/core/CompilerContext.js';
-import { transform as relayTransform } from '@ardatan/relay-compiler/lib/core/RelayParser.js';
-import { print as relayPrint } from '@ardatan/relay-compiler/lib/core/IRPrinter.js';
-import { create as relayCreate } from '@ardatan/relay-compiler/lib/core/Schema.js';
+import { transform as inlineFragmentsTransform } from '@ardatan/relay-compiler/lib/transforms/InlineFragmentsTransform.js';
+import { transform as skipRedundantNodesTransform } from '@ardatan/relay-compiler/lib/transforms/SkipRedundantNodesTransform.js';
+import { printSchemaWithDirectives, SchemaPrintOptions } from '@graphql-tools/utils';
 
 export type OptimizeDocumentsOptions = SchemaPrintOptions &
   ParseOptions & {
@@ -18,7 +24,7 @@ export type OptimizeDocumentsOptions = SchemaPrintOptions &
 export function optimizeDocuments(
   schema: GraphQLSchema,
   documents: DocumentNode[],
-  options: OptimizeDocumentsOptions = {}
+  options: OptimizeDocumentsOptions = {},
 ) {
   options = {
     noLocation: true,
@@ -31,7 +37,10 @@ export function optimizeDocuments(
 
   const documentAsts = concatAST(documents);
 
-  const relayDocuments = relayTransform(adjustedSchema, documentAsts.definitions as DefinitionNode[]);
+  const relayDocuments = relayTransform(
+    adjustedSchema,
+    documentAsts.definitions as DefinitionNode[],
+  );
 
   const result: DocumentNode[] = [];
 
@@ -48,7 +57,7 @@ export function optimizeDocuments(
       ...fragmentCompilerContext
         .documents()
         .filter(doc => doc.kind === 'Fragment')
-        .map(doc => parse(relayPrint(adjustedSchema, doc), options))
+        .map(doc => parse(relayPrint(adjustedSchema, doc), options)),
     );
   }
 
@@ -61,7 +70,9 @@ export function optimizeDocuments(
       skipRedundantNodesTransform,
     ]);
 
-  result.push(...queryCompilerContext.documents().map(doc => parse(relayPrint(adjustedSchema, doc), options)));
+  result.push(
+    ...queryCompilerContext.documents().map(doc => parse(relayPrint(adjustedSchema, doc), options)),
+  );
 
   return result;
 }

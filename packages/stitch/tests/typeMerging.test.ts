@@ -2,18 +2,13 @@
 // which relies on type merging.
 
 import { graphql, OperationTypeNode, parse } from 'graphql';
-
-import { makeExecutableSchema } from '@graphql-tools/schema';
-
-import { addMocksToSchema } from '@graphql-tools/mock';
-
 import { delegateToSchema } from '@graphql-tools/delegate';
-
-import { RenameRootFields, RenameTypes } from '@graphql-tools/wrap';
-import { assertSome } from '@graphql-tools/utils';
-
-import { stitchSchemas } from '../src/stitchSchemas.js';
 import { normalizedExecutor } from '@graphql-tools/executor';
+import { addMocksToSchema } from '@graphql-tools/mock';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { assertSome } from '@graphql-tools/utils';
+import { RenameRootFields, RenameTypes } from '@graphql-tools/wrap';
+import { stitchSchemas } from '../src/stitchSchemas.js';
 
 describe('merging using type merging', () => {
   test('works', async () => {
@@ -681,7 +676,10 @@ describe('external object annotation with batchDelegateToSchema', () => {
     resolvers: {
       Query: {
         networks: (_root, { ids }) =>
-          ids.map((id: unknown) => ({ id, domains: [{ id: Number(id) + 3, name: `network${id}.com` }] })),
+          ids.map((id: unknown) => ({
+            id,
+            domains: [{ id: Number(id) + 3, name: `network${id}.com` }],
+          })),
       },
     },
   });
@@ -810,7 +808,8 @@ describe('type merge repeated nested delegates', () => {
     `,
     resolvers: {
       Query: {
-        countriesByName: (_root, { name }) => name.map((n: string) => countries.find(c => c.name === n)),
+        countriesByName: (_root, { name }) =>
+          name.map((n: string) => countries.find(c => c.name === n)),
       },
     },
   });
@@ -832,7 +831,8 @@ describe('type merge repeated nested delegates', () => {
     `,
     resolvers: {
       Query: {
-        continentsByName: (_root, { name }) => name.map((n: string) => continents.find(c => c.name === n)),
+        continentsByName: (_root, { name }) =>
+          name.map((n: string) => continents.find(c => c.name === n)),
       },
     },
   });

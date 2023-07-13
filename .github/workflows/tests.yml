@@ -58,7 +58,9 @@ jobs:
         run: yarn ts:check
 
   test:
-    name: Unit Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL v${{matrix.graphql_version}}
+    name:
+      Unit Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL
+      v${{matrix.graphql_version}}
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
@@ -90,7 +92,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .cache/jest
-          key: ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-${{ hashFiles('yarn.lock') }}
+          key:
+            ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-${{
+            hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
       - name: Test

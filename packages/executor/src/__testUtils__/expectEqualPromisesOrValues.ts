@@ -9,7 +9,9 @@ export function expectMatchingValues<T>(values: ReadonlyArray<T>): T {
   return firstValue;
 }
 
-export function expectEqualPromisesOrValues<T>(items: ReadonlyArray<MaybePromise<T>>): MaybePromise<T> {
+export function expectEqualPromisesOrValues<T>(
+  items: ReadonlyArray<MaybePromise<T>>,
+): MaybePromise<T> {
   const [firstItem, ...remainingItems] = items;
   if (isPromise(firstItem)) {
     if (remainingItems.every(isPromise)) {

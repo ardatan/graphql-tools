@@ -1,4 +1,4 @@
-import { parse, GraphQLObjectType, GraphQLInt, GraphQLSchema } from 'graphql';
+import { GraphQLInt, GraphQLObjectType, GraphQLSchema, parse } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
 import { execute, executeSync } from '../execute.js';

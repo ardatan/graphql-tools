@@ -1,18 +1,18 @@
 import {
   GraphQLInputType,
-  Kind,
-  ObjectFieldNode,
-  ValueNode,
   isEnumType,
   isInputObjectType,
   isLeafType,
   isListType,
   isNonNullType,
+  Kind,
+  ObjectFieldNode,
+  ValueNode,
 } from 'graphql';
-import { isIterableObject, isObjectLike } from './jsutils.js';
-import { inspect } from './inspect.js';
-import { Maybe } from './types.js';
 import { astFromValueUntyped } from './astFromValueUntyped.js';
+import { inspect } from './inspect.js';
+import { isIterableObject, isObjectLike } from './jsutils.js';
+import { Maybe } from './types.js';
 
 /**
  * Produces a GraphQL Value AST given a JavaScript object.
@@ -105,7 +105,11 @@ export function astFromValue(value: unknown, type: GraphQLInputType): Maybe<Valu
     }
 
     // ID types can use Int literals.
-    if (type.name === 'ID' && typeof serialized === 'string' && integerStringRegExp.test(serialized)) {
+    if (
+      type.name === 'ID' &&
+      typeof serialized === 'string' &&
+      integerStringRegExp.test(serialized)
+    ) {
       return { kind: Kind.INT, value: serialized };
     }
 

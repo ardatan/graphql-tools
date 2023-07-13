@@ -1,16 +1,14 @@
 import { GraphQLSchema } from 'graphql';
-
-import { ExecutionRequest, FieldNodeMappers, ExecutionResult } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
-
-import { ObjectValueTransformerMap, ErrorsTransformer } from '../types.js';
-
+import { DelegationContext, SubschemaConfig, Transform } from '@graphql-tools/delegate';
+import { ExecutionRequest, ExecutionResult, FieldNodeMappers } from '@graphql-tools/utils';
+import { ErrorsTransformer, ObjectValueTransformerMap } from '../types.js';
 import TransformCompositeFields from './TransformCompositeFields.js';
 
 interface MapFieldsTransformationContext extends Record<string, any> {}
 
-export default class MapFields<TContext> implements Transform<MapFieldsTransformationContext, TContext> {
+export default class MapFields<TContext>
+  implements Transform<MapFieldsTransformationContext, TContext>
+{
   private fieldNodeTransformerMap: FieldNodeMappers;
   private objectValueTransformerMap?: ObjectValueTransformerMap;
   private errorsTransformer?: ErrorsTransformer;
@@ -19,7 +17,7 @@ export default class MapFields<TContext> implements Transform<MapFieldsTransform
   constructor(
     fieldNodeTransformerMap: FieldNodeMappers,
     objectValueTransformerMap?: ObjectValueTransformerMap,
-    errorsTransformer?: ErrorsTransformer
+    errorsTransformer?: ErrorsTransformer,
   ) {
     this.fieldNodeTransformerMap = fieldNodeTransformerMap;
     this.objectValueTransformerMap = objectValueTransformerMap;
@@ -30,7 +28,7 @@ export default class MapFields<TContext> implements Transform<MapFieldsTransform
     const transformer = this.transformer;
     if (transformer === undefined) {
       throw new Error(
-        `The MapFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+        `The MapFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`,
       );
     }
     return transformer;
@@ -38,7 +36,7 @@ export default class MapFields<TContext> implements Transform<MapFieldsTransform
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     const subscriptionTypeName = originalWrappingSchema.getSubscriptionType()?.name;
     const objectValueTransformerMap = this.objectValueTransformerMap;
@@ -80,7 +78,7 @@ export default class MapFields<TContext> implements Transform<MapFieldsTransform
             return transformer(data, transformationContext);
           }
         : undefined,
-      this.errorsTransformer != null ? this.errorsTransformer : undefined
+      this.errorsTransformer != null ? this.errorsTransformer : undefined,
     );
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
@@ -88,16 +86,24 @@ export default class MapFields<TContext> implements Transform<MapFieldsTransform
   public transformRequest(
     originalRequest: ExecutionRequest,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: MapFieldsTransformationContext
+    transformationContext: MapFieldsTransformationContext,
   ): ExecutionRequest {
-    return this._getTransformer().transformRequest(originalRequest, delegationContext, transformationContext);
+    return this._getTransformer().transformRequest(
+      originalRequest,
+      delegationContext,
+      transformationContext,
+    );
   }
 
   public transformResult(
     originalResult: ExecutionResult,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: MapFieldsTransformationContext
+    transformationContext: MapFieldsTransformationContext,
   ): ExecutionResult {
-    return this._getTransformer().transformResult(originalResult, delegationContext, transformationContext);
+    return this._getTransformer().transformResult(
+      originalResult,
+      delegationContext,
+      transformationContext,
+    );
   }
 }

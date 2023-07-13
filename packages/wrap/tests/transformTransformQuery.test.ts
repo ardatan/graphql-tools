@@ -1,8 +1,8 @@
 import { Kind, OperationTypeNode, parse } from 'graphql';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { TransformQuery } from '../src';
 import { delegateToSchema } from '@graphql-tools/delegate';
 import { execute } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { TransformQuery } from '../src';
 
 describe('TransformQuery', () => {
   test('calls queryTransformer even when there is no subtree', async () => {

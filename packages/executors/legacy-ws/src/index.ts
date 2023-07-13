@@ -1,6 +1,6 @@
-import { ExecutionRequest, Executor, observableToAsyncIterable } from '@graphql-tools/utils';
 import { print } from 'graphql';
 import WebSocket from 'isomorphic-ws';
+import { ExecutionRequest, Executor, observableToAsyncIterable } from '@graphql-tools/utils';
 
 export enum LEGACY_WS {
   CONNECTION_INIT = 'connection_init',
@@ -23,7 +23,7 @@ export interface LegacyWSExecutorOpts {
 export function buildWSLegacyExecutor(
   subscriptionsEndpoint: string,
   WebSocketImpl: typeof WebSocket,
-  options?: LegacyWSExecutorOpts
+  options?: LegacyWSExecutorOpts,
 ): Executor {
   let executorConnectionParams = {};
   let websocket: WebSocket | null = null;
@@ -57,7 +57,7 @@ export function buildWSLegacyExecutor(
             if (error) {
               errorHandler(error);
             }
-          }
+          },
         );
       };
 
@@ -76,7 +76,7 @@ export function buildWSLegacyExecutor(
       websocket.send(
         JSON.stringify({
           type: LEGACY_WS.CONNECTION_TERMINATE,
-        })
+        }),
       );
       websocket.terminate();
       websocket = null;
@@ -86,8 +86,14 @@ export function buildWSLegacyExecutor(
   return function legacyExecutor(request: ExecutionRequest) {
     // additional connection params can be supplied through the "connectionParams" field in extensions.
     // TODO: connection params only from the FIRST operation in lazy mode will be used (detect connectionParams changes and reconnect, too implicit?)
-    if (request.extensions?.['connectionParams'] && typeof request.extensions?.['connectionParams'] === 'object') {
-      executorConnectionParams = Object.assign(executorConnectionParams, request.extensions['connectionParams']);
+    if (
+      request.extensions?.['connectionParams'] &&
+      typeof request.extensions?.['connectionParams'] === 'object'
+    ) {
+      executorConnectionParams = Object.assign(
+        executorConnectionParams,
+        request.extensions['connectionParams'],
+      );
     }
 
     const id = Date.now().toString();
@@ -121,7 +127,7 @@ export function buildWSLegacyExecutor(
                   if (error) {
                     errorHandler(error);
                   }
-                }
+                },
               );
               break;
             }
@@ -146,7 +152,7 @@ export function buildWSLegacyExecutor(
                     if (error) {
                       errorHandler(error);
                     }
-                  }
+                  },
                 );
               }
               observer.complete();
@@ -163,7 +169,7 @@ export function buildWSLegacyExecutor(
                 JSON.stringify({
                   type: LEGACY_WS.STOP,
                   id,
-                })
+                }),
               );
             }
             cleanupWebsocket();

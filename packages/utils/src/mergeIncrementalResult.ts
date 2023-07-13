@@ -1,5 +1,5 @@
-import { GraphQLError } from 'graphql';
 import { dset } from 'dset/merge';
+import { GraphQLError } from 'graphql';
 import { ExecutionResult } from './Interfaces.js';
 
 export function mergeIncrementalResult({

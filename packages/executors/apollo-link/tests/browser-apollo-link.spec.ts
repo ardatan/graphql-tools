@@ -1,8 +1,8 @@
-import { ApolloClient, FetchResult, InMemoryCache } from '@apollo/client/core';
-import { createYoga, createSchema } from 'graphql-yoga';
 import { parse } from 'graphql';
-import { ExecutorLink } from '../src/index.js';
+import { createSchema, createYoga } from 'graphql-yoga';
+import { ApolloClient, FetchResult, InMemoryCache } from '@apollo/client/core';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
+import { ExecutorLink } from '../src/index.js';
 
 describe('Apollo Link', () => {
   if (!process.env['TEST_BROWSER']) {
@@ -53,7 +53,7 @@ describe('Apollo Link', () => {
         fetch: yoga.fetch,
         File: yoga.fetchAPI.File,
         FormData: yoga.fetchAPI.FormData,
-      })
+      }),
     ),
     cache: new InMemoryCache(),
   });

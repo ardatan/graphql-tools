@@ -1,5 +1,5 @@
-import { IResolvers } from '@graphql-tools/utils';
 import { inspect } from 'util';
+import { IResolvers } from '@graphql-tools/utils';
 
 export const typeDefs = /* GraphQL */ `
   type Product @key(fields: "upc") @extends {

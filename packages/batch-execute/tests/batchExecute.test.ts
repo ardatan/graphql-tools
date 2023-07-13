@@ -1,8 +1,13 @@
-import { parse, print, OperationDefinitionNode, validate } from 'graphql';
-import { makeExecutableSchema } from '@graphql-tools/schema';
+import { OperationDefinitionNode, parse, print, validate } from 'graphql';
 import { createBatchingExecutor } from '@graphql-tools/batch-execute';
-import { createGraphQLError, ExecutionResult, Executor, MaybeAsyncIterable } from '@graphql-tools/utils';
 import { normalizedExecutor } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import {
+  createGraphQLError,
+  ExecutionResult,
+  Executor,
+  MaybeAsyncIterable,
+} from '@graphql-tools/utils';
 
 describe('batch execution', () => {
   let executorCalls = 0;
@@ -62,7 +67,9 @@ describe('batch execution', () => {
   function getRequestFields(): Array<string> {
     if (executorDocument != null) {
       const op = parse(executorDocument).definitions[0] as OperationDefinitionNode;
-      const names = op.selectionSet.selections.map(sel => ('name' in sel ? sel.name.value : undefined));
+      const names = op.selectionSet.selections.map(sel =>
+        'name' in sel ? sel.name.value : undefined,
+      );
       return names.filter(Boolean) as Array<string>;
     }
     return [];
@@ -190,7 +197,9 @@ describe('batch execution', () => {
   });
 
   it('pathed errors contain extensions', async () => {
-    const [first] = (await Promise.all([batchExec({ document: parse('{ extension }') })])) as ExecutionResult[];
+    const [first] = (await Promise.all([
+      batchExec({ document: parse('{ extension }') }),
+    ])) as ExecutionResult[];
 
     expect(first?.errors?.length).toEqual(1);
     expect(first?.errors?.[0].message).toMatch(/boom/);
@@ -204,7 +213,9 @@ describe('batch execution', () => {
     };
     const batchExec = createBatchingExecutor(errorExec);
 
-    const [first] = (await Promise.all([batchExec({ document: parse('{ boom }') })])) as ExecutionResult[];
+    const [first] = (await Promise.all([
+      batchExec({ document: parse('{ boom }') }),
+    ])) as ExecutionResult[];
 
     expect(first?.errors?.length).toEqual(1);
     expect(first?.errors?.[0].message).toMatch(/boom/);

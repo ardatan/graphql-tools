@@ -1,9 +1,7 @@
 {
   "name": "@graphql-tools/utils",
-  "engines": {
-    "node": ">=16.0.0"
-  },
   "version": "10.0.3",
+  "type": "module",
   "description": "Common package containing utils and types for GraphQL tools",
   "repository": {
     "type": "git",
@@ -12,7 +10,9 @@
   },
   "author": "Dotan Simha <dotansimha@gmail.com>",
   "license": "MIT",
-  "sideEffects": false,
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "exports": {
@@ -47,25 +47,25 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
-  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
-  },
-  "devDependencies": {
-    "@types/dateformat": "3.0.1",
-    "dateformat": "4.6.3",
-    "graphql-scalars": "1.22.2"
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.1.1",
     "dset": "^3.1.2",
     "tslib": "^2.4.0"
   },
+  "devDependencies": {
+    "@types/dateformat": "3.0.1",
+    "dateformat": "4.6.3",
+    "graphql-scalars": "1.22.2"
+  },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
   },
-  "type": "module"
+  "sideEffects": false,
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
+  }
 }

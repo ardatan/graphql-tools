@@ -1,9 +1,6 @@
 import { GraphQLSchema } from 'graphql';
-
+import { DelegationContext, SubschemaConfig, Transform } from '@graphql-tools/delegate';
 import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
-
 import WrapFields from './WrapFields.js';
 
 interface WrapTypeTransformationContext extends Record<string, any> {}
@@ -19,7 +16,7 @@ export default class WrapType<TContext extends Record<string, any> = Record<stri
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
@@ -27,16 +24,24 @@ export default class WrapType<TContext extends Record<string, any> = Record<stri
   public transformRequest(
     originalRequest: ExecutionRequest,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: WrapTypeTransformationContext
+    transformationContext: WrapTypeTransformationContext,
   ): ExecutionRequest {
-    return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext as any);
+    return this.transformer.transformRequest(
+      originalRequest,
+      delegationContext,
+      transformationContext as any,
+    );
   }
 
   public transformResult(
     originalResult: ExecutionResult,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: WrapTypeTransformationContext
+    transformationContext: WrapTypeTransformationContext,
   ): ExecutionResult {
-    return this.transformer.transformResult(originalResult, delegationContext, transformationContext as any);
+    return this.transformer.transformResult(
+      originalResult,
+      delegationContext,
+      transformationContext as any,
+    );
   }
 }

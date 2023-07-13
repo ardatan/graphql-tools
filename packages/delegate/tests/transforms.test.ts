@@ -1,7 +1,7 @@
-import { Subschema, delegateToSchema } from '@graphql-tools/delegate';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { RenameRootFields, RenameObjectFields } from '@graphql-tools/wrap';
 import { graphql, GraphQLSchema } from 'graphql';
+import { delegateToSchema, Subschema } from '@graphql-tools/delegate';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { RenameObjectFields, RenameRootFields } from '@graphql-tools/wrap';
 
 describe('can delegate to subschema with transforms', () => {
   let sourceSchema: GraphQLSchema;

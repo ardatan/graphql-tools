@@ -1,5 +1,5 @@
-import { clusterEndpointMapReverse } from '../constants.js';
 import { URL } from 'url';
+import { clusterEndpointMapReverse } from '../constants.js';
 
 function getClusterName(origin: any): string {
   if (clusterEndpointMapReverse[origin]) {

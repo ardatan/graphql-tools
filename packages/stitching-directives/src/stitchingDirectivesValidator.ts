@@ -9,7 +9,6 @@ import {
   isUnionType,
   parseValue,
 } from 'graphql';
-
 import {
   getDirective,
   getImplementingTypes,
@@ -18,18 +17,21 @@ import {
   mapSchema,
   parseSelectionSet,
 } from '@graphql-tools/utils';
-
-import { StitchingDirectivesOptions } from './types.js';
-
 import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions.js';
 import { parseMergeArgsExpr } from './parseMergeArgsExpr.js';
+import { StitchingDirectivesOptions } from './types.js';
 
 const dottedNameRegEx = /^[_A-Za-z][_0-9A-Za-z]*(.[_A-Za-z][_0-9A-Za-z]*)*$/;
 
 export function stitchingDirectivesValidator(
-  options: StitchingDirectivesOptions = {}
+  options: StitchingDirectivesOptions = {},
 ): (schema: GraphQLSchema) => GraphQLSchema {
-  const { keyDirectiveName, computedDirectiveName, mergeDirectiveName, pathToDirectivesInExtensions } = {
+  const {
+    keyDirectiveName,
+    computedDirectiveName,
+    mergeDirectiveName,
+    pathToDirectivesInExtensions,
+  } = {
     ...defaultStitchingDirectiveOptions,
     ...options,
   };
@@ -39,7 +41,12 @@ export function stitchingDirectivesValidator(
 
     mapSchema(schema, {
       [MapperKind.OBJECT_TYPE]: type => {
-        const keyDirective = getDirective(schema, type, keyDirectiveName, pathToDirectivesInExtensions)?.[0];
+        const keyDirective = getDirective(
+          schema,
+          type,
+          keyDirectiveName,
+          pathToDirectivesInExtensions,
+        )?.[0];
 
         if (keyDirective != null) {
           parseSelectionSet(keyDirective['selectionSet']);
@@ -52,17 +59,24 @@ export function stitchingDirectivesValidator(
           schema,
           fieldConfig,
           computedDirectiveName,
-          pathToDirectivesInExtensions
+          pathToDirectivesInExtensions,
         )?.[0];
 
         if (computedDirective != null) {
           parseSelectionSet(computedDirective['selectionSet']);
         }
 
-        const mergeDirective = getDirective(schema, fieldConfig, mergeDirectiveName, pathToDirectivesInExtensions)?.[0];
+        const mergeDirective = getDirective(
+          schema,
+          fieldConfig,
+          mergeDirectiveName,
+          pathToDirectivesInExtensions,
+        )?.[0];
         if (mergeDirective != null) {
           if (typeName !== queryTypeName) {
-            throw new Error('@merge directive may be used only for root fields of the root Query type.');
+            throw new Error(
+              '@merge directive may be used only for root fields of the root Query type.',
+            );
           }
 
           let returnType = getNullableType(fieldConfig.type);
@@ -72,7 +86,9 @@ export function stitchingDirectivesValidator(
           }
 
           if (!isNamedType(returnType)) {
-            throw new Error('@merge directive must be used on a field that returns an object or a list of objects.');
+            throw new Error(
+              '@merge directive must be used on a field that returns an object or a list of objects.',
+            );
           }
 
           const mergeArgsExpr = mergeDirective['argsExpr'];
@@ -86,12 +102,12 @@ export function stitchingDirectivesValidator(
           if (keyArg == null) {
             if (!mergeArgsExpr && args.length !== 1) {
               throw new Error(
-                'Cannot use @merge directive without `keyArg` argument if resolver takes more than one argument.'
+                'Cannot use @merge directive without `keyArg` argument if resolver takes more than one argument.',
               );
             }
           } else if (!keyArg.match(dottedNameRegEx)) {
             throw new Error(
-              '`keyArg` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.'
+              '`keyArg` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.',
             );
             // TODO: ideally we should check that the arg exists for the resolver
           }
@@ -99,7 +115,7 @@ export function stitchingDirectivesValidator(
           const keyField = mergeDirective['keyField'];
           if (keyField != null && !keyField.match(dottedNameRegEx)) {
             throw new Error(
-              '`keyField` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.'
+              '`keyField` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.',
             );
             // TODO: ideally we should check that it is part of the key
           }
@@ -107,7 +123,9 @@ export function stitchingDirectivesValidator(
           const key: Array<string> = mergeDirective['key'];
           if (key != null) {
             if (keyField != null) {
-              throw new Error('Cannot use @merge directive with both `keyField` and `key` arguments.');
+              throw new Error(
+                'Cannot use @merge directive with both `keyField` and `key` arguments.',
+              );
             }
 
             for (const keyDef of key) {
@@ -121,13 +139,13 @@ export function stitchingDirectivesValidator(
 
               if (keyPath != null && !keyPath.match(dottedNameRegEx)) {
                 throw new Error(
-                  'Each partial key within the `key` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.'
+                  'Each partial key within the `key` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.',
                 );
                 // TODO: ideally we should check that it is part of the key
               }
               if (aliasPath != null && !aliasOrKeyPath.match(dottedNameRegEx)) {
                 throw new Error(
-                  'Each alias within the `key` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.'
+                  'Each alias within the `key` argument for @merge directive must be a set of valid GraphQL SDL names separated by periods.',
                 );
                 // TODO: ideally we should check that the arg exists within the resolver
               }
@@ -140,28 +158,38 @@ export function stitchingDirectivesValidator(
           }
 
           if (mergeArgsExpr != null && (keyArg != null || additionalArgs != null)) {
-            throw new Error('Cannot use @merge directive with both `argsExpr` argument and any additional argument.');
+            throw new Error(
+              'Cannot use @merge directive with both `argsExpr` argument and any additional argument.',
+            );
           }
 
-          if (!isInterfaceType(returnType) && !isUnionType(returnType) && !isObjectType(returnType)) {
+          if (
+            !isInterfaceType(returnType) &&
+            !isUnionType(returnType) &&
+            !isObjectType(returnType)
+          ) {
             throw new Error(
-              '@merge directive may be used only with resolver that return an object, interface, or union.'
+              '@merge directive may be used only with resolver that return an object, interface, or union.',
             );
           }
 
           const typeNames: Array<string> = mergeDirective['types'];
           if (typeNames != null) {
             if (!isAbstractType(returnType)) {
-              throw new Error('Types argument can only be used with a field that returns an abstract type.');
+              throw new Error(
+                'Types argument can only be used with a field that returns an abstract type.',
+              );
             }
             const implementingTypes = isInterfaceType(returnType)
-              ? getImplementingTypes(returnType.name, schema).map(typeName => schema.getType(typeName))
+              ? getImplementingTypes(returnType.name, schema).map(typeName =>
+                  schema.getType(typeName),
+                )
               : returnType.getTypes();
             const implementingTypeNames = implementingTypes.map(type => type?.name).filter(isSome);
             for (const typeName of typeNames) {
               if (!implementingTypeNames.includes(typeName)) {
                 throw new Error(
-                  `Types argument can only include only type names that implement the field return type's abstract type.`
+                  `Types argument can only include only type names that implement the field return type's abstract type.`,
                 );
               }
             }

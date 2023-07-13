@@ -1,9 +1,13 @@
 import { getNamedType, GraphQLList, GraphQLOutputType, OperationTypeNode } from 'graphql';
-import { delegateToSchema, MergedTypeResolver, MergedTypeResolverOptions } from '@graphql-tools/delegate';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
+import {
+  delegateToSchema,
+  MergedTypeResolver,
+  MergedTypeResolverOptions,
+} from '@graphql-tools/delegate';
 
 export function createMergedTypeResolver<TContext extends Record<string, any> = any>(
-  mergedTypeResolverOptions: MergedTypeResolverOptions
+  mergedTypeResolverOptions: MergedTypeResolverOptions,
 ): MergedTypeResolver<TContext> | undefined {
   const { fieldName, argsFromKeys, valuesFromResults, args } = mergedTypeResolverOptions;
 
@@ -15,7 +19,7 @@ export function createMergedTypeResolver<TContext extends Record<string, any> = 
       subschema,
       selectionSet,
       key,
-      type = getNamedType(info.returnType) as GraphQLOutputType
+      type = getNamedType(info.returnType) as GraphQLOutputType,
     ) {
       return batchDelegateToSchema({
         schema: subschema,
@@ -41,7 +45,7 @@ export function createMergedTypeResolver<TContext extends Record<string, any> = 
       subschema,
       selectionSet,
       _key,
-      type = getNamedType(info.returnType) as GraphQLOutputType
+      type = getNamedType(info.returnType) as GraphQLOutputType,
     ) {
       return delegateToSchema({
         schema: subschema,

@@ -1,7 +1,7 @@
-import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
+import { buildSchema, GraphQLSchema, printSchema } from 'graphql';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { printSchema, buildSchema, GraphQLSchema } from 'graphql';
+import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { runTests, useMonorepo } from '../../../../testing/utils.js';
 import '../../../../testing/to-be-similar-gql-doc';
 import { join } from 'path';
@@ -160,7 +160,7 @@ describe('loadSchema', () => {
         {
           loaders: [],
           customLoaderContext,
-        }
+        },
       );
       expect(result).toBeInstanceOf(GraphQLSchema);
       expect(result.getQueryType()?.getFields()?.['myFooField']).toBeDefined();

@@ -1,10 +1,10 @@
-import globby, { sync as globbySync, GlobbyOptions } from 'globby';
-import unixify from 'unixify';
-import { extname, join } from 'path';
-import { statSync, readFileSync, promises as fsPromises } from 'fs';
-import { DocumentNode, parse } from 'graphql';
+import { promises as fsPromises, readFileSync, statSync } from 'fs';
 import { createRequire } from 'module';
+import { extname, join } from 'path';
 import { cwd } from 'process';
+import globby, { GlobbyOptions, sync as globbySync } from 'globby';
+import { DocumentNode, parse } from 'graphql';
+import unixify from 'unixify';
 
 const { readFile, stat } = fsPromises;
 
@@ -75,10 +75,12 @@ function buildGlob(
   basePath: string,
   extensions: string[] = [],
   ignoredExtensions: string[] = [],
-  recursive?: boolean
+  recursive?: boolean,
 ): string {
   const ignored =
-    ignoredExtensions.length > 0 ? `!(${ignoredExtensions.map(e => `*${formatExtension(e)}`).join('|')})` : '*';
+    ignoredExtensions.length > 0
+      ? `!(${ignoredExtensions.map(e => `*${formatExtension(e)}`).join('|')})`
+      : '*';
   const ext = extensions.map(e => `*${formatExtension(e)}`).join('|');
 
   return `${basePath}${recursive ? '/**' : ''}/${ignored}+(${ext})`;
@@ -129,20 +131,27 @@ const LoadFilesDefaultOptions: LoadFilesOptions = {
  */
 export function loadFilesSync<T = any>(
   pattern: string | string[],
-  options: LoadFilesOptions = LoadFilesDefaultOptions
+  options: LoadFilesOptions = LoadFilesDefaultOptions,
 ): T[] {
   const execOptions = { ...LoadFilesDefaultOptions, ...options };
   const relevantPaths = scanForFilesSync(
     asArray(pattern).map(path =>
       isDirectorySync(path)
-        ? buildGlob(unixify(path), execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive)
-        : unixify(path)
+        ? buildGlob(
+            unixify(path),
+            execOptions.extensions,
+            execOptions.ignoredExtensions,
+            execOptions.recursive,
+          )
+        : unixify(path),
     ),
-    options.globOptions
+    options.globOptions,
   );
 
-  const extractExports = execOptions.extractExports || DEFAULT_EXTRACT_EXPORTS_FACTORY(execOptions.exportNames ?? []);
-  const requireMethod = execOptions.requireMethod || createRequire(join(options?.globOptions?.cwd || cwd(), 'noop.js'));
+  const extractExports =
+    execOptions.extractExports || DEFAULT_EXTRACT_EXPORTS_FACTORY(execOptions.exportNames ?? []);
+  const requireMethod =
+    execOptions.requireMethod || createRequire(join(options?.globOptions?.cwd || cwd(), 'noop.js'));
 
   return relevantPaths
     .map(path => {
@@ -156,7 +165,11 @@ export function loadFilesSync<T = any>(
 
       const extension = extname(path);
 
-      if (extension === formatExtension('js') || extension === formatExtension('ts') || execOptions.useRequire) {
+      if (
+        extension === formatExtension('js') ||
+        extension === formatExtension('ts') ||
+        execOptions.useRequire
+      ) {
         const fileExports = requireMethod(path);
         const extractedExport = extractExports(fileExports);
         return extractedExport;
@@ -168,13 +181,16 @@ export function loadFilesSync<T = any>(
     .filter(v => v);
 }
 
-async function scanForFiles(globStr: string | string[], globOptions: GlobbyOptions = {}): Promise<string[]> {
+async function scanForFiles(
+  globStr: string | string[],
+  globOptions: GlobbyOptions = {},
+): Promise<string[]> {
   return globby(globStr, { absolute: true, ...globOptions });
 }
 
 const checkExtension = (
   path: string,
-  { extensions, ignoredExtensions }: { extensions?: string[]; ignoredExtensions?: string[] }
+  { extensions, ignoredExtensions }: { extensions?: string[]; ignoredExtensions?: string[] },
 ) => {
   if (ignoredExtensions) {
     for (const ignoredExtension of ignoredExtensions) {
@@ -213,21 +229,27 @@ const checkExtension = (
  */
 export async function loadFiles(
   pattern: string | string[],
-  options: LoadFilesOptions = LoadFilesDefaultOptions
+  options: LoadFilesOptions = LoadFilesDefaultOptions,
 ): Promise<any[]> {
   const execOptions = { ...LoadFilesDefaultOptions, ...options };
   const relevantPaths = await scanForFiles(
     await Promise.all(
       asArray(pattern).map(async path =>
         (await isDirectory(path))
-          ? buildGlob(unixify(path), execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive)
-          : unixify(path)
-      )
+          ? buildGlob(
+              unixify(path),
+              execOptions.extensions,
+              execOptions.ignoredExtensions,
+              execOptions.recursive,
+            )
+          : unixify(path),
+      ),
     ),
-    options.globOptions
+    options.globOptions,
   );
 
-  const extractExports = execOptions.extractExports || DEFAULT_EXTRACT_EXPORTS_FACTORY(execOptions.exportNames ?? []);
+  const extractExports =
+    execOptions.extractExports || DEFAULT_EXTRACT_EXPORTS_FACTORY(execOptions.exportNames ?? []);
   const defaultRequireMethod = (path: string) =>
     import(path).catch(importError => {
       const cwdRequire = createRequire(join(options?.globOptions?.cwd || cwd(), 'noop.js'));
@@ -241,11 +263,19 @@ export async function loadFiles(
 
   return Promise.all(
     relevantPaths
-      .filter(path => checkExtension(path, options) && !(isIndex(path, execOptions.extensions) && options.ignoreIndex))
+      .filter(
+        path =>
+          checkExtension(path, options) &&
+          !(isIndex(path, execOptions.extensions) && options.ignoreIndex),
+      )
       .map(async path => {
         const extension = extname(path);
 
-        if (extension === formatExtension('js') || extension === formatExtension('ts') || execOptions.useRequire) {
+        if (
+          extension === formatExtension('js') ||
+          extension === formatExtension('ts') ||
+          execOptions.useRequire
+        ) {
           const fileExports = await requireMethod(path);
           const extractedExport = extractExports(fileExports);
           return extractedExport;
@@ -253,7 +283,7 @@ export async function loadFiles(
           const maybeSDL = await readFile(path, { encoding: 'utf-8' });
           return tryToParse(maybeSDL);
         }
-      })
+      }),
   );
 }
 

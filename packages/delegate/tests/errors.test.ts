@@ -1,13 +1,11 @@
-import { GraphQLResolveInfo, locatedError, graphql, OperationTypeNode } from 'graphql';
-
+import { graphql, GraphQLResolveInfo, locatedError, OperationTypeNode } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { createGraphQLError, ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
-
+import { createGraphQLError, ExecutionResult } from '@graphql-tools/utils';
 import { checkResultAndHandleErrors } from '../src/checkResultAndHandleErrors.js';
-import { UNPATHED_ERRORS_SYMBOL } from '../src/symbols.js';
+import { defaultMergedResolver, delegateToSchema, DelegationContext } from '../src/index.js';
 import { getUnpathedErrors } from '../src/mergeFields.js';
-import { delegateToSchema, defaultMergedResolver, DelegationContext } from '../src/index.js';
+import { UNPATHED_ERRORS_SYMBOL } from '../src/symbols.js';
 
 describe('Errors', () => {
   describe('getUnpathedErrors', () => {
@@ -20,7 +18,9 @@ describe('Errors', () => {
         [UNPATHED_ERRORS_SYMBOL]: [error],
       };
 
-      expect(getUnpathedErrors(mockExternalObject)).toEqual([mockExternalObject[UNPATHED_ERRORS_SYMBOL][0]]);
+      expect(getUnpathedErrors(mockExternalObject)).toEqual([
+        mockExternalObject[UNPATHED_ERRORS_SYMBOL][0],
+      ]);
     });
   });
 
@@ -109,7 +109,11 @@ describe('Errors', () => {
           }
         `;
 
-        const unpathedError = locatedError(new Error('TestError'), undefined as any, ['_entities', 7, 'name']);
+        const unpathedError = locatedError(new Error('TestError'), undefined as any, [
+          '_entities',
+          7,
+          'name',
+        ]);
 
         const remoteSchema = makeExecutableSchema({
           typeDefs,
@@ -177,7 +181,11 @@ describe('Errors', () => {
           }
         `;
 
-        const unpathedError = locatedError(new Error('TestError'), undefined as any, ['_entities', 7, 'name']);
+        const unpathedError = locatedError(new Error('TestError'), undefined as any, [
+          '_entities',
+          7,
+          'name',
+        ]);
 
         const remoteSchema = makeExecutableSchema({
           typeDefs,

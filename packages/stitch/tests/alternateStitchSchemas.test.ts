@@ -1,51 +1,52 @@
 import {
-  graphql,
-  GraphQLSchema,
-  parse,
-  GraphQLScalarType,
-  FieldNode,
-  printSchema,
-  graphqlSync,
   assertValidSchema,
+  FieldNode,
+  graphql,
   GraphQLFieldConfig,
-  isSpecifiedScalarType,
   GraphQLNamedType,
+  GraphQLScalarType,
+  GraphQLSchema,
+  graphqlSync,
+  isSpecifiedScalarType,
   Kind,
   OperationTypeNode,
+  parse,
+  printSchema,
 } from 'graphql';
-
-import {
-  wrapSchema,
-  RenameTypes,
-  RenameRootFields,
-  RenameObjectFields,
-  TransformObjectFields,
-  WrapType,
-  WrapFields,
-  HoistField,
-  FilterRootFields,
-  FilterObjectFields,
-  RenameInterfaceFields,
-  TransformRootFields,
-  PruneSchema,
-} from '@graphql-tools/wrap';
-
 import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
-import { makeExecutableSchema } from '@graphql-tools/schema';
+import { execute, subscribe } from '@graphql-tools/executor';
 import { addMocksToSchema } from '@graphql-tools/mock';
-import { filterSchema, ExecutionResult, assertSome, createGraphQLError } from '@graphql-tools/utils';
-
-import { stitchSchemas } from '../src/stitchSchemas.js';
-
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import {
+  assertSome,
+  createGraphQLError,
+  ExecutionResult,
+  filterSchema,
+} from '@graphql-tools/utils';
+import {
+  FilterObjectFields,
+  FilterRootFields,
+  HoistField,
+  PruneSchema,
+  RenameInterfaceFields,
+  RenameObjectFields,
+  RenameRootFields,
+  RenameTypes,
+  TransformObjectFields,
+  TransformRootFields,
+  WrapFields,
+  wrapSchema,
+  WrapType,
+} from '@graphql-tools/wrap';
 import {
   bookingSchema,
   propertySchema,
   remoteBookingSchema,
-  subscriptionSchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
+  subscriptionSchema,
 } from '../../testing/fixtures/schemas.js';
-import { execute, subscribe } from '@graphql-tools/executor';
+import { stitchSchemas } from '../src/stitchSchemas.js';
 
 const linkSchema = /* GraphQL */ `
   """
@@ -101,14 +102,17 @@ describe('merge schemas through transforms', () => {
     // namespace and strip schemas
     const propertySchemaTransforms = [
       new FilterRootFields(
-        (operation: string, rootField: string) => `${operation}.${rootField}` === 'Query.properties'
+        (operation: string, rootField: string) =>
+          `${operation}.${rootField}` === 'Query.properties',
       ),
       new RenameTypes((name: string) => `Properties_${name}`),
       new RenameRootFields((_operation: string, name: string) => `Properties_${name}`),
       new PruneSchema(),
     ];
     const bookingSchemaTransforms = [
-      new FilterRootFields((operation: string, rootField: string) => `${operation}.${rootField}` === 'Query.bookings'),
+      new FilterRootFields(
+        (operation: string, rootField: string) => `${operation}.${rootField}` === 'Query.bookings',
+      ),
       new RenameTypes((name: string) => `Bookings_${name}`),
       new RenameRootFields((_operation: string, name: string) => `Bookings_${name}`),
       new PruneSchema(),
@@ -118,7 +122,7 @@ describe('merge schemas through transforms', () => {
         (operation: string, rootField: string) =>
           // must include a Query type otherwise graphql will error
           `${operation}.${rootField}` === 'Query.notifications' ||
-          `${operation}.${rootField}` === 'Subscription.notifications'
+          `${operation}.${rootField}` === 'Subscription.notifications',
       ),
       new RenameTypes((name: string) => `Subscriptions_${name}`),
       new RenameRootFields((_operation: string, name: string) => `Subscriptions_${name}`),
@@ -358,7 +362,7 @@ describe('transform object fields', () => {
               },
             };
             return newFieldNode;
-          }
+          },
         ),
       ],
     });
@@ -747,14 +751,18 @@ describe('filter and rename object fields', () => {
         transforms: [
           new RenameTypes((name: string) => `New_${name}`),
           new RenameObjectFields((typeName: string, fieldName: string) =>
-            typeName === 'New_Property' ? `new_${fieldName}` : fieldName
+            typeName === 'New_Property' ? `new_${fieldName}` : fieldName,
           ),
         ],
       }),
-      rootFieldFilter: (operation: string, fieldName: string) => `${operation}.${fieldName}` === 'Query.propertyById',
-      objectFieldFilter: (typeName: string, fieldName: string) => typeName === 'New_Property' || fieldName === 'name',
+      rootFieldFilter: (operation: string, fieldName: string) =>
+        `${operation}.${fieldName}` === 'Query.propertyById',
+      objectFieldFilter: (typeName: string, fieldName: string) =>
+        typeName === 'New_Property' || fieldName === 'name',
       typeFilter: (typeName: string, type) =>
-        typeName === 'New_Property' || typeName === 'New_Location' || isSpecifiedScalarType(type as GraphQLNamedType),
+        typeName === 'New_Property' ||
+        typeName === 'New_Location' ||
+        isSpecifiedScalarType(type as GraphQLNamedType),
     });
   });
 
@@ -768,21 +776,21 @@ type New_Property {
   new_location: New_Location
   new_error: String
 }
-    `.trim()
+    `.trim(),
     );
     expect(printedSchema).toContain(
       `
 type New_Location {
   name: String!
 }
-    `.trim()
+    `.trim(),
     );
     expect(printedSchema).toContain(
       `
 type Query {
   propertyById(id: ID!): New_Property
 }
-    `.trim()
+    `.trim(),
     );
   });
 
@@ -1114,7 +1122,10 @@ describe('schema transformation with extraction of nested fields', () => {
   test('should work via HoistField transform', async () => {
     const transformedPropertySchema = wrapSchema({
       schema: propertySchema,
-      transforms: [new HoistField('Property', ['location', 'name'], 'locationName'), new PruneSchema()],
+      transforms: [
+        new HoistField('Property', ['location', 'name'], 'locationName'),
+        new PruneSchema(),
+      ],
     });
 
     const result = await graphql({
@@ -1221,7 +1232,10 @@ describe('HoistField transform', () => {
       transforms: [new HoistField('Outer', ['inner', 'test'], 'hoisted'), new PruneSchema({})],
     });
 
-    const result = await graphql({ schema: wrappedSchema, source: '{ query { hoisted(testArg: "custom") } }' });
+    const result = await graphql({
+      schema: wrappedSchema,
+      source: '{ query { hoisted(testArg: "custom") } }',
+    });
 
     const expectedResult = {
       data: {
@@ -1262,7 +1276,10 @@ describe('HoistField transform', () => {
   test('should work to hoist fields to new root fields', async () => {
     const wrappedSchema = wrapSchema({
       schema,
-      transforms: [new HoistField('Query', ['query', 'inner', 'test'], 'hoisted'), new PruneSchema({})],
+      transforms: [
+        new HoistField('Query', ['query', 'inner', 'test'], 'hoisted'),
+        new PruneSchema({}),
+      ],
     });
 
     const result = await graphql({ schema: wrappedSchema, source: '{ hoisted }' });
@@ -1278,10 +1295,16 @@ describe('HoistField transform', () => {
   it('should work to hoist fields in arrays', async () => {
     const wrappedSchema = wrapSchema({
       schema,
-      transforms: [new HoistField('User', ['friends', 'entries', 'user'], 'friendUsers'), new PruneSchema({})],
+      transforms: [
+        new HoistField('User', ['friends', 'entries', 'user'], 'friendUsers'),
+        new PruneSchema({}),
+      ],
     });
 
-    const result = await graphql({ schema: wrappedSchema, source: '{ me { friendUsers { id name } } }' });
+    const result = await graphql({
+      schema: wrappedSchema,
+      source: '{ me { friendUsers { id name } } }',
+    });
 
     const expectedResult = {
       data: {
@@ -1305,7 +1328,9 @@ describe('schema transformation with wrapping of object fields', () => {
     test('should work to wrap fields even with errors', async () => {
       const transformedPropertySchema = wrapSchema({
         schema: propertySchema,
-        transforms: [new WrapFields('Property', ['outerWrap'], ['OuterWrap'], ['id', 'name', 'error'])],
+        transforms: [
+          new WrapFields('Property', ['outerWrap'], ['OuterWrap'], ['id', 'name', 'error']),
+        ],
       });
 
       const result = await graphql({
@@ -1364,7 +1389,12 @@ describe('schema transformation with wrapping of object fields', () => {
       const transformedPropertySchema = wrapSchema({
         schema: propertySchema,
         transforms: [
-          new WrapFields('Property', ['outerWrap', 'innerWrap'], ['OuterWrap', 'InnerWrap'], ['id', 'name', 'error']),
+          new WrapFields(
+            'Property',
+            ['outerWrap', 'innerWrap'],
+            ['OuterWrap', 'InnerWrap'],
+            ['id', 'name', 'error'],
+          ),
         ],
       });
 
@@ -1620,14 +1650,14 @@ describe('stitchSchemas', () => {
 input InputWithDefault {
   field: String = "test"
 }
-    `.trim()
+    `.trim(),
     );
     expect(printedSchema).toContain(
       `
 type Query {
   getInput(input: InputWithDefault!): String
 }
-    `.trim()
+    `.trim(),
     );
     expect(response.data?.['getInput']).toBe('test');
   });

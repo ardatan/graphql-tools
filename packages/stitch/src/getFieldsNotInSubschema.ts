@@ -1,5 +1,4 @@
-import { GraphQLSchema, FieldNode, GraphQLObjectType, FragmentDefinitionNode } from 'graphql';
-
+import { FieldNode, FragmentDefinitionNode, GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { StitchingInfo } from '@graphql-tools/delegate';
 import { collectSubFields } from '@graphql-tools/utils';
 
@@ -10,14 +9,14 @@ export function getFieldsNotInSubschema(
   subschemaType: GraphQLObjectType,
   fieldNodes: FieldNode[],
   fragments: Record<string, FragmentDefinitionNode>,
-  variableValues: Record<string, any>
+  variableValues: Record<string, any>,
 ): Array<FieldNode> {
   const { fields: subFieldNodesByResponseKey } = collectSubFields(
     schema,
     fragments,
     variableValues,
     gatewayType,
-    fieldNodes
+    fieldNodes,
   );
 
   // TODO: Verify whether it is safe that extensions always exists.

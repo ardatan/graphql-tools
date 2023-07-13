@@ -1,7 +1,16 @@
 import {
+  DirectiveDefinitionNode,
+  DirectiveLocation,
   EnumTypeDefinitionNode,
+  EnumValueDefinitionNode,
   FieldDefinitionNode,
+  getDirectiveValues,
+  GraphQLDeprecatedDirective,
+  GraphQLDirective,
   GraphQLEnumType,
+  GraphQLEnumValueConfigMap,
+  GraphQLFieldConfig,
+  GraphQLFieldConfigArgumentMap,
   GraphQLInputObjectType,
   GraphQLInterfaceType,
   GraphQLNamedType,
@@ -14,21 +23,17 @@ import {
   Kind,
   ObjectTypeDefinitionNode,
   ScalarTypeDefinitionNode,
-  UnionTypeDefinitionNode,
-  GraphQLDirective,
-  DirectiveDefinitionNode,
-  DirectiveLocation,
-  GraphQLFieldConfig,
-  GraphQLEnumValueConfigMap,
-  GraphQLFieldConfigArgumentMap,
-  valueFromASTUntyped,
-  EnumValueDefinitionNode,
-  getDirectiveValues,
-  GraphQLDeprecatedDirective,
   TypeDefinitionNode,
+  UnionTypeDefinitionNode,
+  valueFromASTUntyped,
 } from 'graphql';
-
-import { createStub, createNamedStub, Maybe, getDescription, DirectiveLocationEnum } from '@graphql-tools/utils';
+import {
+  createNamedStub,
+  createStub,
+  DirectiveLocationEnum,
+  getDescription,
+  Maybe,
+} from '@graphql-tools/utils';
 
 const backcompatOptions = { commentDescriptions: true };
 
@@ -42,7 +47,9 @@ function typeFromAST(node: ScalarTypeDefinitionNode): GraphQLScalarType;
 function typeFromAST(node: InputObjectTypeDefinitionNode): GraphQLInputObjectType;
 function typeFromAST(node: DirectiveDefinitionNode): GraphQLDirective;
 function typeFromAST(node: TypeDefinitionNode): GraphQLNamedType;
-function typeFromAST(node: TypeDefinitionNode | DirectiveDefinitionNode): GraphQLNamedType | GraphQLDirective | null {
+function typeFromAST(
+  node: TypeDefinitionNode | DirectiveDefinitionNode,
+): GraphQLNamedType | GraphQLDirective | null {
   switch (node.kind) {
     case Kind.OBJECT_TYPE_DEFINITION:
       return makeObjectType(node);
@@ -67,7 +74,8 @@ function makeObjectType(node: ObjectTypeDefinitionNode): GraphQLObjectType {
   const config = {
     name: node.name.value,
     description: getDescription(node, backcompatOptions),
-    interfaces: () => node.interfaces?.map(iface => createNamedStub(iface.name.value, 'interface')) || [],
+    interfaces: () =>
+      node.interfaces?.map(iface => createNamedStub(iface.name.value, 'interface')) || [],
     fields: () => (node.fields != null ? makeFields(node.fields) : {}),
     astNode: node,
   };
@@ -80,7 +88,7 @@ function makeInterfaceType(node: InterfaceTypeDefinitionNode): GraphQLInterfaceT
     description: getDescription(node, backcompatOptions),
     interfaces: () =>
       (node as unknown as ObjectTypeDefinitionNode).interfaces?.map(iface =>
-        createNamedStub(iface.name.value, 'interface')
+        createNamedStub(iface.name.value, 'interface'),
       ),
     fields: () => (node.fields != null ? makeFields(node.fields) : {}),
     astNode: node,
@@ -99,7 +107,7 @@ function makeEnumType(node: EnumTypeDefinitionNode): GraphQLEnumType {
           astNode: value,
         },
       }),
-      {}
+      {},
     ) ?? {};
 
   return new GraphQLEnumType({
@@ -139,7 +147,9 @@ function makeInputObjectType(node: InputObjectTypeDefinitionNode): GraphQLInputO
   });
 }
 
-function makeFields(nodes: ReadonlyArray<FieldDefinitionNode>): Record<string, GraphQLFieldConfig<any, any>> {
+function makeFields(
+  nodes: ReadonlyArray<FieldDefinitionNode>,
+): Record<string, GraphQLFieldConfig<any, any>> {
   return nodes.reduce(
     (prev, node) => ({
       ...prev,
@@ -151,7 +161,7 @@ function makeFields(nodes: ReadonlyArray<FieldDefinitionNode>): Record<string, G
         astNode: node,
       },
     }),
-    {}
+    {},
   );
 }
 
@@ -161,12 +171,13 @@ function makeValues(nodes: ReadonlyArray<InputValueDefinitionNode>): GraphQLFiel
       ...prev,
       [node.name.value]: {
         type: createStub(node.type, 'input'),
-        defaultValue: node.defaultValue !== undefined ? valueFromASTUntyped(node.defaultValue) : undefined,
+        defaultValue:
+          node.defaultValue !== undefined ? valueFromASTUntyped(node.defaultValue) : undefined,
         description: getDescription(node, backcompatOptions),
         astNode: node,
       },
     }),
-    {}
+    {},
   );
 }
 

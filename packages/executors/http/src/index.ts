@@ -1,22 +1,27 @@
+import { GraphQLResolveInfo, print } from 'graphql';
+import { ValueOrPromise } from 'value-or-promise';
 import {
-  ExecutionResult,
   AsyncExecutor,
   createGraphQLError,
   ExecutionRequest,
+  ExecutionResult,
   Executor,
   getOperationASTFromRequest,
   SyncExecutor,
 } from '@graphql-tools/utils';
-import { GraphQLResolveInfo, print } from 'graphql';
-import { isLiveQueryOperationDefinitionNode } from './isLiveQueryOperationDefinitionNode.js';
-import { prepareGETUrl } from './prepareGETUrl.js';
-import { ValueOrPromise } from 'value-or-promise';
+import { fetch as defaultFetch } from '@whatwg-node/fetch';
 import { createFormDataFromVariables } from './createFormDataFromVariables.js';
 import { handleEventStreamResponse } from './handleEventStreamResponse.js';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
-import { fetch as defaultFetch } from '@whatwg-node/fetch';
+import { isLiveQueryOperationDefinitionNode } from './isLiveQueryOperationDefinitionNode.js';
+import { prepareGETUrl } from './prepareGETUrl.js';
 
-export type SyncFetchFn = (url: string, init?: RequestInit, context?: any, info?: GraphQLResolveInfo) => SyncResponse;
+export type SyncFetchFn = (
+  url: string,
+  init?: RequestInit,
+  context?: any,
+  info?: GraphQLResolveInfo,
+) => SyncResponse;
 export type SyncResponse = Omit<Response, 'json' | 'text'> & {
   json: () => any;
   text: () => string;
@@ -26,7 +31,7 @@ export type AsyncFetchFn = (
   url: string,
   options?: RequestInit,
   context?: any,
-  info?: GraphQLResolveInfo
+  info?: GraphQLResolveInfo,
 ) => Promise<Response> | Response;
 
 export type RegularFetchFn = (url: string) => Promise<Response> | Response;
@@ -79,22 +84,24 @@ export interface HTTPExecutorOptions {
 export type HeadersConfig = Record<string, string>;
 
 export function buildHTTPExecutor(
-  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: SyncFetchFn }
+  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: SyncFetchFn },
 ): SyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
-  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: AsyncFetchFn }
+  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: AsyncFetchFn },
 ): AsyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
-  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: RegularFetchFn }
+  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: RegularFetchFn },
 ): AsyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
-  options?: Omit<HTTPExecutorOptions, 'fetch'>
+  options?: Omit<HTTPExecutorOptions, 'fetch'>,
 ): AsyncExecutor<any, HTTPExecutorOptions>;
 
-export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, HTTPExecutorOptions> {
+export function buildHTTPExecutor(
+  options?: HTTPExecutorOptions,
+): Executor<any, HTTPExecutorOptions> {
   const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
     const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
     let controller: AbortController | undefined;
@@ -103,7 +110,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
     const operationAst = getOperationASTFromRequest(request);
     const operationType = operationAst.operation;
 
-    if ((options?.useGETForQueries || request.extensions?.useGETForQueries) && operationType === 'query') {
+    if (
+      (options?.useGETForQueries || request.extensions?.useGETForQueries) &&
+      operationType === 'query'
+    ) {
       method = 'GET';
     }
 
@@ -119,7 +129,7 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
         accept,
       },
       (typeof options?.headers === 'function' ? options.headers(request) : options?.headers) || {},
-      request.extensions?.headers || {}
+      request.extensions?.headers || {},
     );
 
     const query = print(request.document);
@@ -161,7 +171,7 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
               signal: controller?.signal,
             },
             request.context,
-            request.info
+            request.info,
           );
         }
         case 'POST':
@@ -169,7 +179,7 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
             createFormDataFromVariables(requestBody, {
               File: options?.File,
               FormData: options?.FormData,
-            })
+            }),
           )
             .then(
               body =>
@@ -186,8 +196,8 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
                     signal: controller?.signal,
                   },
                   request.context,
-                  request.info
-                ) as any
+                  request.info,
+                ) as any,
             )
             .resolve();
       }

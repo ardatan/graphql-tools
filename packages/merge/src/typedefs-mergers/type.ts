@@ -1,14 +1,19 @@
-import { Config } from './merge-typedefs.js';
-import { DirectiveDefinitionNode, Kind, ObjectTypeDefinitionNode, ObjectTypeExtensionNode } from 'graphql';
-import { mergeFields } from './fields.js';
+import {
+  DirectiveDefinitionNode,
+  Kind,
+  ObjectTypeDefinitionNode,
+  ObjectTypeExtensionNode,
+} from 'graphql';
 import { mergeDirectives } from './directives.js';
+import { mergeFields } from './fields.js';
 import { mergeNamedTypeArray } from './merge-named-type-array.js';
+import { Config } from './merge-typedefs.js';
 
 export function mergeType(
   node: ObjectTypeDefinitionNode | ObjectTypeExtensionNode,
   existingNode: ObjectTypeDefinitionNode | ObjectTypeExtensionNode,
   config?: Config,
-  directives?: Record<string, DirectiveDefinitionNode>
+  directives?: Record<string, DirectiveDefinitionNode>,
 ): ObjectTypeDefinitionNode | ObjectTypeExtensionNode {
   if (existingNode) {
     try {

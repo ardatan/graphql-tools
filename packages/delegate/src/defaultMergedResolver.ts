@@ -1,9 +1,7 @@
 import { defaultFieldResolver, GraphQLResolveInfo } from 'graphql';
-
 import { getResponseKeyFromInfo } from '@graphql-tools/utils';
-
-import { resolveExternalValue } from './resolveExternalValue.js';
 import { getSubschema, getUnpathedErrors, isExternalObject } from './mergeFields.js';
+import { resolveExternalValue } from './resolveExternalValue.js';
 import { ExternalObject } from './types.js';
 
 /**
@@ -16,7 +14,7 @@ export function defaultMergedResolver(
   parent: ExternalObject,
   args: Record<string, any>,
   context: Record<string, any>,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) {
   if (!parent) {
     return null;

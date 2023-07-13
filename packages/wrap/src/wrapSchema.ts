@@ -1,18 +1,23 @@
 import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLInterfaceType,
-  GraphQLUnionType,
   GraphQLFieldResolver,
+  GraphQLInterfaceType,
+  GraphQLObjectType,
+  GraphQLSchema,
+  GraphQLUnionType,
 } from 'graphql';
-
+import {
+  applySchemaTransforms,
+  defaultMergedResolver,
+  Subschema,
+  SubschemaConfig,
+} from '@graphql-tools/delegate';
 import { MapperKind, mapSchema, memoize1 } from '@graphql-tools/utils';
-
-import { SubschemaConfig, defaultMergedResolver, applySchemaTransforms, Subschema } from '@graphql-tools/delegate';
 import { generateProxyingResolvers } from './generateProxyingResolvers.js';
 
-export const wrapSchema = memoize1(function wrapSchema<TConfig extends Record<string, any> = Record<string, any>>(
-  subschemaConfig: SubschemaConfig<any, any, any, TConfig> | Subschema<any, any, any, TConfig>
+export const wrapSchema = memoize1(function wrapSchema<
+  TConfig extends Record<string, any> = Record<string, any>,
+>(
+  subschemaConfig: SubschemaConfig<any, any, any, TConfig> | Subschema<any, any, any, TConfig>,
 ): GraphQLSchema {
   const targetSchema = subschemaConfig.schema;
 
@@ -24,7 +29,7 @@ export const wrapSchema = memoize1(function wrapSchema<TConfig extends Record<st
 
 function createWrappingSchema(
   schema: GraphQLSchema,
-  proxyingResolvers: Record<string, Record<string, GraphQLFieldResolver<any, any>>>
+  proxyingResolvers: Record<string, Record<string, GraphQLFieldResolver<any, any>>>,
 ) {
   return mapSchema(schema, {
     [MapperKind.ROOT_FIELD]: (fieldConfig, fieldName, typeName) => {

@@ -1,9 +1,9 @@
-import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
-import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
-import { CodeFileLoader } from '@graphql-tools/code-file-loader';
-import { runTests, useMonorepo } from '../../../../testing/utils.js';
 import path from 'path';
+import { CodeFileLoader } from '@graphql-tools/code-file-loader';
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
+import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { inspect } from '@graphql-tools/utils';
+import { runTests, useMonorepo } from '../../../../testing/utils.js';
 
 const monorepo = useMonorepo({
   dirname: __dirname,
@@ -41,7 +41,9 @@ describe('schema from typedefs', () => {
         });
         expect(true).toBeFalsy();
       } catch (e: any) {
-        expect(e.message).toContain(`Unable to find any GraphQL type definitions for the following pointers:`);
+        expect(e.message).toContain(
+          `Unable to find any GraphQL type definitions for the following pointers:`,
+        );
         expect(e.message).toContain(`/tests/loaders/schema/test-files/schema-dir/*.empty.graphql`);
       }
     });
@@ -55,7 +57,9 @@ describe('schema from typedefs', () => {
         });
         expect(schema).toBeFalsy();
       } catch (e: any) {
-        expect(e.message).toContain(`Unable to find any GraphQL type definitions for the following pointers:`);
+        expect(e.message).toContain(
+          `Unable to find any GraphQL type definitions for the following pointers:`,
+        );
       }
     });
 
@@ -68,8 +72,12 @@ describe('schema from typedefs', () => {
         });
         expect(true).toBeFalsy();
       } catch (e: any) {
-        expect(e.message).toContain(`Unable to find any GraphQL type definitions for the following pointers:`);
-        expect(e.message).toContain(`./tests/loaders/schema/test-files/schema-dir/*.non-schema.graphql`);
+        expect(e.message).toContain(
+          `Unable to find any GraphQL type definitions for the following pointers:`,
+        );
+        expect(e.message).toContain(
+          `./tests/loaders/schema/test-files/schema-dir/*.non-schema.graphql`,
+        );
       }
     });
 
@@ -115,7 +123,8 @@ describe('schema from typedefs', () => {
     });
 
     it('should work with extensions (static graphql file)', async () => {
-      const schemaPath = './tests/loaders/schema/test-files/schema-dir/extensions/schema-with-extend.graphql';
+      const schemaPath =
+        './tests/loaders/schema/test-files/schema-dir/extensions/schema-with-extend.graphql';
       const schema = await load(schemaPath, {
         loaders: [new GraphQLFileLoader()],
       });
@@ -167,7 +176,7 @@ describe('schema from typedefs', () => {
       expect(sourcesFromExtensions[0]).toMatchObject(
         expect.objectContaining({
           name: path.resolve(process.cwd(), glob).replace(/\\/g, '/'),
-        })
+        }),
       );
 
       const schemaWithoutSources = await load(glob, {
@@ -187,7 +196,7 @@ describe('schema from typedefs', () => {
         {
           loaders: [new GraphQLFileLoader()],
           includeSources: true,
-        }
+        },
       );
       expect(result.getTypeMap()['User']).toBeDefined();
     });
@@ -204,7 +213,7 @@ describe('schema from typedefs', () => {
         {
           loaders: [new GraphQLFileLoader()],
           includeSources: true,
-        }
+        },
       );
     });
 

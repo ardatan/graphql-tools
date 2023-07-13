@@ -1,9 +1,9 @@
-import { UrlLoader, LoadFromUrlOptions } from '@graphql-tools/url-loader';
-import { PrismaDefinitionClass, Environment } from './prisma-yml/index.js';
-import { join } from 'path';
 import { promises as fsPromises } from 'fs';
 import { homedir } from 'os';
+import { join } from 'path';
 import { cwd } from 'process';
+import { LoadFromUrlOptions, UrlLoader } from '@graphql-tools/url-loader';
+import { Environment, PrismaDefinitionClass } from './prisma-yml/index.js';
 
 const { access } = fsPromises;
 
@@ -59,7 +59,7 @@ export class PrismaLoader extends UrlLoader {
       throw new Error(
         `Cluster ${clusterName} provided in prisma.yml could not be found in global ~/.prisma/config.yml.
       Please check in ~/.prisma/config.yml, if the cluster exists.
-      You can use \`docker-compose up -d\` to start a new cluster.`
+      You can use \`docker-compose up -d\` to start a new cluster.`,
       );
     }
     const token = await definition.getToken(serviceName, stage);

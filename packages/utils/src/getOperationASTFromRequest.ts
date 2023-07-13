@@ -4,7 +4,7 @@ import { memoize1 } from './memoize.js';
 
 export function getOperationASTFromDocument(
   documentNode: DocumentNode,
-  operationName?: string
+  operationName?: string,
 ): OperationDefinitionNode {
   const doc = getOperationAST(documentNode, operationName);
   if (!doc) {
@@ -13,6 +13,8 @@ export function getOperationASTFromDocument(
   return doc;
 }
 
-export const getOperationASTFromRequest = memoize1(function getOperationASTFromRequest(request: ExecutionRequest) {
+export const getOperationASTFromRequest = memoize1(function getOperationASTFromRequest(
+  request: ExecutionRequest,
+) {
   return getOperationASTFromDocument(request.document, request.operationName);
 });

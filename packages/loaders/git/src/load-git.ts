@@ -9,7 +9,8 @@ const createShowCommand = ({ ref, path }: Input): string[] => {
   return ['show', `${ref}:${path}`];
 };
 
-const createTreeError = (error: Error) => new Error('Unable to load the file tree from git: ' + error);
+const createTreeError = (error: Error) =>
+  new Error('Unable to load the file tree from git: ' + error);
 const createTreeCommand = ({ ref }: PartialInput): string[] => {
   return ['ls-tree', '-r', '--name-only', ref];
 };
@@ -30,7 +31,7 @@ export async function readTreeAtRef(ref: string): Promise<string[] | never> {
           } else {
             resolve(stdout.split(os.EOL).map(line => line.trim()));
           }
-        }
+        },
       );
     });
   } catch (error: any) {
@@ -67,7 +68,7 @@ export async function loadFromGit(input: Input): Promise<string | never> {
           } else {
             resolve(stdout);
           }
-        }
+        },
       );
     });
   } catch (error: any) {

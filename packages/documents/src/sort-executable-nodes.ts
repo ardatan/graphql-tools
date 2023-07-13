@@ -1,12 +1,12 @@
 import {
+  Kind,
+  print,
   type ArgumentNode,
   type ASTNode,
   type DefinitionNode,
   type DirectiveNode,
-  Kind,
   type SelectionNode,
   type VariableDefinitionNode,
-  print,
 } from 'graphql';
 import sortBy from 'lodash.sortby';
 import { normalizeWhiteSpace } from './normalize-whitespace.js';
@@ -16,12 +16,18 @@ const nodeSortCache = new WeakMap<readonly ASTNode[], readonly ASTNode[]>();
 
 export function sortExecutableNodes(nodes: readonly DefinitionNode[]): readonly DefinitionNode[];
 export function sortExecutableNodes(nodes: readonly SelectionNode[]): readonly SelectionNode[];
-export function sortExecutableNodes(nodes: readonly ArgumentNode[] | undefined): readonly ArgumentNode[] | undefined;
 export function sortExecutableNodes(
-  nodes: readonly VariableDefinitionNode[] | undefined
+  nodes: readonly ArgumentNode[] | undefined,
+): readonly ArgumentNode[] | undefined;
+export function sortExecutableNodes(
+  nodes: readonly VariableDefinitionNode[] | undefined,
 ): readonly VariableDefinitionNode[] | undefined;
-export function sortExecutableNodes(nodes: readonly DirectiveNode[] | undefined): readonly DirectiveNode[] | undefined;
-export function sortExecutableNodes(nodes: readonly ASTNode[] | undefined): readonly ASTNode[] | undefined {
+export function sortExecutableNodes(
+  nodes: readonly DirectiveNode[] | undefined,
+): readonly DirectiveNode[] | undefined;
+export function sortExecutableNodes(
+  nodes: readonly ASTNode[] | undefined,
+): readonly ASTNode[] | undefined {
   if (nodes) {
     const shortcutNodes = nodeSortCache.get(nodes);
     if (shortcutNodes) {
@@ -49,7 +55,9 @@ export function sortExecutableNodes(nodes: readonly ASTNode[] | undefined): read
       return cacheResult(sortBy(nodes as any, 'name.value'));
     }
 
-    if (isOfKindList<SelectionNode>(nodes, [Kind.FIELD, Kind.FRAGMENT_SPREAD, Kind.INLINE_FRAGMENT])) {
+    if (
+      isOfKindList<SelectionNode>(nodes, [Kind.FIELD, Kind.FRAGMENT_SPREAD, Kind.INLINE_FRAGMENT])
+    ) {
       return cacheResult(
         sortBy(nodes as any, node => {
           if (node.kind === Kind.FIELD) {
@@ -60,11 +68,11 @@ export function sortExecutableNodes(nodes: readonly ASTNode[] | undefined): read
             const typeCondition = node.typeCondition?.name.value ?? '';
             // if you have a better idea, send a PR :)
             const sortedNodes = buildInlineFragmentSelectionSetKey(
-              cacheResult(sortExecutableNodes(node.selectionSet.selections))
+              cacheResult(sortExecutableNodes(node.selectionSet.selections)),
             );
             return sortPrefixInlineFragmentNode + typeCondition + sortedNodes;
           }
-        })
+        }),
       );
     }
 
@@ -76,7 +84,10 @@ const sortPrefixField = '0';
 const sortPrefixFragmentSpread = '1';
 const sortPrefixInlineFragmentNode = '2';
 
-function isOfKindList<T extends ASTNode>(nodes: readonly ASTNode[], kind: string | string[]): nodes is T[] {
+function isOfKindList<T extends ASTNode>(
+  nodes: readonly ASTNode[],
+  kind: string | string[],
+): nodes is T[] {
   return typeof kind === 'string' ? nodes[0].kind === kind : kind.includes(nodes[0].kind);
 }
 

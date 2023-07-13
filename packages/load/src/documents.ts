@@ -1,6 +1,11 @@
-import { Source } from '@graphql-tools/utils';
 import { Kind } from 'graphql';
-import { LoadTypedefsOptions, loadTypedefs, loadTypedefsSync, UnnormalizedTypeDefPointer } from './load-typedefs.js';
+import { Source } from '@graphql-tools/utils';
+import {
+  loadTypedefs,
+  LoadTypedefsOptions,
+  loadTypedefsSync,
+  UnnormalizedTypeDefPointer,
+} from './load-typedefs.js';
 
 type KindList = Array<(typeof Kind)[keyof typeof Kind]>;
 
@@ -26,9 +31,13 @@ export const NON_OPERATION_KINDS: KindList = Object.keys(Kind)
  */
 export function loadDocuments(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
-  options: LoadTypedefsOptions
+  options: LoadTypedefsOptions,
 ): Promise<Source[]> {
-  return loadTypedefs(pointerOrPointers, { noRequire: true, filterKinds: NON_OPERATION_KINDS, ...options });
+  return loadTypedefs(pointerOrPointers, {
+    noRequire: true,
+    filterKinds: NON_OPERATION_KINDS,
+    ...options,
+  });
 }
 
 /**
@@ -41,7 +50,11 @@ export function loadDocuments(
  */
 export function loadDocumentsSync(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
-  options: LoadTypedefsOptions
+  options: LoadTypedefsOptions,
 ): Source[] {
-  return loadTypedefsSync(pointerOrPointers, { noRequire: true, filterKinds: NON_OPERATION_KINDS, ...options });
+  return loadTypedefsSync(pointerOrPointers, {
+    noRequire: true,
+    filterKinds: NON_OPERATION_KINDS,
+    ...options,
+  });
 }

@@ -1,6 +1,6 @@
 import { graphql, GraphQLObjectType } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { wrapSchema, WrapFields } from '@graphql-tools/wrap';
+import { WrapFields, wrapSchema } from '@graphql-tools/wrap';
 
 describe('WrapFields', () => {
   const subschema = makeExecutableSchema({

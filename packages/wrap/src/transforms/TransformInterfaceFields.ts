@@ -1,11 +1,7 @@
-import { GraphQLSchema, isInterfaceType, GraphQLFieldConfig } from 'graphql';
-
+import { GraphQLFieldConfig, GraphQLSchema, isInterfaceType } from 'graphql';
+import { DelegationContext, SubschemaConfig, Transform } from '@graphql-tools/delegate';
 import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
-
-import { FieldTransformer, FieldNodeTransformer } from '../types.js';
-
+import { FieldNodeTransformer, FieldTransformer } from '../types.js';
 import TransformCompositeFields from './TransformCompositeFields.js';
 
 interface TransformInterfaceFieldsTransformationContext extends Record<string, any> {}
@@ -17,7 +13,10 @@ export default class TransformInterfaceFields<TContext = Record<string, any>>
   private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
   private transformer: TransformCompositeFields<TContext> | undefined;
 
-  constructor(interfaceFieldTransformer: FieldTransformer<TContext>, fieldNodeTransformer?: FieldNodeTransformer) {
+  constructor(
+    interfaceFieldTransformer: FieldTransformer<TContext>,
+    fieldNodeTransformer?: FieldNodeTransformer,
+  ) {
     this.interfaceFieldTransformer = interfaceFieldTransformer;
     this.fieldNodeTransformer = fieldNodeTransformer;
   }
@@ -26,7 +25,7 @@ export default class TransformInterfaceFields<TContext = Record<string, any>>
     const transformer = this.transformer;
     if (transformer === undefined) {
       throw new Error(
-        `The TransformInterfaceFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+        `The TransformInterfaceFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`,
       );
     }
     return transformer;
@@ -34,12 +33,12 @@ export default class TransformInterfaceFields<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     const compositeToObjectFieldTransformer = (
       typeName: string,
       fieldName: string,
-      fieldConfig: GraphQLFieldConfig<any, any>
+      fieldConfig: GraphQLFieldConfig<any, any>,
     ) => {
       if (isInterfaceType(originalWrappingSchema.getType(typeName))) {
         return this.interfaceFieldTransformer(typeName, fieldName, fieldConfig);
@@ -50,7 +49,7 @@ export default class TransformInterfaceFields<TContext = Record<string, any>>
 
     this.transformer = new TransformCompositeFields<TContext>(
       compositeToObjectFieldTransformer,
-      this.fieldNodeTransformer
+      this.fieldNodeTransformer,
     );
 
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
@@ -59,16 +58,24 @@ export default class TransformInterfaceFields<TContext = Record<string, any>>
   public transformRequest(
     originalRequest: ExecutionRequest,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: TransformInterfaceFieldsTransformationContext
+    transformationContext: TransformInterfaceFieldsTransformationContext,
   ): ExecutionRequest {
-    return this._getTransformer().transformRequest(originalRequest, delegationContext, transformationContext);
+    return this._getTransformer().transformRequest(
+      originalRequest,
+      delegationContext,
+      transformationContext,
+    );
   }
 
   public transformResult(
     originalResult: ExecutionResult,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: TransformInterfaceFieldsTransformationContext
+    transformationContext: TransformInterfaceFieldsTransformationContext,
   ): ExecutionResult {
-    return this._getTransformer().transformResult(originalResult, delegationContext, transformationContext);
+    return this._getTransformer().transformResult(
+      originalResult,
+      delegationContext,
+      transformationContext,
+    );
   }
 }

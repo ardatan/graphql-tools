@@ -1,9 +1,9 @@
-import { createClient } from '@urql/core';
-import { executorExchange } from '../src/index.js';
+import { createSchema, createYoga } from 'graphql-yoga';
 import { pipe, toObservable } from 'wonka';
-import { createYoga, createSchema } from 'graphql-yoga';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { ExecutionResult } from '@graphql-tools/utils';
+import { createClient } from '@urql/core';
+import { executorExchange } from '../src/index.js';
 
 describe('URQL Yoga Exchange', () => {
   if (!process.env['TEST_BROWSER']) {
@@ -59,7 +59,7 @@ describe('URQL Yoga Exchange', () => {
           fetch: yoga.fetch,
           File: yoga.fetchAPI.File,
           FormData: yoga.fetchAPI.FormData,
-        })
+        }),
       ),
     ],
   });
@@ -72,7 +72,7 @@ describe('URQL Yoga Exchange', () => {
             hello
           }
         `,
-        {}
+        {},
       )
       .toPromise();
     expect(result.error).toBeUndefined();
@@ -88,9 +88,9 @@ describe('URQL Yoga Exchange', () => {
             alphabet
           }
         `,
-        {}
+        {},
       ),
-      toObservable
+      toObservable,
     );
 
     const collectedValues: string[] = [];

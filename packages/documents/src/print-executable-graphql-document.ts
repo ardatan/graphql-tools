@@ -1,4 +1,4 @@
-import { type DocumentNode, print } from 'graphql';
+import { print, type DocumentNode } from 'graphql';
 import { normalizeWhiteSpace } from './normalize-whitespace.js';
 import { sortExecutableDocument } from './sort-executable-document.js';
 

@@ -1,11 +1,16 @@
 import { cloneSubschemaConfig, MergedTypeConfig, SubschemaConfig } from '@graphql-tools/delegate';
 
-export function splitMergedTypeEntryPointsTransformer(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
+export function splitMergedTypeEntryPointsTransformer(
+  subschemaConfig: SubschemaConfig,
+): Array<SubschemaConfig> {
   if (!subschemaConfig.merge) return [subschemaConfig];
 
-  const maxEntryPoints = Object.values(subschemaConfig.merge).reduce((max: number, mergedTypeConfig) => {
-    return Math.max(max, mergedTypeConfig?.entryPoints?.length ?? 0);
-  }, 0);
+  const maxEntryPoints = Object.values(subschemaConfig.merge).reduce(
+    (max: number, mergedTypeConfig) => {
+      return Math.max(max, mergedTypeConfig?.entryPoints?.length ?? 0);
+    },
+    0,
+  );
 
   if (maxEntryPoints === 0) return [subschemaConfig];
 
@@ -13,8 +18,10 @@ export function splitMergedTypeEntryPointsTransformer(subschemaConfig: Subschema
 
   for (let i = 0; i < maxEntryPoints; i += 1) {
     const subschemaPermutation = cloneSubschemaConfig(subschemaConfig);
-    const mergedTypesCopy: Record<string, MergedTypeConfig<any, any, any>> = subschemaPermutation.merge ??
-    Object.create(null);
+    const mergedTypesCopy: Record<
+      string,
+      MergedTypeConfig<any, any, any>
+    > = subschemaPermutation.merge ?? Object.create(null);
     let currentMerge = mergedTypesCopy;
 
     if (i > 0) {
@@ -26,9 +33,13 @@ export function splitMergedTypeEntryPointsTransformer(subschemaConfig: Subschema
       const mergedTypeEntryPoint = mergedTypeConfig?.entryPoints?.[i];
 
       if (mergedTypeEntryPoint) {
-        if (mergedTypeConfig.selectionSet ?? mergedTypeConfig.fieldName ?? mergedTypeConfig.resolve) {
+        if (
+          mergedTypeConfig.selectionSet ??
+          mergedTypeConfig.fieldName ??
+          mergedTypeConfig.resolve
+        ) {
           throw new Error(
-            `Merged type ${typeName} may not define entryPoints in addition to selectionSet, fieldName, or resolve`
+            `Merged type ${typeName} may not define entryPoints in addition to selectionSet, fieldName, or resolve`,
           );
         }
 

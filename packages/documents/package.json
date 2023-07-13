@@ -1,6 +1,7 @@
 {
   "name": "@graphql-tools/documents",
   "version": "1.0.0",
+  "type": "module",
   "description": "Utilities for GraphQL documents.",
   "repository": {
     "type": "git",
@@ -8,7 +9,9 @@
     "directory": "packages/documents"
   },
   "license": "MIT",
-  "sideEffects": false,
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "exports": {
@@ -43,18 +46,12 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
-  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
-  "buildOptions": {
-    "input": "./src/index.ts"
-  },
   "dependencies": {
-    "tslib": "^2.4.0",
-    "lodash.sortby": "^4.7.0"
+    "lodash.sortby": "^4.7.0",
+    "tslib": "^2.4.0"
   },
   "devDependencies": {
     "@types/lodash.sortby": "^4.7.7"
@@ -63,8 +60,11 @@
     "directory": "dist",
     "access": "public"
   },
-  "type": "module",
-  "engines": {
-    "node": ">=16.0.0"
+  "sideEffects": false,
+  "buildOptions": {
+    "input": "./src/index.ts"
+  },
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
   }
 }

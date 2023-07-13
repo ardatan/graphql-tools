@@ -1,9 +1,6 @@
-import { GraphQLSchema, GraphQLFieldConfig, FieldNode } from 'graphql';
-
-import { ExecutionRequest, mapSchema, MapperKind } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
-
+import { FieldNode, GraphQLFieldConfig, GraphQLSchema } from 'graphql';
+import { DelegationContext, SubschemaConfig, Transform } from '@graphql-tools/delegate';
+import { ExecutionRequest, MapperKind, mapSchema } from '@graphql-tools/utils';
 import TransformObjectFields from './TransformObjectFields.js';
 
 type RenamerFunction = (typeName: string, fieldName: string, argName: string) => string;
@@ -30,7 +27,7 @@ export default class RenameObjectFieldArguments<TContext = Record<string, any>>
               }
             }
             return [argName, conf];
-          })
+          }),
         );
         return [fieldName, { ...fieldConfig, args: argsConfig }];
       },
@@ -59,20 +56,20 @@ export default class RenameObjectFieldArguments<TContext = Record<string, any>>
               : argNode;
           }),
         };
-      }
+      },
     );
     this.reverseMap = Object.create(null);
   }
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     mapSchema(originalWrappingSchema, {
       [MapperKind.OBJECT_FIELD]: (
         fieldConfig: GraphQLFieldConfig<any, any>,
         fieldName: string,
-        typeName
+        typeName,
       ): undefined => {
         Object.entries(fieldConfig.args || {}).forEach(([argName]) => {
           const newName = this.renamer(typeName, fieldName, argName);
@@ -100,8 +97,12 @@ export default class RenameObjectFieldArguments<TContext = Record<string, any>>
   public transformRequest(
     originalRequest: ExecutionRequest,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: RenameObjectFieldArgumentsTransformationContext
+    transformationContext: RenameObjectFieldArgumentsTransformationContext,
   ): ExecutionRequest {
-    return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
+    return this.transformer.transformRequest(
+      originalRequest,
+      delegationContext,
+      transformationContext,
+    );
   }
 }

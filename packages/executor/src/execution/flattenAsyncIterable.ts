@@ -5,7 +5,7 @@ type AsyncIterableOrGenerator<T> = AsyncGenerator<T, void, void> | AsyncIterable
  * single AsyncIterable.
  */
 export function flattenAsyncIterable<T>(
-  iterable: AsyncIterableOrGenerator<AsyncIterableOrGenerator<T>>
+  iterable: AsyncIterableOrGenerator<AsyncIterableOrGenerator<T>>,
 ): AsyncGenerator<T, void, void> {
   // You might think this whole function could be replaced with
   //

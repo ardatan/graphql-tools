@@ -27,7 +27,8 @@ module.exports = {
 }
 ```
 
-> How is it different from `jest-transform-graphql`? It doesn't use `graphql-tag/loader` under the hood but our own, more optimized and customisable `@graphql-tools/webpack-loader`.
+> How is it different from `jest-transform-graphql`? It doesn't use `graphql-tag/loader` under the
+> hood but our own, more optimized and customisable `@graphql-tools/webpack-loader`.
 
 ## Options
 

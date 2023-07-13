@@ -1,16 +1,16 @@
-import * as Accounts from './fixtures/gateway/accounts';
-import * as Products from './fixtures/gateway/products';
-import * as Reviews from './fixtures/gateway/reviews';
-import * as Inventory from './fixtures/gateway/inventory';
-import { SubschemaConfig } from '@graphql-tools/delegate';
 import { DocumentNode, GraphQLSchema, parse, print, versionInfo } from 'graphql';
-import { stitchSchemas } from '@graphql-tools/stitch';
+import { SubschemaConfig } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import {
   buildSubgraphSchema as buildToolsSubgraphSchema,
   getSubschemaForFederationWithSchema,
 } from '@graphql-tools/federation';
+import { stitchSchemas } from '@graphql-tools/stitch';
 import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
+import * as Accounts from './fixtures/gateway/accounts';
+import * as Inventory from './fixtures/gateway/inventory';
+import * as Products from './fixtures/gateway/products';
+import * as Reviews from './fixtures/gateway/reviews';
 
 interface ServiceInput {
   typeDefs: string;
@@ -20,7 +20,9 @@ interface ServiceInput {
 interface TestScenario {
   name: string;
   buildSubgraphSchema(options: { typeDefs: string; resolvers: IResolvers }): GraphQLSchema;
-  buildGateway(services: ServiceInput[]): Promise<(document: DocumentNode) => Promise<ExecutionResult>>;
+  buildGateway(
+    services: ServiceInput[],
+  ): Promise<(document: DocumentNode) => Promise<ExecutionResult>>;
 }
 
 const exampleQuery = parse(/* GraphQL */ `
@@ -92,7 +94,7 @@ describe('Federation', () => {
 
   const buildStitchingGateway = async (services: ServiceInput[]) => {
     const subschemas: SubschemaConfig[] = await Promise.all(
-      services.map(({ schema }) => getSubschemaForFederationWithSchema(schema))
+      services.map(({ schema }) => getSubschemaForFederationWithSchema(schema)),
     );
     const gatewaySchema = stitchSchemas({
       subschemas,
@@ -104,8 +106,13 @@ describe('Federation', () => {
         document,
       }) as Promise<ExecutionResult>;
   };
-  const { buildSubgraphSchema: buildApolloSubgraph }: typeof import('@apollo/subgraph') = require('@apollo/subgraph');
-  const { ApolloGateway, LocalGraphQLDataSource }: typeof import('@apollo/gateway') = require('@apollo/gateway');
+  const {
+    buildSubgraphSchema: buildApolloSubgraph,
+  }: typeof import('@apollo/subgraph') = require('@apollo/subgraph');
+  const {
+    ApolloGateway,
+    LocalGraphQLDataSource,
+  }: typeof import('@apollo/gateway') = require('@apollo/gateway');
   const buildApolloGateway = async (services: ServiceInput[]) => {
     const gateway = new ApolloGateway({
       serviceList: services.map((_, i) => ({

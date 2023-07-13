@@ -1,16 +1,19 @@
-import { MaybePromise } from '@graphql-tools/utils';
 import {
   DocumentNode,
-  parse,
+  GraphQLID,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
-  GraphQLID,
-  GraphQLString,
   GraphQLSchema,
+  GraphQLString,
+  parse,
 } from 'graphql';
+import { MaybePromise } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
-import type { InitialIncrementalExecutionResult, SubsequentIncrementalExecutionResult } from '../execute.js';
+import type {
+  InitialIncrementalExecutionResult,
+  SubsequentIncrementalExecutionResult,
+} from '../execute.js';
 import { execute } from '../execute.js';
 
 const friendType = new GraphQLObjectType({
@@ -81,9 +84,8 @@ async function complete(document: DocumentNode, rootValue: unknown = {}) {
   });
 
   if ('initialResult' in result) {
-    const results: Array<InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult> = [
-      result.initialResult,
-    ];
+    const results: Array<InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult> =
+      [result.initialResult];
     for await (const patch of result.subsequentResults) {
       results.push(patch);
     }
@@ -104,7 +106,9 @@ async function completeAsync(document: DocumentNode, numCalls: number, rootValue
   const iterator = result.subsequentResults[Symbol.asyncIterator]();
 
   const promises: Array<
-    MaybePromise<IteratorResult<InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult>>
+    MaybePromise<
+      IteratorResult<InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult>
+    >
     // @ts-expect-error once we assert that initialResult is in result then it should work fine
   > = [{ done: false, value: result.initialResult }];
   for (let i = 0; i < numCalls; i++) {
@@ -242,7 +246,9 @@ describe('Execute: stream directive', () => {
   });
 
   it('Does not disable stream with null if argument', async () => {
-    const document = parse('query ($shouldStream: Boolean) { scalarList @stream(initialCount: 2, if: $shouldStream) }');
+    const document = parse(
+      'query ($shouldStream: Boolean) { scalarList @stream(initialCount: 2, if: $shouldStream) }',
+    );
     const result = await complete(document, {
       scalarList: () => ['apple', 'banana', 'coconut'],
     });
@@ -1196,7 +1202,8 @@ describe('Execute: stream directive', () => {
             path: ['nestedObject'],
             errors: [
               {
-                message: 'Cannot return null for non-nullable field DeeperNestedObject.nonNullScalarField.',
+                message:
+                  'Cannot return null for non-nullable field DeeperNestedObject.nonNullScalarField.',
                 locations: [{ line: 6, column: 15 }],
                 path: ['nestedObject', 'deeperNestedObject', 'nonNullScalarField'],
               },
@@ -1336,7 +1343,8 @@ describe('Execute: stream directive', () => {
             path: ['nestedObject'],
             errors: [
               {
-                message: 'Cannot return null for non-nullable field DeeperNestedObject.nonNullScalarField.',
+                message:
+                  'Cannot return null for non-nullable field DeeperNestedObject.nonNullScalarField.',
                 locations: [{ line: 6, column: 15 }],
                 path: ['nestedObject', 'deeperNestedObject', 'nonNullScalarField'],
               },

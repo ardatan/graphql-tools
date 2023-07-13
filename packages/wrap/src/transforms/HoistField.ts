@@ -1,30 +1,31 @@
 import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  getNullableType,
   FieldNode,
-  Kind,
-  GraphQLError,
-  GraphQLArgument,
-  GraphQLFieldResolver,
-  OperationTypeNode,
-  isListType,
   getNamedType,
+  getNullableType,
+  GraphQLArgument,
+  GraphQLError,
+  GraphQLFieldResolver,
   GraphQLList,
+  GraphQLObjectType,
+  GraphQLSchema,
+  isListType,
+  Kind,
+  OperationTypeNode,
 } from 'graphql';
-
+import {
+  defaultMergedResolver,
+  DelegationContext,
+  SubschemaConfig,
+  Transform,
+} from '@graphql-tools/delegate';
 import {
   appendObjectFields,
-  removeObjectFields,
   ExecutionRequest,
   ExecutionResult,
   relocatedError,
+  removeObjectFields,
 } from '@graphql-tools/utils';
-
-import { Transform, defaultMergedResolver, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
-
 import { defaultCreateProxyingResolver } from '../generateProxyingResolvers.js';
-
 import MapFields from './MapFields.js';
 
 interface HoistFieldTransformationContext extends Record<string, any> {}
@@ -42,14 +43,18 @@ export default class HoistField<TContext extends Record<string, any> = Record<st
 
   constructor(
     typeName: string,
-    pathConfig: Array<string | { fieldName: string; argFilter?: (arg: GraphQLArgument) => boolean }>,
+    pathConfig: Array<
+      string | { fieldName: string; argFilter?: (arg: GraphQLArgument) => boolean }
+    >,
     newFieldName: string,
-    alias = '__gqtlw__'
+    alias = '__gqtlw__',
   ) {
     this.typeName = typeName;
     this.newFieldName = newFieldName;
 
-    const path = pathConfig.map(segment => (typeof segment === 'string' ? segment : segment.fieldName));
+    const path = pathConfig.map(segment =>
+      typeof segment === 'string' ? segment : segment.fieldName,
+    );
     this.argFilters = pathConfig.map((segment, index) => {
       if (typeof segment === 'string' || segment.argFilter == null) {
         return index === pathConfig.length - 1 ? () => true : () => false;
@@ -61,7 +66,9 @@ export default class HoistField<TContext extends Record<string, any> = Record<st
     const oldFieldName = pathToField.pop();
 
     if (oldFieldName == null) {
-      throw new Error(`Cannot hoist field to ${newFieldName} on type ${typeName}, no path provided.`);
+      throw new Error(
+        `Cannot hoist field to ${newFieldName} on type ${typeName}, no path provided.`,
+      );
     }
 
     this.oldFieldName = oldFieldName;
@@ -77,38 +84,41 @@ export default class HoistField<TContext extends Record<string, any> = Record<st
       {
         [typeName]: value => unwrapValue(value, alias),
       },
-      errors => (errors != null ? unwrapErrors(errors, alias) : undefined)
+      errors => (errors != null ? unwrapErrors(errors, alias) : undefined),
     );
     this.argLevels = argLevels;
   }
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     const argsMap: Record<string, GraphQLArgument> = Object.create(null);
     let isList = false;
-    const innerType: GraphQLObjectType = this.pathToField.reduce((acc, pathSegment, index) => {
-      const field = acc.getFields()[pathSegment];
-      for (const arg of field.args) {
-        if (this.argFilters[index](arg)) {
-          argsMap[arg.name] = arg;
-          this.argLevels[arg.name] = index;
+    const innerType: GraphQLObjectType = this.pathToField.reduce(
+      (acc, pathSegment, index) => {
+        const field = acc.getFields()[pathSegment];
+        for (const arg of field.args) {
+          if (this.argFilters[index](arg)) {
+            argsMap[arg.name] = arg;
+            this.argLevels[arg.name] = index;
+          }
         }
-      }
-      const nullableType = getNullableType(field.type);
-      if (isListType(nullableType)) {
-        isList = true;
-        return getNamedType(nullableType) as any;
-      }
+        const nullableType = getNullableType(field.type);
+        if (isListType(nullableType)) {
+          isList = true;
+          return getNamedType(nullableType) as any;
+        }
 
-      return nullableType as GraphQLObjectType;
-    }, originalWrappingSchema.getType(this.typeName) as GraphQLObjectType);
+        return nullableType as GraphQLObjectType;
+      },
+      originalWrappingSchema.getType(this.typeName) as GraphQLObjectType,
+    );
 
     let [newSchema, targetFieldConfigMap] = removeObjectFields(
       originalWrappingSchema,
       innerType.name,
-      fieldName => fieldName === this.oldFieldName
+      fieldName => fieldName === this.oldFieldName,
     );
 
     const targetField = targetFieldConfigMap[this.oldFieldName];
@@ -121,7 +131,8 @@ export default class HoistField<TContext extends Record<string, any> = Record<st
     if (hoistingToRootField) {
       const targetSchema = subschemaConfig.schema;
       const operation = this.typeName === targetSchema.getQueryType()?.name ? 'query' : 'mutation';
-      const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
+      const createProxyingResolver =
+        subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
       resolve = createProxyingResolver({
         subschemaConfig,
         operation: operation as OperationTypeNode,
@@ -169,7 +180,7 @@ export default class HoistField<TContext extends Record<string, any> = Record<st
         Promise.all(
           Object.keys(parent)
             .filter(key => !isNaN(parseInt(key, 10)))
-            .map(key => resolver(parent[key], args, context, info))
+            .map(key => resolver(parent[key], args, context, info)),
         );
     }
 
@@ -183,17 +194,25 @@ export default class HoistField<TContext extends Record<string, any> = Record<st
   public transformRequest(
     originalRequest: ExecutionRequest,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: HoistFieldTransformationContext
+    transformationContext: HoistFieldTransformationContext,
   ): ExecutionRequest {
-    return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
+    return this.transformer.transformRequest(
+      originalRequest,
+      delegationContext,
+      transformationContext,
+    );
   }
 
   public transformResult(
     originalResult: ExecutionResult,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: HoistFieldTransformationContext
+    transformationContext: HoistFieldTransformationContext,
   ): ExecutionResult {
-    return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
+    return this.transformer.transformResult(
+      originalResult,
+      delegationContext,
+      transformationContext,
+    );
   }
 }
 
@@ -201,7 +220,7 @@ export function wrapFieldNode(
   fieldNode: FieldNode,
   path: Array<string>,
   alias: string,
-  argLevels: Record<string, number>
+  argLevels: Record<string, number>,
 ): FieldNode {
   return path.reduceRight(
     (acc, fieldName, index) => ({
@@ -229,7 +248,7 @@ export function wrapFieldNode(
         fieldNode.arguments != null
           ? fieldNode.arguments.filter(arg => argLevels[arg.name.value] === path.length)
           : undefined,
-    }
+    },
   );
 }
 
@@ -262,7 +281,10 @@ export function unwrapValue(originalValue: any, alias: string): any {
   return originalValue;
 }
 
-function unwrapErrors(errors: ReadonlyArray<GraphQLError> | undefined, alias: string): Array<GraphQLError> | undefined {
+function unwrapErrors(
+  errors: ReadonlyArray<GraphQLError> | undefined,
+  alias: string,
+): Array<GraphQLError> | undefined {
   if (errors === undefined) {
     return undefined;
   }

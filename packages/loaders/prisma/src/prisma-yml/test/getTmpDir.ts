@@ -1,9 +1,9 @@
+import * as fs from 'fs';
 import * as os from 'os';
+import * as path from 'path';
 // eslint-disable-next-line
 // @ts-ignore
 import cuid from 'scuid';
-import * as path from 'path';
-import * as fs from 'fs';
 
 export const getTmpDir = () => {
   const dir = path.join(os.tmpdir(), cuid() + '/');

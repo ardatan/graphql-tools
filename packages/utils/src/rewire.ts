@@ -7,30 +7,29 @@ import {
   GraphQLInputObjectType,
   GraphQLInterfaceType,
   GraphQLList,
-  GraphQLObjectType,
   GraphQLNamedType,
   GraphQLNonNull,
+  GraphQLObjectType,
   GraphQLScalarType,
   GraphQLType,
   GraphQLUnionType,
-  isInterfaceType,
   isEnumType,
   isInputObjectType,
+  isInterfaceType,
   isListType,
   isNamedType,
   isNonNullType,
   isObjectType,
   isScalarType,
-  isUnionType,
-  isSpecifiedScalarType,
   isSpecifiedDirective,
+  isSpecifiedScalarType,
+  isUnionType,
 } from 'graphql';
-
 import { getBuiltInForStub, isNamedStub } from './stub.js';
 
 export function rewireTypes(
   originalTypeMap: Record<string, GraphQLNamedType | null>,
-  directives: ReadonlyArray<GraphQLDirective>
+  directives: ReadonlyArray<GraphQLDirective>,
 ): {
   typeMap: Record<string, GraphQLNamedType>;
   directives: Array<GraphQLDirective>;
@@ -54,7 +53,9 @@ export function rewireTypes(
     }
 
     if (newTypeMap[newName] != null) {
-      console.warn(`Duplicate schema type name ${newName} found; keeping the existing one found in the schema`);
+      console.warn(
+        `Duplicate schema type name ${newName} found; keeping the existing one found in the schema`,
+      );
       continue;
     }
 
@@ -111,7 +112,9 @@ export function rewireTypes(
       };
       if ('interfaces' in newConfig) {
         newConfig.interfaces = () =>
-          rewireNamedTypes((config as unknown as { interfaces: Array<GraphQLInterfaceType> }).interfaces);
+          rewireNamedTypes(
+            (config as unknown as { interfaces: Array<GraphQLInterfaceType> }).interfaces,
+          );
       }
       return new GraphQLInterfaceType(newConfig);
     } else if (isUnionType(type)) {

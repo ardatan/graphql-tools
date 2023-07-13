@@ -1,5 +1,5 @@
-import { stitchSchemas } from '@graphql-tools/stitch';
 import { buildSchema } from 'graphql';
+import { stitchSchemas } from '@graphql-tools/stitch';
 import { ValidationLevel } from '../src/types.js';
 
 describe('Field validations', () => {
@@ -265,7 +265,9 @@ describe('Argument validations', () => {
             validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
-            { schema: buildSchema('type Query { field(status: Status): Int } enum Status { YES }') },
+            {
+              schema: buildSchema('type Query { field(status: Status): Int } enum Status { YES }'),
+            },
             { schema: buildSchema('type Query { field(status: Status): Int } enum Status { NO }') },
           ],
         });
@@ -279,8 +281,16 @@ describe('Argument validations', () => {
             validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
-            { schema: buildSchema('type Query { field(status: Status): Int } enum Status { YES NO }') },
-            { schema: buildSchema('type Query { field(status: Status): Int } enum Status { NO YES }') },
+            {
+              schema: buildSchema(
+                'type Query { field(status: Status): Int } enum Status { YES NO }',
+              ),
+            },
+            {
+              schema: buildSchema(
+                'type Query { field(status: Status): Int } enum Status { NO YES }',
+              ),
+            },
           ],
         });
       }).not.toThrow();
@@ -297,8 +307,16 @@ describe('InputObject validations', () => {
             validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field1: Int }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field2: Int }') },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field1: Int }',
+              ),
+            },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field2: Int }',
+              ),
+            },
           ],
         });
       }).toThrow(/not implemented by all subschemas/);
@@ -311,8 +329,16 @@ describe('InputObject validations', () => {
             validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: Int }',
+              ),
+            },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: Int }',
+              ),
+            },
           ],
         });
       }).not.toThrow();
@@ -327,8 +353,16 @@ describe('InputObject validations', () => {
             validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int! }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: Int! }',
+              ),
+            },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: Int }',
+              ),
+            },
           ],
         });
       }).toThrow(/permits null while some subschemas require not-null/);
@@ -341,8 +375,16 @@ describe('InputObject validations', () => {
             validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int! }') },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: Int }',
+              ),
+            },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: Int! }',
+              ),
+            },
           ],
         });
       }).not.toThrow();
@@ -358,8 +400,16 @@ describe('InputObject validations', () => {
             },
           },
           subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: Int! }') },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: Int }',
+              ),
+            },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: Int! }',
+              ),
+            },
           ],
         });
       }).toThrow(/does not match across subschemas/);
@@ -374,8 +424,16 @@ describe('InputObject validations', () => {
             validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: String }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: URL } scalar URL') },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: String }',
+              ),
+            },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: URL } scalar URL',
+              ),
+            },
           ],
         });
       }).toThrow(/inconsistent named types/);
@@ -388,8 +446,16 @@ describe('InputObject validations', () => {
             validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: String }') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: [String] }') },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: String }',
+              ),
+            },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: [String] }',
+              ),
+            },
           ],
         });
       }).toThrow(/inconsistent list types/);
@@ -402,8 +468,16 @@ describe('InputObject validations', () => {
             validationSettings: { validationLevel: ValidationLevel.Error },
           },
           subschemas: [
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: [URL] } scalar URL') },
-            { schema: buildSchema('type Query { field(blob: Blob): Int } input Blob { field: [URL] } scalar URL') },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: [URL] } scalar URL',
+              ),
+            },
+            {
+              schema: buildSchema(
+                'type Query { field(blob: Blob): Int } input Blob { field: [URL] } scalar URL',
+              ),
+            },
           ],
         });
       }).not.toThrow();
@@ -420,12 +494,12 @@ describe('InputObject validations', () => {
           subschemas: [
             {
               schema: buildSchema(
-                'type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES }'
+                'type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES }',
               ),
             },
             {
               schema: buildSchema(
-                'type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { NO }'
+                'type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { NO }',
               ),
             },
           ],
@@ -442,12 +516,12 @@ describe('InputObject validations', () => {
           subschemas: [
             {
               schema: buildSchema(
-                'type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES NO }'
+                'type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { YES NO }',
               ),
             },
             {
               schema: buildSchema(
-                'type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { NO YES }'
+                'type Query { field(blob: Blob): Int } input Blob { status: BlobStatus! } enum BlobStatus { NO YES }',
               ),
             },
           ],

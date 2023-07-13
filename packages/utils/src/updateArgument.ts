@@ -1,5 +1,4 @@
-import { GraphQLInputType, ArgumentNode, VariableDefinitionNode, Kind } from 'graphql';
-
+import { ArgumentNode, GraphQLInputType, Kind, VariableDefinitionNode } from 'graphql';
 import { astFromType } from './astFromType.js';
 
 export function updateArgument(
@@ -9,7 +8,7 @@ export function updateArgument(
   argName: string,
   varName: string,
   type: GraphQLInputType,
-  value: any
+  value: any,
 ): void {
   argumentNodes[argName] = {
     kind: Kind.ARGUMENT,
@@ -52,7 +51,7 @@ export function updateArgument(
 }
 
 export function createVariableNameGenerator(
-  variableDefinitionMap: Record<string, VariableDefinitionNode>
+  variableDefinitionMap: Record<string, VariableDefinitionNode>,
 ): (argName: string) => string {
   let varCounter = 0;
   return (argName: string): string => {

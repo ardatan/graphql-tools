@@ -1,8 +1,7 @@
-import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { GraphQLObjectType, Kind, OperationTypeNode, parse } from 'graphql';
-
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
 describe('batch delegation within basic stitching example', () => {

@@ -1,18 +1,30 @@
 import '../../../testing/to-be-similar-gql-doc';
-import { SubscriptionProtocol, UrlLoader } from '../src/index.js';
-import { ExecutionResult, printSchemaWithDirectives } from '@graphql-tools/utils';
-import { parse, print, introspectionFromSchema, getIntrospectionQuery, getOperationAST } from 'graphql';
-import { useServer } from 'graphql-ws/lib/use/ws';
-import { createHandler } from 'graphql-sse/lib/use/http';
-import { Server as WSServer } from 'ws';
 import http from 'http';
+import {
+  getIntrospectionQuery,
+  getOperationAST,
+  introspectionFromSchema,
+  parse,
+  print,
+} from 'graphql';
+import { createHandler } from 'graphql-sse/lib/use/http';
+import { useServer } from 'graphql-ws/lib/use/ws';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { defaultAsyncFetch } from '../src/defaultAsyncFetch.js';
-import { Response, Headers } from '@whatwg-node/fetch';
-import { loadSchema } from '@graphql-tools/load';
-import { testUrl, testSchema, testTypeDefs, assertNonMaybe, assertAsyncIterable } from './test-utils';
+import { Server as WSServer } from 'ws';
 import { execute, isIncrementalResult, subscribe } from '@graphql-tools/executor';
 import { AsyncFetchFn } from '@graphql-tools/executor-http';
+import { loadSchema } from '@graphql-tools/load';
+import { ExecutionResult, printSchemaWithDirectives } from '@graphql-tools/utils';
+import { Headers, Response } from '@whatwg-node/fetch';
+import { defaultAsyncFetch } from '../src/defaultAsyncFetch.js';
+import { SubscriptionProtocol, UrlLoader } from '../src/index.js';
+import {
+  assertAsyncIterable,
+  assertNonMaybe,
+  testSchema,
+  testTypeDefs,
+  testUrl,
+} from './test-utils';
 
 describe('Schema URL Loader', () => {
   const loader = new UrlLoader();
@@ -38,7 +50,7 @@ describe('Schema URL Loader', () => {
       });
     } catch (e: any) {
       expect(e.message).toBe(
-        'Could not obtain introspection result, received the following as response; \n { data: {} }'
+        'Could not obtain introspection result, received the following as response; \n { data: {} }',
       );
     }
   });
@@ -49,7 +61,7 @@ describe('Schema URL Loader', () => {
         return new Response(
           JSON.stringify({
             data: introspectionFromSchema(testSchema),
-          })
+          }),
         );
       },
     });
@@ -64,7 +76,7 @@ describe('Schema URL Loader', () => {
       return new Response(
         JSON.stringify({
           data: introspectionFromSchema(testSchema),
-        })
+        }),
       );
     };
 
@@ -76,9 +88,9 @@ describe('Schema URL Loader', () => {
     assertNonMaybe(source.schema);
     expect(printSchemaWithDirectives(source.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
-    expect(Array.isArray(headers['accept']) ? headers['accept'].join(',') : headers['accept']).toContain(
-      `application/json`
-    );
+    expect(
+      Array.isArray(headers['accept']) ? headers['accept'].join(',') : headers['accept'],
+    ).toContain(`application/json`);
   });
 
   it('Should pass extra headers when they are specified as object', async () => {
@@ -88,7 +100,7 @@ describe('Schema URL Loader', () => {
       return new Response(
         JSON.stringify({
           data: introspectionFromSchema(testSchema),
-        })
+        }),
       );
     };
 
@@ -101,9 +113,9 @@ describe('Schema URL Loader', () => {
     assertNonMaybe(source.schema);
     expect(printSchemaWithDirectives(source.schema)).toBeSimilarGqlDoc(testTypeDefs);
 
-    expect(Array.isArray(headers['accept']) ? headers['accept'].join(',') : headers['accept']).toContain(
-      `application/json`
-    );
+    expect(
+      Array.isArray(headers['accept']) ? headers['accept'].join(',') : headers['accept'],
+    ).toContain(`application/json`);
     expect(headers['auth']).toContain(`1`);
   });
 
@@ -123,7 +135,7 @@ describe('Schema URL Loader', () => {
       return new Response(
         JSON.stringify({
           data: introspectionFromSchema(testSchema, introspectionOptions),
-        })
+        }),
       );
     };
 
@@ -155,7 +167,7 @@ describe('Schema URL Loader', () => {
           document: receivedAST,
           operationName: receivedOperationName,
           variableValues: receivedVariables,
-        })
+        }),
       );
       return new Response(responseBody);
     };
@@ -198,7 +210,7 @@ describe('Schema URL Loader', () => {
       return new Response(
         JSON.stringify({
           data: introspectionFromSchema(testSchema),
-        })
+        }),
       );
     };
 
@@ -232,7 +244,7 @@ describe('Schema URL Loader', () => {
       return new Response(
         JSON.stringify({
           data: introspectionFromSchema(testSchema),
-        })
+        }),
       );
     };
 
@@ -256,7 +268,7 @@ describe('Schema URL Loader', () => {
       return new Response(
         JSON.stringify({
           data: introspectionFromSchema(testSchema),
-        })
+        }),
       );
     };
 
@@ -282,7 +294,7 @@ describe('Schema URL Loader', () => {
       return new Response(
         JSON.stringify({
           data: introspectionFromSchema(testSchema),
-        })
+        }),
       );
     };
 
@@ -343,7 +355,7 @@ describe('Schema URL Loader', () => {
             headers: {
               'content-type': 'application/json',
             },
-          }
+          },
         ),
       subscriptionsProtocol: SubscriptionProtocol.WS,
     });
@@ -364,7 +376,7 @@ describe('Schema URL Loader', () => {
         execute: execute as any,
         subscribe: subscribe as any,
       },
-      wsServer
+      wsServer,
     );
 
     await new Promise<void>(resolve => httpServer.listen(8081, resolve));
@@ -408,7 +420,7 @@ describe('Schema URL Loader', () => {
             headers: {
               'content-type': 'application/json',
             },
-          }
+          },
         ),
       subscriptionsProtocol: SubscriptionProtocol.LEGACY_WS,
     });
@@ -429,7 +441,7 @@ describe('Schema URL Loader', () => {
       {
         server: httpServer,
         path: '/graphql',
-      }
+      },
     );
     assertNonMaybe(schema);
     const asyncIterator = (await subscribe({
@@ -471,7 +483,7 @@ describe('Schema URL Loader', () => {
             headers: {
               'content-type': 'application/json',
             },
-          }
+          },
         );
       }
       return defaultAsyncFetch(url, options);
@@ -485,7 +497,7 @@ describe('Schema URL Loader', () => {
     httpServer = http.createServer(
       createHandler({
         schema: testSchema,
-      })
+      }),
     );
     await new Promise<void>(resolve => httpServer.listen(8081, resolve));
 
@@ -524,7 +536,7 @@ describe('Schema URL Loader', () => {
             headers: {
               'content-type': 'application/json',
             },
-          }
+          },
         );
       }
       return new Response(
@@ -532,13 +544,13 @@ describe('Schema URL Loader', () => {
           await execute({
             schema: testSchema,
             document: parse(JSON.parse(bodyStr).query),
-          })
+          }),
         ),
         {
           headers: {
             'content-type': 'application/json',
           },
-        }
+        },
       );
     };
     const schema = await loadSchema(`http://0.0.0.0:8081/graphql`, {

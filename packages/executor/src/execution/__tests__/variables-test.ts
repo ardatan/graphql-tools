@@ -1,18 +1,18 @@
-import { inspect } from '@graphql-tools/utils';
 import {
-  Kind,
-  parse,
   GraphQLArgumentConfig,
-  GraphQLFieldConfig,
   GraphQLEnumType,
+  GraphQLFieldConfig,
   GraphQLInputObjectType,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLScalarType,
-  GraphQLString,
   GraphQLSchema,
+  GraphQLString,
+  Kind,
+  parse,
 } from 'graphql';
+import { inspect } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { executeSync } from '../execute.js';
 import { getVariableValues } from '../values.js';
@@ -237,7 +237,7 @@ describe('Execute: Handles inputs', () => {
           }`,
           {
             // Intentionally missing variable values.
-          }
+          },
         );
 
         expect(result).toEqual({
@@ -253,7 +253,7 @@ describe('Execute: Handles inputs', () => {
           query q($input: String) {
             fieldWithNullableStringInput(input: $input)
           }`,
-          { input: null }
+          { input: null },
         );
 
         expect(result).toEqual({
@@ -284,7 +284,7 @@ describe('Execute: Handles inputs', () => {
               fieldWithNullableStringInput(input: $input)
             }
           `,
-          { input: 'Variable value' }
+          { input: 'Variable value' },
         );
 
         expect(result).toEqual({
@@ -300,7 +300,7 @@ describe('Execute: Handles inputs', () => {
           query q($input: String = "Default value") {
             fieldWithNullableStringInput(input: $input)
           }`,
-          { input: null }
+          { input: null },
         );
 
         expect(result).toEqual({
@@ -318,7 +318,7 @@ describe('Execute: Handles inputs', () => {
           }`,
           {
             // Intentionally missing variable values.
-          }
+          },
         );
 
         expect(result).toEqual({
@@ -895,7 +895,8 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: 'Variable "$input" expected value of type "TestType!" which cannot be used as an input type.',
+            message:
+              'Variable "$input" expected value of type "TestType!" which cannot be used as an input type.',
             locations: [{ line: 2, column: 24 }],
           },
         ],
@@ -913,7 +914,8 @@ describe('Execute: Handles inputs', () => {
       expectJSON(result).toDeepEqual({
         errors: [
           {
-            message: 'Variable "$input" expected value of type "UnknownType!" which cannot be used as an input type.',
+            message:
+              'Variable "$input" expected value of type "UnknownType!" which cannot be used as an input type.',
             locations: [{ line: 2, column: 24 }],
           },
         ],
@@ -1028,7 +1030,8 @@ describe('Execute: Handles inputs', () => {
           invalidValueError(0, 0),
           invalidValueError(1, 1),
           {
-            message: 'Too many errors processing variables, error limit reached. Execution aborted.',
+            message:
+              'Too many errors processing variables, error limit reached. Execution aborted.',
           },
         ],
       });

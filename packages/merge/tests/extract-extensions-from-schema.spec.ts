@@ -1,15 +1,15 @@
-import { buildSchema, GraphQLSchema, printSchema, buildASTSchema, parse } from 'graphql';
+import { buildASTSchema, buildSchema, GraphQLSchema, parse, printSchema } from 'graphql';
+import { extractExtensionsFromSchema } from '@graphql-tools/schema';
+import { assertSome } from '@graphql-tools/utils';
 import {
   assertGraphQLEnumType,
   assertGraphQLInputObjectType,
-  assertGraphQLObjectType,
   assertGraphQLInterfaceType,
-  assertGraphQLUnionType,
+  assertGraphQLObjectType,
   assertGraphQLScalerType,
+  assertGraphQLUnionType,
 } from '../../testing/assertion.js';
-import { assertSome } from '@graphql-tools/utils';
-import { mergeExtensions, applyExtensions } from '../src/extensions.js';
-import { extractExtensionsFromSchema } from '@graphql-tools/schema';
+import { applyExtensions, mergeExtensions } from '../src/extensions.js';
 
 describe('extensions', () => {
   let schema: GraphQLSchema;
@@ -154,7 +154,10 @@ describe('extensions', () => {
       const extensions = extractExtensionsFromSchema(schema);
       const secondExtensions = extractExtensionsFromSchema(secondSchema);
       const mergedExtensions = mergeExtensions([extensions, secondExtensions]);
-      expect(mergedExtensions.types['Query'].extensions).toEqual({ queryTest: true, querySecondTest: true });
+      expect(mergedExtensions.types['Query'].extensions).toEqual({
+        queryTest: true,
+        querySecondTest: true,
+      });
     });
   });
 

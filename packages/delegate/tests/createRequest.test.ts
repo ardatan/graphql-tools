@@ -1,9 +1,8 @@
 import { graphql, Kind, OperationTypeNode } from 'graphql';
-
-import { createRequest } from '../src/createRequest.js';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { delegateRequest } from '../src/delegateToSchema.js';
 import { createGraphQLError } from '@graphql-tools/utils';
+import { createRequest } from '../src/createRequest.js';
+import { delegateRequest } from '../src/delegateToSchema.js';
 
 describe('bare requests', () => {
   test('should work', async () => {

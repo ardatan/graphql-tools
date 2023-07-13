@@ -1,7 +1,7 @@
-import { assertSome } from '@graphql-tools/utils';
 import { graphql } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
+import { assertSome } from '@graphql-tools/utils';
 import { stitchingDirectives } from '../src';
 
 const productSchema = makeExecutableSchema({
@@ -56,7 +56,8 @@ describe('merge computed fields via SDL (Apollo Federation-style directive annot
       Product: {
         shippingEstimate: obj =>
           obj.price != null && obj.weight != null ? (obj.price > 50 ? 0 : obj.weight / 2) : null,
-        deliveryService: obj => (obj.weight != null ? (obj.weight > 50 ? 'FREIGHT' : 'POSTAL') : null),
+        deliveryService: obj =>
+          obj.weight != null ? (obj.weight > 50 ? 'FREIGHT' : 'POSTAL') : null,
       },
     },
   });

@@ -1,13 +1,20 @@
-import { GraphQLFieldConfigMap, GraphQLObjectType, GraphQLSchema, Kind, OperationTypeNode, visit } from 'graphql';
+import {
+  GraphQLFieldConfigMap,
+  GraphQLObjectType,
+  GraphQLSchema,
+  Kind,
+  OperationTypeNode,
+  visit,
+} from 'graphql';
+import { DelegationContext, Transform } from '@graphql-tools/delegate';
 import {
   ExecutionRequest,
   ExecutionResult,
-  MapperKind,
   getDefinedRootType,
   getRootTypeMap,
+  MapperKind,
   mapSchema,
 } from '@graphql-tools/utils';
-import { DelegationContext, Transform } from '@graphql-tools/delegate';
 
 const defaultRootTypeNames = {
   query: 'Query',
@@ -32,7 +39,10 @@ export class MoveRootField implements Transform {
     }
   }
 
-  public transformSchema(schema: GraphQLSchema, _subschemaConfig: Record<string, any>): GraphQLSchema {
+  public transformSchema(
+    schema: GraphQLSchema,
+    _subschemaConfig: Record<string, any>,
+  ): GraphQLSchema {
     const rootTypeMap = getRootTypeMap(schema);
     const newRootFieldsMap: Record<OperationTypeNode, GraphQLFieldConfigMap<any, any>> = {
       query: rootTypeMap.get('query' as OperationTypeNode)?.toConfig()?.fields || {},
@@ -77,7 +87,10 @@ export class MoveRootField implements Transform {
     });
   }
 
-  public transformRequest(originalRequest: ExecutionRequest, delegationContext: DelegationContext): ExecutionRequest {
+  public transformRequest(
+    originalRequest: ExecutionRequest,
+    delegationContext: DelegationContext,
+  ): ExecutionRequest {
     const newOperation = this.to[delegationContext.operation][delegationContext.fieldName];
     if (newOperation && newOperation !== delegationContext.operation) {
       return {
@@ -99,7 +112,8 @@ export class MoveRootField implements Transform {
     if (result.data?.__typename) {
       const newOperation = this.to[delegationContext.operation][delegationContext.fieldName];
       if (newOperation && newOperation !== delegationContext.operation) {
-        result.data.__typename = getDefinedRootType(delegationContext.targetSchema, newOperation)?.name;
+        result.data.__typename = getDefinedRootType(delegationContext.targetSchema, newOperation)
+          ?.name;
       }
     }
     return result;

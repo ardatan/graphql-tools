@@ -9,7 +9,11 @@ export interface Path {
 /**
  * Given a Path and a key, return a new Path containing the new key.
  */
-export function addPath(prev: Readonly<Path> | undefined, key: string | number, typename: string | undefined): Path {
+export function addPath(
+  prev: Readonly<Path> | undefined,
+  key: string | number,
+  typename: string | undefined,
+): Path {
   return { prev, key, typename };
 }
 
@@ -30,5 +34,7 @@ export function pathToArray(path: Maybe<Readonly<Path>>): Array<string | number>
  * Build a string describing the path.
  */
 export function printPathArray(path: ReadonlyArray<string | number>): string {
-  return path.map(key => (typeof key === 'number' ? '[' + key.toString() + ']' : '.' + key)).join('');
+  return path
+    .map(key => (typeof key === 'number' ? '[' + key.toString() + ']' : '.' + key))
+    .join('');
 }

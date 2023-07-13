@@ -1,25 +1,32 @@
 import {
-  GraphQLSchema,
   DocumentNode,
+  FragmentDefinitionNode,
+  getNamedType,
+  GraphQLSchema,
+  isInputType,
+  Kind,
+  NamedTypeNode,
+  ObjectFieldNode,
+  ObjectValueNode,
+  OperationDefinitionNode,
   typeFromAST,
   TypeInfo,
   visit,
   visitWithTypeInfo,
-  Kind,
-  FragmentDefinitionNode,
-  ObjectValueNode,
-  ObjectFieldNode,
-  OperationDefinitionNode,
-  isInputType,
-  NamedTypeNode,
-  getNamedType,
 } from 'graphql';
-
-import { ExecutionRequest, getDefinedRootType, MapperKind, mapSchema, transformInputValue } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
-
-import { InputFieldTransformer, InputFieldNodeTransformer, InputObjectNodeTransformer } from '../types.js';
+import { DelegationContext, SubschemaConfig, Transform } from '@graphql-tools/delegate';
+import {
+  ExecutionRequest,
+  getDefinedRootType,
+  MapperKind,
+  mapSchema,
+  transformInputValue,
+} from '@graphql-tools/utils';
+import {
+  InputFieldNodeTransformer,
+  InputFieldTransformer,
+  InputObjectNodeTransformer,
+} from '../types.js';
 
 interface TransformInputObjectFieldsTransformationContext extends Record<string, any> {}
 
@@ -35,7 +42,7 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
   constructor(
     inputFieldTransformer: InputFieldTransformer,
     inputFieldNodeTransformer?: InputFieldNodeTransformer,
-    inputObjectNodeTransformer?: InputObjectNodeTransformer
+    inputObjectNodeTransformer?: InputObjectNodeTransformer,
   ) {
     this.inputFieldTransformer = inputFieldTransformer;
     this.inputFieldNodeTransformer = inputFieldNodeTransformer;
@@ -47,7 +54,7 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
     const transformedSchema = this.transformedSchema;
     if (transformedSchema === undefined) {
       throw new Error(
-        `The TransformInputObjectFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+        `The TransformInputObjectFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`,
       );
     }
     return transformedSchema;
@@ -55,11 +62,15 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     this.transformedSchema = mapSchema(originalWrappingSchema, {
       [MapperKind.INPUT_OBJECT_FIELD]: (inputFieldConfig, fieldName, typeName) => {
-        const transformedInputField = this.inputFieldTransformer(typeName, fieldName, inputFieldConfig);
+        const transformedInputField = this.inputFieldTransformer(
+          typeName,
+          fieldName,
+          inputFieldConfig,
+        );
         if (Array.isArray(transformedInputField)) {
           const newFieldName = transformedInputField[0];
 
@@ -80,7 +91,7 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
   public transformRequest(
     originalRequest: ExecutionRequest,
     delegationContext: DelegationContext<TContext>,
-    _transformationContext: TransformInputObjectFieldsTransformationContext
+    _transformationContext: TransformInputObjectFieldsTransformationContext,
   ): ExecutionRequest {
     const variableValues = originalRequest.variables ?? {};
     const fragments = Object.create(null);
@@ -101,7 +112,10 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
         for (const variableDef of variableDefs) {
           const varName = variableDef.variable.name.value;
           // Cast to NamedTypeNode required until upcomming graphql releases will have TypeNode paramter
-          const varType = typeFromAST(delegationContext.transformedSchema, variableDef.type as NamedTypeNode);
+          const varType = typeFromAST(
+            delegationContext.transformedSchema,
+            variableDef.type as NamedTypeNode,
+          );
           if (!isInputType(varType)) {
             continue;
           }
@@ -124,13 +138,15 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
                 }
               }
               return newValue;
-            }
+            },
           );
         }
       }
     }
 
-    for (const def of originalRequest.document.definitions.filter(def => def.kind === Kind.FRAGMENT_DEFINITION)) {
+    for (const def of originalRequest.document.definitions.filter(
+      def => def.kind === Kind.FRAGMENT_DEFINITION,
+    )) {
       fragments[(def as FragmentDefinitionNode).name.value] = def;
     }
     const document = this.transformDocument(
@@ -139,11 +155,14 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
       this.inputFieldNodeTransformer,
       this.inputObjectNodeTransformer,
       originalRequest,
-      delegationContext
+      delegationContext,
     );
 
     if (delegationContext.args != null) {
-      const targetRootType = getDefinedRootType(delegationContext.transformedSchema, delegationContext.operation);
+      const targetRootType = getDefinedRootType(
+        delegationContext.transformedSchema,
+        delegationContext.operation,
+      );
 
       if (targetRootType) {
         const targetField = targetRootType.getFields()[delegationContext.fieldName];
@@ -170,7 +189,7 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
                     }
                   }
                   return newValue;
-                }
+                },
               );
             }
           }
@@ -192,7 +211,7 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
     inputFieldNodeTransformer: InputFieldNodeTransformer | undefined,
     inputObjectNodeTransformer: InputObjectNodeTransformer | undefined,
     request: ExecutionRequest,
-    delegationContext?: DelegationContext<TContext>
+    delegationContext?: DelegationContext<TContext>,
   ): DocumentNode {
     const typeInfo = new TypeInfo(this._getTransformedSchema());
     const newDocument: DocumentNode = visit(
@@ -210,7 +229,13 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
 
                 const transformedInputField =
                   inputFieldNodeTransformer != null
-                    ? inputFieldNodeTransformer(parentTypeName, newName, inputField, request, delegationContext)
+                    ? inputFieldNodeTransformer(
+                        parentTypeName,
+                        newName,
+                        inputField,
+                        request,
+                        delegationContext,
+                      )
                     : inputField;
 
                 if (Array.isArray(transformedInputField)) {
@@ -270,7 +295,7 @@ export default class TransformInputObjectFields<TContext = Record<string, any>>
             }
           },
         },
-      })
+      }),
     );
     return newDocument;
   }

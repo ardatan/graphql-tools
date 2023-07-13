@@ -26,7 +26,13 @@ const typeDefs = /* GraphQL */ `
   }
 
   type Query {
-    items(first: Int, after: String, last: Int, before: String, oddIndexOnly: Boolean): ItemConnection!
+    items(
+      first: Int
+      after: String
+      last: Int
+      before: String
+      oddIndexOnly: Boolean
+    ): ItemConnection!
   }
 `;
 
@@ -182,7 +188,10 @@ describe('relayStylePaginationMock', () => {
         },
         resolvers: store => ({
           Query: {
-            items: relayStylePaginationMock<unknown, RelayPaginationParams & { oddIndexOnly?: boolean | null }>(store, {
+            items: relayStylePaginationMock<
+              unknown,
+              RelayPaginationParams & { oddIndexOnly?: boolean | null }
+            >(store, {
               applyOnNodes: (nodes, { oddIndexOnly }) => {
                 if (oddIndexOnly) {
                   return nodes.filter(node => (store.get(node, 'index') as number) % 2 !== 0);

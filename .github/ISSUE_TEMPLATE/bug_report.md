@@ -7,7 +7,8 @@ about: Create a bug report to help us improve
 
 <!-- PLEASE DO NOT REMOVE THIS SECTION -->
 
-_Progress of the issue based on the [Contributor Workflow](https://github.com/the-guild-org/Stack/blob/master/CONTRIBUTING.md#a-typical-contributor-workflow)_
+_Progress of the issue based on the
+[Contributor Workflow](https://github.com/the-guild-org/Stack/blob/master/CONTRIBUTING.md#a-typical-contributor-workflow)_
 
 - [ ] 1. The issue provides a reproduction available on Github, Stackblitz or CodeSandbox
      > Make sure to fork this template and run `yarn generate` in the terminal.
@@ -23,8 +24,7 @@ _Progress of the issue based on the [Contributor Workflow](https://github.com/th
 
 <!-- A clear and concise description of what the bug is. -->
 
-**To Reproduce**
-Steps to reproduce the behavior:
+**To Reproduce** Steps to reproduce the behavior:
 
 <!-- Adding a codesandbox can help us understand the bug better and speed up things -->
 

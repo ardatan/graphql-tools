@@ -1,7 +1,7 @@
+import { graphql, GraphQLSchema } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { assertSome, createGraphQLError, ExecutionResult } from '@graphql-tools/utils';
-import { graphql, GraphQLSchema } from 'graphql';
 
 describe('merge failures', () => {
   const firstSchema = makeExecutableSchema({

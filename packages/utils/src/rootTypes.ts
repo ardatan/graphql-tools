@@ -5,7 +5,7 @@ import { memoize1 } from './memoize.js';
 export function getDefinedRootType(
   schema: GraphQLSchema,
   operation: OperationTypeNode,
-  nodes?: ASTNode[]
+  nodes?: ASTNode[],
 ): GraphQLObjectType {
   const rootTypeMap = getRootTypeMap(schema);
   const rootType = rootTypeMap.get(operation);
@@ -18,18 +18,22 @@ export function getDefinedRootType(
   return rootType;
 }
 
-export const getRootTypeNames = memoize1(function getRootTypeNames(schema: GraphQLSchema): Set<string> {
+export const getRootTypeNames = memoize1(function getRootTypeNames(
+  schema: GraphQLSchema,
+): Set<string> {
   const rootTypes = getRootTypes(schema);
   return new Set([...rootTypes].map(type => type.name));
 });
 
-export const getRootTypes = memoize1(function getRootTypes(schema: GraphQLSchema): Set<GraphQLObjectType> {
+export const getRootTypes = memoize1(function getRootTypes(
+  schema: GraphQLSchema,
+): Set<GraphQLObjectType> {
   const rootTypeMap = getRootTypeMap(schema);
   return new Set(rootTypeMap.values());
 });
 
 export const getRootTypeMap = memoize1(function getRootTypeMap(
-  schema: GraphQLSchema
+  schema: GraphQLSchema,
 ): Map<OperationTypeNode, GraphQLObjectType> {
   const rootTypeMap: Map<OperationTypeNode, GraphQLObjectType> = new Map();
 

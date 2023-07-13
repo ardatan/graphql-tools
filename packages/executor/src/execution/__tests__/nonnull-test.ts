@@ -1,5 +1,12 @@
+import {
+  buildSchema,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLSchema,
+  GraphQLString,
+  parse,
+} from 'graphql';
 import { ExecutionResult } from '@graphql-tools/utils';
-import { GraphQLNonNull, GraphQLObjectType, GraphQLSchema, GraphQLString, parse, buildSchema } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { execute, executeSync } from '../execute.js';
 

@@ -1,4 +1,11 @@
-import { DocumentNode, GraphQLSchema, parse, IntrospectionQuery, buildClientSchema, isSchema } from 'graphql';
+import {
+  buildClientSchema,
+  DocumentNode,
+  GraphQLSchema,
+  IntrospectionQuery,
+  isSchema,
+  parse,
+} from 'graphql';
 import { isSchemaAst, isSchemaJson, isSchemaText, isWrappedSchemaJson, pick } from './helpers.js';
 
 const identifiersToLookFor = ['default', 'schema', 'typeDefs', 'data'];
@@ -49,7 +56,9 @@ function ensureExports({ module, filepath }: { module: any; filepath: string }) 
   const identifiers = pick<any>(module, identifiersToLookFor);
 
   if (!identifiers) {
-    throw new Error(`Invalid export from export file ${filepath}: missing default export or 'schema' export!`);
+    throw new Error(
+      `Invalid export from export file ${filepath}: missing default export or 'schema' export!`,
+    );
   }
 
   return identifiers;
@@ -58,7 +67,12 @@ function ensureExports({ module, filepath }: { module: any; filepath: string }) 
 // Decide what to do with an exported value
 
 function resolveExport(
-  fileExport: GraphQLSchema | DocumentNode | string | { data: IntrospectionQuery } | IntrospectionQuery
+  fileExport:
+    | GraphQLSchema
+    | DocumentNode
+    | string
+    | { data: IntrospectionQuery }
+    | IntrospectionQuery,
 ): GraphQLSchema | DocumentNode | null {
   try {
     if (isSchema(fileExport)) {
@@ -83,6 +97,8 @@ function resolveExport(
 
     return null;
   } catch (e: any) {
-    throw new Error('Exported schema must be of type GraphQLSchema, text, AST, or introspection JSON.');
+    throw new Error(
+      'Exported schema must be of type GraphQLSchema, text, AST, or introspection JSON.',
+    );
   }
 }

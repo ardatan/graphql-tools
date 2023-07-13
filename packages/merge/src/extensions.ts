@@ -1,5 +1,6 @@
-import { GraphQLSchema, GraphQLObjectType, GraphQLEnumType } from 'graphql';
+import { GraphQLEnumType, GraphQLObjectType, GraphQLSchema } from 'graphql';
 import { ExtensionsObject, Maybe, mergeDeep, SchemaExtensions } from '@graphql-tools/utils';
+
 export { extractExtensionsFromSchema } from '@graphql-tools/utils';
 
 export function mergeExtensions(extensions: SchemaExtensions[]): SchemaExtensions {
@@ -8,7 +9,7 @@ export function mergeExtensions(extensions: SchemaExtensions[]): SchemaExtension
 
 function applyExtensionObject(
   obj: Maybe<{ extensions: Maybe<Readonly<Record<string, any>>> }>,
-  extensions: ExtensionsObject
+  extensions: ExtensionsObject,
 ) {
   if (!obj) {
     return;
@@ -17,7 +18,10 @@ function applyExtensionObject(
   obj.extensions = mergeDeep([obj.extensions || {}, extensions || {}]);
 }
 
-export function applyExtensions(schema: GraphQLSchema, extensions: SchemaExtensions): GraphQLSchema {
+export function applyExtensions(
+  schema: GraphQLSchema,
+  extensions: SchemaExtensions,
+): GraphQLSchema {
   applyExtensionObject(schema, extensions.schemaExtensions);
 
   for (const [typeName, data] of Object.entries(extensions.types || {})) {
@@ -36,7 +40,7 @@ export function applyExtensions(schema: GraphQLSchema, extensions: SchemaExtensi
             for (const [arg, argData] of Object.entries(fieldData.arguments)) {
               applyExtensionObject(
                 field.args.find(a => a.name === arg),
-                argData
+                argData,
               );
             }
           }

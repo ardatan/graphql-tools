@@ -1,19 +1,19 @@
-import { Args } from './types/common.js';
-import { Cluster } from './Cluster.js';
 import * as fs from 'fs';
-import * as yaml from 'js-yaml';
-import { ClusterNotFound } from './errors/ClusterNotFound.js';
-import { Variables } from './Variables.js';
-import { IOutput, Output } from './Output.js';
 import * as path from 'path';
-import { fetch } from '@whatwg-node/fetch';
-import { RC } from './index.js';
-import { ClusterNotSet } from './errors/ClusterNotSet.js';
-import { clusterEndpointMap } from './constants.js';
 // eslint-disable-next-line
 // @ts-ignore
 import debugPkg from 'debug';
 import { decodeJwt } from 'jose';
+import * as yaml from 'js-yaml';
+import { fetch } from '@whatwg-node/fetch';
+import { Cluster } from './Cluster.js';
+import { clusterEndpointMap } from './constants.js';
+import { ClusterNotFound } from './errors/ClusterNotFound.js';
+import { ClusterNotSet } from './errors/ClusterNotSet.js';
+import { RC } from './index.js';
+import { IOutput, Output } from './Output.js';
+import { Args } from './types/common.js';
+import { Variables } from './Variables.js';
 
 const debug = debugPkg('Environment');
 
@@ -114,7 +114,9 @@ export class Environment {
         }
         if (res.me && res.me.memberships && Array.isArray(res.me.memberships)) {
           // clean up all prisma-eu1 and prisma-us1 clusters if they already exist
-          this.clusters = this._getClusters().filter(c => c.name !== 'prisma-eu1' && c.name !== 'prisma-us1');
+          this.clusters = this._getClusters().filter(
+            c => c.name !== 'prisma-eu1' && c.name !== 'prisma-us1',
+          );
 
           for (const m of res.me.memberships) {
             for (const cluster of m.workspace.clusters) {
@@ -132,8 +134,8 @@ export class Environment {
                   false,
                   ['prisma-eu1', 'prisma-us1'].includes(cluster.name),
                   !['prisma-eu1', 'prisma-us1'].includes(cluster.name),
-                  m.workspace.slug
-                )
+                  m.workspace.slug,
+                ),
               );
             }
           }
@@ -189,7 +191,9 @@ export class Environment {
 
   saveGlobalRC() {
     const rc = {
-      cloudSessionKey: this.globalRC.cloudSessionKey ? this.globalRC.cloudSessionKey.trim() : undefined,
+      cloudSessionKey: this.globalRC.cloudSessionKey
+        ? this.globalRC.cloudSessionKey.trim()
+        : undefined,
       clusters: this.getLocalClusterConfig(),
     };
     // parse & stringify to rm undefined for yaml parser
@@ -252,7 +256,7 @@ export class Environment {
         this.clusterEndpointMap[clusterName],
         rc && rc.cloudSessionKey,
         false,
-        true
+        true,
       );
     });
   }
@@ -288,4 +292,5 @@ export class Environment {
   }
 }
 
-export const isLocal = (hostname: any) => hostname.includes('localhost') || hostname.includes('127.0.0.1');
+export const isLocal = (hostname: any) =>
+  hostname.includes('localhost') || hostname.includes('127.0.0.1');

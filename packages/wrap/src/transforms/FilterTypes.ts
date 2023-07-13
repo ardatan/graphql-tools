@@ -1,8 +1,6 @@
-import { GraphQLSchema, GraphQLNamedType } from 'graphql';
-
-import { mapSchema, MapperKind } from '@graphql-tools/utils';
-
+import { GraphQLNamedType, GraphQLSchema } from 'graphql';
 import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
+import { MapperKind, mapSchema } from '@graphql-tools/utils';
 
 interface FilterTypesTransformationContext extends Record<string, any> {}
 
@@ -17,7 +15,7 @@ export default class FilterTypes<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     return mapSchema(originalWrappingSchema, {
       [MapperKind.TYPE]: (type: GraphQLNamedType) => {

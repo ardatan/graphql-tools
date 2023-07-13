@@ -1,29 +1,31 @@
 // TODO: reduce code repetition in this file.
 // see https://github.com/apollostack/graphql-tools/issues/26
 
-import { typeDefs as scalarTypeDefs, resolvers as scalarResolvers } from 'graphql-scalars';
 import {
+  DocumentNode,
   graphql,
+  GraphQLBoolean,
+  GraphQLEnumType,
+  GraphQLError,
+  GraphQLFieldResolver,
   GraphQLResolveInfo,
   GraphQLScalarType,
-  Kind,
-  IntValueNode,
-  parse,
-  GraphQLError,
-  GraphQLEnumType,
-  VariableDefinitionNode,
-  DocumentNode,
-  GraphQLBoolean,
   graphqlSync,
-  GraphQLFieldResolver,
+  IntValueNode,
+  Kind,
+  parse,
+  VariableDefinitionNode,
 } from 'graphql';
-
-import { makeExecutableSchema, addResolversToSchema, chainResolvers } from '@graphql-tools/schema';
-
-import { IResolverValidationOptions, IResolvers, ExecutionResult, TypeSource } from '@graphql-tools/utils';
-
-import TypeA from './fixtures/circularSchemaA.js';
+import { resolvers as scalarResolvers, typeDefs as scalarTypeDefs } from 'graphql-scalars';
 import { execute, isIncrementalResult } from '@graphql-tools/executor';
+import { addResolversToSchema, chainResolvers, makeExecutableSchema } from '@graphql-tools/schema';
+import {
+  ExecutionResult,
+  IResolvers,
+  IResolverValidationOptions,
+  TypeSource,
+} from '@graphql-tools/utils';
+import TypeA from './fixtures/circularSchemaA.js';
 
 interface Bird {
   name: string;
@@ -77,12 +79,14 @@ describe('generating schema from shorthand', () => {
   test('throws an error if typeDefinitionNodes are not provided', () => {
     expect(() =>
       // @ts-expect-error: we call it with invalid params
-      makeExecutableSchema({ typeDefs: undefined, resolvers: {} })
+      makeExecutableSchema({ typeDefs: undefined, resolvers: {} }),
     ).toThrowError('Must provide typeDefs');
   });
 
   test('throws an error if no resolveFunctions are provided', () => {
-    expect(() => makeExecutableSchema({ typeDefs: 'blah', resolvers: {} })).toThrowError(GraphQLError);
+    expect(() => makeExecutableSchema({ typeDefs: 'blah', resolvers: {} })).toThrowError(
+      GraphQLError,
+    );
   });
 
   test('throws an error if typeDefinitionNodes is neither string nor array nor schema AST', () => {
@@ -90,8 +94,10 @@ describe('generating schema from shorthand', () => {
       makeExecutableSchema({
         typeDefs: {} as unknown as TypeSource,
         resolvers: {},
-      })
-    ).toThrowError('typeDefs must contain only strings, documents, schemas, or functions, got object');
+      }),
+    ).toThrowError(
+      'typeDefs must contain only strings, documents, schemas, or functions, got object',
+    );
   });
 
   test('throws an error if typeDefinitionNode array contains not only functions and strings', () => {
@@ -99,8 +105,10 @@ describe('generating schema from shorthand', () => {
       makeExecutableSchema({
         typeDefs: [17] as unknown as TypeSource,
         resolvers: {},
-      })
-    ).toThrowError('typeDefs must contain only strings, documents, schemas, or functions, got number');
+      }),
+    ).toThrowError(
+      'typeDefs must contain only strings, documents, schemas, or functions, got number',
+    );
   });
 
   test('throws an error if resolverValidationOptions is not an object', () => {
@@ -109,7 +117,9 @@ describe('generating schema from shorthand', () => {
       resolvers: {},
       resolverValidationOptions: 'string' as unknown as IResolverValidationOptions,
     };
-    expect(() => makeExecutableSchema(options)).toThrowError('Expected `resolverValidationOptions` to be an object');
+    expect(() => makeExecutableSchema(options)).toThrowError(
+      'Expected `resolverValidationOptions` to be an object',
+    );
   });
 
   test('can generate a schema', () => {
@@ -729,7 +739,9 @@ describe('generating schema from shorthand', () => {
         ${scalarTypeDefs.join('\n')}
 
         type Foo {
-          ${scalarNames.map(scalarName => `${scalarName.toLowerCase()}Field: ${scalarName}`).join('\n')}
+          ${scalarNames
+            .map(scalarName => `${scalarName.toLowerCase()}Field: ${scalarName}`)
+            .join('\n')}
         }
 
         type Query {
@@ -1481,7 +1493,7 @@ describe('generating schema from shorthand', () => {
       makeExecutableSchema({
         typeDefs: short,
         resolvers: rf,
-      })
+      }),
     ).toThrowError('Resolver Query.bird must be object or function');
   });
 
@@ -1515,7 +1527,7 @@ describe('generating schema from shorthand', () => {
 To disable this validator, use:
   resolverValidationOptions: {
     requireResolversForNonScalar: 'ignore'
-  }`
+  }`,
     );
   });
 
@@ -1538,7 +1550,7 @@ To disable this validator, use:
         typeDefs: short,
         resolvers: rf,
         resolverValidationOptions: { requireResolversForNonScalar: 'ignore' },
-      })
+      }),
     ).not.toThrow();
   });
 
@@ -1568,7 +1580,7 @@ To disable this validator, use:
     };
 
     expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
-      'Searchable.name was defined in resolvers, but Searchable is not an object or interface type'
+      'Searchable.name was defined in resolvers, but Searchable is not an object or interface type',
     );
 
     expect(() =>
@@ -1578,7 +1590,7 @@ To disable this validator, use:
         resolverValidationOptions: {
           requireResolversToMatchSchema: 'ignore',
         },
-      })
+      }),
     ).not.toThrowError();
   });
 
@@ -1603,7 +1615,7 @@ To disable this validator, use:
     };
 
     expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
-      '"Searchable" defined in resolvers, but not in schema'
+      '"Searchable" defined in resolvers, but not in schema',
     );
 
     expect(() =>
@@ -1613,7 +1625,7 @@ To disable this validator, use:
         resolverValidationOptions: {
           requireResolversToMatchSchema: 'ignore',
         },
-      })
+      }),
     ).not.toThrowError();
   });
 
@@ -1637,7 +1649,7 @@ To disable this validator, use:
 
     expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
       '"Searchable" defined in resolvers, but has invalid value "undefined". The resolver\'s value ' +
-        'must be of type object.'
+        'must be of type object.',
     );
   });
 
@@ -1662,7 +1674,7 @@ To disable this validator, use:
     };
 
     expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
-      'RootQuery.name defined in resolvers, but not in schema'
+      'RootQuery.name defined in resolvers, but not in schema',
     );
 
     expect(() =>
@@ -1672,7 +1684,7 @@ To disable this validator, use:
         resolverValidationOptions: {
           requireResolversToMatchSchema: 'ignore',
         },
-      })
+      }),
     ).not.toThrowError();
   });
 
@@ -1707,7 +1719,7 @@ To disable this validator, use:
     };
 
     expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
-      'Color.NO_RESOLVER was defined in resolvers, but not present within Color'
+      'Color.NO_RESOLVER was defined in resolvers, but not present within Color',
     );
 
     expect(() =>
@@ -1717,7 +1729,7 @@ To disable this validator, use:
         resolverValidationOptions: {
           requireResolversToMatchSchema: 'ignore',
         },
-      })
+      }),
     ).not.toThrowError();
   });
 
@@ -1741,7 +1753,7 @@ To disable this validator, use:
           typeDefs,
           resolvers,
           resolverValidationOptions,
-        })
+        }),
       ).toThrow();
     }
 
@@ -1824,7 +1836,7 @@ To disable this validator, use:
         typeDefs,
         resolvers,
         resolverValidationOptions: { requireResolversForAllFields: 'error' },
-      })
+      }),
     ).not.toThrow();
   });
 
@@ -1856,7 +1868,7 @@ To disable this validator, use:
       makeExecutableSchema({
         typeDefs: shorthand,
         resolvers: resolveFunctions,
-      })
+      }),
     ).toThrowError('RootQuery.speciez defined in resolvers, but not in schema');
     done();
   });
@@ -1887,7 +1899,7 @@ To disable this validator, use:
       makeExecutableSchema({
         typeDefs: shorthand,
         resolvers: resolveFunctions,
-      })
+      }),
     ).toThrowError('"BootQuery" defined in resolvers, but not in schema');
     done();
   });
@@ -1925,7 +1937,8 @@ describe('Generating a full graphQL schema with resolvers and connectors', () =>
 describe('chainResolvers', () => {
   test('can chain two resolvers', () => {
     const r1: GraphQLFieldResolver<any, any, { addend: number }> = (root: number) => root + 1;
-    const r2: GraphQLFieldResolver<any, any, { addend: number }> = (root: number, { addend }) => root + addend;
+    const r2: GraphQLFieldResolver<any, any, { addend: number }> = (root: number, { addend }) =>
+      root + addend;
 
     const info: GraphQLResolveInfo = {
       fieldName: 'addend',
@@ -2107,7 +2120,7 @@ describe('interfaces', () => {
       });
     } catch (error: any) {
       expect(error.message).toEqual(
-        `Type "Node" is missing a "__resolveType" resolver. Pass 'ignore' into "resolverValidationOptions.requireResolversForResolveType" to disable this error.`
+        `Type "Node" is missing a "__resolveType" resolver. Pass 'ignore' into "resolverValidationOptions.requireResolversForResolveType" to disable this error.`,
       );
       return;
     }
@@ -2371,7 +2384,7 @@ describe('unions', () => {
       });
     } catch (error: any) {
       expect(error.message).toEqual(
-        `Type "Displayable" is missing a "__resolveType" resolver. Pass 'ignore' into "resolverValidationOptions.requireResolversForResolveType" to disable this error.`
+        `Type "Displayable" is missing a "__resolveType" resolver. Pass 'ignore' into "resolverValidationOptions.requireResolversForResolveType" to disable this error.`,
       );
       return;
     }

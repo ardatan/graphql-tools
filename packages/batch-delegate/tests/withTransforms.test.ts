@@ -1,8 +1,7 @@
-import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { GraphQLList, GraphQLObjectType, Kind, OperationTypeNode, parse } from 'graphql';
-
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { TransformQuery } from '@graphql-tools/wrap';
 
@@ -75,10 +74,13 @@ describe('works with complex transforms', () => {
       }),
       resultTransformer: (results, delegationContext) => {
         const userIds = delegationContext.args?.['userIds'];
-        const booksByUserIds = results.reduce((acc: any, { userId, books }: { userId: string; books: any[] }) => {
-          acc[userId] = books;
-          return acc;
-        }, {});
+        const booksByUserIds = results.reduce(
+          (acc: any, { userId, books }: { userId: string; books: any[] }) => {
+            acc[userId] = books;
+            return acc;
+          },
+          {},
+        );
         const orderedAndUnwrapped = userIds.map((id: any) => booksByUserIds[id]);
         return orderedAndUnwrapped;
       },
@@ -101,7 +103,9 @@ describe('works with complex transforms', () => {
                 context,
                 info,
                 transforms: [queryTransform],
-                returnType: new GraphQLList(new GraphQLList(info.schema.getType('Book') as GraphQLObjectType)),
+                returnType: new GraphQLList(
+                  new GraphQLList(info.schema.getType('Book') as GraphQLObjectType),
+                ),
               }),
           },
         },

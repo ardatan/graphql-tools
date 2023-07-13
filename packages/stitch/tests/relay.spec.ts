@@ -1,6 +1,6 @@
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { execute } from '@graphql-tools/executor';
 import { parse } from 'graphql';
+import { execute } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { handleRelaySubschemas, stitchSchemas } from '../src/index.js';
 
 function decodeBase64(str: string) {
@@ -51,7 +51,8 @@ describe.skip('Relay', () => {
       resolvers: {
         Node: {
           __resolveType: ({ id }: { id: string }) => extractGlobalId(id)?.type,
-          id: ({ __typename, id }: { __typename: string; id: string }) => makeGlobalId(__typename, id),
+          id: ({ __typename, id }: { __typename: string; id: string }) =>
+            makeGlobalId(__typename, id),
         },
         Query: {
           node: (_, { id: globalId }) => {
@@ -103,7 +104,8 @@ describe.skip('Relay', () => {
       resolvers: {
         Node: {
           __resolveType: ({ id }: { id: string }) => extractGlobalId(id)?.type,
-          id: ({ __typename, id }: { __typename: string; id: string }) => makeGlobalId(__typename, id),
+          id: ({ __typename, id }: { __typename: string; id: string }) =>
+            makeGlobalId(__typename, id),
         },
         Query: {
           node: (_, { id: globalId }) => {
@@ -159,7 +161,10 @@ describe.skip('Relay', () => {
     expect(postResult.data?.['user1']?.posts[0].content).toBe(posts[0].content);
 
     const stitchedSchema = stitchSchemas({
-      subschemas: handleRelaySubschemas([{ schema: postSchema }, { schema: userSchema }], id => id.split(':')[0]),
+      subschemas: handleRelaySubschemas(
+        [{ schema: postSchema }, { schema: userSchema }],
+        id => id.split(':')[0],
+      ),
     });
 
     const stitchedResult = (await execute({

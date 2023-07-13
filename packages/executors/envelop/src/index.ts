@@ -1,4 +1,4 @@
-import { Plugin, ExecutionArgs } from '@envelop/core';
+import { ExecutionArgs, Plugin } from '@envelop/core';
 import { Executor } from '@graphql-tools/utils';
 
 export function useExecutor(executor: Executor): Plugin {

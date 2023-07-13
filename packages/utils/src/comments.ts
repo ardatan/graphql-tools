@@ -1,17 +1,17 @@
-import { Maybe } from './types.js';
 import {
-  StringValueNode,
-  FieldDefinitionNode,
   ASTNode,
+  DefinitionNode,
+  FieldDefinitionNode,
+  Location,
+  NamedTypeNode,
   NameNode,
+  StringValueNode,
+  TokenKind,
   TypeNode,
   visit,
-  DefinitionNode,
-  Location,
-  TokenKind,
-  NamedTypeNode,
 } from 'graphql';
 import type { ASTVisitor } from 'graphql/language/visitor';
+import { Maybe } from './types.js';
 
 export type NamedDefinitionNode = DefinitionNode & { name?: NameNode };
 
@@ -119,7 +119,7 @@ type VisitFn = (
   key: string,
   parent: NamedTypeNode,
   path: string[],
-  ancestors: NamedTypeNode[]
+  ancestors: NamedTypeNode[],
 ) => any;
 
 function addDescription(cb: VisitFn): VisitFn {
@@ -128,7 +128,7 @@ function addDescription(cb: VisitFn): VisitFn {
     _key: string,
     _parent: NamedTypeNode,
     path: string[],
-    ancestors: NamedTypeNode[]
+    ancestors: NamedTypeNode[],
   ) => {
     const keys: string[] = [];
     const parent = path.reduce((prev, key) => {
@@ -146,7 +146,10 @@ function addDescription(cb: VisitFn): VisitFn {
       items.push(...commentsRegistry[key]);
     }
 
-    return join([...items.map(printComment), node.description, cb(node, _key, _parent, path, ancestors)], '\n');
+    return join(
+      [...items.map(printComment), node.description, cb(node, _key, _parent, path, ancestors)],
+      '\n',
+    );
   };
 }
 
@@ -195,7 +198,10 @@ const printDocASTReducer: ASTVisitor = {
   OperationDefinition: {
     leave: node => {
       const varDefs = wrap('(', join(node.variableDefinitions, ', '), ')');
-      const prefix = join([node.operation, join([node.name, varDefs]), join(node.directives, ' ')], ' ');
+      const prefix = join(
+        [node.operation, join([node.name, varDefs]), join(node.directives, ' ')],
+        ' ',
+      );
 
       // the query short form.
       return prefix + ' ' + node.selectionSet;
@@ -279,7 +285,8 @@ const printDocASTReducer: ASTVisitor = {
   // Type System Definitions
 
   SchemaDefinition: {
-    leave: ({ directives, operationTypes }: any) => join(['schema', join(directives, ' '), block(operationTypes)], ' '),
+    leave: ({ directives, operationTypes }: any) =>
+      join(['schema', join(directives, ' '), block(operationTypes)], ' '),
   },
 
   OperationTypeDefinition: {
@@ -292,7 +299,16 @@ const printDocASTReducer: ASTVisitor = {
 
   ObjectTypeDefinition: {
     leave: ({ name, interfaces, directives, fields }) =>
-      join(['type', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)], ' '),
+      join(
+        [
+          'type',
+          name,
+          wrap('implements ', join(interfaces, ' & ')),
+          join(directives, ' '),
+          block(fields),
+        ],
+        ' ',
+      ),
   },
 
   FieldDefinition: {
@@ -314,8 +330,14 @@ const printDocASTReducer: ASTVisitor = {
   InterfaceTypeDefinition: {
     leave: ({ name, interfaces, directives, fields }: any) =>
       join(
-        ['interface', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)],
-        ' '
+        [
+          'interface',
+          name,
+          wrap('implements ', join(interfaces, ' & ')),
+          join(directives, ' '),
+          block(fields),
+        ],
+        ' ',
       ),
   },
 
@@ -325,7 +347,8 @@ const printDocASTReducer: ASTVisitor = {
   },
 
   EnumTypeDefinition: {
-    leave: ({ name, directives, values }) => join(['enum', name, join(directives, ' '), block(values)], ' '),
+    leave: ({ name, directives, values }) =>
+      join(['enum', name, join(directives, ' '), block(values)], ' '),
   },
 
   EnumValueDefinition: {
@@ -333,7 +356,8 @@ const printDocASTReducer: ASTVisitor = {
   },
 
   InputObjectTypeDefinition: {
-    leave: ({ name, directives, fields }) => join(['input', name, join(directives, ' '), block(fields)], ' '),
+    leave: ({ name, directives, fields }) =>
+      join(['input', name, join(directives, ' '), block(fields)], ' '),
   },
 
   DirectiveDefinition: {
@@ -360,16 +384,28 @@ const printDocASTReducer: ASTVisitor = {
   ObjectTypeExtension: {
     leave: ({ name, interfaces, directives, fields }) =>
       join(
-        ['extend type', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)],
-        ' '
+        [
+          'extend type',
+          name,
+          wrap('implements ', join(interfaces, ' & ')),
+          join(directives, ' '),
+          block(fields),
+        ],
+        ' ',
       ),
   },
 
   InterfaceTypeExtension: {
     leave: ({ name, interfaces, directives, fields }: any) =>
       join(
-        ['extend interface', name, wrap('implements ', join(interfaces, ' & ')), join(directives, ' '), block(fields)],
-        ' '
+        [
+          'extend interface',
+          name,
+          wrap('implements ', join(interfaces, ' & ')),
+          join(directives, ' '),
+          block(fields),
+        ],
+        ' ',
       ),
   },
 
@@ -379,11 +415,13 @@ const printDocASTReducer: ASTVisitor = {
   },
 
   EnumTypeExtension: {
-    leave: ({ name, directives, values }) => join(['extend enum', name, join(directives, ' '), block(values)], ' '),
+    leave: ({ name, directives, values }) =>
+      join(['extend enum', name, join(directives, ' '), block(values)], ' '),
   },
 
   InputObjectTypeExtension: {
-    leave: ({ name, directives, fields }) => join(['extend input', name, join(directives, ' '), block(fields)], ' '),
+    leave: ({ name, directives, fields }) =>
+      join(['extend input', name, join(directives, ' '), block(fields)], ' '),
   },
 };
 
@@ -394,7 +432,7 @@ const printDocASTReducerWithComments = Object.keys(printDocASTReducer).reduce(
       leave: addDescription(printDocASTReducer[key].leave),
     },
   }),
-  {} as typeof printDocASTReducer
+  {} as typeof printDocASTReducer,
 );
 
 /**
@@ -412,7 +450,7 @@ function isFieldDefinitionNode(node: any): node is FieldDefinitionNode {
 // graphql < v13 and > v15 does not export getDescription
 export function getDescription(
   node: { description?: StringValueNode; loc?: Location },
-  options?: { commentDescriptions?: boolean }
+  options?: { commentDescriptions?: boolean },
 ): string | undefined {
   if (node.description != null) {
     return node.description.value;

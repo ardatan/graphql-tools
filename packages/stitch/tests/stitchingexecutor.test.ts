@@ -1,7 +1,7 @@
+import { parse } from 'graphql';
 import { SubschemaConfig } from '@graphql-tools/delegate';
 import { addMocksToSchema } from '@graphql-tools/mock';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { parse } from 'graphql';
 import { createStitchingExecutor } from '../src/executor';
 import { stitchSchemas } from '../src/stitchSchemas';
 

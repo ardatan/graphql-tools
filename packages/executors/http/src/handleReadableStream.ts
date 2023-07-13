@@ -1,6 +1,6 @@
-import { TextDecoder } from '@whatwg-node/fetch';
-import { Repeater } from '@repeaterjs/repeater';
 import { ExecutionResult } from '@graphql-tools/utils';
+import { Repeater } from '@repeaterjs/repeater';
+import { TextDecoder } from '@whatwg-node/fetch';
 
 export function handleReadableStream(readableStream: ReadableStream<Uint8Array>) {
   const textDecoder = new TextDecoder();
@@ -12,7 +12,8 @@ export function handleReadableStream(readableStream: ReadableStream<Uint8Array>)
         return stop();
       }
       if (value) {
-        const chunk = typeof value === 'string' ? value : textDecoder.decode(value, { stream: true });
+        const chunk =
+          typeof value === 'string' ? value : textDecoder.decode(value, { stream: true });
         for (const part of chunk.split('\n\n')) {
           if (part) {
             const eventStr = part.split('event: ')[1];

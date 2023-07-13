@@ -1,6 +1,7 @@
 {
   "name": "@graphql-tools/batch-delegate",
   "version": "9.0.0",
+  "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -8,7 +9,9 @@
     "directory": "packages/batch-delegate"
   },
   "license": "MIT",
-  "sideEffects": false,
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "exports": {
@@ -43,21 +46,15 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
-  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
-  },
-  "buildOptions": {
-    "input": "./src/index.ts"
   },
   "dependencies": {
     "@graphql-tools/delegate": "^10.0.0",
     "@graphql-tools/utils": "^10.0.0",
     "dataloader": "2.2.2",
-    "value-or-promise": "^1.0.12",
-    "tslib": "^2.4.0"
+    "tslib": "^2.4.0",
+    "value-or-promise": "^1.0.12"
   },
   "devDependencies": {
     "@graphql-tools/schema": "^10.0.0",
@@ -67,8 +64,11 @@
     "directory": "dist",
     "access": "public"
   },
-  "type": "module",
-  "engines": {
-    "node": ">=16.0.0"
+  "sideEffects": false,
+  "buildOptions": {
+    "input": "./src/index.ts"
+  },
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
   }
 }

@@ -16,14 +16,22 @@ describe('cluster endpoint generation', () => {
       undefined,
       false,
       false,
-      true
+      true,
     );
     expect(cluster.getApiEndpoint('default', 'default', 'workspace')).toMatchSnapshot();
     expect(cluster.getApiEndpoint('dev', 'default', 'workspace')).toMatchSnapshot();
     expect(cluster.getApiEndpoint('default', 'dev', 'workspace')).toMatchSnapshot();
   });
   test('sandbox cluster', () => {
-    const cluster = new Cluster(new Output(), 'prisma-eu1', 'https://eu1.prisma.sh', undefined, false, true, false);
+    const cluster = new Cluster(
+      new Output(),
+      'prisma-eu1',
+      'https://eu1.prisma.sh',
+      undefined,
+      false,
+      true,
+      false,
+    );
     expect(cluster.getApiEndpoint('default', 'default', 'workspace')).toMatchSnapshot();
     expect(cluster.getApiEndpoint('dev', 'default', 'workspace')).toMatchSnapshot();
     expect(cluster.getApiEndpoint('default', 'dev', 'workspace')).toMatchSnapshot();

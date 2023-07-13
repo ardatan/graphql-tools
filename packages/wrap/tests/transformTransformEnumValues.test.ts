@@ -1,10 +1,10 @@
-import { wrapSchema, TransformEnumValues } from '@graphql-tools/wrap';
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import { buildSchema, parse, printType } from 'graphql';
-import { execute, isIncrementalResult } from '@graphql-tools/executor';
-import { stitchSchemas } from '@graphql-tools/stitch';
 import { delegateToSchema } from '@graphql-tools/delegate';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { stitchSchemas } from '@graphql-tools/stitch';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
+import { TransformEnumValues, wrapSchema } from '@graphql-tools/wrap';
 
 describe('TransformEnumValues', () => {
   test('works', async () => {
@@ -27,7 +27,9 @@ describe('TransformEnumValues', () => {
 
     const transformedSchema = wrapSchema({
       schema,
-      transforms: [new TransformEnumValues((_typeName, _externalValue, valueConfig) => ['UNO', valueConfig])],
+      transforms: [
+        new TransformEnumValues((_typeName, _externalValue, valueConfig) => ['UNO', valueConfig]),
+      ],
     });
 
     const query = /* GraphQL */ `
@@ -64,7 +66,9 @@ describe('TransformEnumValues', () => {
 
     const transformedSchema = wrapSchema({
       schema,
-      transforms: [new TransformEnumValues((_typeName, _externalValue, valueConfig) => ['UNO', valueConfig])],
+      transforms: [
+        new TransformEnumValues((_typeName, _externalValue, valueConfig) => ['UNO', valueConfig]),
+      ],
     });
 
     const query = /* GraphQL */ `
@@ -189,7 +193,10 @@ describe('TransformEnumValues', () => {
     const subschema = {
       schema,
       transforms: [
-        new TransformEnumValues((_typeName, externalValue, valueConfig) => [externalValue.toUpperCase(), valueConfig]),
+        new TransformEnumValues((_typeName, externalValue, valueConfig) => [
+          externalValue.toUpperCase(),
+          valueConfig,
+        ]),
       ],
     };
     const stitchedSchema = stitchSchemas({

@@ -4,7 +4,8 @@ description: Generate a GraphQL schema from the concise type definition language
 
 # Executable Schemas
 
-The GraphQL-Tools package allows you to create a GraphQL.js GraphQLSchema instance from GraphQL schema language using the function `makeExecutableSchema`.
+The GraphQL-Tools package allows you to create a GraphQL.js GraphQLSchema instance from GraphQL
+schema language using the function `makeExecutableSchema`.
 
 ## Example
 
@@ -100,11 +101,15 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 export const schema = makeExecutableSchema({ typeDefs, resolvers })
 ```
 
-This example has the entire type definition in one string and all resolvers in one object, but you can combine types and resolvers from multiple files, as documented in the [extending types](#extending-types) section below.
+This example has the entire type definition in one string and all resolvers in one object, but you
+can combine types and resolvers from multiple files, as documented in the
+[extending types](#extending-types) section below.
 
 ## Extending Types
 
-It's easy to add additional fields to existing types using the `extend` keyword. Using `extend` is particularly useful in avoiding a large list of fields on root Queries and Mutations. You can use it like this:
+It's easy to add additional fields to existing types using the `extend` keyword. Using `extend` is
+particularly useful in avoiding a large list of fields on root Queries and Mutations. You can use it
+like this:
 
 ```js
 const typeDefs = [
@@ -160,9 +165,12 @@ const schema = makeExecutableSchema({
 
 ## Learning the GraphQL Schema Language
 
-The official documentation on graphql.org now has [a section about GraphQL schemas](http://graphql.org/learn/schema) which explains all of the different schema features and how to use them with the schema language.
+The official documentation on graphql.org now has
+[a section about GraphQL schemas](http://graphql.org/learn/schema) which explains all of the
+different schema features and how to use them with the schema language.
 
-The type definitions must define a query type, which means a minimal schema would look something like this:
+The type definitions must define a query type, which means a minimal schema would look something
+like this:
 
 ```js
 const typeDefs = [
@@ -180,7 +188,8 @@ const typeDefs = [
 
 ## Descriptions & Deprecations
 
-GraphiQL has built-in support for displaying docstrings with markdown syntax. You can easily add docstrings to types, fields and arguments like below:
+GraphiQL has built-in support for displaying docstrings with markdown syntax. You can easily add
+docstrings to types, fields and arguments like below:
 
 ```graphql
 """
@@ -209,13 +218,16 @@ type MyObjectType {
 }
 ```
 
-This [GraphQL schema language cheat sheet](https://raw.githubusercontent.com/sogko/graphql-shorthand-notation-cheat-sheet/master/graphql-shorthand-notation-cheat-sheet.png) by Hafiz Ismail is an excellent reference for all the features of the GraphQL schema language.
+This
+[GraphQL schema language cheat sheet](https://raw.githubusercontent.com/sogko/graphql-shorthand-notation-cheat-sheet/master/graphql-shorthand-notation-cheat-sheet.png)
+by Hafiz Ismail is an excellent reference for all the features of the GraphQL schema language.
 
 ## API
 
 ### `makeExecutableSchema`
 
-Takes a single argument: an object of options. Only the `typeDefs` option is required. It returns a new schema, modified as specified.
+Takes a single argument: an object of options. Only the `typeDefs` option is required. It returns a
+new schema, modified as specified.
 
 ```js
 import { makeExecutableSchema } from '@graphql-tools/schema'
@@ -230,22 +242,35 @@ const jsSchema = makeExecutableSchema({
 })
 ```
 
-- `typeDefs` is a required argument and should be a GraphQL schema language string or an array of GraphQL schema language strings or a function that takes no arguments and returns an array of GraphQL schema language strings. The order of the strings in the array is not important, but it must include a schema definition.
+- `typeDefs` is a required argument and should be a GraphQL schema language string or an array of
+  GraphQL schema language strings or a function that takes no arguments and returns an array of
+  GraphQL schema language strings. The order of the strings in the array is not important, but it
+  must include a schema definition.
 
-- `resolvers` is an optional argument _(empty object by default)_ and should be an object or an array of objects that follow the pattern explained in [article on resolvers](/docs/resolvers)
+- `resolvers` is an optional argument _(empty object by default)_ and should be an object or an
+  array of objects that follow the pattern explained in [article on resolvers](/docs/resolvers)
 
-- `parseOptions` is an optional argument that allows customization of parse when specifying `typeDefs` as a string.
+- `parseOptions` is an optional argument that allows customization of parse when specifying
+  `typeDefs` as a string.
 
-- `resolverValidationOptions` is an optional argument with the following properties, each of which can be set to `error`, `warn`, or `ignore`:
+- `resolverValidationOptions` is an optional argument with the following properties, each of which
+  can be set to `error`, `warn`, or `ignore`:
 
-  - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error (`error`) or issue a warning (`warn`)unless a resolver is defined for every field with arguments. The default is `ignore`, causing this validator to be skipped.
+  - `requireResolversForArgs` will cause `makeExecutableSchema` to throw an error (`error`) or issue
+    a warning (`warn`)unless a resolver is defined for every field with arguments. The default is
+    `ignore`, causing this validator to be skipped.
 
-  - `requireResolversForNonScalar` require a resolver for every non-scalar field. Default is `ignore`.
+  - `requireResolversForNonScalar` require a resolver for every non-scalar field. Default is
+    `ignore`.
 
-  - `requireResolversForAllFields` asserts that _all_ fields have valid resolvers. This option cannot be set in combination with the previous two validators. Default is `ignore`.
+  - `requireResolversForAllFields` asserts that _all_ fields have valid resolvers. This option
+    cannot be set in combination with the previous two validators. Default is `ignore`.
 
-  - `requireResolversForResolveType` will require a `resolveType()` method for Interface and Union types. This can be passed in with the field resolvers as `__resolveType()`. Default is `ignore`.
+  - `requireResolversForResolveType` will require a `resolveType()` method for Interface and Union
+    types. This can be passed in with the field resolvers as `__resolveType()`. Default is `ignore`.
 
-  - `requireResolversToMatchSchema` requires every resolver within the resolver map to correspond to a GraphQL entity within the schema. Defaults to `error`, to help catch common errors.
+  - `requireResolversToMatchSchema` requires every resolver within the resolver map to correspond to
+    a GraphQL entity within the schema. Defaults to `error`, to help catch common errors.
 
-- `inheritResolversFromInterfaces` GraphQL Objects that implement interfaces will inherit missing resolvers from their interface types defined in the `resolvers` object.
+- `inheritResolversFromInterfaces` GraphQL Objects that implement interfaces will inherit missing
+  resolvers from their interface types defined in the `resolvers` object.

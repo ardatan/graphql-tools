@@ -1,5 +1,5 @@
-import { IFieldResolver } from '@graphql-tools/utils';
 import { GraphQLResolveInfo } from 'graphql';
+import { IFieldResolver } from '@graphql-tools/utils';
 import { IMockStore, Ref } from './types.js';
 import { isRootType, makeRef } from './utils.js';
 
@@ -7,7 +7,7 @@ export type AllNodesFn<TContext, TArgs extends RelayPaginationParams> = (
   parent: Ref,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => Ref[];
 
 export type RelayStylePaginationMockOptions<TContext, TArgs extends RelayPaginationParams> = {
@@ -96,16 +96,21 @@ export type RelayPageInfo = {
  * ```
  * @param store the MockStore
  */
-export const relayStylePaginationMock = <TContext, TArgs extends RelayPaginationParams = RelayPaginationParams>(
+export const relayStylePaginationMock = <
+  TContext,
+  TArgs extends RelayPaginationParams = RelayPaginationParams,
+>(
   store: IMockStore,
   {
     cursorFn = node => `${node.$ref.key}`,
     applyOnNodes,
     allNodesFn,
-  }: RelayStylePaginationMockOptions<TContext, TArgs> = {}
+  }: RelayStylePaginationMockOptions<TContext, TArgs> = {},
 ): IFieldResolver<Ref, TContext, TArgs, any> => {
   return (parent, args, context, info) => {
-    const source = isRootType(info.parentType, info.schema) ? makeRef(info.parentType.name, 'ROOT') : parent;
+    const source = isRootType(info.parentType, info.schema)
+      ? makeRef(info.parentType.name, 'ROOT')
+      : parent;
 
     const allNodesFn_ = allNodesFn ?? defaultAllNodesFn(store);
     let allNodes = allNodesFn_(source, args, context, info);

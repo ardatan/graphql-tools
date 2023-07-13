@@ -1,11 +1,8 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, print } from 'graphql';
-
 import DataLoader from 'dataloader';
-
+import { getNamedType, GraphQLList, GraphQLOutputType, GraphQLSchema, print } from 'graphql';
+import { ValueOrPromise } from 'value-or-promise';
 import { delegateToSchema, getActualFieldNodes, SubschemaConfig } from '@graphql-tools/delegate';
 import { memoize1, memoize2, relocatedError } from '@graphql-tools/utils';
-import { ValueOrPromise } from 'value-or-promise';
-
 import { BatchDelegateOptions } from './types.js';
 
 function createBatchFn<K = any>(options: BatchDelegateOptions) {
@@ -32,11 +29,14 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
             return originalError;
           }
 
-          return relocatedError(originalError, originalError.path.slice(0, 0).concat(originalError.path.slice(2)));
+          return relocatedError(
+            originalError,
+            originalError.path.slice(0, 0).concat(originalError.path.slice(2)),
+          );
         },
         args: argsFromKeys(keys),
         ...(lazyOptionsFn == null ? options : lazyOptionsFn(options, keys)),
-      })
+      }),
     ).then(results => {
       if (results instanceof Error) {
         return keys.map(() => results);
@@ -51,7 +51,7 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
 
 const getLoadersMap = memoize2(function getLoadersMap<K, V, C>(
   _context: Record<string, any>,
-  _schema: GraphQLSchema | SubschemaConfig<any, any, any, any>
+  _schema: GraphQLSchema | SubschemaConfig<any, any, any, any>,
 ) {
   return new Map<string, DataLoader<K, V, C>>();
 });
@@ -71,7 +71,9 @@ function defaultCacheKeyFn(key: any) {
   return key;
 }
 
-export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
+export function getLoader<K = any, V = any, C = K>(
+  options: BatchDelegateOptions<any>,
+): DataLoader<K, V, C> {
   const {
     schema,
     context,

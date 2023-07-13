@@ -1,4 +1,9 @@
-import { DirectiveDefinitionNode, Kind, UnionTypeDefinitionNode, UnionTypeExtensionNode } from 'graphql';
+import {
+  DirectiveDefinitionNode,
+  Kind,
+  UnionTypeDefinitionNode,
+  UnionTypeExtensionNode,
+} from 'graphql';
 import { mergeDirectives } from './directives.js';
 import { mergeNamedTypeArray } from './merge-named-type-array.js';
 import { Config } from './merge-typedefs.js';
@@ -7,7 +12,7 @@ export function mergeUnion(
   first: UnionTypeDefinitionNode | UnionTypeExtensionNode,
   second: UnionTypeDefinitionNode | UnionTypeExtensionNode,
   config?: Config,
-  directives?: Record<string, DirectiveDefinitionNode>
+  directives?: Record<string, DirectiveDefinitionNode>,
 ): UnionTypeDefinitionNode | UnionTypeExtensionNode {
   if (second) {
     return {
@@ -16,7 +21,9 @@ export function mergeUnion(
       // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
       directives: mergeDirectives(first.directives, second.directives, config, directives) as any,
       kind:
-        config?.convertExtensions || first.kind === 'UnionTypeDefinition' || second.kind === 'UnionTypeDefinition'
+        config?.convertExtensions ||
+        first.kind === 'UnionTypeDefinition' ||
+        second.kind === 'UnionTypeDefinition'
           ? Kind.UNION_TYPE_DEFINITION
           : Kind.UNION_TYPE_EXTENSION,
       loc: first.loc,

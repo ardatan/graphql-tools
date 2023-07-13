@@ -1,25 +1,28 @@
 import {
   DocumentNode,
+  FieldNode,
   FragmentDefinitionNode,
+  getNamedType,
   GraphQLNamedType,
+  GraphQLOutputType,
   GraphQLSchema,
+  InlineFragmentNode,
+  isAbstractType,
+  isCompositeType,
+  isInterfaceType,
   Kind,
   SelectionNode,
   SelectionSetNode,
   TypeInfo,
-  getNamedType,
-  isAbstractType,
-  isInterfaceType,
   visit,
   visitWithTypeInfo,
-  InlineFragmentNode,
-  GraphQLOutputType,
-  isCompositeType,
-  FieldNode,
 } from 'graphql';
-
-import { implementsAbstractType, getRootTypeNames, memoize2, ASTVisitorKeyMap } from '@graphql-tools/utils';
-
+import {
+  ASTVisitorKeyMap,
+  getRootTypeNames,
+  implementsAbstractType,
+  memoize2,
+} from '@graphql-tools/utils';
 import { getDocumentMetadata } from './getDocumentMetadata.js';
 import { StitchingInfo } from './types.js';
 
@@ -27,9 +30,13 @@ export function prepareGatewayDocument(
   originalDocument: DocumentNode,
   transformedSchema: GraphQLSchema,
   returnType: GraphQLOutputType,
-  infoSchema?: GraphQLSchema
+  infoSchema?: GraphQLSchema,
 ): DocumentNode {
-  const wrappedConcreteTypesDocument = wrapConcreteTypes(returnType, transformedSchema, originalDocument);
+  const wrappedConcreteTypesDocument = wrapConcreteTypes(
+    returnType,
+    transformedSchema,
+    originalDocument,
+  );
 
   if (infoSchema == null) {
     return wrappedConcreteTypesDocument;
@@ -44,9 +51,15 @@ export function prepareGatewayDocument(
     dynamicSelectionSetsByField,
   } = getSchemaMetaData(infoSchema, transformedSchema);
 
-  const { operations, fragments, fragmentNames } = getDocumentMetadata(wrappedConcreteTypesDocument);
+  const { operations, fragments, fragmentNames } = getDocumentMetadata(
+    wrappedConcreteTypesDocument,
+  );
 
-  const { expandedFragments, fragmentReplacements } = getExpandedFragments(fragments, fragmentNames, possibleTypesMap);
+  const { expandedFragments, fragmentReplacements } = getExpandedFragments(
+    fragments,
+    fragmentNames,
+    possibleTypesMap,
+  );
 
   const typeInfo = new TypeInfo(transformedSchema);
 
@@ -78,13 +91,13 @@ export function prepareGatewayDocument(
           interfaceExtensionsMap,
           fieldNodesByType,
           fieldNodesByField,
-          dynamicSelectionSetsByField
+          dynamicSelectionSetsByField,
         ),
     }),
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
     // empty keys cannot be removed only because of typescript errors
     // will hopefully be fixed in future version of graphql-js to be optional
-    visitorKeyMap as any
+    visitorKeyMap as any,
   );
 }
 
@@ -98,7 +111,10 @@ function visitSelectionSet(
   interfaceExtensionsMap: Record<string, Record<string, boolean>>,
   fieldNodesByType: Record<string, Array<FieldNode>>,
   fieldNodesByField: Record<string, Record<string, Array<FieldNode>>>,
-  dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>
+  dynamicSelectionSetsByField: Record<
+    string,
+    Record<string, Array<(node: FieldNode) => SelectionSetNode>>
+  >,
 ): SelectionSetNode {
   const newSelections = new Set<SelectionNode>();
   const maybeType = typeInfo.getParentType();
@@ -129,7 +145,10 @@ function visitSelectionSet(
 
           for (const possibleTypeName of possibleTypes) {
             const maybePossibleType = schema.getType(possibleTypeName);
-            if (maybePossibleType != null && implementsAbstractType(schema, parentType, maybePossibleType)) {
+            if (
+              maybePossibleType != null &&
+              implementsAbstractType(schema, parentType, maybePossibleType)
+            ) {
               newSelections.add(generateInlineFragment(possibleTypeName, selection.selectionSet));
             }
           }
@@ -146,7 +165,10 @@ function visitSelectionSet(
           const typeName = replacement.typeName;
           const maybeReplacementType = schema.getType(typeName);
 
-          if (maybeReplacementType != null && implementsAbstractType(schema, parentType, maybeType)) {
+          if (
+            maybeReplacementType != null &&
+            implementsAbstractType(schema, parentType, maybeType)
+          ) {
             newSelections.add({
               kind: Kind.FRAGMENT_SPREAD,
               name: {
@@ -204,7 +226,7 @@ function visitSelectionSet(
             generateInlineFragment(possibleType, {
               kind: Kind.SELECTION_SET,
               selections: interfaceExtensionFields,
-            })
+            }),
           );
         }
       }
@@ -219,7 +241,10 @@ function visitSelectionSet(
   return node;
 }
 
-function generateInlineFragment(typeName: string, selectionSet: SelectionSetNode): InlineFragmentNode {
+function generateInlineFragment(
+  typeName: string,
+  selectionSet: SelectionSetNode,
+): InlineFragmentNode {
   return {
     kind: Kind.INLINE_FRAGMENT,
     typeCondition: {
@@ -236,14 +261,17 @@ function generateInlineFragment(typeName: string, selectionSet: SelectionSetNode
 const getSchemaMetaData = memoize2(
   (
     sourceSchema: GraphQLSchema,
-    targetSchema: GraphQLSchema
+    targetSchema: GraphQLSchema,
   ): {
     possibleTypesMap: Record<string, Array<string>>;
     reversePossibleTypesMap: Record<string, Array<string>>;
     interfaceExtensionsMap: Record<string, Record<string, boolean>>;
     fieldNodesByType: Record<string, Array<FieldNode>>;
     fieldNodesByField: Record<string, Record<string, Array<FieldNode>>>;
-    dynamicSelectionSetsByField: Record<string, Record<string, Array<(node: FieldNode) => SelectionSetNode>>>;
+    dynamicSelectionSetsByField: Record<
+      string,
+      Record<string, Array<(node: FieldNode) => SelectionSetNode>>
+    >;
   } => {
     const typeMap = sourceSchema.getTypeMap();
     const targetTypeMap = targetSchema.getTypeMap();
@@ -296,10 +324,12 @@ const getSchemaMetaData = memoize2(
       fieldNodesByField: stitchingInfo?.fieldNodesByField ?? {},
       dynamicSelectionSetsByField: stitchingInfo?.dynamicSelectionSetsByField ?? {},
     };
-  }
+  },
 );
 
-function reversePossibleTypesMap(possibleTypesMap: Record<string, Array<string>>): Record<string, Array<string>> {
+function reversePossibleTypesMap(
+  possibleTypesMap: Record<string, Array<string>>,
+): Record<string, Array<string>> {
   const result: Record<string, Array<string>> = Object.create(null);
   for (const typeName in possibleTypesMap) {
     const toTypeNames = possibleTypesMap[typeName];
@@ -316,7 +346,7 @@ function reversePossibleTypesMap(possibleTypesMap: Record<string, Array<string>>
 function getExpandedFragments(
   fragments: Array<FragmentDefinitionNode>,
   fragmentNames: Set<string>,
-  possibleTypesMap: Record<string, Array<string>>
+  possibleTypesMap: Record<string, Array<string>>,
 ): {
   expandedFragments: Array<FragmentDefinitionNode>;
   fragmentReplacements: Record<string, Array<{ fragmentName: string; typeName: string }>>;
@@ -334,7 +364,10 @@ function getExpandedFragments(
   }
 
   const expandedFragments: Array<FragmentDefinitionNode> = [];
-  const fragmentReplacements: Record<string, Array<{ fragmentName: string; typeName: string }>> = Object.create(null);
+  const fragmentReplacements: Record<
+    string,
+    Array<{ fragmentName: string; typeName: string }>
+  > = Object.create(null);
   for (const fragment of fragments) {
     const possibleTypes = possibleTypesMap[fragment.typeCondition.name.value];
 
@@ -378,7 +411,7 @@ function getExpandedFragments(
 function wrapConcreteTypes(
   returnType: GraphQLOutputType,
   targetSchema: GraphQLSchema,
-  document: DocumentNode
+  document: DocumentNode,
 ): DocumentNode {
   const namedType = getNamedType(returnType);
 
@@ -436,6 +469,6 @@ function wrapConcreteTypes(
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
     // empty keys cannot be removed only because of typescript errors
     // will hopefully be fixed in future version of graphql-js to be optional
-    visitorKeys as any
+    visitorKeys as any,
   );
 }

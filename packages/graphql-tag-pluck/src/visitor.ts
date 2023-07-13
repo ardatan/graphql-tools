@@ -1,17 +1,17 @@
-import { freeText } from './utils.js';
-import { GraphQLTagPluckOptions } from './index.js';
+import { Visitor } from '@babel/traverse';
 import {
-  isVariableDeclarator,
   isIdentifier,
-  isTemplateLiteral,
   isImportDefaultSpecifier,
   isImportSpecifier,
+  isTemplateLiteral,
   isTSAsExpression,
   isTSTypeReference,
+  isVariableDeclarator,
   TSAsExpression,
 } from '@babel/types';
 import { asArray } from '@graphql-tools/utils';
-import { Visitor } from '@babel/traverse';
+import { GraphQLTagPluckOptions } from './index.js';
+import { freeText } from './utils.js';
 
 const defaults: GraphQLTagPluckOptions = {
   modules: [
@@ -181,7 +181,9 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
 
   // Check if identifier is defined and imported from registered packages
   function isValidIdentifier(name: string) {
-    return definedIdentifierNames.some(id => id === name) || globalGqlIdentifierName!.includes(name);
+    return (
+      definedIdentifierNames.some(id => id === name) || globalGqlIdentifierName!.includes(name)
+    );
   }
 
   const pluckStringFromFile = ({ start, end }: { start: number; end: number }) => {
@@ -194,7 +196,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
         .replace(/\$\{[^}]*\}/g, '')
         .split('\\`')
         .join('`'),
-      options.skipIndent
+      options.skipIndent,
     );
   };
 
@@ -312,7 +314,9 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
           return;
         }
 
-        const moduleNode = modules.find(pkg => pkg.name.toLowerCase() === path.node.source.value.toLowerCase());
+        const moduleNode = modules.find(
+          pkg => pkg.name.toLowerCase() === path.node.source.value.toLowerCase(),
+        );
 
         if (moduleNode == null) {
           return;
