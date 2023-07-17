@@ -133,12 +133,6 @@ export function buildHTTPExecutor(
     );
 
     const query = print(request.document);
-    const requestBody = {
-      query,
-      variables: request.variables,
-      operationName: request.operationName,
-      extensions: request.extensions,
-    };
 
     let timeoutId: any;
     if (options?.timeout) {
@@ -160,45 +154,51 @@ export function buildHTTPExecutor(
         case 'GET': {
           const finalUrl = prepareGETUrl({
             baseUrl: endpoint,
-            ...requestBody,
+            query,
+            variables: request.variables,
+            operationName: request.operationName,
+            extensions: request.extensions,
           });
-          return fetchFn(
-            finalUrl,
-            {
-              method: 'GET',
-              ...(options?.credentials != null ? { credentials: options.credentials } : {}),
-              headers,
-              signal: controller?.signal,
-            },
-            request.context,
-            request.info,
-          );
+          const fetchOptions: RequestInit = {
+            method: 'GET',
+            headers,
+            signal: controller?.signal,
+          };
+          if (options?.credentials != null) {
+            fetchOptions.credentials = options.credentials;
+          }
+          return fetchFn(finalUrl, fetchOptions, request.context, request.info);
         }
         case 'POST':
           return new ValueOrPromise(() =>
-            createFormDataFromVariables(requestBody, {
-              File: options?.File,
-              FormData: options?.FormData,
-            }),
+            createFormDataFromVariables(
+              {
+                query,
+                variables: request.variables,
+                operationName: request.operationName,
+                extensions: request.extensions,
+              },
+              {
+                File: options?.File,
+                FormData: options?.FormData,
+              },
+            ),
           )
-            .then(
-              body =>
-                fetchFn(
-                  endpoint,
-                  {
-                    method: 'POST',
-                    ...(options?.credentials != null ? { credentials: options.credentials } : {}),
-                    body,
-                    headers: {
-                      ...headers,
-                      ...(typeof body === 'string' ? { 'content-type': 'application/json' } : {}),
-                    },
-                    signal: controller?.signal,
-                  },
-                  request.context,
-                  request.info,
-                ) as any,
-            )
+            .then(body => {
+              if (typeof body === 'string') {
+                headers['content-type'] = 'application/json';
+              }
+              const fetchOptions: RequestInit = {
+                method: 'POST',
+                body,
+                headers,
+                signal: controller?.signal,
+              };
+              if (options?.credentials != null) {
+                fetchOptions.credentials = options.credentials;
+              }
+              return fetchFn(endpoint, fetchOptions, request.context, request.info) as any;
+            })
             .resolve();
       }
     })
