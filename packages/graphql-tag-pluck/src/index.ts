@@ -125,7 +125,7 @@ export interface GraphQLTagPluckOptions {
   isGqlTemplateLiteral?: (
     node: TemplateLiteral | ExpressionStatement,
     options: Omit<GraphQLTagPluckOptions, 'isGqlTemplateLiteral' | 'pluckStringFromFile'>,
-  ) => string | undefined | null;
+  ) => boolean | undefined;
 }
 
 const supportedExtensions = [
