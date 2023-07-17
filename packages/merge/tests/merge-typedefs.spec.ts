@@ -755,16 +755,9 @@ describe('Merge TypeDefs', () => {
       );
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */ `
+        stripWhitespaces(`
           type Mutation {
-            doSomething(
-              argA: Int!
-              argB: Int
-              argC: Int!
-              argD: String
-              argE: Int!
-              argF: Boolean
-            ): Boolean!
+            doSomething(argA: Int!, argB: Int, argC: Int!, argD: String, argE: Int!, argF: Boolean): Boolean!
           }
 
           schema {
@@ -788,16 +781,9 @@ describe('Merge TypeDefs', () => {
       );
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */ `
+        stripWhitespaces(`
           type Mutation {
-            doSomething(
-              argA: Int!
-              argB: Int!
-              argC: Int
-              argD: Int!
-              argE: Int!
-              argF: Boolean
-            ): Boolean!
+            doSomething(argA: Int!, argB: Int!, argC: Int, argD: Int!, argE: Int!, argF: Boolean): Boolean!
           }
 
           schema {
