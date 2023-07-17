@@ -1,12 +1,9 @@
-import { graphql, assertValidSchema } from 'graphql';
-
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { wrapSchema, RenameRootTypes, FilterObjectFields } from '@graphql-tools/wrap';
+import { assertValidSchema, graphql } from 'graphql';
 import { addMocksToSchema } from '@graphql-tools/mock';
-
-import { stitchSchemas } from '../src/stitchSchemas.js';
-
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { FilterObjectFields, RenameRootTypes, wrapSchema } from '@graphql-tools/wrap';
 import { propertySchema } from '../../testing/fixtures/schemas.js';
+import { stitchSchemas } from '../src/stitchSchemas.js';
 
 describe('rename root type', () => {
   test('works with stitchSchemas', async () => {
@@ -103,7 +100,11 @@ describe('filter fields', () => {
   it('should allow stitching a previously filtered field onto a type', () => {
     const filteredSchema = wrapSchema({
       schema: propertySchema,
-      transforms: [new FilterObjectFields((typeName, fieldName) => `${typeName}.${fieldName}` !== 'Property.location')],
+      transforms: [
+        new FilterObjectFields(
+          (typeName, fieldName) => `${typeName}.${fieldName}` !== 'Property.location',
+        ),
+      ],
     });
 
     assertValidSchema(filteredSchema);

@@ -1,21 +1,21 @@
 import { GraphQLFieldResolver } from 'graphql';
-
-import { getResponseKeyFromInfo, getRootTypeMap } from '@graphql-tools/utils';
 import {
   delegateToSchema,
   getSubschema,
-  resolveExternalValue,
-  SubschemaConfig,
+  getUnpathedErrors,
   ICreateProxyingResolverOptions,
   isExternalObject,
-  getUnpathedErrors,
+  resolveExternalValue,
+  SubschemaConfig,
 } from '@graphql-tools/delegate';
+import { getResponseKeyFromInfo, getRootTypeMap } from '@graphql-tools/utils';
 
 export function generateProxyingResolvers<TContext extends Record<string, any>>(
-  subschemaConfig: SubschemaConfig<any, any, any, TContext>
+  subschemaConfig: SubschemaConfig<any, any, any, TContext>,
 ): Record<string, Record<string, GraphQLFieldResolver<any, any>>> {
   const targetSchema = subschemaConfig.schema;
-  const createProxyingResolver = subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
+  const createProxyingResolver =
+    subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
 
   const rootTypeMap = getRootTypeMap(targetSchema);
 
@@ -56,7 +56,7 @@ function identical<T>(value: T): T {
 
 function createPossiblyNestedProxyingResolver<TContext extends Record<string, any>>(
   subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-  proxyingResolver: GraphQLFieldResolver<any, any>
+  proxyingResolver: GraphQLFieldResolver<any, any>,
 ): GraphQLFieldResolver<any, TContext, any> {
   return function possiblyNestedProxyingResolver(parent, args, context, info) {
     if (parent != null) {
@@ -71,7 +71,13 @@ function createPossiblyNestedProxyingResolver<TContext extends Record<string, an
         // This can happen even for a root field when the root type ia
         // also nested as a field within a different type.
         if (subschemaConfig === subschema && parent[responseKey] !== undefined) {
-          return resolveExternalValue(parent[responseKey], unpathedErrors, subschema, context, info);
+          return resolveExternalValue(
+            parent[responseKey],
+            unpathedErrors,
+            subschema,
+            context,
+            info,
+          );
         }
       }
     }

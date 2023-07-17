@@ -15,7 +15,7 @@ export function isPromise<T>(value: unknown): value is PromiseLike<T> {
 export function promiseReduce<T, U>(
   values: Iterable<T>,
   callbackFn: (accumulator: U, currentValue: T) => MaybePromise<U>,
-  initialValue: MaybePromise<U>
+  initialValue: MaybePromise<U>,
 ): MaybePromise<U> {
   let accumulator = initialValue;
 

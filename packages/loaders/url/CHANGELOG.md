@@ -1,5 +1,55 @@
 # @graphql-tools/url-loader
 
+## 8.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency [`@whatwg-node/fetch@^0.9.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.9.0) (from `^0.8.0`, in `dependencies`)
+- Updated dependencies [[`3a870139`](https://github.com/ardatan/graphql-tools/commit/3a870139e13236f3ecc744666dd1c6fdb9f6be59), [`853db708`](https://github.com/ardatan/graphql-tools/commit/853db70824fc86350a61bae415b7965fa2c06355), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`8fba6cc1`](https://github.com/ardatan/graphql-tools/commit/8fba6cc1876e914d587f5b253332aaedbcaa65e6), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/executor-graphql-ws@1.0.0
+  - @graphql-tools/executor-http@1.0.0
+  - @graphql-tools/delegate@10.0.0
+  - @graphql-tools/utils@10.0.0
+  - @graphql-tools/wrap@10.0.0
+  - @graphql-tools/executor-legacy-ws@1.0.0
+
+## 7.17.18
+
+### Patch Changes
+
+- Updated dependencies [[`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41)]:
+  - @graphql-tools/executor-graphql-ws@0.0.14
+  - @graphql-tools/executor-legacy-ws@0.0.11
+  - @graphql-tools/wrap@9.4.2
+  - @graphql-tools/delegate@9.0.31
+
+## 7.17.17
+
+### Patch Changes
+
+- [#5151](https://github.com/ardatan/graphql-tools/pull/5151) [`07589ae9`](https://github.com/ardatan/graphql-tools/commit/07589ae97499a4668b0bd24caa1e52ef8fcfd0e5) Thanks [@ardatan](https://github.com/ardatan)! - Do not accept incompatible protocols conflicting other loaders like `github:`
+
+## 7.17.16
+
+### Patch Changes
+
+- [`58414b26`](https://github.com/ardatan/graphql-tools/commit/58414b2606c13c77f2d3a3015b9931c587272b6b) Thanks [@ardatan](https://github.com/ardatan)! - Suppress dynamic import warnings from webpack
+
+## 7.17.15
+
+### Patch Changes
+
+- Updated dependencies [[`828fbf93`](https://github.com/ardatan/graphql-tools/commit/828fbf93ff317d00577c9a94402736bac5f4be39), [`828fbf93`](https://github.com/ardatan/graphql-tools/commit/828fbf93ff317d00577c9a94402736bac5f4be39), [`c8d5e0df`](https://github.com/ardatan/graphql-tools/commit/c8d5e0dfccdfc40d2a586650b56c124f3e4c5d42)]:
+  - @graphql-tools/executor-graphql-ws@0.0.13
+  - @graphql-tools/executor-legacy-ws@0.0.10
+  - @graphql-tools/wrap@9.4.1
+  - @graphql-tools/delegate@9.0.30
+
 ## 7.17.14
 
 ### Patch Changes

@@ -1,10 +1,10 @@
-import { MaybeAsyncIterable, ExecutionResult, MaybePromise } from '@graphql-tools/utils';
 import { getOperationAST } from 'graphql';
-import { execute, ExecutionArgs, flattenIncrementalResults, subscribe } from './execute.js';
 import { ValueOrPromise } from 'value-or-promise';
+import { ExecutionResult, MaybeAsyncIterable, MaybePromise } from '@graphql-tools/utils';
+import { execute, ExecutionArgs, flattenIncrementalResults, subscribe } from './execute.js';
 
 export function normalizedExecutor<TData = any, TVariables = any, TContext = any>(
-  args: ExecutionArgs<TData, TVariables, TContext>
+  args: ExecutionArgs<TData, TVariables, TContext>,
 ): MaybePromise<MaybeAsyncIterable<ExecutionResult<TData>>> {
   const operationAST = getOperationAST(args.document, args.operationName);
   if (operationAST == null) {

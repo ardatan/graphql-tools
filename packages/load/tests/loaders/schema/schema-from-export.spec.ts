@@ -1,6 +1,6 @@
 import { isSchema } from 'graphql';
-import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
+import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { runTests, useMonorepo } from '../../../../testing/utils.js';
 
 const monorepo = useMonorepo({
@@ -81,7 +81,8 @@ describe('Schema From Export', () => {
     });
 
     test.only('should work with extensions (with schema definition)', async () => {
-      const schemaPath = './tests/loaders/schema/test-files/schema-dir/extensions/export-schema-with-def.js';
+      const schemaPath =
+        './tests/loaders/schema/test-files/schema-dir/extensions/export-schema-with-def.js';
       const schema = await load(schemaPath, {
         loaders: [new CodeFileLoader()],
       });

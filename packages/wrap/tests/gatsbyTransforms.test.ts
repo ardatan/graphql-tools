@@ -1,16 +1,21 @@
 import {
-  GraphQLSchema,
+  graphql,
+  GraphQLFieldConfigMap,
   GraphQLFieldResolver,
   GraphQLNonNull,
-  graphql,
   GraphQLObjectType,
-  GraphQLFieldConfigMap,
+  GraphQLSchema,
 } from 'graphql';
-
-import { mapSchema, MapperKind, addTypes, modifyObjectFields, assertSome } from '@graphql-tools/utils';
-import { wrapSchema, RenameTypes } from '../src/index.js';
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import {
+  addTypes,
+  assertSome,
+  MapperKind,
+  mapSchema,
+  modifyObjectFields,
+} from '@graphql-tools/utils';
+import { RenameTypes, wrapSchema } from '../src/index.js';
 
 // see https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/transforms.js
 // and https://github.com/gatsbyjs/gatsby/issues/22128
@@ -60,7 +65,12 @@ class NamespaceUnderFieldTransform {
       },
     };
 
-    [newSchema] = modifyObjectFields(newSchema, queryConfig.name, () => true, newRootFieldConfigMap);
+    [newSchema] = modifyObjectFields(
+      newSchema,
+      queryConfig.name,
+      () => true,
+      newRootFieldConfigMap,
+    );
 
     return newSchema;
   }
@@ -83,7 +93,10 @@ describe('Gatsby transforms', () => {
   test('work', async () => {
     let schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
-        directive @cacheControl(maxAge: Int, scope: CacheControlScope) on FIELD_DEFINITION | OBJECT | INTERFACE
+        directive @cacheControl(
+          maxAge: Int
+          scope: CacheControlScope
+        ) on FIELD_DEFINITION | OBJECT | INTERFACE
 
         enum CacheControlScope {
           PUBLIC

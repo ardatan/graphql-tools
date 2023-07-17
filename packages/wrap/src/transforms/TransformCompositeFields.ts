@@ -1,21 +1,30 @@
 import {
+  DocumentNode,
+  FragmentDefinitionNode,
   GraphQLSchema,
   GraphQLType,
-  DocumentNode,
+  Kind,
+  SelectionNode,
+  SelectionSetNode,
   TypeInfo,
   visit,
   visitWithTypeInfo,
-  Kind,
-  SelectionSetNode,
-  SelectionNode,
-  FragmentDefinitionNode,
 } from 'graphql';
-
-import { ExecutionRequest, MapperKind, mapSchema, visitData, ExecutionResult, Maybe } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
-
-import { FieldTransformer, FieldNodeTransformer, DataTransformer, ErrorsTransformer } from '../types.js';
+import { DelegationContext, SubschemaConfig, Transform } from '@graphql-tools/delegate';
+import {
+  ExecutionRequest,
+  ExecutionResult,
+  MapperKind,
+  mapSchema,
+  Maybe,
+  visitData,
+} from '@graphql-tools/utils';
+import {
+  DataTransformer,
+  ErrorsTransformer,
+  FieldNodeTransformer,
+  FieldTransformer,
+} from '../types.js';
 
 interface TransformCompositeFieldsTransformationContext extends Record<string, any> {}
 
@@ -35,7 +44,7 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
     fieldTransformer: FieldTransformer<TContext>,
     fieldNodeTransformer?: FieldNodeTransformer,
     dataTransformer?: DataTransformer,
-    errorsTransformer?: ErrorsTransformer
+    errorsTransformer?: ErrorsTransformer,
   ) {
     this.fieldTransformer = fieldTransformer;
     this.fieldNodeTransformer = fieldNodeTransformer;
@@ -48,7 +57,7 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
     const typeInfo = this.typeInfo;
     if (typeInfo === undefined) {
       throw new Error(
-        `The TransformCompositeFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+        `The TransformCompositeFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`,
       );
     }
     return typeInfo;
@@ -56,7 +65,7 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     this.transformedSchema = mapSchema(originalWrappingSchema, {
       [MapperKind.COMPOSITE_FIELD]: (fieldConfig, fieldName, typeName) => {
@@ -83,7 +92,7 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
   public transformRequest(
     originalRequest: ExecutionRequest,
     _delegationContext: DelegationContext<TContext>,
-    transformationContext: TransformCompositeFieldsTransformationContext
+    transformationContext: TransformCompositeFieldsTransformationContext,
   ): ExecutionRequest {
     const document = originalRequest.document;
     return {
@@ -95,7 +104,7 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
   public transformResult(
     result: ExecutionResult,
     _delegationContext: DelegationContext<TContext>,
-    transformationContext: TransformCompositeFieldsTransformationContext
+    transformationContext: TransformCompositeFieldsTransformationContext,
   ): ExecutionResult {
     const dataTransformer = this.dataTransformer;
     if (dataTransformer != null) {
@@ -107,7 +116,10 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
     return result;
   }
 
-  private transformDocument(document: DocumentNode, transformationContext: Record<string, any>): DocumentNode {
+  private transformDocument(
+    document: DocumentNode,
+    transformationContext: Record<string, any>,
+  ): DocumentNode {
     const fragments = Object.create(null);
     for (const def of document.definitions) {
       if (def.kind === Kind.FRAGMENT_DEFINITION) {
@@ -118,9 +130,10 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
       document,
       visitWithTypeInfo(this._getTypeInfo(), {
         [Kind.SELECTION_SET]: {
-          leave: node => this.transformSelectionSet(node, this._getTypeInfo(), fragments, transformationContext),
+          leave: node =>
+            this.transformSelectionSet(node, this._getTypeInfo(), fragments, transformationContext),
         },
-      })
+      }),
     );
   }
 
@@ -128,7 +141,7 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
     node: SelectionSetNode,
     typeInfo: TypeInfo,
     fragments: Record<string, FragmentDefinitionNode>,
-    transformationContext: Record<string, any>
+    transformationContext: Record<string, any>,
   ): SelectionSetNode | undefined {
     const parentType: Maybe<GraphQLType> = typeInfo.getParentType();
     if (parentType == null) {
@@ -138,7 +151,7 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
     const parentTypeName = parentType.name;
     let newSelections: Array<SelectionNode> = [];
     let typeNameExists = node.selections.some(
-      selection => selection.kind === Kind.FIELD && selection.name.value === '__typename'
+      selection => selection.kind === Kind.FIELD && selection.name.value === '__typename',
     );
 
     for (const selection of node.selections) {
@@ -174,9 +187,10 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
           newName,
           selection,
           fragments,
-          transformationContext
+          transformationContext,
         );
-        transformedSelection = transformedSelection === undefined ? selection : transformedSelection;
+        transformedSelection =
+          transformedSelection === undefined ? selection : transformedSelection;
       }
 
       if (transformedSelection == null) {

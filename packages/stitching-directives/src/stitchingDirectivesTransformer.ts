@@ -14,8 +14,12 @@ import {
   SelectionSetNode,
   valueFromASTUntyped,
 } from 'graphql';
-
-import { cloneSubschemaConfig, SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
+import {
+  cloneSubschemaConfig,
+  MergedFieldConfig,
+  MergedTypeConfig,
+  SubschemaConfig,
+} from '@graphql-tools/delegate';
 import {
   getDirective,
   getImplementingTypes,
@@ -24,16 +28,14 @@ import {
   mergeDeep,
   parseSelectionSet,
 } from '@graphql-tools/utils';
-
-import { MergedTypeResolverInfo, StitchingDirectivesOptions } from './types.js';
-
 import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions.js';
 import { parseMergeArgsExpr } from './parseMergeArgsExpr.js';
-import { addProperty, getProperty, getProperties } from './properties.js';
+import { addProperty, getProperties, getProperty } from './properties.js';
 import { stitchingDirectivesValidator } from './stitchingDirectivesValidator.js';
+import { MergedTypeResolverInfo, StitchingDirectivesOptions } from './types.js';
 
 export function stitchingDirectivesTransformer(
-  options: StitchingDirectivesOptions = {}
+  options: StitchingDirectivesOptions = {},
 ): (subschemaConfig: SubschemaConfig) => SubschemaConfig {
   const {
     keyDirectiveName,
@@ -50,10 +52,15 @@ export function stitchingDirectivesTransformer(
     const newSubschemaConfig = cloneSubschemaConfig(subschemaConfig);
 
     const selectionSetsByType: Record<string, SelectionSetNode> = Object.create(null);
-    const computedFieldSelectionSets: Record<string, Record<string, SelectionSetNode>> = Object.create(null);
+    const computedFieldSelectionSets: Record<
+      string,
+      Record<string, SelectionSetNode>
+    > = Object.create(null);
     const mergedTypesResolversInfo: Record<string, MergedTypeResolverInfo> = Object.create(null);
-    const canonicalTypesInfo: Record<string, { canonical?: boolean; fields?: Record<string, boolean> }> =
-      Object.create(null);
+    const canonicalTypesInfo: Record<
+      string,
+      { canonical?: boolean; fields?: Record<string, boolean> }
+    > = Object.create(null);
 
     const schema = subschemaConfig.schema;
 
@@ -63,7 +70,8 @@ export function stitchingDirectivesTransformer(
     function setCanonicalDefinition(typeName: string, fieldName?: string): void {
       canonicalTypesInfo[typeName] = canonicalTypesInfo[typeName] || Object.create(null);
       if (fieldName) {
-        const fields: Record<string, boolean> = canonicalTypesInfo[typeName].fields ?? Object.create(null);
+        const fields: Record<string, boolean> =
+          canonicalTypesInfo[typeName].fields ?? Object.create(null);
         canonicalTypesInfo[typeName].fields = fields;
         fields[fieldName] = true;
       } else {
@@ -73,9 +81,16 @@ export function stitchingDirectivesTransformer(
 
     mapSchema(schema, {
       [MapperKind.OBJECT_TYPE]: type => {
-        const keyDirective = getDirective(schema, type, keyDirectiveName, pathToDirectivesInExtensions)?.[0];
+        const keyDirective = getDirective(
+          schema,
+          type,
+          keyDirectiveName,
+          pathToDirectivesInExtensions,
+        )?.[0];
         if (keyDirective != null) {
-          const selectionSet = parseSelectionSet(keyDirective['selectionSet'], { noLocation: true });
+          const selectionSet = parseSelectionSet(keyDirective['selectionSet'], {
+            noLocation: true,
+          });
           selectionSetsByType[type.name] = selectionSet;
         }
 
@@ -83,7 +98,7 @@ export function stitchingDirectivesTransformer(
           schema,
           type,
           canonicalDirectiveName,
-          pathToDirectivesInExtensions
+          pathToDirectivesInExtensions,
         )?.[0];
         if (canonicalDirective != null) {
           setCanonicalDefinition(type.name);
@@ -95,20 +110,29 @@ export function stitchingDirectivesTransformer(
           schema,
           fieldConfig,
           computedDirectiveName,
-          pathToDirectivesInExtensions
+          pathToDirectivesInExtensions,
         )?.[0];
         if (computedDirective != null) {
-          const selectionSet = parseSelectionSet(computedDirective['selectionSet'], { noLocation: true });
+          const selectionSet = parseSelectionSet(computedDirective['selectionSet'], {
+            noLocation: true,
+          });
           if (!computedFieldSelectionSets[typeName]) {
             computedFieldSelectionSets[typeName] = Object.create(null);
           }
           computedFieldSelectionSets[typeName][fieldName] = selectionSet;
         }
 
-        const mergeDirective = getDirective(schema, fieldConfig, mergeDirectiveName, pathToDirectivesInExtensions)?.[0];
+        const mergeDirective = getDirective(
+          schema,
+          fieldConfig,
+          mergeDirectiveName,
+          pathToDirectivesInExtensions,
+        )?.[0];
         if (mergeDirective?.['keyField'] != null) {
           const mergeDirectiveKeyField = mergeDirective['keyField'];
-          const selectionSet = parseSelectionSet(`{ ${mergeDirectiveKeyField}}`, { noLocation: true });
+          const selectionSet = parseSelectionSet(`{ ${mergeDirectiveKeyField}}`, {
+            noLocation: true,
+          });
 
           const typeNames: Array<string> = mergeDirective['types'];
 
@@ -128,7 +152,7 @@ export function stitchingDirectivesTransformer(
           schema,
           fieldConfig,
           canonicalDirectiveName,
-          pathToDirectivesInExtensions
+          pathToDirectivesInExtensions,
         )?.[0];
         if (canonicalDirective != null) {
           setCanonicalDefinition(typeName, fieldName);
@@ -141,7 +165,7 @@ export function stitchingDirectivesTransformer(
           schema,
           type,
           canonicalDirectiveName,
-          pathToDirectivesInExtensions
+          pathToDirectivesInExtensions,
         )?.[0];
 
         if (canonicalDirective) {
@@ -155,7 +179,7 @@ export function stitchingDirectivesTransformer(
           schema,
           fieldConfig,
           canonicalDirectiveName,
-          pathToDirectivesInExtensions
+          pathToDirectivesInExtensions,
         )?.[0];
 
         if (canonicalDirective) {
@@ -169,7 +193,7 @@ export function stitchingDirectivesTransformer(
           schema,
           type,
           canonicalDirectiveName,
-          pathToDirectivesInExtensions
+          pathToDirectivesInExtensions,
         )?.[0];
 
         if (canonicalDirective) {
@@ -183,7 +207,7 @@ export function stitchingDirectivesTransformer(
           schema,
           inputFieldConfig,
           canonicalDirectiveName,
-          pathToDirectivesInExtensions
+          pathToDirectivesInExtensions,
         )?.[0];
 
         if (canonicalDirective != null) {
@@ -197,7 +221,7 @@ export function stitchingDirectivesTransformer(
           schema,
           type,
           canonicalDirectiveName,
-          pathToDirectivesInExtensions
+          pathToDirectivesInExtensions,
         )?.[0];
 
         if (canonicalDirective != null) {
@@ -211,7 +235,7 @@ export function stitchingDirectivesTransformer(
           schema,
           type,
           canonicalDirectiveName,
-          pathToDirectivesInExtensions
+          pathToDirectivesInExtensions,
         )?.[0];
 
         if (canonicalDirective != null) {
@@ -225,7 +249,7 @@ export function stitchingDirectivesTransformer(
           schema,
           type,
           canonicalDirectiveName,
-          pathToDirectivesInExtensions
+          pathToDirectivesInExtensions,
         )?.[0];
 
         if (canonicalDirective != null) {
@@ -240,10 +264,15 @@ export function stitchingDirectivesTransformer(
       for (const typeName in subschemaConfig.merge) {
         const mergedTypeConfig = subschemaConfig.merge[typeName];
         if (mergedTypeConfig.selectionSet) {
-          const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet, { noLocation: true });
+          const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet, {
+            noLocation: true,
+          });
           if (selectionSet) {
             if (selectionSetsByType[typeName]) {
-              selectionSetsByType[typeName] = mergeSelectionSets(selectionSetsByType[typeName], selectionSet);
+              selectionSetsByType[typeName] = mergeSelectionSets(
+                selectionSetsByType[typeName],
+                selectionSet,
+              );
             } else {
               selectionSetsByType[typeName] = selectionSet;
             }
@@ -259,7 +288,7 @@ export function stitchingDirectivesTransformer(
               if (computedFieldSelectionSets[typeName]?.[fieldName]) {
                 computedFieldSelectionSets[typeName][fieldName] = mergeSelectionSets(
                   computedFieldSelectionSets[typeName][fieldName],
-                  selectionSet
+                  selectionSet,
                 );
               } else {
                 if (computedFieldSelectionSets[typeName] == null) {
@@ -292,7 +321,12 @@ export function stitchingDirectivesTransformer(
 
     mapSchema(schema, {
       [MapperKind.OBJECT_FIELD]: function objectFieldMapper(fieldConfig, fieldName) {
-        const mergeDirective = getDirective(schema, fieldConfig, mergeDirectiveName, pathToDirectivesInExtensions)?.[0];
+        const mergeDirective = getDirective(
+          schema,
+          fieldConfig,
+          mergeDirectiveName,
+          pathToDirectivesInExtensions,
+        )?.[0];
 
         if (mergeDirective != null) {
           const returnType = getNullableType(fieldConfig.type);
@@ -304,13 +338,17 @@ export function stitchingDirectivesTransformer(
           if (mergeArgsExpr == null) {
             const key: Array<string> = mergeDirective['key'];
             const keyField: string = mergeDirective['keyField'];
-            const keyExpr = key != null ? buildKeyExpr(key) : keyField != null ? `$key.${keyField}` : '$key';
+            const keyExpr =
+              key != null ? buildKeyExpr(key) : keyField != null ? `$key.${keyField}` : '$key';
 
             const keyArg: string = mergeDirective['keyArg'];
-            const argNames = keyArg == null ? [Object.keys(fieldConfig.args ?? {})[0]] : keyArg.split('.');
+            const argNames =
+              keyArg == null ? [Object.keys(fieldConfig.args ?? {})[0]] : keyArg.split('.');
 
             const lastArgName = argNames.pop();
-            mergeArgsExpr = returnsList ? `${lastArgName}: [[${keyExpr}]]` : `${lastArgName}: ${keyExpr}`;
+            mergeArgsExpr = returnsList
+              ? `${lastArgName}: [[${keyExpr}]]`
+              : `${lastArgName}: ${keyExpr}`;
 
             for (const argName of argNames.reverse()) {
               mergeArgsExpr = `${argName}: { ${mergeArgsExpr} }`;
@@ -319,28 +357,33 @@ export function stitchingDirectivesTransformer(
 
           const typeNames: Array<string> = mergeDirective['types'];
 
-          forEachConcreteTypeName(namedType, schema, typeNames, function generateResolveInfo(typeName) {
-            const parsedMergeArgsExpr = parseMergeArgsExpr(
-              mergeArgsExpr,
-              allSelectionSetsByType[typeName] == null
-                ? undefined
-                : mergeSelectionSets(...allSelectionSetsByType[typeName])
-            );
+          forEachConcreteTypeName(
+            namedType,
+            schema,
+            typeNames,
+            function generateResolveInfo(typeName) {
+              const parsedMergeArgsExpr = parseMergeArgsExpr(
+                mergeArgsExpr,
+                allSelectionSetsByType[typeName] == null
+                  ? undefined
+                  : mergeSelectionSets(...allSelectionSetsByType[typeName]),
+              );
 
-            const additionalArgs = mergeDirective['additionalArgs'];
-            if (additionalArgs != null) {
-              parsedMergeArgsExpr.args = mergeDeep([
-                parsedMergeArgsExpr.args,
-                valueFromASTUntyped(parseValue(`{ ${additionalArgs} }`, { noLocation: true })),
-              ]);
-            }
+              const additionalArgs = mergeDirective['additionalArgs'];
+              if (additionalArgs != null) {
+                parsedMergeArgsExpr.args = mergeDeep([
+                  parsedMergeArgsExpr.args,
+                  valueFromASTUntyped(parseValue(`{ ${additionalArgs} }`, { noLocation: true })),
+                ]);
+              }
 
-            mergedTypesResolversInfo[typeName] = {
-              fieldName,
-              returnsList,
-              ...parsedMergeArgsExpr,
-            };
-          });
+              mergedTypesResolversInfo[typeName] = {
+                fieldName,
+                returnsList,
+                ...parsedMergeArgsExpr,
+              };
+            },
+          );
         }
 
         return undefined;
@@ -349,8 +392,10 @@ export function stitchingDirectivesTransformer(
 
     for (const typeName in selectionSetsByType) {
       const selectionSet = selectionSetsByType[typeName];
-      const mergeConfig: Record<string, MergedTypeConfig<any, any, any>> = newSubschemaConfig.merge ??
-      Object.create(null);
+      const mergeConfig: Record<
+        string,
+        MergedTypeConfig<any, any, any>
+      > = newSubschemaConfig.merge ?? Object.create(null);
       newSubschemaConfig.merge = mergeConfig;
 
       if (mergeConfig[typeName] == null) {
@@ -364,8 +409,10 @@ export function stitchingDirectivesTransformer(
 
     for (const typeName in computedFieldSelectionSets) {
       const selectionSets = computedFieldSelectionSets[typeName];
-      const mergeConfig: Record<string, MergedTypeConfig<any, any, any>> = newSubschemaConfig.merge ??
-      Object.create(null);
+      const mergeConfig: Record<
+        string,
+        MergedTypeConfig<any, any, any>
+      > = newSubschemaConfig.merge ?? Object.create(null);
       newSubschemaConfig.merge = mergeConfig;
 
       if (mergeConfig[typeName] == null) {
@@ -373,12 +420,14 @@ export function stitchingDirectivesTransformer(
       }
 
       const mergeTypeConfig = newSubschemaConfig.merge[typeName];
-      const mergeTypeConfigFields: Record<string, MergedFieldConfig> = mergeTypeConfig.fields ?? Object.create(null);
+      const mergeTypeConfigFields: Record<string, MergedFieldConfig> =
+        mergeTypeConfig.fields ?? Object.create(null);
       mergeTypeConfig.fields = mergeTypeConfigFields;
 
       for (const fieldName in selectionSets) {
         const selectionSet = selectionSets[fieldName];
-        const fieldConfig: MergedFieldConfig = mergeTypeConfigFields[fieldName] ?? Object.create(null);
+        const fieldConfig: MergedFieldConfig =
+          mergeTypeConfigFields[fieldName] ?? Object.create(null);
         mergeTypeConfigFields[fieldName] = fieldConfig;
 
         fieldConfig.selectionSet = print(selectionSet);
@@ -389,8 +438,10 @@ export function stitchingDirectivesTransformer(
     for (const typeName in mergedTypesResolversInfo) {
       const mergedTypeResolverInfo = mergedTypesResolversInfo[typeName];
 
-      const mergeConfig: Record<string, MergedTypeConfig<any, any, any>> = newSubschemaConfig.merge ??
-      Object.create(null);
+      const mergeConfig: Record<
+        string,
+        MergedTypeConfig<any, any, any>
+      > = newSubschemaConfig.merge ?? Object.create(null);
       newSubschemaConfig.merge = mergeConfig;
 
       if (newSubschemaConfig.merge[typeName] == null) {
@@ -411,8 +462,10 @@ export function stitchingDirectivesTransformer(
 
     for (const typeName in canonicalTypesInfo) {
       const canonicalTypeInfo = canonicalTypesInfo[typeName];
-      const mergeConfig: Record<string, MergedTypeConfig<any, any, any>> = newSubschemaConfig.merge ??
-      Object.create(null);
+      const mergeConfig: Record<
+        string,
+        MergedTypeConfig<any, any, any>
+      > = newSubschemaConfig.merge ?? Object.create(null);
       newSubschemaConfig.merge = mergeConfig;
 
       if (newSubschemaConfig.merge[typeName] == null) {
@@ -426,7 +479,8 @@ export function stitchingDirectivesTransformer(
       }
 
       if (canonicalTypeInfo.fields) {
-        const mergeTypeConfigFields: Record<string, MergedFieldConfig> = mergeTypeConfig.fields ?? Object.create(null);
+        const mergeTypeConfigFields: Record<string, MergedFieldConfig> =
+          mergeTypeConfig.fields ?? Object.create(null);
         mergeTypeConfig.fields = mergeTypeConfigFields;
         for (const fieldName in canonicalTypeInfo.fields) {
           if (mergeTypeConfigFields[fieldName] == null) {
@@ -445,7 +499,7 @@ function forEachConcreteType(
   schema: GraphQLSchema,
   type: GraphQLNamedType,
   typeNames: Array<string>,
-  fn: (typeName: string) => void
+  fn: (typeName: string) => void,
 ) {
   if (isInterfaceType(type)) {
     for (const typeName of getImplementingTypes(type.name, schema)) {
@@ -464,14 +518,16 @@ function forEachConcreteType(
   }
 }
 
-function generateKeyFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => any {
+function generateKeyFn(
+  mergedTypeResolverInfo: MergedTypeResolverInfo,
+): (originalResult: any) => any {
   return function keyFn(originalResult: any) {
     return getProperties(originalResult, mergedTypeResolverInfo.usedProperties);
   };
 }
 
 function generateArgsFromKeysFn(
-  mergedTypeResolverInfo: MergedTypeResolverInfo
+  mergedTypeResolverInfo: MergedTypeResolverInfo,
 ): (keys: ReadonlyArray<any>) => Record<string, any> {
   const { expansions, args } = mergedTypeResolverInfo;
   return function generateArgsFromKeys(keys: ReadonlyArray<any>): Record<string, any> {
@@ -498,7 +554,9 @@ function generateArgsFromKeysFn(
   };
 }
 
-function generateArgsFn(mergedTypeResolverInfo: MergedTypeResolverInfo): (originalResult: any) => Record<string, any> {
+function generateArgsFn(
+  mergedTypeResolverInfo: MergedTypeResolverInfo,
+): (originalResult: any) => Record<string, any> {
   const { mappingInstructions, args, usedProperties } = mergedTypeResolverInfo;
 
   return function generateArgs(originalResult: any): Record<string, any> {
@@ -562,7 +620,7 @@ function forEachConcreteTypeName(
   returnType: GraphQLNamedType,
   schema: GraphQLSchema,
   typeNames: Array<string>,
-  fn: (typeName: string) => void
+  fn: (typeName: string) => void,
 ): void {
   if (isInterfaceType(returnType)) {
     for (const typeName of getImplementingTypes(returnType.name, schema)) {
@@ -576,7 +634,10 @@ function forEachConcreteTypeName(
         fn(type.name);
       }
     }
-  } else if (isObjectType(returnType) && (typeNames == null || typeNames.includes(returnType.name))) {
+  } else if (
+    isObjectType(returnType) &&
+    (typeNames == null || typeNames.includes(returnType.name))
+  ) {
     fn(returnType.name);
   }
 }

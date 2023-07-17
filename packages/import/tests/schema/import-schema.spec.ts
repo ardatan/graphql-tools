@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import '../../../testing/to-be-similar-gql-doc';
-import { parseImportLine, processImport } from '../../src/index.js';
-import { mergeTypeDefs } from '@graphql-tools/merge';
 import { Kind, print } from 'graphql';
+import { mergeTypeDefs } from '@graphql-tools/merge';
+import { parseImportLine, processImport } from '../../src/index.js';
 
 const importSchema = (schema: string, schemas?: Record<string, string>) => {
   const document = processImport(schema, __dirname, schemas);
@@ -12,8 +12,8 @@ const importSchema = (schema: string, schemas?: Record<string, string>) => {
       {
         sort: true,
         useSchemaDefinition: false,
-      }
-    )
+      },
+    ),
   );
 };
 
@@ -285,7 +285,9 @@ describe('importSchema', () => {
         id: ID!
       }
     `;
-    expect(importSchema(`./fixtures/import-all-from-objects/a.graphql`)).toBeSimilarGqlDoc(expectedSDL);
+    expect(importSchema(`./fixtures/import-all-from-objects/a.graphql`)).toBeSimilarGqlDoc(
+      expectedSDL,
+    );
   });
 
   test(`importSchema: single object schema`, () => {
@@ -525,7 +527,9 @@ describe('importSchema', () => {
         id: ID!
       }
     `;
-    expect(importSchema('./fixtures/interfaces-implements/a.graphql')).toBeSimilarGqlDoc(expectedSDL);
+    expect(importSchema('./fixtures/interfaces-implements/a.graphql')).toBeSimilarGqlDoc(
+      expectedSDL,
+    );
   });
 
   test('importSchema: interfaces-implements-many', () => {
@@ -546,7 +550,9 @@ describe('importSchema', () => {
         id: ID!
       }
     `;
-    expect(importSchema('./fixtures/interfaces-implements-many/a.graphql')).toBeSimilarGqlDoc(expectedSDL);
+    expect(importSchema('./fixtures/interfaces-implements-many/a.graphql')).toBeSimilarGqlDoc(
+      expectedSDL,
+    );
   });
 
   test('importSchema: input types', () => {
@@ -979,7 +985,9 @@ describe('importSchema', () => {
         account: Account
       }
     `;
-    expect(importSchema('fixtures/multiple-levels-master-schema/level1.graphql')).toBeSimilarGqlDoc(expectedSDL);
+    expect(importSchema('fixtures/multiple-levels-master-schema/level1.graphql')).toBeSimilarGqlDoc(
+      expectedSDL,
+    );
   });
 
   test('imports dependencies with transitive dependencies while using master schemata with directories', () => {
@@ -1050,9 +1058,9 @@ describe('importSchema', () => {
         query_model_9: Model9
       }
     `;
-    expect(importSchema('fixtures/multiple-directories-with-master-schema/index.graphql')).toBeSimilarGqlDoc(
-      expectedSDL
-    );
+    expect(
+      importSchema('fixtures/multiple-directories-with-master-schema/index.graphql'),
+    ).toBeSimilarGqlDoc(expectedSDL);
   });
 
   test('imports multi-level types without direct references', () => {

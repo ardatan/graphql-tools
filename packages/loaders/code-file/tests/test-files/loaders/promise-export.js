@@ -14,7 +14,7 @@ var schema = new Promise(resolve => {
           },
         },
       }),
-    })
+    }),
   );
 });
 

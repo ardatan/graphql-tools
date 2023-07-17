@@ -1,8 +1,8 @@
 import { GraphQLSchema, Kind, OperationTypeNode, parse, SelectionSetNode } from 'graphql';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { WrapQuery } from '@graphql-tools/wrap';
 import { delegateToSchema } from '@graphql-tools/delegate';
 import { execute } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { WrapQuery } from '@graphql-tools/wrap';
 
 describe('WrapQuery', () => {
   let data: any;
@@ -73,7 +73,10 @@ describe('WrapQuery', () => {
                       selections: subtree.selections.map(selection => {
                         // just append fragments, not interesting for this
                         // test
-                        if (selection.kind === Kind.INLINE_FRAGMENT || selection.kind === Kind.FRAGMENT_SPREAD) {
+                        if (
+                          selection.kind === Kind.INLINE_FRAGMENT ||
+                          selection.kind === Kind.FRAGMENT_SPREAD
+                        ) {
                           return selection;
                         }
                         // prepend `address` to name and camelCase
@@ -82,7 +85,10 @@ describe('WrapQuery', () => {
                           kind: Kind.FIELD,
                           name: {
                             kind: Kind.NAME,
-                            value: 'address' + oldFieldName.charAt(0).toUpperCase() + oldFieldName.slice(1),
+                            value:
+                              'address' +
+                              oldFieldName.charAt(0).toUpperCase() +
+                              oldFieldName.slice(1),
                           },
                         };
                       }),
@@ -93,13 +99,13 @@ describe('WrapQuery', () => {
                   result => ({
                     streetAddress: result.addressStreetAddress,
                     zip: result.addressZip,
-                  })
+                  }),
                 ),
                 // Wrap a second level field
                 new WrapQuery(
                   ['userById', 'zip'],
                   (subtree: SelectionSetNode) => subtree,
-                  result => result
+                  result => result,
                 ),
               ],
             });

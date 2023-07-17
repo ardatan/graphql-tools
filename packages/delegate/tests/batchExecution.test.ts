@@ -1,10 +1,9 @@
 import { graphql } from 'graphql';
-
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { createDefaultExecutor, delegateToSchema, SubschemaConfig } from '../src/index.js';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { FilterObjectFields } from '@graphql-tools/wrap';
 import { Executor } from '@graphql-tools/utils';
+import { FilterObjectFields } from '@graphql-tools/wrap';
+import { createDefaultExecutor, delegateToSchema, SubschemaConfig } from '../src/index.js';
 
 describe('batch execution', () => {
   it('should batch', async () => {
@@ -44,8 +43,10 @@ describe('batch execution', () => {
       `,
       resolvers: {
         Query: {
-          field1: (_parent, _args, context, info) => delegateToSchema({ schema: innerSubschemaConfig, context, info }),
-          field2: (_parent, _args, context, info) => delegateToSchema({ schema: innerSubschemaConfig, context, info }),
+          field1: (_parent, _args, context, info) =>
+            delegateToSchema({ schema: innerSubschemaConfig, context, info }),
+          field2: (_parent, _args, context, info) =>
+            delegateToSchema({ schema: innerSubschemaConfig, context, info }),
         },
       },
     });
@@ -115,7 +116,11 @@ describe('batch execution', () => {
     const innerSubschemaConfigA: Array<SubschemaConfig> = [
       {
         schema: innerSchemaA,
-        transforms: [new FilterObjectFields((typeName, fieldName) => typeName !== 'Object' || fieldName !== 'field2')],
+        transforms: [
+          new FilterObjectFields(
+            (typeName, fieldName) => typeName !== 'Object' || fieldName !== 'field2',
+          ),
+        ],
         merge: {
           Object: {
             fieldName: 'objectA',
@@ -127,7 +132,11 @@ describe('batch execution', () => {
       },
       {
         schema: innerSchemaA,
-        transforms: [new FilterObjectFields((typeName, fieldName) => typeName !== 'Object' || fieldName !== 'field1')],
+        transforms: [
+          new FilterObjectFields(
+            (typeName, fieldName) => typeName !== 'Object' || fieldName !== 'field1',
+          ),
+        ],
         merge: {
           Object: {
             fieldName: 'objectA',
@@ -165,7 +174,10 @@ describe('batch execution', () => {
       subschemas: [...innerSubschemaConfigA, innerSubschemaConfigB],
     });
 
-    const resultWhenAsArray = await graphql({ schema: outerSchemaWithSubschemasAsArray, source: query });
+    const resultWhenAsArray = await graphql({
+      schema: outerSchemaWithSubschemasAsArray,
+      source: query,
+    });
 
     expect(resultWhenAsArray).toEqual(expectedResult);
     expect(executions).toEqual(1);
@@ -174,7 +186,10 @@ describe('batch execution', () => {
       subschemas: [...innerSubschemaConfigA, innerSubschemaConfigB],
     });
 
-    const resultWhenSpread = await graphql({ schema: outerSchemaWithSubschemasSpread, source: query });
+    const resultWhenSpread = await graphql({
+      schema: outerSchemaWithSubschemasSpread,
+      source: query,
+    });
 
     expect(resultWhenSpread).toEqual(expectedResult);
     expect(executions).toEqual(2);

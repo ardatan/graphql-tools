@@ -1,11 +1,12 @@
-import { WebSocketServer } from 'ws'; // yarn add ws
-import { useServer } from 'graphql-ws/lib/use/ws';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { buildGraphQLWSExecutor } from '@graphql-tools/executor-graphql-ws';
-import { parse } from 'graphql';
-import { Executor, isAsyncIterable } from '@graphql-tools/utils';
-import { AddressInfo } from 'net';
 import { createServer, Server } from 'http';
+import { AddressInfo } from 'net';
+import { parse } from 'graphql';
+import { useServer } from 'graphql-ws/lib/use/ws';
+import { WebSocketServer } from 'ws'; // yarn add ws
+
+import { buildGraphQLWSExecutor } from '@graphql-tools/executor-graphql-ws';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { Executor, isAsyncIterable } from '@graphql-tools/utils';
 
 describe('GraphQL WS Executor', () => {
   let server: Server;
@@ -44,7 +45,7 @@ describe('GraphQL WS Executor', () => {
           },
         }),
       },
-      websocketServer
+      websocketServer,
     );
 
     await new Promise<void>(resolve => server.listen(0, resolve));
@@ -87,6 +88,10 @@ describe('GraphQL WS Executor', () => {
     for await (const item of result) {
       results.push(item);
     }
-    expect(results).toMatchObject([{ data: { count: 0 } }, { data: { count: 1 } }, { data: { count: 2 } }]);
+    expect(results).toMatchObject([
+      { data: { count: 0 } },
+      { data: { count: 1 } },
+      { data: { count: 2 } },
+    ]);
   });
 });

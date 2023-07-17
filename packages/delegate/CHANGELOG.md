@@ -1,5 +1,78 @@
 # @graphql-tools/delegate
 
+## 10.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- [`8fba6cc1`](https://github.com/ardatan/graphql-tools/commit/8fba6cc1876e914d587f5b253332aaedbcaa65e6) Thanks [@ardatan](https://github.com/ardatan)! - Workaround for empty results
+
+- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/batch-execute@9.0.0
+  - @graphql-tools/executor@1.0.0
+  - @graphql-tools/schema@10.0.0
+  - @graphql-tools/utils@10.0.0
+
+## 9.0.35
+
+### Patch Changes
+
+- [#5220](https://github.com/ardatan/graphql-tools/pull/5220) [`8e80b689`](https://github.com/ardatan/graphql-tools/commit/8e80b6893d2342353731610d5da9db633d806083) Thanks [@ardatan](https://github.com/ardatan)! - Performance improvements
+
+- Updated dependencies [[`88244048`](https://github.com/ardatan/graphql-tools/commit/882440487551abcb5bdd4f626f3b56ac2e886f11), [`8e80b689`](https://github.com/ardatan/graphql-tools/commit/8e80b6893d2342353731610d5da9db633d806083)]:
+  - @graphql-tools/executor@0.0.20
+  - @graphql-tools/batch-execute@8.5.22
+
+## 9.0.34
+
+### Patch Changes
+
+- [`2f342e43`](https://github.com/ardatan/graphql-tools/commit/2f342e430ba0d0097d1d8cb31a6abb97ed46f971) Thanks [@ardatan](https://github.com/ardatan)! - Do not use promises if not async
+
+- Updated dependencies [[`2f342e43`](https://github.com/ardatan/graphql-tools/commit/2f342e430ba0d0097d1d8cb31a6abb97ed46f971)]:
+  - @graphql-tools/batch-execute@8.5.21
+
+## 9.0.33
+
+### Patch Changes
+
+- Updated dependencies [[`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0), [`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0), [`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0), [`f24f018a`](https://github.com/ardatan/graphql-tools/commit/f24f018aa94394766f4201b1964d473d08946bd3)]:
+  - @graphql-tools/batch-execute@8.5.20
+  - @graphql-tools/executor@0.0.19
+  - @graphql-tools/schema@9.0.19
+
+## 9.0.32
+
+### Patch Changes
+
+- Updated dependencies [[`91a895be`](https://github.com/ardatan/graphql-tools/commit/91a895bea32dc4226da08e8981ded3f55f4c53f3)]:
+  - @graphql-tools/executor@0.0.18
+
+## 9.0.31
+
+### Patch Changes
+
+- Updated dependencies [[`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41)]:
+  - @graphql-tools/batch-execute@8.5.19
+  - @graphql-tools/executor@0.0.17
+  - @graphql-tools/schema@9.0.18
+
+## 9.0.30
+
+### Patch Changes
+
+- Updated dependencies [[`828fbf93`](https://github.com/ardatan/graphql-tools/commit/828fbf93ff317d00577c9a94402736bac5f4be39)]:
+  - @graphql-tools/executor@0.0.16
+
+## 9.0.29
+
+### Patch Changes
+
+- [#5131](https://github.com/ardatan/graphql-tools/pull/5131) [`f26392a6`](https://github.com/ardatan/graphql-tools/commit/f26392a66299956da1e66253b181f85332c93db5) Thanks [@neumark](https://github.com/neumark)! - Create symbols with Symbol.for() because multiple copies of delegate cause stitching bugs otherwise.
+
 ## 9.0.28
 
 ### Patch Changes

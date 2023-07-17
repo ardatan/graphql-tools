@@ -1,19 +1,17 @@
-import type { GlobbyOptions } from 'globby';
-
-import {
-  Source,
-  Loader,
-  isValidPath,
-  BaseLoaderOptions,
-  asArray,
-  parseGraphQLJSON,
-  AggregateError,
-} from '@graphql-tools/utils';
+import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { isAbsolute, resolve } from 'path';
-import { readFileSync, promises as fsPromises, existsSync } from 'fs';
-import { cwd as processCwd, env } from 'process';
+import { env, cwd as processCwd } from 'process';
+import type { GlobbyOptions } from 'globby';
 import globby from 'globby';
 import unixify from 'unixify';
+import {
+  asArray,
+  BaseLoaderOptions,
+  isValidPath,
+  Loader,
+  parseGraphQLJSON,
+  Source,
+} from '@graphql-tools/utils';
 
 const { readFile, access } = fsPromises;
 
@@ -57,7 +55,9 @@ export class JsonFileLoader implements Loader {
   async canLoad(pointer: string, options: JsonFileLoaderOptions): Promise<boolean> {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
-        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
+        const normalizedFilePath = isAbsolute(pointer)
+          ? pointer
+          : resolve(options.cwd || processCwd(), pointer);
         try {
           await access(normalizedFilePath);
           return true;
@@ -73,7 +73,9 @@ export class JsonFileLoader implements Loader {
   canLoadSync(pointer: string, options: JsonFileLoaderOptions): boolean {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
-        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
+        const normalizedFilePath = isAbsolute(pointer)
+          ? pointer
+          : resolve(options.cwd || processCwd(), pointer);
         return existsSync(normalizedFilePath);
       }
     }
@@ -107,7 +109,9 @@ export class JsonFileLoader implements Loader {
       resolvedPaths.map(async path => {
         if (await this.canLoad(path, options)) {
           try {
-            const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
+            const normalizedFilePath = isAbsolute(path)
+              ? path
+              : resolve(options.cwd || processCwd(), path);
             const rawSDL: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
             finalResult.push(this.handleFileContent(normalizedFilePath, rawSDL, options));
           } catch (e: any) {
@@ -117,7 +121,7 @@ export class JsonFileLoader implements Loader {
             errors.push(e);
           }
         }
-      })
+      }),
     );
 
     if (errors.length > 0) {
@@ -126,7 +130,7 @@ export class JsonFileLoader implements Loader {
       }
       throw new AggregateError(
         errors,
-        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n')
+        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n'),
       );
     }
 
@@ -141,7 +145,9 @@ export class JsonFileLoader implements Loader {
     for (const path of resolvedPaths) {
       if (this.canLoadSync(path, options)) {
         try {
-          const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
+          const normalizedFilePath = isAbsolute(path)
+            ? path
+            : resolve(options.cwd || processCwd(), path);
           const rawSDL = readFileSync(normalizedFilePath, { encoding: 'utf8' });
           finalResult.push(this.handleFileContent(normalizedFilePath, rawSDL, options));
         } catch (e: any) {
@@ -159,18 +165,26 @@ export class JsonFileLoader implements Loader {
       }
       throw new AggregateError(
         errors,
-        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n')
+        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n'),
       );
     }
 
     return finalResult;
   }
 
-  handleFileContent(normalizedFilePath: string, rawSDL: string, options: JsonFileLoaderOptions): Source {
+  handleFileContent(
+    normalizedFilePath: string,
+    rawSDL: string,
+    options: JsonFileLoaderOptions,
+  ): Source {
     try {
       return parseGraphQLJSON(normalizedFilePath, rawSDL, options);
     } catch (e: any) {
-      throw new Error(`Unable to read JSON file: ${normalizedFilePath}: ${e.message || /* istanbul ignore next */ e}`);
+      throw new Error(
+        `Unable to read JSON file: ${normalizedFilePath}: ${
+          e.message || /* istanbul ignore next */ e
+        }`,
+      );
     }
   }
 }

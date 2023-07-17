@@ -1,7 +1,7 @@
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas, createMergedTypeResolver } from '@graphql-tools/stitch';
-import { MergedTypeResolver, MergedTypeResolverOptions } from '@graphql-tools/delegate';
 import { graphql } from 'graphql';
+import { MergedTypeResolver, MergedTypeResolverOptions } from '@graphql-tools/delegate';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { createMergedTypeResolver, stitchSchemas } from '@graphql-tools/stitch';
 import { assertSome } from '@graphql-tools/utils';
 
 describe('Merge resolvers', () => {

@@ -1,5 +1,4 @@
-import { print, parse, buildSchema, ASTNode, OperationTypeNode } from 'graphql';
-
+import { ASTNode, buildSchema, OperationTypeNode, parse, print } from 'graphql';
 import { buildOperationNodeForField } from '../src/build-operation-for-field.js';
 import { parseGraphQLSDL } from '../src/parse-graphql-sdl.js';
 
@@ -128,7 +127,7 @@ test('should work with Query', async () => {
           }
         }
       }
-    `)
+    `),
   );
 });
 
@@ -175,7 +174,7 @@ test('should work with Query and variables', async () => {
           }
         }
       }
-    `)
+    `),
   );
 });
 
@@ -208,7 +207,7 @@ test('should work with Query and complicated variable', async () => {
           }
         }
       }
-    `)
+    `),
   );
 });
 
@@ -241,7 +240,7 @@ test('should work with Union', async () => {
           }
         }
       }
-    `)
+    `),
   );
 });
 
@@ -268,7 +267,7 @@ test('should work with mutation', async () => {
           }
         }
       }
-    `)
+    `),
   );
 });
 
@@ -304,7 +303,7 @@ test('should work with mutation + return a field of type Query', async () => {
           toppings
         }
       }
-    `)
+    `),
   );
 });
 
@@ -349,7 +348,7 @@ test('should work with mutation + Union + return a field of type Query', async (
           }
         }
       }
-    `)
+    `),
   );
 });
 
@@ -382,7 +381,7 @@ test('should work with mutation and unions', async () => {
           }
         }
       }
-    `)
+    `),
   );
 });
 
@@ -402,7 +401,7 @@ test('should work with Query and nested variables', async () => {
           comments(filter: $feed_comments_filter)
         }
       }
-    `)
+    `),
   );
 });
 
@@ -451,7 +450,7 @@ test('should be able to ignore using models when requested', async () => {
           }
         }
       }
-    `)
+    `),
   );
 });
 
@@ -484,7 +483,7 @@ test('should work with Subscription', async () => {
           }
         }
       }
-    `)
+    `),
   );
 });
 
@@ -525,7 +524,7 @@ test('should work with circular ref (default depth limit === 1)', async () => {
           }
         }
       }
-    `)
+    `),
   );
 });
 
@@ -574,7 +573,7 @@ test('should work with circular ref (custom depth limit)', async () => {
           }
         }
       }
-    `)
+    `),
   );
 });
 
@@ -609,7 +608,7 @@ test('arguments', async () => {
           name
         }
       }
-    `)
+    `),
   );
 });
 
@@ -649,7 +648,7 @@ test('selectedFields', async () => {
           }
         }
       }
-    `)
+    `),
   );
 });
 

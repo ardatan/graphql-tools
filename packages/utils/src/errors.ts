@@ -25,11 +25,14 @@ export function createGraphQLError(message: string, options?: GraphQLErrorOption
     options?.positions,
     options?.path,
     options?.originalError,
-    options?.extensions
+    options?.extensions,
   );
 }
 
-export function relocatedError(originalError: GraphQLError, path?: ReadonlyArray<string | number>): GraphQLError {
+export function relocatedError(
+  originalError: GraphQLError,
+  path?: ReadonlyArray<string | number>,
+): GraphQLError {
   return createGraphQLError(originalError.message, {
     nodes: originalError.nodes,
     source: originalError.source,

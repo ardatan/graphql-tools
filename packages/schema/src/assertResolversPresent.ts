@@ -1,10 +1,9 @@
-import { GraphQLSchema, GraphQLField, getNamedType, isScalarType } from 'graphql';
-
-import { IResolverValidationOptions, forEachField, ValidatorBehavior } from '@graphql-tools/utils';
+import { getNamedType, GraphQLField, GraphQLSchema, isScalarType } from 'graphql';
+import { forEachField, IResolverValidationOptions, ValidatorBehavior } from '@graphql-tools/utils';
 
 export function assertResolversPresent(
   schema: GraphQLSchema,
-  resolverValidationOptions: IResolverValidationOptions = {}
+  resolverValidationOptions: IResolverValidationOptions = {},
 ): void {
   const { requireResolversForArgs, requireResolversForNonScalar, requireResolversForAllFields } =
     resolverValidationOptions;
@@ -13,24 +12,42 @@ export function assertResolversPresent(
     throw new TypeError(
       'requireResolversForAllFields takes precedence over the more specific assertions. ' +
         'Please configure either requireResolversForAllFields or requireResolversForArgs / ' +
-        'requireResolversForNonScalar, but not a combination of them.'
+        'requireResolversForNonScalar, but not a combination of them.',
     );
   }
 
   forEachField(schema, (field, typeName, fieldName) => {
     // requires a resolver for *every* field.
     if (requireResolversForAllFields) {
-      expectResolver('requireResolversForAllFields', requireResolversForAllFields, field, typeName, fieldName);
+      expectResolver(
+        'requireResolversForAllFields',
+        requireResolversForAllFields,
+        field,
+        typeName,
+        fieldName,
+      );
     }
 
     // requires a resolver on every field that has arguments
     if (requireResolversForArgs && field.args.length > 0) {
-      expectResolver('requireResolversForArgs', requireResolversForArgs, field, typeName, fieldName);
+      expectResolver(
+        'requireResolversForArgs',
+        requireResolversForArgs,
+        field,
+        typeName,
+        fieldName,
+      );
     }
 
     // requires a resolver on every field that returns a non-scalar type
     if (requireResolversForNonScalar !== 'ignore' && !isScalarType(getNamedType(field.type))) {
-      expectResolver('requireResolversForNonScalar', requireResolversForNonScalar, field, typeName, fieldName);
+      expectResolver(
+        'requireResolversForNonScalar',
+        requireResolversForNonScalar,
+        field,
+        typeName,
+        fieldName,
+      );
     }
   });
 }
@@ -40,7 +57,7 @@ function expectResolver(
   behavior: ValidatorBehavior | undefined,
   field: GraphQLField<any, any>,
   typeName: string,
-  fieldName: string
+  fieldName: string,
 ) {
   if (!field.resolve) {
     const message = `Resolver missing for "${typeName}.${fieldName}".

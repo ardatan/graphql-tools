@@ -1,30 +1,31 @@
 import {
-  GraphQLSchema,
-  getNamedType,
-  isObjectType,
-  isInterfaceType,
-  isUnionType,
-  isInputObjectType,
-  GraphQLFieldMap,
-  isSpecifiedScalarType,
-  isScalarType,
-  isEnumType,
   ASTNode,
+  getNamedType,
+  GraphQLFieldMap,
+  GraphQLSchema,
+  isEnumType,
+  isInputObjectType,
+  isInterfaceType,
+  isObjectType,
+  isScalarType,
+  isSpecifiedScalarType,
+  isUnionType,
 } from 'graphql';
-
-import { PruneSchemaOptions } from './types.js';
-
-import { mapSchema } from './mapSchema.js';
-import { MapperKind } from './Interfaces.js';
-import { getRootTypes } from './rootTypes.js';
 import { getImplementingTypes } from './get-implementing-types.js';
+import { MapperKind } from './Interfaces.js';
+import { mapSchema } from './mapSchema.js';
+import { getRootTypes } from './rootTypes.js';
+import { PruneSchemaOptions } from './types.js';
 
 /**
  * Prunes the provided schema, removing unused and empty types
  * @param schema The schema to prune
  * @param options Additional options for removing unused types from the schema
  */
-export function pruneSchema(schema: GraphQLSchema, options: PruneSchemaOptions = {}): GraphQLSchema {
+export function pruneSchema(
+  schema: GraphQLSchema,
+  options: PruneSchemaOptions = {},
+): GraphQLSchema {
   const {
     skipEmptyCompositeTypePruning,
     skipEmptyUnionPruning,
@@ -75,7 +76,11 @@ export function pruneSchema(schema: GraphQLSchema, options: PruneSchemaOptions =
               return type;
             }
             // skipEmptyUnionPruning: skip pruning empty unions
-            if (isUnionType(type) && skipEmptyUnionPruning && !Object.keys(type.getTypes()).length) {
+            if (
+              isUnionType(type) &&
+              skipEmptyUnionPruning &&
+              !Object.keys(type.getTypes()).length
+            ) {
               return type;
             }
             if (isInputObjectType(type) || isInterfaceType(type) || isObjectType(type)) {
@@ -114,7 +119,11 @@ function visitSchema(schema: GraphQLSchema): Set<string> {
   return visitQueue(queue, schema);
 }
 
-function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string> = new Set<string>()): Set<string> {
+function visitQueue(
+  queue: string[],
+  schema: GraphQLSchema,
+  visited: Set<string> = new Set<string>(),
+): Set<string> {
   // Interfaces encountered that are field return types need to be revisited to add their implementations
   const revisit: Map<string, boolean> = new Map<string, boolean>();
 
@@ -148,7 +157,7 @@ function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string>
               return getDirectivesArgumentsTypeNames(schema, value.astNode);
             }
             return [];
-          })
+          }),
         );
       }
       // Visit interfaces this type is implementing if they haven't been visited yet
@@ -175,7 +184,7 @@ function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string>
                   typeNames.push(...getDirectivesArgumentsTypeNames(schema, arg.astNode));
                 }
                 return typeNames;
-              })
+              }),
             );
           }
 
@@ -206,9 +215,10 @@ function visitQueue(queue: string[], schema: GraphQLSchema, visited: Set<string>
 
 function getDirectivesArgumentsTypeNames(
   schema: GraphQLSchema,
-  astNode: Extract<ASTNode, { readonly directives?: any }>
+  astNode: Extract<ASTNode, { readonly directives?: any }>,
 ) {
   return (astNode.directives ?? []).flatMap(
-    directive => schema.getDirective(directive.name.value)?.args.map(arg => getNamedType(arg.type).name) ?? []
+    directive =>
+      schema.getDirective(directive.name.value)?.args.map(arg => getNamedType(arg.type).name) ?? [],
   );
 }

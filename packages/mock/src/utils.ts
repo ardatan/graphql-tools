@@ -1,6 +1,6 @@
-import { getRootTypeNames } from '@graphql-tools/utils';
 import { GraphQLObjectType, GraphQLSchema } from 'graphql';
-import { Ref, KeyTypeConstraints } from './types.js';
+import { getRootTypeNames } from '@graphql-tools/utils';
+import { KeyTypeConstraints, Ref } from './types.js';
 
 export function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -19,7 +19,10 @@ export const randomListLength = () => {
 
 export const takeRandom = <T>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
 
-export function makeRef<KeyT extends KeyTypeConstraints = string>(typeName: string, key: KeyT): Ref<KeyT> {
+export function makeRef<KeyT extends KeyTypeConstraints = string>(
+  typeName: string,
+  key: KeyT,
+): Ref<KeyT> {
   return { $ref: { key, typeName } };
 }
 

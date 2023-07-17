@@ -1,18 +1,18 @@
-import * as yaml from 'js-yaml';
 import * as fs from 'fs';
+import * as yaml from 'js-yaml';
+import { IOutput, Output } from './Output.js';
 import { PrismaDefinition } from './prisma-json-schema.js';
-import { Variables } from './Variables.js';
 import { Args } from './types/common.js';
-import { Output, IOutput } from './Output.js';
+import { Variables } from './Variables.js';
 
-const cache = {};
+const cache: Record<string, any> = {};
 
 export async function readDefinition(
   filePath: string,
   args: Args,
   out: IOutput = new Output(),
   envVars?: any,
-  _graceful?: boolean
+  _graceful?: boolean,
 ): Promise<{ definition: PrismaDefinition; rawJson: any }> {
   try {
     fs.accessSync(filePath);

@@ -1,5 +1,5 @@
 const { gql } = require('graphql-tag');
-const { buildFederatedSchema } = require('@apollo/federation');
+const { buildSubgraphSchema } = require('@apollo/subgraph');
 
 const typeDefs = gql`
   type Review @key(fields: "id") {
@@ -46,7 +46,7 @@ const resolvers = {
   },
 };
 
-const schema = buildFederatedSchema([
+const schema = buildSubgraphSchema([
   {
     typeDefs,
     resolvers,

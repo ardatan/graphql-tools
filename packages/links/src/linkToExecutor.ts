@@ -1,18 +1,17 @@
 import * as apolloImport from '@apollo/client';
-
 import {
-  Executor,
   ExecutionRequest,
   ExecutionResult,
-  observableToAsyncIterable,
+  Executor,
   getOperationASTFromRequest,
+  observableToAsyncIterable,
 } from '@graphql-tools/utils';
 
 const apollo: typeof apolloImport = (apolloImport as any)?.default ?? apolloImport;
 
 export function linkToExecutor(link: apolloImport.ApolloLink): Executor {
   return function executorFromLink<TReturn, TArgs extends Record<string, any>, TContext>(
-    request: ExecutionRequest<TArgs, TContext>
+    request: ExecutionRequest<TArgs, TContext>,
   ) {
     const observable = apollo.execute(link, {
       query: request.document,

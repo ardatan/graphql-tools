@@ -1,9 +1,6 @@
-import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
-
+import { GraphQLFieldConfig, GraphQLSchema } from 'graphql';
+import { DelegationContext, SubschemaConfig, Transform } from '@graphql-tools/delegate';
 import { ExecutionRequest } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
-
 import TransformRootFields from './TransformRootFields.js';
 
 interface RenameRootFieldsTransformationContext extends Record<string, any> {}
@@ -17,21 +14,21 @@ export default class RenameRootFields<TContext = Record<string, any>>
     renamer: (
       operation: 'Query' | 'Mutation' | 'Subscription',
       name: string,
-      fieldConfig: GraphQLFieldConfig<any, any>
-    ) => string
+      fieldConfig: GraphQLFieldConfig<any, any>,
+    ) => string,
   ) {
     this.transformer = new TransformRootFields(
       (
         operation: 'Query' | 'Mutation' | 'Subscription',
         fieldName: string,
-        fieldConfig: GraphQLFieldConfig<any, any>
-      ) => [renamer(operation, fieldName, fieldConfig), fieldConfig]
+        fieldConfig: GraphQLFieldConfig<any, any>,
+      ) => [renamer(operation, fieldName, fieldConfig), fieldConfig],
     );
   }
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
@@ -39,8 +36,12 @@ export default class RenameRootFields<TContext = Record<string, any>>
   public transformRequest(
     originalRequest: ExecutionRequest,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: RenameRootFieldsTransformationContext
+    transformationContext: RenameRootFieldsTransformationContext,
   ): ExecutionRequest {
-    return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
+    return this.transformer.transformRequest(
+      originalRequest,
+      delegationContext,
+      transformationContext,
+    );
   }
 }

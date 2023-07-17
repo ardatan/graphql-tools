@@ -1,12 +1,18 @@
-import { Source, isDocumentString, parseGraphQLSDL, getDocumentNodeFromSchema, asArray } from '@graphql-tools/utils';
-import { isSchema, Kind } from 'graphql';
-import { LoadTypedefsOptions } from '../load-typedefs.js';
-import { loadFile, loadFileSync } from './load-file.js';
-import { stringToHash, useStack, StackNext, StackFn } from '../utils/helpers.js';
-import { useCustomLoader, useCustomLoaderSync } from '../utils/custom-loader.js';
-import { useQueue, useSyncQueue } from '../utils/queue.js';
 import { createRequire } from 'module';
 import { cwd, env } from 'process';
+import { isSchema, Kind } from 'graphql';
+import {
+  asArray,
+  getDocumentNodeFromSchema,
+  isDocumentString,
+  parseGraphQLSDL,
+  Source,
+} from '@graphql-tools/utils';
+import { LoadTypedefsOptions } from '../load-typedefs.js';
+import { useCustomLoader, useCustomLoaderSync } from '../utils/custom-loader.js';
+import { StackFn, StackNext, stringToHash, useStack } from '../utils/helpers.js';
+import { useQueue, useSyncQueue } from '../utils/queue.js';
+import { loadFile, loadFileSync } from './load-file.js';
 
 type AddSource = (data: { pointer: string; source: Source; noCache?: boolean }) => void;
 type AddToQueue<T> = (fn: () => Promise<T> | T) => void;
@@ -113,7 +119,13 @@ export function collectSourcesSync<TOptions>({
   return sources;
 }
 
-function createHelpers<T>({ sources, stack }: { sources: Source[]; stack: StackFn<CollectOptions<T>>[] }) {
+function createHelpers<T>({
+  sources,
+  stack,
+}: {
+  sources: Source[];
+  stack: StackFn<CollectOptions<T>>[];
+}) {
   const addSource: AddSource = ({ source }: { pointer: string; source: Source }) => {
     sources.push(source);
   };
@@ -181,7 +193,7 @@ function addResultOfCustomLoader({
 
 function collectDocumentString<T>(
   { pointer, pointerOptions, options, addSource, queue }: CollectOptions<T>,
-  next: StackNext
+  next: StackNext,
 ) {
   if (env['DEBUG'] != null) {
     console.time(`@graphql-tools/load: collectDocumentString ${pointer}`);
@@ -208,7 +220,7 @@ function collectDocumentString<T>(
 
 function collectCustomLoader<T>(
   { pointer, pointerOptions, queue, addSource, options, pointerOptionMap }: CollectOptions<T>,
-  next: StackNext
+  next: StackNext,
 ) {
   if (pointerOptions.loader) {
     return queue(async () => {
@@ -237,7 +249,7 @@ function collectCustomLoader<T>(
 
 function collectCustomLoaderSync<T>(
   { pointer, pointerOptions, queue, addSource, options, pointerOptionMap }: CollectOptions<T>,
-  next: StackNext
+  next: StackNext,
 ) {
   if (pointerOptions.loader) {
     return queue(() => {
@@ -265,7 +277,13 @@ function collectCustomLoaderSync<T>(
   next();
 }
 
-function collectFallback<T>({ queue, pointer, options, pointerOptions, addSource }: CollectOptions<T>) {
+function collectFallback<T>({
+  queue,
+  pointer,
+  options,
+  pointerOptions,
+  addSource,
+}: CollectOptions<T>) {
   return queue(async () => {
     if (env['DEBUG'] != null) {
       console.time(`@graphql-tools/load: collectFallback ${pointer}`);
@@ -286,7 +304,13 @@ function collectFallback<T>({ queue, pointer, options, pointerOptions, addSource
   });
 }
 
-function collectFallbackSync<T>({ queue, pointer, options, pointerOptions, addSource }: CollectOptions<T>) {
+function collectFallbackSync<T>({
+  queue,
+  pointer,
+  options,
+  pointerOptions,
+  addSource,
+}: CollectOptions<T>) {
   return queue(() => {
     if (env['DEBUG'] != null) {
       console.time(`@graphql-tools/load: collectFallbackSync ${pointer}`);

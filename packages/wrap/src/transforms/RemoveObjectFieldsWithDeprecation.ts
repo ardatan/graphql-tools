@@ -1,9 +1,6 @@
 import { GraphQLSchema } from 'graphql';
-
-import { valueMatchesCriteria } from '@graphql-tools/utils';
-
 import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
-
+import { valueMatchesCriteria } from '@graphql-tools/utils';
 import FilterObjectFields from './FilterObjectFields.js';
 
 interface RemoveObjectFieldsWithDeprecationTransformationContext extends Record<string, any> {}
@@ -24,7 +21,7 @@ export default class RemoveObjectFieldsWithDeprecation<TContext = Record<string,
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }

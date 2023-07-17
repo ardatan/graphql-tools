@@ -1,13 +1,15 @@
-import { wrapSchema, FilterTypes } from '@graphql-tools/wrap';
-import { graphql, GraphQLSchema, GraphQLNamedType } from 'graphql';
+import { graphql, GraphQLNamedType, GraphQLSchema } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
+import { FilterTypes, wrapSchema } from '@graphql-tools/wrap';
 import { bookingSchema } from '../../testing/fixtures/schemas.js';
 
 describe('FilterTypes', () => {
   let schema: GraphQLSchema;
   beforeAll(() => {
     const typeNames = ['ID', 'String', 'DateTime', 'Query', 'Booking'];
-    const transforms = [new FilterTypes((type: GraphQLNamedType) => typeNames.indexOf(type.name) >= 0)];
+    const transforms = [
+      new FilterTypes((type: GraphQLNamedType) => typeNames.indexOf(type.name) >= 0),
+    ];
     schema = wrapSchema({
       schema: bookingSchema,
       transforms,

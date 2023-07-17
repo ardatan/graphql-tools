@@ -1,6 +1,6 @@
+import { GraphQLResolveInfo, isInterfaceType, Kind } from 'graphql';
 import { MergedTypeConfig, SubschemaConfig } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { GraphQLResolveInfo, isInterfaceType, Kind } from 'graphql';
 
 const defaultRelayMergeConfig: MergedTypeConfig = {
   selectionSet: `{ id }`,
@@ -8,7 +8,10 @@ const defaultRelayMergeConfig: MergedTypeConfig = {
   args: ({ id }: any) => ({ id }),
 };
 
-export function handleRelaySubschemas(subschemas: SubschemaConfig[], getTypeNameFromId?: (id: string) => string) {
+export function handleRelaySubschemas(
+  subschemas: SubschemaConfig[],
+  getTypeNameFromId?: (id: string) => string,
+) {
   const typeNames: string[] = [];
 
   for (const subschema of subschemas) {
@@ -42,7 +45,7 @@ export function handleRelaySubschemas(subschemas: SubschemaConfig[], getTypeName
           type ${typeName} implements Node {
             id: ID!
           }
-        `
+        `,
           )
           .join('\n')}
       `,
@@ -76,7 +79,7 @@ export function handleRelaySubschemas(subschemas: SubschemaConfig[], getTypeName
               }
               if (possibleTypeNames.size !== 1) {
                 console.warn(
-                  `You need to define getTypeNameFromId as a parameter to handleRelaySubschemas or add a fragment for "node" operation with specific single type condition!`
+                  `You need to define getTypeNameFromId as a parameter to handleRelaySubschemas or add a fragment for "node" operation with specific single type condition!`,
                 );
               }
               return [...possibleTypeNames][0] || typeNames[0];

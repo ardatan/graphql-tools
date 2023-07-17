@@ -9,13 +9,21 @@ export const removeEmptyNodes: DocumentOptimizer = input => {
   function transformNode(node: any) {
     let resultNode = node;
 
-    if (resultNode.directives && Array.isArray(resultNode.directives) && resultNode.directives.length === 0) {
+    if (
+      resultNode.directives &&
+      Array.isArray(resultNode.directives) &&
+      resultNode.directives.length === 0
+    ) {
       const { directives, ...rest } = resultNode;
 
       resultNode = rest;
     }
 
-    if (resultNode.arguments && Array.isArray(resultNode.arguments) && resultNode.arguments.length === 0) {
+    if (
+      resultNode.arguments &&
+      Array.isArray(resultNode.arguments) &&
+      resultNode.arguments.length === 0
+    ) {
       const { arguments: args, ...rest } = resultNode;
 
       resultNode = rest;

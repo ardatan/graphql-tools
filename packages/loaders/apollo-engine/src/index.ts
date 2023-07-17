@@ -1,6 +1,6 @@
-import { Source, parseGraphQLSDL, AggregateError, BaseLoaderOptions, Loader } from '@graphql-tools/utils';
-import { fetch } from '@whatwg-node/fetch';
 import syncFetch from '@ardatan/sync-fetch';
+import { BaseLoaderOptions, Loader, parseGraphQLSDL, Source } from '@graphql-tools/utils';
+import { fetch } from '@whatwg-node/fetch';
 
 /**
  * Additional options for loading from Apollo Engine
@@ -66,7 +66,8 @@ export class ApolloEngineLoader implements Loader<ApolloEngineOptions> {
     if (errors) {
       throw new AggregateError(
         errors,
-        'Introspection from Apollo Engine failed; \n ' + errors.map((e: Error) => e.message).join('\n')
+        'Introspection from Apollo Engine failed; \n ' +
+          errors.map((e: Error) => e.message).join('\n'),
       );
     }
 
@@ -86,7 +87,8 @@ export class ApolloEngineLoader implements Loader<ApolloEngineOptions> {
     if (errors) {
       throw new AggregateError(
         errors,
-        'Introspection from Apollo Engine failed; \n ' + errors.map((e: Error) => e.message).join('\n')
+        'Introspection from Apollo Engine failed; \n ' +
+          errors.map((e: Error) => e.message).join('\n'),
       );
     }
 

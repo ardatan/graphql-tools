@@ -5,14 +5,12 @@
 // https://github.com/ardatan/graphql-tools/issues/1710
 // https://github.com/ardatan/graphql-tools/issues/1959
 
-import { execute } from '@graphql-tools/executor';
 import { parse } from 'graphql';
-
+import { execute } from '@graphql-tools/executor';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
-
 import { stitchingDirectives } from '@graphql-tools/stitching-directives';
+import { ExecutionResult } from '@graphql-tools/utils';
 import { ValidationLevel } from '../src/types.js';
 
 describe('merging using type merging', () => {
@@ -59,7 +57,10 @@ describe('merging using type merging', () => {
       Query: {
         me: () => users[0],
         _entities: (_root, { keys }) => {
-          return keys.map((key: Record<string, any>) => ({ ...key, ...users.find(u => u.id === key['id']) }));
+          return keys.map((key: Record<string, any>) => ({
+            ...key,
+            ...users.find(u => u.id === key['id']),
+          }));
         },
       },
     },
@@ -122,7 +123,10 @@ describe('merging using type merging', () => {
       Query: {
         mostStockedProduct: () => inventory.find(i => i.upc === '3'),
         _entities: (_root, { keys }) => {
-          return keys.map((key: Record<string, any>) => ({ ...key, ...inventory.find(i => i.upc === key['upc']) }));
+          return keys.map((key: Record<string, any>) => ({
+            ...key,
+            ...inventory.find(i => i.upc === key['upc']),
+          }));
         },
       },
     },

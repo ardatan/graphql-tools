@@ -1,6 +1,6 @@
-import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
-import { JsonFileLoader } from '@graphql-tools/json-file-loader';
 import { isSchema } from 'graphql';
+import { JsonFileLoader } from '@graphql-tools/json-file-loader';
+import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { runTests, useMonorepo } from '../../../../testing/utils.js';
 
 const monorepo = useMonorepo({
@@ -36,7 +36,9 @@ describe('Schema From Export', () => {
         if (!typeName.startsWith('__')) {
           const type = schema.getType(typeName);
           assertNonMaybe(type);
-          const introspectionType = introspectionSchema.types.find((t: { name: string }) => t.name === typeName);
+          const introspectionType = introspectionSchema.types.find(
+            (t: { name: string }) => t.name === typeName,
+          );
           if (type.description || introspectionType.description) {
             expect(type.description).toBe(introspectionType.description);
           }
@@ -44,7 +46,9 @@ describe('Schema From Export', () => {
             const fieldMap = type.getFields();
             for (const fieldName in fieldMap) {
               const field = fieldMap[fieldName];
-              const introspectionField = introspectionType.fields.find((f: { name: string }) => f.name === fieldName);
+              const introspectionField = introspectionType.fields.find(
+                (f: { name: string }) => f.name === fieldName,
+              );
               if (field.description || introspectionField.description) {
                 assertNonMaybe(field.description);
                 expect(field.description.trim()).toBe(introspectionField.description.trim());

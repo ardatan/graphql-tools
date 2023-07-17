@@ -1,22 +1,20 @@
 import {
-  GraphQLResolveInfo,
   getNullableType,
+  GraphQLCompositeType,
+  GraphQLError,
+  GraphQLList,
+  GraphQLOutputType,
+  GraphQLResolveInfo,
+  GraphQLSchema,
+  isAbstractType,
   isCompositeType,
   isListType,
-  GraphQLError,
-  GraphQLSchema,
-  GraphQLCompositeType,
-  isAbstractType,
-  GraphQLList,
   locatedError,
-  GraphQLOutputType,
 } from 'graphql';
-
-import { AggregateError, Maybe } from '@graphql-tools/utils';
-
-import { StitchingInfo, SubschemaConfig } from './types.js';
+import { Maybe } from '@graphql-tools/utils';
 import { annotateExternalObject, isExternalObject, mergeFields } from './mergeFields.js';
 import { Subschema } from './Subschema.js';
+import { StitchingInfo, SubschemaConfig } from './types.js';
 
 export function resolveExternalValue<TContext extends Record<string, any>>(
   result: any,
@@ -25,7 +23,7 @@ export function resolveExternalValue<TContext extends Record<string, any>>(
   context?: Record<string, any>,
   info?: GraphQLResolveInfo,
   returnType = getReturnType(info),
-  skipTypeMerging?: boolean
+  skipTypeMerging?: boolean,
 ): any {
   const type = getNullableType(returnType);
 
@@ -40,12 +38,36 @@ export function resolveExternalValue<TContext extends Record<string, any>>(
   if ('parseValue' in type) {
     return type.parseValue(result);
   } else if (isCompositeType(type)) {
-    return resolveExternalObject(type, result, unpathedErrors, subschema, context, info, skipTypeMerging);
+    return resolveExternalObject(
+      type,
+      result,
+      unpathedErrors,
+      subschema,
+      context,
+      info,
+      skipTypeMerging,
+    );
   } else if (isListType(type)) {
     if (Array.isArray(result)) {
-      return resolveExternalList(type, result, unpathedErrors, subschema, context, info, skipTypeMerging);
+      return resolveExternalList(
+        type,
+        result,
+        unpathedErrors,
+        subschema,
+        context,
+        info,
+        skipTypeMerging,
+      );
     }
-    return resolveExternalValue(result, unpathedErrors, subschema, context, info, type.ofType, skipTypeMerging);
+    return resolveExternalValue(
+      result,
+      unpathedErrors,
+      subschema,
+      context,
+      info,
+      type.ofType,
+      skipTypeMerging,
+    );
   }
 }
 
@@ -56,7 +78,7 @@ function resolveExternalObject<TContext extends Record<string, any>>(
   subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
   context?: Record<string, any>,
   info?: GraphQLResolveInfo,
-  skipTypeMerging?: boolean
+  skipTypeMerging?: boolean,
 ) {
   // if we have already resolved this object, for example, when the identical object appears twice
   // in a list, see https://github.com/ardatan/graphql-tools/issues/2304
@@ -90,7 +112,7 @@ function resolveExternalObject<TContext extends Record<string, any>>(
     return object;
   }
 
-  return mergeFields(mergedTypeInfo, object, subschema as Subschema, context, info);
+  return mergeFields(mergedTypeInfo, object, subschema as Subschema, context, info).resolve();
 }
 
 function resolveExternalList<TContext extends Record<string, any>>(
@@ -100,10 +122,18 @@ function resolveExternalList<TContext extends Record<string, any>>(
   subschema: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
   context?: Record<string, any>,
   info?: GraphQLResolveInfo,
-  skipTypeMerging?: boolean
+  skipTypeMerging?: boolean,
 ) {
   return list.map(listMember =>
-    resolveExternalValue(listMember, unpathedErrors, subschema, context, info, type.ofType, skipTypeMerging)
+    resolveExternalValue(
+      listMember,
+      unpathedErrors,
+      subschema,
+      context,
+      info,
+      type.ofType,
+      skipTypeMerging,
+    ),
   );
 }
 
@@ -126,7 +156,7 @@ function reportUnpathedErrorsViaNull(unpathedErrors: Array<GraphQLError>) {
 
       const combinedError = new AggregateError(
         unreportedErrors,
-        unreportedErrors.map(error => error.message).join(', \n')
+        unreportedErrors.map(error => error.message).join(', \n'),
       );
       // We cast path as any for GraphQL.js 14 compat
       // locatedError path argument must be defined, but it is just forwarded to a constructor that allows a undefined value

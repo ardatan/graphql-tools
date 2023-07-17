@@ -1,22 +1,20 @@
 // adapted from https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
 
 import {
-  visit,
-  Kind,
   DefinitionNode,
-  OperationDefinitionNode,
   DocumentNode,
-  FragmentDefinitionNode,
-  VariableDefinitionNode,
-  SelectionNode,
-  FragmentSpreadNode,
-  VariableNode,
-  InlineFragmentNode,
   FieldNode,
+  FragmentDefinitionNode,
+  FragmentSpreadNode,
+  InlineFragmentNode,
+  Kind,
+  OperationDefinitionNode,
+  SelectionNode,
+  VariableDefinitionNode,
+  VariableNode,
+  visit,
 } from 'graphql';
-
 import { ExecutionRequest, getOperationASTFromRequest } from '@graphql-tools/utils';
-
 import { createPrefix } from './prefix.js';
 
 /**
@@ -55,7 +53,10 @@ import { createPrefix } from './prefix.js';
  */
 export function mergeRequests(
   requests: Array<ExecutionRequest>,
-  extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
+  extensionsReducer: (
+    mergedExtensions: Record<string, any>,
+    request: ExecutionRequest,
+  ) => Record<string, any>,
 ): ExecutionRequest {
   const mergedVariables: Record<string, any> = Object.create(null);
   const mergedVariableDefinitions: Array<VariableDefinitionNode> = [];
@@ -83,7 +84,8 @@ export function mergeRequests(
   }
 
   const firstRequest = requests[0];
-  const operationType = firstRequest.operationType ?? getOperationASTFromRequest(firstRequest).operation;
+  const operationType =
+    firstRequest.operationType ?? getOperationASTFromRequest(firstRequest).operation;
   const mergedOperationDefinition: OperationDefinitionNode = {
     kind: Kind.OPERATION_DEFINITION,
     operation: operationType,
@@ -124,7 +126,9 @@ function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequ
   let prefixedDocument = aliasTopLevelFields(prefix, request.document);
 
   const executionVariableNames = Object.keys(executionVariables);
-  const hasFragmentDefinitions = request.document.definitions.some(def => isFragmentDefinition(def));
+  const hasFragmentDefinitions = request.document.definitions.some(def =>
+    isFragmentDefinition(def),
+  );
   const fragmentSpreadImpl: Record<string, boolean> = {};
 
   if (executionVariableNames.length > 0 || hasFragmentDefinitions) {
@@ -139,7 +143,7 @@ function prefixRequest(prefix: string, request: ExecutionRequest): ExecutionRequ
     }) as DocumentNode;
   }
 
-  const prefixedVariables = {};
+  const prefixedVariables: Record<string, any> = {};
 
   for (const variableName of executionVariableNames) {
     prefixedVariables[prefix + variableName] = executionVariables[variableName];
@@ -206,7 +210,7 @@ function aliasTopLevelFields(prefix: string, document: DocumentNode): DocumentNo
 function aliasFieldsInSelection(
   prefix: string,
   selections: ReadonlyArray<SelectionNode>,
-  document: DocumentNode
+  document: DocumentNode,
 ): Array<SelectionNode> {
   return selections.map(selection => {
     switch (selection.kind) {
@@ -235,7 +239,7 @@ function aliasFieldsInSelection(
 function aliasFieldsInInlineFragment(
   prefix: string,
   fragment: InlineFragmentNode,
-  document: DocumentNode
+  document: DocumentNode,
 ): InlineFragmentNode {
   const { selections } = fragment.selectionSet;
   return {
@@ -257,9 +261,12 @@ function aliasFieldsInInlineFragment(
  * Transforms to:
  *   query { ... on Query { bar } }
  */
-function inlineFragmentSpread(spread: FragmentSpreadNode, document: DocumentNode): InlineFragmentNode {
+function inlineFragmentSpread(
+  spread: FragmentSpreadNode,
+  document: DocumentNode,
+): InlineFragmentNode {
   const fragment = document.definitions.find(
-    def => isFragmentDefinition(def) && def.name.value === spread.name.value
+    def => isFragmentDefinition(def) && def.name.value === spread.name.value,
   ) as FragmentDefinitionNode;
   if (!fragment) {
     throw new Error(`Fragment ${spread.name.value} does not exist`);
@@ -275,7 +282,7 @@ function inlineFragmentSpread(spread: FragmentSpreadNode, document: DocumentNode
 
 function prefixNodeName<T extends VariableNode | FragmentDefinitionNode | FragmentSpreadNode>(
   namedNode: T,
-  prefix: string
+  prefix: string,
 ): T {
   return {
     ...namedNode,

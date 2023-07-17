@@ -47,8 +47,14 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 3
-          command: k6 -e ENDPOINT=stitching -e PRODUCTS_SIZE=${{matrix.products_size}} -e GITHUB_PR=${{ github.event.number }} -e GITHUB_SHA=${{ github.sha }} -e GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}} run --out json=stitching.json benchmark/federation/k6.js
+          command:
+            k6 -e ENDPOINT=stitching -e PRODUCTS_SIZE=${{matrix.products_size}} -e GITHUB_PR=${{
+            github.event.number }} -e GITHUB_SHA=${{ github.sha }} -e
+            GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}} run --out json=stitching.json
+            benchmark/federation/k6.js
       - name: Monolith
         run: k6 -e ENDPOINT=monolith run --out json=monolith.json benchmark/federation/k6.js
       - name: Compare
-        run: node benchmark/compare monolith:monolith.json federation:federation.json stitching:stitching.json
+        run:
+          node benchmark/compare monolith:monolith.json federation:federation.json
+          stitching:stitching.json

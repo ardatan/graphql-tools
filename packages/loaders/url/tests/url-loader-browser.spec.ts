@@ -1,15 +1,15 @@
-import webpack, { Stats } from 'webpack';
-import path from 'path';
 import fs from 'fs';
 import http from 'http';
-import puppeteer, { Browser, Page } from 'puppeteer';
-import type * as UrlLoaderModule from '../src/index.js';
+import path from 'path';
 import { parse } from 'graphql';
-import { ExecutionResult } from '@graphql-tools/utils';
 import { createSchema, createYoga } from 'graphql-yoga';
+import puppeteer, { Browser, Page } from 'puppeteer';
+import webpack, { Stats } from 'webpack';
 import { useEngine } from '@envelop/core';
-import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 import { normalizedExecutor } from '@graphql-tools/executor';
+import { ExecutionResult } from '@graphql-tools/utils';
+import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
+import type * as UrlLoaderModule from '../src/index.js';
 import { sleep } from './test-utils.js';
 
 describe('[url-loader] webpack bundle compat', () => {
@@ -23,7 +23,8 @@ describe('[url-loader] webpack bundle compat', () => {
       [Symbol.asyncIterator]() {
         return this;
       },
-      next: () => sleep(300, timeout => timeouts.add(timeout)).then(() => ({ value: true, done: false })),
+      next: () =>
+        sleep(300, timeout => timeouts.add(timeout)).then(() => ({ value: true, done: false })),
       return: () => {
         resolveOnReturn();
         timeouts.forEach(clearTimeout);
@@ -100,7 +101,7 @@ describe('[url-loader] webpack bundle compat', () => {
           (err, stats) => {
             if (err) return reject(err);
             resolve(stats);
-          }
+          },
         );
       });
 
@@ -168,7 +169,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
     it('can be exposed as a global', async () => {
       const result = await page.evaluate(async () => {
-        return typeof window['GraphQLToolsUrlLoader'];
+        return typeof (window as any)['GraphQLToolsUrlLoader'];
       });
       expect(result).toEqual('object');
     });
@@ -187,7 +188,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       const result = await page.evaluate(
         async (httpAddress, document) => {
-          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
           const executor = loader.getExecutorAsync(httpAddress + '/graphql');
           const result = await executor({
@@ -196,7 +197,7 @@ describe('[url-loader] webpack bundle compat', () => {
           return result;
         },
         httpAddress,
-        document as any
+        document as any,
       );
       expect(result).toStrictEqual(expectedData);
     });
@@ -212,7 +213,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       const results = await page.evaluate(
         async (httpAddress, document) => {
-          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
           const executor = loader.getExecutorAsync(httpAddress + '/graphql');
           const result = await executor({
@@ -227,7 +228,7 @@ describe('[url-loader] webpack bundle compat', () => {
           return results;
         },
         httpAddress,
-        document as any
+        document as any,
       );
       expect(results).toEqual([{ data: {} }, { data: { foo: true } }]);
     });
@@ -241,7 +242,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       const results = await page.evaluate(
         async (httpAddress, document) => {
-          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
           const executor = loader.getExecutorAsync(httpAddress + '/graphql');
           const result = await executor({
@@ -256,7 +257,7 @@ describe('[url-loader] webpack bundle compat', () => {
           return results;
         },
         httpAddress,
-        document as any
+        document as any,
       );
 
       expect(results[0]).toEqual({ data: { countdown: [] } });
@@ -277,7 +278,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       const result = await page.evaluate(
         async (httpAddress, document) => {
-          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
           const executor = loader.getExecutorAsync(httpAddress + '/graphql', {
             subscriptionsProtocol: module.SubscriptionProtocol.SSE,
@@ -292,12 +293,16 @@ describe('[url-loader] webpack bundle compat', () => {
           return results;
         },
         httpAddress,
-        document as any
+        document as any,
       );
       expect(result).toStrictEqual(expectedDatas);
     });
     it('terminates SSE subscriptions when calling return on the AsyncIterator', async () => {
-      const sentDatas = [{ data: { foo: true } }, { data: { foo: false } }, { data: { foo: true } }];
+      const sentDatas = [
+        { data: { foo: true } },
+        { data: { foo: false } },
+        { data: { foo: true } },
+      ];
 
       const document = parse(/* GraphQL */ `
         subscription {
@@ -310,7 +315,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       const result = await page.evaluate(
         async (httpAddress, document) => {
-          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
           const executor = loader.getExecutorAsync(httpAddress + '/graphql', {
             subscriptionsProtocol: module.SubscriptionProtocol.SSE,
@@ -328,7 +333,7 @@ describe('[url-loader] webpack bundle compat', () => {
           return results;
         },
         httpAddress,
-        document as any
+        document as any,
       );
 
       expect(result).toStrictEqual(sentDatas.slice(0, 2));
@@ -352,7 +357,7 @@ describe('[url-loader] webpack bundle compat', () => {
 
       await page.evaluate(
         async (httpAddress, document) => {
-          const module = window['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
+          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
           const loader = new module.UrlLoader();
           const executor = loader.getExecutorAsync(httpAddress + '/graphql');
           const result = (await executor({
@@ -365,7 +370,7 @@ describe('[url-loader] webpack bundle compat', () => {
           }
         },
         httpAddress,
-        document as any
+        document as any,
       );
 
       await returnPromise$;

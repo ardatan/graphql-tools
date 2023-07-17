@@ -11,9 +11,15 @@
 
 This package provides a few useful ways to create a GraphQL schema:
 
-1. Use the GraphQL schema language to [generate a schema](https://graphql-tools.com/docs/generate-schema) with full support for resolvers, interfaces, unions, and custom scalars. The schema produced is completely compatible with [GraphQL.js](https://github.com/graphql/graphql-js).
-2. [Mock your GraphQL API](https://graphql-tools.com/docs/mocking) with fine-grained per-type mocking
-3. Automatically [stitch multiple schemas together](https://www.graphql-tools.com/docs/stitch-combining-schemas) into one larger API
+1. Use the GraphQL schema language to
+   [generate a schema](https://graphql-tools.com/docs/generate-schema) with full support for
+   resolvers, interfaces, unions, and custom scalars. The schema produced is completely compatible
+   with [GraphQL.js](https://github.com/graphql/graphql-js).
+2. [Mock your GraphQL API](https://graphql-tools.com/docs/mocking) with fine-grained per-type
+   mocking
+3. Automatically
+   [stitch multiple schemas together](https://www.graphql-tools.com/docs/stitch-combining-schemas)
+   into one larger API
 
 ## Documentation
 
@@ -21,9 +27,11 @@ This package provides a few useful ways to create a GraphQL schema:
 
 ## Binding to HTTP
 
-If you want to bind your JavaScript GraphQL schema to an HTTP server, you can use [`GraphQL Yoga`](https://www.graphql-yoga.com) .
+If you want to bind your JavaScript GraphQL schema to an HTTP server, you can use
+[`GraphQL Yoga`](https://www.graphql-yoga.com) .
 
-You can develop your JavaScript based GraphQL API with `graphql-tools` and `GraphQL Yoga` together: One to write the schema and resolver code, and the other to connect it to a web server.
+You can develop your JavaScript based GraphQL API with `graphql-tools` and `GraphQL Yoga` together:
+One to write the schema and resolver code, and the other to connect it to a web server.
 
 ## Example
 
@@ -114,32 +122,47 @@ const executableSchema = makeExecutableSchema({
 })
 ```
 
-GraphQL-Tools schema can be consumed by frameworks like GraphQL Yoga, Apollo GraphQL or express-graphql
-For example in Node.js;
+GraphQL-Tools schema can be consumed by frameworks like GraphQL Yoga, Apollo GraphQL or
+express-graphql For example in Node.js;
 
 ```js
-const { createServer } = require('@graphql-yoga/node')
+const { createYoga } = require('graphql-yoga')
+const { createServer } = require('http')
 
-const server = createServer({
+const yoga = createYoga({
   schema: executableSchema
 })
 
-server.start()
+const server = createServer(yoga)
+
+server.listen(4000, () => {
+  console.log('Yoga is listening at http://localhost:4000/graphql')
+})
 ```
 
-You can check [GraphQL Yoga](https://www.graphql-yoga.com) for other JavaScript platforms and frameworks besides vanilla Node.js HTTP.
+You can check [GraphQL Yoga](https://www.graphql-yoga.com) for other JavaScript platforms and
+frameworks besides vanilla Node.js HTTP.
 
-This example has the entire type definition in one string and all resolvers in one file, but you can combine types and resolvers from multiple files and objects, as documented in the [modularizing type definitions](https://graphql-tools.com/docs/schema-merging#merging-type-definitions) and [merging resolvers](https://graphql-tools.com/docs/schema-merging#merging-resolvers) section of the docs.
+This example has the entire type definition in one string and all resolvers in one file, but you can
+combine types and resolvers from multiple files and objects, as documented in the
+[modularizing type definitions](https://graphql-tools.com/docs/schema-merging#merging-type-definitions)
+and [merging resolvers](https://graphql-tools.com/docs/schema-merging#merging-resolvers) section of
+the docs.
 
 ## Contributions
 
-Contributions, issues and feature requests are very welcome. If you are using this package and fixed a bug for yourself, please consider submitting a PR!
+Contributions, issues and feature requests are very welcome. If you are using this package and fixed
+a bug for yourself, please consider submitting a PR!
 
-And if this is your first time contributing to this project, please do read our [Contributor Workflow Guide](https://github.com/the-guild-org/Stack/blob/master/CONTRIBUTING.md) before you get started off.
+And if this is your first time contributing to this project, please do read our
+[Contributor Workflow Guide](https://github.com/the-guild-org/Stack/blob/master/CONTRIBUTING.md)
+before you get started off.
 
 ### Code of Conduct
 
-Help us keep GraphQL Tools open and inclusive. Please read and follow our [Code of Conduct](https://github.com/the-guild-org/Stack/blob/master/CODE_OF_CONDUCT.md) as adopted from [Contributor Covenant](https://www.contributor-covenant.org/)
+Help us keep GraphQL Tools open and inclusive. Please read and follow our
+[Code of Conduct](https://github.com/the-guild-org/Stack/blob/master/CODE_OF_CONDUCT.md) as adopted
+from [Contributor Covenant](https://www.contributor-covenant.org/)
 
 ## Maintainers
 

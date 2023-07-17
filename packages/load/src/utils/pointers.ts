@@ -1,9 +1,9 @@
-import { asArray } from '@graphql-tools/utils';
 import { env } from 'process';
+import { asArray } from '@graphql-tools/utils';
 import { UnnormalizedTypeDefPointer } from './../load-typedefs.js';
 
 export function normalizePointers(
-  unnormalizedPointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[]
+  unnormalizedPointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
 ) {
   if (env['DEBUG'] != null) {
     console.time(`@graphql-tools/load: normalizePointers`);

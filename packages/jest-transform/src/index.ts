@@ -22,7 +22,7 @@ class GraphQLTransformer implements SyncTransformer {
           cacheable() {},
           query: config,
         } as any,
-        input
+        input,
       ),
     };
   }

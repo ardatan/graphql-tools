@@ -1,6 +1,7 @@
 {
   "name": "@graphql-tools/resolvers-composition",
-  "version": "6.5.17",
+  "version": "7.0.0",
+  "type": "module",
   "description": "Common package containing utils and types for GraphQL tools",
   "repository": {
     "type": "git",
@@ -9,7 +10,9 @@
   },
   "author": "Dotan Simha <dotansimha@gmail.com>",
   "license": "MIT",
-  "sideEffects": false,
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "exports": {
@@ -44,25 +47,25 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
-  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
-  "devDependencies": {
-    "@types/lodash": "4.14.191",
-    "@types/micromatch": "4.0.2"
-  },
   "dependencies": {
-    "@graphql-tools/utils": "9.2.1",
+    "@graphql-tools/utils": "^10.0.0",
     "lodash": "4.17.21",
     "micromatch": "^4.0.4",
     "tslib": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/lodash": "4.14.195",
+    "@types/micromatch": "4.0.2"
   },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
   },
-  "type": "module"
+  "sideEffects": false,
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
+  }
 }

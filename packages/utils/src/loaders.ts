@@ -1,4 +1,4 @@
-import { DocumentNode, GraphQLSchema, BuildSchemaOptions } from 'graphql';
+import { BuildSchemaOptions, DocumentNode, GraphQLSchema } from 'graphql';
 import { GraphQLParseOptions } from './Interfaces.js';
 
 export interface Source {
@@ -12,6 +12,7 @@ export type BaseLoaderOptions = GraphQLParseOptions &
   BuildSchemaOptions & {
     cwd?: string;
     ignore?: string | string[];
+    includeSources?: boolean;
   };
 
 export type WithList<T> = T | T[];

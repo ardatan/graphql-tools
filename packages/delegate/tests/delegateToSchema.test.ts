@@ -1,9 +1,8 @@
 import { graphql, OperationTypeNode } from 'graphql';
-
-import { delegateToSchema } from '../src/delegateToSchema.js';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { wrapSchema } from '@graphql-tools/wrap';
 import { stitchSchemas } from '@graphql-tools/stitch';
+import { wrapSchema } from '@graphql-tools/wrap';
+import { delegateToSchema } from '../src/delegateToSchema.js';
 
 function assertSome<T>(input: T): asserts input is Exclude<T, null | undefined> {
   if (input == null) {

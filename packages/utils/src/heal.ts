@@ -1,24 +1,24 @@
 import {
   GraphQLDirective,
   GraphQLInputObjectType,
+  GraphQLInputType,
   GraphQLInterfaceType,
   GraphQLList,
-  GraphQLObjectType,
   GraphQLNamedType,
   GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLOutputType,
+  GraphQLSchema,
   GraphQLType,
   GraphQLUnionType,
-  isNamedType,
-  GraphQLSchema,
-  GraphQLInputType,
-  GraphQLOutputType,
-  isObjectType,
-  isInterfaceType,
-  isUnionType,
   isInputObjectType,
+  isInterfaceType,
   isLeafType,
   isListType,
+  isNamedType,
   isNonNullType,
+  isObjectType,
+  isUnionType,
 } from 'graphql';
 
 // Update any references to named schema types that disagree with the named
@@ -56,7 +56,7 @@ export function healSchema(schema: GraphQLSchema): GraphQLSchema {
 
 export function healTypes(
   originalTypeMap: Record<string, GraphQLNamedType | null>,
-  directives: ReadonlyArray<GraphQLDirective>
+  directives: ReadonlyArray<GraphQLDirective>,
 ) {
   const actualNamedTypeMap: Record<string, GraphQLNamedType> = Object.create(null);
 
@@ -76,7 +76,9 @@ export function healTypes(
     }
 
     if (actualNamedTypeMap[actualName] != null) {
-      console.warn(`Duplicate schema type name ${actualName} found; keeping the existing one found in the schema`);
+      console.warn(
+        `Duplicate schema type name ${actualName} found; keeping the existing one found in the schema`,
+      );
       continue;
     }
 
@@ -164,7 +166,7 @@ export function healTypes(
         ...interfaces
           .splice(0)
           .map(iface => healType(iface) as any)
-          .filter(Boolean)
+          .filter(Boolean),
       );
     }
   }
@@ -185,7 +187,7 @@ export function healTypes(
       ...types
         .splice(0)
         .map(t => healType(t) as any)
-        .filter(Boolean)
+        .filter(Boolean),
     );
   }
 

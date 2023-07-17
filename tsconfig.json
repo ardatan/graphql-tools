@@ -4,7 +4,7 @@
     "outDir": "dist",
     "baseUrl": ".",
 
-    "target": "es2018",
+    "target": "es2021",
     "module": "esnext",
     "moduleResolution": "node",
     "lib": ["esnext"],
@@ -18,6 +18,8 @@
 
     "suppressImplicitAnyIndexErrors": true,
 
+    "ignoreDeprecations": "5.0",
+
     "skipLibCheck": true,
 
     "strict": true,
@@ -27,7 +29,10 @@
     "noPropertyAccessFromIndexSignature": true,
 
     "paths": {
-      "@graphql-tools/*-loader": ["packages/loaders/*/src/index.ts", "packages/*-loader/src/index.ts"],
+      "@graphql-tools/*-loader": [
+        "packages/loaders/*/src/index.ts",
+        "packages/*-loader/src/index.ts"
+      ],
       "@graphql-tools/executor-*": ["packages/executors/*/src/index.ts"],
       "@graphql-tools/*": ["packages/*/src/index.ts"]
     }

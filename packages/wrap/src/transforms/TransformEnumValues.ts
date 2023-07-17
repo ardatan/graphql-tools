@@ -1,5 +1,5 @@
-import { GraphQLSchema, GraphQLEnumValueConfig } from 'graphql';
-
+import { GraphQLEnumValueConfig, GraphQLSchema } from 'graphql';
+import { DelegationContext, SubschemaConfig, Transform } from '@graphql-tools/delegate';
 import {
   ExecutionRequest,
   ExecutionResult,
@@ -8,11 +8,7 @@ import {
   Maybe,
   transformInputValue,
 } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
-
 import { EnumValueTransformer, LeafValueTransformer } from '../types.js';
-
 import MapLeafValues, { MapLeafValuesTransformationContext } from './MapLeafValues.js';
 
 interface TransformEnumValuesTransformationContext extends MapLeafValuesTransformationContext {}
@@ -30,20 +26,20 @@ export default class TransformEnumValues<TContext = Record<string, any>>
   constructor(
     enumValueTransformer: EnumValueTransformer,
     inputValueTransformer?: LeafValueTransformer,
-    outputValueTransformer?: LeafValueTransformer
+    outputValueTransformer?: LeafValueTransformer,
   ) {
     this.enumValueTransformer = enumValueTransformer;
     this.mapping = Object.create(null);
     this.reverseMapping = Object.create(null);
     this.transformer = new MapLeafValues(
       generateValueTransformer(inputValueTransformer, this.reverseMapping),
-      generateValueTransformer(outputValueTransformer, this.mapping)
+      generateValueTransformer(outputValueTransformer, this.mapping),
     );
   }
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     const mappingSchema = this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
     this.transformedSchema = mapSchema(mappingSchema, {
@@ -51,9 +47,13 @@ export default class TransformEnumValues<TContext = Record<string, any>>
         this.transformEnumValue(typeName, externalValue, valueConfig),
       [MapperKind.ARGUMENT]: argConfig => {
         if (argConfig.defaultValue != null) {
-          const newValue = transformInputValue(argConfig.type, argConfig.defaultValue, (type, value) => {
-            return this.mapping[type.name]?.[value] ?? value;
-          });
+          const newValue = transformInputValue(
+            argConfig.type,
+            argConfig.defaultValue,
+            (type, value) => {
+              return this.mapping[type.name]?.[value] ?? value;
+            },
+          );
           return {
             ...argConfig,
             defaultValue: newValue,
@@ -67,31 +67,43 @@ export default class TransformEnumValues<TContext = Record<string, any>>
   public transformRequest(
     originalRequest: ExecutionRequest,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: TransformEnumValuesTransformationContext
+    transformationContext: TransformEnumValuesTransformationContext,
   ): ExecutionRequest {
     if (this.noTransformation) {
       return originalRequest;
     }
-    return this.transformer.transformRequest(originalRequest, delegationContext, transformationContext);
+    return this.transformer.transformRequest(
+      originalRequest,
+      delegationContext,
+      transformationContext,
+    );
   }
 
   public transformResult(
     originalResult: ExecutionResult,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: TransformEnumValuesTransformationContext
+    transformationContext: TransformEnumValuesTransformationContext,
   ) {
     if (this.noTransformation) {
       return originalResult;
     }
-    return this.transformer.transformResult(originalResult, delegationContext, transformationContext);
+    return this.transformer.transformResult(
+      originalResult,
+      delegationContext,
+      transformationContext,
+    );
   }
 
   private transformEnumValue(
     typeName: string,
     externalValue: string,
-    enumValueConfig: GraphQLEnumValueConfig
+    enumValueConfig: GraphQLEnumValueConfig,
   ): Maybe<GraphQLEnumValueConfig | [string, GraphQLEnumValueConfig]> {
-    const transformedEnumValue = this.enumValueTransformer(typeName, externalValue, enumValueConfig);
+    const transformedEnumValue = this.enumValueTransformer(
+      typeName,
+      externalValue,
+      enumValueConfig,
+    );
     if (Array.isArray(transformedEnumValue)) {
       const newExternalValue = transformedEnumValue[0];
 
@@ -119,14 +131,18 @@ export default class TransformEnumValues<TContext = Record<string, any>>
   }
 }
 
-function mapEnumValues(typeName: string, value: string, mapping: Record<string, Record<string, string>>): string {
+function mapEnumValues(
+  typeName: string,
+  value: string,
+  mapping: Record<string, Record<string, string>>,
+): string {
   const newExternalValue = mapping[typeName]?.[value];
   return newExternalValue != null ? newExternalValue : value;
 }
 
 function generateValueTransformer(
   valueTransformer: Maybe<LeafValueTransformer>,
-  mapping: Record<string, Record<string, string>>
+  mapping: Record<string, Record<string, string>>,
 ): LeafValueTransformer {
   if (valueTransformer == null) {
     return (typeName, value) => mapEnumValues(typeName, value, mapping);

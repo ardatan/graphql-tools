@@ -9,6 +9,7 @@
     {
       "excludePackagePatterns": [
         "@changesets/*",
+        "@whatwg-node/*",
         "typescript",
         "typedoc*",
         "^@theguild/",

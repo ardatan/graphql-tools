@@ -1,8 +1,7 @@
-import { PackageCmd } from '@theguild/components'
-
 # Extracting GraphQL Definitions from Code Files
 
-`@graphql-tools/graphql-tag-pluck` will take JavaScript code as an input and will pluck all template literals provided to `graphql-tag`.
+`@graphql-tools/graphql-tag-pluck` will take JavaScript code as an input and will pluck all template
+literals provided to `graphql-tag`.
 
 ```js filename="Input"
 import gql from 'graphql-tag'
@@ -40,12 +39,17 @@ Originally created because of https://graphql-code-generator.com.
 
 ## Usage
 
-<PackageCmd packages={['@graphql-tools/graphql-tag-pluck']} />
+```sh npm2yarn
+npm i @graphql-tools/graphql-tag-pluck
+```
 
 Once installed you can pluck GraphQL template literals using one of the following methods:
 
 ```js
-import { gqlPluckFromCodeStringSync, gqlPluckFromCodeString } from '@graphql-tools/graphql-tag-pluck'
+import {
+  gqlPluckFromCodeString,
+  gqlPluckFromCodeStringSync
+} from '@graphql-tools/graphql-tag-pluck'
 
 // Returns promise
 gqlPluckFromCodeString(
@@ -85,11 +89,14 @@ Supported file extensions are:
 
 ## Options
 
-It is recommended to look at the [source code](https://github.com/ardatan/graphql-tools/blob/master/packages/graphql-tag-pluck/src/visitor.ts) for a clearer understanding of the transformation options.
+It is recommended to look at the
+[source code](https://github.com/ardatan/graphql-tools/blob/master/packages/graphql-tag-pluck/src/visitor.ts)
+for a clearer understanding of the transformation options.
 
 ### `gqlMagicComment`
 
-The magic comment anchor to look for when parsing GraphQL strings. Defaults to `graphql`, which may be translated into `/* GraphQL */` in code.
+The magic comment anchor to look for when parsing GraphQL strings. Defaults to `graphql`, which may
+be translated into `/* GraphQL */` in code.
 
 ### `globalGqlIdentifierName`
 

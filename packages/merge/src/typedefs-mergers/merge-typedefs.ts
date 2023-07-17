@@ -1,26 +1,27 @@
 import {
   DefinitionNode,
+  DirectiveDefinitionNode,
   DocumentNode,
-  parse,
-  Kind,
+  isDefinitionNode,
   isSchema,
+  Kind,
   OperationTypeDefinitionNode,
   OperationTypeNode,
-  isDefinitionNode,
+  parse,
   ParseOptions,
 } from 'graphql';
-import { CompareFn, defaultStringComparator, isSourceTypes, isStringTypes } from './utils.js';
-import { MergedResultMap, mergeGraphQLNodes, schemaDefSymbol } from './merge-nodes.js';
 import {
   getDocumentNodeFromSchema,
   GetDocumentNodeFromSchemaOptions,
   isDocumentNode,
-  TypeSource,
-  resetComments,
   printWithComments,
+  resetComments,
+  TypeSource,
 } from '@graphql-tools/utils';
-import { DEFAULT_OPERATION_TYPE_NAME_MAP } from './schema-def.js';
 import { OnFieldTypeConflict } from './fields.js';
+import { mergeGraphQLNodes, schemaDefSymbol } from './merge-nodes.js';
+import { DEFAULT_OPERATION_TYPE_NAME_MAP } from './schema-def.js';
+import { CompareFn, defaultStringComparator, isSourceTypes, isStringTypes } from './utils.js';
 
 type Omit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>;
 
@@ -100,12 +101,18 @@ export interface Config extends ParseOptions, GetDocumentNodeFromSchemaOptions {
  * @param types The type definitions to be merged
  */
 export function mergeTypeDefs(typeSource: TypeSource): DocumentNode;
-export function mergeTypeDefs(typeSource: TypeSource, config?: Partial<Config> & { commentDescriptions: true }): string;
 export function mergeTypeDefs(
   typeSource: TypeSource,
-  config?: Omit<Partial<Config>, 'commentDescriptions'>
+  config?: Partial<Config> & { commentDescriptions: true },
+): string;
+export function mergeTypeDefs(
+  typeSource: TypeSource,
+  config?: Omit<Partial<Config>, 'commentDescriptions'>,
 ): DocumentNode;
-export function mergeTypeDefs(typeSource: TypeSource, config?: Partial<Config>): DocumentNode | string {
+export function mergeTypeDefs(
+  typeSource: TypeSource,
+  config?: Partial<Config>,
+): DocumentNode | string {
   resetComments();
 
   const doc: DocumentNode = {
@@ -135,40 +142,70 @@ export function mergeTypeDefs(typeSource: TypeSource, config?: Partial<Config>):
 function visitTypeSources(
   typeSource: TypeSource,
   options: ParseOptions & GetDocumentNodeFromSchemaOptions,
+  allDirectives: DirectiveDefinitionNode[] = [],
   allNodes: DefinitionNode[] = [],
-  visitedTypeSources = new Set<TypeSource>()
+  visitedTypeSources = new Set<TypeSource>(),
 ) {
   if (typeSource && !visitedTypeSources.has(typeSource)) {
     visitedTypeSources.add(typeSource);
     if (typeof typeSource === 'function') {
-      visitTypeSources(typeSource(), options, allNodes, visitedTypeSources);
+      visitTypeSources(typeSource(), options, allDirectives, allNodes, visitedTypeSources);
     } else if (Array.isArray(typeSource)) {
       for (const type of typeSource) {
-        visitTypeSources(type, options, allNodes, visitedTypeSources);
+        visitTypeSources(type, options, allDirectives, allNodes, visitedTypeSources);
       }
     } else if (isSchema(typeSource)) {
       const documentNode = getDocumentNodeFromSchema(typeSource, options);
-      visitTypeSources(documentNode.definitions as DefinitionNode[], options, allNodes, visitedTypeSources);
+      visitTypeSources(
+        documentNode.definitions as DefinitionNode[],
+        options,
+        allDirectives,
+        allNodes,
+        visitedTypeSources,
+      );
     } else if (isStringTypes(typeSource) || isSourceTypes(typeSource)) {
       const documentNode = parse(typeSource, options);
-      visitTypeSources(documentNode.definitions as DefinitionNode[], options, allNodes, visitedTypeSources);
+      visitTypeSources(
+        documentNode.definitions as DefinitionNode[],
+        options,
+        allDirectives,
+        allNodes,
+        visitedTypeSources,
+      );
     } else if (typeof typeSource === 'object' && isDefinitionNode(typeSource)) {
-      allNodes.push(typeSource);
+      if (typeSource.kind === Kind.DIRECTIVE_DEFINITION) {
+        allDirectives.push(typeSource);
+      } else {
+        allNodes.push(typeSource);
+      }
     } else if (isDocumentNode(typeSource)) {
-      visitTypeSources(typeSource.definitions as DefinitionNode[], options, allNodes, visitedTypeSources);
+      visitTypeSources(
+        typeSource.definitions as DefinitionNode[],
+        options,
+        allDirectives,
+        allNodes,
+        visitedTypeSources,
+      );
     } else {
-      throw new Error(`typeDefs must contain only strings, documents, schemas, or functions, got ${typeof typeSource}`);
+      throw new Error(
+        `typeDefs must contain only strings, documents, schemas, or functions, got ${typeof typeSource}`,
+      );
     }
   }
-  return allNodes;
+  return { allDirectives, allNodes };
 }
 
 export function mergeGraphQLTypes(typeSource: TypeSource, config: Config): DefinitionNode[] {
   resetComments();
 
-  const allNodes = visitTypeSources(typeSource, config);
+  const { allDirectives, allNodes } = visitTypeSources(typeSource, config);
 
-  const mergedNodes: MergedResultMap = mergeGraphQLNodes(allNodes, config);
+  const mergedDirectives = mergeGraphQLNodes(allDirectives, config) as Record<
+    string,
+    DirectiveDefinitionNode
+  >;
+
+  const mergedNodes = mergeGraphQLNodes(allNodes, config, mergedDirectives);
 
   if (config?.useSchemaDefinition) {
     // XXX: right now we don't handle multiple schema definitions
@@ -178,7 +215,9 @@ export function mergeGraphQLTypes(typeSource: TypeSource, config: Config): Defin
     };
     const operationTypes = schemaDef.operationTypes as OperationTypeDefinitionNode[];
     for (const opTypeDefNodeType in DEFAULT_OPERATION_TYPE_NAME_MAP) {
-      const opTypeDefNode = operationTypes.find(operationType => operationType.operation === opTypeDefNodeType);
+      const opTypeDefNode = operationTypes.find(
+        operationType => operationType.operation === opTypeDefNodeType,
+      );
       if (!opTypeDefNode) {
         const possibleRootTypeName = DEFAULT_OPERATION_TYPE_NAME_MAP[opTypeDefNodeType];
         const existingPossibleRootType = mergedNodes[possibleRootTypeName];

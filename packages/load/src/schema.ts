@@ -1,8 +1,29 @@
-import { loadTypedefs, LoadTypedefsOptions, UnnormalizedTypeDefPointer, loadTypedefsSync } from './load-typedefs.js';
-import { GraphQLSchema, BuildSchemaOptions, Source as GraphQLSource, print, lexicographicSortSchema } from 'graphql';
+import {
+  BuildSchemaOptions,
+  GraphQLSchema,
+  Source as GraphQLSource,
+  lexicographicSortSchema,
+  print,
+} from 'graphql';
+import {
+  extractExtensionsFromSchema,
+  IExecutableSchemaDefinition,
+  mergeSchemas,
+} from '@graphql-tools/schema';
+import {
+  getResolversFromSchema,
+  IResolvers,
+  SchemaExtensions,
+  Source,
+  TypeSource,
+} from '@graphql-tools/utils';
 import { OPERATION_KINDS } from './documents.js';
-import { IExecutableSchemaDefinition, mergeSchemas, extractExtensionsFromSchema } from '@graphql-tools/schema';
-import { getResolversFromSchema, IResolvers, SchemaExtensions, Source, TypeSource } from '@graphql-tools/utils';
+import {
+  loadTypedefs,
+  LoadTypedefsOptions,
+  loadTypedefsSync,
+  UnnormalizedTypeDefPointer,
+} from './load-typedefs.js';
 
 export type LoadSchemaOptions = BuildSchemaOptions &
   LoadTypedefsOptions &
@@ -22,7 +43,7 @@ export type LoadSchemaOptions = BuildSchemaOptions &
  */
 export async function loadSchema(
   schemaPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
-  options: LoadSchemaOptions
+  options: LoadSchemaOptions,
 ): Promise<GraphQLSchema> {
   const sources = await loadTypedefs(schemaPointers, {
     ...options,
@@ -38,7 +59,7 @@ export async function loadSchema(
  */
 export function loadSchemaSync(
   schemaPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
-  options: LoadSchemaOptions
+  options: LoadSchemaOptions,
 ): GraphQLSchema {
   const sources = loadTypedefsSync(schemaPointers, {
     filterKinds: OPERATION_KINDS,
@@ -64,7 +85,12 @@ function includeSources(schema: GraphQLSchema, sources: Source[]) {
 }
 
 function getSchemaFromSources(sources: Source[], options: LoadSchemaOptions) {
-  if (sources.length === 1 && sources[0].schema != null && options.typeDefs == null && options.resolvers == null) {
+  if (
+    sources.length === 1 &&
+    sources[0].schema != null &&
+    options.typeDefs == null &&
+    options.resolvers == null
+  ) {
     return options.sort ? lexicographicSortSchema(sources[0].schema) : sources[0].schema;
   }
   const { typeDefs, resolvers, schemaExtensions } = collectSchemaParts(sources);

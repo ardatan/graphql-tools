@@ -1,10 +1,8 @@
-import { getNamedType, GraphQLOutputType, GraphQLList, GraphQLSchema, print } from 'graphql';
-
 import DataLoader from 'dataloader';
-
-import { delegateToSchema, SubschemaConfig } from '@graphql-tools/delegate';
+import { getNamedType, GraphQLList, GraphQLOutputType, GraphQLSchema, print } from 'graphql';
+import { ValueOrPromise } from 'value-or-promise';
+import { delegateToSchema, getActualFieldNodes, SubschemaConfig } from '@graphql-tools/delegate';
 import { memoize1, memoize2, relocatedError } from '@graphql-tools/utils';
-
 import { BatchDelegateOptions } from './types.js';
 
 function createBatchFn<K = any>(options: BatchDelegateOptions) {
@@ -12,43 +10,48 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
   const fieldName = options.fieldName ?? options.info.fieldName;
   const { valuesFromResults, lazyOptionsFn } = options;
 
-  return async function batchFn(keys: ReadonlyArray<K>) {
-    const results = await delegateToSchema({
-      returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
-      onLocatedError: originalError => {
-        if (originalError.path == null) {
-          return originalError;
-        }
+  return function batchFn(keys: ReadonlyArray<K>) {
+    return new ValueOrPromise(() =>
+      delegateToSchema({
+        returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
+        onLocatedError: originalError => {
+          if (originalError.path == null) {
+            return originalError;
+          }
 
-        const [pathFieldName, pathNumber] = originalError.path;
+          const [pathFieldName, pathNumber] = originalError.path;
 
-        if (pathFieldName !== fieldName) {
-          return originalError;
-        }
-        const pathNumberType = typeof pathNumber;
-        if (pathNumberType !== 'number') {
-          return originalError;
-        }
+          if (pathFieldName !== fieldName) {
+            return originalError;
+          }
+          const pathNumberType = typeof pathNumber;
+          if (pathNumberType !== 'number') {
+            return originalError;
+          }
 
-        return relocatedError(originalError, originalError.path.slice(0, 0).concat(originalError.path.slice(2)));
-      },
-      args: argsFromKeys(keys),
-      ...(lazyOptionsFn == null ? options : lazyOptionsFn(options)),
+          return relocatedError(
+            originalError,
+            originalError.path.slice(0, 0).concat(originalError.path.slice(2)),
+          );
+        },
+        args: argsFromKeys(keys),
+        ...(lazyOptionsFn == null ? options : lazyOptionsFn(options, keys)),
+      }),
+    ).then(results => {
+      if (results instanceof Error) {
+        return keys.map(() => results);
+      }
+
+      const values = valuesFromResults == null ? results : valuesFromResults(results, keys);
+
+      return Array.isArray(values) ? values : keys.map(() => values);
     });
-
-    if (results instanceof Error) {
-      return keys.map(() => results);
-    }
-
-    const values = valuesFromResults == null ? results : valuesFromResults(results, keys);
-
-    return Array.isArray(values) ? values : keys.map(() => values);
   };
 }
 
 const getLoadersMap = memoize2(function getLoadersMap<K, V, C>(
   _context: Record<string, any>,
-  _schema: GraphQLSchema | SubschemaConfig<any, any, any, any>
+  _schema: GraphQLSchema | SubschemaConfig<any, any, any, any>,
 ) {
   return new Map<string, DataLoader<K, V, C>>();
 });
@@ -68,14 +71,16 @@ function defaultCacheKeyFn(key: any) {
   return key;
 }
 
-export function getLoader<K = any, V = any, C = K>(options: BatchDelegateOptions<any>): DataLoader<K, V, C> {
+export function getLoader<K = any, V = any, C = K>(
+  options: BatchDelegateOptions<any>,
+): DataLoader<K, V, C> {
   const {
     schema,
     context,
     info,
     fieldName = info.fieldName,
     dataLoaderOptions,
-    fieldNodes = info.fieldNodes,
+    fieldNodes = getActualFieldNodes(info.fieldNodes[0]),
     selectionSet = fieldNodes[0].selectionSet,
   } = options;
   const loaders = getLoadersMap<K, V, C>(context ?? GLOBAL_CONTEXT, schema);

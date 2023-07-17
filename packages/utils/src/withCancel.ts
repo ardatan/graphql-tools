@@ -6,7 +6,7 @@ async function defaultAsyncIteratorReturn(value?: any) {
 
 const proxyMethodFactory = memoize2(function proxyMethodFactory<
   T,
-  TMethod extends T[keyof T] & ((...args: any[]) => any)
+  TMethod extends T[keyof T] & ((...args: any[]) => any),
 >(target: T, targetMethod: TMethod) {
   return function proxyMethod(...args: Parameters<TMethod>) {
     return Reflect.apply(targetMethod, target, args);
@@ -15,7 +15,7 @@ const proxyMethodFactory = memoize2(function proxyMethodFactory<
 
 export function getAsyncIteratorWithCancel<T, TReturn = any>(
   asyncIterator: AsyncIterator<T>,
-  onCancel: (value?: TReturn) => void | Promise<void>
+  onCancel: (value?: TReturn) => void | Promise<void>,
 ): AsyncIterator<T> {
   return new Proxy(asyncIterator, {
     has(asyncIterator, prop) {
@@ -40,16 +40,24 @@ export function getAsyncIteratorWithCancel<T, TReturn = any>(
   });
 }
 
-export function getAsyncIterableWithCancel<T, TAsyncIterable extends AsyncIterable<T>, TReturn = any>(
+export function getAsyncIterableWithCancel<
+  T,
+  TAsyncIterable extends AsyncIterable<T>,
+  TReturn = any,
+>(
   asyncIterable: TAsyncIterable,
-  onCancel: (value?: TReturn) => void | Promise<void>
+  onCancel: (value?: TReturn) => void | Promise<void>,
 ): TAsyncIterable {
   return new Proxy(asyncIterable, {
     get(asyncIterable, prop, receiver) {
       const existingPropValue = Reflect.get(asyncIterable, prop, receiver);
       if (Symbol.asyncIterator === prop) {
         return function asyncIteratorFactory() {
-          const asyncIterator: AsyncIterator<T> = Reflect.apply(existingPropValue as any, asyncIterable as any, []);
+          const asyncIterator: AsyncIterator<T> = Reflect.apply(
+            existingPropValue as any,
+            asyncIterable as any,
+            [],
+          );
           return getAsyncIteratorWithCancel(asyncIterator, onCancel);
         };
       } else if (typeof existingPropValue === 'function') {

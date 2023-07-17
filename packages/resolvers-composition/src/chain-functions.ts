@@ -6,6 +6,6 @@ export function chainFunctions(funcs: any[]) {
   return funcs.reduce(
     (a, b) =>
       (...args: any[]) =>
-        a(b(...args))
+        a(b(...args)),
   );
 }

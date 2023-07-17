@@ -4,41 +4,61 @@ import { Callout } from '@theguild/components'
 
 These utils are useful for scanning, loading and building a GraphQL schema from any input.
 
-You can specify a GraphQL endpoint, local introspection JSON file, code file that `export`s a GraphQLSchema, AST string and `.graphql` files (with support for `glob` expression).
+You can specify a GraphQL endpoint, local introspection JSON file, code file that `export`s a
+GraphQLSchema, AST string and `.graphql` files (with support for `glob` expression).
 
-All found schema files can be merged into a complete schema. There is support for `#import` syntax (formerly known as [`graphql-import`](https://github.com/ardatan/graphql-import)).
+All found schema files can be merged into a complete schema. There is support for `#import` syntax
+(formerly known as [`graphql-import`](https://github.com/ardatan/graphql-import)).
 
-The user is given the option of implementing their own loader (implement the interface `SchemaLoader`).
+The user is given the option of implementing their own loader (implement the interface
+`SchemaLoader`).
 
-The schema loading until is using loaders, and implemented using [chain-of-responsibility pattern](https://en.wikipedia.org/wiki/Chain-of-responsibility_pattern).
+The schema loading until is using loaders, and implemented using
+[chain-of-responsibility pattern](https://en.wikipedia.org/wiki/Chain-of-responsibility_pattern).
 
-Specifying the loader is not necessary. The user needs only provide the inputs. The utils will detect it automatically.
+Specifying the loader is not necessary. The user needs only provide the inputs. The utils will
+detect it automatically.
 
 For notes on typescript, refer to [loaders](/docs/schema-loading#loaders)
 
 <Callout type="warning">
-  Schema and document loading doesn't work non Node.js environments, and if you are using a bundler like webpack, rollup
-  or Vite, you cannot use dynamic loaders.
+  Schema and document loading doesn't work non Node.js environments, and if you are using a bundler
+  like webpack, rollup or Vite, you cannot use dynamic loaders.
 </Callout>
 
 ## Load `typeDefs`/`DocumentNode` and `resolvers` from Files
 
 ```ts
 const { loadFiles } = require('@graphql-tools/load-files')
-const { createServer } = require('@graphql-yoga/node')
+const { createYoga, createSchema } = require('graphql-yoga')
+const { createServer } = require('http')
 
 async function main() {
-  const server = createServer({
-    server: {
-      typeDefs: await loadFiles('src/typeDefs/**/*.graphql'),
-      resolvers: await loadFiles('src/resolvers/**/*.{js,ts}')
-    }
+  const schema = createSchema({
+    typeDefs: await loadFiles('src/typeDefs/**/*.graphql'),
+    resolvers: await loadFiles('src/resolvers/**/*.{js,ts}')
   })
-  await server.start()
+
+  const yoga = createYoga({
+    schema
+  })
+
+  const server = createServer(yoga)
+
+  server.listen(4000, () => {
+    console.log('Server is running on http://localhost:4000')
+  })
 }
+
+main().catch(error => {
+  console.error(error)
+  process.exit(1)
+})
 ```
 
-<Callout type="warning">`loadFiles` doesn't support `#import` syntax. See below if you need that.</Callout>
+<Callout type="warning">
+  `loadFiles` doesn't support `#import` syntax. See below if you need that.
+</Callout>
 
 ## Load `GraphQLSchema` by Using Different Loaders from Different Sources
 
@@ -130,11 +150,12 @@ type Comment {
 You can extend the loaded schema with resolvers
 
 ```ts
+import { createServer } from 'http'
 import { join } from 'node:path'
-import { loadSchema } from '@graphql-tools/load'
+import { createYoga } from 'graphql-yoga'
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader'
+import { loadSchema } from '@graphql-tools/load'
 import { addResolversToSchema } from '@graphql-tools/schema'
-import { createServer } from '@graphql-yoga/node'
 
 async function main() {
   // Load schema from the file
@@ -148,23 +169,32 @@ async function main() {
   // Add resolvers to the schema
   const schemaWithResolvers = addResolversToSchema({ schema, resolvers })
 
-  const server = createServer({
+  const yoga = createYoga({
     schema: schemaWithResolvers
   })
 
-  await server.start()
+  const server = createServer(yoga)
+
+  server.listen(4000, () => {
+    console.log('Server is running on http://localhost:4000')
+  })
 }
 
-main().catch(error => console.error(error))
+main().catch(error => {
+  console.error(error)
+  process.exit(1)
+})
 ```
 
 ## Loaders
 
-There are a lot of loaders that load your schemas and documents from different sources. You need to provide those loaders under `loaders` parameter like below:
+There are a lot of loaders that load your schemas and documents from different sources. You need to
+provide those loaders under `loaders` parameter like below:
 
 <Callout>
-  Watch [Episode #22 of `graphql.wtf`](https://graphql.wtf/episodes/22-graphql-schema-file-loading-with-graphql-tools)
-  for a quick introduction to file loaders:
+  Watch [Episode #22 of
+  `graphql.wtf`](https://graphql.wtf/episodes/22-graphql-schema-file-loading-with-graphql-tools) for
+  a quick introduction to file loaders:
 </Callout>
 
 <iframe src="https://www.youtube.com/embed/I79_b7K0rIk" />
@@ -175,8 +205,8 @@ This loader loads your GraphQLSchema from `.graphql` files like below:
 
 ```ts
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader'
-import { addResolversToSchema } from '@graphql-tools/schema'
 import { loadSchema } from '@graphql-tools/load'
+import { addResolversToSchema } from '@graphql-tools/schema'
 
 // schema is `GraphQLSchema` instance
 const schema = await loadSchema('schema.graphql', {
@@ -210,8 +240,8 @@ const schema = await loadSchema('graphql/**/*.graphql', {
 If you use `loadDocuments`, it gives you an array of document source objects;
 
 ```ts
-import { loadDocuments } from '@graphql-tools/load'
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader'
+import { loadDocuments } from '@graphql-tools/load'
 
 const documents = await loadDocuments('graphql/**/*.graphql', {
   // load files and merge them into a single schema object
@@ -219,7 +249,9 @@ const documents = await loadDocuments('graphql/**/*.graphql', {
 })
 ```
 
-<Callout>This loader only supports Node environment because it relies on File System of your platform.</Callout>
+<Callout>
+  This loader only supports Node environment because it relies on File System of your platform.
+</Callout>
 
 ### `JsonFileLoader`
 
@@ -228,8 +260,8 @@ This loader handles schema introspection and document nodes in `.json` files.
 Introspection is handled in the example below:
 
 ```ts
-import { loadSchema } from '@graphql-tools/load'
 import { JsonFileLoader } from '@graphql-tools/json-file-loader'
+import { loadSchema } from '@graphql-tools/load'
 import { addMocksToSchema } from '@graphql-tools/mock'
 
 const schema = await loadSchema('schema-introspection.json', {
@@ -240,23 +272,26 @@ const schema = await loadSchema('schema-introspection.json', {
 const mockedSchema = addMocksToSchema({ schema })
 ```
 
-This loader handles `json` files if they represent `DocumentNode`, and returns an array of document sources.
+This loader handles `json` files if they represent `DocumentNode`, and returns an array of document
+sources.
 
 ```ts
-import { loadDocuments } from '@graphql-tools/load'
 import { JsonFileLoader } from '@graphql-tools/json-file-loader'
+import { loadDocuments } from '@graphql-tools/load'
 
 const documents = await loadDocuments('**/*-document.json', {
   loaders: [new JsonFileLoader()]
 })
 ```
 
-<Callout>This loader only supports Node environment because it relies on File System of your platform.</Callout>
+<Callout>
+  This loader only supports Node environment because it relies on File System of your platform.
+</Callout>
 
 ### `CodeFileLoader`
 
-This loader extracts GraphQL SDL string, exported `GraphQLSchema` and `DocumentNode` from TypeScript and JavaScript code files.
-Let's say you have the following code file;
+This loader extracts GraphQL SDL string, exported `GraphQLSchema` and `DocumentNode` from TypeScript
+and JavaScript code files. Let's say you have the following code file;
 
 ```ts
 const ME_QUERY = gql`
@@ -271,11 +306,13 @@ const ME_QUERY = gql`
 `
 ```
 
-And the following code will extract `Me` query operation from that code file without executing it using [GraphQL Tag Pluck](/docs/graphql-tag-pluck). It understands `/* GraphQL */` magic comment and `gql` literals. You can configure [GraphQL Tag Pluck](/docs/graphql-tag-pluck) using `pluckConfig`.
+And the following code will extract `Me` query operation from that code file without executing it
+using [GraphQL Tag Pluck](/docs/graphql-tag-pluck). It understands `/* GraphQL */` magic comment and
+`gql` literals. You can configure [GraphQL Tag Pluck](/docs/graphql-tag-pluck) using `pluckConfig`.
 
 ```ts
-import { loadDocuments } from '@graphql-tools/load'
 import { CodeFileLoader } from '@graphql-tools/code-file-loader'
+import { loadDocuments } from '@graphql-tools/load'
 
 const documents = await loadDocuments('./src/**/graphql/*.ts', {
   loaders: [new CodeFileLoader()],
@@ -305,14 +342,17 @@ export const schema = new GraphQLSchema(/* ... */)
 </Callout>
 
 <Callout type="warning">
-  **Note**: If you are using typescript and [path aliases](https://typescriptlang.org/tsconfig#paths), you may also need
-  [tsconfig-paths](https://npmjs.com/package/tsconfig-paths). Further reading can be found at the [GitHub
-  issue.](https://github.com/ardatan/graphql-tools/issues/1544)
+  **Note**: If you are using typescript and [path
+  aliases](https://typescriptlang.org/tsconfig#paths), you may also need
+  [tsconfig-paths](https://npmjs.com/package/tsconfig-paths). Further reading can be found at the
+  [GitHub issue.](https://github.com/ardatan/graphql-tools/issues/1544)
 </Callout>
 
 ### `UrlLoader`
 
-This loader generates [(a fully executable remote schema using @graphql-tools/wrap)](/docs/remote-schemas) from a URL endpoint.
+This loader generates
+[(a fully executable remote schema using @graphql-tools/wrap)](/docs/remote-schemas) from a URL
+endpoint.
 
 ```ts
 import { loadSchema } from '@graphql-tools/load'
@@ -341,12 +381,13 @@ const schema = await loadSchema('http://localhost:3000/graphql', {
 
 <Callout emoji="🪄">This loader supports both browser and node environments.</Callout>
 
-In browser this remote schema can be called using vanilla GraphQL-js and act like a simple GraphQL client.
+In browser this remote schema can be called using vanilla GraphQL-js and act like a simple GraphQL
+client.
 
 ```ts
+import { graphql } from 'graphql'
 import { loadSchema } from '@graphql-tools/load'
 import { UrlLoader } from '@graphql-tools/url-loader'
-import { graphql } from 'graphql'
 
 const schema = await loadSchema('http://localhost:3000/graphql', {
   loaders: [new UrlLoader()]

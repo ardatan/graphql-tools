@@ -1,6 +1,11 @@
+import {
+  ASTNode,
+  DocumentNode,
+  Kind,
+  ObjectTypeDefinitionNode,
+  valueFromASTUntyped,
+} from 'graphql';
 import { DirectiveUsage } from './types.js';
-
-import { ASTNode, DocumentNode, Kind, ObjectTypeDefinitionNode, valueFromASTUntyped } from 'graphql';
 
 function isTypeWithFields(t: ASTNode): t is ObjectTypeDefinitionNode {
   return t.kind === Kind.OBJECT_TYPE_DEFINITION || t.kind === Kind.OBJECT_TYPE_EXTENSION;
@@ -13,7 +18,9 @@ export type TypeAndFieldToArgumentDirectives = {
   [typeAndField: string]: ArgumentToDirectives;
 };
 
-export function getArgumentsWithDirectives(documentNode: DocumentNode): TypeAndFieldToArgumentDirectives {
+export function getArgumentsWithDirectives(
+  documentNode: DocumentNode,
+): TypeAndFieldToArgumentDirectives {
   const result: TypeAndFieldToArgumentDirectives = {};
 
   const allTypes = documentNode.definitions.filter(isTypeWithFields);
@@ -37,7 +44,7 @@ export function getArgumentsWithDirectives(documentNode: DocumentNode): TypeAndF
           name: d.name.value,
           args: (d.arguments || []).reduce(
             (prev, dArg) => ({ ...prev, [dArg.name.value]: valueFromASTUntyped(dArg.value) }),
-            {}
+            {},
           ),
         }));
 

@@ -1,9 +1,9 @@
-import gql from 'graphql-tag';
-import { composeResolvers, ResolversComposerMapping } from '../src/index.js';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { GraphQLScalarType, Kind } from 'graphql';
+import gql from 'graphql-tag';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { inspect } from '@graphql-tools/utils';
+import { composeResolvers, ResolversComposerMapping } from '../src/index.js';
 
 function createAsyncIterator<T>(array: T[]): AsyncIterator<T, T, T> {
   let i = 0;
@@ -112,30 +112,31 @@ describe('Resolvers composition', () => {
     };
 
     const resolversComposition = {
-      'Subscription.foo': (prevAsyncIteratorFactory: any) => (root: any, args: any, context: any, info: any) => {
-        const prevAsyncIterator = prevAsyncIteratorFactory(root, args, context, info);
-        const newAsyncIterator = createAsyncIterator(array2);
-        return {
-          async next() {
-            const { value: v1, done } = await prevAsyncIterator.next();
-            const { value: v2 } = await newAsyncIterator.next();
-            if (!done) {
-              return {
-                value: v1 + v2,
-                done,
-              };
-            } else {
-              return {
-                value: undefined,
-                done,
-              };
-            }
-          },
-          [Symbol.asyncIterator](): AsyncIterator<number> {
-            return this;
-          },
-        };
-      },
+      'Subscription.foo':
+        (prevAsyncIteratorFactory: any) => (root: any, args: any, context: any, info: any) => {
+          const prevAsyncIterator = prevAsyncIteratorFactory(root, args, context, info);
+          const newAsyncIterator = createAsyncIterator(array2);
+          return {
+            async next() {
+              const { value: v1, done } = await prevAsyncIterator.next();
+              const { value: v2 } = await newAsyncIterator.next();
+              if (!done) {
+                return {
+                  value: v1 + v2,
+                  done,
+                };
+              } else {
+                return {
+                  value: undefined,
+                  done,
+                };
+              }
+            },
+            [Symbol.asyncIterator](): AsyncIterator<number> {
+              return this;
+            },
+          };
+        },
     };
     const composedResolvers = composeResolvers(resolvers, resolversComposition);
     const asyncIterator = composedResolvers.Subscription.foo.subscribe();
@@ -194,7 +195,12 @@ describe('Resolvers composition', () => {
     const resolversComposition: ResolversComposerMapping<typeof resolvers> = {
       Subscription: {
         foo: prevAsyncIteratorFactory => (root, args, context, info) => {
-          const prevAsyncIterator = prevAsyncIteratorFactory(root, args, context, info) as AsyncIterator<any>;
+          const prevAsyncIterator = prevAsyncIteratorFactory(
+            root,
+            args,
+            context,
+            info,
+          ) as AsyncIterator<any>;
           const newAsyncIterator = createAsyncIterator(array2);
           return {
             async next() {

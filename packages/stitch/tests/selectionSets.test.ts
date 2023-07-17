@@ -1,17 +1,22 @@
 import { graphql, OperationTypeNode } from 'graphql';
-
-import { delegateToSchema } from '@graphql-tools/delegate';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
+import { delegateToSchema } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { assertSome, IResolvers } from '@graphql-tools/utils';
-
+import {
+  bookingSchema,
+  Property,
+  propertySchema,
+  sampleData,
+} from '../../testing/fixtures/schemas.js';
 import { stitchSchemas } from '../src/stitchSchemas.js';
-
-import { propertySchema, bookingSchema, sampleData, Property } from '../../testing/fixtures/schemas.js';
 
 describe('delegateToSchema ', () => {
   test('should add selection sets for deep types', async () => {
-    function findPropertyByLocationName(properties: Record<string, Property>, name: string): Property | undefined {
+    function findPropertyByLocationName(
+      properties: Record<string, Property>,
+      name: string,
+    ): Property | undefined {
       for (const key in properties) {
         const property = properties[key];
         if (property.location.name === name) {
@@ -125,7 +130,10 @@ describe('delegateToSchema ', () => {
         },
         Query: {
           networks: (_root, { ids }) =>
-            ids.map((id: any) => ({ id, domains: [{ id: Number(id) + 3, name: `network${id}.com` }] })),
+            ids.map((id: any) => ({
+              id,
+              domains: [{ id: Number(id) + 3, name: `network${id}.com` }],
+            })),
         },
       },
     });

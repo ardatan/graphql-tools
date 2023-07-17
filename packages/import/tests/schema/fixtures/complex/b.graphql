@@ -4733,7 +4733,11 @@ type Mutation {
     placeId: ID
     place: BookingplacePlace
   ): Booking
-  createCity(name: String!, neighbourhoodsIds: [ID!], neighbourhoods: [CityneighbourhoodsNeighbourhood!]): City
+  createCity(
+    name: String!
+    neighbourhoodsIds: [ID!]
+    neighbourhoods: [CityneighbourhoodsNeighbourhood!]
+  ): City
   createCreditCardInformation(
     cardNumber: String!
     country: String!
@@ -5004,7 +5008,12 @@ type Mutation {
     placeId: ID
     place: BookingplacePlace
   ): Booking
-  updateCity(id: ID!, name: String, neighbourhoodsIds: [ID!], neighbourhoods: [CityneighbourhoodsNeighbourhood!]): City
+  updateCity(
+    id: ID!
+    name: String
+    neighbourhoodsIds: [ID!]
+    neighbourhoods: [CityneighbourhoodsNeighbourhood!]
+  ): City
   updateCreditCardInformation(
     cardNumber: String
     country: String
@@ -5278,15 +5287,27 @@ type Mutation {
     update: UpdateExperienceCategory!
     create: CreateExperienceCategory!
   ): ExperienceCategory
-  updateOrCreateGuestRequirements(update: UpdateGuestRequirements!, create: CreateGuestRequirements!): GuestRequirements
+  updateOrCreateGuestRequirements(
+    update: UpdateGuestRequirements!
+    create: CreateGuestRequirements!
+  ): GuestRequirements
   updateOrCreateHouseRules(update: UpdateHouseRules!, create: CreateHouseRules!): HouseRules
   updateOrCreateLocation(update: UpdateLocation!, create: CreateLocation!): Location
   updateOrCreateMessage(update: UpdateMessage!, create: CreateMessage!): Message
-  updateOrCreateNeighbourhood(update: UpdateNeighbourhood!, create: CreateNeighbourhood!): Neighbourhood
+  updateOrCreateNeighbourhood(
+    update: UpdateNeighbourhood!
+    create: CreateNeighbourhood!
+  ): Neighbourhood
   updateOrCreateNotification(update: UpdateNotification!, create: CreateNotification!): Notification
   updateOrCreatePayment(update: UpdatePayment!, create: CreatePayment!): Payment
-  updateOrCreatePaymentAccount(update: UpdatePaymentAccount!, create: CreatePaymentAccount!): PaymentAccount
-  updateOrCreatePaypalInformation(update: UpdatePaypalInformation!, create: CreatePaypalInformation!): PaypalInformation
+  updateOrCreatePaymentAccount(
+    update: UpdatePaymentAccount!
+    create: CreatePaymentAccount!
+  ): PaymentAccount
+  updateOrCreatePaypalInformation(
+    update: UpdatePaypalInformation!
+    create: CreatePaypalInformation!
+  ): PaypalInformation
   updateOrCreatePicture(update: UpdatePicture!, create: CreatePicture!): Picture
   updateOrCreatePlace(update: UpdatePlace!, create: CreatePlace!): Place
   updateOrCreatePlaceViews(update: UpdatePlaceViews!, create: CreatePlaceViews!): PlaceViews
@@ -5323,20 +5344,41 @@ type Mutation {
     creditcardCreditCardInformationId: ID!
     paymentAccountPaymentAccountId: ID!
   ): SetCreditCardInformationPayload
-  setExperienceCategory(categoryExperienceCategoryId: ID!, experienceExperienceId: ID!): SetExperienceCategoryPayload
-  setExperienceLocation(experienceExperienceId: ID!, locationLocationId: ID!): SetExperienceLocationPayload
-  setExperiencePreview(experienceExperienceId: ID!, previewPictureId: ID!): SetExperiencePreviewPayload
-  setGuestRequirements(guestRequirementsGuestRequirementsId: ID!, placePlaceId: ID!): SetGuestRequirementsPayload
-  setHomePreview(homePreviewPictureId: ID!, neighbourHoodNeighbourhoodId: ID!): SetHomePreviewPayload
+  setExperienceCategory(
+    categoryExperienceCategoryId: ID!
+    experienceExperienceId: ID!
+  ): SetExperienceCategoryPayload
+  setExperienceLocation(
+    experienceExperienceId: ID!
+    locationLocationId: ID!
+  ): SetExperienceLocationPayload
+  setExperiencePreview(
+    experienceExperienceId: ID!
+    previewPictureId: ID!
+  ): SetExperiencePreviewPayload
+  setGuestRequirements(
+    guestRequirementsGuestRequirementsId: ID!
+    placePlaceId: ID!
+  ): SetGuestRequirementsPayload
+  setHomePreview(
+    homePreviewPictureId: ID!
+    neighbourHoodNeighbourhoodId: ID!
+  ): SetHomePreviewPayload
   setHouseRules(houseRulesHouseRulesId: ID!, placePlaceId: ID!): SetHouseRulesPayload
-  setPaypalInformation(paypalPaypalInformationId: ID!, paymentAccountPaymentAccountId: ID!): SetPaypalInformationPayload
+  setPaypalInformation(
+    paypalPaypalInformationId: ID!
+    paymentAccountPaymentAccountId: ID!
+  ): SetPaypalInformationPayload
   setPlaceAmenities(amenitiesAmenitiesId: ID!, placePlaceId: ID!): SetPlaceAmenitiesPayload
   setPlaceLocation(locationLocationId: ID!, placePlaceId: ID!): SetPlaceLocationPayload
   setPlacePrice(pricingPricingId: ID!, placePlaceId: ID!): SetPlacePricePayload
   setPlaceViews(viewsPlaceViewsId: ID!, placePlaceId: ID!): SetPlaceViewsPayload
   setPolicies(policiesPoliciesId: ID!, placePlaceId: ID!): SetPoliciesPayload
   setProfilePicture(profilePicturePictureId: ID!, userUserId: ID!): SetProfilePicturePayload
-  setRestaurantLocation(restaurantRestaurantId: ID!, locationLocationId: ID!): SetRestaurantLocationPayload
+  setRestaurantLocation(
+    restaurantRestaurantId: ID!
+    locationLocationId: ID!
+  ): SetRestaurantLocationPayload
   setUserLocation(locationLocationId: ID!, userUserId: ID!): SetUserLocationPayload
   unsetCreditCardInformation(
     creditcardCreditCardInformationId: ID!
@@ -5346,28 +5388,61 @@ type Mutation {
     categoryExperienceCategoryId: ID!
     experienceExperienceId: ID!
   ): UnsetExperienceCategoryPayload
-  unsetHomePreview(homePreviewPictureId: ID!, neighbourHoodNeighbourhoodId: ID!): UnsetHomePreviewPayload
+  unsetHomePreview(
+    homePreviewPictureId: ID!
+    neighbourHoodNeighbourhoodId: ID!
+  ): UnsetHomePreviewPayload
   unsetProfilePicture(profilePicturePictureId: ID!, userUserId: ID!): UnsetProfilePicturePayload
   unsetUserLocation(locationLocationId: ID!, userUserId: ID!): UnsetUserLocationPayload
   addToBookee(bookingsBookingId: ID!, bookeeUserId: ID!): AddToBookeePayload
-  addToCityNeighbourhood(cityCityId: ID!, neighbourhoodsNeighbourhoodId: ID!): AddToCityNeighbourhoodPayload
-  addToExperienceHost(hostingExperiencesExperienceId: ID!, hostUserId: ID!): AddToExperienceHostPayload
-  addToExperienceReviews(reviewsReviewId: ID!, experienceExperienceId: ID!): AddToExperienceReviewsPayload
-  addToNeighbourhood(neighbourHoodNeighbourhoodId: ID!, locationsLocationId: ID!): AddToNeighbourhoodPayload
+  addToCityNeighbourhood(
+    cityCityId: ID!
+    neighbourhoodsNeighbourhoodId: ID!
+  ): AddToCityNeighbourhoodPayload
+  addToExperienceHost(
+    hostingExperiencesExperienceId: ID!
+    hostUserId: ID!
+  ): AddToExperienceHostPayload
+  addToExperienceReviews(
+    reviewsReviewId: ID!
+    experienceExperienceId: ID!
+  ): AddToExperienceReviewsPayload
+  addToNeighbourhood(
+    neighbourHoodNeighbourhoodId: ID!
+    locationsLocationId: ID!
+  ): AddToNeighbourhoodPayload
   addToNotifications(notificationsNotificationId: ID!, userUserId: ID!): AddToNotificationsPayload
-  addToPaymentAccounts(paymentMethodPaymentAccountId: ID!, paymentsPaymentId: ID!): AddToPaymentAccountsPayload
+  addToPaymentAccounts(
+    paymentMethodPaymentAccountId: ID!
+    paymentsPaymentId: ID!
+  ): AddToPaymentAccountsPayload
   addToPlaceBooking(bookingsBookingId: ID!, placePlaceId: ID!): AddToPlaceBookingPayload
   addToPlaceOwner(ownedPlacesPlaceId: ID!, hostUserId: ID!): AddToPlaceOwnerPayload
   addToPlacePictures(picturesPictureId: ID!, placePlaceId: ID!): AddToPlacePicturesPayload
   addToPlaceReviews(reviewsReviewId: ID!, placePlaceId: ID!): AddToPlaceReviewsPayload
   addToReceivedMessages(receivedMessagesMessageId: ID!, toUserId: ID!): AddToReceivedMessagesPayload
-  addToRestaurantPicture(reservationRestaurantId: ID!, picturesPictureId: ID!): AddToRestaurantPicturePayload
+  addToRestaurantPicture(
+    reservationRestaurantId: ID!
+    picturesPictureId: ID!
+  ): AddToRestaurantPicturePayload
   addToSentMessages(sentMessagesMessageId: ID!, fromUserId: ID!): AddToSentMessagesPayload
-  addToUserPaymentAccounts(paymentAccountPaymentAccountId: ID!, userUserId: ID!): AddToUserPaymentAccountsPayload
-  removeFromExperienceReviews(reviewsReviewId: ID!, experienceExperienceId: ID!): RemoveFromExperienceReviewsPayload
-  removeFromNeighbourhood(neighbourHoodNeighbourhoodId: ID!, locationsLocationId: ID!): RemoveFromNeighbourhoodPayload
+  addToUserPaymentAccounts(
+    paymentAccountPaymentAccountId: ID!
+    userUserId: ID!
+  ): AddToUserPaymentAccountsPayload
+  removeFromExperienceReviews(
+    reviewsReviewId: ID!
+    experienceExperienceId: ID!
+  ): RemoveFromExperienceReviewsPayload
+  removeFromNeighbourhood(
+    neighbourHoodNeighbourhoodId: ID!
+    locationsLocationId: ID!
+  ): RemoveFromNeighbourhoodPayload
   removeFromPlacePictures(picturesPictureId: ID!, placePlaceId: ID!): RemoveFromPlacePicturesPayload
-  removeFromRestaurantPicture(reservationRestaurantId: ID!, picturesPictureId: ID!): RemoveFromRestaurantPicturePayload
+  removeFromRestaurantPicture(
+    reservationRestaurantId: ID!
+    picturesPictureId: ID!
+  ): RemoveFromRestaurantPicturePayload
   createUser(
     email: String!
     firstName: String!
@@ -11498,10 +11573,16 @@ type Subscription {
   Amenities(filter: AmenitiesSubscriptionFilter): AmenitiesSubscriptionPayload
   Booking(filter: BookingSubscriptionFilter): BookingSubscriptionPayload
   City(filter: CitySubscriptionFilter): CitySubscriptionPayload
-  CreditCardInformation(filter: CreditCardInformationSubscriptionFilter): CreditCardInformationSubscriptionPayload
+  CreditCardInformation(
+    filter: CreditCardInformationSubscriptionFilter
+  ): CreditCardInformationSubscriptionPayload
   Experience(filter: ExperienceSubscriptionFilter): ExperienceSubscriptionPayload
-  ExperienceCategory(filter: ExperienceCategorySubscriptionFilter): ExperienceCategorySubscriptionPayload
-  GuestRequirements(filter: GuestRequirementsSubscriptionFilter): GuestRequirementsSubscriptionPayload
+  ExperienceCategory(
+    filter: ExperienceCategorySubscriptionFilter
+  ): ExperienceCategorySubscriptionPayload
+  GuestRequirements(
+    filter: GuestRequirementsSubscriptionFilter
+  ): GuestRequirementsSubscriptionPayload
   HouseRules(filter: HouseRulesSubscriptionFilter): HouseRulesSubscriptionPayload
   Location(filter: LocationSubscriptionFilter): LocationSubscriptionPayload
   Message(filter: MessageSubscriptionFilter): MessageSubscriptionPayload
@@ -11509,7 +11590,9 @@ type Subscription {
   Notification(filter: NotificationSubscriptionFilter): NotificationSubscriptionPayload
   Payment(filter: PaymentSubscriptionFilter): PaymentSubscriptionPayload
   PaymentAccount(filter: PaymentAccountSubscriptionFilter): PaymentAccountSubscriptionPayload
-  PaypalInformation(filter: PaypalInformationSubscriptionFilter): PaypalInformationSubscriptionPayload
+  PaypalInformation(
+    filter: PaypalInformationSubscriptionFilter
+  ): PaypalInformationSubscriptionPayload
   Picture(filter: PictureSubscriptionFilter): PictureSubscriptionPayload
   Place(filter: PlaceSubscriptionFilter): PlaceSubscriptionPayload
   PlaceViews(filter: PlaceViewsSubscriptionFilter): PlaceViewsSubscriptionPayload

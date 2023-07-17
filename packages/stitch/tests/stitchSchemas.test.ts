@@ -1,41 +1,45 @@
 import {
   graphql,
-  GraphQLSchema,
   GraphQLObjectType,
+  GraphQLResolveInfo,
   GraphQLScalarType,
+  GraphQLSchema,
+  OperationTypeNode,
   parse,
   printSchema,
-  GraphQLResolveInfo,
-  OperationTypeNode,
 } from 'graphql';
-
 import { delegateToSchema, SubschemaConfig, Transform } from '@graphql-tools/delegate';
+import { execute, subscribe } from '@graphql-tools/executor';
+import { addMocksToSchema } from '@graphql-tools/mock';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas } from '../src/stitchSchemas.js';
 import {
-  getResolversFromSchema,
-  IResolvers,
-  ExecutionResult,
   assertSome,
   createGraphQLError,
+  ExecutionResult,
+  getResolversFromSchema,
+  IResolvers,
 } from '@graphql-tools/utils';
-
-import { addMocksToSchema } from '@graphql-tools/mock';
-
 import {
-  propertySchema as localPropertySchema,
-  productSchema as localProductSchema,
   bookingSchema as localBookingSchema,
+  productSchema as localProductSchema,
+  propertySchema as localPropertySchema,
   subscriptionSchema as localSubscriptionSchema,
   remoteBookingSchema,
-  remotePropertySchema,
   remoteProductSchema,
+  remotePropertySchema,
   subscriptionPubSub,
   subscriptionPubSubTrigger,
 } from '../../testing/fixtures/schemas.js';
-import { execute, subscribe } from '@graphql-tools/executor';
+import { stitchSchemas } from '../src/stitchSchemas.js';
 
-const removeLocations = ({ locations, positions, source, originalError, nodes, ...rest }: any): any => ({ ...rest });
+const removeLocations = ({
+  locations,
+  positions,
+  source,
+  originalError,
+  nodes,
+  ...rest
+}: any): any => ({ ...rest });
 
 const testCombinations = [
   {
@@ -337,8 +341,21 @@ for (const combination of testCombinations) {
       productSchema = await combination.product;
 
       stitchedSchema = stitchSchemas({
-        subschemas: [propertySchema, bookingSchema, productSchema, scalarSchema, enumSchema, localSubscriptionSchema],
-        typeDefs: [linkSchema, interfaceExtensionTest, loneExtend, codeCoverageTypeDefs, schemaDirectiveTypeDefs],
+        subschemas: [
+          propertySchema,
+          bookingSchema,
+          productSchema,
+          scalarSchema,
+          enumSchema,
+          localSubscriptionSchema,
+        ],
+        typeDefs: [
+          linkSchema,
+          interfaceExtensionTest,
+          loneExtend,
+          codeCoverageTypeDefs,
+          schemaDirectiveTypeDefs,
+        ],
         mergeDirectives: true,
         resolvers: {
           Property: {
@@ -1486,7 +1503,13 @@ bookingById(id: "b1") {
           },
         };
         const schema = stitchSchemas({
-          subschemas: [propertySchema, bookingSchema, productSchema, enumSchema, localSubscriptionSchema],
+          subschemas: [
+            propertySchema,
+            bookingSchema,
+            productSchema,
+            enumSchema,
+            localSubscriptionSchema,
+          ],
           typeDefs: [scalarTest, linkSchema, loneExtend],
           resolvers: [Scalars, Enums, PropertyResolvers, LinkResolvers, Query1, Query2, AsyncQuery],
         });
@@ -2192,7 +2215,12 @@ bookingById(id: "b1") {
           `,
           resolvers: {
             Query: {
-              flattenedTransactions: async (_root: any, _args: any, context: any, info: GraphQLResolveInfo) => {
+              flattenedTransactions: async (
+                _root: any,
+                _args: any,
+                context: any,
+                info: GraphQLResolveInfo,
+              ) => {
                 const result = await delegateToSchema({
                   schema: remoteSchema,
                   operation: 'query' as OperationTypeNode,
@@ -2217,12 +2245,14 @@ bookingById(id: "b1") {
                               }
                             }
                            */
-                        const query = ast.document.definitions.find(({ operation }: any) => operation === 'query');
+                        const query = ast.document.definitions.find(
+                          ({ operation }: any) => operation === 'query',
+                        );
                         const personaNode = (query as any).selectionSet.selections.find(
-                          ({ name }: any) => name.value === 'persona'
+                          ({ name }: any) => name.value === 'persona',
                         );
                         const pageNode = personaNode.selectionSet.selections.find(
-                          ({ name }: any) => name.value === 'page'
+                          ({ name }: any) => name.value === 'page',
                         );
 
                         personaNode.selectionSet.selections = [
@@ -2491,7 +2521,9 @@ bookingById(id: "b1") {
         });
         assertSome(stitchedResult.errors);
         assertSome(propertyResult.errors);
-        expect(stitchedResult.errors.map(removeLocations)).toEqual(propertyResult.errors.map(removeLocations));
+        expect(stitchedResult.errors.map(removeLocations)).toEqual(
+          propertyResult.errors.map(removeLocations),
+        );
 
         const stitchedResult2 = await graphql({
           schema: stitchedSchema,
@@ -2510,7 +2542,7 @@ bookingById(id: "b1") {
             createGraphQLError('Sample error non-null!', {
               path: ['errorTestNonNull'],
             }),
-          ].map(removeLocations)
+          ].map(removeLocations),
         );
       });
 
@@ -2595,50 +2627,62 @@ bookingById(id: "b1") {
         expect(errorsWithoutLocations).toEqual(expectedErrors.map(removeLocations));
       });
 
-      test('should preserve custom error extensions from the original schema, ' + 'when merging schemas', async () => {
-        const propertyQuery = /* GraphQL */ `
-          query {
-            properties(limit: 1) {
-              error
+      test(
+        'should preserve custom error extensions from the original schema, ' +
+          'when merging schemas',
+        async () => {
+          const propertyQuery = /* GraphQL */ `
+            query {
+              properties(limit: 1) {
+                error
+              }
             }
+          `;
+
+          const propertyResult = await graphql({
+            schema: localPropertySchema,
+            source: propertyQuery,
+          });
+
+          const stitchedResult = await graphql({
+            schema: stitchedSchema,
+            source: propertyQuery,
+          });
+
+          for (const result of [propertyResult, stitchedResult]) {
+            assertSome(result.errors);
+            expect(result.errors.length > 0).toBe(true);
+            const error = result.errors[0];
+            assertSome(error.extensions);
+            expect(error.extensions['code']).toBe('SOME_CUSTOM_CODE');
           }
-        `;
-
-        const propertyResult = await graphql({
-          schema: localPropertySchema,
-          source: propertyQuery,
-        });
-
-        const stitchedResult = await graphql({
-          schema: stitchedSchema,
-          source: propertyQuery,
-        });
-
-        for (const result of [propertyResult, stitchedResult]) {
-          assertSome(result.errors);
-          expect(result.errors.length > 0).toBe(true);
-          const error = result.errors[0];
-          assertSome(error.extensions);
-          expect(error.extensions['code']).toBe('SOME_CUSTOM_CODE');
-        }
-      });
+        },
+      );
     });
 
     describe('types in schema extensions', () => {
       test('should parse descriptions on new types', () => {
-        expect(stitchedSchema.getType('AnotherNewScalar')?.description).toBe('Description of AnotherNewScalar.');
+        expect(stitchedSchema.getType('AnotherNewScalar')?.description).toBe(
+          'Description of AnotherNewScalar.',
+        );
 
-        expect(stitchedSchema.getType('TestingScalar')?.description).toBe('A type that uses TestScalar.');
+        expect(stitchedSchema.getType('TestingScalar')?.description).toBe(
+          'A type that uses TestScalar.',
+        );
 
         expect(stitchedSchema.getType('Color')?.description).toBe('A type that uses an Enum.');
 
         expect(stitchedSchema.getType('NumericEnum')?.description).toBe(
-          'A type that uses an Enum with a numeric constant.'
+          'A type that uses an Enum with a numeric constant.',
         );
 
-        expect(stitchedSchema.getType('LinkType')?.description).toBe('A new type linking the Property type.');
+        expect(stitchedSchema.getType('LinkType')?.description).toBe(
+          'A new type linking the Property type.',
+        );
 
-        expect(stitchedSchema.getType('LinkType')?.description).toBe('A new type linking the Property type.');
+        expect(stitchedSchema.getType('LinkType')?.description).toBe(
+          'A new type linking the Property type.',
+        );
       });
 
       test('should parse descriptions on new fields', () => {
@@ -2652,7 +2696,9 @@ bookingById(id: "b1") {
         const Property = stitchedSchema.getType('Property') as GraphQLObjectType;
         const bookingsField = Property.getFields()['bookings'];
         expect(bookingsField.description).toBe('A list of bookings.');
-        expect(bookingsField.args[0].description).toBe('The maximum number of bookings to retrieve.');
+        expect(bookingsField.args[0].description).toBe(
+          'The maximum number of bookings to retrieve.',
+        );
       });
 
       test('should allow defining new types in link type', async () => {

@@ -1,5 +1,5 @@
-import { wrapSchema, RemoveObjectFieldsWithDirective } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { RemoveObjectFieldsWithDirective, wrapSchema } from '@graphql-tools/wrap';
 import { assertGraphQLObjectType } from '../../testing/assertion.js';
 
 describe('RemoveObjectFieldsWithDirective', () => {

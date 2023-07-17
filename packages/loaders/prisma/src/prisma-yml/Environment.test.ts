@@ -1,8 +1,8 @@
-import { Environment } from './Environment.js';
-import { getTmpDir } from './test/getTmpDir.js';
 import * as fs from 'fs';
 import { Cluster } from './Cluster.js';
+import { Environment } from './Environment.js';
 import { Output } from './Output.js';
+import { getTmpDir } from './test/getTmpDir.js';
 
 export function makeEnv(_?: string) {
   const tmpDir = getTmpDir();

@@ -1,11 +1,11 @@
-import generateConfig from './config.js';
-import { parse } from '@babel/parser';
-import { getExtNameFromFilePath } from './libs/extname.js';
-import createVisitor, { PluckedContent } from './visitor.js';
-import traversePkg from '@babel/traverse';
-import { freeText } from './utils.js';
 import { Source } from 'graphql';
-import { TemplateLiteral, ExpressionStatement } from '@babel/types';
+import { parse } from '@babel/parser';
+import traversePkg from '@babel/traverse';
+import { ExpressionStatement, TemplateLiteral } from '@babel/types';
+import generateConfig from './config.js';
+import { getExtNameFromFilePath } from './libs/extname.js';
+import { freeText } from './utils.js';
+import createVisitor, { PluckedContent } from './visitor.js';
 
 function getDefault<T>(module: T & { default?: T }): T {
   return module.default || module;
@@ -18,7 +18,7 @@ const traverse = getDefault(traversePkg);
  */
 export interface GraphQLTagPluckOptions {
   /**
-   * Additional options for determining how a file is parsed.An array of packages that are responsible for exporting the GraphQL string parser function. The following modules are supported by default:
+   * Additional options for determining how a file is parsed. An array of packages that are responsible for exporting the GraphQL string parser function. The following modules are supported by default:
    * ```js
    * {
    *   modules: [
@@ -116,7 +116,7 @@ export interface GraphQLTagPluckOptions {
   pluckStringFromFile?: (
     code: string,
     node: TemplateLiteral,
-    options: Omit<GraphQLTagPluckOptions, 'isGqlTemplateLiteral' | 'pluckStringFromFile'>
+    options: Omit<GraphQLTagPluckOptions, 'isGqlTemplateLiteral' | 'pluckStringFromFile'>,
   ) => string | undefined | null;
   /**
    * A custom way to determine if a template literal node contains a GraphQL query.
@@ -124,7 +124,7 @@ export interface GraphQLTagPluckOptions {
    */
   isGqlTemplateLiteral?: (
     node: TemplateLiteral | ExpressionStatement,
-    options: Omit<GraphQLTagPluckOptions, 'isGqlTemplateLiteral' | 'pluckStringFromFile'>
+    options: Omit<GraphQLTagPluckOptions, 'isGqlTemplateLiteral' | 'pluckStringFromFile'>,
   ) => string | undefined | null;
 }
 
@@ -171,7 +171,7 @@ function parseWithSvelte(svelte2tsx: typeof import('svelte2tsx'), fileData: stri
 export const gqlPluckFromCodeString = async (
   filePath: string,
   code: string,
-  options: GraphQLTagPluckOptions = {}
+  options: GraphQLTagPluckOptions = {},
 ): Promise<Source[]> => {
   validate({ code, options });
 
@@ -182,7 +182,9 @@ export const gqlPluckFromCodeString = async (
     code = await pluckSvelteFileScript(code);
   }
 
-  return parseCode({ code, filePath, options }).map(t => new Source(t.content, filePath, t.loc.start));
+  return parseCode({ code, filePath, options }).map(
+    t => new Source(t.content, filePath, t.loc.start),
+  );
 };
 
 /**
@@ -197,7 +199,7 @@ export const gqlPluckFromCodeString = async (
 export const gqlPluckFromCodeStringSync = (
   filePath: string,
   code: string,
-  options: GraphQLTagPluckOptions = {}
+  options: GraphQLTagPluckOptions = {},
 ): Source[] => {
   validate({ code, options });
 
@@ -208,7 +210,9 @@ export const gqlPluckFromCodeStringSync = (
     code = pluckSvelteFileScriptSync(code);
   }
 
-  return parseCode({ code, filePath, options }).map(t => new Source(t.content, filePath, t.loc.start));
+  return parseCode({ code, filePath, options }).map(
+    t => new Source(t.content, filePath, t.loc.start),
+  );
 };
 
 export function parseCode({
@@ -263,7 +267,7 @@ const MissingVueTemplateCompilerError = new Error(
     Via Yarn:
 
         $ yarn add @vue/compiler-sfc
-  `)
+  `),
 );
 
 const MissingSvelteTemplateCompilerError = new Error(
@@ -278,7 +282,7 @@ const MissingSvelteTemplateCompilerError = new Error(
     Via Yarn:
 
         $ yarn add svelte2tsx svelte
-  `)
+  `),
 );
 
 async function pluckVueFileScript(fileData: string) {

@@ -48,7 +48,10 @@ it('can be called with queries that include connection fragments', async () => {
 it('can inline @argumentDefinitions/@arguments annotated fragments', async () => {
   const fragmentDocument = parse(/* GraphQL */ `
     fragment UserLogin on User
-    @argumentDefinitions(height: { type: "Int", defaultValue: 10 }, width: { type: "Int", defaultValue: 10 }) {
+    @argumentDefinitions(
+      height: { type: "Int", defaultValue: 10 }
+      width: { type: "Int", defaultValue: 10 }
+    ) {
       id
       login
       avatar(width: $width, height: $height) {

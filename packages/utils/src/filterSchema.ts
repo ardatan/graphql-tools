@@ -4,14 +4,17 @@ import {
   GraphQLInterfaceType,
   GraphQLObjectType,
   GraphQLScalarType,
-  GraphQLUnionType,
   GraphQLSchema,
+  GraphQLUnionType,
 } from 'graphql';
-
-import { MapperKind, FieldFilter, RootFieldFilter, TypeFilter, ArgumentFilter } from './Interfaces.js';
-
+import {
+  ArgumentFilter,
+  FieldFilter,
+  MapperKind,
+  RootFieldFilter,
+  TypeFilter,
+} from './Interfaces.js';
 import { mapSchema } from './mapSchema.js';
-
 import { Constructor } from './types.js';
 
 export function filterSchema({
@@ -34,7 +37,8 @@ export function filterSchema({
   argumentFilter?: ArgumentFilter;
 }): GraphQLSchema {
   const filteredSchema: GraphQLSchema = mapSchema(schema, {
-    [MapperKind.QUERY]: (type: GraphQLObjectType) => filterRootFields(type, 'Query', rootFieldFilter, argumentFilter),
+    [MapperKind.QUERY]: (type: GraphQLObjectType) =>
+      filterRootFields(type, 'Query', rootFieldFilter, argumentFilter),
     [MapperKind.MUTATION]: (type: GraphQLObjectType) =>
       filterRootFields(type, 'Mutation', rootFieldFilter, argumentFilter),
     [MapperKind.SUBSCRIPTION]: (type: GraphQLObjectType) =>
@@ -45,7 +49,7 @@ export function filterSchema({
             GraphQLObjectType,
             type,
             objectFieldFilter || fieldFilter,
-            argumentFilter
+            argumentFilter,
           )
         : null,
     [MapperKind.INTERFACE_TYPE]: (type: GraphQLInterfaceType) =>
@@ -54,7 +58,7 @@ export function filterSchema({
             GraphQLInterfaceType,
             type,
             interfaceFieldFilter || fieldFilter,
-            argumentFilter
+            argumentFilter,
           )
         : null,
     [MapperKind.INPUT_OBJECT_TYPE]: (type: GraphQLInputObjectType) =>
@@ -62,12 +66,15 @@ export function filterSchema({
         ? filterElementFields<GraphQLInputObjectType>(
             GraphQLInputObjectType,
             type,
-            inputObjectFieldFilter || fieldFilter
+            inputObjectFieldFilter || fieldFilter,
           )
         : null,
-    [MapperKind.UNION_TYPE]: (type: GraphQLUnionType) => (typeFilter(type.name, type) ? undefined : null),
-    [MapperKind.ENUM_TYPE]: (type: GraphQLEnumType) => (typeFilter(type.name, type) ? undefined : null),
-    [MapperKind.SCALAR_TYPE]: (type: GraphQLScalarType) => (typeFilter(type.name, type) ? undefined : null),
+    [MapperKind.UNION_TYPE]: (type: GraphQLUnionType) =>
+      typeFilter(type.name, type) ? undefined : null,
+    [MapperKind.ENUM_TYPE]: (type: GraphQLEnumType) =>
+      typeFilter(type.name, type) ? undefined : null,
+    [MapperKind.SCALAR_TYPE]: (type: GraphQLScalarType) =>
+      typeFilter(type.name, type) ? undefined : null,
   });
 
   return filteredSchema;
@@ -77,7 +84,7 @@ function filterRootFields(
   type: GraphQLObjectType,
   operation: 'Query' | 'Mutation' | 'Subscription',
   rootFieldFilter?: RootFieldFilter,
-  argumentFilter?: ArgumentFilter
+  argumentFilter?: ArgumentFilter,
 ): GraphQLObjectType {
   if (rootFieldFilter || argumentFilter) {
     const config = type.toConfig();
@@ -102,7 +109,7 @@ function filterElementFields<ElementType>(
   ElementConstructor: Constructor<ElementType>,
   type: GraphQLObjectType | GraphQLInterfaceType | GraphQLInputObjectType,
   fieldFilter?: FieldFilter,
-  argumentFilter?: ArgumentFilter
+  argumentFilter?: ArgumentFilter,
 ): ElementType | undefined {
   if (fieldFilter || argumentFilter) {
     const config = type.toConfig();

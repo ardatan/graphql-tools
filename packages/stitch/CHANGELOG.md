@@ -1,5 +1,86 @@
 # @graphql-tools/stitch
 
+## 9.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- Updated dependencies [[`8fba6cc1`](https://github.com/ardatan/graphql-tools/commit/8fba6cc1876e914d587f5b253332aaedbcaa65e6), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/delegate@10.0.0
+  - @graphql-tools/batch-delegate@9.0.0
+  - @graphql-tools/executor@1.0.0
+  - @graphql-tools/schema@10.0.0
+  - @graphql-tools/merge@9.0.0
+  - @graphql-tools/utils@10.0.0
+  - @graphql-tools/wrap@10.0.0
+
+## 8.7.50
+
+### Patch Changes
+
+- [#5235](https://github.com/ardatan/graphql-tools/pull/5235) [`2bbbe1af`](https://github.com/ardatan/graphql-tools/commit/2bbbe1af0bb7d04685bdceab9252a5ded6809c78) Thanks [@belgattitude](https://github.com/belgattitude)! - Add missing dependency on @graphql-tools/executor.
+
+- Updated dependencies [[`33005c48`](https://github.com/ardatan/graphql-tools/commit/33005c48e8aa9d5eae53c720bd39dca655c645f1)]:
+  - @graphql-tools/merge@8.4.2
+
+## 8.7.49
+
+### Patch Changes
+
+- [#5220](https://github.com/ardatan/graphql-tools/pull/5220) [`8e80b689`](https://github.com/ardatan/graphql-tools/commit/8e80b6893d2342353731610d5da9db633d806083) Thanks [@ardatan](https://github.com/ardatan)! - Performance improvements
+
+- Updated dependencies [[`8e80b689`](https://github.com/ardatan/graphql-tools/commit/8e80b6893d2342353731610d5da9db633d806083)]:
+  - @graphql-tools/batch-delegate@8.4.27
+  - @graphql-tools/delegate@9.0.35
+
+## 8.7.48
+
+### Patch Changes
+
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+
+- Updated dependencies [[`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41)]:
+  - @graphql-tools/batch-delegate@8.4.25
+  - @graphql-tools/schema@9.0.18
+  - @graphql-tools/merge@8.4.1
+  - @graphql-tools/wrap@9.4.2
+  - @graphql-tools/delegate@9.0.31
+
+## 8.7.47
+
+### Patch Changes
+
+- Updated dependencies [[`c8d5e0df`](https://github.com/ardatan/graphql-tools/commit/c8d5e0dfccdfc40d2a586650b56c124f3e4c5d42)]:
+  - @graphql-tools/wrap@9.4.1
+  - @graphql-tools/delegate@9.0.30
+  - @graphql-tools/batch-delegate@8.4.24
+
+## 8.7.46
+
+### Patch Changes
+
+- Updated dependencies [[`68c158d2`](https://github.com/ardatan/graphql-tools/commit/68c158d2b4e0f8bdd94daafd63ea6b3efb29d7eb)]:
+  - @graphql-tools/wrap@9.4.0
+
+## 8.7.45
+
+### Patch Changes
+
+- Updated dependencies [[`f26392a6`](https://github.com/ardatan/graphql-tools/commit/f26392a66299956da1e66253b181f85332c93db5)]:
+  - @graphql-tools/delegate@9.0.29
+  - @graphql-tools/batch-delegate@8.4.23
+  - @graphql-tools/wrap@9.3.9
+
+## 8.7.44
+
+### Patch Changes
+
+- Updated dependencies [[`1913bf91`](https://github.com/ardatan/graphql-tools/commit/1913bf913130f20582152f3cbb1a4bfb49d85a13)]:
+  - @graphql-tools/batch-delegate@8.4.22
+
 ## 8.7.43
 
 ### Patch Changes

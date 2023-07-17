@@ -1,28 +1,26 @@
-import type { GlobbyOptions } from 'globby';
-
-import { isSchema, GraphQLSchema, DocumentNode, parse } from 'graphql';
-import {
-  Source,
-  asArray,
-  isValidPath,
-  parseGraphQLSDL,
-  isDocumentNode,
-  BaseLoaderOptions,
-  Loader,
-  AggregateError,
-} from '@graphql-tools/utils';
-import {
-  GraphQLTagPluckOptions,
-  gqlPluckFromCodeString,
-  gqlPluckFromCodeStringSync,
-} from '@graphql-tools/graphql-tag-pluck';
-import globby from 'globby';
-import unixify from 'unixify';
-import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module.js';
+import { existsSync, promises as fsPromises, readFileSync } from 'fs';
+import { createRequire } from 'module';
 import { isAbsolute, resolve } from 'path';
 import { cwd, env } from 'process';
-import { readFileSync, promises as fsPromises, existsSync } from 'fs';
-import { createRequire } from 'module';
+import type { GlobbyOptions } from 'globby';
+import globby from 'globby';
+import { DocumentNode, GraphQLSchema, isSchema, parse } from 'graphql';
+import unixify from 'unixify';
+import {
+  gqlPluckFromCodeString,
+  gqlPluckFromCodeStringSync,
+  GraphQLTagPluckOptions,
+} from '@graphql-tools/graphql-tag-pluck';
+import {
+  asArray,
+  BaseLoaderOptions,
+  isDocumentNode,
+  isValidPath,
+  Loader,
+  parseGraphQLSDL,
+  Source,
+} from '@graphql-tools/utils';
+import { tryToLoadFromExport, tryToLoadFromExportSync } from './load-from-module.js';
 
 const { readFile, access } = fsPromises;
 
@@ -45,7 +43,18 @@ export type CodeFileLoaderOptions = {
 } & CodeFileLoaderConfig &
   BaseLoaderOptions;
 
-const FILE_EXTENSIONS = ['.ts', '.mts', '.cts', '.tsx', '.js', '.mjs', 'cjs', '.jsx', '.vue', '.svelte'];
+const FILE_EXTENSIONS = [
+  '.ts',
+  '.mts',
+  '.cts',
+  '.tsx',
+  '.js',
+  '.mjs',
+  'cjs',
+  '.jsx',
+  '.vue',
+  '.svelte',
+];
 
 function createGlobbyOptions(options: CodeFileLoaderOptions): GlobbyOptions {
   return { absolute: true, ...options, ignore: [] };
@@ -87,7 +96,9 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
 
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
-        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+        const normalizedFilePath = isAbsolute(pointer)
+          ? pointer
+          : resolve(options.cwd || cwd(), pointer);
         try {
           await access(normalizedFilePath);
           return true;
@@ -105,7 +116,9 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
 
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
-        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || cwd(), pointer);
+        const normalizedFilePath = isAbsolute(pointer)
+          ? pointer
+          : resolve(options.cwd || cwd(), pointer);
         return existsSync(normalizedFilePath);
       }
     }
@@ -149,7 +162,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
           }
           errors.push(e);
         }
-      })
+      }),
     );
 
     if (errors.length > 0 && (options.noSilentErrors || finalResult.length === 0)) {
@@ -158,7 +171,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
       }
       throw new AggregateError(
         errors,
-        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n')
+        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n'),
       );
     }
 
@@ -191,7 +204,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
       }
       throw new AggregateError(
         errors,
-        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n')
+        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n'),
       );
     }
 
@@ -211,7 +224,11 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
     if (!options.noPluck) {
       try {
         const content = await readFile(normalizedFilePath, { encoding: 'utf-8' });
-        const sources = await gqlPluckFromCodeString(normalizedFilePath, content, options.pluckConfig);
+        const sources = await gqlPluckFromCodeString(
+          normalizedFilePath,
+          content,
+          options.pluckConfig,
+        );
 
         if (sources.length) {
           return sources.map(source => ({
@@ -222,7 +239,9 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
         }
       } catch (e: any) {
         if (env['DEBUG']) {
-          console.error(`Failed to load schema from code file "${normalizedFilePath}": ${e.message}`);
+          console.error(
+            `Failed to load schema from code file "${normalizedFilePath}": ${e.message}`,
+          );
         }
         errors.push(e);
       }
@@ -266,7 +285,11 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
     if (!options.noPluck) {
       try {
         const content = readFileSync(normalizedFilePath, { encoding: 'utf-8' });
-        const sources = gqlPluckFromCodeStringSync(normalizedFilePath, content, options.pluckConfig);
+        const sources = gqlPluckFromCodeStringSync(
+          normalizedFilePath,
+          content,
+          options.pluckConfig,
+        );
 
         if (sources.length) {
           return sources.map(source => ({
@@ -277,7 +300,9 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
         }
       } catch (e: any) {
         if (env['DEBUG']) {
-          console.error(`Failed to load schema from code file "${normalizedFilePath}": ${e.message}`);
+          console.error(
+            `Failed to load schema from code file "${normalizedFilePath}": ${e.message}`,
+          );
         }
         errors.push(e);
       }
@@ -316,7 +341,7 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
 function resolveSource(
   pointer: string,
   value: GraphQLSchema | DocumentNode | string | null,
-  options: CodeFileLoaderOptions
+  options: CodeFileLoaderOptions,
 ): Source | null {
   if (typeof value === 'string') {
     return parseGraphQLSDL(pointer, value, options);

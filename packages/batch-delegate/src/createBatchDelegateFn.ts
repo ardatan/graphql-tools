@@ -1,14 +1,14 @@
 import DataLoader from 'dataloader';
-
-import { CreateBatchDelegateFnOptions, BatchDelegateOptionsFn, BatchDelegateFn } from './types.js';
-
 import { getLoader } from './getLoader.js';
+import { BatchDelegateFn, BatchDelegateOptionsFn, CreateBatchDelegateFnOptions } from './types.js';
 
 export function createBatchDelegateFn<K = any, V = any, C = K>(
-  optionsOrArgsFromKeys: CreateBatchDelegateFnOptions | ((keys: ReadonlyArray<K>) => Record<string, any>),
+  optionsOrArgsFromKeys:
+    | CreateBatchDelegateFnOptions
+    | ((keys: ReadonlyArray<K>) => Record<string, any>),
   lazyOptionsFn?: BatchDelegateOptionsFn,
   dataLoaderOptions?: DataLoader.Options<K, V, C>,
-  valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>
+  valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>,
 ): BatchDelegateFn<K> {
   return typeof optionsOrArgsFromKeys === 'function'
     ? createBatchDelegateFnImpl({
@@ -20,7 +20,9 @@ export function createBatchDelegateFn<K = any, V = any, C = K>(
     : createBatchDelegateFnImpl(optionsOrArgsFromKeys);
 }
 
-function createBatchDelegateFnImpl<K = any>(options: CreateBatchDelegateFnOptions): BatchDelegateFn<K> {
+function createBatchDelegateFnImpl<K = any>(
+  options: CreateBatchDelegateFnOptions,
+): BatchDelegateFn<K> {
   return batchDelegateOptions => {
     const loader = getLoader({
       ...options,

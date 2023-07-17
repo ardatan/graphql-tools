@@ -1,13 +1,13 @@
 import {
-  Kind,
-  validate,
-  GraphQLSchema,
-  specifiedRules,
-  ValidationContext,
   ASTVisitor,
-  DocumentNode,
-  versionInfo,
   DefinitionNode,
+  DocumentNode,
+  GraphQLSchema,
+  Kind,
+  specifiedRules,
+  validate,
+  ValidationContext,
+  versionInfo,
 } from 'graphql';
 
 export type ValidationRule = (context: ValidationContext) => ASTVisitor;
@@ -15,7 +15,7 @@ export type ValidationRule = (context: ValidationContext) => ASTVisitor;
 export function validateGraphQlDocuments(
   schema: GraphQLSchema,
   documents: DocumentNode[],
-  rules: ValidationRule[] = createDefaultRules()
+  rules: ValidationRule[] = createDefaultRules(),
 ) {
   const definitionMap = new Map<string, DefinitionNode>();
   for (const document of documents) {

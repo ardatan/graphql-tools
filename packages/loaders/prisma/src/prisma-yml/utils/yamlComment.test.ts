@@ -1,4 +1,4 @@
-import { replaceYamlValue, migrateToEndpoint } from './yamlComment.js';
+import { migrateToEndpoint, replaceYamlValue } from './yamlComment.js';
 
 describe('replaceYamlValue', () => {
   test('when document is clean', () => {

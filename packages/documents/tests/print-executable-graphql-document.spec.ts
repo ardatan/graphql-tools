@@ -1,5 +1,5 @@
-import { printExecutableGraphQLDocument } from '@graphql-tools/documents';
 import { parse } from 'graphql';
+import { printExecutableGraphQLDocument } from '@graphql-tools/documents';
 
 describe('printExecutableGraphQLDocument', () => {
   test('print simple document', () => {
@@ -38,7 +38,7 @@ describe('printExecutableGraphQLDocument', () => {
     `);
     const outputStr = printExecutableGraphQLDocument(inputDocument);
     expect(outputStr).toMatchInlineSnapshot(
-      `"fragment A on Query { a b c } fragment B on Query { a b c } query A { a b c ...A ...B }"`
+      `"fragment A on Query { a b c } fragment B on Query { a b c } query A { a b c ...A ...B }"`,
     );
   });
 
@@ -80,7 +80,7 @@ describe('printExecutableGraphQLDocument', () => {
     `);
     const outputStr = printExecutableGraphQLDocument(inputDocument);
     expect(outputStr).toMatchInlineSnapshot(
-      `"fragment B on Query { c } query A { ... on Query { a { a ...B } } ... on Query { a { b ...B } } }"`
+      `"fragment B on Query { c } query A { ... on Query { a { a ...B } } ... on Query { a { b ...B } } }"`,
     );
   });
 });

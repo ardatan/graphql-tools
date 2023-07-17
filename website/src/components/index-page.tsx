@@ -1,9 +1,8 @@
 import { ReactElement } from 'react';
 import { FeatureList, HeroGradient, IFeatureListProps } from '@theguild/components';
-
+import flask from 'public/assets/flask.svg';
 import graphql from 'public/assets/graphql.svg';
 import needle from 'public/assets/needle.svg';
-import flask from 'public/assets/flask.svg';
 
 const FEATURE_LIST: IFeatureListProps['items'] = [
   {

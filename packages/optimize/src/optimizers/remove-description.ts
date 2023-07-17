@@ -24,5 +24,6 @@ export const removeDescriptions: DocumentOptimizer = input => {
     InputObjectTypeDefinition: transformNode,
     InputValueDefinition: transformNode,
     FieldDefinition: transformNode,
+    DirectiveDefinition: transformNode,
   });
 };

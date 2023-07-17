@@ -1,4 +1,10 @@
-import { GraphQLEnumType, GraphQLInputObjectType, GraphQLNamedType, GraphQLScalarType, visit } from 'graphql';
+import {
+  GraphQLEnumType,
+  GraphQLInputObjectType,
+  GraphQLNamedType,
+  GraphQLScalarType,
+  visit,
+} from 'graphql';
 
 export interface SchemaPrintOptions {
   /**
@@ -17,7 +23,8 @@ export interface GetDocumentNodeFromSchemaOptions {
   pathToDirectivesInExtensions?: Array<string>;
 }
 
-export type PrintSchemaWithDirectivesOptions = SchemaPrintOptions & GetDocumentNodeFromSchemaOptions;
+export type PrintSchemaWithDirectivesOptions = SchemaPrintOptions &
+  GetDocumentNodeFromSchemaOptions;
 
 export type Maybe<T> = null | undefined | T;
 
@@ -54,10 +61,13 @@ export interface PruneSchemaOptions {
   skipUnusedTypesPruning?: boolean;
 }
 
-export type InputLeafValueTransformer = (type: GraphQLEnumType | GraphQLScalarType, originalValue: any) => any;
+export type InputLeafValueTransformer = (
+  type: GraphQLEnumType | GraphQLScalarType,
+  originalValue: any,
+) => any;
 export type InputObjectValueTransformer = (
   type: GraphQLInputObjectType,
-  originalValue: Record<string, any>
+  originalValue: Record<string, any>,
 ) => Record<string, any>;
 
 // GraphQL v14 doesn't have it. Remove this once we drop support for v14
@@ -93,7 +103,10 @@ export type ExtensionsObject = Record<string, any>;
 
 export type ObjectTypeExtensions = {
   type: 'object';
-  fields: Record<string, { extensions: ExtensionsObject; arguments: Record<string, ExtensionsObject> }>;
+  fields: Record<
+    string,
+    { extensions: ExtensionsObject; arguments: Record<string, ExtensionsObject> }
+  >;
 };
 
 export type InputTypeExtensions = {
@@ -103,7 +116,10 @@ export type InputTypeExtensions = {
 
 export type InterfaceTypeExtensions = {
   type: 'interface';
-  fields: Record<string, { extensions: ExtensionsObject; arguments: Record<string, ExtensionsObject> }>;
+  fields: Record<
+    string,
+    { extensions: ExtensionsObject; arguments: Record<string, ExtensionsObject> }
+  >;
 };
 
 export type UnionTypeExtensions = {

@@ -1,34 +1,45 @@
 import {
-  GraphQLObjectType,
-  GraphQLSchema,
-  Kind,
-  SelectionSetNode,
-  isObjectType,
+  FieldNode,
   getNamedType,
   GraphQLInterfaceType,
-  print,
+  GraphQLNamedType,
+  GraphQLObjectType,
+  GraphQLSchema,
+  isInputObjectType,
   isInterfaceType,
   isLeafType,
-  FieldNode,
-  isInputObjectType,
+  isObjectType,
   isUnionType,
-  GraphQLNamedType,
+  Kind,
+  print,
+  SelectionSetNode,
 } from 'graphql';
-
-import { collectFields, parseSelectionSet, IResolvers, IFieldResolverOptions, isSome } from '@graphql-tools/utils';
-
-import { MergedTypeResolver, Subschema, SubschemaConfig, MergedTypeInfo, StitchingInfo } from '@graphql-tools/delegate';
-
+import { ValueOrPromise } from 'value-or-promise';
+import {
+  MergedTypeInfo,
+  MergedTypeResolver,
+  StitchingInfo,
+  Subschema,
+  SubschemaConfig,
+} from '@graphql-tools/delegate';
+import {
+  collectFields,
+  IFieldResolverOptions,
+  IResolvers,
+  isSome,
+  parseSelectionSet,
+} from '@graphql-tools/utils';
+import { createDelegationPlanBuilder } from './createDelegationPlanBuilder.js';
+import { createMergedTypeResolver } from './createMergedTypeResolver.js';
 import { MergeTypeCandidate, MergeTypeFilter } from './types.js';
 
-import { createMergedTypeResolver } from './createMergedTypeResolver.js';
-import { createDelegationPlanBuilder } from './createDelegationPlanBuilder.js';
-import { ValueOrPromise } from 'value-or-promise';
-
 export function createStitchingInfo<TContext extends Record<string, any> = Record<string, any>>(
-  subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>,
+  subschemaMap: Map<
+    GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
+    Subschema<any, any, any, TContext>
+  >,
   typeCandidates: Record<string, Array<MergeTypeCandidate<TContext>>>,
-  mergeTypes?: boolean | Array<string> | MergeTypeFilter<TContext>
+  mergeTypes?: boolean | Array<string> | MergeTypeFilter<TContext>,
 ): StitchingInfo<TContext> {
   const mergedTypes = createMergedTypes(typeCandidates, mergeTypes);
 
@@ -43,20 +54,21 @@ export function createStitchingInfo<TContext extends Record<string, any> = Recor
 
 function createMergedTypes<TContext extends Record<string, any> = Record<string, any>>(
   typeCandidates: Record<string, Array<MergeTypeCandidate<TContext>>>,
-  mergeTypes?: boolean | Array<string> | MergeTypeFilter<TContext>
+  mergeTypes?: boolean | Array<string> | MergeTypeFilter<TContext>,
 ): Record<string, MergedTypeInfo<TContext>> {
   const mergedTypes: Record<string, MergedTypeInfo<TContext>> = Object.create(null);
 
   for (const typeName in typeCandidates) {
     if (
       typeCandidates[typeName].length > 1 &&
-      (isObjectType(typeCandidates[typeName][0].type) || isInterfaceType(typeCandidates[typeName][0].type))
+      (isObjectType(typeCandidates[typeName][0].type) ||
+        isInterfaceType(typeCandidates[typeName][0].type))
     ) {
       const typeCandidatesWithMergedTypeConfig = typeCandidates[typeName].filter(
         typeCandidate =>
           typeCandidate.transformedSubschema != null &&
           typeCandidate.transformedSubschema.merge != null &&
-          typeName in typeCandidate.transformedSubschema.merge
+          typeName in typeCandidate.transformedSubschema.merge,
       );
 
       if (
@@ -71,10 +83,19 @@ function createMergedTypes<TContext extends Record<string, any> = Record<string,
           GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
           Record<string, GraphQLNamedType>
         > = new Map();
-        const supportedBySubschemas: Record<string, Array<Subschema<any, any, any, TContext>>> = Object.create({});
+        const supportedBySubschemas: Record<
+          string,
+          Array<Subschema<any, any, any, TContext>>
+        > = Object.create({});
         const selectionSets: Map<Subschema<any, any, any, TContext>, SelectionSetNode> = new Map();
-        const fieldSelectionSets: Map<Subschema<any, any, any, TContext>, Record<string, SelectionSetNode>> = new Map();
-        const resolvers: Map<Subschema<any, any, any, TContext>, MergedTypeResolver<TContext>> = new Map();
+        const fieldSelectionSets: Map<
+          Subschema<any, any, any, TContext>,
+          Record<string, SelectionSetNode>
+        > = new Map();
+        const resolvers: Map<
+          Subschema<any, any, any, TContext>,
+          MergedTypeResolver<TContext>
+        > = new Map();
 
         for (const typeCandidate of typeCandidates[typeName]) {
           const subschema = typeCandidate.transformedSubschema;
@@ -92,7 +113,9 @@ function createMergedTypes<TContext extends Record<string, any> = Record<string,
           }
 
           if (mergedTypeConfig.selectionSet) {
-            const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet, { noLocation: true });
+            const selectionSet = parseSelectionSet(mergedTypeConfig.selectionSet, {
+              noLocation: true,
+            });
             selectionSets.set(subschema, selectionSet);
           }
 
@@ -119,23 +142,38 @@ function createMergedTypes<TContext extends Record<string, any> = Record<string,
           resolvers.set(
             subschema,
             keyFn
-              ? function batchMergedTypeResolverWrapper(originalResult, context, info, subschema, selectionSet, type) {
+              ? function batchMergedTypeResolverWrapper(
+                  originalResult,
+                  context,
+                  info,
+                  subschema,
+                  selectionSet,
+                  type,
+                ) {
                   return new ValueOrPromise(() => keyFn(originalResult))
-                    .then(key => resolver(originalResult, context, info, subschema, selectionSet, key, type))
+                    .then(key =>
+                      resolver(originalResult, context, info, subschema, selectionSet, key, type),
+                    )
                     .resolve();
                 }
-              : resolver
+              : resolver,
           );
 
           targetSubschemas.push(subschema);
 
-          const type = subschema.transformedSchema.getType(typeName) as GraphQLObjectType | GraphQLInterfaceType;
+          const type = subschema.transformedSchema.getType(typeName) as
+            | GraphQLObjectType
+            | GraphQLInterfaceType;
           const fieldMap = type.getFields();
           const selectionSet = selectionSets.get(subschema);
           for (const fieldName in fieldMap) {
             const field = fieldMap[fieldName];
             const fieldType = getNamedType(field.type);
-            if (selectionSet && isLeafType(fieldType) && selectionSetContainsTopLevelField(selectionSet, fieldName)) {
+            if (
+              selectionSet &&
+              isLeafType(fieldType) &&
+              selectionSetContainsTopLevelField(selectionSet, fieldName)
+            ) {
               continue;
             }
             if (!(fieldName in supportedBySubschemas)) {
@@ -171,7 +209,7 @@ function createMergedTypes<TContext extends Record<string, any> = Record<string,
         } as MergedTypeInfo<TContext>;
 
         mergedTypes[typeName].delegationPlanBuilder = createDelegationPlanBuilder(
-          mergedTypes[typeName] as MergedTypeInfo
+          mergedTypes[typeName] as MergedTypeInfo,
         );
 
         for (const fieldName in supportedBySubschemas) {
@@ -191,9 +229,10 @@ function createMergedTypes<TContext extends Record<string, any> = Record<string,
 export function completeStitchingInfo<TContext = Record<string, any>>(
   stitchingInfo: StitchingInfo<TContext>,
   resolvers: IResolvers,
-  schema: GraphQLSchema
+  schema: GraphQLSchema,
 ): StitchingInfo<TContext> {
-  const { fieldNodesByType, fieldNodesByField, dynamicSelectionSetsByField, mergedTypes } = stitchingInfo;
+  const { fieldNodesByType, fieldNodesByField, dynamicSelectionSetsByField, mergedTypes } =
+    stitchingInfo;
 
   // must add __typename to query and mutation root types to handle type merging with nested root types
   // cannot add __typename to subscription root types, but they cannot be nested
@@ -206,7 +245,10 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
     }
   }
 
-  const selectionSetsByField: Record<string, Record<string, Array<SelectionSetNode>>> = Object.create(null);
+  const selectionSetsByField: Record<
+    string,
+    Record<string, Array<SelectionSetNode>>
+  > = Object.create(null);
   for (const typeName in mergedTypes) {
     const mergedTypeInfo = mergedTypes[typeName];
     if (mergedTypeInfo.selectionSets == null && mergedTypeInfo.fieldSelectionSets == null) {
@@ -220,7 +262,11 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
       for (const fieldName in fields) {
         const field = fields[fieldName];
         const fieldType = getNamedType(field.type);
-        if (selectionSet && isLeafType(fieldType) && selectionSetContainsTopLevelField(selectionSet, fieldName)) {
+        if (
+          selectionSet &&
+          isLeafType(fieldType) &&
+          selectionSetContainsTopLevelField(selectionSet, fieldName)
+        ) {
           continue;
         }
         updateSelectionSetMap(selectionSetsByField, typeName, fieldName, selectionSet, true);
@@ -294,7 +340,7 @@ function updateSelectionSetMap(
   typeName: string,
   fieldName: string,
   selectionSet: SelectionSetNode,
-  includeTypename?: boolean
+  includeTypename?: boolean,
 ): void {
   if (includeTypename) {
     const typenameSelectionSet = parseSelectionSet('{ __typename }', { noLocation: true });
@@ -310,7 +356,7 @@ function updateArrayMap<T>(
   typeName: string,
   fieldName: string,
   value: T,
-  initialValue?: T
+  initialValue?: T,
 ): void {
   if (map[typeName] == null) {
     const initialItems = initialValue === undefined ? [value] : [initialValue, value];
@@ -327,7 +373,7 @@ function updateArrayMap<T>(
 
 export function addStitchingInfo<TContext = Record<string, any>>(
   stitchedSchema: GraphQLSchema,
-  stitchingInfo: StitchingInfo<TContext>
+  stitchingInfo: StitchingInfo<TContext>,
 ) {
   stitchedSchema.extensions = {
     ...stitchedSchema.extensions,
@@ -335,6 +381,11 @@ export function addStitchingInfo<TContext = Record<string, any>>(
   };
 }
 
-export function selectionSetContainsTopLevelField(selectionSet: SelectionSetNode, fieldName: string) {
-  return selectionSet.selections.some(selection => selection.kind === Kind.FIELD && selection.name.value === fieldName);
+export function selectionSetContainsTopLevelField(
+  selectionSet: SelectionSetNode,
+  fieldName: string,
+) {
+  return selectionSet.selections.some(
+    selection => selection.kind === Kind.FIELD && selection.name.value === fieldName,
+  );
 }

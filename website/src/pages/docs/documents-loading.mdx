@@ -2,11 +2,13 @@ import { Callout } from '@theguild/components'
 
 # Loading GraphQL Operation Documents from Different Sources
 
-Similar to schema loading - but meant to use for GraphQL documents (`query`/`mutation`/`subscription`/`fragment`).
+Similar to schema loading - but meant to use for GraphQL documents
+(`query`/`mutation`/`subscription`/`fragment`).
 
 Any input provided as a source will be recognized by utils automatically.
 
-It also extracts usages of `gql` from code files using [`@graphql-tools/graphql-tag-pluck`](/docs/graphql-tag-pluck).
+It also extracts usages of `gql` from code files using
+[`@graphql-tools/graphql-tag-pluck`](/docs/graphql-tag-pluck).
 
 For notes on typescript, refer to [Schema Loading > Loaders](/docs/schema-loading#loaders)
 
@@ -30,7 +32,8 @@ const document3 = loadDocuments('./src/**/*.graphql', { loaders: [new GraphQLFil
 const document4 = loadDocuments('./src/my-component.ts', { loaders: [new CodeFileLoader()] })
 ```
 
-`loadDocuments` returns an array of document sources. Each source object has the following structure:
+`loadDocuments` returns an array of document sources. Each source object has the following
+structure:
 
 ```ts
 interface DocumentSource {
@@ -40,10 +43,13 @@ interface DocumentSource {
 }
 ```
 
-`loadDocuments` takes in additional configuration via the `options` object (the second argument). There are some defaults to be aware of - to learn more, see [the full API documentation](/docs/api/modules/load_src#loaddocuments).
+`loadDocuments` takes in additional configuration via the `options` object (the second argument).
+There are some defaults to be aware of - to learn more, see
+[the full API documentation](/docs/api/modules/load_src#loaddocuments).
 
 <Callout>
-  You can learn more about [loaders](/docs/schema-loading#loaders) to load documents from different sources.
+  You can learn more about [loaders](/docs/schema-loading#loaders) to load documents from different
+  sources.
 </Callout>
 
 ## Error Handling
@@ -53,8 +59,8 @@ interface DocumentSource {
 In case no documents were found and loaded via the provided glob an exception is thrown.
 
 ```ts
-import { loadDocuments } from '@graphql-tools/load'
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader'
+import { loadDocuments } from '@graphql-tools/load'
 
 const documents = await loadDocuments(['i-do-not-exist.graphql'], {
   loaders: [new GraphQLFileLoader()]
@@ -72,15 +78,16 @@ Error:
 
 ### Syntax Error within a File
 
-In case you try to load a GraphQL file with invalid syntax, the `loadDocuments` function will throw a `GraphQLError`.
+In case you try to load a GraphQL file with invalid syntax, the `loadDocuments` function will throw
+a `GraphQLError`.
 
 You can identify the exact file that caused this GraphQLError by using the errors source property.
 
 ```ts
-import { loadDocuments } from '@graphql-tools/load'
-import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader'
-import { CodeFileLoader } from '@graphql-tools/code-file-loader'
 import { GraphQLError } from 'graphql'
+import { CodeFileLoader } from '@graphql-tools/code-file-loader'
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader'
+import { loadDocuments } from '@graphql-tools/load'
 
 try {
   const documents = await loadDocuments(['packages/**/*.graphql', 'packages/**/*.ts(x)'], {

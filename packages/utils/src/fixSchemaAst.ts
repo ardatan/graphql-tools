@@ -1,6 +1,6 @@
-import { GraphQLSchema, BuildSchemaOptions, buildASTSchema } from 'graphql';
-import { SchemaPrintOptions } from './types.js';
+import { buildASTSchema, BuildSchemaOptions, GraphQLSchema } from 'graphql';
 import { getDocumentNodeFromSchema } from './print-schema-with-directives.js';
+import { SchemaPrintOptions } from './types.js';
 
 function buildFixedSchema(schema: GraphQLSchema, options: BuildSchemaOptions & SchemaPrintOptions) {
   const document = getDocumentNodeFromSchema(schema);
@@ -9,7 +9,10 @@ function buildFixedSchema(schema: GraphQLSchema, options: BuildSchemaOptions & S
   });
 }
 
-export function fixSchemaAst(schema: GraphQLSchema, options: BuildSchemaOptions & SchemaPrintOptions) {
+export function fixSchemaAst(
+  schema: GraphQLSchema,
+  options: BuildSchemaOptions & SchemaPrintOptions,
+) {
   // eslint-disable-next-line no-undef-init
   let schemaWithValidAst: GraphQLSchema | undefined = undefined;
   if (!schema.astNode || !schema.extensionASTNodes) {

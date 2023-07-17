@@ -1,8 +1,8 @@
+import { buildSchema, graphql, GraphQLScalarType, GraphQLSchema, Kind, print } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { graphql, buildSchema, GraphQLScalarType, Kind, GraphQLSchema, print } from 'graphql';
-import { mergeSchemas } from '../src/merge-schemas.js';
 import { assertSome, printSchemaWithDirectives } from '@graphql-tools/utils';
 import { assertListValueNode } from '../../testing/assertion.js';
+import { mergeSchemas } from '../src/merge-schemas.js';
 
 describe('Merge Schemas', () => {
   it('Should include extensions in merged schemas', () => {
@@ -535,26 +535,26 @@ describe('Merge Schemas', () => {
 type Query {
   country: Country
   city: City
-}`.trim()
+}`.trim(),
     );
     expect(printedSchema).toContain(
       /* GraphQL */ `
 scalar UUID
-`.trim()
+`.trim(),
     );
     expect(printedSchema).toContain(
       /* GraphQL */ `
 type Country {
   id: UUID!
   name: String
-}`.trim()
+}`.trim(),
     );
     expect(printedSchema).toContain(
       /* GraphQL */ `
 type City {
   id: ID!
   name: String
-}`.trim()
+}`.trim(),
     );
   });
 });

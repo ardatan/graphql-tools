@@ -1,5 +1,5 @@
-import { Source, AggregateError } from '@graphql-tools/utils';
 import { env } from 'process';
+import { Source } from '@graphql-tools/utils';
 import { LoadTypedefsOptions } from '../load-typedefs.js';
 
 export async function loadFile(pointer: string, options: LoadTypedefsOptions): Promise<Source[]> {
@@ -28,7 +28,7 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
             errors.push(error);
           }
         }
-      })
+      }),
     );
 
     if (results.length === 0 && errors.length > 0) {
@@ -39,7 +39,7 @@ export async function loadFile(pointer: string, options: LoadTypedefsOptions): P
         errors,
         `Failed to find any GraphQL type definitions in: ${pointer};\n - ${errors
           .map(error => error.message)
-          .join('\n  - ')}`
+          .join('\n  - ')}`,
       );
     }
     if (options.cache) {
@@ -90,7 +90,7 @@ export function loadFileSync(pointer: string, options: LoadTypedefsOptions): Sou
         errors,
         `Failed to find any GraphQL type definitions in: ${pointer};\n - ${errors
           .map(error => error.message)
-          .join('\n  - ')}`
+          .join('\n  - ')}`,
       );
     }
 

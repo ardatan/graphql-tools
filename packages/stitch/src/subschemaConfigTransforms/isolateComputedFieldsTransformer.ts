@@ -1,12 +1,11 @@
-import { GraphQLObjectType, isObjectType, isInterfaceType } from 'graphql';
-
-import { SubschemaConfig, MergedTypeConfig, MergedFieldConfig } from '@graphql-tools/delegate';
-
-import { getImplementingTypes, pruneSchema, filterSchema } from '@graphql-tools/utils';
-
+import { GraphQLObjectType, isInterfaceType, isObjectType } from 'graphql';
+import { MergedFieldConfig, MergedTypeConfig, SubschemaConfig } from '@graphql-tools/delegate';
+import { filterSchema, getImplementingTypes, pruneSchema } from '@graphql-tools/utils';
 import { TransformCompositeFields } from '@graphql-tools/wrap';
 
-export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfig): Array<SubschemaConfig> {
+export function isolateComputedFieldsTransformer(
+  subschemaConfig: SubschemaConfig,
+): Array<SubschemaConfig> {
   if (subschemaConfig.merge == null) {
     return [subschemaConfig];
   }
@@ -28,7 +27,9 @@ export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfi
         if (mergedFieldConfig.computed && mergedFieldConfig.selectionSet) {
           isolatedFields[fieldName] = mergedFieldConfig;
         } else if (mergedFieldConfig.computed) {
-          throw new Error(`A selectionSet is required for computed field "${typeName}.${fieldName}"`);
+          throw new Error(
+            `A selectionSet is required for computed field "${typeName}.${fieldName}"`,
+          );
         } else {
           baseFields[fieldName] = mergedFieldConfig;
         }
@@ -63,23 +64,24 @@ export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfi
 
 function filterBaseSubschema(
   subschemaConfig: SubschemaConfig,
-  isolatedSchemaTypes: Record<string, MergedTypeConfig>
+  isolatedSchemaTypes: Record<string, MergedTypeConfig>,
 ): SubschemaConfig {
   const schema = subschemaConfig.schema;
   const typesForInterface: Record<string, string[]> = {};
   const filteredSchema = pruneSchema(
     filterSchema({
       schema,
-      objectFieldFilter: (typeName, fieldName) => !isolatedSchemaTypes[typeName]?.fields?.[fieldName],
+      objectFieldFilter: (typeName, fieldName) =>
+        !isolatedSchemaTypes[typeName]?.fields?.[fieldName],
       interfaceFieldFilter: (typeName, fieldName) => {
         if (!typesForInterface[typeName]) {
           typesForInterface[typeName] = getImplementingTypes(typeName, schema);
         }
         return !typesForInterface[typeName].some(
-          implementingTypeName => isolatedSchemaTypes[implementingTypeName]?.fields?.[fieldName]
+          implementingTypeName => isolatedSchemaTypes[implementingTypeName]?.fields?.[fieldName],
         );
       },
-    })
+    }),
   );
 
   const filteredFields: Record<string, Record<string, boolean>> = {};
@@ -104,7 +106,7 @@ function filterBaseSubschema(
     transforms: (subschemaConfig.transforms ?? []).concat([
       new TransformCompositeFields(
         (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null),
-        (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null)
+        (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null),
       ),
     ]),
   };
@@ -166,10 +168,12 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
   const filteredSchema = pruneSchema(
     filterSchema({
       schema: subschemaConfig.schema,
-      rootFieldFilter: (operation, fieldName) => operation === 'Query' && rootFields[fieldName] != null,
-      objectFieldFilter: (typeName, fieldName) => subschemaConfig.merge[typeName]?.fields?.[fieldName] != null,
+      rootFieldFilter: (operation, fieldName) =>
+        operation === 'Query' && rootFields[fieldName] != null,
+      objectFieldFilter: (typeName, fieldName) =>
+        subschemaConfig.merge[typeName]?.fields?.[fieldName] != null,
       interfaceFieldFilter: (typeName, fieldName) => interfaceFields[typeName]?.[fieldName] != null,
-    })
+    }),
   );
 
   const filteredFields: Record<string, Record<string, boolean>> = {};
@@ -189,7 +193,7 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
     transforms: (subschemaConfig.transforms ?? []).concat([
       new TransformCompositeFields(
         (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null),
-        (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null)
+        (typeName, fieldName) => (filteredFields[typeName]?.[fieldName] ? undefined : null),
       ),
     ]),
   };

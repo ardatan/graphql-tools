@@ -1,8 +1,8 @@
-import { PrismaDefinitionClass } from './PrismaDefinition.js';
 import * as fs from 'fs';
 import * as path from 'path';
-import { getTmpDir } from './test/getTmpDir.js';
 import { makeEnv } from './Environment.test.js';
+import { PrismaDefinitionClass } from './PrismaDefinition.js';
+import { getTmpDir } from './test/getTmpDir.js';
 import { Args } from './types/common.js';
 
 const defaultGlobalRC = `prisma-1.0:
@@ -19,7 +19,7 @@ function makeDefinition(
   datamodel: string,
   _: Args = {},
   __: string = defaultGlobalRC,
-  envVars: any = process.env
+  envVars: any = process.env,
 ) {
   const definitionDir = getTmpDir();
   const definitionPath = path.join(definitionDir, 'prisma.yml');
@@ -39,7 +39,7 @@ async function loadDefinition(
   datamodel: string,
   args: Args = {},
   envPath?: string,
-  globalRC: string = defaultGlobalRC
+  globalRC: string = defaultGlobalRC,
 ) {
   const { env, definition } = makeDefinition(yml, datamodel, args, globalRC);
   await env.load();

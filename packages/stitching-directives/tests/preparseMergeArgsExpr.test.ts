@@ -1,21 +1,25 @@
-import { EXPANSION_PREFIX, KEY_DELIMITER, preparseMergeArgsExpr } from '../src/preparseMergeArgsExpr.js';
+import {
+  EXPANSION_PREFIX,
+  KEY_DELIMITER,
+  preparseMergeArgsExpr,
+} from '../src/preparseMergeArgsExpr.js';
 
 describe('can preparse merge arguments', () => {
   test('throws if nested key expansions used', () => {
     expect(() => preparseMergeArgsExpr(`[[[[]]]]`)).toThrowError(
-      'Each opening "[[" must be matched by a closing "]]" without nesting.'
+      'Each opening "[[" must be matched by a closing "]]" without nesting.',
     );
   });
 
   test('throws with extra opening double brackets', () => {
     expect(() => preparseMergeArgsExpr(`[[[[]]`)).toThrowError(
-      'Each opening "[[" must be matched by a closing "]]" without nesting.'
+      'Each opening "[[" must be matched by a closing "]]" without nesting.',
     );
   });
 
   test('throws with extra closing double brackets', () => {
     expect(() => preparseMergeArgsExpr(`[[]]]]`)).toThrowError(
-      'Each opening "[[" must be matched by a closing "]]" without nesting.'
+      'Each opening "[[" must be matched by a closing "]]" without nesting.',
     );
   });
 
@@ -59,7 +63,9 @@ describe('can preparse merge arguments', () => {
   test('can preparseMergeArgsExpr multiple key expansions', () => {
     const args = `input: { ids: [[$key.id]], networkIds: [[$key.networkId]] }`;
     const result = preparseMergeArgsExpr(args);
-    expect(result.mergeArgsExpr).toEqual(`input: { ids: $${EXPANSION_PREFIX}1, networkIds: $${EXPANSION_PREFIX}2 }`);
+    expect(result.mergeArgsExpr).toEqual(
+      `input: { ids: $${EXPANSION_PREFIX}1, networkIds: $${EXPANSION_PREFIX}2 }`,
+    );
     expect(result.expansionExpressions).toEqual({
       [`${EXPANSION_PREFIX}1`]: `$key${KEY_DELIMITER}id`,
       [`${EXPANSION_PREFIX}2`]: `$key${KEY_DELIMITER}networkId`,

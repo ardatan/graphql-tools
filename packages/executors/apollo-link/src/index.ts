@@ -5,7 +5,7 @@ const apollo: typeof apolloImport = (apolloImport as any)?.default ?? apolloImpo
 
 function createApolloRequestHandler(executor: Executor): apolloImport.RequestHandler {
   return function ApolloRequestHandler(
-    operation: apolloImport.Operation
+    operation: apolloImport.Operation,
   ): apolloImport.Observable<apolloImport.FetchResult> {
     return new apollo.Observable(observer => {
       Promise.resolve().then(async () => {

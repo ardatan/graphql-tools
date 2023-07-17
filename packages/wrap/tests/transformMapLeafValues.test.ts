@@ -1,8 +1,8 @@
-import { wrapSchema, MapLeafValues } from '@graphql-tools/wrap';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { GraphQLSchema, parse } from 'graphql';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { assertSome } from '@graphql-tools/utils';
+import { MapLeafValues, wrapSchema } from '@graphql-tools/wrap';
 
 describe('MapLeafValues', () => {
   let transformedSchema: GraphQLSchema;

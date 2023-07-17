@@ -1,5 +1,35 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.0.1
+
+### Patch Changes
+
+- [#5310](https://github.com/ardatan/graphql-tools/pull/5310) [`c7fc12cc`](https://github.com/ardatan/graphql-tools/commit/c7fc12cc17c75cf797201cb8129a8f2a85cdfc6c) Thanks [@renovate](https://github.com/apps/renovate)! - Fix typings
+
+## 8.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/utils@10.0.0
+
+## 7.5.2
+
+### Patch Changes
+
+- [#5202](https://github.com/ardatan/graphql-tools/pull/5202) [`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency [`@babel/plugin-syntax-import-assertions@^7.20.0` ↗︎](https://www.npmjs.com/package/@babel/plugin-syntax-import-assertions/v/7.20.0) (from `7.20.0`, in `dependencies`)
+
+## 7.5.1
+
+### Patch Changes
+
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+
 ## 7.5.0
 
 ### Minor Changes

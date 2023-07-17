@@ -1,5 +1,5 @@
-import { Component, Input, Optional, ChangeDetectorRef } from '@angular/core';
 import gql from 'graphql-tag';
+import { ChangeDetectorRef, Component, Input, Optional } from '@angular/core';
 
 const query = gql`
   query Users {

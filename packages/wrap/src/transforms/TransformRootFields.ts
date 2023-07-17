@@ -1,11 +1,7 @@
-import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
-
+import { GraphQLFieldConfig, GraphQLSchema } from 'graphql';
+import { DelegationContext, SubschemaConfig, Transform } from '@graphql-tools/delegate';
 import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
-
-import { RootFieldTransformer, FieldNodeTransformer } from '../types.js';
-
+import { FieldNodeTransformer, RootFieldTransformer } from '../types.js';
 import TransformObjectFields from './TransformObjectFields.js';
 
 interface TransformRootFieldsTransformationContext extends Record<string, any> {}
@@ -17,7 +13,10 @@ export default class TransformRootFields<TContext = Record<string, any>>
   private readonly fieldNodeTransformer: FieldNodeTransformer | undefined;
   private transformer: TransformObjectFields<TContext> | undefined;
 
-  constructor(rootFieldTransformer: RootFieldTransformer<TContext>, fieldNodeTransformer?: FieldNodeTransformer) {
+  constructor(
+    rootFieldTransformer: RootFieldTransformer<TContext>,
+    fieldNodeTransformer?: FieldNodeTransformer,
+  ) {
     this.rootFieldTransformer = rootFieldTransformer;
     this.fieldNodeTransformer = fieldNodeTransformer;
   }
@@ -26,7 +25,7 @@ export default class TransformRootFields<TContext = Record<string, any>>
     const transformer = this.transformer;
     if (transformer === undefined) {
       throw new Error(
-        `The TransformRootFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+        `The TransformRootFields transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`,
       );
     }
     return transformer;
@@ -34,12 +33,12 @@ export default class TransformRootFields<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     const rootToObjectFieldTransformer = (
       typeName: string,
       fieldName: string,
-      fieldConfig: GraphQLFieldConfig<any, any>
+      fieldConfig: GraphQLFieldConfig<any, any>,
     ) => {
       if (typeName === originalWrappingSchema.getQueryType()?.name) {
         return this.rootFieldTransformer('Query', fieldName, fieldConfig);
@@ -56,7 +55,10 @@ export default class TransformRootFields<TContext = Record<string, any>>
       return undefined;
     };
 
-    this.transformer = new TransformObjectFields(rootToObjectFieldTransformer, this.fieldNodeTransformer);
+    this.transformer = new TransformObjectFields(
+      rootToObjectFieldTransformer,
+      this.fieldNodeTransformer,
+    );
 
     return this.transformer.transformSchema(originalWrappingSchema, subschemaConfig);
   }
@@ -64,16 +66,24 @@ export default class TransformRootFields<TContext = Record<string, any>>
   public transformRequest(
     originalRequest: ExecutionRequest,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: TransformRootFieldsTransformationContext
+    transformationContext: TransformRootFieldsTransformationContext,
   ): ExecutionRequest {
-    return this._getTransformer().transformRequest(originalRequest, delegationContext, transformationContext);
+    return this._getTransformer().transformRequest(
+      originalRequest,
+      delegationContext,
+      transformationContext,
+    );
   }
 
   public transformResult(
     originalResult: ExecutionResult,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: TransformRootFieldsTransformationContext
+    transformationContext: TransformRootFieldsTransformationContext,
   ): ExecutionResult {
-    return this._getTransformer().transformResult(originalResult, delegationContext, transformationContext);
+    return this._getTransformer().transformResult(
+      originalResult,
+      delegationContext,
+      transformationContext,
+    );
   }
 }

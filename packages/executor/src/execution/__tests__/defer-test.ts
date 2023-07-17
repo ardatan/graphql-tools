@@ -1,17 +1,19 @@
 import {
   DocumentNode,
-  parse,
+  GraphQLID,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
-  GraphQLID,
-  GraphQLString,
   GraphQLSchema,
+  GraphQLString,
+  parse,
 } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
-
-import type { InitialIncrementalExecutionResult, SubsequentIncrementalExecutionResult } from '../execute.js';
+import type {
+  InitialIncrementalExecutionResult,
+  SubsequentIncrementalExecutionResult,
+} from '../execute.js';
 import { execute } from '../execute.js';
 
 const friendType = new GraphQLObjectType({
@@ -93,9 +95,8 @@ async function complete(document: DocumentNode) {
   });
 
   if ('initialResult' in result) {
-    const results: Array<InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult> = [
-      result.initialResult,
-    ];
+    const results: Array<InitialIncrementalExecutionResult | SubsequentIncrementalExecutionResult> =
+      [result.initialResult];
     for await (const patch of result.subsequentResults) {
       results.push(patch);
     }

@@ -18,13 +18,11 @@ import {
   GraphQLString,
   parse,
 } from 'graphql';
-
-import { ExecutionResult } from '@graphql-tools/utils';
-import { stitchSchemas } from '@graphql-tools/stitch';
-
-import { stitchingDirectives } from '@graphql-tools/stitching-directives';
-import { ValidationLevel } from '../src/types.js';
 import { execute } from '@graphql-tools/executor';
+import { stitchSchemas } from '@graphql-tools/stitch';
+import { stitchingDirectives } from '@graphql-tools/stitching-directives';
+import { ExecutionResult } from '@graphql-tools/utils';
+import { ValidationLevel } from '../src/types.js';
 
 describe('merging using type merging', () => {
   const { stitchingDirectivesValidator, stitchingDirectivesTransformer } = stitchingDirectives();
@@ -63,7 +61,8 @@ describe('merging using type merging', () => {
             type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(accountsSchemaTypes._Key))),
           },
         },
-        resolve: (_root, { keys }) => keys.map((key: Record<string, any>) => users.find(u => u.id === key['id'])),
+        resolve: (_root, { keys }) =>
+          keys.map((key: Record<string, any>) => users.find(u => u.id === key['id'])),
         extensions: {
           directives: [
             {
@@ -97,7 +96,7 @@ describe('merging using type merging', () => {
   const accountsSchema = stitchingDirectivesValidator(
     new GraphQLSchema({
       query: accountsSchemaTypes.Query,
-    })
+    }),
   );
 
   const inventory = [
@@ -155,10 +154,17 @@ describe('merging using type merging', () => {
       _products: {
         type: new GraphQLNonNull(new GraphQLList(inventorySchemaTypes.Product)),
         args: {
-          keys: { type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(inventorySchemaTypes.ProductKey))) },
+          keys: {
+            type: new GraphQLNonNull(
+              new GraphQLList(new GraphQLNonNull(inventorySchemaTypes.ProductKey)),
+            ),
+          },
         },
         resolve: (_root, { keys }) => {
-          return keys.map((key: Record<string, any>) => ({ ...key, ...inventory.find(i => i.upc === key['upc']) }));
+          return keys.map((key: Record<string, any>) => ({
+            ...key,
+            ...inventory.find(i => i.upc === key['upc']),
+          }));
         },
         extensions: {
           directives: {
@@ -171,7 +177,7 @@ describe('merging using type merging', () => {
   const inventorySchema = stitchingDirectivesValidator(
     new GraphQLSchema({
       query: inventorySchemaTypes.Query,
-    })
+    }),
   );
 
   const products = [
@@ -233,7 +239,8 @@ describe('merging using type merging', () => {
         args: {
           upcs: { type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(GraphQLString))) },
         },
-        resolve: (_root, { upcs }) => upcs.map((upc: any) => products.find(product => product.upc === upc)),
+        resolve: (_root, { upcs }) =>
+          upcs.map((upc: any) => products.find(product => product.upc === upc)),
         extensions: {
           directives: {
             merge: {
@@ -248,7 +255,7 @@ describe('merging using type merging', () => {
   const productsSchema = stitchingDirectivesValidator(
     new GraphQLSchema({
       query: productsSchemaTypes.Query,
-    })
+    }),
   );
 
   const usernames = [
@@ -343,7 +350,11 @@ describe('merging using type merging', () => {
   reviewsSchemaTypes.ProductInput = new GraphQLInputObjectType({
     name: 'ProductInput',
     fields: () => ({
-      keys: { type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(reviewsSchemaTypes.ProductKey))) },
+      keys: {
+        type: new GraphQLNonNull(
+          new GraphQLList(new GraphQLNonNull(reviewsSchemaTypes.ProductKey)),
+        ),
+      },
     }),
   });
 
@@ -378,7 +389,11 @@ describe('merging using type merging', () => {
       _users: {
         type: new GraphQLList(reviewsSchemaTypes.User),
         args: {
-          keys: { type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(reviewsSchemaTypes.UserKey))) },
+          keys: {
+            type: new GraphQLNonNull(
+              new GraphQLList(new GraphQLNonNull(reviewsSchemaTypes.UserKey)),
+            ),
+          },
         },
         resolve: (_root, { keys }) => keys,
         extensions: {
@@ -407,7 +422,7 @@ describe('merging using type merging', () => {
   const reviewsSchema = stitchingDirectivesValidator(
     new GraphQLSchema({
       query: reviewsSchemaTypes.Query,
-    })
+    }),
   );
 
   const stitchedSchema = stitchSchemas({

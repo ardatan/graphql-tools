@@ -1,29 +1,28 @@
 import {
-  GraphQLDirective,
-  GraphQLSchema,
-  SchemaDefinitionNode,
-  TypeDefinitionNode,
-  SchemaExtensionNode,
-  TypeExtensionNode,
-  GraphQLNamedType,
-  GraphQLField,
-  GraphQLInputField,
+  EnumValueDefinitionNode,
   FieldDefinitionNode,
-  InputValueDefinitionNode,
-  GraphQLFieldConfig,
-  GraphQLInputFieldConfig,
-  GraphQLSchemaConfig,
-  GraphQLObjectTypeConfig,
-  GraphQLInterfaceTypeConfig,
-  GraphQLUnionTypeConfig,
-  GraphQLScalarTypeConfig,
+  GraphQLDirective,
   GraphQLEnumTypeConfig,
-  GraphQLInputObjectTypeConfig,
   GraphQLEnumValue,
   GraphQLEnumValueConfig,
-  EnumValueDefinitionNode,
+  GraphQLField,
+  GraphQLFieldConfig,
+  GraphQLInputField,
+  GraphQLInputFieldConfig,
+  GraphQLInputObjectTypeConfig,
+  GraphQLInterfaceTypeConfig,
+  GraphQLNamedType,
+  GraphQLObjectTypeConfig,
+  GraphQLScalarTypeConfig,
+  GraphQLSchema,
+  GraphQLSchemaConfig,
+  GraphQLUnionTypeConfig,
+  InputValueDefinitionNode,
+  SchemaDefinitionNode,
+  SchemaExtensionNode,
+  TypeDefinitionNode,
+  TypeExtensionNode,
 } from 'graphql';
-
 import { getArgumentValues } from './getArgumentValues.js';
 
 export interface DirectiveAnnotation {
@@ -59,20 +58,20 @@ type DirectableGraphQLObject =
 
 export function getDirectivesInExtensions(
   node: DirectableGraphQLObject,
-  pathToDirectivesInExtensions = ['directives']
+  pathToDirectivesInExtensions = ['directives'],
 ): Array<DirectiveAnnotation> {
   return pathToDirectivesInExtensions.reduce(
     (acc, pathSegment) => (acc == null ? acc : acc[pathSegment]),
-    node?.extensions as unknown as Array<DirectiveAnnotation>
+    node?.extensions as unknown as Array<DirectiveAnnotation>,
   );
 }
 
 function _getDirectiveInExtensions(
   directivesInExtensions: Array<DirectiveAnnotation>,
-  directiveName: string
+  directiveName: string,
 ): Array<Record<string, any>> | undefined {
   const directiveInExtensions = directivesInExtensions.filter(
-    directiveAnnotation => directiveAnnotation.name === directiveName
+    directiveAnnotation => directiveAnnotation.name === directiveName,
   );
   if (!directiveInExtensions.length) {
     return undefined;
@@ -84,14 +83,14 @@ function _getDirectiveInExtensions(
 export function getDirectiveInExtensions(
   node: DirectableGraphQLObject,
   directiveName: string,
-  pathToDirectivesInExtensions = ['directives']
+  pathToDirectivesInExtensions = ['directives'],
 ): Array<Record<string, any>> | undefined {
   const directivesInExtensions = pathToDirectivesInExtensions.reduce(
     (acc, pathSegment) => (acc == null ? acc : acc[pathSegment]),
     node?.extensions as
       | Record<string, Record<string, any> | Array<Record<string, any>>>
       | Array<DirectiveAnnotation>
-      | undefined
+      | undefined,
   );
 
   if (directivesInExtensions === undefined) {
@@ -122,7 +121,7 @@ export function getDirectiveInExtensions(
 export function getDirectives(
   schema: GraphQLSchema,
   node: DirectableGraphQLObject,
-  pathToDirectivesInExtensions = ['directives']
+  pathToDirectivesInExtensions = ['directives'],
 ): Array<DirectiveAnnotation> {
   const directivesInExtensions = getDirectivesInExtensions(node, pathToDirectivesInExtensions);
 
@@ -153,7 +152,10 @@ export function getDirectives(
       for (const directiveNode of astNode.directives) {
         const schemaDirective = schemaDirectiveMap[directiveNode.name.value];
         if (schemaDirective) {
-          result.push({ name: directiveNode.name.value, args: getArgumentValues(schemaDirective, directiveNode) });
+          result.push({
+            name: directiveNode.name.value,
+            args: getArgumentValues(schemaDirective, directiveNode),
+          });
         }
       }
     }
@@ -166,15 +168,20 @@ export function getDirective(
   schema: GraphQLSchema,
   node: DirectableGraphQLObject,
   directiveName: string,
-  pathToDirectivesInExtensions = ['directives']
+  pathToDirectivesInExtensions = ['directives'],
 ): Array<Record<string, any>> | undefined {
-  const directiveInExtensions = getDirectiveInExtensions(node, directiveName, pathToDirectivesInExtensions);
+  const directiveInExtensions = getDirectiveInExtensions(
+    node,
+    directiveName,
+    pathToDirectivesInExtensions,
+  );
 
   if (directiveInExtensions != null) {
     return directiveInExtensions;
   }
 
-  const schemaDirective = schema && schema.getDirective ? schema.getDirective(directiveName) : undefined;
+  const schemaDirective =
+    schema && schema.getDirective ? schema.getDirective(directiveName) : undefined;
 
   if (schemaDirective == null) {
     return undefined;

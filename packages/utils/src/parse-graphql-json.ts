@@ -21,7 +21,7 @@ function parseBOM(content: string): any {
 export function parseGraphQLJSON(
   location: string,
   jsonContent: string,
-  options: SchemaPrintOptions & ParseOptions
+  options: SchemaPrintOptions & ParseOptions,
 ): Source {
   let parsedJson = parseBOM(jsonContent);
 

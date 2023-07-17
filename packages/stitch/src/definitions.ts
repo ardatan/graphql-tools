@@ -1,11 +1,11 @@
 import {
-  DocumentNode,
-  TypeExtensionNode,
-  Kind,
-  SchemaExtensionNode,
-  SchemaDefinitionNode,
-  TypeDefinitionNode,
   DirectiveDefinitionNode,
+  DocumentNode,
+  Kind,
+  SchemaDefinitionNode,
+  SchemaExtensionNode,
+  TypeDefinitionNode,
+  TypeExtensionNode,
 } from 'graphql';
 
 export function extractDefinitions(ast: DocumentNode) {

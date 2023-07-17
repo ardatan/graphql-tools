@@ -1,11 +1,15 @@
-import { isNonNullType, Kind, GraphQLType, TypeNode, isListType } from 'graphql';
+import { GraphQLType, isListType, isNonNullType, Kind, TypeNode } from 'graphql';
 import { inspect } from './inspect.js';
 
 export function astFromType(type: GraphQLType): TypeNode {
   if (isNonNullType(type)) {
     const innerType = astFromType(type.ofType);
     if (innerType.kind === Kind.NON_NULL_TYPE) {
-      throw new Error(`Invalid type node ${inspect(type)}. Inner type of non-null type cannot be a non-null type.`);
+      throw new Error(
+        `Invalid type node ${inspect(
+          type,
+        )}. Inner type of non-null type cannot be a non-null type.`,
+      );
     }
     return {
       kind: Kind.NON_NULL_TYPE,

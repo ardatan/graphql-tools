@@ -1,5 +1,4 @@
-import { graphql, GraphQLError, buildSchema } from 'graphql';
-
+import { buildSchema, graphql, GraphQLError } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { assertSome, createGraphQLError, ExecutionResult, Executor } from '@graphql-tools/utils';
@@ -214,7 +213,7 @@ describe('passes along errors for remote schemas', () => {
             path: ['test'],
           } as unknown as GraphQLError,
         ],
-      } as ExecutionResult<any>);
+      }) as ExecutionResult<any>;
 
     const stitchedSchema = stitchSchemas({
       subschemas: [

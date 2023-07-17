@@ -1,5 +1,37 @@
 # @graphql-tools/executor-legacy-ws
 
+## 1.0.1
+
+### Patch Changes
+
+- [`621d848b`](https://github.com/ardatan/graphql-tools/commit/621d848bba5abe8cb21ec0cc466ea0e80fe40cf5) Thanks [@ardatan](https://github.com/ardatan)! - Clean websocket pointer if the connection is closed
+
+- [`ffdf1c63`](https://github.com/ardatan/graphql-tools/commit/ffdf1c632db9b37b6ddc25075339a3a2aa2e8aca) Thanks [@ardatan](https://github.com/ardatan)! - Handle WS errors gracefully
+
+## 1.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/utils@10.0.0
+
+## 0.0.11
+
+### Patch Changes
+
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+
+## 0.0.10
+
+### Patch Changes
+
+- [#5112](https://github.com/ardatan/graphql-tools/pull/5112) [`828fbf93`](https://github.com/ardatan/graphql-tools/commit/828fbf93ff317d00577c9a94402736bac5f4be39) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`ws@8.13.0` ↗︎](https://www.npmjs.com/package/ws/v/8.13.0) (from `8.12.1`, in `dependencies`)
+
 ## 0.0.9
 
 ### Patch Changes

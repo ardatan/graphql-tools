@@ -1,22 +1,21 @@
 import {
   ArgumentNode,
-  FieldNode,
-  Kind,
-  OperationDefinitionNode,
-  SelectionNode,
-  GraphQLSchema,
-  GraphQLObjectType,
-  OperationTypeNode,
-  typeFromAST,
-  NamedTypeNode,
-  GraphQLInputType,
-  VariableDefinitionNode,
-  SelectionSetNode,
   DefinitionNode,
   DocumentNode,
+  FieldNode,
+  GraphQLInputType,
+  GraphQLObjectType,
+  GraphQLSchema,
+  Kind,
+  NamedTypeNode,
   NameNode,
+  OperationDefinitionNode,
+  OperationTypeNode,
+  SelectionNode,
+  SelectionSetNode,
+  typeFromAST,
+  VariableDefinitionNode,
 } from 'graphql';
-
 import {
   createVariableNameGenerator,
   ExecutionRequest,
@@ -25,7 +24,10 @@ import {
 } from '@graphql-tools/utils';
 import { ICreateRequest } from './types.js';
 
-export function getDelegatingOperation(parentType: GraphQLObjectType, schema: GraphQLSchema): OperationTypeNode {
+export function getDelegatingOperation(
+  parentType: GraphQLObjectType,
+  schema: GraphQLSchema,
+): OperationTypeNode {
   if (parentType === schema.getMutationType()) {
     return 'mutation' as OperationTypeNode;
   } else if (parentType === schema.getSubscriptionType()) {
@@ -102,7 +104,7 @@ export function createRequest({
       sourceFieldName,
       argumentNodeMap,
       variableDefinitionMap,
-      newVariables
+      newVariables,
     );
   }
 
@@ -170,11 +172,14 @@ function updateArgumentsWithDefaults(
   sourceFieldName: string,
   argumentNodeMap: Record<string, ArgumentNode>,
   variableDefinitionMap: Record<string, VariableDefinitionNode>,
-  variableValues: Record<string, any>
+  variableValues: Record<string, any>,
 ): void {
   const generateVariableName = createVariableNameGenerator(variableDefinitionMap);
 
   const sourceField = sourceParentType.getFields()[sourceFieldName];
+  if (!sourceField) {
+    throw new Error(`Field "${sourceFieldName}" was not found in type "${sourceParentType}".`);
+  }
   for (const argument of sourceField.args) {
     const argName = argument.name;
     const sourceArgType = argument.type;
@@ -190,7 +195,7 @@ function updateArgumentsWithDefaults(
           argName,
           generateVariableName(argName),
           sourceArgType,
-          serializeInputValue(sourceArgType, defaultValue)
+          serializeInputValue(sourceArgType, defaultValue),
         );
       }
     }

@@ -1,6 +1,6 @@
+import { GraphQLInputObjectType, GraphQLInterfaceType, GraphQLObjectType } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { GraphQLInputObjectType, GraphQLObjectType, GraphQLInterfaceType } from 'graphql';
 
 function assertGraphQLObjectType(input: unknown): asserts input is GraphQLObjectType {
   if (input instanceof GraphQLObjectType) {

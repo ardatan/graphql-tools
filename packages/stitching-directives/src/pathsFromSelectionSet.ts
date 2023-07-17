@@ -1,6 +1,9 @@
 import { Kind, SelectionNode, SelectionSetNode } from 'graphql';
 
-export function pathsFromSelectionSet(selectionSet: SelectionSetNode, path: Array<string> = []): Array<Array<string>> {
+export function pathsFromSelectionSet(
+  selectionSet: SelectionSetNode,
+  path: Array<string> = [],
+): Array<Array<string>> {
   const paths: Array<Array<string>> = [];
   for (const selection of selectionSet.selections) {
     const additions = pathsFromSelection(selection, path) ?? [];
@@ -11,7 +14,10 @@ export function pathsFromSelectionSet(selectionSet: SelectionSetNode, path: Arra
   return paths;
 }
 
-function pathsFromSelection(selection: SelectionNode, path: Array<string>): Array<Array<string>> | undefined {
+function pathsFromSelection(
+  selection: SelectionNode,
+  path: Array<string>,
+): Array<Array<string>> | undefined {
   if (selection.kind === Kind.FIELD) {
     const responseKey = selection.alias?.value ?? selection.name.value;
     if (selection.selectionSet) {

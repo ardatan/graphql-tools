@@ -1,9 +1,9 @@
 'use strict';
 
-import HttpsProxyAgent from 'https-proxy-agent';
-import HttpProxyAgent from 'http-proxy-agent';
-import { Agent as HttpsAgent } from 'https';
 import { Agent as HttpAgent } from 'http';
+import { Agent as HttpsAgent } from 'https';
+import HttpProxyAgent from 'http-proxy-agent';
+import HttpsProxyAgent from 'https-proxy-agent';
 
 // code from https://raw.githubusercontent.com/request/request/5ba8eb44da7cd639ca21070ea9be20d611b85f66/lib/getProxyFromURI.js
 
@@ -31,7 +31,8 @@ function uriInNoProxy(uri: any, noProxy: any) {
   // iterate through the noProxyList until it finds a match.
   return noProxyList.map(parseNoProxyZone).some(function (noProxyZone: any) {
     const isMatchedAt = hostname.indexOf(noProxyZone.hostname);
-    const hostnameMatched = isMatchedAt > -1 && isMatchedAt === hostname.length - noProxyZone.hostname.length;
+    const hostnameMatched =
+      isMatchedAt > -1 && isMatchedAt === hostname.length - noProxyZone.hostname.length;
 
     if (noProxyZone.hasPort) {
       return port === noProxyZone.port && hostnameMatched;

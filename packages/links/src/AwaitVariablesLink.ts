@@ -12,12 +12,14 @@ function getFinalPromise(object: any): Promise<any> {
       return Promise.all(resolvedObject.map(o => getFinalPromise(o)));
     } else if (typeof resolvedObject === 'object') {
       const keys = Object.keys(resolvedObject);
-      return Promise.all(keys.map(key => getFinalPromise(resolvedObject[key]))).then(awaitedValues => {
-        for (let i = 0; i < keys.length; i++) {
-          resolvedObject[keys[i]] = awaitedValues[i];
-        }
-        return resolvedObject;
-      });
+      return Promise.all(keys.map(key => getFinalPromise(resolvedObject[key]))).then(
+        awaitedValues => {
+          for (let i = 0; i < keys.length; i++) {
+            resolvedObject[keys[i]] = awaitedValues[i];
+          }
+          return resolvedObject;
+        },
+      );
     }
 
     return resolvedObject;
@@ -27,7 +29,7 @@ function getFinalPromise(object: any): Promise<any> {
 export class AwaitVariablesLink extends apollo.ApolloLink {
   request(
     operation: apolloImport.Operation,
-    forward: apolloImport.NextLink
+    forward: apolloImport.NextLink,
   ): apolloImport.Observable<apolloImport.FetchResult> {
     return new apollo.Observable(observer => {
       let subscription: any;

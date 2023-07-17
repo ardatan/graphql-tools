@@ -76,7 +76,9 @@ describe('getArgumentsWithDirectives', () => {
     `);
 
     const result = getArgumentsWithDirectives(node);
-    expect(result['A.f1']).toEqual({ anArg: [{ name: 'a', args: { a1: ['a', 1, { c: 3, d: true }] } }] });
+    expect(result['A.f1']).toEqual({
+      anArg: [{ name: 'a', args: { a1: ['a', 1, { c: 3, d: true }] } }],
+    });
   });
 
   it('Should detect multiple directives', () => {

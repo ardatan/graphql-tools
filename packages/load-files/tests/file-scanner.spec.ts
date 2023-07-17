@@ -1,6 +1,6 @@
-import { loadFilesSync, loadFiles, LoadFilesOptions } from '@graphql-tools/load-files';
-import { print } from 'graphql';
 import { join } from 'path';
+import { print } from 'graphql';
+import { loadFiles, LoadFilesOptions, loadFilesSync } from '@graphql-tools/load-files';
 import { jest } from '@jest/globals';
 
 const syncAndAsync = Object.entries({ SYNC: loadFilesSync, ASYNC: loadFiles });
@@ -31,7 +31,7 @@ function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: TestDi
               res = print(res);
             }
             return stripWhitespaces(res);
-          })
+          }),
         ).toEqual(expected.map(stripWhitespaces));
       });
     });
@@ -236,9 +236,12 @@ describe('file scanner', function () {
         // Incoming exported value is function
         return fileExport(customQueryTypeName);
       };
-      const loadedFiles = await loadFiles(join(__dirname, './test-assets/custom-extractor/factory-func.js'), {
-        extractExports: customExtractExports,
-      });
+      const loadedFiles = await loadFiles(
+        join(__dirname, './test-assets/custom-extractor/factory-func.js'),
+        {
+          extractExports: customExtractExports,
+        },
+      );
       expect(loadedFiles).toHaveLength(1);
       expect(customQueryTypeName in loadedFiles[0]).toBeTruthy();
       expect('foo' in loadedFiles[0][customQueryTypeName]).toBeTruthy();

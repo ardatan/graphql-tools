@@ -1,17 +1,17 @@
-import { freeText } from './utils.js';
-import { GraphQLTagPluckOptions } from './index.js';
+import { Visitor } from '@babel/traverse';
 import {
-  isVariableDeclarator,
   isIdentifier,
-  isTemplateLiteral,
   isImportDefaultSpecifier,
   isImportSpecifier,
+  isTemplateLiteral,
   isTSAsExpression,
   isTSTypeReference,
+  isVariableDeclarator,
   TSAsExpression,
 } from '@babel/types';
 import { asArray } from '@graphql-tools/utils';
-import { Visitor } from '@babel/traverse';
+import { GraphQLTagPluckOptions } from './index.js';
+import { freeText } from './utils.js';
 
 const defaults: GraphQLTagPluckOptions = {
   modules: [
@@ -145,7 +145,7 @@ export type PluckedContent = {
 function defaultPluckStringFromFile(
   code: string,
   { start, end }: { start: number; end: number },
-  options: { skipIndent?: boolean } = {}
+  options: { skipIndent?: boolean } = {},
 ) {
   return freeText(
     code
@@ -156,7 +156,7 @@ function defaultPluckStringFromFile(
       .replace(/\$\{[^}]*\}/g, '')
       .split('\\`')
       .join('`'),
-    options.skipIndent
+    options.skipIndent,
   );
 }
 
@@ -224,7 +224,9 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
 
   // Check if identifier is defined and imported from registered packages
   function isValidIdentifier(name: string) {
-    return definedIdentifierNames.some(id => id === name) || globalGqlIdentifierName!.includes(name);
+    return (
+      definedIdentifierNames.some(id => id === name) || globalGqlIdentifierName!.includes(name)
+    );
   }
 
   const addTemplateLiteralToResult = (content: PluckedContent) => {
@@ -282,7 +284,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
         }
 
         // Checks to see if a node represents a typescript '<expression> as const' expression
-        function isTSAsConstExpression(node: object | null | undefined): node is TSAsExpression {
+        function isTSAsConstExpression(node: any): node is TSAsExpression {
           return (
             isTSAsExpression(node) &&
             isTSTypeReference(node.typeAnnotation) &&
@@ -304,7 +306,11 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
         ) {
           const { start, end, loc } = unwrappedExpression;
           if (start != null && end != null && start != null && loc != null) {
-            const gqlTemplateLiteral = pluckStringFromFile(code, unwrappedExpression as any, hooksOptions);
+            const gqlTemplateLiteral = pluckStringFromFile(
+              code,
+              unwrappedExpression as any,
+              hooksOptions,
+            );
 
             // If the entire template was made out of interpolations it should be an empty
             // string by now and thus should be ignored
@@ -329,7 +335,9 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
           return;
         }
 
-        const moduleNode = modules.find(pkg => pkg.name.toLowerCase() === path.node.source.value.toLowerCase());
+        const moduleNode = modules.find(
+          pkg => pkg.name.toLowerCase() === path.node.source.value.toLowerCase(),
+        );
 
         if (moduleNode == null) {
           return;

@@ -1,9 +1,6 @@
-import { buildSchema, parse, getIntrospectionQuery, introspectionFromSchema } from 'graphql';
-
+import { buildSchema, getIntrospectionQuery, introspectionFromSchema, parse } from 'graphql';
 import { createGraphQLError, ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
-
 import { relocatedError } from '../src/errors.js';
-
 import { visitData, visitResult } from '../src/visitResult.js';
 
 describe('visiting results', () => {
@@ -89,7 +86,7 @@ describe('visiting results', () => {
             return val;
           },
         },
-      })
+      }),
     ).not.toThrow();
   });
 

@@ -1,5 +1,68 @@
 # @graphql-tools/batch-delegate
 
+## 9.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- Updated dependencies [[`8fba6cc1`](https://github.com/ardatan/graphql-tools/commit/8fba6cc1876e914d587f5b253332aaedbcaa65e6), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/delegate@10.0.0
+  - @graphql-tools/utils@10.0.0
+
+## 8.4.27
+
+### Patch Changes
+
+- [#5220](https://github.com/ardatan/graphql-tools/pull/5220) [`8e80b689`](https://github.com/ardatan/graphql-tools/commit/8e80b6893d2342353731610d5da9db633d806083) Thanks [@ardatan](https://github.com/ardatan)! - Performance improvements
+
+- Updated dependencies [[`8e80b689`](https://github.com/ardatan/graphql-tools/commit/8e80b6893d2342353731610d5da9db633d806083)]:
+  - @graphql-tools/delegate@9.0.35
+
+## 8.4.26
+
+### Patch Changes
+
+- [#5205](https://github.com/ardatan/graphql-tools/pull/5205) [`a33097f7`](https://github.com/ardatan/graphql-tools/commit/a33097f734992105ca13e1774da90842780c6467) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+
+  - Added dependency [`value-or-promise@^1.0.12` ↗︎](https://www.npmjs.com/package/value-or-promise/v/1.0.12) (to `dependencies`)
+
+- [`2f342e43`](https://github.com/ardatan/graphql-tools/commit/2f342e430ba0d0097d1d8cb31a6abb97ed46f971) Thanks [@ardatan](https://github.com/ardatan)! - Do not use promises if not async
+
+- Updated dependencies [[`2f342e43`](https://github.com/ardatan/graphql-tools/commit/2f342e430ba0d0097d1d8cb31a6abb97ed46f971)]:
+  - @graphql-tools/delegate@9.0.34
+
+## 8.4.25
+
+### Patch Changes
+
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+
+- Updated dependencies []:
+  - @graphql-tools/delegate@9.0.31
+
+## 8.4.24
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/delegate@9.0.30
+
+## 8.4.23
+
+### Patch Changes
+
+- Updated dependencies [[`f26392a6`](https://github.com/ardatan/graphql-tools/commit/f26392a66299956da1e66253b181f85332c93db5)]:
+  - @graphql-tools/delegate@9.0.29
+
+## 8.4.22
+
+### Patch Changes
+
+- [#5104](https://github.com/ardatan/graphql-tools/pull/5104) [`1913bf91`](https://github.com/ardatan/graphql-tools/commit/1913bf913130f20582152f3cbb1a4bfb49d85a13) Thanks [@PatrykWalach](https://github.com/PatrykWalach)! - Pass `keys` to lazyOptionsFn
+
 ## 8.4.21
 
 ### Patch Changes

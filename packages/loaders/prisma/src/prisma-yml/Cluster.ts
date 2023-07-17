@@ -1,13 +1,13 @@
-import 'isomorphic-fetch';
-import { createPrivateKey } from 'crypto';
 import { Buffer } from 'buffer';
-import { cloudApiEndpoint } from './constants.js';
-import { GraphQLClient } from 'graphql-request';
+import { createPrivateKey } from 'crypto';
 import chalk from 'chalk';
+import debugPkg from 'debug';
+import { GraphQLClient } from 'graphql-request';
+import { SignJWT } from 'jose';
+import { fetch } from '@whatwg-node/fetch';
+import { cloudApiEndpoint } from './constants.js';
 import { IOutput } from './Output.js';
 import { getProxyAgent } from './utils/getProxyAgent.js';
-import debugPkg from 'debug';
-import { SignJWT } from 'jose';
 
 const debug = debugPkg('Environment');
 
@@ -32,7 +32,7 @@ export class Cluster {
     local = true,
     shared = false,
     isPrivate = false,
-    workspaceSlug?: string
+    workspaceSlug?: string,
   ) {
     this.out = out;
     this.name = name;
@@ -50,7 +50,11 @@ export class Cluster {
     this.hasOldDeployEndpoint = false;
   }
 
-  async getToken(serviceName: string, workspaceSlug?: string, stageName?: string): Promise<string | null> {
+  async getToken(
+    serviceName: string,
+    workspaceSlug?: string,
+    stageName?: string,
+  ): Promise<string | null> {
     // public clusters just take the token
 
     const needsAuth = await this.needsAuth();
@@ -83,8 +87,8 @@ export class Cluster {
       if (!secret) {
         throw new Error(
           `Could not generate token for cluster ${chalk.bold(
-            this.getDeployEndpoint()
-          )}. Did you provide the env var PRISMA_MANAGEMENT_API_SECRET?`
+            this.getDeployEndpoint(),
+          )}. Did you provide the env var PRISMA_MANAGEMENT_API_SECRET?`,
         );
       }
 
@@ -98,7 +102,7 @@ export class Cluster {
       } catch (e: any) {
         throw new Error(
           `Could not generate token for cluster ${chalk.bold(this.getDeployEndpoint())}.
-Original error: ${e.message}`
+Original error: ${e.message}`,
         );
       }
     }
@@ -118,7 +122,7 @@ Original error: ${e.message}`
   async generateClusterToken(
     serviceName: string,
     workspaceSlug: string = this.workspaceSlug || '*',
-    stageName?: string
+    stageName?: string,
   ): Promise<string> {
     const query = /* GraphQL */ `
       mutation ($input: GenerateClusterTokenRequest!) {
@@ -149,7 +153,7 @@ Original error: ${e.message}`
   async addServiceToCloudDBIfMissing(
     serviceName: string,
     workspaceSlug: string = this.workspaceSlug!,
-    stageName?: string
+    stageName?: string,
   ): Promise<boolean> {
     const query = /* GraphQL */ `
       mutation ($input: GenerateClusterTokenRequest!) {
@@ -256,7 +260,6 @@ Original error: ${e.message}`
         query,
         variables,
       }),
-      agent: getProxyAgent(this.getDeployEndpoint()),
     } as any);
   }
 

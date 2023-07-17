@@ -1,5 +1,36 @@
 # @graphql-tools/utils
 
+## 10.0.3
+
+### Patch Changes
+
+- [#5398](https://github.com/ardatan/graphql-tools/pull/5398) [`be3411c7`](https://github.com/ardatan/graphql-tools/commit/be3411c7fa95b0c0a85e516450314038fae85e3a) Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - incremental merge also merges extensions
+
+## 10.0.2
+
+### Patch Changes
+
+- [#5396](https://github.com/ardatan/graphql-tools/pull/5396) [`bb8f169e`](https://github.com/ardatan/graphql-tools/commit/bb8f169e21a8a7002b66d3bc6e4e4b40cc2a5f5c) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+
+  - Added dependency [`dset@^3.1.2` ↗︎](https://www.npmjs.com/package/dset/v/3.1.2) (to `dependencies`)
+
+- [#5396](https://github.com/ardatan/graphql-tools/pull/5396) [`bb8f169e`](https://github.com/ardatan/graphql-tools/commit/bb8f169e21a8a7002b66d3bc6e4e4b40cc2a5f5c) Thanks [@ardatan](https://github.com/ardatan)! - Move the merging logic of incremental results to the utils package
+
+## 10.0.1
+
+### Patch Changes
+
+- [`dcdc6eb7`](https://github.com/ardatan/graphql-tools/commit/dcdc6eb787ca77d741d98d68b70d4083f4d72b91) Thanks [@ardatan](https://github.com/ardatan)! - Support BigInt values
+
+## 10.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - `AggregateError` is no longer exported from `@graphql-tools/utils`.
+  You can use the native `AggregateError` instead.
+
 ## 9.2.1
 
 ### Patch Changes

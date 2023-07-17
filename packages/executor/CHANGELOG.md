@@ -1,5 +1,57 @@
 # @graphql-tools/executor
 
+## 1.1.0
+
+### Minor Changes
+
+- [#5295](https://github.com/ardatan/graphql-tools/pull/5295) [`b255b62c`](https://github.com/ardatan/graphql-tools/commit/b255b62c9e79076648b4d3a710584a237dead529) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Ensure errors thrown within scalars serialize function are mapped to `Error`.
+
+## 1.0.0
+
+### Major Changes
+
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+
+### Patch Changes
+
+- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/utils@10.0.0
+
+## 0.0.20
+
+### Patch Changes
+
+- [#5215](https://github.com/ardatan/graphql-tools/pull/5215) [`88244048`](https://github.com/ardatan/graphql-tools/commit/882440487551abcb5bdd4f626f3b56ac2e886f11) Thanks [@ardatan](https://github.com/ardatan)! - Improve `promiseForObject`
+
+- [#5220](https://github.com/ardatan/graphql-tools/pull/5220) [`8e80b689`](https://github.com/ardatan/graphql-tools/commit/8e80b6893d2342353731610d5da9db633d806083) Thanks [@ardatan](https://github.com/ardatan)! - Performance improvements
+
+## 0.0.19
+
+### Patch Changes
+
+- [#5202](https://github.com/ardatan/graphql-tools/pull/5202) [`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency [`@repeaterjs/repeater@^3.0.4` ↗︎](https://www.npmjs.com/package/@repeaterjs/repeater/v/3.0.4) (from `3.0.4`, in `dependencies`)
+  - Updated dependency [`value-or-promise@^1.0.12` ↗︎](https://www.npmjs.com/package/value-or-promise/v/1.0.12) (from `1.0.12`, in `dependencies`)
+
+## 0.0.18
+
+### Patch Changes
+
+- [#5187](https://github.com/ardatan/graphql-tools/pull/5187) [`91a895be`](https://github.com/ardatan/graphql-tools/commit/91a895bea32dc4226da08e8981ded3f55f4c53f3) Thanks [@ardatan](https://github.com/ardatan)! - Handle errors thrown from the field subscriber
+
+## 0.0.17
+
+### Patch Changes
+
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+
+## 0.0.16
+
+### Patch Changes
+
+- [#5112](https://github.com/ardatan/graphql-tools/pull/5112) [`828fbf93`](https://github.com/ardatan/graphql-tools/commit/828fbf93ff317d00577c9a94402736bac5f4be39) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`@graphql-typed-document-node/core@3.2.0` ↗︎](https://www.npmjs.com/package/@graphql-typed-document-node/core/v/3.2.0) (from `3.1.2`, in `dependencies`)
+
 ## 0.0.15
 
 ### Patch Changes

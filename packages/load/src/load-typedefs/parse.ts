@@ -1,11 +1,11 @@
+import { env } from 'process';
 import {
-  Source,
-  printSchemaWithDirectives,
   parseGraphQLSDL,
+  printSchemaWithDirectives,
   printWithComments,
   resetComments,
+  Source,
 } from '@graphql-tools/utils';
-import { env } from 'process';
 import { filterKind } from '../filter-document-kind.js';
 
 type Options = any;
@@ -21,7 +21,12 @@ type ParseOptions = {
   addValidSource: AddValidSource;
 };
 
-export function parseSource({ partialSource, options, pointerOptionMap, addValidSource }: ParseOptions) {
+export function parseSource({
+  partialSource,
+  options,
+  pointerOptionMap,
+  addValidSource,
+}: ParseOptions) {
   if (env['DEBUG'] != null) {
     console.time(`@graphql-tools/load: parseSource ${partialSource.location}`);
   }
@@ -88,7 +93,11 @@ function parseRawSDL(input: Input) {
     console.time(`@graphql-tools/load: parseRawSDL ${input.source.location}`);
   }
   if (input.source.rawSDL) {
-    input.source.document = parseGraphQLSDL(input.source.location, input.source.rawSDL, input.options).document;
+    input.source.document = parseGraphQLSDL(
+      input.source.location,
+      input.source.rawSDL,
+      input.options,
+    ).document;
   }
   if (env['DEBUG'] != null) {
     console.timeEnd(`@graphql-tools/load: parseRawSDL ${input.source.location}`);

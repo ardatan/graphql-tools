@@ -1,13 +1,13 @@
 import {
-  parse,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLObjectType,
   GraphQLBoolean,
   GraphQLID,
   GraphQLInt,
-  GraphQLString,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
   GraphQLSchema,
+  GraphQLString,
+  parse,
 } from 'graphql';
 import { executeSync } from '../execute.js';
 

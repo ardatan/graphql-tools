@@ -1,5 +1,80 @@
 # federation-benchmark
 
+## 0.0.94
+
+### Patch Changes
+
+- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+  - @graphql-tools/federation@1.0.0
+  - @graphql-tools/stitch@9.0.0
+
+## 0.0.93
+
+### Patch Changes
+
+- Updated dependencies [[`2bbbe1af`](https://github.com/ardatan/graphql-tools/commit/2bbbe1af0bb7d04685bdceab9252a5ded6809c78)]:
+  - @graphql-tools/stitch@8.7.50
+
+## 0.0.92
+
+### Patch Changes
+
+- Updated dependencies [[`24c13616`](https://github.com/ardatan/graphql-tools/commit/24c136160fe675c08c1c1fe06bfb8883cdf0b466)]:
+  - @graphql-tools/federation@0.0.3
+
+## 0.0.91
+
+### Patch Changes
+
+- Updated dependencies [[`0cd9e8c4`](https://github.com/ardatan/graphql-tools/commit/0cd9e8c4469d07e53ad8e7944ba144f58c4db34f), [`88244048`](https://github.com/ardatan/graphql-tools/commit/882440487551abcb5bdd4f626f3b56ac2e886f11), [`8e80b689`](https://github.com/ardatan/graphql-tools/commit/8e80b6893d2342353731610d5da9db633d806083)]:
+  - @graphql-tools/federation@0.0.2
+  - @graphql-tools/stitch@8.7.49
+
+## 0.0.90
+
+### Patch Changes
+
+- Updated dependencies [[`1c0e80a6`](https://github.com/ardatan/graphql-tools/commit/1c0e80a60827169eb3eb99fe5710b1e891b89740)]:
+  - @graphql-tools/federation@0.0.1
+
+## 0.0.89
+
+### Patch Changes
+
+- Updated dependencies [[`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41)]:
+  - @graphql-tools/stitching-directives@2.3.34
+  - @graphql-tools/stitch@8.7.48
+
+## 0.0.88
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/stitch@8.7.47
+  - @graphql-tools/stitching-directives@2.3.33
+
+## 0.0.87
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/stitch@8.7.46
+
+## 0.0.86
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/stitch@8.7.45
+  - @graphql-tools/stitching-directives@2.3.32
+
+## 0.0.85
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/stitch@8.7.44
+
 ## 0.0.84
 
 ### Patch Changes

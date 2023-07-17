@@ -5,7 +5,7 @@
 export function mapAsyncIterator<T, U>(
   iterator: AsyncIterator<T>,
   callback: (value: T) => Promise<U> | U,
-  rejectCallback?: any
+  rejectCallback?: any,
 ): AsyncIterableIterator<U> {
   let $return: any;
   let abruptClose: any;
@@ -19,7 +19,9 @@ export function mapAsyncIterator<T, U>(
   }
 
   function mapResult(result: any) {
-    return result.done ? result : asyncMapValue(result.value, callback).then(iteratorResult, abruptClose);
+    return result.done
+      ? result
+      : asyncMapValue(result.value, callback).then(iteratorResult, abruptClose);
   }
 
   let mapReject: any;

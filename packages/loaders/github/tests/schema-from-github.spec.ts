@@ -1,14 +1,15 @@
-import { printSchema, buildSchema, parse, print } from 'graphql';
+import { buildSchema, parse, print, printSchema } from 'graphql';
+import { fetch } from '@whatwg-node/fetch';
 import { GithubLoader } from '../src/index.js';
-import { Response } from '@ardatan/sync-fetch';
 
-const owner = 'kamilkisiela';
-const name = 'graphql-inspector-example';
+const owner = 'ardatan';
+const name = 'graphql-tools';
 const ref = 'master';
-const path = 'example/schemas/schema.graphqls';
-const token = 'MY-SECRET-TOKEN';
+const path = 'packages/loaders/github/tests/schema-from-github.spec.ts';
 
 const pointer = `github:${owner}/${name}#${ref}:${path}`;
+
+const token = process.env['GITHUB_TOKEN'] || '';
 
 const typeDefs = /* GraphQL */ `
   type Post {
@@ -33,72 +34,67 @@ function assertNonMaybe<T>(input: T): asserts input is Exclude<T, null | undefin
   }
 }
 
-test('load schema from GitHub', () => {
-  let params: any = null;
+if (token) {
+  test('load schema from GitHub', async () => {
+    const loader = new GithubLoader();
 
-  const loader = new GithubLoader();
+    const customFetch = jest.fn(fetch);
 
-  const [source] = loader.loadSync(pointer, {
-    token,
-    customFetch: (url: RequestInfo, options?: RequestInit) => {
-      expect(url.toString()).toBe(`https://api.github.com/graphql`);
-      expect(options?.method).toBe('POST');
-      const body = JSON.parse(options?.body?.toString() || '{}');
-      params = {
-        headers: options?.headers,
-        query: body.query,
-        variables: body.variables,
-        operationName: body.operationName,
-      };
-      return new Response(
-        JSON.stringify({
-          data: {
-            repository: {
-              object: {
-                text: typeDefs,
-              },
-            },
-          },
-        })
-      );
-    },
-  });
+    const result = await loader.load(pointer, {
+      token,
+      customFetch,
+      headers: {
+        'x-custom-header': 'custom-header-value',
+      },
+    });
 
-  assertNonMaybe(params);
+    const [source] = result;
 
-  // headers
-  expect(params.headers['content-type']).toContain('application/json; charset=utf-8');
-  expect(params.headers.authorization).toContain(`bearer ${token}`);
+    const params = customFetch.mock.calls[0][1];
 
-  // query
-  expect(normalize(params.query)).toEqual(
-    normalize(/* GraphQL */ `
-      query GetGraphQLSchemaForGraphQLtools($owner: String!, $name: String!, $expression: String!) {
-        repository(owner: $owner, name: $name) {
-          object(expression: $expression) {
-            ... on Blob {
-              text
+    // headers
+    expect(params?.headers?.['content-type']).toContain('application/json; charset=utf-8');
+    if (token) {
+      expect(params?.headers?.['authorization']).toContain(`bearer ${token}`);
+    }
+    expect(params?.headers?.['x-custom-header']).toContain('custom-header-value');
+
+    const paramsBody = JSON.parse(params?.body as string);
+
+    // query
+    expect(normalize(paramsBody.query)).toEqual(
+      normalize(/* GraphQL */ `
+        query GetGraphQLSchemaForGraphQLtools(
+          $owner: String!
+          $name: String!
+          $expression: String!
+        ) {
+          repository(owner: $owner, name: $name) {
+            object(expression: $expression) {
+              ... on Blob {
+                text
+              }
             }
           }
         }
-      }
-    `)
-  );
+      `),
+    );
 
-  // variables
-  expect(params.variables).toEqual({
-    owner,
-    name,
-    expression: ref + ':' + path,
+    // variables
+    expect(paramsBody.variables).toEqual({
+      owner,
+      name,
+      expression: ref + ':' + path,
+    });
+    assertNonMaybe(paramsBody.operationName);
+    // name
+    expect(paramsBody.operationName).toEqual('GetGraphQLSchemaForGraphQLtools');
+
+    assertNonMaybe(source.document);
+    // schema
+    expect(print(source.document)).toEqual(printSchema(buildSchema(typeDefs)));
   });
-  assertNonMaybe(params.operationName);
-  // name
-  expect(params.operationName).toEqual('GetGraphQLSchemaForGraphQLtools');
-
-  assertNonMaybe(source.document);
-  // schema
-  expect(print(source.document)).toEqual(printSchema(buildSchema(typeDefs)));
-});
+}
 
 test('simply skips schema for path that cannot be loaded', async () => {
   const loader = new GithubLoader();
@@ -113,14 +109,7 @@ test('expect loadSync to handle 401 request errors gracefully', async () => {
   const result = () => {
     const loader = new GithubLoader();
     return loader.loadSync(pointer, {
-      token,
-      customFetch: () => {
-        const response = new Response(
-          JSON.stringify({ message: 'Bad credentials', documentation_url: 'https://docs.github.com/graphql' }),
-          { status: 401 }
-        );
-        return response;
-      },
+      token: 'BAD_TOKEN',
     });
   };
   expect(result).toThrowError('Unable to download schema from github: Bad credentials');
@@ -148,9 +137,11 @@ describe('expect handleResponse to handle error messages gracefully', () => {
     type ErrorMessage = { message: string };
 
     // An arbirary number of error messages
-    const errorMessages: ErrorMessage[] = [...Array(Math.floor(Math.random() * 10))].map((_, index) => ({
-      message: `Error message ${index}`,
-    }));
+    const errorMessages: ErrorMessage[] = [...Array(Math.floor(Math.random() * 10))].map(
+      (_, index) => ({
+        message: `Error message ${index}`,
+      }),
+    );
 
     const result = () => {
       const loader = new GithubLoader();

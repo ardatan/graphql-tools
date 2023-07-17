@@ -1,4 +1,4 @@
-import { type DocumentNode, visit } from 'graphql';
+import { visit, type DocumentNode } from 'graphql';
 import { sortExecutableNodes } from './sort-executable-nodes.js';
 
 /**

@@ -15,7 +15,13 @@ type Viewer {
 }
 
 type Mutation {
-  signup(email: String!, password: String!, firstName: String!, lastName: String!, phone: String!): User!
+  signup(
+    email: String!
+    password: String!
+    firstName: String!
+    lastName: String!
+    phone: String!
+  ): User!
 
   login(email: String!, password: String!): User!
 

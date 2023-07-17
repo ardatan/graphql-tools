@@ -1,35 +1,34 @@
+import stringify from 'fast-json-stable-stringify';
 import {
+  getNullableType,
+  GraphQLOutputType,
   GraphQLSchema,
   GraphQLString,
-  isObjectType,
-  isScalarType,
-  getNullableType,
-  isListType,
-  GraphQLOutputType,
-  isEnumType,
   isAbstractType,
   isCompositeType,
-  isNullableType,
+  isEnumType,
   isInterfaceType,
+  isListType,
+  isNullableType,
+  isObjectType,
+  isScalarType,
 } from 'graphql';
-import stringify from 'fast-json-stable-stringify';
-
-import {
-  IMockStore,
-  GetArgs,
-  SetArgs,
-  isRef,
-  assertIsRef,
-  Ref,
-  isRecord,
-  TypePolicy,
-  IMocks,
-  KeyTypeConstraints,
-  IScalarMock,
-  ITypeMock,
-} from './types.js';
-import { uuidv4, randomListLength, takeRandom, makeRef } from './utils.js';
 import { deepResolveMockList, isMockList } from './MockList.js';
+import {
+  assertIsRef,
+  GetArgs,
+  IMocks,
+  IMockStore,
+  IScalarMock,
+  isRecord,
+  isRef,
+  ITypeMock,
+  KeyTypeConstraints,
+  Ref,
+  SetArgs,
+  TypePolicy,
+} from './types.js';
+import { makeRef, randomListLength, takeRandom, uuidv4 } from './utils.js';
 
 export const defaultMocks = {
   Int: () => Math.round(Math.random() * 200) - 100,
@@ -77,8 +76,13 @@ export class MockStore implements IMockStore {
   get<KeyT extends KeyTypeConstraints = string, ReturnKeyT extends KeyTypeConstraints = string>(
     _typeName: string | Ref<KeyT> | GetArgs<KeyT>,
     _key?: KeyT | { [fieldName: string]: any } | string | string[],
-    _fieldName?: string | string[] | { [fieldName: string]: any } | string | { [argName: string]: any },
-    _fieldArgs?: string | { [argName: string]: any }
+    _fieldName?:
+      | string
+      | string[]
+      | { [fieldName: string]: any }
+      | string
+      | { [argName: string]: any },
+    _fieldArgs?: string | { [argName: string]: any },
   ): unknown | Ref<ReturnKeyT> {
     if (typeof _typeName !== 'string') {
       if (_key === undefined) {
@@ -140,7 +144,7 @@ export class MockStore implements IMockStore {
     _typeName: string | Ref<KeyT> | SetArgs<KeyT>,
     _key?: KeyT | string | { [fieldName: string]: any },
     _fieldName?: string | { [fieldName: string]: any } | unknown,
-    _value?: unknown
+    _value?: unknown,
   ): void {
     if (typeof _typeName !== 'string') {
       if (_key === undefined) {
@@ -231,7 +235,13 @@ export class MockStore implements IMockStore {
           // if we get a key field in the mix we don't care
           if (this.isKeyField(typeName, otherFieldName)) return;
 
-          this.set({ typeName, key, fieldName: otherFieldName, value: otherValue, noOverride: true });
+          this.set({
+            typeName,
+            key,
+            fieldName: otherFieldName,
+            value: otherValue,
+            noOverride: true,
+          });
         });
       }
 
@@ -276,7 +286,7 @@ export class MockStore implements IMockStore {
 
     if (this.isKeyField(typeName, fieldName) && value !== key) {
       throw new Error(
-        `Field ${fieldName} is a key field of ${typeName} and you are trying to set it to ${value} while the key is ${key}`
+        `Field ${fieldName} is a key field of ${typeName} and you are trying to set it to ${value} while the key is ${key}`,
       );
     }
 
@@ -290,8 +300,11 @@ export class MockStore implements IMockStore {
 
     let valueToStore;
     try {
-      valueToStore = this.normalizeValueToStore(fieldType, value, currentValue, (typeName, values) =>
-        this.insert(typeName, values, noOverride)
+      valueToStore = this.normalizeValueToStore(
+        fieldType,
+        value,
+        currentValue,
+        (typeName, values) => this.insert(typeName, values, noOverride),
       );
     } catch (e: any) {
       throw new Error(`Value to set in ${typeName}.${fieldName} in not normalizable: ${e.message}`);
@@ -307,12 +320,14 @@ export class MockStore implements IMockStore {
     fieldType: GraphQLOutputType,
     value: unknown,
     currentValue: unknown,
-    onInsertType: (typeName: string, values: { [fieldName: string]: unknown }) => Ref
+    onInsertType: (typeName: string, values: { [fieldName: string]: unknown }) => Ref,
   ): unknown {
     const fieldTypeName = fieldType.toString();
     if (value === null) {
       if (!isNullableType(fieldType)) {
-        throw new Error(`should not be null because ${fieldTypeName} is not nullable. Received null.`);
+        throw new Error(
+          `should not be null because ${fieldTypeName} is not nullable. Received null.`,
+        );
       }
       return null;
     }
@@ -322,7 +337,8 @@ export class MockStore implements IMockStore {
 
     // deal with nesting insert
     if (isCompositeType(nullableFieldType)) {
-      if (!isRecord(value)) throw new Error(`should be an object or null or undefined. Received ${value}`);
+      if (!isRecord(value))
+        throw new Error(`should be an object or null or undefined. Received ${value}`);
 
       let joinedTypeName;
       if (isAbstractType(nullableFieldType)) {
@@ -330,7 +346,9 @@ export class MockStore implements IMockStore {
           joinedTypeName = value.$ref.typeName;
         } else {
           if (typeof value['__typename'] !== 'string') {
-            throw new Error(`should contain a '__typename' because ${nullableFieldType.name} an abstract type`);
+            throw new Error(
+              `should contain a '__typename' because ${nullableFieldType.name} an abstract type`,
+            );
           }
           joinedTypeName = value['__typename'];
         }
@@ -338,18 +356,24 @@ export class MockStore implements IMockStore {
         joinedTypeName = nullableFieldType.name;
       }
 
-      return onInsertType(joinedTypeName, isRef(currentValue) ? { ...currentValue, ...value } : value);
+      return onInsertType(
+        joinedTypeName,
+        isRef(currentValue) ? { ...currentValue, ...value } : value,
+      );
     }
 
     if (isListType(nullableFieldType)) {
-      if (!Array.isArray(value)) throw new Error(`should be an array or null or undefined. Received ${value}`);
+      if (!Array.isArray(value))
+        throw new Error(`should be an array or null or undefined. Received ${value}`);
 
       return value.map((v, index) => {
         return this.normalizeValueToStore(
           nullableFieldType.ofType,
           v,
-          typeof currentValue === 'object' && currentValue != null && currentValue[index] ? currentValue : undefined,
-          onInsertType
+          typeof currentValue === 'object' && currentValue != null && currentValue[index]
+            ? currentValue
+            : undefined,
+          onInsertType,
         );
       });
     }
@@ -360,7 +384,7 @@ export class MockStore implements IMockStore {
   private insert<KeyT extends KeyTypeConstraints>(
     typeName: string,
     values: { [fieldName: string]: unknown },
-    noOverride?: boolean
+    noOverride?: boolean,
   ): Ref<KeyT> {
     const keyFieldName = this.getKeyFieldName(typeName);
 
@@ -409,9 +433,13 @@ export class MockStore implements IMockStore {
   private generateFieldValue(
     typeName: string,
     fieldName: string,
-    onOtherFieldsGenerated?: (fieldName: string, value: unknown) => void
+    onOtherFieldsGenerated?: (fieldName: string, value: unknown) => void,
   ): unknown | undefined {
-    const mockedValue = this.generateFieldValueFromMocks(typeName, fieldName, onOtherFieldsGenerated);
+    const mockedValue = this.generateFieldValueFromMocks(
+      typeName,
+      fieldName,
+      onOtherFieldsGenerated,
+    );
     if (mockedValue !== undefined) return mockedValue;
 
     const fieldType = this.getFieldType(typeName, fieldName);
@@ -421,7 +449,7 @@ export class MockStore implements IMockStore {
   private generateFieldValueFromMocks(
     typeName: string,
     fieldName: string,
-    onOtherFieldsGenerated?: (fieldName: string, value: unknown) => void
+    onOtherFieldsGenerated?: (fieldName: string, value: unknown) => void,
   ): unknown | undefined {
     let value;
 
@@ -436,12 +464,17 @@ export class MockStore implements IMockStore {
         for (const otherFieldName in values) {
           if (otherFieldName === fieldName) continue;
           if (typeof (values as any)[otherFieldName] === 'function') continue;
-          onOtherFieldsGenerated && onOtherFieldsGenerated(otherFieldName, (values as any)[otherFieldName]);
+          onOtherFieldsGenerated &&
+            onOtherFieldsGenerated(otherFieldName, (values as any)[otherFieldName]);
         }
 
         value = (values as any)[fieldName];
         if (typeof value === 'function') value = value();
-      } else if (typeof mock === 'object' && mock != null && typeof mock[fieldName] === 'function') {
+      } else if (
+        typeof mock === 'object' &&
+        mock != null &&
+        typeof mock[fieldName] === 'function'
+      ) {
         value = mock[fieldName]();
       }
     }
@@ -455,7 +488,11 @@ export class MockStore implements IMockStore {
     if (interfaces.length > 0) {
       for (const interface_ of interfaces) {
         if (value) break;
-        value = this.generateFieldValueFromMocks(interface_.name, fieldName, onOtherFieldsGenerated);
+        value = this.generateFieldValueFromMocks(
+          interface_.name,
+          fieldName,
+          onOtherFieldsGenerated,
+        );
       }
     }
 
@@ -464,7 +501,7 @@ export class MockStore implements IMockStore {
 
   private generateKeyForType<KeyT extends KeyTypeConstraints>(
     typeName: string,
-    onOtherFieldsGenerated?: (fieldName: string, value: unknown) => void
+    onOtherFieldsGenerated?: (fieldName: string, value: unknown) => void,
   ) {
     const keyFieldName = this.getKeyFieldName(typeName);
 
@@ -478,7 +515,8 @@ export class MockStore implements IMockStore {
 
     if (isScalarType(nullableType)) {
       const mockFn = this.mocks[nullableType.name];
-      if (typeof mockFn !== 'function') throw new Error(`No mock defined for type "${nullableType.name}"`);
+      if (typeof mockFn !== 'function')
+        throw new Error(`No mock defined for type "${nullableType.name}"`);
       return mockFn();
     } else if (isEnumType(nullableType)) {
       const mockFn = this.mocks[nullableType.name];
@@ -490,7 +528,9 @@ export class MockStore implements IMockStore {
       // this will create a new random ref
       return this.insert(nullableType.name, {});
     } else if (isListType(nullableType)) {
-      return [...new Array(randomListLength())].map(() => this.generateValueFromType(nullableType.ofType));
+      return [...new Array(randomListLength())].map(() =>
+        this.generateValueFromType(nullableType.ofType),
+      );
     } else if (isAbstractType(nullableType)) {
       const mock = this.mocks[nullableType.name];
 
@@ -503,7 +543,9 @@ export class MockStore implements IMockStore {
         if (mockRes === null) return null;
 
         if (!isRecord(mockRes)) {
-          throw new Error(`Value returned by the mock for ${nullableType.name} is not an object or null`);
+          throw new Error(
+            `Value returned by the mock for ${nullableType.name} is not an object or null`,
+          );
         }
 
         values = mockRes;
@@ -511,10 +553,16 @@ export class MockStore implements IMockStore {
           throw new Error(`Please return a __typename in "${nullableType.name}"`);
         }
         typeName = values['__typename'];
-      } else if (typeof mock === 'object' && mock != null && typeof mock['__typename'] === 'function') {
+      } else if (
+        typeof mock === 'object' &&
+        mock != null &&
+        typeof mock['__typename'] === 'function'
+      ) {
         const mockRes = mock['__typename']();
         if (typeof mockRes !== 'string')
-          throw new Error(`'__typename' returned by the mock for abstract type ${nullableType.name} is not a string`);
+          throw new Error(
+            `'__typename' returned by the mock for abstract type ${nullableType.name} is not a string`,
+          );
         typeName = mockRes;
       } else {
         throw new Error(`Please return a __typename in "${nullableType.name}"`);
@@ -582,7 +630,10 @@ export class MockStore implements IMockStore {
   }
 }
 
-const getFieldNameInStore = (fieldName: string, fieldArgs?: string | { [argName: string]: any }) => {
+const getFieldNameInStore = (
+  fieldName: string,
+  fieldArgs?: string | { [argName: string]: any },
+) => {
   if (!fieldArgs) return fieldName;
 
   if (typeof fieldArgs === 'string') {
@@ -603,7 +654,9 @@ function assertIsDefined<T>(value: T, message?: string): asserts value is NonNul
   }
 
   throw new Error(
-    process.env['NODE_ENV'] === 'production' ? 'Invariant failed:' : `Invariant failed: ${message || ''}`
+    process.env['NODE_ENV'] === 'production'
+      ? 'Invariant failed:'
+      : `Invariant failed: ${message || ''}`,
   );
 }
 

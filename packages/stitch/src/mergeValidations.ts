@@ -1,30 +1,29 @@
 import {
-  GraphQLFieldConfig,
-  GraphQLInputFieldConfig,
+  getNamedType,
+  getNullableType,
   GraphQLArgumentConfig,
   GraphQLEnumType,
-  isEnumType,
-  isNonNullType,
-  getNullableType,
-  getNamedType,
-  isListType,
-  isScalarType,
+  GraphQLFieldConfig,
+  GraphQLInputFieldConfig,
   GraphQLType,
+  isEnumType,
+  isListType,
+  isNonNullType,
+  isScalarType,
 } from 'graphql';
-
 import {
-  MergeTypeCandidate,
   MergeFieldConfigCandidate,
   MergeInputFieldConfigCandidate,
+  MergeTypeCandidate,
   TypeMergingOptions,
-  ValidationSettings,
   ValidationLevel,
+  ValidationSettings,
 } from './types.js';
 
 export function validateFieldConsistency<TContext = Record<string, any>>(
   finalFieldConfig: GraphQLFieldConfig<any, any>,
   candidates: Array<MergeFieldConfigCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): void {
   const fieldNamespace = `${candidates[0].type.name}.${candidates[0].fieldName}`;
   const finalFieldNull = isNonNullType(finalFieldConfig.type);
@@ -34,7 +33,7 @@ export function validateFieldConsistency<TContext = Record<string, any>>(
     candidates.map(c => c.fieldConfig),
     'field',
     fieldNamespace,
-    typeMergingOptions
+    typeMergingOptions,
   );
 
   if (
@@ -44,13 +43,13 @@ export function validateFieldConsistency<TContext = Record<string, any>>(
     validationMessage(
       `Nullability of field "${fieldNamespace}" does not match across subschemas. Disable typeMergingOptions.validationSettings.strictNullComparison to permit safe divergences.`,
       fieldNamespace,
-      typeMergingOptions
+      typeMergingOptions,
     );
   } else if (finalFieldNull && candidates.some(c => !isNonNullType(c.fieldConfig.type))) {
     validationMessage(
       `Canonical definition of field "${fieldNamespace}" is not-null while some subschemas permit null. This will be an automatic error in future versions.`,
       fieldNamespace,
-      typeMergingOptions
+      typeMergingOptions,
     );
   }
 
@@ -66,11 +65,15 @@ export function validateFieldConsistency<TContext = Record<string, any>>(
     }
   }
 
-  if (Object.values(argCandidatesMap).some(argCandidates => candidates.length !== argCandidates.length)) {
+  if (
+    Object.values(argCandidatesMap).some(
+      argCandidates => candidates.length !== argCandidates.length,
+    )
+  ) {
     validationMessage(
       `Canonical definition of field "${fieldNamespace}" implements inconsistent argument names across subschemas. Input may be filtered from some requests.`,
       fieldNamespace,
-      typeMergingOptions
+      typeMergingOptions,
     );
   }
 
@@ -80,11 +83,18 @@ export function validateFieldConsistency<TContext = Record<string, any>>(
     }
     const argCandidates = argCandidatesMap[argName];
     const argNamespace = `${fieldNamespace}.${argName}`;
-    const finalArgConfig = finalFieldConfig.args[argName] || argCandidates[argCandidates.length - 1];
+    const finalArgConfig =
+      finalFieldConfig.args[argName] || argCandidates[argCandidates.length - 1];
     const finalArgType = getNamedType(finalArgConfig.type);
     const finalArgNull = isNonNullType(finalArgConfig.type);
 
-    validateTypeConsistency(finalArgConfig, argCandidates, 'argument', argNamespace, typeMergingOptions);
+    validateTypeConsistency(
+      finalArgConfig,
+      argCandidates,
+      'argument',
+      argNamespace,
+      typeMergingOptions,
+    );
 
     if (
       getValidationSettings(argNamespace, typeMergingOptions).strictNullComparison &&
@@ -93,13 +103,13 @@ export function validateFieldConsistency<TContext = Record<string, any>>(
       validationMessage(
         `Nullability of argument "${argNamespace}" does not match across subschemas. Disable typeMergingOptions.validationSettings.strictNullComparison to permit safe divergences.`,
         argNamespace,
-        typeMergingOptions
+        typeMergingOptions,
       );
     } else if (!finalArgNull && argCandidates.some(c => isNonNullType(c.type))) {
       validationMessage(
         `Canonical definition of argument "${argNamespace}" permits null while some subschemas require not-null. This will be an automatic error in future versions.`,
         argNamespace,
-        typeMergingOptions
+        typeMergingOptions,
       );
     }
 
@@ -112,7 +122,7 @@ export function validateFieldConsistency<TContext = Record<string, any>>(
 export function validateInputObjectConsistency<TContext = Record<string, any>>(
   fieldInclusionMap: Record<string, number>,
   candidates: Array<MergeTypeCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): void {
   for (const fieldName in fieldInclusionMap) {
     const count = fieldInclusionMap[fieldName];
@@ -121,7 +131,7 @@ export function validateInputObjectConsistency<TContext = Record<string, any>>(
       validationMessage(
         `Definition of input field "${namespace}" is not implemented by all subschemas. Input may be filtered from some requests.`,
         namespace,
-        typeMergingOptions
+        typeMergingOptions,
       );
     }
   }
@@ -130,7 +140,7 @@ export function validateInputObjectConsistency<TContext = Record<string, any>>(
 export function validateInputFieldConsistency<TContext = Record<string, any>>(
   finalInputFieldConfig: GraphQLInputFieldConfig,
   candidates: Array<MergeInputFieldConfigCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): void {
   const inputFieldNamespace = `${candidates[0].type.name}.${candidates[0].fieldName}`;
   const inputFieldConfigs = candidates.map(c => c.inputFieldConfig);
@@ -142,7 +152,7 @@ export function validateInputFieldConsistency<TContext = Record<string, any>>(
     inputFieldConfigs,
     'input field',
     inputFieldNamespace,
-    typeMergingOptions
+    typeMergingOptions,
   );
 
   if (
@@ -152,13 +162,13 @@ export function validateInputFieldConsistency<TContext = Record<string, any>>(
     validationMessage(
       `Nullability of input field "${inputFieldNamespace}" does not match across subschemas. Disable typeMergingOptions.validationSettings.strictNullComparison to permit safe divergences.`,
       inputFieldNamespace,
-      typeMergingOptions
+      typeMergingOptions,
     );
   } else if (!finalInputFieldNull && candidates.some(c => isNonNullType(c.inputFieldConfig.type))) {
     validationMessage(
       `Canonical definition of input field "${inputFieldNamespace}" permits null while some subschemas require not-null. This will be an automatic error in future versions.`,
       inputFieldNamespace,
-      typeMergingOptions
+      typeMergingOptions,
     );
   }
 
@@ -168,11 +178,14 @@ export function validateInputFieldConsistency<TContext = Record<string, any>>(
 }
 
 export function validateTypeConsistency<TContext = Record<string, any>>(
-  finalElementConfig: GraphQLFieldConfig<any, any> | GraphQLArgumentConfig | GraphQLInputFieldConfig,
+  finalElementConfig:
+    | GraphQLFieldConfig<any, any>
+    | GraphQLArgumentConfig
+    | GraphQLInputFieldConfig,
   candidates: Array<GraphQLFieldConfig<any, any> | GraphQLArgumentConfig | GraphQLInputFieldConfig>,
   definitionType: string,
   settingNamespace: string,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): void {
   const finalNamedType = getNamedType(finalElementConfig.type);
   const finalIsScalar = isScalarType(finalNamedType);
@@ -181,7 +194,7 @@ export function validateTypeConsistency<TContext = Record<string, any>>(
   for (const c of candidates) {
     if (finalIsList !== hasListType(c.type)) {
       throw new Error(
-        `Definitions of ${definitionType} "${settingNamespace}" implement inconsistent list types across subschemas and cannot be merged.`
+        `Definitions of ${definitionType} "${settingNamespace}" implement inconsistent list types across subschemas and cannot be merged.`,
       );
     }
 
@@ -194,13 +207,15 @@ export function validateTypeConsistency<TContext = Record<string, any>>(
       const bothScalars = finalIsScalar && isScalarType(currentNamedType);
       const permitScalar = proxiableScalar && bothScalars;
       if (proxiableScalar && !bothScalars) {
-        throw new Error(`Types ${finalNamedType} and ${currentNamedType} are not proxiable scalars.`);
+        throw new Error(
+          `Types ${finalNamedType} and ${currentNamedType} are not proxiable scalars.`,
+        );
       }
       if (!permitScalar) {
         validationMessage(
           `Definitions of ${definitionType} "${settingNamespace}" implement inconsistent named types across subschemas. This will be an automatic error in future versions.`,
           settingNamespace,
-          typeMergingOptions
+          typeMergingOptions,
         );
       }
     }
@@ -214,7 +229,7 @@ function hasListType(type: GraphQLType): boolean {
 export function validateInputEnumConsistency<TContext = Record<string, any>>(
   inputEnumType: GraphQLEnumType,
   candidates: Array<GraphQLArgumentConfig | GraphQLInputFieldConfig>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): void {
   const enumValueInclusionMap: Record<string, number> = Object.create(null);
 
@@ -232,7 +247,7 @@ export function validateInputEnumConsistency<TContext = Record<string, any>>(
     validationMessage(
       `Enum "${inputEnumType.name}" is used as an input with inconsistent values across subschemas. This will be an automatic error in future versions.`,
       inputEnumType.name,
-      typeMergingOptions
+      typeMergingOptions,
     );
   }
 }
@@ -240,7 +255,7 @@ export function validateInputEnumConsistency<TContext = Record<string, any>>(
 function validationMessage<TContext = Record<string, any>>(
   message: string,
   settingNamespace: string,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): void {
   const override = `typeMergingOptions.validationScopes['${settingNamespace}'].validationLevel`;
   const settings = getValidationSettings(settingNamespace, typeMergingOptions);
@@ -250,16 +265,18 @@ function validationMessage<TContext = Record<string, any>>(
       return;
     case ValidationLevel.Error:
       throw new Error(
-        `${message} If this is intentional, you may disable this error by setting ${override} = "warn|off"`
+        `${message} If this is intentional, you may disable this error by setting ${override} = "warn|off"`,
       );
     default:
-      console.warn(`${message} To disable this warning or elevate it to an error, set ${override} = "error|off"`);
+      console.warn(
+        `${message} To disable this warning or elevate it to an error, set ${override} = "error|off"`,
+      );
   }
 }
 
 function getValidationSettings<TContext = Record<string, any>>(
   settingNamespace: string,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): ValidationSettings {
   return {
     ...(typeMergingOptions?.validationSettings ?? {}),

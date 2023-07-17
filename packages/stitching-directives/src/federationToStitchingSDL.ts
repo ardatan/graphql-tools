@@ -1,7 +1,6 @@
 // Taken from https://github.com/gmac/federation-to-stitching-sdl/blob/main/index.js
 
 import {
-  print,
   DefinitionNode,
   DirectiveNode,
   InterfaceTypeDefinitionNode,
@@ -10,6 +9,7 @@ import {
   ObjectTypeDefinitionNode,
   ObjectTypeExtensionNode,
   parse,
+  print,
   SchemaDefinitionNode,
 } from 'graphql';
 import { stitchingDirectives, StitchingDirectivesResult } from './stitchingDirectives.js';
@@ -33,13 +33,17 @@ function isEntityKind(def: DefinitionNode): def is EntityKind {
   return entityKinds.includes(def.kind);
 }
 
-function getQueryTypeDef(definitions: readonly DefinitionNode[]): ObjectTypeDefinitionNode | undefined {
-  const schemaDef = definitions.find(def => def.kind === Kind.SCHEMA_DEFINITION) as SchemaDefinitionNode;
+function getQueryTypeDef(
+  definitions: readonly DefinitionNode[],
+): ObjectTypeDefinitionNode | undefined {
+  const schemaDef = definitions.find(
+    def => def.kind === Kind.SCHEMA_DEFINITION,
+  ) as SchemaDefinitionNode;
   const typeName = schemaDef
     ? schemaDef.operationTypes.find(({ operation }) => operation === 'query')?.type.name.value
     : 'Query';
   return definitions.find(
-    def => def.kind === Kind.OBJECT_TYPE_DEFINITION && def.name.value === typeName
+    def => def.kind === Kind.OBJECT_TYPE_DEFINITION && def.name.value === typeName,
   ) as ObjectTypeDefinitionNode;
 }
 
@@ -49,7 +53,7 @@ function getQueryTypeDef(definitions: readonly DefinitionNode[]): ObjectTypeDefi
 // https://www.apollographql.com/docs/federation/federation-spec/#federation-schema-specification
 export function federationToStitchingSDL(
   federationSDL: string,
-  stitchingConfig: StitchingDirectivesResult = stitchingDirectives()
+  stitchingConfig: StitchingDirectivesResult = stitchingDirectives(),
 ): string {
   const doc = parse(federationSDL);
   const entityTypes: string[] = [];
@@ -64,7 +68,12 @@ export function federationToStitchingSDL(
     // Un-extend all types (remove "extends" keywords)...
     // extended types are invalid GraphQL without a local base type to extend from.
     // Stitching merges flat types in lieu of hierarchical extensions.
-    if (extensionKind.test(typeDef.kind) && 'name' in typeDef && typeDef.name && !baseTypeNames[typeDef.name.value]) {
+    if (
+      extensionKind.test(typeDef.kind) &&
+      'name' in typeDef &&
+      typeDef.name &&
+      !baseTypeNames[typeDef.name.value]
+    ) {
       (typeDef.kind as string) = typeDef.kind.replace(extensionKind, 'Definition');
     }
 
@@ -88,7 +97,7 @@ export function federationToStitchingSDL(
     // Setup stitching MergedTypeConfig for all federated entities:
     const selectionSet = `{ ${keyDirs.map((dir: any) => dir.arguments[0].value.value).join(' ')} }`;
     const keyFields = (parse(selectionSet).definitions[0] as any).selectionSet.selections.map(
-      (sel: any) => sel.name.value
+      (sel: any) => sel.name.value,
     );
     const keyDir = keyDirs[0];
     (keyDir.name.value as string) = stitchingConfig.keyDirective.name;
@@ -102,13 +111,16 @@ export function federationToStitchingSDL(
     // This makes "@provides" moot because the query planner can automate the logic.
     (typeDef.fields as any) = typeDef.fields?.filter(fieldDef => {
       return (
-        keyFields.includes(fieldDef.name.value) || !fieldDef.directives?.find(dir => dir.name.value === 'external')
+        keyFields.includes(fieldDef.name.value) ||
+        !fieldDef.directives?.find(dir => dir.name.value === 'external')
       );
     });
 
     // Discard remaining "@external" directives and any "@provides" directives
     typeDef.fields?.forEach((fieldDef: any) => {
-      fieldDef.directives = fieldDef.directives.filter((dir: any) => !/^(external|provides)$/.test(dir.name.value));
+      fieldDef.directives = fieldDef.directives.filter(
+        (dir: any) => !/^(external|provides)$/.test(dir.name.value),
+      );
       fieldDef.directives.forEach((dir: any) => {
         if (dir.name.value === 'requires') {
           dir.name.value = stitchingConfig.computedDirective.name;
@@ -118,7 +130,10 @@ export function federationToStitchingSDL(
       });
     });
 
-    if (typeDef.kind === Kind.OBJECT_TYPE_DEFINITION || typeDef.kind === Kind.OBJECT_TYPE_EXTENSION) {
+    if (
+      typeDef.kind === Kind.OBJECT_TYPE_DEFINITION ||
+      typeDef.kind === Kind.OBJECT_TYPE_EXTENSION
+    ) {
       entityTypes.push(typeDef.name.value);
     }
   });
@@ -132,7 +147,9 @@ export function federationToStitchingSDL(
     const entitiesSchema = parse(/* GraphQL */ `
       scalar _Any
       union _Entity = ${entityTypes.filter((v, i, a) => a.indexOf(v) === i).join(' | ')}
-      type Query { _entities(representations: [_Any!]!): [_Entity]! @${stitchingConfig.mergeDirective.name} }
+      type Query { _entities(representations: [_Any!]!): [_Entity]! @${
+        stitchingConfig.mergeDirective.name
+      } }
     `).definitions as unknown as DefinitionNode & { fields: any[] };
 
     (doc.definitions as any).push(entitiesSchema[0]);

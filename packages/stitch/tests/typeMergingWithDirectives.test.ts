@@ -5,14 +5,12 @@
 // https://github.com/ardatan/graphql-tools/issues/1710
 // https://github.com/ardatan/graphql-tools/issues/1959
 
-import { execute } from '@graphql-tools/executor';
 import { parse } from 'graphql';
-
+import { execute } from '@graphql-tools/executor';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
-
 import { stitchingDirectives } from '@graphql-tools/stitching-directives';
+import { ExecutionResult } from '@graphql-tools/utils';
 import { ValidationLevel } from '../src/types.js';
 
 describe('merging using type merging with directives', () => {
@@ -57,7 +55,8 @@ describe('merging using type merging with directives', () => {
     resolvers: {
       Query: {
         me: () => users[0],
-        _users: (_root, { keys }) => keys.map((key: Record<string, any>) => users.find(u => u.id === key['id'])),
+        _users: (_root, { keys }) =>
+          keys.map((key: Record<string, any>) => users.find(u => u.id === key['id'])),
       },
     },
   });
@@ -122,7 +121,10 @@ describe('merging using type merging with directives', () => {
       Query: {
         mostStockedProduct: () => inventory.find(i => i.upc === '3'),
         _products: (_root, { keys }) => {
-          return keys.map((key: Record<string, any>) => ({ ...key, ...inventory.find(i => i.upc === key['upc']) }));
+          return keys.map((key: Record<string, any>) => ({
+            ...key,
+            ...inventory.find(i => i.upc === key['upc']),
+          }));
         },
       },
     },
@@ -187,7 +189,8 @@ describe('merging using type merging with directives', () => {
     resolvers: {
       Query: {
         topProducts: (_root, args) => products.slice(0, args.first),
-        _productsByUpc: (_root, { upcs }) => upcs.map((upc: any) => products.find(product => product.upc === upc)),
+        _productsByUpc: (_root, { upcs }) =>
+          upcs.map((upc: any) => products.find(product => product.upc === upc)),
       },
     },
   });

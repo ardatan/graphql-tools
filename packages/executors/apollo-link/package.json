@@ -1,6 +1,7 @@
 {
   "name": "@graphql-tools/executor-apollo-link",
-  "version": "0.0.8",
+  "version": "1.0.0",
+  "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -9,7 +10,9 @@
   },
   "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",
   "license": "MIT",
-  "sideEffects": false,
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "exports": {
@@ -44,23 +47,23 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
+  "peerDependencies": {
+    "@apollo/client": "^3.5.9",
+    "graphql": "^15.2.0 || ^16.0.0"
+  },
+  "dependencies": {
+    "@graphql-tools/utils": "^10.0.0",
+    "tslib": "^2.3.1"
+  },
+  "devDependencies": {
+    "@apollo/client": "3.7.17"
   },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
   },
-  "dependencies": {
-    "@graphql-tools/utils": "9.2.1",
-    "tslib": "^2.3.1"
-  },
-  "devDependencies": {
-    "@apollo/client": "3.7.10"
-  },
-  "peerDependencies": {
-    "graphql": "^15.2.0 || ^16.0.0",
-    "@apollo/client": "^3.5.9"
-  },
-  "type": "module"
+  "sideEffects": false,
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
+  }
 }

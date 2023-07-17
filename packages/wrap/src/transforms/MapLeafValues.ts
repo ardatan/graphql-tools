@@ -1,29 +1,26 @@
 import {
-  GraphQLSchema,
-  visit,
-  Kind,
-  TypeInfo,
-  visitWithTypeInfo,
-  OperationDefinitionNode,
-  FragmentDefinitionNode,
   ArgumentNode,
-  FieldNode,
-  valueFromAST,
-  isLeafType,
   astFromValue,
+  FieldNode,
+  FragmentDefinitionNode,
+  GraphQLSchema,
+  isLeafType,
+  Kind,
+  OperationDefinitionNode,
+  TypeInfo,
+  valueFromAST,
   valueFromASTUntyped,
+  visit,
+  visitWithTypeInfo,
 } from 'graphql';
-
+import { DelegationContext, SubschemaConfig, Transform } from '@graphql-tools/delegate';
 import {
   ExecutionRequest,
   ExecutionResult,
-  visitResult,
   ResultVisitorMap,
   transformInputValue,
+  visitResult,
 } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
-
 import { LeafValueTransformer } from '../types.js';
 
 export interface MapLeafValuesTransformationContext {
@@ -38,7 +35,10 @@ export default class MapLeafValues<TContext = Record<string, any>>
   private readonly resultVisitorMap: ResultVisitorMap;
   private typeInfo?: TypeInfo;
 
-  constructor(inputValueTransformer: LeafValueTransformer, outputValueTransformer: LeafValueTransformer) {
+  constructor(
+    inputValueTransformer: LeafValueTransformer,
+    outputValueTransformer: LeafValueTransformer,
+  ) {
     this.inputValueTransformer = inputValueTransformer;
     this.outputValueTransformer = outputValueTransformer;
     this.resultVisitorMap = Object.create(null);
@@ -48,7 +48,7 @@ export default class MapLeafValues<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     this.originalWrappingSchema = originalWrappingSchema;
     const typeMap = originalWrappingSchema.getTypeMap();
@@ -56,7 +56,8 @@ export default class MapLeafValues<TContext = Record<string, any>>
       const type = typeMap[typeName];
       if (!typeName.startsWith('__')) {
         if (isLeafType(type)) {
-          this.resultVisitorMap[typeName] = (value: any) => this.outputValueTransformer(typeName, value);
+          this.resultVisitorMap[typeName] = (value: any) =>
+            this.outputValueTransformer(typeName, value);
         }
       }
     }
@@ -67,19 +68,23 @@ export default class MapLeafValues<TContext = Record<string, any>>
   public transformRequest(
     originalRequest: ExecutionRequest,
     delegationContext: DelegationContext<TContext>,
-    transformationContext: MapLeafValuesTransformationContext
+    transformationContext: MapLeafValuesTransformationContext,
   ): ExecutionRequest {
     const document = originalRequest.document;
     const variableValues = originalRequest.variables ?? {};
 
     const operations: Array<OperationDefinitionNode> = document.definitions.filter(
-      def => def.kind === Kind.OPERATION_DEFINITION
+      def => def.kind === Kind.OPERATION_DEFINITION,
     ) as Array<OperationDefinitionNode>;
     const fragments: Array<FragmentDefinitionNode> = document.definitions.filter(
-      def => def.kind === Kind.FRAGMENT_DEFINITION
+      def => def.kind === Kind.FRAGMENT_DEFINITION,
     ) as Array<FragmentDefinitionNode>;
 
-    const newOperations = this.transformOperations(operations, variableValues, delegationContext.args);
+    const newOperations = this.transformOperations(
+      operations,
+      variableValues,
+      delegationContext.args,
+    );
 
     const transformedRequest = {
       ...originalRequest,
@@ -98,29 +103,29 @@ export default class MapLeafValues<TContext = Record<string, any>>
   public transformResult(
     originalResult: ExecutionResult,
     _delegationContext: DelegationContext<TContext>,
-    transformationContext: MapLeafValuesTransformationContext
+    transformationContext: MapLeafValuesTransformationContext,
   ): ExecutionResult {
     if (!this.originalWrappingSchema) {
       throw new Error(
-        `The MapLeafValues transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+        `The MapLeafValues transform's  "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`,
       );
     }
     return visitResult(
       originalResult,
       transformationContext.transformedRequest,
       this.originalWrappingSchema,
-      this.resultVisitorMap
+      this.resultVisitorMap,
     );
   }
 
   private transformOperations(
     operations: Array<OperationDefinitionNode>,
     variableValues: Record<string, any>,
-    args?: Record<string, any>
+    args?: Record<string, any>,
   ): Array<OperationDefinitionNode> {
     if (this.typeInfo == null) {
       throw new Error(
-        `The MapLeafValues transform's "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+        `The MapLeafValues transform's "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`,
       );
     }
     return operations.map((operation: OperationDefinitionNode) => {
@@ -128,7 +133,7 @@ export default class MapLeafValues<TContext = Record<string, any>>
         operation,
         visitWithTypeInfo(this.typeInfo!, {
           [Kind.FIELD]: node => this.transformFieldNode(node, variableValues, args),
-        })
+        }),
       );
     });
   }
@@ -136,11 +141,11 @@ export default class MapLeafValues<TContext = Record<string, any>>
   private transformFieldNode(
     field: FieldNode,
     variableValues: Record<string, any>,
-    args?: Record<string, any>
+    args?: Record<string, any>,
   ): FieldNode | undefined {
     if (this.typeInfo == null) {
       throw new Error(
-        `The MapLeafValues transform's "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`
+        `The MapLeafValues transform's "transformRequest" and "transformResult" methods cannot be used without first calling "transformSchema".`,
       );
     }
     const targetField = this.typeInfo.getFieldDef();
@@ -157,7 +162,7 @@ export default class MapLeafValues<TContext = Record<string, any>>
             ...prev,
             [argument.name.value]: argument,
           }),
-          Object.create(null)
+          Object.create(null),
         );
 
         for (const argument of targetField.args) {

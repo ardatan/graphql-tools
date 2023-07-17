@@ -31,7 +31,10 @@ export interface StitchingDirectivesOptions {
 }
 
 type Complete<T> = {
-  [P in keyof Required<T>]: Exclude<Pick<T, P> extends Required<Pick<T, P>> ? T[P] : T[P] | undefined, undefined>;
+  [P in keyof Required<T>]: Exclude<
+    Pick<T, P> extends Required<Pick<T, P>> ? T[P] : T[P] | undefined,
+    undefined
+  >;
 };
 
 export type StitchingDirectivesFinalOptions = Complete<StitchingDirectivesOptions>;

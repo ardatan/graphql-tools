@@ -1,21 +1,21 @@
-import { memoize5 } from './memoize.js';
 import {
-  GraphQLSchema,
-  FragmentDefinitionNode,
-  GraphQLObjectType,
-  SelectionSetNode,
   FieldNode,
-  Kind,
+  FragmentDefinitionNode,
   FragmentSpreadNode,
-  InlineFragmentNode,
   getDirectiveValues,
-  GraphQLSkipDirective,
   GraphQLIncludeDirective,
+  GraphQLObjectType,
+  GraphQLSchema,
+  GraphQLSkipDirective,
+  InlineFragmentNode,
   isAbstractType,
+  Kind,
+  SelectionSetNode,
   typeFromAST,
 } from 'graphql';
-import { GraphQLDeferDirective } from './directives.js';
 import { AccumulatorMap } from './AccumulatorMap.js';
+import { GraphQLDeferDirective } from './directives.js';
+import { memoize5 } from './memoize.js';
 
 export interface PatchFields {
   label: string | undefined;
@@ -35,7 +35,7 @@ function collectFieldsImpl<TVariables = any>(
   selectionSet: SelectionSetNode,
   fields: AccumulatorMap<string, FieldNode>,
   patches: Array<PatchFields>,
-  visitedFragmentNames: Set<string>
+  visitedFragmentNames: Set<string>,
 ): void {
   for (const selection of selectionSet.selections) {
     switch (selection.kind) {
@@ -66,7 +66,7 @@ function collectFieldsImpl<TVariables = any>(
             selection.selectionSet,
             patchFields,
             patches,
-            visitedFragmentNames
+            visitedFragmentNames,
           );
           patches.push({
             label: defer.label,
@@ -81,7 +81,7 @@ function collectFieldsImpl<TVariables = any>(
             selection.selectionSet,
             fields,
             patches,
-            visitedFragmentNames
+            visitedFragmentNames,
           );
         }
         break;
@@ -117,7 +117,7 @@ function collectFieldsImpl<TVariables = any>(
             fragment.selectionSet,
             patchFields,
             patches,
-            visitedFragmentNames
+            visitedFragmentNames,
           );
           patches.push({
             label: defer.label,
@@ -132,7 +132,7 @@ function collectFieldsImpl<TVariables = any>(
             fragment.selectionSet,
             fields,
             patches,
-            visitedFragmentNames
+            visitedFragmentNames,
           );
         }
         break;
@@ -154,11 +154,20 @@ export function collectFields<TVariables = any>(
   fragments: Record<string, FragmentDefinitionNode>,
   variableValues: TVariables,
   runtimeType: GraphQLObjectType,
-  selectionSet: SelectionSetNode
+  selectionSet: SelectionSetNode,
 ): FieldsAndPatches {
   const fields = new AccumulatorMap<string, FieldNode>();
   const patches: Array<PatchFields> = [];
-  collectFieldsImpl(schema, fragments, variableValues, runtimeType, selectionSet, fields, patches, new Set());
+  collectFieldsImpl(
+    schema,
+    fragments,
+    variableValues,
+    runtimeType,
+    selectionSet,
+    fields,
+    patches,
+    new Set(),
+  );
   return { fields, patches };
 }
 
@@ -168,7 +177,7 @@ export function collectFields<TVariables = any>(
  */
 export function shouldIncludeNode(
   variableValues: any,
-  node: FragmentSpreadNode | FieldNode | InlineFragmentNode
+  node: FragmentSpreadNode | FieldNode | InlineFragmentNode,
 ): boolean {
   const skip = getDirectiveValues(GraphQLSkipDirective, node, variableValues);
   if (skip?.['if'] === true) {
@@ -188,7 +197,7 @@ export function shouldIncludeNode(
 export function doesFragmentConditionMatch(
   schema: GraphQLSchema,
   fragment: FragmentDefinitionNode | InlineFragmentNode,
-  type: GraphQLObjectType
+  type: GraphQLObjectType,
 ): boolean {
   const typeConditionNode = fragment.typeCondition;
   if (!typeConditionNode) {
@@ -219,7 +228,7 @@ export function getFieldEntryKey(node: FieldNode): string {
  */
 export function getDeferValues(
   variableValues: any,
-  node: FragmentSpreadNode | InlineFragmentNode
+  node: FragmentSpreadNode | InlineFragmentNode,
 ): undefined | { label: string | undefined } {
   const defer = getDirectiveValues(GraphQLDeferDirective, node, variableValues);
 
@@ -250,7 +259,7 @@ export const collectSubFields = memoize5(function collectSubfields(
   fragments: Record<string, FragmentDefinitionNode>,
   variableValues: { [variable: string]: unknown },
   returnType: GraphQLObjectType,
-  fieldNodes: Array<FieldNode>
+  fieldNodes: Array<FieldNode>,
 ): FieldsAndPatches {
   const subFieldNodes = new AccumulatorMap<string, FieldNode>();
   const visitedFragmentNames = new Set<string>();
@@ -271,7 +280,7 @@ export const collectSubFields = memoize5(function collectSubfields(
         node.selectionSet,
         subFieldNodes,
         subPatches,
-        visitedFragmentNames
+        visitedFragmentNames,
       );
     }
   }

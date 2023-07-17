@@ -1,4 +1,4 @@
-import { parse, DocumentNode, print, Kind, DefinitionNode, FragmentDefinitionNode } from 'graphql';
+import { DefinitionNode, DocumentNode, FragmentDefinitionNode, Kind, parse, print } from 'graphql';
 
 /**
  * Strip insignificant whitespace
@@ -39,7 +39,10 @@ function processFragments(ast: DocumentNode) {
       const sourceKey = cacheKeyFromFragment(fragmentDefinition);
 
       // We know something about this fragment
-      if (fragmentSourceMap.hasOwnProperty(fragmentName) && !fragmentSourceMap[fragmentName][sourceKey]) {
+      if (
+        fragmentSourceMap.hasOwnProperty(fragmentName) &&
+        !fragmentSourceMap[fragmentName][sourceKey]
+      ) {
         fragmentSourceMap[fragmentName][sourceKey] = true;
       } else if (!fragmentSourceMap.hasOwnProperty(fragmentName)) {
         fragmentSourceMap[fragmentName] = {};

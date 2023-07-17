@@ -1,4 +1,5 @@
 import * as yamlParser from 'yaml-ast-parser';
+
 /**
  * Comments out the current entry of a specific key in a yaml document and creates a new value next to it
  * @param key key in yaml document to comment out

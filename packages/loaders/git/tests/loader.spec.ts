@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
-
-import { GitLoader } from '../src/index.js';
+import * as path from 'path';
 import { runTests } from '../../../testing/utils.js';
+import { GitLoader } from '../src/index.js';
 
 describe('GitLoader', () => {
   const loader = new GitLoader();
@@ -56,13 +56,23 @@ describe('GitLoader', () => {
 
       it('should throw when the file does not exist', async () => {
         await expect(load(getPointer('wrong-filename.graphql'), {})).rejects.toThrowError(
-          'Unable to load file from git'
+          'Unable to load file from git',
         );
       });
 
       it('should simply ignore a non git path', async () => {
         const result = await load('./pluckable.ts', {});
         expect(result).toEqual([]);
+      });
+
+      it("should work when loading glob paths that start with './'", async () => {
+        const saveCwd = process.cwd();
+        process.chdir(path.resolve(__dirname, 'test-files', 'a'));
+
+        const [result] = await load(`git:${lastCommit}:./**/*.graphql`, {});
+        expect(result.document).toMatchSnapshot();
+
+        process.chdir(saveCwd);
       });
     });
   });

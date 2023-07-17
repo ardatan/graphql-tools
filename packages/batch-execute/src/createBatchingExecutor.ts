@@ -1,7 +1,11 @@
 import DataLoader from 'dataloader';
-
-import { Executor, ExecutionRequest, ExecutionResult, getOperationASTFromRequest } from '@graphql-tools/utils';
-
+import { ValueOrPromise } from 'value-or-promise';
+import {
+  ExecutionRequest,
+  ExecutionResult,
+  Executor,
+  getOperationASTFromRequest,
+} from '@graphql-tools/utils';
 import { mergeRequests } from './mergeRequests.js';
 import { splitResult } from './splitResult.js';
 
@@ -10,8 +14,8 @@ export function createBatchingExecutor(
   dataLoaderOptions?: DataLoader.Options<any, any, any>,
   extensionsReducer: (
     mergedExtensions: Record<string, any>,
-    request: ExecutionRequest
-  ) => Record<string, any> = defaultExtensionsReducer
+    request: ExecutionRequest,
+  ) => Record<string, any> = defaultExtensionsReducer,
 ): Executor {
   const loadFn = createLoadFn(executor, extensionsReducer);
   const loader = new DataLoader(loadFn, dataLoaderOptions);
@@ -23,9 +27,19 @@ export function createBatchingExecutor(
 
 function createLoadFn(
   executor: Executor,
-  extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
+  extensionsReducer: (
+    mergedExtensions: Record<string, any>,
+    request: ExecutionRequest,
+  ) => Record<string, any>,
 ) {
-  return async function batchExecuteLoadFn(requests: ReadonlyArray<ExecutionRequest>): Promise<Array<ExecutionResult>> {
+  return function batchExecuteLoadFn(
+    requests: ReadonlyArray<ExecutionRequest>,
+  ): ValueOrPromise<Array<ExecutionResult>> {
+    if (requests.length === 1) {
+      return new ValueOrPromise(() => executor(requests[0]) as any)
+        .then((result: ExecutionResult) => [result])
+        .catch((err: any) => [err]);
+    }
     const execBatches: Array<Array<ExecutionRequest>> = [];
     let index = 0;
     const request = requests[index];
@@ -52,21 +66,20 @@ function createLoadFn(
       }
     }
 
-    const results = await Promise.all(
-      execBatches.map(async execBatch => {
-        const mergedRequests = mergeRequests(execBatch, extensionsReducer);
-        const resultBatches = (await executor(mergedRequests)) as ExecutionResult;
-        return splitResult(resultBatches, execBatch.length);
-      })
-    );
-
-    return results.flat();
+    return ValueOrPromise.all(
+      execBatches.map(execBatch =>
+        new ValueOrPromise(() => {
+          const mergedRequests = mergeRequests(execBatch, extensionsReducer);
+          return executor(mergedRequests) as ExecutionResult;
+        }).then(resultBatches => splitResult(resultBatches, execBatch.length)),
+      ),
+    ).then(results => results.flat());
   };
 }
 
 function defaultExtensionsReducer(
   mergedExtensions: Record<string, any>,
-  request: ExecutionRequest
+  request: ExecutionRequest,
 ): Record<string, any> {
   const newExtensions = request.extensions;
   if (newExtensions != null) {

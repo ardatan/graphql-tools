@@ -1,28 +1,20 @@
 {
   "name": "@graphql-tools/executor-urql-exchange",
-  "version": "0.0.8",
+  "version": "1.0.0",
+  "type": "module",
   "description": "",
   "repository": {
     "type": "git",
     "url": "ardatan/graphql-tools",
     "directory": "packages/executors/urql-exchange"
   },
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "scripts": {
-    "check": "tsc --pretty --noEmit"
-  },
-  "keywords": [
-    "graphql",
-    "server",
-    "graphql-yoga",
-    "apollo"
-  ],
   "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",
   "license": "MIT",
-  "buildOptions": {
-    "input": "./src/index.ts"
+  "engines": {
+    "node": ">=16.0.0"
   },
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "exports": {
     ".": {
       "require": {
@@ -41,25 +33,36 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
+  "keywords": [
+    "graphql",
+    "server",
+    "graphql-yoga",
+    "apollo"
+  ],
+  "scripts": {
+    "check": "tsc --pretty --noEmit"
+  },
+  "peerDependencies": {
+    "@urql/core": "^3.0.0 || ^4.0.0",
+    "graphql": "^15.2.0 || ^16.0.0",
+    "wonka": "^6.0.0"
+  },
+  "dependencies": {
+    "@graphql-tools/utils": "^10.0.0",
+    "tslib": "^2.4.0"
+  },
+  "devDependencies": {
+    "@urql/core": "4.0.11",
+    "wonka": "6.3.2"
   },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
   },
-  "dependencies": {
-    "@graphql-tools/utils": "9.2.1",
-    "tslib": "^2.4.0"
+  "buildOptions": {
+    "input": "./src/index.ts"
   },
-  "devDependencies": {
-    "@urql/core": "3.1.1",
-    "wonka": "6.2.3"
-  },
-  "peerDependencies": {
-    "graphql": "^15.2.0 || ^16.0.0",
-    "@urql/core": "^3.0.0",
-    "wonka": "^6.0.0"
-  },
-  "type": "module"
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
+  }
 }

@@ -1,19 +1,21 @@
 import { Server } from 'http';
 import { AddressInfo } from 'net';
 import { Readable } from 'stream';
-
 import express, { Express } from 'express';
+import FormData from 'form-data';
+import { buildSchema, GraphQLSchema, parse } from 'graphql';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
-import FormData from 'form-data';
 import fetch from 'node-fetch';
-import { buildSchema, GraphQLSchema, parse } from 'graphql';
-
+import { SubschemaConfig } from '@graphql-tools/delegate';
+import { execute } from '@graphql-tools/executor';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { SubschemaConfig } from '@graphql-tools/delegate';
-import { createServerHttpLink, GraphQLUpload as ServerGraphQLUpload, linkToExecutor } from '../src/index.js';
-import { execute } from '@graphql-tools/executor';
+import {
+  createServerHttpLink,
+  linkToExecutor,
+  GraphQLUpload as ServerGraphQLUpload,
+} from '../src/index.js';
 
 function streamToString(stream: Readable) {
   const chunks: Array<Buffer> = [];
@@ -46,7 +48,7 @@ function testGraphqlMultipartRequest(query: string, port: number) {
       variables: {
         file: null,
       },
-    })
+    }),
   );
   body.append('map', '{ "1": ["variables.file"] }');
   body.append('1', 'abc', { filename: __filename });
@@ -105,7 +107,7 @@ describe('graphql upload', () => {
     const remoteApp = express().use(
       graphqlUploadExpress(),
       // Yoga causes leak, so we are removing that for now
-      getBasicGraphQLMiddleware(remoteSchema)
+      getBasicGraphQLMiddleware(remoteSchema),
     );
 
     remoteServer = await startServer(remoteApp);
@@ -126,7 +128,7 @@ describe('graphql upload', () => {
       executor: linkToExecutor(
         createServerHttpLink({
           uri: `http://localhost:${remotePort.toString()}`,
-        })
+        }),
       ),
     };
 
@@ -137,7 +139,10 @@ describe('graphql upload', () => {
       },
     });
 
-    const gatewayApp = express().use(graphqlUploadExpress(), getBasicGraphQLMiddleware(gatewaySchema));
+    const gatewayApp = express().use(
+      graphqlUploadExpress(),
+      getBasicGraphQLMiddleware(gatewaySchema),
+    );
 
     gatewayServer = await startServer(gatewayApp);
     gatewayPort = (gatewayServer.address() as AddressInfo).port;

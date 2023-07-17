@@ -56,20 +56,23 @@ jobs:
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Type Check
         run: yarn ts:check
+
   test:
-    name: Unit Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL v${{matrix.graphql_version}}
+    name:
+      Unit Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL
+      v${{matrix.graphql_version}}
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest] # remove windows to speed up the tests
-        node-version: [14, 16, 18]
+        node-version: [16, 18, 20]
         graphql_version:
           - 15
           - 16
           - '17.0.0-alpha.1'
         include:
-          - node-version: 14
+          - node-version: 16
             os: windows-latest
             graphql_version: 15
     steps:
@@ -89,15 +92,34 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .cache/jest
-          key: ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-${{ hashFiles('yarn.lock') }}
+          key:
+            ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-${{
+            hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
       - name: Test
+        if: ${{ matrix.node-version == 20 }}
+        run: yarn test --ci
+      - name: Test
+        if: ${{ matrix.node-version != 20 }}
         uses: nick-fields/retry@v2
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: yarn test --ci
+          command: yarn test:leaks --ci
+
+  trackback:
+    name: trackback rc dependencies
+    needs: test
+    if: ${{ always() }}}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: the-guild-org/shared-config/release-trackback@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          relevantPackages: |
+            @whatwg-node/*
+
   test_esm:
     name: ESM Test
     runs-on: ubuntu-latest

@@ -1,5 +1,5 @@
-import gql from 'graphql-tag';
 import { graphql } from 'gatsby';
+import gql from 'graphql-tag';
 import { parse } from 'parse-graphql';
 
 export const aQuery = gql`

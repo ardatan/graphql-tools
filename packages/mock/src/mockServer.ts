@@ -1,8 +1,8 @@
-import { TypeSource } from '@graphql-tools/utils';
-import { isSchema, graphql } from 'graphql';
+import { graphql, isSchema } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { TypeSource } from '@graphql-tools/utils';
 import { addMocksToSchema } from './addMocksToSchema.js';
-import { IMockServer, IMocks } from './types.js';
+import { IMocks, IMockServer } from './types.js';
 
 /**
  * A convenience wrapper on top of addMocksToSchema. It adds your mock resolvers
@@ -19,7 +19,7 @@ import { IMockServer, IMocks } from './types.js';
 export function mockServer<TResolvers>(
   schema: TypeSource,
   mocks: IMocks<TResolvers>,
-  preserveResolvers = false
+  preserveResolvers = false,
 ): IMockServer {
   const mockedSchema = addMocksToSchema({
     schema: isSchema(schema)

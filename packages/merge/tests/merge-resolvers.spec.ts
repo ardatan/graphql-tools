@@ -35,7 +35,7 @@ describe('Merge Resolvers', () => {
     expect(
       mergeResolvers([{ User: {} }, { MyType: {} }], {
         exclusions: ['User.*'],
-      })
+      }),
     ).toEqual({ MyType: {} });
   });
 
@@ -43,7 +43,7 @@ describe('Merge Resolvers', () => {
     expect(
       mergeResolvers([{ User: { f1: 1 } }, { User: { f2: 2 } }], {
         exclusions: ['User.f1'],
-      })
+      }),
     ).toEqual({
       User: {
         f2: 2,

@@ -1,22 +1,27 @@
+import { GraphQLResolveInfo, print } from 'graphql';
+import { ValueOrPromise } from 'value-or-promise';
 import {
-  ExecutionResult,
   AsyncExecutor,
   createGraphQLError,
   ExecutionRequest,
+  ExecutionResult,
   Executor,
   getOperationASTFromRequest,
   SyncExecutor,
 } from '@graphql-tools/utils';
-import { GraphQLResolveInfo, print } from 'graphql';
-import { isLiveQueryOperationDefinitionNode } from './isLiveQueryOperationDefinitionNode.js';
-import { prepareGETUrl } from './prepareGETUrl.js';
-import { ValueOrPromise } from 'value-or-promise';
+import { fetch as defaultFetch } from '@whatwg-node/fetch';
 import { createFormDataFromVariables } from './createFormDataFromVariables.js';
 import { handleEventStreamResponse } from './handleEventStreamResponse.js';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
-import { fetch as defaultFetch, AbortController } from '@whatwg-node/fetch';
+import { isLiveQueryOperationDefinitionNode } from './isLiveQueryOperationDefinitionNode.js';
+import { prepareGETUrl } from './prepareGETUrl.js';
 
-export type SyncFetchFn = (url: string, init?: RequestInit, context?: any, info?: GraphQLResolveInfo) => SyncResponse;
+export type SyncFetchFn = (
+  url: string,
+  init?: RequestInit,
+  context?: any,
+  info?: GraphQLResolveInfo,
+) => SyncResponse;
 export type SyncResponse = Omit<Response, 'json' | 'text'> & {
   json: () => any;
   text: () => string;
@@ -26,7 +31,7 @@ export type AsyncFetchFn = (
   url: string,
   options?: RequestInit,
   context?: any,
-  info?: GraphQLResolveInfo
+  info?: GraphQLResolveInfo,
 ) => Promise<Response> | Response;
 
 export type RegularFetchFn = (url: string) => Promise<Response> | Response;
@@ -79,22 +84,24 @@ export interface HTTPExecutorOptions {
 export type HeadersConfig = Record<string, string>;
 
 export function buildHTTPExecutor(
-  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: SyncFetchFn }
+  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: SyncFetchFn },
 ): SyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
-  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: AsyncFetchFn }
+  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: AsyncFetchFn },
 ): AsyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
-  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: RegularFetchFn }
+  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: RegularFetchFn },
 ): AsyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
-  options?: Omit<HTTPExecutorOptions, 'fetch'>
+  options?: Omit<HTTPExecutorOptions, 'fetch'>,
 ): AsyncExecutor<any, HTTPExecutorOptions>;
 
-export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, HTTPExecutorOptions> {
+export function buildHTTPExecutor(
+  options?: HTTPExecutorOptions,
+): Executor<any, HTTPExecutorOptions> {
   const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
     const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
     let controller: AbortController | undefined;
@@ -103,7 +110,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
     const operationAst = getOperationASTFromRequest(request);
     const operationType = operationAst.operation;
 
-    if ((options?.useGETForQueries || request.extensions?.useGETForQueries) && operationType === 'query') {
+    if (
+      (options?.useGETForQueries || request.extensions?.useGETForQueries) &&
+      operationType === 'query'
+    ) {
       method = 'GET';
     }
 
@@ -119,16 +129,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
         accept,
       },
       (typeof options?.headers === 'function' ? options.headers(request) : options?.headers) || {},
-      request.extensions?.headers || {}
+      request.extensions?.headers || {},
     );
 
     const query = print(request.document);
-    const requestBody = {
-      query,
-      variables: request.variables,
-      operationName: request.operationName,
-      extensions: request.extensions,
-    };
 
     let timeoutId: any;
     if (options?.timeout) {
@@ -150,45 +154,51 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
         case 'GET': {
           const finalUrl = prepareGETUrl({
             baseUrl: endpoint,
-            ...requestBody,
+            query,
+            variables: request.variables,
+            operationName: request.operationName,
+            extensions: request.extensions,
           });
-          return fetchFn(
-            finalUrl,
-            {
-              method: 'GET',
-              ...(options?.credentials != null ? { credentials: options.credentials } : {}),
-              headers,
-              signal: controller?.signal,
-            },
-            request.context,
-            request.info
-          );
+          const fetchOptions: RequestInit = {
+            method: 'GET',
+            headers,
+            signal: controller?.signal,
+          };
+          if (options?.credentials != null) {
+            fetchOptions.credentials = options.credentials;
+          }
+          return fetchFn(finalUrl, fetchOptions, request.context, request.info);
         }
         case 'POST':
           return new ValueOrPromise(() =>
-            createFormDataFromVariables(requestBody, {
-              File: options?.File,
-              FormData: options?.FormData,
-            })
+            createFormDataFromVariables(
+              {
+                query,
+                variables: request.variables,
+                operationName: request.operationName,
+                extensions: request.extensions,
+              },
+              {
+                File: options?.File,
+                FormData: options?.FormData,
+              },
+            ),
           )
-            .then(
-              body =>
-                fetchFn(
-                  endpoint,
-                  {
-                    method: 'POST',
-                    ...(options?.credentials != null ? { credentials: options.credentials } : {}),
-                    body,
-                    headers: {
-                      ...headers,
-                      ...(typeof body === 'string' ? { 'content-type': 'application/json' } : {}),
-                    },
-                    signal: controller?.signal,
-                  },
-                  request.context,
-                  request.info
-                ) as any
-            )
+            .then(body => {
+              if (typeof body === 'string') {
+                headers['content-type'] = 'application/json';
+              }
+              const fetchOptions: RequestInit = {
+                method: 'POST',
+                body,
+                headers,
+                signal: controller?.signal,
+              };
+              if (options?.credentials != null) {
+                fetchOptions.credentials = options.credentials;
+              }
+              return fetchFn(endpoint, fetchOptions, request.context, request.info) as any;
+            })
             .resolve();
       }
     })
@@ -223,7 +233,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
                 errors: [
                   createGraphQLError(`Unexpected response: ${JSON.stringify(result)}`, {
                     extensions: {
-                      requestBody,
+                      requestBody: {
+                        query,
+                        operationName: request.operationName,
+                      },
                       responseDetails: responseDetailsForError,
                     },
                     originalError: e,
@@ -242,7 +255,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
             errors: [
               createGraphQLError(e, {
                 extensions: {
-                  requestBody,
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
                   responseDetails: responseDetailsForError,
                 },
               }),
@@ -257,7 +273,25 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
             errors: [
               createGraphQLError(`fetch failed to ${endpoint}`, {
                 extensions: {
-                  requestBody,
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
+                  responseDetails: responseDetailsForError,
+                },
+                originalError: e,
+              }),
+            ],
+          };
+        } else if (e.name === 'AbortError' && controller?.signal?.reason) {
+          return {
+            errors: [
+              createGraphQLError('The operation was aborted. reason: ' + controller.signal.reason, {
+                extensions: {
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
                   responseDetails: responseDetailsForError,
                 },
                 originalError: e,
@@ -269,7 +303,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
             errors: [
               createGraphQLError(e.message, {
                 extensions: {
-                  requestBody,
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
                   responseDetails: responseDetailsForError,
                 },
                 originalError: e,
@@ -281,7 +318,10 @@ export function buildHTTPExecutor(options?: HTTPExecutorOptions): Executor<any, 
             errors: [
               createGraphQLError('Unknown error', {
                 extensions: {
-                  requestBody,
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
                   responseDetails: responseDetailsForError,
                 },
                 originalError: e,

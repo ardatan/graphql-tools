@@ -1,8 +1,8 @@
 import fs, { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
-import * as TypeDoc from 'typedoc';
-import globby from 'globby';
 import chalk from 'chalk';
+import globby from 'globby';
+import * as TypeDoc from 'typedoc';
 import workspacePackageJson from '../package.json';
 
 const MONOREPO = workspacePackageJson.name.replace('-monorepo', '');
@@ -13,7 +13,9 @@ const OUTPUT_PATH = path.join(CWD, 'website/src/pages/docs/api');
 async function buildApiDocs(): Promise<void> {
   // An array of tuples where the first element is the package's name and
   // the second element is the relative path to the package's entry point
-  const packageJsonFiles = globby.sync(workspacePackageJson.workspaces.map(f => `${f}/package.json`));
+  const packageJsonFiles = globby.sync(
+    workspacePackageJson.workspaces.map(f => `${f}/package.json`),
+  );
   const modules: Array<[string, string]> = [];
 
   for (const packageJsonPath of packageJsonFiles) {
@@ -72,7 +74,10 @@ async function buildApiDocs(): Promise<void> {
       })
       // Fix links
       .replace(/\.md/g, '')
-      .replace(/\[([^\]]+)]\((\.\.\/(classes|interfaces|enums)\/([^)]+))\)/g, '[$1](/docs/api/$3/$4)');
+      .replace(
+        /\[([^\]]+)]\((\.\.\/(classes|interfaces|enums)\/([^)]+))\)/g,
+        '[$1](/docs/api/$3/$4)',
+      );
 
     await fsPromises.writeFile(filePath, contentsTrimmed);
     const relativePath = path.relative(CWD, filePath);
@@ -92,7 +97,9 @@ async function buildApiDocs(): Promise<void> {
       return;
     }
     const filesInDirectory = await fsPromises.readdir(filePath);
-    await Promise.all(filesInDirectory.map(fileName => visitMarkdownFile(path.join(filePath, fileName))));
+    await Promise.all(
+      filesInDirectory.map(fileName => visitMarkdownFile(path.join(filePath, fileName))),
+    );
 
     await fsPromises.writeFile(
       path.join(filePath, '_meta.json'),
@@ -110,11 +117,11 @@ async function buildApiDocs(): Promise<void> {
 
               return [key, value];
             })
-            .sort((a, b) => a[1].localeCompare(b[1]))
+            .sort((a, b) => a[1].localeCompare(b[1])),
         ),
         null,
-        2
-      )
+        2,
+      ),
     );
   }
 
@@ -124,7 +131,7 @@ async function buildApiDocs(): Promise<void> {
     ['classes', 'enums', 'interfaces', 'modules'].map(async dirName => {
       const subDirName = path.join(OUTPUT_PATH, dirName);
       await visitMarkdownFile(subDirName);
-    })
+    }),
   );
   await fsPromises.writeFile(
     path.join(OUTPUT_PATH, '_meta.json'),
@@ -136,8 +143,8 @@ async function buildApiDocs(): Promise<void> {
         interfaces: 'Interfaces',
       },
       null,
-      2
-    )
+      2,
+    ),
   );
 
   // Remove the generated "README.md" file
@@ -162,7 +169,7 @@ async function buildApiDocs(): Promise<void> {
       const finalContent = `# ${name}
 ${necessaryPart}`;
       await fsPromises.writeFile(filePath, finalContent);
-    })
+    }),
   );
 
   function convertEntryFilePath(filePath: string): string {

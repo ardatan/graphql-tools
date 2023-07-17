@@ -1,11 +1,9 @@
 /* eslint-disable camelcase */
-import { graphql, GraphQLSchema, buildSchema, parse } from 'graphql';
-
-import { sentence, first_name } from 'casual';
-
-import { addMocksToSchema, MockList, mockServer, IMocks, IMockStore } from '../src/index.js';
-import { addResolversToSchema, makeExecutableSchema } from '@graphql-tools/schema';
+import { first_name, sentence } from 'casual';
+import { buildSchema, graphql, GraphQLSchema, parse } from 'graphql';
 import { subscribe } from '@graphql-tools/executor';
+import { addResolversToSchema, makeExecutableSchema } from '@graphql-tools/schema';
+import { addMocksToSchema, IMocks, IMockStore, MockList, mockServer } from '../src/index.js';
 
 describe('Mock retro-compatibility', () => {
   const shorthand = /* GraphQL */ `
@@ -96,7 +94,7 @@ describe('Mock retro-compatibility', () => {
 
   test('throws an error if the property "schema" on the first argument is not of type GraphQLSchema', () => {
     expect(() => addMocksToSchema({ schema: {} as unknown as GraphQLSchema })).toThrowError(
-      'Value at "schema" must be of type GraphQLSchema'
+      'Value at "schema" must be of type GraphQLSchema',
     );
   });
 
@@ -106,7 +104,7 @@ describe('Mock retro-compatibility', () => {
       addMocksToSchema({
         schema: jsSchema,
         mocks: ['a'] as unknown as IMocks,
-      })
+      }),
     ).toThrowError('mocks must be of type Object');
   });
 
@@ -361,13 +359,13 @@ describe('Mock retro-compatibility', () => {
         expect.objectContaining({
           returnInt: 10,
           returnString: 'aha',
-        })
+        }),
       );
       return expect(res.data?.['returnBirdsAndBees']).toContainEqual(
         expect.objectContaining({
           returnInt: 10,
           returnEnum: 'A',
-        })
+        }),
       );
     });
   });
@@ -405,13 +403,13 @@ describe('Mock retro-compatibility', () => {
         expect.objectContaining({
           returnInt: 10,
           returnString: 'aha',
-        })
+        }),
       );
       return expect(res.data?.['returnFlying']).toContainEqual(
         expect.objectContaining({
           returnInt: 10,
           returnEnum: 'A',
-        })
+        }),
       );
     });
   });
@@ -1208,7 +1206,7 @@ describe('Mock retro-compatibility', () => {
     Object.defineProperty(
       objProxy,
       'returnInt', // a) part of a Bird, should not be masked by mock
-      { value: 12 }
+      { value: 12 },
     );
     const resolvers = {
       RootQuery: {
@@ -1434,7 +1432,7 @@ describe('Mock retro-compatibility', () => {
 
   test('throws an error if the second argument to MockList is not a function', () => {
     expect(() => new MockList(5, 'abc' as any)).toThrowError(
-      'Second argument to MockList must be a function or undefined'
+      'Second argument to MockList must be a function or undefined',
     );
   });
 

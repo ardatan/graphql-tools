@@ -1,18 +1,22 @@
 import {
-  DocumentNode,
-  Kind,
   ASTNode,
-  parse,
+  DocumentNode,
   Source as GraphQLSource,
-  visit,
   isTypeSystemDefinitionNode,
-  StringValueNode,
+  Kind,
+  parse,
   print,
+  StringValueNode,
+  visit,
 } from 'graphql';
 import { dedentBlockStringValue, getLeadingCommentBlock } from './comments.js';
 import { GraphQLParseOptions } from './Interfaces.js';
 
-export function parseGraphQLSDL(location: string | undefined, rawSDL: string, options: GraphQLParseOptions = {}) {
+export function parseGraphQLSDL(
+  location: string | undefined,
+  rawSDL: string,
+  options: GraphQLParseOptions = {},
+) {
   let document: DocumentNode;
 
   try {
@@ -45,7 +49,10 @@ export function parseGraphQLSDL(location: string | undefined, rawSDL: string, op
   };
 }
 
-export function transformCommentsToDescriptions(sourceSdl: string, options: GraphQLParseOptions = {}): DocumentNode {
+export function transformCommentsToDescriptions(
+  sourceSdl: string,
+  options: GraphQLParseOptions = {},
+): DocumentNode {
   const parsedDoc = parse(sourceSdl, {
     ...options,
     noLocation: false,

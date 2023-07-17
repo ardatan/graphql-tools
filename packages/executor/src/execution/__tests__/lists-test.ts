@@ -1,11 +1,11 @@
 import {
-  parse,
   buildSchema,
-  GraphQLSchema,
-  GraphQLString,
+  GraphQLFieldResolver,
   GraphQLList,
   GraphQLObjectType,
-  GraphQLFieldResolver,
+  GraphQLSchema,
+  GraphQLString,
+  parse,
 } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { execute, executeSync } from '../execute.js';
@@ -95,7 +95,7 @@ describe('Execute: Accepts async iterables as list value', () => {
                     resolve,
                   },
                 },
-              })
+              }),
             ),
           },
         },
@@ -188,7 +188,7 @@ describe('Execute: Accepts async iterables as list value', () => {
           return Promise.reject(new Error('bad'));
         }
         return Promise.resolve(index);
-      })
+      }),
     ).toDeepEqual({
       data: { listField: [{ index: '0' }, { index: '1' }, { index: null }] },
       errors: [
