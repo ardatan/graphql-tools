@@ -9,8 +9,8 @@
     "start": "cross-env NODE_ENV=production node index.js"
   },
   "dependencies": {
-    "@apollo/gateway": "2.4.10",
-    "@apollo/subgraph": "2.4.10",
+    "@apollo/gateway": "2.5.0",
+    "@apollo/subgraph": "2.5.0",
     "@graphql-tools/federation": "1.0.0",
     "@graphql-tools/stitch": "9.0.0",
     "cross-env": "7.0.3",
