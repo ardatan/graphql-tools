@@ -10267,10 +10267,10 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
-puppeteer-core@20.8.2:
-  version "20.8.2"
-  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-20.8.2.tgz#26e3810bec9656f313fe904ac67adc96e2e67fe4"
-  integrity sha512-dWo60gFuFPdNhdabW9MMm6GpvkG6tND2D8FvrZ2MF+HggNApHrvLfbERj8vD6vXKV7UqDAJO0KI1OMo3S3Cm5w==
+puppeteer-core@20.8.3:
+  version "20.8.3"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-20.8.3.tgz#67c71c1e6cb80307100d6d6b0b1f7ab3b3d18f89"
+  integrity sha512-/57/tKtjjRyPP/FgZMG+nkmyajm4OXms6Qu0r8sbTu5tyIbCQTqx82yZj859Rx0Zf0enOVEnN1pD9cqVc9i78g==
   dependencies:
     "@puppeteer/browsers" "1.4.5"
     chromium-bidi "0.4.16"
@@ -10279,14 +10279,14 @@ puppeteer-core@20.8.2:
     devtools-protocol "0.0.1135028"
     ws "8.13.0"
 
-puppeteer@20.8.2:
-  version "20.8.2"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-20.8.2.tgz#f04e9e4ee0b2036e68f87d2d134aae0f2882b0ba"
-  integrity sha512-+VRywTRGF09UyiesFL7pcU19Cq7vf2HsE/eulwSpl7YHcr8g8X+Va4qLmp7mOECwteGvP7rU8vQ7PP43fcubbA==
+puppeteer@20.8.3:
+  version "20.8.3"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-20.8.3.tgz#242876d8779e9ab02c2881a7a81a5e286671afb5"
+  integrity sha512-NaJEZkhRmcIR0KTLfJktLF2aRpf+Nvr/YQi1geUSUkANWKRmIj+u+Fh9Us9tEzuuuuk56okJ+fhV4vrimQzI3g==
   dependencies:
     "@puppeteer/browsers" "1.4.5"
     cosmiconfig "8.2.0"
-    puppeteer-core "20.8.2"
+    puppeteer-core "20.8.3"
 
 pure-rand@^6.0.0:
   version "6.0.0"
