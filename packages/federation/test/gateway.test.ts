@@ -26,6 +26,7 @@ import * as Accounts from './fixtures/gateway/accounts';
 import * as Inventory from './fixtures/gateway/inventory';
 import * as Products from './fixtures/gateway/products';
 import * as Reviews from './fixtures/gateway/reviews';
+import '../../testing/to-be-similar-gql-doc';
 
 interface ServiceInput {
   typeDefs: string;
@@ -273,7 +274,7 @@ describe('Federation', () => {
       it('should generate the correct schema', async () => {
         const result = await gatewayExecutor(parse(getIntrospectionQuery()));
         const schema = buildClientSchema(result.data);
-        expect(printSchema(lexicographicSortSchema(schema))).toBe(/* GraphQL */ `
+        expect(printSchema(lexicographicSortSchema(schema))).toBeSimilarGqlDoc(/* GraphQL */ `
           type Product {
             inStock: Boolean
             name: String
