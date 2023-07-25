@@ -4,7 +4,6 @@ import {
   EnumTypeDefinitionNode,
   EnumValueDefinitionNode,
   FieldDefinitionNode,
-  GraphQLSchema,
   Kind,
   NamedTypeNode,
   ObjectTypeDefinitionNode,
@@ -18,7 +17,6 @@ import { SubschemaConfig } from '@graphql-tools/delegate';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import type { Executor } from '@graphql-tools/utils';
-import { FilterRootFields, FilterTypes } from '@graphql-tools/wrap';
 import {
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
