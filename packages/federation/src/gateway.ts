@@ -22,7 +22,11 @@ import {
   inspect,
 } from '@graphql-tools/utils';
 import { SubgraphBaseSDL } from './subgraph.js';
-import { getArgsFromKeysForFederation, getKeyForFederation } from './utils.js';
+import {
+  filterInternalFieldsAndTypes,
+  getArgsFromKeysForFederation,
+  getKeyForFederation,
+} from './utils.js';
 
 export const SubgraphSDLQuery = /* GraphQL */ `
   query SubgraphSDL {
@@ -201,9 +205,10 @@ export async function getStitchedSchemaWithUrls(configs: HTTPExecutorOptions[]) 
   const subschemas = await Promise.all(
     configs.map(config => getSubschemaForFederationWithURL(config)),
   );
-  return stitchSchemas({
+  const schema = stitchSchemas({
     subschemas,
   });
+  return filterInternalFieldsAndTypes(schema);
 }
 
 export const federationSubschemaTransformer: SubschemaConfigTransform =

@@ -4,6 +4,7 @@ import {
   EnumTypeDefinitionNode,
   EnumValueDefinitionNode,
   FieldDefinitionNode,
+  GraphQLSchema,
   Kind,
   NamedTypeNode,
   ObjectTypeDefinitionNode,
@@ -17,7 +18,12 @@ import { SubschemaConfig } from '@graphql-tools/delegate';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import type { Executor } from '@graphql-tools/utils';
-import { getArgsFromKeysForFederation, getKeyForFederation } from './utils.js';
+import { FilterRootFields, FilterTypes } from '@graphql-tools/wrap';
+import {
+  filterInternalFieldsAndTypes,
+  getArgsFromKeysForFederation,
+  getKeyForFederation,
+} from './utils.js';
 
 export interface GetSubschemasFromSupergraphSdlOpts {
   supergraphSdl: string | DocumentNode;
@@ -314,7 +320,7 @@ export function getStitchedSchemaFromSupergraphSdl(opts: GetSubschemasFromSuperg
   const supergraphSchema = stitchSchemas({
     subschemas: [...subschemaMap.values()],
   });
-  return supergraphSchema;
+  return filterInternalFieldsAndTypes(supergraphSchema);
 }
 
 const anyTypeDefinitionNode: ScalarTypeDefinitionNode = {

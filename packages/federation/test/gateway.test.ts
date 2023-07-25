@@ -1,10 +1,22 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { DocumentNode, GraphQLSchema, parse, print, validate, versionInfo } from 'graphql';
+import {
+  buildClientSchema,
+  DocumentNode,
+  getIntrospectionQuery,
+  GraphQLSchema,
+  lexicographicSortSchema,
+  parse,
+  print,
+  printSchema,
+  validate,
+  versionInfo,
+} from 'graphql';
 import { createDefaultExecutor, SubschemaConfig } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import {
   buildSubgraphSchema as buildToolsSubgraphSchema,
+  filterInternalFieldsAndTypes,
   getSubschemaForFederationWithSchema,
 } from '@graphql-tools/federation';
 import { stitchSchemas } from '@graphql-tools/stitch';
@@ -99,9 +111,10 @@ describe('Federation', () => {
     const subschemas: SubschemaConfig[] = await Promise.all(
       services.map(({ schema }) => getSubschemaForFederationWithSchema(schema)),
     );
-    const gatewaySchema = stitchSchemas({
+    let gatewaySchema = stitchSchemas({
       subschemas,
     });
+    gatewaySchema = filterInternalFieldsAndTypes(gatewaySchema);
 
     return (document: DocumentNode) =>
       normalizedExecutor({
@@ -247,16 +260,54 @@ describe('Federation', () => {
   ];
   for (const { name, buildSubgraphSchema, buildGateway } of scenarios) {
     describe(name, () => {
-      it('should give the correct result', async () => {
+      let gatewayExecutor: (document: DocumentNode) => Promise<ExecutionResult>;
+      beforeEach(async () => {
         const services = [Accounts, Products, Reviews, Inventory];
 
         const serviceInputs = services.map(service => ({
           typeDefs: service.typeDefs,
           schema: buildSubgraphSchema(service),
         }));
+        gatewayExecutor = await buildGateway(serviceInputs);
+      });
+      it('should generate the correct schema', async () => {
+        const result = await gatewayExecutor(parse(getIntrospectionQuery()));
+        const schema = buildClientSchema(result.data);
+        expect(printSchema(lexicographicSortSchema(schema))).toBe(/* GraphQL */ `
+          type Product {
+            inStock: Boolean
+            name: String
+            price: Int
+            reviews: [Review]
+            shippingEstimate: Int
+            upc: String!
+            weight: Int
+          }
 
-        const gatewayExecutor = await buildGateway(serviceInputs);
+          type Query {
+            me: User
+            topProducts(first: Int): [Product]
+            users: [User]
+          }
 
+          type Review {
+            author: User
+            body: String
+            id: ID!
+            product: Product
+          }
+
+          type User {
+            birthDate: String
+            id: ID!
+            name: String
+            numberOfReviews: Int
+            reviews: [Review]
+            username: String
+          }
+        `);
+      });
+      it('should give the correct result', async () => {
         const result = await gatewayExecutor(exampleQuery);
         expect(result).toEqual({
           data: {
