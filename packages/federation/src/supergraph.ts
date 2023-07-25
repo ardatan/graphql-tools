@@ -19,15 +19,15 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 import type { Executor } from '@graphql-tools/utils';
 import { getArgsFromKeysForFederation, getKeyForFederation } from './utils.js';
 
-export interface BuildSupergraphSchema {
+export interface GetSubschemasFromSupergraphSdlOpts {
   supergraphSdl: string | DocumentNode;
   onExecutor?: (opts: { subgraphName: string; endpoint: string }) => Executor;
 }
 
-export function getStitchedSchemaFromSupergraphSdl({
+export function getSubschemasFromSupergraphSdl({
   supergraphSdl,
   onExecutor = ({ endpoint }) => buildHTTPExecutor({ endpoint }),
-}: BuildSupergraphSchema) {
+}: GetSubschemasFromSupergraphSdlOpts) {
   const ast = typeof supergraphSdl === 'string' ? parse(supergraphSdl) : supergraphSdl;
   const subgraphQueryFieldDefinitionNodes = new Map<string, FieldDefinitionNode[]>();
   const subgraphEndpointMap = new Map<string, string>();
@@ -191,7 +191,7 @@ export function getStitchedSchemaFromSupergraphSdl({
       });
     },
   });
-  const subschemas: SubschemaConfig[] = [];
+  const subschemaMap = new Map<string, SubschemaConfig>();
   for (const [subgraphName, endpoint] of subgraphEndpointMap) {
     const executor = onExecutor({ subgraphName, endpoint });
     const mergeConfig: SubschemaConfig['merge'] = {};
@@ -300,14 +300,19 @@ export function getStitchedSchemaFromSupergraphSdl({
         assumeValid: true,
       },
     );
-    subschemas.push({
+    subschemaMap.set(subgraphName, {
       schema,
       executor,
       merge: mergeConfig,
     });
   }
+  return subschemaMap;
+}
+
+export function getStitchedSchemaFromSupergraphSdl(opts: GetSubschemasFromSupergraphSdlOpts) {
+  const subschemaMap = getSubschemasFromSupergraphSdl(opts);
   const supergraphSchema = stitchSchemas({
-    subschemas,
+    subschemas: [...subschemaMap.values()],
   });
   return supergraphSchema;
 }
