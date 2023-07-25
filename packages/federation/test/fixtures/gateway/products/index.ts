@@ -1,17 +1,8 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { IResolvers } from '@graphql-tools/utils';
 
-export const typeDefs = /* GraphQL */ `
-  type Query @extends {
-    topProducts(first: Int): [Product]
-  }
-
-  type Product @key(fields: "upc") {
-    upc: String!
-    name: String
-    price: Int
-    weight: Int
-  }
-`;
+export const typeDefs = readFileSync(join(__dirname, './products.graphql'), 'utf8');
 
 const listSize = parseInt(process.env['PRODUCTS_SIZE'] || '3');
 

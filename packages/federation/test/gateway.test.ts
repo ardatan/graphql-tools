@@ -1,5 +1,7 @@
-import { DocumentNode, GraphQLSchema, parse, print, versionInfo } from 'graphql';
-import { SubschemaConfig } from '@graphql-tools/delegate';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { DocumentNode, GraphQLSchema, parse, print, validate, versionInfo } from 'graphql';
+import { createDefaultExecutor, SubschemaConfig } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import {
   buildSubgraphSchema as buildToolsSubgraphSchema,
@@ -7,6 +9,7 @@ import {
 } from '@graphql-tools/federation';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
+import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 import * as Accounts from './fixtures/gateway/accounts';
 import * as Inventory from './fixtures/gateway/inventory';
 import * as Products from './fixtures/gateway/products';
@@ -140,6 +143,76 @@ describe('Federation', () => {
         context: {},
       } as any) as Promise<ExecutionResult>;
   };
+  const buildSubgraphWithApollo = (options: { typeDefs: string; resolvers: IResolvers }) =>
+    buildApolloSubgraph([
+      {
+        typeDefs: parse(options.typeDefs),
+        resolvers: options.resolvers as any,
+      },
+    ]);
+
+  const supergraphSdl = readFileSync(
+    join(__dirname, './fixtures/gateway/supergraph.graphql'),
+    'utf8',
+  );
+
+  const buildApolloGatewayWithSupergraph = async (services: ServiceInput[]) => {
+    const gateway = new ApolloGateway({
+      supergraphSdl,
+      buildService({ name }) {
+        const [, i] = name.split('service');
+        return new LocalGraphQLDataSource(services[parseInt(i)].schema);
+      },
+    });
+    await gateway.load();
+    return (document: DocumentNode) =>
+      gateway.executor({
+        document,
+        request: {
+          query: print(document),
+        },
+        cache: {
+          get: async () => undefined,
+          set: async () => {},
+          delete: async () => true,
+        },
+        schema: gateway.schema!,
+        context: {},
+      } as any) as Promise<ExecutionResult>;
+  };
+
+  const buildStitchingGatewayWithSupergraph = async (services: ServiceInput[]) => {
+    const gatewaySchema = getStitchedSchemaFromSupergraphSdl({
+      supergraphSdl,
+      onExecutor({ subgraphName }) {
+        const [, i] = subgraphName.split('SERVICE');
+        const executor = createDefaultExecutor(services[parseInt(i)].schema);
+        return async executionRequest => {
+          const errors = validate(services[parseInt(i)].schema, executionRequest.document);
+          if (errors.length > 0) {
+            return {
+              errors,
+            };
+          }
+          const result = await executor(executionRequest);
+          return result;
+        };
+      },
+    });
+
+    return async (document: DocumentNode) => {
+      const errors = validate(gatewaySchema, document);
+      if (errors.length > 0) {
+        return {
+          errors,
+        };
+      }
+      return normalizedExecutor({
+        schema: gatewaySchema,
+        document,
+      }) as Promise<ExecutionResult>;
+    };
+  };
   const scenarios: TestScenario[] = [
     {
       name: 'Tools Gateway vs. Tools Subgraph',
@@ -148,19 +221,28 @@ describe('Federation', () => {
     },
     {
       name: 'Tools Gateway vs. Apollo Subgraph',
-      buildSubgraphSchema: options =>
-        buildApolloSubgraph([
-          {
-            typeDefs: parse(options.typeDefs),
-            resolvers: options.resolvers as any,
-          },
-        ]),
+      buildSubgraphSchema: buildSubgraphWithApollo,
       buildGateway: buildStitchingGateway,
     },
     {
       name: 'Apollo Gateway vs. Tools Subgraph',
       buildSubgraphSchema: buildToolsSubgraphSchema,
       buildGateway: buildApolloGateway,
+    },
+    {
+      name: 'Apollo Gateway with Supergraph vs. Tools Subgraph',
+      buildSubgraphSchema: buildToolsSubgraphSchema,
+      buildGateway: buildApolloGatewayWithSupergraph,
+    },
+    {
+      name: 'Tools Gateway with Supergraph vs. Apollo Subgraph',
+      buildSubgraphSchema: buildSubgraphWithApollo,
+      buildGateway: buildStitchingGatewayWithSupergraph,
+    },
+    {
+      name: 'Tools Gateway with Supergraph vs. Tools Subgraph',
+      buildSubgraphSchema: buildToolsSubgraphSchema,
+      buildGateway: buildStitchingGatewayWithSupergraph,
     },
   ];
   for (const { name, buildSubgraphSchema, buildGateway } of scenarios) {
@@ -176,7 +258,6 @@ describe('Federation', () => {
         const gatewayExecutor = await buildGateway(serviceInputs);
 
         const result = await gatewayExecutor(exampleQuery);
-
         expect(result).toEqual({
           data: {
             topProducts: [
