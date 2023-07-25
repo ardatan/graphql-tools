@@ -8,7 +8,6 @@ import {
   NamedTypeNode,
   ObjectTypeDefinitionNode,
   parse,
-  printSchema,
   ScalarTypeDefinitionNode,
   TypeDefinitionNode,
   UnionTypeDefinitionNode,
