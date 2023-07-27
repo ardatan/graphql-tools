@@ -4,7 +4,8 @@ import { stitchingDirectives } from '../src';
 
 describe('Reproductions for issues', () => {
   it('issue #4554', () => {
-    const { allStitchingDirectivesTypeDefs, stitchingDirectivesTransformer } = stitchingDirectives();
+    const { allStitchingDirectivesTypeDefs, stitchingDirectivesTransformer } =
+      stitchingDirectives();
     const schema1 = buildSchema(/* GraphQL */ `
       ${allStitchingDirectivesTypeDefs}
       scalar ItemId

@@ -246,9 +246,12 @@ describe('test merged composite computed fields', () => {
         Query: {
           byRepresentation: (
             _: never,
-            { representation: { id, value } }: { representation: { id: string; value?: number } }
+            { representation: { id, value } }: { representation: { id: string; value?: number } },
           ) => ({ id, value }),
-          uByRepresentation: (_: never, { representation: { id } }: { representation: { id: string } }) => ({ id }),
+          uByRepresentation: (
+            _: never,
+            { representation: { id } }: { representation: { id: string } },
+          ) => ({ id }),
         },
       },
     });
@@ -330,7 +333,7 @@ describe('test merged composite computed fields', () => {
     it('selection set available locally', async () => {
       byRepresentationArgs.mockImplementation(
         // something breaks if the mock function is not wrapped in a plain function ...
-        ({ id, value }: { id: string; value?: number }) => ({ representation: { id, value } })
+        ({ id, value }: { id: string; value?: number }) => ({ representation: { id, value } }),
       );
       const { data } = await graphql({
         schema: gatewaySchema,
@@ -360,7 +363,7 @@ describe('test merged composite computed fields', () => {
     it('selection set is remote', async () => {
       byRepresentationArgs.mockImplementation(
         // something breaks if the mock function is not wrapped in a plain function ...
-        ({ id, value }: { id: string; value?: number }) => ({ representation: { id, value } })
+        ({ id, value }: { id: string; value?: number }) => ({ representation: { id, value } }),
       );
       const { data } = await graphql({
         schema: gatewaySchema,
@@ -427,7 +430,7 @@ describe('test merged composite computed fields', () => {
         Query: {
           byRepresentation: (
             _: never,
-            { representation: { id, value } }: { representation: { id: string; value?: number } }
+            { representation: { id, value } }: { representation: { id: string; value?: number } },
           ) => ({ id, value }),
         },
       },
@@ -451,7 +454,9 @@ describe('test merged composite computed fields', () => {
             T: {
               selectionSet: '{ id }',
               fieldName: 'byRepresentation',
-              args: ({ id, value }: { id: string; value?: number }) => ({ representation: { id, value } }),
+              args: ({ id, value }: { id: string; value?: number }) => ({
+                representation: { id, value },
+              }),
               fields: {
                 next: {
                   selectionSet: '{ value }',
@@ -560,7 +565,7 @@ describe('test merged composite computed fields', () => {
         Query: {
           byRepresentation: (
             _: never,
-            { representation: { id, value } }: { representation: { id: string; value?: number } }
+            { representation: { id, value } }: { representation: { id: string; value?: number } },
           ) => ({ id, value }),
         },
       },
@@ -584,7 +589,9 @@ describe('test merged composite computed fields', () => {
             T: {
               selectionSet: '{ id }',
               fieldName: 'byRepresentation',
-              args: ({ id, value }: { id: string; value?: number }) => ({ representation: { id, value } }),
+              args: ({ id, value }: { id: string; value?: number }) => ({
+                representation: { id, value },
+              }),
               fields: {
                 next: {
                   selectionSet: '{ value }',
@@ -722,7 +729,9 @@ describe('test unmerged composite computed fields', () => {
             T: {
               selectionSet: '{ id }',
               fieldName: 'byRepresentation',
-              args: ({ id, value }: { id: string; value?: number }) => ({ representation: { id, value } }),
+              args: ({ id, value }: { id: string; value?: number }) => ({
+                representation: { id, value },
+              }),
               fields: {
                 next: {
                   selectionSet: '{ value }',
@@ -763,7 +772,7 @@ describe('test unmerged composite computed fields', () => {
         Query: {
           byRepresentation: (
             _: never,
-            { representation: { id, value } }: { representation: { id: string; value?: number } }
+            { representation: { id, value } }: { representation: { id: string; value?: number } },
           ) => ({ id, value }),
         },
       },
@@ -831,7 +840,7 @@ describe('test unmerged composite computed fields', () => {
         Query: {
           byRepresentation: (
             _: never,
-            { representation: { id, value } }: { representation: { id: string; value?: number } }
+            { representation: { id, value } }: { representation: { id: string; value?: number } },
           ) => ({ id, value }),
         },
       },
@@ -901,7 +910,7 @@ describe('test unmerged composite computed fields', () => {
         Query: {
           byRepresentation: (
             _: never,
-            { representation: { id, value } }: { representation: { id: string; value?: number } }
+            { representation: { id, value } }: { representation: { id: string; value?: number } },
           ) => ({ id, value }),
         },
       },
@@ -925,7 +934,9 @@ describe('test unmerged composite computed fields', () => {
             T: {
               selectionSet: '{ id }',
               fieldName: 'byRepresentation',
-              args: ({ id, value }: { id: string; value?: number }) => ({ representation: { id, value } }),
+              args: ({ id, value }: { id: string; value?: number }) => ({
+                representation: { id, value },
+              }),
               fields: {
                 next: {
                   selectionSet: '{ value }',
@@ -999,7 +1010,7 @@ describe('test unmerged composite computed fields', () => {
         Query: {
           byRepresentation: (
             _: never,
-            { representation: { id, value } }: { representation: { id: string; value?: number } }
+            { representation: { id, value } }: { representation: { id: string; value?: number } },
           ) => ({ id, value }),
         },
       },
@@ -1023,7 +1034,9 @@ describe('test unmerged composite computed fields', () => {
             T: {
               selectionSet: '{ id }',
               fieldName: 'byRepresentation',
-              args: ({ id, value }: { id: string; value?: number }) => ({ representation: { id, value } }),
+              args: ({ id, value }: { id: string; value?: number }) => ({
+                representation: { id, value },
+              }),
               fields: {
                 next: {
                   selectionSet: '{ value }',

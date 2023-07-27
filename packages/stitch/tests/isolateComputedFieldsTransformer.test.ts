@@ -449,19 +449,25 @@ describe('isolateComputedFieldsTransformer', () => {
       const baseSchema = new Subschema(baseConfig);
       const computedSubschema = new Subschema(computedConfig);
 
-      const computedGiftOptionsType = computedSubschema.transformedSchema.getType('GiftOptions') as GraphQLObjectType;
+      const computedGiftOptionsType = computedSubschema.transformedSchema.getType(
+        'GiftOptions',
+      ) as GraphQLObjectType;
       expect(computedGiftOptionsType).toBeDefined();
 
       const computedGiftOptionsTypeFields = computedGiftOptionsType.getFields();
       expect(computedGiftOptionsTypeFields['itemId']).toBeDefined();
       expect(computedGiftOptionsTypeFields['someOptions']).toBeDefined();
 
-      const computedQueryType = computedSubschema.transformedSchema.getType('Query') as GraphQLObjectType;
+      const computedQueryType = computedSubschema.transformedSchema.getType(
+        'Query',
+      ) as GraphQLObjectType;
       const computedQueryTypeFields = computedQueryType.getFields();
       expect(computedQueryTypeFields['_item']).toBeDefined();
       expect(computedQueryTypeFields['_giftOptions']).toBeDefined();
 
-      const baseGiftOptionsType = baseSchema.transformedSchema.getType('GiftOptions') as GraphQLObjectType;
+      const baseGiftOptionsType = baseSchema.transformedSchema.getType(
+        'GiftOptions',
+      ) as GraphQLObjectType;
       expect(baseGiftOptionsType).toBeUndefined();
 
       const baseQueryType = baseSchema.transformedSchema.getType('Query') as GraphQLObjectType;
@@ -495,19 +501,25 @@ describe('isolateComputedFieldsTransformer', () => {
       const baseSubschema = new Subschema(baseConfig);
       const computedSubschema = new Subschema(computedConfig);
 
-      const computedGiftOptionsType = computedSubschema.transformedSchema.getType('GiftOptions') as GraphQLObjectType;
+      const computedGiftOptionsType = computedSubschema.transformedSchema.getType(
+        'GiftOptions',
+      ) as GraphQLObjectType;
       expect(computedGiftOptionsType).toBeDefined();
 
       const computedGiftOptionsTypeFields = computedGiftOptionsType.getFields();
       expect(computedGiftOptionsTypeFields['itemId']).toBeDefined();
       expect(computedGiftOptionsTypeFields['someOptions']).toBeUndefined();
 
-      const computedQueryType = computedSubschema.transformedSchema.getType('Query') as GraphQLObjectType;
+      const computedQueryType = computedSubschema.transformedSchema.getType(
+        'Query',
+      ) as GraphQLObjectType;
       const computedQueryTypeFields = computedQueryType.getFields();
       expect(computedQueryTypeFields['_item']).toBeDefined();
       expect(computedQueryTypeFields['_giftOptions']).toBeDefined();
 
-      const baseGiftOptionsType = baseSubschema.transformedSchema.getType('GiftOptions') as GraphQLObjectType;
+      const baseGiftOptionsType = baseSubschema.transformedSchema.getType(
+        'GiftOptions',
+      ) as GraphQLObjectType;
       expect(baseGiftOptionsType).toBeDefined();
       const baseGiftOptionsTypeFields = baseGiftOptionsType.getFields();
       expect(baseGiftOptionsTypeFields['itemId']).toBeDefined();

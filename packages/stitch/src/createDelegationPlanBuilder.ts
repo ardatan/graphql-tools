@@ -78,7 +78,11 @@ function calculateDelegationStage(
       s =>
         fieldSelectionSets.get(s) != null &&
         fieldSelectionSets.get(s)![fieldName] != null &&
-        !subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemas, fieldSelectionSets.get(s)![fieldName])
+        !subschemaTypesContainSelectionSet(
+          mergedTypeInfo,
+          sourceSubschemas,
+          fieldSelectionSets.get(s)![fieldName],
+        ),
     );
     if (sourcesWithUnsatisfiedDependencies.length === sourceSubschemas.length) {
       unproxiableFieldNodes.push(fieldNode);
