@@ -1,6 +1,6 @@
-import { execute } from '@graphql-tools/executor';
-import { wrapSchema, RenameTypes } from '@graphql-tools/wrap';
 import { GraphQLSchema, parse } from 'graphql';
+import { execute } from '@graphql-tools/executor';
+import { RenameTypes, wrapSchema } from '@graphql-tools/wrap';
 import { propertySchema } from '../../testing/fixtures/schemas.js';
 
 describe('RenameTypes', () => {
@@ -18,7 +18,7 @@ describe('RenameTypes', () => {
               InputWithDefault: 'DefaultingInput',
               TestInterfaceKind: 'TestingInterfaceKinds',
               TestImpl1: 'TestImplementation1',
-            }[name])
+            })[name],
         ),
       ];
       schema = wrapSchema({

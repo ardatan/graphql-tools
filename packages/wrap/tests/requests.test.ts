@@ -1,5 +1,4 @@
 import { OperationTypeNode, parse } from 'graphql';
-
 import { createRequest } from '@graphql-tools/delegate';
 import { parseSelectionSet } from '@graphql-tools/utils';
 
@@ -35,7 +34,7 @@ describe('requests', () => {
           patch
         }`),
         targetOperationName: 'test',
-      })
+      }),
     );
 
     const expectedRequest = removeLocations({

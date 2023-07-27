@@ -1,9 +1,13 @@
 import os from 'os';
-import { isExecutableDefinitionNode, Kind, DocumentNode } from 'graphql';
+import { DocumentNode, isExecutableDefinitionNode, Kind } from 'graphql';
+import type { LoaderContext } from 'webpack';
+import {
+  optimizeDocumentNode,
+  removeDescriptions,
+  removeEmptyNodes,
+} from '@graphql-tools/optimize';
 import { uniqueCode } from '@graphql-tools/webpack-loader-runtime';
 import { parseDocument } from './parser.js';
-import { optimizeDocumentNode, removeDescriptions, removeEmptyNodes } from '@graphql-tools/optimize';
-import type { LoaderContext } from 'webpack';
 
 function isSDL(doc: DocumentNode) {
   return !doc.definitions.some(def => isExecutableDefinitionNode(def));
@@ -66,7 +70,10 @@ export default function graphqlLoader(this: LoaderContext<Options>, source: stri
   if (options.replaceKinds) {
     for (const identifier in Kind) {
       const value = Kind[identifier as keyof typeof Kind];
-      stringifiedDoc = stringifiedDoc.replace(new RegExp(`"kind":"${value}"`, 'g'), `"kind": Kind.${identifier}`);
+      stringifiedDoc = stringifiedDoc.replace(
+        new RegExp(`"kind":"${value}"`, 'g'),
+        `"kind": Kind.${identifier}`,
+      );
     }
   }
 

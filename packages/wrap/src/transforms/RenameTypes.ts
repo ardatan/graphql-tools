@@ -1,24 +1,22 @@
 import {
   GraphQLNamedType,
   GraphQLSchema,
-  Kind,
-  NamedTypeNode,
   isScalarType,
   isSpecifiedScalarType,
+  Kind,
+  NamedTypeNode,
   visit,
 } from 'graphql';
-
+import { DelegationContext, SubschemaConfig, Transform } from '@graphql-tools/delegate';
 import {
   ExecutionRequest,
   ExecutionResult,
   MapperKind,
-  RenameTypesOptions,
   mapSchema,
-  visitData,
   renameType,
+  RenameTypesOptions,
+  visitData,
 } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
 
 interface RenameTypesTransformationContext extends Record<string, any> {}
 
@@ -42,7 +40,7 @@ export default class RenameTypes<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     const typeNames = new Set<string>(Object.keys(originalWrappingSchema.getTypeMap()));
     return mapSchema(originalWrappingSchema, {
@@ -57,7 +55,9 @@ export default class RenameTypes<TContext = Record<string, any>>
         const newName = this.renamer(oldName);
         if (newName !== undefined && newName !== oldName) {
           if (typeNames.has(newName)) {
-            console.warn(`New type name ${newName} for ${oldName} already exists in the schema. Skip renaming.`);
+            console.warn(
+              `New type name ${newName} for ${oldName} already exists in the schema. Skip renaming.`,
+            );
             return;
           }
           this.map[oldName] = newName;
@@ -79,7 +79,7 @@ export default class RenameTypes<TContext = Record<string, any>>
   public transformRequest(
     originalRequest: ExecutionRequest,
     _delegationContext: DelegationContext<TContext>,
-    _transformationContext: RenameTypesTransformationContext
+    _transformationContext: RenameTypesTransformationContext,
   ): ExecutionRequest {
     const document = visit(originalRequest.document, {
       [Kind.NAMED_TYPE]: (node: NamedTypeNode) => {
@@ -105,7 +105,7 @@ export default class RenameTypes<TContext = Record<string, any>>
   public transformResult(
     originalResult: ExecutionResult,
     _delegationContext: DelegationContext<TContext>,
-    _transformationContext?: RenameTypesTransformationContext
+    _transformationContext?: RenameTypesTransformationContext,
   ): ExecutionResult {
     return {
       ...originalResult,

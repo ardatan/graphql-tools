@@ -1,8 +1,8 @@
+import { graphql, GraphQLObjectType } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { getDirective } from '@graphql-tools/utils';
 import { stitchingDirectives } from '@graphql-tools/stitching-directives';
-import { GraphQLObjectType, graphql } from 'graphql';
+import { getDirective } from '@graphql-tools/utils';
 import {
   assertGraphQLEnumType,
   assertGraphQLInputObjectType,
@@ -293,23 +293,49 @@ describe('merge canonical types', () => {
     assertGraphQLScalerType(scalarType);
 
     expect(getDirective(firstSchema, queryType.toConfig(), 'mydir')?.[0]['value']).toEqual('first');
-    expect(getDirective(firstSchema, objectType.toConfig(), 'mydir')?.[0]['value']).toEqual('first');
-    expect(getDirective(firstSchema, interfaceType.toConfig(), 'mydir')?.[0]['value']).toEqual('first');
+    expect(getDirective(firstSchema, objectType.toConfig(), 'mydir')?.[0]['value']).toEqual(
+      'first',
+    );
+    expect(getDirective(firstSchema, interfaceType.toConfig(), 'mydir')?.[0]['value']).toEqual(
+      'first',
+    );
     expect(getDirective(firstSchema, inputType.toConfig(), 'mydir')?.[0]['value']).toEqual('first');
     expect(getDirective(firstSchema, enumType.toConfig(), 'mydir')?.[0]['value']).toEqual('first');
     expect(getDirective(firstSchema, unionType.toConfig(), 'mydir')?.[0]['value']).toEqual('first');
-    expect(getDirective(firstSchema, scalarType.toConfig(), 'mydir')?.[0]['value']).toEqual('first');
+    expect(getDirective(firstSchema, scalarType.toConfig(), 'mydir')?.[0]['value']).toEqual(
+      'first',
+    );
 
-    expect(getDirective(firstSchema, queryType.getFields()['field1'], 'mydir')?.[0]['value']).toEqual('first');
-    expect(getDirective(firstSchema, queryType.getFields()['field2'], 'mydir')?.[0]['value']).toEqual('second');
-    expect(getDirective(firstSchema, objectType.getFields()['id'], 'mydir')?.[0]['value']).toEqual('first');
-    expect(getDirective(firstSchema, objectType.getFields()['url'], 'mydir')?.[0]['value']).toEqual('second');
-    expect(getDirective(firstSchema, interfaceType.getFields()['id'], 'mydir')?.[0]['value']).toEqual('first');
-    expect(getDirective(firstSchema, interfaceType.getFields()['url'], 'mydir')?.[0]['value']).toEqual('second');
-    expect(getDirective(firstSchema, inputType.getFields()['id'], 'mydir')?.[0]['value']).toEqual('first');
-    expect(getDirective(firstSchema, inputType.getFields()['url'], 'mydir')?.[0]['value']).toEqual('second');
+    expect(
+      getDirective(firstSchema, queryType.getFields()['field1'], 'mydir')?.[0]['value'],
+    ).toEqual('first');
+    expect(
+      getDirective(firstSchema, queryType.getFields()['field2'], 'mydir')?.[0]['value'],
+    ).toEqual('second');
+    expect(getDirective(firstSchema, objectType.getFields()['id'], 'mydir')?.[0]['value']).toEqual(
+      'first',
+    );
+    expect(getDirective(firstSchema, objectType.getFields()['url'], 'mydir')?.[0]['value']).toEqual(
+      'second',
+    );
+    expect(
+      getDirective(firstSchema, interfaceType.getFields()['id'], 'mydir')?.[0]['value'],
+    ).toEqual('first');
+    expect(
+      getDirective(firstSchema, interfaceType.getFields()['url'], 'mydir')?.[0]['value'],
+    ).toEqual('second');
+    expect(getDirective(firstSchema, inputType.getFields()['id'], 'mydir')?.[0]['value']).toEqual(
+      'first',
+    );
+    expect(getDirective(firstSchema, inputType.getFields()['url'], 'mydir')?.[0]['value']).toEqual(
+      'second',
+    );
 
-    expect(enumType.toConfig().astNode?.values?.map(v => v.description?.value)).toEqual(['first', 'first', 'second']);
+    expect(enumType.toConfig().astNode?.values?.map(v => v.description?.value)).toEqual([
+      'first',
+      'first',
+      'second',
+    ]);
     expect(enumType.toConfig().values['YES'].astNode?.description?.value).toEqual('first');
     expect(enumType.toConfig().values['NO'].astNode?.description?.value).toEqual('first');
     expect(enumType.toConfig().values['MAYBE'].astNode?.description?.value).toEqual('second');
@@ -319,8 +345,12 @@ describe('merge canonical types', () => {
     const objectType = gatewaySchema.getType('Product') as GraphQLObjectType;
     expect(objectType.getFields()['id'].deprecationReason).toEqual('first');
     expect(objectType.getFields()['url'].deprecationReason).toEqual('second');
-    expect(getDirective(firstSchema, objectType.getFields()['id'], 'deprecated')?.[0]['reason']).toEqual('first');
-    expect(getDirective(firstSchema, objectType.getFields()['url'], 'deprecated')?.[0]['reason']).toEqual('second');
+    expect(
+      getDirective(firstSchema, objectType.getFields()['id'], 'deprecated')?.[0]['reason'],
+    ).toEqual('first');
+    expect(
+      getDirective(firstSchema, objectType.getFields()['url'], 'deprecated')?.[0]['reason'],
+    ).toEqual('second');
   });
 
   it('promotes canonical root field definitions', async () => {

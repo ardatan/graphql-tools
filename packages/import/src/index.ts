@@ -1,43 +1,43 @@
+import { readFileSync, realpathSync } from 'fs';
+import { dirname, isAbsolute, join } from 'path';
+import { cwd as cwdFactory } from 'process';
 import {
   DefinitionNode,
-  Source,
-  parse,
-  Kind,
-  OperationDefinitionNode,
+  DirectiveDefinitionNode,
   DirectiveNode,
-  SelectionNode,
+  DocumentNode,
+  EnumTypeDefinitionNode,
+  EnumTypeExtensionNode,
+  FieldDefinitionNode,
   FieldNode,
+  FragmentDefinitionNode,
   FragmentSpreadNode,
   InlineFragmentNode,
-  FragmentDefinitionNode,
-  ObjectTypeDefinitionNode,
-  FieldDefinitionNode,
-  ListTypeNode,
-  TypeNode,
-  NonNullTypeNode,
-  NamedTypeNode,
+  InputObjectTypeDefinitionNode,
+  InputObjectTypeExtensionNode,
   InputValueDefinitionNode,
   InterfaceTypeDefinitionNode,
-  UnionTypeDefinitionNode,
-  EnumTypeDefinitionNode,
-  InputObjectTypeExtensionNode,
-  InputObjectTypeDefinitionNode,
-  ObjectTypeExtensionNode,
   InterfaceTypeExtensionNode,
-  UnionTypeExtensionNode,
-  EnumTypeExtensionNode,
-  DirectiveDefinitionNode,
-  SchemaDefinitionNode,
+  Kind,
+  ListTypeNode,
+  NamedTypeNode,
+  NonNullTypeNode,
+  ObjectTypeDefinitionNode,
+  ObjectTypeExtensionNode,
+  OperationDefinitionNode,
   OperationTypeDefinitionNode,
-  DocumentNode,
+  parse,
+  print,
   ScalarTypeDefinitionNode,
   ScalarTypeExtensionNode,
-  print,
+  SchemaDefinitionNode,
+  SelectionNode,
+  Source,
+  TypeNode,
+  UnionTypeDefinitionNode,
+  UnionTypeExtensionNode,
 } from 'graphql';
-import { readFileSync, realpathSync } from 'fs';
-import { dirname, join, isAbsolute } from 'path';
 import resolveFrom from 'resolve-from';
-import { cwd as cwdFactory } from 'process';
 import { parseGraphQLSDL } from '@graphql-tools/utils';
 
 const builtinTypes = ['String', 'Float', 'Int', 'Boolean', 'ID', 'Upload'];
@@ -70,7 +70,7 @@ export function processImport(
   filePath: string,
   cwd = cwdFactory(),
   predefinedImports: Record<string, string> = {},
-  visitedFiles: VisitedFilesMap = new Map()
+  visitedFiles: VisitedFilesMap = new Map(),
 ): DocumentNode {
   const set = visitFile(filePath, join(cwd + '/root.graphql'), visitedFiles, predefinedImports);
   const definitionStrSet = new Set<string>();
@@ -97,17 +97,21 @@ function visitFile(
   filePath: string,
   cwd: string,
   visitedFiles: VisitedFilesMap,
-  predefinedImports: Record<string, string>
+  predefinedImports: Record<string, string>,
 ): Map<string, Set<DefinitionNode>> {
   if (!isAbsolute(filePath) && !(filePath in predefinedImports)) {
     filePath = resolveFilePath(cwd, filePath);
   }
   if (!visitedFiles.has(filePath)) {
-    const fileContent = filePath in predefinedImports ? predefinedImports[filePath] : readFileSync(filePath, 'utf8');
+    const fileContent =
+      filePath in predefinedImports ? predefinedImports[filePath] : readFileSync(filePath, 'utf8');
 
     const { importLines, otherLines } = extractImportLines(fileContent);
 
-    const { definitionsByName, dependenciesByDefinitionName } = extractDependencies(filePath, otherLines);
+    const { definitionsByName, dependenciesByDefinitionName } = extractDependencies(
+      filePath,
+      otherLines,
+    );
     const fileDefinitionMap = getFileDefinitionMap(definitionsByName, dependenciesByDefinitionName);
 
     // To prevent circular dependency
@@ -117,10 +121,14 @@ function visitFile(
       importLines,
       filePath,
       visitedFiles,
-      predefinedImports
+      predefinedImports,
     );
 
-    const addDefinition = (definition: DefinitionNode, definitionName: string, definitionSet: Set<DefinitionNode>) => {
+    const addDefinition = (
+      definition: DefinitionNode,
+      definitionName: string,
+      definitionSet: Set<DefinitionNode>,
+    ) => {
       const fileDefinitionMap = visitedFiles.get(filePath);
       if (fileDefinitionMap && !definitionSet.has(definition)) {
         definitionSet.add(definition);
@@ -157,16 +165,26 @@ function visitFile(
                 visitFieldDefinitionNode(field, newDependencySet, dependenciesByDefinitionName);
                 break;
               case Kind.INPUT_VALUE_DEFINITION:
-                visitInputValueDefinitionNode(field, newDependencySet, dependenciesByDefinitionName);
+                visitInputValueDefinitionNode(
+                  field,
+                  newDependencySet,
+                  dependenciesByDefinitionName,
+                );
                 break;
             }
             newDependencySet.forEach(dependencyName => {
               const definitionsInCurrentFile = fileDefinitionMap.get(dependencyName);
-              definitionsInCurrentFile?.forEach(def => addDefinition(def, definitionName, definitionSet));
+              definitionsInCurrentFile?.forEach(def =>
+                addDefinition(def, definitionName, definitionSet),
+              );
               const definitionsFromImports = allImportedDefinitionsMap.get(dependencyName);
-              definitionsFromImports?.forEach(def => addDefinition(def, definitionName, definitionSet));
+              definitionsFromImports?.forEach(def =>
+                addDefinition(def, definitionName, definitionSet),
+              );
               const transitiveDependencies = potentialTransitiveDefinitionsMap.get(dependencyName);
-              transitiveDependencies?.forEach(def => addDefinition(def, definitionName, definitionSet));
+              transitiveDependencies?.forEach(def =>
+                addDefinition(def, definitionName, definitionSet),
+              );
             });
           }
         }
@@ -189,10 +207,14 @@ function visitFile(
             if (dependenciesOfDefinition) {
               for (const dependencyName of dependenciesOfDefinition) {
                 // If that dependency cannot be found both in imports and this file, throw an error
-                if (!allImportedDefinitionsMap.has(dependencyName) && !definitionsByName.has(dependencyName)) {
+                if (
+                  !allImportedDefinitionsMap.has(dependencyName) &&
+                  !definitionsByName.has(dependencyName)
+                ) {
                   throw new Error(`Couldn't find type ${dependencyName} in any of the schemas.`);
                 }
-                const dependencyDefinitionsFromImports = allImportedDefinitionsMap.get(dependencyName);
+                const dependencyDefinitionsFromImports =
+                  allImportedDefinitionsMap.get(dependencyName);
                 dependencyDefinitionsFromImports?.forEach(dependencyDefinition => {
                   // addDefinition will add recursively all dependent documents for dependencyName document
                   if (
@@ -200,7 +222,11 @@ function visitFile(
                     dependencyDefinition.name &&
                     dependencyDefinition.name.value === dependencyName
                   ) {
-                    addDefinition(dependencyDefinition, definitionName, definitionsWithDependencies);
+                    addDefinition(
+                      dependencyDefinition,
+                      definitionName,
+                      definitionsWithDependencies,
+                    );
                   }
                 });
               }
@@ -215,7 +241,7 @@ function visitFile(
 
 export function extractDependencies(
   filePath: string,
-  fileContents: string
+  fileContents: string,
 ): {
   definitionsByName: Map<string, Set<DefinitionNode>>;
   dependenciesByDefinitionName: Map<string, Set<string>>;
@@ -240,11 +266,12 @@ export function extractDependencies(
 function visitDefinition(
   definition: DefinitionNode,
   definitionsByName: Map<string, Set<DefinitionNode>>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ): void {
   // TODO: handle queries without names
   if ('name' in definition || definition.kind === Kind.SCHEMA_DEFINITION) {
-    const definitionName = 'name' in definition && definition.name ? definition.name.value : 'schema';
+    const definitionName =
+      'name' in definition && definition.name ? definition.name.value : 'schema';
     if (!definitionsByName.has(definitionName)) {
       definitionsByName.set(definitionName, new Set());
     }
@@ -337,7 +364,7 @@ function visitDefinition(
 
 function getFileDefinitionMap(
   definitionsByName: Map<string, Set<DefinitionNode>>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ): Map<string, Set<DefinitionNode>> {
   const fileDefinitionMap = new Map<string, Set<DefinitionNode>>();
 
@@ -370,7 +397,7 @@ export function processImports(
   importLines: string[],
   filePath: string,
   visitedFiles: VisitedFilesMap,
-  predefinedImports: Record<string, string>
+  predefinedImports: Record<string, string>,
 ): {
   allImportedDefinitionsMap: Map<string, Set<DefinitionNode>>;
   potentialTransitiveDefinitionsMap: Map<string, Set<DefinitionNode>>;
@@ -413,7 +440,9 @@ export function processImports(
         const allImportedDefinitions = allImportedDefinitionsMap.get(importedDefinitionTypeName);
         const importedDefinitions = importFileDefinitionMap.get(importedDefinitionName);
         if (!importedDefinitions) {
-          throw new Error(`${importedDefinitionName} is not exported by ${from} imported by ${filePath}`);
+          throw new Error(
+            `${importedDefinitionName} is not exported by ${from} imported by ${filePath}`,
+          );
         }
         if (allImportedDefinitions != null) {
           for (const importedDefinition of importedDefinitions) {
@@ -430,7 +459,10 @@ export function processImports(
  * Splits the contents of a GraphQL file into lines that are imports
  * and other lines which define the actual GraphQL document.
  */
-export function extractImportLines(fileContent: string): { importLines: string[]; otherLines: string } {
+export function extractImportLines(fileContent: string): {
+  importLines: string[];
+  otherLines: string;
+} {
   const importLines: string[] = [];
   let otherLines = '';
   for (const line of fileContent.split('\n')) {
@@ -500,7 +532,9 @@ function visitOperationDefinitionNode(node: OperationDefinitionNode, dependencyS
   if (node.name?.value) {
     dependencySet.add(node.name.value);
   }
-  node.selectionSet.selections.forEach(selectionNode => visitSelectionNode(selectionNode, dependencySet));
+  node.selectionSet.selections.forEach(selectionNode =>
+    visitSelectionNode(selectionNode, dependencySet),
+  );
 }
 
 function visitSelectionNode(node: SelectionNode, dependencySet: Set<string>) {
@@ -518,7 +552,9 @@ function visitSelectionNode(node: SelectionNode, dependencySet: Set<string>) {
 }
 
 function visitFieldNode(node: FieldNode, dependencySet: Set<string>) {
-  node.selectionSet?.selections.forEach(selectionNode => visitSelectionNode(selectionNode, dependencySet));
+  node.selectionSet?.selections.forEach(selectionNode =>
+    visitSelectionNode(selectionNode, dependencySet),
+  );
 }
 
 function visitFragmentSpreadNode(node: FragmentSpreadNode, dependencySet: Set<string>) {
@@ -526,24 +562,29 @@ function visitFragmentSpreadNode(node: FragmentSpreadNode, dependencySet: Set<st
 }
 
 function visitInlineFragmentNode(node: InlineFragmentNode, dependencySet: Set<string>) {
-  node.selectionSet.selections.forEach(selectionNode => visitSelectionNode(selectionNode, dependencySet));
+  node.selectionSet.selections.forEach(selectionNode =>
+    visitSelectionNode(selectionNode, dependencySet),
+  );
 }
 
 function visitFragmentDefinitionNode(node: FragmentDefinitionNode, dependencySet: Set<string>) {
   dependencySet.add(node.name.value);
-  node.selectionSet.selections.forEach(selectionNode => visitSelectionNode(selectionNode, dependencySet));
+  node.selectionSet.selections.forEach(selectionNode =>
+    visitSelectionNode(selectionNode, dependencySet),
+  );
 }
 
 function addInterfaceDependencies(
   node: any,
   dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ) {
   const typeName: string = node.name.value;
   // all interfaces should be dependent to each other
   const allDependencies = [
     typeName,
-    ...((node as any).interfaces?.map((namedTypeNode: NamedTypeNode) => namedTypeNode.name.value) || []),
+    ...((node as any).interfaces?.map((namedTypeNode: NamedTypeNode) => namedTypeNode.name.value) ||
+      []),
   ];
   (node as any).interfaces?.forEach((namedTypeNode: NamedTypeNode) => {
     visitNamedTypeNode(namedTypeNode, dependencySet);
@@ -565,13 +606,13 @@ function addInterfaceDependencies(
 function visitObjectTypeDefinitionNode(
   node: ObjectTypeDefinitionNode,
   dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ) {
   const typeName = node.name.value;
   dependencySet.add(typeName);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.fields?.forEach(fieldDefinitionNode =>
-    visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName)
+    visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
   );
   addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
 }
@@ -586,10 +627,14 @@ function visitDirectiveNode(node: DirectiveNode, dependencySet: Set<string>) {
 function visitFieldDefinitionNode(
   node: FieldDefinitionNode,
   dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ) {
   node.arguments?.forEach(inputValueDefinitionNode =>
-    visitInputValueDefinitionNode(inputValueDefinitionNode, dependencySet, dependenciesByDefinitionName)
+    visitInputValueDefinitionNode(
+      inputValueDefinitionNode,
+      dependencySet,
+      dependenciesByDefinitionName,
+    ),
   );
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   visitTypeNode(node.type, dependencySet, dependenciesByDefinitionName);
@@ -598,7 +643,7 @@ function visitFieldDefinitionNode(
 function visitTypeNode(
   node: TypeNode,
   dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ) {
   switch (node.kind) {
     case Kind.LIST_TYPE:
@@ -616,7 +661,7 @@ function visitTypeNode(
 function visitListTypeNode(
   node: ListTypeNode,
   dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ) {
   visitTypeNode(node.type, dependencySet, dependenciesByDefinitionName);
 }
@@ -624,7 +669,7 @@ function visitListTypeNode(
 function visitNonNullTypeNode(
   node: NonNullTypeNode,
   dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ) {
   visitTypeNode(node.type, dependencySet, dependenciesByDefinitionName);
 }
@@ -639,7 +684,7 @@ function visitNamedTypeNode(node: NamedTypeNode, dependencySet: Set<string>) {
 function visitInputValueDefinitionNode(
   node: InputValueDefinitionNode,
   dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ) {
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   visitTypeNode(node.type, dependencySet, dependenciesByDefinitionName);
@@ -648,13 +693,13 @@ function visitInputValueDefinitionNode(
 function visitInterfaceTypeDefinitionNode(
   node: InterfaceTypeDefinitionNode,
   dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ) {
   const typeName = node.name.value;
   dependencySet.add(typeName);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.fields?.forEach(fieldDefinitionNode =>
-    visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName)
+    visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
   );
   addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
 }
@@ -673,36 +718,44 @@ function visitEnumTypeDefinitionNode(node: EnumTypeDefinitionNode, dependencySet
 function visitInputObjectTypeDefinitionNode(
   node: InputObjectTypeDefinitionNode,
   dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ) {
   dependencySet.add(node.name.value);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.fields?.forEach(inputValueDefinitionNode =>
-    visitInputValueDefinitionNode(inputValueDefinitionNode, dependencySet, dependenciesByDefinitionName)
+    visitInputValueDefinitionNode(
+      inputValueDefinitionNode,
+      dependencySet,
+      dependenciesByDefinitionName,
+    ),
   );
 }
 
 function visitDirectiveDefinitionNode(
   node: DirectiveDefinitionNode,
   dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ) {
   dependencySet.add(node.name.value);
   node.arguments?.forEach(inputValueDefinitionNode =>
-    visitInputValueDefinitionNode(inputValueDefinitionNode, dependencySet, dependenciesByDefinitionName)
+    visitInputValueDefinitionNode(
+      inputValueDefinitionNode,
+      dependencySet,
+      dependenciesByDefinitionName,
+    ),
   );
 }
 
 function visitObjectTypeExtensionNode(
   node: ObjectTypeExtensionNode,
   dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ) {
   const typeName = node.name.value;
   dependencySet.add(typeName);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.fields?.forEach(fieldDefinitionNode =>
-    visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName)
+    visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
   );
   addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
 }
@@ -710,13 +763,13 @@ function visitObjectTypeExtensionNode(
 function visitInterfaceTypeExtensionNode(
   node: InterfaceTypeExtensionNode,
   dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ) {
   const typeName = node.name.value;
   dependencySet.add(typeName);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.fields?.forEach(fieldDefinitionNode =>
-    visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName)
+    visitFieldDefinitionNode(fieldDefinitionNode, dependencySet, dependenciesByDefinitionName),
   );
   addInterfaceDependencies(node, dependencySet, dependenciesByDefinitionName);
 }
@@ -735,12 +788,16 @@ function visitEnumTypeExtensionNode(node: EnumTypeExtensionNode, dependencySet: 
 function visitInputObjectTypeExtensionNode(
   node: InputObjectTypeExtensionNode,
   dependencySet: Set<string>,
-  dependenciesByDefinitionName: Map<string, Set<string>>
+  dependenciesByDefinitionName: Map<string, Set<string>>,
 ) {
   dependencySet.add(node.name.value);
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.fields?.forEach(inputValueDefinitionNode =>
-    visitInputValueDefinitionNode(inputValueDefinitionNode, dependencySet, dependenciesByDefinitionName)
+    visitInputValueDefinitionNode(
+      inputValueDefinitionNode,
+      dependencySet,
+      dependenciesByDefinitionName,
+    ),
   );
 }
 
@@ -748,7 +805,7 @@ function visitSchemaDefinitionNode(node: SchemaDefinitionNode, dependencySet: Se
   dependencySet.add('schema');
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
   node.operationTypes.forEach(operationTypeDefinitionNode =>
-    visitOperationTypeDefinitionNode(operationTypeDefinitionNode, dependencySet)
+    visitOperationTypeDefinitionNode(operationTypeDefinitionNode, dependencySet),
   );
 }
 
@@ -762,6 +819,9 @@ function visitScalarExtensionNode(node: ScalarTypeExtensionNode, dependencySet: 
   node.directives?.forEach(directiveNode => visitDirectiveNode(directiveNode, dependencySet));
 }
 
-function visitOperationTypeDefinitionNode(node: OperationTypeDefinitionNode, dependencySet: Set<string>) {
+function visitOperationTypeDefinitionNode(
+  node: OperationTypeDefinitionNode,
+  dependencySet: Set<string>,
+) {
   visitNamedTypeNode(node.type, dependencySet);
 }

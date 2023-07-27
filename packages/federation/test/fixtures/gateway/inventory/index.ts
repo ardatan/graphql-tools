@@ -1,15 +1,9 @@
-import { IResolvers } from '@graphql-tools/utils';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { inspect } from 'util';
+import { IResolvers } from '@graphql-tools/utils';
 
-export const typeDefs = /* GraphQL */ `
-  type Product @key(fields: "upc") @extends {
-    upc: String! @external
-    weight: Int @external
-    price: Int @external
-    inStock: Boolean
-    shippingEstimate: Int @requires(fields: "price weight")
-  }
-`;
+export const typeDefs = readFileSync(join(__dirname, './inventory.graphql'), 'utf8');
 
 export const resolvers: IResolvers = {
   Product: {

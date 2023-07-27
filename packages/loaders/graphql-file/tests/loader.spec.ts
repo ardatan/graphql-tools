@@ -1,9 +1,7 @@
 import { join } from 'path';
-
 import { print } from 'graphql';
-
-import { GraphQLFileLoader } from '../src/index.js';
 import { runTests } from '../../../testing/utils.js';
+import { GraphQLFileLoader } from '../src/index.js';
 import '../../../testing/to-be-similar-gql-doc';
 
 describe('GraphQLFileLoader', () => {
@@ -23,7 +21,9 @@ describe('GraphQLFileLoader', () => {
       });
 
       it('should return true for a valid absolute path', async () => {
-        await expect(canLoad(join(process.cwd(), getPointer('type-defs.graphql')), {})).resolves.toBe(true);
+        await expect(
+          canLoad(join(process.cwd(), getPointer('type-defs.graphql')), {}),
+        ).resolves.toBe(true);
       });
 
       it('should return false if pointer is not a valid path', async () => {

@@ -1,11 +1,11 @@
+import { BuildSchemaOptions, GraphQLSchema } from 'graphql';
 import {
-  TypeSource,
+  GraphQLParseOptions,
   IResolvers,
   IResolverValidationOptions,
-  GraphQLParseOptions,
   SchemaExtensions,
+  TypeSource,
 } from '@graphql-tools/utils';
-import { BuildSchemaOptions, GraphQLSchema } from 'graphql';
 
 export interface GraphQLSchemaWithContext<TContext> extends GraphQLSchema {
   __context?: TContext;
@@ -14,7 +14,9 @@ export interface GraphQLSchemaWithContext<TContext> extends GraphQLSchema {
 /**
  * Configuration object for creating an executable schema
  */
-export interface IExecutableSchemaDefinition<TContext = any> extends BuildSchemaOptions, GraphQLParseOptions {
+export interface IExecutableSchemaDefinition<TContext = any>
+  extends BuildSchemaOptions,
+    GraphQLParseOptions {
   /**
    * The type definitions used to create the schema
    */

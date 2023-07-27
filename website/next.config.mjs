@@ -11,11 +11,15 @@ export default withGuildDocs({
       '/docs/schema-stitching': 'https://the-guild.dev/graphql/stitching',
       '/docs/stitch-api': 'https://the-guild.dev/graphql/stitching',
       '/docs/stitch-combining-schemas': 'https://the-guild.dev/graphql/stitching/docs/approaches',
-      '/docs/stitch-directives-sdl': 'https://the-guild.dev/graphql/stitching/docs/approaches/stitching-directives',
-      '/docs/stitch-schema-extensions': 'https://the-guild.dev/graphql/stitching/docs/approaches/schema-extensions',
-      '/docs/stitch-type-merging': 'https://the-guild.dev/graphql/stitching/docs/approaches/type-merging',
+      '/docs/stitch-directives-sdl':
+        'https://the-guild.dev/graphql/stitching/docs/approaches/stitching-directives',
+      '/docs/stitch-schema-extensions':
+        'https://the-guild.dev/graphql/stitching/docs/approaches/schema-extensions',
+      '/docs/stitch-type-merging':
+        'https://the-guild.dev/graphql/stitching/docs/approaches/type-merging',
       '/docs/schema-stitching/stitch-api': 'https://the-guild.dev/graphql/stitching',
-      '/docs/schema-stitching/stitch-combining-schemas': 'https://3274ca7d.schema-stitching.pages.dev/docs/approaches',
+      '/docs/schema-stitching/stitch-combining-schemas':
+        'https://3274ca7d.schema-stitching.pages.dev/docs/approaches',
       '/docs/schema-stitching/stitch-directives-sdl':
         'https://the-guild.dev/graphql/stitching/docs/approaches/stitching-directives',
       '/docs/schema-stitching/stitch-schema-extensions':
@@ -24,15 +28,18 @@ export default withGuildDocs({
         'https://the-guild.dev/graphql/stitching/docs/approaches/type-merging',
       '/docs/schema-stitching/stitch-federation':
         'https://the-guild.dev/graphql/stitching/handbook/other-integrations/federation-services',
-      '/docs/schema-transforms': 'https://the-guild.dev/graphql/stitching/docs/getting-started/adding-transforms',
+      '/docs/schema-transforms':
+        'https://the-guild.dev/graphql/stitching/docs/getting-started/adding-transforms',
       '/docs/batch-execution':
         'https://the-guild.dev/graphql/stitching/docs/getting-started/remote-subschemas#batch-execution',
-      '/docs/remote-schemas': 'https://the-guild.dev/graphql/stitching/docs/getting-started/remote-subschemas',
+      '/docs/remote-schemas':
+        'https://the-guild.dev/graphql/stitching/docs/getting-started/remote-subschemas',
       '/docs/schema-delegation':
         'https://the-guild.dev/graphql/stitching/docs/approaches/schema-extensions#schema-delegation',
       '/docs/schema-wrapping': 'https://the-guild.dev/graphql/stitching/docs/transforms',
       '/docs/migration-from-import': '/docs/migration/migration-from-import',
-      '/docs/migration-from-merge-graphql-schemas': '/docs/migration/migration-from-merge-graphql-schemas',
+      '/docs/migration-from-merge-graphql-schemas':
+        '/docs/migration/migration-from-merge-graphql-schemas',
       '/docs/migration-from-toolkit': '/docs/migration/migration-from-toolkit',
       '/docs/migration-from-tools': '/docs/migration/migration-from-tools',
       '/docs': '/docs/introduction',

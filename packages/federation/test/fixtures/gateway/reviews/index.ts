@@ -1,25 +1,8 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { IResolvers } from '@graphql-tools/utils';
 
-export const typeDefs = /* GraphQL */ `
-  type Review @key(fields: "id") {
-    id: ID!
-    body: String
-    author: User @provides(fields: "username")
-    product: Product
-  }
-
-  type User @key(fields: "id") @extends {
-    id: ID! @external
-    username: String @external
-    numberOfReviews: Int
-    reviews: [Review]
-  }
-
-  type Product @key(fields: "upc") @extends {
-    upc: String! @external
-    reviews: [Review]
-  }
-`;
+export const typeDefs = readFileSync(join(__dirname, './reviews.graphql'), 'utf8');
 
 export const resolvers: IResolvers = {
   Review: {

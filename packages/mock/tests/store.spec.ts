@@ -499,7 +499,9 @@ describe('MockStore', () => {
 
         const imageRef = store.get('User', 'me', 'image') as Ref;
 
-        expect(['UserImageSolidColor', 'UserImageURL'].includes(imageRef.$ref.typeName)).toBeTruthy();
+        expect(
+          ['UserImageSolidColor', 'UserImageURL'].includes(imageRef.$ref.typeName),
+        ).toBeTruthy();
       });
 
       it('should work with mocks', () => {

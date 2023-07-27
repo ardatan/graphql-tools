@@ -1,6 +1,7 @@
 {
   "name": "@graphql-tools/executor-legacy-ws",
-  "version": "1.0.0",
+  "version": "1.0.1",
+  "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -9,12 +10,11 @@
   },
   "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",
   "license": "MIT",
-  "sideEffects": false,
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
   "engines": {
     "node": ">=16.0.0"
   },
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "exports": {
     ".": {
       "require": {
@@ -47,22 +47,22 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
-  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@types/ws": "^8.0.0",
     "@graphql-tools/utils": "^10.0.0",
+    "@types/ws": "^8.0.0",
     "isomorphic-ws": "5.0.0",
-    "ws": "8.13.0",
-    "tslib": "^2.4.0"
+    "tslib": "^2.4.0",
+    "ws": "8.13.0"
   },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
   },
-  "type": "module"
+  "sideEffects": false,
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
+  }
 }

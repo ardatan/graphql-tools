@@ -1,16 +1,18 @@
 import { parseValue, SelectionSetNode, valueFromASTUntyped } from 'graphql';
-
-import { Expansion, MappingInstruction, ParsedMergeArgsExpr } from './types.js';
-
 import { extractVariables } from './extractVariables.js';
+import { getSourcePaths } from './getSourcePaths.js';
 import { EXPANSION_PREFIX, KEY_DELIMITER, preparseMergeArgsExpr } from './preparseMergeArgsExpr.js';
 import { propertyTreeFromPaths } from './properties.js';
-import { getSourcePaths } from './getSourcePaths.js';
+import { Expansion, MappingInstruction, ParsedMergeArgsExpr } from './types.js';
 
 type VariablePaths = Record<string, Array<string | number>>;
 
-export function parseMergeArgsExpr(mergeArgsExpr: string, selectionSet?: SelectionSetNode): ParsedMergeArgsExpr {
-  const { mergeArgsExpr: newMergeArgsExpr, expansionExpressions } = preparseMergeArgsExpr(mergeArgsExpr);
+export function parseMergeArgsExpr(
+  mergeArgsExpr: string,
+  selectionSet?: SelectionSetNode,
+): ParsedMergeArgsExpr {
+  const { mergeArgsExpr: newMergeArgsExpr, expansionExpressions } =
+    preparseMergeArgsExpr(mergeArgsExpr);
 
   const inputValue = parseValue(`{ ${newMergeArgsExpr} }`, { noLocation: true });
 
@@ -25,7 +27,11 @@ export function parseMergeArgsExpr(mergeArgsExpr: string, selectionSet?: Selecti
 
     const usedProperties = propertyTreeFromPaths(getSourcePaths(mappingInstructions, selectionSet));
 
-    return { args: valueFromASTUntyped(newInputValue) as Record<string, any>, usedProperties, mappingInstructions };
+    return {
+      args: valueFromASTUntyped(newInputValue) as Record<string, any>,
+      usedProperties,
+      mappingInstructions,
+    };
   }
 
   const expansionRegEx = new RegExp(`^${EXPANSION_PREFIX}[0-9]+$`);
@@ -40,9 +46,8 @@ export function parseMergeArgsExpr(mergeArgsExpr: string, selectionSet?: Selecti
   for (const variableName in expansionExpressions) {
     const str = expansionExpressions[variableName];
     const valuePath = variablePaths[variableName];
-    const { inputValue: expansionInputValue, variablePaths: expansionVariablePaths } = extractVariables(
-      parseValue(`${str}`, { noLocation: true })
-    );
+    const { inputValue: expansionInputValue, variablePaths: expansionVariablePaths } =
+      extractVariables(parseValue(`${str}`, { noLocation: true }));
 
     if (!Object.keys(expansionVariablePaths).length) {
       throw new Error('Merge arguments must declare a key.');
@@ -64,7 +69,11 @@ export function parseMergeArgsExpr(mergeArgsExpr: string, selectionSet?: Selecti
 
   const usedProperties = propertyTreeFromPaths(sourcePaths);
 
-  return { args: valueFromASTUntyped(newInputValue) as Record<string, any>, usedProperties, expansions };
+  return {
+    args: valueFromASTUntyped(newInputValue) as Record<string, any>,
+    usedProperties,
+    expansions,
+  };
 }
 
 function getMappingInstructions(variablePaths: VariablePaths): Array<MappingInstruction> {

@@ -1,8 +1,8 @@
-import { buildHTTPExecutor } from '../src';
-import { Response } from '@whatwg-node/fetch';
-import { parse } from 'graphql';
 import { Server } from 'http';
 import { AddressInfo, Socket } from 'net';
+import { parse } from 'graphql';
+import { Response } from '@whatwg-node/fetch';
+import { buildHTTPExecutor } from '../src';
 
 describe('Retry & Timeout', () => {
   let server: Server;

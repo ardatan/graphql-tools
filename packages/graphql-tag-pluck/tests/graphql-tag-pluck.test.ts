@@ -1,6 +1,6 @@
+import { runTests } from '../../testing/utils.js';
 import { gqlPluckFromCodeString, gqlPluckFromCodeStringSync } from '../src/index.js';
 import { freeText } from '../src/utils.js';
-import { runTests } from '../../testing/utils.js';
 
 describe('graphql-tag-pluck', () => {
   runTests({
@@ -31,7 +31,7 @@ describe('graphql-tag-pluck', () => {
       `),
         {
           skipIndent: true,
-        }
+        },
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toMatchSnapshot();
@@ -72,7 +72,7 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -86,7 +86,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -119,7 +119,7 @@ describe('graphql-tag-pluck', () => {
               name: 'graphql-tag',
             },
           ],
-        }
+        },
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -133,7 +133,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -165,7 +165,7 @@ describe('graphql-tag-pluck', () => {
           \${fragment}
           \${fragment2}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -184,7 +184,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo2
           }
         }
-      `)
+      `),
       );
     });
 
@@ -212,7 +212,7 @@ describe('graphql-tag-pluck', () => {
 
             \${fragment}
           \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -226,7 +226,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -250,7 +250,7 @@ describe('graphql-tag-pluck', () => {
               }
             }
             \` as const)
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -264,7 +264,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -296,7 +296,7 @@ describe('graphql-tag-pluck', () => {
             \${fragment}
           \`
         }
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -310,7 +310,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -346,7 +346,7 @@ describe('graphql-tag-pluck', () => {
         //     }
         //   }
         // \`;
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -358,7 +358,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -402,7 +402,7 @@ describe('graphql-tag-pluck', () => {
         <style>
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -414,7 +414,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -458,7 +458,7 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -470,7 +470,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
     it('should pluck graphql-tag template literals from .vue 3 JavaScript file', async () => {
@@ -513,7 +513,7 @@ describe('graphql-tag-pluck', () => {
         <style>
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -525,7 +525,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -569,7 +569,7 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -581,7 +581,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -627,7 +627,7 @@ describe('graphql-tag-pluck', () => {
         <style>
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -639,7 +639,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -684,7 +684,7 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -696,7 +696,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
     it('should pluck graphql-tag template literals from .vue 3 outside setup sugar JavaScript file', async () => {
@@ -739,7 +739,7 @@ describe('graphql-tag-pluck', () => {
         <style>
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -751,7 +751,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -795,7 +795,7 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -807,7 +807,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -854,7 +854,7 @@ describe('graphql-tag-pluck', () => {
         <style>
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -866,7 +866,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -913,7 +913,7 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -925,7 +925,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -950,7 +950,7 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -962,7 +962,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -987,7 +987,7 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -999,7 +999,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1033,7 +1033,7 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1053,7 +1053,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1090,7 +1090,7 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1110,7 +1110,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1147,7 +1147,7 @@ describe('graphql-tag-pluck', () => {
         <style lang="scss">
         .test { color: red };
         </style>
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1159,7 +1159,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1192,7 +1192,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         \`;
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1204,7 +1204,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1242,7 +1242,7 @@ describe('graphql-tag-pluck', () => {
             fieldA
           }
         \`;
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1254,7 +1254,7 @@ describe('graphql-tag-pluck', () => {
         query myQuery {
           fieldA
         }
-      `)
+      `),
       );
     });
 
@@ -1280,7 +1280,7 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1294,7 +1294,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1322,7 +1322,7 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1336,7 +1336,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1364,7 +1364,7 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1378,7 +1378,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1407,7 +1407,7 @@ describe('graphql-tag-pluck', () => {
 
             \${fragment}
           \`
-        `)
+        `),
         );
 
         throw fail;
@@ -1438,7 +1438,7 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1452,7 +1452,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1477,7 +1477,7 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1491,7 +1491,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1505,7 +1505,7 @@ describe('graphql-tag-pluck', () => {
             media
             draftjs
           }\`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1515,7 +1515,7 @@ describe('graphql-tag-pluck', () => {
           media
           draftjs
         }
-      `)
+      `),
       );
     });
 
@@ -1529,7 +1529,7 @@ describe('graphql-tag-pluck', () => {
             media
             draftjs
           }\`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1539,7 +1539,7 @@ describe('graphql-tag-pluck', () => {
           media
           draftjs
         }
-      `)
+      `),
       );
     });
 
@@ -1559,7 +1559,7 @@ describe('graphql-tag-pluck', () => {
         test.test\`
           test4
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual('');
@@ -1586,7 +1586,7 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1600,7 +1600,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1623,7 +1623,7 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1637,7 +1637,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1662,7 +1662,7 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1676,7 +1676,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1693,7 +1693,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         \`)
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1703,7 +1703,7 @@ describe('graphql-tag-pluck', () => {
             foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1728,7 +1728,7 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1742,7 +1742,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1768,7 +1768,7 @@ describe('graphql-tag-pluck', () => {
       `),
         {
           globalGqlIdentifierName: 'anothergql',
-        }
+        },
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1782,7 +1782,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1799,7 +1799,7 @@ describe('graphql-tag-pluck', () => {
       `),
         {
           gqlMagicComment: 'GQL',
-        }
+        },
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1809,7 +1809,7 @@ describe('graphql-tag-pluck', () => {
           media
           draftjs
         }
-      `)
+      `),
       );
     });
 
@@ -1837,7 +1837,7 @@ describe('graphql-tag-pluck', () => {
       `),
         {
           modules: [{ name: 'my-graphql-tag' }],
-        }
+        },
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1851,7 +1851,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1876,7 +1876,7 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1890,7 +1890,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1915,7 +1915,7 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1929,7 +1929,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1954,7 +1954,7 @@ describe('graphql-tag-pluck', () => {
 
           \${fragment}
         \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -1968,7 +1968,7 @@ describe('graphql-tag-pluck', () => {
             ...Foo
           }
         }
-      `)
+      `),
       );
     });
 
@@ -1991,7 +1991,7 @@ describe('graphql-tag-pluck', () => {
           email: String!
         }
       \`
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -2002,7 +2002,7 @@ describe('graphql-tag-pluck', () => {
             username: String!
             email: String!
           }
-      `)
+      `),
       );
     });
 
@@ -2022,7 +2022,7 @@ describe('graphql-tag-pluck', () => {
             }
           \`
         }
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -2033,7 +2033,7 @@ describe('graphql-tag-pluck', () => {
             username: String!
             email: String!
           }
-      `)
+      `),
       );
     });
 
@@ -2068,7 +2068,7 @@ describe('graphql-tag-pluck', () => {
               .valueChanges.subscribe();
           }
         }
-      `)
+      `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -2079,7 +2079,7 @@ describe('graphql-tag-pluck', () => {
               avatar_url
             }
           }
-        `)
+        `),
       );
     });
   });

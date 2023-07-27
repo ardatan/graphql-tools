@@ -1,4 +1,11 @@
-import { GraphQLFieldConfig, parse, GraphQLObjectType, GraphQLSchema, GraphQLInt, GraphQLString } from 'graphql';
+import {
+  GraphQLFieldConfig,
+  GraphQLInt,
+  GraphQLObjectType,
+  GraphQLSchema,
+  GraphQLString,
+  parse,
+} from 'graphql';
 import { executeSync } from '../execute.js';
 
 describe('Execute: resolve function', () => {

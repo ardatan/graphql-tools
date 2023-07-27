@@ -1,9 +1,6 @@
-import { GraphQLSchema, GraphQLFieldConfig } from 'graphql';
-
-import { getArgumentValues } from '@graphql-tools/utils';
-
+import { GraphQLFieldConfig, GraphQLSchema } from 'graphql';
 import { SubschemaConfig, Transform } from '@graphql-tools/delegate';
-
+import { getArgumentValues } from '@graphql-tools/utils';
 import TransformObjectFields from './TransformObjectFields.js';
 
 interface FilterObjectFieldDirectivesTransformationContext extends Record<string, any> {}
@@ -19,7 +16,7 @@ export default class FilterObjectFieldDirectives<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     const transformer = new TransformObjectFields(
       (_typeName: string, _fieldName: string, fieldConfig: GraphQLFieldConfig<any, any>) => {
@@ -43,7 +40,7 @@ export default class FilterObjectFieldDirectives<TContext = Record<string, any>>
           };
           return fieldConfig;
         }
-      }
+      },
     );
 
     return transformer.transformSchema(originalWrappingSchema, subschemaConfig);

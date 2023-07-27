@@ -1,24 +1,21 @@
-import { expectJSON } from '../../__testUtils__/expectJSON.js';
-import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
-
 import {
-  parse,
-  GraphQLList,
-  GraphQLObjectType,
   GraphQLBoolean,
   GraphQLInt,
-  GraphQLString,
+  GraphQLList,
+  GraphQLObjectType,
   GraphQLSchema,
+  GraphQLString,
+  parse,
 } from 'graphql';
-
-import { ExecutionArgs, subscribe } from '../execute.js';
-
-import { SimplePubSub } from './simplePubSub.js';
-import { ExecutionResult, isAsyncIterable, isPromise, MaybePromise } from '@graphql-tools/utils';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { normalizedExecutor } from '../normalizedExecutor.js';
+import { ExecutionResult, isAsyncIterable, isPromise, MaybePromise } from '@graphql-tools/utils';
+import { expectJSON } from '../../__testUtils__/expectJSON.js';
+import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
 import { assertAsyncIterable } from '../../../../loaders/url/tests/test-utils.js';
+import { ExecutionArgs, subscribe } from '../execute.js';
+import { normalizedExecutor } from '../normalizedExecutor.js';
+import { SimplePubSub } from './simplePubSub.js';
 
 interface Email {
   from: string;
@@ -86,7 +83,10 @@ const emailSchema = new GraphQLSchema({
   }),
 });
 
-function createSubscription(pubsub: SimplePubSub<Email>, variableValues?: { readonly [variable: string]: unknown }) {
+function createSubscription(
+  pubsub: SimplePubSub<Email>,
+  variableValues?: { readonly [variable: string]: unknown },
+) {
   const document = parse(`
     subscription ($priority: Int = 0, $shouldDefer: Boolean = false, $asyncResolver: Boolean = false) {
       importantEmail(priority: $priority) {
@@ -169,7 +169,9 @@ const DummyQueryType = new GraphQLObjectType({
   },
 });
 
-function subscribeWithBadFn(subscribeFn: () => unknown): MaybePromise<ExecutionResult | AsyncIterable<unknown>> {
+function subscribeWithBadFn(
+  subscribeFn: () => unknown,
+): MaybePromise<ExecutionResult | AsyncIterable<unknown>> {
   const schema = new GraphQLSchema({
     query: DummyQueryType,
     subscription: new GraphQLObjectType({
@@ -184,7 +186,9 @@ function subscribeWithBadFn(subscribeFn: () => unknown): MaybePromise<ExecutionR
   return subscribeWithBadArgs({ schema, document });
 }
 
-function subscribeWithBadArgs(args: ExecutionArgs): MaybePromise<ExecutionResult | AsyncIterable<unknown>> {
+function subscribeWithBadArgs(
+  args: ExecutionArgs,
+): MaybePromise<ExecutionResult | AsyncIterable<unknown>> {
   return subscribe(args);
 }
 
@@ -458,9 +462,9 @@ describe('Subscription Initialization Phase', () => {
 
     expectJSON(subscribeWithBadFn(() => 'test')).toDeepEqual(expectedResult);
 
-    expectJSON(await expectPromise(subscribeWithBadFn(() => Promise.resolve('test'))).toResolve()).toDeepEqual(
-      expectedResult
-    );
+    expectJSON(
+      await expectPromise(subscribeWithBadFn(() => Promise.resolve('test'))).toResolve(),
+    ).toDeepEqual(expectedResult);
   });
 
   it('resolves to an error for subscription resolver errors', async () => {
@@ -476,24 +480,28 @@ describe('Subscription Initialization Phase', () => {
 
     expectJSON(
       // Returning an error
-      subscribeWithBadFn(() => new Error('test error'))
+      subscribeWithBadFn(() => new Error('test error')),
     ).toDeepEqual(expectedResult);
 
     expectJSON(
       // Throwing an error
       subscribeWithBadFn(() => {
         throw new Error('test error');
-      })
+      }),
     ).toDeepEqual(expectedResult);
 
     expectJSON(
       // Resolving to an error
-      await expectPromise(subscribeWithBadFn(() => Promise.resolve(new Error('test error')))).toResolve()
+      await expectPromise(
+        subscribeWithBadFn(() => Promise.resolve(new Error('test error'))),
+      ).toResolve(),
     ).toDeepEqual(expectedResult);
 
     expectJSON(
       // Rejecting with an error
-      await expectPromise(subscribeWithBadFn(() => Promise.reject(new Error('test error')))).toResolve()
+      await expectPromise(
+        subscribeWithBadFn(() => Promise.reject(new Error('test error'))),
+      ).toResolve(),
     ).toDeepEqual(expectedResult);
   });
 
@@ -524,7 +532,8 @@ describe('Subscription Initialization Phase', () => {
     expectJSON(result).toDeepEqual({
       errors: [
         {
-          message: 'Variable "$arg" got invalid value "meow"; Int cannot represent non-integer value: "meow"',
+          message:
+            'Variable "$arg" got invalid value "meow"; Int cannot represent non-integer value: "meow"',
           locations: [{ line: 2, column: 21 }],
         },
       ],
@@ -554,7 +563,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Alright',
         message: 'Tests are good',
         unread: true,
-      })
+      }),
     ).toEqual(true);
 
     const expectedPayload = {
@@ -591,7 +600,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Alright',
         message: 'Tests are good',
         unread: true,
-      })
+      }),
     ).toBeTruthy();
 
     // @ts-expect-error we have asserted it is an AsyncIterable
@@ -636,7 +645,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Alright',
         message: 'Tests are good',
         unread: true,
-      })
+      }),
     ).toEqual(true);
 
     // The previously waited on payload now has a value.
@@ -665,7 +674,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Tools',
         message: 'I <3 making things',
         unread: true,
-      })
+      }),
     ).toEqual(true);
 
     // The next waited on payload will have a value.
@@ -702,7 +711,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Important',
         message: 'Read me please',
         unread: true,
-      })
+      }),
     ).toEqual(false); // No more listeners.
 
     // Awaiting a subscription after closing it results in completed results.
@@ -730,7 +739,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Alright',
         message: 'Tests are good',
         unread: true,
-      })
+      }),
     ).toBeTruthy();
 
     // The previously waited on payload now has a value.
@@ -776,7 +785,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Tools',
         message: 'I <3 making things',
         unread: true,
-      })
+      }),
     ).toBeTruthy();
 
     // The next waited on payload will have a value.
@@ -803,7 +812,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Important',
         message: 'Read me please',
         unread: true,
-      })
+      }),
     ).toBeTruthy();
 
     // Deferred payload from previous event is received.
@@ -873,7 +882,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Alright',
         message: 'Tests are good',
         unread: true,
-      })
+      }),
     ).toEqual(true);
 
     expect(await payload).toEqual({
@@ -904,7 +913,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Alright 2',
         message: 'Tests are good 2',
         unread: true,
-      })
+      }),
     ).toEqual(true);
 
     expect(await payload).toEqual({
@@ -941,7 +950,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Alright',
         message: 'Tests are good',
         unread: true,
-      })
+      }),
     ).toEqual(true);
 
     expect(await payload).toEqual({
@@ -974,7 +983,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Alright 2',
         message: 'Tests are good 2',
         unread: true,
-      })
+      }),
     ).toEqual(false);
 
     expect(await payload).toEqual({
@@ -998,7 +1007,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Alright',
         message: 'Tests are good',
         unread: true,
-      })
+      }),
     ).toEqual(true);
 
     expect(await payload).toEqual({
@@ -1054,7 +1063,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Message',
         message: 'Tests are good',
         unread: true,
-      })
+      }),
     ).toEqual(true);
 
     // A new email arrives!
@@ -1064,7 +1073,7 @@ describe('Subscription Publish Phase', () => {
         subject: 'Message 2',
         message: 'Tests are good 2',
         unread: true,
-      })
+      }),
     ).toEqual(true);
 
     expect(await payload).toEqual({

@@ -1,6 +1,6 @@
-import { printSchema, buildSchema, parse, print } from 'graphql';
-import { GithubLoader } from '../src/index.js';
+import { buildSchema, parse, print, printSchema } from 'graphql';
 import { fetch } from '@whatwg-node/fetch';
+import { GithubLoader } from '../src/index.js';
 
 const owner = 'ardatan';
 const name = 'graphql-tools';
@@ -64,7 +64,11 @@ if (token) {
     // query
     expect(normalize(paramsBody.query)).toEqual(
       normalize(/* GraphQL */ `
-        query GetGraphQLSchemaForGraphQLtools($owner: String!, $name: String!, $expression: String!) {
+        query GetGraphQLSchemaForGraphQLtools(
+          $owner: String!
+          $name: String!
+          $expression: String!
+        ) {
           repository(owner: $owner, name: $name) {
             object(expression: $expression) {
               ... on Blob {
@@ -73,7 +77,7 @@ if (token) {
             }
           }
         }
-      `)
+      `),
     );
 
     // variables
@@ -133,9 +137,11 @@ describe('expect handleResponse to handle error messages gracefully', () => {
     type ErrorMessage = { message: string };
 
     // An arbirary number of error messages
-    const errorMessages: ErrorMessage[] = [...Array(Math.floor(Math.random() * 10))].map((_, index) => ({
-      message: `Error message ${index}`,
-    }));
+    const errorMessages: ErrorMessage[] = [...Array(Math.floor(Math.random() * 10))].map(
+      (_, index) => ({
+        message: `Error message ${index}`,
+      }),
+    );
 
     const result = () => {
       const loader = new GithubLoader();

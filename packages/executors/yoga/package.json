@@ -1,6 +1,7 @@
 {
   "name": "@graphql-tools/executor-yoga",
-  "version": "2.0.0",
+  "version": "2.0.1",
+  "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -9,7 +10,9 @@
   },
   "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",
   "license": "MIT",
-  "sideEffects": false,
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "exports": {
@@ -44,28 +47,25 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
+  "peerDependencies": {
+    "graphql": "^15.2.0 || ^16.0.0",
+    "graphql-yoga": "^3.5.1 || ^4.0.0"
+  },
+  "dependencies": {
+    "@graphql-tools/executor-envelop": "^2.0.0",
+    "@graphql-tools/utils": "^10.0.1",
+    "@graphql-tools/wrap": "^10.0.0",
+    "tslib": "^2.3.1"
+  },
+  "devDependencies": {
+    "graphql-yoga": "^4.0.0"
   },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
   },
-  "dependencies": {
-    "@graphql-tools/executor-envelop": "^2.0.0",
-    "@graphql-tools/wrap": "^10.0.0",
-    "@graphql-tools/utils": "^10.0.0",
-    "tslib": "^2.3.1"
-  },
-  "devDependencies": {
-    "graphql-yoga": "^3.5.1"
-  },
-  "peerDependencies": {
-    "graphql": "^15.2.0 || ^16.0.0",
-    "graphql-yoga": "^3.5.1"
-  },
-  "type": "module",
-  "engines": {
-    "node": ">=16.0.0"
+  "sideEffects": false,
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
   }
 }

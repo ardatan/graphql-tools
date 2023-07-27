@@ -1,13 +1,18 @@
-import { GraphQLInputType, getNullableType, isLeafType, isListType, isInputObjectType } from 'graphql';
+import {
+  getNullableType,
+  GraphQLInputType,
+  isInputObjectType,
+  isLeafType,
+  isListType,
+} from 'graphql';
 import { asArray } from './helpers.js';
-
 import { InputLeafValueTransformer, InputObjectValueTransformer, Maybe } from './types.js';
 
 export function transformInputValue(
   type: GraphQLInputType,
   value: any,
   inputLeafValueTransformer: Maybe<InputLeafValueTransformer> = null,
-  inputObjectValueTransformer: Maybe<InputObjectValueTransformer> = null
+  inputObjectValueTransformer: Maybe<InputObjectValueTransformer> = null,
 ): any {
   if (value == null) {
     return value;
@@ -16,10 +21,17 @@ export function transformInputValue(
   const nullableType = getNullableType(type);
 
   if (isLeafType(nullableType)) {
-    return inputLeafValueTransformer != null ? inputLeafValueTransformer(nullableType, value) : value;
+    return inputLeafValueTransformer != null
+      ? inputLeafValueTransformer(nullableType, value)
+      : value;
   } else if (isListType(nullableType)) {
     return asArray(value).map((listMember: any) =>
-      transformInputValue(nullableType.ofType, listMember, inputLeafValueTransformer, inputObjectValueTransformer)
+      transformInputValue(
+        nullableType.ofType,
+        listMember,
+        inputLeafValueTransformer,
+        inputObjectValueTransformer,
+      ),
     );
   } else if (isInputObjectType(nullableType)) {
     const fields = nullableType.getFields();
@@ -31,11 +43,13 @@ export function transformInputValue(
           field.type,
           value[key],
           inputLeafValueTransformer,
-          inputObjectValueTransformer
+          inputObjectValueTransformer,
         );
       }
     }
-    return inputObjectValueTransformer != null ? inputObjectValueTransformer(nullableType, newValue) : newValue;
+    return inputObjectValueTransformer != null
+      ? inputObjectValueTransformer(nullableType, newValue)
+      : newValue;
   }
 
   // unreachable, no other possible return value

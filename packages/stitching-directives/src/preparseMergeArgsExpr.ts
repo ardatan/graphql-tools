@@ -7,7 +7,9 @@ export function preparseMergeArgsExpr(mergeArgsExpr: string): {
 } {
   const variableRegex = /\$[_A-Za-z][_A-Za-z0-9.]*/g;
   const dotRegex = /\./g;
-  mergeArgsExpr = mergeArgsExpr.replace(variableRegex, variable => variable.replace(dotRegex, KEY_DELIMITER));
+  mergeArgsExpr = mergeArgsExpr.replace(variableRegex, variable =>
+    variable.replace(dotRegex, KEY_DELIMITER),
+  );
 
   const segments = mergeArgsExpr.split('[[');
 

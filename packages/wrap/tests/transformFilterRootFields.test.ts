@@ -1,6 +1,6 @@
-import { wrapSchema, FilterRootFields } from '@graphql-tools/wrap';
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import { GraphQLObjectType } from 'graphql';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { FilterRootFields, wrapSchema } from '@graphql-tools/wrap';
 
 describe('FilterRootFields', () => {
   test('works', async () => {

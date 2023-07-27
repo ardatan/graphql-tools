@@ -1,17 +1,20 @@
-import { chainFunctions } from './chain-functions.js';
-import _ from 'lodash';
 import { GraphQLFieldResolver, GraphQLScalarTypeConfig } from 'graphql';
-import { asArray } from '@graphql-tools/utils';
+import _ from 'lodash';
 import micromatch from 'micromatch';
+import { asArray } from '@graphql-tools/utils';
+import { chainFunctions } from './chain-functions.js';
 
 export type ResolversComposition<
-  Resolver extends GraphQLFieldResolver<any, any, any> = GraphQLFieldResolver<any, any>
+  Resolver extends GraphQLFieldResolver<any, any, any> = GraphQLFieldResolver<any, any>,
 > = (next: Resolver) => Resolver;
 
 export type ResolversComposerMapping<Resolvers extends Record<string, any> = Record<string, any>> =
   | {
       [TypeName in keyof Resolvers]?: {
-        [FieldName in keyof Resolvers[TypeName]]: Resolvers[TypeName][FieldName] extends GraphQLFieldResolver<any, any>
+        [FieldName in keyof Resolvers[TypeName]]: Resolvers[TypeName][FieldName] extends GraphQLFieldResolver<
+          any,
+          any
+        >
           ?
               | ResolversComposition<Resolvers[TypeName][FieldName]>
               | Array<ResolversComposition<Resolvers[TypeName][FieldName]>>
@@ -28,7 +31,7 @@ function isScalarTypeConfiguration(config: any): config is GraphQLScalarTypeConf
 
 function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<string, any>>(
   resolvers: Resolvers,
-  path: string
+  path: string,
 ): string[] {
   if (!resolvers) {
     return [];
@@ -97,7 +100,7 @@ function resolveRelevantMappings<Resolvers extends Record<string, any> = Record<
  */
 export function composeResolvers<Resolvers extends Record<string, any>>(
   resolvers: Resolvers,
-  mapping: ResolversComposerMapping<Resolvers> = {}
+  mapping: ResolversComposerMapping<Resolvers> = {},
 ): Resolvers {
   const mappingResult: { [path: string]: ((...args: any[]) => any)[] } = {};
 

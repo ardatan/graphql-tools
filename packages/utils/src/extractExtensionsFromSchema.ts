@@ -1,7 +1,12 @@
-import { mapSchema } from './mapSchema.js';
 import { GraphQLFieldConfig, GraphQLSchema } from 'graphql';
-import { EnumTypeExtensions, InputTypeExtensions, ObjectTypeExtensions, SchemaExtensions } from './types.js';
 import { MapperKind } from './Interfaces.js';
+import { mapSchema } from './mapSchema.js';
+import {
+  EnumTypeExtensions,
+  InputTypeExtensions,
+  ObjectTypeExtensions,
+  SchemaExtensions,
+} from './types.js';
 
 export function extractExtensionsFromSchema(schema: GraphQLSchema): SchemaExtensions {
   const result: SchemaExtensions = {
@@ -15,7 +20,11 @@ export function extractExtensionsFromSchema(schema: GraphQLSchema): SchemaExtens
       return type;
     },
     [MapperKind.INTERFACE_TYPE]: type => {
-      result.types[type.name] = { fields: {}, type: 'interface', extensions: type.extensions || {} };
+      result.types[type.name] = {
+        fields: {},
+        type: 'interface',
+        extensions: type.extensions || {},
+      };
       return type;
     },
     [MapperKind.FIELD]: (field, fieldName, typeName) => {

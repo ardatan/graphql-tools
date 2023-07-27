@@ -1,7 +1,7 @@
+import { buildSchema, parse } from 'graphql';
 import { envelop } from '@envelop/core';
 import { useExecutor } from '@graphql-tools/executor-envelop';
 import { Executor } from '@graphql-tools/utils';
-import { buildSchema, parse } from 'graphql';
 
 describe('Envelop', () => {
   const schema = buildSchema(/* GraphQL */ `

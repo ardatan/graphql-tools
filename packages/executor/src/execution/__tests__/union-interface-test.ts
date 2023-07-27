@@ -1,12 +1,12 @@
 import {
-  parse,
+  GraphQLBoolean,
   GraphQLInterfaceType,
   GraphQLList,
   GraphQLObjectType,
-  GraphQLUnionType,
-  GraphQLBoolean,
-  GraphQLString,
   GraphQLSchema,
+  GraphQLString,
+  GraphQLUnionType,
+  parse,
 } from 'graphql';
 import { executeSync } from '../execute.js';
 
@@ -43,7 +43,11 @@ class Person {
   pets?: ReadonlyArray<Dog | Cat>;
   friends?: ReadonlyArray<Dog | Cat | Person>;
 
-  constructor(name: string, pets?: ReadonlyArray<Dog | Cat>, friends?: ReadonlyArray<Dog | Cat | Person>) {
+  constructor(
+    name: string,
+    pets?: ReadonlyArray<Dog | Cat>,
+    friends?: ReadonlyArray<Dog | Cat | Person>,
+  ) {
     this.name = name;
     this.pets = pets;
     this.friends = friends;

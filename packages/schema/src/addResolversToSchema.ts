@@ -1,33 +1,31 @@
 import {
   GraphQLEnumType,
-  GraphQLSchema,
-  GraphQLScalarType,
-  GraphQLUnionType,
-  GraphQLInterfaceType,
+  GraphQLField,
   GraphQLFieldConfig,
-  GraphQLObjectType,
-  isSpecifiedScalarType,
   GraphQLFieldResolver,
-  isScalarType,
+  GraphQLInterfaceType,
+  GraphQLObjectType,
+  GraphQLScalarType,
+  GraphQLSchema,
+  GraphQLUnionType,
   isEnumType,
-  isUnionType,
   isInterfaceType,
   isObjectType,
-  GraphQLField,
+  isScalarType,
+  isSpecifiedScalarType,
+  isUnionType,
 } from 'graphql';
-
 import {
-  IResolvers,
-  IAddResolversToSchemaOptions,
-  mapSchema,
-  MapperKind,
   forEachDefaultValue,
-  serializeInputValue,
-  healSchema,
-  parseInputValue,
   forEachField,
+  healSchema,
+  IAddResolversToSchemaOptions,
+  IResolvers,
+  MapperKind,
+  mapSchema,
+  parseInputValue,
+  serializeInputValue,
 } from '@graphql-tools/utils';
-
 import { checkForResolveTypeResolver } from './checkForResolveTypeResolver.js';
 import { extendResolversFromInterfaces } from './extendResolversFromInterfaces.js';
 
@@ -39,7 +37,8 @@ export function addResolversToSchema({
   inheritResolversFromInterfaces = false,
   updateResolversInPlace = false,
 }: IAddResolversToSchemaOptions): GraphQLSchema {
-  const { requireResolversToMatchSchema = 'error', requireResolversForResolveType } = resolverValidationOptions;
+  const { requireResolversToMatchSchema = 'error', requireResolversForResolveType } =
+    resolverValidationOptions;
 
   const resolvers = inheritResolversFromInterfaces
     ? extendResolversFromInterfaces(schema, inputResolvers)
@@ -53,7 +52,7 @@ export function addResolversToSchema({
       throw new Error(
         `"${typeName}" defined in resolvers, but has invalid value "${
           resolverValue as unknown as string
-        }". The resolver's value must be of type object.`
+        }". The resolver's value must be of type object.`,
       );
     }
 
@@ -84,7 +83,9 @@ export function addResolversToSchema({
           requireResolversToMatchSchema &&
           requireResolversToMatchSchema !== 'ignore'
         ) {
-          throw new Error(`${type.name}.${fieldName} was defined in resolvers, but not present within ${type.name}`);
+          throw new Error(
+            `${type.name}.${fieldName} was defined in resolvers, but not present within ${type.name}`,
+          );
         }
       }
     } else if (isUnionType(type)) {
@@ -95,7 +96,7 @@ export function addResolversToSchema({
           requireResolversToMatchSchema !== 'ignore'
         ) {
           throw new Error(
-            `${type.name}.${fieldName} was defined in resolvers, but ${type.name} is not an object or interface type`
+            `${type.name}.${fieldName} was defined in resolvers, but ${type.name} is not an object or interface type`,
           );
         }
       }
@@ -136,7 +137,7 @@ export function addResolversToSchema({
 function addResolversToExistingSchema(
   schema: GraphQLSchema,
   resolvers: IResolvers,
-  defaultFieldResolver?: GraphQLFieldResolver<any, any>
+  defaultFieldResolver?: GraphQLFieldResolver<any, any>,
 ): GraphQLSchema {
   const typeMap = schema.getTypeMap();
   for (const typeName in resolvers) {
@@ -150,14 +151,16 @@ function addResolversToExistingSchema(
         } else if (fieldName === 'astNode' && type.astNode != null) {
           type.astNode = {
             ...type.astNode,
-            description: (resolverValue as GraphQLScalarType)?.astNode?.description ?? type.astNode.description,
+            description:
+              (resolverValue as GraphQLScalarType)?.astNode?.description ??
+              type.astNode.description,
             directives: (type.astNode.directives ?? []).concat(
-              (resolverValue as GraphQLScalarType)?.astNode?.directives ?? []
+              (resolverValue as GraphQLScalarType)?.astNode?.directives ?? [],
             ),
           };
         } else if (fieldName === 'extensionASTNodes' && type.extensionASTNodes != null) {
           type.extensionASTNodes = type.extensionASTNodes.concat(
-            (resolverValue as GraphQLScalarType)?.extensionASTNodes ?? []
+            (resolverValue as GraphQLScalarType)?.extensionASTNodes ?? [],
           );
         } else if (
           fieldName === 'extensions' &&
@@ -167,7 +170,7 @@ function addResolversToExistingSchema(
           type.extensions = Object.assign(
             Object.create(null),
             type.extensions,
-            (resolverValue as GraphQLScalarType).extensions
+            (resolverValue as GraphQLScalarType).extensions,
           );
         } else {
           type[fieldName] = resolverValue[fieldName];
@@ -183,14 +186,16 @@ function addResolversToExistingSchema(
         } else if (fieldName === 'astNode' && config.astNode != null) {
           config.astNode = {
             ...config.astNode,
-            description: (resolverValue as GraphQLScalarType)?.astNode?.description ?? config.astNode.description,
+            description:
+              (resolverValue as GraphQLScalarType)?.astNode?.description ??
+              config.astNode.description,
             directives: (config.astNode.directives ?? []).concat(
-              (resolverValue as GraphQLEnumType)?.astNode?.directives ?? []
+              (resolverValue as GraphQLEnumType)?.astNode?.directives ?? [],
             ),
           };
         } else if (fieldName === 'extensionASTNodes' && config.extensionASTNodes != null) {
           config.extensionASTNodes = config.extensionASTNodes.concat(
-            (resolverValue as GraphQLEnumType)?.extensionASTNodes ?? []
+            (resolverValue as GraphQLEnumType)?.extensionASTNodes ?? [],
           );
         } else if (
           fieldName === 'extensions' &&
@@ -200,7 +205,7 @@ function addResolversToExistingSchema(
           type.extensions = Object.assign(
             Object.create(null),
             type.extensions,
-            (resolverValue as GraphQLEnumType).extensions
+            (resolverValue as GraphQLEnumType).extensions,
           );
         } else if (enumValueConfigMap[fieldName]) {
           enumValueConfigMap[fieldName].value = resolverValue[fieldName];
@@ -259,7 +264,7 @@ function addResolversToExistingSchema(
 function createNewSchemaWithResolvers(
   schema: GraphQLSchema,
   resolvers: IResolvers,
-  defaultFieldResolver?: GraphQLFieldResolver<any, any>
+  defaultFieldResolver?: GraphQLFieldResolver<any, any>,
 ): GraphQLSchema {
   schema = mapSchema(schema, {
     [MapperKind.SCALAR_TYPE]: type => {
@@ -272,14 +277,16 @@ function createNewSchemaWithResolvers(
           } else if (fieldName === 'astNode' && config.astNode != null) {
             config.astNode = {
               ...config.astNode,
-              description: (resolverValue as GraphQLScalarType)?.astNode?.description ?? config.astNode.description,
+              description:
+                (resolverValue as GraphQLScalarType)?.astNode?.description ??
+                config.astNode.description,
               directives: (config.astNode.directives ?? []).concat(
-                (resolverValue as GraphQLScalarType)?.astNode?.directives ?? []
+                (resolverValue as GraphQLScalarType)?.astNode?.directives ?? [],
               ),
             };
           } else if (fieldName === 'extensionASTNodes' && config.extensionASTNodes != null) {
             config.extensionASTNodes = config.extensionASTNodes.concat(
-              (resolverValue as GraphQLScalarType)?.extensionASTNodes ?? []
+              (resolverValue as GraphQLScalarType)?.extensionASTNodes ?? [],
             );
           } else if (
             fieldName === 'extensions' &&
@@ -289,7 +296,7 @@ function createNewSchemaWithResolvers(
             config.extensions = Object.assign(
               Object.create(null),
               type.extensions,
-              (resolverValue as GraphQLScalarType).extensions
+              (resolverValue as GraphQLScalarType).extensions,
             );
           } else {
             config[fieldName] = resolverValue[fieldName];
@@ -312,14 +319,16 @@ function createNewSchemaWithResolvers(
           } else if (fieldName === 'astNode' && config.astNode != null) {
             config.astNode = {
               ...config.astNode,
-              description: (resolverValue as GraphQLScalarType)?.astNode?.description ?? config.astNode.description,
+              description:
+                (resolverValue as GraphQLScalarType)?.astNode?.description ??
+                config.astNode.description,
               directives: (config.astNode.directives ?? []).concat(
-                (resolverValue as GraphQLEnumType)?.astNode?.directives ?? []
+                (resolverValue as GraphQLEnumType)?.astNode?.directives ?? [],
               ),
             };
           } else if (fieldName === 'extensionASTNodes' && config.extensionASTNodes != null) {
             config.extensionASTNodes = config.extensionASTNodes.concat(
-              (resolverValue as GraphQLEnumType)?.extensionASTNodes ?? []
+              (resolverValue as GraphQLEnumType)?.extensionASTNodes ?? [],
             );
           } else if (
             fieldName === 'extensions' &&
@@ -329,7 +338,7 @@ function createNewSchemaWithResolvers(
             config.extensions = Object.assign(
               Object.create(null),
               type.extensions,
-              (resolverValue as GraphQLEnumType).extensions
+              (resolverValue as GraphQLEnumType).extensions,
             );
           } else if (enumValueConfigMap[fieldName]) {
             enumValueConfigMap[fieldName].value = resolverValue[fieldName];
@@ -409,7 +418,7 @@ function createNewSchemaWithResolvers(
 
 function setFieldProperties(
   field: GraphQLField<any, any> | GraphQLFieldConfig<any, any>,
-  propertiesObj: Record<string, any>
+  propertiesObj: Record<string, any>,
 ) {
   for (const propertyName in propertiesObj) {
     field[propertyName] = propertiesObj[propertyName];

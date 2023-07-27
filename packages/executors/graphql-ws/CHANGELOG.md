@@ -1,5 +1,27 @@
 # @graphql-tools/executor-graphql-ws
 
+## 1.1.0
+
+### Minor Changes
+
+- [#4781](https://github.com/ardatan/graphql-tools/pull/4781) [`104921ff`](https://github.com/ardatan/graphql-tools/commit/104921ffc066bde737d4cb36a3bbd1b3b2ad4094) Thanks [@enisdenjo](https://github.com/enisdenjo)! - Read and use `connectionParams` from operation extensions
+
+## 1.0.2
+
+### Patch Changes
+
+- [#5396](https://github.com/ardatan/graphql-tools/pull/5396) [`bb8f169e`](https://github.com/ardatan/graphql-tools/commit/bb8f169e21a8a7002b66d3bc6e4e4b40cc2a5f5c) Thanks [@ardatan](https://github.com/ardatan)! - Simplify GraphQL WS executor
+
+- Updated dependencies [[`bb8f169e`](https://github.com/ardatan/graphql-tools/commit/bb8f169e21a8a7002b66d3bc6e4e4b40cc2a5f5c), [`bb8f169e`](https://github.com/ardatan/graphql-tools/commit/bb8f169e21a8a7002b66d3bc6e4e4b40cc2a5f5c)]:
+  - @graphql-tools/utils@10.0.2
+
+## 1.0.1
+
+### Patch Changes
+
+- [#5374](https://github.com/ardatan/graphql-tools/pull/5374) [`88a7de96`](https://github.com/ardatan/graphql-tools/commit/88a7de96c7766d94f9ac0adbe54523e585f8566c) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`graphql-ws@5.14.0` ↗︎](https://www.npmjs.com/package/graphql-ws/v/5.14.0) (from `5.13.1`, in `dependencies`)
+
 ## 1.0.0
 
 ### Major Changes

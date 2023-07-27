@@ -1,13 +1,13 @@
 import {
   assertInterfaceType,
+  buildSchema,
+  GraphQLBoolean,
   GraphQLInterfaceType,
   GraphQLList,
   GraphQLObjectType,
-  GraphQLUnionType,
-  GraphQLBoolean,
-  GraphQLString,
   GraphQLSchema,
-  buildSchema,
+  GraphQLString,
+  GraphQLUnionType,
   parse,
 } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
@@ -600,31 +600,33 @@ describe('Execute: Handles execution of abstract types', () => {
     }
 
     expectError({ forTypeName: undefined }).toEqual(
-      'Abstract type "Pet" must resolve to an Object type at runtime for field "Query.pet". Either the "Pet" type should provide a "resolveType" function or each possible type should provide an "isTypeOf" function.'
+      'Abstract type "Pet" must resolve to an Object type at runtime for field "Query.pet". Either the "Pet" type should provide a "resolveType" function or each possible type should provide an "isTypeOf" function.',
     );
 
     expectError({ forTypeName: 'Human' }).toEqual(
-      'Abstract type "Pet" was resolved to a type "Human" that does not exist inside the schema.'
+      'Abstract type "Pet" was resolved to a type "Human" that does not exist inside the schema.',
     );
 
-    expectError({ forTypeName: 'String' }).toEqual('Abstract type "Pet" was resolved to a non-object type "String".');
+    expectError({ forTypeName: 'String' }).toEqual(
+      'Abstract type "Pet" was resolved to a non-object type "String".',
+    );
 
     expectError({ forTypeName: '__Schema' }).toEqual(
-      'Runtime Object type "__Schema" is not a possible type for "Pet".'
+      'Runtime Object type "__Schema" is not a possible type for "Pet".',
     );
 
     // FIXME: workaround since we can't inject resolveType into SDL
     // @ts-expect-error
     assertInterfaceType(schema.getType('Pet')).resolveType = () => [];
     expectError({ forTypeName: undefined }).toEqual(
-      'Abstract type "Pet" must resolve to an Object type at runtime for field "Query.pet" with value { __typename: undefined }, received "[]".'
+      'Abstract type "Pet" must resolve to an Object type at runtime for field "Query.pet" with value { __typename: undefined }, received "[]".',
     );
 
     // FIXME: workaround since we can't inject resolveType into SDL
     // @ts-expect-error
     assertInterfaceType(schema.getType('Pet')).resolveType = () => schema.getType('Cat');
     expectError({ forTypeName: undefined }).toEqual(
-      'Support for returning GraphQLObjectType from resolveType was removed in graphql-js@16.0.0 please return type name instead.'
+      'Support for returning GraphQLObjectType from resolveType was removed in graphql-js@16.0.0 please return type name instead.',
     );
   });
 });

@@ -1,4 +1,11 @@
-import { graphqlSync, validate, GraphQLSchema, GraphQLString, GraphQLObjectType, parse } from 'graphql';
+import {
+  GraphQLObjectType,
+  GraphQLSchema,
+  GraphQLString,
+  graphqlSync,
+  parse,
+  validate,
+} from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { execute, executeSync } from '../execute.js';
 

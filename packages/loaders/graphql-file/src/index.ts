@@ -1,12 +1,18 @@
-import type { GlobbyOptions } from 'globby';
-
-import { Source, Loader, isValidPath, parseGraphQLSDL, BaseLoaderOptions, asArray } from '@graphql-tools/utils';
+import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { isAbsolute, resolve } from 'path';
-import { readFileSync, promises as fsPromises, existsSync } from 'fs';
-import { cwd as processCwd, env } from 'process';
-import { processImport } from '@graphql-tools/import';
+import { env, cwd as processCwd } from 'process';
+import type { GlobbyOptions } from 'globby';
 import globby from 'globby';
 import unixify from 'unixify';
+import { processImport } from '@graphql-tools/import';
+import {
+  asArray,
+  BaseLoaderOptions,
+  isValidPath,
+  Loader,
+  parseGraphQLSDL,
+  Source,
+} from '@graphql-tools/utils';
 
 const { readFile, access } = fsPromises;
 
@@ -60,7 +66,9 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
   async canLoad(pointer: string, options: GraphQLFileLoaderOptions): Promise<boolean> {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
-        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
+        const normalizedFilePath = isAbsolute(pointer)
+          ? pointer
+          : resolve(options.cwd || processCwd(), pointer);
         try {
           await access(normalizedFilePath);
           return true;
@@ -76,7 +84,9 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
   canLoadSync(pointer: string, options: GraphQLFileLoaderOptions): boolean {
     if (isValidPath(pointer)) {
       if (FILE_EXTENSIONS.find(extension => pointer.endsWith(extension))) {
-        const normalizedFilePath = isAbsolute(pointer) ? pointer : resolve(options.cwd || processCwd(), pointer);
+        const normalizedFilePath = isAbsolute(pointer)
+          ? pointer
+          : resolve(options.cwd || processCwd(), pointer);
         return existsSync(normalizedFilePath);
       }
     }
@@ -124,7 +134,9 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
       resolvedPaths.map(async path => {
         if (await this.canLoad(path, options)) {
           try {
-            const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
+            const normalizedFilePath = isAbsolute(path)
+              ? path
+              : resolve(options.cwd || processCwd(), path);
             const rawSDL: string = await readFile(normalizedFilePath, { encoding: 'utf8' });
             finalResult.push(this.handleFileContent(rawSDL, normalizedFilePath, options));
           } catch (e: any) {
@@ -134,7 +146,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
             errors.push(e);
           }
         }
-      })
+      }),
     );
 
     if (errors.length > 0) {
@@ -143,7 +155,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
       }
       throw new AggregateError(
         errors,
-        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n')
+        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n'),
       );
     }
 
@@ -158,7 +170,9 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
     for (const path of resolvedPaths) {
       if (this.canLoadSync(path, options)) {
         try {
-          const normalizedFilePath = isAbsolute(path) ? path : resolve(options.cwd || processCwd(), path);
+          const normalizedFilePath = isAbsolute(path)
+            ? path
+            : resolve(options.cwd || processCwd(), path);
           const rawSDL = readFileSync(normalizedFilePath, { encoding: 'utf8' });
           finalResult.push(this.handleFileContent(rawSDL, normalizedFilePath, options));
         } catch (e: any) {
@@ -176,7 +190,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
       }
       throw new AggregateError(
         errors,
-        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n')
+        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n'),
       );
     }
 

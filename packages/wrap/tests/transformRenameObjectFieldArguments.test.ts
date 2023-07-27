@@ -1,9 +1,8 @@
-import { wrapSchema } from '@graphql-tools/wrap';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { parse } from 'graphql';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { assertSome } from '@graphql-tools/utils';
-
+import { wrapSchema } from '@graphql-tools/wrap';
 import RenameObjectFieldArguments from '../src/transforms/RenameObjectFieldArguments.js';
 
 describe('RenameObjectFieldArguments', () => {
@@ -125,7 +124,11 @@ describe('RenameObjectFieldArguments', () => {
         ],
       },
     };
-    const result = await execute({ schema: transformedSchema, document: parse(query), variableValues: variables });
+    const result = await execute({
+      schema: transformedSchema,
+      document: parse(query),
+      variableValues: variables,
+    });
     if (isIncrementalResult(result)) throw Error('result is incremental');
     assertSome(result.data);
     const testData: any = result.data['test'];

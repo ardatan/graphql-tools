@@ -1,14 +1,22 @@
 import '../../testing/to-be-similar-gql-doc';
 import '../../testing/to-be-similar-string';
-import { mergeDirectives, mergeTypeDefs, mergeGraphQLTypes } from '../src/index.js';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas } from '@graphql-tools/stitch';
-import { buildSchema, buildClientSchema, print, parse, Kind, DirectiveNode, version as graphqlVersion } from 'graphql';
-import { stripWhitespaces } from './utils.js';
-import gql from 'graphql-tag';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import {
+  buildClientSchema,
+  buildSchema,
+  DirectiveNode,
+  version as graphqlVersion,
+  Kind,
+  parse,
+  print,
+} from 'graphql';
+import gql from 'graphql-tag';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { stitchSchemas } from '@graphql-tools/stitch';
 import { assertSome } from '@graphql-tools/utils';
+import { mergeDirectives, mergeGraphQLTypes, mergeTypeDefs } from '../src/index.js';
+import { stripWhitespaces } from './utils.js';
 
 const introspectionSchema = JSON.parse(readFileSync(join(__dirname, './schema.json'), 'utf8'));
 
@@ -180,7 +188,7 @@ describe('Merge TypeDefs', () => {
         ],
         {
           useSchemaDefinition: true,
-        }
+        },
       );
 
       expect(mergedArray.length).toBe(3);
@@ -199,7 +207,7 @@ describe('Merge TypeDefs', () => {
         ],
         {
           useSchemaDefinition: true,
-        }
+        },
       );
 
       expect(mergedArray.length).toBe(3);
@@ -238,7 +246,7 @@ describe('Merge TypeDefs', () => {
         ],
         {
           useSchemaDefinition: true,
-        }
+        },
       );
 
       expect(mergedArray.length).toBe(3);
@@ -271,7 +279,7 @@ describe('Merge TypeDefs', () => {
           schema {
             query: Query
           }
-        `)
+        `),
       );
     });
 
@@ -284,7 +292,7 @@ describe('Merge TypeDefs', () => {
         ],
         {
           useSchemaDefinition: false,
-        }
+        },
       );
 
       const output = stripWhitespaces(print(merged));
@@ -301,7 +309,7 @@ describe('Merge TypeDefs', () => {
 
         type MyType {
           field: Int
-        }`)
+        }`),
       );
     });
 
@@ -331,7 +339,7 @@ describe('Merge TypeDefs', () => {
           directive @sqlType(type: String!) on SCALAR
 
           scalar JSON @sqlType(type: "json")
-        `)
+        `),
       );
     });
 
@@ -367,7 +375,7 @@ describe('Merge TypeDefs', () => {
           schema {
             query: Query
           }
-        `)
+        `),
       );
     });
 
@@ -415,7 +423,7 @@ describe('Merge TypeDefs', () => {
           schema {
             query: Query
           }
-        `)
+        `),
       );
     });
 
@@ -441,7 +449,7 @@ describe('Merge TypeDefs', () => {
           schema {
             query: Query
           }
-        `)
+        `),
       );
     });
 
@@ -471,7 +479,7 @@ describe('Merge TypeDefs', () => {
           schema {
             query: Query
           }
-        `)
+        `),
       );
     });
 
@@ -517,7 +525,7 @@ describe('Merge TypeDefs', () => {
           schema {
             query: Query
           }
-        `)
+        `),
       );
     });
 
@@ -565,7 +573,7 @@ describe('Merge TypeDefs', () => {
           schema {
             query: Query
           }
-        `)
+        `),
       );
     });
 
@@ -658,7 +666,7 @@ describe('Merge TypeDefs', () => {
           schema {
             query: Query
           }
-        `)
+        `),
       );
     });
 
@@ -697,22 +705,25 @@ describe('Merge TypeDefs', () => {
           schema {
             query: Query
           }
-        `)
+        `),
       );
     });
 
     it('should call onFieldTypeConflict if there are two different types', () => {
       const onFieldTypeConflict = jest.fn().mockImplementation((_, r) => r);
-      const merged = mergeTypeDefs(['type MyType { field: Int! }', 'type MyType { field: String }'], {
-        onFieldTypeConflict,
-      });
+      const merged = mergeTypeDefs(
+        ['type MyType { field: Int! }', 'type MyType { field: String }'],
+        {
+          onFieldTypeConflict,
+        },
+      );
 
       expect(stripWhitespaces(print(merged))).toBe(
         stripWhitespaces(/* GraphQL */ `
           type MyType {
             field: String
           }
-        `)
+        `),
       );
     });
 
@@ -727,7 +738,7 @@ describe('Merge TypeDefs', () => {
           type MyType {
             field: Int
           }
-        `)
+        `),
       );
     });
 
@@ -740,11 +751,11 @@ describe('Merge TypeDefs', () => {
         ],
         {
           onFieldTypeConflict,
-        }
+        },
       );
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */ `
+        stripWhitespaces(`
           type Mutation {
             doSomething(argA: Int!, argB: Int, argC: Int!, argD: String, argE: Int!, argF: Boolean): Boolean!
           }
@@ -752,7 +763,7 @@ describe('Merge TypeDefs', () => {
           schema {
             mutation: Mutation
           }
-        `)
+        `),
       );
     });
 
@@ -766,11 +777,11 @@ describe('Merge TypeDefs', () => {
         {
           onFieldTypeConflict,
           reverseArguments: true,
-        }
+        },
       );
 
       expect(stripWhitespaces(print(merged))).toBe(
-        stripWhitespaces(/* GraphQL */ `
+        stripWhitespaces(`
           type Mutation {
             doSomething(argA: Int!, argB: Int!, argC: Int, argD: Int!, argE: Int!, argF: Boolean): Boolean!
           }
@@ -778,7 +789,7 @@ describe('Merge TypeDefs', () => {
           schema {
             mutation: Mutation
           }
-        `)
+        `),
       );
     });
   });
@@ -796,7 +807,7 @@ describe('Merge TypeDefs', () => {
           schema {
             query: Query
           }
-        `)
+        `),
       );
     });
 
@@ -818,7 +829,7 @@ describe('Merge TypeDefs', () => {
           schema {
             query: Query
           }
-        `)
+        `),
       );
     });
 
@@ -842,7 +853,7 @@ describe('Merge TypeDefs', () => {
           schema {
             query: Query
           }
-        `)
+        `),
       );
     });
 
@@ -864,7 +875,7 @@ describe('Merge TypeDefs', () => {
             f1: String
             f2: String
           }
-        `)
+        `),
       );
     });
 
@@ -888,7 +899,7 @@ describe('Merge TypeDefs', () => {
           schema {
             query: RootQuery
           }
-        `)
+        `),
       );
     });
 
@@ -916,7 +927,7 @@ describe('Merge TypeDefs', () => {
             f2: String
             f3: String
           }
-        `)
+        `),
       );
     });
 
@@ -932,7 +943,7 @@ describe('Merge TypeDefs', () => {
           type MyType {
             f1: String
           }
-        `)
+        `),
       );
     });
 
@@ -952,7 +963,7 @@ describe('Merge TypeDefs', () => {
             f1: String
             f2: String
           }
-        `)
+        `),
       );
     });
     it('should handle extend types', () => {
@@ -982,7 +993,7 @@ describe('Merge TypeDefs', () => {
           interface Interface {
             bar: String
           }
-        `)
+        `),
       );
     });
     it('should handle extend types when GraphQLSchema is the source', () => {
@@ -1017,7 +1028,7 @@ describe('Merge TypeDefs', () => {
             foo: String
             bar: String
           }
-        `)
+        `),
       );
       expect(printed).toContain(
         stripWhitespaces(/* GraphQL */ `
@@ -1025,7 +1036,7 @@ describe('Merge TypeDefs', () => {
             name: String
             id: ID
           }
-        `)
+        `),
       );
     });
 
@@ -1057,7 +1068,7 @@ describe('Merge TypeDefs', () => {
             interface AdditionalInterface {
               bar: String
             }
-          `)
+          `),
         );
       }
     });
@@ -1090,7 +1101,7 @@ describe('Merge TypeDefs', () => {
             t: String!
             t2: String!
           }
-        `)
+        `),
       );
     });
 
@@ -1134,7 +1145,7 @@ describe('Merge TypeDefs', () => {
             foo: String
             bar: String
           }
-        `)
+        `),
       );
     });
 
@@ -1165,7 +1176,7 @@ describe('Merge TypeDefs', () => {
       expect(printed).toContain(
         stripWhitespaces(/* GraphQL */ `
           union MyUnion = A | B | C
-        `)
+        `),
       );
     });
 
@@ -1196,7 +1207,7 @@ describe('Merge TypeDefs', () => {
       expect(printed).toContain(
         stripWhitespaces(/* GraphQL */ `
           union MyUnion = A | B | C
-        `)
+        `),
       );
     });
 
@@ -1219,7 +1230,7 @@ describe('Merge TypeDefs', () => {
             foo: String
             bar: String
           }
-        `)
+        `),
       );
     });
     it('should extend extension types', () => {
@@ -1241,7 +1252,7 @@ describe('Merge TypeDefs', () => {
             foo: String
             bar: String
           }
-        `)
+        `),
       );
     });
     it('should extend extension input types', () => {
@@ -1263,7 +1274,7 @@ describe('Merge TypeDefs', () => {
             foo: String
             bar: String
           }
-        `)
+        `),
       );
     });
   });
@@ -1521,7 +1532,7 @@ describe('Merge TypeDefs', () => {
           C: String!
           D: String!
         }
-      `)
+      `),
     );
   });
 
@@ -1652,7 +1663,9 @@ describe('Merge TypeDefs', () => {
         value: String!
       }
     `;
-    const reformulatedGraphQL = mergeTypeDefs([schemaWithTripleQuotes], { commentDescriptions: true });
+    const reformulatedGraphQL = mergeTypeDefs([schemaWithTripleQuotes], {
+      commentDescriptions: true,
+    });
 
     expect(reformulatedGraphQL).toBeSimilarString(schemaWithTripleQuotes);
   });
@@ -1666,7 +1679,9 @@ describe('Merge TypeDefs', () => {
       }
     `;
 
-    const reformulatedGraphQL = mergeTypeDefs([schemaWithSingleQuote], { commentDescriptions: true });
+    const reformulatedGraphQL = mergeTypeDefs([schemaWithSingleQuote], {
+      commentDescriptions: true,
+    });
     expect(reformulatedGraphQL).toBeSimilarString(schemaWithSingleQuote);
   });
 
@@ -1678,7 +1693,9 @@ describe('Merge TypeDefs', () => {
         value: String!
       }
     `;
-    const reformulatedGraphQL = mergeTypeDefs([schemaWithDescription], { commentDescriptions: true });
+    const reformulatedGraphQL = mergeTypeDefs([schemaWithDescription], {
+      commentDescriptions: true,
+    });
     expect(reformulatedGraphQL).toBeSimilarString(schemaWithDescription);
   });
 });

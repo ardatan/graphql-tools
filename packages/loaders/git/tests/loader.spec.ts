@@ -1,8 +1,7 @@
 import { execSync } from 'child_process';
 import * as path from 'path';
-
-import { GitLoader } from '../src/index.js';
 import { runTests } from '../../../testing/utils.js';
+import { GitLoader } from '../src/index.js';
 
 describe('GitLoader', () => {
   const loader = new GitLoader();
@@ -57,7 +56,7 @@ describe('GitLoader', () => {
 
       it('should throw when the file does not exist', async () => {
         await expect(load(getPointer('wrong-filename.graphql'), {})).rejects.toThrowError(
-          'Unable to load file from git'
+          'Unable to load file from git',
         );
       });
 

@@ -1,6 +1,6 @@
 import _ from 'lodash';
+import { IOutput, Output } from './Output.js';
 import { Args } from './types/common.js';
-import { Output, IOutput } from './Output.js';
 
 export class Variables {
   json: any;
@@ -13,7 +13,7 @@ export class Variables {
   variableSyntax = new RegExp(
     // eslint-disable-next-line
     '\\${([ ~:a-zA-Z0-9._\'",\\-\\/\\(\\)]+?)}',
-    'g'
+    'g',
   );
 
   fileName: string;
@@ -50,8 +50,8 @@ export class Variables {
 
     deepMapValues(objectToPopulate, (property: any, propertyPath: any) => {
       if (typeof property === 'string') {
-        const populateSingleProperty = this.populateProperty(property, true).then((newProperty: any) =>
-          _.set(objectToPopulate, propertyPath, newProperty)
+        const populateSingleProperty = this.populateProperty(property, true).then(
+          (newProperty: any) => _.set(objectToPopulate, propertyPath, newProperty),
         );
         populateAll.push(populateSingleProperty);
       }
@@ -77,22 +77,26 @@ export class Variables {
           if (variableString.match(this.overwriteSyntax)) {
             singleValueToPopulate = this.overwrite(variableString);
           } else {
-            singleValueToPopulate = this.getValueFromSource(variableString).then((valueToPopulate: any) => {
-              if (typeof valueToPopulate === 'object') {
-                return this.populateObject(valueToPopulate);
-              }
-              return valueToPopulate;
-            });
+            singleValueToPopulate = this.getValueFromSource(variableString).then(
+              (valueToPopulate: any) => {
+                if (typeof valueToPopulate === 'object') {
+                  return this.populateObject(valueToPopulate);
+                }
+                return valueToPopulate;
+              },
+            );
           }
 
           singleValueToPopulate = singleValueToPopulate!.then(valueToPopulate => {
             if (this.warnIfNotFound(variableString, valueToPopulate)) {
               warned = true;
             }
-            return this.populateVariable(property, matchedString, valueToPopulate).then((newProperty: any) => {
-              property = newProperty;
-              return Promise.resolve(property);
-            });
+            return this.populateVariable(property, matchedString, valueToPopulate).then(
+              (newProperty: any) => {
+                property = newProperty;
+                return Promise.resolve(property);
+              },
+            );
           });
 
           allValuesToPopulate.push(singleValueToPopulate);
@@ -137,7 +141,7 @@ export class Variables {
     let finalValue: any;
     const variableStringsArray = variableStringsString.split(',');
     const allValuesFromSource = variableStringsArray.map((variableString: any) =>
-      this.getValueFromSource(variableString)
+      this.getValueFromSource(variableString),
     );
     return Promise.all(allValuesFromSource).then((valuesFromSources: any) => {
       valuesFromSources.find((valueFromSource: any) => {
@@ -173,7 +177,8 @@ export class Variables {
 
   getValueFromEnv(variableString: any) {
     const requestedEnvVar = variableString.split(':')[1];
-    const valueToPopulate = requestedEnvVar !== '' || '' in this.envVars ? this.envVars[requestedEnvVar] : this.envVars;
+    const valueToPopulate =
+      requestedEnvVar !== '' || '' in this.envVars ? this.envVars[requestedEnvVar] : this.envVars;
     return Promise.resolve(valueToPopulate);
   }
 
@@ -184,7 +189,8 @@ export class Variables {
 
   getValueFromOptions(variableString: any) {
     const requestedOption = variableString.split(':')[1];
-    const valueToPopulate = requestedOption !== '' || '' in this.options ? this.options[requestedOption] : this.options;
+    const valueToPopulate =
+      requestedOption !== '' || '' in this.options ? this.options[requestedOption] : this.options;
     return Promise.resolve(valueToPopulate);
   }
 
@@ -204,12 +210,15 @@ export class Variables {
         } else if (subProperty !== '' || '' in computedValueToPopulate) {
           computedValueToPopulate = computedValueToPopulate[subProperty];
         }
-        if (typeof computedValueToPopulate === 'string' && computedValueToPopulate.match(this.variableSyntax)) {
+        if (
+          typeof computedValueToPopulate === 'string' &&
+          computedValueToPopulate.match(this.variableSyntax)
+        ) {
           return this.populateProperty(computedValueToPopulate);
         }
         return Promise.resolve(computedValueToPopulate);
       },
-      valueToPopulate
+      valueToPopulate,
     );
   }
 
@@ -229,7 +238,7 @@ export class Variables {
       }
       this.out.warn(
         this.out.getErrorPrefix(this.fileName, 'warning') +
-          `A valid ${varType} to satisfy the declaration '${variableString}' could not be found.`
+          `A valid ${varType} to satisfy the declaration '${variableString}' could not be found.`,
       );
       return true;
     }
@@ -241,12 +250,14 @@ export class Variables {
 function promiseReduce<T, U>(
   values: readonly T[],
   callback: (u: U, t: T) => Promise<U>,
-  initialValue: Promise<U>
+  initialValue: Promise<U>,
 ): Promise<U> {
   return values.reduce(
     (previous, value) =>
-      isPromise(previous) ? previous.then(resolved => callback(resolved, value)) : callback(previous, value),
-    initialValue
+      isPromise(previous)
+        ? previous.then(resolved => callback(resolved, value))
+        : callback(previous, value),
+    initialValue,
   );
 }
 

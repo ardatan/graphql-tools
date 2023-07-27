@@ -1,4 +1,4 @@
-import { print, parse } from 'graphql';
+import { parse, print } from 'graphql';
 import { DelegationContext } from '@graphql-tools/delegate';
 import { bookingSchema, propertySchema } from '../../testing/fixtures/schemas.js';
 import { finalizeGatewayRequest } from '../src/finalizeGatewayRequest.js';
@@ -25,7 +25,7 @@ describe('finalizeGatewayRequest', () => {
       },
       {
         targetSchema: bookingSchema,
-      } as DelegationContext
+      } as DelegationContext,
     );
 
     const expected = parse(/* GraphQL */ `
@@ -61,7 +61,7 @@ describe('finalizeGatewayRequest', () => {
       },
       {
         targetSchema: bookingSchema,
-      } as DelegationContext
+      } as DelegationContext,
     );
 
     const expected = parse(/* GraphQL */ `
@@ -90,7 +90,7 @@ describe('finalizeGatewayRequest', () => {
       },
       {
         targetSchema: propertySchema,
-      } as DelegationContext
+      } as DelegationContext,
     );
 
     const expected = parse(/* GraphQL */ `
@@ -123,7 +123,7 @@ describe('finalizeGatewayRequest', () => {
       },
       {
         targetSchema: bookingSchema,
-      } as DelegationContext
+      } as DelegationContext,
     );
 
     const expected = parse(/* GraphQL */ `

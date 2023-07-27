@@ -1,8 +1,7 @@
 import { graphql, GraphQLSchema, OperationTypeNode } from 'graphql';
-
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import { delegateToSchema } from '@graphql-tools/delegate';
 import { addMocksToSchema } from '@graphql-tools/mock';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { assertSome } from '@graphql-tools/utils';
 
@@ -227,7 +226,10 @@ describe('stitching to interfaces', () => {
       }
     `;
 
-    const resultWithFragments = await graphql({ schema: stitchedSchema, source: queryWithFragments });
+    const resultWithFragments = await graphql({
+      schema: stitchedSchema,
+      source: queryWithFragments,
+    });
 
     expect(resultWithFragments.errors).toBeUndefined();
     assertSome(resultWithFragments.data);
@@ -253,7 +255,10 @@ describe('stitching to interfaces', () => {
       }
     `;
 
-    const resultWithoutFragments = await graphql({ schema: stitchedSchema, source: queryWithoutFragments });
+    const resultWithoutFragments = await graphql({
+      schema: stitchedSchema,
+      source: queryWithoutFragments,
+    });
 
     expect(resultWithoutFragments.errors).toBeUndefined();
     assertSome(resultWithoutFragments.data);

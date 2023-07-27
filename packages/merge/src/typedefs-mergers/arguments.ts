@@ -1,11 +1,11 @@
 import { InputValueDefinitionNode } from 'graphql';
-import { Config } from './index.js';
 import { compareNodes, isSome } from '@graphql-tools/utils';
+import { Config } from './index.js';
 
 export function mergeArguments(
   args1: InputValueDefinitionNode[],
   args2: InputValueDefinitionNode[],
-  config?: Config
+  config?: Config,
 ): InputValueDefinitionNode[] {
   const result = deduplicateArguments([...args2, ...args1].filter(isSome), config);
   if (config && config.sort) {
@@ -16,7 +16,7 @@ export function mergeArguments(
 
 function deduplicateArguments(
   args: ReadonlyArray<InputValueDefinitionNode>,
-  config?: Config
+  config?: Config,
 ): InputValueDefinitionNode[] {
   return args.reduce<InputValueDefinitionNode[]>((acc, current) => {
     const dupIndex = acc.findIndex(arg => arg.name.value === current.name.value);

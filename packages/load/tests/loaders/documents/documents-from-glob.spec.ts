@@ -1,12 +1,12 @@
-import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
 import { join } from 'path';
 import { parse, separateOperations } from 'graphql';
-import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
+import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
 import { runTests } from '../../../../testing/utils.js';
 import '../../../../testing/to-be-similar-string';
-import globby from 'globby';
 import { readFileSync } from 'fs';
+import globby from 'globby';
 import { removeLoc } from '@graphql-tools/optimize';
 
 describe('documentsFromGlob', () => {
@@ -181,7 +181,7 @@ describe('documentsFromGlob', () => {
         {
           loaders: [],
           customLoaderContext,
-        }
+        },
       );
       expect(result).toHaveLength(1);
       expect(result[0].rawSDL).toContain(pointerOptions.fooFieldName);

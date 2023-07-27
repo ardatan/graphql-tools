@@ -1,7 +1,7 @@
-import { wrapSchema, TransformCompositeFields } from '@graphql-tools/wrap';
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import { parse } from 'graphql';
 import { execute, isIncrementalResult } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { TransformCompositeFields, wrapSchema } from '@graphql-tools/wrap';
 
 const baseSchema = makeExecutableSchema({
   typeDefs: /* GraphQL */ `
@@ -84,7 +84,7 @@ describe('TransformCompositeFields', () => {
             dataObjects.push(obj.__typename);
             if (obj._id) obj._id = obj._id.toUpperCase();
             return obj;
-          }
+          },
         ),
       ],
     });
@@ -101,14 +101,17 @@ describe('TransformCompositeFields', () => {
   });
 
   test('does not include __typename more than once on execution when a data transformer exists', async () => {
-    const transformSelectionSetSpy = jest.spyOn(TransformCompositeFields.prototype as any, 'transformSelectionSet');
+    const transformSelectionSetSpy = jest.spyOn(
+      TransformCompositeFields.prototype as any,
+      'transformSelectionSet',
+    );
     const transformedSchema = wrapSchema({
       schema: baseSchema,
       transforms: [
         new TransformCompositeFields(
           (_typeName, _fieldName, fieldConfig) => fieldConfig,
           undefined,
-          data => data
+          data => data,
         ),
       ],
     });
@@ -122,18 +125,24 @@ describe('TransformCompositeFields', () => {
       2,
       expect.objectContaining({
         selections: [
-          expect.objectContaining({ name: expect.objectContaining({ kind: 'Name', value: '__typename' }) }),
+          expect.objectContaining({
+            name: expect.objectContaining({ kind: 'Name', value: '__typename' }),
+          }),
           expect.objectContaining({
             name: expect.objectContaining({ kind: 'Name', value: 'product' }),
             selectionSet: expect.objectContaining({
               selections: [
-                expect.objectContaining({ name: expect.objectContaining({ kind: 'Name', value: '_id' }) }),
-                expect.objectContaining({ name: expect.objectContaining({ kind: 'Name', value: '__typename' }) }),
+                expect.objectContaining({
+                  name: expect.objectContaining({ kind: 'Name', value: '_id' }),
+                }),
+                expect.objectContaining({
+                  name: expect.objectContaining({ kind: 'Name', value: '__typename' }),
+                }),
               ],
             }),
           }),
         ],
-      })
+      }),
     );
   });
 });

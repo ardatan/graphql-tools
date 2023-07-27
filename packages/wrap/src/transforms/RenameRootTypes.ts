@@ -1,8 +1,13 @@
-import { visit, GraphQLSchema, NamedTypeNode, Kind } from 'graphql';
-
-import { ExecutionRequest, ExecutionResult, MapperKind, mapSchema, renameType, visitData } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext, SubschemaConfig } from '@graphql-tools/delegate';
+import { GraphQLSchema, Kind, NamedTypeNode, visit } from 'graphql';
+import { DelegationContext, SubschemaConfig, Transform } from '@graphql-tools/delegate';
+import {
+  ExecutionRequest,
+  ExecutionResult,
+  MapperKind,
+  mapSchema,
+  renameType,
+  visitData,
+} from '@graphql-tools/utils';
 
 interface RenameRootTypesTransformationContext extends Record<string, any> {}
 
@@ -21,7 +26,7 @@ export default class RenameRootTypes<TContext = Record<string, any>>
 
   public transformSchema(
     originalWrappingSchema: GraphQLSchema,
-    _subschemaConfig: SubschemaConfig<any, any, any, TContext>
+    _subschemaConfig: SubschemaConfig<any, any, any, TContext>,
   ): GraphQLSchema {
     return mapSchema(originalWrappingSchema, {
       [MapperKind.ROOT_OBJECT]: type => {
@@ -40,7 +45,7 @@ export default class RenameRootTypes<TContext = Record<string, any>>
   public transformRequest(
     originalRequest: ExecutionRequest,
     _delegationContext: DelegationContext<TContext>,
-    _transformationContext: RenameRootTypesTransformationContext
+    _transformationContext: RenameRootTypesTransformationContext,
   ): ExecutionRequest {
     const document = visit(originalRequest.document, {
       [Kind.NAMED_TYPE]: (node: NamedTypeNode) => {
@@ -65,7 +70,7 @@ export default class RenameRootTypes<TContext = Record<string, any>>
   public transformResult(
     originalResult: ExecutionResult,
     _delegationContext: DelegationContext<TContext>,
-    _transformationContext?: RenameRootTypesTransformationContext
+    _transformationContext?: RenameRootTypesTransformationContext,
   ): ExecutionResult {
     return {
       ...originalResult,

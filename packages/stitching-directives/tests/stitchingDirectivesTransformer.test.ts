@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { print } from 'graphql';
-
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { parseSelectionSet } from '@graphql-tools/utils';
-
 import { stitchingDirectives } from '../src/index.js';
 
 describe('type merging directives', () => {
@@ -32,7 +30,9 @@ describe('type merging directives', () => {
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
-    expect(transformedSubschemaConfig.merge?.['User'].selectionSet).toEqual(print(parseSelectionSet('{ id }')));
+    expect(transformedSubschemaConfig.merge?.['User'].selectionSet).toEqual(
+      print(parseSelectionSet('{ id }')),
+    );
     expect(transformedSubschemaConfig.merge?.['User'].fieldName).toEqual('_user');
   });
 
@@ -61,7 +61,9 @@ describe('type merging directives', () => {
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
-    expect(transformedSubschemaConfig.merge?.['User'].selectionSet).toEqual(print(parseSelectionSet('{ id }')));
+    expect(transformedSubschemaConfig.merge?.['User'].selectionSet).toEqual(
+      print(parseSelectionSet('{ id }')),
+    );
     expect(transformedSubschemaConfig.merge?.['User'].fieldName).toEqual('_entity');
   });
 
@@ -92,7 +94,9 @@ describe('type merging directives', () => {
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
-    expect(transformedSubschemaConfig.merge?.['User'].selectionSet).toEqual(print(parseSelectionSet('{ id }')));
+    expect(transformedSubschemaConfig.merge?.['User'].selectionSet).toEqual(
+      print(parseSelectionSet('{ id }')),
+    );
     expect(transformedSubschemaConfig.merge?.['User'].fieldName).toEqual('_entity');
   });
 
@@ -273,7 +277,7 @@ describe('type merging directives', () => {
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
     expect(transformedSubschemaConfig.merge?.['User']?.fields?.['name']?.selectionSet).toEqual(
-      print(parseSelectionSet('{ id }'))
+      print(parseSelectionSet('{ id }')),
     );
     expect(transformedSubschemaConfig.merge?.['User']?.fields?.['name']?.computed).toEqual(true);
     expect(transformedSubschemaConfig.merge?.['User'].fieldName).toEqual('_user');

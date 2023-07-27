@@ -1,9 +1,21 @@
-import { Config } from './merge-typedefs.js';
-import { FieldDefinitionNode, InputValueDefinitionNode, TypeNode, NameNode, DirectiveDefinitionNode } from 'graphql';
-import { extractType, isWrappingTypeNode, isListTypeNode, isNonNullTypeNode, printTypeNode } from './utils.js';
-import { mergeDirectives } from './directives.js';
+import {
+  DirectiveDefinitionNode,
+  FieldDefinitionNode,
+  InputValueDefinitionNode,
+  NameNode,
+  TypeNode,
+} from 'graphql';
 import { compareNodes } from '@graphql-tools/utils';
 import { mergeArguments } from './arguments.js';
+import { mergeDirectives } from './directives.js';
+import { Config } from './merge-typedefs.js';
+import {
+  extractType,
+  isListTypeNode,
+  isNonNullTypeNode,
+  isWrappingTypeNode,
+  printTypeNode,
+} from './utils.js';
 
 type FieldDefNode = FieldDefinitionNode | InputValueDefinitionNode;
 type NamedDefNode = { name: NameNode };
@@ -12,11 +24,16 @@ export type OnFieldTypeConflict = (
   existingField: FieldDefNode,
   otherField: FieldDefNode,
   type: NamedDefNode,
-  ignoreNullability: boolean | undefined
+  ignoreNullability: boolean | undefined,
 ) => FieldDefNode;
 
-function fieldAlreadyExists(fieldsArr: ReadonlyArray<any>, otherField: any): [FieldDefNode, number] {
-  const resultIndex: number | null = fieldsArr.findIndex(field => field.name.value === otherField.name.value);
+function fieldAlreadyExists(
+  fieldsArr: ReadonlyArray<any>,
+  otherField: any,
+): [FieldDefNode, number] {
+  const resultIndex: number | null = fieldsArr.findIndex(
+    field => field.name.value === otherField.name.value,
+  );
 
   return [resultIndex > -1 ? fieldsArr[resultIndex] : null, resultIndex];
 }
@@ -26,7 +43,7 @@ export function mergeFields<T extends FieldDefNode>(
   f1: ReadonlyArray<T> | undefined,
   f2: ReadonlyArray<T> | undefined,
   config?: Config,
-  directives?: Record<string, DirectiveDefinitionNode>
+  directives?: Record<string, DirectiveDefinitionNode>,
 ): T[] {
   const result: T[] = [];
   if (f2 != null) {
@@ -38,11 +55,21 @@ export function mergeFields<T extends FieldDefNode>(
 
       if (existing && !config?.ignoreFieldConflicts) {
         const newField: any =
-          (config?.onFieldTypeConflict && config.onFieldTypeConflict(existing, field, type, config?.throwOnConflict)) ||
+          (config?.onFieldTypeConflict &&
+            config.onFieldTypeConflict(existing, field, type, config?.throwOnConflict)) ||
           preventConflicts(type, existing, field, config?.throwOnConflict);
 
-        newField.arguments = mergeArguments(field['arguments'] || [], existing['arguments'] || [], config);
-        newField.directives = mergeDirectives(field.directives, existing.directives, config, directives);
+        newField.arguments = mergeArguments(
+          field['arguments'] || [],
+          existing['arguments'] || [],
+          config,
+        );
+        newField.directives = mergeDirectives(
+          field.directives,
+          existing.directives,
+          config,
+          directives,
+        );
         newField.description = field.description || existing.description;
         result[existingIndex] = newField;
       } else {
@@ -60,7 +87,12 @@ export function mergeFields<T extends FieldDefNode>(
   return result;
 }
 
-function preventConflicts(type: NamedDefNode, a: FieldDefNode, b: FieldDefNode, ignoreNullability = false) {
+function preventConflicts(
+  type: NamedDefNode,
+  a: FieldDefNode,
+  b: FieldDefNode,
+  ignoreNullability = false,
+) {
   const aType = printTypeNode(a.type);
   const bType = printTypeNode(b.type);
 
@@ -70,11 +102,13 @@ function preventConflicts(type: NamedDefNode, a: FieldDefNode, b: FieldDefNode, 
 
     if (t1.name.value !== t2.name.value) {
       throw new Error(
-        `Field "${b.name.value}" already defined with a different type. Declared as "${t1.name.value}", but you tried to override with "${t2.name.value}"`
+        `Field "${b.name.value}" already defined with a different type. Declared as "${t1.name.value}", but you tried to override with "${t2.name.value}"`,
       );
     }
     if (!safeChangeForFieldType(a.type, b.type, !ignoreNullability)) {
-      throw new Error(`Field '${type.name.value}.${a.name.value}' changed type from '${aType}' to '${bType}'`);
+      throw new Error(
+        `Field '${type.name.value}.${a.name.value}' changed type from '${aType}' to '${bType}'`,
+      );
     }
   }
 
@@ -85,7 +119,11 @@ function preventConflicts(type: NamedDefNode, a: FieldDefNode, b: FieldDefNode, 
   return a;
 }
 
-function safeChangeForFieldType(oldType: TypeNode, newType: TypeNode, ignoreNullability = false): boolean {
+function safeChangeForFieldType(
+  oldType: TypeNode,
+  newType: TypeNode,
+  ignoreNullability = false,
+): boolean {
   // both are named
   if (!isWrappingTypeNode(oldType) && !isWrappingTypeNode(newType)) {
     return oldType.toString() === newType.toString();

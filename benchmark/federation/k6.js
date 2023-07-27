@@ -1,7 +1,7 @@
-import { check } from 'k6';
-import { graphql, checkNoErrors } from '../utils.js';
 import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
 import { githubComment } from 'https://raw.githubusercontent.com/dotansimha/k6-github-pr-comment/master/lib.js';
+import { check } from 'k6';
+import { checkNoErrors, graphql } from '../utils.js';
 
 const isPrinted = __ENV.GITHUB_TOKEN && __ENV.PRODUCTS_SIZE == 1000;
 
@@ -30,7 +30,7 @@ export function handleSummary(data) {
 
         if (thresholds.failures) {
           result.push(
-            `**Performance regression detected**: it seems like your Pull Request adds some extra latency to Schema Stitching`
+            `**Performance regression detected**: it seems like your Pull Request adds some extra latency to Schema Stitching`,
           );
         }
 
@@ -39,7 +39,9 @@ export function handleSummary(data) {
         }
 
         if (!passes) {
-          result.push(`> If the performance regression is expected, please increase the failing threshold.`);
+          result.push(
+            `> If the performance regression is expected, please increase the failing threshold.`,
+          );
         }
 
         return result.join('\n');
@@ -101,6 +103,7 @@ export default function () {
 
   check(res, {
     no_errors: checkNoErrors,
-    expected_result: resp => 'reviews' in resp.json().data.users[0] && 'reviews' in resp.json().data.topProducts[0],
+    expected_result: resp =>
+      'reviews' in resp.json().data.users[0] && 'reviews' in resp.json().data.topProducts[0],
   });
 }

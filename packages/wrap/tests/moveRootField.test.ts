@@ -1,9 +1,9 @@
-import { OperationTypeNode, buildSchema, parse } from 'graphql';
-import { wrapSchema } from '../src/wrapSchema';
-import { MoveRootField } from '../src/transforms/MoveRootField';
-import { printSchemaWithDirectives } from '@graphql-tools/utils';
-import { makeExecutableSchema } from '@graphql-tools/schema';
+import { buildSchema, OperationTypeNode, parse } from 'graphql';
 import { normalizedExecutor } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { printSchemaWithDirectives } from '@graphql-tools/utils';
+import { MoveRootField } from '../src/transforms/MoveRootField';
+import { wrapSchema } from '../src/wrapSchema';
 
 describe('MoveRootField', () => {
   it('moves the field to a non existing type', () => {

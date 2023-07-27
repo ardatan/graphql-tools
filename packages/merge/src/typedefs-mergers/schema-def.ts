@@ -16,12 +16,13 @@ export const DEFAULT_OPERATION_TYPE_NAME_MAP = {
 
 function mergeOperationTypes(
   opNodeList: ReadonlyArray<OperationTypeDefinitionNode> = [],
-  existingOpNodeList: ReadonlyArray<OperationTypeDefinitionNode> = []
+  existingOpNodeList: ReadonlyArray<OperationTypeDefinitionNode> = [],
 ): OperationTypeDefinitionNode[] {
   const finalOpNodeList: OperationTypeDefinitionNode[] = [];
   for (const opNodeType in DEFAULT_OPERATION_TYPE_NAME_MAP) {
     const opNode =
-      opNodeList.find(n => n.operation === opNodeType) || existingOpNodeList.find(n => n.operation === opNodeType);
+      opNodeList.find(n => n.operation === opNodeType) ||
+      existingOpNodeList.find(n => n.operation === opNodeType);
     if (opNode) {
       finalOpNodeList.push(opNode);
     }
@@ -33,7 +34,7 @@ export function mergeSchemaDefs(
   node: SchemaDefinitionNode | SchemaExtensionNode,
   existingNode: SchemaDefinitionNode | SchemaExtensionNode,
   config?: Config,
-  directives?: Record<string, DirectiveDefinitionNode>
+  directives?: Record<string, DirectiveDefinitionNode>,
 ): SchemaDefinitionNode | SchemaExtensionNode {
   if (existingNode) {
     return {

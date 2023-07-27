@@ -1,18 +1,17 @@
-import { hasOwnProperty } from './jsutils.js';
 import {
-  valueFromAST,
-  GraphQLField,
-  GraphQLDirective,
+  ArgumentNode,
   DirectiveNode,
   FieldNode,
+  GraphQLDirective,
+  GraphQLField,
   isNonNullType,
   Kind,
   print,
-  ArgumentNode,
+  valueFromAST,
 } from 'graphql';
 import { createGraphQLError } from './errors.js';
-
 import { inspect } from './inspect.js';
+import { hasOwnProperty } from './jsutils.js';
 
 /**
  * Prepares an object map of argument values given a list of argument
@@ -25,7 +24,7 @@ import { inspect } from './inspect.js';
 export function getArgumentValues(
   def: GraphQLField<any, any> | GraphQLDirective,
   node: FieldNode | DirectiveNode,
-  variableValues: Record<string, any> = {}
+  variableValues: Record<string, any> = {},
 ): Record<string, any> {
   const coercedValues = {};
 
@@ -35,7 +34,7 @@ export function getArgumentValues(
       ...prev,
       [arg.name.value]: arg,
     }),
-    {}
+    {},
   );
 
   for (const { name, type: argType, defaultValue } of def.args) {
@@ -45,9 +44,12 @@ export function getArgumentValues(
       if (defaultValue !== undefined) {
         coercedValues[name] = defaultValue;
       } else if (isNonNullType(argType)) {
-        throw createGraphQLError(`Argument "${name}" of required type "${inspect(argType)}" ` + 'was not provided.', {
-          nodes: [node],
-        });
+        throw createGraphQLError(
+          `Argument "${name}" of required type "${inspect(argType)}" ` + 'was not provided.',
+          {
+            nodes: [node],
+          },
+        );
       }
       continue;
     }
@@ -66,7 +68,7 @@ export function getArgumentValues(
               `was provided the variable "$${variableName}" which was not provided a runtime value.`,
             {
               nodes: [valueNode],
-            }
+            },
           );
         }
         continue;
@@ -75,9 +77,12 @@ export function getArgumentValues(
     }
 
     if (isNull && isNonNullType(argType)) {
-      throw createGraphQLError(`Argument "${name}" of non-null type "${inspect(argType)}" ` + 'must not be null.', {
-        nodes: [valueNode],
-      });
+      throw createGraphQLError(
+        `Argument "${name}" of non-null type "${inspect(argType)}" ` + 'must not be null.',
+        {
+          nodes: [valueNode],
+        },
+      );
     }
 
     const coercedValue = valueFromAST(valueNode, argType, variableValues);

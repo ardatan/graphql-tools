@@ -1,18 +1,19 @@
 import { parseSelectionSet } from '@graphql-tools/utils';
-
 import { parseMergeArgsExpr } from '../src/parseMergeArgsExpr.js';
 
 describe('can parse merge arguments', () => {
   test('throws if no key declared', () => {
-    expect(() => parseMergeArgsExpr(`test: "test"`)).toThrowError('Merge arguments must declare a key.');
+    expect(() => parseMergeArgsExpr(`test: "test"`)).toThrowError(
+      'Merge arguments must declare a key.',
+    );
   });
 
   test('throws if expansions are mixed with key declarations', () => {
     expect(() => parseMergeArgsExpr(`expansion: [[$key]], single: $key`)).toThrowError(
-      'Expansions cannot be mixed with single key declarations.'
+      'Expansions cannot be mixed with single key declarations.',
     );
     expect(() => parseMergeArgsExpr(`expansion: [[$key.test]], single: $key.test`)).toThrowError(
-      'Expansions cannot be mixed with single key declarations.'
+      'Expansions cannot be mixed with single key declarations.',
     );
   });
 

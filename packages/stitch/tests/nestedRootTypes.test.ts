@@ -1,6 +1,6 @@
+import { graphql } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { graphql } from 'graphql';
 
 describe('nested root types', () => {
   const schema1 = makeExecutableSchema({

@@ -1,20 +1,20 @@
-import { RenameTypes, wrapSchema } from '@graphql-tools/wrap';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas } from '@graphql-tools/stitch';
 import {
   buildSchema,
   GraphQLDirective,
   GraphQLEnumType,
-  printSchema,
-  GraphQLSchema,
-  specifiedDirectives,
-  GraphQLObjectType,
-  GraphQLNonNull,
   GraphQLID,
   GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLSchema,
+  printSchema,
+  specifiedDirectives,
 } from 'graphql';
-import { printSchemaWithDirectives } from '../src/index.js';
 import { GraphQLJSON } from 'graphql-scalars';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { stitchSchemas } from '@graphql-tools/stitch';
+import { RenameTypes, wrapSchema } from '@graphql-tools/wrap';
+import { printSchemaWithDirectives } from '../src/index.js';
 
 describe('printSchemaWithDirectives', () => {
   it(`Should print with directives, while printSchema doesn't`, () => {

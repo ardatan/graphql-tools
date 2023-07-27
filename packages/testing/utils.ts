@@ -1,6 +1,6 @@
 /* eslint-disable */
-import { resolve } from 'path';
 import { existsSync } from 'fs';
+import { resolve } from 'path';
 import { cwd } from 'process';
 import { jest } from '@jest/globals';
 
@@ -8,19 +8,21 @@ export function normalizeString(str: string) {
   return str.replace(/[\s,]+/g, ' ').trim();
 }
 
-type PromiseOf<T extends (...args: any[]) => any> = T extends (...args: any[]) => Promise<infer R> ? R : ReturnType<T>;
+type PromiseOf<T extends (...args: any[]) => any> = T extends (...args: any[]) => Promise<infer R>
+  ? R
+  : ReturnType<T>;
 
 export function runTests<
   TResult extends any,
   TArgs extends Array<any>,
   TSync extends (...args: TArgs) => TResult,
-  TAsync extends (...args: TArgs) => Promise<TResult>
+  TAsync extends (...args: TArgs) => Promise<TResult>,
 >({ sync: executeSync, async: executeAsync }: { sync?: TSync; async?: TAsync }) {
   return (
     testRunner: (
       executeFn: (...args: Parameters<TSync | TAsync>) => Promise<PromiseOf<TSync | TAsync>>,
-      mode: 'sync' | 'async'
-    ) => void
+      mode: 'sync' | 'async',
+    ) => void,
   ) => {
     if (executeSync) {
       // sync

@@ -1,7 +1,6 @@
 import { join } from 'path';
-
-import { JsonFileLoader } from '../src/index.js';
 import { runTests } from '../../../testing/utils.js';
+import { JsonFileLoader } from '../src/index.js';
 
 describe('JsonFileLoader', () => {
   const loader = new JsonFileLoader();
@@ -19,7 +18,9 @@ describe('JsonFileLoader', () => {
       });
 
       it('should return true for a valid absolute path', async () => {
-        await expect(canLoad(join(process.cwd(), getPointer('introspection.json')), {})).resolves.toBe(true);
+        await expect(
+          canLoad(join(process.cwd(), getPointer('introspection.json')), {}),
+        ).resolves.toBe(true);
       });
 
       it('should return false if pointer is not a valid path', async () => {
@@ -62,7 +63,9 @@ describe('JsonFileLoader', () => {
       });
 
       it('should throw when the file content is malformed', async () => {
-        await expect(load(getPointer('failing/malformed.json'), {})).rejects.toThrowError('Unable to read JSON file');
+        await expect(load(getPointer('failing/malformed.json'), {})).rejects.toThrowError(
+          'Unable to read JSON file',
+        );
       });
 
       it('should skip file it cannot load', async () => {

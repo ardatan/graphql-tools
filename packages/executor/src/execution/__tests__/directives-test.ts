@@ -1,4 +1,4 @@
-import { parse, GraphQLObjectType, GraphQLString, GraphQLSchema } from 'graphql';
+import { GraphQLObjectType, GraphQLSchema, GraphQLString, parse } from 'graphql';
 import { executeSync } from '../execute.js';
 
 const schema = new GraphQLSchema({

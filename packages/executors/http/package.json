@@ -1,6 +1,7 @@
 {
   "name": "@graphql-tools/executor-http",
-  "version": "1.0.0",
+  "version": "1.0.2",
+  "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -9,7 +10,9 @@
   },
   "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",
   "license": "MIT",
-  "sideEffects": false,
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "exports": {
@@ -44,28 +47,24 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
-  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^10.0.0",
-    "value-or-promise": "^1.0.12",
-    "@whatwg-node/fetch": "^0.9.0",
+    "@graphql-tools/utils": "^10.0.2",
     "@repeaterjs/repeater": "^3.0.4",
-    "dset": "^3.1.2",
-    "meros": "^1.2.1",
+    "@whatwg-node/fetch": "^0.9.0",
     "extract-files": "^11.0.0",
-    "tslib": "^2.4.0"
+    "meros": "^1.2.1",
+    "tslib": "^2.4.0",
+    "value-or-promise": "^1.0.12"
   },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
   },
-  "type": "module",
-  "engines": {
-    "node": ">=16.0.0"
+  "sideEffects": false,
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
   }
 }

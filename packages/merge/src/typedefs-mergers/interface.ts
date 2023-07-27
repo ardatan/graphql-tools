@@ -1,14 +1,19 @@
-import { Config } from './merge-typedefs.js';
-import { DirectiveDefinitionNode, InterfaceTypeDefinitionNode, InterfaceTypeExtensionNode, Kind } from 'graphql';
-import { mergeFields } from './fields.js';
+import {
+  DirectiveDefinitionNode,
+  InterfaceTypeDefinitionNode,
+  InterfaceTypeExtensionNode,
+  Kind,
+} from 'graphql';
 import { mergeDirectives } from './directives.js';
+import { mergeFields } from './fields.js';
 import { mergeNamedTypeArray } from './merge-named-type-array.js';
+import { Config } from './merge-typedefs.js';
 
 export function mergeInterface(
   node: InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode,
   existingNode: InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode,
   config?: Config,
-  directives?: Record<string, DirectiveDefinitionNode>
+  directives?: Record<string, DirectiveDefinitionNode>,
 ): InterfaceTypeDefinitionNode | InterfaceTypeExtensionNode {
   if (existingNode) {
     try {

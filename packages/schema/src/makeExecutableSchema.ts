@@ -1,11 +1,14 @@
 import { buildASTSchema, buildSchema, GraphQLSchema, isSchema } from 'graphql';
-
+import {
+  applyExtensions,
+  mergeExtensions,
+  mergeResolvers,
+  mergeTypeDefs,
+} from '@graphql-tools/merge';
 import { asArray } from '@graphql-tools/utils';
 import { addResolversToSchema } from './addResolversToSchema.js';
-
 import { assertResolversPresent } from './assertResolversPresent.js';
 import { IExecutableSchemaDefinition } from './types.js';
-import { applyExtensions, mergeExtensions, mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
 
 /**
  * Builds a schema from the provided type definitions and resolvers.

@@ -1,10 +1,10 @@
-import { wrapSchema, RenameInputObjectFields } from '@graphql-tools/wrap';
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { parse } from 'graphql';
-import { assertSome } from '@graphql-tools/utils';
-import { stitchSchemas } from '@graphql-tools/stitch';
 import { delegateToSchema } from '@graphql-tools/delegate';
+import { execute, isIncrementalResult } from '@graphql-tools/executor';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { stitchSchemas } from '@graphql-tools/stitch';
+import { assertSome } from '@graphql-tools/utils';
+import { RenameInputObjectFields, wrapSchema } from '@graphql-tools/wrap';
 
 describe('RenameInputObjectFields', () => {
   test('renaming with arguments works', async () => {
@@ -180,7 +180,11 @@ describe('RenameInputObjectFields', () => {
         ],
       },
     };
-    const result = await execute({ schema: transformedSchema, document: parse(query), variableValues: variables });
+    const result = await execute({
+      schema: transformedSchema,
+      document: parse(query),
+      variableValues: variables,
+    });
     if (isIncrementalResult(result)) throw Error('result is incremental');
     assertSome(result.data);
     const testData: any = result.data['test'];

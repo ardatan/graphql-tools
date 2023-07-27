@@ -1,17 +1,16 @@
-import {
-  GraphQLTagPluckOptions,
-  gqlPluckFromCodeString,
-  gqlPluckFromCodeStringSync,
-} from '@graphql-tools/graphql-tag-pluck';
+import { env } from 'process';
+import { parse } from 'graphql';
+import isGlob from 'is-glob';
 import micromatch from 'micromatch';
 import unixify from 'unixify';
-
+import {
+  gqlPluckFromCodeString,
+  gqlPluckFromCodeStringSync,
+  GraphQLTagPluckOptions,
+} from '@graphql-tools/graphql-tag-pluck';
+import { asArray, BaseLoaderOptions, Loader, Source } from '@graphql-tools/utils';
 import { loadFromGit, loadFromGitSync, readTreeAtRef, readTreeAtRefSync } from './load-git.js';
 import { parse as handleStuff } from './parse.js';
-import { parse } from 'graphql';
-import { asArray, BaseLoaderOptions, Loader, Source } from '@graphql-tools/utils';
-import isGlob from 'is-glob';
-import { env } from 'process';
 
 // git:branch:path/to/file
 function extractData(pointer: string): null | {
@@ -89,10 +88,10 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       [...refsForPaths.entries()].map(async ([ref, paths]) => {
         resolved.push(
           ...micromatch(await readTreeAtRef(ref), paths).map(
-            filePath => `git:${ref}:${maybeLeadingDotSlash}${filePath}`
-          )
+            filePath => `git:${ref}:${maybeLeadingDotSlash}${filePath}`,
+          ),
         );
-      })
+      }),
     );
     return resolved;
   }
@@ -127,13 +126,18 @@ export class GitLoader implements Loader<GitLoaderOptions> {
     const resolved: string[] = [];
     for (const [ref, paths] of refsForPaths.entries()) {
       resolved.push(
-        ...micromatch(readTreeAtRefSync(ref), paths).map(filePath => `git:${ref}:${maybeLeadingDotSlash}${filePath}`)
+        ...micromatch(readTreeAtRefSync(ref), paths).map(
+          filePath => `git:${ref}:${maybeLeadingDotSlash}${filePath}`,
+        ),
       );
     }
     return resolved;
   }
 
-  private async handleSingularPointerAsync(pointer: string, options: GitLoaderOptions): Promise<Source[]> {
+  private async handleSingularPointerAsync(
+    pointer: string,
+    options: GitLoaderOptions,
+  ): Promise<Source[]> {
     const result = extractData(pointer);
     if (result === null) {
       return [];
@@ -171,7 +175,7 @@ export class GitLoader implements Loader<GitLoaderOptions> {
           resolvedPaths.map(async path => {
             const results = await this.load(path, options);
             results?.forEach(result => finalResult.push(result));
-          })
+          }),
         );
       } else if (await this.canLoad(pointer)) {
         const results = await this.handleSingularPointerAsync(pointer, options);
@@ -196,7 +200,7 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       }
       throw new AggregateError(
         errors,
-        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n')
+        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n'),
       );
     }
 
@@ -270,7 +274,7 @@ export class GitLoader implements Loader<GitLoaderOptions> {
       }
       throw new AggregateError(
         errors,
-        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n')
+        `Reading from ${pointer} failed ; \n ` + errors.map((e: Error) => e.message).join('\n'),
       );
     }
 

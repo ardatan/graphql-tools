@@ -1,5 +1,4 @@
 import { getNamedType, GraphQLSchema, isObjectType } from 'graphql';
-
 import { IFieldIteratorFn } from './Interfaces.js';
 
 export function forEachField(schema: GraphQLSchema, fn: IFieldIteratorFn): void {

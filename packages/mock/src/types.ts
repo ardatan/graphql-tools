@@ -1,14 +1,20 @@
-import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
 import { GraphQLSchema } from 'graphql';
+import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
 
 export type IMockFn = () => unknown;
 export type IScalarMock = unknown | IMockFn;
-export type ITypeMock = () => { [fieldName: string]: unknown | IMockFn } | { [fieldName: string]: IMockFn };
+export type ITypeMock = () =>
+  | { [fieldName: string]: unknown | IMockFn }
+  | { [fieldName: string]: IMockFn };
 
 export type IMocks<TResolvers = IResolvers> = {
   [TTypeName in keyof TResolvers]?: {
-    [TFieldName in keyof TResolvers[TTypeName]]: TResolvers[TTypeName][TFieldName] extends (args: any) => any
-      ? () => ReturnType<TResolvers[TTypeName][TFieldName]> | ReturnType<TResolvers[TTypeName][TFieldName]>
+    [TFieldName in keyof TResolvers[TTypeName]]: TResolvers[TTypeName][TFieldName] extends (
+      args: any,
+    ) => any
+      ? () =>
+          | ReturnType<TResolvers[TTypeName][TFieldName]>
+          | ReturnType<TResolvers[TTypeName][TFieldName]>
       : TResolvers[TTypeName][TFieldName];
   };
 } & {
@@ -96,7 +102,7 @@ export interface IMockStore {
    * ```
    */
   get<KeyT extends KeyTypeConstraints = string, ReturnKeyT extends KeyTypeConstraints = string>(
-    args: GetArgs<KeyT>
+    args: GetArgs<KeyT>,
   ): unknown | Ref<ReturnKeyT>;
   /**
    * Shorthand for `get({typeName, key, fieldName, fieldArgs})`.
@@ -105,7 +111,7 @@ export interface IMockStore {
     typeName: string,
     key: KeyT,
     fieldNameOrFieldNames: string | string[],
-    fieldArgs?: string | { [argName: string]: any }
+    fieldArgs?: string | { [argName: string]: any },
   ): unknown | Ref<ReturnKeyT>;
   /**
    * Get a reference to the type.
@@ -113,7 +119,7 @@ export interface IMockStore {
   get<KeyT extends KeyTypeConstraints = string>(
     typeName: string,
     keyOrDefaultValue?: KeyT | { [fieldName: string]: any },
-    defaultValue?: { [fieldName: string]: any }
+    defaultValue?: { [fieldName: string]: any },
   ): unknown | Ref<KeyT>;
 
   /**
@@ -125,7 +131,7 @@ export interface IMockStore {
   get<KeyT extends KeyTypeConstraints = string, ReturnKeyT extends KeyTypeConstraints = string>(
     ref: Ref<KeyT>,
     fieldNameOrFieldNames: string | string[],
-    fieldArgs?: string | { [argName: string]: any }
+    fieldArgs?: string | { [argName: string]: any },
   ): unknown | Ref<ReturnKeyT>;
 
   /**
@@ -163,7 +169,12 @@ export interface IMockStore {
   /**
    * Shorthand for `set({typeName, key, fieldName, value})`.
    */
-  set<KeyT extends KeyTypeConstraints = string>(typeName: string, key: KeyT, fieldName: string, value?: unknown): void;
+  set<KeyT extends KeyTypeConstraints = string>(
+    typeName: string,
+    key: KeyT,
+    fieldName: string,
+    value?: unknown,
+  ): void;
 
   /**
    * Set the given field values to the type with key.
@@ -171,18 +182,25 @@ export interface IMockStore {
   set<KeyT extends KeyTypeConstraints = string>(
     typeName: string,
     key: KeyT,
-    values: { [fieldName: string]: any }
+    values: { [fieldName: string]: any },
   ): void;
 
   /**
    * Shorthand for `set({ref.$ref.typeName, ref.$ref.key, fieldName, value})`.
    */
-  set<KeyT extends KeyTypeConstraints = string>(ref: Ref<KeyT>, fieldName: string, value?: unknown): void;
+  set<KeyT extends KeyTypeConstraints = string>(
+    ref: Ref<KeyT>,
+    fieldName: string,
+    value?: unknown,
+  ): void;
 
   /**
    * Set the given field values to the type with ref.
    */
-  set<KeyT extends KeyTypeConstraints = string>(ref: Ref<KeyT>, values: { [fieldName: string]: any }): void;
+  set<KeyT extends KeyTypeConstraints = string>(
+    ref: Ref<KeyT>,
+    values: { [fieldName: string]: any },
+  ): void;
 
   /**
    * Checks if a mock is present in the store for the given typeName and key.
@@ -202,13 +220,15 @@ export type Ref<KeyT extends KeyTypeConstraints = string> = {
   };
 };
 
-export function isRef<KeyT extends KeyTypeConstraints = string>(maybeRef: unknown): maybeRef is Ref<KeyT> {
+export function isRef<KeyT extends KeyTypeConstraints = string>(
+  maybeRef: unknown,
+): maybeRef is Ref<KeyT> {
   return !!(maybeRef && typeof maybeRef === 'object' && '$ref' in maybeRef);
 }
 
 export function assertIsRef<KeyT extends KeyTypeConstraints = string>(
   maybeRef: unknown,
-  message?: string
+  message?: string,
 ): asserts maybeRef is Ref<KeyT> {
   if (!isRef(maybeRef)) {
     throw new Error(message || `Expected ${maybeRef} to be a valid Ref.`);

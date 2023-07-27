@@ -1,24 +1,27 @@
 import {
   FieldNode,
-  SelectionNode,
-  Kind,
-  SelectionSetNode,
-  GraphQLObjectType,
-  getNamedType,
-  GraphQLSchema,
   FragmentDefinitionNode,
+  getNamedType,
+  GraphQLObjectType,
+  GraphQLSchema,
+  Kind,
+  SelectionNode,
+  SelectionSetNode,
 } from 'graphql';
-
-import { DelegationPlanBuilder, MergedTypeInfo, StitchingInfo, Subschema } from '@graphql-tools/delegate';
-
-import { getFieldsNotInSubschema } from './getFieldsNotInSubschema.js';
+import {
+  DelegationPlanBuilder,
+  MergedTypeInfo,
+  StitchingInfo,
+  Subschema,
+} from '@graphql-tools/delegate';
 import { memoize1, memoize2, memoize3, memoize5 } from '@graphql-tools/utils';
+import { getFieldsNotInSubschema } from './getFieldsNotInSubschema.js';
 
 function calculateDelegationStage(
   mergedTypeInfo: MergedTypeInfo,
   sourceSubschemas: Array<Subschema>,
   targetSubschemas: Array<Subschema>,
-  fieldNodes: Array<FieldNode>
+  fieldNodes: Array<FieldNode>,
 ): {
   delegationMap: Map<Subschema, SelectionSetNode>;
   proxiableSubschemas: Array<Subschema>;
@@ -35,7 +38,10 @@ function calculateDelegationStage(
   for (const t of targetSubschemas) {
     const selectionSet = selectionSets.get(t);
     const fieldSelectionSetsMap = fieldSelectionSets.get(t);
-    if (selectionSet != null && !subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemas, selectionSet)) {
+    if (
+      selectionSet != null &&
+      !subschemaTypesContainSelectionSet(mergedTypeInfo, sourceSubschemas, selectionSet)
+    ) {
       nonProxiableSubschemas.push(t);
     } else {
       if (
@@ -155,7 +161,7 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
     sourceSubschema: Subschema<any, any, any, any>,
     variableValues: Record<string, any>,
     fragments: Record<string, FragmentDefinitionNode>,
-    fieldNodes: FieldNode[]
+    fieldNodes: FieldNode[],
   ): Array<Map<Subschema, SelectionSetNode>> {
     const stitchingInfo = getStitchingInfo(schema);
     const targetSubschemas = mergedTypeInfo?.targetSubschemas.get(sourceSubschema);
@@ -171,7 +177,7 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
       mergedTypeInfo.typeMaps.get(sourceSubschema)?.[typeName] as GraphQLObjectType,
       fieldNodes,
       fragments,
-      variableValues
+      variableValues,
     );
 
     if (!fieldsNotInSubschema.length) {
@@ -185,13 +191,14 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
       mergedTypeInfo,
       sourceSubschemas,
       targetSubschemas,
-      fieldsNotInSubschema
+      fieldsNotInSubschema,
     );
     let { delegationMap } = delegationStage;
     while (delegationMap.size) {
       delegationMaps.push(delegationMap);
 
-      const { proxiableSubschemas, nonProxiableSubschemas, unproxiableFieldNodes } = delegationStage;
+      const { proxiableSubschemas, nonProxiableSubschemas, unproxiableFieldNodes } =
+        delegationStage;
 
       sourceSubschemas = combineSubschemas(sourceSubschemas, proxiableSubschemas);
 
@@ -199,7 +206,7 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
         mergedTypeInfo,
         sourceSubschemas,
         nonProxiableSubschemas,
-        unproxiableFieldNodes
+        unproxiableFieldNodes,
       );
       delegationMap = delegationStage.delegationMap;
     }
@@ -208,13 +215,15 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
   });
 }
 
-const createSubschemas = memoize1(function createSubschemas(sourceSubschema: Subschema): Array<Subschema> {
+const createSubschemas = memoize1(function createSubschemas(
+  sourceSubschema: Subschema,
+): Array<Subschema> {
   return [sourceSubschema];
 });
 
 const combineSubschemas = memoize2(function combineSubschemas(
   sourceSubschemas: Array<Subschema>,
-  additionalSubschemas: Array<Subschema>
+  additionalSubschemas: Array<Subschema>,
 ): Array<Subschema> {
   return sourceSubschemas.concat(additionalSubschemas);
 });
@@ -222,22 +231,28 @@ const combineSubschemas = memoize2(function combineSubschemas(
 const subschemaTypesContainSelectionSet = memoize3(function subschemaTypesContainSelectionSet(
   mergedTypeInfo: MergedTypeInfo,
   sourceSubchemas: Array<Subschema>,
-  selectionSet: SelectionSetNode
+  selectionSet: SelectionSetNode,
 ) {
   return typesContainSelectionSet(
     sourceSubchemas.map(
-      sourceSubschema => sourceSubschema.transformedSchema.getType(mergedTypeInfo.typeName) as GraphQLObjectType
+      sourceSubschema =>
+        sourceSubschema.transformedSchema.getType(mergedTypeInfo.typeName) as GraphQLObjectType,
     ),
-    selectionSet
+    selectionSet,
   );
 });
 
-function typesContainSelectionSet(types: Array<GraphQLObjectType>, selectionSet: SelectionSetNode): boolean {
+function typesContainSelectionSet(
+  types: Array<GraphQLObjectType>,
+  selectionSet: SelectionSetNode,
+): boolean {
   const fieldMaps = types.map(type => type.getFields());
 
   for (const selection of selectionSet.selections) {
     if (selection.kind === Kind.FIELD) {
-      const fields = fieldMaps.map(fieldMap => fieldMap[selection.name.value]).filter(field => field != null);
+      const fields = fieldMaps
+        .map(fieldMap => fieldMap[selection.name.value])
+        .filter(field => field != null);
       if (!fields.length) {
         return false;
       }
@@ -245,10 +260,13 @@ function typesContainSelectionSet(types: Array<GraphQLObjectType>, selectionSet:
       if (selection.selectionSet != null) {
         return typesContainSelectionSet(
           fields.map(field => getNamedType(field.type)) as Array<GraphQLObjectType>,
-          selection.selectionSet
+          selection.selectionSet,
         );
       }
-    } else if (selection.kind === Kind.INLINE_FRAGMENT && selection.typeCondition?.name.value === types[0].name) {
+    } else if (
+      selection.kind === Kind.INLINE_FRAGMENT &&
+      selection.typeCondition?.name.value === types[0].name
+    ) {
       return typesContainSelectionSet(types, selection.selectionSet);
     }
   }

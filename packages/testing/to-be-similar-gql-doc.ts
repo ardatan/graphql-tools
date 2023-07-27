@@ -1,6 +1,6 @@
-import { ASTNode, parse, DocumentNode, DefinitionNode, print } from 'graphql';
-import { compareNodes } from '@graphql-tools/utils';
+import { ASTNode, DefinitionNode, DocumentNode, parse, print } from 'graphql';
 import { diff } from 'jest-diff';
+import { compareNodes } from '@graphql-tools/utils';
 
 declare global {
   namespace jest {
@@ -29,7 +29,9 @@ function sortRecursive(a: ASTNode) {
 }
 
 function normalizeDocumentString(docStr: string) {
-  const doc = parse(docStr, { noLocation: true }) as DocumentNode & { definitions: DefinitionNode[] };
+  const doc = parse(docStr, { noLocation: true }) as DocumentNode & {
+    definitions: DefinitionNode[];
+  };
   sortRecursive(doc);
   return print(doc);
 }

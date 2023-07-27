@@ -1,18 +1,8 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { IResolvers } from '@graphql-tools/utils';
 
-export const typeDefs = /* GraphQL */ `
-  type Query @extends {
-    me: User
-    users: [User]
-  }
-
-  type User @key(fields: "id") {
-    id: ID!
-    name: String
-    birthDate: String
-    username: String
-  }
-`;
+export const typeDefs = readFileSync(join(__dirname, './accounts.graphql'), 'utf8');
 
 export const resolvers: IResolvers = {
   Query: {

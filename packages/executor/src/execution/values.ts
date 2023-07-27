@@ -1,14 +1,14 @@
 import {
+  coerceInputValue,
   GraphQLError,
-  VariableDefinitionNode,
-  print,
+  GraphQLSchema,
   isInputType,
   isNonNullType,
-  GraphQLSchema,
-  coerceInputValue,
+  NamedTypeNode,
+  print,
   typeFromAST,
   valueFromAST,
-  NamedTypeNode,
+  VariableDefinitionNode,
 } from 'graphql';
 import { createGraphQLError, hasOwnProperty, inspect, printPathArray } from '@graphql-tools/utils';
 
@@ -29,14 +29,16 @@ export function getVariableValues(
   schema: GraphQLSchema,
   varDefNodes: ReadonlyArray<VariableDefinitionNode>,
   inputs: { readonly [variable: string]: unknown },
-  options?: { maxErrors?: number }
+  options?: { maxErrors?: number },
 ): CoercedVariableValues {
   const errors = [];
   const maxErrors = options?.maxErrors;
   try {
     const coerced = coerceVariableValues(schema, varDefNodes, inputs, error => {
       if (maxErrors != null && errors.length >= maxErrors) {
-        throw createGraphQLError('Too many errors processing variables, error limit reached. Execution aborted.');
+        throw createGraphQLError(
+          'Too many errors processing variables, error limit reached. Execution aborted.',
+        );
       }
       errors.push(error);
     });
@@ -56,7 +58,7 @@ function coerceVariableValues(
   schema: GraphQLSchema,
   varDefNodes: ReadonlyArray<VariableDefinitionNode>,
   inputs: { readonly [variable: string]: unknown },
-  onError: (error: GraphQLError) => void
+  onError: (error: GraphQLError) => void,
 ): { [variable: string]: unknown } {
   const coercedValues: { [variable: string]: unknown } = {};
   for (const varDefNode of varDefNodes) {
@@ -69,8 +71,8 @@ function coerceVariableValues(
       onError(
         createGraphQLError(
           `Variable "$${varName}" expected value of type "${varTypeStr}" which cannot be used as an input type.`,
-          { nodes: varDefNode.type }
-        )
+          { nodes: varDefNode.type },
+        ),
       );
       continue;
     }
@@ -81,9 +83,12 @@ function coerceVariableValues(
       } else if (isNonNullType(varType)) {
         const varTypeStr = inspect(varType);
         onError(
-          createGraphQLError(`Variable "$${varName}" of required type "${varTypeStr}" was not provided.`, {
-            nodes: varDefNode,
-          })
+          createGraphQLError(
+            `Variable "$${varName}" of required type "${varTypeStr}" was not provided.`,
+            {
+              nodes: varDefNode,
+            },
+          ),
         );
       }
       continue;
@@ -93,9 +98,12 @@ function coerceVariableValues(
     if (value === null && isNonNullType(varType)) {
       const varTypeStr = inspect(varType);
       onError(
-        createGraphQLError(`Variable "$${varName}" of non-null type "${varTypeStr}" must not be null.`, {
-          nodes: varDefNode,
-        })
+        createGraphQLError(
+          `Variable "$${varName}" of non-null type "${varTypeStr}" must not be null.`,
+          {
+            nodes: varDefNode,
+          },
+        ),
       );
       continue;
     }
@@ -109,7 +117,7 @@ function coerceVariableValues(
         createGraphQLError(prefix + '; ' + error.message, {
           nodes: varDefNode,
           originalError: error.originalError,
-        })
+        }),
       );
     });
   }

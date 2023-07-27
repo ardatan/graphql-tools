@@ -1,5 +1,4 @@
 import { parseValue } from 'graphql';
-
 import { extractVariables } from '../src/extractVariables.js';
 
 describe('can extract variables', () => {
@@ -8,7 +7,9 @@ describe('can extract variables', () => {
     const inputValue = parseValue(str, { noLocation: true });
     const { inputValue: newInputValue, variablePaths } = extractVariables(inputValue);
 
-    const expectedInputValue = parseValue(`{ outer: [{ inner: [1, 2]}, { inner: [3, 4] }] }`, { noLocation: true });
+    const expectedInputValue = parseValue(`{ outer: [{ inner: [1, 2]}, { inner: [3, 4] }] }`, {
+      noLocation: true,
+    });
 
     expect(newInputValue).toEqual(expectedInputValue);
     expect(variablePaths).toEqual({});
@@ -19,9 +20,12 @@ describe('can extract variables', () => {
     const inputValue = parseValue(str, { noLocation: true });
     const { inputValue: newInputValue, variablePaths } = extractVariables(inputValue);
 
-    const expectedInputValue = parseValue(`{ outer: [{ inner: [null, 2]}, { inner: [3, null] }] }`, {
-      noLocation: true,
-    });
+    const expectedInputValue = parseValue(
+      `{ outer: [{ inner: [null, 2]}, { inner: [3, null] }] }`,
+      {
+        noLocation: true,
+      },
+    );
 
     expect(newInputValue).toEqual(expectedInputValue);
     expect(variablePaths).toEqual({

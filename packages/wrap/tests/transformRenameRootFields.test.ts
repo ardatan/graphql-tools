@@ -1,6 +1,6 @@
-import { wrapSchema, RenameRootFields } from '@graphql-tools/wrap';
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import { graphql } from 'graphql';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { RenameRootFields, wrapSchema } from '@graphql-tools/wrap';
 
 describe('RenameRootFields', () => {
   test('works', async () => {
@@ -24,7 +24,9 @@ describe('RenameRootFields', () => {
 
     const transformedSchema = wrapSchema({
       schema,
-      transforms: [new RenameRootFields((_typeName, fieldName) => fieldName.replace(/^name/, 'title'))],
+      transforms: [
+        new RenameRootFields((_typeName, fieldName) => fieldName.replace(/^name/, 'title')),
+      ],
     });
 
     const result = await graphql({

@@ -1,5 +1,5 @@
-import { mergeGraphQLNodes } from '../src/index.js';
 import { parse } from 'graphql';
+import { assertSome } from '@graphql-tools/utils';
 import {
   assertEnumTypeDefinitionNode,
   assertInputObjectTypeDefinitionNode,
@@ -8,7 +8,7 @@ import {
   assertScalarTypeDefinitionNode,
   assertUnionTypeDefinitionNode,
 } from '../../testing/assertion.js';
-import { assertSome } from '@graphql-tools/utils';
+import { mergeGraphQLNodes } from '../src/index.js';
 
 describe('Merge Nodes', () => {
   describe('type', () => {
@@ -277,7 +277,7 @@ describe('Merge Nodes', () => {
       const mergedFn = () => mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
 
       expect(mergedFn).toThrowError(
-        'Unable to merge GraphQL type "A": Field "f1" already defined with a different type. Declared as "String", but you tried to override with "Int"'
+        'Unable to merge GraphQL type "A": Field "f1" already defined with a different type. Declared as "String", but you tried to override with "Int"',
       );
     });
   });

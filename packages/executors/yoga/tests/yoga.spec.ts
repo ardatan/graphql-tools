@@ -1,6 +1,6 @@
+import { createSchema, createYoga } from 'graphql-yoga';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { useExecutor } from '@graphql-tools/executor-yoga';
-import { createSchema, createYoga } from 'graphql-yoga';
 
 describe('Yoga Plugin', () => {
   const actual = createYoga({

@@ -1,20 +1,20 @@
 import {
-  GraphQLObjectType,
-  GraphQLInterfaceType,
-  GraphQLInputObjectType,
-  GraphQLString,
-  GraphQLNamedType,
-  GraphQLInt,
-  GraphQLFloat,
   GraphQLBoolean,
+  GraphQLFloat,
   GraphQLID,
-  TypeNode,
-  Kind,
-  GraphQLType,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLOutputType,
+  GraphQLInputObjectType,
   GraphQLInputType,
+  GraphQLInt,
+  GraphQLInterfaceType,
+  GraphQLList,
+  GraphQLNamedType,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLOutputType,
+  GraphQLString,
+  GraphQLType,
+  Kind,
+  TypeNode,
 } from 'graphql';
 
 export function createNamedStub(name: string, type: 'object'): GraphQLObjectType;
@@ -22,7 +22,7 @@ export function createNamedStub(name: string, type: 'interface'): GraphQLInterfa
 export function createNamedStub(name: string, type: 'input'): GraphQLInputObjectType;
 export function createNamedStub(
   name: string,
-  type: any
+  type: any,
 ): GraphQLObjectType | GraphQLInterfaceType | GraphQLInputObjectType {
   let constructor: any;
   if (type === 'object') {

@@ -1,20 +1,19 @@
 import {
   GraphQLScalarType,
   GraphQLSchema,
-  isScalarType,
   isEnumType,
   isInterfaceType,
-  isUnionType,
   isObjectType,
+  isScalarType,
   isSpecifiedScalarType,
+  isUnionType,
 } from 'graphql';
-
 import { IResolvers } from './Interfaces.js';
 
 export function getResolversFromSchema(
   schema: GraphQLSchema,
   // Include default merged resolvers
-  includeDefaultMergedResolver?: boolean
+  includeDefaultMergedResolver?: boolean,
 ): IResolvers {
   const resolvers = Object.create(null);
 

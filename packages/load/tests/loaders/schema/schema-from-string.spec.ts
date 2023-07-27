@@ -1,9 +1,9 @@
 import '../../../../testing/to-be-similar-string';
 import '../../../../testing/to-be-similar-gql-doc';
+import { printSchema } from 'graphql';
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import { runTests, useMonorepo } from '../../../../testing/utils.js';
-import { printSchema } from 'graphql';
 
 const monorepo = useMonorepo({
   dirname: __dirname,

@@ -14,7 +14,7 @@ export async function promiseForObject<TData>(object: TData): Promise<ResolvedOb
   await Promise.all(
     Object.entries(object as any).map(async ([key, value]) => {
       resolvedObject[key] = await value;
-    })
+    }),
   );
   return resolvedObject;
 }

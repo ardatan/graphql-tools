@@ -1,18 +1,18 @@
 {
   "name": "@graphql-tools/git-loader",
-  "version": "8.0.0",
+  "version": "8.0.2",
+  "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
     "url": "ardatan/graphql-tools",
     "directory": "packages/loaders/git"
   },
+  "author": "Dotan Simha <dotansimha@gmail.com>",
+  "license": "MIT",
   "engines": {
     "node": ">=16.0.0"
   },
-  "author": "Dotan Simha <dotansimha@gmail.com>",
-  "license": "MIT",
-  "sideEffects": false,
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "exports": {
@@ -47,14 +47,11 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
-  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/graphql-tag-pluck": "8.0.0",
+    "@graphql-tools/graphql-tag-pluck": "8.0.2",
     "@graphql-tools/utils": "^10.0.0",
     "is-glob": "4.0.3",
     "micromatch": "^4.0.4",
@@ -69,5 +66,8 @@
     "directory": "dist",
     "access": "public"
   },
-  "type": "module"
+  "sideEffects": false,
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
+  }
 }

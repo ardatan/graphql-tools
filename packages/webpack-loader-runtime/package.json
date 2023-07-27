@@ -1,17 +1,17 @@
 {
   "name": "@graphql-tools/webpack-loader-runtime",
   "version": "7.0.0",
+  "type": "module",
   "description": "A set of utils for GraphQL Webpack Loader",
-  "engines": {
-    "node": ">=16.0.0"
-  },
   "repository": {
     "type": "git",
     "url": "ardatan/graphql-tools",
     "directory": "packages/webpack-loader-runtime"
   },
   "license": "MIT",
-  "sideEffects": false,
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "exports": {
@@ -46,18 +46,18 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
-  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
-  },
-  "buildOptions": {
-    "input": "./src/index.ts"
   },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
   },
-  "type": "module"
+  "sideEffects": false,
+  "buildOptions": {
+    "input": "./src/index.ts"
+  },
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
+  }
 }

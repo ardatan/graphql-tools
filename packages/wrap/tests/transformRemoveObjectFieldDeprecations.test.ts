@@ -1,7 +1,7 @@
-import { wrapSchema, RemoveObjectFieldDeprecations } from '@graphql-tools/wrap';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { assertGraphQLObjectType } from '../../testing/assertion.js';
 import { assertSome } from '@graphql-tools/utils';
+import { RemoveObjectFieldDeprecations, wrapSchema } from '@graphql-tools/wrap';
+import { assertGraphQLObjectType } from '../../testing/assertion.js';
 
 describe('RemoveObjectFieldDeprecations', () => {
   const originalSchema = makeExecutableSchema({

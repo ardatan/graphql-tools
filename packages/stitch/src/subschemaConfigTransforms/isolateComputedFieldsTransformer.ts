@@ -50,7 +50,9 @@ export function isolateComputedFieldsTransformer(subschemaConfig: SubschemaConfi
         if (mergedFieldConfig.computed && mergedFieldConfig.selectionSet) {
           isolatedFields[fieldName] = mergedFieldConfig;
         } else if (mergedFieldConfig.computed) {
-          throw new Error(`A selectionSet is required for computed field "${typeName}.${fieldName}"`);
+          throw new Error(
+            `A selectionSet is required for computed field "${typeName}.${fieldName}"`,
+          );
         } else {
           baseFields[fieldName] = mergedFieldConfig;
         }
@@ -173,10 +175,10 @@ function filterBaseSubschema(
           typesForInterface[typeName] = getImplementingTypes(typeName, schema);
         }
         return !typesForInterface[typeName].some(
-          implementingTypeName => isolatedSchemaTypes[implementingTypeName]?.fields?.[fieldName]
+          implementingTypeName => isolatedSchemaTypes[implementingTypeName]?.fields?.[fieldName],
         );
       },
-    })
+    }),
   );
 
   const filteredSubschema = {

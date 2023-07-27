@@ -13,7 +13,10 @@ const DEFAULT_OPTIMIZERS: DocumentOptimizer[] = [removeDescriptions, removeEmpty
  * @param node document to optimize
  * @param optimizers optional, list of optimizer to use
  */
-export function optimizeDocumentNode(node: DocumentNode, optimizers = DEFAULT_OPTIMIZERS): DocumentNode {
+export function optimizeDocumentNode(
+  node: DocumentNode,
+  optimizers = DEFAULT_OPTIMIZERS,
+): DocumentNode {
   let resultNode = node;
 
   for (const optimizer of optimizers) {
@@ -25,7 +28,7 @@ export function optimizeDocumentNode(node: DocumentNode, optimizers = DEFAULT_OP
 
     if (!result) {
       throw new Error(
-        `Optimizer provided for "optimizeDocumentNode" returned empty value instead of modified "DocumentNode"!`
+        `Optimizer provided for "optimizeDocumentNode" returned empty value instead of modified "DocumentNode"!`,
       );
     }
 

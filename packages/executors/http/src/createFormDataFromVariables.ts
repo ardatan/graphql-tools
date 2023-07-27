@@ -1,8 +1,8 @@
-import { isAsyncIterable, isPromise } from '@graphql-tools/utils';
 import { extractFiles, isExtractableFile } from 'extract-files';
-import { isGraphQLUpload } from './isGraphQLUpload.js';
 import { ValueOrPromise } from 'value-or-promise';
-import { FormData as DefaultFormData, File as DefaultFile } from '@whatwg-node/fetch';
+import { isAsyncIterable, isPromise } from '@graphql-tools/utils';
+import { File as DefaultFile, FormData as DefaultFormData } from '@whatwg-node/fetch';
+import { isGraphQLUpload } from './isGraphQLUpload.js';
 
 export function createFormDataFromVariables<TVariables>(
   {
@@ -22,7 +22,7 @@ export function createFormDataFromVariables<TVariables>(
   }: {
     File?: typeof File;
     FormData?: typeof DefaultFormData;
-  }
+  },
 ) {
   const vars = Object.assign({}, variables);
   const { clone, files } = extractFiles(
@@ -33,7 +33,7 @@ export function createFormDataFromVariables<TVariables>(
       v?.promise ||
       isAsyncIterable(v) ||
       v?.then ||
-      typeof v?.arrayBuffer === 'function') as any
+      typeof v?.arrayBuffer === 'function') as any,
   );
   if (files.size === 0) {
     return JSON.stringify({
@@ -59,7 +59,7 @@ export function createFormDataFromVariables<TVariables>(
       variables: clone,
       operationName,
       extensions,
-    })
+    }),
   );
   form.append('map', JSON.stringify(map));
   function handleUpload(upload: any, i: number): void | PromiseLike<void> {
@@ -81,14 +81,20 @@ export function createFormDataFromVariables<TVariables>(
             }
           }
           const blobPart = new Uint8Array(chunks);
-          form.append(indexStr, new FileCtor([blobPart], filename, { type: upload.mimetype }), filename);
+          form.append(
+            indexStr,
+            new FileCtor([blobPart], filename, { type: upload.mimetype }),
+            filename,
+          );
         });
       } else {
         form.append(indexStr, new FileCtor([upload], filename), filename);
       }
     }
   }
-  return ValueOrPromise.all(uploads.map((upload, i) => new ValueOrPromise(() => handleUpload(upload, i))))
+  return ValueOrPromise.all(
+    uploads.map((upload, i) => new ValueOrPromise(() => handleUpload(upload, i))),
+  )
     .then(() => form)
     .resolve();
 }

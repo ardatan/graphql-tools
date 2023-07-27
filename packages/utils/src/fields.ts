@@ -1,12 +1,17 @@
-import { GraphQLFieldConfigMap, GraphQLObjectType, GraphQLFieldConfig, GraphQLSchema } from 'graphql';
-import { MapperKind } from './Interfaces.js';
-import { mapSchema, correctASTNodes } from './mapSchema.js';
+import {
+  GraphQLFieldConfig,
+  GraphQLFieldConfigMap,
+  GraphQLObjectType,
+  GraphQLSchema,
+} from 'graphql';
 import { addTypes } from './addTypes.js';
+import { MapperKind } from './Interfaces.js';
+import { correctASTNodes, mapSchema } from './mapSchema.js';
 
 export function appendObjectFields(
   schema: GraphQLSchema,
   typeName: string,
-  additionalFields: GraphQLFieldConfigMap<any, any>
+  additionalFields: GraphQLFieldConfigMap<any, any>,
 ): GraphQLSchema {
   if (schema.getType(typeName) == null) {
     return addTypes(schema, [
@@ -36,7 +41,7 @@ export function appendObjectFields(
           new GraphQLObjectType({
             ...config,
             fields: newFieldConfigMap,
-          })
+          }),
         );
       }
     },
@@ -46,7 +51,7 @@ export function appendObjectFields(
 export function removeObjectFields(
   schema: GraphQLSchema,
   typeName: string,
-  testFn: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean
+  testFn: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean,
 ): [GraphQLSchema, GraphQLFieldConfigMap<any, any>] {
   const removedFields = {};
   const newSchema = mapSchema(schema, {
@@ -69,7 +74,7 @@ export function removeObjectFields(
           new GraphQLObjectType({
             ...config,
             fields: newFieldConfigMap,
-          })
+          }),
         );
       }
     },
@@ -81,7 +86,7 @@ export function removeObjectFields(
 export function selectObjectFields(
   schema: GraphQLSchema,
   typeName: string,
-  testFn: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean
+  testFn: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean,
 ): GraphQLFieldConfigMap<any, any> {
   const selectedFields = {};
   mapSchema(schema, {
@@ -109,7 +114,7 @@ export function modifyObjectFields(
   schema: GraphQLSchema,
   typeName: string,
   testFn: (fieldName: string, field: GraphQLFieldConfig<any, any>) => boolean,
-  newFields: GraphQLFieldConfigMap<any, any>
+  newFields: GraphQLFieldConfigMap<any, any>,
 ): [GraphQLSchema, GraphQLFieldConfigMap<any, any>] {
   const removedFields = {};
   const newSchema = mapSchema(schema, {
@@ -137,7 +142,7 @@ export function modifyObjectFields(
           new GraphQLObjectType({
             ...config,
             fields: newFieldConfigMap,
-          })
+          }),
         );
       }
     },

@@ -1,12 +1,14 @@
+import { existsSync, promises as fsPromises } from 'fs';
 import { DocumentNode, GraphQLSchema, isSchema } from 'graphql';
 import { Loader, Source } from '@graphql-tools/utils';
-import { existsSync, promises as fsPromises } from 'fs';
 
 const { access } = fsPromises;
 
 const InvalidError = new Error(`Imported object was not a string, DocumentNode or GraphQLSchema`);
 const createLoadError = (error: any) =>
-  new Error('Unable to load schema from module: ' + `${error.message || /* istanbul ignore next */ error}`);
+  new Error(
+    'Unable to load schema from module: ' + `${error.message || /* istanbul ignore next */ error}`,
+  );
 
 // module:node/module#export
 function extractData(pointer: string): {
@@ -94,7 +96,10 @@ export class ModuleLoader implements Loader {
     }
   }
 
-  private parse(pointer: string, importedModule: GraphQLSchema | string | DocumentNode): Source | void {
+  private parse(
+    pointer: string,
+    importedModule: GraphQLSchema | string | DocumentNode,
+  ): Source | void {
     if (isSchema(importedModule)) {
       return {
         schema: importedModule,

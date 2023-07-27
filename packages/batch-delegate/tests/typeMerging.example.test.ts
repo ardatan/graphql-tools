@@ -6,10 +6,9 @@
 // https://github.com/ardatan/graphql-tools/issues/1959
 
 import { graphql } from 'graphql';
-
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { ExecutionResult } from '@graphql-tools/utils';
 import { stitchSchemas } from '@graphql-tools/stitch';
+import { ExecutionResult } from '@graphql-tools/utils';
 
 describe('merging using type merging', () => {
   const users = [
@@ -132,7 +131,8 @@ describe('merging using type merging', () => {
       Query: {
         topProducts: (_root, args) => products.slice(0, args.first),
         _productByUpc: (_root, { upc }) => products.find(product => product.upc === upc),
-        _productsByUpc: (_root, { upcs }) => upcs.map((upc: any) => products.find(product => product.upc === upc)),
+        _productsByUpc: (_root, { upcs }) =>
+          upcs.map((upc: any) => products.find(product => product.upc === upc)),
       },
     },
   });

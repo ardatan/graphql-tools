@@ -12,7 +12,8 @@ import {
  */
 export const GraphQLDeferDirective = new GraphQLDirective({
   name: 'defer',
-  description: 'Directs the executor to defer this fragment when the `if` argument is true or undefined.',
+  description:
+    'Directs the executor to defer this fragment when the `if` argument is true or undefined.',
   locations: [DirectiveLocation.FRAGMENT_SPREAD, DirectiveLocation.INLINE_FRAGMENT],
   args: {
     if: {
@@ -32,7 +33,8 @@ export const GraphQLDeferDirective = new GraphQLDirective({
  */
 export const GraphQLStreamDirective = new GraphQLDirective({
   name: 'stream',
-  description: 'Directs the executor to stream plural fields when the `if` argument is true or undefined.',
+  description:
+    'Directs the executor to stream plural fields when the `if` argument is true or undefined.',
   locations: [DirectiveLocation.FIELD],
   args: {
     if: {

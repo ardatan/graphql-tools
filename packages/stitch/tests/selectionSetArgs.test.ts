@@ -1,5 +1,5 @@
+import { FieldNode, IntValueNode, SelectionNode, ValueNode } from 'graphql';
 import { assertSome, parseSelectionSet } from '@graphql-tools/utils';
-import { FieldNode, SelectionNode, IntValueNode, ValueNode } from 'graphql';
 import { forwardArgsToSelectionSet } from '../src/index.js';
 
 function assertIntValueNode(input: ValueNode): asserts input is IntValueNode {
@@ -35,7 +35,9 @@ describe('forwardArgsToSelectionSet', () => {
   });
 
   test('passes mapped arguments to a hint selection set', () => {
-    const buildSelectionSet = forwardArgsToSelectionSet('{ id postIds }', { postIds: ['pageNumber'] });
+    const buildSelectionSet = forwardArgsToSelectionSet('{ id postIds }', {
+      postIds: ['pageNumber'],
+    });
     const result = buildSelectionSet(GATEWAY_FIELD);
 
     expect(result.selections.length).toEqual(2);

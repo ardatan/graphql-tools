@@ -1,24 +1,22 @@
-import { Source, pipe, share, filter, takeUntil, mergeMap, merge, make } from 'wonka';
-
+import { OperationTypeNode } from 'graphql';
+import { filter, make, merge, mergeMap, pipe, share, Source, takeUntil } from 'wonka';
+import { ExecutionRequest, Executor, isAsyncIterable } from '@graphql-tools/utils';
 import {
+  AnyVariables,
   Exchange,
+  ExchangeIO,
   ExecutionResult,
-  makeResult,
   makeErrorResult,
+  makeResult,
   mergeResultPatch,
   Operation,
-  OperationResult,
   OperationContext,
-  ExchangeIO,
-  AnyVariables,
+  OperationResult,
 } from '@urql/core';
-
-import { ExecutionRequest, Executor, isAsyncIterable } from '@graphql-tools/utils';
-import { OperationTypeNode } from 'graphql';
 
 export function executorExchange(executor: Executor): Exchange {
   function makeYogaSource<TData extends Record<string, any>>(
-    operation: Operation<TData>
+    operation: Operation<TData>,
   ): Source<OperationResult<TData>> {
     const extraFetchOptions =
       typeof operation.context.fetchOptions === 'function'
@@ -79,7 +77,7 @@ export function executorExchange(executor: Executor): Exchange {
   }
   return function executorExchangeFn({ forward }): ExchangeIO {
     return function executorExchangeIO<TData, TVariables extends AnyVariables>(
-      ops$: Source<Operation<TData, TVariables>>
+      ops$: Source<Operation<TData, TVariables>>,
     ): Source<OperationResult<TData>> {
       const sharedOps$ = share(ops$);
 
@@ -87,22 +85,27 @@ export function executorExchange(executor: Executor): Exchange {
         sharedOps$,
         filter(
           (operation: Operation<TData, TVariables>) =>
-            operation.kind === 'query' || operation.kind === 'mutation' || operation.kind === 'subscription'
+            operation.kind === 'query' ||
+            operation.kind === 'mutation' ||
+            operation.kind === 'subscription',
         ),
         mergeMap((operation: Operation<TData, TVariables>) => {
           const teardown$ = pipe(
             sharedOps$,
-            filter((op: Operation<TData, TVariables>) => op.kind === 'teardown' && op.key === operation.key)
+            filter(
+              (op: Operation<TData, TVariables>) =>
+                op.kind === 'teardown' && op.key === operation.key,
+            ),
           );
 
           return pipe(makeYogaSource(operation), takeUntil(teardown$));
-        })
+        }),
       );
 
       const forwardedOps$ = pipe(
         sharedOps$,
         filter((operation: Operation<TData, TVariables>) => operation.kind === 'teardown'),
-        forward
+        forward,
       );
 
       return merge([executedOps$, forwardedOps$]);

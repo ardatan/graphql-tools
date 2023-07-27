@@ -1,23 +1,22 @@
-import { getOperationASTFromRequest } from './getOperationASTFromRequest.js';
 import {
-  GraphQLSchema,
-  Kind,
-  GraphQLObjectType,
   FieldNode,
-  GraphQLOutputType,
-  isListType,
+  FragmentDefinitionNode,
   getNullableType,
-  isAbstractType,
-  isObjectType,
-  OperationDefinitionNode,
   GraphQLError,
+  GraphQLObjectType,
+  GraphQLOutputType,
+  GraphQLSchema,
+  isAbstractType,
+  isListType,
+  isObjectType,
+  Kind,
+  OperationDefinitionNode,
+  SchemaMetaFieldDef,
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
-  FragmentDefinitionNode,
-  SchemaMetaFieldDef,
 } from 'graphql';
 import { collectFields, collectSubFields } from './collectFields.js';
-
+import { getOperationASTFromRequest } from './getOperationASTFromRequest.js';
 import { ExecutionRequest, ExecutionResult } from './Interfaces.js';
 import { Maybe } from './types.js';
 
@@ -75,7 +74,7 @@ export function visitData(data: any, enter?: ValueVisitor, leave?: ValueVisitor)
 
 export function visitErrors(
   errors: ReadonlyArray<GraphQLError>,
-  visitor: (error: GraphQLError) => GraphQLError
+  visitor: (error: GraphQLError) => GraphQLError,
 ): Array<GraphQLError> {
   return errors.map(error => visitor(error));
 }
@@ -84,7 +83,7 @@ export function visitResult(
   request: ExecutionRequest,
   schema: GraphQLSchema,
   resultVisitorMap?: ResultVisitorMap,
-  errorVisitorMap?: ErrorVisitorMap
+  errorVisitorMap?: ErrorVisitorMap,
 ): any {
   const fragments = request.document.definitions.reduce((acc, def) => {
     if (def.kind === Kind.FRAGMENT_DEFINITION) {
@@ -115,7 +114,7 @@ export function visitResult(
       variableValues,
       resultVisitorMap,
       visitingErrors ? errors : undefined,
-      errorInfo
+      errorInfo,
     );
   }
 
@@ -129,7 +128,7 @@ export function visitResult(
 function visitErrorsByType(
   errors: ReadonlyArray<GraphQLError>,
   errorVisitorMap: ErrorVisitorMap,
-  errorInfo: ErrorInfo
+  errorInfo: ErrorInfo,
 ): Array<GraphQLError> {
   const segmentInfoMap = errorInfo.segmentInfoMap;
   const unpathedErrors = errorInfo.unpathedErrors;
@@ -177,7 +176,7 @@ function visitRoot(
   variableValues: Record<string, any>,
   resultVisitorMap: Maybe<ResultVisitorMap>,
   errors: Maybe<ReadonlyArray<GraphQLError>>,
-  errorInfo: ErrorInfo
+  errorInfo: ErrorInfo,
 ): any {
   const operationRootType = getOperationRootType(schema, operation)!;
   const { fields: collectedFields } = collectFields(
@@ -185,7 +184,7 @@ function visitRoot(
     fragments,
     variableValues,
     operationRootType,
-    operation.selectionSet
+    operation.selectionSet,
   );
 
   return visitObjectValue(
@@ -198,7 +197,7 @@ function visitRoot(
     resultVisitorMap,
     0,
     errors,
-    errorInfo
+    errorInfo,
   );
 }
 
@@ -212,7 +211,7 @@ function visitObjectValue(
   resultVisitorMap: Maybe<ResultVisitorMap>,
   pathIndex: number,
   errors: Maybe<ReadonlyArray<GraphQLError>>,
-  errorInfo: ErrorInfo
+  errorInfo: ErrorInfo,
 ): Record<string, any> {
   const fieldMap = type.getFields();
   const typeVisitorMap = resultVisitorMap?.[type.name] as ObjectValueVisitor;
@@ -268,7 +267,7 @@ function visitObjectValue(
       resultVisitorMap,
       newPathIndex,
       fieldErrors,
-      errorInfo
+      errorInfo,
     );
 
     updateObject(newObject, responseKey, newValue, typeVisitorMap, fieldName);
@@ -298,7 +297,7 @@ function updateObject(
   responseKey: string,
   newValue: any,
   typeVisitorMap: ObjectValueVisitor,
-  fieldName: string
+  fieldName: string,
 ): void {
   if (typeVisitorMap == null) {
     object[responseKey] = newValue;
@@ -330,7 +329,7 @@ function visitListValue(
   resultVisitorMap: Maybe<ResultVisitorMap>,
   pathIndex: number,
   errors: ReadonlyArray<GraphQLError>,
-  errorInfo: ErrorInfo
+  errorInfo: ErrorInfo,
 ): Array<any> {
   return list.map(listMember =>
     visitFieldValue(
@@ -343,8 +342,8 @@ function visitListValue(
       resultVisitorMap,
       pathIndex + 1,
       errors,
-      errorInfo
-    )
+      errorInfo,
+    ),
   );
 }
 
@@ -358,7 +357,7 @@ function visitFieldValue(
   resultVisitorMap: Maybe<ResultVisitorMap>,
   pathIndex: number,
   errors: ReadonlyArray<GraphQLError> | undefined = [],
-  errorInfo: ErrorInfo
+  errorInfo: ErrorInfo,
 ): any {
   if (value == null) {
     return value;
@@ -376,11 +375,17 @@ function visitFieldValue(
       resultVisitorMap,
       pathIndex,
       errors,
-      errorInfo
+      errorInfo,
     );
   } else if (isAbstractType(nullableType)) {
     const finalType = schema.getType(value.__typename) as GraphQLObjectType;
-    const { fields: collectedFields } = collectSubFields(schema, fragments, variableValues, finalType, fieldNodes);
+    const { fields: collectedFields } = collectSubFields(
+      schema,
+      fragments,
+      variableValues,
+      finalType,
+      fieldNodes,
+    );
     return visitObjectValue(
       value,
       finalType,
@@ -391,10 +396,16 @@ function visitFieldValue(
       resultVisitorMap,
       pathIndex,
       errors,
-      errorInfo
+      errorInfo,
     );
   } else if (isObjectType(nullableType)) {
-    const { fields: collectedFields } = collectSubFields(schema, fragments, variableValues, nullableType, fieldNodes);
+    const { fields: collectedFields } = collectSubFields(
+      schema,
+      fragments,
+      variableValues,
+      nullableType,
+      fieldNodes,
+    );
     return visitObjectValue(
       value,
       nullableType,
@@ -405,7 +416,7 @@ function visitFieldValue(
       resultVisitorMap,
       pathIndex,
       errors,
-      errorInfo
+      errorInfo,
     );
   }
 
@@ -418,7 +429,10 @@ function visitFieldValue(
   return visitedValue === undefined ? value : visitedValue;
 }
 
-function sortErrorsByPathSegment(errors: ReadonlyArray<GraphQLError>, pathIndex: number): SortedErrors {
+function sortErrorsByPathSegment(
+  errors: ReadonlyArray<GraphQLError>,
+  pathIndex: number,
+): SortedErrors {
   const errorMap = Object.create(null);
   const unpathedErrors: Set<GraphQLError> = new Set();
   for (const error of errors) {
@@ -446,7 +460,7 @@ function addPathSegmentInfo(
   fieldName: string,
   pathIndex: number,
   errors: ReadonlyArray<GraphQLError> = [],
-  errorInfo: ErrorInfo
+  errorInfo: ErrorInfo,
 ) {
   for (const error of errors) {
     const segmentInfo = {

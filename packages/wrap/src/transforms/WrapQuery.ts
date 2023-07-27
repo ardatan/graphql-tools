@@ -1,8 +1,6 @@
-import { FieldNode, visit, Kind, SelectionNode, SelectionSetNode } from 'graphql';
-
+import { FieldNode, Kind, SelectionNode, SelectionSetNode, visit } from 'graphql';
+import { DelegationContext, Transform } from '@graphql-tools/delegate';
 import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
-
-import { Transform, DelegationContext } from '@graphql-tools/delegate';
 
 export type QueryWrapper = (subtree: SelectionSetNode) => SelectionNode | SelectionSetNode;
 
@@ -24,7 +22,7 @@ export default class WrapQuery<TContext = Record<string, any>>
   public transformRequest(
     originalRequest: ExecutionRequest,
     _delegationContext: DelegationContext<TContext>,
-    _transformationContext: WrapQueryTransformationContext
+    _transformationContext: WrapQueryTransformationContext,
   ): ExecutionRequest {
     const fieldPath: Array<string> = [];
     const ourPath = JSON.stringify(this.path);
@@ -65,7 +63,7 @@ export default class WrapQuery<TContext = Record<string, any>>
   public transformResult(
     originalResult: ExecutionResult,
     _delegationContext: DelegationContext<TContext>,
-    _transformationContext: WrapQueryTransformationContext
+    _transformationContext: WrapQueryTransformationContext,
   ): ExecutionResult {
     const rootData = originalResult.data;
     if (rootData != null) {

@@ -1,12 +1,10 @@
 import { SelectionSetNode, TypeNameMetaFieldDef } from 'graphql';
-
-import { MappingInstruction } from './types.js';
-
 import { pathsFromSelectionSet } from './pathsFromSelectionSet.js';
+import { MappingInstruction } from './types.js';
 
 export function getSourcePaths(
   mappingInstructions: Array<MappingInstruction>,
-  selectionSet?: SelectionSetNode
+  selectionSet?: SelectionSetNode,
 ): Array<Array<string>> {
   const sourcePaths: Array<Array<string>> = [];
   for (const mappingInstruction of mappingInstructions) {

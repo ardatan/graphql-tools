@@ -1,11 +1,16 @@
+import {
+  GraphQLInterfaceType,
+  GraphQLResolveInfo,
+  GraphQLScalarType,
+  GraphQLSchema,
+  Kind,
+  ValueNode,
+} from 'graphql';
 import { PubSub } from 'graphql-subscriptions';
-import { GraphQLSchema, Kind, GraphQLScalarType, ValueNode, GraphQLResolveInfo, GraphQLInterfaceType } from 'graphql';
-
-import { schemaFromExecutor } from '@graphql-tools/wrap';
-import { AsyncExecutor, createGraphQLError, IResolvers } from '@graphql-tools/utils';
+import { createDefaultExecutor, SubschemaConfig } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-
-import { SubschemaConfig, createDefaultExecutor } from '@graphql-tools/delegate';
+import { AsyncExecutor, createGraphQLError, IResolvers } from '@graphql-tools/utils';
+import { schemaFromExecutor } from '@graphql-tools/wrap';
 
 export type Location = {
   name: string;
@@ -521,7 +526,9 @@ const bookingResolvers: IResolvers = {
       return sampleData.Booking[id];
     },
     bookingsByPropertyId(_parent, { propertyId, limit }) {
-      const list = Object.values(sampleData.Booking).filter((booking: Booking) => booking.propertyId === propertyId);
+      const list = Object.values(sampleData.Booking).filter(
+        (booking: Booking) => booking.propertyId === propertyId,
+      );
       return limit ? list.slice(0, limit) : list;
     },
     customerById(_parent, { id }) {
@@ -566,7 +573,9 @@ const bookingResolvers: IResolvers = {
 
   Customer: {
     bookings(parent: Customer, { limit }) {
-      const list = Object.values(sampleData.Booking).filter((booking: Booking) => booking.customerId === parent.id);
+      const list = Object.values(sampleData.Booking).filter(
+        (booking: Booking) => booking.customerId === parent.id,
+      );
       return limit ? list.slice(0, limit) : list;
     },
     vehicle(parent: Customer) {

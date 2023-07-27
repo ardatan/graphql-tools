@@ -1,20 +1,30 @@
-import { GraphQLObjectType, GraphQLSchema, GraphQLDirective, specifiedDirectives, extendSchema } from 'graphql';
-
+import {
+  extendSchema,
+  GraphQLDirective,
+  GraphQLObjectType,
+  GraphQLSchema,
+  specifiedDirectives,
+} from 'graphql';
+import {
+  defaultMergedResolver,
+  isSubschemaConfig,
+  Subschema,
+  SubschemaConfig,
+} from '@graphql-tools/delegate';
+import { applyExtensions, mergeExtensions, mergeResolvers } from '@graphql-tools/merge';
+import {
+  addResolversToSchema,
+  assertResolversPresent,
+  extendResolversFromInterfaces,
+} from '@graphql-tools/schema';
 import { IResolvers } from '@graphql-tools/utils';
-
-import { addResolversToSchema, assertResolversPresent, extendResolversFromInterfaces } from '@graphql-tools/schema';
-
-import { SubschemaConfig, isSubschemaConfig, Subschema, defaultMergedResolver } from '@graphql-tools/delegate';
-
-import { IStitchSchemasOptions, SubschemaConfigTransform } from './types.js';
-
-import { buildTypeCandidates, buildTypes } from './typeCandidates.js';
-import { createStitchingInfo, completeStitchingInfo, addStitchingInfo } from './stitchingInfo.js';
+import { addStitchingInfo, completeStitchingInfo, createStitchingInfo } from './stitchingInfo.js';
 import {
   isolateComputedFieldsTransformer,
   splitMergedTypeEntryPointsTransformer,
 } from './subschemaConfigTransforms/index.js';
-import { applyExtensions, mergeExtensions, mergeResolvers } from '@graphql-tools/merge';
+import { buildTypeCandidates, buildTypes } from './typeCandidates.js';
+import { IStitchSchemasOptions, SubschemaConfigTransform } from './types.js';
 
 export function stitchSchemas<TContext extends Record<string, any> = Record<string, any>>({
   subschemas = [],
@@ -47,7 +57,7 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
       subschemaConfigTransforms,
       subschema,
       subschemaMap,
-      originalSubschemaMap
+      originalSubschemaMap,
     )) {
       transformedSubschemas.push(transformedSubschemaConfig);
     }
@@ -119,7 +129,10 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
 
   const resolverValidationOptionsEntries = Object.entries(resolverValidationOptions);
 
-  if (resolverValidationOptionsEntries.length > 0 && resolverValidationOptionsEntries.some(([, o]) => o !== 'ignore')) {
+  if (
+    resolverValidationOptionsEntries.length > 0 &&
+    resolverValidationOptionsEntries.some(([, o]) => o !== 'ignore')
+  ) {
     assertResolversPresent(schema, resolverValidationOptions);
   }
 
@@ -143,11 +156,14 @@ const subschemaConfigTransformerPresets: Array<SubschemaConfigTransform<any>> = 
 function applySubschemaConfigTransforms<TContext = Record<string, any>>(
   subschemaConfigTransforms: Array<SubschemaConfigTransform<TContext>>,
   subschemaOrSubschemaConfig: GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
-  subschemaMap: Map<GraphQLSchema | SubschemaConfig<any, any, any, TContext>, Subschema<any, any, any, TContext>>,
+  subschemaMap: Map<
+    GraphQLSchema | SubschemaConfig<any, any, any, TContext>,
+    Subschema<any, any, any, TContext>
+  >,
   originalSubschemaMap: Map<
     Subschema<any, any, any, TContext>,
     GraphQLSchema | SubschemaConfig<any, any, any, TContext>
-  >
+  >,
 ): Array<Subschema<any, any, any, TContext>> {
   let subschemaConfig: SubschemaConfig<any, any, any, TContext>;
   if (isSubschemaConfig(subschemaOrSubschemaConfig)) {
@@ -163,11 +179,11 @@ function applySubschemaConfigTransforms<TContext = Record<string, any>>(
     .reduce(
       (transformedSubschemaConfigs, subschemaConfigTransform) =>
         transformedSubschemaConfigs.flatMap(ssConfig => subschemaConfigTransform(ssConfig)),
-      [subschemaConfig]
+      [subschemaConfig],
     );
 
   const transformedSubschemas = transformedSubschemaConfigs.map(
-    ssConfig => new Subschema<any, any, any, TContext>(ssConfig)
+    ssConfig => new Subschema<any, any, any, TContext>(ssConfig),
   );
 
   const baseSubschema = transformedSubschemas[0];

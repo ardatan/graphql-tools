@@ -4,7 +4,9 @@ import { pickExportFromModule, pickExportFromModuleSync } from './exports.js';
 /**
  * @internal
  */
-export async function tryToLoadFromExport(rawFilePath: string): Promise<GraphQLSchema | DocumentNode | null> {
+export async function tryToLoadFromExport(
+  rawFilePath: string,
+): Promise<GraphQLSchema | DocumentNode | null> {
   try {
     const filepath = ensureFilepath(rawFilePath);
 

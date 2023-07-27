@@ -18,6 +18,6 @@ export function graphql({ query, operationName, variables, endpoint }) {
       operationName,
       variables,
     }),
-    params
+    params,
   );
 }

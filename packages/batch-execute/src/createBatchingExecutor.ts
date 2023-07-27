@@ -1,18 +1,21 @@
 import DataLoader from 'dataloader';
-
-import { Executor, ExecutionRequest, ExecutionResult, getOperationASTFromRequest } from '@graphql-tools/utils';
-
+import { ValueOrPromise } from 'value-or-promise';
+import {
+  ExecutionRequest,
+  ExecutionResult,
+  Executor,
+  getOperationASTFromRequest,
+} from '@graphql-tools/utils';
 import { mergeRequests } from './mergeRequests.js';
 import { splitResult } from './splitResult.js';
-import { ValueOrPromise } from 'value-or-promise';
 
 export function createBatchingExecutor(
   executor: Executor,
   dataLoaderOptions?: DataLoader.Options<any, any, any>,
   extensionsReducer: (
     mergedExtensions: Record<string, any>,
-    request: ExecutionRequest
-  ) => Record<string, any> = defaultExtensionsReducer
+    request: ExecutionRequest,
+  ) => Record<string, any> = defaultExtensionsReducer,
 ): Executor {
   const loadFn = createLoadFn(executor, extensionsReducer);
   const loader = new DataLoader(loadFn, dataLoaderOptions);
@@ -24,10 +27,13 @@ export function createBatchingExecutor(
 
 function createLoadFn(
   executor: Executor,
-  extensionsReducer: (mergedExtensions: Record<string, any>, request: ExecutionRequest) => Record<string, any>
+  extensionsReducer: (
+    mergedExtensions: Record<string, any>,
+    request: ExecutionRequest,
+  ) => Record<string, any>,
 ) {
   return function batchExecuteLoadFn(
-    requests: ReadonlyArray<ExecutionRequest>
+    requests: ReadonlyArray<ExecutionRequest>,
   ): ValueOrPromise<Array<ExecutionResult>> {
     if (requests.length === 1) {
       return new ValueOrPromise(() => executor(requests[0]) as any)
@@ -65,15 +71,15 @@ function createLoadFn(
         new ValueOrPromise(() => {
           const mergedRequests = mergeRequests(execBatch, extensionsReducer);
           return executor(mergedRequests) as ExecutionResult;
-        }).then(resultBatches => splitResult(resultBatches, execBatch.length))
-      )
+        }).then(resultBatches => splitResult(resultBatches, execBatch.length)),
+      ),
     ).then(results => results.flat());
   };
 }
 
 function defaultExtensionsReducer(
   mergedExtensions: Record<string, any>,
-  request: ExecutionRequest
+  request: ExecutionRequest,
 ): Record<string, any> {
   const newExtensions = request.extensions;
   if (newExtensions != null) {

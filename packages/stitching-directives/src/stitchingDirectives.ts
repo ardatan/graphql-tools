@@ -1,12 +1,15 @@
-import { GraphQLDirective, GraphQLList, GraphQLNonNull, GraphQLSchema, GraphQLString } from 'graphql';
-
+import {
+  GraphQLDirective,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLSchema,
+  GraphQLString,
+} from 'graphql';
 import { SubschemaConfig } from '@graphql-tools/delegate';
-
-import { StitchingDirectivesFinalOptions, StitchingDirectivesOptions } from './types.js';
-
 import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions.js';
-import { stitchingDirectivesValidator } from './stitchingDirectivesValidator.js';
 import { stitchingDirectivesTransformer } from './stitchingDirectivesTransformer.js';
+import { stitchingDirectivesValidator } from './stitchingDirectivesValidator.js';
+import { StitchingDirectivesFinalOptions, StitchingDirectivesOptions } from './types.js';
 
 export interface StitchingDirectivesResult {
   keyDirectiveTypeDefs: string;
@@ -24,13 +27,16 @@ export interface StitchingDirectivesResult {
   allStitchingDirectives: Array<GraphQLDirective>;
 }
 
-export function stitchingDirectives(options: StitchingDirectivesOptions = {}): StitchingDirectivesResult {
+export function stitchingDirectives(
+  options: StitchingDirectivesOptions = {},
+): StitchingDirectivesResult {
   const finalOptions: StitchingDirectivesFinalOptions = {
     ...defaultStitchingDirectiveOptions,
     ...options,
   };
 
-  const { keyDirectiveName, computedDirectiveName, mergeDirectiveName, canonicalDirectiveName } = finalOptions;
+  const { keyDirectiveName, computedDirectiveName, mergeDirectiveName, canonicalDirectiveName } =
+    finalOptions;
 
   const keyDirectiveTypeDefs = /* GraphQL */ `directive @${keyDirectiveName}(selectionSet: String!) on OBJECT`;
   const computedDirectiveTypeDefs = /* GraphQL */ `directive @${computedDirectiveName}(selectionSet: String!) on FIELD_DEFINITION`;

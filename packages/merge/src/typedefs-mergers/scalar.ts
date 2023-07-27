@@ -1,4 +1,9 @@
-import { DirectiveDefinitionNode, Kind, ScalarTypeDefinitionNode, ScalarTypeExtensionNode } from 'graphql';
+import {
+  DirectiveDefinitionNode,
+  Kind,
+  ScalarTypeDefinitionNode,
+  ScalarTypeExtensionNode,
+} from 'graphql';
 import { mergeDirectives } from './directives.js';
 import { Config } from './merge-typedefs.js';
 
@@ -6,7 +11,7 @@ export function mergeScalar(
   node: ScalarTypeDefinitionNode | ScalarTypeExtensionNode,
   existingNode: ScalarTypeDefinitionNode | ScalarTypeExtensionNode,
   config?: Config,
-  directives?: Record<string, DirectiveDefinitionNode>
+  directives?: Record<string, DirectiveDefinitionNode>,
 ): ScalarTypeDefinitionNode | ScalarTypeExtensionNode {
   if (existingNode) {
     return {

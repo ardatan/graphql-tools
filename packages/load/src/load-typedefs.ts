@@ -1,10 +1,10 @@
-import { Source, BaseLoaderOptions, Loader, compareStrings, asArray } from '@graphql-tools/utils';
-import { normalizePointers } from './utils/pointers.js';
-import { applyDefaultOptions } from './load-typedefs/options.js';
+import { env } from 'process';
+import { asArray, BaseLoaderOptions, compareStrings, Loader, Source } from '@graphql-tools/utils';
 import { collectSources, collectSourcesSync } from './load-typedefs/collect-sources.js';
+import { applyDefaultOptions } from './load-typedefs/options.js';
 import { parseSource } from './load-typedefs/parse.js';
 import { useLimit } from './utils/helpers.js';
-import { env } from 'process';
+import { normalizePointers } from './utils/pointers.js';
 
 const CONCURRENCY_LIMIT = 100;
 
@@ -28,7 +28,7 @@ export type UnnormalizedTypeDefPointer = { [key: string]: any } | string;
  */
 export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
-  options: LoadTypedefsOptions<Partial<AdditionalConfig>>
+  options: LoadTypedefsOptions<Partial<AdditionalConfig>>,
 ): Promise<Source[]> {
   if (env['DEBUG'] != null) {
     console.time('@graphql-tools/load: loadTypedefs');
@@ -60,9 +60,9 @@ export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
           addValidSource(source) {
             validSources.push(source);
           },
-        })
-      )
-    )
+        }),
+      ),
+    ),
   );
 
   const result = prepareResult({ options, pointerOptionMap, validSources });
@@ -83,7 +83,7 @@ export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
  */
 export function loadTypedefsSync<AdditionalConfig = Record<string, unknown>>(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
-  options: LoadTypedefsOptions<Partial<AdditionalConfig>>
+  options: LoadTypedefsOptions<Partial<AdditionalConfig>>,
 ): Source[] {
   if (env['DEBUG'] != null) {
     console.time('@graphql-tools/load: loadTypedefsSync');
@@ -143,7 +143,7 @@ function prepareResult({
         ${pointerList.map(
           p => `
           - ${p}
-          `
+          `,
         )}`);
   }
 

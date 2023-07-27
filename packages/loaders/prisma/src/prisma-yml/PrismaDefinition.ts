@@ -1,20 +1,20 @@
-import { readDefinition } from './yaml.js';
-import { PrismaDefinition } from './prisma-json-schema.js';
-import * as fs from 'fs';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
 import { Buffer } from 'buffer';
+import * as fs from 'fs';
+import * as path from 'path';
+import chalk from 'chalk';
+import * as dotenv from 'dotenv';
+import { SignJWT } from 'jose';
+import { Cluster } from './Cluster.js';
+import { Environment } from './Environment.js';
+import { IOutput } from './Output.js';
+import { PrismaDefinition } from './prisma-json-schema.js';
 // eslint-disable-next-line
 // @ts-ignore
 import { Args } from './types/common.js';
-import { Environment } from './Environment.js';
-import { IOutput } from './Output.js';
-import { Cluster } from './Cluster.js';
 import { FunctionInput, Header } from './types/rc.js';
-import chalk from 'chalk';
-import { replaceYamlValue } from './utils/yamlComment.js';
 import { parseEndpoint, ParseEndpointResult } from './utils/parseEndpoint.js';
-import { SignJWT } from 'jose';
+import { replaceYamlValue } from './utils/yamlComment.js';
+import { readDefinition } from './yaml.js';
 
 export interface EnvVars {
   [key: string]: string | undefined;
@@ -34,7 +34,12 @@ export class PrismaDefinitionClass {
   envVars: any;
   rawEndpoint?: string;
   private definitionString: string | undefined;
-  constructor(env: Environment, definitionPath?: string | null, envVars: EnvVars = process.env, out?: IOutput) {
+  constructor(
+    env: Environment,
+    definitionPath?: string | null,
+    envVars: EnvVars = process.env,
+    out?: IOutput,
+  ) {
     this.secrets = null;
     this.definitionPath = definitionPath;
     if (definitionPath) {
@@ -52,7 +57,9 @@ export class PrismaDefinitionClass {
       try {
         fs.accessSync(flagPath);
       } catch {
-        throw new Error(`Prisma definition path specified by --project '${flagPath}' does not exist`);
+        throw new Error(
+          `Prisma definition path specified by --project '${flagPath}' does not exist`,
+        );
       }
 
       this.definitionPath = flagPath;
@@ -87,7 +94,13 @@ export class PrismaDefinitionClass {
   }
 
   private async loadDefinition(args: any, graceful?: boolean) {
-    const { definition, rawJson } = await readDefinition(this.definitionPath!, args, this.out, this.envVars, graceful);
+    const { definition, rawJson } = await readDefinition(
+      this.definitionPath!,
+      args,
+      this.out,
+      this.envVars,
+      graceful,
+    );
     this.rawEndpoint = rawJson.endpoint;
     this.definition = definition;
     this.rawJson = rawJson;
@@ -98,7 +111,9 @@ export class PrismaDefinitionClass {
   }
 
   get endpoint(): string | undefined {
-    return (this.definition && this.definition.endpoint) || process.env['PRISMA_MANAGEMENT_API_ENDPOINT'];
+    return (
+      (this.definition && this.definition.endpoint) || process.env['PRISMA_MANAGEMENT_API_ENDPOINT']
+    );
   }
 
   get clusterBaseUrl(): string | undefined {
@@ -158,9 +173,9 @@ export class PrismaDefinitionClass {
       throw new Error(
         `Your \`cluster\` property in the prisma.yml is missing the workspace slug.
 Make sure that your \`cluster\` property looks like this: ${chalk.bold(
-          '<workspace>/<cluster-name>'
+          '<workspace>/<cluster-name>',
         )}. You can also remove the cluster property from the prisma.yml
-and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-filled.`
+and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-filled.`,
       );
     }
     if (
@@ -174,12 +189,18 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
       clusterName !== 'shared-public-demo'
     ) {
       throw new Error(
-        `The provided endpoint ${this.definition.endpoint} points to a demo cluster, but is missing the workspace slug. A valid demo endpoint looks like this: https://eu1.prisma.sh/myworkspace/service-name/stage-name`
+        `The provided endpoint ${this.definition.endpoint} points to a demo cluster, but is missing the workspace slug. A valid demo endpoint looks like this: https://eu1.prisma.sh/myworkspace/service-name/stage-name`,
       );
     }
-    if (this.definition && this.definition.endpoint && !this.definition.endpoint.startsWith('http')) {
+    if (
+      this.definition &&
+      this.definition.endpoint &&
+      !this.definition.endpoint.startsWith('http')
+    ) {
       throw new Error(
-        `${chalk.bold(this.definition.endpoint)} is not a valid endpoint. It must start with http:// or https://`
+        `${chalk.bold(
+          this.definition.endpoint,
+        )} is not a valid endpoint. It must start with http:// or https://`,
       );
     }
   }
@@ -246,7 +267,7 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
       local,
       shared,
       isPrivate,
-      workspaceSlug!
+      workspaceSlug!,
     );
   }
 
@@ -295,8 +316,14 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
   getSubscriptions(): FunctionInput[] {
     if (this.definition && this.definition.subscriptions) {
       return Object.entries(this.definition!.subscriptions!).map(([name, subscription]) => {
-        const url = typeof subscription.webhook === 'string' ? subscription.webhook : subscription.webhook.url;
-        const headers = typeof subscription.webhook === 'string' ? [] : transformHeaders(subscription.webhook.headers);
+        const url =
+          typeof subscription.webhook === 'string'
+            ? subscription.webhook
+            : subscription.webhook.url;
+        const headers =
+          typeof subscription.webhook === 'string'
+            ? []
+            : transformHeaders(subscription.webhook.headers);
 
         let query = subscription.query;
         if (subscription.query.endsWith('.graphql')) {
@@ -305,7 +332,7 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
             fs.accessSync(queryPath);
           } catch {
             throw new Error(
-              `Subscription query ${queryPath} provided in subscription "${name}" in prisma.yml does not exist.`
+              `Subscription query ${queryPath} provided in subscription "${name}" in prisma.yml does not exist.`,
             );
           }
           query = fs.readFileSync(queryPath, 'utf-8');
@@ -350,7 +377,9 @@ and execute ${chalk.bold.green('prisma deploy')} again, to get that value auto-f
     if (this.definition && this.definition.hooks && this.definition.hooks[hookType]) {
       const hooks = this.definition.hooks[hookType];
       if (typeof hooks !== 'string' && !Array.isArray(hooks)) {
-        throw new Error(`Hook ${hookType} provided in prisma.yml must be string or an array of strings.`);
+        throw new Error(
+          `Hook ${hookType} provided in prisma.yml must be string or an array of strings.`,
+        );
       }
       return typeof hooks === 'string' ? [hooks] : hooks;
     }

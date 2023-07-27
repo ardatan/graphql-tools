@@ -1,7 +1,7 @@
 import { graphql } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { stitchSchemas } from '../src/stitchSchemas.js';
 import { assertSome } from '@graphql-tools/utils';
+import { stitchSchemas } from '../src/stitchSchemas.js';
 
 describe('merged interfaces via concrete type', () => {
   const namedItemSchema = makeExecutableSchema({

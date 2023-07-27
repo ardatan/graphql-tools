@@ -3,9 +3,9 @@
 
 ///<reference path="declarations.d.ts" />
 
-import { loadTypedefsSync } from '@graphql-tools/load';
-import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { concatAST } from 'graphql';
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
+import { loadTypedefsSync } from '@graphql-tools/load';
 import { isSome } from '@graphql-tools/utils';
 
 const VALID_EXTENSIONS = ['graphql', 'graphqls', 'gql', 'gqls'];

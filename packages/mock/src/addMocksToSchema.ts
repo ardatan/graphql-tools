@@ -1,18 +1,18 @@
 import {
-  GraphQLSchema,
-  GraphQLFieldResolver,
   defaultFieldResolver,
-  GraphQLTypeResolver,
-  isUnionType,
-  GraphQLUnionType,
+  GraphQLFieldResolver,
   GraphQLInterfaceType,
+  GraphQLSchema,
+  GraphQLTypeResolver,
+  GraphQLUnionType,
   isSchema,
+  isUnionType,
 } from 'graphql';
-import { mapSchema, MapperKind, IResolvers } from '@graphql-tools/utils';
 import { addResolversToSchema } from '@graphql-tools/schema';
-import { isRef, IMockStore, IMocks, TypePolicy } from './types.js';
-import { copyOwnProps, isObject, isRootType } from './utils.js';
+import { IResolvers, MapperKind, mapSchema } from '@graphql-tools/utils';
 import { createMockStore } from './MockStore.js';
+import { IMocks, IMockStore, isRef, TypePolicy } from './types.js';
+import { copyOwnProps, isObject, isRootType } from './utils.js';
 
 type IMockOptions<TResolvers = IResolvers> = {
   schema: GraphQLSchema;

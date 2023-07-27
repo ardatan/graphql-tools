@@ -20,7 +20,11 @@ function memoize1(fn) {
 }
 
 async function main() {
-  const scenarios = await Promise.all([runStitchingGateway(), runApolloGateway(), makeMonolithSchema()]);
+  const scenarios = await Promise.all([
+    runStitchingGateway(),
+    runApolloGateway(),
+    makeMonolithSchema(),
+  ]);
 
   const [stitching, federation, monolith] = scenarios;
   const [stitchingParse, federationParse, monolithParse] = scenarios.map(() => memoize1(parse));

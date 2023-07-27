@@ -2,13 +2,13 @@ import {
   GraphQLEnumType,
   GraphQLInputObjectType,
   GraphQLInterfaceType,
-  GraphQLObjectType,
   GraphQLNamedType,
+  GraphQLObjectType,
   GraphQLScalarType,
   GraphQLUnionType,
   isEnumType,
-  isInterfaceType,
   isInputObjectType,
+  isInterfaceType,
   isObjectType,
   isScalarType,
   isUnionType,
@@ -19,7 +19,10 @@ export function renameType(type: GraphQLInterfaceType, newTypeName: string): Gra
 export function renameType(type: GraphQLUnionType, newTypeName: string): GraphQLUnionType;
 export function renameType(type: GraphQLEnumType, newTypeName: string): GraphQLEnumType;
 export function renameType(type: GraphQLScalarType, newTypeName: string): GraphQLScalarType;
-export function renameType(type: GraphQLInputObjectType, newTypeName: string): GraphQLInputObjectType;
+export function renameType(
+  type: GraphQLInputObjectType,
+  newTypeName: string,
+): GraphQLInputObjectType;
 export function renameType(type: GraphQLNamedType, newTypeName: string): GraphQLNamedType;
 export function renameType(type: any, newTypeName: string): GraphQLNamedType {
   if (isObjectType(type)) {

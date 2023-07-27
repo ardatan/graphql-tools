@@ -1,6 +1,6 @@
+import { graphql } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import { graphql } from 'graphql';
 import { assertSome } from '@graphql-tools/utils';
 
 describe('Abstract type merge', () => {

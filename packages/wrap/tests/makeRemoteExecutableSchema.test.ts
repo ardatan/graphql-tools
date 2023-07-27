@@ -1,16 +1,14 @@
-import { GraphQLSchema, parse, print, buildSchema, graphql } from 'graphql';
-
-import { wrapSchema } from '../src/index.js';
-
-import {
-  propertySchema,
-  subscriptionSchema,
-  subscriptionPubSubTrigger,
-  subscriptionPubSub,
-  makeSchemaRemote,
-} from '../../testing/fixtures/schemas.js';
+import { buildSchema, graphql, GraphQLSchema, parse, print } from 'graphql';
 import { subscribe } from '@graphql-tools/executor';
 import { ExecutionResult } from '@graphql-tools/utils';
+import {
+  makeSchemaRemote,
+  propertySchema,
+  subscriptionPubSub,
+  subscriptionPubSubTrigger,
+  subscriptionSchema,
+} from '../../testing/fixtures/schemas.js';
+import { wrapSchema } from '../src/index.js';
 
 describe('remote queries', () => {
   let schema: GraphQLSchema;
@@ -94,7 +92,10 @@ describe('remote subscriptions', () => {
       }
     `);
 
-    const sub = (await subscribe({ schema, document: subscription })) as AsyncIterableIterator<ExecutionResult>;
+    const sub = (await subscribe({
+      schema,
+      document: subscription,
+    })) as AsyncIterableIterator<ExecutionResult>;
 
     const payload = sub.next();
 
@@ -198,21 +199,21 @@ describe('when query for multiple fields', () => {
 {
   fieldA
 }
-`.trim()
+`.trim(),
     );
     expect(print(calls[1].document).trim()).toEqual(
       `\
 {
   fieldB
 }
-`.trim()
+`.trim(),
     );
     expect(print(calls[2].document).trim()).toEqual(
       `\
 {
   field3
 }
-`.trim()
+`.trim(),
     );
   });
 });

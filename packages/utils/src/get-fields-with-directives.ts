@@ -1,9 +1,9 @@
 import {
   DocumentNode,
-  ObjectTypeDefinitionNode,
-  ObjectTypeExtensionNode,
   InputObjectTypeDefinitionNode,
   InputObjectTypeExtensionNode,
+  ObjectTypeDefinitionNode,
+  ObjectTypeExtensionNode,
   valueFromASTUntyped,
 } from 'graphql';
 import { DirectiveUsage } from './types.js';
@@ -22,7 +22,10 @@ type SelectedNodes =
   | InputObjectTypeDefinitionNode
   | InputObjectTypeExtensionNode;
 
-export function getFieldsWithDirectives(documentNode: DocumentNode, options: Options = {}): TypeAndFieldToDirectives {
+export function getFieldsWithDirectives(
+  documentNode: DocumentNode,
+  options: Options = {},
+): TypeAndFieldToDirectives {
   const result: TypeAndFieldToDirectives = {};
 
   let selected = ['ObjectTypeDefinition', 'ObjectTypeExtension'];
@@ -31,7 +34,9 @@ export function getFieldsWithDirectives(documentNode: DocumentNode, options: Opt
     selected = [...selected, 'InputObjectTypeDefinition', 'InputObjectTypeExtension'];
   }
 
-  const allTypes = documentNode.definitions.filter(obj => selected.includes(obj.kind)) as SelectedNodes[];
+  const allTypes = documentNode.definitions.filter(obj =>
+    selected.includes(obj.kind),
+  ) as SelectedNodes[];
 
   for (const type of allTypes) {
     const typeName = type.name.value;
@@ -48,7 +53,7 @@ export function getFieldsWithDirectives(documentNode: DocumentNode, options: Opt
           name: d.name.value,
           args: (d.arguments || []).reduce(
             (prev, arg) => ({ ...prev, [arg.name.value]: valueFromASTUntyped(arg.value) }),
-            {}
+            {},
           ),
         }));
 

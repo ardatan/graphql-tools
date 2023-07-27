@@ -1,19 +1,17 @@
 {
   "name": "@graphql-tools/executor",
   "version": "1.1.0",
-  "author": "Saihajpreet Singh <saihajpreet.singh@gmail.com>",
-  "license": "MIT",
-  "sideEffects": false,
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/ardatan/graphql-tools.git",
     "directory": "packages/executor"
   },
-  "keywords": [
-    "gql",
-    "graphql",
-    "typescript"
-  ],
+  "author": "Saihajpreet Singh <saihajpreet.singh@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "exports": {
@@ -48,31 +46,33 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
+  "keywords": [
+    "gql",
+    "graphql",
+    "typescript"
+  ],
+  "peerDependencies": {
+    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@repeaterjs/repeater": "^3.0.4",
     "@graphql-tools/utils": "^10.0.0",
     "@graphql-typed-document-node/core": "3.2.0",
+    "@repeaterjs/repeater": "^3.0.4",
     "tslib": "^2.4.0",
     "value-or-promise": "^1.0.12"
   },
   "devDependencies": {
     "graphql": "^16.6.0"
   },
-  "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
-  },
-  "buildOptions": {
-    "input": "./src/index.ts"
-  },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
   },
-  "type": "module",
-  "engines": {
-    "node": ">=16.0.0"
+  "sideEffects": false,
+  "buildOptions": {
+    "input": "./src/index.ts"
+  },
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
   }
 }

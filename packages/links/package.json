@@ -1,6 +1,7 @@
 {
   "name": "@graphql-tools/links",
   "version": "9.0.0",
+  "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
     "type": "git",
@@ -8,7 +9,9 @@
     "directory": "packages/links"
   },
   "license": "MIT",
-  "sideEffects": false,
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "exports": {
@@ -43,25 +46,9 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "typescript": {
-    "definition": "dist/typings/index.d.ts"
-  },
   "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0",
-    "@apollo/client": "^3"
-  },
-  "buildOptions": {
-    "input": "./src/index.ts",
-    "external": [
-      "@apollo/client/link/core",
-      "@apollo/client/link/utils",
-      "@apollo/client/utilities"
-    ]
-  },
-  "devDependencies": {
-    "@apollo/client": "3.7.14",
-    "@types/apollo-upload-client": "17.0.2",
-    "graphql-upload": "16.0.2"
+    "@apollo/client": "^3",
+    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
     "@graphql-tools/delegate": "^10.0.0",
@@ -71,12 +58,25 @@
     "node-fetch": "^2.6.5",
     "tslib": "^2.4.0"
   },
+  "devDependencies": {
+    "@apollo/client": "3.7.17",
+    "@types/apollo-upload-client": "17.0.2",
+    "graphql-upload": "16.0.2"
+  },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
   },
-  "type": "module",
-  "engines": {
-    "node": ">=16.0.0"
+  "sideEffects": false,
+  "buildOptions": {
+    "input": "./src/index.ts",
+    "external": [
+      "@apollo/client/link/core",
+      "@apollo/client/link/utils",
+      "@apollo/client/utilities"
+    ]
+  },
+  "typescript": {
+    "definition": "dist/typings/index.d.ts"
   }
 }

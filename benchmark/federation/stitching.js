@@ -10,7 +10,9 @@ const services = [
 
 async function makeGatewaySchema() {
   return stitchSchemas({
-    subschemas: await Promise.all(services.map(service => getSubschemaForFederationWithSchema(service.schema))),
+    subschemas: await Promise.all(
+      services.map(service => getSubschemaForFederationWithSchema(service.schema)),
+    ),
   });
 }
 

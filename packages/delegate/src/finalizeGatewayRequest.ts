@@ -7,6 +7,7 @@ import {
   GraphQLNamedType,
   GraphQLSchema,
   GraphQLType,
+  versionInfo as graphqlVersionInfo,
   isAbstractType,
   isInterfaceType,
   isObjectType,
@@ -17,29 +18,26 @@ import {
   TypeInfo,
   TypeNameMetaFieldDef,
   VariableDefinitionNode,
-  versionInfo as graphqlVersionInfo,
   visit,
   visitWithTypeInfo,
 } from 'graphql';
-
 import {
-  getDefinedRootType,
-  ExecutionRequest,
-  serializeInputValue,
-  updateArgument,
+  ASTVisitorKeyMap,
   createVariableNameGenerator,
+  ExecutionRequest,
+  getDefinedRootType,
   implementsAbstractType,
   inspect,
-  ASTVisitorKeyMap,
+  serializeInputValue,
+  updateArgument,
 } from '@graphql-tools/utils';
-
-import { DelegationContext } from './types.js';
 import { getDocumentMetadata } from './getDocumentMetadata.js';
+import { DelegationContext } from './types.js';
 
 function finalizeGatewayDocument(
   targetSchema: GraphQLSchema,
   fragments: FragmentDefinitionNode[],
-  operations: OperationDefinitionNode[]
+  operations: OperationDefinitionNode[],
 ) {
   let usedVariables: Array<string> = [];
   let usedFragments: Array<string> = [];
@@ -74,14 +72,21 @@ function finalizeGatewayDocument(
       usedVariables: collectedUsedVariables,
       newFragments: collectedNewFragments,
       fragmentSet: collectedFragmentSet,
-    } = collectFragmentVariables(targetSchema, fragmentSet, validFragments, validFragmentsWithType, usedFragments);
+    } = collectFragmentVariables(
+      targetSchema,
+      fragmentSet,
+      validFragments,
+      validFragmentsWithType,
+      usedFragments,
+    );
     const operationOrFragmentVariables = union(operationUsedVariables, collectedUsedVariables);
     usedVariables = union(usedVariables, operationOrFragmentVariables);
     newFragments = collectedNewFragments;
     fragmentSet = collectedFragmentSet;
 
     const variableDefinitions = (operation.variableDefinitions ?? []).filter(
-      (variable: VariableDefinitionNode) => operationOrFragmentVariables.indexOf(variable.variable.name.value) !== -1
+      (variable: VariableDefinitionNode) =>
+        operationOrFragmentVariables.indexOf(variable.variable.name.value) !== -1,
     );
 
     newOperations.push({
@@ -107,7 +112,7 @@ function finalizeGatewayDocument(
 
 export function finalizeGatewayRequest<TContext>(
   originalRequest: ExecutionRequest,
-  delegationContext: DelegationContext<TContext>
+  delegationContext: DelegationContext<TContext>,
 ): ExecutionRequest {
   let { document, variables } = originalRequest;
 
@@ -120,7 +125,11 @@ export function finalizeGatewayRequest<TContext>(
     variables = Object.assign({}, variables ?? {}, requestWithNewVariables.newVariables);
   }
 
-  const { usedVariables, newDocument } = finalizeGatewayDocument(targetSchema, fragments, operations);
+  const { usedVariables, newDocument } = finalizeGatewayDocument(
+    targetSchema,
+    fragments,
+    operations,
+  );
 
   const newVariables: Record<string, any> = {};
   if (variables != null) {
@@ -142,7 +151,7 @@ export function finalizeGatewayRequest<TContext>(
 function addVariablesToRootFields(
   targetSchema: GraphQLSchema,
   operations: Array<OperationDefinitionNode>,
-  args: Record<string, any>
+  args: Record<string, any>,
 ): {
   newOperations: Array<OperationDefinitionNode>;
   newVariables: Record<string, any>;
@@ -150,12 +159,14 @@ function addVariablesToRootFields(
   const newVariables = Object.create(null);
 
   const newOperations = operations.map((operation: OperationDefinitionNode) => {
-    const variableDefinitionMap: Record<string, VariableDefinitionNode> = (operation.variableDefinitions ?? []).reduce(
+    const variableDefinitionMap: Record<string, VariableDefinitionNode> = (
+      operation.variableDefinitions ?? []
+    ).reduce(
       (prev, def) => ({
         ...prev,
         [def.variable.name.value]: def,
       }),
-      {}
+      {},
     );
 
     const type = getDefinedRootType(targetSchema, operation.operation);
@@ -170,7 +181,7 @@ function addVariablesToRootFields(
             ...prev,
             [argument.name.value]: argument,
           }),
-          {}
+          {},
         );
 
         const targetField = type.getFields()[selection.name.value];
@@ -212,7 +223,7 @@ function updateArguments(
   argumentNodeMap: Record<string, ArgumentNode>,
   variableDefinitionMap: Record<string, VariableDefinitionNode>,
   variableValues: Record<string, any>,
-  newArgs: Record<string, any>
+  newArgs: Record<string, any>,
 ): void {
   const generateVariableName = createVariableNameGenerator(variableDefinitionMap);
 
@@ -228,7 +239,7 @@ function updateArguments(
         argName,
         generateVariableName(argName),
         argType,
-        serializeInputValue(argType, newArgs[argName])
+        serializeInputValue(argType, newArgs[argName]),
       );
     }
   }
@@ -239,7 +250,7 @@ function collectFragmentVariables(
   fragmentSet: any,
   validFragments: Array<FragmentDefinitionNode>,
   validFragmentsWithType: { [name: string]: GraphQLType },
-  usedFragments: Array<string>
+  usedFragments: Array<string>,
 ) {
   let remainingFragments = usedFragments.slice();
 
@@ -255,7 +266,7 @@ function collectFragmentVariables(
       const type = targetSchema.getType(typeName);
       if (type == null) {
         throw new Error(
-          `Fragment reference type "${typeName}", but the type is not contained within the target schema.`
+          `Fragment reference type "${typeName}", but the type is not contained within the target schema.`,
         );
       }
       const {
@@ -314,13 +325,15 @@ function finalizeSelectionSet(
   schema: GraphQLSchema,
   type: GraphQLType,
   validFragments: { [name: string]: GraphQLType },
-  selectionSet: SelectionSetNode
+  selectionSet: SelectionSetNode,
 ) {
   const usedFragments: Array<string> = [];
   const usedVariables: Array<string> = [];
 
   const typeInfo =
-    graphqlVersionInfo.major < 16 ? new TypeInfo(schema, undefined, type as any) : new TypeInfo(schema, type as any);
+    graphqlVersionInfo.major < 16
+      ? new TypeInfo(schema, undefined, type as any)
+      : new TypeInfo(schema, type as any);
   const filteredSelectionSet = visit(
     selectionSet,
     visitWithTypeInfo(typeInfo, {
@@ -329,7 +342,8 @@ function finalizeSelectionSet(
           const parentType = typeInfo.getParentType();
           if (isObjectType(parentType) || isInterfaceType(parentType)) {
             const fields = parentType.getFields();
-            const field = node.name.value === '__typename' ? TypeNameMetaFieldDef : fields[node.name.value];
+            const field =
+              node.name.value === '__typename' ? TypeNameMetaFieldDef : fields[node.name.value];
             if (!field) {
               return null;
             }
@@ -421,7 +435,7 @@ function finalizeSelectionSet(
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
     // empty keys cannot be removed only because of typescript errors
     // will hopefully be fixed in future version of graphql-js to be optional
-    filteredSelectionSetVisitorKeys as any
+    filteredSelectionSetVisitorKeys as any,
   );
 
   visit(
@@ -434,7 +448,7 @@ function finalizeSelectionSet(
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
     // empty keys cannot be removed only because of typescript errors
     // will hopefully be fixed in future version of graphql-js to be optional
-    variablesVisitorKeys as any
+    variablesVisitorKeys as any,
   );
 
   return {

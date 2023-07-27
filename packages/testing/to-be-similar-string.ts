@@ -1,5 +1,5 @@
-import { normalizeString } from './utils.js';
 import { diff } from 'jest-diff';
+import { normalizeString } from './utils.js';
 
 declare global {
   namespace jest {

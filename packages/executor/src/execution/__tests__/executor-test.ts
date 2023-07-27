@@ -1,16 +1,16 @@
 import {
-  parse,
-  Kind,
+  GraphQLBoolean,
+  GraphQLInt,
   GraphQLInterfaceType,
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLScalarType,
-  GraphQLUnionType,
-  GraphQLBoolean,
-  GraphQLInt,
-  GraphQLString,
   GraphQLSchema,
+  GraphQLString,
+  GraphQLUnionType,
+  Kind,
+  parse,
 } from 'graphql';
 import { inspect } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
@@ -531,7 +531,7 @@ describe('Execute: Handles basic execution tasks', () => {
                 fields: {
                   name: { type: GraphQLString },
                 },
-              })
+              }),
             ),
             resolve() {
               return Promise.reject(new Error('Oops'));

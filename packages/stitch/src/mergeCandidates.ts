@@ -1,65 +1,70 @@
 import {
-  GraphQLNamedType,
-  GraphQLObjectType,
-  GraphQLInterfaceType,
-  GraphQLUnionType,
+  EnumTypeDefinitionNode,
+  EnumTypeExtensionNode,
   GraphQLEnumType,
-  isScalarType,
-  isObjectType,
-  isInterfaceType,
-  isUnionType,
-  isEnumType,
-  isInputObjectType,
+  GraphQLEnumValueConfigMap,
   GraphQLFieldConfig,
   GraphQLFieldConfigMap,
-  GraphQLInputObjectType,
   GraphQLInputFieldConfig,
   GraphQLInputFieldConfigMap,
-  ObjectTypeDefinitionNode,
-  InputObjectTypeDefinitionNode,
-  InterfaceTypeDefinitionNode,
-  UnionTypeDefinitionNode,
-  EnumTypeDefinitionNode,
-  GraphQLEnumValueConfigMap,
-  ScalarTypeDefinitionNode,
-  GraphQLScalarType,
-  GraphQLScalarSerializer,
-  GraphQLScalarValueParser,
+  GraphQLInputObjectType,
+  GraphQLInterfaceType,
+  GraphQLNamedType,
+  GraphQLObjectType,
   GraphQLScalarLiteralParser,
-  ObjectTypeExtensionNode,
+  GraphQLScalarSerializer,
+  GraphQLScalarType,
+  GraphQLScalarValueParser,
+  GraphQLUnionType,
+  InputObjectTypeDefinitionNode,
   InputObjectTypeExtensionNode,
+  InterfaceTypeDefinitionNode,
   InterfaceTypeExtensionNode,
-  UnionTypeExtensionNode,
-  EnumTypeExtensionNode,
+  isEnumType,
+  isInputObjectType,
+  isInterfaceType,
+  isObjectType,
+  isScalarType,
+  isUnionType,
+  ObjectTypeDefinitionNode,
+  ObjectTypeExtensionNode,
+  ScalarTypeDefinitionNode,
   ScalarTypeExtensionNode,
+  UnionTypeDefinitionNode,
+  UnionTypeExtensionNode,
 } from 'graphql';
-
-import { mergeType, mergeInputType, mergeInterface, mergeUnion, mergeEnum, mergeScalar } from '@graphql-tools/merge';
-
+import { isSubschemaConfig } from '@graphql-tools/delegate';
 import {
-  MergeTypeCandidate,
-  TypeMergingOptions,
-  MergeFieldConfigCandidate,
-  MergeInputFieldConfigCandidate,
-  MergeEnumValueConfigCandidate,
-} from './types.js';
-
+  mergeEnum,
+  mergeInputType,
+  mergeInterface,
+  mergeScalar,
+  mergeType,
+  mergeUnion,
+} from '@graphql-tools/merge';
+import { Maybe } from '@graphql-tools/utils';
 import {
   validateFieldConsistency,
   validateInputFieldConsistency,
   validateInputObjectConsistency,
 } from './mergeValidations.js';
-
-import { isSubschemaConfig } from '@graphql-tools/delegate';
-import { Maybe } from '@graphql-tools/utils';
+import {
+  MergeEnumValueConfigCandidate,
+  MergeFieldConfigCandidate,
+  MergeInputFieldConfigCandidate,
+  MergeTypeCandidate,
+  TypeMergingOptions,
+} from './types.js';
 
 export function mergeCandidates<TContext = Record<string, any>>(
   typeName: string,
   candidates: Array<MergeTypeCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): GraphQLNamedType {
   const initialCandidateType = candidates[0].type;
-  if (candidates.some(candidate => candidate.type.constructor !== initialCandidateType.constructor)) {
+  if (
+    candidates.some(candidate => candidate.type.constructor !== initialCandidateType.constructor)
+  ) {
     throw new Error(`Cannot merge different type categories into common type ${typeName}.`);
   }
   if (isObjectType(initialCandidateType)) {
@@ -83,7 +88,7 @@ export function mergeCandidates<TContext = Record<string, any>>(
 function mergeObjectTypeCandidates<TContext = Record<string, any>>(
   typeName: string,
   candidates: Array<MergeTypeCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): GraphQLObjectType<any, any> {
   candidates = orderedTypeCandidates(candidates, typeMergingOptions);
 
@@ -114,13 +119,13 @@ function mergeObjectTypeCandidates<TContext = Record<string, any>>(
     });
   }
 
-  const astNode = astNodes
-    .slice(1)
-    .reduce(
-      (acc, astNode) =>
-        mergeType(astNode, acc as ObjectTypeDefinitionNode, { ignoreFieldConflicts: true }) as ObjectTypeDefinitionNode,
-      astNodes[0]
-    );
+  const astNode = astNodes.slice(1).reduce(
+    (acc, astNode) =>
+      mergeType(astNode, acc as ObjectTypeDefinitionNode, {
+        ignoreFieldConflicts: true,
+      }) as ObjectTypeDefinitionNode,
+    astNodes[0],
+  );
 
   const extensionASTNodes = pluck<ObjectTypeExtensionNode>('extensionASTNodes', candidates);
 
@@ -142,7 +147,7 @@ function mergeObjectTypeCandidates<TContext = Record<string, any>>(
 function mergeInputObjectTypeCandidates<TContext = Record<string, any>>(
   typeName: string,
   candidates: Array<MergeTypeCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): GraphQLInputObjectType {
   candidates = orderedTypeCandidates(candidates, typeMergingOptions);
 
@@ -166,7 +171,7 @@ function mergeInputObjectTypeCandidates<TContext = Record<string, any>>(
       mergeInputType(astNode, acc as InputObjectTypeDefinitionNode, {
         ignoreFieldConflicts: true,
       }) as InputObjectTypeDefinitionNode,
-    astNodes[0]
+    astNodes[0],
   );
 
   const extensionASTNodes = pluck<InputObjectTypeExtensionNode>('extensionASTNodes', candidates);
@@ -186,13 +191,15 @@ function mergeInputObjectTypeCandidates<TContext = Record<string, any>>(
 }
 
 function pluck<T>(typeProperty: string, candidates: Array<MergeTypeCandidate<any>>): Array<T> {
-  return candidates.map(candidate => candidate.type[typeProperty]).filter(value => value != null) as Array<T>;
+  return candidates
+    .map(candidate => candidate.type[typeProperty])
+    .filter(value => value != null) as Array<T>;
 }
 
 function mergeInterfaceTypeCandidates<TContext = Record<string, any>>(
   typeName: string,
   candidates: Array<MergeTypeCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): GraphQLInterfaceType {
   candidates = orderedTypeCandidates(candidates, typeMergingOptions);
 
@@ -228,7 +235,7 @@ function mergeInterfaceTypeCandidates<TContext = Record<string, any>>(
       mergeInterface(astNode, acc as InterfaceTypeDefinitionNode, {
         ignoreFieldConflicts: true,
       }) as InterfaceTypeDefinitionNode,
-    astNodes[0]
+    astNodes[0],
   );
 
   const extensionASTNodes = pluck<InterfaceTypeExtensionNode>('extensionASTNodes', candidates);
@@ -251,7 +258,7 @@ function mergeInterfaceTypeCandidates<TContext = Record<string, any>>(
 function mergeUnionTypeCandidates<TContext = Record<string, any>>(
   typeName: string,
   candidates: Array<MergeTypeCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): GraphQLUnionType {
   candidates = orderedTypeCandidates(candidates, typeMergingOptions);
   const description = mergeTypeDescriptions(candidates, typeMergingOptions);
@@ -274,8 +281,9 @@ function mergeUnionTypeCandidates<TContext = Record<string, any>>(
   const astNode = astNodes
     .slice(1)
     .reduce(
-      (acc, astNode) => mergeUnion(astNode, acc as UnionTypeDefinitionNode) as UnionTypeDefinitionNode,
-      astNodes[0]
+      (acc, astNode) =>
+        mergeUnion(astNode, acc as UnionTypeDefinitionNode) as UnionTypeDefinitionNode,
+      astNodes[0],
     );
 
   const extensionASTNodes = pluck<UnionTypeExtensionNode>('extensionASTNodes', candidates);
@@ -297,7 +305,7 @@ function mergeUnionTypeCandidates<TContext = Record<string, any>>(
 function mergeEnumTypeCandidates<TContext = Record<string, any>>(
   typeName: string,
   candidates: Array<MergeTypeCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): GraphQLEnumType {
   candidates = orderedTypeCandidates(candidates, typeMergingOptions);
 
@@ -305,13 +313,13 @@ function mergeEnumTypeCandidates<TContext = Record<string, any>>(
   const values = enumValueConfigMapFromTypeCandidates(candidates, typeMergingOptions);
 
   const astNodes = pluck<EnumTypeDefinitionNode>('astNode', candidates);
-  const astNode = astNodes
-    .slice(1)
-    .reduce(
-      (acc, astNode) =>
-        mergeEnum(astNode, acc as EnumTypeDefinitionNode, { consistentEnumMerge: true }) as EnumTypeDefinitionNode,
-      astNodes[0]
-    );
+  const astNode = astNodes.slice(1).reduce(
+    (acc, astNode) =>
+      mergeEnum(astNode, acc as EnumTypeDefinitionNode, {
+        consistentEnumMerge: true,
+      }) as EnumTypeDefinitionNode,
+    astNodes[0],
+  );
 
   const extensionASTNodes = pluck<EnumTypeExtensionNode>('extensionASTNodes', candidates);
 
@@ -331,9 +339,12 @@ function mergeEnumTypeCandidates<TContext = Record<string, any>>(
 
 function enumValueConfigMapFromTypeCandidates(
   candidates: Array<MergeTypeCandidate<any>>,
-  typeMergingOptions?: TypeMergingOptions<any>
+  typeMergingOptions?: TypeMergingOptions<any>,
 ): GraphQLEnumValueConfigMap {
-  const enumValueConfigCandidatesMap: Record<string, Array<MergeEnumValueConfigCandidate>> = Object.create(null);
+  const enumValueConfigCandidatesMap: Record<
+    string,
+    Array<MergeEnumValueConfigCandidate>
+  > = Object.create(null);
 
   for (const candidate of candidates) {
     const valueMap = (candidate.type as GraphQLEnumType).toConfig().values;
@@ -357,7 +368,8 @@ function enumValueConfigMapFromTypeCandidates(
   const enumValueConfigMap = Object.create(null);
 
   for (const enumValue in enumValueConfigCandidatesMap) {
-    const enumValueConfigMerger = typeMergingOptions?.enumValueConfigMerger ?? defaultEnumValueConfigMerger;
+    const enumValueConfigMerger =
+      typeMergingOptions?.enumValueConfigMerger ?? defaultEnumValueConfigMerger;
     enumValueConfigMap[enumValue] = enumValueConfigMerger(enumValueConfigCandidatesMap[enumValue]);
   }
 
@@ -367,7 +379,7 @@ function enumValueConfigMapFromTypeCandidates(
 function defaultEnumValueConfigMerger(candidates: Array<MergeEnumValueConfigCandidate>) {
   const preferred = candidates.find(
     ({ type, transformedSubschema }) =>
-      isSubschemaConfig(transformedSubschema) && transformedSubschema.merge?.[type.name]?.canonical
+      isSubschemaConfig(transformedSubschema) && transformedSubschema.merge?.[type.name]?.canonical,
   );
   return (preferred || candidates[candidates.length - 1]).enumValueConfig;
 }
@@ -375,7 +387,7 @@ function defaultEnumValueConfigMerger(candidates: Array<MergeEnumValueConfigCand
 function mergeScalarTypeCandidates<TContext = Record<string, any>>(
   typeName: string,
   candidates: Array<MergeTypeCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): GraphQLScalarType {
   candidates = orderedTypeCandidates(candidates, typeMergingOptions);
 
@@ -393,8 +405,9 @@ function mergeScalarTypeCandidates<TContext = Record<string, any>>(
   const astNode = astNodes
     .slice(1)
     .reduce(
-      (acc, astNode) => mergeScalar(astNode, acc as ScalarTypeDefinitionNode) as ScalarTypeDefinitionNode,
-      astNodes[0]
+      (acc, astNode) =>
+        mergeScalar(astNode, acc as ScalarTypeDefinitionNode) as ScalarTypeDefinitionNode,
+      astNodes[0],
     );
 
   const extensionASTNodes = pluck<ScalarTypeExtensionNode>('extensionASTNodes', candidates);
@@ -417,7 +430,7 @@ function mergeScalarTypeCandidates<TContext = Record<string, any>>(
 
 function orderedTypeCandidates<TContext = Record<string, any>>(
   candidates: Array<MergeTypeCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): Array<MergeTypeCandidate<TContext>> {
   const typeCandidateMerger = typeMergingOptions?.typeCandidateMerger ?? defaultTypeCandidateMerger;
   const candidate = typeCandidateMerger(candidates);
@@ -425,10 +438,13 @@ function orderedTypeCandidates<TContext = Record<string, any>>(
 }
 
 function defaultTypeCandidateMerger<TContext = Record<string, any>>(
-  candidates: Array<MergeTypeCandidate<TContext>>
+  candidates: Array<MergeTypeCandidate<TContext>>,
 ): MergeTypeCandidate<TContext> {
-  const canonical: Array<MergeTypeCandidate<TContext>> = candidates.filter(({ type, transformedSubschema }) =>
-    isSubschemaConfig(transformedSubschema) ? transformedSubschema.merge?.[type.name]?.canonical : false
+  const canonical: Array<MergeTypeCandidate<TContext>> = candidates.filter(
+    ({ type, transformedSubschema }) =>
+      isSubschemaConfig(transformedSubschema)
+        ? transformedSubschema.merge?.[type.name]?.canonical
+        : false,
   );
 
   if (canonical.length > 1) {
@@ -442,23 +458,27 @@ function defaultTypeCandidateMerger<TContext = Record<string, any>>(
 
 function mergeTypeDescriptions<TContext = Record<string, any>>(
   candidates: Array<MergeTypeCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): Maybe<string> {
-  const typeDescriptionsMerger = typeMergingOptions?.typeDescriptionsMerger ?? defaultTypeDescriptionMerger;
+  const typeDescriptionsMerger =
+    typeMergingOptions?.typeDescriptionsMerger ?? defaultTypeDescriptionMerger;
   return typeDescriptionsMerger(candidates);
 }
 
 function defaultTypeDescriptionMerger<TContext = Record<string, any>>(
-  candidates: Array<MergeTypeCandidate<TContext>>
+  candidates: Array<MergeTypeCandidate<TContext>>,
 ): Maybe<string> {
   return candidates[candidates.length - 1].type.description;
 }
 
 function fieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
   candidates: Array<MergeTypeCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): GraphQLFieldConfigMap<any, any> {
-  const fieldConfigCandidatesMap: Record<string, Array<MergeFieldConfigCandidate<TContext>>> = Object.create(null);
+  const fieldConfigCandidatesMap: Record<
+    string,
+    Array<MergeFieldConfigCandidate<TContext>>
+  > = Object.create(null);
 
   for (const candidate of candidates) {
     const typeConfig = (candidate.type as GraphQLObjectType | GraphQLInterfaceType).toConfig();
@@ -485,7 +505,10 @@ function fieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
   const fieldConfigMap = Object.create(null);
 
   for (const fieldName in fieldConfigCandidatesMap) {
-    fieldConfigMap[fieldName] = mergeFieldConfigs(fieldConfigCandidatesMap[fieldName], typeMergingOptions);
+    fieldConfigMap[fieldName] = mergeFieldConfigs(
+      fieldConfigCandidatesMap[fieldName],
+      typeMergingOptions,
+    );
   }
 
   return fieldConfigMap;
@@ -493,7 +516,7 @@ function fieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
 
 function mergeFieldConfigs<TContext = Record<string, any>>(
   candidates: Array<MergeFieldConfigCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ) {
   const fieldConfigMerger = typeMergingOptions?.fieldConfigMerger ?? defaultFieldConfigMerger;
   const finalFieldConfig = fieldConfigMerger(candidates);
@@ -502,7 +525,7 @@ function mergeFieldConfigs<TContext = Record<string, any>>(
 }
 
 function defaultFieldConfigMerger<TContext = Record<string, any>>(
-  candidates: Array<MergeFieldConfigCandidate<TContext>>
+  candidates: Array<MergeFieldConfigCandidate<TContext>>,
 ) {
   const canonicalByField: Array<GraphQLFieldConfig<any, any>> = [];
   const canonicalByType: Array<GraphQLFieldConfig<any, any>> = [];
@@ -517,7 +540,9 @@ function defaultFieldConfigMerger<TContext = Record<string, any>>(
   }
 
   if (canonicalByField.length > 1) {
-    throw new Error(`Multiple canonical definitions for "${candidates[0].type.name}.${candidates[0].fieldName}"`);
+    throw new Error(
+      `Multiple canonical definitions for "${candidates[0].type.name}.${candidates[0].fieldName}"`,
+    );
   } else if (canonicalByField.length) {
     return canonicalByField[0];
   } else if (canonicalByType.length) {
@@ -529,11 +554,12 @@ function defaultFieldConfigMerger<TContext = Record<string, any>>(
 
 function inputFieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
   candidates: Array<MergeTypeCandidate<TContext>>,
-  typeMergingOptions?: TypeMergingOptions<TContext>
+  typeMergingOptions?: TypeMergingOptions<TContext>,
 ): GraphQLInputFieldConfigMap {
-  const inputFieldConfigCandidatesMap: Record<string, Array<MergeInputFieldConfigCandidate<TContext>>> = Object.create(
-    null
-  );
+  const inputFieldConfigCandidatesMap: Record<
+    string,
+    Array<MergeInputFieldConfigCandidate<TContext>>
+  > = Object.create(null);
   const fieldInclusionMap: Record<string, number> = Object.create(null);
 
   for (const candidate of candidates) {
@@ -565,12 +591,15 @@ function inputFieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
   const inputFieldConfigMap = Object.create(null);
 
   for (const fieldName in inputFieldConfigCandidatesMap) {
-    const inputFieldConfigMerger = typeMergingOptions?.inputFieldConfigMerger ?? defaultInputFieldConfigMerger;
-    inputFieldConfigMap[fieldName] = inputFieldConfigMerger(inputFieldConfigCandidatesMap[fieldName]);
+    const inputFieldConfigMerger =
+      typeMergingOptions?.inputFieldConfigMerger ?? defaultInputFieldConfigMerger;
+    inputFieldConfigMap[fieldName] = inputFieldConfigMerger(
+      inputFieldConfigCandidatesMap[fieldName],
+    );
     validateInputFieldConsistency(
       inputFieldConfigMap[fieldName],
       inputFieldConfigCandidatesMap[fieldName],
-      typeMergingOptions
+      typeMergingOptions,
     );
   }
 
@@ -578,7 +607,7 @@ function inputFieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
 }
 
 function defaultInputFieldConfigMerger<TContext = Record<string, any>>(
-  candidates: Array<MergeInputFieldConfigCandidate<TContext>>
+  candidates: Array<MergeInputFieldConfigCandidate<TContext>>,
 ) {
   const canonicalByField: Array<GraphQLInputFieldConfig> = [];
   const canonicalByType: Array<GraphQLInputFieldConfig> = [];
@@ -593,7 +622,9 @@ function defaultInputFieldConfigMerger<TContext = Record<string, any>>(
   }
 
   if (canonicalByField.length > 1) {
-    throw new Error(`Multiple canonical definitions for "${candidates[0].type.name}.${candidates[0].fieldName}"`);
+    throw new Error(
+      `Multiple canonical definitions for "${candidates[0].type.name}.${candidates[0].fieldName}"`,
+    );
   } else if (canonicalByField.length) {
     return canonicalByField[0];
   } else if (canonicalByType.length) {
@@ -603,7 +634,9 @@ function defaultInputFieldConfigMerger<TContext = Record<string, any>>(
   return candidates[candidates.length - 1].inputFieldConfig;
 }
 
-function canonicalFieldNamesForType<TContext>(candidates: Array<MergeTypeCandidate<TContext>>): Array<string> {
+function canonicalFieldNamesForType<TContext>(
+  candidates: Array<MergeTypeCandidate<TContext>>,
+): Array<string> {
   const canonicalFieldNames: Record<string, boolean> = Object.create(null);
 
   for (const { type, transformedSubschema } of candidates) {

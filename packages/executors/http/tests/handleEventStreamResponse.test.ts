@@ -1,5 +1,5 @@
-import { handleEventStreamResponse } from '../src/handleEventStreamResponse.js';
 import { ReadableStream, Response } from '@whatwg-node/fetch';
+import { handleEventStreamResponse } from '../src/handleEventStreamResponse.js';
 
 describe('handleEventStreamResponse', () => {
   const encoder = new TextEncoder();

@@ -1,5 +1,5 @@
+import { buildSchema, GraphQLError, parse, Source } from 'graphql';
 import { validateGraphQlDocuments } from '../src/index.js';
-import { buildSchema, parse, GraphQLError, Source } from 'graphql';
 
 describe('validateGraphQlDocuments', () => {
   it('Should throw an informative error when validation errors happens, also check for fragments validation even why they are duplicated', async () => {
@@ -26,7 +26,9 @@ describe('validateGraphQlDocuments', () => {
     `;
 
     const result = validateGraphQlDocuments(schema, [
-      parse(new Source(fragment, 'packages/client/src/fragments/pizzeriaFragment.fragment.graphql')),
+      parse(
+        new Source(fragment, 'packages/client/src/fragments/pizzeriaFragment.fragment.graphql'),
+      ),
       parse(
         new Source(
           /* GraphQL */ `
@@ -39,16 +41,18 @@ describe('validateGraphQlDocuments', () => {
 
             ${fragment}
           `,
-          'packages/client/src/pages/search/searchPage.query.graphql'
-        )
+          'packages/client/src/pages/search/searchPage.query.graphql',
+        ),
       ),
     ]);
 
     expect(result).toHaveLength(1);
-    expect(result[0].source?.name).toBe('packages/client/src/pages/search/searchPage.query.graphql');
+    expect(result[0].source?.name).toBe(
+      'packages/client/src/pages/search/searchPage.query.graphql',
+    );
     expect(result[0] instanceof GraphQLError).toBeTruthy();
     expect(result[0].message).toBe(
-      'Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".'
+      'Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".',
     );
     expect(result[0].stack)
       .toBe(`Fragment "pizzeriaFragment" cannot be spread here as objects of type "Query" can never be of type "Pizzeria".
@@ -84,8 +88,8 @@ describe('validateGraphQlDocuments', () => {
               }
             }
           `,
-          'packages/client/src/pages/search/operations.graphql'
-        )
+          'packages/client/src/pages/search/operations.graphql',
+        ),
       ),
     ]);
 

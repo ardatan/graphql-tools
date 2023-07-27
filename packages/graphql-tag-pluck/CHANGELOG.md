@@ -1,164 +1,229 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.0.2
+
+### Patch Changes
+
+- [#5449](https://github.com/ardatan/graphql-tools/pull/5449)
+  [`3ef8e9f0`](https://github.com/ardatan/graphql-tools/commit/3ef8e9f05dc4596acb3b0304db53834f6878d73f)
+  Thanks [@Daninet](https://github.com/Daninet)! - Add @babel/core dependency
+
+## 8.0.1
+
+### Patch Changes
+
+- [#5310](https://github.com/ardatan/graphql-tools/pull/5310)
+  [`c7fc12cc`](https://github.com/ardatan/graphql-tools/commit/c7fc12cc17c75cf797201cb8129a8f2a85cdfc6c)
+  Thanks [@renovate](https://github.com/apps/renovate)! - Fix typings
+
 ## 8.0.0
 
 ### Major Changes
 
-- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274)
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)
+  Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
 
 ### Patch Changes
 
-- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+- Updated dependencies
+  [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955),
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
   - @graphql-tools/utils@10.0.0
 
 ## 7.5.2
 
 ### Patch Changes
 
-- [#5202](https://github.com/ardatan/graphql-tools/pull/5202) [`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
-  - Updated dependency [`@babel/plugin-syntax-import-assertions@^7.20.0` ↗︎](https://www.npmjs.com/package/@babel/plugin-syntax-import-assertions/v/7.20.0) (from `7.20.0`, in `dependencies`)
+- [#5202](https://github.com/ardatan/graphql-tools/pull/5202)
+  [`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency
+    [`@babel/plugin-syntax-import-assertions@^7.20.0` ↗︎](https://www.npmjs.com/package/@babel/plugin-syntax-import-assertions/v/7.20.0)
+    (from `7.20.0`, in `dependencies`)
 
 ## 7.5.1
 
 ### Patch Changes
 
-- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41)
+  Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
 
 ## 7.5.0
 
 ### Minor Changes
 
-- [#4877](https://github.com/ardatan/graphql-tools/pull/4877) [`42ad8df8`](https://github.com/ardatan/graphql-tools/commit/42ad8df8b2dc0bbe576df894074ebac3e437bc1d) Thanks [@tristanmenzel](https://github.com/tristanmenzel)! - Adds support for matching graphql queries declared with typescript's 'as const' expression. eg. graphql(`query myQuery(...)` as const)
+- [#4877](https://github.com/ardatan/graphql-tools/pull/4877)
+  [`42ad8df8`](https://github.com/ardatan/graphql-tools/commit/42ad8df8b2dc0bbe576df894074ebac3e437bc1d)
+  Thanks [@tristanmenzel](https://github.com/tristanmenzel)! - Adds support for matching graphql
+  queries declared with typescript's 'as const' expression. eg. graphql(`query myQuery(...)` as
+  const)
 
 ## 7.4.6
 
 ### Patch Changes
 
-- [#5030](https://github.com/ardatan/graphql-tools/pull/5030) [`bb2d257b`](https://github.com/ardatan/graphql-tools/commit/bb2d257b079ad053024d860902bb31eab8ccfe76) Thanks [@mscharley](https://github.com/mscharley)! - Added the ability to parse cjs/mjs files for graphql documents
+- [#5030](https://github.com/ardatan/graphql-tools/pull/5030)
+  [`bb2d257b`](https://github.com/ardatan/graphql-tools/commit/bb2d257b079ad053024d860902bb31eab8ccfe76)
+  Thanks [@mscharley](https://github.com/mscharley)! - Added the ability to parse cjs/mjs files for
+  graphql documents
 
 ## 7.4.5
 
 ### Patch Changes
 
-- Updated dependencies [[`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af)]:
+- Updated dependencies
+  [[`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af)]:
   - @graphql-tools/utils@9.2.1
 
 ## 7.4.4
 
 ### Patch Changes
 
-- Updated dependencies [[`a94217e9`](https://github.com/ardatan/graphql-tools/commit/a94217e920c5d6237471ab6ad4d96cf230984177), [`62d074be`](https://github.com/ardatan/graphql-tools/commit/62d074be48779b1e096e056ca1233822c421dc99)]:
+- Updated dependencies
+  [[`a94217e9`](https://github.com/ardatan/graphql-tools/commit/a94217e920c5d6237471ab6ad4d96cf230984177),
+  [`62d074be`](https://github.com/ardatan/graphql-tools/commit/62d074be48779b1e096e056ca1233822c421dc99)]:
   - @graphql-tools/utils@9.2.0
 
 ## 7.4.3
 
 ### Patch Changes
 
-- Updated dependencies [[`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591)]:
+- Updated dependencies
+  [[`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591)]:
   - @graphql-tools/utils@9.1.4
 
 ## 7.4.2
 
 ### Patch Changes
 
-- Updated dependencies [[`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759)]:
+- Updated dependencies
+  [[`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759)]:
   - @graphql-tools/utils@9.1.3
 
 ## 7.4.1
 
 ### Patch Changes
 
-- Updated dependencies [[`13c24883`](https://github.com/ardatan/graphql-tools/commit/13c24883004d5330f7402cb20566e37535c5729b)]:
+- Updated dependencies
+  [[`13c24883`](https://github.com/ardatan/graphql-tools/commit/13c24883004d5330f7402cb20566e37535c5729b)]:
   - @graphql-tools/utils@9.1.2
 
 ## 7.4.0
 
 ### Minor Changes
 
-- [#4863](https://github.com/ardatan/graphql-tools/pull/4863) [`238f0707`](https://github.com/ardatan/graphql-tools/commit/238f07071305dddf153dc996437dcdfe45b87619) Thanks [@charlypoly](https://github.com/charlypoly)! - Add support for import assertion
+- [#4863](https://github.com/ardatan/graphql-tools/pull/4863)
+  [`238f0707`](https://github.com/ardatan/graphql-tools/commit/238f07071305dddf153dc996437dcdfe45b87619)
+  Thanks [@charlypoly](https://github.com/charlypoly)! - Add support for import assertion
 
 ### Patch Changes
 
-- [#4863](https://github.com/ardatan/graphql-tools/pull/4863) [`238f0707`](https://github.com/ardatan/graphql-tools/commit/238f07071305dddf153dc996437dcdfe45b87619) Thanks [@charlypoly](https://github.com/charlypoly)! - dependencies updates:
-  - Added dependency [`@babel/plugin-syntax-import-assertions@7.20.0` ↗︎](https://www.npmjs.com/package/@babel/plugin-syntax-import-assertions/v/7.20.0) (to `dependencies`)
+- [#4863](https://github.com/ardatan/graphql-tools/pull/4863)
+  [`238f0707`](https://github.com/ardatan/graphql-tools/commit/238f07071305dddf153dc996437dcdfe45b87619)
+  Thanks [@charlypoly](https://github.com/charlypoly)! - dependencies updates:
+  - Added dependency
+    [`@babel/plugin-syntax-import-assertions@7.20.0` ↗︎](https://www.npmjs.com/package/@babel/plugin-syntax-import-assertions/v/7.20.0)
+    (to `dependencies`)
 
 ## 7.3.12
 
 ### Patch Changes
 
-- Updated dependencies [[`7411a5e7`](https://github.com/ardatan/graphql-tools/commit/7411a5e71a8138d9ccfe907b1fb01e62fcbb0cdb)]:
+- Updated dependencies
+  [[`7411a5e7`](https://github.com/ardatan/graphql-tools/commit/7411a5e71a8138d9ccfe907b1fb01e62fcbb0cdb)]:
   - @graphql-tools/utils@9.1.1
 
 ## 7.3.11
 
 ### Patch Changes
 
-- Updated dependencies [[`c0639dd0`](https://github.com/ardatan/graphql-tools/commit/c0639dd0065db1b5bcedaabf58b11945714bab8d)]:
+- Updated dependencies
+  [[`c0639dd0`](https://github.com/ardatan/graphql-tools/commit/c0639dd0065db1b5bcedaabf58b11945714bab8d)]:
   - @graphql-tools/utils@9.1.0
 
 ## 7.3.10
 
 ### Patch Changes
 
-- Updated dependencies [[`d83b1960`](https://github.com/ardatan/graphql-tools/commit/d83b19605be71481ccf8effd80d5254423ea811a)]:
+- Updated dependencies
+  [[`d83b1960`](https://github.com/ardatan/graphql-tools/commit/d83b19605be71481ccf8effd80d5254423ea811a)]:
   - @graphql-tools/utils@9.0.1
 
 ## 7.3.9
 
 ### Patch Changes
 
-- Updated dependencies [[`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`8f6d3efc`](https://github.com/ardatan/graphql-tools/commit/8f6d3efc92b25236f5a3a761ea7ba2f0a7c7f550), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931)]:
+- Updated dependencies
+  [[`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`8f6d3efc`](https://github.com/ardatan/graphql-tools/commit/8f6d3efc92b25236f5a3a761ea7ba2f0a7c7f550),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931)]:
   - @graphql-tools/utils@9.0.0
 
 ## 7.3.8
 
 ### Patch Changes
 
-- Updated dependencies [[`f7daf777`](https://github.com/ardatan/graphql-tools/commit/f7daf7777cc214801886e4a45c0389bc5837d175)]:
+- Updated dependencies
+  [[`f7daf777`](https://github.com/ardatan/graphql-tools/commit/f7daf7777cc214801886e4a45c0389bc5837d175)]:
   - @graphql-tools/utils@8.13.1
 
 ## 7.3.7
 
 ### Patch Changes
 
-- Updated dependencies [[`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f)]:
+- Updated dependencies
+  [[`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f),
+  [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f),
+  [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f)]:
   - @graphql-tools/utils@8.13.0
 
 ## 7.3.6
 
 ### Patch Changes
 
-- Updated dependencies [[`43c736bd`](https://github.com/ardatan/graphql-tools/commit/43c736bd1865c00898966a7ed14060496c9e6a0c)]:
+- Updated dependencies
+  [[`43c736bd`](https://github.com/ardatan/graphql-tools/commit/43c736bd1865c00898966a7ed14060496c9e6a0c)]:
   - @graphql-tools/utils@8.12.0
 
 ## 7.3.5
 
 ### Patch Changes
 
-- Updated dependencies [[`71cb4fae`](https://github.com/ardatan/graphql-tools/commit/71cb4faeb0833a228520a7bc2beed8ac7274443f), [`403ed450`](https://github.com/ardatan/graphql-tools/commit/403ed4507eff7cd509f410f7542a702da72e1a9a)]:
+- Updated dependencies
+  [[`71cb4fae`](https://github.com/ardatan/graphql-tools/commit/71cb4faeb0833a228520a7bc2beed8ac7274443f),
+  [`403ed450`](https://github.com/ardatan/graphql-tools/commit/403ed4507eff7cd509f410f7542a702da72e1a9a)]:
   - @graphql-tools/utils@8.11.0
 
 ## 7.3.4
 
 ### Patch Changes
 
-- Updated dependencies [[`4fe3d9c0`](https://github.com/ardatan/graphql-tools/commit/4fe3d9c037e9c138bd8a9b04b3977d74eba32c97)]:
+- Updated dependencies
+  [[`4fe3d9c0`](https://github.com/ardatan/graphql-tools/commit/4fe3d9c037e9c138bd8a9b04b3977d74eba32c97)]:
   - @graphql-tools/utils@8.10.1
 
 ## 7.3.3
 
 ### Patch Changes
 
-- Updated dependencies [[`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27)]:
+- Updated dependencies
+  [[`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27)]:
   - @graphql-tools/utils@8.10.0
 
 ## 7.3.2
 
 ### Patch Changes
 
-- [#4624](https://github.com/ardatan/graphql-tools/pull/4624) [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with `moduleResolution` `node16` or `nodenext`
+- [#4624](https://github.com/ardatan/graphql-tools/pull/4624)
+  [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with
+  `moduleResolution` `node16` or `nodenext`
 
-- Updated dependencies [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)]:
+- Updated dependencies
+  [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)]:
   - @graphql-tools/utils@8.9.1
 
 ## 7.3.1
@@ -450,7 +515,8 @@
 
 ### Patch Changes
 
-- e9ed9394: Change internal API to add more details on found locations, and export parseCode for lower-level parsing
+- e9ed9394: Change internal API to add more details on found locations, and export parseCode for
+  lower-level parsing
 - 54b440a9: allow to skip indentation while plucking
 
 ## 6.2.4

@@ -37,7 +37,10 @@ module.exports = {
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     'default-param-last': 'off',
-    'import/no-extraneous-dependencies': ['error', { devDependencies: ['**/*.test.ts', '**/*.spec.ts'] }],
+    'import/no-extraneous-dependencies': [
+      'error',
+      { devDependencies: ['**/*.test.ts', '**/*.spec.ts'] },
+    ],
     '@typescript-eslint/no-restricted-imports': [
       'error',
       {
