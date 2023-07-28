@@ -39,7 +39,7 @@ type SchemaOrTypeNode =
   | FieldDefinitionNode
   | InputValueDefinitionNode;
 
-type DirectableGraphQLObject =
+export type DirectableGraphQLObject =
   | GraphQLSchema
   | GraphQLSchemaConfig
   | GraphQLNamedType
