@@ -26,11 +26,13 @@ import {
 export interface GetSubschemasFromSupergraphSdlOpts {
   supergraphSdl: string | DocumentNode;
   onExecutor?: (opts: { subgraphName: string; endpoint: string }) => Executor;
+  batch?: boolean;
 }
 
 export function getSubschemasFromSupergraphSdl({
   supergraphSdl,
   onExecutor = ({ endpoint }) => buildHTTPExecutor({ endpoint }),
+  batch = false,
 }: GetSubschemasFromSupergraphSdlOpts) {
   const ast = typeof supergraphSdl === 'string' ? parse(supergraphSdl) : supergraphSdl;
   const subgraphQueryFieldDefinitionNodes = new Map<string, FieldDefinitionNode[]>();
@@ -308,6 +310,7 @@ export function getSubschemasFromSupergraphSdl({
       schema,
       executor,
       merge: mergeConfig,
+      batch,
     });
   }
   return subschemaMap;
