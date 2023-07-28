@@ -16,11 +16,13 @@ import {
 import { SubschemaConfig } from '@graphql-tools/delegate';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import type { Executor } from '@graphql-tools/utils';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { pathsFromSelectionSet } from '@graphql-tools/stitching-directives';
+import { parseSelectionSet, type Executor } from '@graphql-tools/utils';
 import {
+  createKeysFnFromPaths,
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
-  getKeyForFederation,
 } from './utils.js';
 
 export interface GetSubschemasFromSupergraphSdlOpts {
@@ -204,21 +206,26 @@ export function getSubschemasFromSupergraphSdl({
     const typeNameKeyMap = typeNameKeyBySubgraphMap.get(subgraphName);
     const unionTypeNodes: NamedTypeNode[] = [];
     if (typeNameKeyMap) {
+      const paths = [['__typename']];
       const typeNameFieldsKeyMap = typeNameFieldsKeyBySubgraphMap.get(subgraphName);
       for (const [typeName, key] of typeNameKeyMap) {
         const fieldsKeyMap = typeNameFieldsKeyMap?.get(typeName);
         const fieldsConfig = {};
         if (fieldsKeyMap) {
           for (const [fieldName, key] of fieldsKeyMap) {
+            const selectionSet = `{ ${key} }`;
+            paths.push(...pathsFromSelectionSet(parseSelectionSet(selectionSet)));
             fieldsConfig[fieldName] = {
               selectionSet: `{ ${key} }`,
               computed: true,
             };
           }
         }
+        const selectionSet = `{ ${key} }`;
+        paths.push(...pathsFromSelectionSet(parseSelectionSet(selectionSet)));
         mergeConfig[typeName] = {
-          selectionSet: `{ ${key} }`,
-          key: getKeyForFederation,
+          selectionSet,
+          key: createKeysFnFromPaths(paths),
           argsFromKeys: getArgsFromKeysForFederation,
           fieldName: `_entities`,
           fields: fieldsConfig,

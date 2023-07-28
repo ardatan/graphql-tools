@@ -1,4 +1,5 @@
 import { GraphQLSchema } from 'graphql';
+import pick from 'lodash.pick';
 import { FilterRootFields, FilterTypes } from '@graphql-tools/wrap';
 
 export function getArgsFromKeysForFederation(representations: readonly any[]) {
@@ -7,6 +8,13 @@ export function getArgsFromKeysForFederation(representations: readonly any[]) {
 
 export function getKeyForFederation(root: any) {
   return root;
+}
+
+export function createKeysFnFromPaths(paths: string[][]) {
+  const lodashPaths = paths.map(path => path.join('.'));
+  return function keysFn(root: any) {
+    return pick(root, lodashPaths);
+  };
 }
 
 export function filterInternalFieldsAndTypes(finalSchema: GraphQLSchema) {
