@@ -206,7 +206,7 @@ export function getSubschemasFromSupergraphSdl({
     const typeNameKeyMap = typeNameKeyBySubgraphMap.get(subgraphName);
     const unionTypeNodes: NamedTypeNode[] = [];
     if (typeNameKeyMap) {
-      const paths = [['__typename']];
+      const pathsFromParent = [['__typename']];
       const typeNameFieldsKeyMap = typeNameFieldsKeyBySubgraphMap.get(subgraphName);
       for (const [typeName, key] of typeNameKeyMap) {
         const fieldsKeyMap = typeNameFieldsKeyMap?.get(typeName);
@@ -214,7 +214,7 @@ export function getSubschemasFromSupergraphSdl({
         if (fieldsKeyMap) {
           for (const [fieldName, key] of fieldsKeyMap) {
             const selectionSet = `{ ${key} }`;
-            paths.push(...pathsFromSelectionSet(parseSelectionSet(selectionSet)));
+            pathsFromParent.push(...pathsFromSelectionSet(parseSelectionSet(selectionSet)));
             fieldsConfig[fieldName] = {
               selectionSet: `{ ${key} }`,
               computed: true,
@@ -222,10 +222,10 @@ export function getSubschemasFromSupergraphSdl({
           }
         }
         const selectionSet = `{ ${key} }`;
-        paths.push(...pathsFromSelectionSet(parseSelectionSet(selectionSet)));
+        pathsFromParent.push(...pathsFromSelectionSet(parseSelectionSet(selectionSet)));
         mergeConfig[typeName] = {
           selectionSet,
-          key: createKeysFnFromPaths(paths),
+          key: createKeysFnFromPaths(pathsFromParent),
           argsFromKeys: getArgsFromKeysForFederation,
           fieldName: `_entities`,
           fields: fieldsConfig,

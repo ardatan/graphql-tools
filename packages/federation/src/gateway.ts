@@ -13,6 +13,8 @@ import {
 import { createDefaultExecutor, SubschemaConfig } from '@graphql-tools/delegate';
 import { buildHTTPExecutor, HTTPExecutorOptions } from '@graphql-tools/executor-http';
 import { stitchSchemas, SubschemaConfigTransform } from '@graphql-tools/stitch';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { pathsFromSelectionSet } from '@graphql-tools/stitching-directives';
 import {
   AsyncExecutor,
   createGraphQLError,
@@ -20,12 +22,13 @@ import {
   Executor,
   getDocumentNodeFromSchema,
   inspect,
+  parseSelectionSet,
 } from '@graphql-tools/utils';
 import { SubgraphBaseSDL } from './subgraph.js';
 import {
+  createKeysFnFromPaths,
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
-  getKeyForFederation,
 } from './utils.js';
 
 export const SubgraphSDLQuery = /* GraphQL */ `
@@ -93,10 +96,10 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
         typeMergingTypeConfig.canonical = true;
       }
       entityTypes.push(typeName);
-      typeMergingTypeConfig.selectionSet = `{ ${selections.join(' ')} }`;
-      typeMergingTypeConfig.key = getKeyForFederation;
-      typeMergingTypeConfig.argsFromKeys = getArgsFromKeysForFederation;
-      typeMergingTypeConfig.fieldName = `_entities`;
+      const pathsFromParent = [['__typename']];
+      const selectionSet = `{ ${selections.join(' ')} }`;
+      pathsFromParent.push(...pathsFromSelectionSet(parseSelectionSet(selectionSet)));
+      typeMergingTypeConfig.selectionSet = selectionSet;
       const fields = [];
       if (node.fields) {
         for (const fieldNode of node.fields) {
@@ -123,9 +126,9 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
                   const selectionValueNode = directiveArgs.find(arg => arg.name.value === 'fields')
                     ?.value;
                   if (selectionValueNode?.kind === Kind.STRING) {
-                    typeMergingFieldsConfig[
-                      fieldName
-                    ].selectionSet = `{ ${selectionValueNode.value} }`;
+                    const selectionSet = `{ ${selectionValueNode.value} }`;
+                    typeMergingFieldsConfig[fieldName].selectionSet = selectionSet;
+                    pathsFromParent.push(...pathsFromSelectionSet(parseSelectionSet(selectionSet)));
                     typeMergingFieldsConfig[fieldName].computed = true;
                   }
                   break;
@@ -151,6 +154,9 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
         }
         (node.fields as FieldDefinitionNode[]) = fields;
       }
+      typeMergingTypeConfig.key = createKeysFnFromPaths(pathsFromParent);
+      typeMergingTypeConfig.argsFromKeys = getArgsFromKeysForFederation;
+      typeMergingTypeConfig.fieldName = `_entities`;
     }
     return {
       ...node,
