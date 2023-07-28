@@ -1,5 +1,12 @@
 # @graphql-tools/federation
 
+## 1.1.1
+
+### Patch Changes
+
+- [`d593dfce`](https://github.com/ardatan/graphql-tools/commit/d593dfce52a895993c754903687043a9d5429803)
+  Thanks [@ardatan](https://github.com/ardatan)! - Adding `batch` option to allow batching
+
 ## 1.1.0
 
 ### Minor Changes
