@@ -1,6 +1,5 @@
 import { GraphQLSchema } from 'graphql';
 import pick from 'lodash.pick';
-import { memoize1 } from '@graphql-tools/utils';
 import { FilterRootFields, FilterTypes } from '@graphql-tools/wrap';
 
 export function getArgsFromKeysForFederation(representations: readonly any[]) {
