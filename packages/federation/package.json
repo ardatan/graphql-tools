@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/federation",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "type": "module",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "repository": {
