@@ -13,14 +13,14 @@ import {
   UnionTypeDefinitionNode,
   visit,
 } from 'graphql';
-import { SubschemaConfig } from '@graphql-tools/delegate';
+import { MergedTypeConfig, SubschemaConfig } from '@graphql-tools/delegate';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import type { Executor } from '@graphql-tools/utils';
 import {
+  createKeyFnForFederation,
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
-  getKeyForFederation,
 } from './utils.js';
 
 export interface GetSubschemasFromSupergraphSdlOpts {
@@ -206,24 +206,27 @@ export function getSubschemasFromSupergraphSdl({
     if (typeNameKeyMap) {
       const typeNameFieldsKeyMap = typeNameFieldsKeyBySubgraphMap.get(subgraphName);
       for (const [typeName, key] of typeNameKeyMap) {
+        let allKeys: string = `__typename ${key}`;
+        const mergedTypeConfig: MergedTypeConfig = (mergeConfig[typeName] = {
+          selectionSet: `{ ${key} }`,
+          argsFromKeys: getArgsFromKeysForFederation,
+          fieldName: `_entities`,
+        });
         const fieldsKeyMap = typeNameFieldsKeyMap?.get(typeName);
-        const fieldsConfig = {};
         if (fieldsKeyMap) {
+          const fieldsConfig = (mergedTypeConfig.fields = {});
           for (const [fieldName, key] of fieldsKeyMap) {
+            allKeys += ` ${key}`;
             fieldsConfig[fieldName] = {
               selectionSet: `{ ${key} }`,
               computed: true,
             };
           }
         }
-        mergeConfig[typeName] = {
-          selectionSet: `{ ${key} }`,
-          key: getKeyForFederation,
-          argsFromKeys: getArgsFromKeysForFederation,
-          fieldName: `_entities`,
-          fields: fieldsConfig,
-          canonical: typeNameCanonicalMap.get(typeName) === subgraphName,
-        };
+        mergedTypeConfig.key = createKeyFnForFederation(allKeys);
+        if (typeNameCanonicalMap.get(typeName) === subgraphName) {
+          mergedTypeConfig.canonical = true;
+        }
         unionTypeNodes.push({
           kind: Kind.NAMED_TYPE,
           name: {

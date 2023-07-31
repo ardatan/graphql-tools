@@ -1,11 +1,19 @@
 import { GraphQLSchema } from 'graphql';
+import pick from 'lodash.pick';
 import { FilterRootFields, FilterTypes } from '@graphql-tools/wrap';
 
 export function getArgsFromKeysForFederation(representations: readonly any[]) {
   return { representations };
 }
 
-export function getKeyForFederation(root: any) {
+export function createKeyFnForFederation(allKeys: string) {
+  const keysAsArr = allKeys.split(' ');
+  return function keyFnForFederation(root: any) {
+    return pick(root, keysAsArr);
+  };
+}
+
+export function getKeyForFederation<TRoot>(root: TRoot): TRoot {
   return root;
 }
 
