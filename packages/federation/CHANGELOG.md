@@ -1,5 +1,20 @@
 # @graphql-tools/federation
 
+## 1.1.2
+
+### Patch Changes
+
+- [#5468](https://github.com/ardatan/graphql-tools/pull/5468)
+  [`de9e8a67`](https://github.com/ardatan/graphql-tools/commit/de9e8a678a0ab38e5fc1cbf6c1bf27c265cc0c01)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+
+  - Added dependency [`lodash.pick@^4.4.0` ↗︎](https://www.npmjs.com/package/lodash.pick/v/4.4.0)
+    (to `dependencies`)
+
+- [#5468](https://github.com/ardatan/graphql-tools/pull/5468)
+  [`de9e8a67`](https://github.com/ardatan/graphql-tools/commit/de9e8a678a0ab38e5fc1cbf6c1bf27c265cc0c01)
+  Thanks [@ardatan](https://github.com/ardatan)! - Reduce the number of upstream requests
+
 ## 1.1.1
 
 ### Patch Changes
