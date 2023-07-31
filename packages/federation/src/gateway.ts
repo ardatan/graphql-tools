@@ -23,6 +23,7 @@ import {
 } from '@graphql-tools/utils';
 import { SubgraphBaseSDL } from './subgraph.js';
 import {
+  createKeyFnForFederation,
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
   getKeyForFederation,
@@ -93,10 +94,11 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
         typeMergingTypeConfig.canonical = true;
       }
       entityTypes.push(typeName);
-      typeMergingTypeConfig.selectionSet = `{ ${selections.join(' ')} }`;
-      typeMergingTypeConfig.key = getKeyForFederation;
+      const selectionsStr = selections.join(' ');
+      typeMergingTypeConfig.selectionSet = `{ selectionsStr }`;
       typeMergingTypeConfig.argsFromKeys = getArgsFromKeysForFederation;
       typeMergingTypeConfig.fieldName = `_entities`;
+      let allKeys = `__typename ${selectionsStr}`;
       const fields = [];
       if (node.fields) {
         for (const fieldNode of node.fields) {
@@ -126,6 +128,7 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
                     typeMergingFieldsConfig[
                       fieldName
                     ].selectionSet = `{ ${selectionValueNode.value} }`;
+                    allKeys += ` ${selectionValueNode.value}`;
                     typeMergingFieldsConfig[fieldName].computed = true;
                   }
                   break;
@@ -151,6 +154,7 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
         }
         (node.fields as FieldDefinitionNode[]) = fields;
       }
+      typeMergingTypeConfig.key = createKeyFnForFederation(allKeys);
     }
     return {
       ...node,

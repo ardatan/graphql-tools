@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import {
   buildClientSchema,
+  buildSchema,
   DocumentNode,
   getIntrospectionQuery,
   GraphQLSchema,
@@ -27,6 +28,7 @@ import * as Inventory from './fixtures/gateway/inventory';
 import * as Products from './fixtures/gateway/products';
 import * as Reviews from './fixtures/gateway/reviews';
 import '../../testing/to-be-similar-gql-doc';
+import { federationToStitchingSDL, stitchingDirectives } from '@graphql-tools/stitching-directives';
 
 interface ServiceInput {
   typeDefs: string;
@@ -201,19 +203,53 @@ describe('Federation', () => {
       onExecutor({ subgraphName }) {
         const [, i] = subgraphName.split('SERVICE');
         const executor = createDefaultExecutor(services[parseInt(i)].schema);
-        return async executionRequest => {
+        return function subschemaExecutor(executionRequest) {
           const errors = validate(services[parseInt(i)].schema, executionRequest.document);
           if (errors.length > 0) {
             return {
               errors,
             };
           }
-          const result = await executor(executionRequest);
-          return result;
+          return executor(executionRequest);
         };
       },
     });
 
+    return async (document: DocumentNode) => {
+      const errors = validate(gatewaySchema, document);
+      if (errors.length > 0) {
+        return {
+          errors,
+        };
+      }
+      return normalizedExecutor({
+        schema: gatewaySchema,
+        document,
+      }) as Promise<ExecutionResult>;
+    };
+  };
+  const buildStitchingGatewayByConversion = async (services: ServiceInput[]) => {
+    const { stitchingDirectivesTransformer } = stitchingDirectives();
+    const subschemas: SubschemaConfig[] = services.map(({ typeDefs, schema }, i) => {
+      const executor = createDefaultExecutor(schema);
+      const stitchingSdl = federationToStitchingSDL(typeDefs);
+      const subschemaSchema = buildSchema(stitchingSdl, {
+        assumeValidSDL: true,
+        assumeValid: true,
+      });
+      return {
+        schema: subschemaSchema,
+        executor(executionRequest) {
+          console.count(`Conversion: Service ${i} execution`);
+          return executor(executionRequest);
+        },
+      };
+    });
+    let gatewaySchema = stitchSchemas({
+      subschemas,
+      subschemaConfigTransforms: [stitchingDirectivesTransformer],
+    });
+    gatewaySchema = filterInternalFieldsAndTypes(gatewaySchema);
     return async (document: DocumentNode) => {
       const errors = validate(gatewaySchema, document);
       if (errors.length > 0) {
@@ -257,6 +293,16 @@ describe('Federation', () => {
       name: 'Tools Gateway with Supergraph vs. Tools Subgraph',
       buildSubgraphSchema: buildToolsSubgraphSchema,
       buildGateway: buildStitchingGatewayWithSupergraph,
+    },
+    {
+      name: 'Tools Gateway by converting Federation to Stitching SDL vs. Tools Subgraph',
+      buildSubgraphSchema: buildToolsSubgraphSchema,
+      buildGateway: buildStitchingGatewayByConversion,
+    },
+    {
+      name: 'Tools Gateway by converting Federation to Stitching SDL vs. Apollo Subgraph',
+      buildSubgraphSchema: buildSubgraphWithApollo,
+      buildGateway: buildStitchingGatewayByConversion,
     },
   ];
   for (const { name, buildSubgraphSchema, buildGateway } of scenarios) {
