@@ -230,7 +230,7 @@ describe('Federation', () => {
   };
   const buildStitchingGatewayByConversion = async (services: ServiceInput[]) => {
     const { stitchingDirectivesTransformer } = stitchingDirectives();
-    const subschemas: SubschemaConfig[] = services.map(({ typeDefs, schema }, i) => {
+    const subschemas: SubschemaConfig[] = services.map(({ typeDefs, schema }) => {
       const executor = createDefaultExecutor(schema);
       const stitchingSdl = federationToStitchingSDL(typeDefs);
       const subschemaSchema = buildSchema(stitchingSdl, {
@@ -239,10 +239,7 @@ describe('Federation', () => {
       });
       return {
         schema: subschemaSchema,
-        executor(executionRequest) {
-          console.count(`Conversion: Service ${i} execution`);
-          return executor(executionRequest);
-        },
+        executor,
       };
     });
     let gatewaySchema = stitchSchemas({

@@ -94,7 +94,7 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
       }
       entityTypes.push(typeName);
       const selectionsStr = selections.join(' ');
-      typeMergingTypeConfig.selectionSet = `{ selectionsStr }`;
+      typeMergingTypeConfig.selectionSet = `{ ${selectionsStr} }`;
       typeMergingTypeConfig.argsFromKeys = getArgsFromKeysForFederation;
       typeMergingTypeConfig.fieldName = `_entities`;
       let allKeys = `__typename ${selectionsStr}`;
