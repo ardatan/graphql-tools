@@ -26,7 +26,6 @@ import {
   createKeyFnForFederation,
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
-  getKeyForFederation,
 } from './utils.js';
 
 export const SubgraphSDLQuery = /* GraphQL */ `
