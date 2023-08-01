@@ -27,7 +27,16 @@ import { addMocksToSchema } from '@graphql-tools/mock'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 
 // Fill this in with the schema string
-const schemaString = `...`
+const schemaString = `
+  type User {
+    id: ID!
+    name: String!
+  }
+
+  type Query {
+    user(id: ID!): User
+  }
+`
 
 // Make a GraphQL schema with no resolvers
 const schema = makeExecutableSchema({ typeDefs: schemaString })
@@ -36,7 +45,7 @@ const schema = makeExecutableSchema({ typeDefs: schemaString })
 const schemaWithMocks = addMocksToSchema({ schema })
 
 const query = /* GraphQL */ `
-  query tasksForUser {
+  query UserQuery {
     user(id: 6) {
       id
       name
