@@ -76,8 +76,8 @@ describe('batch execution', () => {
           objectA: () => ({}),
         },
         Object: {
-          field1: () => new Promise(resolve => setTimeout(() => resolve('test1'), 1000)),
-          field2: () => new Promise(resolve => setTimeout(() => resolve('test2'), 2000)),
+          field1: () => 'test1',
+          field2: () => 'test2',
         },
       },
     });
