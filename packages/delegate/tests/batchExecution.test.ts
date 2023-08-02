@@ -167,7 +167,6 @@ describe('batch execution', () => {
     const resultWhenAsArray = await graphql({
       schema: outerSchemaWithSubschemasAsArray,
       source: query,
-      contextValue: {},
     });
 
     expect(resultWhenAsArray).toEqual(expectedResult);
