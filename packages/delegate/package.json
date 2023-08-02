@@ -55,8 +55,7 @@
     "@graphql-tools/schema": "^10.0.0",
     "@graphql-tools/utils": "^10.0.0",
     "dataloader": "^2.2.2",
-    "tslib": "^2.5.0",
-    "value-or-promise": "^1.0.12"
+    "tslib": "^2.5.0"
   },
   "publishConfig": {
     "directory": "dist",

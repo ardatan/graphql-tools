@@ -8,8 +8,13 @@ import {
   responsePathAsArray,
   SelectionSetNode,
 } from 'graphql';
-import { ValueOrPromise } from 'value-or-promise';
-import { collectFields, memoize1, relocatedError } from '@graphql-tools/utils';
+import {
+  collectFields,
+  isPromise,
+  MaybePromise,
+  memoize1,
+  relocatedError,
+} from '@graphql-tools/utils';
 import { Subschema } from './Subschema.js';
 import {
   FIELD_SUBSCHEMA_MAP_SYMBOL,
@@ -50,10 +55,6 @@ export function getUnpathedErrors(object: ExternalObject): Array<GraphQLError> {
 const EMPTY_ARRAY: any[] = [];
 const EMPTY_OBJECT = Object.create(null);
 
-function asyncForEach<T>(array: T[], fn: (item: T) => ValueOrPromise<void>) {
-  return array.reduce((prev, curr) => prev.then(() => fn(curr)), new ValueOrPromise(() => {}));
-}
-
 export const getActualFieldNodes = memoize1(function (fieldNode: FieldNode) {
   return [fieldNode];
 });
@@ -64,7 +65,7 @@ export function mergeFields<TContext>(
   sourceSubschema: Subschema<any, any, any, TContext>,
   context: any,
   info: GraphQLResolveInfo,
-): ValueOrPromise<any> {
+): MaybePromise<any> {
   const delegationMaps = mergedTypeInfo.delegationPlanBuilder(
     info.schema,
     sourceSubschema,
@@ -81,9 +82,21 @@ export function mergeFields<TContext>(
       : EMPTY_ARRAY,
   );
 
-  return asyncForEach(delegationMaps, delegationMap =>
-    executeDelegationStage(mergedTypeInfo, delegationMap, object, context, info),
-  ).then(() => object);
+  const res$ = delegationMaps.reduce<MaybePromise<void>>((prev, delegationMap) => {
+    function executeFn() {
+      return executeDelegationStage(mergedTypeInfo, delegationMap, object, context, info);
+    }
+    if (isPromise(prev)) {
+      return prev.then(executeFn);
+    }
+    return executeFn();
+  }, undefined);
+
+  if (isPromise(res$)) {
+    return res$.then(() => object);
+  }
+
+  return object;
 }
 
 function executeDelegationStage(
@@ -92,7 +105,7 @@ function executeDelegationStage(
   object: ExternalObject,
   context: any,
   info: GraphQLResolveInfo,
-): ValueOrPromise<void> {
+): MaybePromise<void> {
   const combinedErrors = object[UNPATHED_ERRORS_SYMBOL];
 
   const path = responsePathAsArray(info.path);
@@ -134,18 +147,29 @@ function executeDelegationStage(
     }
   }
 
-  return ValueOrPromise.all(
-    [...delegationMap.entries()].map(([subschema, selectionSet]) =>
-      new ValueOrPromise(() => {
-        const schema = subschema.transformedSchema || info.schema;
-        const type = schema.getType(object.__typename) as GraphQLObjectType;
-        const resolver = mergedTypeInfo.resolvers.get(subschema);
-        if (resolver) {
-          return resolver(object, context, info, subschema, selectionSet, undefined, type);
+  return [...delegationMap.entries()].reduce((prev, [subschema, selectionSet]) => {
+    const schema = subschema.transformedSchema || info.schema;
+    const type = schema.getType(object.__typename) as GraphQLObjectType;
+    const resolver = mergedTypeInfo.resolvers.get(subschema);
+    function resolve() {
+      let source$: any;
+      if (resolver) {
+        try {
+          source$ = resolver(object, context, info, subschema, selectionSet, undefined, type);
+        } catch (error) {
+          return finallyFn(error, subschema, selectionSet);
         }
-      })
-        .then(source => finallyFn(source, subschema, selectionSet))
-        .catch(error => finallyFn(error, subschema, selectionSet)),
-    ),
-  ).then(() => {});
+      }
+      if (isPromise(source$)) {
+        return (
+          source$.then(source => finallyFn(source, subschema, selectionSet)) as Promise<any>
+        ).catch(error => finallyFn(error, subschema, selectionSet)) as any;
+      }
+      return finallyFn(source$, subschema, selectionSet);
+    }
+    if (isPromise(prev)) {
+      return prev.then(resolve);
+    }
+    return resolve();
+  }, undefined);
 }

@@ -22,16 +22,12 @@ describe('batch execution', () => {
       },
     });
 
-    let executions = 0;
+    const executor = jest.fn(createDefaultExecutor(innerSchema));
 
-    const defaultExecutor = createDefaultExecutor(innerSchema);
     const innerSubschemaConfig: SubschemaConfig = {
       schema: innerSchema,
       batch: true,
-      executor: request => {
-        executions++;
-        return defaultExecutor(request);
-      },
+      executor: executor as Executor,
     };
 
     const outerSchema = makeExecutableSchema({
@@ -61,7 +57,7 @@ describe('batch execution', () => {
     const result = await graphql({ schema: outerSchema, source: '{ field1 field2 }' });
 
     expect(result).toEqual(expectedResult);
-    expect(executions).toEqual(1);
+    expect(executor).toHaveBeenCalledTimes(1);
   });
 
   it('should share batching dataloader between subschemas when using a common executor', async () => {
@@ -80,8 +76,8 @@ describe('batch execution', () => {
           objectA: () => ({}),
         },
         Object: {
-          field1: () => 'test1',
-          field2: () => 'test2',
+          field1: () => new Promise(resolve => setTimeout(() => resolve('test1'), 1000)),
+          field2: () => new Promise(resolve => setTimeout(() => resolve('test2'), 2000)),
         },
       },
     });
@@ -105,13 +101,7 @@ describe('batch execution', () => {
       },
     });
 
-    let executions = 0;
-
-    const defaultExecutor = createDefaultExecutor(innerSchemaA);
-    const executor: Executor = request => {
-      executions++;
-      return defaultExecutor(request);
-    };
+    const executor = jest.fn(createDefaultExecutor(innerSchemaA));
 
     const innerSubschemaConfigA: Array<SubschemaConfig> = [
       {
@@ -128,7 +118,7 @@ describe('batch execution', () => {
           },
         },
         batch: true,
-        executor,
+        executor: executor as Executor,
       },
       {
         schema: innerSchemaA,
@@ -144,7 +134,7 @@ describe('batch execution', () => {
           },
         },
         batch: true,
-        executor,
+        executor: executor as Executor,
       },
     ];
 
@@ -177,10 +167,11 @@ describe('batch execution', () => {
     const resultWhenAsArray = await graphql({
       schema: outerSchemaWithSubschemasAsArray,
       source: query,
+      contextValue: {},
     });
 
     expect(resultWhenAsArray).toEqual(expectedResult);
-    expect(executions).toEqual(1);
+    expect(executor).toHaveBeenCalledTimes(1);
 
     const outerSchemaWithSubschemasSpread = stitchSchemas({
       subschemas: [...innerSubschemaConfigA, innerSubschemaConfigB],
@@ -192,6 +183,6 @@ describe('batch execution', () => {
     });
 
     expect(resultWhenSpread).toEqual(expectedResult);
-    expect(executions).toEqual(2);
+    expect(executor).toHaveBeenCalledTimes(2);
   });
 });

@@ -20,8 +20,8 @@ export function createBatchingExecutor(
   const loadFn = createLoadFn(executor, extensionsReducer);
   const loader = new DataLoader(loadFn, dataLoaderOptions);
   return function batchingExecutor(request: ExecutionRequest) {
-    const operationAst = getOperationASTFromRequest(request);
-    return operationAst.operation === 'subscription' ? executor(request) : loader.load(request);
+    const operationType = request.operationType ?? getOperationASTFromRequest(request)?.operation;
+    return operationType === 'subscription' ? executor(request) : loader.load(request);
   };
 }
 
