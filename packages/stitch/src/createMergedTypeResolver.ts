@@ -33,6 +33,7 @@ export function createMergedTypeResolver<TContext extends Record<string, any> = 
         context,
         info,
         skipTypeMerging: true,
+        dataLoaderOptions: mergedTypeResolverOptions.dataLoaderOptions,
       });
     };
   }

@@ -18,9 +18,9 @@ import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import type { Executor } from '@graphql-tools/utils';
 import {
-  createKeyFnForFederation,
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
+  getKeyForFederation,
 } from './utils.js';
 
 export interface GetSubschemasFromSupergraphSdlOpts {
@@ -206,24 +206,28 @@ export function getSubschemasFromSupergraphSdl({
     if (typeNameKeyMap) {
       const typeNameFieldsKeyMap = typeNameFieldsKeyBySubgraphMap.get(subgraphName);
       for (const [typeName, key] of typeNameKeyMap) {
-        let allKeys: string = `__typename ${key}`;
         const mergedTypeConfig: MergedTypeConfig = (mergeConfig[typeName] = {
           selectionSet: `{ ${key} }`,
           argsFromKeys: getArgsFromKeysForFederation,
+          key: getKeyForFederation,
           fieldName: `_entities`,
         });
+        const keyProps = key.split(' ');
+        mergedTypeConfig.dataLoaderOptions = {
+          cacheKeyFn(root) {
+            return keyProps.map(key => root[key]).join(' ');
+          },
+        };
         const fieldsKeyMap = typeNameFieldsKeyMap?.get(typeName);
         if (fieldsKeyMap) {
           const fieldsConfig = (mergedTypeConfig.fields = {});
           for (const [fieldName, key] of fieldsKeyMap) {
-            allKeys += ` ${key}`;
             fieldsConfig[fieldName] = {
               selectionSet: `{ ${key} }`,
               computed: true,
             };
           }
         }
-        mergedTypeConfig.key = createKeyFnForFederation(allKeys);
         if (typeNameCanonicalMap.get(typeName) === subgraphName) {
           mergedTypeConfig.canonical = true;
         }
