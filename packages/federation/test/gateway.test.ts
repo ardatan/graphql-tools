@@ -239,7 +239,15 @@ describe('Federation', () => {
       });
       return {
         schema: subschemaSchema,
-        executor,
+        executor(executionRequest) {
+          const errors = validate(schema, executionRequest.document);
+          if (errors.length > 0) {
+            return {
+              errors,
+            };
+          }
+          return executor(executionRequest);
+        },
       };
     });
     let gatewaySchema = stitchSchemas({

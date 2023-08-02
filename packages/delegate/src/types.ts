@@ -180,6 +180,7 @@ export interface MergedTypeResolverOptions<K = any, V = any> {
   args?: (originalResult: any) => Record<string, any>;
   argsFromKeys?: (keys: ReadonlyArray<K>) => Record<string, any>;
   valuesFromResults?: (results: any, keys: ReadonlyArray<K>) => Array<V>;
+  dataLoaderOptions?: DataLoader.Options<K, V>;
 }
 
 export interface MergedFieldConfig {
