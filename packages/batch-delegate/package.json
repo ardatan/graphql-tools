@@ -50,7 +50,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "^10.0.0",
+    "@graphql-tools/delegate": "^10.0.1",
     "@graphql-tools/utils": "^10.0.0",
     "dataloader": "2.2.2",
     "tslib": "^2.4.0",
@@ -58,7 +58,7 @@
   },
   "devDependencies": {
     "@graphql-tools/schema": "^10.0.0",
-    "@graphql-tools/stitch": "9.0.0"
+    "@graphql-tools/stitch": "9.0.1"
   },
   "publishConfig": {
     "directory": "dist",

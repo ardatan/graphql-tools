@@ -1,5 +1,25 @@
 # @graphql-tools/federation
 
+## 1.1.3
+
+### Patch Changes
+
+- [#5474](https://github.com/ardatan/graphql-tools/pull/5474)
+  [`f31be313`](https://github.com/ardatan/graphql-tools/commit/f31be313b2af5a7c5bf893f1ce1dc7d36bf5340c)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+
+  - Removed dependency [`lodash.pick@^4.4.0` ↗︎](https://www.npmjs.com/package/lodash.pick/v/4.4.0)
+    (from `dependencies`)
+
+- [#5474](https://github.com/ardatan/graphql-tools/pull/5474)
+  [`f31be313`](https://github.com/ardatan/graphql-tools/commit/f31be313b2af5a7c5bf893f1ce1dc7d36bf5340c)
+  Thanks [@ardatan](https://github.com/ardatan)! - Optimizations for federation
+
+- Updated dependencies
+  [[`f31be313`](https://github.com/ardatan/graphql-tools/commit/f31be313b2af5a7c5bf893f1ce1dc7d36bf5340c)]:
+  - @graphql-tools/delegate@10.0.1
+  - @graphql-tools/stitch@9.0.1
+
 ## 1.1.2
 
 ### Patch Changes
