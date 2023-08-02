@@ -2737,10 +2737,10 @@
     lodash.sortby "^4.7.0"
     remove-markdown "^0.5.0"
 
-"@theguild/components@5.1.1":
-  version "5.1.1"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-5.1.1.tgz#105f8a6eeab12a35aeb737ec427664966f495459"
-  integrity sha512-VPmnK7r5PYWemyYby/Xfxn9jv+nKDAZcW27hlKmiG8pVHe2q6HNjZvubZijmtl6r0WoiCdBnKJSDtaKDV5fbJQ==
+"@theguild/components@5.2.1":
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-5.2.1.tgz#9b7fce72dd432aa23ed6a55eacd7d8fe755a9d2b"
+  integrity sha512-sEJMyyAuB7P1fdHewWfdy7CnXUSgR+mkVK74H2UWJWVVyydx4QZnrrefZEgDLyuea7V10a4zjNou1FwdJ+05Fg==
   dependencies:
     "@algolia/autocomplete-js" "1.10.0"
     "@algolia/autocomplete-plugin-algolia-insights" "1.10.0"
@@ -8292,11 +8292,6 @@ lodash.merge@^4.6.2:
   version "4.6.2"
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
-
-lodash.pick@^4.4.0:
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/lodash.pick/-/lodash.pick-4.4.0.tgz#52f05610fff9ded422611441ed1fc123a03001b3"
-  integrity sha512-hXt6Ul/5yWjfklSGvLQl8vM//l3FtyHZeuelpzK6mm99pNvN9yTDruNZPEJZD1oWrqo+izBmB7oUfWgcCX7s4Q==
 
 lodash.sortby@^4.7.0:
   version "4.7.0"

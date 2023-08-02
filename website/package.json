@@ -9,7 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@theguild/components": "5.1.1",
+    "@theguild/components": "5.2.1",
     "next": "13.4.12",
     "next-sitemap": "4.1.8",
     "react": "18.2.0",
