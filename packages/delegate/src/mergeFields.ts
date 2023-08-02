@@ -147,29 +147,32 @@ function executeDelegationStage(
     }
   }
 
-  return [...delegationMap.entries()].reduce((prev, [subschema, selectionSet]) => {
-    const schema = subschema.transformedSchema || info.schema;
-    const type = schema.getType(object.__typename) as GraphQLObjectType;
-    const resolver = mergedTypeInfo.resolvers.get(subschema);
-    function resolve() {
-      let source$: any;
-      if (resolver) {
-        try {
-          source$ = resolver(object, context, info, subschema, selectionSet, undefined, type);
-        } catch (error) {
-          return finallyFn(error, subschema, selectionSet);
+  return [...delegationMap.entries()].reduce<MaybePromise<void>>(
+    (prev, [subschema, selectionSet]) => {
+      const schema = subschema.transformedSchema || info.schema;
+      const type = schema.getType(object.__typename) as GraphQLObjectType;
+      const resolver = mergedTypeInfo.resolvers.get(subschema);
+      function resolve() {
+        let source$: any;
+        if (resolver) {
+          try {
+            source$ = resolver(object, context, info, subschema, selectionSet, undefined, type);
+          } catch (error) {
+            return finallyFn(error, subschema, selectionSet);
+          }
         }
+        if (isPromise(source$)) {
+          return (
+            source$.then(source => finallyFn(source, subschema, selectionSet)) as Promise<any>
+          ).catch(error => finallyFn(error, subschema, selectionSet)) as any;
+        }
+        return finallyFn(source$, subschema, selectionSet);
       }
-      if (isPromise(source$)) {
-        return (
-          source$.then(source => finallyFn(source, subschema, selectionSet)) as Promise<any>
-        ).catch(error => finallyFn(error, subschema, selectionSet)) as any;
+      if (isPromise(prev)) {
+        return prev.then(resolve);
       }
-      return finallyFn(source$, subschema, selectionSet);
-    }
-    if (isPromise(prev)) {
-      return prev.then(resolve);
-    }
-    return resolve();
-  }, undefined);
+      return resolve();
+    },
+    undefined,
+  );
 }
