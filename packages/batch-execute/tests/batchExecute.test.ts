@@ -22,6 +22,7 @@ describe('batch execution', () => {
         field2: String
         field3(input: String): String
         boom(message: String): String
+        boomWithPath(message: String): String
         extension: String
         widget: Widget
       }
@@ -35,6 +36,8 @@ describe('batch execution', () => {
         field2: () => '2',
         field3: (_root, { input }) => String(input),
         boom: (_root, { message }) => new Error(message),
+        boomWithPath: (_root, { message }) =>
+          createGraphQLError(message, { path: ['BoomWithPathQueryName'] }),
         extension: () => createGraphQLError('boom', { extensions }),
         widget: () => ({ name: 'wingnut' }),
       },
@@ -220,5 +223,17 @@ describe('batch execution', () => {
     expect(first?.errors?.length).toEqual(1);
     expect(first?.errors?.[0].message).toMatch(/boom/);
     expect(first?.errors?.[0].extensions).toEqual(extensions);
+  });
+
+  it('handles unprefixed query name in graphql error path', async () => {
+    const [first] = (await Promise.all([
+      batchExec({
+        document: parse('{ boomWithPath(message: "unexpected error") }'),
+      }),
+    ])) as ExecutionResult[];
+
+    expect(first?.errors?.[0].message).toEqual('unexpected error');
+    expect(first?.errors?.[0].path).toEqual(['BoomWithPathQueryName']);
+    expect(executorCalls).toEqual(1);
   });
 });

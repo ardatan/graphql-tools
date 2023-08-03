@@ -32,9 +32,18 @@ export function splitResult(
   }
 
   if (errors) {
+    let unprefixedKeyIndex = 0;
+
     for (const error of errors) {
       if (error.path) {
-        const parsedKey = parseKey(error.path[0] as string);
+        let parsedKey: ReturnType<typeof parseKey>;
+        try {
+          parsedKey = parseKey(error.path[0] as string);
+        } catch {
+          parsedKey = { originalKey: error.path[0] as string, index: unprefixedKeyIndex };
+        }
+
+        unprefixedKeyIndex++;
         const { index, originalKey } = parsedKey;
         const newError = relocatedError(error, [originalKey, ...error.path.slice(1)]);
         const resultErrors = (splitResults[index].errors = (splitResults[index].errors ||
