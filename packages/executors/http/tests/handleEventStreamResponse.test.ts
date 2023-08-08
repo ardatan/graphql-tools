@@ -22,6 +22,25 @@ describe('handleEventStreamResponse', () => {
     });
   });
 
+  it('should handle an events whose fields have no trailing space', async () => {
+    const readableStream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(encoder.encode('event:complete\n'));
+        controller.enqueue(encoder.encode('data:{ "foo": "bar" }\n'));
+        controller.enqueue(encoder.encode('\n'));
+      },
+    });
+
+    const response = new Response(readableStream);
+    const asyncIterable = handleEventStreamResponse(response, new AbortController());
+    const iterator = asyncIterable[Symbol.asyncIterator]();
+    const { value } = await iterator.next();
+
+    expect(value).toMatchObject({
+      foo: 'bar',
+    });
+  });
+
   it('should ignore server pings', async () => {
     const readableStream = new ReadableStream<Uint8Array>({
       start(controller) {
