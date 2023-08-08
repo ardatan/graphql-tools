@@ -1,7 +1,7 @@
+import { GraphQLObjectType, GraphQLSchema, GraphQLString } from 'graphql';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { inspect, isAsyncIterable } from '@graphql-tools/utils';
-import { GraphQLObjectType, GraphQLSchema, GraphQLString } from 'graphql';
 
 export function assertAsyncIterable(input: unknown): asserts input is AsyncIterable<any> {
   if (!isAsyncIterable(input)) {
@@ -116,10 +116,10 @@ export const testResolvers = {
       subscribe: () => {
         let complete = () => {
           // noop
-        }
+        };
         // eslint-disable-next-line require-yield -- for testing purposes
         const iterator = (async function* iterator() {
-          await new Promise<void>((resolve) => (complete = resolve));
+          await new Promise<void>(resolve => (complete = resolve));
         })();
         iterator.return = async () => {
           complete();

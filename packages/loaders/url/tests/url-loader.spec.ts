@@ -568,7 +568,7 @@ describe('Schema URL Loader', () => {
     assertAsyncIterable(asyncIterable);
 
     setTimeout(() => {
-      asyncIterable[Symbol.asyncIterator]().return?.()
+      asyncIterable[Symbol.asyncIterator]().return?.();
     }, 0);
 
     let i = 0;
