@@ -525,7 +525,7 @@ describe('Schema URL Loader', () => {
     expect(i).toBe(3);
   });
   it('should disconnect on unsubscribe even if no event is emitted for subscriptions - graphql-sse', async () => {
-    const testUrl = 'http://localhost:8081/graphql';
+    const testUrl = 'http://localhost:8082/graphql';
     const customFetch: AsyncFetchFn = async (url, options) => {
       if (String(options?.body).includes('IntrospectionQuery')) {
         return new Response(
@@ -552,7 +552,7 @@ describe('Schema URL Loader', () => {
         schema: testSchema,
       }),
     );
-    await new Promise<void>(resolve => httpServer.listen(8081, resolve));
+    await new Promise<void>(resolve => httpServer.listen(8082, resolve));
 
     assertNonMaybe(schema);
     const asyncIterable = (await subscribe({
