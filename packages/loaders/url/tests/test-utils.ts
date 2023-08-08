@@ -1,4 +1,3 @@
-import { GraphQLObjectType, GraphQLSchema, GraphQLString } from 'graphql';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { inspect, isAsyncIterable } from '@graphql-tools/utils';
