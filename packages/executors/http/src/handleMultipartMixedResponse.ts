@@ -20,7 +20,7 @@ function isIncomingMessage(body: any): body is IncomingMessage {
 
 export async function handleMultipartMixedResponse(
   response: Response,
-  controller?: AbortController,
+  controller: AbortController,
 ) {
   const body = response.body;
   const contentType = response.headers.get('content-type') || '';
@@ -60,9 +60,5 @@ export async function handleMultipartMixedResponse(
     }
   });
 
-  if (controller) {
-    return addCancelToResponseStream(resultStream, controller);
-  }
-
-  return resultStream;
+  return addCancelToResponseStream(resultStream, controller);
 }

@@ -8,6 +8,7 @@ export async function* handleAsyncIterable(asyncIterable: AsyncIterable<Uint8Arr
       typeof chunk === 'string' ? chunk : textDecoder.decode(chunk, { stream: true });
     for (const part of chunkStr.split('\n\n')) {
       if (part) {
+        // TODO: event and data mustnt have a trailing space
         const eventStr = part.split('event: ')[1];
         const dataStr = part.split('data: ')[1];
         if (eventStr === 'complete') {

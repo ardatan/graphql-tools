@@ -104,7 +104,7 @@ export function buildHTTPExecutor(
 ): Executor<any, HTTPExecutorOptions> {
   const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
     const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
-    let controller: AbortController | undefined;
+    const controller = new AbortController();
     let method = request.extensions?.method || options?.method || 'POST';
 
     const operationAst = getOperationASTFromRequest(request);
@@ -136,10 +136,9 @@ export function buildHTTPExecutor(
 
     let timeoutId: any;
     if (options?.timeout) {
-      controller = new AbortController();
       timeoutId = setTimeout(() => {
-        if (!controller?.signal.aborted) {
-          controller?.abort('timeout');
+        if (!controller.signal.aborted) {
+          controller.abort('timeout');
         }
       }, options.timeout);
     }
@@ -162,7 +161,7 @@ export function buildHTTPExecutor(
           const fetchOptions: RequestInit = {
             method: 'GET',
             headers,
-            signal: controller?.signal,
+            signal: controller.signal,
           };
           if (options?.credentials != null) {
             fetchOptions.credentials = options.credentials;
@@ -192,7 +191,7 @@ export function buildHTTPExecutor(
                 method: 'POST',
                 body,
                 headers,
-                signal: controller?.signal,
+                signal: controller.signal,
               };
               if (options?.credentials != null) {
                 fetchOptions.credentials = options.credentials;
@@ -283,7 +282,7 @@ export function buildHTTPExecutor(
               }),
             ],
           };
-        } else if (e.name === 'AbortError' && controller?.signal?.reason) {
+        } else if (e.name === 'AbortError' && controller.signal?.reason) {
           return {
             errors: [
               createGraphQLError('The operation was aborted. reason: ' + controller.signal.reason, {

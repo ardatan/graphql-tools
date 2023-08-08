@@ -9,18 +9,14 @@ export function isReadableStream(value: any): value is ReadableStream {
 
 export function handleEventStreamResponse(
   response: Response,
-  controller?: AbortController,
+  controller: AbortController,
 ): AsyncIterable<ExecutionResult> {
   // node-fetch returns body as a promise so we need to resolve it
   const body = response.body;
   if (body) {
     if (isAsyncIterable<Uint8Array | string>(body)) {
       const resultStream = handleAsyncIterable(body);
-      if (controller) {
-        return addCancelToResponseStream(resultStream, controller);
-      } else {
-        return resultStream;
-      }
+      return addCancelToResponseStream(resultStream, controller);
     }
     if (isReadableStream(body)) {
       return handleReadableStream(body);
