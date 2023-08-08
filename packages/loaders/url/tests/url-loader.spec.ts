@@ -524,6 +524,60 @@ describe('Schema URL Loader', () => {
 
     expect(i).toBe(3);
   });
+  it('should disconnect on unsubscribe even if no event is emitted for subscriptions - graphql-sse', async () => {
+    const testUrl = 'http://localhost:8081/graphql';
+    const customFetch: AsyncFetchFn = async (url, options) => {
+      if (String(options?.body).includes('IntrospectionQuery')) {
+        return new Response(
+          JSON.stringify({
+            data: introspectionFromSchema(testSchema),
+          }),
+          {
+            headers: {
+              'content-type': 'application/json',
+            },
+          },
+        );
+      }
+      return defaultAsyncFetch(url, options);
+    };
+
+    const [{ schema }] = await loader.load(testUrl, {
+      customFetch,
+      subscriptionsProtocol: SubscriptionProtocol.GRAPHQL_SSE,
+    });
+
+    httpServer = http.createServer(
+      createHandler({
+        schema: testSchema,
+      }),
+    );
+    await new Promise<void>(resolve => httpServer.listen(8081, resolve));
+
+    assertNonMaybe(schema);
+    const asyncIterable = (await subscribe({
+      schema,
+      document: parse(/* GraphQL */ `
+        subscription NoEmit {
+          noEmit
+        }
+      `),
+      contextValue: {},
+    })) as AsyncIterable<ExecutionResult<any>>;
+
+    assertAsyncIterable(asyncIterable);
+
+    setTimeout(() => {
+      asyncIterable[Symbol.asyncIterator]().return?.()
+    }, 0);
+
+    let i = 0;
+    for await (const _result of asyncIterable) {
+      i++;
+    }
+
+    expect(i).toBe(0);
+  });
   it('should handle aliases properly', async () => {
     const customFetch: AsyncFetchFn = async (_, options) => {
       const bodyStr = String(options?.body);

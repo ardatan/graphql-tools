@@ -1,6 +1,7 @@
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { inspect, isAsyncIterable } from '@graphql-tools/utils';
+import { GraphQLObjectType, GraphQLSchema, GraphQLString } from 'graphql';
 
 export function assertAsyncIterable(input: unknown): asserts input is AsyncIterable<any> {
   if (!isAsyncIterable(input)) {
@@ -65,6 +66,7 @@ type File {
 }
 type Subscription {
   testMessage: TestMessage
+  noEmit: String
 }
 type TestMessage {
   number: Int
@@ -108,6 +110,23 @@ export const testResolvers = {
         }
       },
       resolve: (payload: any) => payload,
+    },
+    noEmit: {
+      // never emits but completes on iterator return
+      subscribe: () => {
+        let complete = () => {
+          // noop
+        }
+        // eslint-disable-next-line require-yield -- for testing purposes
+        const iterator = (async function* iterator() {
+          await new Promise<void>((resolve) => (complete = resolve));
+        })();
+        iterator.return = async () => {
+          complete();
+          return { done: true, value: undefined };
+        };
+        return iterator;
+      },
     },
   },
 };
