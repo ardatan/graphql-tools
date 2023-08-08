@@ -13,7 +13,7 @@ describe('handleEventStreamResponse', () => {
     });
 
     const response = new Response(readableStream);
-    const asyncIterable = handleEventStreamResponse(response);
+    const asyncIterable = handleEventStreamResponse(response, new AbortController());
     const iterator = asyncIterable[Symbol.asyncIterator]();
     const { value } = await iterator.next();
 
@@ -31,7 +31,7 @@ describe('handleEventStreamResponse', () => {
       },
     });
     const response = new Response(readableStream);
-    const asyncIterable = handleEventStreamResponse(response);
+    const asyncIterable = handleEventStreamResponse(response, new AbortController());
     const iterator = asyncIterable[Symbol.asyncIterator]();
     const iteratorResult = await iterator.next();
 
