@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 10.0.5
+
+### Patch Changes
+
+- [`a59fb765`](https://github.com/ardatan/graphql-tools/commit/a59fb765a1256b914f1728283d793d61b66bdf89)
+  Thanks [@ardatan](https://github.com/ardatan)! - Optimizations to get better performance in query
+  planning
+
 ## 10.0.4
 
 ### Patch Changes
