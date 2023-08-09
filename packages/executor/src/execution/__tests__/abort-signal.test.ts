@@ -1,8 +1,8 @@
+import { parse } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { Repeater } from '@repeaterjs/repeater';
-import { normalizedExecutor } from '../normalizedExecutor';
-import { parse } from 'graphql';
 import { assertAsyncIterable } from '../../../../loaders/url/tests/test-utils';
+import { normalizedExecutor } from '../normalizedExecutor';
 
 describe('Abort Signal', () => {
   it('should stop the subscription', async () => {

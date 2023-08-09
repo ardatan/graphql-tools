@@ -544,25 +544,26 @@ function executeFieldsSerially<TData>(
         results[responseName] = null;
         return results;
       }
-      return new ValueOrPromise(() => executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath)).then(
-        result => {
-          if (result === undefined) {
-            return results;
-          }
-
-          results[responseName] = result;
-          if (exeContext.signal?.aborted && !abortErrorThrown) {
-            exeContext.errors.push(
-              createGraphQLError('Execution aborted', {
-                nodes: fieldNodes,
-                path: pathToArray(fieldPath),
-                originalError: exeContext.signal?.reason,
-              })
-            );
-            abortErrorThrown = true;
-          }
+      return new ValueOrPromise(() =>
+        executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath),
+      ).then(result => {
+        if (result === undefined) {
           return results;
-        });
+        }
+
+        results[responseName] = result;
+        if (exeContext.signal?.aborted && !abortErrorThrown) {
+          exeContext.errors.push(
+            createGraphQLError('Execution aborted', {
+              nodes: fieldNodes,
+              path: pathToArray(fieldPath),
+              originalError: exeContext.signal?.reason,
+            }),
+          );
+          abortErrorThrown = true;
+        }
+        return results;
+      });
     },
     Object.create(null),
   ).resolve();
@@ -613,7 +614,7 @@ function executeFields(
             nodes: fieldNodes,
             path: pathToArray(fieldPath),
             originalError: exeContext.signal?.reason,
-          })
+          }),
         );
         abortErrorThrown = true;
       }
@@ -938,7 +939,7 @@ async function completeAsyncIteratorValue(
         nodes: fieldNodes,
         path: pathToArray(path),
         originalError: exeContext.signal?.reason,
-      })
+      }),
     );
   });
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
@@ -1538,7 +1539,7 @@ export function subscribe<TData = any, TVariables = any, TContext = any>(
 
 export function flattenIncrementalResults<TData>(
   incrementalResults: IncrementalExecutionResults<TData>,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): AsyncGenerator<
   SubsequentIncrementalExecutionResult<TData, Record<string, unknown>>,
   void,
@@ -1584,7 +1585,7 @@ export function flattenIncrementalResults<TData>(
 
 async function* ensureAsyncIterable(
   someExecutionResult: SingularExecutionResult | IncrementalExecutionResults,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): AsyncGenerator<
   | SingularExecutionResult
   | InitialIncrementalExecutionResult
@@ -1626,7 +1627,10 @@ function mapSourceToResponse(
     mapAsyncIterator(
       resultOrStream[Symbol.asyncIterator](),
       async (payload: unknown) =>
-        ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload)), exeContext.signal),
+        ensureAsyncIterable(
+          await executeImpl(buildPerEventExecutionContext(exeContext, payload)),
+          exeContext.signal,
+        ),
       async function* (error: Error) {
         const wrappedError = createGraphQLError(error.message, {
           originalError: error,
