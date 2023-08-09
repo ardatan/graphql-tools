@@ -5,6 +5,7 @@ import {
   ExecutionResult,
   Executor,
   getOperationASTFromRequest,
+  isAsyncIterable,
 } from '@graphql-tools/utils';
 import { mergeRequests } from './mergeRequests.js';
 import { splitResult } from './splitResult.js';
@@ -18,10 +19,20 @@ export function createBatchingExecutor(
   ) => Record<string, any> = defaultExtensionsReducer,
 ): Executor {
   const loadFn = createLoadFn(executor, extensionsReducer);
-  const loader = new DataLoader(loadFn, dataLoaderOptions);
+  const queryLoader = new DataLoader(loadFn, dataLoaderOptions);
+  const mutationLoader = new DataLoader(loadFn, dataLoaderOptions);
   return function batchingExecutor(request: ExecutionRequest) {
     const operationType = request.operationType ?? getOperationASTFromRequest(request)?.operation;
-    return operationType === 'subscription' ? executor(request) : loader.load(request);
+    switch (operationType) {
+      case 'query':
+        return queryLoader.load(request);
+      case 'mutation':
+        return mutationLoader.load(request);
+      case 'subscription':
+        return executor(request);
+      default:
+        throw new Error(`Invalid operation type "${operationType}"`);
+    }
   };
 }
 
@@ -40,40 +51,13 @@ function createLoadFn(
         .then((result: ExecutionResult) => [result])
         .catch((err: any) => [err]);
     }
-    const execBatches: Array<Array<ExecutionRequest>> = [];
-    let index = 0;
-    const request = requests[index];
-    let currentBatch: Array<ExecutionRequest> = [request];
-    execBatches.push(currentBatch);
-
-    const operationAst = getOperationASTFromRequest(request);
-    const operationType = operationAst.operation;
-
-    if (operationType == null) {
-      throw new Error('could not identify operation type of document');
-    }
-
-    while (++index < requests.length) {
-      const currentRequest = requests[index];
-      const currentOperationAST = getOperationASTFromRequest(currentRequest);
-      const currentOperationType = currentOperationAST.operation;
-
-      if (operationType === currentOperationType) {
-        currentBatch.push(currentRequest);
-      } else {
-        currentBatch = [currentRequest];
-        execBatches.push(currentBatch);
+    const mergedRequests = mergeRequests(requests, extensionsReducer);
+    return new ValueOrPromise(() => executor(mergedRequests)).then(resultBatches => {
+      if (isAsyncIterable(resultBatches)) {
+        throw new Error('Executor must not return incremental results for batching');
       }
-    }
-
-    return ValueOrPromise.all(
-      execBatches.map(execBatch =>
-        new ValueOrPromise(() => {
-          const mergedRequests = mergeRequests(execBatch, extensionsReducer);
-          return executor(mergedRequests) as ExecutionResult;
-        }).then(resultBatches => splitResult(resultBatches, execBatch.length)),
-      ),
-    ).then(results => results.flat());
+      return splitResult(resultBatches, requests.length);
+    });
   };
 }
 

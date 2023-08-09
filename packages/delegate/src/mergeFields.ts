@@ -147,32 +147,45 @@ function executeDelegationStage(
     }
   }
 
-  return [...delegationMap.entries()].reduce<MaybePromise<void>>(
-    (prev, [subschema, selectionSet]) => {
-      const schema = subschema.transformedSchema || info.schema;
-      const type = schema.getType(object.__typename) as GraphQLObjectType;
-      const resolver = mergedTypeInfo.resolvers.get(subschema);
-      function resolve() {
-        let source$: any;
-        if (resolver) {
-          try {
-            source$ = resolver(object, context, info, subschema, selectionSet, undefined, type);
-          } catch (error) {
-            return finallyFn(error, subschema, selectionSet);
-          }
+  const iterator = delegationMap.entries();
+  const jobs: PromiseLike<any>[] = [];
+
+  function iterate(): MaybePromise<void> {
+    const { value, done } = iterator.next();
+    if (done) {
+      return;
+    }
+
+    const [subschema, selectionSet] = value;
+
+    const schema = subschema.transformedSchema || info.schema;
+    const type = schema.getType(object.__typename) as GraphQLObjectType;
+    const resolver = mergedTypeInfo.resolvers.get(subschema);
+    function resolve() {
+      let source$: any;
+      if (resolver) {
+        try {
+          source$ = resolver(object, context, info, subschema, selectionSet, undefined, type);
+        } catch (error) {
+          return finallyFn(error, subschema, selectionSet);
         }
-        if (isPromise(source$)) {
-          return (
-            source$.then(source => finallyFn(source, subschema, selectionSet)) as Promise<any>
-          ).catch(error => finallyFn(error, subschema, selectionSet)) as any;
-        }
-        return finallyFn(source$, subschema, selectionSet);
       }
-      if (isPromise(prev)) {
-        return prev.then(resolve);
+      if (isPromise(source$)) {
+        return (
+          source$.then(source => finallyFn(source, subschema, selectionSet)) as Promise<any>
+        ).catch(error => finallyFn(error, subschema, selectionSet)) as any;
       }
-      return resolve();
-    },
-    undefined,
-  );
+      return finallyFn(source$, subschema, selectionSet);
+    }
+    const resolveResult$ = resolve();
+    if (isPromise(resolveResult$)) {
+      jobs.push(resolveResult$);
+    }
+    return iterate();
+  }
+
+  iterate();
+  if (jobs.length) {
+    return Promise.all(jobs) as any;
+  }
 }
