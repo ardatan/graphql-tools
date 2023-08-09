@@ -10,9 +10,6 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
   if (operationAST == null) {
     throw new Error('Must provide an operation.');
   }
-  if (!args.signal && args.contextValue?.request?.signal) {
-    args.signal = args.contextValue.request.signal;
-  }
   if (operationAST.operation === 'subscription') {
     return subscribe(args);
   }
