@@ -1,5 +1,26 @@
 # @graphql-tools/delegate
 
+## 10.0.2
+
+### Patch Changes
+
+- [#5477](https://github.com/ardatan/graphql-tools/pull/5477)
+  [`cfd47827`](https://github.com/ardatan/graphql-tools/commit/cfd47827c0e625d1b1894e18260342576d6dd71d)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+
+  - Removed dependency
+    [`value-or-promise@^1.0.12` ↗︎](https://www.npmjs.com/package/value-or-promise/v/1.0.12) (from
+    `dependencies`)
+
+- [`a59fb765`](https://github.com/ardatan/graphql-tools/commit/a59fb765a1256b914f1728283d793d61b66bdf89)
+  Thanks [@ardatan](https://github.com/ardatan)! - Optimizations to get better performance in query
+  planning
+
+- Updated dependencies
+  [[`a59fb765`](https://github.com/ardatan/graphql-tools/commit/a59fb765a1256b914f1728283d793d61b66bdf89)]:
+  - @graphql-tools/batch-execute@9.0.1
+  - @graphql-tools/utils@10.0.5
+
 ## 10.0.1
 
 ### Patch Changes
