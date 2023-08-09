@@ -52,7 +52,7 @@ import { createPrefix } from './prefix.js';
  *   }
  */
 export function mergeRequests(
-  requests: Array<ExecutionRequest>,
+  requests: ReadonlyArray<ExecutionRequest>,
   extensionsReducer: (
     mergedExtensions: Record<string, any>,
     request: ExecutionRequest,
@@ -113,6 +113,7 @@ export function mergeRequests(
     context: requests[0].context,
     info: requests[0].info,
     operationType,
+    rootValue: requests[0].rootValue,
   };
 }
 
