@@ -27,15 +27,27 @@ The `resolverMap` object (`IResolvers`) should have a map of resolvers for each 
 Object Type. The following is an example of a valid `resolverMap` object:
 
 ```js
+const authors = [
+  { id: '1', name: 'Laurin' },
+  { id: '2', name: 'Dotan' },
+  { id: '3', name: 'Arda' }
+]
+
+const posts = [
+  { id: '1', authorId: '1', title: 'Foo' },
+  { id: '2', authorId: '1', title: 'Bar' },
+  { id: '3', authorId: '2', title: 'Brrt' }
+]
+
 const resolverMap = {
   Query: {
     author(obj, args, context, info) {
-      return find(authors, { id: args.id })
+      return authors.find(author => author.id === args.id) ?? null
     }
   },
   Author: {
     posts(author) {
-      return filter(posts, { authorId: author.id })
+      return posts.filter(post => post.authorId === author.id)
     }
   }
 }
@@ -56,7 +68,9 @@ multiple resolver maps into one.
 Every resolver in a GraphQL.js schema accepts four positional arguments:
 
 ```js
-fieldName(obj, args, context, info) { result }
+function fieldName(obj, args, context, info) {
+  /** resolver implementation */
+}
 ```
 
 These arguments have the following meanings and conventional names:
@@ -148,7 +162,7 @@ method resolvers have the following interface:
 ```js
 class Type {
   fieldName(args, context, info) {
-    result
+    /* resolver implementation */
   }
 }
 ```
