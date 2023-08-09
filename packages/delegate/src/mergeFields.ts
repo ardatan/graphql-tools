@@ -99,6 +99,53 @@ export function mergeFields<TContext>(
   return object;
 }
 
+function handleResolverResult(
+  resolverResult: any,
+  subschema: Subschema,
+  selectionSet: SelectionSetNode,
+  object: ExternalObject,
+  combinedFieldSubschemaMap: Record<
+    string,
+    GraphQLSchema | SubschemaConfig<any, any, any, Record<string, any>>
+  >,
+  info: GraphQLResolveInfo,
+  path: Array<string | number>,
+  combinedErrors: Array<GraphQLError>,
+) {
+  if (resolverResult instanceof Error || resolverResult == null) {
+    const schema = subschema.transformedSchema || info.schema;
+    const type = schema.getType(object.__typename) as GraphQLObjectType;
+    const { fields } = collectFields(schema, EMPTY_OBJECT, EMPTY_OBJECT, type, selectionSet);
+    const nullResult: Record<string, any> = {};
+    for (const [responseKey, fieldNodes] of fields) {
+      const combinedPath = [...path, responseKey];
+      if (resolverResult instanceof GraphQLError) {
+        nullResult[responseKey] = relocatedError(resolverResult, combinedPath);
+      } else if (resolverResult instanceof Error) {
+        nullResult[responseKey] = locatedError(resolverResult, fieldNodes, combinedPath);
+      } else {
+        nullResult[responseKey] = null;
+      }
+    }
+    resolverResult = nullResult;
+  } else {
+    if (resolverResult[UNPATHED_ERRORS_SYMBOL]) {
+      combinedErrors.push(...resolverResult[UNPATHED_ERRORS_SYMBOL]);
+    }
+  }
+
+  const objectSubschema = resolverResult[OBJECT_SUBSCHEMA_SYMBOL];
+  const fieldSubschemaMap = resolverResult[FIELD_SUBSCHEMA_MAP_SYMBOL];
+  for (const responseKey in resolverResult) {
+    const existingPropValue = object[responseKey];
+    const sourcePropValue = resolverResult[responseKey];
+    if (sourcePropValue != null || existingPropValue == null) {
+      object[responseKey] = sourcePropValue;
+    }
+    combinedFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
+  }
+}
+
 function executeDelegationStage(
   mergedTypeInfo: MergedTypeInfo,
   delegationMap: Map<Subschema, SelectionSetNode>,
@@ -112,80 +159,81 @@ function executeDelegationStage(
 
   const combinedFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL];
 
-  function finallyFn(source: any, subschema: Subschema, selectionSet: SelectionSetNode) {
-    if (source instanceof Error || source == null) {
-      const schema = subschema.transformedSchema || info.schema;
-      const type = schema.getType(object.__typename) as GraphQLObjectType;
-      const { fields } = collectFields(schema, EMPTY_OBJECT, EMPTY_OBJECT, type, selectionSet);
-      const nullResult: Record<string, any> = {};
-      for (const [responseKey, fieldNodes] of fields) {
-        const combinedPath = [...path, responseKey];
-        if (source instanceof GraphQLError) {
-          nullResult[responseKey] = relocatedError(source, combinedPath);
-        } else if (source instanceof Error) {
-          nullResult[responseKey] = locatedError(source, fieldNodes, combinedPath);
-        } else {
-          nullResult[responseKey] = null;
-        }
-      }
-      source = nullResult;
-    } else {
-      if (source[UNPATHED_ERRORS_SYMBOL]) {
-        combinedErrors.push(...source[UNPATHED_ERRORS_SYMBOL]);
-      }
-    }
-
-    const objectSubschema = source[OBJECT_SUBSCHEMA_SYMBOL];
-    const fieldSubschemaMap = source[FIELD_SUBSCHEMA_MAP_SYMBOL];
-    for (const responseKey in source) {
-      const existingPropValue = object[responseKey];
-      const sourcePropValue = source[responseKey];
-      if (sourcePropValue != null || existingPropValue == null) {
-        object[responseKey] = sourcePropValue;
-      }
-      combinedFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
-    }
-  }
-
-  const iterator = delegationMap.entries();
   const jobs: PromiseLike<any>[] = [];
-
-  function iterate(): MaybePromise<void> {
-    const { value, done } = iterator.next();
-    if (done) {
-      return;
-    }
-
-    const [subschema, selectionSet] = value;
-
+  for (const [subschema, selectionSet] of delegationMap) {
     const schema = subschema.transformedSchema || info.schema;
     const type = schema.getType(object.__typename) as GraphQLObjectType;
     const resolver = mergedTypeInfo.resolvers.get(subschema);
-    function resolve() {
-      let source$: any;
-      if (resolver) {
-        try {
-          source$ = resolver(object, context, info, subschema, selectionSet, undefined, type);
-        } catch (error) {
-          return finallyFn(error, subschema, selectionSet);
+    if (resolver) {
+      try {
+        const resolverResult$ = resolver(
+          object,
+          context,
+          info,
+          subschema,
+          selectionSet,
+          undefined,
+          type,
+        );
+        if (isPromise(resolverResult$)) {
+          jobs.push(
+            (
+              resolverResult$.then(resolverResult =>
+                handleResolverResult(
+                  resolverResult,
+                  subschema,
+                  selectionSet,
+                  object,
+                  combinedFieldSubschemaMap,
+                  info,
+                  path,
+                  combinedErrors,
+                ),
+              ) as Promise<any>
+            ).catch(error =>
+              handleResolverResult(
+                error,
+                subschema,
+                selectionSet,
+                object,
+                combinedFieldSubschemaMap,
+                info,
+                path,
+                combinedErrors,
+              ),
+            ) as any,
+          );
+        } else {
+          handleResolverResult(
+            resolverResult$,
+            subschema,
+            selectionSet,
+            object,
+            combinedFieldSubschemaMap,
+            info,
+            path,
+            combinedErrors,
+          );
         }
+      } catch (error) {
+        handleResolverResult(
+          error,
+          subschema,
+          selectionSet,
+          object,
+          combinedFieldSubschemaMap,
+          info,
+          path,
+          combinedErrors,
+        );
       }
-      if (isPromise(source$)) {
-        return (
-          source$.then(source => finallyFn(source, subschema, selectionSet)) as Promise<any>
-        ).catch(error => finallyFn(error, subschema, selectionSet)) as any;
-      }
-      return finallyFn(source$, subschema, selectionSet);
     }
-    const resolveResult$ = resolve();
-    if (isPromise(resolveResult$)) {
-      jobs.push(resolveResult$);
-    }
-    return iterate();
   }
 
-  iterate();
   if (jobs.length) {
+    if (jobs.length === 1) {
+      return jobs[0];
+    }
     return Promise.all(jobs) as any;
   }
 }
