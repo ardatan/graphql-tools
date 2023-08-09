@@ -6,14 +6,14 @@ describe('handleEventStreamResponse', () => {
   it('should handle an event with data', async () => {
     const readableStream = new ReadableStream<Uint8Array>({
       start(controller) {
-        controller.enqueue(encoder.encode('event: complete\n'));
+        controller.enqueue(encoder.encode('event: next\n'));
         controller.enqueue(encoder.encode('data: { "foo": "bar" }\n'));
         controller.enqueue(encoder.encode('\n'));
       },
     });
 
     const response = new Response(readableStream);
-    const asyncIterable = handleEventStreamResponse(response, new AbortController());
+    const asyncIterable = handleEventStreamResponse(response);
     const iterator = asyncIterable[Symbol.asyncIterator]();
     const { value } = await iterator.next();
 
@@ -22,17 +22,17 @@ describe('handleEventStreamResponse', () => {
     });
   });
 
-  it('should handle an events whose fields have no trailing space', async () => {
+  it('should handle events whose fields have no varying spaces', async () => {
     const readableStream = new ReadableStream<Uint8Array>({
       start(controller) {
-        controller.enqueue(encoder.encode('event:complete\n'));
-        controller.enqueue(encoder.encode('data:{ "foo": "bar" }\n'));
+        controller.enqueue(encoder.encode('event:next\n'));
+        controller.enqueue(encoder.encode('data:      { "foo": "bar" }\n'));
         controller.enqueue(encoder.encode('\n'));
       },
     });
 
     const response = new Response(readableStream);
-    const asyncIterable = handleEventStreamResponse(response, new AbortController());
+    const asyncIterable = handleEventStreamResponse(response);
     const iterator = asyncIterable[Symbol.asyncIterator]();
     const { value } = await iterator.next();
 
@@ -50,7 +50,7 @@ describe('handleEventStreamResponse', () => {
       },
     });
     const response = new Response(readableStream);
-    const asyncIterable = handleEventStreamResponse(response, new AbortController());
+    const asyncIterable = handleEventStreamResponse(response);
     const iterator = asyncIterable[Symbol.asyncIterator]();
     const iteratorResult = await iterator.next();
 

@@ -1,5 +1,4 @@
 import { GraphQLResolveInfo, print } from 'graphql';
-import { ValueOrPromise } from 'value-or-promise';
 import {
   AsyncExecutor,
   createGraphQLError,
@@ -102,9 +101,11 @@ export function buildHTTPExecutor(
 export function buildHTTPExecutor(
   options?: HTTPExecutorOptions,
 ): Executor<any, HTTPExecutorOptions> {
-  const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
-    const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
+  const executor = async (
+    request: ExecutionRequest<any, any, any, HTTPExecutorOptions>,
+  ): Promise<ExecutionResult<any, any> | AsyncIterableIterator<ExecutionResult<any, any>>> => {
     const controller = new AbortController();
+    const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
     let method = request.extensions?.method || options?.method || 'POST';
 
     const operationAst = getOperationASTFromRequest(request);
@@ -134,7 +135,7 @@ export function buildHTTPExecutor(
 
     const query = print(request.document);
 
-    let timeoutId: any;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     if (options?.timeout) {
       timeoutId = setTimeout(() => {
         if (!controller.signal.aborted) {
@@ -143,200 +144,196 @@ export function buildHTTPExecutor(
       }, options.timeout);
     }
 
+    let fetching: Response | Promise<Response> | SyncResponse;
+    switch (method) {
+      case 'GET': {
+        const finalUrl = prepareGETUrl({
+          baseUrl: endpoint,
+          query,
+          variables: request.variables,
+          operationName: request.operationName,
+          extensions: request.extensions,
+        });
+        const fetchOptions: RequestInit = {
+          method: 'GET',
+          headers,
+          signal: controller.signal,
+        };
+        if (options?.credentials != null) {
+          fetchOptions.credentials = options.credentials;
+        }
+        fetching = fetchFn(finalUrl, fetchOptions, request.context, request.info);
+        break;
+      }
+      case 'POST': {
+        const body = await createFormDataFromVariables(
+          {
+            query,
+            variables: request.variables,
+            operationName: request.operationName,
+            extensions: request.extensions,
+          },
+          {
+            File: options?.File,
+            FormData: options?.FormData,
+          },
+        );
+        if (typeof body === 'string') {
+          headers['content-type'] = 'application/json';
+        }
+        const fetchOptions: RequestInit = {
+          method: 'POST',
+          body,
+          headers,
+          signal: controller.signal,
+        };
+        if (options?.credentials != null) {
+          fetchOptions.credentials = options.credentials;
+        }
+        fetching = fetchFn(endpoint, fetchOptions, request.context, request.info) as any;
+        break;
+      }
+      default:
+        throw new Error(`Unsupported request method "${method}"`);
+    }
+
     const responseDetailsForError: {
       status?: number;
       statusText?: string;
     } = {};
 
-    return new ValueOrPromise(() => {
-      switch (method) {
-        case 'GET': {
-          const finalUrl = prepareGETUrl({
-            baseUrl: endpoint,
-            query,
-            variables: request.variables,
-            operationName: request.operationName,
-            extensions: request.extensions,
-          });
-          const fetchOptions: RequestInit = {
-            method: 'GET',
-            headers,
-            signal: controller.signal,
-          };
-          if (options?.credentials != null) {
-            fetchOptions.credentials = options.credentials;
-          }
-          return fetchFn(finalUrl, fetchOptions, request.context, request.info);
-        }
-        case 'POST':
-          return new ValueOrPromise(() =>
-            createFormDataFromVariables(
-              {
-                query,
-                variables: request.variables,
-                operationName: request.operationName,
-                extensions: request.extensions,
-              },
-              {
-                File: options?.File,
-                FormData: options?.FormData,
-              },
-            ),
-          )
-            .then(body => {
-              if (typeof body === 'string') {
-                headers['content-type'] = 'application/json';
-              }
-              const fetchOptions: RequestInit = {
-                method: 'POST',
-                body,
-                headers,
-                signal: controller.signal,
-              };
-              if (options?.credentials != null) {
-                fetchOptions.credentials = options.credentials;
-              }
-              return fetchFn(endpoint, fetchOptions, request.context, request.info) as any;
-            })
-            .resolve();
+    try {
+      const response = await fetching;
+
+      responseDetailsForError.status = response.status;
+      responseDetailsForError.statusText = response.statusText;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
       }
-    })
-      .then((fetchResult: Response): any => {
-        responseDetailsForError.status = fetchResult.status;
-        responseDetailsForError.statusText = fetchResult.statusText;
-        if (timeoutId != null) {
-          clearTimeout(timeoutId);
-        }
 
-        // Retry should respect HTTP Errors
-        if (options?.retry != null && !fetchResult.status.toString().startsWith('2')) {
-          throw new Error(fetchResult.statusText || `HTTP Error: ${fetchResult.status}`);
-        }
+      // Retry should respect HTTP Errors
+      if (options?.retry != null && !response.status.toString().startsWith('2')) {
+        throw new Error(response.statusText || `HTTP Error: ${response.status}`);
+      }
 
-        const contentType = fetchResult.headers.get('content-type');
-        if (contentType?.includes('text/event-stream')) {
-          return handleEventStreamResponse(fetchResult, controller);
-        } else if (contentType?.includes('multipart/mixed')) {
-          return handleMultipartMixedResponse(fetchResult, controller);
+      let result: ExecutionResult | AsyncIterableIterator<ExecutionResult>;
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('text/event-stream')) {
+        result = handleEventStreamResponse(response);
+      } else if (contentType?.includes('multipart/mixed')) {
+        // TODO: should we assert async response?
+        result = handleMultipartMixedResponse(response as Response);
+      } else {
+        const text = await response.text();
+        try {
+          result = JSON.parse(text);
+        } catch (e: any) {
+          result = {
+            errors: [
+              createGraphQLError(`Unexpected response: "${text}"`, {
+                extensions: {
+                  requestBody: {
+                    query,
+                    operationName: request.operationName,
+                  },
+                  responseDetails: responseDetailsForError,
+                },
+                originalError: e,
+              }),
+            ],
+          };
         }
+      }
 
-        return fetchResult.text();
-      })
-      .then(result => {
-        if (typeof result === 'string') {
-          if (result) {
-            try {
-              return JSON.parse(result);
-            } catch (e: any) {
-              return {
-                errors: [
-                  createGraphQLError(`Unexpected response: ${JSON.stringify(result)}`, {
-                    extensions: {
-                      requestBody: {
-                        query,
-                        operationName: request.operationName,
-                      },
-                      responseDetails: responseDetailsForError,
-                    },
-                    originalError: e,
-                  }),
-                ],
-              };
-            }
-          }
-        } else {
-          return result;
-        }
-      })
-      .catch((e: any) => {
-        if (typeof e === 'string') {
-          return {
-            errors: [
-              createGraphQLError(e, {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
+      return result;
+    } catch (e: any) {
+      if (typeof e === 'string') {
+        return {
+          errors: [
+            createGraphQLError(e, {
+              extensions: {
+                requestBody: {
+                  query,
+                  operationName: request.operationName,
                 },
-              }),
-            ],
-          };
-        } else if (e.name === 'GraphQLError') {
-          return {
-            errors: [e],
-          };
-        } else if (e.name === 'TypeError' && e.message === 'fetch failed') {
-          return {
-            errors: [
-              createGraphQLError(`fetch failed to ${endpoint}`, {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
+                responseDetails: responseDetailsForError,
+              },
+            }),
+          ],
+        };
+      } else if (e.name === 'GraphQLError') {
+        return {
+          errors: [e],
+        };
+      } else if (e.name === 'TypeError' && e.message === 'fetch failed') {
+        return {
+          errors: [
+            createGraphQLError(`fetch failed to ${endpoint}`, {
+              extensions: {
+                requestBody: {
+                  query,
+                  operationName: request.operationName,
                 },
-                originalError: e,
-              }),
-            ],
-          };
-        } else if (e.name === 'AbortError' && controller.signal?.reason) {
-          return {
-            errors: [
-              createGraphQLError('The operation was aborted. reason: ' + controller.signal.reason, {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
+                responseDetails: responseDetailsForError,
+              },
+              originalError: e,
+            }),
+          ],
+        };
+      } else if (e.name === 'AbortError' && controller.signal?.reason) {
+        return {
+          errors: [
+            createGraphQLError('The operation was aborted. Reason: ' + controller.signal.reason, {
+              extensions: {
+                requestBody: {
+                  query,
+                  operationName: request.operationName,
                 },
-                originalError: e,
-              }),
-            ],
-          };
-        } else if (e.message) {
-          return {
-            errors: [
-              createGraphQLError(e.message, {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
+                responseDetails: responseDetailsForError,
+              },
+              originalError: e,
+            }),
+          ],
+        };
+      } else if (e.message) {
+        return {
+          errors: [
+            createGraphQLError(e.message, {
+              extensions: {
+                requestBody: {
+                  query,
+                  operationName: request.operationName,
                 },
-                originalError: e,
-              }),
-            ],
-          };
-        } else {
-          return {
-            errors: [
-              createGraphQLError('Unknown error', {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
+                responseDetails: responseDetailsForError,
+              },
+              originalError: e,
+            }),
+          ],
+        };
+      } else {
+        return {
+          errors: [
+            createGraphQLError('Unknown error', {
+              extensions: {
+                requestBody: {
+                  query,
+                  operationName: request.operationName,
                 },
-                originalError: e,
-              }),
-            ],
-          };
-        }
-      })
-      .resolve();
+                responseDetails: responseDetailsForError,
+              },
+              originalError: e,
+            }),
+          ],
+        };
+      }
+    }
   };
 
   if (options?.retry != null) {
     return function retryExecutor(request: ExecutionRequest) {
-      let result: ExecutionResult<any> | undefined;
+      let result: ExecutionResult | AsyncIterableIterator<ExecutionResult>;
       let attempt = 0;
-      function retryAttempt(): Promise<ExecutionResult<any>> | ExecutionResult<any> {
+      async function retryAttempt() {
         attempt++;
         if (attempt > options!.retry!) {
           if (result != null) {
@@ -346,15 +343,11 @@ export function buildHTTPExecutor(
             errors: [createGraphQLError('No response returned from fetch')],
           };
         }
-        return new ValueOrPromise(() => executor(request))
-          .then(res => {
-            result = res;
-            if (result?.errors?.length) {
-              return retryAttempt();
-            }
-            return result;
-          })
-          .resolve();
+        result = await executor(request);
+        if (Object(result).errors?.length) {
+          return retryAttempt();
+        }
+        return result;
       }
       return retryAttempt();
     };

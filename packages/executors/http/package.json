@@ -56,8 +56,7 @@
     "@whatwg-node/fetch": "^0.9.0",
     "extract-files": "^11.0.0",
     "meros": "^1.2.1",
-    "tslib": "^2.4.0",
-    "value-or-promise": "^1.0.12"
+    "tslib": "^2.4.0"
   },
   "publishConfig": {
     "directory": "dist",
