@@ -137,6 +137,9 @@ function handleResolverResult(
   const objectSubschema = resolverResult[OBJECT_SUBSCHEMA_SYMBOL];
   const fieldSubschemaMap = resolverResult[FIELD_SUBSCHEMA_MAP_SYMBOL];
   for (const responseKey in resolverResult) {
+    if (responseKey === '__proto__') {
+      continue;
+    }
     const existingPropValue = object[responseKey];
     const sourcePropValue = resolverResult[responseKey];
     if (sourcePropValue != null || existingPropValue == null) {
