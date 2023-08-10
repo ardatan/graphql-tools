@@ -10284,10 +10284,10 @@ prettier-plugin-sh@^0.13.0:
     sh-syntax "^0.4.1"
     synckit "^0.8.5"
 
-prettier-plugin-tailwindcss@0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/prettier-plugin-tailwindcss/-/prettier-plugin-tailwindcss-0.5.0.tgz#63238dc05a67510e65c65dc4d5f512a3e7969d40"
-  integrity sha512-EpP/Hg/D/LzjKJ+gYiSnsqk+PkrHSFQAuRHx/sj3O4r2kH0iJAOrKeKmI1X4Fm96M1BY+tO0KiV+/Y03MYbArg==
+prettier-plugin-tailwindcss@0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/prettier-plugin-tailwindcss/-/prettier-plugin-tailwindcss-0.5.1.tgz#6a57c546a5f24891b3802cd7a529523dcc0f4899"
+  integrity sha512-dvJRVoYlzTXa7mD1DooUl0m+7XXMiaClTgZATah27x0vqWAnmoTdndGdpRZDUXl9chk1FFiaQ0ncquUOKBhMoQ==
 
 prettier@3.0.1:
   version "3.0.1"
