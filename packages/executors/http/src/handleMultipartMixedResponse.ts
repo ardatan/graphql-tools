@@ -5,15 +5,17 @@ import { meros as merosIncomingMessage } from 'meros/node';
 import {
   ExecutionResult,
   inspect,
+  mapAsyncIterator,
   mergeIncrementalResult,
 } from '@graphql-tools/utils';
 
+// eslint-disable-next-line require-yield -- the returned iterable will yield
 export async function* handleMultipartMixedResponse(
   response: Response,
 ): AsyncIterableIterator<ExecutionResult> {
   const body = response.body;
   const contentType = response.headers.get('content-type') || '';
-  let stream: AsyncIterable<Part<ExecutionResult, string | Buffer>> | undefined;
+  let stream: AsyncIterator<Part<ExecutionResult, string | Buffer>> | undefined;
   if (isIncomingMessage(body)) {
     // Meros/node expects headers as an object map with the content-type prop
     body.headers = {
@@ -34,18 +36,21 @@ export async function* handleMultipartMixedResponse(
   }
 
   const executionResult: ExecutionResult = {};
-  for await (const part of stream) {
+
+  const resultStream = mapAsyncIterator(stream, part => {
     if (part.json) {
       const incrementalResult = part.body;
       mergeIncrementalResult({
         incrementalResult,
         executionResult,
       });
-      yield executionResult;
+      return executionResult;
     } else {
       throw new Error(`Unexpected multipart stream data ${inspect(part)}`);
     }
-  }
+  });
+
+  return resultStream;
 }
 
 function isIncomingMessage(body: any): body is IncomingMessage {
