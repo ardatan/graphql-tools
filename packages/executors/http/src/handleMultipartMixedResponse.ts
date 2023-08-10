@@ -1,43 +1,55 @@
 import type { IncomingMessage } from 'http';
-import type { Part } from 'meros';
 import { meros as merosReadableStream } from 'meros/browser';
 import { meros as merosIncomingMessage } from 'meros/node';
-import {
-  ExecutionResult,
-  inspect,
-  mapAsyncIterator,
-  mergeIncrementalResult,
-} from '@graphql-tools/utils';
+import { ExecutionResult, mapAsyncIterator, mergeIncrementalResult } from '@graphql-tools/utils';
+import { addCancelToResponseStream } from './addCancelToResponseStream.js';
 
-// eslint-disable-next-line require-yield -- the returned iterable will yield
-export async function* handleMultipartMixedResponse(
+type Part =
+  | {
+      body: ExecutionResult;
+      json: true;
+    }
+  | {
+      body: string | Buffer;
+      json: false;
+    };
+
+function isIncomingMessage(body: any): body is IncomingMessage {
+  return body != null && typeof body === 'object' && 'pipe' in body;
+}
+
+export async function handleMultipartMixedResponse(
   response: Response,
-): AsyncIterableIterator<ExecutionResult> {
+  controller: AbortController,
+) {
   const body = response.body;
   const contentType = response.headers.get('content-type') || '';
-  let stream: AsyncIterator<Part<ExecutionResult, string | Buffer>> | undefined;
+  let asyncIterator: AsyncIterator<Part> | undefined;
   if (isIncomingMessage(body)) {
     // Meros/node expects headers as an object map with the content-type prop
     body.headers = {
       'content-type': contentType,
     };
     // And it expects `IncomingMessage` and `node-fetch` returns `body` as `Promise<PassThrough>`
-    const result = await merosIncomingMessage(body);
-    if (!('next' in result)) {
-      throw new Error('Multipart mixed response must be iterable');
+    const result = await merosIncomingMessage<ExecutionResult>(body);
+    if ('next' in result) {
+      asyncIterator = result;
     }
-    stream = result;
   } else {
-    const result = await merosReadableStream(response);
-    if (!('next' in result)) {
-      throw new Error('Multipart mixed response must be iterable');
+    // Nothing is needed for regular `Response`.
+    const result = await merosReadableStream<ExecutionResult>(response);
+    if ('next' in result) {
+      asyncIterator = result;
     }
-    stream = result;
   }
 
   const executionResult: ExecutionResult = {};
 
-  const resultStream = mapAsyncIterator(stream, part => {
+  if (asyncIterator == null) {
+    return executionResult;
+  }
+
+  const resultStream = mapAsyncIterator(asyncIterator, (part: Part) => {
     if (part.json) {
       const incrementalResult = part.body;
       mergeIncrementalResult({
@@ -45,14 +57,8 @@ export async function* handleMultipartMixedResponse(
         executionResult,
       });
       return executionResult;
-    } else {
-      throw new Error(`Unexpected multipart stream data ${inspect(part)}`);
     }
   });
 
-  return resultStream;
-}
-
-function isIncomingMessage(body: any): body is IncomingMessage {
-  return body != null && typeof body === 'object' && 'pipe' in body;
+  return addCancelToResponseStream(resultStream, controller);
 }

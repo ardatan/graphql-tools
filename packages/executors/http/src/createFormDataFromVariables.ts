@@ -1,4 +1,5 @@
 import { extractFiles, isExtractableFile } from 'extract-files';
+import { ValueOrPromise } from 'value-or-promise';
 import { isAsyncIterable, isPromise } from '@graphql-tools/utils';
 import { File as DefaultFile, FormData as DefaultFormData } from '@whatwg-node/fetch';
 import { isGraphQLUpload } from './isGraphQLUpload.js';
@@ -91,10 +92,11 @@ export function createFormDataFromVariables<TVariables>(
       }
     }
   }
-  return Promise.all(
-    uploads.map((upload, i) => handleUpload(upload, i)),
+  return ValueOrPromise.all(
+    uploads.map((upload, i) => new ValueOrPromise(() => handleUpload(upload, i))),
   )
-    .then(() => form);
+    .then(() => form)
+    .resolve();
 }
 
 function isBlob(obj: any): obj is Blob {
