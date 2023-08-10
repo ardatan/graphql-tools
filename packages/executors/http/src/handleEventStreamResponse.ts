@@ -53,14 +53,9 @@ export function isReadableStream<T>(value: unknown): value is ReadableStream<T> 
 
 async function* streamToAsyncIterator<T>(stream: ReadableStream<T>): AsyncIterableIterator<T> {
   const reader = stream.getReader();
-  try {
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) return;
-      yield value;
-    }
-  } finally {
-    // important to release the lock on loop break, otherwise stuff gets stuck
-    reader.releaseLock()
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return;
+    yield value;
   }
 }
