@@ -192,10 +192,10 @@
   resolved "https://registry.yarnpkg.com/@apollo/cache-control-types/-/cache-control-types-1.0.2.tgz#f42ed3563acc7f1f50617d65d208483977adc68e"
   integrity sha512-Por80co1eUm4ATsvjCOoS/tIR8PHxqVjsA6z76I6Vw0rFn4cgyVElQcmQDIZiYsy41k8e5xkrMRECkM2WR8pNw==
 
-"@apollo/client@3.8.0", "@apollo/client@^3.7.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0 || ~3.8.0":
-  version "3.8.0"
-  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.8.0.tgz#c582a4ed64eba822ec4d055ce1573c4293261903"
-  integrity sha512-y/NadA2AKVtV18rO+Hi++6a6f4IqhUNvRPny7wAWx39ldzy8I4f6pWOYRSiJmL6hNFciVdT/YZqaoxnF2NRIuQ==
+"@apollo/client@3.8.1", "@apollo/client@^3.7.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0 || ~3.8.0":
+  version "3.8.1"
+  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.8.1.tgz#a1e3045a5fb276c08e38f7b5f930551d79741257"
+  integrity sha512-JGGj/9bdoLEqzatRikDeN8etseY5qeFAY0vSAx/Pd0ePNsaflKzHx6V2NZ0NsGkInq+9IXXX3RLVDf0EotizMA==
   dependencies:
     "@graphql-typed-document-node/core" "^3.1.1"
     "@wry/context" "^0.7.3"
@@ -1833,10 +1833,10 @@
   dependencies:
     tslib "^2.5.2"
 
-"@graphql-yoga/plugin-defer-stream@2.0.3":
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-2.0.3.tgz#744bf8127674841c7915684750b3c509e5f90dec"
-  integrity sha512-C1XALXDF0YuKUOuRomdP8ePLFjTpWgphNxkCNsBFN28bH47s3X+j+inrCqHmgaJgK6S/jm2YjDpUa8yqdSa8Sg==
+"@graphql-yoga/plugin-defer-stream@2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-2.0.4.tgz#8deef61691fd0d1f5d0b0825a020c722959bcd28"
+  integrity sha512-VW59oqldg/9lZOEJrS/D4JQL3M5ARZD3TqUXrGKMAJdmvraZpQ11I+A3ZKLvnznT5Wcoqne6NemEjsD/eB0DKA==
   dependencies:
     "@graphql-tools/utils" "^10.0.0"
 
@@ -6770,10 +6770,10 @@ graphql-ws@^5.14.0:
   resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.14.0.tgz#766f249f3974fc2c48fae0d1fb20c2c4c79cd591"
   integrity sha512-itrUTQZP/TgswR4GSSYuwWUzrE/w5GhbwM2GX3ic2U7aw33jgEsayfIlvaj7/GcIvZgNMzsPTrE5hqPuFUiE5g==
 
-graphql-yoga@4.0.3, graphql-yoga@^4.0.0:
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-4.0.3.tgz#28a6f9c8999a1dc5f490fca635b14785873e7fec"
-  integrity sha512-MP+v+yxCqM3lXg95vaA+kXjyRvyRxHUlgZryTecN7ugzEEnyQKKu8JBXA4ziEuLi3liRriyjCAyV4pqFzhHujA==
+graphql-yoga@4.0.4, graphql-yoga@^4.0.0:
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-4.0.4.tgz#00f388b6c38560ad4e5662c66cd2671befb58229"
+  integrity sha512-MvCLhFecYNIKuxAZisPjpIL9lxRYbpgPSNKENDO/8CV3oiFlsLJHZb5dp2sVAeLafXHeZ9TgkijLthUBc1+Jag==
   dependencies:
     "@envelop/core" "^4.0.0"
     "@graphql-tools/executor" "^1.0.0"
