@@ -17,7 +17,7 @@ function extractData(pointer: string): null | {
   ref: string;
   path: string;
 } {
-  if (!parts.startsWith('git')) {
+  if (!pointer.startsWith('git')) {
     return null;
   }
   const parts = pointer.replace(/^git\:/i, '').split(':');
