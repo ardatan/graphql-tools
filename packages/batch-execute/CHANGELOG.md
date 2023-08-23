@@ -1,5 +1,14 @@
 # @graphql-tools/batch-execute
 
+## 9.0.2
+
+### Patch Changes
+
+- [#5521](https://github.com/ardatan/graphql-tools/pull/5521)
+  [`ee2ef299`](https://github.com/ardatan/graphql-tools/commit/ee2ef2999b3147b16d5dced6e1baaeeeb353cfbd)
+  Thanks [@BasKiers](https://github.com/BasKiers)! - GraphQL Errors with prefixed path elements will
+  now correctly be split
+
 ## 9.0.1
 
 ### Patch Changes
