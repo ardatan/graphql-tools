@@ -74,7 +74,7 @@
     "lint-staged": "14.0.1",
     "patch-package": "8.0.0",
     "prettier": "3.0.3",
-    "prettier-plugin-tailwindcss": "0.5.3",
+    "prettier-plugin-tailwindcss": "0.5.4",
     "ts-jest": "29.1.1",
     "ts-node": "10.9.1",
     "typedoc": "0.23.28",
