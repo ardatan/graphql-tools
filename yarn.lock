@@ -211,32 +211,32 @@
     tslib "^2.3.0"
     zen-observable-ts "^1.2.5"
 
-"@apollo/composition@2.5.3":
-  version "2.5.3"
-  resolved "https://registry.yarnpkg.com/@apollo/composition/-/composition-2.5.3.tgz#5032096cfb5356c01999b2f73b9e2b12c88938c7"
-  integrity sha512-1Vnhgu7bHftRSFCl0vf6ybEw1IwB7fcr+OGiYw/+hUjy+duoVTcvumBMtCO8FqvBXEHBqwMn+S767ACjGCFc8w==
+"@apollo/composition@2.5.4":
+  version "2.5.4"
+  resolved "https://registry.yarnpkg.com/@apollo/composition/-/composition-2.5.4.tgz#f9b644a4408fbeb26e9b9ccd233f3f2dfee474d8"
+  integrity sha512-5fH6hlK1KnH/e5bnnnc81bp1sVIra/oorZ/yydcM5spaFpSGVKtIJRykKZmKtDnpkp3Z5MhTx8nD2j0GOjKT0A==
   dependencies:
-    "@apollo/federation-internals" "2.5.3"
-    "@apollo/query-graphs" "2.5.3"
+    "@apollo/federation-internals" "2.5.4"
+    "@apollo/query-graphs" "2.5.4"
 
-"@apollo/federation-internals@2.5.3":
-  version "2.5.3"
-  resolved "https://registry.yarnpkg.com/@apollo/federation-internals/-/federation-internals-2.5.3.tgz#22387df8e1492c9f887b0824c74fadde30167674"
-  integrity sha512-KHYpXa9XudQmbp5NX7wEEj0bxTkJIGtmKkZnOsKW9jDvHXurV/QTfzMDRqPVExMn+mdEVPTN3nySIp6vVhcs1Q==
+"@apollo/federation-internals@2.5.4":
+  version "2.5.4"
+  resolved "https://registry.yarnpkg.com/@apollo/federation-internals/-/federation-internals-2.5.4.tgz#688720416a532d31b76532f8316ea3fec6254073"
+  integrity sha512-SJCbP90KNlk6QJqUfvBrL/PdYzXKz3aZx2vP2kqJE9Ccc6UrUVrI70XuJ09o6n080sgCArDTC9+ngjdh6P5vTg==
   dependencies:
     "@types/uuid" "^9.0.0"
     chalk "^4.1.0"
     js-levenshtein "^1.1.6"
     uuid "^9.0.0"
 
-"@apollo/gateway@2.5.3":
-  version "2.5.3"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-2.5.3.tgz#3145a9ab3591f433ae6e7afcd1ee359409f153ed"
-  integrity sha512-8RNkuim/vCPOFIsfu4QWQ+rjF0SWd6YHHbKSrUmBn/lsyhpPSRtuxIFlVc/V0XwhwgmNAXo25tGgHazFu674ag==
+"@apollo/gateway@2.5.4":
+  version "2.5.4"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-2.5.4.tgz#f681f7d777724d0f952dacc162b1c4d764766405"
+  integrity sha512-F/FGZH/Ujy/UgZs0GN7Y6ImAhkI6cSs2OAJzD9fwY13PRz+DA3Zas9j+K4ehPfZMwjO62wo4T5AA2kFVNb7FyA==
   dependencies:
-    "@apollo/composition" "2.5.3"
-    "@apollo/federation-internals" "2.5.3"
-    "@apollo/query-planner" "2.5.3"
+    "@apollo/composition" "2.5.4"
+    "@apollo/federation-internals" "2.5.4"
+    "@apollo/query-planner" "2.5.4"
     "@apollo/server-gateway-interface" "^1.1.0"
     "@apollo/usage-reporting-protobuf" "^4.1.0"
     "@apollo/utils.createhash" "^2.0.0"
@@ -271,23 +271,23 @@
     "@types/long" "^4.0.0"
     long "^4.0.0"
 
-"@apollo/query-graphs@2.5.3":
-  version "2.5.3"
-  resolved "https://registry.yarnpkg.com/@apollo/query-graphs/-/query-graphs-2.5.3.tgz#9f41bb84dba537d11c95e40993dba8a2fefa3054"
-  integrity sha512-fUqGzUDSUpIzcuUwme4dS/dut6F1dSu03kUcwXOIupfViDf7Qr463fCuPP/40IpcM+//FvTUibCfsMjc8tGNgQ==
+"@apollo/query-graphs@2.5.4":
+  version "2.5.4"
+  resolved "https://registry.yarnpkg.com/@apollo/query-graphs/-/query-graphs-2.5.4.tgz#f2406b37a2189c01d979bfbc7f82dbd910b83d4e"
+  integrity sha512-Bl9SZUNGZLpAGFXuhDMeLYvZ/dYaKRYD2NfMnjS9h6tUa2aLAufvTxK84AhYTuXkqoGibYGk6IzXmRAUtK9uFQ==
   dependencies:
-    "@apollo/federation-internals" "2.5.3"
+    "@apollo/federation-internals" "2.5.4"
     deep-equal "^2.0.5"
     ts-graphviz "^1.5.4"
     uuid "^9.0.0"
 
-"@apollo/query-planner@2.5.3":
-  version "2.5.3"
-  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-2.5.3.tgz#2ddc0fe073bef5ec7a6a35ee607fa6ac93ce4ff5"
-  integrity sha512-QzpEWUrCWI2AmjwOGNRreOld7fhxX0l0eJbpva4nbYGkTeq5ZscYAdqprg5n0mUaOaUHDJkpjLV937Zap5vK8A==
+"@apollo/query-planner@2.5.4":
+  version "2.5.4"
+  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-2.5.4.tgz#8ce6daf8b661d9accf24667c4d017fee3acbeebf"
+  integrity sha512-jsThuev7eGpQ52ijwKfwGz9WialMVWeSEYc79zihuAt2nmSrjWPNjadcs67C2N31puBMl2xOoY4FtY7lioDyTw==
   dependencies:
-    "@apollo/federation-internals" "2.5.3"
-    "@apollo/query-graphs" "2.5.3"
+    "@apollo/federation-internals" "2.5.4"
+    "@apollo/query-graphs" "2.5.4"
     "@apollo/utils.keyvaluecache" "^2.1.0"
     chalk "^4.1.0"
     deep-equal "^2.0.5"
@@ -303,13 +303,13 @@
     "@apollo/utils.keyvaluecache" "^2.1.0"
     "@apollo/utils.logger" "^2.0.0"
 
-"@apollo/subgraph@2.5.3":
-  version "2.5.3"
-  resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-2.5.3.tgz#d5cf4fde4cb6c952cefc34d59f18e76e04f35eb5"
-  integrity sha512-OaRyJmB4nI3JfAZs6RA5vd+AHMMEMRWBx5Ns0iDhkm/KEZqj5dcD0Vsyu9vCJm3zyAfYClHC3ZUlxSKYRDi/zQ==
+"@apollo/subgraph@2.5.4":
+  version "2.5.4"
+  resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-2.5.4.tgz#8250a20ad1ed5e6a85a4cf8801ed2cce21c879d3"
+  integrity sha512-6F7D36C2fhy54hZLqcqVhFat5/7QuZJaTjeVUYTbnl3vMx5KSaCdRh30gdfn2V8lNoekmcLGRvVBc4PzBOO5jw==
   dependencies:
     "@apollo/cache-control-types" "^1.0.2"
-    "@apollo/federation-internals" "2.5.3"
+    "@apollo/federation-internals" "2.5.4"
 
 "@apollo/usage-reporting-protobuf@^4.0.0", "@apollo/usage-reporting-protobuf@^4.1.0":
   version "4.1.0"
@@ -1636,18 +1636,18 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@envelop/core@4.0.0", "@envelop/core@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@envelop/core/-/core-4.0.0.tgz#3aa22494c55b65abedb2983e2722055e6873575d"
-  integrity sha512-6usEZO86hWT0ZajAbhOX0QXlV++lrlEmu8br6KQVvyXOxttiHADIibgfzb3GtSI7RnnJDnrcRb7Jynv6Lca3iQ==
+"@envelop/core@4.0.1", "@envelop/core@^4.0.0":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@envelop/core/-/core-4.0.1.tgz#0f3eb33a396e9f4527d7fa8079055ec151eb73aa"
+  integrity sha512-uBLI7ql3hZopz7vMi9UDAb9HWzKw4STKiqg4QT+lb+tu5ZNaeuJ4fom2rrmgITz38B85QZOhZrGyVrlJXxfDzw==
   dependencies:
-    "@envelop/types" "4.0.0"
+    "@envelop/types" "4.0.1"
     tslib "^2.5.0"
 
-"@envelop/live-query@6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-6.0.0.tgz#90505b4e6796c5d90c9921708006f01101fec9a5"
-  integrity sha512-9NN3sbA/TZH7umCr6flUpUmOpJ2tR88OrETXWR/LJUvSaGGCPhCSHZiIQtORBWhuNXgme5pG48JNfUVWP82crw==
+"@envelop/live-query@6.0.1":
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-6.0.1.tgz#928f7a6dec7c738d55dc53acc18ab128e0556b28"
+  integrity sha512-FIntUK/GZQorJLzQ0hL6eSfhvyQel4inGzMGu3ryC4KMOSt3VbBYLFjNkuKO/LceKkXpUTIch+D8VWAEvidXUg==
   dependencies:
     "@graphql-tools/utils" "^10.0.0"
     "@n1ru4l/graphql-live-query" "^0.10.0"
@@ -1655,10 +1655,10 @@
     "@n1ru4l/in-memory-live-query-store" "^0.10.0"
     tslib "^2.5.0"
 
-"@envelop/types@4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@envelop/types/-/types-4.0.0.tgz#6491d15b471434e74cd4b2321b68b8bb95f0ae61"
-  integrity sha512-dmBK16VVfKCkqYYemvE+gt1cPBP0d9CbYO4yjNhSSYy9K+w6+Lw48wOLK238mSR339PNAvwj/JW/qzNy2llggA==
+"@envelop/types@4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@envelop/types/-/types-4.0.1.tgz#145690d8266a003cdb06dd58fa1236e3c80050a9"
+  integrity sha512-ULo27/doEsP7uUhm2iTnElx13qTO6I5FKvmLoX41cpfuw8x6e0NUFknoqhEsLzAbgz8xVS5mjwcxGCXh4lDYzg==
   dependencies:
     tslib "^2.5.0"
 
@@ -3348,10 +3348,10 @@
     "@typescript-eslint/types" "6.5.0"
     eslint-visitor-keys "^3.4.1"
 
-"@urql/core@4.1.1":
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/@urql/core/-/core-4.1.1.tgz#b1312eb0ecbc91e315457a3ec14741321cbee1c7"
-  integrity sha512-iIoAy6BY+BUZZ7KIpnMT7C9q+ULf5ZCVxGe3/i7WZSJBrQa2h1QkIMhL+8fAKmOn9gt83jSIv5drWWnhZ9izEA==
+"@urql/core@4.1.2":
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/@urql/core/-/core-4.1.2.tgz#0080796f07f34a6878a29eb0ef319ceb2083b65b"
+  integrity sha512-K+JA5dxEjY7Jkt1hV8G2ShkuOscKS/r+8QnXDDxTkyMzZzviYqz5f/zxgSElObT/QSW17xCC1LFl+kwiyX5opg==
   dependencies:
     "@0no-co/graphql.web" "^1.0.1"
     wonka "^6.3.2"
@@ -10300,10 +10300,10 @@ prettier-plugin-sh@^0.13.0:
     sh-syntax "^0.4.1"
     synckit "^0.8.5"
 
-prettier-plugin-tailwindcss@0.5.3:
-  version "0.5.3"
-  resolved "https://registry.yarnpkg.com/prettier-plugin-tailwindcss/-/prettier-plugin-tailwindcss-0.5.3.tgz#ed4b31ee75bbce1db4ac020a859267d5b65ad8df"
-  integrity sha512-M5K80V21yM+CTm/FEFYRv9/9LyInYbCSXpIoPAKMm8zy89IOwdiA2e4JVbcO7tvRtAQWz32zdj7/WKcsmFyAVg==
+prettier-plugin-tailwindcss@0.5.4:
+  version "0.5.4"
+  resolved "https://registry.yarnpkg.com/prettier-plugin-tailwindcss/-/prettier-plugin-tailwindcss-0.5.4.tgz#ebfacbcb90e2ca1df671ffe4083e99f81d72040d"
+  integrity sha512-QZzzB1bID6qPsKHTeA9qPo1APmmxfFrA5DD3LQ+vbTmAnY40eJI7t9Q1ocqel2EKMWNPLJqdTDWZj1hKYgqSgg==
 
 prettier@3.0.3:
   version "3.0.3"
