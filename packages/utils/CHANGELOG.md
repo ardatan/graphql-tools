@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 10.0.6
+
+### Patch Changes
+
+- [`c52de863`](https://github.com/ardatan/graphql-tools/commit/c52de8638edeec3de6dadff6f3e66f99db16ed78)
+  Thanks [@ardatan](https://github.com/ardatan)! - fix isValid path regex for paths including =
+  #5551
+
 ## 10.0.5
 
 ### Patch Changes
