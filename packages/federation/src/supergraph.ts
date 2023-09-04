@@ -21,6 +21,7 @@ import {
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
   getKeyForFederation,
+  getNamedTypeNode,
 } from './utils.js';
 
 export interface GetSubschemasFromSupergraphSdlOpts {
@@ -41,7 +42,18 @@ export function getSubschemasFromSupergraphSdl({
   const typeNameKeyBySubgraphMap = new Map<string, Map<string, string>>();
   const typeNameFieldsKeyBySubgraphMap = new Map<string, Map<string, Map<string, string>>>();
   const typeNameCanonicalMap = new Map<string, string>();
+  const unownedTypes = new Map<string, TypeDefinitionNode>();
+  const dependenciesBySubgraphMap = new Map<string, Set<string>>();
   visit(ast, {
+    ScalarTypeDefinition(node) {
+      unownedTypes.set(node.name.value, node);
+    },
+    InterfaceTypeDefinition(node) {
+      unownedTypes.set(node.name.value, node);
+    },
+    UnionTypeDefinition(node) {
+      unownedTypes.set(node.name.value, node);
+    },
     EnumTypeDefinition(node) {
       if (node.name.value === 'join__Graph') {
         node.values?.forEach(valueNode => {
@@ -116,6 +128,7 @@ export function getSubschemasFromSupergraphSdl({
           });
         });
       }
+      let owned = false;
       node.directives?.forEach(directiveNode => {
         if (directiveNode.name.value === 'join__owner') {
           const graphArgumentNode = directiveNode.arguments?.find(
@@ -158,6 +171,14 @@ export function getSubschemasFromSupergraphSdl({
                   );
                   if (graphArgumentNode?.value?.kind === Kind.ENUM) {
                     if (graphArgumentNode.value.value === graphName) {
+                      let dependenciesBySubgraph = dependenciesBySubgraphMap.get(graphName);
+                      if (!dependenciesBySubgraph) {
+                        dependenciesBySubgraph = new Set();
+                        dependenciesBySubgraphMap.set(graphName, dependenciesBySubgraph);
+                      }
+                      const namedTypeNode = getNamedTypeNode(fieldNode.type);
+                      dependenciesBySubgraph.add(namedTypeNode.name.value);
+
                       const requiresArgumentNode = joinFieldDirectiveNode.arguments?.find(
                         argumentNode => argumentNode.name.value === 'requires',
                       );
@@ -191,10 +212,14 @@ export function getSubschemasFromSupergraphSdl({
               subgraphTypes = [];
               subgraphTypesMap.set(graphName, subgraphTypes);
             }
+            owned = true;
             subgraphTypes.push(objectTypedDefNodeForSubgraph);
           }
         }
       });
+      if (!owned) {
+        unownedTypes.set(node.name.value, node);
+      }
     },
   });
   const subschemaMap = new Map<string, SubschemaConfig>();
@@ -298,11 +323,19 @@ export function getSubschemasFromSupergraphSdl({
         },
       ],
     };
+    const subgraphTypes = subgraphTypesMap.get(subgraphName) || [];
+    const dependencyNames = dependenciesBySubgraphMap.get(subgraphName) || new Set();
+    for (const dependencyName of dependencyNames) {
+      const dependencyType = unownedTypes.get(dependencyName);
+      if (dependencyType) {
+        subgraphTypes.push(dependencyType);
+      }
+    }
     const schema = buildASTSchema(
       {
         kind: Kind.DOCUMENT,
         definitions: [
-          ...(subgraphTypesMap.get(subgraphName) || []),
+          ...subgraphTypes,
           entitiesUnionTypeDefinitionNode,
           anyTypeDefinitionNode,
           queryWithEntitiesFieldDefinitionNode,
