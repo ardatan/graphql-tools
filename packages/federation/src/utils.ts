@@ -1,4 +1,4 @@
-import { GraphQLSchema } from 'graphql';
+import { GraphQLSchema, Kind, TypeNode } from 'graphql';
 import { FilterRootFields, FilterTypes } from '@graphql-tools/wrap';
 
 export function getArgsFromKeysForFederation(representations: readonly any[]) {
@@ -30,4 +30,11 @@ export function filterInternalFieldsAndTypes(finalSchema: GraphQLSchema) {
     finalSchema = transform.transformSchema(finalSchema, fakeSubschemaConfig);
   }
   return finalSchema;
+}
+
+export function getNamedTypeNode(typeNode: TypeNode) {
+  if (typeNode.kind !== Kind.NAMED_TYPE) {
+    return getNamedTypeNode(typeNode.type);
+  }
+  return typeNode;
 }
