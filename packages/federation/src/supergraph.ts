@@ -35,7 +35,8 @@ export function getSubschemasFromSupergraphSdl({
   onExecutor = ({ endpoint }) => buildHTTPExecutor({ endpoint }),
   batch = false,
 }: GetSubschemasFromSupergraphSdlOpts) {
-  const ast = typeof supergraphSdl === 'string' ? parse(supergraphSdl) : supergraphSdl;
+  const ast =
+    typeof supergraphSdl === 'string' ? parse(supergraphSdl, { noLocation: true }) : supergraphSdl;
   const subgraphQueryFieldDefinitionNodes = new Map<string, FieldDefinitionNode[]>();
   const subgraphEndpointMap = new Map<string, string>();
   const subgraphTypesMap = new Map<string, TypeDefinitionNode[]>();

@@ -13,6 +13,6 @@ describe('Interfaces & Scalars', () => {
       supergraphSdl,
     });
     const printedSchema = printSchemaWithDirectives(stitchedSchema);
-    expect(printedSchema).toMatchSnapshot();
+    expect(printedSchema.trim()).toMatchSnapshot();
   });
 });
