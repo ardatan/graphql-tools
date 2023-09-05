@@ -48,7 +48,9 @@ export function getSubschemasFromSupergraphSdl({
   const dependenciesBySubgraphMap = new Map<string, Set<string>>();
   visit(ast, {
     ScalarTypeDefinition(node) {
-      sharedTypes.push(node);
+      if (node.name.value !== 'join__FieldSet') {
+        sharedTypes.push(node);
+      }
     },
     InputObjectTypeDefinition(node) {
       sharedTypes.push(node);

@@ -17,8 +17,6 @@ input ProductReviewsInput {
 
 scalar Stars
 
-scalar join__FieldSet
-
 type User @join__owner(graph: SERVICE0) @join__type(graph: SERVICE2, key: "id") {
   id: ID! @join__field(graph: SERVICE0)
   numberOfReviews: Int @join__field(graph: SERVICE2)
