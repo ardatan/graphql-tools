@@ -368,6 +368,8 @@ export function getStitchedSchemaFromSupergraphSdl(opts: GetSubschemasFromSuperg
   const subschemaMap = getSubschemasFromSupergraphSdl(opts);
   const supergraphSchema = stitchSchemas({
     subschemas: [...subschemaMap.values()],
+    assumeValid: true,
+    assumeValidSDL: true,
   });
   return filterInternalFieldsAndTypes(supergraphSchema);
 }
