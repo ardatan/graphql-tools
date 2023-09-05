@@ -18,6 +18,10 @@ directive @join__owner(graph: join__Graph!) on INTERFACE | OBJECT
 
 directive @join__type(graph: join__Graph!, key: join__FieldSet) repeatable on INTERFACE | OBJECT
 
+input ProductReviewsInput {
+  first: Int
+}
+
 type AnonymousReview implements Review
   @join__owner(graph: SERVICE2)
   @join__type(graph: SERVICE2, key: "id") {
@@ -34,7 +38,7 @@ type Product
   inStock: Boolean @join__field(graph: SERVICE3)
   name: String @join__field(graph: SERVICE1)
   price: Int @join__field(graph: SERVICE1)
-  reviews: [Review] @join__field(graph: SERVICE2)
+  reviews(input: ProductReviewsInput): [Review] @join__field(graph: SERVICE2)
   shippingEstimate: Int @join__field(graph: SERVICE3, requires: "price weight")
   upc: String! @join__field(graph: SERVICE1)
   weight: Int @join__field(graph: SERVICE1)

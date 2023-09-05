@@ -43,11 +43,15 @@ export function getSubschemasFromSupergraphSdl({
   const typeNameKeyBySubgraphMap = new Map<string, Map<string, string>>();
   const typeNameFieldsKeyBySubgraphMap = new Map<string, Map<string, Map<string, string>>>();
   const typeNameCanonicalMap = new Map<string, string>();
+  const sharedTypes: TypeDefinitionNode[] = [];
   const unownedTypes = new Map<string, TypeDefinitionNode>();
   const dependenciesBySubgraphMap = new Map<string, Set<string>>();
   visit(ast, {
     ScalarTypeDefinition(node) {
-      unownedTypes.set(node.name.value, node);
+      sharedTypes.push(node);
+    },
+    InputObjectTypeDefinition(node) {
+      sharedTypes.push(node);
     },
     InterfaceTypeDefinition(node) {
       unownedTypes.set(node.name.value, node);
@@ -336,6 +340,7 @@ export function getSubschemasFromSupergraphSdl({
       {
         kind: Kind.DOCUMENT,
         definitions: [
+          ...sharedTypes,
           ...subgraphTypes,
           entitiesUnionTypeDefinitionNode,
           anyTypeDefinitionNode,

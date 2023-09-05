@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Interfaces & Scalars works 1`] = `
+exports[`Unowned types works 1`] = `
 "schema {
   query: Query
 }
@@ -10,6 +10,14 @@ type Query {
   users: [User] @join__field(graph: SERVICE0)
   topProducts(first: Int): [Product] @join__field(graph: SERVICE1)
 }
+
+input ProductReviewsInput {
+  first: Int
+}
+
+scalar Stars
+
+scalar join__FieldSet
 
 type User @join__owner(graph: SERVICE0) @join__type(graph: SERVICE2, key: "id") {
   id: ID! @join__field(graph: SERVICE0)
@@ -21,7 +29,7 @@ type User @join__owner(graph: SERVICE0) @join__type(graph: SERVICE2, key: "id") 
 }
 
 type Product @join__owner(graph: SERVICE1) @join__type(graph: SERVICE3, key: "upc") {
-  reviews: [Review] @join__field(graph: SERVICE2)
+  reviews(input: ProductReviewsInput): [Review] @join__field(graph: SERVICE2)
   upc: String! @join__field(graph: SERVICE1)
   inStock: Boolean @join__field(graph: SERVICE3)
   shippingEstimate: Int @join__field(graph: SERVICE3, requires: "price weight")
@@ -48,7 +56,5 @@ interface Review {
   body: String
   id: ID!
   product: Product
-}
-
-scalar Stars"
+}"
 `;
