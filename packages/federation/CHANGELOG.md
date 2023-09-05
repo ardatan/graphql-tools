@@ -1,5 +1,14 @@
 # @graphql-tools/federation
 
+## 1.1.4
+
+### Patch Changes
+
+- [#5559](https://github.com/ardatan/graphql-tools/pull/5559)
+  [`ada5c56a`](https://github.com/ardatan/graphql-tools/commit/ada5c56af472e06d595e53a035c105e745490bfc)
+  Thanks [@ardatan](https://github.com/ardatan)! - Support unowned types such as interfaces, unions
+  and scalars
+
 ## 1.1.3
 
 ### Patch Changes
