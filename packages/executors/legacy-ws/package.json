@@ -55,7 +55,7 @@
     "@types/ws": "^8.0.0",
     "isomorphic-ws": "5.0.0",
     "tslib": "^2.4.0",
-    "ws": "8.13.0"
+    "ws": "8.14.0"
   },
   "publishConfig": {
     "directory": "dist",
