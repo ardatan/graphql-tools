@@ -7,6 +7,7 @@ import {
   Kind,
   NamedTypeNode,
   ObjectTypeDefinitionNode,
+  OperationTypeNode,
   parse,
   ScalarTypeDefinitionNode,
   specifiedScalarTypes,
@@ -107,14 +108,23 @@ export function getSubschemasFromSupergraphSdl({
 }: GetSubschemasFromSupergraphSdlOpts) {
   const ast =
     typeof supergraphSdl === 'string' ? parse(supergraphSdl, { noLocation: true }) : supergraphSdl;
-  const subgraphQueryFieldDefinitionNodes = new Map<string, FieldDefinitionNode[]>();
+  const subgraphRootFieldDefinitionNodes = new Map<
+    string,
+    Map<OperationTypeNode, FieldDefinitionNode[]>
+  >();
   const subgraphEndpointMap = new Map<string, string>();
   const subgraphTypesMap = new Map<string, Map<string, TypeDefinitionNode>>();
   const typeNameKeyBySubgraphMap = new Map<string, Map<string, string>>();
   const typeNameFieldsKeyBySubgraphMap = new Map<string, Map<string, Map<string, string>>>();
   const typeNameCanonicalMap = new Map<string, string>();
   const typeMap = new Map<string, TypeDefinitionNode>();
+  const rootTypeNames = new Map<OperationTypeNode, string>();
   visit(ast, {
+    SchemaDefinition(node) {
+      node.operationTypes?.forEach(operationTypeNode => {
+        rootTypeNames.set(operationTypeNode.operation, operationTypeNode.type.name.value);
+      });
+    },
     ScalarTypeDefinition(node) {
       typeMap.set(node.name.value, node);
     },
@@ -185,7 +195,10 @@ export function getSubschemasFromSupergraphSdl({
     },
     ObjectTypeDefinition(node) {
       typeMap.set(node.name.value, node);
-      if (node.name.value === 'Query') {
+      if ([...rootTypeNames.values()].includes(node.name.value)) {
+        const operationTypeName = [...rootTypeNames.entries()].find(
+          ([, rootTypeName]) => rootTypeName === node.name.value,
+        )![0];
         node.fields?.forEach(fieldNode => {
           fieldNode.directives?.forEach(directiveNode => {
             if (directiveNode.name.value === 'join__field') {
@@ -194,11 +207,23 @@ export function getSubschemasFromSupergraphSdl({
               );
               if (graphArgumentNode?.value?.kind === Kind.ENUM) {
                 const graphName = graphArgumentNode.value.value;
+                let subgraphRootFieldDefinitionNodeMap =
+                  subgraphRootFieldDefinitionNodes.get(graphName);
+                if (!subgraphRootFieldDefinitionNodeMap) {
+                  subgraphRootFieldDefinitionNodeMap = new Map();
+                  subgraphRootFieldDefinitionNodes.set(
+                    graphName,
+                    subgraphRootFieldDefinitionNodeMap,
+                  );
+                }
                 let fieldDefinitionNodesOfSubgraph =
-                  subgraphQueryFieldDefinitionNodes.get(graphName);
+                  subgraphRootFieldDefinitionNodeMap.get(operationTypeName);
                 if (!fieldDefinitionNodesOfSubgraph) {
                   fieldDefinitionNodesOfSubgraph = [];
-                  subgraphQueryFieldDefinitionNodes.set(graphName, fieldDefinitionNodesOfSubgraph);
+                  subgraphRootFieldDefinitionNodeMap.set(
+                    operationTypeName,
+                    fieldDefinitionNodesOfSubgraph,
+                  );
                 }
                 fieldDefinitionNodesOfSubgraph.push({
                   ...fieldNode,
@@ -360,56 +385,66 @@ export function getSubschemasFromSupergraphSdl({
       kind: Kind.UNION_TYPE_DEFINITION,
       types: unionTypeNodes,
     };
-    const queryFields = subgraphQueryFieldDefinitionNodes.get(subgraphName) || [];
-    const queryWithEntitiesFieldDefinitionNode: ObjectTypeDefinitionNode = {
+    let subgraphRootFieldDefinitionNodeMap = subgraphRootFieldDefinitionNodes.get(subgraphName);
+    if (!subgraphRootFieldDefinitionNodeMap) {
+      subgraphRootFieldDefinitionNodeMap = new Map();
+      subgraphRootFieldDefinitionNodes.set(subgraphName, subgraphRootFieldDefinitionNodeMap);
+    }
+    let queryFields = subgraphRootFieldDefinitionNodeMap.get(OperationTypeNode.QUERY);
+    if (!queryFields) {
+      queryFields = [];
+      subgraphRootFieldDefinitionNodeMap.set(OperationTypeNode.QUERY, queryFields);
+    }
+    queryFields.push({
+      kind: Kind.FIELD_DEFINITION,
       name: {
         kind: Kind.NAME,
-        value: 'Query',
+        value: '_entities',
       },
-      kind: Kind.OBJECT_TYPE_DEFINITION,
-      fields: [
-        ...queryFields,
+      type: {
+        kind: Kind.NAMED_TYPE,
+        name: {
+          kind: Kind.NAME,
+          value: '_Entity',
+        },
+      },
+      arguments: [
         {
-          kind: Kind.FIELD_DEFINITION,
+          kind: Kind.INPUT_VALUE_DEFINITION,
           name: {
             kind: Kind.NAME,
-            value: '_entities',
+            value: 'representations',
           },
           type: {
-            kind: Kind.NAMED_TYPE,
-            name: {
-              kind: Kind.NAME,
-              value: '_Entity',
-            },
-          },
-          arguments: [
-            {
-              kind: Kind.INPUT_VALUE_DEFINITION,
-              name: {
-                kind: Kind.NAME,
-                value: 'representations',
-              },
+            kind: Kind.NON_NULL_TYPE,
+            type: {
+              kind: Kind.LIST_TYPE,
               type: {
                 kind: Kind.NON_NULL_TYPE,
                 type: {
-                  kind: Kind.LIST_TYPE,
-                  type: {
-                    kind: Kind.NON_NULL_TYPE,
-                    type: {
-                      kind: Kind.NAMED_TYPE,
-                      name: {
-                        kind: Kind.NAME,
-                        value: '_Any',
-                      },
-                    },
+                  kind: Kind.NAMED_TYPE,
+                  name: {
+                    kind: Kind.NAME,
+                    value: '_Any',
                   },
                 },
               },
             },
-          ],
+          },
         },
       ],
-    };
+    });
+    const rootTypes: TypeDefinitionNode[] = [];
+    for (const [operationType, fieldDefinitionNodes] of subgraphRootFieldDefinitionNodeMap) {
+      rootTypes.push({
+        kind: Kind.OBJECT_TYPE_DEFINITION,
+        name: {
+          kind: Kind.NAME,
+          value: rootTypeNames.get(operationType)!,
+        },
+        fields: fieldDefinitionNodes,
+      });
+    }
     const subgraphTypeMap = subgraphTypesMap.get(subgraphName) || new Map();
     const initialSubgraphTypes = [...subgraphTypeMap.values()];
     for (const typeDefinitionNode of initialSubgraphTypes) {
@@ -422,7 +457,7 @@ export function getSubschemasFromSupergraphSdl({
           ...subgraphTypeMap.values(),
           entitiesUnionTypeDefinitionNode,
           anyTypeDefinitionNode,
-          queryWithEntitiesFieldDefinitionNode,
+          ...rootTypes,
         ],
       },
       {
