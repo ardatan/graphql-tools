@@ -18,8 +18,14 @@ directive @join__owner(graph: join__Graph!) on INTERFACE | OBJECT
 
 directive @join__type(graph: join__Graph!, key: join__FieldSet) repeatable on INTERFACE | OBJECT
 
+enum ReviewsOrder {
+  ASC
+  DESC
+}
+
 input ProductReviewsInput {
   first: Int
+  order: ReviewsOrder
 }
 
 type AnonymousReview implements Review

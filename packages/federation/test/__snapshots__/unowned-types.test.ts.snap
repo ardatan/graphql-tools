@@ -6,53 +6,55 @@ exports[`Unowned types works 1`] = `
 }
 
 type Query {
-  me: User @join__field(graph: SERVICE0)
-  users: [User] @join__field(graph: SERVICE0)
-  topProducts(first: Int): [Product] @join__field(graph: SERVICE1)
+  me: User
+  users: [User]
+  topProducts(first: Int): [Product]
 }
 
-input ProductReviewsInput {
-  first: Int
+type User {
+  numberOfReviews: Int
+  reviews: [Review]
+  birthDate: String
+  name: String
+  username: String
 }
 
-scalar Stars
-
-type User @join__owner(graph: SERVICE0) @join__type(graph: SERVICE2, key: "id") {
-  id: ID! @join__field(graph: SERVICE0)
-  numberOfReviews: Int @join__field(graph: SERVICE2)
-  reviews: [Review] @join__field(graph: SERVICE2)
-  birthDate: String @join__field(graph: SERVICE0)
-  name: String @join__field(graph: SERVICE0)
-  username: String @join__field(graph: SERVICE0)
+type Product {
+  reviews(input: ProductReviewsInput): [Review]
+  inStock: Boolean
+  shippingEstimate: Int
+  name: String
+  price: Int
+  weight: Int
 }
 
-type Product @join__owner(graph: SERVICE1) @join__type(graph: SERVICE3, key: "upc") {
-  reviews(input: ProductReviewsInput): [Review] @join__field(graph: SERVICE2)
-  upc: String! @join__field(graph: SERVICE1)
-  inStock: Boolean @join__field(graph: SERVICE3)
-  shippingEstimate: Int @join__field(graph: SERVICE3, requires: "price weight")
-  name: String @join__field(graph: SERVICE1)
-  price: Int @join__field(graph: SERVICE1)
-  weight: Int @join__field(graph: SERVICE1)
+type AnonymousReview implements Review {
+  body: String
+  product: Product
 }
 
-type AnonymousReview implements Review @join__owner(graph: SERVICE2) @join__type(graph: SERVICE2, key: "id") {
-  body: String @join__field(graph: SERVICE2)
-  id: ID! @join__field(graph: SERVICE2)
-  product: Product @join__field(graph: SERVICE2)
-}
-
-type UserReview implements Review @join__owner(graph: SERVICE2) @join__type(graph: SERVICE2, key: "id") {
-  author: User @join__field(graph: SERVICE2, provides: "username")
-  body: String @join__field(graph: SERVICE2)
-  id: ID! @join__field(graph: SERVICE2)
-  product: Product @join__field(graph: SERVICE2)
-  stars: Stars @join__field(graph: SERVICE2)
+type UserReview implements Review {
+  author: User
+  body: String
+  product: Product
+  stars: Stars
 }
 
 interface Review {
   body: String
   id: ID!
   product: Product
-}"
+}
+
+input ProductReviewsInput {
+  first: Int
+  order: ReviewsOrder
+}
+
+enum ReviewsOrder {
+  ASC
+  DESC
+}
+
+scalar Stars"
 `;
