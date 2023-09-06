@@ -267,7 +267,13 @@ export function getSubschemasFromSupergraphSdl({
             const fieldDefinitionNodesOfSubgraph: FieldDefinitionNode[] = [];
             node.fields?.forEach(fieldNode => {
               if (fieldNode.name.value === keyFieldName) {
-                return true;
+                fieldDefinitionNodesOfSubgraph.push({
+                  ...fieldNode,
+                  directives: fieldNode.directives?.filter(
+                    directiveNode => directiveNode.name.value !== 'join__field',
+                  ),
+                });
+                return;
               }
               const joinFieldDirectiveNode = fieldNode.directives?.find(
                 directiveNode => directiveNode.name.value === 'join__field',
