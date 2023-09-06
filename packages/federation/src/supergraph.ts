@@ -390,10 +390,10 @@ export function getSubschemasFromSupergraphSdl({
       subgraphRootFieldDefinitionNodeMap = new Map();
       subgraphRootFieldDefinitionNodes.set(subgraphName, subgraphRootFieldDefinitionNodeMap);
     }
-    let queryFields = subgraphRootFieldDefinitionNodeMap.get(OperationTypeNode.QUERY);
+    let queryFields = subgraphRootFieldDefinitionNodeMap.get('query' as OperationTypeNode);
     if (!queryFields) {
       queryFields = [];
-      subgraphRootFieldDefinitionNodeMap.set(OperationTypeNode.QUERY, queryFields);
+      subgraphRootFieldDefinitionNodeMap.set('query' as OperationTypeNode, queryFields);
     }
     queryFields.push({
       kind: Kind.FIELD_DEFINITION,
