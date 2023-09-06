@@ -3,10 +3,10 @@ import { join } from 'path';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 
-describe('Interfaces & Scalars', () => {
+describe('Unowned types', () => {
   it('works', async () => {
     const supergraphSdl = await fs.readFile(
-      join(__dirname, 'fixtures/interfaces-scalars/supergraph.graphql'),
+      join(__dirname, 'fixtures/unowned-types/supergraph.graphql'),
       'utf-8',
     );
     const stitchedSchema = getStitchedSchemaFromSupergraphSdl({

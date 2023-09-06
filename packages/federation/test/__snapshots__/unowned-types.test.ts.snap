@@ -1,0 +1,64 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Unowned types works 1`] = `
+"schema {
+  query: Query
+}
+
+type Query {
+  me: User
+  users: [User]
+  topProducts(first: Int): [Product]
+}
+
+type User {
+  id: ID!
+  numberOfReviews: Int
+  reviews: [Review]
+  birthDate: String
+  name: String
+  username: String
+}
+
+type Product {
+  reviews(input: ProductReviewsInput): [Review]
+  upc: String!
+  inStock: Boolean
+  shippingEstimate: Int
+  name: String
+  price: Int
+  weight: Int
+}
+
+type AnonymousReview implements Review {
+  body: String
+  id: ID!
+  product: Product
+}
+
+type UserReview implements Review {
+  author: User
+  body: String
+  id: ID!
+  product: Product
+  stars: Stars
+}
+
+interface Review {
+  body: String
+  id: ID!
+  product: Product
+}
+
+input ProductReviewsInput {
+  first: Int
+  order: ReviewsOrder
+}
+
+enum ReviewsOrder {
+  ASC
+  DESC
+}
+
+scalar Stars"
+`;
