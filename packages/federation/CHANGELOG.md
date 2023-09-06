@@ -1,5 +1,13 @@
 # @graphql-tools/federation
 
+## 1.1.5
+
+### Patch Changes
+
+- [#5567](https://github.com/ardatan/graphql-tools/pull/5567)
+  [`61393975`](https://github.com/ardatan/graphql-tools/commit/61393975c535e45c108500feea1ceec461586c6e)
+  Thanks [@ardatan](https://github.com/ardatan)! - Respect input types
+
 ## 1.1.4
 
 ### Patch Changes
