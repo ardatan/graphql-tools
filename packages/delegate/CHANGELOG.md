@@ -1,5 +1,13 @@
 # @graphql-tools/delegate
 
+## 10.0.3
+
+### Patch Changes
+
+- [#5572](https://github.com/ardatan/graphql-tools/pull/5572)
+  [`aadb591f`](https://github.com/ardatan/graphql-tools/commit/aadb591f8cd99560d7adba3d66a193434425b47d)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix for wrapping subscription types
+
 ## 10.0.2
 
 ### Patch Changes
