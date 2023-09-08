@@ -74,7 +74,7 @@
     "@types/valid-url": "1.0.4",
     "babel-loader": "9.1.3",
     "express": "4.18.2",
-    "graphql-sse": "2.2.3",
+    "graphql-sse": "2.3.0",
     "graphql-upload": "16.0.2",
     "graphql-yoga": "4.0.4",
     "puppeteer": "21.1.1",
