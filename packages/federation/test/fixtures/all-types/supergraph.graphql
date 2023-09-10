@@ -18,12 +18,12 @@ directive @join__owner(graph: join__Graph!) on INTERFACE | OBJECT
 
 directive @join__type(graph: join__Graph!, key: join__FieldSet) repeatable on INTERFACE | OBJECT
 
-enum ReviewsOrder {
-  ASC
-  DESC
+enum ReviewsOrder @join__type(graph: SERVICE2) {
+  ASC @join__enumValue(graph: SERVICE2)
+  DESC @join__enumValue(graph: SERVICE2)
 }
 
-input ProductReviewsInput {
+input ProductReviewsInput @join__type(graph: SERVICE2) {
   first: Int
   order: ReviewsOrder
 }
@@ -56,13 +56,13 @@ type Query {
   users: [User] @join__field(graph: SERVICE0)
 }
 
-interface Review {
+interface Review @join__type(graph: SERVICE2, key: "id") {
   body: String
   id: ID!
   product: Product
 }
 
-scalar Stars
+scalar Stars @join__type(graph: SERVICE2)
 
 type User
   @join__owner(graph: SERVICE0)

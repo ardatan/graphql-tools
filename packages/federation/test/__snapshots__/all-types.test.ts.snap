@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Unowned types works 1`] = `
+exports[`All types works 1`] = `
 "schema {
   query: Query
 }
@@ -30,18 +30,20 @@ type Product {
   weight: Int
 }
 
+enum ReviewsOrder {
+  ASC
+  DESC
+}
+
+input ProductReviewsInput {
+  first: Int
+  order: ReviewsOrder
+}
+
 type AnonymousReview implements Review {
   body: String
   id: ID!
   product: Product
-}
-
-type UserReview implements Review {
-  author: User
-  body: String
-  id: ID!
-  product: Product
-  stars: Stars
 }
 
 interface Review {
@@ -50,15 +52,13 @@ interface Review {
   product: Product
 }
 
-input ProductReviewsInput {
-  first: Int
-  order: ReviewsOrder
-}
+scalar Stars
 
-enum ReviewsOrder {
-  ASC
-  DESC
-}
-
-scalar Stars"
+type UserReview implements Review {
+  author: User
+  body: String
+  id: ID!
+  product: Product
+  stars: Stars
+}"
 `;
