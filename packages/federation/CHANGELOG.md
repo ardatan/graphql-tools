@@ -1,5 +1,12 @@
 # @graphql-tools/federation
 
+## 1.1.6
+
+### Patch Changes
+
+- [`9b404e83`](https://github.com/ardatan/graphql-tools/commit/9b404e8346af2831e3ed56326cd9e1e9f8582b42)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle type ownerships correctly
+
 ## 1.1.5
 
 ### Patch Changes
