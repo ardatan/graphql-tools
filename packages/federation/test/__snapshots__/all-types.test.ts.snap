@@ -15,9 +15,9 @@ type User {
   id: ID!
   numberOfReviews: Int
   reviews: [Review]
+  username: String
   birthDate: String
   name: String
-  username: String
 }
 
 type Product {
