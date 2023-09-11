@@ -1,37 +1,43 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { parse } from 'graphql';
+import { GraphQLSchema, parse } from 'graphql';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import { buildSubgraphSchema } from '../src/subgraph';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
-import * as Accounts from './fixtures/gateway/accounts';
-import * as Inventory from './fixtures/gateway/inventory';
-import * as Products from './fixtures/gateway/products';
-import * as Reviews from './fixtures/gateway/reviews';
+import * as accounts from './fixtures/gateway/accounts';
+import * as inventory from './fixtures/gateway/inventory';
+import * as products from './fixtures/gateway/products';
+import * as reviews from './fixtures/gateway/reviews';
 
 describe('Optimizations', () => {
-  it('should not do extra calls with "@provides"', async () => {
-    const services = [Accounts, Products, Reviews, Inventory];
-    let accountsCalled = false;
-    const supergraphSchema = getStitchedSchemaFromSupergraphSdl({
+  const services = {
+    accounts,
+    inventory,
+    products,
+    reviews,
+  };
+  let serviceCallCnt: Record<string, number>;
+  let schema: GraphQLSchema;
+  beforeEach(() => {
+    serviceCallCnt = {};
+    schema = getStitchedSchemaFromSupergraphSdl({
       supergraphSdl: readFileSync(
         join(__dirname, 'fixtures', 'gateway', 'supergraph.graphql'),
         'utf8',
       ),
       onExecutor({ subgraphName }) {
-        const subgraphIndex = parseInt(subgraphName.split('SERVICE')[1]);
-        const schema = buildSubgraphSchema(services[subgraphIndex]);
+        const schema = buildSubgraphSchema(services[subgraphName]);
         const executor = createDefaultExecutor(schema);
-        if (subgraphIndex === 0) {
-          return async args => {
-            accountsCalled = true;
-            return executor(args);
-          };
-        }
-        return executor;
+        serviceCallCnt[subgraphName] = 0;
+        return async args => {
+          serviceCallCnt[subgraphName]++;
+          return executor(args);
+        };
       },
     });
+  });
+  it('should not do extra calls with "@provides"', async () => {
     const query = /* GraphQL */ `
       query {
         topProducts {
@@ -46,9 +52,81 @@ describe('Optimizations', () => {
       }
     `;
     await normalizedExecutor({
-      schema: supergraphSchema,
+      schema,
       document: parse(query),
     });
-    expect(accountsCalled).toBeFalsy();
+    expect(serviceCallCnt['accounts']).toBe(0);
+  });
+  it('should do deduplication', async () => {
+    const query = /* GraphQL */ `
+      fragment User on User {
+        id
+        username
+        name
+      }
+
+      fragment Review on Review {
+        id
+        body
+      }
+
+      fragment Product on Product {
+        inStock
+        name
+        price
+        shippingEstimate
+        upc
+        weight
+      }
+
+      query TestQuery {
+        users {
+          ...User
+          reviews {
+            ...Review
+            product {
+              ...Product
+              reviews {
+                ...Review
+                author {
+                  ...User
+                  reviews {
+                    ...Review
+                    product {
+                      ...Product
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        topProducts {
+          ...Product
+          reviews {
+            ...Review
+            author {
+              ...User
+              reviews {
+                ...Review
+                product {
+                  ...Product
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+    await normalizedExecutor({
+      schema,
+      document: parse(query),
+    });
+    expect(serviceCallCnt).toMatchObject({
+      accounts: 2,
+      inventory: 1,
+      products: 2,
+      reviews: 2,
+    });
   });
 });

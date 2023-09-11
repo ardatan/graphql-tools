@@ -19,42 +19,42 @@ directive @join__owner(graph: join__Graph!) on INTERFACE | OBJECT
 directive @join__type(graph: join__Graph!, key: join__FieldSet) repeatable on INTERFACE | OBJECT
 
 type Product
-  @join__owner(graph: SERVICE1)
-  @join__type(graph: SERVICE1, key: "upc")
-  @join__type(graph: SERVICE2, key: "upc")
-  @join__type(graph: SERVICE3, key: "upc") {
-  inStock: Boolean @join__field(graph: SERVICE3)
-  name: String @join__field(graph: SERVICE1)
-  price: Int @join__field(graph: SERVICE1)
-  reviews: [Review] @join__field(graph: SERVICE2)
-  shippingEstimate: Int @join__field(graph: SERVICE3, requires: "price weight")
-  upc: String! @join__field(graph: SERVICE1)
-  weight: Int @join__field(graph: SERVICE1)
+  @join__owner(graph: products)
+  @join__type(graph: products, key: "upc")
+  @join__type(graph: reviews, key: "upc")
+  @join__type(graph: inventory, key: "upc") {
+  inStock: Boolean @join__field(graph: inventory)
+  name: String @join__field(graph: products)
+  price: Int @join__field(graph: products)
+  reviews: [Review] @join__field(graph: reviews)
+  shippingEstimate: Int @join__field(graph: inventory, requires: "price weight")
+  upc: String! @join__field(graph: products)
+  weight: Int @join__field(graph: products)
 }
 
 type Query {
-  me: User @join__field(graph: SERVICE0)
-  topProducts(first: Int): [Product] @join__field(graph: SERVICE1)
-  users: [User] @join__field(graph: SERVICE0)
+  me: User @join__field(graph: accounts)
+  topProducts(first: Int): [Product] @join__field(graph: products)
+  users: [User] @join__field(graph: accounts)
 }
 
-type Review @join__owner(graph: SERVICE2) @join__type(graph: SERVICE2, key: "id") {
-  author: User @join__field(graph: SERVICE2, provides: "username")
-  body: String @join__field(graph: SERVICE2)
-  id: ID! @join__field(graph: SERVICE2)
-  product: Product @join__field(graph: SERVICE2)
+type Review @join__owner(graph: reviews) @join__type(graph: reviews, key: "id") {
+  author: User @join__field(graph: reviews, provides: "username")
+  body: String @join__field(graph: reviews)
+  id: ID! @join__field(graph: reviews)
+  product: Product @join__field(graph: reviews)
 }
 
 type User
-  @join__owner(graph: SERVICE0)
-  @join__type(graph: SERVICE0, key: "id")
-  @join__type(graph: SERVICE2, key: "id") {
-  birthDate: String @join__field(graph: SERVICE0)
-  id: ID! @join__field(graph: SERVICE0)
-  name: String @join__field(graph: SERVICE0)
-  numberOfReviews: Int @join__field(graph: SERVICE2)
-  reviews: [Review] @join__field(graph: SERVICE2)
-  username: String @join__field(graph: SERVICE0)
+  @join__owner(graph: accounts)
+  @join__type(graph: accounts, key: "id")
+  @join__type(graph: reviews, key: "id") {
+  birthDate: String @join__field(graph: accounts)
+  id: ID! @join__field(graph: accounts)
+  name: String @join__field(graph: accounts)
+  numberOfReviews: Int @join__field(graph: reviews)
+  reviews: [Review] @join__field(graph: reviews)
+  username: String @join__field(graph: accounts)
 }
 
 enum core__Purpose {
@@ -72,8 +72,8 @@ enum core__Purpose {
 scalar join__FieldSet
 
 enum join__Graph {
-  SERVICE0 @join__graph(name: "service0", url: "http://www.service-0.com")
-  SERVICE1 @join__graph(name: "service1", url: "http://www.service-1.com")
-  SERVICE2 @join__graph(name: "service2", url: "http://www.service-2.com")
-  SERVICE3 @join__graph(name: "service3", url: "http://www.service-3.com")
+  accounts @join__graph(name: "accounts", url: "http://www.accounts.com")
+  products @join__graph(name: "products", url: "http://www.products.com")
+  reviews @join__graph(name: "reviews", url: "http://www.reviews.com")
+  inventory @join__graph(name: "inventory", url: "http://www.inventory.com")
 }
