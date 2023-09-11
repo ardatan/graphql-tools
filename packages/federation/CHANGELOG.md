@@ -1,5 +1,13 @@
 # @graphql-tools/federation
 
+## 1.1.7
+
+### Patch Changes
+
+- [#5579](https://github.com/ardatan/graphql-tools/pull/5579)
+  [`d30e8735`](https://github.com/ardatan/graphql-tools/commit/d30e8735682c3a7209cded3fc16dd889ddfa5ddf)
+  Thanks [@ardatan](https://github.com/ardatan)! - Optimizations and refactor
+
 ## 1.1.6
 
 ### Patch Changes
