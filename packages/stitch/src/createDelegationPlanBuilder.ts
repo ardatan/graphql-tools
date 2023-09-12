@@ -5,9 +5,11 @@ import {
   GraphQLObjectType,
   GraphQLSchema,
   Kind,
+  print,
   SelectionNode,
   SelectionSetNode,
 } from 'graphql';
+import { LRUCache } from 'lru-cache';
 import {
   DelegationPlanBuilder,
   MergedTypeInfo,
@@ -137,63 +139,76 @@ function getStitchingInfo(schema: GraphQLSchema): StitchingInfo {
   return stitchingInfo;
 }
 
+type DelegationPlan = Array<Map<Subschema, SelectionSetNode>>;
+
+const DEFAULT_MAX = 1024;
+const DEFAULT_TTL = 3_600_000;
+
 export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): DelegationPlanBuilder {
+  const delegationPlanCache = new LRUCache<string, DelegationPlan>({
+    max: DEFAULT_MAX,
+    ttl: DEFAULT_TTL,
+  });
   return memoize5(function delegationPlanBuilder(
     schema: GraphQLSchema,
     sourceSubschema: Subschema<any, any, any, any>,
     variableValues: Record<string, any>,
     fragments: Record<string, FragmentDefinitionNode>,
     fieldNodes: FieldNode[],
-  ): Array<Map<Subschema, SelectionSetNode>> {
-    const stitchingInfo = getStitchingInfo(schema);
-    const targetSubschemas = mergedTypeInfo?.targetSubschemas.get(sourceSubschema);
-    if (!targetSubschemas || !targetSubschemas.length) {
-      return [];
-    }
+  ): DelegationPlan {
+    const printedFieldNodes = fieldNodes.map(fieldNode => print(fieldNode)).join('\n');
+    let delegationPlan = delegationPlanCache.get(printedFieldNodes);
+    if (!delegationPlan) {
+      const stitchingInfo = getStitchingInfo(schema);
+      const targetSubschemas = mergedTypeInfo?.targetSubschemas.get(sourceSubschema);
+      if (!targetSubschemas || !targetSubschemas.length) {
+        return [];
+      }
 
-    const typeName = mergedTypeInfo.typeName;
-    const fieldsNotInSubschema = getFieldsNotInSubschema(
-      schema,
-      stitchingInfo,
-      schema.getType(typeName) as GraphQLObjectType,
-      mergedTypeInfo.typeMaps.get(sourceSubschema)?.[typeName] as GraphQLObjectType,
-      fieldNodes,
-      fragments,
-      variableValues,
-    );
+      const typeName = mergedTypeInfo.typeName;
+      const fieldsNotInSubschema = getFieldsNotInSubschema(
+        schema,
+        stitchingInfo,
+        schema.getType(typeName) as GraphQLObjectType,
+        mergedTypeInfo.typeMaps.get(sourceSubschema)?.[typeName] as GraphQLObjectType,
+        fieldNodes,
+        fragments,
+        variableValues,
+      );
 
-    if (!fieldsNotInSubschema.length) {
-      return [];
-    }
+      if (!fieldsNotInSubschema.length) {
+        return [];
+      }
 
-    const delegationMaps: Array<Map<Subschema, SelectionSetNode>> = [];
-    let sourceSubschemas = createSubschemas(sourceSubschema);
+      delegationPlan = [];
+      let sourceSubschemas = createSubschemas(sourceSubschema);
 
-    let delegationStage = calculateDelegationStage(
-      mergedTypeInfo,
-      sourceSubschemas,
-      targetSubschemas,
-      fieldsNotInSubschema,
-    );
-    let { delegationMap } = delegationStage;
-    while (delegationMap.size) {
-      delegationMaps.push(delegationMap);
-
-      const { proxiableSubschemas, nonProxiableSubschemas, unproxiableFieldNodes } =
-        delegationStage;
-
-      sourceSubschemas = combineSubschemas(sourceSubschemas, proxiableSubschemas);
-
-      delegationStage = calculateDelegationStage(
+      let delegationStage = calculateDelegationStage(
         mergedTypeInfo,
         sourceSubschemas,
-        nonProxiableSubschemas,
-        unproxiableFieldNodes,
+        targetSubschemas,
+        fieldsNotInSubschema,
       );
-      delegationMap = delegationStage.delegationMap;
-    }
+      let { delegationMap } = delegationStage;
+      while (delegationMap.size) {
+        delegationPlan.push(delegationMap);
 
-    return delegationMaps;
+        const { proxiableSubschemas, nonProxiableSubschemas, unproxiableFieldNodes } =
+          delegationStage;
+
+        sourceSubschemas = combineSubschemas(sourceSubschemas, proxiableSubschemas);
+
+        delegationStage = calculateDelegationStage(
+          mergedTypeInfo,
+          sourceSubschemas,
+          nonProxiableSubschemas,
+          unproxiableFieldNodes,
+        );
+        delegationMap = delegationStage.delegationMap;
+      }
+      delegationPlanCache.set(printedFieldNodes, delegationPlan);
+    }
+    return delegationPlan;
   });
 }
 
