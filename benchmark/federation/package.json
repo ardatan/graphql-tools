@@ -1,6 +1,6 @@
 {
   "name": "federation-benchmark",
-  "version": "0.0.102",
+  "version": "0.0.103",
   "private": true,
   "scripts": {
     "loadtest:federation": "k6 -e ENDPOINT=federation run k6.js",

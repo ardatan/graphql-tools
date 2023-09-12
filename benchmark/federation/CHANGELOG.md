@@ -1,5 +1,12 @@
 # federation-benchmark
 
+## 0.0.103
+
+### Patch Changes
+
+- [`5eabbea2`](https://github.com/ardatan/graphql-tools/commit/5eabbea27c69b67a07cfc181d597098402ca5286)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix Fed v2 support
+
 ## 0.0.102
 
 ### Patch Changes
