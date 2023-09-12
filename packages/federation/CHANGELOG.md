@@ -1,5 +1,12 @@
 # @graphql-tools/federation
 
+## 1.1.8
+
+### Patch Changes
+
+- [`7fe63895`](https://github.com/ardatan/graphql-tools/commit/7fe63895c1b989de3ab433e90945cb318718ddac)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix Fed v2 support
+
 ## 1.1.7
 
 ### Patch Changes
