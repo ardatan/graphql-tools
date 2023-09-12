@@ -229,7 +229,7 @@
     js-levenshtein "^1.1.6"
     uuid "^9.0.0"
 
-"@apollo/gateway@2.5.4":
+"@apollo/gateway@2.5.4", "@apollo/gateway@^2.5.4":
   version "2.5.4"
   resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-2.5.4.tgz#f681f7d777724d0f952dacc162b1c4d764766405"
   integrity sha512-F/FGZH/Ujy/UgZs0GN7Y6ImAhkI6cSs2OAJzD9fwY13PRz+DA3Zas9j+K4ehPfZMwjO62wo4T5AA2kFVNb7FyA==
@@ -303,7 +303,7 @@
     "@apollo/utils.keyvaluecache" "^2.1.0"
     "@apollo/utils.logger" "^2.0.0"
 
-"@apollo/subgraph@2.5.4":
+"@apollo/subgraph@2.5.4", "@apollo/subgraph@^2.5.4":
   version "2.5.4"
   resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-2.5.4.tgz#8250a20ad1ed5e6a85a4cf8801ed2cce21c879d3"
   integrity sha512-6F7D36C2fhy54hZLqcqVhFat5/7QuZJaTjeVUYTbnl3vMx5KSaCdRh30gdfn2V8lNoekmcLGRvVBc4PzBOO5jw==

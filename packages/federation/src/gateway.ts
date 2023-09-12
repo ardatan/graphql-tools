@@ -25,6 +25,7 @@ import { SubgraphBaseSDL } from './subgraph.js';
 import {
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
+  getCacheKeyFnFromKey,
   getKeyForFederation,
 } from './utils.js';
 
@@ -95,11 +96,8 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
       entityTypes.push(typeName);
       const selectionsStr = selections.join(' ');
       typeMergingTypeConfig.selectionSet = `{ ${selectionsStr} }`;
-      const keyProps = selectionsStr.split(' ');
       typeMergingTypeConfig.dataLoaderOptions = {
-        cacheKeyFn(root) {
-          return keyProps.map(key => root[key]).join(' ');
-        },
+        cacheKeyFn: getCacheKeyFnFromKey(selectionsStr),
       };
       typeMergingTypeConfig.argsFromKeys = getArgsFromKeysForFederation;
       typeMergingTypeConfig.fieldName = `_entities`;

@@ -9,6 +9,18 @@ export function getKeyForFederation<TRoot>(root: TRoot): TRoot {
   return root;
 }
 
+export function getCacheKeyFnFromKey(key: string) {
+  const keyProps = key.split(' ');
+  if (keyProps.length > 1) {
+    return function cacheKeyFn(root: any) {
+      return keyProps.map(key => root[key]).join(' ');
+    };
+  }
+  return function cacheKeyFn(root: any) {
+    return root[key];
+  };
+}
+
 export function filterInternalFieldsAndTypes(finalSchema: GraphQLSchema) {
   const removeEntitiesField = new FilterRootFields(
     (operation, fieldName) =>

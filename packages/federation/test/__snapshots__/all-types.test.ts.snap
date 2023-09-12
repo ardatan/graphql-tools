@@ -12,21 +12,21 @@ type Query {
 }
 
 type User {
-  id: ID!
   numberOfReviews: Int
   reviews: [Review]
   username: String
   birthDate: String
+  id: ID!
   name: String
 }
 
 type Product {
   reviews(input: ProductReviewsInput): [Review]
-  upc: String!
   inStock: Boolean
   shippingEstimate: Int
   name: String
   price: Int
+  upc: String!
   weight: Int
 }
 

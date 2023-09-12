@@ -1,79 +1,103 @@
 schema
-  @core(feature: "https://specs.apollo.dev/core/v0.2")
-  @core(feature: "https://specs.apollo.dev/join/v0.1", for: EXECUTION) {
+  @link(url: "https://specs.apollo.dev/link/v1.0")
+  @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION) {
   query: Query
 }
 
-directive @core(as: String, feature: String!, for: core__Purpose) repeatable on SCHEMA
+directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
 
 directive @join__field(
   graph: join__Graph
-  provides: join__FieldSet
   requires: join__FieldSet
-) on FIELD_DEFINITION
+  provides: join__FieldSet
+  type: String
+  external: Boolean
+  override: String
+  usedOverridden: Boolean
+) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
 directive @join__graph(name: String!, url: String!) on ENUM_VALUE
 
-directive @join__owner(graph: join__Graph!) on INTERFACE | OBJECT
+directive @join__implements(
+  graph: join__Graph!
+  interface: String!
+) repeatable on OBJECT | INTERFACE
 
-directive @join__type(graph: join__Graph!, key: join__FieldSet) repeatable on INTERFACE | OBJECT
+directive @join__type(
+  graph: join__Graph!
+  key: join__FieldSet
+  extension: Boolean! = false
+  resolvable: Boolean! = true
+  isInterfaceObject: Boolean! = false
+) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
 
-type Product
-  @join__owner(graph: products)
-  @join__type(graph: products, key: "upc")
-  @join__type(graph: reviews, key: "upc")
-  @join__type(graph: inventory, key: "upc") {
-  inStock: Boolean @join__field(graph: inventory)
-  name: String @join__field(graph: products)
-  price: Int @join__field(graph: products)
-  reviews: [Review] @join__field(graph: reviews)
-  shippingEstimate: Int @join__field(graph: inventory, requires: "price weight")
-  upc: String! @join__field(graph: products)
-  weight: Int @join__field(graph: products)
-}
+directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION
 
-type Query {
-  me: User @join__field(graph: accounts)
-  topProducts(first: Int): [Product] @join__field(graph: products)
-  users: [User] @join__field(graph: accounts)
-}
-
-type Review @join__owner(graph: reviews) @join__type(graph: reviews, key: "id") {
-  author: User @join__field(graph: reviews, provides: "username")
-  body: String @join__field(graph: reviews)
-  id: ID! @join__field(graph: reviews)
-  product: Product @join__field(graph: reviews)
-}
-
-type User
-  @join__owner(graph: accounts)
-  @join__type(graph: accounts, key: "id")
-  @join__type(graph: reviews, key: "id") {
-  birthDate: String @join__field(graph: accounts)
-  id: ID! @join__field(graph: accounts)
-  name: String @join__field(graph: accounts)
-  numberOfReviews: Int @join__field(graph: reviews)
-  reviews: [Review] @join__field(graph: reviews)
-  username: String @join__field(graph: accounts)
-}
-
-enum core__Purpose {
-  """
-  `EXECUTION` features provide metadata necessary to for operation execution.
-  """
-  EXECUTION
-
-  """
-  `SECURITY` features provide metadata necessary to securely resolve fields.
-  """
-  SECURITY
-}
+directive @link(
+  url: String
+  as: String
+  for: link__Purpose
+  import: [link__Import]
+) repeatable on SCHEMA
 
 scalar join__FieldSet
 
 enum join__Graph {
-  accounts @join__graph(name: "accounts", url: "http://www.accounts.com")
-  products @join__graph(name: "products", url: "http://www.products.com")
-  reviews @join__graph(name: "reviews", url: "http://www.reviews.com")
-  inventory @join__graph(name: "inventory", url: "http://www.inventory.com")
+  accounts @join__graph(name: "accounts", url: "http://accounts:4001/graphql")
+  inventory @join__graph(name: "inventory", url: "http://inventory:4002/graphql")
+  products @join__graph(name: "products", url: "http://products:4003/graphql")
+  reviews @join__graph(name: "reviews", url: "http://reviews:4004/graphql")
+}
+
+scalar link__Import
+
+enum link__Purpose {
+  """
+  `SECURITY` features provide metadata necessary to securely resolve fields.
+  """
+  SECURITY
+
+  """
+  `EXECUTION` features provide metadata necessary for operation execution.
+  """
+  EXECUTION
+}
+
+type Product
+  @join__type(graph: inventory, key: "upc")
+  @join__type(graph: products, key: "upc")
+  @join__type(graph: reviews, key: "upc") {
+  upc: String!
+  weight: Int @join__field(graph: inventory, external: true) @join__field(graph: products)
+  price: Int @join__field(graph: inventory, external: true) @join__field(graph: products)
+  inStock: Boolean @join__field(graph: inventory)
+  shippingEstimate: Int @join__field(graph: inventory, requires: "price weight")
+  name: String @join__field(graph: products)
+  reviews: [Review] @join__field(graph: reviews)
+}
+
+type Query
+  @join__type(graph: accounts)
+  @join__type(graph: inventory)
+  @join__type(graph: products)
+  @join__type(graph: reviews) {
+  me: User @join__field(graph: accounts)
+  users: [User] @join__field(graph: accounts)
+  topProducts(first: Int): [Product] @join__field(graph: products)
+}
+
+type Review @join__type(graph: reviews, key: "id") {
+  id: ID!
+  body: String
+  product: Product
+  author: User @join__field(graph: reviews, provides: "username")
+}
+
+type User @join__type(graph: accounts, key: "id") @join__type(graph: reviews, key: "id") {
+  id: ID!
+  name: String @join__field(graph: accounts)
+  username: String @join__field(graph: accounts) @join__field(graph: reviews, external: true)
+  birthDate: String @join__field(graph: accounts)
+  numberOfReviews: Int @join__field(graph: reviews)
+  reviews: [Review] @join__field(graph: reviews)
 }
