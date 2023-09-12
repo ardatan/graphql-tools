@@ -156,8 +156,8 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
     fragments: Record<string, FragmentDefinitionNode>,
     fieldNodes: FieldNode[],
   ): DelegationPlan {
-    const printedFieldNodes = fieldNodes.map(fieldNode => print(fieldNode)).join('\n');
-    let delegationPlan = delegationPlanCache.get(printedFieldNodes);
+    const selectionSetStr = print(fieldNodes[0].selectionSet || fieldNodes[0].name);
+    let delegationPlan = delegationPlanCache.get(selectionSetStr);
     if (!delegationPlan) {
       const stitchingInfo = getStitchingInfo(schema);
       const targetSubschemas = mergedTypeInfo?.targetSubschemas.get(sourceSubschema);
@@ -206,7 +206,7 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
         );
         delegationMap = delegationStage.delegationMap;
       }
-      delegationPlanCache.set(printedFieldNodes, delegationPlan);
+      delegationPlanCache.set(selectionSetStr, delegationPlan);
     }
     return delegationPlan;
   });
