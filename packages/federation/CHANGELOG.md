@@ -1,5 +1,12 @@
 # @graphql-tools/federation
 
+## 1.1.9
+
+### Patch Changes
+
+- [`3ed8cbd6`](https://github.com/ardatan/graphql-tools/commit/3ed8cbd68988492e8b220a82b3590bad2a1c672b)
+  Thanks [@ardatan](https://github.com/ardatan)! - Support @join\_\_implements in Federation
+
 ## 1.1.8
 
 ### Patch Changes
