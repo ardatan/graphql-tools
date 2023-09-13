@@ -4,6 +4,7 @@ import {
   EnumTypeDefinitionNode,
   EnumValueDefinitionNode,
   FieldDefinitionNode,
+  InterfaceTypeDefinitionNode,
   Kind,
   NamedTypeNode,
   ObjectTypeDefinitionNode,
@@ -50,6 +51,211 @@ export function getSubschemasFromSupergraphSdl({
   const typeNameCanonicalMap = new Map<string, string>();
   const rootTypeNames = new Map<OperationTypeNode, string>();
   const subgraphTypeNameExtraFieldsMap = new Map<string, Map<string, FieldDefinitionNode[]>>();
+  function TypeWithFieldsVisitor(typeNode: ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode) {
+    if ([...rootTypeNames.values()].includes(typeNode.name.value)) {
+      const operationTypeName = [...rootTypeNames.entries()].find(
+        ([, rootTypeName]) => rootTypeName === typeNode.name.value,
+      )![0];
+      typeNode.fields?.forEach(fieldNode => {
+        fieldNode.directives?.forEach(directiveNode => {
+          if (directiveNode.name.value === 'join__field') {
+            directiveNode.arguments?.forEach(argumentNode => {
+              if (argumentNode.name.value === 'graph' && argumentNode.value?.kind === Kind.ENUM) {
+                const graphName = argumentNode.value.value;
+                let subgraphRootFieldDefinitionNodeMap =
+                  subgraphRootFieldDefinitionNodes.get(graphName);
+                if (!subgraphRootFieldDefinitionNodeMap) {
+                  subgraphRootFieldDefinitionNodeMap = new Map();
+                  subgraphRootFieldDefinitionNodes.set(
+                    graphName,
+                    subgraphRootFieldDefinitionNodeMap,
+                  );
+                }
+                let fieldDefinitionNodesOfSubgraph =
+                  subgraphRootFieldDefinitionNodeMap.get(operationTypeName);
+                if (!fieldDefinitionNodesOfSubgraph) {
+                  fieldDefinitionNodesOfSubgraph = [];
+                  subgraphRootFieldDefinitionNodeMap.set(
+                    operationTypeName,
+                    fieldDefinitionNodesOfSubgraph,
+                  );
+                }
+                fieldDefinitionNodesOfSubgraph.push({
+                  ...fieldNode,
+                  directives: fieldNode.directives?.filter(
+                    directiveNode => directiveNode.name.value !== 'join__field',
+                  ),
+                });
+              }
+            });
+          }
+        });
+      });
+    }
+    const fieldDefinitionNodesByGraphName = new Map<string, FieldDefinitionNode[]>();
+    typeNode.directives?.forEach(directiveNode => {
+      if (directiveNode.name.value === 'join__owner') {
+        directiveNode.arguments?.forEach(argumentNode => {
+          if (argumentNode.name.value === 'graph' && argumentNode.value?.kind === Kind.ENUM) {
+            typeNameCanonicalMap.set(typeNode.name.value, argumentNode.value.value);
+          }
+        });
+      }
+      if (directiveNode.name.value === 'join__type') {
+        directiveNode.arguments?.forEach(argumentNode => {
+          if (argumentNode.name.value === 'graph' && argumentNode.value?.kind === Kind.ENUM) {
+            const graphName = argumentNode.value.value;
+            const keyArgumentNode = directiveNode.arguments?.find(
+              argumentNode => argumentNode.name.value === 'key',
+            );
+            if (keyArgumentNode?.value?.kind === Kind.STRING) {
+              let typeNameKeyMap = typeNameKeyBySubgraphMap.get(graphName);
+              if (!typeNameKeyMap) {
+                typeNameKeyMap = new Map();
+                typeNameKeyBySubgraphMap.set(graphName, typeNameKeyMap);
+              }
+              typeNameKeyMap.set(typeNode.name.value, keyArgumentNode.value.value);
+            }
+            const fieldDefinitionNodesOfSubgraph: FieldDefinitionNode[] = [];
+            typeNode.fields?.forEach(fieldNode => {
+              const joinFieldDirectives = fieldNode.directives?.filter(
+                directiveNode => directiveNode.name.value === 'join__field',
+              );
+              joinFieldDirectives?.forEach(joinFieldDirectiveNode => {
+                joinFieldDirectiveNode.arguments?.forEach(argumentNode => {
+                  if (
+                    argumentNode.name.value === 'graph' &&
+                    argumentNode.value?.kind === Kind.ENUM &&
+                    argumentNode.value.value === graphName
+                  ) {
+                    const isExternal = joinFieldDirectiveNode.arguments?.some(
+                      argumentNode =>
+                        argumentNode.name.value === 'external' &&
+                        argumentNode.value?.kind === Kind.BOOLEAN &&
+                        argumentNode.value.value === true,
+                    );
+                    if (!isExternal) {
+                      fieldDefinitionNodesOfSubgraph.push({
+                        ...fieldNode,
+                        directives: fieldNode.directives?.filter(
+                          directiveNode => directiveNode.name.value !== 'join__field',
+                        ),
+                      });
+                    }
+                    const providedExtraField = joinFieldDirectiveNode.arguments?.find(
+                      argumentNode => argumentNode.name.value === 'provides',
+                    );
+                    if (providedExtraField?.value?.kind === Kind.STRING) {
+                      let typeNameExtraFieldsMap = subgraphTypeNameExtraFieldsMap.get(graphName);
+                      if (!typeNameExtraFieldsMap) {
+                        typeNameExtraFieldsMap = new Map();
+                        subgraphTypeNameExtraFieldsMap.set(graphName, typeNameExtraFieldsMap);
+                      }
+                      const fieldNodeType = getNamedTypeNode(fieldNode.type);
+                      let extraFields = typeNameExtraFieldsMap.get(fieldNodeType.name.value);
+                      if (!extraFields) {
+                        extraFields = [];
+                        typeNameExtraFieldsMap.set(fieldNodeType.name.value, extraFields);
+                      }
+                      const extraFieldTypeNode = ast.definitions.find(
+                        def => 'name' in def && def.name?.value === fieldNodeType.name.value,
+                      ) as ObjectTypeDefinitionNode;
+                      providedExtraField.value.value.split(' ').forEach(extraField => {
+                        const extraFieldNodeInType = extraFieldTypeNode.fields?.find(
+                          fieldNode => fieldNode.name.value === extraField,
+                        );
+                        if (extraFieldNodeInType) {
+                          extraFields!.push({
+                            ...extraFieldNodeInType,
+                            directives: extraFieldNodeInType.directives?.filter(
+                              directiveNode => directiveNode.name.value !== 'join__field',
+                            ),
+                          });
+                        }
+                      });
+                    }
+                  } else if (
+                    argumentNode.name.value === 'required' &&
+                    argumentNode?.value?.kind === Kind.STRING
+                  ) {
+                    let typeNameFieldsKeyMap = typeNameFieldsKeyBySubgraphMap.get(graphName);
+                    if (!typeNameFieldsKeyMap) {
+                      typeNameFieldsKeyMap = new Map();
+                      typeNameFieldsKeyBySubgraphMap.set(graphName, typeNameFieldsKeyMap);
+                    }
+                    let fieldsKeyMap = typeNameFieldsKeyMap.get(typeNode.name.value);
+                    if (!fieldsKeyMap) {
+                      fieldsKeyMap = new Map();
+                      typeNameFieldsKeyMap.set(typeNode.name.value, fieldsKeyMap);
+                    }
+                    fieldsKeyMap.set(fieldNode.name.value, argumentNode.value.value);
+                  }
+                });
+              });
+              // Add if no join__field directive
+              if (!joinFieldDirectives?.length) {
+                fieldDefinitionNodesOfSubgraph.push({
+                  ...fieldNode,
+                  directives: fieldNode.directives?.filter(
+                    directiveNode => directiveNode.name.value !== 'join__field',
+                  ),
+                });
+              }
+            });
+            fieldDefinitionNodesByGraphName.set(graphName, fieldDefinitionNodesOfSubgraph);
+          }
+        });
+      }
+    });
+    const joinImplementsDirectives = typeNode.directives?.filter(
+      directiveNode => directiveNode.name.value === 'join__implements',
+    );
+    fieldDefinitionNodesByGraphName.forEach((fieldDefinitionNodesOfSubgraph, graphName) => {
+      const interfaces: NamedTypeNode[] = [];
+      typeNode.interfaces?.forEach(interfaceNode => {
+        const implementedSubgraphs = joinImplementsDirectives?.filter(directiveNode => {
+          const argumentNode = directiveNode.arguments?.find(
+            argumentNode => argumentNode.name.value === 'interface',
+          );
+          return (
+            argumentNode?.value?.kind === Kind.STRING &&
+            argumentNode.value.value === interfaceNode.name.value
+          );
+        });
+        if (
+          !implementedSubgraphs?.length ||
+          implementedSubgraphs.some(directiveNode => {
+            const argumentNode = directiveNode.arguments?.find(
+              argumentNode => argumentNode.name.value === 'graph',
+            );
+            return (
+              argumentNode?.value?.kind === Kind.ENUM && argumentNode.value.value === graphName
+            );
+          })
+        ) {
+          interfaces.push(interfaceNode);
+        }
+      });
+      const objectTypedDefNodeForSubgraph: ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode =
+        {
+          ...typeNode,
+          interfaces,
+          fields: fieldDefinitionNodesOfSubgraph,
+          directives: typeNode.directives?.filter(
+            directiveNode =>
+              directiveNode.name.value !== 'join__type' &&
+              directiveNode.name.value !== 'join__owner' &&
+              directiveNode.name.value !== 'join__implements',
+          ),
+        };
+      let subgraphTypes = subgraphTypesMap.get(graphName);
+      if (!subgraphTypes) {
+        subgraphTypes = [];
+        subgraphTypesMap.set(graphName, subgraphTypes);
+      }
+      subgraphTypes.push(objectTypedDefNodeForSubgraph);
+    });
+  }
   visit(ast, {
     SchemaDefinition(node) {
       node.operationTypes?.forEach(operationTypeNode => {
@@ -100,28 +306,7 @@ export function getSubschemasFromSupergraphSdl({
         }
       });
     },
-    InterfaceTypeDefinition(node) {
-      node.directives?.forEach(directiveNode => {
-        if (directiveNode.name.value === 'join__type') {
-          directiveNode.arguments?.forEach(argumentNode => {
-            if (argumentNode.name.value === 'graph' && argumentNode?.value?.kind === Kind.ENUM) {
-              const graphName = argumentNode.value.value;
-              let subgraphTypes = subgraphTypesMap.get(graphName);
-              if (!subgraphTypes) {
-                subgraphTypes = [];
-                subgraphTypesMap.set(graphName, subgraphTypes);
-              }
-              subgraphTypes.push({
-                ...node,
-                directives: node.directives?.filter(
-                  directiveNode => directiveNode.name.value !== 'join__type',
-                ),
-              });
-            }
-          });
-        }
-      });
-    },
+    InterfaceTypeDefinition: TypeWithFieldsVisitor,
     UnionTypeDefinition(node) {
       node.directives?.forEach(directiveNode => {
         if (directiveNode.name.value === 'join__type') {
@@ -187,28 +372,29 @@ export function getSubschemasFromSupergraphSdl({
               const graphName = argumentNode.value.value;
               const enumValueNodes: EnumValueDefinitionNode[] = [];
               node.values?.forEach(valueNode => {
-                valueNode.directives?.forEach(directiveNode => {
-                  switch (directiveNode.name.value) {
-                    case 'join__enumValue':
-                      directiveNode.arguments?.forEach(argumentNode => {
-                        switch (argumentNode.name.value) {
-                          case 'graph':
-                            if (argumentNode?.value?.kind === Kind.ENUM) {
-                              if (argumentNode.value.value === graphName) {
-                                enumValueNodes.push({
-                                  ...valueNode,
-                                  directives: valueNode.directives?.filter(
-                                    directiveNode => directiveNode.name.value !== 'join__enumValue',
-                                  ),
-                                });
-                              }
-                            }
-                            break;
-                        }
-                      });
-                      break;
-                  }
-                });
+                const joinEnumValueDirectives = valueNode.directives?.filter(
+                  directiveNode => directiveNode.name.value === 'join__enumValue',
+                );
+                if (joinEnumValueDirectives?.length) {
+                  joinEnumValueDirectives.forEach(joinEnumValueDirectiveNode => {
+                    joinEnumValueDirectiveNode.arguments?.forEach(argumentNode => {
+                      if (
+                        argumentNode.name.value === 'graph' &&
+                        argumentNode.value?.kind === Kind.ENUM &&
+                        argumentNode.value.value === graphName
+                      ) {
+                        enumValueNodes.push({
+                          ...valueNode,
+                          directives: valueNode.directives?.filter(
+                            directiveNode => directiveNode.name.value !== 'join__enumValue',
+                          ),
+                        });
+                      }
+                    });
+                  });
+                } else {
+                  enumValueNodes.push(valueNode);
+                }
               });
               const enumTypedDefNodeForSubgraph: EnumTypeDefinitionNode = {
                 ...node,
@@ -228,176 +414,7 @@ export function getSubschemasFromSupergraphSdl({
         }
       });
     },
-    ObjectTypeDefinition(typeNode) {
-      if ([...rootTypeNames.values()].includes(typeNode.name.value)) {
-        const operationTypeName = [...rootTypeNames.entries()].find(
-          ([, rootTypeName]) => rootTypeName === typeNode.name.value,
-        )![0];
-        typeNode.fields?.forEach(fieldNode => {
-          fieldNode.directives?.forEach(directiveNode => {
-            if (directiveNode.name.value === 'join__field') {
-              directiveNode.arguments?.forEach(argumentNode => {
-                if (argumentNode.name.value === 'graph' && argumentNode.value?.kind === Kind.ENUM) {
-                  const graphName = argumentNode.value.value;
-                  let subgraphRootFieldDefinitionNodeMap =
-                    subgraphRootFieldDefinitionNodes.get(graphName);
-                  if (!subgraphRootFieldDefinitionNodeMap) {
-                    subgraphRootFieldDefinitionNodeMap = new Map();
-                    subgraphRootFieldDefinitionNodes.set(
-                      graphName,
-                      subgraphRootFieldDefinitionNodeMap,
-                    );
-                  }
-                  let fieldDefinitionNodesOfSubgraph =
-                    subgraphRootFieldDefinitionNodeMap.get(operationTypeName);
-                  if (!fieldDefinitionNodesOfSubgraph) {
-                    fieldDefinitionNodesOfSubgraph = [];
-                    subgraphRootFieldDefinitionNodeMap.set(
-                      operationTypeName,
-                      fieldDefinitionNodesOfSubgraph,
-                    );
-                  }
-                  fieldDefinitionNodesOfSubgraph.push({
-                    ...fieldNode,
-                    directives: fieldNode.directives?.filter(
-                      directiveNode => directiveNode.name.value !== 'join__field',
-                    ),
-                  });
-                }
-              });
-            }
-          });
-        });
-      }
-      typeNode.directives?.forEach(directiveNode => {
-        if (directiveNode.name.value === 'join__owner') {
-          directiveNode.arguments?.forEach(argumentNode => {
-            if (argumentNode.name.value === 'graph' && argumentNode.value?.kind === Kind.ENUM) {
-              typeNameCanonicalMap.set(typeNode.name.value, argumentNode.value.value);
-            }
-          });
-        }
-        if (directiveNode.name.value === 'join__type') {
-          directiveNode.arguments?.forEach(argumentNode => {
-            if (argumentNode.name.value === 'graph' && argumentNode.value?.kind === Kind.ENUM) {
-              const graphName = argumentNode.value.value;
-              const keyArgumentNode = directiveNode.arguments?.find(
-                argumentNode => argumentNode.name.value === 'key',
-              );
-              if (keyArgumentNode?.value?.kind === Kind.STRING) {
-                let typeNameKeyMap = typeNameKeyBySubgraphMap.get(graphName);
-                if (!typeNameKeyMap) {
-                  typeNameKeyMap = new Map();
-                  typeNameKeyBySubgraphMap.set(graphName, typeNameKeyMap);
-                }
-                typeNameKeyMap.set(typeNode.name.value, keyArgumentNode.value.value);
-              }
-              const fieldDefinitionNodesOfSubgraph: FieldDefinitionNode[] = [];
-              typeNode.fields?.forEach(fieldNode => {
-                const joinFieldDirectives = fieldNode.directives?.filter(
-                  directiveNode => directiveNode.name.value === 'join__field',
-                );
-                joinFieldDirectives?.forEach(joinFieldDirectiveNode => {
-                  joinFieldDirectiveNode.arguments?.forEach(argumentNode => {
-                    if (
-                      argumentNode.name.value === 'graph' &&
-                      argumentNode.value?.kind === Kind.ENUM &&
-                      argumentNode.value.value === graphName
-                    ) {
-                      const isExternal = joinFieldDirectiveNode.arguments?.some(
-                        argumentNode =>
-                          argumentNode.name.value === 'external' &&
-                          argumentNode.value?.kind === Kind.BOOLEAN &&
-                          argumentNode.value.value === true,
-                      );
-                      if (!isExternal) {
-                        fieldDefinitionNodesOfSubgraph.push({
-                          ...fieldNode,
-                          directives: fieldNode.directives?.filter(
-                            directiveNode => directiveNode.name.value !== 'join__field',
-                          ),
-                        });
-                      }
-                      const providedExtraField = joinFieldDirectiveNode.arguments?.find(
-                        argumentNode => argumentNode.name.value === 'provides',
-                      );
-                      if (providedExtraField?.value?.kind === Kind.STRING) {
-                        let typeNameExtraFieldsMap = subgraphTypeNameExtraFieldsMap.get(graphName);
-                        if (!typeNameExtraFieldsMap) {
-                          typeNameExtraFieldsMap = new Map();
-                          subgraphTypeNameExtraFieldsMap.set(graphName, typeNameExtraFieldsMap);
-                        }
-                        const fieldNodeType = getNamedTypeNode(fieldNode.type);
-                        let extraFields = typeNameExtraFieldsMap.get(fieldNodeType.name.value);
-                        if (!extraFields) {
-                          extraFields = [];
-                          typeNameExtraFieldsMap.set(fieldNodeType.name.value, extraFields);
-                        }
-                        const extraFieldTypeNode = ast.definitions.find(
-                          def => 'name' in def && def.name?.value === fieldNodeType.name.value,
-                        ) as ObjectTypeDefinitionNode;
-                        providedExtraField.value.value.split(' ').forEach(extraField => {
-                          const extraFieldNodeInType = extraFieldTypeNode.fields?.find(
-                            fieldNode => fieldNode.name.value === extraField,
-                          );
-                          if (extraFieldNodeInType) {
-                            extraFields!.push({
-                              ...extraFieldNodeInType,
-                              directives: extraFieldNodeInType.directives?.filter(
-                                directiveNode => directiveNode.name.value !== 'join__field',
-                              ),
-                            });
-                          }
-                        });
-                      }
-                    } else if (
-                      argumentNode.name.value === 'required' &&
-                      argumentNode?.value?.kind === Kind.STRING
-                    ) {
-                      let typeNameFieldsKeyMap = typeNameFieldsKeyBySubgraphMap.get(graphName);
-                      if (!typeNameFieldsKeyMap) {
-                        typeNameFieldsKeyMap = new Map();
-                        typeNameFieldsKeyBySubgraphMap.set(graphName, typeNameFieldsKeyMap);
-                      }
-                      let fieldsKeyMap = typeNameFieldsKeyMap.get(typeNode.name.value);
-                      if (!fieldsKeyMap) {
-                        fieldsKeyMap = new Map();
-                        typeNameFieldsKeyMap.set(typeNode.name.value, fieldsKeyMap);
-                      }
-                      fieldsKeyMap.set(fieldNode.name.value, argumentNode.value.value);
-                    }
-                  });
-                });
-                // Add if no join__field directive
-                if (!joinFieldDirectives?.length) {
-                  fieldDefinitionNodesOfSubgraph.push({
-                    ...fieldNode,
-                    directives: fieldNode.directives?.filter(
-                      directiveNode => directiveNode.name.value !== 'join__field',
-                    ),
-                  });
-                }
-              });
-              const objectTypedDefNodeForSubgraph: ObjectTypeDefinitionNode = {
-                ...typeNode,
-                fields: fieldDefinitionNodesOfSubgraph,
-                directives: typeNode.directives?.filter(
-                  directiveNode =>
-                    directiveNode.name.value !== 'join__type' &&
-                    directiveNode.name.value !== 'join__owner',
-                ),
-              };
-              let subgraphTypes = subgraphTypesMap.get(graphName);
-              if (!subgraphTypes) {
-                subgraphTypes = [];
-                subgraphTypesMap.set(graphName, subgraphTypes);
-              }
-              subgraphTypes.push(objectTypedDefNodeForSubgraph);
-            }
-          });
-        }
-      });
-    },
+    ObjectTypeDefinition: TypeWithFieldsVisitor,
   });
   const subschemaMap = new Map<string, SubschemaConfig>();
   for (const [subgraphName, endpoint] of subgraphEndpointMap) {

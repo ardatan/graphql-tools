@@ -1,0 +1,150 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Supergraphs a.graphql: a.graphql 1`] = `
+"schema {
+  query: Query
+}
+
+type Query {
+  me: User
+  users: [User]
+  topProducts(first: Int): [Product]
+}
+
+type User {
+  numberOfReviews: Int
+  reviews: [Review]
+  username: String
+  birthDate: String
+  id: ID!
+  name: String
+}
+
+type Product {
+  reviews(input: ProductReviewsInput): [Review]
+  inStock: Boolean
+  shippingEstimate: Int
+  name: String
+  price: Int
+  upc: String!
+  weight: Int
+}
+
+enum ReviewsOrder {
+  ASC
+  DESC
+}
+
+input ProductReviewsInput {
+  first: Int
+  order: ReviewsOrder
+}
+
+type AnonymousReview implements Review {
+  body: String
+  id: ID!
+  product: Product
+}
+
+interface Review {
+  body: String
+  id: ID!
+  product: Product
+}
+
+scalar Stars
+
+type UserReview implements Review {
+  author: User
+  body: String
+  id: ID!
+  product: Product
+  stars: Stars
+}"
+`;
+
+exports[`Supergraphs b.graphql: b.graphql 1`] = `
+"schema {
+  query: Query
+}
+
+type Query {
+  allPandas: [Panda]
+  panda(name: ID!): Panda
+  allProducts: [ProductItf]
+  product(id: ID!): ProductItf
+  review(id: Int!): Review
+}
+
+type DeliveryEstimates {
+  estimatedDelivery: String
+  fastestDelivery: String
+}
+
+type Product implements ProductItf & SkuItf {
+  id: ID! @tag(name: "hi-from-products")
+  delivery(zip: String): DeliveryEstimates
+  dimensions: ProductDimension
+  sku: String
+  name: String @hello
+  package: String
+  variation: ProductVariation
+  createdBy: User
+  hidden: String
+  oldField: String
+  reviewsScore: Float!
+  reviewsCount: Int!
+  reviews: [Review!]!
+}
+
+type ProductDimension {
+  size: String @hello
+  weight: Float
+}
+
+interface ProductItf implements SkuItf {
+  id: ID!
+  dimensions: ProductDimension
+  delivery(zip: String): DeliveryEstimates
+  sku: String
+  name: String
+  package: String
+  variation: ProductVariation
+  createdBy: User
+  oldField: String @deprecated(reason: "refactored out")
+  reviewsCount: Int!
+  reviewsScore: Float!
+  reviews: [Review!]!
+}
+
+enum ShippingClass {
+  STANDARD
+  EXPRESS
+  OVERNIGHT
+}
+
+type Panda {
+  name: ID!
+  favoriteFood: String @tag(name: "nom-nom-nom")
+}
+
+type ProductVariation {
+  id: ID!
+  name: String
+}
+
+interface SkuItf {
+  sku: String
+}
+
+type User {
+  email: ID! @tag(name: "test-from-users")
+  totalProductsCreated: Int
+  name: String
+}
+
+type Review {
+  id: Int!
+  body: String!
+}"
+`;

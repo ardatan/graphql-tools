@@ -1,5 +1,5 @@
 import { GraphQLSchema, Kind, TypeNode } from 'graphql';
-import { FilterRootFields, FilterTypes } from '@graphql-tools/wrap';
+import { MapperKind, mapSchema } from '@graphql-tools/utils';
 
 export function getArgsFromKeysForFederation(representations: readonly any[]) {
   return { representations };
@@ -21,27 +21,29 @@ export function getCacheKeyFnFromKey(key: string) {
   };
 }
 
+const internalTypeNames = ['_Entity', '_Any', '_FieldSet', '_Service'];
+
 export function filterInternalFieldsAndTypes(finalSchema: GraphQLSchema) {
-  const removeEntitiesField = new FilterRootFields(
-    (operation, fieldName) =>
-      !(operation === 'Query' && (fieldName === '_entities' || fieldName === '_sdl')),
-  );
-  const removeEntityAndAny = new FilterTypes(
-    type =>
-      type.name !== '_Entity' &&
-      type.name !== '_Any' &&
-      type.name !== '_FieldSet' &&
-      type.name !== '_Service' &&
-      !type.name.startsWith('link__'),
-  );
-  const fakeSubschemaConfig = {
-    schema: finalSchema,
-    transforms: [removeEntitiesField, removeEntityAndAny],
-  };
-  for (const transform of fakeSubschemaConfig.transforms) {
-    finalSchema = transform.transformSchema(finalSchema, fakeSubschemaConfig);
-  }
-  return finalSchema;
+  return mapSchema(finalSchema, {
+    [MapperKind.TYPE]: type => {
+      if (internalTypeNames.includes(type.name) || type.name.startsWith('link__')) {
+        return null;
+      }
+      return type;
+    },
+    [MapperKind.COMPOSITE_FIELD]: fieldConfig => {
+      if (fieldConfig.astNode?.directives?.some(d => d.name.value === 'inaccessible')) {
+        return null;
+      }
+      return fieldConfig;
+    },
+    [MapperKind.QUERY_ROOT_FIELD]: (fieldConfig, fieldName) => {
+      if (fieldName === '_entities') {
+        return null;
+      }
+      return fieldConfig;
+    },
+  });
 }
 
 export function getNamedTypeNode(typeNode: TypeNode) {
