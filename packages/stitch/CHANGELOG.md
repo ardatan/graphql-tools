@@ -1,5 +1,13 @@
 # @graphql-tools/stitch
 
+## 9.0.2
+
+### Patch Changes
+
+- [`cda328c3`](https://github.com/ardatan/graphql-tools/commit/cda328c3e487ea51e13a3b18f0e2e494fd3275ca)
+  Thanks [@ardatan](https://github.com/ardatan)! - Support for multiple key entrypoints for an
+  object, and avoid sending whole object if possible
+
 ## 9.0.1
 
 ### Patch Changes
