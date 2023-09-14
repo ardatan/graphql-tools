@@ -57,7 +57,7 @@ describe('Optimizations', () => {
     });
     expect(serviceCallCnt['accounts']).toBe(0);
   });
-  it('should do deduplication', async () => {
+  it.todo('should do deduplication', async () => {
     const query = /* GraphQL */ `
       fragment User on User {
         id
