@@ -136,12 +136,14 @@ function handleResolverResult(
 
   const objectSubschema = resolverResult[OBJECT_SUBSCHEMA_SYMBOL];
   const fieldSubschemaMap = resolverResult[FIELD_SUBSCHEMA_MAP_SYMBOL];
+  queueMicrotask(() => {
+    Object.entries(resolverResult).forEach(([responseKey, sourcePropValue]) => {
+      if (sourcePropValue != null) {
+        object[responseKey] = sourcePropValue;
+      }
 
-  Object.entries(resolverResult).forEach(([responseKey, sourcePropValue]) => {
-    if (sourcePropValue != null) {
-      object[responseKey] = sourcePropValue;
-    }
-    combinedFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
+      combinedFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
+    });
   });
 }
 
