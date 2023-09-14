@@ -124,7 +124,8 @@ describe('Optimizations', () => {
     });
     expect(serviceCallCnt).toMatchObject({
       accounts: 2,
-      inventory: 1,
+      // inventory: 1, (when computed fields definition removed)
+      inventory: 2,
       products: 2,
       reviews: 2,
     });

@@ -264,6 +264,7 @@ describe('Federation', () => {
           return executor(executionRequest);
         };
       },
+      batch: true,
     });
 
     return {

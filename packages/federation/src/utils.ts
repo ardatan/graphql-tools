@@ -9,6 +9,23 @@ export function getKeyForFederation<TRoot>(root: TRoot): TRoot {
   return root;
 }
 
+export function getKeyFnForFederation(typeName: string, keys: string[]) {
+  const allKeyProps = keys.flatMap(key => key.split(' '));
+  if (allKeyProps.length > 1) {
+    const typeNameEntry = ['__typename', typeName];
+    return function keyFn(root: any) {
+      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));
+    };
+  }
+  const keyProp = allKeyProps[0];
+  return function keyFn(root: any) {
+    return {
+      __typename: root['__typename'],
+      [keyProp]: root[keyProp],
+    };
+  };
+}
+
 export function getCacheKeyFnFromKey(key: string) {
   const keyProps = key.split(' ');
   if (keyProps.length > 1) {

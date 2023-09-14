@@ -9,7 +9,7 @@ describe('Supergraphs', () => {
       const fixturePath = join(__dirname, 'fixtures', 'supergraphs', fixture);
       const supergraphSdl = readFileSync(fixturePath, 'utf8');
       const schema = getStitchedSchemaFromSupergraphSdl({ supergraphSdl });
-      expect(printSchemaWithDirectives(schema)).toMatchSnapshot(fixture);
+      expect(printSchemaWithDirectives(schema).trim()).toMatchSnapshot(fixture);
     });
   });
 });
