@@ -23,7 +23,7 @@ import {
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
   getCacheKeyFnFromKey,
-  getKeyForFederation,
+  getKeyFnForFederation,
   getNamedTypeNode,
 } from './utils.js';
 
@@ -440,11 +440,11 @@ export function getSubschemasFromSupergraphSdl({
       for (const [typeName, keys] of typeNameKeyMap) {
         const mergedTypeConfig: MergedTypeConfig = (mergeConfig[typeName] = {});
         const fieldsKeyMap = typeNameFieldsKeyMap?.get(typeName);
-        let extraFields = false;
+        const extraKeys: string[] = [];
         if (fieldsKeyMap) {
           const fieldsConfig = (mergedTypeConfig.fields = {});
           for (const [fieldName, fieldNameKey] of fieldsKeyMap) {
-            extraFields = true;
+            extraKeys.push(fieldNameKey);
             fieldsConfig[fieldName] = {
               selectionSet: `{ ${fieldNameKey} }`,
               computed: true,
@@ -458,11 +458,7 @@ export function getSubschemasFromSupergraphSdl({
         mergedTypeConfig.entryPoints = keys.map(key => ({
           selectionSet: `{ ${key} }`,
           argsFromKeys: getArgsFromKeysForFederation,
-          key: extraFields
-            ? getKeyForFederation
-            : function keyFn(root) {
-                return { __typename: typeName, [key]: root[key] };
-              },
+          key: getKeyFnForFederation(typeName, [key, ...extraKeys]),
           fieldName: `_entities`,
           dataLoaderOptions: {
             cacheKeyFn: getCacheKeyFnFromKey(key),

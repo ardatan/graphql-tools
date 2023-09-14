@@ -57,7 +57,7 @@ describe('Optimizations', () => {
     });
     expect(serviceCallCnt['accounts']).toBe(0);
   });
-  it.todo('should do deduplication', async () => {
+  it('should do deduplication', async () => {
     const query = /* GraphQL */ `
       fragment User on User {
         id
@@ -124,7 +124,8 @@ describe('Optimizations', () => {
     });
     expect(serviceCallCnt).toMatchObject({
       accounts: 2,
-      inventory: 1,
+      // inventory: 1, (when computed fields definition removed)
+      inventory: 2,
       products: 2,
       reviews: 2,
     });
