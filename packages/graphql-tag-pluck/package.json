@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@babel/parser": "7.22.16",
-    "@babel/traverse": "7.22.19",
+    "@babel/traverse": "7.22.20",
     "@babel/types": "7.22.19",
     "@types/babel__traverse": "7.20.2",
     "@vue/compiler-sfc": "3.3.4",
