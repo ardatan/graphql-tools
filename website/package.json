@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@theguild/components": "5.2.3",
-    "next": "13.5.1",
+    "next": "13.5.2",
     "next-sitemap": "4.2.3",
     "react": "18.2.0",
     "react-dom": "18.2.0"
