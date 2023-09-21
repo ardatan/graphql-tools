@@ -62,7 +62,7 @@
     "value-or-promise": "^1.0.12"
   },
   "devDependencies": {
-    "graphql": "^16.6.0"
+    "graphql": "^16.8.1"
   },
   "publishConfig": {
     "directory": "dist",
