@@ -52,12 +52,17 @@ async function main() {
       .catch(error => res.status(500).send(error));
   });
 
+  const { compileQuery } = require('graphql-jit');
+  const compiledQueryMap = new Map();
+
   app.post('/stitching', (req, res) => {
-    normalizedExecutor({
-      schema: stitching,
-      document: stitchingParse(req.body.query),
-      contextValue: {},
-    })
+    let compiledQuery = compiledQueryMap.get(req.body.query);
+    if (!compiledQuery) {
+      compiledQuery = compileQuery(stitching, stitchingParse(req.body.query));
+      compiledQueryMap.set(req.body.query, compiledQuery);
+    }
+    compiledQuery
+      .query({}, {}, {})
       .then(result => {
         res.json(result);
       })
