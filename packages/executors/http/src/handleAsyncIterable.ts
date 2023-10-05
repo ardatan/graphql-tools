@@ -6,7 +6,7 @@ export async function* handleAsyncIterable(asyncIterable: AsyncIterable<Uint8Arr
   const maxChunkSize = 65000;
   let chunkTmp = '';
   outer: for await (const chunk of asyncIterable) {
-    const chunkStr =
+    let chunkStr =
       typeof chunk === 'string' ? chunk : textDecoder.decode(chunk, { stream: true });
     if (chunk.length >= maxChunkSize) {
       chunkTmp += chunkStr;
