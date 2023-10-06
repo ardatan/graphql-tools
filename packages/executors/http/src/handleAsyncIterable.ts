@@ -1,31 +1,26 @@
 /* eslint-disable no-labels */
-import { TextDecoder } from "@whatwg-node/fetch";
+import { TextDecoder } from '@whatwg-node/fetch';
 
-export async function* handleAsyncIterable(
-  asyncIterable: AsyncIterable<Uint8Array | string>,
-) {
+export async function* handleAsyncIterable(asyncIterable: AsyncIterable<Uint8Array | string>) {
   const textDecoder = new TextDecoder();
   const maxChunkSize = 65000;
-  let chunkTmp = "";
+  let chunkTmp = '';
   outer: for await (const chunk of asyncIterable) {
-    let chunkStr =
-      typeof chunk === "string"
-        ? chunk
-        : textDecoder.decode(chunk, { stream: true });
+    let chunkStr = typeof chunk === 'string' ? chunk : textDecoder.decode(chunk, { stream: true });
     if (chunk.length >= maxChunkSize) {
       chunkTmp += chunkStr;
       continue;
     }
-    if (chunkTmp !== "") {
+    if (chunkTmp !== '') {
       chunkTmp += chunkStr;
       chunkStr = chunkTmp;
-      chunkTmp = "";
+      chunkTmp = '';
     }
-    for (const part of chunkStr.split("\n\n")) {
+    for (const part of chunkStr.split('\n\n')) {
       if (part) {
-        const eventStr = part.split("event: ")[1];
-        const dataStr = part.split("data: ")[1];
-        if (eventStr === "complete") {
+        const eventStr = part.split('event: ')[1];
+        const dataStr = part.split('data: ')[1];
+        if (eventStr === 'complete') {
           break outer;
         }
         if (dataStr) {
