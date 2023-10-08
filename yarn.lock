@@ -2713,10 +2713,10 @@
     lodash.sortby "^4.7.0"
     remove-markdown "^0.5.0"
 
-"@theguild/components@5.2.4":
-  version "5.2.4"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-5.2.4.tgz#8c2a9f0e4d0e145ecc3865847d575554f67a0af0"
-  integrity sha512-hGPWJz8Hc8h6+tfRUzOQCutGe5B+iPRzDZ9zHulCwDsyBL227IUxy1IplZMPu3j8xcZnei+VEhflHnrbMVPiPA==
+"@theguild/components@5.2.5":
+  version "5.2.5"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-5.2.5.tgz#6812537b76359916a25c1496754a185506d53930"
+  integrity sha512-9G5slp/0G43am0jNWnCZXaOPBXQ9XZUAGkK7O8ZPJW+mE7pukXWYnnYIwmAslH7ZQk6qb2FPZPFJ5mgnbrl0UA==
   dependencies:
     "@algolia/autocomplete-js" "1.11.0"
     "@algolia/autocomplete-plugin-algolia-insights" "1.11.0"
@@ -2734,9 +2734,9 @@
     nextra-theme-docs "2.12.3"
     react-instantsearch-dom "6.40.4"
     react-paginate "8.2.0"
-    react-player "2.12.0"
+    react-player "2.13.0"
     remark-mdx-disable-explicit-jsx "0.1.0"
-    search-insights "2.8.1"
+    search-insights "2.8.2"
     semver "^7.3.8"
     use-debounce "9.0.4"
 
@@ -10706,10 +10706,10 @@ react-paginate@8.2.0:
   dependencies:
     prop-types "^15"
 
-react-player@2.12.0:
-  version "2.12.0"
-  resolved "https://registry.yarnpkg.com/react-player/-/react-player-2.12.0.tgz#2fc05dbfec234c829292fbca563b544064bd14f0"
-  integrity sha512-rymLRz/2GJJD+Wc01S7S+i9pGMFYnNmQibR2gVE3KmHJCBNN8BhPAlOPTGZtn1uKpJ6p4RPLlzPQ1OLreXd8gw==
+react-player@2.13.0:
+  version "2.13.0"
+  resolved "https://registry.yarnpkg.com/react-player/-/react-player-2.13.0.tgz#b6fb252bf70574608ac711f6c83d7057c8fb0c14"
+  integrity sha512-gkY7ZdbVFztlKFFhCPcnDrFQm+L399b8fhWsKatZ+b2wpKJwfUHBXQFMRxqYQGT0ic1/wQ7D7EZEWy7ZBqk2pw==
   dependencies:
     deepmerge "^4.0.0"
     load-script "^1.0.0"
@@ -11164,10 +11164,10 @@ scuid@^1.1.0:
   resolved "https://registry.yarnpkg.com/scuid/-/scuid-1.1.0.tgz#d3f9f920956e737a60f72d0e4ad280bf324d5dab"
   integrity sha512-MuCAyrGZcTLfQoH2XoBlQ8C6bzwN88XT/0slOGz0pn8+gIP85BOAfYa44ZXQUTOwRwPU0QvgU+V+OSajl/59Xg==
 
-search-insights@2.8.1:
-  version "2.8.1"
-  resolved "https://registry.yarnpkg.com/search-insights/-/search-insights-2.8.1.tgz#ea80cde4c362f79b45137877a0cabda396b19cb7"
-  integrity sha512-gxfqTdzjOxl/i5LtTvSFdolgnm3pUQD5Ae3V8N6tFQ2bsYeo4C3CmrQAsMt212ZV78P22XBUH/nM9IhcAI946Q==
+search-insights@2.8.2:
+  version "2.8.2"
+  resolved "https://registry.yarnpkg.com/search-insights/-/search-insights-2.8.2.tgz#00c8e795ec567b8060bd46d3e6b840bb56665d63"
+  integrity sha512-PxA9M5Q2bpBelVvJ3oDZR8nuY00Z6qwOxL53wNpgzV28M/D6u9WUbImDckjLSILBF8F1hn/mgyuUaOPtjow4Qw==
 
 section-matter@^1.0.0:
   version "1.0.0"
