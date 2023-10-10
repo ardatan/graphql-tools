@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 10.0.7
+
+### Patch Changes
+
+- [`b4c17591`](https://github.com/ardatan/graphql-tools/commit/b4c175911bf616e3df6b4fe64c6a169b0dc4d0c7)
+  Thanks [@ardatan](https://github.com/ardatan)! - Convert GraphQLError like originalError property
+  to a GraphQLError
+
 ## 10.0.6
 
 ### Patch Changes
