@@ -1,4 +1,4 @@
-{
+export default {
   "introduction": "Introduction",
   "generate-schema": "Executable Schemas",
   "resolvers": "Resolvers",
