@@ -102,8 +102,8 @@ async function buildApiDocs(): Promise<void> {
     );
 
     await fsPromises.writeFile(
-      path.join(filePath, '_meta.json'),
-      JSON.stringify(
+      path.join(filePath, '_meta.js'),
+      'export default ' + JSON.stringify(
         Object.fromEntries(
           filesInDirectory
             .map(fileName => {
