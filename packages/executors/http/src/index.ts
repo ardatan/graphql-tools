@@ -105,7 +105,7 @@ export function buildHTTPExecutor(
   const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
     const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
     let controller: AbortController | undefined;
-    let method = request.extensions?.method || options?.method || 'POST';
+    let method = request.extensions?.method || options?.method;
 
     const operationAst = getOperationASTFromRequest(request);
     const operationType = operationAst.operation;
@@ -119,8 +119,10 @@ export function buildHTTPExecutor(
 
     let accept = 'application/graphql-response+json, application/json, multipart/mixed';
     if (operationType === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
-      method = 'GET';
+      method ||= 'GET';
       accept = 'text/event-stream';
+    } else {
+      method ||= 'POST';
     }
 
     const endpoint = request.extensions?.endpoint || options?.endpoint || '/graphql';
