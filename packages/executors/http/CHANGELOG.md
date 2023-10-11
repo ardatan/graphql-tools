@@ -1,5 +1,12 @@
 # @graphql-tools/executor-http
 
+## 1.0.3
+
+### Patch Changes
+
+- [`fb5f9ae3`](https://github.com/ardatan/graphql-tools/commit/fb5f9ae3bac4710b86bdad4a86bf7a4c7b8eb6e6)
+  Thanks [@ardatan](https://github.com/ardatan)! - Respect \`method\` for SSE subscriptions
+
 ## 1.0.2
 
 ### Patch Changes
