@@ -2713,10 +2713,10 @@
     lodash.sortby "^4.7.0"
     remove-markdown "^0.5.0"
 
-"@theguild/components@6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.0.0.tgz#f9cd5bd6e8a8ff52287bb9b7700d1d9a7f852763"
-  integrity sha512-48kvsC1qR9rJytrbGiTJ7IKVKUUc6bMVNkFSYnlJ4c0GqVHKvD6edY5XmLdnOYbn0xUD68LO/lzwtkCO1XWr2A==
+"@theguild/components@^6.0.1":
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.0.1.tgz#c53a1c6793af14204eef6c00caa0ee6fbf8d2d06"
+  integrity sha512-0IEilGNtkF77K6hWU5SB73mbpIwzZAgUz2iCg8O+7HXw+VzmYB+eCWYjEAOdVt9syyt69Zq7weEQO9IG6rS2fw==
   dependencies:
     "@algolia/autocomplete-js" "1.11.1"
     "@algolia/autocomplete-plugin-algolia-insights" "1.11.1"
@@ -2729,8 +2729,8 @@
     clsx "2.0.0"
     fuzzy "^0.1.3"
     next-videos "1.5.0"
-    nextra "3.0.0-alpha.4"
-    nextra-theme-docs "3.0.0-alpha.4"
+    nextra "3.0.0-alpha.5"
+    nextra-theme-docs "3.0.0-alpha.5"
     react-paginate "8.2.0"
     react-player "2.13.0"
     remark-mdx-disable-explicit-jsx "0.1.0"
@@ -9772,7 +9772,7 @@ netmask@^2.0.2:
   resolved "https://registry.yarnpkg.com/netmask/-/netmask-2.0.2.tgz#8b01a07644065d536383835823bc52004ebac5e7"
   integrity sha512-dBpDMdxv9Irdq66304OLfEmQ9tbNRFnFTuZiLo+bD+r332bBmMJ8GBLXklIXXgxd3+v9+KUnZaUR5PJMa75Gsg==
 
-next-sitemap@4.2.3:
+next-sitemap@^4.2.3:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/next-sitemap/-/next-sitemap-4.2.3.tgz#5db3f650351a51e84b9fd6b58c5af2f9257b5058"
   integrity sha512-vjdCxeDuWDzldhCnyFCQipw5bfpl4HmZA7uoo3GAaYGjGgfL4Cxb1CiztPuWGmS+auYs7/8OekRS8C2cjdAsjQ==
@@ -9794,7 +9794,7 @@ next-videos@1.5.0:
   dependencies:
     file-loader "^4.2.0"
 
-next@13.5.4:
+next@^13.5.4:
   version "13.5.4"
   resolved "https://registry.yarnpkg.com/next/-/next-13.5.4.tgz#7e6a93c9c2b9a2c78bf6906a6c5cc73ae02d5b4d"
   integrity sha512-+93un5S779gho8y9ASQhb/bTkQF17FNQOtXLKAj3lsNgltEcF0C5PMLLncDmH+8X1EnJH1kbqAERa29nRXqhjA==
@@ -9817,10 +9817,10 @@ next@13.5.4:
     "@next/swc-win32-ia32-msvc" "13.5.4"
     "@next/swc-win32-x64-msvc" "13.5.4"
 
-nextra-theme-docs@3.0.0-alpha.4:
-  version "3.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/nextra-theme-docs/-/nextra-theme-docs-3.0.0-alpha.4.tgz#f120ca7604280ff336df189f7f4cc9f78d7dfec0"
-  integrity sha512-W9vQ6uXB3e7vpHcUHR+wU0xXzCMUAdfmffezl/PwKaaQeyBPbBgg3apY/G0WFC68F6KP/jjkYlbTeojXl7zblw==
+nextra-theme-docs@3.0.0-alpha.5:
+  version "3.0.0-alpha.5"
+  resolved "https://registry.yarnpkg.com/nextra-theme-docs/-/nextra-theme-docs-3.0.0-alpha.5.tgz#a4a01aea28922d51333074b30f9592546da7bb76"
+  integrity sha512-wEw3Rmh0urh1qEaaG7cTuSgYyXN6qBuVF61TaGe9jl+b62hIGpxR2r2l6vJCH8LO1O8FI4R9reBdqgqL/Dcu0g==
   dependencies:
     "@headlessui/react" "^1.7.17"
     "@popperjs/core" "^2.11.8"
@@ -9833,10 +9833,10 @@ nextra-theme-docs@3.0.0-alpha.4:
     scroll-into-view-if-needed "^3.1.0"
     zod "^3.22.3"
 
-nextra@3.0.0-alpha.4:
-  version "3.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/nextra/-/nextra-3.0.0-alpha.4.tgz#2ea78adc1bec49096e469a58fdaff1a115b6d2a0"
-  integrity sha512-ymjh0/R2NKidFaiplJ+Ic9sspUU8XDXZEwW9sVO1xBlpRsKfXfr82xlhT+oR0FOrGoeZ/Sd9j7ufQ9hNcIHdXg==
+nextra@3.0.0-alpha.5:
+  version "3.0.0-alpha.5"
+  resolved "https://registry.yarnpkg.com/nextra/-/nextra-3.0.0-alpha.5.tgz#573f25e05e59cbf0e6693dcb5aa241778a1c04be"
+  integrity sha512-ttga+SX5Ulwf2hcMvrXbTqseaz6OnodOknyaNOpuobN5bbCypKq3mkB1URFKs/n3XuuioQLGBYIVLjKh2x3TdQ==
   dependencies:
     "@headlessui/react" "^1.7.17"
     "@mdx-js/mdx" "^2.3.0"
@@ -10889,7 +10889,7 @@ raw-body@2.5.1:
     iconv-lite "0.4.24"
     unpipe "1.0.0"
 
-react-dom@18.2.0:
+react-dom@^18.2.0:
   version "18.2.0"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-18.2.0.tgz#22aaf38708db2674ed9ada224ca4aa708d821e3d"
   integrity sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==
@@ -10930,7 +10930,7 @@ react-player@2.13.0:
     prop-types "^15.7.2"
     react-fast-compare "^3.0.1"
 
-react@18.2.0:
+react@^18.2.0:
   version "18.2.0"
   resolved "https://registry.yarnpkg.com/react/-/react-18.2.0.tgz#555bd98592883255fa00de14f1151a917b5d77d5"
   integrity sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==
