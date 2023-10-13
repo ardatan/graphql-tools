@@ -1,3 +1,4 @@
+// @ts-ignore
 import fs, { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
 import chalk from 'chalk';
