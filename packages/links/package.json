@@ -59,8 +59,8 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@apollo/client": "3.8.3",
-    "@types/apollo-upload-client": "17.0.2",
+    "@apollo/client": "3.8.5",
+    "@types/apollo-upload-client": "17.0.3",
     "graphql-upload": "16.0.2"
   },
   "publishConfig": {

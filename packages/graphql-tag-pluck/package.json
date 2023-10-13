@@ -59,13 +59,13 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@babel/parser": "7.22.16",
-    "@babel/traverse": "7.22.20",
-    "@babel/types": "7.22.19",
+    "@babel/parser": "7.23.0",
+    "@babel/traverse": "7.23.2",
+    "@babel/types": "7.23.0",
     "@types/babel__traverse": "7.20.2",
     "@vue/compiler-sfc": "3.3.4",
-    "svelte": "4.2.0",
-    "svelte2tsx": "0.6.21"
+    "svelte": "4.2.1",
+    "svelte2tsx": "0.6.23"
   },
   "publishConfig": {
     "directory": "dist",
