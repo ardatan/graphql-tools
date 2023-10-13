@@ -13,5 +13,5 @@ it('converts extensions in the subgraph SDL', () => {
       }
     `,
   });
-  expect(printSchemaWithDirectives(subgraphSchema)).toMatchSnapshot();
+  expect(printSchemaWithDirectives(subgraphSchema).trim()).toMatchSnapshot();
 });
