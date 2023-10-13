@@ -8,7 +8,6 @@ import {
   Kind,
   NamedTypeNode,
   ObjectTypeDefinitionNode,
-  OperationTypeNode,
   parse,
   ScalarTypeDefinitionNode,
   TypeDefinitionNode,
@@ -40,58 +39,55 @@ export function getSubschemasFromSupergraphSdl({
 }: GetSubschemasFromSupergraphSdlOpts) {
   const ast =
     typeof supergraphSdl === 'string' ? parse(supergraphSdl, { noLocation: true }) : supergraphSdl;
-  const subgraphRootFieldDefinitionNodes = new Map<
-    string,
-    Map<OperationTypeNode, FieldDefinitionNode[]>
-  >();
   const subgraphEndpointMap = new Map<string, string>();
   const subgraphTypesMap = new Map<string, TypeDefinitionNode[]>();
   const typeNameKeysBySubgraphMap = new Map<string, Map<string, string[]>>();
   const typeNameFieldsKeyBySubgraphMap = new Map<string, Map<string, Map<string, string>>>();
   const typeNameCanonicalMap = new Map<string, string>();
-  const rootTypeNames = new Map<OperationTypeNode, string>();
   const subgraphTypeNameExtraFieldsMap = new Map<string, Map<string, FieldDefinitionNode[]>>();
-  function TypeWithFieldsVisitor(typeNode: ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode) {
-    if ([...rootTypeNames.values()].includes(typeNode.name.value)) {
-      const operationTypeName = [...rootTypeNames.entries()].find(
-        ([, rootTypeName]) => rootTypeName === typeNode.name.value,
-      )![0];
-      typeNode.fields?.forEach(fieldNode => {
-        fieldNode.directives?.forEach(directiveNode => {
-          if (directiveNode.name.value === 'join__field') {
-            directiveNode.arguments?.forEach(argumentNode => {
-              if (argumentNode.name.value === 'graph' && argumentNode.value?.kind === Kind.ENUM) {
-                const graphName = argumentNode.value.value;
-                let subgraphRootFieldDefinitionNodeMap =
-                  subgraphRootFieldDefinitionNodes.get(graphName);
-                if (!subgraphRootFieldDefinitionNodeMap) {
-                  subgraphRootFieldDefinitionNodeMap = new Map();
-                  subgraphRootFieldDefinitionNodes.set(
-                    graphName,
-                    subgraphRootFieldDefinitionNodeMap,
-                  );
-                }
-                let fieldDefinitionNodesOfSubgraph =
-                  subgraphRootFieldDefinitionNodeMap.get(operationTypeName);
-                if (!fieldDefinitionNodesOfSubgraph) {
-                  fieldDefinitionNodesOfSubgraph = [];
-                  subgraphRootFieldDefinitionNodeMap.set(
-                    operationTypeName,
-                    fieldDefinitionNodesOfSubgraph,
-                  );
-                }
-                fieldDefinitionNodesOfSubgraph.push({
-                  ...fieldNode,
-                  directives: fieldNode.directives?.filter(
-                    directiveNode => directiveNode.name.value !== 'join__field',
-                  ),
-                });
-              }
-            });
-          }
+  // TODO: Temporary fix to add missing join__type directives to Query
+  const subgraphNames: string[] = [];
+  visit(ast, {
+    EnumTypeDefinition(node) {
+      if (node.name.value === 'join__Graph') {
+        node.values?.forEach(valueNode => {
+          subgraphNames.push(valueNode.name.value);
         });
-      });
+      }
+    },
+  });
+  // END TODO
+  function TypeWithFieldsVisitor(typeNode: ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode) {
+    // TODO: Temporary fix to add missing join__type directives to Query
+    if (
+      typeNode.name.value === 'Query' &&
+      !typeNode.directives?.some(directiveNode => directiveNode.name.value === 'join__type')
+    ) {
+      (typeNode as any).directives = [
+        ...(typeNode.directives || []),
+        ...subgraphNames.map(subgraphName => ({
+          kind: Kind.DIRECTIVE,
+          name: {
+            kind: Kind.NAME,
+            value: 'join__type',
+          },
+          arguments: [
+            {
+              kind: Kind.ARGUMENT,
+              name: {
+                kind: Kind.NAME,
+                value: 'graph',
+              },
+              value: {
+                kind: Kind.ENUM,
+                value: subgraphName,
+              },
+            },
+          ],
+        })),
+      ];
     }
+    // END TODO
     const fieldDefinitionNodesByGraphName = new Map<string, FieldDefinitionNode[]>();
     typeNode.directives?.forEach(directiveNode => {
       if (typeNode.kind === Kind.OBJECT_TYPE_DEFINITION) {
@@ -249,6 +245,9 @@ export function getSubschemasFromSupergraphSdl({
           interfaces.push(interfaceNode);
         }
       });
+      if (typeNode.name.value === 'Query') {
+        fieldDefinitionNodesOfSubgraph.push(entitiesFieldDefinitionNode);
+      }
       const objectTypedDefNodeForSubgraph: ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode =
         {
           ...typeNode,
@@ -270,11 +269,6 @@ export function getSubschemasFromSupergraphSdl({
     });
   }
   visit(ast, {
-    SchemaDefinition(node) {
-      node.operationTypes?.forEach(operationTypeNode => {
-        rootTypeNames.set(operationTypeNode.operation, operationTypeNode.type.name.value);
-      });
-    },
     ScalarTypeDefinition(node) {
       node.directives?.forEach(directiveNode => {
         if (directiveNode.name.value === 'join__type') {
@@ -482,66 +476,7 @@ export function getSubschemasFromSupergraphSdl({
       kind: Kind.UNION_TYPE_DEFINITION,
       types: unionTypeNodes,
     };
-    let subgraphRootFieldDefinitionNodeMap = subgraphRootFieldDefinitionNodes.get(subgraphName);
-    if (!subgraphRootFieldDefinitionNodeMap) {
-      subgraphRootFieldDefinitionNodeMap = new Map();
-      subgraphRootFieldDefinitionNodes.set(subgraphName, subgraphRootFieldDefinitionNodeMap);
-    }
-    let queryFields = subgraphRootFieldDefinitionNodeMap.get('query' as OperationTypeNode);
-    if (!queryFields) {
-      queryFields = [];
-      subgraphRootFieldDefinitionNodeMap.set('query' as OperationTypeNode, queryFields);
-    }
-    queryFields.push({
-      kind: Kind.FIELD_DEFINITION,
-      name: {
-        kind: Kind.NAME,
-        value: '_entities',
-      },
-      type: {
-        kind: Kind.NAMED_TYPE,
-        name: {
-          kind: Kind.NAME,
-          value: '_Entity',
-        },
-      },
-      arguments: [
-        {
-          kind: Kind.INPUT_VALUE_DEFINITION,
-          name: {
-            kind: Kind.NAME,
-            value: 'representations',
-          },
-          type: {
-            kind: Kind.NON_NULL_TYPE,
-            type: {
-              kind: Kind.LIST_TYPE,
-              type: {
-                kind: Kind.NON_NULL_TYPE,
-                type: {
-                  kind: Kind.NAMED_TYPE,
-                  name: {
-                    kind: Kind.NAME,
-                    value: '_Any',
-                  },
-                },
-              },
-            },
-          },
-        },
-      ],
-    });
-    const rootTypes: TypeDefinitionNode[] = [];
-    for (const [operationType, fieldDefinitionNodes] of subgraphRootFieldDefinitionNodeMap) {
-      rootTypes.push({
-        kind: Kind.OBJECT_TYPE_DEFINITION,
-        name: {
-          kind: Kind.NAME,
-          value: rootTypeNames.get(operationType)!,
-        },
-        fields: fieldDefinitionNodes,
-      });
-    }
+
     const subgraphTypes = subgraphTypesMap.get(subgraphName) || [];
     const typeNameExtraFieldsMap = subgraphTypeNameExtraFieldsMap.get(subgraphName);
     if (typeNameExtraFieldsMap) {
@@ -557,12 +492,7 @@ export function getSubschemasFromSupergraphSdl({
     const schema = buildASTSchema(
       {
         kind: Kind.DOCUMENT,
-        definitions: [
-          ...subgraphTypes,
-          entitiesUnionTypeDefinitionNode,
-          anyTypeDefinitionNode,
-          ...rootTypes,
-        ],
+        definitions: [...subgraphTypes, entitiesUnionTypeDefinitionNode, anyTypeDefinitionNode],
       },
       {
         assumeValidSDL: true,
@@ -595,4 +525,44 @@ const anyTypeDefinitionNode: ScalarTypeDefinitionNode = {
     value: '_Any',
   },
   kind: Kind.SCALAR_TYPE_DEFINITION,
+};
+
+const entitiesFieldDefinitionNode: FieldDefinitionNode = {
+  kind: Kind.FIELD_DEFINITION,
+  name: {
+    kind: Kind.NAME,
+    value: '_entities',
+  },
+  type: {
+    kind: Kind.NAMED_TYPE,
+    name: {
+      kind: Kind.NAME,
+      value: '_Entity',
+    },
+  },
+  arguments: [
+    {
+      kind: Kind.INPUT_VALUE_DEFINITION,
+      name: {
+        kind: Kind.NAME,
+        value: 'representations',
+      },
+      type: {
+        kind: Kind.NON_NULL_TYPE,
+        type: {
+          kind: Kind.LIST_TYPE,
+          type: {
+            kind: Kind.NON_NULL_TYPE,
+            type: {
+              kind: Kind.NAMED_TYPE,
+              name: {
+                kind: Kind.NAME,
+                value: '_Any',
+              },
+            },
+          },
+        },
+      },
+    },
+  ],
 };

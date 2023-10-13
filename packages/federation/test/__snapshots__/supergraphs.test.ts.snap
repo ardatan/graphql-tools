@@ -148,3 +148,19 @@ type Review {
   body: String!
 }"
 `;
+
+exports[`Supergraphs c.graphql: c.graphql 1`] = `
+"schema {
+  query: Query
+}
+
+type Query {
+  me: User
+  throw: String
+}
+
+type User {
+  id: ID!
+  username: String
+}"
+`;

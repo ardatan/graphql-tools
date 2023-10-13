@@ -1,4 +1,10 @@
-import { GraphQLResolveInfo, visit } from 'graphql';
+import {
+  GraphQLResolveInfo,
+  Kind,
+  ObjectTypeDefinitionNode,
+  ObjectTypeExtensionNode,
+  visit,
+} from 'graphql';
 import { ValueOrPromise } from 'value-or-promise';
 import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
 import { IExecutableSchemaDefinition, makeExecutableSchema } from '@graphql-tools/schema';
@@ -44,14 +50,43 @@ export const SubgraphBaseSDL = /* GraphQL */ `
   directive @extends on OBJECT | INTERFACE
 `;
 
-export function buildSubgraphSchema<TContext = any>(opts: IExecutableSchemaDefinition<TContext>) {
-  const typeDefs = mergeTypeDefs([SubgraphBaseSDL, opts.typeDefs]);
-  const entityTypeNames: string[] = [];
-  visit(typeDefs, {
-    ObjectTypeDefinition: node => {
-      if (node.directives?.some(directive => directive.name.value === 'key')) {
-        entityTypeNames.push(node.name.value);
+export function buildSubgraphSchema<TContext = any>(
+  optsOrModules:
+    | IExecutableSchemaDefinition<TContext>
+    | Pick<IExecutableSchemaDefinition<TContext>, 'typeDefs' | 'resolvers'>[],
+) {
+  const opts = Array.isArray(optsOrModules)
+    ? {
+        typeDefs: optsOrModules.map(opt => opt.typeDefs),
+        resolvers: optsOrModules.map(opt => opt.resolvers).flat(),
       }
+    : optsOrModules;
+  const entityTypeNames: string[] = [];
+  function handleEntity(node: ObjectTypeExtensionNode | ObjectTypeDefinitionNode) {
+    if (node.directives?.some(directive => directive.name.value === 'key')) {
+      entityTypeNames.push(node.name.value);
+    }
+  }
+  const typeDefs = visit(mergeTypeDefs([SubgraphBaseSDL, opts.typeDefs]), {
+    ObjectTypeDefinition: node => {
+      handleEntity(node);
+    },
+    ObjectTypeExtension: node => {
+      handleEntity(node);
+      return {
+        ...node,
+        kind: Kind.OBJECT_TYPE_DEFINITION,
+        directives: [
+          ...(node.directives || []),
+          {
+            kind: 'Directive',
+            name: {
+              kind: 'Name',
+              value: 'extends',
+            },
+          },
+        ],
+      };
     },
   });
   const entityTypeDefinition = `union _Entity = ${entityTypeNames.join(' | ')}`;
