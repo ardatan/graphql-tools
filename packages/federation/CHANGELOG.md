@@ -1,5 +1,16 @@
 # @graphql-tools/federation
 
+## 1.1.11
+
+### Patch Changes
+
+- [`250715a1`](https://github.com/ardatan/graphql-tools/commit/250715a1e18f0c645240ea78bb80f7557ac81340)
+  Thanks [@ardatan](https://github.com/ardatan)! - Support `extend type` in subgraph SDL
+
+- [`250715a1`](https://github.com/ardatan/graphql-tools/commit/250715a1e18f0c645240ea78bb80f7557ac81340)
+  Thanks [@ardatan](https://github.com/ardatan)! - Support supergraph with no join\_\_type
+  directives on Query type
+
 ## 1.1.10
 
 ### Patch Changes
