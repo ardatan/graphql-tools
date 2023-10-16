@@ -30,7 +30,7 @@ export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
   options: LoadTypedefsOptions<Partial<AdditionalConfig>>,
 ): Promise<Source[]> {
-  if (env['DEBUG'] != null) {
+  if (env['DEBUG']) {
     console.time('@graphql-tools/load: loadTypedefs');
   }
   const { ignore, pointerOptionMap } = normalizePointers(pointerOrPointers);
@@ -67,7 +67,7 @@ export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
 
   const result = prepareResult({ options, pointerOptionMap, validSources });
 
-  if (env['DEBUG'] != null) {
+  if (env['DEBUG']) {
     console.timeEnd('@graphql-tools/load: loadTypedefs');
   }
 
@@ -85,7 +85,7 @@ export function loadTypedefsSync<AdditionalConfig = Record<string, unknown>>(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
   options: LoadTypedefsOptions<Partial<AdditionalConfig>>,
 ): Source[] {
-  if (env['DEBUG'] != null) {
+  if (env['DEBUG']) {
     console.time('@graphql-tools/load: loadTypedefsSync');
   }
   const { ignore, pointerOptionMap } = normalizePointers(pointerOrPointers);
@@ -114,7 +114,7 @@ export function loadTypedefsSync<AdditionalConfig = Record<string, unknown>>(
 
   const result = prepareResult({ options, pointerOptionMap, validSources });
 
-  if (env['DEBUG'] != null) {
+  if (env['DEBUG']) {
     console.timeEnd('@graphql-tools/load: loadTypedefsSync');
   }
 
@@ -132,7 +132,7 @@ function prepareResult({
   pointerOptionMap: any;
   validSources: Source[];
 }) {
-  if (env['DEBUG'] != null) {
+  if (env['DEBUG']) {
     console.time('@graphql-tools/load: prepareResult');
   }
   const pointerList = Object.keys(pointerOptionMap);
@@ -150,7 +150,7 @@ function prepareResult({
   const sortedResult = options.sort
     ? validSources.sort((left, right) => compareStrings(left.location, right.location))
     : validSources;
-  if (env['DEBUG'] != null) {
+  if (env['DEBUG']) {
     console.timeEnd('@graphql-tools/load: prepareResult');
   }
   return sortedResult;

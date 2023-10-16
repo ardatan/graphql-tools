@@ -5,7 +5,7 @@ import { UnnormalizedTypeDefPointer } from './../load-typedefs.js';
 export function normalizePointers(
   unnormalizedPointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
 ) {
-  if (env['DEBUG'] != null) {
+  if (env['DEBUG']) {
     console.time(`@graphql-tools/load: normalizePointers`);
   }
   const ignore: string[] = [];
@@ -20,7 +20,7 @@ export function normalizePointers(
   };
 
   for (const rawPointer of asArray(unnormalizedPointerOrPointers)) {
-    if (env['DEBUG'] != null) {
+    if (env['DEBUG']) {
       console.time(`@graphql-tools/load: normalizePointers ${rawPointer}`);
     }
     if (typeof rawPointer === 'string') {
@@ -32,11 +32,11 @@ export function normalizePointers(
     } else {
       throw new Error(`Invalid pointer '${rawPointer}'.`);
     }
-    if (env['DEBUG'] != null) {
+    if (env['DEBUG']) {
       console.timeEnd(`@graphql-tools/load: normalizePointers ${rawPointer}`);
     }
   }
-  if (env['DEBUG'] != null) {
+  if (env['DEBUG']) {
     console.timeEnd(`@graphql-tools/load: normalizePointers`);
   }
   return { ignore, pointerOptionMap };

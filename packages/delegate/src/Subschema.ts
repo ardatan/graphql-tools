@@ -48,7 +48,7 @@ export class Subschema<K = any, V = any, C = K, TContext = Record<string, any>>
 
   get transformedSchema(): GraphQLSchema {
     if (!this._transformedSchema) {
-      if (globalThis.process?.env?.['DEBUG'] != null) {
+      if (globalThis.process?.env?.['DEBUG']) {
         console.warn('Transformed schema is not set yet. Returning a dummy one.');
       }
       this._transformedSchema = applySchemaTransforms(this.schema, this);
