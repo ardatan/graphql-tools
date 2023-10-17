@@ -38,6 +38,8 @@ import {
   wrapSchema,
   WrapType,
 } from '@graphql-tools/wrap';
+import { Repeater } from '@repeaterjs/repeater';
+import { assertAsyncIterable } from '../../loaders/url/tests/test-utils.js';
 import {
   bookingSchema,
   propertySchema,
@@ -1049,6 +1051,62 @@ describe('WrapType', () => {
     };
 
     expect(result).toEqual(expectedResult);
+  });
+
+  test('Subscription transform should work', async () => {
+    const transformedSchema = wrapSchema({
+      schema: makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          type Query {
+            _: Boolean
+          }
+          type Subscription {
+            countdown(start: Int!): Int!
+          }
+        `,
+        resolvers: {
+          Subscription: {
+            countdown: {
+              subscribe: (_root, args) =>
+                new Repeater((push, stop) => {
+                  let counter = args.start;
+                  const interval = setInterval(() => {
+                    push(counter--);
+                    if (counter < 0) {
+                      stop();
+                    }
+                  }, 1000);
+                  return stop.then(() => clearInterval(interval));
+                }),
+              resolve: cnt => cnt,
+            },
+          },
+        },
+      }),
+      transforms: [new WrapType('Subscription', 'Namespace_Subscription', 'namespace')],
+    });
+
+    const result = await subscribe({
+      schema: transformedSchema,
+      document: parse(/* GraphQL */ `
+        subscription {
+          namespace {
+            countdown(start: 3)
+          }
+        }
+      `),
+    });
+    assertAsyncIterable(result);
+    const values = [];
+    for await (const value of result) {
+      values.push(value);
+    }
+    expect(values).toEqual([
+      { data: { namespace: { countdown: 3 } } },
+      { data: { namespace: { countdown: 2 } } },
+      { data: { namespace: { countdown: 1 } } },
+      { data: { namespace: { countdown: 0 } } },
+    ]);
   });
 
   test('namespacing different subschemas with overlapping root field names', async () => {

@@ -89,6 +89,14 @@ function finalizeGatewayDocument(
         operationOrFragmentVariables.indexOf(variable.variable.name.value) !== -1,
     );
 
+    // Prevent unnecessary __typename in Subscription
+    if (operation.operation === 'subscription') {
+      selectionSet.selections = selectionSet.selections.filter(
+        (selection: SelectionNode) =>
+          selection.kind !== Kind.FIELD || selection.name.value !== '__typename',
+      );
+    }
+
     newOperations.push({
       kind: Kind.OPERATION_DEFINITION,
       operation: operation.operation,

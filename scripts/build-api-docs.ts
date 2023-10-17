@@ -1,3 +1,4 @@
+// @ts-ignore
 import fs, { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
 import chalk from 'chalk';
@@ -102,26 +103,27 @@ async function buildApiDocs(): Promise<void> {
     );
 
     await fsPromises.writeFile(
-      path.join(filePath, '_meta.json'),
-      JSON.stringify(
-        Object.fromEntries(
-          filesInDirectory
-            .map(fileName => {
-              fileName = fileName.replace(/\.md$/, '');
-              const key = fileName.toLowerCase();
-              const value = fileName.replace(/^.*\./, '');
+      path.join(filePath, '_meta.ts'),
+      'export default ' +
+        JSON.stringify(
+          Object.fromEntries(
+            filesInDirectory
+              .map(fileName => {
+                fileName = fileName.replace(/\.md$/, '');
+                const key = fileName.toLowerCase();
+                const value = fileName.replace(/^.*\./, '');
 
-              if (filePath.endsWith('/modules')) {
-                return [key, `${value.replace('_src', '').replace(/_/g, '-')}`];
-              }
+                if (filePath.endsWith('/modules')) {
+                  return [key, `${value.replace('_src', '').replace(/_/g, '-')}`];
+                }
 
-              return [key, value];
-            })
-            .sort((a, b) => a[1].localeCompare(b[1])),
+                return [key, value];
+              })
+              .sort((a, b) => a[1].localeCompare(b[1])),
+          ),
+          null,
+          2,
         ),
-        null,
-        2,
-      ),
     );
   }
 
@@ -134,17 +136,18 @@ async function buildApiDocs(): Promise<void> {
     }),
   );
   await fsPromises.writeFile(
-    path.join(OUTPUT_PATH, '_meta.json'),
-    JSON.stringify(
-      {
-        modules: 'Packages',
-        classes: 'Classes',
-        enums: 'Enums',
-        interfaces: 'Interfaces',
-      },
-      null,
-      2,
-    ),
+    path.join(OUTPUT_PATH, '_meta.ts'),
+    'export default ' +
+      JSON.stringify(
+        {
+          modules: 'Packages',
+          classes: 'Classes',
+          enums: 'Enums',
+          interfaces: 'Interfaces',
+        },
+        null,
+        2,
+      ),
   );
 
   // Remove the generated "README.md" file

@@ -57,8 +57,8 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@types/lodash": "4.14.195",
-    "@types/micromatch": "4.0.2"
+    "@types/lodash": "4.14.199",
+    "@types/micromatch": "4.0.3"
   },
   "publishConfig": {
     "directory": "dist",

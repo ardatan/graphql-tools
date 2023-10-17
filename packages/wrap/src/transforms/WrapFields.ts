@@ -131,35 +131,54 @@ export default class WrapFields<TContext extends Record<string, any>>
       wrappingFieldName = this.wrappingFieldNames[wrapIndex];
     }
 
-    const wrappingRootField =
-      this.outerTypeName === originalWrappingSchema.getQueryType()?.name ||
-      this.outerTypeName === originalWrappingSchema.getMutationType()?.name;
+    const targetSchema = subschemaConfig.schema;
+    let wrappingOperation: 'query' | 'mutation' | 'subscription' | undefined;
+    switch (this.outerTypeName) {
+      case targetSchema.getQueryType()?.name:
+        wrappingOperation = 'query';
+        break;
+      case targetSchema.getMutationType()?.name:
+        wrappingOperation = 'mutation';
+        break;
+      case targetSchema.getSubscriptionType()?.name:
+        wrappingOperation = 'subscription';
+        break;
+    }
 
     let resolve: GraphQLFieldResolver<any, any> | undefined;
-    if (wrappingRootField) {
-      const targetSchema = subschemaConfig.schema;
-      const operation =
-        this.outerTypeName === targetSchema.getQueryType()?.name ? 'query' : 'mutation';
+    if (wrappingOperation) {
       const createProxyingResolver =
         subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
       resolve = createProxyingResolver({
         subschemaConfig,
-        operation: operation as OperationTypeNode,
+        operation: wrappingOperation as OperationTypeNode,
         fieldName: wrappingFieldName,
       });
     } else {
       resolve = defaultMergedResolver;
     }
 
+    const wrappingType = new GraphQLNonNull(
+      newSchema.getType(wrappingTypeName) as GraphQLObjectType,
+    );
+    const newFieldConfig: GraphQLFieldConfig<any, any> =
+      wrappingOperation === 'subscription'
+        ? {
+            type: wrappingType,
+            subscribe: resolve,
+            resolve: (payload: any) => payload,
+          }
+        : {
+            type: wrappingType,
+            resolve,
+          };
+
     [newSchema] = modifyObjectFields(
       newSchema,
       this.outerTypeName,
       fieldName => !!newTargetFieldConfigMap[fieldName],
       {
-        [wrappingFieldName]: {
-          type: new GraphQLNonNull(newSchema.getType(wrappingTypeName) as GraphQLObjectType),
-          resolve,
-        },
+        [wrappingFieldName]: newFieldConfig,
       },
     );
 

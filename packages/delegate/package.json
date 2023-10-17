@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/delegate",
-  "version": "10.0.0",
+  "version": "10.0.3",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -50,13 +50,12 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/batch-execute": "^9.0.0",
+    "@graphql-tools/batch-execute": "^9.0.1",
     "@graphql-tools/executor": "^1.0.0",
     "@graphql-tools/schema": "^10.0.0",
-    "@graphql-tools/utils": "^10.0.0",
+    "@graphql-tools/utils": "^10.0.5",
     "dataloader": "^2.2.2",
-    "tslib": "^2.5.0",
-    "value-or-promise": "^1.0.12"
+    "tslib": "^2.5.0"
   },
   "publishConfig": {
     "directory": "dist",

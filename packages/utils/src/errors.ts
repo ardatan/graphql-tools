@@ -14,7 +14,38 @@ interface GraphQLErrorOptions {
   extensions?: any;
 }
 
+const possibleGraphQLErrorProperties = [
+  'message',
+  'locations',
+  'path',
+  'nodes',
+  'source',
+  'positions',
+  'originalError',
+  'name',
+  'stack',
+  'extensions',
+];
+
+function isGraphQLErrorLike(error: any) {
+  return (
+    error != null &&
+    typeof error === 'object' &&
+    Object.keys(error).every(key => possibleGraphQLErrorProperties.includes(key))
+  );
+}
+
 export function createGraphQLError(message: string, options?: GraphQLErrorOptions): GraphQLError {
+  if (
+    options?.originalError &&
+    !(options.originalError instanceof Error) &&
+    isGraphQLErrorLike(options.originalError)
+  ) {
+    options.originalError = createGraphQLError(
+      (options.originalError as any).message,
+      options.originalError,
+    );
+  }
   if (versionInfo.major >= 17) {
     return new (GraphQLError as any)(message, options);
   }

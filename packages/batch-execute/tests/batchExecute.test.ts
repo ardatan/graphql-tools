@@ -22,6 +22,7 @@ describe('batch execution', () => {
         field2: String
         field3(input: String): String
         boom(message: String): String
+        boomWithPath(message: String, path: [String]): String
         extension: String
         widget: Widget
       }
@@ -35,6 +36,7 @@ describe('batch execution', () => {
         field2: () => '2',
         field3: (_root, { input }) => String(input),
         boom: (_root, { message }) => new Error(message),
+        boomWithPath: (_root, { message, path }) => createGraphQLError(message, { path }),
         extension: () => createGraphQLError('boom', { extensions }),
         widget: () => ({ name: 'wingnut' }),
       },
@@ -220,5 +222,38 @@ describe('batch execution', () => {
     expect(first?.errors?.length).toEqual(1);
     expect(first?.errors?.[0].message).toMatch(/boom/);
     expect(first?.errors?.[0].extensions).toEqual(extensions);
+  });
+
+  it('finds query field name in graphql error path', async () => {
+    const [first, second] = (await Promise.all([
+      batchExec({
+        document: parse(
+          '{ boomWithPath(message: "unexpected error", path: ["some-prefix", "_0_boomWithPath", "foo"]) }',
+        ),
+      }),
+      batchExec({
+        document: parse(
+          '{ boomWithPath(message: "another unexpected error", path: ["some", "other", "prefix", "_1_boomWithPath", "bar"]) }',
+        ),
+      }),
+    ])) as ExecutionResult[];
+
+    expect(first?.errors?.[0].message).toEqual('unexpected error');
+    expect(first?.errors?.[0].path).toEqual(['boomWithPath', 'foo']);
+    expect(second?.errors?.[0].message).toEqual('another unexpected error');
+    expect(second?.errors?.[0].path).toEqual(['boomWithPath', 'bar']);
+    expect(executorCalls).toEqual(1);
+  });
+
+  it('handles unprefixed query name in graphql error path', async () => {
+    const [first] = (await Promise.all([
+      batchExec({
+        document: parse('{ boomWithPath(message: "unexpected error") }'),
+      }),
+    ])) as ExecutionResult[];
+
+    expect(first?.errors?.[0].message).toEqual('unexpected error');
+    expect(first?.errors?.[0].path).toEqual(['boomWithPath']);
+    expect(executorCalls).toEqual(1);
   });
 });

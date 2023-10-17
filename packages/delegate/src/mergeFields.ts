@@ -8,8 +8,13 @@ import {
   responsePathAsArray,
   SelectionSetNode,
 } from 'graphql';
-import { ValueOrPromise } from 'value-or-promise';
-import { collectFields, memoize1, relocatedError } from '@graphql-tools/utils';
+import {
+  collectFields,
+  isPromise,
+  MaybePromise,
+  memoize1,
+  relocatedError,
+} from '@graphql-tools/utils';
 import { Subschema } from './Subschema.js';
 import {
   FIELD_SUBSCHEMA_MAP_SYMBOL,
@@ -50,10 +55,6 @@ export function getUnpathedErrors(object: ExternalObject): Array<GraphQLError> {
 const EMPTY_ARRAY: any[] = [];
 const EMPTY_OBJECT = Object.create(null);
 
-function asyncForEach<T>(array: T[], fn: (item: T) => ValueOrPromise<void>) {
-  return array.reduce((prev, curr) => prev.then(() => fn(curr)), new ValueOrPromise(() => {}));
-}
-
 export const getActualFieldNodes = memoize1(function (fieldNode: FieldNode) {
   return [fieldNode];
 });
@@ -64,7 +65,7 @@ export function mergeFields<TContext>(
   sourceSubschema: Subschema<any, any, any, TContext>,
   context: any,
   info: GraphQLResolveInfo,
-): ValueOrPromise<any> {
+): MaybePromise<any> {
   const delegationMaps = mergedTypeInfo.delegationPlanBuilder(
     info.schema,
     sourceSubschema,
@@ -81,9 +82,71 @@ export function mergeFields<TContext>(
       : EMPTY_ARRAY,
   );
 
-  return asyncForEach(delegationMaps, delegationMap =>
-    executeDelegationStage(mergedTypeInfo, delegationMap, object, context, info),
-  ).then(() => object);
+  const res$ = delegationMaps.reduce<MaybePromise<void>>((prev, delegationMap) => {
+    function executeFn() {
+      return executeDelegationStage(mergedTypeInfo, delegationMap, object, context, info);
+    }
+    if (isPromise(prev)) {
+      return prev.then(executeFn);
+    }
+    return executeFn();
+  }, undefined);
+
+  if (isPromise(res$)) {
+    return res$.then(() => object);
+  }
+
+  return object;
+}
+
+function handleResolverResult(
+  resolverResult: any,
+  subschema: Subschema,
+  selectionSet: SelectionSetNode,
+  object: ExternalObject,
+  combinedFieldSubschemaMap: Record<
+    string,
+    GraphQLSchema | SubschemaConfig<any, any, any, Record<string, any>>
+  >,
+  info: GraphQLResolveInfo,
+  path: Array<string | number>,
+  combinedErrors: Array<GraphQLError>,
+) {
+  if (resolverResult instanceof Error || resolverResult == null) {
+    const schema = subschema.transformedSchema || info.schema;
+    const type = schema.getType(object.__typename) as GraphQLObjectType;
+    const { fields } = collectFields(schema, EMPTY_OBJECT, EMPTY_OBJECT, type, selectionSet);
+    const nullResult: Record<string, any> = {};
+    for (const [responseKey, fieldNodes] of fields) {
+      const combinedPath = [...path, responseKey];
+      if (resolverResult instanceof GraphQLError) {
+        nullResult[responseKey] = relocatedError(resolverResult, combinedPath);
+      } else if (resolverResult instanceof Error) {
+        nullResult[responseKey] = locatedError(resolverResult, fieldNodes, combinedPath);
+      } else {
+        nullResult[responseKey] = null;
+      }
+    }
+    resolverResult = nullResult;
+  } else {
+    if (resolverResult[UNPATHED_ERRORS_SYMBOL]) {
+      combinedErrors.push(...resolverResult[UNPATHED_ERRORS_SYMBOL]);
+    }
+  }
+
+  const objectSubschema = resolverResult[OBJECT_SUBSCHEMA_SYMBOL];
+  const fieldSubschemaMap = resolverResult[FIELD_SUBSCHEMA_MAP_SYMBOL];
+  for (const responseKey in resolverResult) {
+    if (responseKey === '__proto__') {
+      continue;
+    }
+    const existingPropValue = object[responseKey];
+    const sourcePropValue = resolverResult[responseKey];
+    if (sourcePropValue != null || existingPropValue == null) {
+      object[responseKey] = sourcePropValue;
+    }
+    combinedFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
+  }
 }
 
 function executeDelegationStage(
@@ -92,60 +155,88 @@ function executeDelegationStage(
   object: ExternalObject,
   context: any,
   info: GraphQLResolveInfo,
-): ValueOrPromise<void> {
+): MaybePromise<void> {
   const combinedErrors = object[UNPATHED_ERRORS_SYMBOL];
 
   const path = responsePathAsArray(info.path);
 
   const combinedFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL];
 
-  function finallyFn(source: any, subschema: Subschema, selectionSet: SelectionSetNode) {
-    if (source instanceof Error || source == null) {
-      const schema = subschema.transformedSchema || info.schema;
-      const type = schema.getType(object.__typename) as GraphQLObjectType;
-      const { fields } = collectFields(schema, EMPTY_OBJECT, EMPTY_OBJECT, type, selectionSet);
-      const nullResult: Record<string, any> = {};
-      for (const [responseKey, fieldNodes] of fields) {
-        const combinedPath = [...path, responseKey];
-        if (source instanceof GraphQLError) {
-          nullResult[responseKey] = relocatedError(source, combinedPath);
-        } else if (source instanceof Error) {
-          nullResult[responseKey] = locatedError(source, fieldNodes, combinedPath);
+  const jobs: PromiseLike<any>[] = [];
+  for (const [subschema, selectionSet] of delegationMap) {
+    const schema = subschema.transformedSchema || info.schema;
+    const type = schema.getType(object.__typename) as GraphQLObjectType;
+    const resolver = mergedTypeInfo.resolvers.get(subschema);
+    if (resolver) {
+      try {
+        const resolverResult$ = resolver(
+          object,
+          context,
+          info,
+          subschema,
+          selectionSet,
+          undefined,
+          type,
+        );
+        if (isPromise(resolverResult$)) {
+          jobs.push(
+            (
+              resolverResult$.then(resolverResult =>
+                handleResolverResult(
+                  resolverResult,
+                  subschema,
+                  selectionSet,
+                  object,
+                  combinedFieldSubschemaMap,
+                  info,
+                  path,
+                  combinedErrors,
+                ),
+              ) as Promise<any>
+            ).catch(error =>
+              handleResolverResult(
+                error,
+                subschema,
+                selectionSet,
+                object,
+                combinedFieldSubschemaMap,
+                info,
+                path,
+                combinedErrors,
+              ),
+            ) as any,
+          );
         } else {
-          nullResult[responseKey] = null;
+          handleResolverResult(
+            resolverResult$,
+            subschema,
+            selectionSet,
+            object,
+            combinedFieldSubschemaMap,
+            info,
+            path,
+            combinedErrors,
+          );
         }
+      } catch (error) {
+        handleResolverResult(
+          error,
+          subschema,
+          selectionSet,
+          object,
+          combinedFieldSubschemaMap,
+          info,
+          path,
+          combinedErrors,
+        );
       }
-      source = nullResult;
-    } else {
-      if (source[UNPATHED_ERRORS_SYMBOL]) {
-        combinedErrors.push(...source[UNPATHED_ERRORS_SYMBOL]);
-      }
-    }
-
-    const objectSubschema = source[OBJECT_SUBSCHEMA_SYMBOL];
-    const fieldSubschemaMap = source[FIELD_SUBSCHEMA_MAP_SYMBOL];
-    for (const responseKey in source) {
-      const existingPropValue = object[responseKey];
-      const sourcePropValue = source[responseKey];
-      if (sourcePropValue != null || existingPropValue == null) {
-        object[responseKey] = sourcePropValue;
-      }
-      combinedFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
     }
   }
 
-  return ValueOrPromise.all(
-    [...delegationMap.entries()].map(([subschema, selectionSet]) =>
-      new ValueOrPromise(() => {
-        const schema = subschema.transformedSchema || info.schema;
-        const type = schema.getType(object.__typename) as GraphQLObjectType;
-        const resolver = mergedTypeInfo.resolvers.get(subschema);
-        if (resolver) {
-          return resolver(object, context, info, subschema, selectionSet, undefined, type);
-        }
-      })
-        .then(source => finallyFn(source, subschema, selectionSet))
-        .catch(error => finallyFn(error, subschema, selectionSet)),
-    ),
-  ).then(() => {});
+  if (jobs.length) {
+    if (jobs.length === 1) {
+      return jobs[0];
+    }
+    return Promise.all(jobs) as any;
+  }
 }

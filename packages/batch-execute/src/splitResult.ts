@@ -2,7 +2,7 @@
 
 import { GraphQLError } from 'graphql';
 import { ExecutionResult, relocatedError } from '@graphql-tools/utils';
-import { parseKey } from './prefix.js';
+import { parseKey, parseKeyFromPath } from './prefix.js';
 
 /**
  * Split and transform result of the query produced by the `merge` function
@@ -34,9 +34,8 @@ export function splitResult(
   if (errors) {
     for (const error of errors) {
       if (error.path) {
-        const parsedKey = parseKey(error.path[0] as string);
-        const { index, originalKey } = parsedKey;
-        const newError = relocatedError(error, [originalKey, ...error.path.slice(1)]);
+        const { index, originalKey, keyOffset } = parseKeyFromPath(error.path);
+        const newError = relocatedError(error, [originalKey, ...error.path.slice(keyOffset)]);
         const resultErrors = (splitResults[index].errors = (splitResults[index].errors ||
           []) as GraphQLError[]);
         resultErrors.push(newError);

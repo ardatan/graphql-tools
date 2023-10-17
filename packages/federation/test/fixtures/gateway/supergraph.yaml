@@ -1,0 +1,17 @@
+subgraphs:
+  accounts:
+    routing_url: http://www.accounts.com
+    schema:
+      file: ./accounts/accounts.graphql
+  products:
+    routing_url: http://www.products.com
+    schema:
+      file: ./products/products.graphql
+  reviews:
+    routing_url: http://www.reviews.com
+    schema:
+      file: ./reviews/reviews.graphql
+  inventory:
+    routing_url: http://www.inventory.com
+    schema:
+      file: ./inventory/inventory.graphql
