@@ -3223,24 +3223,24 @@
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.1.tgz#98586dc36aee8dacc98cc396dbca8d0429647aa6"
   integrity sha512-rFT3ak0/2trgvp4yYZo5iKFEPsET7vKydKF+VRCxlQ9bpheehyAJH89dAkaLEq/j/RZXJIqcgsmPJKUP1Z28HA==
 
-"@types/valid-url@1.0.5":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@types/valid-url/-/valid-url-1.0.5.tgz#452a8d2aa8206cd3c9f658496d8370d3a54f4f2a"
-  integrity sha512-B7W2w+MHjn/lZB6WmCedyQgpIWa81dpEJD/rXkoYKOGJk0xsxgNWRXeGYMgY6ESvMxIPGfPq4lYbAgbj3hbLew==
+"@types/valid-url@1.0.6":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@types/valid-url/-/valid-url-1.0.6.tgz#9fec8b1fdb00814602cfa45c99865d85dc7c2952"
+  integrity sha512-+mF9njchWnlEtXzX5lIPLkMVeIeoT5Iso4bAu2Gxpsy/9wZr8cNeR47ViOjZ+F6GvQeQH4KVwLa3stS+CvMVRQ==
 
-"@types/webpack@5.28.3":
-  version "5.28.3"
-  resolved "https://registry.yarnpkg.com/@types/webpack/-/webpack-5.28.3.tgz#1e84a1d70dcc89396e3217015e923cf2a865f15f"
-  integrity sha512-Hd0GBzpP0mO2ZKChw2V7flK45m01/2g9FalpMum2X66uouzG3P1vkxvOtLVzAWLna4N9h0s2sVjND9Slnlef8A==
+"@types/webpack@5.28.4":
+  version "5.28.4"
+  resolved "https://registry.yarnpkg.com/@types/webpack/-/webpack-5.28.4.tgz#2dcbf8afb238a3d25123649fc4946849fe029279"
+  integrity sha512-sVIGIQdg0bNruxwQvpiNXaIXndScf+qTfYULLo2DI8urXgxC7f8Rw8aNHjjckdI3QaV3cRHqoHdCuBMMyUtGiw==
   dependencies:
     "@types/node" "*"
     tapable "^2.2.0"
     webpack "^5"
 
 "@types/ws@^8.0.0":
-  version "8.5.7"
-  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-8.5.7.tgz#1ca585074fe5d2c81dec7a3d451f244a2a6d83cb"
-  integrity sha512-6UrLjiDUvn40CMrAubXuIVtj2PEfKDffJS7ychvnPU44j+KVeXmdHHTgqcM/dxLUTHxlXHiFM8Skmb8ozGdTnQ==
+  version "8.5.8"
+  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-8.5.8.tgz#13efec7bd439d0bdf2af93030804a94f163b1430"
+  integrity sha512-flUksGIQCnJd6sZ1l5dqCEG/ksaoAg/eUwiLAGTJQcfgvZJKF++Ta4bJA6A5aPSJmsr+xlseHn4KLgVlNnvPTg==
   dependencies:
     "@types/node" "*"
 
