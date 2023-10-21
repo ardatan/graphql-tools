@@ -1631,15 +1631,7 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@envelop/core@4.0.3":
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/@envelop/core/-/core-4.0.3.tgz#6bc3e1ed3b31aa41d81106eb5071a9b8eec188d0"
-  integrity sha512-O0Vz8E0TObT6ijAob8jYFVJavcGywKThM3UAsxUIBBVPYZTMiqI9lo2gmAnbMUnrDcAYkUTZEW9FDYPRdF5l6g==
-  dependencies:
-    "@envelop/types" "4.0.1"
-    tslib "^2.5.0"
-
-"@envelop/core@^5.0.0":
+"@envelop/core@5.0.0", "@envelop/core@^5.0.0":
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/@envelop/core/-/core-5.0.0.tgz#131616ad9685599e501b14fdf1a983cfd3b72020"
   integrity sha512-aJdnH/ptv+cvwfvciCBe7TSvccBwo9g0S5f6u35TBVzRVqIGkK03lFlIL+x1cnfZgN9EfR2b1PH2galrT1CdCQ==
@@ -1647,22 +1639,15 @@
     "@envelop/types" "5.0.0"
     tslib "^2.5.0"
 
-"@envelop/live-query@6.0.3":
-  version "6.0.3"
-  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-6.0.3.tgz#6aab48ea091124e5c74ef37f8e5d106fd36a87f5"
-  integrity sha512-nYZj15rcDodnnOG1gREJKXqFJ8btjkj7ZRVtooeWJaxvUKCbqGSVy28W6cz4Dyly7xCXWKDQW0ZU6AxPAzzotQ==
+"@envelop/live-query@7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@envelop/live-query/-/live-query-7.0.0.tgz#10df5e9bdee0115ef2c2fb588fcd0e8184a19ec5"
+  integrity sha512-rLnSN1B+5zcy3FsWE+16/CMiqjD/LXXcRUXJ0RaXRjzHClpQxgSzrAixNeOmx1vXLff4AgkjOZANJl39rD4dwQ==
   dependencies:
     "@graphql-tools/utils" "^10.0.0"
     "@n1ru4l/graphql-live-query" "^0.10.0"
     "@n1ru4l/graphql-live-query-patch" "^0.7.0"
     "@n1ru4l/in-memory-live-query-store" "^0.10.0"
-    tslib "^2.5.0"
-
-"@envelop/types@4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@envelop/types/-/types-4.0.1.tgz#145690d8266a003cdb06dd58fa1236e3c80050a9"
-  integrity sha512-ULo27/doEsP7uUhm2iTnElx13qTO6I5FKvmLoX41cpfuw8x6e0NUFknoqhEsLzAbgz8xVS5mjwcxGCXh4lDYzg==
-  dependencies:
     tslib "^2.5.0"
 
 "@envelop/types@5.0.0":
