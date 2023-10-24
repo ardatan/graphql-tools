@@ -1,5 +1,14 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.1.0
+
+### Minor Changes
+
+- [#5643](https://github.com/ardatan/graphql-tools/pull/5643)
+  [`a7c512fd`](https://github.com/ardatan/graphql-tools/commit/a7c512fd9a9ad2116e541aa61c6313f74c7501cd)
+  Thanks [@frandiox](https://github.com/frandiox)! - Add support for new hooks
+  `isGqlTemplateLiteral` and `pluckStringFromFile`.
+
 ## 8.0.2
 
 ### Patch Changes
