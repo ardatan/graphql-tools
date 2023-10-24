@@ -1,6 +1,7 @@
 import { Source } from 'graphql';
 import { parse } from '@babel/parser';
 import traversePkg from '@babel/traverse';
+import { ExpressionStatement, TemplateLiteral } from '@babel/types';
 import generateConfig from './config.js';
 import { getExtNameFromFilePath } from './libs/extname.js';
 import { freeText } from './utils.js';
@@ -109,6 +110,22 @@ export interface GraphQLTagPluckOptions {
    * Set to `true` in order to get the found documents as-is, without any changes indentation changes
    */
   skipIndent?: boolean;
+  /**
+   * A function that allows custom extraction of GraphQL strings from a file.
+   */
+  pluckStringFromFile?: (
+    code: string,
+    node: TemplateLiteral,
+    options: Omit<GraphQLTagPluckOptions, 'isGqlTemplateLiteral' | 'pluckStringFromFile'>,
+  ) => string | undefined | null;
+  /**
+   * A custom way to determine if a template literal node contains a GraphQL query.
+   * By default, it checks if the leading comment is equal to the `gqlMagicComment` option.
+   */
+  isGqlTemplateLiteral?: (
+    node: TemplateLiteral | ExpressionStatement,
+    options: Omit<GraphQLTagPluckOptions, 'isGqlTemplateLiteral' | 'pluckStringFromFile'>,
+  ) => boolean | undefined;
 }
 
 const supportedExtensions = [

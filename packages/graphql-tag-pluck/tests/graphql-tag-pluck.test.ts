@@ -2082,5 +2082,63 @@ describe('graphql-tag-pluck', () => {
         `),
       );
     });
+
+    it('should pluck graphql-tag template literals using the custom `isGqlTemplateLiteral` hook', async () => {
+      const query = freeText(`#graphql
+        query queryName {
+          id
+        }
+      `);
+      const fileContent = `export const query = \`${query}\`;`;
+      const fileName = 'tmp-HOOKS1.ts';
+
+      // Default behavior: ignores in-query comments
+      let sources = await pluck(fileName, fileContent);
+      expect(sources.map(source => source.body).join('\n\n')).toEqual('');
+
+      // Custom behavior: recognizes in-query comments
+      sources = await pluck(fileName, fileContent, {
+        isGqlTemplateLiteral: node => {
+          return (
+            node.type === 'TemplateLiteral' &&
+            /\s*#graphql\s*\n/i.test(node.quasis[0]?.value?.raw || '')
+          );
+        },
+      });
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(query);
+    });
+
+    it('should pluck graphql-tag template literals using the custom `pluckStringFromFile` hook', async () => {
+      const query = freeText(`
+        query queryName { id }
+        \${ANOTHER_VARIABLE}
+      `);
+      const fileContent = `export const query = /* GraphQL */ \`${query}\`;`;
+      const fileName = 'tmp-HOOKS2.ts';
+
+      // Default behavior: removes expressions
+      let sources = await pluck(fileName, fileContent);
+      expect(sources.map(source => source.body).join('\n\n')).toEqual('query queryName { id }');
+
+      // Custom behavior: keeps expressions as comments
+      sources = await pluck(fileName, fileContent, {
+        pluckStringFromFile: (code, { start, end }) => {
+          return (
+            code
+              .slice(start! + 1, end! - 1)
+              // Annotate embedded expressions
+              // e.g. ${foo} -> #EXPRESSION:foo
+              .replace(/\$\{([^}]*)\}/g, (_, m1) => '#EXPRESSION:' + m1)
+              .split('\\`')
+              .join('`')
+          );
+        },
+      });
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        'query queryName { id }\n#EXPRESSION:ANOTHER_VARIABLE',
+      );
+    });
   });
 });
