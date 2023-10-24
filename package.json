@@ -29,7 +29,7 @@
   ],
   "scripts": {
     "build": "bob build",
-    "build:api-docs": "ts-node --compiler-options='{\"module\":\"commonjs\"}' scripts/build-api-docs",
+    "build:api-docs": "ts-node --transpileOnly --compiler-options='{\"module\":\"commonjs\"}' scripts/build-api-docs",
     "ci:lint": "eslint --ext .ts . --output-file eslint_report.json --format json",
     "clean-dist": "rimraf \"packages/**/dist\" && rimraf \".bob\"",
     "lint": "eslint --ext .ts .",
