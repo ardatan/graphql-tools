@@ -25,6 +25,7 @@ export function buildGraphQLWSExecutor(
     graphqlWSClient = clientOptionsOrClient;
   } else {
     graphqlWSClient = createClient({
+      ...clientOptionsOrClient,
       webSocketImpl: WebSocket,
       lazy: true,
       connectionParams: () => {
@@ -34,7 +35,6 @@ export function buildGraphQLWSExecutor(
             : clientOptionsOrClient.connectionParams) || {};
         return Object.assign(optionsConnectionParams, executorConnectionParams);
       },
-      ...clientOptionsOrClient,
     });
     if (clientOptionsOrClient.onClient) {
       clientOptionsOrClient.onClient(graphqlWSClient);
