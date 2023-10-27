@@ -78,7 +78,7 @@
     "ts-jest": "29.1.1",
     "ts-node": "10.9.1",
     "typedoc": "0.25.2",
-    "typedoc-plugin-markdown": "3.14.0",
+    "typedoc-plugin-markdown": "3.16.0",
     "typedoc-plugin-rename-defaults": "0.6.7",
     "typescript": "5.2.2",
     "weak-napi": "2.0.2"

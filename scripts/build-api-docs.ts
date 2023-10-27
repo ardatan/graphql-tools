@@ -1,4 +1,3 @@
-// @ts-ignore
 import fs, { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
 import chalk from 'chalk';
@@ -41,25 +40,23 @@ async function buildApiDocs(): Promise<void> {
   await fsPromises.rm(OUTPUT_PATH, { recursive: true }).catch(() => null);
 
   // Initialize TypeDoc
-  const typeDoc = new TypeDoc.Application();
-
-  typeDoc.options.addReader(new TypeDoc.TSConfigReader());
-
-  typeDoc.bootstrap({
-    excludePrivate: true,
-    excludeProtected: true,
-    readme: 'none',
-    hideGenerator: true,
-    githubPages: false,
-    // @ts-ignore -- typedoc-plugin-markdown option
-    hideBreadcrumbs: true,
-    gitRevision: 'master',
-    tsconfig: path.join(CWD, 'tsconfig.json'),
-    entryPoints: modules.map(([_name, filePath]) => filePath),
-  });
+  const typeDoc = await TypeDoc.Application.bootstrapWithPlugins(
+    {
+      excludePrivate: true,
+      excludeProtected: true,
+      readme: 'none',
+      hideGenerator: true,
+      githubPages: false,
+      gitRevision: 'master',
+      tsconfig: path.join(CWD, 'tsconfig.json'),
+      entryPoints: modules.map(([_name, filePath]) => filePath),
+      plugin: ['typedoc-plugin-markdown'],
+    },
+    [new TypeDoc.TSConfigReader()],
+  );
 
   // Generate the API docs
-  const project = typeDoc.convert();
+  const project = await typeDoc.convert();
   await typeDoc.generateDocs(project!, OUTPUT_PATH);
 
   async function patchMarkdownFile(filePath: string): Promise<void> {
@@ -151,7 +148,7 @@ async function buildApiDocs(): Promise<void> {
   );
 
   // Remove the generated "README.md" file
-  await fsPromises.unlink(path.join(OUTPUT_PATH, 'README.md'));
+  // await fsPromises.unlink(path.join(OUTPUT_PATH, 'README.md'));
 
   // Update each module 's frontmatter and title
   await Promise.all(
