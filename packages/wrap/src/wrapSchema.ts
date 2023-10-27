@@ -21,29 +21,26 @@ export const wrapSchema = memoize1(function wrapSchema<
 >(
   subschemaConfig: SubschemaConfig<any, any, any, TConfig> | Subschema<any, any, any, TConfig>,
 ): GraphQLSchema {
-  const targetSchema = subschemaConfig.schema;
-
   const proxyingResolvers = generateProxyingResolvers(subschemaConfig);
-  const schema = createWrappingSchema(targetSchema, proxyingResolvers, subschemaConfig.name);
+  const schema = createWrappingSchema(subschemaConfig, proxyingResolvers);
   const transformed = applySchemaTransforms(schema, subschemaConfig);
   return transformed;
 });
 
 function createWrappingSchema(
-  schema: GraphQLSchema,
+  subschemaConfig: SubschemaConfig<any, any, any, any>,
   proxyingResolvers: Record<string, Record<string, GraphQLFieldResolver<any, any>>>,
-  subschemaName?: string,
 ) {
-  return mapSchema(schema, {
+  const wrappingSchema = mapSchema(subschemaConfig.schema, {
     [MapperKind.ROOT_FIELD]: (fieldConfig, fieldName, typeName) => {
       const newFieldConfig = {
         ...fieldConfig,
         ...proxyingResolvers[typeName]?.[fieldName],
       };
-      if (subschemaName) {
+      if (subschemaConfig.name) {
         addDirectiveExtensions(newFieldConfig, {
-          subschemaRootField: {
-            subschema: subschemaName,
+          subschemaObjectField: {
+            subschema: subschemaConfig.name,
             type: typeName,
             field: fieldName,
           },
@@ -57,15 +54,27 @@ function createWrappingSchema(
         ...config,
         isTypeOf: undefined,
       };
-      if (subschemaName) {
+      if (subschemaConfig.name) {
         const interfaces = type.getInterfaces();
         addDirectiveExtensions(newConfig, {
           subschemaObjectType: {
-            subschema: subschemaName,
+            subschema: subschemaConfig.name,
             type: type.name,
             implements: interfaces?.length > 0 ? interfaces.map(i => i.name) : undefined,
           },
         });
+        const typeMergingOptions = subschemaConfig.merge?.[type.name];
+        if (typeMergingOptions) {
+          addDirectiveExtensions(newConfig, {
+            merge: {
+              subschema: subschemaConfig.name,
+              selectionSet: subschemaConfig.merge?.[type.name]?.selectionSet,
+              key: subschemaConfig.merge?.[type.name]?.key?.toString(),
+              fieldName: subschemaConfig.merge?.[type.name]?.fieldName,
+              argsFromKeys: subschemaConfig.merge?.[type.name]?.argsFromKeys?.toString(),
+            },
+          });
+        }
       }
       return new GraphQLObjectType(newConfig);
     },
@@ -75,10 +84,10 @@ function createWrappingSchema(
         resolve: defaultMergedResolver,
         subscribe: undefined,
       };
-      if (subschemaName) {
+      if (subschemaConfig.name) {
         addDirectiveExtensions(newFieldConfig, {
           subschemaObjectField: {
-            subschema: subschemaName,
+            subschema: subschemaConfig.name,
             type: typeName,
             field: fieldName,
           },
@@ -93,10 +102,10 @@ function createWrappingSchema(
         resolveType: undefined,
       };
       const interfaces = type.getInterfaces();
-      if (subschemaName) {
+      if (subschemaConfig.name) {
         addDirectiveExtensions(newConfig, {
           subschemaInterfaceType: {
-            subschema: subschemaName,
+            subschema: subschemaConfig.name,
             type: type.name,
             implements: interfaces?.length > 0 ? interfaces.map(i => i.name) : undefined,
           },
@@ -110,10 +119,10 @@ function createWrappingSchema(
         resolve: defaultMergedResolver,
         subscribe: undefined,
       };
-      if (subschemaName) {
+      if (subschemaConfig.name) {
         addDirectiveExtensions(newFieldConfig, {
           subschemaInterfaceField: {
-            subschema: subschemaName,
+            subschema: subschemaConfig.name,
             type: typeName,
             field: fieldName,
           },
@@ -127,10 +136,10 @@ function createWrappingSchema(
         ...config,
         resolveType: undefined,
       };
-      if (subschemaName) {
+      if (subschemaConfig.name) {
         addDirectiveExtensions(newConfig, {
           subschemaUnionType: {
-            subschema: subschemaName,
+            subschema: subschemaConfig.name,
             type: type.name,
             types: type.getTypes().map(t => t.name),
           },
@@ -139,10 +148,10 @@ function createWrappingSchema(
       return new GraphQLUnionType(newConfig);
     },
     [MapperKind.SCALAR_TYPE]: type => {
-      if (!isSpecifiedScalarType(type) && subschemaName) {
+      if (!isSpecifiedScalarType(type) && subschemaConfig.name) {
         addDirectiveExtensions(type, {
           subschemaScalarType: {
-            subschema: subschemaName,
+            subschema: subschemaConfig.name,
             type: type.name,
           },
         });
@@ -150,10 +159,10 @@ function createWrappingSchema(
       return type;
     },
     [MapperKind.ENUM_TYPE]: type => {
-      if (subschemaName) {
+      if (subschemaConfig.name) {
         addDirectiveExtensions(type, {
           subschemaEnumType: {
-            subschema: subschemaName,
+            subschema: subschemaConfig.name,
             type: type.name,
           },
         });
@@ -165,10 +174,10 @@ function createWrappingSchema(
         ...valueConfig,
         value: undefined,
       };
-      if (subschemaName) {
+      if (subschemaConfig.name) {
         addDirectiveExtensions(newConfig, {
           subschemaEnumValue: {
-            subschema: subschemaName,
+            subschema: subschemaConfig.name,
             type: typeName,
             value: externalValue,
           },
@@ -177,10 +186,10 @@ function createWrappingSchema(
       return newConfig;
     },
     [MapperKind.ARGUMENT]: (argumentConfig, fieldName, typeName) => {
-      if (subschemaName) {
+      if (subschemaConfig.name) {
         addDirectiveExtensions(argumentConfig, {
           subschemaArgument: {
-            subschema: subschemaName,
+            subschema: subschemaConfig.name,
             type: typeName,
             field: fieldName,
           },
@@ -189,10 +198,10 @@ function createWrappingSchema(
       return argumentConfig;
     },
     [MapperKind.INPUT_OBJECT_TYPE]: type => {
-      if (subschemaName) {
+      if (subschemaConfig.name) {
         addDirectiveExtensions(type, {
           subschemaInputObjectType: {
-            subschema: subschemaName,
+            subschema: subschemaConfig.name,
             type: type.name,
           },
         });
@@ -200,10 +209,10 @@ function createWrappingSchema(
       return type;
     },
     [MapperKind.INPUT_OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
-      if (subschemaName) {
+      if (subschemaConfig.name) {
         addDirectiveExtensions(fieldConfig, {
           subschemaInputObjectField: {
-            subschema: subschemaName,
+            subschema: subschemaConfig.name,
             type: typeName,
             field: fieldName,
           },
@@ -212,4 +221,13 @@ function createWrappingSchema(
       return fieldConfig;
     },
   });
+  if (subschemaConfig.name) {
+    addDirectiveExtensions(wrappingSchema, {
+      subschema: {
+        subschema: subschemaConfig.name,
+        executor: subschemaConfig.executor?.name || 'defaultExecutor',
+      },
+    });
+  }
+  return wrappingSchema;
 }

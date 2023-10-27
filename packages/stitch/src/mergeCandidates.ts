@@ -688,7 +688,7 @@ function canonicalFieldNamesForType<TContext>(
   return Object.keys(canonicalFieldNames);
 }
 
-function mergeExtensionsWithDirectives(extensionsArr: any[]) {
+export function mergeExtensionsWithDirectives(extensionsArr: any[]) {
   let targetDirectives: Record<string, any> | undefined;
   let targetExtensions: Record<string, any> | undefined;
   for (const extensions of extensionsArr) {

@@ -1,166 +1,166 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Supergraphs a.graphql: a.graphql 1`] = `
-"schema {
+"schema @subschema(subschema: "SERVICE0", executor: "executor") @subschema(subschema: "SERVICE1", executor: "executor") @subschema(subschema: "SERVICE2", executor: "executor") @subschema(subschema: "SERVICE3", executor: "executor") @subschema(subschema: "SERVICE3", executor: "executor") @subschema(subschema: "SERVICE3", executor: "executor") @subschema(subschema: "SERVICE3", executor: "executor") {
   query: Query
 }
 
-type Query {
-  me: User
-  users: [User]
-  topProducts(first: Int): [Product]
+type Query @subschemaObjectType(subschema: "SERVICE0", type: "Query") @subschemaObjectType(subschema: "SERVICE1", type: "Query") @subschemaObjectType(subschema: "SERVICE2", type: "Query") @subschemaObjectType(subschema: "SERVICE3", type: "Query") @subschemaObjectType(subschema: "SERVICE3", type: "Query") @subschemaObjectType(subschema: "SERVICE3", type: "Query") @subschemaObjectType(subschema: "SERVICE3", type: "Query") {
+  me: User @subschemaObjectField(subschema: "SERVICE0", type: "Query", field: "me")
+  users: [User] @subschemaObjectField(subschema: "SERVICE0", type: "Query", field: "users")
+  topProducts(first: Int @subschemaArgument(subschema: "SERVICE1", type: "Query", field: "topProducts")): [Product] @subschemaObjectField(subschema: "SERVICE1", type: "Query", field: "topProducts")
 }
 
-type User {
-  numberOfReviews: Int
-  reviews: [Review]
-  username: String
-  birthDate: String
-  id: ID!
-  name: String
+type User @subschemaObjectType(subschema: "SERVICE2", type: "User") @subschemaObjectType(subschema: "SERVICE0", type: "User") @merge(subschema: "SERVICE2", selectionSet: "{ id }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "SERVICE0", selectionSet: "{ id }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") {
+  numberOfReviews: Int @subschemaObjectField(subschema: "SERVICE2", type: "User", field: "numberOfReviews")
+  reviews: [Review] @subschemaObjectField(subschema: "SERVICE2", type: "User", field: "reviews")
+  username: String @subschemaObjectField(subschema: "SERVICE2", type: "User", field: "username") @subschemaObjectField(subschema: "SERVICE0", type: "User", field: "username")
+  birthDate: String @subschemaObjectField(subschema: "SERVICE0", type: "User", field: "birthDate")
+  id: ID! @subschemaObjectField(subschema: "SERVICE0", type: "User", field: "id")
+  name: String @subschemaObjectField(subschema: "SERVICE0", type: "User", field: "name")
 }
 
-type Product {
-  reviews(input: ProductReviewsInput): [Review]
-  inStock: Boolean
-  shippingEstimate: Int
-  name: String
-  price: Int
-  upc: String!
-  weight: Int
+type Product @subschemaObjectType(subschema: "SERVICE2", type: "Product") @subschemaObjectType(subschema: "SERVICE3", type: "Product") @subschemaObjectType(subschema: "SERVICE3", type: "Product") @subschemaObjectType(subschema: "SERVICE3", type: "Product") @subschemaObjectType(subschema: "SERVICE3", type: "Product") @subschemaObjectType(subschema: "SERVICE1", type: "Product") @merge(subschema: "SERVICE2", selectionSet: "{ upc }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "SERVICE3", selectionSet: "{ upc }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "SERVICE3", selectionSet: "{ upc }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "SERVICE3", selectionSet: "{ upc }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "SERVICE3", selectionSet: "{ upc }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "SERVICE1", selectionSet: "{ upc }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") {
+  reviews(input: ProductReviewsInput @subschemaArgument(subschema: "SERVICE2", type: "Product", field: "reviews")): [Review] @subschemaObjectField(subschema: "SERVICE2", type: "Product", field: "reviews")
+  inStock: Boolean @subschemaObjectField(subschema: "SERVICE3", type: "Product", field: "inStock") @subschemaObjectField(subschema: "SERVICE3", type: "Product", field: "inStock")
+  shippingEstimate: Int @subschemaObjectField(subschema: "SERVICE3", type: "Product", field: "shippingEstimate") @subschemaObjectField(subschema: "SERVICE3", type: "Product", field: "shippingEstimate")
+  name: String @subschemaObjectField(subschema: "SERVICE1", type: "Product", field: "name")
+  price: Int @subschemaObjectField(subschema: "SERVICE1", type: "Product", field: "price")
+  upc: String! @subschemaObjectField(subschema: "SERVICE1", type: "Product", field: "upc")
+  weight: Int @subschemaObjectField(subschema: "SERVICE1", type: "Product", field: "weight")
 }
 
-enum ReviewsOrder {
-  ASC
-  DESC
+enum ReviewsOrder @subschemaEnumType(subschema: "SERVICE2", type: "ReviewsOrder") {
+  ASC @subschemaEnumValue(subschema: "SERVICE2", type: "ReviewsOrder", value: "ASC")
+  DESC @subschemaEnumValue(subschema: "SERVICE2", type: "ReviewsOrder", value: "DESC")
 }
 
-input ProductReviewsInput {
-  first: Int
-  order: ReviewsOrder
+input ProductReviewsInput @subschemaInputObjectType(subschema: "SERVICE2", type: "ProductReviewsInput") {
+  first: Int @subschemaInputObjectField(subschema: "SERVICE2", type: "ProductReviewsInput", field: "first")
+  order: ReviewsOrder @subschemaInputObjectField(subschema: "SERVICE2", type: "ProductReviewsInput", field: "order")
 }
 
-type AnonymousReview implements Review {
-  body: String
-  id: ID!
-  product: Product
+type AnonymousReview implements Review @subschemaObjectType(subschema: "SERVICE2", type: "AnonymousReview", implements: ["Review"]) @merge(subschema: "SERVICE2", selectionSet: "{ id }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") {
+  body: String @subschemaObjectField(subschema: "SERVICE2", type: "AnonymousReview", field: "body")
+  id: ID! @subschemaObjectField(subschema: "SERVICE2", type: "AnonymousReview", field: "id")
+  product: Product @subschemaObjectField(subschema: "SERVICE2", type: "AnonymousReview", field: "product")
 }
 
-interface Review {
-  body: String
-  id: ID!
-  product: Product
+interface Review @subschemaInterfaceType(subschema: "SERVICE2", type: "Review") {
+  body: String @subschemaInterfaceField(subschema: "SERVICE2", type: "Review", field: "body")
+  id: ID! @subschemaInterfaceField(subschema: "SERVICE2", type: "Review", field: "id")
+  product: Product @subschemaInterfaceField(subschema: "SERVICE2", type: "Review", field: "product")
 }
 
-scalar Stars
+scalar Stars @subschemaScalarType(subschema: "SERVICE2", type: "Stars")
 
-type UserReview implements Review {
-  author: User
-  body: String
-  id: ID!
-  product: Product
-  stars: Stars
+type UserReview implements Review @subschemaObjectType(subschema: "SERVICE2", type: "UserReview", implements: ["Review"]) @merge(subschema: "SERVICE2", selectionSet: "{ id }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") {
+  author: User @subschemaObjectField(subschema: "SERVICE2", type: "UserReview", field: "author")
+  body: String @subschemaObjectField(subschema: "SERVICE2", type: "UserReview", field: "body")
+  id: ID! @subschemaObjectField(subschema: "SERVICE2", type: "UserReview", field: "id")
+  product: Product @subschemaObjectField(subschema: "SERVICE2", type: "UserReview", field: "product")
+  stars: Stars @subschemaObjectField(subschema: "SERVICE2", type: "UserReview", field: "stars")
 }"
 `;
 
 exports[`Supergraphs b.graphql: b.graphql 1`] = `
-"schema {
+"schema @subschema(subschema: "INVENTORY", executor: "executor") @subschema(subschema: "INVENTORY", executor: "executor") @subschema(subschema: "INVENTORY", executor: "executor") @subschema(subschema: "INVENTORY", executor: "executor") @subschema(subschema: "PANDAS", executor: "executor") @subschema(subschema: "PRODUCTS", executor: "executor") @subschema(subschema: "PRODUCTS", executor: "executor") @subschema(subschema: "PRODUCTS", executor: "executor") @subschema(subschema: "PRODUCTS", executor: "executor") @subschema(subschema: "PRODUCTS", executor: "executor") @subschema(subschema: "PRODUCTS", executor: "executor") @subschema(subschema: "PRODUCTS", executor: "executor") @subschema(subschema: "PRODUCTS", executor: "executor") @subschema(subschema: "PRODUCTS", executor: "executor") @subschema(subschema: "REVIEWS", executor: "executor") @subschema(subschema: "USERS", executor: "executor") {
   query: Query
 }
 
-type Query {
-  allPandas: [Panda]
-  panda(name: ID!): Panda
-  allProducts: [ProductItf]
-  product(id: ID!): ProductItf
-  review(id: Int!): Review
+type Query @subschemaObjectType(subschema: "INVENTORY", type: "Query") @subschemaObjectType(subschema: "INVENTORY", type: "Query") @subschemaObjectType(subschema: "INVENTORY", type: "Query") @subschemaObjectType(subschema: "INVENTORY", type: "Query") @subschemaObjectType(subschema: "PANDAS", type: "Query") @subschemaObjectType(subschema: "PRODUCTS", type: "Query") @subschemaObjectType(subschema: "PRODUCTS", type: "Query") @subschemaObjectType(subschema: "PRODUCTS", type: "Query") @subschemaObjectType(subschema: "PRODUCTS", type: "Query") @subschemaObjectType(subschema: "PRODUCTS", type: "Query") @subschemaObjectType(subschema: "PRODUCTS", type: "Query") @subschemaObjectType(subschema: "PRODUCTS", type: "Query") @subschemaObjectType(subschema: "PRODUCTS", type: "Query") @subschemaObjectType(subschema: "PRODUCTS", type: "Query") @subschemaObjectType(subschema: "REVIEWS", type: "Query") @subschemaObjectType(subschema: "USERS", type: "Query") {
+  allPandas: [Panda] @subschemaObjectField(subschema: "PANDAS", type: "Query", field: "allPandas")
+  panda(name: ID! @subschemaArgument(subschema: "PANDAS", type: "Query", field: "panda")): Panda @subschemaObjectField(subschema: "PANDAS", type: "Query", field: "panda")
+  allProducts: [ProductItf] @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "allProducts") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "allProducts") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "allProducts") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "allProducts") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "allProducts") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "allProducts") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "allProducts") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "allProducts") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "allProducts")
+  product(id: ID! @subschemaArgument(subschema: "PRODUCTS", type: "Query", field: "product") @subschemaArgument(subschema: "PRODUCTS", type: "Query", field: "product") @subschemaArgument(subschema: "PRODUCTS", type: "Query", field: "product")): ProductItf @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "product") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "product") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "product") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "product") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "product") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "product") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "product") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "product") @subschemaObjectField(subschema: "PRODUCTS", type: "Query", field: "product")
+  review(id: Int! @subschemaArgument(subschema: "REVIEWS", type: "Query", field: "review")): Review @subschemaObjectField(subschema: "REVIEWS", type: "Query", field: "review")
 }
 
-type DeliveryEstimates {
-  estimatedDelivery: String
-  fastestDelivery: String
+type DeliveryEstimates @subschemaObjectType(subschema: "INVENTORY", type: "DeliveryEstimates") @subschemaObjectType(subschema: "INVENTORY", type: "DeliveryEstimates") @subschemaObjectType(subschema: "INVENTORY", type: "DeliveryEstimates") @subschemaObjectType(subschema: "INVENTORY", type: "DeliveryEstimates") {
+  estimatedDelivery: String @subschemaObjectField(subschema: "INVENTORY", type: "DeliveryEstimates", field: "estimatedDelivery") @subschemaObjectField(subschema: "INVENTORY", type: "DeliveryEstimates", field: "estimatedDelivery")
+  fastestDelivery: String @subschemaObjectField(subschema: "INVENTORY", type: "DeliveryEstimates", field: "fastestDelivery") @subschemaObjectField(subschema: "INVENTORY", type: "DeliveryEstimates", field: "fastestDelivery")
 }
 
-type Product implements ProductItf & SkuItf {
-  id: ID! @tag(name: "hi-from-products")
-  delivery(zip: String): DeliveryEstimates
-  dimensions: ProductDimension
-  sku: String
-  name: String @hello
-  package: String
-  variation: ProductVariation
-  createdBy: User
-  hidden: String
-  oldField: String
-  reviewsScore: Float!
-  reviewsCount: Int!
-  reviews: [Review!]!
+type Product implements ProductItf & SkuItf @subschemaObjectType(subschema: "INVENTORY", type: "Product", implements: ["ProductItf"]) @subschemaObjectType(subschema: "INVENTORY", type: "Product", implements: ["ProductItf"]) @subschemaObjectType(subschema: "INVENTORY", type: "Product", implements: ["ProductItf"]) @subschemaObjectType(subschema: "INVENTORY", type: "Product", implements: ["ProductItf"]) @subschemaObjectType(subschema: "PRODUCTS", type: "Product", implements: ["ProductItf", "SkuItf"]) @subschemaObjectType(subschema: "PRODUCTS", type: "Product", implements: ["ProductItf", "SkuItf"]) @subschemaObjectType(subschema: "PRODUCTS", type: "Product", implements: ["ProductItf", "SkuItf"]) @subschemaObjectType(subschema: "PRODUCTS", type: "Product", implements: ["ProductItf", "SkuItf"]) @subschemaObjectType(subschema: "PRODUCTS", type: "Product", implements: ["ProductItf", "SkuItf"]) @subschemaObjectType(subschema: "PRODUCTS", type: "Product", implements: ["ProductItf", "SkuItf"]) @subschemaObjectType(subschema: "PRODUCTS", type: "Product", implements: ["ProductItf", "SkuItf"]) @subschemaObjectType(subschema: "PRODUCTS", type: "Product", implements: ["ProductItf", "SkuItf"]) @subschemaObjectType(subschema: "PRODUCTS", type: "Product", implements: ["ProductItf", "SkuItf"]) @subschemaObjectType(subschema: "REVIEWS", type: "Product", implements: ["ProductItf"]) @merge(subschema: "INVENTORY", selectionSet: "{ id }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "INVENTORY", selectionSet: "{ id }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "INVENTORY", selectionSet: "{ id }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "INVENTORY", selectionSet: "{ id }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "PRODUCTS", selectionSet: "{ id }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "PRODUCTS", selectionSet: "{ sku package }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "PRODUCTS", selectionSet: "{ sku variation { id } }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "PRODUCTS", selectionSet: "{ id }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "PRODUCTS", selectionSet: "{ sku package }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "PRODUCTS", selectionSet: "{ sku variation { id } }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "PRODUCTS", selectionSet: "{ id }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "PRODUCTS", selectionSet: "{ sku package }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "PRODUCTS", selectionSet: "{ sku variation { id } }", key: "function keyFn(root) {\\n      return Object.fromEntries(allKeyProps.map(key => [key, root[key]]).concat([typeNameEntry]));\\n    }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "REVIEWS", selectionSet: "{ id }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") {
+  id: ID! @subschemaObjectField(subschema: "INVENTORY", type: "Product", field: "id") @subschemaObjectField(subschema: "INVENTORY", type: "Product", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "id") @subschemaObjectField(subschema: "REVIEWS", type: "Product", field: "id")
+  delivery(zip: String @subschemaArgument(subschema: "INVENTORY", type: "Product", field: "delivery") @subschemaArgument(subschema: "INVENTORY", type: "Product", field: "delivery")): DeliveryEstimates @subschemaObjectField(subschema: "INVENTORY", type: "Product", field: "delivery") @subschemaObjectField(subschema: "INVENTORY", type: "Product", field: "delivery")
+  dimensions: ProductDimension @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "dimensions") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "dimensions") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "dimensions") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "dimensions") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "dimensions") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "dimensions") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "dimensions") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "dimensions") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "dimensions")
+  sku: String @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "sku") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "sku") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "sku") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "sku") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "sku") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "sku") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "sku") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "sku") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "sku")
+  name: String @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "name")
+  package: String @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "package") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "package") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "package") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "package") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "package") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "package") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "package") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "package") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "package")
+  variation: ProductVariation @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "variation") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "variation") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "variation") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "variation") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "variation") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "variation") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "variation") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "variation") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "variation")
+  createdBy: User @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "createdBy") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "createdBy") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "createdBy") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "createdBy") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "createdBy") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "createdBy") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "createdBy") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "createdBy") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "createdBy")
+  hidden: String @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "hidden") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "hidden") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "hidden") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "hidden") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "hidden") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "hidden") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "hidden") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "hidden") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "hidden")
+  oldField: String @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "oldField") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "oldField") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "oldField") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "oldField") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "oldField") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "oldField") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "oldField") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "oldField") @subschemaObjectField(subschema: "PRODUCTS", type: "Product", field: "oldField")
+  reviewsScore: Float! @subschemaObjectField(subschema: "REVIEWS", type: "Product", field: "reviewsScore")
+  reviewsCount: Int! @subschemaObjectField(subschema: "REVIEWS", type: "Product", field: "reviewsCount")
+  reviews: [Review!]! @subschemaObjectField(subschema: "REVIEWS", type: "Product", field: "reviews")
 }
 
-type ProductDimension {
-  size: String @hello
-  weight: Float
+type ProductDimension @subschemaObjectType(subschema: "INVENTORY", type: "ProductDimension") @subschemaObjectType(subschema: "INVENTORY", type: "ProductDimension") @subschemaObjectType(subschema: "INVENTORY", type: "ProductDimension") @subschemaObjectType(subschema: "INVENTORY", type: "ProductDimension") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductDimension") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductDimension") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductDimension") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductDimension") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductDimension") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductDimension") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductDimension") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductDimension") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductDimension") {
+  size: String @subschemaObjectField(subschema: "INVENTORY", type: "ProductDimension", field: "size") @subschemaObjectField(subschema: "INVENTORY", type: "ProductDimension", field: "size") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "size") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "size") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "size") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "size") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "size") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "size") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "size") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "size") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "size")
+  weight: Float @subschemaObjectField(subschema: "INVENTORY", type: "ProductDimension", field: "weight") @subschemaObjectField(subschema: "INVENTORY", type: "ProductDimension", field: "weight") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "weight") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "weight") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "weight") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "weight") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "weight") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "weight") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "weight") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "weight") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductDimension", field: "weight")
 }
 
-interface ProductItf implements SkuItf {
-  id: ID!
-  dimensions: ProductDimension
-  delivery(zip: String): DeliveryEstimates
-  sku: String
-  name: String
-  package: String
-  variation: ProductVariation
-  createdBy: User
-  oldField: String @deprecated(reason: "refactored out")
-  reviewsCount: Int!
-  reviewsScore: Float!
-  reviews: [Review!]!
+interface ProductItf implements SkuItf @subschemaInterfaceType(subschema: "INVENTORY", type: "ProductItf") @subschemaInterfaceType(subschema: "INVENTORY", type: "ProductItf") @subschemaInterfaceType(subschema: "INVENTORY", type: "ProductItf") @subschemaInterfaceType(subschema: "INVENTORY", type: "ProductItf") @subschemaInterfaceType(subschema: "PRODUCTS", type: "ProductItf", implements: ["SkuItf"]) @subschemaInterfaceType(subschema: "PRODUCTS", type: "ProductItf", implements: ["SkuItf"]) @subschemaInterfaceType(subschema: "PRODUCTS", type: "ProductItf", implements: ["SkuItf"]) @subschemaInterfaceType(subschema: "PRODUCTS", type: "ProductItf", implements: ["SkuItf"]) @subschemaInterfaceType(subschema: "PRODUCTS", type: "ProductItf", implements: ["SkuItf"]) @subschemaInterfaceType(subschema: "PRODUCTS", type: "ProductItf", implements: ["SkuItf"]) @subschemaInterfaceType(subschema: "PRODUCTS", type: "ProductItf", implements: ["SkuItf"]) @subschemaInterfaceType(subschema: "PRODUCTS", type: "ProductItf", implements: ["SkuItf"]) @subschemaInterfaceType(subschema: "PRODUCTS", type: "ProductItf", implements: ["SkuItf"]) @subschemaInterfaceType(subschema: "REVIEWS", type: "ProductItf") {
+  id: ID! @subschemaInterfaceField(subschema: "INVENTORY", type: "ProductItf", field: "id") @subschemaInterfaceField(subschema: "INVENTORY", type: "ProductItf", field: "id") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "id") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "id") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "id") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "id") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "id") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "id") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "id") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "id") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "id") @subschemaInterfaceField(subschema: "REVIEWS", type: "ProductItf", field: "id")
+  dimensions: ProductDimension @subschemaInterfaceField(subschema: "INVENTORY", type: "ProductItf", field: "dimensions") @subschemaInterfaceField(subschema: "INVENTORY", type: "ProductItf", field: "dimensions") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "dimensions") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "dimensions") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "dimensions") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "dimensions") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "dimensions") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "dimensions") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "dimensions") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "dimensions") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "dimensions")
+  delivery(zip: String @subschemaArgument(subschema: "INVENTORY", type: "ProductItf", field: "delivery") @subschemaArgument(subschema: "INVENTORY", type: "ProductItf", field: "delivery")): DeliveryEstimates @subschemaInterfaceField(subschema: "INVENTORY", type: "ProductItf", field: "delivery") @subschemaInterfaceField(subschema: "INVENTORY", type: "ProductItf", field: "delivery")
+  sku: String @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "sku")
+  name: String @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "name") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "name") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "name") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "name") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "name") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "name") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "name") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "name") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "name")
+  package: String @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "package") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "package") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "package") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "package") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "package") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "package") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "package") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "package") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "package")
+  variation: ProductVariation @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "variation") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "variation") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "variation") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "variation") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "variation") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "variation") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "variation") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "variation") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "variation")
+  createdBy: User @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "createdBy") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "createdBy") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "createdBy") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "createdBy") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "createdBy") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "createdBy") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "createdBy") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "createdBy") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "createdBy")
+  oldField: String @deprecated(reason: "refactored out") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "oldField") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "oldField") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "oldField") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "oldField") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "oldField") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "oldField") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "oldField") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "oldField") @subschemaInterfaceField(subschema: "PRODUCTS", type: "ProductItf", field: "oldField")
+  reviewsCount: Int! @subschemaInterfaceField(subschema: "REVIEWS", type: "ProductItf", field: "reviewsCount")
+  reviewsScore: Float! @subschemaInterfaceField(subschema: "REVIEWS", type: "ProductItf", field: "reviewsScore")
+  reviews: [Review!]! @subschemaInterfaceField(subschema: "REVIEWS", type: "ProductItf", field: "reviews")
 }
 
-enum ShippingClass {
-  STANDARD
-  EXPRESS
-  OVERNIGHT
+enum ShippingClass @subschemaEnumType(subschema: "INVENTORY", type: "ShippingClass") @subschemaEnumType(subschema: "INVENTORY", type: "ShippingClass") @subschemaEnumType(subschema: "INVENTORY", type: "ShippingClass") @subschemaEnumType(subschema: "INVENTORY", type: "ShippingClass") @subschemaEnumType(subschema: "PRODUCTS", type: "ShippingClass") @subschemaEnumType(subschema: "PRODUCTS", type: "ShippingClass") @subschemaEnumType(subschema: "PRODUCTS", type: "ShippingClass") @subschemaEnumType(subschema: "PRODUCTS", type: "ShippingClass") @subschemaEnumType(subschema: "PRODUCTS", type: "ShippingClass") @subschemaEnumType(subschema: "PRODUCTS", type: "ShippingClass") @subschemaEnumType(subschema: "PRODUCTS", type: "ShippingClass") @subschemaEnumType(subschema: "PRODUCTS", type: "ShippingClass") @subschemaEnumType(subschema: "PRODUCTS", type: "ShippingClass") {
+  STANDARD @subschemaEnumValue(subschema: "PRODUCTS", type: "ShippingClass", value: "STANDARD") @subschemaEnumValue(subschema: "PRODUCTS", type: "ShippingClass", value: "STANDARD") @subschemaEnumValue(subschema: "PRODUCTS", type: "ShippingClass", value: "STANDARD")
+  EXPRESS @subschemaEnumValue(subschema: "PRODUCTS", type: "ShippingClass", value: "EXPRESS") @subschemaEnumValue(subschema: "PRODUCTS", type: "ShippingClass", value: "EXPRESS") @subschemaEnumValue(subschema: "PRODUCTS", type: "ShippingClass", value: "EXPRESS")
+  OVERNIGHT @subschemaEnumValue(subschema: "PRODUCTS", type: "ShippingClass", value: "OVERNIGHT") @subschemaEnumValue(subschema: "PRODUCTS", type: "ShippingClass", value: "OVERNIGHT") @subschemaEnumValue(subschema: "PRODUCTS", type: "ShippingClass", value: "OVERNIGHT")
 }
 
-type Panda {
-  name: ID!
-  favoriteFood: String @tag(name: "nom-nom-nom")
+type Panda @subschemaObjectType(subschema: "PANDAS", type: "Panda") {
+  name: ID! @subschemaObjectField(subschema: "PANDAS", type: "Panda", field: "name")
+  favoriteFood: String @subschemaObjectField(subschema: "PANDAS", type: "Panda", field: "favoriteFood")
 }
 
-type ProductVariation {
-  id: ID!
-  name: String
+type ProductVariation @subschemaObjectType(subschema: "PRODUCTS", type: "ProductVariation") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductVariation") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductVariation") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductVariation") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductVariation") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductVariation") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductVariation") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductVariation") @subschemaObjectType(subschema: "PRODUCTS", type: "ProductVariation") {
+  id: ID! @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "id") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "id")
+  name: String @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "name") @subschemaObjectField(subschema: "PRODUCTS", type: "ProductVariation", field: "name")
 }
 
-interface SkuItf {
-  sku: String
+interface SkuItf @subschemaInterfaceType(subschema: "PRODUCTS", type: "SkuItf") @subschemaInterfaceType(subschema: "PRODUCTS", type: "SkuItf") @subschemaInterfaceType(subschema: "PRODUCTS", type: "SkuItf") @subschemaInterfaceType(subschema: "PRODUCTS", type: "SkuItf") @subschemaInterfaceType(subschema: "PRODUCTS", type: "SkuItf") @subschemaInterfaceType(subschema: "PRODUCTS", type: "SkuItf") @subschemaInterfaceType(subschema: "PRODUCTS", type: "SkuItf") @subschemaInterfaceType(subschema: "PRODUCTS", type: "SkuItf") @subschemaInterfaceType(subschema: "PRODUCTS", type: "SkuItf") {
+  sku: String @subschemaInterfaceField(subschema: "PRODUCTS", type: "SkuItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "SkuItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "SkuItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "SkuItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "SkuItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "SkuItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "SkuItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "SkuItf", field: "sku") @subschemaInterfaceField(subschema: "PRODUCTS", type: "SkuItf", field: "sku")
 }
 
-type User {
-  email: ID! @tag(name: "test-from-users")
-  totalProductsCreated: Int
-  name: String
+type User @subschemaObjectType(subschema: "PRODUCTS", type: "User") @subschemaObjectType(subschema: "PRODUCTS", type: "User") @subschemaObjectType(subschema: "PRODUCTS", type: "User") @subschemaObjectType(subschema: "PRODUCTS", type: "User") @subschemaObjectType(subschema: "PRODUCTS", type: "User") @subschemaObjectType(subschema: "PRODUCTS", type: "User") @subschemaObjectType(subschema: "PRODUCTS", type: "User") @subschemaObjectType(subschema: "PRODUCTS", type: "User") @subschemaObjectType(subschema: "PRODUCTS", type: "User") @subschemaObjectType(subschema: "USERS", type: "User") @merge(subschema: "PRODUCTS", selectionSet: "{ email }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "PRODUCTS", selectionSet: "{ email }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "PRODUCTS", selectionSet: "{ email }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") @merge(subschema: "USERS", selectionSet: "{ email }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") {
+  email: ID! @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "email") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "email") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "email") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "email") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "email") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "email") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "email") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "email") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "email") @subschemaObjectField(subschema: "USERS", type: "User", field: "email")
+  totalProductsCreated: Int @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "totalProductsCreated") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "totalProductsCreated") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "totalProductsCreated") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "totalProductsCreated") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "totalProductsCreated") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "totalProductsCreated") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "totalProductsCreated") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "totalProductsCreated") @subschemaObjectField(subschema: "PRODUCTS", type: "User", field: "totalProductsCreated") @subschemaObjectField(subschema: "USERS", type: "User", field: "totalProductsCreated")
+  name: String @subschemaObjectField(subschema: "USERS", type: "User", field: "name")
 }
 
-type Review {
-  id: Int!
-  body: String!
+type Review @subschemaObjectType(subschema: "REVIEWS", type: "Review") {
+  id: Int! @subschemaObjectField(subschema: "REVIEWS", type: "Review", field: "id")
+  body: String! @subschemaObjectField(subschema: "REVIEWS", type: "Review", field: "body")
 }"
 `;
 
 exports[`Supergraphs c.graphql: c.graphql 1`] = `
-"schema {
+"schema @subschema(subschema: "ACCOUNTS", executor: "executor") {
   query: Query
 }
 
-type Query {
-  me: User
-  throw: String
+type Query @subschemaObjectType(subschema: "ACCOUNTS", type: "Query") {
+  me: User @subschemaObjectField(subschema: "ACCOUNTS", type: "Query", field: "me")
+  throw: String @subschemaObjectField(subschema: "ACCOUNTS", type: "Query", field: "throw")
 }
 
-type User {
-  id: ID!
-  username: String
+type User @subschemaObjectType(subschema: "ACCOUNTS", type: "User") @merge(subschema: "ACCOUNTS", selectionSet: "{ id }", key: "function keyFn(root) {\\n    return {\\n      __typename: root['__typename'],\\n      [keyProp]: root[keyProp]\\n    };\\n  }", fieldName: "_entities", argsFromKeys: "function getArgsFromKeysForFederation(representations) {\\n  return {\\n    representations\\n  };\\n}") {
+  id: ID! @subschemaObjectField(subschema: "ACCOUNTS", type: "User", field: "id")
+  username: String @subschemaObjectField(subschema: "ACCOUNTS", type: "User", field: "username")
 }"
 `;

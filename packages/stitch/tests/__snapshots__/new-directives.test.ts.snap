@@ -1,0 +1,44 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`New Directives adds directives to the output: schema-with-directives 1`] = `
+"schema @subschema(subschema: "Users", executor: "defaultExecutor") @subschema(subschema: "Posts", executor: "defaultExecutor") {
+  query: Query
+  mutation: Mutation
+}
+
+type Query @subschemaObjectType(subschema: "Users", type: "Query") @subschemaObjectType(subschema: "Posts", type: "Query") {
+  users(ids: [ID!]! @subschemaArgument(subschema: "Users", type: "Query", field: "users")): [User!]! @subschemaObjectField(subschema: "Users", type: "Query", field: "users")
+  user(id: ID! @subschemaArgument(subschema: "Users", type: "Query", field: "user")): User! @subschemaObjectField(subschema: "Users", type: "Query", field: "user")
+  posts(ids: [ID!]! @subschemaArgument(subschema: "Posts", type: "Query", field: "posts")): [Post!]! @subschemaObjectField(subschema: "Posts", type: "Query", field: "posts")
+  post(id: ID! @subschemaArgument(subschema: "Posts", type: "Query", field: "post")): Post! @subschemaObjectField(subschema: "Posts", type: "Query", field: "post")
+}
+
+type Mutation @subschemaObjectType(subschema: "Users", type: "Mutation") @subschemaObjectType(subschema: "Posts", type: "Mutation") {
+  addUser(user: UserInput! @subschemaArgument(subschema: "Users", type: "Mutation", field: "addUser")): User! @subschemaObjectField(subschema: "Users", type: "Mutation", field: "addUser")
+  addPost(post: PostInput! @subschemaArgument(subschema: "Posts", type: "Mutation", field: "addPost")): Post! @subschemaObjectField(subschema: "Posts", type: "Mutation", field: "addPost")
+}
+
+input UserInput @subschemaInputObjectType(subschema: "Users", type: "UserInput") {
+  name: String! @subschemaInputObjectField(subschema: "Users", type: "UserInput", field: "name")
+}
+
+interface Node @subschemaInterfaceType(subschema: "Users", type: "Node") @subschemaInterfaceType(subschema: "Posts", type: "Node") {
+  id: ID! @subschemaInterfaceField(subschema: "Users", type: "Node", field: "id") @subschemaInterfaceField(subschema: "Posts", type: "Node", field: "id")
+}
+
+type User implements Node @subschemaObjectType(subschema: "Users", type: "User", implements: ["Node"]) @subschemaObjectType(subschema: "Posts", type: "User", implements: ["Node"]) @merge(subschema: "Users", selectionSet: "{ id }", key: "({\\n          id\\n        }) => id", fieldName: "users", argsFromKeys: "ids => ({\\n          ids\\n        })") {
+  id: ID! @subschemaObjectField(subschema: "Users", type: "User", field: "id") @subschemaObjectField(subschema: "Posts", type: "User", field: "id")
+  name: String! @subschemaObjectField(subschema: "Users", type: "User", field: "name")
+}
+
+input PostInput @subschemaInputObjectType(subschema: "Posts", type: "PostInput") {
+  title: String! @subschemaInputObjectField(subschema: "Posts", type: "PostInput", field: "title")
+  authorId: ID! @subschemaInputObjectField(subschema: "Posts", type: "PostInput", field: "authorId")
+}
+
+type Post implements Node @subschemaObjectType(subschema: "Posts", type: "Post", implements: ["Node"]) {
+  id: ID! @subschemaObjectField(subschema: "Posts", type: "Post", field: "id")
+  title: String! @subschemaObjectField(subschema: "Posts", type: "Post", field: "title")
+  author: User! @subschemaObjectField(subschema: "Posts", type: "Post", field: "author")
+}"
+`;

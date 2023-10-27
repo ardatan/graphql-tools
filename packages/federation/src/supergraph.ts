@@ -500,6 +500,7 @@ export function getSubschemasFromSupergraphSdl({
       },
     );
     subschemaMap.set(subgraphName, {
+      name: subgraphName,
       schema,
       executor,
       merge: mergeConfig,

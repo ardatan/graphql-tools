@@ -9,7 +9,6 @@ import {
   SubschemaConfig,
 } from '@graphql-tools/delegate';
 import { getResponseKeyFromInfo, getRootTypeMap } from '@graphql-tools/utils';
-import { addDirectiveExtensions } from './directiveExtensions.js';
 
 interface ProxyingResolver extends GraphQLFieldResolver<any, any> {
   extensions: {
@@ -56,15 +55,6 @@ export function generateProxyingResolvers<TContext extends Record<string, any>>(
         resolvers[typeName][fieldName] = {
           resolve: finalResolver,
         };
-      }
-
-      if (subschemaConfig.name) {
-        addDirectiveExtensions(resolvers[typeName][fieldName], {
-          resolveTo: {
-            subschema: subschemaConfig.name,
-            operation,
-          },
-        });
       }
     }
   }
