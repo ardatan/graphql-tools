@@ -129,7 +129,9 @@ function mergeObjectTypeCandidates<TContext = Record<string, any>>(
 
   const extensionASTNodes = pluck<ObjectTypeExtensionNode>('extensionASTNodes', candidates);
 
-  const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
+  const extensions = mergeExtensionsWithDirectives(
+    pluck<Record<string, any>>('extensions', candidates),
+  );
 
   const typeConfig = {
     name: typeName,
@@ -176,7 +178,9 @@ function mergeInputObjectTypeCandidates<TContext = Record<string, any>>(
 
   const extensionASTNodes = pluck<InputObjectTypeExtensionNode>('extensionASTNodes', candidates);
 
-  const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
+  const extensions = mergeExtensionsWithDirectives(
+    pluck<Record<string, any>>('extensions', candidates),
+  );
 
   const typeConfig = {
     name: typeName,
@@ -240,7 +244,9 @@ function mergeInterfaceTypeCandidates<TContext = Record<string, any>>(
 
   const extensionASTNodes = pluck<InterfaceTypeExtensionNode>('extensionASTNodes', candidates);
 
-  const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
+  const extensions = mergeExtensionsWithDirectives(
+    pluck<Record<string, any>>('extensions', candidates),
+  );
 
   const typeConfig = {
     name: typeName,
@@ -288,7 +294,9 @@ function mergeUnionTypeCandidates<TContext = Record<string, any>>(
 
   const extensionASTNodes = pluck<UnionTypeExtensionNode>('extensionASTNodes', candidates);
 
-  const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
+  const extensions = mergeExtensionsWithDirectives(
+    pluck<Record<string, any>>('extensions', candidates),
+  );
 
   const typeConfig = {
     name: typeName,
@@ -323,7 +331,9 @@ function mergeEnumTypeCandidates<TContext = Record<string, any>>(
 
   const extensionASTNodes = pluck<EnumTypeExtensionNode>('extensionASTNodes', candidates);
 
-  const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
+  const extensions = mergeExtensionsWithDirectives(
+    pluck<Record<string, any>>('extensions', candidates),
+  );
 
   const typeConfig = {
     name: typeName,
@@ -412,7 +422,9 @@ function mergeScalarTypeCandidates<TContext = Record<string, any>>(
 
   const extensionASTNodes = pluck<ScalarTypeExtensionNode>('extensionASTNodes', candidates);
 
-  const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
+  const extensions = mergeExtensionsWithDirectives(
+    pluck<Record<string, any>>('extensions', candidates),
+  );
 
   const typeConfig = {
     name: typeName,
@@ -530,9 +542,21 @@ function defaultFieldConfigMerger<TContext = Record<string, any>>(
   const canonicalByField: Array<GraphQLFieldConfig<any, any>> = [];
   const canonicalByType: Array<GraphQLFieldConfig<any, any>> = [];
 
+  const extensionsArr: any[] = [];
+
   for (const { type, fieldName, fieldConfig, transformedSubschema } of candidates) {
     if (!isSubschemaConfig(transformedSubschema)) continue;
-    if (transformedSubschema.merge?.[type.name]?.fields?.[fieldName]?.canonical) {
+    const typeMergingFieldConfig = transformedSubschema.merge?.[type.name]?.fields?.[fieldName];
+    if (transformedSubschema.name && typeMergingFieldConfig?.selectionSet) {
+      const fieldExtensions: any = (fieldConfig.extensions ||= {});
+      fieldExtensions.directives ||= {};
+      fieldExtensions.directives.subschemaObjectField ||= {};
+      fieldExtensions.directives.subschemaObjectField.subschema = transformedSubschema.name;
+      fieldExtensions.directives.subschemaObjectField.selectionSet =
+        typeMergingFieldConfig.selectionSet;
+    }
+    extensionsArr.push(fieldConfig.extensions);
+    if (typeMergingFieldConfig?.canonical) {
       canonicalByField.push(fieldConfig);
     } else if (transformedSubschema.merge?.[type.name]?.canonical) {
       canonicalByType.push(fieldConfig);
@@ -544,12 +568,21 @@ function defaultFieldConfigMerger<TContext = Record<string, any>>(
       `Multiple canonical definitions for "${candidates[0].type.name}.${candidates[0].fieldName}"`,
     );
   } else if (canonicalByField.length) {
-    return canonicalByField[0];
+    return {
+      ...canonicalByField[0],
+      extensions: mergeExtensionsWithDirectives(extensionsArr),
+    };
   } else if (canonicalByType.length) {
-    return canonicalByType[0];
+    return {
+      ...canonicalByType[0],
+      extensions: mergeExtensionsWithDirectives(extensionsArr),
+    };
   }
 
-  return candidates[candidates.length - 1].fieldConfig;
+  return {
+    ...candidates[candidates.length - 1].fieldConfig,
+    extensions: mergeExtensionsWithDirectives(extensionsArr),
+  };
 }
 
 function inputFieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
@@ -653,4 +686,45 @@ function canonicalFieldNamesForType<TContext>(
   }
 
   return Object.keys(canonicalFieldNames);
+}
+
+function mergeExtensionsWithDirectives(extensionsArr: any[]) {
+  let targetDirectives: Record<string, any> | undefined;
+  let targetExtensions: Record<string, any> | undefined;
+  for (const extensions of extensionsArr) {
+    if (extensions != null) {
+      for (const extensionName in extensions) {
+        if (extensionName === 'directives') {
+          targetDirectives ||= {};
+          for (const directiveName in extensions.directives) {
+            const existingDirective = targetDirectives[directiveName];
+            const newDirective = extensions.directives[directiveName];
+            if (!existingDirective) {
+              targetDirectives[directiveName] = newDirective;
+            } else if (Array.isArray(existingDirective)) {
+              if (Array.isArray(newDirective)) {
+                targetDirectives[directiveName] = existingDirective.concat(newDirective);
+              } else {
+                targetDirectives[directiveName] = [...existingDirective, newDirective];
+              }
+            } else {
+              if (Array.isArray(newDirective)) {
+                targetDirectives[directiveName] = [existingDirective, ...newDirective];
+              } else {
+                targetDirectives[directiveName] = [existingDirective, newDirective];
+              }
+            }
+          }
+        } else {
+          targetExtensions ||= {};
+          targetExtensions[extensionName] = extensions[extensionName];
+        }
+      }
+    }
+  }
+  if (targetDirectives != null) {
+    targetExtensions ||= {};
+    targetExtensions['directives'] = targetDirectives;
+  }
+  return targetExtensions;
 }
