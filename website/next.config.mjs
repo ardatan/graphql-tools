@@ -1,6 +1,7 @@
 import { withGuildDocs } from '@theguild/components/next.config';
 
 export default withGuildDocs({
+  output: 'export',
   redirects: () =>
     Object.entries({
       '/docs/directive-resolvers': '/docs/schema-directives',
