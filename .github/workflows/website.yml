@@ -40,5 +40,5 @@ jobs:
           prId: ${{ github.event.pull_request.number }}
           websiteDirectory: ./
           buildScript:
-            yarn build && yarn build:api-docs && cd website && yarn build && yarn next export
+            yarn build && yarn build:api-docs && cd website && yarn build && yarn next build
           artifactDir: website/out
