@@ -79,7 +79,7 @@
     "ts-node": "10.9.1",
     "typedoc": "0.25.2",
     "typedoc-plugin-markdown": "3.16.0",
-    "typedoc-plugin-rename-defaults": "0.6.7",
+    "typedoc-plugin-rename-defaults": "0.7.0",
     "typescript": "5.2.2",
     "weak-napi": "2.0.2"
   },
