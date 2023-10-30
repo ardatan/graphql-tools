@@ -1,27 +1,57 @@
 # @graphql-tools/prisma-loader
 
+## 8.0.2
+
+### Patch Changes
+
+- [#5664](https://github.com/ardatan/graphql-tools/pull/5664)
+  [`75a94362`](https://github.com/ardatan/graphql-tools/commit/75a94362346f4c260c1ab7472e1e4d7c0401e567)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency [`jose@^5.0.0` ↗︎](https://www.npmjs.com/package/jose/v/5.0.0) (from
+    `^4.11.4`, in `dependencies`)
+- Updated dependencies
+  [[`accd58fd`](https://github.com/ardatan/graphql-tools/commit/accd58fdcf2698422f7e99173206168a84fe17a8)]:
+  - @graphql-tools/utils@10.0.8
+
 ## 8.0.1
 
 ### Patch Changes
 
-- [#5304](https://github.com/ardatan/graphql-tools/pull/5304) [`a97b78f2`](https://github.com/ardatan/graphql-tools/commit/a97b78f2bef939c3bd34953f9ad41a618b2a2376) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+- [#5304](https://github.com/ardatan/graphql-tools/pull/5304)
+  [`a97b78f2`](https://github.com/ardatan/graphql-tools/commit/a97b78f2bef939c3bd34953f9ad41a618b2a2376)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
 
-  - Updated dependency [`http-proxy-agent@^7.0.0` ↗︎](https://www.npmjs.com/package/http-proxy-agent/v/7.0.0) (from `^6.0.0`, in `dependencies`)
+  - Updated dependency
+    [`http-proxy-agent@^7.0.0` ↗︎](https://www.npmjs.com/package/http-proxy-agent/v/7.0.0) (from
+    `^6.0.0`, in `dependencies`)
 
-- [#5305](https://github.com/ardatan/graphql-tools/pull/5305) [`cfd44c61`](https://github.com/ardatan/graphql-tools/commit/cfd44c6105276b6e93d6a13e5035b5093a71c326) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`https-proxy-agent@^7.0.0` ↗︎](https://www.npmjs.com/package/https-proxy-agent/v/7.0.0) (from `^6.0.0`, in `dependencies`)
+- [#5305](https://github.com/ardatan/graphql-tools/pull/5305)
+  [`cfd44c61`](https://github.com/ardatan/graphql-tools/commit/cfd44c6105276b6e93d6a13e5035b5093a71c326)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`https-proxy-agent@^7.0.0` ↗︎](https://www.npmjs.com/package/https-proxy-agent/v/7.0.0) (from
+    `^6.0.0`, in `dependencies`)
 
 ## 8.0.0
 
 ### Major Changes
 
-- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274)
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)
+  Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
 
 ### Patch Changes
 
-- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
-  - Updated dependency [`@whatwg-node/fetch@^0.9.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.9.0) (from `^0.8.2`, in `dependencies`)
-- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274)
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.9.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.9.0)
+    (from `^0.8.2`, in `dependencies`)
+- Updated dependencies
+  [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955),
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955),
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
   - @graphql-tools/url-loader@8.0.0
   - @graphql-tools/utils@10.0.0
 
@@ -29,28 +59,42 @@
 
 ### Patch Changes
 
-- [#5251](https://github.com/ardatan/graphql-tools/pull/5251) [`58a18e4d`](https://github.com/ardatan/graphql-tools/commit/58a18e4d60dfb43dff2ebdeca2865da0bbaa1c16) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+- [#5251](https://github.com/ardatan/graphql-tools/pull/5251)
+  [`58a18e4d`](https://github.com/ardatan/graphql-tools/commit/58a18e4d60dfb43dff2ebdeca2865da0bbaa1c16)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
 
-  - Updated dependency [`http-proxy-agent@^6.0.0` ↗︎](https://www.npmjs.com/package/http-proxy-agent/v/6.0.0) (from `^5.0.0`, in `dependencies`)
+  - Updated dependency
+    [`http-proxy-agent@^6.0.0` ↗︎](https://www.npmjs.com/package/http-proxy-agent/v/6.0.0) (from
+    `^5.0.0`, in `dependencies`)
 
-- [#5252](https://github.com/ardatan/graphql-tools/pull/5252) [`8f79ded2`](https://github.com/ardatan/graphql-tools/commit/8f79ded25b82f68b8950ef326c90d4414f780912) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`https-proxy-agent@^6.0.0` ↗︎](https://www.npmjs.com/package/https-proxy-agent/v/6.0.0) (from `^5.0.0`, in `dependencies`)
+- [#5252](https://github.com/ardatan/graphql-tools/pull/5252)
+  [`8f79ded2`](https://github.com/ardatan/graphql-tools/commit/8f79ded25b82f68b8950ef326c90d4414f780912)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`https-proxy-agent@^6.0.0` ↗︎](https://www.npmjs.com/package/https-proxy-agent/v/6.0.0) (from
+    `^5.0.0`, in `dependencies`)
 
 ## 7.2.71
 
 ### Patch Changes
 
-- [`bba3d32f`](https://github.com/ardatan/graphql-tools/commit/bba3d32f6c60c32530ba2e48aadb9baaf985978c) Thanks [@ardatan](https://github.com/ardatan)! - Unpin url loader
+- [`bba3d32f`](https://github.com/ardatan/graphql-tools/commit/bba3d32f6c60c32530ba2e48aadb9baaf985978c)
+  Thanks [@ardatan](https://github.com/ardatan)! - Unpin url loader
 
 ## 7.2.70
 
 ### Patch Changes
 
-- [#5166](https://github.com/ardatan/graphql-tools/pull/5166) [`807c9b54`](https://github.com/ardatan/graphql-tools/commit/807c9b547369903575c1182f891e9a89aadbaeb8) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+- [#5166](https://github.com/ardatan/graphql-tools/pull/5166)
+  [`807c9b54`](https://github.com/ardatan/graphql-tools/commit/807c9b547369903575c1182f891e9a89aadbaeb8)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
 
-  - Updated dependency [`graphql-request@^6.0.0` ↗︎](https://www.npmjs.com/package/graphql-request/v/6.0.0) (from `^5.0.0`, in `dependencies`)
+  - Updated dependency
+    [`graphql-request@^6.0.0` ↗︎](https://www.npmjs.com/package/graphql-request/v/6.0.0) (from
+    `^5.0.0`, in `dependencies`)
 
-- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41)
+  Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
 
 - Updated dependencies []:
   - @graphql-tools/url-loader@7.17.18
@@ -59,14 +103,16 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`07589ae9`](https://github.com/ardatan/graphql-tools/commit/07589ae97499a4668b0bd24caa1e52ef8fcfd0e5)]:
+- Updated dependencies
+  [[`07589ae9`](https://github.com/ardatan/graphql-tools/commit/07589ae97499a4668b0bd24caa1e52ef8fcfd0e5)]:
   - @graphql-tools/url-loader@7.17.17
 
 ## 7.2.68
 
 ### Patch Changes
 
-- Updated dependencies [[`58414b26`](https://github.com/ardatan/graphql-tools/commit/58414b2606c13c77f2d3a3015b9931c587272b6b)]:
+- Updated dependencies
+  [[`58414b26`](https://github.com/ardatan/graphql-tools/commit/58414b2606c13c77f2d3a3015b9931c587272b6b)]:
   - @graphql-tools/url-loader@7.17.16
 
 ## 7.2.67
@@ -80,7 +126,8 @@
 
 ### Patch Changes
 
-- [`6df5c021`](https://github.com/ardatan/graphql-tools/commit/6df5c021c18e9ec10f700c910e79e7cae5558ce2) Thanks [@ardatan](https://github.com/ardatan)! - Replace isomorphic-fetch with @whatwg-node/fetch
+- [`6df5c021`](https://github.com/ardatan/graphql-tools/commit/6df5c021c18e9ec10f700c910e79e7cae5558ce2)
+  Thanks [@ardatan](https://github.com/ardatan)! - Replace isomorphic-fetch with @whatwg-node/fetch
 
 ## 7.2.65
 
@@ -100,21 +147,25 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`1b948acc`](https://github.com/ardatan/graphql-tools/commit/1b948accf76366f45f69fe212e0d600a85eb6a89)]:
+- Updated dependencies
+  [[`1b948acc`](https://github.com/ardatan/graphql-tools/commit/1b948accf76366f45f69fe212e0d600a85eb6a89)]:
   - @graphql-tools/url-loader@7.17.12
 
 ## 7.2.62
 
 ### Patch Changes
 
-- Updated dependencies [[`ab4cf86b`](https://github.com/ardatan/graphql-tools/commit/ab4cf86bf1330deacd95ecea2fcca54dd6590da1)]:
+- Updated dependencies
+  [[`ab4cf86b`](https://github.com/ardatan/graphql-tools/commit/ab4cf86bf1330deacd95ecea2fcca54dd6590da1)]:
   - @graphql-tools/url-loader@7.17.11
 
 ## 7.2.61
 
 ### Patch Changes
 
-- Updated dependencies [[`b09ea282`](https://github.com/ardatan/graphql-tools/commit/b09ea282f0945fb19f354af57aabddcd23b2a155), [`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af)]:
+- Updated dependencies
+  [[`b09ea282`](https://github.com/ardatan/graphql-tools/commit/b09ea282f0945fb19f354af57aabddcd23b2a155),
+  [`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af)]:
   - @graphql-tools/url-loader@7.17.10
   - @graphql-tools/utils@9.2.1
 
@@ -129,7 +180,9 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`a94217e9`](https://github.com/ardatan/graphql-tools/commit/a94217e920c5d6237471ab6ad4d96cf230984177), [`62d074be`](https://github.com/ardatan/graphql-tools/commit/62d074be48779b1e096e056ca1233822c421dc99)]:
+- Updated dependencies
+  [[`a94217e9`](https://github.com/ardatan/graphql-tools/commit/a94217e920c5d6237471ab6ad4d96cf230984177),
+  [`62d074be`](https://github.com/ardatan/graphql-tools/commit/62d074be48779b1e096e056ca1233822c421dc99)]:
   - @graphql-tools/utils@9.2.0
   - @graphql-tools/url-loader@7.17.8
 
@@ -165,7 +218,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`1c291f33`](https://github.com/ardatan/graphql-tools/commit/1c291f33ba5e42126b5335530c1ac4cd6b3eaf6a)]:
+- Updated dependencies
+  [[`1c291f33`](https://github.com/ardatan/graphql-tools/commit/1c291f33ba5e42126b5335530c1ac4cd6b3eaf6a)]:
   - @graphql-tools/url-loader@7.17.3
 
 ## 7.2.53
@@ -186,9 +240,17 @@
 
 ### Patch Changes
 
-- [#4930](https://github.com/ardatan/graphql-tools/pull/4930) [`cbc2fa8b`](https://github.com/ardatan/graphql-tools/commit/cbc2fa8b9f057f32f56088742c02e7b6628d84cb) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`@types/jsonwebtoken@^9.0.0` ↗︎](https://www.npmjs.com/package/@types/jsonwebtoken/v/9.0.0) (from `^8.5.0`, in `dependencies`)
-- Updated dependencies [[`0e5d250c`](https://github.com/ardatan/graphql-tools/commit/0e5d250cbac7ab003c45020b5ea464a8924eed01), [`1c4853cb`](https://github.com/ardatan/graphql-tools/commit/1c4853cb8563d83c0d862d3c11257c48c7d1469c), [`499365aa`](https://github.com/ardatan/graphql-tools/commit/499365aa3f33148a47e708351416b6a54c17655a), [`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591)]:
+- [#4930](https://github.com/ardatan/graphql-tools/pull/4930)
+  [`cbc2fa8b`](https://github.com/ardatan/graphql-tools/commit/cbc2fa8b9f057f32f56088742c02e7b6628d84cb)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@types/jsonwebtoken@^9.0.0` ↗︎](https://www.npmjs.com/package/@types/jsonwebtoken/v/9.0.0)
+    (from `^8.5.0`, in `dependencies`)
+- Updated dependencies
+  [[`0e5d250c`](https://github.com/ardatan/graphql-tools/commit/0e5d250cbac7ab003c45020b5ea464a8924eed01),
+  [`1c4853cb`](https://github.com/ardatan/graphql-tools/commit/1c4853cb8563d83c0d862d3c11257c48c7d1469c),
+  [`499365aa`](https://github.com/ardatan/graphql-tools/commit/499365aa3f33148a47e708351416b6a54c17655a),
+  [`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591)]:
   - @graphql-tools/url-loader@7.17.0
   - @graphql-tools/utils@9.1.4
 
@@ -203,8 +265,12 @@
 
 ### Patch Changes
 
-- [#4923](https://github.com/ardatan/graphql-tools/pull/4923) [`c10d688b`](https://github.com/ardatan/graphql-tools/commit/c10d688b33f1ba46a2269b589cea7bab1b05d283) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`jsonwebtoken@^9.0.0` ↗︎](https://www.npmjs.com/package/jsonwebtoken/v/9.0.0) (from `^8.5.1`, in `dependencies`)
+- [#4923](https://github.com/ardatan/graphql-tools/pull/4923)
+  [`c10d688b`](https://github.com/ardatan/graphql-tools/commit/c10d688b33f1ba46a2269b589cea7bab1b05d283)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`jsonwebtoken@^9.0.0` ↗︎](https://www.npmjs.com/package/jsonwebtoken/v/9.0.0) (from `^8.5.1`,
+    in `dependencies`)
 
 ## 7.2.48
 
@@ -238,7 +304,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759)]:
+- Updated dependencies
+  [[`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759)]:
   - @graphql-tools/utils@9.1.3
   - @graphql-tools/url-loader@7.16.24
 
@@ -246,7 +313,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`13c24883`](https://github.com/ardatan/graphql-tools/commit/13c24883004d5330f7402cb20566e37535c5729b)]:
+- Updated dependencies
+  [[`13c24883`](https://github.com/ardatan/graphql-tools/commit/13c24883004d5330f7402cb20566e37535c5729b)]:
   - @graphql-tools/utils@9.1.2
   - @graphql-tools/url-loader@7.16.23
 
@@ -296,7 +364,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`7411a5e7`](https://github.com/ardatan/graphql-tools/commit/7411a5e71a8138d9ccfe907b1fb01e62fcbb0cdb)]:
+- Updated dependencies
+  [[`7411a5e7`](https://github.com/ardatan/graphql-tools/commit/7411a5e71a8138d9ccfe907b1fb01e62fcbb0cdb)]:
   - @graphql-tools/utils@9.1.1
   - @graphql-tools/url-loader@7.16.16
 
@@ -311,21 +380,25 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`e2fc041e`](https://github.com/ardatan/graphql-tools/commit/e2fc041e6f751c70efc20e8a02cbf88da0b905d2)]:
+- Updated dependencies
+  [[`e2fc041e`](https://github.com/ardatan/graphql-tools/commit/e2fc041e6f751c70efc20e8a02cbf88da0b905d2)]:
   - @graphql-tools/url-loader@7.16.14
 
 ## 7.2.33
 
 ### Patch Changes
 
-- Updated dependencies [[`61812ccb`](https://github.com/ardatan/graphql-tools/commit/61812ccb97d6e179e74d72661dd0736f6ca0a7ff), [`61812ccb`](https://github.com/ardatan/graphql-tools/commit/61812ccb97d6e179e74d72661dd0736f6ca0a7ff)]:
+- Updated dependencies
+  [[`61812ccb`](https://github.com/ardatan/graphql-tools/commit/61812ccb97d6e179e74d72661dd0736f6ca0a7ff),
+  [`61812ccb`](https://github.com/ardatan/graphql-tools/commit/61812ccb97d6e179e74d72661dd0736f6ca0a7ff)]:
   - @graphql-tools/url-loader@7.16.13
 
 ## 7.2.32
 
 ### Patch Changes
 
-- Updated dependencies [[`c0639dd0`](https://github.com/ardatan/graphql-tools/commit/c0639dd0065db1b5bcedaabf58b11945714bab8d)]:
+- Updated dependencies
+  [[`c0639dd0`](https://github.com/ardatan/graphql-tools/commit/c0639dd0065db1b5bcedaabf58b11945714bab8d)]:
   - @graphql-tools/utils@9.1.0
   - @graphql-tools/url-loader@7.16.12
 
@@ -340,7 +413,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`d83b1960`](https://github.com/ardatan/graphql-tools/commit/d83b19605be71481ccf8effd80d5254423ea811a)]:
+- Updated dependencies
+  [[`d83b1960`](https://github.com/ardatan/graphql-tools/commit/d83b19605be71481ccf8effd80d5254423ea811a)]:
   - @graphql-tools/url-loader@7.16.10
   - @graphql-tools/utils@9.0.1
 
@@ -362,7 +436,12 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`8f6d3efc`](https://github.com/ardatan/graphql-tools/commit/8f6d3efc92b25236f5a3a761ea7ba2f0a7c7f550), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931)]:
+- Updated dependencies
+  [[`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`8f6d3efc`](https://github.com/ardatan/graphql-tools/commit/8f6d3efc92b25236f5a3a761ea7ba2f0a7c7f550),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931)]:
   - @graphql-tools/utils@9.0.0
   - @graphql-tools/url-loader@7.16.7
 
@@ -370,7 +449,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`f7daf777`](https://github.com/ardatan/graphql-tools/commit/f7daf7777cc214801886e4a45c0389bc5837d175)]:
+- Updated dependencies
+  [[`f7daf777`](https://github.com/ardatan/graphql-tools/commit/f7daf7777cc214801886e4a45c0389bc5837d175)]:
   - @graphql-tools/utils@8.13.1
   - @graphql-tools/url-loader@7.16.6
 
@@ -378,7 +458,11 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`884c7ef7`](https://github.com/ardatan/graphql-tools/commit/884c7ef7bc549421fad6cbf38616d4a9eb9f8738), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f)]:
+- Updated dependencies
+  [[`884c7ef7`](https://github.com/ardatan/graphql-tools/commit/884c7ef7bc549421fad6cbf38616d4a9eb9f8738),
+  [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f),
+  [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f),
+  [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f)]:
   - @graphql-tools/url-loader@7.16.5
   - @graphql-tools/utils@8.13.0
 
@@ -407,7 +491,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`43c736bd`](https://github.com/ardatan/graphql-tools/commit/43c736bd1865c00898966a7ed14060496c9e6a0c)]:
+- Updated dependencies
+  [[`43c736bd`](https://github.com/ardatan/graphql-tools/commit/43c736bd1865c00898966a7ed14060496c9e6a0c)]:
   - @graphql-tools/utils@8.12.0
   - @graphql-tools/url-loader@7.16.1
 
@@ -415,25 +500,37 @@
 
 ### Patch Changes
 
-- [#4678](https://github.com/ardatan/graphql-tools/pull/4678) [`1b0988a4`](https://github.com/ardatan/graphql-tools/commit/1b0988a42ca83a21e5a30284f83bd78ecbaf2e90) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+- [#4678](https://github.com/ardatan/graphql-tools/pull/4678)
+  [`1b0988a4`](https://github.com/ardatan/graphql-tools/commit/1b0988a42ca83a21e5a30284f83bd78ecbaf2e90)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
 
-  - Updated dependency [`graphql-request@^5.0.0` ↗︎](https://www.npmjs.com/package/graphql-request/v/null) (from `^4.0.0`, in `dependencies`)
+  - Updated dependency
+    [`graphql-request@^5.0.0` ↗︎](https://www.npmjs.com/package/graphql-request/v/null) (from
+    `^4.0.0`, in `dependencies`)
 
-- Updated dependencies [[`939e07ca`](https://github.com/ardatan/graphql-tools/commit/939e07cae38ff179e00c2ff2a23b70f6259971ef), [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b), [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b), [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b), [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b)]:
+- Updated dependencies
+  [[`939e07ca`](https://github.com/ardatan/graphql-tools/commit/939e07cae38ff179e00c2ff2a23b70f6259971ef),
+  [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b),
+  [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b),
+  [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b),
+  [`dd8886d1`](https://github.com/ardatan/graphql-tools/commit/dd8886d1534fdf73b7cfb6d54b13a3db5812b38b)]:
   - @graphql-tools/url-loader@7.16.0
 
 ## 7.2.19
 
 ### Patch Changes
 
-- Updated dependencies [[`2926a270`](https://github.com/ardatan/graphql-tools/commit/2926a27098a94469306664add1f8c232ac6de6e7)]:
+- Updated dependencies
+  [[`2926a270`](https://github.com/ardatan/graphql-tools/commit/2926a27098a94469306664add1f8c232ac6de6e7)]:
   - @graphql-tools/url-loader@7.15.0
 
 ## 7.2.18
 
 ### Patch Changes
 
-- Updated dependencies [[`71cb4fae`](https://github.com/ardatan/graphql-tools/commit/71cb4faeb0833a228520a7bc2beed8ac7274443f), [`403ed450`](https://github.com/ardatan/graphql-tools/commit/403ed4507eff7cd509f410f7542a702da72e1a9a)]:
+- Updated dependencies
+  [[`71cb4fae`](https://github.com/ardatan/graphql-tools/commit/71cb4faeb0833a228520a7bc2beed8ac7274443f),
+  [`403ed450`](https://github.com/ardatan/graphql-tools/commit/403ed4507eff7cd509f410f7542a702da72e1a9a)]:
   - @graphql-tools/utils@8.11.0
   - @graphql-tools/url-loader@7.14.3
 
@@ -441,14 +538,17 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`f8610d24`](https://github.com/ardatan/graphql-tools/commit/f8610d240083a621852c21342139c12d736ac6af)]:
+- Updated dependencies
+  [[`f8610d24`](https://github.com/ardatan/graphql-tools/commit/f8610d240083a621852c21342139c12d736ac6af)]:
   - @graphql-tools/url-loader@7.14.2
 
 ## 7.2.16
 
 ### Patch Changes
 
-- Updated dependencies [[`5e9b1c06`](https://github.com/ardatan/graphql-tools/commit/5e9b1c066ed02fcac54cd79080c89e327d8d2f53), [`4fe3d9c0`](https://github.com/ardatan/graphql-tools/commit/4fe3d9c037e9c138bd8a9b04b3977d74eba32c97)]:
+- Updated dependencies
+  [[`5e9b1c06`](https://github.com/ardatan/graphql-tools/commit/5e9b1c066ed02fcac54cd79080c89e327d8d2f53),
+  [`4fe3d9c0`](https://github.com/ardatan/graphql-tools/commit/4fe3d9c037e9c138bd8a9b04b3977d74eba32c97)]:
   - @graphql-tools/url-loader@7.14.1
   - @graphql-tools/utils@8.10.1
 
@@ -456,34 +556,45 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`768432c8`](https://github.com/ardatan/graphql-tools/commit/768432c8f75a5684de802988bed1df814a9ef191)]:
+- Updated dependencies
+  [[`768432c8`](https://github.com/ardatan/graphql-tools/commit/768432c8f75a5684de802988bed1df814a9ef191)]:
   - @graphql-tools/url-loader@7.14.0
 
 ## 7.2.14
 
 ### Patch Changes
 
-- Updated dependencies [[`b6f1f5ce`](https://github.com/ardatan/graphql-tools/commit/b6f1f5ce847cc1e12da29f7adc1be298c32d1162)]:
+- Updated dependencies
+  [[`b6f1f5ce`](https://github.com/ardatan/graphql-tools/commit/b6f1f5ce847cc1e12da29f7adc1be298c32d1162)]:
   - @graphql-tools/url-loader@7.13.9
 
 ## 7.2.13
 
 ### Patch Changes
 
-- [#4640](https://github.com/ardatan/graphql-tools/pull/4640) [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+- [#4640](https://github.com/ardatan/graphql-tools/pull/4640)
+  [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
 
-  - Updated dependency [`@graphql-tools/url-loader@7.13.7` ↗︎](https://www.npmjs.com/package/@graphql-tools/url-loader/v/7.13.7) (was `7.13.6`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/url-loader@7.13.7` ↗︎](https://www.npmjs.com/package/@graphql-tools/url-loader/v/7.13.7)
+    (was `7.13.6`, in `dependencies`)
 
-- Updated dependencies [[`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d), [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d), [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d)]:
+- Updated dependencies
+  [[`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d),
+  [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d),
+  [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d)]:
   - @graphql-tools/url-loader@7.13.8
 
 ## 7.2.12
 
 ### Patch Changes
 
-- [`0555a972`](https://github.com/ardatan/graphql-tools/commit/0555a972f010d2b3ca93b9164b26474a78d0b20b) Thanks [@ardatan](https://github.com/ardatan)! - Bump versions
+- [`0555a972`](https://github.com/ardatan/graphql-tools/commit/0555a972f010d2b3ca93b9164b26474a78d0b20b)
+  Thanks [@ardatan](https://github.com/ardatan)! - Bump versions
 
-- Updated dependencies [[`0555a972`](https://github.com/ardatan/graphql-tools/commit/0555a972f010d2b3ca93b9164b26474a78d0b20b)]:
+- Updated dependencies
+  [[`0555a972`](https://github.com/ardatan/graphql-tools/commit/0555a972f010d2b3ca93b9164b26474a78d0b20b)]:
   - @graphql-tools/url-loader@7.13.7
 
 ## 7.2.11
@@ -497,7 +608,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27)]:
+- Updated dependencies
+  [[`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27)]:
   - @graphql-tools/utils@8.10.0
   - @graphql-tools/url-loader@7.13.5
 
@@ -505,9 +617,13 @@
 
 ### Patch Changes
 
-- [#4624](https://github.com/ardatan/graphql-tools/pull/4624) [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with `moduleResolution` `node16` or `nodenext`
+- [#4624](https://github.com/ardatan/graphql-tools/pull/4624)
+  [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with
+  `moduleResolution` `node16` or `nodenext`
 
-- Updated dependencies [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)]:
+- Updated dependencies
+  [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)]:
   - @graphql-tools/url-loader@7.13.4
   - @graphql-tools/utils@8.9.1
 
@@ -838,11 +954,14 @@
 
 - 1c039fd3: BREAKING CHANGE
 
-  - Now each loader handles glob patterns internally and returns an array of `Source` object instead of single `Source`
+  - Now each loader handles glob patterns internally and returns an array of `Source` object instead
+    of single `Source`
 
-  - GraphQL Tag Pluck now respects code locations and returns graphql-js `Source` objects for each found code block
+  - GraphQL Tag Pluck now respects code locations and returns graphql-js `Source` objects for each
+    found code block
 
-  - Thanks to the one above, `CodeFileLoader` now returns different `Source` objects for each found SDL code block.
+  - Thanks to the one above, `CodeFileLoader` now returns different `Source` objects for each found
+    SDL code block.
 
 ## 6.3.1
 

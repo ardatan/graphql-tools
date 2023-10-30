@@ -1,5 +1,17 @@
 # @graphql-tools/utils
 
+## 10.0.8
+
+### Patch Changes
+
+- [`accd58fd`](https://github.com/ardatan/graphql-tools/commit/accd58fdcf2698422f7e99173206168a84fe17a8)
+  Thanks [@ardatan](https://github.com/ardatan)! - Extract `inspect` into the new `cross-inspect`
+  package
+
+- Updated dependencies
+  [[`accd58fd`](https://github.com/ardatan/graphql-tools/commit/accd58fdcf2698422f7e99173206168a84fe17a8)]:
+  - cross-inspect@1.0.0
+
 ## 10.0.7
 
 ### Patch Changes
