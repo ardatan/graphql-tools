@@ -7,6 +7,7 @@ import { buildHTTPExecutor } from '../src';
 describe('Retry & Timeout', () => {
   if (process.version.startsWith('v16.')) {
     it('skip on node 16', () => {});
+    return;
   }
   let server: Server;
   const sockets = new Set<Socket>();
