@@ -26,7 +26,7 @@ interface Node @subschemaInterfaceType(subschema: "Users", type: "Node") @subsch
   id: ID! @subschemaInterfaceField(subschema: "Users", type: "Node", field: "id") @subschemaInterfaceField(subschema: "Posts", type: "Node", field: "id")
 }
 
-type User implements Node @subschemaObjectType(subschema: "Users", type: "User", implements: ["Node"]) @subschemaObjectType(subschema: "Posts", type: "User", implements: ["Node"]) @merge(subschema: "Users", selectionSet: "{ id }", key: "({\\n          id\\n        }) => id", fieldName: "users", argsFromKeys: "ids => ({\\n          ids\\n        })") {
+type User implements Node @subschemaObjectType(subschema: "Users", type: "User", implements: ["Node"]) @subschemaObjectType(subschema: "Posts", type: "User", implements: ["Node"]) @merge(subschema: "Users", selectionSet: "{ id }", fieldName: "users", key: "pickIdFromRoot", argsFromKeys: "argsWithIdsFromIds") {
   id: ID! @subschemaObjectField(subschema: "Users", type: "User", field: "id") @subschemaObjectField(subschema: "Posts", type: "User", field: "id")
   name: String! @subschemaObjectField(subschema: "Users", type: "User", field: "name")
 }

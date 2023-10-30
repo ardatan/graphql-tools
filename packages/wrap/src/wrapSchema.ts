@@ -68,10 +68,17 @@ function createWrappingSchema(
           addDirectiveExtensions(newConfig, {
             merge: {
               subschema: subschemaConfig.name,
-              selectionSet: subschemaConfig.merge?.[type.name]?.selectionSet,
-              key: subschemaConfig.merge?.[type.name]?.key?.toString(),
-              fieldName: subschemaConfig.merge?.[type.name]?.fieldName,
-              argsFromKeys: subschemaConfig.merge?.[type.name]?.argsFromKeys?.toString(),
+              selectionSet: typeMergingOptions.selectionSet,
+              fieldName: typeMergingOptions.fieldName,
+
+              // batching
+              key: typeMergingOptions.key?.name,
+              argsFromKeys: typeMergingOptions.argsFromKeys?.name,
+
+              // regular
+              args: typeMergingOptions.args?.name,
+              valuesFromResults: typeMergingOptions.valuesFromResults?.name,
+              resolve: typeMergingOptions.resolve?.name,
             },
           });
         }

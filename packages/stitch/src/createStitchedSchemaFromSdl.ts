@@ -1,15 +1,28 @@
-/* eslint-disable no-eval */
 import { buildASTSchema, DocumentNode, parse, SchemaDefinitionNode, visit } from 'graphql';
 import { MergedTypeConfig, SubschemaConfig } from '@graphql-tools/delegate';
 import { Executor } from '@graphql-tools/utils';
 import { stitchSchemas } from './stitchSchemas.js';
 
+export interface SerializedSchemaFunctionMap {
+  KeyFn<TRoot, TKey>(root: TRoot): TKey;
+  ArgsFromKeysFn(keys: readonly any[]): any;
+  ExecutorFn: Executor;
+}
+
 export function createStichedSchemaFromSdl(
   sdl: string | DocumentNode,
-  subschemaExecutorMap: Map<string, Executor>,
+  onSerializedSchemaFunction: <
+    TSerializedSchemaFunctionType extends keyof SerializedSchemaFunctionMap,
+    TSerializedSchemaFunction extends SerializedSchemaFunctionMap[TSerializedSchemaFunctionType],
+  >(
+    type: TSerializedSchemaFunctionType,
+    fnName: string,
+    subschemaName: string,
+  ) => TSerializedSchemaFunction | undefined,
 ) {
   const documentNode = typeof sdl === 'string' ? parse(sdl) : sdl;
-  const { subschemaNames } = extractSubschemaNamesAndExecutors(documentNode);
+  const { subschemaNames, subschemaNameExecutorMap } =
+    extractSubschemaNamesAndExecutors(documentNode);
   const subschemas: SubschemaConfig[] = [];
   for (const subschemaName of subschemaNames) {
     let mergedTypeConfigMap: Record<string, MergedTypeConfig> | undefined;
@@ -76,12 +89,20 @@ export function createStichedSchemaFromSdl(
                   } else if (argumentNode.name.value === 'key') {
                     const keyArgValue = argumentNode.value;
                     if (keyArgValue.kind === 'StringValue') {
-                      mergedTypeConfig.key = eval(keyArgValue.value) as any;
+                      mergedTypeConfig.key = onSerializedSchemaFunction(
+                        'KeyFn',
+                        keyArgValue.value,
+                        subschemaName,
+                      );
                     }
                   } else if (argumentNode.name.value === 'argsFromKeys') {
                     const argsFromKeysArgValue = argumentNode.value;
                     if (argsFromKeysArgValue.kind === 'StringValue') {
-                      mergedTypeConfig.argsFromKeys = eval(argsFromKeysArgValue.value) as any;
+                      mergedTypeConfig.argsFromKeys = onSerializedSchemaFunction(
+                        'ArgsFromKeysFn',
+                        argsFromKeysArgValue.value,
+                        subschemaName,
+                      );
                     }
                   }
                 }
@@ -284,11 +305,15 @@ export function createStichedSchemaFromSdl(
       assumeValid: true,
       assumeValidSDL: true,
     });
+    const executorName = subschemaNameExecutorMap.get(subschemaName);
+    const executor: Executor | undefined = executorName
+      ? onSerializedSchemaFunction('ExecutorFn', executorName, subschemaName)
+      : undefined;
     subschemas.push({
       name: subschemaName,
       schema,
       merge: mergedTypeConfigMap,
-      executor: subschemaExecutorMap.get(subschemaName),
+      executor,
     });
   }
   return stitchSchemas({

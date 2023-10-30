@@ -7,6 +7,12 @@ import { createStichedSchemaFromSdl } from '../src/createStitchedSchemaFromSdl';
 import { stitchSchemas } from '../src/stitchSchemas';
 
 describe('New Directives', () => {
+  function pickIdFromRoot(root: any) {
+    return root.id;
+  }
+  function argsWithIdsFromIds(ids: readonly string[]) {
+    return { ids };
+  }
   const users = [
     {
       id: '0',
@@ -56,8 +62,8 @@ describe('New Directives', () => {
         User: {
           fieldName: 'users',
           selectionSet: '{ id }',
-          key: ({ id }) => id,
-          argsFromKeys: ids => ({ ids }),
+          key: pickIdFromRoot,
+          argsFromKeys: argsWithIdsFromIds,
         },
       },
     },
@@ -125,12 +131,25 @@ describe('New Directives', () => {
   it('adds directives to the output', async () => {
     expect(stitchedSdl).toMatchSnapshot('schema-with-directives');
   });
-  const stitchedFromSDL = createStichedSchemaFromSdl(
-    stitchedSdl,
-    new Map(
-      subschemas.map(subschema => [subschema.name!, createDefaultExecutor(subschema.schema)]),
-    ),
-  );
+  const stitchedFromSDL = createStichedSchemaFromSdl(stitchedSdl, (type, fnName, subschemaName) => {
+    const subschema = subschemas.find(s => s.name === subschemaName);
+    if (subschema) {
+      switch (type) {
+        case 'ExecutorFn':
+          return createDefaultExecutor(subschema.schema);
+        case 'KeyFn':
+          if (fnName === 'pickIdFromRoot') {
+            return pickIdFromRoot;
+          }
+          break;
+        case 'ArgsFromKeysFn':
+          if (fnName === 'argsWithIdsFromIds') {
+            return argsWithIdsFromIds;
+          }
+          break;
+      }
+    }
+  });
   it('consumes the SDL, and create an executable schema which is identical to the original as an SDL', async () => {
     expect(printSchemaWithDirectives(stitchedFromSDL)).toEqual(stitchedSdl);
   });
