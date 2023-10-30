@@ -1,3 +1,4 @@
+import { inspect } from 'cross-inspect';
 import {
   GraphQLInputType,
   isEnumType,
@@ -10,7 +11,6 @@ import {
   ValueNode,
 } from 'graphql';
 import { astFromValueUntyped } from './astFromValueUntyped.js';
-import { inspect } from './inspect.js';
 import { isIterableObject, isObjectLike } from './jsutils.js';
 import { Maybe } from './types.js';
 

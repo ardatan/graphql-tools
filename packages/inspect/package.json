@@ -1,13 +1,14 @@
 {
-  "name": "@graphql-tools/executor",
-  "version": "1.2.0",
+  "name": "cross-inspect",
+  "version": "0.0.0",
   "type": "module",
+  "description": "Cross platform implementation of Node's util.inspect",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ardatan/graphql-tools.git",
-    "directory": "packages/executor"
+    "url": "ardatan/graphql-tools",
+    "directory": "packages/inspect"
   },
-  "author": "Saihajpreet Singh <saihajpreet.singh@gmail.com>",
+  "author": "Arda TANRIKULU <ardatanrikulu@gmail.com>",
   "license": "MIT",
   "engines": {
     "node": ">=16.0.0"
@@ -46,33 +47,14 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
-  "keywords": [
-    "gql",
-    "graphql",
-    "typescript"
-  ],
-  "peerDependencies": {
-    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
-  },
   "dependencies": {
-    "@graphql-tools/utils": "^10.0.0",
-    "@graphql-typed-document-node/core": "3.2.0",
-    "@repeaterjs/repeater": "^3.0.4",
-    "tslib": "^2.4.0",
-    "value-or-promise": "^1.0.12"
-  },
-  "devDependencies": {
-    "cross-inspect": "0.0.0",
-    "graphql": "^16.6.0"
+    "tslib": "^2.4.0"
   },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
   },
   "sideEffects": false,
-  "buildOptions": {
-    "input": "./src/index.ts"
-  },
   "typescript": {
     "definition": "dist/typings/index.d.ts"
   }

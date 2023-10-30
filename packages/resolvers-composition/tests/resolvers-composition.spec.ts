@@ -1,8 +1,8 @@
+import { inspect } from 'cross-inspect';
 import { GraphQLScalarType, Kind } from 'graphql';
 import gql from 'graphql-tag';
 import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { inspect } from '@graphql-tools/utils';
 import { composeResolvers, ResolversComposerMapping } from '../src/index.js';
 
 function createAsyncIterator<T>(array: T[]): AsyncIterator<T, T, T> {

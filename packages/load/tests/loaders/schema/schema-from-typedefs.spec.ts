@@ -1,8 +1,8 @@
 import path from 'path';
+import { inspect } from 'cross-inspect';
 import { CodeFileLoader } from '@graphql-tools/code-file-loader';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
-import { inspect } from '@graphql-tools/utils';
 import { runTests, useMonorepo } from '../../../../testing/utils.js';
 
 const monorepo = useMonorepo({

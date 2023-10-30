@@ -44,7 +44,7 @@ export * from './withCancel.js';
 export * from './rootTypes.js';
 export * from './comments.js';
 export * from './collectFields.js';
-export * from './inspect.js';
+export { inspect } from 'cross-inspect';
 export * from './memoize.js';
 export * from './fixSchemaAst.js';
 export * from './getOperationASTFromRequest.js';
