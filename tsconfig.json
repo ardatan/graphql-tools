@@ -35,6 +35,7 @@
         "packages/*-loader/src/index.ts"
       ],
       "@graphql-tools/executor-*": ["packages/executors/*/src/index.ts"],
+      "@graphql-tools/fusion-*": ["packages/fusion/*/src/index.ts"],
       "@graphql-tools/*": ["packages/*/src/index.ts"]
     }
   },

@@ -1,0 +1,522 @@
+import {
+  FieldNode,
+  FragmentDefinitionNode,
+  isObjectType,
+  Kind,
+  OperationDefinitionNode,
+  parse,
+  SelectionNode,
+  TypeInfo,
+  visit,
+  visitWithTypeInfo,
+} from 'graphql';
+import {
+  collectFields,
+  ExecutionRequest,
+  getDirectives,
+  getRootTypeMap,
+} from '@graphql-tools/utils';
+import {
+  ParallelNode,
+  PlanNode,
+  ResolveNode,
+  ResolverConfig,
+  ResolverVariableConfig,
+  SequenceNode,
+} from './types.js';
+import { visitResolutionPath } from './visitResolutionPath.js';
+import { getFieldDef } from '@graphql-tools/executor';
+import { ProcessedSupergraph } from './processSupergraph.js';
+
+interface QueryPlanner {
+  plan(executionRequest: ExecutionRequest): PlanNode;
+  _plan(
+    resolverDirective: ResolverConfig,
+    parentSelections: SelectionNode[],
+    selectionId?: number,
+    variableStateMap?: Map<string, string>,
+    selectionFieldName?: string,
+  ): PlanNode;
+}
+
+export function createQueryPlannerFromProcessedSupergraph(
+  {
+    supergraphSchema,
+    subgraphSchemas,
+  }: ProcessedSupergraph,
+): QueryPlanner {
+  const rootTypeMap = getRootTypeMap(supergraphSchema);
+
+  let uniqueStateId = 0;
+  let uniqueSelectionId = 0;
+  return {
+    plan(executionRequest: ExecutionRequest) {
+      const fragments: Record<string, FragmentDefinitionNode> = Object.create(null);
+      let operationDefinition: OperationDefinitionNode | undefined;
+      for (const definition of executionRequest.document.definitions) {
+        if (definition.kind === Kind.FRAGMENT_DEFINITION) {
+          fragments[definition.name.value] = definition;
+        } else if (definition.kind === Kind.OPERATION_DEFINITION) {
+          if (executionRequest.operationName === definition.name?.value) {
+            operationDefinition = definition;
+          } else if (operationDefinition?.operation === executionRequest.operationType) {
+            operationDefinition = definition;
+          } else {
+            operationDefinition = definition;
+          }
+        }
+      }
+      if (!operationDefinition) {
+        throw new Error(`No operation definition found`);
+      }
+
+      const rootType = rootTypeMap.get(operationDefinition.operation);
+      if (!rootType) {
+        throw new Error(`No root type found for operation type ${operationDefinition.operation}`);
+      }
+
+      const { fields } = collectFields(
+        supergraphSchema,
+        fragments,
+        executionRequest.variables,
+        rootType,
+        operationDefinition.selectionSet,
+      );
+
+      const rootTypeFieldMap = rootType.getFields();
+      for (const [fieldName, fieldNodes] of fields) {
+        const fieldDef = rootTypeFieldMap[fieldName];
+        if (!fieldDef) {
+          throw new Error(`No field definition found for field ${fieldName}`);
+        }
+        const directives = getDirectives(supergraphSchema, fieldDef);
+        const resolverDirective = directives.find(directive => directive.name === 'resolver')
+          ?.args as ResolverConfig | undefined;
+        if (resolverDirective) {
+          const parentSelections: SelectionNode[] = [
+            ...(fieldNodes[0].selectionSet?.selections || []),
+          ];
+          return this._plan(resolverDirective, parentSelections);
+        }
+      }
+      throw new Error(`No resolver directive found`);
+    },
+    _plan(
+      resolverDirective: ResolverConfig,
+      parentSelections: SelectionNode[],
+      selectionId?: number,
+      variableStateMap?: Map<string, string>,
+      selectionFieldName?: string,
+    ) {
+      const resolverOperationDocument = parse(resolverDirective.operation, { noLocation: true });
+      const subgraphName = resolverDirective.subgraph;
+      const subgraphSchema = subgraphSchemas.get(subgraphName);
+      if (!subgraphSchema) {
+        throw new Error(`No subgraph found for subgraph name ${subgraphName}`);
+      }
+
+      const resolveNode = {
+        type: 'Resolve',
+        subgraph: subgraphName,
+      } as ResolveNode;
+
+      const sequenceNode: SequenceNode = {
+        type: 'Sequence',
+        nodes: [resolveNode],
+      };
+
+      let selectionSetAdded = false;
+      const supergraphTypeInfo = new TypeInfo(supergraphSchema);
+      const missingTypeFieldNodeMap = new Map<string, FieldNode[]>();
+      const missingFieldNodeAncestorPathMap = new WeakMap<FieldNode, string>();
+      resolveNode.document = visit(
+        resolverOperationDocument,
+        visitWithTypeInfo(supergraphTypeInfo, {
+          [Kind.FIELD]: {
+            enter(node: FieldNode, _key, parentNode, path) {
+              const fieldDef = supergraphTypeInfo.getFieldDef();
+              if (!fieldDef) {
+                return node;
+              }
+              const sourceDirective = getDirectives(supergraphSchema, fieldDef).find(
+                directive => (directive.name === 'source') && directive.args?.['subgraph'] === subgraphName,
+              )?.args as any;
+              if (!sourceDirective) {
+                const parentType = supergraphTypeInfo.getParentType();
+                if (!parentType) {
+                  throw new Error(`Expected parent type to be defined`);
+                }
+                let missingFieldNodes = missingTypeFieldNodeMap.get(parentType.name);
+                if (!missingFieldNodes) {
+                  missingFieldNodes = [];
+                  missingTypeFieldNodeMap.set(parentType.name, missingFieldNodes);
+                }
+                if (!Array.isArray(parentNode)) {
+                  throw new Error(`Expected parent node to be an array`);
+                }
+                missingFieldNodes.push(node);
+                missingFieldNodeAncestorPathMap.set(node, path.slice(0, -2).join('.'));
+                return null;
+              }
+              const nodeSelectionName = node.alias?.value || node.name.value;
+              if (!selectionSetAdded && !node.selectionSet) {
+                selectionSetAdded = true;
+                return {
+                  ...node,
+                  ...(selectionId != null
+                    ? {
+                        alias: {
+                          kind: Kind.NAME,
+                        value: selectionFieldName ? `__field__${selectionFieldName}__selection__${selectionId}` : `__selection__${selectionId}`,
+                        },
+                      }
+                    : {}),
+                  selectionSet: parentSelections?.length
+                    ? {
+                        kind: Kind.SELECTION_SET,
+                        selections: parentSelections,
+                      }
+                    : undefined,
+                };
+              } else if (sourceDirective.name) {
+                return {
+                  ...node,
+                  name: {
+                    ...node.name,
+                    value: sourceDirective.name,
+                  },
+                  alias: {
+                    kind: Kind.NAME,
+                    value: nodeSelectionName,
+                  },
+                };
+              }
+            },
+          },
+
+          // Replace variables with unique state names
+          [Kind.VARIABLE_DEFINITION](node) {
+            const stateName = variableStateMap?.get(node.variable.name.value);
+            resolveNode.required = resolveNode.required || {};
+            resolveNode.required.variables = resolveNode.required.variables || [];
+            resolveNode.required.variables.push(stateName || node.variable.name.value);
+            if (stateName) {
+              return {
+                ...node,
+                variable: {
+                  ...node.variable,
+                  name: {
+                    ...node.variable.name,
+                    value: stateName,
+                  },
+                },
+              };
+            }
+          },
+          [Kind.VARIABLE](node) {
+            const stateName = variableStateMap?.get(node.name.value);
+            if (stateName) {
+              return {
+                ...node,
+                name: {
+                  ...node.name,
+                  value: stateName,
+                },
+              };
+            }
+          },
+        }),
+      );
+      // Now resolve the missing fields
+
+      const missingFieldsPlanNode: ParallelNode = {
+        type: 'Parallel',
+        nodes: [],
+      };
+
+      for (const [typeName, missingFieldNodes] of missingTypeFieldNodeMap) {
+        const type = supergraphSchema.getType(typeName);
+        if (!isObjectType(type)) {
+          throw new Error(`Expected type ${typeName} to be an object type`);
+        }
+        const typeDirectives = getDirectives(supergraphSchema, type);
+        const missingFieldNodesByAncestorBySubgraph = new Map<string, Map<string, FieldNode[]>>();
+        const missingFieldNodesWithResolvers = new Map<FieldNode, {
+          resolverDirective: ResolverConfig;
+          variablesForCurrentSubgraph: ResolverVariableConfig[];
+        }>();
+        for (const missingFieldNode of missingFieldNodes) {
+          const fieldDef = getFieldDef(supergraphSchema, type, missingFieldNode);
+          if (!fieldDef) {
+            throw new Error(
+              `No field definition found for field ${missingFieldNode.name.value} on type ${typeName}`,
+            );
+          }
+
+          const fieldDirectives = getDirectives(supergraphSchema, fieldDef);
+
+          const resolverDirective = fieldDirectives.find(directive => directive.name === 'resolver')?.args as ResolverConfig;
+
+          let missingFieldSubgraphName: string;
+          let sourceDirective: any;
+          if (resolverDirective) {
+            const variablesForCurrentSubgraph = fieldDirectives
+              .filter(
+                directive =>
+                  directive.name === 'variable' && directive.args?.['subgraph'] === subgraphName,
+              )
+              .map(directive => directive.args) as ResolverVariableConfig[];
+            missingFieldNodesWithResolvers.set(missingFieldNode, {
+              resolverDirective,
+              variablesForCurrentSubgraph,
+            });
+            missingFieldSubgraphName = resolverDirective.subgraph;
+          } else {
+            sourceDirective = fieldDirectives.find(directive => directive.name === 'source')?.args as any;
+            missingFieldSubgraphName = sourceDirective.subgraph;
+          }
+
+          if (!missingFieldSubgraphName) {
+            throw new Error(
+              `No subgraph found for field ${missingFieldNode.name.value} on type ${typeName}`,
+            );
+          }
+
+          let missingFieldNodesByAncestor =
+            missingFieldNodesByAncestorBySubgraph.get(missingFieldSubgraphName);
+          if (!missingFieldNodesByAncestor) {
+            missingFieldNodesByAncestor = new Map<string, FieldNode[]>();
+            missingFieldNodesByAncestorBySubgraph.set(
+              missingFieldSubgraphName,
+              missingFieldNodesByAncestor,
+            );
+          }
+          const ancestorPath = missingFieldNodeAncestorPathMap.get(missingFieldNode);
+          if (!ancestorPath) {
+            throw new Error(
+              `No ancestor found for field ${missingFieldNode.name.value} on type ${typeName}`,
+            );
+          }
+          let ancestorFieldNodes = missingFieldNodesByAncestor.get(ancestorPath);
+          if (!ancestorFieldNodes) {
+            ancestorFieldNodes = [];
+            missingFieldNodesByAncestor.set(ancestorPath, ancestorFieldNodes);
+          }
+          if (sourceDirective?.name) {
+            ancestorFieldNodes.push({
+              ...missingFieldNode,
+              name: {
+                ...missingFieldNode.name,
+                value: sourceDirective.name,
+              },
+              alias: {
+                kind: Kind.NAME,
+                value: missingFieldNode.alias?.value || missingFieldNode.name.value,
+              },
+            });
+          } else {
+            ancestorFieldNodes.push(missingFieldNode);
+          }
+        }
+
+        const variableSelectionIdByAncestorPath = new Map<string, number>();
+
+        // eslint-disable-next-line no-inner-declarations
+        function processMissingFieldResolvers(
+          resolverDirective: ResolverConfig,
+          variablesForCurrentSubgraph: ResolverVariableConfig[],
+          ancestorPath: string
+          ) {
+          const resolverOperationDocument = parse(resolverDirective.operation, {
+            noLocation: true,
+          });
+          const resolverOperation = resolverOperationDocument
+            .definitions[0] as OperationDefinitionNode;
+          const variablesForResolver = variablesForCurrentSubgraph.filter(
+            variable =>
+              resolverOperation.variableDefinitions?.find(
+                variableDefinition => variableDefinition.variable.name.value === variable.name,
+              ),
+          );
+          const variableStateMap = new Map<string, string>();
+          for (const variableForResolver of variablesForResolver) {
+            const selectionDoc = parse(`{ ${variableForResolver.select} }`, { noLocation: true });
+            const selectionOp = selectionDoc.definitions[0] as OperationDefinitionNode;
+            const selectionSet = selectionOp.selectionSet;
+            const selectionNode = selectionSet.selections[0];
+            let aliased = false;
+            const aliasedSelectionNode = visit(selectionNode, {
+              [Kind.FIELD]: {
+                enter(node: FieldNode) {
+                  if (!aliased && !node.selectionSet) {
+                    aliased = true;
+                    const uniqueVarName = `__variable__${uniqueStateId++}`;
+                    variableStateMap.set(variableForResolver.name, uniqueVarName);
+                    return {
+                      ...node,
+                      alias: {
+                        kind: Kind.NAME,
+                        value: uniqueVarName,
+                      },
+                    };
+                  }
+                },
+              },
+            });
+
+            // Add required selection to the resolve node
+            resolveNode.document = visit(resolveNode.document, {
+              [Kind.SELECTION_SET](node, _key, _parent, path) {
+                if (path.join('.') === ancestorPath) {
+                  const variableSelectionId = variableSelectionIdByAncestorPath.get(ancestorPath);
+                  if (variableSelectionId == null) {
+                    throw new Error(`Expected variable selection id to be defined for ${ancestorPath}`);
+                  }
+                  return {
+                    ...node,
+                    selections: [
+                      {
+                        kind: Kind.FIELD,
+                        name: {
+                          kind: Kind.NAME,
+                          value: '__typename',
+                        },
+                        alias: {
+                          kind: Kind.NAME,
+                          value: `__selection__${variableSelectionId}__typename`,
+                        },
+                      },
+                      aliasedSelectionNode,
+                      ...node.selections,
+                    ],
+                  };
+                }
+              },
+            });
+          }
+          return { variableStateMap };
+        }
+
+        for (const [
+          missingFieldSubgraphName,
+          missingFieldNodesByAncestor,
+        ] of missingFieldNodesByAncestorBySubgraph) {
+          // Check if the field itself has its own resolver
+          for (const [ancestorPath, missingFieldNodes] of missingFieldNodesByAncestor) {
+            let variableSelectionId = variableSelectionIdByAncestorPath.get(ancestorPath);
+            if (variableSelectionId == null) {
+              variableSelectionId = uniqueSelectionId++;
+              variableSelectionIdByAncestorPath.set(ancestorPath, variableSelectionId);
+            }
+            const missingFieldNodesForTypeResolver: FieldNode[] = [];
+            for (const missingFieldNode of missingFieldNodes) {
+              const fieldResolver = missingFieldNodesWithResolvers.get(missingFieldNode);
+              if (fieldResolver) {
+                const { resolverDirective, variablesForCurrentSubgraph } = fieldResolver;
+                const { variableStateMap } = processMissingFieldResolvers(
+                  resolverDirective,
+                  variablesForCurrentSubgraph,
+                  ancestorPath,
+                )
+
+                const missingFieldPlanNode = this._plan(
+                  resolverDirective,
+                  missingFieldNode.selectionSet?.selections || [] as any,
+                  variableSelectionId,
+                  variableStateMap,
+                  missingFieldNode.alias?.value || missingFieldNode.name.value,
+                );
+                missingFieldsPlanNode.nodes.push(missingFieldPlanNode);
+              } else {
+                missingFieldNodesForTypeResolver.push(missingFieldNode);
+              }
+            }
+            if (missingFieldNodesForTypeResolver.length) {
+              const variablesForCurrentSubgraph = typeDirectives
+                .filter(
+                  directive =>
+                    directive.name === 'variable' && directive.args?.['subgraph'] === subgraphName,
+                )
+                .map(directive => directive.args) as ResolverVariableConfig[];
+
+              const resolverDirectives = typeDirectives
+                .filter(
+                  directive =>
+                    directive.name === 'resolver' &&
+                    directive.args?.['subgraph'] === missingFieldSubgraphName,
+                )
+                .map(d => d.args) as ResolverConfig[];
+              // choose the first one for now
+              const resolverDirective = resolverDirectives[0];
+
+              const { variableStateMap } = processMissingFieldResolvers(
+                resolverDirective,
+                variablesForCurrentSubgraph,
+                ancestorPath,
+              )
+
+              const missingFieldPlanNode = this._plan(
+                resolverDirective,
+                missingFieldNodesForTypeResolver,
+                variableSelectionId,
+                variableStateMap,
+              );
+              missingFieldsPlanNode.nodes.push(missingFieldPlanNode);
+            }
+
+          }
+        }
+      }
+
+      if (missingFieldsPlanNode.nodes.length === 1) {
+        const missingFieldsPlanNodeOne = missingFieldsPlanNode.nodes[0];
+        if (missingFieldsPlanNodeOne.type === 'Sequence') {
+          sequenceNode.nodes.push(...missingFieldsPlanNodeOne.nodes);
+        } else {
+          sequenceNode.nodes.push(missingFieldsPlanNodeOne);
+        }
+      } else if (missingFieldsPlanNode.nodes.length > 1) {
+        sequenceNode.nodes.push(missingFieldsPlanNode);
+      }
+
+      visitResolutionPath(resolveNode.document, ({ path }) => {
+        const alias = path[path.length - 1];
+        if (alias.startsWith('__selection__') && alias.endsWith('__typename')) {
+          const stateName = alias.slice(0, -'__typename'.length);
+          resolveNode.required = resolveNode.required || {};
+          resolveNode.required.selections = resolveNode.required.selections || new Map();
+          resolveNode.required.selections.set(stateName, path.slice(0, -1));
+        } else if (alias.startsWith('__variable')) {
+          resolveNode.provided = resolveNode.provided || {};
+          resolveNode.provided.variables = resolveNode.provided.variables || new Map();
+          resolveNode.provided.variables.set(alias, path);
+        } else if (alias.startsWith('__selection__')) {
+          resolveNode.provided = resolveNode.provided || {};
+          resolveNode.provided.selections = resolveNode.provided.selections || new Map();
+          resolveNode.provided.selections.set(alias, path);
+        } else if (alias.startsWith('__field__')) {
+          const regexp = /^__field__(?<fieldName>[^_]+)__selection__(?<selectionId>[^_]+)$/;
+          const match = regexp.exec(alias);
+          if (!match) {
+            throw new Error(`Expected alias ${alias} to match pattern`);
+          }
+          const { fieldName, selectionId } = match.groups!;
+          resolveNode.provided = resolveNode.provided || {};
+          resolveNode.provided.selectionFields = resolveNode.provided.selectionFields || new Map();
+          let selectionFieldMap = resolveNode.provided.selectionFields.get(`__selection__${selectionId}`);
+          if (!selectionFieldMap) {
+            selectionFieldMap = new Map();
+            resolveNode.provided.selectionFields.set(`__selection__${selectionId}`, selectionFieldMap);
+          }
+          selectionFieldMap.set(fieldName, path);
+        }
+      })
+
+      if (sequenceNode.nodes.length === 1) {
+        return sequenceNode.nodes[0];
+      }
+
+      return sequenceNode;
+    },
+  };
+}
