@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@types/is-glob": "4.0.4",
-    "@types/micromatch": "4.0.4"
+    "@types/micromatch": "4.0.5"
   },
   "publishConfig": {
     "directory": "dist",
