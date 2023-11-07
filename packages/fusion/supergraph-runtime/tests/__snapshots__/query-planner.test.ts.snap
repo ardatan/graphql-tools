@@ -1,0 +1,206 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Query Planner & Executor Lists creates a serializable query plan: query-result-Lists 1`] = `
+{
+  "nodes": [
+    {
+      "document": "query RootFoosA {
+  foos {
+    __selection__0__typename: __typename
+    __variable__0: id
+    bar
+  }
+}",
+      "provided": {
+        "variables": {
+          "__variable__0": [
+            "foos",
+            "__variable__0",
+          ],
+        },
+      },
+      "required": {
+        "selections": {
+          "__selection__0": [
+            "foos",
+          ],
+        },
+      },
+      "subgraph": "A",
+      "type": "Resolve",
+    },
+    {
+      "document": "query ResolveFooFromB($__variable__0: ID!) {
+  __selection__0: foo(id: $__variable__0) {
+    baz
+  }
+}",
+      "provided": {
+        "selections": {
+          "__selection__0": [
+            "__selection__0",
+          ],
+        },
+      },
+      "required": {
+        "variables": [
+          "__variable__0",
+        ],
+      },
+      "subgraph": "B",
+      "type": "Resolve",
+    },
+  ],
+  "type": "Sequence",
+}
+`;
+
+exports[`Query Planner & Executor Regular creates a serializable query plan: query-result-Regular 1`] = `
+{
+  "nodes": [
+    {
+      "document": "query RootFooA($my_foo_id: ID!) {
+  foo(id: $my_foo_id) {
+    __selection__0__typename: __typename
+    __variable__0: id
+    bar
+  }
+}",
+      "provided": {
+        "variables": {
+          "__variable__0": [
+            "foo",
+            "__variable__0",
+          ],
+        },
+      },
+      "required": {
+        "selections": {
+          "__selection__0": [
+            "foo",
+          ],
+        },
+        "variables": [
+          "my_foo_id",
+        ],
+      },
+      "subgraph": "A",
+      "type": "Resolve",
+    },
+    {
+      "document": "query ResolveFooFromB($__variable__0: ID!) {
+  __selection__0: foo(id: $__variable__0) {
+    baz
+    child {
+      __selection__1__typename: __typename
+      __variable__2: id
+      __selection__1__typename: __typename
+      __variable__1: id
+    }
+  }
+}",
+      "provided": {
+        "selections": {
+          "__selection__0": [
+            "__selection__0",
+          ],
+        },
+        "variables": {
+          "__variable__1": [
+            "__selection__0",
+            "child",
+            "__variable__1",
+          ],
+          "__variable__2": [
+            "__selection__0",
+            "child",
+            "__variable__2",
+          ],
+        },
+      },
+      "required": {
+        "selections": {
+          "__selection__1": [
+            "__selection__0",
+            "child",
+          ],
+        },
+        "variables": [
+          "__variable__0",
+        ],
+      },
+      "subgraph": "B",
+      "type": "Resolve",
+    },
+    {
+      "nodes": [
+        {
+          "document": "query ResolveFooFromA($__variable__1: ID!) {
+  __selection__1: foo(id: $__variable__1) {
+    qux
+  }
+}",
+          "provided": {
+            "selections": {
+              "__selection__1": [
+                "__selection__1",
+              ],
+            },
+          },
+          "required": {
+            "variables": [
+              "__variable__1",
+            ],
+          },
+          "subgraph": "A",
+          "type": "Resolve",
+        },
+        {
+          "document": "query RootSomeOtherFieldC($__variable__2: ID!) {
+  __field__otherField__selection__1: someOtherField(fooId: $__variable__2)
+}",
+          "provided": {
+            "selectionFields": Map {
+              "__selection__1" => Map {
+                "otherField" => [
+                  "__field__otherField__selection__1",
+                ],
+              },
+            },
+          },
+          "required": {
+            "variables": [
+              "__variable__2",
+            ],
+          },
+          "subgraph": "C",
+          "type": "Resolve",
+        },
+      ],
+      "type": "Parallel",
+    },
+  ],
+  "type": "Sequence",
+}
+`;
+
+exports[`Query Planner & Executor Regular executes the plan: query-result-Regular 1`] = `
+{
+  "data": {
+    "foo": {
+      "__selection__0__typename": "Foo",
+      "__variable__0": "A",
+      "bar": "A",
+      "baz": "B",
+      "child": {
+        "__selection__1__typename": "Foo",
+        "__variable__1": "B",
+        "__variable__2": "B",
+        "otherField": "C B",
+        "qux": "A",
+      },
+    },
+  },
+  "errors": [],
+}
+`;

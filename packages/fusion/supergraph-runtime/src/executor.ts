@@ -1,7 +1,14 @@
-import { ExecutionRequest, ExecutionResult, Executor, MaybePromise, isAsyncIterable, isPromise } from "@graphql-tools/utils";
-import { PlanNode } from "./types";
-import { GraphQLError, GraphQLSchema } from "graphql";
-import _ from "lodash";
+import type { GraphQLError } from 'graphql';
+import _ from 'lodash';
+import {
+  isAsyncIterable,
+  isPromise,
+  type ExecutionRequest,
+  type ExecutionResult,
+  type Executor,
+  type MaybePromise,
+} from '@graphql-tools/utils';
+import type { PlanNode } from './types.js';
 
 export type QueryPlanExecutorRequest = {
   queryPlan: PlanNode;
@@ -10,7 +17,9 @@ export type QueryPlanExecutorRequest = {
 export interface CreateQueryPlanExecutorOpts {
   subgraphExecutors: Map<string, Executor>;
 }
-export type QueryPlanExecutor = (request: QueryPlanExecutorRequest) => MaybePromise<ExecutionResult>;
+export type QueryPlanExecutor = (
+  request: QueryPlanExecutorRequest,
+) => MaybePromise<ExecutionResult>;
 
 export function createQueryPlanExecutor({
   subgraphExecutors,
@@ -48,9 +57,9 @@ export function createQueryPlanExecutor({
               errors.push(...result.errors);
             }
             if (node.provided?.variables) {
-              for (const [variable, variablePathInResult] of node.provided.variables) {
+              for (const [variableName, variablePathInResult] of node.provided.variables) {
                 const variableToBeSet = _.get(result.data, variablePathInResult);
-                variablesState.set(variable, variableToBeSet);
+                variablesState.set(variableName, variableToBeSet);
               }
             }
             if (node.required?.selections) {
@@ -87,13 +96,13 @@ export function createQueryPlanExecutor({
             if (!finalResult) {
               finalResult = result.data;
             }
-          }
+          };
           if (isAsyncIterable(result$)) {
             return Promise.resolve().then(async () => {
               for await (const result of result$) {
                 handleResult(result);
               }
-            })
+            });
           }
           if (isPromise(result$)) {
             return result$.then(maybeAsyncIterableResult => {
@@ -102,10 +111,10 @@ export function createQueryPlanExecutor({
                   for await (const result of maybeAsyncIterableResult) {
                     handleResult(result);
                   }
-                })
+                });
               }
               handleResult(maybeAsyncIterableResult);
-            })
+            });
           }
           handleResult(result$);
           break;
@@ -145,6 +154,6 @@ export function createQueryPlanExecutor({
     return {
       errors,
       data: finalResult,
-    }
-  }
+    };
+  };
 }
