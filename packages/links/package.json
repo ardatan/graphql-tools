@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@apollo/client": "3.8.7",
-    "@types/apollo-upload-client": "17.0.4",
+    "@types/apollo-upload-client": "17.0.5",
     "graphql-upload": "16.0.2"
   },
   "publishConfig": {

@@ -62,7 +62,7 @@
     "@babel/parser": "7.23.0",
     "@babel/traverse": "7.23.2",
     "@babel/types": "7.23.0",
-    "@types/babel__traverse": "7.20.3",
+    "@types/babel__traverse": "7.20.4",
     "@vue/compiler-sfc": "3.3.8",
     "svelte": "4.2.2",
     "svelte2tsx": "0.6.23"
