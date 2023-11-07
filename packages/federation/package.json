@@ -66,7 +66,7 @@
   "devDependencies": {
     "@apollo/gateway": "^2.5.4",
     "@apollo/subgraph": "^2.5.4",
-    "@types/lodash.pick": "4.4.8"
+    "@types/lodash.pick": "4.4.9"
   },
   "publishConfig": {
     "directory": "dist",

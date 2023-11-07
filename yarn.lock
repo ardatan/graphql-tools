@@ -2993,10 +2993,10 @@
   dependencies:
     ci-info "^3.1.0"
 
-"@types/is-glob@4.0.3":
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/@types/is-glob/-/is-glob-4.0.3.tgz#b97d028880beddb482b44d45f25fc2de55b2d051"
-  integrity sha512-tqNnLL4n5kvr6Kq2hGfs9xlqPilqBizbEgAXMfdSVsXle0Hrj5PhSeDg56fMCU+qWLRX4rR9kj4jj++rHPErjw==
+"@types/is-glob@4.0.4":
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/@types/is-glob/-/is-glob-4.0.4.tgz#1d60fa47ff70abc97b4d9ea45328747c488b3a50"
+  integrity sha512-3mFBtIPQ0TQetKRDe94g8YrxJZxdMillMGegyv6zRBXvq4peRRhf2wLZ/Dl53emtTsC29dQQBwYvovS20yXpiQ==
 
 "@types/istanbul-lib-coverage@*", "@types/istanbul-lib-coverage@^2.0.0", "@types/istanbul-lib-coverage@^2.0.1":
   version "2.0.3"
@@ -3036,9 +3036,9 @@
   integrity sha512-U3PUjAudAdJBeC2pgN8uTIKgxrb4nlDF3SF0++EldXQvQBGkpFZMSnwQiIoDU77tv45VgNkl/L4ouD+rEomujw==
 
 "@types/json-stable-stringify@^1.0.32":
-  version "1.0.35"
-  resolved "https://registry.yarnpkg.com/@types/json-stable-stringify/-/json-stable-stringify-1.0.35.tgz#9cea8628b50a093ae00a7e73de49676f2f9ade27"
-  integrity sha512-zlCWqsRBI0+ANN7dzGeDFJ4CHaVFTLqBNRS11GjR2mHCW6XxNtnMxhQzBKMzfsnjI8oI+kWq2vBwinyQpZVSsg==
+  version "1.0.36"
+  resolved "https://registry.yarnpkg.com/@types/json-stable-stringify/-/json-stable-stringify-1.0.36.tgz#fe6c6001a69ff8160a772da08779448a333c7ddd"
+  integrity sha512-b7bq23s4fgBB76n34m2b3RBf6M369B0Z9uRR8aHTMd8kZISRkmDEpPD8hhpYvDFzr3bJCPES96cm3Q6qRNDbQw==
 
 "@types/json5@^0.0.29":
   version "0.0.29"
@@ -3046,21 +3046,21 @@
   integrity sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==
 
 "@types/katex@^0.16.0":
-  version "0.16.4"
-  resolved "https://registry.yarnpkg.com/@types/katex/-/katex-0.16.4.tgz#f2cff66aadc7f475993201f4fdae4b2362150434"
-  integrity sha512-v7xrnafkJM59tHmNGhVxTfXiYcak2I1lbb3ux29fuMHUKxOz9+3bTT7w84qsFI87u42B7IjBLkOlHKrrhoHzUA==
+  version "0.16.6"
+  resolved "https://registry.yarnpkg.com/@types/katex/-/katex-0.16.6.tgz#6dd82f78a1a1d2eceeff6bb97ba98d7c062454cb"
+  integrity sha512-rZYO1HInM99rAFYNwGqbYPxHZHxu2IwZYKj4bJ4oh6edVrm1UId8mmbHIZLBtG253qU6y3piag0XYe/joNnwzQ==
 
-"@types/lodash.pick@4.4.8":
-  version "4.4.8"
-  resolved "https://registry.yarnpkg.com/@types/lodash.pick/-/lodash.pick-4.4.8.tgz#125ba7fb4a0d7a02ac41bae1f2c455e60c125347"
-  integrity sha512-jQUDDkyIROOnAvtuqhvOb/Ws1plf+Wr1f0jKOoctJJZFreu/Bbc5Fnjg7dIrdt9ZxRDiItuVFGP84z1xHAHS4w==
+"@types/lodash.pick@4.4.9":
+  version "4.4.9"
+  resolved "https://registry.yarnpkg.com/@types/lodash.pick/-/lodash.pick-4.4.9.tgz#06f7d88faa81a6c5665584778aea7b1374a1dc5b"
+  integrity sha512-hDpr96x9xHClwy1KX4/RXRejqjDFTEGbEMT3t6wYSYeFDzxmMnSKB/xHIbktRlPj8Nii2g8L5dtFDRaNFBEzUQ==
   dependencies:
     "@types/lodash" "*"
 
 "@types/lodash.sortby@^4.7.7":
-  version "4.7.8"
-  resolved "https://registry.yarnpkg.com/@types/lodash.sortby/-/lodash.sortby-4.7.8.tgz#56c08bc3fdb85da8a1d8a199e482c641949b5c8b"
-  integrity sha512-+JxRnAqZRZQ/lgvtOowq/iyAMtHjO06eyzSFkuGLos/n7RuJy1oqZg/ucxvraAQYb+DNnq3LToZxubJclTxhvA==
+  version "4.7.9"
+  resolved "https://registry.yarnpkg.com/@types/lodash.sortby/-/lodash.sortby-4.7.9.tgz#e4af00e03daece7a939378ff64f0d44e638d7db6"
+  integrity sha512-PDmjHnOlndLS59GofH0pnxIs+n9i4CWeXGErSB5JyNFHu2cmvW6mQOaUKjG8EDPkni14IgF8NsRW8bKvFzTm9A==
   dependencies:
     "@types/lodash" "*"
 
@@ -5866,10 +5866,10 @@ eslint-plugin-import@2.29.0:
     semver "^6.3.1"
     tsconfig-paths "^3.14.2"
 
-eslint-plugin-n@16.2.0:
-  version "16.2.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-n/-/eslint-plugin-n-16.2.0.tgz#3f98ca9fadd9f7bdaaf60068533118ecb685bfb5"
-  integrity sha512-AQER2jEyQOt1LG6JkGJCCIFotzmlcCZFur2wdKrp1JX2cNotC7Ae0BcD/4lLv3lUAArM9uNS8z/fsvXTd0L71g==
+eslint-plugin-n@16.3.0:
+  version "16.3.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-n/-/eslint-plugin-n-16.3.0.tgz#8ad04e0c52b311d58bd9b6b59532e26a19d3911b"
+  integrity sha512-/XZLH5CUXGK3laz3xYFNza8ZxLCq8ZNW6MsVw5z3d5hc2AwZzi0fPiySFZHQTdVDOHGs2cGv91aqzWmgBdq2gQ==
   dependencies:
     "@eslint-community/eslint-utils" "^4.4.0"
     builtins "^5.0.1"

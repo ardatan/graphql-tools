@@ -59,7 +59,7 @@
     "unixify": "^1.0.0"
   },
   "devDependencies": {
-    "@types/is-glob": "4.0.3",
+    "@types/is-glob": "4.0.4",
     "@types/micromatch": "4.0.4"
   },
   "publishConfig": {
