@@ -4,19 +4,20 @@ exports[`Query Planner & Executor Lists creates a serializable query plan: query
 {
   "nodes": [
     {
-      "document": "query RootFoosA {
+      "document": "query ResolveFoosFromB {
   foos {
     __selection__0__typename: __typename
     __variable__0: id
-    bar
+    baz
   }
 }",
       "provided": {
-        "variables": {
-          "__variable__0": [
-            "foos",
-            "__variable__0",
-          ],
+        "variablesInSelections": Map {
+          "__selection__0" => Map {
+            "__variable__0" => [
+              "__variable__0",
+            ],
+          },
         },
       },
       "required": {
@@ -26,13 +27,13 @@ exports[`Query Planner & Executor Lists creates a serializable query plan: query
           ],
         },
       },
-      "subgraph": "A",
+      "subgraph": "B",
       "type": "Resolve",
     },
     {
-      "document": "query ResolveFooFromB($__variable__0: ID!) {
+      "document": "query ResolveFooFromA($__variable__0: ID!) {
   __selection__0: foo(id: $__variable__0) {
-    baz
+    bar
   }
 }",
       "provided": {
@@ -47,7 +48,7 @@ exports[`Query Planner & Executor Lists creates a serializable query plan: query
           "__variable__0",
         ],
       },
-      "subgraph": "B",
+      "subgraph": "A",
       "type": "Resolve",
     },
   ],
@@ -67,11 +68,12 @@ exports[`Query Planner & Executor Regular creates a serializable query plan: que
   }
 }",
       "provided": {
-        "variables": {
-          "__variable__0": [
-            "foo",
-            "__variable__0",
-          ],
+        "variablesInSelections": Map {
+          "__selection__0" => Map {
+            "__variable__0" => [
+              "__variable__0",
+            ],
+          },
         },
       },
       "required": {
@@ -88,8 +90,9 @@ exports[`Query Planner & Executor Regular creates a serializable query plan: que
       "type": "Resolve",
     },
     {
-      "document": "query ResolveFooFromB($__variable__0: ID!) {
-  __selection__0: foo(id: $__variable__0) {
+      "batch": true,
+      "document": "query ResolveFoosFromB($__variable__0: [ID!]!) {
+  __selection__0: foos(ids: $__variable__0) {
     baz
     child {
       __selection__1__typename: __typename
@@ -105,17 +108,15 @@ exports[`Query Planner & Executor Regular creates a serializable query plan: que
             "__selection__0",
           ],
         },
-        "variables": {
-          "__variable__1": [
-            "__selection__0",
-            "child",
-            "__variable__1",
-          ],
-          "__variable__2": [
-            "__selection__0",
-            "child",
-            "__variable__2",
-          ],
+        "variablesInSelections": Map {
+          "__selection__1" => Map {
+            "__variable__2" => [
+              "__variable__2",
+            ],
+            "__variable__1" => [
+              "__variable__1",
+            ],
+          },
         },
       },
       "required": {
@@ -181,26 +182,5 @@ exports[`Query Planner & Executor Regular creates a serializable query plan: que
     },
   ],
   "type": "Sequence",
-}
-`;
-
-exports[`Query Planner & Executor Regular executes the plan: query-result-Regular 1`] = `
-{
-  "data": {
-    "foo": {
-      "__selection__0__typename": "Foo",
-      "__variable__0": "A",
-      "bar": "A",
-      "baz": "B",
-      "child": {
-        "__selection__1__typename": "Foo",
-        "__variable__1": "B",
-        "__variable__2": "B",
-        "otherField": "C B",
-        "qux": "A",
-      },
-    },
-  },
-  "errors": [],
 }
 `;

@@ -1,5 +1,5 @@
-import { ASTVisitFn, GraphQLSchema, Kind, buildASTSchema, parse, visit } from "graphql";
-import { NamedDefinitionNodeWithDirectives } from "./types.js";
+import { ASTVisitFn, buildASTSchema, GraphQLSchema, Kind, parse, visit } from 'graphql';
+import { NamedDefinitionNodeWithDirectives } from './types.js';
 
 export interface ProcessedSupergraph {
   supergraphSchema: GraphQLSchema;
@@ -15,26 +15,26 @@ export function processSupergraphSdl(supergraphSdl: string): ProcessedSupergraph
       if (subgraphArgument && subgraphArgument.value.kind === Kind.STRING) {
         subgraphNames.add(subgraphArgument.value.value);
       }
-    }
+    },
   });
 
   const subgraphSchemas = new Map<string, GraphQLSchema>();
 
-  for (const subgraphName of subgraphNames) {
-    const subgraphSchemaAst = visit(
-      supergraphAst,
-      Object.fromEntries(
-        sourceDirectiveLocations.map(directiveLocation => [
-          directiveLocation,
-          {
-            enter: createFilterBySourceDirectiveVisitorSubgraphName(subgraphName),
-          },
-        ]),
-      ),
-    );
-    const subgraphSchema = buildASTSchema(subgraphSchemaAst);
-    subgraphSchemas.set(subgraphName, subgraphSchema);
-  }
+  // for (const subgraphName of subgraphNames) {
+  //   const subgraphSchemaAst = visit(
+  //     supergraphAst,
+  //     Object.fromEntries(
+  //       sourceDirectiveLocations.map(directiveLocation => [
+  //         directiveLocation,
+  //         {
+  //           enter: createFilterBySourceDirectiveVisitorSubgraphName(subgraphName),
+  //         },
+  //       ]),
+  //     ),
+  //   );
+  //   const subgraphSchema = buildASTSchema(subgraphSchemaAst);
+  //   subgraphSchemas.set(subgraphName, subgraphSchema);
+  // }
   const supergraphSchema = buildASTSchema(supergraphAst);
 
   return {

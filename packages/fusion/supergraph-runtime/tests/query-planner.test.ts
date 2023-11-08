@@ -9,6 +9,7 @@ import { PlanNode } from '../src/types';
 interface QuerySample {
   document: DocumentNode;
   variables?: Record<string, any>;
+  expectedResult: any;
 }
 
 const queries: Record<string, QuerySample> = {
@@ -26,18 +27,40 @@ const queries: Record<string, QuerySample> = {
       }
     `),
     variables: {
-      my_foo_id: 'A',
+      my_foo_id: 'MY',
+    },
+    expectedResult: {
+      foo: {
+        bar: 'MY bar',
+        baz: 'MY baz',
+        child: {
+          qux: 'MY child qux',
+          otherField: 'C MY child',
+        },
+      },
     },
   },
   Lists: {
     document: parse(/* GraphQL */ `
-      query Test($my_foo_ids: [ID!]!) {
-        foos(ids: $my_foo_ids) {
+      query Test {
+        foos {
           bar
           baz
         }
       }
     `),
+    expectedResult: {
+      foos: [
+        {
+          bar: 'A bar',
+          baz: 'A baz',
+        },
+        {
+          bar: 'B bar',
+          baz: 'B baz',
+        },
+      ],
+    },
   },
 };
 
@@ -46,6 +69,7 @@ describe('Query Planner & Executor', () => {
     directive @resolver(
       operation: String!
       subgraph: String!
+      kind: ResolverKind = SINGLE
     ) repeatable on OBJECT | FIELD_DEFINITION
     directive @source(
       subgraph: String!
@@ -56,18 +80,17 @@ describe('Query Planner & Executor', () => {
       subgraph: String!
     ) repeatable on OBJECT | FIELD_DEFINITION
 
-    type Query @source(subgraph: "A") @source(subgraph: "B") {
-      foo(id: ID! @source(subgraph: "A") @source(subgraph: "B")): Foo!
-        @source(subgraph: "A")
+    enum ResolverKind {
+      FETCH
+      BATCH
+    }
+
+    type Query {
+      foo(id: ID!): Foo!
         @resolver(operation: "query RootFooA($id:ID!) { foo(id: $id) }", subgraph: "A")
-        @source(subgraph: "B")
-        @resolver(operation: "query RootFooB($id:ID!) { foo(id: $id) }", subgraph: "B")
 
-      foos: [Foo!]!
-        @source(subgraph: "A")
-        @resolver(operation: "query RootFoosA { foos }", subgraph: "A")
-
-      someOtherField(fooId: ID! @source(subgraph: "C")): String! @source(subgraph: "C")
+      foos(ids: [ID!]): [Foo!]!
+        @resolver(operation: "query ResolveFoosFromB { foos }", subgraph: "B")
     }
 
     type Foo
@@ -80,8 +103,9 @@ describe('Query Planner & Executor', () => {
         subgraph: "A"
       )
       @resolver(
-        operation: "query ResolveFooFromB($Foo_id: ID!) { foo(id: $Foo_id) }"
+        operation: "query ResolveFoosFromB($Foo_id: [ID!]!) { foos(ids: $Foo_id) }"
         subgraph: "B"
+        kind: BATCH
       ) {
       id: ID! @source(subgraph: "A") @source(subgraph: "B")
 
@@ -103,7 +127,7 @@ describe('Query Planner & Executor', () => {
   `;
   const processedSupergraph = processSupergraphSdl(supergraphSdl);
   const queryPlanner = createQueryPlannerFromProcessedSupergraph(processedSupergraph);
-  Object.entries(queries).forEach(([name, { document, variables }]) => {
+  Object.entries(queries).forEach(([name, { document, variables, expectedResult }]) => {
     describe(name, () => {
       let plan: PlanNode;
       it('creates a serializable query plan', async () => {
@@ -115,7 +139,6 @@ describe('Query Planner & Executor', () => {
           typeDefs: /* GraphQL */ `
             type Query {
               foo(id: ID!): Foo!
-              foos: [Foo!]!
             }
 
             type Foo {
@@ -126,23 +149,11 @@ describe('Query Planner & Executor', () => {
           `,
           resolvers: {
             Query: {
-              foo: () => ({
-                id: 'A',
-                bar: 'A',
-                qux: 'A',
+              foo: (_, { id }) => ({
+                id,
+                bar: `${id} bar`,
+                qux: `${id} qux`,
               }),
-              foos: () => [
-                {
-                  id: 'A',
-                  bar: 'A',
-                  qux: 'A',
-                },
-                {
-                  id: 'B',
-                  bar: 'B',
-                  qux: 'B',
-                },
-              ],
             },
           },
         });
@@ -150,6 +161,7 @@ describe('Query Planner & Executor', () => {
           typeDefs: /* GraphQL */ `
             type Query {
               foo(id: ID!): Foo!
+              foos(ids: [ID!]): [Foo!]!
             }
 
             type Foo {
@@ -160,14 +172,23 @@ describe('Query Planner & Executor', () => {
           `,
           resolvers: {
             Query: {
-              foo: () => ({
-                id: 'B',
-                baz: 'B',
+              foo: (_, { id }) => ({
+                id,
+                baz: `${id} baz`,
                 child: {
-                  id: 'B',
-                  qux: 'B',
+                  id: `${id} child`,
+                  baz: `${id} child baz`,
                 },
               }),
+              foos: (_, { ids = ['A', 'B'] }: { ids: string[] }) =>
+                ids.map(id => ({
+                  id,
+                  baz: `${id} baz`,
+                  child: {
+                    id: `${id} child`,
+                    baz: `${id} child baz`,
+                  },
+                })),
             },
           },
         });
@@ -194,7 +215,9 @@ describe('Query Planner & Executor', () => {
           queryPlan: plan,
           variables,
         });
-        expect(result).toMatchSnapshot(`query-result-${name}`);
+        expect(result).toMatchObject({
+          data: expectedResult,
+        });
       });
     });
   });
@@ -213,14 +236,15 @@ function serializePlanNode(planNode: PlanNode): any {
     };
     if (planNode.provided) {
       serializedResolveNode.provided = {};
-      if (planNode.provided.variables) {
-        serializedResolveNode.provided.variables = serializeMap(planNode.provided.variables);
-      }
       if (planNode.provided.selections) {
         serializedResolveNode.provided.selections = serializeMap(planNode.provided.selections);
       }
       if (planNode.provided.selectionFields) {
         serializedResolveNode.provided.selectionFields = planNode.provided.selectionFields;
+      }
+      if (planNode.provided.variablesInSelections) {
+        serializedResolveNode.provided.variablesInSelections =
+          planNode.provided.variablesInSelections;
       }
     }
     if (planNode.required) {
@@ -231,6 +255,9 @@ function serializePlanNode(planNode: PlanNode): any {
       if (planNode.required.selections) {
         serializedResolveNode.required.selections = serializeMap(planNode.required.selections);
       }
+    }
+    if (planNode.batch) {
+      serializedResolveNode.batch = planNode.batch;
     }
     return serializedResolveNode;
   }

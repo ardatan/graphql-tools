@@ -1,44 +1,42 @@
-import { NamedDefinitionNode } from "@graphql-tools/utils";
-import { ConstDirectiveNode, DocumentNode } from "graphql";
+import { ConstDirectiveNode, DocumentNode } from 'graphql';
+import { NamedDefinitionNode } from '@graphql-tools/utils';
 
 // Query planner types
 export type PlanNode = ResolveNode | SequenceNode | ParallelNode;
 
 export interface ResolveNode {
-  type: 'Resolve',
+  type: 'Resolve';
   subgraph: string;
   document: DocumentNode;
   provided?: {
-    variables?: Map<string, string[]>;
     selections?: Map<string, string[]>;
+    variablesInSelections?: Map<string, Map<string, string[]>>;
     selectionFields?: Map<string, Map<string, string[]>>;
-  },
+  };
   required?: {
     variables?: string[];
     selections?: Map<string, string[]>;
-  },
+  };
+  batch?: boolean;
 }
 
 export interface SequenceNode {
-  type: 'Sequence',
+  type: 'Sequence';
   nodes: PlanNode[];
 }
 
 export interface ParallelNode {
-  type: 'Parallel',
+  type: 'Parallel';
   nodes: PlanNode[];
 }
 
-
 // Schema types
 
-export type NamedDefinitionNodeWithDirectives = NamedDefinitionNode & { directives?: readonly ConstDirectiveNode[] };
+export type NamedDefinitionNodeWithDirectives = NamedDefinitionNode & {
+  directives?: readonly ConstDirectiveNode[];
+};
 
-export enum ResolverKind {
-  FETCH,
-  BATCH,
-  SUBSCRIBE
-}
+export type ResolverKind = 'FETCH' | 'BATCH' | 'SUBSCRIBE';
 
 export interface ResolverVariableConfig {
   name: string;

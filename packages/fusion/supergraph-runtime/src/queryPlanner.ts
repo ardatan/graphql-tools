@@ -32,7 +32,6 @@ interface QueryPlanner {
 interface PlanContext {
   resolverDirective: ResolverConfig;
   parentSelections: SelectionNode[];
-  selectionId?: number;
   variableStateMap?: Map<string, string>;
   selectionFieldName?: string;
   fieldArgs?: readonly ArgumentNode[];
@@ -44,7 +43,6 @@ interface PlanContext {
 
 export function createQueryPlannerFromProcessedSupergraph({
   supergraphSchema,
-  subgraphSchemas,
 }: ProcessedSupergraph): QueryPlanner {
   const rootTypeMap = getRootTypeMap(supergraphSchema);
 
@@ -79,6 +77,10 @@ export function createQueryPlannerFromProcessedSupergraph({
         stateId: 0,
       };
 
+      const parallelNode: ParallelNode = {
+        type: 'Parallel',
+        nodes: [],
+      };
       for (const selection of operationDefinition.selectionSet.selections) {
         let fieldNode: FieldNode;
         switch (selection.kind) {
@@ -109,21 +111,26 @@ export function createQueryPlannerFromProcessedSupergraph({
           ?.args as ResolverConfig | undefined;
         if (resolverDirective) {
           const parentSelections: SelectionNode[] = [...(fieldNode.selectionSet?.selections || [])];
-          return this._plan({
-            resolverDirective,
-            parentSelections,
-            fieldArgs: fieldNode.arguments,
-            uniqueIds,
-          });
+          parallelNode.nodes.push(
+            this._plan({
+              resolverDirective,
+              parentSelections,
+              fieldArgs: fieldNode.arguments,
+              uniqueIds,
+              selectionFieldName: fieldNode.alias?.value,
+            }),
+          );
         }
       }
 
-      throw new Error(`No resolver directive found`);
+      if (parallelNode.nodes.length === 1) {
+        return parallelNode.nodes[0];
+      }
+      return parallelNode;
     },
     _plan({
       resolverDirective,
       parentSelections,
-      selectionId,
       variableStateMap,
       selectionFieldName,
       fieldArgs,
@@ -131,10 +138,6 @@ export function createQueryPlannerFromProcessedSupergraph({
     }) {
       const resolverOperationDocument = parse(resolverDirective.operation, { noLocation: true });
       const subgraphName = resolverDirective.subgraph;
-      const subgraphSchema = subgraphSchemas.get(subgraphName);
-      if (!subgraphSchema) {
-        throw new Error(`No subgraph found for subgraph name ${subgraphName}`);
-      }
 
       const resolveNode = {
         type: 'Resolve',
@@ -156,14 +159,13 @@ export function createQueryPlannerFromProcessedSupergraph({
           [Kind.FIELD]: {
             enter(node: FieldNode, _key, parentNode, path) {
               const fieldDef = supergraphTypeInfo.getFieldDef();
-              if (!fieldDef) {
-                return node;
-              }
-              const sourceDirective = getDirectives(supergraphSchema, fieldDef).find(
-                directive =>
-                  directive.name === 'source' && directive.args?.['subgraph'] === subgraphName,
-              )?.args as any;
-              if (!sourceDirective) {
+              const sourceDirective =
+                fieldDef &&
+                (getDirectives(supergraphSchema, fieldDef).find(
+                  directive =>
+                    directive.name === 'source' && directive.args?.['subgraph'] === subgraphName,
+                )?.args as any);
+              if (selectionSetAdded && fieldDef && !sourceDirective) {
                 const parentType = supergraphTypeInfo.getParentType();
                 if (!parentType) {
                   throw new Error(`Expected parent type to be defined`);
@@ -189,13 +191,11 @@ export function createQueryPlannerFromProcessedSupergraph({
                 selectionSetAdded = true;
                 return {
                   ...node,
-                  ...(selectionId != null
+                  ...(selectionFieldName != null
                     ? {
                         alias: {
                           kind: Kind.NAME,
-                          value: selectionFieldName
-                            ? `__field__${selectionFieldName}__selection__${selectionId}`
-                            : `__selection__${selectionId}`,
+                          value: selectionFieldName,
                         },
                       }
                     : {}),
@@ -295,9 +295,7 @@ export function createQueryPlannerFromProcessedSupergraph({
         for (const missingFieldNode of missingFieldNodes) {
           const fieldDef = getFieldDef(supergraphSchema, type, missingFieldNode);
           if (!fieldDef) {
-            throw new Error(
-              `No field definition found for field ${missingFieldNode.name.value} on type ${typeName}`,
-            );
+            continue;
           }
 
           const fieldDirectives = getDirectives(supergraphSchema, fieldDef);
@@ -473,9 +471,10 @@ export function createQueryPlannerFromProcessedSupergraph({
                 const missingFieldPlanNode = this._plan({
                   resolverDirective,
                   parentSelections: missingFieldNode.selectionSet?.selections || ([] as any),
-                  selectionId: variableSelectionId,
                   variableStateMap,
-                  selectionFieldName: missingFieldNode.alias?.value || missingFieldNode.name.value,
+                  selectionFieldName: `__field__${
+                    missingFieldNode.alias?.value || missingFieldNode.name.value
+                  }__selection__${variableSelectionId}`,
                   uniqueIds,
                 });
                 missingFieldsPlanNode.nodes.push(missingFieldPlanNode);
@@ -510,9 +509,9 @@ export function createQueryPlannerFromProcessedSupergraph({
               const missingFieldPlanNode = this._plan({
                 resolverDirective,
                 parentSelections: missingFieldNodesForTypeResolver,
-                selectionId: variableSelectionId,
                 variableStateMap,
                 uniqueIds,
+                selectionFieldName: `__selection__${variableSelectionId}`,
               });
               missingFieldsPlanNode.nodes.push(missingFieldPlanNode);
             }
@@ -531,6 +530,7 @@ export function createQueryPlannerFromProcessedSupergraph({
         sequenceNode.nodes.push(missingFieldsPlanNode);
       }
 
+      let providedVariables: Map<string, string[]> | undefined;
       visitResolutionPath(resolveNode.document, ({ path }) => {
         const alias = path[path.length - 1];
         if (alias.startsWith('__selection__') && alias.endsWith('__typename')) {
@@ -539,9 +539,8 @@ export function createQueryPlannerFromProcessedSupergraph({
           resolveNode.required.selections = resolveNode.required.selections || new Map();
           resolveNode.required.selections.set(stateName, path.slice(0, -1));
         } else if (alias.startsWith('__variable')) {
-          resolveNode.provided = resolveNode.provided || {};
-          resolveNode.provided.variables = resolveNode.provided.variables || new Map();
-          resolveNode.provided.variables.set(alias, path);
+          providedVariables = providedVariables || new Map();
+          providedVariables.set(alias, path);
         } else if (alias.startsWith('__selection__')) {
           resolveNode.provided = resolveNode.provided || {};
           resolveNode.provided.selections = resolveNode.provided.selections || new Map();
@@ -568,6 +567,33 @@ export function createQueryPlannerFromProcessedSupergraph({
           selectionFieldMap.set(fieldName, path);
         }
       });
+
+      if (providedVariables && resolveNode.required?.selections) {
+        for (const [variableName, varPathInResult] of providedVariables) {
+          const varPathInResultStr = varPathInResult.join('.');
+          for (const [selectionName, selectionPathInResult] of resolveNode.required.selections) {
+            const selectionPathInResultStr = selectionPathInResult.join('.');
+            if (varPathInResultStr.startsWith(selectionPathInResultStr)) {
+              const varPathInSelectionStr = varPathInResultStr.slice(
+                selectionPathInResultStr.length + 1,
+              );
+              const varPathInSelection = varPathInSelectionStr.split('.');
+              resolveNode.provided ||= {};
+              resolveNode.provided.variablesInSelections ||= new Map();
+              let selectionVarMap = resolveNode.provided.variablesInSelections.get(selectionName);
+              if (!selectionVarMap) {
+                selectionVarMap = new Map();
+                resolveNode.provided.variablesInSelections.set(selectionName, selectionVarMap);
+              }
+              selectionVarMap.set(variableName, varPathInSelection);
+            }
+          }
+        }
+      }
+
+      if (resolverDirective.kind === 'BATCH') {
+        resolveNode.batch = true;
+      }
 
       if (sequenceNode.nodes.length === 1) {
         return sequenceNode.nodes[0];
