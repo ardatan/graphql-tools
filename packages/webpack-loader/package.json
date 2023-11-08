@@ -55,7 +55,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@types/webpack": "5.28.4"
+    "@types/webpack": "5.28.5"
   },
   "publishConfig": {
     "directory": "dist",
