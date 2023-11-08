@@ -1,5 +1,8 @@
 import {
   ArgumentNode,
+  buildASTSchema,
+  buildSchema,
+  DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
   isObjectType,
@@ -13,7 +16,6 @@ import {
 } from 'graphql';
 import { getFieldDef } from '@graphql-tools/executor';
 import { ExecutionRequest, getDirectives, getRootTypeMap } from '@graphql-tools/utils';
-import { ProcessedSupergraph } from './processSupergraph.js';
 import {
   ParallelNode,
   PlanNode,
@@ -41,9 +43,11 @@ interface PlanContext {
   };
 }
 
-export function createQueryPlannerFromProcessedSupergraph({
-  supergraphSchema,
-}: ProcessedSupergraph): QueryPlanner {
+export function createQueryPlannerFromProcessedSupergraph(
+  supergraph: DocumentNode | string,
+): QueryPlanner {
+  const supergraphSchema =
+    typeof supergraph === 'string' ? buildSchema(supergraph) : buildASTSchema(supergraph);
   const rootTypeMap = getRootTypeMap(supergraphSchema);
 
   return {

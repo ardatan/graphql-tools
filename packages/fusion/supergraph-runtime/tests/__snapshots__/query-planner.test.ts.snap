@@ -9,6 +9,9 @@ exports[`Query Planner & Executor Lists creates a serializable query plan: query
     __selection__0__typename: __typename
     __variable__0: id
     baz
+    child {
+      baz
+    }
   }
 }",
       "provided": {

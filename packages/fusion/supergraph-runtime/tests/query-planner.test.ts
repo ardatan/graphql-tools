@@ -2,7 +2,6 @@ import { DocumentNode, parse, print } from 'graphql';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createQueryPlanExecutor } from '../src/executor';
-import { processSupergraphSdl } from '../src/processSupergraph';
 import { createQueryPlannerFromProcessedSupergraph } from '../src/queryPlanner';
 import { PlanNode } from '../src/types';
 
@@ -46,6 +45,9 @@ const queries: Record<string, QuerySample> = {
         foos {
           bar
           baz
+          child {
+            baz
+          }
         }
       }
     `),
@@ -54,10 +56,16 @@ const queries: Record<string, QuerySample> = {
         {
           bar: 'A bar',
           baz: 'A baz',
+          child: {
+            baz: 'A child baz',
+          },
         },
         {
           bar: 'B bar',
           baz: 'B baz',
+          child: {
+            baz: 'B child baz',
+          },
         },
       ],
     },
@@ -125,8 +133,7 @@ describe('Query Planner & Executor', () => {
         )
     }
   `;
-  const processedSupergraph = processSupergraphSdl(supergraphSdl);
-  const queryPlanner = createQueryPlannerFromProcessedSupergraph(processedSupergraph);
+  const queryPlanner = createQueryPlannerFromProcessedSupergraph(supergraphSdl);
   Object.entries(queries).forEach(([name, { document, variables, expectedResult }]) => {
     describe(name, () => {
       let plan: PlanNode;
