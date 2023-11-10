@@ -47,6 +47,7 @@ const queries: Record<string, QuerySample> = {
           baz
           child {
             baz
+            bar
           }
         }
       }
@@ -58,6 +59,7 @@ const queries: Record<string, QuerySample> = {
           baz: 'A baz',
           child: {
             baz: 'A child baz',
+            bar: 'A child bar',
           },
         },
         {
@@ -65,6 +67,7 @@ const queries: Record<string, QuerySample> = {
           baz: 'B baz',
           child: {
             baz: 'B child baz',
+            bar: 'B child bar',
           },
         },
       ],

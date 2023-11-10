@@ -34,25 +34,51 @@ exports[`Query Planner & Executor Lists creates a serializable query plan: query
       "type": "Resolve",
     },
     {
-      "document": "query ResolveFooFromA($__variable__0: ID!) {
+      "nodes": [
+        {
+          "document": "query ResolveFooFromA($__variable__0: ID!) {
   __selection__0: foo(id: $__variable__0) {
     bar
   }
 }",
-      "provided": {
-        "selections": {
-          "__selection__0": [
-            "__selection__0",
-          ],
+          "provided": {
+            "selections": {
+              "__selection__0": [
+                "__selection__0",
+              ],
+            },
+          },
+          "required": {
+            "variables": [
+              "__variable__0",
+            ],
+          },
+          "subgraph": "A",
+          "type": "Resolve",
         },
-      },
-      "required": {
-        "variables": [
-          "__variable__0",
-        ],
-      },
-      "subgraph": "A",
-      "type": "Resolve",
+        {
+          "document": "query ResolveFooFromA($__variable__1: ID!) {
+  __selection__1: foo(id: $__variable__1) {
+    bar
+  }
+}",
+          "provided": {
+            "selections": {
+              "__selection__1": [
+                "__selection__1",
+              ],
+            },
+          },
+          "required": {
+            "variables": [
+              "__variable__1",
+            ],
+          },
+          "subgraph": "A",
+          "type": "Resolve",
+        },
+      ],
+      "type": "Parallel",
     },
   ],
   "type": "Sequence",
