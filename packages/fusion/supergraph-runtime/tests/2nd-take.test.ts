@@ -1,18 +1,18 @@
-import { inspect } from 'util';
 import {
   buildSchema,
   DocumentNode,
   getOperationAST,
   GraphQLObjectType,
+  Kind,
   parse,
   print,
 } from 'graphql';
 import {
+  createResolveNode,
   ResolverOperationNode,
   visitFieldNodeForTypeResolvers,
-  visitForTypeResolver,
 } from '../src/2nd-take.js';
-import { FlattenedFieldNode } from '../src/flattenSelections.js';
+import { FlattenedFieldNode, FlattenedSelectionSet } from '../src/flattenSelections.js';
 
 describe('visitForTypeResolver', () => {
   it('resolves a type from a different subgraph with missing fields on one level', () => {
@@ -21,26 +21,6 @@ describe('visitForTypeResolver', () => {
         baz
       }
     `;
-    const typeDefInText = /* GraphQL */ `
-      type Foo {
-        id: ID! @source(subgraph: "A") @source(subgraph: "B")
-        bar: String! @source(subgraph: "B")
-        baz: String! @source(subgraph: "A")
-      }
-    `;
-
-    const schemaInText = /* GraphQL */ `
-      type Query {
-        myFoo: Foo!
-      }
-
-      ${typeDefInText}
-    `;
-
-    const supergraph = buildSchema(schemaInText, {
-      assumeValid: true,
-      assumeValidSDL: true,
-    });
 
     const operationInText = /* GraphQL */ `
       query Test {
@@ -54,13 +34,9 @@ describe('visitForTypeResolver', () => {
 
     const selections = operationAst!.selectionSet.selections as FlattenedFieldNode[];
 
-    const type = supergraph.getType('Foo') as GraphQLObjectType;
-
-    const { newFieldNode, resolverOperationDocument } = visitForTypeResolver(
+    const { newFieldNode, resolverOperationDocument } = createResolveNode(
       'A',
       selections[0],
-      type,
-      supergraph,
       {
         operation: /* GraphQL */ `
           query FooFromB($Foo_id: ID!) {
@@ -89,6 +65,73 @@ query FooFromB($Foo_id: ID!) {
   }
 }
     `.trim(),
+    );
+  });
+  it('resolves a field on one level', () => {
+    const fieldNodeInText = /* GraphQL */ `
+      extraField {
+        baz
+      }
+    `;
+
+    const operationInText = /* GraphQL */ `
+      query Test {
+        myFoo {
+          ${fieldNodeInText}
+        }
+      }
+    `;
+
+    const operationDoc = parse(operationInText, { noLocation: true });
+
+    const operationAst = getOperationAST(operationDoc, 'Test');
+
+    const selections = operationAst!.selectionSet.selections as FlattenedFieldNode[];
+
+    const myFooSelection = selections[0];
+
+    const extraFieldSelection = myFooSelection.selectionSet!.selections[0] as FlattenedFieldNode;
+
+    const { newFieldNode, resolverOperationDocument } = createResolveNode(
+      'A',
+      myFooSelection,
+      {
+        operation: /* GraphQL */ `
+          query ExtraFieldFromC($Foo_id: ID!) {
+            extraFieldForFoo(id: $Foo_id)
+          }
+        `,
+        subgraph: 'B',
+        kind: 'FETCH',
+      },
+      [
+        {
+          name: 'Foo_id',
+          select: 'id',
+          subgraph: 'A',
+        },
+      ],
+      extraFieldSelection.selectionSet!.selections as FlattenedFieldNode[],
+    );
+
+    expect(print(newFieldNode)).toBe(
+      /* GraphQL */ `
+myFoo {
+  extraField {
+    baz
+  }
+  __variable_Foo_id: id
+}
+`.trim(),
+    );
+
+    expect(print(resolverOperationDocument)).toBe(
+      /* GraphQL */ `
+query ExtraFieldFromC($Foo_id: ID!) {
+  __export: extraFieldForFoo(id: $Foo_id) {
+    baz
+  }
+}`.trim(),
     );
   });
 });
@@ -282,6 +325,77 @@ query FooFromB($Foo_id: ID!) {
         },
       },
     ]);
+  });
+  it('resolves a field on root level', () => {
+    const operationInText = /* GraphQL */ `
+      query Test {
+        myFoo {
+          bar
+        }
+      }
+    `;
+
+    const operationDoc = parse(operationInText, { noLocation: true });
+
+    const operationAst = getOperationAST(operationDoc, 'Test');
+
+    const selectionSet = operationAst!.selectionSet as FlattenedSelectionSet;
+
+    const fakeFieldNode: FlattenedFieldNode = {
+      kind: Kind.FIELD,
+      name: {
+        kind: Kind.NAME,
+        value: '__fake',
+      },
+      selectionSet,
+    };
+
+    const supergraph = buildSchema(
+      /* GraphQL */ `
+        type Query {
+          myFoo: Foo! @resolver(operation: "query MyFooFromA { myFoo }", subgraph: "A")
+        }
+
+        type Foo @source(subgraph: "A") {
+          bar: String! @source(subgraph: "A")
+        }
+      `,
+      {
+        assumeValid: true,
+        assumeValidSDL: true,
+      },
+    );
+
+    const { newFieldNode, resolverOperationNodes, resolverDependencyMap } =
+      visitFieldNodeForTypeResolvers(
+        'DUMMY',
+        fakeFieldNode,
+        supergraph.getQueryType()!,
+        supergraph,
+      );
+
+    expect(print(newFieldNode)).toBe(`__fake`);
+
+    expect(resolverOperationNodes.map(serializeNode)).toStrictEqual([]);
+
+    const resolverDependencyMapEntries = [...resolverDependencyMap];
+    expect(
+      Object.fromEntries(
+        resolverDependencyMapEntries.map(([key, value]) => [key, value.map(serializeNode)]),
+      ),
+    ).toStrictEqual({
+      myFoo: [
+        {
+          resolverOperationDocument: /* GraphQL */ `
+query MyFooFromA {
+  __export: myFoo {
+    bar
+  }
+}`.trim(),
+          subgraph: 'A',
+        },
+      ],
+    });
   });
 });
 
