@@ -30,3 +30,4 @@ website/src/pages/docs/migration/migration-from-tools.mdx
 website/src/pages/docs/schema-stitching/stitch-schema-extensions.mdx
 
 .changeset/*-dependencies.md
+.husky
