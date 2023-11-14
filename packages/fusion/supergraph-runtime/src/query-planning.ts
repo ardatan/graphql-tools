@@ -4,8 +4,11 @@ import {
   FieldNode,
   getNamedType,
   GraphQLObjectType,
+  GraphQLOutputType,
   GraphQLSchema,
   isAbstractType,
+  isListType,
+  isNonNullType,
   isObjectType,
   Kind,
   OperationDefinitionNode,
@@ -30,6 +33,8 @@ export function createResolveNode(
   variableDirectives: ResolverVariableConfig[],
   // Selections that are used to resolve this type
   resolverSelections: FlattenedFieldNode[],
+  // Visitor context
+  ctx: VisitorContext,
 ) {
   let resolverOperationDocument = parse(resolverDirective.operation, { noLocation: true });
 
@@ -39,20 +44,35 @@ export function createResolveNode(
 
   const deepestFieldNodePath: (string | number)[] = [];
 
-  const resolverVariableNames: string[] = [];
-  const requiredVariableNames: string[] = [];
+  const requiredVariableNames = new Set<string>();
+
+  const newVariableNameMap = new Map<string, string>();
 
   const resolverOperationPath: (string | number)[] = [];
 
-  visit(resolverOperationDocument, {
+  resolverOperationDocument = visit(resolverOperationDocument, {
     OperationDefinition(_, __, ___, path) {
       resolverOperationPath.push(...path);
     },
     VariableDefinition(node) {
-      resolverVariableNames.push(node.variable.name.value);
+      const newVariableName = `__variable_${ctx.currentVariableIndex++}`;
+      newVariableNameMap.set(node.variable.name.value, newVariableName);
       if (node.type.kind === Kind.NON_NULL_TYPE) {
-        requiredVariableNames.push(node.variable.name.value);
+        requiredVariableNames.add(node.variable.name.value);
       }
+    },
+    Variable(node) {
+      const newVariableName = newVariableNameMap.get(node.name.value);
+      if (!newVariableName) {
+        throw new Error(`No variable name found for ${node.name.value}`);
+      }
+      return {
+        ...node,
+        name: {
+          kind: Kind.NAME,
+          value: newVariableName,
+        },
+      };
     },
     Field(_node, _key, _parent, path) {
       if (path.length > deepestFieldNodePath.length) {
@@ -74,7 +94,7 @@ export function createResolveNode(
   };
 
   const variableDirectivesForField = variableDirectives.filter(
-    d => d.subgraph === parentSubgraph && resolverVariableNames.includes(d.name),
+    d => d.subgraph === parentSubgraph && newVariableNameMap.has(d.name),
   );
 
   for (const varDirective of variableDirectivesForField) {
@@ -88,6 +108,10 @@ export function createResolveNode(
           }
         },
       });
+      const newVarName = newVariableNameMap.get(varDirective.name);
+      if (!newVarName) {
+        throw new Error(`No variable name found for ${varDirective.name}`);
+      }
       const deepestFieldNodeInVarOp = _.get(varOp, deepestFieldNodePathInVarOp) as
         | FieldNode
         | undefined;
@@ -95,7 +119,7 @@ export function createResolveNode(
         ...deepestFieldNodeInVarOp,
         alias: {
           kind: Kind.NAME,
-          value: `__variable_${varDirective.name}`,
+          value: newVarName,
         },
       });
       const varOpSelectionSet = _.get(varOp, 'definitions.0.selectionSet') as
@@ -141,7 +165,7 @@ export function createResolveNode(
           }
         }
       }
-      if (!fieldArgumentNode && requiredVariableNames.includes(varDirective.name)) {
+      if (!fieldArgumentNode && requiredVariableNames.has(varDirective.name)) {
         throw new Error(
           `Required variable does not select anything for either from field argument or type`,
         );
@@ -192,6 +216,16 @@ function getDefDirectives(astNode?: ASTNode | null) {
   return directiveAnnotations;
 }
 
+export function isList(type: GraphQLOutputType) {
+  if (isNonNullType(type)) {
+    return isList(type.ofType);
+  } else if (isListType(type)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 export function visitFieldNodeForTypeResolvers(
   // Subgraph of which that the field node belongs to
   parentSubgraph: string,
@@ -201,10 +235,12 @@ export function visitFieldNodeForTypeResolvers(
   type: GraphQLObjectType,
   // Supergraph Schema
   supergraph: GraphQLSchema,
+  // Visitor context
+  ctx: VisitorContext,
 ): {
   newFieldNode: FlattenedFieldNode;
   resolverOperationNodes: ResolverOperationNode[];
-  resolverDependencyMap: Map<string, ResolverOperationNode[]>;
+  resolverDependencyFieldMap: Map<string, ResolverOperationNode[]>;
 } {
   if (!fieldNode.selectionSet) {
     throw new Error('Object type should have a selectionSet');
@@ -228,8 +264,8 @@ export function visitFieldNodeForTypeResolvers(
 
   const resolverSelectionsBySubgraph: Record<string, FlattenedFieldNode[]> = {};
 
-  const resolverOperationNodes = [];
-  const resolverDependencyMap = new Map<string, ResolverOperationNode[]>();
+  const resolverOperationNodes: ResolverOperationNode[] = [];
+  const resolverDependencyFieldMap = new Map<string, ResolverOperationNode[]>();
   for (const subFieldNodeIndex in fieldNode.selectionSet.selections) {
     let subFieldNode = fieldNode.selectionSet.selections[subFieldNodeIndex] as FlattenedFieldNode;
     const fieldDefInType = typeFieldMap[subFieldNode.name.value];
@@ -269,9 +305,10 @@ export function visitFieldNodeForTypeResolvers(
           subFieldNode,
           namedFieldType,
           supergraph,
+          ctx,
         );
         subFieldNode = newSubFieldNode;
-        resolverDependencyMap.set(subFieldNode.name.value, subFieldResolverOperationNodes);
+        resolverDependencyFieldMap.set(subFieldNode.name.value, subFieldResolverOperationNodes);
       } else if (isAbstractType(namedFieldType)) {
         const subFieldResolverOperationNodes: ResolverOperationNode[] = [];
         for (const possibleType of supergraph.getPossibleTypes(namedFieldType)) {
@@ -283,6 +320,7 @@ export function visitFieldNodeForTypeResolvers(
             subFieldNode,
             possibleType,
             supergraph,
+            ctx,
           );
           subFieldNode = newSubFieldNode;
           subFieldResolverOperationNodes.push(...subFieldResolverOperationNodesForPossibleType);
@@ -330,15 +368,18 @@ export function visitFieldNodeForTypeResolvers(
         resolverDirective,
         variableDirectives,
         resolverSelections,
+        ctx,
       );
       newFieldNode = newFieldNodeForSubgraph;
-      let fieldResolverDependencyMap: Map<string, ResolverOperationNode[]> | undefined;
+      let fieldResolveFieldDependencyMap: Map<string, ResolverOperationNode[]> | undefined;
       const fieldSubgraph = resolverDirective.subgraph;
+      const fieldResolverDependencies: ResolverOperationNode[] = [];
       const fieldResolverOperationNodes: ResolverOperationNode[] = [
         {
           subgraph: fieldSubgraph,
           resolverOperationDocument,
-          resolverDependencyMap: fieldResolverDependencyMap || new Map(),
+          resolverDependencies: fieldResolverDependencies,
+          resolverDependencyFieldMap: fieldResolveFieldDependencyMap || new Map(),
         },
       ];
       if (isObjectType(namedFieldType)) {
@@ -349,48 +390,50 @@ export function visitFieldNodeForTypeResolvers(
         const {
           newFieldNode: newResolvedFieldNode,
           resolverOperationNodes: subFieldResolverOperationNodes,
-          resolverDependencyMap: newFieldResolverDependencyMap,
+          resolverDependencyFieldMap: newFieldResolverDependencyMap,
         } = visitFieldNodeForTypeResolvers(
           fieldSubgraph,
           resolverOperationResolvedFieldNode,
           namedFieldType,
           supergraph,
+          ctx,
         );
         resolverOperationResolvedFieldNode = newResolvedFieldNode;
-        fieldResolverDependencyMap = newFieldResolverDependencyMap;
-        fieldResolverOperationNodes.push(...subFieldResolverOperationNodes);
+        fieldResolveFieldDependencyMap = newFieldResolverDependencyMap;
+        fieldResolverDependencies.push(...subFieldResolverOperationNodes);
         _.set(resolverOperationDocument, resolvedFieldPath, resolverOperationResolvedFieldNode);
       } else if (isAbstractType(namedFieldType)) {
         let resolverOperationResolvedFieldNode = _.get(
           resolverOperationDocument,
           resolvedFieldPath,
         ) as FlattenedFieldNode;
-        fieldResolverDependencyMap = new Map();
+        fieldResolveFieldDependencyMap = new Map();
         for (const possibleType of supergraph.getPossibleTypes(namedFieldType)) {
           const {
             newFieldNode: newResolvedFieldNode,
             resolverOperationNodes: subFieldResolverOperationNodes,
-            resolverDependencyMap: newFieldResolverDependencyMap,
+            resolverDependencyFieldMap: newFieldResolverDependencyMap,
           } = visitFieldNodeForTypeResolvers(
             fieldSubgraph,
             resolverOperationResolvedFieldNode,
             possibleType,
             supergraph,
+            ctx,
           );
           resolverOperationResolvedFieldNode = newResolvedFieldNode;
-          fieldResolverOperationNodes.push(...subFieldResolverOperationNodes);
+          fieldResolverDependencies.push(...subFieldResolverOperationNodes);
           for (const [fieldName, dependencies] of newFieldResolverDependencyMap.entries()) {
-            let existingDependencies = fieldResolverDependencyMap.get(fieldName);
+            let existingDependencies = fieldResolveFieldDependencyMap.get(fieldName);
             if (!existingDependencies) {
               existingDependencies = [];
-              fieldResolverDependencyMap.set(fieldName, existingDependencies);
+              fieldResolveFieldDependencyMap.set(fieldName, existingDependencies);
             }
             existingDependencies.push(...dependencies);
           }
         }
         _.set(resolverOperationDocument, resolvedFieldPath, resolverOperationResolvedFieldNode);
       }
-      resolverDependencyMap.set(fieldAliasInParent, fieldResolverOperationNodes);
+      resolverDependencyFieldMap.set(fieldAliasInParent, fieldResolverOperationNodes);
     } else {
       if (!subgraph) {
         throw new Error(`No subgraph found for ${subFieldNode.name.value}`);
@@ -417,13 +460,15 @@ export function visitFieldNodeForTypeResolvers(
       resolverDirective,
       variableDirectives,
       resolverSelections,
+      ctx,
     );
     newFieldNode = newFieldNodeForSubgraph;
-    const resolverDependencyMap = new Map<string, ResolverOperationNode[]>();
+    const resolverDependencyFieldMap = new Map<string, ResolverOperationNode[]>();
     resolverOperationNodes.push({
       subgraph: fieldSubgraph,
       resolverOperationDocument,
-      resolverDependencyMap,
+      resolverDependencies: [],
+      resolverDependencyFieldMap,
     });
 
     for (const resolverSelectionIndex in resolverSelections) {
@@ -434,14 +479,26 @@ export function visitFieldNodeForTypeResolvers(
         const {
           newFieldNode: newSubFieldNode,
           resolverOperationNodes: subFieldResolverOperationNodes,
+          resolverDependencyFieldMap: subFieldResolverDependencyMap,
         } = visitFieldNodeForTypeResolvers(
           fieldSubgraph,
           resolverSubFieldNode,
           namedSelectionType,
           supergraph,
+          ctx,
         );
         resolverSelections[resolverSelectionIndex] = newSubFieldNode;
-        resolverDependencyMap.set(resolverSubFieldName, subFieldResolverOperationNodes);
+        if (subFieldResolverOperationNodes.length) {
+          resolverDependencyFieldMap.set(resolverSubFieldName, subFieldResolverOperationNodes);
+        }
+        for (const [subSubFieldName, dependencies] of subFieldResolverDependencyMap.entries()) {
+          if (dependencies.length) {
+            resolverDependencyFieldMap.set(
+              `${resolverSubFieldName}.${subSubFieldName}`,
+              dependencies,
+            );
+          }
+        }
       } else if (isAbstractType(namedSelectionType)) {
         const subFieldResolverOperationNodes: ResolverOperationNode[] = [];
         for (const possibleType of supergraph.getPossibleTypes(namedSelectionType)) {
@@ -453,11 +510,12 @@ export function visitFieldNodeForTypeResolvers(
             resolverSelections[resolverSelectionIndex],
             possibleType,
             supergraph,
+            ctx,
           );
           resolverSelections[resolverSelectionIndex] = newSubFieldNode;
           subFieldResolverOperationNodes.push(...subFieldResolverOperationNodes);
         }
-        resolverDependencyMap.set(resolverSubFieldName, subFieldResolverOperationNodes);
+        resolverDependencyFieldMap.set(resolverSubFieldName, subFieldResolverOperationNodes);
       }
     }
   }
@@ -465,12 +523,17 @@ export function visitFieldNodeForTypeResolvers(
   return {
     newFieldNode,
     resolverOperationNodes,
-    resolverDependencyMap,
+    resolverDependencyFieldMap,
   };
 }
 
 export interface ResolverOperationNode {
   subgraph: string;
   resolverOperationDocument: DocumentNode;
-  resolverDependencyMap: Map<string, ResolverOperationNode[]>;
+  resolverDependencies: ResolverOperationNode[];
+  resolverDependencyFieldMap: Map<string, ResolverOperationNode[]>;
+}
+
+export interface VisitorContext {
+  currentVariableIndex: number;
 }
