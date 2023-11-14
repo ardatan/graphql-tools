@@ -17,8 +17,8 @@ export function prepareGETUrl({
   const validUrl = baseUrl.startsWith('http')
     ? baseUrl
     : baseUrl?.startsWith('/')
-    ? `${dummyHostname}${baseUrl}`
-    : `${dummyHostname}/${baseUrl}`;
+      ? `${dummyHostname}${baseUrl}`
+      : `${dummyHostname}/${baseUrl}`;
   const urlObj = new URL(validUrl);
   urlObj.searchParams.set('query', stripIgnoredCharacters(query));
   if (variables && Object.keys(variables).length > 0) {
