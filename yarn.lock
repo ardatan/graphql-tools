@@ -3368,10 +3368,10 @@
   resolved "https://registry.yarnpkg.com/@ungap/structured-clone/-/structured-clone-1.2.0.tgz#756641adb587851b5ccb3e095daf27ae581c8406"
   integrity sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==
 
-"@urql/core@4.1.4":
-  version "4.1.4"
-  resolved "https://registry.yarnpkg.com/@urql/core/-/core-4.1.4.tgz#d1fe9f278b2d1ff32df2314b00d2d94009271665"
-  integrity sha512-wFm67yljv4uFAWNtPwcS1NMhF/n+p/68i+kZU6R1dPxhfq2nBW0142p4szeZsBDrtO7pBdOhp7YeSZROFFlXZg==
+"@urql/core@4.2.0":
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/@urql/core/-/core-4.2.0.tgz#7715491bc07e4af8b5d5039a19ea562cd109ae2f"
+  integrity sha512-GRkZ4kECR9UohWAjiSk2UYUetco6/PqSrvyC4AH6g16tyqEShA63M232cfbE1J9XJPaGNjia14Gi+oOqzp144w==
   dependencies:
     "@0no-co/graphql.web" "^1.0.1"
     wonka "^6.3.2"
@@ -3987,13 +3987,14 @@ available-typed-arrays@^1.0.5:
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
 
-axios@^0.27.2:
-  version "0.27.2"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.27.2.tgz#207658cc8621606e586c85db4b41a750e756d972"
-  integrity sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==
+axios@^1.6.1:
+  version "1.6.2"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.2.tgz#de67d42c755b571d3e698df1b6504cde9b0ee9f2"
+  integrity sha512-7i24Ri4pmDRfJTR7LDBhsOTtcm+9kjX5WiY1X3wIisx6G9So3pfMkEiU7emUBe46oceVImccTEM3k6C5dbVW8A==
   dependencies:
-    follow-redirects "^1.14.9"
+    follow-redirects "^1.15.0"
     form-data "^4.0.0"
+    proxy-from-env "^1.1.0"
 
 axobject-query@^3.2.1:
   version "3.2.1"
@@ -6485,10 +6486,10 @@ focus-visible@^5.2.0:
   resolved "https://registry.yarnpkg.com/focus-visible/-/focus-visible-5.2.0.tgz#3a9e41fccf587bd25dcc2ef045508284f0a4d6b3"
   integrity sha512-Rwix9pBtC1Nuy5wysTmKy+UjbDJpIfg8eHjw0rjZ1mX4GNLz1Bmd16uDpI3Gk1i70Fgcs8Csg2lPm8HULFg9DQ==
 
-follow-redirects@^1.14.9:
-  version "1.15.2"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.2.tgz#b460864144ba63f2681096f274c4e57026da2c13"
-  integrity sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==
+follow-redirects@^1.15.0:
+  version "1.15.3"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.3.tgz#fe2f3ef2690afce7e82ed0b44db08165b207123a"
+  integrity sha512-1VzOtuEM8pC9SFU1E+8KfTjZyMztRsgEfwQl44z8A25uy13jSzTj6dyK2Df52iV0vgHCfBwLhDWevLn95w5v6Q==
 
 for-each@^0.3.3:
   version "0.3.3"
@@ -12954,12 +12955,12 @@ vscode-textmate@^8.0.0:
   resolved "https://registry.yarnpkg.com/vscode-textmate/-/vscode-textmate-8.0.0.tgz#2c7a3b1163ef0441097e0b5d6389cd5504b59e5d"
   integrity sha512-AFbieoL7a5LMqcnOF04ji+rpXadgOXnZsxQr//r83kLPr7biP7am3g9zbaZIaBGwBRWeSvoMD4mgPdX3e4NWBg==
 
-wait-on@7.1.0:
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/wait-on/-/wait-on-7.1.0.tgz#3184ccfff7eb8a4d62ef3dfa6a4ff3675617ff60"
-  integrity sha512-U7TF/OYYzAg+OoiT/B8opvN48UHt0QYMi4aD3PjRFpybQ+o6czQF8Ig3SKCCMJdxpBrCalIJ4O00FBof27Fu9Q==
+wait-on@7.2.0:
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/wait-on/-/wait-on-7.2.0.tgz#d76b20ed3fc1e2bebc051fae5c1ff93be7892928"
+  integrity sha512-wCQcHkRazgjG5XoAq9jbTMLpNIjoSlZslrJ2+N9MxDsGEv1HnFoVjOCexL0ESva7Y9cu350j+DWADdk54s4AFQ==
   dependencies:
-    axios "^0.27.2"
+    axios "^1.6.1"
     joi "^17.11.0"
     lodash "^4.17.21"
     minimist "^1.2.8"
