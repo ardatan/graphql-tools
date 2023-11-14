@@ -50,8 +50,8 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^10.0.8",
     "@graphql-tools/executor": "^10.0.8",
+    "@graphql-tools/utils": "^10.0.8",
     "lodash": "^4.17.21",
     "tslib": "^2.4.0"
   },

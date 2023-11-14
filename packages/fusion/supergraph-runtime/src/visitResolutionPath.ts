@@ -1,12 +1,21 @@
-import { DocumentNode, FieldNode, FragmentDefinitionNode, Kind, OperationDefinitionNode, SelectionNode } from "graphql";
+import {
+  DocumentNode,
+  FieldNode,
+  FragmentDefinitionNode,
+  Kind,
+  OperationDefinitionNode,
+  SelectionNode,
+} from 'graphql';
 
 interface ResolutionPathVisitorContext {
   node: FieldNode;
   path: Array<string>;
 }
 
-export function visitResolutionPath<T>(document: DocumentNode, visitFn: (ctx: ResolutionPathVisitorContext) => T)
- {
+export function visitResolutionPath<T>(
+  document: DocumentNode,
+  visitFn: (ctx: ResolutionPathVisitorContext) => T,
+) {
   const operations: OperationDefinitionNode[] = [];
   const fragments: Record<string, FragmentDefinitionNode> = {};
   for (const definition of document.definitions) {
