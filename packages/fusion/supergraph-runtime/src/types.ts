@@ -31,11 +31,6 @@ export interface ParallelNode {
 }
 
 // Schema types
-
-export type NamedDefinitionNodeWithDirectives = NamedDefinitionNode & {
-  directives?: readonly ConstDirectiveNode[];
-};
-
 export type ResolverKind = 'FETCH' | 'BATCH' | 'SUBSCRIBE';
 
 export interface ResolverVariableConfig {
