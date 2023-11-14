@@ -1,4 +1,4 @@
-import { ConstDirectiveNode, DocumentNode, print } from 'graphql';
+import { ConstDirectiveNode, DocumentNode, parse, print } from 'graphql';
 import { NamedDefinitionNode } from '@graphql-tools/utils';
 import { ResolverOperationNode } from './query-planning.js';
 
@@ -53,8 +53,16 @@ export interface ResolverConfig {
 
 // Query Planning Types
 
+export interface SerializedResolverOperationNode {
+  subgraph: string;
+  resolverOperationDocument: string;
+  resolverDependencies?: SerializedResolverOperationNode[];
+  resolverDependencyFieldMap?: Record<string, SerializedResolverOperationNode[]>;
+  batch?: boolean;
+}
+
 export function serializeResolverOperationNode(resolverOperationNode: ResolverOperationNode) {
-  const serializedNode = {
+  const serializedNode: SerializedResolverOperationNode = {
     subgraph: resolverOperationNode.subgraph,
     resolverOperationDocument: print(resolverOperationNode.resolverOperationDocument),
   };
@@ -73,5 +81,41 @@ export function serializeResolverOperationNode(resolverOperationNode: ResolverOp
     );
   }
 
+  if (resolverOperationNode.batch) {
+    serializedNode['batch'] = true;
+  }
+
   return serializedNode;
+}
+
+export function deserializeResolverOperationNode(
+  serializedResolverOperationNode: SerializedResolverOperationNode,
+): ResolverOperationNode {
+  const resolverOperationNode = {
+    subgraph: serializedResolverOperationNode.subgraph,
+    resolverOperationDocument: parse(serializedResolverOperationNode.resolverOperationDocument),
+  } as ResolverOperationNode;
+
+  if (serializedResolverOperationNode.resolverDependencies) {
+    resolverOperationNode.resolverDependencies =
+      serializedResolverOperationNode.resolverDependencies.map(deserializeResolverOperationNode);
+  } else {
+    resolverOperationNode.resolverDependencies = [];
+  }
+
+  if (serializedResolverOperationNode.resolverDependencyFieldMap) {
+    resolverOperationNode.resolverDependencyFieldMap = new Map(
+      Object.entries(serializedResolverOperationNode.resolverDependencyFieldMap).map(
+        ([key, value]) => [key, value.map(deserializeResolverOperationNode)],
+      ),
+    );
+  } else {
+    resolverOperationNode.resolverDependencyFieldMap = new Map();
+  }
+
+  if (serializedResolverOperationNode.batch) {
+    resolverOperationNode.batch = true;
+  }
+
+  return resolverOperationNode;
 }
