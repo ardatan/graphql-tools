@@ -1,4 +1,4 @@
-import { ASTNode, DocumentNode, parse, print } from 'graphql';
+import { ASTNode, parse, print } from 'graphql';
 
 const printCache = new WeakMap<ASTNode, string>();
 
