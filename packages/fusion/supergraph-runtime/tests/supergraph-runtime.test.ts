@@ -1,11 +1,8 @@
 import { buildSchema, getOperationAST, GraphQLObjectType, Kind, parse, print } from 'graphql';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import {
-  createExecutableResolverOperationNodesWithDependencyMap,
-  executeResolverOperationNodesWithDependenciesInParallel,
-} from '../src/execution.js';
 import { FlattenedFieldNode, FlattenedSelectionSet } from '../src/flattenSelections.js';
+import { executeOperation } from '../src/operations.js';
 import { createResolveNode, visitFieldNodeForTypeResolvers } from '../src/query-planning.js';
 import { serializeResolverOperationNode } from '../src/serialization.js';
 
@@ -556,8 +553,6 @@ describe('Execution', () => {
     assumeValidSDL: true,
   });
 
-  const rootType = supergraph.getType('Query') as GraphQLObjectType;
-
   const executorMap = new Map();
 
   executorMap.set('A', createDefaultExecutor(aSchema));
@@ -582,31 +577,7 @@ describe('Execution', () => {
     `;
     const operationDoc = parse(operationInText, { noLocation: true });
 
-    const operationAst = getOperationAST(operationDoc, 'Test');
-
-    const fakeFieldNode: FlattenedFieldNode = {
-      kind: Kind.FIELD,
-      name: {
-        kind: Kind.NAME,
-        value: '__fake',
-      },
-      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
-    };
-
-    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
-      currentVariableIndex: 0,
-    });
-
-    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
-      plan.resolverOperationNodes,
-      plan.resolverDependencyFieldMap,
-    );
-    const result = await executeResolverOperationNodesWithDependenciesInParallel(
-      executablePlan.newResolverOperationNodes,
-      executablePlan.newResolverDependencyMap,
-      new Map(),
-      executorMap,
-    );
+    const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
     expect(result.exported).toMatchObject({
       myFoo: {
@@ -632,32 +603,7 @@ describe('Execution', () => {
     `;
     const operationDoc = parse(operationInText, { noLocation: true });
 
-    const operationAst = getOperationAST(operationDoc, 'Test');
-
-    const fakeFieldNode: FlattenedFieldNode = {
-      kind: Kind.FIELD,
-      name: {
-        kind: Kind.NAME,
-        value: '__fake',
-      },
-      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
-    };
-
-    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
-      currentVariableIndex: 0,
-    });
-
-    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
-      plan.resolverOperationNodes,
-      plan.resolverDependencyFieldMap,
-    );
-
-    const result = await executeResolverOperationNodesWithDependenciesInParallel(
-      executablePlan.newResolverOperationNodes,
-      executablePlan.newResolverDependencyMap,
-      new Map(),
-      executorMap,
-    );
+    const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
     expect(result.exported).toMatchObject({
       foos: [
@@ -691,32 +637,7 @@ describe('Execution', () => {
     `;
     const operationDoc = parse(operationInText, { noLocation: true });
 
-    const operationAst = getOperationAST(operationDoc, 'Test');
-
-    const fakeFieldNode: FlattenedFieldNode = {
-      kind: Kind.FIELD,
-      name: {
-        kind: Kind.NAME,
-        value: '__fake',
-      },
-      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
-    };
-
-    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
-      currentVariableIndex: 0,
-    });
-
-    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
-      plan.resolverOperationNodes,
-      plan.resolverDependencyFieldMap,
-    );
-
-    const result = await executeResolverOperationNodesWithDependenciesInParallel(
-      executablePlan.newResolverOperationNodes,
-      executablePlan.newResolverDependencyMap,
-      new Map(),
-      executorMap,
-    );
+    const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
     expect(result.exported).toMatchObject({
       foos: [
@@ -801,32 +722,7 @@ describe('Execution', () => {
     `;
     const operationDoc = parse(operationInText, { noLocation: true });
 
-    const operationAst = getOperationAST(operationDoc, 'Test');
-
-    const fakeFieldNode: FlattenedFieldNode = {
-      kind: Kind.FIELD,
-      name: {
-        kind: Kind.NAME,
-        value: '__fake',
-      },
-      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
-    };
-
-    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
-      currentVariableIndex: 0,
-    });
-
-    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
-      plan.resolverOperationNodes,
-      plan.resolverDependencyFieldMap,
-    );
-
-    const result = await executeResolverOperationNodesWithDependenciesInParallel(
-      executablePlan.newResolverOperationNodes,
-      executablePlan.newResolverDependencyMap,
-      new Map(),
-      executorMap,
-    );
+    const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
     expect(result.exported).toMatchObject({
       foos: [
@@ -848,31 +744,8 @@ describe('Execution', () => {
       }
     `;
     const operationDoc = parse(operationInText, { noLocation: true });
-    const operationAst = getOperationAST(operationDoc, 'Test');
-    const fakeFieldNode: FlattenedFieldNode = {
-      kind: Kind.FIELD,
-      name: {
-        kind: Kind.NAME,
-        value: '__fake',
-      },
-      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
-    };
 
-    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
-      currentVariableIndex: 0,
-    });
-
-    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
-      plan.resolverOperationNodes,
-      plan.resolverDependencyFieldMap,
-    );
-
-    const result = await executeResolverOperationNodesWithDependenciesInParallel(
-      executablePlan.newResolverOperationNodes,
-      executablePlan.newResolverDependencyMap,
-      new Map(),
-      executorMap,
-    );
+    const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
     expect(result.exported).toMatchObject({
       myFoo: {
@@ -891,32 +764,8 @@ describe('Execution', () => {
     `;
 
     const operationDoc = parse(operationInText, { noLocation: true });
-    const operationAst = getOperationAST(operationDoc, 'Test');
 
-    const fakeFieldNode: FlattenedFieldNode = {
-      kind: Kind.FIELD,
-      name: {
-        kind: Kind.NAME,
-        value: '__fake',
-      },
-      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
-    };
-
-    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
-      currentVariableIndex: 0,
-    });
-
-    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
-      plan.resolverOperationNodes,
-      plan.resolverDependencyFieldMap,
-    );
-
-    const result = await executeResolverOperationNodesWithDependenciesInParallel(
-      executablePlan.newResolverOperationNodes,
-      executablePlan.newResolverDependencyMap,
-      new Map(),
-      executorMap,
-    );
+    const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
     expect(result.exported).toMatchObject({
       myFoo: {
@@ -938,32 +787,8 @@ describe('Execution', () => {
     `;
 
     const operationDoc = parse(operationInText, { noLocation: true });
-    const operationAst = getOperationAST(operationDoc, 'Test');
 
-    const fakeFieldNode: FlattenedFieldNode = {
-      kind: Kind.FIELD,
-      name: {
-        kind: Kind.NAME,
-        value: '__fake',
-      },
-      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
-    };
-
-    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
-      currentVariableIndex: 0,
-    });
-
-    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
-      plan.resolverOperationNodes,
-      plan.resolverDependencyFieldMap,
-    );
-
-    const result = await executeResolverOperationNodesWithDependenciesInParallel(
-      executablePlan.newResolverOperationNodes,
-      executablePlan.newResolverDependencyMap,
-      new Map(),
-      executorMap,
-    );
+    const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
     expect(result.exported).toMatchObject({
       myFoo: {
@@ -983,31 +808,8 @@ describe('Execution', () => {
       }
     `;
     const operationDoc = parse(operationInText, { noLocation: true });
-    const operationAst = getOperationAST(operationDoc, 'Test');
-    const fakeFieldNode: FlattenedFieldNode = {
-      kind: Kind.FIELD,
-      name: {
-        kind: Kind.NAME,
-        value: '__fake',
-      },
-      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
-    };
 
-    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
-      currentVariableIndex: 0,
-    });
-
-    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
-      plan.resolverOperationNodes,
-      plan.resolverDependencyFieldMap,
-    );
-
-    const result = await executeResolverOperationNodesWithDependenciesInParallel(
-      executablePlan.newResolverOperationNodes,
-      executablePlan.newResolverDependencyMap,
-      new Map(),
-      executorMap,
-    );
+    const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
     expect(result.exported).toMatchObject({
       myFoo: {
@@ -1026,36 +828,50 @@ describe('Execution', () => {
       }
     `;
     const operationDoc = parse(operationInText, { noLocation: true });
-    const operationAst = getOperationAST(operationDoc, 'Test');
-    const fakeFieldNode: FlattenedFieldNode = {
-      kind: Kind.FIELD,
-      name: {
-        kind: Kind.NAME,
-        value: '__fake',
-      },
-      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
-    };
 
-    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
-      currentVariableIndex: 0,
-    });
-
-    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
-      plan.resolverOperationNodes,
-      plan.resolverDependencyFieldMap,
-    );
-
-    const result = await executeResolverOperationNodesWithDependenciesInParallel(
-      executablePlan.newResolverOperationNodes,
-      executablePlan.newResolverDependencyMap,
-      new Map(),
-      executorMap,
-    );
+    const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
     expect(result.exported).toMatchObject({
       myFoo: {
         child: {
           bar: 'B_CORGE_FOR_C_CHILD_ID_FOR_A_FOO_ID',
+        },
+      },
+    });
+  });
+  it('works with fragments', async () => {
+    const operationInText = /* GraphQL */ `
+      fragment Foo on Foo {
+        bar
+        baz
+      }
+      query Test {
+        myFoo {
+          ...Foo
+          child {
+            ...Foo
+            child {
+              ...Foo
+            }
+          }
+        }
+      }
+    `;
+    const operationDoc = parse(operationInText, { noLocation: true });
+
+    const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
+
+    expect(result.exported).toMatchObject({
+      myFoo: {
+        bar: 'B_BAR_FOR_A_FOO_ID',
+        baz: 'C_BAZ_FOR_A_FOO_ID',
+        child: {
+          bar: 'B_BAR_FOR_C_CHILD_ID_FOR_A_FOO_ID',
+          baz: 'C_BAZ_FOR_C_CHILD_ID_FOR_A_FOO_ID',
+          child: {
+            bar: 'B_BAR_FOR_C_CHILD_ID_FOR_C_CHILD_ID_FOR_A_FOO_ID',
+            baz: 'C_BAZ_FOR_C_CHILD_ID_FOR_C_CHILD_ID_FOR_A_FOO_ID',
+          },
         },
       },
     });
