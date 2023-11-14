@@ -9,5 +9,5 @@ export function parseAndCache(source: string) {
 }
 
 export function printCached(document: DocumentNode) {
-  return printCache.get(document) || print(document);
+  return printCache.get(document) || print(document).trim();
 }
