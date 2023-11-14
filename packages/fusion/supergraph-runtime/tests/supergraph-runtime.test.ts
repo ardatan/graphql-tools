@@ -1,8 +1,9 @@
-import { buildSchema, getOperationAST, GraphQLObjectType, Kind, parse, print } from 'graphql';
+import { buildSchema, getOperationAST, GraphQLObjectType, Kind } from 'graphql';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { FlattenedFieldNode, FlattenedSelectionSet } from '../src/flattenSelections.js';
 import { executeOperation } from '../src/operations.js';
+import { parseAndCache, printCached } from '../src/parseAndPrintWithCache.js';
 import { createResolveNode, visitFieldNodeForTypeResolvers } from '../src/query-planning.js';
 import { serializeResolverOperationNode } from '../src/serialization.js';
 
@@ -21,7 +22,7 @@ describe('Query Planning', () => {
       }
     `;
 
-      const operationDoc = parse(operationInText, { noLocation: true });
+      const operationDoc = parseAndCache(operationInText);
 
       const operationAst = getOperationAST(operationDoc, 'Test');
 
@@ -50,8 +51,8 @@ describe('Query Planning', () => {
         { currentVariableIndex: 0 },
       );
 
-      expect(print(newFieldNode)).toBe('myFoo {\n  baz\n  __variable_0: id\n}');
-      expect(print(resolverOperationDocument)).toBe(
+      expect(printCached(newFieldNode)).toBe('myFoo {\n  baz\n  __variable_0: id\n}');
+      expect(printCached(resolverOperationDocument)).toBe(
         /* GraphQL */ `
 query FooFromB($__variable_0: ID!) {
   __export: foo(id: $__variable_0) {
@@ -76,7 +77,7 @@ query FooFromB($__variable_0: ID!) {
       }
     `;
 
-      const operationDoc = parse(operationInText, { noLocation: true });
+      const operationDoc = parseAndCache(operationInText);
 
       const operationAst = getOperationAST(operationDoc, 'Test');
 
@@ -109,7 +110,7 @@ query FooFromB($__variable_0: ID!) {
         { currentVariableIndex: 0 },
       );
 
-      expect(print(newFieldNode)).toBe(
+      expect(printCached(newFieldNode)).toBe(
         /* GraphQL */ `
 myFoo {
   extraField {
@@ -120,7 +121,7 @@ myFoo {
 `.trim(),
       );
 
-      expect(print(resolverOperationDocument)).toBe(
+      expect(printCached(resolverOperationDocument)).toBe(
         /* GraphQL */ `
 query ExtraFieldFromC($__variable_0: ID!) {
   __export: extraFieldForFoo(id: $__variable_0) {
@@ -168,7 +169,7 @@ query ExtraFieldFromC($__variable_0: ID!) {
       }
     `;
 
-      const operationDoc = parse(operationInText, { noLocation: true });
+      const operationDoc = parseAndCache(operationInText);
 
       const operationAst = getOperationAST(operationDoc, 'Test');
 
@@ -184,7 +185,7 @@ query ExtraFieldFromC($__variable_0: ID!) {
         { currentVariableIndex: 0 },
       );
 
-      expect(print(newFieldNode)).toBe('myFoo {\n  __variable_0: id\n  __variable_1: id\n}');
+      expect(printCached(newFieldNode)).toBe('myFoo {\n  __variable_0: id\n  __variable_1: id\n}');
 
       expect(resolverOperationNodes.map(serializeResolverOperationNode)).toStrictEqual([
         {
@@ -255,7 +256,7 @@ query FooFromC($__variable_1: ID!) {
       }
     `;
 
-      const operationDoc = parse(operationInText, { noLocation: true });
+      const operationDoc = parseAndCache(operationInText);
 
       const operationAst = getOperationAST(operationDoc, 'Test');
 
@@ -275,7 +276,7 @@ query FooFromC($__variable_1: ID!) {
         console.log(inspect(serializeNode(node), undefined, Infinity))
       }
   */
-      expect(print(newFieldNode)).toBe('myFoo {\n  __variable_0: id\n  __variable_1: id\n}');
+      expect(printCached(newFieldNode)).toBe('myFoo {\n  __variable_0: id\n  __variable_1: id\n}');
 
       expect(resolverOperationNodes.map(serializeResolverOperationNode)).toStrictEqual([
         {
@@ -339,7 +340,7 @@ query FooFromB($__variable_2: ID!) {
         }
       `;
 
-      const operationDoc = parse(operationInText, { noLocation: true });
+      const operationDoc = parseAndCache(operationInText);
 
       const operationAst = getOperationAST(operationDoc, 'Test');
 
@@ -379,7 +380,7 @@ query FooFromB($__variable_2: ID!) {
           { currentVariableIndex: 0 },
         );
 
-      expect(print(newFieldNode)).toBe(`__fake`);
+      expect(printCached(newFieldNode)).toBe(`__fake`);
 
       expect(resolverOperationNodes.map(serializeResolverOperationNode)).toStrictEqual([]);
 
@@ -575,7 +576,7 @@ describe('Execution', () => {
         }
       }
     `;
-    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationDoc = parseAndCache(operationInText);
 
     const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
@@ -601,7 +602,7 @@ describe('Execution', () => {
         }
       }
     `;
-    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationDoc = parseAndCache(operationInText);
 
     const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
@@ -635,7 +636,7 @@ describe('Execution', () => {
         }
       }
     `;
-    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationDoc = parseAndCache(operationInText);
 
     const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
@@ -720,7 +721,7 @@ describe('Execution', () => {
         }
       }
     `;
-    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationDoc = parseAndCache(operationInText);
 
     const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
@@ -743,7 +744,7 @@ describe('Execution', () => {
         }
       }
     `;
-    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationDoc = parseAndCache(operationInText);
 
     const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
@@ -763,7 +764,7 @@ describe('Execution', () => {
       }
     `;
 
-    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationDoc = parseAndCache(operationInText);
 
     const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
@@ -786,7 +787,7 @@ describe('Execution', () => {
       }
     `;
 
-    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationDoc = parseAndCache(operationInText);
 
     const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
@@ -807,7 +808,7 @@ describe('Execution', () => {
         }
       }
     `;
-    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationDoc = parseAndCache(operationInText);
 
     const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
@@ -827,7 +828,7 @@ describe('Execution', () => {
         }
       }
     `;
-    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationDoc = parseAndCache(operationInText);
 
     const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
@@ -857,7 +858,7 @@ describe('Execution', () => {
         }
       }
     `;
-    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationDoc = parseAndCache(operationInText);
 
     const result = await executeOperation(supergraph, executorMap, operationDoc, 'Test');
 
