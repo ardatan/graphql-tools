@@ -193,7 +193,12 @@ export function createResolveNode(
     },
   });
 
-  return { newFieldNode, resolverOperationDocument, resolvedFieldPath: deepestFieldNodePath };
+  return {
+    newFieldNode,
+    resolverOperationDocument,
+    resolvedFieldPath: deepestFieldNodePath,
+    batch: resolverDirective.kind === 'BATCH',
+  };
 }
 
 function getDefDirectives(astNode?: ASTNode | null) {
@@ -362,6 +367,7 @@ export function visitFieldNodeForTypeResolvers(
         newFieldNode: newFieldNodeForSubgraph,
         resolverOperationDocument,
         resolvedFieldPath,
+        batch,
       } = createResolveNode(
         parentSubgraph,
         newFieldNode,
@@ -380,6 +386,7 @@ export function visitFieldNodeForTypeResolvers(
           resolverOperationDocument,
           resolverDependencies: fieldResolverDependencies,
           resolverDependencyFieldMap: fieldResolveFieldDependencyMap || new Map(),
+          batch,
         },
       ];
       if (isObjectType(namedFieldType)) {
@@ -454,7 +461,11 @@ export function visitFieldNodeForTypeResolvers(
     const variableDirectives = typeDirectives
       .filter(d => d.name === 'variable')
       .map(d => d.args) as ResolverVariableConfig[];
-    const { newFieldNode: newFieldNodeForSubgraph, resolverOperationDocument } = createResolveNode(
+    const {
+      newFieldNode: newFieldNodeForSubgraph,
+      resolverOperationDocument,
+      batch,
+    } = createResolveNode(
       parentSubgraph,
       newFieldNode,
       resolverDirective,
@@ -469,6 +480,7 @@ export function visitFieldNodeForTypeResolvers(
       resolverOperationDocument,
       resolverDependencies: [],
       resolverDependencyFieldMap,
+      batch,
     });
 
     for (const resolverSelectionIndex in resolverSelections) {
@@ -532,6 +544,7 @@ export interface ResolverOperationNode {
   resolverOperationDocument: DocumentNode;
   resolverDependencies: ResolverOperationNode[];
   resolverDependencyFieldMap: Map<string, ResolverOperationNode[]>;
+  batch?: boolean;
 }
 
 export interface VisitorContext {

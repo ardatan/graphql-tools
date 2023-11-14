@@ -1,5 +1,4 @@
 /* eslint-disable no-inner-declarations */
-import { inspect } from 'util';
 import { Kind, visit } from 'graphql';
 import _ from 'lodash';
 import { createGraphQLError, Executor, isAsyncIterable, isPromise } from '@graphql-tools/utils';
@@ -11,7 +10,9 @@ interface ExecutableResolverOperationNode extends ResolverOperationNode {
   requiredVariableNames: Set<string>;
   exportPath: string[];
   resolverDependencyFieldMap: Map<string, ExecutableResolverOperationNode[]>;
+  batchedResolverDependencyFieldMap: Map<string, ExecutableResolverOperationNode[]>;
   resolverDependencies: ExecutableResolverOperationNode[];
+  batchedResolverDependencies: ExecutableResolverOperationNode[];
 }
 
 function deserializeGraphQLError(error: any) {
@@ -45,9 +46,21 @@ export function createExecutableResolverOperationNode(
   }
 
   const newDependencyMap: Map<string, ExecutableResolverOperationNode[]> = new Map();
+  const newBatchedDependencyMap: Map<string, ExecutableResolverOperationNode[]> = new Map();
 
   for (const [key, nodes] of resolverOperationNode.resolverDependencyFieldMap) {
-    newDependencyMap.set(key, nodes.map(createExecutableResolverOperationNode));
+    const batchedNodes: ExecutableResolverOperationNode[] = [];
+    const nonBatchedNodes: ExecutableResolverOperationNode[] = [];
+    for (const node of nodes) {
+      const executableNode = createExecutableResolverOperationNode(node);
+      if (node.batch) {
+        batchedNodes.push(executableNode);
+      } else {
+        nonBatchedNodes.push(executableNode);
+      }
+    }
+    newBatchedDependencyMap.set(key, batchedNodes);
+    newDependencyMap.set(key, nonBatchedNodes);
   }
 
   const requiredVariableNames = new Set<string>();
@@ -58,12 +71,24 @@ export function createExecutableResolverOperationNode(
     },
   });
 
+  const batchedResolverDependencies = [];
+  const resolverDependencies = [];
+
+  for (const node of resolverOperationNode.resolverDependencies) {
+    const executableNode = createExecutableResolverOperationNode(node);
+    if (node.batch) {
+      batchedResolverDependencies.push(executableNode);
+    } else {
+      resolverDependencies.push(executableNode);
+    }
+  }
+
   return {
     ...resolverOperationNode,
-    resolverDependencies: resolverOperationNode.resolverDependencies.map(
-      createExecutableResolverOperationNode,
-    ),
+    resolverDependencies,
+    batchedResolverDependencies,
     resolverDependencyFieldMap: newDependencyMap,
+    batchedResolverDependencyFieldMap: newBatchedDependencyMap,
     providedVariablePathMap,
     requiredVariableNames,
     exportPath,
@@ -198,7 +223,7 @@ export function executeResolverOperationNode(
 
   for (const requiredVarName of resolverOperationNode.requiredVariableNames) {
     const varValue = inputVariableMap.get(requiredVarName);
-    if (Array.isArray(varValue)) {
+    if (Array.isArray(varValue) && !resolverOperationNode.batch) {
       const promises: PromiseLike<any>[] = [];
       const results: any[] = [];
       const outputVariableMaps: Map<string, any>[] = [];
@@ -268,19 +293,28 @@ export function executeResolverOperationNode(
     }
     const outputVariableMap = new Map();
     const exported = _.get(result.data, resolverOperationNode.exportPath);
+    function handleExportedListForBatching(exportedList: any) {
+      for (const [
+        providedVariableName,
+        providedVariablePath,
+      ] of resolverOperationNode.providedVariablePathMap) {
+        const value = arrayGet(exportedList, providedVariablePath);
+        outputVariableMap.set(providedVariableName, value);
+      }
+      return executeResolverOperationNodesWithDependenciesInParallel(
+        resolverOperationNode.batchedResolverDependencies,
+        resolverOperationNode.batchedResolverDependencyFieldMap,
+        outputVariableMap,
+        executorMap,
+        exportedList,
+      );
+    }
     function handleExportedItem(exportedItem: any) {
       for (const [
         providedVariableName,
         providedVariablePath,
       ] of resolverOperationNode.providedVariablePathMap) {
         const value = arrayGet(exportedItem, providedVariablePath);
-        if (!value) {
-          throw new Error(
-            `Provided variable ${providedVariableName} not found in ${inspect(
-              exportedItem,
-            )}'s ${providedVariablePath.join('.')}`,
-          );
-        }
         outputVariableMap.set(providedVariableName, value);
       }
       return executeResolverOperationNodesWithDependenciesInParallel(
@@ -293,6 +327,7 @@ export function executeResolverOperationNode(
     }
     let depsResult$: PromiseLike<any> | any;
     if (Array.isArray(exported)) {
+      handleExportedListForBatching(exported);
       const depsResultPromises: PromiseLike<any>[] = [];
       for (const exportedItem of exported) {
         const depsResultItem = handleExportedItem(exportedItem);

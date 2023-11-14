@@ -1,5 +1,6 @@
-import { ConstDirectiveNode, DocumentNode } from 'graphql';
+import { ConstDirectiveNode, DocumentNode, print } from 'graphql';
 import { NamedDefinitionNode } from '@graphql-tools/utils';
+import { ResolverOperationNode } from './query-planning.js';
 
 // Query planner types
 export type PlanNode = ResolveNode | SequenceNode | ParallelNode;
@@ -51,3 +52,26 @@ export interface ResolverConfig {
 }
 
 // Query Planning Types
+
+export function serializeResolverOperationNode(resolverOperationNode: ResolverOperationNode) {
+  const serializedNode = {
+    subgraph: resolverOperationNode.subgraph,
+    resolverOperationDocument: print(resolverOperationNode.resolverOperationDocument),
+  };
+
+  if (resolverOperationNode.resolverDependencies.length) {
+    serializedNode['resolverDependencies'] = resolverOperationNode.resolverDependencies.map(
+      serializeResolverOperationNode,
+    );
+  }
+  if (resolverOperationNode.resolverDependencyFieldMap.size) {
+    serializedNode['resolverDependencyFieldMap'] = Object.fromEntries(
+      [...resolverOperationNode.resolverDependencyFieldMap.entries()].map(([key, value]) => [
+        key,
+        value.map(serializeResolverOperationNode),
+      ]),
+    );
+  }
+
+  return serializedNode;
+}
