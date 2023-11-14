@@ -128,9 +128,8 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
                   const selectionValueNode = directiveArgs.find(arg => arg.name.value === 'fields')
                     ?.value;
                   if (selectionValueNode?.kind === Kind.STRING) {
-                    typeMergingFieldsConfig[
-                      fieldName
-                    ].selectionSet = `{ ${selectionValueNode.value} }`;
+                    typeMergingFieldsConfig[fieldName].selectionSet =
+                      `{ ${selectionValueNode.value} }`;
                     typeMergingFieldsConfig[fieldName].computed = true;
                   }
                   break;

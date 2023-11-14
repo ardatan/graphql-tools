@@ -397,8 +397,8 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         (source.document
           ? buildASTSchema(source.document, options)
           : source.rawSDL
-          ? buildSchema(source.rawSDL, options)
-          : undefined);
+            ? buildSchema(source.rawSDL, options)
+            : undefined);
     } else {
       executor = this.getExecutorAsync(pointer, options);
       source.schema = await schemaFromExecutor(executor, {}, options);
@@ -443,8 +443,8 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         (source.document
           ? buildASTSchema(source.document, options)
           : source.rawSDL
-          ? buildSchema(source.rawSDL, options)
-          : undefined);
+            ? buildSchema(source.rawSDL, options)
+            : undefined);
     } else {
       executor = this.getExecutorSync(pointer, options);
       source.schema = schemaFromExecutor(executor, {}, options);
