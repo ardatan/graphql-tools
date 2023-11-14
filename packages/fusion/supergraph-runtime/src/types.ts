@@ -1,5 +1,4 @@
-import { ConstDirectiveNode, DocumentNode } from 'graphql';
-import { NamedDefinitionNode } from '@graphql-tools/utils';
+import { DocumentNode } from 'graphql';
 
 // Query planner types
 export type PlanNode = ResolveNode | SequenceNode | ParallelNode;
