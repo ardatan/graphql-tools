@@ -7,7 +7,7 @@ import {
 } from '../src/execution.js';
 import { FlattenedFieldNode, FlattenedSelectionSet } from '../src/flattenSelections.js';
 import { createResolveNode, visitFieldNodeForTypeResolvers } from '../src/query-planning.js';
-import { serializeResolverOperationNode } from '../src/types.js';
+import { serializeResolverOperationNode } from '../src/serialization.js';
 
 describe('Query Planning', () => {
   describe('visitForTypeResolver', () => {
@@ -449,6 +449,7 @@ describe('Execution', () => {
       type Foo {
         id: ID!
         bar: String!
+        corge: String!
       }
     `,
     resolvers: {
@@ -459,6 +460,7 @@ describe('Execution', () => {
       },
       Foo: {
         bar: ({ id }) => `B_BAR_FOR_${id}`,
+        corge: ({ id }) => `B_CORGE_FOR_${id}`,
       },
     },
   });
@@ -540,6 +542,7 @@ describe('Execution', () => {
       child: Foo @source(subgraph: "C")
       children: [Foo!]! @source(subgraph: "C")
       qux: String! @source(subgraph: "D")
+      quux: String! @source(subgraph: "B", name: "corge")
     }
 
     type Query {
@@ -834,6 +837,227 @@ describe('Execution', () => {
           qux: 'D_QUX_FOR_A_FOO_ID_1',
         },
       ],
+    });
+  });
+  it('works with aliases', async () => {
+    const operationInText = /* GraphQL */ `
+      query Test {
+        myFoo {
+          myBaz: baz
+        }
+      }
+    `;
+    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationAst = getOperationAST(operationDoc, 'Test');
+    const fakeFieldNode: FlattenedFieldNode = {
+      kind: Kind.FIELD,
+      name: {
+        kind: Kind.NAME,
+        value: '__fake',
+      },
+      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
+    };
+
+    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
+      currentVariableIndex: 0,
+    });
+
+    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
+      plan.resolverOperationNodes,
+      plan.resolverDependencyFieldMap,
+    );
+
+    const result = await executeResolverOperationNodesWithDependenciesInParallel(
+      executablePlan.newResolverOperationNodes,
+      executablePlan.newResolverDependencyMap,
+      new Map(),
+      executorMap,
+    );
+
+    expect(result.exported).toMatchObject({
+      myFoo: {
+        myBaz: 'C_BAZ_FOR_A_FOO_ID',
+      },
+    });
+  });
+  it('works with resolved aliases', async () => {
+    const operationInText = /* GraphQL */ `
+      query Test {
+        myFoo {
+          myBaz: baz
+          myBar: bar
+        }
+      }
+    `;
+
+    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationAst = getOperationAST(operationDoc, 'Test');
+
+    const fakeFieldNode: FlattenedFieldNode = {
+      kind: Kind.FIELD,
+      name: {
+        kind: Kind.NAME,
+        value: '__fake',
+      },
+      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
+    };
+
+    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
+      currentVariableIndex: 0,
+    });
+
+    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
+      plan.resolverOperationNodes,
+      plan.resolverDependencyFieldMap,
+    );
+
+    const result = await executeResolverOperationNodesWithDependenciesInParallel(
+      executablePlan.newResolverOperationNodes,
+      executablePlan.newResolverDependencyMap,
+      new Map(),
+      executorMap,
+    );
+
+    expect(result.exported).toMatchObject({
+      myFoo: {
+        myBaz: 'C_BAZ_FOR_A_FOO_ID',
+        myBar: 'B_BAR_FOR_A_FOO_ID',
+      },
+    });
+  });
+  it('works with nested resolved alises', async () => {
+    const operationInText = /* GraphQL */ `
+      query Test {
+        myFoo {
+          myChild: child {
+            myBar: bar
+            myBaz: baz
+          }
+        }
+      }
+    `;
+
+    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationAst = getOperationAST(operationDoc, 'Test');
+
+    const fakeFieldNode: FlattenedFieldNode = {
+      kind: Kind.FIELD,
+      name: {
+        kind: Kind.NAME,
+        value: '__fake',
+      },
+      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
+    };
+
+    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
+      currentVariableIndex: 0,
+    });
+
+    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
+      plan.resolverOperationNodes,
+      plan.resolverDependencyFieldMap,
+    );
+
+    const result = await executeResolverOperationNodesWithDependenciesInParallel(
+      executablePlan.newResolverOperationNodes,
+      executablePlan.newResolverDependencyMap,
+      new Map(),
+      executorMap,
+    );
+
+    expect(result.exported).toMatchObject({
+      myFoo: {
+        myChild: {
+          myBaz: 'C_BAZ_FOR_C_CHILD_ID_FOR_A_FOO_ID',
+          myBar: 'B_BAR_FOR_C_CHILD_ID_FOR_A_FOO_ID',
+        },
+      },
+    });
+  });
+  it('works with renamed fields', async () => {
+    const operationInText = /* GraphQL */ `
+      query Test {
+        myFoo {
+          quux
+        }
+      }
+    `;
+    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationAst = getOperationAST(operationDoc, 'Test');
+    const fakeFieldNode: FlattenedFieldNode = {
+      kind: Kind.FIELD,
+      name: {
+        kind: Kind.NAME,
+        value: '__fake',
+      },
+      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
+    };
+
+    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
+      currentVariableIndex: 0,
+    });
+
+    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
+      plan.resolverOperationNodes,
+      plan.resolverDependencyFieldMap,
+    );
+
+    const result = await executeResolverOperationNodesWithDependenciesInParallel(
+      executablePlan.newResolverOperationNodes,
+      executablePlan.newResolverDependencyMap,
+      new Map(),
+      executorMap,
+    );
+
+    expect(result.exported).toMatchObject({
+      myFoo: {
+        quux: 'B_CORGE_FOR_A_FOO_ID',
+      },
+    });
+  });
+  it('works with renamed aliased fields', async () => {
+    const operationInText = /* GraphQL */ `
+      query Test {
+        myFoo {
+          child {
+            bar: quux
+          }
+        }
+      }
+    `;
+    const operationDoc = parse(operationInText, { noLocation: true });
+    const operationAst = getOperationAST(operationDoc, 'Test');
+    const fakeFieldNode: FlattenedFieldNode = {
+      kind: Kind.FIELD,
+      name: {
+        kind: Kind.NAME,
+        value: '__fake',
+      },
+      selectionSet: operationAst!.selectionSet as FlattenedSelectionSet,
+    };
+
+    const plan = visitFieldNodeForTypeResolvers('ROOT', fakeFieldNode, rootType, supergraph, {
+      currentVariableIndex: 0,
+    });
+
+    const executablePlan = createExecutableResolverOperationNodesWithDependencyMap(
+      plan.resolverOperationNodes,
+      plan.resolverDependencyFieldMap,
+    );
+
+    const result = await executeResolverOperationNodesWithDependenciesInParallel(
+      executablePlan.newResolverOperationNodes,
+      executablePlan.newResolverDependencyMap,
+      new Map(),
+      executorMap,
+    );
+
+    expect(result.exported).toMatchObject({
+      myFoo: {
+        child: {
+          bar: 'B_CORGE_FOR_C_CHILD_ID_FOR_A_FOO_ID',
+        },
+      },
     });
   });
 });

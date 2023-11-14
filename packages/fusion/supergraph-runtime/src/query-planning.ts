@@ -486,7 +486,13 @@ export function visitFieldNodeForTypeResolvers(
     for (const resolverSelectionIndex in resolverSelections) {
       const resolverSubFieldNode = resolverSelections[resolverSelectionIndex];
       const resolverSubFieldName = resolverSubFieldNode.name.value;
-      const namedSelectionType = getNamedType(typeFieldMap[resolverSubFieldName].type);
+      const resolverSubAliasName = resolverSubFieldNode.alias?.value ?? resolverSubFieldName;
+      const fieldType = typeFieldMap[resolverSubFieldName]?.type;
+      if (!fieldType) {
+        // Might be aliased by @source directive
+        continue;
+      }
+      const namedSelectionType = getNamedType(fieldType);
       if (isObjectType(namedSelectionType)) {
         const {
           newFieldNode: newSubFieldNode,
@@ -501,12 +507,12 @@ export function visitFieldNodeForTypeResolvers(
         );
         resolverSelections[resolverSelectionIndex] = newSubFieldNode;
         if (subFieldResolverOperationNodes.length) {
-          resolverDependencyFieldMap.set(resolverSubFieldName, subFieldResolverOperationNodes);
+          resolverDependencyFieldMap.set(resolverSubAliasName, subFieldResolverOperationNodes);
         }
         for (const [subSubFieldName, dependencies] of subFieldResolverDependencyMap.entries()) {
           if (dependencies.length) {
             resolverDependencyFieldMap.set(
-              `${resolverSubFieldName}.${subSubFieldName}`,
+              `${resolverSubAliasName}.${subSubFieldName}`,
               dependencies,
             );
           }
@@ -527,7 +533,7 @@ export function visitFieldNodeForTypeResolvers(
           resolverSelections[resolverSelectionIndex] = newSubFieldNode;
           subFieldResolverOperationNodes.push(...subFieldResolverOperationNodes);
         }
-        resolverDependencyFieldMap.set(resolverSubFieldName, subFieldResolverOperationNodes);
+        resolverDependencyFieldMap.set(resolverSubAliasName, subFieldResolverOperationNodes);
       }
     }
   }

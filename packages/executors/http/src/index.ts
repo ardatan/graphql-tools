@@ -11,6 +11,7 @@ import {
 } from '@graphql-tools/utils';
 import { fetch as defaultFetch } from '@whatwg-node/fetch';
 import { createFormDataFromVariables } from './createFormDataFromVariables.js';
+import { defaultCachedPrint } from './defaultPrint.js';
 import { handleEventStreamResponse } from './handleEventStreamResponse.js';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
 import { isLiveQueryOperationDefinitionNode } from './isLiveQueryOperationDefinitionNode.js';
@@ -79,6 +80,10 @@ export interface HTTPExecutorOptions {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FormData
    */
   FormData?: typeof FormData;
+  /**
+   * Custom print function for GraphQL documents
+   */
+  print?: typeof print;
 }
 
 export type HeadersConfig = Record<string, string>;
@@ -134,7 +139,8 @@ export function buildHTTPExecutor(
       request.extensions?.headers || {},
     );
 
-    const query = print(request.document);
+    const printFn = options?.print ?? defaultCachedPrint;
+    const query = printFn(request.document);
 
     let timeoutId: any;
     if (options?.timeout) {

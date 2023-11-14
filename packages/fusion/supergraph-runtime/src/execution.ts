@@ -5,7 +5,7 @@ import { createGraphQLError, Executor, isAsyncIterable, isPromise } from '@graph
 import { ResolverOperationNode } from './query-planning.js';
 import { visitResolutionPath } from './visitResolutionPath.js';
 
-interface ExecutableResolverOperationNode extends ResolverOperationNode {
+export interface ExecutableResolverOperationNode extends ResolverOperationNode {
   providedVariablePathMap: Map<string, string[]>;
   requiredVariableNames: Set<string>;
   exportPath: string[];
@@ -112,6 +112,49 @@ export function createExecutableResolverOperationNodesWithDependencyMap(
   };
 }
 
+export function createResolverOperationNodeFromExecutable(
+  executableNode: ExecutableResolverOperationNode,
+) {
+  const resolverOpNode: ResolverOperationNode = {
+    subgraph: executableNode.subgraph,
+    resolverOperationDocument: executableNode.resolverOperationDocument,
+    resolverDependencies: [],
+    resolverDependencyFieldMap: executableNode.resolverDependencyFieldMap,
+  };
+
+  resolverOpNode.resolverDependencies = executableNode.resolverDependencies.map(
+    createResolverOperationNodeFromExecutable,
+  );
+
+  resolverOpNode.resolverDependencyFieldMap = new Map(
+    [...executableNode.resolverDependencyFieldMap.entries()].map(([key, value]) => [
+      key,
+      value.map(createResolverOperationNodeFromExecutable),
+    ]),
+  );
+
+  if (executableNode.batchedResolverDependencies.length) {
+    resolverOpNode.batch = true;
+    for (const batchedResolverDependency of executableNode.batchedResolverDependencies) {
+      resolverOpNode.resolverDependencies.push(
+        createResolverOperationNodeFromExecutable(batchedResolverDependency),
+      );
+    }
+  }
+
+  if (executableNode.batchedResolverDependencyFieldMap.size) {
+    resolverOpNode.batch = true;
+    for (const [key, value] of executableNode.batchedResolverDependencyFieldMap) {
+      resolverOpNode.resolverDependencyFieldMap.set(
+        key,
+        value.map(createResolverOperationNodeFromExecutable),
+      );
+    }
+  }
+
+  return resolverOpNode;
+}
+
 export function executeResolverOperationNodesWithDependenciesInParallel(
   resolverOperationNodes: ExecutableResolverOperationNode[],
   fieldDependencyMap: Map<string, ExecutableResolverOperationNode[]>,
@@ -183,11 +226,18 @@ export function executeResolverOperationNodesWithDependenciesInParallel(
           }
         }
       } else {
-        _.set(
-          obj,
-          fieldName,
-          fieldOpResults.length > 1 ? (Object.assign as any)(...fieldOpResults) : fieldOpResults[0],
-        );
+        const existingVal = _.get(obj, fieldName);
+        if (existingVal != null) {
+          Object.assign(existingVal, ...fieldOpResults);
+        } else {
+          _.set(
+            obj,
+            fieldName,
+            fieldOpResults.length > 1
+              ? (Object.assign as any)(...fieldOpResults)
+              : fieldOpResults[0],
+          );
+        }
       }
     }
     if (fieldOpPromises.length) {
