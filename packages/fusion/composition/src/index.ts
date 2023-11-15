@@ -1,6 +1,13 @@
-import { GraphQLNamedType, GraphQLSchema, isSpecifiedScalarType, OperationTypeNode } from 'graphql';
+import {
+  GraphQLFieldConfig,
+  GraphQLInputFieldConfig,
+  GraphQLNamedType,
+  GraphQLSchema,
+  isSpecifiedScalarType,
+  OperationTypeNode,
+} from 'graphql';
 import { mergeSchemas } from '@graphql-tools/schema';
-import { getRootTypeMap, getRootTypes, MapperKind, mapSchema } from '@graphql-tools/utils';
+import { getRootTypeMap, MapperKind, mapSchema } from '@graphql-tools/utils';
 
 export interface SubgraphConfig {
   name: string;
@@ -22,6 +29,7 @@ export function composeSubgraphs(subgraphs: SubgraphConfig[]) {
     const { name: subgraphName, schema, transforms } = subgraphConfig;
     const rootTypeMap = getRootTypeMap(schema);
     const typeToOperationType = new Map<string, OperationTypeNode>();
+
     for (const [operationType, rootType] of rootTypeMap) {
       typeToOperationType.set(rootType.name, operationType);
     }
@@ -155,9 +163,29 @@ export function createRenameTypeTransform(
   };
 }
 
-export function createPrefixTypeTransform(prefix?: string, kind?: MapperTypeKind) {
-  return createRenameTypeTransform(
-    (type, subgraphConfig) => `${prefix || subgraphConfig.name}_${type.name}`,
-    kind,
-  );
+export type MapperFieldKind =
+  | MapperKind.FIELD
+  | MapperKind.ROOT_FIELD
+  | MapperKind.OBJECT_FIELD
+  | MapperKind.INTERFACE_FIELD
+  | MapperKind.INPUT_OBJECT_FIELD;
+
+export function createRenameFieldTransform(
+  renameFn: (
+    field: GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig,
+    fieldName: string,
+    typeName: string,
+    subgraphConfig: SubgraphConfig,
+  ) => string,
+  kind: MapperFieldKind = MapperKind.FIELD,
+): SubgraphTransform {
+  return function renameFieldTransform(schema: GraphQLSchema, subgraphConfig: SubgraphConfig) {
+    return mapSchema(schema, {
+      [kind]: (
+        field: GraphQLFieldConfig<any, any> | GraphQLInputFieldConfig,
+        fieldName: string,
+        typeName: string,
+      ) => [renameFn(field, fieldName, typeName, subgraphConfig) || fieldName, field],
+    });
+  };
 }

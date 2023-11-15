@@ -5,7 +5,7 @@ exports[`Composition composes basic schemas 1`] = `
   query: Query
 }
 
-type Query @source(subgraph: "B", name: "Query") {
+type Query {
   myFoo: Foo! @resolver(subgraph: "A", operation: "query myFoo { myFoo }")
   foo(id: ID!): Foo! @resolver(subgraph: "B", operation: "query foo($id: ID!) { foo(id: $id) }")
 }
@@ -16,12 +16,29 @@ type Foo @source(subgraph: "B", name: "Foo") {
 }"
 `;
 
-exports[`Composition composes with transforms 1`] = `
+exports[`Composition composes with transforms on fields 1`] = `
+"schema {
+  query: Query
+}
+
+type Query {
+  A_myFoo: Foo! @resolver(subgraph: "A", operation: "query myFoo { myFoo }")
+  B_foo(id: ID!): Foo! @resolver(subgraph: "B", operation: "query foo($id: ID!) { foo(id: $id) }")
+}
+
+type Foo @source(subgraph: "B", name: "Foo") {
+  A_id: ID! @source(subgraph: "A", name: "id")
+  B_id: ID! @source(subgraph: "B", name: "id")
+  B_bar: String! @source(subgraph: "B", name: "bar")
+}"
+`;
+
+exports[`Composition composes with transforms on types 1`] = `
 "schema {
   query: B_Query
 }
 
-type A_Query @source(subgraph: "A", name: "Query") {
+type A_Query {
   myFoo: A_Foo! @resolver(subgraph: "A", operation: "query myFoo { myFoo }")
 }
 
@@ -29,7 +46,7 @@ type A_Foo @source(subgraph: "A", name: "Foo") {
   id: ID! @source(subgraph: "A", name: "id")
 }
 
-type B_Query @source(subgraph: "B", name: "Query") {
+type B_Query {
   foo(id: ID!): B_Foo! @resolver(subgraph: "B", operation: "query foo($id: ID!) { foo(id: $id) }")
 }
 
