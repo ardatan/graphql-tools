@@ -20,7 +20,10 @@ function isRepeatableDirective(
   directive: DirectiveNode,
   directives?: Record<string, DirectiveDefinitionNode>,
 ): boolean {
-  return !!directives?.[directive.name.value]?.repeatable;
+  if (directives?.[directive.name.value] == null) {
+    return true;
+  }
+  return !!directives[directive.name.value].repeatable;
 }
 
 function nameAlreadyExists(name: NameNode, namesArr: ReadonlyArray<NameNode>): boolean {

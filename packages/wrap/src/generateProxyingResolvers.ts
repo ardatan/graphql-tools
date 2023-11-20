@@ -1,4 +1,4 @@
-import { GraphQLFieldResolver } from 'graphql';
+import { GraphQLFieldResolver, OperationTypeNode } from 'graphql';
 import {
   delegateToSchema,
   getSubschema,
@@ -10,9 +10,21 @@ import {
 } from '@graphql-tools/delegate';
 import { getResponseKeyFromInfo, getRootTypeMap } from '@graphql-tools/utils';
 
+interface ProxyingResolver extends GraphQLFieldResolver<any, any> {
+  extensions: {
+    directives: {
+      resolveTo: {
+        subschema: string;
+        operation: OperationTypeNode;
+        field: string;
+      };
+    };
+  };
+}
+
 export function generateProxyingResolvers<TContext extends Record<string, any>>(
   subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-): Record<string, Record<string, GraphQLFieldResolver<any, any>>> {
+): Record<string, Record<string, ProxyingResolver>> {
   const targetSchema = subschemaConfig.schema;
   const createProxyingResolver =
     subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;

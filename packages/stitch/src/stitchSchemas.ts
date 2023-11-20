@@ -18,6 +18,7 @@ import {
   extendResolversFromInterfaces,
 } from '@graphql-tools/schema';
 import { IResolvers } from '@graphql-tools/utils';
+import { mergeExtensionsWithDirectives } from './mergeCandidates.js';
 import { addStitchingInfo, completeStitchingInfo, createStitchingInfo } from './stitchingInfo.js';
 import {
   isolateComputedFieldsTransformer,
@@ -100,7 +101,7 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
     directives: newDirectives,
     astNode: schemaDefs.schemaDef,
     extensionASTNodes: schemaDefs.schemaExtensions,
-    extensions: null,
+    extensions: mergeExtensionsWithDirectives(transformedSubschemas.map(s => s.schema.extensions)),
   });
 
   for (const extension of extensions) {
