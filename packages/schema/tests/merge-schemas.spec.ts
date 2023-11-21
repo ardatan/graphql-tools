@@ -1,4 +1,13 @@
-import { buildSchema, graphql, GraphQLScalarType, GraphQLSchema, Kind, print } from 'graphql';
+import {
+  buildSchema,
+  graphql,
+  GraphQLObjectType,
+  GraphQLScalarType,
+  GraphQLSchema,
+  GraphQLString,
+  Kind,
+  print,
+} from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { assertSome, printSchemaWithDirectives } from '@graphql-tools/utils';
 import { assertListValueNode } from '../../testing/assertion.js';
@@ -556,5 +565,78 @@ type City {
   name: String
 }`.trim(),
     );
+  });
+  it('should merge schemas with directives in extensions', () => {
+    const aSchema = new GraphQLSchema({
+      extensions: {
+        directives: {
+          onSchema: {
+            name: 'a',
+          },
+        },
+      },
+      query: new GraphQLObjectType({
+        name: 'Query',
+        extensions: {
+          directives: {
+            onType: {
+              name: 'a',
+            },
+          },
+        },
+        fields: {
+          a: {
+            type: GraphQLString,
+            resolve: () => 'a',
+            extensions: {
+              directives: {
+                onField: {
+                  name: 'a',
+                },
+              },
+            },
+          },
+        },
+      }),
+    });
+    const bSchema = new GraphQLSchema({
+      extensions: {
+        directives: {
+          onSchema: {
+            name: 'b',
+          },
+        },
+      },
+      query: new GraphQLObjectType({
+        name: 'Query',
+        extensions: {
+          directives: {
+            onType: {
+              name: 'b',
+            },
+          },
+        },
+        fields: {
+          a: {
+            type: GraphQLString,
+            resolve: () => 'a',
+            extensions: {
+              directives: {
+                onField: {
+                  name: 'b',
+                },
+              },
+            },
+          },
+        },
+      }),
+    });
+    const mergedSchema = mergeSchemas({
+      schemas: [aSchema, bSchema],
+      assumeValid: true,
+      assumeValidSDL: true,
+    });
+    const printedSchema = printSchemaWithDirectives(mergedSchema);
+    expect(printedSchema.trim()).toMatchSnapshot();
   });
 });

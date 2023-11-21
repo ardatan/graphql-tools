@@ -37,10 +37,24 @@ export function mergeDeep<S extends any[]>(
           } else {
             output[key] = mergeDeep([output[key], source[key]] as S, respectPrototype);
           }
+        } else if (Array.isArray(output[key])) {
+          if (Array.isArray(source[key])) {
+            output[key].push(...source[key]);
+          } else {
+            output[key].push(source[key]);
+          }
         } else {
           Object.assign(output, { [key]: source[key] });
         }
       }
+    } else if (Array.isArray(target)) {
+      if (Array.isArray(source)) {
+        target.push(...source);
+      } else {
+        target.push(source);
+      }
+    } else if (Array.isArray(source)) {
+      return [target, ...source];
     }
   }
   return output;
