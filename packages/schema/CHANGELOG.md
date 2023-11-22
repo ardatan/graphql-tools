@@ -1,5 +1,17 @@
 # @graphql-tools/schema
 
+## 10.0.2
+
+### Patch Changes
+
+- [`a570a601`](https://github.com/ardatan/graphql-tools/commit/a570a601d91456ca81e3a26a5e3cb339edd11a62)
+  Thanks [@ardatan](https://github.com/ardatan)! - Add respectArrays flag to extensions merging
+
+- Updated dependencies
+  [[`a570a601`](https://github.com/ardatan/graphql-tools/commit/a570a601d91456ca81e3a26a5e3cb339edd11a62)]:
+  - @graphql-tools/merge@9.0.1
+  - @graphql-tools/utils@10.0.10
+
 ## 10.0.1
 
 ### Patch Changes
