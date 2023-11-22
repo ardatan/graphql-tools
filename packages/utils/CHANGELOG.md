@@ -1,5 +1,12 @@
 # @graphql-tools/utils
 
+## 10.0.10
+
+### Patch Changes
+
+- [`a570a601`](https://github.com/ardatan/graphql-tools/commit/a570a601d91456ca81e3a26a5e3cb339edd11a62)
+  Thanks [@ardatan](https://github.com/ardatan)! - Add respectArrays flag to extensions merging
+
 ## 10.0.9
 
 ### Patch Changes
