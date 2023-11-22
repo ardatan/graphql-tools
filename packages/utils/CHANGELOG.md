@@ -1,5 +1,12 @@
 # @graphql-tools/utils
 
+## 10.0.9
+
+### Patch Changes
+
+- [`e1fb8bb8`](https://github.com/ardatan/graphql-tools/commit/e1fb8bb85b2c075ca37d510d5ffd56031d8898da)
+  Thanks [@ardatan](https://github.com/ardatan)! - Merge directives in the extensions
+
 ## 10.0.8
 
 ### Patch Changes
