@@ -56,6 +56,6 @@ describe('mergeDeep', () => {
   it('merges arrays', () => {
     const x = { a: [1, 2] };
     const y = { a: [3, 4] };
-    expect(mergeDeep([x, y])).toEqual({ a: [1, 2, 3, 4] });
+    expect(mergeDeep([x, y], false, true)).toEqual({ a: [1, 2, 3, 4] });
   });
 });

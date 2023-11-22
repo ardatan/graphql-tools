@@ -9,6 +9,7 @@ type UnboxIntersection<T> = T extends { 0: infer U } ? U : never;
 export function mergeDeep<S extends any[]>(
   sources: S,
   respectPrototype = false,
+  respectArrays = false,
 ): UnboxIntersection<UnionToIntersection<BoxedTupleTypes<S>>> & any {
   const target = sources[0] || {};
   const output = {};
@@ -35,9 +36,13 @@ export function mergeDeep<S extends any[]>(
           if (!(key in output)) {
             Object.assign(output, { [key]: source[key] });
           } else {
-            output[key] = mergeDeep([output[key], source[key]] as S, respectPrototype);
+            output[key] = mergeDeep(
+              [output[key], source[key]] as S,
+              respectPrototype,
+              respectArrays,
+            );
           }
-        } else if (Array.isArray(output[key])) {
+        } else if (respectArrays && Array.isArray(output[key])) {
           if (Array.isArray(source[key])) {
             output[key].push(...source[key]);
           } else {
@@ -47,13 +52,13 @@ export function mergeDeep<S extends any[]>(
           Object.assign(output, { [key]: source[key] });
         }
       }
-    } else if (Array.isArray(target)) {
+    } else if (respectArrays && Array.isArray(target)) {
       if (Array.isArray(source)) {
         target.push(...source);
       } else {
         target.push(source);
       }
-    } else if (Array.isArray(source)) {
+    } else if (respectArrays && Array.isArray(source)) {
       return [target, ...source];
     }
   }
