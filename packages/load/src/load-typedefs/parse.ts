@@ -1,5 +1,6 @@
-import { env } from 'process';
 import {
+  debugTimerEnd,
+  debugTimerStart,
   parseGraphQLSDL,
   printSchemaWithDirectives,
   printWithComments,
@@ -27,10 +28,8 @@ export function parseSource({
   pointerOptionMap,
   addValidSource,
 }: ParseOptions) {
-  if (env['DEBUG'] != null) {
-    console.time(`@graphql-tools/load: parseSource ${partialSource.location}`);
-  }
   if (partialSource) {
+    debugTimerStart(`@graphql-tools/load: parseSource ${partialSource.location}`);
     const input = prepareInput({
       source: partialSource,
       options,
@@ -45,9 +44,7 @@ export function parseSource({
       useComments(input);
       collectValidSources(input, addValidSource);
     }
-  }
-  if (env['DEBUG'] != null) {
-    console.timeEnd(`@graphql-tools/load: parseSource ${partialSource.location}`);
+    debugTimerEnd(`@graphql-tools/load: parseSource ${partialSource.location}`);
   }
 }
 
@@ -77,63 +74,46 @@ function prepareInput({
 }
 
 function parseSchema(input: Input) {
-  if (env['DEBUG'] != null) {
-    console.time(`@graphql-tools/load: parseSchema ${input.source.location}`);
-  }
   if (input.source.schema) {
+    debugTimerStart(`@graphql-tools/load: parseSchema ${input.source.location}`);
     input.source.rawSDL = printSchemaWithDirectives(input.source.schema, input.options);
-  }
-  if (env['DEBUG'] != null) {
-    console.timeEnd(`@graphql-tools/load: parseSchema ${input.source.location}`);
+    debugTimerEnd(`@graphql-tools/load: parseSchema ${input.source.location}`);
   }
 }
 
 function parseRawSDL(input: Input) {
-  if (env['DEBUG'] != null) {
-    console.time(`@graphql-tools/load: parseRawSDL ${input.source.location}`);
-  }
   if (input.source.rawSDL) {
+    debugTimerStart(`@graphql-tools/load: parseRawSDL ${input.source.location}`);
     input.source.document = parseGraphQLSDL(
       input.source.location,
       input.source.rawSDL,
       input.options,
     ).document;
-  }
-  if (env['DEBUG'] != null) {
-    console.timeEnd(`@graphql-tools/load: parseRawSDL ${input.source.location}`);
+    debugTimerEnd(`@graphql-tools/load: parseRawSDL ${input.source.location}`);
   }
 }
 
 function useKindsFilter(input: Input) {
-  if (env['DEBUG'] != null) {
-    console.time(`@graphql-tools/load: useKindsFilter ${input.source.location}`);
-  }
   if (input.options.filterKinds) {
+    debugTimerStart(`@graphql-tools/load: useKindsFilter ${input.source.location}`);
     input.source.document = filterKind(input.source.document, input.options.filterKinds);
+    debugTimerEnd(`@graphql-tools/load: useKindsFilter ${input.source.location}`);
   }
 }
 
 function useComments(input: Input) {
-  if (env['DEBUG'] != null) {
-    console.time(`@graphql-tools/load: useComments ${input.source.location}`);
-  }
   if (!input.source.rawSDL && input.source.document) {
+    debugTimerStart(`@graphql-tools/load: useComments ${input.source.location}`);
     input.source.rawSDL = printWithComments(input.source.document);
     resetComments();
-  }
-  if (env['DEBUG'] != null) {
-    console.timeEnd(`@graphql-tools/load: useComments ${input.source.location}`);
+    debugTimerEnd(`@graphql-tools/load: useComments ${input.source.location}`);
   }
 }
 
 function collectValidSources(input: Input, addValidSource: AddValidSource) {
-  if (env['DEBUG'] != null) {
-    console.time(`@graphql-tools/load: collectValidSources ${input.source.location}`);
-  }
   if (input.source.document?.definitions && input.source.document.definitions.length > 0) {
+    debugTimerStart(`@graphql-tools/load: collectValidSources ${input.source.location}`);
     addValidSource(input.source);
-  }
-  if (env['DEBUG'] != null) {
-    console.timeEnd(`@graphql-tools/load: collectValidSources ${input.source.location}`);
+    debugTimerEnd(`@graphql-tools/load: collectValidSources ${input.source.location}`);
   }
 }
