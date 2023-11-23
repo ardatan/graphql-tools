@@ -1,5 +1,14 @@
 # @graphql-tools/utils
 
+## 10.0.11
+
+### Patch Changes
+
+- [#5715](https://github.com/ardatan/graphql-tools/pull/5715)
+  [`d3fe8d8c`](https://github.com/ardatan/graphql-tools/commit/d3fe8d8c153e94de9294bff5fe3128607bb102bc)
+  Thanks [@ardatan](https://github.com/ardatan)! - Print debug timer logs by respecting the filters
+  in DEBUG env var
+
 ## 10.0.10
 
 ### Patch Changes
