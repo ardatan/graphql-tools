@@ -323,18 +323,25 @@ export function getSubschemasFromSupergraphSdl({
               const unionMembers: NamedTypeNode[] = [];
               node.directives?.forEach(directiveNode => {
                 if (directiveNode.name.value === 'join__unionMember') {
-                  directiveNode.arguments?.forEach(argumentNode => {
-                    if (argumentNode.name.value === 'graph') {
-                      if (argumentNode?.value?.kind === Kind.ENUM) {
-                        if (argumentNode.value.value === graphName) {
-                          unionMembers.push({
-                            kind: Kind.NAMED_TYPE,
-                            name: node.name,
-                          });
-                        }
-                      }
-                    }
-                  });
+                  const graphArgumentNode = directiveNode.arguments?.find(
+                    argumentNode => argumentNode.name.value === 'graph',
+                  );
+                  const memberArgumentNode = directiveNode.arguments?.find(
+                    argumentNode => argumentNode.name.value === 'member',
+                  );
+                  if (
+                    graphArgumentNode?.value?.kind === Kind.ENUM &&
+                    graphArgumentNode.value.value === graphName &&
+                    memberArgumentNode?.value?.kind === Kind.STRING
+                  ) {
+                    unionMembers.push({
+                      kind: Kind.NAMED_TYPE,
+                      name: {
+                        kind: Kind.NAME,
+                        value: memberArgumentNode.value.value,
+                      },
+                    });
+                  }
                 }
               });
               if (unionMembers.length > 0) {

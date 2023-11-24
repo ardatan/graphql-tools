@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Supergraphs a.graphql: a.graphql 1`] = `
+exports[`Supergraphs a.graphql matches: a.graphql - stitchedSchema 1`] = `
 "schema {
   query: Query
 }
@@ -63,7 +63,127 @@ type UserReview implements Review {
 }"
 `;
 
-exports[`Supergraphs b.graphql: b.graphql 1`] = `
+exports[`Supergraphs a.graphql subgraphs: a.graphql - SERVICE0 1`] = `
+"schema {
+  query: Query
+}
+
+type Query {
+  me: User
+  users: [User]
+  _entities(representations: [_Any!]!): _Entity
+}
+
+type User {
+  birthDate: String
+  id: ID!
+  name: String
+  username: String
+}
+
+union _Entity = User
+
+scalar _Any"
+`;
+
+exports[`Supergraphs a.graphql subgraphs: a.graphql - SERVICE1 1`] = `
+"schema {
+  query: Query
+}
+
+type Product {
+  name: String
+  price: Int
+  upc: String!
+  weight: Int
+}
+
+type Query {
+  topProducts(first: Int): [Product]
+  _entities(representations: [_Any!]!): _Entity
+}
+
+union _Entity = Product
+
+scalar _Any"
+`;
+
+exports[`Supergraphs a.graphql subgraphs: a.graphql - SERVICE2 1`] = `
+"schema {
+  query: Query
+}
+
+enum ReviewsOrder {
+  ASC
+  DESC
+}
+
+input ProductReviewsInput {
+  first: Int
+  order: ReviewsOrder
+}
+
+type AnonymousReview implements Review {
+  body: String
+  id: ID!
+  product: Product
+}
+
+type Product {
+  reviews(input: ProductReviewsInput): [Review]
+}
+
+type Query {
+  _entities(representations: [_Any!]!): _Entity
+}
+
+interface Review {
+  body: String
+  id: ID!
+  product: Product
+}
+
+scalar Stars
+
+type User {
+  numberOfReviews: Int
+  reviews: [Review]
+  username: String
+}
+
+type UserReview implements Review {
+  author: User
+  body: String
+  id: ID!
+  product: Product
+  stars: Stars
+}
+
+union _Entity = AnonymousReview | Product | User | UserReview
+
+scalar _Any"
+`;
+
+exports[`Supergraphs a.graphql subgraphs: a.graphql - SERVICE3 1`] = `
+"schema {
+  query: Query
+}
+
+type Product {
+  inStock: Boolean
+  shippingEstimate: Int
+}
+
+type Query {
+  _entities(representations: [_Any!]!): _Entity
+}
+
+union _Entity = Product
+
+scalar _Any"
+`;
+
+exports[`Supergraphs b.graphql matches: b.graphql - stitchedSchema 1`] = `
 "schema {
   query: Query
 }
@@ -149,7 +269,188 @@ type Review {
 }"
 `;
 
-exports[`Supergraphs c.graphql: c.graphql 1`] = `
+exports[`Supergraphs b.graphql subgraphs: b.graphql - INVENTORY 1`] = `
+"schema {
+  query: Query
+}
+
+type DeliveryEstimates {
+  estimatedDelivery: String
+  fastestDelivery: String
+}
+
+type Product implements ProductItf {
+  id: ID! @tag(name: "hi-from-products")
+  delivery(zip: String): DeliveryEstimates
+}
+
+type ProductDimension {
+  size: String @hello
+  weight: Float
+}
+
+interface ProductItf {
+  id: ID!
+  dimensions: ProductDimension
+  delivery(zip: String): DeliveryEstimates
+}
+
+type Query {
+  _entities(representations: [_Any!]!): _Entity
+}
+
+enum ShippingClass {
+  STANDARD
+  EXPRESS
+  OVERNIGHT
+}
+
+union _Entity = Product
+
+scalar _Any"
+`;
+
+exports[`Supergraphs b.graphql subgraphs: b.graphql - PANDAS 1`] = `
+"schema {
+  query: Query
+}
+
+type Panda {
+  name: ID!
+  favoriteFood: String @tag(name: "nom-nom-nom")
+}
+
+type Query {
+  allPandas: [Panda]
+  panda(name: ID!): Panda
+  _entities(representations: [_Any!]!): _Entity
+}
+
+union _Entity
+
+scalar _Any"
+`;
+
+exports[`Supergraphs b.graphql subgraphs: b.graphql - PRODUCTS 1`] = `
+"schema {
+  query: Query
+}
+
+type Product implements ProductItf & SkuItf {
+  id: ID! @tag(name: "hi-from-products")
+  dimensions: ProductDimension
+  sku: String
+  name: String @hello
+  package: String
+  variation: ProductVariation
+  createdBy: User
+  hidden: String
+  oldField: String
+}
+
+type ProductDimension {
+  size: String @hello
+  weight: Float
+}
+
+interface ProductItf implements SkuItf {
+  id: ID!
+  dimensions: ProductDimension
+  sku: String
+  name: String
+  package: String
+  variation: ProductVariation
+  createdBy: User
+  hidden: String @inaccessible
+  oldField: String @deprecated(reason: "refactored out")
+}
+
+type ProductVariation {
+  id: ID!
+  name: String
+}
+
+type Query {
+  allProducts: [ProductItf]
+  product(id: ID!): ProductItf
+  _entities(representations: [_Any!]!): _Entity
+}
+
+enum ShippingClass {
+  STANDARD
+  EXPRESS
+  OVERNIGHT
+}
+
+interface SkuItf {
+  sku: String
+}
+
+type User {
+  email: ID! @tag(name: "test-from-users")
+  totalProductsCreated: Int
+}
+
+union _Entity = Product | User
+
+scalar _Any"
+`;
+
+exports[`Supergraphs b.graphql subgraphs: b.graphql - REVIEWS 1`] = `
+"schema {
+  query: Query
+}
+
+type Product implements ProductItf {
+  id: ID! @tag(name: "hi-from-products")
+  reviewsScore: Float!
+  reviewsCount: Int!
+  reviews: [Review!]!
+}
+
+interface ProductItf {
+  id: ID!
+  reviewsCount: Int!
+  reviewsScore: Float!
+  reviews: [Review!]!
+}
+
+type Query {
+  review(id: Int!): Review
+  _entities(representations: [_Any!]!): _Entity
+}
+
+type Review {
+  id: Int!
+  body: String!
+}
+
+union _Entity = Product
+
+scalar _Any"
+`;
+
+exports[`Supergraphs b.graphql subgraphs: b.graphql - USERS 1`] = `
+"schema {
+  query: Query
+}
+
+type Query {
+  _entities(representations: [_Any!]!): _Entity
+}
+
+type User {
+  email: ID! @tag(name: "test-from-users")
+  totalProductsCreated: Int
+  name: String
+}
+
+union _Entity = User
+
+scalar _Any"
+`;
+
+exports[`Supergraphs c.graphql matches: c.graphql - stitchedSchema 1`] = `
 "schema {
   query: Query
 }
@@ -157,10 +458,57 @@ exports[`Supergraphs c.graphql: c.graphql 1`] = `
 type Query {
   me: User
   throw: String
+  fooBar: FooBar
 }
 
 type User {
   id: ID!
   username: String
+}
+
+union FooBar = Foo | Bar
+
+type Foo {
+  id: ID!
+  name: String
+}
+
+type Bar {
+  id: ID!
+  name: String
 }"
+`;
+
+exports[`Supergraphs c.graphql subgraphs: c.graphql - ACCOUNTS 1`] = `
+"schema {
+  query: Query
+}
+
+type Query {
+  me: User
+  throw: String
+  fooBar: FooBar
+  _entities(representations: [_Any!]!): _Entity
+}
+
+type User {
+  id: ID!
+  username: String
+}
+
+union FooBar = Foo | Bar
+
+type Foo {
+  id: ID!
+  name: String
+}
+
+type Bar {
+  id: ID!
+  name: String
+}
+
+union _Entity = User | Foo | Bar
+
+scalar _Any"
 `;

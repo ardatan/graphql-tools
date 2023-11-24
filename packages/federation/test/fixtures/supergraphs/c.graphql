@@ -63,9 +63,25 @@ enum link__Purpose {
 type Query @join__type(graph: ACCOUNTS) {
   me: User
   throw: String
+  fooBar: FooBar
 }
 
 type User @join__type(graph: ACCOUNTS, key: "id") {
   id: ID!
   username: String
+}
+
+union FooBar
+  @join__type(graph: ACCOUNTS)
+  @join__unionMember(graph: ACCOUNTS, member: "Foo")
+  @join__unionMember(graph: ACCOUNTS, member: "Bar")
+
+type Foo @join__type(graph: ACCOUNTS, key: "id") {
+  id: ID!
+  name: String
+}
+
+type Bar @join__type(graph: ACCOUNTS, key: "id") {
+  id: ID!
+  name: String
 }
