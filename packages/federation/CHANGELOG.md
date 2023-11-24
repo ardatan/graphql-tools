@@ -1,5 +1,12 @@
 # @graphql-tools/federation
 
+## 1.1.12
+
+### Patch Changes
+
+- [`efedc590`](https://github.com/ardatan/graphql-tools/commit/efedc59018ea1d63f86973d0c6608b3c7ddc2e71)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle unions correctly
+
 ## 1.1.11
 
 ### Patch Changes
