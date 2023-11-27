@@ -18,11 +18,6 @@ export async function* handleAsyncIterable(asyncIterable: AsyncIterable<Uint8Arr
       const msg = currChunk.slice(0, delimIndex); // whole message
       currChunk = currChunk.slice(delimIndex + DELIM.length); // remainder
 
-      if (msg === ':') {
-        // ping
-        continue;
-      }
-
       // data
       const dataStr = msg.split('data:')[1]?.trim();
       if (dataStr) {
