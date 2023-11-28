@@ -1,5 +1,13 @@
 # @graphql-tools/executor-http
 
+## 1.0.4
+
+### Patch Changes
+
+- [#5724](https://github.com/ardatan/graphql-tools/pull/5724)
+  [`cfbd2e07`](https://github.com/ardatan/graphql-tools/commit/cfbd2e07aff0c773a2e2766ea5fd34b628e72f1f)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - Handle chunked and no-space messages in SSE
+
 ## 1.0.3
 
 ### Patch Changes
