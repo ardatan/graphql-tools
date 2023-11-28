@@ -231,18 +231,23 @@ export class MockStore implements IMockStore {
       } else if (this.isKeyField(typeName, fieldName)) {
         value = key;
       } else {
-        value = this.generateFieldValue(typeName, fieldName, (otherFieldName, otherValue) => {
-          // if we get a key field in the mix we don't care
-          if (this.isKeyField(typeName, otherFieldName)) return;
+        value = this.generateFieldValue(
+          typeName,
+          fieldName,
+          fieldArgs,
+          (otherFieldName, otherValue) => {
+            // if we get a key field in the mix we don't care
+            if (this.isKeyField(typeName, otherFieldName)) return;
 
-          this.set({
-            typeName,
-            key,
-            fieldName: otherFieldName,
-            value: otherValue,
-            noOverride: true,
-          });
-        });
+            this.set({
+              typeName,
+              key,
+              fieldName: otherFieldName,
+              value: otherValue,
+              noOverride: true,
+            });
+          },
+        );
       }
 
       this.set({ typeName, key, fieldName, fieldArgs, value, noOverride: true });
@@ -433,11 +438,13 @@ export class MockStore implements IMockStore {
   private generateFieldValue(
     typeName: string,
     fieldName: string,
+    fieldArgs: string | { [argName: string]: any } | undefined,
     onOtherFieldsGenerated?: (fieldName: string, value: unknown) => void,
   ): unknown | undefined {
     const mockedValue = this.generateFieldValueFromMocks(
       typeName,
       fieldName,
+      fieldArgs,
       onOtherFieldsGenerated,
     );
     if (mockedValue !== undefined) return mockedValue;
@@ -449,6 +456,7 @@ export class MockStore implements IMockStore {
   private generateFieldValueFromMocks(
     typeName: string,
     fieldName: string,
+    fieldArgs: string | { [argName: string]: any } | undefined,
     onOtherFieldsGenerated?: (fieldName: string, value: unknown) => void,
   ): unknown | undefined {
     let value;
@@ -469,13 +477,13 @@ export class MockStore implements IMockStore {
         }
 
         value = (values as any)[fieldName];
-        if (typeof value === 'function') value = value();
+        if (typeof value === 'function') value = value(fieldArgs);
       } else if (
         typeof mock === 'object' &&
         mock != null &&
         typeof mock[fieldName] === 'function'
       ) {
-        value = mock[fieldName]();
+        value = mock[fieldName](fieldArgs);
       }
     }
 
@@ -491,6 +499,7 @@ export class MockStore implements IMockStore {
         value = this.generateFieldValueFromMocks(
           interface_.name,
           fieldName,
+          fieldArgs,
           onOtherFieldsGenerated,
         );
       }
@@ -507,7 +516,12 @@ export class MockStore implements IMockStore {
 
     if (!keyFieldName) return uuidv4() as KeyT;
 
-    return this.generateFieldValue(typeName, keyFieldName, onOtherFieldsGenerated) as KeyT;
+    return this.generateFieldValue(
+      typeName,
+      keyFieldName,
+      undefined,
+      onOtherFieldsGenerated,
+    ) as KeyT;
   }
 
   private generateValueFromType(fieldType: GraphQLOutputType): unknown {

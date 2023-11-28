@@ -131,7 +131,7 @@ describe('MockStore', () => {
     expect(user1.$ref).toEqual(user1Bis.$ref);
   });
 
-  it('sould return a different value if called with different field args', () => {
+  it('should return a different value if called with different field args', () => {
     const store = createMockStore({ schema });
     const user1 = store.get({
       typeName: 'Query',
@@ -608,5 +608,22 @@ describe('MockStore', () => {
     store.set(makeRef('User', 'me'), 'name', 'Alexandre');
     store.reset();
     expect(store.get('User', 'me', 'name')).not.toEqual('Alexandre');
+  });
+
+  it('should pass field args to value getter function', () => {
+    const store = createMockStore({
+      schema,
+      mocks: {
+        User: () => {
+          return {
+            name: ({ format }: { format: string }) =>
+              format === 'fullName' ? 'Alexandre the Great' : 'Alex',
+          };
+        },
+      },
+    });
+
+    expect(store.get('User', '123', 'name', { format: 'fullName' })).toEqual('Alexandre the Great');
+    expect(store.get('User', '123', 'name', { format: 'shortName' })).toEqual('Alex');
   });
 });
