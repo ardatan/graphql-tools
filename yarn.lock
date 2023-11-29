@@ -2707,10 +2707,10 @@
   dependencies:
     tslib "^2.4.0"
 
-"@theguild/algolia@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@theguild/algolia/-/algolia-2.0.0.tgz#01459f2a5b1aeb7c094cfdbf1b75299e209a7669"
-  integrity sha512-4cjVARyY3Q1CM/9tJ8teeTXt0ZF4Dj9qAqAl393i/Kb/YEh+N/Y+/Uof2sNsoOXcIVQ32equ3VlP0qCdI6gThQ==
+"@theguild/algolia@2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@theguild/algolia/-/algolia-2.1.0.tgz#aa6e8d7216d2d33232dbde71e28dbf00aed9d7f1"
+  integrity sha512-NvS4Gxs2jJaGXf/4x71iG0EFiXSiwXLQjwjPruRqjR8nVWnE4UEkdMKlaJLtV+pjqMfM2DX3EcoNr+c8O5UH7g==
   dependencies:
     algoliasearch "^4.14.3"
     commander "^11.0.0"
@@ -2721,9 +2721,9 @@
     remove-markdown "^0.5.0"
 
 "@theguild/components@^6.0.1":
-  version "6.0.3"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.0.3.tgz#245fc5ac76b1ae863786ede663e87d9fde227dab"
-  integrity sha512-nKwSYBc1ThSOEjCTz9zykyzNRTMg09xnojP+zXzlBVwr5QCOVejxT3MitA812ubcVDDMJQnlJiqa3/YyN61Bvw==
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.1.0.tgz#f065065d4d03da8323f6c050f2eebd513ba9825a"
+  integrity sha512-hN91XZlaMhg35TCxbod4L8oZISlE5nUX51Pn1Q0dsqOeQb8LKLHGNi0doJkZFEpWJpVCHOimteUVosc+o+8ZiA==
   dependencies:
     "@algolia/autocomplete-js" "1.11.1"
     "@algolia/autocomplete-plugin-algolia-insights" "1.11.1"
