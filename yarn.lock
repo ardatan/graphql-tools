@@ -1832,10 +1832,10 @@
   dependencies:
     tslib "^2.5.2"
 
-"@graphql-yoga/plugin-defer-stream@3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.0.0.tgz#a9f9b3d88b31f24dbcd614de44d12158f41d9def"
-  integrity sha512-ve3A+zUdPcxdau1oc2iMXA7pfegl3Vno0104mn3za+IdxIlmqH2XaFHwdxtfnlLsaVRJL1Elz55PuHArH/9bzA==
+"@graphql-yoga/plugin-defer-stream@3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.0.1.tgz#bef9267fe17c3ed6dee3eeba26d0de56d0400a17"
+  integrity sha512-xyXJ15BOwsXzXmiZsBBUZwMeI5FhnVOnz+7PUhbh38Ko8Tr3MbLUEJL8RSOnQUKeFys0dhNIWq0dbgXcjvY+pw==
   dependencies:
     "@graphql-tools/utils" "^10.0.0"
 
