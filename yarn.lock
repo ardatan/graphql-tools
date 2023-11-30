@@ -1831,10 +1831,10 @@
   dependencies:
     tslib "^2.5.2"
 
-"@graphql-yoga/plugin-defer-stream@3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.0.1.tgz#bef9267fe17c3ed6dee3eeba26d0de56d0400a17"
-  integrity sha512-xyXJ15BOwsXzXmiZsBBUZwMeI5FhnVOnz+7PUhbh38Ko8Tr3MbLUEJL8RSOnQUKeFys0dhNIWq0dbgXcjvY+pw==
+"@graphql-yoga/plugin-defer-stream@3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.0.2.tgz#a169e5a519971949fd32ed98c862a4b344e6cba4"
+  integrity sha512-2+4KdhNBby5y7/7Xh1ZzOA+m9/3w8KQ1RA63CuLyz92QRN3VOU8tPKXJFxdquKYAByTjFEj0Bg2QGU2rUUtj3g==
   dependencies:
     "@graphql-tools/utils" "^10.0.0"
 
@@ -6884,10 +6884,10 @@ graphql-ws@^5.14.0:
   resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.14.2.tgz#7db6f6138717a544d9480f0213f65f2841ed1c52"
   integrity sha512-LycmCwhZ+Op2GlHz4BZDsUYHKRiiUz+3r9wbhBATMETNlORQJAaFlAgTFoeRh6xQoQegwYwIylVD1Qns9/DA3w==
 
-graphql-yoga@5.0.0, graphql-yoga@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.0.0.tgz#446c9cc1d336b550394b6a17703d7fc1acdda18e"
-  integrity sha512-ZvZlO8MHMDWuLRoDhvJQnXg8SOJD0iDaCA+M/zWuD26AlhEugOEbpnhw/645oqXTYtvHsM91WyxtV7p5XJWYMg==
+graphql-yoga@5.0.1, graphql-yoga@^5.0.0:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.0.1.tgz#255fb63a2398ce49c73d2c0feaef9d64bf835ff8"
+  integrity sha512-tcdJOjEv5am5TOGX6TcKDyLT5azrnZ38Y+WUgnbYSYeYX12AKuEju94Sr1ixACvruQo6EyogfKpUGwtb7LQYCw==
   dependencies:
     "@envelop/core" "^5.0.0"
     "@graphql-tools/executor" "^1.0.0"
@@ -8174,9 +8174,9 @@ joi@^17.11.0:
     "@sideway/pinpoint" "^2.0.0"
 
 jose@^5.0.0:
-  version "5.1.2"
-  resolved "https://registry.yarnpkg.com/jose/-/jose-5.1.2.tgz#f71a18e3ee779c2d81778e1b6f0d85062ccd9ee1"
-  integrity sha512-X7TOC/d8KPvx4wPUuLHVgTSdoWw0UW5TQOUwhvCvj+ZPfsf9vUPhhksYPjNBWVGPQ/6yd/JrL1gQxBnIDwYdFg==
+  version "5.1.3"
+  resolved "https://registry.yarnpkg.com/jose/-/jose-5.1.3.tgz#303959d85c51b5cb14725f930270b72be56abdca"
+  integrity sha512-GPExOkcMsCLBTi1YetY2LmkoY559fss0+0KVa6kOfb2YFe84nAM7Nm/XzuZozah4iHgmBGrCOHL5/cy670SBRw==
 
 js-levenshtein@^1.1.6:
   version "1.1.6"
