@@ -80,7 +80,7 @@
     "typedoc": "0.25.4",
     "typedoc-plugin-markdown": "3.16.0",
     "typedoc-plugin-rename-defaults": "0.7.0",
-    "typescript": "5.3.2",
+    "typescript": "5.3.3",
     "weak-napi": "2.0.2"
   },
   "resolutions": {
