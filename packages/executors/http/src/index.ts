@@ -136,8 +136,9 @@ export function buildHTTPExecutor(
     }
 
     if (request.extensions?.headers) {
-      Object.assign(headers, request.extensions.headers);
-      delete request.extensions.headers;
+      const { headers: headersFromExtensions, ...restExtensions } = request.extensions;
+      Object.assign(headers, headersFromExtensions);
+      request.extensions = restExtensions;
     }
 
     const query = print(request.document);
