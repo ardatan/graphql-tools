@@ -126,15 +126,19 @@ export function buildHTTPExecutor(
     }
 
     const endpoint = request.extensions?.endpoint || options?.endpoint || '/graphql';
-    const headers = Object.assign(
-      {
-        accept,
-      },
-      (typeof options?.headers === 'function' ? options.headers(request) : options?.headers) || {},
-      request.extensions?.headers || {},
-    );
+    const headers = { accept };
 
-    delete request.extensions?.headers;
+    if (options?.headers) {
+      Object.assign(
+        headers,
+        typeof options?.headers === 'function' ? options.headers(request) : options?.headers,
+      );
+    }
+
+    if (request.extensions?.headers) {
+      Object.assign(headers, request.extensions.headers);
+      delete request.extensions.headers;
+    }
 
     const query = print(request.document);
 
