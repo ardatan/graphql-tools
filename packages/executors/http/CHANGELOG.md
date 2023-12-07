@@ -1,5 +1,13 @@
 # @graphql-tools/executor-http
 
+## 1.0.5
+
+### Patch Changes
+
+- [`a4463d3`](https://github.com/ardatan/graphql-tools/commit/a4463d3607f33b176828bc48b6895adf3120aeec)
+  Thanks [@ardatan](https://github.com/ardatan)! - Remove headers from extensions in the GraphQL
+  request
+
 ## 1.0.4
 
 ### Patch Changes
