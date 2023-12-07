@@ -134,6 +134,8 @@ export function buildHTTPExecutor(
       request.extensions?.headers || {},
     );
 
+    delete request.extensions?.headers;
+
     const query = print(request.document);
 
     let timeoutId: any;

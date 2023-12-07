@@ -114,4 +114,34 @@ describe('buildHTTPExecutor', () => {
     });
     expect(method).toBe('POST');
   });
+
+  it('should not encode headers from extensions', async () => {
+    const executor = buildHTTPExecutor({
+      useGETForQueries: true,
+      fetch(url) {
+        expect(url).not.toMatch(/(Authorization|headers)/i);
+        return new Response(JSON.stringify({ data: { hello: 'world!' } }), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      },
+    });
+    const result = (await executor({
+      document: parse(/* GraphQL */ `
+        query {
+          hello
+        }
+      `),
+      extensions: {
+        headers: {
+          Authorization: 'Token',
+        },
+      },
+    })) as ExecutionResult;
+
+    expect(result.data).toMatchInlineSnapshot(`
+      {
+        "hello": "world!",
+      }
+    `);
+  });
 });
