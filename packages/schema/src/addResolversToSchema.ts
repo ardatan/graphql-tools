@@ -59,11 +59,15 @@ export function addResolversToSchema({
     const type = schema.getType(typeName);
 
     if (type == null) {
-      if (requireResolversToMatchSchema === 'ignore') {
+      const msg = `"${typeName}" defined in resolvers, but not in schema`;
+      if (requireResolversToMatchSchema && requireResolversToMatchSchema !== 'error') {
+        if (requireResolversToMatchSchema === 'warn') {
+          console.warn(msg);
+        }
         continue;
       }
 
-      throw new Error(`"${typeName}" defined in resolvers, but not in schema`);
+      throw new Error(msg);
     } else if (isSpecifiedScalarType(type)) {
       // allow -- without recommending -- overriding of specified scalar types
       for (const fieldName in resolverValue) {
@@ -83,9 +87,12 @@ export function addResolversToSchema({
           requireResolversToMatchSchema &&
           requireResolversToMatchSchema !== 'ignore'
         ) {
-          throw new Error(
-            `${type.name}.${fieldName} was defined in resolvers, but not present within ${type.name}`,
-          );
+          const msg = `${type.name}.${fieldName} was defined in resolvers, but not present within ${type.name}`;
+          if (requireResolversToMatchSchema === 'error') {
+            throw new Error(msg);
+          } else {
+            console.warn(msg);
+          }
         }
       }
     } else if (isUnionType(type)) {
@@ -95,9 +102,12 @@ export function addResolversToSchema({
           requireResolversToMatchSchema &&
           requireResolversToMatchSchema !== 'ignore'
         ) {
-          throw new Error(
-            `${type.name}.${fieldName} was defined in resolvers, but ${type.name} is not an object or interface type`,
-          );
+          const msg = `${type.name}.${fieldName} was defined in resolvers, but ${type.name} is not an object or interface type`;
+          if (requireResolversToMatchSchema === 'error') {
+            throw new Error(msg);
+          } else {
+            console.warn(msg);
+          }
         }
       }
     } else if (isObjectType(type) || isInterfaceType(type)) {
@@ -109,7 +119,12 @@ export function addResolversToSchema({
           if (field == null) {
             // Field present in resolver but not in schema
             if (requireResolversToMatchSchema && requireResolversToMatchSchema !== 'ignore') {
-              throw new Error(`${typeName}.${fieldName} defined in resolvers, but not in schema`);
+              const msg = `${typeName}.${fieldName} defined in resolvers, but not in schema`;
+              if (requireResolversToMatchSchema === 'error') {
+                throw new Error(msg);
+              } else {
+                console.error(msg);
+              }
             }
           } else {
             // Field present in both the resolver and schema
