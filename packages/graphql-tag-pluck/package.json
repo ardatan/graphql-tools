@@ -56,9 +56,11 @@
     "@babel/traverse": "^7.16.8",
     "@babel/types": "^7.16.8",
     "@graphql-tools/utils": "^10.0.0",
+    "astrojs-compiler-sync": "^0.3.3",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
+    "@astrojs/compiler": "^2.3.4",
     "@babel/parser": "7.23.6",
     "@babel/traverse": "7.23.7",
     "@babel/types": "7.23.6",
@@ -75,7 +77,8 @@
   "buildOptions": {
     "external": [
       "@vue/compiler-sfc",
-      "svelte2tsx"
+      "svelte2tsx",
+      "@astrojs/compiler"
     ]
   },
   "typescript": {

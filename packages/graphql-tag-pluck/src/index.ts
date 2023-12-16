@@ -142,6 +142,7 @@ const supportedExtensions = [
   '.flow.jsx',
   '.vue',
   '.svelte',
+  '.astro',
 ];
 
 // tslint:disable-next-line: no-implicit-dependencies
@@ -159,10 +160,25 @@ function parseWithSvelte(svelte2tsx: typeof import('svelte2tsx'), fileData: stri
   return fileInTsx.code;
 }
 
+// tslint:disable-next-line: no-implicit-dependencies
+async function parseWithAstro(astroCompiler: typeof import('@astrojs/compiler'), fileData: string) {
+  const fileInTsx = await astroCompiler.transform(fileData);
+  return fileInTsx.code;
+}
+
+function parseWithAstroSync(
+  // tslint:disable-next-line: no-implicit-dependencies
+  astroCompiler: typeof import('astrojs-compiler-sync'),
+  fileData: string,
+) {
+  const fileInTsx = astroCompiler.transform(fileData, undefined);
+  return fileInTsx.code;
+}
+
 /**
  * Asynchronously plucks GraphQL template literals from a single file.
  *
- * Supported file extensions include: `.js`, `.mjs`, `.cjs`, `.jsx`, `.ts`, `.mts`, `.cts`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`, `.svelte`
+ * Supported file extensions include: `.js`, `.mjs`, `.cjs`, `.jsx`, `.ts`, `.mts`, `.cts`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`, `.svelte`, `.astro`
  *
  * @param filePath Path to the file containing the code. Required to detect the file type
  * @param code The contents of the file being parsed.
@@ -180,6 +196,8 @@ export const gqlPluckFromCodeString = async (
     code = await pluckVueFileScript(code);
   } else if (fileExt === '.svelte') {
     code = await pluckSvelteFileScript(code);
+  } else if (fileExt === '.astro') {
+    code = await pluckAstroFileScript(code);
   }
 
   return parseCode({ code, filePath, options }).map(
@@ -190,7 +208,7 @@ export const gqlPluckFromCodeString = async (
 /**
  * Synchronously plucks GraphQL template literals from a single file
  *
- * Supported file extensions include: `.js`, `.mjs`, `.cjs`, `.jsx`, `.ts`, `.mjs`, `.cjs`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`, `.svelte`
+ * Supported file extensions include: `.js`, `.mjs`, `.cjs`, `.jsx`, `.ts`, `.mjs`, `.cjs`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`, `.svelte`, `.astro`
  *
  * @param filePath Path to the file containing the code. Required to detect the file type
  * @param code The contents of the file being parsed.
@@ -208,6 +226,8 @@ export const gqlPluckFromCodeStringSync = (
     code = pluckVueFileScriptSync(code);
   } else if (fileExt === '.svelte') {
     code = pluckSvelteFileScriptSync(code);
+  } else if (fileExt === '.astro') {
+    code = pluckAstroFileScriptSync(code);
   }
 
   return parseCode({ code, filePath, options }).map(
@@ -285,6 +305,21 @@ const MissingSvelteTemplateCompilerError = new Error(
   `),
 );
 
+const MissingAstroCompilerError = new Error(
+  freeText(`
+    GraphQL template literals cannot be plucked from a Astro template code without having the "@astrojs/compiler" package installed.
+    Please install it and try again.
+
+    Via NPM:
+
+        $ npm install @astrojs/compiler
+
+    Via Yarn:
+
+        $ yarn add @astrojs/compiler
+  `),
+);
+
 async function pluckVueFileScript(fileData: string) {
   let vueTemplateCompiler: typeof import('@vue/compiler-sfc');
   try {
@@ -333,4 +368,27 @@ function pluckSvelteFileScriptSync(fileData: string) {
   }
 
   return parseWithSvelte(svelte2tsx, fileData);
+}
+
+async function pluckAstroFileScript(fileData: string) {
+  let astroCompiler: typeof import('@astrojs/compiler');
+  try {
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    astroCompiler = await import('@astrojs/compiler');
+  } catch (e: any) {
+    throw MissingAstroCompilerError;
+  }
+
+  return parseWithAstro(astroCompiler, fileData);
+}
+
+function pluckAstroFileScriptSync(fileData: string) {
+  let astroCompiler: typeof import('astrojs-compiler-sync');
+  try {
+    astroCompiler = require('astrojs-compiler-sync');
+  } catch (e: any) {
+    throw MissingAstroCompilerError;
+  }
+
+  return parseWithAstroSync(astroCompiler, fileData);
 }
