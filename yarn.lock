@@ -2714,9 +2714,9 @@
     remove-markdown "^0.5.0"
 
 "@theguild/components@^6.0.1":
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.1.0.tgz#f065065d4d03da8323f6c050f2eebd513ba9825a"
-  integrity sha512-hN91XZlaMhg35TCxbod4L8oZISlE5nUX51Pn1Q0dsqOeQb8LKLHGNi0doJkZFEpWJpVCHOimteUVosc+o+8ZiA==
+  version "6.1.1"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.1.1.tgz#724b0ba5f44999c21cc180a39b7ddd5a3a4cba1e"
+  integrity sha512-/Jwtvl4jV9ch0y8uZNdK8riigm+m2yqRGNtU+F1c6msr/OTQtPbCQ5FiUOqloFOJbk6UnlAcThikI7S74DaKxQ==
   dependencies:
     "@algolia/autocomplete-js" "1.11.1"
     "@algolia/autocomplete-plugin-algolia-insights" "1.11.1"
