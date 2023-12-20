@@ -5839,10 +5839,10 @@ eslint-plugin-import@2.29.1:
     semver "^6.3.1"
     tsconfig-paths "^3.15.0"
 
-eslint-plugin-n@16.4.0:
-  version "16.4.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-n/-/eslint-plugin-n-16.4.0.tgz#02ff70d2b164319b6d566672969a9c24688a43df"
-  integrity sha512-IkqJjGoWYGskVaJA7WQuN8PINIxc0N/Pk/jLeYT4ees6Fo5lAhpwGsYek6gS9tCUxgDC4zJ+OwY2bY/6/9OMKQ==
+eslint-plugin-n@16.5.0:
+  version "16.5.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-n/-/eslint-plugin-n-16.5.0.tgz#4dbd7459f95bc2556ec318480767e8837af168fc"
+  integrity sha512-Hw02Bj1QrZIlKyj471Tb1jSReTl4ghIMHGuBGiMVmw+s0jOPbI4CBuYpGbZr+tdQ+VAvSK6FDSta3J4ib/SKHQ==
   dependencies:
     "@eslint-community/eslint-utils" "^4.4.0"
     builtins "^5.0.1"
@@ -6801,10 +6801,10 @@ graphql-scalars@1.22.4:
   dependencies:
     tslib "^2.5.0"
 
-graphql-sse@2.5.1:
-  version "2.5.1"
-  resolved "https://registry.yarnpkg.com/graphql-sse/-/graphql-sse-2.5.1.tgz#1e284c841cd704673568851d0e2279d9ec854f2c"
-  integrity sha512-2cxf4cisPaFnpJ2syf5JtXluljvVb+LlUB8xTo6oW3EGoVDxhca/OQns2GbT+xFwjA5JjmLo5liJ3XoSdVW4Cg==
+graphql-sse@2.5.2:
+  version "2.5.2"
+  resolved "https://registry.yarnpkg.com/graphql-sse/-/graphql-sse-2.5.2.tgz#5dcd16c9ad7e1fd844d3163de51fcbcc681bbb23"
+  integrity sha512-KCTl7HpD12xQrbXGdLrc1BL0ybfB6M83lxRO1mqT31pvOY01ZuWgiJKTY8+NAX8sgEMPVrnXXOXh9LqYDgNI+g==
 
 graphql-subscriptions@2.0.0:
   version "2.0.0"
@@ -6839,9 +6839,9 @@ graphql-upload@16.0.2:
     object-path "^0.11.8"
 
 graphql-ws@^5.14.0:
-  version "5.14.2"
-  resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.14.2.tgz#7db6f6138717a544d9480f0213f65f2841ed1c52"
-  integrity sha512-LycmCwhZ+Op2GlHz4BZDsUYHKRiiUz+3r9wbhBATMETNlORQJAaFlAgTFoeRh6xQoQegwYwIylVD1Qns9/DA3w==
+  version "5.14.3"
+  resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.14.3.tgz#fb1fba011a0ae9c4e86d831cae2ec27955168b9a"
+  integrity sha512-F/i2xNIVbaEF2xWggID0X/UZQa2V8kqKDPO8hwmu53bVOcTL7uNkxnexeEgSCVxYBQUTUNEI8+e4LO1FOhKPKQ==
 
 graphql-yoga@5.0.2, graphql-yoga@^5.0.0:
   version "5.0.2"
