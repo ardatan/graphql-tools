@@ -42,7 +42,6 @@ import {
   ScalarTypeDefinitionNode,
   SchemaDefinitionNode,
   SchemaExtensionNode,
-  StringValueNode,
   TypeDefinitionNode,
   TypeExtensionNode,
   UnionTypeDefinitionNode,
@@ -50,6 +49,7 @@ import {
 import { astFromType } from './astFromType.js';
 import { astFromValue } from './astFromValue.js';
 import { astFromValueUntyped } from './astFromValueUntyped.js';
+import { getDescriptionNode } from './descriptionFromObject.js';
 import { getDirectivesInExtensions } from './get-directives.js';
 import { isSome } from './helpers.js';
 import { getRootTypeMap } from './rootTypes.js';
@@ -182,17 +182,10 @@ export function astFromSchema(
     directives: directives as any,
   };
 
-  // This code is so weird because it needs to support GraphQL.js 14
-  // In GraphQL.js 14 there is no `description` value on schemaNode
-  (schemaNode as unknown as { description?: StringValueNode }).description =
-    (schema.astNode as unknown as { description: string })?.description ??
-    (schema as unknown as { description: string }).description != null
-      ? {
-          kind: Kind.STRING,
-          value: (schema as unknown as { description: string }).description,
-          block: true,
-        }
-      : undefined;
+  const descriptionNode = getDescriptionNode(schema);
+  if (descriptionNode) {
+    (schemaNode as any).description = descriptionNode;
+  }
 
   return schemaNode;
 }
@@ -204,14 +197,7 @@ export function astFromDirective(
 ): DirectiveDefinitionNode {
   return {
     kind: Kind.DIRECTIVE_DEFINITION,
-    description:
-      directive.astNode?.description ??
-      (directive.description
-        ? {
-            kind: Kind.STRING,
-            value: directive.description,
-          }
-        : undefined),
+    description: getDescriptionNode(directive),
     name: {
       kind: Kind.NAME,
       value: directive.name,
@@ -311,15 +297,7 @@ export function astFromArg(
 ): InputValueDefinitionNode {
   return {
     kind: Kind.INPUT_VALUE_DEFINITION,
-    description:
-      arg.astNode?.description ??
-      (arg.description
-        ? {
-            kind: Kind.STRING,
-            value: arg.description,
-            block: true,
-          }
-        : undefined),
+    description: getDescriptionNode(arg),
     name: {
       kind: Kind.NAME,
       value: arg.name,
@@ -341,15 +319,7 @@ export function astFromObjectType(
 ): ObjectTypeDefinitionNode {
   return {
     kind: Kind.OBJECT_TYPE_DEFINITION,
-    description:
-      type.astNode?.description ??
-      (type.description
-        ? {
-            kind: Kind.STRING,
-            value: type.description,
-            block: true,
-          }
-        : undefined),
+    description: getDescriptionNode(type),
     name: {
       kind: Kind.NAME,
       value: type.name,
@@ -371,15 +341,7 @@ export function astFromInterfaceType(
 ): InterfaceTypeDefinitionNode {
   const node: InterfaceTypeDefinitionNode = {
     kind: Kind.INTERFACE_TYPE_DEFINITION,
-    description:
-      type.astNode?.description ??
-      (type.description
-        ? {
-            kind: Kind.STRING,
-            value: type.description,
-            block: true,
-          }
-        : undefined),
+    description: getDescriptionNode(type),
     name: {
       kind: Kind.NAME,
       value: type.name,
@@ -406,15 +368,7 @@ export function astFromUnionType(
 ): UnionTypeDefinitionNode {
   return {
     kind: Kind.UNION_TYPE_DEFINITION,
-    description:
-      type.astNode?.description ??
-      (type.description
-        ? {
-            kind: Kind.STRING,
-            value: type.description,
-            block: true,
-          }
-        : undefined),
+    description: getDescriptionNode(type),
     name: {
       kind: Kind.NAME,
       value: type.name,
@@ -432,15 +386,7 @@ export function astFromInputObjectType(
 ): InputObjectTypeDefinitionNode {
   return {
     kind: Kind.INPUT_OBJECT_TYPE_DEFINITION,
-    description:
-      type.astNode?.description ??
-      (type.description
-        ? {
-            kind: Kind.STRING,
-            value: type.description,
-            block: true,
-          }
-        : undefined),
+    description: getDescriptionNode(type),
     name: {
       kind: Kind.NAME,
       value: type.name,
@@ -460,15 +406,7 @@ export function astFromEnumType(
 ): EnumTypeDefinitionNode {
   return {
     kind: Kind.ENUM_TYPE_DEFINITION,
-    description:
-      type.astNode?.description ??
-      (type.description
-        ? {
-            kind: Kind.STRING,
-            value: type.description,
-            block: true,
-          }
-        : undefined),
+    description: getDescriptionNode(type),
     name: {
       kind: Kind.NAME,
       value: type.name,
@@ -506,15 +444,7 @@ export function astFromScalarType(
 
   return {
     kind: Kind.SCALAR_TYPE_DEFINITION,
-    description:
-      type.astNode?.description ??
-      (type.description
-        ? {
-            kind: Kind.STRING,
-            value: type.description,
-            block: true,
-          }
-        : undefined),
+    description: getDescriptionNode(type),
     name: {
       kind: Kind.NAME,
       value: type.name,
@@ -531,15 +461,7 @@ export function astFromField(
 ): FieldDefinitionNode {
   return {
     kind: Kind.FIELD_DEFINITION,
-    description:
-      field.astNode?.description ??
-      (field.description
-        ? {
-            kind: Kind.STRING,
-            value: field.description,
-            block: true,
-          }
-        : undefined),
+    description: getDescriptionNode(field),
     name: {
       kind: Kind.NAME,
       value: field.name,
@@ -558,15 +480,7 @@ export function astFromInputField(
 ): InputValueDefinitionNode {
   return {
     kind: Kind.INPUT_VALUE_DEFINITION,
-    description:
-      field.astNode?.description ??
-      (field.description
-        ? {
-            kind: Kind.STRING,
-            value: field.description,
-            block: true,
-          }
-        : undefined),
+    description: getDescriptionNode(field),
     name: {
       kind: Kind.NAME,
       value: field.name,
@@ -585,15 +499,7 @@ export function astFromEnumValue(
 ): EnumValueDefinitionNode {
   return {
     kind: Kind.ENUM_VALUE_DEFINITION,
-    description:
-      value.astNode?.description ??
-      (value.description
-        ? {
-            kind: Kind.STRING,
-            value: value.description,
-            block: true,
-          }
-        : undefined),
+    description: getDescriptionNode(value),
     name: {
       kind: Kind.NAME,
       value: value.name,
