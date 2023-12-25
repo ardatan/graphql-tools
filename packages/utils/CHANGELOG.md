@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 10.0.12
+
+### Patch Changes
+
+- [`5ae0394`](https://github.com/ardatan/graphql-tools/commit/5ae039445b07fd11dea1f2b5a6a4154ad4f2a6ab) Thanks [@ardatan](https://github.com/ardatan)! - Print comments as blocks
+
 ## 10.0.11
 
 ### Patch Changes
@@ -807,7 +813,7 @@
 
   ```js
   {
-    mydir: [{ arg: 'first' }, { arg: 'second' }];
+    mydir: [{ arg: "first" }, { arg: "second" }];
   }
   ```
 
