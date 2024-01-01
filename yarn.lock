@@ -11562,10 +11562,10 @@ shell-quote@^1.8.1:
   resolved "https://registry.yarnpkg.com/shell-quote/-/shell-quote-1.8.1.tgz#6dbf4db75515ad5bac63b4f1894c3a154c766680"
   integrity sha512-6j1W9l1iAs/4xYBI1SYOVZyFcCis9b4KCLQ8fgAGG07QvzaRLVVRQvAy85yNmmZSjYjg4MWh4gNvlPujU/5LpA==
 
-shiki@^0.14.1:
-  version "0.14.4"
-  resolved "https://registry.yarnpkg.com/shiki/-/shiki-0.14.4.tgz#2454969b466a5f75067d0f2fa0d7426d32881b20"
-  integrity sha512-IXCRip2IQzKwxArNNq1S+On4KPML3Yyn8Zzs/xRgcgOWIr8ntIK3IKzjFPfjy/7kt9ZMjc+FItfqHRBg8b6tNQ==
+shiki@^0.14.7:
+  version "0.14.7"
+  resolved "https://registry.yarnpkg.com/shiki/-/shiki-0.14.7.tgz#c3c9e1853e9737845f1d2ef81b31bcfb07056d4e"
+  integrity sha512-dNPAPrxSc87ua2sKJ3H5dQ/6ZaY8RNnaAqK+t0eG7p0Soi2ydiqbGOTaZCqaYvA/uZYfS1LJnemt3Q+mSfcPCg==
   dependencies:
     ansi-sequence-parser "^1.1.0"
     jsonc-parser "^3.2.0"
@@ -12484,15 +12484,15 @@ typedoc-plugin-rename-defaults@0.7.0:
   dependencies:
     camelcase "^8.0.0"
 
-typedoc@0.25.4:
-  version "0.25.4"
-  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.25.4.tgz#5c2c0677881f504e41985f29d9aef0dbdb6f1e6f"
-  integrity sha512-Du9ImmpBCw54bX275yJrxPVnjdIyJO/84co0/L9mwe0R3G4FSR6rQ09AlXVRvZEGMUg09+z/usc8mgygQ1aidA==
+typedoc@0.25.5:
+  version "0.25.5"
+  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.25.5.tgz#b2feb0bedf73a48c68ea2586ac3bf94693372ee7"
+  integrity sha512-K9HzybxB2pqZwUkJvOCbdGEIvOidMdUoUtJavpzw/rnw8Rm5bM6HugIKbGLveCmeojUEUqYO8Fqgdmnp0R2Vqg==
   dependencies:
     lunr "^2.3.9"
     marked "^4.3.0"
     minimatch "^9.0.3"
-    shiki "^0.14.1"
+    shiki "^0.14.7"
 
 typescript@5.3.3:
   version "5.3.3"
