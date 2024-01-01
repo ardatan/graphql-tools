@@ -12484,10 +12484,10 @@ typedoc-plugin-rename-defaults@0.7.0:
   dependencies:
     camelcase "^8.0.0"
 
-typedoc@0.25.5:
-  version "0.25.5"
-  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.25.5.tgz#b2feb0bedf73a48c68ea2586ac3bf94693372ee7"
-  integrity sha512-K9HzybxB2pqZwUkJvOCbdGEIvOidMdUoUtJavpzw/rnw8Rm5bM6HugIKbGLveCmeojUEUqYO8Fqgdmnp0R2Vqg==
+typedoc@0.25.6:
+  version "0.25.6"
+  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.25.6.tgz#1505538aecea511dd669652c71d042a2427bd4fc"
+  integrity sha512-1rdionQMpOkpA58qfym1J+YD+ukyA1IEIa4VZahQI2ZORez7dhOvEyUotQL/8rSoMBopdzOS+vAIsORpQO4cTA==
   dependencies:
     lunr "^2.3.9"
     marked "^4.3.0"
