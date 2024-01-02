@@ -1,57 +1,32 @@
-import { GraphQLSchema } from 'graphql';
-import { Plugin } from 'graphql-yoga';
-import { useExecutor as useEnvelopExecutor } from '@graphql-tools/executor-envelop';
-import { Executor, isPromise, MaybePromise } from '@graphql-tools/utils';
-import { schemaFromExecutor } from '@graphql-tools/wrap';
-
-type Opts = Parameters<typeof schemaFromExecutor>[2] & {
-  polling?: number;
-};
+import type { Plugin } from 'graphql-yoga';
+import {
+  ExecutorPluginOpts,
+  useExecutor as useEnvelopExecutor,
+} from '@graphql-tools/executor-envelop';
+import { Executor } from '@graphql-tools/utils';
 
 export function useExecutor(
   executor: Executor,
-  opts?: Opts,
+  opts?: ExecutorPluginOpts,
 ): Plugin & { invalidateSupergraph: () => void } {
-  let schema$: MaybePromise<GraphQLSchema> | undefined;
-  let schema: GraphQLSchema | undefined;
-  if (opts?.polling) {
-    setInterval(() => {
-      schema$ = undefined;
-      schema = undefined;
-    }, opts.polling);
-  }
+  const envelopPlugin = useEnvelopExecutor(executor, opts);
   return {
     onPluginInit({ addPlugin }) {
       addPlugin(
         // @ts-expect-error TODO: fix typings
-        useEnvelopExecutor(executor),
+        envelopPlugin,
       );
     },
     onRequestParse({ serverContext }) {
       return {
         onRequestParseDone() {
-          if (!schema$) {
-            schema$ ||= schemaFromExecutor(executor, serverContext, opts);
-            if (isPromise(schema$)) {
-              return schema$.then(newSchema => {
-                schema = newSchema;
-              }) as Promise<void>;
-            }
+          envelopPlugin.ensureSchema(serverContext);
+          if (envelopPlugin.pluginCtx.schemaSetPromise$) {
+            return envelopPlugin.pluginCtx.schemaSetPromise$ as Promise<void>;
           }
         },
       };
     },
-    onEnveloped({ setSchema }) {
-      if (!schema) {
-        throw new Error(
-          `You provide a promise of a schema but it hasn't been resolved yet. Make sure you use this plugin with GraphQL Yoga.`,
-        );
-      }
-      setSchema(schema);
-    },
-    invalidateSupergraph() {
-      schema$ = undefined;
-      schema = undefined;
-    },
+    invalidateSupergraph: envelopPlugin.invalidateSupergraph,
   };
 }

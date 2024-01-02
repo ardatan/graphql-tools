@@ -1,4 +1,4 @@
-import { GraphQLResolveInfo, print } from 'graphql';
+import { DocumentNode, GraphQLResolveInfo } from 'graphql';
 import { ValueOrPromise } from 'value-or-promise';
 import {
   AsyncExecutor,
@@ -11,6 +11,7 @@ import {
 } from '@graphql-tools/utils';
 import { fetch as defaultFetch } from '@whatwg-node/fetch';
 import { createFormDataFromVariables } from './createFormDataFromVariables.js';
+import { defaultPrintFn } from './defaultPrintFn.js';
 import { handleEventStreamResponse } from './handleEventStreamResponse.js';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
 import { isLiveQueryOperationDefinitionNode } from './isLiveQueryOperationDefinitionNode.js';
@@ -79,6 +80,10 @@ export interface HTTPExecutorOptions {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FormData
    */
   FormData?: typeof FormData;
+  /**
+   * Print function for DocumentNode
+   */
+  print?: (doc: DocumentNode) => string;
 }
 
 export type HeadersConfig = Record<string, string>;
@@ -102,6 +107,7 @@ export function buildHTTPExecutor(
 export function buildHTTPExecutor(
   options?: HTTPExecutorOptions,
 ): Executor<any, HTTPExecutorOptions> {
+  const printFn = options?.print ?? defaultPrintFn;
   const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
     const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
     let controller: AbortController | undefined;
@@ -141,7 +147,7 @@ export function buildHTTPExecutor(
       request.extensions = restExtensions;
     }
 
-    const query = print(request.document);
+    const query = printFn(request.document);
 
     let timeoutId: any;
     if (options?.timeout) {
