@@ -1,5 +1,16 @@
 # @graphql-tools/executor-yoga
 
+## 2.0.3
+
+### Patch Changes
+
+- [`974df8a`](https://github.com/ardatan/graphql-tools/commit/974df8a1a1bca422bac5d971a3f8029cd9728efd) Thanks [@ardatan](https://github.com/ardatan)! - Polling
+
+- [`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238) Thanks [@ardatan](https://github.com/ardatan)! - Move schema introspection logic to Envelop
+
+- Updated dependencies [[`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238), [`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238)]:
+  - @graphql-tools/executor-envelop@2.0.3
+
 ## 2.0.2
 
 ### Patch Changes

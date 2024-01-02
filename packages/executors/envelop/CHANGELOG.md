@@ -1,5 +1,13 @@
 # @graphql-tools/executor-envelop
 
+## 2.0.3
+
+### Patch Changes
+
+- [`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238) Thanks [@ardatan](https://github.com/ardatan)! - Skip validation if the schema is not provided
+
+- [`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238) Thanks [@ardatan](https://github.com/ardatan)! - Move schema introspection logic to Envelop
+
 ## 2.0.2
 
 ### Patch Changes

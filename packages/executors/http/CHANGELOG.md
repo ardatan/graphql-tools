@@ -1,5 +1,11 @@
 # @graphql-tools/executor-http
 
+## 1.0.6
+
+### Patch Changes
+
+- [`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238) Thanks [@ardatan](https://github.com/ardatan)! - Memoize the print result automatically, and able to accept a custom print function
+
 ## 1.0.5
 
 ### Patch Changes
