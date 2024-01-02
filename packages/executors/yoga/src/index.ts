@@ -1,11 +1,25 @@
 import { GraphQLSchema } from 'graphql';
 import { Plugin } from 'graphql-yoga';
 import { useExecutor as useEnvelopExecutor } from '@graphql-tools/executor-envelop';
-import { Executor } from '@graphql-tools/utils';
+import { Executor, isPromise, MaybePromise } from '@graphql-tools/utils';
 import { schemaFromExecutor } from '@graphql-tools/wrap';
 
-export function useExecutor(executor: Executor): Plugin {
-  let schema: GraphQLSchema;
+type Opts = Parameters<typeof schemaFromExecutor>[2] & {
+  polling?: number;
+};
+
+export function useExecutor(
+  executor: Executor,
+  opts?: Opts,
+): Plugin & { invalidateSupergraph: () => void } {
+  let schema$: MaybePromise<GraphQLSchema> | undefined;
+  let schema: GraphQLSchema | undefined;
+  if (opts?.polling) {
+    setInterval(() => {
+      schema$ = undefined;
+      schema = undefined;
+    }, opts.polling);
+  }
   return {
     onPluginInit({ addPlugin }) {
       addPlugin(
@@ -13,11 +27,16 @@ export function useExecutor(executor: Executor): Plugin {
         useEnvelopExecutor(executor),
       );
     },
-    onRequestParse() {
+    onRequestParse({ serverContext }) {
       return {
-        async onRequestParseDone() {
-          if (!schema) {
-            schema = await schemaFromExecutor(executor);
+        onRequestParseDone() {
+          if (!schema$) {
+            schema$ ||= schemaFromExecutor(executor, serverContext, opts);
+            if (isPromise(schema$)) {
+              return schema$.then(newSchema => {
+                schema = newSchema;
+              }) as Promise<void>;
+            }
           }
         },
       };
@@ -29,6 +48,10 @@ export function useExecutor(executor: Executor): Plugin {
         );
       }
       setSchema(schema);
+    },
+    invalidateSupergraph() {
+      schema$ = undefined;
+      schema = undefined;
     },
   };
 }

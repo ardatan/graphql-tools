@@ -4,11 +4,13 @@ import {
   EnumTypeDefinitionNode,
   EnumValueDefinitionNode,
   FieldDefinitionNode,
+  GraphQLSchema,
   InterfaceTypeDefinitionNode,
   Kind,
   NamedTypeNode,
   ObjectTypeDefinitionNode,
   parse,
+  print,
   ScalarTypeDefinitionNode,
   TypeDefinitionNode,
   UnionTypeDefinitionNode,
@@ -28,7 +30,11 @@ import {
 
 export interface GetSubschemasFromSupergraphSdlOpts {
   supergraphSdl: string | DocumentNode;
-  onExecutor?: (opts: { subgraphName: string; endpoint: string }) => Executor;
+  onExecutor?: (opts: {
+    subgraphName: string;
+    endpoint: string;
+    subgraphSchema: GraphQLSchema;
+  }) => Executor;
   batch?: boolean;
 }
 
@@ -432,7 +438,6 @@ export function getSubschemasFromSupergraphSdl({
   });
   const subschemaMap = new Map<string, SubschemaConfig>();
   for (const [subgraphName, endpoint] of subgraphEndpointMap) {
-    const executor = onExecutor({ subgraphName, endpoint });
     const mergeConfig: SubschemaConfig['merge'] = {};
     const typeNameKeyMap = typeNameKeysBySubgraphMap.get(subgraphName);
     const unionTypeNodes: NamedTypeNode[] = [];
@@ -506,6 +511,17 @@ export function getSubschemasFromSupergraphSdl({
         assumeValid: true,
       },
     );
+    let executor: Executor = onExecutor({ subgraphName, endpoint, subgraphSchema: schema });
+    if (globalThis.process?.env?.['DEBUG']) {
+      const origExecutor = executor;
+      executor = function debugExecutor(execReq) {
+        console.log(`Executing ${subgraphName} with args:`, {
+          document: print(execReq.document),
+          variables: execReq.variables,
+        });
+        return origExecutor(execReq);
+      };
+    }
     subschemaMap.set(subgraphName, {
       schema,
       executor,
