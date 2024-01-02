@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/federation",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "type": "module",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "repository": {
@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@graphql-tools/delegate": "^10.0.1",
-    "@graphql-tools/executor-http": "^1.0.0",
+    "@graphql-tools/executor-http": "^1.0.6",
     "@graphql-tools/merge": "^9.0.0",
     "@graphql-tools/schema": "^10.0.0",
     "@graphql-tools/stitch": "^9.0.2",

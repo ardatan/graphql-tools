@@ -1,5 +1,14 @@
 # @graphql-tools/federation
 
+## 1.1.13
+
+### Patch Changes
+
+- [`974df8a`](https://github.com/ardatan/graphql-tools/commit/974df8a1a1bca422bac5d971a3f8029cd9728efd) Thanks [@ardatan](https://github.com/ardatan)! - Debug logging & expose the subgraph schema
+
+- Updated dependencies [[`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238)]:
+  - @graphql-tools/executor-http@1.0.6
+
 ## 1.1.12
 
 ### Patch Changes
