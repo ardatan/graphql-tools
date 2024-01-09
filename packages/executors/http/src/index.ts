@@ -200,7 +200,7 @@ export function buildHTTPExecutor(
             ),
           )
             .then(body => {
-              if (typeof body === 'string') {
+              if (typeof body === 'string' && !headers['content-type']) {
                 headers['content-type'] = 'application/json';
               }
               const fetchOptions: RequestInit = {
