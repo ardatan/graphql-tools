@@ -1,6 +1,7 @@
 import { parse } from 'graphql';
+import nock from 'nock';
 import { ExecutionResult } from '@graphql-tools/utils';
-import { ReadableStream, Request, Response } from '@whatwg-node/fetch';
+import { fetch, ReadableStream, Request, Response } from '@whatwg-node/fetch';
 import { assertAsyncIterable } from '../../../loaders/url/tests/test-utils.js';
 import { buildHTTPExecutor } from '../src/index.js';
 
@@ -143,5 +144,43 @@ describe('buildHTTPExecutor', () => {
         "hello": "world!",
       }
     `);
+  });
+
+  it('should allow setting a custom content-type header in introspection', async () => {
+    const scope = nock('https://my.schema', {
+      reqheaders: {
+        'content-type': 'application/vnd.api+json',
+      },
+    })
+      .post('/graphql')
+      .reply(200, { hello: 'world' });
+
+    const executor = buildHTTPExecutor({
+      endpoint: 'https://my.schema/graphql',
+      fetch,
+      headers: { 'content-type': 'application/vnd.api+json' },
+    });
+    const result = (await executor({
+      document: parse(/* GraphQL */ `
+        query IntrospectionQuery {
+          __schema {
+            queryType {
+              name
+            }
+            mutationType {
+              name
+            }
+            subscriptionType {
+              name
+            }
+          }
+        }
+      `),
+      context: {},
+      operationType: 'query',
+    })) as ExecutionResult;
+
+    expect(result.errors).toBeUndefined();
+    expect(scope.isDone()).toBe(true);
   });
 });
