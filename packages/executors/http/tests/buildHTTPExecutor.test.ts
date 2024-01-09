@@ -144,4 +144,37 @@ describe('buildHTTPExecutor', () => {
       }
     `);
   });
+
+  it('should allow setting a custom content-type header in introspection', async () => {
+    expect.assertions(2);
+
+    const executor = buildHTTPExecutor({
+      endpoint: 'https://my.schema/graphql',
+      fetch(_url, options) {
+        expect(options?.headers?.['content-type']).toBe('application/vnd.api+json');
+        return Response.json({ data: { hello: 'world' } });
+      },
+      headers: { 'content-type': 'application/vnd.api+json' },
+    });
+    const result = (await executor({
+      document: parse(/* GraphQL */ `
+        query IntrospectionQuery {
+          __schema {
+            queryType {
+              name
+            }
+            mutationType {
+              name
+            }
+            subscriptionType {
+              name
+            }
+          }
+        }
+      `),
+      context: {},
+    })) as ExecutionResult;
+
+    expect(result.errors).toBeUndefined();
+  });
 });
