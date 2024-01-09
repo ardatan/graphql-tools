@@ -1,5 +1,4 @@
 import { parse } from 'graphql';
-import nock from 'nock';
 import { ExecutionResult } from '@graphql-tools/utils';
 import { fetch, ReadableStream, Request, Response } from '@whatwg-node/fetch';
 import { assertAsyncIterable } from '../../../loaders/url/tests/test-utils.js';
@@ -147,17 +146,12 @@ describe('buildHTTPExecutor', () => {
   });
 
   it('should allow setting a custom content-type header in introspection', async () => {
-    const scope = nock('https://my.schema', {
-      reqheaders: {
-        'content-type': 'application/vnd.api+json',
-      },
-    })
-      .post('/graphql')
-      .reply(200, { hello: 'world' });
-
     const executor = buildHTTPExecutor({
       endpoint: 'https://my.schema/graphql',
-      fetch,
+      fetch(url, options) {
+        expect(options.headers['content-type']).toBe('application/vnd.api+json');
+        return new Response(JSON.stringify({ data: { hello: 'world' } }));
+      },
       headers: { 'content-type': 'application/vnd.api+json' },
     });
     const result = (await executor({
@@ -181,6 +175,5 @@ describe('buildHTTPExecutor', () => {
     })) as ExecutionResult;
 
     expect(result.errors).toBeUndefined();
-    expect(scope.isDone()).toBe(true);
   });
 });

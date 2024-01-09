@@ -9536,11 +9536,6 @@
     "jsonify" "^0.0.1"
     "object-keys" "^1.1.1"
 
-"json-stringify-safe@^5.0.1":
-  "integrity" "sha512-ZClg6AaYvamvYEE82d3Iyd3vSSIjQ+odgjaTzRuO3s7toCdFKczob2i0zCh7JE8kWn17yvAWhUVxvqGwUalsRA=="
-  "resolved" "https://registry.npmjs.org/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz"
-  "version" "5.0.1"
-
 "json5@^1.0.1":
   "integrity" "sha512-g1MWMLBiz8FKi1e4w0UyVL3w+iJceWAFBAaBnnGKOpNa5f8TLktkbre1+s6oICydWAm+HRUGTmI+//xv2hvXYA=="
   "resolved" "https://registry.npmjs.org/json5/-/json5-1.0.2.tgz"
@@ -11538,15 +11533,6 @@
     "lower-case" "^2.0.2"
     "tslib" "^2.0.3"
 
-"nock@^13.4.0":
-  "integrity" "sha512-W8NVHjO/LCTNA64yxAPHV/K47LpGYcVzgKd3Q0n6owhwvD0Dgoterc25R4rnZbckJEb6Loxz1f5QMuJpJnbSyQ=="
-  "resolved" "https://registry.npmjs.org/nock/-/nock-13.4.0.tgz"
-  "version" "13.4.0"
-  dependencies:
-    "debug" "^4.1.0"
-    "json-stringify-safe" "^5.0.1"
-    "propagate" "^2.0.0"
-
 "node-abort-controller@^3.0.1":
   "integrity" "sha512-/ujIVxthRs+7q6hsdjHMaj8hRG9NuWmwrz+JdRwZ14jdFoKSkm+vDsCbF9PLpnSqjaWQJuTmVtcWHNLr+vrOFw=="
   "resolved" "https://registry.npmjs.org/node-abort-controller/-/node-abort-controller-3.0.1.tgz"
@@ -12586,11 +12572,6 @@
     "loose-envify" "^1.4.0"
     "object-assign" "^4.1.1"
     "react-is" "^16.13.1"
-
-"propagate@^2.0.0":
-  "integrity" "sha512-vGrhOavPSTz4QVNuBNdcNXePNdNMaO1xj9yBeH1ScQPjk/rhg9sSlCXPhMkFuaNNW/syTvYqsnbIJxMBfRbbag=="
-  "resolved" "https://registry.npmjs.org/propagate/-/propagate-2.0.1.tgz"
-  "version" "2.0.1"
 
 "property-information@^6.0.0":
   "integrity" "sha512-hrzC564QIl0r0vy4l6MvRLhafmUowhO/O3KgVSoXIbbA2Sz4j8HGpJc6T2cubRVwMwpdiG/vKGfhT4IixmKN9w=="
