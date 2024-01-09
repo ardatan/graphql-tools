@@ -146,6 +146,8 @@ describe('buildHTTPExecutor', () => {
   });
 
   it('should allow setting a custom content-type header in introspection', async () => {
+    expect.assertions(2);
+
     const executor = buildHTTPExecutor({
       endpoint: 'https://my.schema/graphql',
       fetch(url, options) {
