@@ -150,7 +150,7 @@ describe('buildHTTPExecutor', () => {
       endpoint: 'https://my.schema/graphql',
       fetch(url, options) {
         expect(options.headers['content-type']).toBe('application/vnd.api+json');
-        return new Response(JSON.stringify({ data: { hello: 'world' } }));
+        return Response.json({ data: { hello: 'world' } });
       },
       headers: { 'content-type': 'application/vnd.api+json' },
     });
