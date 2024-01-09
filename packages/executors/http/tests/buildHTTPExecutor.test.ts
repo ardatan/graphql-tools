@@ -1,6 +1,6 @@
 import { parse } from 'graphql';
 import { ExecutionResult } from '@graphql-tools/utils';
-import { fetch, ReadableStream, Request, Response } from '@whatwg-node/fetch';
+import { ReadableStream, Request, Response } from '@whatwg-node/fetch';
 import { assertAsyncIterable } from '../../../loaders/url/tests/test-utils.js';
 import { buildHTTPExecutor } from '../src/index.js';
 
