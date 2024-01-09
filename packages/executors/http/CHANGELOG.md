@@ -1,5 +1,11 @@
 # @graphql-tools/executor-http
 
+## 1.0.7
+
+### Patch Changes
+
+- [#5825](https://github.com/ardatan/graphql-tools/pull/5825) [`12b578e`](https://github.com/ardatan/graphql-tools/commit/12b578e260c3011346d4af1cf71abd70f40569fe) Thanks [@felamaslen](https://github.com/felamaslen)! - Fixed http executor to allow custom content-type header
+
 ## 1.0.6
 
 ### Patch Changes
