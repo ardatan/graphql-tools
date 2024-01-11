@@ -205,32 +205,32 @@
     tslib "^2.3.0"
     zen-observable-ts "^1.2.5"
 
-"@apollo/composition@2.6.2":
-  version "2.6.2"
-  resolved "https://registry.yarnpkg.com/@apollo/composition/-/composition-2.6.2.tgz#ed4b7551f3ab9aa96440014140f52b8f2f820364"
-  integrity sha512-rbMRcnvEDtOT+e6OiKUY9virbhpIK9E8bQ6eGoakwCYz8bVXdBBPQdKuvhnvzNAe0LeOPMcsx3Pp9mPT9wz80g==
+"@apollo/composition@2.6.3":
+  version "2.6.3"
+  resolved "https://registry.yarnpkg.com/@apollo/composition/-/composition-2.6.3.tgz#f8bc0eb6fc437c06dd65f083cf60eb2f7e01e01b"
+  integrity sha512-7Q6xITvZifAWXPzN1ZkqMss9mBZgCL1hdKmM117UhqOfYrZ331DdUaln4I07Ae7wjXEg0KUb7AElx/1x+gm6qg==
   dependencies:
-    "@apollo/federation-internals" "2.6.2"
-    "@apollo/query-graphs" "2.6.2"
+    "@apollo/federation-internals" "2.6.3"
+    "@apollo/query-graphs" "2.6.3"
 
-"@apollo/federation-internals@2.6.2":
-  version "2.6.2"
-  resolved "https://registry.yarnpkg.com/@apollo/federation-internals/-/federation-internals-2.6.2.tgz#fb20646ff0202ce3c7fab050a1f443d6cf0c981f"
-  integrity sha512-L5Ppl+FQ2+ETpJ8NCa7T8ifAjAX8K/4NW8N08d6TRUJu0M/8rvIL0CgX033Jno/+FVIFhNBbVN2kGoSKDl1YPQ==
+"@apollo/federation-internals@2.6.3":
+  version "2.6.3"
+  resolved "https://registry.yarnpkg.com/@apollo/federation-internals/-/federation-internals-2.6.3.tgz#88819096c942fc8a7fb649d0214d5f406a5380a8"
+  integrity sha512-Motm6p4C4t1lUXOq9kIVyP6jANSymiUgfwc0TYjeSehKRFq6qxv9L2gPSVFvyfm/gI+gLlDscDN63YtxpUzqhQ==
   dependencies:
     "@types/uuid" "^9.0.0"
     chalk "^4.1.0"
     js-levenshtein "^1.1.6"
     uuid "^9.0.0"
 
-"@apollo/gateway@2.6.2", "@apollo/gateway@^2.5.4":
-  version "2.6.2"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-2.6.2.tgz#43b4236720a1eb621ef7d726718f53b902a6ab0f"
-  integrity sha512-JkN9wRQBOBgR50gOPzNnjpb0GN8UnSJlcQZXdGphuV6ldpRYuh71FR96vGIAQo0673hAGsyAsXyZNRXdCROscQ==
+"@apollo/gateway@2.6.3", "@apollo/gateway@^2.5.4":
+  version "2.6.3"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-2.6.3.tgz#71d1e73786c98470021e7bdaafc0cae4cf5b7ca6"
+  integrity sha512-/p1eyRPqWsoVH94/q3tqeLMk7q6CZ5pl7C8lLtANCx/2mYwmLlGcP4RNdKAFyd3K6zR7/VXNdfDIRWZ+AqCkEg==
   dependencies:
-    "@apollo/composition" "2.6.2"
-    "@apollo/federation-internals" "2.6.2"
-    "@apollo/query-planner" "2.6.2"
+    "@apollo/composition" "2.6.3"
+    "@apollo/federation-internals" "2.6.3"
+    "@apollo/query-planner" "2.6.3"
     "@apollo/server-gateway-interface" "^1.1.0"
     "@apollo/usage-reporting-protobuf" "^4.1.0"
     "@apollo/utils.createhash" "^2.0.0"
@@ -265,23 +265,23 @@
     "@types/long" "^4.0.0"
     long "^4.0.0"
 
-"@apollo/query-graphs@2.6.2":
-  version "2.6.2"
-  resolved "https://registry.yarnpkg.com/@apollo/query-graphs/-/query-graphs-2.6.2.tgz#e0fea1dfa112bda961cf836ed132aea607ca8eb5"
-  integrity sha512-1pQABsPS38Sqz1u3pW1WDmq/xJDWkdZGUsHNSAaSbdRAQMT5Lf9M9uzBUcNR5g+byvzKOc6nnxkh2W/tls5kBw==
+"@apollo/query-graphs@2.6.3":
+  version "2.6.3"
+  resolved "https://registry.yarnpkg.com/@apollo/query-graphs/-/query-graphs-2.6.3.tgz#de3fa5a514a02b6b0413eb2daa56f92e30ff9d31"
+  integrity sha512-h+39kWnVq8GzhSyE2HGg4CKpzTDj1480EcLFuSk11QSN99uXjqwwciY5J83tlaSBONni0TvJ6Efctvp6ag0Xpw==
   dependencies:
-    "@apollo/federation-internals" "2.6.2"
+    "@apollo/federation-internals" "2.6.3"
     deep-equal "^2.0.5"
     ts-graphviz "^1.5.4"
     uuid "^9.0.0"
 
-"@apollo/query-planner@2.6.2":
-  version "2.6.2"
-  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-2.6.2.tgz#96ee56286dd3f45cee57e3980c54ba248835aa62"
-  integrity sha512-vASt3+D+gzLZk+P0lFG7nE4QXAn5/IB1be39ywMvqzYPYSjHmJ5sCQluPka1qF581hcxaLJaH2GGT+7RQAeuSg==
+"@apollo/query-planner@2.6.3":
+  version "2.6.3"
+  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-2.6.3.tgz#0a90191636d51da1e0f84458b7580fec6ba33d92"
+  integrity sha512-wH7VaIDPhbSs7/UrihvMHWBvfooIoH4WKpyBj50Syf7TOFWmrWWihB+Gf5pdR2Q14pKxM0QihIxGdXK3XABBag==
   dependencies:
-    "@apollo/federation-internals" "2.6.2"
-    "@apollo/query-graphs" "2.6.2"
+    "@apollo/federation-internals" "2.6.3"
+    "@apollo/query-graphs" "2.6.3"
     "@apollo/utils.keyvaluecache" "^2.1.0"
     chalk "^4.1.0"
     deep-equal "^2.0.5"
@@ -297,13 +297,13 @@
     "@apollo/utils.keyvaluecache" "^2.1.0"
     "@apollo/utils.logger" "^2.0.0"
 
-"@apollo/subgraph@2.6.2", "@apollo/subgraph@^2.5.4":
-  version "2.6.2"
-  resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-2.6.2.tgz#20d951dabf6a96e8e0891de0c2a19154a0a90b5f"
-  integrity sha512-TZXCq//fYv++gx8Tsngfa85fH6UGvpyz2xqGh9YIg2e3akeikRW77FRg0tfFXL9CwVmWLukav1hJGsipOklM1g==
+"@apollo/subgraph@2.6.3", "@apollo/subgraph@^2.5.4":
+  version "2.6.3"
+  resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-2.6.3.tgz#72f498c7a803bc9753d93bfe99f13850620051e2"
+  integrity sha512-k4uDJ5QBzisWatxQ/4NJ7d56OJwgPMd0kL1lEXsVJYrfxZhlNd2YSnQrBjp4cmnTK4Z3mDFFoF2viXll7eR2WQ==
   dependencies:
     "@apollo/cache-control-types" "^1.0.2"
-    "@apollo/federation-internals" "2.6.2"
+    "@apollo/federation-internals" "2.6.3"
 
 "@apollo/usage-reporting-protobuf@^4.0.0", "@apollo/usage-reporting-protobuf@^4.1.0":
   version "4.1.0"
@@ -3361,52 +3361,52 @@
     "@0no-co/graphql.web" "^1.0.1"
     wonka "^6.3.2"
 
-"@vue/compiler-core@3.4.9":
-  version "3.4.9"
-  resolved "https://registry.yarnpkg.com/@vue/compiler-core/-/compiler-core-3.4.9.tgz#2909c9a85b08dc5d18bc4ed89c1010377678dfef"
-  integrity sha512-8zjlR0LVG3bVX0dX9rnDSr/lWsheRGyThJTfxf27LMBZqNqYy1Zd3R8rVVUQrcWCpAaSwOFQ+IPeLq3NH4f4zA==
+"@vue/compiler-core@3.4.10":
+  version "3.4.10"
+  resolved "https://registry.yarnpkg.com/@vue/compiler-core/-/compiler-core-3.4.10.tgz#1da03a0b8df05f2054add983f7ad9171e5fbb7aa"
+  integrity sha512-53vxh7K9qbx+JILnGEhrFRyr7H7e4NdT8RuTNU3m6HhJKFvcAqFTNXpYMHnyuAzzRGdsbsYHBgQC3H6xEXTG6w==
   dependencies:
     "@babel/parser" "^7.23.6"
-    "@vue/shared" "3.4.9"
+    "@vue/shared" "3.4.10"
     entities "^4.5.0"
     estree-walker "^2.0.2"
     source-map-js "^1.0.2"
 
-"@vue/compiler-dom@3.4.9":
-  version "3.4.9"
-  resolved "https://registry.yarnpkg.com/@vue/compiler-dom/-/compiler-dom-3.4.9.tgz#612fe1cfa1daa8c15ded5d2eb70488d531c1bad9"
-  integrity sha512-29bSR7JYowFiqGHn6eXsxanCS+21HWv+Yi3q4YRmR7Qq084AKK/HCadsN6rX4gPxIk8op2g0VlGLvqMVPehwow==
+"@vue/compiler-dom@3.4.10":
+  version "3.4.10"
+  resolved "https://registry.yarnpkg.com/@vue/compiler-dom/-/compiler-dom-3.4.10.tgz#aaed699125ea6da2daf540bf8f68ade08e95086b"
+  integrity sha512-QAALBJksIFpXGYuo74rtMgnwpVZDvd3kYbUa4gYX9s/5QiqEvZSgbKtOdUGydXcxKPt3ifC+0/bhPVHXN2694A==
   dependencies:
-    "@vue/compiler-core" "3.4.9"
-    "@vue/shared" "3.4.9"
+    "@vue/compiler-core" "3.4.10"
+    "@vue/shared" "3.4.10"
 
-"@vue/compiler-sfc@3.4.9":
-  version "3.4.9"
-  resolved "https://registry.yarnpkg.com/@vue/compiler-sfc/-/compiler-sfc-3.4.9.tgz#8458cfc9c11b73743cc088331171cc3db6365c0c"
-  integrity sha512-G7N5lLEXhUPVlLU2m4foLQZQSjLSAFkd9NDEbbkDcvKmUZtB6CRVTM1R63PKSPjfHO4HtDzT5oH0/AGFSPJPmg==
+"@vue/compiler-sfc@3.4.10":
+  version "3.4.10"
+  resolved "https://registry.yarnpkg.com/@vue/compiler-sfc/-/compiler-sfc-3.4.10.tgz#3ff0abf204d7a24317ad2111e087b7b775970f6b"
+  integrity sha512-sTOssaQySgrMjrhZxmAqdp6n+E51VteIVIDaOR537H2P63DyzMmig21U0XXFxiXmMIfrK91lAInnc+bIAYemGw==
   dependencies:
     "@babel/parser" "^7.23.6"
-    "@vue/compiler-core" "3.4.9"
-    "@vue/compiler-dom" "3.4.9"
-    "@vue/compiler-ssr" "3.4.9"
-    "@vue/shared" "3.4.9"
+    "@vue/compiler-core" "3.4.10"
+    "@vue/compiler-dom" "3.4.10"
+    "@vue/compiler-ssr" "3.4.10"
+    "@vue/shared" "3.4.10"
     estree-walker "^2.0.2"
     magic-string "^0.30.5"
     postcss "^8.4.32"
     source-map-js "^1.0.2"
 
-"@vue/compiler-ssr@3.4.9":
-  version "3.4.9"
-  resolved "https://registry.yarnpkg.com/@vue/compiler-ssr/-/compiler-ssr-3.4.9.tgz#643783772a921dbf9694b0262bd6f21402b3b1a6"
-  integrity sha512-CqkrrHv3iVjFyo+crxOMEreHrg8Ad6MHidbq3SQq33UazmHTGlmVXA2RtshPDn1/sbYMh367sdIebBV4qsWJNg==
+"@vue/compiler-ssr@3.4.10":
+  version "3.4.10"
+  resolved "https://registry.yarnpkg.com/@vue/compiler-ssr/-/compiler-ssr-3.4.10.tgz#526a55c718249de43e13914b0df03ddadfcc3cb1"
+  integrity sha512-Y90TL1abretWbUiK5rv+9smS1thCHE5sSuhZgiLh6cxgZ2Pcy3BEvDd3reID0iwNcTdMbTeE6NI3Aq4Mux6hqQ==
   dependencies:
-    "@vue/compiler-dom" "3.4.9"
-    "@vue/shared" "3.4.9"
+    "@vue/compiler-dom" "3.4.10"
+    "@vue/shared" "3.4.10"
 
-"@vue/shared@3.4.9":
-  version "3.4.9"
-  resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.4.9.tgz#b616f1455ab805dd0287a7b06c2c557b17b68ad6"
-  integrity sha512-AV1ibMMuiQV7TysP9mGcg7q+m1VkSh5m/w2KITW7Yel9raxiTiH6QGaJ+8V26QCH0C4o2xgsw/DQf+gDFjV4vQ==
+"@vue/shared@3.4.10":
+  version "3.4.10"
+  resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.4.10.tgz#d2399901586bdb1bc727c8d61f0e543b25b2461c"
+  integrity sha512-C0mIVhwW1xQLMFyqMJxnhq6fWyE02lCgcE+TDdtGpg6B3H6kh/0YcqS54qYc76UJNlWegf3VgsLqgk6D9hBmzQ==
 
 "@webassemblyjs/ast@1.11.5", "@webassemblyjs/ast@^1.11.5":
   version "1.11.5"
