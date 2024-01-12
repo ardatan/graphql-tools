@@ -65,7 +65,7 @@
     "@types/babel__traverse": "7.20.5",
     "@vue/compiler-sfc": "3.4.10",
     "svelte": "4.2.8",
-    "svelte2tsx": "0.6.27"
+    "svelte2tsx": "0.7.0"
   },
   "publishConfig": {
     "directory": "dist",
