@@ -49,7 +49,7 @@
     "@babel/preset-typescript": "7.23.3",
     "@changesets/changelog-github": "0.5.0",
     "@changesets/cli": "2.27.1",
-    "@theguild/prettier-config": "2.0.3",
+    "@theguild/prettier-config": "2.0.5",
     "@types/debug": "4.1.12",
     "@types/jest": "29.5.11",
     "@types/node": "20.11.0",
