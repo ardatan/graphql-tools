@@ -2761,15 +2761,15 @@
     npm-to-yarn "^2.1.0"
     unist-util-visit "^5.0.0"
 
-"@theguild/tailwind-config@0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@theguild/tailwind-config/-/tailwind-config-0.3.1.tgz#b2de75e9b33d00df12421ebf9628b9bcb0afafa3"
-  integrity sha512-j7yoSz/Ln1Cygt5vzvJ5NWy4UmvAYQYM6KJfqvFsZPiqx9vu91ApamPECLjCOit2jhJKoa2/B4Mg7sxVDYaWsQ==
+"@theguild/tailwind-config@0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@theguild/tailwind-config/-/tailwind-config-0.3.2.tgz#3e911c5557d135cc0b0203297f30969eeb898185"
+  integrity sha512-Oed36GocYLTSxiGEDn6Am7wOeTLqIjz0NMq4yhbLLidlKFFewtjlPrv7TzspIeLurDtvhpns7EN9kWgZFOK8nw==
   dependencies:
     autoprefixer "^10.4.16"
     cssnano "^6.0.2"
     postcss "^8.4.32"
-    postcss-import "^15.1.0"
+    postcss-import "^16.0.0"
     tailwindcss "^3.3.6"
 
 "@tootallnate/once@2":
@@ -10490,6 +10490,15 @@ postcss-import@^15.1.0:
   version "15.1.0"
   resolved "https://registry.yarnpkg.com/postcss-import/-/postcss-import-15.1.0.tgz#41c64ed8cc0e23735a9698b3249ffdbf704adc70"
   integrity sha512-hpr+J05B2FVYUAXHeK1YyI267J/dDDhMU6B6civm8hSY1jYJnBXxzKDKDswzJmtLHryrjhnDjqqp/49t8FALew==
+  dependencies:
+    postcss-value-parser "^4.0.0"
+    read-cache "^1.0.0"
+    resolve "^1.1.7"
+
+postcss-import@^16.0.0:
+  version "16.0.0"
+  resolved "https://registry.yarnpkg.com/postcss-import/-/postcss-import-16.0.0.tgz#2be1c78391b3f43f129fccfe5cc0cc1a11baef54"
+  integrity sha512-e77lhVvrD1I2y7dYmBv0k9ULTdArgEYZt97T4w6sFIU5uxIHvDFQlKgUUyY7v7Barj0Yf/zm5A4OquZN7jKm5Q==
   dependencies:
     postcss-value-parser "^4.0.0"
     read-cache "^1.0.0"
