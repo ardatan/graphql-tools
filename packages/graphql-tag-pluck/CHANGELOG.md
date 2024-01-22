@@ -1,5 +1,16 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.2.0
+
+### Minor Changes
+
+- [#5781](https://github.com/ardatan/graphql-tools/pull/5781) [`2c6c1d6`](https://github.com/ardatan/graphql-tools/commit/2c6c1d688741ef024b407e45f4040a667f7969e0) Thanks [@XiNiHa](https://github.com/XiNiHa)! - Add .astro file support
+
+### Patch Changes
+
+- Updated dependencies [[`f85c093`](https://github.com/ardatan/graphql-tools/commit/f85c093a8dd033efc613b93c25d15cfb0c2df7d3)]:
+  - @graphql-tools/utils@10.0.13
+
 ## 8.1.0
 
 ### Minor Changes
