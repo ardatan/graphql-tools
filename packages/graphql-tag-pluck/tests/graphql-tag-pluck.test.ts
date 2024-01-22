@@ -1163,6 +1163,138 @@ describe('graphql-tag-pluck', () => {
       );
     });
 
+    it('should pluck graphql-tag template literals from .astro file', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.astro',
+        freeText(`
+        ---
+        import gql from 'graphql-tag';
+
+        let q = gql\`
+          query IndexQuery {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        \`;
+        ---
+
+        <div>foo</div>
+        `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+          query IndexQuery {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .astro file with 2 queries', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.astro',
+        freeText(`
+        ---
+        import gql from 'graphql-tag';
+
+        let q = gql\`
+          query IndexQuery {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        \`;
+        let q2 = gql\`
+          query IndexQuery2 {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        \`;
+        ---
+
+        <div>foo</div>
+        `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+
+        query IndexQuery2 {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+        `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .astro removing comments', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.astro',
+        freeText(`
+        ---
+        import gql from 'graphql-tag';
+
+        let q = gql\`
+          query IndexQuery {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        \`;
+
+        // let q2 = gql\`
+        //   query IndexQuery2 {
+        //     site {
+        //       siteMetadata {
+        //         title
+        //       }
+        //     }
+        //   }
+        // \`;
+        ---
+
+        <div>foo</div>
+        `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+        `),
+      );
+    });
+
     it('should pluck graphql-tag template literals from .tsx file with generic jsx elements', async () => {
       const sources = await pluck(
         'tmp-XXXXXX.tsx',

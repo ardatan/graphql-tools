@@ -76,6 +76,9 @@ export default function generateConfig(
     case '.svelte':
       plugins.push('typescript', 'svelte');
       break;
+    case '.astro':
+      plugins.push('typescript', 'jsx');
+      break;
     default:
       plugins.push('jsx', ...dynamicFlowPlugins);
       break;
