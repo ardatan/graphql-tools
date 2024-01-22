@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 10.0.13
+
+### Patch Changes
+
+- [#5795](https://github.com/ardatan/graphql-tools/pull/5795) [`f85c093`](https://github.com/ardatan/graphql-tools/commit/f85c093a8dd033efc613b93c25d15cfb0c2df7d3) Thanks [@shYkiSto](https://github.com/shYkiSto)! - prevent race conditions when validating documents
+
 ## 10.0.12
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @graphql-tools/mock
 
+## 9.0.1
+
+### Patch Changes
+
+- [#5730](https://github.com/ardatan/graphql-tools/pull/5730) [`694d540`](https://github.com/ardatan/graphql-tools/commit/694d5403830e1171d64559b2a3715959a7ff6536) Thanks [@zyzo](https://github.com/zyzo)! - Pass fieldArgs to value function
+
+- Updated dependencies [[`f85c093`](https://github.com/ardatan/graphql-tools/commit/f85c093a8dd033efc613b93c25d15cfb0c2df7d3)]:
+  - @graphql-tools/utils@10.0.13
+
 ## 9.0.0
 
 ### Major Changes
