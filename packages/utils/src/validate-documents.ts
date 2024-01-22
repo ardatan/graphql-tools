@@ -17,19 +17,20 @@ export function validateGraphQlDocuments(
   documents: DocumentNode[],
   rules: ValidationRule[] = createDefaultRules(),
 ) {
-  const definitionMap = new Map<string, DefinitionNode>();
+  const definitions = new Set<DefinitionNode>();
+  const fragmentsDefinitionsMap = new Map<string, DefinitionNode>();
   for (const document of documents) {
     for (const docDefinition of document.definitions) {
-      if ('name' in docDefinition && docDefinition.name) {
-        definitionMap.set(`${docDefinition.kind}_${docDefinition.name.value}`, docDefinition);
+      if (docDefinition.kind === Kind.FRAGMENT_DEFINITION) {
+        fragmentsDefinitionsMap.set(docDefinition.name.value, docDefinition);
       } else {
-        definitionMap.set(Date.now().toString(), docDefinition);
+        definitions.add(docDefinition);
       }
     }
   }
   const fullAST: DocumentNode = {
     kind: Kind.DOCUMENT,
-    definitions: Array.from(definitionMap.values()),
+    definitions: Array.from([...definitions, ...fragmentsDefinitionsMap.values()]),
   };
   const errors = validate(schema, fullAST, rules);
   for (const error of errors) {
