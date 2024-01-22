@@ -70,8 +70,9 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
             ) {
               continue;
             }
-            const selectionValueNode = directiveArgs.find(arg => arg.name.value === 'fields')
-              ?.value;
+            const selectionValueNode = directiveArgs.find(
+              arg => arg.name.value === 'fields',
+            )?.value;
             if (selectionValueNode?.kind === Kind.STRING) {
               selections.push(selectionValueNode.value);
             }
@@ -125,8 +126,9 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
                   ) {
                     continue;
                   }
-                  const selectionValueNode = directiveArgs.find(arg => arg.name.value === 'fields')
-                    ?.value;
+                  const selectionValueNode = directiveArgs.find(
+                    arg => arg.name.value === 'fields',
+                  )?.value;
                   if (selectionValueNode?.kind === Kind.STRING) {
                     typeMergingFieldsConfig[fieldName].selectionSet =
                       `{ ${selectionValueNode.value} }`;
