@@ -112,8 +112,10 @@ export class MoveRootField implements Transform {
     if (result.data?.__typename) {
       const newOperation = this.to[delegationContext.operation][delegationContext.fieldName];
       if (newOperation && newOperation !== delegationContext.operation) {
-        result.data.__typename = getDefinedRootType(delegationContext.targetSchema, newOperation)
-          ?.name;
+        result.data.__typename = getDefinedRootType(
+          delegationContext.targetSchema,
+          newOperation,
+        )?.name;
       }
     }
     return result;

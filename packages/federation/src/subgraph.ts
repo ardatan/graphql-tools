@@ -104,13 +104,12 @@ export function buildSubgraphSchema<TContext = any>(
       ) =>
         ValueOrPromise.all(
           args.representations.map(representation =>
-            new ValueOrPromise(
-              () =>
-                givenResolvers[representation.__typename]?.__resolveReference?.(
-                  representation,
-                  context,
-                  info,
-                ),
+            new ValueOrPromise(() =>
+              givenResolvers[representation.__typename]?.__resolveReference?.(
+                representation,
+                context,
+                info,
+              ),
             ).then(resolvedEntity => {
               if (!resolvedEntity) {
                 return representation;
