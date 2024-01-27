@@ -52,7 +52,7 @@
     "@theguild/prettier-config": "2.0.5",
     "@types/debug": "4.1.12",
     "@types/jest": "29.5.11",
-    "@types/node": "20.11.7",
+    "@types/node": "20.11.8",
     "@typescript-eslint/eslint-plugin": "6.19.1",
     "@typescript-eslint/parser": "6.19.1",
     "babel-jest": "29.7.0",
@@ -84,7 +84,7 @@
     "weak-napi": "2.0.2"
   },
   "resolutions": {
-    "esbuild": "^0.19.0",
+    "esbuild": "^0.20.0",
     "graphql": "16.8.1"
   },
   "lint-staged": {
