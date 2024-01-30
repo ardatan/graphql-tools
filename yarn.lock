@@ -187,18 +187,20 @@
   resolved "https://registry.yarnpkg.com/@apollo/cache-control-types/-/cache-control-types-1.0.2.tgz#f42ed3563acc7f1f50617d65d208483977adc68e"
   integrity sha512-Por80co1eUm4ATsvjCOoS/tIR8PHxqVjsA6z76I6Vw0rFn4cgyVElQcmQDIZiYsy41k8e5xkrMRECkM2WR8pNw==
 
-"@apollo/client@3.8.10", "@apollo/client@^3.7.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0 || ~3.8.0":
-  version "3.8.10"
-  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.8.10.tgz#db6ee4378212d93c1f22b90a2aa474f6e9664b68"
-  integrity sha512-p/22RZ8ehHyvySnC20EHPPe0gdu8Xp6ZCiXOfdEe1ZORw5cUteD/TLc66tfKv8qu8NLIfbiWoa+6s70XnKvxqg==
+"@apollo/client@3.9.0", "@apollo/client@^3.7.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0 || ~3.8.0 || ~3.9.0":
+  version "3.9.0"
+  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.9.0.tgz#269d8c67dc630df409a4b3ac749a72c6b887ba49"
+  integrity sha512-M6I7h9UF0MmW/eK1oTzuHewZRZmvNzvw4c7nXhvQnxIk0V0VeJWSmscRGQNtsNmk8WnBmgyV/1KOVNow2aOM8w==
   dependencies:
     "@graphql-typed-document-node/core" "^3.1.1"
+    "@wry/caches" "^1.0.0"
     "@wry/equality" "^0.5.6"
     "@wry/trie" "^0.5.0"
     graphql-tag "^2.12.6"
     hoist-non-react-statics "^3.3.2"
     optimism "^0.18.0"
     prop-types "^15.7.2"
+    rehackt "0.0.3"
     response-iterator "^0.2.6"
     symbol-observable "^4.0.0"
     ts-invariant "^0.10.3"
@@ -3135,10 +3137,10 @@
     "@types/node" "*"
     form-data "^3.0.0"
 
-"@types/node@*", "@types/node@20.11.10":
-  version "20.11.10"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.11.10.tgz#6c3de8974d65c362f82ee29db6b5adf4205462f9"
-  integrity sha512-rZEfe/hJSGYmdfX9tvcPMYeYPW2sNl50nsw4jZmRcaG0HIAb0WYEpsB05GOb53vjqpyE9GUhlDQ4jLSoB5q9kg==
+"@types/node@*", "@types/node@20.11.12":
+  version "20.11.12"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.11.12.tgz#1121e03005516671bd30b4f9cc6b86284291af87"
+  integrity sha512-N/Az9BkJ6IWCJ3GeKea/vMQLfV37ci1fApx2x5UQvfa0N5OTjR/c17hEkt6Q0LSF6XSF7hcgrd/DOobibskPNw==
   dependencies:
     undici-types "~5.26.4"
 
@@ -11101,6 +11103,11 @@ regjsparser@^0.9.1:
   integrity sha512-dQUtn90WanSNl+7mQKcXAgZxvUe7Z0SqXlgzv0za4LwiUhyzBC58yQO3liFoUgu8GiJVInAhJjkj1N0EtQ5nkQ==
   dependencies:
     jsesc "~0.5.0"
+
+rehackt@0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/rehackt/-/rehackt-0.0.3.tgz#1ea454620d4641db8342e2db44595cf0e7ac6aa0"
+  integrity sha512-aBRHudKhOWwsTvCbSoinzq+Lej/7R8e8UoPvLZo5HirZIIBLGAgdG7SL9QpdcBoQ7+3QYPi3lRLknAzXBlhZ7g==
 
 rehype-katex@^7.0.0:
   version "7.0.0"
