@@ -79,7 +79,7 @@
     "graphql-yoga": "5.1.1",
     "puppeteer": "21.10.0",
     "subscriptions-transport-ws": "0.11.0",
-    "webpack": "5.90.0"
+    "webpack": "5.90.1"
   },
   "publishConfig": {
     "directory": "dist",
