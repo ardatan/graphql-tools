@@ -18,7 +18,7 @@
   "devDependencies": {
     "@theguild/algolia": "2.1.0",
     "@theguild/tailwind-config": "0.3.2",
-    "@types/node": "20.11.15",
+    "@types/node": "20.11.16",
     "@types/react": "18.2.51",
     "typescript": "5.3.3"
   }
