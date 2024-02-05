@@ -3174,10 +3174,10 @@
   resolved "https://registry.yarnpkg.com/@types/range-parser/-/range-parser-1.2.4.tgz#cd667bcfdd025213aafb7ca5915a932590acdcdc"
   integrity sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw==
 
-"@types/react@18.2.53", "@types/react@>=16":
-  version "18.2.53"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.53.tgz#09c21b4621aaad5fed6a5045b33a7430749d8dc5"
-  integrity sha512-52IHsMDT8qATp9B9zoOyobW8W3/0QhaJQTw1HwRj0UY2yBpCAQ7+S/CqHYQ8niAm3p4ji+rWUQ9UCib0GxQ60w==
+"@types/react@18.2.54", "@types/react@>=16":
+  version "18.2.54"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-18.2.54.tgz#0899236363ab39cb12690367cbb62febb56bc94c"
+  integrity sha512-039k+vrVJymDoe2y+HLk3O3oI3sa+C8KNjuDKofqrIJK26ramnqLNj9VJTaxAzFGMvpW/79HrrAJapHzpQ9fGQ==
   dependencies:
     "@types/prop-types" "*"
     "@types/scheduler" "*"
@@ -8319,10 +8319,10 @@ lines-and-columns@^1.1.6:
   resolved "https://registry.yarnpkg.com/lines-and-columns/-/lines-and-columns-1.1.6.tgz#1c00c743b433cd0a4e80758f7b64a57440d9ff00"
   integrity sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA=
 
-lint-staged@15.2.1:
-  version "15.2.1"
-  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-15.2.1.tgz#25beb6e587f54245b20163f5efede073f12c4d1b"
-  integrity sha512-dhwAPnM85VdshybV9FWI/9ghTvMLoQLEXgVMx+ua2DN7mdfzd/tRfoU2yhMcBac0RHkofoxdnnJUokr8s4zKmQ==
+lint-staged@15.2.2:
+  version "15.2.2"
+  resolved "https://registry.yarnpkg.com/lint-staged/-/lint-staged-15.2.2.tgz#ad7cbb5b3ab70e043fa05bff82a09ed286bc4c5f"
+  integrity sha512-TiTt93OPh1OZOsb5B7k96A/ATl2AjIZo+vnzFZ6oHK5FuTk63ByDtxGQpHm+kFETjEWqgkF95M8FRXKR/LEBcw==
   dependencies:
     chalk "5.3.0"
     commander "11.1.0"
@@ -12080,10 +12080,10 @@ svelte2tsx@0.7.0:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@4.2.9:
-  version "4.2.9"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-4.2.9.tgz#ece982ccc5b700c27e85cdf130c0e343c195fab5"
-  integrity sha512-hsoB/WZGEPFXeRRLPhPrbRz67PhP6sqYgvwcAs+gWdSQSvNDw+/lTeUJSWe5h2xC97Fz/8QxAOqItwBzNJPU8w==
+svelte@4.2.10:
+  version "4.2.10"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-4.2.10.tgz#3bef8d79ca75eb53cc4d03f9fac1546e60393f77"
+  integrity sha512-Ep06yCaCdgG1Mafb/Rx8sJ1QS3RW2I2BxGp2Ui9LBHSZ2/tO/aGLc5WqPjgiAP6KAnLJGaIr/zzwQlOo1b8MxA==
   dependencies:
     "@ampproject/remapping" "^2.2.1"
     "@jridgewell/sourcemap-codec" "^1.4.15"
