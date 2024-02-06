@@ -1,5 +1,11 @@
 # @graphql-tools/federation
 
+## 1.1.14
+
+### Patch Changes
+
+- [#5878](https://github.com/ardatan/graphql-tools/pull/5878) [`ba062ff`](https://github.com/ardatan/graphql-tools/commit/ba062ff4880f6922eaddfcbd746782275a8f689e) Thanks [@darren-west](https://github.com/darren-west)! - fix: buildSubgraphSchema with no entity keys
+
 ## 1.1.13
 
 ### Patch Changes
