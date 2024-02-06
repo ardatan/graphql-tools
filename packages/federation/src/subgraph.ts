@@ -89,7 +89,8 @@ export function buildSubgraphSchema<TContext = any>(
       };
     },
   });
-  const entityTypeDefinition = `union _Entity = ${entityTypeNames.join(' | ')}`;
+
+  const entityTypeDefinition = `union _Entity ${entityTypeNames.length > 0 ? '=' : ''} ${entityTypeNames.join(' | ')}`;
   const givenResolvers: any = mergeResolvers(opts.resolvers);
   const subgraphResolvers = {
     _Entity: {

@@ -15,3 +15,18 @@ it('converts extensions in the subgraph SDL', () => {
   });
   expect(printSchemaWithDirectives(subgraphSchema).trim()).toMatchSnapshot();
 });
+
+it('allows a subgraph without any keys', () => {
+  const subgraphSchema = buildSubgraphSchema({
+    typeDefs: /* GraphQL */ `
+      extend type Query {
+        users: [User!]!
+      }
+      extend type User {
+        id: ID!
+        name: String!
+      }
+    `,
+  });
+  expect(printSchemaWithDirectives(subgraphSchema).trim()).toMatchSnapshot();
+});
