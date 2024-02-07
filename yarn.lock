@@ -187,10 +187,10 @@
   resolved "https://registry.yarnpkg.com/@apollo/cache-control-types/-/cache-control-types-1.0.2.tgz#f42ed3563acc7f1f50617d65d208483977adc68e"
   integrity sha512-Por80co1eUm4ATsvjCOoS/tIR8PHxqVjsA6z76I6Vw0rFn4cgyVElQcmQDIZiYsy41k8e5xkrMRECkM2WR8pNw==
 
-"@apollo/client@3.9.2", "@apollo/client@^3.7.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0 || ~3.8.0 || ~3.9.0":
-  version "3.9.2"
-  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.9.2.tgz#96edf2c212f828bad1ef3d84234fa473c5a27ff8"
-  integrity sha512-Zw9WvXjqhpbgkvAvnj52vstOWwM0iedKWtn1hSq1cODQyoe1CF2uFwMYFI7l56BrAY9CzLi6MQA0AhxpgJgvxw==
+"@apollo/client@3.9.3", "@apollo/client@^3.7.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0 || ~3.8.0 || ~3.9.0":
+  version "3.9.3"
+  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.9.3.tgz#8b77a938e5109c6588be93c9fabdcbaf112dd5c1"
+  integrity sha512-ACWWvWEwwws8V2SO2FoLVAKD7Nc34N/WqnfHIsbtoHoo90ym5vFQp53nGruaWK+bNcb46z53C/fcp4s8P8bXKw==
   dependencies:
     "@graphql-typed-document-node/core" "^3.1.1"
     "@wry/caches" "^1.0.0"
@@ -200,7 +200,7 @@
     hoist-non-react-statics "^3.3.2"
     optimism "^0.18.0"
     prop-types "^15.7.2"
-    rehackt "0.0.3"
+    rehackt "0.0.4"
     response-iterator "^0.2.6"
     symbol-observable "^4.0.0"
     ts-invariant "^0.10.3"
@@ -376,9 +376,9 @@
     node-fetch "^2.6.1"
 
 "@astrojs/compiler@^2.3.4":
-  version "2.5.2"
-  resolved "https://registry.yarnpkg.com/@astrojs/compiler/-/compiler-2.5.2.tgz#61a8b98e91fa86a099ddf436142e485021ec59d1"
-  integrity sha512-fm9HNYu1tVnJjZYHE+SdDM5k6fZKNPXS9PwT43Mf6l4HVGx8d1jQwhGQqCvLkYJJBwQ9OysiexFMt7wtNuXhmQ==
+  version "2.5.3"
+  resolved "https://registry.yarnpkg.com/@astrojs/compiler/-/compiler-2.5.3.tgz#eb34fa21cbd395f2b5493aa06d91dd9e9faf3bc2"
+  integrity sha512-jzj01BRv/fmo+9Mr2FhocywGzEYiyiP2GVHje1ziGNU6c97kwhYGsnvwMkHrncAy9T9Vi54cjaMK7UE4ClX4vA==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.12.13", "@babel/code-frame@^7.23.5":
   version "7.23.5"
@@ -11104,10 +11104,10 @@ regjsparser@^0.9.1:
   dependencies:
     jsesc "~0.5.0"
 
-rehackt@0.0.3:
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/rehackt/-/rehackt-0.0.3.tgz#1ea454620d4641db8342e2db44595cf0e7ac6aa0"
-  integrity sha512-aBRHudKhOWwsTvCbSoinzq+Lej/7R8e8UoPvLZo5HirZIIBLGAgdG7SL9QpdcBoQ7+3QYPi3lRLknAzXBlhZ7g==
+rehackt@0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/rehackt/-/rehackt-0.0.4.tgz#dca5498e1f6c81d3d610ff2abfb3c3feec6afce8"
+  integrity sha512-xFroSGCbMEK/cTJVhq+c8l/AzIeMeojVyLqtZmr2jmIAFvePjapkCSGg9MnrcNk68HPaMxGf+Ndqozotu78ITw==
 
 rehype-katex@^7.0.0:
   version "7.0.0"
