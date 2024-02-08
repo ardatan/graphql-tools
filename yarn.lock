@@ -12080,10 +12080,10 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-svelte2tsx@0.7.0:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.7.0.tgz#ac7b39f8b5fb9fe20994dfbce71c2d2442fb478e"
-  integrity sha512-qAelcydnmuiDvD1HsrWi23RWx24RZTKRv6n4JaGC/pkoJfbLkJPQT2wa1qN0ZyfKTNLSyoj2FW9z62l/AUzUNA==
+svelte2tsx@0.7.1:
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.7.1.tgz#23d56971e690d5a7b084e85bd232c756f7a7c496"
+  integrity sha512-0lKa6LrqJxRan0bDmBd/uFsVzYSXnoFUDaczaH0znke/XI79oy1JjFaF51J9EsOvpn8lXPlrUc3n/MA/ORNxBg==
   dependencies:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
