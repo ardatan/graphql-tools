@@ -27,8 +27,6 @@ directive @composeDirective(name: String!) repeatable on SCHEMA
 
 directive @extends on OBJECT | INTERFACE
 
-union _Entity
-
 scalar _Any
 
 scalar _FieldSet
@@ -45,7 +43,6 @@ type _Service {
 }
 
 type Query {
-  _entities(representations: [_Any!]!): [_Entity]!
   _service: _Service!
   users: [User!]!
 }
@@ -83,8 +80,6 @@ directive @composeDirective(name: String!) repeatable on SCHEMA
 
 directive @extends on OBJECT | INTERFACE
 
-union _Entity = User
-
 scalar _Any
 
 scalar _FieldSet
@@ -101,13 +96,15 @@ type _Service {
 }
 
 type Query {
-  _entities(representations: [_Any!]!): [_Entity]!
   _service: _Service!
   users: [User!]!
+  _entities(representations: [_Any!]!): [_Entity]!
 }
 
 type User @key(fields: "id") @extends {
   id: ID!
   name: String!
-}"
+}
+
+union _Entity = User"
 `;

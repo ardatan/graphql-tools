@@ -28,5 +28,8 @@ it('allows a subgraph without any keys', () => {
       }
     `,
   });
-  expect(printSchemaWithDirectives(subgraphSchema).trim()).toMatchSnapshot();
+  const schema = printSchemaWithDirectives(subgraphSchema).trim();
+  expect(schema).toMatchSnapshot();
+  expect(schema).not.toContain(`_Entity`);
+  expect(schema).not.toContain(`_entities(representations: [_Any!]!): [_Entity]!`);
 });
