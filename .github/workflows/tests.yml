@@ -102,7 +102,7 @@ jobs:
         run: yarn test --ci
       - name: Test
         if: ${{ matrix.node-version != 20 }}
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -149,7 +149,7 @@ jobs:
       - name: Build Packages
         run: yarn build
       - name: Test
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
