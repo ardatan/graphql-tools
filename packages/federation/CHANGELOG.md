@@ -1,5 +1,11 @@
 # @graphql-tools/federation
 
+## 1.1.15
+
+### Patch Changes
+
+- [#5885](https://github.com/ardatan/graphql-tools/pull/5885) [`2d76909`](https://github.com/ardatan/graphql-tools/commit/2d76909908a918562a9f7599825b70ae60f91127) Thanks [@ardatan](https://github.com/ardatan)! - Avoid creating invalid schema when there is no entity
+
 ## 1.1.14
 
 ### Patch Changes
