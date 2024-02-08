@@ -6,9 +6,10 @@ import {
   visit,
 } from 'graphql';
 import { ValueOrPromise } from 'value-or-promise';
+import { Resolvers } from '@apollo/client';
 import { mergeResolvers, mergeTypeDefs } from '@graphql-tools/merge';
 import { IExecutableSchemaDefinition, makeExecutableSchema } from '@graphql-tools/schema';
-import { printSchemaWithDirectives } from '@graphql-tools/utils';
+import { printSchemaWithDirectives, TypeSource } from '@graphql-tools/utils';
 
 export const SubgraphBaseSDL = /* GraphQL */ `
   scalar _Any
@@ -25,7 +26,6 @@ export const SubgraphBaseSDL = /* GraphQL */ `
   }
 
   type Query {
-    _entities(representations: [_Any!]!): [_Entity]!
     _service: _Service!
   }
 
@@ -90,50 +90,63 @@ export function buildSubgraphSchema<TContext = any>(
     },
   });
 
-  const entityTypeDefinition = `union _Entity ${entityTypeNames.length > 0 ? '=' : ''} ${entityTypeNames.join(' | ')}`;
   const givenResolvers: any = mergeResolvers(opts.resolvers);
-  const subgraphResolvers = {
-    _Entity: {
-      __resolveType: (obj: { __typename: string }) => obj.__typename,
-    },
-    Query: {
-      _entities: (
-        _root: never,
-        args: { representations: any[] },
-        context: TContext,
-        info: GraphQLResolveInfo,
-      ) =>
-        ValueOrPromise.all(
-          args.representations.map(representation =>
-            new ValueOrPromise(() =>
-              givenResolvers[representation.__typename]?.__resolveReference?.(
-                representation,
-                context,
-                info,
-              ),
-            ).then(resolvedEntity => {
-              if (!resolvedEntity) {
-                return representation;
-              }
-              if (!resolvedEntity.__typename) {
-                resolvedEntity.__typename = representation.__typename;
-              }
-              return resolvedEntity;
-            }),
-          ),
-        ).resolve(),
-      _service: () => ({}),
-    },
-    _Service: {
-      sdl: (_root: never, _args: never, _context: TContext, info: GraphQLResolveInfo) =>
-        printSchemaWithDirectives(info.schema),
-    },
-  };
+
+  const allTypeDefs: TypeSource[] = [typeDefs];
+  const allResolvers: Resolvers[] = [sdlResolvers, givenResolvers];
+
+  if (entityTypeNames.length > 0) {
+    allTypeDefs.push(`union _Entity = ${entityTypeNames.join(' | ')}`);
+    allTypeDefs.push(`extend type Query {
+      _entities(representations: [_Any!]!): [_Entity]!
+    }`);
+    allResolvers.push({
+      _Entity: {
+        __resolveType: entityTypeResolver,
+      },
+      Query: {
+        _entities: (_root: any, args: { representations: any[] }, context: TContext, info: any) =>
+          ValueOrPromise.all(
+            args.representations.map(representation =>
+              new ValueOrPromise(() =>
+                givenResolvers[representation.__typename]?.__resolveReference?.(
+                  representation,
+                  context,
+                  info,
+                ),
+              ).then(resolvedEntity => {
+                if (!resolvedEntity) {
+                  return representation;
+                }
+                if (!resolvedEntity.__typename) {
+                  resolvedEntity.__typename = representation.__typename;
+                }
+                return resolvedEntity;
+              }),
+            ),
+          ).resolve(),
+      },
+    });
+  }
   return makeExecutableSchema({
     assumeValid: true,
     assumeValidSDL: true,
     ...opts,
-    typeDefs: [entityTypeDefinition, typeDefs],
-    resolvers: [subgraphResolvers, givenResolvers],
+    typeDefs: allTypeDefs,
+    resolvers: allResolvers,
   });
 }
+
+function entityTypeResolver(obj: { __typename: string }) {
+  return obj.__typename;
+}
+
+const sdlResolvers = {
+  Query: {
+    _service: () => ({}),
+  },
+  _Service: {
+    sdl: (_root: never, _args: never, _context: any, info: GraphQLResolveInfo) =>
+      printSchemaWithDirectives(info.schema),
+  },
+};
