@@ -100,6 +100,7 @@ describe('relayStylePaginationMock', () => {
         });
 
         const page2Items = page2.data?.['items'] as any;
+        expect(page2Items.pageInfo.hasNextPage).toBeTruthy();
         expect(page2Items.edges.map((e: any) => e.node.index)).toEqual([2, 3]);
 
         const page3 = await graphql({
