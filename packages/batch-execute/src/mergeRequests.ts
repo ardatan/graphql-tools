@@ -64,7 +64,7 @@ export function mergeRequests(
   const mergedFragmentDefinitions: Array<FragmentDefinitionNode> = [];
   let mergedExtensions: Record<string, any> = Object.create(null);
 
-  for (const index in requests) {
+  for (let index = 0; index < requests.length; index++) {
     const request = requests[index];
     const prefixedRequests = prefixRequest(createPrefix(index), request);
 
