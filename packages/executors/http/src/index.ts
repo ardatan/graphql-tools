@@ -242,7 +242,26 @@ export function buildHTTPExecutor(
         if (typeof result === 'string') {
           if (result) {
             try {
-              return JSON.parse(result);
+              const parsedResult = JSON.parse(result);
+              if (
+                parsedResult.data == null &&
+                (parsedResult.errors == null || parsedResult.errors.length === 0)
+              ) {
+                return {
+                  errors: [
+                    createGraphQLError('Unexpected empty "data" and "errors" fields', {
+                      extensions: {
+                        requestBody: {
+                          query,
+                          operationName: request.operationName,
+                        },
+                        responseDetails: responseDetailsForError,
+                      },
+                    }),
+                  ],
+                };
+              }
+              return parsedResult;
             } catch (e: any) {
               return {
                 errors: [

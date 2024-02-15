@@ -43,6 +43,37 @@ describe('buildHTTPExecutor', () => {
       ],
     });
   });
+  it.each([
+    JSON.stringify({ data: null, errors: null }),
+    JSON.stringify({ data: null }),
+    JSON.stringify({ data: null, errors: [] }),
+    JSON.stringify({ errors: null }),
+    JSON.stringify({ errors: [] }),
+  ])('should error when both data and errors fields are empty %s', async body => {
+    const executor = buildHTTPExecutor({
+      fetch: () =>
+        new Response(body, {
+          status: 200,
+          headers: {
+            'content-type': 'application/json',
+          },
+        }),
+    });
+    const result = await executor({
+      document: parse(/* GraphQL */ `
+        query {
+          hello
+        }
+      `),
+    });
+    expect(result).toMatchObject({
+      errors: [
+        {
+          message: 'Unexpected empty "data" and "errors" fields',
+        },
+      ],
+    });
+  });
   it('should use GET for subscriptions by default', async () => {
     let method: string = '';
     const executor = buildHTTPExecutor({
