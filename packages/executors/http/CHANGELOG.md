@@ -1,5 +1,11 @@
 # @graphql-tools/executor-http
 
+## 1.0.8
+
+### Patch Changes
+
+- [#5902](https://github.com/ardatan/graphql-tools/pull/5902) [`9d18cce`](https://github.com/ardatan/graphql-tools/commit/9d18ccedac0a288080cbe1c9323ed838cbc4174e) Thanks [@enisdenjo](https://github.com/enisdenjo)! - Error when both data and errors fields are empty
+
 ## 1.0.7
 
 ### Patch Changes
