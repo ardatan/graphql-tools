@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@ardatan/sync-fetch": "^0.0.1",
-    "@graphql-tools/delegate": "^10.0.0",
+    "@graphql-tools/delegate": "^10.0.3",
     "@graphql-tools/executor-graphql-ws": "^1.0.0",
     "@graphql-tools/executor-http": "^1.0.5",
     "@graphql-tools/executor-legacy-ws": "^1.0.0",
