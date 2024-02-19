@@ -167,13 +167,15 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
     ObjectTypeExtension: visitor,
     ObjectTypeDefinition: visitor,
   });
-  subschemaConfig.schema = buildASTSchema(
-    concatAST([parse(`union _Entity = ${entityTypes.join(' | ')}` + SubgraphBaseSDL), parsedSDL]),
-    {
-      assumeValidSDL: true,
-      assumeValid: true,
-    },
-  );
+  let extraSdl = SubgraphBaseSDL;
+  if (entityTypes.length > 0) {
+    extraSdl += `\nunion _Entity = ${entityTypes.join(' | ')}`;
+    extraSdl += `\nextend type Query { _entities(representations: [_Any!]!): [_Entity]! }`;
+  }
+  subschemaConfig.schema = buildASTSchema(concatAST([parse(extraSdl), parsedSDL]), {
+    assumeValidSDL: true,
+    assumeValid: true,
+  });
   // subschemaConfig.batch = true;
   return subschemaConfig;
 }
