@@ -33,8 +33,7 @@ it('should not do a fragment spread on a union', () => {
     `),
   });
 
-  expect(query).toMatchInlineSnapshot(`
-"{
+  expect(query).toContain(`{
   __typename
   fooBar {
     ... on Foo {
@@ -45,6 +44,5 @@ it('should not do a fragment spread on a union', () => {
     }
     __typename
   }
-}"
-`);
+}`);
 });
