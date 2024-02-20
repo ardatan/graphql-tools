@@ -1,5 +1,11 @@
 # @graphql-tools/federation
 
+## 1.1.16
+
+### Patch Changes
+
+- [`7583729`](https://github.com/ardatan/graphql-tools/commit/7583729718ffd528bba5d1c5c4ea087975102c1f) Thanks [@ardatan](https://github.com/ardatan)! - Fix `getSubschemaForFederationWithTypeDefs` for non-supergraph merging of subgraphs
+
 ## 1.1.15
 
 ### Patch Changes
