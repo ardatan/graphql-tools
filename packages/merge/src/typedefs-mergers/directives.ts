@@ -4,7 +4,6 @@ import {
   DirectiveNode,
   ListValueNode,
   NameNode,
-  print,
 } from 'graphql';
 import { isSome } from '@graphql-tools/utils';
 import { Config } from './merge-typedefs.js';
@@ -113,39 +112,22 @@ export function mergeDirectives(
   return result;
 }
 
-function validateInputs(
-  node: DirectiveDefinitionNode,
-  existingNode: DirectiveDefinitionNode,
-): void | never {
-  const printedNode = print({
-    ...node,
-    description: undefined,
-  });
-  const printedExistingNode = print({
-    ...existingNode,
-    description: undefined,
-  });
-  // eslint-disable-next-line
-  const leaveInputs = new RegExp('(directive @w*d*)|( on .*$)', 'g');
-  const sameArguments =
-    printedNode.replace(leaveInputs, '') === printedExistingNode.replace(leaveInputs, '');
-
-  if (!sameArguments) {
-    throw new Error(
-      `Unable to merge GraphQL directive "${node.name.value}". \nExisting directive:  \n\t${printedExistingNode} \nReceived directive: \n\t${printedNode}`,
-    );
-  }
-}
-
 export function mergeDirective(
   node: DirectiveDefinitionNode,
   existingNode?: DirectiveDefinitionNode,
 ): DirectiveDefinitionNode {
   if (existingNode) {
-    validateInputs(node, existingNode);
-
     return {
       ...node,
+      arguments: deduplicateLists(
+        existingNode.arguments || [],
+        node.arguments || [],
+        (arg, existingArgs) =>
+          !nameAlreadyExists(
+            arg.name,
+            existingArgs.map(a => a.name),
+          ),
+      ),
       locations: [
         ...existingNode.locations,
         ...node.locations.filter(name => !nameAlreadyExists(name, existingNode.locations)),
