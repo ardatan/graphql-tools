@@ -256,4 +256,26 @@ describe('batch execution', () => {
     expect(first?.errors?.[0].path).toEqual(['boomWithPath']);
     expect(executorCalls).toEqual(1);
   });
+
+  // https://github.com/ardatan/graphql-tools/issues/5905
+  describe('robustness against Array.prototype modification', () => {
+    beforeAll(() => {
+      // eslint-disable-next-line no-extend-native
+      Array.prototype['foo'] = 'bar';
+    });
+
+    afterAll(() => {
+      delete Array.prototype['foo'];
+    });
+
+    it('multiple batch executions does not throw an error', async () => {
+      const error = await Promise.all([
+        batchExec({ document: parse('{ field1 field2 }') }),
+        batchExec({ document: parse('{ field2 field3(input: "3") }') }),
+      ])
+        .then(() => undefined)
+        .catch(e => e);
+      expect(error).toBeUndefined();
+    });
+  });
 });
