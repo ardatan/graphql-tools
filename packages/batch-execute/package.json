@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/batch-execute",
-  "version": "9.0.2",
+  "version": "9.0.3",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
