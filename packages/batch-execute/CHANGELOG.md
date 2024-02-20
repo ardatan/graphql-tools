@@ -1,5 +1,11 @@
 # @graphql-tools/batch-execute
 
+## 9.0.3
+
+### Patch Changes
+
+- [#5906](https://github.com/ardatan/graphql-tools/pull/5906) [`f3809d4`](https://github.com/ardatan/graphql-tools/commit/f3809d4defa60678fd013017a60320be7a793870) Thanks [@ikenox](https://github.com/ikenox)! - Avoid for.in loop for arrays to avoid unwanted property access
+
 ## 9.0.2
 
 ### Patch Changes

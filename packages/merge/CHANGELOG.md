@@ -1,5 +1,11 @@
 # @graphql-tools/merge
 
+## 9.0.2
+
+### Patch Changes
+
+- [`8880c78`](https://github.com/ardatan/graphql-tools/commit/8880c78e151ed1781bf2da0e1fbb79e1ffc8c43d) Thanks [@ardatan](https://github.com/ardatan)! - Merge directive arguments
+
 ## 9.0.1
 
 ### Patch Changes
