@@ -268,6 +268,47 @@ describe('graphql-tag-pluck', () => {
       );
     });
 
+    it.only("should pluck graphql-tag template literals from .ts that use 'using' keyword", async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.ts',
+        freeText(`
+        import { graphql } from '../somewhere'
+        import { Document } from 'graphql'
+        import createManagedResource from 'managed-resource'
+
+        using managedResource = createManagedResource()
+
+        const fragment: Document = graphql(\`
+            fragment Foo on FooType {
+              id
+            }
+          \`)
+
+          const doc: Document = graphql(\`
+            query foo {
+              foo {
+                ...Foo
+              }
+            }
+            \`)
+      `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        fragment Foo on FooType {
+          id
+        }
+
+        query foo {
+          foo {
+            ...Foo
+          }
+        }
+      `),
+      );
+    });
+
     it('should pluck graphql-tag template literals from .ts file', async () => {
       const sources = await pluck(
         'tmp-XXXXXX.ts',
