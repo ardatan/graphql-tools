@@ -16,6 +16,7 @@ export default function generateConfig(
     'decorators-legacy',
     'doExpressions',
     'dynamicImport',
+    'explicitResourceManagement',
     'exportDefaultFrom',
     'exportNamespaceFrom',
     'functionBind',
