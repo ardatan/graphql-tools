@@ -11,8 +11,16 @@ export function mapAsyncIterator<T, U>(
   onError?: any,
   onEnd?: () => MaybePromise<void>,
 ): AsyncIterableIterator<U> {
-  let $return: any;
-  let abruptClose: any;
+  let $return: () => Promise<IteratorResult<T>>;
+  let abruptClose: (error: any) => Promise<never>;
+  let onEndWithValue: <R>(value: R) => MaybePromise<R>;
+
+  if (onEnd) {
+    onEndWithValue = value => {
+      const onEnd$ = onEnd();
+      return isPromise(onEnd$) ? onEnd$.then(() => value) : value;
+    };
+  }
 
   if (typeof iterator.return === 'function') {
     $return = iterator.return;
@@ -20,17 +28,11 @@ export function mapAsyncIterator<T, U>(
       const rethrow = () => Promise.reject(error);
       return $return.call(iterator).then(rethrow, rethrow);
     };
-  } else {
-    $return = () => Promise.resolve({ value: undefined, done: true });
   }
 
   function mapResult(result: any) {
     if (result.done) {
-      if (onEnd) {
-        const onEnd$ = onEnd();
-        return isPromise(onEnd$) ? onEnd$.then(() => result, abruptClose) : result;
-      }
-      return result;
+      return onEndWithValue ? onEndWithValue(result) : result;
     }
     return asyncMapValue(result.value, onNext).then(iteratorResult, abruptClose);
   }
@@ -47,14 +49,10 @@ export function mapAsyncIterator<T, U>(
       return iterator.next().then(mapResult, mapReject);
     },
     return() {
-      const res$ = $return.call(iterator).then(mapResult, mapReject);
-      if (onEnd) {
-        return res$.then((res: any) => {
-          const onEnd$ = onEnd();
-          return isPromise(onEnd$) ? onEnd$.then(() => res, mapReject) : res;
-        });
-      }
-      return res$;
+      const res$ = $return
+        ? $return.call(iterator).then(mapResult, mapReject)
+        : Promise.resolve({ value: undefined, done: true });
+      return onEndWithValue ? res$.then(onEndWithValue) : res$;
     },
     throw(error: any) {
       if (typeof iterator.throw === 'function') {
