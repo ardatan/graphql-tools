@@ -1,4 +1,5 @@
 import { DirectiveLocation, GraphQLDirective, GraphQLFieldConfigArgumentMap } from 'graphql';
+import { mergeDeep } from '@graphql-tools/utils';
 
 export function mergeDirectives(directives: Set<GraphQLDirective>) {
   if (directives.size === 0) {
@@ -12,7 +13,7 @@ export function mergeDirectives(directives: Set<GraphQLDirective>) {
   let description: string;
   const locations = new Set<DirectiveLocation>();
   const args: GraphQLFieldConfigArgumentMap = {};
-  const extensions: Record<string, any> = {};
+  const extensionsSet = new Set<any>();
   let isRepeatable = false;
   for (const directive of directives) {
     name = directive.name;
@@ -25,9 +26,9 @@ export function mergeDirectives(directives: Set<GraphQLDirective>) {
     for (const arg of directive.args) {
       args[arg.name] = arg;
     }
-    isRepeatable = directive.isRepeatable;
+    isRepeatable = isRepeatable || directive.isRepeatable;
     if (directive.extensions) {
-      Object.assign(extensions, directive.extensions);
+      extensionsSet.add(directive.extensions);
     }
   }
   return new GraphQLDirective({
@@ -36,6 +37,6 @@ export function mergeDirectives(directives: Set<GraphQLDirective>) {
     locations: Array.from(locations),
     args,
     isRepeatable,
-    extensions,
+    extensions: extensionsSet.size > 0 ? mergeDeep([...extensionsSet]) : undefined,
   });
 }
