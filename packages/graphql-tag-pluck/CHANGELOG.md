@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.3.0
+
+### Minor Changes
+
+- [#5920](https://github.com/ardatan/graphql-tools/pull/5920) [`f0edcb2`](https://github.com/ardatan/graphql-tools/commit/f0edcb2810ef3d3ba26ace2be0b15600b81360e7) Thanks [@collin](https://github.com/collin)! - Adds support for tc39/proposal-explicit-resource-management ('using' keyword)
+
 ## 8.2.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @graphql-tools/stitch
 
+## 9.0.4
+
+### Patch Changes
+
+- [#5922](https://github.com/ardatan/graphql-tools/pull/5922) [`7f606ea`](https://github.com/ardatan/graphql-tools/commit/7f606ea4da035b220319fb702d6a2c9d5e5d35e9) Thanks [@ardatan](https://github.com/ardatan)! - Merge directives correctly
+
 ## 9.0.3
 
 ### Patch Changes
