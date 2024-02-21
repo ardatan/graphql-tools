@@ -1,4 +1,4 @@
-import { DirectiveLocation, GraphQLDirective, GraphQLFieldConfigArgumentMap } from 'graphql';
+import { GraphQLDirective, GraphQLFieldConfigArgumentMap } from 'graphql';
 import { mergeDeep } from '@graphql-tools/utils';
 
 export function mergeDirectives(directives: Set<GraphQLDirective>) {
@@ -11,7 +11,7 @@ export function mergeDirectives(directives: Set<GraphQLDirective>) {
   }
   let name: string;
   let description: string;
-  const locations = new Set<DirectiveLocation>();
+  const locations = new Set<string>();
   const args: GraphQLFieldConfigArgumentMap = {};
   const extensionsSet = new Set<any>();
   let isRepeatable = false;
@@ -34,7 +34,7 @@ export function mergeDirectives(directives: Set<GraphQLDirective>) {
   return new GraphQLDirective({
     name: name!,
     description: description!,
-    locations: Array.from(locations),
+    locations: Array.from(locations) as any[],
     args,
     isRepeatable,
     extensions: extensionsSet.size > 0 ? mergeDeep([...extensionsSet]) : undefined,
