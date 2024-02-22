@@ -423,7 +423,7 @@ describe('Federation', () => {
           }
         `);
       });
-      it.only('should give the correct result', async () => {
+      it('should give the correct result', async () => {
         const result = await builtGateway.executor(exampleQuery);
         expect(result).toEqual({
           data: {
