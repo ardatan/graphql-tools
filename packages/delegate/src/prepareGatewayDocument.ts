@@ -446,7 +446,6 @@ function wrapConcreteTypes(
       [Kind.FIELD]: (node: FieldNode) => {
         let type = typeInfo.getType();
         type = isNonNullType(type) ? type.ofType : type;
-        console.trace();
         if (
           type != null &&
           isAbstractType(getNamedType(type)) &&

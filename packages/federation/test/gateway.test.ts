@@ -261,12 +261,6 @@ describe('Federation', () => {
               errors,
             };
           }
-
-          if (subgraphName === 'inventory') {
-            console.log(print(executionRequest.document));
-          } else {
-          }
-
           return executor(executionRequest);
         };
       },
@@ -336,46 +330,46 @@ describe('Federation', () => {
     };
   };
   const scenarios: TestScenario[] = [
-    // {
-    //   name: 'Tools Gateway vs. Tools Subgraph',
-    //   buildSubgraphSchema: buildToolsSubgraphSchema,
-    //   buildGateway: buildStitchingGateway,
-    // },
-    // {
-    //   name: 'Tools Gateway vs. Apollo Subgraph',
-    //   buildSubgraphSchema: buildSubgraphWithApollo,
-    //   buildGateway: buildStitchingGateway,
-    // },
-    // {
-    //   name: 'Apollo Gateway vs. Tools Subgraph',
-    //   buildSubgraphSchema: buildToolsSubgraphSchema,
-    //   buildGateway: buildApolloGateway,
-    // },
-    // {
-    //   name: 'Apollo Gateway with Supergraph vs. Tools Subgraph',
-    //   buildSubgraphSchema: buildToolsSubgraphSchema,
-    //   buildGateway: buildApolloGatewayWithSupergraph,
-    // },
-    // {
-    //   name: 'Tools Gateway with Supergraph vs. Apollo Subgraph',
-    //   buildSubgraphSchema: buildSubgraphWithApollo,
-    //   buildGateway: buildStitchingGatewayWithSupergraph,
-    // },
+    {
+      name: 'Tools Gateway vs. Tools Subgraph',
+      buildSubgraphSchema: buildToolsSubgraphSchema,
+      buildGateway: buildStitchingGateway,
+    },
+    {
+      name: 'Tools Gateway vs. Apollo Subgraph',
+      buildSubgraphSchema: buildSubgraphWithApollo,
+      buildGateway: buildStitchingGateway,
+    },
+    {
+      name: 'Apollo Gateway vs. Tools Subgraph',
+      buildSubgraphSchema: buildToolsSubgraphSchema,
+      buildGateway: buildApolloGateway,
+    },
+    {
+      name: 'Apollo Gateway with Supergraph vs. Tools Subgraph',
+      buildSubgraphSchema: buildToolsSubgraphSchema,
+      buildGateway: buildApolloGatewayWithSupergraph,
+    },
+    {
+      name: 'Tools Gateway with Supergraph vs. Apollo Subgraph',
+      buildSubgraphSchema: buildSubgraphWithApollo,
+      buildGateway: buildStitchingGatewayWithSupergraph,
+    },
     {
       name: 'Tools Gateway with Supergraph vs. Tools Subgraph',
       buildSubgraphSchema: buildToolsSubgraphSchema,
       buildGateway: buildStitchingGatewayWithSupergraph,
     },
-    // {
-    //   name: 'Tools Gateway by converting Federation to Stitching SDL vs. Tools Subgraph',
-    //   buildSubgraphSchema: buildToolsSubgraphSchema,
-    //   buildGateway: buildStitchingGatewayByConversion,
-    // },
-    // {
-    //   name: 'Tools Gateway by converting Federation to Stitching SDL vs. Apollo Subgraph',
-    //   buildSubgraphSchema: buildSubgraphWithApollo,
-    //   buildGateway: buildStitchingGatewayByConversion,
-    // },
+    {
+      name: 'Tools Gateway by converting Federation to Stitching SDL vs. Tools Subgraph',
+      buildSubgraphSchema: buildToolsSubgraphSchema,
+      buildGateway: buildStitchingGatewayByConversion,
+    },
+    {
+      name: 'Tools Gateway by converting Federation to Stitching SDL vs. Apollo Subgraph',
+      buildSubgraphSchema: buildSubgraphWithApollo,
+      buildGateway: buildStitchingGatewayByConversion,
+    },
   ];
   for (const { name, buildSubgraphSchema, buildGateway } of scenarios) {
     describe(name, () => {
@@ -901,18 +895,3 @@ describe('Federation', () => {
     });
   }
 });
-
-/*
-
-query TestQuery($_0__v0_representations: [_Any!]!, $_1__v0_representations: [_Any!]!) {
-  _0___typename: __typename
-  _0__entities: _entities(representations: $_0__v0_representations) {
-    __typename
-  }
-  _1___typename: __typename
-  _1__entities: _entities(representations: $_1__v0_representations) {
-    __typename
-  }
-}
-
-*/
