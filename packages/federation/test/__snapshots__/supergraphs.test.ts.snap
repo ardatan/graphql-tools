@@ -459,6 +459,7 @@ type Query {
   me: User
   throw: String
   fooBar: FooBar
+  mustFooBar: FooBar!
 }
 
 type User {
@@ -488,6 +489,7 @@ type Query {
   me: User
   throw: String
   fooBar: FooBar
+  mustFooBar: FooBar!
   _entities(representations: [_Any!]!): _Entity
 }
 
