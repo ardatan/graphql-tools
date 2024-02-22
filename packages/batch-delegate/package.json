@@ -51,14 +51,14 @@
   },
   "dependencies": {
     "@graphql-tools/delegate": "^10.0.3",
-    "@graphql-tools/utils": "^10.0.0",
+    "@graphql-tools/utils": "^10.0.13",
     "dataloader": "2.2.2",
     "tslib": "^2.4.0",
     "value-or-promise": "^1.0.12"
   },
   "devDependencies": {
-    "@graphql-tools/schema": "^10.0.0",
-    "@graphql-tools/stitch": "9.0.4"
+    "@graphql-tools/schema": "^10.0.2",
+    "@graphql-tools/stitch": "^9.0.4"
   },
   "publishConfig": {
     "directory": "dist",

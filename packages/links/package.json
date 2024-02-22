@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@graphql-tools/delegate": "^10.0.3",
-    "@graphql-tools/utils": "^10.0.0",
+    "@graphql-tools/utils": "^10.0.13",
     "apollo-upload-client": "17.0.0",
     "form-data": "^4.0.0",
     "node-fetch": "^2.6.5",

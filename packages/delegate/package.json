@@ -52,8 +52,8 @@
   "dependencies": {
     "@graphql-tools/batch-execute": "^9.0.1",
     "@graphql-tools/executor": "^1.0.0",
-    "@graphql-tools/schema": "^10.0.0",
-    "@graphql-tools/utils": "^10.0.5",
+    "@graphql-tools/schema": "^10.0.2",
+    "@graphql-tools/utils": "^10.0.13",
     "dataloader": "^2.2.2",
     "tslib": "^2.5.0"
   },
