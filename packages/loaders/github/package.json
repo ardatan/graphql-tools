@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/github-loader",
-  "version": "8.0.0",
+  "version": "8.0.1",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@ardatan/sync-fetch": "^0.0.1",
-    "@graphql-tools/executor-http": "^1.0.8",
+    "@graphql-tools/executor-http": "^1.0.9",
     "@graphql-tools/graphql-tag-pluck": "^8.0.0",
     "@graphql-tools/utils": "^10.0.13",
     "@whatwg-node/fetch": "^0.9.0",

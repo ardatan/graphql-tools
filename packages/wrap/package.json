@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/wrap",
-  "version": "10.0.1",
+  "version": "10.0.2",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -50,8 +50,8 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "^10.0.3",
-    "@graphql-tools/schema": "^10.0.2",
+    "@graphql-tools/delegate": "^10.0.4",
+    "@graphql-tools/schema": "^10.0.3",
     "@graphql-tools/utils": "^10.0.13",
     "tslib": "^2.4.0",
     "value-or-promise": "^1.0.12"
