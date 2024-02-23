@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 10.1.0
+
+### Minor Changes
+
+- [#5924](https://github.com/ardatan/graphql-tools/pull/5924) [`f3ea7a5`](https://github.com/ardatan/graphql-tools/commit/f3ea7a59eecd40ba3928317aee159c79aa93e29e) Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Add `onEnd` on `mapAsyncIterator`.
+
 ## 10.0.13
 
 ### Patch Changes
