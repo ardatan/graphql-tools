@@ -64,6 +64,7 @@ type Query @join__type(graph: ACCOUNTS) {
   me: User
   throw: String
   fooBar: FooBar
+  mustFooBar: FooBar!
 }
 
 type User @join__type(graph: ACCOUNTS, key: "id") {
