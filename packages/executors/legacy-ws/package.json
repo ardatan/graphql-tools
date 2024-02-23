@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-legacy-ws",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {

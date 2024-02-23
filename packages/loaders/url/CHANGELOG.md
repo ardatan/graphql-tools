@@ -1,5 +1,21 @@
 # @graphql-tools/url-loader
 
+## 8.0.2
+
+### Patch Changes
+
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency [`@graphql-tools/delegate@^10.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/10.0.3) (from `^10.0.0`, in `dependencies`)
+  - Updated dependency [`@graphql-tools/executor-http@^1.0.8` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/1.0.8) (from `^1.0.5`, in `dependencies`)
+  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.0`, in `dependencies`)
+  - Updated dependency [`@graphql-tools/wrap@^10.0.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/wrap/v/10.0.1) (from `^10.0.0`, in `dependencies`)
+- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+  - @graphql-tools/delegate@10.0.4
+  - @graphql-tools/executor-graphql-ws@1.1.2
+  - @graphql-tools/executor-http@1.0.9
+  - @graphql-tools/executor-legacy-ws@1.0.6
+  - @graphql-tools/wrap@10.0.2
+
 ## 8.0.1
 
 ### Patch Changes
@@ -871,7 +887,7 @@
   'disable' to remove `credentials` property from RequestInit object completely.
 
   ```ts
-  new UrlLoader().load(url, { credentials: 'disable' });
+  new UrlLoader().load(url, { credentials: "disable" });
   ```
 
 ## 7.11.0
