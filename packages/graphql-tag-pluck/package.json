@@ -60,11 +60,11 @@
   },
   "devDependencies": {
     "@astrojs/compiler": "^2.3.4",
-    "@babel/parser": "7.23.9",
-    "@babel/traverse": "7.23.9",
-    "@babel/types": "7.23.9",
+    "@babel/parser": "7.24.0",
+    "@babel/traverse": "7.24.0",
+    "@babel/types": "7.24.0",
     "@types/babel__traverse": "7.20.5",
-    "@vue/compiler-sfc": "3.4.20",
+    "@vue/compiler-sfc": "3.4.21",
     "astrojs-compiler-sync": "^0.3.3",
     "svelte": "4.2.12",
     "svelte2tsx": "0.7.2"
