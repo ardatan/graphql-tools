@@ -268,7 +268,7 @@ describe('graphql-tag-pluck', () => {
       );
     });
 
-    it.only("should pluck graphql-tag template literals from .ts that use 'using' keyword", async () => {
+    it("should pluck graphql-tag template literals from .ts that use 'using' keyword", async () => {
       const sources = await pluck(
         'tmp-XXXXXX.ts',
         freeText(`
@@ -1930,6 +1930,45 @@ describe('graphql-tag-pluck', () => {
         \`)
 
         const doc = anothergql\`
+          query foo {
+            foo {
+              ...Foo
+            }
+          }
+
+          \${fragment}
+        \`
+      `),
+        {
+          globalGqlIdentifierName: 'anothergql',
+        },
+      );
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        fragment Foo on FooType {
+          id
+        }
+
+        query foo {
+          foo {
+            ...Foo
+          }
+        }
+      `),
+      );
+    });
+
+    it('should be able to specify the global GraphQL identifier name case insensitively', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
+        const fragment = anotherGql(\`
+          fragment Foo on FooType {
+            id
+          }
+        \`)
+
+        const doc = AnotherGql\`
           query foo {
             foo {
               ...Foo

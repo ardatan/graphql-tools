@@ -225,7 +225,8 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
   // Check if identifier is defined and imported from registered packages
   function isValidIdentifier(name: string) {
     return (
-      definedIdentifierNames.some(id => id === name) || globalGqlIdentifierName!.includes(name.toLowerCase())
+      definedIdentifierNames.some(id => id === name) ||
+      globalGqlIdentifierName!.includes(name.toLowerCase())
     );
   }
 
