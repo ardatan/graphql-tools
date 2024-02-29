@@ -525,14 +525,14 @@ type Query {
   getAuthor: ReactionAuthor
 }
 
-type Mutation {
-  setNumber: Int
-}
-
 scalar Url
 
 interface Node {
   id: ID!
+}
+
+type Mutation {
+  setNumber: Int
 }
 
 type ReactionAuthor implements Node {
@@ -545,11 +545,6 @@ type ReactionAuthor implements Node {
 exports[`Supergraphs d.graphql subgraphs: d.graphql - NODERESOLVER 1`] = `
 "schema {
   query: Query
-  mutation: Mutation
-}
-
-type Mutation {
-  _entities(representations: [_Any!]!): _Entity
 }
 
 type Query {
@@ -575,7 +570,6 @@ exports[`Supergraphs d.graphql subgraphs: d.graphql - PB_BACKEND 1`] = `
 
 type Mutation {
   setNumber: Int
-  _entities(representations: [_Any!]!): _Entity
 }
 
 type Query {

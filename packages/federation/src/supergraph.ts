@@ -220,7 +220,9 @@ export function getSubschemasFromSupergraphSdl({
               });
             }
           });
-          fieldDefinitionNodesByGraphName.set(graphName, fieldDefinitionNodesOfSubgraph);
+          if (fieldDefinitionNodesOfSubgraph.length > 0 || typeNode.name.value === 'Query') {
+            fieldDefinitionNodesByGraphName.set(graphName, fieldDefinitionNodesOfSubgraph);
+          }
         }
       }
     });
@@ -253,7 +255,7 @@ export function getSubschemasFromSupergraphSdl({
           interfaces.push(interfaceNode);
         }
       });
-      if (typeNode.name.value === 'Query' || typeNode.name.value === 'Mutation') {
+      if (typeNode.name.value === 'Query') {
         fieldDefinitionNodesOfSubgraph.push(entitiesFieldDefinitionNode);
       }
       const objectTypedDefNodeForSubgraph: ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode =
