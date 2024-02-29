@@ -1958,7 +1958,7 @@ describe('graphql-tag-pluck', () => {
       );
     });
 
-    it('should be able to specify the global GraphQL identifier name case insensitively', async () => {
+    it('should be able to specify the global GraphQL identifier name case sensitively', async () => {
       const sources = await pluck(
         'tmp-XXXXXX.js',
         freeText(`
@@ -1979,7 +1979,7 @@ describe('graphql-tag-pluck', () => {
         \`
       `),
         {
-          globalGqlIdentifierName: 'anothergql',
+          globalGqlIdentifierName: 'anotherGql',
         },
       );
 
@@ -1987,14 +1987,7 @@ describe('graphql-tag-pluck', () => {
         freeText(`
         fragment Foo on FooType {
           id
-        }
-
-        query foo {
-          foo {
-            ...Foo
-          }
-        }
-      `),
+        }`),
       );
     });
 

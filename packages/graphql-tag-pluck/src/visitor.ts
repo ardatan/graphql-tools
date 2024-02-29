@@ -203,7 +203,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
       identifier: mod.identifier && mod.identifier.toLowerCase(),
     };
   });
-  globalGqlIdentifierName = asArray(globalGqlIdentifierName).map(s => s!.toLowerCase());
+  globalGqlIdentifierName = asArray(globalGqlIdentifierName ?? '');
 
   const hooksOptions = { skipIndent, gqlMagicComment, modules, globalGqlIdentifierName };
 
@@ -225,8 +225,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
   // Check if identifier is defined and imported from registered packages
   function isValidIdentifier(name: string) {
     return (
-      definedIdentifierNames.some(id => id === name) ||
-      globalGqlIdentifierName!.includes(name.toLowerCase())
+      definedIdentifierNames.some(id => id === name) || globalGqlIdentifierName!.includes(name)
     );
   }
 
