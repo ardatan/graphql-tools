@@ -73,7 +73,7 @@
     "@types/extract-files": "8.1.3",
     "@types/valid-url": "1.0.7",
     "babel-loader": "9.1.3",
-    "express": "4.18.2",
+    "express": "4.18.3",
     "graphql-sse": "2.5.2",
     "graphql-upload": "16.0.2",
     "graphql-yoga": "5.1.1",
