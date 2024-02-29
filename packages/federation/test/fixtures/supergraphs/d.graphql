@@ -1,0 +1,64 @@
+schema
+  @core(feature: "https://specs.apollo.dev/core/v0.2")
+  @core(feature: "https://specs.apollo.dev/join/v0.1", for: EXECUTION)
+  @core(feature: "https://specs.apollo.dev/tag/v0.1") {
+  query: Query
+  mutation: Mutation
+}
+
+directive @core(as: String, feature: String!, for: core__Purpose) repeatable on SCHEMA
+
+directive @join__field(
+  graph: join__Graph
+  provides: join__FieldSet
+  requires: join__FieldSet
+) on FIELD_DEFINITION
+
+directive @join__graph(name: String!, url: String!) on ENUM_VALUE
+
+directive @join__owner(graph: join__Graph!) on INTERFACE | OBJECT
+
+directive @join__type(graph: join__Graph!, key: join__FieldSet) repeatable on INTERFACE | OBJECT
+
+directive @tag(name: String!) repeatable on FIELD_DEFINITION | INTERFACE | OBJECT | UNION
+
+type Mutation {
+  setNumber: Int @join__field(graph: PB_BACKEND)
+}
+
+type Query {
+  getAuthor: ReactionAuthor @join__field(graph: PB_BACKEND)
+}
+
+scalar Url
+
+interface Node {
+  id: ID!
+}
+
+type ReactionAuthor implements Node
+  @join__owner(graph: PB_BACKEND)
+  @join__type(graph: PB_BACKEND, key: "id") {
+  avatarUrl: Url! @join__field(graph: PB_BACKEND)
+  displayName: String! @join__field(graph: PB_BACKEND)
+  id: ID! @join__field(graph: PB_BACKEND)
+}
+
+enum core__Purpose {
+  """
+  `EXECUTION` features provide metadata necessary to for operation execution.
+  """
+  EXECUTION
+  """
+  `SECURITY` features provide metadata necessary to securely resolve fields.
+  """
+  SECURITY
+}
+
+scalar join__FieldSet
+
+enum join__Graph {
+  NODERESOLVER
+    @join__graph(name: "noderesolver", url: "http://graphql-node-resolver.graphql/graphql")
+  PB_BACKEND @join__graph(name: "pb-backend", url: "http://pb-backend-web.default/internal/graphql")
+}

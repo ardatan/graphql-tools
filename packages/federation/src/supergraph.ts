@@ -66,7 +66,9 @@ export function getSubschemasFromSupergraphSdl({
   function TypeWithFieldsVisitor(typeNode: ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode) {
     // TODO: Temporary fix to add missing join__type directives to Query
     if (
-      typeNode.name.value === 'Query' &&
+      (typeNode.name.value === 'Query' ||
+        typeNode.name.value === 'Mutation' ||
+        typeNode.kind === Kind.INTERFACE_TYPE_DEFINITION) &&
       !typeNode.directives?.some(directiveNode => directiveNode.name.value === 'join__type')
     ) {
       (typeNode as any).directives = [
@@ -218,7 +220,9 @@ export function getSubschemasFromSupergraphSdl({
               });
             }
           });
-          fieldDefinitionNodesByGraphName.set(graphName, fieldDefinitionNodesOfSubgraph);
+          if (fieldDefinitionNodesOfSubgraph.length > 0 || typeNode.name.value === 'Query') {
+            fieldDefinitionNodesByGraphName.set(graphName, fieldDefinitionNodesOfSubgraph);
+          }
         }
       }
     });
@@ -276,7 +280,9 @@ export function getSubschemasFromSupergraphSdl({
   }
   visit(ast, {
     ScalarTypeDefinition(node) {
+      let isShared = !node.name.value.startsWith('link__') && !node.name.value.startsWith('join__');
       node.directives?.forEach(directiveNode => {
+        isShared = false;
         if (directiveNode.name.value === 'join__type') {
           directiveNode.arguments?.forEach(argumentNode => {
             if (argumentNode.name.value === 'graph' && argumentNode?.value?.kind === Kind.ENUM) {
@@ -296,6 +302,16 @@ export function getSubschemasFromSupergraphSdl({
           });
         }
       });
+      if (isShared) {
+        subgraphNames.forEach(graphName => {
+          let subgraphTypes = subgraphTypesMap.get(graphName);
+          if (!subgraphTypes) {
+            subgraphTypes = [];
+            subgraphTypesMap.set(graphName, subgraphTypes);
+          }
+          subgraphTypes.push(node);
+        });
+      }
     },
     InputObjectTypeDefinition(node) {
       node.directives?.forEach(directiveNode => {

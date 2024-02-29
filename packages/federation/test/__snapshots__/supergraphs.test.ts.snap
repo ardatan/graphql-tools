@@ -514,3 +514,82 @@ union _Entity = User | Foo | Bar
 
 scalar _Any"
 `;
+
+exports[`Supergraphs d.graphql matches: d.graphql - stitchedSchema 1`] = `
+"schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  getAuthor: ReactionAuthor
+}
+
+scalar Url
+
+interface Node {
+  id: ID!
+}
+
+type Mutation {
+  setNumber: Int
+}
+
+type ReactionAuthor implements Node {
+  avatarUrl: Url!
+  displayName: String!
+  id: ID!
+}"
+`;
+
+exports[`Supergraphs d.graphql subgraphs: d.graphql - NODERESOLVER 1`] = `
+"schema {
+  query: Query
+}
+
+type Query {
+  _entities(representations: [_Any!]!): _Entity
+}
+
+scalar Url
+
+interface Node {
+  id: ID!
+}
+
+union _Entity
+
+scalar _Any"
+`;
+
+exports[`Supergraphs d.graphql subgraphs: d.graphql - PB_BACKEND 1`] = `
+"schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Mutation {
+  setNumber: Int
+}
+
+type Query {
+  getAuthor: ReactionAuthor
+  _entities(representations: [_Any!]!): _Entity
+}
+
+scalar Url
+
+interface Node {
+  id: ID!
+}
+
+type ReactionAuthor implements Node {
+  avatarUrl: Url!
+  displayName: String!
+  id: ID!
+}
+
+union _Entity = ReactionAuthor
+
+scalar _Any"
+`;
