@@ -1,6 +1,5 @@
 import {
   buildASTSchema,
-  concatAST,
   DocumentNode,
   EnumTypeDefinitionNode,
   EnumValueDefinitionNode,
