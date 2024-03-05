@@ -376,9 +376,9 @@
     node-fetch "^2.6.1"
 
 "@astrojs/compiler@^2.3.4":
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/@astrojs/compiler/-/compiler-2.6.0.tgz#0d27c9a60530766b247f0cd1359fbe468d147fe6"
-  integrity sha512-c74k8iGHL3DzkosSJ0tGcHIEBEiIfBhr7eadSaPyvWlVKaieDVzVs8OW1tnRSQyBsfMc8DZQ4RcN2KAcESD8UQ==
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/@astrojs/compiler/-/compiler-2.7.0.tgz#023799f2fefd2aa8579ea6f802226387e5922f74"
+  integrity sha512-XpC8MAaWjD1ff6/IfkRq/5k1EFj6zhCNqXRd5J43SVJEBj/Bsmizkm8N0xOYscGcDFQkRgEw6/eKnI5x/1l6aA==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.12.13", "@babel/code-frame@^7.23.5":
   version "7.23.5"
