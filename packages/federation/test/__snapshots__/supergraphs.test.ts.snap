@@ -525,12 +525,6 @@ type Query {
   getAuthor: ReactionAuthor
 }
 
-scalar Url
-
-interface Node {
-  id: ID!
-}
-
 type Mutation {
   setNumber: Int
 }
@@ -539,7 +533,13 @@ type ReactionAuthor implements Node {
   avatarUrl: Url!
   displayName: String!
   id: ID!
-}"
+}
+
+interface Node {
+  id: ID!
+}
+
+scalar Url"
 `;
 
 exports[`Supergraphs d.graphql subgraphs: d.graphql - NODERESOLVER 1`] = `
@@ -549,12 +549,6 @@ exports[`Supergraphs d.graphql subgraphs: d.graphql - NODERESOLVER 1`] = `
 
 type Query {
   _entities(representations: [_Any!]!): _Entity
-}
-
-scalar Url
-
-interface Node {
-  id: ID!
 }
 
 union _Entity
@@ -577,17 +571,17 @@ type Query {
   _entities(representations: [_Any!]!): _Entity
 }
 
-scalar Url
-
-interface Node {
-  id: ID!
-}
-
 type ReactionAuthor implements Node {
   avatarUrl: Url!
   displayName: String!
   id: ID!
 }
+
+interface Node {
+  id: ID!
+}
+
+scalar Url
 
 union _Entity = ReactionAuthor
 
