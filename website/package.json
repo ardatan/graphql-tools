@@ -19,7 +19,7 @@
     "@theguild/algolia": "2.1.0",
     "@theguild/tailwind-config": "0.3.2",
     "@types/node": "20.11.24",
-    "@types/react": "18.2.62",
+    "@types/react": "18.2.63",
     "typescript": "5.3.3"
   }
 }
