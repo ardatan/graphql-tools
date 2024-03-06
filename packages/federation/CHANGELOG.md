@@ -1,5 +1,11 @@
 # @graphql-tools/federation
 
+## 1.1.18
+
+### Patch Changes
+
+- [#5946](https://github.com/ardatan/graphql-tools/pull/5946) [`107c021`](https://github.com/ardatan/graphql-tools/commit/107c021aa191f0654c45ed72b45d650993e2142f) Thanks [@ardatan](https://github.com/ardatan)! - If an interface or scalar type is not annotated for a subgraph explicitly, consider them as a shared type
+
 ## 1.1.17
 
 ### Patch Changes
