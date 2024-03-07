@@ -150,33 +150,24 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
 
     const parentTypeName = parentType.name;
     let newSelections: Array<SelectionNode> = [];
-    let typeNameExists = node.selections.some(
-      selection => selection.kind === Kind.FIELD && selection.name.value === '__typename',
-    );
+    let isTypenameSelected = false;
 
     for (const selection of node.selections) {
-      if (selection.kind !== Kind.FIELD || selection.name.value === '__typename') {
+      if (selection.kind !== Kind.FIELD) {
         newSelections.push(selection);
         continue;
       }
 
-      const newName = selection.name.value;
-
-      // See https://github.com/ardatan/graphql-tools/issues/2282
+      // The `__typename` selection should not be aliased
+      // to be accessible with this name
       if (
-        !typeNameExists &&
-        (this.dataTransformer != null || this.errorsTransformer != null) &&
-        (this.subscriptionTypeName == null || parentTypeName !== this.subscriptionTypeName)
+        selection.name.value === '__typename' &&
+        (!selection.alias || selection.alias.value === '__typename')
       ) {
-        newSelections.push({
-          kind: Kind.FIELD,
-          name: {
-            kind: Kind.NAME,
-            value: '__typename',
-          },
-        });
-        typeNameExists = true;
+        isTypenameSelected = true;
       }
+
+      const newName = selection.name.value;
 
       let transformedSelection: Maybe<SelectionNode | Array<SelectionNode>>;
       if (this.fieldNodeTransformer == null) {
@@ -224,6 +215,21 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
         alias: {
           kind: Kind.NAME,
           value: transformedSelection.alias?.value ?? newName,
+        },
+      });
+    }
+
+    // See https://github.com/ardatan/graphql-tools/issues/2282
+    if (
+      !isTypenameSelected &&
+      (this.dataTransformer != null || this.errorsTransformer != null) &&
+      (this.subscriptionTypeName == null || parentTypeName !== this.subscriptionTypeName)
+    ) {
+      newSelections.push({
+        kind: Kind.FIELD,
+        name: {
+          kind: Kind.NAME,
+          value: '__typename',
         },
       });
     }
