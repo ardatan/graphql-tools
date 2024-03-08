@@ -1624,66 +1624,22 @@ function mapSourceToResponse(
   // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
   // "ExecuteQuery" algorithm, for which `execute` is also used.
   return flattenAsyncIterable(
-    mapAsyncIterator(resultOrStream[Symbol.asyncIterator](), async (payload: unknown) =>
-      ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload))),
+    mapAsyncIterator(
+      resultOrStream[Symbol.asyncIterator](),
+      async (payload: unknown) =>
+        ensureAsyncIterable(
+          await executeImpl(buildPerEventExecutionContext(exeContext, payload)),
+          exeContext.signal,
+        ),
+      (error: Error) => {
+        const wrappedError = createGraphQLError(error.message, {
+          originalError: error,
+          nodes: [exeContext.operation],
+        });
+        throw wrappedError;
+      },
     ),
   );
-}
-
-/**
- * Implements the "CreateSourceEventStream" algorithm described in the
- * GraphQL specification, resolving the subscription source event stream.
- *
- * Returns a Promise which resolves to either an AsyncIterable (if successful)
- * or an ExecutionResult (error). The promise will be rejected if the schema or
- * other arguments to this function are invalid, or if the resolved event stream
- * is not an async iterable.
- *
- * If the client-provided arguments to this function do not result in a
- * compliant subscription, a GraphQL Response (ExecutionResult) with
- * descriptive errors and no data will be returned.
- *
- * If the the source stream could not be created due to faulty subscription
- * resolver logic or underlying systems, the promise will resolve to a single
- * ExecutionResult containing `errors` and no `data`.
- *
- * If the operation succeeded, the promise resolves to the AsyncIterable for the
- * event stream returned by the resolver.
- *
- * A Source Event Stream represents a sequence of events, each of which triggers
- * a GraphQL execution for that event.
- *
- * This may be useful when hosting the stateful subscription service in a
- * different process or machine than the stateless GraphQL execution engine,
- * or otherwise separating these two steps. For more on this, see the
- * "Supporting Subscriptions at Scale" information in the GraphQL specification.
- */
-export function createSourceEventStream(
-  args: ExecutionArgs,
-): MaybePromise<AsyncIterable<unknown> | SingularExecutionResult> {
-  // If a valid execution context cannot be created due to incorrect arguments,
-  // a "Response" with only errors is returned.
-  const exeContext = buildExecutionContext(args);
-
-  // Return early errors if execution context failed.
-  if (!('schema' in exeContext)) {
-    return {
-      errors: exeContext.map(e => {
-        Object.defineProperty(e, 'extensions', {
-          value: {
-            ...e.extensions,
-            http: {
-              ...e.extensions?.['http'],
-              status: 400,
-            },
-          },
-        });
-        return e;
-      }),
-    };
-  }
-
-  return createSourceEventStreamImpl(exeContext);
 }
 
 function createSourceEventStreamImpl(
