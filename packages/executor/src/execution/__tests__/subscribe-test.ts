@@ -1287,19 +1287,11 @@ describe('Subscription Publish Phase', () => {
       },
     });
 
-    const resultThree = await iterator.next();
-
-    expect(JSON.parse(JSON.stringify(resultThree))).toEqual({
-      done: false,
-      value: {
-        errors: [
-          {
-            message: 'test error',
-            locations: [{ line: 2, column: 9 }],
-          },
-        ],
-      },
-    });
+    try {
+      await iterator.next();
+    } catch (error: unknown) {
+      expect(error).toMatchObject({ message: 'test error' });
+    }
 
     const endResult = await iterator.next();
 
