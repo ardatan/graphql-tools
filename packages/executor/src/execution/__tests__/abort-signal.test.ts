@@ -22,15 +22,18 @@ describe('Abort Signal', () => {
         Subscription: {
           counter: {
             subscribe() {
-              return new Repeater((push, stop) => {
+              return new Repeater(async (push, stop) => {
                 let i = 0;
-                const interval = setInterval(() => {
-                  push(i++);
-                }, 300);
                 stop.then(() => {
-                  clearInterval(interval);
                   stopped = true;
                 });
+
+                while (true) {
+                  await push(i++);
+                  if (stopped) {
+                    break;
+                  }
+                }
               });
             },
             resolve: (value: number) => value,
@@ -178,6 +181,8 @@ describe('Abort Signal', () => {
   });
   it('should stop stream execution', async () => {
     const controller = new AbortController();
+    let isAborted = false;
+
     const schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
         type Query {
@@ -187,21 +192,30 @@ describe('Abort Signal', () => {
       resolvers: {
         Query: {
           counter: () =>
-            new Repeater((push, stop) => {
-              let i = 0;
-              const interval = setInterval(() => {
-                push(i++);
-              }, 300);
+            new Repeater(async (push, stop) => {
+              let counter = 0;
+
               stop.then(() => {
-                clearInterval(interval);
+                isAborted = true;
               });
+
+              while (true) {
+                await push(counter++);
+
+                if (counter === 2) {
+                  controller.abort();
+                }
+
+                if (isAborted) {
+                  break;
+                }
+              }
+              stop();
             }),
         },
       },
     });
-    setTimeout(() => {
-      controller.abort();
-    }, 1000);
+
     const result = await normalizedExecutor({
       schema,
       document: parse(/* GraphQL */ `
@@ -225,5 +239,6 @@ describe('Abort Signal', () => {
         },
       ],
     });
+    expect(isAborted).toEqual(true);
   });
 });
