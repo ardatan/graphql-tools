@@ -1,5 +1,15 @@
 # @graphql-tools/federation
 
+## 1.1.19
+
+### Patch Changes
+
+- [#5956](https://github.com/ardatan/graphql-tools/pull/5956) [`d4395dd`](https://github.com/ardatan/graphql-tools/commit/d4395dd7d21db3becdf51cc0508e35d246dcbe1e) Thanks [@ardatan](https://github.com/ardatan)! - Handle orphan types
+
+- Updated dependencies [[`8199416`](https://github.com/ardatan/graphql-tools/commit/81994160488aad1114b0d130083bcf694fe13aba), [`baf3c28`](https://github.com/ardatan/graphql-tools/commit/baf3c28f43dcfafffd15386daeb153bc2895c1b3)]:
+  - @graphql-tools/wrap@10.0.3
+  - @graphql-tools/utils@10.1.1
+
 ## 1.1.18
 
 ### Patch Changes

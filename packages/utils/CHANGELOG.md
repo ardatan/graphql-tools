@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 10.1.1
+
+### Patch Changes
+
+- [#5931](https://github.com/ardatan/graphql-tools/pull/5931) [`baf3c28`](https://github.com/ardatan/graphql-tools/commit/baf3c28f43dcfafffd15386daeb153bc2895c1b3) Thanks [@henryqdineen](https://github.com/henryqdineen)! - fix filterSchema argument filter for schema with non-default root types
+
 ## 10.1.0
 
 ### Minor Changes

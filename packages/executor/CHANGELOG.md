@@ -1,5 +1,14 @@
 # @graphql-tools/executor
 
+## 1.2.2
+
+### Patch Changes
+
+- [#5965](https://github.com/ardatan/graphql-tools/pull/5965) [`3e10da6`](https://github.com/ardatan/graphql-tools/commit/3e10da6b2bf97bdf40317a6d88a0cc6412fd0974) Thanks [@n1ru4l](https://github.com/n1ru4l)! - revert subscription event source error handling to graphql-js behaviour
+
+- Updated dependencies [[`baf3c28`](https://github.com/ardatan/graphql-tools/commit/baf3c28f43dcfafffd15386daeb153bc2895c1b3)]:
+  - @graphql-tools/utils@10.1.1
+
 ## 1.2.1
 
 ### Patch Changes
