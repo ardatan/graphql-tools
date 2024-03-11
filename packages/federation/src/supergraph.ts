@@ -51,6 +51,7 @@ export function getSubschemasFromSupergraphSdl({
   const typeNameFieldsKeyBySubgraphMap = new Map<string, Map<string, Map<string, string>>>();
   const typeNameCanonicalMap = new Map<string, string>();
   const subgraphTypeNameExtraFieldsMap = new Map<string, Map<string, FieldDefinitionNode[]>>();
+  const orphanTypeMap = new Map<string, TypeDefinitionNode>();
   // TODO: Temporary fix to add missing join__type directives to Query
   const subgraphNames: string[] = [];
   visit(ast, {
@@ -66,10 +67,9 @@ export function getSubschemasFromSupergraphSdl({
   function TypeWithFieldsVisitor(typeNode: ObjectTypeDefinitionNode | InterfaceTypeDefinitionNode) {
     // TODO: Temporary fix to add missing join__type directives to Query
     if (
-      (typeNode.name.value === 'Query' ||
-        typeNode.name.value === 'Mutation' ||
-        typeNode.kind === Kind.INTERFACE_TYPE_DEFINITION) &&
-      !typeNode.directives?.some(directiveNode => directiveNode.name.value === 'join__type')
+      typeNode.name.value === 'Query' ||
+      (typeNode.name.value === 'Mutation' &&
+        !typeNode.directives?.some(directiveNode => directiveNode.name.value === 'join__type'))
     ) {
       (typeNode as any).directives = [
         ...(typeNode.directives || []),
@@ -95,6 +95,7 @@ export function getSubschemasFromSupergraphSdl({
         })),
       ];
     }
+    let isOrphan = true;
     // END TODO
     const fieldDefinitionNodesByGraphName = new Map<string, FieldDefinitionNode[]>();
     typeNode.directives?.forEach(directiveNode => {
@@ -108,6 +109,7 @@ export function getSubschemasFromSupergraphSdl({
         }
       }
       if (directiveNode.name.value === 'join__type') {
+        isOrphan = false;
         const joinTypeGraphArgNode = directiveNode.arguments?.find(
           argumentNode => argumentNode.name.value === 'graph',
         );
@@ -277,12 +279,15 @@ export function getSubschemasFromSupergraphSdl({
       }
       subgraphTypes.push(objectTypedDefNodeForSubgraph);
     });
+    if (isOrphan) {
+      orphanTypeMap.set(typeNode.name.value, typeNode);
+    }
   }
   visit(ast, {
     ScalarTypeDefinition(node) {
-      let isShared = !node.name.value.startsWith('link__') && !node.name.value.startsWith('join__');
+      let isOrphan = !node.name.value.startsWith('link__') && !node.name.value.startsWith('join__');
       node.directives?.forEach(directiveNode => {
-        isShared = false;
+        isOrphan = false;
         if (directiveNode.name.value === 'join__type') {
           directiveNode.arguments?.forEach(argumentNode => {
             if (argumentNode.name.value === 'graph' && argumentNode?.value?.kind === Kind.ENUM) {
@@ -302,22 +307,17 @@ export function getSubschemasFromSupergraphSdl({
           });
         }
       });
-      if (isShared) {
-        subgraphNames.forEach(graphName => {
-          let subgraphTypes = subgraphTypesMap.get(graphName);
-          if (!subgraphTypes) {
-            subgraphTypes = [];
-            subgraphTypesMap.set(graphName, subgraphTypes);
-          }
-          subgraphTypes.push(node);
-        });
+      if (isOrphan) {
+        orphanTypeMap.set(node.name.value, node);
       }
     },
     InputObjectTypeDefinition(node) {
+      let isOrphan = true;
       node.directives?.forEach(directiveNode => {
         if (directiveNode.name.value === 'join__type') {
           directiveNode.arguments?.forEach(argumentNode => {
             if (argumentNode.name.value === 'graph' && argumentNode?.value?.kind === Kind.ENUM) {
+              isOrphan = false;
               const graphName = argumentNode.value.value;
               let subgraphTypes = subgraphTypesMap.get(graphName);
               if (!subgraphTypes) {
@@ -334,6 +334,9 @@ export function getSubschemasFromSupergraphSdl({
           });
         }
       });
+      if (isOrphan) {
+        orphanTypeMap.set(node.name.value, node);
+      }
     },
     InterfaceTypeDefinition: TypeWithFieldsVisitor,
     UnionTypeDefinition(node) {
@@ -388,8 +391,10 @@ export function getSubschemasFromSupergraphSdl({
       });
     },
     EnumTypeDefinition(node) {
+      let isOrphan = true;
       if (node.name.value === 'join__Graph') {
         node.values?.forEach(valueNode => {
+          isOrphan = false;
           valueNode.directives?.forEach(directiveNode => {
             if (directiveNode.name.value === 'join__graph') {
               directiveNode.arguments?.forEach(argumentNode => {
@@ -403,6 +408,7 @@ export function getSubschemasFromSupergraphSdl({
       }
       node.directives?.forEach(directiveNode => {
         if (directiveNode.name.value === 'join__type') {
+          isOrphan = false;
           directiveNode.arguments?.forEach(argumentNode => {
             if (argumentNode.name.value === 'graph' && argumentNode.value?.kind === Kind.ENUM) {
               const graphName = argumentNode.value.value;
@@ -449,6 +455,9 @@ export function getSubschemasFromSupergraphSdl({
           });
         }
       });
+      if (isOrphan) {
+        orphanTypeMap.set(node.name.value, node);
+      }
     },
     ObjectTypeDefinition: TypeWithFieldsVisitor,
   });
@@ -505,22 +514,39 @@ export function getSubschemasFromSupergraphSdl({
       types: unionTypeNodes,
     };
 
-    const subgraphTypes = subgraphTypesMap.get(subgraphName) || [];
-    const typeNameExtraFieldsMap = subgraphTypeNameExtraFieldsMap.get(subgraphName);
-    if (typeNameExtraFieldsMap) {
-      subgraphTypes.forEach(typeNode => {
-        if ('fields' in typeNode) {
-          const extraFields = typeNameExtraFieldsMap.get(typeNode.name.value);
-          if (extraFields) {
-            (typeNode.fields as FieldDefinitionNode[]).push(...extraFields);
+    const extraOrphanTypesForSubgraph = new Set<TypeDefinitionNode>();
+    // eslint-disable-next-line no-inner-declarations
+    function visitTypeDefinitionsForOrphanTypes(node: TypeDefinitionNode) {
+      visit(node, {
+        [Kind.NAMED_TYPE](node) {
+          const orphanType = orphanTypeMap.get(node.name.value);
+          if (orphanType && !extraOrphanTypesForSubgraph.has(orphanType)) {
+            extraOrphanTypesForSubgraph.add(orphanType);
+            visitTypeDefinitionsForOrphanTypes(orphanType);
           }
-        }
+        },
       });
     }
+    const subgraphTypes = subgraphTypesMap.get(subgraphName) || [];
+    const typeNameExtraFieldsMap = subgraphTypeNameExtraFieldsMap.get(subgraphName);
+    subgraphTypes.forEach(typeNode => {
+      if (typeNameExtraFieldsMap && 'fields' in typeNode) {
+        const extraFields = typeNameExtraFieldsMap.get(typeNode.name.value);
+        if (extraFields) {
+          (typeNode.fields as FieldDefinitionNode[]).push(...extraFields);
+        }
+      }
+      visitTypeDefinitionsForOrphanTypes(typeNode);
+    });
     const schema = buildASTSchema(
       {
         kind: Kind.DOCUMENT,
-        definitions: [...subgraphTypes, entitiesUnionTypeDefinitionNode, anyTypeDefinitionNode],
+        definitions: [
+          ...subgraphTypes,
+          ...extraOrphanTypesForSubgraph,
+          entitiesUnionTypeDefinitionNode,
+          anyTypeDefinitionNode,
+        ],
       },
       {
         assumeValidSDL: true,

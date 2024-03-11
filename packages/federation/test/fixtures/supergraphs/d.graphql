@@ -36,6 +36,18 @@ interface Node {
   id: ID!
 }
 
+enum NotifiableEntityType {
+  ITEM
+}
+
+interface AppNotification {
+  entityType: NotifiableEntityType
+}
+
+type OwnerChangedNotification implements AppNotification {
+  entityType: NotifiableEntityType
+}
+
 type ReactionAuthor implements Node
   @join__owner(graph: PB_BACKEND)
   @join__type(graph: PB_BACKEND, key: "id") {
