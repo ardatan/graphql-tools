@@ -1,5 +1,14 @@
 # @graphql-tools/wrap
 
+## 10.0.3
+
+### Patch Changes
+
+- [#5963](https://github.com/ardatan/graphql-tools/pull/5963) [`8199416`](https://github.com/ardatan/graphql-tools/commit/81994160488aad1114b0d130083bcf694fe13aba) Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Fix missing `__typename` field when it is already present but aliased.
+
+- Updated dependencies [[`baf3c28`](https://github.com/ardatan/graphql-tools/commit/baf3c28f43dcfafffd15386daeb153bc2895c1b3)]:
+  - @graphql-tools/utils@10.1.1
+
 ## 10.0.2
 
 ### Patch Changes

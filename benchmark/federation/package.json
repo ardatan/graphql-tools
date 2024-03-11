@@ -1,6 +1,6 @@
 {
   "name": "federation-benchmark",
-  "version": "0.0.116",
+  "version": "0.0.117",
   "private": true,
   "scripts": {
     "loadtest:federation": "k6 -e ENDPOINT=federation run k6.js",
@@ -11,7 +11,7 @@
   "dependencies": {
     "@apollo/gateway": "2.7.1",
     "@apollo/subgraph": "2.7.1",
-    "@graphql-tools/federation": "1.1.18",
+    "@graphql-tools/federation": "1.1.19",
     "@graphql-tools/stitch": "9.0.5",
     "cross-env": "7.0.3",
     "express": "4.18.3",
