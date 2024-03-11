@@ -1,5 +1,11 @@
 # @graphql-tools/federation
 
+## 1.1.20
+
+### Patch Changes
+
+- [`b78ce7e`](https://github.com/ardatan/graphql-tools/commit/b78ce7e42c8d016d972b125a86508f5ab78d57a6) Thanks [@ardatan](https://github.com/ardatan)! - Handle orphan union types
+
 ## 1.1.19
 
 ### Patch Changes
