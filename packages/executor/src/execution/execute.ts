@@ -1631,14 +1631,12 @@ function mapSourceToResponse(
           await executeImpl(buildPerEventExecutionContext(exeContext, payload)),
           exeContext.signal,
         ),
-      async function* (error: Error) {
+      (error: Error) => {
         const wrappedError = createGraphQLError(error.message, {
           originalError: error,
           nodes: [exeContext.operation],
         });
-        yield {
-          errors: [wrappedError],
-        };
+        throw wrappedError;
       },
     ),
   );
