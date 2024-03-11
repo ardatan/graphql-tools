@@ -340,10 +340,12 @@ export function getSubschemasFromSupergraphSdl({
     },
     InterfaceTypeDefinition: TypeWithFieldsVisitor,
     UnionTypeDefinition(node) {
+      let isOrphan = true;
       node.directives?.forEach(directiveNode => {
         if (directiveNode.name.value === 'join__type') {
           directiveNode.arguments?.forEach(argumentNode => {
             if (argumentNode.name.value === 'graph' && argumentNode?.value?.kind === Kind.ENUM) {
+              isOrphan = false;
               const graphName = argumentNode.value.value;
               const unionMembers: NamedTypeNode[] = [];
               node.directives?.forEach(directiveNode => {
@@ -389,6 +391,9 @@ export function getSubschemasFromSupergraphSdl({
           });
         }
       });
+      if (isOrphan) {
+        orphanTypeMap.set(node.name.value, node);
+      }
     },
     EnumTypeDefinition(node) {
       let isOrphan = true;

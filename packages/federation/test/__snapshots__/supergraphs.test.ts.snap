@@ -530,16 +530,35 @@ type Mutation {
 }
 
 type ReactionAuthor implements Node {
+  id: ID!
   avatarUrl: Url!
   displayName: String!
+}
+
+type Handle implements Node {
   id: ID!
+  mentionable: Mentionable
 }
 
 interface Node {
   id: ID!
 }
 
-scalar Url"
+scalar Url
+
+union Mentionable = ReactionAuthor | OwnerChangedNotification
+
+type OwnerChangedNotification implements AppNotification {
+  entityType: NotifiableEntityType
+}
+
+interface AppNotification {
+  entityType: NotifiableEntityType
+}
+
+enum NotifiableEntityType {
+  ITEM
+}"
 `;
 
 exports[`Supergraphs d.graphql subgraphs: d.graphql - NODERESOLVER 1`] = `
@@ -572,9 +591,14 @@ type Query {
 }
 
 type ReactionAuthor implements Node {
+  id: ID!
   avatarUrl: Url!
   displayName: String!
+}
+
+type Handle implements Node {
   id: ID!
+  mentionable: Mentionable
 }
 
 interface Node {
@@ -583,7 +607,21 @@ interface Node {
 
 scalar Url
 
-union _Entity = ReactionAuthor
+union Mentionable = ReactionAuthor | OwnerChangedNotification
+
+type OwnerChangedNotification implements AppNotification {
+  entityType: NotifiableEntityType
+}
+
+interface AppNotification {
+  entityType: NotifiableEntityType
+}
+
+enum NotifiableEntityType {
+  ITEM
+}
+
+union _Entity = ReactionAuthor | Handle
 
 scalar _Any"
 `;
