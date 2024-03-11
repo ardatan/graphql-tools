@@ -1287,11 +1287,10 @@ describe('Subscription Publish Phase', () => {
       },
     });
 
-    try {
-      await iterator.next();
-    } catch (error: unknown) {
-      expect(error).toMatchObject({ message: 'test error', locations: [{ line: 2, column: 9 }] });
-    }
+    await expect(iterator.next()).rejects.toMatchObject({
+      message: 'test error',
+      locations: [{ line: 2, column: 9 }],
+    });
 
     const endResult = await iterator.next();
 
