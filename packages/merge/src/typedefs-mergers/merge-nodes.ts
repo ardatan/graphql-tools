@@ -5,6 +5,7 @@ import {
   SchemaDefinitionNode,
   SchemaExtensionNode,
 } from 'graphql';
+import { isNode } from 'graphql/language/ast.js';
 import { collectComment, NamedDefinitionNode } from '@graphql-tools/utils';
 import { mergeDirective } from './directives.js';
 import { mergeEnum } from './enum.js';
@@ -104,6 +105,14 @@ export function mergeGraphQLNodes(
             );
             break;
           case Kind.DIRECTIVE_DEFINITION:
+            if (mergedResultMap[name]) {
+              const isInheritedFromPrototype = name in {};
+              if (isInheritedFromPrototype) {
+                if (!isNode(mergedResultMap[name])) {
+                  mergedResultMap[name] = undefined as any;
+                }
+              }
+            }
             mergedResultMap[name] = mergeDirective(nodeDefinition, mergedResultMap[name] as any);
             break;
         }
