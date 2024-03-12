@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 10.0.4
+
+### Patch Changes
+
+- [`69181f6`](https://github.com/ardatan/graphql-tools/commit/69181f6795fb750433e81c9a1c299ca3f6d03e00) Thanks [@ardatan](https://github.com/ardatan)! - MapLeafValues: fallback to `astFromValueUntyped` if `astFromValue` fails
+
 ## 10.0.3
 
 ### Patch Changes
