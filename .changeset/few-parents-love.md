@@ -2,4 +2,4 @@
 "@graphql-tools/utils": patch
 ---
 
-Respect JS `Date` in `astFromValueUntyped`
+Respect `toJSON` in `astFromValueUntyped`
