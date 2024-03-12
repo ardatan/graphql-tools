@@ -12,21 +12,21 @@ type Query {
 }
 
 type User {
+  id: ID!
   numberOfReviews: Int
   reviews: [Review]
   username: String
   birthDate: String
-  id: ID!
   name: String
 }
 
 type Product {
   reviews(input: ProductReviewsInput): [Review]
+  upc: String!
   inStock: Boolean
   shippingEstimate: Int
   name: String
   price: Int
-  upc: String!
   weight: Int
 }
 
@@ -131,6 +131,7 @@ type AnonymousReview implements Review {
 
 type Product {
   reviews(input: ProductReviewsInput): [Review]
+  upc: String!
 }
 
 type Query {
@@ -146,6 +147,7 @@ interface Review {
 scalar Stars
 
 type User {
+  id: ID!
   numberOfReviews: Int
   reviews: [Review]
   username: String
@@ -172,6 +174,7 @@ exports[`Supergraphs a.graphql subgraphs: a.graphql - SERVICE3 1`] = `
 type Product {
   inStock: Boolean
   shippingEstimate: Int
+  upc: String!
 }
 
 type Query {
@@ -540,6 +543,11 @@ type Handle implements Node {
   mentionable: Mentionable
 }
 
+type Member implements Node {
+  id: ID!
+  email: String!
+}
+
 interface Node {
   id: ID!
 }
@@ -601,6 +609,11 @@ type Handle implements Node {
   mentionable: Mentionable
 }
 
+type Member implements Node {
+  id: ID!
+  email: String!
+}
+
 interface Node {
   id: ID!
 }
@@ -621,7 +634,29 @@ enum NotifiableEntityType {
   ITEM
 }
 
-union _Entity = ReactionAuthor | Handle
+union _Entity = ReactionAuthor | Handle | Member
+
+scalar _Any"
+`;
+
+exports[`Supergraphs d.graphql subgraphs: d.graphql - PB_SERVICE_B 1`] = `
+"schema {
+  query: Query
+}
+
+type Query {
+  _entities(representations: [_Any!]!): _Entity
+}
+
+type Member implements Node {
+  id: ID!
+}
+
+interface Node {
+  id: ID!
+}
+
+union _Entity = Member
 
 scalar _Any"
 `;

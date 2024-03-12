@@ -138,6 +138,7 @@ export function getSubschemasFromSupergraphSdl({
             const joinFieldDirectives = fieldNode.directives?.filter(
               directiveNode => directiveNode.name.value === 'join__field',
             );
+            let notInSubgraph = true;
             joinFieldDirectives?.forEach(joinFieldDirectiveNode => {
               const joinFieldGraphArgNode = joinFieldDirectiveNode.arguments?.find(
                 argumentNode => argumentNode.name.value === 'graph',
@@ -146,6 +147,7 @@ export function getSubschemasFromSupergraphSdl({
                 joinFieldGraphArgNode?.value?.kind === Kind.ENUM &&
                 joinFieldGraphArgNode.value.value === graphName
               ) {
+                notInSubgraph = false;
                 const isExternal = joinFieldDirectiveNode.arguments?.some(
                   argumentNode =>
                     argumentNode.name.value === 'external' &&
@@ -214,6 +216,19 @@ export function getSubschemasFromSupergraphSdl({
             });
             // Add if no join__field directive
             if (!joinFieldDirectives?.length) {
+              fieldDefinitionNodesOfSubgraph.push({
+                ...fieldNode,
+                directives: fieldNode.directives?.filter(
+                  directiveNode => directiveNode.name.value !== 'join__field',
+                ),
+              });
+            } else if (
+              notInSubgraph &&
+              typeNameKeysBySubgraphMap
+                .get(graphName)
+                ?.get(typeNode.name.value)
+                ?.some(key => key.split(' ').includes(fieldNode.name.value))
+            ) {
               fieldDefinitionNodesOfSubgraph.push({
                 ...fieldNode,
                 directives: fieldNode.directives?.filter(

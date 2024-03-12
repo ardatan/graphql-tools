@@ -63,6 +63,14 @@ type Handle implements Node
   mentionable: Mentionable @join__field(graph: PB_BACKEND)
 }
 
+type Member implements Node
+  @join__owner(graph: PB_BACKEND)
+  @join__type(graph: PB_BACKEND, key: "id")
+  @join__type(graph: PB_SERVICE_B, key: "id") {
+  id: ID! @join__field(graph: PB_BACKEND)
+  email: String! @join__field(graph: PB_BACKEND)
+}
+
 union Mentionable = ReactionAuthor | OwnerChangedNotification
 
 enum core__Purpose {
@@ -82,4 +90,5 @@ enum join__Graph {
   NODERESOLVER
     @join__graph(name: "noderesolver", url: "http://graphql-node-resolver.graphql/graphql")
   PB_BACKEND @join__graph(name: "pb-backend", url: "http://pb-backend-web.default/internal/graphql")
+  PB_SERVICE_B @join__graph(name: "pb-service-b", url: "http://pb-service-b.default/graphql")
 }
