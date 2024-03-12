@@ -1,5 +1,11 @@
 # @graphql-tools/federation
 
+## 1.1.21
+
+### Patch Changes
+
+- [`14f4fae`](https://github.com/ardatan/graphql-tools/commit/14f4faec87b1423c5541dab16dc2c5c1298edcf7) Thanks [@ardatan](https://github.com/ardatan)! - Handle orphan scalars with directives
+
 ## 1.1.20
 
 ### Patch Changes
