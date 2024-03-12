@@ -1,5 +1,11 @@
 # @graphql-tools/federation
 
+## 1.1.22
+
+### Patch Changes
+
+- [`4620bb2`](https://github.com/ardatan/graphql-tools/commit/4620bb2a352fd0e645950aaae8bb54cbc7c85ce7) Thanks [@ardatan](https://github.com/ardatan)! - Handle unspecified key fields
+
 ## 1.1.21
 
 ### Patch Changes
