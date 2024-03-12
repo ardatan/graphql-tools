@@ -287,10 +287,10 @@ export function getSubschemasFromSupergraphSdl({
     ScalarTypeDefinition(node) {
       let isOrphan = !node.name.value.startsWith('link__') && !node.name.value.startsWith('join__');
       node.directives?.forEach(directiveNode => {
-        isOrphan = false;
         if (directiveNode.name.value === 'join__type') {
           directiveNode.arguments?.forEach(argumentNode => {
             if (argumentNode.name.value === 'graph' && argumentNode?.value?.kind === Kind.ENUM) {
+              isOrphan = false;
               const graphName = argumentNode.value.value;
               let subgraphTypes = subgraphTypesMap.get(graphName);
               if (!subgraphTypes) {
@@ -391,7 +391,7 @@ export function getSubschemasFromSupergraphSdl({
           });
         }
       });
-      if (isOrphan) {
+      if (isOrphan && node.name.value !== '_Entity') {
         orphanTypeMap.set(node.name.value, node);
       }
     },

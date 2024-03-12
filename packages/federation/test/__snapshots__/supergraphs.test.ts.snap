@@ -544,7 +544,7 @@ interface Node {
   id: ID!
 }
 
-scalar Url
+scalar Url @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc1738")
 
 union Mentionable = ReactionAuthor | OwnerChangedNotification
 
@@ -605,7 +605,7 @@ interface Node {
   id: ID!
 }
 
-scalar Url
+scalar Url @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc1738")
 
 union Mentionable = ReactionAuthor | OwnerChangedNotification
 

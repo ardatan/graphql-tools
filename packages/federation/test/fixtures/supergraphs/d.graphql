@@ -30,7 +30,7 @@ type Query {
   getAuthor: ReactionAuthor @join__field(graph: PB_BACKEND)
 }
 
-scalar Url
+scalar Url @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc1738")
 
 interface Node {
   id: ID!
