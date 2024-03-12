@@ -1,5 +1,11 @@
 # @graphql-tools/utils
 
+## 10.1.2
+
+### Patch Changes
+
+- [`fff2399`](https://github.com/ardatan/graphql-tools/commit/fff2399fc42cdf41d88925fe1f6681c68f002846) Thanks [@ardatan](https://github.com/ardatan)! - Respect `toJSON` in `astFromValueUntyped`
+
 ## 10.1.1
 
 ### Patch Changes
