@@ -41,6 +41,9 @@ export function astFromValueUntyped(value: any): ValueNode | null {
   }
 
   if (typeof value === 'object') {
+    if (value instanceof Date) {
+      return { kind: Kind.STRING, value: value.toISOString() };
+    }
     const fieldNodes: Array<ObjectFieldNode> = [];
     for (const fieldName in value) {
       const fieldValue = value[fieldName];
