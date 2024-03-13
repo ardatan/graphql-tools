@@ -1,5 +1,11 @@
 # @graphql-tools/federation
 
+## 1.1.23
+
+### Patch Changes
+
+- [`2202768`](https://github.com/ardatan/graphql-tools/commit/220276800d271e7c6fbc43339eb779b618c82e68) Thanks [@ardatan](https://github.com/ardatan)! - Federation v1 support improvements
+
 ## 1.1.22
 
 ### Patch Changes
