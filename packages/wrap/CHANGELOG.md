@@ -1,5 +1,11 @@
 # @graphql-tools/wrap
 
+## 10.0.5
+
+### Patch Changes
+
+- [`807491e`](https://github.com/ardatan/graphql-tools/commit/807491ea259a4af6be10edb9c720be6fe65177ad) Thanks [@ardatan](https://github.com/ardatan)! - Skip fragments in TransformQuery
+
 ## 10.0.4
 
 ### Patch Changes
