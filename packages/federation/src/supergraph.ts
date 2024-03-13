@@ -553,7 +553,6 @@ export function getSubschemasFromSupergraphSdl({
             extraOrphanTypesForSubgraph.set(typeName, extraOrphanType);
           }
         } else if (!subgraphTypes.some(typeNode => typeNode.name.value === typeName)) {
-          console.log(`Orphan type ${typeName} not found in subgraph ${subgraphName}`);
           return null;
         }
         return node;
