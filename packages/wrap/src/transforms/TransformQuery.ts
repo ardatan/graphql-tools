@@ -1,6 +1,18 @@
-import { FragmentDefinitionNode, GraphQLError, Kind, SelectionSetNode, visit } from 'graphql';
+import {
+  DocumentNode,
+  FragmentDefinitionNode,
+  GraphQLError,
+  Kind,
+  SelectionSetNode,
+  visit,
+} from 'graphql';
 import { DelegationContext, Transform } from '@graphql-tools/delegate';
-import { ExecutionRequest, ExecutionResult, relocatedError } from '@graphql-tools/utils';
+import {
+  ExecutionRequest,
+  ExecutionResult,
+  getOperationASTFromRequest,
+  relocatedError,
+} from '@graphql-tools/utils';
 
 export type QueryTransformer = <TContext>(
   selectionSet: SelectionSetNode | undefined,
@@ -55,34 +67,43 @@ export default class TransformQuery<TContext = Record<string, any>>
   ): ExecutionRequest {
     const pathLength = this.path.length;
     let index = 0;
-    const document = visit(originalRequest.document, {
-      [Kind.FIELD]: {
-        enter: node => {
-          if (index === pathLength || node.name.value !== this.path[index]) {
-            return false;
-          }
+    const operationAst = getOperationASTFromRequest(originalRequest);
+    const document: DocumentNode = {
+      kind: Kind.DOCUMENT,
+      definitions: originalRequest.document.definitions.map(def => {
+        if (def === operationAst) {
+          return visit(def, {
+            [Kind.FIELD]: {
+              enter: node => {
+                if (index === pathLength || node.name.value !== this.path[index]) {
+                  return false;
+                }
 
-          index++;
+                index++;
 
-          if (index === pathLength) {
-            const selectionSet = this.queryTransformer(
-              node.selectionSet,
-              this.fragments,
-              delegationContext,
-              transformationContext,
-            );
+                if (index === pathLength) {
+                  const selectionSet = this.queryTransformer(
+                    node.selectionSet,
+                    this.fragments,
+                    delegationContext,
+                    transformationContext,
+                  );
 
-            return {
-              ...node,
-              selectionSet,
-            };
-          }
-        },
-        leave: () => {
-          index--;
-        },
-      },
-    });
+                  return {
+                    ...node,
+                    selectionSet,
+                  };
+                }
+              },
+              leave: () => {
+                index--;
+              },
+            },
+          });
+        }
+        return def;
+      }),
+    };
 
     return {
       ...originalRequest,
