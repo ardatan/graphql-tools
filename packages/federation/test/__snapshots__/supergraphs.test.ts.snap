@@ -548,11 +548,15 @@ type Member implements Node {
   email: String!
 }
 
-interface Node {
+type ConcreteBoard implements Board & Node & SomeBoard {
   id: ID!
+  isVisible: Boolean!
+  someEntity: SomeEntity
 }
 
 scalar Url @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc1738")
+
+interface Node
 
 union Mentionable = ReactionAuthor | OwnerChangedNotification
 
@@ -560,12 +564,22 @@ type OwnerChangedNotification implements AppNotification {
   entityType: NotifiableEntityType
 }
 
+enum NotifiableEntityType {
+  ITEM
+}
+
 interface AppNotification {
   entityType: NotifiableEntityType
 }
 
-enum NotifiableEntityType {
-  ITEM
+interface Board
+
+interface SomeBoard {
+  someEntity: SomeEntity
+}
+
+type SomeEntity implements Node {
+  id: ID!
 }"
 `;
 
@@ -614,11 +628,13 @@ type Member implements Node {
   email: String!
 }
 
-interface Node {
+type ConcreteBoard implements Board & Node & SomeBoard {
   id: ID!
 }
 
 scalar Url @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc1738")
+
+interface Node
 
 union Mentionable = ReactionAuthor | OwnerChangedNotification
 
@@ -626,15 +642,19 @@ type OwnerChangedNotification implements AppNotification {
   entityType: NotifiableEntityType
 }
 
-interface AppNotification {
-  entityType: NotifiableEntityType
-}
-
 enum NotifiableEntityType {
   ITEM
 }
 
-union _Entity = ReactionAuthor | Handle | Member
+interface AppNotification {
+  entityType: NotifiableEntityType
+}
+
+interface Board
+
+interface SomeBoard
+
+union _Entity = ReactionAuthor | Handle | Member | ConcreteBoard
 
 scalar _Any"
 `;
@@ -652,11 +672,25 @@ type Member implements Node {
   id: ID!
 }
 
-interface Node {
+type SomeEntity implements Node {
   id: ID!
 }
 
-union _Entity = Member
+type ConcreteBoard implements Board & Node & SomeBoard {
+  id: ID!
+  isVisible: Boolean!
+  someEntity: SomeEntity
+}
+
+interface Node
+
+interface Board
+
+interface SomeBoard {
+  someEntity: SomeEntity
+}
+
+union _Entity = Member | SomeEntity | ConcreteBoard
 
 scalar _Any"
 `;

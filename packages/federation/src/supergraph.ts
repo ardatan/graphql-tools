@@ -5,10 +5,13 @@ import {
   EnumValueDefinitionNode,
   FieldDefinitionNode,
   GraphQLSchema,
+  InputValueDefinitionNode,
   InterfaceTypeDefinitionNode,
+  InterfaceTypeExtensionNode,
   Kind,
   NamedTypeNode,
   ObjectTypeDefinitionNode,
+  ObjectTypeExtensionNode,
   parse,
   print,
   ScalarTypeDefinitionNode,
@@ -534,16 +537,116 @@ export function getSubschemasFromSupergraphSdl({
       types: unionTypeNodes,
     };
 
-    const extraOrphanTypesForSubgraph = new Set<TypeDefinitionNode>();
+    const extraOrphanTypesForSubgraph = new Map<string, TypeDefinitionNode>();
     // eslint-disable-next-line no-inner-declarations
     function visitTypeDefinitionsForOrphanTypes(node: TypeDefinitionNode) {
-      visit(node, {
-        [Kind.NAMED_TYPE](node) {
-          const orphanType = orphanTypeMap.get(node.name.value);
-          if (orphanType && !extraOrphanTypesForSubgraph.has(orphanType)) {
-            extraOrphanTypesForSubgraph.add(orphanType);
-            visitTypeDefinitionsForOrphanTypes(orphanType);
+      function visitNamedTypeNode(namedTypeNode: NamedTypeNode) {
+        const typeName = namedTypeNode.name.value;
+        if (specifiedTypeNames.includes(typeName)) {
+          return;
+        }
+        const orphanType = orphanTypeMap.get(typeName);
+        if (orphanType) {
+          if (!extraOrphanTypesForSubgraph.has(typeName)) {
+            extraOrphanTypesForSubgraph.set(typeName, {} as any);
+            const extraOrphanType = visitTypeDefinitionsForOrphanTypes(orphanType);
+            extraOrphanTypesForSubgraph.set(typeName, extraOrphanType);
           }
+        } else if (!subgraphTypes.some(typeNode => typeNode.name.value === typeName)) {
+          console.log(`Orphan type ${typeName} not found in subgraph ${subgraphName}`);
+          return null;
+        }
+        return node;
+      }
+      function visitFieldDefs<TFieldDef extends InputValueDefinitionNode | FieldDefinitionNode>(
+        nodeFields?: readonly TFieldDef[] | undefined,
+      ): TFieldDef[] {
+        const fields: TFieldDef[] = [];
+        for (const field of nodeFields || []) {
+          const isTypeNodeOk = visitNamedTypeNode(getNamedTypeNode(field.type) as NamedTypeNode);
+          if (!isTypeNodeOk) {
+            continue;
+          }
+          if (field.kind === Kind.FIELD_DEFINITION) {
+            const args: InputValueDefinitionNode[] = visitFieldDefs(field.arguments);
+            fields.push({
+              ...field,
+              arguments: args,
+            });
+          } else {
+            fields.push(field);
+          }
+        }
+        return fields;
+      }
+      function visitObjectAndInterfaceDefs(
+        node:
+          | ObjectTypeDefinitionNode
+          | InterfaceTypeDefinitionNode
+          | ObjectTypeExtensionNode
+          | InterfaceTypeExtensionNode,
+      ) {
+        const fields: FieldDefinitionNode[] = visitFieldDefs(node.fields);
+        const interfaces: NamedTypeNode[] = [];
+        for (const iface of node.interfaces || []) {
+          const isTypeNodeOk = visitNamedTypeNode(iface);
+          if (!isTypeNodeOk) {
+            continue;
+          }
+          interfaces.push(iface);
+        }
+        return {
+          ...node,
+          fields,
+          interfaces,
+        };
+      }
+      return visit(node, {
+        [Kind.OBJECT_TYPE_DEFINITION]: visitObjectAndInterfaceDefs,
+        [Kind.OBJECT_TYPE_EXTENSION]: visitObjectAndInterfaceDefs,
+        [Kind.INTERFACE_TYPE_DEFINITION]: visitObjectAndInterfaceDefs,
+        [Kind.INTERFACE_TYPE_EXTENSION]: visitObjectAndInterfaceDefs,
+        [Kind.UNION_TYPE_DEFINITION](node) {
+          const types: NamedTypeNode[] = [];
+          for (const type of node.types || []) {
+            const isTypeNodeOk = visitNamedTypeNode(type);
+            if (!isTypeNodeOk) {
+              continue;
+            }
+            types.push(type);
+          }
+          return {
+            ...node,
+            types,
+          };
+        },
+        [Kind.UNION_TYPE_EXTENSION](node) {
+          const types: NamedTypeNode[] = [];
+          for (const type of node.types || []) {
+            const isTypeNodeOk = visitNamedTypeNode(type);
+            if (!isTypeNodeOk) {
+              continue;
+            }
+            types.push(type);
+          }
+          return {
+            ...node,
+            types,
+          };
+        },
+        [Kind.INPUT_OBJECT_TYPE_DEFINITION](node) {
+          const fields = visitFieldDefs(node.fields);
+          return {
+            ...node,
+            fields,
+          };
+        },
+        [Kind.INPUT_OBJECT_TYPE_EXTENSION](node) {
+          const fields = visitFieldDefs(node.fields);
+          return {
+            ...node,
+            fields,
+          };
         },
       });
     }
@@ -558,21 +661,26 @@ export function getSubschemasFromSupergraphSdl({
       }
       visitTypeDefinitionsForOrphanTypes(typeNode);
     });
-    const schema = buildASTSchema(
-      {
-        kind: Kind.DOCUMENT,
-        definitions: [
-          ...subgraphTypes,
-          ...extraOrphanTypesForSubgraph,
-          entitiesUnionTypeDefinitionNode,
-          anyTypeDefinitionNode,
-        ],
-      },
-      {
+    let schema: GraphQLSchema;
+    const schemaAst: DocumentNode = {
+      kind: Kind.DOCUMENT,
+      definitions: [
+        ...subgraphTypes,
+        ...extraOrphanTypesForSubgraph.values(),
+        entitiesUnionTypeDefinitionNode,
+        anyTypeDefinitionNode,
+      ],
+    };
+    try {
+      schema = buildASTSchema(schemaAst, {
         assumeValidSDL: true,
         assumeValid: true,
-      },
-    );
+      });
+    } catch (e: any) {
+      throw new Error(
+        `Error building schema for subgraph ${subgraphName}: ${e?.message || e.toString()}`,
+      );
+    }
     let executor: Executor = onExecutor({ subgraphName, endpoint, subgraphSchema: schema });
     if (globalThis.process?.env?.['DEBUG']) {
       const origExecutor = executor;
@@ -651,3 +759,5 @@ const entitiesFieldDefinitionNode: FieldDefinitionNode = {
     },
   ],
 };
+
+const specifiedTypeNames = ['ID', 'String', 'Float', 'Int', 'Boolean', '_Any', '_Entity'];

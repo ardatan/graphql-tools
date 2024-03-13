@@ -73,6 +73,32 @@ type Member implements Node
 
 union Mentionable = ReactionAuthor | OwnerChangedNotification
 
+interface Board {
+  id: ID!
+  isVisible: Boolean!
+}
+
+interface SomeBoard {
+  # introducing this interface and field causes:
+  # Mesh - Supergraph 💥 Failed to generate the schema Error: Unknown type: "SomeEntity".
+  someEntity: SomeEntity
+}
+
+type SomeEntity implements Node
+  @join__owner(graph: PB_SERVICE_B)
+  @join__type(graph: PB_SERVICE_B, key: "id") {
+  id: ID! @join__field(graph: PB_SERVICE_B)
+}
+
+type ConcreteBoard implements Board & Node & SomeBoard
+  @join__owner(graph: PB_SERVICE_B)
+  @join__type(graph: PB_SERVICE_B, key: "id")
+  @join__type(graph: PB_BACKEND, key: "id") {
+  id: ID! @join__field(graph: PB_SERVICE_B)
+  isVisible: Boolean! @join__field(graph: PB_SERVICE_B)
+  someEntity: SomeEntity @join__field(graph: PB_SERVICE_B)
+}
+
 enum core__Purpose {
   """
   `EXECUTION` features provide metadata necessary to for operation execution.
