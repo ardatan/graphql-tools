@@ -1,5 +1,11 @@
 # @graphql-tools/federation
 
+## 1.1.24
+
+### Patch Changes
+
+- [`458ef46`](https://github.com/ardatan/graphql-tools/commit/458ef46536db003edc399587feabfcee7b186830) Thanks [@ardatan](https://github.com/ardatan)! - Remove extra logs
+
 ## 1.1.23
 
 ### Patch Changes
