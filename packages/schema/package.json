@@ -56,7 +56,7 @@
     "value-or-promise": "^1.0.12"
   },
   "devDependencies": {
-    "graphql-scalars": "1.22.5"
+    "graphql-scalars": "1.23.0"
   },
   "publishConfig": {
     "directory": "dist",
