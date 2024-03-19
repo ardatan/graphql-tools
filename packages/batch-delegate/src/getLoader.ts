@@ -87,8 +87,9 @@ export function getLoader<K = any, V = any, C = K>(
 
   let cacheKey = fieldName;
 
-  if (info.parentType) {
-    cacheKey += '@' + info.parentType.name;
+  if (info.returnType) {
+    const namedType = getNamedType(info.returnType);
+    cacheKey += '@' + namedType.name;
   }
 
   if (selectionSet != null) {
