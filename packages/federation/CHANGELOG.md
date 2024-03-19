@@ -1,5 +1,11 @@
 # @graphql-tools/federation
 
+## 1.1.25
+
+### Patch Changes
+
+- [`e09c383`](https://github.com/ardatan/graphql-tools/commit/e09c383a540f84f56db141466b711f88fce8548d) Thanks [@ardatan](https://github.com/ardatan)! - Respect fields with specified types
+
 ## 1.1.24
 
 ### Patch Changes
