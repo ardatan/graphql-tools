@@ -543,7 +543,7 @@ export function getSubschemasFromSupergraphSdl({
       function visitNamedTypeNode(namedTypeNode: NamedTypeNode) {
         const typeName = namedTypeNode.name.value;
         if (specifiedTypeNames.includes(typeName)) {
-          return;
+          return node;
         }
         const orphanType = orphanTypeMap.get(typeName);
         if (orphanType) {

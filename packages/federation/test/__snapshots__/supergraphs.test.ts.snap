@@ -556,7 +556,9 @@ type ConcreteBoard implements Board & Node & SomeBoard {
 
 scalar Url @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc1738")
 
-interface Node
+interface Node {
+  id: ID!
+}
 
 union Mentionable = ReactionAuthor | OwnerChangedNotification
 
@@ -572,7 +574,10 @@ interface AppNotification {
   entityType: NotifiableEntityType
 }
 
-interface Board
+interface Board {
+  id: ID!
+  isVisible: Boolean!
+}
 
 interface SomeBoard {
   someEntity: SomeEntity
@@ -634,7 +639,9 @@ type ConcreteBoard implements Board & Node & SomeBoard {
 
 scalar Url @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc1738")
 
-interface Node
+interface Node {
+  id: ID!
+}
 
 union Mentionable = ReactionAuthor | OwnerChangedNotification
 
@@ -650,7 +657,10 @@ interface AppNotification {
   entityType: NotifiableEntityType
 }
 
-interface Board
+interface Board {
+  id: ID!
+  isVisible: Boolean!
+}
 
 interface SomeBoard
 
@@ -682,9 +692,14 @@ type ConcreteBoard implements Board & Node & SomeBoard {
   someEntity: SomeEntity
 }
 
-interface Node
+interface Node {
+  id: ID!
+}
 
-interface Board
+interface Board {
+  id: ID!
+  isVisible: Boolean!
+}
 
 interface SomeBoard {
   someEntity: SomeEntity
