@@ -87,6 +87,10 @@ export function getLoader<K = any, V = any, C = K>(
 
   let cacheKey = fieldName;
 
+  if (info.parentType) {
+    cacheKey += '@' + info.parentType.name;
+  }
+
   if (selectionSet != null) {
     cacheKey += memoizedPrint(selectionSet);
   }
