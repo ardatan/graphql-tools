@@ -302,7 +302,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Can stream a field that returns a list of promises', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 2) {
           name
@@ -347,7 +347,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Can stream in correct order with lists of promises', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 0) {
           name
@@ -396,7 +396,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Handles rejections in a field that returns a list of promises before initialCount is reached', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 2) {
           name
@@ -440,7 +440,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Handles rejections in a field that returns a list of promises after initialCount is reached', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 1) {
           name
@@ -488,7 +488,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Can stream a field that returns an async iterable', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream {
           name
@@ -544,7 +544,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Can stream a field that returns an async iterable, using a non-zero initialCount', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 2) {
           name
@@ -582,7 +582,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Negative values of initialCount throw field errors on a field that returns an async iterable', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: -2) {
           name
@@ -608,7 +608,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Can handle concurrent calls to .next() without waiting', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 2) {
           name
@@ -654,7 +654,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Handles error thrown in async iterable before initialCount is reached', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 2) {
           name
@@ -683,7 +683,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Handles error thrown in async iterable after initialCount is reached', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 1) {
           name
@@ -724,7 +724,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Handles null returned in non-null list items after initialCount is reached', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         nonNullFriendList @stream(initialCount: 1) {
           name
@@ -762,7 +762,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Handles null returned in non-null async iterable list items after initialCount is reached', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         nonNullFriendList @stream(initialCount: 1) {
           name
@@ -809,7 +809,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Handles errors thrown by completeValue after initialCount is reached', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         scalarList @stream(initialCount: 1)
       }
@@ -844,7 +844,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Handles async errors thrown by completeValue after initialCount is reached', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 1) {
           nonNullName
@@ -896,7 +896,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Handles async errors thrown by completeValue after initialCount is reached for a non-nullable list', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         nonNullFriendList @stream(initialCount: 1) {
           nonNullName
@@ -939,7 +939,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Handles async errors thrown by completeValue after initialCount is reached from async iterable', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 1) {
           nonNullName
@@ -994,7 +994,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Handles async errors thrown by completeValue after initialCount is reached from async iterable for a non-nullable list', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         nonNullFriendList @stream(initialCount: 1) {
           nonNullName
@@ -1039,7 +1039,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Filters payloads that are nulled', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         nestedObject {
           nonNullScalarField
@@ -1072,7 +1072,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Filters payloads that are nulled by a later synchronous error', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         nestedObject {
           nestedFriendList @stream(initialCount: 0) {
@@ -1105,7 +1105,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Does not filter payloads when null error is in a different path', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         otherNestedObject: nestedObject {
           ... @defer {
@@ -1159,7 +1159,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Filters stream payloads that are nulled in a deferred payload', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         nestedObject {
           ... @defer {
@@ -1213,16 +1213,16 @@ describe('Execute: stream directive', () => {
   });
 
   it('Filters defer payloads that are nulled in a stream response', async () => {
-    const document = parse(`
-    query {
-      friendList @stream(initialCount: 0) {
-        nonNullName
-        ... @defer {
-          name
+    const document = parse(/* GraphQL */ `
+      query {
+        friendList @stream(initialCount: 0) {
+          nonNullName
+          ... @defer {
+            name
+          }
         }
       }
-    }
-  `);
+    `);
     const result = await complete(document, {
       async *friendList() {
         yield await Promise.resolve({
@@ -1246,7 +1246,7 @@ describe('Execute: stream directive', () => {
             errors: [
               {
                 message: 'Cannot return null for non-nullable field Friend.nonNullName.',
-                locations: [{ line: 4, column: 9 }],
+                locations: [{ line: 4, column: 11 }],
                 path: ['friendList', 0, 'nonNullName'],
               },
             ],
@@ -1288,7 +1288,7 @@ describe('Execute: stream directive', () => {
       }),
     };
 
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         nestedObject {
           ... @defer {
@@ -1359,7 +1359,7 @@ describe('Execute: stream directive', () => {
   });
 
   it('Handles promises returned by completeValue after initialCount is reached', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 1) {
           id
@@ -1410,10 +1410,10 @@ describe('Execute: stream directive', () => {
 
   it('Returns payloads in correct order when parent deferred fragment resolves slower than stream', async () => {
     const [slowFieldPromise, resolveSlowField] = createResolvablePromise();
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         nestedObject {
-          ... DeferFragment @defer
+          ...DeferFragment @defer
         }
       }
       fragment DeferFragment on NestedObject {
@@ -1506,17 +1506,17 @@ describe('Execute: stream directive', () => {
     const [slowFieldPromise, resolveSlowField] = createResolvablePromise();
     const [iterableCompletionPromise, resolveIterableCompletion] = createResolvablePromise();
 
-    const document = parse(`
-    query {
-      friendList @stream(initialCount: 1, label:"stream-label") {
-        ...NameFragment @defer(label: "DeferName") @defer(label: "DeferName")
-        id
+    const document = parse(/* GraphQL */ `
+      query {
+        friendList @stream(initialCount: 1, label: "stream-label") {
+          ...NameFragment @defer(label: "DeferName") @defer(label: "DeferName")
+          id
+        }
       }
-    }
-    fragment NameFragment on Friend {
-      name
-    }
-  `);
+      fragment NameFragment on Friend {
+        name
+      }
+    `);
 
     const executeResult = await execute({
       schema,
@@ -1594,17 +1594,17 @@ describe('Execute: stream directive', () => {
     const [slowFieldPromise, resolveSlowField] = createResolvablePromise();
     const [iterableCompletionPromise, resolveIterableCompletion] = createResolvablePromise();
 
-    const document = parse(`
-    query {
-      friendList @stream(initialCount: 1, label:"stream-label") {
-        ...NameFragment @defer(label: "DeferName") @defer(label: "DeferName")
-        id
+    const document = parse(/* GraphQL */ `
+      query {
+        friendList @stream(initialCount: 1, label: "stream-label") {
+          ...NameFragment @defer(label: "DeferName") @defer(label: "DeferName")
+          id
+        }
       }
-    }
-    fragment NameFragment on Friend {
-      name
-    }
-  `);
+      fragment NameFragment on Friend {
+        name
+      }
+    `);
 
     const executeResult = await execute({
       schema,
@@ -1702,7 +1702,7 @@ describe('Execute: stream directive', () => {
       }),
     };
 
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 1) {
           id
@@ -1760,7 +1760,7 @@ describe('Execute: stream directive', () => {
       }),
     };
 
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 1) {
           name
@@ -1820,7 +1820,7 @@ describe('Execute: stream directive', () => {
         },
       }),
     };
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query {
         friendList @stream(initialCount: 1) {
           ... @defer {

@@ -1,8 +1,24 @@
 import { parse } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { isAsyncIterable } from '@graphql-tools/utils';
 import { Repeater } from '@repeaterjs/repeater';
 import { assertAsyncIterable } from '../../../../loaders/url/tests/test-utils';
 import { normalizedExecutor } from '../normalizedExecutor';
+
+type Deferred<T = void> = {
+  resolve: (value: T) => void;
+  reject: (value: unknown) => void;
+  promise: Promise<T>;
+};
+
+function createDeferred<T = void>(): Deferred<T> {
+  const d = {} as Deferred<T>;
+  d.promise = new Promise<T>((resolve, reject) => {
+    d.resolve = resolve;
+    d.reject = reject;
+  });
+  return d;
+}
 
 describe('Abort Signal', () => {
   it('should stop the subscription', async () => {
@@ -240,5 +256,67 @@ describe('Abort Signal', () => {
       ],
     });
     expect(isAborted).toEqual(true);
+  });
+  it('stops pending stream execution for incremental delivery', async () => {
+    const controller = new AbortController();
+    const d = createDeferred();
+    let isReturnInvoked = false;
+
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          counter: [Int!]!
+        }
+      `,
+      resolvers: {
+        Query: {
+          counter: () => ({
+            [Symbol.asyncIterator]() {
+              return this;
+            },
+            next() {
+              return d.promise.then(() => ({ done: true }));
+            },
+            return() {
+              isReturnInvoked = true;
+              d.resolve();
+              return Promise.resolve({ done: true });
+            },
+          }),
+        },
+      },
+    });
+
+    const result = await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          counter @stream
+        }
+      `),
+      signal: controller.signal,
+    });
+
+    if (!isAsyncIterable(result)) {
+      throw new Error('Result is not an async iterable');
+    }
+
+    const iter = result[Symbol.asyncIterator]();
+
+    const next = await iter.next();
+    expect(next).toEqual({
+      done: false,
+      value: {
+        data: {
+          counter: [],
+        },
+        hasNext: true,
+      },
+    });
+
+    const next$ = iter.next();
+    controller.abort();
+    await expect(next$).rejects.toMatchInlineSnapshot(`DOMException {}`);
+    expect(isReturnInvoked).toEqual(true);
   });
 });
