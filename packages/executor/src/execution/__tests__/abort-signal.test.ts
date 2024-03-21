@@ -367,5 +367,6 @@ describe('Abort Signal', () => {
         signal: controller.signal,
       }),
     ).toThrowErrorMatchingInlineSnapshot(`"This operation was aborted"`);
+    expect(resolverGotInvoked).toBe(false);
   });
 });
