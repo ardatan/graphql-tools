@@ -1,5 +1,11 @@
 # @graphql-tools/executor
 
+## 1.2.3
+
+### Patch Changes
+
+- [#6006](https://github.com/ardatan/graphql-tools/pull/6006) [`a5364eb`](https://github.com/ardatan/graphql-tools/commit/a5364eb0723376ad67492369415e17c7d4568d77) Thanks [@n1ru4l](https://github.com/n1ru4l)! - fix rejecting when canceling async iterable returned from normalized executor
+
 ## 1.2.2
 
 ### Patch Changes
