@@ -286,6 +286,10 @@ export function execute<TData = any, TVariables = any, TContext = any>(
 function executeImpl<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>,
 ): MaybePromise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>> {
+  if (exeContext.signal?.aborted) {
+    throw exeContext.signal.reason;
+  }
+
   // Return a Promise that will eventually resolve to the data described by
   // The "Response" section of the GraphQL specification.
   //
@@ -297,7 +301,7 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
   // Errors from sub-fields of a NonNull type may propagate to the top level,
   // at which point we still log the error and null the parent field, which
   // in this case is the entire response.
-  return new ValueOrPromise(() => executeOperation<TData, TVariables, TContext>(exeContext))
+  const result = new ValueOrPromise(() => executeOperation<TData, TVariables, TContext>(exeContext))
     .then(
       data => {
         const initialResult = buildResponse(data, exeContext.errors);
@@ -318,6 +322,30 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
       },
     )
     .resolve()!;
+
+  if (!exeContext.signal || 'initialResult' in result || 'then' in result === false) {
+    return result;
+  }
+
+  let resolve: () => void;
+  let reject: (reason: any) => void;
+  const abortP = new Promise<never>((_resolve, _reject) => {
+    resolve = _resolve as any;
+    reject = _reject;
+  });
+
+  function abortListener() {
+    reject(exeContext.signal?.reason);
+  }
+
+  exeContext.signal.addEventListener('abort', abortListener);
+
+  result.then(() => {
+    exeContext.signal?.removeEventListener('abort', abortListener);
+    resolve();
+  });
+
+  return Promise.race([abortP, result]);
 }
 
 /**

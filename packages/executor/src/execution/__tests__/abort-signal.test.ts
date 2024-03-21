@@ -232,7 +232,7 @@ describe('Abort Signal', () => {
       },
     });
 
-    const result = await normalizedExecutor({
+    const result$ = normalizedExecutor({
       schema,
       document: parse(/* GraphQL */ `
         query {
@@ -241,20 +241,7 @@ describe('Abort Signal', () => {
       `),
       signal: controller.signal,
     });
-    expect(result).toMatchObject({
-      errors: [
-        {
-          message: 'Execution aborted',
-          path: ['counter'],
-          locations: [
-            {
-              line: 3,
-              column: 11,
-            },
-          ],
-        },
-      ],
-    });
+    await expect(result$).rejects.toMatchInlineSnapshot(`DOMException {}`);
     expect(isAborted).toEqual(true);
   });
   it('stops pending stream execution for incremental delivery', async () => {
@@ -318,5 +305,67 @@ describe('Abort Signal', () => {
     controller.abort();
     await expect(next$).rejects.toMatchInlineSnapshot(`DOMException {}`);
     expect(isReturnInvoked).toEqual(true);
+  });
+  it('stops promise execution', async () => {
+    const controller = new AbortController();
+    const d = createDeferred();
+
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          number: Int!
+        }
+      `,
+      resolvers: {
+        Query: {
+          number: () => d.promise.then(() => 1),
+        },
+      },
+    });
+
+    const result$ = normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          number
+        }
+      `),
+      signal: controller.signal,
+    });
+
+    expect(result$).toBeInstanceOf(Promise);
+    controller.abort();
+    await expect(result$).rejects.toMatchInlineSnapshot(`DOMException {}`);
+  });
+  it('does not even try to execute if the signal is already aborted', async () => {
+    const controller = new AbortController();
+    let resolverGotInvoked = false;
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          number: Int!
+        }
+      `,
+      resolvers: {
+        Query: {
+          number: () => {
+            resolverGotInvoked = true;
+            return 1;
+          },
+        },
+      },
+    });
+    controller.abort();
+    expect(() =>
+      normalizedExecutor({
+        schema,
+        document: parse(/* GraphQL */ `
+          query {
+            number
+          }
+        `),
+        signal: controller.signal,
+      }),
+    ).toThrowErrorMatchingInlineSnapshot(`"This operation was aborted"`);
   });
 });
