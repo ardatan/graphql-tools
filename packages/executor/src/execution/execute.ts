@@ -1550,7 +1550,8 @@ export function flattenIncrementalResults<TData>(
   let done = false;
   signal?.addEventListener('abort', () => {
     done = true;
-    subsequentIterator.throw?.(signal?.reason);
+    // we catch here to avoid unhandled promise rejection
+    subsequentIterator.throw?.(signal?.reason).catch(() => undefined);
   });
   return {
     [Symbol.asyncIterator]() {
@@ -2051,6 +2052,12 @@ function yieldSubsequentPayloads(
 ): AsyncGenerator<SubsequentIncrementalExecutionResult, void, void> {
   let isDone = false;
 
+  exeContext.signal?.addEventListener('abort', () => {
+    for (const payload of exeContext.subsequentPayloads) {
+      payload.cancel(exeContext.signal?.reason);
+    }
+  });
+
   async function next(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
     if (isDone) {
       return { value: undefined, done: true };
@@ -2100,9 +2107,7 @@ function yieldSubsequentPayloads(
       isDone = true;
       return { value: undefined, done: true };
     },
-    async throw(
-      error?: unknown,
-    ): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
+    async throw(error?: unknown): Promise<IteratorResult<never, void>> {
       await returnStreamIterators();
       isDone = true;
       return Promise.reject(error);
@@ -2121,6 +2126,7 @@ class DeferredFragmentRecord {
   isCompleted: boolean;
   _exeContext: ExecutionContext;
   _resolve?: (arg: MaybePromise<Record<string, unknown> | null>) => void;
+  _reject?: (reason: unknown) => void;
   constructor(opts: {
     label: string | undefined;
     path: Path | undefined;
@@ -2136,10 +2142,11 @@ class DeferredFragmentRecord {
     this._exeContext.subsequentPayloads.add(this);
     this.isCompleted = false;
     this.data = null;
-    this.promise = new Promise<Record<string, unknown> | null>(resolve => {
+    this.promise = new Promise<Record<string, unknown> | null>((resolve, reject) => {
       this._resolve = MaybePromise => {
         resolve(MaybePromise);
       };
+      this._reject = reject;
     }).then(data => {
       this.data = data;
       this.isCompleted = true;
@@ -2153,6 +2160,10 @@ class DeferredFragmentRecord {
       return;
     }
     this._resolve?.(data);
+  }
+
+  cancel(reason: unknown) {
+    this._reject?.(reason);
   }
 }
 
@@ -2169,6 +2180,7 @@ class StreamRecord {
   isCompleted: boolean;
   _exeContext: ExecutionContext;
   _resolve?: (arg: MaybePromise<Array<unknown> | null>) => void;
+  _reject?: (reason: unknown) => void;
   constructor(opts: {
     label: string | undefined;
     path: Path | undefined;
@@ -2187,10 +2199,11 @@ class StreamRecord {
     this._exeContext.subsequentPayloads.add(this);
     this.isCompleted = false;
     this.items = null;
-    this.promise = new Promise<Array<unknown> | null>(resolve => {
+    this.promise = new Promise<Array<unknown> | null>((resolve, reject) => {
       this._resolve = MaybePromise => {
         resolve(MaybePromise);
       };
+      this._reject = reject;
     }).then(items => {
       this.items = items;
       this.isCompleted = true;
@@ -2208,6 +2221,10 @@ class StreamRecord {
 
   setIsCompletedIterator() {
     this.isCompletedIterator = true;
+  }
+
+  cancel(reason: unknown) {
+    this._reject?.(reason);
   }
 }
 

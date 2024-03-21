@@ -107,7 +107,7 @@ async function complete(document: DocumentNode) {
 
 describe('Execute: defer directive', () => {
   it('Can defer fragments containing scalar types', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery {
         hero {
           id
@@ -119,6 +119,7 @@ describe('Execute: defer directive', () => {
         name
       }
     `);
+
     const result = await complete(document);
 
     expect(result).toEqual([
@@ -146,7 +147,7 @@ describe('Execute: defer directive', () => {
   });
 
   it('Can disable defer using if argument', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery {
         hero {
           id
@@ -157,6 +158,7 @@ describe('Execute: defer directive', () => {
         name
       }
     `);
+
     const result = await complete(document);
 
     expectJSON(result).toDeepEqual({
@@ -170,7 +172,7 @@ describe('Execute: defer directive', () => {
   });
 
   it('Does not disable defer with null if argument', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery($shouldDefer: Boolean) {
         hero {
           id
@@ -181,6 +183,7 @@ describe('Execute: defer directive', () => {
         name
       }
     `);
+
     const result = await complete(document);
     expectJSON(result).toDeepEqual([
       {
@@ -200,7 +203,7 @@ describe('Execute: defer directive', () => {
   });
 
   it('Can defer fragments on the top level Query field', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery {
         ...QueryFragment @defer(label: "DeferQuery")
       }
@@ -210,6 +213,7 @@ describe('Execute: defer directive', () => {
         }
       }
     `);
+
     const result = await complete(document);
 
     expectJSON(result).toDeepEqual([
@@ -235,7 +239,7 @@ describe('Execute: defer directive', () => {
   });
 
   it('Can defer fragments with errors on the top level Query field', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery {
         ...QueryFragment @defer(label: "DeferQuery")
       }
@@ -245,6 +249,7 @@ describe('Execute: defer directive', () => {
         }
       }
     `);
+
     const result = await complete(document);
 
     expectJSON(result).toDeepEqual([
@@ -277,7 +282,7 @@ describe('Execute: defer directive', () => {
   });
 
   it('Can defer a fragment within an already deferred fragment', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery {
         hero {
           id
@@ -294,6 +299,7 @@ describe('Execute: defer directive', () => {
         }
       }
     `);
+
     const result = await complete(document);
 
     expectJSON(result).toDeepEqual([
@@ -328,7 +334,7 @@ describe('Execute: defer directive', () => {
   });
 
   it('Can defer a fragment that is also not deferred, deferred fragment is first', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery {
         hero {
           id
@@ -340,6 +346,7 @@ describe('Execute: defer directive', () => {
         name
       }
     `);
+
     const result = await complete(document);
     expectJSON(result).toDeepEqual([
       {
@@ -367,7 +374,7 @@ describe('Execute: defer directive', () => {
   });
 
   it('Can defer a fragment that is also not deferred, non-deferred fragment is first', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery {
         hero {
           id
@@ -379,6 +386,7 @@ describe('Execute: defer directive', () => {
         name
       }
     `);
+
     const result = await complete(document);
     expectJSON(result).toDeepEqual([
       {
@@ -406,7 +414,7 @@ describe('Execute: defer directive', () => {
   });
 
   it('Can defer an inline fragment', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery {
         hero {
           id
@@ -416,6 +424,7 @@ describe('Execute: defer directive', () => {
         }
       }
     `);
+
     const result = await complete(document);
 
     expectJSON(result).toDeepEqual([
@@ -431,7 +440,7 @@ describe('Execute: defer directive', () => {
   });
 
   it('Handles errors thrown in deferred fragments', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery {
         hero {
           id
@@ -442,6 +451,7 @@ describe('Execute: defer directive', () => {
         errorField
       }
     `);
+
     const result = await complete(document);
     expectJSON(result).toDeepEqual([
       {
@@ -468,7 +478,7 @@ describe('Execute: defer directive', () => {
   });
 
   it('Handles non-nullable errors thrown in deferred fragments', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery {
         hero {
           id
@@ -479,6 +489,7 @@ describe('Execute: defer directive', () => {
         nonNullErrorField
       }
     `);
+
     const result = await complete(document);
     expectJSON(result).toDeepEqual([
       {
@@ -505,7 +516,7 @@ describe('Execute: defer directive', () => {
   });
 
   it('Handles non-nullable errors thrown outside deferred fragments', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery {
         hero {
           nonNullErrorField
@@ -516,6 +527,7 @@ describe('Execute: defer directive', () => {
         id
       }
     `);
+
     const result = await complete(document);
     expectJSON(result).toDeepEqual({
       errors: [
@@ -537,7 +549,7 @@ describe('Execute: defer directive', () => {
   });
 
   it('Handles async non-nullable errors thrown in deferred fragments', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery {
         hero {
           id
@@ -548,6 +560,7 @@ describe('Execute: defer directive', () => {
         promiseNonNullErrorField
       }
     `);
+
     const result = await complete(document);
     expectJSON(result).toDeepEqual([
       {
@@ -574,7 +587,7 @@ describe('Execute: defer directive', () => {
   });
 
   it('Returns payloads in correct order', async () => {
-    const document = parse(`
+    const document = parse(/* GraphQL */ `
       query HeroNameQuery {
         hero {
           id
@@ -620,23 +633,24 @@ describe('Execute: defer directive', () => {
   });
 
   it('Returns payloads from synchronous data in correct order', async () => {
-    const document = parse(`
-    query HeroNameQuery {
-      hero {
-        id
-        ...NameFragment @defer
+    const document = parse(/* GraphQL */ `
+      query HeroNameQuery {
+        hero {
+          id
+          ...NameFragment @defer
+        }
       }
-    }
-    fragment NameFragment on Hero {
-      name
-      friends {
-        ...NestedFragment @defer
+      fragment NameFragment on Hero {
+        name
+        friends {
+          ...NestedFragment @defer
+        }
       }
-    }
-    fragment NestedFragment on Friend {
-      name
-    }
-  `);
+      fragment NestedFragment on Friend {
+        name
+      }
+    `);
+
     const result = await complete(document);
     expectJSON(result).toDeepEqual([
       {
@@ -669,19 +683,20 @@ describe('Execute: defer directive', () => {
   });
 
   it('Filters deferred payloads when a list item returned by an async iterable is nulled', async () => {
-    const document = parse(`
-    query {
-      hero {
-        asyncFriends {
-          promiseNonNullErrorField
-          ...NameFragment @defer
+    const document = parse(/* GraphQL */ `
+      query {
+        hero {
+          asyncFriends {
+            promiseNonNullErrorField
+            ...NameFragment @defer
+          }
         }
       }
-    }
-    fragment NameFragment on Friend {
-      name
-    }
-  `);
+      fragment NameFragment on Friend {
+        name
+      }
+    `);
+
     const result = await complete(document);
     expectJSON(result).toDeepEqual({
       data: {
@@ -692,7 +707,7 @@ describe('Execute: defer directive', () => {
       errors: [
         {
           message: 'Cannot return null for non-nullable field Friend.promiseNonNullErrorField.',
-          locations: [{ line: 5, column: 11 }],
+          locations: [{ line: 5, column: 13 }],
           path: ['hero', 'asyncFriends', 0, 'promiseNonNullErrorField'],
         },
       ],
