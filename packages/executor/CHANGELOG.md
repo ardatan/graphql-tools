@@ -1,5 +1,11 @@
 # @graphql-tools/executor
 
+## 1.2.4
+
+### Patch Changes
+
+- [#6009](https://github.com/ardatan/graphql-tools/pull/6009) [`14a001e`](https://github.com/ardatan/graphql-tools/commit/14a001e7b82aa30371bb97c33cf0b5c145270ddf) Thanks [@n1ru4l](https://github.com/n1ru4l)! - correctly raise abort exception for Promise and sync execution
+
 ## 1.2.3
 
 ### Patch Changes
