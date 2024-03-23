@@ -61,21 +61,30 @@ export function getArgumentValues(
 
     if (valueNode.kind === Kind.VARIABLE) {
       const variableName = valueNode.name.value;
-      if (variableValues == null || !hasOwnProperty(variableValues, variableName)) {
-        if (defaultValue !== undefined) {
+      if (fragmentArgValues != null && hasOwnProperty(fragmentArgValues, variableName)) {
+        isNull = fragmentArgValues[variableName] == null;
+        if (isNull && defaultValue !== undefined) {
           coercedValues[name] = defaultValue;
-        } else if (isNonNullType(argType)) {
-          throw createGraphQLError(
-            `Argument "${name}" of required type "${inspect(argType)}" ` +
-              `was provided the variable "$${variableName}" which was not provided a runtime value.`,
-            {
-              nodes: [valueNode],
-            },
-          );
+          continue;
         }
+      } else if (variableValues != null && hasOwnProperty(variableValues, variableName)) {
+        isNull = variableValues[variableName] == null;
+        if (isNull && defaultValue !== undefined) {
+          coercedValues[name] = defaultValue;
+          continue;
+        }
+      } else if (defaultValue !== undefined) {
+        coercedValues[name] = defaultValue;
+        continue;
+      } else if (isNonNullType(argType)) {
+        throw createGraphQLError(
+          `Argument "${name}" of required type "${inspect(argType)}" ` +
+            `was provided the variable "$${variableName}" which was not provided a runtime value.`,
+          { nodes: valueNode },
+        );
+      } else {
         continue;
       }
-      isNull = variableValues[variableName] == null;
     }
 
     if (isNull && isNonNullType(argType)) {
@@ -87,7 +96,10 @@ export function getArgumentValues(
       );
     }
 
-    const coercedValue = valueFromAST(valueNode, argType, variableValues);
+    const coercedValue = valueFromAST(valueNode, argType, {
+      ...variableValues,
+      ...fragmentArgValues,
+    });
     if (coercedValue === undefined) {
       // Note: ValuesOfCorrectTypeRule validation should catch this before
       // execution. This is a runtime check to ensure execution does not
