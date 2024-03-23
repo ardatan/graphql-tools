@@ -13,18 +13,24 @@ import {
   SelectionSetNode,
   typeFromAST,
 } from 'graphql';
+import { getArgumentValuesFromSpread } from '@graphql-tools/executor';
 import { AccumulatorMap } from './AccumulatorMap.js';
 import { GraphQLDeferDirective } from './directives.js';
 import { memoize5 } from './memoize.js';
 
 export interface PatchFields {
   label: string | undefined;
-  fields: Map<string, Array<FieldNode>>;
+  fields: Map<string, Array<FieldDetails>>;
 }
 
 export interface FieldsAndPatches {
-  fields: Map<string, Array<FieldNode>>;
+  fields: Map<string, Array<FieldDetails>>;
   patches: Array<PatchFields>;
+}
+
+export interface FieldDetails {
+  fieldNode: FieldNode;
+  fragmentVariableValues?: { [key: string]: unknown } | undefined;
 }
 
 function collectFieldsImpl<TVariables = any>(
@@ -33,31 +39,34 @@ function collectFieldsImpl<TVariables = any>(
   variableValues: TVariables,
   runtimeType: GraphQLObjectType,
   selectionSet: SelectionSetNode,
-  fields: AccumulatorMap<string, FieldNode>,
+  fields: AccumulatorMap<string, FieldDetails>,
   patches: Array<PatchFields>,
   visitedFragmentNames: Set<string>,
+  localVariableValues: { [variable: string]: unknown } | undefined,
 ): void {
   for (const selection of selectionSet.selections) {
     switch (selection.kind) {
       case Kind.FIELD: {
-        if (!shouldIncludeNode(variableValues, selection)) {
+        const vars = localVariableValues ?? variableValues;
+        if (!shouldIncludeNode(vars, selection)) {
           continue;
         }
-        fields.add(getFieldEntryKey(selection), selection);
+        fields.add(getFieldEntryKey(selection), { fieldNode: selection });
         break;
       }
       case Kind.INLINE_FRAGMENT: {
+        const vars = localVariableValues ?? variableValues;
         if (
-          !shouldIncludeNode(variableValues, selection) ||
+          !shouldIncludeNode(vars, selection) ||
           !doesFragmentConditionMatch(schema, selection, runtimeType)
         ) {
           continue;
         }
 
-        const defer = getDeferValues(variableValues, selection);
+        const defer = getDeferValues(vars, selection);
 
         if (defer) {
-          const patchFields = new AccumulatorMap<string, FieldNode>();
+          const patchFields = new AccumulatorMap<string, FieldDetails>();
           collectFieldsImpl(
             schema,
             fragments,
@@ -67,6 +76,7 @@ function collectFieldsImpl<TVariables = any>(
             patchFields,
             patches,
             visitedFragmentNames,
+            localVariableValues,
           );
           patches.push({
             label: defer.label,
@@ -82,18 +92,20 @@ function collectFieldsImpl<TVariables = any>(
             fields,
             patches,
             visitedFragmentNames,
+            localVariableValues,
           );
         }
         break;
       }
       case Kind.FRAGMENT_SPREAD: {
+        const vars = localVariableValues ?? variableValues;
         const fragName = selection.name.value;
 
-        if (!shouldIncludeNode(variableValues, selection)) {
+        if (!shouldIncludeNode(vars, selection)) {
           continue;
         }
 
-        const defer = getDeferValues(variableValues, selection);
+        const defer = getDeferValues(vars, selection);
         if (visitedFragmentNames.has(fragName) && !defer) {
           continue;
         }
@@ -107,8 +119,18 @@ function collectFieldsImpl<TVariables = any>(
           visitedFragmentNames.add(fragName);
         }
 
+        const spreadVariableValues = fragment.variableDefinitions
+          ? getArgumentValuesFromSpread(
+              selection,
+              schema,
+              fragment.variableDefinitions,
+              variableValues as any,
+              localVariableValues,
+            )
+          : undefined;
+
         if (defer) {
-          const patchFields = new AccumulatorMap<string, FieldNode>();
+          const patchFields = new AccumulatorMap<string, FieldDetails>();
           collectFieldsImpl(
             schema,
             fragments,
@@ -118,6 +140,7 @@ function collectFieldsImpl<TVariables = any>(
             patchFields,
             patches,
             visitedFragmentNames,
+            spreadVariableValues,
           );
           patches.push({
             label: defer.label,
@@ -133,6 +156,7 @@ function collectFieldsImpl<TVariables = any>(
             fields,
             patches,
             visitedFragmentNames,
+            spreadVariableValues,
           );
         }
         break;
@@ -156,7 +180,7 @@ export function collectFields<TVariables = any>(
   runtimeType: GraphQLObjectType,
   selectionSet: SelectionSetNode,
 ): FieldsAndPatches {
-  const fields = new AccumulatorMap<string, FieldNode>();
+  const fields = new AccumulatorMap<string, FieldDetails>();
   const patches: Array<PatchFields> = [];
   collectFieldsImpl(
     schema,
@@ -167,6 +191,7 @@ export function collectFields<TVariables = any>(
     fields,
     patches,
     new Set(),
+    undefined,
   );
   return { fields, patches };
 }
@@ -261,7 +286,7 @@ export const collectSubFields = memoize5(function collectSubfields(
   returnType: GraphQLObjectType,
   fieldNodes: Array<FieldNode>,
 ): FieldsAndPatches {
-  const subFieldNodes = new AccumulatorMap<string, FieldNode>();
+  const subFieldNodes = new AccumulatorMap<string, FieldDetails>();
   const visitedFragmentNames = new Set<string>();
 
   const subPatches: Array<PatchFields> = [];
@@ -281,6 +306,7 @@ export const collectSubFields = memoize5(function collectSubfields(
         subFieldNodes,
         subPatches,
         visitedFragmentNames,
+        undefined,
       );
     }
   }

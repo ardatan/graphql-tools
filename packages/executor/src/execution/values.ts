@@ -1,13 +1,17 @@
 import {
+  ArgumentNode,
   coerceInputValue,
+  FragmentSpreadNode,
   GraphQLError,
   GraphQLSchema,
   isInputType,
   isNonNullType,
+  Kind,
   NamedTypeNode,
   print,
   typeFromAST,
   valueFromAST,
+  valueFromASTUntyped,
   VariableDefinitionNode,
 } from 'graphql';
 import { createGraphQLError, hasOwnProperty, inspect, printPathArray } from '@graphql-tools/utils';
@@ -122,5 +126,68 @@ function coerceVariableValues(
     });
   }
 
+  return coercedValues;
+}
+
+export function getArgumentValuesFromSpread(
+  /** NOTE: For error annotations only */
+  node: FragmentSpreadNode & { arguments?: ArgumentNode[] },
+  schema: GraphQLSchema,
+  fragmentVarDefs: ReadonlyArray<VariableDefinitionNode>,
+  variableValues: { [variable: string]: unknown },
+  fragmentArgValues?: { [variable: string]: unknown },
+): { [argument: string]: unknown } {
+  const coercedValues: { [argument: string]: unknown } = {};
+  const argNodeMap = new Map(node.arguments?.map(arg => [arg.name.value, arg]));
+
+  for (const varDef of fragmentVarDefs) {
+    const name = varDef.variable.name.value;
+    const argType = typeFromAST(schema, varDef.type);
+    const argumentNode = argNodeMap.get(name);
+
+    if (argumentNode == null) {
+      if (varDef.defaultValue !== undefined) {
+        coercedValues[name] = valueFromASTUntyped(varDef.defaultValue);
+      } else if (isNonNullType(argType)) {
+        throw new GraphQLError(
+          `Argument "${name}" of required type "${inspect(argType)}" ` + 'was not provided.',
+          { nodes: node },
+        );
+      } else {
+        coercedValues[name] = undefined;
+      }
+      continue;
+    }
+
+    const valueNode = argumentNode.value;
+
+    let hasValue = valueNode.kind !== Kind.NULL;
+    if (valueNode.kind === Kind.VARIABLE) {
+      const variableName = valueNode.name.value;
+      if (fragmentArgValues != null && Object.hasOwn(fragmentArgValues, variableName)) {
+        hasValue = fragmentArgValues[variableName] != null;
+      } else if (variableValues != null && Object.hasOwn(variableValues, variableName)) {
+        hasValue = variableValues[variableName] != null;
+      }
+    }
+
+    if (!hasValue && isNonNullType(argType)) {
+      throw new GraphQLError(
+        `Argument "${name}" of non-null type "${inspect(argType)}" ` + 'must not be null.',
+        { nodes: valueNode },
+      );
+    }
+
+    // TODO: Make this follow the spec more closely
+    let coercedValue;
+    if (argType && isInputType(argType)) {
+      coercedValue = valueFromAST(valueNode, argType, {
+        ...variableValues,
+        ...fragmentArgValues,
+      });
+    }
+
+    coercedValues[name] = coercedValue;
+  }
   return coercedValues;
 }
