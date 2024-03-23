@@ -25,6 +25,7 @@ export function getArgumentValues(
   def: GraphQLField<any, any> | GraphQLDirective,
   node: FieldNode | DirectiveNode,
   variableValues: Record<string, any> = {},
+  fragmentArgValues?: Record<string, any>,
 ): Record<string, any> {
   const coercedValues = {};
 
@@ -37,6 +38,7 @@ export function getArgumentValues(
     {},
   );
 
+  // TODO: take fragment-variables in account
   for (const { name, type: argType, defaultValue } of def.args) {
     const argumentNode = argNodeMap[name];
 
