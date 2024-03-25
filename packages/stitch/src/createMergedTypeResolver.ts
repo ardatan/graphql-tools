@@ -23,7 +23,7 @@ export function createMergedTypeResolver<TContext extends Record<string, any> = 
     ) {
       return batchDelegateToSchema({
         schema: subschema,
-        operation: 'query' as OperationTypeNode,
+        operation: info.operation.operation as OperationTypeNode,
         fieldName,
         returnType: new GraphQLList(type),
         key,
@@ -50,7 +50,7 @@ export function createMergedTypeResolver<TContext extends Record<string, any> = 
     ) {
       return delegateToSchema({
         schema: subschema,
-        operation: 'query' as OperationTypeNode,
+        operation: info.operation.operation as OperationTypeNode,
         fieldName,
         returnType: type,
         args: args(originalResult),
