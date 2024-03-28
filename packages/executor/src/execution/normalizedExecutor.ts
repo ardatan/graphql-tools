@@ -16,7 +16,7 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
   return new ValueOrPromise(() => execute(args))
     .then((result): MaybeAsyncIterable<ExecutionResult<TData>> => {
       if ('initialResult' in result) {
-        return flattenIncrementalResults(result, args.signal);
+        return flattenIncrementalResults(result);
       }
       return result;
     })

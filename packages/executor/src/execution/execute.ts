@@ -314,38 +314,21 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
             subsequentResults: yieldSubsequentPayloads(exeContext),
           };
         }
+
         return initialResult;
       },
       (error: any) => {
+        if (exeContext.signal?.aborted) {
+          throw exeContext.signal.reason;
+        }
+
         exeContext.errors.push(error);
         return buildResponse<TData>(null, exeContext.errors);
       },
     )
     .resolve()!;
 
-  if (!exeContext.signal || 'initialResult' in result || 'then' in result === false) {
-    return result;
-  }
-
-  let resolve: () => void;
-  let reject: (reason: any) => void;
-  const abortP = new Promise<never>((_resolve, _reject) => {
-    resolve = _resolve as any;
-    reject = _reject;
-  });
-
-  function abortListener() {
-    reject(exeContext.signal?.reason);
-  }
-
-  exeContext.signal.addEventListener('abort', abortListener);
-
-  result.then(() => {
-    exeContext.signal?.removeEventListener('abort', abortListener);
-    resolve();
-  });
-
-  return Promise.race([abortP, result]);
+  return result;
 }
 
 /**
@@ -563,15 +546,14 @@ function executeFieldsSerially<TData>(
   path: Path | undefined,
   fields: Map<string, Array<FieldNode>>,
 ): MaybePromise<TData> {
-  let abortErrorThrown = false;
   return promiseReduce(
     fields,
     (results, [responseName, fieldNodes]) => {
       const fieldPath = addPath(path, responseName, parentType.name);
       if (exeContext.signal?.aborted) {
-        results[responseName] = null;
-        return results;
+        throw exeContext.signal.reason;
       }
+
       return new ValueOrPromise(() =>
         executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath),
       ).then(result => {
@@ -580,16 +562,7 @@ function executeFieldsSerially<TData>(
         }
 
         results[responseName] = result;
-        if (exeContext.signal?.aborted && !abortErrorThrown) {
-          exeContext.errors.push(
-            createGraphQLError('Execution aborted', {
-              nodes: fieldNodes,
-              path: pathToArray(fieldPath),
-              originalError: exeContext.signal?.reason,
-            }),
-          );
-          abortErrorThrown = true;
-        }
+
         return results;
       });
     },
@@ -611,14 +584,13 @@ function executeFields(
 ): MaybePromise<Record<string, unknown>> {
   const results = Object.create(null);
   let containsPromise = false;
-  let abortErrorThrown = false;
 
   try {
     for (const [responseName, fieldNodes] of fields) {
       if (exeContext.signal?.aborted) {
-        results[responseName] = null;
-        continue;
+        throw exeContext.signal.reason;
       }
+
       const fieldPath = addPath(path, responseName, parentType.name);
       const result = executeField(
         exeContext,
@@ -634,17 +606,6 @@ function executeFields(
         if (isPromise(result)) {
           containsPromise = true;
         }
-      }
-
-      if (exeContext.signal?.aborted && !abortErrorThrown) {
-        exeContext.errors.push(
-          createGraphQLError('Execution aborted', {
-            nodes: fieldNodes,
-            path: pathToArray(fieldPath),
-            originalError: exeContext.signal?.reason,
-          }),
-        );
-        abortErrorThrown = true;
       }
     }
   } catch (error) {
@@ -962,13 +923,6 @@ async function completeAsyncIteratorValue(
 ): Promise<ReadonlyArray<unknown>> {
   exeContext.signal?.addEventListener('abort', () => {
     iterator.return?.();
-    exeContext.errors.push(
-      createGraphQLError('Execution aborted', {
-        nodes: fieldNodes,
-        path: pathToArray(path),
-        originalError: exeContext.signal?.reason,
-      }),
-    );
   });
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
   const stream = getStreamValues(exeContext, fieldNodes, path);
@@ -1567,7 +1521,6 @@ export function subscribe<TData = any, TVariables = any, TContext = any>(
 
 export function flattenIncrementalResults<TData>(
   incrementalResults: IncrementalExecutionResults<TData>,
-  signal?: AbortSignal,
 ): AsyncGenerator<
   SubsequentIncrementalExecutionResult<TData, Record<string, unknown>>,
   void,
@@ -1576,11 +1529,6 @@ export function flattenIncrementalResults<TData>(
   const subsequentIterator = incrementalResults.subsequentResults;
   let initialResultSent = false;
   let done = false;
-  signal?.addEventListener('abort', () => {
-    done = true;
-    // we catch here to avoid unhandled promise rejection
-    subsequentIterator.throw?.(signal?.reason).catch(() => undefined);
-  });
   return {
     [Symbol.asyncIterator]() {
       return this;
@@ -1614,7 +1562,6 @@ export function flattenIncrementalResults<TData>(
 
 async function* ensureAsyncIterable(
   someExecutionResult: SingularExecutionResult | IncrementalExecutionResults,
-  signal?: AbortSignal,
 ): AsyncGenerator<
   | SingularExecutionResult
   | InitialIncrementalExecutionResult
@@ -1623,7 +1570,7 @@ async function* ensureAsyncIterable(
   void
 > {
   if ('initialResult' in someExecutionResult) {
-    yield* flattenIncrementalResults(someExecutionResult, signal);
+    yield* flattenIncrementalResults(someExecutionResult);
   } else {
     yield someExecutionResult;
   }
@@ -1656,10 +1603,7 @@ function mapSourceToResponse(
     mapAsyncIterator(
       resultOrStream[Symbol.asyncIterator](),
       async (payload: unknown) =>
-        ensureAsyncIterable(
-          await executeImpl(buildPerEventExecutionContext(exeContext, payload)),
-          exeContext.signal,
-        ),
+        ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload))),
       (error: Error) => {
         const wrappedError = createGraphQLError(error.message, {
           originalError: error,
@@ -2080,10 +2024,11 @@ function yieldSubsequentPayloads(
 ): AsyncGenerator<SubsequentIncrementalExecutionResult, void, void> {
   let isDone = false;
 
-  exeContext.signal?.addEventListener('abort', () => {
-    for (const payload of exeContext.subsequentPayloads) {
-      payload.cancel(exeContext.signal?.reason);
-    }
+  const abortPromise = new Promise<void>((_, reject) => {
+    exeContext.signal?.addEventListener('abort', () => {
+      isDone = true;
+      reject(exeContext.signal?.reason);
+    });
   });
 
   async function next(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
@@ -2091,7 +2036,10 @@ function yieldSubsequentPayloads(
       return { value: undefined, done: true };
     }
 
-    await Promise.race(Array.from(exeContext.subsequentPayloads).map(p => p.promise));
+    await Promise.race([
+      abortPromise,
+      ...Array.from(exeContext.subsequentPayloads).map(p => p.promise),
+    ]);
 
     if (isDone) {
       // a different call to next has exhausted all payloads
@@ -2154,7 +2102,6 @@ class DeferredFragmentRecord {
   isCompleted: boolean;
   _exeContext: ExecutionContext;
   _resolve?: (arg: MaybePromise<Record<string, unknown> | null>) => void;
-  _reject?: (reason: unknown) => void;
   constructor(opts: {
     label: string | undefined;
     path: Path | undefined;
@@ -2170,11 +2117,10 @@ class DeferredFragmentRecord {
     this._exeContext.subsequentPayloads.add(this);
     this.isCompleted = false;
     this.data = null;
-    this.promise = new Promise<Record<string, unknown> | null>((resolve, reject) => {
+    this.promise = new Promise<Record<string, unknown> | null>(resolve => {
       this._resolve = MaybePromise => {
         resolve(MaybePromise);
       };
-      this._reject = reject;
     }).then(data => {
       this.data = data;
       this.isCompleted = true;
@@ -2188,10 +2134,6 @@ class DeferredFragmentRecord {
       return;
     }
     this._resolve?.(data);
-  }
-
-  cancel(reason: unknown) {
-    this._reject?.(reason);
   }
 }
 
@@ -2208,7 +2150,6 @@ class StreamRecord {
   isCompleted: boolean;
   _exeContext: ExecutionContext;
   _resolve?: (arg: MaybePromise<Array<unknown> | null>) => void;
-  _reject?: (reason: unknown) => void;
   constructor(opts: {
     label: string | undefined;
     path: Path | undefined;
@@ -2227,11 +2168,10 @@ class StreamRecord {
     this._exeContext.subsequentPayloads.add(this);
     this.isCompleted = false;
     this.items = null;
-    this.promise = new Promise<Array<unknown> | null>((resolve, reject) => {
+    this.promise = new Promise<Array<unknown> | null>(resolve => {
       this._resolve = MaybePromise => {
         resolve(MaybePromise);
       };
-      this._reject = reject;
     }).then(items => {
       this.items = items;
       this.isCompleted = true;
@@ -2249,10 +2189,6 @@ class StreamRecord {
 
   setIsCompletedIterator() {
     this.isCompletedIterator = true;
-  }
-
-  cancel(reason: unknown) {
-    this._reject?.(reason);
   }
 }
 
