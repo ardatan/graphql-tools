@@ -77,6 +77,65 @@ describe('Abort Signal', () => {
     expect(stopped).toBe(true);
     expect(results).toEqual([0, 1, 2, 3, 4]);
   });
+  it('pending subscription execution is canceled', async () => {
+    const controller = new AbortController();
+    const rootResolverGotInvokedD = createDeferred();
+    const requestGotCancelledD = createDeferred();
+    let aResolverGotInvoked = false;
+
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          _: Boolean
+        }
+        type Subscription {
+          a: A!
+        }
+
+        type A {
+          a: String!
+        }
+      `,
+      resolvers: {
+        Subscription: {
+          a: {
+            async *subscribe() {
+              yield 1;
+            },
+            async resolve() {
+              rootResolverGotInvokedD.resolve();
+              await requestGotCancelledD.promise;
+              return { a: 'a' };
+            },
+          },
+        },
+        A: {
+          a() {
+            aResolverGotInvoked = true;
+            return 'a';
+          },
+        },
+      },
+    });
+    const result = await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        subscription {
+          a {
+            a
+          }
+        }
+      `),
+      signal: controller.signal,
+    });
+    assertAsyncIterable(result);
+    const iterator = result![Symbol.asyncIterator]();
+    const $next = iterator.next();
+    await rootResolverGotInvokedD.promise;
+    controller.abort();
+    await expect($next).rejects.toMatchInlineSnapshot(`DOMException {}`);
+    expect(aResolverGotInvoked).toEqual(false);
+  });
   it('should stop the serial mutation execution', async () => {
     const controller = new AbortController();
     const firstFn = jest.fn(() => true);
@@ -244,7 +303,7 @@ describe('Abort Signal', () => {
     await expect(result$).rejects.toMatchInlineSnapshot(`DOMException {}`);
     expect(isAborted).toEqual(true);
   });
-  it('stops pending stream execution for incremental delivery', async () => {
+  it('stops pending stream execution for incremental delivery (@stream)', async () => {
     const controller = new AbortController();
     const d = createDeferred();
     let isReturnInvoked = false;
@@ -305,6 +364,82 @@ describe('Abort Signal', () => {
     controller.abort();
     await expect(next$).rejects.toMatchInlineSnapshot(`DOMException {}`);
     expect(isReturnInvoked).toEqual(true);
+  });
+  it('stops pending stream execution for incremental delivery (@defer)', async () => {
+    const aResolverGotInvokedD = createDeferred();
+    const requestGotCancelledD = createDeferred();
+    let bResolverGotInvoked = false;
+
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          root: A!
+        }
+        type A {
+          a: B!
+        }
+        type B {
+          b: String
+        }
+      `,
+      resolvers: {
+        Query: {
+          async root() {
+            return { a: 'a' };
+          },
+        },
+        A: {
+          async a() {
+            aResolverGotInvokedD.resolve();
+            await requestGotCancelledD.promise;
+            return { b: 'b' };
+          },
+        },
+        B: {
+          b: obj => {
+            bResolverGotInvoked = true;
+            return obj.b;
+          },
+        },
+      },
+    });
+    const controller = new AbortController();
+    const result = await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          root {
+            ... @defer {
+              a {
+                b
+              }
+            }
+          }
+        }
+      `),
+      signal: controller.signal,
+    });
+
+    if (!isAsyncIterable(result)) {
+      throw new Error('Result is not an async iterable');
+    }
+
+    const iterator = result[Symbol.asyncIterator]();
+    const next = await iterator.next();
+    expect(next.value).toMatchInlineSnapshot(`
+{
+  "data": {
+    "root": {},
+  },
+  "hasNext": true,
+}
+`);
+    const next$ = iterator.next();
+    await aResolverGotInvokedD.promise;
+    controller.abort();
+    requestGotCancelledD.resolve();
+    await expect(next$).rejects.toThrow('This operation was aborted');
+    expect(bResolverGotInvoked).toBe(false);
   });
   it('stops promise execution', async () => {
     const controller = new AbortController();
