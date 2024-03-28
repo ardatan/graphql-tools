@@ -318,35 +318,17 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
         return initialResult;
       },
       (error: any) => {
+        if (exeContext.signal?.aborted) {
+          throw exeContext.signal.reason;
+        }
+
         exeContext.errors.push(error);
         return buildResponse<TData>(null, exeContext.errors);
       },
     )
     .resolve()!;
 
-  if (!exeContext.signal || 'initialResult' in result || 'then' in result === false) {
-    return result;
-  }
-
-  let resolve: () => void;
-  let reject: (reason: any) => void;
-  const abortP = new Promise<never>((_resolve, _reject) => {
-    resolve = _resolve as any;
-    reject = _reject;
-  });
-
-  function abortListener() {
-    reject(exeContext.signal?.reason);
-  }
-
-  exeContext.signal.addEventListener('abort', abortListener);
-
-  result.then(() => {
-    exeContext.signal?.removeEventListener('abort', abortListener);
-    resolve();
-  });
-
-  return Promise.race([abortP, result]);
+  return result;
 }
 
 /**
@@ -564,15 +546,14 @@ function executeFieldsSerially<TData>(
   path: Path | undefined,
   fields: Map<string, Array<FieldNode>>,
 ): MaybePromise<TData> {
-  let abortErrorThrown = false;
   return promiseReduce(
     fields,
     (results, [responseName, fieldNodes]) => {
       const fieldPath = addPath(path, responseName, parentType.name);
       if (exeContext.signal?.aborted) {
-        results[responseName] = null;
-        return results;
+        throw exeContext.signal.reason;
       }
+
       return new ValueOrPromise(() =>
         executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath),
       ).then(result => {
@@ -581,16 +562,7 @@ function executeFieldsSerially<TData>(
         }
 
         results[responseName] = result;
-        if (exeContext.signal?.aborted && !abortErrorThrown) {
-          exeContext.errors.push(
-            createGraphQLError('Execution aborted', {
-              nodes: fieldNodes,
-              path: pathToArray(fieldPath),
-              originalError: exeContext.signal?.reason,
-            }),
-          );
-          abortErrorThrown = true;
-        }
+
         return results;
       });
     },
@@ -612,14 +584,13 @@ function executeFields(
 ): MaybePromise<Record<string, unknown>> {
   const results = Object.create(null);
   let containsPromise = false;
-  let abortErrorThrown = false;
 
   try {
     for (const [responseName, fieldNodes] of fields) {
       if (exeContext.signal?.aborted) {
-        results[responseName] = null;
-        continue;
+        throw exeContext.signal.reason;
       }
+
       const fieldPath = addPath(path, responseName, parentType.name);
       const result = executeField(
         exeContext,
@@ -635,17 +606,6 @@ function executeFields(
         if (isPromise(result)) {
           containsPromise = true;
         }
-      }
-
-      if (exeContext.signal?.aborted && !abortErrorThrown) {
-        exeContext.errors.push(
-          createGraphQLError('Execution aborted', {
-            nodes: fieldNodes,
-            path: pathToArray(fieldPath),
-            originalError: exeContext.signal?.reason,
-          }),
-        );
-        abortErrorThrown = true;
       }
     }
   } catch (error) {
@@ -963,13 +923,6 @@ async function completeAsyncIteratorValue(
 ): Promise<ReadonlyArray<unknown>> {
   exeContext.signal?.addEventListener('abort', () => {
     iterator.return?.();
-    exeContext.errors.push(
-      createGraphQLError('Execution aborted', {
-        nodes: fieldNodes,
-        path: pathToArray(path),
-        originalError: exeContext.signal?.reason,
-      }),
-    );
   });
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
   const stream = getStreamValues(exeContext, fieldNodes, path);

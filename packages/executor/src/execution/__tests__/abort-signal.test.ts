@@ -138,12 +138,10 @@ describe('Abort Signal', () => {
   });
   it('should stop the serial mutation execution', async () => {
     const controller = new AbortController();
-    const firstFn = jest.fn(() => true);
-    const secondFn = jest.fn(() => {
-      controller.abort();
-      return true;
-    });
-    const thirdFn = jest.fn(() => true);
+
+    let didInvokeFirstFn = false;
+    let didInvokeSecondFn = false;
+    let didInvokeThirdFn = false;
     const schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
         type Query {
@@ -157,13 +155,23 @@ describe('Abort Signal', () => {
       `,
       resolvers: {
         Mutation: {
-          first: firstFn,
-          second: secondFn,
-          third: thirdFn,
+          first() {
+            didInvokeFirstFn = true;
+            return true;
+          },
+          second() {
+            didInvokeSecondFn = true;
+            controller.abort();
+            return true;
+          },
+          third() {
+            didInvokeThirdFn = true;
+            return true;
+          },
         },
       },
     });
-    const result = await normalizedExecutor({
+    const result$ = normalizedExecutor({
       schema,
       document: parse(/* GraphQL */ `
         mutation {
@@ -174,85 +182,10 @@ describe('Abort Signal', () => {
       `),
       signal: controller.signal,
     });
-    expect(firstFn).toHaveBeenCalledTimes(1);
-    expect(secondFn).toHaveBeenCalledTimes(1);
-    expect(thirdFn).toHaveBeenCalledTimes(0);
-    expect(result).toMatchObject({
-      data: {
-        first: true,
-        second: true,
-        third: null,
-      },
-      errors: [
-        {
-          message: 'Execution aborted',
-          path: ['second'],
-          locations: [
-            {
-              line: 4,
-              column: 11,
-            },
-          ],
-        },
-      ],
-    });
-  });
-  it('should stop the parallel query execution', async () => {
-    let resolve$: (value: any) => void = () => {};
-    const controller = new AbortController();
-    const schema = makeExecutableSchema({
-      typeDefs: /* GraphQL */ `
-        type Query {
-          first: Boolean
-          second: Boolean
-          third: Boolean
-        }
-      `,
-      resolvers: {
-        Query: {
-          first: async () => true,
-          second: async () => {
-            controller.abort();
-            return true;
-          },
-          third: () =>
-            new Promise(resolve => {
-              resolve$ = resolve;
-            }),
-        },
-      },
-    });
-    const result = await normalizedExecutor({
-      schema,
-      document: parse(/* GraphQL */ `
-        query {
-          first
-          second
-          third
-        }
-      `),
-      signal: controller.signal,
-    });
-    resolve$?.(true);
-    expect(result).toMatchObject({
-      data: {
-        first: true,
-        second: true,
-        third: null,
-      },
-      errors: [
-        {
-          message: 'Execution aborted',
-          path: ['second'],
-          locations: [
-            {
-              line: 4,
-              column: 11,
-            },
-          ],
-        },
-      ],
-    });
+    expect(result$).rejects.toMatchInlineSnapshot(`DOMException {}`);
+    expect(didInvokeFirstFn).toBe(true);
+    expect(didInvokeSecondFn).toBe(true);
+    expect(didInvokeThirdFn).toBe(false);
   });
   it('should stop stream execution', async () => {
     const controller = new AbortController();
@@ -364,6 +297,88 @@ describe('Abort Signal', () => {
     controller.abort();
     await expect(next$).rejects.toMatchInlineSnapshot(`DOMException {}`);
     expect(isReturnInvoked).toEqual(true);
+  });
+  it('stops pending stream execution for parallel sources incremental delivery (@stream)', async () => {
+    const controller = new AbortController();
+    const d1 = createDeferred();
+    const d2 = createDeferred();
+
+    let isReturn1Invoked = false;
+    let isReturn2Invoked = false;
+
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          counter1: [Int!]!
+          counter2: [Int!]!
+        }
+      `,
+      resolvers: {
+        Query: {
+          counter1: () => ({
+            [Symbol.asyncIterator]() {
+              return this;
+            },
+            next() {
+              return d1.promise.then(() => ({ done: true }));
+            },
+            return() {
+              isReturn1Invoked = true;
+              d1.resolve();
+              return Promise.resolve({ done: true });
+            },
+          }),
+          counter2: () => ({
+            [Symbol.asyncIterator]() {
+              return this;
+            },
+            next() {
+              return d2.promise.then(() => ({ done: true }));
+            },
+            return() {
+              isReturn2Invoked = true;
+              d2.resolve();
+              return Promise.resolve({ done: true });
+            },
+          }),
+        },
+      },
+    });
+
+    const result = await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          counter1 @stream
+          counter2 @stream
+        }
+      `),
+      signal: controller.signal,
+    });
+
+    if (!isAsyncIterable(result)) {
+      throw new Error('Result is not an async iterable');
+    }
+
+    const iter = result[Symbol.asyncIterator]();
+
+    const next = await iter.next();
+    expect(next).toEqual({
+      done: false,
+      value: {
+        data: {
+          counter1: [],
+          counter2: [],
+        },
+        hasNext: true,
+      },
+    });
+
+    const next$ = iter.next();
+    controller.abort();
+    await expect(next$).rejects.toMatchInlineSnapshot(`DOMException {}`);
+    expect(isReturn1Invoked).toEqual(true);
+    expect(isReturn2Invoked).toEqual(true);
   });
   it('stops pending stream execution for incremental delivery (@defer)', async () => {
     const aResolverGotInvokedD = createDeferred();

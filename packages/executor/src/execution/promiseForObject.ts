@@ -16,7 +16,7 @@ export async function promiseForObject<TData>(
   const resolvedObject = Object.create(null);
   await new Promise<void>((resolve, reject) => {
     signal?.addEventListener('abort', () => {
-      resolve();
+      reject(signal.reason);
     });
     Promise.all(
       Object.entries(object as any).map(async ([key, value]) => {
