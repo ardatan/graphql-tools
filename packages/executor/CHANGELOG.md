@@ -1,5 +1,11 @@
 # @graphql-tools/executor
 
+## 1.2.5
+
+### Patch Changes
+
+- [#6020](https://github.com/ardatan/graphql-tools/pull/6020) [`b07be2b`](https://github.com/ardatan/graphql-tools/commit/b07be2b2f588345f85167776e8d31e976b110e1f) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Correctly raise `AbortError` for defer payloads
+
 ## 1.2.4
 
 ### Patch Changes
