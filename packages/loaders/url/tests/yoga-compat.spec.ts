@@ -11,6 +11,16 @@ import { InMemoryLiveQueryStore } from '@n1ru4l/in-memory-live-query-store';
 import { SubscriptionProtocol, UrlLoader } from '../src';
 import { assertAsyncIterable, sleep } from './test-utils';
 
+if (!globalThis.DOMException) {
+  // @ts-expect-error DOMException is not defined in NodeJS 16
+  globalThis.DOMException = class DOMException extends Error {
+    constructor(message: string, name: string) {
+      super(message);
+      this.name = name;
+    }
+  };
+}
+
 describe('Yoga Compatibility', () => {
   jest.setTimeout(10000);
   const loader = new UrlLoader();
