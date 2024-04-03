@@ -25,11 +25,11 @@ export function getFieldsNotInSubschema(
   const fields = subschemaType.getFields();
 
   const fieldsNotInSchema = new Set<FieldNode>();
-  for (const [, subFieldNodes] of subFieldNodesByResponseKey) {
-    const fieldName = subFieldNodes[0].name.value;
+  for (const [, subFieldGroups] of subFieldNodesByResponseKey) {
+    const fieldName = subFieldGroups[0].fieldNode.name.value;
     if (!fields[fieldName]) {
-      for (const subFieldNode of subFieldNodes) {
-        fieldsNotInSchema.add(subFieldNode);
+      for (const subFieldNode of subFieldGroups) {
+        fieldsNotInSchema.add(subFieldNode.fieldNode);
       }
     }
     const fieldNodesForField = fieldNodesByField?.[gatewayType.name]?.[fieldName];

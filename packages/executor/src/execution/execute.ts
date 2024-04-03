@@ -34,6 +34,7 @@ import {
   addPath,
   collectFields,
   createGraphQLError,
+  FieldDetails,
   getArgumentValues,
   getDefinedRootType,
   GraphQLStreamDirective,
@@ -544,7 +545,7 @@ function executeFieldsSerially<TData>(
   parentType: GraphQLObjectType,
   sourceValue: unknown,
   path: Path | undefined,
-  fields: Map<string, Array<FieldNode>>,
+  fields: Map<string, Array<FieldDetails>>,
 ): MaybePromise<TData> {
   return promiseReduce(
     fields,
@@ -562,7 +563,6 @@ function executeFieldsSerially<TData>(
         }
 
         results[responseName] = result;
-
         return results;
       });
     },
@@ -579,7 +579,7 @@ function executeFields(
   parentType: GraphQLObjectType,
   sourceValue: unknown,
   path: Path | undefined,
-  fields: Map<string, Array<FieldNode>>,
+  fields: Map<string, Array<FieldDetails>>,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): MaybePromise<Record<string, unknown>> {
   const results = Object.create(null);
@@ -639,12 +639,12 @@ function executeField(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
   source: unknown,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   path: Path,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): MaybePromise<unknown> {
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
-  const fieldDef = getFieldDef(exeContext.schema, parentType, fieldNodes[0]);
+  const fieldDef = getFieldDef(exeContext.schema, parentType, fieldNodes[0].fieldNode);
   if (!fieldDef) {
     return;
   }
@@ -652,14 +652,25 @@ function executeField(
   const returnType = fieldDef.type;
   const resolveFn = fieldDef.resolve ?? exeContext.fieldResolver;
 
-  const info = buildResolveInfo(exeContext, fieldDef, fieldNodes, parentType, path);
+  const info = buildResolveInfo(
+    exeContext,
+    fieldDef,
+    fieldNodes.map(details => details.fieldNode),
+    parentType,
+    path,
+  );
 
   // Get the resolve function, regardless of if its result is normal or abrupt (error).
   try {
     // Build a JS object of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
     // TODO: find a way to memoize, in case this field is within a List type.
-    const args = getArgumentValues(fieldDef, fieldNodes[0], exeContext.variableValues);
+    const args = getArgumentValues(
+      fieldDef,
+      fieldNodes[0].fieldNode,
+      exeContext.variableValues,
+      fieldNodes[0].fragmentVariableValues,
+    );
 
     // The resolve function's optional third argument is a context value that
     // is provided to every resolve function within an execution. It is commonly
@@ -689,7 +700,11 @@ function executeField(
       // Note: we don't rely on a `catch` method, but we do expect "thenable"
       // to take a second callback for the error case.
       return completed.then(undefined, rawError => {
-        const error = locatedError(rawError, fieldNodes, pathToArray(path));
+        const error = locatedError(
+          rawError,
+          fieldNodes.map(details => details.fieldNode),
+          pathToArray(path),
+        );
         const handledError = handleFieldError(error, returnType, errors);
         filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
         return handledError;
@@ -697,7 +712,11 @@ function executeField(
     }
     return completed;
   } catch (rawError) {
-    const error = locatedError(rawError, fieldNodes, pathToArray(path));
+    const error = locatedError(
+      rawError,
+      fieldNodes.map(details => details.fieldNode),
+      pathToArray(path),
+    );
     const handledError = handleFieldError(error, returnType, errors);
     filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
     return handledError;
@@ -772,7 +791,7 @@ function handleFieldError(
 function completeValue(
   exeContext: ExecutionContext,
   returnType: GraphQLOutputType,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown,
@@ -865,7 +884,7 @@ function completeValue(
  */
 function getStreamValues(
   exeContext: ExecutionContext,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   path: Path,
 ):
   | undefined
@@ -882,8 +901,8 @@ function getStreamValues(
   // safe to only check the first fieldNode for the stream directive
   const stream = getDirectiveValues(
     GraphQLStreamDirective,
-    fieldNodes[0],
-    exeContext.variableValues,
+    fieldNodes[0].fieldNode,
+    fieldNodes[0].fragmentVariableValues ?? exeContext.variableValues,
   ) as {
     initialCount: number;
     label: string;
@@ -915,7 +934,7 @@ function getStreamValues(
 async function completeAsyncIteratorValue(
   exeContext: ExecutionContext,
   itemType: GraphQLOutputType,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   info: GraphQLResolveInfo,
   path: Path,
   iterator: AsyncIterator<unknown>,
@@ -954,7 +973,11 @@ async function completeAsyncIteratorValue(
         break;
       }
     } catch (rawError) {
-      const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
+      const error = locatedError(
+        rawError,
+        fieldNodes.map(details => details.fieldNode),
+        pathToArray(itemPath),
+      );
       completedResults.push(handleFieldError(error, itemType, errors));
       break;
     }
@@ -986,7 +1009,7 @@ async function completeAsyncIteratorValue(
 function completeListValue(
   exeContext: ExecutionContext,
   returnType: GraphQLList<GraphQLOutputType>,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown,
@@ -1077,7 +1100,7 @@ function completeListItemValue(
   errors: Array<GraphQLError>,
   exeContext: ExecutionContext,
   itemType: GraphQLOutputType,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   info: GraphQLResolveInfo,
   itemPath: Path,
   asyncPayloadRecord?: AsyncPayloadRecord,
@@ -1113,7 +1136,11 @@ function completeListItemValue(
       // to take a second callback for the error case.
       completedResults.push(
         completedItem.then(undefined, rawError => {
-          const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
+          const error = locatedError(
+            rawError,
+            fieldNodes.map(details => details.fieldNode),
+            pathToArray(itemPath),
+          );
           const handledError = handleFieldError(error, itemType, errors);
           filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
           return handledError;
@@ -1125,7 +1152,11 @@ function completeListItemValue(
 
     completedResults.push(completedItem);
   } catch (rawError) {
-    const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
+    const error = locatedError(
+      rawError,
+      fieldNodes.map(details => details.fieldNode),
+      pathToArray(itemPath),
+    );
     const handledError = handleFieldError(error, itemType, errors);
     filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
     completedResults.push(handledError);
@@ -1170,7 +1201,7 @@ function completeLeafValue(returnType: GraphQLLeafType, result: unknown): unknow
 function completeAbstractValue(
   exeContext: ExecutionContext,
   returnType: GraphQLAbstractType,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown,
@@ -1216,14 +1247,14 @@ function ensureValidRuntimeType(
   runtimeTypeName: unknown,
   exeContext: ExecutionContext,
   returnType: GraphQLAbstractType,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   info: GraphQLResolveInfo,
   result: unknown,
 ): GraphQLObjectType {
   if (runtimeTypeName == null) {
     throw createGraphQLError(
       `Abstract type "${returnType.name}" must resolve to an Object type at runtime for field "${info.parentType.name}.${info.fieldName}". Either the "${returnType.name}" type should provide a "resolveType" function or each possible type should provide an "isTypeOf" function.`,
-      { nodes: fieldNodes },
+      { nodes: fieldNodes.map(details => details.fieldNode) },
     );
   }
 
@@ -1246,21 +1277,21 @@ function ensureValidRuntimeType(
   if (runtimeType == null) {
     throw createGraphQLError(
       `Abstract type "${returnType.name}" was resolved to a type "${runtimeTypeName}" that does not exist inside the schema.`,
-      { nodes: fieldNodes },
+      { nodes: fieldNodes.map(details => details.fieldNode) },
     );
   }
 
   if (!isObjectType(runtimeType)) {
     throw createGraphQLError(
       `Abstract type "${returnType.name}" was resolved to a non-object type "${runtimeTypeName}".`,
-      { nodes: fieldNodes },
+      { nodes: fieldNodes.map(details => details.fieldNode) },
     );
   }
 
   if (!exeContext.schema.isSubType(returnType, runtimeType)) {
     throw createGraphQLError(
       `Runtime Object type "${runtimeType.name}" is not a possible type for "${returnType.name}".`,
-      { nodes: fieldNodes },
+      { nodes: fieldNodes.map(details => details.fieldNode) },
     );
   }
 
@@ -1273,7 +1304,7 @@ function ensureValidRuntimeType(
 function completeObjectValue(
   exeContext: ExecutionContext,
   returnType: GraphQLObjectType,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   info: GraphQLResolveInfo,
   path: Path,
   result: unknown,
@@ -1319,12 +1350,12 @@ function completeObjectValue(
 function invalidReturnTypeError(
   returnType: GraphQLObjectType,
   result: unknown,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
 ): GraphQLError {
   return createGraphQLError(
     `Expected value of type "${returnType.name}" but got: ${inspect(result)}.`,
     {
-      nodes: fieldNodes,
+      nodes: fieldNodes.map(details => details.fieldNode),
     },
   );
 }
@@ -1332,7 +1363,7 @@ function invalidReturnTypeError(
 function collectAndExecuteSubfields(
   exeContext: ExecutionContext,
   returnType: GraphQLObjectType,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   path: Path,
   result: unknown,
   asyncPayloadRecord?: AsyncPayloadRecord,
@@ -1341,7 +1372,7 @@ function collectAndExecuteSubfields(
   const { fields: subFieldNodes, patches: subPatches } = collectSubfields(
     exeContext,
     returnType,
-    fieldNodes,
+    fieldNodes.map(details => details.fieldNode),
   );
 
   const subFields = executeFields(
@@ -1648,17 +1679,23 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
     operation.selectionSet,
   );
   const [responseName, fieldNodes] = [...rootFields.entries()][0];
-  const fieldName = fieldNodes[0].name.value;
-  const fieldDef = getFieldDef(schema, rootType, fieldNodes[0]);
+  const fieldName = fieldNodes[0].fieldNode.name.value;
+  const fieldDef = getFieldDef(schema, rootType, fieldNodes[0].fieldNode);
 
   if (!fieldDef) {
     throw createGraphQLError(`The subscription field "${fieldName}" is not defined.`, {
-      nodes: fieldNodes,
+      nodes: fieldNodes.map(details => details.fieldNode),
     });
   }
 
   const path = addPath(undefined, responseName, rootType.name);
-  const info = buildResolveInfo(exeContext, fieldDef, fieldNodes, rootType, path);
+  const info = buildResolveInfo(
+    exeContext,
+    fieldDef,
+    fieldNodes.map(details => details.fieldNode),
+    rootType,
+    path,
+  );
 
   try {
     // Implements the "ResolveFieldEventStream" algorithm from GraphQL specification.
@@ -1666,7 +1703,12 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
 
     // Build a JS object of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
-    const args = getArgumentValues(fieldDef, fieldNodes[0], variableValues);
+    const args = getArgumentValues(
+      fieldDef,
+      fieldNodes[0].fieldNode,
+      variableValues,
+      fieldNodes[0].fragmentVariableValues,
+    );
 
     // The resolve function's optional third argument is a context value that
     // is provided to every resolve function within an execution. It is commonly
@@ -1680,13 +1722,21 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
 
     if (isPromise(result)) {
       return result.then(assertEventStream).then(undefined, error => {
-        throw locatedError(error, fieldNodes, pathToArray(path));
+        throw locatedError(
+          error,
+          fieldNodes.map(details => details.fieldNode),
+          pathToArray(path),
+        );
       });
     }
 
     return assertEventStream(result, exeContext.signal);
   } catch (error) {
-    throw locatedError(error, fieldNodes, pathToArray(path));
+    throw locatedError(
+      error,
+      fieldNodes.map(details => details.fieldNode),
+      pathToArray(path),
+    );
   }
 }
 
@@ -1716,7 +1766,7 @@ function executeDeferredFragment(
   exeContext: ExecutionContext,
   parentType: GraphQLObjectType,
   sourceValue: unknown,
-  fields: Map<string, Array<FieldNode>>,
+  fields: Map<string, Array<FieldDetails>>,
   label?: string,
   path?: Path,
   parentContext?: AsyncPayloadRecord,
@@ -1756,7 +1806,7 @@ function executeStreamField(
   itemPath: Path,
   item: MaybePromise<unknown>,
   exeContext: ExecutionContext,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   info: GraphQLResolveInfo,
   itemType: GraphQLOutputType,
   label?: string,
@@ -1799,14 +1849,22 @@ function executeStreamField(
         // Note: we don't rely on a `catch` method, but we do expect "thenable"
         // to take a second callback for the error case.
         completedItem = completedItem.then(undefined, rawError => {
-          const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
+          const error = locatedError(
+            rawError,
+            fieldNodes.map(details => details.fieldNode),
+            pathToArray(itemPath),
+          );
           const handledError = handleFieldError(error, itemType, asyncPayloadRecord.errors);
           filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
           return handledError;
         });
       }
     } catch (rawError) {
-      const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
+      const error = locatedError(
+        rawError,
+        fieldNodes.map(details => details.fieldNode),
+        pathToArray(itemPath),
+      );
       completedItem = handleFieldError(error, itemType, asyncPayloadRecord.errors);
       filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
     }
@@ -1838,7 +1896,7 @@ function executeStreamField(
 async function executeStreamIteratorItem(
   iterator: AsyncIterator<unknown>,
   exeContext: ExecutionContext,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   info: GraphQLResolveInfo,
   itemType: GraphQLOutputType,
   asyncPayloadRecord: StreamRecord,
@@ -1853,7 +1911,11 @@ async function executeStreamIteratorItem(
     }
     item = value;
   } catch (rawError) {
-    const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
+    const error = locatedError(
+      rawError,
+      fieldNodes.map(details => details.fieldNode),
+      pathToArray(itemPath),
+    );
     const value = handleFieldError(error, itemType, asyncPayloadRecord.errors);
     // don't continue if iterator throws
     return { done: true, value };
@@ -1872,7 +1934,11 @@ async function executeStreamIteratorItem(
 
     if (isPromise(completedItem)) {
       completedItem = completedItem.then(undefined, rawError => {
-        const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
+        const error = locatedError(
+          rawError,
+          fieldNodes.map(details => details.fieldNode),
+          pathToArray(itemPath),
+        );
         const handledError = handleFieldError(error, itemType, asyncPayloadRecord.errors);
         filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
         return handledError;
@@ -1880,7 +1946,11 @@ async function executeStreamIteratorItem(
     }
     return { done: false, value: completedItem };
   } catch (rawError) {
-    const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
+    const error = locatedError(
+      rawError,
+      fieldNodes.map(details => details.fieldNode),
+      pathToArray(itemPath),
+    );
     const value = handleFieldError(error, itemType, asyncPayloadRecord.errors);
     filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
     return { done: false, value };
@@ -1891,7 +1961,7 @@ async function executeStreamIterator(
   initialIndex: number,
   iterator: AsyncIterator<unknown>,
   exeContext: ExecutionContext,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   info: GraphQLResolveInfo,
   itemType: GraphQLOutputType,
   path: Path,

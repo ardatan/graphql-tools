@@ -117,12 +117,16 @@ function handleResolverResult(
     const type = schema.getType(object.__typename) as GraphQLObjectType;
     const { fields } = collectFields(schema, EMPTY_OBJECT, EMPTY_OBJECT, type, selectionSet);
     const nullResult: Record<string, any> = {};
-    for (const [responseKey, fieldNodes] of fields) {
+    for (const [responseKey, fieldGroups] of fields) {
       const combinedPath = [...path, responseKey];
       if (resolverResult instanceof GraphQLError) {
         nullResult[responseKey] = relocatedError(resolverResult, combinedPath);
       } else if (resolverResult instanceof Error) {
-        nullResult[responseKey] = locatedError(resolverResult, fieldNodes, combinedPath);
+        nullResult[responseKey] = locatedError(
+          resolverResult,
+          fieldGroups.map(group => group.fieldNode),
+          combinedPath,
+        );
       } else {
         nullResult[responseKey] = null;
       }

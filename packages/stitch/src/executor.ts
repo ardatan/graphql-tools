@@ -32,8 +32,8 @@ export function createStitchingExecutor(stitchedSchema: GraphQLSchema) {
       operation.selectionSet,
     );
     const data: Record<string, any> = {};
-    for (const [fieldName, fieldNodes] of fields) {
-      const responseKey = fieldNodes[0].alias?.value ?? fieldName;
+    for (const [fieldName, fieldGroups] of fields) {
+      const responseKey = fieldGroups[0].fieldNode.alias?.value ?? fieldName;
       const subschemaForField = subschemas.find(subschema => {
         const subschemaSchema = isSubschemaConfig(subschema)
           ? subschema.schema
@@ -48,7 +48,7 @@ export function createStitchingExecutor(stitchedSchema: GraphQLSchema) {
         info: {
           schema: stitchedSchema,
           fieldName,
-          fieldNodes,
+          fieldNodes: fieldGroups.map(group => group.fieldNode),
           operation,
           fragments,
           parentType: rootType,
