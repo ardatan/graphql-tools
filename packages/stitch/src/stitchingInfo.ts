@@ -318,7 +318,7 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
         const { fields } = collectFields(schema, fragments, variableValues, type, selectionSet);
 
         for (const [, fieldNodes] of fields) {
-          for (const fieldNode of fieldNodes) {
+          for (const { fieldNode } of fieldNodes) {
             const key = print(fieldNode);
             if (fieldNodeMap[key] == null) {
               fieldNodeMap[key] = fieldNode;

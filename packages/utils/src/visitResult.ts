@@ -1,5 +1,4 @@
 import {
-  FieldNode,
   FragmentDefinitionNode,
   getNullableType,
   GraphQLError,
@@ -15,7 +14,7 @@ import {
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
 } from 'graphql';
-import { collectFields, collectSubFields } from './collectFields.js';
+import { collectFields, collectSubFields, FieldDetails } from './collectFields.js';
 import { getOperationASTFromRequest } from './getOperationASTFromRequest.js';
 import { ExecutionRequest, ExecutionResult } from './Interfaces.js';
 import { Maybe } from './types.js';
@@ -204,7 +203,7 @@ function visitRoot(
 function visitObjectValue(
   object: Record<string, any>,
   type: GraphQLObjectType,
-  fieldNodeMap: Map<string, FieldNode[]>,
+  fieldNodeMap: Map<string, FieldDetails[]>,
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
   variableValues: Record<string, any>,
@@ -230,7 +229,7 @@ function visitObjectValue(
   }
 
   for (const [responseKey, subFieldNodes] of fieldNodeMap) {
-    const fieldName = subFieldNodes[0].name.value;
+    const fieldName = subFieldNodes[0].fieldNode.name.value;
     let fieldType = fieldMap[fieldName]?.type;
     if (fieldType == null) {
       switch (fieldName) {
@@ -257,6 +256,7 @@ function visitObjectValue(
       addPathSegmentInfo(type, fieldName, newPathIndex, fieldErrors, errorInfo);
     }
 
+    // TODO: for fragment arguments we might need to update the variable-values here.
     const newValue = visitFieldValue(
       object[responseKey],
       fieldType,
@@ -322,7 +322,7 @@ function updateObject(
 function visitListValue(
   list: Array<any>,
   returnType: GraphQLOutputType,
-  fieldNodes: Array<FieldNode>,
+  fieldNodes: Array<FieldDetails>,
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
   variableValues: Record<string, any>,
@@ -350,7 +350,7 @@ function visitListValue(
 function visitFieldValue(
   value: any,
   returnType: GraphQLOutputType,
-  fieldNodes: Array<FieldNode>,
+  fieldGroups: Array<FieldDetails>,
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
   variableValues: Record<string, any>,
@@ -368,7 +368,7 @@ function visitFieldValue(
     return visitListValue(
       value as Array<any>,
       nullableType.ofType,
-      fieldNodes,
+      fieldGroups,
       schema,
       fragments,
       variableValues,
@@ -384,7 +384,7 @@ function visitFieldValue(
       fragments,
       variableValues,
       finalType,
-      fieldNodes,
+      fieldGroups.map(group => group.fieldNode),
     );
     return visitObjectValue(
       value,
@@ -404,7 +404,7 @@ function visitFieldValue(
       fragments,
       variableValues,
       nullableType,
-      fieldNodes,
+      fieldGroups.map(group => group.fieldNode),
     );
     return visitObjectValue(
       value,
