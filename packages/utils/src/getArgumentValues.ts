@@ -38,7 +38,6 @@ export function getArgumentValues(
     {},
   );
 
-  // TODO: take fragment-variables in account
   for (const { name, type: argType, defaultValue } of def.args) {
     const argumentNode = argNodeMap[name];
 
