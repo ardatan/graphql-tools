@@ -7,7 +7,6 @@ import {
   GraphQLString,
   parse,
 } from 'graphql';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ExecutionResult, isAsyncIterable, isPromise, MaybePromise } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';

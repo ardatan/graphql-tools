@@ -383,9 +383,11 @@ function finalizeSelectionSet(
             throw new Error(`No type was found for field node ${inspect(node)}.`);
           }
           const namedType = getNamedType(type);
+          // eslint-disable-next-line no-constant-binary-expression
           if (!schema.getType(namedType.name) == null) {
             return null;
           }
+
           if (isObjectType(namedType) || isInterfaceType(namedType)) {
             const selections = node.selectionSet != null ? node.selectionSet.selections : null;
             if (selections == null || selections.length === 0) {

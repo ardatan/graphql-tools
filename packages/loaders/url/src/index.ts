@@ -322,7 +322,6 @@ export class UrlLoader implements Loader<LoadFromUrlOptions> {
         return this.buildSubscriptionExecutor(subscriptionsEndpoint, fetch, importFn, options);
       });
 
-      // eslint-disable-next-line no-inner-declarations
       function getExecutorByRequest(request: ExecutionRequest<any>): ValueOrPromise<Executor> {
         request.operationType =
           request.operationType || getOperationASTFromRequest(request)?.operation;

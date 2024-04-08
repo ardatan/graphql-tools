@@ -385,6 +385,7 @@ async function pluckAstroFileScript(fileData: string) {
 function pluckAstroFileScriptSync(fileData: string) {
   let astroCompiler: typeof import('astrojs-compiler-sync');
   try {
+    // eslint-disable-next-line import/no-extraneous-dependencies
     astroCompiler = require('astrojs-compiler-sync');
   } catch (e: any) {
     throw MissingAstroCompilerError;

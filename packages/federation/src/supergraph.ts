@@ -538,7 +538,6 @@ export function getSubschemasFromSupergraphSdl({
     };
 
     const extraOrphanTypesForSubgraph = new Map<string, TypeDefinitionNode>();
-    // eslint-disable-next-line no-inner-declarations
     function visitTypeDefinitionsForOrphanTypes(node: TypeDefinitionNode) {
       function visitNamedTypeNode(namedTypeNode: NamedTypeNode) {
         const typeName = namedTypeNode.name.value;

@@ -30,9 +30,9 @@
   "scripts": {
     "build": "bob build",
     "build:api-docs": "ts-node --transpileOnly --compiler-options='{\"module\":\"commonjs\"}' scripts/build-api-docs",
-    "ci:lint": "eslint --ext .ts . --output-file eslint_report.json --format json",
+    "ci:lint": "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --ext .ts . --output-file eslint_report.json --format json",
     "clean-dist": "rimraf \"packages/**/dist\" && rimraf \".bob\"",
-    "lint": "eslint --ext .ts .",
+    "lint": "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --ext .ts .",
     "postinstall": "patch-package && husky install",
     "prerelease": "yarn build",
     "prettier": "prettier --cache --ignore-path .prettierignore --write --list-different .",
@@ -59,6 +59,7 @@
     "bob-the-bundler": "7.0.1",
     "chalk": "4.1.2",
     "concurrently": "8.2.2",
+    "cross-env": "7.0.3",
     "eslint": "9.0.0",
     "eslint-config-prettier": "9.1.0",
     "eslint-config-standard": "17.1.0",
@@ -89,7 +90,7 @@
   },
   "lint-staged": {
     "packages/**/src/**/*.{ts,tsx}": [
-      "eslint --fix"
+      "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --fix"
     ],
     "**/*.{ts,tsx,graphql,yml,md,mdx,json}": [
       "prettier --write"
