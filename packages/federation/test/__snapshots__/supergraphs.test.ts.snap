@@ -199,11 +199,6 @@ type Query {
   review(id: Int!): Review
 }
 
-type DeliveryEstimates {
-  estimatedDelivery: String
-  fastestDelivery: String
-}
-
 type Product implements ProductItf & SkuItf {
   id: ID! @tag(name: "hi-from-products")
   delivery(zip: String): DeliveryEstimates
@@ -244,6 +239,11 @@ enum ShippingClass {
   STANDARD
   EXPRESS
   OVERNIGHT
+}
+
+type DeliveryEstimates {
+  estimatedDelivery: String
+  fastestDelivery: String
 }
 
 type Panda {
