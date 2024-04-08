@@ -68,7 +68,29 @@ function calculateDelegationStage(
 
   const delegationMap: Map<Subschema, SelectionSetNode> = new Map();
   for (const fieldNode of fieldNodes) {
-    if (fieldNode.name.value === '__typename') {
+    const fieldName = fieldNode.name.value;
+    if (fieldName === '__typename') {
+      continue;
+    }
+
+    // check dependencies for computed fields are available in the source schemas
+    const sourcesWithUnsatisfiedDependencies = sourceSubschemas.filter(
+      s =>
+        fieldSelectionSets.get(s) != null &&
+        fieldSelectionSets.get(s)![fieldName] != null &&
+        !subschemaTypesContainSelectionSet(
+          mergedTypeInfo,
+          sourceSubschemas,
+          fieldSelectionSets.get(s)![fieldName],
+        ),
+    );
+    if (sourcesWithUnsatisfiedDependencies.length === sourceSubschemas.length) {
+      unproxiableFieldNodes.push(fieldNode);
+      for (const source of sourcesWithUnsatisfiedDependencies) {
+        if (!nonProxiableSubschemas.includes(source)) {
+          nonProxiableSubschemas.push(source);
+        }
+      }
       continue;
     }
 
