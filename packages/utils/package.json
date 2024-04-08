@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/utils",
-  "version": "10.0.4",
+  "version": "10.1.2",
   "type": "module",
   "description": "Common package containing utils and types for GraphQL tools",
   "repository": {
@@ -52,13 +52,14 @@
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.1.1",
+    "cross-inspect": "1.0.0",
     "dset": "^3.1.2",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
     "@types/dateformat": "3.0.1",
     "dateformat": "4.6.3",
-    "graphql-scalars": "1.22.2"
+    "graphql-scalars": "1.23.0"
   },
   "publishConfig": {
     "directory": "dist",

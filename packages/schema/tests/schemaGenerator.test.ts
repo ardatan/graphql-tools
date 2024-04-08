@@ -2179,6 +2179,16 @@ describe('interfaces', () => {
       resolverValidationOptions: { requireResolversForResolveType: 'ignore' },
     });
   });
+  test("does not throw if requireResolversToMatchSchema is 'warn'", () => {
+    const resolvers = {
+      Query: queryResolver,
+    };
+    makeExecutableSchema({
+      typeDefs: testSchemaWithInterfaces,
+      resolvers,
+      resolverValidationOptions: { requireResolversForResolveType: 'warn' },
+    });
+  });
 });
 
 describe('interface resolver inheritance', () => {
@@ -2413,6 +2423,17 @@ describe('unions', () => {
       typeDefs: testSchemaWithUnions,
       resolvers,
       resolverValidationOptions: { requireResolversForResolveType: 'ignore' },
+    });
+  });
+
+  test("does not throw if requireResolversToMatchSchema is 'warn'", () => {
+    const resolvers = {
+      Query: queryResolver,
+    };
+    makeExecutableSchema({
+      typeDefs: testSchemaWithUnions,
+      resolvers,
+      resolverValidationOptions: { requireResolversForResolveType: 'warn' },
     });
   });
 });

@@ -94,7 +94,7 @@ function filterRootFields(
         delete config.fields[fieldName];
       } else if (argumentFilter && field.args) {
         for (const argName in field.args) {
-          if (!argumentFilter(operation, fieldName, argName, field.args[argName])) {
+          if (!argumentFilter(type.name, fieldName, argName, field.args[argName])) {
             delete field.args[argName];
           }
         }

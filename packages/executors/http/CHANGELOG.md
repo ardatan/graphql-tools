@@ -1,5 +1,53 @@
 # @graphql-tools/executor-http
 
+## 1.0.9
+
+### Patch Changes
+
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.2`, in `dependencies`)
+
+## 1.0.8
+
+### Patch Changes
+
+- [#5902](https://github.com/ardatan/graphql-tools/pull/5902) [`9d18cce`](https://github.com/ardatan/graphql-tools/commit/9d18ccedac0a288080cbe1c9323ed838cbc4174e) Thanks [@enisdenjo](https://github.com/enisdenjo)! - Error when both data and errors fields are empty
+
+## 1.0.7
+
+### Patch Changes
+
+- [#5825](https://github.com/ardatan/graphql-tools/pull/5825) [`12b578e`](https://github.com/ardatan/graphql-tools/commit/12b578e260c3011346d4af1cf71abd70f40569fe) Thanks [@felamaslen](https://github.com/felamaslen)! - Fixed http executor to allow custom content-type header
+
+## 1.0.6
+
+### Patch Changes
+
+- [`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238) Thanks [@ardatan](https://github.com/ardatan)! - Memoize the print result automatically, and able to accept a custom print function
+
+## 1.0.5
+
+### Patch Changes
+
+- [`a4463d3`](https://github.com/ardatan/graphql-tools/commit/a4463d3607f33b176828bc48b6895adf3120aeec)
+  Thanks [@ardatan](https://github.com/ardatan)! - Remove headers from extensions in the GraphQL
+  request
+
+## 1.0.4
+
+### Patch Changes
+
+- [#5724](https://github.com/ardatan/graphql-tools/pull/5724)
+  [`cfbd2e07`](https://github.com/ardatan/graphql-tools/commit/cfbd2e07aff0c773a2e2766ea5fd34b628e72f1f)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - Handle chunked and no-space messages in SSE
+
+## 1.0.3
+
+### Patch Changes
+
+- [`fb5f9ae3`](https://github.com/ardatan/graphql-tools/commit/fb5f9ae3bac4710b86bdad4a86bf7a4c7b8eb6e6)
+  Thanks [@ardatan](https://github.com/ardatan)! - Respect \`method\` for SSE subscriptions
+
 ## 1.0.2
 
 ### Patch Changes

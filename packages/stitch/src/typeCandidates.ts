@@ -25,6 +25,7 @@ import {
 import { wrapSchema } from '@graphql-tools/wrap';
 import { extractDefinitions } from './definitions.js';
 import { mergeCandidates } from './mergeCandidates.js';
+import { mergeDirectives } from './mergeDirectives.js';
 import typeFromAST from './typeFromAST.js';
 import {
   MergeTypeCandidate,
@@ -45,7 +46,7 @@ export function buildTypeCandidates<TContext extends Record<string, any> = Recor
   parseOptions,
   directiveMap,
   schemaDefs,
-  mergeDirectives,
+  mergeDirectives: isMergeDirectives,
 }: {
   subschemas: Array<Subschema<any, any, any, TContext>>;
   originalSubschemaMap: Map<
@@ -66,6 +67,9 @@ export function buildTypeCandidates<TContext extends Record<string, any> = Recor
   Record<OperationTypeNode, string>,
   DocumentNode[],
 ] {
+  const directiveCandidates = new Map<string, Set<GraphQLDirective>>(
+    Object.entries(directiveMap).map(([name, directive]) => [name, new Set([directive])]),
+  );
   const extensions: Array<DocumentNode> = [];
   const typeCandidates: Record<string, Array<MergeTypeCandidate<TContext>>> = Object.create(null);
 
@@ -100,9 +104,14 @@ export function buildTypeCandidates<TContext extends Record<string, any> = Recor
       });
     }
 
-    if (mergeDirectives === true) {
+    if (isMergeDirectives === true) {
       for (const directive of schema.getDirectives()) {
-        directiveMap[directive.name] = directive;
+        let directiveCandidatesForName = directiveCandidates.get(directive.name);
+        if (directiveCandidatesForName == null) {
+          directiveCandidatesForName = new Set();
+          directiveCandidates.set(directive.name, directiveCandidatesForName);
+        }
+        directiveCandidatesForName.add(directive);
       }
     }
 
@@ -139,7 +148,12 @@ export function buildTypeCandidates<TContext extends Record<string, any> = Recor
       if (!isDirective(directive)) {
         throw new Error(`Expected to get directive type but got ${inspect(def)}`);
       }
-      directiveMap[directive.name] = directive;
+      let directiveCandidatesForName = directiveCandidates.get(directive.name);
+      if (directiveCandidatesForName == null) {
+        directiveCandidatesForName = new Set();
+        directiveCandidates.set(directive.name, directiveCandidatesForName);
+      }
+      directiveCandidatesForName.add(directive);
     }
 
     if (extraction.extensionDefs.length > 0) {
@@ -152,6 +166,10 @@ export function buildTypeCandidates<TContext extends Record<string, any> = Recor
 
   for (const type of types) {
     addTypeCandidate(typeCandidates, type.name, { type });
+  }
+
+  for (const [directiveName, directiveCandidatesForName] of directiveCandidates) {
+    directiveMap[directiveName] = mergeDirectives(directiveCandidatesForName);
   }
 
   return [typeCandidates, rootTypeNameMap, extensions];

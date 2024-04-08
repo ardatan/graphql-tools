@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/federation",
-  "version": "1.1.0",
+  "version": "1.1.25",
   "type": "module",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "repository": {
@@ -50,18 +50,23 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/delegate": "^10.0.0",
-    "@graphql-tools/executor-http": "^1.0.0",
-    "@graphql-tools/merge": "^9.0.0",
-    "@graphql-tools/schema": "^10.0.0",
-    "@graphql-tools/stitch": "^9.0.0",
-    "@graphql-tools/utils": "^10.0.0",
-    "@graphql-tools/wrap": "^10.0.0",
+    "@graphql-tools/delegate": "^10.0.4",
+    "@graphql-tools/executor-http": "^1.0.9",
+    "@graphql-tools/merge": "^9.0.3",
+    "@graphql-tools/schema": "^10.0.3",
+    "@graphql-tools/stitch": "^9.0.5",
+    "@graphql-tools/utils": "^10.1.1",
+    "@graphql-tools/wrap": "^10.0.3",
     "tslib": "^2.4.0",
     "value-or-promise": "^1.0.12"
   },
   "optionalDependencies": {
-    "@apollo/client": "~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0"
+    "@apollo/client": "~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0 || ~3.8.0 || ~3.9.0"
+  },
+  "devDependencies": {
+    "@apollo/gateway": "^2.5.4",
+    "@apollo/subgraph": "^2.5.4",
+    "@types/lodash.pick": "4.4.9"
   },
   "publishConfig": {
     "directory": "dist",

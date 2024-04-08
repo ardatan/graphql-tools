@@ -123,8 +123,8 @@ export class Environment {
               const endpoint = cluster.connectInfo
                 ? cluster.connectInfo.endpoint
                 : cluster.customConnectionInfo
-                ? cluster.customConnectionInfo.endpoint
-                : this.clusterEndpointMap[cluster.name];
+                  ? cluster.customConnectionInfo.endpoint
+                  : this.clusterEndpointMap[cluster.name];
               this.addCluster(
                 new Cluster(
                   this.out,

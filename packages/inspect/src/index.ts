@@ -1,8 +1,5 @@
 // Taken from graphql-js
 // https://github.com/graphql/graphql-js/blob/main/src/jsutils/inspect.ts
-
-import { GraphQLError } from 'graphql';
-
 const MAX_RECURSIVE_DEPTH = 3;
 
 /**
@@ -26,7 +23,8 @@ function formatValue(value: unknown, seenValues: ReadonlyArray<unknown>): string
 }
 
 function formatError(value: Error): string {
-  if (value instanceof GraphQLError) {
+  // eslint-disable-next-line no-constant-condition
+  if ((value.name = 'GraphQLError')) {
     return value.toString();
   }
   return `${value.name}: ${value.message};\n ${value.stack}`;

@@ -268,6 +268,47 @@ describe('graphql-tag-pluck', () => {
       );
     });
 
+    it.only("should pluck graphql-tag template literals from .ts that use 'using' keyword", async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.ts',
+        freeText(`
+        import { graphql } from '../somewhere'
+        import { Document } from 'graphql'
+        import createManagedResource from 'managed-resource'
+
+        using managedResource = createManagedResource()
+
+        const fragment: Document = graphql(\`
+            fragment Foo on FooType {
+              id
+            }
+          \`)
+
+          const doc: Document = graphql(\`
+            query foo {
+              foo {
+                ...Foo
+              }
+            }
+            \`)
+      `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        fragment Foo on FooType {
+          id
+        }
+
+        query foo {
+          foo {
+            ...Foo
+          }
+        }
+      `),
+      );
+    });
+
     it('should pluck graphql-tag template literals from .ts file', async () => {
       const sources = await pluck(
         'tmp-XXXXXX.ts',
@@ -1160,6 +1201,138 @@ describe('graphql-tag-pluck', () => {
           }
         }
       `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .astro file', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.astro',
+        freeText(`
+        ---
+        import gql from 'graphql-tag';
+
+        let q = gql\`
+          query IndexQuery {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        \`;
+        ---
+
+        <div>foo</div>
+        `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+          query IndexQuery {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .astro file with 2 queries', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.astro',
+        freeText(`
+        ---
+        import gql from 'graphql-tag';
+
+        let q = gql\`
+          query IndexQuery {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        \`;
+        let q2 = gql\`
+          query IndexQuery2 {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        \`;
+        ---
+
+        <div>foo</div>
+        `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+
+        query IndexQuery2 {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+        `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .astro removing comments', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.astro',
+        freeText(`
+        ---
+        import gql from 'graphql-tag';
+
+        let q = gql\`
+          query IndexQuery {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        \`;
+
+        // let q2 = gql\`
+        //   query IndexQuery2 {
+        //     site {
+        //       siteMetadata {
+        //         title
+        //       }
+        //     }
+        //   }
+        // \`;
+        ---
+
+        <div>foo</div>
+        `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        query IndexQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+        `),
       );
     });
 
@@ -2080,6 +2253,64 @@ describe('graphql-tag-pluck', () => {
             }
           }
         `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals using the custom `isGqlTemplateLiteral` hook', async () => {
+      const query = freeText(`#graphql
+        query queryName {
+          id
+        }
+      `);
+      const fileContent = `export const query = \`${query}\`;`;
+      const fileName = 'tmp-HOOKS1.ts';
+
+      // Default behavior: ignores in-query comments
+      let sources = await pluck(fileName, fileContent);
+      expect(sources.map(source => source.body).join('\n\n')).toEqual('');
+
+      // Custom behavior: recognizes in-query comments
+      sources = await pluck(fileName, fileContent, {
+        isGqlTemplateLiteral: node => {
+          return (
+            node.type === 'TemplateLiteral' &&
+            /\s*#graphql\s*\n/i.test(node.quasis[0]?.value?.raw || '')
+          );
+        },
+      });
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(query);
+    });
+
+    it('should pluck graphql-tag template literals using the custom `pluckStringFromFile` hook', async () => {
+      const query = freeText(`
+        query queryName { id }
+        \${ANOTHER_VARIABLE}
+      `);
+      const fileContent = `export const query = /* GraphQL */ \`${query}\`;`;
+      const fileName = 'tmp-HOOKS2.ts';
+
+      // Default behavior: removes expressions
+      let sources = await pluck(fileName, fileContent);
+      expect(sources.map(source => source.body).join('\n\n')).toEqual('query queryName { id }');
+
+      // Custom behavior: keeps expressions as comments
+      sources = await pluck(fileName, fileContent, {
+        pluckStringFromFile: (code, { start, end }) => {
+          return (
+            code
+              .slice(start! + 1, end! - 1)
+              // Annotate embedded expressions
+              // e.g. ${foo} -> #EXPRESSION:foo
+              .replace(/\$\{([^}]*)\}/g, (_, m1) => '#EXPRESSION:' + m1)
+              .split('\\`')
+              .join('`')
+          );
+        },
+      });
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        'query queryName { id }\n#EXPRESSION:ANOTHER_VARIABLE',
       );
     });
   });

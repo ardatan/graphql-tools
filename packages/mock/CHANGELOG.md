@@ -1,5 +1,23 @@
 # @graphql-tools/mock
 
+## 9.0.2
+
+### Patch Changes
+
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency [`@graphql-tools/schema@^10.0.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/schema/v/10.0.2) (from `^10.0.0`, in `dependencies`)
+- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+  - @graphql-tools/schema@10.0.3
+
+## 9.0.1
+
+### Patch Changes
+
+- [#5730](https://github.com/ardatan/graphql-tools/pull/5730) [`694d540`](https://github.com/ardatan/graphql-tools/commit/694d5403830e1171d64559b2a3715959a7ff6536) Thanks [@zyzo](https://github.com/zyzo)! - Pass fieldArgs to value function
+
+- Updated dependencies [[`f85c093`](https://github.com/ardatan/graphql-tools/commit/f85c093a8dd033efc613b93c25d15cfb0c2df7d3)]:
+  - @graphql-tools/utils@10.0.13
+
 ## 9.0.0
 
 ### Major Changes

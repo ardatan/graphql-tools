@@ -1,5 +1,31 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.3.0
+
+### Minor Changes
+
+- [#5920](https://github.com/ardatan/graphql-tools/pull/5920) [`f0edcb2`](https://github.com/ardatan/graphql-tools/commit/f0edcb2810ef3d3ba26ace2be0b15600b81360e7) Thanks [@collin](https://github.com/collin)! - Adds support for tc39/proposal-explicit-resource-management ('using' keyword)
+
+## 8.2.0
+
+### Minor Changes
+
+- [#5781](https://github.com/ardatan/graphql-tools/pull/5781) [`2c6c1d6`](https://github.com/ardatan/graphql-tools/commit/2c6c1d688741ef024b407e45f4040a667f7969e0) Thanks [@XiNiHa](https://github.com/XiNiHa)! - Add .astro file support
+
+### Patch Changes
+
+- Updated dependencies [[`f85c093`](https://github.com/ardatan/graphql-tools/commit/f85c093a8dd033efc613b93c25d15cfb0c2df7d3)]:
+  - @graphql-tools/utils@10.0.13
+
+## 8.1.0
+
+### Minor Changes
+
+- [#5643](https://github.com/ardatan/graphql-tools/pull/5643)
+  [`a7c512fd`](https://github.com/ardatan/graphql-tools/commit/a7c512fd9a9ad2116e541aa61c6313f74c7501cd)
+  Thanks [@frandiox](https://github.com/frandiox)! - Add support for new hooks
+  `isGqlTemplateLiteral` and `pluckStringFromFile`.
+
 ## 8.0.2
 
 ### Patch Changes

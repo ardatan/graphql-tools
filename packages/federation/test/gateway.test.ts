@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import {
   buildClientSchema,
+  buildSchema,
   DocumentNode,
   getIntrospectionQuery,
   GraphQLSchema,
@@ -22,23 +23,35 @@ import {
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
-import * as Accounts from './fixtures/gateway/accounts';
-import * as Inventory from './fixtures/gateway/inventory';
-import * as Products from './fixtures/gateway/products';
-import * as Reviews from './fixtures/gateway/reviews';
+import * as accounts from './fixtures/gateway/accounts';
+import * as inventory from './fixtures/gateway/inventory';
+import * as products from './fixtures/gateway/products';
+import * as reviews from './fixtures/gateway/reviews';
 import '../../testing/to-be-similar-gql-doc';
+import { federationToStitchingSDL, stitchingDirectives } from '@graphql-tools/stitching-directives';
+
+const services = {
+  accounts,
+  inventory,
+  products,
+  reviews,
+};
 
 interface ServiceInput {
+  name: string;
   typeDefs: string;
   schema: GraphQLSchema;
+}
+
+interface BuiltGateway {
+  executor(document: DocumentNode): Promise<ExecutionResult>;
+  serviceCallCounts: Record<string, number>;
 }
 
 interface TestScenario {
   name: string;
   buildSubgraphSchema(options: { typeDefs: string; resolvers: IResolvers }): GraphQLSchema;
-  buildGateway(
-    services: ServiceInput[],
-  ): Promise<(document: DocumentNode) => Promise<ExecutionResult>>;
+  buildGateway(serviceInputs: ServiceInput[]): Promise<BuiltGateway>;
 }
 
 const exampleQuery = parse(/* GraphQL */ `
@@ -108,20 +121,35 @@ describe('Federation', () => {
     return;
   }
 
-  const buildStitchingGateway = async (services: ServiceInput[]) => {
+  const buildStitchingGateway = async (serviceInputs: ServiceInput[]): Promise<BuiltGateway> => {
+    const serviceCallCounts: Record<string, number> = {};
     const subschemas: SubschemaConfig[] = await Promise.all(
-      services.map(({ schema }) => getSubschemaForFederationWithSchema(schema)),
+      serviceInputs.map(async ({ schema, name }) => {
+        serviceCallCounts[name] = 0;
+        const subschema = await getSubschemaForFederationWithSchema(schema);
+        const executor = createDefaultExecutor(schema);
+        return {
+          ...subschema,
+          executor: async executionRequest => {
+            serviceCallCounts[name]++;
+            return executor(executionRequest);
+          },
+        };
+      }),
     );
     let gatewaySchema = stitchSchemas({
       subschemas,
     });
     gatewaySchema = filterInternalFieldsAndTypes(gatewaySchema);
 
-    return (document: DocumentNode) =>
-      normalizedExecutor({
-        schema: gatewaySchema,
-        document,
-      }) as Promise<ExecutionResult>;
+    return {
+      executor: doc =>
+        normalizedExecutor({
+          schema: gatewaySchema,
+          document: doc,
+        }) as Promise<ExecutionResult>,
+      serviceCallCounts,
+    };
   };
   const {
     buildSubgraphSchema: buildApolloSubgraph,
@@ -130,32 +158,43 @@ describe('Federation', () => {
     ApolloGateway,
     LocalGraphQLDataSource,
   }: typeof import('@apollo/gateway') = require('@apollo/gateway');
-  const buildApolloGateway = async (services: ServiceInput[]) => {
+  const buildApolloGateway = async (serviceInputs: ServiceInput[]): Promise<BuiltGateway> => {
+    const serviceCallCounts: Record<string, number> = {};
     const gateway = new ApolloGateway({
-      serviceList: services.map((_, i) => ({
-        name: `service${i}`,
-        url: `http://www.service-${i}.com`,
+      serviceList: serviceInputs.map(({ name }) => ({
+        name,
+        url: `http://www.${name}.com`,
       })),
       buildService({ name }) {
-        const [, i] = name.split('service');
-        return new LocalGraphQLDataSource(services[parseInt(i)].schema);
+        const schema = serviceInputs.find(({ name: n }) => n === name)!.schema;
+        serviceCallCounts[name] = 0;
+        const source = new LocalGraphQLDataSource(schema);
+        return {
+          process(opts) {
+            serviceCallCounts[name]++;
+            return source.process(opts);
+          },
+        };
       },
     });
     await gateway.load();
-    return (document: DocumentNode) =>
-      gateway.executor({
-        document,
-        request: {
-          query: print(document),
-        },
-        cache: {
-          get: async () => undefined,
-          set: async () => {},
-          delete: async () => true,
-        },
-        schema: gateway.schema!,
-        context: {},
-      } as any) as Promise<ExecutionResult>;
+    return {
+      executor: (document: DocumentNode) =>
+        gateway.executor({
+          document,
+          request: {
+            query: print(document),
+          },
+          cache: {
+            get: async () => undefined,
+            set: async () => {},
+            delete: async () => true,
+          },
+          schema: gateway.schema!,
+          context: {},
+        } as any) as Promise<ExecutionResult>,
+      serviceCallCounts,
+    };
   };
   const buildSubgraphWithApollo = (options: { typeDefs: string; resolvers: IResolvers }) =>
     buildApolloSubgraph([
@@ -170,61 +209,124 @@ describe('Federation', () => {
     'utf8',
   );
 
-  const buildApolloGatewayWithSupergraph = async (services: ServiceInput[]) => {
+  const buildApolloGatewayWithSupergraph = async (serviceInputs: ServiceInput[]) => {
+    const serviceCallCounts = {};
     const gateway = new ApolloGateway({
       supergraphSdl,
       buildService({ name }) {
-        const [, i] = name.split('service');
-        return new LocalGraphQLDataSource(services[parseInt(i)].schema);
+        const schema = serviceInputs.find(({ name: n }) => n === name)!.schema;
+        serviceCallCounts[name] = 0;
+        const source = new LocalGraphQLDataSource(schema);
+        return {
+          process(opts) {
+            serviceCallCounts[name]++;
+            return source.process(opts);
+          },
+        };
       },
     });
     await gateway.load();
-    return (document: DocumentNode) =>
-      gateway.executor({
-        document,
-        request: {
-          query: print(document),
-        },
-        cache: {
-          get: async () => undefined,
-          set: async () => {},
-          delete: async () => true,
-        },
-        schema: gateway.schema!,
-        context: {},
-      } as any) as Promise<ExecutionResult>;
+    return {
+      executor: (document: DocumentNode) =>
+        gateway.executor({
+          document,
+          request: {
+            query: print(document),
+          },
+          cache: {
+            get: async () => undefined,
+            set: async () => {},
+            delete: async () => true,
+          },
+          schema: gateway.schema!,
+          context: {},
+        } as any) as Promise<ExecutionResult>,
+      serviceCallCounts,
+    };
   };
 
-  const buildStitchingGatewayWithSupergraph = async (services: ServiceInput[]) => {
+  const buildStitchingGatewayWithSupergraph = async (serviceInputs: ServiceInput[]) => {
+    const serviceCallCounts: Record<string, number> = {};
     const gatewaySchema = getStitchedSchemaFromSupergraphSdl({
       supergraphSdl,
       onExecutor({ subgraphName }) {
-        const [, i] = subgraphName.split('SERVICE');
-        const executor = createDefaultExecutor(services[parseInt(i)].schema);
-        return async executionRequest => {
-          const errors = validate(services[parseInt(i)].schema, executionRequest.document);
+        serviceCallCounts[subgraphName] = 0;
+        const schema = serviceInputs.find(({ name }) => name === subgraphName)!.schema;
+        const executor = createDefaultExecutor(schema);
+        return function subschemaExecutor(executionRequest) {
+          serviceCallCounts[subgraphName]++;
+          const errors = validate(schema, executionRequest.document);
           if (errors.length > 0) {
             return {
               errors,
             };
           }
-          const result = await executor(executionRequest);
-          return result;
+          return executor(executionRequest);
         };
       },
+      batch: true,
     });
 
-    return async (document: DocumentNode) => {
-      const errors = validate(gatewaySchema, document);
-      if (errors.length > 0) {
-        return {
-          errors,
-        };
-      }
-      return normalizedExecutor({
-        schema: gatewaySchema,
-        document,
-      }) as Promise<ExecutionResult>;
+    return {
+      executor: async (document: DocumentNode) => {
+        const errors = validate(gatewaySchema, document);
+        if (errors.length > 0) {
+          return {
+            errors,
+          };
+        }
+        return normalizedExecutor({
+          schema: gatewaySchema,
+          document,
+        }) as Promise<ExecutionResult>;
+      },
+      serviceCallCounts,
+    };
+  };
+  const buildStitchingGatewayByConversion = async (serviceInputs: ServiceInput[]) => {
+    const { stitchingDirectivesTransformer } = stitchingDirectives();
+    const serviceCallCounts: Record<string, number> = {};
+    const subschemas: SubschemaConfig[] = serviceInputs.map(({ typeDefs, schema, name }) => {
+      const executor = createDefaultExecutor(schema);
+      const stitchingSdl = federationToStitchingSDL(typeDefs);
+      const subschemaSchema = buildSchema(stitchingSdl, {
+        assumeValidSDL: true,
+        assumeValid: true,
+      });
+      serviceCallCounts[name] = 0;
+      return {
+        schema: subschemaSchema,
+        executor(executionRequest) {
+          serviceCallCounts[name]++;
+          const errors = validate(schema, executionRequest.document);
+          if (errors.length > 0) {
+            return {
+              errors,
+            };
+          }
+          return executor(executionRequest);
+        },
+      };
+    });
+    let gatewaySchema = stitchSchemas({
+      subschemas,
+      subschemaConfigTransforms: [stitchingDirectivesTransformer],
+    });
+    gatewaySchema = filterInternalFieldsAndTypes(gatewaySchema);
+    return {
+      executor: async (document: DocumentNode) => {
+        const errors = validate(gatewaySchema, document);
+        if (errors.length > 0) {
+          return {
+            errors,
+          };
+        }
+        return normalizedExecutor({
+          schema: gatewaySchema,
+          document,
+        }) as Promise<ExecutionResult>;
+      },
+      serviceCallCounts,
     };
   };
   const scenarios: TestScenario[] = [
@@ -258,21 +360,34 @@ describe('Federation', () => {
       buildSubgraphSchema: buildToolsSubgraphSchema,
       buildGateway: buildStitchingGatewayWithSupergraph,
     },
+    {
+      name: 'Tools Gateway by converting Federation to Stitching SDL vs. Tools Subgraph',
+      buildSubgraphSchema: buildToolsSubgraphSchema,
+      buildGateway: buildStitchingGatewayByConversion,
+    },
+    {
+      name: 'Tools Gateway by converting Federation to Stitching SDL vs. Apollo Subgraph',
+      buildSubgraphSchema: buildSubgraphWithApollo,
+      buildGateway: buildStitchingGatewayByConversion,
+    },
   ];
   for (const { name, buildSubgraphSchema, buildGateway } of scenarios) {
     describe(name, () => {
-      let gatewayExecutor: (document: DocumentNode) => Promise<ExecutionResult>;
+      let builtGateway: BuiltGateway;
       beforeEach(async () => {
-        const services = [Accounts, Products, Reviews, Inventory];
-
-        const serviceInputs = services.map(service => ({
-          typeDefs: service.typeDefs,
-          schema: buildSubgraphSchema(service),
-        }));
-        gatewayExecutor = await buildGateway(serviceInputs);
+        const serviceInputs: ServiceInput[] = [];
+        for (const name in services) {
+          const service = services[name];
+          serviceInputs.push({
+            name,
+            typeDefs: service.typeDefs,
+            schema: buildSubgraphSchema(service),
+          });
+        }
+        builtGateway = await buildGateway(serviceInputs);
       });
       it('should generate the correct schema', async () => {
-        const result = await gatewayExecutor(parse(getIntrospectionQuery()));
+        const result = await builtGateway.executor(parse(getIntrospectionQuery()));
         const schema = buildClientSchema(result.data);
         expect(printSchema(lexicographicSortSchema(schema))).toBeSimilarGqlDoc(/* GraphQL */ `
           type Product {
@@ -309,7 +424,7 @@ describe('Federation', () => {
         `);
       });
       it('should give the correct result', async () => {
-        const result = await gatewayExecutor(exampleQuery);
+        const result = await builtGateway.executor(exampleQuery);
         expect(result).toEqual({
           data: {
             topProducts: [
@@ -768,6 +883,14 @@ describe('Federation', () => {
             ],
           },
         });
+        /*
+        expect(builtGateway.serviceCallCounts).toMatchObject({
+          accounts: 2,
+          inventory: 2,
+          products: 2,
+          reviews: 2,
+        });
+        */
       });
     });
   }

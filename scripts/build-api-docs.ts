@@ -40,25 +40,23 @@ async function buildApiDocs(): Promise<void> {
   await fsPromises.rm(OUTPUT_PATH, { recursive: true }).catch(() => null);
 
   // Initialize TypeDoc
-  const typeDoc = new TypeDoc.Application();
-
-  typeDoc.options.addReader(new TypeDoc.TSConfigReader());
-
-  typeDoc.bootstrap({
-    excludePrivate: true,
-    excludeProtected: true,
-    readme: 'none',
-    hideGenerator: true,
-    githubPages: false,
-    // @ts-ignore -- typedoc-plugin-markdown option
-    hideBreadcrumbs: true,
-    gitRevision: 'master',
-    tsconfig: path.join(CWD, 'tsconfig.json'),
-    entryPoints: modules.map(([_name, filePath]) => filePath),
-  });
+  const typeDoc = await TypeDoc.Application.bootstrapWithPlugins(
+    {
+      excludePrivate: true,
+      excludeProtected: true,
+      readme: 'none',
+      hideGenerator: true,
+      githubPages: false,
+      gitRevision: 'master',
+      tsconfig: path.join(CWD, 'tsconfig.json'),
+      entryPoints: modules.map(([_name, filePath]) => filePath),
+      plugin: ['typedoc-plugin-markdown'],
+    },
+    [new TypeDoc.TSConfigReader()],
+  );
 
   // Generate the API docs
-  const project = typeDoc.convert();
+  const project = await typeDoc.convert();
   await typeDoc.generateDocs(project!, OUTPUT_PATH);
 
   async function patchMarkdownFile(filePath: string): Promise<void> {
@@ -102,26 +100,27 @@ async function buildApiDocs(): Promise<void> {
     );
 
     await fsPromises.writeFile(
-      path.join(filePath, '_meta.json'),
-      JSON.stringify(
-        Object.fromEntries(
-          filesInDirectory
-            .map(fileName => {
-              fileName = fileName.replace(/\.md$/, '');
-              const key = fileName.toLowerCase();
-              const value = fileName.replace(/^.*\./, '');
+      path.join(filePath, '_meta.ts'),
+      'export default ' +
+        JSON.stringify(
+          Object.fromEntries(
+            filesInDirectory
+              .map(fileName => {
+                fileName = fileName.replace(/\.md$/, '');
+                const key = fileName.toLowerCase();
+                const value = fileName.replace(/^.*\./, '');
 
-              if (filePath.endsWith('/modules')) {
-                return [key, `${value.replace('_src', '').replace(/_/g, '-')}`];
-              }
+                if (filePath.endsWith('/modules')) {
+                  return [key, `${value.replace('_src', '').replace(/_/g, '-')}`];
+                }
 
-              return [key, value];
-            })
-            .sort((a, b) => a[1].localeCompare(b[1])),
+                return [key, value];
+              })
+              .sort((a, b) => a[1].localeCompare(b[1])),
+          ),
+          null,
+          2,
         ),
-        null,
-        2,
-      ),
     );
   }
 
@@ -134,21 +133,22 @@ async function buildApiDocs(): Promise<void> {
     }),
   );
   await fsPromises.writeFile(
-    path.join(OUTPUT_PATH, '_meta.json'),
-    JSON.stringify(
-      {
-        modules: 'Packages',
-        classes: 'Classes',
-        enums: 'Enums',
-        interfaces: 'Interfaces',
-      },
-      null,
-      2,
-    ),
+    path.join(OUTPUT_PATH, '_meta.ts'),
+    'export default ' +
+      JSON.stringify(
+        {
+          modules: 'Packages',
+          classes: 'Classes',
+          enums: 'Enums',
+          interfaces: 'Interfaces',
+        },
+        null,
+        2,
+      ),
   );
 
   // Remove the generated "README.md" file
-  await fsPromises.unlink(path.join(OUTPUT_PATH, 'README.md'));
+  // await fsPromises.unlink(path.join(OUTPUT_PATH, 'README.md'));
 
   // Update each module 's frontmatter and title
   await Promise.all(

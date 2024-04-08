@@ -89,4 +89,108 @@ describe('TransformQuery', () => {
     expect(queryTransformerCalled).toEqual(1);
     expect(result).toEqual({ data: { zipByUser: '12345' } });
   });
+  test('skips fragments', async () => {
+    const subschema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          fooContainer: FooContainer
+        }
+        type FooContainer {
+          foo: Foo
+        }
+        type Foo {
+          bar: String
+          fooContainer: FooContainer
+        }
+      `,
+      resolvers: {
+        Query: {
+          fooContainer() {
+            const fooContainer = {
+              foo: {
+                bar: 'baz',
+                get fooContainer() {
+                  return fooContainer;
+                },
+              },
+            };
+            return fooContainer;
+          },
+        },
+      },
+    });
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          foo: Foo
+        }
+        type Foo {
+          bar: String
+          fooContainer: FooContainer
+        }
+        type FooContainer {
+          foo: Foo
+        }
+      `,
+      resolvers: {
+        Query: {
+          foo(_parent, _args, context, info) {
+            return delegateToSchema({
+              schema: subschema,
+              operation: 'query' as OperationTypeNode,
+              fieldName: 'fooContainer',
+              context,
+              info,
+              transforms: [
+                new TransformQuery({
+                  path: ['fooContainer'],
+                  queryTransformer: subTree => ({
+                    kind: Kind.SELECTION_SET,
+                    selections: [
+                      {
+                        kind: Kind.FIELD,
+                        name: { kind: Kind.NAME, value: 'foo' },
+                        selectionSet: subTree,
+                      },
+                    ],
+                  }),
+                  resultTransformer: result => result.foo,
+                }),
+              ],
+            });
+          },
+        },
+      },
+    });
+    const result = await execute({
+      schema,
+      document: parse(/* GraphQL */ `
+        fragment FooFragment on Foo {
+          bar
+          fooContainer {
+            foo {
+              bar
+            }
+          }
+        }
+        query {
+          foo {
+            ...FooFragment
+          }
+        }
+      `),
+    });
+    expect(result).toEqual({
+      data: {
+        foo: {
+          bar: 'baz',
+          fooContainer: {
+            foo: {
+              bar: 'baz',
+            },
+          },
+        },
+      },
+    });
+  });
 });

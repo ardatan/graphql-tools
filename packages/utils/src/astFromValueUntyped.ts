@@ -41,6 +41,9 @@ export function astFromValueUntyped(value: any): ValueNode | null {
   }
 
   if (typeof value === 'object') {
+    if (value?.toJSON) {
+      return astFromValueUntyped(value.toJSON());
+    }
     const fieldNodes: Array<ObjectFieldNode> = [];
     for (const fieldName in value) {
       const fieldValue = value[fieldName];

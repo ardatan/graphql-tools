@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Master
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
 
       - name: Setup env
         uses: the-guild-org/shared-config/setup@main
@@ -43,7 +43,7 @@ jobs:
           - '17.0.0-alpha.1'
     steps:
       - name: Checkout Master
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
 
       - name: Setup env
         uses: the-guild-org/shared-config/setup@main
@@ -77,7 +77,7 @@ jobs:
             graphql_version: 15
     steps:
       - name: Checkout Master
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
 
       - name: Setup env
         uses: the-guild-org/shared-config/setup@main
@@ -89,7 +89,7 @@ jobs:
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Cache Jest
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cache/jest
           key:
@@ -102,7 +102,7 @@ jobs:
         run: yarn test --ci
       - name: Test
         if: ${{ matrix.node-version != 20 }}
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Master
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
 
       - name: Setup env
         uses: the-guild-org/shared-config/setup@main
@@ -141,7 +141,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Master
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
       - name: Setup env
         uses: the-guild-org/shared-config/setup@main
         with:
@@ -149,7 +149,7 @@ jobs:
       - name: Build Packages
         run: yarn build
       - name: Test
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5

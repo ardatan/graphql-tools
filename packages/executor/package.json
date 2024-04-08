@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor",
-  "version": "1.1.0",
+  "version": "1.2.5",
   "type": "module",
   "repository": {
     "type": "git",
@@ -55,13 +55,14 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^10.0.0",
+    "@graphql-tools/utils": "^10.1.1",
     "@graphql-typed-document-node/core": "3.2.0",
     "@repeaterjs/repeater": "^3.0.4",
     "tslib": "^2.4.0",
     "value-or-promise": "^1.0.12"
   },
   "devDependencies": {
+    "cross-inspect": "1.0.0",
     "graphql": "^16.6.0"
   },
   "publishConfig": {

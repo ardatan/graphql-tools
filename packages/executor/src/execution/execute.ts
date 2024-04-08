@@ -120,6 +120,7 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   subscribeFieldResolver: GraphQLFieldResolver<any, TContext>;
   errors: Array<GraphQLError>;
   subsequentPayloads: Set<AsyncPayloadRecord>;
+  signal?: AbortSignal;
 }
 
 export interface FormattedExecutionResult<
@@ -239,6 +240,7 @@ export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
   fieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
   typeResolver?: Maybe<GraphQLTypeResolver<any, TContext>>;
   subscribeFieldResolver?: Maybe<GraphQLFieldResolver<any, TContext>>;
+  signal?: AbortSignal;
 }
 
 /**
@@ -284,6 +286,10 @@ export function execute<TData = any, TVariables = any, TContext = any>(
 function executeImpl<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>,
 ): MaybePromise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>> {
+  if (exeContext.signal?.aborted) {
+    throw exeContext.signal.reason;
+  }
+
   // Return a Promise that will eventually resolve to the data described by
   // The "Response" section of the GraphQL specification.
   //
@@ -295,7 +301,7 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
   // Errors from sub-fields of a NonNull type may propagate to the top level,
   // at which point we still log the error and null the parent field, which
   // in this case is the entire response.
-  return new ValueOrPromise(() => executeOperation<TData, TVariables, TContext>(exeContext))
+  const result = new ValueOrPromise(() => executeOperation<TData, TVariables, TContext>(exeContext))
     .then(
       data => {
         const initialResult = buildResponse(data, exeContext.errors);
@@ -308,14 +314,21 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
             subsequentResults: yieldSubsequentPayloads(exeContext),
           };
         }
+
         return initialResult;
       },
       (error: any) => {
+        if (exeContext.signal?.aborted) {
+          throw exeContext.signal.reason;
+        }
+
         exeContext.errors.push(error);
         return buildResponse<TData>(null, exeContext.errors);
       },
     )
     .resolve()!;
+
+  return result;
 }
 
 /**
@@ -402,6 +415,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     fieldResolver,
     typeResolver,
     subscribeFieldResolver,
+    signal,
   } = args;
 
   // If the schema used for execution is invalid, throw an error.
@@ -467,6 +481,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     subscribeFieldResolver: subscribeFieldResolver ?? defaultFieldResolver,
     subsequentPayloads: new Set(),
     errors: [],
+    signal,
   };
 }
 
@@ -535,6 +550,10 @@ function executeFieldsSerially<TData>(
     fields,
     (results, [responseName, fieldNodes]) => {
       const fieldPath = addPath(path, responseName, parentType.name);
+      if (exeContext.signal?.aborted) {
+        throw exeContext.signal.reason;
+      }
+
       return new ValueOrPromise(() =>
         executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath),
       ).then(result => {
@@ -543,6 +562,7 @@ function executeFieldsSerially<TData>(
         }
 
         results[responseName] = result;
+
         return results;
       });
     },
@@ -567,6 +587,10 @@ function executeFields(
 
   try {
     for (const [responseName, fieldNodes] of fields) {
+      if (exeContext.signal?.aborted) {
+        throw exeContext.signal.reason;
+      }
+
       const fieldPath = addPath(path, responseName, parentType.name);
       const result = executeField(
         exeContext,
@@ -587,7 +611,7 @@ function executeFields(
   } catch (error) {
     if (containsPromise) {
       // Ensure that any promises returned by other fields are handled, as they may also reject.
-      return promiseForObject(results).finally(() => {
+      return promiseForObject(results, exeContext.signal).finally(() => {
         throw error;
       });
     }
@@ -602,7 +626,7 @@ function executeFields(
   // Otherwise, results is a map from field name to the result of resolving that
   // field, which is possibly a promise. Return a promise that will return this
   // same map, but with any promises replaced with the values they resolved to.
-  return promiseForObject(results);
+  return promiseForObject(results, exeContext.signal);
 }
 
 /**
@@ -897,6 +921,9 @@ async function completeAsyncIteratorValue(
   iterator: AsyncIterator<unknown>,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): Promise<ReadonlyArray<unknown>> {
+  exeContext.signal?.addEventListener('abort', () => {
+    iterator.return?.();
+  });
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
   const stream = getStreamValues(exeContext, fieldNodes, path);
   let containsPromise = false;
@@ -1506,12 +1533,12 @@ export function flattenIncrementalResults<TData>(
     [Symbol.asyncIterator]() {
       return this;
     },
-    async next() {
+    next() {
       if (done) {
-        return {
+        return Promise.resolve({
           value: undefined,
           done,
-        };
+        });
       }
       if (initialResultSent) {
         return subsequentIterator.next();
@@ -1577,14 +1604,12 @@ function mapSourceToResponse(
       resultOrStream[Symbol.asyncIterator](),
       async (payload: unknown) =>
         ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload))),
-      async function* (error: Error) {
+      (error: Error) => {
         const wrappedError = createGraphQLError(error.message, {
           originalError: error,
           nodes: [exeContext.operation],
         });
-        yield {
-          errors: [wrappedError],
-        };
+        throw wrappedError;
       },
     ),
   );
@@ -1659,13 +1684,13 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
       });
     }
 
-    return assertEventStream(result);
+    return assertEventStream(result, exeContext.signal);
   } catch (error) {
     throw locatedError(error, fieldNodes, pathToArray(path));
   }
 }
 
-function assertEventStream(result: unknown): AsyncIterable<unknown> {
+function assertEventStream(result: unknown, signal?: AbortSignal): AsyncIterable<unknown> {
   if (result instanceof Error) {
     throw result;
   }
@@ -1676,8 +1701,15 @@ function assertEventStream(result: unknown): AsyncIterable<unknown> {
       'Subscription field must return Async Iterable. ' + `Received: ${inspect(result)}.`,
     );
   }
-
-  return result;
+  return {
+    [Symbol.asyncIterator]() {
+      const asyncIterator = result[Symbol.asyncIterator]();
+      signal?.addEventListener('abort', () => {
+        asyncIterator.return?.();
+      });
+      return asyncIterator;
+    },
+  };
 }
 
 function executeDeferredFragment(
@@ -1992,12 +2024,22 @@ function yieldSubsequentPayloads(
 ): AsyncGenerator<SubsequentIncrementalExecutionResult, void, void> {
   let isDone = false;
 
+  const abortPromise = new Promise<void>((_, reject) => {
+    exeContext.signal?.addEventListener('abort', () => {
+      isDone = true;
+      reject(exeContext.signal?.reason);
+    });
+  });
+
   async function next(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
     if (isDone) {
       return { value: undefined, done: true };
     }
 
-    await Promise.race(Array.from(exeContext.subsequentPayloads).map(p => p.promise));
+    await Promise.race([
+      abortPromise,
+      ...Array.from(exeContext.subsequentPayloads).map(p => p.promise),
+    ]);
 
     if (isDone) {
       // a different call to next has exhausted all payloads
@@ -2041,9 +2083,7 @@ function yieldSubsequentPayloads(
       isDone = true;
       return { value: undefined, done: true };
     },
-    async throw(
-      error?: unknown,
-    ): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
+    async throw(error?: unknown): Promise<IteratorResult<never, void>> {
       await returnStreamIterators();
       isDone = true;
       return Promise.reject(error);

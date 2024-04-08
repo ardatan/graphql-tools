@@ -1,17 +1,17 @@
 subgraphs:
-  service0:
-    routing_url: http://www.service-0.com
+  accounts:
+    routing_url: http://www.accounts.com
     schema:
       file: ./accounts/accounts.graphql
-  service1:
-    routing_url: http://www.service-1.com
+  products:
+    routing_url: http://www.products.com
     schema:
       file: ./products/products.graphql
-  service2:
-    routing_url: http://www.service-2.com
+  reviews:
+    routing_url: http://www.reviews.com
     schema:
       file: ./reviews/reviews.graphql
-  service3:
-    routing_url: http://www.service-3.com
+  inventory:
+    routing_url: http://www.inventory.com
     schema:
       file: ./inventory/inventory.graphql

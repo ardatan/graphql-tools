@@ -25,6 +25,7 @@ import { SubgraphBaseSDL } from './subgraph.js';
 import {
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
+  getCacheKeyFnFromKey,
   getKeyForFederation,
 } from './utils.js';
 
@@ -69,8 +70,9 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
             ) {
               continue;
             }
-            const selectionValueNode = directiveArgs.find(arg => arg.name.value === 'fields')
-              ?.value;
+            const selectionValueNode = directiveArgs.find(
+              arg => arg.name.value === 'fields',
+            )?.value;
             if (selectionValueNode?.kind === Kind.STRING) {
               selections.push(selectionValueNode.value);
             }
@@ -93,10 +95,14 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
         typeMergingTypeConfig.canonical = true;
       }
       entityTypes.push(typeName);
-      typeMergingTypeConfig.selectionSet = `{ ${selections.join(' ')} }`;
-      typeMergingTypeConfig.key = getKeyForFederation;
+      const selectionsStr = selections.join(' ');
+      typeMergingTypeConfig.selectionSet = `{ ${selectionsStr} }`;
+      typeMergingTypeConfig.dataLoaderOptions = {
+        cacheKeyFn: getCacheKeyFnFromKey(selectionsStr),
+      };
       typeMergingTypeConfig.argsFromKeys = getArgsFromKeysForFederation;
       typeMergingTypeConfig.fieldName = `_entities`;
+      typeMergingTypeConfig.key = getKeyForFederation;
       const fields = [];
       if (node.fields) {
         for (const fieldNode of node.fields) {
@@ -120,12 +126,12 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
                   ) {
                     continue;
                   }
-                  const selectionValueNode = directiveArgs.find(arg => arg.name.value === 'fields')
-                    ?.value;
+                  const selectionValueNode = directiveArgs.find(
+                    arg => arg.name.value === 'fields',
+                  )?.value;
                   if (selectionValueNode?.kind === Kind.STRING) {
-                    typeMergingFieldsConfig[
-                      fieldName
-                    ].selectionSet = `{ ${selectionValueNode.value} }`;
+                    typeMergingFieldsConfig[fieldName].selectionSet =
+                      `{ ${selectionValueNode.value} }`;
                     typeMergingFieldsConfig[fieldName].computed = true;
                   }
                   break;
@@ -161,13 +167,15 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
     ObjectTypeExtension: visitor,
     ObjectTypeDefinition: visitor,
   });
-  subschemaConfig.schema = buildASTSchema(
-    concatAST([parse(`union _Entity = ${entityTypes.join(' | ')}` + SubgraphBaseSDL), parsedSDL]),
-    {
-      assumeValidSDL: true,
-      assumeValid: true,
-    },
-  );
+  let extraSdl = SubgraphBaseSDL;
+  if (entityTypes.length > 0) {
+    extraSdl += `\nunion _Entity = ${entityTypes.join(' | ')}`;
+    extraSdl += `\nextend type Query { _entities(representations: [_Any!]!): [_Entity]! }`;
+  }
+  subschemaConfig.schema = buildASTSchema(concatAST([parse(extraSdl), parsedSDL]), {
+    assumeValidSDL: true,
+    assumeValid: true,
+  });
   // subschemaConfig.batch = true;
   return subschemaConfig;
 }

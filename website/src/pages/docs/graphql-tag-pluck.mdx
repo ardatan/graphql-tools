@@ -76,16 +76,19 @@ const MessageType = /* GraphQL */ `
 Supported file extensions are:
 
 - `.js`
+- `.mjs`
+- `.cjs`
 - `.jsx`
 - `.ts`
+- `.mts`
+- `.cts`
 - `.tsx`
 - `.flow`
 - `.flow.js`
 - `.flow.jsx`
-- `.graphqls`
-- `.graphql`
-- `.gqls`
-- `.gql`
+- `.vue`
+- `.svelte`
+- `.astro`
 
 ## Options
 
@@ -141,5 +144,29 @@ The following modules are supported by default:
     { identifier: 'gql', name: 'apollo-server-cloud-functions' },
     { identifier: 'gql', name: 'apollo-server-cloudflare' }
   ]
+}
+```
+
+### `isGqlTemplateLiteral`
+
+A custom way to determine if a template literal node contains a GraphQL query.
+
+By default, it checks if the leading comment is equal to the `gqlMagicComment` option.
+
+```js
+function isGqlTemplateLiteral(node, options) {
+  // Check if the template literal starts with `#graphql` comment
+  return node.type === 'TemplateLiteral' && node.quasis[0]?.value?.raw?.startsWith('#graphql')
+}
+```
+
+### `pluckStringFromFile`
+
+A function that allows custom extraction of GraphQL strings from a file.
+
+```js
+function pluckStringFromFile(code, { start, end, leadingComments }) {
+  // Slice quotes and remove inner comment
+  return code.slice(start + 1, end - 1).replace('#graphql\n', '')
 }
 ```

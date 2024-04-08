@@ -4,7 +4,7 @@ import { ExtensionsObject, Maybe, mergeDeep, SchemaExtensions } from '@graphql-t
 export { extractExtensionsFromSchema } from '@graphql-tools/utils';
 
 export function mergeExtensions(extensions: SchemaExtensions[]): SchemaExtensions {
-  return mergeDeep(extensions);
+  return mergeDeep(extensions, false, true);
 }
 
 function applyExtensionObject(
@@ -15,7 +15,7 @@ function applyExtensionObject(
     return;
   }
 
-  obj.extensions = mergeDeep([obj.extensions || {}, extensions || {}]);
+  obj.extensions = mergeDeep([obj.extensions || {}, extensions || {}], false, true);
 }
 
 export function applyExtensions(

@@ -12,6 +12,7 @@ const ESM_PACKAGES = ['graphql', 'graphql-upload', 'fs-capacitor'];
 module.exports = {
   testEnvironment: 'node',
   rootDir: ROOT_DIR,
+  prettierPath: null, // disable prettier for inline snapshots
   restoreMocks: true,
   reporters: ['default'],
   modulePathIgnorePatterns: ['dist', 'test-assets', 'test-files', 'fixtures', '.bob'],

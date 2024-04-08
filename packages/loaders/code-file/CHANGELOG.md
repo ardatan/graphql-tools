@@ -1,5 +1,32 @@
 # @graphql-tools/code-file-loader
 
+## 8.1.1
+
+### Patch Changes
+
+- Updated dependencies [[`f0edcb2`](https://github.com/ardatan/graphql-tools/commit/f0edcb2810ef3d3ba26ace2be0b15600b81360e7)]:
+  - @graphql-tools/graphql-tag-pluck@8.3.0
+
+## 8.1.0
+
+### Minor Changes
+
+- [#5781](https://github.com/ardatan/graphql-tools/pull/5781) [`2c6c1d6`](https://github.com/ardatan/graphql-tools/commit/2c6c1d688741ef024b407e45f4040a667f7969e0) Thanks [@XiNiHa](https://github.com/XiNiHa)! - Add .astro file support
+
+### Patch Changes
+
+- Updated dependencies [[`f85c093`](https://github.com/ardatan/graphql-tools/commit/f85c093a8dd033efc613b93c25d15cfb0c2df7d3), [`2c6c1d6`](https://github.com/ardatan/graphql-tools/commit/2c6c1d688741ef024b407e45f4040a667f7969e0)]:
+  - @graphql-tools/utils@10.0.13
+  - @graphql-tools/graphql-tag-pluck@8.2.0
+
+## 8.0.3
+
+### Patch Changes
+
+- Updated dependencies
+  [[`a7c512fd`](https://github.com/ardatan/graphql-tools/commit/a7c512fd9a9ad2116e541aa61c6313f74c7501cd)]:
+  - @graphql-tools/graphql-tag-pluck@8.1.0
+
 ## 8.0.2
 
 ### Patch Changes

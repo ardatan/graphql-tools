@@ -16,6 +16,7 @@ export default function generateConfig(
     'decorators-legacy',
     'doExpressions',
     'dynamicImport',
+    'explicitResourceManagement',
     'exportDefaultFrom',
     'exportNamespaceFrom',
     'functionBind',
@@ -76,6 +77,9 @@ export default function generateConfig(
     case '.svelte':
       plugins.push('typescript', 'svelte');
       break;
+    case '.astro':
+      plugins.push('typescript', 'jsx');
+      break;
     default:
       plugins.push('jsx', ...dynamicFlowPlugins);
       break;
@@ -87,5 +91,6 @@ export default function generateConfig(
     sourceType: 'module',
     plugins,
     allowUndeclaredExports: true,
+    sourceFilename: filePath,
   };
 }

@@ -1,3 +1,4 @@
+import { inspect } from 'cross-inspect';
 import {
   ArgumentNode,
   DirectiveNode,
@@ -10,7 +11,6 @@ import {
   valueFromAST,
 } from 'graphql';
 import { createGraphQLError } from './errors.js';
-import { inspect } from './inspect.js';
 import { hasOwnProperty } from './jsutils.js';
 
 /**

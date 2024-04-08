@@ -1,4 +1,4 @@
-import { GraphQLResolveInfo, print } from 'graphql';
+import { DocumentNode, GraphQLResolveInfo } from 'graphql';
 import { ValueOrPromise } from 'value-or-promise';
 import {
   AsyncExecutor,
@@ -11,6 +11,7 @@ import {
 } from '@graphql-tools/utils';
 import { fetch as defaultFetch } from '@whatwg-node/fetch';
 import { createFormDataFromVariables } from './createFormDataFromVariables.js';
+import { defaultPrintFn } from './defaultPrintFn.js';
 import { handleEventStreamResponse } from './handleEventStreamResponse.js';
 import { handleMultipartMixedResponse } from './handleMultipartMixedResponse.js';
 import { isLiveQueryOperationDefinitionNode } from './isLiveQueryOperationDefinitionNode.js';
@@ -79,6 +80,10 @@ export interface HTTPExecutorOptions {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/FormData
    */
   FormData?: typeof FormData;
+  /**
+   * Print function for DocumentNode
+   */
+  print?: (doc: DocumentNode) => string;
 }
 
 export type HeadersConfig = Record<string, string>;
@@ -102,10 +107,11 @@ export function buildHTTPExecutor(
 export function buildHTTPExecutor(
   options?: HTTPExecutorOptions,
 ): Executor<any, HTTPExecutorOptions> {
+  const printFn = options?.print ?? defaultPrintFn;
   const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
     const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
     let controller: AbortController | undefined;
-    let method = request.extensions?.method || options?.method || 'POST';
+    let method = request.extensions?.method || options?.method;
 
     const operationAst = getOperationASTFromRequest(request);
     const operationType = operationAst.operation;
@@ -119,20 +125,29 @@ export function buildHTTPExecutor(
 
     let accept = 'application/graphql-response+json, application/json, multipart/mixed';
     if (operationType === 'subscription' || isLiveQueryOperationDefinitionNode(operationAst)) {
-      method = 'GET';
+      method ||= 'GET';
       accept = 'text/event-stream';
+    } else {
+      method ||= 'POST';
     }
 
     const endpoint = request.extensions?.endpoint || options?.endpoint || '/graphql';
-    const headers = Object.assign(
-      {
-        accept,
-      },
-      (typeof options?.headers === 'function' ? options.headers(request) : options?.headers) || {},
-      request.extensions?.headers || {},
-    );
+    const headers = { accept };
 
-    const query = print(request.document);
+    if (options?.headers) {
+      Object.assign(
+        headers,
+        typeof options?.headers === 'function' ? options.headers(request) : options?.headers,
+      );
+    }
+
+    if (request.extensions?.headers) {
+      const { headers: headersFromExtensions, ...restExtensions } = request.extensions;
+      Object.assign(headers, headersFromExtensions);
+      request.extensions = restExtensions;
+    }
+
+    const query = printFn(request.document);
 
     let timeoutId: any;
     if (options?.timeout) {
@@ -185,7 +200,7 @@ export function buildHTTPExecutor(
             ),
           )
             .then(body => {
-              if (typeof body === 'string') {
+              if (typeof body === 'string' && !headers['content-type']) {
                 headers['content-type'] = 'application/json';
               }
               const fetchOptions: RequestInit = {
@@ -227,7 +242,26 @@ export function buildHTTPExecutor(
         if (typeof result === 'string') {
           if (result) {
             try {
-              return JSON.parse(result);
+              const parsedResult = JSON.parse(result);
+              if (
+                parsedResult.data == null &&
+                (parsedResult.errors == null || parsedResult.errors.length === 0)
+              ) {
+                return {
+                  errors: [
+                    createGraphQLError('Unexpected empty "data" and "errors" fields', {
+                      extensions: {
+                        requestBody: {
+                          query,
+                          operationName: request.operationName,
+                        },
+                        responseDetails: responseDetailsForError,
+                      },
+                    }),
+                  ],
+                };
+              }
+              return parsedResult;
             } catch (e: any) {
               return {
                 errors: [

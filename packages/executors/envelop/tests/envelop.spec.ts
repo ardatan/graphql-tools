@@ -34,7 +34,7 @@ describe('Envelop', () => {
         hello: 'Hello World!',
       },
     });
-    expect(executor).toBeCalledWith({
+    expect(executor).toHaveBeenCalledWith({
       document,
       context,
     });
@@ -84,6 +84,35 @@ describe('Envelop', () => {
     `);
 
     expect(executor).toBeCalledWith({
+      document,
+      context,
+    });
+  });
+  it('should skip validation if schema is not provided', async () => {
+    const executor: Executor = jest.fn().mockImplementation(() => {
+      return {
+        data: {
+          hello: 'Hello World!',
+        },
+      };
+    });
+    const getEnveloped = envelop({
+      plugins: [useExecutor(executor)],
+    });
+    const context = {};
+    const { validate, execute } = getEnveloped(context);
+    const validationResult = validate({}, document);
+    expect(validationResult).toHaveLength(0);
+    const result = await execute({
+      schema: {},
+      document,
+    });
+    expect(result).toEqual({
+      data: {
+        hello: 'Hello World!',
+      },
+    });
+    expect(executor).toHaveBeenCalledWith({
       document,
       context,
     });

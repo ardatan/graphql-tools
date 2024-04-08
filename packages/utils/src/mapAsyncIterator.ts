@@ -1,14 +1,26 @@
+import type { MaybePromise } from './executor.js';
+import { isPromise } from './jsutils.js';
+
 /**
  * Given an AsyncIterable and a callback function, return an AsyncIterator
  * which produces values mapped via calling the callback function.
  */
 export function mapAsyncIterator<T, U>(
   iterator: AsyncIterator<T>,
-  callback: (value: T) => Promise<U> | U,
-  rejectCallback?: any,
+  onNext: (value: T) => MaybePromise<U>,
+  onError?: any,
+  onEnd?: () => MaybePromise<void>,
 ): AsyncIterableIterator<U> {
-  let $return: any;
-  let abruptClose: any;
+  let $return: () => Promise<IteratorResult<T>>;
+  let abruptClose: (error: any) => Promise<never>;
+  let onEndWithValue: <R>(value: R) => MaybePromise<R>;
+
+  if (onEnd) {
+    onEndWithValue = value => {
+      const onEnd$ = onEnd();
+      return isPromise(onEnd$) ? onEnd$.then(() => value) : value;
+    };
+  }
 
   if (typeof iterator.return === 'function') {
     $return = iterator.return;
@@ -19,15 +31,16 @@ export function mapAsyncIterator<T, U>(
   }
 
   function mapResult(result: any) {
-    return result.done
-      ? result
-      : asyncMapValue(result.value, callback).then(iteratorResult, abruptClose);
+    if (result.done) {
+      return onEndWithValue ? onEndWithValue(result) : result;
+    }
+    return asyncMapValue(result.value, onNext).then(iteratorResult, abruptClose);
   }
 
   let mapReject: any;
-  if (rejectCallback) {
+  if (onError) {
     // Capture rejectCallback to ensure it cannot be null.
-    const reject = rejectCallback;
+    const reject = onError;
     mapReject = (error: any) => asyncMapValue(error, reject).then(iteratorResult, abruptClose);
   }
 
@@ -36,9 +49,10 @@ export function mapAsyncIterator<T, U>(
       return iterator.next().then(mapResult, mapReject);
     },
     return() {
-      return $return
+      const res$ = $return
         ? $return.call(iterator).then(mapResult, mapReject)
         : Promise.resolve({ value: undefined, done: true });
+      return onEndWithValue ? res$.then(onEndWithValue) : res$;
     },
     throw(error: any) {
       if (typeof iterator.throw === 'function') {
@@ -52,7 +66,7 @@ export function mapAsyncIterator<T, U>(
   };
 }
 
-function asyncMapValue<T, U>(value: T, callback: (value: T) => Promise<U> | U): Promise<U> {
+function asyncMapValue<T, U>(value: T, callback: (value: T) => PromiseLike<U> | U): Promise<U> {
   return new Promise(resolve => resolve(callback(value)));
 }
 

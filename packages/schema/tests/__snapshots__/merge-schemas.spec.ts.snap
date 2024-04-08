@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Merge Schemas should merge schemas with directives in extensions 1`] = `
+"schema @onSchema(name: "a") @onSchema(name: "b") {
+  query: Query
+}
+
+type Query @onType(name: "a") @onType(name: "b") {
+  a: String @onField(name: "a") @onField(name: "b")
+}"
+`;

@@ -16,7 +16,7 @@ jobs:
       'push'
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
         with:
           fetch-depth: 0
 
@@ -39,6 +39,5 @@ jobs:
           projectName: graphql-tools
           prId: ${{ github.event.pull_request.number }}
           websiteDirectory: ./
-          buildScript:
-            yarn build && yarn build:api-docs && cd website && yarn build && yarn next export
+          buildScript: yarn build && yarn build:api-docs && cd website && yarn build
           artifactDir: website/out

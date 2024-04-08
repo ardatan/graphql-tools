@@ -1,5 +1,12 @@
-import { env } from 'process';
-import { asArray, BaseLoaderOptions, compareStrings, Loader, Source } from '@graphql-tools/utils';
+import {
+  asArray,
+  BaseLoaderOptions,
+  compareStrings,
+  debugTimerEnd,
+  debugTimerStart,
+  Loader,
+  Source,
+} from '@graphql-tools/utils';
 import { collectSources, collectSourcesSync } from './load-typedefs/collect-sources.js';
 import { applyDefaultOptions } from './load-typedefs/options.js';
 import { parseSource } from './load-typedefs/parse.js';
@@ -30,9 +37,7 @@ export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
   options: LoadTypedefsOptions<Partial<AdditionalConfig>>,
 ): Promise<Source[]> {
-  if (env['DEBUG'] != null) {
-    console.time('@graphql-tools/load: loadTypedefs');
-  }
+  debugTimerStart('@graphql-tools/load: loadTypedefs');
   const { ignore, pointerOptionMap } = normalizePointers(pointerOrPointers);
 
   options.ignore = asArray(options.ignore || []);
@@ -67,9 +72,7 @@ export async function loadTypedefs<AdditionalConfig = Record<string, unknown>>(
 
   const result = prepareResult({ options, pointerOptionMap, validSources });
 
-  if (env['DEBUG'] != null) {
-    console.timeEnd('@graphql-tools/load: loadTypedefs');
-  }
+  debugTimerEnd('@graphql-tools/load: loadTypedefs');
 
   return result;
 }
@@ -85,9 +88,7 @@ export function loadTypedefsSync<AdditionalConfig = Record<string, unknown>>(
   pointerOrPointers: UnnormalizedTypeDefPointer | UnnormalizedTypeDefPointer[],
   options: LoadTypedefsOptions<Partial<AdditionalConfig>>,
 ): Source[] {
-  if (env['DEBUG'] != null) {
-    console.time('@graphql-tools/load: loadTypedefsSync');
-  }
+  debugTimerStart('@graphql-tools/load: loadTypedefsSync');
   const { ignore, pointerOptionMap } = normalizePointers(pointerOrPointers);
 
   options.ignore = asArray(options.ignore || []).concat(ignore);
@@ -114,9 +115,7 @@ export function loadTypedefsSync<AdditionalConfig = Record<string, unknown>>(
 
   const result = prepareResult({ options, pointerOptionMap, validSources });
 
-  if (env['DEBUG'] != null) {
-    console.timeEnd('@graphql-tools/load: loadTypedefsSync');
-  }
+  debugTimerEnd('@graphql-tools/load: loadTypedefsSync');
 
   return result;
 }
@@ -132,9 +131,7 @@ function prepareResult({
   pointerOptionMap: any;
   validSources: Source[];
 }) {
-  if (env['DEBUG'] != null) {
-    console.time('@graphql-tools/load: prepareResult');
-  }
+  debugTimerStart('@graphql-tools/load: prepareResult');
   const pointerList = Object.keys(pointerOptionMap);
 
   if (pointerList.length > 0 && validSources.length === 0) {
@@ -150,8 +147,7 @@ function prepareResult({
   const sortedResult = options.sort
     ? validSources.sort((left, right) => compareStrings(left.location, right.location))
     : validSources;
-  if (env['DEBUG'] != null) {
-    console.timeEnd('@graphql-tools/load: prepareResult');
-  }
+
+  debugTimerEnd('@graphql-tools/load: prepareResult');
   return sortedResult;
 }

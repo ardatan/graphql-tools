@@ -346,6 +346,7 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
         operation === 'Query' &&
         (rootFields[fieldName] != null || computedFieldTypes[getNamedType(config.type).name]),
       objectFieldFilter: (typeName, fieldName) =>
+        subschemaConfig.merge[typeName] == null ||
         subschemaConfig.merge[typeName]?.fields?.[fieldName] != null ||
         (subschemaConfig.merge[typeName]?.keyFieldNames ?? []).includes(fieldName),
       interfaceFieldFilter: (typeName, fieldName) => interfaceFields[typeName]?.[fieldName] != null,
@@ -361,7 +362,7 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
     ]),
   );
 
-  return {
+  const filteredSubschema = {
     ...subschemaConfig,
     merge,
     transforms: (subschemaConfig.transforms ?? []).concat([
@@ -373,4 +374,6 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
       ),
     ]),
   };
+
+  return filteredSubschema;
 }

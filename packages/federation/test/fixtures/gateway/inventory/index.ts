@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { inspect } from 'util';
+import { inspect } from 'cross-inspect';
 import { IResolvers } from '@graphql-tools/utils';
 
 export const typeDefs = readFileSync(join(__dirname, './inventory.graphql'), 'utf8');

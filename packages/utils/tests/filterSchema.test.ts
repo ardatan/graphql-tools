@@ -236,4 +236,33 @@ describe('filterSchema', () => {
         ['field'].args.map(arg => arg.name),
     ).toEqual(['keep']);
   });
+
+  it('filters root field arguments for non-default query type', () => {
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        schema {
+          query: Root
+        }
+        type Root {
+          field(keep: String, omit: String): String
+        }
+      `,
+    });
+
+    const filtered = filterSchema({
+      schema,
+      argumentFilter(typeName, fieldName, argName) {
+        if (typeName === 'Root' && fieldName === 'field' && argName === 'omit') {
+          return false;
+        }
+        return true;
+      },
+    });
+
+    expect(
+      (filtered.getType('Root') as GraphQLObjectType)
+        .getFields()
+        ['field'].args.map(arg => arg.name),
+    ).toEqual(['keep']);
+  });
 });

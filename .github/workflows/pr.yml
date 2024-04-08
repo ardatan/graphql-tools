@@ -33,11 +33,3 @@ jobs:
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
       npmToken: ${{ secrets.NODE_AUTH_TOKEN }}
-
-  algolia:
-    uses: the-guild-org/shared-config/.github/workflows/algolia-integrity.yml@main
-    with:
-      domain: https://www.the-guild.dev/graphql/tools/
-      source: 'Tools'
-    secrets:
-      githubToken: ${{ secrets.GITHUB_TOKEN }}

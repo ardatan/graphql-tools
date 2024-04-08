@@ -15,6 +15,7 @@ import {
 } from 'graphql';
 import { DelegationContext, SubschemaConfig, Transform } from '@graphql-tools/delegate';
 import {
+  astFromValueUntyped,
   ExecutionRequest,
   ExecutionResult,
   ResultVisitorMap,
@@ -194,7 +195,12 @@ export default class MapLeafValues<TContext = Record<string, any>>
           if (argValue?.kind === Kind.VARIABLE) {
             variableValues[argValue.name.value] = transformedValue;
           } else {
-            const newValueNode = astFromValue(transformedValue, argType);
+            let newValueNode: any;
+            try {
+              newValueNode = astFromValue(transformedValue, argType);
+            } catch (e) {
+              newValueNode = astFromValueUntyped(transformedValue);
+            }
             if (newValueNode != null) {
               argumentNodeMap[argName] = {
                 ...argumentNode,

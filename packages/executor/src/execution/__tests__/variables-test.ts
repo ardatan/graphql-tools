@@ -1,3 +1,5 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { inspect } from 'cross-inspect';
 import {
   GraphQLArgumentConfig,
   GraphQLEnumType,
@@ -12,7 +14,6 @@ import {
   Kind,
   parse,
 } from 'graphql';
-import { inspect } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { executeSync } from '../execute.js';
 import { getVariableValues } from '../values.js';

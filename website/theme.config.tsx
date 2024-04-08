@@ -1,6 +1,6 @@
 /* eslint sort-keys: error */
 import { useRouter } from 'next/router';
-import { defineConfig, Giscus, useTheme } from '@theguild/components';
+import { defineConfig, Giscus, PRODUCTS, useTheme } from '@theguild/components';
 
 export default defineConfig({
   docsRepositoryBase: 'https://github.com/ardatan/graphql-tools/tree/master/website',
@@ -27,5 +27,7 @@ export default defineConfig({
       </>
     );
   },
-  siteName: 'TOOLS',
+  websiteName: 'GraphQL-Tools',
+  description: PRODUCTS.TOOLS.title,
+  logo: PRODUCTS.TOOLS.logo({ className: 'w-9' }),
 });

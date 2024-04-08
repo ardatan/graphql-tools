@@ -6,17 +6,19 @@ import {
   OperationTypeNode,
   validate,
 } from 'graphql';
-import { ValueOrPromise } from 'value-or-promise';
 import { getBatchingExecutor } from '@graphql-tools/batch-execute';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import {
   ExecutionRequest,
+  ExecutionResult,
   Executor,
   getDefinedRootType,
   getOperationASTFromRequest,
   isAsyncIterable,
+  isPromise,
   mapAsyncIterator,
   Maybe,
+  MaybeAsyncIterable,
   memoize1,
 } from '@graphql-tools/utils';
 import { applySchemaTransforms } from './applySchemaTransforms.js';
@@ -100,16 +102,21 @@ export function delegateRequest<
 
   const executor = getExecutor(delegationContext);
 
-  return new ValueOrPromise(() => executor(processedRequest))
-    .then(originalResult => {
-      if (isAsyncIterable(originalResult)) {
-        const iterator = originalResult[Symbol.asyncIterator]();
-        // "subscribe" to the subscription result and map the result through the transforms
-        return mapAsyncIterator(iterator, result => transformer.transformResult(result));
-      }
-      return transformer.transformResult(originalResult);
-    })
-    .resolve();
+  const result$ = executor(processedRequest);
+
+  function handleExecutorResult(executorResult: MaybeAsyncIterable<ExecutionResult<any>>) {
+    if (isAsyncIterable(executorResult)) {
+      const iterator = executorResult[Symbol.asyncIterator]();
+      // "subscribe" to the subscription result and map the result through the transforms
+      return mapAsyncIterator(iterator, result => transformer.transformResult(result));
+    }
+    return transformer.transformResult(executorResult);
+  }
+
+  if (isPromise(result$)) {
+    return result$.then(handleExecutorResult);
+  }
+  return handleExecutorResult(result$);
 }
 
 function getDelegationContext<TContext extends Record<string, any>>({

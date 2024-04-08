@@ -1,34 +1,32 @@
-import { GraphQLSchema } from 'graphql';
-import { Plugin } from 'graphql-yoga';
-import { useExecutor as useEnvelopExecutor } from '@graphql-tools/executor-envelop';
+import type { Plugin } from 'graphql-yoga';
+import {
+  ExecutorPluginOpts,
+  useExecutor as useEnvelopExecutor,
+} from '@graphql-tools/executor-envelop';
 import { Executor } from '@graphql-tools/utils';
-import { schemaFromExecutor } from '@graphql-tools/wrap';
 
-export function useExecutor(executor: Executor): Plugin {
-  let schema: GraphQLSchema;
+export function useExecutor(
+  executor: Executor,
+  opts?: ExecutorPluginOpts,
+): Plugin & { invalidateSupergraph: () => void } {
+  const envelopPlugin = useEnvelopExecutor(executor, opts);
   return {
     onPluginInit({ addPlugin }) {
       addPlugin(
         // @ts-expect-error TODO: fix typings
-        useEnvelopExecutor(executor),
+        envelopPlugin,
       );
     },
-    onRequestParse() {
+    onRequestParse({ serverContext }) {
       return {
-        async onRequestParseDone() {
-          if (!schema) {
-            schema = await schemaFromExecutor(executor);
+        onRequestParseDone() {
+          envelopPlugin.ensureSchema(serverContext);
+          if (envelopPlugin.pluginCtx.schemaSetPromise$) {
+            return envelopPlugin.pluginCtx.schemaSetPromise$ as Promise<void>;
           }
         },
       };
     },
-    onEnveloped({ setSchema }) {
-      if (!schema) {
-        throw new Error(
-          `You provide a promise of a schema but it hasn't been resolved yet. Make sure you use this plugin with GraphQL Yoga.`,
-        );
-      }
-      setSchema(schema);
-    },
+    invalidateSupergraph: envelopPlugin.invalidateSupergraph,
   };
 }

@@ -1,5 +1,94 @@
 # @graphql-tools/utils
 
+## 10.1.2
+
+### Patch Changes
+
+- [`fff2399`](https://github.com/ardatan/graphql-tools/commit/fff2399fc42cdf41d88925fe1f6681c68f002846) Thanks [@ardatan](https://github.com/ardatan)! - Respect `toJSON` in `astFromValueUntyped`
+
+## 10.1.1
+
+### Patch Changes
+
+- [#5931](https://github.com/ardatan/graphql-tools/pull/5931) [`baf3c28`](https://github.com/ardatan/graphql-tools/commit/baf3c28f43dcfafffd15386daeb153bc2895c1b3) Thanks [@henryqdineen](https://github.com/henryqdineen)! - fix filterSchema argument filter for schema with non-default root types
+
+## 10.1.0
+
+### Minor Changes
+
+- [#5924](https://github.com/ardatan/graphql-tools/pull/5924) [`f3ea7a5`](https://github.com/ardatan/graphql-tools/commit/f3ea7a59eecd40ba3928317aee159c79aa93e29e) Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Add `onEnd` on `mapAsyncIterator`.
+
+## 10.0.13
+
+### Patch Changes
+
+- [#5795](https://github.com/ardatan/graphql-tools/pull/5795) [`f85c093`](https://github.com/ardatan/graphql-tools/commit/f85c093a8dd033efc613b93c25d15cfb0c2df7d3) Thanks [@shYkiSto](https://github.com/shYkiSto)! - prevent race conditions when validating documents
+
+## 10.0.12
+
+### Patch Changes
+
+- [`5ae0394`](https://github.com/ardatan/graphql-tools/commit/5ae039445b07fd11dea1f2b5a6a4154ad4f2a6ab) Thanks [@ardatan](https://github.com/ardatan)! - Print comments as blocks
+
+## 10.0.11
+
+### Patch Changes
+
+- [#4886](https://github.com/ardatan/graphql-tools/pull/4886)
+  [`d3fe8d8c`](https://github.com/ardatan/graphql-tools/commit/d3fe8d8c153e94de9294bff5fe3128607bb102bc)
+  Thanks [@ldiqual](https://github.com/ardatan)! - Print debug timer logs by respecting the filters
+  in DEBUG env var
+
+## 10.0.10
+
+### Patch Changes
+
+- [`a570a601`](https://github.com/ardatan/graphql-tools/commit/a570a601d91456ca81e3a26a5e3cb339edd11a62)
+  Thanks [@ardatan](https://github.com/ardatan)! - Add respectArrays flag to extensions merging
+
+## 10.0.9
+
+### Patch Changes
+
+- [`e1fb8bb8`](https://github.com/ardatan/graphql-tools/commit/e1fb8bb85b2c075ca37d510d5ffd56031d8898da)
+  Thanks [@ardatan](https://github.com/ardatan)! - Merge directives in the extensions
+
+## 10.0.8
+
+### Patch Changes
+
+- [`accd58fd`](https://github.com/ardatan/graphql-tools/commit/accd58fdcf2698422f7e99173206168a84fe17a8)
+  Thanks [@ardatan](https://github.com/ardatan)! - Extract `inspect` into the new `cross-inspect`
+  package
+
+- Updated dependencies
+  [[`accd58fd`](https://github.com/ardatan/graphql-tools/commit/accd58fdcf2698422f7e99173206168a84fe17a8)]:
+  - cross-inspect@1.0.0
+
+## 10.0.7
+
+### Patch Changes
+
+- [`b4c17591`](https://github.com/ardatan/graphql-tools/commit/b4c175911bf616e3df6b4fe64c6a169b0dc4d0c7)
+  Thanks [@ardatan](https://github.com/ardatan)! - Convert GraphQLError like originalError property
+  to a GraphQLError
+
+## 10.0.6
+
+### Patch Changes
+
+- [`c52de863`](https://github.com/ardatan/graphql-tools/commit/c52de8638edeec3de6dadff6f3e66f99db16ed78)
+  Thanks [@ardatan](https://github.com/ardatan)! - fix isValid path regex for paths including =
+  #5551
+
+## 10.0.5
+
+### Patch Changes
+
+- [`a59fb765`](https://github.com/ardatan/graphql-tools/commit/a59fb765a1256b914f1728283d793d61b66bdf89)
+  Thanks [@ardatan](https://github.com/ardatan)! - Optimizations to get better performance in query
+  planning
+
 ## 10.0.4
 
 ### Patch Changes
@@ -748,7 +837,7 @@
 
   ```js
   {
-    mydir: [{ arg: 'first' }, { arg: 'second' }];
+    mydir: [{ arg: "first" }, { arg: "second" }];
   }
   ```
 

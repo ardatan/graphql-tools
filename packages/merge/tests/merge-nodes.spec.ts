@@ -280,6 +280,27 @@ describe('Merge Nodes', () => {
         'Unable to merge GraphQL type "A": Field "f1" already defined with a different type. Declared as "String", but you tried to override with "Int"',
       );
     });
+
+    it('Should merge GraphQL Types and merge directives (when the directive is inherited from the Object prototype)', () => {
+      const type1 = parse(/* GraphQL */ `
+        type A @toString {
+          f1: String
+        }
+      `);
+      const type2 = parse(/* GraphQL */ `
+        type A @test2 {
+          f2: Int
+        }
+      `);
+      const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
+      const type = merged['A'];
+      assertObjectTypeDefinitionNode(type);
+      assertSome(type.directives);
+
+      expect(type.directives.length).toBe(2);
+      expect(type.directives[0].name.value).toBe('toString');
+      expect(type.directives[1].name.value).toBe('test2');
+    });
   });
 
   describe('enum', () => {
