@@ -1,5 +1,12 @@
 # @graphql-tools/stitch
 
+## 9.1.0
+
+### Minor Changes
+
+- [#5162](https://github.com/ardatan/graphql-tools/pull/5162) [`27b6f49`](https://github.com/ardatan/graphql-tools/commit/27b6f49c67d4b3fca26d90dcaaef37ff61fe9d0a) Thanks [@asodeur](https://github.com/asodeur)! - Adding the ability to return non-scalar types from computed fields. Computed fields can now return
+  object types (local or stitched), interfaces, unions, or enums.
+
 ## 9.0.5
 
 ### Patch Changes
