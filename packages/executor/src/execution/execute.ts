@@ -52,6 +52,7 @@ import {
   promiseReduce,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { invariant } from './invariant.js';
 import { promiseForObject } from './promiseForObject.js';
@@ -689,6 +690,7 @@ function executeField(
       // Note: we don't rely on a `catch` method, but we do expect "thenable"
       // to take a second callback for the error case.
       return completed.then(undefined, rawError => {
+        rawError = coerceError(rawError);
         const error = locatedError(rawError, fieldNodes, pathToArray(path));
         const handledError = handleFieldError(error, returnType, errors);
         filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
@@ -697,7 +699,8 @@ function executeField(
     }
     return completed;
   } catch (rawError) {
-    const error = locatedError(rawError, fieldNodes, pathToArray(path));
+    const coercedError = coerceError(rawError);
+    const error = locatedError(coercedError, fieldNodes, pathToArray(path));
     const handledError = handleFieldError(error, returnType, errors);
     filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
     return handledError;
@@ -954,7 +957,8 @@ async function completeAsyncIteratorValue(
         break;
       }
     } catch (rawError) {
-      const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
+      const coercedError = coerceError(rawError);
+      const error = locatedError(coercedError, fieldNodes, pathToArray(itemPath));
       completedResults.push(handleFieldError(error, itemType, errors));
       break;
     }
@@ -1113,6 +1117,7 @@ function completeListItemValue(
       // to take a second callback for the error case.
       completedResults.push(
         completedItem.then(undefined, rawError => {
+          rawError = coerceError(rawError);
           const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
           const handledError = handleFieldError(error, itemType, errors);
           filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
@@ -1125,7 +1130,8 @@ function completeListItemValue(
 
     completedResults.push(completedItem);
   } catch (rawError) {
-    const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
+    const coercedError = coerceError(rawError);
+    const error = locatedError(coercedError, fieldNodes, pathToArray(itemPath));
     const handledError = handleFieldError(error, itemType, errors);
     filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
     completedResults.push(handledError);
@@ -1799,6 +1805,7 @@ function executeStreamField(
         // Note: we don't rely on a `catch` method, but we do expect "thenable"
         // to take a second callback for the error case.
         completedItem = completedItem.then(undefined, rawError => {
+          rawError = coerceError(rawError);
           const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
           const handledError = handleFieldError(error, itemType, asyncPayloadRecord.errors);
           filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
@@ -1806,7 +1813,8 @@ function executeStreamField(
         });
       }
     } catch (rawError) {
-      const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
+      const coercedError = coerceError(rawError);
+      const error = locatedError(coercedError, fieldNodes, pathToArray(itemPath));
       completedItem = handleFieldError(error, itemType, asyncPayloadRecord.errors);
       filterSubsequentPayloads(exeContext, itemPath, asyncPayloadRecord);
     }
@@ -1853,7 +1861,8 @@ async function executeStreamIteratorItem(
     }
     item = value;
   } catch (rawError) {
-    const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
+    const coercedError = coerceError(rawError);
+    const error = locatedError(coercedError, fieldNodes, pathToArray(itemPath));
     const value = handleFieldError(error, itemType, asyncPayloadRecord.errors);
     // don't continue if iterator throws
     return { done: true, value };
