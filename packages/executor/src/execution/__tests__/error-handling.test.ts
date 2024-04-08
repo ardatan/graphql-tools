@@ -79,9 +79,14 @@ describe('Error Handling', () => {
       if (isAsyncIterable(result)) {
         throw new Error('Expected a result, but got an async iterable');
       }
-      expect(result.errors?.[0]?.message).toBe(
-        "Expected ',' or '}' after property value in JSON at position 17",
-      );
+      const errorMessage = result.errors?.[0]?.message;
+      if (process.versions['node'].startsWith('18.')) {
+        expect(errorMessage).toBe('Unexpected end of JSON input');
+      } else {
+        expect(errorMessage).toBe(
+          "Expected ',' or '}' after property value in JSON at position 17",
+        );
+      }
     });
   }
 });
