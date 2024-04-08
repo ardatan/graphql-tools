@@ -39,7 +39,7 @@
     "prettier:check": "prettier --cache --ignore-path .prettierignore --check .",
     "release": "changeset publish",
     "test": "jest --no-watchman",
-    "test:leaks": "jest --no-watchman --detectOpenHandles --detectLeaks --logHeapUsage",
+    "test:leaks": "cross-env \"LEAK_TEST=1\" jest --no-watchman --detectOpenHandles --detectLeaks --logHeapUsage",
     "ts:check": "tsc --noEmit"
   },
   "devDependencies": {
