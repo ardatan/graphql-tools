@@ -2437,10 +2437,10 @@
   dependencies:
     tslib "^2.4.0"
 
-"@theguild/components@6.5.0":
-  version "6.5.0"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.5.0.tgz#298893dde7136f9cca480c5c80f57381f67820f5"
-  integrity sha512-up/CsJH2guP363RrljUd9ReIqPNcjR5K7y/boB9IoTMympjt+gLqh49CCtpiSu/wsnpcI5KIsHP4QD4TuzqPtg==
+"@theguild/components@6.5.1":
+  version "6.5.1"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.5.1.tgz#33953d7f070d234f818cb4951b398229b5a8fcf2"
+  integrity sha512-mWKEVaJsPxjUhHcjiqPxZgg8GrW7TddEVOinoZ8ND5gM+6lPgk3OUU2y/vFg4rVG25haippZ/BzH/budkb7KAg==
   dependencies:
     "@giscus/react" "3.0.0"
     "@next/bundle-analyzer" "13.4.2"
@@ -2450,7 +2450,7 @@
     nextra "3.0.0-alpha.22"
     nextra-theme-docs "3.0.0-alpha.22"
     react-paginate "8.2.0"
-    react-player "2.15.1"
+    react-player "2.16.0"
     remark-mdx-disable-explicit-jsx "0.1.0"
     search-insights "2.13.0"
     semver "^7.3.8"
@@ -10558,10 +10558,10 @@ react-paginate@8.2.0:
   dependencies:
     prop-types "^15"
 
-react-player@2.15.1:
-  version "2.15.1"
-  resolved "https://registry.yarnpkg.com/react-player/-/react-player-2.15.1.tgz#a5905126a6c5ba2667391a0d72da9f3a1ab57d54"
-  integrity sha512-ni1XFuYZuhIKKdeFII+KRLmIPcvCYlyXvtSMhNOgssdfnSovmakBtBTW2bxowPvmpKy5BTR4jC4CF79ucgHT+g==
+react-player@2.16.0:
+  version "2.16.0"
+  resolved "https://registry.yarnpkg.com/react-player/-/react-player-2.16.0.tgz#89070700b03f5a5ded9f0b3165d4717390796481"
+  integrity sha512-mAIPHfioD7yxO0GNYVFD1303QFtI3lyyQZLY229UEAp/a10cSW+hPcakg0Keq8uWJxT2OiT/4Gt+Lc9bD6bJmQ==
   dependencies:
     deepmerge "^4.0.0"
     load-script "^1.0.0"
