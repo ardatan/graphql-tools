@@ -2437,10 +2437,10 @@
   dependencies:
     tslib "^2.4.0"
 
-"@theguild/components@6.5.1":
-  version "6.5.1"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.5.1.tgz#33953d7f070d234f818cb4951b398229b5a8fcf2"
-  integrity sha512-mWKEVaJsPxjUhHcjiqPxZgg8GrW7TddEVOinoZ8ND5gM+6lPgk3OUU2y/vFg4rVG25haippZ/BzH/budkb7KAg==
+"@theguild/components@6.5.3":
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.5.3.tgz#4d1e1606b438ca649910f486ff02cfcd23ceb35e"
+  integrity sha512-ZVetOUe06X9ji091F46gwGZdB3eM9vykbCOjsU6OYFJ+Ft/ZHvH3pLVZ4ObPTA1iRgNpd38e34DXTohnPoRNDA==
   dependencies:
     "@giscus/react" "3.0.0"
     "@next/bundle-analyzer" "13.4.2"
@@ -2452,7 +2452,6 @@
     react-paginate "8.2.0"
     react-player "2.16.0"
     remark-mdx-disable-explicit-jsx "0.1.0"
-    search-insights "2.13.0"
     semver "^7.3.8"
 
 "@theguild/prettier-config@2.0.6":
@@ -11080,11 +11079,6 @@ scuid@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/scuid/-/scuid-1.1.0.tgz#d3f9f920956e737a60f72d0e4ad280bf324d5dab"
   integrity sha512-MuCAyrGZcTLfQoH2XoBlQ8C6bzwN88XT/0slOGz0pn8+gIP85BOAfYa44ZXQUTOwRwPU0QvgU+V+OSajl/59Xg==
-
-search-insights@2.13.0:
-  version "2.13.0"
-  resolved "https://registry.yarnpkg.com/search-insights/-/search-insights-2.13.0.tgz#a79fdcf4b5dad2fba8975b06f2ebc37a865032b7"
-  integrity sha512-Orrsjf9trHHxFRuo9/rzm0KIWmgzE8RMlZMzuhZOJ01Rnz3D0YBAe+V6473t6/H6c7irs6Lt48brULAiRWb3Vw==
 
 section-matter@^1.0.0:
   version "1.0.0"
