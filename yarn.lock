@@ -5543,10 +5543,10 @@ eslint-plugin-import@2.29.1:
     semver "^6.3.1"
     tsconfig-paths "^3.15.0"
 
-eslint-plugin-n@17.2.0:
-  version "17.2.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-n/-/eslint-plugin-n-17.2.0.tgz#a47baac8e9581c8aeafe2555f6014f2904709de4"
-  integrity sha512-XBkFQxjTFKy9oc925ezHcDoZ8VLdGfxRkdZf0poR4TjC+zvm28pG2Tc7ZZpD1/UxSAzbw6Zz0WpnpUX3KruAAA==
+eslint-plugin-n@17.2.1:
+  version "17.2.1"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-n/-/eslint-plugin-n-17.2.1.tgz#20aa5008dce05af9041b70abb659a2308416d977"
+  integrity sha512-uW1+df2bo06kR7ix6nB614RUlvjRPrYxlaX832O6e1MCJp4V7YozEdvMgCYuvn4ltnjPu1FVYhQ2KRrmTNoJfg==
   dependencies:
     "@eslint-community/eslint-utils" "^4.4.0"
     enhanced-resolve "^5.15.0"
