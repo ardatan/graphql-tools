@@ -1,5 +1,16 @@
 # @graphql-tools/utils
 
+## 10.1.3
+
+### Patch Changes
+
+- [#6055](https://github.com/ardatan/graphql-tools/pull/6055) [`4093f70`](https://github.com/ardatan/graphql-tools/commit/4093f7043a195fda1f2f8315e3cb1d4d05723415) Thanks [@enisdenjo](https://github.com/enisdenjo)! - Disallow new lines in paths when checking with `isValidPath`
+
+  A string may sometimes look like a path but is not (like an SDL of a simple
+  GraphQL schema). To make sure we don't yield false-positives in such cases,
+  we disallow new lines in paths (even though most Unix systems support new
+  lines in file names).
+
 ## 10.1.2
 
 ### Patch Changes
