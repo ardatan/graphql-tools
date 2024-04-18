@@ -10,6 +10,9 @@ export function getKeyForFederation<TRoot>(root: TRoot): TRoot {
 }
 
 export function getKeyFnForFederation(typeName: string, keys: string[]) {
+  if (keys.some(key => key.includes('{'))) {
+    return getKeyForFederation;
+  }
   const allKeyProps = keys.flatMap(key => key.split(' '));
   if (allKeyProps.length > 1) {
     const typeNameEntry = ['__typename', typeName];
@@ -27,6 +30,11 @@ export function getKeyFnForFederation(typeName: string, keys: string[]) {
 }
 
 export function getCacheKeyFnFromKey(key: string) {
+  if (key.includes('{')) {
+    return function cacheKeyFn(root: any) {
+      return JSON.stringify(root);
+    };
+  }
   const keyProps = key.split(' ');
   if (keyProps.length > 1) {
     return function cacheKeyFn(root: any) {
