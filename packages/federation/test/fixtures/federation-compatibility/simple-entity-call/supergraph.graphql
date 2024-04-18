@@ -43,16 +43,8 @@ directive @link(
 scalar join__FieldSet
 
 enum join__Graph {
-  EMAIL
-    @join__graph(
-      name: "email"
-      url: "https://federation-compatibility.theguild.workers.dev/simple-entity-call/email"
-    )
-  NICKNAME
-    @join__graph(
-      name: "nickname"
-      url: "https://federation-compatibility.theguild.workers.dev/simple-entity-call/nickname"
-    )
+  EMAIL @join__graph(name: "email", url: "http://localhost:4200/simple-entity-call/email")
+  NICKNAME @join__graph(name: "nickname", url: "http://localhost:4200/simple-entity-call/nickname")
 }
 
 scalar link__Import

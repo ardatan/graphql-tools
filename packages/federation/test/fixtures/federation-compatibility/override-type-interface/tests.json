@@ -1,0 +1,59 @@
+[
+  {
+    "query": "\n      query {\n        feed {\n          id\n          createdAt\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "feed": [
+          {
+            "id": "i1",
+            "createdAt": "i1-createdAt"
+          },
+          {
+            "id": "i2",
+            "createdAt": "i2-createdAt"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        feed {\n          ... on TextPost {\n            id\n            body\n          }\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "feed": [{}, {}]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        anotherFeed {\n          createdAt\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "anotherFeed": [
+          {
+            "createdAt": "i1-createdAt"
+          },
+          {
+            "createdAt": "i2-createdAt"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      {\n        anotherFeed {\n          createdAt\n          id\n          ... on ImagePost {\n            createdAt\n            id\n          }\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "anotherFeed": [
+          {
+            "createdAt": "i1-createdAt",
+            "id": "i1"
+          },
+          {
+            "createdAt": "i2-createdAt",
+            "id": "i2"
+          }
+        ]
+      }
+    }
+  }
+]

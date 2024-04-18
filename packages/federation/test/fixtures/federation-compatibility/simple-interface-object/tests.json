@@ -1,0 +1,133 @@
+[
+  {
+    "query": "\n      query {\n        anotherUsers {\n          id\n          name\n          username\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "anotherUsers": [
+          {
+            "id": "u1",
+            "name": "u1-name",
+            "username": "u1-username"
+          },
+          {
+            "id": "u2",
+            "name": "u2-name",
+            "username": "u2-username"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        users {\n          id\n          name\n          username\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "users": [
+          {
+            "id": "u1",
+            "name": "u1-name",
+            "username": "u1-username"
+          },
+          {
+            "id": "u2",
+            "name": "u2-name",
+            "username": "u2-username"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        anotherUsers {\n          ... on User {\n            age\n          }\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "anotherUsers": [
+          {
+            "age": 11
+          },
+          {
+            "age": 22
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        users {\n          ... on User {\n            age\n          }\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "users": [
+          {
+            "age": 11
+          },
+          {
+            "age": 22
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        anotherUsers {\n          ... on User {\n            age\n            id\n            name\n            username\n          }\n          id\n          name\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "anotherUsers": [
+          {
+            "age": 11,
+            "id": "u1",
+            "name": "u1-name",
+            "username": "u1-username"
+          },
+          {
+            "age": 22,
+            "id": "u2",
+            "name": "u2-name",
+            "username": "u2-username"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        users {\n          ... on User {\n            age\n            id\n            name\n            username\n          }\n          id\n          name\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "users": [
+          {
+            "age": 11,
+            "id": "u1",
+            "name": "u1-name",
+            "username": "u1-username"
+          },
+          {
+            "age": 22,
+            "id": "u2",
+            "name": "u2-name",
+            "username": "u2-username"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        users {\n          ... on User {\n            age\n            id\n            name\n            username\n          }\n          id\n          name\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "users": [
+          {
+            "age": 11,
+            "id": "u1",
+            "name": "u1-name",
+            "username": "u1-username"
+          },
+          {
+            "age": 22,
+            "id": "u2",
+            "name": "u2-name",
+            "username": "u2-username"
+          }
+        ]
+      }
+    }
+  }
+]

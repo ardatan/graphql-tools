@@ -139,7 +139,8 @@ export function getSubschemasFromSupergraphSdl({
           const fieldDefinitionNodesOfSubgraph: FieldDefinitionNode[] = [];
           typeNode.fields?.forEach(fieldNode => {
             const joinFieldDirectives = fieldNode.directives?.filter(
-              directiveNode => directiveNode.name.value === 'join__field',
+              directiveNode =>
+                directiveNode.name.value === 'join__field' && directiveNode.arguments?.length,
             );
             let notInSubgraph = true;
             joinFieldDirectives?.forEach(joinFieldDirectiveNode => {
@@ -691,6 +692,7 @@ export function getSubschemasFromSupergraphSdl({
       };
     }
     subschemaMap.set(subgraphName, {
+      name: subgraphName,
       schema,
       executor,
       merge: mergeConfig,

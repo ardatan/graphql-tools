@@ -21,6 +21,7 @@ interface ISubschema<K = any, V = any, C = K, TContext = Record<string, any>>
 export class Subschema<K = any, V = any, C = K, TContext = Record<string, any>>
   implements ISubschema<K, V, C, TContext>
 {
+  public name?: string;
   public schema: GraphQLSchema;
 
   public executor?: Executor<TContext>;
@@ -34,6 +35,7 @@ export class Subschema<K = any, V = any, C = K, TContext = Record<string, any>>
   public merge?: Record<string, MergedTypeConfig<any, any, TContext>>;
 
   constructor(config: SubschemaConfig<K, V, C, TContext>) {
+    this.name = config.name;
     this.schema = config.schema;
 
     this.executor = config.executor;

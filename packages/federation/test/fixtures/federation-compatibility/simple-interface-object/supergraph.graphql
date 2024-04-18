@@ -40,15 +40,11 @@ directive @link(
   import: [link__Import]
 ) repeatable on SCHEMA
 
-type Book @join__type(graph: A) @join__type(graph: B) {
-  title: String!
-}
-
 scalar join__FieldSet
 
 enum join__Graph {
-  A @join__graph(name: "a", url: "http://localhost:4200/union-intersection/a")
-  B @join__graph(name: "b", url: "http://localhost:4200/union-intersection/b")
+  A @join__graph(name: "a", url: "http://localhost:4200/simple-interface-object/a")
+  B @join__graph(name: "b", url: "http://localhost:4200/simple-interface-object/b")
 }
 
 scalar link__Import
@@ -65,19 +61,24 @@ enum link__Purpose {
   EXECUTION
 }
 
-union Media
-  @join__type(graph: A)
-  @join__type(graph: B)
-  @join__unionMember(graph: A, member: "Book")
-  @join__unionMember(graph: B, member: "Book")
-  @join__unionMember(graph: B, member: "Movie") =
-  | Book
-  | Movie
-
-type Movie @join__type(graph: B) {
-  title: String!
+interface NodeWithName
+  @join__type(graph: A, key: "id")
+  @join__type(graph: B, key: "id", isInterfaceObject: true) {
+  id: ID!
+  name: String @join__field(graph: A)
+  username: String @join__field(graph: B)
 }
 
 type Query @join__type(graph: A) @join__type(graph: B) {
-  media: Media
+  users: [NodeWithName!]! @join__field(graph: A)
+  anotherUsers: [NodeWithName] @join__field(graph: B)
+}
+
+type User implements NodeWithName
+  @join__implements(graph: A, interface: "NodeWithName")
+  @join__type(graph: A, key: "id") {
+  id: ID!
+  name: String
+  age: Int
+  username: String @join__field
 }

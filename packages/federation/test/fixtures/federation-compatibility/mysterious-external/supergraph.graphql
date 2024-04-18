@@ -43,16 +43,8 @@ directive @link(
 scalar join__FieldSet
 
 enum join__Graph {
-  PRICE
-    @join__graph(
-      name: "price"
-      url: "https://federation-compatibility.theguild.workers.dev/mysterious-external/price"
-    )
-  PRODUCT
-    @join__graph(
-      name: "product"
-      url: "https://federation-compatibility.theguild.workers.dev/mysterious-external/product"
-    )
+  PRICE @join__graph(name: "price", url: "http://localhost:4200/mysterious-external/price")
+  PRODUCT @join__graph(name: "product", url: "http://localhost:4200/mysterious-external/product")
 }
 
 scalar link__Import

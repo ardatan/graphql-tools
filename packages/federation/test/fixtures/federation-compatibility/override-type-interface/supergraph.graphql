@@ -40,15 +40,27 @@ directive @link(
   import: [link__Import]
 ) repeatable on SCHEMA
 
-type Book @join__type(graph: A) @join__type(graph: B) {
-  title: String!
+interface AnotherPost @join__type(graph: B) {
+  id: ID!
+  createdAt: String!
+}
+
+type ImagePost implements Post & AnotherPost
+  @join__implements(graph: A, interface: "Post")
+  @join__implements(graph: B, interface: "AnotherPost")
+  @join__type(graph: A, key: "id")
+  @join__type(graph: B, key: "id") {
+  id: ID!
+  createdAt: String!
+    @join__field(graph: A, usedOverridden: true)
+    @join__field(graph: B, override: "a")
 }
 
 scalar join__FieldSet
 
 enum join__Graph {
-  A @join__graph(name: "a", url: "http://localhost:4200/union-intersection/a")
-  B @join__graph(name: "b", url: "http://localhost:4200/union-intersection/b")
+  A @join__graph(name: "a", url: "http://localhost:4200/override-type-interface/a")
+  B @join__graph(name: "b", url: "http://localhost:4200/override-type-interface/b")
 }
 
 scalar link__Import
@@ -65,19 +77,20 @@ enum link__Purpose {
   EXECUTION
 }
 
-union Media
-  @join__type(graph: A)
-  @join__type(graph: B)
-  @join__unionMember(graph: A, member: "Book")
-  @join__unionMember(graph: B, member: "Book")
-  @join__unionMember(graph: B, member: "Movie") =
-  | Book
-  | Movie
-
-type Movie @join__type(graph: B) {
-  title: String!
+interface Post @join__type(graph: A) @join__type(graph: B) {
+  id: ID!
+  createdAt: String!
 }
 
 type Query @join__type(graph: A) @join__type(graph: B) {
-  media: Media
+  feed: [Post] @join__field(graph: A)
+  anotherFeed: [AnotherPost] @join__field(graph: B)
+}
+
+type TextPost implements Post
+  @join__implements(graph: B, interface: "Post")
+  @join__type(graph: B, key: "id") {
+  id: ID!
+  createdAt: String!
+  body: String!
 }

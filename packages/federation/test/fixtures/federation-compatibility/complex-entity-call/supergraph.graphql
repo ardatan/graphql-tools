@@ -49,26 +49,10 @@ type Category @join__type(graph: PRICE, key: "id tag") @join__type(graph: PRODUC
 scalar join__FieldSet
 
 enum join__Graph {
-  LINK
-    @join__graph(
-      name: "link"
-      url: "https://federation-compatibility.theguild.workers.dev/complex-entity-call/link"
-    )
-  LIST
-    @join__graph(
-      name: "list"
-      url: "https://federation-compatibility.theguild.workers.dev/complex-entity-call/list"
-    )
-  PRICE
-    @join__graph(
-      name: "price"
-      url: "https://federation-compatibility.theguild.workers.dev/complex-entity-call/price"
-    )
-  PRODUCTS
-    @join__graph(
-      name: "products"
-      url: "https://federation-compatibility.theguild.workers.dev/complex-entity-call/products"
-    )
+  LINK @join__graph(name: "link", url: "http://localhost:4200/complex-entity-call/link")
+  LIST @join__graph(name: "list", url: "http://localhost:4200/complex-entity-call/list")
+  PRICE @join__graph(name: "price", url: "http://localhost:4200/complex-entity-call/price")
+  PRODUCTS @join__graph(name: "products", url: "http://localhost:4200/complex-entity-call/products")
 }
 
 scalar link__Import

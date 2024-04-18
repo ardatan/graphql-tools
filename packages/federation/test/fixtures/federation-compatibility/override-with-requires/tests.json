@@ -1,0 +1,57 @@
+[
+  {
+    "query": "\n      {\n        userInA {\n          id\n          name\n          aName\n          cName\n        }\n        userInB {\n          id\n          name\n          aName\n          cName\n        }\n        userInC {\n          id\n          name\n          aName\n          cName\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "userInA": {
+          "id": "u1",
+          "name": "u1-name",
+          "aName": "a__u1-name",
+          "cName": "c__u1-name"
+        },
+        "userInB": {
+          "id": "u2",
+          "name": "u2-name",
+          "aName": "a__u2-name",
+          "cName": "c__u2-name"
+        },
+        "userInC": {
+          "id": "u3",
+          "name": "u3-name",
+          "aName": "a__u3-name",
+          "cName": "c__u3-name"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        userInC {\n          cName\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "userInC": {
+          "cName": "c__u3-name"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        userInA {\n          cName\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "userInA": {
+          "cName": "c__u1-name"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        userInA {\n          aName\n        }\n      }\n    ",
+    "expectedResult": {
+      "data": {
+        "userInA": {
+          "aName": "a__u1-name"
+        }
+      }
+    }
+  }
+]

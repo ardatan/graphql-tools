@@ -40,15 +40,12 @@ directive @link(
   import: [link__Import]
 ) repeatable on SCHEMA
 
-type Book @join__type(graph: A) @join__type(graph: B) {
-  title: String!
-}
-
 scalar join__FieldSet
 
 enum join__Graph {
-  A @join__graph(name: "a", url: "http://localhost:4200/union-intersection/a")
-  B @join__graph(name: "b", url: "http://localhost:4200/union-intersection/b")
+  A @join__graph(name: "a", url: "http://localhost:4200/override-with-requires/a")
+  B @join__graph(name: "b", url: "http://localhost:4200/override-with-requires/b")
+  C @join__graph(name: "c", url: "http://localhost:4200/override-with-requires/c")
 }
 
 scalar link__Import
@@ -65,19 +62,21 @@ enum link__Purpose {
   EXECUTION
 }
 
-union Media
-  @join__type(graph: A)
-  @join__type(graph: B)
-  @join__unionMember(graph: A, member: "Book")
-  @join__unionMember(graph: B, member: "Book")
-  @join__unionMember(graph: B, member: "Movie") =
-  | Book
-  | Movie
-
-type Movie @join__type(graph: B) {
-  title: String!
+type Query @join__type(graph: A) @join__type(graph: B) @join__type(graph: C) {
+  userInA: User @join__field(graph: A)
+  userInB: User @join__field(graph: B)
+  userInC: User @join__field(graph: C)
 }
 
-type Query @join__type(graph: A) @join__type(graph: B) {
-  media: Media
+type User
+  @join__type(graph: A, key: "id")
+  @join__type(graph: B, key: "id")
+  @join__type(graph: C, key: "id") {
+  id: ID!
+  name: String!
+    @join__field(graph: A, external: true)
+    @join__field(graph: B, override: "c")
+    @join__field(graph: C, external: true)
+  aName: String! @join__field(graph: A, requires: "name")
+  cName: String! @join__field(graph: C, requires: "name")
 }
