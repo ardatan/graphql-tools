@@ -1,0 +1,25 @@
+[
+  {
+    "query": "\n      query {\n        users {\n          id\n          name\n        }\n        accounts {\n          ... on User {\n            id\n            name\n          }\n          ... on Admin {\n            id\n            photo\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "users": [
+          {
+            "id": "n1",
+            "name": "n1-profile"
+          }
+        ],
+        "accounts": [
+          {
+            "id": "n1",
+            "name": "n1-profile"
+          },
+          {
+            "id": "a1",
+            "photo": "a1-photo"
+          }
+        ]
+      }
+    }
+  }
+]

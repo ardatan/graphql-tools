@@ -41,6 +41,11 @@ describe('Federation Compatibility', () => {
               });
             }
           } else {
+            if ('errors' in result && result.errors) {
+              for (const error of result.errors) {
+                console.error(error.message);
+              }
+            }
             expect(result).toMatchObject({
               data: test.expected.data,
             });
