@@ -1,0 +1,18 @@
+type Query {
+  discounts(first: Int = 5): [Discount]
+}
+
+extend type Product @key(fields: "upc") {
+  upc: String! @external
+  discounts: [Discount!]!
+}
+
+extend type Category @key(fields: "id") {
+  id: ID! @external
+  discounts: [Discount!]!
+}
+
+type Discount @key(fields: "id") {
+  id: ID!
+  discount: Int!
+}

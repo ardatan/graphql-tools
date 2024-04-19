@@ -24,6 +24,7 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 import * as accounts from './fixtures/gateway/accounts';
+import * as discount from './fixtures/gateway/discount';
 import * as inventory from './fixtures/gateway/inventory';
 import * as products from './fixtures/gateway/products';
 import * as reviews from './fixtures/gateway/reviews';
@@ -35,6 +36,7 @@ const services = {
   inventory,
   products,
   reviews,
+  discount,
 };
 
 interface ServiceInput {
@@ -109,6 +111,19 @@ const exampleQuery = parse(/* GraphQL */ `
               ...Product
             }
           }
+        }
+      }
+    }
+    productsWithDiscount: topProducts(first: 1) {
+      upc
+      name
+      discounts {
+        id
+      }
+      categories {
+        id
+        discounts {
+          id
         }
       }
     }
@@ -390,7 +405,20 @@ describe('Federation', () => {
         const result = await builtGateway.executor(parse(getIntrospectionQuery()));
         const schema = buildClientSchema(result.data);
         expect(printSchema(lexicographicSortSchema(schema))).toBeSimilarGqlDoc(/* GraphQL */ `
+          type Category {
+            discounts: [Discount!]!
+            id: ID!
+            name: String!
+          }
+
+          type Discount {
+            discount: Int!
+            id: ID!
+          }
+
           type Product {
+            categories: [Category!]!
+            discounts: [Discount!]!
             inStock: Boolean
             name: String
             price: Int
@@ -401,6 +429,7 @@ describe('Federation', () => {
           }
 
           type Query {
+            discounts(first: Int = 5): [Discount]
             me: User
             topProducts(first: Int): [Product]
             users: [User]
@@ -879,6 +908,39 @@ describe('Federation', () => {
                   },
                 ],
                 username: '@complete',
+              },
+            ],
+            productsWithDiscount: [
+              {
+                categories: [
+                  {
+                    discounts: [
+                      {
+                        id: '1',
+                      },
+                      {
+                        id: '2',
+                      },
+                      {
+                        id: '3',
+                      },
+                    ],
+                    id: 'c_1',
+                  },
+                ],
+                discounts: [
+                  {
+                    id: '1',
+                  },
+                  {
+                    id: '2',
+                  },
+                  {
+                    id: '3',
+                  },
+                ],
+                name: 'Table',
+                upc: '1',
               },
             ],
           },
