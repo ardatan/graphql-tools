@@ -1,5 +1,11 @@
 # @graphql-tools/federation
 
+## 1.1.26
+
+### Patch Changes
+
+- [#6071](https://github.com/ardatan/graphql-tools/pull/6071) [`6cf507f`](https://github.com/ardatan/graphql-tools/commit/6cf507fc70d2474c71c8604ab117d01af76376e1) Thanks [@ardatan](https://github.com/ardatan)! - Handle inaccessible enum values
+
 ## 1.1.25
 
 ### Patch Changes

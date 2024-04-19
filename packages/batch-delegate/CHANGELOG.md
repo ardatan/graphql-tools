@@ -1,5 +1,11 @@
 # @graphql-tools/batch-delegate
 
+## 9.0.2
+
+### Patch Changes
+
+- [#5998](https://github.com/ardatan/graphql-tools/pull/5998) [`9eee255`](https://github.com/ardatan/graphql-tools/commit/9eee2550907bf13b6be6d509bf0a059d826a9649) Thanks [@ardatan](https://github.com/ardatan)! - Add parentType name to the batch delegation key
+
 ## 9.0.1
 
 ### Patch Changes
