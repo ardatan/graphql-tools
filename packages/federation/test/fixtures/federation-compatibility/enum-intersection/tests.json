@@ -1,0 +1,55 @@
+[
+  {
+    "query": "\n      query {\n        users {\n          id\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "users": [
+          {
+            "id": "u1"
+          },
+          {
+            "id": "u2"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        users {\n          id\n          type\n        }\n      }\n    ",
+    "expected": {
+      "errors": true,
+      "data": {
+        "users": [
+          {
+            "id": "u1",
+            "type": "REGULAR"
+          },
+          {
+            "id": "u2",
+            "type": null
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        usersByType(type: REGULAR) {\n          id\n          type\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "usersByType": [
+          {
+            "id": "u1",
+            "type": "REGULAR"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        usersByType(type: ANONYMOUS) {\n          id\n          type\n        }\n      }\n    ",
+    "expected": {
+      "errors": true,
+      "data": null
+    }
+  }
+]

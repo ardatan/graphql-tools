@@ -1,0 +1,30 @@
+[
+  {
+    "query": "\n      query {\n        media {\n          ... on Movie {\n            title\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "media": {}
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        media {\n          ... on Book {\n            title\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "media": {
+          "title": "The Lord of the Rings"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        media {\n          ... on Book {\n            title\n          }\n          ... on Movie {\n            title\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "media": {
+          "title": "The Lord of the Rings"
+        }
+      }
+    }
+  }
+]

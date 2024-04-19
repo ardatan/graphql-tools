@@ -1,0 +1,33 @@
+[
+  {
+    "query": "\n      query {\n        cheapestProduct {\n          id\n          price\n          name\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "cheapestProduct": {
+          "id": "1",
+          "price": 100,
+          "name": "name-1"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        products {\n          name\n          price\n          id\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "name": "name-1",
+            "price": 100,
+            "id": "1"
+          },
+          {
+            "name": "name-2",
+            "price": 200,
+            "id": "2"
+          }
+        ]
+      }
+    }
+  }
+]

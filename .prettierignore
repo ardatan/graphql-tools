@@ -19,6 +19,7 @@ packages/load/tests/loaders/schema/test-files/error.ts
 packages/load/tests/loaders/schema/test-files/schema-dir/invalid.graphql
 packages/loaders/git/tests/test-files/type-defs-invalid.graphql
 packages/loaders/json-file/tests/test-files/failing/malformed.json
+packages/federation/test/fixtures/federation-compatibility/*
 .next/
 .bob/
 CHANGELOG.md

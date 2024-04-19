@@ -151,6 +151,7 @@ export interface BatchingOptions<K = any, V = any, C = K> {
 }
 
 export interface SubschemaConfig<K = any, V = any, C = K, TContext = Record<string, any>> {
+  name?: string;
   schema: GraphQLSchema;
   createProxyingResolver?: CreateProxyingResolverFn<TContext>;
   rootValue?: any;

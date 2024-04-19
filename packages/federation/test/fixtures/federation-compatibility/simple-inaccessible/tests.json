@@ -1,0 +1,85 @@
+[
+  {
+    "query": "\n      query {\n        usersInAge {\n          id\n          friends {\n            id\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "usersInAge": [
+          {
+            "id": "u1",
+            "friends": [
+              {
+                "id": "u2"
+              }
+            ]
+          },
+          {
+            "id": "u2",
+            "friends": [
+              {
+                "id": "u1"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        usersInFriends {\n          id\n          friends {\n            id\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "usersInFriends": [
+          {
+            "id": "u1",
+            "friends": [
+              {
+                "id": "u2"
+              }
+            ]
+          },
+          {
+            "id": "u2",
+            "friends": [
+              {
+                "id": "u1"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        usersInFriends {\n          id\n          friends(type: FRIEND) {\n            id\n          }\n        }\n      }\n    ",
+    "expected": {
+      "errors": true
+    }
+  },
+  {
+    "query": "\n      query {\n        usersInFriends {\n          id\n          friends {\n            id\n            type\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "usersInFriends": [
+          {
+            "id": "u1",
+            "friends": [
+              {
+                "id": "u2",
+                "type": null
+              }
+            ]
+          },
+          {
+            "id": "u2",
+            "friends": [
+              {
+                "id": "u1",
+                "type": null
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+]
