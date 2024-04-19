@@ -1,7 +1,7 @@
 [
   {
     "query": "\n      query {\n        user {\n          id\n          nickname\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "user": {
           "id": "1",

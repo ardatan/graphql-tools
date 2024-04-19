@@ -1,7 +1,7 @@
 [
   {
     "query": "\n      query {\n        feed {\n          id\n          createdAt\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "feed": [
           {
@@ -18,15 +18,18 @@
   },
   {
     "query": "\n      query {\n        feed {\n          ... on TextPost {\n            id\n            body\n          }\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
-        "feed": [{}, {}]
+        "feed": [
+          {},
+          {}
+        ]
       }
     }
   },
   {
     "query": "\n      query {\n        anotherFeed {\n          createdAt\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "anotherFeed": [
           {
@@ -41,7 +44,7 @@
   },
   {
     "query": "\n      {\n        anotherFeed {\n          createdAt\n          id\n          ... on ImagePost {\n            createdAt\n            id\n          }\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "anotherFeed": [
           {

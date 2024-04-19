@@ -1,9 +1,12 @@
 schema
   @link(url: "https://specs.apollo.dev/link/v1.0")
   @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION)
+  @link(url: "https://specs.apollo.dev/inaccessible/v0.2", for: SECURITY)
 {
   query: Query
 }
+
+directive @inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
 
 directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
 
@@ -22,8 +25,8 @@ directive @link(url: String, as: String, for: link__Purpose, import: [link__Impo
 scalar join__FieldSet
 
 enum join__Graph {
-  PRICE @join__graph(name: "price", url: "https://federation-compatibility.theguild.workers.dev/mysterious-external/price")
-  PRODUCT @join__graph(name: "product", url: "https://federation-compatibility.theguild.workers.dev/mysterious-external/product")
+  A @join__graph(name: "a", url: "https://federation-compatibility.theguild.workers.dev/enum-intersection/a")
+  B @join__graph(name: "b", url: "https://federation-compatibility.theguild.workers.dev/enum-intersection/b")
 }
 
 scalar link__Import
@@ -40,19 +43,26 @@ enum link__Purpose {
   EXECUTION
 }
 
-type Product
-  @join__type(graph: PRICE, key: "id", extension: true)
-  @join__type(graph: PRODUCT, key: "id")
+type Query
+  @join__type(graph: A)
+  @join__type(graph: B)
 {
-  id: ID!
-  price: Float @join__field(graph: PRICE)
-  name: String! @join__field(graph: PRODUCT)
+  users: [User] @join__field(graph: A)
+  usersByType(type: UserType!): [User!] @join__field(graph: B)
 }
 
-type Query
-  @join__type(graph: PRICE)
-  @join__type(graph: PRODUCT)
+type User
+  @join__type(graph: A, key: "id")
+  @join__type(graph: B, key: "id", extension: true)
 {
-  cheapestProduct: Product @join__field(graph: PRICE)
-  products: [Product!]! @join__field(graph: PRODUCT)
+  id: ID
+  type: UserType
+}
+
+enum UserType
+  @join__type(graph: A)
+  @join__type(graph: B)
+{
+  REGULAR @join__enumValue(graph: A) @join__enumValue(graph: B)
+  ANONYMOUS @inaccessible @join__enumValue(graph: B)
 }

@@ -68,6 +68,17 @@ export function filterInternalFieldsAndTypes(finalSchema: GraphQLSchema) {
       }
       return fieldConfig;
     },
+    [MapperKind.ENUM_VALUE]: valueConfig => {
+      if (valueConfig.astNode?.directives?.some(d => d.name.value === 'inaccessible')) {
+        return null;
+      }
+    },
+    [MapperKind.ARGUMENT]: argConfig => {
+      if (argConfig.astNode?.directives?.some(d => d.name.value === 'inaccessible')) {
+        return null;
+      }
+      return argConfig;
+    },
   });
 }
 

@@ -1,9 +1,12 @@
 schema
   @link(url: "https://specs.apollo.dev/link/v1.0")
   @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION)
+  @link(url: "https://specs.apollo.dev/inaccessible/v0.2", for: SECURITY)
 {
   query: Query
 }
+
+directive @inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
 
 directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
 
@@ -19,11 +22,18 @@ directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on
 
 directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
 
+enum FriendType
+  @join__type(graph: FRIENDS)
+{
+  FAMILY @inaccessible @join__enumValue(graph: FRIENDS)
+  FRIEND @join__enumValue(graph: FRIENDS)
+}
+
 scalar join__FieldSet
 
 enum join__Graph {
-  PRICE @join__graph(name: "price", url: "https://federation-compatibility.theguild.workers.dev/mysterious-external/price")
-  PRODUCT @join__graph(name: "product", url: "https://federation-compatibility.theguild.workers.dev/mysterious-external/product")
+  AGE @join__graph(name: "age", url: "https://federation-compatibility.theguild.workers.dev/simple-inaccessible/age")
+  FRIENDS @join__graph(name: "friends", url: "https://federation-compatibility.theguild.workers.dev/simple-inaccessible/friends")
 }
 
 scalar link__Import
@@ -40,19 +50,20 @@ enum link__Purpose {
   EXECUTION
 }
 
-type Product
-  @join__type(graph: PRICE, key: "id", extension: true)
-  @join__type(graph: PRODUCT, key: "id")
+type Query
+  @join__type(graph: AGE)
+  @join__type(graph: FRIENDS)
 {
-  id: ID!
-  price: Float @join__field(graph: PRICE)
-  name: String! @join__field(graph: PRODUCT)
+  usersInAge: [User!]! @join__field(graph: AGE)
+  usersInFriends: [User!]! @join__field(graph: FRIENDS)
 }
 
-type Query
-  @join__type(graph: PRICE)
-  @join__type(graph: PRODUCT)
+type User
+  @join__type(graph: AGE, key: "id")
+  @join__type(graph: FRIENDS, key: "id")
 {
-  cheapestProduct: Product @join__field(graph: PRICE)
-  products: [Product!]! @join__field(graph: PRODUCT)
+  id: ID
+  age: Int @join__field(graph: AGE)
+  friends(type: FriendType = FAMILY @inaccessible): [User!]! @join__field(graph: FRIENDS)
+  type: FriendType @join__field(graph: FRIENDS)
 }

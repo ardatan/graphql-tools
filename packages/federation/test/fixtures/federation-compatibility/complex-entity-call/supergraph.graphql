@@ -1,46 +1,28 @@
 schema
   @link(url: "https://specs.apollo.dev/link/v1.0")
-  @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION) {
+  @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION)
+{
   query: Query
 }
 
 directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
 
-directive @join__field(
-  graph: join__Graph
-  requires: join__FieldSet
-  provides: join__FieldSet
-  type: String
-  external: Boolean
-  override: String
-  usedOverridden: Boolean
-) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+directive @join__field(graph: join__Graph, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 
 directive @join__graph(name: String!, url: String!) on ENUM_VALUE
 
-directive @join__implements(
-  graph: join__Graph!
-  interface: String!
-) repeatable on OBJECT | INTERFACE
+directive @join__implements(graph: join__Graph!, interface: String!) repeatable on OBJECT | INTERFACE
 
-directive @join__type(
-  graph: join__Graph!
-  key: join__FieldSet
-  extension: Boolean! = false
-  resolvable: Boolean! = true
-  isInterfaceObject: Boolean! = false
-) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
+directive @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boolean! = false, resolvable: Boolean! = true, isInterfaceObject: Boolean! = false) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
 
 directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION
 
-directive @link(
-  url: String
-  as: String
-  for: link__Purpose
-  import: [link__Import]
-) repeatable on SCHEMA
+directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
 
-type Category @join__type(graph: PRICE, key: "id tag") @join__type(graph: PRODUCTS, key: "id") {
+type Category
+  @join__type(graph: PRICE, key: "id tag")
+  @join__type(graph: PRODUCTS, key: "id")
+{
   id: String!
   tag: String
   mainProduct: Product! @join__field(graph: PRODUCTS)
@@ -49,10 +31,10 @@ type Category @join__type(graph: PRICE, key: "id tag") @join__type(graph: PRODUC
 scalar join__FieldSet
 
 enum join__Graph {
-  LINK @join__graph(name: "link", url: "http://localhost:4200/complex-entity-call/link")
-  LIST @join__graph(name: "list", url: "http://localhost:4200/complex-entity-call/list")
-  PRICE @join__graph(name: "price", url: "http://localhost:4200/complex-entity-call/price")
-  PRODUCTS @join__graph(name: "products", url: "http://localhost:4200/complex-entity-call/products")
+  LINK @join__graph(name: "link", url: "https://federation-compatibility.theguild.workers.dev/complex-entity-call/link")
+  LIST @join__graph(name: "list", url: "https://federation-compatibility.theguild.workers.dev/complex-entity-call/list")
+  PRICE @join__graph(name: "price", url: "https://federation-compatibility.theguild.workers.dev/complex-entity-call/price")
+  PRODUCTS @join__graph(name: "products", url: "https://federation-compatibility.theguild.workers.dev/complex-entity-call/products")
 }
 
 scalar link__Import
@@ -69,7 +51,9 @@ enum link__Purpose {
   EXECUTION
 }
 
-type Price @join__type(graph: PRICE) {
+type Price
+  @join__type(graph: PRICE)
+{
   price: Float!
 }
 
@@ -78,12 +62,10 @@ type Product
   @join__type(graph: LINK, key: "id pid")
   @join__type(graph: LIST, key: "id pid")
   @join__type(graph: PRICE, key: "id pid category{id tag}")
-  @join__type(graph: PRODUCTS, key: "id", extension: true) {
+  @join__type(graph: PRODUCTS, key: "id", extension: true)
+{
   id: String!
-  pid: String
-    @join__field(graph: LINK, type: "String!")
-    @join__field(graph: LIST, type: "String")
-    @join__field(graph: PRICE, type: "String")
+  pid: String @join__field(graph: LINK, type: "String!") @join__field(graph: LIST, type: "String") @join__field(graph: PRICE, type: "String")
   price: Price @join__field(graph: PRICE)
   category: Category @join__field(graph: PRICE) @join__field(graph: PRODUCTS)
 }
@@ -91,7 +73,8 @@ type Product
 type ProductList
   @join__type(graph: LIST, key: "products{id pid}")
   @join__type(graph: PRICE, key: "products{id pid category{id tag}} selected{id}")
-  @join__type(graph: PRODUCTS, key: "products{id}") {
+  @join__type(graph: PRODUCTS, key: "products{id}")
+{
   products: [Product!]!
   first: Product @join__field(graph: LIST) @join__field(graph: PRICE)
   selected: Product @join__field(graph: LIST) @join__field(graph: PRICE)
@@ -101,6 +84,7 @@ type Query
   @join__type(graph: LINK)
   @join__type(graph: LIST)
   @join__type(graph: PRICE)
-  @join__type(graph: PRODUCTS) {
+  @join__type(graph: PRODUCTS)
+{
   topProducts: ProductList! @join__field(graph: PRODUCTS)
 }

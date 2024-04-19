@@ -1,7 +1,7 @@
 [
   {
     "query": "\n      {\n        userInA {\n          id\n          name\n          aName\n          cName\n        }\n        userInB {\n          id\n          name\n          aName\n          cName\n        }\n        userInC {\n          id\n          name\n          aName\n          cName\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "userInA": {
           "id": "u1",
@@ -26,7 +26,7 @@
   },
   {
     "query": "\n      query {\n        userInC {\n          cName\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "userInC": {
           "cName": "c__u3-name"
@@ -36,7 +36,7 @@
   },
   {
     "query": "\n      query {\n        userInA {\n          cName\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "userInA": {
           "cName": "c__u1-name"
@@ -46,7 +46,7 @@
   },
   {
     "query": "\n      query {\n        userInA {\n          aName\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "userInA": {
           "aName": "a__u1-name"

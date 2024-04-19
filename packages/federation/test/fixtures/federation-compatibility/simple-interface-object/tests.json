@@ -1,7 +1,7 @@
 [
   {
     "query": "\n      query {\n        anotherUsers {\n          id\n          name\n          username\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "anotherUsers": [
           {
@@ -20,7 +20,7 @@
   },
   {
     "query": "\n      query {\n        users {\n          id\n          name\n          username\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "users": [
           {
@@ -39,7 +39,7 @@
   },
   {
     "query": "\n      query {\n        anotherUsers {\n          ... on User {\n            age\n          }\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "anotherUsers": [
           {
@@ -54,7 +54,7 @@
   },
   {
     "query": "\n      query {\n        users {\n          ... on User {\n            age\n          }\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "users": [
           {
@@ -69,7 +69,7 @@
   },
   {
     "query": "\n      query {\n        anotherUsers {\n          ... on User {\n            age\n            id\n            name\n            username\n          }\n          id\n          name\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "anotherUsers": [
           {
@@ -90,7 +90,7 @@
   },
   {
     "query": "\n      query {\n        users {\n          ... on User {\n            age\n            id\n            name\n            username\n          }\n          id\n          name\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "users": [
           {
@@ -111,7 +111,7 @@
   },
   {
     "query": "\n      query {\n        users {\n          ... on User {\n            age\n            id\n            name\n            username\n          }\n          id\n          name\n        }\n      }\n    ",
-    "expectedResult": {
+    "expected": {
       "data": {
         "users": [
           {

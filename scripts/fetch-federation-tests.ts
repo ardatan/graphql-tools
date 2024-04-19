@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'fs';
+import { mkdirSync, rmdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 const baseUrl = 'https://federation-compatibility.theguild.workers.dev';
@@ -13,9 +13,10 @@ const fixturesPath = join(
 );
 
 async function main() {
-  const supergraphPathListRes = await fetch(`${baseUrl}`);
-  const supergraphPathList = await supergraphPathListRes.text();
-  for (const supergraphPath of supergraphPathList.split('\n')) {
+  rmdirSync(fixturesPath, { recursive: true });
+  const supergraphPathListRes = await fetch(`${baseUrl}/supergraphs`);
+  const supergraphPathList = await supergraphPathListRes.json();
+  for (const supergraphPath of supergraphPathList) {
     if (supergraphPath) {
       const supergraphRes = await fetch(supergraphPath);
       const supergraphPathParts = supergraphPath.split('/');

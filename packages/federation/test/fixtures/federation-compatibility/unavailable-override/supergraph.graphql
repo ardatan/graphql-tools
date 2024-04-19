@@ -22,8 +22,8 @@ directive @link(url: String, as: String, for: link__Purpose, import: [link__Impo
 scalar join__FieldSet
 
 enum join__Graph {
-  PRICE @join__graph(name: "price", url: "https://federation-compatibility.theguild.workers.dev/mysterious-external/price")
-  PRODUCT @join__graph(name: "product", url: "https://federation-compatibility.theguild.workers.dev/mysterious-external/product")
+  A @join__graph(name: "a", url: "https://federation-compatibility.theguild.workers.dev/unavailable-override/a")
+  B @join__graph(name: "b", url: "https://federation-compatibility.theguild.workers.dev/unavailable-override/b")
 }
 
 scalar link__Import
@@ -40,19 +40,19 @@ enum link__Purpose {
   EXECUTION
 }
 
-type Product
-  @join__type(graph: PRICE, key: "id", extension: true)
-  @join__type(graph: PRODUCT, key: "id")
+type Post
+  @join__type(graph: A, key: "id")
+  @join__type(graph: B, key: "id")
 {
   id: ID!
-  price: Float @join__field(graph: PRICE)
-  name: String! @join__field(graph: PRODUCT)
+  createdAt: String! @join__field(graph: B, override: "a")
 }
 
 type Query
-  @join__type(graph: PRICE)
-  @join__type(graph: PRODUCT)
+  @join__type(graph: A)
+  @join__type(graph: B)
 {
-  cheapestProduct: Product @join__field(graph: PRICE)
-  products: [Product!]! @join__field(graph: PRODUCT)
+  feed: [Post]
+  aFeed: [Post] @join__field(graph: A)
+  bFeed: [Post] @join__field(graph: B)
 }
