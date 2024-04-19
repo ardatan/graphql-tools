@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/batch-delegate",
-  "version": "9.0.1",
+  "version": "9.0.2",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
