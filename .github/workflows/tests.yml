@@ -97,8 +97,6 @@ jobs:
             hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
-      - name: Fetch Latest Federation Compatibility Tests
-        run: yarn fetch-federation-tests
       - name: Test
         if: ${{ matrix.node-version == 20 }}
         run: yarn test --ci
