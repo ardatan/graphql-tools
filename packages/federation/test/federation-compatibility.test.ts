@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { ExecutionResult, parse, printSchema, validate } from 'graphql';
+import { parse, validate } from 'graphql';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 
