@@ -15,3 +15,7 @@ subgraphs:
     routing_url: http://www.inventory.com
     schema:
       file: ./inventory/inventory.graphql
+  discount:
+    routing_url: http://www.discount.com
+    schema:
+      file: ./discount/discount.graphql

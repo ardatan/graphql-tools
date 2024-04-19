@@ -6,6 +6,7 @@ import { normalizedExecutor } from '@graphql-tools/executor';
 import { buildSubgraphSchema } from '../src/subgraph';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 import * as accounts from './fixtures/gateway/accounts';
+import * as discount from './fixtures/gateway/discount';
 import * as inventory from './fixtures/gateway/inventory';
 import * as products from './fixtures/gateway/products';
 import * as reviews from './fixtures/gateway/reviews';
@@ -16,6 +17,7 @@ describe('Optimizations', () => {
     inventory,
     products,
     reviews,
+    discount,
   };
   let serviceCallCnt: Record<string, number>;
   let schema: GraphQLSchema;
