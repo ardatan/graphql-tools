@@ -227,16 +227,11 @@ type IsolatedSubschemaInput = Exclude<SubschemaConfig, 'merge'> & {
 function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): SubschemaConfig {
   const rootFields: Record<string, boolean> = {};
   const computedFieldTypes: Record<string, boolean> = {}; // contains types of computed fields that have no root field
-  const visitedTypes = new WeakSet<GraphQLNamedOutputType>();
   function listReachableTypesToIsolate(
     subschemaConfig: SubschemaConfig,
     type: GraphQLNamedOutputType,
-    typeNames: string[] = [],
+    typeNames = new Set<string>(),
   ) {
-    if (visitedTypes.has(type)) {
-      return typeNames;
-    }
-    visitedTypes.add(type);
     if (isScalarType(type)) {
       return typeNames;
     } else if (
@@ -246,38 +241,30 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
       subschemaConfig.merge[type.name].selectionSet
     ) {
       // this is a merged type, no need to descend further
-      if (!typeNames.includes(type.name)) {
-        typeNames.push(type.name);
-      }
+      typeNames.add(type.name);
       return typeNames;
     } else if (isCompositeType(type)) {
-      if (!typeNames.includes(type.name)) {
-        typeNames.push(type.name);
-      }
+      typeNames.add(type.name);
 
       // descent into all field types potentially via interfaces implementations/unions members
-      const types: GraphQLObjectType[] = [];
+      const types = new Set<GraphQLObjectType>();
       if (isObjectType(type)) {
-        types.push(type);
+        types.add(type);
       } else if (isInterfaceType(type)) {
-        types.push(
-          ...getImplementingTypes(type.name, subschemaConfig.schema).map(
-            name => subschemaConfig.schema.getType(name)! as GraphQLObjectType,
-          ),
+        getImplementingTypes(type.name, subschemaConfig.schema).forEach(name =>
+          types.add(subschemaConfig.schema.getType(name)! as GraphQLObjectType),
         );
       } else if (isUnionType(type)) {
-        types.push(...type.getTypes());
+        type.getTypes().forEach(t => types.add(t));
       }
 
       for (const type of types) {
-        if (!typeNames.includes(type.name)) {
-          typeNames.push(type.name);
-        }
+        typeNames.add(type.name);
 
         for (const f of Object.values(type.getFields())) {
           const fieldType = getNamedType(f.type);
-          if (!typeNames.includes(fieldType.name) && isCompositeType(fieldType)) {
-            typeNames.push(...listReachableTypesToIsolate(subschemaConfig, fieldType));
+          if (!typeNames.has(fieldType.name) && isCompositeType(fieldType)) {
+            listReachableTypesToIsolate(subschemaConfig, fieldType, typeNames);
           }
         }
       }
@@ -310,6 +297,7 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
 
     for (const fieldName of computedFields) {
       const fieldType = getNamedType(type.getFields()[fieldName!].type);
+      computedFieldTypes[fieldType.name] = true;
       listReachableTypesToIsolate(subschemaConfig, fieldType).forEach(tn => {
         computedFieldTypes[tn] = true;
       });

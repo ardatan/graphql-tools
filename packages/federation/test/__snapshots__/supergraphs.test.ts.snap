@@ -525,7 +525,11 @@ exports[`Supergraphs d.graphql matches: d.graphql - stitchedSchema 1`] = `
 }
 
 type Query {
-  getAuthor: ReactionAuthor
+  node(id: ID!): Node
+}
+
+interface Node {
+  id: ID!
 }
 
 type Mutation {
@@ -555,10 +559,6 @@ type ConcreteBoard implements Board & Node & SomeBoard {
 }
 
 scalar Url @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc1738")
-
-interface Node {
-  id: ID!
-}
 
 union Mentionable = ReactionAuthor | OwnerChangedNotification
 
@@ -594,7 +594,12 @@ exports[`Supergraphs d.graphql subgraphs: d.graphql - NODERESOLVER 1`] = `
 }
 
 type Query {
+  node(id: ID!): Node
   _entities(representations: [_Any!]!): _Entity
+}
+
+interface Node {
+  id: ID!
 }
 
 union _Entity
@@ -613,7 +618,6 @@ type Mutation {
 }
 
 type Query {
-  getAuthor: ReactionAuthor
   _entities(representations: [_Any!]!): _Entity
 }
 

@@ -78,6 +78,10 @@ interface Board {
   isVisible: Boolean!
 }
 
+type Query {
+  node(id: ID!): Node @join__field(graph: NODERESOLVER)
+}
+
 interface SomeBoard {
   # introducing this interface and field causes:
   # Mesh - Supergraph 💥 Failed to generate the schema Error: Unknown type: "SomeEntity".
