@@ -1,5 +1,11 @@
 # @graphql-tools/federation
 
+## 1.1.27
+
+### Patch Changes
+
+- [#6086](https://github.com/ardatan/graphql-tools/pull/6086) [`f538e50`](https://github.com/ardatan/graphql-tools/commit/f538e503c3cdb152bd29f77804217100cac0f648) Thanks [@ardatan](https://github.com/ardatan)! - Handle @inaccessible types correctly
+
 ## 1.1.26
 
 ### Patch Changes
