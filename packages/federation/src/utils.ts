@@ -51,7 +51,11 @@ const internalTypeNames = ['_Entity', '_Any', '_FieldSet', '_Service'];
 export function filterInternalFieldsAndTypes(finalSchema: GraphQLSchema) {
   return mapSchema(finalSchema, {
     [MapperKind.TYPE]: type => {
-      if (internalTypeNames.includes(type.name) || type.name.startsWith('link__')) {
+      if (
+        internalTypeNames.includes(type.name) ||
+        type.name.startsWith('link__') ||
+        type.astNode?.directives?.some(d => d.name.value === 'inaccessible')
+      ) {
         return null;
       }
       return type;

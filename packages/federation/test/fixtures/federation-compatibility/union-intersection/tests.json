@@ -26,5 +26,24 @@
         }
       }
     }
+  },
+  {
+    "query": "\n      query {\n        media {\n          __typename\n          ... on Song {\n            title\n          }\n          ... on Movie {\n            title\n          }\n          ... on Book {\n            title\n          }\n        }\n        book {\n          __typename\n          ... on Song {\n            title\n          }\n          ... on Movie {\n            title\n          }\n          ... on Book {\n            title\n          }\n        }\n        song {\n          __typename\n          ... on Song {\n            title\n          }\n          ... on Movie {\n            title\n          }\n          ... on Book {\n            title\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "media": {
+          "__typename": "Book",
+          "title": "The Lord of the Rings"
+        },
+        "book": {
+          "__typename": "Book",
+          "title": "The Lord of the Rings"
+        },
+        "song": {
+          "__typename": "Song",
+          "title": "Song Title"
+        }
+      }
+    }
   }
 ]

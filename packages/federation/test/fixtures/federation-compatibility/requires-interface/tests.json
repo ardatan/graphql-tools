@@ -1,0 +1,48 @@
+[
+  {
+    "query": "\n      query {\n        a {\n          city\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "a": {
+          "city": "a1-city"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        b {\n          city\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "b": {
+          "city": "a2-city"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        a {\n          address {\n            __typename\n            id\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "a": {
+          "address": {
+            "__typename": "HomeAddress",
+            "id": "a1"
+          }
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        b {\n          address {\n            __typename\n            id\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "b": {
+          "address": {
+            "__typename": "WorkAddress",
+            "id": "a2"
+          }
+        }
+      }
+    }
+  }
+]
