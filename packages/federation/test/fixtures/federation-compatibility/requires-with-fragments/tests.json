@@ -1,0 +1,79 @@
+[
+  {
+    "query": "\n      query {\n        b {\n          id\n          data {\n            __typename\n          }\n        }\n        bb {\n          id\n          data {\n            __typename\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "b": {
+          "id": "e1",
+          "data": null
+        },
+        "bb": {
+          "id": "e2",
+          "data": {
+            "__typename": "Qux"
+          }
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        a {\n          requirer\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "a": {
+          "requirer": "q1-foo_requirer"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        a {\n          data {\n            __typename\n          }\n          requirer\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "a": {
+          "data": {
+            "__typename": "Qux"
+          },
+          "requirer": "q1-foo_requirer"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        bb {\n          data {\n            __typename\n          }\n          requirer\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "bb": {
+          "data": {
+            "__typename": "Qux"
+          },
+          "requirer": "q1-foo_requirer"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        b {\n          data {\n            __typename\n          }\n          requirer\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "b": {
+          "data": null,
+          "requirer": "b1-foo_requirer"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        bb {\n          data {\n            __typename\n          }\n          requirer2\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "bb": {
+          "data": {
+            "__typename": "Qux"
+          },
+          "requirer2": "q1-foo_requirer2"
+        }
+      }
+    }
+  }
+]
