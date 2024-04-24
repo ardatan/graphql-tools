@@ -1,5 +1,11 @@
 # @graphql-tools/stitch
 
+## 9.1.2
+
+### Patch Changes
+
+- [`6d26702`](https://github.com/ardatan/graphql-tools/commit/6d267022eaf4b695b3791927912375f1b1d0f3a8) Thanks [@ardatan](https://github.com/ardatan)! - Respect interface types as computed field types
+
 ## 9.1.1
 
 ### Patch Changes
