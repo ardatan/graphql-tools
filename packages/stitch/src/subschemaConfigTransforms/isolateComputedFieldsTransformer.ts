@@ -227,14 +227,16 @@ type IsolatedSubschemaInput = Exclude<SubschemaConfig, 'merge'> & {
 function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): SubschemaConfig {
   const rootFields: Record<string, boolean> = {};
   const computedFieldTypes: Record<string, boolean> = {}; // contains types of computed fields that have no root field
-
+  const visitedTypes = new WeakSet<GraphQLNamedOutputType>();
   function listReachableTypesToIsolate(
     subschemaConfig: SubschemaConfig,
     type: GraphQLNamedOutputType,
-    typeNames?: string[],
+    typeNames: string[] = [],
   ) {
-    typeNames = typeNames || [];
-
+    if (visitedTypes.has(type)) {
+      return typeNames;
+    }
+    visitedTypes.add(type);
     if (isScalarType(type)) {
       return typeNames;
     } else if (
