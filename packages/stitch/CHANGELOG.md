@@ -1,5 +1,11 @@
 # @graphql-tools/stitch
 
+## 9.1.1
+
+### Patch Changes
+
+- [`c5df958`](https://github.com/ardatan/graphql-tools/commit/c5df95858c5b5a57a232740e8e4b667ce5d2da2c) Thanks [@ardatan](https://github.com/ardatan)! - Prevent infinite loop while visiting over the computed field types
+
 ## 9.1.0
 
 ### Minor Changes
