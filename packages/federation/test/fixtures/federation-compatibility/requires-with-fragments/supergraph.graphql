@@ -66,8 +66,8 @@ interface Foo
 scalar join__FieldSet
 
 enum join__Graph {
-  A @join__graph(name: "a", url: "https://federation-compatibility.theguild.workers.dev/requires-with-fragments/a")
-  B @join__graph(name: "b", url: "https://federation-compatibility.theguild.workers.dev/requires-with-fragments/b")
+  A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/requires-with-fragments/a")
+  B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/requires-with-fragments/b")
 }
 
 scalar link__Import

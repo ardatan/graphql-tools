@@ -1,7 +1,7 @@
 import { mkdirSync, rmdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-const baseUrl = 'https://federation-compatibility.theguild.workers.dev';
+const baseUrl = 'https://federation-compatibility.the-guild.dev';
 const fixturesPath = join(
   __dirname,
   '..',

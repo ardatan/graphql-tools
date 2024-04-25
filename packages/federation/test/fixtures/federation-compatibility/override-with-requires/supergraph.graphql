@@ -22,9 +22,9 @@ directive @link(url: String, as: String, for: link__Purpose, import: [link__Impo
 scalar join__FieldSet
 
 enum join__Graph {
-  A @join__graph(name: "a", url: "https://federation-compatibility.theguild.workers.dev/override-with-requires/a")
-  B @join__graph(name: "b", url: "https://federation-compatibility.theguild.workers.dev/override-with-requires/b")
-  C @join__graph(name: "c", url: "https://federation-compatibility.theguild.workers.dev/override-with-requires/c")
+  A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/override-with-requires/a")
+  B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/override-with-requires/b")
+  C @join__graph(name: "c", url: "https://federation-compatibility.the-guild.dev/override-with-requires/c")
 }
 
 scalar link__Import
