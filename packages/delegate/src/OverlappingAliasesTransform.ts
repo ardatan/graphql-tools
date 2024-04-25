@@ -1,6 +1,6 @@
-import { ExecutionRequest, ExecutionResult } from "@graphql-tools/utils";
-import { DelegationContext, Transform } from "./types.js";
-import { Kind, isNullableType, visit } from "graphql";
+import { isNullableType, Kind, visit } from 'graphql';
+import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
+import { DelegationContext, Transform } from './types.js';
 
 const OverlappingAliases = Symbol('OverlappingAliases');
 
@@ -8,10 +8,16 @@ interface OverlappingAliasesContext {
   [OverlappingAliases]: boolean;
 }
 
-export class OverlappingAliasesTransform<TContext> implements Transform<OverlappingAliasesContext, TContext> {
-  transformRequest(request: ExecutionRequest, delegationContext: DelegationContext<TContext>, transformationContext: OverlappingAliasesContext) {
+export class OverlappingAliasesTransform<TContext>
+  implements Transform<OverlappingAliasesContext, TContext>
+{
+  transformRequest(
+    request: ExecutionRequest,
+    delegationContext: DelegationContext<TContext>,
+    transformationContext: OverlappingAliasesContext,
+  ) {
     const newDocument = visit(request.document, {
-      [Kind.SELECTION_SET]: (node) => {
+      [Kind.SELECTION_SET]: node => {
         const seenNonNullable = new Set<string>();
         const seenNullable = new Set<string>();
         return {
@@ -20,7 +26,8 @@ export class OverlappingAliasesTransform<TContext> implements Transform<Overlapp
             if (selection.kind === Kind.INLINE_FRAGMENT) {
               const selectionTypeName = selection.typeCondition?.name.value;
               if (selectionTypeName) {
-                const selectionType = delegationContext.transformedSchema.getType(selectionTypeName);
+                const selectionType =
+                  delegationContext.transformedSchema.getType(selectionTypeName);
                 if (selectionType && 'getFields' in selectionType) {
                   const selectionTypeFields = selectionType.getFields();
                   return {
@@ -41,38 +48,44 @@ export class OverlappingAliasesTransform<TContext> implements Transform<Overlapp
                                 seenNonNullable.add(fieldName);
                                 currentNullable = false;
                               }
-                              if (seenNullable.size  && seenNonNullable.size ) {
+                              if (seenNullable.size && seenNonNullable.size) {
                                 transformationContext[OverlappingAliases] = true;
                                 return {
                                   ...subSelection,
                                   alias: {
                                     kind: Kind.NAME,
-                                    value: currentNullable ? `_nullable_${fieldName}` : `_nonNullable_${fieldName}`,
+                                    value: currentNullable
+                                      ? `_nullable_${fieldName}`
+                                      : `_nonNullable_${fieldName}`,
                                   },
-                                }
+                                };
                               }
                             }
                           }
                         }
                         return subSelection;
-                      })
-                    }
-                  }
+                      }),
+                    },
+                  };
                 }
               }
             }
             return selection;
           }),
-        }
-      }
-    })
+        };
+      },
+    });
     return {
       ...request,
       document: newDocument,
     };
   }
 
-  transformResult(result: ExecutionResult, _delegationContext: DelegationContext<TContext>, transformationContext: OverlappingAliasesContext) {
+  transformResult(
+    result: ExecutionResult,
+    _delegationContext: DelegationContext<TContext>,
+    transformationContext: OverlappingAliasesContext,
+  ) {
     if (transformationContext[OverlappingAliases]) {
       return removeOverlappingAliases(result);
     }
