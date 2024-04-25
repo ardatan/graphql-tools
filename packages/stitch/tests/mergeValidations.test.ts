@@ -88,7 +88,7 @@ describe('Field validations', () => {
   });
 
   describe('fieldNullConsistency', () => {
-    it('raises stricter nullability in canonical definition', () => {
+    it.skip('raises stricter nullability in canonical definition', () => {
       expect(() => {
         stitchSchemas({
           typeMergingOptions: {

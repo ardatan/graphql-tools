@@ -1,6 +1,7 @@
 import {
   EnumTypeDefinitionNode,
   EnumTypeExtensionNode,
+  getNullableType,
   GraphQLEnumType,
   GraphQLEnumValueConfigMap,
   GraphQLFieldConfig,
@@ -23,6 +24,7 @@ import {
   isEnumType,
   isInputObjectType,
   isInterfaceType,
+  isNullableType,
   isObjectType,
   isScalarType,
   isUnionType,
@@ -527,6 +529,8 @@ function mergeFieldConfigs<TContext = Record<string, any>>(
 function defaultFieldConfigMerger<TContext = Record<string, any>>(
   candidates: Array<MergeFieldConfigCandidate<TContext>>,
 ) {
+  const nullables: Array<GraphQLFieldConfig<any, any>> = [];
+  const nonNullables: Array<GraphQLFieldConfig<any, any>> = [];
   const canonicalByField: Array<GraphQLFieldConfig<any, any>> = [];
   const canonicalByType: Array<GraphQLFieldConfig<any, any>> = [];
 
@@ -537,19 +541,47 @@ function defaultFieldConfigMerger<TContext = Record<string, any>>(
     } else if (transformedSubschema.merge?.[type.name]?.canonical) {
       canonicalByType.push(fieldConfig);
     }
+    if (isNullableType(fieldConfig.type)) {
+      nullables.push(fieldConfig);
+    } else {
+      nonNullables.push(fieldConfig);
+    }
   }
+
+  const nonNullableFinalField = nonNullables.length > 0 && nullables.length > 0;
 
   if (canonicalByField.length > 1) {
     throw new Error(
       `Multiple canonical definitions for "${candidates[0].type.name}.${candidates[0].fieldName}"`,
     );
   } else if (canonicalByField.length) {
-    return canonicalByField[0];
+    const finalField = canonicalByField[0];
+    if (nonNullableFinalField) {
+      return {
+        ...finalField,
+        type: getNullableType(finalField.type),
+      };
+    }
+    return finalField;
   } else if (canonicalByType.length) {
-    return canonicalByType[0];
+    const finalField = canonicalByType[0];
+    if (nonNullableFinalField) {
+      return {
+        ...finalField,
+        type: getNullableType(finalField.type),
+      };
+    }
+    return finalField;
   }
 
-  return candidates[candidates.length - 1].fieldConfig;
+  const finalField = candidates[candidates.length - 1].fieldConfig;
+  if (nonNullableFinalField) {
+    return {
+      ...finalField,
+      type: getNullableType(finalField.type),
+    };
+  }
+  return finalField;
 }
 
 function inputFieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(
