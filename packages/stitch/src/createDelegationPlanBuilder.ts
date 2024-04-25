@@ -15,7 +15,7 @@ import {
   Subschema,
 } from '@graphql-tools/delegate';
 import { memoize1, memoize2, memoize3, memoize5 } from '@graphql-tools/utils';
-import { getFieldsNotInSubschema } from './getFieldsNotInSubschema.js';
+import { extractUnavailableFields, getFieldsNotInSubschema } from './getFieldsNotInSubschema.js';
 
 function calculateDelegationStage(
   mergedTypeInfo: MergedTypeInfo,
@@ -136,7 +136,24 @@ function calculateDelegationStage(
       // It is okay we previously explicitly check whether the map has the element.
       (delegationMap.get(existingSubschema)!.selections as SelectionNode[]).push(fieldNode);
     } else {
-      delegationMap.set(nonUniqueSubschemas[0], {
+      let bestUniqueSubschema: Subschema = nonUniqueSubschemas[0];
+      let bestScore = Infinity;
+      for (const nonUniqueSubschema of nonUniqueSubschemas) {
+        const typeInSubschema = nonUniqueSubschema.transformedSchema.getType(
+          mergedTypeInfo.typeName,
+        ) as GraphQLObjectType;
+        const fields = typeInSubschema.getFields();
+        const field = fields[fieldNode.name.value];
+        if (field != null) {
+          const unavailableFields = extractUnavailableFields(field, fieldNode);
+          const currentScore = calculateScore(unavailableFields);
+          if (currentScore < bestScore) {
+            bestScore = currentScore;
+            bestUniqueSubschema = nonUniqueSubschema;
+          }
+        }
+      }
+      delegationMap.set(bestUniqueSubschema, {
         kind: Kind.SELECTION_SET,
         selections: [fieldNode],
       });
@@ -149,6 +166,21 @@ function calculateDelegationStage(
     nonProxiableSubschemas,
     unproxiableFieldNodes,
   };
+}
+
+function calculateScore(selections: readonly SelectionNode[] | SelectionNode[]) {
+  let score = 0;
+  for (const selectionNode of selections) {
+    switch (selectionNode.kind) {
+      case Kind.FIELD:
+        score += 1;
+        break;
+      case Kind.INLINE_FRAGMENT:
+        score += calculateScore(selectionNode.selectionSet.selections);
+        break;
+    }
+  }
+  return score;
 }
 
 function getStitchingInfo(schema: GraphQLSchema): StitchingInfo {

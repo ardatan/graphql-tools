@@ -13,6 +13,7 @@ import {
   isPromise,
   MaybePromise,
   memoize1,
+  mergeDeep,
   relocatedError,
 } from '@graphql-tools/utils';
 import { Subschema } from './Subschema.js';
@@ -143,7 +144,11 @@ function handleResolverResult(
     const existingPropValue = object[responseKey];
     const sourcePropValue = resolverResult[responseKey];
     if (sourcePropValue != null || existingPropValue == null) {
-      object[responseKey] = sourcePropValue;
+      if (existingPropValue != null && typeof existingPropValue === 'object') {
+        object[responseKey] = mergeDeep([existingPropValue, sourcePropValue]);
+      } else {
+        object[responseKey] = sourcePropValue;
+      }
     }
     combinedFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
   }

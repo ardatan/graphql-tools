@@ -25,8 +25,8 @@ directive @link(url: String, as: String, for: link__Purpose, import: [link__Impo
 scalar join__FieldSet
 
 enum join__Graph {
-  A @join__graph(name: "a", url: "https://federation-compatibility.theguild.workers.dev/enum-intersection/a")
-  B @join__graph(name: "b", url: "https://federation-compatibility.theguild.workers.dev/enum-intersection/b")
+  A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/enum-intersection/a")
+  B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/enum-intersection/b")
 }
 
 scalar link__Import

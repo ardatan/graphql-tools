@@ -22,10 +22,10 @@ directive @link(url: String, as: String, for: link__Purpose, import: [link__Impo
 scalar join__FieldSet
 
 enum join__Graph {
-  ACCOUNTS @join__graph(name: "accounts", url: "https://federation-compatibility.theguild.workers.dev/simple-requires-provides/accounts")
-  INVENTORY @join__graph(name: "inventory", url: "https://federation-compatibility.theguild.workers.dev/simple-requires-provides/inventory")
-  PRODUCTS @join__graph(name: "products", url: "https://federation-compatibility.theguild.workers.dev/simple-requires-provides/products")
-  REVIEWS @join__graph(name: "reviews", url: "https://federation-compatibility.theguild.workers.dev/simple-requires-provides/reviews")
+  ACCOUNTS @join__graph(name: "accounts", url: "https://federation-compatibility.the-guild.dev/simple-requires-provides/accounts")
+  INVENTORY @join__graph(name: "inventory", url: "https://federation-compatibility.the-guild.dev/simple-requires-provides/inventory")
+  PRODUCTS @join__graph(name: "products", url: "https://federation-compatibility.the-guild.dev/simple-requires-provides/products")
+  REVIEWS @join__graph(name: "reviews", url: "https://federation-compatibility.the-guild.dev/simple-requires-provides/reviews")
 }
 
 scalar link__Import

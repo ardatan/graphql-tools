@@ -19,24 +19,28 @@ directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on
 
 directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
 
-union Account
-  @join__type(graph: B)
-  @join__unionMember(graph: B, member: "User")
-  @join__unionMember(graph: B, member: "Admin")
- = User | Admin
-
-type Admin
-  @join__type(graph: B)
+type Category
+  @join__type(graph: A, key: "id")
+  @join__type(graph: B, key: "id")
+  @join__type(graph: C)
 {
-  id: ID
-  photo: String
+  id: ID! @join__field(graph: A) @join__field(graph: B)
+  name: String! @join__field(graph: A) @join__field(graph: B)
+  details: CategoryDetails @join__field(graph: C)
+}
+
+type CategoryDetails
+  @join__type(graph: C)
+{
+  products: Int
 }
 
 scalar join__FieldSet
 
 enum join__Graph {
-  A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/entity-and-no-entity/a")
-  B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/entity-and-no-entity/b")
+  A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/parent-entity-call/a")
+  B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/parent-entity-call/b")
+  C @join__graph(name: "c", url: "https://federation-compatibility.the-guild.dev/parent-entity-call/c")
 }
 
 scalar link__Import
@@ -53,18 +57,21 @@ enum link__Purpose {
   EXECUTION
 }
 
+type Product
+  @join__type(graph: A, key: "id")
+  @join__type(graph: A, key: "id pid")
+  @join__type(graph: B, key: "id pid")
+  @join__type(graph: C, key: "id pid")
+{
+  id: ID!
+  pid: ID!
+  category: Category
+}
+
 type Query
   @join__type(graph: A)
   @join__type(graph: B)
+  @join__type(graph: C)
 {
-  users: [User!]! @join__field(graph: A)
-  accounts: [Account!]! @join__field(graph: B)
-}
-
-type User
-  @join__type(graph: A)
-  @join__type(graph: B, key: "id")
-{
-  id: ID @join__field(graph: A, type: "ID") @join__field(graph: B, type: "ID!")
-  name: String @join__field(graph: B)
+  products: [Product!]! @join__field(graph: A)
 }
