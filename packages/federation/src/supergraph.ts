@@ -13,6 +13,7 @@ import {
   ObjectTypeDefinitionNode,
   ObjectTypeExtensionNode,
   parse,
+  parseType,
   print,
   ScalarTypeDefinitionNode,
   TypeDefinitionNode,
@@ -159,8 +160,16 @@ export function getSubschemasFromSupergraphSdl({
                     argumentNode.value.value === true,
                 );
                 if (!isExternal) {
+                  const typeArg = joinFieldDirectiveNode.arguments?.find(
+                    argumentNode => argumentNode.name.value === 'type',
+                  );
+                  const typeNode =
+                    typeArg?.value.kind === Kind.STRING
+                      ? parseType(typeArg.value.value)
+                      : fieldNode.type;
                   fieldDefinitionNodesOfSubgraph.push({
                     ...fieldNode,
+                    type: typeNode,
                     directives: fieldNode.directives?.filter(
                       directiveNode => directiveNode.name.value !== 'join__field',
                     ),
@@ -708,6 +717,9 @@ export function getStitchedSchemaFromSupergraphSdl(opts: GetSubschemasFromSuperg
     subschemas: [...subschemaMap.values()],
     assumeValid: true,
     assumeValidSDL: true,
+    typeMergingOptions: {
+      useNonNullableFieldOnConflict: true,
+    },
   });
   return filterInternalFieldsAndTypes(supergraphSchema);
 }

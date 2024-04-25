@@ -274,7 +274,7 @@ function validationMessage<TContext = Record<string, any>>(
   }
 }
 
-function getValidationSettings<TContext = Record<string, any>>(
+export function getValidationSettings<TContext = Record<string, any>>(
   settingNamespace: string,
   typeMergingOptions?: TypeMergingOptions<TContext>,
 ): ValidationSettings {

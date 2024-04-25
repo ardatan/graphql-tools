@@ -43,7 +43,7 @@ describe('Federation Compatibility', () => {
           } else {
             if ('errors' in result && result.errors) {
               for (const error of result.errors) {
-                console.error(error.message);
+                console.error(error.stack);
               }
             }
             expect(result).toMatchObject({
