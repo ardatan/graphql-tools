@@ -520,42 +520,65 @@ function mergeFieldConfigs<TContext = Record<string, any>>(
   candidates: Array<MergeFieldConfigCandidate<TContext>>,
   typeMergingOptions?: TypeMergingOptions<TContext>,
 ) {
-  const fieldConfigMerger = typeMergingOptions?.fieldConfigMerger ?? defaultFieldConfigMerger;
+  const fieldConfigMerger =
+    typeMergingOptions?.fieldConfigMerger ??
+    getDefaultFieldConfigMerger(typeMergingOptions?.useNonNullableFieldOnConflict);
   const finalFieldConfig = fieldConfigMerger(candidates);
   validateFieldConsistency(finalFieldConfig, candidates, typeMergingOptions);
   return finalFieldConfig;
 }
 
-function defaultFieldConfigMerger<TContext = Record<string, any>>(
-  candidates: Array<MergeFieldConfigCandidate<TContext>>,
-) {
-  const nullables: Array<GraphQLFieldConfig<any, any>> = [];
-  const nonNullables: Array<GraphQLFieldConfig<any, any>> = [];
-  const canonicalByField: Array<GraphQLFieldConfig<any, any>> = [];
-  const canonicalByType: Array<GraphQLFieldConfig<any, any>> = [];
+export function getDefaultFieldConfigMerger(useNonNullableFieldOnConflict = false) {
+  return function defaultFieldConfigMerger<TContext = Record<string, any>>(
+    candidates: Array<MergeFieldConfigCandidate<TContext>>,
+  ) {
+    const nullables: Array<GraphQLFieldConfig<any, any>> = [];
+    const nonNullables: Array<GraphQLFieldConfig<any, any>> = [];
+    const canonicalByField: Array<GraphQLFieldConfig<any, any>> = [];
+    const canonicalByType: Array<GraphQLFieldConfig<any, any>> = [];
 
-  for (const { type, fieldName, fieldConfig, transformedSubschema } of candidates) {
-    if (!isSubschemaConfig(transformedSubschema)) continue;
-    if (transformedSubschema.merge?.[type.name]?.fields?.[fieldName]?.canonical) {
-      canonicalByField.push(fieldConfig);
-    } else if (transformedSubschema.merge?.[type.name]?.canonical) {
-      canonicalByType.push(fieldConfig);
+    for (const { type, fieldName, fieldConfig, transformedSubschema } of candidates) {
+      if (!isSubschemaConfig(transformedSubschema)) continue;
+      if (transformedSubschema.merge?.[type.name]?.fields?.[fieldName]?.canonical) {
+        canonicalByField.push(fieldConfig);
+      } else if (transformedSubschema.merge?.[type.name]?.canonical) {
+        canonicalByType.push(fieldConfig);
+      }
+      if (isNullableType(fieldConfig.type)) {
+        nullables.push(fieldConfig);
+      } else {
+        nonNullables.push(fieldConfig);
+      }
     }
-    if (isNullableType(fieldConfig.type)) {
-      nullables.push(fieldConfig);
-    } else {
-      nonNullables.push(fieldConfig);
+
+    const nonNullableFinalField =
+      nonNullables.length > 0 && nullables.length > 0 && useNonNullableFieldOnConflict;
+
+    if (canonicalByField.length > 1) {
+      throw new Error(
+        `Multiple canonical definitions for "${candidates[0].type.name}.${candidates[0].fieldName}"`,
+      );
+    } else if (canonicalByField.length) {
+      const finalField = canonicalByField[0];
+      if (nonNullableFinalField) {
+        return {
+          ...finalField,
+          type: getNullableType(finalField.type),
+        };
+      }
+      return finalField;
+    } else if (canonicalByType.length) {
+      const finalField = canonicalByType[0];
+      if (nonNullableFinalField) {
+        return {
+          ...finalField,
+          type: getNullableType(finalField.type),
+        };
+      }
+      return finalField;
     }
-  }
 
-  const nonNullableFinalField = nonNullables.length > 0 && nullables.length > 0;
-
-  if (canonicalByField.length > 1) {
-    throw new Error(
-      `Multiple canonical definitions for "${candidates[0].type.name}.${candidates[0].fieldName}"`,
-    );
-  } else if (canonicalByField.length) {
-    const finalField = canonicalByField[0];
+    const finalField = candidates[candidates.length - 1].fieldConfig;
     if (nonNullableFinalField) {
       return {
         ...finalField,
@@ -563,25 +586,7 @@ function defaultFieldConfigMerger<TContext = Record<string, any>>(
       };
     }
     return finalField;
-  } else if (canonicalByType.length) {
-    const finalField = canonicalByType[0];
-    if (nonNullableFinalField) {
-      return {
-        ...finalField,
-        type: getNullableType(finalField.type),
-      };
-    }
-    return finalField;
-  }
-
-  const finalField = candidates[candidates.length - 1].fieldConfig;
-  if (nonNullableFinalField) {
-    return {
-      ...finalField,
-      type: getNullableType(finalField.type),
-    };
-  }
-  return finalField;
+  };
 }
 
 function inputFieldConfigMapFromTypeCandidates<TContext = Record<string, any>>(

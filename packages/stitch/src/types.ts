@@ -82,6 +82,7 @@ export interface TypeMergingOptions<TContext = Record<string, any>> {
   enumValueConfigMerger?: (
     candidates: Array<MergeEnumValueConfigCandidate<TContext>>,
   ) => GraphQLEnumValueConfig;
+  useNonNullableFieldOnConflict?: boolean;
 }
 
 export enum ValidationLevel {

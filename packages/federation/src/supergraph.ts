@@ -717,6 +717,9 @@ export function getStitchedSchemaFromSupergraphSdl(opts: GetSubschemasFromSuperg
     subschemas: [...subschemaMap.values()],
     assumeValid: true,
     assumeValidSDL: true,
+    typeMergingOptions: {
+      useNonNullableFieldOnConflict: true,
+    },
   });
   return filterInternalFieldsAndTypes(supergraphSchema);
 }
