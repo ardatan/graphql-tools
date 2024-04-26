@@ -15,6 +15,7 @@ describe('Federation Compatibility', () => {
     describe(supergraphName, () => {
       const stitchedSchema = getStitchedSchemaFromSupergraphSdl({
         supergraphSdl: readFileSync(supergraphSdlPath, 'utf-8'),
+        batch: true,
       });
       const tests: { query: string; expected: any }[] = JSON.parse(
         readFileSync(join(supergraphFixturesDir, 'tests.json'), 'utf-8'),
