@@ -48,7 +48,7 @@ export class OverlappingAliasesTransform<TContext>
                                 seenNonNullable.add(fieldName);
                                 currentNullable = false;
                               }
-                              if (seenNullable.size && seenNonNullable.size) {
+                              if (seenNullable.has(fieldName) && seenNonNullable.has(fieldName)) {
                                 transformationContext[OverlappingAliases] = true;
                                 return {
                                   ...subSelection,
