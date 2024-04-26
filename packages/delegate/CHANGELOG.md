@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 10.0.6
+
+### Patch Changes
+
+- [`af7be09`](https://github.com/ardatan/graphql-tools/commit/af7be099e88777bba376c14ecf191365ed3a89c7) Thanks [@ardatan](https://github.com/ardatan)! - Hotfix: do not use nullable and nonNullable prefixes if field names don't match
+
 ## 10.0.5
 
 ### Patch Changes
