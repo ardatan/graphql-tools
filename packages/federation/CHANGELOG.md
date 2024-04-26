@@ -1,5 +1,105 @@
 # @graphql-tools/federation
 
+## 1.1.28
+
+### Patch Changes
+
+- [#6091](https://github.com/ardatan/graphql-tools/pull/6091) [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4) Thanks [@User](https://github.com/User), [@User](https://github.com/User)! - If the gateway receives a query with an overlapping fields for the subschema, it uses aliases to resolve it correctly.
+
+  Let's say subschema A has the following schema;
+
+  ```graphql
+    type Query {
+
+    }
+
+    interface User {
+      id: ID!
+      name: String!
+    }
+
+    type Admin implements User {
+      id: ID!
+      name: String!
+      role: String!
+    }
+
+    type Customer implements User {
+      id: ID!
+      name: String
+      email: String
+    }
+  ```
+
+  And let's say the gateway has the following schema instead;
+
+  ```graphql
+    type Query {
+
+    }
+
+    interface User {
+      id: ID!
+      name: String!
+    }
+
+    type Admin implements User {
+      id: ID!
+      name: String!
+      role: String!
+    }
+
+    type Customer implements User {
+      id: ID!
+      name: String!
+      email: String!
+    }
+  ```
+
+  In this case, the following query is fine for the gateway but for the subschema, it's not;
+
+  ```graphql
+  query {
+    user {
+      ... on Admin {
+        id
+        name # This is nullable in the subschema
+        role
+      }
+      ... on Customer {
+        id
+        name # This is non-nullable in the subschema
+        email
+      }
+    }
+  }
+  ```
+
+  So the subgraph will throw based on this rule [OverlappingFieldsCanBeMerged](https://github.com/graphql/graphql-js/blob/main/src/validation/rules/OverlappingFieldsCanBeMergedRule.ts)
+
+  To avoid this, the gateway will use aliases to resolve the query correctly. The query will be transformed to the following;
+
+  ```graphql
+  query {
+    user {
+      ... on Admin {
+        id
+        name # This is nullable in the subschema
+        role
+      }
+      ... on Customer {
+        id
+        name: _nullable_name # This is non-nullable in the subschema
+        email
+      }
+    }
+  }
+  ```
+
+- Updated dependencies [[`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4), [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4), [`243c353`](https://github.com/ardatan/graphql-tools/commit/243c353412921cf0063f963ee46b9c63d2f33b41)]:
+  - @graphql-tools/stitch@9.2.0
+  - @graphql-tools/delegate@10.0.5
+
 ## 1.1.27
 
 ### Patch Changes
