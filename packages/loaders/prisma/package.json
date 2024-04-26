@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/prisma-loader",
-  "version": "8.0.3",
+  "version": "8.0.4",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {

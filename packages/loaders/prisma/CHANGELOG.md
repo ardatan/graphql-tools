@@ -1,5 +1,11 @@
 # @graphql-tools/prisma-loader
 
+## 8.0.4
+
+### Patch Changes
+
+- [#6100](https://github.com/ardatan/graphql-tools/pull/6100) [`4e72868`](https://github.com/ardatan/graphql-tools/commit/4e728689b70a563b6fa1eb0d52289974231f4251) Thanks [@JohanBrorson](https://github.com/JohanBrorson)! - Remove unused dependencies `json-stable-stringify` and `@types/json-stable-stringify`.
+
 ## 8.0.3
 
 ### Patch Changes
