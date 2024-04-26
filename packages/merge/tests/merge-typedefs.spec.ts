@@ -1705,16 +1705,16 @@ describe('Merge TypeDefs', () => {
     expect(reformulatedGraphQL).toBeSimilarString(schemaWithDescription);
   });
   it('merges the directives with the same name and same arguments', () => {
-    const directive = /* GraphQL */ `
+    const directive = parse(/* GraphQL */ `
       directive @link(
         url: String!
         as: String
         import: [link__Import]
         for: link__Purpose
       ) on SCHEMA
-    `;
+    `);
     const typeDefs = [directive, directive];
     const merged = mergeTypeDefs(typeDefs);
-    expect(print(merged)).toBeSimilarString(directive);
+    expect(print(merged)).toBeSimilarString(print(directive));
   });
 });
