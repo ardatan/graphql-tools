@@ -1,5 +1,16 @@
 # @graphql-tools/stitch
 
+## 9.2.1
+
+### Patch Changes
+
+- [#6105](https://github.com/ardatan/graphql-tools/pull/6105) [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95) Thanks [@ardatan](https://github.com/ardatan)! - Handle fields in unmerged types as both isolated and non-isolated fields
+
+- [#6105](https://github.com/ardatan/graphql-tools/pull/6105) [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95) Thanks [@ardatan](https://github.com/ardatan)! - Respect `specifiedByURL` in stitched schemas
+
+- Updated dependencies [[`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95), [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95)]:
+  - @graphql-tools/utils@10.2.0
+
 ## 9.2.0
 
 ### Minor Changes

@@ -1,5 +1,15 @@
 # @graphql-tools/utils
 
+## 10.2.0
+
+### Minor Changes
+
+- [#6105](https://github.com/ardatan/graphql-tools/pull/6105) [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95) Thanks [@ardatan](https://github.com/ardatan)! - Add `enumValueFilter` and `directiveFilter` to `filterSchema`
+
+### Patch Changes
+
+- [#6105](https://github.com/ardatan/graphql-tools/pull/6105) [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95) Thanks [@ardatan](https://github.com/ardatan)! - Handle fields in unmerged types as both isolated and non-isolated fields
+
 ## 10.1.3
 
 ### Patch Changes
