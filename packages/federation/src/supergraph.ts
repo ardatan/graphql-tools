@@ -692,12 +692,14 @@ export function getSubschemasFromSupergraphSdl({
     let executor: Executor = onExecutor({ subgraphName, endpoint, subgraphSchema: schema });
     if (globalThis.process?.env?.['DEBUG']) {
       const origExecutor = executor;
-      executor = function debugExecutor(execReq) {
+      executor = async function debugExecutor(execReq) {
         console.log(`Executing ${subgraphName} with args:`, {
           document: print(execReq.document),
-          variables: execReq.variables,
+          variables: JSON.stringify(execReq.variables, null, 2),
         });
-        return origExecutor(execReq);
+        const res = await origExecutor(execReq);
+        console.log(`Response from ${subgraphName}:`, JSON.stringify(res, null, 2));
+        return res;
       };
     }
     subschemaMap.set(subgraphName, {

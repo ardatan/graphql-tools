@@ -145,7 +145,17 @@ function handleResolverResult(
     const sourcePropValue = resolverResult[responseKey];
     if (sourcePropValue != null || existingPropValue == null) {
       if (existingPropValue != null && typeof existingPropValue === 'object') {
-        object[responseKey] = mergeDeep([existingPropValue, sourcePropValue]);
+        if (
+          Array.isArray(existingPropValue) &&
+          Array.isArray(sourcePropValue) &&
+          existingPropValue.length === sourcePropValue.length
+        ) {
+          object[responseKey] = existingPropValue.map((existingElement, index) =>
+            mergeDeep([existingElement, sourcePropValue[index]]),
+          );
+        } else {
+          object[responseKey] = mergeDeep([existingPropValue, sourcePropValue]);
+        }
       } else {
         object[responseKey] = sourcePropValue;
       }
