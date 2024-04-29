@@ -106,14 +106,17 @@ export function mergeGraphQLNodes(
             break;
           case Kind.DIRECTIVE_DEFINITION:
             if (mergedResultMap[name]) {
-              const isInheritedFromPrototype = name in {};
+              const isInheritedFromPrototype = name in {}; // i.e. toString
               if (isInheritedFromPrototype) {
                 if (!isNode(mergedResultMap[name])) {
                   mergedResultMap[name] = undefined as any;
                 }
               }
             }
-            mergedResultMap[name] = mergeDirective(nodeDefinition, mergedResultMap[name] as any);
+            mergedResultMap[name] = mergeDirective(
+              nodeDefinition,
+              mergedResultMap[name] as DirectiveDefinitionNode,
+            );
             break;
         }
       }
