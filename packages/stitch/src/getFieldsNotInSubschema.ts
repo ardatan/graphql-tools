@@ -82,8 +82,13 @@ export function extractUnavailableFields(field: GraphQLField<any, any>, fieldNod
     }
     const subFields = fieldType.getFields();
     const unavailableSelections: SelectionNode[] = [];
+    let hasTypeName = false;
     for (const selection of fieldNode.selectionSet.selections) {
       if (selection.kind === Kind.FIELD) {
+        if (selection.name.value === '__typename') {
+          hasTypeName = true;
+          continue;
+        }
         const selectionField = subFields[selection.name.value];
         if (!selectionField) {
           unavailableSelections.push(selection);
@@ -103,12 +108,14 @@ export function extractUnavailableFields(field: GraphQLField<any, any>, fieldNod
         // TODO: Support for inline fragments
       }
     }
-    if (
-      unavailableSelections.length === 1 &&
-      unavailableSelections[0].kind === Kind.FIELD &&
-      unavailableSelections[0].name.value === '__typename'
-    ) {
-      return [];
+    if (unavailableSelections.length && hasTypeName) {
+      unavailableSelections.unshift({
+        kind: Kind.FIELD,
+        name: {
+          kind: Kind.NAME,
+          value: '__typename',
+        },
+      });
     }
     return unavailableSelections;
   }
