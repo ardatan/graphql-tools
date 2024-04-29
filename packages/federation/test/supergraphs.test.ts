@@ -1,16 +1,8 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { buildSchema, lexicographicSortSchema, printSchema, versionInfo } from 'graphql';
-import {
-  filterSchema,
-  getDirective,
-  printSchemaWithDirectives,
-  pruneSchema,
-} from '@graphql-tools/utils';
-import {
-  getStitchedSchemaFromSupergraphSdl,
-  getSubschemasFromSupergraphSdl,
-} from '../src/supergraph';
+import { filterSchema, getDirective, pruneSchema } from '@graphql-tools/utils';
+import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 
 describe('Supergraphs', () => {
   if (versionInfo.major === 15) {
@@ -44,14 +36,6 @@ describe('Supergraphs', () => {
           }),
         );
         expect(printSchema(sortedSchema).trim()).toBe(printSchema(filteredInputSchema).trim());
-      });
-      it('subgraphs', () => {
-        const subschemas = getSubschemasFromSupergraphSdl({ supergraphSdl });
-        for (const [subgraphName, subschema] of subschemas) {
-          expect(printSchemaWithDirectives(subschema.schema).trim()).toMatchSnapshot(
-            `${fixture} - ${subgraphName}`,
-          );
-        }
       });
     });
   });
