@@ -242,6 +242,14 @@ export type ArgumentFilter = (
   argConfig?: GraphQLArgumentConfig,
 ) => boolean;
 
+export type DirectiveFilter = (directiveName: string, directive: GraphQLDirective) => boolean;
+
+export type EnumValueFilter = (
+  typeName: string,
+  valueName: string,
+  valueConfig: GraphQLEnumValueConfig,
+) => boolean;
+
 export type RenameTypesOptions = {
   renameBuiltins: boolean;
   renameScalars: boolean;

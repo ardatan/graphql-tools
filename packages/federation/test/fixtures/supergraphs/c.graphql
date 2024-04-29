@@ -75,7 +75,9 @@ type User @join__type(graph: ACCOUNTS, key: "id") {
 union FooBar
   @join__type(graph: ACCOUNTS)
   @join__unionMember(graph: ACCOUNTS, member: "Foo")
-  @join__unionMember(graph: ACCOUNTS, member: "Bar")
+  @join__unionMember(graph: ACCOUNTS, member: "Bar") =
+  | Foo
+  | Bar
 
 type Foo @join__type(graph: ACCOUNTS, key: "id") {
   id: ID!

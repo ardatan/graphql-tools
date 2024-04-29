@@ -1,68 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Supergraphs a.graphql matches: a.graphql - stitchedSchema 1`] = `
-"schema {
-  query: Query
-}
-
-type Query {
-  me: User
-  users: [User]
-  topProducts(first: Int): [Product]
-}
-
-type User {
-  id: ID!
-  numberOfReviews: Int
-  reviews: [Review]
-  username: String
-  birthDate: String
-  name: String
-}
-
-type Product {
-  reviews(input: ProductReviewsInput): [Review]
-  upc: String!
-  inStock: Boolean
-  shippingEstimate: Int
-  name: String
-  price: Int
-  weight: Int
-}
-
-enum ReviewsOrder {
-  ASC
-  DESC
-}
-
-input ProductReviewsInput {
-  first: Int
-  order: ReviewsOrder
-}
-
-type AnonymousReview implements Review {
-  body: String
-  id: ID!
-  product: Product
-}
-
-interface Review {
-  body: String
-  id: ID!
-  product: Product
-}
-
-scalar Stars
-
-type UserReview implements Review {
-  author: User
-  body: String
-  id: ID!
-  product: Product
-  stars: Stars
-}"
-`;
-
 exports[`Supergraphs a.graphql subgraphs: a.graphql - SERVICE0 1`] = `
 "schema {
   query: Query
@@ -186,92 +123,6 @@ union _Entity = Product
 scalar _Any"
 `;
 
-exports[`Supergraphs b.graphql matches: b.graphql - stitchedSchema 1`] = `
-"schema {
-  query: Query
-}
-
-type Query {
-  allPandas: [Panda]
-  panda(name: ID!): Panda
-  allProducts: [ProductItf]
-  product(id: ID!): ProductItf
-  review(id: Int!): Review
-}
-
-type Product implements ProductItf & SkuItf {
-  id: ID! @tag(name: "hi-from-products")
-  delivery(zip: String): DeliveryEstimates
-  dimensions: ProductDimension
-  sku: String
-  name: String @hello
-  package: String
-  variation: ProductVariation
-  createdBy: User
-  hidden: String
-  oldField: String
-  reviewsScore: Float!
-  reviewsCount: Int!
-  reviews: [Review!]!
-}
-
-type ProductDimension {
-  size: String @hello
-  weight: Float
-}
-
-interface ProductItf implements SkuItf {
-  id: ID!
-  dimensions: ProductDimension
-  delivery(zip: String): DeliveryEstimates
-  sku: String
-  name: String
-  package: String
-  variation: ProductVariation
-  createdBy: User
-  oldField: String @deprecated(reason: "refactored out")
-  reviewsCount: Int!
-  reviewsScore: Float!
-  reviews: [Review!]!
-}
-
-enum ShippingClass {
-  STANDARD
-  EXPRESS
-  OVERNIGHT
-}
-
-type DeliveryEstimates {
-  estimatedDelivery: String
-  fastestDelivery: String
-}
-
-type Panda {
-  name: ID!
-  favoriteFood: String @tag(name: "nom-nom-nom")
-}
-
-type ProductVariation {
-  id: ID!
-  name: String
-}
-
-interface SkuItf {
-  sku: String
-}
-
-type User {
-  email: ID! @tag(name: "test-from-users")
-  totalProductsCreated: Int
-  name: String
-}
-
-type Review {
-  id: Int!
-  body: String!
-}"
-`;
-
 exports[`Supergraphs b.graphql subgraphs: b.graphql - INVENTORY 1`] = `
 "schema {
   query: Query
@@ -300,12 +151,6 @@ interface ProductItf {
 
 type Query {
   _entities(representations: [_Any!]!): _Entity
-}
-
-enum ShippingClass {
-  STANDARD
-  EXPRESS
-  OVERNIGHT
 }
 
 union _Entity = Product
@@ -379,12 +224,6 @@ type Query {
   _entities(representations: [_Any!]!): _Entity
 }
 
-enum ShippingClass {
-  STANDARD
-  EXPRESS
-  OVERNIGHT
-}
-
 interface SkuItf {
   sku: String
 }
@@ -453,36 +292,6 @@ union _Entity = User
 scalar _Any"
 `;
 
-exports[`Supergraphs c.graphql matches: c.graphql - stitchedSchema 1`] = `
-"schema {
-  query: Query
-}
-
-type Query {
-  me: User
-  throw: String
-  fooBar: FooBar
-  mustFooBar: FooBar!
-}
-
-type User {
-  id: ID!
-  username: String
-}
-
-union FooBar = Foo | Bar
-
-type Foo {
-  id: ID!
-  name: String
-}
-
-type Bar {
-  id: ID!
-  name: String
-}"
-`;
-
 exports[`Supergraphs c.graphql subgraphs: c.graphql - ACCOUNTS 1`] = `
 "schema {
   query: Query
@@ -516,76 +325,6 @@ type Bar {
 union _Entity = User | Foo | Bar
 
 scalar _Any"
-`;
-
-exports[`Supergraphs d.graphql matches: d.graphql - stitchedSchema 1`] = `
-"schema {
-  query: Query
-  mutation: Mutation
-}
-
-type Query {
-  node(id: ID!): Node
-}
-
-interface Node {
-  id: ID!
-}
-
-type Mutation {
-  setNumber: Int
-}
-
-type ReactionAuthor implements Node {
-  id: ID!
-  avatarUrl: Url!
-  displayName: String!
-}
-
-type Handle implements Node {
-  id: ID!
-  mentionable: Mentionable
-}
-
-type Member implements Node {
-  id: ID!
-  email: String!
-}
-
-type ConcreteBoard implements Board & Node & SomeBoard {
-  id: ID!
-  isVisible: Boolean!
-  someEntity: SomeEntity
-}
-
-scalar Url @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc1738")
-
-union Mentionable = ReactionAuthor | OwnerChangedNotification
-
-type OwnerChangedNotification implements AppNotification {
-  entityType: NotifiableEntityType
-}
-
-enum NotifiableEntityType {
-  ITEM
-}
-
-interface AppNotification {
-  entityType: NotifiableEntityType
-}
-
-interface Board {
-  id: ID!
-  isVisible: Boolean!
-}
-
-interface SomeBoard {
-  someEntity: SomeEntity
-}
-
-type SomeEntity implements Node {
-  id: ID!
-}"
 `;
 
 exports[`Supergraphs d.graphql subgraphs: d.graphql - NODERESOLVER 1`] = `

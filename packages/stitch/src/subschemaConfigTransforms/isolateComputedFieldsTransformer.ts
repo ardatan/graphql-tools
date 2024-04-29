@@ -3,6 +3,7 @@ import {
   GraphQLNamedOutputType,
   GraphQLObjectType,
   GraphQLSchema,
+  isAbstractType,
   isCompositeType,
   isInterfaceType,
   isObjectType,
@@ -116,14 +117,35 @@ export function isolateComputedFieldsTransformer(
                 };
               } else if (!returnTypeMergeConfig) {
                 // this is an unmerged type, add all fields to the isolated schema
-                const fields = isUnionType(type) ? {} : type.getFields();
-
+                const fields: Record<string, MergedFieldConfig> = {
+                  ...isolatedSchemaTypes[type.name]?.fields,
+                };
+                if (isAbstractType(type)) {
+                  for (const implementingType of getImplementingTypes(
+                    type.name,
+                    subschemaConfig.schema,
+                  )) {
+                    const implementingTypeFields = isolatedSchemaTypes[implementingType]?.fields;
+                    if (implementingTypeFields) {
+                      for (const fieldName in implementingTypeFields) {
+                        fields[fieldName] = {
+                          ...implementingTypeFields[fieldName],
+                          ...fields[fieldName],
+                        };
+                      }
+                    }
+                  }
+                }
+                if (isInterfaceType(type) || isObjectType(type)) {
+                  for (const fieldName in type.getFields()) {
+                    if (!fields[fieldName]) {
+                      fields[fieldName] = {};
+                    }
+                  }
+                }
                 isolatedSchemaTypes[type.name] = {
                   keyFieldNames: [],
-                  fields: {
-                    ...(isolatedSchemaTypes[type.name]?.fields ?? {}),
-                    ...Object.fromEntries(Object.keys(fields).map(f => [f, {}])),
-                  },
+                  fields,
                   canonical: true,
                 };
               }
@@ -163,6 +185,18 @@ function _createCompositeFieldFilter(schema: GraphQLSchema) {
   );
 }
 
+function isIsolatedField(
+  typeName: string,
+  fieldName: string,
+  isolatedSchemaTypes: Record<string, ComputedTypeConfig>,
+): boolean {
+  const fieldConfig = isolatedSchemaTypes[typeName]?.fields?.[fieldName];
+  if (fieldConfig && Object.keys(fieldConfig).length > 0) {
+    return true;
+  }
+  return false;
+}
+
 function filterBaseSubschema(
   subschemaConfig: SubschemaConfig,
   isolatedSchemaTypes: Record<string, ComputedTypeConfig>,
@@ -173,14 +207,18 @@ function filterBaseSubschema(
     filterSchema({
       schema,
       objectFieldFilter: (typeName, fieldName) =>
-        !isolatedSchemaTypes[typeName]?.fields?.[fieldName] ||
+        !isIsolatedField(typeName, fieldName, isolatedSchemaTypes) ||
         (isolatedSchemaTypes[typeName]?.keyFieldNames ?? []).includes(fieldName),
       interfaceFieldFilter: (typeName, fieldName) => {
         if (!typesForInterface[typeName]) {
           typesForInterface[typeName] = getImplementingTypes(typeName, schema);
         }
-        return !typesForInterface[typeName].some(
-          implementingTypeName => isolatedSchemaTypes[implementingTypeName]?.fields?.[fieldName],
+        const isIsolatedFieldName = typesForInterface[typeName].some(implementingTypeName =>
+          isIsolatedField(implementingTypeName, fieldName, isolatedSchemaTypes),
+        );
+        return (
+          !isIsolatedFieldName ||
+          (isolatedSchemaTypes[typeName]?.keyFieldNames ?? []).includes(fieldName)
         );
       },
     }),
@@ -270,8 +308,11 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
       }
 
       return typeNames;
+    } else if (isUnionType(type)) {
+      typeNames.add(type.name);
+      type.getTypes().forEach(t => listReachableTypesToIsolate(subschemaConfig, t, typeNames));
+      return typeNames;
     } else {
-      // TODO: Unions
       return typeNames;
     }
   }

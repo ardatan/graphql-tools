@@ -161,12 +161,6 @@ type Review @join__type(graph: REVIEWS) {
   body: String!
 }
 
-enum ShippingClass @join__type(graph: INVENTORY) @join__type(graph: PRODUCTS) {
-  STANDARD
-  EXPRESS
-  OVERNIGHT
-}
-
 interface SkuItf @join__type(graph: PRODUCTS) {
   sku: String
 }
