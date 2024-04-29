@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 10.0.7
+
+### Patch Changes
+
+- [#6109](https://github.com/ardatan/graphql-tools/pull/6109) [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa) Thanks [@ardatan](https://github.com/ardatan)! - Merge list fields correctly
+
 ## 10.0.6
 
 ### Patch Changes

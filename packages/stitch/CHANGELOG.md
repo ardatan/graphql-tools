@@ -1,5 +1,14 @@
 # @graphql-tools/stitch
 
+## 9.2.3
+
+### Patch Changes
+
+- [#6109](https://github.com/ardatan/graphql-tools/pull/6109) [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa) Thanks [@ardatan](https://github.com/ardatan)! - Exclude fields with `__typename` while extracting missing fields for the type merging
+
+- Updated dependencies [[`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa)]:
+  - @graphql-tools/delegate@10.0.7
+
 ## 9.2.2
 
 ### Patch Changes
