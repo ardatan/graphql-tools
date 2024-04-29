@@ -416,6 +416,15 @@ function mergeScalarTypeCandidates<TContext = Record<string, any>>(
 
   const extensions = Object.assign({}, ...pluck<Record<string, any>>('extensions', candidates));
 
+  let specifiedByURL: Maybe<string>;
+
+  for (const candidate of candidates) {
+    if ('specifiedByURL' in candidate.type && candidate.type.specifiedByURL) {
+      specifiedByURL = candidate.type.specifiedByURL as any;
+      break;
+    }
+  }
+
   const typeConfig = {
     name: typeName,
     description,
@@ -425,6 +434,7 @@ function mergeScalarTypeCandidates<TContext = Record<string, any>>(
     astNode,
     extensionASTNodes,
     extensions,
+    specifiedByURL,
   };
 
   return new GraphQLScalarType(typeConfig);

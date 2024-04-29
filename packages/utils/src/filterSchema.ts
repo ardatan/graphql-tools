@@ -9,6 +9,8 @@ import {
 } from 'graphql';
 import {
   ArgumentFilter,
+  DirectiveFilter,
+  EnumValueFilter,
   FieldFilter,
   MapperKind,
   RootFieldFilter,
@@ -26,6 +28,8 @@ export function filterSchema({
   interfaceFieldFilter = undefined,
   inputObjectFieldFilter = undefined,
   argumentFilter = undefined,
+  directiveFilter = undefined,
+  enumValueFilter = undefined,
 }: {
   schema: GraphQLSchema;
   rootFieldFilter?: RootFieldFilter;
@@ -35,6 +39,8 @@ export function filterSchema({
   interfaceFieldFilter?: FieldFilter;
   inputObjectFieldFilter?: FieldFilter;
   argumentFilter?: ArgumentFilter;
+  directiveFilter?: DirectiveFilter;
+  enumValueFilter?: EnumValueFilter;
 }): GraphQLSchema {
   const filteredSchema: GraphQLSchema = mapSchema(schema, {
     [MapperKind.QUERY]: (type: GraphQLObjectType) =>
@@ -75,6 +81,10 @@ export function filterSchema({
       typeFilter(type.name, type) ? undefined : null,
     [MapperKind.SCALAR_TYPE]: (type: GraphQLScalarType) =>
       typeFilter(type.name, type) ? undefined : null,
+    [MapperKind.DIRECTIVE]: directive =>
+      directiveFilter && !directiveFilter(directive.name, directive) ? null : undefined,
+    [MapperKind.ENUM_VALUE]: (valueConfig, typeName, _schema, externalValue) =>
+      enumValueFilter && !enumValueFilter(typeName, externalValue, valueConfig) ? null : undefined,
   });
 
   return filteredSchema;
