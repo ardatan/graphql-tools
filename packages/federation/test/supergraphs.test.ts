@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { buildSchema, lexicographicSortSchema, printSchema, version } from 'graphql';
+import { buildSchema, lexicographicSortSchema, printSchema, versionInfo } from 'graphql';
 import {
   filterSchema,
   getDirective,
@@ -13,10 +13,11 @@ import {
 } from '../src/supergraph';
 
 describe('Supergraphs', () => {
-  if (version.startsWith('15')) {
+  if (versionInfo.major === 15) {
     it('skipping tests for graphql v15', () => {
       expect(true).toBe(true);
     });
+    return;
   }
   readdirSync(join(__dirname, 'fixtures', 'supergraphs')).forEach(fixture => {
     describe(fixture, () => {
