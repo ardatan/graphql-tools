@@ -103,6 +103,13 @@ export function extractUnavailableFields(field: GraphQLField<any, any>, fieldNod
         // TODO: Support for inline fragments
       }
     }
+    if (
+      unavailableSelections.length === 1 &&
+      unavailableSelections[0].kind === Kind.FIELD &&
+      unavailableSelections[0].name.value === '__typename'
+    ) {
+      return [];
+    }
     return unavailableSelections;
   }
   return [];
