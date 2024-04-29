@@ -92,20 +92,31 @@ export function isolateComputedFieldsTransformer(
             const returnTypeMergeConfig = subschemaConfig.merge[type.name];
 
             if (isObjectType(type)) {
-              if (returnTypeMergeConfig?.selectionSet) {
+              const returnTypeSelectionSet = returnTypeMergeConfig?.selectionSet;
+              if (returnTypeSelectionSet) {
                 // this is a merged type, include the selection set
-                // TODO: how to handle entryPoints
                 const keyFieldNames: string[] = [];
-                if (isObjectType(type)) {
-                  const parsedSelectionSet = parseSelectionSet(returnTypeMergeConfig.selectionSet!);
-                  const keyFields = collectFields(
-                    subschemaConfig.schema,
-                    {},
-                    {},
-                    type,
-                    parsedSelectionSet,
-                  );
-                  keyFieldNames.push(...Array.from(keyFields.fields.keys()));
+                const parsedSelectionSet = parseSelectionSet(returnTypeSelectionSet);
+                const keyFields = collectFields(
+                  subschemaConfig.schema,
+                  {},
+                  {},
+                  type,
+                  parsedSelectionSet,
+                );
+                keyFieldNames.push(...Array.from(keyFields.fields.keys()));
+                for (const entryPoint of returnTypeMergeConfig.entryPoints ?? []) {
+                  if (entryPoint.selectionSet) {
+                    const parsedSelectionSet = parseSelectionSet(entryPoint.selectionSet);
+                    const keyFields = collectFields(
+                      subschemaConfig.schema,
+                      {},
+                      {},
+                      type,
+                      parsedSelectionSet,
+                    );
+                    keyFieldNames.push(...Array.from(keyFields.fields.keys()));
+                  }
                 }
 
                 isolatedSchemaTypes[type.name] = {
@@ -128,10 +139,12 @@ export function isolateComputedFieldsTransformer(
                     const implementingTypeFields = isolatedSchemaTypes[implementingType]?.fields;
                     if (implementingTypeFields) {
                       for (const fieldName in implementingTypeFields) {
-                        fields[fieldName] = {
-                          ...implementingTypeFields[fieldName],
-                          ...fields[fieldName],
-                        };
+                        if (implementingTypeFields[fieldName]) {
+                          fields[fieldName] = {
+                            ...implementingTypeFields[fieldName],
+                            ...fields[fieldName],
+                          };
+                        }
                       }
                     }
                   }
@@ -191,7 +204,7 @@ function isIsolatedField(
   isolatedSchemaTypes: Record<string, ComputedTypeConfig>,
 ): boolean {
   const fieldConfig = isolatedSchemaTypes[typeName]?.fields?.[fieldName];
-  if (fieldConfig && Object.keys(fieldConfig).length > 0) {
+  if (fieldConfig) {
     return true;
   }
   return false;
@@ -345,42 +358,37 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
     }
   }
 
-  const interfaceFields: Record<string, Record<string, boolean>> = {};
-  for (const typeName in subschemaConfig.merge) {
-    const type = subschemaConfig.schema.getType(typeName);
-    if (!type || isObjectType(type)) {
-      if (!type || !('getInterfaces' in type)) {
-        throw new Error(`${typeName} expected to have 'getInterfaces' method`);
-      }
-      for (const int of type.getInterfaces()) {
-        const intType = subschemaConfig.schema.getType(int.name);
-        if (!intType || !('getFields' in intType)) {
-          throw new Error(`${int.name} expected to have 'getFields' method`);
-        }
-        for (const intFieldName in intType.getFields()) {
-          if (
-            subschemaConfig.merge[typeName].fields?.[intFieldName] ||
-            subschemaConfig.merge[typeName].keyFieldNames.includes(intFieldName)
-          ) {
-            interfaceFields[int.name] = interfaceFields[int.name] || {};
-            interfaceFields[int.name][intFieldName] = true;
-          }
-        }
-      }
-    }
-  }
-
+  const typesForInterface: Record<string, string[]> = {};
   const filteredSchema = pruneSchema(
     filterSchema({
       schema: subschemaConfig.schema,
-      rootFieldFilter: (operation, fieldName, config) =>
-        operation === 'Query' &&
-        (rootFields[fieldName] != null || computedFieldTypes[getNamedType(config.type).name]),
+      rootFieldFilter: (_, fieldName, config) => {
+        if (rootFields[fieldName]) {
+          return true;
+        }
+        const returnType = getNamedType(config.type);
+        if (isAbstractType(returnType)) {
+          const typesForInterface = getImplementingTypes(returnType.name, subschemaConfig.schema);
+          return typesForInterface.some(t => computedFieldTypes[t] != null);
+        }
+        return computedFieldTypes[returnType.name] != null;
+      },
       objectFieldFilter: (typeName, fieldName) =>
         subschemaConfig.merge[typeName] == null ||
         subschemaConfig.merge[typeName]?.fields?.[fieldName] != null ||
         (subschemaConfig.merge[typeName]?.keyFieldNames ?? []).includes(fieldName),
-      interfaceFieldFilter: (typeName, fieldName) => interfaceFields[typeName]?.[fieldName] != null,
+      interfaceFieldFilter: (typeName, fieldName) => {
+        if (!typesForInterface[typeName]) {
+          typesForInterface[typeName] = getImplementingTypes(typeName, subschemaConfig.schema);
+        }
+        const isIsolatedFieldName = typesForInterface[typeName].some(implementingTypeName =>
+          isIsolatedField(implementingTypeName, fieldName, subschemaConfig.merge),
+        );
+        return (
+          isIsolatedFieldName ||
+          (subschemaConfig.merge[typeName]?.keyFieldNames ?? []).includes(fieldName)
+        );
+      },
     }),
     { skipPruning: typ => computedFieldTypes[typ.name] != null },
   );

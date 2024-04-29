@@ -35,7 +35,9 @@ describe('Supergraphs', () => {
               !getDirective(sortedInputSchema, enumValueConfig, 'inaccessible')?.length,
           }),
         );
-        expect(printSchema(sortedSchema).trim()).toBe(printSchema(filteredInputSchema).trim());
+        expect(printSchema(pruneSchema(sortedSchema)).trim()).toBe(
+          printSchema(filteredInputSchema).trim(),
+        );
       });
     });
   });
