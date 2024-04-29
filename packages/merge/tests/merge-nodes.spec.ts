@@ -492,23 +492,5 @@ describe('Merge Nodes', () => {
       assertNamedTypeNode(type.fields[1].type);
       expect(type.fields[1].type.name.value).toBe('String');
     });
-
-    it.skip('should remove schema definition', () => {
-      const type1 = parse(/* GraphQL */ `
-        schema {
-          query: Query
-        }
-        type Query {
-          f1: String
-        }
-      `);
-      const type2 = parse(/* GraphQL */ `
-        type Query {
-          f2: String
-        }
-      `);
-      const merged = mergeGraphQLNodes([...type1.definitions, ...type2.definitions]);
-      expect(Object.values(merged).length).toBe(1);
-    });
   });
 });
