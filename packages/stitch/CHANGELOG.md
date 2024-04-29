@@ -1,5 +1,11 @@
 # @graphql-tools/stitch
 
+## 9.2.2
+
+### Patch Changes
+
+- [#6107](https://github.com/ardatan/graphql-tools/pull/6107) [`b281dd6`](https://github.com/ardatan/graphql-tools/commit/b281dd65276dd9df56a41cc2dbff5139281f02f9) Thanks [@ardatan](https://github.com/ardatan)! - Fix the priority of isolated fields
+
 ## 9.2.1
 
 ### Patch Changes
