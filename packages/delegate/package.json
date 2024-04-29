@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/delegate",
-  "version": "10.0.6",
+  "version": "10.0.7",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {

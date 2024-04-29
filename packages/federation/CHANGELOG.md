@@ -1,5 +1,15 @@
 # @graphql-tools/federation
 
+## 1.1.29
+
+### Patch Changes
+
+- [#6109](https://github.com/ardatan/graphql-tools/pull/6109) [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa) Thanks [@ardatan](https://github.com/ardatan)! - Show responses in debug logging with `DEBUG` env var
+
+- Updated dependencies [[`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa), [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa)]:
+  - @graphql-tools/delegate@10.0.7
+  - @graphql-tools/stitch@9.2.3
+
 ## 1.1.28
 
 ### Patch Changes
