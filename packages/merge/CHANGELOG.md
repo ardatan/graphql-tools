@@ -1,5 +1,11 @@
 # @graphql-tools/merge
 
+## 9.0.4
+
+### Patch Changes
+
+- [#6111](https://github.com/ardatan/graphql-tools/pull/6111) [`a06dbd2`](https://github.com/ardatan/graphql-tools/commit/a06dbd263ec7bfc6d50aa8faf2e35396a67b4f0b) Thanks [@lesleydreyer](https://github.com/lesleydreyer)! - Fix directive merging when directive name is inherited from object prototype (i.e. toString)
+
 ## 9.0.3
 
 ### Patch Changes
