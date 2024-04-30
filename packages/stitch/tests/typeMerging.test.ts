@@ -943,3 +943,171 @@ describe('type merge repeated nested delegates', () => {
     ]);
   });
 });
+
+it('shared fields but one of them is not resolvable', async () => {
+  const A = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Query {
+        productFromA(id: ID): Product
+        # No category resolver is present
+      }
+
+      type Product {
+        id: ID
+        category: Category
+      }
+
+      type Category {
+        details: String
+      }
+    `,
+    resolvers: {
+      Query: {
+        productFromA: (_, { id }) => ({
+          id,
+          category: { details: `Details for Product#${id}` },
+        }),
+      },
+    },
+  });
+
+  const B = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Query {
+        productFromB(id: ID): Product
+      }
+      type Product {
+        id: ID
+        category: Category
+      }
+      type Category {
+        id: ID
+      }
+    `,
+    resolvers: {
+      Query: {
+        productFromB: (_, { id }) => ({
+          id,
+          category: {
+            id: 3,
+          },
+        }),
+      },
+    },
+  });
+  const C = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Query {
+        categoryFromC(id: ID): Category
+      }
+
+      type Category {
+        id: ID
+        name: String
+      }
+    `,
+    resolvers: {
+      Query: {
+        categoryFromC: (_, { id }) => ({
+          id,
+          name: `Category#${id}`,
+        }),
+      },
+    },
+  });
+  const D = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Query {
+        productFromD(id: ID): Product
+      }
+      type Product {
+        id: ID
+        name: String
+      }
+    `,
+    resolvers: {
+      Query: {
+        productFromD: (_, { id }) => ({
+          id,
+          name: `Product#${id}`,
+        }),
+      },
+    },
+  });
+
+  const gatewaySchema = stitchSchemas({
+    subschemas: [
+      {
+        schema: A,
+        merge: {
+          Product: {
+            selectionSet: `{ id }`,
+            fieldName: 'productFromA',
+            args: ({ id }) => ({ id }),
+          },
+        },
+      },
+      {
+        schema: B,
+        merge: {
+          Product: {
+            selectionSet: `{ id }`,
+            fieldName: 'productFromB',
+            args: ({ id }) => ({ id }),
+          },
+        },
+      },
+      {
+        schema: C,
+        merge: {
+          Category: {
+            selectionSet: `{ id }`,
+            fieldName: 'categoryFromC',
+            args: ({ id }) => ({ id }),
+          },
+        },
+      },
+      {
+        schema: D,
+        merge: {
+          Product: {
+            selectionSet: `{ id }`,
+            fieldName: 'productFromD',
+            args: ({ id }) => ({ id }),
+          },
+        },
+      },
+    ],
+  });
+
+  const query = /* GraphQL */ `
+    query {
+      productFromD(id: "1") {
+        id
+        name
+        category {
+          id
+          name
+          details
+        }
+      }
+    }
+  `;
+  const result = await normalizedExecutor({
+    schema: gatewaySchema,
+    document: parse(query),
+  });
+  expect(result).toEqual({
+    data: {
+      productFromD: {
+        id: '1',
+        name: 'Product#1',
+        category: {
+          id: '3',
+          name: 'Category#3',
+          details: 'Details for Product#1',
+        },
+      },
+    },
+  });
+});

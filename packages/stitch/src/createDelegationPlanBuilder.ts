@@ -145,7 +145,17 @@ function calculateDelegationStage(
         const fields = typeInSubschema.getFields();
         const field = fields[fieldNode.name.value];
         if (field != null) {
-          const unavailableFields = extractUnavailableFields(field, fieldNode);
+          const unavailableFields = extractUnavailableFields(field, fieldNode, fieldType => {
+            if (!nonUniqueSubschema.merge?.[fieldType.name]) {
+              delegationMap.set(nonUniqueSubschema, {
+                kind: Kind.SELECTION_SET,
+                selections: [fieldNode],
+              });
+              // Ignore unresolvable fields
+              return false;
+            }
+            return true;
+          });
           const currentScore = calculateScore(unavailableFields);
           if (currentScore < bestScore) {
             bestScore = currentScore;
