@@ -4,6 +4,7 @@ import {
   GraphQLOutputType,
   GraphQLSchema,
   OperationTypeNode,
+  print,
   validate,
 } from 'graphql';
 import { getBatchingExecutor } from '@graphql-tools/batch-execute';
@@ -238,6 +239,7 @@ export const createDefaultExecutor = memoize1(function createDefaultExecutor(
   schema: GraphQLSchema,
 ): Executor {
   return function defaultExecutor(request: ExecutionRequest) {
+    console.log(print(request.document));
     return normalizedExecutor({
       schema,
       document: request.document,
