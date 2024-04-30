@@ -4,7 +4,6 @@ import {
   GraphQLOutputType,
   GraphQLSchema,
   OperationTypeNode,
-  print,
   validate,
 } from 'graphql';
 import { getBatchingExecutor } from '@graphql-tools/batch-execute';
