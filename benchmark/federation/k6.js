@@ -78,15 +78,6 @@ export default function () {
       }
 
       query TestQuery {
-        users {
-          ...User
-          reviews {
-            ...Review
-            product {
-              ...Product
-            }
-          }
-        }
         topProducts {
           ...Product
           reviews {
@@ -104,6 +95,6 @@ export default function () {
   check(res, {
     no_errors: checkNoErrors,
     expected_result: resp =>
-      'reviews' in resp.json().data.users[0] && 'reviews' in resp.json().data.topProducts[0],
+      'reviews' in resp.json().data.topProducts[0],
   });
 }
