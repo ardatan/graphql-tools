@@ -4,6 +4,7 @@ import {
   EnumTypeDefinitionNode,
   EnumValueDefinitionNode,
   FieldDefinitionNode,
+  GraphQLOutputType,
   GraphQLSchema,
   InputValueDefinitionNode,
   InterfaceTypeDefinitionNode,
@@ -22,8 +23,14 @@ import {
 } from 'graphql';
 import { MergedTypeConfig, SubschemaConfig } from '@graphql-tools/delegate';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
-import { stitchSchemas } from '@graphql-tools/stitch';
-import { type Executor } from '@graphql-tools/utils';
+import {
+  getDefaultFieldConfigMerger,
+  MergeFieldConfigCandidate,
+  stitchSchemas,
+  TypeMergingOptions,
+  ValidationLevel,
+} from '@graphql-tools/stitch';
+import { memoize1, type Executor } from '@graphql-tools/utils';
 import {
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
@@ -42,13 +49,60 @@ export interface GetSubschemasFromSupergraphSdlOpts {
   batch?: boolean;
 }
 
+export function ensureSupergraphSDLAst(supergraphSdl: string | DocumentNode): DocumentNode {
+  return typeof supergraphSdl === 'string'
+    ? parse(supergraphSdl, { noLocation: true })
+    : supergraphSdl;
+}
+
+function getTypeFieldMapFromSupergraphAST(supergraphAST: DocumentNode) {
+  const typeFieldASTMap = new Map<
+    string,
+    Map<string, FieldDefinitionNode | InputValueDefinitionNode>
+  >();
+  for (const definition of supergraphAST.definitions) {
+    if ('fields' in definition) {
+      const fieldMap = new Map<string, FieldDefinitionNode | InputValueDefinitionNode>();
+      typeFieldASTMap.set(definition.name.value, fieldMap);
+      for (const field of definition.fields || []) {
+        fieldMap.set(field.name.value, field);
+      }
+    }
+  }
+  return typeFieldASTMap;
+}
+
+export function getFieldMergerFromSupergraphSdl(
+  supergraphSdl: DocumentNode | string,
+): TypeMergingOptions['fieldConfigMerger'] {
+  const supergraphAST = ensureSupergraphSDLAst(supergraphSdl);
+  const typeFieldASTMap = getTypeFieldMapFromSupergraphAST(supergraphAST);
+  const defaultMerger = getDefaultFieldConfigMerger(true);
+  const memoizedASTPrint = memoize1(print);
+  const memoizedTypePrint = memoize1((type: GraphQLOutputType) => type.toString());
+  return function (candidates: MergeFieldConfigCandidate[]) {
+    const filteredCandidates = candidates.filter(candidate => {
+      const fieldASTMap = typeFieldASTMap.get(candidate.type.name);
+      if (fieldASTMap) {
+        const fieldAST = fieldASTMap.get(candidate.fieldName);
+        if (fieldAST) {
+          const typeNodeInAST = memoizedASTPrint(fieldAST.type);
+          const typeNodeInCandidate = memoizedTypePrint(candidate.fieldConfig.type);
+          return typeNodeInAST === typeNodeInCandidate;
+        }
+      }
+      return false;
+    });
+    return defaultMerger(filteredCandidates.length ? filteredCandidates : candidates);
+  };
+}
+
 export function getSubschemasFromSupergraphSdl({
   supergraphSdl,
   onExecutor = ({ endpoint }) => buildHTTPExecutor({ endpoint }),
   batch = false,
 }: GetSubschemasFromSupergraphSdlOpts) {
-  const ast =
-    typeof supergraphSdl === 'string' ? parse(supergraphSdl, { noLocation: true }) : supergraphSdl;
+  const supergraphAst = ensureSupergraphSDLAst(supergraphSdl);
   const subgraphEndpointMap = new Map<string, string>();
   const subgraphTypesMap = new Map<string, TypeDefinitionNode[]>();
   const typeNameKeysBySubgraphMap = new Map<string, Map<string, string[]>>();
@@ -58,7 +112,7 @@ export function getSubschemasFromSupergraphSdl({
   const orphanTypeMap = new Map<string, TypeDefinitionNode>();
   // TODO: Temporary fix to add missing join__type directives to Query
   const subgraphNames: string[] = [];
-  visit(ast, {
+  visit(supergraphAst, {
     EnumTypeDefinition(node) {
       if (node.name.value === 'join__Graph') {
         node.values?.forEach(valueNode => {
@@ -191,7 +245,7 @@ export function getSubschemasFromSupergraphSdl({
                     extraFields = [];
                     typeNameExtraFieldsMap.set(fieldNodeType.name.value, extraFields);
                   }
-                  const extraFieldTypeNode = ast.definitions.find(
+                  const extraFieldTypeNode = supergraphAst.definitions.find(
                     def => 'name' in def && def.name?.value === fieldNodeType.name.value,
                   ) as ObjectTypeDefinitionNode;
                   providedExtraField.value.value.split(' ').forEach(extraField => {
@@ -311,7 +365,7 @@ export function getSubschemasFromSupergraphSdl({
       orphanTypeMap.set(typeNode.name.value, typeNode);
     }
   }
-  visit(ast, {
+  visit(supergraphAst, {
     ScalarTypeDefinition(node) {
       let isOrphan = !node.name.value.startsWith('link__') && !node.name.value.startsWith('join__');
       node.directives?.forEach(directiveNode => {
@@ -721,6 +775,10 @@ export function getStitchedSchemaFromSupergraphSdl(opts: GetSubschemasFromSuperg
     assumeValidSDL: true,
     typeMergingOptions: {
       useNonNullableFieldOnConflict: true,
+      validationSettings: {
+        validationLevel: ValidationLevel.Off,
+      },
+      fieldConfigMerger: getFieldMergerFromSupergraphSdl(opts.supergraphSdl),
     },
   });
   return filterInternalFieldsAndTypes(supergraphSchema);

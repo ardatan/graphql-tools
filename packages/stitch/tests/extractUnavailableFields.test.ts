@@ -48,7 +48,12 @@ describe('extractUnavailableFields', () => {
     if (!userField) {
       throw new Error('User field not found');
     }
-    const unavailableFields = extractUnavailableFields(userField, userSelection, () => true);
+    const unavailableFields = extractUnavailableFields(
+      schema,
+      userField,
+      userSelection,
+      () => true,
+    );
     const extractedSelectionSet: SelectionSetNode = {
       kind: Kind.SELECTION_SET,
       selections: unavailableFields,
@@ -103,7 +108,12 @@ describe('extractUnavailableFields', () => {
     if (!userField) {
       throw new Error('User field not found');
     }
-    const unavailableFields = extractUnavailableFields(userField, userSelection, () => true);
+    const unavailableFields = extractUnavailableFields(
+      schema,
+      userField,
+      userSelection,
+      () => true,
+    );
     const extractedSelectionSet: SelectionSetNode = {
       kind: Kind.SELECTION_SET,
       selections: unavailableFields,
@@ -162,6 +172,7 @@ describe('extractUnavailableFields', () => {
       throw new Error('Post field not found');
     }
     const unavailableFields = extractUnavailableFields(
+      schema,
       postField,
       postSelection,
       (fieldType, selection) => !fieldNodesByField?.[fieldType.name]?.[selection.name.value],

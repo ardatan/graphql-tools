@@ -6,3 +6,4 @@ export * from './subschemaConfigTransforms/index.js';
 export * from './types.js';
 export * from './relay.js';
 export * from './executor.js';
+export { getDefaultFieldConfigMerger } from './mergeCandidates.js';
