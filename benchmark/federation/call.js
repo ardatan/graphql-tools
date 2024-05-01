@@ -28,15 +28,6 @@ fetch('http://localhost:3000/stitching', {
       }
 
       query TestQuery {
-        users {
-          ...User
-          reviews {
-            ...Review
-            product {
-              ...Product
-            }
-          }
-        }
         topProducts {
           ...Product
           reviews {
