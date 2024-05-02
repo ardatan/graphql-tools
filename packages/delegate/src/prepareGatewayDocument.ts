@@ -10,8 +10,6 @@ import {
   isAbstractType,
   isCompositeType,
   isInterfaceType,
-  isNonNullType,
-  isUnionType,
   Kind,
   SelectionNode,
   SelectionSetNode,
@@ -444,32 +442,30 @@ function wrapConcreteTypes(
         }
       },
       [Kind.FIELD]: (node: FieldNode) => {
-        let type = typeInfo.getType();
-        type = isNonNullType(type) ? type.ofType : type;
-        if (
-          type != null &&
-          isAbstractType(getNamedType(type)) &&
-          (!isUnionType(type) || type.name === '_Entity') // unnecessary spread on union types, except for federation's "_Entity" (https://www.apollographql.com/docs/federation/subgraph-spec/#union-_entity)
-        ) {
-          return {
-            ...node,
-            selectionSet: {
-              kind: Kind.SELECTION_SET,
-              selections: [
-                {
-                  kind: Kind.INLINE_FRAGMENT,
-                  typeCondition: {
-                    kind: Kind.NAMED_TYPE,
-                    name: {
-                      kind: Kind.NAME,
-                      value: namedType.name,
+        const fieldType = typeInfo.getType();
+        if (fieldType) {
+          const fieldNamedType = getNamedType(fieldType);
+          if (isAbstractType(fieldNamedType) && fieldNamedType.name !== namedType.name) {
+            return {
+              ...node,
+              selectionSet: {
+                kind: Kind.SELECTION_SET,
+                selections: [
+                  {
+                    kind: Kind.INLINE_FRAGMENT,
+                    typeCondition: {
+                      kind: Kind.NAMED_TYPE,
+                      name: {
+                        kind: Kind.NAME,
+                        value: namedType.name,
+                      },
                     },
+                    selectionSet: node.selectionSet,
                   },
-                  selectionSet: node.selectionSet,
-                },
-              ],
-            },
-          };
+                ],
+              },
+            };
+          }
         }
       },
     }),
