@@ -1,5 +1,12 @@
 # @graphql-tools/federation
 
+## 1.1.34
+
+### Patch Changes
+
+- [#6130](https://github.com/ardatan/graphql-tools/pull/6130) [`508ae6b`](https://github.com/ardatan/graphql-tools/commit/508ae6bbe36248926b58719d71042c4d608782a1) Thanks [@ardatan](https://github.com/ardatan)! - Support overrides on interfaces
+  See [packages/federation/test/fixtures/federation-compatibility/override-type-interface/supergraph.graphql](https://github.com/ardatan/graphql-tools/blob/739264d5f7f2f4254d4d41f965d664ae04c37e45/packages/federation/test/fixtures/federation-compatibility/override-type-interface/supergraph.graphql) for more details
+
 ## 1.1.33
 
 ### Patch Changes
