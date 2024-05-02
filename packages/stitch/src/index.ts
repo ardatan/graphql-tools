@@ -7,3 +7,5 @@ export * from './types.js';
 export * from './relay.js';
 export * from './executor.js';
 export { getDefaultFieldConfigMerger } from './mergeCandidates.js';
+export { calculateSelectionsScore  } from './createDelegationPlanBuilder.js';
+export { extractUnavailableFieldsFromSelectionSet, extractUnavailableFields } from './getFieldsNotInSubschema.js';

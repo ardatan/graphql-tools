@@ -161,7 +161,7 @@ function calculateDelegationStage(
               return true;
             },
           );
-          const currentScore = calculateScore(unavailableFields);
+          const currentScore = calculateSelectionsScore(unavailableFields).size;
           if (currentScore < bestScore) {
             bestScore = currentScore;
             bestUniqueSubschema = nonUniqueSubschema;
@@ -183,19 +183,21 @@ function calculateDelegationStage(
   };
 }
 
-function calculateScore(selections: readonly SelectionNode[] | SelectionNode[]) {
-  let score = 0;
+export function calculateSelectionsScore(selections: readonly SelectionNode[] | SelectionNode[]) {
+  const scoredNames = new Set<string>();
   for (const selectionNode of selections) {
     switch (selectionNode.kind) {
       case Kind.FIELD:
-        score += 1;
+        scoredNames.add(selectionNode.name.value);
         break;
       case Kind.INLINE_FRAGMENT:
-        score += calculateScore(selectionNode.selectionSet.selections);
+        for (const scoredName of calculateSelectionsScore(selectionNode.selectionSet.selections)) {
+          scoredNames.add(scoredName);
+        }
         break;
     }
   }
-  return score;
+  return scoredNames;
 }
 
 function getStitchingInfo(schema: GraphQLSchema): StitchingInfo {

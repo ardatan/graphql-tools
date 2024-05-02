@@ -573,7 +573,7 @@ export function getSubschemasFromSupergraphSdl({
           mergedTypeConfig.canonical = true;
         }
 
-        mergedTypeConfig.entryPoints = keys.map(key => ({
+        const entryPoints = keys.map(key => ({
           selectionSet: `{ ${key} }`,
           argsFromKeys: getArgsFromKeysForFederation,
           key: getKeyFnForFederation(typeName, [key, ...extraKeys]),
@@ -582,6 +582,19 @@ export function getSubschemasFromSupergraphSdl({
             cacheKeyFn: getCacheKeyFnFromKey(key),
           },
         }));
+        if (entryPoints.length > 1) {
+          mergedTypeConfig.entryPoints = keys.map(key => ({
+            selectionSet: `{ ${key} }`,
+            argsFromKeys: getArgsFromKeysForFederation,
+            key: getKeyFnForFederation(typeName, [key, ...extraKeys]),
+            fieldName: `_entities`,
+            dataLoaderOptions: {
+              cacheKeyFn: getCacheKeyFnFromKey(key),
+            },
+          }));
+        } else {
+          Object.assign(mergedTypeConfig, entryPoints[0]);
+        }
 
         unionTypeNodes.push({
           kind: Kind.NAMED_TYPE,

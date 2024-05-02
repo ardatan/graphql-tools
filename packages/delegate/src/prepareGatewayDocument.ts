@@ -449,6 +449,7 @@ function wrapConcreteTypes(
         if (
           type != null &&
           isAbstractType(getNamedType(type)) &&
+          namedType.name !== 'Node' &&
           (!isUnionType(type) || type.name === '_Entity') // unnecessary spread on union types, except for federation's "_Entity" (https://www.apollographql.com/docs/federation/subgraph-spec/#union-_entity)
         ) {
           return {

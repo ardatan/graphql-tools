@@ -1,0 +1,47 @@
+[
+  {
+    "query": "\n      query {\n        topProducts {\n          products {\n            id\n            pid\n            price {\n              price\n            }\n            category {\n              mainProduct {\n                id\n              }\n              id\n              tag\n            }\n          }\n          selected {\n            id\n          }\n          first {\n            id\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "topProducts": {
+          "products": [
+            {
+              "id": "1",
+              "pid": "p1",
+              "price": {
+                "price": 100
+              },
+              "category": {
+                "mainProduct": {
+                  "id": "1"
+                },
+                "id": "c1",
+                "tag": "t1"
+              }
+            },
+            {
+              "id": "2",
+              "pid": "p2",
+              "price": {
+                "price": 200
+              },
+              "category": {
+                "mainProduct": {
+                  "id": "2"
+                },
+                "id": "c2",
+                "tag": "t2"
+              }
+            }
+          ],
+          "selected": {
+            "id": "2"
+          },
+          "first": {
+            "id": "1"
+          }
+        }
+      }
+    }
+  }
+]

@@ -1,4 +1,4 @@
-import { DocumentNode, GraphQLResolveInfo } from 'graphql';
+import { DocumentNode, GraphQLResolveInfo, Kind, visit } from 'graphql';
 import { ValueOrPromise } from 'value-or-promise';
 import {
   AsyncExecutor,
@@ -147,6 +147,13 @@ export function buildHTTPExecutor(
       request.extensions = restExtensions;
     }
 
+    request.document = visit(request.document, {
+      [Kind.INLINE_FRAGMENT](node) {
+        if (!node.selectionSet.selections.length) {
+          return null;
+        }
+      },
+    })
     const query = printFn(request.document);
 
     let timeoutId: any;

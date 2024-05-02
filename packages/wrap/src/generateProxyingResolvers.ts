@@ -1,4 +1,4 @@
-import { GraphQLFieldResolver } from 'graphql';
+import { GraphQLFieldResolver, GraphQLSchema, OperationTypeNode } from 'graphql';
 import {
   delegateToSchema,
   getSubschema,
@@ -6,8 +6,14 @@ import {
   ICreateProxyingResolverOptions,
   isExternalObject,
   resolveExternalValue,
+  StitchingInfo,
+  Subschema,
   SubschemaConfig,
 } from '@graphql-tools/delegate';
+import {
+  calculateSelectionsScore,
+  extractUnavailableFields,
+} from '@graphql-tools/stitch';
 import { getResponseKeyFromInfo, getRootTypeMap } from '@graphql-tools/utils';
 
 export function generateProxyingResolvers<TContext extends Record<string, any>>(
@@ -86,13 +92,46 @@ function createPossiblyNestedProxyingResolver<TContext extends Record<string, an
   };
 }
 
+function getStitchingInfo(schema: GraphQLSchema): StitchingInfo | undefined {
+  return schema.extensions?.['stitchingInfo'] as StitchingInfo;
+}
+
 export function defaultCreateProxyingResolver<TContext extends Record<string, any>>({
   subschemaConfig,
   operation,
 }: ICreateProxyingResolverOptions<TContext>): GraphQLFieldResolver<any, any> {
   return function proxyingResolver(_parent, _args, context, info) {
+    const fieldNode = info.fieldNodes[0];
+    let currentSubschema: SubschemaConfig<any, any, any, any> | Subschema<any, any, any, any> =
+      subschemaConfig;
+    let currentScore = Infinity;
+    if (fieldNode.selectionSet) {
+      const stitchingInfo = getStitchingInfo(info.schema);
+      if (stitchingInfo) {
+        for (const [, subschema] of stitchingInfo.subschemaMap) {
+          const operationTypeInSubschema = subschema.transformedSchema.getRootType(operation || OperationTypeNode.QUERY);
+          if (operationTypeInSubschema) {
+            const operationFieldMap = operationTypeInSubschema.getFields();
+            const operationField = operationFieldMap[fieldNode.name.value];
+            if (operationField) {
+              const unavailableFields = extractUnavailableFields(
+                subschema.transformedSchema,
+                operationField,
+                fieldNode,
+                () => true,
+              );
+              const score = calculateSelectionsScore(unavailableFields).size;
+              if (score < currentScore) {
+                currentSubschema = subschema;
+                currentScore = score;
+              }
+            }
+          }
+        }
+      }
+    }
     return delegateToSchema({
-      schema: subschemaConfig,
+      schema: currentSubschema,
       operation,
       context,
       info,
