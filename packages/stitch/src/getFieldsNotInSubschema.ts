@@ -8,6 +8,7 @@ import {
   GraphQLNamedType,
   GraphQLObjectType,
   GraphQLSchema,
+  isAbstractType,
   isInterfaceType,
   isLeafType,
   isObjectType,
@@ -154,13 +155,13 @@ export function extractUnavailableFieldsFromSelectionSet(
         ? schema.getType(selection.typeCondition.name.value)
         : fieldType;
       if (
-        !(isInterfaceType(subFieldType) && isObjectType(subFieldType)) ||
-        subFieldType === fieldType ||
-        (isInterfaceType(fieldType) && schema.isSubType(fieldType, subFieldType))
+        (isObjectType(subFieldType) || isInterfaceType(subFieldType)) &&
+        isAbstractType(fieldType) &&
+        schema.isSubType(fieldType, subFieldType)
       ) {
         const unavailableFields = extractUnavailableFieldsFromSelectionSet(
           schema,
-          fieldType,
+          subFieldType,
           selection.selectionSet,
           shouldAdd,
         );
