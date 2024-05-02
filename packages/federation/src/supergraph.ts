@@ -725,7 +725,7 @@ export function getSubschemasFromSupergraphSdl({
     });
     const extendedSubgraphTypes = [...subgraphTypes, ...extraOrphanTypesForSubgraph.values()];
     // We should add implemented objects from other subgraphs implemented by this interface
-    for (const interfaceInSubgraph of subgraphTypes) {
+    for (const interfaceInSubgraph of extendedSubgraphTypes) {
       if (interfaceInSubgraph.kind === Kind.INTERFACE_TYPE_DEFINITION) {
         for (const definitionNode of supergraphAst.definitions) {
           if (
