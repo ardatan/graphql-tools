@@ -213,7 +213,13 @@ export function getSubschemasFromSupergraphSdl({
                     argumentNode.value?.kind === Kind.BOOLEAN &&
                     argumentNode.value.value === true,
                 );
-                if (!isExternal) {
+                const isOverridden = joinFieldDirectiveNode.arguments?.some(
+                  argumentNode =>
+                    argumentNode.name.value === 'usedOverridden' &&
+                    argumentNode.value?.kind === Kind.BOOLEAN &&
+                    argumentNode.value.value === true,
+                );
+                if (!isExternal && !isOverridden) {
                   const typeArg = joinFieldDirectiveNode.arguments?.find(
                     argumentNode => argumentNode.name.value === 'type',
                   );
