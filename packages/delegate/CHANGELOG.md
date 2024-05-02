@@ -1,5 +1,11 @@
 # @graphql-tools/delegate
 
+## 10.0.8
+
+### Patch Changes
+
+- [`4ce3ffc`](https://github.com/ardatan/graphql-tools/commit/4ce3ffc8ec927651587e0aa236fdd573e883ef21) Thanks [@ardatan](https://github.com/ardatan)! - Simplify the logic in `wrapConcreteTypes`
+
 ## 10.0.7
 
 ### Patch Changes

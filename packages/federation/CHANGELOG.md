@@ -1,5 +1,15 @@
 # @graphql-tools/federation
 
+## 1.1.30
+
+### Patch Changes
+
+- [`9238e14`](https://github.com/ardatan/graphql-tools/commit/9238e140862d33c6df072c42054fc642eda37840) Thanks [@ardatan](https://github.com/ardatan)! - Improvements on field merging and extraction of unavailable fields
+
+- Updated dependencies [[`9238e14`](https://github.com/ardatan/graphql-tools/commit/9238e140862d33c6df072c42054fc642eda37840), [`4ce3ffc`](https://github.com/ardatan/graphql-tools/commit/4ce3ffc8ec927651587e0aa236fdd573e883ef21)]:
+  - @graphql-tools/stitch@9.2.5
+  - @graphql-tools/delegate@10.0.8
+
 ## 1.1.29
 
 ### Patch Changes
