@@ -1,5 +1,14 @@
 # @graphql-tools/federation
 
+## 1.1.31
+
+### Patch Changes
+
+- [`98b2795`](https://github.com/ardatan/graphql-tools/commit/98b2795120e05dec1d91b57422f50d38c088b630) Thanks [@ardatan](https://github.com/ardatan)! - Improvements on unavailable field selection, and key object projection
+
+- Updated dependencies [[`98b2795`](https://github.com/ardatan/graphql-tools/commit/98b2795120e05dec1d91b57422f50d38c088b630)]:
+  - @graphql-tools/stitch@9.2.6
+
 ## 1.1.30
 
 ### Patch Changes
