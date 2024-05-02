@@ -8,8 +8,8 @@ import {
   GraphQLSchema,
   InlineFragmentNode,
   isAbstractType,
-  isCompositeType,
   isInterfaceType,
+  isLeafType,
   Kind,
   SelectionNode,
   SelectionSetNode,
@@ -415,9 +415,12 @@ function wrapConcreteTypes(
 ): DocumentNode {
   const namedType = getNamedType(returnType);
 
-  if (!isCompositeType(namedType)) {
+  if (isLeafType(namedType)) {
     return document;
   }
+  const possibleTypes = isAbstractType(namedType)
+    ? targetSchema.getPossibleTypes(namedType)
+    : [namedType];
 
   const rootTypeNames = getRootTypeNames(targetSchema);
 
@@ -445,24 +448,26 @@ function wrapConcreteTypes(
         const fieldType = typeInfo.getType();
         if (fieldType) {
           const fieldNamedType = getNamedType(fieldType);
-          if (isAbstractType(fieldNamedType) && fieldNamedType.name !== namedType.name) {
+          if (
+            isAbstractType(fieldNamedType) &&
+            fieldNamedType.name !== namedType.name &&
+            possibleTypes.length > 0
+          ) {
             return {
               ...node,
               selectionSet: {
                 kind: Kind.SELECTION_SET,
-                selections: [
-                  {
-                    kind: Kind.INLINE_FRAGMENT,
-                    typeCondition: {
-                      kind: Kind.NAMED_TYPE,
-                      name: {
-                        kind: Kind.NAME,
-                        value: namedType.name,
-                      },
+                selections: possibleTypes.map(possibleType => ({
+                  kind: Kind.INLINE_FRAGMENT,
+                  typeCondition: {
+                    kind: Kind.NAMED_TYPE,
+                    name: {
+                      kind: Kind.NAME,
+                      value: possibleType.name,
                     },
-                    selectionSet: node.selectionSet,
                   },
-                ],
+                  selectionSet: node.selectionSet,
+                })),
               },
             };
           }
