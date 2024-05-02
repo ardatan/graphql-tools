@@ -1,5 +1,11 @@
 # @graphql-tools/federation
 
+## 1.1.33
+
+### Patch Changes
+
+- [`361052a`](https://github.com/ardatan/graphql-tools/commit/361052a5fcc7f3bb00092efa3efd5767b9ac1ee6) Thanks [@ardatan](https://github.com/ardatan)! - Small fix: check all final types to find orphan interfaces
+
 ## 1.1.32
 
 ### Patch Changes
