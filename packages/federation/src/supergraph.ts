@@ -723,12 +723,54 @@ export function getSubschemasFromSupergraphSdl({
       }
       visitTypeDefinitionsForOrphanTypes(typeNode);
     });
+    const extendedSubgraphTypes = [...subgraphTypes, ...extraOrphanTypesForSubgraph.values()];
+    // We should add implemented objects from other subgraphs implemented by this interface
+    for (const interfaceInSubgraph of subgraphTypes) {
+      if (interfaceInSubgraph.kind === Kind.INTERFACE_TYPE_DEFINITION) {
+        for (const definitionNode of supergraphAst.definitions) {
+          if (
+            definitionNode.kind === Kind.OBJECT_TYPE_DEFINITION &&
+            definitionNode.interfaces?.some(
+              interfaceNode => interfaceNode.name.value === interfaceInSubgraph.name.value,
+            )
+          ) {
+            const existingType = subgraphTypes.find(
+              typeNode => typeNode.name.value === definitionNode.name.value,
+            );
+            const iFaceNode: NamedTypeNode = {
+              kind: Kind.NAMED_TYPE,
+              name: {
+                kind: Kind.NAME,
+                value: interfaceInSubgraph.name.value,
+              },
+            };
+            if (!existingType) {
+              extendedSubgraphTypes.push({
+                kind: Kind.OBJECT_TYPE_DEFINITION,
+                name: definitionNode.name,
+                fields: interfaceInSubgraph.fields,
+                interfaces: [iFaceNode],
+              });
+            }
+            if (
+              existingType?.kind === Kind.OBJECT_TYPE_DEFINITION &&
+              !existingType.interfaces?.some(
+                interfaceNode => interfaceNode.name.value === interfaceInSubgraph.name.value,
+              )
+            ) {
+              (existingType as any).interfaces ||= [];
+              (existingType as any).interfaces.push(iFaceNode);
+            }
+            break;
+          }
+        }
+      }
+    }
     let schema: GraphQLSchema;
     const schemaAst: DocumentNode = {
       kind: Kind.DOCUMENT,
       definitions: [
-        ...subgraphTypes,
-        ...extraOrphanTypesForSubgraph.values(),
+        ...extendedSubgraphTypes,
         entitiesUnionTypeDefinitionNode,
         anyTypeDefinitionNode,
       ],

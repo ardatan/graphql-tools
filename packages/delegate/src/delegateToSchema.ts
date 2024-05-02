@@ -66,7 +66,6 @@ export function delegateToSchema<
     context,
     info,
   });
-
   return delegateRequest({
     ...options,
     request,

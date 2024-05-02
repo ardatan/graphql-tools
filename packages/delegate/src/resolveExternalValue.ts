@@ -6,7 +6,6 @@ import {
   GraphQLOutputType,
   GraphQLResolveInfo,
   GraphQLSchema,
-  isAbstractType,
   isCompositeType,
   isListType,
   locatedError,
@@ -14,7 +13,7 @@ import {
 import { Maybe } from '@graphql-tools/utils';
 import { annotateExternalObject, isExternalObject, mergeFields } from './mergeFields.js';
 import { Subschema } from './Subschema.js';
-import { StitchingInfo, SubschemaConfig } from './types.js';
+import { MergedTypeInfo, StitchingInfo, SubschemaConfig } from './types.js';
 
 export function resolveExternalValue<TContext extends Record<string, any>>(
   result: any,
@@ -85,7 +84,6 @@ function resolveExternalObject<TContext extends Record<string, any>>(
   if (!isExternalObject(object)) {
     annotateExternalObject(object, unpathedErrors, subschema, Object.create(null));
   }
-
   if (skipTypeMerging || info == null) {
     return object;
   }
@@ -96,19 +94,24 @@ function resolveExternalObject<TContext extends Record<string, any>>(
     return object;
   }
 
-  const typeName = isAbstractType(type) ? object.__typename : type.name;
-
-  const mergedTypeInfo = stitchingInfo.mergedTypes[typeName];
-  let targetSubschemas: undefined | Array<Subschema>;
-
   // Within the stitching context, delegation to a stitched GraphQLSchema or SubschemaConfig
   // will be redirected to the appropriate Subschema object, from which merge targets can be queried.
-  if (mergedTypeInfo != null) {
-    targetSubschemas = mergedTypeInfo.targetSubschemas.get(subschema as Subschema);
+
+  let mergedTypeInfo: MergedTypeInfo | undefined;
+  const possibleTypeNames = [object.__typename, type.name];
+  for (const possibleTypeName of possibleTypeNames) {
+    if (
+      possibleTypeName != null &&
+      stitchingInfo.mergedTypes[possibleTypeName]?.targetSubschemas?.get(subschema as Subschema)
+        ?.length
+    ) {
+      mergedTypeInfo = stitchingInfo.mergedTypes[possibleTypeName];
+      break;
+    }
   }
 
   // If there are no merge targets from the subschema, return.
-  if (!targetSubschemas || !targetSubschemas.length) {
+  if (!mergedTypeInfo) {
     return object;
   }
 
