@@ -1,27 +1,43 @@
+import DataLoader from 'dataloader';
 import {
   buildASTSchema,
   DocumentNode,
   EnumTypeDefinitionNode,
   EnumValueDefinitionNode,
   FieldDefinitionNode,
+  GraphQLList,
   GraphQLOutputType,
+  GraphQLResolveInfo,
   GraphQLSchema,
   InputValueDefinitionNode,
   InterfaceTypeDefinitionNode,
   InterfaceTypeExtensionNode,
+  isUnionType,
   Kind,
   NamedTypeNode,
   ObjectTypeDefinitionNode,
   ObjectTypeExtensionNode,
+  OperationTypeNode,
   parse,
   parseType,
   print,
   ScalarTypeDefinitionNode,
+  SelectionNode,
+  SelectionSetNode,
   TypeDefinitionNode,
   UnionTypeDefinitionNode,
   visit,
 } from 'graphql';
-import { MergedTypeConfig, SubschemaConfig } from '@graphql-tools/delegate';
+import { ValueOrPromise } from 'value-or-promise';
+import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
+import {
+  delegateToSchema,
+  MergedTypeConfig,
+  MergedTypeEntryPoint,
+  MergedTypeResolver,
+  Subschema,
+  SubschemaConfig,
+} from '@graphql-tools/delegate';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import {
   getDefaultFieldConfigMerger,
@@ -30,7 +46,7 @@ import {
   TypeMergingOptions,
   ValidationLevel,
 } from '@graphql-tools/stitch';
-import { memoize1, type Executor } from '@graphql-tools/utils';
+import { memoize1, parseSelectionSet, type Executor } from '@graphql-tools/utils';
 import {
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
@@ -579,15 +595,25 @@ export function getSubschemasFromSupergraphSdl({
           mergedTypeConfig.canonical = true;
         }
 
-        mergedTypeConfig.entryPoints = keys.map(key => ({
-          selectionSet: `{ ${key} }`,
-          argsFromKeys: getArgsFromKeysForFederation,
-          key: getKeyFnForFederation(typeName, [key, ...extraKeys]),
-          fieldName: `_entities`,
-          dataLoaderOptions: {
-            cacheKeyFn: getCacheKeyFnFromKey(key),
+        mergedTypeConfig.entryPoints = keys.map(
+          (key): MergedTypeEntryPoint => {
+            const keyFn = getKeyFnForFederation(typeName, [key, ...extraKeys]);
+            return {
+              selectionSet: `{ ${key} }`,
+              fieldName: `_entities`,
+              resolve(
+                originalResult: any,
+                context: any,
+                info: GraphQLResolveInfo,
+                subschema: Subschema<any, any, any, any>,
+                selectionSet: SelectionSetNode,
+              ) {
+                const dataloader = getMergedTypeDataLoaderForFederation(subschema, context, info);
+                return dataloader.load([typeName, keyFn(originalResult), selectionSet]);
+              },
+            }
           },
-        }));
+        );
 
         unionTypeNodes.push({
           kind: Kind.NAMED_TYPE,
@@ -797,7 +823,7 @@ export function getSubschemasFromSupergraphSdl({
       executor = async function debugExecutor(execReq) {
         console.log(`Executing ${subgraphName} with args:`, {
           document: print(execReq.document),
-          variables: JSON.stringify(execReq.variables, null, 2),
+          // variables: JSON.stringify(execReq.variables, null, 2),
         });
         const res = await origExecutor(execReq);
         console.log(`Response from ${subgraphName}:`, JSON.stringify(res, null, 2));
@@ -881,3 +907,83 @@ const entitiesFieldDefinitionNode: FieldDefinitionNode = {
 };
 
 const specifiedTypeNames = ['ID', 'String', 'Float', 'Int', 'Boolean', '_Any', '_Entity'];
+
+const memoizedPrint = memoize1(print);
+const memoizedJsonStringify = memoize1(data => JSON.stringify(data));
+const mergedTypeDataLoaderMapByContext = new WeakMap<
+  any,
+  WeakMap<Subschema, DataLoader<[string, any, SelectionSetNode], any>>
+>();
+function getMergedTypeDataLoaderForFederation(
+  subschema: Subschema,
+  context: any,
+  info: GraphQLResolveInfo,
+) {
+  const identifier = context || info.rootValue || info.fieldNodes[0];
+  let mergedTypeDataLoaderMap = mergedTypeDataLoaderMapByContext.get(identifier);
+  if (!mergedTypeDataLoaderMap) {
+    mergedTypeDataLoaderMap = new Map();
+    mergedTypeDataLoaderMapByContext.set(identifier, mergedTypeDataLoaderMap);
+  }
+  let dataloader = mergedTypeDataLoaderMap.get(subschema);
+  if (!dataloader) {
+    const entityType = subschema.transformedSchema.getType('_Entity');
+    if (!isUnionType(entityType)) {
+      throw new Error(`_Entity must be a union type`);
+    }
+    dataloader = new DataLoader<[string, any, SelectionSetNode], any, string>(
+      typeKeySelectionSetPairs => {
+        const representations: any[] = [];
+        const pairIndexMap: number[] = [];
+        const selectionsByType = new Map<string, Set<string>>();
+        for (const pairIndex in typeKeySelectionSetPairs) {
+          const [typeName, key, selectionSet] = typeKeySelectionSetPairs[pairIndex];
+          let reprensentationIndex = representations.indexOf(key);
+          if (reprensentationIndex === -1) {
+            reprensentationIndex = representations.length;
+            representations.push(key);
+          }
+          pairIndexMap[Number(pairIndex)] = reprensentationIndex;
+          let selections = selectionsByType.get(typeName);
+          if (!selections) {
+            selections = new Set();
+            selectionsByType.set(typeName, selections);
+          }
+          selectionSet.selections.forEach(selection => {
+            selections.add(memoizedPrint(selection));
+          });
+        }
+        let finalSelectionSet = '';
+        for (const [typeName, selections] of selectionsByType) {
+          finalSelectionSet += `... on ${typeName} {
+            ${Array.from(selections).join('\n')}
+          }`;
+        }
+        return new ValueOrPromise(() =>
+          delegateToSchema({
+            schema: subschema,
+            operation: 'query' as OperationTypeNode,
+            fieldName: '_entities',
+            returnType: new GraphQLList(entityType),
+            selectionSet: parseSelectionSet(`{ ${finalSelectionSet} }`, { noLocation: true }),
+            args: {
+              representations: Array.from(representations),
+            },
+            context,
+            info,
+            skipTypeMerging: true,
+          }),
+        ).then(result => {
+          return pairIndexMap.map(index => result[index]);
+        });
+      },
+      {
+        cacheKeyFn([_typeName, key, selectionSet]) {
+          return `${memoizedJsonStringify(key)}:${memoizedPrint(selectionSet)}`;
+        },
+      },
+    );
+    mergedTypeDataLoaderMap.set(subschema, dataloader);
+  }
+  return dataloader;
+}
