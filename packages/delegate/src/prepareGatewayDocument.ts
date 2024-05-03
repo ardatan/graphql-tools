@@ -23,6 +23,7 @@ import {
   implementsAbstractType,
   memoize2,
 } from '@graphql-tools/utils';
+import { extractUnavailableFields } from './extractUnavailableFields.js';
 import { getDocumentMetadata } from './getDocumentMetadata.js';
 import { StitchingInfo } from './types.js';
 
@@ -100,6 +101,8 @@ export function prepareGatewayDocument(
     visitorKeyMap as any,
   );
 }
+
+const shouldAdd = () => true;
 
 function visitSelectionSet(
   node: SelectionSetNode,
@@ -180,21 +183,32 @@ function visitSelectionSet(
         }
       } else {
         const fieldName = selection.name.value;
-
-        const fieldNodes = fieldNodesByField[parentTypeName]?.[fieldName];
-        if (fieldNodes != null) {
-          for (const fieldNode of fieldNodes) {
-            newSelections.add(fieldNode);
+        let skipAddingDependencyNodes = false;
+        // TODO: Optimization to prevent extra fields to the subgraph
+        if ('getFields' in parentType) {
+          const fieldMap = parentType.getFields();
+          const field = fieldMap[fieldName];
+          if (field) {
+            const unavailableFields = extractUnavailableFields(schema, field, selection, shouldAdd);
+            skipAddingDependencyNodes = unavailableFields.length === 0;
           }
         }
+        if (!skipAddingDependencyNodes) {
+          const fieldNodes = fieldNodesByField[parentTypeName]?.[fieldName];
+          if (fieldNodes != null) {
+            for (const fieldNode of fieldNodes) {
+              newSelections.add(fieldNode);
+            }
+          }
 
-        const dynamicSelectionSets = dynamicSelectionSetsByField[parentTypeName]?.[fieldName];
-        if (dynamicSelectionSets != null) {
-          for (const selectionSetFn of dynamicSelectionSets) {
-            const selectionSet = selectionSetFn(selection);
-            if (selectionSet != null) {
-              for (const selection of selectionSet.selections) {
-                newSelections.add(selection);
+          const dynamicSelectionSets = dynamicSelectionSetsByField[parentTypeName]?.[fieldName];
+          if (dynamicSelectionSets != null) {
+            for (const selectionSetFn of dynamicSelectionSets) {
+              const selectionSet = selectionSetFn(selection);
+              if (selectionSet != null) {
+                for (const selection of selectionSet.selections) {
+                  newSelections.add(selection);
+                }
               }
             }
           }
