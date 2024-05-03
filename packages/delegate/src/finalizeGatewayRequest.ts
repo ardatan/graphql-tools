@@ -1,6 +1,5 @@
 import {
   ArgumentNode,
-  DocumentNode,
   FragmentDefinitionNode,
   getNamedType,
   GraphQLField,
@@ -31,6 +30,7 @@ import {
   serializeInputValue,
   updateArgument,
 } from '@graphql-tools/utils';
+import { deduplicateDocument } from './deduplicateDocument.js';
 import { getDocumentMetadata } from './getDocumentMetadata.js';
 import { DelegationContext } from './types.js';
 
@@ -107,10 +107,10 @@ function finalizeGatewayDocument(
     });
   }
 
-  const newDocument: DocumentNode = {
+  const newDocument = deduplicateDocument({
     kind: Kind.DOCUMENT,
     definitions: [...newOperations, ...newFragments],
-  };
+  });
 
   return {
     usedVariables,
