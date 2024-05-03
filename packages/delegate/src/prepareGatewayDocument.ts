@@ -11,7 +11,6 @@ import {
   isInterfaceType,
   isLeafType,
   Kind,
-  SelectionNode,
   SelectionSetNode,
   TypeInfo,
   visit,
@@ -22,6 +21,7 @@ import {
   getRootTypeNames,
   implementsAbstractType,
   memoize2,
+  SelectionSetBuilder,
 } from '@graphql-tools/utils';
 import { getDocumentMetadata } from './getDocumentMetadata.js';
 import { StitchingInfo } from './types.js';
@@ -116,7 +116,7 @@ function visitSelectionSet(
     Record<string, Array<(node: FieldNode) => SelectionSetNode>>
   >,
 ): SelectionSetNode {
-  const newSelections = new Set<SelectionNode>();
+  const selectionSetBuilder = new SelectionSetBuilder();
   const maybeType = typeInfo.getParentType();
 
   if (maybeType != null) {
@@ -126,12 +126,12 @@ function visitSelectionSet(
     const fieldNodes = fieldNodesByType[parentTypeName];
     if (fieldNodes) {
       for (const fieldNode of fieldNodes) {
-        newSelections.add(fieldNode);
+        selectionSetBuilder.addSelection(fieldNode);
       }
     }
 
     const interfaceExtensions = interfaceExtensionsMap[parentType.name];
-    const interfaceExtensionFields: Array<SelectionNode> = [];
+    const interfaceExtensionFieldsBuilder = new SelectionSetBuilder();
 
     for (const selection of node.selections) {
       if (selection.kind === Kind.INLINE_FRAGMENT) {
@@ -139,7 +139,7 @@ function visitSelectionSet(
           const possibleTypes = possibleTypesMap[selection.typeCondition.name.value];
 
           if (possibleTypes == null) {
-            newSelections.add(selection);
+            selectionSetBuilder.addSelection(selection);
             continue;
           }
 
@@ -149,7 +149,9 @@ function visitSelectionSet(
               maybePossibleType != null &&
               implementsAbstractType(schema, parentType, maybePossibleType)
             ) {
-              newSelections.add(generateInlineFragment(possibleTypeName, selection.selectionSet));
+              selectionSetBuilder.addSelection(
+                generateInlineFragment(possibleTypeName, selection.selectionSet),
+              );
             }
           }
         }
@@ -157,7 +159,7 @@ function visitSelectionSet(
         const fragmentName = selection.name.value;
 
         if (!fragmentReplacements[fragmentName]) {
-          newSelections.add(selection);
+          selectionSetBuilder.addSelection(selection);
           continue;
         }
 
@@ -169,7 +171,7 @@ function visitSelectionSet(
             maybeReplacementType != null &&
             implementsAbstractType(schema, parentType, maybeType)
           ) {
-            newSelections.add({
+            selectionSetBuilder.addSelection({
               kind: Kind.FRAGMENT_SPREAD,
               name: {
                 kind: Kind.NAME,
@@ -184,7 +186,7 @@ function visitSelectionSet(
         const fieldNodes = fieldNodesByField[parentTypeName]?.[fieldName];
         if (fieldNodes != null) {
           for (const fieldNode of fieldNodes) {
-            newSelections.add(fieldNode);
+            selectionSetBuilder.addSelection(fieldNode);
           }
         }
 
@@ -194,22 +196,22 @@ function visitSelectionSet(
             const selectionSet = selectionSetFn(selection);
             if (selectionSet != null) {
               for (const selection of selectionSet.selections) {
-                newSelections.add(selection);
+                selectionSetBuilder.addSelection(selection);
               }
             }
           }
         }
 
         if (interfaceExtensions?.[fieldName]) {
-          interfaceExtensionFields.push(selection);
+          interfaceExtensionFieldsBuilder.addSelection(selection);
         } else {
-          newSelections.add(selection);
+          selectionSetBuilder.addSelection(selection);
         }
       }
     }
 
     if (reversePossibleTypesMap[parentType.name]) {
-      newSelections.add({
+      selectionSetBuilder.addSelection({
         kind: Kind.FIELD,
         name: {
           kind: Kind.NAME,
@@ -218,15 +220,13 @@ function visitSelectionSet(
       });
     }
 
-    if (interfaceExtensionFields.length) {
+    if (interfaceExtensionFieldsBuilder.getSize()) {
       const possibleTypes = possibleTypesMap[parentType.name];
       if (possibleTypes != null) {
         for (const possibleType of possibleTypes) {
-          newSelections.add(
-            generateInlineFragment(possibleType, {
-              kind: Kind.SELECTION_SET,
-              selections: interfaceExtensionFields,
-            }),
+          const interfaceExtensionFields = interfaceExtensionFieldsBuilder.getSelectionSet();
+          selectionSetBuilder.addSelection(
+            generateInlineFragment(possibleType, interfaceExtensionFields),
           );
         }
       }
@@ -234,7 +234,7 @@ function visitSelectionSet(
 
     return {
       ...node,
-      selections: Array.from(newSelections),
+      ...selectionSetBuilder.getSelectionSet(),
     };
   }
 

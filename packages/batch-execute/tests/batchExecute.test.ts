@@ -126,8 +126,7 @@ describe('batch execution', () => {
     ])) as ExecutionResult[];
 
     const squishedDoc = executorDocument?.replace(/\s+/g, ' ');
-    expect(squishedDoc).toMatch('... on Query { _0_field1: field1 }');
-    expect(squishedDoc).toMatch('... on Query { _1_field2: field2 }');
+    expect(squishedDoc).toMatch('... on Query { _0_field1: field1 _1_field2: field2 }');
     expect(first?.data).toEqual({ field1: '1' });
     expect(second?.data).toEqual({ field2: '2' });
     expect(executorCalls).toEqual(1);
