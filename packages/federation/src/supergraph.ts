@@ -769,7 +769,10 @@ export function getSubschemasFromSupergraphSdl({
                 kind: Kind.NAMED_TYPE,
                 name: definitionNode.name,
               });
-              if (!mergeConfig[definitionNode.name.value]) {
+              if (
+                !mergeConfig[definitionNode.name.value] &&
+                mergeConfig[interfaceInSubgraph.name.value]
+              ) {
                 mergeConfig[definitionNode.name.value] =
                   mergeConfig[interfaceInSubgraph.name.value];
               }
