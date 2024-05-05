@@ -11,7 +11,6 @@ import {
   validate,
 } from 'graphql';
 import { normalizedExecutor } from '@graphql-tools/executor';
-import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { filterSchema, getDirective, MapperKind, mapSchema } from '@graphql-tools/utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 
