@@ -59,7 +59,19 @@ function deduplicateSelectionSet(node: SelectionSetNode): SelectionSetNode {
     const dedupedSelectionSet = deduplicateSelectionSet(inlineFragment.selectionSet);
     const newSelections: SelectionNode[] = [];
     for (const selection of dedupedSelectionSet.selections) {
-      if (selection.kind === Kind.FIELD && !mergableFieldSelections.has(selection.name.value)) {
+      if (selection.kind === Kind.FIELD) {
+        newSelections.push({
+          ...selection,
+          selectionSet: selection.selectionSet
+            ? deduplicateSelectionSet(selection.selectionSet)
+            : undefined,
+        });
+      } else if (selection.kind === Kind.INLINE_FRAGMENT) {
+        newSelections.push({
+          ...selection,
+          selectionSet: deduplicateSelectionSet(selection.selectionSet),
+        });
+      } else {
         newSelections.push(selection);
       }
     }
