@@ -53,6 +53,27 @@ function deduplicateSelectionSet(node: SelectionSetNode): SelectionSetNode {
       nonMergableSelections.push(selection);
     }
   }
+  // Cleanup extra fields from inline fragment
+  const cleanedUpInlineFragments: InlineFragmentNode[] = [];
+  for (const inlineFragment of inlineFragments.values()) {
+    const dedupedSelectionSet = deduplicateSelectionSet(inlineFragment.selectionSet);
+    const newSelections: SelectionNode[] = [];
+    for (const selection of dedupedSelectionSet.selections) {
+      if (selection.kind === Kind.FIELD && !mergableFieldSelections.has(selection.name.value)) {
+        newSelections.push(selection);
+      }
+    }
+    if (newSelections.length) {
+      cleanedUpInlineFragments.push({
+        ...inlineFragment,
+        selectionSet: {
+          kind: Kind.SELECTION_SET,
+          selections: newSelections,
+        },
+      });
+    }
+  }
+
   return {
     ...node,
     selections: [
@@ -65,12 +86,7 @@ function deduplicateSelectionSet(node: SelectionSetNode): SelectionSetNode {
             : undefined,
         }),
       ),
-      ...Array.from(inlineFragments.values()).map(
-        (inlineFragment: InlineFragmentNode): InlineFragmentNode => ({
-          ...inlineFragment,
-          selectionSet: deduplicateSelectionSet(inlineFragment.selectionSet),
-        }),
-      ),
+      ...cleanedUpInlineFragments,
       ...Array.from(fragmentSpreads).map(
         (fragmentName: string): FragmentSpreadNode => ({
           kind: Kind.FRAGMENT_SPREAD,
