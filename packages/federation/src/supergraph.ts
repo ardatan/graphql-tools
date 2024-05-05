@@ -173,7 +173,10 @@ export function getSubschemasFromSupergraphSdl({
         );
         if (joinTypeGraphArgNode?.value?.kind === Kind.ENUM) {
           const graphName = joinTypeGraphArgNode.value.value;
-          if (typeNode.kind === Kind.OBJECT_TYPE_DEFINITION) {
+          if (
+            typeNode.kind === Kind.OBJECT_TYPE_DEFINITION ||
+            typeNode.kind === Kind.INTERFACE_TYPE_DEFINITION
+          ) {
             const keyArgumentNode = directiveNode.arguments?.find(
               argumentNode => argumentNode.name.value === 'key',
             );
@@ -194,8 +197,7 @@ export function getSubschemasFromSupergraphSdl({
           const fieldDefinitionNodesOfSubgraph: FieldDefinitionNode[] = [];
           typeNode.fields?.forEach(fieldNode => {
             const joinFieldDirectives = fieldNode.directives?.filter(
-              directiveNode =>
-                directiveNode.name.value === 'join__field' && directiveNode.arguments?.length,
+              directiveNode => directiveNode.name.value === 'join__field',
             );
             let notInSubgraph = true;
             joinFieldDirectives?.forEach(joinFieldDirectiveNode => {
@@ -730,9 +732,12 @@ export function getSubschemasFromSupergraphSdl({
       visitTypeDefinitionsForOrphanTypes(typeNode);
     });
     const extendedSubgraphTypes = [...subgraphTypes, ...extraOrphanTypesForSubgraph.values()];
+    const fakeTypesIfaceMap = new Map<string, string>();
+    const iFaceTypeMap = new Map<string, string>();
     // We should add implemented objects from other subgraphs implemented by this interface
     for (const interfaceInSubgraph of extendedSubgraphTypes) {
       if (interfaceInSubgraph.kind === Kind.INTERFACE_TYPE_DEFINITION) {
+        let isOrphan = true;
         for (const definitionNode of supergraphAst.definitions) {
           if (
             definitionNode.kind === Kind.OBJECT_TYPE_DEFINITION &&
@@ -740,6 +745,7 @@ export function getSubschemasFromSupergraphSdl({
               interfaceNode => interfaceNode.name.value === interfaceInSubgraph.name.value,
             )
           ) {
+            isOrphan = false;
             const existingType = subgraphTypes.find(
               typeNode => typeNode.name.value === definitionNode.name.value,
             );
@@ -751,12 +757,22 @@ export function getSubschemasFromSupergraphSdl({
               },
             };
             if (!existingType) {
+              fakeTypesIfaceMap.set(definitionNode.name.value, interfaceInSubgraph.name.value);
+              iFaceTypeMap.set(interfaceInSubgraph.name.value, definitionNode.name.value);
               extendedSubgraphTypes.push({
                 kind: Kind.OBJECT_TYPE_DEFINITION,
                 name: definitionNode.name,
                 fields: interfaceInSubgraph.fields,
                 interfaces: [iFaceNode],
               });
+              unionTypeNodes.push({
+                kind: Kind.NAMED_TYPE,
+                name: definitionNode.name,
+              });
+              if (!mergeConfig[definitionNode.name.value]) {
+                mergeConfig[definitionNode.name.value] =
+                  mergeConfig[interfaceInSubgraph.name.value];
+              }
             }
             if (
               existingType?.kind === Kind.OBJECT_TYPE_DEFINITION &&
@@ -769,6 +785,9 @@ export function getSubschemasFromSupergraphSdl({
             }
             break;
           }
+        }
+        if (isOrphan) {
+          (interfaceInSubgraph as any).kind = Kind.OBJECT_TYPE_DEFINITION;
         }
       }
     }
@@ -804,12 +823,75 @@ export function getSubschemasFromSupergraphSdl({
         return res;
       };
     }
+    function visitToReplaceTypeNames(data: any, nameMap: Map<string, string>): any {
+      if (data != null && typeof data === 'object') {
+        if (Array.isArray(data)) {
+          return data.map(item => visitToReplaceTypeNames(item, nameMap));
+        }
+        const newData = {};
+        for (const key in data) {
+          if (key === '__typename') {
+            const newType = nameMap.get(data[key]) || data[key];
+            newData[key] = newType;
+          } else {
+            newData[key] = visitToReplaceTypeNames(data[key], nameMap);
+          }
+        }
+        return newData;
+      }
+      return data;
+    }
     subschemaMap.set(subgraphName, {
       name: subgraphName,
       schema,
       executor,
       merge: mergeConfig,
       batch,
+      transforms: [
+        {
+          transformRequest(request, delegationContext, transformationContext) {
+            delegationContext.args = visitToReplaceTypeNames(
+              delegationContext.args,
+              fakeTypesIfaceMap,
+            );
+            return {
+              ...request,
+              document: visit(request.document, {
+                [Kind.INLINE_FRAGMENT](node) {
+                  if (node.typeCondition) {
+                    const newTypeConditionName = fakeTypesIfaceMap.get(
+                      node.typeCondition?.name.value,
+                    );
+                    if (newTypeConditionName) {
+                      transformationContext.replacedTypes ||= new Map();
+                      transformationContext.replacedTypes.set(
+                        newTypeConditionName,
+                        node.typeCondition.name.value,
+                      );
+                      return {
+                        ...node,
+                        typeCondition: {
+                          kind: Kind.NAMED_TYPE,
+                          name: {
+                            kind: Kind.NAME,
+                            value: newTypeConditionName,
+                          },
+                        },
+                      };
+                    }
+                  }
+                },
+              }),
+            };
+          },
+          transformResult(result, _, transformationContext) {
+            if (!transformationContext.replacedTypes) {
+              return visitToReplaceTypeNames(result, iFaceTypeMap);
+            }
+            return visitToReplaceTypeNames(result, transformationContext.replacedTypes);
+          },
+        },
+      ],
     });
   }
   return subschemaMap;
