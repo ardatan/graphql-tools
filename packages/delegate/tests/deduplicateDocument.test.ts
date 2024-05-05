@@ -96,4 +96,32 @@ describe('deduplicateDocument', () => {
       }
     `);
   });
+  it('deduplicate recursive fragment spreads', () => {
+    const document = parse(/* GraphQL */ `
+      fragment User on User {
+        id
+        name
+        friends {
+          ...User
+        }
+        name
+      }
+      query {
+        ...User
+      }
+    `);
+
+    expect(print(deduplicateDocument(document))).toBeSimilarGqlDoc(/* GraphQL */ `
+      fragment User on User {
+        id
+        name
+        friends {
+          ...User
+        }
+      }
+      query {
+        ...User
+      }
+    `);
+  });
 });
