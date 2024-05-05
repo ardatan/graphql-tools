@@ -67,10 +67,20 @@ function deduplicateSelectionSet(node: SelectionSetNode): SelectionSetNode {
             : undefined,
         });
       } else if (selection.kind === Kind.INLINE_FRAGMENT) {
-        newSelections.push({
-          ...selection,
-          selectionSet: deduplicateSelectionSet(selection.selectionSet),
-        });
+        const dedupedSelectionSet = deduplicateSelectionSet(selection.selectionSet);
+        if (
+          !selection.typeCondition ||
+          selection.typeCondition.name.value === inlineFragment.typeCondition?.name.value
+        ) {
+          for (const innerSelection of dedupedSelectionSet.selections) {
+            newSelections.push(innerSelection);
+          }
+        } else {
+          newSelections.push({
+            ...selection,
+            selectionSet: dedupedSelectionSet,
+          });
+        }
       } else {
         newSelections.push(selection);
       }

@@ -124,4 +124,36 @@ describe('deduplicateDocument', () => {
       }
     `);
   });
+  it('nested inline fragments', () => {
+    const document = parse(/* GraphQL */ `
+      {
+        ... on User {
+          id
+          id
+          ... on User {
+            username
+            username
+            ... on User {
+              id
+              name
+              ... on User {
+                username
+                username
+              }
+            }
+          }
+        }
+      }
+    `);
+
+    expect(print(deduplicateDocument(document))).toBeSimilarGqlDoc(/* GraphQL */ `
+      {
+        ... on User {
+          id
+          username
+          name
+        }
+      }
+    `);
+  });
 });
