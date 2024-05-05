@@ -91,9 +91,10 @@ export const extractUnavailableFieldsFromSelectionSet = memoize4(
           ? schema.getType(selection.typeCondition.name.value)
           : fieldType;
         if (
-          (isObjectType(subFieldType) || isInterfaceType(subFieldType)) &&
-          isAbstractType(fieldType) &&
-          schema.isSubType(fieldType, subFieldType)
+          subFieldType === fieldType ||
+          ((isObjectType(subFieldType) || isInterfaceType(subFieldType)) &&
+            isAbstractType(fieldType) &&
+            schema.isSubType(fieldType, subFieldType))
         ) {
           const unavailableFields = extractUnavailableFieldsFromSelectionSet(
             schema,
@@ -110,8 +111,6 @@ export const extractUnavailableFieldsFromSelectionSet = memoize4(
               },
             });
           }
-        } else {
-          unavailableSelections.push(selection);
         }
       }
     }
