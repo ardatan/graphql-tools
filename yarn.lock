@@ -10473,26 +10473,26 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
   integrity sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==
 
-puppeteer-core@22.7.1:
-  version "22.7.1"
-  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-22.7.1.tgz#37ee06ac079510903fba96743a2d91231ea623ee"
-  integrity sha512-jD7T7yN7PWGuJmNT0TAEboA26s0VVnvbgCxqgQIF+eNQW2u71ENaV2JwzSJiCHO+e72H4Ue6AgKD9USQ8xAcOQ==
+puppeteer-core@22.8.0:
+  version "22.8.0"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-22.8.0.tgz#82c0e7ebf62ba5f34404394034e313b82014de5f"
+  integrity sha512-S5bWx3g/fNuyFxjZX9TkZMN07CEH47+9Zm6IiTl1QfqI9pnVaShbwrD9kRe5vmz/XPp/jLGhhxRUj1sY4wObnA==
   dependencies:
     "@puppeteer/browsers" "2.2.3"
     chromium-bidi "0.5.19"
     debug "4.3.4"
     devtools-protocol "0.0.1273771"
-    ws "8.16.0"
+    ws "8.17.0"
 
-puppeteer@22.7.1:
-  version "22.7.1"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-22.7.1.tgz#a703d986069c1a383429da1ac9c68a99ae0940aa"
-  integrity sha512-JBCBCwQ9+dyPp5haqeecgv0N0vgWFx44woUeKJaPeJT8CU3RXrd8F/tqJQbuAmcWlbMhYJSlTJkIFrwVAs6BNA==
+puppeteer@22.8.0:
+  version "22.8.0"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-22.8.0.tgz#58556b4388a9047658f0704afa37b8eea71b84ba"
+  integrity sha512-Z616wyTr0d7KpxmfcBG22rAkzuo/xzHJ3ycpu4KiJ3dZNHn/C1CpqcCwPlpiIIsmPojTAfWjo6EMR7M+AaC0Ww==
   dependencies:
     "@puppeteer/browsers" "2.2.3"
     cosmiconfig "9.0.0"
     devtools-protocol "0.0.1273771"
-    puppeteer-core "22.7.1"
+    puppeteer-core "22.8.0"
 
 pure-rand@^6.0.0:
   version "6.0.0"
@@ -12804,10 +12804,10 @@ write-file-atomic@^4.0.2:
     imurmurhash "^0.1.4"
     signal-exit "^3.0.7"
 
-ws@8.16.0, ws@^8.12.0, ws@^8.13.0, ws@^8.15.0:
-  version "8.16.0"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-8.16.0.tgz#d1cd774f36fbc07165066a60e40323eab6446fd4"
-  integrity sha512-HS0c//TP7Ina87TfiPUz1rQzMhHrl/SG2guqRcTOIUYD2q8uhUdNHZYJUaQ8aTGPzCh+c6oawMKW35nFl1dxyQ==
+ws@8.17.0, ws@^8.12.0, ws@^8.13.0, ws@^8.15.0:
+  version "8.17.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-8.17.0.tgz#d145d18eca2ed25aaf791a183903f7be5e295fea"
+  integrity sha512-uJq6108EgZMAl20KagGkzCKfMEjxmKvZHG7Tlq0Z6nOky7YF7aq4mOx6xK8TJ/i1LeK4Qus7INktacctDgY8Ow==
 
 "ws@^5.2.0 || ^6.0.0 || ^7.0.0", ws@^7.3.1:
   version "7.4.6"
