@@ -1,9 +1,9 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'graphql';
-import { buildSubgraphSchema } from '@apollo/subgraph';
 import { createDefaultExecutor, delegationPlanInfosByContext } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
+import { buildSubgraphSchema } from '../src/subgraph';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 import * as accounts from './fixtures/gateway/accounts';
 import * as discount from './fixtures/gateway/discount';
@@ -11,15 +11,14 @@ import * as inventory from './fixtures/gateway/inventory';
 import * as products from './fixtures/gateway/products';
 import * as reviews from './fixtures/gateway/reviews';
 
-const services: Record<string, { typeDefs: string; resolvers: any }> = {
-  accounts,
-  inventory,
-  products,
-  reviews,
-  discount,
-};
-
 describe('Debug Logging', () => {
+  const services: Record<string, { typeDefs: string; resolvers: any }> = {
+    accounts,
+    inventory,
+    products,
+    reviews,
+    discount,
+  };
   const existingFlag = process.env['EXPOSE_DELEGATION_PLAN'];
   const existingMathRandom = Math.random;
   beforeEach(() => {
