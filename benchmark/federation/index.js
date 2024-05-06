@@ -35,8 +35,7 @@ async function main() {
 
   app.post('/federation', (req, res) => {
     try {
-      const result$ = federation
-      .executor({
+      const result$ = federation.executor({
         document: federationParse(req.body.query),
         request: {
           query: req.body.query,
@@ -50,7 +49,7 @@ async function main() {
         context: {},
       });
       if (result$.then) {
-       return result$.then(result => res.json(result)).catch(error => res.status(500).send(error));
+        return result$.then(result => res.json(result)).catch(error => res.status(500).send(error));
       }
       res.json(result$);
     } catch (error) {
@@ -66,7 +65,7 @@ async function main() {
         contextValue: {},
       });
       if (result$.then) {
-       return result$.then(result => res.json(result)).catch(error => res.status(500).send(error));
+        return result$.then(result => res.json(result)).catch(error => res.status(500).send(error));
       }
       res.json(result$);
     } catch (error) {
@@ -82,7 +81,7 @@ async function main() {
         contextValue: {},
       });
       if (result$.then) {
-       return result$.then(result => res.json(result)).catch(error => res.status(500).send(error));
+        return result$.then(result => res.json(result)).catch(error => res.status(500).send(error));
       }
       res.json(result$);
     } catch (error) {
