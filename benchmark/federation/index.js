@@ -34,7 +34,8 @@ async function main() {
   app.use(express.json());
 
   app.post('/federation', (req, res) => {
-    federation
+    try {
+      const result$ = federation
       .executor({
         document: federationParse(req.body.query),
         request: {
@@ -47,31 +48,43 @@ async function main() {
         },
         schema: federation.schema,
         context: {},
-      })
-      .then(result => res.json(result))
-      .catch(error => res.status(500).send(error));
+      });
+      if (result$.then) {
+       return result$.then(result => res.json(result)).catch(error => res.status(500).send(error));
+      }
+      res.json(result$);
+    } catch (error) {
+      res.status(500).send(error);
+    }
   });
 
   app.post('/stitching', (req, res) => {
-    normalizedExecutor({
-      schema: stitching,
-      document: stitchingParse(req.body.query),
-      contextValue: {},
-    })
-      .then(result => {
-        res.json(result);
-      })
-      .catch(error => res.status(500).send(error));
+    try {
+      const result$ = normalizedExecutor({
+        schema: stitching,
+        document: stitchingParse(req.body.query),
+        contextValue: {},
+      });
+      if (result$.then) {
+       return result$.then(result => res.json(result)).catch(error => res.status(500).send(error));
+      }
+      res.json(result$);
+    } catch (error) {
+      res.status(500).send(error);
+    }
   });
 
-  app.post('/monolith', async (req, res) => {
+  app.post('/monolith', (req, res) => {
     try {
-      const result = await normalizedExecutor({
+      const result$ = normalizedExecutor({
         schema: monolith,
         document: monolithParse(req.body.query),
         contextValue: {},
       });
-      res.json(result);
+      if (result$.then) {
+       return result$.then(result => res.json(result)).catch(error => res.status(500).send(error));
+      }
+      res.json(result$);
     } catch (error) {
       res.status(500).send(error);
     }
