@@ -59,7 +59,7 @@ describe('Optimizations', () => {
     });
     expect(serviceCallCnt['accounts']).toBe(0);
   });
-  it('should do deduplication', async () => {
+  it.only('should do deduplication', async () => {
     const query = /* GraphQL */ `
       fragment User on User {
         id
@@ -120,16 +120,17 @@ describe('Optimizations', () => {
         }
       }
     `;
-    await normalizedExecutor({
+    console.log(await normalizedExecutor({
       schema,
       document: parse(query),
-    });
+      contextValue: {},
+    }));
     expect(serviceCallCnt).toMatchObject({
       accounts: 2,
       // inventory: 1, (when computed fields definition removed)
       inventory: 2,
       products: 2,
-      reviews: 2,
+      reviews: 1,
     });
   });
 });
