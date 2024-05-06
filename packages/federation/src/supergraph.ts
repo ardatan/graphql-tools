@@ -783,14 +783,17 @@ export function getSubschemasFromSupergraphSdl({
                 interfaceNode => interfaceNode.name.value === interfaceInSubgraph.name.value,
               )
             ) {
-              (existingType as any).interfaces ||= [];
-              (existingType as any).interfaces.push(iFaceNode);
+              // @ts-expect-error `interfaces` property is a readonly field in TS definitions but it is not actually
+              existingType.interfaces ||= [];
+              // @ts-expect-error `interfaces` property is a readonly field in TS definitions but it is not actually
+              existingType.interfaces.push(iFaceNode);
             }
             break;
           }
         }
         if (isOrphan) {
-          (interfaceInSubgraph as any).kind = Kind.OBJECT_TYPE_DEFINITION;
+          // @ts-expect-error `kind` property is a readonly field in TS definitions but it is not actually
+          interfaceInSubgraph.kind = Kind.OBJECT_TYPE_DEFINITION;
         }
       }
     }
