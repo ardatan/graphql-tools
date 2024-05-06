@@ -214,7 +214,6 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
     fragments: Record<string, FragmentDefinitionNode>,
     fieldNodes: FieldNode[],
   ): Array<Map<Subschema, SelectionSetNode>> {
-    console.count('delegationPlanBuilder');
     const stitchingInfo = getStitchingInfo(schema);
     const targetSubschemas = mergedTypeInfo?.targetSubschemas.get(sourceSubschema);
     if (!targetSubschemas || !targetSubschemas.length) {
