@@ -1,5 +1,5 @@
 import { GraphQLResolveInfo, print, responsePathAsArray, SelectionSetNode } from 'graphql';
-import { memoize2of5, memoize5 } from '@graphql-tools/utils';
+import { memoize2of5 } from '@graphql-tools/utils';
 import { Subschema } from './Subschema.js';
 import { MergedTypeInfo } from './types.js';
 
