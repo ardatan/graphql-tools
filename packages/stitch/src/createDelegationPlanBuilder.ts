@@ -14,7 +14,7 @@ import {
   StitchingInfo,
   Subschema,
 } from '@graphql-tools/delegate';
-import { memoize1, memoize2, memoize3, memoize5 } from '@graphql-tools/utils';
+import { memoize1, memoize2, memoize3, memoize5, SelectionSetBuilder } from '@graphql-tools/utils';
 import { extractUnavailableFields, getFieldsNotInSubschema } from './getFieldsNotInSubschema.js';
 
 function calculateDelegationStage(
@@ -133,8 +133,12 @@ function calculateDelegationStage(
 
     const existingSubschema = nonUniqueSubschemas.find(s => delegationMap.has(s));
     if (existingSubschema != null) {
-      // It is okay we previously explicitly check whether the map has the element.
-      (delegationMap.get(existingSubschema)!.selections as SelectionNode[]).push(fieldNode);
+      const selectionSetBuilder = new SelectionSetBuilder();
+      for (const selection of delegationMap.get(existingSubschema)!.selections) {
+        selectionSetBuilder.addSelection(selection);
+      }
+      selectionSetBuilder.addSelection(fieldNode);
+      delegationMap.set(existingSubschema, selectionSetBuilder.getSelectionSet());
     } else {
       let bestUniqueSubschema: Subschema = nonUniqueSubschemas[0];
       let bestScore = Infinity;

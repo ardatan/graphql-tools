@@ -18,7 +18,7 @@ import {
   SelectionSetNode,
 } from 'graphql';
 import { StitchingInfo } from '@graphql-tools/delegate';
-import { collectSubFields, Maybe } from '@graphql-tools/utils';
+import { collectSubFields, Maybe, SelectionSetBuilder } from '@graphql-tools/utils';
 
 export function getFieldsNotInSubschema(
   schema: GraphQLSchema,
@@ -42,12 +42,12 @@ export function getFieldsNotInSubschema(
 
   const fields = subschemaType.getFields();
 
-  const fieldsNotInSchema = new Set<FieldNode>();
+  const fieldsNotInSchema = new SelectionSetBuilder();
   for (const [, subFieldNodes] of subFieldNodesByResponseKey) {
     const fieldName = subFieldNodes[0].name.value;
     if (!fields[fieldName]) {
       for (const subFieldNode of subFieldNodes) {
-        fieldsNotInSchema.add(subFieldNode);
+        fieldsNotInSchema.addSelection(subFieldNode);
       }
     } else {
       const field = fields[fieldName];
@@ -59,7 +59,7 @@ export function getFieldsNotInSubschema(
           (fieldType, selection) => !fieldNodesByField?.[fieldType.name]?.[selection.name.value],
         );
         if (unavailableFields.length) {
-          fieldsNotInSchema.add({
+          fieldsNotInSchema.addSelection({
             ...subFieldNode,
             selectionSet: {
               kind: Kind.SELECTION_SET,
@@ -75,15 +75,15 @@ export function getFieldsNotInSubschema(
         if (fieldNode.name.value !== '__typename' && !fields[fieldNode.name.value]) {
           // consider node that depends on something not in the schema as not in the schema
           for (const subFieldNode of subFieldNodes) {
-            fieldsNotInSchema.add(subFieldNode);
+            fieldsNotInSchema.addSelection(subFieldNode);
           }
-          fieldsNotInSchema.add(fieldNode);
+          fieldsNotInSchema.addSelection(fieldNode);
         }
       }
     }
   }
 
-  return Array.from(fieldsNotInSchema);
+  return fieldsNotInSchema.getSelectionSet().selections as Array<FieldNode>;
 }
 
 export function extractUnavailableFieldsFromSelectionSet(

@@ -54,3 +54,4 @@ export * from './jsutils.js';
 export * from './directives.js';
 export * from './mergeIncrementalResult.js';
 export * from './debugTimer.js';
+export * from './SelectionSetBuilder.js';
