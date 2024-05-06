@@ -826,7 +826,7 @@ export function getSubschemasFromSupergraphSdl({
         return res;
       };
     }
-    function visitToReplaceTypeNames(data: any, nameMap: Map<string, string>): any {
+    function visitToReplaceTypeNames(data: unknown, nameMap: Map<string, string>): any {
       if (data != null && typeof data === 'object') {
         if (Array.isArray(data)) {
           return data.map(item => visitToReplaceTypeNames(item, nameMap));

@@ -75,6 +75,8 @@ describe('Federation Compatibility', () => {
         );
         const sortedInputSchema = lexicographicSortSchema(filteredInputSchema);
         const sortedStitchedSchema = lexicographicSortSchema(stitchedSchema);
+        // For Stitching's sanity, if an interface is not implemented by any object type, it should be converted to an object type
+        // You can see the difference when you commented this condition out.
         if (supergraphName === 'non-resolvable-interface-object') {
           return;
         }
