@@ -14,7 +14,6 @@ import {
   isObjectType,
   isUnionType,
   Kind,
-  SelectionNode,
   SelectionSetNode,
 } from 'graphql';
 import { StitchingInfo } from '@graphql-tools/delegate';
@@ -96,7 +95,7 @@ export function extractUnavailableFieldsFromSelectionSet(
     return [];
   }
   if (isUnionType(fieldType)) {
-    const unavailableSelections: SelectionNode[] = [];
+    const unavailableSelections = new SelectionSetBuilder();
     for (const type of fieldType.getTypes()) {
       // Exclude other inline fragments
       const fieldSelectionExcluded: SelectionSetNode = {
@@ -109,19 +108,20 @@ export function extractUnavailableFieldsFromSelectionSet(
             : true,
         ),
       };
-      unavailableSelections.push(
-        ...extractUnavailableFieldsFromSelectionSet(
-          schema,
-          type,
-          fieldSelectionExcluded,
-          shouldAdd,
-        ),
+      const fieldSelections = extractUnavailableFieldsFromSelectionSet(
+        schema,
+        type,
+        fieldSelectionExcluded,
+        shouldAdd,
       );
+      for (const selection of fieldSelections) {
+        unavailableSelections.addSelection(selection);
+      }
     }
-    return unavailableSelections;
+    return unavailableSelections.getSelectionSet().selections;
   }
   const subFields = fieldType.getFields();
-  const unavailableSelections: SelectionNode[] = [];
+  const unavailableSelections = new SelectionSetBuilder();
   for (const selection of fieldSelectionSet.selections) {
     if (selection.kind === Kind.FIELD) {
       if (selection.name.value === '__typename') {
@@ -131,7 +131,7 @@ export function extractUnavailableFieldsFromSelectionSet(
       const selectionField = subFields[fieldName];
       if (!selectionField) {
         if (shouldAdd(fieldType, selection)) {
-          unavailableSelections.push(selection);
+          unavailableSelections.addSelection(selection);
         }
       } else {
         const unavailableSubFields = extractUnavailableFields(
@@ -141,7 +141,7 @@ export function extractUnavailableFieldsFromSelectionSet(
           shouldAdd,
         );
         if (unavailableSubFields.length) {
-          unavailableSelections.push({
+          unavailableSelections.addSelection({
             ...selection,
             selectionSet: {
               kind: Kind.SELECTION_SET,
@@ -166,7 +166,7 @@ export function extractUnavailableFieldsFromSelectionSet(
           shouldAdd,
         );
         if (unavailableFields.length) {
-          unavailableSelections.push({
+          unavailableSelections.addSelection({
             ...selection,
             selectionSet: {
               kind: Kind.SELECTION_SET,
@@ -175,11 +175,11 @@ export function extractUnavailableFieldsFromSelectionSet(
           });
         }
       } else {
-        unavailableSelections.push(selection);
+        unavailableSelections.addSelection(selection);
       }
     }
   }
-  return unavailableSelections;
+  return unavailableSelections.getSelectionSet().selections;
 }
 
 export function extractUnavailableFields(
