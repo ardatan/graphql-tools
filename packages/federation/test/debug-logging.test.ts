@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'graphql';
 import { buildSubgraphSchema } from '@apollo/subgraph';
