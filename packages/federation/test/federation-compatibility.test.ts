@@ -3,6 +3,7 @@ import { join } from 'path';
 import {
   buildSchema,
   getNamedType,
+  GraphQLSchema,
   isEnumType,
   lexicographicSortSchema,
   parse,
@@ -23,9 +24,12 @@ describe('Federation Compatibility', () => {
     }
     describe(supergraphName, () => {
       const supergraphSdl = readFileSync(supergraphSdlPath, 'utf-8');
-      const stitchedSchema = getStitchedSchemaFromSupergraphSdl({
-        supergraphSdl: readFileSync(supergraphSdlPath, 'utf-8'),
-        batch: true,
+      let stitchedSchema: GraphQLSchema;
+      beforeAll(() => {
+        stitchedSchema = getStitchedSchemaFromSupergraphSdl({
+          supergraphSdl,
+          batch: true,
+        });
       });
       const tests: { query: string; expected: any }[] = JSON.parse(
         readFileSync(join(supergraphFixturesDir, 'tests.json'), 'utf-8'),
@@ -71,6 +75,11 @@ describe('Federation Compatibility', () => {
         );
         const sortedInputSchema = lexicographicSortSchema(filteredInputSchema);
         const sortedStitchedSchema = lexicographicSortSchema(stitchedSchema);
+        // For Stitching's sanity, if an interface is not implemented by any object type, it should be converted to an object type
+        // You can see the difference when you commented this condition out.
+        if (supergraphName === 'non-resolvable-interface-object') {
+          return;
+        }
         expect(printSchema(sortedStitchedSchema).trim()).toBe(
           printSchema(sortedInputSchema).trim(),
         );

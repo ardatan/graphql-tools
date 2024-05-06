@@ -40,7 +40,6 @@ export function isolateComputedFieldsTransformer(
     const objectType = subschemaConfig.schema.getType(typeName) as GraphQLObjectType;
 
     baseSchemaTypes[typeName] = mergedTypeConfig;
-
     if (mergedTypeConfig.fields) {
       const baseFields: Record<string, MergedFieldConfig> = Object.create(null);
       const isolatedFields: Record<string, MergedFieldConfig> = Object.create(null);
