@@ -19,10 +19,9 @@ import {
 } from '@graphql-tools/utils';
 import {
   contextIdMap,
-  delegationPlanIdMap,
-  DelegationPlanInfo,
   delegationPlanInfosByContext,
   delegationStageIdMap,
+  getDelegationInfo,
   isDelegationDebugging,
   logFnForContext,
 } from './debugging.js';
@@ -96,28 +95,18 @@ export function mergeFields<TContext>(
   let logFn: ((data: any) => void) | undefined;
   if (isDelegationDebugging()) {
     logFn = logFnForContext.get(context);
-    const delegationPlanInfo: DelegationPlanInfo = {
-      contextId: contextIdMap.get(context),
-      operationName: info.operation.name?.value,
-      planId: delegationPlanIdMap.get(delegationMaps)!,
-      source: sourceSubschema.name,
-      type: mergedTypeInfo.typeName,
-      path: responsePathAsArray(info.path),
-      fieldNodes: info.fieldNodes?.map(print),
-      fragments: Object.values(info.fragments || {}).map(fragmentNode => `${print(fragmentNode)}`),
-      stages: delegationMaps.map(delegationMap => ({
-        stageId: delegationStageIdMap.get(delegationMap)!,
-        delegations: Array.from(delegationMap).map(([subschema, selectionSet]) => ({
-          target: subschema.name,
-          selectionSet: print(selectionSet),
-        })),
-      })),
-    };
     let delegationPlanInfos = delegationPlanInfosByContext.get(context);
     if (!delegationPlanInfos) {
       delegationPlanInfos = new Set();
       delegationPlanInfosByContext.set(context, delegationPlanInfos);
     }
+    const delegationPlanInfo = getDelegationInfo(
+      context,
+      delegationMaps,
+      mergedTypeInfo,
+      sourceSubschema,
+      info,
+    );
     delegationPlanInfos.add(delegationPlanInfo);
     logFn?.({
       status: 'PLAN',

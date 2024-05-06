@@ -1,0 +1,301 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Debug Logging should expose delegation plan correctly by context: delegationInfos 1`] = `
+Set {
+  {
+    "contextId": undefined,
+    "fieldNodes": [
+      "users {
+  ...User
+  reviews {
+    ...Review
+    product {
+      ...Product
+      reviews {
+        ...Review
+        author {
+          ...User
+          reviews {
+            ...Review
+            product {
+              ...Product
+            }
+          }
+        }
+      }
+    }
+  }
+}",
+    ],
+    "fragments": [
+      "fragment User on User {
+  id
+  username
+  name
+}",
+      "fragment Review on Review {
+  id
+  body
+}",
+      "fragment Product on Product {
+  inStock
+  name
+  price
+  shippingEstimate
+  upc
+  weight
+}",
+    ],
+    "operationName": "TestQuery",
+    "path": [
+      "users",
+    ],
+    "planId": "4g00coussmu",
+    "source": "accounts",
+    "stages": [
+      {
+        "delegations": [
+          {
+            "selectionSet": "{
+  reviews {
+    ...Review
+    product {
+      ...Product
+      reviews {
+        ...Review
+        author {
+          ...User
+          reviews {
+            ...Review
+            product {
+              ...Product
+            }
+          }
+        }
+      }
+    }
+  }
+}",
+            "target": "reviews",
+          },
+        ],
+        "stageId": "4fzyo82mvyq",
+      },
+    ],
+    "type": "User",
+  },
+  {
+    "contextId": undefined,
+    "fieldNodes": [
+      "product {
+  ...Product
+  reviews {
+    ...Review
+    author {
+      ...User
+      reviews {
+        ...Review
+        product {
+          ...Product
+        }
+      }
+    }
+  }
+}",
+    ],
+    "fragments": [
+      "fragment User on User {
+  id
+  username
+  name
+}",
+      "fragment Review on Review {
+  id
+  body
+}",
+      "fragment Product on Product {
+  inStock
+  name
+  price
+  shippingEstimate
+  upc
+  weight
+}",
+    ],
+    "operationName": "TestQuery",
+    "path": [
+      "users",
+      "reviews",
+      "product",
+    ],
+    "planId": "4g05e37ain",
+    "source": "reviews",
+    "stages": [
+      {
+        "delegations": [
+          {
+            "selectionSet": "{
+  inStock
+}",
+            "target": "inventory",
+          },
+          {
+            "selectionSet": "{
+  name
+  price
+  price
+  weight
+  weight
+}",
+            "target": "products",
+          },
+        ],
+        "stageId": "4g0215mypav",
+      },
+      {
+        "delegations": [
+          {
+            "selectionSet": "{
+  shippingEstimate
+}",
+            "target": "inventory",
+          },
+        ],
+        "stageId": "4g03pmf4lz",
+      },
+    ],
+    "type": "Product",
+  },
+  {
+    "contextId": undefined,
+    "fieldNodes": [
+      "author {
+  ...User
+  reviews {
+    ...Review
+    product {
+      ...Product
+    }
+  }
+}",
+    ],
+    "fragments": [
+      "fragment User on User {
+  id
+  username
+  name
+}",
+      "fragment Review on Review {
+  id
+  body
+}",
+      "fragment Product on Product {
+  inStock
+  name
+  price
+  shippingEstimate
+  upc
+  weight
+}",
+    ],
+    "operationName": "TestQuery",
+    "path": [
+      "users",
+      "reviews",
+      "product",
+      "reviews",
+      "author",
+    ],
+    "planId": "4g08r0rmbz6",
+    "source": "reviews",
+    "stages": [
+      {
+        "delegations": [
+          {
+            "selectionSet": "{
+  name
+}",
+            "target": "accounts",
+          },
+        ],
+        "stageId": "4g072jzgfb2",
+      },
+    ],
+    "type": "User",
+  },
+  {
+    "contextId": undefined,
+    "fieldNodes": [
+      "product {
+  ...Product
+}",
+    ],
+    "fragments": [
+      "fragment User on User {
+  id
+  username
+  name
+}",
+      "fragment Review on Review {
+  id
+  body
+}",
+      "fragment Product on Product {
+  inStock
+  name
+  price
+  shippingEstimate
+  upc
+  weight
+}",
+    ],
+    "operationName": "TestQuery",
+    "path": [
+      "users",
+      "reviews",
+      "product",
+      "reviews",
+      "author",
+      "reviews",
+      "product",
+    ],
+    "planId": "4g0dsf441za",
+    "source": "reviews",
+    "stages": [
+      {
+        "delegations": [
+          {
+            "selectionSet": "{
+  inStock
+}",
+            "target": "inventory",
+          },
+          {
+            "selectionSet": "{
+  name
+  price
+  price
+  weight
+  weight
+}",
+            "target": "products",
+          },
+        ],
+        "stageId": "4g0afhjs8n8",
+      },
+      {
+        "delegations": [
+          {
+            "selectionSet": "{
+  shippingEstimate
+}",
+            "target": "inventory",
+          },
+        ],
+        "stageId": "4g0c3yby5b9",
+      },
+    ],
+    "type": "Product",
+  },
+}
+`;
