@@ -20,3 +20,11 @@ You can also add a `contextId` for that specific gateway request by using `conte
 import { contextIdMap } from '@graphql-tools/delegate';
 contextIdMap.set(MyGraphQLContext, 'my-request-id');
 ```
+
+If you want to use those information instead of logging, you can get them by using the `context` object like below;
+
+```ts
+import { delegationPlanInfosByContext } from '@graphql-tools/delegate';
+const delegationPlanInfos = delegationPlanInfosByContext.get(context);
+```
+
