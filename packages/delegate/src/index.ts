@@ -8,3 +8,4 @@ export * from './mergeFields.js';
 export * from './resolveExternalValue.js';
 export * from './subschemaConfig.js';
 export * from './types.js';
+export * from './debugging.js';

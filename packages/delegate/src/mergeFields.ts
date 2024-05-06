@@ -5,6 +5,7 @@ import {
   GraphQLResolveInfo,
   GraphQLSchema,
   locatedError,
+  print,
   responsePathAsArray,
   SelectionSetNode,
 } from 'graphql';
@@ -16,6 +17,15 @@ import {
   mergeDeep,
   relocatedError,
 } from '@graphql-tools/utils';
+import {
+  contextIdMap,
+  delegationPlanIdMap,
+  DelegationPlanInfo,
+  delegationPlanInfosByContext,
+  delegationStageIdMap,
+  isDelegationDebugging,
+  logFnForContext,
+} from './debugging.js';
 import { Subschema } from './Subschema.js';
 import {
   FIELD_SUBSCHEMA_MAP_SYMBOL,
@@ -83,9 +93,54 @@ export function mergeFields<TContext>(
       : EMPTY_ARRAY,
   );
 
+  let logFn: ((data: any) => void) | undefined;
+  if (isDelegationDebugging()) {
+    logFn = logFnForContext.get(context);
+    const delegationPlanInfo: DelegationPlanInfo = {
+      contextId: contextIdMap.get(context),
+      operationName: info.operation.name?.value,
+      planId: delegationPlanIdMap.get(delegationMaps)!,
+      source: sourceSubschema.name,
+      type: mergedTypeInfo.typeName,
+      path: responsePathAsArray(info.path),
+      fieldNodes: info.fieldNodes?.map(print),
+      fragments: Object.values(info.fragments || {}).map(fragmentNode => `${print(fragmentNode)}`),
+      stages: delegationMaps.map(delegationMap => ({
+        stageId: delegationStageIdMap.get(delegationMap)!,
+        delegations: Array.from(delegationMap).map(([subschema, selectionSet]) => ({
+          target: subschema.name,
+          selectionSet: print(selectionSet),
+        })),
+      })),
+    };
+    let delegationPlanInfos = delegationPlanInfosByContext.get(context);
+    if (!delegationPlanInfos) {
+      delegationPlanInfos = new Set();
+      delegationPlanInfosByContext.set(context, delegationPlanInfos);
+    }
+    delegationPlanInfos.add(delegationPlanInfo);
+    logFn?.({
+      status: 'PLAN',
+      plan: delegationPlanInfo,
+    });
+  }
+
   const res$ = delegationMaps.reduce<MaybePromise<void>>((prev, delegationMap) => {
     function executeFn() {
-      return executeDelegationStage(mergedTypeInfo, delegationMap, object, context, info);
+      return executeDelegationStage(
+        mergedTypeInfo,
+        delegationMap,
+        object,
+        context,
+        info,
+        logFn
+          ? (data: any) =>
+              logFn({
+                stageId: delegationStageIdMap.get(delegationMap)!,
+                ...data,
+              })
+          : undefined,
+      );
     }
     if (isPromise(prev)) {
       return prev.then(executeFn);
@@ -170,6 +225,7 @@ function executeDelegationStage(
   object: ExternalObject,
   context: any,
   info: GraphQLResolveInfo,
+  logFn?: (data: any) => void,
 ): MaybePromise<void> {
   const combinedErrors = object[UNPATHED_ERRORS_SYMBOL];
 
@@ -178,9 +234,23 @@ function executeDelegationStage(
   const combinedFieldSubschemaMap = object[FIELD_SUBSCHEMA_MAP_SYMBOL];
 
   const jobs: PromiseLike<any>[] = [];
+  let delegationIndex = -1;
   for (const [subschema, selectionSet] of delegationMap) {
     const schema = subschema.transformedSchema || info.schema;
     const type = schema.getType(object.__typename) as GraphQLObjectType;
+    if (logFn) {
+      delegationIndex++;
+      logFn({
+        status: 'EXECUTE_DELEGATION',
+        subschema: subschema.name,
+        typeName: type.name || mergedTypeInfo.typeName,
+        path,
+        selectionSet: print(selectionSet),
+        contextId: contextIdMap.get(context),
+        stageId: delegationStageIdMap.get(delegationMap)!,
+        delegationIndex,
+      });
+    }
     const resolver = mergedTypeInfo.resolvers.get(subschema);
     if (resolver) {
       try {
