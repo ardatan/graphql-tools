@@ -10,6 +10,7 @@ import {
   isAbstractType,
   isInterfaceType,
   isLeafType,
+  isObjectType,
   Kind,
   SelectionNode,
   SelectionSetNode,
@@ -23,6 +24,7 @@ import {
   implementsAbstractType,
   memoize2,
 } from '@graphql-tools/utils';
+import { extractUnavailableFields } from './extractUnavailableFields.js';
 import { getDocumentMetadata } from './getDocumentMetadata.js';
 import { StitchingInfo } from './types.js';
 
@@ -101,6 +103,8 @@ export function prepareGatewayDocument(
   );
 }
 
+const shouldAdd = () => true;
+
 function visitSelectionSet(
   node: SelectionSetNode,
   fragmentReplacements: Record<string, Array<{ fragmentName: string; typeName: string }>>,
@@ -118,7 +122,6 @@ function visitSelectionSet(
 ): SelectionSetNode {
   const newSelections = new Set<SelectionNode>();
   const maybeType = typeInfo.getParentType();
-
   if (maybeType != null) {
     const parentType: GraphQLNamedType = getNamedType(maybeType);
     const parentTypeName = parentType.name;
@@ -180,21 +183,32 @@ function visitSelectionSet(
         }
       } else {
         const fieldName = selection.name.value;
-
-        const fieldNodes = fieldNodesByField[parentTypeName]?.[fieldName];
-        if (fieldNodes != null) {
-          for (const fieldNode of fieldNodes) {
-            newSelections.add(fieldNode);
+        let skipAddingDependencyNodes = false;
+        // TODO: Optimization to prevent extra fields to the subgraph
+        if (isObjectType(parentType) || isInterfaceType(parentType)) {
+          const fieldMap = parentType.getFields();
+          const field = fieldMap[fieldName];
+          if (field) {
+            const unavailableFields = extractUnavailableFields(schema, field, selection, shouldAdd);
+            skipAddingDependencyNodes = unavailableFields.length === 0;
           }
         }
+        if (!skipAddingDependencyNodes) {
+          const fieldNodes = fieldNodesByField[parentTypeName]?.[fieldName];
+          if (fieldNodes != null) {
+            for (const fieldNode of fieldNodes) {
+              newSelections.add(fieldNode);
+            }
+          }
 
-        const dynamicSelectionSets = dynamicSelectionSetsByField[parentTypeName]?.[fieldName];
-        if (dynamicSelectionSets != null) {
-          for (const selectionSetFn of dynamicSelectionSets) {
-            const selectionSet = selectionSetFn(selection);
-            if (selectionSet != null) {
-              for (const selection of selectionSet.selections) {
-                newSelections.add(selection);
+          const dynamicSelectionSets = dynamicSelectionSetsByField[parentTypeName]?.[fieldName];
+          if (dynamicSelectionSets != null) {
+            for (const selectionSetFn of dynamicSelectionSets) {
+              const selectionSet = selectionSetFn(selection);
+              if (selectionSet != null) {
+                for (const selection of selectionSet.selections) {
+                  newSelections.add(selection);
+                }
               }
             }
           }

@@ -10,12 +10,13 @@ import {
 } from 'graphql';
 import {
   DelegationPlanBuilder,
+  extractUnavailableFields,
   MergedTypeInfo,
   StitchingInfo,
   Subschema,
 } from '@graphql-tools/delegate';
 import { memoize1, memoize2, memoize3, memoize5 } from '@graphql-tools/utils';
-import { extractUnavailableFields, getFieldsNotInSubschema } from './getFieldsNotInSubschema.js';
+import { getFieldsNotInSubschema } from './getFieldsNotInSubschema.js';
 
 function calculateDelegationStage(
   mergedTypeInfo: MergedTypeInfo,

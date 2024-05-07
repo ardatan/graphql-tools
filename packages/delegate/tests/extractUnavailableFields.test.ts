@@ -1,7 +1,7 @@
 import { getOperationAST, isObjectType, Kind, parse, print, SelectionSetNode } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stripWhitespaces } from '../../merge/tests/utils';
-import { extractUnavailableFields } from '../src/getFieldsNotInSubschema';
+import { extractUnavailableFields } from '../src/extractUnavailableFields';
 
 describe('extractUnavailableFields', () => {
   it('should extract correct fields', () => {
