@@ -15,11 +15,7 @@ import {
 } from './mergeFields.js';
 import { resolveExternalValue } from './resolveExternalValue.js';
 import { Subschema } from './Subschema.js';
-import {
-  FIELD_SUBSCHEMA_MAP_SYMBOL,
-  OBJECT_SUBSCHEMA_SYMBOL,
-  UNPATHED_ERRORS_SYMBOL,
-} from './symbols.js';
+import { FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols.js';
 import { ExternalObject, StitchingInfo } from './types.js';
 
 /**
