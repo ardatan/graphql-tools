@@ -5,7 +5,7 @@
 
 Ignore unmerged fields
 
-Let's say you have a gateway schema like nelow, and `id` is added to the query, only if the `age` is requested;
+Let's say you have a gateway schema like in the bottom, and `id` is added to the query, only if the `age` is requested;
 
 ```graphql
 # This will be sent as-is
