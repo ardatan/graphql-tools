@@ -1,0 +1,116 @@
+[
+  {
+    "query": "\n      query {\n        node(id: \"a1\") {\n          id\n        }\n      }\n    ",
+    "expected": {
+      "errors": true,
+      "data": null
+    }
+  },
+  {
+    "query": "\n      query {\n        account: node(id: \"a1\") {\n          __typename\n        }\n        chat: node(id: \"c1\") {\n          __typename\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "account": {
+          "__typename": "Account"
+        },
+        "chat": {
+          "__typename": "Chat"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        account: node(id: \"a1\") {\n          ... on Account {\n            id\n            username\n          }\n        }\n        chat: node(id: \"c1\") {\n          ... on Chat {\n            id\n            text\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "account": {
+          "id": "a1",
+          "username": "a1-username"
+        },
+        "chat": {
+          "id": "c1",
+          "text": "c1-text"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        account: node(id: \"a1\") {\n          ... on Chat {\n            id\n          }\n        }\n        chat: node(id: \"c1\") {\n          ... on Account {\n            id\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "account": {},
+        "chat": {}
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        account: node(id: \"a1\") {\n          __typename\n          ... on Chat {\n            id\n          }\n        }\n        chat: node(id: \"c1\") {\n          __typename\n          ... on Account {\n            id\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "account": {
+          "__typename": "Account"
+        },
+        "chat": {
+          "__typename": "Chat"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        account: node(id: \"a1\") {\n          id\n          ... on Chat {\n            id\n          }\n        }\n        chat: node(id: \"c1\") {\n          __typename\n          ... on Account {\n            id\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": null,
+      "errors": true
+    }
+  },
+  {
+    "query": "\n      query {\n        chat(id: \"c1\") {\n          id\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "chat": {
+          "id": "c1"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        account(id: \"a1\") {\n          id\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "account": {
+          "id": "a1"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        chat(id: \"c1\") {\n          id\n          text\n          account {\n            id\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "chat": {
+          "id": "c1",
+          "text": "c1-text",
+          "account": {
+            "id": "a1"
+          }
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        account(id: \"a1\") {\n          id\n          username\n          chats {\n            id\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "account": {
+          "id": "a1",
+          "username": "a1-username",
+          "chats": [
+            {
+              "id": "c1"
+            }
+          ]
+        }
+      }
+    }
+  }
+]

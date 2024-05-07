@@ -9,28 +9,38 @@ import {
   InputValueDefinitionNode,
   InterfaceTypeDefinitionNode,
   InterfaceTypeExtensionNode,
+  isInterfaceType,
   Kind,
   NamedTypeNode,
   ObjectTypeDefinitionNode,
   ObjectTypeExtensionNode,
+  OperationTypeNode,
   parse,
   parseType,
   print,
   ScalarTypeDefinitionNode,
   TypeDefinitionNode,
+  TypeInfo,
   UnionTypeDefinitionNode,
   visit,
+  visitWithTypeInfo,
 } from 'graphql';
-import { MergedTypeConfig, SubschemaConfig } from '@graphql-tools/delegate';
+import {
+  delegateToSchema,
+  extractUnavailableFields,
+  MergedTypeConfig,
+  SubschemaConfig,
+} from '@graphql-tools/delegate';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import {
+  calculateSelectionScore,
   getDefaultFieldConfigMerger,
   MergeFieldConfigCandidate,
   stitchSchemas,
   TypeMergingOptions,
   ValidationLevel,
 } from '@graphql-tools/stitch';
-import { memoize1, type Executor } from '@graphql-tools/utils';
+import { createGraphQLError, memoize1, type Executor } from '@graphql-tools/utils';
 import {
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
@@ -72,6 +82,11 @@ function getTypeFieldMapFromSupergraphAST(supergraphAST: DocumentNode) {
   return typeFieldASTMap;
 }
 
+const rootTypeMap = new Map<string, OperationTypeNode>([
+  ['Query', 'query' as OperationTypeNode],
+  ['Mutation', 'mutation' as OperationTypeNode],
+  ['Subscription', 'subscription' as OperationTypeNode],
+]);
 export function getFieldMergerFromSupergraphSdl(
   supergraphSdl: DocumentNode | string,
 ): TypeMergingOptions['fieldConfigMerger'] {
@@ -81,6 +96,51 @@ export function getFieldMergerFromSupergraphSdl(
   const memoizedASTPrint = memoize1(print);
   const memoizedTypePrint = memoize1((type: GraphQLOutputType) => type.toString());
   return function (candidates: MergeFieldConfigCandidate[]) {
+    if (
+      candidates.length === 1 ||
+      candidates.some(candidate => candidate.fieldName === '_entities')
+    ) {
+      return candidates[0].fieldConfig;
+    }
+    if (candidates.some(candidate => rootTypeMap.has(candidate.type.name))) {
+      return {
+        ...defaultMerger(candidates),
+        resolve(_root, _args, context, info) {
+          let currentSubschema: SubschemaConfig | undefined;
+          let currentScore = Infinity;
+          for (const fieldNode of info.fieldNodes) {
+            const candidatesReversed = candidates.toReversed
+              ? candidates.toReversed()
+              : [...candidates].reverse();
+            for (const candidate of candidatesReversed) {
+              const typeFieldMap = candidate.type.getFields();
+              if (candidate.transformedSubschema) {
+                const unavailableFields = extractUnavailableFields(
+                  candidate.transformedSubschema.transformedSchema,
+                  typeFieldMap[candidate.fieldName],
+                  fieldNode,
+                  () => true,
+                );
+                const score = calculateSelectionScore(unavailableFields);
+                if (score < currentScore) {
+                  currentScore = score;
+                  currentSubschema = candidate.transformedSubschema;
+                }
+              }
+            }
+          }
+          if (!currentSubschema) {
+            throw new Error('Could not determine subschema');
+          }
+          return delegateToSchema({
+            schema: currentSubschema,
+            operation: rootTypeMap.get(info.parentType.name) || ('query' as OperationTypeNode),
+            context,
+            info,
+          });
+        },
+      };
+    }
     const filteredCandidates = candidates.filter(candidate => {
       const fieldASTMap = typeFieldASTMap.get(candidate.type.name);
       if (fieldASTMap) {
@@ -110,6 +170,10 @@ export function getSubschemasFromSupergraphSdl({
   const typeNameCanonicalMap = new Map<string, string>();
   const subgraphTypeNameExtraFieldsMap = new Map<string, Map<string, FieldDefinitionNode[]>>();
   const orphanTypeMap = new Map<string, TypeDefinitionNode>();
+
+  // To detect unresolvable interface fields
+  const externalFieldMap = new Map<string, Set<string>>();
+
   // TODO: Temporary fix to add missing join__type directives to Query
   const subgraphNames: string[] = [];
   visit(supergraphAst, {
@@ -221,6 +285,14 @@ export function getSubschemasFromSupergraphSdl({
                     argumentNode.value?.kind === Kind.BOOLEAN &&
                     argumentNode.value.value === true,
                 );
+                if (isExternal) {
+                  let externalFields = externalFieldMap.get(graphName);
+                  if (!externalFields) {
+                    externalFields = new Set();
+                    externalFieldMap.set(typeNode.name.value, externalFields);
+                  }
+                  externalFields.add(fieldNode.name.value);
+                }
                 if (!isExternal && !isOverridden) {
                   const typeArg = joinFieldDirectiveNode.arguments?.find(
                     argumentNode => argumentNode.name.value === 'type',
@@ -860,34 +932,56 @@ export function getSubschemasFromSupergraphSdl({
               delegationContext.args,
               fakeTypesIfaceMap,
             );
+            const typeInfo = new TypeInfo(schema);
             return {
               ...request,
-              document: visit(request.document, {
-                [Kind.INLINE_FRAGMENT](node) {
-                  if (node.typeCondition) {
-                    const newTypeConditionName = fakeTypesIfaceMap.get(
-                      node.typeCondition?.name.value,
-                    );
-                    if (newTypeConditionName) {
-                      transformationContext.replacedTypes ||= new Map();
-                      transformationContext.replacedTypes.set(
-                        newTypeConditionName,
-                        node.typeCondition.name.value,
-                      );
-                      return {
-                        ...node,
-                        typeCondition: {
-                          kind: Kind.NAMED_TYPE,
-                          name: {
-                            kind: Kind.NAME,
-                            value: newTypeConditionName,
-                          },
-                        },
-                      };
+              document: visit(
+                request.document,
+                visitWithTypeInfo(typeInfo, {
+                  // To avoid resolving unresolvable interface fields
+                  [Kind.FIELD](node) {
+                    if (node.name.value !== '__typename') {
+                      const parentType = typeInfo.getParentType();
+                      if (isInterfaceType(parentType)) {
+                        const implementations = schema.getPossibleTypes(parentType);
+                        for (const implementation of implementations) {
+                          const externalFields = externalFieldMap.get(implementation.name);
+                          if (externalFields?.has(node.name.value)) {
+                            throw createGraphQLError(
+                              `Was not able to find any options for ${node.name.value}: This shouldn't have happened.`,
+                            );
+                          }
+                        }
+                      }
                     }
-                  }
-                },
-              }),
+                  },
+                  // To resolve interface objects correctly
+                  [Kind.INLINE_FRAGMENT](node) {
+                    if (node.typeCondition) {
+                      const newTypeConditionName = fakeTypesIfaceMap.get(
+                        node.typeCondition?.name.value,
+                      );
+                      if (newTypeConditionName) {
+                        transformationContext.replacedTypes ||= new Map();
+                        transformationContext.replacedTypes.set(
+                          newTypeConditionName,
+                          node.typeCondition.name.value,
+                        );
+                        return {
+                          ...node,
+                          typeCondition: {
+                            kind: Kind.NAMED_TYPE,
+                            name: {
+                              kind: Kind.NAME,
+                              value: newTypeConditionName,
+                            },
+                          },
+                        };
+                      }
+                    }
+                  },
+                }),
+              ),
             };
           },
           transformResult(result, _, transformationContext) {

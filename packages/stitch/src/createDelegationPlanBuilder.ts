@@ -162,7 +162,7 @@ function calculateDelegationStage(
               return true;
             },
           );
-          const currentScore = calculateScore(unavailableFields);
+          const currentScore = calculateSelectionScore(unavailableFields);
           if (currentScore < bestScore) {
             bestScore = currentScore;
             bestUniqueSubschema = nonUniqueSubschema;
@@ -184,7 +184,7 @@ function calculateDelegationStage(
   };
 }
 
-function calculateScore(selections: readonly SelectionNode[] | SelectionNode[]) {
+export function calculateSelectionScore(selections: readonly SelectionNode[]) {
   let score = 0;
   for (const selectionNode of selections) {
     switch (selectionNode.kind) {
@@ -192,7 +192,7 @@ function calculateScore(selections: readonly SelectionNode[] | SelectionNode[]) 
         score += 1;
         break;
       case Kind.INLINE_FRAGMENT:
-        score += calculateScore(selectionNode.selectionSet.selections);
+        score += calculateSelectionScore(selectionNode.selectionSet.selections);
         break;
     }
   }
