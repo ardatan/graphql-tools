@@ -6,7 +6,7 @@ import {
   SelectionSetNode,
 } from 'graphql';
 import { getResponseKeyFromInfo, isPromise } from '@graphql-tools/utils';
-import { getPlanLeftOverFromParent } from './leftOver.js';
+import { DelegationPlanLeftOver, getPlanLeftOverFromParent } from './leftOver.js';
 import {
   getSubschema,
   getUnpathedErrors,
@@ -54,70 +54,62 @@ export function defaultMergedResolver(
     ) {
       const stitchingInfo = info.schema.extensions?.['stitchingInfo'] as StitchingInfo;
       if (stitchingInfo) {
-        const satisfiedSubschema = new Promise<Subschema | undefined>(resolve => {
+        const satisfiedSubschemaWithParent$ = new Promise<[any, Subschema]>(resolve => {
           // TODO: Find a better solution than polling
-          const interval = setInterval(() => {
-            if (parent[responseKey] != null) {
-              clearInterval(interval);
-              resolve(undefined);
-            }
-            for (const possibleSubschema of leftOver.nonProxiableSubschemas) {
-              const selectionSet =
-                stitchingInfo.mergedTypes[info.parentType.name].selectionSets.get(
-                  possibleSubschema,
-                );
-              if (selectionSet && parentSatisfiedSelectionSet(parent, selectionSet)) {
-                clearInterval(interval);
-                resolve(possibleSubschema);
-              }
-            }
-          }, 100);
+          let onResolveCallbacksByParent = leftOver.onResolveCallbacksByParent.get(parent);
+          if (!onResolveCallbacksByParent) {
+            onResolveCallbacksByParent = new Set();
+            leftOver.onResolveCallbacksByParent.set(parent, onResolveCallbacksByParent);
+          }
+          onResolveCallbacksByParent.add((flattenedParent, subschema) =>
+            resolve([flattenedParent, subschema]),
+          );
         });
-        return satisfiedSubschema.then(satisfiedSubschema => {
-          if (satisfiedSubschema) {
-            const resolver =
-              stitchingInfo.mergedTypes[info.parentType.name].resolvers.get(satisfiedSubschema);
-            if (resolver) {
-              const selectionSet: SelectionSetNode = {
-                kind: Kind.SELECTION_SET,
-                selections: info.fieldNodes,
-              };
-              const resolverResult$ = resolver(
-                parent,
-                context,
-                info,
+
+        return satisfiedSubschemaWithParent$.then(([flattenedParent, satisfiedSubschema]) => {
+          const resolver =
+            stitchingInfo.mergedTypes[info.parentType.name].resolvers.get(satisfiedSubschema);
+          if (resolver) {
+            Object.assign(parent, flattenedParent);
+            const selectionSet: SelectionSetNode = {
+              kind: Kind.SELECTION_SET,
+              selections: info.fieldNodes,
+            };
+            const resolverResult$ = resolver(
+              parent,
+              context,
+              info,
+              satisfiedSubschema,
+              selectionSet,
+              info.parentType,
+              info.parentType,
+            );
+            if (isPromise(resolverResult$)) {
+              return resolverResult$
+                .then(resolverResult =>
+                  handleResolverResult(
+                    resolverResult,
+                    satisfiedSubschema,
+                    selectionSet,
+                    parent,
+                    parent[FIELD_SUBSCHEMA_MAP_SYMBOL],
+                    info,
+                    responsePathAsArray(info.path),
+                    parent[UNPATHED_ERRORS_SYMBOL],
+                  ),
+                )
+                .then(() => handleResult(parent, responseKey, context, info));
+            } else {
+              handleResolverResult(
+                resolverResult$,
                 satisfiedSubschema,
                 selectionSet,
-                info.parentType,
-                info.parentType,
+                parent,
+                parent[FIELD_SUBSCHEMA_MAP_SYMBOL],
+                info,
+                responsePathAsArray(info.path),
+                parent[UNPATHED_ERRORS_SYMBOL],
               );
-              if (isPromise(resolverResult$)) {
-                return resolverResult$
-                  .then(resolverResult =>
-                    handleResolverResult(
-                      resolverResult,
-                      satisfiedSubschema,
-                      selectionSet,
-                      parent,
-                      parent[FIELD_SUBSCHEMA_MAP_SYMBOL],
-                      info,
-                      responsePathAsArray(info.path),
-                      parent[UNPATHED_ERRORS_SYMBOL],
-                    ),
-                  )
-                  .then(() => handleResult(parent, responseKey, context, info));
-              } else {
-                handleResolverResult(
-                  resolverResult$,
-                  satisfiedSubschema,
-                  selectionSet,
-                  parent,
-                  parent[FIELD_SUBSCHEMA_MAP_SYMBOL],
-                  info,
-                  responsePathAsArray(info.path),
-                  parent[UNPATHED_ERRORS_SYMBOL],
-                );
-              }
             }
           }
         });
@@ -137,7 +129,62 @@ function handleResult(
   const data = parent[responseKey];
   const unpathedErrors = getUnpathedErrors(parent);
 
-  return resolveExternalValue(data, unpathedErrors, subschema, context, info);
+  const finalData$ = resolveExternalValue(data, unpathedErrors, subschema, context, info);
+  const leftOver = getPlanLeftOverFromParent(parent);
+  if (leftOver) {
+    if (isPromise(finalData$)) {
+      return finalData$.then(finalData => {
+        parent[responseKey] = finalData;
+        handleLeftOver(parent, info, leftOver);
+        return finalData;
+      });
+    }
+    parent[responseKey] = finalData$;
+    handleLeftOver(parent, info, leftOver);
+  }
+  return finalData$;
+}
+
+function handleLeftOver(parent: any, info: GraphQLResolveInfo, leftOver: DelegationPlanLeftOver) {
+  const stitchingInfo = info.schema.extensions?.['stitchingInfo'] as StitchingInfo;
+  if (stitchingInfo) {
+    for (const possibleSubschema of leftOver.nonProxiableSubschemas) {
+      const selectionSet =
+        stitchingInfo.mergedTypes[info.parentType.name].selectionSets.get(possibleSubschema);
+      if (selectionSet) {
+        const flattenedParent$ = flattenPromise(parent);
+        if (isPromise(flattenedParent$)) {
+          flattenedParent$.then(flattenedParent => {
+            handleFlattenedParent(flattenedParent, possibleSubschema, selectionSet, () =>
+              leftOver.onResolveCallbacksByParent.get(parent),
+            );
+          });
+        } else {
+          handleFlattenedParent(flattenedParent$, possibleSubschema, selectionSet, () =>
+            leftOver.onResolveCallbacksByParent.get(parent),
+          );
+        }
+      }
+    }
+  }
+}
+
+function handleFlattenedParent(
+  flattenedParent: any,
+  possibleSubschema: Subschema,
+  selectionSet: SelectionSetNode,
+  getOnResolveCallbacks: () =>
+    | Set<(flattenedParent: any, subschema: Subschema) => void>
+    | undefined,
+) {
+  if (parentSatisfiedSelectionSet(flattenedParent, selectionSet)) {
+    const onResolveCallbacks = getOnResolveCallbacks();
+    if (onResolveCallbacks) {
+      for (const onResolveCallback of onResolveCallbacks) {
+        onResolveCallback(flattenedParent, possibleSubschema);
+      }
+    }
+  }
 }
 
 function parentSatisfiedSelectionSet(
@@ -197,4 +244,34 @@ function parentSatisfiedSelectionSet(
     }
   }
   return subschemas;
+}
+
+function flattenPromise(data: unknown): Promise<any> | any {
+  if (isPromise(data)) {
+    return data.then(flattenPromise);
+  }
+  if (Array.isArray(data)) {
+    return Promise.all(data.map(flattenPromise));
+  }
+  if (data != null && typeof data === 'object') {
+    const jobs: PromiseLike<void>[] = [];
+    const newData = {} as ExternalObject;
+    for (const key in data) {
+      const keyResult = flattenPromise(data[key]);
+      if (isPromise(keyResult)) {
+        jobs.push(
+          keyResult.then(resolvedKeyResult => {
+            newData[key] = resolvedKeyResult;
+          }),
+        );
+      } else {
+        newData[key] = keyResult;
+      }
+    }
+    if (jobs.length) {
+      return Promise.all(jobs).then(() => newData);
+    }
+    return newData;
+  }
+  return data;
 }

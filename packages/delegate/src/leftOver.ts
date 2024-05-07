@@ -1,10 +1,14 @@
 import { FieldNode } from 'graphql';
 import { Subschema } from './Subschema.js';
-import { DelegationPlanBuilder } from './types.js';
+import { DelegationPlanBuilder, ExternalObject } from './types.js';
 
 export interface DelegationPlanLeftOver {
   unproxiableFieldNodes: Array<FieldNode>;
   nonProxiableSubschemas: Array<Subschema>;
+  onResolveCallbacksByParent: WeakMap<
+    ExternalObject,
+    Set<(flattenedParent: any, subschema: Subschema) => void>
+  >;
 }
 export const leftOverByDelegationPlan = new WeakMap<
   ReturnType<DelegationPlanBuilder>,
