@@ -10,6 +10,7 @@ import {
   isAbstractType,
   isInterfaceType,
   isLeafType,
+  isObjectType,
   Kind,
   SelectionNode,
   SelectionSetNode,
@@ -121,7 +122,6 @@ function visitSelectionSet(
 ): SelectionSetNode {
   const newSelections = new Set<SelectionNode>();
   const maybeType = typeInfo.getParentType();
-
   if (maybeType != null) {
     const parentType: GraphQLNamedType = getNamedType(maybeType);
     const parentTypeName = parentType.name;
@@ -185,7 +185,7 @@ function visitSelectionSet(
         const fieldName = selection.name.value;
         let skipAddingDependencyNodes = false;
         // TODO: Optimization to prevent extra fields to the subgraph
-        if ('getFields' in parentType) {
+        if (isObjectType(parentType) || isInterfaceType(parentType)) {
           const fieldMap = parentType.getFields();
           const field = fieldMap[fieldName];
           if (field) {
