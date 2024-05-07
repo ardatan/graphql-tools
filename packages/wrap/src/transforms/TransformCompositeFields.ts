@@ -17,6 +17,7 @@ import {
   MapperKind,
   mapSchema,
   Maybe,
+  SelectionSetBuilder,
   visitData,
 } from '@graphql-tools/utils';
 import {
@@ -149,12 +150,12 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
     }
 
     const parentTypeName = parentType.name;
-    let newSelections: Array<SelectionNode> = [];
+    const newSelections = new SelectionSetBuilder();
     let isTypenameSelected = false;
 
     for (const selection of node.selections) {
       if (selection.kind !== Kind.FIELD) {
-        newSelections.push(selection);
+        newSelections.addSelection(selection);
         continue;
       }
 
@@ -187,26 +188,28 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
       if (transformedSelection == null) {
         continue;
       } else if (Array.isArray(transformedSelection)) {
-        newSelections = newSelections.concat(transformedSelection);
+        for (const transformedSelectionNode of transformedSelection) {
+          newSelections.addSelection(transformedSelectionNode);
+        }
         continue;
       } else if (transformedSelection.kind !== Kind.FIELD) {
-        newSelections.push(transformedSelection);
+        newSelections.addSelection(transformedSelection);
         continue;
       }
 
       const typeMapping = this.mapping[parentTypeName];
       if (typeMapping == null) {
-        newSelections.push(transformedSelection);
+        newSelections.addSelection(transformedSelection);
         continue;
       }
 
       const oldName = this.mapping[parentTypeName][newName];
       if (oldName == null) {
-        newSelections.push(transformedSelection);
+        newSelections.addSelection(transformedSelection);
         continue;
       }
 
-      newSelections.push({
+      newSelections.addSelection({
         ...transformedSelection,
         name: {
           kind: Kind.NAME,
@@ -225,7 +228,7 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
       (this.dataTransformer != null || this.errorsTransformer != null) &&
       (this.subscriptionTypeName == null || parentTypeName !== this.subscriptionTypeName)
     ) {
-      newSelections.push({
+      newSelections.addSelection({
         kind: Kind.FIELD,
         name: {
           kind: Kind.NAME,
@@ -236,7 +239,7 @@ export default class TransformCompositeFields<TContext = Record<string, any>>
 
     return {
       ...node,
-      selections: newSelections,
+      ...newSelections.getSelectionSet(),
     };
   }
 }

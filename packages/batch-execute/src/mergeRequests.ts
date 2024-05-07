@@ -14,7 +14,11 @@ import {
   VariableNode,
   visit,
 } from 'graphql';
-import { ExecutionRequest, getOperationASTFromRequest } from '@graphql-tools/utils';
+import {
+  ExecutionRequest,
+  getOperationASTFromRequest,
+  SelectionSetBuilder,
+} from '@graphql-tools/utils';
 import { createPrefix } from './prefix.js';
 
 /**
@@ -60,7 +64,7 @@ export function mergeRequests(
 ): ExecutionRequest {
   const mergedVariables: Record<string, any> = Object.create(null);
   const mergedVariableDefinitions: Array<VariableDefinitionNode> = [];
-  const mergedSelections: Array<SelectionNode> = [];
+  const mergedSelections = new SelectionSetBuilder();
   const mergedFragmentDefinitions: Array<FragmentDefinitionNode> = [];
   let mergedExtensions: Record<string, any> = Object.create(null);
 
@@ -70,7 +74,9 @@ export function mergeRequests(
 
     for (const def of prefixedRequests.document.definitions) {
       if (isOperationDefinition(def)) {
-        mergedSelections.push(...def.selectionSet.selections);
+        for (const selection of def.selectionSet.selections) {
+          mergedSelections.addSelection(selection);
+        }
         if (def.variableDefinitions) {
           mergedVariableDefinitions.push(...def.variableDefinitions);
         }
@@ -90,10 +96,7 @@ export function mergeRequests(
     kind: Kind.OPERATION_DEFINITION,
     operation: operationType,
     variableDefinitions: mergedVariableDefinitions,
-    selectionSet: {
-      kind: Kind.SELECTION_SET,
-      selections: mergedSelections,
-    },
+    selectionSet: mergedSelections.getSelectionSet(),
   };
   const operationName = firstRequest.operationName ?? firstRequest.info?.operation?.name?.value;
   if (operationName) {

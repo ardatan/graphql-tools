@@ -14,7 +14,7 @@ import {
   StitchingInfo,
   Subschema,
 } from '@graphql-tools/delegate';
-import { memoize1, memoize2, memoize3, memoize5 } from '@graphql-tools/utils';
+import { memoize1, memoize2, memoize3, memoize5, SelectionSetBuilder } from '@graphql-tools/utils';
 import { extractUnavailableFields, getFieldsNotInSubschema } from './getFieldsNotInSubschema.js';
 
 function calculateDelegationStage(
@@ -62,11 +62,11 @@ function calculateDelegationStage(
     }
   }
 
-  const unproxiableFieldNodes: Array<FieldNode> = [];
+  const unproxiableFieldNodes = new SelectionSetBuilder();
 
   // 2. for each selection:
 
-  const delegationMap: Map<Subschema, SelectionSetNode> = new Map();
+  const delegationMap: Map<Subschema, SelectionSetBuilder> = new Map();
   for (const fieldNode of fieldNodes) {
     const fieldName = fieldNode.name.value;
     if (fieldName === '__typename') {
@@ -85,7 +85,7 @@ function calculateDelegationStage(
         ),
     );
     if (sourcesWithUnsatisfiedDependencies.length === sourceSubschemas.length) {
-      unproxiableFieldNodes.push(fieldNode);
+      unproxiableFieldNodes.addSelection(fieldNode);
       for (const source of sourcesWithUnsatisfiedDependencies) {
         if (!nonProxiableSubschemas.includes(source)) {
           nonProxiableSubschemas.push(source);
@@ -99,20 +99,16 @@ function calculateDelegationStage(
     const uniqueSubschema: Subschema = uniqueFields[fieldNode.name.value];
     if (uniqueSubschema != null) {
       if (!proxiableSubschemas.includes(uniqueSubschema)) {
-        unproxiableFieldNodes.push(fieldNode);
+        unproxiableFieldNodes.addSelection(fieldNode);
         continue;
       }
 
-      const existingSubschema = delegationMap.get(uniqueSubschema)?.selections as SelectionNode[];
-      if (existingSubschema != null) {
-        existingSubschema.push(fieldNode);
-      } else {
-        delegationMap.set(uniqueSubschema, {
-          kind: Kind.SELECTION_SET,
-          selections: [fieldNode],
-        });
+      let existingSelectionSetBuilder = delegationMap.get(uniqueSubschema);
+      if (existingSelectionSetBuilder == null) {
+        existingSelectionSetBuilder = new SelectionSetBuilder();
+        delegationMap.set(uniqueSubschema, existingSelectionSetBuilder);
       }
-
+      existingSelectionSetBuilder.addSelection(fieldNode);
       continue;
     }
 
@@ -121,20 +117,20 @@ function calculateDelegationStage(
 
     let nonUniqueSubschemas: Array<Subschema> = nonUniqueFields[fieldNode.name.value];
     if (nonUniqueSubschemas == null) {
-      unproxiableFieldNodes.push(fieldNode);
+      unproxiableFieldNodes.addSelection(fieldNode);
       continue;
     }
 
     nonUniqueSubschemas = nonUniqueSubschemas.filter(s => proxiableSubschemas.includes(s));
     if (!nonUniqueSubschemas.length) {
-      unproxiableFieldNodes.push(fieldNode);
+      unproxiableFieldNodes.addSelection(fieldNode);
       continue;
     }
 
     const existingSubschema = nonUniqueSubschemas.find(s => delegationMap.has(s));
     if (existingSubschema != null) {
-      // It is okay we previously explicitly check whether the map has the element.
-      (delegationMap.get(existingSubschema)!.selections as SelectionNode[]).push(fieldNode);
+      const existingSelectionSetBuilder = delegationMap.get(existingSubschema)!;
+      existingSelectionSetBuilder.addSelection(fieldNode);
     } else {
       let bestUniqueSubschema: Subschema = nonUniqueSubschemas[0];
       let bestScore = Infinity;
@@ -151,10 +147,12 @@ function calculateDelegationStage(
             fieldNode,
             fieldType => {
               if (!nonUniqueSubschema.merge?.[fieldType.name]) {
-                delegationMap.set(nonUniqueSubschema, {
-                  kind: Kind.SELECTION_SET,
-                  selections: [fieldNode],
-                });
+                let existingSelectionSetBuilder = delegationMap.get(nonUniqueSubschema);
+                if (existingSelectionSetBuilder == null) {
+                  existingSelectionSetBuilder = new SelectionSetBuilder();
+                  delegationMap.set(nonUniqueSubschema, existingSelectionSetBuilder);
+                }
+                existingSelectionSetBuilder.addSelection(fieldNode);
                 // Ignore unresolvable fields
                 return false;
               }
@@ -168,18 +166,25 @@ function calculateDelegationStage(
           }
         }
       }
-      delegationMap.set(bestUniqueSubschema, {
-        kind: Kind.SELECTION_SET,
-        selections: [fieldNode],
-      });
+      let existingSelectionSetBuilder = delegationMap.get(bestUniqueSubschema);
+      if (existingSelectionSetBuilder == null) {
+        existingSelectionSetBuilder = new SelectionSetBuilder();
+        delegationMap.set(bestUniqueSubschema, existingSelectionSetBuilder);
+      }
+      existingSelectionSetBuilder.addSelection(fieldNode);
     }
   }
 
   return {
-    delegationMap,
+    delegationMap: new Map(
+      [...delegationMap].map(([subschema, selectionSetBuilder]) => [
+        subschema,
+        selectionSetBuilder.getSelectionSet(),
+      ]),
+    ),
     proxiableSubschemas,
     nonProxiableSubschemas,
-    unproxiableFieldNodes,
+    unproxiableFieldNodes: unproxiableFieldNodes.getSelectionSet().selections as Array<FieldNode>,
   };
 }
 

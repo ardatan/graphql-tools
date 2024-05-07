@@ -11,7 +11,6 @@ import {
   NameNode,
   OperationDefinitionNode,
   OperationTypeNode,
-  SelectionNode,
   SelectionSetNode,
   typeFromAST,
   VariableDefinitionNode,
@@ -19,6 +18,7 @@ import {
 import {
   createVariableNameGenerator,
   ExecutionRequest,
+  SelectionSetBuilder,
   serializeInputValue,
   updateArgument,
 } from '@graphql-tools/utils';
@@ -59,21 +59,16 @@ export function createRequest({
   if (selectionSet != null) {
     newSelectionSet = selectionSet;
   } else {
-    const selections: Array<SelectionNode> = [];
+    const selections = new SelectionSetBuilder();
     for (const fieldNode of fieldNodes || []) {
       if (fieldNode.selectionSet) {
         for (const selection of fieldNode.selectionSet.selections) {
-          selections.push(selection);
+          selections.addSelection(selection);
         }
       }
     }
 
-    newSelectionSet = selections.length
-      ? {
-          kind: Kind.SELECTION_SET,
-          selections,
-        }
-      : undefined;
+    newSelectionSet = selections.getSize() ? selections.getSelectionSet() : undefined;
 
     const args = fieldNodes?.[0]?.arguments;
     if (args) {

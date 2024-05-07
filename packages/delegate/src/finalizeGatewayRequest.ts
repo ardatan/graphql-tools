@@ -28,6 +28,7 @@ import {
   getDefinedRootType,
   implementsAbstractType,
   inspect,
+  SelectionSetBuilder,
   serializeInputValue,
   updateArgument,
 } from '@graphql-tools/utils';
@@ -179,7 +180,7 @@ function addVariablesToRootFields(
 
     const type = getDefinedRootType(targetSchema, operation.operation);
 
-    const newSelections: Array<SelectionNode> = [];
+    const selectionSetBuilder = new SelectionSetBuilder();
 
     for (const selection of operation.selectionSet.selections) {
       if (selection.kind === Kind.FIELD) {
@@ -198,25 +199,19 @@ function addVariablesToRootFields(
         if (targetField != null) {
           updateArguments(targetField, argumentNodeMap, variableDefinitionMap, newVariables, args);
         }
-
-        newSelections.push({
+        selectionSetBuilder.addSelection({
           ...selection,
           arguments: Object.values(argumentNodeMap),
         });
       } else {
-        newSelections.push(selection);
+        selectionSetBuilder.addSelection(selection);
       }
     }
-
-    const newSelectionSet: SelectionSetNode = {
-      kind: Kind.SELECTION_SET,
-      selections: newSelections,
-    };
 
     return {
       ...operation,
       variableDefinitions: Object.values(variableDefinitionMap),
-      selectionSet: newSelectionSet,
+      selectionSet: selectionSetBuilder.getSelectionSet(),
     };
   });
 
