@@ -10,6 +10,9 @@ import {
 } from 'graphql';
 import {
   DelegationPlanBuilder,
+  delegationPlanIdMap,
+  delegationStageIdMap,
+  isDelegationDebugging,
   MergedTypeInfo,
   StitchingInfo,
   Subschema,
@@ -246,6 +249,10 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
     );
     let { delegationMap } = delegationStage;
     while (delegationMap.size) {
+      if (isDelegationDebugging()) {
+        const delegationStageId = Math.random().toString(36).slice(2);
+        delegationStageIdMap.set(delegationMap, delegationStageId);
+      }
       delegationMaps.push(delegationMap);
 
       const { proxiableSubschemas, nonProxiableSubschemas, unproxiableFieldNodes } =
@@ -260,6 +267,10 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
         unproxiableFieldNodes,
       );
       delegationMap = delegationStage.delegationMap;
+    }
+    if (isDelegationDebugging()) {
+      const delegationPlanId = Math.random().toString(36).slice(2);
+      delegationPlanIdMap.set(delegationMaps, delegationPlanId);
     }
     return delegationMaps;
   });
