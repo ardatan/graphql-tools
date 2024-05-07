@@ -16,6 +16,7 @@ import {
   mergeDeep,
   relocatedError,
 } from '@graphql-tools/utils';
+import { leftOverByDelegationPlan, PLAN_LEFT_OVER } from './leftOver.js';
 import { Subschema } from './Subschema.js';
 import {
   FIELD_SUBSCHEMA_MAP_SYMBOL,
@@ -46,7 +47,7 @@ export function getSubschema(
   object: ExternalObject,
   responseKey: string,
 ): GraphQLSchema | SubschemaConfig {
-  return object[FIELD_SUBSCHEMA_MAP_SYMBOL][responseKey] ?? object[OBJECT_SUBSCHEMA_SYMBOL];
+  return object[FIELD_SUBSCHEMA_MAP_SYMBOL]?.[responseKey] ?? object[OBJECT_SUBSCHEMA_SYMBOL];
 }
 
 export function getUnpathedErrors(object: ExternalObject): Array<GraphQLError> {
@@ -83,6 +84,11 @@ export function mergeFields<TContext>(
       : EMPTY_ARRAY,
   );
 
+  const leftOver = leftOverByDelegationPlan.get(delegationMaps);
+  if (leftOver) {
+    object[PLAN_LEFT_OVER] = leftOver;
+  }
+
   const res$ = delegationMaps.reduce<MaybePromise<void>>((prev, delegationMap) => {
     function executeFn() {
       return executeDelegationStage(mergedTypeInfo, delegationMap, object, context, info);
@@ -100,7 +106,7 @@ export function mergeFields<TContext>(
   return object;
 }
 
-function handleResolverResult(
+export function handleResolverResult(
   resolverResult: any,
   subschema: Subschema,
   selectionSet: SelectionSetNode,
