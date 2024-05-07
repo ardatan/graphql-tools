@@ -46,6 +46,7 @@ export function defaultMergedResolver(
     return defaultFieldResolver(parent, args, context, info);
   }
 
+  // If the parent is satisfied for the left over after a nested delegation, try to resolve it
   if (parent[responseKey] === undefined) {
     const leftOver = getPlanLeftOverFromParent(parent);
     const missingFieldName = info.fieldNodes[0].name.value;
@@ -55,7 +56,6 @@ export function defaultMergedResolver(
       const stitchingInfo = info.schema.extensions?.['stitchingInfo'] as StitchingInfo;
       if (stitchingInfo) {
         const satisfiedSubschemaWithParent$ = new Promise<[any, Subschema]>(resolve => {
-          // TODO: Find a better solution than polling
           let onResolveCallbacksByParent = leftOver.onResolveCallbacksByParent.get(parent);
           if (!onResolveCallbacksByParent) {
             onResolveCallbacksByParent = new Set();
@@ -145,7 +145,11 @@ function handleResult(
   return finalData$;
 }
 
-function handleLeftOver(parent: any, info: GraphQLResolveInfo, leftOver: DelegationPlanLeftOver) {
+function handleLeftOver(
+  parent: ExternalObject,
+  info: GraphQLResolveInfo,
+  leftOver: DelegationPlanLeftOver,
+) {
   const stitchingInfo = info.schema.extensions?.['stitchingInfo'] as StitchingInfo;
   if (stitchingInfo) {
     for (const possibleSubschema of leftOver.nonProxiableSubschemas) {
@@ -170,11 +174,11 @@ function handleLeftOver(parent: any, info: GraphQLResolveInfo, leftOver: Delegat
 }
 
 function handleFlattenedParent(
-  flattenedParent: any,
+  flattenedParent: ExternalObject,
   possibleSubschema: Subschema,
   selectionSet: SelectionSetNode,
   getOnResolveCallbacks: () =>
-    | Set<(flattenedParent: any, subschema: Subschema) => void>
+    | Set<(flattenedParent: ExternalObject, subschema: Subschema) => void>
     | undefined,
 ) {
   if (parentSatisfiedSelectionSet(flattenedParent, selectionSet)) {
@@ -188,7 +192,7 @@ function handleFlattenedParent(
 }
 
 function parentSatisfiedSelectionSet(
-  parent: any,
+  parent: ExternalObject,
   selectionSet: SelectionSetNode,
 ): Set<Subschema> | undefined {
   if (Array.isArray(parent)) {
@@ -246,12 +250,12 @@ function parentSatisfiedSelectionSet(
   return subschemas;
 }
 
-function flattenPromise(data: unknown): Promise<any> | any {
+function flattenPromise<T>(data: T): Promise<T> | T {
   if (isPromise(data)) {
-    return data.then(flattenPromise);
+    return data.then(flattenPromise) as Promise<T>;
   }
   if (Array.isArray(data)) {
-    return Promise.all(data.map(flattenPromise));
+    return Promise.all(data.map(flattenPromise)) as Promise<T>;
   }
   if (data != null && typeof data === 'object') {
     const jobs: PromiseLike<void>[] = [];
@@ -269,9 +273,9 @@ function flattenPromise(data: unknown): Promise<any> | any {
       }
     }
     if (jobs.length) {
-      return Promise.all(jobs).then(() => newData);
+      return Promise.all(jobs).then(() => newData) as Promise<T>;
     }
-    return newData;
+    return newData as T;
   }
   return data;
 }
