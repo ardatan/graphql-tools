@@ -192,7 +192,7 @@ function handleFlattenedParent(
 }
 
 function parentSatisfiedSelectionSet(
-  parent: ExternalObject,
+  parent: unknown,
   selectionSet: SelectionSetNode,
 ): Set<Subschema> | undefined {
   if (Array.isArray(parent)) {
@@ -209,7 +209,7 @@ function parentSatisfiedSelectionSet(
     return subschemas;
   }
   if (parent === null) {
-    return parent[OBJECT_SUBSCHEMA_SYMBOL];
+    return new Set<Subschema>();
   }
   if (parent === undefined) {
     return undefined;
@@ -221,9 +221,11 @@ function parentSatisfiedSelectionSet(
       if (parent[responseKey] === undefined) {
         return undefined;
       }
-      const subschema = getSubschema(parent, responseKey) as Subschema;
-      if (subschema) {
-        subschemas.add(subschema);
+      if (isExternalObject(parent)) {
+        const subschema = getSubschema(parent, responseKey) as Subschema;
+        if (subschema) {
+          subschemas.add(subschema);
+        }
       }
       if (parent[responseKey] === null) {
         continue;
