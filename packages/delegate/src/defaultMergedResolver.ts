@@ -43,7 +43,7 @@ export function defaultMergedResolver(
   }
 
   // If the parent is satisfied for the left over after a nested delegation, try to resolve it
-  if (!parent.hasOwnProperty(responseKey)) {
+  if (!Object.prototype.hasOwnProperty.call(parent, responseKey)) {
     const leftOver = getPlanLeftOverFromParent(parent);
     // Add this field to the deferred fields
     if (leftOver) {
@@ -234,7 +234,7 @@ function handleDeferredResolverResult<TContext extends Record<string, any>>(
   if (deferredFields) {
     for (const [responseKey, deferred] of deferredFields) {
       // If the deferred field is resolved, resolve the deferred field
-      if (resolverResult.hasOwnProperty(responseKey)) {
+      if (Object.prototype.hasOwnProperty.call(resolverResult, responseKey)) {
         deferred.resolve(handleResult(leftOverParent, responseKey, context, info));
       }
     }
