@@ -100,9 +100,9 @@ function handleResult<TContext extends Record<string, any>>(
   return resolvedData$;
 }
 
-function handleLeftOver(
+function handleLeftOver<TContext extends Record<string, any>>(
   parent: ExternalObject,
-  context: any,
+  context: TContext,
   info: GraphQLResolveInfo,
   leftOver: DelegationPlanLeftOver,
 ) {
@@ -146,14 +146,14 @@ function handleLeftOver(
   }
 }
 
-function handleFlattenedParent(
+function handleFlattenedParent<TContext extends Record<string, any>>(
   flattenedParent: ExternalObject,
   possibleSubschema: Subschema,
   selectionSet: SelectionSetNode,
   leftOver: DelegationPlanLeftOver,
   stitchingInfo: StitchingInfo,
   parentTypeName: string,
-  context: any,
+  context: TContext,
   info: GraphQLResolveInfo,
 ) {
   // If this subschema is satisfied now, try to resolve the deferred fields
