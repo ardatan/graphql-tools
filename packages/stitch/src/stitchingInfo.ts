@@ -288,7 +288,7 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
     }
     const resolver = resolvers[typeName];
     for (const fieldName in resolver) {
-      const field = resolver[fieldName] as IFieldResolverOptions;
+      const field = resolver[fieldName as keyof typeof resolver] as IFieldResolverOptions;
       if (typeof field.selectionSet === 'function') {
         if (!(typeName in dynamicSelectionSetsByField)) {
           dynamicSelectionSetsByField[typeName] = Object.create(null);
