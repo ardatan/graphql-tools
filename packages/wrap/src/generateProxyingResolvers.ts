@@ -1,4 +1,4 @@
-import { GraphQLFieldResolver } from 'graphql';
+import { GraphQLFieldConfig, GraphQLFieldResolver } from 'graphql';
 import {
   delegateToSchema,
   getSubschema,
@@ -12,14 +12,17 @@ import { getResponseKeyFromInfo, getRootTypeMap } from '@graphql-tools/utils';
 
 export function generateProxyingResolvers<TContext extends Record<string, any>>(
   subschemaConfig: SubschemaConfig<any, any, any, TContext>,
-): Record<string, Record<string, GraphQLFieldResolver<any, any>>> {
+): Record<string, Record<string, Pick<GraphQLFieldConfig<any, any>, 'resolve' | 'subscribe'>>> {
   const targetSchema = subschemaConfig.schema;
   const createProxyingResolver =
     subschemaConfig.createProxyingResolver ?? defaultCreateProxyingResolver;
 
   const rootTypeMap = getRootTypeMap(targetSchema);
 
-  const resolvers = {};
+  const resolvers: Record<
+    string,
+    Record<string, Pick<GraphQLFieldConfig<any, any>, 'resolve' | 'subscribe'>>
+  > = {};
   for (const [operation, rootType] of rootTypeMap.entries()) {
     const typeName = rootType.name;
     const fields = rootType.getFields();
