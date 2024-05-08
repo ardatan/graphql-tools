@@ -1,5 +1,62 @@
 # @graphql-tools/delegate
 
+## 10.0.10
+
+### Patch Changes
+
+- [#6134](https://github.com/ardatan/graphql-tools/pull/6134) [`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4) Thanks [@User](https://github.com/User)! - Ignore unmerged fields
+
+  Let's say you have a gateway schema like in the bottom, and `id` is added to the query, only if the `age` is requested;
+
+  ```graphql
+  # This will be sent as-is
+  {
+    user {
+      name
+    }
+  }
+  ```
+
+  But the following will be transformed;
+
+  ```graphql
+  {
+    user {
+      name
+      age
+    }
+  }
+  ```
+
+  Into
+
+  ````graphql
+  {
+    user {
+      id
+      name
+      age
+    }
+  }
+
+
+  ```graphql
+  type Query {
+
+  }
+
+  type User {
+    id: ID! # is the key for all services
+    name: String!
+    age: Int! # This comes from another service
+  }
+  ````
+
+- [#6150](https://github.com/ardatan/graphql-tools/pull/6150) [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65) Thanks [@ardatan](https://github.com/ardatan)! - If there are some fields depending on a nested type resolution, wait until it gets resolved then resolve the rest.
+
+  See packages/federation/test/fixtures/complex-entity-call example for more details.
+  You can see `ProductList` needs some fields from `Product` to resolve `first`
+
 ## 10.0.9
 
 ### Patch Changes

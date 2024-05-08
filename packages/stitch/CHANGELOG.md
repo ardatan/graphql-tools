@@ -1,5 +1,72 @@
 # @graphql-tools/stitch
 
+## 9.2.8
+
+### Patch Changes
+
+- [#6134](https://github.com/ardatan/graphql-tools/pull/6134) [`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4) Thanks [@User](https://github.com/User)! - Ignore unmerged fields
+
+  Let's say you have a gateway schema like in the bottom, and `id` is added to the query, only if the `age` is requested;
+
+  ```graphql
+  # This will be sent as-is
+  {
+    user {
+      name
+    }
+  }
+  ```
+
+  But the following will be transformed;
+
+  ```graphql
+  {
+    user {
+      name
+      age
+    }
+  }
+  ```
+
+  Into
+
+  ````graphql
+  {
+    user {
+      id
+      name
+      age
+    }
+  }
+
+
+  ```graphql
+  type Query {
+
+  }
+
+  type User {
+    id: ID! # is the key for all services
+    name: String!
+    age: Int! # This comes from another service
+  }
+  ````
+
+- [#6150](https://github.com/ardatan/graphql-tools/pull/6150) [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65) Thanks [@ardatan](https://github.com/ardatan)! - If there are some fields depending on a nested type resolution, wait until it gets resolved then resolve the rest.
+
+  See packages/federation/test/fixtures/complex-entity-call example for more details.
+  You can see `ProductList` needs some fields from `Product` to resolve `first`
+
+- [#6141](https://github.com/ardatan/graphql-tools/pull/6141) [`cd962c1`](https://github.com/ardatan/graphql-tools/commit/cd962c1048b21c0a6f91c943860089b050ac5f5e) Thanks [@ardatan](https://github.com/ardatan)! - When the gateway receives the query, now it chooses the best root field if there is the same root field in different subgraphs.
+  For example, if there is `node(id: ID!): Node` in all subgraphs but one implements `User` and the other implements `Post`, the gateway will choose the subgraph that implements `User` or `Post` based on the query.
+
+  If there is a unresolvable interface field, it throws.
+
+  See [this supergraph and the test query](https://github.com/ardatan/graphql-tools/tree/master/packages/federation/test/fixtures/federation-compatibility/corrupted-supergraph-node-id) to see a real-life example
+
+- Updated dependencies [[`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4), [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65)]:
+  - @graphql-tools/delegate@10.0.10
+
 ## 9.2.7
 
 ### Patch Changes

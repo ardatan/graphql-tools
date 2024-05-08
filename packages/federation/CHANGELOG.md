@@ -1,5 +1,22 @@
 # @graphql-tools/federation
 
+## 1.1.35
+
+### Patch Changes
+
+- [#6141](https://github.com/ardatan/graphql-tools/pull/6141) [`cd962c1`](https://github.com/ardatan/graphql-tools/commit/cd962c1048b21c0a6f91c943860089b050ac5f5e) Thanks [@ardatan](https://github.com/ardatan)! - When the gateway receives the query, now it chooses the best root field if there is the same root field in different subgraphs.
+  For example, if there is `node(id: ID!): Node` in all subgraphs but one implements `User` and the other implements `Post`, the gateway will choose the subgraph that implements `User` or `Post` based on the query.
+
+  If there is a unresolvable interface field, it throws.
+
+  See [this supergraph and the test query](https://github.com/ardatan/graphql-tools/tree/master/packages/federation/test/fixtures/federation-compatibility/corrupted-supergraph-node-id) to see a real-life example
+
+- [#6143](https://github.com/ardatan/graphql-tools/pull/6143) [`04d5431`](https://github.com/ardatan/graphql-tools/commit/04d5431deccc42d75b6ae2ae8ed941dac4c3679a) Thanks [@ardatan](https://github.com/ardatan)! - Implement interface objects support
+
+- Updated dependencies [[`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4), [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65), [`cd962c1`](https://github.com/ardatan/graphql-tools/commit/cd962c1048b21c0a6f91c943860089b050ac5f5e)]:
+  - @graphql-tools/delegate@10.0.10
+  - @graphql-tools/stitch@9.2.8
+
 ## 1.1.34
 
 ### Patch Changes
