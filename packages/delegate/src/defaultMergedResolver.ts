@@ -16,7 +16,7 @@ import {
 import { resolveExternalValue } from './resolveExternalValue.js';
 import { Subschema } from './Subschema.js';
 import { FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols.js';
-import { ExternalObject, StitchingInfo } from './types.js';
+import { ExternalObject, MergedTypeResolver, StitchingInfo } from './types.js';
 
 /**
  * Resolver that knows how to:
@@ -73,10 +73,10 @@ export function defaultMergedResolver(
   return handleResult(parent, responseKey, context, info);
 }
 
-function handleResult(
+function handleResult<TContext extends Record<string, any>>(
   parent: ExternalObject,
   responseKey: string,
-  context: Record<string, any>,
+  context: TContext,
   info: GraphQLResolveInfo,
 ) {
   const subschema = getSubschema(parent, responseKey);
@@ -211,13 +211,13 @@ function handleFlattenedParent(
   }
 }
 
-function handleDeferredResolverResult(
-  resolverResult: any,
+function handleDeferredResolverResult<TContext extends Record<string, any>>(
+  resolverResult: ReturnType<MergedTypeResolver>,
   possibleSubschema: Subschema,
   selectionSet: SelectionSetNode,
   leftOverParent: ExternalObject,
   leftOver: DelegationPlanLeftOver,
-  context: any,
+  context: TContext,
   info: GraphQLResolveInfo,
 ) {
   handleResolverResult(

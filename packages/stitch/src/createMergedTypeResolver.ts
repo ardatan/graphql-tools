@@ -19,7 +19,7 @@ export function createMergedTypeResolver<TContext extends Record<string, any> = 
       subschema,
       selectionSet,
       key,
-      type = getNamedType(info?.returnType) as GraphQLOutputType,
+      type = getNamedType(info.returnType) as GraphQLOutputType,
     ) {
       return batchDelegateToSchema({
         schema: subschema,

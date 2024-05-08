@@ -166,7 +166,8 @@ export function handleResolverResult(
         object[responseKey] = sourcePropValue;
       }
     }
-    combinedFieldSubschemaMap[responseKey] = fieldSubschemaMap?.[responseKey] ?? objectSubschema;
+    combinedFieldSubschemaMap[responseKey] =
+      fieldSubschemaMap?.[responseKey] ?? objectSubschema ?? subschema;
   }
 }
 
