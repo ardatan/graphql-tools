@@ -2,13 +2,27 @@ import { FieldNode } from 'graphql';
 import { Subschema } from './Subschema.js';
 import { DelegationPlanBuilder, ExternalObject } from './types.js';
 
+export interface Deferred<T = unknown> {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+  reject: (error: unknown) => void;
+}
+
+export function createDeferred<T>(): Deferred<T> {
+  let resolve: (value: T) => void;
+  let reject: (error: unknown) => void;
+  const promise = new Promise<T>((_resolve, _reject) => {
+    resolve = _resolve;
+    reject = _reject;
+  });
+  return { promise, resolve: resolve!, reject: reject! };
+}
+
 export interface DelegationPlanLeftOver {
   unproxiableFieldNodes: Array<FieldNode>;
   nonProxiableSubschemas: Array<Subschema>;
-  onResolveCallbacksByParent: WeakMap<
-    ExternalObject,
-    Set<(flattenedParent: any, subschema: Subschema) => void>
-  >;
+  missingFieldsParentMap: Map<ExternalObject, Array<FieldNode>>;
+  missingFieldsParentDeferredMap: Map<ExternalObject, Map<string, Deferred>>;
 }
 export const leftOverByDelegationPlan = new WeakMap<
   ReturnType<DelegationPlanBuilder>,

@@ -270,7 +270,8 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
       leftOverByDelegationPlan.set(delegationMaps, {
         unproxiableFieldNodes: delegationStage.unproxiableFieldNodes,
         nonProxiableSubschemas: delegationStage.nonProxiableSubschemas,
-        onResolveCallbacksByParent: new WeakMap(),
+        missingFieldsParentMap: new Map(),
+        missingFieldsParentDeferredMap: new Map(),
       });
     }
     return delegationMaps;
