@@ -2382,22 +2382,27 @@
     yargs "17.7.2"
 
 "@repeaterjs/repeater@^3.0.4":
-  version "3.0.5"
-  resolved "https://registry.yarnpkg.com/@repeaterjs/repeater/-/repeater-3.0.5.tgz#b77571685410217a548a9c753aa3cdfc215bfc78"
-  integrity sha512-l3YHBLAol6d/IKnB9LhpD0cEZWAoe3eFKUyTYWmFmCO2Q/WOckxLQAUyMZWwZV2M/m3+4vgRoaolFqaII82/TA==
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/@repeaterjs/repeater/-/repeater-3.0.6.tgz#be23df0143ceec3c69f8b6c2517971a5578fdaa2"
+  integrity sha512-Javneu5lsuhwNCryN+pXH93VPQ8g0dBX7wItHFgYiwQmzE1sVdg5tWHiOgHywzL2W21XQopa7IwIEnNbmeUJYA==
 
 "@shikijs/core@1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@shikijs/core/-/core-1.2.0.tgz#c19d1a4d4807d31aa02e9d822aa13da873e6f2e7"
   integrity sha512-OlFvx+nyr5C8zpcMBnSGir0YPD6K11uYhouqhNmm1qLiis4GA7SsGtu07r9gKS9omks8RtQqHrJL4S+lqWK01A==
 
+"@shikijs/core@1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@shikijs/core/-/core-1.5.0.tgz#8d594a6d6eb8cfdb9f2de457893e384257f2e0a2"
+  integrity sha512-tdYjQu+jnvlPbJg4OjgCQ16zAfHlLk+RzA9o025aeaIyUww6W/Vd9TQ2t+gdZgK1fox29/L2yyqXLU6ErzYA0w==
+
 "@shikijs/twoslash@^1.0.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@shikijs/twoslash/-/twoslash-1.2.0.tgz#cc5311e5170b61b053055705510d5fa9baa4d5ba"
-  integrity sha512-rVIpuL40tXG5hItVf+4aYTEEwQO6R5pvzqMZa5r6bLMpHK720Op25e/BnCohNIdsUOEaFH9xqRSJo8ubjCiM1w==
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@shikijs/twoslash/-/twoslash-1.5.0.tgz#308d7e1596405eb44d0384a5d13650716f473f6a"
+  integrity sha512-Hc/BpFwx/8lm0ovI8erSjjufFxX18ajBxjVD41xlyZxAM9akB52Z31sDQKSx5f9sUov0RciYtNabXeG+Qbnm1g==
   dependencies:
-    "@shikijs/core" "1.2.0"
-    twoslash "^0.2.4"
+    "@shikijs/core" "1.5.0"
+    twoslash "^0.2.6"
 
 "@sideway/address@^4.1.3":
   version "4.1.4"
@@ -12065,18 +12070,18 @@ tty-table@^4.1.5:
     wcwidth "^1.0.1"
     yargs "^17.1.1"
 
-twoslash-protocol@0.2.5:
-  version "0.2.5"
-  resolved "https://registry.yarnpkg.com/twoslash-protocol/-/twoslash-protocol-0.2.5.tgz#c408cca54ace3adb6b5743ea7e4d357e49a5512a"
-  integrity sha512-oUr5ZAn37CgNa6p1mrCuuR/pINffsnGCee2aS170Uj1IObxCjsHzu6sgdPUdxGLLn6++gd/qjNH1/iR6RrfLeg==
+twoslash-protocol@0.2.6:
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/twoslash-protocol/-/twoslash-protocol-0.2.6.tgz#4c7030a77b8b497acd0946dc9c8e3f6b769adfcf"
+  integrity sha512-8NbJlYeRdBcCTQ7ui7pdRPC1NL16aOnoYNz06oBW+W0qWNuiQXHgE8UeNvbA038aDd6ZPuuD5WedsBIESocB4g==
 
-twoslash@^0.2.4:
-  version "0.2.5"
-  resolved "https://registry.yarnpkg.com/twoslash/-/twoslash-0.2.5.tgz#737af8c0e9c537be93afc305192ad87189063eea"
-  integrity sha512-U8rqsfVh8jQMO1NJekUtglb52b7xD9+FrzeFrgzpHsRTKl8IQgqnZP6ld4PeKaHXhLfoZPuju9K50NXJ7wom8g==
+twoslash@^0.2.6:
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/twoslash/-/twoslash-0.2.6.tgz#11fcae4b39e627b6d54fff46fb70218a0753b74e"
+  integrity sha512-DcAKIyXMB6xNs+SOw/oF8GvUr/cfJSqznngVXYbAUIVfTW3M8vWSEoCaz/RgSD+M6vwtK8DJ4/FmYBF5MN8BGw==
   dependencies:
     "@typescript/vfs" "1.5.0"
-    twoslash-protocol "0.2.5"
+    twoslash-protocol "0.2.6"
 
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"
