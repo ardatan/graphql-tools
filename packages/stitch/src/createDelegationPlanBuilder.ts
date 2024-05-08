@@ -11,6 +11,7 @@ import {
 import {
   DelegationPlanBuilder,
   extractUnavailableFields,
+  leftOverByDelegationPlan,
   MergedTypeInfo,
   StitchingInfo,
   Subschema,
@@ -261,6 +262,17 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
         unproxiableFieldNodes,
       );
       delegationMap = delegationStage.delegationMap;
+    }
+    if (
+      delegationStage.unproxiableFieldNodes.length &&
+      delegationStage.nonProxiableSubschemas.length
+    ) {
+      leftOverByDelegationPlan.set(delegationMaps, {
+        unproxiableFieldNodes: delegationStage.unproxiableFieldNodes,
+        nonProxiableSubschemas: delegationStage.nonProxiableSubschemas,
+        missingFieldsParentMap: new Map(),
+        missingFieldsParentDeferredMap: new Map(),
+      });
     }
     return delegationMaps;
   });

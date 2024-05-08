@@ -9,3 +9,4 @@ export * from './resolveExternalValue.js';
 export * from './subschemaConfig.js';
 export * from './types.js';
 export * from './extractUnavailableFields.js';
+export * from './leftOver.js';
