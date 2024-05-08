@@ -56,7 +56,7 @@
     "tslib": "^2.3.1"
   },
   "devDependencies": {
-    "@envelop/core": "5.0.0"
+    "@envelop/core": "5.0.1"
   },
   "publishConfig": {
     "directory": "dist",
