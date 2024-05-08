@@ -1496,10 +1496,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@envelop/core@5.0.0", "@envelop/core@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@envelop/core/-/core-5.0.0.tgz#131616ad9685599e501b14fdf1a983cfd3b72020"
-  integrity sha512-aJdnH/ptv+cvwfvciCBe7TSvccBwo9g0S5f6u35TBVzRVqIGkK03lFlIL+x1cnfZgN9EfR2b1PH2galrT1CdCQ==
+"@envelop/core@5.0.1", "@envelop/core@^5.0.0":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@envelop/core/-/core-5.0.1.tgz#7993c5d577b1de01645539cbbe3eab26f213a35a"
+  integrity sha512-wxA8EyE1fPnlbP0nC/SFI7uU8wSNf4YjxZhAPu0P63QbgIvqHtHsH4L3/u+rsTruzhk3OvNRgQyLsMfaR9uzAQ==
   dependencies:
     "@envelop/types" "5.0.0"
     tslib "^2.5.0"
@@ -1695,10 +1695,10 @@
   dependencies:
     tslib "^2.5.2"
 
-"@graphql-yoga/plugin-defer-stream@3.3.0":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.3.0.tgz#9126257548e90dd1340afe62b044d97669ebb025"
-  integrity sha512-R6pvnTV/m+CJApquqOV9fVMigTCmRNC55UP7XMRwBwM/flZs3dT18V9vh43fUhWw+tR2AfEr46I3dvy0hhtB3w==
+"@graphql-yoga/plugin-defer-stream@3.3.1":
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.3.1.tgz#31e72670e5c71aad2f58fb90462c0cbb64289598"
+  integrity sha512-KgPgPOf6N69OczCN6QP953O2g6/rvzXjy++jiLQPFGFyrbkWu/3KcS0X6yv8JcUJRcT0dlRY6DPV6Tx3BcFqSQ==
   dependencies:
     "@graphql-tools/utils" "^10.0.0"
 
@@ -3263,10 +3263,10 @@
     fast-querystring "^1.1.1"
     tslib "^2.3.1"
 
-"@whatwg-node/server@^0.9.32":
-  version "0.9.32"
-  resolved "https://registry.yarnpkg.com/@whatwg-node/server/-/server-0.9.32.tgz#e266afd5bd25fa4e4bf1c980a3cb3b18bc972bf4"
-  integrity sha512-PRTRE8ZhObwYx9yRoUdxYkrhCoDk2vyDA5BtaG+NAqEmU1wwbwlXUpaeRRrPuGaM7ScbIkueU25A0GJIRQzccw==
+"@whatwg-node/server@^0.9.33":
+  version "0.9.34"
+  resolved "https://registry.yarnpkg.com/@whatwg-node/server/-/server-0.9.34.tgz#6b4c578c90c57099984f6085b3e2db9ab01fad3f"
+  integrity sha512-1sHRjqUtZIyTR2m2dS/dJpzS5OcNDpPuUSVDa2PoEgzYVKr4GsqJaYtRaEXXFohvvyh6PkouYCc1rE7jMDWVCA==
   dependencies:
     "@whatwg-node/fetch" "^0.9.17"
     tslib "^2.3.1"
@@ -6520,10 +6520,10 @@ graphql-ws@^5.14.0:
   resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.16.0.tgz#849efe02f384b4332109329be01d74c345842729"
   integrity sha512-Ju2RCU2dQMgSKtArPbEtsK5gNLnsQyTNIo/T7cZNp96niC1x0KdJNZV0TIoilceBPQwfb5itrGl8pkFeOUMl4A==
 
-graphql-yoga@5.3.0, graphql-yoga@^5.0.0:
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.3.0.tgz#7d8a3be48ac7cca6cf5e627351a58dbc802453d2"
-  integrity sha512-6mXoGE5AMN6YNugJvjBFIQ0dFUiOMloN0dAzLL8GFt4iJ5WlWRgjdzGHod2zZz7yWQokEVD42DHgrc7NY3Dm0w==
+graphql-yoga@5.3.1, graphql-yoga@^5.0.0:
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.3.1.tgz#8d6385f97e4f1b1921f344653a6b57482cd7abdc"
+  integrity sha512-n918QV6TF7xTjb9ASnozgsr4ydMc08c+x4eRAWKxxWVwSnzdP2xeN2zw1ljIzRD0ccSCNoBajGDKwcZkJDitPA==
   dependencies:
     "@envelop/core" "^5.0.0"
     "@graphql-tools/executor" "^1.2.5"
@@ -6532,7 +6532,7 @@ graphql-yoga@5.3.0, graphql-yoga@^5.0.0:
     "@graphql-yoga/logger" "^2.0.0"
     "@graphql-yoga/subscription" "^5.0.0"
     "@whatwg-node/fetch" "^0.9.17"
-    "@whatwg-node/server" "^0.9.32"
+    "@whatwg-node/server" "^0.9.33"
     dset "^3.1.1"
     lru-cache "^10.0.0"
     tslib "^2.5.2"
