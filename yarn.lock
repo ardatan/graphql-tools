@@ -50,32 +50,32 @@
     tslib "^2.3.0"
     zen-observable-ts "^1.2.5"
 
-"@apollo/composition@2.7.6":
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/@apollo/composition/-/composition-2.7.6.tgz#48fa123249ecb7c2266e1590f6e0682effad02a9"
-  integrity sha512-m19V9tR5fNIgOAoTELdS1JwNFJhw01E7jVItJsthifStCPunGxUFUHjxdf/pTL7xIBl7Tg3fWS1G3Di1yNJGnA==
+"@apollo/composition@2.7.7":
+  version "2.7.7"
+  resolved "https://registry.yarnpkg.com/@apollo/composition/-/composition-2.7.7.tgz#6a5f48be8681a33ad63a5538cb267487ea2ac137"
+  integrity sha512-HlLUTcKjryK9o5xphftfR64djcNyLa7kzuF4d/j6KsKl8+surfRPdqkd6QF4pQ4GVY3hInbtKAJaGVKDLjt4Gg==
   dependencies:
-    "@apollo/federation-internals" "2.7.6"
-    "@apollo/query-graphs" "2.7.6"
+    "@apollo/federation-internals" "2.7.7"
+    "@apollo/query-graphs" "2.7.7"
 
-"@apollo/federation-internals@2.7.6":
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/@apollo/federation-internals/-/federation-internals-2.7.6.tgz#5ccf45a8e697aaa8cb210b1610f2d492dbcdf175"
-  integrity sha512-V1xbnkFb0UZpqHFjj5i52qX/ijd+Lxp3opVkeLLpKEXLKCaLG6S277IGUXIJQPYDiELUB9rbEq/FRUeRmdjRVA==
+"@apollo/federation-internals@2.7.7":
+  version "2.7.7"
+  resolved "https://registry.yarnpkg.com/@apollo/federation-internals/-/federation-internals-2.7.7.tgz#95623adf4646dc7ff189cc77925c14445b08de03"
+  integrity sha512-1qC4k1QLseROSFhHqRGbtwX2sUcA+y13EaCGNWEpnkUjJn5+6fjVGiNrWYHJ3chiS+avaEUC+wgGxsUYlCWeNg==
   dependencies:
     "@types/uuid" "^9.0.0"
     chalk "^4.1.0"
     js-levenshtein "^1.1.6"
     uuid "^9.0.0"
 
-"@apollo/gateway@2.7.6", "@apollo/gateway@^2.5.4":
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-2.7.6.tgz#ced0489ae93a7925f48c3944735929dedbe1ff7d"
-  integrity sha512-0Gy6Lztyxe3TUETWxB7Fdmaf9fSbjaWLtbEmw+dgmGl1XTUNe/Bu2zjwbvDGfb6/wO4o8HL8C/nEFIE40U5Fig==
+"@apollo/gateway@2.7.7", "@apollo/gateway@^2.5.4":
+  version "2.7.7"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-2.7.7.tgz#c1d8bb620c3ed29d87c0c074a8b0e6b1322d2bed"
+  integrity sha512-zQD3lmk7Rr1ECP0bIjCsPFyleSHvYdusTAghsAGYfboeiv5a5jtFVCMj2yCU/oGSeY6T4uTwhgir/TZ+JULIpw==
   dependencies:
-    "@apollo/composition" "2.7.6"
-    "@apollo/federation-internals" "2.7.6"
-    "@apollo/query-planner" "2.7.6"
+    "@apollo/composition" "2.7.7"
+    "@apollo/federation-internals" "2.7.7"
+    "@apollo/query-planner" "2.7.7"
     "@apollo/server-gateway-interface" "^1.1.0"
     "@apollo/usage-reporting-protobuf" "^4.1.0"
     "@apollo/utils.createhash" "^2.0.0"
@@ -110,23 +110,23 @@
     "@types/long" "^4.0.0"
     long "^4.0.0"
 
-"@apollo/query-graphs@2.7.6":
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/@apollo/query-graphs/-/query-graphs-2.7.6.tgz#970e6fe905382572457c50fe25e8f9506e329997"
-  integrity sha512-T0gg8rmWtjceIzjYk5Yc/cB7IikyM4LjcW/AaBHFntoOs8ROgn5mkoy6+DWJDv8ex0c3fyoeW9ssB0FCdpfZ7w==
+"@apollo/query-graphs@2.7.7":
+  version "2.7.7"
+  resolved "https://registry.yarnpkg.com/@apollo/query-graphs/-/query-graphs-2.7.7.tgz#05d63b10d9c1e06a7cb6fb955b47108f890971c7"
+  integrity sha512-SbT8I2LFlD1YpoQVuZ1avctGPyVUBtBT+2DRlLtYxqhz8j48sHIdNG7vx3gB41HZXCEfXG2Qo4rxdHKVaEo/cw==
   dependencies:
-    "@apollo/federation-internals" "2.7.6"
+    "@apollo/federation-internals" "2.7.7"
     deep-equal "^2.0.5"
     ts-graphviz "^1.5.4"
     uuid "^9.0.0"
 
-"@apollo/query-planner@2.7.6":
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-2.7.6.tgz#62b6fdf56deb70624049cf4f6576ceea8b2aa9ee"
-  integrity sha512-1sbP9mYKElO8hgNhDCkQ70RIFe0Ocx0ZyEiVq7cZ4Zqfprs1FDJZDz0iQIx7T7stAp0hVGr5f39A64timmHSYA==
+"@apollo/query-planner@2.7.7":
+  version "2.7.7"
+  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-2.7.7.tgz#28c41744d4e896f8968ee3abf5b6852b00d248f2"
+  integrity sha512-96GZvMHe7OopocZGtCLU4DksrzqkHDWPovAPFbF2Scg/wXhGmCXXOzjXeT0VqexchkbAvll11XzAPBdpJD6Suw==
   dependencies:
-    "@apollo/federation-internals" "2.7.6"
-    "@apollo/query-graphs" "2.7.6"
+    "@apollo/federation-internals" "2.7.7"
+    "@apollo/query-graphs" "2.7.7"
     "@apollo/utils.keyvaluecache" "^2.1.0"
     chalk "^4.1.0"
     deep-equal "^2.0.5"
@@ -142,13 +142,13 @@
     "@apollo/utils.keyvaluecache" "^2.1.0"
     "@apollo/utils.logger" "^2.0.0"
 
-"@apollo/subgraph@2.7.6", "@apollo/subgraph@^2.5.4":
-  version "2.7.6"
-  resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-2.7.6.tgz#4f7ba63f017e99f8dc2519cde3287f111fe90105"
-  integrity sha512-xpRt9Zi4mX/oeYll4uv0eS3JDYrYH8jyeIWuGrsG1JFUY/HiF11YZv0DQXZ1+/HpO2gcjnmDYMLvTazeL1ZViA==
+"@apollo/subgraph@2.7.7", "@apollo/subgraph@^2.5.4":
+  version "2.7.7"
+  resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-2.7.7.tgz#167ad9c6b023f3f163ff58d3e503b2ff30260c15"
+  integrity sha512-v7H3KLdM4bP+rs5SMo6hqOoBtwf+ejJCM56iV8++3sc/uDRUWYREX8qTujwJnxuQh4KQ44DduDPz8kAaQXBMDw==
   dependencies:
     "@apollo/cache-control-types" "^1.0.2"
-    "@apollo/federation-internals" "2.7.6"
+    "@apollo/federation-internals" "2.7.7"
 
 "@apollo/usage-reporting-protobuf@^4.0.0", "@apollo/usage-reporting-protobuf@^4.1.0":
   version "4.1.0"
@@ -5548,10 +5548,10 @@ eslint-plugin-import@2.29.1:
     semver "^6.3.1"
     tsconfig-paths "^3.15.0"
 
-eslint-plugin-n@17.5.1:
-  version "17.5.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-n/-/eslint-plugin-n-17.5.1.tgz#0f0ef75e3540ffd76ad9a4947b141a545319389e"
-  integrity sha512-+E242KoY16xtwqqBRgSsDCrZ3K40jg3Np9fOgQyakcHaqymK3bnxYB1F1oe8Ksts8TDDViROFgraoLzbWhfHVw==
+eslint-plugin-n@17.6.0:
+  version "17.6.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-n/-/eslint-plugin-n-17.6.0.tgz#891b7239ac2e58d80a8ed636addc9de4108e66d1"
+  integrity sha512-Y73o88ROwbCtVCCmZjYlYcPYkOG7mIzxxVK1XFRSa2epbKWtAPsmYpAD0pqxg/ZwlcWxMDceQPKHYQi4VIHz7w==
   dependencies:
     "@eslint-community/eslint-utils" "^4.4.0"
     enhanced-resolve "^5.15.0"
@@ -7773,9 +7773,9 @@ joi@^17.11.0:
     "@sideway/pinpoint" "^2.0.0"
 
 jose@^5.0.0:
-  version "5.2.4"
-  resolved "https://registry.yarnpkg.com/jose/-/jose-5.2.4.tgz#c0d296caeeed0b8444a8b8c3b68403d61aa4ed72"
-  integrity sha512-6ScbIk2WWCeXkmzF6bRPmEuaqy1m8SbsRFMa/FLrSCkGIhj8OLVG/IH+XHVmNMx/KUo8cVWEE6oKR4dJ+S0Rkg==
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/jose/-/jose-5.3.0.tgz#61dadf6399e0141d621ad18c1b36a0d6ab17a972"
+  integrity sha512-IChe9AtAE79ru084ow8jzkN2lNrG3Ntfiv65Cvj9uOCE2m5LNsdHG+9EbxWxAoWRF9TgDOqLN5jm08++owDVRg==
 
 js-levenshtein@^1.1.6:
   version "1.1.6"
