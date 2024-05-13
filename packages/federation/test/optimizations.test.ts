@@ -1,8 +1,10 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { GraphQLSchema, parse } from 'graphql';
+import { IntrospectAndCompose, LocalGraphQLDataSource } from '@apollo/gateway';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
+import { ExecutionRequest, Executor } from '@graphql-tools/utils';
 import { buildSubgraphSchema } from '../src/subgraph';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 import * as accounts from './fixtures/gateway/accounts';
@@ -10,6 +12,13 @@ import * as discount from './fixtures/gateway/discount';
 import * as inventory from './fixtures/gateway/inventory';
 import * as products from './fixtures/gateway/products';
 import * as reviews from './fixtures/gateway/reviews';
+import {
+  Aschema,
+  Bschema,
+  Cschema,
+  Dschema,
+  Eschema,
+} from './fixtures/optimizations/awareness-of-other-fields';
 
 describe('Optimizations', () => {
   const services = {
@@ -130,6 +139,106 @@ describe('Optimizations', () => {
       inventory: 2,
       products: 2,
       reviews: 2,
+    });
+  });
+});
+
+describe('awareness-of-other-fields', () => {
+  let supergraphSdl: string;
+  let gwSchema: GraphQLSchema;
+  let subgraphCalls: { [subgraph: string]: number } = {};
+  function getTracedExecutor(subgraphName: string, schema: GraphQLSchema): Executor {
+    const executor = createDefaultExecutor(schema);
+    return function tracedExecutor(execReq: ExecutionRequest) {
+      subgraphCalls[subgraphName] = (subgraphCalls[subgraphName] || 0) + 1;
+      return executor(execReq);
+    };
+  }
+  afterEach(() => {
+    subgraphCalls = {};
+  });
+  beforeAll(() => {
+    return new IntrospectAndCompose({
+      subgraphs: [
+        { name: 'A', url: 'A' },
+        { name: 'B', url: 'B' },
+        { name: 'C', url: 'C' },
+        { name: 'D', url: 'D' },
+        { name: 'E', url: 'E' },
+      ],
+    })
+      .initialize({
+        healthCheck() {
+          return Promise.resolve();
+        },
+        update(updatedSupergraphSdl) {
+          supergraphSdl = updatedSupergraphSdl;
+        },
+        getDataSource({ name }) {
+          switch (name) {
+            case 'A':
+              return new LocalGraphQLDataSource(Aschema);
+            case 'B':
+              return new LocalGraphQLDataSource(Bschema);
+            case 'C':
+              return new LocalGraphQLDataSource(Cschema);
+            case 'D':
+              return new LocalGraphQLDataSource(Dschema);
+            case 'E':
+              return new LocalGraphQLDataSource(Eschema);
+          }
+          throw new Error(`Unknown subgraph ${name}`);
+        },
+      })
+      .then(result => {
+        supergraphSdl = result.supergraphSdl;
+      })
+      .then(() => {
+        gwSchema = getStitchedSchemaFromSupergraphSdl({
+          supergraphSdl,
+          onExecutor({ subgraphName }) {
+            switch (subgraphName) {
+              case 'A':
+                return getTracedExecutor(subgraphName, Aschema);
+              case 'B':
+                return getTracedExecutor(subgraphName, Bschema);
+              case 'C':
+                return getTracedExecutor(subgraphName, Cschema);
+              case 'D':
+                return getTracedExecutor(subgraphName, Dschema);
+              case 'E':
+                return getTracedExecutor(subgraphName, Eschema);
+            }
+            throw new Error(`Unknown subgraph ${subgraphName}`);
+          },
+        });
+      });
+  });
+  it('do not call A subgraph as an extra', async () => {
+    const result = await normalizedExecutor({
+      schema: gwSchema,
+      document: parse(/* GraphQL */ `
+        query {
+          user(id: 1) {
+            nickname
+            money
+          }
+        }
+      `),
+    });
+    expect(result).toEqual({
+      data: {
+        user: {
+          nickname: 'Ali',
+          money: '1000 USD',
+        },
+      },
+    });
+    expect(subgraphCalls).toEqual({
+      B: 1,
+      C: 1,
+      D: 1,
+      E: 1,
     });
   });
 });
