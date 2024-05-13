@@ -13,6 +13,7 @@ import {
   validate,
   versionInfo,
 } from 'graphql';
+import type { ApolloGateway } from '@apollo/gateway';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import {
@@ -47,6 +48,7 @@ describe('Federation Compatibility', () => {
       let apolloExecutor: Executor;
       let apolloSubgraphCalls: Record<string, number> = {};
       let stitchingSubgraphCalls: Record<string, number> = {};
+      let apolloGW: ApolloGateway;
       beforeAll(async () => {
         stitchedSchema = getStitchedSchemaFromSupergraphSdl({
           supergraphSdl,
@@ -61,7 +63,7 @@ describe('Federation Compatibility', () => {
           },
         });
         const { ApolloGateway, RemoteGraphQLDataSource } = await import('@apollo/gateway');
-        const gw = new ApolloGateway({
+        apolloGW = new ApolloGateway({
           supergraphSdl,
           buildService({ name, url }) {
             const subgraphName = name;
@@ -75,7 +77,7 @@ describe('Federation Compatibility', () => {
             };
           },
         });
-        const loadedGw = await gw.load();
+        const loadedGw = await apolloGW.load();
         apolloExecutor = function apolloExecutor(execReq) {
           const operationAST = getOperationAST(execReq.document, execReq.operationName);
           if (!operationAST) {
@@ -98,6 +100,9 @@ describe('Federation Compatibility', () => {
             overallCachePolicy: {},
           }) as ExecutionResult;
         };
+      });
+      afterAll(async () => {
+        await apolloGW?.stop?.();
       });
       const tests: { query: string; expected: any }[] = JSON.parse(
         readFileSync(join(supergraphFixturesDir, 'tests.json'), 'utf-8'),
@@ -198,21 +203,23 @@ describe('Federation Compatibility', () => {
               });
             }
           });
-          it('calls the subgraphs at the same number or less than Apollo GW', async () => {
-            try {
-              await apolloExecutor({
-                document: parse(test.query, { noLocation: true }),
-              });
-            } catch (e) {}
-            for (const subgraphName in apolloSubgraphCalls) {
-              if (stitchingSubgraphCalls[subgraphName] != null) {
-                expect(stitchingSubgraphCalls[subgraphName]).toBeLessThanOrEqual(
-                  apolloSubgraphCalls[subgraphName],
-                );
+          if (!process.env['LEAK_TEST']) {
+            it('calls the subgraphs at the same number or less than Apollo GW', async () => {
+              try {
+                await apolloExecutor({
+                  document: parse(test.query, { noLocation: true }),
+                });
+              } catch (e) {}
+              for (const subgraphName in apolloSubgraphCalls) {
+                if (stitchingSubgraphCalls[subgraphName] != null) {
+                  expect(stitchingSubgraphCalls[subgraphName]).toBeLessThanOrEqual(
+                    apolloSubgraphCalls[subgraphName],
+                  );
+                }
+                // If never called, that's better
               }
-              // If never called, that's better
-            }
-          });
+            });
+          }
         });
       });
     });
