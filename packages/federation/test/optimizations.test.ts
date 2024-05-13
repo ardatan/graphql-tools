@@ -1,7 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { GraphQLSchema, parse } from 'graphql';
-import { IntrospectAndCompose, LocalGraphQLDataSource } from '@apollo/gateway';
+import { GraphQLSchema, parse, versionInfo } from 'graphql';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import { ExecutionRequest, Executor } from '@graphql-tools/utils';
@@ -144,6 +143,12 @@ describe('Optimizations', () => {
 });
 
 describe('awareness-of-other-fields', () => {
+  if (versionInfo.major < 16) {
+    it('Skip test for older versions of GraphQL-js', () => {
+      expect(true).toBe(true);
+    });
+    return;
+  }
   let supergraphSdl: string;
   let gwSchema: GraphQLSchema;
   let subgraphCalls: { [subgraph: string]: number } = {};
@@ -157,7 +162,8 @@ describe('awareness-of-other-fields', () => {
   afterEach(() => {
     subgraphCalls = {};
   });
-  beforeAll(() => {
+  beforeAll(async () => {
+    const { IntrospectAndCompose, LocalGraphQLDataSource } = await import('@apollo/gateway');
     return new IntrospectAndCompose({
       subgraphs: [
         { name: 'A', url: 'A' },
