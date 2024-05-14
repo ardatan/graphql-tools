@@ -699,7 +699,7 @@ describe('isolateComputedFieldsTransformer', () => {
       ],
     });
 
-    expect(printSchemaWithDirectives(stitchedSchema2)).toMatchInlineSnapshot(`
+    expect(printSchemaWithDirectives(stitchedSchema2).trim()).toMatchInlineSnapshot(`
 "schema {
   query: Query
 }
