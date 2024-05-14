@@ -1,0 +1,37 @@
+[
+  {
+    "query": "\n      query {\n        product {\n          samePriceProduct {\n            ... on Product {\n              samePriceProduct {\n                __typename\n              }\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "product": {
+          "samePriceProduct": {
+            "samePriceProduct": {
+              "__typename": "Book"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        product {\n          __typename\n          samePriceProduct {\n            __typename\n            ... on Book {\n              id\n            }\n            samePriceProduct {\n              __typename\n              ... on Book {\n                id\n              }\n            }\n          }\n          ... on Book {\n            __typename\n            id\n            price\n            samePriceProduct {\n              id\n              price\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "product": {
+          "__typename": "Book",
+          "samePriceProduct": {
+            "__typename": "Book",
+            "id": "3",
+            "samePriceProduct": {
+              "__typename": "Book",
+              "id": "1"
+            },
+            "price": 10.99
+          },
+          "id": "1",
+          "price": 10.99
+        }
+      }
+    }
+  }
+]

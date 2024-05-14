@@ -19,11 +19,21 @@ directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on
 
 directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
 
+type Book implements Product
+  @join__implements(graph: A, interface: "Product")
+  @join__type(graph: A, key: "id")
+  @join__type(graph: B, key: "id")
+{
+  id: ID!
+  samePriceProduct: Book @join__field(graph: A, provides: "price")
+  price: Float @join__field(graph: A, external: true) @join__field(graph: B)
+}
+
 scalar join__FieldSet
 
 enum join__Graph {
-  A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/fed1-external-extends/a")
-  B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/fed1-external-extends/b")
+  A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/circular-reference-interface/a")
+  B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/circular-reference-interface/b")
 }
 
 scalar link__Import
@@ -40,20 +50,15 @@ enum link__Purpose {
   EXECUTION
 }
 
+interface Product
+  @join__type(graph: A)
+{
+  samePriceProduct: Product
+}
+
 type Query
   @join__type(graph: A)
   @join__type(graph: B)
 {
-  randomUser: User @join__field(graph: A)
-  userById(id: ID): User @join__field(graph: B)
-}
-
-type User
-  @join__type(graph: A, key: "id", extension: true)
-  @join__type(graph: B, key: "id")
-{
-  id: ID!
-  rid: ID @join__field(graph: A)
-  name: String! @join__field(graph: B)
-  nickname: String @join__field(graph: B)
+  product: Product @join__field(graph: A)
 }

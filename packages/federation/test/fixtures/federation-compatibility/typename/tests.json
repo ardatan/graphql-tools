@@ -1,0 +1,78 @@
+[
+  {
+    "query": "\n      query {\n        union {\n          __typename\n          typename: __typename\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "union": {
+          "__typename": "Oven",
+          "typename": "Oven"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        interface {\n          id\n          __typename\n          typename: __typename\n          t: __typename\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "interface": {
+          "id": "2",
+          "__typename": "Toaster",
+          "typename": "Toaster",
+          "t": "Toaster"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        union {\n          __typename\n          ... on Oven {\n            typename: __typename\n          }\n          ... on Toaster {\n            typename: __typename\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "union": {
+          "__typename": "Oven",
+          "typename": "Oven"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        interface {\n          __typename\n          ... on Oven {\n            typename: __typename\n          }\n          ... on Toaster {\n            typename: __typename\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "interface": {
+          "__typename": "Toaster",
+          "typename": "Toaster"
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        users {\n          id\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "users": [
+          {
+            "id": "u1"
+          },
+          {
+            "id": "u2"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        users {\n          __typename\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "users": [
+          {
+            "__typename": "Admin"
+          },
+          {
+            "__typename": "Admin"
+          }
+        ]
+      }
+    }
+  }
+]

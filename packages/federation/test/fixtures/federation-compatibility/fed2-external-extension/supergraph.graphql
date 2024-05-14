@@ -22,8 +22,8 @@ directive @link(url: String, as: String, for: link__Purpose, import: [link__Impo
 scalar join__FieldSet
 
 enum join__Graph {
-  A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/fed1-external-extends/a")
-  B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/fed1-external-extends/b")
+  A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/fed2-external-extension/a")
+  B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/fed2-external-extension/b")
 }
 
 scalar link__Import
