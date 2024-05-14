@@ -129,5 +129,67 @@
         ]
       }
     }
+  },
+  {
+    "query": "\n      query {\n        accounts {\n          name\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "accounts": [
+          {
+            "name": "Alice"
+          },
+          {
+            "name": "Bob"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        accounts {\n          ... on Admin {\n            name\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "accounts": [
+          {
+            "name": "Alice"
+          },
+          {
+            "name": "Bob"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        accounts {\n          name\n          __typename\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "accounts": [
+          {
+            "name": "Alice",
+            "__typename": "Admin"
+          },
+          {
+            "name": "Bob",
+            "__typename": "Admin"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        accounts {\n          ... on Admin {\n            __typename\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "accounts": [
+          {
+            "__typename": "Admin"
+          },
+          {
+            "__typename": "Admin"
+          }
+        ]
+      }
+    }
   }
 ]

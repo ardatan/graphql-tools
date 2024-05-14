@@ -19,6 +19,23 @@ directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on
 
 directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
 
+interface Account
+  @join__type(graph: A, key: "id")
+  @join__type(graph: B, key: "id", isInterfaceObject: true)
+{
+  id: ID!
+  name: String! @join__field(graph: B)
+}
+
+type Admin implements Account
+  @join__implements(graph: A, interface: "Account")
+  @join__type(graph: A, key: "id")
+{
+  id: ID!
+  isMain: Boolean!
+  name: String! @join__field
+}
+
 scalar join__FieldSet
 
 enum join__Graph {
@@ -55,6 +72,7 @@ type Query
 {
   users: [NodeWithName!]! @join__field(graph: A)
   anotherUsers: [NodeWithName] @join__field(graph: B)
+  accounts: [Account] @join__field(graph: B)
 }
 
 type User implements NodeWithName
