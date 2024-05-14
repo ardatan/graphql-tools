@@ -140,6 +140,9 @@
           },
           {
             "name": "Bob"
+          },
+          {
+            "name": "Charlie"
           }
         ]
       }
@@ -155,6 +158,9 @@
           },
           {
             "name": "Bob"
+          },
+          {
+            "name": "Charlie"
           }
         ]
       }
@@ -172,6 +178,10 @@
           {
             "name": "Bob",
             "__typename": "Admin"
+          },
+          {
+            "name": "Charlie",
+            "__typename": "Admin"
           }
         ]
       }
@@ -182,6 +192,9 @@
     "expected": {
       "data": {
         "accounts": [
+          {
+            "__typename": "Admin"
+          },
           {
             "__typename": "Admin"
           },
