@@ -2042,7 +2042,7 @@ describe('graphql-tag-pluck', () => {
       `),
         {
           gqlVueBlock: 'graphql',
-        }
+        },
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
@@ -2062,7 +2062,7 @@ describe('graphql-tag-pluck', () => {
             }
           }
         }
-      `)
+      `),
       );
     });
 

@@ -163,7 +163,7 @@ function customBlockFromVue(
   vueTemplateCompiler: typeof import('@vue/compiler-sfc'),
   fileData: string,
   filePath: string,
-  blockType: string
+  blockType: string,
 ): Source | undefined {
   const { descriptor } = vueTemplateCompiler.parse(fileData);
 
@@ -226,7 +226,9 @@ export const gqlPluckFromCodeString = async (
     code = await pluckAstroFileScript(code);
   }
 
-  const sources = parseCode({ code, filePath, options }).map(t => new Source(t.content, filePath, t.loc.start));
+  const sources = parseCode({ code, filePath, options }).map(
+    t => new Source(t.content, filePath, t.loc.start),
+  );
   if (blockSource) {
     sources.push(blockSource);
   }
@@ -263,7 +265,9 @@ export const gqlPluckFromCodeStringSync = (
     code = pluckAstroFileScriptSync(code);
   }
 
-  const sources = parseCode({ code, filePath, options }).map(t => new Source(t.content, filePath, t.loc.start));
+  const sources = parseCode({ code, filePath, options }).map(
+    t => new Source(t.content, filePath, t.loc.start),
+  );
   if (blockSource) {
     sources.push(blockSource);
   }
