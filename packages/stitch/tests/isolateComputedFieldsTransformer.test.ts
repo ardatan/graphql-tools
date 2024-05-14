@@ -166,18 +166,26 @@ describe('isolateComputedFieldsTransformer', () => {
       const baseSubschema = new Subschema(baseConfig);
       const computedSubschema = new Subschema(computedConfig);
 
-      expect(Object.keys((baseSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields())).toEqual([
-        '_products',
-      ]);
       expect(
-        Object.keys((baseSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())
+        Object.keys(
+          (baseSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields(),
+        ),
+      ).toEqual(['_products']);
+      expect(
+        Object.keys(
+          (baseSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields(),
+        ),
       ).toEqual(['id']);
 
       expect(
-        Object.keys((computedSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields())
+        Object.keys(
+          (computedSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields(),
+        ),
       ).toEqual(['_products']);
       expect(
-        Object.keys((computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields())
+        Object.keys(
+          (computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields(),
+        ),
       ).toEqual(['shippingEstimate']);
 
       assertSome(baseSubschema.merge);
