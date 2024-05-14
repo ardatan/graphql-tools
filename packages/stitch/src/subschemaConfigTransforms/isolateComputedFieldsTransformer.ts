@@ -150,9 +150,7 @@ export function isolateComputedFieldsTransformer(
                 }
                 if (isInterfaceType(type) || isObjectType(type)) {
                   for (const fieldName in type.getFields()) {
-                    if (!fields[fieldName]) {
-                      fields[fieldName] = {};
-                    }
+                    fields[fieldName] ||= {};
                   }
                 }
                 isolatedSchemaTypes[type.name] = {
@@ -335,8 +333,16 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
     for (const entryPoint of entryPoints) {
       if (entryPoint.fieldName != null) {
         rootFields[entryPoint.fieldName] = true;
-        if (computedFieldTypes[entryPoint.fieldName]) {
-          delete computedFieldTypes[entryPoint.fieldName];
+        const rootField = subschemaConfig.schema.getQueryType()!.getFields()[entryPoint.fieldName];
+        if (rootField) {
+          const rootFieldType = getNamedType(rootField.type);
+
+          computedFieldTypes[rootFieldType.name] = true;
+          if (isInterfaceType(rootFieldType)) {
+            getImplementingTypes(rootFieldType.name, subschemaConfig.schema).forEach(tn => {
+              computedFieldTypes[tn] = true;
+            });
+          }
         }
       }
     }
@@ -367,24 +373,58 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
         }
         const returnType = getNamedType(config.type);
         if (isAbstractType(returnType)) {
-          const typesForInterface = getImplementingTypes(returnType.name, subschemaConfig.schema);
+          const typesForInterface = [
+            returnType.name,
+            ...getImplementingTypes(returnType.name, subschemaConfig.schema),
+          ];
           return typesForInterface.some(t => computedFieldTypes[t] != null);
         }
         return computedFieldTypes[returnType.name] != null;
       },
-      objectFieldFilter: (typeName, fieldName) =>
-        subschemaConfig.merge[typeName] == null ||
-        subschemaConfig.merge[typeName]?.fields?.[fieldName] != null ||
-        (subschemaConfig.merge[typeName]?.keyFieldNames ?? []).includes(fieldName),
-      interfaceFieldFilter: (typeName, fieldName) => {
+      objectFieldFilter: (typeName, fieldName, config) => {
+        if (computedFieldTypes[typeName]) {
+          return true;
+        }
+        const fieldType = getNamedType(config.type);
+        if (computedFieldTypes[fieldType.name]) {
+          return true;
+        }
+        return (
+          subschemaConfig.merge[typeName] == null ||
+          subschemaConfig.merge[typeName]?.fields?.[fieldName] != null ||
+          (subschemaConfig.merge[typeName]?.keyFieldNames ?? []).includes(fieldName)
+        );
+      },
+      interfaceFieldFilter: (typeName, fieldName, config) => {
+        if (computedFieldTypes[typeName]) {
+          return true;
+        }
+        const fieldType = getNamedType(config.type);
+        if (computedFieldTypes[fieldType.name]) {
+          return true;
+        }
         if (!typesForInterface[typeName]) {
           typesForInterface[typeName] = getImplementingTypes(typeName, subschemaConfig.schema);
         }
-        const isIsolatedFieldName = typesForInterface[typeName].some(implementingTypeName =>
-          isIsolatedField(implementingTypeName, fieldName, subschemaConfig.merge),
-        );
+        const isIsolatedFieldName =
+          typesForInterface[typeName].some(implementingTypeName =>
+            isIsolatedField(implementingTypeName, fieldName, subschemaConfig.merge),
+          ) || subschemaConfig.merge[typeName]?.fields?.[fieldName] != null;
+        const isComputedFieldType = typesForInterface[typeName].some(implementingTypeName => {
+          if (computedFieldTypes[implementingTypeName]) {
+            return true;
+          }
+          const type = subschemaConfig.schema.getType(implementingTypeName) as GraphQLObjectType;
+          const field = type.getFields()[fieldName];
+          if (field == null) {
+            return false;
+          }
+          const fieldType = getNamedType(field.type);
+          return computedFieldTypes[fieldType.name] != null;
+        });
         return (
           isIsolatedFieldName ||
+          isComputedFieldType ||
           (subschemaConfig.merge[typeName]?.keyFieldNames ?? []).includes(fieldName)
         );
       },

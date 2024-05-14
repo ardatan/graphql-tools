@@ -1,8 +1,9 @@
-import { GraphQLInterfaceType, GraphQLObjectType } from 'graphql';
+import { GraphQLInterfaceType, GraphQLObjectType, parse } from 'graphql';
 import { Subschema } from '@graphql-tools/delegate';
+import { normalizedExecutor } from '@graphql-tools/executor';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { isolateComputedFieldsTransformer } from '@graphql-tools/stitch';
-import { assertSome } from '@graphql-tools/utils';
+import { isolateComputedFieldsTransformer, stitchSchemas } from '@graphql-tools/stitch';
+import { assertSome, printSchemaWithDirectives } from '@graphql-tools/utils';
 
 describe('isolateComputedFieldsTransformer', () => {
   describe('basic isolation', () => {
@@ -83,7 +84,7 @@ describe('isolateComputedFieldsTransformer', () => {
         Object.keys(
           (computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields(),
         ),
-      ).toEqual(['shippingEstimate']);
+      ).toEqual(['id', 'shippingEstimate', 'deliveryService']);
 
       // pruning does not yet remove unused scalars/enums
       // expect(computedSubschema.transformedSchema.getType('DeliveryService')).toBeUndefined();
@@ -314,14 +315,14 @@ describe('isolateComputedFieldsTransformer', () => {
         Object.keys(
           (computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields(),
         ),
-      ).toEqual(['computeMe']);
+      ).toEqual(['base', 'computeMe']);
       expect(
         Object.keys(
           (
             computedSubschema.transformedSchema.getType('Storefront') as GraphQLObjectType
           ).getFields(),
         ),
-      ).toEqual(['computeMe']);
+      ).toEqual(['base', 'computeMe']);
       assertSome(computedSubschema.merge);
       expect(computedSubschema.merge['Storefront'].fields).toEqual({
         computeMe: { selectionSet: '{ availableProductIds }', computed: true },
@@ -387,12 +388,12 @@ describe('isolateComputedFieldsTransformer', () => {
             computedSubschema.transformedSchema.getType('IProduct') as GraphQLInterfaceType
           ).getFields(),
         ),
-      ).toEqual(['computeMe']);
+      ).toEqual(['base', 'computeMe']);
       expect(
         Object.keys(
           (computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields(),
         ),
-      ).toEqual(['computeMe']);
+      ).toEqual(['base', 'computeMe']);
     });
   });
 
@@ -463,7 +464,7 @@ describe('isolateComputedFieldsTransformer', () => {
         Object.keys(
           (computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields(),
         ),
-      ).toEqual(['computeMe']);
+      ).toEqual(['id', 'upc', 'computeMe']);
       expect(
         Object.keys(
           (baseSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields(),
@@ -473,7 +474,7 @@ describe('isolateComputedFieldsTransformer', () => {
         Object.keys(
           (computedSubschema.transformedSchema.getType('Query') as GraphQLObjectType).getFields(),
         ),
-      ).toEqual(['productById', 'productByUpc']);
+      ).toEqual(['featuredProduct', 'productById', 'productByUpc']);
     });
   });
 
@@ -584,7 +585,7 @@ describe('isolateComputedFieldsTransformer', () => {
 
       const computedGiftOptionsTypeFields = computedGiftOptionsType.getFields();
       expect(computedGiftOptionsTypeFields['itemId']).toBeDefined();
-      expect(computedGiftOptionsTypeFields['someOptions']).toBeUndefined();
+      expect(computedGiftOptionsTypeFields['someOptions']).toBeDefined();
 
       const computedQueryType = computedSubschema.transformedSchema.getType(
         'Query',
@@ -605,6 +606,137 @@ describe('isolateComputedFieldsTransformer', () => {
       const baseQueryTypeFields = baseQueryType.getFields();
       expect(baseQueryTypeFields['_item']).toBeDefined();
       expect(baseQueryTypeFields['_giftOptions']).toBeDefined();
+    });
+  });
+
+  it('with nested interface return type', async () => {
+    const testSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        scalar Any
+        type Query {
+          entity(representation: Any!): Node
+        }
+
+        interface Node {
+          id: ID!
+        }
+
+        type User implements Node {
+          id: ID!
+          nickname: String
+        }
+      `,
+      resolvers: {
+        Query: {
+          entity(_, { representation }) {
+            return representation;
+          },
+        },
+        Node: {
+          __resolveType() {
+            return 'User';
+          },
+        },
+        User: {
+          nickname(obj) {
+            return obj.name.toUpperCase();
+          },
+        },
+      },
+    });
+
+    const subschemaWithNickname = {
+      name: 'subschemaWithNickname',
+      schema: testSchema,
+      merge: {
+        User: {
+          selectionSet: '{ id }',
+          fieldName: 'entity',
+          args: (representation: unknown) => ({ representation }),
+          fields: {
+            nickname: {
+              selectionSet: '{ name }',
+              computed: true,
+            },
+          },
+        },
+      },
+    };
+
+    const userSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          user(id: ID!): User
+        }
+
+        type User {
+          id: ID!
+          name: String!
+        }
+      `,
+      resolvers: {
+        Query: {
+          user() {
+            return { id: 2, name: 'Tom' };
+          },
+        },
+      },
+    });
+
+    const stitchedSchema2 = stitchSchemas({
+      subschemas: [
+        subschemaWithNickname,
+        {
+          name: 'BaseUserSchema',
+          schema: userSchema,
+          merge: {
+            User: {
+              selectionSet: '{ id }',
+              fieldName: 'user',
+            },
+          },
+        },
+      ],
+    });
+
+    expect(printSchemaWithDirectives(stitchedSchema2)).toMatchInlineSnapshot(`
+"schema {
+  query: Query
+}
+
+type Query {
+  entity(representation: Any!): Node
+  user(id: ID!): User
+}
+
+scalar Any
+
+interface Node {
+  id: ID!
+}
+
+type User implements Node {
+  id: ID!
+  nickname: String
+  name: String!
+}"
+`);
+    const result = await normalizedExecutor({
+      schema: stitchedSchema2,
+      document: parse(/* GraphQL */ `
+        query {
+          user(id: 2) {
+            nickname
+          }
+        }
+      `),
+    });
+    expect(result).toEqual({
+      data: {
+        user: {
+          nickname: 'TOM',
+        },
+      },
     });
   });
 });
