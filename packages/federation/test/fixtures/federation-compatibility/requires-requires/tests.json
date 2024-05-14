@@ -1,0 +1,33 @@
+[
+  {
+    "query": "\n      query {\n        product {\n          canAfford\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "product": {
+          "canAfford": false
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        product {\n          isExpensive\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "product": {
+          "isExpensive": true
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        product {\n          isExpensive\n          canAfford\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "product": {
+          "isExpensive": true,
+          "canAfford": false
+        }
+      }
+    }
+  }
+]

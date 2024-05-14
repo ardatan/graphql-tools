@@ -1,6 +1,7 @@
 import {
   FieldNode,
   FragmentDefinitionNode,
+  GraphQLField,
   GraphQLNamedOutputType,
   GraphQLObjectType,
   GraphQLSchema,
@@ -55,19 +56,65 @@ export function getFieldsNotInSubschema(
         }
       }
     }
-    const fieldNodesForField = fieldNodesByField?.[gatewayType.name]?.[fieldName];
-    if (fieldNodesForField) {
-      for (const fieldNode of fieldNodesForField) {
-        if (fieldNode.name.value !== '__typename' && !fields[fieldNode.name.value]) {
-          // consider node that depends on something not in the schema as not in the schema
-          for (const subFieldNode of subFieldNodes) {
-            fieldsNotInSchema.add(subFieldNode);
+    let addedSubFieldNodes = false;
+    const fieldNodesByFieldForType = fieldNodesByField?.[gatewayType.name];
+    const visitedFieldNames = new Set<string>();
+    if (fieldNodesByFieldForType) {
+      addMissingRequiredFields({
+        fieldName,
+        fields,
+        fieldsNotInSchema,
+        visitedFieldNames,
+        onAdd: () => {
+          if (!addedSubFieldNodes) {
+            for (const subFieldNode of subFieldNodes) {
+              fieldsNotInSchema.add(subFieldNode);
+            }
+            addedSubFieldNodes = true;
           }
-          fieldsNotInSchema.add(fieldNode);
-        }
-      }
+        },
+        fieldNodesByField: fieldNodesByFieldForType,
+      });
     }
   }
 
   return Array.from(fieldsNotInSchema);
+}
+
+function addMissingRequiredFields({
+  fieldName,
+  fields,
+  fieldsNotInSchema,
+  onAdd,
+  fieldNodesByField,
+  visitedFieldNames,
+}: {
+  fieldName: string;
+  fields: Record<string, GraphQLField<any, any>>;
+  fieldsNotInSchema: Set<FieldNode>;
+  onAdd: VoidFunction;
+  fieldNodesByField: Record<string, FieldNode[]>;
+  visitedFieldNames: Set<string>;
+}) {
+  if (visitedFieldNames.has(fieldName)) {
+    return;
+  }
+  visitedFieldNames.add(fieldName);
+  const fieldNodesForField = fieldNodesByField?.[fieldName];
+  if (fieldNodesForField) {
+    for (const fieldNode of fieldNodesForField) {
+      if (fieldNode.name.value !== '__typename' && !fields[fieldNode.name.value]) {
+        onAdd();
+        fieldsNotInSchema.add(fieldNode);
+        addMissingRequiredFields({
+          fieldName: fieldNode.name.value,
+          fields,
+          fieldsNotInSchema,
+          onAdd,
+          fieldNodesByField,
+          visitedFieldNames,
+        });
+      }
+    }
+  }
 }
