@@ -3,18 +3,38 @@ import { join } from 'path';
 import {
   buildSchema,
   getNamedType,
+  getOperationAST,
   GraphQLSchema,
   isEnumType,
   lexicographicSortSchema,
   parse,
+  print,
   printSchema,
   validate,
+  versionInfo,
 } from 'graphql';
+import type { ApolloGateway } from '@apollo/gateway';
 import { normalizedExecutor } from '@graphql-tools/executor';
-import { filterSchema, getDirective, MapperKind, mapSchema } from '@graphql-tools/utils';
+import { buildHTTPExecutor } from '@graphql-tools/executor-http';
+import {
+  ExecutionResult,
+  Executor,
+  filterSchema,
+  getDirective,
+  MapperKind,
+  mapSchema,
+} from '@graphql-tools/utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 
 describe('Federation Compatibility', () => {
+  if (versionInfo.major < 16) {
+    it('should skip federation compatibility tests', () => {
+      console.warn(
+        'Federation compatibility tests are skipped because they require at least graphql@16',
+      );
+    });
+    return;
+  }
   const fixturesDir = join(__dirname, 'fixtures', 'federation-compatibility');
   readdirSync(fixturesDir).forEach(supergraphName => {
     const supergraphFixturesDir = join(fixturesDir, supergraphName);
@@ -25,11 +45,64 @@ describe('Federation Compatibility', () => {
     describe(supergraphName, () => {
       const supergraphSdl = readFileSync(supergraphSdlPath, 'utf-8');
       let stitchedSchema: GraphQLSchema;
-      beforeAll(() => {
+      let apolloExecutor: Executor;
+      let apolloSubgraphCalls: Record<string, number> = {};
+      let stitchingSubgraphCalls: Record<string, number> = {};
+      let apolloGW: ApolloGateway;
+      beforeAll(async () => {
         stitchedSchema = getStitchedSchemaFromSupergraphSdl({
           supergraphSdl,
           batch: true,
+          onExecutor({ subgraphName, endpoint }) {
+            const actualExecutor = buildHTTPExecutor({ endpoint });
+            return function tracedExecutor(execReq) {
+              stitchingSubgraphCalls[subgraphName.toLowerCase()] =
+                (stitchingSubgraphCalls[subgraphName] || 0) + 1;
+              return actualExecutor(execReq);
+            };
+          },
         });
+        const { ApolloGateway, RemoteGraphQLDataSource } = await import('@apollo/gateway');
+        apolloGW = new ApolloGateway({
+          supergraphSdl,
+          buildService({ name, url }) {
+            const subgraphName = name;
+            const actualService = new RemoteGraphQLDataSource({ url });
+            return {
+              process(options) {
+                apolloSubgraphCalls[subgraphName.toLowerCase()] =
+                  (apolloSubgraphCalls[subgraphName.toLowerCase()] || 0) + 1;
+                return actualService.process(options);
+              },
+            };
+          },
+        });
+        const loadedGw = await apolloGW.load();
+        apolloExecutor = function apolloExecutor(execReq) {
+          const operationAST = getOperationAST(execReq.document, execReq.operationName);
+          if (!operationAST) {
+            throw new Error('Operation not found');
+          }
+          const printedDoc = print(execReq.document);
+          return loadedGw.executor({
+            request: {},
+            logger: console,
+            schema: loadedGw.schema,
+            schemaHash: 'hash' as any,
+            context: execReq.context as any,
+            cache: new Map() as any,
+            queryHash: 'hash' as any,
+            document: execReq.document,
+            source: printedDoc,
+            operationName: execReq.operationName || null,
+            operation: operationAST,
+            metrics: {},
+            overallCachePolicy: {},
+          }) as ExecutionResult;
+        };
+      });
+      afterAll(async () => {
+        await apolloGW?.stop?.();
       });
       const tests: { query: string; expected: any }[] = JSON.parse(
         readFileSync(join(supergraphFixturesDir, 'tests.json'), 'utf-8'),
@@ -85,44 +158,66 @@ describe('Federation Compatibility', () => {
         );
       });
       tests.forEach((test, i) => {
-        it(`test-query-${i}`, async () => {
-          let result;
-          const document = parse(test.query, { noLocation: true });
-          const validationErrors = validate(stitchedSchema, document);
-          if (validationErrors.length > 0) {
-            result = { errors: validationErrors };
-          } else {
-            result = await normalizedExecutor({
-              schema: stitchedSchema,
-              document,
-            });
-          }
-
-          if (test.expected.errors === true) {
-            if (test.expected.data) {
-              expect(result).toMatchObject({
-                data: test.expected.data,
-                errors: expect.any(Array),
-              });
+        describe(`test-query-${i}`, () => {
+          let result: ExecutionResult;
+          beforeAll(async () => {
+            apolloSubgraphCalls = {};
+            stitchingSubgraphCalls = {};
+            const document = parse(test.query, { noLocation: true });
+            const validationErrors = validate(stitchedSchema, document);
+            if (validationErrors.length > 0) {
+              result = { errors: validationErrors };
             } else {
-              expect(result).toMatchObject({
-                errors: expect.any(Array),
-              });
+              result = (await normalizedExecutor({
+                schema: stitchedSchema,
+                document,
+              })) as ExecutionResult;
             }
-          } else {
-            if ('errors' in result && result.errors) {
-              for (const error of result.errors) {
-                if (process.env['PRINT_FEDERATION_ERRORS']) {
-                  console.error({
-                    message: error.message,
-                    stack: error.stack,
-                    extensions: error.extensions,
-                  });
+          });
+          it('gives the correct result', () => {
+            if (test.expected.errors === true) {
+              if (test.expected.data) {
+                expect(result).toMatchObject({
+                  data: test.expected.data,
+                  errors: expect.any(Array),
+                });
+              } else {
+                expect(result).toMatchObject({
+                  errors: expect.any(Array),
+                });
+              }
+            } else {
+              if ('errors' in result && result.errors) {
+                for (const error of result.errors) {
+                  if (process.env['PRINT_FEDERATION_ERRORS']) {
+                    console.error({
+                      message: error.message,
+                      stack: error.stack,
+                      extensions: error.extensions,
+                    });
+                  }
                 }
               }
+              expect(result).toMatchObject({
+                data: test.expected.data,
+              });
             }
-            expect(result).toMatchObject({
-              data: test.expected.data,
+          });
+          if (!process.env['LEAK_TEST']) {
+            it('calls the subgraphs at the same number or less than Apollo GW', async () => {
+              try {
+                await apolloExecutor({
+                  document: parse(test.query, { noLocation: true }),
+                });
+              } catch (e) {}
+              for (const subgraphName in apolloSubgraphCalls) {
+                if (stitchingSubgraphCalls[subgraphName] != null) {
+                  expect(stitchingSubgraphCalls[subgraphName]).toBeLessThanOrEqual(
+                    apolloSubgraphCalls[subgraphName],
+                  );
+                }
+                // If never called, that's better
+              }
             });
           }
         });
