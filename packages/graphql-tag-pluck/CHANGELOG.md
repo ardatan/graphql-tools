@@ -1,5 +1,11 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.3.1
+
+### Patch Changes
+
+- [#4439](https://github.com/ardatan/graphql-tools/pull/4439) [`ee0daab`](https://github.com/ardatan/graphql-tools/commit/ee0daabd6f3036bb2b63a679d5415f63c9f85056) Thanks [@jaschaephraim](https://github.com/jaschaephraim)! - Add option to pluck from custom Vue block
+
 ## 8.3.0
 
 ### Minor Changes
