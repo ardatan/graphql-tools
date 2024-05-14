@@ -1,4 +1,4 @@
-import { GraphQLInterfaceType, GraphQLObjectType, parse } from 'graphql';
+import { GraphQLInterfaceType, GraphQLObjectType, parse, printSchema } from 'graphql';
 import { Subschema } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -739,4 +739,73 @@ type User implements Node {
       },
     });
   });
+});
+
+it('keep computed fields in the interfaces', () => {
+  const schema = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Query {
+        node(id: ID!): Node
+      }
+      interface Node {
+        id: ID!
+      }
+      type Foo implements Node {
+        id: ID!
+        bars: BarConnection
+      }
+      type BarConnection {
+        edges: [BarEdge]
+        items: [Bar!]
+      }
+      type BarEdge {
+        cursor: String!
+        node: Bar!
+      }
+      type Bar implements Node {
+        id: ID!
+        baz: IBaz
+      }
+      interface IBaz {
+        id: ID!
+        name: String
+      }
+      type Baz implements Node & IBaz {
+        id: ID!
+        name: String
+        nickname: String
+      }
+    `,
+  });
+  const stitchedSchema = stitchSchemas({
+    subschemas: [
+      {
+        schema,
+        merge: {
+          Foo: {
+            selectionSet: '{ id }',
+            fieldName: 'node',
+            args: ({ id }) => ({ id }),
+          },
+          Bar: {
+            selectionSet: '{ id }',
+            fieldName: 'node',
+            args: ({ id }) => ({ id }),
+          },
+          Baz: {
+            selectionSet: '{ id }',
+            fieldName: 'node',
+            args: ({ id }) => ({ id }),
+            fields: {
+              nickname: {
+                selectionSet: '{ name }',
+                computed: true,
+              },
+            },
+          },
+        },
+      },
+    ],
+  });
+  expect(printSchema(stitchedSchema)).toBe(printSchema(schema));
 });
