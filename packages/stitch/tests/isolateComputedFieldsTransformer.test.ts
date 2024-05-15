@@ -187,7 +187,7 @@ describe('isolateComputedFieldsTransformer', () => {
         Object.keys(
           (computedSubschema.transformedSchema.getType('Product') as GraphQLObjectType).getFields(),
         ),
-      ).toEqual(['shippingEstimate']);
+      ).toEqual(['id', 'shippingEstimate']);
 
       assertSome(baseSubschema.merge);
       assertSome(computedSubschema.merge);
