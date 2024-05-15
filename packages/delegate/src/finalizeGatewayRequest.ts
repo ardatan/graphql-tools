@@ -397,7 +397,7 @@ function finalizeSelectionSet(
                 selectionSet: {
                   kind: Kind.SELECTION_SET,
                   selections: [node],
-                }
+                },
               }));
             }
           }
@@ -405,7 +405,9 @@ function finalizeSelectionSet(
         leave: node => {
           const type = typeInfo.getType();
           if (type == null) {
-            console.warn(`Invalid type for node: ${typeInfo.getParentType()?.name}.${node.name.value}`);
+            console.warn(
+              `Invalid type for node: ${typeInfo.getParentType()?.name}.${node.name.value}`,
+            );
             return null;
           }
           const namedType = getNamedType(type);
