@@ -1,0 +1,688 @@
+[
+  {
+    "query": "\n      query {\n        products {\n          id\n          dimensions {\n            size\n            weight\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "p1",
+            "dimensions": {
+              "size": "small",
+              "weight": 0.5
+            }
+          },
+          {
+            "id": "p3",
+            "dimensions": {
+              "size": "small",
+              "weight": 0.6
+            }
+          },
+          {
+            "id": "p2",
+            "dimensions": {
+              "size": "small",
+              "weight": 0.2
+            }
+          },
+          {
+            "id": "p4",
+            "dimensions": {
+              "size": "small",
+              "weight": 0.3
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        similar(id: \"p1\") {\n          id\n          sku\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "similar": [
+          {
+            "id": "p3",
+            "sku": "sku-3"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        book: similar(id: \"p1\") {\n          id\n          sku\n          delivery(zip: \"1234\") {\n            fastestDelivery\n            estimatedDelivery\n          }\n        }\n        magazine: similar(id: \"p2\") {\n          id\n          sku\n          delivery(zip: \"1234\") {\n            fastestDelivery\n            estimatedDelivery\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "book": [
+          {
+            "id": "p3",
+            "sku": "sku-3",
+            "delivery": {
+              "fastestDelivery": "same day",
+              "estimatedDelivery": "1 day"
+            }
+          }
+        ],
+        "magazine": [
+          {
+            "id": "p4",
+            "sku": "sku-4",
+            "delivery": {
+              "fastestDelivery": "same day",
+              "estimatedDelivery": "1 day"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      {\n        products {\n          sku\n          ... on Product {\n            sku\n          }\n          ... on Book {\n            sku\n          }\n          ... on Magazine {\n            sku\n          }\n          ... on Similar {\n            __typename\n            type: __typename\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "sku": "sku-1",
+            "__typename": "Book",
+            "type": "Book"
+          },
+          {
+            "sku": "sku-3",
+            "__typename": "Book",
+            "type": "Book"
+          },
+          {
+            "sku": "sku-2",
+            "__typename": "Magazine",
+            "type": "Magazine"
+          },
+          {
+            "sku": "sku-4",
+            "__typename": "Magazine",
+            "type": "Magazine"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      {\n        products {\n          author: createdBy {\n            email\n            totalProductsCreated\n          }\n          ... on Magazine {\n            title\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "author": {
+              "email": "u1@example.com",
+              "totalProductsCreated": 2
+            }
+          },
+          {
+            "author": {
+              "email": "u2@example.com",
+              "totalProductsCreated": 2
+            }
+          },
+          {
+            "author": {
+              "email": "u1@example.com",
+              "totalProductsCreated": 2
+            },
+            "title": "Magazine 1"
+          },
+          {
+            "author": {
+              "email": "u2@example.com",
+              "totalProductsCreated": 2
+            },
+            "title": "Magazine 2"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      {\n        products {\n          id\n          reviews {\n            product {\n              sku\n              ... on Magazine {\n                title\n              }\n              ... on Book {\n                reviewsCount\n              }\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "p1",
+            "reviews": [
+              {
+                "product": {
+                  "sku": "sku-1",
+                  "reviewsCount": 2
+                }
+              },
+              {
+                "product": {
+                  "sku": "sku-1",
+                  "reviewsCount": 2
+                }
+              }
+            ]
+          },
+          {
+            "id": "p3",
+            "reviews": []
+          },
+          {
+            "id": "p2",
+            "reviews": [
+              {
+                "product": {
+                  "sku": "sku-2",
+                  "title": "Magazine 1"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p4",
+            "reviews": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      {\n        products {\n          id\n          reviews {\n            id\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "p1",
+            "reviews": [
+              {
+                "id": 1
+              },
+              {
+                "id": 2
+              }
+            ]
+          },
+          {
+            "id": "p3",
+            "reviews": []
+          },
+          {
+            "id": "p2",
+            "reviews": [
+              {
+                "id": 3
+              }
+            ]
+          },
+          {
+            "id": "p4",
+            "reviews": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query ($title: Boolean = true) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @include(if: $title) {\n                title\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "p1",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p1",
+                  "title": "Book 1"
+                }
+              },
+              {
+                "product": {
+                  "id": "p1",
+                  "title": "Book 1"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p3",
+            "reviews": []
+          },
+          {
+            "id": "p2",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p2",
+                  "sku": "sku-2"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p4",
+            "reviews": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query ($title: Boolean = false) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @include(if: $title) {\n                title\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "p1",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p1"
+                }
+              },
+              {
+                "product": {
+                  "id": "p1"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p3",
+            "reviews": []
+          },
+          {
+            "id": "p2",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p2",
+                  "sku": "sku-2"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p4",
+            "reviews": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query ($title: Boolean = false) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @skip(if: $title) {\n                title\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "p1",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p1",
+                  "title": "Book 1"
+                }
+              },
+              {
+                "product": {
+                  "id": "p1",
+                  "title": "Book 1"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p3",
+            "reviews": []
+          },
+          {
+            "id": "p2",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p2",
+                  "sku": "sku-2"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p4",
+            "reviews": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query ($title: Boolean = true) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @skip(if: $title) {\n                title\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "p1",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p1"
+                }
+              },
+              {
+                "product": {
+                  "id": "p1"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p3",
+            "reviews": []
+          },
+          {
+            "id": "p2",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p2",
+                  "sku": "sku-2"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p4",
+            "reviews": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query ($title: Boolean = true) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @skip(if: $title) {\n                title\n              }\n              ... on Book {\n                sku\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "p1",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p1",
+                  "sku": "sku-1"
+                }
+              },
+              {
+                "product": {
+                  "id": "p1",
+                  "sku": "sku-1"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p3",
+            "reviews": []
+          },
+          {
+            "id": "p2",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p2",
+                  "sku": "sku-2"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p4",
+            "reviews": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query ($title: Boolean = false) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @skip(if: $title) {\n                title\n              }\n              ... on Book {\n                sku\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "p1",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p1",
+                  "title": "Book 1",
+                  "sku": "sku-1"
+                }
+              },
+              {
+                "product": {
+                  "id": "p1",
+                  "title": "Book 1",
+                  "sku": "sku-1"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p3",
+            "reviews": []
+          },
+          {
+            "id": "p2",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p2",
+                  "sku": "sku-2"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p4",
+            "reviews": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query ($title: Boolean = true) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @include(if: $title) {\n                title\n                ... on Book {\n                  sku\n                }\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "p1",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p1",
+                  "title": "Book 1",
+                  "sku": "sku-1"
+                }
+              },
+              {
+                "product": {
+                  "id": "p1",
+                  "title": "Book 1",
+                  "sku": "sku-1"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p3",
+            "reviews": []
+          },
+          {
+            "id": "p2",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p2",
+                  "sku": "sku-2"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p4",
+            "reviews": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query ($title: Boolean = true) {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Book @include(if: $title) {\n                title\n                ... on Book @skip(if: $title) {\n                  sku\n                }\n              }\n              ... on Magazine {\n                sku\n              }\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "p1",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p1",
+                  "title": "Book 1"
+                }
+              },
+              {
+                "product": {
+                  "id": "p1",
+                  "title": "Book 1"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p3",
+            "reviews": []
+          },
+          {
+            "id": "p2",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p2",
+                  "sku": "sku-2"
+                }
+              }
+            ]
+          },
+          {
+            "id": "p4",
+            "reviews": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Magazine {\n                publisherType {\n                  ...Publisher\n                }\n              }\n              ... on Book {\n                publisherType {\n                  ...Publisher\n                }\n              }\n            }\n          }\n        }\n      }\n\n      fragment Publisher on PublisherType {\n        ... on Agency {\n          id\n          companyName\n        }\n        ... on Self {\n          email\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "p1",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p1",
+                  "publisherType": {
+                    "email": "u1@example.com"
+                  }
+                }
+              },
+              {
+                "product": {
+                  "id": "p1",
+                  "publisherType": {
+                    "email": "u1@example.com"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "id": "p3",
+            "reviews": []
+          },
+          {
+            "id": "p2",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p2",
+                  "publisherType": {
+                    "id": "a1",
+                    "companyName": "Agency 1"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "id": "p4",
+            "reviews": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      {\n        products {\n          id\n          reviews {\n            product {\n              id\n              ... on Magazine {\n                publisherType {\n                  ...Publisher\n                }\n              }\n              ... on Book {\n                publisherType {\n                  ...Publisher\n                }\n              }\n            }\n          }\n        }\n      }\n\n      fragment Publisher on PublisherType {\n        ... on Agency {\n          id\n          companyName\n        }\n        ... on Self {\n          email\n        }\n        ... on Group {\n          name\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "p1",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p1",
+                  "publisherType": {
+                    "email": "u1@example.com"
+                  }
+                }
+              },
+              {
+                "product": {
+                  "id": "p1",
+                  "publisherType": {
+                    "email": "u1@example.com"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "id": "p3",
+            "reviews": []
+          },
+          {
+            "id": "p2",
+            "reviews": [
+              {
+                "product": {
+                  "id": "p2",
+                  "publisherType": {
+                    "id": "a1",
+                    "companyName": "Agency 1"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "id": "p4",
+            "reviews": []
+          }
+        ]
+      }
+    }
+  }
+]

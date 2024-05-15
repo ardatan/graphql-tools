@@ -1,4 +1,4 @@
-import { GraphQLSchema, isObjectType } from 'graphql';
+import { GraphQLSchema } from 'graphql';
 
 export function getImplementingTypes(interfaceName: string, schema: GraphQLSchema): string[] {
   const allTypesMap = schema.getTypeMap();
@@ -6,7 +6,7 @@ export function getImplementingTypes(interfaceName: string, schema: GraphQLSchem
 
   for (const graphqlTypeName in allTypesMap) {
     const graphqlType = allTypesMap[graphqlTypeName];
-    if (isObjectType(graphqlType)) {
+    if ('getInterfaces' in graphqlType) {
       const allInterfaces = graphqlType.getInterfaces();
 
       if (allInterfaces.find(int => int.name === interfaceName)) {
