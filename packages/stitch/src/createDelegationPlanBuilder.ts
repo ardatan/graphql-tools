@@ -154,8 +154,9 @@ function calculateDelegationStage(
             fieldNode,
             fieldType => {
               if (!nonUniqueSubschema.merge?.[fieldType.name]) {
-                let nonUniqueSubschemaSelections = delegationMap.get(nonUniqueSubschema)
-                  ?.selections as SelectionNode[];
+                let nonUniqueSubschemaSelections =
+                  // We have to cast it to `SelectionNode[]` because it is Readonly<SelectionNode[]> and it doesn't allow us to push new elements.
+                  delegationMap.get(nonUniqueSubschema)?.selections as SelectionNode[];
                 if (nonUniqueSubschemaSelections == null) {
                   nonUniqueSubschemaSelections = [];
                   delegationMap.set(nonUniqueSubschema, {
@@ -300,6 +301,7 @@ function optimizeDelegationMap(
       }
       const unavailableFields = extractUnavailableFieldsFromSelectionSet(
         subschema2.transformedSchema,
+        // Unfortunately, getType returns GraphQLNamedType, but we already know the type is a GraphQLObjectType, so we can cast it.
         subschema2.transformedSchema.getType(typeName) as GraphQLObjectType,
         selectionSet,
         () => true,
