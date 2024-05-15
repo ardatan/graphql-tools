@@ -5,6 +5,7 @@ import {
   GraphQLNamedType,
   GraphQLObjectType,
   GraphQLSchema,
+  isAbstractType,
   isInputObjectType,
   isInterfaceType,
   isLeafType,
@@ -58,11 +59,29 @@ function createMergedTypes<TContext extends Record<string, any> = Record<string,
 ): Record<string, MergedTypeInfo<TContext>> {
   const mergedTypes: Record<string, MergedTypeInfo<TContext>> = Object.create(null);
 
+  const typeInterfacesMap: Record<string, Set<string>> = Object.create(null);
+
+  for (const typeName in typeCandidates) {
+    for (const { type } of typeCandidates[typeName]) {
+      if ('getInterfaces' in type) {
+        const interfaces = type.getInterfaces();
+        for (const iface of interfaces) {
+          const interfaceName = iface.name;
+          let implementingTypes = typeInterfacesMap[typeName];
+          if (implementingTypes == null) {
+            implementingTypes = new Set();
+            typeInterfacesMap[typeName] = implementingTypes;
+          }
+          implementingTypes.add(interfaceName);
+        }
+      }
+    }
+  }
+
   for (const typeName in typeCandidates) {
     if (
-      typeCandidates[typeName].length > 1 &&
-      (isObjectType(typeCandidates[typeName][0].type) ||
-        isInterfaceType(typeCandidates[typeName][0].type))
+      isObjectType(typeCandidates[typeName][0].type) ||
+      isInterfaceType(typeCandidates[typeName][0].type)
     ) {
       const typeCandidatesWithMergedTypeConfig = typeCandidates[typeName].filter(
         typeCandidate =>
@@ -106,7 +125,16 @@ function createMergedTypes<TContext extends Record<string, any> = Record<string,
 
           typeMaps.set(subschema, subschema.transformedSchema.getTypeMap());
 
-          const mergedTypeConfig = subschema?.merge?.[typeName];
+          let mergedTypeConfig = subschema?.merge?.[typeName];
+
+          if (!mergedTypeConfig) {
+            for (const interfaceName of typeInterfacesMap[typeName] ?? []) {
+              mergedTypeConfig = subschema?.merge?.[interfaceName];
+              if (mergedTypeConfig) {
+                break;
+              }
+            }
+          }
 
           if (mergedTypeConfig == null) {
             continue;
@@ -132,7 +160,12 @@ function createMergedTypes<TContext extends Record<string, any> = Record<string,
             fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
           }
 
-          const resolver = mergedTypeConfig.resolve ?? createMergedTypeResolver(mergedTypeConfig);
+          const type = subschema.transformedSchema.getType(typeName) as
+            | GraphQLObjectType
+            | GraphQLInterfaceType;
+
+          const resolver =
+            mergedTypeConfig.resolve ?? createMergedTypeResolver(mergedTypeConfig, type);
 
           if (resolver == null) {
             continue;
@@ -161,9 +194,6 @@ function createMergedTypes<TContext extends Record<string, any> = Record<string,
 
           targetSubschemas.push(subschema);
 
-          const type = subschema.transformedSchema.getType(typeName) as
-            | GraphQLObjectType
-            | GraphQLInterfaceType;
           const fieldMap = type.getFields();
           const selectionSet = selectionSets.get(subschema);
           for (const fieldName in fieldMap) {
@@ -270,6 +300,9 @@ export function completeStitchingInfo<TContext = Record<string, any>>(
           continue;
         }
         updateSelectionSetMap(selectionSetsByField, typeName, fieldName, selectionSet, true);
+      }
+      if (isAbstractType(type)) {
+        updateSelectionSetMap(selectionSetsByField, typeName, '__typename', selectionSet);
       }
     }
 

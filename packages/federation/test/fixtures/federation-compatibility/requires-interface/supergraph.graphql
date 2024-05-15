@@ -65,6 +65,14 @@ type Query
   b: User @join__field(graph: B)
 }
 
+type SecondAddress implements Address
+  @join__implements(graph: B, interface: "Address")
+  @join__type(graph: B, key: "id")
+{
+  id: ID!
+  city: String
+}
+
 type User
   @join__type(graph: A, key: "id")
   @join__type(graph: B, key: "id")
@@ -73,6 +81,7 @@ type User
   name: String!
   address: Address @join__field(graph: A, external: true) @join__field(graph: B)
   city: String @join__field(graph: A, requires: "address { id }")
+  country: String @join__field(graph: A, requires: "address { ... on WorkAddress { id } }")
 }
 
 type WorkAddress implements Address

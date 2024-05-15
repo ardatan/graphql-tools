@@ -16,7 +16,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            # NOTE\n            # id and username are available in the NodeWithName interfaceObject in subgraph B\n            # but we still need to resolve the name field.\n            anotherUsers {\n              __typename\n              id\n              username\n            }\n          }\n        },\n        Flatten(path: \"anotherUsers.@\") {\n          # NOTE\n          # We call subgraph A to resolve an object type based on \"id\" field.\n          # What's interesting here is that we trigger \"__resolveReference\" for NodeWithName\n          # and that's an interface... weird but hey, it is what it is.\n          Fetch(service: \"a\") {\n            {\n              ... on NodeWithName {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                __typename\n                name # here we go\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        users {\n          id\n          name\n          username\n        }\n      }\n    ",
@@ -35,7 +36,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      # NOTE\n      # same story as in the test above \n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            users {\n              __typename\n              id\n              name\n            }\n          }\n        },\n        Flatten(path: \"users.@\") {\n          Fetch(service: \"b\") {\n            {\n              ... on NodeWithName {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                username\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        anotherUsers {\n          ... on User {\n            age\n          }\n        }\n      }\n    ",
@@ -50,7 +52,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        # NOTE\n        # same story as in the test above \n        Fetch(service: \"b\") {\n          {\n            anotherUsers {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"anotherUsers.@\") {\n          Fetch(service: \"a\") {\n            {\n              ... on NodeWithName {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                __typename\n                ... on User {\n                  age\n                }\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        users {\n          ... on User {\n            age\n          }\n        }\n      }\n    ",
@@ -65,7 +68,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      # NOTE\n      # Query.users is only available in subgraph A\n      # It can resolve only User objects, so we don't really have to do any extra calls\n      Fetch(service: \"a\") {\n        {\n          users {\n            __typename\n            ... on User {\n              age\n            }\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        anotherUsers {\n          ... on User {\n            age\n            id\n            name\n            username\n          }\n          id\n          name\n        }\n      }\n    ",
@@ -86,7 +90,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            anotherUsers {\n              __typename\n              id\n            }\n          }\n        },\n        # NOTE\n        # Oh, Kamil, you said we don't need to do extra calls as in case of Query.users!!!\n        # We do need to do extra calls here, but we do them only for the User objects,\n        # the reason are additional fields like \"age\" and \"name\".\n        #\n        # Super interesting thing here is also the fact that we don't resolve the \"username\" field directly.\n        # Not sure why is that... maybe to check if User exists? But that's not true in my opinion.\n        # In other tests we resolve the \"username\" field directly.\n        # I think the only difference is that it's a fragment and we resolve it only for User objects,\n        # and since an @interfaceObject cannot tell the __typename, we need to confirm it first.\n        Flatten(path: \"anotherUsers.@\") {\n          Fetch(service: \"a\") {\n            {\n              ... on NodeWithName {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                __typename\n                ... on User {\n                  age\n                  name\n                }\n                name\n              }\n            }\n          },\n        },\n        Flatten(path: \"anotherUsers.@\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                id\n                username\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        users {\n          ... on User {\n            age\n            id\n            name\n            username\n          }\n          id\n          name\n        }\n      }\n    ",
@@ -107,7 +112,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            users {\n              __typename\n              ... on User {\n                __typename\n                id\n                age\n                name\n              }\n              id\n              name\n            }\n          }\n        },\n        Flatten(path: \"users.@\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                username\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        users {\n          ... on User {\n            age\n            id\n            name\n            username\n          }\n          id\n          name\n        }\n      }\n    ",
@@ -128,7 +134,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            users {\n              __typename\n              ... on User {\n                __typename\n                id\n                age\n                name\n              }\n              id\n              name\n            }\n          }\n        },\n        Flatten(path: \"users.@\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                username\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        accounts {\n          name\n        }\n      }\n    ",
@@ -146,7 +153,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          accounts {\n            name\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        accounts {\n          ... on Admin {\n            name\n          }\n        }\n      }\n    ",
@@ -159,15 +167,14 @@
           {
             "name": "Bob"
           },
-          {
-            "name": "Charlie"
-          }
+          {}
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            accounts {\n              __typename\n              id\n            }\n          }\n        },\n        # NOTE\n        # Here's a proof to what I said before, that when there's a fragment involved,\n        # and a field could be resolved directly from the interfaceObject,\n        # we still need to resolve an object via entity call to get the __typename.\n        # Without __typename (@interfaceObject returns __typename: \"<name of the interface>\" so we can't rely on it)\n        # we don't know if \"name\" field should be resolved or not.\n        Flatten(path: \"accounts.@\") {\n          Fetch(service: \"a\") {\n            {\n              ... on Account {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Account {\n                __typename\n              }\n            }\n          },\n        },\n        Flatten(path: \"accounts.@\") {\n          Fetch(service: \"b\") {\n            {\n              ... on Admin {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Account {\n                name\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
-    "query": "\n      query {\n        accounts {\n          name\n          __typename\n        }\n      }\n    ",
+    "query": "\n      query {\n        accounts {\n          name\n          # NOTE\n          # __typename is not available in the interfaceObject, needs to be resolved indirectly\n          __typename\n        }\n      }\n    ",
     "expected": {
       "data": {
         "accounts": [
@@ -181,11 +188,12 @@
           },
           {
             "name": "Charlie",
-            "__typename": "Admin"
+            "__typename": "Regular"
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            accounts {\n              __typename\n              id\n              name\n            }\n          }\n        },\n        Flatten(path: \"accounts.@\") {\n          Fetch(service: \"a\") {\n            {\n              ... on Account {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Account {\n                __typename\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        accounts {\n          ... on Admin {\n            __typename\n          }\n        }\n      }\n    ",
@@ -198,11 +206,53 @@
           {
             "__typename": "Admin"
           },
+          {}
+        ]
+      }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            accounts {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"accounts.@\") {\n          Fetch(service: \"a\") {\n            {\n              ... on Account {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Account {\n                __typename\n                ... on Admin {\n                  __typename\n                }\n              }\n            }\n          },\n        },\n      },\n    }\n    "
+  },
+  {
+    "query": "\n      query {\n        accounts {\n          id\n          isActive\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "accounts": [
           {
-            "__typename": "Admin"
+            "id": "u1",
+            "isActive": false
+          },
+          {
+            "id": "u2",
+            "isActive": false
+          },
+          {
+            "id": "u3",
+            "isActive": false
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            accounts {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"accounts.@\") {\n          Fetch(service: \"c\") {\n            {\n              ... on Account {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Account {\n                isActive\n              }\n            }\n          },\n        },\n      },\n    }\n    "
+  },
+  {
+    "query": "\n      query {\n        accounts {\n          # NOTE\n          # id is available in the interfaceObject and can be resolved as there's no type condition involved\n          id\n          ... on Admin {\n            isActive\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "accounts": [
+          {
+            "id": "u1",
+            "isActive": true
+          },
+          {
+            "id": "u2",
+            "isActive": true
+          },
+          {
+            "id": "u3"
+          }
+        ]
+      }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            accounts {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"accounts.@\") {\n          Fetch(service: \"a\") {\n            {\n              ... on Account {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Account {\n                __typename\n                ... on Admin {\n                  isActive\n                }\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

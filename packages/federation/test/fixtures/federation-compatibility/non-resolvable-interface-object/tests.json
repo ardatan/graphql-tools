@@ -9,7 +9,7 @@
         }
       }
     },
-    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          b {\n            id\n            field\n          }\n        }\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          # NOTE\n          # Even though Node in subgraph B is an interface object,\n          # there is no type condition in the query,\n          # so \"id\" and \"field\" fields can be resolved directly.\n          b {\n            id\n            field\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        a {\n          field\n        }\n      }\n    ",
@@ -18,7 +18,7 @@
         "a": null
       }
     },
-    "plan": "\n    QueryPlan {}\n    "
+    "plan": "\n    # NOTE\n    # Query.a is only available in subgraph A.\n    # Query.a resolves Node interface, but none of the object types in subgraph A implement Node.\n    QueryPlan {}\n    "
   },
   {
     "query": "\n      query {\n        b {\n          id\n        }\n      }\n    ",
@@ -29,7 +29,7 @@
         }
       }
     },
-    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          b {\n            id\n          }\n        }\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          # NOTE\n          # Even though Node in subgraph B is an interface object,\n          # there is no type condition in the query,\n          # so \"id\" field can be resolved directly.\n          b {\n            id\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        a {\n          id\n        }\n      }\n    ",
@@ -39,7 +39,7 @@
       },
       "errors": true
     },
-    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          a {\n            __typename\n            id\n          }\n        }\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          # NOTE\n          # Query.a is only available in subgraph A.\n          # Query.a resolves Node interface,\n          # but none of the object types in subgraph A implement Node.\n          # Asking for \"id\" field is not possible.\n          # It's interesting that the query planner doesn't make an empty query to subgraph A.\n          # It clearly knows that the query is impossible to resolve.\n          # I would imagine that the request would be { a { __typename } },\n          # just like in the previous test case where we fetched { a { field } }.\n          a {\n            __typename\n            id\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        product {\n          id\n        }\n      }\n    ",

@@ -49,6 +49,7 @@ type Query
 {
   users: [User] @join__field(graph: A)
   usersByType(type: UserType!): [User!] @join__field(graph: B)
+  usersB: [User!] @join__field(graph: B)
 }
 
 type User

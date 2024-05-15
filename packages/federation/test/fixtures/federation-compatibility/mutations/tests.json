@@ -29,7 +29,7 @@
     "plan": "\n      QueryPlan {\n        Sequence {\n          Fetch(service: \"a\") {\n            {\n              product(id: \"p1\") {\n                __typename\n                id\n                name\n                price\n              }\n            }\n          },\n          Flatten(path: \"product\") {\n            Fetch(service: \"b\") {\n              {\n                ... on Product {\n                  __typename\n                  id\n                  price\n                }\n              } =>\n              {\n                ... on Product {\n                  isExpensive\n                  isAvailable\n                }\n              }\n            },\n          },\n        },\n      }\n      "
   },
   {
-    "query": "\n      mutation {\n        five: add(num: 5, requestId: \"ebf132bfbcc7a\")\n        ten: multiply(by: 2, requestId: \"ebf132bfbcc7a\")\n        twelve: add(num: 2, requestId: \"ebf132bfbcc7a\")\n        final: delete(requestId: \"ebf132bfbcc7a\")\n      }\n    ",
+    "query": "\n      mutation {\n        five: add(num: 5, requestId: \"beae951f6504\")\n        ten: multiply(by: 2, requestId: \"beae951f6504\")\n        twelve: add(num: 2, requestId: \"beae951f6504\")\n        final: delete(requestId: \"beae951f6504\")\n      }\n    ",
     "expected": {
       "data": {
         "five": 5,
@@ -38,6 +38,6 @@
         "final": 12
       }
     },
-    "plan": "\n      QueryPlan {\n        Sequence {\n          Fetch(service: \"c\") {\n            {\n              five: add(num: 5, requestId: \"ebf132bfbcc7a\")\n            }\n          },\n          Fetch(service: \"a\") {\n            {\n              ten: multiply(by: 2, requestId: \"ebf132bfbcc7a\")\n            }\n          },\n          Fetch(service: \"c\") {\n            {\n              twelve: add(num: 2, requestId: \"ebf132bfbcc7a\")\n            }\n          },\n          Fetch(service: \"b\") {\n            {\n              final: delete(requestId: \"ebf132bfbcc7a\")\n            }\n          },\n        },\n      }\n      "
+    "plan": "\n      QueryPlan {\n        Sequence {\n          Fetch(service: \"c\") {\n            {\n              five: add(num: 5, requestId: \"beae951f6504\")\n            }\n          },\n          Fetch(service: \"a\") {\n            {\n              ten: multiply(by: 2, requestId: \"beae951f6504\")\n            }\n          },\n          Fetch(service: \"c\") {\n            {\n              twelve: add(num: 2, requestId: \"beae951f6504\")\n            }\n          },\n          Fetch(service: \"b\") {\n            {\n              final: delete(requestId: \"beae951f6504\")\n            }\n          },\n        },\n      }\n      "
   }
 ]

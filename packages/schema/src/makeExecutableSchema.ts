@@ -60,6 +60,7 @@ export function makeExecutableSchema<TContext = any>({
   inheritResolversFromInterfaces = false,
   updateResolversInPlace = false,
   schemaExtensions,
+  defaultFieldResolver,
   ...otherOptions
 }: IExecutableSchemaDefinition<TContext>) {
   // Validate and clean up arguments
@@ -94,6 +95,7 @@ export function makeExecutableSchema<TContext = any>({
     resolverValidationOptions,
     inheritResolversFromInterfaces,
     updateResolversInPlace,
+    defaultFieldResolver,
   });
 
   if (Object.keys(resolverValidationOptions).length > 0) {

@@ -1,4 +1,4 @@
-import { BuildSchemaOptions, GraphQLSchema } from 'graphql';
+import { BuildSchemaOptions, GraphQLFieldResolver, GraphQLSchema } from 'graphql';
 import {
   GraphQLParseOptions,
   IResolvers,
@@ -42,4 +42,8 @@ export interface IExecutableSchemaDefinition<TContext = any>
    * Schema extensions
    */
   schemaExtensions?: SchemaExtensions | Array<SchemaExtensions>;
+  /**
+   * Default field resolver
+   */
+  defaultFieldResolver?: GraphQLFieldResolver<any, TContext>;
 }

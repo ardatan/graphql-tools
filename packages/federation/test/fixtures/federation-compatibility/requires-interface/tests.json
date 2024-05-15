@@ -8,7 +8,7 @@
         }
       }
     },
-    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            a {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"a\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                address {\n                  __typename\n                  id\n                }\n              }\n            }\n          },\n        },\n        Flatten(path: \"a\") {\n          Fetch(service: \"a\") {\n            {\n              ... on User {\n                __typename\n                address {\n                  id\n                }\n                id\n              }\n            } =>\n            {\n              ... on User {\n                city\n              }\n            }\n          },\n        },\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            a {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"a\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              # NOTE\n              # User.address: Address\n              # Subgraph A has HomeAddress and WorkAddress implementing Address.\n              # Subgraph B has HomeAddress, WorkAddress, and SecondAddress implementing Address.\n              # These objects are entities.\n              # The city field requires the id field on the Address interface.\n              # The city field does not care about the concrete type of the Address.\n              ... on User {\n                address {\n                  __typename\n                  id\n                }\n              }\n            }\n          },\n        },\n        Flatten(path: \"a\") {\n          Fetch(service: \"a\") {\n            {\n              ... on User {\n                __typename\n                address {\n                  id\n                }\n                id\n              }\n            } =>\n            {\n              ... on User {\n                city\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        b {\n          city\n        }\n      }\n    ",
@@ -20,6 +20,17 @@
       }
     },
     "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            b {\n              __typename\n              id\n              address {\n                __typename\n                id\n              }\n            }\n          }\n        },\n        Flatten(path: \"b\") {\n          Fetch(service: \"a\") {\n            {\n              ... on User {\n                __typename\n                id\n                address {\n                  id\n                }\n              }\n            } =>\n            {\n              ... on User {\n                city\n              }\n            }\n          },\n        },\n      },\n    }\n    "
+  },
+  {
+    "query": "\n      query {\n        a {\n          country\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "a": {
+          "country": null
+        }
+      }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            a {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"a\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                address {\n                  __typename\n                  # NOTE\n                  # The country field requires the id field on the WorkAddress type.\n                  # Subgraph B has WorkAddress implementing Address,\n                  # but the requested user has a HomeAddress.\n                  # We get an empty result.\n                  ... on WorkAddress {\n                    id\n                  }\n                }\n              }\n            }\n          },\n        },\n        Flatten(path: \"a\") {\n          Fetch(service: \"a\") {\n            {\n              ... on User {\n                __typename\n                address {\n                  ... on WorkAddress {\n                    id\n                  }\n                }\n                id\n              }\n            } =>\n            {\n              ... on User {\n                country\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        a {\n          address {\n            __typename\n            id\n          }\n        }\n      }\n    ",

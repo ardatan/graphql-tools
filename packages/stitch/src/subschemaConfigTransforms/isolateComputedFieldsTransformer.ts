@@ -172,7 +172,6 @@ export function isolateComputedFieldsTransformer(
       filterIsolatedSubschema({ ...subschemaConfig, merge: isolatedSchemaTypes }),
     ];
   }
-
   return [subschemaConfig];
 }
 
@@ -223,8 +222,9 @@ function filterBaseSubschema(
         if (!typesForInterface[typeName]) {
           typesForInterface[typeName] = getImplementingTypes(typeName, schema);
         }
-        const isIsolatedFieldName = typesForInterface[typeName].some(implementingTypeName =>
-          isIsolatedField(implementingTypeName, fieldName, isolatedSchemaTypes),
+        const isIsolatedFieldName = [typeName, ...typesForInterface[typeName]].some(
+          implementingTypeName =>
+            isIsolatedField(implementingTypeName, fieldName, isolatedSchemaTypes),
         );
         return (
           !isIsolatedFieldName ||

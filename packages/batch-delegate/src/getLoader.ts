@@ -13,7 +13,9 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
   return function batchFn(keys: ReadonlyArray<K>) {
     return new ValueOrPromise(() =>
       delegateToSchema({
-        returnType: new GraphQLList(getNamedType(options.info.returnType) as GraphQLOutputType),
+        returnType: new GraphQLList(
+          getNamedType(options.returnType || options.info.returnType) as GraphQLOutputType,
+        ),
         onLocatedError: originalError => {
           if (originalError.path == null) {
             return originalError;
@@ -82,13 +84,14 @@ export function getLoader<K = any, V = any, C = K>(
     dataLoaderOptions,
     fieldNodes = getActualFieldNodes(info.fieldNodes[0]),
     selectionSet = fieldNodes[0].selectionSet,
+    returnType = info.returnType,
   } = options;
   const loaders = getLoadersMap<K, V, C>(context ?? GLOBAL_CONTEXT, schema);
 
   let cacheKey = fieldName;
 
-  if (info.returnType) {
-    const namedType = getNamedType(info.returnType);
+  if (returnType) {
+    const namedType = getNamedType(returnType);
     cacheKey += '@' + namedType.name;
   }
 
