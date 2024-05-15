@@ -11,6 +11,7 @@ import {
   isAbstractType,
   isInterfaceType,
   isObjectType,
+  isUnionType,
   Kind,
   OperationDefinitionNode,
   SelectionNode,
@@ -27,7 +28,6 @@ import {
   ExecutionRequest,
   getDefinedRootType,
   implementsAbstractType,
-  inspect,
   serializeInputValue,
   updateArgument,
 } from '@graphql-tools/utils';
@@ -376,11 +376,37 @@ function finalizeSelectionSet(
               }
             }
           }
+          if (isUnionType(parentType) && typeInfo.getType() == null) {
+            const possibleTypeNames: Array<string> = [];
+            for (const memberType of parentType.getTypes()) {
+              const possibleField = memberType.getFields()[node.name.value];
+              if (possibleField != null) {
+                possibleTypeNames.push(memberType.name);
+              }
+            }
+            if (possibleTypeNames.length > 0) {
+              return possibleTypeNames.map(possibleTypeName => ({
+                kind: Kind.INLINE_FRAGMENT,
+                typeCondition: {
+                  kind: Kind.NAMED_TYPE,
+                  name: {
+                    kind: Kind.NAME,
+                    value: possibleTypeName,
+                  },
+                },
+                selectionSet: {
+                  kind: Kind.SELECTION_SET,
+                  selections: [node],
+                }
+              }));
+            }
+          }
         },
         leave: node => {
           const type = typeInfo.getType();
           if (type == null) {
-            throw new Error(`No type was found for field node ${inspect(node)}.`);
+            console.warn(`Invalid type for node: ${typeInfo.getParentType()?.name}.${node.name.value}`);
+            return null;
           }
           const namedType = getNamedType(type);
           // eslint-disable-next-line no-constant-binary-expression
@@ -418,6 +444,11 @@ function finalizeSelectionSet(
             if (!implementsAbstractType(schema, parentType, innerType)) {
               return null;
             }
+          }
+        },
+        leave: node => {
+          if (!node.selectionSet?.selections?.length) {
+            return null;
           }
         },
       },
