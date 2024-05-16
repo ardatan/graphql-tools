@@ -13,7 +13,8 @@
           "nickname": "u2-nickname"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Parallel {\n        Sequence {\n          Fetch(service: \"a\") {\n            {\n              randomUser {\n                __typename\n                id\n              }\n            }\n          },\n          Flatten(path: \"randomUser\") {\n            Fetch(service: \"b\") {\n              {\n                ... on User {\n                  __typename\n                  id\n                }\n              } =>\n              {\n                ... on User {\n                  name\n                }\n              }\n            },\n          },\n        },\n        Fetch(service: \"b\") {\n          {\n            userById(id: \"u2\") {\n              id\n              name\n              nickname\n            }\n          }\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        randomUser {\n          id\n          rid\n        }\n      }\n    ",
@@ -24,6 +25,7 @@
           "rid": "u1-rid"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          randomUser {\n            id\n            rid\n          }\n        }\n      },\n    }\n    "
   }
 ]

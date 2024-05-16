@@ -22,7 +22,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"age\") {\n          {\n            usersInAge {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"usersInAge.@\") {\n          Fetch(service: \"friends\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                friends {\n                  id\n                }\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        usersInFriends {\n          id\n          friends {\n            id\n          }\n        }\n      }\n    ",
@@ -47,7 +48,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"friends\") {\n        {\n          usersInFriends {\n            id\n            friends {\n              id\n            }\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        usersInFriends {\n          id\n          friends(type: FRIEND) {\n            id\n          }\n        }\n      }\n    ",
@@ -80,6 +82,7 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"friends\") {\n        {\n          usersInFriends {\n            id\n            friends {\n              id\n              type\n            }\n          }\n        }\n      },\n    }\n    "
   }
 ]

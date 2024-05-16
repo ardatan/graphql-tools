@@ -16,7 +16,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            anotherUsers {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"anotherUsers.@\") {\n          Fetch(service: \"a\") {\n            {\n              ... on NodeWithName {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                __typename\n                name\n              }\n            }\n          },\n        },\n        Flatten(path: \"anotherUsers.@\") {\n          Fetch(service: \"b\") {\n            {\n              ... on NodeWithName {\n                __typename\n                name\n                id\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                username\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        users {\n          id\n          name\n          username\n        }\n      }\n    ",
@@ -35,7 +36,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            users {\n              __typename\n              id\n              name\n            }\n          }\n        },\n        Flatten(path: \"users.@\") {\n          Fetch(service: \"b\") {\n            {\n              ... on NodeWithName {\n                __typename\n                id\n                name\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                username\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        anotherUsers {\n          ... on User {\n            age\n          }\n        }\n      }\n    ",
@@ -50,7 +52,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            anotherUsers {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"anotherUsers.@\") {\n          Fetch(service: \"a\") {\n            {\n              ... on NodeWithName {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                __typename\n                ... on User {\n                  age\n                }\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        users {\n          ... on User {\n            age\n          }\n        }\n      }\n    ",
@@ -65,7 +68,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          users {\n            __typename\n            ... on User {\n              age\n            }\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        anotherUsers {\n          ... on User {\n            age\n            id\n            name\n            username\n          }\n          id\n          name\n        }\n      }\n    ",
@@ -86,7 +90,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            anotherUsers {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"anotherUsers.@\") {\n          Fetch(service: \"a\") {\n            {\n              ... on NodeWithName {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                __typename\n                ... on User {\n                  age\n                  name\n                }\n                name\n                id\n              }\n            }\n          },\n        },\n        Flatten(path: \"anotherUsers.@\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n              ... on NodeWithName {\n                __typename\n                name\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                id\n                username\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        users {\n          ... on User {\n            age\n            id\n            name\n            username\n          }\n          id\n          name\n        }\n      }\n    ",
@@ -107,7 +112,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            users {\n              __typename\n              ... on User {\n                __typename\n                id\n                age\n                name\n              }\n              id\n              name\n            }\n          }\n        },\n        Flatten(path: \"users.@\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n              ... on NodeWithName {\n                __typename\n                name\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                username\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        users {\n          ... on User {\n            age\n            id\n            name\n            username\n          }\n          id\n          name\n        }\n      }\n    ",
@@ -128,6 +134,7 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            users {\n              __typename\n              ... on User {\n                __typename\n                id\n                age\n                name\n              }\n              id\n              name\n            }\n          }\n        },\n        Flatten(path: \"users.@\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n              ... on NodeWithName {\n                __typename\n                name\n              }\n            } =>\n            {\n              ... on NodeWithName {\n                username\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

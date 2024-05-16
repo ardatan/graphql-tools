@@ -13,6 +13,7 @@
           }
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"d\") {\n          {\n            productFromD(id: 1) {\n              __typename\n              id\n              name\n            }\n          }\n        },\n        Parallel {\n          Flatten(path: \"productFromD\") {\n            Fetch(service: \"a\") {\n              {\n                ... on Product {\n                  __typename\n                  id\n                }\n              } =>\n              {\n                ... on Product {\n                  category {\n                    details\n                  }\n                }\n              }\n            },\n          },\n          Sequence {\n            Flatten(path: \"productFromD\") {\n              Fetch(service: \"b\") {\n                {\n                  ... on Product {\n                    __typename\n                    id\n                  }\n                } =>\n                {\n                  ... on Product {\n                    category {\n                      __typename\n                      id\n                    }\n                  }\n                }\n              },\n            },\n            Flatten(path: \"productFromD.category\") {\n              Fetch(service: \"c\") {\n                {\n                  ... on Category {\n                    __typename\n                    id\n                  }\n                } =>\n                {\n                  ... on Category {\n                    name\n                  }\n                }\n              },\n            },\n          },\n        },\n      },\n    }\n    "
   }
 ]

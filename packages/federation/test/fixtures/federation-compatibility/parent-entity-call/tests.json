@@ -33,6 +33,7 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            products {\n              __typename\n              id\n              pid\n              category {\n                id\n              }\n            }\n          }\n        },\n        Flatten(path: \"products.@\") {\n          Fetch(service: \"c\") {\n            {\n              ... on Product {\n                __typename\n                id\n                pid\n              }\n            } =>\n            {\n              ... on Product {\n                category {\n                  details {\n                    products\n                  }\n                }\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

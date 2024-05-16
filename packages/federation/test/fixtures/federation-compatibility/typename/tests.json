@@ -8,7 +8,8 @@
           "typename": "Oven"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          union {\n            __typename\n            typename: __typename\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        interface {\n          id\n          __typename\n          typename: __typename\n          t: __typename\n        }\n      }\n    ",
@@ -21,7 +22,8 @@
           "t": "Toaster"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          interface {\n            __typename\n            id\n            typename: __typename\n            t: __typename\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        union {\n          __typename\n          ... on Oven {\n            typename: __typename\n          }\n          ... on Toaster {\n            typename: __typename\n          }\n        }\n      }\n    ",
@@ -32,7 +34,8 @@
           "typename": "Oven"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          union {\n            __typename\n            ... on Oven {\n              typename: __typename\n            }\n            ... on Toaster {\n              typename: __typename\n            }\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        interface {\n          __typename\n          ... on Oven {\n            typename: __typename\n          }\n          ... on Toaster {\n            typename: __typename\n          }\n        }\n      }\n    ",
@@ -43,7 +46,8 @@
           "typename": "Toaster"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          interface {\n            __typename\n            ... on Oven {\n              typename: __typename\n            }\n            ... on Toaster {\n              typename: __typename\n            }\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        users {\n          id\n        }\n      }\n    ",
@@ -58,7 +62,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          users {\n            id\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        users {\n          __typename\n        }\n      }\n    ",
@@ -73,6 +78,7 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            users {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"users.@\") {\n          Fetch(service: \"a\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                __typename\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

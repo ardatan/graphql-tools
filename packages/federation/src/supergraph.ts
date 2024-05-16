@@ -10,6 +10,7 @@ import {
   InputValueDefinitionNode,
   InterfaceTypeDefinitionNode,
   InterfaceTypeExtensionNode,
+  isAbstractType,
   isInterfaceType,
   Kind,
   NamedTypeNode,
@@ -961,6 +962,7 @@ export function getSubschemasFromSupergraphSdl({
     const extendedSubgraphTypes = [...subgraphTypes, ...extraOrphanTypesForSubgraph.values()];
     const fakeTypesIfaceMap = new Map<string, string>();
     const iFaceTypeMap = new Map<string, string>();
+    const fakeImplementedIfaces = new Map<string, Set<string>>();
     // We should add implemented objects from other subgraphs implemented by this interface
     for (const interfaceInSubgraph of extendedSubgraphTypes) {
       if (interfaceInSubgraph.kind === Kind.INTERFACE_TYPE_DEFINITION) {
@@ -1014,6 +1016,14 @@ export function getSubschemasFromSupergraphSdl({
               existingType.interfaces ||= [];
               // @ts-expect-error `interfaces` property is a readonly field in TS definitions but it is not actually
               existingType.interfaces.push(iFaceNode);
+              let fakeImplementedIfacesForType = fakeImplementedIfaces.get(
+                definitionNode.name.value,
+              );
+              if (!fakeImplementedIfacesForType) {
+                fakeImplementedIfacesForType = new Set();
+                fakeImplementedIfaces.set(definitionNode.name.value, fakeImplementedIfacesForType);
+              }
+              fakeImplementedIfacesForType.add(interfaceInSubgraph.name.value);
             }
             break;
           }
@@ -1121,9 +1131,8 @@ export function getSubschemasFromSupergraphSdl({
                   // To resolve interface objects correctly
                   [Kind.INLINE_FRAGMENT](node) {
                     if (node.typeCondition) {
-                      const newTypeConditionName = fakeTypesIfaceMap.get(
-                        node.typeCondition?.name.value,
-                      );
+                      const typeConditionName = node.typeCondition.name.value;
+                      const newTypeConditionName = fakeTypesIfaceMap.get(typeConditionName);
                       if (newTypeConditionName) {
                         transformationContext.replacedTypes ||= new Map();
                         transformationContext.replacedTypes.set(
@@ -1140,6 +1149,15 @@ export function getSubschemasFromSupergraphSdl({
                             },
                           },
                         };
+                      } else {
+                        const parentType = typeInfo.getParentType();
+                        if (isAbstractType(parentType)) {
+                          const fakeImplementedIfacesForType =
+                            fakeImplementedIfaces.get(typeConditionName);
+                          if (fakeImplementedIfacesForType?.has(parentType.name)) {
+                            return null;
+                          }
+                        }
                       }
                     }
                   },

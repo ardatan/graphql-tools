@@ -14,7 +14,8 @@
           }
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            b {\n              __typename\n              id\n            }\n            bb {\n              __typename\n              id\n            }\n          }\n        },\n        Parallel {\n          Flatten(path: \"b\") {\n            Fetch(service: \"a\") {\n              {\n                ... on Entity {\n                  __typename\n                  id\n                }\n              } =>\n              {\n                ... on Entity {\n                  data {\n                    __typename\n                  }\n                }\n              }\n            },\n          },\n          Flatten(path: \"bb\") {\n            Fetch(service: \"a\") {\n              {\n                ... on Entity {\n                  __typename\n                  id\n                }\n              } =>\n              {\n                ... on Entity {\n                  data {\n                    __typename\n                  }\n                }\n              }\n            },\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        a {\n          requirer\n        }\n      }\n    ",
@@ -24,7 +25,8 @@
           "requirer": "q1-foo_requirer"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            a {\n              __typename\n              id\n              data {\n                __typename\n                foo\n                ... on Bar {\n                  __typename\n                  bar\n                  ... on Baz {\n                    baz\n                  }\n                  ... on Qux {\n                    qux\n                  }\n                }\n              }\n            }\n          }\n        },\n        Flatten(path: \"a\") {\n          Fetch(service: \"b\") {\n            {\n              ... on Entity {\n                __typename\n                id\n                data {\n                  foo\n                  ... on Bar {\n                    bar\n                    ... on Baz {\n                      baz\n                    }\n                    ... on Qux {\n                      qux\n                    }\n                  }\n                }\n              }\n            } =>\n            {\n              ... on Entity {\n                requirer\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        a {\n          data {\n            __typename\n          }\n          requirer\n        }\n      }\n    ",
@@ -37,7 +39,8 @@
           "requirer": "q1-foo_requirer"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            a {\n              __typename\n              id\n              data {\n                __typename\n                foo\n                ... on Bar {\n                  __typename\n                  bar\n                  ... on Baz {\n                    baz\n                  }\n                  ... on Qux {\n                    qux\n                  }\n                }\n              }\n            }\n          }\n        },\n        Flatten(path: \"a\") {\n          Fetch(service: \"b\") {\n            {\n              ... on Entity {\n                __typename\n                id\n                data {\n                  foo\n                  ... on Bar {\n                    bar\n                    ... on Baz {\n                      baz\n                    }\n                    ... on Qux {\n                      qux\n                    }\n                  }\n                }\n              }\n            } =>\n            {\n              ... on Entity {\n                requirer\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        bb {\n          data {\n            __typename\n          }\n          requirer\n        }\n      }\n    ",
@@ -50,7 +53,8 @@
           "requirer": "q1-foo_requirer"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            bb {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"bb\") {\n          Fetch(service: \"a\") {\n            {\n              ... on Entity {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Entity {\n                data {\n                  __typename\n                  foo\n                  ... on Bar {\n                    __typename\n                    bar\n                    ... on Baz {\n                      baz\n                    }\n                    ... on Qux {\n                      qux\n                    }\n                  }\n                }\n              }\n            }\n          },\n        },\n        Flatten(path: \"bb\") {\n          Fetch(service: \"b\") {\n            {\n              ... on Entity {\n                __typename\n                data {\n                  foo\n                  ... on Bar {\n                    bar\n                    ... on Baz {\n                      baz\n                    }\n                    ... on Qux {\n                      qux\n                    }\n                  }\n                }\n                id\n              }\n            } =>\n            {\n              ... on Entity {\n                requirer\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        b {\n          data {\n            __typename\n          }\n          requirer\n        }\n      }\n    ",
@@ -61,7 +65,8 @@
           "requirer": "b1-foo_requirer"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            b {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"b\") {\n          Fetch(service: \"a\") {\n            {\n              ... on Entity {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Entity {\n                data {\n                  __typename\n                  foo\n                  ... on Bar {\n                    __typename\n                    bar\n                    ... on Baz {\n                      baz\n                    }\n                    ... on Qux {\n                      qux\n                    }\n                  }\n                }\n              }\n            }\n          },\n        },\n        Flatten(path: \"b\") {\n          Fetch(service: \"b\") {\n            {\n              ... on Entity {\n                __typename\n                data {\n                  foo\n                  ... on Bar {\n                    bar\n                    ... on Baz {\n                      baz\n                    }\n                    ... on Qux {\n                      qux\n                    }\n                  }\n                }\n                id\n              }\n            } =>\n            {\n              ... on Entity {\n                requirer\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        bb {\n          data {\n            __typename\n          }\n          requirer2\n        }\n      }\n    ",
@@ -74,6 +79,7 @@
           "requirer2": "q1-foo_requirer2"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            bb {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"bb\") {\n          Fetch(service: \"a\") {\n            {\n              ... on Entity {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Entity {\n                data {\n                  __typename\n                  foo\n                }\n              }\n            }\n          },\n        },\n        Flatten(path: \"bb\") {\n          Fetch(service: \"b\") {\n            {\n              ... on Entity {\n                __typename\n                data {\n                  ... on Foo {\n                    foo\n                  }\n                }\n                id\n              }\n            } =>\n            {\n              ... on Entity {\n                requirer2\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

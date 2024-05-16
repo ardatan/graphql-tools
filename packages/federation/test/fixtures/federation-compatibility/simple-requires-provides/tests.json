@@ -7,7 +7,8 @@
           "id": "u1"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"accounts\") {\n        {\n          me {\n            id\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        me {\n          id\n          reviews {\n            id\n          }\n        }\n      }\n    ",
@@ -25,7 +26,8 @@
           ]
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"accounts\") {\n          {\n            me {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"me\") {\n          Fetch(service: \"reviews\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                reviews {\n                  id\n                }\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        me {\n          reviews {\n            id\n            author {\n              id\n              username\n            }\n            product {\n              inStock\n            }\n          }\n        }\n      }\n    ",
@@ -56,7 +58,8 @@
           ]
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"accounts\") {\n          {\n            me {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"me\") {\n          Fetch(service: \"reviews\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                reviews {\n                  id\n                  author {\n                    id\n                    username\n                  }\n                  product {\n                    __typename\n                    upc\n                  }\n                }\n              }\n            }\n          },\n        },\n        Flatten(path: \"me.reviews.@.product\") {\n          Fetch(service: \"inventory\") {\n            {\n              ... on Product {\n                __typename\n                upc\n              }\n            } =>\n            {\n              ... on Product {\n                inStock\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        products {\n          name\n        }\n      }\n    ",
@@ -71,7 +74,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"products\") {\n        {\n          products {\n            name\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        products {\n          price\n        }\n      }\n    ",
@@ -86,7 +90,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"products\") {\n        {\n          products {\n            price\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        products {\n          shippingEstimate\n        }\n      }\n    ",
@@ -101,7 +106,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"products\") {\n          {\n            products {\n              __typename\n              upc\n              price\n              weight\n            }\n          }\n        },\n        Flatten(path: \"products.@\") {\n          Fetch(service: \"inventory\") {\n            {\n              ... on Product {\n                __typename\n                upc\n                price\n                weight\n              }\n            } =>\n            {\n              ... on Product {\n                shippingEstimate\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        products {\n          shippingEstimate\n          weight\n          price\n        }\n      }\n    ",
@@ -120,7 +126,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"products\") {\n          {\n            products {\n              __typename\n              upc\n              price\n              weight\n            }\n          }\n        },\n        Flatten(path: \"products.@\") {\n          Fetch(service: \"inventory\") {\n            {\n              ... on Product {\n                __typename\n                upc\n                price\n                weight\n              }\n            } =>\n            {\n              ... on Product {\n                shippingEstimate\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      {\n        products {\n          reviews {\n            id\n            author {\n              username\n            }\n            product {\n              name\n              shippingEstimate\n            }\n          }\n        }\n      }\n    ",
@@ -157,7 +164,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"products\") {\n          {\n            products {\n              __typename\n              upc\n            }\n          }\n        },\n        Flatten(path: \"products.@\") {\n          Fetch(service: \"reviews\") {\n            {\n              ... on Product {\n                __typename\n                upc\n              }\n            } =>\n            {\n              ... on Product {\n                reviews {\n                  id\n                  author {\n                    username\n                  }\n                  product {\n                    __typename\n                    upc\n                  }\n                }\n              }\n            }\n          },\n        },\n        Flatten(path: \"products.@.reviews.@.product\") {\n          Fetch(service: \"products\") {\n            {\n              ... on Product {\n                __typename\n                upc\n              }\n            } =>\n            {\n              ... on Product {\n                name\n                price\n                weight\n              }\n            }\n          },\n        },\n        Flatten(path: \"products.@.reviews.@.product\") {\n          Fetch(service: \"inventory\") {\n            {\n              ... on Product {\n                __typename\n                price\n                weight\n                upc\n              }\n            } =>\n            {\n              ... on Product {\n                shippingEstimate\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      {\n        me {\n          reviews {\n            product {\n              reviews {\n                id\n              }\n            }\n          }\n        }\n      }\n    ",
@@ -186,7 +194,8 @@
           ]
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"accounts\") {\n          {\n            me {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"me\") {\n          Fetch(service: \"reviews\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                reviews {\n                  product {\n                    reviews {\n                      id\n                    }\n                  }\n                }\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        me {\n          reviews {\n            product {\n              inStock\n            }\n          }\n        }\n      }\n    ",
@@ -207,7 +216,8 @@
           ]
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"accounts\") {\n          {\n            me {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"me\") {\n          Fetch(service: \"reviews\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                reviews {\n                  product {\n                    __typename\n                    upc\n                  }\n                }\n              }\n            }\n          },\n        },\n        Flatten(path: \"me.reviews.@.product\") {\n          Fetch(service: \"inventory\") {\n            {\n              ... on Product {\n                __typename\n                upc\n              }\n            } =>\n            {\n              ... on Product {\n                inStock\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        me {\n          reviews {\n            product {\n              shippingEstimate\n            }\n          }\n        }\n      }\n    ",
@@ -228,6 +238,7 @@
           ]
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"accounts\") {\n          {\n            me {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"me\") {\n          Fetch(service: \"reviews\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                reviews {\n                  product {\n                    __typename\n                    upc\n                  }\n                }\n              }\n            }\n          },\n        },\n        Flatten(path: \"me.reviews.@.product\") {\n          Fetch(service: \"products\") {\n            {\n              ... on Product {\n                __typename\n                upc\n              }\n            } =>\n            {\n              ... on Product {\n                price\n                weight\n              }\n            }\n          },\n        },\n        Flatten(path: \"me.reviews.@.product\") {\n          Fetch(service: \"inventory\") {\n            {\n              ... on Product {\n                __typename\n                price\n                weight\n                upc\n              }\n            } =>\n            {\n              ... on Product {\n                shippingEstimate\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

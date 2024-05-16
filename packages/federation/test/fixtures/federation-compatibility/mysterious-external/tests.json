@@ -9,7 +9,8 @@
           "name": "name-1"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"price\") {\n          {\n            cheapestProduct {\n              __typename\n              id\n              price\n            }\n          }\n        },\n        Flatten(path: \"cheapestProduct\") {\n          Fetch(service: \"product\") {\n            {\n              ... on Product {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Product {\n                name\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        products {\n          name\n          price\n          id\n        }\n      }\n    ",
@@ -28,6 +29,7 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"product\") {\n          {\n            products {\n              __typename\n              id\n              name\n            }\n          }\n        },\n        Flatten(path: \"products.@\") {\n          Fetch(service: \"price\") {\n            {\n              ... on Product {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Product {\n                price\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

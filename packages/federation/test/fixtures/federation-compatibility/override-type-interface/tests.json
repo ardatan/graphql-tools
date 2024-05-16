@@ -14,7 +14,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            feed {\n              __typename\n              id\n              ... on ImagePost {\n                __typename\n                id\n              }\n            }\n          }\n        },\n        Flatten(path: \"feed.@\") {\n          Fetch(service: \"b\") {\n            {\n              ... on ImagePost {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on ImagePost {\n                createdAt\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        feed {\n          ... on TextPost {\n            id\n            body\n          }\n        }\n      }\n    ",
@@ -25,7 +26,8 @@
           {}
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          feed {\n            __typename\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        anotherFeed {\n          createdAt\n        }\n      }\n    ",
@@ -40,7 +42,8 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          anotherFeed {\n            __typename\n            createdAt\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      {\n        anotherFeed {\n          createdAt\n          id\n          ... on ImagePost {\n            createdAt\n            id\n          }\n        }\n      }\n    ",
@@ -57,6 +60,7 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          anotherFeed {\n            __typename\n            createdAt\n            id\n            ... on ImagePost {\n              createdAt\n              id\n            }\n          }\n        }\n      },\n    }\n    "
   }
 ]
