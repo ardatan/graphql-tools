@@ -330,10 +330,12 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
   for (const typeName in subschemaConfig.merge) {
     const mergedTypeConfig = subschemaConfig.merge[typeName];
     const entryPoints = mergedTypeConfig.entryPoints ?? [mergedTypeConfig];
+    const queryType = subschemaConfig.schema.getQueryType();
+    const queryTypeFields = queryType?.getFields();
     for (const entryPoint of entryPoints) {
       if (entryPoint.fieldName != null) {
         rootFields[entryPoint.fieldName] = true;
-        const rootField = subschemaConfig.schema.getQueryType()!.getFields()[entryPoint.fieldName];
+        const rootField = queryTypeFields?.[entryPoint.fieldName];
         if (rootField) {
           const rootFieldType = getNamedType(rootField.type);
 
