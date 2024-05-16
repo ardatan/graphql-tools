@@ -150,16 +150,22 @@ export function handleResolverResult(
     const existingPropValue = object[responseKey];
     const sourcePropValue = resolverResult[responseKey];
     if (sourcePropValue != null || existingPropValue == null) {
-      if (existingPropValue != null && typeof existingPropValue === 'object') {
+      if (
+        existingPropValue != null &&
+        typeof existingPropValue === 'object' &&
+        Object.keys(existingPropValue).length > 0
+      ) {
         if (
           Array.isArray(existingPropValue) &&
           Array.isArray(sourcePropValue) &&
           existingPropValue.length === sourcePropValue.length
         ) {
           object[responseKey] = existingPropValue.map((existingElement, index) =>
-            mergeDeep([existingElement, sourcePropValue[index]]),
+            sourcePropValue instanceof Error
+              ? existingElement
+              : mergeDeep([existingElement, sourcePropValue[index]]),
           );
-        } else {
+        } else if (!(sourcePropValue instanceof Error)) {
           object[responseKey] = mergeDeep([existingPropValue, sourcePropValue]);
         }
       } else {

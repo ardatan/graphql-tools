@@ -1,0 +1,43 @@
+[
+  {
+    "query": "\n      query {\n        media {\n          id\n          animals {\n            id\n            name\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "media": {
+          "id": "m1",
+          "animals": [
+            {
+              "id": "a1",
+              "name": "Fido"
+            },
+            {
+              "id": "a2",
+              "name": "Whiskers"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        media {\n          id\n          animals {\n            id\n            name\n            ... on Cat {\n              age\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "media": {
+          "id": "m1",
+          "animals": [
+            {
+              "id": "a1",
+              "name": "Fido"
+            },
+            {
+              "id": "a2",
+              "name": "Whiskers",
+              "age": 6
+            }
+          ]
+        }
+      }
+    }
+  }
+]

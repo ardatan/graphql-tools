@@ -1,0 +1,35 @@
+[
+  {
+    "query": "\n      query {\n        media {\n          ... on Book {\n            id\n            title\n          }\n          ... on Movie {\n            id\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "media": [
+          {
+            "id": "m1",
+            "title": "Book 1"
+          },
+          {
+            "id": "m2"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "query": "\n      query {\n        media {\n          ... on Book {\n            id\n            title\n          }\n          ... on Movie {\n            id\n            title\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "media": [
+          {
+            "id": "m1",
+            "title": "Book 1"
+          },
+          {
+            "id": "m2",
+            "title": "Movie 1"
+          }
+        ]
+      }
+    }
+  }
+]
