@@ -4,6 +4,7 @@ import {
   EnumTypeDefinitionNode,
   EnumValueDefinitionNode,
   FieldDefinitionNode,
+  FieldNode,
   GraphQLOutputType,
   GraphQLSchema,
   InputValueDefinitionNode,
@@ -20,6 +21,7 @@ import {
   print,
   ScalarTypeDefinitionNode,
   SelectionNode,
+  SelectionSetNode,
   TypeDefinitionNode,
   TypeInfo,
   UnionTypeDefinitionNode,
@@ -28,9 +30,10 @@ import {
 } from 'graphql';
 import {
   delegateToSchema,
-  extractUnavailableFields,
+  extractUnavailableFieldsFromSelectionSet,
   MergedTypeConfig,
   SubschemaConfig,
+  subtractSelectionSets,
 } from '@graphql-tools/delegate';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import {
@@ -43,7 +46,9 @@ import {
 } from '@graphql-tools/stitch';
 import {
   createGraphQLError,
+  isPromise,
   memoize1,
+  mergeDeep,
   parseSelectionSet,
   type Executor,
 } from '@graphql-tools/utils';
@@ -109,28 +114,83 @@ export function getFieldMergerFromSupergraphSdl(
       return candidates[0].fieldConfig;
     }
     if (candidates.some(candidate => rootTypeMap.has(candidate.type.name))) {
+      const candidateNames = new Set<string>();
+      const realCandidates: MergeFieldConfigCandidate[] = [];
+      for (const candidate of candidates.toReversed
+        ? candidates.toReversed()
+        : [...candidates].reverse()) {
+        if (
+          candidate.transformedSubschema?.name &&
+          !candidateNames.has(candidate.transformedSubschema.name)
+        ) {
+          candidateNames.add(candidate.transformedSubschema.name);
+          realCandidates.push(candidate);
+        }
+      }
+      const defaultMergedField = defaultMerger(candidates);
       return {
-        ...defaultMerger(candidates),
+        ...defaultMergedField,
         resolve(_root, _args, context, info) {
           let currentSubschema: SubschemaConfig | undefined;
           let currentScore = Infinity;
-          for (const fieldNode of info.fieldNodes) {
-            const candidatesReversed = candidates.toReversed
-              ? candidates.toReversed()
-              : [...candidates].reverse();
-            for (const candidate of candidatesReversed) {
-              const typeFieldMap = candidate.type.getFields();
-              if (candidate.transformedSubschema) {
-                const unavailableFields = extractUnavailableFields(
-                  candidate.transformedSubschema.transformedSchema,
-                  typeFieldMap[candidate.fieldName],
-                  fieldNode,
-                  () => true,
+          let currentUnavailableSelectionSet: SelectionSetNode | undefined;
+          let currentFriendSubschemas: Map<SubschemaConfig, SelectionSetNode> | undefined;
+          let currentAvailableSelectionSet: SelectionSetNode | undefined;
+          const originalSelectionSet: SelectionSetNode = {
+            kind: Kind.SELECTION_SET,
+            selections: info.fieldNodes,
+          };
+          // Find the best subschema to delegate this selection
+          for (const candidate of realCandidates) {
+            if (candidate.transformedSubschema) {
+              const unavailableFields = extractUnavailableFieldsFromSelectionSet(
+                candidate.transformedSubschema.transformedSchema,
+                candidate.type,
+                originalSelectionSet,
+                () => true,
+              );
+              const score = calculateSelectionScore(unavailableFields);
+              if (score < currentScore) {
+                currentScore = score;
+                currentSubschema = candidate.transformedSubschema;
+                currentFriendSubschemas = new Map();
+                currentUnavailableSelectionSet = {
+                  kind: Kind.SELECTION_SET,
+                  selections: unavailableFields,
+                };
+                currentAvailableSelectionSet = subtractSelectionSets(
+                  originalSelectionSet,
+                  currentUnavailableSelectionSet,
                 );
-                const score = calculateSelectionScore(unavailableFields);
-                if (score < currentScore) {
-                  currentScore = score;
-                  currentSubschema = candidate.transformedSubschema;
+                // Make parallel requests if there are other subschemas
+                // that can resolve the remaining fields for this selection directly from the root field
+                // instead of applying a type merging in advance
+                for (const friendCandidate of realCandidates) {
+                  if (friendCandidate === candidate || !friendCandidate.transformedSubschema) {
+                    continue;
+                  }
+                  const unavailableFieldsInFriend = extractUnavailableFieldsFromSelectionSet(
+                    friendCandidate.transformedSubschema.transformedSchema,
+                    friendCandidate.type,
+                    currentUnavailableSelectionSet,
+                    () => true,
+                  );
+                  const friendScore = calculateSelectionScore(unavailableFieldsInFriend);
+                  if (friendScore < score) {
+                    const unavailableInFriendSelectionSet: SelectionSetNode = {
+                      kind: Kind.SELECTION_SET,
+                      selections: unavailableFieldsInFriend,
+                    };
+                    const subschemaSelectionSet = subtractSelectionSets(
+                      currentUnavailableSelectionSet,
+                      unavailableInFriendSelectionSet,
+                    );
+                    currentFriendSubschemas.set(
+                      friendCandidate.transformedSubschema,
+                      subschemaSelectionSet,
+                    );
+                    currentUnavailableSelectionSet = unavailableInFriendSelectionSet;
+                  }
                 }
               }
             }
@@ -138,12 +198,51 @@ export function getFieldMergerFromSupergraphSdl(
           if (!currentSubschema) {
             throw new Error('Could not determine subschema');
           }
-          return delegateToSchema({
+          const jobs: Promise<void>[] = [];
+          let hasPromise = false;
+          const mainJob = delegateToSchema({
             schema: currentSubschema,
             operation: rootTypeMap.get(info.parentType.name) || ('query' as OperationTypeNode),
             context,
-            info,
+            info: currentFriendSubschemas?.size
+              ? {
+                  ...info,
+                  fieldNodes: [
+                    ...(currentAvailableSelectionSet?.selections || []),
+                    ...(currentUnavailableSelectionSet?.selections || []),
+                  ] as FieldNode[],
+                }
+              : info,
           });
+          if (isPromise(mainJob)) {
+            hasPromise = true;
+          }
+          jobs.push(mainJob);
+          if (currentFriendSubschemas?.size) {
+            for (const [friendSubschema, friendSelectionSet] of currentFriendSubschemas) {
+              const friendJob = delegateToSchema({
+                schema: friendSubschema,
+                operation: rootTypeMap.get(info.parentType.name) || ('query' as OperationTypeNode),
+                context,
+                info: {
+                  ...info,
+                  fieldNodes: friendSelectionSet.selections as FieldNode[],
+                },
+                skipTypeMerging: true,
+              });
+              if (isPromise(friendJob)) {
+                hasPromise = true;
+              }
+              jobs.push(friendJob);
+            }
+          }
+          if (jobs.length === 1) {
+            return jobs[0];
+          }
+          if (hasPromise) {
+            return Promise.all(jobs).then(results => mergeDeep(results));
+          }
+          return mergeDeep(jobs);
         },
       };
     }

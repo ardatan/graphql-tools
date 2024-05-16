@@ -15,6 +15,7 @@ import {
   Kind,
   SelectionNode,
   SelectionSetNode,
+  visit,
 } from 'graphql';
 import { Maybe, memoize4 } from '@graphql-tools/utils';
 
@@ -135,3 +136,48 @@ export const extractUnavailableFields = memoize4(function extractUnavailableFiel
   }
   return [];
 });
+
+function getByPath<T>(object: unknown, path: readonly (string | number)[]) {
+  let current = object;
+  for (const pathSegment of path) {
+    if (current == null) {
+      return;
+    }
+    current = current[pathSegment];
+  }
+  return current as T | undefined;
+}
+
+export function subtractSelectionSets(
+  selectionSetA: SelectionSetNode,
+  selectionSetB: SelectionSetNode,
+) {
+  return visit(selectionSetA, {
+    [Kind.FIELD]: {
+      enter(node, _key, _parent, path) {
+        if (
+          !node.selectionSet &&
+          getByPath<SelectionNode[]>(selectionSetB, path.slice(0, -1))?.some(
+            selection => selection.kind === Kind.FIELD && selection.name.value === node.name.value,
+          )
+        ) {
+          return null;
+        }
+      },
+    },
+    [Kind.SELECTION_SET]: {
+      leave(node) {
+        if (node.selections.length === 0) {
+          return null;
+        }
+      },
+    },
+    [Kind.INLINE_FRAGMENT]: {
+      leave(node) {
+        if (node.selectionSet?.selections.length === 0) {
+          return null;
+        }
+      },
+    },
+  });
+}
