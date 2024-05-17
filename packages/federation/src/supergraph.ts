@@ -19,6 +19,7 @@ import {
   parseType,
   print,
   ScalarTypeDefinitionNode,
+  SelectionNode,
   TypeDefinitionNode,
   TypeInfo,
   UnionTypeDefinitionNode,
@@ -40,7 +41,12 @@ import {
   TypeMergingOptions,
   ValidationLevel,
 } from '@graphql-tools/stitch';
-import { createGraphQLError, memoize1, type Executor } from '@graphql-tools/utils';
+import {
+  createGraphQLError,
+  memoize1,
+  parseSelectionSet,
+  type Executor,
+} from '@graphql-tools/utils';
 import {
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
@@ -169,10 +175,11 @@ export function getSubschemasFromSupergraphSdl({
   const typeNameFieldsKeyBySubgraphMap = new Map<string, Map<string, Map<string, string>>>();
   const typeNameCanonicalMap = new Map<string, string>();
   const subgraphTypeNameExtraFieldsMap = new Map<string, Map<string, FieldDefinitionNode[]>>();
+  const subgraphTypeNameProvidedMap = new Map<string, Map<string, Set<string>>>();
   const orphanTypeMap = new Map<string, TypeDefinitionNode>();
 
   // To detect unresolvable interface fields
-  const externalFieldMap = new Map<string, Set<string>>();
+  const subgraphExternalFieldMap = new Map<string, Map<string, Set<string>>>();
 
   // TODO: Temporary fix to add missing join__type directives to Query
   const subgraphNames: string[] = [];
@@ -286,10 +293,15 @@ export function getSubschemasFromSupergraphSdl({
                     argumentNode.value.value === true,
                 );
                 if (isExternal) {
-                  let externalFields = externalFieldMap.get(graphName);
+                  let externalFieldsByType = subgraphExternalFieldMap.get(graphName);
+                  if (!externalFieldsByType) {
+                    externalFieldsByType = new Map();
+                    subgraphExternalFieldMap.set(graphName, externalFieldsByType);
+                  }
+                  let externalFields = externalFieldsByType.get(typeNode.name.value);
                   if (!externalFields) {
                     externalFields = new Set();
-                    externalFieldMap.set(typeNode.name.value, externalFields);
+                    externalFieldsByType.set(typeNode.name.value, externalFields);
                   }
                   externalFields.add(fieldNode.name.value);
                 }
@@ -314,33 +326,79 @@ export function getSubschemasFromSupergraphSdl({
                   argumentNode => argumentNode.name.value === 'provides',
                 );
                 if (providedExtraField?.value?.kind === Kind.STRING) {
-                  let typeNameExtraFieldsMap = subgraphTypeNameExtraFieldsMap.get(graphName);
-                  if (!typeNameExtraFieldsMap) {
-                    typeNameExtraFieldsMap = new Map();
-                    subgraphTypeNameExtraFieldsMap.set(graphName, typeNameExtraFieldsMap);
+                  const providesSelectionSet = parseSelectionSet(
+                    /* GraphQL */ `{ ${providedExtraField.value.value} }`,
+                  );
+                  function handleSelection(fieldNodeTypeName: string, selection: SelectionNode) {
+                    let typeNameExtraFieldsMap = subgraphTypeNameExtraFieldsMap.get(graphName);
+                    if (!typeNameExtraFieldsMap) {
+                      typeNameExtraFieldsMap = new Map();
+                      subgraphTypeNameExtraFieldsMap.set(graphName, typeNameExtraFieldsMap);
+                    }
+                    switch (selection.kind) {
+                      case Kind.FIELD:
+                        {
+                          const extraFieldTypeNode = supergraphAst.definitions.find(
+                            def => 'name' in def && def.name?.value === fieldNodeTypeName,
+                          ) as ObjectTypeDefinitionNode;
+                          const extraFieldNodeInType = extraFieldTypeNode.fields?.find(
+                            fieldNode => fieldNode.name.value === selection.name.value,
+                          );
+                          if (extraFieldNodeInType) {
+                            let extraFields = typeNameExtraFieldsMap.get(fieldNodeTypeName);
+                            if (!extraFields) {
+                              extraFields = [];
+                              typeNameExtraFieldsMap.set(fieldNodeTypeName, extraFields);
+                            }
+                            extraFields.push({
+                              ...extraFieldNodeInType,
+                              directives: extraFieldNodeInType.directives?.filter(
+                                directiveNode => directiveNode.name.value !== 'join__field',
+                              ),
+                            });
+
+                            let typeNameProvidedMap = subgraphTypeNameProvidedMap.get(graphName);
+                            if (!typeNameProvidedMap) {
+                              typeNameProvidedMap = new Map();
+                              subgraphTypeNameProvidedMap.set(graphName, typeNameProvidedMap);
+                            }
+                            let providedFields = typeNameProvidedMap.get(fieldNodeTypeName);
+                            if (!providedFields) {
+                              providedFields = new Set();
+                              typeNameProvidedMap.set(fieldNodeTypeName, providedFields);
+                            }
+                            providedFields.add(selection.name.value);
+
+                            if (selection.selectionSet) {
+                              const extraFieldNodeNamedType = getNamedTypeNode(
+                                extraFieldNodeInType.type,
+                              );
+                              const extraFieldNodeTypeName = extraFieldNodeNamedType.name.value;
+                              for (const subSelection of selection.selectionSet.selections) {
+                                handleSelection(extraFieldNodeTypeName, subSelection);
+                              }
+                            }
+                          }
+                        }
+                        break;
+                      case Kind.INLINE_FRAGMENT:
+                        {
+                          const fragmentType =
+                            selection.typeCondition?.name?.value || fieldNodeType.name.value;
+                          if (selection.selectionSet) {
+                            for (const subSelection of selection.selectionSet.selections) {
+                              handleSelection(fragmentType, subSelection);
+                            }
+                          }
+                        }
+                        break;
+                    }
                   }
                   const fieldNodeType = getNamedTypeNode(fieldNode.type);
-                  let extraFields = typeNameExtraFieldsMap.get(fieldNodeType.name.value);
-                  if (!extraFields) {
-                    extraFields = [];
-                    typeNameExtraFieldsMap.set(fieldNodeType.name.value, extraFields);
+                  const fieldNodeTypeName = fieldNodeType.name.value;
+                  for (const selection of providesSelectionSet.selections) {
+                    handleSelection(fieldNodeTypeName, selection);
                   }
-                  const extraFieldTypeNode = supergraphAst.definitions.find(
-                    def => 'name' in def && def.name?.value === fieldNodeType.name.value,
-                  ) as ObjectTypeDefinitionNode;
-                  providedExtraField.value.value.split(' ').forEach(extraField => {
-                    const extraFieldNodeInType = extraFieldTypeNode.fields?.find(
-                      fieldNode => fieldNode.name.value === extraField,
-                    );
-                    if (extraFieldNodeInType) {
-                      extraFields!.push({
-                        ...extraFieldNodeInType,
-                        directives: extraFieldNodeInType.directives?.filter(
-                          directiveNode => directiveNode.name.value !== 'join__field',
-                        ),
-                      });
-                    }
-                  });
                 }
 
                 const requiresArgumentNode = joinFieldDirectiveNode.arguments?.find(
@@ -384,9 +442,7 @@ export function getSubschemasFromSupergraphSdl({
               });
             }
           });
-          if (fieldDefinitionNodesOfSubgraph.length > 0 || typeNode.name.value === 'Query') {
-            fieldDefinitionNodesByGraphName.set(graphName, fieldDefinitionNodesOfSubgraph);
-          }
+          fieldDefinitionNodesByGraphName.set(graphName, fieldDefinitionNodesOfSubgraph);
         }
       }
     });
@@ -885,7 +941,7 @@ export function getSubschemasFromSupergraphSdl({
       });
     } catch (e: any) {
       throw new Error(
-        `Error building schema for subgraph ${subgraphName}: ${e?.message || e.toString()}`,
+        `Error building schema for subgraph ${subgraphName}: ${e?.stack || e?.message || e.toString()}`,
       );
     }
     let executor: Executor = onExecutor({ subgraphName, endpoint, subgraphSchema: schema });
@@ -919,6 +975,8 @@ export function getSubschemasFromSupergraphSdl({
       }
       return data;
     }
+    const typeNameProvidedMap = subgraphTypeNameProvidedMap.get(subgraphName);
+    const externalFieldMap = subgraphExternalFieldMap.get(subgraphName);
     subschemaMap.set(subgraphName, {
       name: subgraphName,
       schema,
@@ -943,10 +1001,16 @@ export function getSubschemasFromSupergraphSdl({
                     if (node.name.value !== '__typename') {
                       const parentType = typeInfo.getParentType();
                       if (isInterfaceType(parentType)) {
+                        const providedInterfaceFields = typeNameProvidedMap?.get(parentType.name);
                         const implementations = schema.getPossibleTypes(parentType);
                         for (const implementation of implementations) {
-                          const externalFields = externalFieldMap.get(implementation.name);
-                          if (externalFields?.has(node.name.value)) {
+                          const externalFields = externalFieldMap?.get(implementation.name);
+                          const providedFields = typeNameProvidedMap?.get(implementation.name);
+                          if (
+                            !providedInterfaceFields?.has(node.name.value) &&
+                            !providedFields?.has(node.name.value) &&
+                            externalFields?.has(node.name.value)
+                          ) {
                             throw createGraphQLError(
                               `Was not able to find any options for ${node.name.value}: This shouldn't have happened.`,
                             );
