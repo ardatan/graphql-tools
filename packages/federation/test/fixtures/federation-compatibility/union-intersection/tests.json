@@ -5,7 +5,8 @@
       "data": {
         "media": {}
       }
-    }
+    },
+    "plan": "\n      QueryPlan {\n        Fetch(service: \"a\") {\n          {\n            media {\n              __typename\n            }\n          }\n        },\n      }\n    "
   },
   {
     "query": "\n      query {\n        media {\n          ... on Book {\n            title\n          }\n        }\n      }\n    ",
@@ -15,7 +16,8 @@
           "title": "The Lord of the Rings"
         }
       }
-    }
+    },
+    "plan": "\n      QueryPlan {\n        Fetch(service: \"a\") {\n          {\n            media {\n              __typename\n              ... on Book {\n                title\n              }\n            }\n          }\n        },\n      }\n    "
   },
   {
     "query": "\n      query {\n        media {\n          ... on Book {\n            title\n          }\n          ... on Movie {\n            title\n          }\n        }\n      }\n    ",
@@ -25,7 +27,8 @@
           "title": "The Lord of the Rings"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          media {\n            __typename\n            ... on Book {\n              title\n            }\n          }\n        }\n      },\n    }\n    \n    "
   },
   {
     "query": "\n      query {\n        media {\n          __typename\n          ... on Song {\n            title\n          }\n          ... on Movie {\n            title\n          }\n          ... on Book {\n            title\n          }\n        }\n        book {\n          __typename\n          ... on Song {\n            title\n          }\n          ... on Movie {\n            title\n          }\n          ... on Book {\n            title\n          }\n        }\n        song {\n          __typename\n          ... on Song {\n            title\n          }\n          ... on Movie {\n            title\n          }\n          ... on Book {\n            title\n          }\n        }\n      }\n    ",
@@ -44,6 +47,7 @@
           "title": "Song Title"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          song {\n            __typename\n            ... on Song {\n              title\n            }\n            ... on Book {\n              title\n            }\n          }\n          media {\n            __typename\n            ... on Book {\n              title\n            }\n          }\n          book {\n            __typename\n            title\n          }\n        }\n      },\n    }\n    "
   }
 ]

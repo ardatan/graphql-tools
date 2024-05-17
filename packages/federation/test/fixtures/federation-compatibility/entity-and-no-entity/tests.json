@@ -20,6 +20,7 @@
           }
         ]
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Parallel {\n        Sequence {\n          Fetch(service: \"a\") {\n            {\n              users {\n                __typename\n                id\n              }\n            }\n          },\n          Flatten(path: \"users.@\") {\n            Fetch(service: \"b\") {\n              {\n                ... on User {\n                  __typename\n                  id\n                }\n              } =>\n              {\n                ... on User {\n                  name\n                }\n              }\n            },\n          },\n        },\n        Fetch(service: \"b\") {\n          {\n            accounts {\n              __typename\n              ... on User {\n                id\n                name\n              }\n              ... on Admin {\n                id__alias_0: id\n                photo\n              }\n            }\n          }\n        },\n      },\n    }\n    "
   }
 ]

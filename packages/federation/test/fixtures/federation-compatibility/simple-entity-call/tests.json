@@ -8,6 +8,7 @@
           "nickname": "user1"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"email\") {\n          {\n            user {\n              __typename\n              email\n              id\n            }\n          }\n        },\n        Flatten(path: \"user\") {\n          Fetch(service: \"nickname\") {\n            {\n              ... on User {\n                __typename\n                email\n              }\n            } =>\n            {\n              ... on User {\n                nickname\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

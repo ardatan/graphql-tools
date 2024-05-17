@@ -8,7 +8,8 @@
           "field": "foo"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          b {\n            id\n            field\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        a {\n          field\n        }\n      }\n    ",
@@ -16,7 +17,8 @@
       "data": {
         "a": null
       }
-    }
+    },
+    "plan": "\n    QueryPlan {}\n    "
   },
   {
     "query": "\n      query {\n        b {\n          id\n        }\n      }\n    ",
@@ -26,7 +28,8 @@
           "id": "n1"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          b {\n            id\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        a {\n          id\n        }\n      }\n    ",
@@ -35,7 +38,8 @@
         "a": null
       },
       "errors": true
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          a {\n            __typename\n            id\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        product {\n          id\n        }\n      }\n    ",
@@ -45,7 +49,8 @@
           "id": "p1"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          product {\n            id\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        product {\n          id\n          name\n        }\n      }\n    ",
@@ -61,6 +66,7 @@
           "id": "p1"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            product {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"product\") {\n          Fetch(service: \"b\") {\n            {\n              ... on Product {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Product {\n                __typename\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

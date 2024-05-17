@@ -7,7 +7,8 @@
           "price": 699.99
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            product {\n              __typename\n              id\n              price\n              ... on Product @include(if: $bool) {\n                __typename\n                id\n                price\n              }\n            }\n          }\n        },\n        Include(if: $bool) {\n          Sequence {\n            Flatten(path: \"product\") {\n              Fetch(service: \"b\") {\n                {\n                  ... on Product {\n                    __typename\n                    price\n                    id\n                  }\n                } =>\n                {\n                  ... on Product {\n                    isExpensive\n                  }\n                }\n              },\n            },\n            Flatten(path: \"product\") {\n              Fetch(service: \"c\") {\n                {\n                  ... on Product {\n                    __typename\n                    isExpensive\n                    id\n                  }\n                } =>\n                {\n                  ... on Product {\n                    neverCalledInclude\n                  }\n                }\n              },\n            },\n          }\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query ($bool: Boolean = true) {\n        product {\n          price\n          neverCalledSkip @skip(if: $bool)\n        }\n      }\n    ",
@@ -17,7 +18,8 @@
           "price": 699.99
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            product {\n              __typename\n              id\n              price\n              ... on Product @skip(if: $bool) {\n                __typename\n                id\n                price\n              }\n            }\n          }\n        },\n        Skip(if: $bool) {\n          Sequence {\n            Flatten(path: \"product\") {\n              Fetch(service: \"b\") {\n                {\n                  ... on Product {\n                    __typename\n                    price\n                    id\n                  }\n                } =>\n                {\n                  ... on Product {\n                    isExpensive\n                  }\n                }\n              },\n            },\n            Flatten(path: \"product\") {\n              Fetch(service: \"c\") {\n                {\n                  ... on Product {\n                    __typename\n                    isExpensive\n                    id\n                  }\n                } =>\n                {\n                  ... on Product {\n                    neverCalledSkip\n                  }\n                }\n              },\n            },\n          }\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query ($bool: Boolean = true) {\n        product {\n          price\n          include @include(if: $bool)\n        }\n      }\n    ",
@@ -28,7 +30,8 @@
           "include": true
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            product {\n              __typename\n              id\n              price\n              ... on Product @include(if: $bool) {\n                __typename\n                id\n                price\n              }\n            }\n          }\n        },\n        Include(if: $bool) {\n          Sequence {\n            Flatten(path: \"product\") {\n              Fetch(service: \"b\") {\n                {\n                  ... on Product {\n                    __typename\n                    price\n                    id\n                  }\n                } =>\n                {\n                  ... on Product {\n                    isExpensive\n                  }\n                }\n              },\n            },\n            Flatten(path: \"product\") {\n              Fetch(service: \"c\") {\n                {\n                  ... on Product {\n                    __typename\n                    isExpensive\n                    id\n                  }\n                } =>\n                {\n                  ... on Product {\n                    include\n                  }\n                }\n              },\n            },\n          }\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query ($bool: Boolean = false) {\n        product {\n          price\n          skip @skip(if: $bool)\n        }\n      }\n    ",
@@ -39,6 +42,7 @@
           "skip": true
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            product {\n              __typename\n              id\n              price\n              ... on Product @skip(if: $bool) {\n                __typename\n                id\n                price\n              }\n            }\n          }\n        },\n        Skip(if: $bool) {\n          Sequence {\n            Flatten(path: \"product\") {\n              Fetch(service: \"b\") {\n                {\n                  ... on Product {\n                    __typename\n                    price\n                    id\n                  }\n                } =>\n                {\n                  ... on Product {\n                    isExpensive\n                  }\n                }\n              },\n            },\n            Flatten(path: \"product\") {\n              Fetch(service: \"c\") {\n                {\n                  ... on Product {\n                    __typename\n                    isExpensive\n                    id\n                  }\n                } =>\n                {\n                  ... on Product {\n                    skip\n                  }\n                }\n              },\n            },\n          }\n        },\n      },\n    }\n    "
   }
 ]

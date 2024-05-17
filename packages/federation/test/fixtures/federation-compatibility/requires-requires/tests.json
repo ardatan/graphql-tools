@@ -7,7 +7,8 @@
           "canAfford": false
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            product {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"product\") {\n          Fetch(service: \"a\") {\n            {\n              ... on Product {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Product {\n                price\n              }\n            }\n          },\n        },\n        Flatten(path: \"product\") {\n          Fetch(service: \"c\") {\n            {\n              ... on Product {\n                __typename\n                price\n                id\n              }\n            } =>\n            {\n              ... on Product {\n                isExpensive\n              }\n            }\n          },\n        },\n        Flatten(path: \"product\") {\n          Fetch(service: \"d\") {\n            {\n              ... on Product {\n                __typename\n                isExpensive\n                id\n              }\n            } =>\n            {\n              ... on Product {\n                canAfford\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        product {\n          isExpensive\n        }\n      }\n    ",
@@ -17,7 +18,8 @@
           "isExpensive": true
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            product {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"product\") {\n          Fetch(service: \"a\") {\n            {\n              ... on Product {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Product {\n                price\n              }\n            }\n          },\n        },\n        Flatten(path: \"product\") {\n          Fetch(service: \"c\") {\n            {\n              ... on Product {\n                __typename\n                price\n                id\n              }\n            } =>\n            {\n              ... on Product {\n                isExpensive\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        product {\n          isExpensive\n          canAfford\n        }\n      }\n    ",
@@ -28,6 +30,7 @@
           "canAfford": false
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            product {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"product\") {\n          Fetch(service: \"a\") {\n            {\n              ... on Product {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Product {\n                price\n              }\n            }\n          },\n        },\n        Flatten(path: \"product\") {\n          Fetch(service: \"c\") {\n            {\n              ... on Product {\n                __typename\n                price\n                id\n              }\n            } =>\n            {\n              ... on Product {\n                isExpensive\n              }\n            }\n          },\n        },\n        Flatten(path: \"product\") {\n          Fetch(service: \"d\") {\n            {\n              ... on Product {\n                __typename\n                isExpensive\n                id\n              }\n            } =>\n            {\n              ... on Product {\n                canAfford\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

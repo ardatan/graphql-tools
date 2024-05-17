@@ -11,7 +11,8 @@
           }
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          product {\n            __typename\n            samePriceProduct {\n              __typename\n              samePriceProduct {\n                __typename\n              }\n            }\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        product {\n          __typename\n          samePriceProduct {\n            __typename\n            ... on Book {\n              id\n            }\n            samePriceProduct {\n              __typename\n              ... on Book {\n                id\n              }\n            }\n          }\n          ... on Book {\n            __typename\n            id\n            price\n            samePriceProduct {\n              id\n              price\n            }\n          }\n        }\n      }\n    ",
@@ -32,6 +33,7 @@
           "price": 10.99
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            product {\n              __typename\n              ... on Book {\n                __typename\n                id\n                samePriceProduct {\n                  __typename\n                  id\n                  price\n                  samePriceProduct {\n                    __typename\n                    id\n                  }\n                }\n              }\n            }\n          }\n        },\n        Flatten(path: \"product\") {\n          Fetch(service: \"b\") {\n            {\n              ... on Book {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Book {\n                price\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

@@ -32,6 +32,7 @@ scalar join__FieldSet
 enum join__Graph {
   A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/mutations/a")
   B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/mutations/b")
+  C @join__graph(name: "c", url: "https://federation-compatibility.the-guild.dev/mutations/c")
 }
 
 scalar link__Import
@@ -50,8 +51,13 @@ enum link__Purpose {
 
 type Mutation
   @join__type(graph: A)
+  @join__type(graph: B)
+  @join__type(graph: C)
 {
-  addProduct(input: AddProductInput!): Product!
+  addProduct(input: AddProductInput!): Product! @join__field(graph: A)
+  multiply(by: Int!, requestId: String!): Int! @join__field(graph: A)
+  delete(requestId: String!): Int! @join__field(graph: B)
+  add(num: Int!, requestId: String!): Int! @join__field(graph: C)
 }
 
 type Product
@@ -68,6 +74,7 @@ type Product
 type Query
   @join__type(graph: A)
   @join__type(graph: B)
+  @join__type(graph: C)
 {
   product(id: ID!): Product! @join__field(graph: A)
   products: [Product!]! @join__field(graph: A)

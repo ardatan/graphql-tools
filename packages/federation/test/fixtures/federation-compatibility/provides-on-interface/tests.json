@@ -17,7 +17,8 @@
           ]
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          media {\n            __typename\n            id\n            animals {\n              __typename\n              id\n              name\n            }\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        media {\n          id\n          animals {\n            id\n            name\n            ... on Cat {\n              age\n            }\n          }\n        }\n      }\n    ",
@@ -38,6 +39,7 @@
           ]
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            media {\n              __typename\n              id\n              animals {\n                __typename\n                id\n                name\n              }\n              ... on Book {\n                __typename\n                id\n              }\n            }\n          }\n        },\n        Flatten(path: \"media\") {\n          Fetch(service: \"c\") {\n            {\n              ... on Book {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Book {\n                animals {\n                  __typename\n                  ... on Cat {\n                    age\n                  }\n                }\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

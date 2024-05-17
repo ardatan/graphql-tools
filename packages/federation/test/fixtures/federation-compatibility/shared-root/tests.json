@@ -10,6 +10,7 @@
           "category": "Category 1"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Parallel {\n        Fetch(service: \"name\") {\n          {\n            product {\n              name\n            }\n          }\n        },\n        Fetch(service: \"category\") {\n          {\n            product {\n              category\n              id\n            }\n          }\n        },\n        Fetch(service: \"price\") {\n          {\n            product {\n              price\n            }\n          }\n        },\n      },\n    }\n    "
   }
 ]

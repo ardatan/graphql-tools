@@ -1,6 +1,6 @@
 [
   {
-    "query": "\n      mutation {\n        addProduct(input: { name: \"new\", price: 599.99 }) {\n          name\n          price\n          isExpensive\n          isAvailable\n        }\n      }\n    ",
+    "query": "\n        mutation {\n          addProduct(input: { name: \"new\", price: 599.99 }) {\n            name\n            price\n            isExpensive\n            isAvailable\n          }\n        }\n      ",
     "expected": {
       "data": {
         "addProduct": {
@@ -10,10 +10,11 @@
           "isAvailable": true
         }
       }
-    }
+    },
+    "plan": "\n      QueryPlan {\n        Sequence {\n          Fetch(service: \"a\") {\n            {\n              addProduct(input: {name: \"new\", price: 599.99}) {\n                __typename\n                id\n                name\n                price\n              }\n            }\n          },\n          Flatten(path: \"addProduct\") {\n            Fetch(service: \"b\") {\n              {\n                ... on Product {\n                  __typename\n                  id\n                  price\n                }\n              } =>\n              {\n                ... on Product {\n                  isExpensive\n                  isAvailable\n                }\n              }\n            },\n          },\n        },\n      }\n      "
   },
   {
-    "query": "\n      query {\n        product(id: \"p1\") {\n          id\n          name\n          price\n          isExpensive\n          isAvailable\n        }\n      }\n    ",
+    "query": "\n        query {\n          product(id: \"p1\") {\n            id\n            name\n            price\n            isExpensive\n            isAvailable\n          }\n        }\n      ",
     "expected": {
       "data": {
         "product": {
@@ -24,6 +25,19 @@
           "isAvailable": true
         }
       }
-    }
+    },
+    "plan": "\n      QueryPlan {\n        Sequence {\n          Fetch(service: \"a\") {\n            {\n              product(id: \"p1\") {\n                __typename\n                id\n                name\n                price\n              }\n            }\n          },\n          Flatten(path: \"product\") {\n            Fetch(service: \"b\") {\n              {\n                ... on Product {\n                  __typename\n                  id\n                  price\n                }\n              } =>\n              {\n                ... on Product {\n                  isExpensive\n                  isAvailable\n                }\n              }\n            },\n          },\n        },\n      }\n      "
+  },
+  {
+    "query": "\n      mutation {\n        five: add(num: 5, requestId: \"ebf132bfbcc7a\")\n        ten: multiply(by: 2, requestId: \"ebf132bfbcc7a\")\n        twelve: add(num: 2, requestId: \"ebf132bfbcc7a\")\n        final: delete(requestId: \"ebf132bfbcc7a\")\n      }\n    ",
+    "expected": {
+      "data": {
+        "five": 5,
+        "ten": 10,
+        "twelve": 12,
+        "final": 12
+      }
+    },
+    "plan": "\n      QueryPlan {\n        Sequence {\n          Fetch(service: \"c\") {\n            {\n              five: add(num: 5, requestId: \"ebf132bfbcc7a\")\n            }\n          },\n          Fetch(service: \"a\") {\n            {\n              ten: multiply(by: 2, requestId: \"ebf132bfbcc7a\")\n            }\n          },\n          Fetch(service: \"c\") {\n            {\n              twelve: add(num: 2, requestId: \"ebf132bfbcc7a\")\n            }\n          },\n          Fetch(service: \"b\") {\n            {\n              final: delete(requestId: \"ebf132bfbcc7a\")\n            }\n          },\n        },\n      }\n      "
   }
 ]

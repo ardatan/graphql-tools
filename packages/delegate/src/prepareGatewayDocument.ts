@@ -34,7 +34,7 @@ export function prepareGatewayDocument(
   returnType: GraphQLOutputType,
   infoSchema?: GraphQLSchema,
 ): DocumentNode {
-  const wrappedConcreteTypesDocument = wrapConcreteTypes(
+  let wrappedConcreteTypesDocument = wrapConcreteTypes(
     returnType,
     transformedSchema,
     originalDocument,
@@ -43,6 +43,44 @@ export function prepareGatewayDocument(
   if (infoSchema == null) {
     return wrappedConcreteTypesDocument;
   }
+
+  const visitedSelections = new WeakSet<SelectionNode>();
+  wrappedConcreteTypesDocument = visit(wrappedConcreteTypesDocument, {
+    [Kind.SELECTION_SET](node) {
+      const newSelections: Array<SelectionNode> = [];
+      for (const selectionNode of node.selections) {
+        if (
+          selectionNode.kind === Kind.INLINE_FRAGMENT &&
+          selectionNode.typeCondition != null &&
+          !visitedSelections.has(selectionNode)
+        ) {
+          visitedSelections.add(selectionNode);
+          const typeName = selectionNode.typeCondition.name.value;
+          const type = infoSchema.getType(typeName);
+          if (isAbstractType(type)) {
+            const possibleTypes = infoSchema.getPossibleTypes(type);
+            for (const possibleType of possibleTypes) {
+              newSelections.push({
+                ...selectionNode,
+                typeCondition: {
+                  kind: Kind.NAMED_TYPE,
+                  name: {
+                    kind: Kind.NAME,
+                    value: possibleType.name,
+                  },
+                },
+              });
+            }
+          }
+        }
+        newSelections.push(selectionNode);
+      }
+      return {
+        ...node,
+        selections: newSelections,
+      };
+    },
+  });
 
   const {
     possibleTypesMap,

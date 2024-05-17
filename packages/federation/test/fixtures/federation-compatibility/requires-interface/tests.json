@@ -7,7 +7,8 @@
           "city": "a1-city"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            a {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"a\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                address {\n                  __typename\n                  id\n                }\n              }\n            }\n          },\n        },\n        Flatten(path: \"a\") {\n          Fetch(service: \"a\") {\n            {\n              ... on User {\n                __typename\n                address {\n                  id\n                }\n                id\n              }\n            } =>\n            {\n              ... on User {\n                city\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        b {\n          city\n        }\n      }\n    ",
@@ -17,7 +18,8 @@
           "city": "a2-city"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            b {\n              __typename\n              id\n              address {\n                __typename\n                id\n              }\n            }\n          }\n        },\n        Flatten(path: \"b\") {\n          Fetch(service: \"a\") {\n            {\n              ... on User {\n                __typename\n                id\n                address {\n                  id\n                }\n              }\n            } =>\n            {\n              ... on User {\n                city\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        a {\n          address {\n            __typename\n            id\n          }\n        }\n      }\n    ",
@@ -30,7 +32,8 @@
           }
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            a {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"a\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                address {\n                  __typename\n                  id\n                }\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        b {\n          address {\n            __typename\n            id\n          }\n        }\n      }\n    ",
@@ -43,6 +46,7 @@
           }
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          b {\n            address {\n              __typename\n              id\n            }\n          }\n        }\n      },\n    }\n    "
   }
 ]

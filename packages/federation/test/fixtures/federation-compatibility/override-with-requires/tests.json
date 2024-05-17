@@ -22,7 +22,8 @@
           "cName": "c__u3-name"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Parallel {\n        Sequence {\n          Fetch(service: \"a\") {\n            {\n              userInA {\n                __typename\n                id\n              }\n            }\n          },\n          Flatten(path: \"userInA\") {\n            Fetch(service: \"b\") {\n              {\n                ... on User {\n                  __typename\n                  id\n                }\n              } =>\n              {\n                ... on User {\n                  name\n                }\n              }\n            },\n          },\n          Parallel {\n            Flatten(path: \"userInA\") {\n              Fetch(service: \"a\") {\n                {\n                  ... on User {\n                    __typename\n                    name\n                    id\n                  }\n                } =>\n                {\n                  ... on User {\n                    aName\n                  }\n                }\n              },\n            },\n            Flatten(path: \"userInA\") {\n              Fetch(service: \"c\") {\n                {\n                  ... on User {\n                    __typename\n                    name\n                    id\n                  }\n                } =>\n                {\n                  ... on User {\n                    cName\n                  }\n                }\n              },\n            },\n          },\n        },\n        Sequence {\n          Fetch(service: \"b\") {\n            {\n              userInB {\n                __typename\n                id\n                name\n              }\n            }\n          },\n          Parallel {\n            Flatten(path: \"userInB\") {\n              Fetch(service: \"c\") {\n                {\n                  ... on User {\n                    __typename\n                    id\n                    name\n                  }\n                } =>\n                {\n                  ... on User {\n                    cName\n                  }\n                }\n              },\n            },\n            Flatten(path: \"userInB\") {\n              Fetch(service: \"a\") {\n                {\n                  ... on User {\n                    __typename\n                    id\n                    name\n                  }\n                } =>\n                {\n                  ... on User {\n                    aName\n                  }\n                }\n              },\n            },\n          },\n        },\n        Sequence {\n          Fetch(service: \"c\") {\n            {\n              userInC {\n                __typename\n                id\n              }\n            }\n          },\n          Flatten(path: \"userInC\") {\n            Fetch(service: \"b\") {\n              {\n                ... on User {\n                  __typename\n                  id\n                }\n              } =>\n              {\n                ... on User {\n                  name\n                }\n              }\n            },\n          },\n          Parallel {\n            Flatten(path: \"userInC\") {\n              Fetch(service: \"c\") {\n                {\n                  ... on User {\n                    __typename\n                    name\n                    id\n                  }\n                } =>\n                {\n                  ... on User {\n                    cName\n                  }\n                }\n              },\n            },\n            Flatten(path: \"userInC\") {\n              Fetch(service: \"a\") {\n                {\n                  ... on User {\n                    __typename\n                    name\n                    id\n                  }\n                } =>\n                {\n                  ... on User {\n                    aName\n                  }\n                }\n              },\n            },\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        userInC {\n          cName\n        }\n      }\n    ",
@@ -32,7 +33,8 @@
           "cName": "c__u3-name"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"c\") {\n          {\n            userInC {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"userInC\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                name\n              }\n            }\n          },\n        },\n        Flatten(path: \"userInC\") {\n          Fetch(service: \"c\") {\n            {\n              ... on User {\n                __typename\n                name\n                id\n              }\n            } =>\n            {\n              ... on User {\n                cName\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        userInA {\n          cName\n        }\n      }\n    ",
@@ -42,7 +44,8 @@
           "cName": "c__u1-name"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            userInA {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"userInA\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                name\n              }\n            }\n          },\n        },\n        Flatten(path: \"userInA\") {\n          Fetch(service: \"c\") {\n            {\n              ... on User {\n                __typename\n                name\n                id\n              }\n            } =>\n            {\n              ... on User {\n                cName\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        userInA {\n          aName\n        }\n      }\n    ",
@@ -52,6 +55,7 @@
           "aName": "a__u1-name"
         }
       }
-    }
+    },
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"a\") {\n          {\n            userInA {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"userInA\") {\n          Fetch(service: \"b\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                name\n              }\n            }\n          },\n        },\n        Flatten(path: \"userInA\") {\n          Fetch(service: \"a\") {\n            {\n              ... on User {\n                __typename\n                name\n                id\n              }\n            } =>\n            {\n              ... on User {\n                aName\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]
