@@ -57,6 +57,7 @@ describe('Reproductions for issues', () => {
       subschemaConfigTransforms: [stitchingDirectivesTransformer],
     });
     const giftOptionsType = stitchedSchema.getType('GiftOptions') as GraphQLObjectType;
+    expect(giftOptionsType).toBeDefined();
     const giftOptionsTypeFields = giftOptionsType.getFields();
     expect(giftOptionsTypeFields['someOptions']).toBeDefined();
   });

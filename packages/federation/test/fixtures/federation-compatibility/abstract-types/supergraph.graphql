@@ -1,0 +1,202 @@
+schema
+  @link(url: "https://specs.apollo.dev/link/v1.0")
+  @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION)
+  @link(url: "https://specs.apollo.dev/inaccessible/v0.2", for: SECURITY)
+{
+  query: Query
+}
+
+directive @inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
+directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
+
+directive @join__field(graph: join__Graph, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @join__graph(name: String!, url: String!) on ENUM_VALUE
+
+directive @join__implements(graph: join__Graph!, interface: String!) repeatable on OBJECT | INTERFACE
+
+directive @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boolean! = false, resolvable: Boolean! = true, isInterfaceObject: Boolean! = false) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
+
+directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION
+
+directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
+
+type Agency
+  @join__type(graph: AGENCY, key: "id")
+  @join__type(graph: PRODUCTS)
+{
+  id: ID!
+  companyName: String @join__field(graph: AGENCY)
+}
+
+type Book implements Product & Similar
+  @join__implements(graph: INVENTORY, interface: "Product")
+  @join__implements(graph: PRODUCTS, interface: "Product")
+  @join__implements(graph: PRODUCTS, interface: "Similar")
+  @join__implements(graph: REVIEWS, interface: "Product")
+  @join__implements(graph: REVIEWS, interface: "Similar")
+  @join__type(graph: BOOKS, key: "id")
+  @join__type(graph: INVENTORY, key: "id")
+  @join__type(graph: PRODUCTS, key: "id")
+  @join__type(graph: REVIEWS, key: "id")
+{
+  id: ID!
+  title: String @join__field(graph: BOOKS)
+  dimensions: ProductDimension @join__field(graph: INVENTORY, external: true) @join__field(graph: PRODUCTS)
+  delivery(zip: String): DeliveryEstimates @join__field(graph: INVENTORY, requires: "dimensions { size weight }")
+  sku: String @join__field(graph: PRODUCTS)
+  createdBy: User @join__field(graph: PRODUCTS)
+  similar: [Book] @join__field(graph: PRODUCTS) @join__field(graph: REVIEWS, external: true)
+  hidden: Boolean @join__field(graph: PRODUCTS)
+  publisherType: PublisherType @join__field(graph: PRODUCTS)
+  reviewsCount: Int! @join__field(graph: REVIEWS)
+  reviewsScore: Float! @join__field(graph: REVIEWS)
+  reviews: [Review!]! @join__field(graph: REVIEWS)
+  reviewsOfSimilar: [Review!]! @join__field(graph: REVIEWS, requires: "similar { id }")
+}
+
+type DeliveryEstimates
+  @join__type(graph: INVENTORY)
+{
+  estimatedDelivery: String
+  fastestDelivery: String
+}
+
+type Group
+  @join__type(graph: AGENCY, key: "id")
+{
+  id: ID!
+  name: String
+}
+
+scalar join__FieldSet
+
+enum join__Graph {
+  AGENCY @join__graph(name: "agency", url: "https://federation-compatibility.the-guild.dev/abstract-types/agency")
+  BOOKS @join__graph(name: "books", url: "https://federation-compatibility.the-guild.dev/abstract-types/books")
+  INVENTORY @join__graph(name: "inventory", url: "https://federation-compatibility.the-guild.dev/abstract-types/inventory")
+  MAGAZINES @join__graph(name: "magazines", url: "https://federation-compatibility.the-guild.dev/abstract-types/magazines")
+  PRODUCTS @join__graph(name: "products", url: "https://federation-compatibility.the-guild.dev/abstract-types/products")
+  REVIEWS @join__graph(name: "reviews", url: "https://federation-compatibility.the-guild.dev/abstract-types/reviews")
+  USERS @join__graph(name: "users", url: "https://federation-compatibility.the-guild.dev/abstract-types/users")
+}
+
+scalar link__Import
+
+enum link__Purpose {
+  """
+  `SECURITY` features provide metadata necessary to securely resolve fields.
+  """
+  SECURITY
+
+  """
+  `EXECUTION` features provide metadata necessary for operation execution.
+  """
+  EXECUTION
+}
+
+type Magazine implements Product & Similar
+  @join__implements(graph: INVENTORY, interface: "Product")
+  @join__implements(graph: PRODUCTS, interface: "Product")
+  @join__implements(graph: PRODUCTS, interface: "Similar")
+  @join__implements(graph: REVIEWS, interface: "Product")
+  @join__implements(graph: REVIEWS, interface: "Similar")
+  @join__type(graph: INVENTORY, key: "id")
+  @join__type(graph: MAGAZINES, key: "id")
+  @join__type(graph: PRODUCTS, key: "id")
+  @join__type(graph: REVIEWS, key: "id")
+{
+  id: ID!
+  dimensions: ProductDimension @join__field(graph: INVENTORY, external: true) @join__field(graph: PRODUCTS)
+  delivery(zip: String): DeliveryEstimates @join__field(graph: INVENTORY, requires: "dimensions { size weight }")
+  title: String @join__field(graph: MAGAZINES)
+  sku: String @join__field(graph: PRODUCTS)
+  createdBy: User @join__field(graph: PRODUCTS)
+  similar: [Magazine] @join__field(graph: PRODUCTS) @join__field(graph: REVIEWS, external: true)
+  hidden: Boolean @join__field(graph: PRODUCTS)
+  publisherType: PublisherType @join__field(graph: PRODUCTS)
+  reviewsCount: Int! @join__field(graph: REVIEWS)
+  reviewsScore: Float! @join__field(graph: REVIEWS)
+  reviews: [Review!]! @join__field(graph: REVIEWS)
+  reviewsOfSimilar: [Review!]! @join__field(graph: REVIEWS, requires: "similar { id }")
+}
+
+interface Product
+  @join__type(graph: INVENTORY)
+  @join__type(graph: PRODUCTS)
+  @join__type(graph: REVIEWS)
+{
+  id: ID!
+  dimensions: ProductDimension @join__field(graph: INVENTORY) @join__field(graph: PRODUCTS)
+  delivery(zip: String): DeliveryEstimates @join__field(graph: INVENTORY)
+  sku: String @join__field(graph: PRODUCTS)
+  createdBy: User @join__field(graph: PRODUCTS)
+  hidden: Boolean @inaccessible @join__field(graph: PRODUCTS)
+  reviewsCount: Int! @join__field(graph: REVIEWS)
+  reviewsScore: Float! @join__field(graph: REVIEWS)
+  reviews: [Review!]! @join__field(graph: REVIEWS)
+}
+
+type ProductDimension
+  @join__type(graph: INVENTORY)
+  @join__type(graph: PRODUCTS)
+{
+  size: String
+  weight: Float
+}
+
+union PublisherType
+  @join__type(graph: AGENCY)
+  @join__type(graph: PRODUCTS)
+  @join__unionMember(graph: AGENCY, member: "Agency")
+  @join__unionMember(graph: PRODUCTS, member: "Agency")
+  @join__unionMember(graph: AGENCY, member: "Group")
+  @join__unionMember(graph: PRODUCTS, member: "Self")
+ = Agency | Group | Self
+
+type Query
+  @join__type(graph: AGENCY)
+  @join__type(graph: BOOKS)
+  @join__type(graph: INVENTORY)
+  @join__type(graph: MAGAZINES)
+  @join__type(graph: PRODUCTS)
+  @join__type(graph: REVIEWS)
+  @join__type(graph: USERS)
+{
+  books: [Book] @join__field(graph: BOOKS)
+  magazines: [Magazine] @join__field(graph: MAGAZINES)
+  products: [Product] @join__field(graph: PRODUCTS)
+  similar(id: ID!): [Product] @join__field(graph: PRODUCTS)
+  review(id: Int!): Review @join__field(graph: REVIEWS)
+}
+
+type Review
+  @join__type(graph: REVIEWS)
+{
+  id: Int!
+  body: String!
+  product: Product
+}
+
+type Self
+  @join__type(graph: PRODUCTS)
+{
+  email: String
+}
+
+interface Similar
+  @join__type(graph: PRODUCTS)
+  @join__type(graph: REVIEWS)
+{
+  similar: [Product]
+}
+
+type User
+  @join__type(graph: PRODUCTS, key: "email")
+  @join__type(graph: USERS, key: "email")
+{
+  email: ID!
+  totalProductsCreated: Int
+  name: String @join__field(graph: USERS)
+}
