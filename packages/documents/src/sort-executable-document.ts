@@ -1,4 +1,4 @@
-import { visit, type DocumentNode } from 'graphql';
+import { OperationTypeNode, visit, type DocumentNode } from 'graphql';
 import { sortExecutableNodes } from './sort-executable-nodes.js';
 
 /**
@@ -13,6 +13,10 @@ export function sortExecutableDocument(document: DocumentNode): DocumentNode {
       };
     },
     OperationDefinition(node) {
+      if (node.operation === ('mutation' as OperationTypeNode)) {
+        return false;
+      }
+
       return {
         ...node,
         variableDefinitions: sortExecutableNodes(node.variableDefinitions),

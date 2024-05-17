@@ -83,4 +83,20 @@ describe('printExecutableGraphQLDocument', () => {
       `"fragment B on Query { c } query A { ... on Query { a { a ...B } } ... on Query { a { b ...B } } }"`,
     );
   });
+
+  test('should not sort a mutation as mutations run in series and order matters', () => {
+    const inputDocument = parse(/* GraphQL */ `
+      mutation A {
+        c {
+          f
+          e
+          d
+        }
+        b
+        a
+      }
+    `);
+    const outputStr = printExecutableGraphQLDocument(inputDocument);
+    expect(outputStr).toMatchInlineSnapshot(`"mutation A { c { f e d } b a }"`);
+  });
 });
