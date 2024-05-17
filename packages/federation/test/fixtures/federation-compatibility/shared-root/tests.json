@@ -1,0 +1,15 @@
+[
+  {
+    "query": "\n      query {\n        product {\n          id\n          name\n          category\n          price\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "product": {
+          "id": "1",
+          "name": "Product 1",
+          "price": 100,
+          "category": "Category 1"
+        }
+      }
+    }
+  }
+]

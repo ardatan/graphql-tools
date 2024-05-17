@@ -10,6 +10,7 @@ export function mergeDeep<S extends any[]>(
   sources: S,
   respectPrototype = false,
   respectArrays = false,
+  respectArrayLength = false,
 ): UnboxIntersection<UnionToIntersection<BoxedTupleTypes<S>>> & any {
   const target = sources[0] || {};
   const output = {};
@@ -54,6 +55,11 @@ export function mergeDeep<S extends any[]>(
       }
     } else if (respectArrays && Array.isArray(target)) {
       if (Array.isArray(source)) {
+        if (respectArrayLength && source.length === target.length) {
+          return target.map((targetElem, i) =>
+            mergeDeep([targetElem, source[i]], respectPrototype, respectArrays, respectArrayLength),
+          );
+        }
         target.push(...source);
       } else {
         target.push(source);

@@ -202,7 +202,10 @@ export function calculateSelectionScore(selections: readonly SelectionNode[]) {
   for (const selectionNode of selections) {
     switch (selectionNode.kind) {
       case Kind.FIELD:
-        score += 1;
+        score++;
+        if (selectionNode.selectionSet?.selections) {
+          score += calculateSelectionScore(selectionNode.selectionSet.selections);
+        }
         break;
       case Kind.INLINE_FRAGMENT:
         score += calculateSelectionScore(selectionNode.selectionSet.selections);
