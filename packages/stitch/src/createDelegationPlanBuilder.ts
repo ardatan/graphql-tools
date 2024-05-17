@@ -11,6 +11,7 @@ import {
 import {
   DelegationPlanBuilder,
   extractUnavailableFields,
+  extractUnavailableFieldsFromSelectionSet,
   leftOverByDelegationPlan,
   MergedTypeInfo,
   StitchingInfo,
@@ -153,10 +154,17 @@ function calculateDelegationStage(
             fieldNode,
             fieldType => {
               if (!nonUniqueSubschema.merge?.[fieldType.name]) {
-                delegationMap.set(nonUniqueSubschema, {
-                  kind: Kind.SELECTION_SET,
-                  selections: [fieldNode],
-                });
+                let nonUniqueSubschemaSelections =
+                  // We have to cast it to `SelectionNode[]` because it is Readonly<SelectionNode[]> and it doesn't allow us to push new elements.
+                  delegationMap.get(nonUniqueSubschema)?.selections as SelectionNode[];
+                if (nonUniqueSubschemaSelections == null) {
+                  nonUniqueSubschemaSelections = [];
+                  delegationMap.set(nonUniqueSubschema, {
+                    kind: Kind.SELECTION_SET,
+                    selections: nonUniqueSubschemaSelections,
+                  });
+                }
+                nonUniqueSubschemaSelections.push(fieldNode);
                 // Ignore unresolvable fields
                 return false;
               }
@@ -175,6 +183,10 @@ function calculateDelegationStage(
         selections: [fieldNode],
       });
     }
+  }
+
+  if (delegationMap.size > 1) {
+    optimizeDelegationMap(delegationMap, mergedTypeInfo.typeName);
   }
 
   return {
@@ -276,6 +288,34 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
     }
     return delegationMaps;
   });
+}
+
+function optimizeDelegationMap(
+  delegationMap: Map<Subschema, SelectionSetNode>,
+  typeName: string,
+): Map<Subschema, SelectionSetNode> {
+  for (const [subschema, selectionSet] of delegationMap) {
+    for (const [subschema2, selectionSet2] of delegationMap) {
+      if (subschema === subschema2) {
+        continue;
+      }
+      const unavailableFields = extractUnavailableFieldsFromSelectionSet(
+        subschema2.transformedSchema,
+        // Unfortunately, getType returns GraphQLNamedType, but we already know the type is a GraphQLObjectType, so we can cast it.
+        subschema2.transformedSchema.getType(typeName) as GraphQLObjectType,
+        selectionSet,
+        () => true,
+      );
+      if (!unavailableFields.length) {
+        delegationMap.set(subschema2, {
+          kind: Kind.SELECTION_SET,
+          selections: [...selectionSet2.selections, ...selectionSet.selections],
+        });
+        delegationMap.delete(subschema);
+      }
+    }
+  }
+  return delegationMap;
 }
 
 const createSubschemas = memoize1(function createSubschemas(
