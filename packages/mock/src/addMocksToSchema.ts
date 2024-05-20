@@ -249,6 +249,8 @@ export function addMocksToSchema<TResolvers = IResolvers>({
     ? addResolversToSchema({
         schema: schemaWithMocks,
         resolvers: resolvers as any,
+        // This option ensures that schemas are not cloned multiple times, which can be very expensive
+        updateResolversInPlace: true,
       })
     : schemaWithMocks;
 }
