@@ -1096,7 +1096,7 @@ export function getStitchedSchemaFromSupergraphSdl(opts: GetSubschemasFromSuperg
           }
         }
         if (extraFields.length) {
-          let definitionKind: Kind | undefined;
+          let definitionKind: DefinitionNode['kind'] | undefined;
           if (isObjectType(typeInSchema)) {
             definitionKind = Kind.OBJECT_TYPE_DEFINITION;
           } else if (isInterfaceType(typeInSchema)) {
