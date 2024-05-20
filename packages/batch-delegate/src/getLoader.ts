@@ -1,5 +1,5 @@
 import DataLoader from 'dataloader';
-import { getNamedType, GraphQLList, GraphQLOutputType, GraphQLSchema, print } from 'graphql';
+import { getNamedType, GraphQLList, GraphQLSchema, print } from 'graphql';
 import { ValueOrPromise } from 'value-or-promise';
 import { delegateToSchema, getActualFieldNodes, SubschemaConfig } from '@graphql-tools/delegate';
 import { memoize1, memoize2, relocatedError } from '@graphql-tools/utils';
@@ -13,9 +13,7 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
   return function batchFn(keys: ReadonlyArray<K>) {
     return new ValueOrPromise(() =>
       delegateToSchema({
-        returnType: new GraphQLList(
-          getNamedType(options.returnType || options.info.returnType) as GraphQLOutputType,
-        ),
+        returnType: new GraphQLList(getNamedType(options.returnType || options.info.returnType)),
         onLocatedError: originalError => {
           if (originalError.path == null) {
             return originalError;

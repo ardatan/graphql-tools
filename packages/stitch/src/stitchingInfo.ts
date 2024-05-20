@@ -160,6 +160,7 @@ function createMergedTypes<TContext extends Record<string, any> = Record<string,
             fieldSelectionSets.set(subschema, parsedFieldSelectionSets);
           }
 
+          // We already know that the type is an object or interface type
           const type = subschema.transformedSchema.getType(typeName) as
             | GraphQLObjectType
             | GraphQLInterfaceType;
