@@ -388,4 +388,25 @@ describe('addMocksToSchema', () => {
 
     expect(viewer.name).toEqual('custom mock for String');
   });
+
+  it('creates a new schema whether or not resolvers are passed in', () => {
+    expect(
+      Object.is(
+        addMocksToSchema({
+          schema,
+          resolvers: {},
+        }),
+        schema,
+      ),
+    ).toBe(false);
+
+    expect(
+      Object.is(
+        addMocksToSchema({
+          schema,
+        }),
+        schema,
+      ),
+    ).toBe(false);
+  });
 });
