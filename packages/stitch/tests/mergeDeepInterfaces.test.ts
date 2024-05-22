@@ -1,6 +1,6 @@
 import { graphql } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { assertSome } from '@graphql-tools/utils';
+import { assertSome, ExecutionResult, IResolvers } from '@graphql-tools/utils';
 import { stitchSchemas } from '../src/stitchSchemas.js';
 
 const localSchemaGQL = /* GraphQL */ `
@@ -108,29 +108,11 @@ const decorators = [
 
 const reviews = [{ id: 'tx1', productUpc: '1', userId: '1', body: 'love it' }];
 
-const localResolvers = {
+const localResolvers: IResolvers = {
   Transaction: {
-    decorators: (_, { ids }) => {
+    decorators: ({ id }: { id: string }) => {
       console.log('Transaction decorators');
-      const result = ids.map(id => decorators.find(d => d.txId === id) || null);
-      console.log('CardTransaction decorators', result);
-      return result;
-    },
-  },
-  CardTransaction: {
-    decorators: (_, { ids }) => {
-      console.log('CardTransaction decorators');
-      const result = ids.map(id => decorators.find(d => d.txId === id) || null);
-      console.log('CardTransaction decorators', result);
-      return result;
-    },
-  },
-  SEPACreditTransferTransaction: {
-    decorators: (_, { ids }) => {
-      console.log('SEPACreditTransferTransaction decorators');
-      const result = ids.map(id => decorators.find(d => d.txId === id) || null);
-      console.log('SEPACreditTransferTransaction decorators', result);
-      return result;
+      return decorators.filter(d => d.txId === id);
     },
   },
   Review: {
@@ -140,41 +122,42 @@ const localResolvers = {
     reviews: user => reviews.filter(r => r.userId === user.id),
   },
   Query: {
-    reviews: (_, { ids }) => {
+    reviews: (_, { ids }: { ids: string[] }) => {
       const result = ids.map(id => reviews.find(r => r.id === id) || null);
       console.log('result', result);
       return result;
     },
-    _users: (_, { ids }) => ids.map(id => ({ id })),
-    _transactions: (root, { ids }) => ids.map(id => ({ id })),
-    _decoratedTransaction: (root, { ids }) => {
+    _users: (_, { ids }: { ids: string[] }) => ids.map(id => ({ id })),
+    _transactions: (_, { ids }: { ids: string[] }) =>
+      ids.map(id => allTransactions.find(t => t.id === id) || null),
+    _decoratedTransaction: (root, { ids }: { ids: string[] }) => {
       console.log('root', root);
       console.log('ids', ids);
       return root;
     },
-    _decorators: (root, { ids }, context, info) => {
+    _decorators: (_, { ids }: { ids: string[] }, __, info) => {
       const deco = ids.map(id => decorators.find(d => d.txId === id));
       console.log('deco result', info, ids, deco);
       return deco;
     },
-    transactionDecoratorsById: (root, { id }) => {
+    transactionDecoratorsById: (_, { id }) => {
       const decoResult = decorators.find(m => m.txId === id) || null;
       console.log('single', id, decoResult);
       return decoResult;
     },
-    transactionDecoratorsByIds: (root, { ids }) => {
+    transactionDecoratorsByIds: (_, { ids }: { ids: string[] }) => {
       const decoResult = ids.map(id => decorators.find(m => m.txId === id) || null);
       console.log('transactionDecoratorsByIds', ids, decoResult);
       return decoResult;
     },
-    categoryDecoratorsByIds: (root, { ids }) => {
+    categoryDecoratorsByIds: (_root, { ids }: { ids: string[] }) => {
       console.log('ex');
       return ids.map(
         id =>
           decorators.find(m => m.txId === id && m.decorationType === 'CategoryDecorator') || null,
       );
     },
-    documentDecoratorsByIds: (root, { ids }) => {
+    documentDecoratorsByIds: (_root, { ids }: { ids: string[] }) => {
       console.log('ex');
       return ids.map(
         id =>
@@ -245,19 +228,18 @@ const users = [
   { id: '2', username: 'bigvader23' },
 ];
 
-const findAccountById = id => accounts.find(account => account.id === id);
-const transactionsByAccount = id => allTransactions.filter(tx => tx.accountId === id);
-const findTransactionById = id => allTransactions.find(tx => tx.id === id);
-const findTransactionByIds = ids => allTransactions.filter(tx => ids.includes(tx.id));
+const findAccountById = (id: string) => accounts.find(account => account.id === id);
+const transactionsByAccount = (id: string) => allTransactions.filter(tx => tx.accountId === id);
+const findTransactionById = (id: string) => allTransactions.find(tx => tx.id === id);
 
-const remoteResolvers = {
+const remoteResolvers: IResolvers = {
   Account: {
     transactions: root => {
       return root.transactions;
     },
   },
   Query: {
-    users: (root, { ids }) => {
+    users: (_root, { ids }: { ids: string[] }) => {
       console.log('query remote users', ids);
       const result = ids.map(id => users.find(u => u.id === id) || null);
       console.log('result', result);
@@ -279,12 +261,12 @@ const remoteResolvers = {
     transaction: (_root, { id }) => {
       return findTransactionById(id);
     },
-    transactions: (_root, { ids }) => {
+    transactions: (_root, { ids }: { ids: string[] }) => {
       const result = {
         totalCount: allTransactions.length,
         edges: ids
           .map(id => allTransactions.find(t => t.id === id))
-          .map(tx => ({ node: tx, cursor: tx.id })),
+          .map(tx => ({ node: tx, cursor: tx?.id })),
       };
       return result;
     },
@@ -350,7 +332,11 @@ const remoteSchemaGQL = /* GraphQL */ `
   }
 `;
 
-const localSchema = makeExecutableSchema({ typeDefs: localSchemaGQL, resolvers: localResolvers });
+const localSchema = makeExecutableSchema({
+  typeDefs: localSchemaGQL,
+  resolvers: localResolvers,
+  inheritResolversFromInterfaces: true,
+});
 const remoteSchema = makeExecutableSchema({
   typeDefs: remoteSchemaGQL,
   resolvers: remoteResolvers,
@@ -363,9 +349,21 @@ describe('merged deep interfaces', () => {
         schema: localSchema,
         batch: true,
         merge: {
-          TransactionDecorator: {
+          SEPACreditTransferTransaction: {
             selectionSet: '{ id }',
-            fieldName: '_decorators',
+            fieldName: '_transactions',
+            key: ({ id }) => {
+              console.log('x id', id);
+              return id;
+            },
+            argsFromKeys: ids => {
+              console.log('x', ids);
+              return { ids };
+            },
+          },
+          CardTransaction: {
+            selectionSet: '{ id }',
+            fieldName: '_transactions',
             key: ({ id }) => {
               console.log('x id', id);
               return id;
@@ -389,8 +387,8 @@ describe('merged deep interfaces', () => {
     ],
   });
 
-  test.only('should resolve the list of types of the interface', async () => {
-    const result = await graphql({
+  test('should resolve the list of types of the interface', async () => {
+    const result: ExecutionResult<any> = await graphql({
       schema: stitchedSchema,
       source: /* GraphQL */ `
         query {
@@ -403,6 +401,7 @@ describe('merged deep interfaces', () => {
                   id
                   accountId
                   decorators {
+                    __typename
                     id
                   }
                 }
@@ -410,6 +409,7 @@ describe('merged deep interfaces', () => {
                   id
                   accountId
                   decorators {
+                    __typename
                     id
                   }
                 }
