@@ -5,6 +5,7 @@ import {
   GraphQLNamedOutputType,
   GraphQLObjectType,
   GraphQLSchema,
+  isAbstractType,
   Kind,
 } from 'graphql';
 import { extractUnavailableFields, StitchingInfo } from '@graphql-tools/delegate';
@@ -27,6 +28,35 @@ export function getFieldsNotInSubschema(
     fieldNodes,
   );
 
+  const fieldsNotInSchema = new Set<FieldNode>();
+  if (isAbstractType(gatewayType)) {
+    fieldsNotInSchema.add({
+      kind: Kind.FIELD,
+      name: {
+        kind: Kind.NAME,
+        value: '__typename',
+      },
+    });
+    for (const possibleType of schema.getPossibleTypes(gatewayType)) {
+      const { fields: subFieldNodesOfPossibleType } = collectSubFields(
+        schema,
+        fragments,
+        variableValues,
+        possibleType,
+        fieldNodes,
+      );
+
+      for (const [responseKey, subFieldNodes] of subFieldNodesOfPossibleType) {
+        const existingSubFieldNodes = subFieldNodesByResponseKey.get(responseKey);
+        if (existingSubFieldNodes) {
+          existingSubFieldNodes.push(...subFieldNodes);
+        } else {
+          subFieldNodesByResponseKey.set(responseKey, subFieldNodes);
+        }
+      }
+    }
+  }
+
   // TODO: Verify whether it is safe that extensions always exists.
   const fieldNodesByField = stitchingInfo?.fieldNodesByField;
   const shouldAdd = (fieldType: GraphQLNamedOutputType, selection: FieldNode) =>
@@ -34,9 +64,9 @@ export function getFieldsNotInSubschema(
 
   const fields = subschemaType.getFields();
 
-  const fieldsNotInSchema = new Set<FieldNode>();
   for (const [, subFieldNodes] of subFieldNodesByResponseKey) {
     const fieldName = subFieldNodes[0].name.value;
+
     if (!fields[fieldName]) {
       for (const subFieldNode of subFieldNodes) {
         fieldsNotInSchema.add(subFieldNode);
@@ -77,7 +107,6 @@ export function getFieldsNotInSubschema(
       });
     }
   }
-
   return Array.from(fieldsNotInSchema);
 }
 

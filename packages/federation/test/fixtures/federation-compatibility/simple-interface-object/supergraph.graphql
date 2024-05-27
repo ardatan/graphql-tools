@@ -22,9 +22,11 @@ directive @link(url: String, as: String, for: link__Purpose, import: [link__Impo
 interface Account
   @join__type(graph: A, key: "id")
   @join__type(graph: B, key: "id", isInterfaceObject: true)
+  @join__type(graph: C, key: "id", isInterfaceObject: true)
 {
   id: ID!
   name: String! @join__field(graph: B)
+  isActive: Boolean! @join__field(graph: C)
 }
 
 type Admin implements Account
@@ -33,6 +35,7 @@ type Admin implements Account
 {
   id: ID!
   isMain: Boolean!
+  isActive: Boolean!
   name: String! @join__field
 }
 
@@ -41,6 +44,7 @@ scalar join__FieldSet
 enum join__Graph {
   A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/simple-interface-object/a")
   B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/simple-interface-object/b")
+  C @join__graph(name: "c", url: "https://federation-compatibility.the-guild.dev/simple-interface-object/c")
 }
 
 scalar link__Import
@@ -69,10 +73,21 @@ interface NodeWithName
 type Query
   @join__type(graph: A)
   @join__type(graph: B)
+  @join__type(graph: C)
 {
   users: [NodeWithName!]! @join__field(graph: A)
   anotherUsers: [NodeWithName] @join__field(graph: B)
   accounts: [Account] @join__field(graph: B)
+}
+
+type Regular implements Account
+  @join__implements(graph: A, interface: "Account")
+  @join__type(graph: A, key: "id")
+{
+  id: ID!
+  isMain: Boolean!
+  name: String! @join__field
+  isActive: Boolean! @join__field
 }
 
 type User implements NodeWithName

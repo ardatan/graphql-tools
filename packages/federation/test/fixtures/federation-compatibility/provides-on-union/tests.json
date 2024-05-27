@@ -14,7 +14,7 @@
         ]
       }
     },
-    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          media {\n            __typename\n            ... on Book {\n              id\n              title\n            }\n            ... on Movie {\n              id\n            }\n          }\n        }\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          media {\n            __typename\n            ... on Book {\n              id\n              # NOTE\n              # Book.title is provided by Query.media in subgraph B\n              # so there's no need to do any extra fetching.\n              title\n            }\n            ... on Movie {\n              id\n            }\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        media {\n          ... on Book {\n            id\n            title\n          }\n          ... on Movie {\n            id\n            title\n          }\n        }\n      }\n    ",
@@ -32,6 +32,6 @@
         ]
       }
     },
-    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            media {\n              __typename\n              ... on Book {\n                id\n                title\n              }\n              ... on Movie {\n                __typename\n                id\n              }\n            }\n          }\n        },\n        Flatten(path: \"media.@\") {\n          Fetch(service: \"c\") {\n            {\n              ... on Movie {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Movie {\n                title\n              }\n            }\n          },\n        },\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            media {\n              __typename\n              ... on Book {\n                id\n                # NOTE\n                # Book.title is provided by Query.media in subgraph B\n                title\n              }\n              ... on Movie {\n                __typename\n                # Movie.title is not available in subgraph B\n                id\n              }\n            }\n          }\n        },\n        Flatten(path: \"media.@\") {\n          Fetch(service: \"c\") {\n            {\n              ... on Movie {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on Movie {\n                # so we fetch Movie.title from subgraph C\n                title\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

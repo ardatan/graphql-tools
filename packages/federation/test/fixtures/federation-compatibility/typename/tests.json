@@ -79,6 +79,6 @@
         ]
       }
     },
-    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            users {\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"users.@\") {\n          Fetch(service: \"a\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                __typename\n              }\n            }\n          },\n        },\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Sequence {\n        Fetch(service: \"b\") {\n          {\n            # NOTE\n            # it starts here, with an @interfaceObject\n            users {\n              # @interfaceObject cannot resolve correct __typename as it's an object type that mimics an interface\n              __typename\n              id\n            }\n          }\n        },\n        Flatten(path: \"users.@\") {\n          Fetch(service: \"a\") {\n            {\n              ... on User {\n                __typename\n                id\n              }\n            } =>\n            {\n              ... on User {\n                # NOTE\n                # that's why it needs to be resolved in subgraph A (via entity call), in the actual object type\n                __typename\n              }\n            }\n          },\n        },\n      },\n    }\n    "
   }
 ]

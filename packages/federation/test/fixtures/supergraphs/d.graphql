@@ -28,6 +28,7 @@ type Mutation {
 
 type Query {
   getAuthor: ReactionAuthor @join__field(graph: PB_BACKEND)
+  node(id: ID!): Node @join__field(graph: NODERESOLVER)
 }
 
 scalar Url @specifiedBy(url: "https://datatracker.ietf.org/doc/html/rfc1738")
@@ -76,10 +77,6 @@ union Mentionable = ReactionAuthor | OwnerChangedNotification
 interface Board {
   id: ID!
   isVisible: Boolean!
-}
-
-type Query {
-  node(id: ID!): Node @join__field(graph: NODERESOLVER)
 }
 
 interface SomeBoard {

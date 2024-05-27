@@ -4,7 +4,8 @@
     "expected": {
       "errors": true,
       "data": null
-    }
+    },
+    "plan": "\n      # NOTE\n      # The query planner fails to find a resolvable query path to the Query.node.id.\n      # Query.node in subgraph A can't resolve Chat.id, because it's @external\n      # Query.node in subgraph B can't resolve Account.id, because it's @external\n      # Supergraph was composed by the composition library, but it's impossible to resolve the query.\n      # A query planner should be able to detect this and return an error.\n    "
   },
   {
     "query": "\n      query {\n        account: node(id: \"a1\") {\n          __typename\n        }\n        chat: node(id: \"c1\") {\n          __typename\n        }\n      }\n    ",

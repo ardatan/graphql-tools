@@ -19,7 +19,7 @@
         ]
       }
     },
-    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          products {\n            __typename\n            ... on Oven {\n              id\n            }\n            ... on Toaster {\n              id\n            }\n          }\n        }\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          products {\n            __typename\n            # NOTE\n            # not sure to be honest why it converts ...Node to ...Over and ...Toaster\n            ... on Oven {\n              id\n            }\n            ... on Toaster {\n              id\n            }\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        nodes {\n          ... on Toaster {\n            warranty\n          }\n          ... on Oven {\n            id\n          }\n        }\n      }\n    ",
@@ -35,7 +35,7 @@
         ]
       }
     },
-    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          nodes {\n            __typename\n            ... on Toaster {\n              warranty\n            }\n          }\n        }\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          nodes {\n            __typename\n            # NOTE\n            # It drops ...Over from the query as it does not implement Node interface in subgraph A\n            # and Query.nodes resolves [Node]\n            ... on Toaster {\n              warranty\n            }\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        nodes {\n          id\n        }\n      }\n    ",
@@ -69,7 +69,7 @@
         ]
       }
     },
-    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          toasters {\n            __typename\n            id\n          }\n        }\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          toasters {\n            # NOTE\n            # It merges selection sets from fragments\n            # to optimize the payload size I guess\n            __typename\n            id\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        node(id: \"oven1\") {\n          ... on Oven {\n            warranty\n          }\n        }\n      }\n    ",
@@ -79,7 +79,7 @@
       },
       "errors": true
     },
-    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          node(id: \"oven1\") {\n            __typename\n          }\n        }\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          node(id: \"oven1\") {\n            # NOTE\n            # It knows that Over is not implemented in subgraph A\n            # but it still sends the query to subgraph A.\n            # Not sure why it does that, it could be prevented by the gateway.\n            # It's really not spec complaint to have an interface in GraphQL API without any implementation.\n            # I know Arda had a case where a Java implementation allowed for that, but that's incorrect...\n            __typename\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        node(id: \"oven1\") {\n          ... on Toaster {\n            warranty\n          }\n        }\n      }\n    ",

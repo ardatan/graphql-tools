@@ -4,6 +4,7 @@ import {
   GraphQLObjectType,
   GraphQLResolveInfo,
   GraphQLSchema,
+  isAbstractType,
   locatedError,
   responsePathAsArray,
   SelectionSetNode,
@@ -99,11 +100,15 @@ export function mergeFields<TContext>(
     return executeFn();
   }, undefined);
 
-  if (isPromise(res$)) {
-    return res$.then(() => object);
+  function handleDelegationPlanResult() {
+    return object;
   }
 
-  return object;
+  if (isPromise(res$)) {
+    return res$.then(handleDelegationPlanResult);
+  }
+
+  return handleDelegationPlanResult();
 }
 
 export function handleResolverResult(
@@ -149,6 +154,13 @@ export function handleResolverResult(
     }
     const existingPropValue = object[responseKey];
     const sourcePropValue = resolverResult[responseKey];
+    if (
+      responseKey === '__typename' &&
+      existingPropValue !== sourcePropValue &&
+      isAbstractType(subschema.transformedSchema.getType(sourcePropValue))
+    ) {
+      continue;
+    }
     if (sourcePropValue != null || existingPropValue == null) {
       if (
         existingPropValue != null &&

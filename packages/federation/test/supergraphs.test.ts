@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { buildSchema, lexicographicSortSchema, printSchema, versionInfo } from 'graphql';
-import { filterSchema, getDirective, pruneSchema } from '@graphql-tools/utils';
+import { filterSchema, getDirective } from '@graphql-tools/utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 
 describe('Supergraphs', () => {
@@ -21,23 +21,19 @@ describe('Supergraphs', () => {
         const sortedInputSchema = lexicographicSortSchema(
           buildSchema(supergraphSdl, { noLocation: true, assumeValid: true, assumeValidSDL: true }),
         );
-        const filteredInputSchema = pruneSchema(
-          filterSchema({
-            schema: sortedInputSchema,
-            typeFilter: typeName =>
-              !typeName.startsWith('link__') &&
-              !typeName.startsWith('join__') &&
-              !typeName.startsWith('core__'),
-            fieldFilter: (_, __, fieldConfig) =>
-              !getDirective(sortedInputSchema, fieldConfig, 'inaccessible')?.length,
-            directiveFilter: () => false,
-            enumValueFilter: (_, __, enumValueConfig) =>
-              !getDirective(sortedInputSchema, enumValueConfig, 'inaccessible')?.length,
-          }),
-        );
-        expect(printSchema(pruneSchema(sortedSchema)).trim()).toBe(
-          printSchema(filteredInputSchema).trim(),
-        );
+        const filteredInputSchema = filterSchema({
+          schema: sortedInputSchema,
+          typeFilter: typeName =>
+            !typeName.startsWith('link__') &&
+            !typeName.startsWith('join__') &&
+            !typeName.startsWith('core__'),
+          fieldFilter: (_, __, fieldConfig) =>
+            !getDirective(sortedInputSchema, fieldConfig, 'inaccessible')?.length,
+          directiveFilter: () => false,
+          enumValueFilter: (_, __, enumValueConfig) =>
+            !getDirective(sortedInputSchema, enumValueConfig, 'inaccessible')?.length,
+        });
+        expect(printSchema(sortedSchema).trim()).toBe(printSchema(filteredInputSchema).trim());
       });
     });
   });

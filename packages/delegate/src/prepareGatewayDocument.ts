@@ -3,6 +3,7 @@ import {
   FieldNode,
   FragmentDefinitionNode,
   getNamedType,
+  GraphQLNamedOutputType,
   GraphQLNamedType,
   GraphQLOutputType,
   GraphQLSchema,
@@ -70,6 +71,24 @@ export function prepareGatewayDocument(
                   },
                 },
               });
+            }
+          }
+          const typeInSubschema = transformedSchema.getType(typeName);
+          if (!typeInSubschema) {
+            for (const selection of selectionNode.selectionSet.selections) {
+              newSelections.push(selection);
+            }
+          }
+          if (typeInSubschema && 'getFields' in typeInSubschema) {
+            const fieldMap = typeInSubschema.getFields();
+            for (const selection of selectionNode.selectionSet.selections) {
+              if (selection.kind === Kind.FIELD) {
+                const fieldName = selection.name.value;
+                const field = fieldMap[fieldName];
+                if (!field) {
+                  newSelections.push(selection);
+                }
+              }
             }
           }
         }
@@ -180,6 +199,12 @@ function visitSelectionSet(
           const possibleTypes = possibleTypesMap[selection.typeCondition.name.value];
 
           if (possibleTypes == null) {
+            const fieldNodesForTypeName = fieldNodesByField[parentTypeName]?.['__typename'];
+            if (fieldNodesForTypeName) {
+              for (const fieldNode of fieldNodesForTypeName) {
+                newSelections.add(fieldNode);
+              }
+            }
             newSelections.add(selection);
             continue;
           }
@@ -192,6 +217,10 @@ function visitSelectionSet(
             ) {
               newSelections.add(generateInlineFragment(possibleTypeName, selection.selectionSet));
             }
+          }
+
+          if (possibleTypes.length === 0) {
+            newSelections.add(selection);
           }
         }
       } else if (selection.kind === Kind.FRAGMENT_SPREAD) {
@@ -222,8 +251,17 @@ function visitSelectionSet(
       } else {
         const fieldName = selection.name.value;
         let skipAddingDependencyNodes = false;
+
         // TODO: Optimization to prevent extra fields to the subgraph
-        if (isObjectType(parentType) || isInterfaceType(parentType)) {
+        if (isAbstractType(parentType)) {
+          skipAddingDependencyNodes = false;
+          const fieldNodesForTypeName = fieldNodesByField[parentTypeName]?.['__typename'];
+          if (fieldNodesForTypeName) {
+            for (const fieldNode of fieldNodesForTypeName) {
+              newSelections.add(fieldNode);
+            }
+          }
+        } else if (isObjectType(parentType) || isInterfaceType(parentType)) {
           const fieldMap = parentType.getFields();
           const field = fieldMap[fieldName];
           if (field) {
@@ -231,8 +269,10 @@ function visitSelectionSet(
             skipAddingDependencyNodes = unavailableFields.length === 0;
           }
         }
+
         if (!skipAddingDependencyNodes) {
           const fieldNodes = fieldNodesByField[parentTypeName]?.[fieldName];
+
           if (fieldNodes != null) {
             for (const fieldNode of fieldNodes) {
               newSelections.add(fieldNode);
@@ -470,9 +510,14 @@ function wrapConcreteTypes(
   if (isLeafType(namedType)) {
     return document;
   }
-  const possibleTypes = isAbstractType(namedType)
+
+  let possibleTypes: readonly GraphQLNamedOutputType[] = isAbstractType(namedType)
     ? targetSchema.getPossibleTypes(namedType)
     : [namedType];
+
+  if (possibleTypes.length === 0) {
+    possibleTypes = [namedType];
+  }
 
   const rootTypeNames = getRootTypeNames(targetSchema);
 

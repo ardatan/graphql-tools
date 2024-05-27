@@ -51,8 +51,13 @@ export function getKeyFnForFederation(typeName: string, keys: string[]) {
   if (keys.some(key => key.includes('{'))) {
     const parsedSelectionSet = parseSelectionSet(`{${keys.join(' ')}}`, { noLocation: true });
     return function keyFn(root: any) {
-      root.__typename ||= typeName;
-      return projectDataSelectionSet(root, parsedSelectionSet);
+      return projectDataSelectionSet(
+        {
+          __typename: typeName,
+          ...root,
+        },
+        parsedSelectionSet,
+      );
     };
   }
   const allKeyProps = keys.flatMap(key => key.split(' ')).map(key => key.trim());
@@ -60,17 +65,19 @@ export function getKeyFnForFederation(typeName: string, keys: string[]) {
     return function keyFn(root: any) {
       return allKeyProps.reduce(
         (prev, key) => {
-          prev[key] = root[key];
+          if (key !== '__typename') {
+            prev[key] = root[key];
+          }
           return prev;
         },
-        { __typename: root['__typename'] || typeName },
+        { __typename: typeName },
       );
     };
   }
   const keyProp = allKeyProps[0];
   return function keyFn(root: any) {
     return {
-      __typename: root['__typename'] || typeName,
+      __typename: typeName,
       [keyProp]: root[keyProp],
     };
   };
@@ -95,14 +102,27 @@ export function getCacheKeyFnFromKey(key: string) {
   };
 }
 
-const internalTypeNames = ['_Entity', '_Any', '_FieldSet', '_Service'];
+const internalTypeNames = ['_Entity', '_Any', '_FieldSet', '_Service', 'link', 'inaccessible'];
 
 export function filterInternalFieldsAndTypes(finalSchema: GraphQLSchema) {
   return mapSchema(finalSchema, {
+    [MapperKind.DIRECTIVE]: directive => {
+      if (
+        internalTypeNames.includes(directive.name) ||
+        directive.name.startsWith('link__') ||
+        directive.name.startsWith('join__') ||
+        directive.name.startsWith('core__')
+      ) {
+        return null;
+      }
+      return directive;
+    },
     [MapperKind.TYPE]: type => {
       if (
         internalTypeNames.includes(type.name) ||
         type.name.startsWith('link__') ||
+        type.name.startsWith('join__') ||
+        type.name.startsWith('core__') ||
         type.astNode?.directives?.some(d => d.name.value === 'inaccessible')
       ) {
         return null;

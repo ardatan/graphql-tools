@@ -1,12 +1,9 @@
 schema
   @link(url: "https://specs.apollo.dev/link/v1.0")
   @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION)
-  @link(url: "https://specs.apollo.dev/inaccessible/v0.2", for: SECURITY)
 {
   query: Query
 }
-
-directive @inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
 
 directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
 
@@ -25,8 +22,8 @@ directive @link(url: String, as: String, for: link__Purpose, import: [link__Impo
 scalar join__FieldSet
 
 enum join__Graph {
-  A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/enum-intersection/a")
-  B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/enum-intersection/b")
+  A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/fed1-external-extends-resolvable/a")
+  B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/fed1-external-extends-resolvable/b")
 }
 
 scalar link__Import
@@ -43,27 +40,22 @@ enum link__Purpose {
   EXECUTION
 }
 
+type Product
+  @join__type(graph: A, key: "id")
+  @join__type(graph: B, key: "id name")
+  @join__type(graph: B, key: "upc")
+{
+  id: ID @join__field(graph: A, type: "ID!") @join__field(graph: B, type: "ID")
+  name: String
+  pid: ID @join__field(graph: A)
+  upc: String @join__field(graph: B)
+  price: Float! @join__field(graph: B)
+}
+
 type Query
   @join__type(graph: A)
   @join__type(graph: B)
 {
-  users: [User] @join__field(graph: A)
-  usersByType(type: UserType!): [User!] @join__field(graph: B)
-  usersB: [User!] @join__field(graph: B)
-}
-
-type User
-  @join__type(graph: A, key: "id")
-  @join__type(graph: B, key: "id", extension: true)
-{
-  id: ID
-  type: UserType
-}
-
-enum UserType
-  @join__type(graph: A)
-  @join__type(graph: B)
-{
-  REGULAR @join__enumValue(graph: A) @join__enumValue(graph: B)
-  ANONYMOUS @inaccessible @join__enumValue(graph: B)
+  productInA: Product @join__field(graph: A)
+  productInB: Product @join__field(graph: B)
 }

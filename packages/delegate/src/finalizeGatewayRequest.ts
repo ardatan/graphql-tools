@@ -443,6 +443,12 @@ function finalizeSelectionSet(
           if (node.typeCondition != null) {
             const parentType = typeInfo.getParentType();
             const innerType = schema.getType(node.typeCondition.name.value);
+            if (
+              isUnionType(parentType) &&
+              parentType.getTypes().some(t => t.name === innerType?.name)
+            ) {
+              return node;
+            }
             if (!implementsAbstractType(schema, parentType, innerType)) {
               return null;
             }
