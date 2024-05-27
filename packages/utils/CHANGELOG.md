@@ -1,55 +1,86 @@
 # @graphql-tools/utils
 
+## 10.2.1
+
+### Patch Changes
+
+- [#6194](https://github.com/ardatan/graphql-tools/pull/6194)
+  [`7368829`](https://github.com/ardatan/graphql-tools/commit/73688291af0c8cb2fe550fe8c74fd8af84cb360f)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle interface objects in a different way
+
+- [#6188](https://github.com/ardatan/graphql-tools/pull/6188)
+  [`e10c13a`](https://github.com/ardatan/graphql-tools/commit/e10c13a60e344b9217dc77a7cac50ec447feda7e)
+  Thanks [@ardatan](https://github.com/ardatan)! - Add `respectArrayLength` flag to `mergeDeep` so
+  instead of concatenating the arrays, elements of them will be merged if they have the same length
+
 ## 10.2.0
 
 ### Minor Changes
 
-- [#6105](https://github.com/ardatan/graphql-tools/pull/6105) [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95) Thanks [@ardatan](https://github.com/ardatan)! - Add `enumValueFilter` and `directiveFilter` to `filterSchema`
+- [#6105](https://github.com/ardatan/graphql-tools/pull/6105)
+  [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95)
+  Thanks [@ardatan](https://github.com/ardatan)! - Add `enumValueFilter` and `directiveFilter` to
+  `filterSchema`
 
 ### Patch Changes
 
-- [#6105](https://github.com/ardatan/graphql-tools/pull/6105) [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95) Thanks [@ardatan](https://github.com/ardatan)! - Handle fields in unmerged types as both isolated and non-isolated fields
+- [#6105](https://github.com/ardatan/graphql-tools/pull/6105)
+  [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle fields in unmerged types as both isolated
+  and non-isolated fields
 
 ## 10.1.3
 
 ### Patch Changes
 
-- [#6055](https://github.com/ardatan/graphql-tools/pull/6055) [`4093f70`](https://github.com/ardatan/graphql-tools/commit/4093f7043a195fda1f2f8315e3cb1d4d05723415) Thanks [@enisdenjo](https://github.com/enisdenjo)! - Disallow new lines in paths when checking with `isValidPath`
+- [#6055](https://github.com/ardatan/graphql-tools/pull/6055)
+  [`4093f70`](https://github.com/ardatan/graphql-tools/commit/4093f7043a195fda1f2f8315e3cb1d4d05723415)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - Disallow new lines in paths when checking
+  with `isValidPath`
 
-  A string may sometimes look like a path but is not (like an SDL of a simple
-  GraphQL schema). To make sure we don't yield false-positives in such cases,
-  we disallow new lines in paths (even though most Unix systems support new
-  lines in file names).
+  A string may sometimes look like a path but is not (like an SDL of a simple GraphQL schema). To
+  make sure we don't yield false-positives in such cases, we disallow new lines in paths (even
+  though most Unix systems support new lines in file names).
 
 ## 10.1.2
 
 ### Patch Changes
 
-- [`fff2399`](https://github.com/ardatan/graphql-tools/commit/fff2399fc42cdf41d88925fe1f6681c68f002846) Thanks [@ardatan](https://github.com/ardatan)! - Respect `toJSON` in `astFromValueUntyped`
+- [`fff2399`](https://github.com/ardatan/graphql-tools/commit/fff2399fc42cdf41d88925fe1f6681c68f002846)
+  Thanks [@ardatan](https://github.com/ardatan)! - Respect `toJSON` in `astFromValueUntyped`
 
 ## 10.1.1
 
 ### Patch Changes
 
-- [#5931](https://github.com/ardatan/graphql-tools/pull/5931) [`baf3c28`](https://github.com/ardatan/graphql-tools/commit/baf3c28f43dcfafffd15386daeb153bc2895c1b3) Thanks [@henryqdineen](https://github.com/henryqdineen)! - fix filterSchema argument filter for schema with non-default root types
+- [#5931](https://github.com/ardatan/graphql-tools/pull/5931)
+  [`baf3c28`](https://github.com/ardatan/graphql-tools/commit/baf3c28f43dcfafffd15386daeb153bc2895c1b3)
+  Thanks [@henryqdineen](https://github.com/henryqdineen)! - fix filterSchema argument filter for
+  schema with non-default root types
 
 ## 10.1.0
 
 ### Minor Changes
 
-- [#5924](https://github.com/ardatan/graphql-tools/pull/5924) [`f3ea7a5`](https://github.com/ardatan/graphql-tools/commit/f3ea7a59eecd40ba3928317aee159c79aa93e29e) Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Add `onEnd` on `mapAsyncIterator`.
+- [#5924](https://github.com/ardatan/graphql-tools/pull/5924)
+  [`f3ea7a5`](https://github.com/ardatan/graphql-tools/commit/f3ea7a59eecd40ba3928317aee159c79aa93e29e)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Add `onEnd` on `mapAsyncIterator`.
 
 ## 10.0.13
 
 ### Patch Changes
 
-- [#5795](https://github.com/ardatan/graphql-tools/pull/5795) [`f85c093`](https://github.com/ardatan/graphql-tools/commit/f85c093a8dd033efc613b93c25d15cfb0c2df7d3) Thanks [@shYkiSto](https://github.com/shYkiSto)! - prevent race conditions when validating documents
+- [#5795](https://github.com/ardatan/graphql-tools/pull/5795)
+  [`f85c093`](https://github.com/ardatan/graphql-tools/commit/f85c093a8dd033efc613b93c25d15cfb0c2df7d3)
+  Thanks [@shYkiSto](https://github.com/shYkiSto)! - prevent race conditions when validating
+  documents
 
 ## 10.0.12
 
 ### Patch Changes
 
-- [`5ae0394`](https://github.com/ardatan/graphql-tools/commit/5ae039445b07fd11dea1f2b5a6a4154ad4f2a6ab) Thanks [@ardatan](https://github.com/ardatan)! - Print comments as blocks
+- [`5ae0394`](https://github.com/ardatan/graphql-tools/commit/5ae039445b07fd11dea1f2b5a6a4154ad4f2a6ab)
+  Thanks [@ardatan](https://github.com/ardatan)! - Print comments as blocks
 
 ## 10.0.11
 
@@ -858,7 +889,7 @@
 
   ```js
   {
-    mydir: [{ arg: "first" }, { arg: "second" }];
+    mydir: [{ arg: 'first' }, { arg: 'second' }]
   }
   ```
 

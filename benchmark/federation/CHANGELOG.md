@@ -1,10 +1,30 @@
 # federation-benchmark
 
+## 0.0.140
+
+### Patch Changes
+
+- Updated dependencies
+  [[`7368829`](https://github.com/ardatan/graphql-tools/commit/73688291af0c8cb2fe550fe8c74fd8af84cb360f),
+  [`0134f7f`](https://github.com/ardatan/graphql-tools/commit/0134f7ffe5383603961d69337bfa5bceefb3ed74),
+  [`eec9d3d`](https://github.com/ardatan/graphql-tools/commit/eec9d3d86a1a0a748321263ef9bc4db13fd3c35c),
+  [`03a47b1`](https://github.com/ardatan/graphql-tools/commit/03a47b181516e17f33c84f364df9482c2d1ba502),
+  [`dfccfbf`](https://github.com/ardatan/graphql-tools/commit/dfccfbfd6633dd576f660c648f3c6cecff3667a1),
+  [`e10c13a`](https://github.com/ardatan/graphql-tools/commit/e10c13a60e344b9217dc77a7cac50ec447feda7e),
+  [`e10c13a`](https://github.com/ardatan/graphql-tools/commit/e10c13a60e344b9217dc77a7cac50ec447feda7e),
+  [`0827497`](https://github.com/ardatan/graphql-tools/commit/08274975ccb1524d88fc8b95f42deb1cba05425d)]:
+  - @graphql-tools/federation@1.1.36
+  - @graphql-tools/stitch@9.2.9
+
 ## 0.0.139
 
 ### Patch Changes
 
-- Updated dependencies [[`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4), [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65), [`cd962c1`](https://github.com/ardatan/graphql-tools/commit/cd962c1048b21c0a6f91c943860089b050ac5f5e), [`04d5431`](https://github.com/ardatan/graphql-tools/commit/04d5431deccc42d75b6ae2ae8ed941dac4c3679a)]:
+- Updated dependencies
+  [[`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4),
+  [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65),
+  [`cd962c1`](https://github.com/ardatan/graphql-tools/commit/cd962c1048b21c0a6f91c943860089b050ac5f5e),
+  [`04d5431`](https://github.com/ardatan/graphql-tools/commit/04d5431deccc42d75b6ae2ae8ed941dac4c3679a)]:
   - @graphql-tools/stitch@9.2.8
   - @graphql-tools/federation@1.1.35
 
@@ -12,21 +32,24 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`508ae6b`](https://github.com/ardatan/graphql-tools/commit/508ae6bbe36248926b58719d71042c4d608782a1)]:
+- Updated dependencies
+  [[`508ae6b`](https://github.com/ardatan/graphql-tools/commit/508ae6bbe36248926b58719d71042c4d608782a1)]:
   - @graphql-tools/federation@1.1.34
 
 ## 0.0.137
 
 ### Patch Changes
 
-- Updated dependencies [[`361052a`](https://github.com/ardatan/graphql-tools/commit/361052a5fcc7f3bb00092efa3efd5767b9ac1ee6)]:
+- Updated dependencies
+  [[`361052a`](https://github.com/ardatan/graphql-tools/commit/361052a5fcc7f3bb00092efa3efd5767b9ac1ee6)]:
   - @graphql-tools/federation@1.1.33
 
 ## 0.0.136
 
 ### Patch Changes
 
-- Updated dependencies [[`680351e`](https://github.com/ardatan/graphql-tools/commit/680351ee2af39ffd6b4b0048a28954d0d4b8a926)]:
+- Updated dependencies
+  [[`680351e`](https://github.com/ardatan/graphql-tools/commit/680351ee2af39ffd6b4b0048a28954d0d4b8a926)]:
   - @graphql-tools/federation@1.1.32
   - @graphql-tools/stitch@9.2.7
 
@@ -34,7 +57,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`98b2795`](https://github.com/ardatan/graphql-tools/commit/98b2795120e05dec1d91b57422f50d38c088b630)]:
+- Updated dependencies
+  [[`98b2795`](https://github.com/ardatan/graphql-tools/commit/98b2795120e05dec1d91b57422f50d38c088b630)]:
   - @graphql-tools/federation@1.1.31
   - @graphql-tools/stitch@9.2.6
 
@@ -42,7 +66,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`9238e14`](https://github.com/ardatan/graphql-tools/commit/9238e140862d33c6df072c42054fc642eda37840)]:
+- Updated dependencies
+  [[`9238e14`](https://github.com/ardatan/graphql-tools/commit/9238e140862d33c6df072c42054fc642eda37840)]:
   - @graphql-tools/federation@1.1.30
   - @graphql-tools/stitch@9.2.5
 
@@ -50,14 +75,17 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`67a9c49`](https://github.com/ardatan/graphql-tools/commit/67a9c4909b7676b69c4b425ab1a6cd5533c799ef)]:
+- Updated dependencies
+  [[`67a9c49`](https://github.com/ardatan/graphql-tools/commit/67a9c4909b7676b69c4b425ab1a6cd5533c799ef)]:
   - @graphql-tools/stitch@9.2.4
 
 ## 0.0.132
 
 ### Patch Changes
 
-- Updated dependencies [[`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa), [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa)]:
+- Updated dependencies
+  [[`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa),
+  [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa)]:
   - @graphql-tools/federation@1.1.29
   - @graphql-tools/stitch@9.2.3
 
@@ -65,21 +93,27 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`b281dd6`](https://github.com/ardatan/graphql-tools/commit/b281dd65276dd9df56a41cc2dbff5139281f02f9)]:
+- Updated dependencies
+  [[`b281dd6`](https://github.com/ardatan/graphql-tools/commit/b281dd65276dd9df56a41cc2dbff5139281f02f9)]:
   - @graphql-tools/stitch@9.2.2
 
 ## 0.0.130
 
 ### Patch Changes
 
-- Updated dependencies [[`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95), [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95)]:
+- Updated dependencies
+  [[`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95),
+  [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95)]:
   - @graphql-tools/stitch@9.2.1
 
 ## 0.0.129
 
 ### Patch Changes
 
-- Updated dependencies [[`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4), [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4), [`243c353`](https://github.com/ardatan/graphql-tools/commit/243c353412921cf0063f963ee46b9c63d2f33b41)]:
+- Updated dependencies
+  [[`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4),
+  [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4),
+  [`243c353`](https://github.com/ardatan/graphql-tools/commit/243c353412921cf0063f963ee46b9c63d2f33b41)]:
   - @graphql-tools/stitch@9.2.0
   - @graphql-tools/federation@1.1.28
 
@@ -87,98 +121,113 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`f538e50`](https://github.com/ardatan/graphql-tools/commit/f538e503c3cdb152bd29f77804217100cac0f648)]:
+- Updated dependencies
+  [[`f538e50`](https://github.com/ardatan/graphql-tools/commit/f538e503c3cdb152bd29f77804217100cac0f648)]:
   - @graphql-tools/federation@1.1.27
 
 ## 0.0.127
 
 ### Patch Changes
 
-- Updated dependencies [[`6d26702`](https://github.com/ardatan/graphql-tools/commit/6d267022eaf4b695b3791927912375f1b1d0f3a8)]:
+- Updated dependencies
+  [[`6d26702`](https://github.com/ardatan/graphql-tools/commit/6d267022eaf4b695b3791927912375f1b1d0f3a8)]:
   - @graphql-tools/stitch@9.1.2
 
 ## 0.0.126
 
 ### Patch Changes
 
-- Updated dependencies [[`c5df958`](https://github.com/ardatan/graphql-tools/commit/c5df95858c5b5a57a232740e8e4b667ce5d2da2c)]:
+- Updated dependencies
+  [[`c5df958`](https://github.com/ardatan/graphql-tools/commit/c5df95858c5b5a57a232740e8e4b667ce5d2da2c)]:
   - @graphql-tools/stitch@9.1.1
 
 ## 0.0.125
 
 ### Patch Changes
 
-- Updated dependencies [[`6cf507f`](https://github.com/ardatan/graphql-tools/commit/6cf507fc70d2474c71c8604ab117d01af76376e1)]:
+- Updated dependencies
+  [[`6cf507f`](https://github.com/ardatan/graphql-tools/commit/6cf507fc70d2474c71c8604ab117d01af76376e1)]:
   - @graphql-tools/federation@1.1.26
 
 ## 0.0.124
 
 ### Patch Changes
 
-- Updated dependencies [[`27b6f49`](https://github.com/ardatan/graphql-tools/commit/27b6f49c67d4b3fca26d90dcaaef37ff61fe9d0a)]:
+- Updated dependencies
+  [[`27b6f49`](https://github.com/ardatan/graphql-tools/commit/27b6f49c67d4b3fca26d90dcaaef37ff61fe9d0a)]:
   - @graphql-tools/stitch@9.1.0
 
 ## 0.0.123
 
 ### Patch Changes
 
-- Updated dependencies [[`e09c383`](https://github.com/ardatan/graphql-tools/commit/e09c383a540f84f56db141466b711f88fce8548d)]:
+- Updated dependencies
+  [[`e09c383`](https://github.com/ardatan/graphql-tools/commit/e09c383a540f84f56db141466b711f88fce8548d)]:
   - @graphql-tools/federation@1.1.25
 
 ## 0.0.122
 
 ### Patch Changes
 
-- Updated dependencies [[`458ef46`](https://github.com/ardatan/graphql-tools/commit/458ef46536db003edc399587feabfcee7b186830)]:
+- Updated dependencies
+  [[`458ef46`](https://github.com/ardatan/graphql-tools/commit/458ef46536db003edc399587feabfcee7b186830)]:
   - @graphql-tools/federation@1.1.24
 
 ## 0.0.121
 
 ### Patch Changes
 
-- Updated dependencies [[`2202768`](https://github.com/ardatan/graphql-tools/commit/220276800d271e7c6fbc43339eb779b618c82e68)]:
+- Updated dependencies
+  [[`2202768`](https://github.com/ardatan/graphql-tools/commit/220276800d271e7c6fbc43339eb779b618c82e68)]:
   - @graphql-tools/federation@1.1.23
 
 ## 0.0.120
 
 ### Patch Changes
 
-- Updated dependencies [[`4620bb2`](https://github.com/ardatan/graphql-tools/commit/4620bb2a352fd0e645950aaae8bb54cbc7c85ce7)]:
+- Updated dependencies
+  [[`4620bb2`](https://github.com/ardatan/graphql-tools/commit/4620bb2a352fd0e645950aaae8bb54cbc7c85ce7)]:
   - @graphql-tools/federation@1.1.22
 
 ## 0.0.119
 
 ### Patch Changes
 
-- Updated dependencies [[`14f4fae`](https://github.com/ardatan/graphql-tools/commit/14f4faec87b1423c5541dab16dc2c5c1298edcf7)]:
+- Updated dependencies
+  [[`14f4fae`](https://github.com/ardatan/graphql-tools/commit/14f4faec87b1423c5541dab16dc2c5c1298edcf7)]:
   - @graphql-tools/federation@1.1.21
 
 ## 0.0.118
 
 ### Patch Changes
 
-- Updated dependencies [[`b78ce7e`](https://github.com/ardatan/graphql-tools/commit/b78ce7e42c8d016d972b125a86508f5ab78d57a6)]:
+- Updated dependencies
+  [[`b78ce7e`](https://github.com/ardatan/graphql-tools/commit/b78ce7e42c8d016d972b125a86508f5ab78d57a6)]:
   - @graphql-tools/federation@1.1.20
 
 ## 0.0.117
 
 ### Patch Changes
 
-- Updated dependencies [[`d4395dd`](https://github.com/ardatan/graphql-tools/commit/d4395dd7d21db3becdf51cc0508e35d246dcbe1e)]:
+- Updated dependencies
+  [[`d4395dd`](https://github.com/ardatan/graphql-tools/commit/d4395dd7d21db3becdf51cc0508e35d246dcbe1e)]:
   - @graphql-tools/federation@1.1.19
 
 ## 0.0.116
 
 ### Patch Changes
 
-- Updated dependencies [[`107c021`](https://github.com/ardatan/graphql-tools/commit/107c021aa191f0654c45ed72b45d650993e2142f)]:
+- Updated dependencies
+  [[`107c021`](https://github.com/ardatan/graphql-tools/commit/107c021aa191f0654c45ed72b45d650993e2142f)]:
   - @graphql-tools/federation@1.1.18
 
 ## 0.0.115
 
 ### Patch Changes
 
-- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+- Updated dependencies
+  [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
   - @graphql-tools/federation@1.1.17
   - @graphql-tools/stitch@9.0.5
 
@@ -186,35 +235,40 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`7f606ea`](https://github.com/ardatan/graphql-tools/commit/7f606ea4da035b220319fb702d6a2c9d5e5d35e9)]:
+- Updated dependencies
+  [[`7f606ea`](https://github.com/ardatan/graphql-tools/commit/7f606ea4da035b220319fb702d6a2c9d5e5d35e9)]:
   - @graphql-tools/stitch@9.0.4
 
 ## 0.0.113
 
 ### Patch Changes
 
-- Updated dependencies [[`7583729`](https://github.com/ardatan/graphql-tools/commit/7583729718ffd528bba5d1c5c4ea087975102c1f)]:
+- Updated dependencies
+  [[`7583729`](https://github.com/ardatan/graphql-tools/commit/7583729718ffd528bba5d1c5c4ea087975102c1f)]:
   - @graphql-tools/federation@1.1.16
 
 ## 0.0.112
 
 ### Patch Changes
 
-- Updated dependencies [[`2d76909`](https://github.com/ardatan/graphql-tools/commit/2d76909908a918562a9f7599825b70ae60f91127)]:
+- Updated dependencies
+  [[`2d76909`](https://github.com/ardatan/graphql-tools/commit/2d76909908a918562a9f7599825b70ae60f91127)]:
   - @graphql-tools/federation@1.1.15
 
 ## 0.0.111
 
 ### Patch Changes
 
-- Updated dependencies [[`ba062ff`](https://github.com/ardatan/graphql-tools/commit/ba062ff4880f6922eaddfcbd746782275a8f689e)]:
+- Updated dependencies
+  [[`ba062ff`](https://github.com/ardatan/graphql-tools/commit/ba062ff4880f6922eaddfcbd746782275a8f689e)]:
   - @graphql-tools/federation@1.1.14
 
 ## 0.0.110
 
 ### Patch Changes
 
-- Updated dependencies [[`974df8a`](https://github.com/ardatan/graphql-tools/commit/974df8a1a1bca422bac5d971a3f8029cd9728efd)]:
+- Updated dependencies
+  [[`974df8a`](https://github.com/ardatan/graphql-tools/commit/974df8a1a1bca422bac5d971a3f8029cd9728efd)]:
   - @graphql-tools/federation@1.1.13
 
 ## 0.0.109

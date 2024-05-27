@@ -1,12 +1,117 @@
 # @graphql-tools/delegate
 
+## 10.0.11
+
+### Patch Changes
+
+- [#6194](https://github.com/ardatan/graphql-tools/pull/6194)
+  [`7368829`](https://github.com/ardatan/graphql-tools/commit/73688291af0c8cb2fe550fe8c74fd8af84cb360f)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle interface objects in a different way
+
+- [#6188](https://github.com/ardatan/graphql-tools/pull/6188)
+  [`e10c13a`](https://github.com/ardatan/graphql-tools/commit/e10c13a60e344b9217dc77a7cac50ec447feda7e)
+  Thanks [@ardatan](https://github.com/ardatan)! - Add `subtractSelectionSets` to get the diff of
+  two selection sets
+
+- [#6187](https://github.com/ardatan/graphql-tools/pull/6187)
+  [`dfccfbf`](https://github.com/ardatan/graphql-tools/commit/dfccfbfd6633dd576f660c648f3c6cecff3667a1)
+  Thanks [@ardatan](https://github.com/ardatan)! - Do not merge errors and regular resolved objects
+
+  If a subschema returns an error for specific field that is already resolved by another subschema,
+  the error should not be merged with the resolved object.
+
+- [#6189](https://github.com/ardatan/graphql-tools/pull/6189)
+  [`0134f7f`](https://github.com/ardatan/graphql-tools/commit/0134f7ffe5383603961d69337bfa5bceefb3ed74)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle interface types with non-shared
+  implementations;
+
+  For example, you have the following services, where `Node` is implemented in both services, but
+  `Foo` and `Bar` are only implemented in one service. And when the gateway receives the following
+  query, it should be converted to this because `Node` is not implemented as `Bar` in Service 1
+  while implemented in Service 2.
+
+  Query conversion;
+
+  ```graphql
+  # Gateway request
+  query {
+    fooBar(id: "1") {
+      ... on Node {
+        id
+      }
+    }
+  }
+  ```
+
+  ```graphql
+  # Service 1 Request
+  query {
+    fooBar(id: "1") {
+      ... on Foo {
+        id
+      }
+      ... on Bar {
+        id
+      }
+    }
+  }
+  ```
+
+  Services;
+
+  ```graphql
+  # Service 1
+
+  union FooBar = Foo | Bar
+
+  interface Node {
+    id: ID!
+  }
+
+  type Foo implements Node {
+    id: ID!
+  }
+
+  type Bar {
+    id: ID!
+  }
+
+  type Query {
+    fooBar(id: ID!): FooBar
+  }
+  ```
+
+  ```graphql
+  # Service 2
+  interface Node {
+    id: ID!
+  }
+
+  type Foo implements Node {
+    id: ID!
+  }
+
+  type Bar implements Node {
+    id: ID!
+  }
+  ```
+
+- Updated dependencies
+  [[`7368829`](https://github.com/ardatan/graphql-tools/commit/73688291af0c8cb2fe550fe8c74fd8af84cb360f),
+  [`e10c13a`](https://github.com/ardatan/graphql-tools/commit/e10c13a60e344b9217dc77a7cac50ec447feda7e)]:
+  - @graphql-tools/schema@10.0.4
+  - @graphql-tools/utils@10.2.1
+
 ## 10.0.10
 
 ### Patch Changes
 
-- [#6134](https://github.com/ardatan/graphql-tools/pull/6134) [`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4) Thanks [@User](https://github.com/User)! - Ignore unmerged fields
+- [#6134](https://github.com/ardatan/graphql-tools/pull/6134)
+  [`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4)
+  Thanks [@User](https://github.com/User)! - Ignore unmerged fields
 
-  Let's say you have a gateway schema like in the bottom, and `id` is added to the query, only if the `age` is requested;
+  Let's say you have a gateway schema like in the bottom, and `id` is added to the query, only if
+  the `age` is requested;
 
   ```graphql
   # This will be sent as-is
@@ -52,16 +157,23 @@
   }
   ````
 
-- [#6150](https://github.com/ardatan/graphql-tools/pull/6150) [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65) Thanks [@ardatan](https://github.com/ardatan)! - If there are some fields depending on a nested type resolution, wait until it gets resolved then resolve the rest.
+- [#6150](https://github.com/ardatan/graphql-tools/pull/6150)
+  [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65)
+  Thanks [@ardatan](https://github.com/ardatan)! - If there are some fields depending on a nested
+  type resolution, wait until it gets resolved then resolve the rest.
 
-  See packages/federation/test/fixtures/complex-entity-call example for more details.
-  You can see `ProductList` needs some fields from `Product` to resolve `first`
+  See packages/federation/test/fixtures/complex-entity-call example for more details. You can see
+  `ProductList` needs some fields from `Product` to resolve `first`
 
 ## 10.0.9
 
 ### Patch Changes
 
-- [#6126](https://github.com/ardatan/graphql-tools/pull/6126) [`680351e`](https://github.com/ardatan/graphql-tools/commit/680351ee2af39ffd6b4b0048a28954d0d4b8a926) Thanks [@ardatan](https://github.com/ardatan)! - When there is a Node subschema, and others to resolve the rest of the entities by using a union resolver as in Federation like below, it was failing. This version fixes that issue.
+- [#6126](https://github.com/ardatan/graphql-tools/pull/6126)
+  [`680351e`](https://github.com/ardatan/graphql-tools/commit/680351ee2af39ffd6b4b0048a28954d0d4b8a926)
+  Thanks [@ardatan](https://github.com/ardatan)! - When there is a Node subschema, and others to
+  resolve the rest of the entities by using a union resolver as in Federation like below, it was
+  failing. This version fixes that issue.
 
   ```graphql
   query {
@@ -128,25 +240,34 @@
 
 ### Patch Changes
 
-- [`4ce3ffc`](https://github.com/ardatan/graphql-tools/commit/4ce3ffc8ec927651587e0aa236fdd573e883ef21) Thanks [@ardatan](https://github.com/ardatan)! - Simplify the logic in `wrapConcreteTypes`
+- [`4ce3ffc`](https://github.com/ardatan/graphql-tools/commit/4ce3ffc8ec927651587e0aa236fdd573e883ef21)
+  Thanks [@ardatan](https://github.com/ardatan)! - Simplify the logic in `wrapConcreteTypes`
 
 ## 10.0.7
 
 ### Patch Changes
 
-- [#6109](https://github.com/ardatan/graphql-tools/pull/6109) [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa) Thanks [@ardatan](https://github.com/ardatan)! - Merge list fields correctly
+- [#6109](https://github.com/ardatan/graphql-tools/pull/6109)
+  [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa)
+  Thanks [@ardatan](https://github.com/ardatan)! - Merge list fields correctly
 
 ## 10.0.6
 
 ### Patch Changes
 
-- [`af7be09`](https://github.com/ardatan/graphql-tools/commit/af7be099e88777bba376c14ecf191365ed3a89c7) Thanks [@ardatan](https://github.com/ardatan)! - Hotfix: do not use nullable and nonNullable prefixes if field names don't match
+- [`af7be09`](https://github.com/ardatan/graphql-tools/commit/af7be099e88777bba376c14ecf191365ed3a89c7)
+  Thanks [@ardatan](https://github.com/ardatan)! - Hotfix: do not use nullable and nonNullable
+  prefixes if field names don't match
 
 ## 10.0.5
 
 ### Patch Changes
 
-- [#6091](https://github.com/ardatan/graphql-tools/pull/6091) [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4) Thanks [@User](https://github.com/User), [@User](https://github.com/User)! - If the gateway receives a query with an overlapping fields for the subschema, it uses aliases to resolve it correctly.
+- [#6091](https://github.com/ardatan/graphql-tools/pull/6091)
+  [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4)
+  Thanks [@User](https://github.com/User), [@User](https://github.com/User)! - If the gateway
+  receives a query with an overlapping fields for the subschema, it uses aliases to resolve it
+  correctly.
 
   Let's say subschema A has the following schema;
 
@@ -217,9 +338,11 @@
   }
   ```
 
-  So the subgraph will throw based on this rule [OverlappingFieldsCanBeMerged](https://github.com/graphql/graphql-js/blob/main/src/validation/rules/OverlappingFieldsCanBeMergedRule.ts)
+  So the subgraph will throw based on this rule
+  [OverlappingFieldsCanBeMerged](https://github.com/graphql/graphql-js/blob/main/src/validation/rules/OverlappingFieldsCanBeMergedRule.ts)
 
-  To avoid this, the gateway will use aliases to resolve the query correctly. The query will be transformed to the following;
+  To avoid this, the gateway will use aliases to resolve the query correctly. The query will be
+  transformed to the following;
 
   ```graphql
   query {
@@ -238,7 +361,11 @@
   }
   ```
 
-- [#6092](https://github.com/ardatan/graphql-tools/pull/6092) [`243c353`](https://github.com/ardatan/graphql-tools/commit/243c353412921cf0063f963ee46b9c63d2f33b41) Thanks [@ardatan](https://github.com/ardatan)! - If one of the subgraphs are already able to resolve a nested field as in `parent-entity-call` example's `Category.details` from C's `Product`, resolve it from there instead of using type merging.
+- [#6092](https://github.com/ardatan/graphql-tools/pull/6092)
+  [`243c353`](https://github.com/ardatan/graphql-tools/commit/243c353412921cf0063f963ee46b9c63d2f33b41)
+  Thanks [@ardatan](https://github.com/ardatan)! - If one of the subgraphs are already able to
+  resolve a nested field as in `parent-entity-call` example's `Category.details` from C's `Product`,
+  resolve it from there instead of using type merging.
 
   ```graphql
   query {
@@ -258,14 +385,26 @@
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
 
-  - Updated dependency [`@graphql-tools/schema@^10.0.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/schema/v/10.0.2) (from `^10.0.0`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.5`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/schema@^10.0.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/schema/v/10.0.2)
+    (from `^10.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.5`, in `dependencies`)
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - No unnecessary inline fragment spreads for union types
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - No unnecessary inline fragment spreads for
+  union types
 
-- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+- Updated dependencies
+  [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
   - @graphql-tools/batch-execute@9.0.4
   - @graphql-tools/executor@1.2.1
   - @graphql-tools/schema@10.0.3

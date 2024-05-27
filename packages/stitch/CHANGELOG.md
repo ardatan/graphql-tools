@@ -1,12 +1,75 @@
 # @graphql-tools/stitch
 
+## 9.2.9
+
+### Patch Changes
+
+- [#6194](https://github.com/ardatan/graphql-tools/pull/6194)
+  [`7368829`](https://github.com/ardatan/graphql-tools/commit/73688291af0c8cb2fe550fe8c74fd8af84cb360f)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle interface objects in a different way
+
+- [#6180](https://github.com/ardatan/graphql-tools/pull/6180)
+  [`eec9d3d`](https://github.com/ardatan/graphql-tools/commit/eec9d3d86a1a0a748321263ef9bc4db13fd3c35c)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle nested dependencies in the computed fields
+
+  ```ts
+  {
+    merge: {
+      Product: {
+        selectionSet: '{ id }',
+        fields: {
+          isExpensive: {
+            selectionSet: '{ price }',
+            computed: true,
+          },
+          canAfford: {
+            selectionSet: '{ isExpensive }',
+            computed: true,
+          },
+        }
+      }
+    }
+  }
+  ```
+
+- [#6179](https://github.com/ardatan/graphql-tools/pull/6179)
+  [`03a47b1`](https://github.com/ardatan/graphql-tools/commit/03a47b181516e17f33c84f364df9482c2d1ba502)
+  Thanks [@ardatan](https://github.com/ardatan)! - Support computed fields resolved via a root field
+  returning an interface When a computed field returning an object, and that field is resolved via
+  an interface, the computed field will now be resolved correctly.
+
+- [#6188](https://github.com/ardatan/graphql-tools/pull/6188)
+  [`e10c13a`](https://github.com/ardatan/graphql-tools/commit/e10c13a60e344b9217dc77a7cac50ec447feda7e)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle nested selections in
+  `calculateSelectionScore`
+
+- [#6175](https://github.com/ardatan/graphql-tools/pull/6175)
+  [`0827497`](https://github.com/ardatan/graphql-tools/commit/08274975ccb1524d88fc8b95f42deb1cba05425d)
+  Thanks [@ardatan](https://github.com/ardatan)! - If there is a subschema with some selection set,
+  and another with some other selection set. After the calculation of delegation stage, if one
+  subschema can cover the other selection set as well, then we can merge the two selection sets into
+  one, and remove the other subschema from the stage.
+- Updated dependencies
+  [[`7368829`](https://github.com/ardatan/graphql-tools/commit/73688291af0c8cb2fe550fe8c74fd8af84cb360f),
+  [`e10c13a`](https://github.com/ardatan/graphql-tools/commit/e10c13a60e344b9217dc77a7cac50ec447feda7e),
+  [`e10c13a`](https://github.com/ardatan/graphql-tools/commit/e10c13a60e344b9217dc77a7cac50ec447feda7e),
+  [`dfccfbf`](https://github.com/ardatan/graphql-tools/commit/dfccfbfd6633dd576f660c648f3c6cecff3667a1),
+  [`0134f7f`](https://github.com/ardatan/graphql-tools/commit/0134f7ffe5383603961d69337bfa5bceefb3ed74)]:
+  - @graphql-tools/batch-delegate@9.0.3
+  - @graphql-tools/delegate@10.0.11
+  - @graphql-tools/schema@10.0.4
+  - @graphql-tools/utils@10.2.1
+
 ## 9.2.8
 
 ### Patch Changes
 
-- [#6134](https://github.com/ardatan/graphql-tools/pull/6134) [`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4) Thanks [@User](https://github.com/User)! - Ignore unmerged fields
+- [#6134](https://github.com/ardatan/graphql-tools/pull/6134)
+  [`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4)
+  Thanks [@User](https://github.com/User)! - Ignore unmerged fields
 
-  Let's say you have a gateway schema like in the bottom, and `id` is added to the query, only if the `age` is requested;
+  Let's say you have a gateway schema like in the bottom, and `id` is added to the query, only if
+  the `age` is requested;
 
   ```graphql
   # This will be sent as-is
@@ -52,26 +115,42 @@
   }
   ````
 
-- [#6150](https://github.com/ardatan/graphql-tools/pull/6150) [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65) Thanks [@ardatan](https://github.com/ardatan)! - If there are some fields depending on a nested type resolution, wait until it gets resolved then resolve the rest.
+- [#6150](https://github.com/ardatan/graphql-tools/pull/6150)
+  [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65)
+  Thanks [@ardatan](https://github.com/ardatan)! - If there are some fields depending on a nested
+  type resolution, wait until it gets resolved then resolve the rest.
 
-  See packages/federation/test/fixtures/complex-entity-call example for more details.
-  You can see `ProductList` needs some fields from `Product` to resolve `first`
+  See packages/federation/test/fixtures/complex-entity-call example for more details. You can see
+  `ProductList` needs some fields from `Product` to resolve `first`
 
-- [#6141](https://github.com/ardatan/graphql-tools/pull/6141) [`cd962c1`](https://github.com/ardatan/graphql-tools/commit/cd962c1048b21c0a6f91c943860089b050ac5f5e) Thanks [@ardatan](https://github.com/ardatan)! - When the gateway receives the query, now it chooses the best root field if there is the same root field in different subgraphs.
-  For example, if there is `node(id: ID!): Node` in all subgraphs but one implements `User` and the other implements `Post`, the gateway will choose the subgraph that implements `User` or `Post` based on the query.
+- [#6141](https://github.com/ardatan/graphql-tools/pull/6141)
+  [`cd962c1`](https://github.com/ardatan/graphql-tools/commit/cd962c1048b21c0a6f91c943860089b050ac5f5e)
+  Thanks [@ardatan](https://github.com/ardatan)! - When the gateway receives the query, now it
+  chooses the best root field if there is the same root field in different subgraphs. For example,
+  if there is `node(id: ID!): Node` in all subgraphs but one implements `User` and the other
+  implements `Post`, the gateway will choose the subgraph that implements `User` or `Post` based on
+  the query.
 
   If there is a unresolvable interface field, it throws.
 
-  See [this supergraph and the test query](https://github.com/ardatan/graphql-tools/tree/master/packages/federation/test/fixtures/federation-compatibility/corrupted-supergraph-node-id) to see a real-life example
+  See
+  [this supergraph and the test query](https://github.com/ardatan/graphql-tools/tree/master/packages/federation/test/fixtures/federation-compatibility/corrupted-supergraph-node-id)
+  to see a real-life example
 
-- Updated dependencies [[`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4), [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65)]:
+- Updated dependencies
+  [[`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4),
+  [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65)]:
   - @graphql-tools/delegate@10.0.10
 
 ## 9.2.7
 
 ### Patch Changes
 
-- [#6126](https://github.com/ardatan/graphql-tools/pull/6126) [`680351e`](https://github.com/ardatan/graphql-tools/commit/680351ee2af39ffd6b4b0048a28954d0d4b8a926) Thanks [@ardatan](https://github.com/ardatan)! - When there is a Node subschema, and others to resolve the rest of the entities by using a union resolver as in Federation like below, it was failing. This version fixes that issue.
+- [#6126](https://github.com/ardatan/graphql-tools/pull/6126)
+  [`680351e`](https://github.com/ardatan/graphql-tools/commit/680351ee2af39ffd6b4b0048a28954d0d4b8a926)
+  Thanks [@ardatan](https://github.com/ardatan)! - When there is a Node subschema, and others to
+  resolve the rest of the entities by using a union resolver as in Federation like below, it was
+  failing. This version fixes that issue.
 
   ```graphql
   query {
@@ -134,33 +213,46 @@
   }
   ```
 
-- Updated dependencies [[`680351e`](https://github.com/ardatan/graphql-tools/commit/680351ee2af39ffd6b4b0048a28954d0d4b8a926)]:
+- Updated dependencies
+  [[`680351e`](https://github.com/ardatan/graphql-tools/commit/680351ee2af39ffd6b4b0048a28954d0d4b8a926)]:
   - @graphql-tools/delegate@10.0.9
 
 ## 9.2.6
 
 ### Patch Changes
 
-- [`98b2795`](https://github.com/ardatan/graphql-tools/commit/98b2795120e05dec1d91b57422f50d38c088b630) Thanks [@ardatan](https://github.com/ardatan)! - Improvements on unavailable field selection, and key object projection
+- [`98b2795`](https://github.com/ardatan/graphql-tools/commit/98b2795120e05dec1d91b57422f50d38c088b630)
+  Thanks [@ardatan](https://github.com/ardatan)! - Improvements on unavailable field selection, and
+  key object projection
 
 ## 9.2.5
 
 ### Patch Changes
 
-- [`9238e14`](https://github.com/ardatan/graphql-tools/commit/9238e140862d33c6df072c42054fc642eda37840) Thanks [@ardatan](https://github.com/ardatan)! - Improvements on field merging and extraction of unavailable fields
+- [`9238e14`](https://github.com/ardatan/graphql-tools/commit/9238e140862d33c6df072c42054fc642eda37840)
+  Thanks [@ardatan](https://github.com/ardatan)! - Improvements on field merging and extraction of
+  unavailable fields
 
-- Updated dependencies [[`4ce3ffc`](https://github.com/ardatan/graphql-tools/commit/4ce3ffc8ec927651587e0aa236fdd573e883ef21)]:
+- Updated dependencies
+  [[`4ce3ffc`](https://github.com/ardatan/graphql-tools/commit/4ce3ffc8ec927651587e0aa236fdd573e883ef21)]:
   - @graphql-tools/delegate@10.0.8
 
 ## 9.2.4
 
 ### Patch Changes
 
-- [#6117](https://github.com/ardatan/graphql-tools/pull/6117) [`67a9c49`](https://github.com/ardatan/graphql-tools/commit/67a9c4909b7676b69c4b425ab1a6cd5533c799ef) Thanks [@ardatan](https://github.com/ardatan)! - Add field as an unavailable field only if it is not able to resolve by any other subschema;
+- [#6117](https://github.com/ardatan/graphql-tools/pull/6117)
+  [`67a9c49`](https://github.com/ardatan/graphql-tools/commit/67a9c4909b7676b69c4b425ab1a6cd5533c799ef)
+  Thanks [@ardatan](https://github.com/ardatan)! - Add field as an unavailable field only if it is
+  not able to resolve by any other subschema;
 
-  When the following query is sent to the gateway with the following subschemas, the gateway should resolve `Category.details` from A Subschema using `Product` resolver instead of trying to resolve by using non-existing `Category` resolver from A Subschema.
+  When the following query is sent to the gateway with the following subschemas, the gateway should
+  resolve `Category.details` from A Subschema using `Product` resolver instead of trying to resolve
+  by using non-existing `Category` resolver from A Subschema.
 
-  Previously, the query planner decides to resolve `Category.details` after resolving `Category` from C Subschema. But it will be too late to resolve `details` because `Category` is not resolvable in A Subschema.
+  Previously, the query planner decides to resolve `Category.details` after resolving `Category`
+  from C Subschema. But it will be too late to resolve `details` because `Category` is not
+  resolvable in A Subschema.
 
   So the requests for `Category.details` and the rest of `Category` should be different.
 
@@ -224,43 +316,64 @@
   }
   ```
 
-- Updated dependencies [[`a06dbd2`](https://github.com/ardatan/graphql-tools/commit/a06dbd263ec7bfc6d50aa8faf2e35396a67b4f0b)]:
+- Updated dependencies
+  [[`a06dbd2`](https://github.com/ardatan/graphql-tools/commit/a06dbd263ec7bfc6d50aa8faf2e35396a67b4f0b)]:
   - @graphql-tools/merge@9.0.4
 
 ## 9.2.3
 
 ### Patch Changes
 
-- [#6109](https://github.com/ardatan/graphql-tools/pull/6109) [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa) Thanks [@ardatan](https://github.com/ardatan)! - Exclude fields with `__typename` while extracting missing fields for the type merging
+- [#6109](https://github.com/ardatan/graphql-tools/pull/6109)
+  [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa)
+  Thanks [@ardatan](https://github.com/ardatan)! - Exclude fields with `__typename` while extracting
+  missing fields for the type merging
 
-- Updated dependencies [[`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa)]:
+- Updated dependencies
+  [[`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa)]:
   - @graphql-tools/delegate@10.0.7
 
 ## 9.2.2
 
 ### Patch Changes
 
-- [#6107](https://github.com/ardatan/graphql-tools/pull/6107) [`b281dd6`](https://github.com/ardatan/graphql-tools/commit/b281dd65276dd9df56a41cc2dbff5139281f02f9) Thanks [@ardatan](https://github.com/ardatan)! - Fix the priority of isolated fields
+- [#6107](https://github.com/ardatan/graphql-tools/pull/6107)
+  [`b281dd6`](https://github.com/ardatan/graphql-tools/commit/b281dd65276dd9df56a41cc2dbff5139281f02f9)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix the priority of isolated fields
 
 ## 9.2.1
 
 ### Patch Changes
 
-- [#6105](https://github.com/ardatan/graphql-tools/pull/6105) [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95) Thanks [@ardatan](https://github.com/ardatan)! - Handle fields in unmerged types as both isolated and non-isolated fields
+- [#6105](https://github.com/ardatan/graphql-tools/pull/6105)
+  [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle fields in unmerged types as both isolated
+  and non-isolated fields
 
-- [#6105](https://github.com/ardatan/graphql-tools/pull/6105) [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95) Thanks [@ardatan](https://github.com/ardatan)! - Respect `specifiedByURL` in stitched schemas
+- [#6105](https://github.com/ardatan/graphql-tools/pull/6105)
+  [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95)
+  Thanks [@ardatan](https://github.com/ardatan)! - Respect `specifiedByURL` in stitched schemas
 
-- Updated dependencies [[`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95), [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95)]:
+- Updated dependencies
+  [[`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95),
+  [`5567347`](https://github.com/ardatan/graphql-tools/commit/5567347217fdfb72e3f8b389ade6d5912dfb5c95)]:
   - @graphql-tools/utils@10.2.0
 
 ## 9.2.0
 
 ### Minor Changes
 
-- [#6091](https://github.com/ardatan/graphql-tools/pull/6091) [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4) Thanks [@User](https://github.com/User), [@User](https://github.com/User)! - New option `useNonNullableFieldOnConflict` in `typeMergingOptions` of `stitchSchemas`
+- [#6091](https://github.com/ardatan/graphql-tools/pull/6091)
+  [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4)
+  Thanks [@User](https://github.com/User), [@User](https://github.com/User)! - New option
+  `useNonNullableFieldOnConflict` in `typeMergingOptions` of `stitchSchemas`
 
-  When you have two schemas like below, you will get a warning about the conflicting fields because `name` field is defined as non-null in one schema and nullable in the other schema, and non-nullable field can exist in the stitched schema because of the order or any other reasons, and this might actually cause an unexpected behavior when you fetch `User.name` from the one who has it as non-nullable.
-  This option supresses the warning, and takes the field from the schema that has it as non-nullable.
+  When you have two schemas like below, you will get a warning about the conflicting fields because
+  `name` field is defined as non-null in one schema and nullable in the other schema, and
+  non-nullable field can exist in the stitched schema because of the order or any other reasons, and
+  this might actually cause an unexpected behavior when you fetch `User.name` from the one who has
+  it as non-nullable. This option supresses the warning, and takes the field from the schema that
+  has it as non-nullable.
 
   ```graphql
     type Query {
@@ -289,7 +402,11 @@
 
 ### Patch Changes
 
-- [#6091](https://github.com/ardatan/graphql-tools/pull/6091) [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4) Thanks [@User](https://github.com/User), [@User](https://github.com/User)! - If the gateway receives a query with an overlapping fields for the subschema, it uses aliases to resolve it correctly.
+- [#6091](https://github.com/ardatan/graphql-tools/pull/6091)
+  [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4)
+  Thanks [@User](https://github.com/User), [@User](https://github.com/User)! - If the gateway
+  receives a query with an overlapping fields for the subschema, it uses aliases to resolve it
+  correctly.
 
   Let's say subschema A has the following schema;
 
@@ -360,9 +477,11 @@
   }
   ```
 
-  So the subgraph will throw based on this rule [OverlappingFieldsCanBeMerged](https://github.com/graphql/graphql-js/blob/main/src/validation/rules/OverlappingFieldsCanBeMergedRule.ts)
+  So the subgraph will throw based on this rule
+  [OverlappingFieldsCanBeMerged](https://github.com/graphql/graphql-js/blob/main/src/validation/rules/OverlappingFieldsCanBeMergedRule.ts)
 
-  To avoid this, the gateway will use aliases to resolve the query correctly. The query will be transformed to the following;
+  To avoid this, the gateway will use aliases to resolve the query correctly. The query will be
+  transformed to the following;
 
   ```graphql
   query {
@@ -381,7 +500,11 @@
   }
   ```
 
-- [#6092](https://github.com/ardatan/graphql-tools/pull/6092) [`243c353`](https://github.com/ardatan/graphql-tools/commit/243c353412921cf0063f963ee46b9c63d2f33b41) Thanks [@ardatan](https://github.com/ardatan)! - If one of the subgraphs are already able to resolve a nested field as in `parent-entity-call` example's `Category.details` from C's `Product`, resolve it from there instead of using type merging.
+- [#6092](https://github.com/ardatan/graphql-tools/pull/6092)
+  [`243c353`](https://github.com/ardatan/graphql-tools/commit/243c353412921cf0063f963ee46b9c63d2f33b41)
+  Thanks [@ardatan](https://github.com/ardatan)! - If one of the subgraphs are already able to
+  resolve a nested field as in `parent-entity-call` example's `Category.details` from C's `Product`,
+  resolve it from there instead of using type merging.
 
   ```graphql
   query {
@@ -397,39 +520,66 @@
   }
   ```
 
-- Updated dependencies [[`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4), [`243c353`](https://github.com/ardatan/graphql-tools/commit/243c353412921cf0063f963ee46b9c63d2f33b41)]:
+- Updated dependencies
+  [[`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4),
+  [`243c353`](https://github.com/ardatan/graphql-tools/commit/243c353412921cf0063f963ee46b9c63d2f33b41)]:
   - @graphql-tools/delegate@10.0.5
 
 ## 9.1.2
 
 ### Patch Changes
 
-- [`6d26702`](https://github.com/ardatan/graphql-tools/commit/6d267022eaf4b695b3791927912375f1b1d0f3a8) Thanks [@ardatan](https://github.com/ardatan)! - Respect interface types as computed field types
+- [`6d26702`](https://github.com/ardatan/graphql-tools/commit/6d267022eaf4b695b3791927912375f1b1d0f3a8)
+  Thanks [@ardatan](https://github.com/ardatan)! - Respect interface types as computed field types
 
 ## 9.1.1
 
 ### Patch Changes
 
-- [`c5df958`](https://github.com/ardatan/graphql-tools/commit/c5df95858c5b5a57a232740e8e4b667ce5d2da2c) Thanks [@ardatan](https://github.com/ardatan)! - Prevent infinite loop while visiting over the computed field types
+- [`c5df958`](https://github.com/ardatan/graphql-tools/commit/c5df95858c5b5a57a232740e8e4b667ce5d2da2c)
+  Thanks [@ardatan](https://github.com/ardatan)! - Prevent infinite loop while visiting over the
+  computed field types
 
 ## 9.1.0
 
 ### Minor Changes
 
-- [#5162](https://github.com/ardatan/graphql-tools/pull/5162) [`27b6f49`](https://github.com/ardatan/graphql-tools/commit/27b6f49c67d4b3fca26d90dcaaef37ff61fe9d0a) Thanks [@asodeur](https://github.com/asodeur)! - Adding the ability to return non-scalar types from computed fields. Computed fields can now return
-  object types (local or stitched), interfaces, unions, or enums.
+- [#5162](https://github.com/ardatan/graphql-tools/pull/5162)
+  [`27b6f49`](https://github.com/ardatan/graphql-tools/commit/27b6f49c67d4b3fca26d90dcaaef37ff61fe9d0a)
+  Thanks [@asodeur](https://github.com/asodeur)! - Adding the ability to return non-scalar types
+  from computed fields. Computed fields can now return object types (local or stitched), interfaces,
+  unions, or enums.
 
 ## 9.0.5
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/delegate@^10.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/10.0.3) (from `^10.0.1`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/merge@^9.0.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/merge/v/9.0.1) (from `^9.0.0`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/schema@^10.0.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/schema/v/10.0.2) (from `^10.0.0`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.0`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/wrap@^10.0.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/wrap/v/10.0.1) (from `^10.0.0`, in `dependencies`)
-- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/delegate@^10.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/10.0.3)
+    (from `^10.0.1`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/merge@^9.0.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/merge/v/9.0.1)
+    (from `^9.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/schema@^10.0.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/schema/v/10.0.2)
+    (from `^10.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/wrap@^10.0.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/wrap/v/10.0.1)
+    (from `^10.0.0`, in `dependencies`)
+- Updated dependencies
+  [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
   - @graphql-tools/batch-delegate@9.0.1
   - @graphql-tools/delegate@10.0.4
   - @graphql-tools/executor@1.2.1
@@ -441,7 +591,9 @@
 
 ### Patch Changes
 
-- [#5922](https://github.com/ardatan/graphql-tools/pull/5922) [`7f606ea`](https://github.com/ardatan/graphql-tools/commit/7f606ea4da035b220319fb702d6a2c9d5e5d35e9) Thanks [@ardatan](https://github.com/ardatan)! - Merge directives correctly
+- [#5922](https://github.com/ardatan/graphql-tools/pull/5922)
+  [`7f606ea`](https://github.com/ardatan/graphql-tools/commit/7f606ea4da035b220319fb702d6a2c9d5e5d35e9)
+  Thanks [@ardatan](https://github.com/ardatan)! - Merge directives correctly
 
 ## 9.0.3
 
