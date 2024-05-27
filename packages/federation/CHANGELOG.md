@@ -1,19 +1,139 @@
 # @graphql-tools/federation
 
+## 1.1.36
+
+### Patch Changes
+
+- [#6194](https://github.com/ardatan/graphql-tools/pull/6194)
+  [`7368829`](https://github.com/ardatan/graphql-tools/commit/73688291af0c8cb2fe550fe8c74fd8af84cb360f)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle interface objects in a different way
+
+- [#6189](https://github.com/ardatan/graphql-tools/pull/6189)
+  [`0134f7f`](https://github.com/ardatan/graphql-tools/commit/0134f7ffe5383603961d69337bfa5bceefb3ed74)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle interface types with non-shared
+  implementations;
+
+  For example, you have the following services, where `Node` is implemented in both services, but
+  `Foo` and `Bar` are only implemented in one service. And when the gateway receives the following
+  query, it should be converted to this because `Node` is not implemented as `Bar` in Service 1
+  while implemented in Service 2.
+
+  Query conversion;
+
+  ```graphql
+  # Gateway request
+  query {
+    fooBar(id: "1") {
+      ... on Node {
+        id
+      }
+    }
+  }
+  ```
+
+  ```graphql
+  # Service 1 Request
+  query {
+    fooBar(id: "1") {
+      ... on Foo {
+        id
+      }
+      ... on Bar {
+        id
+      }
+    }
+  }
+  ```
+
+  Services;
+
+  ```graphql
+  # Service 1
+
+  union FooBar = Foo | Bar
+
+  interface Node {
+    id: ID!
+  }
+
+  type Foo implements Node {
+    id: ID!
+  }
+
+  type Bar {
+    id: ID!
+  }
+
+  type Query {
+    fooBar(id: ID!): FooBar
+  }
+  ```
+
+  ```graphql
+  # Service 2
+  interface Node {
+    id: ID!
+  }
+
+  type Foo implements Node {
+    id: ID!
+  }
+
+  type Bar implements Node {
+    id: ID!
+  }
+  ```
+
+- [#6187](https://github.com/ardatan/graphql-tools/pull/6187)
+  [`dfccfbf`](https://github.com/ardatan/graphql-tools/commit/dfccfbfd6633dd576f660c648f3c6cecff3667a1)
+  Thanks [@ardatan](https://github.com/ardatan)! - Respect @provides to optimize the query plan
+
+- [#6188](https://github.com/ardatan/graphql-tools/pull/6188)
+  [`e10c13a`](https://github.com/ardatan/graphql-tools/commit/e10c13a60e344b9217dc77a7cac50ec447feda7e)
+  Thanks [@ardatan](https://github.com/ardatan)! - If two different subschemas have the root field,
+  use the same field to resolve missing fields instead of applying a type merging in advance
+
+- Updated dependencies
+  [[`7368829`](https://github.com/ardatan/graphql-tools/commit/73688291af0c8cb2fe550fe8c74fd8af84cb360f),
+  [`e10c13a`](https://github.com/ardatan/graphql-tools/commit/e10c13a60e344b9217dc77a7cac50ec447feda7e),
+  [`e10c13a`](https://github.com/ardatan/graphql-tools/commit/e10c13a60e344b9217dc77a7cac50ec447feda7e),
+  [`dfccfbf`](https://github.com/ardatan/graphql-tools/commit/dfccfbfd6633dd576f660c648f3c6cecff3667a1),
+  [`0134f7f`](https://github.com/ardatan/graphql-tools/commit/0134f7ffe5383603961d69337bfa5bceefb3ed74),
+  [`eec9d3d`](https://github.com/ardatan/graphql-tools/commit/eec9d3d86a1a0a748321263ef9bc4db13fd3c35c),
+  [`03a47b1`](https://github.com/ardatan/graphql-tools/commit/03a47b181516e17f33c84f364df9482c2d1ba502),
+  [`e10c13a`](https://github.com/ardatan/graphql-tools/commit/e10c13a60e344b9217dc77a7cac50ec447feda7e),
+  [`0827497`](https://github.com/ardatan/graphql-tools/commit/08274975ccb1524d88fc8b95f42deb1cba05425d)]:
+  - @graphql-tools/delegate@10.0.11
+  - @graphql-tools/schema@10.0.4
+  - @graphql-tools/stitch@9.2.9
+  - @graphql-tools/utils@10.2.1
+
 ## 1.1.35
 
 ### Patch Changes
 
-- [#6141](https://github.com/ardatan/graphql-tools/pull/6141) [`cd962c1`](https://github.com/ardatan/graphql-tools/commit/cd962c1048b21c0a6f91c943860089b050ac5f5e) Thanks [@ardatan](https://github.com/ardatan)! - When the gateway receives the query, now it chooses the best root field if there is the same root field in different subgraphs.
-  For example, if there is `node(id: ID!): Node` in all subgraphs but one implements `User` and the other implements `Post`, the gateway will choose the subgraph that implements `User` or `Post` based on the query.
+- [#6141](https://github.com/ardatan/graphql-tools/pull/6141)
+  [`cd962c1`](https://github.com/ardatan/graphql-tools/commit/cd962c1048b21c0a6f91c943860089b050ac5f5e)
+  Thanks [@ardatan](https://github.com/ardatan)! - When the gateway receives the query, now it
+  chooses the best root field if there is the same root field in different subgraphs. For example,
+  if there is `node(id: ID!): Node` in all subgraphs but one implements `User` and the other
+  implements `Post`, the gateway will choose the subgraph that implements `User` or `Post` based on
+  the query.
 
   If there is a unresolvable interface field, it throws.
 
-  See [this supergraph and the test query](https://github.com/ardatan/graphql-tools/tree/master/packages/federation/test/fixtures/federation-compatibility/corrupted-supergraph-node-id) to see a real-life example
+  See
+  [this supergraph and the test query](https://github.com/ardatan/graphql-tools/tree/master/packages/federation/test/fixtures/federation-compatibility/corrupted-supergraph-node-id)
+  to see a real-life example
 
-- [#6143](https://github.com/ardatan/graphql-tools/pull/6143) [`04d5431`](https://github.com/ardatan/graphql-tools/commit/04d5431deccc42d75b6ae2ae8ed941dac4c3679a) Thanks [@ardatan](https://github.com/ardatan)! - Implement interface objects support
+- [#6143](https://github.com/ardatan/graphql-tools/pull/6143)
+  [`04d5431`](https://github.com/ardatan/graphql-tools/commit/04d5431deccc42d75b6ae2ae8ed941dac4c3679a)
+  Thanks [@ardatan](https://github.com/ardatan)! - Implement interface objects support
 
-- Updated dependencies [[`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4), [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65), [`cd962c1`](https://github.com/ardatan/graphql-tools/commit/cd962c1048b21c0a6f91c943860089b050ac5f5e)]:
+- Updated dependencies
+  [[`a83da08`](https://github.com/ardatan/graphql-tools/commit/a83da087e24929ed0734a2cff63c97bd45cc9eb4),
+  [`fc9c71f`](https://github.com/ardatan/graphql-tools/commit/fc9c71fbc9057a8e32e0d8813b23819c631afa65),
+  [`cd962c1`](https://github.com/ardatan/graphql-tools/commit/cd962c1048b21c0a6f91c943860089b050ac5f5e)]:
   - @graphql-tools/delegate@10.0.10
   - @graphql-tools/stitch@9.2.8
 
@@ -21,20 +141,29 @@
 
 ### Patch Changes
 
-- [#6130](https://github.com/ardatan/graphql-tools/pull/6130) [`508ae6b`](https://github.com/ardatan/graphql-tools/commit/508ae6bbe36248926b58719d71042c4d608782a1) Thanks [@ardatan](https://github.com/ardatan)! - Support overrides on interfaces
-  See [packages/federation/test/fixtures/federation-compatibility/override-type-interface/supergraph.graphql](https://github.com/ardatan/graphql-tools/blob/739264d5f7f2f4254d4d41f965d664ae04c37e45/packages/federation/test/fixtures/federation-compatibility/override-type-interface/supergraph.graphql) for more details
+- [#6130](https://github.com/ardatan/graphql-tools/pull/6130)
+  [`508ae6b`](https://github.com/ardatan/graphql-tools/commit/508ae6bbe36248926b58719d71042c4d608782a1)
+  Thanks [@ardatan](https://github.com/ardatan)! - Support overrides on interfaces See
+  [packages/federation/test/fixtures/federation-compatibility/override-type-interface/supergraph.graphql](https://github.com/ardatan/graphql-tools/blob/739264d5f7f2f4254d4d41f965d664ae04c37e45/packages/federation/test/fixtures/federation-compatibility/override-type-interface/supergraph.graphql)
+  for more details
 
 ## 1.1.33
 
 ### Patch Changes
 
-- [`361052a`](https://github.com/ardatan/graphql-tools/commit/361052a5fcc7f3bb00092efa3efd5767b9ac1ee6) Thanks [@ardatan](https://github.com/ardatan)! - Small fix: check all final types to find orphan interfaces
+- [`361052a`](https://github.com/ardatan/graphql-tools/commit/361052a5fcc7f3bb00092efa3efd5767b9ac1ee6)
+  Thanks [@ardatan](https://github.com/ardatan)! - Small fix: check all final types to find orphan
+  interfaces
 
 ## 1.1.32
 
 ### Patch Changes
 
-- [#6126](https://github.com/ardatan/graphql-tools/pull/6126) [`680351e`](https://github.com/ardatan/graphql-tools/commit/680351ee2af39ffd6b4b0048a28954d0d4b8a926) Thanks [@ardatan](https://github.com/ardatan)! - When there is a Node subschema, and others to resolve the rest of the entities by using a union resolver as in Federation like below, it was failing. This version fixes that issue.
+- [#6126](https://github.com/ardatan/graphql-tools/pull/6126)
+  [`680351e`](https://github.com/ardatan/graphql-tools/commit/680351ee2af39ffd6b4b0048a28954d0d4b8a926)
+  Thanks [@ardatan](https://github.com/ardatan)! - When there is a Node subschema, and others to
+  resolve the rest of the entities by using a union resolver as in Federation like below, it was
+  failing. This version fixes that issue.
 
   ```graphql
   query {
@@ -97,7 +226,8 @@
   }
   ```
 
-- Updated dependencies [[`680351e`](https://github.com/ardatan/graphql-tools/commit/680351ee2af39ffd6b4b0048a28954d0d4b8a926)]:
+- Updated dependencies
+  [[`680351e`](https://github.com/ardatan/graphql-tools/commit/680351ee2af39ffd6b4b0048a28954d0d4b8a926)]:
   - @graphql-tools/delegate@10.0.9
   - @graphql-tools/stitch@9.2.7
 
@@ -105,18 +235,25 @@
 
 ### Patch Changes
 
-- [`98b2795`](https://github.com/ardatan/graphql-tools/commit/98b2795120e05dec1d91b57422f50d38c088b630) Thanks [@ardatan](https://github.com/ardatan)! - Improvements on unavailable field selection, and key object projection
+- [`98b2795`](https://github.com/ardatan/graphql-tools/commit/98b2795120e05dec1d91b57422f50d38c088b630)
+  Thanks [@ardatan](https://github.com/ardatan)! - Improvements on unavailable field selection, and
+  key object projection
 
-- Updated dependencies [[`98b2795`](https://github.com/ardatan/graphql-tools/commit/98b2795120e05dec1d91b57422f50d38c088b630)]:
+- Updated dependencies
+  [[`98b2795`](https://github.com/ardatan/graphql-tools/commit/98b2795120e05dec1d91b57422f50d38c088b630)]:
   - @graphql-tools/stitch@9.2.6
 
 ## 1.1.30
 
 ### Patch Changes
 
-- [`9238e14`](https://github.com/ardatan/graphql-tools/commit/9238e140862d33c6df072c42054fc642eda37840) Thanks [@ardatan](https://github.com/ardatan)! - Improvements on field merging and extraction of unavailable fields
+- [`9238e14`](https://github.com/ardatan/graphql-tools/commit/9238e140862d33c6df072c42054fc642eda37840)
+  Thanks [@ardatan](https://github.com/ardatan)! - Improvements on field merging and extraction of
+  unavailable fields
 
-- Updated dependencies [[`9238e14`](https://github.com/ardatan/graphql-tools/commit/9238e140862d33c6df072c42054fc642eda37840), [`4ce3ffc`](https://github.com/ardatan/graphql-tools/commit/4ce3ffc8ec927651587e0aa236fdd573e883ef21)]:
+- Updated dependencies
+  [[`9238e14`](https://github.com/ardatan/graphql-tools/commit/9238e140862d33c6df072c42054fc642eda37840),
+  [`4ce3ffc`](https://github.com/ardatan/graphql-tools/commit/4ce3ffc8ec927651587e0aa236fdd573e883ef21)]:
   - @graphql-tools/stitch@9.2.5
   - @graphql-tools/delegate@10.0.8
 
@@ -124,9 +261,14 @@
 
 ### Patch Changes
 
-- [#6109](https://github.com/ardatan/graphql-tools/pull/6109) [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa) Thanks [@ardatan](https://github.com/ardatan)! - Show responses in debug logging with `DEBUG` env var
+- [#6109](https://github.com/ardatan/graphql-tools/pull/6109)
+  [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa)
+  Thanks [@ardatan](https://github.com/ardatan)! - Show responses in debug logging with `DEBUG` env
+  var
 
-- Updated dependencies [[`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa), [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa)]:
+- Updated dependencies
+  [[`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa),
+  [`074fad4`](https://github.com/ardatan/graphql-tools/commit/074fad4144095fbefe449ced397b7707963bd7aa)]:
   - @graphql-tools/delegate@10.0.7
   - @graphql-tools/stitch@9.2.3
 
@@ -134,7 +276,11 @@
 
 ### Patch Changes
 
-- [#6091](https://github.com/ardatan/graphql-tools/pull/6091) [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4) Thanks [@User](https://github.com/User), [@User](https://github.com/User)! - If the gateway receives a query with an overlapping fields for the subschema, it uses aliases to resolve it correctly.
+- [#6091](https://github.com/ardatan/graphql-tools/pull/6091)
+  [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4)
+  Thanks [@User](https://github.com/User), [@User](https://github.com/User)! - If the gateway
+  receives a query with an overlapping fields for the subschema, it uses aliases to resolve it
+  correctly.
 
   Let's say subschema A has the following schema;
 
@@ -205,9 +351,11 @@
   }
   ```
 
-  So the subgraph will throw based on this rule [OverlappingFieldsCanBeMerged](https://github.com/graphql/graphql-js/blob/main/src/validation/rules/OverlappingFieldsCanBeMergedRule.ts)
+  So the subgraph will throw based on this rule
+  [OverlappingFieldsCanBeMerged](https://github.com/graphql/graphql-js/blob/main/src/validation/rules/OverlappingFieldsCanBeMergedRule.ts)
 
-  To avoid this, the gateway will use aliases to resolve the query correctly. The query will be transformed to the following;
+  To avoid this, the gateway will use aliases to resolve the query correctly. The query will be
+  transformed to the following;
 
   ```graphql
   query {
@@ -226,7 +374,10 @@
   }
   ```
 
-- Updated dependencies [[`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4), [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4), [`243c353`](https://github.com/ardatan/graphql-tools/commit/243c353412921cf0063f963ee46b9c63d2f33b41)]:
+- Updated dependencies
+  [[`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4),
+  [`9bca9e0`](https://github.com/ardatan/graphql-tools/commit/9bca9e03915a2e12d164e355be9aed389b0de3a4),
+  [`243c353`](https://github.com/ardatan/graphql-tools/commit/243c353412921cf0063f963ee46b9c63d2f33b41)]:
   - @graphql-tools/stitch@9.2.0
   - @graphql-tools/delegate@10.0.5
 
@@ -234,57 +385,71 @@
 
 ### Patch Changes
 
-- [#6086](https://github.com/ardatan/graphql-tools/pull/6086) [`f538e50`](https://github.com/ardatan/graphql-tools/commit/f538e503c3cdb152bd29f77804217100cac0f648) Thanks [@ardatan](https://github.com/ardatan)! - Handle @inaccessible types correctly
+- [#6086](https://github.com/ardatan/graphql-tools/pull/6086)
+  [`f538e50`](https://github.com/ardatan/graphql-tools/commit/f538e503c3cdb152bd29f77804217100cac0f648)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle @inaccessible types correctly
 
 ## 1.1.26
 
 ### Patch Changes
 
-- [#6071](https://github.com/ardatan/graphql-tools/pull/6071) [`6cf507f`](https://github.com/ardatan/graphql-tools/commit/6cf507fc70d2474c71c8604ab117d01af76376e1) Thanks [@ardatan](https://github.com/ardatan)! - Handle inaccessible enum values
+- [#6071](https://github.com/ardatan/graphql-tools/pull/6071)
+  [`6cf507f`](https://github.com/ardatan/graphql-tools/commit/6cf507fc70d2474c71c8604ab117d01af76376e1)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle inaccessible enum values
 
 ## 1.1.25
 
 ### Patch Changes
 
-- [`e09c383`](https://github.com/ardatan/graphql-tools/commit/e09c383a540f84f56db141466b711f88fce8548d) Thanks [@ardatan](https://github.com/ardatan)! - Respect fields with specified types
+- [`e09c383`](https://github.com/ardatan/graphql-tools/commit/e09c383a540f84f56db141466b711f88fce8548d)
+  Thanks [@ardatan](https://github.com/ardatan)! - Respect fields with specified types
 
 ## 1.1.24
 
 ### Patch Changes
 
-- [`458ef46`](https://github.com/ardatan/graphql-tools/commit/458ef46536db003edc399587feabfcee7b186830) Thanks [@ardatan](https://github.com/ardatan)! - Remove extra logs
+- [`458ef46`](https://github.com/ardatan/graphql-tools/commit/458ef46536db003edc399587feabfcee7b186830)
+  Thanks [@ardatan](https://github.com/ardatan)! - Remove extra logs
 
 ## 1.1.23
 
 ### Patch Changes
 
-- [`2202768`](https://github.com/ardatan/graphql-tools/commit/220276800d271e7c6fbc43339eb779b618c82e68) Thanks [@ardatan](https://github.com/ardatan)! - Federation v1 support improvements
+- [`2202768`](https://github.com/ardatan/graphql-tools/commit/220276800d271e7c6fbc43339eb779b618c82e68)
+  Thanks [@ardatan](https://github.com/ardatan)! - Federation v1 support improvements
 
 ## 1.1.22
 
 ### Patch Changes
 
-- [`4620bb2`](https://github.com/ardatan/graphql-tools/commit/4620bb2a352fd0e645950aaae8bb54cbc7c85ce7) Thanks [@ardatan](https://github.com/ardatan)! - Handle unspecified key fields
+- [`4620bb2`](https://github.com/ardatan/graphql-tools/commit/4620bb2a352fd0e645950aaae8bb54cbc7c85ce7)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle unspecified key fields
 
 ## 1.1.21
 
 ### Patch Changes
 
-- [`14f4fae`](https://github.com/ardatan/graphql-tools/commit/14f4faec87b1423c5541dab16dc2c5c1298edcf7) Thanks [@ardatan](https://github.com/ardatan)! - Handle orphan scalars with directives
+- [`14f4fae`](https://github.com/ardatan/graphql-tools/commit/14f4faec87b1423c5541dab16dc2c5c1298edcf7)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle orphan scalars with directives
 
 ## 1.1.20
 
 ### Patch Changes
 
-- [`b78ce7e`](https://github.com/ardatan/graphql-tools/commit/b78ce7e42c8d016d972b125a86508f5ab78d57a6) Thanks [@ardatan](https://github.com/ardatan)! - Handle orphan union types
+- [`b78ce7e`](https://github.com/ardatan/graphql-tools/commit/b78ce7e42c8d016d972b125a86508f5ab78d57a6)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle orphan union types
 
 ## 1.1.19
 
 ### Patch Changes
 
-- [#5956](https://github.com/ardatan/graphql-tools/pull/5956) [`d4395dd`](https://github.com/ardatan/graphql-tools/commit/d4395dd7d21db3becdf51cc0508e35d246dcbe1e) Thanks [@ardatan](https://github.com/ardatan)! - Handle orphan types
+- [#5956](https://github.com/ardatan/graphql-tools/pull/5956)
+  [`d4395dd`](https://github.com/ardatan/graphql-tools/commit/d4395dd7d21db3becdf51cc0508e35d246dcbe1e)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle orphan types
 
-- Updated dependencies [[`8199416`](https://github.com/ardatan/graphql-tools/commit/81994160488aad1114b0d130083bcf694fe13aba), [`baf3c28`](https://github.com/ardatan/graphql-tools/commit/baf3c28f43dcfafffd15386daeb153bc2895c1b3)]:
+- Updated dependencies
+  [[`8199416`](https://github.com/ardatan/graphql-tools/commit/81994160488aad1114b0d130083bcf694fe13aba),
+  [`baf3c28`](https://github.com/ardatan/graphql-tools/commit/baf3c28f43dcfafffd15386daeb153bc2895c1b3)]:
   - @graphql-tools/wrap@10.0.3
   - @graphql-tools/utils@10.1.1
 
@@ -292,21 +457,47 @@
 
 ### Patch Changes
 
-- [#5946](https://github.com/ardatan/graphql-tools/pull/5946) [`107c021`](https://github.com/ardatan/graphql-tools/commit/107c021aa191f0654c45ed72b45d650993e2142f) Thanks [@ardatan](https://github.com/ardatan)! - If an interface or scalar type is not annotated for a subgraph explicitly, consider them as a shared type
+- [#5946](https://github.com/ardatan/graphql-tools/pull/5946)
+  [`107c021`](https://github.com/ardatan/graphql-tools/commit/107c021aa191f0654c45ed72b45d650993e2142f)
+  Thanks [@ardatan](https://github.com/ardatan)! - If an interface or scalar type is not annotated
+  for a subgraph explicitly, consider them as a shared type
 
 ## 1.1.17
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/delegate@^10.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/10.0.3) (from `^10.0.1`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/executor-http@^1.0.8` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/1.0.8) (from `^1.0.6`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/merge@^9.0.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/merge/v/9.0.1) (from `^9.0.0`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/schema@^10.0.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/schema/v/10.0.2) (from `^10.0.0`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/stitch@^9.0.4` ↗︎](https://www.npmjs.com/package/@graphql-tools/stitch/v/9.0.4) (from `^9.0.2`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.0`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/wrap@^10.0.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/wrap/v/10.0.1) (from `^10.0.0`, in `dependencies`)
-- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/delegate@^10.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/10.0.3)
+    (from `^10.0.1`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/executor-http@^1.0.8` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/1.0.8)
+    (from `^1.0.6`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/merge@^9.0.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/merge/v/9.0.1)
+    (from `^9.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/schema@^10.0.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/schema/v/10.0.2)
+    (from `^10.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/stitch@^9.0.4` ↗︎](https://www.npmjs.com/package/@graphql-tools/stitch/v/9.0.4)
+    (from `^9.0.2`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/wrap@^10.0.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/wrap/v/10.0.1)
+    (from `^10.0.0`, in `dependencies`)
+- Updated dependencies
+  [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
   - @graphql-tools/delegate@10.0.4
   - @graphql-tools/executor-http@1.0.9
   - @graphql-tools/merge@9.0.3
@@ -318,27 +509,37 @@
 
 ### Patch Changes
 
-- [`7583729`](https://github.com/ardatan/graphql-tools/commit/7583729718ffd528bba5d1c5c4ea087975102c1f) Thanks [@ardatan](https://github.com/ardatan)! - Fix `getSubschemaForFederationWithTypeDefs` for non-supergraph merging of subgraphs
+- [`7583729`](https://github.com/ardatan/graphql-tools/commit/7583729718ffd528bba5d1c5c4ea087975102c1f)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix `getSubschemaForFederationWithTypeDefs` for
+  non-supergraph merging of subgraphs
 
 ## 1.1.15
 
 ### Patch Changes
 
-- [#5885](https://github.com/ardatan/graphql-tools/pull/5885) [`2d76909`](https://github.com/ardatan/graphql-tools/commit/2d76909908a918562a9f7599825b70ae60f91127) Thanks [@ardatan](https://github.com/ardatan)! - Avoid creating invalid schema when there is no entity
+- [#5885](https://github.com/ardatan/graphql-tools/pull/5885)
+  [`2d76909`](https://github.com/ardatan/graphql-tools/commit/2d76909908a918562a9f7599825b70ae60f91127)
+  Thanks [@ardatan](https://github.com/ardatan)! - Avoid creating invalid schema when there is no
+  entity
 
 ## 1.1.14
 
 ### Patch Changes
 
-- [#5878](https://github.com/ardatan/graphql-tools/pull/5878) [`ba062ff`](https://github.com/ardatan/graphql-tools/commit/ba062ff4880f6922eaddfcbd746782275a8f689e) Thanks [@darren-west](https://github.com/darren-west)! - fix: buildSubgraphSchema with no entity keys
+- [#5878](https://github.com/ardatan/graphql-tools/pull/5878)
+  [`ba062ff`](https://github.com/ardatan/graphql-tools/commit/ba062ff4880f6922eaddfcbd746782275a8f689e)
+  Thanks [@darren-west](https://github.com/darren-west)! - fix: buildSubgraphSchema with no entity
+  keys
 
 ## 1.1.13
 
 ### Patch Changes
 
-- [`974df8a`](https://github.com/ardatan/graphql-tools/commit/974df8a1a1bca422bac5d971a3f8029cd9728efd) Thanks [@ardatan](https://github.com/ardatan)! - Debug logging & expose the subgraph schema
+- [`974df8a`](https://github.com/ardatan/graphql-tools/commit/974df8a1a1bca422bac5d971a3f8029cd9728efd)
+  Thanks [@ardatan](https://github.com/ardatan)! - Debug logging & expose the subgraph schema
 
-- Updated dependencies [[`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238)]:
+- Updated dependencies
+  [[`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238)]:
   - @graphql-tools/executor-http@1.0.6
 
 ## 1.1.12

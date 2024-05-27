@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/documents",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Utilities for GraphQL documents.",
   "repository": {

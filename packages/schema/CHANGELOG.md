@@ -1,12 +1,30 @@
 # @graphql-tools/schema
 
+## 10.0.4
+
+### Patch Changes
+
+- [#6194](https://github.com/ardatan/graphql-tools/pull/6194)
+  [`7368829`](https://github.com/ardatan/graphql-tools/commit/73688291af0c8cb2fe550fe8c74fd8af84cb360f)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle interface objects in a different way
+
+- Updated dependencies
+  [[`7368829`](https://github.com/ardatan/graphql-tools/commit/73688291af0c8cb2fe550fe8c74fd8af84cb360f),
+  [`e10c13a`](https://github.com/ardatan/graphql-tools/commit/e10c13a60e344b9217dc77a7cac50ec447feda7e)]:
+  - @graphql-tools/utils@10.2.1
+
 ## 10.0.3
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.10`, in `dependencies`)
-- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.10`, in `dependencies`)
+- Updated dependencies
+  [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
   - @graphql-tools/merge@9.0.3
 
 ## 10.0.2
@@ -257,14 +275,14 @@
 
   ```ts
   // From
-  addResolversToSchema(schema, resolvers, resolverValidationOptions);
+  addResolversToSchema(schema, resolvers, resolverValidationOptions)
 
   // To
   addResolversToSchema({
     schema,
     resolvers,
-    resolverValidationOptions,
-  });
+    resolverValidationOptions
+  })
   ```
 
   `mergeSchemas`;
@@ -283,19 +301,19 @@
     `,
     resolvers: {
       Query: {
-        hello: () => "Hello world!",
-      },
-    },
-  });
+        hello: () => 'Hello world!'
+      }
+    }
+  })
 
   mergeSchemas({
     schemas: [schema],
     resolvers: {
       Query: {
-        hello: () => "New hello world",
-      },
-    },
-  });
+        hello: () => 'New hello world'
+      }
+    }
+  })
   ```
 
   `makeExecutableSchema` no longer takes `parseOptions` and you can pass those options directly;
@@ -304,15 +322,15 @@
   makeExecutableSchema({
     typeDefs: ``,
     parseOptions: {
-      assumeValid: true,
-    },
-  });
+      assumeValid: true
+    }
+  })
 
   // After
   makeExecutableSchema({
     typeDefs: ``,
-    assumeValid: true,
-  });
+    assumeValid: true
+  })
   ```
 
   `makeExecutableSchema` no longer does pruning and it doesn't take `pruningOptions` anymore. You
