@@ -162,6 +162,7 @@ export function buildHTTPExecutor(
     const responseDetailsForError: {
       status?: number;
       statusText?: string;
+      headers?: Record<string, string>;
     } = {};
 
     return new ValueOrPromise(() => {
@@ -225,7 +226,7 @@ export function buildHTTPExecutor(
         }
 
         // Retry should respect HTTP Errors
-        if (options?.retry != null && !fetchResult.status.toString().startsWith('2')) {
+        if (options?.retry != null && !fetchResult.ok) {
           throw new Error(fetchResult.statusText || `HTTP Error: ${fetchResult.status}`);
         }
 
@@ -247,32 +248,50 @@ export function buildHTTPExecutor(
                 parsedResult.data == null &&
                 (parsedResult.errors == null || parsedResult.errors.length === 0)
               ) {
+                const extensions: UpstreamErrorExtensions = {
+                  request: {
+                    endpoint,
+                    method,
+                    body: {
+                      query,
+                      operationName: request.operationName,
+                    },
+                  },
+                  http: {
+                    status: responseDetailsForError.status,
+                    statusText: responseDetailsForError.statusText,
+                  },
+                  responseBody: parsedResult,
+                };
                 return {
                   errors: [
-                    createGraphQLError('Unexpected empty "data" and "errors" fields', {
-                      extensions: {
-                        requestBody: {
-                          query,
-                          operationName: request.operationName,
-                        },
-                        responseDetails: responseDetailsForError,
-                      },
+                    createGraphQLError('Unexpected response', {
+                      extensions,
                     }),
                   ],
                 };
               }
               return parsedResult;
             } catch (e: any) {
+              const extensions: UpstreamErrorExtensions = {
+                request: {
+                  endpoint,
+                  method,
+                  body: {
+                    query,
+                    operationName: request.operationName,
+                  },
+                },
+                http: {
+                  status: responseDetailsForError.status,
+                  statusText: responseDetailsForError.statusText,
+                },
+                responseBody: result,
+              };
               return {
                 errors: [
-                  createGraphQLError(`Unexpected response: ${JSON.stringify(result)}`, {
-                    extensions: {
-                      requestBody: {
-                        query,
-                        operationName: request.operationName,
-                      },
-                      responseDetails: responseDetailsForError,
-                    },
+                  createGraphQLError(`Unexpected response`, {
+                    extensions,
                     originalError: e,
                   }),
                 ],
@@ -284,17 +303,25 @@ export function buildHTTPExecutor(
         }
       })
       .catch((e: any) => {
+        const extensions: UpstreamErrorExtensions = {
+          request: {
+            endpoint,
+            method,
+            body: {
+              query,
+              operationName: request.operationName,
+            },
+          },
+          http: {
+            status: responseDetailsForError.status,
+            statusText: responseDetailsForError.statusText,
+          },
+        };
         if (typeof e === 'string') {
           return {
             errors: [
               createGraphQLError(e, {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
-                },
+                extensions,
               }),
             ],
           };
@@ -305,14 +332,8 @@ export function buildHTTPExecutor(
         } else if (e.name === 'TypeError' && e.message === 'fetch failed') {
           return {
             errors: [
-              createGraphQLError(`fetch failed to ${endpoint}`, {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
-                },
+              createGraphQLError(`HTTP request failed`, {
+                extensions,
                 originalError: e,
               }),
             ],
@@ -321,13 +342,7 @@ export function buildHTTPExecutor(
           return {
             errors: [
               createGraphQLError('The operation was aborted. reason: ' + controller.signal.reason, {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
-                },
+                extensions,
                 originalError: e,
               }),
             ],
@@ -336,13 +351,7 @@ export function buildHTTPExecutor(
           return {
             errors: [
               createGraphQLError(e.message, {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
-                },
+                extensions,
                 originalError: e,
               }),
             ],
@@ -351,13 +360,7 @@ export function buildHTTPExecutor(
           return {
             errors: [
               createGraphQLError('Unknown error', {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
-                },
+                extensions,
                 originalError: e,
               }),
             ],
@@ -399,3 +402,17 @@ export function buildHTTPExecutor(
 }
 
 export { isLiveQueryOperationDefinitionNode };
+
+interface UpstreamErrorExtensions {
+  request?: {
+    endpoint?: string;
+    method?: string;
+    body?: unknown;
+  };
+  http?: {
+    status?: number;
+    statusText?: string;
+    headers?: Record<string, string>;
+  };
+  responseBody?: unknown;
+}

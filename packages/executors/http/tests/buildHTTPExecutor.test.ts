@@ -38,7 +38,10 @@ describe('buildHTTPExecutor', () => {
     expect(result).toMatchObject({
       errors: [
         {
-          message: 'Unexpected response: "NOT JSON"',
+          message: 'Unexpected response',
+          extensions: {
+            responseBody: 'NOT JSON',
+          },
         },
       ],
     });
@@ -69,7 +72,10 @@ describe('buildHTTPExecutor', () => {
     expect(result).toMatchObject({
       errors: [
         {
-          message: 'Unexpected empty "data" and "errors" fields',
+          message: 'Unexpected response',
+          extensions: {
+            responseBody: JSON.parse(body),
+          },
         },
       ],
     });
