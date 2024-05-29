@@ -31,23 +31,84 @@
     "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          media {\n            __typename\n            ... on Book {\n              title\n            }\n          }\n        }\n      },\n    }\n    \n    "
   },
   {
-    "query": "\n      query {\n        media {\n          __typename\n          ... on Song {\n            title\n          }\n          ... on Movie {\n            title\n          }\n          ... on Book {\n            title\n          }\n        }\n        book {\n          __typename\n          ... on Song {\n            title\n          }\n          ... on Movie {\n            title\n          }\n          ... on Book {\n            title\n          }\n        }\n        song {\n          __typename\n          ... on Song {\n            title\n          }\n          ... on Movie {\n            title\n          }\n          ... on Book {\n            title\n          }\n        }\n      }\n    ",
+    "query": "\n      query {\n        viewer {\n          media {\n            __typename\n            ... on Song {\n              title\n            }\n            ... on Movie {\n              title\n            }\n            ... on Book {\n              title\n            }\n          }\n          book {\n            __typename\n            ... on Song {\n              title\n            }\n            ... on Movie {\n              title\n            }\n            ... on Book {\n              title\n            }\n          }\n          song {\n            __typename\n            ... on Song {\n              title\n            }\n            ... on Movie {\n              title\n            }\n            ... on Book {\n              title\n            }\n          }\n        }\n      }\n    ",
     "expected": {
       "data": {
-        "media": {
-          "__typename": "Book",
-          "title": "The Lord of the Rings"
-        },
-        "book": {
-          "__typename": "Book",
-          "title": "The Lord of the Rings"
-        },
-        "song": {
-          "__typename": "Song",
-          "title": "Song Title"
+        "viewer": {
+          "media": {
+            "__typename": "Book",
+            "title": "The Lord of the Rings"
+          },
+          "book": {
+            "__typename": "Book",
+            "title": "The Lord of the Rings"
+          },
+          "song": {
+            "__typename": "Song",
+            "title": "Song Title"
+          }
         }
       }
     },
-    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          song {\n            # NOTE\n            # Query.song is only resolved in subgraph A\n            # Media = Book | Song in subgraph A\n            # Movie was removed from the query as it cannot be resolved by Query.song\n            __typename\n            ... on Song {\n              title\n            }\n            ... on Book {\n              title\n            }\n          }\n          media {\n            __typename\n            # NOTE\n            # Movie and Song was removed from the query\n            # The only type that is common to Query.media in all subgraphs is Book\n            ... on Book {\n              title\n            }\n          }\n          book {\n            # NOTE\n            # Query.book resolves Book, not an abstract type, in subgraph A\n            # Query.book resolves Media = Book | Movie in subgraph B\n            # The only possible type here is Book\n            __typename\n            title\n          }\n        }\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          viewer {\n            song {\n              # NOTE\n              # Query.song is only resolved in subgraph A\n              # Media = Book | Song in subgraph A\n              # Movie was removed from the query as it cannot be resolved by Query.song\n              __typename\n              ... on Song {\n                title\n              }\n              ... on Book {\n                title\n              }\n            }\n            media {\n              __typename\n              # NOTE\n              # Movie and Song was removed from the query\n              # The only type that is common to Query.media in all subgraphs is Book\n              ... on Book {\n                title\n              }\n            }\n            book {\n              # NOTE\n              # Query.book resolves Book, not an abstract type, in subgraph A\n              # Query.book resolves Media = Book | Movie in subgraph B\n              # The only possible type here is Book\n              __typename\n              title\n            }\n          }\n        }\n      },\n    }\n    "
+  },
+  {
+    "query": "\n      query {\n        viewer {\n          media {\n            ... on Movie {\n              title\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "viewer": {
+          "media": {}
+        }
+      }
+    },
+    "plan": "\n      QueryPlan {\n        Fetch(service: \"a\") {\n          {\n            viewer {\n              media {\n                # NOTE\n                # Query.media returns an intersection of Media union from A and B subgraphs \n                # Movie is only available in subgraph B\n                # Query planner could remove Movie from the query, but then the selection set would be empty.\n                # If it would not route the request there and simply return an empty object, the effect would be the same.\n                # I guess the query planner still want to make a request to subgraph A to see if it can resolve anything.\n                # One reason could be that Query.media requires authentication and it does not want to overwrite that logic,\n                # as it could possibly lead to successful request, even though the response should contain an error.\n                __typename\n              }\n            }\n          }\n        },\n      }\n    "
+  },
+  {
+    "query": "\n      query {\n        viewer {\n          media {\n            ... on Book {\n              title\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "viewer": {
+          "media": {
+            "title": "The Lord of the Rings"
+          }
+        }
+      }
+    },
+    "plan": "\n      QueryPlan {\n        Fetch(service: \"a\") {\n          {\n            viewer {\n              media {\n                __typename\n                ... on Book {\n                  title\n                }\n              }\n            }\n          }\n        },\n      }\n    "
+  },
+  {
+    "query": "\n      query {\n        viewer {\n          media {\n            ... on Book {\n              title\n            }\n            ... on Movie {\n              title\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "viewer": {
+          "media": {
+            "title": "The Lord of the Rings"
+          }
+        }
+      }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          viewer {\n            media {\n              __typename\n              ... on Book {\n                title\n              }\n            }\n          }\n        }\n      },\n    }\n    \n    "
+  },
+  {
+    "query": "\n      query {\n        viewer {\n          media {\n            __typename\n            ... on Song {\n              title\n            }\n            ... on Movie {\n              title\n            }\n            ... on Book {\n              title\n            }\n          }\n          book {\n            __typename\n            ... on Song {\n              title\n            }\n            ... on Movie {\n              title\n            }\n            ... on Book {\n              title\n            }\n          }\n          song {\n            __typename\n            ... on Song {\n              title\n            }\n            ... on Movie {\n              title\n            }\n            ... on Book {\n              title\n            }\n          }\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "viewer": {
+          "media": {
+            "__typename": "Book",
+            "title": "The Lord of the Rings"
+          },
+          "book": {
+            "__typename": "Book",
+            "title": "The Lord of the Rings"
+          },
+          "song": {
+            "__typename": "Song",
+            "title": "Song Title"
+          }
+        }
+      }
+    },
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          viewer {\n            song {\n              # NOTE\n              # Query.song is only resolved in subgraph A\n              # Media = Book | Song in subgraph A\n              # Movie was removed from the query as it cannot be resolved by Query.song\n              __typename\n              ... on Song {\n                title\n              }\n              ... on Book {\n                title\n              }\n            }\n            media {\n              __typename\n              # NOTE\n              # Movie and Song was removed from the query\n              # The only type that is common to Query.media in all subgraphs is Book\n              ... on Book {\n                title\n              }\n            }\n            book {\n              # NOTE\n              # Query.book resolves Book, not an abstract type, in subgraph A\n              # Query.book resolves Media = Book | Movie in subgraph B\n              # The only possible type here is Book\n              __typename\n              title\n            }\n          }\n        }\n      },\n    }\n    "
   }
 ]

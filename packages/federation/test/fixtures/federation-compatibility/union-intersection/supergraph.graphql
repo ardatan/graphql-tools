@@ -69,6 +69,7 @@ type Query
   media: Media
   book: Media @join__field(graph: A, type: "Book") @join__field(graph: B, type: "Media")
   song: Media @join__field(graph: A)
+  viewer: Viewer
 }
 
 type Song
@@ -76,3 +77,21 @@ type Song
 {
   title: String!
 }
+
+type Viewer
+  @join__type(graph: A)
+  @join__type(graph: B)
+{
+  media: ViewerMedia
+  book: ViewerMedia @join__field(graph: A, type: "Book") @join__field(graph: B, type: "ViewerMedia")
+  song: ViewerMedia @join__field(graph: A)
+}
+
+union ViewerMedia
+  @join__type(graph: A)
+  @join__type(graph: B)
+  @join__unionMember(graph: A, member: "Book")
+  @join__unionMember(graph: B, member: "Book")
+  @join__unionMember(graph: A, member: "Song")
+  @join__unionMember(graph: B, member: "Movie")
+ = Book | Song | Movie
