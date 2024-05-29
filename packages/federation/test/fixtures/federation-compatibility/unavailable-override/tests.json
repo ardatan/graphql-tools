@@ -13,7 +13,7 @@
         ]
       }
     },
-    "plan": "\n    QueryPlan {\n      Fetch(service: \"b\") {\n        {\n          feed {\n            createdAt\n          }\n        }\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Fetch(service: \"a\") {\n        {\n          feed {\n            createdAt\n          }\n        }\n      },\n    }\n    "
   },
   {
     "query": "\n      query {\n        aFeed {\n          createdAt\n        }\n        bFeed {\n          createdAt\n        }\n      }\n    ",
@@ -31,6 +31,6 @@
         ]
       }
     },
-    "plan": "\n    QueryPlan {\n      Parallel {\n        Sequence {\n          Fetch(service: \"a\") {\n            {\n              aFeed {\n                __typename\n                id\n              }\n            }\n          },\n          # NOTE\n          # Query.aFeed started in subgraph A, and Post.createdAt is available in subgraph A,\n          # but instead of fetching it from A, it is fetched from B as B overrides Post.createdAt for A.\n          Flatten(path: \"aFeed.@\") {\n            Fetch(service: \"b\") {\n              {\n                ... on Post {\n                  __typename\n                  id\n                }\n              } =>\n              {\n                ... on Post {\n                  createdAt\n                }\n              }\n            },\n          },\n        },\n        Fetch(service: \"b\") {\n          {\n            bFeed {\n              createdAt\n            }\n          }\n        },\n      },\n    }\n    "
+    "plan": "\n    QueryPlan {\n      Parallel {\n        Fetch(service: \"a\") {\n          {\n            aFeed {\n              createdAt\n            }\n          }\n        },\n        Fetch(service: \"b\") {\n          {\n            bFeed {\n              createdAt\n            }\n          }\n        },\n      },\n    }\n    "
   }
 ]

@@ -45,7 +45,7 @@ type Post
   @join__type(graph: B, key: "id")
 {
   id: ID!
-  createdAt: String!
+  createdAt: String! @join__field(graph: B, override: "a")
 }
 
 type Query
