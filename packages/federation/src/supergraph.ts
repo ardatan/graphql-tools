@@ -1067,8 +1067,6 @@ export function getSubschemasFromSupergraphSdl({
   return subschemaMap;
 }
 
-export function getStichedSchemaFromManageFederation() {}
-
 export function getStitchedSchemaFromSupergraphSdl(opts: GetSubschemasFromSupergraphSdlOpts) {
   const subschemaMap = getSubschemasFromSupergraphSdl(opts);
   const supergraphSchema = stitchSchemas({
@@ -1085,11 +1083,16 @@ export function getStitchedSchemaFromSupergraphSdl(opts: GetSubschemasFromSuperg
   });
   const extraDefinitions: DefinitionNode[] = [];
   for (const definition of ensureSupergraphSDLAst(opts.supergraphSdl).definitions) {
-    if ('fields' in definition && definition.fields) {
+    if ('name' in definition && definition.name && definition.kind !== Kind.DIRECTIVE_DEFINITION) {
       const typeInSchema = supergraphSchema.getType(definition.name.value);
-      if (!typeInSchema || !('getFields' in typeInSchema)) {
+      if (!typeInSchema) {
         extraDefinitions.push(definition);
-      } else {
+      } else if ('fields' in definition && definition.fields) {
+        if (!('getFields' in typeInSchema)) {
+          throw new Error(
+            `Type ${definition.name.value} is not a type with fields but in the supergraph`,
+          );
+        }
         const fieldsInSchema = typeInSchema.getFields();
         const extraFields: (FieldDefinitionNode | InputValueDefinitionNode)[] = [];
         for (const field of definition.fields) {
