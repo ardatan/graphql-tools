@@ -23,10 +23,6 @@ import {
 } from '@graphql-tools/utils';
 import { SubgraphBaseSDL } from './subgraph.js';
 import {
-  getStitchedSchemaFromSupergraphSdl,
-  type GetSubschemasFromSupergraphSdlOpts,
-} from './supergraph.js';
-import {
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
   getCacheKeyFnFromKey,
@@ -255,7 +251,7 @@ export type GetStitchedSchemaFromManagedFederationOpts = {
   upLink?: string;
   /**
    * The ID of the last fetched supergraph.
-   * If provided, a result is returned only if the managed supergraph have changed.
+   * If provided, a supergraph is returned only if the managed supergraph have changed.
    */
   lastSeenId?: string;
   /**
@@ -265,16 +261,31 @@ export type GetStitchedSchemaFromManagedFederationOpts = {
   fetch?: typeof fetch;
 };
 
-type StitchManagedFederationResult = {
-  schema: GraphQLSchema;
+export type RouterConfig = {
+  supergraphSdl: string;
   minDelaySeconds: number;
   id: string;
 };
 
+export type Unchanged = {
+  minDelaySeconds?: never;
+  id: string;
+};
+
+export type FetchError = {
+  error: { code: string; message: string };
+  minDelaySeconds: never;
+};
+
+/**
+ * Fetches the supergraph SDL from a managed federation GraphOS up link.
+ * @param options
+ * @returns An object with the supergraph SDL when possible. It also includes metadata to handle polling and retry logic.
+ *          If `lastSeenId` is provided and the supergraph has not changed, `supergraphSdl` is not present.
+ */
 export async function getStitchedSchemaFromManagedFederation(
   options: GetStitchedSchemaFromManagedFederationOpts,
-  stitchOptions?: Omit<GetSubschemasFromSupergraphSdlOpts, 'supergraphSdl'>,
-): Promise<StitchManagedFederationResult | null> {
+) {
   const {
     upLink = 'https://uplink.api.apollographql.com/',
     fetch = global.fetch,
@@ -294,6 +305,11 @@ export async function getStitchedSchemaFromManagedFederation(
             ... on FetchError {
               code
               message
+              minDelaySeconds
+            }
+            ... on Unchanged {
+              id
+              minDelaySeconds
             }
             ... on RouterConfigResult {
               id
@@ -330,21 +346,22 @@ export async function getStitchedSchemaFromManagedFederation(
     );
   }
 
-  if (result.data.routerConfig.__typename === 'FetchError') {
-    const { code, message } = result.data.routerConfig;
-    throw new Error(
-      `Failed to fetch supergraph SDL from managed federation up link '${upLink}': [${code}] ${message}`,
-    );
+  const { routerConfig } = result.data;
+
+  if (routerConfig.__typename === 'FetchError') {
+    return {
+      error: { code: routerConfig.code, message: routerConfig.message },
+      minDelaySeconds: routerConfig.minDelaySeconds,
+    } as FetchError;
   }
 
-  if (result.data.routerConfig.__typename === 'Unchanged') {
-    return null;
+  if (routerConfig.__typename === 'Unchanged') {
+    return { id: routerConfig.id, minDelaySeconds: routerConfig.minDelaySeconds } as Unchanged;
   }
 
-  const { supergraphSDL, ...supergraphInfo } = result.data.routerConfig;
-  const schema = getStitchedSchemaFromSupergraphSdl({
-    supergraphSdl: supergraphSDL,
-    ...stitchOptions,
-  });
-  return { schema, ...supergraphInfo };
+  return {
+    supergraphSdl: routerConfig.supergraphSDL,
+    id: routerConfig.id,
+    minDelaySeconds: routerConfig.minDelaySeconds,
+  } as RouterConfig;
 }
