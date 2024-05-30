@@ -22,7 +22,10 @@ import {
   inspect,
 } from '@graphql-tools/utils';
 import { SubgraphBaseSDL } from './subgraph.js';
-import { getStitchedSchemaFromSupergraphSdl } from './supergraph.js';
+import {
+  getStitchedSchemaFromSupergraphSdl,
+  type GetSubschemasFromSupergraphSdlOpts,
+} from './supergraph.js';
 import {
   filterInternalFieldsAndTypes,
   getArgsFromKeysForFederation,
@@ -234,25 +237,59 @@ export const federationSubschemaTransformer: SubschemaConfigTransform =
     };
   };
 
-export async function getStitchedSchemaFromManagedFederation(options: {
-  graphRef: string;
+export type GetStitchedSchemaFromManagedFederationOpts = {
+  /**
+   * The graph ID of the managed federation graph.
+   */
+  graphId: string;
+  /**
+   * The API key to use to authenticate with the managed federation up link.
+   * It needs at least the `service:read` permission.
+   */
   apiKey: string;
+  /**
+   * The URL of the managed federation up link.
+   * Default: 'https://uplink.api.apollographql.com/' (Apollo's managed federation up link on GCP)
+   * Alternative: 'https://aws.uplink.api.apollographql.com/' (Apollo's managed federation up link on AWS)
+   */
   upLink?: string;
+  /**
+   * The ID of the last fetched supergraph.
+   * If provided, a result is returned only if the managed supergraph have changed.
+   */
   lastSeenId?: string;
-  abortSignal?: AbortSignal;
-}) {
-  const { upLink = 'https://gateway.apollo.dev/graphql', abortSignal, ...variables } = options;
+  /**
+   * The fetch implementation to use.
+   * Default: global.fetch
+   */
+  fetch?: typeof fetch;
+};
+
+type StitchManagedFederationResult = {
+  schema: GraphQLSchema;
+  minDelaySeconds: number;
+  id: string;
+};
+
+export async function getStitchedSchemaFromManagedFederation(
+  options: GetStitchedSchemaFromManagedFederationOpts,
+  stitchOptions?: Omit<GetSubschemasFromSupergraphSdlOpts, 'supergraphSdl'>,
+): Promise<StitchManagedFederationResult | null> {
+  const {
+    upLink = 'https://uplink.api.apollographql.com/',
+    fetch = global.fetch,
+    ...variables
+  } = options;
 
   const response = await fetch(upLink, {
     method: 'POST',
-    signal: abortSignal,
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       query: /* GraphQL */ `
-        query ($apiKey: String!, $graphRef: String!, $lastSeenId: ID) {
-          routerConfig(ref: $graphRef, apiKey: $apiKey, ifAfterId: $lastSeenId) {
+        query ($apiKey: String!, $graphId: String!, $lastSeenId: ID) {
+          routerConfig(ref: $graphId, apiKey: $apiKey, ifAfterId: $lastSeenId) {
             __typename
             ... on FetchError {
               code
@@ -276,32 +313,38 @@ export async function getStitchedSchemaFromManagedFederation(options: {
     );
   }
 
+  const responseBody = await response.text();
+  let result: ExecutionResult;
   try {
-    const { data, errors }: ExecutionResult = await response.json();
-
-    if (errors) {
-      throw new Error(
-        `Failed to fetch supergraph SDL from managed federation up link '${upLink}': ${errors.map(({ message }) => '\n' + message).join('')}`,
-      );
-    }
-
-    if (data.routerConfig.__typename === 'FetchError') {
-      const { code, message } = data.routerConfig;
-      throw new Error(
-        `Failed to fetch supergraph SDL from managed federation up link '${upLink}': [${code}] ${message}`,
-      );
-    }
-
-    const { supergraphSDL, id, minDelaySeconds } = data.routerConfig;
-
-    return {
-      schema: getStitchedSchemaFromSupergraphSdl(supergraphSDL),
-      id,
-      minDelaySeconds,
-    };
+    result = JSON.parse(responseBody);
   } catch (err) {
     throw new Error(
-      `Failed to parse response from managed federation up link '${upLink}': ${await response.text()}`,
+      `Failed to parse response from managed federation up link '${upLink}': ${(err as Error).message}\n\n${responseBody}`,
     );
   }
+
+  if (result.errors) {
+    const errors = result.errors.map(({ message }) => '\n' + message).join('');
+    throw new Error(
+      `Failed to fetch supergraph SDL from managed federation up link '${upLink}': ${errors}`,
+    );
+  }
+
+  if (result.data.routerConfig.__typename === 'FetchError') {
+    const { code, message } = result.data.routerConfig;
+    throw new Error(
+      `Failed to fetch supergraph SDL from managed federation up link '${upLink}': [${code}] ${message}`,
+    );
+  }
+
+  if (result.data.routerConfig.__typename === 'Unchanged') {
+    return null;
+  }
+
+  const { supergraphSDL, ...supergraphInfo } = result.data.routerConfig;
+  const schema = getStitchedSchemaFromSupergraphSdl({
+    supergraphSdl: supergraphSDL,
+    ...stitchOptions,
+  });
+  return { schema, ...supergraphInfo };
 }
