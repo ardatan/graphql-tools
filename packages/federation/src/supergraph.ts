@@ -1067,6 +1067,8 @@ export function getSubschemasFromSupergraphSdl({
   return subschemaMap;
 }
 
+export function getStichedSchemaFromManageFederation() {}
+
 export function getStitchedSchemaFromSupergraphSdl(opts: GetSubschemasFromSupergraphSdlOpts) {
   const subschemaMap = getSubschemasFromSupergraphSdl(opts);
   const supergraphSchema = stitchSchemas({
