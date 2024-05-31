@@ -75,7 +75,7 @@ export type Unchanged = {
   /**
    * The minimum delay in seconds to wait before trying to fetch this supergraph again.
    */
-  minDelaySeconds: never;
+  minDelaySeconds: number;
   /**
    * The ID of the supergraph. Should be used as `lastSeenId` in the next fetch.
    */
