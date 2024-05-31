@@ -86,7 +86,7 @@ export type FetchError = {
   /**
    * The minimum delay in seconds to wait before trying to fetch this supergraph again.
    */
-  minDelaySeconds: never;
+  minDelaySeconds: number;
 };
 
 type RouterConfigResult = {
@@ -200,11 +200,10 @@ export async function fetchSupergraphSdlFromManagedFederation(
   const { routerConfig } = result.data;
 
   if (routerConfig.__typename === 'FetchError') {
-    const fetchError: FetchError = {
+    return {
       error: { code: routerConfig.code, message: routerConfig.message },
       minDelaySeconds: routerConfig.minDelaySeconds,
     };
-    return fetchError;
   }
 
   if (routerConfig.__typename === 'Unchanged') {
