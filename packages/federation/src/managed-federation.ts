@@ -160,10 +160,6 @@ export async function fetchSupergraphSdlFromManagedFederation(
               code
               message
               minDelaySeconds
-              messages {
-                level
-                body
-              }
             }
             ... on Unchanged {
               id
@@ -173,6 +169,10 @@ export async function fetchSupergraphSdlFromManagedFederation(
               id
               supergraphSdl: supergraphSDL
               minDelaySeconds
+              messages {
+                level
+                body
+              }
             }
           }
         }
