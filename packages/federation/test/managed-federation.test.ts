@@ -2,13 +2,16 @@ import { Response } from '@whatwg-node/fetch';
 import { fetchSupergraphSdlFromManagedFederation } from '../src/managed-federation';
 
 describe('Managed Federation', () => {
-  it('should fetch the supergraph SDL from GraphOS', async () => {
+  // Skipped for the CI, you can run it locally to verify it actually works against GraphOS API
+  it.skip('should fetch the supergraph SDL from GraphOS', async () => {
     const result = await fetchSupergraphSdlFromManagedFederation({
-      apiKey: 'service:Spotify-Demo-Graph-nsqe3n:lI9CbSijTrUb5injfcVMfw',
-      graphId: 'Spotify-Demo-Graph-nsqe3n',
+      apiKey: process.env['GRAPHOS_API_KEY']!,
+      graphId: process.env['GRAPHOS_GRAPH_ID']!,
     });
     expect(result).toMatchObject({
       supergraphSdl: expect.any(String),
+      id: expect.any(String),
+      minDelaySeconds: expect.any(Number),
     });
   });
 
@@ -40,7 +43,7 @@ describe('Managed Federation', () => {
   });
 
   it('should handle unchanged supergraph SDL', async () => {
-    const mochUnchangedSuppergraph = () =>
+    const mockUnchangedSuppergraph = () =>
       Response.json({
         data: {
           routerConfig: {
@@ -53,8 +56,8 @@ describe('Managed Federation', () => {
 
     const result = await fetchSupergraphSdlFromManagedFederation({
       apiKey: 'service:fake-key',
-      graphId: 'Spotify-Demo-Graph-nsqe3n',
-      fetch: mochUnchangedSuppergraph,
+      graphId: 'test-id-1',
+      fetch: mockUnchangedSuppergraph,
     });
 
     expect(result).toMatchObject({
@@ -64,7 +67,7 @@ describe('Managed Federation', () => {
   });
 
   it('should handle fetch errors returned by GraphOS', async () => {
-    const mochUnchangedSuppergraph = () =>
+    const mockUnchangedSuppergraph = () =>
       Response.json({
         data: {
           routerConfig: {
@@ -78,8 +81,8 @@ describe('Managed Federation', () => {
 
     const result = await fetchSupergraphSdlFromManagedFederation({
       apiKey: 'service:fake-key',
-      graphId: 'Spotify-Demo-Graph-nsqe3n',
-      fetch: mochUnchangedSuppergraph,
+      graphId: 'test-id-1',
+      fetch: mockUnchangedSuppergraph,
     });
 
     expect(result).toMatchObject({
@@ -89,7 +92,7 @@ describe('Managed Federation', () => {
   });
 
   it('should return the supergraph SDL with metadata', async () => {
-    const mochUnchangedSuppergraph = () =>
+    const mockUnchangedSuppergraph = () =>
       Response.json({
         data: {
           routerConfig: {
@@ -103,8 +106,8 @@ describe('Managed Federation', () => {
 
     const result = await fetchSupergraphSdlFromManagedFederation({
       apiKey: 'service:fake-key',
-      graphId: 'Spotify-Demo-Graph-nsqe3n',
-      fetch: mochUnchangedSuppergraph,
+      graphId: 'test-id-1',
+      fetch: mockUnchangedSuppergraph,
     });
 
     expect(result).toMatchObject({
