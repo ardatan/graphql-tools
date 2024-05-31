@@ -55,6 +55,7 @@ describe('Managed Federation', () => {
               minDelaySeconds: 10,
               id: 'test-id-1',
               supergraphSdl: 'test supergraph sdl',
+              messages: [],
             },
           },
         });
