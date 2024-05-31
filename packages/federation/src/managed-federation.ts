@@ -9,14 +9,23 @@ import {
 
 export type FetchSupergraphSdlFromManagedFederationOpts = {
   /**
-   * The graph ID of the managed federation graph.
+   * The graph ref of the managed federation graph.
+   * It is composed of the graph ID and the variant (`<YOUR_GRAPH_ID>@<VARIANT>`).
+   *
+   * If not provided, `APOLLO_GRAPH_REF` environment variable is used.
+   *
+   * You can find a a graph's ref at the top of its Schema Reference page in Apollo Studio.
    */
-  graphId: string;
+  graphRef?: string;
   /**
    * The API key to use to authenticate with the managed federation up link.
    * It needs at least the `service:read` permission.
+   *
+   * If not provided, `APOLLO_KEY` environment variable will be used instead.
+   *
+   * [Learn how to create an API key](https://www.apollographql.com/docs/federation/v1/managed-federation/setup#4-connect-the-gateway-to-studio)
    */
-  apiKey: string;
+  apiKey?: string;
   /**
    * The URL of the managed federation up link. When retrying after a failure, you should cycle through the default up links using this option.
    *
@@ -117,8 +126,8 @@ export async function fetchSupergraphSdlFromManagedFederation(
     },
     body: JSON.stringify({
       query: /* GraphQL */ `
-        query ($apiKey: String!, $graphId: String!, $lastSeenId: ID) {
-          routerConfig(ref: $graphId, apiKey: $apiKey, ifAfterId: $lastSeenId) {
+        query ($apiKey: String!, $graphRef: String!, $lastSeenId: ID) {
+          routerConfig(ref: $graphRef, apiKey: $apiKey, ifAfterId: $lastSeenId) {
             __typename
             ... on FetchError {
               code
@@ -220,7 +229,7 @@ export async function getStitchedSchemaFromManagedFederation(
   | Unchanged
 > {
   const result = await fetchSupergraphSdlFromManagedFederation({
-    graphId: options.graphId,
+    graphRef: options.graphRef,
     apiKey: options.apiKey,
     upLink: options.upLink,
     lastSeenId: options.lastSeenId,

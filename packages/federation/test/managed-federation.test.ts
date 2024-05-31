@@ -6,7 +6,7 @@ describe('Managed Federation', () => {
   it.skip('should fetch the supergraph SDL from GraphOS', async () => {
     const result = await fetchSupergraphSdlFromManagedFederation({
       apiKey: process.env['GRAPHOS_API_KEY']!,
-      graphId: process.env['GRAPHOS_GRAPH_ID']!,
+      graphRef: process.env['GRAPHOS_GRAPH_ID']!,
     });
     expect(result).toMatchObject({
       supergraphSdl: expect.any(String),
@@ -18,13 +18,13 @@ describe('Managed Federation', () => {
   it('should pass the variables correctly to the fetch function', async () => {
     await fetchSupergraphSdlFromManagedFederation({
       apiKey: 'test-api-key',
-      graphId: 'test-graph-id',
+      graphRef: 'test-graph-id',
       lastSeenId: 'test-last-seen-id',
       upLink: 'test-up-link',
       fetch(url, bodyInit) {
         expect(url).toBe('test-up-link');
         expect(bodyInit?.body).toContain('"lastSeenId":"test-last-seen-id"');
-        expect(bodyInit?.body).toContain('"graphId":"test-graph-id"');
+        expect(bodyInit?.body).toContain('"graphRef":"test-graph-id"');
         expect(bodyInit?.body).toContain('"apiKey":"test-api-key"');
         return Response.json({
           data: {
@@ -56,7 +56,7 @@ describe('Managed Federation', () => {
 
     const result = await fetchSupergraphSdlFromManagedFederation({
       apiKey: 'service:fake-key',
-      graphId: 'test-id-1',
+      graphRef: 'test-id-1',
       fetch: mockUnchangedSuppergraph,
     });
 
@@ -81,7 +81,7 @@ describe('Managed Federation', () => {
 
     const result = await fetchSupergraphSdlFromManagedFederation({
       apiKey: 'service:fake-key',
-      graphId: 'test-id-1',
+      graphRef: 'test-id-1',
       fetch: mockUnchangedSuppergraph,
     });
 
@@ -106,7 +106,7 @@ describe('Managed Federation', () => {
 
     const result = await fetchSupergraphSdlFromManagedFederation({
       apiKey: 'service:fake-key',
-      graphId: 'test-id-1',
+      graphRef: 'test-id-1',
       fetch: mockUnchangedSuppergraph,
     });
 
