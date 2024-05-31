@@ -1,140 +1,215 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { Response } from '@whatwg-node/fetch';
-import { fetchSupergraphSdlFromManagedFederation } from '../src/managed-federation';
+import {
+  fetchSupergraphSdlFromManagedFederation,
+  SupergraphSchemaManager,
+} from '../src/managed-federation';
 
 describe('Managed Federation', () => {
-  // Skipped for the CI, you can run it locally to verify it actually works against GraphOS API
-  it.skip('should fetch the supergraph SDL from GraphOS', async () => {
-    const result = await fetchSupergraphSdlFromManagedFederation();
-    expect(result).toMatchObject({
-      supergraphSdl: expect.any(String),
-      id: expect.any(String),
-      minDelaySeconds: expect.any(Number),
-    });
-  });
+  const supergraphSdl = readFileSync(
+    join(__dirname, 'fixtures', 'supergraphs', 'a.graphql'),
+  ).toString('utf-8');
 
-  it('should pass the variables correctly to the fetch function', async () => {
-    await fetchSupergraphSdlFromManagedFederation({
-      apiKey: 'test-api-key',
-      graphRef: 'test-graph-id',
-      lastSeenId: 'test-last-seen-id',
-      upLink: 'test-up-link',
-      fetch(url, bodyInit) {
-        expect(url).toBe('test-up-link');
-        expect(bodyInit?.body).toContain('"lastSeenId":"test-last-seen-id"');
-        expect(bodyInit?.body).toContain('"graphRef":"test-graph-id"');
-        expect(bodyInit?.body).toContain('"apiKey":"test-api-key"');
-        return Response.json({
-          data: {
-            routerConfig: {
-              __typename: 'RouterConfigResult',
-              minDelaySeconds: 10,
-              id: 'test-id-1',
-              supergraphSdl: 'test supergraph sdl',
-              messages: [],
-            },
-          },
-        });
+  const mockSDL = jest.fn(async () =>
+    Response.json({
+      data: {
+        routerConfig: {
+          __typename: 'RouterConfigResult',
+          minDelaySeconds: 0.1,
+          id: 'test-id-1',
+          supergraphSDL: supergraphSdl,
+          messages: [],
+        },
       },
-    });
+    }),
+  );
 
-    expect.assertions(4);
-  });
+  const mockUnchanged = jest.fn(async () =>
+    Response.json({
+      data: { routerConfig: { __typename: 'Unchanged', minDelaySeconds: 0.1, id: 'test-id-1' } },
+    }),
+  );
 
-  it('should load API key and Graph Ref from env', async () => {
-    process.env['APOLLO_KEY'] = 'test-api-key';
-    process.env['APOLLO_GRAPH_REF'] = 'test-graph-id';
-    process.env['APOLLO_SCHEMA_CONFIG_DELIVERY_ENDPOINT'] = 'test-up-link1,test-up-link2';
-    await fetchSupergraphSdlFromManagedFederation({
-      fetch(url, bodyInit) {
-        expect(url).toBe('test-up-link1');
-        expect(bodyInit?.body).toContain('"graphRef":"test-graph-id"');
-        expect(bodyInit?.body).toContain('"apiKey":"test-api-key"');
-        return Response.json({
-          data: {
-            routerConfig: {
-              __typename: 'RouterConfigResult',
-              minDelaySeconds: 10,
-              id: 'test-id-1',
-              supergraphSdl: 'test supergraph sdl',
-              messages: [],
-            },
-          },
-        });
+  const mockFetchError = jest.fn(async () =>
+    Response.json({
+      data: {
+        routerConfig: {
+          __typename: 'FetchError',
+          code: 'FETCH_ERROR',
+          message: 'Test error message',
+          minDelaySeconds: 0.1,
+        },
       },
-    });
+    }),
+  );
 
-    expect.assertions(3);
+  const mockError = jest.fn(async () => {
+    throw new Error('Test Error');
   });
 
-  it('should handle unchanged supergraph SDL', async () => {
-    const mockUnchangedSuppergraph = () =>
-      Response.json({
-        data: {
-          routerConfig: {
-            __typename: 'Unchanged',
-            minDelaySeconds: 10,
-            id: 'test-id-1',
-          },
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('Supergraph SDL Fetcher', () => {
+    // Skipped for the CI, you can run it locally to verify it actually works against GraphOS API
+    it.skip('should fetch the supergraph SDL from GraphOS', async () => {
+      const result = await fetchSupergraphSdlFromManagedFederation();
+      expect(result).toMatchObject({
+        supergraphSdl: expect.any(String),
+        id: expect.any(String),
+        minDelaySeconds: expect.any(Number),
+      });
+    });
+
+    it('should pass the variables correctly to the fetch function', async () => {
+      await fetchSupergraphSdlFromManagedFederation({
+        apiKey: 'test-api-key',
+        graphRef: 'test-graph-id',
+        lastSeenId: 'test-last-seen-id',
+        upLink: 'test-up-link',
+        fetch(url, bodyInit) {
+          expect(url).toBe('test-up-link');
+          expect(bodyInit?.body).toContain('"lastSeenId":"test-last-seen-id"');
+          expect(bodyInit?.body).toContain('"graphRef":"test-graph-id"');
+          expect(bodyInit?.body).toContain('"apiKey":"test-api-key"');
+          return mockSDL();
         },
       });
 
-    const result = await fetchSupergraphSdlFromManagedFederation({
-      fetch: mockUnchangedSuppergraph,
+      expect.assertions(4);
     });
 
-    expect(result).toMatchObject({
-      id: 'test-id-1',
-      minDelaySeconds: 10,
-    });
-  });
-
-  it('should handle fetch errors returned by GraphOS', async () => {
-    const mockUnchangedSuppergraph = () =>
-      Response.json({
-        data: {
-          routerConfig: {
-            __typename: 'FetchError',
-            minDelaySeconds: 10,
-            code: 'FETCH_ERROR',
-            message: 'Test error message',
-          },
+    it('should load API key and Graph Ref from env', async () => {
+      process.env['APOLLO_KEY'] = 'test-api-key';
+      process.env['APOLLO_GRAPH_REF'] = 'test-graph-id';
+      process.env['APOLLO_SCHEMA_CONFIG_DELIVERY_ENDPOINT'] = 'test-up-link1,test-up-link2';
+      await fetchSupergraphSdlFromManagedFederation({
+        fetch(url, bodyInit) {
+          expect(url).toBe('test-up-link1');
+          expect(bodyInit?.body).toContain('"graphRef":"test-graph-id"');
+          expect(bodyInit?.body).toContain('"apiKey":"test-api-key"');
+          return mockSDL();
         },
       });
 
-    const result = await fetchSupergraphSdlFromManagedFederation({
-      apiKey: 'service:fake-key',
-      graphRef: 'test-id-1',
-      fetch: mockUnchangedSuppergraph,
+      expect.assertions(3);
     });
 
-    expect(result).toMatchObject({
-      minDelaySeconds: 10,
-      error: { code: 'FETCH_ERROR', message: 'Test error message' },
+    it('should handle unchanged supergraph SDL', async () => {
+      const result = await fetchSupergraphSdlFromManagedFederation({
+        fetch: mockUnchanged,
+      });
+
+      expect(result).toMatchObject({
+        id: 'test-id-1',
+        minDelaySeconds: 0.1,
+      });
+    });
+
+    it('should handle fetch errors returned by GraphOS', async () => {
+      const result = await fetchSupergraphSdlFromManagedFederation({
+        apiKey: 'service:fake-key',
+        graphRef: 'test-id-1',
+        fetch: mockFetchError,
+      });
+
+      expect(result).toMatchObject({
+        minDelaySeconds: 0.1,
+        error: { code: 'FETCH_ERROR', message: 'Test error message' },
+      });
+    });
+
+    it('should return the supergraph SDL with metadata', async () => {
+      const result = await fetchSupergraphSdlFromManagedFederation({
+        fetch: mockSDL,
+      });
+
+      expect(result).toMatchObject({
+        supergraphSdl: supergraphSdl,
+        id: 'test-id-1',
+        minDelaySeconds: 0.1,
+      });
+    });
+
+    it('should throw an error if the fetch fails', async () => {
+      await expect(
+        fetchSupergraphSdlFromManagedFederation({
+          fetch: mockError,
+        }),
+      ).rejects.toThrow('Test Error');
     });
   });
 
-  it('should return the supergraph SDL with metadata', async () => {
-    const mockUnchangedSuppergraph = () =>
-      Response.json({
-        data: {
-          routerConfig: {
-            __typename: 'RouterConfigResult',
-            minDelaySeconds: 10,
-            id: 'test-id-1',
-            supergraphSdl: 'test supergraph sdl',
-            messages: [],
-          },
-        },
+  describe('Supergraph Schema Manager', () => {
+    let manager: SupergraphSchemaManager;
+    afterEach(() => {
+      manager?.stop();
+    });
+    it('should allow to wait for initial schema load', async () => {
+      manager = new SupergraphSchemaManager({
+        fetch: mockSDL,
       });
 
-    const result = await fetchSupergraphSdlFromManagedFederation({
-      fetch: mockUnchangedSuppergraph,
+      manager.start();
+
+      await manager.waitForInitialization();
+      expect(manager.schema).toBeDefined();
     });
 
-    expect(result).toMatchObject({
-      supergraphSdl: 'test supergraph sdl',
-      id: 'test-id-1',
-      minDelaySeconds: 10,
+    it('should call onSchemaChange when a new schema is loaded', async () => {
+      manager = new SupergraphSchemaManager({
+        fetch: mockSDL,
+      });
+
+      const onSchemaChange = jest.fn();
+      manager.start({ onSchemaChange });
+
+      await delay(0.05);
+      expect(onSchemaChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call onFailure when failed more than the given max retries', async () => {
+      manager = new SupergraphSchemaManager({
+        fetch: mockFetchError,
+        maxRetries: 3,
+      });
+
+      const onFailure = jest.fn();
+      manager.start({ onFailure });
+
+      await delay(0.25);
+      expect(mockFetchError).toHaveBeenCalledTimes(3);
+      expect(onFailure).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call onSchemaChange on each new schema', async () => {
+      manager = new SupergraphSchemaManager({
+        fetch: mockSDL,
+      });
+      const onSchemaChange = jest.fn();
+
+      manager.start({ onSchemaChange });
+
+      await delay(0.25);
+      expect(onSchemaChange).toHaveBeenCalledTimes(3);
+    });
+
+    it('should retry on exceptions', async () => {
+      manager = new SupergraphSchemaManager({
+        fetch: mockError,
+        maxRetries: 3,
+      });
+
+      const onFailure = jest.fn();
+      manager.start({ onFailure });
+
+      await delay(0.05);
+      expect(mockError).toHaveBeenCalledTimes(3);
+      expect(onFailure).toHaveBeenCalledTimes(1);
     });
   });
 });
+
+const delay = (seconds: number) => new Promise(resolve => setTimeout(resolve, seconds * 1000));

@@ -96,11 +96,14 @@ export type FetchError = {
 
 type RouterConfigResult = {
   routerConfig:
-    | ({
+    | {
         __typename: 'RouterConfigResult';
         messages: { level: 'ERROR' | 'WARN' | 'INFO'; body: string }[];
-      } & RouterConfig)
-    | ({ __typename: 'Unchanged' } & Unchanged)
+        supergraphSDL: string;
+        minDelaySeconds: number;
+        id: string;
+      }
+    | { __typename: 'Unchanged'; minDelaySeconds: number; id: string }
     | { __typename: 'FetchError'; code: string; message: string; minDelaySeconds: never };
 };
 
@@ -229,7 +232,7 @@ export async function fetchSupergraphSdlFromManagedFederation(
   }
 
   return {
-    supergraphSdl: routerConfig.supergraphSdl,
+    supergraphSdl: routerConfig.supergraphSDL,
     id: routerConfig.id,
     minDelaySeconds: routerConfig.minDelaySeconds,
   };
@@ -310,7 +313,7 @@ export class SupergraphSchemaManager {
   public schema?: GraphQLSchema = undefined;
 
   #lastSeenId: string | undefined;
-  #retries = 0;
+  #retries = 1;
 
   #timeout: NodeJS.Timeout | undefined;
 
@@ -347,7 +350,7 @@ export class SupergraphSchemaManager {
 
   forcePull() {
     this.#fetchSchema();
-    this.#retries = 0;
+    this.#retries = 1;
     if (this.#timeout) {
       clearTimeout(this.#timeout);
       this.#timeout = undefined;
@@ -387,7 +390,7 @@ export class SupergraphSchemaManager {
         logger.info('[Managed Federation] Supergraph is up to date');
       }
 
-      this.#retries = 0;
+      this.#retries = 1;
       const delay = Math.max(result.minDelaySeconds, minDelaySeconds);
       this.#timeout = setTimeout(this.#fetchSchema, delay * 1000);
       logger.info(`[Managed Federation] Next pull in ${delay.toFixed(1)} seconds`);
