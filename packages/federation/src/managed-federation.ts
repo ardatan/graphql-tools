@@ -31,6 +31,9 @@ export type FetchSupergraphSdlFromManagedFederationOpts = {
    *
    * Uplinks are available in `DEFAULT_UPLINKS` constant.
    *
+   * This options can also be defined using the `APOLLO_SCHEMA_CONFIG_DELIVERY_ENDPOINT` environment variable.
+   * It should be a comma separated list of up links, but only the first one will be used.
+   *
    * Default: 'https://uplink.api.apollographql.com/' (Apollo's managed federation up link on GCP)
    *
    * Alternative: 'https://aws.uplink.api.apollographql.com/' (Apollo's managed federation up link on AWS)
@@ -115,9 +118,23 @@ export const DEFAULT_UPLINKS = [
  *          Any local fetch error will be thrown as an exception.
  */
 export async function fetchSupergraphSdlFromManagedFederation(
-  options: FetchSupergraphSdlFromManagedFederationOpts,
+  options: FetchSupergraphSdlFromManagedFederationOpts = {},
 ): Promise<RouterConfig | Unchanged | FetchError> {
-  const { upLink = DEFAULT_UPLINKS[0], fetch = defaultFetch, ...variables } = options;
+  const userDefinedUplinks =
+    process.env['APOLLO_SCHEMA_CONFIG_DELIVERY_ENDPOINT']?.split(',') ?? [];
+  const {
+    upLink = userDefinedUplinks[0] || DEFAULT_UPLINKS[0],
+    fetch = defaultFetch,
+    ...variables
+  } = options;
+
+  if (!variables.graphRef) {
+    variables.graphRef = process.env['APOLLO_GRAPH_REF'];
+  }
+
+  if (!variables.apiKey) {
+    variables.apiKey = process.env['APOLLO_KEY'];
+  }
 
   const response = await fetch(upLink, {
     method: 'POST',

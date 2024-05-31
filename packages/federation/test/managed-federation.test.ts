@@ -4,10 +4,7 @@ import { fetchSupergraphSdlFromManagedFederation } from '../src/managed-federati
 describe('Managed Federation', () => {
   // Skipped for the CI, you can run it locally to verify it actually works against GraphOS API
   it.skip('should fetch the supergraph SDL from GraphOS', async () => {
-    const result = await fetchSupergraphSdlFromManagedFederation({
-      apiKey: process.env['GRAPHOS_API_KEY']!,
-      graphRef: process.env['GRAPHOS_GRAPH_ID']!,
-    });
+    const result = await fetchSupergraphSdlFromManagedFederation();
     expect(result).toMatchObject({
       supergraphSdl: expect.any(String),
       id: expect.any(String),
@@ -42,6 +39,31 @@ describe('Managed Federation', () => {
     expect.assertions(4);
   });
 
+  it('should load API key and Graph Ref from env', async () => {
+    process.env['APOLLO_KEY'] = 'test-api-key';
+    process.env['APOLLO_GRAPH_REF'] = 'test-graph-id';
+    process.env['APOLLO_SCHEMA_CONFIG_DELIVERY_ENDPOINT'] = 'test-up-link1,test-up-link2';
+    await fetchSupergraphSdlFromManagedFederation({
+      fetch(url, bodyInit) {
+        expect(url).toBe('test-up-link1');
+        expect(bodyInit?.body).toContain('"graphRef":"test-graph-id"');
+        expect(bodyInit?.body).toContain('"apiKey":"test-api-key"');
+        return Response.json({
+          data: {
+            routerConfig: {
+              __typename: 'RouterConfigResult',
+              minDelaySeconds: 10,
+              id: 'test-id-1',
+              supergraphSdl: 'test supergraph sdl',
+            },
+          },
+        });
+      },
+    });
+
+    expect.assertions(3);
+  });
+
   it('should handle unchanged supergraph SDL', async () => {
     const mockUnchangedSuppergraph = () =>
       Response.json({
@@ -55,8 +77,6 @@ describe('Managed Federation', () => {
       });
 
     const result = await fetchSupergraphSdlFromManagedFederation({
-      apiKey: 'service:fake-key',
-      graphRef: 'test-id-1',
       fetch: mockUnchangedSuppergraph,
     });
 
@@ -105,8 +125,6 @@ describe('Managed Federation', () => {
       });
 
     const result = await fetchSupergraphSdlFromManagedFederation({
-      apiKey: 'service:fake-key',
-      graphRef: 'test-id-1',
       fetch: mockUnchangedSuppergraph,
     });
 
