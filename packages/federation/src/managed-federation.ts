@@ -49,6 +49,11 @@ export type FetchSupergraphSdlFromManagedFederationOpts = {
    * Default: global.fetch
    */
   fetch?: FetchFn;
+  /**
+   * Up link can send back messages meant to be logged alongside the supergraph SDL.
+   * By default, the console is used.
+   */
+  loggerByMessageLevel?: typeof DEFAULT_MESSAGE_LOGGER;
 };
 
 export type RouterConfig = {
@@ -70,7 +75,7 @@ export type Unchanged = {
   /**
    * The minimum delay in seconds to wait before trying to fetch this supergraph again.
    */
-  minDelaySeconds?: never;
+  minDelaySeconds: never;
   /**
    * The ID of the supergraph. Should be used as `lastSeenId` in the next fetch.
    */
@@ -91,7 +96,10 @@ export type FetchError = {
 
 type RouterConfigResult = {
   routerConfig:
-    | ({ __typename: 'RouterConfigResult' } & RouterConfig)
+    | ({
+        __typename: 'RouterConfigResult';
+        messages: { level: 'ERROR' | 'WARN' | 'INFO'; body: string }[];
+      } & RouterConfig)
     | ({ __typename: 'Unchanged' } & Unchanged)
     | { __typename: 'FetchError'; code: string; message: string; minDelaySeconds: never };
 };
@@ -122,8 +130,10 @@ export async function fetchSupergraphSdlFromManagedFederation(
 ): Promise<RouterConfig | Unchanged | FetchError> {
   const userDefinedUplinks =
     process.env['APOLLO_SCHEMA_CONFIG_DELIVERY_ENDPOINT']?.split(',') ?? [];
+
   const {
     upLink = userDefinedUplinks[0] || DEFAULT_UPLINKS[0],
+    loggerByMessageLevel = DEFAULT_MESSAGE_LOGGER,
     fetch = defaultFetch,
     ...variables
   } = options;
@@ -210,6 +220,10 @@ export async function fetchSupergraphSdlFromManagedFederation(
     return { id: routerConfig.id, minDelaySeconds: routerConfig.minDelaySeconds };
   }
 
+  for (const message of routerConfig.messages) {
+    loggerByMessageLevel[message.level](message.body);
+  }
+
   return {
     supergraphSdl: routerConfig.supergraphSdl,
     id: routerConfig.id,
@@ -263,3 +277,10 @@ export async function getStitchedSchemaFromManagedFederation(
   }
   return result;
 }
+
+const DEFAULT_MESSAGE_LOGGER = {
+  ERROR: (message: string) =>
+    console.error('[Managed Federation] Uplink message: [ERROR]', message),
+  WARN: (message: string) => console.warn('[Managed Federation] Uplink message: [WARN]', message),
+  INFO: (message: string) => console.info('[Managed Federation] Uplink message: [INFO]', message),
+};
