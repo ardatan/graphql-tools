@@ -32,15 +32,13 @@ import {
   visitWithTypeInfo,
 } from 'graphql';
 import {
-  defaultMergedResolver,
   delegateToSchema,
   extractUnavailableFieldsFromSelectionSet,
   MergedTypeConfig,
   SubschemaConfig,
   subtractSelectionSets,
 } from '@graphql-tools/delegate';
-import { buildHTTPExecutor } from '@graphql-tools/executor-http';
-import { mergeSchemas } from '@graphql-tools/schema';
+import { buildHTTPExecutor, HTTPExecutorOptions } from '@graphql-tools/executor-http';
 import {
   calculateSelectionScore,
   getDefaultFieldConfigMerger,
@@ -65,37 +63,10 @@ import {
   getNamedTypeNode,
 } from './utils.js';
 
-export interface GetSubschemasFromSupergraphSdlOpts {
-  supergraphSdl: string | DocumentNode;
-  onExecutor?: (opts: {
-    subgraphName: string;
-    endpoint: string;
-    subgraphSchema: GraphQLSchema;
-  }) => Executor;
-  batch?: boolean;
-}
-
 export function ensureSupergraphSDLAst(supergraphSdl: string | DocumentNode): DocumentNode {
   return typeof supergraphSdl === 'string'
     ? parse(supergraphSdl, { noLocation: true })
     : supergraphSdl;
-}
-
-function getTypeFieldMapFromSupergraphAST(supergraphAST: DocumentNode) {
-  const typeFieldASTMap = new Map<
-    string,
-    Map<string, FieldDefinitionNode | InputValueDefinitionNode>
-  >();
-  for (const definition of supergraphAST.definitions) {
-    if ('fields' in definition) {
-      const fieldMap = new Map<string, FieldDefinitionNode | InputValueDefinitionNode>();
-      typeFieldASTMap.set(definition.name.value, fieldMap);
-      for (const field of definition.fields || []) {
-        fieldMap.set(field.name.value, field);
-      }
-    }
-  }
-  return typeFieldASTMap;
 }
 
 const rootTypeMap = new Map<string, OperationTypeNode>([
@@ -103,176 +74,27 @@ const rootTypeMap = new Map<string, OperationTypeNode>([
   ['Mutation', 'mutation' as OperationTypeNode],
   ['Subscription', 'subscription' as OperationTypeNode],
 ]);
-export function getFieldMergerFromSupergraphSdl(
-  supergraphSdl: DocumentNode | string,
-): TypeMergingOptions['fieldConfigMerger'] {
-  const supergraphAST = ensureSupergraphSDLAst(supergraphSdl);
-  const typeFieldASTMap = getTypeFieldMapFromSupergraphAST(supergraphAST);
-  const defaultMerger = getDefaultFieldConfigMerger(true);
-  const memoizedASTPrint = memoize1(print);
-  const memoizedTypePrint = memoize1((type: GraphQLOutputType) => type.toString());
-  return function (candidates: MergeFieldConfigCandidate[]) {
-    if (
-      candidates.length === 1 ||
-      candidates.some(candidate => candidate.fieldName === '_entities')
-    ) {
-      return candidates[0].fieldConfig;
-    }
-    if (candidates.some(candidate => rootTypeMap.has(candidate.type.name))) {
-      const candidateNames = new Set<string>();
-      const realCandidates: MergeFieldConfigCandidate[] = [];
-      for (const candidate of candidates.toReversed
-        ? candidates.toReversed()
-        : [...candidates].reverse()) {
-        if (
-          candidate.transformedSubschema?.name &&
-          !candidateNames.has(candidate.transformedSubschema.name)
-        ) {
-          candidateNames.add(candidate.transformedSubschema.name);
-          realCandidates.push(candidate);
-        }
-      }
-      const defaultMergedField = defaultMerger(candidates);
-      return {
-        ...defaultMergedField,
-        resolve(_root, _args, context, info) {
-          let currentSubschema: SubschemaConfig | undefined;
-          let currentScore = Infinity;
-          let currentUnavailableSelectionSet: SelectionSetNode | undefined;
-          let currentFriendSubschemas: Map<SubschemaConfig, SelectionSetNode> | undefined;
-          let currentAvailableSelectionSet: SelectionSetNode | undefined;
-          const originalSelectionSet: SelectionSetNode = {
-            kind: Kind.SELECTION_SET,
-            selections: info.fieldNodes,
-          };
-          // Find the best subschema to delegate this selection
-          for (const candidate of realCandidates) {
-            if (candidate.transformedSubschema) {
-              const unavailableFields = extractUnavailableFieldsFromSelectionSet(
-                candidate.transformedSubschema.transformedSchema,
-                candidate.type,
-                originalSelectionSet,
-                () => true,
-              );
-              const score = calculateSelectionScore(unavailableFields);
-              if (score < currentScore) {
-                currentScore = score;
-                currentSubschema = candidate.transformedSubschema;
-                currentFriendSubschemas = new Map();
-                currentUnavailableSelectionSet = {
-                  kind: Kind.SELECTION_SET,
-                  selections: unavailableFields,
-                };
-                currentAvailableSelectionSet = subtractSelectionSets(
-                  originalSelectionSet,
-                  currentUnavailableSelectionSet,
-                );
-                // Make parallel requests if there are other subschemas
-                // that can resolve the remaining fields for this selection directly from the root field
-                // instead of applying a type merging in advance
-                for (const friendCandidate of realCandidates) {
-                  if (friendCandidate === candidate || !friendCandidate.transformedSubschema) {
-                    continue;
-                  }
-                  const unavailableFieldsInFriend = extractUnavailableFieldsFromSelectionSet(
-                    friendCandidate.transformedSubschema.transformedSchema,
-                    friendCandidate.type,
-                    currentUnavailableSelectionSet,
-                    () => true,
-                  );
-                  const friendScore = calculateSelectionScore(unavailableFieldsInFriend);
-                  if (friendScore < score) {
-                    const unavailableInFriendSelectionSet: SelectionSetNode = {
-                      kind: Kind.SELECTION_SET,
-                      selections: unavailableFieldsInFriend,
-                    };
-                    const subschemaSelectionSet = subtractSelectionSets(
-                      currentUnavailableSelectionSet,
-                      unavailableInFriendSelectionSet,
-                    );
-                    currentFriendSubschemas.set(
-                      friendCandidate.transformedSubschema,
-                      subschemaSelectionSet,
-                    );
-                    currentUnavailableSelectionSet = unavailableInFriendSelectionSet;
-                  }
-                }
-              }
-            }
-          }
-          if (!currentSubschema) {
-            throw new Error('Could not determine subschema');
-          }
-          const jobs: Promise<void>[] = [];
-          let hasPromise = false;
-          const mainJob = delegateToSchema({
-            schema: currentSubschema,
-            operation: rootTypeMap.get(info.parentType.name) || ('query' as OperationTypeNode),
-            context,
-            info: currentFriendSubschemas?.size
-              ? {
-                  ...info,
-                  fieldNodes: [
-                    ...(currentAvailableSelectionSet?.selections || []),
-                    ...(currentUnavailableSelectionSet?.selections || []),
-                  ] as FieldNode[],
-                }
-              : info,
-          });
-          if (isPromise(mainJob)) {
-            hasPromise = true;
-          }
-          jobs.push(mainJob);
-          if (currentFriendSubschemas?.size) {
-            for (const [friendSubschema, friendSelectionSet] of currentFriendSubschemas) {
-              const friendJob = delegateToSchema({
-                schema: friendSubschema,
-                operation: rootTypeMap.get(info.parentType.name) || ('query' as OperationTypeNode),
-                context,
-                info: {
-                  ...info,
-                  fieldNodes: friendSelectionSet.selections as FieldNode[],
-                },
-                skipTypeMerging: true,
-              });
-              if (isPromise(friendJob)) {
-                hasPromise = true;
-              }
-              jobs.push(friendJob);
-            }
-          }
-          if (jobs.length === 1) {
-            return jobs[0];
-          }
-          if (hasPromise) {
-            return Promise.all(jobs).then(results => mergeDeep(results));
-          }
-          return mergeDeep(jobs);
-        },
-      };
-    }
-    const filteredCandidates = candidates.filter(candidate => {
-      const fieldASTMap = typeFieldASTMap.get(candidate.type.name);
-      if (fieldASTMap) {
-        const fieldAST = fieldASTMap.get(candidate.fieldName);
-        if (fieldAST) {
-          const typeNodeInAST = memoizedASTPrint(fieldAST.type);
-          const typeNodeInCandidate = memoizedTypePrint(candidate.fieldConfig.type);
-          return typeNodeInAST === typeNodeInCandidate;
-        }
-      }
-      return false;
-    });
-    return defaultMerger(filteredCandidates.length ? filteredCandidates : candidates);
-  };
+
+const memoizedASTPrint = memoize1(print);
+const memoizedTypePrint = memoize1((type: GraphQLOutputType) => type.toString());
+
+export interface FederationSubschemaConfig extends Omit<SubschemaConfig, 'executor' | 'name'> {
+  executor: Executor;
+  name: string;
+  endpoint: string;
 }
 
-export function getSubschemasFromSupergraphSdl({
-  supergraphSdl,
-  onExecutor = ({ endpoint }) => buildHTTPExecutor({ endpoint }),
-  batch = false,
-}: GetSubschemasFromSupergraphSdlOpts) {
-  const supergraphAst = ensureSupergraphSDLAst(supergraphSdl);
+export interface GetStitchingOptionsFromSupergraphSdlOpts {
+  supergraphSdl: string | DocumentNode;
+  httpExecutorOpts?: Partial<HTTPExecutorOptions>;
+  onSubschemaConfig?: (subschemaConfig: FederationSubschemaConfig) => void;
+  batch?: boolean;
+}
+
+export function getStitchingOptionsFromSupergraphSdl(
+  opts: GetStitchingOptionsFromSupergraphSdlOpts,
+) {
+  const supergraphAst = ensureSupergraphSDLAst(opts.supergraphSdl);
   const subgraphEndpointMap = new Map<string, string>();
   const subgraphTypesMap = new Map<string, TypeDefinitionNode[]>();
   const typeNameKeysBySubgraphMap = new Map<string, Map<string, string[]>>();
@@ -281,6 +103,20 @@ export function getSubschemasFromSupergraphSdl({
   const subgraphTypeNameExtraFieldsMap = new Map<string, Map<string, FieldDefinitionNode[]>>();
   const subgraphTypeNameProvidedMap = new Map<string, Map<string, Set<string>>>();
   const orphanTypeMap = new Map<string, TypeDefinitionNode>();
+  const typeFieldASTMap = new Map<
+    string,
+    Map<string, FieldDefinitionNode | InputValueDefinitionNode>
+  >();
+
+  for (const definition of supergraphAst.definitions) {
+    if ('fields' in definition) {
+      const fieldMap = new Map<string, FieldDefinitionNode | InputValueDefinitionNode>();
+      typeFieldASTMap.set(definition.name.value, fieldMap);
+      for (const field of definition.fields || []) {
+        fieldMap.set(field.name.value, field);
+      }
+    }
+  }
 
   // To detect unresolvable interface fields
   const subgraphExternalFieldMap = new Map<string, Map<string, Set<string>>>();
@@ -788,7 +624,7 @@ export function getSubschemasFromSupergraphSdl({
     },
     ObjectTypeDefinition: TypeWithFieldsVisitor,
   });
-  const subschemaMap = new Map<string, SubschemaConfig>();
+  const subschemas: SubschemaConfig[] = [];
   for (const [subgraphName, endpoint] of subgraphEndpointMap) {
     const mergeConfig: SubschemaConfig['merge'] = {};
     const typeNameKeyMap = typeNameKeysBySubgraphMap.get(subgraphName);
@@ -1003,7 +839,10 @@ export function getSubschemasFromSupergraphSdl({
         `Error building schema for subgraph ${subgraphName}: ${e?.stack || e?.message || e.toString()}`,
       );
     }
-    let executor: Executor = onExecutor({ subgraphName, endpoint, subgraphSchema: schema });
+    let executor: Executor = buildHTTPExecutor({
+      endpoint,
+      ...(opts.httpExecutorOpts || {}),
+    });
     if (globalThis.process?.env?.['DEBUG']) {
       const origExecutor = executor;
       executor = async function debugExecutor(execReq) {
@@ -1018,12 +857,12 @@ export function getSubschemasFromSupergraphSdl({
     }
     const typeNameProvidedMap = subgraphTypeNameProvidedMap.get(subgraphName);
     const externalFieldMap = subgraphExternalFieldMap.get(subgraphName);
-    subschemaMap.set(subgraphName, {
+    const subschemaConfig: FederationSubschemaConfig = {
       name: subgraphName,
+      endpoint,
       schema,
       executor,
       merge: mergeConfig,
-      batch,
       transforms: [
         {
           transformRequest(request) {
@@ -1062,41 +901,202 @@ export function getSubschemasFromSupergraphSdl({
           },
         },
       ],
-    });
+    };
+    opts.onSubschemaConfig?.(subschemaConfig);
+    subschemas.push(subschemaConfig);
   }
-  return subschemaMap;
-}
 
-export function getStitchedSchemaFromSupergraphSdl(opts: GetSubschemasFromSupergraphSdlOpts) {
-  const subschemaMap = getSubschemasFromSupergraphSdl(opts);
-  const supergraphSchema = stitchSchemas({
-    subschemas: [...subschemaMap.values()],
-    assumeValid: true,
-    assumeValidSDL: true,
-    typeMergingOptions: {
-      useNonNullableFieldOnConflict: true,
-      validationSettings: {
-        validationLevel: ValidationLevel.Off,
-      },
-      fieldConfigMerger: getFieldMergerFromSupergraphSdl(opts.supergraphSdl),
-    },
-  });
+  const defaultMerger = getDefaultFieldConfigMerger(true);
+  const fieldConfigMerger: TypeMergingOptions['fieldConfigMerger'] = function (
+    candidates: MergeFieldConfigCandidate[],
+  ) {
+    if (
+      candidates.length === 1 ||
+      candidates.some(candidate => candidate.fieldName === '_entities')
+    ) {
+      return candidates[0].fieldConfig;
+    }
+    if (candidates.some(candidate => rootTypeMap.has(candidate.type.name))) {
+      const candidateNames = new Set<string>();
+      const realCandidates: MergeFieldConfigCandidate[] = [];
+      for (const candidate of candidates.toReversed
+        ? candidates.toReversed()
+        : [...candidates].reverse()) {
+        if (
+          candidate.transformedSubschema?.name &&
+          !candidateNames.has(candidate.transformedSubschema.name)
+        ) {
+          candidateNames.add(candidate.transformedSubschema.name);
+          realCandidates.push(candidate);
+        }
+      }
+      const defaultMergedField = defaultMerger(candidates);
+      return {
+        ...defaultMergedField,
+        resolve(_root, _args, context, info) {
+          let currentSubschema: SubschemaConfig | undefined;
+          let currentScore = Infinity;
+          let currentUnavailableSelectionSet: SelectionSetNode | undefined;
+          let currentFriendSubschemas: Map<SubschemaConfig, SelectionSetNode> | undefined;
+          let currentAvailableSelectionSet: SelectionSetNode | undefined;
+          const originalSelectionSet: SelectionSetNode = {
+            kind: Kind.SELECTION_SET,
+            selections: info.fieldNodes,
+          };
+          // Find the best subschema to delegate this selection
+          for (const candidate of realCandidates) {
+            if (candidate.transformedSubschema) {
+              const unavailableFields = extractUnavailableFieldsFromSelectionSet(
+                candidate.transformedSubschema.transformedSchema,
+                candidate.type,
+                originalSelectionSet,
+                () => true,
+              );
+              const score = calculateSelectionScore(unavailableFields);
+              if (score < currentScore) {
+                currentScore = score;
+                currentSubschema = candidate.transformedSubschema;
+                currentFriendSubschemas = new Map();
+                currentUnavailableSelectionSet = {
+                  kind: Kind.SELECTION_SET,
+                  selections: unavailableFields,
+                };
+                currentAvailableSelectionSet = subtractSelectionSets(
+                  originalSelectionSet,
+                  currentUnavailableSelectionSet,
+                );
+                // Make parallel requests if there are other subschemas
+                // that can resolve the remaining fields for this selection directly from the root field
+                // instead of applying a type merging in advance
+                for (const friendCandidate of realCandidates) {
+                  if (friendCandidate === candidate || !friendCandidate.transformedSubschema) {
+                    continue;
+                  }
+                  const unavailableFieldsInFriend = extractUnavailableFieldsFromSelectionSet(
+                    friendCandidate.transformedSubschema.transformedSchema,
+                    friendCandidate.type,
+                    currentUnavailableSelectionSet,
+                    () => true,
+                  );
+                  const friendScore = calculateSelectionScore(unavailableFieldsInFriend);
+                  if (friendScore < score) {
+                    const unavailableInFriendSelectionSet: SelectionSetNode = {
+                      kind: Kind.SELECTION_SET,
+                      selections: unavailableFieldsInFriend,
+                    };
+                    const subschemaSelectionSet = subtractSelectionSets(
+                      currentUnavailableSelectionSet,
+                      unavailableInFriendSelectionSet,
+                    );
+                    currentFriendSubschemas.set(
+                      friendCandidate.transformedSubschema,
+                      subschemaSelectionSet,
+                    );
+                    currentUnavailableSelectionSet = unavailableInFriendSelectionSet;
+                  }
+                }
+              }
+            }
+          }
+          if (!currentSubschema) {
+            throw new Error('Could not determine subschema');
+          }
+          const jobs: Promise<void>[] = [];
+          let hasPromise = false;
+          const mainJob = delegateToSchema({
+            schema: currentSubschema,
+            operation: rootTypeMap.get(info.parentType.name) || ('query' as OperationTypeNode),
+            context,
+            info: currentFriendSubschemas?.size
+              ? {
+                  ...info,
+                  fieldNodes: [
+                    ...(currentAvailableSelectionSet?.selections || []),
+                    ...(currentUnavailableSelectionSet?.selections || []),
+                  ] as FieldNode[],
+                }
+              : info,
+          });
+          if (isPromise(mainJob)) {
+            hasPromise = true;
+          }
+          jobs.push(mainJob);
+          if (currentFriendSubschemas?.size) {
+            for (const [friendSubschema, friendSelectionSet] of currentFriendSubschemas) {
+              const friendJob = delegateToSchema({
+                schema: friendSubschema,
+                operation: rootTypeMap.get(info.parentType.name) || ('query' as OperationTypeNode),
+                context,
+                info: {
+                  ...info,
+                  fieldNodes: friendSelectionSet.selections as FieldNode[],
+                },
+                skipTypeMerging: true,
+              });
+              if (isPromise(friendJob)) {
+                hasPromise = true;
+              }
+              jobs.push(friendJob);
+            }
+          }
+          if (jobs.length === 1) {
+            return jobs[0];
+          }
+          if (hasPromise) {
+            return Promise.all(jobs).then(results => mergeDeep(results));
+          }
+          return mergeDeep(jobs);
+        },
+      };
+    }
+    const filteredCandidates = candidates.filter(candidate => {
+      const fieldASTMap = typeFieldASTMap.get(candidate.type.name);
+      if (fieldASTMap) {
+        const fieldAST = fieldASTMap.get(candidate.fieldName);
+        if (fieldAST) {
+          const typeNodeInAST = memoizedASTPrint(fieldAST.type);
+          const typeNodeInCandidate = memoizedTypePrint(candidate.fieldConfig.type);
+          return typeNodeInAST === typeNodeInCandidate;
+        }
+      }
+      return false;
+    });
+    return defaultMerger(filteredCandidates.length ? filteredCandidates : candidates);
+  };
+
+  function doesFieldExistInSupergraph(typeName: string, fieldName: string) {
+    for (const subschemaConfig of subschemas) {
+      const type = subschemaConfig.schema.getType(typeName);
+      if (type && 'getFields' in type) {
+        if (type.getFields()[fieldName]) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function getTypeInSupergraph(typeName: string) {
+    for (const subschemaConfig of subschemas) {
+      const type = subschemaConfig.schema.getType(typeName);
+      if (type) {
+        return type;
+      }
+    }
+    return undefined;
+  }
+
   const extraDefinitions: DefinitionNode[] = [];
-  for (const definition of ensureSupergraphSDLAst(opts.supergraphSdl).definitions) {
+  for (const definition of supergraphAst.definitions) {
     if ('name' in definition && definition.name && definition.kind !== Kind.DIRECTIVE_DEFINITION) {
-      const typeInSchema = supergraphSchema.getType(definition.name.value);
+      const typeName = definition.name.value;
+      const typeInSchema = getTypeInSupergraph(typeName);
       if (!typeInSchema) {
         extraDefinitions.push(definition);
       } else if ('fields' in definition && definition.fields) {
-        if (!('getFields' in typeInSchema)) {
-          throw new Error(
-            `Type ${definition.name.value} is not a type with fields but in the supergraph`,
-          );
-        }
-        const fieldsInSchema = typeInSchema.getFields();
         const extraFields: (FieldDefinitionNode | InputValueDefinitionNode)[] = [];
         for (const field of definition.fields) {
-          if (!fieldsInSchema[field.name.value]) {
+          if (!doesFieldExistInSupergraph(typeName, field.name.value)) {
             extraFields.push(field);
           }
         }
@@ -1121,20 +1121,36 @@ export function getStitchedSchemaFromSupergraphSdl(opts: GetSubschemasFromSuperg
       }
     }
   }
-  return filterInternalFieldsAndTypes(
-    mergeSchemas({
-      schemas: [supergraphSchema],
-      typeDefs: [
-        {
-          kind: Kind.DOCUMENT,
-          definitions: extraDefinitions,
-        },
-      ],
-      defaultFieldResolver: defaultMergedResolver,
-      assumeValid: true,
-      assumeValidSDL: true,
-    }),
-  );
+  const additionalTypeDefs: DocumentNode = {
+    kind: Kind.DOCUMENT,
+    definitions: extraDefinitions,
+  };
+  return {
+    subschemas,
+    typeDefs: additionalTypeDefs,
+    assumeValid: true,
+    assumeValidSDL: true,
+    typeMergingOptions: {
+      useNonNullableFieldOnConflict: true,
+      validationSettings: {
+        validationLevel: ValidationLevel.Off,
+      },
+      fieldConfigMerger,
+    },
+  };
+}
+
+export interface GetStitchedSchemaFromSupergraphSdlOpts
+  extends GetStitchingOptionsFromSupergraphSdlOpts {
+  supergraphSdl: string | DocumentNode;
+  onStitchingOptions?(opts: ReturnType<typeof getStitchingOptionsFromSupergraphSdl>): void;
+}
+
+export function getStitchedSchemaFromSupergraphSdl(opts: GetStitchedSchemaFromSupergraphSdlOpts) {
+  const stitchSchemasOpts = getStitchingOptionsFromSupergraphSdl(opts);
+  opts.onStitchingOptions?.(stitchSchemasOpts);
+  const supergraphSchema = stitchSchemas(stitchSchemasOpts);
+  return filterInternalFieldsAndTypes(supergraphSchema);
 }
 
 const anyTypeDefinitionNode: ScalarTypeDefinitionNode = {

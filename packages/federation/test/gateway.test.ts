@@ -264,11 +264,12 @@ describe('Federation', () => {
     const serviceCallCounts: Record<string, number> = {};
     const gatewaySchema = getStitchedSchemaFromSupergraphSdl({
       supergraphSdl,
-      onExecutor({ subgraphName }) {
+      onSubschemaConfig(subschemaConfig) {
+        const subgraphName = subschemaConfig.name;
         serviceCallCounts[subgraphName] = 0;
         const schema = serviceInputs.find(({ name }) => name === subgraphName)!.schema;
         const executor = createDefaultExecutor(schema);
-        return function subschemaExecutor(executionRequest) {
+        subschemaConfig.executor = function subschemaExecutor(executionRequest) {
           serviceCallCounts[subgraphName]++;
           const errors = validate(schema, executionRequest.document);
           if (errors.length > 0) {
