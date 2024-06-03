@@ -161,3 +161,48 @@ export function getNamedTypeNode(typeNode: TypeNode) {
   }
   return typeNode;
 }
+
+type EventMap<T> = Record<keyof T, any[]>;
+
+export class EventEmitter<T extends EventMap<T>> {
+  #listeners: Map<keyof T, Array<(...args: any[]) => void>> = new Map();
+
+  on<K extends keyof T>(eventName: K, listener: (...args: T[K]) => void): this {
+    const listeners = this.#listeners.get(eventName);
+    if (!listeners) {
+      this.#listeners.set(eventName, [listener]);
+    } else {
+      listeners.push(listener);
+    }
+    return this;
+  }
+
+  once<K extends keyof T>(eventName: K, listener: (...args: T[K]) => void): this {
+    const selfRemovingListener = (...args: T[K]) => {
+      this.off(eventName, selfRemovingListener);
+      listener(...args);
+    };
+    this.on(eventName, selfRemovingListener);
+    return this;
+  }
+
+  off<K extends keyof T>(eventName: K, listener: (...args: T[K]) => void): this {
+    const listeners = this.#listeners.get(eventName);
+    if (listeners) {
+      const index = listeners.indexOf(listener);
+      listeners.splice(index, 1);
+    }
+    return this;
+  }
+
+  emit<K extends keyof T>(eventName: K, ...args: T[K]): boolean {
+    const listeners = this.#listeners.get(eventName);
+    if (!listeners) {
+      return false;
+    }
+    for (const listener of listeners) {
+      listener(...args);
+    }
+    return true;
+  }
+}

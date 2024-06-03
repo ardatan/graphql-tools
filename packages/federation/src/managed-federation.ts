@@ -6,6 +6,7 @@ import {
   getStitchedSchemaFromSupergraphSdl,
   GetSubschemasFromSupergraphSdlOpts,
 } from './supergraph.js';
+import { EventEmitter } from './utils.js';
 
 export type FetchSupergraphSdlFromManagedFederationOpts = {
   /**
@@ -53,7 +54,7 @@ export type FetchSupergraphSdlFromManagedFederationOpts = {
    * Up link can send back messages meant to be logged alongside the supergraph SDL.
    * By default, the console is used.
    */
-  loggerByMessageLevel?: ReturnType<typeof DEFAULT_MESSAGE_LOGGER>;
+  loggerByMessageLevel?: typeof DEFAULT_MESSAGE_LOGGER;
 };
 
 export type RouterConfig = {
@@ -136,7 +137,7 @@ export async function fetchSupergraphSdlFromManagedFederation(
 
   const {
     upLink = userDefinedUplinks[0] || DEFAULT_UPLINKS[0],
-    loggerByMessageLevel = DEFAULT_MESSAGE_LOGGER(console),
+    loggerByMessageLevel = DEFAULT_MESSAGE_LOGGER,
     fetch = defaultFetch,
     ...variables
   } = options;
@@ -242,6 +243,13 @@ export type GetStitchedSchemaFromManagedFederationOpts =
   FetchSupergraphSdlFromManagedFederationOpts &
     Omit<GetSubschemasFromSupergraphSdlOpts, 'supergraphSdl'>;
 
+export type RouterConfigWithSchema = RouterConfig & {
+  /**
+   * The stitched schema based on the supergraph SDL.
+   */
+  schema: GraphQLSchema;
+};
+
 /**
  * Fetches the supergraph SDL from a managed federation GraphOS up link and stitches it into an executable schema.
  * @param options
@@ -255,22 +263,14 @@ export type GetStitchedSchemaFromManagedFederationOpts =
  */
 export async function getStitchedSchemaFromManagedFederation(
   options: GetStitchedSchemaFromManagedFederationOpts,
-): Promise<
-  | (RouterConfig & {
-      /**
-       * The stitched schema based on the supergraph SDL.
-       */
-      schema: GraphQLSchema;
-    })
-  | FetchError
-  | Unchanged
-> {
+): Promise<RouterConfigWithSchema | FetchError | Unchanged> {
   const result = await fetchSupergraphSdlFromManagedFederation({
     graphRef: options.graphRef,
     apiKey: options.apiKey,
     upLink: options.upLink,
     lastSeenId: options.lastSeenId,
     fetch: options.fetch,
+    loggerByMessageLevel: options.loggerByMessageLevel,
   });
   if ('supergraphSdl' in result) {
     return {
@@ -285,11 +285,12 @@ export async function getStitchedSchemaFromManagedFederation(
   return result;
 }
 
-const DEFAULT_MESSAGE_LOGGER = (logger: Logger) => ({
-  ERROR: (message: string) => logger.error('[Managed Federation] Uplink message: [ERROR]', message),
-  WARN: (message: string) => logger.warn('[Managed Federation] Uplink message: [WARN]', message),
-  INFO: (message: string) => logger.info('[Managed Federation] Uplink message: [INFO]', message),
-});
+const DEFAULT_MESSAGE_LOGGER = {
+  ERROR: (message: string) =>
+    console.error('[Managed Federation] Uplink message: [ERROR]', message),
+  WARN: (message: string) => console.warn('[Managed Federation] Uplink message: [WARN]', message),
+  INFO: (message: string) => console.info('[Managed Federation] Uplink message: [INFO]', message),
+};
 
 export type SupergraphSchemaManagerOptions = Omit<
   GetStitchedSchemaFromManagedFederationOpts,
@@ -298,18 +299,14 @@ export type SupergraphSchemaManagerOptions = Omit<
   maxRetries?: number;
   minDelaySeconds?: number;
   retryDelaySeconds?: number;
-  logger?: Logger;
 };
 
-export type Logger = {
-  info: (message: string, ...args: unknown[]) => void;
-  warn: (message: string, ...args: unknown[]) => void;
-  error: (message: string, error?: unknown, ...args: unknown[]) => void;
-};
-
-export class SupergraphSchemaManager {
-  public onSchemaChange?: (schema: GraphQLSchema) => void = undefined;
-  public onFailure?: (error: unknown) => void = undefined;
+export class SupergraphSchemaManager extends EventEmitter<{
+  schema: [GraphQLSchema];
+  error: [FetchError | unknown];
+  failure: [FetchError | unknown];
+  log: [{ source: 'uplink' | 'manager'; message: string; level: 'error' | 'warn' | 'info' }];
+}> {
   public schema?: GraphQLSchema = undefined;
 
   #lastSeenId: string | undefined;
@@ -317,35 +314,16 @@ export class SupergraphSchemaManager {
 
   #timeout: NodeJS.Timeout | undefined;
 
-  #$waitForInitialization?: Promise<void>;
-  #setInitialized?: () => void;
-
   constructor(private options: SupergraphSchemaManagerOptions) {
-    this.#$waitForInitialization = new Promise<void>(resolve => {
-      this.#setInitialized = resolve;
-    });
-
+    super();
     registerCleanup(() => {
       this.stop();
     });
   }
 
-  start({
-    onSchemaChange,
-    onFailure,
-  }: {
-    onSchemaChange?: (schema: GraphQLSchema) => void;
-    onFailure?: (error: unknown) => void;
-  } = {}) {
-    const { logger = console } = this.options;
-    logger.info('[Managed Federation] Polling started');
-    this.onSchemaChange = onSchemaChange;
-    this.onFailure = onFailure;
+  start() {
+    this.#log('info', 'Polling started');
     this.#fetchSchema();
-  }
-
-  waitForInitialization(): Promise<void> | undefined {
-    return this.#$waitForInitialization;
   }
 
   forcePull() {
@@ -358,8 +336,7 @@ export class SupergraphSchemaManager {
   }
 
   stop() {
-    const { logger = console } = this.options;
-    logger.info('[Managed Federation] Polling stopped');
+    this.#log('info', 'Polling stopped');
     if (this.#timeout) {
       clearTimeout(this.#timeout);
       this.#timeout = undefined;
@@ -367,65 +344,66 @@ export class SupergraphSchemaManager {
   }
 
   #fetchSchema = async () => {
-    const { logger = console, retryDelaySeconds = 0, minDelaySeconds = 0 } = this.options;
+    const { retryDelaySeconds = 0, minDelaySeconds = 0 } = this.options;
     try {
-      logger.info('[Managed Federation] Fetch schema from managed federation');
+      this.#log('info', 'Fetch schema from managed federation');
       const result = await getStitchedSchemaFromManagedFederation({
         ...this.options,
-        loggerByMessageLevel: this.options.loggerByMessageLevel ?? DEFAULT_MESSAGE_LOGGER(logger),
+        loggerByMessageLevel: {
+          ERROR: message => this.emit('log', { source: 'uplink', level: 'error', message }),
+          WARN: message => this.emit('log', { source: 'uplink', level: 'warn', message }),
+          INFO: message => this.emit('log', { source: 'uplink', level: 'info', message }),
+        },
         lastSeenId: this.#lastSeenId,
       });
 
       if ('error' in result) {
         this.#lastSeenId = undefined; // When an error is reported, Apollo doesn't provide an id.
+        this.emit('error', result.error);
         this.#retryOnError(result.error, Math.max(result.minDelaySeconds, minDelaySeconds));
         return;
       }
 
       if ('schema' in result) {
         this.#lastSeenId = result.id;
-        this.#onSchemaChange(result.schema);
-        logger.info('[Managed Federation] Supergraph successfully updated');
+        this.schema = result.schema;
+        this.emit('schema', result.schema);
+        this.#log('info', 'Supergraph successfully updated');
       } else {
-        logger.info('[Managed Federation] Supergraph is up to date');
+        this.#log('info', 'Supergraph is up to date');
       }
 
       this.#retries = 1;
       const delay = Math.max(result.minDelaySeconds, minDelaySeconds);
       this.#timeout = setTimeout(this.#fetchSchema, delay * 1000);
-      logger.info(`[Managed Federation] Next pull in ${delay.toFixed(1)} seconds`);
+      this.#log('info', `Next pull in ${delay.toFixed(1)} seconds`);
     } catch (e) {
       this.#retryOnError(e, retryDelaySeconds ?? 0);
+      this.emit('error', e);
     }
   };
 
   #retryOnError = (error: unknown, delayInSeconds: number) => {
-    const { logger = console, maxRetries = 3 } = this.options;
-    logger.error('[Managed Federation] Failed to pull schema from managed federation:', error);
+    const { maxRetries = 3 } = this.options;
+    this.#log('error', 'Failed to pull schema from managed federation:');
 
     if (this.#retries >= maxRetries) {
-      logger.error('[Managed Federation] Max retries reached, giving up');
-      this.onFailure?.(error);
+      this.#log('error', 'Max retries reached, giving up');
+      this.emit('failure', error);
       return;
     }
 
     this.#retries++;
 
-    logger.info(
-      `[Managed Federation] Retrying (${this.#retries}/${maxRetries})`,
-      delayInSeconds ? `in ${delayInSeconds.toFixed(1)} seconds` : '',
+    this.#log(
+      'info',
+      `Retrying (${this.#retries}/${maxRetries})${delayInSeconds ? ` in ${delayInSeconds.toFixed(1)} seconds` : ''}`,
     );
     this.#timeout = setTimeout(this.#fetchSchema, delayInSeconds * 1000);
   };
 
-  #onSchemaChange = (schema: GraphQLSchema) => {
-    this.schema = schema;
-    this.onSchemaChange?.(schema);
-    if (this.#$waitForInitialization) {
-      this.#setInitialized?.();
-      this.#setInitialized = undefined;
-      this.#$waitForInitialization = undefined;
-    }
+  #log = (level: 'error' | 'warn' | 'info', message: string) => {
+    this.emit('log', { source: 'manager', level, message });
   };
 }
 

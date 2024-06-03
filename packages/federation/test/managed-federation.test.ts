@@ -154,7 +154,8 @@ describe('Managed Federation', () => {
 
       manager.start();
 
-      await manager.waitForInitialization();
+      await new Promise(resolve => manager.once('schema', resolve));
+
       expect(manager.schema).toBeDefined();
     });
 
@@ -164,7 +165,8 @@ describe('Managed Federation', () => {
       });
 
       const onSchemaChange = jest.fn();
-      manager.start({ onSchemaChange });
+      manager.on('schema', onSchemaChange);
+      manager.start();
 
       await delay(0.05);
       expect(onSchemaChange).toHaveBeenCalledTimes(1);
@@ -177,10 +179,14 @@ describe('Managed Federation', () => {
       });
 
       const onFailure = jest.fn();
-      manager.start({ onFailure });
+      manager.on('failure', onFailure);
+      const onError = jest.fn();
+      manager.on('error', onError);
+      manager.start();
 
       await delay(0.25);
       expect(mockFetchError).toHaveBeenCalledTimes(3);
+      expect(onError).toHaveBeenCalledTimes(3);
       expect(onFailure).toHaveBeenCalledTimes(1);
     });
 
@@ -188,9 +194,10 @@ describe('Managed Federation', () => {
       manager = new SupergraphSchemaManager({
         fetch: mockSDL,
       });
-      const onSchemaChange = jest.fn();
 
-      manager.start({ onSchemaChange });
+      const onSchemaChange = jest.fn();
+      manager.on('schema', onSchemaChange);
+      manager.start();
 
       await delay(0.25);
       expect(onSchemaChange).toHaveBeenCalledTimes(3);
@@ -203,11 +210,43 @@ describe('Managed Federation', () => {
       });
 
       const onFailure = jest.fn();
-      manager.start({ onFailure });
+      manager.on('failure', onFailure);
+      const onError = jest.fn();
+      manager.on('error', onError);
+      manager.start();
 
       await delay(0.05);
+      expect(onError).toHaveBeenCalledTimes(3);
       expect(mockError).toHaveBeenCalledTimes(3);
       expect(onFailure).toHaveBeenCalledTimes(1);
+    });
+
+    it('should emit uplink messages', async () => {
+      manager = new SupergraphSchemaManager({
+        fetch: async () =>
+          Response.json({
+            data: {
+              routerConfig: {
+                __typename: 'RouterConfigResult',
+                supergraphSDL: supergraphSdl,
+                id: 'test-id',
+                minDelaySeconds: 10,
+                messages: [{ level: 'INFO', body: 'test-message' }],
+              },
+            },
+          }),
+      });
+
+      const onMessage = jest.fn();
+      manager.on('log', onMessage);
+      manager.start();
+
+      await delay(0.05);
+      expect(onMessage).toHaveBeenCalledWith({
+        message: 'test-message',
+        level: 'info',
+        source: 'uplink',
+      });
     });
   });
 });
