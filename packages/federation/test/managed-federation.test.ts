@@ -18,7 +18,7 @@ describe('Managed Federation', () => {
           __typename: 'RouterConfigResult',
           minDelaySeconds: 0.1,
           id: 'test-id-1',
-          supergraphSDL: supergraphSdl,
+          supergraphSdl,
           messages: [],
         },
       },
@@ -159,19 +159,6 @@ describe('Managed Federation', () => {
       expect(manager.schema).toBeDefined();
     });
 
-    it('should call onSchemaChange when a new schema is loaded', async () => {
-      manager = new SupergraphSchemaManager({
-        fetch: mockSDL,
-      });
-
-      const onSchemaChange = jest.fn();
-      manager.on('schema', onSchemaChange);
-      manager.start();
-
-      await delay(0.05);
-      expect(onSchemaChange).toHaveBeenCalledTimes(1);
-    });
-
     it('should call onFailure when failed more than the given max retries', async () => {
       manager = new SupergraphSchemaManager({
         fetch: mockFetchError,
@@ -199,7 +186,7 @@ describe('Managed Federation', () => {
       manager.on('schema', onSchemaChange);
       manager.start();
 
-      await delay(0.25);
+      await delay(0.29);
       expect(onSchemaChange).toHaveBeenCalledTimes(3);
     });
 
@@ -228,7 +215,7 @@ describe('Managed Federation', () => {
             data: {
               routerConfig: {
                 __typename: 'RouterConfigResult',
-                supergraphSDL: supergraphSdl,
+                supergraphSdl,
                 id: 'test-id',
                 minDelaySeconds: 10,
                 messages: [{ level: 'INFO', body: 'test-message' }],

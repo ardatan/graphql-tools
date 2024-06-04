@@ -100,7 +100,7 @@ type RouterConfigResult = {
     | {
         __typename: 'RouterConfigResult';
         messages: { level: 'ERROR' | 'WARN' | 'INFO'; body: string }[];
-        supergraphSDL: string;
+        supergraphSdl: string;
         minDelaySeconds: number;
         id: string;
       }
@@ -233,7 +233,7 @@ export async function fetchSupergraphSdlFromManagedFederation(
   }
 
   return {
-    supergraphSdl: routerConfig.supergraphSDL,
+    supergraphSdl: routerConfig.supergraphSdl,
     id: routerConfig.id,
     minDelaySeconds: routerConfig.minDelaySeconds,
   };
