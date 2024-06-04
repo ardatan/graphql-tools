@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/executor-yoga",
-  "version": "2.0.4",
+  "version": "3.0.0",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -52,7 +52,7 @@
     "graphql-yoga": "^3.5.1 || ^4.0.0 || ^5.0.0"
   },
   "dependencies": {
-    "@graphql-tools/executor-envelop": "^2.0.4",
+    "@graphql-tools/executor-envelop": "^3.0.0",
     "@graphql-tools/utils": "^10.0.13",
     "tslib": "^2.3.1"
   },

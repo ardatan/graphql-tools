@@ -1,5 +1,27 @@
 # @graphql-tools/federation
 
+## 2.0.0
+
+### Major Changes
+
+- [#6227](https://github.com/ardatan/graphql-tools/pull/6227)
+  [`85c383f`](https://github.com/ardatan/graphql-tools/commit/85c383fbb44eeb2a0509480d84ca0b12811bc3ca)
+  Thanks [@ardatan](https://github.com/ardatan)! - BREAKING CHANGES:
+  - `getSubschemasFromSupergraphSdl` has been removed in favor of the new
+    `getStitchingOptionsFromSupergraphSdl`, and it returns the options for `stitchSchemas` instead
+    of the map of subschemas
+  - `onExecutor` has been removed in favor of `onSubschemaConfig`
+  - To change the default HTTP executor options, use `httpExecutorOpts` instead of `onExecutor`
+
+### Patch Changes
+
+- [#6223](https://github.com/ardatan/graphql-tools/pull/6223)
+  [`db29280`](https://github.com/ardatan/graphql-tools/commit/db29280ef4b058857923ed8a207052fe06ba5fa0)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - dependencies updates:
+  - Added dependency
+    [`@whatwg-node/fetch@^0.9.17` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.9.17)
+    (to `dependencies`)
+
 ## 1.1.36
 
 ### Patch Changes

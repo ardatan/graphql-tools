@@ -1,23 +1,47 @@
 # @graphql-tools/executor-yoga
 
+## 3.0.0
+
+### Major Changes
+
+- [#6227](https://github.com/ardatan/graphql-tools/pull/6227)
+  [`85c383f`](https://github.com/ardatan/graphql-tools/commit/85c383fbb44eeb2a0509480d84ca0b12811bc3ca)
+  Thanks [@ardatan](https://github.com/ardatan)! - BREAKING: `invalidateSupergraph` is now replaced
+  with `invalidateUnifiedGraph`
+
+### Patch Changes
+
+- Updated dependencies
+  [[`85c383f`](https://github.com/ardatan/graphql-tools/commit/85c383fbb44eeb2a0509480d84ca0b12811bc3ca)]:
+  - @graphql-tools/executor-envelop@3.0.0
+
 ## 2.0.4
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.1`, in `dependencies`)
-- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.1`, in `dependencies`)
+- Updated dependencies
+  [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
   - @graphql-tools/executor-envelop@2.0.4
 
 ## 2.0.3
 
 ### Patch Changes
 
-- [`974df8a`](https://github.com/ardatan/graphql-tools/commit/974df8a1a1bca422bac5d971a3f8029cd9728efd) Thanks [@ardatan](https://github.com/ardatan)! - Polling
+- [`974df8a`](https://github.com/ardatan/graphql-tools/commit/974df8a1a1bca422bac5d971a3f8029cd9728efd)
+  Thanks [@ardatan](https://github.com/ardatan)! - Polling
 
-- [`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238) Thanks [@ardatan](https://github.com/ardatan)! - Move schema introspection logic to Envelop
+- [`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238)
+  Thanks [@ardatan](https://github.com/ardatan)! - Move schema introspection logic to Envelop
 
-- Updated dependencies [[`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238), [`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238)]:
+- Updated dependencies
+  [[`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238),
+  [`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238)]:
   - @graphql-tools/executor-envelop@2.0.3
 
 ## 2.0.2
