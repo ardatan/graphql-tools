@@ -83,7 +83,7 @@ describe('Error Handling', () => {
       if (process.versions['node'].startsWith('18.')) {
         expect(errorMessage).toBe('Unexpected end of JSON input');
       } else {
-        expect(errorMessage).toBe(
+        expect(errorMessage).toContain(
           "Expected ',' or '}' after property value in JSON at position 17",
         );
       }

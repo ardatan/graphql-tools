@@ -17,6 +17,22 @@ export function mergeDeep<S extends any[]>(
   if (respectPrototype) {
     Object.setPrototypeOf(output, Object.create(Object.getPrototypeOf(target)));
   }
+  if (Array.isArray(target)) {
+    // Are they all arrays with the same length?
+    const allArrays = sources.every(
+      source => Array.isArray(source) && source.length === target.length,
+    );
+    if (allArrays) {
+      return target.map((_, i) =>
+        mergeDeep(
+          sources.map(source => source[i]),
+          respectPrototype,
+          respectArrays,
+          respectArrayLength,
+        ),
+      );
+    }
+  }
   for (const source of sources) {
     if (isObject(target) && isObject(source)) {
       if (respectPrototype) {
