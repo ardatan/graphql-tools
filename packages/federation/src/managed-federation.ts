@@ -4,7 +4,7 @@ import { ExecutionResult } from '@graphql-tools/utils';
 import { fetch as defaultFetch } from '@whatwg-node/fetch';
 import {
   getStitchedSchemaFromSupergraphSdl,
-  GetSubschemasFromSupergraphSdlOpts,
+  GetStitchedSchemaFromSupergraphSdlOpts,
 } from './supergraph.js';
 import { EventEmitter } from './utils.js';
 
@@ -241,7 +241,7 @@ export async function fetchSupergraphSdlFromManagedFederation(
 
 export type GetStitchedSchemaFromManagedFederationOpts =
   FetchSupergraphSdlFromManagedFederationOpts &
-    Omit<GetSubschemasFromSupergraphSdlOpts, 'supergraphSdl'>;
+    Omit<GetStitchedSchemaFromSupergraphSdlOpts, 'supergraphSdl'>;
 
 export type RouterConfigWithSchema = RouterConfig & {
   /**
@@ -277,7 +277,9 @@ export async function getStitchedSchemaFromManagedFederation(
       ...result,
       schema: getStitchedSchemaFromSupergraphSdl({
         supergraphSdl: result.supergraphSdl,
-        onExecutor: options.onExecutor,
+        onStitchingOptions: options.onStitchingOptions,
+        httpExecutorOpts: options.httpExecutorOpts,
+        onSubschemaConfig: options.onSubschemaConfig,
         batch: options.batch,
       }),
     };
