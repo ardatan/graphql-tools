@@ -15,14 +15,16 @@ export type ExecutorPluginOpts = Parameters<typeof schemaFromExecutor>[2] & {
   polling?: number;
 };
 
-export function useExecutor(
-  executor: Executor,
-  opts?: ExecutorPluginOpts,
-): Plugin & {
-  invalidateSupergraph: () => void;
+export interface ExecutorPluginExtras {
+  invalidateUnifiedGraph: () => void;
   pluginCtx: ExecutorPluginContext;
   ensureSchema(ctx?: any): void;
-} {
+}
+
+export function useExecutor<TPluginContext extends Record<string, any>>(
+  executor: Executor,
+  opts?: ExecutorPluginOpts,
+): Plugin<TPluginContext> & ExecutorPluginExtras {
   const EMPTY_ARRAY = Object.freeze([]);
   function executorToExecuteFn(executionArgs: ExecutionArgs) {
     return executor({
@@ -127,7 +129,7 @@ export function useExecutor(
     },
     pluginCtx,
     ensureSchema,
-    invalidateSupergraph() {
+    invalidateUnifiedGraph() {
       pluginCtx.schema$ = undefined;
       pluginCtx.schema = undefined;
       pluginCtx.skipIntrospection = false;

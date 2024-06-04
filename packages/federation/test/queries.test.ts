@@ -9,8 +9,8 @@ it('should not do a fragment spread on a union', () => {
 
   const schema = getStitchedSchemaFromSupergraphSdl({
     supergraphSdl: readFileSync(join(__dirname, 'fixtures', 'supergraphs', 'c.graphql'), 'utf8'),
-    onExecutor() {
-      return function executor(request) {
+    onSubschemaConfig(subschemaConfig) {
+      subschemaConfig.executor = function executor(request) {
         queries.push(print(request.document));
         return {};
       };

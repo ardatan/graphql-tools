@@ -15,7 +15,6 @@ import {
 } from 'graphql';
 import type { ApolloGateway } from '@apollo/gateway';
 import { normalizedExecutor } from '@graphql-tools/executor';
-import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import {
   ExecutionResult,
   Executor,
@@ -52,15 +51,15 @@ describe('Federation Compatibility', () => {
       beforeAll(async () => {
         stitchedSchema = getStitchedSchemaFromSupergraphSdl({
           supergraphSdl,
-          batch: true,
-          onExecutor({ subgraphName, endpoint }) {
-            const actualExecutor = buildHTTPExecutor({ endpoint });
-            return function tracedExecutor(execReq) {
-              stitchingSubgraphCalls[subgraphName.toLowerCase()] =
-                (stitchingSubgraphCalls[subgraphName] || 0) + 1;
+          onSubschemaConfig(subschemaConfig) {
+            const actualExecutor = subschemaConfig.executor;
+            subschemaConfig.executor = function tracedExecutor(execReq) {
+              stitchingSubgraphCalls[subschemaConfig.name.toLowerCase()] =
+                (stitchingSubgraphCalls[subschemaConfig.name] || 0) + 1;
               return actualExecutor(execReq);
             };
           },
+          batch: true,
         });
         const { ApolloGateway, RemoteGraphQLDataSource } = await import('@apollo/gateway');
         apolloGW = new ApolloGateway({

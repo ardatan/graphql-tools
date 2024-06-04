@@ -1,5 +1,6 @@
-import type { Plugin } from 'graphql-yoga';
+import { YogaInitialContext, type Plugin } from 'graphql-yoga';
 import {
+  ExecutorPluginExtras,
   ExecutorPluginOpts,
   useExecutor as useEnvelopExecutor,
 } from '@graphql-tools/executor-envelop';
@@ -8,15 +9,10 @@ import { Executor } from '@graphql-tools/utils';
 export function useExecutor(
   executor: Executor,
   opts?: ExecutorPluginOpts,
-): Plugin & { invalidateSupergraph: () => void } {
-  const envelopPlugin = useEnvelopExecutor(executor, opts);
+): Plugin & ExecutorPluginExtras {
+  const envelopPlugin = useEnvelopExecutor<YogaInitialContext>(executor, opts);
   return {
-    onPluginInit({ addPlugin }) {
-      addPlugin(
-        // @ts-expect-error TODO: fix typings
-        envelopPlugin,
-      );
-    },
+    ...envelopPlugin,
     onRequestParse({ serverContext }) {
       return {
         onRequestParseDone() {
@@ -27,6 +23,5 @@ export function useExecutor(
         },
       };
     },
-    invalidateSupergraph: envelopPlugin.invalidateSupergraph,
   };
 }

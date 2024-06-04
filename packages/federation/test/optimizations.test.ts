@@ -36,11 +36,12 @@ describe('Optimizations', () => {
         join(__dirname, 'fixtures', 'gateway', 'supergraph.graphql'),
         'utf8',
       ),
-      onExecutor({ subgraphName }) {
+      onSubschemaConfig(subschemaConfig) {
+        const subgraphName = subschemaConfig.name;
         const schema = buildSubgraphSchema(services[subgraphName]);
         const executor = createDefaultExecutor(schema);
         serviceCallCnt[subgraphName] = 0;
-        return async args => {
+        subschemaConfig.executor = args => {
           serviceCallCnt[subgraphName]++;
           return executor(args);
         };
@@ -202,20 +203,27 @@ describe('awareness-of-other-fields', () => {
       .then(() => {
         gwSchema = getStitchedSchemaFromSupergraphSdl({
           supergraphSdl,
-          onExecutor({ subgraphName }) {
+          onSubschemaConfig(subschemaConfig) {
+            const subgraphName = subschemaConfig.name;
             switch (subgraphName) {
               case 'A':
-                return getTracedExecutor(subgraphName, Aschema);
+                subschemaConfig.executor = getTracedExecutor(subgraphName, Aschema);
+                break;
               case 'B':
-                return getTracedExecutor(subgraphName, Bschema);
+                subschemaConfig.executor = getTracedExecutor(subgraphName, Bschema);
+                break;
               case 'C':
-                return getTracedExecutor(subgraphName, Cschema);
+                subschemaConfig.executor = getTracedExecutor(subgraphName, Cschema);
+                break;
               case 'D':
-                return getTracedExecutor(subgraphName, Dschema);
+                subschemaConfig.executor = getTracedExecutor(subgraphName, Dschema);
+                break;
               case 'E':
-                return getTracedExecutor(subgraphName, Eschema);
+                subschemaConfig.executor = getTracedExecutor(subgraphName, Eschema);
+                break;
+              default:
+                throw new Error(`Unknown subgraph ${subgraphName}`);
             }
-            throw new Error(`Unknown subgraph ${subgraphName}`);
           },
         });
       });
