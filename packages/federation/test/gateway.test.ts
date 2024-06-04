@@ -21,15 +21,15 @@ import {
   getSubschemaForFederationWithSchema,
 } from '@graphql-tools/federation';
 import { stitchSchemas } from '@graphql-tools/stitch';
+import { federationToStitchingSDL, stitchingDirectives } from '@graphql-tools/stitching-directives';
 import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
+import '../../testing/to-be-similar-gql-doc';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 import * as accounts from './fixtures/gateway/accounts';
 import * as discount from './fixtures/gateway/discount';
 import * as inventory from './fixtures/gateway/inventory';
 import * as products from './fixtures/gateway/products';
 import * as reviews from './fixtures/gateway/reviews';
-import '../../testing/to-be-similar-gql-doc';
-import { federationToStitchingSDL, stitchingDirectives } from '@graphql-tools/stitching-directives';
 
 const services = {
   accounts,
