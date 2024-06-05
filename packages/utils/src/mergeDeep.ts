@@ -12,13 +12,38 @@ export function mergeDeep<S extends any[]>(
   respectArrays = false,
   respectArrayLength = false,
 ): UnboxIntersection<UnionToIntersection<BoxedTupleTypes<S>>> & any {
-  const target = sources[0] || {};
+  if (respectArrays && respectArrayLength) {
+    let expectedLength: number | undefined;
+    const areArraysInTheSameLength = sources.every(source => {
+      if (Array.isArray(source)) {
+        if (expectedLength === undefined) {
+          expectedLength = source.length;
+          return true;
+        } else if (expectedLength === source.length) {
+          return true;
+        }
+      }
+      return false;
+    });
+
+    if (areArraysInTheSameLength) {
+      return new Array(expectedLength).fill(null).map((_, index) =>
+        mergeDeep(
+          sources.map(source => source[index]),
+          respectPrototype,
+          respectArrays,
+          respectArrayLength,
+        ),
+      );
+    }
+  }
+
   const output = {};
   if (respectPrototype) {
-    Object.setPrototypeOf(output, Object.create(Object.getPrototypeOf(target)));
+    Object.setPrototypeOf(output, Object.create(Object.getPrototypeOf(sources[0])));
   }
   for (const source of sources) {
-    if (isObject(target) && isObject(source)) {
+    if (isObject(source)) {
       if (respectPrototype) {
         const outputPrototype = Object.getPrototypeOf(output);
         const sourcePrototype = Object.getPrototypeOf(source);
@@ -41,11 +66,21 @@ export function mergeDeep<S extends any[]>(
               [output[key], source[key]] as S,
               respectPrototype,
               respectArrays,
+              respectArrayLength,
             );
           }
         } else if (respectArrays && Array.isArray(output[key])) {
           if (Array.isArray(source[key])) {
-            output[key].push(...source[key]);
+            if (respectArrayLength && output[key].length === source[key].length) {
+              output[key] = mergeDeep(
+                [output[key], source[key]] as S,
+                respectPrototype,
+                respectArrays,
+                respectArrayLength,
+              );
+            } else {
+              output[key].push(...source[key]);
+            }
           } else {
             output[key].push(source[key]);
           }
@@ -53,19 +88,6 @@ export function mergeDeep<S extends any[]>(
           Object.assign(output, { [key]: source[key] });
         }
       }
-    } else if (respectArrays && Array.isArray(target)) {
-      if (Array.isArray(source)) {
-        if (respectArrayLength && source.length === target.length) {
-          return target.map((targetElem, i) =>
-            mergeDeep([targetElem, source[i]], respectPrototype, respectArrays, respectArrayLength),
-          );
-        }
-        target.push(...source);
-      } else {
-        target.push(source);
-      }
-    } else if (respectArrays && Array.isArray(source)) {
-      return [target, ...source];
     }
   }
   return output;

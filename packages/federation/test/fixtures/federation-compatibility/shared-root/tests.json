@@ -12,5 +12,21 @@
       }
     },
     "plan": "\n    QueryPlan {\n      # NOTE\n      # What's interesting here is that the most efficient way to fetch the data\n      # is to make parallel calls to Query.products in each service.\n      # Each service has a different field that it can provide.\n      Parallel {\n        Fetch(service: \"name\") {\n          {\n            product {\n              name\n            }\n          }\n        },\n        Fetch(service: \"category\") {\n          {\n            product {\n              category\n              id\n            }\n          }\n        },\n        Fetch(service: \"price\") {\n          {\n            product {\n              price\n            }\n          }\n        },\n      },\n    }\n    "
+  },
+  {
+    "query": "\n      query {\n        products {\n          id\n          name\n          category\n          price\n        }\n      }\n    ",
+    "expected": {
+      "data": {
+        "products": [
+          {
+            "id": "1",
+            "name": "Product 1",
+            "price": 100,
+            "category": "Category 1"
+          }
+        ]
+      }
+    },
+    "plan": "\n    QueryPlan {\n      # NOTE\n      # What's interesting here is that the most efficient way to fetch the data\n      # is to make parallel calls to Query.products in each service.\n      # Each service has a different field that it can provide.\n      Parallel {\n        Fetch(service: \"name\") {\n          {\n            products {\n              name\n            }\n          }\n        },\n        Fetch(service: \"category\") {\n          {\n            products {\n              category\n              id\n            }\n          }\n        },\n        Fetch(service: \"price\") {\n          {\n            products {\n              price\n            }\n          }\n        },\n      },\n    }\n    "
   }
 ]

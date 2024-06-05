@@ -1043,7 +1043,7 @@ export function getStitchingOptionsFromSupergraphSdl(
             return jobs[0];
           }
           if (hasPromise) {
-            return Promise.all(jobs).then(results => mergeDeep(results));
+            return Promise.all(jobs).then(results => mergeDeep(results, false, true, true));
           }
           return mergeDeep(jobs);
         },
