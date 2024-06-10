@@ -1,5 +1,24 @@
 # @graphql-tools/federation
 
+## 2.0.1
+
+### Patch Changes
+
+- [#6238](https://github.com/ardatan/graphql-tools/pull/6238)
+  [`0f7059b`](https://github.com/ardatan/graphql-tools/commit/0f7059beb218d0012c48e121c55e7db386796bee)
+  Thanks [@ardatan](https://github.com/ardatan)! - Merge the elements of the lists if the root field
+  is shared across different subgraphs
+
+  ```graphql
+  type Query {
+    products: [Product] # If this field is returned by multiple subgraphs, the elements of the lists will be merged
+  }
+  ```
+
+- Updated dependencies
+  [[`0f7059b`](https://github.com/ardatan/graphql-tools/commit/0f7059beb218d0012c48e121c55e7db386796bee)]:
+  - @graphql-tools/utils@10.2.2
+
 ## 2.0.0
 
 ### Major Changes
