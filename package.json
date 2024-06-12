@@ -70,7 +70,7 @@
     "eslint-plugin-promise": "6.2.0",
     "eslint-plugin-standard": "5.0.0",
     "globby": "11.1.0",
-    "graphql": "16.8.1",
+    "graphql": "16.8.2",
     "graphql-subscriptions": "2.0.0",
     "husky": "9.0.11",
     "jest": "29.7.0",
@@ -88,7 +88,7 @@
   },
   "resolutions": {
     "esbuild": "^0.21.0",
-    "graphql": "16.8.1"
+    "graphql": "16.8.2"
   },
   "lint-staged": {
     "packages/**/src/**/*.{ts,tsx}": [
