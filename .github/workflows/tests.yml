@@ -72,9 +72,9 @@ jobs:
           - 16
           - '17.0.0-alpha.1'
         include:
-          - node-version: 16
+          - node-version: 18
             os: windows-latest
-            graphql_version: 15
+            graphql_version: 16
     steps:
       - name: Checkout Master
         uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4
