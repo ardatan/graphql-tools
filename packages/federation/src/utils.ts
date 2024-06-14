@@ -200,8 +200,8 @@ export class EventEmitter<T extends EventMap<T>> {
     if (!listeners) {
       return false;
     }
-    for (const listener of listeners) {
-      listener(...args);
+    for (let i = listeners.length - 1; i >= 0; i--) {
+      listeners[i](...args);
     }
     return true;
   }
