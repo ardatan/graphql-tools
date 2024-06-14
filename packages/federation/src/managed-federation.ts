@@ -398,6 +398,7 @@ export class SupergraphSchemaManager extends EventEmitter<{
     this.#log('error', 'Failed to pull schema from managed federation:');
 
     if (this.#retries >= maxRetries) {
+      this.#timeout = undefined;
       this.#log('error', 'Max retries reached, giving up');
       this.emit('failure', error, delayInSeconds);
       return;
