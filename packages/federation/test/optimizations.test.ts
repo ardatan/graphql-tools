@@ -1,6 +1,5 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { GraphQLSchema, parse, versionInfo } from 'graphql';
+import { IntrospectAndCompose, LocalGraphQLDataSource } from '@apollo/gateway';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import { ExecutionRequest, Executor } from '@graphql-tools/utils';
@@ -20,25 +19,35 @@ import {
 } from './fixtures/optimizations/awareness-of-other-fields';
 
 describe('Optimizations', () => {
-  const services = {
-    accounts,
-    inventory,
-    products,
-    reviews,
-    discount,
-  };
   let serviceCallCnt: Record<string, number>;
   let schema: GraphQLSchema;
-  beforeEach(() => {
+  beforeEach(async () => {
     serviceCallCnt = {};
+    const serviceSchemaMap = {
+      accounts: buildSubgraphSchema(accounts),
+      inventory: buildSubgraphSchema(inventory),
+      products: buildSubgraphSchema(products),
+      reviews: buildSubgraphSchema(reviews),
+      discount: buildSubgraphSchema(discount),
+    };
+    const { supergraphSdl, cleanup } = await new IntrospectAndCompose({
+      subgraphs: Object.keys(serviceSchemaMap).map(name => ({
+        name,
+        url: `http://localhost/${name}`,
+      })),
+    }).initialize({
+      update() {},
+      async healthCheck() {},
+      getDataSource({ name }) {
+        return new LocalGraphQLDataSource(serviceSchemaMap[name]);
+      },
+    });
+    await cleanup();
     schema = getStitchedSchemaFromSupergraphSdl({
-      supergraphSdl: readFileSync(
-        join(__dirname, 'fixtures', 'gateway', 'supergraph.graphql'),
-        'utf8',
-      ),
+      supergraphSdl,
       onSubschemaConfig(subschemaConfig) {
-        const subgraphName = subschemaConfig.name;
-        const schema = buildSubgraphSchema(services[subgraphName]);
+        const subgraphName = subschemaConfig.name.toLowerCase();
+        const schema = serviceSchemaMap[subgraphName];
         const executor = createDefaultExecutor(schema);
         serviceCallCnt[subgraphName] = 0;
         subschemaConfig.executor = args => {

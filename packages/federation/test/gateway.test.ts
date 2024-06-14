@@ -1,11 +1,8 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import {
   buildClientSchema,
   buildSchema,
   DocumentNode,
   getIntrospectionQuery,
-  GraphQLSchema,
   lexicographicSortSchema,
   parse,
   print,
@@ -24,26 +21,15 @@ import { stitchSchemas } from '@graphql-tools/stitch';
 import { federationToStitchingSDL, stitchingDirectives } from '@graphql-tools/stitching-directives';
 import { ExecutionResult, IResolvers } from '@graphql-tools/utils';
 import '../../testing/to-be-similar-gql-doc';
+import { ApolloGateway, LocalGraphQLDataSource } from '@apollo/gateway';
+import { buildSubgraphSchema as buildApolloSubgraph } from '@apollo/subgraph';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
-import * as accounts from './fixtures/gateway/accounts';
-import * as discount from './fixtures/gateway/discount';
-import * as inventory from './fixtures/gateway/inventory';
-import * as products from './fixtures/gateway/products';
-import * as reviews from './fixtures/gateway/reviews';
-
-const services = {
-  accounts,
-  inventory,
-  products,
-  reviews,
-  discount,
-};
-
-interface ServiceInput {
-  name: string;
-  typeDefs: string;
-  schema: GraphQLSchema;
-}
+import {
+  BuildSubgraphSchemaFn,
+  getServiceInputs,
+  getSupergraph,
+  ServiceInput,
+} from './fixtures/gateway/supergraph';
 
 interface BuiltGateway {
   executor(document: DocumentNode): Promise<ExecutionResult>;
@@ -52,7 +38,7 @@ interface BuiltGateway {
 
 interface TestScenario {
   name: string;
-  buildSubgraphSchema(options: { typeDefs: string; resolvers: IResolvers }): GraphQLSchema;
+  buildSubgraphSchema: BuildSubgraphSchemaFn;
   buildGateway(serviceInputs: ServiceInput[]): Promise<BuiltGateway>;
 }
 
@@ -166,13 +152,6 @@ describe('Federation', () => {
       serviceCallCounts,
     };
   };
-  const {
-    buildSubgraphSchema: buildApolloSubgraph,
-  }: typeof import('@apollo/subgraph') = require('@apollo/subgraph');
-  const {
-    ApolloGateway,
-    LocalGraphQLDataSource,
-  }: typeof import('@apollo/gateway') = require('@apollo/gateway');
   const buildApolloGateway = async (serviceInputs: ServiceInput[]): Promise<BuiltGateway> => {
     const serviceCallCounts: Record<string, number> = {};
     const gateway = new ApolloGateway({
@@ -219,10 +198,7 @@ describe('Federation', () => {
       },
     ]);
 
-  const supergraphSdl = readFileSync(
-    join(__dirname, './fixtures/gateway/supergraph.graphql'),
-    'utf8',
-  );
+  let supergraphSdl: string;
 
   const buildApolloGatewayWithSupergraph = async (serviceInputs: ServiceInput[]) => {
     const serviceCallCounts = {};
@@ -265,9 +241,13 @@ describe('Federation', () => {
     const gatewaySchema = getStitchedSchemaFromSupergraphSdl({
       supergraphSdl,
       onSubschemaConfig(subschemaConfig) {
-        const subgraphName = subschemaConfig.name;
+        const subgraphName = subschemaConfig.name.toLowerCase();
         serviceCallCounts[subgraphName] = 0;
-        const schema = serviceInputs.find(({ name }) => name === subgraphName)!.schema;
+        const serviceInput = serviceInputs.find(({ name }) => name === subgraphName);
+        if (!serviceInput) {
+          throw new Error(`Service ${subgraphName} not found`);
+        }
+        const schema = serviceInput.schema;
         const executor = createDefaultExecutor(schema);
         subschemaConfig.executor = function subschemaExecutor(executionRequest) {
           serviceCallCounts[subgraphName]++;
@@ -391,15 +371,8 @@ describe('Federation', () => {
     describe(name, () => {
       let builtGateway: BuiltGateway;
       beforeEach(async () => {
-        const serviceInputs: ServiceInput[] = [];
-        for (const name in services) {
-          const service = services[name];
-          serviceInputs.push({
-            name,
-            typeDefs: service.typeDefs,
-            schema: buildSubgraphSchema(service),
-          });
-        }
+        const serviceInputs: ServiceInput[] = getServiceInputs(buildSubgraphSchema);
+        supergraphSdl = await getSupergraph(buildSubgraphSchema);
         builtGateway = await buildGateway(serviceInputs);
       });
       it('should generate the correct schema', async () => {

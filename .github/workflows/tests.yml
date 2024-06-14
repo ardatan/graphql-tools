@@ -66,7 +66,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest] # remove windows to speed up the tests
-        node-version: [16, 18, 20]
+        node-version: [18, 20, 22]
         graphql_version:
           - 15
           - 16
