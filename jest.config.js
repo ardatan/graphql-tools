@@ -1,6 +1,5 @@
-const { resolve, join } = require('path');
+const { resolve } = require('path');
 const { pathsToModuleNameMapper } = require('ts-jest');
-const fs = require('fs');
 const CI = !!process.env.CI;
 
 const ROOT_DIR = __dirname;
@@ -11,11 +10,14 @@ const ESM_PACKAGES = ['graphql', 'graphql-upload', 'fs-capacitor'];
 
 const modulePathIgnorePatterns = ['dist', 'test-assets', 'test-files', 'fixtures', '.bob'];
 
-const { versionInfo } = require('graphql');
+// Higher versions have only ESM support so we're good if import fails in CJS here
+try {
+  const { versionInfo } = require('graphql');
 
-if (versionInfo.major < 16) {
-  modulePathIgnorePatterns.push('federation');
-}
+  if (versionInfo.major < 16) {
+    modulePathIgnorePatterns.push('federation');
+  }
+} catch (e) {}
 
 module.exports = {
   testEnvironment: 'node',
