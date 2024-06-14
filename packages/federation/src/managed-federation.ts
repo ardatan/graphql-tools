@@ -306,7 +306,7 @@ export type SupergraphSchemaManagerOptions = Omit<
 export class SupergraphSchemaManager extends EventEmitter<{
   schema: [GraphQLSchema];
   error: [FetchError | unknown];
-  failure: [FetchError | unknown];
+  failure: [FetchError | unknown, number];
   log: [{ source: 'uplink' | 'manager'; message: string; level: 'error' | 'warn' | 'info' }];
 }> {
   public schema?: GraphQLSchema = undefined;
@@ -323,9 +323,17 @@ export class SupergraphSchemaManager extends EventEmitter<{
     });
   }
 
-  start() {
-    this.#log('info', 'Polling started');
-    this.#fetchSchema();
+  start(delayInSeconds = 0) {
+    if (this.#timeout) {
+      this.stop();
+    }
+
+    if (delayInSeconds) {
+      this.#timeout = setTimeout(this.start, delayInSeconds * 1000);
+    } else {
+      this.#log('info', 'Polling started');
+      this.#fetchSchema();
+    }
   }
 
   forcePull() {
@@ -391,7 +399,7 @@ export class SupergraphSchemaManager extends EventEmitter<{
 
     if (this.#retries >= maxRetries) {
       this.#log('error', 'Max retries reached, giving up');
-      this.emit('failure', error);
+      this.emit('failure', error, delayInSeconds);
       return;
     }
 
