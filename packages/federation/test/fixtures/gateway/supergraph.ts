@@ -30,7 +30,7 @@ export type BuildSubgraphSchemaFn = (options: {
 const defaultBuildSubgraphSchema: BuildSubgraphSchemaFn = ({ typeDefs, resolvers }) =>
   apolloBuildSubgraphSchema({
     typeDefs: parse(typeDefs, { noLocation: true }),
-    resolvers: resolvers as {},
+    resolvers: resolvers as any,
   });
 
 export function getServiceInputs(
