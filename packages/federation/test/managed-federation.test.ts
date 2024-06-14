@@ -1,16 +1,12 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { Response } from '@whatwg-node/fetch';
 import {
   fetchSupergraphSdlFromManagedFederation,
   SupergraphSchemaManager,
 } from '../src/managed-federation';
+import { getSupergraph } from './fixtures/gateway/supergraph';
 
 describe('Managed Federation', () => {
-  const supergraphSdl = readFileSync(
-    join(__dirname, 'fixtures', 'supergraphs', 'a.graphql'),
-  ).toString('utf-8');
-
+  let supergraphSdl: string;
   const mockSDL = jest.fn(async () =>
     Response.json({
       data: {
@@ -48,7 +44,8 @@ describe('Managed Federation', () => {
     throw new Error('Test Error');
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    supergraphSdl ||= await getSupergraph();
     jest.clearAllMocks();
   });
 

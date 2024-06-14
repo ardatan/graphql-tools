@@ -11,9 +11,8 @@ import {
   print,
   printSchema,
   validate,
-  versionInfo,
 } from 'graphql';
-import type { ApolloGateway } from '@apollo/gateway';
+import { ApolloGateway, RemoteGraphQLDataSource } from '@apollo/gateway';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import {
   ExecutionResult,
@@ -26,14 +25,6 @@ import {
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 
 describe('Federation Compatibility', () => {
-  if (versionInfo.major < 16) {
-    it('should skip federation compatibility tests', () => {
-      console.warn(
-        'Federation compatibility tests are skipped because they require at least graphql@16',
-      );
-    });
-    return;
-  }
   const fixturesDir = join(__dirname, 'fixtures', 'federation-compatibility');
   readdirSync(fixturesDir).forEach(supergraphName => {
     const supergraphFixturesDir = join(fixturesDir, supergraphName);
@@ -61,7 +52,6 @@ describe('Federation Compatibility', () => {
           },
           batch: true,
         });
-        const { ApolloGateway, RemoteGraphQLDataSource } = await import('@apollo/gateway');
         apolloGW = new ApolloGateway({
           supergraphSdl,
           buildService({ name, url }) {

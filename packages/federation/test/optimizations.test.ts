@@ -1,16 +1,9 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { GraphQLSchema, parse, versionInfo } from 'graphql';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import { ExecutionRequest, Executor } from '@graphql-tools/utils';
-import { buildSubgraphSchema } from '../src/subgraph';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
-import * as accounts from './fixtures/gateway/accounts';
-import * as discount from './fixtures/gateway/discount';
-import * as inventory from './fixtures/gateway/inventory';
-import * as products from './fixtures/gateway/products';
-import * as reviews from './fixtures/gateway/reviews';
+import { getServiceInputs, getSupergraph } from './fixtures/gateway/supergraph';
 import {
   Aschema,
   Bschema,
@@ -20,26 +13,20 @@ import {
 } from './fixtures/optimizations/awareness-of-other-fields';
 
 describe('Optimizations', () => {
-  const services = {
-    accounts,
-    inventory,
-    products,
-    reviews,
-    discount,
-  };
   let serviceCallCnt: Record<string, number>;
   let schema: GraphQLSchema;
-  beforeEach(() => {
+  beforeEach(async () => {
     serviceCallCnt = {};
+    const serviceInputs = getServiceInputs();
     schema = getStitchedSchemaFromSupergraphSdl({
-      supergraphSdl: readFileSync(
-        join(__dirname, 'fixtures', 'gateway', 'supergraph.graphql'),
-        'utf8',
-      ),
+      supergraphSdl: await getSupergraph(),
       onSubschemaConfig(subschemaConfig) {
-        const subgraphName = subschemaConfig.name;
-        const schema = buildSubgraphSchema(services[subgraphName]);
-        const executor = createDefaultExecutor(schema);
+        const subgraphName = subschemaConfig.name.toLowerCase();
+        const serviceInput = serviceInputs.find(input => input.name === subgraphName);
+        if (!serviceInput) {
+          throw new Error(`Service ${subgraphName} not found`);
+        }
+        const executor = createDefaultExecutor(serviceInput.schema);
         serviceCallCnt[subgraphName] = 0;
         subschemaConfig.executor = args => {
           serviceCallCnt[subgraphName]++;
