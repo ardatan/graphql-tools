@@ -9,13 +9,21 @@ const tsconfig = require(TSCONFIG);
 
 const ESM_PACKAGES = ['graphql', 'graphql-upload', 'fs-capacitor'];
 
+const modulePathIgnorePatterns = ['dist', 'test-assets', 'test-files', 'fixtures', '.bob'];
+
+const { versionInfo } = require('graphql');
+
+if (versionInfo.major < 16) {
+  modulePathIgnorePatterns.push('federation');
+}
+
 module.exports = {
   testEnvironment: 'node',
   rootDir: ROOT_DIR,
   prettierPath: null, // disable prettier for inline snapshots
   restoreMocks: true,
   reporters: ['default'],
-  modulePathIgnorePatterns: ['dist', 'test-assets', 'test-files', 'fixtures', '.bob'],
+  modulePathIgnorePatterns,
   moduleNameMapper: pathsToModuleNameMapper(tsconfig.compilerOptions.paths, {
     prefix: `${ROOT_DIR}/`,
   }),

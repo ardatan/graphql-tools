@@ -12,7 +12,7 @@ import {
   printSchema,
   validate,
 } from 'graphql';
-import type { ApolloGateway } from '@apollo/gateway';
+import { ApolloGateway, RemoteGraphQLDataSource } from '@apollo/gateway';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import {
   ExecutionResult,
@@ -52,7 +52,6 @@ describe('Federation Compatibility', () => {
           },
           batch: true,
         });
-        const { ApolloGateway, RemoteGraphQLDataSource } = await import('@apollo/gateway');
         apolloGW = new ApolloGateway({
           supergraphSdl,
           buildService({ name, url }) {

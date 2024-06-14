@@ -1,15 +1,9 @@
 import { GraphQLSchema, parse, versionInfo } from 'graphql';
-import { IntrospectAndCompose, LocalGraphQLDataSource } from '@apollo/gateway';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import { ExecutionRequest, Executor } from '@graphql-tools/utils';
-import { buildSubgraphSchema } from '../src/subgraph';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
-import * as accounts from './fixtures/gateway/accounts';
-import * as discount from './fixtures/gateway/discount';
-import * as inventory from './fixtures/gateway/inventory';
-import * as products from './fixtures/gateway/products';
-import * as reviews from './fixtures/gateway/reviews';
+import { getServiceInputs, getSupergraph } from './fixtures/gateway/supergraph';
 import {
   Aschema,
   Bschema,
@@ -23,32 +17,16 @@ describe('Optimizations', () => {
   let schema: GraphQLSchema;
   beforeEach(async () => {
     serviceCallCnt = {};
-    const serviceSchemaMap = {
-      accounts: buildSubgraphSchema(accounts),
-      inventory: buildSubgraphSchema(inventory),
-      products: buildSubgraphSchema(products),
-      reviews: buildSubgraphSchema(reviews),
-      discount: buildSubgraphSchema(discount),
-    };
-    const { supergraphSdl, cleanup } = await new IntrospectAndCompose({
-      subgraphs: Object.keys(serviceSchemaMap).map(name => ({
-        name,
-        url: `http://localhost/${name}`,
-      })),
-    }).initialize({
-      update() {},
-      async healthCheck() {},
-      getDataSource({ name }) {
-        return new LocalGraphQLDataSource(serviceSchemaMap[name]);
-      },
-    });
-    await cleanup();
+    const serviceInputs = getServiceInputs();
     schema = getStitchedSchemaFromSupergraphSdl({
-      supergraphSdl,
+      supergraphSdl: await getSupergraph(),
       onSubschemaConfig(subschemaConfig) {
         const subgraphName = subschemaConfig.name.toLowerCase();
-        const schema = serviceSchemaMap[subgraphName];
-        const executor = createDefaultExecutor(schema);
+        const serviceInput = serviceInputs.find(input => input.name === subgraphName);
+        if (!serviceInput) {
+          throw new Error(`Service ${subgraphName} not found`);
+        }
+        const executor = createDefaultExecutor(serviceInput.schema);
         serviceCallCnt[subgraphName] = 0;
         subschemaConfig.executor = args => {
           serviceCallCnt[subgraphName]++;
