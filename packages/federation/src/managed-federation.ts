@@ -330,17 +330,18 @@ export class SupergraphSchemaManager extends EventEmitter<{
 
     this.#timeout = setTimeout(() => {
       this.#log('info', 'Polling started');
+      this.#retries = 1;
       this.#fetchSchema();
     }, delayInSeconds * 1000);
   };
 
   forcePull = () => {
-    this.#fetchSchema();
-    this.#retries = 1;
     if (this.#timeout) {
       clearTimeout(this.#timeout);
       this.#timeout = undefined;
     }
+    this.#retries = 1;
+    this.#fetchSchema();
   };
 
   stop = () => {
