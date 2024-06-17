@@ -63,7 +63,7 @@
     "isomorphic-ws": "^5.0.0",
     "tslib": "^2.4.0",
     "value-or-promise": "^1.0.11",
-    "ws": "^8.12.0"
+    "ws": "^8.17.1"
   },
   "devDependencies": {
     "@envelop/core": "5.0.1",
