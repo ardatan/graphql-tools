@@ -323,7 +323,7 @@ export class SupergraphSchemaManager extends EventEmitter<{
     });
   }
 
-  start(delayInSeconds = 0) {
+  start = (delayInSeconds = 0) => {
     if (this.#timeout) {
       this.stop();
     }
@@ -334,24 +334,24 @@ export class SupergraphSchemaManager extends EventEmitter<{
       this.#log('info', 'Polling started');
       this.#fetchSchema();
     }
-  }
+  };
 
-  forcePull() {
+  forcePull = () => {
     this.#fetchSchema();
     this.#retries = 1;
     if (this.#timeout) {
       clearTimeout(this.#timeout);
       this.#timeout = undefined;
     }
-  }
+  };
 
-  stop() {
+  stop = () => {
     this.#log('info', 'Polling stopped');
     if (this.#timeout) {
       clearTimeout(this.#timeout);
       this.#timeout = undefined;
     }
-  }
+  };
 
   #fetchSchema = async () => {
     const { retryDelaySeconds = 0, minDelaySeconds = 0 } = this.options;
