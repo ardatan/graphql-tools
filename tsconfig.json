@@ -4,7 +4,7 @@
     "outDir": "dist",
     "baseUrl": ".",
 
-    "target": "es2022",
+    "target": "es2021",
     "module": "esnext",
     "moduleResolution": "node",
     "lib": ["esnext"],
