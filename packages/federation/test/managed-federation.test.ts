@@ -144,6 +144,7 @@ describe('Managed Federation', () => {
     afterEach(() => {
       manager?.stop();
     });
+
     it('should allow to wait for initial schema load', async () => {
       manager = new SupergraphSchemaManager({
         fetch: mockSDL,
@@ -185,6 +186,20 @@ describe('Managed Federation', () => {
 
       await delay(0.29);
       expect(onSchemaChange).toHaveBeenCalledTimes(3);
+    });
+
+    it('should call onSchemaChange for on and once listeners', async () => {
+      manager = new SupergraphSchemaManager({
+        fetch: mockSDL,
+      });
+
+      const onSchemaChange = jest.fn();
+      manager.once('schema', onSchemaChange);
+      manager.on('schema', onSchemaChange);
+      manager.start();
+
+      await delay(0.05);
+      expect(onSchemaChange).toHaveBeenCalledTimes(2);
     });
 
     it('should retry on exceptions', async () => {

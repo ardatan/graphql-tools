@@ -306,7 +306,7 @@ export type SupergraphSchemaManagerOptions = Omit<
 export class SupergraphSchemaManager extends EventEmitter<{
   schema: [GraphQLSchema];
   error: [FetchError | unknown];
-  failure: [FetchError | unknown];
+  failure: [FetchError | unknown, number];
   log: [{ source: 'uplink' | 'manager'; message: string; level: 'error' | 'warn' | 'info' }];
 }> {
   public schema?: GraphQLSchema = undefined;
@@ -323,27 +323,34 @@ export class SupergraphSchemaManager extends EventEmitter<{
     });
   }
 
-  start() {
-    this.#log('info', 'Polling started');
-    this.#fetchSchema();
-  }
+  start = (delayInSeconds = 0) => {
+    if (this.#timeout) {
+      this.stop();
+    }
 
-  forcePull() {
-    this.#fetchSchema();
-    this.#retries = 1;
+    this.#timeout = setTimeout(() => {
+      this.#log('info', 'Polling started');
+      this.#retries = 1;
+      this.#fetchSchema();
+    }, delayInSeconds * 1000);
+  };
+
+  forcePull = () => {
     if (this.#timeout) {
       clearTimeout(this.#timeout);
       this.#timeout = undefined;
     }
-  }
+    this.#retries = 1;
+    this.#fetchSchema();
+  };
 
-  stop() {
+  stop = () => {
     this.#log('info', 'Polling stopped');
     if (this.#timeout) {
       clearTimeout(this.#timeout);
       this.#timeout = undefined;
     }
-  }
+  };
 
   #fetchSchema = async () => {
     const { retryDelaySeconds = 0, minDelaySeconds = 0 } = this.options;
@@ -387,11 +394,13 @@ export class SupergraphSchemaManager extends EventEmitter<{
 
   #retryOnError = (error: unknown, delayInSeconds: number) => {
     const { maxRetries = 3 } = this.options;
-    this.#log('error', 'Failed to pull schema from managed federation:');
+    const message = (error as { message: string })?.message;
+    this.#log('error', `Failed to pull schema from managed federation: ${message}`);
 
     if (this.#retries >= maxRetries) {
+      this.#timeout = undefined;
       this.#log('error', 'Max retries reached, giving up');
-      this.emit('failure', error);
+      this.emit('failure', error, delayInSeconds);
       return;
     }
 
