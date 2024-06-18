@@ -1,5 +1,27 @@
 # @graphql-tools/federation
 
+## 2.1.0
+
+### Minor Changes
+
+- [#6267](https://github.com/ardatan/graphql-tools/pull/6267)
+  [`d5dd794`](https://github.com/ardatan/graphql-tools/commit/d5dd794352878aec9b0d543dfe2e6995142dddff)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Add `delayInSeconds` to the `failure`
+  event to give users more control on failure handling.
+
+- [#6267](https://github.com/ardatan/graphql-tools/pull/6267)
+  [`d5dd794`](https://github.com/ardatan/graphql-tools/commit/d5dd794352878aec9b0d543dfe2e6995142dddff)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Add a the ability to start polling with
+  a delay. This ease the handling of failure handling, allowing to restart the manager and
+  respecting GraphOS minimum retry delay.
+
+### Patch Changes
+
+- [#6267](https://github.com/ardatan/graphql-tools/pull/6267)
+  [`d5dd794`](https://github.com/ardatan/graphql-tools/commit/d5dd794352878aec9b0d543dfe2e6995142dddff)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Fix Supergraph Manager Event Emitter
+  not calling every listener when at least one has been registered using `once` method.
+
 ## 2.0.1
 
 ### Patch Changes
