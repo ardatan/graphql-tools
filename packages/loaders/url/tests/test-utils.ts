@@ -1,10 +1,16 @@
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { inspect, isAsyncIterable } from '@graphql-tools/utils';
+import { ExecutionResult, inspect, isAsyncIterable } from '@graphql-tools/utils';
 
 export function assertAsyncIterable(input: unknown): asserts input is AsyncIterable<any> {
   if (!isAsyncIterable(input)) {
     throw new Error(`Expected AsyncIterable. but received: ${inspect(input)}`);
+  }
+}
+
+export function assertSingleExecutionValue(input: unknown): asserts input is ExecutionResult {
+  if (isAsyncIterable(input)) {
+    throw new Error('Expected single execution value, but received AsyncIterable.');
   }
 }
 
