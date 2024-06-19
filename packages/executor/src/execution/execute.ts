@@ -1234,11 +1234,8 @@ function ensureValidRuntimeType(
   }
 
   // releases before 16.0.0 supported returning `GraphQLObjectType` from `resolveType`
-  // TODO: remove in 17.0.0 release
   if (isObjectType(runtimeTypeName)) {
-    throw createGraphQLError(
-      'Support for returning GraphQLObjectType from resolveType was removed in graphql-js@16.0.0 please return type name instead.',
-    );
+    runtimeTypeName = runtimeTypeName.name;
   }
 
   if (typeof runtimeTypeName !== 'string') {
