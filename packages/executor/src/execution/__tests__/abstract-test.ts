@@ -9,6 +9,7 @@ import {
   GraphQLString,
   GraphQLUnionType,
   parse,
+  versionInfo,
 } from 'graphql';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { execute, executeSync } from '../execute.js';
@@ -621,5 +622,14 @@ describe('Execute: Handles execution of abstract types', () => {
     expectError({ forTypeName: undefined }).toEqual(
       'Abstract type "Pet" must resolve to an Object type at runtime for field "Query.pet" with value { __typename: undefined }, received "[]".',
     );
+
+    if (versionInfo.major >= 16) {
+      // FIXME: workaround since we can't inject resolveType into SDL
+      // @ts-expect-error
+      assertInterfaceType(schema.getType('Pet')).resolveType = () => schema.getType('Cat');
+      expectError({ forTypeName: undefined }).toEqual(
+        'Support for returning GraphQLObjectType from resolveType was removed in graphql-js@16.0.0 please return type name instead.',
+      );
+    }
   });
 });
