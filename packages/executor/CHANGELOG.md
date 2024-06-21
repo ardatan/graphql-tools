@@ -1,11 +1,101 @@
 # @graphql-tools/executor
 
+## 1.2.7
+
+### Patch Changes
+
+- [#6280](https://github.com/ardatan/graphql-tools/pull/6280)
+  [`7dcd0af`](https://github.com/ardatan/graphql-tools/commit/7dcd0affcae14d8798426f3e2556b91a19df5986)
+  Thanks [@ardatan](https://github.com/ardatan)! - Since the executor is version agnostic, it should
+  respect the schemas created with older versions.
+
+  So if a type resolver returns a type instead of type name which is required since `graphql@16`,
+  the executor should handle it correctly.
+
+  See the following example:
+
+  ```ts
+  // Assume that the following code is executed with `graphql@15`
+  import { execute } from '@graphql-tools/executor'
+
+  const BarType = new GraphQLObjectType({
+    name: 'Bar',
+    fields: {
+      bar: {
+        type: GraphQLString,
+        resolve: () => 'bar'
+      }
+    }
+  })
+  const BazType = new GraphQLObjectType({
+    name: 'Baz',
+    fields: {
+      baz: {
+        type: GraphQLString,
+        resolve: () => 'baz'
+      }
+    }
+  })
+  const BarBazType = new GraphQLUnionType({
+    name: 'BarBaz',
+    types: [BarType, BazType],
+    // This is the resolver that returns the type instead of type name
+    resolveType(obj) {
+      if ('bar' in obj) {
+        return BarType
+      }
+      if ('baz' in obj) {
+        return BazType
+      }
+    }
+  })
+  const QueryType = new GraphQLObjectType({
+    name: 'Query',
+    fields: {
+      barBaz: {
+        type: BarBazType,
+        resolve: () => ({ bar: 'bar' })
+      }
+    }
+  })
+  const schema = new GraphQLSchema({
+    query: QueryType
+  })
+
+  const result = await execute({
+    schema,
+    document: parse(/* GraphQL */ `
+      query {
+        barBaz {
+          ... on Bar {
+            bar
+          }
+          ... on Baz {
+            baz
+          }
+        }
+      }
+    `)
+  })
+
+  expect(result).toEqual({
+    data: {
+      barBaz: {
+        bar: 'bar'
+      }
+    }
+  })
+  ```
+
 ## 1.2.6
 
 ### Patch Changes
 
-- [#6038](https://github.com/ardatan/graphql-tools/pull/6038) [`02dd9ac`](https://github.com/ardatan/graphql-tools/commit/02dd9ac2ee92f6e390098a91753c1bcf5ef71cbc) Thanks [@ardatan](https://github.com/ardatan)! - Some libraries like `undici` throw objects that are not `Error` instances when the response is tried to parse as JSON but failed.
-  In that case, executor prints an error like below;
+- [#6038](https://github.com/ardatan/graphql-tools/pull/6038)
+  [`02dd9ac`](https://github.com/ardatan/graphql-tools/commit/02dd9ac2ee92f6e390098a91753c1bcf5ef71cbc)
+  Thanks [@ardatan](https://github.com/ardatan)! - Some libraries like `undici` throw objects that
+  are not `Error` instances when the response is tried to parse as JSON but failed. In that case,
+  executor prints an error like below;
 
   ```
   NonErrorThrown: Unexpected error value: {...}
@@ -17,43 +107,59 @@
   at async Promise.all (index 0)
   ```
 
-  But actually the shape of the object matches the `Error` interface.
-  In that case, the executor now coerces the object to an `Error` instance by taking `message`, `stack`, `name` and `cause` properties.
-  So the user will get the error correctly.
+  But actually the shape of the object matches the `Error` interface. In that case, the executor now
+  coerces the object to an `Error` instance by taking `message`, `stack`, `name` and `cause`
+  properties. So the user will get the error correctly.
 
 ## 1.2.5
 
 ### Patch Changes
 
-- [#6020](https://github.com/ardatan/graphql-tools/pull/6020) [`b07be2b`](https://github.com/ardatan/graphql-tools/commit/b07be2b2f588345f85167776e8d31e976b110e1f) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Correctly raise `AbortError` for defer payloads
+- [#6020](https://github.com/ardatan/graphql-tools/pull/6020)
+  [`b07be2b`](https://github.com/ardatan/graphql-tools/commit/b07be2b2f588345f85167776e8d31e976b110e1f)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - Correctly raise `AbortError` for defer payloads
 
 ## 1.2.4
 
 ### Patch Changes
 
-- [#6009](https://github.com/ardatan/graphql-tools/pull/6009) [`14a001e`](https://github.com/ardatan/graphql-tools/commit/14a001e7b82aa30371bb97c33cf0b5c145270ddf) Thanks [@n1ru4l](https://github.com/n1ru4l)! - correctly raise abort exception for Promise and sync execution
+- [#6009](https://github.com/ardatan/graphql-tools/pull/6009)
+  [`14a001e`](https://github.com/ardatan/graphql-tools/commit/14a001e7b82aa30371bb97c33cf0b5c145270ddf)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - correctly raise abort exception for Promise and
+  sync execution
 
 ## 1.2.3
 
 ### Patch Changes
 
-- [#6006](https://github.com/ardatan/graphql-tools/pull/6006) [`a5364eb`](https://github.com/ardatan/graphql-tools/commit/a5364eb0723376ad67492369415e17c7d4568d77) Thanks [@n1ru4l](https://github.com/n1ru4l)! - fix rejecting when canceling async iterable returned from normalized executor
+- [#6006](https://github.com/ardatan/graphql-tools/pull/6006)
+  [`a5364eb`](https://github.com/ardatan/graphql-tools/commit/a5364eb0723376ad67492369415e17c7d4568d77)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - fix rejecting when canceling async iterable
+  returned from normalized executor
 
 ## 1.2.2
 
 ### Patch Changes
 
-- [#5965](https://github.com/ardatan/graphql-tools/pull/5965) [`3e10da6`](https://github.com/ardatan/graphql-tools/commit/3e10da6b2bf97bdf40317a6d88a0cc6412fd0974) Thanks [@n1ru4l](https://github.com/n1ru4l)! - revert subscription event source error handling to graphql-js behaviour
+- [#5965](https://github.com/ardatan/graphql-tools/pull/5965)
+  [`3e10da6`](https://github.com/ardatan/graphql-tools/commit/3e10da6b2bf97bdf40317a6d88a0cc6412fd0974)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - revert subscription event source error handling to
+  graphql-js behaviour
 
-- Updated dependencies [[`baf3c28`](https://github.com/ardatan/graphql-tools/commit/baf3c28f43dcfafffd15386daeb153bc2895c1b3)]:
+- Updated dependencies
+  [[`baf3c28`](https://github.com/ardatan/graphql-tools/commit/baf3c28f43dcfafffd15386daeb153bc2895c1b3)]:
   - @graphql-tools/utils@10.1.1
 
 ## 1.2.1
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.8`, in `dependencies`)
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.8`, in `dependencies`)
 
 ## 1.2.0
 
