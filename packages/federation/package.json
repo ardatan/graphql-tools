@@ -46,6 +46,9 @@
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
+  "scripts": {
+    "codegen": "graphql-codegen --config ./codegen.ts"
+  },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
@@ -67,6 +70,9 @@
   "devDependencies": {
     "@apollo/gateway": "^2.5.4",
     "@apollo/subgraph": "^2.5.4",
+    "@graphql-codegen/cli": "^5.0.2",
+    "@graphql-codegen/typescript": "^4.0.7",
+    "@graphql-codegen/typescript-operations": "^4.2.1",
     "@types/lodash.pick": "4.4.9"
   },
   "publishConfig": {

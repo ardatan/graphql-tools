@@ -2,6 +2,7 @@ import { GraphQLSchema } from 'graphql';
 import type { FetchFn } from '@graphql-tools/executor-http';
 import { ExecutionResult } from '@graphql-tools/utils';
 import { fetch as defaultFetch } from '@whatwg-node/fetch';
+import { RouterConfigQuery } from './generated/apollo-uplink.js';
 import {
   getStitchedSchemaFromSupergraphSdl,
   GetStitchedSchemaFromSupergraphSdlOpts,
@@ -95,19 +96,6 @@ export type FetchError = {
   minDelaySeconds: number;
 };
 
-type RouterConfigResult = {
-  routerConfig:
-    | {
-        __typename: 'RouterConfigResult';
-        messages: { level: 'ERROR' | 'WARN' | 'INFO'; body: string }[];
-        supergraphSdl: string;
-        minDelaySeconds: number;
-        id: string;
-      }
-    | { __typename: 'Unchanged'; minDelaySeconds: number; id: string }
-    | { __typename: 'FetchError'; code: string; message: string; minDelaySeconds: never };
-};
-
 /**
  * The default managed federation up links. In case of failure, you should try to cycle through these up links.
  *
@@ -157,7 +145,7 @@ export async function fetchSupergraphSdlFromManagedFederation(
     },
     body: JSON.stringify({
       query: /* GraphQL */ `
-        query ($apiKey: String!, $graphRef: String!, $lastSeenId: ID) {
+        query RouterConfig($apiKey: String!, $graphRef: String!, $lastSeenId: ID) {
           routerConfig(ref: $graphRef, apiKey: $apiKey, ifAfterId: $lastSeenId) {
             __typename
             ... on FetchError {
@@ -193,7 +181,7 @@ export async function fetchSupergraphSdlFromManagedFederation(
     );
   }
 
-  let result: ExecutionResult<RouterConfigResult>;
+  let result: ExecutionResult<RouterConfigQuery>;
   try {
     result = JSON.parse(responseBody);
   } catch (err) {
