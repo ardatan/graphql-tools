@@ -27,6 +27,7 @@ import {
   SchemaMetaFieldDef,
   TypeMetaFieldDef,
   TypeNameMetaFieldDef,
+  versionInfo,
 } from 'graphql';
 import { ValueOrPromise } from 'value-or-promise';
 import {
@@ -1236,9 +1237,12 @@ function ensureValidRuntimeType(
   // releases before 16.0.0 supported returning `GraphQLObjectType` from `resolveType`
   // TODO: remove in 17.0.0 release
   if (isObjectType(runtimeTypeName)) {
-    throw createGraphQLError(
-      'Support for returning GraphQLObjectType from resolveType was removed in graphql-js@16.0.0 please return type name instead.',
-    );
+    if (versionInfo.major >= 16) {
+      throw createGraphQLError(
+        'Support for returning GraphQLObjectType from resolveType was removed in graphql-js@16.0.0 please return type name instead.',
+      );
+    }
+    runtimeTypeName = runtimeTypeName.name;
   }
 
   if (typeof runtimeTypeName !== 'string') {
