@@ -54,7 +54,7 @@
     "@theguild/prettier-config": "2.0.6",
     "@types/debug": "4.1.12",
     "@types/jest": "29.5.12",
-    "@types/node": "20.14.7",
+    "@types/node": "20.14.8",
     "@typescript-eslint/eslint-plugin": "7.13.1",
     "@typescript-eslint/parser": "7.13.1",
     "babel-jest": "29.7.0",
