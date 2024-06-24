@@ -219,9 +219,9 @@
     node-fetch "^2.6.1"
 
 "@astrojs/compiler@^2.3.4":
-  version "2.8.0"
-  resolved "https://registry.yarnpkg.com/@astrojs/compiler/-/compiler-2.8.0.tgz#acbe2abbf640c238cbfe6c9d886a4d0c6921f172"
-  integrity sha512-yrpD1WRGqsJwANaDIdtHo+YVjvIOFAjC83lu5qENIgrafwZcJgSXDuwVMXOgok4tFzpeKLsFQ6c3FoUdloLWBQ==
+  version "2.8.1"
+  resolved "https://registry.yarnpkg.com/@astrojs/compiler/-/compiler-2.8.1.tgz#2b9c4e8286c037ced8ea63074e226f5855bed1c9"
+  integrity sha512-NGfPAgU/9rvDEwsXu82RI1AxiivaxtEYBK9saW1f+2fTHUUqCJQ27HYtb2akG2QxCmFikgZ9zk26BEWgiHho1Q==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.12.13", "@babel/code-frame@^7.24.7":
   version "7.24.7"
@@ -11741,10 +11741,10 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-svelte2tsx@0.7.10:
-  version "0.7.10"
-  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.7.10.tgz#61d99fc449178f0b8c0e7b7fdbc533eeb8880c5c"
-  integrity sha512-POOXaTncPGjwXMj6NVSRvdNj8KFqqLabFtXsQal3WyPy4X5raGsiDST2+ELhceKwfHk79/hR3qGUeU7KxYo4vQ==
+svelte2tsx@0.7.11:
+  version "0.7.11"
+  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.7.11.tgz#09c673a5f07760f035678550abf949e0310f1737"
+  integrity sha512-5EIbDaIvOchM2bGXbXqNJcbN6Z0JXGHnIJr8drgpbMefAgKf3nsHxtYIMu3BKKiSzMwSZreQexq0g66uYFH+JQ==
   dependencies:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
