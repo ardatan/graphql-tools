@@ -29,14 +29,15 @@ type Admin
   @join__type(graph: B)
 {
   id: ID
-  photo: String
+  name: String
+  similarAccounts: [Account!]!
 }
 
 scalar join__FieldSet
 
 enum join__Graph {
-  A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/entity-and-no-entity/a")
-  B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/entity-and-no-entity/b")
+  A @join__graph(name: "a", url: "https://federation-compatibility.the-guild.dev/child-type-mismatch/a")
+  B @join__graph(name: "b", url: "https://federation-compatibility.the-guild.dev/child-type-mismatch/b")
 }
 
 scalar link__Import
@@ -67,4 +68,5 @@ type User
 {
   id: ID @join__field(graph: A, type: "ID") @join__field(graph: B, type: "ID!")
   name: String @join__field(graph: B)
+  similarAccounts: [Account!]! @join__field(graph: B)
 }
