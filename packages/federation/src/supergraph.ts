@@ -649,15 +649,26 @@ export function getStitchingOptionsFromSupergraphSdl(
           mergedTypeConfig.canonical = true;
         }
 
-        mergedTypeConfig.entryPoints = keys.map(key => ({
-          selectionSet: `{ ${key} }`,
-          argsFromKeys: getArgsFromKeysForFederation,
-          key: getKeyFnForFederation(typeName, [key, ...extraKeys]),
-          fieldName: `_entities`,
-          dataLoaderOptions: {
-            cacheKeyFn: getCacheKeyFnFromKey(key),
-          },
-        }));
+        function getMergedTypeConfigFromKey(key: string) {
+          return {
+            selectionSet: `{ ${key} }`,
+            argsFromKeys: getArgsFromKeysForFederation,
+            key: getKeyFnForFederation(typeName, [key, ...extraKeys]),
+            fieldName: `_entities`,
+            dataLoaderOptions: {
+              cacheKeyFn: getCacheKeyFnFromKey(key),
+            },
+          };
+        }
+
+        if (keys.length === 1) {
+          const key = keys[0];
+          Object.assign(mergedTypeConfig, getMergedTypeConfigFromKey(key));
+        }
+        if (keys.length > 1) {
+          const entryPoints = keys.map(key => getMergedTypeConfigFromKey(key));
+          mergedTypeConfig.entryPoints = entryPoints;
+        }
 
         unionTypeNodes.push({
           kind: Kind.NAMED_TYPE,

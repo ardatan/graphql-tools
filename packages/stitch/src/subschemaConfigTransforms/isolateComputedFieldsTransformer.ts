@@ -365,11 +365,16 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
     }
   }
 
+  const mutationTypeName = subschemaConfig.schema.getMutationType()?.name;
+
   const typesForInterface: Record<string, string[]> = {};
   const filteredSchema = pruneSchema(
     filterSchema({
       schema: subschemaConfig.schema,
-      rootFieldFilter: (_, fieldName, config) => {
+      rootFieldFilter: (typeName, fieldName, config) => {
+        if (mutationTypeName === typeName) {
+          return true;
+        }
         if (rootFields[fieldName]) {
           return true;
         }
