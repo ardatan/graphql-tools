@@ -1,4 +1,4 @@
-import { parse } from 'graphql';
+import { GraphQLError, parse } from 'graphql';
 import { ExecutionResult } from '@graphql-tools/utils';
 import { ReadableStream, Request, Response } from '@whatwg-node/fetch';
 import { assertAsyncIterable } from '../../../loaders/url/tests/test-utils.js';
@@ -207,5 +207,28 @@ describe('buildHTTPExecutor', () => {
     })) as ExecutionResult;
 
     expect(result.errors).toBeUndefined();
+  });
+  it('should return return GraphqlError instances', async () => {
+    const executor = buildHTTPExecutor({
+      useGETForQueries: true,
+      fetch() {
+        return new Response(
+          JSON.stringify({ errors: [{ message: 'test error', extension: { code: 'test code' } }] }),
+          {
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
+      },
+    });
+
+    const result = (await executor({
+      document: parse(/* GraphQL */ `
+        query {
+          hello
+        }
+      `),
+    })) as ExecutionResult;
+
+    expect(result.errors?.[0]).toBeInstanceOf(GraphQLError);
   });
 });
