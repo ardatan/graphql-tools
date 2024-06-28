@@ -50,32 +50,32 @@
     tslib "^2.3.0"
     zen-observable-ts "^1.2.5"
 
-"@apollo/composition@2.8.1":
-  version "2.8.1"
-  resolved "https://registry.yarnpkg.com/@apollo/composition/-/composition-2.8.1.tgz#c9da749c7e0da17c81ecb071b735bcfecf12c97a"
-  integrity sha512-hJXJKZNd1HYn0+xd1c2oOTjsJTBcXXMYYBbe2Y7WPkrv1rGRwyDCUC9kAa/slegZCwT5k0q9KaJhHDa1i/3voA==
+"@apollo/composition@2.8.2":
+  version "2.8.2"
+  resolved "https://registry.yarnpkg.com/@apollo/composition/-/composition-2.8.2.tgz#cd699ca5960bfe6d590a0bfc9dd94594f89fd116"
+  integrity sha512-Jfl4ulTp42hCfs1B59uZLF78LMLv0ZE3MjgUlm0ou14O0hhXuVfc5tIoTBr6vyoPy/O7UwA7/p2KXsJ+pqaY9Q==
   dependencies:
-    "@apollo/federation-internals" "2.8.1"
-    "@apollo/query-graphs" "2.8.1"
+    "@apollo/federation-internals" "2.8.2"
+    "@apollo/query-graphs" "2.8.2"
 
-"@apollo/federation-internals@2.8.1":
-  version "2.8.1"
-  resolved "https://registry.yarnpkg.com/@apollo/federation-internals/-/federation-internals-2.8.1.tgz#b9a562cf9cb5e1b073900f4c9946719bacee5990"
-  integrity sha512-UiWHNfZFESaYgR/STuyx9yzyFSmnpQkVWRBTMjsX6GN3fwbDZ0BHqn2ql2Lx+Jv6ezcdEYS6u6h3fcXNsVmMQw==
+"@apollo/federation-internals@2.8.2":
+  version "2.8.2"
+  resolved "https://registry.yarnpkg.com/@apollo/federation-internals/-/federation-internals-2.8.2.tgz#263f6b6a79a2c422dbf5fbd58ed2e461f015bbe5"
+  integrity sha512-EtHUF5Tcf2SHxRcWtchjT6Rqgp2jNYronoV/ynDvULIRl+U8Nvh1a3IgqTskWanyP/KGnYyRamk5x2DBQfxztg==
   dependencies:
     "@types/uuid" "^9.0.0"
     chalk "^4.1.0"
     js-levenshtein "^1.1.6"
     uuid "^9.0.0"
 
-"@apollo/gateway@2.8.1", "@apollo/gateway@^2.5.4":
-  version "2.8.1"
-  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-2.8.1.tgz#e2d06cdc87f203097ce9b388ed37a88ae89cfbd8"
-  integrity sha512-6PQIyfLfxWwdmAjjz5lj0sNzKKmH0TF1T36lK7sQkEYuZnMhrUI8Y1lFq4mlyTZJqS4LLfHLhDljYKxPb3F/LA==
+"@apollo/gateway@2.8.2", "@apollo/gateway@^2.5.4":
+  version "2.8.2"
+  resolved "https://registry.yarnpkg.com/@apollo/gateway/-/gateway-2.8.2.tgz#fd1ff8b0fb47e4b7509176ce12af79dada04e054"
+  integrity sha512-0B5hpimiY9MYcSwm8RHEsyial0MUIdlXYQJpWQ0/xIfFb7zfMIrBNSrdf/CFxouehO+imR26TrOx0X7XyImKLQ==
   dependencies:
-    "@apollo/composition" "2.8.1"
-    "@apollo/federation-internals" "2.8.1"
-    "@apollo/query-planner" "2.8.1"
+    "@apollo/composition" "2.8.2"
+    "@apollo/federation-internals" "2.8.2"
+    "@apollo/query-planner" "2.8.2"
     "@apollo/server-gateway-interface" "^1.1.0"
     "@apollo/usage-reporting-protobuf" "^4.1.0"
     "@apollo/utils.createhash" "^2.0.0"
@@ -110,23 +110,23 @@
     "@types/long" "^4.0.0"
     long "^4.0.0"
 
-"@apollo/query-graphs@2.8.1":
-  version "2.8.1"
-  resolved "https://registry.yarnpkg.com/@apollo/query-graphs/-/query-graphs-2.8.1.tgz#61a274faa34d125d88e54005b85c0f564520a97a"
-  integrity sha512-vTYtp9W9SThBa+VHK12oOX7i1NoUNsyD8lxBuPSnd9iPz9bwgce8jozp/EbE8mBpBNHX6Hlunx9HRXdvGj89tg==
+"@apollo/query-graphs@2.8.2":
+  version "2.8.2"
+  resolved "https://registry.yarnpkg.com/@apollo/query-graphs/-/query-graphs-2.8.2.tgz#625a5648e16a5748b4857eeb3fd5edafca14383b"
+  integrity sha512-05cZqHVc28kaLLEcX4Lc70tFizmH0pJdB6ETjyYTrgUuKA6aChNGQuGQdpc0vAkwMpbMU7hjsiBeERMxs8iy4w==
   dependencies:
-    "@apollo/federation-internals" "2.8.1"
+    "@apollo/federation-internals" "2.8.2"
     deep-equal "^2.0.5"
     ts-graphviz "^1.5.4"
     uuid "^9.0.0"
 
-"@apollo/query-planner@2.8.1":
-  version "2.8.1"
-  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-2.8.1.tgz#3d2b34d17be9e3743a08a53144dbc3f43da37c76"
-  integrity sha512-mREvEKWuM7hNLYQA+usAyT+DrvM63/DyIMDunCe6xJcP/E4vFCwDv01vqvuzNsBN3n3E5gHGlqpjE+2WoT6Lbg==
+"@apollo/query-planner@2.8.2":
+  version "2.8.2"
+  resolved "https://registry.yarnpkg.com/@apollo/query-planner/-/query-planner-2.8.2.tgz#bb3f3418dd87306039b60ee6d0bd83c4773f3066"
+  integrity sha512-sRuY9g1rCM9J5cIauwebN0TTgB4PMUxc4qqd+isimKqDY6WjI8gVM2BIA35nr0L0zT+lwUehiY7MjDK7GRNm5g==
   dependencies:
-    "@apollo/federation-internals" "2.8.1"
-    "@apollo/query-graphs" "2.8.1"
+    "@apollo/federation-internals" "2.8.2"
+    "@apollo/query-graphs" "2.8.2"
     "@apollo/utils.keyvaluecache" "^2.1.0"
     chalk "^4.1.0"
     deep-equal "^2.0.5"
@@ -142,13 +142,13 @@
     "@apollo/utils.keyvaluecache" "^2.1.0"
     "@apollo/utils.logger" "^2.0.0"
 
-"@apollo/subgraph@2.8.1", "@apollo/subgraph@^2.5.4":
-  version "2.8.1"
-  resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-2.8.1.tgz#94c1ff51f9b602b097f5b09d383239ad0edfb2dd"
-  integrity sha512-zzYTjup7UEej4jLzPkARCm34yhZTP2PJBRYOkBtOsOdnYiZSjDkPcro2UnT68bLTCMg+Bvp6kPNPv5jZZACAaQ==
+"@apollo/subgraph@2.8.2", "@apollo/subgraph@^2.5.4":
+  version "2.8.2"
+  resolved "https://registry.yarnpkg.com/@apollo/subgraph/-/subgraph-2.8.2.tgz#f3777b039258403e8baa89edff20e3a054a3b1de"
+  integrity sha512-DYzuyF+1/PSSLN/z3JReABAD7QCfUHIsCDtWk134Pz7vo2oaJCLfL67kdbGew4TZyTnBn08oh0Z4F3X/5ZSQKw==
   dependencies:
     "@apollo/cache-control-types" "^1.0.2"
-    "@apollo/federation-internals" "2.8.1"
+    "@apollo/federation-internals" "2.8.2"
 
 "@apollo/usage-reporting-protobuf@^4.0.0", "@apollo/usage-reporting-protobuf@^4.1.0":
   version "4.1.0"
@@ -1667,14 +1667,14 @@
   resolved "https://registry.yarnpkg.com/@eslint-community/regexpp/-/regexpp-4.10.0.tgz#548f6de556857c8bb73bbee70c35dc82a2e74d63"
   integrity sha512-Cu96Sd2By9mCNTx2iyKOmq10v22jUVQv0lQnlGNy16oE9589yE+QADPbrMGCkA51cKZSg3Pu/aTJVTGfL/qjUA==
 
-"@eslint/config-array@^0.16.0":
-  version "0.16.0"
-  resolved "https://registry.yarnpkg.com/@eslint/config-array/-/config-array-0.16.0.tgz#bb3364fc39ee84ec3a62abdc4b8d988d99dfd706"
-  integrity sha512-/jmuSd74i4Czf1XXn7wGRWZCuyaUZ330NH1Bek0Pplatt4Sy1S5haN21SCLLdbeKslQ+S0wEJ+++v5YibSi+Lg==
+"@eslint/config-array@^0.17.0":
+  version "0.17.0"
+  resolved "https://registry.yarnpkg.com/@eslint/config-array/-/config-array-0.17.0.tgz#ff305e1ee618a00e6e5d0485454c8d92d94a860d"
+  integrity sha512-A68TBu6/1mHHuc5YJL0U0VVeGNiklLAL6rRmhTCP2B5XjWLMnrX+HkO+IAXyHvks5cyyY1jjK5ITPQ1HGS2EVA==
   dependencies:
     "@eslint/object-schema" "^2.1.4"
     debug "^4.3.1"
-    minimatch "^3.0.5"
+    minimatch "^3.1.2"
 
 "@eslint/eslintrc@^3.1.0":
   version "3.1.0"
@@ -1691,10 +1691,10 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
-"@eslint/js@9.5.0":
-  version "9.5.0"
-  resolved "https://registry.yarnpkg.com/@eslint/js/-/js-9.5.0.tgz#0e9c24a670b8a5c86bff97b40be13d8d8f238045"
-  integrity sha512-A7+AOT2ICkodvtsWnxZP4Xxk3NbZ3VMHd8oihydLRGrJgqqdEz1qSeEgXYyT/Cu8h1TWWsQRejIx48mtjZ5y1w==
+"@eslint/js@9.6.0":
+  version "9.6.0"
+  resolved "https://registry.yarnpkg.com/@eslint/js/-/js-9.6.0.tgz#5b0cb058cc13d9c92d4e561d3538807fa5127c95"
+  integrity sha512-D9B0/3vNg44ZeWbYMpBoXqNP4j6eQD5vNwIlGAuFRRzK/WtT/jvDQW3Bi9kkf3PMDMlM7Yi+73VLUsn5bJcl8A==
 
 "@eslint/object-schema@^2.1.4":
   version "2.1.4"
@@ -3352,10 +3352,10 @@ acorn-walk@^8.0.0, acorn-walk@^8.1.1:
   resolved "https://registry.yarnpkg.com/acorn-walk/-/acorn-walk-8.2.0.tgz#741210f2e2426454508853a2f44d0ab83b7f69c1"
   integrity sha512-k+iyHEuPgSw6SbuDpGQM+06HQUa04DZ3o+F6CSzXMvvI5KMvnaEqXe+YVe555R9nn6GPt404fos4wcgpw12SDA==
 
-acorn@^8.0.0, acorn@^8.0.4, acorn@^8.11.3, acorn@^8.4.1, acorn@^8.7.1, acorn@^8.8.2, acorn@^8.9.0:
-  version "8.11.3"
-  resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.11.3.tgz#71e0b14e13a4ec160724b38fb7b0f233b1b81d7a"
-  integrity sha512-Y9rRfJG5jcKOE0CLisYbojUjIrIEE7AGMzA/Sm4BslANhbS+cDMpgBdcPT91oJ7OuJ9hYJBx59RjbhxVnrF8Xg==
+acorn@^8.0.0, acorn@^8.0.4, acorn@^8.12.0, acorn@^8.4.1, acorn@^8.7.1, acorn@^8.8.2, acorn@^8.9.0:
+  version "8.12.0"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.12.0.tgz#1627bfa2e058148036133b8d9b51a700663c294c"
+  integrity sha512-RTvkC4w+KNXrM39/lWCUaG0IbRkWdCv7W/IOW9oU6SawyxulvkQy5HQPVTKxEjczcUvapcrw3cFx/60VN/NRNw==
 
 agent-base@6, agent-base@^6.0.2:
   version "6.0.2"
@@ -5542,16 +5542,16 @@ eslint-visitor-keys@^4.0.0:
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-4.0.0.tgz#e3adc021aa038a2a8e0b2f8b0ce8f66b9483b1fb"
   integrity sha512-OtIRv/2GyiF6o/d8K7MYKKbXrOUBIK6SfkIRM4Z0dY3w+LiQ0vy3F57m0Z71bjbyeiWFiHJ8brqnmE6H6/jEuw==
 
-eslint@9.5.0:
-  version "9.5.0"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-9.5.0.tgz#11856034b94a9e1a02cfcc7e96a9f0956963cd2f"
-  integrity sha512-+NAOZFrW/jFTS3dASCGBxX1pkFD0/fsO+hfAkJ4TyYKwgsXZbqzrw+seCYFCcPCYXvnD67tAnglU7GQTz6kcVw==
+eslint@9.6.0:
+  version "9.6.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-9.6.0.tgz#9f54373afa15e1ba356656a8d96233182027fb49"
+  integrity sha512-ElQkdLMEEqQNM9Njff+2Y4q2afHk7JpkPvrd7Xh7xefwgQynqPxwf55J7di9+MEibWUGdNjFF9ITG9Pck5M84w==
   dependencies:
     "@eslint-community/eslint-utils" "^4.2.0"
     "@eslint-community/regexpp" "^4.6.1"
-    "@eslint/config-array" "^0.16.0"
+    "@eslint/config-array" "^0.17.0"
     "@eslint/eslintrc" "^3.1.0"
-    "@eslint/js" "9.5.0"
+    "@eslint/js" "9.6.0"
     "@humanwhocodes/module-importer" "^1.0.1"
     "@humanwhocodes/retry" "^0.3.0"
     "@nodelib/fs.walk" "^1.2.8"
@@ -5562,7 +5562,7 @@ eslint@9.5.0:
     escape-string-regexp "^4.0.0"
     eslint-scope "^8.0.1"
     eslint-visitor-keys "^4.0.0"
-    espree "^10.0.1"
+    espree "^10.1.0"
     esquery "^1.5.0"
     esutils "^2.0.2"
     fast-deep-equal "^3.1.3"
@@ -5587,12 +5587,12 @@ esm@^3.2.25:
   resolved "https://registry.yarnpkg.com/esm/-/esm-3.2.25.tgz#342c18c29d56157688ba5ce31f8431fbb795cc10"
   integrity sha512-U1suiZ2oDVWv4zPO56S0NcR5QriEahGtdN2OR6FiOG4WJvcjBVFB0qI4+eKoWFH483PKGuLuu6V8Z4T5g63UVA==
 
-espree@^10.0.1:
-  version "10.0.1"
-  resolved "https://registry.yarnpkg.com/espree/-/espree-10.0.1.tgz#600e60404157412751ba4a6f3a2ee1a42433139f"
-  integrity sha512-MWkrWZbJsL2UwnjxTX3gG8FneachS/Mwg7tdGXce011sJd5b0JG54vat5KHnfSBODZ3Wvzd2WnjxyzsRoVv+ww==
+espree@^10.0.1, espree@^10.1.0:
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/espree/-/espree-10.1.0.tgz#8788dae611574c0f070691f522e4116c5a11fc56"
+  integrity sha512-M1M6CpiE6ffoigIOWYO9UDP8TMUw9kqb21tf+08IgDYjCsOvCuDt4jQcZmoYxx+w7zlKw9/N0KXfto+I8/FrXA==
   dependencies:
-    acorn "^8.11.3"
+    acorn "^8.12.0"
     acorn-jsx "^5.3.2"
     eslint-visitor-keys "^4.0.0"
 
@@ -6806,9 +6806,9 @@ https-proxy-agent@^5.0.0:
     debug "4"
 
 https-proxy-agent@^7.0.0, https-proxy-agent@^7.0.2, https-proxy-agent@^7.0.3:
-  version "7.0.4"
-  resolved "https://registry.yarnpkg.com/https-proxy-agent/-/https-proxy-agent-7.0.4.tgz#8e97b841a029ad8ddc8731f26595bad868cb4168"
-  integrity sha512-wlwpilI7YdjSkWaQ/7omYBMTliDcmCN8OLihO6I9B86g06lMyAoqgoDpV0XqoaPOKj+0DIdAvnsWfyAAhmimcg==
+  version "7.0.5"
+  resolved "https://registry.yarnpkg.com/https-proxy-agent/-/https-proxy-agent-7.0.5.tgz#9e8b5013873299e11fab6fd548405da2d6c602b2"
+  integrity sha512-1e4Wqeblerz+tMKPIq2EMGiiWW1dIjZOksyHWSUm1rmuvw/how9hBHZ38lAGj5ID4Ik6EdkOw7NmWPy6LAwalw==
   dependencies:
     agent-base "^7.0.2"
     debug "4"
@@ -9132,7 +9132,7 @@ mimic-fn@^4.0.0:
   resolved "https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-4.0.0.tgz#60a90550d5cb0b239cca65d893b1a53b29871ecc"
   integrity sha512-vqiC06CuhBTUdZH+RYl8sFrL096vA45Ok5ISO6sE/Mr1jRbGH4Csnhi8f3wKVl7x8mO4Au7Ir9D3Oyv1VYMFJw==
 
-minimatch@^3.0.4, minimatch@^3.0.5, minimatch@^3.1.2:
+minimatch@^3.0.4, minimatch@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.1.2.tgz#19cd194bfd3e428f049a70817c038d89ab4be35b"
   integrity sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==
