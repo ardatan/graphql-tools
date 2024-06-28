@@ -259,6 +259,27 @@ export function buildHTTPExecutor(
                   ],
                 };
               }
+              console.log(parsedResult);
+              if (Array.isArray(parsedResult.errors)) {
+                return {
+                  ...parsedResult,
+                  errors: parsedResult.errors.map(
+                    ({ message, ...options }: { message: string; extensions: Record<string, unknown> }) =>
+                      createGraphQLError(message, {
+                        ...options,
+                        extensions: {
+                          code: 'DOWNSTREAM_SERVICE_ERROR',
+                          ...options.extensions || {},
+                        },
+                      }),
+                  ),
+                }
+                parsedResult.errors = parsedResult.errors.map(
+                  ({ message, ...options }: { message: string }) =>
+                    createGraphQLError(message, options),
+                );
+                console.log(parsedResult.errors);
+              }
               return parsedResult;
             } catch (e: any) {
               return {
