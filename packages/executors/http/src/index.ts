@@ -259,7 +259,6 @@ export function buildHTTPExecutor(
                   ],
                 };
               }
-              console.log(parsedResult);
               if (Array.isArray(parsedResult.errors)) {
                 return {
                   ...parsedResult,
@@ -274,11 +273,6 @@ export function buildHTTPExecutor(
                       }),
                   ),
                 }
-                parsedResult.errors = parsedResult.errors.map(
-                  ({ message, ...options }: { message: string }) =>
-                    createGraphQLError(message, options),
-                );
-                console.log(parsedResult.errors);
               }
               return parsedResult;
             } catch (e: any) {
