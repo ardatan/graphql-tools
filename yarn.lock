@@ -2815,10 +2815,10 @@
   resolved "https://registry.yarnpkg.com/@types/mdx/-/mdx-2.0.1.tgz#e4c05d355d092d7b58db1abfe460e53f41102ac8"
   integrity sha512-JPEv4iAl0I+o7g8yVWDwk30es8mfVrjkvh5UeVR2sYPpZCK44vrAPsbJpIS+rJAUxLgaSAMKTEH5Vn5qd9XsrQ==
 
-"@types/micromatch@4.0.8":
-  version "4.0.8"
-  resolved "https://registry.yarnpkg.com/@types/micromatch/-/micromatch-4.0.8.tgz#71b478eebe63a4ef41e0d081d6f1a744a233ec10"
-  integrity sha512-hAe0Hc9yJWESaUVl5NM09E9IdAk/0k5njp0gV3yEI5SkmjWuFYh9IexqX3/eTC0y+J+RMx2WIBqkfuzvTRnVmg==
+"@types/micromatch@4.0.9":
+  version "4.0.9"
+  resolved "https://registry.yarnpkg.com/@types/micromatch/-/micromatch-4.0.9.tgz#8e5763a8c1fc7fbf26144d9215a01ab0ff702dbb"
+  integrity sha512-7V+8ncr22h4UoYRLnLXSpTxjQrNUXtWHGeMPRJt1nULXI57G9bIcpyrHlmrQ7QK24EyyuXvYcSSWAM8GA9nqCg==
   dependencies:
     "@types/braces" "*"
 

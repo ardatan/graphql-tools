@@ -58,7 +58,7 @@
   },
   "devDependencies": {
     "@types/lodash": "4.17.6",
-    "@types/micromatch": "4.0.8"
+    "@types/micromatch": "4.0.9"
   },
   "publishConfig": {
     "directory": "dist",
