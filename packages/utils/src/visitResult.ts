@@ -379,13 +379,26 @@ function visitFieldValue(
     );
   } else if (isAbstractType(nullableType)) {
     const finalType = schema.getType(value.__typename) as GraphQLObjectType;
-    const { fields: collectedFields } = collectSubFields(
+    let { fields: collectedFields, patches } = collectSubFields(
       schema,
       fragments,
       variableValues,
       finalType,
       fieldNodes,
     );
+    if (patches.length) {
+      collectedFields = new Map(collectedFields);
+      for (const patch of patches) {
+        for (const [responseKey, fields] of patch.fields) {
+          const existingFields = collectedFields.get(responseKey);
+          if (existingFields) {
+            existingFields.push(...fields);
+          } else {
+            collectedFields.set(responseKey, fields);
+          }
+        }
+      }
+    }
     return visitObjectValue(
       value,
       finalType,
@@ -399,13 +412,26 @@ function visitFieldValue(
       errorInfo,
     );
   } else if (isObjectType(nullableType)) {
-    const { fields: collectedFields } = collectSubFields(
+    let { fields: collectedFields, patches } = collectSubFields(
       schema,
       fragments,
       variableValues,
       nullableType,
       fieldNodes,
     );
+    if (patches.length) {
+      collectedFields = new Map(collectedFields);
+      for (const patch of patches) {
+        for (const [responseKey, fields] of patch.fields) {
+          const existingFields = collectedFields.get(responseKey);
+          if (existingFields) {
+            existingFields.push(...fields);
+          } else {
+            collectedFields.set(responseKey, fields);
+          }
+        }
+      }
+    }
     return visitObjectValue(
       value,
       nullableType,

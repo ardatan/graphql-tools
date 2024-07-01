@@ -222,6 +222,8 @@ function visitSelectionSet(
           if (possibleTypes.length === 0) {
             newSelections.add(selection);
           }
+        } else {
+          newSelections.add(selection);
         }
       } else if (selection.kind === Kind.FRAGMENT_SPREAD) {
         const fragmentName = selection.name.value;

@@ -1,11 +1,52 @@
 import { inspect } from 'util';
-import { GraphQLSchema, parse } from 'graphql';
+import { GraphQLSchema, parse, print } from 'graphql';
+import _ from 'lodash';
 import { IntrospectAndCompose, LocalGraphQLDataSource } from '@apollo/gateway';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
+import { ExecutionResult, mergeDeep } from '@graphql-tools/utils';
 import { assertAsyncIterable } from '../../loaders/url/tests/test-utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
+
+function mergeDeferredResults(values: ExecutionResult[]) {
+  const result: ExecutionResult = {};
+  for (const value of values) {
+    if (value.data) {
+      if (!result.data) {
+        result.data = value.data;
+      } else {
+        result.data = mergeDeep([result.data, value.data]);
+      }
+    }
+    if (value.errors) {
+      result.errors = result.errors || [];
+      result.errors = [...result.errors, ...value.errors];
+    }
+    if (value.incremental) {
+      for (const incremental of value.incremental) {
+        if (incremental.path) {
+          result.data = result.data || {};
+          if (!incremental.path.length) {
+            result.data = mergeDeep([result.data, incremental.data]);
+          } else {
+            const existingData = _.get(result.data, incremental.path);
+            if (!existingData) {
+              _.set(result.data, incremental.path, incremental.data);
+            } else {
+              _.set(result.data, incremental.path, mergeDeep([existingData, incremental.data]));
+            }
+          }
+        }
+        if (incremental.errors) {
+          result.errors = result.errors || [];
+          result.errors = [...result.errors, ...incremental.errors];
+        }
+      }
+    }
+  }
+  return result;
+}
 
 describe('Defer', () => {
   const users = [
@@ -51,7 +92,7 @@ describe('Defer', () => {
 
       type Post @key(fields: "id") {
         id: ID!
-        title: String!
+        title: String
         author: User!
       }
 
@@ -80,6 +121,7 @@ describe('Defer', () => {
     },
   });
   let schema: GraphQLSchema;
+  let finalResult: ExecutionResult;
   beforeAll(async () => {
     const { supergraphSdl } = await new IntrospectAndCompose({
       subgraphs: [
@@ -100,14 +142,67 @@ describe('Defer', () => {
       onSubschemaConfig(subschemaConfig) {
         const subgraphName = subschemaConfig.name.toLowerCase();
         if (subgraphName === 'users') {
-          subschemaConfig.executor = createDefaultExecutor(usersSubgraph);
+          const origExecutor = createDefaultExecutor(usersSubgraph);
+          subschemaConfig.executor = async function usersExecutor(execReq) {
+            const result = await origExecutor(execReq);
+            if (process.env['DEBUG']) {
+              console.log({
+                subgraphName,
+                document: print(execReq.document),
+                result: inspect(result, false, Infinity),
+              });
+            }
+            return result;
+          };
         } else if (subgraphName === 'posts') {
-          subschemaConfig.executor = createDefaultExecutor(postsSubgraph);
+          const origExecutor = createDefaultExecutor(postsSubgraph);
+          subschemaConfig.executor = async function postsExecutor(execReq) {
+            const result = await origExecutor(execReq);
+            if (process.env['DEBUG']) {
+              console.log({
+                subgraphName,
+                document: print(execReq.document),
+                result: inspect(result, false, Infinity),
+              });
+            }
+            return result;
+          };
         } else {
           throw new Error(`Unknown subgraph: ${subgraphName}`);
         }
       },
     });
+    finalResult = (await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          users {
+            id
+            name
+            posts {
+              id
+              title
+              author {
+                id
+                name
+              }
+            }
+          }
+          posts {
+            id
+            title
+            author {
+              id
+              name
+              posts {
+                id
+                title
+              }
+            }
+          }
+        }
+      `),
+    })) as ExecutionResult;
   });
   it('defers the root fields', async () => {
     const result = await normalizedExecutor({
@@ -156,94 +251,9 @@ describe('Defer', () => {
       }
       values.push(value);
     }
-    expect(values).toMatchInlineSnapshot(`
-[
-  {
-    "data": {},
-    "hasNext": true,
-  },
-  {
-    "hasNext": true,
-    "incremental": [
-      {
-        "data": {
-          "posts": [
-            {
-              "author": {
-                "id": "1",
-                "name": "Ada Lovelace",
-                "posts": [
-                  {
-                    "id": "1",
-                    "title": "Hello, World!",
-                  },
-                ],
-              },
-              "id": "1",
-              "title": "Hello, World!",
-            },
-            {
-              "author": {
-                "id": "2",
-                "name": "Alan Turing",
-                "posts": [
-                  {
-                    "id": "2",
-                    "title": "My Story",
-                  },
-                ],
-              },
-              "id": "2",
-              "title": "My Story",
-            },
-          ],
-        },
-        "path": [],
-      },
-    ],
-  },
-  {
-    "hasNext": false,
-    "incremental": [
-      {
-        "data": {
-          "users": [
-            {
-              "id": "1",
-              "name": "Ada Lovelace",
-              "posts": [
-                {
-                  "author": {
-                    "id": "1",
-                    "name": "Ada Lovelace",
-                  },
-                  "id": "1",
-                  "title": "Hello, World!",
-                },
-              ],
-            },
-            {
-              "id": "2",
-              "name": "Alan Turing",
-              "posts": [
-                {
-                  "author": {
-                    "id": "2",
-                    "name": "Alan Turing",
-                  },
-                  "id": "2",
-                  "title": "My Story",
-                },
-              ],
-            },
-          ],
-        },
-        "path": [],
-      },
-    ],
-  },
-]
-`);
+    expect(values).toMatchSnapshot('defer-root-fields');
+    const mergedResult = mergeDeferredResults(values);
+    expect(mergedResult).toEqual(finalResult);
   });
   it('defers the nested fields', async () => {
     const result = await normalizedExecutor({
@@ -298,112 +308,8 @@ describe('Defer', () => {
       }
       values.push(value);
     }
-    expect(values).toMatchInlineSnapshot(`
-[
-  {
-    "data": {
-      "users": [
-        {
-          "id": "1",
-          "name": "Ada Lovelace",
-        },
-        {
-          "id": "2",
-          "name": "Alan Turing",
-        },
-      ],
-    },
-    "hasNext": true,
-  },
-  {
-    "hasNext": true,
-    "incremental": [
-      {
-        "data": {
-          "posts": null,
-        },
-        "path": [
-          "users",
-          0,
-        ],
-      },
-      {
-        "data": {
-          "posts": null,
-        },
-        "path": [
-          "users",
-          1,
-        ],
-      },
-    ],
-  },
-  {
-    "hasNext": true,
-    "incremental": [
-      {
-        "data": {
-          "posts": [
-            {
-              "author": {
-                "id": "1",
-                "posts": [
-                  {
-                    "id": "1",
-                    "title": "Hello, World!",
-                  },
-                ],
-              },
-              "id": "1",
-              "title": "Hello, World!",
-            },
-            {
-              "author": {
-                "id": "2",
-                "posts": [
-                  {
-                    "id": "2",
-                    "title": "My Story",
-                  },
-                ],
-              },
-              "id": "2",
-              "title": "My Story",
-            },
-          ],
-        },
-        "path": [],
-      },
-    ],
-  },
-  {
-    "hasNext": false,
-    "incremental": [
-      {
-        "data": null,
-        "errors": [
-          [GraphQLError: Cannot return null for non-nullable field User.name.],
-        ],
-        "path": [
-          "posts",
-          0,
-          "author",
-        ],
-      },
-      {
-        "data": null,
-        "errors": [
-          [GraphQLError: Cannot return null for non-nullable field User.name.],
-        ],
-        "path": [
-          "posts",
-          1,
-          "author",
-        ],
-      },
-    ],
-  },
-]
-`);
+    expect(values).toMatchSnapshot('defer-nested-fields');
+    const mergedResult = mergeDeferredResults(values);
+    expect(mergedResult).toEqual(finalResult);
   });
 });

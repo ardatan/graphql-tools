@@ -872,6 +872,12 @@ export function getStitchingOptionsFromSupergraphSdl(
               document: visit(
                 request.document,
                 visitWithTypeInfo(typeInfo, {
+                  [Kind.DIRECTIVE](node) {
+                    if (node.name.value === 'defer') {
+                      // @defer is not available for the communication between the gw and subgraph
+                      return null;
+                    }
+                  },
                   // To avoid resolving unresolvable interface fields
                   [Kind.FIELD](node) {
                     if (node.name.value !== '__typename') {

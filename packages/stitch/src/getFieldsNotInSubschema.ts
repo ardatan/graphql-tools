@@ -20,13 +20,34 @@ export function getFieldsNotInSubschema(
   fragments: Record<string, FragmentDefinitionNode>,
   variableValues: Record<string, any>,
 ): Array<FieldNode> {
-  const { fields: subFieldNodesByResponseKey } = collectSubFields(
+  let { fields: subFieldNodesByResponseKey, patches } = collectSubFields(
     schema,
     fragments,
     variableValues,
     gatewayType,
     fieldNodes,
   );
+
+  let mapChanged = false;
+
+  // Collect deferred fields
+  if (patches.length) {
+    subFieldNodesByResponseKey = new Map(subFieldNodesByResponseKey);
+    for (const patch of patches) {
+      for (const [responseKey, fields] of patch.fields) {
+        if (!mapChanged) {
+          subFieldNodesByResponseKey = new Map(subFieldNodesByResponseKey);
+          mapChanged = true;
+        }
+        const existingSubFieldNodes = subFieldNodesByResponseKey.get(responseKey);
+        if (existingSubFieldNodes) {
+          existingSubFieldNodes.push(...fields);
+        } else {
+          subFieldNodesByResponseKey.set(responseKey, fields);
+        }
+      }
+    }
+  }
 
   const fieldsNotInSchema = new Set<FieldNode>();
   if (isAbstractType(gatewayType)) {
@@ -38,7 +59,7 @@ export function getFieldsNotInSubschema(
       },
     });
     for (const possibleType of schema.getPossibleTypes(gatewayType)) {
-      const { fields: subFieldNodesOfPossibleType } = collectSubFields(
+      const { fields: subFieldNodesOfPossibleType, patches } = collectSubFields(
         schema,
         fragments,
         variableValues,
@@ -46,7 +67,26 @@ export function getFieldsNotInSubschema(
         fieldNodes,
       );
 
+      for (const patch of patches) {
+        for (const [responseKey, fields] of patch.fields) {
+          if (!mapChanged) {
+            subFieldNodesByResponseKey = new Map(subFieldNodesByResponseKey);
+            mapChanged = true;
+          }
+          const existingSubFieldNodes = subFieldNodesByResponseKey.get(responseKey);
+          if (existingSubFieldNodes) {
+            existingSubFieldNodes.push(...fields);
+          } else {
+            subFieldNodesByResponseKey.set(responseKey, fields);
+          }
+        }
+      }
+
       for (const [responseKey, subFieldNodes] of subFieldNodesOfPossibleType) {
+        if (!mapChanged) {
+          subFieldNodesByResponseKey = new Map(subFieldNodesByResponseKey);
+          mapChanged = true;
+        }
         const existingSubFieldNodes = subFieldNodesByResponseKey.get(responseKey);
         if (existingSubFieldNodes) {
           existingSubFieldNodes.push(...subFieldNodes);
