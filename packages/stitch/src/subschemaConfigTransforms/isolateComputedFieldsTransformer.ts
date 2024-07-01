@@ -15,6 +15,7 @@ import {
   collectFields,
   filterSchema,
   getImplementingTypes,
+  getRootTypeNames,
   parseSelectionSet,
   pruneSchema,
 } from '@graphql-tools/utils';
@@ -273,7 +274,7 @@ type IsolatedSubschemaInput = Exclude<SubschemaConfig, 'merge'> & {
 };
 
 function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): SubschemaConfig {
-  const rootFields: Record<string, boolean> = {};
+  const queryRootFields: Record<string, boolean> = {};
   const computedFieldTypes: Record<string, boolean> = {}; // contains types of computed fields that have no root field
   function listReachableTypesToIsolate(
     subschemaConfig: SubschemaConfig,
@@ -327,14 +328,14 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
     }
   }
 
+  const queryType = subschemaConfig.schema.getQueryType();
   for (const typeName in subschemaConfig.merge) {
     const mergedTypeConfig = subschemaConfig.merge[typeName];
     const entryPoints = mergedTypeConfig.entryPoints ?? [mergedTypeConfig];
-    const queryType = subschemaConfig.schema.getQueryType();
     const queryTypeFields = queryType?.getFields();
     for (const entryPoint of entryPoints) {
       if (entryPoint.fieldName != null) {
-        rootFields[entryPoint.fieldName] = true;
+        queryRootFields[entryPoint.fieldName] = true;
         const rootField = queryTypeFields?.[entryPoint.fieldName];
         if (rootField) {
           const rootFieldType = getNamedType(rootField.type);
@@ -352,7 +353,7 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
       ...Object.entries(mergedTypeConfig.fields || {})
         .map(([k, v]) => (v.computed ? k : null))
         .filter(fn => fn !== null),
-    ].filter(fn => !rootFields[fn!]);
+    ].filter(fn => !queryRootFields[fn!]);
 
     const type = subschemaConfig.schema.getType(typeName) as GraphQLObjectType;
 
@@ -365,13 +366,23 @@ function filterIsolatedSubschema(subschemaConfig: IsolatedSubschemaInput): Subsc
     }
   }
 
+  const rootTypeNames = getRootTypeNames(subschemaConfig.schema);
+
   const typesForInterface: Record<string, string[]> = {};
   const filteredSchema = pruneSchema(
     filterSchema({
       schema: subschemaConfig.schema,
-      rootFieldFilter: (_, fieldName, config) => {
-        if (rootFields[fieldName]) {
-          return true;
+      rootFieldFilter: (typeName, fieldName, config) => {
+        // if the field is a root field, it should be included
+        if (rootTypeNames.has(typeName)) {
+          // if this is a query field, we should check if it is a computed field
+          if (queryType?.name === typeName) {
+            if (queryRootFields[fieldName]) {
+              return true;
+            }
+          } else {
+            return true;
+          }
         }
         const returnType = getNamedType(config.type);
         if (isAbstractType(returnType)) {

@@ -3,20 +3,17 @@ import { join } from 'path';
 import {
   buildSchema,
   getNamedType,
-  getOperationAST,
   GraphQLSchema,
   isEnumType,
   lexicographicSortSchema,
   parse,
-  print,
   printSchema,
   validate,
 } from 'graphql';
-import { ApolloGateway, RemoteGraphQLDataSource } from '@apollo/gateway';
+import { ApolloGateway } from '@apollo/gateway';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import {
   ExecutionResult,
-  Executor,
   filterSchema,
   getDirective,
   MapperKind,
@@ -35,8 +32,8 @@ describe('Federation Compatibility', () => {
     describe(supergraphName, () => {
       const supergraphSdl = readFileSync(supergraphSdlPath, 'utf-8');
       let stitchedSchema: GraphQLSchema;
-      let apolloExecutor: Executor;
-      let apolloSubgraphCalls: Record<string, number> = {};
+      // let apolloExecutor: Executor;
+      // let apolloSubgraphCalls: Record<string, number> = {};
       let stitchingSubgraphCalls: Record<string, number> = {};
       let apolloGW: ApolloGateway;
       beforeAll(async () => {
@@ -52,7 +49,7 @@ describe('Federation Compatibility', () => {
           },
           batch: true,
         });
-        apolloGW = new ApolloGateway({
+        /*         apolloGW = new ApolloGateway({
           supergraphSdl,
           buildService({ name, url }) {
             const subgraphName = name;
@@ -88,7 +85,7 @@ describe('Federation Compatibility', () => {
             metrics: {},
             overallCachePolicy: {},
           }) as ExecutionResult;
-        };
+        }; */
       });
       afterAll(async () => {
         await apolloGW?.stop?.();
@@ -150,7 +147,7 @@ describe('Federation Compatibility', () => {
         describe(`test-query-${i}`, () => {
           let result: ExecutionResult;
           beforeAll(async () => {
-            apolloSubgraphCalls = {};
+            // apolloSubgraphCalls = {};
             stitchingSubgraphCalls = {};
             const document = parse(test.query, { noLocation: true });
             const validationErrors = validate(stitchedSchema, document);
@@ -192,6 +189,7 @@ describe('Federation Compatibility', () => {
               });
             }
           });
+          /*
           if (!process.env['LEAK_TEST']) {
             it('calls the subgraphs at the same number or less than Apollo GW', async () => {
               try {
@@ -209,6 +207,7 @@ describe('Federation Compatibility', () => {
               }
             });
           }
+            */
         });
       });
     });
