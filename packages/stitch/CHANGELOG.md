@@ -1,5 +1,24 @@
 # @graphql-tools/stitch
 
+## 9.2.10
+
+### Patch Changes
+
+- [#6278](https://github.com/ardatan/graphql-tools/pull/6278)
+  [`66c99d9`](https://github.com/ardatan/graphql-tools/commit/66c99d9c9e480cc4e1569b032952caea0ff69c0c)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle `@defer`
+
+- [#6293](https://github.com/ardatan/graphql-tools/pull/6293)
+  [`3f301dc`](https://github.com/ardatan/graphql-tools/commit/3f301dc74a99ea1db28fe75923fa26ba2736d9f7)
+  Thanks [@ardatan](https://github.com/ardatan)! - Do not apply isolation for Mutation fields
+
+- Updated dependencies
+  [[`66c99d9`](https://github.com/ardatan/graphql-tools/commit/66c99d9c9e480cc4e1569b032952caea0ff69c0c),
+  [`74f995f`](https://github.com/ardatan/graphql-tools/commit/74f995f17dfea6385e08bcdd662e7ad6fcfb5dfa)]:
+  - @graphql-tools/delegate@10.0.12
+  - @graphql-tools/utils@10.2.3
+  - @graphql-tools/executor@1.2.8
+
 ## 9.2.9
 
 ### Patch Changes

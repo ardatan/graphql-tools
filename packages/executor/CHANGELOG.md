@@ -1,5 +1,22 @@
 # @graphql-tools/executor
 
+## 1.2.8
+
+### Patch Changes
+
+- [#6306](https://github.com/ardatan/graphql-tools/pull/6306)
+  [`74f995f`](https://github.com/ardatan/graphql-tools/commit/74f995f17dfea6385e08bcdd662e7ad6fcfb5dfa)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - Properly propagate the original error in custom
+  scalars.
+
+  Errors thrown in the `parseValue` function for custom scalars were not propagated correctly using
+  the `originalError` property of the `GraphQLError` on invalid input. As a result, error codes from
+  the `extensions.code` were not propagated correctly.
+
+- Updated dependencies
+  [[`66c99d9`](https://github.com/ardatan/graphql-tools/commit/66c99d9c9e480cc4e1569b032952caea0ff69c0c)]:
+  - @graphql-tools/utils@10.2.3
+
 ## 1.2.7
 
 ### Patch Changes
