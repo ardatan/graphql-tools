@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 10.2.3
+
+### Patch Changes
+
+- [#6278](https://github.com/ardatan/graphql-tools/pull/6278)
+  [`66c99d9`](https://github.com/ardatan/graphql-tools/commit/66c99d9c9e480cc4e1569b032952caea0ff69c0c)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle `@defer`
+
 ## 10.2.2
 
 ### Patch Changes
