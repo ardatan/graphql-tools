@@ -3,7 +3,6 @@ import { inspect } from 'cross-inspect';
 import {
   GraphQLArgumentConfig,
   GraphQLEnumType,
-  GraphQLError,
   GraphQLFieldConfig,
   GraphQLInputObjectType,
   GraphQLList,
@@ -15,6 +14,7 @@ import {
   Kind,
   parse,
 } from 'graphql';
+import { createGraphQLError } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { executeSync } from '../execute.js';
 import { getVariableValues } from '../values.js';
@@ -31,7 +31,7 @@ const TestComplexScalar = new GraphQLScalarType({
   },
 });
 
-const TestFaultyScalarGraphQLError = new GraphQLError('FaultyScalarErrorMessage', {
+const TestFaultyScalarGraphQLError = createGraphQLError('FaultyScalarErrorMessage', {
   extensions: {
     code: 'FaultyScalarErrorMessageExtensionCode',
   },
