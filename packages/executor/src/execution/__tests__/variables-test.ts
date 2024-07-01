@@ -13,6 +13,7 @@ import {
   GraphQLString,
   Kind,
   parse,
+  versionInfo,
 } from 'graphql';
 import { createGraphQLError } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
@@ -243,7 +244,10 @@ describe('Execute: Handles inputs', () => {
         },
         errors: [
           {
-            message: 'Argument "input" has invalid value {c: "foo", e: "bar"}.',
+            message:
+              versionInfo.major === 17
+                ? 'Argument "input" has invalid value { c: "foo", e: "bar" }.'
+                : 'Argument "input" has invalid value {c: "foo", e: "bar"}.',
             path: ['fieldWithObjectInput'],
             locations: [{ line: 3, column: 39 }],
           },
