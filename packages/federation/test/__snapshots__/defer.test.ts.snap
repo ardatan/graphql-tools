@@ -1,0 +1,256 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Defer defers the nested fields: defer-nested-fields 1`] = `
+[
+  {
+    "data": {
+      "users": [
+        {
+          "id": "1",
+          "name": "Ada Lovelace",
+        },
+        {
+          "id": "2",
+          "name": "Alan Turing",
+        },
+      ],
+    },
+    "hasNext": true,
+  },
+  {
+    "hasNext": true,
+    "incremental": [
+      {
+        "data": {
+          "posts": [
+            {
+              "author": {
+                "id": "1",
+                "posts": [
+                  {
+                    "id": "1",
+                    "title": "Hello, World!",
+                  },
+                ],
+              },
+              "id": "1",
+              "title": "Hello, World!",
+            },
+            {
+              "author": {
+                "id": "2",
+                "posts": [
+                  {
+                    "id": "2",
+                    "title": "My Story",
+                  },
+                ],
+              },
+              "id": "2",
+              "title": "My Story",
+            },
+          ],
+        },
+        "path": [],
+      },
+      {
+        "data": {
+          "name": "Ada Lovelace",
+        },
+        "path": [
+          "posts",
+          0,
+          "author",
+        ],
+      },
+      {
+        "data": {
+          "name": "Alan Turing",
+        },
+        "path": [
+          "posts",
+          1,
+          "author",
+        ],
+      },
+    ],
+  },
+  {
+    "hasNext": true,
+    "incremental": [
+      {
+        "data": {
+          "posts": [
+            {
+              "author": {
+                "id": "1",
+              },
+              "id": "1",
+            },
+          ],
+        },
+        "path": [
+          "users",
+          0,
+        ],
+      },
+      {
+        "data": {
+          "posts": [
+            {
+              "author": {
+                "id": "2",
+              },
+              "id": "2",
+            },
+          ],
+        },
+        "path": [
+          "users",
+          1,
+        ],
+      },
+    ],
+  },
+  {
+    "hasNext": false,
+    "incremental": [
+      {
+        "data": {
+          "title": "Hello, World!",
+        },
+        "path": [
+          "users",
+          0,
+          "posts",
+          0,
+        ],
+      },
+      {
+        "data": {
+          "title": "My Story",
+        },
+        "path": [
+          "users",
+          1,
+          "posts",
+          0,
+        ],
+      },
+      {
+        "data": {
+          "name": "Ada Lovelace",
+        },
+        "path": [
+          "users",
+          0,
+          "posts",
+          0,
+          "author",
+        ],
+      },
+      {
+        "data": {
+          "name": "Alan Turing",
+        },
+        "path": [
+          "users",
+          1,
+          "posts",
+          0,
+          "author",
+        ],
+      },
+    ],
+  },
+]
+`;
+
+exports[`Defer defers the root fields: defer-root-fields 1`] = `
+[
+  {
+    "data": {},
+    "hasNext": true,
+  },
+  {
+    "hasNext": true,
+    "incremental": [
+      {
+        "data": {
+          "users": [
+            {
+              "id": "1",
+              "name": "Ada Lovelace",
+              "posts": [
+                {
+                  "author": {
+                    "id": "1",
+                    "name": "Ada Lovelace",
+                  },
+                  "id": "1",
+                  "title": "Hello, World!",
+                },
+              ],
+            },
+            {
+              "id": "2",
+              "name": "Alan Turing",
+              "posts": [
+                {
+                  "author": {
+                    "id": "2",
+                    "name": "Alan Turing",
+                  },
+                  "id": "2",
+                  "title": "My Story",
+                },
+              ],
+            },
+          ],
+        },
+        "path": [],
+      },
+    ],
+  },
+  {
+    "hasNext": false,
+    "incremental": [
+      {
+        "data": {
+          "posts": [
+            {
+              "author": {
+                "id": "1",
+                "name": "Ada Lovelace",
+                "posts": [
+                  {
+                    "id": "1",
+                    "title": "Hello, World!",
+                  },
+                ],
+              },
+              "id": "1",
+              "title": "Hello, World!",
+            },
+            {
+              "author": {
+                "id": "2",
+                "name": "Alan Turing",
+                "posts": [
+                  {
+                    "id": "2",
+                    "title": "My Story",
+                  },
+                ],
+              },
+              "id": "2",
+              "title": "My Story",
+            },
+          ],
+        },
+        "path": [],
+      },
+    ],
+  },
+]
+`;
