@@ -395,6 +395,79 @@ describe('isolateComputedFieldsTransformer', () => {
         ),
       ).toEqual(['base', 'computeMe']);
     });
+    it('do not isolate mutations with shared interface', async () => {
+      const testSchema = makeExecutableSchema({
+        typeDefs: /* GraphQL */ `
+          interface IProduct {
+            base: String!
+            computeMe: String!
+          }
+          type Product implements IProduct {
+            base: String!
+            computeMe: String!
+          }
+          type Query {
+            _products(representations: [ID!]!): [Product]!
+          }
+          type Mutation {
+            addProduct(name: String!): Product!
+          }
+        `,
+      });
+      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+        schema: testSchema,
+        merge: {
+          Product: {
+            selectionSet: '{ id }',
+            fields: {
+              computeMe: {
+                selectionSet: '{ price weight }',
+                computed: true,
+              },
+            },
+            fieldName: '_products',
+            key: ({ id, price, weight }) => ({ id, price, weight }),
+            argsFromKeys: representations => ({ representations }),
+          },
+        },
+      });
+      expect(printSchema(new Subschema(baseConfig).transformedSchema)).toMatchInlineSnapshot(`
+"interface IProduct {
+  base: String!
+}
+
+type Product implements IProduct {
+  base: String!
+}
+
+type Query {
+  _products(representations: [ID!]!): [Product]!
+}
+
+type Mutation {
+  addProduct(name: String!): Product!
+}"
+`);
+      expect(printSchema(new Subschema(computedConfig).transformedSchema)).toMatchInlineSnapshot(`
+"interface IProduct {
+  base: String!
+  computeMe: String!
+}
+
+type Product implements IProduct {
+  base: String!
+  computeMe: String!
+}
+
+type Query {
+  _products(representations: [ID!]!): [Product]!
+}
+
+type Mutation {
+  addProduct(name: String!): Product!
+}"
+`);
+    });
   });
 
   describe('with multiple entryPoints', () => {
