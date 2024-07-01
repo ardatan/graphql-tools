@@ -1,24 +1,10 @@
 import { parse } from 'graphql';
+import { createDeferred } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { isAsyncIterable } from '@graphql-tools/utils';
 import { Repeater } from '@repeaterjs/repeater';
 import { assertAsyncIterable } from '../../../../loaders/url/tests/test-utils';
 import { normalizedExecutor } from '../normalizedExecutor';
-
-type Deferred<T = void> = {
-  resolve: (value: T) => void;
-  reject: (value: unknown) => void;
-  promise: Promise<T>;
-};
-
-function createDeferred<T = void>(): Deferred<T> {
-  const d = {} as Deferred<T>;
-  d.promise = new Promise<T>((resolve, reject) => {
-    d.resolve = resolve;
-    d.reject = reject;
-  });
-  return d;
-}
 
 describe('Abort Signal', () => {
   it('should stop the subscription', async () => {
@@ -79,8 +65,8 @@ describe('Abort Signal', () => {
   });
   it('pending subscription execution is canceled', async () => {
     const controller = new AbortController();
-    const rootResolverGotInvokedD = createDeferred();
-    const requestGotCancelledD = createDeferred();
+    const rootResolverGotInvokedD = createDeferred<void>();
+    const requestGotCancelledD = createDeferred<void>();
     let aResolverGotInvoked = false;
 
     const schema = makeExecutableSchema({
@@ -238,7 +224,7 @@ describe('Abort Signal', () => {
   });
   it('stops pending stream execution for incremental delivery (@stream)', async () => {
     const controller = new AbortController();
-    const d = createDeferred();
+    const d = createDeferred<void>();
     let isReturnInvoked = false;
 
     const schema = makeExecutableSchema({
@@ -300,8 +286,8 @@ describe('Abort Signal', () => {
   });
   it('stops pending stream execution for parallel sources incremental delivery (@stream)', async () => {
     const controller = new AbortController();
-    const d1 = createDeferred();
-    const d2 = createDeferred();
+    const d1 = createDeferred<void>();
+    const d2 = createDeferred<void>();
 
     let isReturn1Invoked = false;
     let isReturn2Invoked = false;
@@ -381,8 +367,8 @@ describe('Abort Signal', () => {
     expect(isReturn2Invoked).toEqual(true);
   });
   it('stops pending stream execution for incremental delivery (@defer)', async () => {
-    const aResolverGotInvokedD = createDeferred();
-    const requestGotCancelledD = createDeferred();
+    const aResolverGotInvokedD = createDeferred<void>();
+    const requestGotCancelledD = createDeferred<void>();
     let bResolverGotInvoked = false;
 
     const schema = makeExecutableSchema({
@@ -458,7 +444,7 @@ describe('Abort Signal', () => {
   });
   it('stops promise execution', async () => {
     const controller = new AbortController();
-    const d = createDeferred();
+    const d = createDeferred<void>();
 
     const schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `

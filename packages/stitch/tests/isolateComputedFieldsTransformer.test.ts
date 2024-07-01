@@ -431,7 +431,8 @@ describe('isolateComputedFieldsTransformer', () => {
           },
         },
       });
-      expect(printSchema(new Subschema(baseConfig).transformedSchema)).toMatchInlineSnapshot(`
+      expect(printSchema(new Subschema(baseConfig).transformedSchema).trim())
+        .toMatchInlineSnapshot(`
 "interface IProduct {
   base: String!
 }
@@ -448,7 +449,8 @@ type Mutation {
   addProduct(name: String!): Product!
 }"
 `);
-      expect(printSchema(new Subschema(computedConfig).transformedSchema)).toMatchInlineSnapshot(`
+      expect(printSchema(new Subschema(computedConfig).transformedSchema).trim())
+        .toMatchInlineSnapshot(`
 "interface IProduct {
   base: String!
   computeMe: String!
