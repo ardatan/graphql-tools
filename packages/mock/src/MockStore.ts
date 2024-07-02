@@ -192,12 +192,12 @@ export class MockStore implements IMockStore {
 
   filter(key: string, predicate: (val: Entity) => boolean) {
     const entity = this.store[key];
-    return Object.values(entity).filter(predicate);
+    return entity ? Object.values(entity).filter(predicate) : [];
   }
 
   find(key: string, predicate: (val: Entity) => boolean) {
     const entity = this.store[key];
-    return Object.values(entity).find(predicate);
+    return entity ? Object.values(entity).find(predicate) : undefined;
   }
 
   private getImpl<KeyT extends KeyTypeConstraints>(args: GetArgs<KeyT>) {
