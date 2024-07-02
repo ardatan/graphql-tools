@@ -1,6 +1,9 @@
+import dlv from 'dlv';
 import { dset } from 'dset/merge';
 import { GraphQLError } from 'graphql';
 import { ExecutionResult } from './Interfaces.js';
+
+const pathsMap = new WeakMap<ExecutionResult, Map<string, ReadonlyArray<string | number>>>();
 
 export function mergeIncrementalResult({
   incrementalResult,
@@ -9,17 +12,56 @@ export function mergeIncrementalResult({
   incrementalResult: ExecutionResult;
   executionResult: ExecutionResult;
 }) {
-  const path = ['data', ...(incrementalResult.path ?? [])];
+  let path: ReadonlyArray<string | number> | undefined = [
+    'data',
+    ...(incrementalResult.path ?? []),
+  ];
+
+  for (const result of [executionResult, incrementalResult]) {
+    if (result.pending) {
+      let paths = pathsMap.get(executionResult);
+      if (paths === undefined) {
+        paths = new Map();
+        pathsMap.set(executionResult, paths);
+      }
+
+      for (const { id, path } of result.pending) {
+        paths.set(id, ['data', ...path]);
+      }
+    }
+  }
 
   if (incrementalResult.items) {
-    for (const item of incrementalResult.items) {
-      dset(executionResult, path, item);
-      // Increment the last path segment (the array index) to merge the next item at the next index
-      (path[path.length - 1] as number)++;
+    if (incrementalResult.id) {
+      const id = incrementalResult.id;
+
+      path = pathsMap.get(executionResult)?.get(id);
+      if (path === undefined) {
+        throw new Error('Invalid incremental delivery format.');
+      }
+
+      const list = dlv(executionResult, path as Array<string | number>);
+      list.push(...incrementalResult.items);
+    } else {
+      const path = ['data', ...(incrementalResult.path ?? [])];
+      for (const item of incrementalResult.items) {
+        dset(executionResult, path, item);
+        // Increment the last path segment (the array index) to merge the next item at the next index
+        (path[path.length - 1] as number)++;
+      }
     }
   }
 
   if (incrementalResult.data) {
+    if (incrementalResult.id) {
+      const id = incrementalResult.id;
+      if (id !== undefined) {
+        path = pathsMap.get(executionResult)?.get(id);
+        if (path === undefined) {
+          throw new Error('Invalid incremental delivery format.');
+        }
+      }
+    }
     dset(executionResult, path, incrementalResult.data);
   }
 
@@ -39,5 +81,17 @@ export function mergeIncrementalResult({
         executionResult,
       });
     });
+  }
+
+  if (incrementalResult.completed) {
+    // Remove tracking and add additional errors
+    for (const { id, errors } of incrementalResult.completed) {
+      pathsMap.get(executionResult)?.delete(id);
+
+      if (errors) {
+        executionResult.errors = executionResult.errors || [];
+        (executionResult.errors as GraphQLError[]).push(...errors);
+      }
+    }
   }
 }

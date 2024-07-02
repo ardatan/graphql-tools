@@ -66,6 +66,9 @@ export interface ExecutionResult<TData = any, TExtensions = any> {
   label?: string;
   path?: ReadonlyArray<string | number>;
   items?: TData | null;
+  id?: string;
+  pending?: ReadonlyArray<{ id: string; path: ReadonlyArray<string | number> }>;
+  completed?: ReadonlyArray<{ id: string; errors?: ReadonlyArray<GraphQLError> }>;
 }
 
 export interface ExecutionRequest<
