@@ -227,18 +227,19 @@ describe('Execute: Handles mutation execution ordering', () => {
           first: {},
           second: { theNumber: 2 },
         },
+        pending: [{ id: '0', path: ['first'], label: 'defer-label' }],
         hasNext: true,
       },
       {
         incremental: [
           {
-            label: 'defer-label',
-            path: ['first'],
+            id: '0',
             data: {
               promiseToGetTheNumber: 2,
             },
           },
         ],
+        completed: [{ id: '0' }],
         hasNext: false,
       },
     ]);
@@ -262,7 +263,7 @@ describe('Execute: Handles mutation execution ordering', () => {
     const rootValue = new Root(6);
     const mutationResult = await execute({ schema, document, rootValue });
 
-    expectJSON(mutationResult).toDeepEqual({
+    expect(mutationResult).toEqual({
       data: {
         first: { theNumber: 1 },
         second: { theNumber: 2 },
@@ -306,13 +307,13 @@ describe('Execute: Handles mutation execution ordering', () => {
         data: {
           second: { theNumber: 2 },
         },
+        pending: [{ id: '0', path: [], label: 'defer-label' }],
         hasNext: true,
       },
       {
         incremental: [
           {
-            label: 'defer-label',
-            path: [],
+            id: '0',
             data: {
               first: {
                 theNumber: 1,
@@ -320,6 +321,7 @@ describe('Execute: Handles mutation execution ordering', () => {
             },
           },
         ],
+        completed: [{ id: '0' }],
         hasNext: false,
       },
     ]);

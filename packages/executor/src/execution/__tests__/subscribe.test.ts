@@ -10,9 +10,10 @@ import {
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ExecutionResult, isAsyncIterable, isPromise, MaybePromise } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
+import { expectPromise } from '../../__testUtils__/expectPromise.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
 import { assertAsyncIterable } from '../../../../loaders/url/tests/test-utils.js';
-import { ExecutionArgs, subscribe } from '../execute.js';
+import { ExecutionArgs, IncrementalPreset, subscribe } from '../execute.js';
 import { normalizedExecutor } from '../normalizedExecutor.js';
 import { SimplePubSub } from './simplePubSub.js';
 
@@ -85,9 +86,15 @@ const emailSchema = new GraphQLSchema({
 function createSubscription(
   pubsub: SimplePubSub<Email>,
   variableValues?: { readonly [variable: string]: unknown },
+  incrementalPreset: IncrementalPreset = 'v17.0.0-alpha.3',
 ) {
   const document = parse(`
-    subscription ($priority: Int = 0, $shouldDefer: Boolean = false, $asyncResolver: Boolean = false) {
+    subscription (
+      $priority: Int = 0
+      $shouldDefer: Boolean = false
+      $shouldStream: Boolean = false
+      $asyncResolver: Boolean = false
+    ) {
       importantEmail(priority: $priority) {
         email {
           from
@@ -98,6 +105,7 @@ function createSubscription(
         }
         ... @defer(if: $shouldDefer) {
           inbox {
+            emails @include(if: $shouldStream) @stream(if: $shouldStream)
             unread
             total
           }
@@ -135,30 +143,8 @@ function createSubscription(
     document,
     rootValue: data,
     variableValues,
+    incrementalPreset,
   });
-}
-
-// TODO: consider adding this method to testUtils (with tests)
-function expectPromise(maybePromise: unknown) {
-  expect(isPromise(maybePromise)).toBeTruthy();
-
-  return {
-    toResolve() {
-      return maybePromise;
-    },
-    async toRejectWith(message: string) {
-      let caughtError: Error;
-
-      try {
-        /* c8 ignore next 2 */
-        await maybePromise;
-      } catch (error) {
-        caughtError = error as Error;
-        expect(caughtError).toBeInstanceOf(Error);
-        expect(caughtError).toHaveProperty('message', message);
-      }
-    },
-  };
 }
 
 const DummyQueryType = new GraphQLObjectType({
@@ -721,11 +707,81 @@ describe('Subscription Publish Phase', () => {
     });
   });
 
-  it('produces additional payloads for subscriptions with @defer', async () => {
+  it('subscribe function returns errors with @defer', async () => {
     const pubsub = new SimplePubSub<Email>();
     const subscription = await createSubscription(pubsub, {
       shouldDefer: true,
     });
+    expect(isAsyncIterable(subscription)).toBeTruthy();
+    // Wait for the next subscription payload.
+    // @ts-expect-error we have asserted it is an async iterable
+    const payload = subscription.next();
+
+    // A new email arrives!
+    expect(
+      pubsub.emit({
+        from: 'yuzhi@graphql.org',
+        subject: 'Alright',
+        message: 'Tests are good',
+        unread: true,
+      }),
+    ).toBeTruthy();
+
+    const errorPayload = {
+      done: false,
+      value: {
+        errors: [
+          {
+            message:
+              '`@defer` directive not supported on subscription operations. Disable `@defer` by setting the `if` argument to `false`.',
+            locations: [{ line: 8, column: 7 }],
+            path: ['importantEmail'],
+          },
+        ],
+        data: { importantEmail: null },
+      },
+    };
+
+    // The previously waited on payload now has a value.
+    expectJSON(await payload).toDeepEqual(errorPayload);
+
+    // Another new email arrives, after all incrementally delivered payloads are received.
+    expect(
+      pubsub.emit({
+        from: 'hyo@graphql.org',
+        subject: 'Tools',
+        message: 'I <3 making things',
+        unread: true,
+      }),
+    ).toBeTruthy();
+
+    // The next waited on payload will have a value.
+    // @ts-expect-error we have asserted it is an async iterable
+    expectJSON(await subscription.next()).toDeepEqual(errorPayload);
+
+    // @ts-expect-error
+    expectJSON(await subscription.return()).toDeepEqual({
+      done: true,
+      value: undefined,
+    });
+
+    // Awaiting a subscription after closing it results in completed results.
+    // @ts-expect-error
+    expectJSON(await subscription.next()).toDeepEqual({
+      done: true,
+      value: undefined,
+    });
+  });
+
+  it('produces additional payloads for subscriptions with @defer if allowed', async () => {
+    const pubsub = new SimplePubSub<Email>();
+    const subscription = await createSubscription(
+      pubsub,
+      {
+        shouldDefer: true,
+      },
+      'v17.0.0-alpha.2',
+    );
     expect(isAsyncIterable(subscription)).toBeTruthy();
     // Wait for the next subscription payload.
     // @ts-expect-error we have asserted it is an async iterable
@@ -852,6 +908,93 @@ describe('Subscription Publish Phase', () => {
     });
 
     // The client disconnects before the deferred payload is consumed.
+    // @ts-expect-error we have asserted it is an async iterable
+    expectJSON(await subscription.return()).toDeepEqual({
+      done: true,
+      value: undefined,
+    });
+
+    // Awaiting a subscription after closing it results in completed results.
+    // @ts-expect-error we have asserted it is an async iterable
+    expectJSON(await subscription.next()).toDeepEqual({
+      done: true,
+      value: undefined,
+    });
+  });
+
+  it('subscribe function returns errors with @stream', async () => {
+    const pubsub = new SimplePubSub<Email>();
+    const subscription = await createSubscription(pubsub, {
+      shouldStream: true,
+    });
+    expect(isAsyncIterable(subscription)).toBeTruthy();
+    // Wait for the next subscription payload.
+    // @ts-expect-error
+    const payload = subscription.next();
+
+    // A new email arrives!
+    expect(
+      pubsub.emit({
+        from: 'yuzhi@graphql.org',
+        subject: 'Alright',
+        message: 'Tests are good',
+        unread: true,
+      }),
+    ).toBeTruthy();
+
+    // The previously waited on payload now has a value.
+    expectJSON(await payload).toDeepEqual({
+      done: false,
+      value: {
+        errors: [
+          {
+            message:
+              '`@stream` directive not supported on subscription operations. Disable `@stream` by setting the `if` argument to `false`.',
+            locations: [{ line: 18, column: 13 }],
+            path: ['importantEmail', 'inbox', 'emails'],
+          },
+        ],
+        data: {
+          importantEmail: {
+            email: { from: 'yuzhi@graphql.org', subject: 'Alright' },
+            inbox: { emails: null, unread: 1, total: 2 },
+          },
+        },
+      },
+    });
+
+    // Another new email arrives, after all incrementally delivered payloads are received.
+    expect(
+      pubsub.emit({
+        from: 'hyo@graphql.org',
+        subject: 'Tools',
+        message: 'I <3 making things',
+        unread: true,
+      }),
+    ).toBeTruthy();
+
+    // The next waited on payload will have a value.
+    // @ts-expect-error we have asserted it is an async iterable
+    expectJSON(await subscription.next()).toDeepEqual({
+      done: false,
+      value: {
+        errors: [
+          {
+            message:
+              '`@stream` directive not supported on subscription operations. Disable `@stream` by setting the `if` argument to `false`.',
+            locations: [{ line: 18, column: 13 }],
+            path: ['importantEmail', 'inbox', 'emails'],
+          },
+        ],
+        data: {
+          importantEmail: {
+            email: { from: 'hyo@graphql.org', subject: 'Tools' },
+            inbox: { emails: null, unread: 2, total: 3 },
+          },
+        },
+      },
+    });
+
     // @ts-expect-error we have asserted it is an async iterable
     expectJSON(await subscription.return()).toDeepEqual({
       done: true,
