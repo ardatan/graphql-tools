@@ -261,6 +261,22 @@ export function buildHTTPExecutor(
                   ],
                 };
               }
+              console.log(parsedResult);
+              if (Array.isArray(parsedResult.errors)) {
+                parsedResult.errors = parsedResult.errors.map((error: unknown) => {
+                  if (
+                    !error ||
+                    typeof error !== 'object' ||
+                    !('message' in error) ||
+                    typeof error.message !== 'string'
+                  ) {
+                    return error;
+                  }
+                  const { message, ...options } = error;
+                  return createGraphQLError(message, options);
+                });
+                console.log(parsedResult.errors);
+              }
               return parsedResult;
             } catch (e: any) {
               return {
