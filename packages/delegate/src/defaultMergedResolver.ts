@@ -5,8 +5,8 @@ import {
   responsePathAsArray,
   SelectionSetNode,
 } from 'graphql';
-import { getResponseKeyFromInfo, isPromise } from '@graphql-tools/utils';
-import { createDeferred, DelegationPlanLeftOver, getPlanLeftOverFromParent } from './leftOver.js';
+import { createDeferred, getResponseKeyFromInfo, isPromise } from '@graphql-tools/utils';
+import { DelegationPlanLeftOver, getPlanLeftOverFromParent } from './leftOver.js';
 import {
   getSubschema,
   getUnpathedErrors,

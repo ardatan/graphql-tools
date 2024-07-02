@@ -2696,6 +2696,11 @@
   dependencies:
     "@types/ms" "*"
 
+"@types/dlv@^1.1.4":
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/@types/dlv/-/dlv-1.1.4.tgz#e92f76b78adf2b118b5a807956f36434baefbab0"
+  integrity sha512-m8KmImw4Jt+4rIgupwfivrWEOnj1LzkmKkqbh075uG13eTQ1ZxHWT6T0vIdSQhLIjQCiR0n0lZdtyDOPO1x2Mw==
+
 "@types/eslint-scope@^3.7.3":
   version "3.7.7"
   resolved "https://registry.yarnpkg.com/@types/eslint-scope/-/eslint-scope-3.7.7.tgz#3108bd5f18b0cdb277c867b3dd449c9ed7079ac5"

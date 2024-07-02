@@ -16,8 +16,39 @@ exports[`Defer/Stream defers the nested fields: defer-nested-fields 1`] = `
       ],
     },
     "hasNext": true,
+    "pending": [
+      {
+        "id": "0",
+        "path": [],
+      },
+      {
+        "id": "1",
+        "path": [
+          "users",
+          0,
+        ],
+      },
+      {
+        "id": "2",
+        "path": [
+          "users",
+          1,
+        ],
+      },
+    ],
   },
   {
+    "completed": [
+      {
+        "id": "0",
+      },
+      {
+        "id": "3",
+      },
+      {
+        "id": "4",
+      },
+    ],
     "hasNext": true,
     "incremental": [
       {
@@ -51,12 +82,24 @@ exports[`Defer/Stream defers the nested fields: defer-nested-fields 1`] = `
             },
           ],
         },
-        "path": [],
+        "id": "0",
       },
       {
         "data": {
           "name": "Ada Lovelace",
         },
+        "id": "3",
+      },
+      {
+        "data": {
+          "name": "Alan Turing",
+        },
+        "id": "4",
+      },
+    ],
+    "pending": [
+      {
+        "id": "3",
         "path": [
           "posts",
           0,
@@ -64,9 +107,7 @@ exports[`Defer/Stream defers the nested fields: defer-nested-fields 1`] = `
         ],
       },
       {
-        "data": {
-          "name": "Alan Turing",
-        },
+        "id": "4",
         "path": [
           "posts",
           1,
@@ -76,7 +117,27 @@ exports[`Defer/Stream defers the nested fields: defer-nested-fields 1`] = `
     ],
   },
   {
-    "hasNext": true,
+    "completed": [
+      {
+        "id": "1",
+      },
+      {
+        "id": "2",
+      },
+      {
+        "id": "5",
+      },
+      {
+        "id": "6",
+      },
+      {
+        "id": "7",
+      },
+      {
+        "id": "8",
+      },
+    ],
+    "hasNext": false,
     "incremental": [
       {
         "data": {
@@ -89,10 +150,7 @@ exports[`Defer/Stream defers the nested fields: defer-nested-fields 1`] = `
             },
           ],
         },
-        "path": [
-          "users",
-          0,
-        ],
+        "id": "1",
       },
       {
         "data": {
@@ -105,42 +163,45 @@ exports[`Defer/Stream defers the nested fields: defer-nested-fields 1`] = `
             },
           ],
         },
-        "path": [
-          "users",
-          1,
-        ],
+        "id": "2",
       },
-    ],
-  },
-  {
-    "hasNext": false,
-    "incremental": [
       {
         "data": {
           "title": "Hello, World!",
         },
-        "path": [
-          "users",
-          0,
-          "posts",
-          0,
-        ],
-      },
-      {
-        "data": {
-          "title": "My Story",
-        },
-        "path": [
-          "users",
-          1,
-          "posts",
-          0,
-        ],
+        "id": "5",
       },
       {
         "data": {
           "name": "Ada Lovelace",
         },
+        "id": "6",
+      },
+      {
+        "data": {
+          "title": "My Story",
+        },
+        "id": "7",
+      },
+      {
+        "data": {
+          "name": "Alan Turing",
+        },
+        "id": "8",
+      },
+    ],
+    "pending": [
+      {
+        "id": "5",
+        "path": [
+          "users",
+          0,
+          "posts",
+          0,
+        ],
+      },
+      {
+        "id": "6",
         "path": [
           "users",
           0,
@@ -150,9 +211,16 @@ exports[`Defer/Stream defers the nested fields: defer-nested-fields 1`] = `
         ],
       },
       {
-        "data": {
-          "name": "Alan Turing",
-        },
+        "id": "7",
+        "path": [
+          "users",
+          1,
+          "posts",
+          0,
+        ],
+      },
+      {
+        "id": "8",
         "path": [
           "users",
           1,
@@ -171,8 +239,23 @@ exports[`Defer/Stream defers the root fields: defer-root-fields 1`] = `
   {
     "data": {},
     "hasNext": true,
+    "pending": [
+      {
+        "id": "0",
+        "path": [],
+      },
+      {
+        "id": "1",
+        "path": [],
+      },
+    ],
   },
   {
+    "completed": [
+      {
+        "id": "0",
+      },
+    ],
     "hasNext": true,
     "incremental": [
       {
@@ -208,11 +291,16 @@ exports[`Defer/Stream defers the root fields: defer-root-fields 1`] = `
             },
           ],
         },
-        "path": [],
+        "id": "0",
       },
     ],
   },
   {
+    "completed": [
+      {
+        "id": "1",
+      },
+    ],
     "hasNext": false,
     "incremental": [
       {
@@ -248,7 +336,7 @@ exports[`Defer/Stream defers the root fields: defer-root-fields 1`] = `
             },
           ],
         },
-        "path": [],
+        "id": "1",
       },
     ],
   },
@@ -262,11 +350,20 @@ exports[`Defer/Stream streams: stream 1`] = `
       "usersStream": [],
     },
     "hasNext": true,
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "usersStream",
+        ],
+      },
+    ],
   },
   {
     "hasNext": true,
     "incremental": [
       {
+        "id": "0",
         "items": [
           {
             "id": "1",
@@ -283,10 +380,6 @@ exports[`Defer/Stream streams: stream 1`] = `
             ],
           },
         ],
-        "path": [
-          "usersStream",
-          0,
-        ],
       },
     ],
   },
@@ -294,6 +387,7 @@ exports[`Defer/Stream streams: stream 1`] = `
     "hasNext": true,
     "incremental": [
       {
+        "id": "0",
         "items": [
           {
             "id": "2",
@@ -310,14 +404,15 @@ exports[`Defer/Stream streams: stream 1`] = `
             ],
           },
         ],
-        "path": [
-          "usersStream",
-          1,
-        ],
       },
     ],
   },
   {
+    "completed": [
+      {
+        "id": "0",
+      },
+    ],
     "hasNext": false,
   },
 ]

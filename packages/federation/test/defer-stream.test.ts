@@ -6,7 +6,7 @@ import { IntrospectAndCompose, LocalGraphQLDataSource } from '@apollo/gateway';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
-import { asArray, ExecutionResult, mergeDeep } from '@graphql-tools/utils';
+import { ExecutionResult, mergeIncrementalResult } from '@graphql-tools/utils';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 import { assertAsyncIterable } from '../../loaders/url/tests/test-utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
@@ -14,46 +14,7 @@ import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 function mergeIncrementalResults(values: ExecutionResult[]) {
   const result: ExecutionResult = {};
   for (const value of values) {
-    if (value.data) {
-      if (!result.data) {
-        result.data = value.data;
-      } else {
-        result.data = mergeDeep([result.data, value.data]);
-      }
-    }
-    if (value.errors) {
-      result.errors = result.errors || [];
-      result.errors = [...result.errors, ...value.errors];
-    }
-    if (value.incremental) {
-      for (const incremental of value.incremental) {
-        if (incremental.path) {
-          result.data = result.data || {};
-          const incrementalItems = incremental.items
-            ? asArray(incremental.items).filter(item => item != null)
-            : [];
-          if (incremental.data != null) {
-            incrementalItems.unshift(incremental.data);
-          }
-          for (const incrementalItem of incrementalItems) {
-            if (!incremental.path.length) {
-              result.data = mergeDeep([result.data, incrementalItem]);
-            } else {
-              const existingData = _.get(result.data, incremental.path);
-              if (!existingData) {
-                _.set(result.data, incremental.path, incrementalItem);
-              } else {
-                _.set(result.data, incremental.path, mergeDeep([existingData, incrementalItem]));
-              }
-            }
-          }
-        }
-        if (incremental.errors) {
-          result.errors = result.errors || [];
-          result.errors = [...result.errors, ...incremental.errors];
-        }
-      }
-    }
+    mergeIncrementalResult({ incrementalResult: value, executionResult: result });
   }
   return result;
 }
