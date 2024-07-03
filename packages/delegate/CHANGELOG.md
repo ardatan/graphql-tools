@@ -1,5 +1,13 @@
 # @graphql-tools/delegate
 
+## 10.0.13
+
+### Patch Changes
+
+- [#6312](https://github.com/ardatan/graphql-tools/pull/6312)
+  [`7b6f77a`](https://github.com/ardatan/graphql-tools/commit/7b6f77a46177def2488ab70ce938b94d0dcf3018)
+  Thanks [@ardatan](https://github.com/ardatan)! - Use native `Promise.withResolvers` when possible
+
 ## 10.0.12
 
 ### Patch Changes
