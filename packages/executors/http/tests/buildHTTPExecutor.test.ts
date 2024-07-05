@@ -223,6 +223,7 @@ describe('buildHTTPExecutor', () => {
     await new Promise<void>(resolve => server.listen(0, resolve));
     const executor = buildHTTPExecutor({
       endpoint: `http://localhost:${(server.address() as any).port}`,
+      disposable: true,
     });
     const result = executor({
       document: parse(/* GraphQL */ `
@@ -231,29 +232,31 @@ describe('buildHTTPExecutor', () => {
         }
       `),
     });
-    executor[Symbol.dispose]?.();
+    await executor[Symbol.asyncDispose]();
     await expect(result).resolves.toEqual({
       errors: [
-        createGraphQLError(
-          'The operation was aborted. reason: Error: Executor was disposed. Aborting execution',
-        ),
+        createGraphQLError('The operation was aborted. reason: Error: Executor was disposed.'),
       ],
     });
   });
   it('does not allow new requests when the executor is disposed', async () => {
     const executor = buildHTTPExecutor({
       fetch: () => Response.json({ data: { hello: 'world' } }),
+      disposable: true,
     });
     executor[Symbol.dispose]?.();
-    expect(() =>
-      executor({
-        document: parse(/* GraphQL */ `
-          query {
-            hello
-          }
-        `),
-      }),
-    ).toThrow('Executor was disposed. Aborting execution');
+    const result = await executor({
+      document: parse(/* GraphQL */ `
+        query {
+          hello
+        }
+      `),
+    });
+    expect(result).toMatchObject({
+      errors: [
+        createGraphQLError('The operation was aborted. reason: Error: Executor was disposed.'),
+      ],
+    });
   });
   it('should return return GraphqlError instances', async () => {
     const executor = buildHTTPExecutor({

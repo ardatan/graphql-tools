@@ -14,7 +14,6 @@ import { createDefaultExecutor, SubschemaConfig } from '@graphql-tools/delegate'
 import { buildHTTPExecutor, HTTPExecutorOptions } from '@graphql-tools/executor-http';
 import { stitchSchemas, SubschemaConfigTransform } from '@graphql-tools/stitch';
 import {
-  AsyncExecutor,
   createGraphQLError,
   ExecutionResult,
   Executor,
@@ -40,7 +39,7 @@ export const SubgraphSDLQuery = /* GraphQL */ `
 export async function getSubschemaForFederationWithURL(
   config: HTTPExecutorOptions,
 ): Promise<SubschemaConfig> {
-  const executor = buildHTTPExecutor(config as any) as AsyncExecutor;
+  const executor = buildHTTPExecutor(config);
   const subschemaConfig = await getSubschemaForFederationWithExecutor(executor);
   return {
     batch: true,

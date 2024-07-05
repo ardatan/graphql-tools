@@ -42,11 +42,13 @@ export type Executor<TBaseContext = Record<string, any>, TBaseExtensions = Recor
 export type DisposableSyncExecutor<
   TBaseContext = Record<string, any>,
   TBaseExtensions = Record<string, any>,
-> = SyncExecutor<TBaseContext, TBaseExtensions> & { [Symbol.dispose]?: () => void };
+> = SyncExecutor<TBaseContext, TBaseExtensions> & { [Symbol.dispose]: () => void };
 export type DisposableAsyncExecutor<
   TBaseContext = Record<string, any>,
   TBaseExtensions = Record<string, any>,
-> = AsyncExecutor<TBaseContext, TBaseExtensions> & { [Symbol.dispose]?: () => void };
+> = AsyncExecutor<TBaseContext, TBaseExtensions> & {
+  [Symbol.asyncDispose]: () => PromiseLike<void>;
+};
 export type DisposableExecutor<
   TBaseContext = Record<string, any>,
   TBaseExtensions = Record<string, any>,
