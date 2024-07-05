@@ -107,12 +107,12 @@ export function buildHTTPExecutor(
 
 export function buildHTTPExecutor(
   options?: HTTPExecutorOptions,
-): Executor<any, HTTPExecutorOptions> {
+): DisposableExecutor<any, HTTPExecutorOptions> {
   const printFn = options?.print ?? defaultPrintFn;
-  const disposeCtrl = new AbortController();
-  const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
-    if (disposeCtrl.signal.aborted) {
-      throw new Error('Executor was disposed. Aborting execution');
+  let disposeCtrl: AbortController | undefined;
+  const baseExecutor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
+    if (disposeCtrl?.signal.aborted) {
+      return createResultForAbort(disposeCtrl.signal);
     }
     const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
     let method = request.extensions?.method || options?.method;
@@ -153,17 +153,17 @@ export function buildHTTPExecutor(
 
     const query = printFn(request.document);
 
-    let signal = disposeCtrl.signal;
+    let signal = disposeCtrl?.signal;
     let clearTimeoutFn: VoidFunction = () => {};
     if (options?.timeout) {
       const timeoutCtrl = new AbortController();
       signal = timeoutCtrl.signal;
-      disposeCtrl.signal.addEventListener('abort', clearTimeoutFn);
+      disposeCtrl?.signal.addEventListener('abort', clearTimeoutFn);
       const timeoutId = setTimeout(() => {
         if (!timeoutCtrl.signal.aborted) {
           timeoutCtrl.abort('timeout');
         }
-        disposeCtrl.signal.removeEventListener('abort', clearTimeoutFn);
+        disposeCtrl?.signal.removeEventListener('abort', clearTimeoutFn);
       }, options.timeout);
       clearTimeoutFn = () => {
         clearTimeout(timeoutId);
@@ -349,20 +349,17 @@ export function buildHTTPExecutor(
             ],
           };
         } else if (e.name === 'AbortError' && signal?.reason) {
-          return {
-            errors: [
-              createGraphQLError('The operation was aborted. reason: ' + signal.reason, {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
-                },
-                originalError: e,
-              }),
-            ],
-          };
+          return createResultForAbort(
+            signal,
+            {
+              requestBody: {
+                query,
+                operationName: request.operationName,
+              },
+              responseDetails: responseDetailsForError,
+            },
+            e,
+          );
         } else if (e.message) {
           return {
             errors: [
@@ -398,11 +395,16 @@ export function buildHTTPExecutor(
       .resolve();
   };
 
+  let executor: Executor = baseExecutor;
+
   if (options?.retry != null) {
-    return function retryExecutor(request: ExecutionRequest) {
+    executor = function retryExecutor(request: ExecutionRequest) {
       let result: ExecutionResult<any> | undefined;
       let attempt = 0;
       function retryAttempt(): Promise<ExecutionResult<any>> | ExecutionResult<any> {
+        if (disposeCtrl?.signal.aborted) {
+          return createResultForAbort(disposeCtrl.signal);
+        }
         attempt++;
         if (attempt > options!.retry!) {
           if (result != null) {
@@ -412,7 +414,7 @@ export function buildHTTPExecutor(
             errors: [createGraphQLError('No response returned from fetch')],
           };
         }
-        return new ValueOrPromise(() => executor(request))
+        return new ValueOrPromise(() => baseExecutor(request))
           .then(res => {
             result = res;
             if (result?.errors?.length) {
@@ -426,17 +428,49 @@ export function buildHTTPExecutor(
     };
   }
 
-  const disposableExecutor: DisposableExecutor = executor;
+  Object.defineProperties(executor, {
+    [Symbol.dispose]: {
+      get() {
+        if (!disposeCtrl) {
+          disposeCtrl = new AbortController();
+        }
+        return function dispose() {
+          return disposeCtrl!.abort(createAbortErrorReason());
+        };
+      },
+    },
+    [Symbol.asyncDispose]: {
+      get() {
+        if (!disposeCtrl) {
+          disposeCtrl = new AbortController();
+        }
+        return function asyncDispose() {
+          return disposeCtrl!.abort(createAbortErrorReason());
+        };
+      },
+    },
+  });
 
-  disposableExecutor[Symbol.dispose] = () => {
-    return disposeCtrl.abort(new Error('Executor was disposed. Aborting execution'));
+  return executor as DisposableExecutor;
+}
+
+function createAbortErrorReason() {
+  return new Error('Executor was disposed.');
+}
+
+function createResultForAbort(
+  signal: AbortSignal,
+  extensions?: Record<string, any>,
+  originalError?: Error,
+) {
+  return {
+    errors: [
+      createGraphQLError('The operation was aborted. reason: ' + signal.reason, {
+        extensions,
+        originalError,
+      }),
+    ],
   };
-
-  disposableExecutor[Symbol.asyncDispose] = () => {
-    return disposeCtrl.abort(new Error('Executor was disposed. Aborting execution'));
-  };
-
-  return disposableExecutor;
 }
 
 export { isLiveQueryOperationDefinitionNode };
