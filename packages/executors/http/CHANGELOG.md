@@ -1,5 +1,17 @@
 # @graphql-tools/executor-http
 
+## 1.1.1
+
+### Patch Changes
+
+- [#6299](https://github.com/ardatan/graphql-tools/pull/6299)
+  [`b0ffac8`](https://github.com/ardatan/graphql-tools/commit/b0ffac8ed2e0d5ac8bb304dc575184cb9073ebfc)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - When proxying the requests to the HTTP
+  executor, it should return \`GraphQLError\` instances in \`errors\` array
+
+- [`46eab79`](https://github.com/ardatan/graphql-tools/commit/46eab79e5b409d99482eb7f3a2b69a77dc3bc162)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fixed potential leak on executor disposal
+
 ## 1.1.0
 
 ### Minor Changes
