@@ -260,7 +260,7 @@ describe('buildHTTPExecutor', () => {
       useGETForQueries: true,
       fetch() {
         return new Response(
-          JSON.stringify({ errors: [{ message: 'test error', extension: { code: 'test code' } }] }),
+          JSON.stringify({ errors: [{ message: 'test error', extensions: { code: 'test code' } }] }),
           {
             headers: { 'Content-Type': 'application/json' },
           },
