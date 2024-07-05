@@ -1,6 +1,6 @@
 import { createServer, Server } from 'http';
-import { parse } from 'graphql';
-import { createGraphQLError, ExecutionResult } from '@graphql-tools/utils';
+import { GraphQLError, parse } from 'graphql';
+import { createGraphQLError, ExecutionResult, isAsyncIterable } from '@graphql-tools/utils';
 import { ReadableStream, Request, Response } from '@whatwg-node/fetch';
 import { assertAsyncIterable } from '../../../loaders/url/tests/test-utils.js';
 import { buildHTTPExecutor } from '../src/index.js';
@@ -254,5 +254,30 @@ describe('buildHTTPExecutor', () => {
         `),
       }),
     ).toThrow('Executor was disposed. Aborting execution');
+  });
+  it('should return return GraphqlError instances', async () => {
+    const executor = buildHTTPExecutor({
+      useGETForQueries: true,
+      fetch() {
+        return Response.json({ errors: [{ message: 'test error' }] });
+      },
+    });
+
+    const result = await executor({
+      document: parse(/* GraphQL */ `
+        query {
+          hello
+        }
+      `),
+    });
+
+    if (isAsyncIterable(result)) {
+      throw new Error('Expected result to be an ExecutionResult');
+    }
+
+    expect(result.errors?.[0]).toBeInstanceOf(GraphQLError);
+    expect(result.errors?.[0]?.extensions).toMatchObject({
+      code: 'DOWNSTREAM_SERVICE_ERROR',
+    });
   });
 });

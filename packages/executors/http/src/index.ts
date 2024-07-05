@@ -259,6 +259,27 @@ export function buildHTTPExecutor(
                   ],
                 };
               }
+              if (Array.isArray(parsedResult.errors)) {
+                return {
+                  ...parsedResult,
+                  errors: parsedResult.errors.map(
+                    ({
+                      message,
+                      ...options
+                    }: {
+                      message: string;
+                      extensions: Record<string, unknown>;
+                    }) =>
+                      createGraphQLError(message, {
+                        ...options,
+                        extensions: {
+                          code: 'DOWNSTREAM_SERVICE_ERROR',
+                          ...(options.extensions || {}),
+                        },
+                      }),
+                  ),
+                };
+              }
               return parsedResult;
             } catch (e: any) {
               return {
