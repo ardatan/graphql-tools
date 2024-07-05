@@ -14,7 +14,6 @@ import { createDefaultExecutor, SubschemaConfig } from '@graphql-tools/delegate'
 import { buildHTTPExecutor, HTTPExecutorOptions } from '@graphql-tools/executor-http';
 import { stitchSchemas, SubschemaConfigTransform } from '@graphql-tools/stitch';
 import {
-  AsyncExecutor,
   createGraphQLError,
   ExecutionResult,
   Executor,
