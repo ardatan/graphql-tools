@@ -1,11 +1,30 @@
 # @graphql-tools/executor-graphql-ws
 
+## 1.2.0
+
+### Minor Changes
+
+- [#6323](https://github.com/ardatan/graphql-tools/pull/6323)
+  [`cacf20f`](https://github.com/ardatan/graphql-tools/commit/cacf20f8dbe4ec5dce0d5fd87e37cf69ef9b177e)
+  Thanks [@ardatan](https://github.com/ardatan)! - Implement Symbol.dispose or Symbol.asyncDispose
+  to make \`Executor\`s \`Disposable\`
+
+### Patch Changes
+
+- Updated dependencies
+  [[`cacf20f`](https://github.com/ardatan/graphql-tools/commit/cacf20f8dbe4ec5dce0d5fd87e37cf69ef9b177e)]:
+  - @graphql-tools/utils@10.3.0
+
 ## 1.1.2
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.2`, in `dependencies`)
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.2`, in `dependencies`)
 
 ## 1.1.1
 

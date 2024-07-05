@@ -1,29 +1,56 @@
 # @graphql-tools/executor-http
 
+## 1.1.0
+
+### Minor Changes
+
+- [#6323](https://github.com/ardatan/graphql-tools/pull/6323)
+  [`cacf20f`](https://github.com/ardatan/graphql-tools/commit/cacf20f8dbe4ec5dce0d5fd87e37cf69ef9b177e)
+  Thanks [@ardatan](https://github.com/ardatan)! - Implement Symbol.dispose or Symbol.asyncDispose
+  to make \`Executor\`s \`Disposable\`
+
+### Patch Changes
+
+- Updated dependencies
+  [[`cacf20f`](https://github.com/ardatan/graphql-tools/commit/cacf20f8dbe4ec5dce0d5fd87e37cf69ef9b177e)]:
+  - @graphql-tools/utils@10.3.0
+
 ## 1.0.9
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.2`, in `dependencies`)
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.2`, in `dependencies`)
 
 ## 1.0.8
 
 ### Patch Changes
 
-- [#5902](https://github.com/ardatan/graphql-tools/pull/5902) [`9d18cce`](https://github.com/ardatan/graphql-tools/commit/9d18ccedac0a288080cbe1c9323ed838cbc4174e) Thanks [@enisdenjo](https://github.com/enisdenjo)! - Error when both data and errors fields are empty
+- [#5902](https://github.com/ardatan/graphql-tools/pull/5902)
+  [`9d18cce`](https://github.com/ardatan/graphql-tools/commit/9d18ccedac0a288080cbe1c9323ed838cbc4174e)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - Error when both data and errors fields are
+  empty
 
 ## 1.0.7
 
 ### Patch Changes
 
-- [#5825](https://github.com/ardatan/graphql-tools/pull/5825) [`12b578e`](https://github.com/ardatan/graphql-tools/commit/12b578e260c3011346d4af1cf71abd70f40569fe) Thanks [@felamaslen](https://github.com/felamaslen)! - Fixed http executor to allow custom content-type header
+- [#5825](https://github.com/ardatan/graphql-tools/pull/5825)
+  [`12b578e`](https://github.com/ardatan/graphql-tools/commit/12b578e260c3011346d4af1cf71abd70f40569fe)
+  Thanks [@felamaslen](https://github.com/felamaslen)! - Fixed http executor to allow custom
+  content-type header
 
 ## 1.0.6
 
 ### Patch Changes
 
-- [`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238) Thanks [@ardatan](https://github.com/ardatan)! - Memoize the print result automatically, and able to accept a custom print function
+- [`b798b3b`](https://github.com/ardatan/graphql-tools/commit/b798b3b0a54f634bf2dd2275ef47f5263a5ce238)
+  Thanks [@ardatan](https://github.com/ardatan)! - Memoize the print result automatically, and able
+  to accept a custom print function
 
 ## 1.0.5
 

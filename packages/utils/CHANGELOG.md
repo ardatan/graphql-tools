@@ -1,5 +1,14 @@
 # @graphql-tools/utils
 
+## 10.3.0
+
+### Minor Changes
+
+- [#6323](https://github.com/ardatan/graphql-tools/pull/6323)
+  [`cacf20f`](https://github.com/ardatan/graphql-tools/commit/cacf20f8dbe4ec5dce0d5fd87e37cf69ef9b177e)
+  Thanks [@ardatan](https://github.com/ardatan)! - Implement Symbol.dispose or Symbol.asyncDispose
+  to make \`Executor\`s \`Disposable\`
+
 ## 10.2.3
 
 ### Patch Changes
