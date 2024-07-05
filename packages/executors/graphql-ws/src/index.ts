@@ -2,10 +2,11 @@ import { print } from 'graphql';
 import { Client, ClientOptions, createClient } from 'graphql-ws';
 import WebSocket from 'isomorphic-ws';
 import {
+  DisposableExecutor,
   ExecutionRequest,
   ExecutionResult,
-  Executor,
   getOperationASTFromRequest,
+  MaybePromise,
 } from '@graphql-tools/utils';
 
 interface GraphQLWSExecutorOptions extends ClientOptions {
@@ -18,7 +19,7 @@ function isClient(client: Client | GraphQLWSExecutorOptions): client is Client {
 
 export function buildGraphQLWSExecutor(
   clientOptionsOrClient: GraphQLWSExecutorOptions | Client,
-): Executor {
+): DisposableExecutor {
   let graphqlWSClient: Client;
   let executorConnectionParams = {};
   if (isClient(clientOptionsOrClient)) {
@@ -40,7 +41,7 @@ export function buildGraphQLWSExecutor(
       clientOptionsOrClient.onClient(graphqlWSClient);
     }
   }
-  return function GraphQLWSExecutor<
+  const executor: DisposableExecutor = function GraphQLWSExecutor<
     TData,
     TArgs extends Record<string, any>,
     TRoot,
@@ -75,4 +76,8 @@ export function buildGraphQLWSExecutor(
     }
     return iterableIterator.next().then(({ value }) => value);
   };
+  executor[Symbol.asyncDispose] = function disposeWS(): MaybePromise<void> {
+    return graphqlWSClient.dispose();
+  };
+  return executor;
 }

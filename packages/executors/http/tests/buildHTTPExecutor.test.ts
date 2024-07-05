@@ -1,5 +1,6 @@
+import { createServer, Server } from 'http';
 import { parse } from 'graphql';
-import { ExecutionResult } from '@graphql-tools/utils';
+import { createGraphQLError, ExecutionResult } from '@graphql-tools/utils';
 import { ReadableStream, Request, Response } from '@whatwg-node/fetch';
 import { assertAsyncIterable } from '../../../loaders/url/tests/test-utils.js';
 import { buildHTTPExecutor } from '../src/index.js';
@@ -207,5 +208,51 @@ describe('buildHTTPExecutor', () => {
     })) as ExecutionResult;
 
     expect(result.errors).toBeUndefined();
+  });
+  let server: Server;
+  afterEach(done => {
+    if (server?.listening) {
+      server.close(done);
+    } else {
+      done();
+    }
+  });
+  it('stops existing requests when the executor is disposed', async () => {
+    // Create a server that never responds
+    server = createServer();
+    await new Promise<void>(resolve => server.listen(0, resolve));
+    const executor = buildHTTPExecutor({
+      endpoint: `http://localhost:${(server.address() as any).port}`,
+    });
+    const result = executor({
+      document: parse(/* GraphQL */ `
+        query {
+          hello
+        }
+      `),
+    });
+    executor[Symbol.dispose]?.();
+    await expect(result).resolves.toEqual({
+      errors: [
+        createGraphQLError(
+          'The operation was aborted. reason: Error: Executor was disposed. Aborting execution',
+        ),
+      ],
+    });
+  });
+  it('does not allow new requests when the executor is disposed', async () => {
+    const executor = buildHTTPExecutor({
+      fetch: () => Response.json({ data: { hello: 'world' } }),
+    });
+    executor[Symbol.dispose]?.();
+    expect(() =>
+      executor({
+        document: parse(/* GraphQL */ `
+          query {
+            hello
+          }
+        `),
+      }),
+    ).toThrow('Executor was disposed. Aborting execution');
   });
 });

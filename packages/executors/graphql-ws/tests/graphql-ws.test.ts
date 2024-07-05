@@ -1,5 +1,6 @@
 import { createServer, Server } from 'http';
 import { AddressInfo } from 'net';
+import { setTimeout } from 'timers/promises';
 import { parse } from 'graphql';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { WebSocketServer } from 'ws'; // yarn add ws
@@ -7,6 +8,7 @@ import { WebSocketServer } from 'ws'; // yarn add ws
 import { buildGraphQLWSExecutor } from '@graphql-tools/executor-graphql-ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { Executor, isAsyncIterable } from '@graphql-tools/utils';
+import { assertAsyncIterable } from '../../../loaders/url/tests/test-utils';
 
 describe('GraphQL WS Executor', () => {
   let server: Server;
@@ -37,6 +39,7 @@ describe('GraphQL WS Executor', () => {
               count: {
                 subscribe: async function* (_root, { to }) {
                   for (let i = 0; i < to; i++) {
+                    await setTimeout(200);
                     yield { count: i };
                   }
                 },
@@ -93,5 +96,26 @@ describe('GraphQL WS Executor', () => {
       { data: { count: 1 } },
       { data: { count: 2 } },
     ]);
+  });
+  it('should close connections when disposed', async () => {
+    executor = buildGraphQLWSExecutor({
+      url: `ws://localhost:${(server.address() as AddressInfo).port}/graphql`,
+    });
+    const result = await executor({
+      document: parse(/* GraphQL */ `
+        subscription {
+          count(to: 4)
+        }
+      `),
+    });
+    assertAsyncIterable(result);
+    for await (const item of result) {
+      if (item.data?.count === 2) {
+        await executor[Symbol.dispose]();
+      }
+      if (item.data?.count === 3) {
+        throw new Error('Expected connection to be closed before receiving the third item');
+      }
+    }
   });
 });

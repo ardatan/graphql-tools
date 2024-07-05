@@ -1,6 +1,10 @@
 import { print } from 'graphql';
 import WebSocket from 'isomorphic-ws';
-import { ExecutionRequest, Executor, observableToAsyncIterable } from '@graphql-tools/utils';
+import {
+  DisposableExecutor,
+  ExecutionRequest,
+  observableToAsyncIterable,
+} from '@graphql-tools/utils';
 
 export enum LEGACY_WS {
   CONNECTION_INIT = 'connection_init',
@@ -24,7 +28,7 @@ export function buildWSLegacyExecutor(
   subscriptionsEndpoint: string,
   WebSocketImpl: typeof WebSocket,
   options?: LegacyWSExecutorOpts,
-): Executor {
+): DisposableExecutor {
   let executorConnectionParams = {};
   let websocket: WebSocket | null = null;
 
@@ -83,7 +87,7 @@ export function buildWSLegacyExecutor(
     }
   };
 
-  return function legacyExecutor(request: ExecutionRequest) {
+  const executor: DisposableExecutor = function legacyExecutor(request: ExecutionRequest) {
     // additional connection params can be supplied through the "connectionParams" field in extensions.
     // TODO: connection params only from the FIRST operation in lazy mode will be used (detect connectionParams changes and reconnect, too implicit?)
     if (
@@ -178,4 +182,8 @@ export function buildWSLegacyExecutor(
       },
     });
   };
+
+  executor[Symbol.dispose] = cleanupWebsocket;
+
+  return executor;
 }

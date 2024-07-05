@@ -1,13 +1,14 @@
 import { DocumentNode, GraphQLResolveInfo } from 'graphql';
 import { ValueOrPromise } from 'value-or-promise';
 import {
-  AsyncExecutor,
   createGraphQLError,
+  DisposableAsyncExecutor,
+  DisposableExecutor,
+  DisposableSyncExecutor,
   ExecutionRequest,
   ExecutionResult,
   Executor,
   getOperationASTFromRequest,
-  SyncExecutor,
 } from '@graphql-tools/utils';
 import { fetch as defaultFetch } from '@whatwg-node/fetch';
 import { createFormDataFromVariables } from './createFormDataFromVariables.js';
@@ -90,27 +91,31 @@ export type HeadersConfig = Record<string, string>;
 
 export function buildHTTPExecutor(
   options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: SyncFetchFn },
-): SyncExecutor<any, HTTPExecutorOptions>;
+): DisposableSyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
   options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: AsyncFetchFn },
-): AsyncExecutor<any, HTTPExecutorOptions>;
+): DisposableAsyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
   options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: RegularFetchFn },
-): AsyncExecutor<any, HTTPExecutorOptions>;
+): DisposableAsyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
   options?: Omit<HTTPExecutorOptions, 'fetch'>,
-): AsyncExecutor<any, HTTPExecutorOptions>;
+): DisposableAsyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
   options?: HTTPExecutorOptions,
 ): Executor<any, HTTPExecutorOptions> {
   const printFn = options?.print ?? defaultPrintFn;
+  const controller = new AbortController();
   const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
+    if (controller.signal.aborted) {
+      throw new Error('Executor was disposed. Aborting execution');
+    }
     const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
-    let controller: AbortController | undefined;
+    let signal = controller.signal;
     let method = request.extensions?.method || options?.method;
 
     const operationAst = getOperationASTFromRequest(request);
@@ -149,14 +154,10 @@ export function buildHTTPExecutor(
 
     const query = printFn(request.document);
 
-    let timeoutId: any;
     if (options?.timeout) {
-      controller = new AbortController();
-      timeoutId = setTimeout(() => {
-        if (!controller?.signal.aborted) {
-          controller?.abort('timeout');
-        }
-      }, options.timeout);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore AbortSignal.any is not yet in the DOM types
+      signal = AbortSignal.any([sharedSignal, AbortSignal.timeout(options.timeout)]);
     }
 
     const responseDetailsForError: {
@@ -177,7 +178,7 @@ export function buildHTTPExecutor(
           const fetchOptions: RequestInit = {
             method: 'GET',
             headers,
-            signal: controller?.signal,
+            signal,
           };
           if (options?.credentials != null) {
             fetchOptions.credentials = options.credentials;
@@ -207,7 +208,7 @@ export function buildHTTPExecutor(
                 method: 'POST',
                 body,
                 headers,
-                signal: controller?.signal,
+                signal,
               };
               if (options?.credentials != null) {
                 fetchOptions.credentials = options.credentials;
@@ -220,9 +221,6 @@ export function buildHTTPExecutor(
       .then((fetchResult: Response): any => {
         responseDetailsForError.status = fetchResult.status;
         responseDetailsForError.statusText = fetchResult.statusText;
-        if (timeoutId != null) {
-          clearTimeout(timeoutId);
-        }
 
         // Retry should respect HTTP Errors
         if (options?.retry != null && !fetchResult.status.toString().startsWith('2')) {
@@ -231,9 +229,9 @@ export function buildHTTPExecutor(
 
         const contentType = fetchResult.headers.get('content-type');
         if (contentType?.includes('text/event-stream')) {
-          return handleEventStreamResponse(fetchResult, controller);
+          return handleEventStreamResponse(fetchResult);
         } else if (contentType?.includes('multipart/mixed')) {
-          return handleMultipartMixedResponse(fetchResult, controller);
+          return handleMultipartMixedResponse(fetchResult);
         }
 
         return fetchResult.text();
@@ -317,10 +315,10 @@ export function buildHTTPExecutor(
               }),
             ],
           };
-        } else if (e.name === 'AbortError' && controller?.signal?.reason) {
+        } else if (e.name === 'AbortError' && signal?.reason) {
           return {
             errors: [
-              createGraphQLError('The operation was aborted. reason: ' + controller.signal.reason, {
+              createGraphQLError('The operation was aborted. reason: ' + signal.reason, {
                 extensions: {
                   requestBody: {
                     query,
@@ -395,7 +393,17 @@ export function buildHTTPExecutor(
     };
   }
 
-  return executor;
+  const disposableExecutor: DisposableExecutor = executor;
+
+  disposableExecutor[Symbol.dispose] = () => {
+    return controller.abort(new Error('Executor was disposed. Aborting execution'));
+  };
+
+  disposableExecutor[Symbol.asyncDispose] = () => {
+    return controller.abort(new Error('Executor was disposed. Aborting execution'));
+  };
+
+  return disposableExecutor;
 }
 
 export { isLiveQueryOperationDefinitionNode };
