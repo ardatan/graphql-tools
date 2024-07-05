@@ -93,14 +93,7 @@ describe('Retry & Timeout', () => {
     });
   });
   it('timeout', async () => {
-    server = new Server((req, res) => {
-      const timeout = setTimeout(() => {
-        res.end(JSON.stringify({ data: { hello: 'world' } }));
-      }, 1000);
-      req.once('close', () => {
-        clearTimeout(timeout);
-      });
-    });
+    server = new Server();
     server.listen(0);
     const executor = buildHTTPExecutor({
       endpoint: `http://localhost:${(server.address() as AddressInfo).port}`,
@@ -116,53 +109,45 @@ describe('Retry & Timeout', () => {
     expect(result).toMatchObject({
       errors: [
         {
-          message:
-            'The operation was aborted. reason: TimeoutError: The operation was aborted due to timeout',
+          message: 'The operation was aborted. reason: timeout',
         },
       ],
     });
   });
-  if (!process.env['LEAK_TEST']) {
-    it('retry & timeout', async () => {
-      let cnt = 0;
-      server = new Server((req, res) => {
-        if (cnt < 2) {
-          cnt++;
-          const timeout = setTimeout(() => {
-            res.end(JSON.stringify({ errors: [{ message: `error in ${cnt}` }] }));
-          }, 1000);
-          req.once('close', () => {
-            clearTimeout(timeout);
-          });
-        } else {
-          res.end(JSON.stringify({ data: { hello: 'world' } }));
-        }
-      });
-      server.on('connection', socket => {
-        sockets.add(socket);
-        socket.once('close', () => {
-          sockets.delete(socket);
-        });
-      });
-      server.listen(0);
-      const executor = buildHTTPExecutor({
-        endpoint: `http://localhost:${(server.address() as AddressInfo).port}`,
-        timeout: 500,
-        retry: 3,
-      });
-      const result = await executor({
-        document: parse(/* GraphQL */ `
-          query {
-            hello
-          }
-        `),
-      });
-      expect(cnt).toEqual(2);
-      expect(result).toMatchObject({
-        data: {
-          hello: 'world',
-        },
+  it('retry & timeout', async () => {
+    let cnt = 0;
+    server = new Server((_, res) => {
+      if (cnt < 2) {
+        cnt++;
+      } else {
+        res.end(JSON.stringify({ data: { hello: 'world' } }));
+      }
+    });
+    server.on('connection', socket => {
+      sockets.add(socket);
+      socket.once('close', () => {
+        sockets.delete(socket);
       });
     });
-  }
+    server.listen(0);
+    const executor = buildHTTPExecutor({
+      endpoint: `http://localhost:${(server.address() as AddressInfo).port}`,
+      timeout: 500,
+      retry: 3,
+    });
+    const result = await executor({
+      document: parse(/* GraphQL */ `
+        query {
+          hello
+        }
+      `),
+    });
+    expect(result).toMatchObject({
+      data: {
+        hello: 'world',
+      },
+    });
+    expect(cnt).toEqual(2);
+    await executor[Symbol.asyncDispose]?.();
+  });
 });

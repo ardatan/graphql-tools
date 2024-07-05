@@ -109,13 +109,12 @@ export function buildHTTPExecutor(
   options?: HTTPExecutorOptions,
 ): Executor<any, HTTPExecutorOptions> {
   const printFn = options?.print ?? defaultPrintFn;
-  const controller = new AbortController();
+  const disposeCtrl = new AbortController();
   const executor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
-    if (controller.signal.aborted) {
+    if (disposeCtrl.signal.aborted) {
       throw new Error('Executor was disposed. Aborting execution');
     }
     const fetchFn = request.extensions?.fetch ?? options?.fetch ?? defaultFetch;
-    let signal = controller.signal;
     let method = request.extensions?.method || options?.method;
 
     const operationAst = getOperationASTFromRequest(request);
@@ -154,10 +153,21 @@ export function buildHTTPExecutor(
 
     const query = printFn(request.document);
 
+    let signal = disposeCtrl.signal;
+    let clearTimeoutFn: VoidFunction = () => {};
     if (options?.timeout) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore AbortSignal.any is not yet in the DOM types
-      signal = AbortSignal.any([signal, AbortSignal.timeout(options.timeout)]);
+      const timeoutCtrl = new AbortController();
+      signal = timeoutCtrl.signal;
+      disposeCtrl.signal.addEventListener('abort', clearTimeoutFn);
+      const timeoutId = setTimeout(() => {
+        if (!timeoutCtrl.signal.aborted) {
+          timeoutCtrl.abort('timeout');
+        }
+        disposeCtrl.signal.removeEventListener('abort', clearTimeoutFn);
+      }, options.timeout);
+      clearTimeoutFn = () => {
+        clearTimeout(timeoutId);
+      };
     }
 
     const responseDetailsForError: {
@@ -221,6 +231,8 @@ export function buildHTTPExecutor(
       .then((fetchResult: Response): any => {
         responseDetailsForError.status = fetchResult.status;
         responseDetailsForError.statusText = fetchResult.statusText;
+
+        clearTimeoutFn();
 
         // Retry should respect HTTP Errors
         if (options?.retry != null && !fetchResult.status.toString().startsWith('2')) {
@@ -417,11 +429,11 @@ export function buildHTTPExecutor(
   const disposableExecutor: DisposableExecutor = executor;
 
   disposableExecutor[Symbol.dispose] = () => {
-    return controller.abort(new Error('Executor was disposed. Aborting execution'));
+    return disposeCtrl.abort(new Error('Executor was disposed. Aborting execution'));
   };
 
   disposableExecutor[Symbol.asyncDispose] = () => {
-    return controller.abort(new Error('Executor was disposed. Aborting execution'));
+    return disposeCtrl.abort(new Error('Executor was disposed. Aborting execution'));
   };
 
   return disposableExecutor;
