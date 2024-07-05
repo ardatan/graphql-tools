@@ -1,6 +1,7 @@
 import { DocumentNode, GraphQLResolveInfo } from 'graphql';
 import { ValueOrPromise } from 'value-or-promise';
 import {
+  AsyncExecutor,
   createGraphQLError,
   DisposableAsyncExecutor,
   DisposableExecutor,
@@ -9,6 +10,7 @@ import {
   ExecutionResult,
   Executor,
   getOperationASTFromRequest,
+  SyncExecutor,
 } from '@graphql-tools/utils';
 import { fetch as defaultFetch } from '@whatwg-node/fetch';
 import { createFormDataFromVariables } from './createFormDataFromVariables.js';
@@ -85,29 +87,84 @@ export interface HTTPExecutorOptions {
    * Print function for DocumentNode
    */
   print?: (doc: DocumentNode) => string;
+  /**
+   * Enable [Explicit Resource Management](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-2.html#using-declarations-and-explicit-resource-management)
+   * @default false
+   */
+  disposable?: boolean;
 }
 
 export type HeadersConfig = Record<string, string>;
 
 export function buildHTTPExecutor(
-  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: SyncFetchFn },
+  options?: Omit<HTTPExecutorOptions, 'fetch' | 'disposable'> & {
+    fetch: SyncFetchFn;
+    disposable: true;
+  },
 ): DisposableSyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
-  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: AsyncFetchFn },
+  options?: Omit<HTTPExecutorOptions, 'fetch' | 'disposable'> & {
+    fetch: SyncFetchFn;
+    disposable: false;
+  },
+): SyncExecutor<any, HTTPExecutorOptions>;
+
+export function buildHTTPExecutor(
+  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: SyncFetchFn },
+): SyncExecutor<any, HTTPExecutorOptions>;
+
+export function buildHTTPExecutor(
+  options?: Omit<HTTPExecutorOptions, 'fetch' | 'disposable'> & {
+    fetch: AsyncFetchFn;
+    disposable: true;
+  },
 ): DisposableAsyncExecutor<any, HTTPExecutorOptions>;
+
+export function buildHTTPExecutor(
+  options?: Omit<HTTPExecutorOptions, 'fetch' | 'disposable'> & {
+    fetch: AsyncFetchFn;
+    disposable: false;
+  },
+): AsyncExecutor<any, HTTPExecutorOptions>;
+
+export function buildHTTPExecutor(
+  options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: AsyncFetchFn },
+): AsyncExecutor<any, HTTPExecutorOptions>;
+
+export function buildHTTPExecutor(
+  options?: Omit<HTTPExecutorOptions, 'fetch' | 'disposable'> & {
+    fetch: RegularFetchFn;
+    disposable: true;
+  },
+): DisposableAsyncExecutor<any, HTTPExecutorOptions>;
+
+export function buildHTTPExecutor(
+  options?: Omit<HTTPExecutorOptions, 'fetch' | 'disposable'> & {
+    fetch: RegularFetchFn;
+    disposable: false;
+  },
+): AsyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
   options?: Omit<HTTPExecutorOptions, 'fetch'> & { fetch: RegularFetchFn },
+): AsyncExecutor<any, HTTPExecutorOptions>;
+
+export function buildHTTPExecutor(
+  options?: Omit<HTTPExecutorOptions, 'fetch' | 'disposable'> & { disposable: true },
 ): DisposableAsyncExecutor<any, HTTPExecutorOptions>;
+
+export function buildHTTPExecutor(
+  options?: Omit<HTTPExecutorOptions, 'fetch' | 'disposable'> & { disposable: false },
+): AsyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
   options?: Omit<HTTPExecutorOptions, 'fetch'>,
-): DisposableAsyncExecutor<any, HTTPExecutorOptions>;
+): AsyncExecutor<any, HTTPExecutorOptions>;
 
 export function buildHTTPExecutor(
   options?: HTTPExecutorOptions,
-): DisposableExecutor<any, HTTPExecutorOptions> {
+): DisposableExecutor<any, HTTPExecutorOptions> | Executor<any, HTTPExecutorOptions> {
   const printFn = options?.print ?? defaultPrintFn;
   let disposeCtrl: AbortController | undefined;
   const baseExecutor = (request: ExecutionRequest<any, any, any, HTTPExecutorOptions>) => {
@@ -428,12 +485,16 @@ export function buildHTTPExecutor(
     };
   }
 
+  if (!options?.disposable) {
+    disposeCtrl = undefined;
+    return executor;
+  }
+
+  disposeCtrl = new AbortController();
+
   Object.defineProperties(executor, {
     [Symbol.dispose]: {
       get() {
-        if (!disposeCtrl) {
-          disposeCtrl = new AbortController();
-        }
         return function dispose() {
           return disposeCtrl!.abort(createAbortErrorReason());
         };
@@ -441,9 +502,6 @@ export function buildHTTPExecutor(
     },
     [Symbol.asyncDispose]: {
       get() {
-        if (!disposeCtrl) {
-          disposeCtrl = new AbortController();
-        }
         return function asyncDispose() {
           return disposeCtrl!.abort(createAbortErrorReason());
         };
@@ -451,7 +509,7 @@ export function buildHTTPExecutor(
     },
   });
 
-  return executor as DisposableExecutor;
+  return executor;
 }
 
 function createAbortErrorReason() {

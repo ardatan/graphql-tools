@@ -3,4 +3,4 @@
 "@graphql-tools/utils": patch
 ---
 
-Make the executor disposable lazily
+Make the executor disposable optional
