@@ -157,7 +157,7 @@ export function buildHTTPExecutor(
     if (options?.timeout) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore AbortSignal.any is not yet in the DOM types
-      signal = AbortSignal.any([sharedSignal, AbortSignal.timeout(options.timeout)]);
+      signal = AbortSignal.any([signal, AbortSignal.timeout(options.timeout)]);
     }
 
     const responseDetailsForError: {
