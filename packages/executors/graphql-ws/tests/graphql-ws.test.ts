@@ -2,11 +2,13 @@ import { createServer, Server } from 'http';
 import { AddressInfo } from 'net';
 import { parse } from 'graphql';
 import { useServer } from 'graphql-ws/lib/use/ws';
+import { Repeater } from 'graphql-yoga';
 import { WebSocketServer } from 'ws'; // yarn add ws
 
 import { buildGraphQLWSExecutor } from '@graphql-tools/executor-graphql-ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { Executor, isAsyncIterable } from '@graphql-tools/utils';
+import { assertAsyncIterable } from '../../../loaders/url/tests/test-utils';
 
 describe('GraphQL WS Executor', () => {
   let server: Server;
@@ -35,10 +37,28 @@ describe('GraphQL WS Executor', () => {
             },
             Subscription: {
               count: {
-                subscribe: async function* (_root, { to }) {
-                  for (let i = 0; i < to; i++) {
-                    yield { count: i };
-                  }
+                subscribe(_, { to }: { to: number }) {
+                  return new Repeater((push, stop) => {
+                    let i = 0;
+                    let closed = false;
+                    let timeout: NodeJS.Timeout;
+                    const pump = async () => {
+                      if (closed) {
+                        return;
+                      }
+                      await push({ count: i });
+                      if (i++ < to) {
+                        timeout = setTimeout(pump, 150);
+                      } else {
+                        stop();
+                      }
+                    };
+                    stop.then(() => {
+                      closed = true;
+                      clearTimeout(timeout);
+                    });
+                    pump();
+                  });
                 },
               },
             },
@@ -53,8 +73,9 @@ describe('GraphQL WS Executor', () => {
       url: `ws://localhost:${(server.address() as AddressInfo).port}/graphql`,
     });
   });
-  afterAll(async () => {
-    await new Promise(resolve => server.close(resolve));
+  afterAll(done => {
+    server.closeAllConnections();
+    server.close(done);
   });
   it('should return a promise of an execution result for regular queries', async () => {
     const result = await executor({
@@ -92,6 +113,25 @@ describe('GraphQL WS Executor', () => {
       { data: { count: 0 } },
       { data: { count: 1 } },
       { data: { count: 2 } },
+      { data: { count: 3 } },
     ]);
+  });
+  it('should close connections when disposed', async () => {
+    const result = await executor({
+      document: parse(/* GraphQL */ `
+        subscription {
+          count(to: 4)
+        }
+      `),
+    });
+    assertAsyncIterable(result);
+    for await (const item of result) {
+      if (item.data?.count === 2) {
+        await executor[Symbol.asyncDispose]();
+      }
+      if (item.data?.count === 3) {
+        throw new Error('Expected connection to be closed before receiving the third item');
+      }
+    }
   });
 });

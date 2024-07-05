@@ -5,10 +5,6 @@ import { Response } from '@whatwg-node/fetch';
 import { buildHTTPExecutor } from '../src';
 
 describe('Retry & Timeout', () => {
-  if (process.version.startsWith('v16.')) {
-    it('skip on node 16', () => {});
-    return;
-  }
   let server: Server;
   const sockets = new Set<Socket>();
   afterEach(() => {
@@ -24,9 +20,9 @@ describe('Retry & Timeout', () => {
         async fetch() {
           if (cnt < 2) {
             cnt++;
-            return new Response(undefined, { status: 500 });
+            return Response.error();
           }
-          return (Response as any).json({ data: { hello: 'world' } });
+          return Response.json({ data: { hello: 'world' } });
         },
         retry: 3,
       });
@@ -50,11 +46,11 @@ describe('Retry & Timeout', () => {
         async fetch() {
           if (cnt < 2) {
             cnt++;
-            return (Response as any).json({
+            return Response.json({
               errors: [{ message: `error in ${cnt}` }],
             });
           }
-          return (Response as any).json({ data: { hello: 'world' } });
+          return Response.json({ data: { hello: 'world' } });
         },
         retry: 3,
       });
@@ -77,7 +73,7 @@ describe('Retry & Timeout', () => {
       const executor = buildHTTPExecutor({
         async fetch() {
           cnt++;
-          return (Response as any).json({
+          return Response.json({
             errors: [{ message: `error in ${cnt}` }],
           });
         },
@@ -118,48 +114,55 @@ describe('Retry & Timeout', () => {
       `),
     });
     expect(result).toMatchObject({
-      errors: [{ message: 'The operation was aborted. reason: timeout' }],
+      errors: [
+        {
+          message:
+            'The operation was aborted. reason: TimeoutError: The operation was aborted due to timeout',
+        },
+      ],
     });
   });
-  it('retry & timeout', async () => {
-    let cnt = 0;
-    server = new Server((req, res) => {
-      if (cnt < 2) {
-        cnt++;
-        const timeout = setTimeout(() => {
-          res.end(JSON.stringify({ errors: [{ message: `error in ${cnt}` }] }));
-        }, 1000);
-        req.once('close', () => {
-          clearTimeout(timeout);
+  if (!process.env['LEAK_TEST']) {
+    it('retry & timeout', async () => {
+      let cnt = 0;
+      server = new Server((req, res) => {
+        if (cnt < 2) {
+          cnt++;
+          const timeout = setTimeout(() => {
+            res.end(JSON.stringify({ errors: [{ message: `error in ${cnt}` }] }));
+          }, 1000);
+          req.once('close', () => {
+            clearTimeout(timeout);
+          });
+        } else {
+          res.end(JSON.stringify({ data: { hello: 'world' } }));
+        }
+      });
+      server.on('connection', socket => {
+        sockets.add(socket);
+        socket.once('close', () => {
+          sockets.delete(socket);
         });
-      } else {
-        res.end(JSON.stringify({ data: { hello: 'world' } }));
-      }
-    });
-    server.on('connection', socket => {
-      sockets.add(socket);
-      socket.once('close', () => {
-        sockets.delete(socket);
+      });
+      server.listen(0);
+      const executor = buildHTTPExecutor({
+        endpoint: `http://localhost:${(server.address() as AddressInfo).port}`,
+        timeout: 500,
+        retry: 3,
+      });
+      const result = await executor({
+        document: parse(/* GraphQL */ `
+          query {
+            hello
+          }
+        `),
+      });
+      expect(cnt).toEqual(2);
+      expect(result).toMatchObject({
+        data: {
+          hello: 'world',
+        },
       });
     });
-    server.listen(0);
-    const executor = buildHTTPExecutor({
-      endpoint: `http://localhost:${(server.address() as AddressInfo).port}`,
-      timeout: 500,
-      retry: 3,
-    });
-    const result = await executor({
-      document: parse(/* GraphQL */ `
-        query {
-          hello
-        }
-      `),
-    });
-    expect(cnt).toEqual(2);
-    expect(result).toMatchObject({
-      data: {
-        hello: 'world',
-      },
-    });
-  });
+  }
 });

@@ -2,7 +2,6 @@ import type { IncomingMessage } from 'http';
 import { meros as merosReadableStream } from 'meros/browser';
 import { meros as merosIncomingMessage } from 'meros/node';
 import { ExecutionResult, mapAsyncIterator, mergeIncrementalResult } from '@graphql-tools/utils';
-import { addCancelToResponseStream } from './addCancelToResponseStream.js';
 
 type Part =
   | {
@@ -18,10 +17,7 @@ function isIncomingMessage(body: any): body is IncomingMessage {
   return body != null && typeof body === 'object' && 'pipe' in body;
 }
 
-export async function handleMultipartMixedResponse(
-  response: Response,
-  controller?: AbortController,
-) {
+export async function handleMultipartMixedResponse(response: Response) {
   const body = response.body;
   const contentType = response.headers.get('content-type') || '';
   let asyncIterator: AsyncIterator<Part> | undefined;
@@ -59,10 +55,6 @@ export async function handleMultipartMixedResponse(
       return executionResult;
     }
   });
-
-  if (controller) {
-    return addCancelToResponseStream(resultStream, controller);
-  }
 
   return resultStream;
 }

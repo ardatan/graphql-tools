@@ -38,3 +38,18 @@ export type Executor<TBaseContext = Record<string, any>, TBaseExtensions = Recor
 >(
   request: ExecutionRequest<TArgs, TContext, TRoot, TExtensions, TReturn>,
 ) => MaybePromise<MaybeAsyncIterable<ExecutionResult<TReturn>>>;
+
+export type DisposableSyncExecutor<
+  TBaseContext = Record<string, any>,
+  TBaseExtensions = Record<string, any>,
+> = SyncExecutor<TBaseContext, TBaseExtensions> & { [Symbol.dispose]?: () => void };
+export type DisposableAsyncExecutor<
+  TBaseContext = Record<string, any>,
+  TBaseExtensions = Record<string, any>,
+> = AsyncExecutor<TBaseContext, TBaseExtensions> & { [Symbol.dispose]?: () => void };
+export type DisposableExecutor<
+  TBaseContext = Record<string, any>,
+  TBaseExtensions = Record<string, any>,
+> =
+  | DisposableSyncExecutor<TBaseContext, TBaseExtensions>
+  | DisposableAsyncExecutor<TBaseContext, TBaseExtensions>;

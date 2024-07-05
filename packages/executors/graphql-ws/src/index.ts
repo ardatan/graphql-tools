@@ -2,14 +2,17 @@ import { print } from 'graphql';
 import { Client, ClientOptions, createClient } from 'graphql-ws';
 import WebSocket from 'isomorphic-ws';
 import {
+  DisposableExecutor,
   ExecutionRequest,
-  ExecutionResult,
-  Executor,
   getOperationASTFromRequest,
+  memoize1,
 } from '@graphql-tools/utils';
+
+const defaultPrintFn = memoize1(print);
 
 interface GraphQLWSExecutorOptions extends ClientOptions {
   onClient?: (client: Client) => void;
+  print?: typeof print;
 }
 
 function isClient(client: Client | GraphQLWSExecutorOptions): client is Client {
@@ -18,12 +21,16 @@ function isClient(client: Client | GraphQLWSExecutorOptions): client is Client {
 
 export function buildGraphQLWSExecutor(
   clientOptionsOrClient: GraphQLWSExecutorOptions | Client,
-): Executor {
+): DisposableExecutor {
   let graphqlWSClient: Client;
   let executorConnectionParams = {};
+  let printFn = defaultPrintFn;
   if (isClient(clientOptionsOrClient)) {
     graphqlWSClient = clientOptionsOrClient;
   } else {
+    if (clientOptionsOrClient.print) {
+      printFn = clientOptionsOrClient.print;
+    }
     graphqlWSClient = createClient({
       ...clientOptionsOrClient,
       webSocketImpl: WebSocket,
@@ -40,14 +47,12 @@ export function buildGraphQLWSExecutor(
       clientOptionsOrClient.onClient(graphqlWSClient);
     }
   }
-  return function GraphQLWSExecutor<
+  const executor = function GraphQLWSExecutor<
     TData,
     TArgs extends Record<string, any>,
     TRoot,
     TExtensions extends Record<string, any>,
-  >(
-    executionRequest: ExecutionRequest<TArgs, any, TRoot, TExtensions>,
-  ): AsyncIterableIterator<ExecutionResult<TData>> | Promise<ExecutionResult<TData>> {
+  >(executionRequest: ExecutionRequest<TArgs, any, TRoot, TExtensions>) {
     const {
       document,
       variables,
@@ -63,7 +68,7 @@ export function buildGraphQLWSExecutor(
         extensions['connectionParams'],
       );
     }
-    const query = print(document);
+    const query = printFn(document);
     const iterableIterator = graphqlWSClient.iterate<TData, TExtensions>({
       query,
       variables,
@@ -75,4 +80,9 @@ export function buildGraphQLWSExecutor(
     }
     return iterableIterator.next().then(({ value }) => value);
   };
+  const disposableExecutor: DisposableExecutor = executor;
+  disposableExecutor[Symbol.asyncDispose] = function disposeWS() {
+    return graphqlWSClient.dispose();
+  };
+  return disposableExecutor;
 }

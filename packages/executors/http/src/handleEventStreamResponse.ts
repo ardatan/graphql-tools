@@ -1,5 +1,4 @@
 import { ExecutionResult, inspect, isAsyncIterable } from '@graphql-tools/utils';
-import { addCancelToResponseStream } from './addCancelToResponseStream.js';
 import { handleAsyncIterable } from './handleAsyncIterable.js';
 import { handleReadableStream } from './handleReadableStream.js';
 
@@ -7,20 +6,12 @@ export function isReadableStream(value: any): value is ReadableStream {
   return value && typeof value.getReader === 'function';
 }
 
-export function handleEventStreamResponse(
-  response: Response,
-  controller?: AbortController,
-): AsyncIterable<ExecutionResult> {
+export function handleEventStreamResponse(response: Response): AsyncIterable<ExecutionResult> {
   // node-fetch returns body as a promise so we need to resolve it
   const body = response.body;
   if (body) {
     if (isAsyncIterable<Uint8Array | string>(body)) {
-      const resultStream = handleAsyncIterable(body);
-      if (controller) {
-        return addCancelToResponseStream(resultStream, controller);
-      } else {
-        return resultStream;
-      }
+      return handleAsyncIterable(body);
     }
     if (isReadableStream(body)) {
       return handleReadableStream(body);
