@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 10.3.1
+
+### Patch Changes
+
+- [#6325](https://github.com/ardatan/graphql-tools/pull/6325)
+  [`9792e80`](https://github.com/ardatan/graphql-tools/commit/9792e80fdd6ecbe57541324282dd06573ce5bc77)
+  Thanks [@ardatan](https://github.com/ardatan)! - Make the executor disposable optional
+
 ## 10.3.0
 
 ### Minor Changes
