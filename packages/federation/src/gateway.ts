@@ -40,7 +40,7 @@ export const SubgraphSDLQuery = /* GraphQL */ `
 export async function getSubschemaForFederationWithURL(
   config: HTTPExecutorOptions,
 ): Promise<SubschemaConfig> {
-  const executor = buildHTTPExecutor(config as any) as AsyncExecutor;
+  const executor = buildHTTPExecutor(config);
   const subschemaConfig = await getSubschemaForFederationWithExecutor(executor);
   return {
     batch: true,

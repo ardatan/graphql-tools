@@ -80,7 +80,7 @@ export function buildGraphQLWSExecutor(
     }
     return iterableIterator.next().then(({ value }) => value);
   };
-  const disposableExecutor: DisposableExecutor = executor;
+  const disposableExecutor = executor as DisposableExecutor;
   disposableExecutor[Symbol.asyncDispose] = function disposeWS() {
     return graphqlWSClient.dispose();
   };
