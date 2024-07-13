@@ -1,5 +1,16 @@
 # @graphql-tools/executor-http
 
+## 1.1.4
+
+### Patch Changes
+
+- [#6343](https://github.com/ardatan/graphql-tools/pull/6343)
+  [`bec6eac`](https://github.com/ardatan/graphql-tools/commit/bec6eace6f7514c5488f832d67664d9b9df16c16)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/utils@^10.3.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.3.2)
+    (from `^10.3.1`, in `dependencies`)
+
 ## 1.1.3
 
 ### Patch Changes
