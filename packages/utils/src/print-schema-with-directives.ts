@@ -306,7 +306,7 @@ export function astFromArg(
     // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
     defaultValue:
       arg.defaultValue !== undefined
-        ? astFromValue(arg.defaultValue, arg.type) ?? undefined
+        ? (astFromValue(arg.defaultValue, arg.type) ?? undefined)
         : (undefined as any),
     directives: getDeprecatableDirectiveNodes(arg, schema, pathToDirectivesInExtensions) as any,
   };
