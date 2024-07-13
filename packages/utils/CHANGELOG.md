@@ -1,5 +1,12 @@
 # @graphql-tools/utils
 
+## 10.3.2
+
+### Patch Changes
+
+- [`a276ba8`](https://github.com/ardatan/graphql-tools/commit/a276ba83cf7e2aa1c0f81454591a794d6efb8c2a)
+  Thanks [@ardatan](https://github.com/ardatan)! - Respect directive extensions on \`pruneSchema\`
+
 ## 10.3.1
 
 ### Patch Changes

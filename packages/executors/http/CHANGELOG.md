@@ -1,5 +1,18 @@
 # @graphql-tools/executor-http
 
+## 1.1.3
+
+### Patch Changes
+
+- [#6332](https://github.com/ardatan/graphql-tools/pull/6332)
+  [`7be6930`](https://github.com/ardatan/graphql-tools/commit/7be69305bb5f9e38c96c8372ac467aa43585da54)
+  Thanks [@kamilkisiela](https://github.com/kamilkisiela)! - Strip ignored characters when printing
+  a query in executor-http
+
+- Updated dependencies
+  [[`a276ba8`](https://github.com/ardatan/graphql-tools/commit/a276ba83cf7e2aa1c0f81454591a794d6efb8c2a)]:
+  - @graphql-tools/utils@10.3.2
+
 ## 1.1.2
 
 ### Patch Changes
