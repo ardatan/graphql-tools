@@ -1,5 +1,4 @@
 import {
-  ASTNode,
   getNamedType,
   GraphQLFieldMap,
   GraphQLSchema,
@@ -11,6 +10,7 @@ import {
   isSpecifiedScalarType,
   isUnionType,
 } from 'graphql';
+import { DirectableGraphQLObject } from './get-directives.js';
 import { getImplementingTypes } from './get-implementing-types.js';
 import { MapperKind } from './Interfaces.js';
 import { mapSchema } from './mapSchema.js';
@@ -152,12 +152,7 @@ function visitQueue(
       if (isEnumType(type)) {
         // Visit enum values directives argument types
         queue.push(
-          ...type.getValues().flatMap(value => {
-            if (value.astNode) {
-              return getDirectivesArgumentsTypeNames(schema, value.astNode);
-            }
-            return [];
-          }),
+          ...type.getValues().flatMap(value => getDirectivesArgumentsTypeNames(schema, value)),
         );
       }
       // Visit interfaces this type is implementing if they haven't been visited yet
@@ -180,9 +175,7 @@ function visitQueue(
             queue.push(
               ...field.args.flatMap(arg => {
                 const typeNames = [getNamedType(arg.type).name];
-                if (arg.astNode) {
-                  typeNames.push(...getDirectivesArgumentsTypeNames(schema, arg.astNode));
-                }
+                typeNames.push(...getDirectivesArgumentsTypeNames(schema, arg));
                 return typeNames;
               }),
             );
@@ -192,9 +185,7 @@ function visitQueue(
 
           queue.push(namedType.name);
 
-          if (field.astNode) {
-            queue.push(...getDirectivesArgumentsTypeNames(schema, field.astNode));
-          }
+          queue.push(...getDirectivesArgumentsTypeNames(schema, field));
 
           // Interfaces returned on fields need to be revisited to add their implementations
           if (isInterfaceType(namedType) && !(namedType.name in revisit)) {
@@ -203,9 +194,7 @@ function visitQueue(
         }
       }
 
-      if (type.astNode) {
-        queue.push(...getDirectivesArgumentsTypeNames(schema, type.astNode));
-      }
+      queue.push(...getDirectivesArgumentsTypeNames(schema, type));
 
       visited.add(typeName); // Mark as visited (and therefore it is used and should be kept)
     }
@@ -215,10 +204,30 @@ function visitQueue(
 
 function getDirectivesArgumentsTypeNames(
   schema: GraphQLSchema,
-  astNode: Extract<ASTNode, { readonly directives?: any }>,
+  directableObj: DirectableGraphQLObject,
 ) {
-  return (astNode.directives ?? []).flatMap(
-    directive =>
-      schema.getDirective(directive.name.value)?.args.map(arg => getNamedType(arg.type).name) ?? [],
-  );
+  const argTypeNames = new Set<string>();
+  if (directableObj.astNode?.directives) {
+    for (const directiveNode of directableObj.astNode.directives) {
+      const directive = schema.getDirective(directiveNode.name.value);
+      if (directive?.args) {
+        for (const arg of directive.args) {
+          const argType = getNamedType(arg.type);
+          argTypeNames.add(argType.name);
+        }
+      }
+    }
+  }
+  if (directableObj.extensions?.['directives']) {
+    for (const directiveName in directableObj.extensions['directives']) {
+      const directive = schema.getDirective(directiveName);
+      if (directive?.args) {
+        for (const arg of directive.args) {
+          const argType = getNamedType(arg.type);
+          argTypeNames.add(argType.name);
+        }
+      }
+    }
+  }
+  return [...argTypeNames];
 }

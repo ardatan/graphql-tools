@@ -1,4 +1,13 @@
-import { buildSchema, GraphQLNamedType } from 'graphql';
+import {
+  buildSchema,
+  DirectiveLocation,
+  GraphQLDirective,
+  GraphQLEnumType,
+  GraphQLNamedType,
+  GraphQLObjectType,
+  GraphQLSchema,
+  GraphQLString,
+} from 'graphql';
 import { PruneSchemaFilter } from '../src/index.js';
 import { pruneSchema } from '../src/prune.js';
 
@@ -486,6 +495,49 @@ describe('pruneSchema', () => {
         foo(arg: String @bar(arg: VALUE1)): Boolean
       }
     `);
+
+    const result = pruneSchema(schema);
+    expect(result.getType('DirectiveArg')).toBeDefined();
+  });
+  test('does not remove type used in argument definition directive argument from extensions', () => {
+    const enumType = new GraphQLEnumType({
+      name: 'DirectiveArg',
+      values: {
+        VALUE: {
+          value: 'VALUE',
+        },
+      },
+    });
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          foo: {
+            type: GraphQLString,
+            extensions: {
+              directives: {
+                bar: [
+                  {
+                    arg: 'VALUE',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      }),
+      directives: [
+        new GraphQLDirective({
+          name: 'bar',
+          locations: [DirectiveLocation.FIELD],
+          args: {
+            arg: {
+              type: enumType,
+            },
+          },
+        }),
+      ],
+    });
 
     const result = pruneSchema(schema);
     expect(result.getType('DirectiveArg')).toBeDefined();
