@@ -2481,10 +2481,10 @@
     "@swc/counter" "^0.1.3"
     tslib "^2.4.0"
 
-"@theguild/components@6.6.0":
-  version "6.6.0"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.6.0.tgz#e10a3bdf41b89e7c33ac8f1e62b4be38a6306cc5"
-  integrity sha512-8FsuzzsiunwNfnnaNdqPXt/IBUCN1sFxDAS03FWMjJToqnj690qiSY6ZJYFUfOqbvCcuUZBW4boKfxaeuxS/Aw==
+"@theguild/components@6.6.1":
+  version "6.6.1"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.6.1.tgz#10d80df8180e48518e5d378c0c7d5e36c0c62502"
+  integrity sha512-HHDNp/ZSKql3uEDk3+WoFv630xZ76IYwsgKxpxzaTFtkEnpVlvaM+pyeB4lIbsSL9xcLgdR7IX04X5PR0hPcFQ==
   dependencies:
     "@giscus/react" "3.0.0"
     "@next/bundle-analyzer" "14.2.5"
