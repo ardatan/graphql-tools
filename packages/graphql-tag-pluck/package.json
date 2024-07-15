@@ -62,7 +62,7 @@
     "@astrojs/compiler": "^2.3.4",
     "@babel/parser": "7.24.8",
     "@babel/traverse": "7.24.8",
-    "@babel/types": "7.24.8",
+    "@babel/types": "7.24.9",
     "@types/babel__traverse": "7.20.6",
     "@vue/compiler-sfc": "3.4.31",
     "astrojs-compiler-sync": "^1.0.0",
