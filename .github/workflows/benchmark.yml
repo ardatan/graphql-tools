@@ -5,8 +5,8 @@ env:
   CI: true
 
 on:
-  pull_request: {}
-  workflow_dispatch: {}
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   federation-benchmark:
