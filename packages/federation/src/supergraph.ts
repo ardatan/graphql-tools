@@ -1236,7 +1236,7 @@ function mergeResults(results: unknown[]) {
     return mergeDeep(datas, false, true, true);
   }
   if (errors.length) {
-    return new AggregateError(errors);
+    return new AggregateError(errors, errors.map(error => error.message).join(', \n'));
   }
   return null;
 }
