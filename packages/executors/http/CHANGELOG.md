@@ -1,5 +1,14 @@
 # @graphql-tools/executor-http
 
+## 1.1.5
+
+### Patch Changes
+
+- [#6354](https://github.com/ardatan/graphql-tools/pull/6354)
+  [`97c88a0`](https://github.com/ardatan/graphql-tools/commit/97c88a0844eff2ace5914b8e18a2d32dc5b8c265)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - Handle AggregateErrors by expanding them to
+  result errors
+
 ## 1.1.4
 
 ### Patch Changes

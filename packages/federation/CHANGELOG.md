@@ -1,5 +1,25 @@
 # @graphql-tools/federation
 
+## 2.1.2
+
+### Patch Changes
+
+- [#6355](https://github.com/ardatan/graphql-tools/pull/6355)
+  [`c6d175b`](https://github.com/ardatan/graphql-tools/commit/c6d175b2c1de640d2156ba0b2c69bf7e8884d98f)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle errors coming from subgraphs correctly
+  when a root field is shared by different subgraphs
+
+  - If subgraph A returns an error for `Query.foo`, and subgraph B returns the data, ignore the
+    error and keep it for null fields.
+  - If both subgraphs return errors, return them as `AggregateError` then return them to the gateway
+    result.
+
+- Updated dependencies
+  [[`8094c37`](https://github.com/ardatan/graphql-tools/commit/8094c3733c745b2ccb7adcca38024c82c42319a0),
+  [`97c88a0`](https://github.com/ardatan/graphql-tools/commit/97c88a0844eff2ace5914b8e18a2d32dc5b8c265)]:
+  - @graphql-tools/delegate@10.0.14
+  - @graphql-tools/executor-http@1.1.5
+
 ## 2.1.1
 
 ### Patch Changes
