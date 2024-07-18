@@ -2,6 +2,8 @@ import { execute, GraphQLSchema, parse } from 'graphql';
 import { IntrospectAndCompose, LocalGraphQLDataSource } from '@apollo/gateway';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
+import { normalizedExecutor } from '@graphql-tools/executor';
+import { isAsyncIterable } from '@graphql-tools/utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 
 describe('Error handling', () => {
@@ -127,7 +129,7 @@ describe('Error handling', () => {
   it('merges errors from shared root fields', async () => {
     aResult = new Error('A failed');
     bResult = new Error('B failed');
-    const result = await execute({
+    const result = await normalizedExecutor({
       schema: supergraph,
       document: parse(/* GraphQL */ `
         query {
@@ -139,6 +141,9 @@ describe('Error handling', () => {
         }
       `),
     });
+    if (isAsyncIterable(result)) {
+      throw new Error('Expected result to be an ExecutionResult');
+    }
     expect(result.errors).toHaveLength(2);
     expect(result.errors).toContainEqual(
       expect.objectContaining({
