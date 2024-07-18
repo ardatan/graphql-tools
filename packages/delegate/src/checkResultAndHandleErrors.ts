@@ -65,17 +65,18 @@ export function mergeDataAndErrors(
       return { data: relocatedError(errors[0], newPath), unpathedErrors: [] };
     }
 
-    // We cast path as any for GraphQL.js 14 compat
-    // locatedError path argument must be defined, but it is just forwarded to a constructor that allows a undefined value
-    // https://github.com/graphql/graphql-js/blob/b4bff0ba9c15c9d7245dd68556e754c41f263289/src/error/locatedError.js#L25
-    // https://github.com/graphql/graphql-js/blob/b4bff0ba9c15c9d7245dd68556e754c41f263289/src/error/GraphQLError.js#L19
     const combinedError = new AggregateError(
-      errors,
+      errors.map(e =>
+        // We cast path as any for GraphQL.js 14 compat
+        // locatedError path argument must be defined, but it is just forwarded to a constructor that allows a undefined value
+        // https://github.com/graphql/graphql-js/blob/b4bff0ba9c15c9d7245dd68556e754c41f263289/src/error/locatedError.js#L25
+        // https://github.com/graphql/graphql-js/blob/b4bff0ba9c15c9d7245dd68556e754c41f263289/src/error/GraphQLError.js#L19
+        locatedError(e, undefined as any, path as any),
+      ),
       errors.map(error => error.message).join(', \n'),
     );
-    const newError = locatedError(combinedError, undefined as any, path as any);
 
-    return { data: newError, unpathedErrors: [] };
+    return { data: combinedError, unpathedErrors: [] };
   }
 
   if (!errors.length) {
