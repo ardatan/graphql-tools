@@ -1226,6 +1226,9 @@ function mergeResults(results: unknown[]) {
   for (const result of results) {
     if (result instanceof AggregateError) {
       errors.push(...result.errors);
+    } else if (Object(result)['originalError'] instanceof AggregateError) {
+      // sometimes the AggregateError is syntetic, so we need to check its original error
+      errors.push(...Object(result).originalError.errors);
     } else if (result instanceof Error) {
       errors.push(result);
     } else {
