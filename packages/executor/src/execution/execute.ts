@@ -324,7 +324,11 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
           throw exeContext.signal.reason;
         }
 
-        exeContext.errors.push(error);
+        if (error.errors) {
+          exeContext.errors.push(...error.errors);
+        } else {
+          exeContext.errors.push(error);
+        }
         return buildResponse<TData>(null, exeContext.errors);
       },
     )
@@ -691,6 +695,17 @@ function executeField(
       // Note: we don't rely on a `catch` method, but we do expect "thenable"
       // to take a second callback for the error case.
       return completed.then(undefined, rawError => {
+        if (rawError instanceof AggregateError) {
+          return new AggregateError(
+            rawError.errors.map(rawErrorItem => {
+              rawErrorItem = coerceError(rawErrorItem);
+              const error = locatedError(rawErrorItem, fieldNodes, pathToArray(path));
+              const handledError = handleFieldError(error, returnType, errors);
+              filterSubsequentPayloads(exeContext, path, asyncPayloadRecord);
+              return handledError;
+            }),
+          );
+        }
         rawError = coerceError(rawError);
         const error = locatedError(rawError, fieldNodes, pathToArray(path));
         const handledError = handleFieldError(error, returnType, errors);
@@ -700,6 +715,15 @@ function executeField(
     }
     return completed;
   } catch (rawError) {
+    if (rawError instanceof AggregateError) {
+      return new AggregateError(
+        rawError.errors.map(rawErrorItem => {
+          const coercedError = coerceError(rawErrorItem);
+          const error = locatedError(coercedError, fieldNodes, pathToArray(path));
+          return handleFieldError(error, returnType, errors);
+        }),
+      );
+    }
     const coercedError = coerceError(rawError);
     const error = locatedError(coercedError, fieldNodes, pathToArray(path));
     const handledError = handleFieldError(error, returnType, errors);
@@ -1615,14 +1639,23 @@ function mapSourceToResponse(
       async (payload: unknown) =>
         ensureAsyncIterable(await executeImpl(buildPerEventExecutionContext(exeContext, payload))),
       (error: Error) => {
-        const wrappedError = createGraphQLError(error.message, {
-          originalError: error,
-          nodes: [exeContext.operation],
-        });
-        throw wrappedError;
+        if (error instanceof AggregateError) {
+          throw new AggregateError(
+            error.errors.map(e => wrapError(e, exeContext.operation)),
+            error.message,
+          );
+        }
+        throw wrapError(error, exeContext.operation);
       },
     ),
   );
+}
+
+function wrapError(error: Error, operation: OperationDefinitionNode) {
+  return createGraphQLError(error.message, {
+    originalError: error,
+    nodes: [operation],
+  });
 }
 
 function createSourceEventStreamImpl(

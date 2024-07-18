@@ -1060,9 +1060,9 @@ export function getStitchingOptionsFromSupergraphSdl(
             return jobs[0];
           }
           if (hasPromise) {
-            return Promise.all(jobs).then(results => mergeDeep(results, false, true, true));
+            return Promise.all(jobs).then(results => mergeResults(results));
           }
-          return mergeDeep(jobs);
+          return mergeResults(jobs);
         },
       };
     }
@@ -1219,3 +1219,24 @@ const entitiesFieldDefinitionNode: FieldDefinitionNode = {
 };
 
 const specifiedTypeNames = ['ID', 'String', 'Float', 'Int', 'Boolean', '_Any', '_Entity'];
+
+function mergeResults(results: unknown[]) {
+  const errors: Error[] = [];
+  const datas: unknown[] = [];
+  for (const result of results) {
+    if (result instanceof AggregateError) {
+      errors.push(...result.errors);
+    } else if (result instanceof Error) {
+      errors.push(result);
+    } else {
+      datas.push(result);
+    }
+  }
+  if (datas.length) {
+    return mergeDeep(datas, false, true, true);
+  }
+  if (errors.length) {
+    return new AggregateError(errors, errors.map(error => error.message).join(', \n'));
+  }
+  return null;
+}
