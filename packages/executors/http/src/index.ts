@@ -372,82 +372,30 @@ export function buildHTTPExecutor(
         }
       })
       .catch((e: any) => {
-        if (typeof e === 'string') {
+        if (e.name === 'AggregateError') {
           return {
-            errors: [
-              createGraphQLError(e, {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
-                },
-              }),
-            ],
-          };
-        } else if (e.name === 'GraphQLError') {
-          return {
-            errors: [e],
-          };
-        } else if (e.name === 'TypeError' && e.message === 'fetch failed') {
-          return {
-            errors: [
-              createGraphQLError(`fetch failed to ${endpoint}`, {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
-                },
-                originalError: e,
-              }),
-            ],
-          };
-        } else if (e.name === 'AbortError' && signal?.reason) {
-          return createResultForAbort(
-            signal,
-            {
-              requestBody: {
+            errors: e.errors.map((e: any) =>
+              coerceFetchError(e, {
+                signal,
                 query,
-                operationName: request.operationName,
-              },
-              responseDetails: responseDetailsForError,
-            },
-            e,
-          );
-        } else if (e.message) {
-          return {
-            errors: [
-              createGraphQLError(e.message, {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
-                },
-                originalError: e,
+                endpoint,
+                request,
+                responseDetailsForError,
               }),
-            ],
-          };
-        } else {
-          return {
-            errors: [
-              createGraphQLError('Unknown error', {
-                extensions: {
-                  requestBody: {
-                    query,
-                    operationName: request.operationName,
-                  },
-                  responseDetails: responseDetailsForError,
-                },
-                originalError: e,
-              }),
-            ],
+            ),
           };
         }
+        return {
+          errors: [
+            coerceFetchError(e, {
+              signal,
+              query,
+              endpoint,
+              request,
+              responseDetailsForError,
+            }),
+          ],
+        };
       })
       .resolve();
   };
@@ -512,8 +460,98 @@ export function buildHTTPExecutor(
   return executor;
 }
 
+function coerceFetchError(
+  e: any,
+  {
+    signal,
+    query,
+    endpoint,
+    request,
+    responseDetailsForError,
+  }: {
+    signal: AbortSignal | undefined;
+    query: string;
+    endpoint: string;
+    request: ExecutionRequest;
+    responseDetailsForError: {
+      status?: number;
+      statusText?: string;
+    };
+  },
+) {
+  if (typeof e === 'string') {
+    return createGraphQLError(e, {
+      extensions: {
+        requestBody: {
+          query,
+          operationName: request.operationName,
+        },
+        responseDetails: responseDetailsForError,
+      },
+    });
+  } else if (e.name === 'GraphQLError') {
+    return e;
+  } else if (e.name === 'TypeError' && e.message === 'fetch failed') {
+    return createGraphQLError(`fetch failed to ${endpoint}`, {
+      extensions: {
+        requestBody: {
+          query,
+          operationName: request.operationName,
+        },
+        responseDetails: responseDetailsForError,
+      },
+      originalError: e,
+    });
+  } else if (e.name === 'AbortError' && signal?.reason) {
+    return createGraphQLErrorForAbort(
+      signal,
+      {
+        requestBody: {
+          query,
+          operationName: request.operationName,
+        },
+        responseDetails: responseDetailsForError,
+      },
+      e,
+    );
+  } else if (e.message) {
+    return createGraphQLError(e.message, {
+      extensions: {
+        requestBody: {
+          query,
+          operationName: request.operationName,
+        },
+        responseDetails: responseDetailsForError,
+      },
+      originalError: e,
+    });
+  } else {
+    return createGraphQLError('Unknown error', {
+      extensions: {
+        requestBody: {
+          query,
+          operationName: request.operationName,
+        },
+        responseDetails: responseDetailsForError,
+      },
+      originalError: e,
+    });
+  }
+}
+
 function createAbortErrorReason() {
   return new Error('Executor was disposed.');
+}
+
+function createGraphQLErrorForAbort(
+  signal: AbortSignal,
+  extensions?: Record<string, any>,
+  originalError?: Error,
+) {
+  return createGraphQLError('The operation was aborted. reason: ' + signal.reason, {
+    extensions,
+    originalError,
+  });
 }
 
 function createResultForAbort(
@@ -522,12 +560,7 @@ function createResultForAbort(
   originalError?: Error,
 ) {
   return {
-    errors: [
-      createGraphQLError('The operation was aborted. reason: ' + signal.reason, {
-        extensions,
-        originalError,
-      }),
-    ],
+    errors: [createGraphQLErrorForAbort(signal, extensions, originalError)],
   };
 }
 
