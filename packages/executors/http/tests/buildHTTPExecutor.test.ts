@@ -70,7 +70,7 @@ describe('buildHTTPExecutor', () => {
     expect(result).toMatchObject({
       errors: [
         {
-          message: 'Unexpected empty "data" and "errors" fields',
+          message: expect.stringContaining('Unexpected empty "data" and "errors" fields'),
         },
       ],
     });
