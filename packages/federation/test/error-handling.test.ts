@@ -1,4 +1,4 @@
-import { execute, GraphQLSchema, parse } from 'graphql';
+import { GraphQLSchema, parse } from 'graphql';
 import { IntrospectAndCompose, LocalGraphQLDataSource } from '@apollo/gateway';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
@@ -105,7 +105,7 @@ describe('Error handling', () => {
   it('chooses the successful result from shared root fields', async () => {
     aResult = new Error('A failed');
     bResult = { id: '1' };
-    const result = await execute({
+    const result = await normalizedExecutor({
       schema: supergraph,
       document: parse(/* GraphQL */ `
         query {
@@ -117,6 +117,9 @@ describe('Error handling', () => {
         }
       `),
     });
+    if (isAsyncIterable(result)) {
+      throw new Error('Expected result to be an ExecutionResult');
+    }
     expect(result.errors).toBeUndefined();
     expect(result.data).toEqual({
       foo: {
