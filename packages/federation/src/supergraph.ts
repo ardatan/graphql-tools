@@ -1233,7 +1233,7 @@ function mergeResults(results: unknown[]) {
     }
   }
   if (datas.length) {
-    return mergeDeep(results, false, true, true);
+    return mergeDeep(datas, false, true, true);
   }
   if (errors.length) {
     return new AggregateError(errors);

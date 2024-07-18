@@ -324,7 +324,11 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
           throw exeContext.signal.reason;
         }
 
-        exeContext.errors.push(error);
+        if (error.errors) {
+          exeContext.errors.push(...error.errors);
+        } else {
+          exeContext.errors.push(error);
+        }
         return buildResponse<TData>(null, exeContext.errors);
       },
     )
