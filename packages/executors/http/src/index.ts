@@ -316,15 +316,18 @@ export function buildHTTPExecutor(
               ) {
                 return {
                   errors: [
-                    createGraphQLError('Unexpected empty "data" and "errors" fields', {
-                      extensions: {
-                        requestBody: {
-                          query,
-                          operationName: request.operationName,
+                    createGraphQLError(
+                      'Unexpected empty "data" and "errors" fields in result: ' + result,
+                      {
+                        extensions: {
+                          requestBody: {
+                            query,
+                            operationName: request.operationName,
+                          },
+                          responseDetails: responseDetailsForError,
                         },
-                        responseDetails: responseDetailsForError,
                       },
-                    }),
+                    ),
                   ],
                 };
               }
@@ -503,17 +506,13 @@ function coerceFetchError(
       originalError: e,
     });
   } else if (e.name === 'AbortError' && signal?.reason) {
-    return createGraphQLErrorForAbort(
-      signal,
-      {
-        requestBody: {
-          query,
-          operationName: request.operationName,
-        },
-        responseDetails: responseDetailsForError,
+    return createGraphQLErrorForAbort(signal, {
+      requestBody: {
+        query,
+        operationName: request.operationName,
       },
-      e,
-    );
+      responseDetails: responseDetailsForError,
+    });
   } else if (e.message) {
     return createGraphQLError(e.message, {
       extensions: {
@@ -543,24 +542,15 @@ function createAbortErrorReason() {
   return new Error('Executor was disposed.');
 }
 
-function createGraphQLErrorForAbort(
-  signal: AbortSignal,
-  extensions?: Record<string, any>,
-  originalError?: Error,
-) {
+function createGraphQLErrorForAbort(signal: AbortSignal, extensions?: Record<string, any>) {
   return createGraphQLError('The operation was aborted. reason: ' + signal.reason, {
     extensions,
-    originalError,
   });
 }
 
-function createResultForAbort(
-  signal: AbortSignal,
-  extensions?: Record<string, any>,
-  originalError?: Error,
-) {
+function createResultForAbort(signal: AbortSignal, extensions?: Record<string, any>) {
   return {
-    errors: [createGraphQLErrorForAbort(signal, extensions, originalError)],
+    errors: [createGraphQLErrorForAbort(signal, extensions)],
   };
 }
 
