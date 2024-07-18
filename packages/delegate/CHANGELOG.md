@@ -1,5 +1,21 @@
 # @graphql-tools/delegate
 
+## 10.0.14
+
+### Patch Changes
+
+- [#6356](https://github.com/ardatan/graphql-tools/pull/6356)
+  [`8094c37`](https://github.com/ardatan/graphql-tools/commit/8094c3733c745b2ccb7adcca38024c82c42319a0)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - AggregateError errors are GraphQL located
+  errors
+
+  Instead of transforming the AggregateError itself to a GraphQL located error.
+
+  This is because of two reasons:
+
+  - AggregateError wont lose the instanceof its class
+  - Expanding the AggregateError errors will each contain the proper locations
+
 ## 10.0.13
 
 ### Patch Changes
