@@ -1228,6 +1228,9 @@ function mergeResults(results: unknown[]) {
       errors.push(...result.errors);
     } else if (Object(result)['originalError'] instanceof AggregateError) {
       // sometimes the AggregateError is syntetic, so we need to check its original error
+      // see where:
+      //   - packages/delegate/src/checkResultAndHandleErrors.ts
+      //   - packages/delegate/src/resolveExternalValue.ts
       errors.push(...Object(result).originalError.errors);
     } else if (result instanceof Error) {
       errors.push(result);
