@@ -2481,18 +2481,18 @@
     "@swc/counter" "^0.1.3"
     tslib "^2.4.0"
 
-"@theguild/components@6.6.1":
-  version "6.6.1"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.6.1.tgz#10d80df8180e48518e5d378c0c7d5e36c0c62502"
-  integrity sha512-HHDNp/ZSKql3uEDk3+WoFv630xZ76IYwsgKxpxzaTFtkEnpVlvaM+pyeB4lIbsSL9xcLgdR7IX04X5PR0hPcFQ==
+"@theguild/components@6.6.2":
+  version "6.6.2"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.6.2.tgz#2bf03d62914b019ac7fcbeccdfc837e3dd2ad0af"
+  integrity sha512-T/MBw5mERf7s4QA1VdMF30x6irgy+i/9WDO/Qq5nOWv/LRnvx0WpVcPt6xDCrsSqZBjHj0+E32mbse0+XwOwkQ==
   dependencies:
     "@giscus/react" "3.0.0"
     "@next/bundle-analyzer" "14.2.5"
     clsx "2.1.1"
     fuzzy "0.1.3"
     next-videos "1.5.0"
-    nextra "3.0.0-alpha.25"
-    nextra-theme-docs "3.0.0-alpha.25"
+    nextra "3.0.0-alpha.27"
+    nextra-theme-docs "3.0.0-alpha.27"
     react-paginate "8.2.0"
     react-player "2.16.0"
     remark-mdx-disable-explicit-jsx "0.1.0"
@@ -9377,10 +9377,10 @@ next@14.2.5:
     "@next/swc-win32-ia32-msvc" "14.2.5"
     "@next/swc-win32-x64-msvc" "14.2.5"
 
-nextra-theme-docs@3.0.0-alpha.25:
-  version "3.0.0-alpha.25"
-  resolved "https://registry.yarnpkg.com/nextra-theme-docs/-/nextra-theme-docs-3.0.0-alpha.25.tgz#ae46cd693efd0a20aca805ac55f3f42af91bb676"
-  integrity sha512-1B9CyQW0Cs+H7En9ZN+qoFP4wHrmdMolzLX3LUdBzypHevu2YjN5p6f5JzvORdf92yUBEmCEaUD69C0N/Rmx6g==
+nextra-theme-docs@3.0.0-alpha.27:
+  version "3.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/nextra-theme-docs/-/nextra-theme-docs-3.0.0-alpha.27.tgz#cecf880a856eb045dd2e1a4426775993d7347881"
+  integrity sha512-nwoI7X81PZjR0gKM3S4CfPBwAo5hY5fQ/4jzDwNLAvXWpS7KmVt+uKajpx8L6Q79Q7vqYZIAZiaTMV+z6c621w==
   dependencies:
     "@headlessui/react" "^1.7.17"
     "@popperjs/core" "^2.11.8"
@@ -9393,10 +9393,10 @@ nextra-theme-docs@3.0.0-alpha.25:
     scroll-into-view-if-needed "^3.1.0"
     zod "^3.22.3"
 
-nextra@3.0.0-alpha.25:
-  version "3.0.0-alpha.25"
-  resolved "https://registry.yarnpkg.com/nextra/-/nextra-3.0.0-alpha.25.tgz#211eca706cae38510c82fb5e5bbc3e8b7437cac8"
-  integrity sha512-vikr4bJm75j9V5kMWxmUMphDDaoTxRUvdImmKPhIFd+Fg0LYJJJnpuuV4mf7w0I8uPlfob8ETRK1j776GKAMRw==
+nextra@3.0.0-alpha.27:
+  version "3.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/nextra/-/nextra-3.0.0-alpha.27.tgz#efc8b14a02f6b3e51270e2d90d7a2ccf776d6308"
+  integrity sha512-sv+v6C3o3kmnCZeqeLlxrWlBzqKSMjKZwF8dHnwheC1fDr1EYXyt4Qi16BQAY9WYg/KEV17L2G7a+GDKLn8vNA==
   dependencies:
     "@headlessui/react" "^1.7.17"
     "@mdx-js/mdx" "^3.0.0"
