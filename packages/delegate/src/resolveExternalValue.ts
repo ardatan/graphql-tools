@@ -6,11 +6,13 @@ import {
   GraphQLOutputType,
   GraphQLResolveInfo,
   GraphQLSchema,
+  isAbstractType,
   isCompositeType,
+  isLeafType,
   isListType,
   locatedError,
 } from 'graphql';
-import { Maybe } from '@graphql-tools/utils';
+import { isPromise, Maybe } from '@graphql-tools/utils';
 import { annotateExternalObject, isExternalObject, mergeFields } from './mergeFields.js';
 import { Subschema } from './Subschema.js';
 import { MergedTypeInfo, StitchingInfo, SubschemaConfig } from './types.js';
@@ -34,10 +36,16 @@ export function resolveExternalValue<TContext extends Record<string, any>>(
     return reportUnpathedErrorsViaNull(unpathedErrors);
   }
 
-  if ('parseValue' in type) {
-    return type.parseValue(result);
+  if (isLeafType(type)) {
+    // Gateway doesn't need to know about errors in leaf values
+    // If an enum value is invalid, it is an subschema error not a gateway error
+    try {
+      return type.parseValue(result);
+    } catch {
+      return null;
+    }
   } else if (isCompositeType(type)) {
-    return resolveExternalObject(
+    const result$ = resolveExternalObject(
       type,
       result,
       unpathedErrors,
@@ -46,6 +54,22 @@ export function resolveExternalValue<TContext extends Record<string, any>>(
       info,
       skipTypeMerging,
     );
+    if (info && isAbstractType(type)) {
+      function checkAbstractResolvedCorrectly(result: any) {
+        if (result.__typename != null) {
+          const resolvedType = info!.schema.getType(result.__typename);
+          if (!resolvedType) {
+            return null;
+          }
+        }
+        return result;
+      }
+      if (isPromise(result$)) {
+        return result$.then(checkAbstractResolvedCorrectly);
+      }
+      return checkAbstractResolvedCorrectly(result$);
+    }
+    return result$;
   } else if (isListType(type)) {
     if (Array.isArray(result)) {
       return resolveExternalList(

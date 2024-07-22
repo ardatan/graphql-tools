@@ -152,7 +152,9 @@ describe('Federation Compatibility', () => {
             const document = parse(test.query, { noLocation: true });
             const validationErrors = validate(stitchedSchema, document);
             if (validationErrors.length > 0) {
-              result = { errors: validationErrors };
+              result = {
+                errors: validationErrors,
+              };
             } else {
               result = (await normalizedExecutor({
                 schema: stitchedSchema,
@@ -161,32 +163,14 @@ describe('Federation Compatibility', () => {
             }
           });
           it('gives the correct result', () => {
-            if (test.expected.errors === true) {
-              if (test.expected.data) {
-                expect(result).toMatchObject({
-                  data: test.expected.data,
-                  errors: expect.any(Array),
-                });
-              } else {
-                expect(result).toMatchObject({
-                  errors: expect.any(Array),
-                });
-              }
+            if (test.expected.errors) {
+              expect(result.errors).toBeInstanceOf(Array);
             } else {
-              if ('errors' in result && result.errors) {
-                for (const error of result.errors) {
-                  if (process.env['PRINT_FEDERATION_ERRORS']) {
-                    console.error({
-                      message: error.message,
-                      stack: error.stack,
-                      extensions: error.extensions,
-                    });
-                  }
-                }
-              }
-              expect(result).toMatchObject({
-                data: test.expected.data,
-              });
+              result.errors?.forEach(e => console.error(e));
+              expect(result.errors).toBeFalsy();
+            }
+            if (test.expected.data) {
+              expect(result.data).toEqual(test.expected.data);
             }
           });
           /*

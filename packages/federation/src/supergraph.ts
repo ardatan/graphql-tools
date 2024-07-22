@@ -34,6 +34,7 @@ import {
 import {
   delegateToSchema,
   extractUnavailableFieldsFromSelectionSet,
+  MergedFieldConfig,
   MergedTypeConfig,
   SubschemaConfig,
   subtractSelectionSets,
@@ -191,7 +192,13 @@ export function getStitchingOptionsFromSupergraphSdl(
             const keyArgumentNode = directiveNode.arguments?.find(
               argumentNode => argumentNode.name.value === 'key',
             );
-            if (keyArgumentNode?.value?.kind === Kind.STRING) {
+            const isResolvable = !directiveNode.arguments?.some(
+              argumentNode =>
+                argumentNode.name.value === 'resolvable' &&
+                argumentNode.value?.kind === Kind.BOOLEAN &&
+                argumentNode.value.value === false,
+            );
+            if (isResolvable && keyArgumentNode?.value?.kind === Kind.STRING) {
               let typeNameKeysMap = typeNameKeysBySubgraphMap.get(graphName);
               if (!typeNameKeysMap) {
                 typeNameKeysMap = new Map();
@@ -636,7 +643,7 @@ export function getStitchingOptionsFromSupergraphSdl(
         const fieldsKeyMap = typeNameFieldsKeyMap?.get(typeName);
         const extraKeys: string[] = [];
         if (fieldsKeyMap) {
-          const fieldsConfig = (mergedTypeConfig.fields = {});
+          const fieldsConfig: Record<string, MergedFieldConfig> = (mergedTypeConfig.fields = {});
           for (const [fieldName, fieldNameKey] of fieldsKeyMap) {
             extraKeys.push(fieldNameKey);
             fieldsConfig[fieldName] = {

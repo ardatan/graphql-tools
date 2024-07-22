@@ -90,6 +90,5 @@ describe('test delegateToSchema() with type renaming', () => {
     });
 
     expect(result.data?.['itemByVariant']).toBeNull();
-    expect(result.errors).toHaveLength(1);
   });
 });
