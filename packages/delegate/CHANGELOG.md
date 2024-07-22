@@ -1,5 +1,17 @@
 # @graphql-tools/delegate
 
+## 10.0.15
+
+### Patch Changes
+
+- [`d54b21a`](https://github.com/ardatan/graphql-tools/commit/d54b21a235f9632d320a32f15594ecd70b5eae29)
+  Thanks [@ardatan](https://github.com/ardatan)! - If an abstract type on the gateway resolves to a
+  type that does not exist on the gateway, return null instead of showing an error to the user
+
+- [`d54b21a`](https://github.com/ardatan/graphql-tools/commit/d54b21a235f9632d320a32f15594ecd70b5eae29)
+  Thanks [@ardatan](https://github.com/ardatan)! - If an enum value coming from the subschema is not
+  available on gateway, do not show an error to the user but return null instead
+
 ## 10.0.14
 
 ### Patch Changes

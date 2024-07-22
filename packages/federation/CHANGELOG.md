@@ -1,5 +1,18 @@
 # @graphql-tools/federation
 
+## 2.1.3
+
+### Patch Changes
+
+- [`d54b21a`](https://github.com/ardatan/graphql-tools/commit/d54b21a235f9632d320a32f15594ecd70b5eae29)
+  Thanks [@ardatan](https://github.com/ardatan)! - Do not apply type merging for non-resolvable
+  entities
+
+- Updated dependencies
+  [[`d54b21a`](https://github.com/ardatan/graphql-tools/commit/d54b21a235f9632d320a32f15594ecd70b5eae29),
+  [`d54b21a`](https://github.com/ardatan/graphql-tools/commit/d54b21a235f9632d320a32f15594ecd70b5eae29)]:
+  - @graphql-tools/delegate@10.0.15
+
 ## 2.1.2
 
 ### Patch Changes
