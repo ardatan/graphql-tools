@@ -1,5 +1,14 @@
 # @graphql-tools/mock
 
+## 9.0.4
+
+### Patch Changes
+
+- [#6265](https://github.com/ardatan/graphql-tools/pull/6265)
+  [`ca61aa0`](https://github.com/ardatan/graphql-tools/commit/ca61aa082cfb5894929bff6313624c36829c9462)
+  Thanks [@snstanton](https://github.com/snstanton)! - fix errors in find and filter with an empty
+  store
+
 ## 9.0.3
 
 ### Patch Changes
