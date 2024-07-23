@@ -184,7 +184,7 @@ describe('Managed Federation', () => {
       manager.on('schema', onSchemaChange);
       manager.start();
 
-      await delay(0.29);
+      await delay(0.25);
       expect(onSchemaChange).toHaveBeenCalledTimes(3);
     });
 
