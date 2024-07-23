@@ -1,5 +1,14 @@
 # @graphql-tools/federation
 
+## 2.2.0
+
+### Minor Changes
+
+- [#6368](https://github.com/ardatan/graphql-tools/pull/6368)
+  [`334d301`](https://github.com/ardatan/graphql-tools/commit/334d301007d4d73e09182f22a76bdce1937ec8af)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Expose the loaded supergrapth SDL in
+  the `schema` event
+
 ## 2.1.4
 
 ### Patch Changes
