@@ -1,5 +1,53 @@
 # @graphql-tools/executor
 
+## 1.3.0
+
+### Minor Changes
+
+- [`33e8146`](https://github.com/ardatan/graphql-tools/commit/33e8146e33aa17790ee76d14e52f62c684ee1b16)
+  Thanks [@ardatan](https://github.com/ardatan)! - Ability to create critical errors that prevents
+  to return a partial results
+
+  ```ts
+  import { CRITICAL_ERROR } from '@graphql-tools/executor'
+
+  const schema = makeExecutableSchema({
+    typeDefs: `
+      type Query {
+        hello: String
+      }
+    `,
+    resolvers: {
+      Query: {
+        hello: () =>
+          new GraphQLError('Critical error', {
+            extensions: {
+              [CRITICAL_ERROR]: true
+            }
+          })
+      }
+    }
+  })
+  ```
+
+  This will prevent to return a partial results and will return an error instead.
+
+  ```ts
+  const result = await execute({
+    schema,
+    document: parse(`{ hello }`)
+  })
+
+  expect(result).toEqual({
+    errors: [
+      {
+        message: 'Critical error'
+      }
+    ],
+    data: null // Instead of { hello: null }
+  })
+  ```
+
 ## 1.2.8
 
 ### Patch Changes
