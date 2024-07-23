@@ -1,5 +1,17 @@
 # @graphql-tools/delegate
 
+## 10.0.16
+
+### Patch Changes
+
+- [`33e8146`](https://github.com/ardatan/graphql-tools/commit/33e8146e33aa17790ee76d14e52f62c684ee1b16)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fail on query planning phase if the query plan is
+  not successful before the actual execution
+
+- Updated dependencies
+  [[`33e8146`](https://github.com/ardatan/graphql-tools/commit/33e8146e33aa17790ee76d14e52f62c684ee1b16)]:
+  - @graphql-tools/executor@1.3.0
+
 ## 10.0.15
 
 ### Patch Changes
