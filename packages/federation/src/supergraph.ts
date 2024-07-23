@@ -32,6 +32,7 @@ import {
   visitWithTypeInfo,
 } from 'graphql';
 import {
+  BatchingOptions,
   delegateToSchema,
   extractUnavailableFieldsFromSelectionSet,
   MergedFieldConfig,
@@ -87,9 +88,25 @@ export interface FederationSubschemaConfig extends Omit<SubschemaConfig, 'execut
 
 export interface GetStitchingOptionsFromSupergraphSdlOpts {
   supergraphSdl: string | DocumentNode;
-  httpExecutorOpts?: Partial<HTTPExecutorOptions>;
+  httpExecutorOpts?:
+    | Partial<HTTPExecutorOptions>
+    | ((subgraphInfo: { name: string; endpoint?: string }) => Partial<HTTPExecutorOptions>);
   onSubschemaConfig?: (subschemaConfig: FederationSubschemaConfig) => void;
+  onMergedTypeConfig?: (typeName: string, mergedTypeConfig: MergedTypeConfig) => void;
+  /**
+   * Enable query batching for all subschemas.
+   *
+   * @default false
+   */
   batch?: boolean;
+  /**
+   * Configure the query batching options for all subschemas.
+   */
+  batchingOptions?: BatchingOptions;
+  /**
+   * Configure the batch delegation options for all merged types in all subschemas.
+   */
+  batchDelegateOptions?: MergedTypeConfig['dataLoaderOptions'];
 }
 
 export function getStitchingOptionsFromSupergraphSdl(
@@ -664,6 +681,7 @@ export function getStitchingOptionsFromSupergraphSdl(
             fieldName: `_entities`,
             dataLoaderOptions: {
               cacheKeyFn: getCacheKeyFnFromKey(key),
+              ...(opts.batchDelegateOptions || {}),
             },
           };
         }
@@ -684,6 +702,8 @@ export function getStitchingOptionsFromSupergraphSdl(
             value: typeName,
           },
         });
+
+        opts.onMergedTypeConfig?.(typeName, mergedTypeConfig);
       }
     }
     const entitiesUnionTypeDefinitionNode: UnionTypeDefinitionNode = {
@@ -857,9 +877,18 @@ export function getStitchingOptionsFromSupergraphSdl(
         `Error building schema for subgraph ${subgraphName}: ${e?.stack || e?.message || e.toString()}`,
       );
     }
+    let httpExecutorOpts: Partial<HTTPExecutorOptions>;
+    if (typeof opts.httpExecutorOpts === 'function') {
+      httpExecutorOpts = opts.httpExecutorOpts({
+        name: subgraphName,
+        endpoint,
+      });
+    } else {
+      httpExecutorOpts = opts.httpExecutorOpts || {};
+    }
     let executor: Executor = buildHTTPExecutor({
       endpoint,
-      ...(opts.httpExecutorOpts || {}),
+      ...httpExecutorOpts,
     });
     if (globalThis.process?.env?.['DEBUG']) {
       const origExecutor = executor;
@@ -925,6 +954,8 @@ export function getStitchingOptionsFromSupergraphSdl(
           },
         },
       ],
+      batch: opts.batch,
+      batchingOptions: opts.batchingOptions,
     };
     opts.onSubschemaConfig?.(subschemaConfig);
     subschemas.push(subschemaConfig);
