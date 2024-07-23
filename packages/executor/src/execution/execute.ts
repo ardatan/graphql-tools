@@ -759,6 +759,8 @@ export function buildResolveInfo(
   };
 }
 
+export const CRITICAL_ERROR = 'CRITICAL_ERROR' as const;
+
 function handleFieldError(
   error: GraphQLError,
   returnType: GraphQLOutputType,
@@ -767,6 +769,10 @@ function handleFieldError(
   // If the field type is non-nullable, then it is resolved without any
   // protection from errors, however it still properly locates the error.
   if (isNonNullType(returnType)) {
+    throw error;
+  }
+
+  if (error.extensions?.[CRITICAL_ERROR]) {
     throw error;
   }
 

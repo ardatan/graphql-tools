@@ -124,7 +124,7 @@ describe('Managed Federation', () => {
       });
 
       expect(result).toMatchObject({
-        supergraphSdl: supergraphSdl,
+        supergraphSdl,
         id: 'test-id-1',
         minDelaySeconds: 0.1,
       });

@@ -163,35 +163,25 @@ describe('Federation Compatibility', () => {
             }
           });
           it('gives the correct result', () => {
-            if (test.expected.errors) {
-              expect(result.errors).toBeInstanceOf(Array);
-            } else {
-              result.errors?.forEach(e => console.error(e));
-              expect(result.errors).toBeFalsy();
-            }
-            if (test.expected.data) {
-              expect(result.data).toEqual(test.expected.data);
+            const received = {
+              data: result.data ?? null,
+              errors: !!result.errors?.length,
+            };
+
+            const expected = {
+              data: test.expected.data ?? null,
+              errors: test.expected.errors ?? false,
+            };
+
+            try {
+              expect(received).toEqual(expected);
+            } catch (e) {
+              result.errors?.forEach(err => {
+                console.error(err);
+              });
+              throw e;
             }
           });
-          /*
-          if (!process.env['LEAK_TEST']) {
-            it('calls the subgraphs at the same number or less than Apollo GW', async () => {
-              try {
-                await apolloExecutor({
-                  document: parse(test.query, { noLocation: true }),
-                });
-              } catch (e) {}
-              for (const subgraphName in apolloSubgraphCalls) {
-                if (stitchingSubgraphCalls[subgraphName] != null) {
-                  expect(stitchingSubgraphCalls[subgraphName]).toBeLessThanOrEqual(
-                    apolloSubgraphCalls[subgraphName],
-                  );
-                }
-                // If never called, that's better
-              }
-            });
-          }
-            */
         });
       });
     });

@@ -942,6 +942,11 @@ export function getStitchingOptionsFromSupergraphSdl(
                           ) {
                             throw createGraphQLError(
                               `Was not able to find any options for ${node.name.value}: This shouldn't have happened.`,
+                              {
+                                extensions: {
+                                  CRITICAL_ERROR: true,
+                                },
+                              },
                             );
                           }
                         }

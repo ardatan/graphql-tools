@@ -14,9 +14,8 @@
   {
     "query": "\n      query {\n        a {\n          field\n        }\n      }\n    ",
     "expected": {
-      "data": {
-        "a": null
-      }
+      "data": null,
+      "errors": true
     },
     "plan": "\n    # NOTE\n    # Query.a is only available in subgraph A.\n    # Query.a resolves Node interface, but none of the object types in subgraph A implement Node.\n    QueryPlan {}\n    "
   },

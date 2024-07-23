@@ -22,8 +22,10 @@ import {
   visit,
   visitWithTypeInfo,
 } from 'graphql';
+import { CRITICAL_ERROR } from '@graphql-tools/executor';
 import {
   ASTVisitorKeyMap,
+  createGraphQLError,
   createVariableNameGenerator,
   ExecutionRequest,
   getDefinedRootType,
@@ -138,6 +140,31 @@ export function finalizeGatewayRequest<TContext>(
     fragments,
     operations,
   );
+
+  // Fail if the query is only the root __typename field
+
+  if (
+    newDocument.definitions.length === 1 &&
+    newDocument.definitions[0].kind === Kind.OPERATION_DEFINITION
+  ) {
+    const operation = newDocument.definitions[0] as OperationDefinitionNode;
+    if (
+      operation.selectionSet.selections.length === 1 &&
+      operation.selectionSet.selections[0].kind === Kind.FIELD
+    ) {
+      const field = operation.selectionSet.selections[0] as any;
+      if (field.name.value === '__typename' && operation.operation === 'query') {
+        throw createGraphQLError(
+          'Failed to create a gateway request. The query must contain at least one selection.',
+          {
+            extensions: {
+              [CRITICAL_ERROR]: true,
+            },
+          },
+        );
+      }
+    }
+  }
 
   const newVariables: Record<string, any> = {};
   if (variables != null) {
@@ -405,9 +432,9 @@ function finalizeSelectionSet(
         leave: node => {
           const type = typeInfo.getType();
           if (type == null) {
-            console.warn(
-              `Invalid type for node: ${typeInfo.getParentType()?.name}.${node.name.value}`,
-            );
+            // console.warn(
+            //   `Invalid type for node: ${typeInfo.getParentType()?.name}.${node.name.value}`,
+            // );
             return null;
           }
           const namedType = getNamedType(type);
