@@ -304,7 +304,7 @@ export type SupergraphSchemaManagerOptions = Omit<
 };
 
 export class SupergraphSchemaManager extends EventEmitter<{
-  schema: [GraphQLSchema];
+  schema: [GraphQLSchema, string];
   error: [FetchError | unknown];
   failure: [FetchError | unknown, number];
   log: [{ source: 'uplink' | 'manager'; message: string; level: 'error' | 'warn' | 'info' }];
@@ -376,7 +376,7 @@ export class SupergraphSchemaManager extends EventEmitter<{
       if ('schema' in result) {
         this.#lastSeenId = result.id;
         this.schema = result.schema;
-        this.emit('schema', result.schema);
+        this.emit('schema', result.schema, result.supergraphSdl);
         this.#log('info', 'Supergraph successfully updated');
       } else {
         this.#log('info', 'Supergraph is up to date');
