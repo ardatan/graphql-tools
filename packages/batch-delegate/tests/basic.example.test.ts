@@ -281,7 +281,10 @@ describe('batch delegation within basic stitching example', () => {
                 key: user.postIds,
                 context,
                 info,
-                valuesFromResults: ({ posts }) => posts,
+                valuesFromResults: ({ posts, keys }) => {
+                  const resultsHash = Object.fromEntries(posts.map((post: any) => [post.id, post]));
+                  return keys.map(key => resultsHash[key] ?? { id: key });
+                },
                 lazyOptionsFn: (options, keys) => ({
                   ...options,
                   returnType: postsSchema.getType('Page') as GraphQLObjectType,
