@@ -283,7 +283,7 @@ describe('batch delegation within basic stitching example', () => {
                 info,
                 valuesFromResults: ({ posts, keys }) => {
                   const resultsHash = Object.fromEntries(posts.map((post: any) => [post.id, post]));
-                  return keys.map(key => resultsHash[key] ?? { id: key });
+                  return keys.map((key: string | number) => resultsHash[key] ?? { id: key });
                 },
                 lazyOptionsFn: (options, keys) => ({
                   ...options,
