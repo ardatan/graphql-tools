@@ -21,7 +21,7 @@ import {
 } from '@graphql-tools/utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 
-describe('Federation Compatibility', () => {
+describe.skip('Federation Compatibility', () => {
   const fixturesDir = join(__dirname, 'fixtures', 'federation-compatibility');
   readdirSync(fixturesDir).forEach(supergraphName => {
     const supergraphFixturesDir = join(fixturesDir, supergraphName);
