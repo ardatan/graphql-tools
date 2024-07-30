@@ -205,4 +205,134 @@ describe('Reproductions for issues', () => {
       },
     });
   });
+
+  it.only('multiple endpoints', async () => {
+    const { stitchingDirectivesTransformer, stitchingDirectivesTypeDefs } = stitchingDirectives();
+    const users = [
+      { id: '1', name: 'Arda Doe', age: 25 },
+      { id: '2', name: 'Uri Doe', age: 35 },
+    ];
+    const userSchema = makeExecutableSchema({
+      typeDefs: [
+        stitchingDirectivesTypeDefs,
+        /* GraphQL */ `
+          type User {
+            id: ID!
+            name: String!
+          }
+
+          type Query {
+            userByIdWithName(id: ID!): User @merge(keyField: "id")
+            userByName(name: String!): User @merge(keyField: "name")
+          }
+        `,
+      ],
+      resolvers: {
+        Query: {
+          userByIdWithName: (_root, { id }) => users.find(user => user.id === id),
+          userByName: (_root, { name }) => users.find(user => user.name === name),
+        },
+      },
+    });
+    const firstNameSchema = makeExecutableSchema({
+      typeDefs: [
+        stitchingDirectivesTypeDefs,
+        /* GraphQL */ `
+          type User {
+            name: String!
+            firstName: String!
+          }
+
+          type Query {
+            userByNameWithFirstName(name: String!): User @merge(keyField: "name")
+          }
+        `,
+      ],
+      resolvers: {
+        Query: {
+          userByNameWithFirstName: (_root, { name }) => users.find(user => user.name === name),
+        },
+        User: {
+          firstName: user => user.name.split(' ')[0],
+        },
+      },
+    });
+    const ageSchema = makeExecutableSchema({
+      typeDefs: [
+        stitchingDirectivesTypeDefs,
+        /* GraphQL */ `
+          type User {
+            id: ID!
+            age: Int!
+          }
+
+          type Query {
+            userByIdWithAge(id: ID!): User @merge(keyField: "id")
+          }
+        `,
+      ],
+      resolvers: {
+        Query: {
+          userByIdWithAge: (_root, { id }) => users.find(user => user.id === id),
+        },
+      },
+    });
+    const stitchedSchema = stitchSchemas({
+      subschemas: [userSchema, firstNameSchema, ageSchema],
+      subschemaConfigTransforms: [stitchingDirectivesTransformer],
+    });
+    const result = await normalizedExecutor({
+      schema: stitchedSchema,
+      document: parse(/* GraphQL */ `
+        fragment UserFields on User {
+          id
+          name
+          firstName
+          age
+        }
+        query {
+          userByIdWithName(id: "1") {
+            ...UserFields
+          }
+          userByName(name: "Arda Doe") {
+            ...UserFields
+          }
+          userByNameWithFirstName(name: "Arda Doe") {
+            ...UserFields
+          }
+          userByIdWithAge(id: "1") {
+            ...UserFields
+          }
+        }
+      `),
+    });
+    expect(result).toEqual({
+      data: {
+        userByIdWithName: {
+          id: '1',
+          name: 'Arda Doe',
+          firstName: 'Arda',
+          age: 25,
+        },
+        userByNameWithFirstName: {
+          id: '1',
+          name: 'Arda Doe',
+          firstName: 'Arda',
+          age: 25,
+        },
+        userByName: {
+          id: '1',
+          name: 'Arda Doe',
+          firstName: 'Arda',
+          age: 25,
+        },
+        userByIdWithAge: {
+          id: '1',
+          name: 'Arda Doe',
+          firstName: 'Arda',
+          age: 25,
+        },
+      },
+    });
+  });
 });

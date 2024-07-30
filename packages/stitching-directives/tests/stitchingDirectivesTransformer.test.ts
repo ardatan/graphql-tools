@@ -558,16 +558,20 @@ describe('type merging directives', () => {
 
     const transformedSubschemaConfig = stitchingDirectivesTransformer(subschemaConfig);
 
-    expect(transformedSubschemaConfig.merge?.['User'].selectionSet).toEqual(`{\n  id\n}`);
+    const mergeConfigEntryPoints = transformedSubschemaConfig.merge?.['User']?.entryPoints;
 
-    const argsFn = transformedSubschemaConfig.merge?.['User'].args!;
+    const entryPoint = mergeConfigEntryPoints?.[0];
+
+    expect(entryPoint?.selectionSet).toEqual(`{\n  id\n}`);
+
+    const argsFn = entryPoint?.args;
 
     const originalResult = {
       id: '5',
       email: 'email@email.com',
     };
 
-    const args = argsFn(originalResult);
+    const args = argsFn?.(originalResult);
 
     expect(args).toEqual({
       id: '5',

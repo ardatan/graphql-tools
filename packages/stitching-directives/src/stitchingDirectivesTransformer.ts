@@ -18,6 +18,7 @@ import {
   cloneSubschemaConfig,
   MergedFieldConfig,
   MergedTypeConfig,
+  MergedTypeEntryPoint,
   SubschemaConfig,
 } from '@graphql-tools/delegate';
 import {
@@ -60,6 +61,14 @@ export function stitchingDirectivesTransformer(
     const canonicalTypesInfo: Record<
       string,
       { canonical?: boolean; fields?: Record<string, boolean> }
+    > = Object.create(null);
+    const selectionSetsByTypeAndEntryField: Record<
+      string,
+      Record<string, SelectionSetNode>
+    > = Object.create(null);
+    const mergedTypesResolversInfoByEntryField: Record<
+      string,
+      Record<string, MergedTypeResolverInfo>
     > = Object.create(null);
 
     const schema = subschemaConfig.schema;
@@ -140,8 +149,16 @@ export function stitchingDirectivesTransformer(
 
           forEachConcreteType(schema, returnType, typeNames, typeName => {
             if (typeNames == null || typeNames.includes(typeName)) {
-              const existingSelectionSet = selectionSetsByType[typeName];
-              selectionSetsByType[typeName] = existingSelectionSet
+              let existingEntryFieldMap = selectionSetsByTypeAndEntryField[typeName];
+              if (existingEntryFieldMap == null) {
+                existingEntryFieldMap = Object.create(null);
+                selectionSetsByTypeAndEntryField[typeName] = existingEntryFieldMap;
+              }
+              let existingSelectionSet = existingEntryFieldMap[fieldName];
+              if (existingSelectionSet == null) {
+                existingSelectionSet = selectionSetsByType[typeName];
+              }
+              existingEntryFieldMap[fieldName] = existingSelectionSet
                 ? mergeSelectionSets(existingSelectionSet, selectionSet)
                 : selectionSet;
             }
@@ -362,11 +379,18 @@ export function stitchingDirectivesTransformer(
             schema,
             typeNames,
             function generateResolveInfo(typeName) {
+              const mergedSelectionSets: SelectionSetNode[] = [];
+              if (allSelectionSetsByType[typeName]) {
+                mergedSelectionSets.push(...allSelectionSetsByType[typeName]);
+              }
+              if (selectionSetsByTypeAndEntryField[typeName]?.[fieldName]) {
+                mergedSelectionSets.push(selectionSetsByTypeAndEntryField[typeName][fieldName]);
+              }
               const parsedMergeArgsExpr = parseMergeArgsExpr(
                 mergeArgsExpr,
                 allSelectionSetsByType[typeName] == null
                   ? undefined
-                  : mergeSelectionSets(...allSelectionSetsByType[typeName]),
+                  : mergeSelectionSets(...mergedSelectionSets),
               );
 
               const additionalArgs = mergeDirective['additionalArgs'];
@@ -377,11 +401,21 @@ export function stitchingDirectivesTransformer(
                 ]);
               }
 
-              mergedTypesResolversInfo[typeName] = {
-                fieldName,
-                returnsList,
-                ...parsedMergeArgsExpr,
-              };
+              if (selectionSetsByTypeAndEntryField[typeName]?.[fieldName] != null) {
+                const typeConfigByField = (mergedTypesResolversInfoByEntryField[typeName] ||=
+                  Object.create(null));
+                typeConfigByField[fieldName] = {
+                  fieldName,
+                  returnsList,
+                  ...parsedMergeArgsExpr,
+                };
+              } else {
+                mergedTypesResolversInfo[typeName] = {
+                  fieldName,
+                  returnsList,
+                  ...parsedMergeArgsExpr,
+                };
+              }
             },
           );
         }
@@ -488,6 +522,39 @@ export function stitchingDirectivesTransformer(
           }
           mergeTypeConfigFields[fieldName].canonical = true;
         }
+      }
+    }
+
+    for (const typeName in mergedTypesResolversInfoByEntryField) {
+      const entryPoints: MergedTypeEntryPoint[] = [];
+      const existingMergeConfig = newSubschemaConfig.merge?.[typeName];
+      const newMergeConfig = (newSubschemaConfig.merge ||= Object.create(null));
+      if (existingMergeConfig) {
+        const { fields, canonical, ...baseEntryPoint } = existingMergeConfig;
+        newMergeConfig[typeName] = {
+          fields,
+          canonical,
+          entryPoints,
+        };
+        entryPoints.push(baseEntryPoint);
+      } else {
+        newMergeConfig[typeName] = {
+          entryPoints,
+        };
+      }
+      for (const fieldName in mergedTypesResolversInfoByEntryField[typeName]) {
+        const mergedTypeResolverInfo = mergedTypesResolversInfoByEntryField[typeName][fieldName];
+        const newEntryPoint: MergedTypeEntryPoint = {
+          fieldName,
+          selectionSet: print(selectionSetsByTypeAndEntryField[typeName][fieldName]),
+        };
+        if (mergedTypeResolverInfo.returnsList) {
+          newEntryPoint.key = generateKeyFn(mergedTypeResolverInfo);
+          newEntryPoint.argsFromKeys = generateArgsFromKeysFn(mergedTypeResolverInfo);
+        } else {
+          newEntryPoint.args = generateArgsFn(mergedTypeResolverInfo);
+        }
+        entryPoints.push(newEntryPoint);
       }
     }
 
