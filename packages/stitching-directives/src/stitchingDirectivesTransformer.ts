@@ -524,7 +524,10 @@ export function stitchingDirectivesTransformer(
     for (const typeName in mergedTypesResolversInfoByEntryField) {
       const entryPoints: MergedTypeEntryPoint[] = [];
       const existingMergeConfig = newSubschemaConfig.merge?.[typeName];
-      const newMergeConfig = (newSubschemaConfig.merge ||= Object.create(null));
+      const newMergeConfig: Record<
+        string,
+        MergedTypeConfig<any, any, Record<string, any>>
+      > = (newSubschemaConfig.merge ||= Object.create(null));
       if (existingMergeConfig) {
         const { fields, canonical, ...baseEntryPoint } = existingMergeConfig;
         newMergeConfig[typeName] = {
@@ -551,6 +554,15 @@ export function stitchingDirectivesTransformer(
           newEntryPoint.args = generateArgsFn(mergedTypeResolverInfo);
         }
         entryPoints.push(newEntryPoint);
+      }
+      if (entryPoints.length === 1) {
+        const [entryPoint] = entryPoints;
+        const { fields, canonical } = newMergeConfig[typeName];
+        newMergeConfig[typeName] = {
+          ...entryPoint,
+          fields,
+          canonical,
+        };
       }
     }
 
