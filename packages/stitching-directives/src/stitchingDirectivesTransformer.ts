@@ -32,7 +32,6 @@ import {
 import { defaultStitchingDirectiveOptions } from './defaultStitchingDirectiveOptions.js';
 import { parseMergeArgsExpr } from './parseMergeArgsExpr.js';
 import { addProperty, getProperties, getProperty } from './properties.js';
-import { stitchingDirectivesValidator } from './stitchingDirectivesValidator.js';
 import { MergedTypeResolverInfo, StitchingDirectivesOptions } from './types.js';
 
 export function stitchingDirectivesTransformer(
@@ -72,9 +71,6 @@ export function stitchingDirectivesTransformer(
     > = Object.create(null);
 
     const schema = subschemaConfig.schema;
-
-    // gateway should also run validation
-    stitchingDirectivesValidator(options)(schema);
 
     function setCanonicalDefinition(typeName: string, fieldName?: string): void {
       canonicalTypesInfo[typeName] = canonicalTypesInfo[typeName] || Object.create(null);

@@ -155,4 +155,22 @@ describe('type merging directives', () => {
     expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
     expect(() => stitchingDirectivesValidator(makeExecutableSchema({ typeDefs }))).not.toThrow();
   });
+
+  test('supports multiple fields as keyField', () => {
+    const typeDefs = /* GraphQL */ `
+      ${allStitchingDirectivesTypeDefs}
+      type Query {
+        _user(id: String!, name: String!): User
+          @merge(keyField: "id name", argsExpr: "id: $key.id, name: $key.name")
+      }
+
+      type User {
+        id: ID
+        name: String
+      }
+    `;
+
+    expect(() => makeExecutableSchema({ typeDefs })).not.toThrow();
+    expect(() => stitchingDirectivesValidator(makeExecutableSchema({ typeDefs }))).not.toThrow();
+  });
 });
