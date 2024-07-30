@@ -1,5 +1,12 @@
 # @graphql-tools/stitching-directives
 
+## 3.1.1
+
+### Patch Changes
+
+- [`6cf67c5`](https://github.com/ardatan/graphql-tools/commit/6cf67c5cc88b03408f52e789dbf54f573c811849)
+  Thanks [@ardatan](https://github.com/ardatan)! - Do not apply validation on transformation
+
 ## 3.1.0
 
 ### Minor Changes
