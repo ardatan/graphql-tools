@@ -1,31 +1,67 @@
 # @graphql-tools/stitching-directives
 
+## 3.1.0
+
+### Minor Changes
+
+- [`ca57eae`](https://github.com/ardatan/graphql-tools/commit/ca57eae4c9a2e4dabd7eba6c257cdde28ac66f39)
+  Thanks [@ardatan](https://github.com/ardatan)! - Support multiple entrypoints with
+  `@merge(keyField)`
+
+  ```graphql
+  type User {
+    id: ID!
+    name: String!
+  }
+
+  type Query {
+    userById(id: ID!): User @merge(keyField: "id")
+    userByName(name: String!): User @merge(keyField: "name")
+  }
+  ```
+
 ## 3.0.2
 
 ### Patch Changes
 
-- [#5162](https://github.com/ardatan/graphql-tools/pull/5162) [`27b6f49`](https://github.com/ardatan/graphql-tools/commit/27b6f49c67d4b3fca26d90dcaaef37ff61fe9d0a) Thanks [@asodeur](https://github.com/asodeur)! - Adding the ability to return non-scalar types from computed fields. Computed fields can now return
-  object types (local or stitched), interfaces, unions, or enums.
+- [#5162](https://github.com/ardatan/graphql-tools/pull/5162)
+  [`27b6f49`](https://github.com/ardatan/graphql-tools/commit/27b6f49c67d4b3fca26d90dcaaef37ff61fe9d0a)
+  Thanks [@asodeur](https://github.com/asodeur)! - Adding the ability to return non-scalar types
+  from computed fields. Computed fields can now return object types (local or stitched), interfaces,
+  unions, or enums.
 
 ## 3.0.1
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/delegate@^10.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/10.0.3) (from `^10.0.0`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.0`, in `dependencies`)
-- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/delegate@^10.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/10.0.3)
+    (from `^10.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.0`, in `dependencies`)
+- Updated dependencies
+  [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
   - @graphql-tools/delegate@10.0.4
 
 ## 3.0.0
 
 ### Major Changes
 
-- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274)
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)
+  Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
 
 ### Patch Changes
 
-- Updated dependencies [[`8fba6cc1`](https://github.com/ardatan/graphql-tools/commit/8fba6cc1876e914d587f5b253332aaedbcaa65e6), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+- Updated dependencies
+  [[`8fba6cc1`](https://github.com/ardatan/graphql-tools/commit/8fba6cc1876e914d587f5b253332aaedbcaa65e6),
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955),
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
   - @graphql-tools/delegate@10.0.0
   - @graphql-tools/utils@10.0.0
 
@@ -33,7 +69,8 @@
 
 ### Patch Changes
 
-- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41)
+  Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
 
 - Updated dependencies []:
   - @graphql-tools/delegate@9.0.31
@@ -49,28 +86,33 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`f26392a6`](https://github.com/ardatan/graphql-tools/commit/f26392a66299956da1e66253b181f85332c93db5)]:
+- Updated dependencies
+  [[`f26392a6`](https://github.com/ardatan/graphql-tools/commit/f26392a66299956da1e66253b181f85332c93db5)]:
   - @graphql-tools/delegate@9.0.29
 
 ## 2.3.31
 
 ### Patch Changes
 
-- Updated dependencies [[`492220cb`](https://github.com/ardatan/graphql-tools/commit/492220cbdf240e7abde23af0aabcb8cbc6fd3656)]:
+- Updated dependencies
+  [[`492220cb`](https://github.com/ardatan/graphql-tools/commit/492220cbdf240e7abde23af0aabcb8cbc6fd3656)]:
   - @graphql-tools/delegate@9.0.28
 
 ## 2.3.30
 
 ### Patch Changes
 
-- Updated dependencies [[`30bd4d0c`](https://github.com/ardatan/graphql-tools/commit/30bd4d0c10f59147faba925dc0941c731b0532a9)]:
+- Updated dependencies
+  [[`30bd4d0c`](https://github.com/ardatan/graphql-tools/commit/30bd4d0c10f59147faba925dc0941c731b0532a9)]:
   - @graphql-tools/delegate@9.0.27
 
 ## 2.3.29
 
 ### Patch Changes
 
-- Updated dependencies [[`b09ea282`](https://github.com/ardatan/graphql-tools/commit/b09ea282f0945fb19f354af57aabddcd23b2a155), [`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af)]:
+- Updated dependencies
+  [[`b09ea282`](https://github.com/ardatan/graphql-tools/commit/b09ea282f0945fb19f354af57aabddcd23b2a155),
+  [`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af)]:
   - @graphql-tools/delegate@9.0.26
   - @graphql-tools/utils@9.2.1
 
@@ -78,7 +120,9 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`a94217e9`](https://github.com/ardatan/graphql-tools/commit/a94217e920c5d6237471ab6ad4d96cf230984177), [`62d074be`](https://github.com/ardatan/graphql-tools/commit/62d074be48779b1e096e056ca1233822c421dc99)]:
+- Updated dependencies
+  [[`a94217e9`](https://github.com/ardatan/graphql-tools/commit/a94217e920c5d6237471ab6ad4d96cf230984177),
+  [`62d074be`](https://github.com/ardatan/graphql-tools/commit/62d074be48779b1e096e056ca1233822c421dc99)]:
   - @graphql-tools/utils@9.2.0
   - @graphql-tools/delegate@9.0.25
 
@@ -86,7 +130,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`772b948a`](https://github.com/ardatan/graphql-tools/commit/772b948ae536ac23520e704b33f450c94252f113)]:
+- Updated dependencies
+  [[`772b948a`](https://github.com/ardatan/graphql-tools/commit/772b948ae536ac23520e704b33f450c94252f113)]:
   - @graphql-tools/delegate@9.0.24
 
 ## 2.3.26
@@ -100,7 +145,9 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`a4d36fcc`](https://github.com/ardatan/graphql-tools/commit/a4d36fccce6113843a55b77c96328727f4c748bc), [`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591)]:
+- Updated dependencies
+  [[`a4d36fcc`](https://github.com/ardatan/graphql-tools/commit/a4d36fccce6113843a55b77c96328727f4c748bc),
+  [`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591)]:
   - @graphql-tools/delegate@9.0.22
   - @graphql-tools/utils@9.1.4
 
@@ -108,21 +155,26 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`13177794`](https://github.com/ardatan/graphql-tools/commit/131777947d111e6a952d9e0e581fd651664101a1)]:
+- Updated dependencies
+  [[`13177794`](https://github.com/ardatan/graphql-tools/commit/131777947d111e6a952d9e0e581fd651664101a1)]:
   - @graphql-tools/delegate@9.0.21
 
 ## 2.3.23
 
 ### Patch Changes
 
-- Updated dependencies [[`eb6cd8b6`](https://github.com/ardatan/graphql-tools/commit/eb6cd8b65dc72434348c259538b233e57a58eb1a), [`eb6cd8b6`](https://github.com/ardatan/graphql-tools/commit/eb6cd8b65dc72434348c259538b233e57a58eb1a)]:
+- Updated dependencies
+  [[`eb6cd8b6`](https://github.com/ardatan/graphql-tools/commit/eb6cd8b65dc72434348c259538b233e57a58eb1a),
+  [`eb6cd8b6`](https://github.com/ardatan/graphql-tools/commit/eb6cd8b65dc72434348c259538b233e57a58eb1a)]:
   - @graphql-tools/delegate@9.0.20
 
 ## 2.3.22
 
 ### Patch Changes
 
-- Updated dependencies [[`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759), [`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759)]:
+- Updated dependencies
+  [[`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759),
+  [`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759)]:
   - @graphql-tools/utils@9.1.3
   - @graphql-tools/delegate@9.0.19
 
@@ -130,7 +182,9 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`13c24883`](https://github.com/ardatan/graphql-tools/commit/13c24883004d5330f7402cb20566e37535c5729b), [`b5e6459f`](https://github.com/ardatan/graphql-tools/commit/b5e6459f87cd8720457ce9bff38f3dfa0cb3c150)]:
+- Updated dependencies
+  [[`13c24883`](https://github.com/ardatan/graphql-tools/commit/13c24883004d5330f7402cb20566e37535c5729b),
+  [`b5e6459f`](https://github.com/ardatan/graphql-tools/commit/b5e6459f87cd8720457ce9bff38f3dfa0cb3c150)]:
   - @graphql-tools/delegate@9.0.18
   - @graphql-tools/utils@9.1.2
 
@@ -138,7 +192,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`7411a5e7`](https://github.com/ardatan/graphql-tools/commit/7411a5e71a8138d9ccfe907b1fb01e62fcbb0cdb)]:
+- Updated dependencies
+  [[`7411a5e7`](https://github.com/ardatan/graphql-tools/commit/7411a5e71a8138d9ccfe907b1fb01e62fcbb0cdb)]:
   - @graphql-tools/utils@9.1.1
   - @graphql-tools/delegate@9.0.17
 
@@ -153,7 +208,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`c0639dd0`](https://github.com/ardatan/graphql-tools/commit/c0639dd0065db1b5bcedaabf58b11945714bab8d)]:
+- Updated dependencies
+  [[`c0639dd0`](https://github.com/ardatan/graphql-tools/commit/c0639dd0065db1b5bcedaabf58b11945714bab8d)]:
   - @graphql-tools/utils@9.1.0
   - @graphql-tools/delegate@9.0.15
 
@@ -161,7 +217,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`d83b1960`](https://github.com/ardatan/graphql-tools/commit/d83b19605be71481ccf8effd80d5254423ea811a)]:
+- Updated dependencies
+  [[`d83b1960`](https://github.com/ardatan/graphql-tools/commit/d83b19605be71481ccf8effd80d5254423ea811a)]:
   - @graphql-tools/utils@9.0.1
   - @graphql-tools/delegate@9.0.14
 
@@ -183,7 +240,12 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`8f6d3efc`](https://github.com/ardatan/graphql-tools/commit/8f6d3efc92b25236f5a3a761ea7ba2f0a7c7f550), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931)]:
+- Updated dependencies
+  [[`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`8f6d3efc`](https://github.com/ardatan/graphql-tools/commit/8f6d3efc92b25236f5a3a761ea7ba2f0a7c7f550),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931)]:
   - @graphql-tools/utils@9.0.0
   - @graphql-tools/delegate@9.0.11
 
@@ -191,7 +253,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`f7daf777`](https://github.com/ardatan/graphql-tools/commit/f7daf7777cc214801886e4a45c0389bc5837d175)]:
+- Updated dependencies
+  [[`f7daf777`](https://github.com/ardatan/graphql-tools/commit/f7daf7777cc214801886e4a45c0389bc5837d175)]:
   - @graphql-tools/utils@8.13.1
   - @graphql-tools/delegate@9.0.10
 
@@ -199,7 +262,11 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f)]:
+- Updated dependencies
+  [[`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f),
+  [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f),
+  [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f),
+  [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f)]:
   - @graphql-tools/delegate@9.0.9
   - @graphql-tools/utils@8.13.0
 
@@ -207,21 +274,24 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`0402894d`](https://github.com/ardatan/graphql-tools/commit/0402894d0b2747ae5d98d28df9b39d6a06cc5f2a)]:
+- Updated dependencies
+  [[`0402894d`](https://github.com/ardatan/graphql-tools/commit/0402894d0b2747ae5d98d28df9b39d6a06cc5f2a)]:
   - @graphql-tools/delegate@9.0.8
 
 ## 2.3.10
 
 ### Patch Changes
 
-- Updated dependencies [[`00c4a1a4`](https://github.com/ardatan/graphql-tools/commit/00c4a1a44e14b9950f44d56f44967ab7a0121706)]:
+- Updated dependencies
+  [[`00c4a1a4`](https://github.com/ardatan/graphql-tools/commit/00c4a1a44e14b9950f44d56f44967ab7a0121706)]:
   - @graphql-tools/delegate@9.0.7
 
 ## 2.3.9
 
 ### Patch Changes
 
-- Updated dependencies [[`43c736bd`](https://github.com/ardatan/graphql-tools/commit/43c736bd1865c00898966a7ed14060496c9e6a0c)]:
+- Updated dependencies
+  [[`43c736bd`](https://github.com/ardatan/graphql-tools/commit/43c736bd1865c00898966a7ed14060496c9e6a0c)]:
   - @graphql-tools/utils@8.12.0
   - @graphql-tools/delegate@9.0.6
 
@@ -229,7 +299,9 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`71cb4fae`](https://github.com/ardatan/graphql-tools/commit/71cb4faeb0833a228520a7bc2beed8ac7274443f), [`403ed450`](https://github.com/ardatan/graphql-tools/commit/403ed4507eff7cd509f410f7542a702da72e1a9a)]:
+- Updated dependencies
+  [[`71cb4fae`](https://github.com/ardatan/graphql-tools/commit/71cb4faeb0833a228520a7bc2beed8ac7274443f),
+  [`403ed450`](https://github.com/ardatan/graphql-tools/commit/403ed4507eff7cd509f410f7542a702da72e1a9a)]:
   - @graphql-tools/utils@8.11.0
   - @graphql-tools/delegate@9.0.5
 
@@ -237,7 +309,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`4fe3d9c0`](https://github.com/ardatan/graphql-tools/commit/4fe3d9c037e9c138bd8a9b04b3977d74eba32c97)]:
+- Updated dependencies
+  [[`4fe3d9c0`](https://github.com/ardatan/graphql-tools/commit/4fe3d9c037e9c138bd8a9b04b3977d74eba32c97)]:
   - @graphql-tools/utils@8.10.1
   - @graphql-tools/delegate@9.0.4
 
@@ -245,29 +318,36 @@
 
 ### Patch Changes
 
-- [#4640](https://github.com/ardatan/graphql-tools/pull/4640) [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+- [#4640](https://github.com/ardatan/graphql-tools/pull/4640)
+  [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
 
-  - Updated dependency [`@graphql-tools/delegate@9.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/9.0.3) (was `9.0.2`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/delegate@9.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/9.0.3)
+    (was `9.0.2`, in `dependencies`)
 
 ## 2.3.5
 
 ### Patch Changes
 
-- Updated dependencies [[`0555a972`](https://github.com/ardatan/graphql-tools/commit/0555a972f010d2b3ca93b9164b26474a78d0b20b)]:
+- Updated dependencies
+  [[`0555a972`](https://github.com/ardatan/graphql-tools/commit/0555a972f010d2b3ca93b9164b26474a78d0b20b)]:
   - @graphql-tools/delegate@9.0.3
 
 ## 2.3.4
 
 ### Patch Changes
 
-- Updated dependencies [[`29ee7542`](https://github.com/ardatan/graphql-tools/commit/29ee7542649e9c938bdb9c751bd3a2f56d17cb55)]:
+- Updated dependencies
+  [[`29ee7542`](https://github.com/ardatan/graphql-tools/commit/29ee7542649e9c938bdb9c751bd3a2f56d17cb55)]:
   - @graphql-tools/delegate@9.0.2
 
 ## 2.3.3
 
 ### Patch Changes
 
-- Updated dependencies [[`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27)]:
+- Updated dependencies
+  [[`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27)]:
   - @graphql-tools/utils@8.10.0
   - @graphql-tools/delegate@9.0.1
 
@@ -275,9 +355,14 @@
 
 ### Patch Changes
 
-- [#4624](https://github.com/ardatan/graphql-tools/pull/4624) [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with `moduleResolution` `node16` or `nodenext`
+- [#4624](https://github.com/ardatan/graphql-tools/pull/4624)
+  [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with
+  `moduleResolution` `node16` or `nodenext`
 
-- Updated dependencies [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67), [`d8dc67aa`](https://github.com/ardatan/graphql-tools/commit/d8dc67aa6cb05bf10f5f16e90690e5ccc87b3426)]:
+- Updated dependencies
+  [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67),
+  [`d8dc67aa`](https://github.com/ardatan/graphql-tools/commit/d8dc67aa6cb05bf10f5f16e90690e5ccc87b3426)]:
   - @graphql-tools/delegate@9.0.0
   - @graphql-tools/utils@8.9.1
 
@@ -580,11 +665,16 @@
 
 - 74581cf3: fix(getDirectives): preserve order around repeatable directives
 
-  BREAKING CHANGE: getDirectives now always return an array of individual DirectiveAnnotation objects consisting of `name` and `args` properties.
+  BREAKING CHANGE: getDirectives now always return an array of individual DirectiveAnnotation
+  objects consisting of `name` and `args` properties.
 
-  New useful function `getDirective` returns an array of objects representing any args for each use of a single directive (returning the empty object `{}` when a directive is used without arguments).
+  New useful function `getDirective` returns an array of objects representing any args for each use
+  of a single directive (returning the empty object `{}` when a directive is used without
+  arguments).
 
-  Note: The `getDirective` function returns an array even when the specified directive is non-repeatable. This is because one use of this function is to throw an error if more than one directive annotation is used for a non repeatable directive!
+  Note: The `getDirective` function returns an array even when the specified directive is
+  non-repeatable. This is because one use of this function is to throw an error if more than one
+  directive annotation is used for a non repeatable directive!
 
   When specifying directives in extensions, one can use either the old or new format.
 
@@ -638,7 +728,8 @@
 
 ### Minor Changes
 
-- 24926654: Deprecates the `MergeTypeConfig.computedFields` setting (with backwards-compatible warning) in favor of new computed field configuration written as:
+- 24926654: Deprecates the `MergeTypeConfig.computedFields` setting (with backwards-compatible
+  warning) in favor of new computed field configuration written as:
 
   ```js
   merge: {
@@ -653,7 +744,10 @@
   }
   ```
 
-  A field-level `selectionSet` specifies field dependencies while the `computed` setting structures the field in a way that assures it is always selected with this data provided. The `selectionSet` is intentionally generic to support possible future uses. This new pattern organizes all field-level configuration (including `canonical`) into a single structure.
+  A field-level `selectionSet` specifies field dependencies while the `computed` setting structures
+  the field in a way that assures it is always selected with this data provided. The `selectionSet`
+  is intentionally generic to support possible future uses. This new pattern organizes all
+  field-level configuration (including `canonical`) into a single structure.
 
 ### Patch Changes
 
@@ -664,7 +758,8 @@
 
 ### Minor Changes
 
-- d9b82a2e: enhance(stitch) canonical merged type and field definitions. Use the @canonical directive to promote preferred type and field descriptions into the combined gateway schema.
+- d9b82a2e: enhance(stitch) canonical merged type and field definitions. Use the @canonical
+  directive to promote preferred type and field descriptions into the combined gateway schema.
 
 ### Patch Changes
 
@@ -678,7 +773,9 @@
 
 - 6e50d9fc: enhance(stitching-directives): use keyField
 
-  When using simple keys, i.e. when using the keyField argument to `@merge`, the keyField can be added implicitly to the types's key. In most cases, therefore, `@key` should not be required at all.
+  When using simple keys, i.e. when using the keyField argument to `@merge`, the keyField can be
+  added implicitly to the types's key. In most cases, therefore, `@key` should not be required at
+  all.
 
 - Updated dependencies [6e50d9fc]
   - @graphql-tools/utils@7.2.4
@@ -693,14 +790,16 @@
 
 ### Minor Changes
 
-- c3996f60: enhance(utils): support code-first schemas by allowing directives to be read from extensions
+- c3996f60: enhance(utils): support code-first schemas by allowing directives to be read from
+  extensions
 
 ### Patch Changes
 
 - c3996f60: fix(stitchingDirectives): complete support for code first schemas
 - c3996f60: fix(stitchingDirectives): fix name clash
 
-  export all stitching directives as `allDirectives` instead of `stitchingDirectives as the main package function is`stitchingDirectives`
+  export all stitching directives as `allDirectives` instead of
+  `stitchingDirectives as the main package function is`stitchingDirectives`
 
 - Updated dependencies [c3996f60]
 - Updated dependencies [c3996f60]
