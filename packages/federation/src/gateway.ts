@@ -1,6 +1,5 @@
 import {
   buildASTSchema,
-  concatAST,
   DocumentNode,
   FieldDefinitionNode,
   GraphQLSchema,
@@ -12,6 +11,7 @@ import {
 } from 'graphql';
 import { createDefaultExecutor, SubschemaConfig } from '@graphql-tools/delegate';
 import { buildHTTPExecutor, HTTPExecutorOptions } from '@graphql-tools/executor-http';
+import { mergeTypeDefs } from '@graphql-tools/merge';
 import { stitchSchemas, SubschemaConfigTransform } from '@graphql-tools/stitch';
 import {
   createGraphQLError,
@@ -171,11 +171,10 @@ export function getSubschemaForFederationWithTypeDefs(typeDefs: DocumentNode): S
     extraSdl += `\nunion _Entity = ${entityTypes.join(' | ')}`;
     extraSdl += `\nextend type Query { _entities(representations: [_Any!]!): [_Entity]! }`;
   }
-  subschemaConfig.schema = buildASTSchema(concatAST([parse(extraSdl), parsedSDL]), {
+  subschemaConfig.schema = buildASTSchema(mergeTypeDefs([extraSdl, parsedSDL]), {
     assumeValidSDL: true,
     assumeValid: true,
   });
-  // subschemaConfig.batch = true;
   return subschemaConfig;
 }
 
