@@ -6,6 +6,7 @@ import {
 import { getSupergraph } from './fixtures/gateway/supergraph';
 
 describe('Managed Federation', () => {
+  jest.useFakeTimers();
   let supergraphSdl: string;
   const mockSDL = jest.fn(async () =>
     Response.json({
@@ -152,7 +153,11 @@ describe('Managed Federation', () => {
 
       manager.start();
 
-      await new Promise(resolve => manager.once('schema', resolve));
+      const schema$ = new Promise(resolve => manager.once('schema', resolve));
+
+      await jest.advanceTimersByTimeAsync(50);
+
+      await schema$;
 
       expect(manager.schema).toBeDefined();
     });
@@ -169,7 +174,7 @@ describe('Managed Federation', () => {
       manager.on('error', onError);
       manager.start();
 
-      await delay(0.25);
+      await jest.advanceTimersByTimeAsync(250);
       expect(mockFetchError).toHaveBeenCalledTimes(3);
       expect(onError).toHaveBeenCalledTimes(3);
       expect(onFailure).toHaveBeenCalledTimes(1);
@@ -184,7 +189,7 @@ describe('Managed Federation', () => {
       manager.on('schema', onSchemaChange);
       manager.start();
 
-      await delay(0.29);
+      await jest.advanceTimersByTimeAsync(290);
       expect(onSchemaChange).toHaveBeenCalledTimes(3);
     });
 
@@ -198,7 +203,7 @@ describe('Managed Federation', () => {
       manager.on('schema', onSchemaChange);
       manager.start();
 
-      await delay(0.05);
+      await jest.advanceTimersByTimeAsync(50);
       expect(onSchemaChange).toHaveBeenCalledTimes(2);
     });
 
@@ -214,7 +219,7 @@ describe('Managed Federation', () => {
       manager.on('error', onError);
       manager.start();
 
-      await delay(0.05);
+      await jest.advanceTimersByTimeAsync(50);
       expect(onError).toHaveBeenCalledTimes(3);
       expect(mockError).toHaveBeenCalledTimes(3);
       expect(onFailure).toHaveBeenCalledTimes(1);
@@ -240,7 +245,7 @@ describe('Managed Federation', () => {
       manager.on('log', onMessage);
       manager.start();
 
-      await delay(0.05);
+      await jest.advanceTimersByTimeAsync(50);
       expect(onMessage).toHaveBeenCalledWith({
         message: 'test-message',
         level: 'info',
@@ -249,5 +254,3 @@ describe('Managed Federation', () => {
     });
   });
 });
-
-const delay = (seconds: number) => new Promise(resolve => setTimeout(resolve, seconds * 1000));
