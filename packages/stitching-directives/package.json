@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/stitching-directives",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
