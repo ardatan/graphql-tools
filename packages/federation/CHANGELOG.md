@@ -1,5 +1,13 @@
 # @graphql-tools/federation
 
+## 2.2.2
+
+### Patch Changes
+
+- [`63cab60`](https://github.com/ardatan/graphql-tools/commit/63cab60dca3f36614ff5cb26869e1e7d3e939c50)
+  Thanks [@ardatan](https://github.com/ardatan)! - Use type definition merger instead of
+  \`concatAST\` to merge type definitions for creating a subschema for Federation
+
 ## 2.2.1
 
 ### Patch Changes
