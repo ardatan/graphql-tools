@@ -1,5 +1,12 @@
 # @graphql-tools/stitching-directives
 
+## 3.1.2
+
+### Patch Changes
+
+- [`79faf07`](https://github.com/ardatan/graphql-tools/commit/79faf07df502c4bccf4979091390e231be57fd16)
+  Thanks [@ardatan](https://github.com/ardatan)! - Do not use \`entryPoints\` if there is only one
+
 ## 3.1.1
 
 ### Patch Changes
