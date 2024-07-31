@@ -1,0 +1,21 @@
+interface A {
+  field: String
+}
+
+type B {
+  field: C
+}
+
+type C {
+  field: D
+}
+
+union D = E | F
+
+type E {
+  e: String
+}
+
+type F implements A {
+  field: String
+}
