@@ -48,7 +48,7 @@ export function projectDataSelectionSet(data: any, selectionSet?: SelectionSetNo
 }
 
 export function getKeyFnForFederation(typeName: string, keys: string[]) {
-  if (keys.some(key => key.includes('{'))) {
+  if (keys.some(key => key.includes('{') || key.includes('('))) {
     const parsedSelectionSet = parseSelectionSet(`{${keys.join(' ')}}`, { noLocation: true });
     return function keyFn(root: any) {
       return projectDataSelectionSet(
@@ -84,7 +84,7 @@ export function getKeyFnForFederation(typeName: string, keys: string[]) {
 }
 
 export function getCacheKeyFnFromKey(key: string) {
-  if (key.includes('{')) {
+  if (key.includes('{') || key.includes('(')) {
     const parsedSelectionSet = parseSelectionSet(`{${key}}`, { noLocation: true });
     return function cacheKeyFn(root: any) {
       return JSON.stringify(projectDataSelectionSet(root, parsedSelectionSet));

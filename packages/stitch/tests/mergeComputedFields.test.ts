@@ -1,4 +1,5 @@
-import { graphql, GraphQLSchema } from 'graphql';
+import { graphql, GraphQLSchema, parse } from 'graphql';
+import { normalizedExecutor } from '@graphql-tools/executor';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { assertSome } from '@graphql-tools/utils';
@@ -1068,5 +1069,169 @@ describe('test unmerged composite computed fields', () => {
         next: 'ONE',
       },
     });
+  });
+});
+
+it('test computed field with arguments', async () => {
+  const products = [
+    {
+      upc: 'p1',
+      name: 'p-name-1',
+      price: 11,
+      weight: 1,
+    },
+    {
+      upc: 'p2',
+      name: 'p-name-2',
+      price: 22,
+      weight: 2,
+    },
+  ];
+  const schemaA = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Product {
+        upc: String!
+        shippingEstimate: Int
+      }
+
+      input ProductInput {
+        upc: String!
+        price: Int
+        weight: Int
+      }
+
+      type Query {
+        productFromA(key: ProductInput!): Product
+      }
+    `,
+    resolvers: {
+      Query: {
+        productFromA: (
+          _root,
+          { key }: { key: { upc: string; price: number; weight: number } | { upc: string } },
+        ) => {
+          const product = products.find(p => p.upc === key.upc);
+
+          if (!product) {
+            return null;
+          }
+
+          if ('weight' in key && 'price' in key) {
+            return {
+              upc: product.upc,
+              weight: key.weight,
+              price: key.price,
+            };
+          }
+
+          return {
+            upc: product.upc,
+          };
+        },
+      },
+      Product: {
+        shippingEstimate: product => {
+          return product.price * product.weight * 10;
+        },
+      },
+    },
+  });
+  const schemaB = makeExecutableSchema({
+    typeDefs: /* GraphQL */ `
+      type Query {
+        products: [Product]
+        productFromB(upc: String!): Product
+      }
+
+      type Product {
+        upc: String!
+        name: String
+        price(currency: String!): Int
+        weight: Int
+      }
+    `,
+    resolvers: {
+      Query: {
+        products: () =>
+          products.map(p => ({
+            upc: p.upc,
+            name: p.name,
+            price: p.price,
+            weight: p.weight,
+          })),
+        productFromB: (_root, { upc }) => {
+          const product = products.find(p => p.upc === upc);
+
+          if (!product) {
+            return null;
+          }
+
+          return {
+            upc: product.upc,
+            name: product.name,
+            price: product.price,
+            weight: product.weight,
+          };
+        },
+      },
+    },
+  });
+  const stitchedSchema = stitchSchemas({
+    subschemas: [
+      {
+        schema: schemaA,
+        merge: {
+          Product: {
+            selectionSet: '{ upc }',
+            fieldName: 'productFromA',
+            args: ({ upc, price, weight }) => ({ key: { upc, price, weight } }),
+            fields: {
+              shippingEstimate: {
+                selectionSet: '{ price(currency: "USD") weight }',
+                computed: true,
+              },
+            },
+          },
+        },
+      },
+      {
+        schema: schemaB,
+        merge: {
+          Product: {
+            selectionSet: '{ upc }',
+            fieldName: 'productFromB',
+            args: ({ upc }) => ({ upc }),
+          },
+        },
+      },
+    ],
+  });
+  const result = await normalizedExecutor({
+    schema: stitchedSchema,
+    document: parse(/* GraphQL */ `
+      query {
+        products {
+          upc
+          name
+          shippingEstimate
+        }
+      }
+    `),
+  });
+  expect(result).toEqual({
+    data: {
+      products: [
+        {
+          upc: 'p1',
+          name: 'p-name-1',
+          shippingEstimate: 110,
+        },
+        {
+          upc: 'p2',
+          name: 'p-name-2',
+          shippingEstimate: 440,
+        },
+      ],
+    },
   });
 });
