@@ -1,4 +1,3 @@
-import { debug } from 'console';
 import { GraphQLObjectType, Kind, OperationTypeNode, parse } from 'graphql';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 import { execute, isIncrementalResult } from '@graphql-tools/executor';
