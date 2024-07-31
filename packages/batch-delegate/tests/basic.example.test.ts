@@ -1,3 +1,4 @@
+import { debug } from 'console';
 import { GraphQLObjectType, Kind, OperationTypeNode, parse } from 'graphql';
 import { batchDelegateToSchema } from '@graphql-tools/batch-delegate';
 import { execute, isIncrementalResult } from '@graphql-tools/executor';
@@ -355,6 +356,10 @@ describe('batch delegation within basic stitching example', () => {
   });
 
   test('works with merged types and array batching', async () => {
+    let queries = {
+      schema1: [],
+      schema2: [],
+    };
     const schema1 = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
         type Book {
@@ -368,7 +373,8 @@ describe('batch delegation within basic stitching example', () => {
       `,
       resolvers: {
         Query: {
-          book: () => {
+          book: (_obj, _args, _ctx, info) => {
+            addToQueries(info, 'schema1');
             return { id: '1', title: 'Book 1' };
           },
         },
@@ -388,12 +394,21 @@ describe('batch delegation within basic stitching example', () => {
       `,
       resolvers: {
         Query: {
-          books: () => {
+          books: (_obj, _args, _ctx, info) => {
+            addToQueries(info, 'schema2');
             return [{ id: '1', isbn: 123 }];
           },
         },
       },
     });
+
+    const addToQueries = (info: any, schema: string) =>
+      info.operation.selectionSet.selections.forEach((s: any) => {
+        s.selectionSet.selections.forEach((s: any) => {
+          queries[schema].push(s.name.value);
+        });
+      });
+
     const stitchedSchemaWithValuesFromResults = stitchSchemas({
       subschemas: [
         {
@@ -472,6 +487,12 @@ describe('batch delegation within basic stitching example', () => {
 
     if (isIncrementalResult(goodResult)) throw Error('result is incremental');
     if (isIncrementalResult(badResult)) throw Error('result is incremental');
+
+    // queries from both goodResult and badResult in the arrays
+    expect(queries).toEqual({
+      schema1: ['id', 'title', '__typename', 'id', 'id', 'title', '__typename', 'id'],
+      schema2: ['id', 'isbn', 'id', 'isbn'],
+    });
 
     expect(goodResult.data).toEqual({
       book: {
