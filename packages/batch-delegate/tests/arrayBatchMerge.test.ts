@@ -1,7 +1,8 @@
-import { parse } from 'graphql';
+import { parse, print } from 'graphql';
 import { execute, isIncrementalResult } from '@graphql-tools/executor';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
+import '../../testing/to-be-similar-gql-doc';
 
 describe('batch delegation', () => {
   const titleSchema = makeExecutableSchema({
@@ -18,7 +19,7 @@ describe('batch delegation', () => {
     resolvers: {
       Query: {
         book: (_obj, _args, _ctx, info) => {
-          logSelectionsMade(info.fieldNodes, 'titleSchema');
+          logSelectionsMade(info, 'titleSchema');
           return { id: '1', title: 'Book 1' };
         },
       },
@@ -39,25 +40,20 @@ describe('batch delegation', () => {
     resolvers: {
       Query: {
         books: (_obj, _args, _ctx, info) => {
-          logSelectionsMade(info.fieldNodes, 'isbnSchema');
+          logSelectionsMade(info, 'isbnSchema');
           return [{ id: '1', isbn: 123 }];
         },
       },
     },
   });
 
-  const selectionsMade = {
+  const queriesMade = {
     titleSchema: [],
     isbnSchema: [],
   };
 
-  const logSelectionsMade = (fieldNodes: any, schema: string) => {
-    if (!fieldNodes) return;
-    fieldNodes.forEach((node: any) => {
-      node.selectionSet.selections.forEach((selection: any) => {
-        selectionsMade[schema].push(selection.name.value);
-      });
-    });
+  const logSelectionsMade = (info: any, schema: string) => {
+    queriesMade[schema].push(print(info.operation));
   };
 
   const stitchedSchemaWithValuesFromResults = stitchSchemas({
@@ -162,18 +158,34 @@ describe('batch delegation', () => {
   });
 
   test('it makes the right selections', async () => {
-    selectionsMade.titleSchema = [];
-    selectionsMade.isbnSchema = [];
+    queriesMade.titleSchema = [];
+    queriesMade.isbnSchema = [];
 
     await execute({
       schema: stitchedSchemaWithValuesFromResults,
       document: parse(query),
     });
 
-    console.log(selectionsMade);
-    expect(selectionsMade).toEqual({
-      titleSchema: ['id', 'title', '__typename'],
-      isbnSchema: ['id', 'isbn', '__typename'],
-    });
+    const expectedTitleQuery = /* GraphQL */ `
+      query {
+        __typename
+        book(id: "1") {
+          id
+          title
+          __typename
+        }
+      }
+    `;
+    const expectedIsbnQuery = /* GraphQL */ `
+      query ($_v0_id: [ID!]!) {
+        books(id: $_v0_id) {
+          id
+          isbn
+        }
+      }
+    `;
+
+    expect(queriesMade.titleSchema[0]).toBeSimilarGqlDoc(expectedTitleQuery);
+    expect(queriesMade.isbnSchema[0]).toBeSimilarGqlDoc(expectedIsbnQuery);
   });
 });
