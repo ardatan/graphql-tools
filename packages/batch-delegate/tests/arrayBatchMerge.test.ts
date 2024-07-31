@@ -18,6 +18,7 @@ describe('batch delegation', () => {
     resolvers: {
       Query: {
         book: (_obj, _args, _ctx, info) => {
+          logSelectionsMade(info.fieldNodes, 'titleSchema');
           return { id: '1', title: 'Book 1' };
         },
       },
@@ -38,11 +39,26 @@ describe('batch delegation', () => {
     resolvers: {
       Query: {
         books: (_obj, _args, _ctx, info) => {
+          logSelectionsMade(info.fieldNodes, 'isbnSchema');
           return [{ id: '1', isbn: 123 }];
         },
       },
     },
   });
+
+  const selectionsMade = {
+    titleSchema: [],
+    isbnSchema: [],
+  };
+
+  const logSelectionsMade = (fieldNodes: any, schema: string) => {
+    if (!fieldNodes) return;
+    fieldNodes.forEach((node: any) => {
+      node.selectionSet.selections.forEach((selection: any) => {
+        selectionsMade[schema].push(selection.name.value);
+      });
+    });
+  };
 
   const stitchedSchemaWithValuesFromResults = stitchSchemas({
     subschemas: [
@@ -142,6 +158,22 @@ describe('batch delegation', () => {
         title: 'Book 1',
         isbn: 123,
       },
+    });
+  });
+
+  test('it makes the right selections', async () => {
+    selectionsMade.titleSchema = [];
+    selectionsMade.isbnSchema = [];
+
+    await execute({
+      schema: stitchedSchemaWithValuesFromResults,
+      document: parse(query),
+    });
+
+    console.log(selectionsMade);
+    expect(selectionsMade).toEqual({
+      titleSchema: ['id', 'title', '__typename'],
+      isbnSchema: ['id', 'isbn', '__typename'],
     });
   });
 });
