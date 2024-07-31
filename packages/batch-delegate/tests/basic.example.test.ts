@@ -353,4 +353,140 @@ describe('batch delegation within basic stitching example', () => {
       ],
     });
   });
+
+  test('works with merged types and array batching', async () => {
+    const schema1 = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Book {
+          id: ID!
+          title: String
+        }
+
+        type Query {
+          book(id: ID!): Book
+        }
+      `,
+      resolvers: {
+        Query: {
+          book: () => {
+            return { id: '1', title: 'Book 1' };
+          },
+        },
+      },
+    });
+
+    const schema2 = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Book {
+          id: ID!
+          isbn: Int
+        }
+
+        type Query {
+          books(id: [ID!]!): [Book]
+        }
+      `,
+      resolvers: {
+        Query: {
+          books: () => {
+            return [{ id: '1', isbn: 123 }];
+          },
+        },
+      },
+    });
+    const stitchedSchemaWithValuesFromResults = stitchSchemas({
+      subschemas: [
+        {
+          schema: schema1,
+          merge: {
+            Book: {
+              selectionSet: '{ id }',
+              fieldName: 'book',
+            },
+          },
+        },
+        {
+          schema: schema2,
+          merge: {
+            Book: {
+              selectionSet: '{ id }',
+              fieldName: 'books',
+              key: ({ id }) => id,
+              argsFromKeys: ids => ({ id: ids }),
+              valuesFromResults: ({ results }, keys) => {
+                const response = Object.fromEntries(results.map(result => [result.id, result]));
+
+                return keys.map(key => response[key] ?? { id: key });
+              },
+            },
+          },
+        },
+      ],
+      mergeTypes: true,
+    });
+
+    const stitchedSchemaWithoutValuesFromResults = stitchSchemas({
+      subschemas: [
+        {
+          schema: schema1,
+          merge: {
+            Book: {
+              selectionSet: '{ id }',
+              fieldName: 'book',
+            },
+          },
+        },
+        {
+          schema: schema2,
+          merge: {
+            Book: {
+              selectionSet: '{ id }',
+              fieldName: 'books',
+              key: ({ id }) => id,
+              argsFromKeys: ids => ({ id: ids }),
+            },
+          },
+        },
+      ],
+      mergeTypes: true,
+    });
+
+    const query = /* GraphQL */ `
+      query {
+        book(id: "1") {
+          id
+          title
+          isbn
+        }
+      }
+    `;
+
+    const goodResult = await execute({
+      schema: stitchedSchemaWithoutValuesFromResults,
+      document: parse(query),
+    });
+    const badResult = await execute({
+      schema: stitchedSchemaWithValuesFromResults,
+      document: parse(query),
+    });
+
+    if (isIncrementalResult(goodResult)) throw Error('result is incremental');
+    if (isIncrementalResult(badResult)) throw Error('result is incremental');
+
+    expect(goodResult.data).toEqual({
+      book: {
+        id: '1',
+        title: 'Book 1',
+        isbn: 123,
+      },
+    });
+
+    expect(badResult.data).toEqual({
+      book: {
+        id: '1',
+        title: 'Book 1',
+        isbn: 123,
+      },
+    });
+  });
 });
