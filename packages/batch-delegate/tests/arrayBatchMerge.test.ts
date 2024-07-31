@@ -4,11 +4,6 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 
 describe('batch delegation', () => {
-  const queries = {
-    titleSchema: [],
-    isbnSchema: [],
-  };
-
   const titleSchema = makeExecutableSchema({
     typeDefs: /* GraphQL */ `
       type Book {
@@ -23,7 +18,6 @@ describe('batch delegation', () => {
     resolvers: {
       Query: {
         book: (_obj, _args, _ctx, info) => {
-          addToQueries(info, 'titleSchema');
           return { id: '1', title: 'Book 1' };
         },
       },
@@ -44,18 +38,11 @@ describe('batch delegation', () => {
     resolvers: {
       Query: {
         books: (_obj, _args, _ctx, info) => {
-          addToQueries(info, 'isbnSchema');
           return [{ id: '1', isbn: 123 }];
         },
       },
     },
   });
-
-  const addToQueries = (info: any, schema: string) => {
-    info.operation.selectionSet.selections.forEach((s: any) => {
-      queries[schema].push(s.name.value);
-    });
-  };
 
   const stitchedSchemaWithValuesFromResults = stitchSchemas({
     subschemas: [
@@ -125,9 +112,6 @@ describe('batch delegation', () => {
   `;
 
   test('works with merged types and array batching', async () => {
-    queries.titleSchema = [];
-    queries.isbnSchema = [];
-
     const goodResult = await execute({
       schema: stitchedSchemaWithoutValuesFromResults,
       document: parse(query),
@@ -145,9 +129,6 @@ describe('batch delegation', () => {
   });
 
   test('does not work with valuesFromResults', async () => {
-    queries.titleSchema = [];
-    queries.isbnSchema = [];
-
     const badResult = await execute({
       schema: stitchedSchemaWithValuesFromResults,
       document: parse(query),
