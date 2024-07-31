@@ -356,7 +356,7 @@ describe('batch delegation within basic stitching example', () => {
   });
 
   test('works with merged types and array batching', async () => {
-    let queries = {
+    const queries = {
       schema1: [],
       schema2: [],
     };
@@ -429,7 +429,7 @@ describe('batch delegation within basic stitching example', () => {
               key: ({ id }) => id,
               argsFromKeys: ids => ({ id: ids }),
               valuesFromResults: ({ results }, keys) => {
-                const response = Object.fromEntries(results.map(result => [result.id, result]));
+                const response = Object.fromEntries(results.map((r: any) => [r.id, r]));
 
                 return keys.map(key => response[key] ?? { id: key });
               },
