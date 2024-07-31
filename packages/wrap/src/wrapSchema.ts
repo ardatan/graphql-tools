@@ -1,5 +1,5 @@
 import {
-  GraphQLFieldResolver,
+  GraphQLFieldConfig,
   GraphQLInterfaceType,
   GraphQLObjectType,
   GraphQLSchema,
@@ -29,7 +29,10 @@ export const wrapSchema = memoize1(function wrapSchema<
 
 function createWrappingSchema(
   schema: GraphQLSchema,
-  proxyingResolvers: Record<string, Record<string, GraphQLFieldResolver<any, any>>>,
+  proxyingResolvers: Record<
+    string,
+    Record<string, Pick<GraphQLFieldConfig<any, any>, 'resolve' | 'subscribe'>>
+  >,
 ) {
   return mapSchema(schema, {
     [MapperKind.ROOT_FIELD]: (fieldConfig, fieldName, typeName) => {
