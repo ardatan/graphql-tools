@@ -1,5 +1,13 @@
 # @graphql-tools/federation
 
+## 2.2.3
+
+### Patch Changes
+
+- [`0d203ab`](https://github.com/ardatan/graphql-tools/commit/0d203ab57671cfa6d4417e60b08b3224a65bec91)
+  Thanks [@ardatan](https://github.com/ardatan)! - Support `@requires` with arguments like
+  `@requires(fields: "price(currency: 'USD')")`
+
 ## 2.2.2
 
 ### Patch Changes
