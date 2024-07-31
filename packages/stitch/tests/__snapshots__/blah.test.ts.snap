@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Blah creates expected schema 1`] = `
+"type Query {
+  thingA(id: ID!): String
+  namespaceInB: NamespaceInB
+}
+
+type NamespaceInB {
+  dummy: ID!
+  thingA(id: ID!): String
+}"
+`;
