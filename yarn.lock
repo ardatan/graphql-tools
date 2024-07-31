@@ -30,10 +30,10 @@
   resolved "https://registry.yarnpkg.com/@apollo/cache-control-types/-/cache-control-types-1.0.2.tgz#f42ed3563acc7f1f50617d65d208483977adc68e"
   integrity sha512-Por80co1eUm4ATsvjCOoS/tIR8PHxqVjsA6z76I6Vw0rFn4cgyVElQcmQDIZiYsy41k8e5xkrMRECkM2WR8pNw==
 
-"@apollo/client@3.11.1", "@apollo/client@^3.7.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0 || ~3.8.0 || ~3.9.0 || ~3.10.0 || ~3.11.0":
-  version "3.11.1"
-  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.11.1.tgz#73a0396a4a5d84d6804288fffa9579e1f3fc3211"
-  integrity sha512-fVuAi7ufRt2apIEYV18upvykw5JD+CwHAThxZkclby4phWCXtO4LD39Z0sk0+4i+j7oZ+jOofEkO1XGDDomZvQ==
+"@apollo/client@3.11.2", "@apollo/client@^3.7.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0 || ~3.8.0 || ~3.9.0 || ~3.10.0 || ~3.11.0":
+  version "3.11.2"
+  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.11.2.tgz#824512ae9674218b9bccd9ac4f53b826661651de"
+  integrity sha512-HVcsJChOVut6gmmf5YukTG52EXg0cxq0LU7I/0yZPcfcJOPW2cpVqveaxZt+B1fL6ZKrYVdSa2nfuK0oSpv0Yw==
   dependencies:
     "@graphql-typed-document-node/core" "^3.1.1"
     "@wry/caches" "^1.0.0"
@@ -219,9 +219,9 @@
     node-fetch "^2.6.1"
 
 "@astrojs/compiler@^2.3.4":
-  version "2.10.0"
-  resolved "https://registry.yarnpkg.com/@astrojs/compiler/-/compiler-2.10.0.tgz#ecc39e59ae4c87521a11967c3c42cc68ef8e43d9"
-  integrity sha512-V8ym+4kYCKmMeSdfDvm/SrlmUlKLkKzfWV3cKyiStEKW/D+YsXaQiBZcSCtuKXq8aQhsDw9HtCTZilhEMBX+BA==
+  version "2.10.1"
+  resolved "https://registry.yarnpkg.com/@astrojs/compiler/-/compiler-2.10.1.tgz#36eb9dcf55f0ddc774e245eadc8c1132caac58fd"
+  integrity sha512-XmM4j6BjvOVMag2xELq0JuG2yKOW8wgIu6dvb9BsjbGYmnvoStJn/pqEzVqc1EBszf2xYT7onIkftIOUz9AwrQ==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.12.13", "@babel/code-frame@^7.24.7":
   version "7.24.7"
