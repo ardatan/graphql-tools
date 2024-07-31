@@ -52,7 +52,6 @@ describe('batch delegation', () => {
   });
 
   const addToQueries = (info: any, schema: string) => {
-    info;
     info.operation.selectionSet.selections.forEach((s: any) => {
       queries[schema].push(s.name.value);
     });
