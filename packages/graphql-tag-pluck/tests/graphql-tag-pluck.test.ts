@@ -1943,7 +1943,6 @@ describe('graphql-tag-pluck', () => {
           globalGqlIdentifierName: 'anothergql',
         },
       );
-
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
         freeText(`
         fragment Foo on FooType {
@@ -1956,6 +1955,39 @@ describe('graphql-tag-pluck', () => {
           }
         }
       `),
+      );
+    });
+
+    it('should be able to specify the global GraphQL identifier name case sensitively', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.js',
+        freeText(`
+        const fragment = anotherGql(\`
+          fragment Foo on FooType {
+            id
+          }
+        \`)
+
+        const doc = AnotherGql\`
+          query foo {
+            foo {
+              ...Foo
+            }
+          }
+
+          \${fragment}
+        \`
+      `),
+        {
+          globalGqlIdentifierName: 'anotherGql',
+        },
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+        fragment Foo on FooType {
+          id
+        }`),
       );
     });
 
