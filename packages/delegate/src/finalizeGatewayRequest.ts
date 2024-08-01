@@ -180,7 +180,7 @@ export function finalizeGatewayRequest<TContext>(
       leave(node) {
         const { hasTypeNameField, selections } = filterTypenameFields(node.selections);
         if (hasTypeNameField) {
-          selections.push({
+          selections.unshift({
             kind: Kind.FIELD,
             name: {
               kind: Kind.NAME,
@@ -231,10 +231,8 @@ function filterTypenameFields(selections: readonly SelectionNode[]): {
   let hasTypeNameField = false;
   const filteredSelections = selections.filter(selection => {
     if (isTypeNameField(selection)) {
-      if (hasTypeNameField) {
-        return false;
-      }
       hasTypeNameField = true;
+      return false;
     }
     return true;
   });
