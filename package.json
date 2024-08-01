@@ -33,7 +33,6 @@
     "build:api-docs": "ts-node --transpileOnly --compiler-options='{\"module\":\"commonjs\"}' scripts/build-api-docs",
     "ci:lint": "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --ext .ts . --output-file eslint_report.json --format json",
     "clean-dist": "rimraf \"packages/**/dist\" && rimraf \".bob\"",
-    "fetch-federation-tests": "ts-node --transpileOnly --compiler-options='{\"module\":\"commonjs\"}' scripts/fetch-federation-tests",
     "lint": "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --ext .ts .",
     "postinstall": "patch-package && husky install",
     "prerelease": "yarn build",
@@ -41,6 +40,7 @@
     "prettier:check": "prettier --cache --ignore-path .prettierignore --check .",
     "release": "changeset publish",
     "test": "jest --no-watchman",
+    "test-fed-compat": "ts-node --transpileOnly --compiler-options='{\"module\":\"commonjs\"}' scripts/fetch-federation-tests && yarn test federation-compat",
     "test:leaks": "cross-env \"LEAK_TEST=1\" jest --no-watchman --detectOpenHandles --detectLeaks --logHeapUsage",
     "ts:check": "tsc --noEmit"
   },

@@ -99,6 +99,15 @@ function finalizeGatewayDocument(
       );
     }
 
+    // Do not add the operation if it only asks for __typename
+    if (
+      selectionSet.selections.length === 1 &&
+      selectionSet.selections[0].kind === Kind.FIELD &&
+      selectionSet.selections[0].name.value === '__typename'
+    ) {
+      continue;
+    }
+
     newOperations.push({
       kind: Kind.OPERATION_DEFINITION,
       operation: operation.operation,
@@ -107,6 +116,17 @@ function finalizeGatewayDocument(
       variableDefinitions,
       selectionSet,
     });
+  }
+
+  if (!newOperations.length) {
+    throw createGraphQLError(
+      'Failed to create a gateway request. The request must contain at least one operation.',
+      {
+        extensions: {
+          [CRITICAL_ERROR]: true,
+        },
+      },
+    );
   }
 
   const newDocument: DocumentNode = {
@@ -141,31 +161,6 @@ export function finalizeGatewayRequest<TContext>(
     operations,
   );
 
-  // Fail if the query is only the root __typename field
-
-  if (
-    newDocument.definitions.length === 1 &&
-    newDocument.definitions[0].kind === Kind.OPERATION_DEFINITION
-  ) {
-    const operation = newDocument.definitions[0] as OperationDefinitionNode;
-    if (
-      operation.selectionSet.selections.length === 1 &&
-      operation.selectionSet.selections[0].kind === Kind.FIELD
-    ) {
-      const field = operation.selectionSet.selections[0] as any;
-      if (field.name.value === '__typename' && operation.operation === 'query') {
-        throw createGraphQLError(
-          'Failed to create a gateway request. The query must contain at least one selection.',
-          {
-            extensions: {
-              [CRITICAL_ERROR]: true,
-            },
-          },
-        );
-      }
-    }
-  }
-
   const newVariables: Record<string, any> = {};
   if (variables != null) {
     for (const variableName of usedVariables) {
@@ -176,10 +171,74 @@ export function finalizeGatewayRequest<TContext>(
     }
   }
 
+  let cleanedUpDocument = newDocument;
+
+  // TODO: Optimize this internally later
+  cleanedUpDocument = visit(newDocument, {
+    // Cleanup extra __typename fields
+    SelectionSet: {
+      leave(node) {
+        const { hasTypeNameField, selections } = filterTypenameFields(node.selections);
+        if (hasTypeNameField) {
+          selections.unshift({
+            kind: Kind.FIELD,
+            name: {
+              kind: Kind.NAME,
+              value: '__typename',
+            },
+          });
+        }
+        return {
+          ...node,
+          selections,
+        };
+      },
+    },
+    // Cleanup empty inline fragments
+    InlineFragment: {
+      leave(node) {
+        // No need __typename in inline fragment
+        const { selections } = filterTypenameFields(node.selectionSet.selections);
+        if (selections.length === 0) {
+          return null;
+        }
+        return {
+          ...node,
+          selectionSet: {
+            ...node.selectionSet,
+            selections,
+          },
+        };
+      },
+    },
+  });
+
   return {
     ...originalRequest,
-    document: newDocument,
+    document: cleanedUpDocument,
     variables: newVariables,
+  };
+}
+
+function isTypeNameField(selection: SelectionNode): boolean {
+  return selection.kind === Kind.FIELD && !selection.alias && selection.name.value === '__typename';
+}
+
+function filterTypenameFields(selections: readonly SelectionNode[]): {
+  hasTypeNameField: boolean;
+  selections: SelectionNode[];
+} {
+  let hasTypeNameField = false;
+  const filteredSelections = selections.filter(selection => {
+    if (isTypeNameField(selection)) {
+      hasTypeNameField = true;
+      return false;
+    }
+    return true;
+  });
+  return {
+    hasTypeNameField,
+    selections: filteredSelections,
   };
 }
 
