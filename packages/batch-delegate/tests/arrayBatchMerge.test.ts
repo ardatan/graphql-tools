@@ -178,6 +178,7 @@ describe('batch delegation', () => {
     `;
     const expectedIsbnQuery = /* GraphQL */ `
       query ($_v0_id: [ID!]!) {
+        __typename
         books(id: $_v0_id) {
           id
           isbn
