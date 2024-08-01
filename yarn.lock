@@ -1796,10 +1796,10 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/retry/-/retry-0.3.0.tgz#6d86b8cb322660f03d3f0aa94b99bdd8e172d570"
   integrity sha512-d2CGZR2o7fS6sWB7DG/3a95bGKQyHMACZ5aW8qGkkqQpUoZV6C0X7Pc7l4ZNMZkfNBf4VWNe9E1jRsf0G146Ew==
 
-"@ianvs/prettier-plugin-sort-imports@4.2.1":
-  version "4.2.1"
-  resolved "https://registry.yarnpkg.com/@ianvs/prettier-plugin-sort-imports/-/prettier-plugin-sort-imports-4.2.1.tgz#b5665a130ab882741df6d5ccd423f002ae065ad8"
-  integrity sha512-NKN1LVFWUDGDGr3vt+6Ey3qPeN/163uR1pOPAlkWpgvAqgxQ6kSdUf1F0it8aHUtKRUzEGcK38Wxd07O61d7+Q==
+"@ianvs/prettier-plugin-sort-imports@4.3.1":
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/@ianvs/prettier-plugin-sort-imports/-/prettier-plugin-sort-imports-4.3.1.tgz#e588afa75a597a5d7c26dee1dcc0bb1198363367"
+  integrity sha512-ZHwbyjkANZOjaBm3ZosADD2OUYGFzQGxfy67HmGZU94mHqe7g1LCMA7YYKB1Cq+UTPCBqlAYapY0KXAjKEw8Sg==
   dependencies:
     "@babel/core" "^7.24.0"
     "@babel/generator" "^7.23.6"
@@ -2503,12 +2503,12 @@
     remark-mdx-disable-explicit-jsx "0.1.0"
     semver "^7.3.8"
 
-"@theguild/prettier-config@2.0.6":
-  version "2.0.6"
-  resolved "https://registry.yarnpkg.com/@theguild/prettier-config/-/prettier-config-2.0.6.tgz#91bb6c67789a384253c621b160a17829051df7ad"
-  integrity sha512-aEWJ422Ro9IIC+2FGEO8kgJdq6DiwafgCOLVjW6b0mgWKHgdH6VReGck6Jv+9jsa4CBh/rpRuu40uIf0KGDtEg==
+"@theguild/prettier-config@2.0.7":
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/@theguild/prettier-config/-/prettier-config-2.0.7.tgz#8e6c735990f49248050352fb2f753d957136725c"
+  integrity sha512-FqpgGAaAFbYHFQmkWEZjIhqmk+Oow82/t+0k408qoBd9RsB4QTwSQSDDbNSgFa/K7c8Dcwau5z3XbHUR/ksKqw==
   dependencies:
-    "@ianvs/prettier-plugin-sort-imports" "4.2.1"
+    "@ianvs/prettier-plugin-sort-imports" "4.3.1"
     prettier-plugin-pkg "^0.18.0"
     prettier-plugin-sh "^0.14.0"
 
