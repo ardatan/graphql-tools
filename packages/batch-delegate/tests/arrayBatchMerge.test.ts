@@ -1,10 +1,19 @@
-import { parse, print } from 'graphql';
-import { execute, isIncrementalResult } from '@graphql-tools/executor';
+import { parse } from 'graphql';
+import { normalizedExecutor } from '@graphql-tools/executor';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
-import '../../testing/to-be-similar-gql-doc';
 
-describe('batch delegation', () => {
+test('works with mismatching array length', async () => {
+  const booksWithTitle = [
+    { id: '1', title: 'Book 1' },
+    { id: '2', title: 'Book 2' },
+    { id: '3', title: 'Book 3' },
+    { id: '4', title: 'Book 4' },
+  ];
+  const booksWithIsbn = [
+    { id: '2', isbn: 456 },
+    { id: '4', isbn: 101 },
+  ];
   const titleSchema = makeExecutableSchema({
     typeDefs: /* GraphQL */ `
       type Book {
@@ -13,14 +22,13 @@ describe('batch delegation', () => {
       }
 
       type Query {
-        book(id: ID!): Book
+        booksWithTitle(ids: [ID!]!): [Book]
       }
     `,
     resolvers: {
       Query: {
-        book: (_obj, _args, _ctx, info) => {
-          logSelectionsMade(info, 'titleSchema');
-          return { id: '1', title: 'Book 1' };
+        booksWithTitle: (_obj, args, _ctx, info) => {
+          return booksWithTitle.filter(book => args.ids.includes(book.id));
         },
       },
     },
@@ -34,36 +42,30 @@ describe('batch delegation', () => {
       }
 
       type Query {
-        books(id: [ID!]!): [Book]
+        booksWithIsbn(ids: [ID!]!): [Book]
       }
     `,
     resolvers: {
       Query: {
-        books: (_obj, _args, _ctx, info) => {
-          logSelectionsMade(info, 'isbnSchema');
-          return [{ id: '1', isbn: 123 }];
+        booksWithIsbn: (_obj, args, _ctx) => {
+          return booksWithIsbn.filter(book => args.ids.includes(book.id));
         },
       },
     },
   });
 
-  const queriesMade = {
-    titleSchema: [],
-    isbnSchema: [],
-  };
-
-  const logSelectionsMade = (info: any, schema: string) => {
-    queriesMade[schema].push(print(info.operation));
-  };
-
-  const stitchedSchemaWithValuesFromResults = stitchSchemas({
+  const stitchedSchema = stitchSchemas({
     subschemas: [
       {
         schema: titleSchema,
         merge: {
           Book: {
             selectionSet: '{ id }',
-            fieldName: 'book',
+            fieldName: 'booksWithTitle',
+            key: ({ id }) => id,
+            argsFromKeys: ids => ({ ids }),
+            valuesFromResults: (results: any[], keys: readonly string[]) =>
+              keys.map(key => results.find(result => result.id === key)),
           },
         },
       },
@@ -72,121 +74,38 @@ describe('batch delegation', () => {
         merge: {
           Book: {
             selectionSet: '{ id }',
-            fieldName: 'books',
+            fieldName: 'booksWithIsbn',
             key: ({ id }) => id,
-            argsFromKeys: ids => ({ id: ids }),
-            valuesFromResults: ({ results }, keys) => {
-              const response = Object.fromEntries(results.map((r: any) => [r.id, r]));
-
-              return keys.map(key => response[key] ?? { id: key });
-            },
+            argsFromKeys: ids => ({ ids }),
+            valuesFromResults: (results: any[], keys: readonly string[]) =>
+              keys.map(key => results.find(result => result.id === key)),
           },
         },
       },
     ],
     mergeTypes: true,
   });
-
-  const stitchedSchemaWithoutValuesFromResults = stitchSchemas({
-    subschemas: [
-      {
-        schema: titleSchema,
-        merge: {
-          Book: {
-            selectionSet: '{ id }',
-            fieldName: 'book',
-          },
-        },
-      },
-      {
-        schema: isbnSchema,
-        merge: {
-          Book: {
-            selectionSet: '{ id }',
-            fieldName: 'books',
-            key: ({ id }) => id,
-            argsFromKeys: ids => ({ id: ids }),
-          },
-        },
-      },
-    ],
-    mergeTypes: true,
-  });
-
-  const query = /* GraphQL */ `
-    query {
-      book(id: "1") {
-        id
-        title
-        isbn
-      }
-    }
-  `;
-
-  test('works with merged types and array batching', async () => {
-    const goodResult = await execute({
-      schema: stitchedSchemaWithoutValuesFromResults,
-      document: parse(query),
-    });
-
-    if (isIncrementalResult(goodResult)) throw Error('result is incremental');
-
-    expect(goodResult.data).toEqual({
-      book: {
-        id: '1',
-        title: 'Book 1',
-        isbn: 123,
-      },
-    });
-  });
-
-  test('does not work with valuesFromResults', async () => {
-    const badResult = await execute({
-      schema: stitchedSchemaWithValuesFromResults,
-      document: parse(query),
-    });
-
-    if (isIncrementalResult(badResult)) throw Error('result is incremental');
-
-    expect(badResult.data).toEqual({
-      book: {
-        id: '1',
-        title: 'Book 1',
-        isbn: 123,
-      },
-    });
-  });
-
-  test('it makes the right selections', async () => {
-    queriesMade.titleSchema = [];
-    queriesMade.isbnSchema = [];
-
-    await execute({
-      schema: stitchedSchemaWithValuesFromResults,
-      document: parse(query),
-    });
-
-    const expectedTitleQuery = /* GraphQL */ `
+  const result = await normalizedExecutor({
+    schema: stitchedSchema,
+    document: parse(/* GraphQL */ `
       query {
-        __typename
-        book(id: "1") {
+        booksWithTitle(ids: ["1", "2", "3", "4"]) {
           id
           title
-          __typename
-        }
-      }
-    `;
-    const expectedIsbnQuery = /* GraphQL */ `
-      query ($_v0_id: [ID!]!) {
-        __typename
-        books(id: $_v0_id) {
-          id
           isbn
         }
       }
-    `;
+    `),
+  });
 
-    expect(queriesMade.isbnSchema[0]).toBeSimilarGqlDoc(expectedIsbnQuery);
-    expect(queriesMade.titleSchema[0]).toBeSimilarGqlDoc(expectedTitleQuery);
+  expect(result).toEqual({
+    data: {
+      booksWithTitle: [
+        { id: '1', title: 'Book 1', isbn: null },
+        { id: '2', title: 'Book 2', isbn: 456 },
+        { id: '3', title: 'Book 3', isbn: null },
+        { id: '4', title: 'Book 4', isbn: 101 },
+      ],
+    },
   });
 });
