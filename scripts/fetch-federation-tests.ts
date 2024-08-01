@@ -1,7 +1,7 @@
-import { mkdirSync, rmdirSync, writeFileSync } from 'fs';
+import { exists, existsSync, mkdirSync, rmdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-const baseUrl = 'https://federation-compatibility.the-guild.dev';
+const baseUrl = 'http://localhost:4200';
 const fixturesPath = join(
   __dirname,
   '..',
@@ -13,8 +13,13 @@ const fixturesPath = join(
 );
 
 async function main() {
-  rmdirSync(fixturesPath, { recursive: true });
-  const supergraphPathListRes = await fetch(`${baseUrl}/supergraphs`);
+  if (existsSync(fixturesPath)) {
+    rmdirSync(fixturesPath, { recursive: true });
+  }
+  const supergraphPathListRes = await fetch(`${baseUrl}/supergraphs`).catch(err => {
+    console.error(err);
+    throw new Error(`Make sure the federation compatibility server is up and running`);
+  });
   const supergraphPathList = await supergraphPathListRes.json();
   for (const supergraphPath of supergraphPathList) {
     if (supergraphPath) {
