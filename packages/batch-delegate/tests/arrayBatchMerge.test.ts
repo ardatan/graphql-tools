@@ -185,7 +185,7 @@ describe('batch delegation', () => {
       }
     `;
 
-    expect(queriesMade.titleSchema[0]).toBeSimilarGqlDoc(expectedTitleQuery);
     expect(queriesMade.isbnSchema[0]).toBeSimilarGqlDoc(expectedIsbnQuery);
+    expect(queriesMade.titleSchema[0]).toBeSimilarGqlDoc(expectedTitleQuery);
   });
 });
