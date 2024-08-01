@@ -12,6 +12,9 @@ jobs:
       githubToken: ${{ secrets.GUILD_BOT_TOKEN }}
 
   alpha:
+    permissions:
+      contents: read
+      id-token: write
     uses: the-guild-org/shared-config/.github/workflows/release-snapshot.yml@main
     if: ${{ github.event.pull_request.title != 'Upcoming Release Changes' }}
     with:
@@ -23,6 +26,9 @@ jobs:
       npmToken: ${{ secrets.NODE_AUTH_TOKEN }}
 
   release-candidate:
+    permissions:
+      contents: read
+      id-token: write
     uses: the-guild-org/shared-config/.github/workflows/release-snapshot.yml@main
     if: ${{ github.event.pull_request.title == 'Upcoming Release Changes' }}
     with:
