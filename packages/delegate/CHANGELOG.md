@@ -1,5 +1,14 @@
 # @graphql-tools/delegate
 
+## 10.0.17
+
+### Patch Changes
+
+- [#6403](https://github.com/ardatan/graphql-tools/pull/6403)
+  [`3803897`](https://github.com/ardatan/graphql-tools/commit/3803897cef27b15bad1718819c5d75030afbe781)
+  Thanks [@ardatan](https://github.com/ardatan)! - Cleanup extra fields, empty inline fragments and
+  duplicate \_\_typename fields
+
 ## 10.0.16
 
 ### Patch Changes

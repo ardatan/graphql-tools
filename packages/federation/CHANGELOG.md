@@ -1,5 +1,18 @@
 # @graphql-tools/federation
 
+## 2.2.4
+
+### Patch Changes
+
+- [#6403](https://github.com/ardatan/graphql-tools/pull/6403)
+  [`3803897`](https://github.com/ardatan/graphql-tools/commit/3803897cef27b15bad1718819c5d75030afbe781)
+  Thanks [@ardatan](https://github.com/ardatan)! - Cleanup extra fields, empty inline fragments and
+  duplicate \_\_typename fields
+
+- Updated dependencies
+  [[`3803897`](https://github.com/ardatan/graphql-tools/commit/3803897cef27b15bad1718819c5d75030afbe781)]:
+  - @graphql-tools/delegate@10.0.17
+
 ## 2.2.3
 
 ### Patch Changes
