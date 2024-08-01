@@ -178,39 +178,37 @@ export function finalizeGatewayRequest<TContext>(
     // Cleanup extra __typename fields
     SelectionSet: {
       leave(node) {
-        if (isTypeNameOnlySelection(node)) {
-          return {
-            kind: Kind.SELECTION_SET,
-            selections: [
-              {
-                kind: Kind.FIELD,
-                name: {
-                  kind: Kind.NAME,
-                  value: '__typename',
-                },
-              },
-            ],
-          };
+        const { hasTypeNameField, selections } = filterTypenameFields(node.selections);
+        if (hasTypeNameField) {
+          selections.push({
+            kind: Kind.FIELD,
+            name: {
+              kind: Kind.NAME,
+              value: '__typename',
+            },
+          });
         }
+        return {
+          ...node,
+          selections,
+        };
       },
     },
     // Cleanup empty inline fragments
     InlineFragment: {
       leave(node) {
         // No need __typename in inline fragment
-        const filteredSelections = node.selectionSet?.selections.filter(selection => {
-          if (
-            selection.kind === Kind.FIELD &&
-            !selection.alias &&
-            selection.name.value === '__typename'
-          ) {
-            return false;
-          }
-          return true;
-        });
-        if (!filteredSelections.length) {
+        const { selections } = filterTypenameFields(node.selectionSet.selections);
+        if (selections.length === 0) {
           return null;
         }
+        return {
+          ...node,
+          selectionSet: {
+            ...node.selectionSet,
+            selections,
+          },
+        };
       },
     },
   });
@@ -222,11 +220,28 @@ export function finalizeGatewayRequest<TContext>(
   };
 }
 
-function isTypeNameOnlySelection(node: SelectionSetNode): boolean {
-  return node.selections.every(
-    selection =>
-      selection.kind === Kind.FIELD && !selection.alias && selection.name.value === '__typename',
-  );
+function isTypeNameField(selection: SelectionNode): boolean {
+  return selection.kind === Kind.FIELD && !selection.alias && selection.name.value === '__typename';
+}
+
+function filterTypenameFields(selections: readonly SelectionNode[]): {
+  hasTypeNameField: boolean;
+  selections: SelectionNode[];
+} {
+  let hasTypeNameField = false;
+  const filteredSelections = selections.filter(selection => {
+    if (isTypeNameField(selection)) {
+      if (hasTypeNameField) {
+        return false;
+      }
+      hasTypeNameField = true;
+    }
+    return true;
+  });
+  return {
+    hasTypeNameField,
+    selections: filteredSelections,
+  };
 }
 
 function addVariablesToRootFields(
