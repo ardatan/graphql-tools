@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Defer defers the nested fields: defer-nested-fields 1`] = `
+exports[`Defer/Stream defers the nested fields: defer-nested-fields 1`] = `
 [
   {
     "data": {
@@ -166,7 +166,7 @@ exports[`Defer defers the nested fields: defer-nested-fields 1`] = `
 ]
 `;
 
-exports[`Defer defers the root fields: defer-root-fields 1`] = `
+exports[`Defer/Stream defers the root fields: defer-root-fields 1`] = `
 [
   {
     "data": {},
@@ -249,6 +249,71 @@ exports[`Defer defers the root fields: defer-root-fields 1`] = `
           ],
         },
         "path": [],
+      },
+    ],
+  },
+]
+`;
+
+exports[`Defer/Stream streams: stream 1`] = `
+[
+  {
+    "data": {
+      "usersStream": [],
+    },
+    "hasNext": true,
+  },
+  {
+    "hasNext": true,
+    "incremental": [
+      {
+        "items": [
+          {
+            "id": "1",
+            "name": "Ada Lovelace",
+            "posts": [
+              {
+                "author": {
+                  "id": "1",
+                  "name": "Ada Lovelace",
+                },
+                "id": "1",
+                "title": "Hello, World!",
+              },
+            ],
+          },
+        ],
+        "path": [
+          "usersStream",
+          0,
+        ],
+      },
+    ],
+  },
+  {
+    "hasNext": false,
+    "incremental": [
+      {
+        "items": [
+          {
+            "id": "2",
+            "name": "Alan Turing",
+            "posts": [
+              {
+                "author": {
+                  "id": "2",
+                  "name": "Alan Turing",
+                },
+                "id": "2",
+                "title": "My Story",
+              },
+            ],
+          },
+        ],
+        "path": [
+          "usersStream",
+          1,
+        ],
       },
     ],
   },

@@ -5,11 +5,11 @@ import { IntrospectAndCompose, LocalGraphQLDataSource } from '@apollo/gateway';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
-import { ExecutionResult, mergeDeep } from '@graphql-tools/utils';
+import { asArray, ExecutionResult, mergeDeep } from '@graphql-tools/utils';
 import { assertAsyncIterable } from '../../loaders/url/tests/test-utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 
-function mergeDeferredResults(values: ExecutionResult[]) {
+function mergeIncrementalResults(values: ExecutionResult[]) {
   const result: ExecutionResult = {};
   for (const value of values) {
     if (value.data) {
@@ -27,14 +27,22 @@ function mergeDeferredResults(values: ExecutionResult[]) {
       for (const incremental of value.incremental) {
         if (incremental.path) {
           result.data = result.data || {};
-          if (!incremental.path.length) {
-            result.data = mergeDeep([result.data, incremental.data]);
-          } else {
-            const existingData = _.get(result.data, incremental.path);
-            if (!existingData) {
-              _.set(result.data, incremental.path, incremental.data);
+          const incrementalItems = incremental.items
+            ? asArray(incremental.items).filter(item => item != null)
+            : [];
+          if (incremental.data != null) {
+            incrementalItems.unshift(incremental.data);
+          }
+          for (const incrementalItem of incrementalItems) {
+            if (!incremental.path.length) {
+              result.data = mergeDeep([result.data, incrementalItem]);
             } else {
-              _.set(result.data, incremental.path, mergeDeep([existingData, incremental.data]));
+              const existingData = _.get(result.data, incremental.path);
+              if (!existingData) {
+                _.set(result.data, incremental.path, incrementalItem);
+              } else {
+                _.set(result.data, incremental.path, mergeDeep([existingData, incrementalItem]));
+              }
             }
           }
         }
@@ -48,7 +56,7 @@ function mergeDeferredResults(values: ExecutionResult[]) {
   return result;
 }
 
-describe('Defer', () => {
+describe('Defer/Stream', () => {
   const users = [
     { id: '1', name: 'Ada Lovelace' },
     { id: '2', name: 'Alan Turing' },
@@ -65,6 +73,7 @@ describe('Defer', () => {
       type Query {
         user(id: ID!): User
         users: [User]
+        usersStream: [User]
       }
 
       type User @key(fields: "id") {
@@ -80,6 +89,12 @@ describe('Defer', () => {
       Query: {
         users: () => resolveWithDelay(() => users, 300),
         user: (_, { id }) => resolveWithDelay(() => users.find(user => user.id === id), 500),
+        usersStream: async function* usersStream() {
+          for (const user of users) {
+            yield user;
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        },
       },
     },
   });
@@ -115,8 +130,14 @@ describe('Defer', () => {
           resolveWithDelay(() => posts.filter(post => post.authorId === user.id), 300),
       },
       Query: {
-        posts: () => resolveWithDelay(() => posts, 300),
         post: (_, { id }) => resolveWithDelay(() => posts.find(post => post.id === id), 300),
+        posts: () => resolveWithDelay(() => posts, 300),
+        postsStream: async function* postsStream() {
+          for (const post of posts) {
+            yield post;
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        },
       },
     },
   });
@@ -252,7 +273,7 @@ describe('Defer', () => {
       values.push(value);
     }
     expect(values).toMatchSnapshot('defer-root-fields');
-    const mergedResult = mergeDeferredResults(values);
+    const mergedResult = mergeIncrementalResults(values);
     expect(mergedResult).toEqual(finalResult);
   });
   it('defers the nested fields', async () => {
@@ -309,7 +330,75 @@ describe('Defer', () => {
       values.push(value);
     }
     expect(values).toMatchSnapshot('defer-nested-fields');
-    const mergedResult = mergeDeferredResults(values);
+    const mergedResult = mergeIncrementalResults(values);
     expect(mergedResult).toEqual(finalResult);
+  });
+  it('streams', async () => {
+    const result = await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          usersStream @stream {
+            id
+            name
+            posts {
+              id
+              title
+              author {
+                id
+                name
+              }
+            }
+          }
+        }
+      `),
+    });
+    assertAsyncIterable(result);
+    const values = [];
+    for await (const value of result) {
+      if (value.incremental?.some(v => v.errors?.length)) {
+        throw new Error(`Unexpected on incremental response: ${inspect(value, false, Infinity)}`);
+      }
+      if (value.errors) {
+        throw new Error(`Unexpected error: ${value.errors}`);
+      }
+      values.push(value);
+    }
+    expect(values).toMatchSnapshot('stream');
+    const mergedResult = mergeIncrementalResults(values);
+    expect(mergedResult).toEqual({
+      data: {
+        usersStream: [
+          {
+            id: '1',
+            name: 'Ada Lovelace',
+            posts: [
+              {
+                id: '1',
+                title: 'Hello, World!',
+                author: {
+                  id: '1',
+                  name: 'Ada Lovelace',
+                },
+              },
+            ],
+          },
+          {
+            id: '2',
+            name: 'Alan Turing',
+            posts: [
+              {
+                id: '2',
+                title: 'My Story',
+                author: {
+                  id: '2',
+                  name: 'Alan Turing',
+                },
+              },
+            ],
+          },
+        ],
+      },
+    });
   });
 });
