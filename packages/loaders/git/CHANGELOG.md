@@ -1,24 +1,36 @@
 # @graphql-tools/git-loader
 
+## 8.0.7
+
+### Patch Changes
+
+- Updated dependencies
+  [[`d4d3691`](https://github.com/ardatan/graphql-tools/commit/d4d369186beabb599c0ea365f2d2c61951356e29)]:
+  - @graphql-tools/graphql-tag-pluck@8.3.2
+
 ## 8.0.6
 
 ### Patch Changes
 
-- Updated dependencies [[`ee0daab`](https://github.com/ardatan/graphql-tools/commit/ee0daabd6f3036bb2b63a679d5415f63c9f85056)]:
+- Updated dependencies
+  [[`ee0daab`](https://github.com/ardatan/graphql-tools/commit/ee0daabd6f3036bb2b63a679d5415f63c9f85056)]:
   - @graphql-tools/graphql-tag-pluck@8.3.1
 
 ## 8.0.5
 
 ### Patch Changes
 
-- Updated dependencies [[`f0edcb2`](https://github.com/ardatan/graphql-tools/commit/f0edcb2810ef3d3ba26ace2be0b15600b81360e7)]:
+- Updated dependencies
+  [[`f0edcb2`](https://github.com/ardatan/graphql-tools/commit/f0edcb2810ef3d3ba26ace2be0b15600b81360e7)]:
   - @graphql-tools/graphql-tag-pluck@8.3.0
 
 ## 8.0.4
 
 ### Patch Changes
 
-- Updated dependencies [[`f85c093`](https://github.com/ardatan/graphql-tools/commit/f85c093a8dd033efc613b93c25d15cfb0c2df7d3), [`2c6c1d6`](https://github.com/ardatan/graphql-tools/commit/2c6c1d688741ef024b407e45f4040a667f7969e0)]:
+- Updated dependencies
+  [[`f85c093`](https://github.com/ardatan/graphql-tools/commit/f85c093a8dd033efc613b93c25d15cfb0c2df7d3),
+  [`2c6c1d6`](https://github.com/ardatan/graphql-tools/commit/2c6c1d688741ef024b407e45f4040a667f7969e0)]:
   - @graphql-tools/utils@10.0.13
   - @graphql-tools/graphql-tag-pluck@8.2.0
 

@@ -1,26 +1,44 @@
 # @graphql-tools/graphql-tag-pluck
 
+## 8.3.2
+
+### Patch Changes
+
+- [#6407](https://github.com/ardatan/graphql-tools/pull/6407)
+  [`d4d3691`](https://github.com/ardatan/graphql-tools/commit/d4d369186beabb599c0ea365f2d2c61951356e29)
+  Thanks [@dimaMachina](https://github.com/dimaMachina)! - fix `require is not defined` for esm
+  build
+
 ## 8.3.1
 
 ### Patch Changes
 
-- [#4439](https://github.com/ardatan/graphql-tools/pull/4439) [`ee0daab`](https://github.com/ardatan/graphql-tools/commit/ee0daabd6f3036bb2b63a679d5415f63c9f85056) Thanks [@jaschaephraim](https://github.com/jaschaephraim)! - Add option to pluck from custom Vue block
+- [#4439](https://github.com/ardatan/graphql-tools/pull/4439)
+  [`ee0daab`](https://github.com/ardatan/graphql-tools/commit/ee0daabd6f3036bb2b63a679d5415f63c9f85056)
+  Thanks [@jaschaephraim](https://github.com/jaschaephraim)! - Add option to pluck from custom Vue
+  block
 
 ## 8.3.0
 
 ### Minor Changes
 
-- [#5920](https://github.com/ardatan/graphql-tools/pull/5920) [`f0edcb2`](https://github.com/ardatan/graphql-tools/commit/f0edcb2810ef3d3ba26ace2be0b15600b81360e7) Thanks [@collin](https://github.com/collin)! - Adds support for tc39/proposal-explicit-resource-management ('using' keyword)
+- [#5920](https://github.com/ardatan/graphql-tools/pull/5920)
+  [`f0edcb2`](https://github.com/ardatan/graphql-tools/commit/f0edcb2810ef3d3ba26ace2be0b15600b81360e7)
+  Thanks [@collin](https://github.com/collin)! - Adds support for
+  tc39/proposal-explicit-resource-management ('using' keyword)
 
 ## 8.2.0
 
 ### Minor Changes
 
-- [#5781](https://github.com/ardatan/graphql-tools/pull/5781) [`2c6c1d6`](https://github.com/ardatan/graphql-tools/commit/2c6c1d688741ef024b407e45f4040a667f7969e0) Thanks [@XiNiHa](https://github.com/XiNiHa)! - Add .astro file support
+- [#5781](https://github.com/ardatan/graphql-tools/pull/5781)
+  [`2c6c1d6`](https://github.com/ardatan/graphql-tools/commit/2c6c1d688741ef024b407e45f4040a667f7969e0)
+  Thanks [@XiNiHa](https://github.com/XiNiHa)! - Add .astro file support
 
 ### Patch Changes
 
-- Updated dependencies [[`f85c093`](https://github.com/ardatan/graphql-tools/commit/f85c093a8dd033efc613b93c25d15cfb0c2df7d3)]:
+- Updated dependencies
+  [[`f85c093`](https://github.com/ardatan/graphql-tools/commit/f85c093a8dd033efc613b93c25d15cfb0c2df7d3)]:
   - @graphql-tools/utils@10.0.13
 
 ## 8.1.0
