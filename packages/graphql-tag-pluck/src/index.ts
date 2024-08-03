@@ -359,31 +359,31 @@ const MissingAstroCompilerError = new Error(
   `),
 );
 
-async function loadVueCompilerSync() {
+async function loadVueCompilerAsync() {
   try {
     // eslint-disable-next-line import/no-extraneous-dependencies
     return await import('@vue/compiler-sfc');
-  } catch (e: any) {
+  } catch {
     throw MissingVueTemplateCompilerError;
   }
 }
 
-function loadVueCompilerAsync() {
+function loadVueCompilerSync() {
   try {
     // eslint-disable-next-line import/no-extraneous-dependencies
     return require('@vue/compiler-sfc');
-  } catch (e: any) {
+  } catch {
     throw MissingVueTemplateCompilerError;
   }
 }
 
 async function pluckVueFileScript(fileData: string) {
-  const vueTemplateCompiler = await loadVueCompilerSync();
+  const vueTemplateCompiler = await loadVueCompilerAsync();
   return parseWithVue(vueTemplateCompiler, fileData);
 }
 
 function pluckVueFileScriptSync(fileData: string) {
-  const vueTemplateCompiler = loadVueCompilerAsync();
+  const vueTemplateCompiler = loadVueCompilerSync();
   return parseWithVue(vueTemplateCompiler, fileData);
 }
 
@@ -393,7 +393,7 @@ async function pluckVueFileCustomBlock(fileData: string, filePath: string, block
 }
 
 function pluckVueFileCustomBlockSync(fileData: string, filePath: string, blockType: string) {
-  const vueTemplateCompiler = loadVueCompilerAsync();
+  const vueTemplateCompiler = loadVueCompilerSync();
   return customBlockFromVue(vueTemplateCompiler, fileData, filePath, blockType);
 }
 
@@ -402,7 +402,7 @@ async function pluckSvelteFileScript(fileData: string) {
   try {
     // eslint-disable-next-line import/no-extraneous-dependencies
     svelte2tsx = await import('svelte2tsx');
-  } catch (e: any) {
+  } catch {
     throw MissingSvelteTemplateCompilerError;
   }
 
@@ -415,7 +415,7 @@ function pluckSvelteFileScriptSync(fileData: string) {
   try {
     // eslint-disable-next-line import/no-extraneous-dependencies
     svelte2tsx = require('svelte2tsx');
-  } catch (e: any) {
+  } catch {
     throw MissingSvelteTemplateCompilerError;
   }
 
@@ -427,7 +427,7 @@ async function pluckAstroFileScript(fileData: string) {
   try {
     // eslint-disable-next-line import/no-extraneous-dependencies
     astroCompiler = await import('@astrojs/compiler');
-  } catch (e: any) {
+  } catch {
     throw MissingAstroCompilerError;
   }
 
@@ -439,7 +439,7 @@ function pluckAstroFileScriptSync(fileData: string) {
   try {
     // eslint-disable-next-line import/no-extraneous-dependencies
     astroCompiler = require('astrojs-compiler-sync');
-  } catch (e: any) {
+  } catch {
     throw MissingAstroCompilerError;
   }
 

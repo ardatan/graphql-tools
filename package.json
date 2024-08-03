@@ -34,6 +34,7 @@
     "ci:lint": "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --ext .ts . --output-file eslint_report.json --format json",
     "clean-dist": "rimraf \"packages/**/dist\" && rimraf \".bob\"",
     "lint": "cross-env \"ESLINT_USE_FLAT_CONFIG=false\" eslint --ext .ts .",
+    "postbuild": "ts-node --compiler-options='{\"module\":\"commonjs\"}' scripts/postbuild.ts",
     "postinstall": "patch-package && husky install",
     "prerelease": "yarn build",
     "prettier": "prettier --cache --ignore-path .prettierignore --write --list-different .",
