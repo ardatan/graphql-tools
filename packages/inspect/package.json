@@ -29,7 +29,7 @@
         "types": "./dist/typings/index.d.ts",
         "default": "./dist/esm/index.js"
       }
-    }
+    },
     "./package.json": "./package.json"
   },
   "typings": "dist/typings/index.d.ts",
