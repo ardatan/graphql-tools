@@ -1,5 +1,17 @@
 # @graphql-tools/utils
 
+## 10.3.3
+
+### Patch Changes
+
+- [#6385](https://github.com/ardatan/graphql-tools/pull/6385)
+  [`d0f7d75`](https://github.com/ardatan/graphql-tools/commit/d0f7d75558a79c48a143fdce745488ef82886c39)
+  Thanks [@tobiasdiez](https://github.com/tobiasdiez)! - remove generic package export
+
+- Updated dependencies
+  [[`d0f7d75`](https://github.com/ardatan/graphql-tools/commit/d0f7d75558a79c48a143fdce745488ef82886c39)]:
+  - cross-inspect@1.0.1
+
 ## 10.3.2
 
 ### Patch Changes
