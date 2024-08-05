@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/utils",
-  "version": "10.3.2",
+  "version": "10.3.3",
   "type": "module",
   "description": "Common package containing utils and types for GraphQL tools",
   "repository": {
@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.1.1",
-    "cross-inspect": "1.0.0",
+    "cross-inspect": "1.0.1",
     "dset": "^3.1.2",
     "tslib": "^2.4.0"
   },
