@@ -3,6 +3,9 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
 import { prepareGatewayDocument } from '../src/prepareGatewayDocument';
 import '../../testing/to-be-similar-gql-doc';
+import { normalizedExecutor } from '@graphql-tools/executor';
+import { Executor } from '@graphql-tools/utils';
+import { createDefaultExecutor } from '../src/delegateToSchema';
 
 describe('prepareGatewayDocument', () => {
   const posts = [
@@ -240,6 +243,285 @@ describe('prepareGatewayDocument', () => {
           posts {
             id
             title
+          }
+        }
+      }
+    `);
+  });
+  it('handles distributed abstract types', async () => {
+    const ovens = [
+      {
+        __typename: 'Oven',
+        id: 'oven1',
+        warranty: 1,
+      },
+      {
+        __typename: 'Oven',
+        id: 'oven2',
+        warranty: 2,
+      },
+    ];
+    const toasters = [
+      {
+        __typename: 'Toaster',
+        id: 'toaster1',
+        warranty: 3,
+      },
+      {
+        __typename: 'Toaster',
+        id: 'toaster2',
+        warranty: 4,
+      },
+    ];
+
+    const products = [...ovens, ...toasters];
+
+    const schemaA = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        scalar KeyA
+
+        type Query {
+          products: [Product]
+          node(id: ID!): Node
+          nodes: [Node]
+          toasters: [Toaster]
+          entitiesA(keys: [KeyA]): [EntityA]
+        }
+
+        union EntityA = Oven | Toaster
+
+        union Product = Oven | Toaster
+
+        interface Node {
+          id: ID!
+        }
+
+        type Oven {
+          id: ID!
+        }
+
+        type Toaster implements Node {
+          id: ID!
+          warranty: Int
+        }
+      `,
+      resolvers: {
+        Query: {
+          products() {
+            return products.map(product => {
+              if (product.__typename === 'Oven') {
+                return {
+                  __typename: 'Oven',
+                  id: product.id,
+                };
+              } else {
+                return {
+                  __typename: 'Toaster',
+                  id: product.id,
+                  warranty: product.warranty,
+                };
+              }
+            });
+          },
+          node(_: never, { id }: { id: string }) {
+            const product = products.find(p => p.id === id);
+
+            if (product?.__typename === 'Oven') {
+              return {
+                __typename: 'Oven',
+                id: product.id,
+              };
+            } else if (product?.__typename === 'Toaster') {
+              return {
+                __typename: 'Toaster',
+                id: product.id,
+                warranty: product.warranty,
+              };
+            }
+
+            return null;
+          },
+          toasters() {
+            return products
+              .filter(product => product.__typename === 'Toaster')
+              .map(toaster => ({
+                __typename: 'Toaster',
+                id: toaster.id,
+                warranty: toaster.warranty,
+              }));
+          },
+          nodes() {
+            return products
+              .filter(product => product.__typename === 'Toaster')
+              .map(toaster => ({
+                __typename: 'Toaster',
+                id: toaster.id,
+                warranty: toaster.warranty,
+              }));
+          },
+          entitiesA(_: never, { keys }: { keys: any[] }) {
+            return keys.map(key => {
+              if (key.__typename === 'Oven') {
+                const oven = products.find(p => p.id === key.id);
+
+                if (oven?.__typename === 'Oven') {
+                  return {
+                    __typename: 'Oven',
+                    id: oven.id,
+                  };
+                }
+              }
+              if (key.__typename === 'Toaster') {
+                const toaster = products.find(p => p.id === key.id);
+
+                if (toaster?.__typename === 'Toaster') {
+                  return {
+                    __typename: 'Toaster',
+                    id: toaster.id,
+                    warranty: toaster.warranty,
+                  };
+                }
+              }
+
+              return null;
+            });
+          },
+        },
+        Oven: {
+          warranty() {
+            throw new Error('Never');
+          },
+        },
+      },
+      resolverValidationOptions: {
+        requireResolversToMatchSchema: 'ignore',
+      },
+    });
+
+    const schemaB = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        scalar KeyB
+        type Query {
+          entitiesB(keys: [KeyB]): [EntityB]
+        }
+
+        union EntityB = Oven
+
+        interface Node {
+          id: ID!
+        }
+
+        type Oven implements Node {
+          id: ID!
+          warranty: Int
+        }
+      `,
+      resolvers: {
+        Query: {
+          entitiesB(_: never, { keys }: { keys: any[] }) {
+            return keys.map(key => {
+              if (key.__typename === 'Oven') {
+                const oven = products.find(p => p.id === key.id);
+
+                if (oven?.__typename === 'Oven') {
+                  return {
+                    __typename: 'Oven',
+                    id: oven.id,
+                    warranty: 1,
+                  };
+                }
+              }
+
+              return null;
+            });
+          },
+        },
+      },
+    });
+
+    const executorA = jest.fn(createDefaultExecutor(schemaA));
+    const executorB = jest.fn(createDefaultExecutor(schemaB));
+
+    const gatewaySchema = stitchSchemas({
+      subschemas: [
+        {
+          schema: schemaA,
+          executor: executorA as Executor,
+          merge: {
+            Oven: {
+              selectionSet: '{ id }',
+              fieldName: 'entitiesA',
+              key: ({ id }: { id: string }) => ({ id, __typename: 'Oven' }),
+              argsFromKeys: keys => ({ keys }),
+            },
+            Toaster: {
+              selectionSet: '{ id }',
+              fieldName: 'entitiesA',
+              key: ({ id }: { id: string }) => ({ id, __typename: 'Toaster' }),
+              argsFromKeys: keys => ({ keys }),
+            },
+          },
+        },
+        {
+          schema: schemaB,
+          executor: executorB as Executor,
+          merge: {
+            Oven: {
+              selectionSet: '{ id }',
+              fieldName: 'entitiesB',
+              key: ({ id }: { id: string }) => ({ id, __typename: 'Oven' }),
+              argsFromKeys: keys => ({ keys }),
+            },
+          },
+        },
+      ],
+    });
+
+    const result = await normalizedExecutor({
+      document: parse(/* GraphQL */ `
+        query {
+          products {
+            ... on Node {
+              id
+            }
+          }
+        }
+      `),
+      schema: gatewaySchema,
+    });
+
+    expect(result).toEqual({
+      data: {
+        products: [
+          {
+            id: 'oven1',
+          },
+          {
+            id: 'oven2',
+          },
+          {
+            id: 'toaster1',
+          },
+          {
+            id: 'toaster2',
+          },
+        ],
+      },
+    });
+
+    expect(executorA).toHaveBeenCalledTimes(1);
+    expect(executorB).toHaveBeenCalledTimes(0);
+
+    expect(print(executorA.mock.calls[0][0].document)).toBeSimilarGqlDoc(/* GraphQL */ `
+      query {
+        __typename
+        products {
+          __typename
+          ... on Oven {
+            id
+          }
+          ... on Node {
+            id
           }
         }
       }
