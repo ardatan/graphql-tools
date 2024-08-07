@@ -32,12 +32,12 @@ type Toaster implements Node {
 And another one like below;
 
 ```graphql
-    interface Node {
-      id: ID!
-    }
+interface Node {
+  id: ID!
+}
 
-    type Oven implements Node {
-      id: ID!
-      warranty: Int
-    }
+type Oven implements Node {
+  id: ID!
+  warranty: Int
+}
 ```
