@@ -3,6 +3,7 @@ import {
   FieldDefinitionNode,
   GraphQLOutputType,
   GraphQLSchema,
+  isListType,
   OperationTypeNode,
   validate,
 } from 'graphql';
@@ -21,6 +22,7 @@ import {
   MaybeAsyncIterable,
   memoize1,
 } from '@graphql-tools/utils';
+import { Repeater } from '@repeaterjs/repeater';
 import { applySchemaTransforms } from './applySchemaTransforms.js';
 import { createRequest, getDelegatingOperation } from './createRequest.js';
 import { Subschema } from './Subschema.js';
@@ -105,9 +107,44 @@ export function delegateRequest<
 
   function handleExecutorResult(executorResult: MaybeAsyncIterable<ExecutionResult<any>>) {
     if (isAsyncIterable(executorResult)) {
-      const iterator = executorResult[Symbol.asyncIterator]();
-      // "subscribe" to the subscription result and map the result through the transforms
-      return mapAsyncIterator(iterator, result => transformer.transformResult(result));
+      // This might be a stream
+      if (delegationContext.operation === 'query' && isListType(delegationContext.returnType)) {
+        return new Repeater<ExecutionResult<any>>(async (push, stop) => {
+          const pushed = new WeakSet();
+          let stopped = false;
+          stop.finally(() => {
+            stopped = true;
+          });
+          try {
+            for await (const result of executorResult) {
+              if (stopped) {
+                break;
+              }
+              const transformedResult = await transformer.transformResult(result);
+              // @stream needs to get the results one by one
+              if (Array.isArray(transformedResult)) {
+                for (const individualResult$ of transformedResult) {
+                  if (stopped) {
+                    break;
+                  }
+                  const individualResult = await individualResult$;
+                  // Avoid pushing the same result multiple times
+                  if (!pushed.has(individualResult)) {
+                    pushed.add(individualResult);
+                    await push(individualResult);
+                  }
+                }
+              } else {
+                await push(await transformedResult);
+              }
+            }
+            stop();
+          } catch (error) {
+            stop(error);
+          }
+        });
+      }
+      return mapAsyncIterator(executorResult, result => transformer.transformResult(result));
     }
     return transformer.transformResult(executorResult);
   }

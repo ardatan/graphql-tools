@@ -1,11 +1,13 @@
 import { inspect } from 'util';
 import { GraphQLSchema, parse, print } from 'graphql';
+import { createYoga } from 'graphql-yoga';
 import _ from 'lodash';
 import { IntrospectAndCompose, LocalGraphQLDataSource } from '@apollo/gateway';
 import { buildSubgraphSchema } from '@apollo/subgraph';
-import { createDefaultExecutor } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
+import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { asArray, ExecutionResult, mergeDeep } from '@graphql-tools/utils';
+import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 import { assertAsyncIterable } from '../../loaders/url/tests/test-utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 
@@ -98,6 +100,10 @@ describe('Defer/Stream', () => {
       },
     },
   });
+  const usersServer = createYoga({
+    schema: usersSubgraph,
+    plugins: [useDeferStream()],
+  });
   const postsSubgraph = buildSubgraphSchema({
     typeDefs: parse(/* GraphQL */ `
       type Query {
@@ -141,6 +147,10 @@ describe('Defer/Stream', () => {
       },
     },
   });
+  const postsServer = createYoga({
+    schema: postsSubgraph,
+    plugins: [useDeferStream()],
+  });
   let schema: GraphQLSchema;
   let finalResult: ExecutionResult;
   beforeAll(async () => {
@@ -163,7 +173,10 @@ describe('Defer/Stream', () => {
       onSubschemaConfig(subschemaConfig) {
         const subgraphName = subschemaConfig.name.toLowerCase();
         if (subgraphName === 'users') {
-          const origExecutor = createDefaultExecutor(usersSubgraph);
+          const origExecutor = buildHTTPExecutor({
+            endpoint: 'http://localhost:4001/graphql',
+            fetch: usersServer.fetch,
+          });
           subschemaConfig.executor = async function usersExecutor(execReq) {
             const result = await origExecutor(execReq);
             if (process.env['DEBUG']) {
@@ -176,7 +189,10 @@ describe('Defer/Stream', () => {
             return result;
           };
         } else if (subgraphName === 'posts') {
-          const origExecutor = createDefaultExecutor(postsSubgraph);
+          const origExecutor = buildHTTPExecutor({
+            endpoint: 'http://localhost:4002/graphql',
+            fetch: postsServer.fetch,
+          });
           subschemaConfig.executor = async function postsExecutor(execReq) {
             const result = await origExecutor(execReq);
             if (process.env['DEBUG']) {

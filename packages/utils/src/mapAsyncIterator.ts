@@ -6,11 +6,14 @@ import { isPromise } from './jsutils.js';
  * which produces values mapped via calling the callback function.
  */
 export function mapAsyncIterator<T, U>(
-  iterator: AsyncIterator<T>,
+  iterator: AsyncIterable<T> | AsyncIterator<T>,
   onNext: (value: T) => MaybePromise<U>,
   onError?: any,
   onEnd?: () => MaybePromise<void>,
 ): AsyncIterableIterator<U> {
+  if (Symbol.asyncIterator in iterator) {
+    iterator = iterator[Symbol.asyncIterator]();
+  }
   let $return: () => Promise<IteratorResult<T>>;
   let abruptClose: (error: any) => Promise<never>;
   let onEndWithValue: <R>(value: R) => MaybePromise<R>;
