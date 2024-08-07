@@ -1,5 +1,79 @@
 # @graphql-tools/delegate
 
+## 10.0.18
+
+### Patch Changes
+
+- [#6420](https://github.com/ardatan/graphql-tools/pull/6420)
+  [`a867bbc`](https://github.com/ardatan/graphql-tools/commit/a867bbc9b5b91e89a09447797b4c02e22e47ddb4)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+
+  - Added dependency
+    [`@repeaterjs/repeater@^3.0.6` ↗︎](https://www.npmjs.com/package/@repeaterjs/repeater/v/3.0.6)
+    (to `dependencies`)
+
+- [#6420](https://github.com/ardatan/graphql-tools/pull/6420)
+  [`a867bbc`](https://github.com/ardatan/graphql-tools/commit/a867bbc9b5b91e89a09447797b4c02e22e47ddb4)
+  Thanks [@ardatan](https://github.com/ardatan)! - Pass operation directives correctly to the
+  subschema;
+
+  ```graphql
+  query {
+    hello @someDir
+  }
+  ```
+
+- [#6418](https://github.com/ardatan/graphql-tools/pull/6418)
+  [`da93c08`](https://github.com/ardatan/graphql-tools/commit/da93c08b4bc22b5c9be81ed57beba8577f33118a)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix extra inline fragments for all abstract types
+  in the upstream schema call
+
+  If there are two subschemas like below, the final `Node` interface is implemented by both `Oven`
+  and `Toaster` while they are not implemented in both schemas. In this case the query
+  `{ products { id ... on Node { id } } }` will need to be transformed to
+  `{ products { id ... on Oven { id } ... on Node { id } } }` for the first subschema. But
+  previously the query planner was automatically creating inline fragments for all possible types
+  which was not optimal. Now it adds inline fragments only if this case is seen.
+
+  ```graphql
+  type Query {
+    products: [Product]
+  }
+
+  union Product = Oven | Toaster
+
+  interface Node {
+    id: ID!
+  }
+
+  type Oven {
+    id: ID!
+  }
+
+  type Toaster implements Node {
+    id: ID!
+    warranty: Int
+  }
+  ```
+
+  And another one like below;
+
+  ```graphql
+  interface Node {
+    id: ID!
+  }
+
+  type Oven implements Node {
+    id: ID!
+    warranty: Int
+  }
+  ```
+
+- Updated dependencies
+  [[`a867bbc`](https://github.com/ardatan/graphql-tools/commit/a867bbc9b5b91e89a09447797b4c02e22e47ddb4)]:
+  - @graphql-tools/executor@1.3.1
+  - @graphql-tools/utils@10.3.4
+
 ## 10.0.17
 
 ### Patch Changes

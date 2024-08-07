@@ -1,5 +1,17 @@
 # @graphql-tools/executor
 
+## 1.3.1
+
+### Patch Changes
+
+- [#6420](https://github.com/ardatan/graphql-tools/pull/6420)
+  [`a867bbc`](https://github.com/ardatan/graphql-tools/commit/a867bbc9b5b91e89a09447797b4c02e22e47ddb4)
+  Thanks [@ardatan](https://github.com/ardatan)! - `mapAsyncIterator` now accepts `AsyncIterable`
+
+- Updated dependencies
+  [[`a867bbc`](https://github.com/ardatan/graphql-tools/commit/a867bbc9b5b91e89a09447797b4c02e22e47ddb4)]:
+  - @graphql-tools/utils@10.3.4
+
 ## 1.3.0
 
 ### Minor Changes
