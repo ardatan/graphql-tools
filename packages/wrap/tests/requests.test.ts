@@ -1,6 +1,7 @@
-import { OperationTypeNode, parse } from 'graphql';
+import { OperationTypeNode, print } from 'graphql';
 import { createRequest } from '@graphql-tools/delegate';
 import { parseSelectionSet } from '@graphql-tools/utils';
+import '../../testing/to-be-similar-gql-doc';
 
 function removeLocations(value: any): any {
   if (value == null) {
@@ -37,16 +38,7 @@ describe('requests', () => {
       }),
     );
 
-    const expectedRequest = removeLocations({
-      document: parse(/* GraphQL */ `
-        query test {
-          version {
-            major
-            minor
-            patch
-          }
-        }
-      `),
+    expect(request).toMatchObject({
       rootValue: undefined,
       variables: {},
       operationName: 'test',
@@ -55,6 +47,14 @@ describe('requests', () => {
       info: undefined,
     });
 
-    expect(expectedRequest).toMatchObject(request);
+    expect(print(request.document)).toBeSimilarGqlDoc(/* GraphQL */ `
+      query test {
+        version {
+          major
+          minor
+          patch
+        }
+      }
+    `);
   });
 });

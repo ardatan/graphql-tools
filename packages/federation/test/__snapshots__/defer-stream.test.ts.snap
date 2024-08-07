@@ -291,7 +291,7 @@ exports[`Defer/Stream streams: stream 1`] = `
     ],
   },
   {
-    "hasNext": false,
+    "hasNext": true,
     "incremental": [
       {
         "items": [
@@ -316,6 +316,9 @@ exports[`Defer/Stream streams: stream 1`] = `
         ],
       },
     ],
+  },
+  {
+    "hasNext": false,
   },
 ]
 `;

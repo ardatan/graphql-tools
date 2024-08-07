@@ -107,8 +107,8 @@ export function createRequest({
       newVariables,
     );
   }
-
-  const rootFieldName = targetFieldName ?? fieldNodes?.[0]?.name.value;
+  const fieldNode = fieldNodes?.[0];
+  const rootFieldName = targetFieldName ?? fieldNode?.name.value;
 
   if (rootFieldName === undefined) {
     throw new Error(`Either "targetFieldName" or a non empty "fieldNodes" array must be provided.`);
@@ -122,6 +122,7 @@ export function createRequest({
       value: rootFieldName,
     },
     selectionSet: newSelectionSet,
+    directives: fieldNode?.directives,
   };
 
   const operationName: NameNode | undefined = targetOperationName
