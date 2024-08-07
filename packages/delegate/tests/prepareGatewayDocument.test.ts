@@ -323,7 +323,7 @@ describe('prepareGatewayDocument', () => {
               }
             });
           },
-          node(_: {}, { id }: { id: string }) {
+          node(_: never, { id }: { id: string }) {
             const product = products.find(p => p.id === id);
 
             if (product?.__typename === 'Oven') {
@@ -359,7 +359,7 @@ describe('prepareGatewayDocument', () => {
                 warranty: toaster.warranty,
               }));
           },
-          entitiesA(_: {}, { keys }: { keys: any[] }) {
+          entitiesA(_: never, { keys }: { keys: any[] }) {
             return keys.map(key => {
               if (key.__typename === 'Oven') {
                 const oven = products.find(p => p.id === key.id);
@@ -370,8 +370,6 @@ describe('prepareGatewayDocument', () => {
                     id: oven.id,
                   };
                 }
-
-                return null;
               }
               if (key.__typename === 'Toaster') {
                 const toaster = products.find(p => p.id === key.id);
@@ -383,9 +381,9 @@ describe('prepareGatewayDocument', () => {
                     warranty: toaster.warranty,
                   };
                 }
-
-                return null;
               }
+
+              return null;
             });
           },
         },
@@ -420,7 +418,7 @@ describe('prepareGatewayDocument', () => {
       `,
       resolvers: {
         Query: {
-          entitiesB(_: {}, { keys }: { keys: any[] }) {
+          entitiesB(_: never, { keys }: { keys: any[] }) {
             return keys.map(key => {
               if (key.__typename === 'Oven') {
                 const oven = products.find(p => p.id === key.id);
@@ -432,9 +430,9 @@ describe('prepareGatewayDocument', () => {
                     warranty: 1,
                   };
                 }
-
-                return null;
               }
+
+              return null;
             });
           },
         },
