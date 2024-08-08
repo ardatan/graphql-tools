@@ -2,7 +2,7 @@ import DataLoader from 'dataloader';
 import { getNamedType, GraphQLList, GraphQLSchema, print } from 'graphql';
 import { ValueOrPromise } from 'value-or-promise';
 import { delegateToSchema, getActualFieldNodes, SubschemaConfig } from '@graphql-tools/delegate';
-import { memoize1, memoize2, relocatedError } from '@graphql-tools/utils';
+import { inspect, memoize1, memoize2, relocatedError } from '@graphql-tools/utils';
 import { BatchDelegateOptions } from './types.js';
 
 function createBatchFn<K = any>(options: BatchDelegateOptions) {
@@ -38,13 +38,31 @@ function createBatchFn<K = any>(options: BatchDelegateOptions) {
         ...(lazyOptionsFn == null ? options : lazyOptionsFn(options, keys)),
       }),
     ).then(results => {
+      if (results instanceof AggregateError && keys.length === results.errors.length) {
+        return results.errors;
+      }
       if (results instanceof Error) {
         return keys.map(() => results);
       }
-
       const values = valuesFromResults == null ? results : valuesFromResults(results, keys);
 
-      return Array.isArray(values) ? values : keys.map(() => values);
+      if (Array.isArray(values)) {
+        if (values.length !== keys.length) {
+          return keys.map(
+            key =>
+              new Error(`The batch delegation failed for the field "${fieldName}" and the key "${inspect(key)}".
+Returned results have ${results.length} items, but ${keys.length} were expected.
+Possible solutions;
+ - Ensure that defined "fieldName" returns an array with the same length as the keys.
+ - Map the results to the keys using the "valuesFromResults" option.
+ - Disable the batch delegation for the defined "fieldName".
+`),
+          );
+        }
+        return values;
+      }
+
+      return keys.map(() => values);
     });
   };
 }
