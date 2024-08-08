@@ -1,5 +1,30 @@
 # @graphql-tools/federation
 
+## 2.2.5
+
+### Patch Changes
+
+- [`dbb0516`](https://github.com/ardatan/graphql-tools/commit/dbb05162731b7a2baf08f4756d4a4de3dce0a951)
+  Thanks [@ardatan](https://github.com/ardatan)! - If there are repeated computed fields like below,
+  project the data for the computed fields for each `fields` and merge them correctly. And if they
+  are array as in `userOrders`, merge them by respecting the order (the second one can have `price`
+  maybe).
+
+  ```graphql
+  type UserOrder @key(fields: "id") {
+    id: ID!
+    status: String!
+    price: Int!
+  }
+
+  type User @key(fields: "id") {
+    id: ID!
+    userOrders: [UserOrder!] @external
+    totalOrdersPrices: Int @requires(fields: "userOrders { id }")
+    aggregatedOrdersByStatus: Int @requires(fields: "userOrders { id }")
+  }
+  ```
+
 ## 2.2.4
 
 ### Patch Changes
