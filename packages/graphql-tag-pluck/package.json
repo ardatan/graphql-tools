@@ -64,7 +64,7 @@
     "@babel/traverse": "7.25.3",
     "@babel/types": "7.25.2",
     "@types/babel__traverse": "7.20.6",
-    "@vue/compiler-sfc": "3.4.36",
+    "@vue/compiler-sfc": "3.4.37",
     "astrojs-compiler-sync": "^1.0.0",
     "svelte": "4.2.18",
     "svelte2tsx": "0.7.15"
