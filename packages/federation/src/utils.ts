@@ -22,12 +22,17 @@ export function projectDataSelectionSet(data: any, selectionSet?: SelectionSetNo
   for (const selection of selectionSet.selections) {
     if (selection.kind === Kind.FIELD) {
       const key = selection.name.value;
-      if (data.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
         const projectedKeyData = projectDataSelectionSet(data[key], selection.selectionSet);
         if (projectedData[key]) {
-          projectedData[key] = mergeDeep([projectedData[key], projectedKeyData]);
+          projectedData[key] = mergeDeep(
+            [projectedData[key], projectedKeyData],
+            undefined,
+            true,
+            true,
+          );
         } else {
-          projectedData[key] = projectDataSelectionSet(data[key], selection.selectionSet);
+          projectedData[key] = projectedKeyData;
         }
       }
     } else if (selection.kind === Kind.INLINE_FRAGMENT) {
@@ -40,7 +45,12 @@ export function projectDataSelectionSet(data: any, selectionSet?: SelectionSetNo
       }
       Object.assign(
         projectedData,
-        mergeDeep([projectedData, projectDataSelectionSet(data, selection.selectionSet)]),
+        mergeDeep(
+          [projectedData, projectDataSelectionSet(data, selection.selectionSet)],
+          undefined,
+          true,
+          true,
+        ),
       );
     }
   }
