@@ -1,5 +1,12 @@
 # @graphql-tools/utils
 
+## 10.5.0
+
+### Minor Changes
+
+- [`8fd7703`](https://github.com/ardatan/graphql-tools/commit/8fd77030b0acf385b845b354f327069c78369d2a)
+  Thanks [@ardatan](https://github.com/ardatan)! - Export `getDirectiveExtensions`
+
 ## 10.4.0
 
 ### Minor Changes
