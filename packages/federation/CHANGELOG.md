@@ -1,5 +1,19 @@
 # @graphql-tools/federation
 
+## 2.2.6
+
+### Patch Changes
+
+- [`b8bf584`](https://github.com/ardatan/graphql-tools/commit/b8bf584fde87d3064c204d8ac2f9da5b869249c0)
+  Thanks [@ardatan](https://github.com/ardatan)! - Introduce \`getDirectiveExtensions\` and refactor
+  directive handling in the extensions
+
+- Updated dependencies
+  [[`b8bf584`](https://github.com/ardatan/graphql-tools/commit/b8bf584fde87d3064c204d8ac2f9da5b869249c0)]:
+  - @graphql-tools/utils@10.4.0
+  - @graphql-tools/schema@10.0.5
+  - @graphql-tools/merge@9.0.5
+
 ## 2.2.5
 
 ### Patch Changes

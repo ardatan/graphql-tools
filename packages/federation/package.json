@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/federation",
-  "version": "2.2.5",
+  "version": "2.2.6",
   "type": "module",
   "description": "Useful tools to create and manipulate GraphQL schemas.",
   "repository": {
@@ -52,10 +52,10 @@
   "dependencies": {
     "@graphql-tools/delegate": "^10.0.17",
     "@graphql-tools/executor-http": "^1.1.5",
-    "@graphql-tools/merge": "^9.0.3",
-    "@graphql-tools/schema": "^10.0.4",
+    "@graphql-tools/merge": "^9.0.5",
+    "@graphql-tools/schema": "^10.0.5",
     "@graphql-tools/stitch": "^9.2.10",
-    "@graphql-tools/utils": "^10.2.3",
+    "@graphql-tools/utils": "^10.4.0",
     "@graphql-tools/wrap": "^10.0.3",
     "@whatwg-node/fetch": "^0.9.17",
     "tslib": "^2.4.0",

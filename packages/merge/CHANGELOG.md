@@ -1,23 +1,43 @@
 # @graphql-tools/merge
 
+## 9.0.5
+
+### Patch Changes
+
+- [`b8bf584`](https://github.com/ardatan/graphql-tools/commit/b8bf584fde87d3064c204d8ac2f9da5b869249c0)
+  Thanks [@ardatan](https://github.com/ardatan)! - Introduce \`getDirectiveExtensions\` and refactor
+  directive handling in the extensions
+
+- Updated dependencies
+  [[`b8bf584`](https://github.com/ardatan/graphql-tools/commit/b8bf584fde87d3064c204d8ac2f9da5b869249c0)]:
+  - @graphql-tools/utils@10.4.0
+
 ## 9.0.4
 
 ### Patch Changes
 
-- [#6111](https://github.com/ardatan/graphql-tools/pull/6111) [`a06dbd2`](https://github.com/ardatan/graphql-tools/commit/a06dbd263ec7bfc6d50aa8faf2e35396a67b4f0b) Thanks [@lesleydreyer](https://github.com/lesleydreyer)! - Fix directive merging when directive name is inherited from object prototype (i.e. toString)
+- [#6111](https://github.com/ardatan/graphql-tools/pull/6111)
+  [`a06dbd2`](https://github.com/ardatan/graphql-tools/commit/a06dbd263ec7bfc6d50aa8faf2e35396a67b4f0b)
+  Thanks [@lesleydreyer](https://github.com/lesleydreyer)! - Fix directive merging when directive
+  name is inherited from object prototype (i.e. toString)
 
 ## 9.0.3
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.10`, in `dependencies`)
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.10`, in `dependencies`)
 
 ## 9.0.2
 
 ### Patch Changes
 
-- [`8880c78`](https://github.com/ardatan/graphql-tools/commit/8880c78e151ed1781bf2da0e1fbb79e1ffc8c43d) Thanks [@ardatan](https://github.com/ardatan)! - Merge directive arguments
+- [`8880c78`](https://github.com/ardatan/graphql-tools/commit/8880c78e151ed1781bf2da0e1fbb79e1ffc8c43d)
+  Thanks [@ardatan](https://github.com/ardatan)! - Merge directive arguments
 
 ## 9.0.1
 
