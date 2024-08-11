@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 10.4.0
+
+### Minor Changes
+
+- [`b8bf584`](https://github.com/ardatan/graphql-tools/commit/b8bf584fde87d3064c204d8ac2f9da5b869249c0)
+  Thanks [@ardatan](https://github.com/ardatan)! - Introduce \`getDirectiveExtensions\` and refactor
+  directive handling in the extensions
+
 ## 10.3.4
 
 ### Patch Changes
