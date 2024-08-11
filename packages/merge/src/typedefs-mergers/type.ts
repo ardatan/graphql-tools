@@ -27,7 +27,7 @@ export function mergeType(
             ? 'ObjectTypeDefinition'
             : 'ObjectTypeExtension',
         loc: node.loc,
-        fields: mergeFields(node, node.fields, existingNode.fields, config),
+        fields: mergeFields(node, node.fields, existingNode.fields, config, directives),
         directives: mergeDirectives(node.directives, existingNode.directives, config, directives),
         interfaces: mergeNamedTypeArray(node.interfaces, existingNode.interfaces, config),
       } as any;

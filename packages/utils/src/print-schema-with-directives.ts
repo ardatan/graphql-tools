@@ -50,7 +50,7 @@ import { astFromType } from './astFromType.js';
 import { astFromValue } from './astFromValue.js';
 import { astFromValueUntyped } from './astFromValueUntyped.js';
 import { getDescriptionNode } from './descriptionFromObject.js';
-import { getDirectivesInExtensions } from './get-directives.js';
+import { DirectiveAnnotation, getDirectivesInExtensions } from './get-directives.js';
 import { isSome } from './helpers.js';
 import { getRootTypeMap } from './rootTypes.js';
 import {
@@ -218,7 +218,6 @@ export function getDirectiveNodes(
   pathToDirectivesInExtensions?: Array<string>,
 ): Array<DirectiveNode> {
   const directivesInExtensions = getDirectivesInExtensions(entity, pathToDirectivesInExtensions);
-
   let nodes: Array<
     | SchemaDefinitionNode
     | SchemaExtensionNode
@@ -515,7 +514,7 @@ export function makeDeprecatedDirective(deprecationReason: string): DirectiveNod
 
 export function makeDirectiveNode(
   name: string,
-  args: Record<string, any>,
+  args?: Record<string, any>,
   directive?: Maybe<GraphQLDirective>,
 ): DirectiveNode {
   const directiveArguments: Array<ArgumentNode> = [];
@@ -523,7 +522,7 @@ export function makeDirectiveNode(
   if (directive != null) {
     for (const arg of directive.args) {
       const argName = arg.name;
-      const argValue = args[argName];
+      const argValue = args?.[argName];
       if (argValue !== undefined) {
         const value = astFromValue(argValue, arg.type);
         if (value) {
@@ -567,19 +566,12 @@ export function makeDirectiveNode(
 
 export function makeDirectiveNodes(
   schema: Maybe<GraphQLSchema>,
-  directiveValues: Record<string, any>,
+  directiveValues: DirectiveAnnotation[],
 ): Array<DirectiveNode> {
   const directiveNodes: Array<DirectiveNode> = [];
-  for (const directiveName in directiveValues) {
-    const arrayOrSingleValue = directiveValues[directiveName];
-    const directive = schema?.getDirective(directiveName);
-    if (Array.isArray(arrayOrSingleValue)) {
-      for (const value of arrayOrSingleValue) {
-        directiveNodes.push(makeDirectiveNode(directiveName, value, directive));
-      }
-    } else {
-      directiveNodes.push(makeDirectiveNode(directiveName, arrayOrSingleValue, directive));
-    }
+  for (const { name, args } of directiveValues) {
+    const directive = schema?.getDirective(name);
+    directiveNodes.push(makeDirectiveNode(name, args, directive));
   }
   return directiveNodes;
 }

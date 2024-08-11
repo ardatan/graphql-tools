@@ -14,7 +14,6 @@ function applyExtensionObject(
   if (!obj) {
     return;
   }
-
   obj.extensions = mergeDeep([obj.extensions || {}, extensions || {}], false, true);
 }
 

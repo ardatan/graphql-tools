@@ -169,8 +169,7 @@ describe('schema from typedefs', () => {
         loaders: [new GraphQLFileLoader()],
         includeSources: true,
       });
-      assertNonMaybe(schemaWithSources.extensions);
-      const sourcesFromExtensions = schemaWithSources.extensions['sources'] as any;
+      const sourcesFromExtensions = schemaWithSources.extensions?.['sources'] as any[];
       expect(sourcesFromExtensions).toBeDefined();
       expect(sourcesFromExtensions).toHaveLength(1);
       expect(sourcesFromExtensions[0]).toMatchObject(
@@ -182,8 +181,7 @@ describe('schema from typedefs', () => {
       const schemaWithoutSources = await load(glob, {
         loaders: [new GraphQLFileLoader()],
       });
-      assertNonMaybe(schemaWithoutSources.extensions);
-      expect(schemaWithoutSources.extensions['sources']).not.toBeDefined();
+      expect(schemaWithoutSources.extensions?.['sources']).not.toBeDefined();
     });
 
     it('should be able to exclude documents via negative glob', async () => {
