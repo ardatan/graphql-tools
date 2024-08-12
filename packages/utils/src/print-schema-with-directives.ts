@@ -45,6 +45,7 @@ import {
   TypeDefinitionNode,
   TypeExtensionNode,
   UnionTypeDefinitionNode,
+  ValueNode,
 } from 'graphql';
 import { astFromType } from './astFromType.js';
 import { astFromValue } from './astFromValue.js';
@@ -519,38 +520,27 @@ export function makeDirectiveNode(
 ): DirectiveNode {
   const directiveArguments: Array<ArgumentNode> = [];
 
-  if (directive != null) {
-    for (const arg of directive.args) {
-      const argName = arg.name;
-      const argValue = args?.[argName];
-      if (argValue !== undefined) {
-        const value = astFromValue(argValue, arg.type);
-        if (value) {
-          directiveArguments.push({
-            kind: Kind.ARGUMENT,
-            name: {
-              kind: Kind.NAME,
-              value: argName,
-            },
-            value,
-          });
-        }
+  for (const argName in args) {
+    const argValue = args[argName];
+    let value: Maybe<ValueNode>;
+    if (directive != null) {
+      const arg = directive.args.find(arg => arg.name === argName);
+      if (arg) {
+        value = astFromValue(argValue, arg.type);
       }
     }
-  } else {
-    for (const argName in args) {
-      const argValue = args[argName];
-      const value = astFromValueUntyped(argValue);
-      if (value) {
-        directiveArguments.push({
-          kind: Kind.ARGUMENT,
-          name: {
-            kind: Kind.NAME,
-            value: argName,
-          },
-          value,
-        });
-      }
+    if (value == null) {
+      value = astFromValueUntyped(argValue);
+    }
+    if (value != null) {
+      directiveArguments.push({
+        kind: Kind.ARGUMENT,
+        name: {
+          kind: Kind.NAME,
+          value: argName,
+        },
+        value,
+      });
     }
   }
 
