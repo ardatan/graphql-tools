@@ -1,4 +1,4 @@
-import { GraphQLObjectType, GraphQLSchema, GraphQLString, Kind } from 'graphql';
+import { GraphQLObjectType, GraphQLSchema, GraphQLString, SchemaExtensionNode } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { assertGraphQLObjectType } from '../../testing/assertion.js';
 import { getDirectives } from '../src/index.js';
@@ -145,7 +145,7 @@ describe('getDirectives', () => {
       }),
       extensionASTNodes: [
         {
-          kind: Kind.SCHEMA_EXTENSION,
+          kind: 'SchemaExtension',
           directives: [
             {
               kind: 'Directive',
@@ -156,7 +156,7 @@ describe('getDirectives', () => {
               arguments: [],
             },
           ],
-        },
+        } as SchemaExtensionNode,
       ],
     });
     const directives = getDirectives(schema, schema);
