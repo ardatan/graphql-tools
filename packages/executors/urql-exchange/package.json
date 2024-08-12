@@ -52,7 +52,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@urql/core": "5.0.5",
+    "@urql/core": "5.0.6",
     "wonka": "6.3.4"
   },
   "publishConfig": {
