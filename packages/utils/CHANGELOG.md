@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 10.5.2
+
+### Patch Changes
+
+- [`07b87ed`](https://github.com/ardatan/graphql-tools/commit/07b87eda0d895c5b39e926a454e01815a407f886)
+  Thanks [@ardatan](https://github.com/ardatan)! - Respect `extensionASTNodes` in directable
+  GraphQLSchema object
+
 ## 10.5.1
 
 ### Patch Changes
