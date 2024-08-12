@@ -1,4 +1,4 @@
-import { GraphQLSchema } from 'graphql';
+import { GraphQLObjectType, GraphQLSchema, GraphQLString, Kind } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { assertGraphQLObjectType } from '../../testing/assertion.js';
 import { getDirectives } from '../src/index.js';
@@ -130,6 +130,40 @@ describe('getDirectives', () => {
       {
         name: 'mydir',
         args: { arg: 'second' },
+      },
+    ]);
+  });
+  it('gets the directives from extensionASTNodes', () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'Query',
+        fields: {
+          first: {
+            type: GraphQLString,
+          },
+        },
+      }),
+      extensionASTNodes: [
+        {
+          kind: Kind.SCHEMA_EXTENSION,
+          directives: [
+            {
+              kind: 'Directive',
+              name: {
+                kind: 'Name',
+                value: 'mydir',
+              },
+              arguments: [],
+            },
+          ],
+        },
+      ],
+    });
+    const directives = getDirectives(schema, schema);
+    expect(directives).toEqual([
+      {
+        name: 'mydir',
+        args: {},
       },
     ]);
   });

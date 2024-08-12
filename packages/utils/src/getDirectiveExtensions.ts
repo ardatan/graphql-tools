@@ -5,6 +5,7 @@ import { getArgumentValues } from './getArgumentValues.js';
 export type DirectableASTNode = ASTNode & { directives?: readonly DirectiveNode[] };
 export type DirectableObject = {
   astNode?: DirectableASTNode | null;
+  extensionASTNodes?: readonly DirectableASTNode[] | null;
   extensions?: { directives?: Record<string, any> } | null;
 };
 
@@ -24,36 +25,46 @@ export function getDirectiveExtensions<
       TDirectiveAnnotationsMap[directiveName]
     >;
   } = {};
-  if (directableObj.astNode?.directives?.length) {
-    for (const directive of directableObj.astNode.directives) {
-      const directiveName: keyof TDirectiveAnnotationsMap = directive.name.value;
-      let existingDirectiveExtensions = directiveExtensions[directiveName];
-      if (!existingDirectiveExtensions) {
-        existingDirectiveExtensions = [];
-        directiveExtensions[directiveName] = existingDirectiveExtensions;
-      }
-      const directiveInSchema = schema?.getDirective(directiveName);
-      let value: any = {};
-      if (directiveInSchema) {
-        value = getArgumentValues(directiveInSchema, directive);
-      }
-      if (directive.arguments) {
-        for (const argNode of directive.arguments) {
-          const argName = argNode.name.value;
-          if (value[argName] == null) {
-            const argInDirective = directiveInSchema?.args.find(arg => arg.name === argName);
-            if (argInDirective) {
-              value[argName] = valueFromAST(argNode.value, argInDirective.type);
+  const astNodes: DirectableASTNode[] = [];
+  if (directableObj.astNode) {
+    astNodes.push(directableObj.astNode);
+  }
+  if (directableObj.extensionASTNodes) {
+    astNodes.push(...directableObj.extensionASTNodes);
+  }
+  for (const astNode of astNodes) {
+    if (astNode.directives?.length) {
+      for (const directive of astNode.directives) {
+        const directiveName: keyof TDirectiveAnnotationsMap = directive.name.value;
+        let existingDirectiveExtensions = directiveExtensions[directiveName];
+        if (!existingDirectiveExtensions) {
+          existingDirectiveExtensions = [];
+          directiveExtensions[directiveName] = existingDirectiveExtensions;
+        }
+        const directiveInSchema = schema?.getDirective(directiveName);
+        let value: any = {};
+        if (directiveInSchema) {
+          value = getArgumentValues(directiveInSchema, directive);
+        }
+        if (directive.arguments) {
+          for (const argNode of directive.arguments) {
+            const argName = argNode.name.value;
+            if (value[argName] == null) {
+              const argInDirective = directiveInSchema?.args.find(arg => arg.name === argName);
+              if (argInDirective) {
+                value[argName] = valueFromAST(argNode.value, argInDirective.type);
+              }
+            }
+            if (value[argName] == null) {
+              value[argName] = valueFromASTUntyped(argNode.value);
             }
           }
-          if (value[argName] == null) {
-            value[argName] = valueFromASTUntyped(argNode.value);
-          }
         }
+        existingDirectiveExtensions.push(value);
       }
-      existingDirectiveExtensions.push(value);
     }
   }
+
   if (directableObj.extensions) {
     let directivesInExtensions = directableObj.extensions;
     for (const pathSegment of pathToDirectivesInExtensions) {
