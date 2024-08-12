@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 10.5.1
+
+### Patch Changes
+
+- [`6291e14`](https://github.com/ardatan/graphql-tools/commit/6291e14668fdda82d9310b171d5ef71001984f1c)
+  Thanks [@ardatan](https://github.com/ardatan)! - Add all args from extensions to the AST even if
+  they don't exist in the directive def
+
 ## 10.5.0
 
 ### Minor Changes
