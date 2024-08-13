@@ -68,7 +68,7 @@ export function getDirectiveExtensions<
   if (directableObj.extensions) {
     let directivesInExtensions = directableObj.extensions;
     for (const pathSegment of pathToDirectivesInExtensions) {
-      directivesInExtensions = directivesInExtensions[pathSegment];
+      directivesInExtensions = directivesInExtensions?.[pathSegment];
     }
     if (directivesInExtensions != null) {
       for (const directiveNameProp in directivesInExtensions) {
