@@ -292,14 +292,10 @@ function visitSelectionSet(
             skipAddingDependencyNodes = unavailableFields.length === 0;
           }
         }
-
         if (!skipAddingDependencyNodes) {
-          const fieldNodes = fieldNodesByField[parentTypeName]?.[fieldName];
-
-          if (fieldNodes != null) {
-            for (const fieldNode of fieldNodes) {
-              newSelections.add(fieldNode);
-            }
+          const fieldNodesMapForType = fieldNodesByField[parentTypeName];
+          if (fieldNodesMapForType) {
+            addDependenciesNestedly(selection, new Set(), fieldNodesMapForType, newSelections);
           }
 
           const dynamicSelectionSets = dynamicSelectionSetsByField[parentTypeName]?.[fieldName];
@@ -354,6 +350,25 @@ function visitSelectionSet(
   }
 
   return node;
+}
+
+function addDependenciesNestedly(
+  fieldNode: FieldNode,
+  seenFieldNames: Set<string>,
+  fieldNodesByField: Record<string, Array<FieldNode>>,
+  newSelections: Set<SelectionNode>,
+) {
+  if (seenFieldNames.has(fieldNode.name.value)) {
+    return;
+  }
+  seenFieldNames.add(fieldNode.name.value);
+  const fieldNodes = fieldNodesByField[fieldNode.name.value];
+  if (fieldNodes != null) {
+    for (const nestedFieldNode of fieldNodes) {
+      newSelections.add(nestedFieldNode);
+      addDependenciesNestedly(nestedFieldNode, seenFieldNames, fieldNodesByField, newSelections);
+    }
+  }
 }
 
 function generateInlineFragment(
