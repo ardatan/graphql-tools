@@ -527,6 +527,7 @@ describe('prepareGatewayDocument', () => {
       }
     `);
   });
+  // `totalOrdersPrices` needs `userOrders` which needs `lastName` when `totalOrdersPrices` is asked by `Query.user`
   it('adds dependencies nestedly', async () => {
     const schema1 = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
