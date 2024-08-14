@@ -10,8 +10,11 @@ export function getKeyForFederation<TRoot>(root: TRoot): TRoot {
 }
 
 export function projectDataSelectionSet(data: any, selectionSet?: SelectionSetNode): any {
-  if (data == null || selectionSet == null || data instanceof Error) {
+  if (data == null || selectionSet == null) {
     return data;
+  }
+  if (data instanceof Error) {
+    return null;
   }
   if (Array.isArray(data)) {
     return data.map(entry => projectDataSelectionSet(entry, selectionSet));
