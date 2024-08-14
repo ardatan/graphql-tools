@@ -1,3 +1,4 @@
+import { createGraphQLError } from '@graphql-tools/utils';
 import { getKeyFnForFederation } from '../src/utils';
 
 describe('getKeyFnForFederation', () => {
@@ -61,6 +62,22 @@ describe('getKeyFnForFederation', () => {
           tag: 'Test2',
         },
       ],
+    });
+  });
+  it('filter errors as null', () => {
+    const key = ['name', 'address { city }'];
+    const data = {
+      __typename: 'Test',
+      name: 'Test',
+      address: createGraphQLError('Failed to fetch address'),
+      price: 100,
+      extra: 'Extra',
+    };
+    const keyFn = getKeyFnForFederation('Test', key);
+    expect(keyFn(data)).toEqual({
+      __typename: 'Test',
+      name: 'Test',
+      address: null,
     });
   });
 });
