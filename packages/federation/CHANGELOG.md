@@ -1,5 +1,15 @@
 # @graphql-tools/federation
 
+## 2.2.8
+
+### Patch Changes
+
+- [#6441](https://github.com/ardatan/graphql-tools/pull/6441)
+  [`52a69ed`](https://github.com/ardatan/graphql-tools/commit/52a69edb8979fd081d1caea90684f5d61dc9f6ec)
+  Thanks [@ardatan](https://github.com/ardatan)! - Filter errors as null in the projected key
+
+  If the key field has `Error`, do not send them to the subgraphs as objects but `null`.
+
 ## 2.2.7
 
 ### Patch Changes
