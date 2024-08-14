@@ -10,7 +10,7 @@ export function getKeyForFederation<TRoot>(root: TRoot): TRoot {
 }
 
 export function projectDataSelectionSet(data: any, selectionSet?: SelectionSetNode): any {
-  if (data == null || selectionSet == null) {
+  if (data == null || selectionSet == null || data instanceof Error) {
     return data;
   }
   if (Array.isArray(data)) {
@@ -25,12 +25,14 @@ export function projectDataSelectionSet(data: any, selectionSet?: SelectionSetNo
       if (Object.prototype.hasOwnProperty.call(data, key)) {
         const projectedKeyData = projectDataSelectionSet(data[key], selection.selectionSet);
         if (projectedData[key]) {
-          projectedData[key] = mergeDeep(
-            [projectedData[key], projectedKeyData],
-            undefined,
-            true,
-            true,
-          );
+          if (projectedKeyData != null && !(projectedKeyData instanceof Error)) {
+            projectedData[key] = mergeDeep(
+              [projectedData[key], projectedKeyData],
+              undefined,
+              true,
+              true,
+            );
+          }
         } else {
           projectedData[key] = projectedKeyData;
         }
