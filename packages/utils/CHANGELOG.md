@@ -1,5 +1,12 @@
 # @graphql-tools/utils
 
+## 10.5.3
+
+### Patch Changes
+
+- [`2124d7d`](https://github.com/ardatan/graphql-tools/commit/2124d7de749b722e051fb591bcf9d514bc73fa50)
+  Thanks [@ardatan](https://github.com/ardatan)! - Allow invalid path in \`getDirectiveExtensions\`
+
 ## 10.5.2
 
 ### Patch Changes
