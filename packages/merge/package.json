@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/merge",
-  "version": "9.0.5",
+  "version": "9.0.6",
   "type": "module",
   "description": "A set of utils for faster development of GraphQL tools",
   "repository": {
@@ -51,7 +51,7 @@
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0"
   },
   "dependencies": {
-    "@graphql-tools/utils": "^10.4.0",
+    "@graphql-tools/utils": "^10.5.4",
     "tslib": "^2.4.0"
   },
   "publishConfig": {

@@ -1,6 +1,6 @@
 {
   "name": "@graphql-tools/utils",
-  "version": "10.5.3",
+  "version": "10.5.4",
   "type": "module",
   "description": "Common package containing utils and types for GraphQL tools",
   "repository": {

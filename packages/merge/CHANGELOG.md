@@ -1,5 +1,16 @@
 # @graphql-tools/merge
 
+## 9.0.6
+
+### Patch Changes
+
+- [`0286437`](https://github.com/ardatan/graphql-tools/commit/02864374aa25c4b326673347d4f683ce30af3703)
+  Thanks [@ardatan](https://github.com/ardatan)! - Improve directive extraction
+
+- Updated dependencies
+  [[`0286437`](https://github.com/ardatan/graphql-tools/commit/02864374aa25c4b326673347d4f683ce30af3703)]:
+  - @graphql-tools/utils@10.5.4
+
 ## 9.0.5
 
 ### Patch Changes
