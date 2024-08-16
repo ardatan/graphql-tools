@@ -11,10 +11,14 @@ function applyExtensionObject(
   obj: Maybe<{ extensions: Maybe<Readonly<Record<string, any>>> }>,
   extensions: ExtensionsObject,
 ) {
-  if (!obj) {
+  if (!obj || !extensions || extensions === obj.extensions) {
     return;
   }
-  obj.extensions = mergeDeep([obj.extensions || {}, extensions || {}], false, true);
+  if (!obj.extensions) {
+    obj.extensions = extensions;
+    return;
+  }
+  obj.extensions = mergeDeep([obj.extensions, extensions], false, true);
 }
 
 export function applyExtensions(

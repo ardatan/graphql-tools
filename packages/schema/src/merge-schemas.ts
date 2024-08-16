@@ -32,12 +32,7 @@ export function mergeSchemas(config: MergeSchemasConfig) {
 
   if (config.schemas != null) {
     for (const schema of config.schemas) {
-      extractedTypeDefs.push(
-        getDocumentNodeFromSchema(schema, {
-          ...config,
-          pathToDirectivesInExtensions: ['NONEXISTENT'],
-        }),
-      );
+      extractedTypeDefs.push(getDocumentNodeFromSchema(schema));
       extractedResolvers.push(getResolversFromSchema(schema));
       extractedSchemaExtensions.push(extractExtensionsFromSchema(schema));
     }
