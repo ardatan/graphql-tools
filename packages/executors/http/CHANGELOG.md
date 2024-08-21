@@ -1,5 +1,39 @@
 # @graphql-tools/executor-http
 
+## 1.1.6
+
+### Patch Changes
+
+- [`f9dd3d6`](https://github.com/ardatan/graphql-tools/commit/f9dd3d6bb4b160e35a7f2f3c6b31171b71f21040)
+  Thanks [@ardatan](https://github.com/ardatan)! - Details in the extensions when an unexpected
+  error occurs;
+
+  ```json
+  {
+    "request": {
+      "url": "https://api.example.com/graphql",
+      "method": "POST",
+      "body": {
+        "query": "query { hello }"
+      }
+    },
+    "response": {
+      "status": 500,
+      "statusText": "Internal Server Error",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "errors": [
+          {
+            "message": "Internal Server Error"
+          }
+        ]
+      }
+    }
+  }
+  ```
+
 ## 1.1.5
 
 ### Patch Changes
