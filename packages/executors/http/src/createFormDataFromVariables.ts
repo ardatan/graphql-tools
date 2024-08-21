@@ -36,12 +36,16 @@ export function createFormDataFromVariables<TVariables>(
       typeof v?.arrayBuffer === 'function') as any,
   );
   if (files.size === 0) {
-    return JSON.stringify({
-      query,
-      variables,
-      operationName,
-      extensions,
-    });
+    return JSON.stringify(
+      {
+        query,
+        variables,
+        operationName,
+        extensions,
+      },
+      null,
+      2,
+    );
   }
   const map: Record<number, string[]> = {};
   const uploads: any[] = [];
@@ -61,7 +65,7 @@ export function createFormDataFromVariables<TVariables>(
       extensions,
     }),
   );
-  form.append('map', JSON.stringify(map));
+  form.append('map', JSON.stringify(map, null, 2));
   function handleUpload(upload: any, i: number): void | PromiseLike<void> {
     const indexStr = i.toString();
     if (upload != null) {

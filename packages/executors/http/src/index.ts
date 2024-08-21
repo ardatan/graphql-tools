@@ -227,10 +227,12 @@ export function buildHTTPExecutor(
       };
     }
 
-    const responseDetailsForError: {
-      status?: number;
-      statusText?: string;
-    } = {};
+    const upstreamErrorExtensions: UpstreamErrorExtensions = {
+      request: {
+        method,
+      },
+      response: {},
+    };
 
     return new ValueOrPromise(() => {
       switch (method) {
@@ -250,25 +252,26 @@ export function buildHTTPExecutor(
           if (options?.credentials != null) {
             fetchOptions.credentials = options.credentials;
           }
+          upstreamErrorExtensions.request.url = finalUrl;
           return fetchFn(finalUrl, fetchOptions, request.context, request.info);
         }
-        case 'POST':
+        case 'POST': {
+          const body = {
+            query,
+            variables: request.variables,
+            operationName: request.operationName,
+            extensions: request.extensions,
+          };
+          upstreamErrorExtensions.request.body = body;
           return new ValueOrPromise(() =>
-            createFormDataFromVariables(
-              {
-                query,
-                variables: request.variables,
-                operationName: request.operationName,
-                extensions: request.extensions,
-              },
-              {
-                File: options?.File,
-                FormData: options?.FormData,
-              },
-            ),
+            createFormDataFromVariables(body, {
+              File: options?.File,
+              FormData: options?.FormData,
+            }),
           )
             .then(body => {
               if (typeof body === 'string' && !headers['content-type']) {
+                upstreamErrorExtensions.request.body = body;
                 headers['content-type'] = 'application/json';
               }
               const fetchOptions: RequestInit = {
@@ -283,17 +286,23 @@ export function buildHTTPExecutor(
               return fetchFn(endpoint, fetchOptions, request.context, request.info) as any;
             })
             .resolve();
+        }
       }
     })
       .then((fetchResult: Response): any => {
-        responseDetailsForError.status = fetchResult.status;
-        responseDetailsForError.statusText = fetchResult.statusText;
+        upstreamErrorExtensions.response.status = fetchResult.status;
+        upstreamErrorExtensions.response.statusText = fetchResult.statusText;
+        Object.defineProperty(upstreamErrorExtensions.response, 'headers', {
+          get() {
+            return Object.fromEntries(fetchResult.headers.entries());
+          },
+        });
 
         clearTimeoutFn();
 
         // Retry should respect HTTP Errors
         if (options?.retry != null && !fetchResult.status.toString().startsWith('2')) {
-          throw new Error(fetchResult.statusText || `HTTP Error: ${fetchResult.status}`);
+          throw new Error(fetchResult.statusText || `Upstream HTTP Error: ${fetchResult.status}`);
         }
 
         const contentType = fetchResult.headers.get('content-type');
@@ -307,9 +316,11 @@ export function buildHTTPExecutor(
       })
       .then(result => {
         if (typeof result === 'string') {
+          upstreamErrorExtensions.response.body = result;
           if (result) {
             try {
               const parsedResult = JSON.parse(result);
+              upstreamErrorExtensions.response.body = parsedResult;
               if (
                 parsedResult.data == null &&
                 (parsedResult.errors == null || parsedResult.errors.length === 0)
@@ -319,13 +330,7 @@ export function buildHTTPExecutor(
                     createGraphQLError(
                       'Unexpected empty "data" and "errors" fields in result: ' + result,
                       {
-                        extensions: {
-                          requestBody: {
-                            query,
-                            operationName: request.operationName,
-                          },
-                          responseDetails: responseDetailsForError,
-                        },
+                        extensions: upstreamErrorExtensions,
                       },
                     ),
                   ],
@@ -357,13 +362,7 @@ export function buildHTTPExecutor(
               return {
                 errors: [
                   createGraphQLError(`Unexpected response: ${JSON.stringify(result)}`, {
-                    extensions: {
-                      requestBody: {
-                        query,
-                        operationName: request.operationName,
-                      },
-                      responseDetails: responseDetailsForError,
-                    },
+                    extensions: upstreamErrorExtensions,
                     originalError: e,
                   }),
                 ],
@@ -380,10 +379,8 @@ export function buildHTTPExecutor(
             errors: e.errors.map((e: any) =>
               coerceFetchError(e, {
                 signal,
-                query,
                 endpoint,
-                request,
-                responseDetailsForError,
+                upstreamErrorExtensions,
               }),
             ),
           };
@@ -392,10 +389,8 @@ export function buildHTTPExecutor(
           errors: [
             coerceFetchError(e, {
               signal,
-              query,
               endpoint,
-              request,
-              responseDetailsForError,
+              upstreamErrorExtensions,
             }),
           ],
         };
@@ -467,72 +462,37 @@ function coerceFetchError(
   e: any,
   {
     signal,
-    query,
     endpoint,
-    request,
-    responseDetailsForError,
+    upstreamErrorExtensions,
   }: {
     signal: AbortSignal | undefined;
-    query: string;
     endpoint: string;
-    request: ExecutionRequest;
-    responseDetailsForError: {
-      status?: number;
-      statusText?: string;
-    };
+    upstreamErrorExtensions: UpstreamErrorExtensions;
   },
 ) {
   if (typeof e === 'string') {
     return createGraphQLError(e, {
-      extensions: {
-        requestBody: {
-          query,
-          operationName: request.operationName,
-        },
-        responseDetails: responseDetailsForError,
-      },
+      extensions: upstreamErrorExtensions,
     });
   } else if (e.name === 'GraphQLError') {
     return e;
   } else if (e.name === 'TypeError' && e.message === 'fetch failed') {
     return createGraphQLError(`fetch failed to ${endpoint}`, {
-      extensions: {
-        requestBody: {
-          query,
-          operationName: request.operationName,
-        },
-        responseDetails: responseDetailsForError,
-      },
+      extensions: upstreamErrorExtensions,
       originalError: e,
     });
   } else if (e.name === 'AbortError' && signal?.reason) {
     return createGraphQLErrorForAbort(signal, {
-      requestBody: {
-        query,
-        operationName: request.operationName,
-      },
-      responseDetails: responseDetailsForError,
+      extensions: upstreamErrorExtensions,
     });
   } else if (e.message) {
     return createGraphQLError(e.message, {
-      extensions: {
-        requestBody: {
-          query,
-          operationName: request.operationName,
-        },
-        responseDetails: responseDetailsForError,
-      },
+      extensions: upstreamErrorExtensions,
       originalError: e,
     });
   } else {
     return createGraphQLError('Unknown error', {
-      extensions: {
-        requestBody: {
-          query,
-          operationName: request.operationName,
-        },
-        responseDetails: responseDetailsForError,
-      },
+      extensions: upstreamErrorExtensions,
       originalError: e,
     });
   }
@@ -555,3 +515,17 @@ function createResultForAbort(signal: AbortSignal, extensions?: Record<string, a
 }
 
 export { isLiveQueryOperationDefinitionNode };
+
+interface UpstreamErrorExtensions {
+  request: {
+    url?: string;
+    method: string;
+    body?: unknown;
+  };
+  response: {
+    status?: number;
+    statusText?: string;
+    headers?: Record<string, string>;
+    body?: unknown;
+  };
+}
