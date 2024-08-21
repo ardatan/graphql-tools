@@ -7,7 +7,7 @@ Details in the extensions when an unexpected error occurs;
 ```json
 {
   "request": {
-    "endpoint": "https://api.example.com/graphql",
+    "url": "https://api.example.com/graphql",
     "method": "POST",
     "body": {
       "query": "query { hello }"
