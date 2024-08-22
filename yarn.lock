@@ -2503,18 +2503,18 @@
   resolved "https://registry.yarnpkg.com/@tanstack/virtual-core/-/virtual-core-3.9.0.tgz#60db41fe8a19bb1a21873d86d8731416391e838a"
   integrity sha512-Saga7/QRGej/IDCVP5BgJ1oDqlDT2d9rQyoflS3fgMS8ntJ8JGw/LBqK2GorHa06+VrNFc0tGz65XQHJQJetFQ==
 
-"@theguild/components@6.6.3":
-  version "6.6.3"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.6.3.tgz#b27250f53599474140938e8ab0acf76bb992446e"
-  integrity sha512-o6VPgD7cL6JTwwvjaI84DpqFMM/HLqiN/ErVZn+D2xruV9p55F9r22xK3nsnnXSmz95LndXMzof6sJN8PSwKHw==
+"@theguild/components@6.6.4":
+  version "6.6.4"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.6.4.tgz#ce6a46691616ba190f775af2b4d798d3a8e8669d"
+  integrity sha512-pW3HdLJ4kPXP0L6XHhkLYUH6ng52XrSdQZkfLDSGVmsgNB3Rnq1RU0ndh3p8y90djAgHcKbudCG42+SDAt623w==
   dependencies:
     "@giscus/react" "3.0.0"
     "@next/bundle-analyzer" "14.2.5"
     clsx "2.1.1"
     fuzzy "0.1.3"
     next-videos "1.5.0"
-    nextra "3.0.0-alpha.28"
-    nextra-theme-docs "3.0.0-alpha.28"
+    nextra "3.0.0-alpha.32"
+    nextra-theme-docs "3.0.0-alpha.32"
     react-paginate "8.2.0"
     react-player "2.16.0"
     remark-mdx-disable-explicit-jsx "0.1.0"
@@ -9553,10 +9553,10 @@ next@14.2.5:
     "@next/swc-win32-ia32-msvc" "14.2.5"
     "@next/swc-win32-x64-msvc" "14.2.5"
 
-nextra-theme-docs@3.0.0-alpha.28:
-  version "3.0.0-alpha.28"
-  resolved "https://registry.yarnpkg.com/nextra-theme-docs/-/nextra-theme-docs-3.0.0-alpha.28.tgz#8db6869118ff5ba2e1b223b6341c7d85764d7d94"
-  integrity sha512-6n200ue1EKv/Eo7chkoKDLJ2gQ01R+hfdwp5xhzpSaqdiudqtsbUlDPEuwBBW0mQbLCUN80yNQanV4GjUg6/oA==
+nextra-theme-docs@3.0.0-alpha.32:
+  version "3.0.0-alpha.32"
+  resolved "https://registry.yarnpkg.com/nextra-theme-docs/-/nextra-theme-docs-3.0.0-alpha.32.tgz#0dae77543569a65987fb9579f97568bf7e14ffce"
+  integrity sha512-VENmsX/ZtL3hn++k1PsNa26Aw+9LiRFYUPZ6XXkPQW5N8Nl6RG6avp8+wpCBURLV3qBWc6Ot7aRSyN7SUgDBWw==
   dependencies:
     "@headlessui/react" "^1.7.17"
     "@popperjs/core" "^2.11.8"
@@ -9569,10 +9569,10 @@ nextra-theme-docs@3.0.0-alpha.28:
     scroll-into-view-if-needed "^3.1.0"
     zod "^3.22.3"
 
-nextra@3.0.0-alpha.28:
-  version "3.0.0-alpha.28"
-  resolved "https://registry.yarnpkg.com/nextra/-/nextra-3.0.0-alpha.28.tgz#6c09b7c863a9723d10cafd4f91fcfd1db08c3001"
-  integrity sha512-sw/Jdp/c1jS1Hpk2aPs7Y2G3c5lU3ijyXTATr9zUfn35zpneNf+70No8XKxXFo+nWO0CRHwVB15Ya+DNsvaYtQ==
+nextra@3.0.0-alpha.32:
+  version "3.0.0-alpha.32"
+  resolved "https://registry.yarnpkg.com/nextra/-/nextra-3.0.0-alpha.32.tgz#76ec0518cf037ca849a60cde08b2409512ab7ca4"
+  integrity sha512-Kk7hpi1aLUMYBtRjB9o1uRKQNVOJBJJwSzMnNfWugS0MiTm0F3cn/xXIpbdpzPkAUdT1MZupfDEJxeUhyPn0CA==
   dependencies:
     "@headlessui/react" "^1.7.17"
     "@mdx-js/mdx" "^3.0.0"
