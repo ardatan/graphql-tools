@@ -2545,10 +2545,10 @@
     npm-to-yarn "^2.1.0"
     unist-util-visit "^5.0.0"
 
-"@theguild/tailwind-config@0.4.2":
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/@theguild/tailwind-config/-/tailwind-config-0.4.2.tgz#decba27119ffafb6577c96b4f794af7ea7f7f1eb"
-  integrity sha512-FX+VNoKmTRQ8Otxy2ikZa3j7Iv5kCF+Q6VJ9x0HHq40qWuW9wPiCimJ0CXkz6oO5iLY2grNvSwtylMbXlGTzrg==
+"@theguild/tailwind-config@0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@theguild/tailwind-config/-/tailwind-config-0.5.0.tgz#bab34878b8c570da2ecb6fa6f352de095639721f"
+  integrity sha512-TZTB1kOtnipBxePHCDEwX4G31PWuGiI9+Vim0rryP2t0210wTuz02dN17kz6ClQ/bnNPFaO+X2esy+acfh346A==
   dependencies:
     autoprefixer "^10.4.19"
     cssnano "^7.0.0"
