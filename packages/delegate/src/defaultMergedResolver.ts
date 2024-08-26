@@ -243,7 +243,12 @@ function handleFlattenedParent<TContext extends Record<string, any>>(
         const responseKey = selectionNode.alias?.value ?? selectionNode.name.value;
         const nestedParent = flattenedParent[responseKey];
         const nestedSelectionSet = selectionNode.selectionSet;
-        if (nestedParent != null) {
+        if (
+          info.operation.selectionSet.selections.some(
+            selection => selection.kind === Kind.FIELD && selection.name.value !== responseKey,
+          ) &&
+          nestedParent != null
+        ) {
           if (!parentSatisfiedSelectionSet(nestedParent, nestedSelectionSet)) {
             async function handleNestedParentItem(nestedParentItem: any, fieldNode: FieldNode) {
               const nestedTypeName = nestedParentItem['__typename'];
