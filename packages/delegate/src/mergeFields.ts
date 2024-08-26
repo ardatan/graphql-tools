@@ -37,9 +37,9 @@ export function annotateExternalObject<TContext>(
   subschemaMap: Record<string, GraphQLSchema | SubschemaConfig<any, any, any, Record<string, any>>>,
 ): ExternalObject {
   Object.defineProperties(object, {
-    [OBJECT_SUBSCHEMA_SYMBOL]: { value: subschema },
-    [FIELD_SUBSCHEMA_MAP_SYMBOL]: { value: subschemaMap },
-    [UNPATHED_ERRORS_SYMBOL]: { value: errors },
+    [OBJECT_SUBSCHEMA_SYMBOL]: { value: subschema, writable: true },
+    [FIELD_SUBSCHEMA_MAP_SYMBOL]: { value: subschemaMap, writable: true },
+    [UNPATHED_ERRORS_SYMBOL]: { value: errors, writable: true },
   });
   return object;
 }

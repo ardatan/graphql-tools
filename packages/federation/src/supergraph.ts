@@ -662,9 +662,12 @@ export function getStitchingOptionsFromSupergraphSdl(
         if (fieldsKeyMap) {
           const fieldsConfig: Record<string, MergedFieldConfig> = (mergedTypeConfig.fields = {});
           for (const [fieldName, fieldNameKey] of fieldsKeyMap) {
-            extraKeys.add(fieldNameKey);
+            const aliasedFieldNameKey = fieldNameKey.includes('(')
+              ? `_${fieldNameKey.split('(')[0]}: ${fieldNameKey}`
+              : fieldNameKey;
+            extraKeys.add(aliasedFieldNameKey);
             fieldsConfig[fieldName] = {
-              selectionSet: `{ ${fieldNameKey} }`,
+              selectionSet: `{ ${aliasedFieldNameKey} }`,
               computed: true,
             };
           }

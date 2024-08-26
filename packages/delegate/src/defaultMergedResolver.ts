@@ -1,5 +1,6 @@
 import {
   defaultFieldResolver,
+  FieldNode,
   GraphQLResolveInfo,
   Kind,
   responsePathAsArray,
@@ -15,7 +16,11 @@ import {
 } from './mergeFields.js';
 import { resolveExternalValue } from './resolveExternalValue.js';
 import { Subschema } from './Subschema.js';
-import { FIELD_SUBSCHEMA_MAP_SYMBOL, UNPATHED_ERRORS_SYMBOL } from './symbols.js';
+import {
+  FIELD_SUBSCHEMA_MAP_SYMBOL,
+  OBJECT_SUBSCHEMA_SYMBOL,
+  UNPATHED_ERRORS_SYMBOL,
+} from './symbols.js';
 import { ExternalObject, MergedTypeResolver, StitchingInfo } from './types.js';
 
 /**
@@ -66,6 +71,7 @@ export function defaultMergedResolver(
       }
       const deferred = createDeferred();
       missingDeferredFields.set(responseKey, deferred);
+      handleResult(parent, responseKey, context, info);
       return deferred.promise;
     }
     return undefined;
@@ -110,16 +116,35 @@ function handleLeftOver<TContext extends Record<string, any>>(
   if (stitchingInfo) {
     for (const possibleSubschema of leftOver.nonProxiableSubschemas) {
       const parentTypeName = info.parentType.name;
-      const selectionSet =
+      const selectionSets = new Set<SelectionSetNode>();
+      const mainSelectionSet =
         stitchingInfo.mergedTypes[parentTypeName].selectionSets.get(possibleSubschema);
+      if (mainSelectionSet) {
+        selectionSets.add(mainSelectionSet);
+      }
+      for (const fieldNode of leftOver.unproxiableFieldNodes) {
+        const fieldName = fieldNode.name.value;
+        const fieldSelectionSet =
+          stitchingInfo.mergedTypes[parentTypeName].fieldSelectionSets.get(possibleSubschema)?.[
+            fieldName
+          ];
+        if (fieldSelectionSet) {
+          selectionSets.add(fieldSelectionSet);
+        }
+      }
       // Wait until the parent is flattened, then check if non proxiable subschemas are satisfied now,
       // then the deferred fields can be resolved
-      if (selectionSet) {
+      if (selectionSets.size) {
+        const selectionSet: SelectionSetNode = {
+          kind: Kind.SELECTION_SET,
+          selections: Array.from(selectionSets).flatMap(selectionSet => selectionSet.selections),
+        };
         const flattenedParent$ = flattenPromise(parent);
         if (isPromise(flattenedParent$)) {
           flattenedParent$.then(flattenedParent => {
             handleFlattenedParent(
               flattenedParent,
+              parent,
               possibleSubschema,
               selectionSet,
               leftOver,
@@ -132,6 +157,7 @@ function handleLeftOver<TContext extends Record<string, any>>(
         } else {
           handleFlattenedParent(
             flattenedParent$,
+            parent,
             possibleSubschema,
             selectionSet,
             leftOver,
@@ -148,6 +174,7 @@ function handleLeftOver<TContext extends Record<string, any>>(
 
 function handleFlattenedParent<TContext extends Record<string, any>>(
   flattenedParent: ExternalObject,
+  leftOverParent: ExternalObject,
   possibleSubschema: Subschema,
   selectionSet: SelectionSetNode,
   leftOver: DelegationPlanLeftOver,
@@ -158,7 +185,8 @@ function handleFlattenedParent<TContext extends Record<string, any>>(
 ) {
   // If this subschema is satisfied now, try to resolve the deferred fields
   if (parentSatisfiedSelectionSet(flattenedParent, selectionSet)) {
-    for (const [leftOverParent, missingFieldNodes] of leftOver.missingFieldsParentMap) {
+    const missingFieldNodes = leftOver.missingFieldsParentMap.get(leftOverParent);
+    if (missingFieldNodes) {
       const resolver = stitchingInfo.mergedTypes[parentTypeName].resolvers.get(possibleSubschema);
       if (resolver) {
         try {
@@ -205,6 +233,84 @@ function handleFlattenedParent<TContext extends Record<string, any>>(
           }
         } catch (error) {
           handleDeferredResolverFailure(leftOver, leftOverParent, error);
+        }
+      }
+    }
+  } else {
+    // try to resolve the missing fields
+    for (const selectionNode of selectionSet.selections) {
+      if (selectionNode.kind === Kind.FIELD && selectionNode.selectionSet?.selections?.length) {
+        const responseKey = selectionNode.alias?.value ?? selectionNode.name.value;
+        const nestedParent = flattenedParent[responseKey];
+        const nestedSelectionSet = selectionNode.selectionSet;
+        if (nestedParent != null) {
+          if (!parentSatisfiedSelectionSet(nestedParent, nestedSelectionSet)) {
+            async function handleNestedParentItem(nestedParentItem: any, fieldNode: FieldNode) {
+              const nestedTypeName = nestedParentItem['__typename'];
+              const sourceSubschema = getSubschema(flattenedParent, responseKey) as Subschema;
+              if (sourceSubschema && nestedTypeName) {
+                const delegationPlan = stitchingInfo.mergedTypes[
+                  nestedTypeName
+                ].delegationPlanBuilder(
+                  info.schema,
+                  sourceSubschema,
+                  info.variableValues,
+                  info.fragments,
+                  [fieldNode],
+                );
+                // Later optimize
+                for (const delegationMap of delegationPlan) {
+                  for (const [subschema, selectionSet] of delegationMap) {
+                    const resolver =
+                      stitchingInfo.mergedTypes[nestedTypeName].resolvers.get(subschema);
+                    if (resolver) {
+                      const res = await resolver(
+                        nestedParentItem,
+                        context,
+                        info,
+                        subschema,
+                        selectionSet,
+                        info.parentType,
+                        info.parentType,
+                      );
+                      if (res) {
+                        handleResolverResult(
+                          res,
+                          subschema,
+                          selectionSet,
+                          nestedParentItem,
+                          (nestedParentItem[FIELD_SUBSCHEMA_MAP_SYMBOL] ||= new Map()),
+                          info,
+                          responsePathAsArray(info.path),
+                          (nestedParentItem[UNPATHED_ERRORS_SYMBOL] ||= []),
+                        );
+                      }
+                    }
+                  }
+                }
+                if (parentSatisfiedSelectionSet(nestedParent, nestedSelectionSet)) {
+                  handleFlattenedParent(
+                    flattenedParent,
+                    leftOverParent,
+                    possibleSubschema,
+                    selectionSet,
+                    leftOver,
+                    stitchingInfo,
+                    parentTypeName,
+                    context,
+                    info,
+                  );
+                }
+              }
+            }
+            if (Array.isArray(nestedParent)) {
+              nestedParent.forEach(nestedParentItem =>
+                handleNestedParentItem(nestedParentItem, selectionNode),
+              );
+            } else {
+              handleNestedParentItem(nestedParent, selectionNode);
+            }
+          }
         }
       }
     }
@@ -338,6 +444,15 @@ function flattenPromise<T>(data: T): Promise<T> | T {
       } else {
         newData[key] = keyResult;
       }
+    }
+    if (data[OBJECT_SUBSCHEMA_SYMBOL]) {
+      newData[OBJECT_SUBSCHEMA_SYMBOL] = data[OBJECT_SUBSCHEMA_SYMBOL];
+    }
+    if (data[FIELD_SUBSCHEMA_MAP_SYMBOL]) {
+      newData[FIELD_SUBSCHEMA_MAP_SYMBOL] = data[FIELD_SUBSCHEMA_MAP_SYMBOL];
+    }
+    if (data[UNPATHED_ERRORS_SYMBOL]) {
+      newData[UNPATHED_ERRORS_SYMBOL] = data[UNPATHED_ERRORS_SYMBOL];
     }
     if (jobs.length) {
       return Promise.all(jobs).then(() => newData) as Promise<T>;
