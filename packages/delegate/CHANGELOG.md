@@ -1,5 +1,13 @@
 # @graphql-tools/delegate
 
+## 10.0.21
+
+### Patch Changes
+
+- [#6471](https://github.com/ardatan/graphql-tools/pull/6471)
+  [`3163978`](https://github.com/ardatan/graphql-tools/commit/31639789ed385c91644c711fa4b451a5b3647e5f)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix broken complex-entity-call
+
 ## 10.0.20
 
 ### Patch Changes
