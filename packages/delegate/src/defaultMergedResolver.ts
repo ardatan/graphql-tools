@@ -71,7 +71,20 @@ export function defaultMergedResolver(
       }
       const deferred = createDeferred();
       missingDeferredFields.set(responseKey, deferred);
-      handleResult(parent, responseKey, context, info);
+      const stitchingInfo = info.schema.extensions?.['stitchingInfo'] as StitchingInfo;
+      const parentTypeName = parent?.__typename || info.parentType.name;
+      const fieldNodesByType = stitchingInfo?.fieldNodesByField?.[parentTypeName]?.[info.fieldName];
+      if (
+        fieldNodesByType.every(fieldNode => {
+          const responseKey = fieldNode.alias?.value ?? fieldNode.name.value;
+          if (Object.prototype.hasOwnProperty.call(parent, responseKey)) {
+            return true;
+          }
+          return false;
+        })
+      ) {
+        handleResult(parent, responseKey, context, info);
+      }
       return deferred.promise;
     }
     return undefined;
@@ -243,12 +256,7 @@ function handleFlattenedParent<TContext extends Record<string, any>>(
         const responseKey = selectionNode.alias?.value ?? selectionNode.name.value;
         const nestedParent = flattenedParent[responseKey];
         const nestedSelectionSet = selectionNode.selectionSet;
-        if (
-          info.operation.selectionSet.selections.some(
-            selection => selection.kind === Kind.FIELD && selection.name.value !== responseKey,
-          ) &&
-          nestedParent != null
-        ) {
+        if (nestedParent != null) {
           if (!parentSatisfiedSelectionSet(nestedParent, nestedSelectionSet)) {
             async function handleNestedParentItem(nestedParentItem: any, fieldNode: FieldNode) {
               const nestedTypeName = nestedParentItem['__typename'];
