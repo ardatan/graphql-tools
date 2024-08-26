@@ -1,5 +1,49 @@
 # @graphql-tools/delegate
 
+## 10.0.20
+
+### Patch Changes
+
+- [#6469](https://github.com/ardatan/graphql-tools/pull/6469)
+  [`0e87805`](https://github.com/ardatan/graphql-tools/commit/0e8780572fb1a852c8f4d7c8a59b064ae92bdd6b)
+  Thanks [@User!](https://github.com/User!)! - Handle merged selection sets in the computed fields;
+
+  When a selection set for a computed field needs to be merged, resolve that required selection set
+  fully then resolve the computed field. In the following case, the selection set for the `author`
+  field in the `Post` type is merged with the selection set for the `authorId` field in the
+  `Comment` type.
+
+  ```graphql
+  type Query {
+    feed: [Post!]!
+  }
+
+  type Post {
+    id: ID! @computed(selectionSet: "{ comments { authorId } }")
+  }
+
+  type Comment {
+    id: ID!
+    authorId: ID!
+  }
+
+  type User {
+    id: ID!
+    name: String!
+  }
+  ```
+
+  ```graphql
+  type Post {
+    id: ID!
+    comments: [Comment!]!
+  }
+
+  type Comment {
+    id: ID!
+  }
+  ```
+
 ## 10.0.19
 
 ### Patch Changes
