@@ -178,7 +178,7 @@ function reportUnpathedErrorsViaNull(unpathedErrors: Array<GraphQLError>) {
 
     if (unreportedErrors.length) {
       if (unreportedErrors.length === 1) {
-        return unreportedErrors[0];
+        return locatedError(unreportedErrors[0], undefined as any, unreportedErrors[0].path as any);
       }
 
       return new AggregateError(

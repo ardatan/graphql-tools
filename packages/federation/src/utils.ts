@@ -24,20 +24,21 @@ export function projectDataSelectionSet(data: any, selectionSet?: SelectionSetNo
   };
   for (const selection of selectionSet.selections) {
     if (selection.kind === Kind.FIELD) {
-      const key = selection.name.value;
-      if (Object.prototype.hasOwnProperty.call(data, key)) {
-        const projectedKeyData = projectDataSelectionSet(data[key], selection.selectionSet);
-        if (projectedData[key]) {
+      const fieldName = selection.name.value;
+      const responseKey = selection.alias?.value || selection.name.value;
+      if (Object.prototype.hasOwnProperty.call(data, responseKey)) {
+        const projectedKeyData = projectDataSelectionSet(data[responseKey], selection.selectionSet);
+        if (projectedData[fieldName]) {
           if (projectedKeyData != null && !(projectedKeyData instanceof Error)) {
-            projectedData[key] = mergeDeep(
-              [projectedData[key], projectedKeyData],
+            projectedData[fieldName] = mergeDeep(
+              [projectedData[fieldName], projectedKeyData],
               undefined,
               true,
               true,
             );
           }
         } else {
-          projectedData[key] = projectedKeyData;
+          projectedData[fieldName] = projectedKeyData;
         }
       }
     } else if (selection.kind === Kind.INLINE_FRAGMENT) {
