@@ -1,5 +1,12 @@
 # @graphql-tools/merge
 
+## 9.0.7
+
+### Patch Changes
+
+- [`2db7943`](https://github.com/ardatan/graphql-tools/commit/2db79433176f60a806a8e1f80858b9e1cb9a15a8)
+  Thanks [@ardatan](https://github.com/ardatan)! - Do not use deep import from graphql-js
+
 ## 9.0.6
 
 ### Patch Changes
