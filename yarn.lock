@@ -2240,10 +2240,10 @@
     "@napi-rs/simple-git-win32-arm64-msvc" "0.1.18"
     "@napi-rs/simple-git-win32-x64-msvc" "0.1.18"
 
-"@next/bundle-analyzer@14.2.5":
-  version "14.2.5"
-  resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-14.2.5.tgz#549414aba34e3d21862be6090881d681b0984e8e"
-  integrity sha512-BtBbI8VUnB7s4m9ut6CkeJ8Hyx+aq+86mbH+uAld7ZGG0/eH4+5hcPnkHKsQM/yj74iClazS0fninI8yZbIZWA==
+"@next/bundle-analyzer@14.2.7":
+  version "14.2.7"
+  resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-14.2.7.tgz#c7b9595bf57d31dc4c50b91d9afdc21380d7eae6"
+  integrity sha512-Zz55BLjoNKiUjr8PJIMTXFQnbUEpk8qkXP5nmEcXvOorbruQOIdmkRa3sahlJZPWTjsZNpxwImhZf2yFMVMWeg==
   dependencies:
     webpack-bundle-analyzer "4.10.1"
 
@@ -2503,13 +2503,13 @@
   resolved "https://registry.yarnpkg.com/@tanstack/virtual-core/-/virtual-core-3.10.4.tgz#4b0f73328a2699c60a7232bf5a48a8c6c602fd70"
   integrity sha512-yHyli4RHVsI+eJ0RjmOsjA9RpHp3/Zah9t+iRjmFa72dq00TeG/NwuLYuCV6CB4RkWD4i5RD421j1eb6BdKgvQ==
 
-"@theguild/components@6.6.4":
-  version "6.6.4"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.6.4.tgz#ce6a46691616ba190f775af2b4d798d3a8e8669d"
-  integrity sha512-pW3HdLJ4kPXP0L6XHhkLYUH6ng52XrSdQZkfLDSGVmsgNB3Rnq1RU0ndh3p8y90djAgHcKbudCG42+SDAt623w==
+"@theguild/components@6.6.5":
+  version "6.6.5"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-6.6.5.tgz#8535cafaf00573ea68e75607c2fd548260eb5aa3"
+  integrity sha512-Ffck7yt4dXaWOyNg/HAOrPpOTtE2Q5QFM/w1bZ/7bRssNdirGj0cntk+rpiryJbXsLXmF4wDOxEpbNUep1TC+Q==
   dependencies:
     "@giscus/react" "3.0.0"
-    "@next/bundle-analyzer" "14.2.5"
+    "@next/bundle-analyzer" "14.2.7"
     clsx "2.1.1"
     fuzzy "0.1.3"
     next-videos "1.5.0"
