@@ -25,10 +25,10 @@
   resolved "https://registry.yarnpkg.com/@apollo/cache-control-types/-/cache-control-types-1.0.3.tgz#5da62cf64c3b4419dabfef4536b57a40c8ff0b47"
   integrity sha512-F17/vCp7QVwom9eG7ToauIKdAxpSoadsJnqIfyryLFSkLSOEqu+eC5Z3N8OXcUVStuOMcNHlyraRsA6rRICu4g==
 
-"@apollo/client@3.11.6", "@apollo/client@^3.7.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0 || ~3.8.0 || ~3.9.0 || ~3.10.0 || ~3.11.0":
-  version "3.11.6"
-  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.11.6.tgz#85e2602e0fc9caf0afae89b454e5d59588b758c6"
-  integrity sha512-7Yh71ZhkVwJ+7L5lUDw3H7phfn/KCD++UvZpMM+jiKzQNhocGOuIhSTnw6vGds9HwjWfpUvSwX46v/5XVcTzrw==
+"@apollo/client@3.11.7", "@apollo/client@^3.7.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0 || ~3.8.0 || ~3.9.0 || ~3.10.0 || ~3.11.0":
+  version "3.11.7"
+  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.11.7.tgz#bb168df478c97571be1e304d7c13d3d0b2342234"
+  integrity sha512-wcYTVZmdvTJlrDWfGYFMD5Kq4WZx9RK74KAuZa0rKtblVD/k21SqzhBqh6WHPT4dsXD2yvmWSgBSUYilxzFQ3Q==
   dependencies:
     "@graphql-typed-document-node/core" "^3.1.1"
     "@wry/caches" "^1.0.0"
@@ -2885,10 +2885,10 @@
     "@types/node" "*"
     form-data "^4.0.0"
 
-"@types/node@*", "@types/node@20.16.4":
-  version "20.16.4"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.16.4.tgz#2e3d9e1da4761a0fdb725d9497df4bb091e9c2f1"
-  integrity sha512-ioyQ1zK9aGEomJ45zz8S8IdzElyxhvP1RVWnPrXDf6wFaUb+kk1tEcVVJkF7RPGM0VWI7cp5U57oCPIn5iN1qg==
+"@types/node@*", "@types/node@20.16.5":
+  version "20.16.5"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.16.5.tgz#d43c7f973b32ffdf9aa7bd4f80e1072310fd7a53"
+  integrity sha512-VwYCweNo3ERajwy0IUlqqcyZ8/A7Zwa9ZP3MnENWcB11AejO+tLy3pu850goUW2FC/IJMdZUfKpX/yxL1gymCA==
   dependencies:
     undici-types "~6.19.2"
 
