@@ -2408,10 +2408,10 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==
 
-"@puppeteer/browsers@2.3.1":
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.3.1.tgz#238200dbdce5c00ae28c8f2a55ac053c3be71668"
-  integrity sha512-uK7o3hHkK+naEobMSJ+2ySYyXtQkBxIH8Gn4MK9ciePjNV+Pf+PgY/W7iPzn2MTjl3stcYB5AlcTmPYw7AXDwA==
+"@puppeteer/browsers@2.4.0":
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.4.0.tgz#a0dd0f4e381e53f509109ae83b891db5972750f5"
+  integrity sha512-x8J1csfIygOwf6D6qUAZ0ASk3z63zPb7wkNeHRerCMh82qWKUrOgkuP005AJC8lDL6/evtXETGEJVcwykKT4/g==
   dependencies:
     debug "^4.3.6"
     extract-zip "^2.0.1"
@@ -3138,52 +3138,52 @@
     "@0no-co/graphql.web" "^1.0.5"
     wonka "^6.3.2"
 
-"@vue/compiler-core@3.5.0":
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/@vue/compiler-core/-/compiler-core-3.5.0.tgz#d12c44faa56eb80c637fef050096e12bcc3bf091"
-  integrity sha512-ja7cpqAOfw4tyFAxgBz70Z42miNDeaqTxExTsnXDLomRpqfyCgyvZvFp482fmsElpfvsoMJUsvzULhvxUTW6Iw==
+"@vue/compiler-core@3.5.1":
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/@vue/compiler-core/-/compiler-core-3.5.1.tgz#995fc62dc3887a6c5ee2313b4e5472f3c11c0468"
+  integrity sha512-WdjF+NSgFYdWttHevHw5uaJFtKPalhmxhlu2uREj8cLP0uyKKIR60/JvSZNTp0x+NSd63iTiORQTx3+tt55NWQ==
   dependencies:
     "@babel/parser" "^7.25.3"
-    "@vue/shared" "3.5.0"
+    "@vue/shared" "3.5.1"
     entities "^4.5.0"
     estree-walker "^2.0.2"
     source-map-js "^1.2.0"
 
-"@vue/compiler-dom@3.5.0":
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/@vue/compiler-dom/-/compiler-dom-3.5.0.tgz#108ed4315968d0197277128c4e5cb689f8a1ddd6"
-  integrity sha512-xYjUybWZXl+1R/toDy815i4PbeehL2hThiSGkcpmIOCy2HoYyeeC/gAWK/Y/xsoK+GSw198/T5O31bYuQx5uvQ==
+"@vue/compiler-dom@3.5.1":
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/@vue/compiler-dom/-/compiler-dom-3.5.1.tgz#016d468ba4c7b736df9c38d8cb81731aeaae95dd"
+  integrity sha512-Ao23fB1lINo18HLCbJVApvzd9OQe8MgmQSgyY5+umbWj2w92w9KykVmJ4Iv2US5nak3ixc2B+7Km7JTNhQ8kSQ==
   dependencies:
-    "@vue/compiler-core" "3.5.0"
-    "@vue/shared" "3.5.0"
+    "@vue/compiler-core" "3.5.1"
+    "@vue/shared" "3.5.1"
 
-"@vue/compiler-sfc@3.5.0":
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/@vue/compiler-sfc/-/compiler-sfc-3.5.0.tgz#dc1e34a331d5deea9e258a1e10e1b4d711b1afd6"
-  integrity sha512-B9DgLtrqok2GLuaFjLlSL15ZG3ZDBiitUH1ecex9guh/ZcA5MCdwuVE6nsfQxktuZY/QY0awJ35/ripIviCQTQ==
+"@vue/compiler-sfc@3.5.1":
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/@vue/compiler-sfc/-/compiler-sfc-3.5.1.tgz#457a7309fa5006d490450c3d5410b9caf37949c2"
+  integrity sha512-DFizMNH8eDglLhlfwJ0+ciBsztaYe3fY/zcZjrqL1ljXvUw/UpC84M1d7HpBTCW68SNqZyIxrs1XWmf+73Y65w==
   dependencies:
     "@babel/parser" "^7.25.3"
-    "@vue/compiler-core" "3.5.0"
-    "@vue/compiler-dom" "3.5.0"
-    "@vue/compiler-ssr" "3.5.0"
-    "@vue/shared" "3.5.0"
+    "@vue/compiler-core" "3.5.1"
+    "@vue/compiler-dom" "3.5.1"
+    "@vue/compiler-ssr" "3.5.1"
+    "@vue/shared" "3.5.1"
     estree-walker "^2.0.2"
     magic-string "^0.30.11"
     postcss "^8.4.44"
     source-map-js "^1.2.0"
 
-"@vue/compiler-ssr@3.5.0":
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/@vue/compiler-ssr/-/compiler-ssr-3.5.0.tgz#b9d31cf32b748fc4e554996c99988cb920c2458b"
-  integrity sha512-E263QZmA1dqRd7c3u/sWTLRMpQOT0aZ8av/L9SoD/v/BVMZaWFHPUUBswS+bzrfvG2suJF8vSLKx6k6ba5SUdA==
+"@vue/compiler-ssr@3.5.1":
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/@vue/compiler-ssr/-/compiler-ssr-3.5.1.tgz#a4dd4d1b47d60b80a529c46a847c7519401c1ba8"
+  integrity sha512-C1hpSHQgRM8bg+5XWWD7CkFaVpSn9wZHCLRd10AmxqrH17d4EMP6+XcZpwBOM7H1jeStU5naEapZZWX0kso1tQ==
   dependencies:
-    "@vue/compiler-dom" "3.5.0"
-    "@vue/shared" "3.5.0"
+    "@vue/compiler-dom" "3.5.1"
+    "@vue/shared" "3.5.1"
 
-"@vue/shared@3.5.0":
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.5.0.tgz#4842753ae38bab2323c710a4aff98338f1b0a8f5"
-  integrity sha512-m9IgiteBpCkFaMNwCOBkFksA7z8QiKc30ooRuoXWUFRDu0mGyNPlFHmbncF0/Kra1RlX8QrmBbRaIxVvikaR0Q==
+"@vue/shared@3.5.1":
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.5.1.tgz#f9418dae5ac194a4f19023d812978c21a15412a1"
+  integrity sha512-NdcTRoO4KuW2RSFgpE2c+E/R/ZHaRzWPxAGxhmxZaaqLh6nYCXx7lc9a88ioqOCxCaV2SFJmujkxbUScW7dNsQ==
 
 "@webassemblyjs/ast@1.12.1", "@webassemblyjs/ast@^1.12.1":
   version "1.12.1"
@@ -10582,28 +10582,28 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
-puppeteer-core@23.2.2:
-  version "23.2.2"
-  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-23.2.2.tgz#d90f190087a0c1ec196bc2352c7bc498ddf99988"
-  integrity sha512-MK2Kbdmro+nX9/pfGKm8TiU5G3CuS6BbcNfkcz42GWnHp7KYsJHrP6lPDepiyvwjti5Bt/4a8U3w+DoFpIcBHQ==
+puppeteer-core@23.3.0:
+  version "23.3.0"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-23.3.0.tgz#e9e7367367e230ab3ed0b6b674170b09ba0a96e3"
+  integrity sha512-sB2SsVMFs4gKad5OCdv6w5vocvtEUrRl0zQqSyRPbo/cj1Ktbarmhxy02Zyb9R9HrssBcJDZbkrvBnbaesPyYg==
   dependencies:
-    "@puppeteer/browsers" "2.3.1"
+    "@puppeteer/browsers" "2.4.0"
     chromium-bidi "0.6.5"
     debug "^4.3.6"
     devtools-protocol "0.0.1330662"
     typed-query-selector "^2.12.0"
     ws "^8.18.0"
 
-puppeteer@23.2.2:
-  version "23.2.2"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-23.2.2.tgz#e249e34e993aa02528666444d8702978b5c0dbbe"
-  integrity sha512-3RX5vEhlOE/9M7ZXxoJVvI7pbOF3fzFK4etwbdii7w+r58q+krK5l2FXWlA1ETnNs7ilM/KLFc0n6K8VUi99dA==
+puppeteer@23.3.0:
+  version "23.3.0"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-23.3.0.tgz#f2a3b28c05c17504adf1a903247e01f93e27d6b5"
+  integrity sha512-e2jY8cdWSUGsrLxqGm3hIbJq/UIk1uOY8XY7SM51leXkH7shrIyE91lK90Q9byX6tte+cyL3HKqlWBEd6TjWTA==
   dependencies:
-    "@puppeteer/browsers" "2.3.1"
+    "@puppeteer/browsers" "2.4.0"
     chromium-bidi "0.6.5"
     cosmiconfig "^9.0.0"
     devtools-protocol "0.0.1330662"
-    puppeteer-core "23.2.2"
+    puppeteer-core "23.3.0"
     typed-query-selector "^2.12.0"
 
 pure-rand@^6.0.0:
@@ -11786,10 +11786,10 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-svelte2tsx@0.7.17:
-  version "0.7.17"
-  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.7.17.tgz#a18c35eda192d5ddaf0d851081123ec20e2665d1"
-  integrity sha512-iYuRH29OaQVQrZ/d4tHnw81/JI/ecXh1Lnl0uIwT7TaO3qg3n9cLTS828SwRih4L1rnq72Gkp0GGO0vf+x/DyQ==
+svelte2tsx@0.7.18:
+  version "0.7.18"
+  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.7.18.tgz#8a78da7b515e85d90480d236dca9e1c9a43f35ba"
+  integrity sha512-PCOhH7uQaV472ZvNAcnkvShjFRMMkKUc/eNJImQMH9T4CyHeQpdatedFrEjaMCsweFb/oo3a6bv4qtdfaCPw8g==
   dependencies:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
