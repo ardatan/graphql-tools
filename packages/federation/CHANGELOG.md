@@ -1,5 +1,12 @@
 # @graphql-tools/federation
 
+## 2.2.10
+
+### Patch Changes
+
+- [`a600be6`](https://github.com/ardatan/graphql-tools/commit/a600be627a6d619ef4c95a445a5c7801d166787b)
+  Thanks [@ardatan](https://github.com/ardatan)! - Add `onSubgraphAST`
+
 ## 2.2.9
 
 ### Patch Changes
