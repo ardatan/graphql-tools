@@ -1,5 +1,13 @@
 # federation-benchmark
 
+## 0.0.158
+
+### Patch Changes
+
+- Updated dependencies
+  [[`a600be6`](https://github.com/ardatan/graphql-tools/commit/a600be627a6d619ef4c95a445a5c7801d166787b)]:
+  - @graphql-tools/federation@2.2.10
+
 ## 0.0.157
 
 ### Patch Changes
