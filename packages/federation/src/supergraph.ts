@@ -93,6 +93,7 @@ export interface GetStitchingOptionsFromSupergraphSdlOpts {
     | ((subgraphInfo: { name: string; endpoint?: string }) => Partial<HTTPExecutorOptions>);
   onSubschemaConfig?: (subschemaConfig: FederationSubschemaConfig) => void;
   onMergedTypeConfig?: (typeName: string, mergedTypeConfig: MergedTypeConfig) => void;
+  onSubgraphAST?: (name: string, subgraphAST: DocumentNode) => DocumentNode;
   /**
    * Enable query batching for all subschemas.
    *
@@ -862,7 +863,7 @@ export function getStitchingOptionsFromSupergraphSdl(
       }
     }
     let schema: GraphQLSchema;
-    const schemaAst: DocumentNode = {
+    let schemaAst: DocumentNode = {
       kind: Kind.DOCUMENT,
       definitions: [
         ...extendedSubgraphTypes,
@@ -870,6 +871,9 @@ export function getStitchingOptionsFromSupergraphSdl(
         anyTypeDefinitionNode,
       ],
     };
+    if (opts.onSubgraphAST) {
+      schemaAst = opts.onSubgraphAST(subgraphName, schemaAst);
+    }
     try {
       schema = buildASTSchema(schemaAst, {
         assumeValidSDL: true,
