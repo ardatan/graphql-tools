@@ -203,7 +203,7 @@ export default (code: string, out: any, options: GraphQLTagPluckOptions = {}) =>
       identifier: mod.identifier && mod.identifier.toLowerCase(),
     };
   });
-  globalGqlIdentifierName = asArray(globalGqlIdentifierName).map(s => s!.toLowerCase());
+  globalGqlIdentifierName = asArray(globalGqlIdentifierName ?? '');
 
   const hooksOptions = { skipIndent, gqlMagicComment, modules, globalGqlIdentifierName };
 
