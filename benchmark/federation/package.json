@@ -14,7 +14,7 @@
     "@graphql-tools/federation": "2.2.10",
     "@graphql-tools/stitch": "9.2.10",
     "cross-env": "7.0.3",
-    "express": "4.20.0",
+    "express": "4.21.0",
     "graphql": "16.9.0",
     "graphql-tag": "2.12.6",
     "wait-on": "8.0.1"
