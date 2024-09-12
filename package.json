@@ -54,7 +54,7 @@
     "@changesets/cli": "2.27.8",
     "@theguild/prettier-config": "2.0.7",
     "@types/debug": "4.1.12",
-    "@types/jest": "29.5.12",
+    "@types/jest": "29.5.13",
     "@types/node": "20.16.5",
     "@typescript-eslint/eslint-plugin": "7.18.0",
     "@typescript-eslint/parser": "7.18.0",
