@@ -7890,9 +7890,9 @@ joi@^17.13.3:
     "@sideway/pinpoint" "^2.0.0"
 
 jose@^5.0.0:
-  version "5.9.1"
-  resolved "https://registry.yarnpkg.com/jose/-/jose-5.9.1.tgz#c0c00480ee1cf2e259479594a56d008e98a28fad"
-  integrity sha512-8verKvy4GThlXSRe1qOcHGcRW9tKVv0YrLildFf6q3RQh3V/OxCXAkVsLhsw9tNOXFJ/EsIGOxWMmISBd/osTQ==
+  version "5.9.2"
+  resolved "https://registry.yarnpkg.com/jose/-/jose-5.9.2.tgz#22a22da06edb8fb9e583aa24bafc1e8457b4db92"
+  integrity sha512-ILI2xx/I57b20sd7rHZvgiiQrmp2mcotwsAH+5ajbpFQbrYVQdNHYlQhoA5cFb78CgtBOxtC05TeA+mcgkuCqQ==
 
 js-levenshtein@^1.1.6:
   version "1.1.6"
