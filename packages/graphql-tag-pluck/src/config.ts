@@ -80,6 +80,12 @@ export default function generateConfig(
     case '.astro':
       plugins.push('typescript', 'jsx');
       break;
+    case '.gts':
+      plugins.push('typescript');
+      break;
+    case '.gjs':
+      plugins.push('jsx');
+      break;
     default:
       plugins.push('jsx', ...dynamicFlowPlugins);
       break;
