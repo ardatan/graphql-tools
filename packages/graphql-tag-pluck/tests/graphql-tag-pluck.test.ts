@@ -2393,5 +2393,218 @@ describe('graphql-tag-pluck', () => {
         'query queryName { id }\n#EXPRESSION:ANOTHER_VARIABLE',
       );
     });
+
+    it('should pluck graphql-tag template literals from .gts file', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.gts',
+        freeText(`
+    import gql from 'graphql-tag';
+
+    const query = gql\`
+      query IndexQuery {
+        site {
+          siteMetadata {
+            title
+          }
+        }
+      }
+    \`;
+
+    export default class ExampleComponent extends Component {}
+    `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+    query IndexQuery {
+      site {
+        siteMetadata {
+          title
+        }
+      }
+    }
+  `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .gjs file', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.gjs',
+        freeText(`
+    import gql from 'graphql-tag';
+
+    const query = gql\`
+      query IndexQuery {
+        site {
+          siteMetadata {
+            title
+          }
+        }
+      }
+    \`;
+
+    export default class ExampleComponent extends Component {}
+    `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+    query IndexQuery {
+      site {
+        siteMetadata {
+          title
+        }
+      }
+    }
+  `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .gts file with 2 queries', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.gts',
+        freeText(`
+    import gql from 'graphql-tag';
+
+    const query1 = gql\`
+      query IndexQuery {
+        site {
+          siteMetadata {
+            title
+          }
+        }
+      }
+    \`;
+
+    const query2 = gql\`
+      query IndexQuery2 {
+        site {
+          siteMetadata {
+            title
+          }
+        }
+      }
+    \`;
+
+    export default class ExampleComponent extends Component {}
+    `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+    query IndexQuery {
+      site {
+        siteMetadata {
+          title
+        }
+      }
+    }
+
+    query IndexQuery2 {
+      site {
+        siteMetadata {
+          title
+        }
+      }
+    }
+  `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .gts file with multiple script sections', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.gts',
+        freeText(`
+    import Component from '@glimmer/component';
+
+    const query1 = gql\`
+      query IndexQuery {
+        site {
+          siteMetadata {
+            title
+          }
+        }
+      }
+    \`;
+
+    export function anotherQuery() {
+      const query2 = gql\`
+        query IndexQuery2 {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      \`;
+    }
+
+    export default class ExampleComponent extends Component {}
+    `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+    query IndexQuery {
+      site {
+        siteMetadata {
+          title
+        }
+      }
+    }
+
+    query IndexQuery2 {
+      site {
+        siteMetadata {
+          title
+        }
+      }
+    }
+  `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .gts file, ignoring comments', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.gts',
+        freeText(`
+    import gql from 'graphql-tag';
+
+    const query = gql\`
+      query IndexQuery {
+        site {
+          siteMetadata {
+            title
+          }
+        }
+      }
+    \`;
+
+    // const query2 = gql\`
+    //   query IndexQuery2 {
+    //     site {
+    //       siteMetadata {
+    //         title
+    //       }
+    //     }
+    //   }
+    // \`;
+
+    export default class ExampleComponent extends Component {}
+    `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+    query IndexQuery {
+      site {
+        siteMetadata {
+          title
+        }
+      }
+    }
+  `),
+      );
+    });
   });
 });
