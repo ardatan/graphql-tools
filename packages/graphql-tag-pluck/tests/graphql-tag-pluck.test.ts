@@ -2398,29 +2398,43 @@ describe('graphql-tag-pluck', () => {
       const sources = await pluck(
         'tmp-XXXXXX.gts',
         freeText(`
-    import gql from 'graphql-tag';
+    import Component from '@glimmer/component';
+    import { graphql } from 'some-graphql-service';
 
-    const query = gql\`
-      query IndexQuery {
-        site {
-          siteMetadata {
-            title
-          }
+    const UpdateCreditCardMutationDocument = graphql(\`
+      mutation updateCreditCard($input: UpdateCreditCardInput!) {
+        updateCreditCard(input: $input) {
+          __typename
         }
       }
-    \`;
+    \`);
 
-    export default class ExampleComponent extends Component {}
+
+    export default class PaymentDetailsPage extends Component<unknown> {
+      updateCreditCardMutation = async (): Promise<void> => {
+        return await new Promise((resolve) => resolve());
+      }
+
+      onSubmit = async (): Promise<void> => {
+        return this.updateCreditCardMutation();
+      }
+
+      <template>
+        <div>
+          <h1>Update Payment Details</h1>
+          <p data-test-existing-payment-method>{{this.paymentMethodText}}</p>
+          <button {{on "click" this.onSubmit}}>Submit</button>
+        </div>
+      </template>
+    }
     `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
         freeText(`
-    query IndexQuery {
-      site {
-        siteMetadata {
-          title
-        }
+    mutation updateCreditCard($input: UpdateCreditCardInput!) {
+      updateCreditCard(input: $input) {
+        __typename
       }
     }
   `),
@@ -2431,29 +2445,43 @@ describe('graphql-tag-pluck', () => {
       const sources = await pluck(
         'tmp-XXXXXX.gjs',
         freeText(`
-    import gql from 'graphql-tag';
+    import Component from '@glimmer/component';
+    import { graphql } from 'some-graphql-service';
 
-    const query = gql\`
-      query IndexQuery {
-        site {
-          siteMetadata {
-            title
-          }
+    const UpdateCreditCardMutationDocument = graphql(\`
+      mutation updateCreditCard($input: UpdateCreditCardInput!) {
+        updateCreditCard(input: $input) {
+          __typename
         }
       }
-    \`;
+    \`);
 
-    export default class ExampleComponent extends Component {}
+
+    export default class PaymentDetailsPage extends Component<unknown> {
+      updateCreditCardMutation = async (): Promise<void> => {
+        return await new Promise((resolve) => resolve());
+      }
+
+      onSubmit = async (): Promise<void> => {
+        return this.updateCreditCardMutation();
+      }
+
+      <template>
+        <div>
+          <h1>Update Payment Details</h1>
+          <p data-test-existing-payment-method>{{this.paymentMethodText}}</p>
+          <button {{on "click" this.onSubmit}}>Submit</button>
+        </div>
+      </template>
+    }
     `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
         freeText(`
-    query IndexQuery {
-      site {
-        siteMetadata {
-          title
-        }
+    mutation updateCreditCard($input: UpdateCreditCardInput!) {
+      updateCreditCard(input: $input) {
+        __typename
       }
     }
   `),
@@ -2464,100 +2492,119 @@ describe('graphql-tag-pluck', () => {
       const sources = await pluck(
         'tmp-XXXXXX.gts',
         freeText(`
-    import gql from 'graphql-tag';
+    import Component from '@glimmer/component';
+    import { graphql } from 'some-graphql-service';
 
-    const query1 = gql\`
-      query IndexQuery {
-        site {
-          siteMetadata {
-            title
-          }
+    const UpdateCreditCardMutationDocument = graphql(\`
+      mutation updateCreditCard($input: UpdateCreditCardInput!) {
+        updateCreditCard(input: $input) {
+          __typename
         }
       }
-    \`;
+    \`);
 
-    const query2 = gql\`
-      query IndexQuery2 {
-        site {
-          siteMetadata {
-            title
-          }
+    const UpdatePaypalMutationDocument = graphql(\`
+      mutation updatePaypal($input: UpdatePaypalInput!) {
+        updatePaypal(input: $input) {
+          __typename
         }
       }
-    \`;
+    \`);
 
-    export default class ExampleComponent extends Component {}
+
+    export default class PaymentDetailsPage extends Component<unknown> {
+      updateCreditCardMutation = async (): Promise<void> => {
+        return await new Promise((resolve) => resolve());
+      }
+
+      onSubmit = async (): Promise<void> => {
+        return this.updateCreditCardMutation();
+      }
+
+      <template>
+        <div>
+          <h1>Update Payment Details</h1>
+          <p data-test-existing-payment-method>{{this.paymentMethodText}}</p>
+          <button {{on "click" this.onSubmit}}>Submit</button>
+        </div>
+      </template>
+    }
     `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
         freeText(`
-    query IndexQuery {
-      site {
-        siteMetadata {
-          title
-        }
+    mutation updateCreditCard($input: UpdateCreditCardInput!) {
+      updateCreditCard(input: $input) {
+        __typename
       }
     }
 
-    query IndexQuery2 {
-      site {
-        siteMetadata {
-          title
-        }
+     mutation updatePaypal($input: UpdatePaypalInput!) {
+      updatePaypal(input: $input) {
+        __typename
       }
     }
   `),
       );
     });
 
-    it('should pluck graphql-tag template literals from .gts file with multiple script sections', async () => {
+    it('should pluck graphql-tag template literals from .gts file with multiple queries in different function signatures', async () => {
       const sources = await pluck(
         'tmp-XXXXXX.gts',
         freeText(`
     import Component from '@glimmer/component';
+    import { graphql } from 'some-graphql-service';
 
-    const query1 = gql\`
-      query IndexQuery {
-        site {
-          siteMetadata {
-            title
-          }
+    const UpdateCreditCardMutationDocument = graphql(\`
+      mutation updateCreditCard($input: UpdateCreditCardInput!) {
+        updateCreditCard(input: $input) {
+          __typename
         }
       }
-    \`;
+    \`);
 
     export function anotherQuery() {
-      const query2 = gql\`
-        query IndexQuery2 {
-          site {
-            siteMetadata {
-              title
-            }
-          }
+      const UpdatePaypalMutationDocument = graphql(\`
+      mutation updatePaypal($input: UpdatePaypalInput!) {
+        updatePaypal(input: $input) {
+          __typename
         }
-      \`;
+      }
+    \`);
     }
 
-    export default class ExampleComponent extends Component {}
+    export default class PaymentDetailsPage extends Component<unknown> {
+      updateCreditCardMutation = async (): Promise<void> => {
+        return await new Promise((resolve) => resolve());
+      }
+
+      onSubmit = async (): Promise<void> => {
+        return this.updateCreditCardMutation();
+      }
+
+      <template>
+        <div>
+          <h1>Update Payment Details</h1>
+          <p data-test-existing-payment-method>{{this.paymentMethodText}}</p>
+          <button {{on "click" this.onSubmit}}>Submit</button>
+        </div>
+      </template>
+    }
     `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
         freeText(`
-    query IndexQuery {
-      site {
-        siteMetadata {
-          title
-        }
+    mutation updateCreditCard($input: UpdateCreditCardInput!) {
+      updateCreditCard(input: $input) {
+        __typename
       }
     }
 
-    query IndexQuery2 {
-      site {
-        siteMetadata {
-          title
-        }
+     mutation updatePaypal($input: UpdatePaypalInput!) {
+      updatePaypal(input: $input) {
+        __typename
       }
     }
   `),
@@ -2568,39 +2615,51 @@ describe('graphql-tag-pluck', () => {
       const sources = await pluck(
         'tmp-XXXXXX.gts',
         freeText(`
-    import gql from 'graphql-tag';
+    import Component from '@glimmer/component';
+    import { graphql } from 'some-graphql-service';
 
-    const query = gql\`
-      query IndexQuery {
-        site {
-          siteMetadata {
-            title
-          }
+    const UpdateCreditCardMutationDocument = graphql(\`
+      mutation updateCreditCard($input: UpdateCreditCardInput!) {
+        updateCreditCard(input: $input) {
+          __typename
         }
       }
-    \`;
+    \`);
 
-    // const query2 = gql\`
-    //   query IndexQuery2 {
-    //     site {
-    //       siteMetadata {
-    //         title
-    //       }
-    //     }
-    //   }
-    // \`;
+    // const UpdatePaypalMutationDocument = graphql(\`
+    // mutation updatePaypal($input: UpdatePaypalInput!) {
+    //    updatePaypal(input: $input) {
+    //      __typename
+    //    }
+    //  }
+    // \`);
 
-    export default class ExampleComponent extends Component {}
+
+    export default class PaymentDetailsPage extends Component<unknown> {
+      updateCreditCardMutation = async (): Promise<void> => {
+        return await new Promise((resolve) => resolve());
+      }
+
+      onSubmit = async (): Promise<void> => {
+        return this.updateCreditCardMutation();
+      }
+
+      <template>
+        <div>
+          <h1>Update Payment Details</h1>
+          <p data-test-existing-payment-method>{{this.paymentMethodText}}</p>
+          <button {{on "click" this.onSubmit}}>Submit</button>
+        </div>
+      </template>
+    }
     `),
       );
 
       expect(sources.map(source => source.body).join('\n\n')).toEqual(
         freeText(`
-    query IndexQuery {
-      site {
-        siteMetadata {
-          title
-        }
+    mutation updateCreditCard($input: UpdateCreditCardInput!) {
+      updateCreditCard(input: $input) {
+        __typename
       }
     }
   `),

@@ -200,7 +200,6 @@ function parseWithAstroSync(
 
 function parseWithGlimmer(glimmerSyntax: typeof import('@glimmer/syntax'), fileData: string) {
   const ast = glimmerSyntax.preprocess(fileData);
-  // You may want to traverse the AST or extract specific elements
   return glimmerSyntax.print(ast);
 }
 
