@@ -477,7 +477,6 @@ function pluckAstroFileScriptSync(fileData: string) {
 async function pluckGlimmerFileScript(fileData: string) {
   let contentTag: typeof import('content-tag');
   try {
-     
     contentTag = await import('content-tag');
   } catch {
     throw MissingGlimmerCompilerError;
@@ -490,7 +489,6 @@ async function pluckGlimmerFileScript(fileData: string) {
 function pluckGlimmerFileScriptSync(fileData: string) {
   let contentTag: typeof import('content-tag');
   try {
-     
     contentTag = require('content-tag');
   } catch {
     throw MissingGlimmerCompilerError;
