@@ -198,11 +198,9 @@ function parseWithAstroSync(
   return fileInTsx.code;
 }
 
-// Helper function to handle content-tag transformation
 function transformGlimmerFile(glimmerSyntax: typeof import('content-tag'), fileData: string) {
   const processor = new glimmerSyntax.Preprocessor();
-  const processed = processor.process(fileData);
-  return processed;
+  return processor.process(fileData);
 }
 
 /**
@@ -482,8 +480,7 @@ async function pluckGlimmerFileScript(fileData: string) {
     throw MissingGlimmerCompilerError;
   }
 
-  const transformed = transformGlimmerFile(contentTag, fileData);
-  return transformed;
+  return transformGlimmerFile(contentTag, fileData);
 }
 
 function pluckGlimmerFileScriptSync(fileData: string) {
@@ -494,6 +491,5 @@ function pluckGlimmerFileScriptSync(fileData: string) {
     throw MissingGlimmerCompilerError;
   }
 
-  const transformed = transformGlimmerFile(contentTag, fileData);
-  return transformed;
+  return transformGlimmerFile(contentTag, fileData);
 }
