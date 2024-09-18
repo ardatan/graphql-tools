@@ -10,10 +10,7 @@ export type DirectableASTNode = ASTNode & {
 export type DirectableObject = {
   astNode?: DirectableASTNode | null | undefined;
   extensionASTNodes?: readonly DirectableASTNode[] | null | undefined;
-  extensions?:
-    | { directives?: Record<string, any> | undefined }
-    | null
-    | undefined;
+  extensions?: { directives?: Record<string, any> | undefined } | null | undefined;
 };
 
 export function getDirectiveExtensions<
