@@ -3,11 +3,17 @@ import { valueFromAST, valueFromASTUntyped } from 'graphql';
 import { getArgumentValues } from './getArgumentValues.js';
 import { memoize1 } from './memoize.js';
 
-export type DirectableASTNode = ASTNode & { directives?: readonly DirectiveNode[] };
+export type DirectableASTNode = ASTNode & {
+  directives?: readonly DirectiveNode[] | undefined;
+};
+
 export type DirectableObject = {
-  astNode?: DirectableASTNode | null;
-  extensionASTNodes?: readonly DirectableASTNode[] | null;
-  extensions?: { directives?: Record<string, any> } | null;
+  astNode?: DirectableASTNode | null | undefined;
+  extensionASTNodes?: readonly DirectableASTNode[] | null | undefined;
+  extensions?:
+    | { directives?: Record<string, any> | undefined }
+    | null
+    | undefined;
 };
 
 export function getDirectiveExtensions<
