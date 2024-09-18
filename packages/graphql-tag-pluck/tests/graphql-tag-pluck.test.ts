@@ -1,4 +1,3 @@
-import { only } from 'node:test';
 import { runTests } from '../../testing/utils.js';
 import { gqlPluckFromCodeString, gqlPluckFromCodeStringSync } from '../src/index.js';
 import { freeText } from '../src/utils.js';
