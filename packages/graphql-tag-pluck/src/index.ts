@@ -374,16 +374,16 @@ const MissingAstroCompilerError = new Error(
 
 const MissingGlimmerCompilerError = new Error(
   freeText(`
-        GraphQL template literals cannot be plucked from a Glimmer template code without having the "@glimmer/syntax" package installed.
+        GraphQL template literals cannot be plucked from a Glimmer template code without having the "content-tag" package installed.
         Please install it and try again.
 
         Via NPM:
 
-            $ npm install @glimmer/syntax
+            $ npm install content-tag
 
         Via Yarn:
 
-            $ yarn add @glimmer/syntax
+            $ yarn add content-tag
       `),
 );
 

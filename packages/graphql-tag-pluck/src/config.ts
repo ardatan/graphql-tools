@@ -84,7 +84,10 @@ export default function generateConfig(
       plugins.push('typescript');
       break;
     case '.gjs':
-      plugins.push('typescript', 'jsx');
+      // .gjs files need to be parsed as TypeScript because Ember relies on decorators, which are handled by TypeScript.
+      // without this, it throws a SyntaxError: Unexpected token, expected "{"
+      // when native decorators are supported, we should remove this
+      plugins.push('typescript');
       break;
     default:
       plugins.push('jsx', ...dynamicFlowPlugins);
