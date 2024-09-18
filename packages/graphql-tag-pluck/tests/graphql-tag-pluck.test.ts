@@ -1,3 +1,4 @@
+import { only } from 'node:test';
 import { runTests } from '../../testing/utils.js';
 import { gqlPluckFromCodeString, gqlPluckFromCodeStringSync } from '../src/index.js';
 import { freeText } from '../src/utils.js';
@@ -2399,7 +2400,7 @@ describe('graphql-tag-pluck', () => {
         'tmp-XXXXXX.gts',
         freeText(`
     import Component from '@glimmer/component';
-    import { graphql } from 'some-graphql-service';
+    import graphql from 'graphql-tag';
 
     const UpdateCreditCardMutationDocument = graphql(\`
       mutation updateCreditCard($input: UpdateCreditCardInput!) {
@@ -2446,7 +2447,7 @@ describe('graphql-tag-pluck', () => {
         'tmp-XXXXXX.gjs',
         freeText(`
     import Component from '@glimmer/component';
-    import { graphql } from 'some-graphql-service';
+    import graphql from 'graphql-tag';
 
     const UpdateCreditCardMutationDocument = graphql(\`
       mutation updateCreditCard($input: UpdateCreditCardInput!) {
@@ -2493,7 +2494,7 @@ describe('graphql-tag-pluck', () => {
         'tmp-XXXXXX.gts',
         freeText(`
     import Component from '@glimmer/component';
-    import { graphql } from 'some-graphql-service';
+    import graphql from 'graphql-tag'
 
     const UpdateCreditCardMutationDocument = graphql(\`
       mutation updateCreditCard($input: UpdateCreditCardInput!) {
@@ -2540,7 +2541,7 @@ describe('graphql-tag-pluck', () => {
       }
     }
 
-     mutation updatePaypal($input: UpdatePaypalInput!) {
+    mutation updatePaypal($input: UpdatePaypalInput!) {
       updatePaypal(input: $input) {
         __typename
       }
@@ -2554,7 +2555,7 @@ describe('graphql-tag-pluck', () => {
         'tmp-XXXXXX.gts',
         freeText(`
     import Component from '@glimmer/component';
-    import { graphql } from 'some-graphql-service';
+    import graphql from 'graphql-tag'
 
     const UpdateCreditCardMutationDocument = graphql(\`
       mutation updateCreditCard($input: UpdateCreditCardInput!) {
@@ -2566,11 +2567,11 @@ describe('graphql-tag-pluck', () => {
 
     export function anotherQuery() {
       const UpdatePaypalMutationDocument = graphql(\`
-      mutation updatePaypal($input: UpdatePaypalInput!) {
-        updatePaypal(input: $input) {
-          __typename
+        mutation updatePaypal($input: UpdatePaypalInput!) {
+          updatePaypal(input: $input) {
+            __typename
+          }
         }
-      }
     \`);
     }
 
@@ -2602,7 +2603,7 @@ describe('graphql-tag-pluck', () => {
       }
     }
 
-     mutation updatePaypal($input: UpdatePaypalInput!) {
+    mutation updatePaypal($input: UpdatePaypalInput!) {
       updatePaypal(input: $input) {
         __typename
       }
@@ -2616,7 +2617,7 @@ describe('graphql-tag-pluck', () => {
         'tmp-XXXXXX.gts',
         freeText(`
     import Component from '@glimmer/component';
-    import { graphql } from 'some-graphql-service';
+    import graphql from 'graphql-tag'
 
     const UpdateCreditCardMutationDocument = graphql(\`
       mutation updateCreditCard($input: UpdateCreditCardInput!) {

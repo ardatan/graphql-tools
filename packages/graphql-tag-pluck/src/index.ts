@@ -198,9 +198,11 @@ function parseWithAstroSync(
   return fileInTsx.code;
 }
 
-function parseWithGlimmer(glimmerSyntax: typeof import('@glimmer/syntax'), fileData: string) {
-  const ast = glimmerSyntax.preprocess(fileData);
-  return glimmerSyntax.print(ast);
+// Helper function to handle content-tag transformation
+function transformGlimmerFile(glimmerSyntax: typeof import('content-tag'), fileData: string) {
+  const processor = new glimmerSyntax.Preprocessor();
+  const processed = processor.process(fileData);
+  return processed;
 }
 
 /**
@@ -231,6 +233,8 @@ export const gqlPluckFromCodeString = async (
     code = await pluckSvelteFileScript(code);
   } else if (fileExt === '.astro') {
     code = await pluckAstroFileScript(code);
+  } else if (fileExt === '.gts' || fileExt === '.gjs') {
+    code = await pluckGlimmerFileScript(code);
   }
 
   const sources = parseCode({ code, filePath, options }).map(
@@ -470,14 +474,28 @@ function pluckAstroFileScriptSync(fileData: string) {
   return parseWithAstroSync(astroCompiler, fileData);
 }
 
-function pluckGlimmerFileScriptSync(fileData: string) {
-  let glimmerSyntax: typeof import('@glimmer/syntax');
+async function pluckGlimmerFileScript(fileData: string) {
+  let contentTag: typeof import('content-tag');
   try {
-    // eslint-disable-next-line import/no-extraneous-dependencies
-    glimmerSyntax = require('@glimmer/syntax');
+     
+    contentTag = await import('content-tag');
   } catch {
     throw MissingGlimmerCompilerError;
   }
 
-  return parseWithGlimmer(glimmerSyntax, fileData);
+  const transformed = transformGlimmerFile(contentTag, fileData);
+  return transformed;
+}
+
+function pluckGlimmerFileScriptSync(fileData: string) {
+  let contentTag: typeof import('content-tag');
+  try {
+     
+    contentTag = require('content-tag');
+  } catch {
+    throw MissingGlimmerCompilerError;
+  }
+
+  const transformed = transformGlimmerFile(contentTag, fileData);
+  return transformed;
 }

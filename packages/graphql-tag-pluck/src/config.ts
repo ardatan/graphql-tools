@@ -84,7 +84,7 @@ export default function generateConfig(
       plugins.push('typescript');
       break;
     case '.gjs':
-      plugins.push('jsx');
+      plugins.push('typescript', 'jsx');
       break;
     default:
       plugins.push('jsx', ...dynamicFlowPlugins);
