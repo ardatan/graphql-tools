@@ -88,7 +88,7 @@
     "weak-napi": "2.0.2"
   },
   "resolutions": {
-    "esbuild": "^0.23.0",
+    "esbuild": "^0.24.0",
     "graphql": "16.9.0"
   },
   "lint-staged": {
