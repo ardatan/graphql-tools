@@ -5,6 +5,7 @@ import {
   GraphQLSchema,
   specifiedDirectives,
 } from 'graphql';
+import { GraphQLSchemaValidationOptions } from 'graphql/type/schema.js';
 import {
   defaultMergedResolver,
   isSubschemaConfig,
@@ -106,7 +107,7 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
   for (const extension of extensions) {
     schema = extendSchema(schema, extension, {
       commentDescriptions: true,
-    } as any);
+    } as GraphQLSchemaValidationOptions);
   }
 
   // We allow passing in an array of resolver maps, in which case we merge them
