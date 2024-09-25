@@ -32,9 +32,9 @@ export function buildGraphQLWSExecutor(
       printFn = clientOptionsOrClient.print;
     }
     graphqlWSClient = createClient({
-      ...clientOptionsOrClient,
       webSocketImpl: WebSocket,
       lazy: true,
+      ...clientOptionsOrClient,
       connectionParams: () => {
         const optionsConnectionParams =
           (typeof clientOptionsOrClient.connectionParams === 'function'
