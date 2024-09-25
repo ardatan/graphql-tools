@@ -1,5 +1,15 @@
 # @graphql-tools/executor-graphql-ws
 
+## 1.2.1
+
+### Patch Changes
+
+- [#6536](https://github.com/ardatan/graphql-tools/pull/6536)
+  [`3facde0`](https://github.com/ardatan/graphql-tools/commit/3facde02724add648a00feafaaee6a76a443d25d)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - `webSocketImpl` and `lazy` options were
+  ignored and overriden by default values. This is no longer the case and it's now possible to
+  change the `WebSocket` implementation.
+
 ## 1.2.0
 
 ### Minor Changes
