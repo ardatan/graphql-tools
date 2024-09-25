@@ -13,6 +13,10 @@ const defaultPrintFn = memoize1(print);
 interface GraphQLWSExecutorOptions extends ClientOptions {
   onClient?: (client: Client) => void;
   print?: typeof print;
+  /**
+   * Additional headers to include when querying the original schema
+   */
+  headers?: Record<string, string>;
 }
 
 function isClient(client: Client | GraphQLWSExecutorOptions): client is Client {
@@ -31,8 +35,19 @@ export function buildGraphQLWSExecutor(
     if (clientOptionsOrClient.print) {
       printFn = clientOptionsOrClient.print;
     }
+
+    const webSocketImpl = clientOptionsOrClient.headers
+      ? class WebSocketWithHeaders extends WebSocket {
+          constructor(url: string, protocol: string) {
+            super(url, protocol, {
+              headers: (clientOptionsOrClient as GraphQLWSExecutorOptions).headers,
+            });
+          }
+        }
+      : WebSocket;
+
     graphqlWSClient = createClient({
-      webSocketImpl: WebSocket,
+      webSocketImpl,
       lazy: true,
       ...clientOptionsOrClient,
       connectionParams: () => {
