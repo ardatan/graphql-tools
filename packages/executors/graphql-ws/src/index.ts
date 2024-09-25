@@ -14,7 +14,10 @@ interface GraphQLWSExecutorOptions extends ClientOptions {
   onClient?: (client: Client) => void;
   print?: typeof print;
   /**
-   * Additional headers to include when querying the original schema
+   * Additional headers to include with the upgrade request.
+   * It will never be sent again during the lifecycle of the socket.
+   *
+   * Warning: This is a noop in browser environments
    */
   headers?: Record<string, string>;
 }
