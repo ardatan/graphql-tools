@@ -54,7 +54,7 @@
     "@graphql-tools/executor-http": "^1.1.5",
     "@graphql-tools/merge": "^9.0.5",
     "@graphql-tools/schema": "^10.0.5",
-    "@graphql-tools/stitch": "9.2.11-alpha-20240926172715-ff6bd76245b6aad562effe92f737969bf6368ed3",
+    "@graphql-tools/stitch": "^9.2.10",
     "@graphql-tools/utils": "^10.4.0",
     "@graphql-tools/wrap": "^10.0.3",
     "@whatwg-node/fetch": "^0.9.17",
