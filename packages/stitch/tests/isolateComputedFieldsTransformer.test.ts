@@ -470,6 +470,51 @@ type Mutation {
 }"
 `);
     });
+    it('does not isolate objects referenced from other fields', async () => {
+      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+        schema: makeExecutableSchema({
+          typeDefs: /* GraphQL */ `
+            scalar _Any
+
+            union _Entity = User
+
+            type Query {
+              someResolver: SomeTypeWithDisappearingField
+              _entities(representations: [_Any!]!): _Entity
+            }
+
+            type SomeRequiredType {
+              id: String
+            }
+
+            type SomeTypeWithDisappearingField {
+              otherField: String
+              disappearingField: SomeRequiredType
+            }
+
+            type User {
+              id: ID!
+              requiresField: SomeRequiredType
+            }
+          `,
+        }),
+        merge: {
+          User: {
+            selectionSet: '{ id }',
+            fields: {
+              requiresField: { selectionSet: '{ externalField }', computed: true },
+            },
+            fieldName: '_entities',
+          },
+        },
+      });
+
+      assertSome(baseConfig.merge);
+      expect(baseConfig.merge['SomeRequiredType']).toBeUndefined();
+
+      assertSome(computedConfig.merge);
+      expect(computedConfig.merge['SomeRequiredType']).toBeUndefined();
+    });
   });
 
   describe('with multiple entryPoints', () => {
