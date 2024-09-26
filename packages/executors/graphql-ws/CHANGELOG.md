@@ -1,5 +1,14 @@
 # @graphql-tools/executor-graphql-ws
 
+## 1.3.0
+
+### Minor Changes
+
+- [#6540](https://github.com/ardatan/graphql-tools/pull/6540)
+  [`1e085bd`](https://github.com/ardatan/graphql-tools/commit/1e085bd8516a692e91afe3f1b95b9f5740485693)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Allow to configure headers of the
+  WebSocket sent with the upgrade request.
+
 ## 1.2.1
 
 ### Patch Changes
