@@ -6,8 +6,10 @@ on:
 
 jobs:
   dependencies:
-    uses: the-guild-org/shared-config/.github/workflows/changesets-dependencies.yaml@main
     if: ${{ github.event.pull_request.title != 'Upcoming Release Changes' }}
+    uses: the-guild-org/shared-config/.github/workflows/changesets-dependencies.yml@v1
+    with:
+      node-version: 18
     secrets:
       githubToken: ${{ secrets.GUILD_BOT_TOKEN }}
 
