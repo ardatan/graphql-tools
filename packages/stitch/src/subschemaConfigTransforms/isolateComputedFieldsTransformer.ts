@@ -97,7 +97,7 @@ export function isolateComputedFieldsTransformer(
                 .filter(isObjectType) // only objects
                 .filter(t => t !== type) // not this type
                 .filter(t => !isolatedSchemaTypes[t.name]) // not an isolated type
-                .find(t => Object.values(t.getFields()).find(f => f.type === type)) // has a field returning this type
+                .find(t => Object.values(t.getFields()).find(f => getNamedType(f.type) === type)) // has a field returning this type
             ) {
               continue;
             }

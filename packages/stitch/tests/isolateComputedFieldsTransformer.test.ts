@@ -470,7 +470,53 @@ type Mutation {
 }"
 `);
     });
-    it('does not isolate objects referenced from other fields', async () => {
+    it.each([
+      {
+        name: 'type',
+        variant: /* GraphQL */ `
+          type SomeTypeWithDisappearingField {
+            otherField: String
+            disappearingField: SomeRequiredType
+          }
+        `,
+      },
+      {
+        name: 'required type',
+        variant: /* GraphQL */ `
+          type SomeTypeWithDisappearingField {
+            otherField: String
+            disappearingField: SomeRequiredType!
+          }
+        `,
+      },
+      {
+        name: 'array',
+        variant: /* GraphQL */ `
+          type SomeTypeWithDisappearingField {
+            otherField: String
+            disappearingField: [SomeRequiredType]
+          }
+        `,
+      },
+      {
+        name: 'required array',
+        variant: /* GraphQL */ `
+          type SomeTypeWithDisappearingField {
+            otherField: String
+            disappearingField: [SomeRequiredType]!
+          }
+        `,
+      },
+      {
+        name: 'required array and items',
+        variant: /* GraphQL */ `
+          type SomeTypeWithDisappearingField {
+            otherField: String
+            disappearingField: [SomeRequiredType!]!
+          }
+        `,
+      },
+    ])('does not isolate $name referenced from other fields', async ({ variant }) => {
       const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
         schema: makeExecutableSchema({
           typeDefs: /* GraphQL */ `
@@ -487,10 +533,7 @@ type Mutation {
               id: String
             }
 
-            type SomeTypeWithDisappearingField {
-              otherField: String
-              disappearingField: SomeRequiredType
-            }
+            ${variant}
 
             type User {
               id: ID!
