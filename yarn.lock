@@ -10543,10 +10543,10 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
-puppeteer-core@23.5.0:
-  version "23.5.0"
-  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-23.5.0.tgz#f7fb015f0a39b2d85f54df10864c0761b05953db"
-  integrity sha512-+5ed+625GuQ2emRHqYec8khT9LP14FWzv8hYl0HiM6hnnlNzdVU9uDJIPHeCPLIWxq15ost9MeF8kBk4R3eiFw==
+puppeteer-core@23.5.1:
+  version "23.5.1"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-23.5.1.tgz#fac4268820c35d3172e783a1f1a39773b2c0f7c6"
+  integrity sha512-We6xKCSZaZ23+GAYckeNfeDeJIVuhxOBsh/gZkbULu/XLFJ3umSiiQ8Ey927h3g/XrCCr8CnSZ5fvP5v2vB5Yw==
   dependencies:
     "@puppeteer/browsers" "2.4.0"
     chromium-bidi "0.8.0"
@@ -10555,16 +10555,16 @@ puppeteer-core@23.5.0:
     typed-query-selector "^2.12.0"
     ws "^8.18.0"
 
-puppeteer@23.5.0:
-  version "23.5.0"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-23.5.0.tgz#5cafaff6181beb930567c860482eccfe79dad3a8"
-  integrity sha512-jnUx5M0YtFva7vXr39qqsxgB46JiwXJavuM1Hgsqbd9WWiGTEUt9klGpTxyHi+ZQf3NUgleDhNsnI10IK8Ebsg==
+puppeteer@23.5.1:
+  version "23.5.1"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-23.5.1.tgz#4ed2388a55ef6c0b0d8af8f83cb33d9a4cc40444"
+  integrity sha512-9WUnrCx7nB/GEMbJdKiSSU6G4t6Nzn39BBochWYyhK2wWxKwibZDwEF71AUP9D17Byn6OoPifsXhyvnqN/D4mQ==
   dependencies:
     "@puppeteer/browsers" "2.4.0"
     chromium-bidi "0.8.0"
     cosmiconfig "^9.0.0"
     devtools-protocol "0.0.1342118"
-    puppeteer-core "23.5.0"
+    puppeteer-core "23.5.1"
     typed-query-selector "^2.12.0"
 
 pure-rand@^6.0.0:
