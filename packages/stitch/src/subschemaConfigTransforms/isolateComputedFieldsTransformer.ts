@@ -91,6 +91,17 @@ export function isolateComputedFieldsTransformer(
           for (const type of returnTypes) {
             const returnTypeMergeConfig = subschemaConfig.merge[type.name];
 
+            // isolate the object type only if it's not accessible from other, non-isolated, objects' fields
+            if (
+              Object.values(subschemaConfig.schema.getTypeMap())
+                .filter(isObjectType) // only objects
+                .filter(t => t !== type) // not this type
+                .filter(t => !isolatedSchemaTypes[t.name]) // not an isolated type
+                .find(t => Object.values(t.getFields()).find(f => getNamedType(f.type) === type)) // has a field returning this type
+            ) {
+              continue;
+            }
+
             if (isObjectType(type)) {
               const returnTypeSelectionSet = returnTypeMergeConfig?.selectionSet;
               if (returnTypeSelectionSet) {
