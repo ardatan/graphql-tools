@@ -2393,5 +2393,277 @@ describe('graphql-tag-pluck', () => {
         'query queryName { id }\n#EXPRESSION:ANOTHER_VARIABLE',
       );
     });
+
+    it('should pluck graphql-tag template literals from .gts file', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.gts',
+        freeText(`
+    import Component from '@glimmer/component';
+    import graphql from 'graphql-tag';
+
+    const UpdateCreditCardMutationDocument = graphql(\`
+      mutation updateCreditCard($input: UpdateCreditCardInput!) {
+        updateCreditCard(input: $input) {
+          __typename
+        }
+      }
+    \`);
+
+
+    export default class PaymentDetailsPage extends Component<unknown> {
+      updateCreditCardMutation = async (): Promise<void> => {
+        return await new Promise((resolve) => resolve());
+      }
+
+      onSubmit = async (): Promise<void> => {
+        return this.updateCreditCardMutation();
+      }
+
+      <template>
+        <div>
+          <h1>Update Payment Details</h1>
+          <p data-test-existing-payment-method>{{this.paymentMethodText}}</p>
+          <button {{on "click" this.onSubmit}}>Submit</button>
+        </div>
+      </template>
+    }
+    `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+    mutation updateCreditCard($input: UpdateCreditCardInput!) {
+      updateCreditCard(input: $input) {
+        __typename
+      }
+    }
+  `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .gjs file', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.gjs',
+        freeText(`
+    import Component from '@glimmer/component';
+    import graphql from 'graphql-tag';
+
+    const UpdateCreditCardMutationDocument = graphql(\`
+      mutation updateCreditCard($input: UpdateCreditCardInput!) {
+        updateCreditCard(input: $input) {
+          __typename
+        }
+      }
+    \`);
+
+
+    export default class PaymentDetailsPage extends Component<unknown> {
+      updateCreditCardMutation = async (): Promise<void> => {
+        return await new Promise((resolve) => resolve());
+      }
+
+      onSubmit = async (): Promise<void> => {
+        return this.updateCreditCardMutation();
+      }
+
+      <template>
+        <div>
+          <h1>Update Payment Details</h1>
+          <p data-test-existing-payment-method>{{this.paymentMethodText}}</p>
+          <button {{on "click" this.onSubmit}}>Submit</button>
+        </div>
+      </template>
+    }
+    `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+    mutation updateCreditCard($input: UpdateCreditCardInput!) {
+      updateCreditCard(input: $input) {
+        __typename
+      }
+    }
+  `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .gts file with 2 queries', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.gts',
+        freeText(`
+    import Component from '@glimmer/component';
+    import graphql from 'graphql-tag'
+
+    const UpdateCreditCardMutationDocument = graphql(\`
+      mutation updateCreditCard($input: UpdateCreditCardInput!) {
+        updateCreditCard(input: $input) {
+          __typename
+        }
+      }
+    \`);
+
+    const UpdatePaypalMutationDocument = graphql(\`
+      mutation updatePaypal($input: UpdatePaypalInput!) {
+        updatePaypal(input: $input) {
+          __typename
+        }
+      }
+    \`);
+
+
+    export default class PaymentDetailsPage extends Component<unknown> {
+      updateCreditCardMutation = async (): Promise<void> => {
+        return await new Promise((resolve) => resolve());
+      }
+
+      onSubmit = async (): Promise<void> => {
+        return this.updateCreditCardMutation();
+      }
+
+      <template>
+        <div>
+          <h1>Update Payment Details</h1>
+          <p data-test-existing-payment-method>{{this.paymentMethodText}}</p>
+          <button {{on "click" this.onSubmit}}>Submit</button>
+        </div>
+      </template>
+    }
+    `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+    mutation updateCreditCard($input: UpdateCreditCardInput!) {
+      updateCreditCard(input: $input) {
+        __typename
+      }
+    }
+
+    mutation updatePaypal($input: UpdatePaypalInput!) {
+      updatePaypal(input: $input) {
+        __typename
+      }
+    }
+  `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .gts file with multiple queries in different function signatures', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.gts',
+        freeText(`
+    import Component from '@glimmer/component';
+    import graphql from 'graphql-tag'
+
+    const UpdateCreditCardMutationDocument = graphql(\`
+      mutation updateCreditCard($input: UpdateCreditCardInput!) {
+        updateCreditCard(input: $input) {
+          __typename
+        }
+      }
+    \`);
+
+    export function anotherQuery() {
+      const UpdatePaypalMutationDocument = graphql(\`
+        mutation updatePaypal($input: UpdatePaypalInput!) {
+          updatePaypal(input: $input) {
+            __typename
+          }
+        }
+    \`);
+    }
+
+    export default class PaymentDetailsPage extends Component<unknown> {
+      updateCreditCardMutation = async (): Promise<void> => {
+        return await new Promise((resolve) => resolve());
+      }
+
+      onSubmit = async (): Promise<void> => {
+        return this.updateCreditCardMutation();
+      }
+
+      <template>
+        <div>
+          <h1>Update Payment Details</h1>
+          <p data-test-existing-payment-method>{{this.paymentMethodText}}</p>
+          <button {{on "click" this.onSubmit}}>Submit</button>
+        </div>
+      </template>
+    }
+    `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+    mutation updateCreditCard($input: UpdateCreditCardInput!) {
+      updateCreditCard(input: $input) {
+        __typename
+      }
+    }
+
+    mutation updatePaypal($input: UpdatePaypalInput!) {
+      updatePaypal(input: $input) {
+        __typename
+      }
+    }
+  `),
+      );
+    });
+
+    it('should pluck graphql-tag template literals from .gts file, ignoring comments', async () => {
+      const sources = await pluck(
+        'tmp-XXXXXX.gts',
+        freeText(`
+    import Component from '@glimmer/component';
+    import graphql from 'graphql-tag'
+
+    const UpdateCreditCardMutationDocument = graphql(\`
+      mutation updateCreditCard($input: UpdateCreditCardInput!) {
+        updateCreditCard(input: $input) {
+          __typename
+        }
+      }
+    \`);
+
+    // const UpdatePaypalMutationDocument = graphql(\`
+    // mutation updatePaypal($input: UpdatePaypalInput!) {
+    //    updatePaypal(input: $input) {
+    //      __typename
+    //    }
+    //  }
+    // \`);
+
+
+    export default class PaymentDetailsPage extends Component<unknown> {
+      updateCreditCardMutation = async (): Promise<void> => {
+        return await new Promise((resolve) => resolve());
+      }
+
+      onSubmit = async (): Promise<void> => {
+        return this.updateCreditCardMutation();
+      }
+
+      <template>
+        <div>
+          <h1>Update Payment Details</h1>
+          <p data-test-existing-payment-method>{{this.paymentMethodText}}</p>
+          <button {{on "click" this.onSubmit}}>Submit</button>
+        </div>
+      </template>
+    }
+    `),
+      );
+
+      expect(sources.map(source => source.body).join('\n\n')).toEqual(
+        freeText(`
+    mutation updateCreditCard($input: UpdateCreditCardInput!) {
+      updateCreditCard(input: $input) {
+        __typename
+      }
+    }
+  `),
+      );
+    });
   });
 });

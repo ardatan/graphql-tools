@@ -55,6 +55,8 @@ const FILE_EXTENSIONS = [
   '.vue',
   '.svelte',
   '.astro',
+  '.gts',
+  '.gjs',
 ];
 
 function createGlobbyOptions(options: CodeFileLoaderOptions): GlobbyOptions {
@@ -76,7 +78,7 @@ const buildIgnoreGlob = (path: string) => `!${path}`;
  * ```
  *
  * Supported extensions include: `.ts`, `.mts`, `.cts`, `.tsx`, `.js`, `.mjs`,
- * `.cjs`, `.jsx`, `.vue`, `.svelte`, `.astro`
+ * `.cjs`, `.jsx`, `.vue`, `.svelte`, `.astro`, `.gts`, `.gjs`.
  */
 export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
   private config: CodeFileLoaderConfig;
