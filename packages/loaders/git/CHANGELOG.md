@@ -1,5 +1,12 @@
 # @graphql-tools/git-loader
 
+## 8.0.8
+
+### Patch Changes
+
+- [`4488166`](https://github.com/ardatan/graphql-tools/commit/4488166e2b17583aa56e019bbf85e4f44edace23)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - Bump potential CVE dependencies
+
 ## 8.0.7
 
 ### Patch Changes
