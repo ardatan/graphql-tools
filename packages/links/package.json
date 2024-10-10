@@ -61,7 +61,7 @@
   "devDependencies": {
     "@apollo/client": "3.11.8",
     "@types/apollo-upload-client": "17.0.5",
-    "graphql-upload": "16.0.2"
+    "graphql-upload": "17.0.0"
   },
   "publishConfig": {
     "directory": "dist",
