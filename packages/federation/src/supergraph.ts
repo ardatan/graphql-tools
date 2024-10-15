@@ -26,10 +26,10 @@ import {
   SelectionNode,
   SelectionSetNode,
   TypeDefinitionNode,
-  // TypeInfo,
+  TypeInfo,
   UnionTypeDefinitionNode,
   visit,
-  // visitWithTypeInfo,
+  visitWithTypeInfo,
 } from 'graphql';
 import {
   BatchingOptions,
@@ -50,7 +50,8 @@ import {
   ValidationLevel,
 } from '@graphql-tools/stitch';
 import {
-  // createGraphQLError,
+  ASTVisitorKeyMap,
+  createGraphQLError,
   isPromise,
   memoize1,
   mergeDeep,
@@ -909,63 +910,84 @@ export function getStitchingOptionsFromSupergraphSdl(
         return res;
       };
     }
-    // const typeNameProvidedMap = subgraphTypeNameProvidedMap.get(subgraphName);
-    // const externalFieldMap = subgraphExternalFieldMap.get(subgraphName);
+    const typeNameProvidedMap = subgraphTypeNameProvidedMap.get(subgraphName);
+    const externalFieldMap = subgraphExternalFieldMap.get(subgraphName);
+    const visitorKeys: ASTVisitorKeyMap = {
+      Document: ['definitions'],
+      OperationDefinition: ['selectionSet'],
+      SelectionSet: ['selections'],
+      Field: ['selectionSet'],
+      InlineFragment: ['selectionSet'],
+      FragmentDefinition: ['selectionSet'],
+    };
     const subschemaConfig: FederationSubschemaConfig = {
       name: subgraphName,
       endpoint,
       schema,
       executor,
       merge: mergeConfig,
-      // transforms: [
-      //   {
-      //     transformRequest(request) {
-      //       const typeInfo = new TypeInfo(schema);
-      //       return {
-      //         ...request,
-      //         document: visit(
-      //           request.document,
-      //           visitWithTypeInfo(typeInfo, {
-      //             [Kind.DIRECTIVE](node) {
-      //               if (node.name.value === 'defer') {
-      //                 // @defer is not available for the communication between the gw and subgraph
-      //                 return null;
-      //               }
-      //             },
-      //             // To avoid resolving unresolvable interface fields
-      //             [Kind.FIELD](node) {
-      //               if (node.name.value !== '__typename') {
-      //                 const parentType = typeInfo.getParentType();
-      //                 if (isInterfaceType(parentType)) {
-      //                   const providedInterfaceFields = typeNameProvidedMap?.get(parentType.name);
-      //                   const implementations = schema.getPossibleTypes(parentType);
-      //                   for (const implementation of implementations) {
-      //                     const externalFields = externalFieldMap?.get(implementation.name);
-      //                     const providedFields = typeNameProvidedMap?.get(implementation.name);
-      //                     if (
-      //                       !providedInterfaceFields?.has(node.name.value) &&
-      //                       !providedFields?.has(node.name.value) &&
-      //                       externalFields?.has(node.name.value)
-      //                     ) {
-      //                       throw createGraphQLError(
-      //                         `Was not able to find any options for ${node.name.value}: This shouldn't have happened.`,
-      //                         {
-      //                           extensions: {
-      //                             CRITICAL_ERROR: true,
-      //                           },
-      //                         },
-      //                       );
-      //                     }
-      //                   }
-      //                 }
-      //               }
-      //             },
-      //           }),
-      //         ),
-      //       };
-      //     },
-      //   },
-      // ],
+      transforms: [
+        {
+          transformRequest(request) {
+            const typeInfo = new TypeInfo(schema);
+            return {
+              ...request,
+              document: visit(
+                request.document,
+                visitWithTypeInfo(typeInfo, {
+                  [Kind.INLINE_FRAGMENT](node) {
+                    // @defer is not available for the communication between the gw and subgraph
+                    return {
+                      ...node,
+                      directives: node.directives?.filter(
+                        directiveNode => directiveNode.name.value !== 'defer',
+                      ),
+                    };
+                  },
+                  [Kind.FRAGMENT_SPREAD](node) {
+                    // @defer is not available for the communication between the gw and subgraph
+                    return {
+                      ...node,
+                      directives: node.directives?.filter(
+                        directiveNode => directiveNode.name.value !== 'defer',
+                      ),
+                    };
+                  },
+                  // To avoid resolving unresolvable interface fields
+                  [Kind.FIELD](node) {
+                    if (node.name.value !== '__typename') {
+                      const parentType = typeInfo.getParentType();
+                      if (isInterfaceType(parentType)) {
+                        const providedInterfaceFields = typeNameProvidedMap?.get(parentType.name);
+                        const implementations = schema.getPossibleTypes(parentType);
+                        for (const implementation of implementations) {
+                          const externalFields = externalFieldMap?.get(implementation.name);
+                          const providedFields = typeNameProvidedMap?.get(implementation.name);
+                          if (
+                            !providedInterfaceFields?.has(node.name.value) &&
+                            !providedFields?.has(node.name.value) &&
+                            externalFields?.has(node.name.value)
+                          ) {
+                            throw createGraphQLError(
+                              `Was not able to find any options for ${node.name.value}: This shouldn't have happened.`,
+                              {
+                                extensions: {
+                                  CRITICAL_ERROR: true,
+                                },
+                              },
+                            );
+                          }
+                        }
+                      }
+                    }
+                  },
+                }),
+                visitorKeys,
+              ),
+            };
+          },
+        },
+      ],
       batch: opts.batch,
       batchingOptions: opts.batchingOptions,
     };
