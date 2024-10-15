@@ -1,5 +1,24 @@
 # @graphql-tools/stitch
 
+## 9.2.11
+
+### Patch Changes
+
+- [#6543](https://github.com/ardatan/graphql-tools/pull/6543)
+  [`dcb3e27`](https://github.com/ardatan/graphql-tools/commit/dcb3e276cce59340596156542bcede9d8b143d44)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - Isolate computed fields return objects only
+  if not referenced from other, non-isolated, objects
+
+- Updated dependencies
+  [[`cf2ce5e`](https://github.com/ardatan/graphql-tools/commit/cf2ce5ed4773087cc324599f2812f4fb91398b21)]:
+  - @graphql-tools/utils@10.5.5
+  - @graphql-tools/batch-delegate@9.0.4
+  - @graphql-tools/delegate@10.0.22
+  - @graphql-tools/executor@1.3.2
+  - @graphql-tools/merge@9.0.8
+  - @graphql-tools/schema@10.0.7
+  - @graphql-tools/wrap@10.0.6
+
 ## 9.2.10
 
 ### Patch Changes

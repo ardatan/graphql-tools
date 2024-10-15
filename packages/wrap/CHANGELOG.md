@@ -1,34 +1,60 @@
 # @graphql-tools/wrap
 
+## 10.0.6
+
+### Patch Changes
+
+- Updated dependencies
+  [[`cf2ce5e`](https://github.com/ardatan/graphql-tools/commit/cf2ce5ed4773087cc324599f2812f4fb91398b21)]:
+  - @graphql-tools/utils@10.5.5
+  - @graphql-tools/delegate@10.0.22
+  - @graphql-tools/schema@10.0.7
+
 ## 10.0.5
 
 ### Patch Changes
 
-- [`807491e`](https://github.com/ardatan/graphql-tools/commit/807491ea259a4af6be10edb9c720be6fe65177ad) Thanks [@ardatan](https://github.com/ardatan)! - Skip fragments in TransformQuery
+- [`807491e`](https://github.com/ardatan/graphql-tools/commit/807491ea259a4af6be10edb9c720be6fe65177ad)
+  Thanks [@ardatan](https://github.com/ardatan)! - Skip fragments in TransformQuery
 
 ## 10.0.4
 
 ### Patch Changes
 
-- [`69181f6`](https://github.com/ardatan/graphql-tools/commit/69181f6795fb750433e81c9a1c299ca3f6d03e00) Thanks [@ardatan](https://github.com/ardatan)! - MapLeafValues: fallback to `astFromValueUntyped` if `astFromValue` fails
+- [`69181f6`](https://github.com/ardatan/graphql-tools/commit/69181f6795fb750433e81c9a1c299ca3f6d03e00)
+  Thanks [@ardatan](https://github.com/ardatan)! - MapLeafValues: fallback to `astFromValueUntyped`
+  if `astFromValue` fails
 
 ## 10.0.3
 
 ### Patch Changes
 
-- [#5963](https://github.com/ardatan/graphql-tools/pull/5963) [`8199416`](https://github.com/ardatan/graphql-tools/commit/81994160488aad1114b0d130083bcf694fe13aba) Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Fix missing `__typename` field when it is already present but aliased.
+- [#5963](https://github.com/ardatan/graphql-tools/pull/5963)
+  [`8199416`](https://github.com/ardatan/graphql-tools/commit/81994160488aad1114b0d130083bcf694fe13aba)
+  Thanks [@EmrysMyrddin](https://github.com/EmrysMyrddin)! - Fix missing `__typename` field when it
+  is already present but aliased.
 
-- Updated dependencies [[`baf3c28`](https://github.com/ardatan/graphql-tools/commit/baf3c28f43dcfafffd15386daeb153bc2895c1b3)]:
+- Updated dependencies
+  [[`baf3c28`](https://github.com/ardatan/graphql-tools/commit/baf3c28f43dcfafffd15386daeb153bc2895c1b3)]:
   - @graphql-tools/utils@10.1.1
 
 ## 10.0.2
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/schema@^10.0.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/schema/v/10.0.2) (from `^10.0.0`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.0`, in `dependencies`)
-- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/schema@^10.0.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/schema/v/10.0.2)
+    (from `^10.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.0`, in `dependencies`)
+- Updated dependencies
+  [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
   - @graphql-tools/delegate@10.0.4
   - @graphql-tools/schema@10.0.3
 

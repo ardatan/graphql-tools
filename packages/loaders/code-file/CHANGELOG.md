@@ -1,5 +1,19 @@
 # @graphql-tools/code-file-loader
 
+## 8.1.4
+
+### Patch Changes
+
+- [#6521](https://github.com/ardatan/graphql-tools/pull/6521)
+  [`97c21dd`](https://github.com/ardatan/graphql-tools/commit/97c21dd00de70ff68aa4ac933e6061509061ecdc)
+  Thanks [@DeclanBoller](https://github.com/DeclanBoller)! - add `.gts` and `.gjs` file support
+
+- Updated dependencies
+  [[`97c21dd`](https://github.com/ardatan/graphql-tools/commit/97c21dd00de70ff68aa4ac933e6061509061ecdc),
+  [`cf2ce5e`](https://github.com/ardatan/graphql-tools/commit/cf2ce5ed4773087cc324599f2812f4fb91398b21)]:
+  - @graphql-tools/graphql-tag-pluck@8.3.3
+  - @graphql-tools/utils@10.5.5
+
 ## 8.1.3
 
 ### Patch Changes

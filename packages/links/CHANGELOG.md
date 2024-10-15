@@ -1,24 +1,46 @@
 # @graphql-tools/links
 
+## 9.0.2
+
+### Patch Changes
+
+- Updated dependencies
+  [[`cf2ce5e`](https://github.com/ardatan/graphql-tools/commit/cf2ce5ed4773087cc324599f2812f4fb91398b21)]:
+  - @graphql-tools/utils@10.5.5
+  - @graphql-tools/delegate@10.0.22
+
 ## 9.0.1
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/delegate@^10.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/10.0.3) (from `^10.0.0`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.0`, in `dependencies`)
-- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/delegate@^10.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/10.0.3)
+    (from `^10.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.0`, in `dependencies`)
+- Updated dependencies
+  [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
   - @graphql-tools/delegate@10.0.4
 
 ## 9.0.0
 
 ### Major Changes
 
-- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274)
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)
+  Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
 
 ### Patch Changes
 
-- Updated dependencies [[`8fba6cc1`](https://github.com/ardatan/graphql-tools/commit/8fba6cc1876e914d587f5b253332aaedbcaa65e6), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+- Updated dependencies
+  [[`8fba6cc1`](https://github.com/ardatan/graphql-tools/commit/8fba6cc1876e914d587f5b253332aaedbcaa65e6),
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955),
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
   - @graphql-tools/delegate@10.0.0
   - @graphql-tools/utils@10.0.0
 
@@ -26,8 +48,12 @@
 
 ### Patch Changes
 
-- [#5202](https://github.com/ardatan/graphql-tools/pull/5202) [`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
-  - Updated dependency [`@apollo/client@^3` ↗︎](https://www.npmjs.com/package/@apollo/client/v/3.0.0) (from `~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0`, in `peerDependencies`)
+- [#5202](https://github.com/ardatan/graphql-tools/pull/5202)
+  [`05c97eb8`](https://github.com/ardatan/graphql-tools/commit/05c97eb888cd4b1ffbd9adb32722cd5b609292a0)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency
+    [`@apollo/client@^3` ↗︎](https://www.npmjs.com/package/@apollo/client/v/3.0.0) (from
+    `~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0`, in `peerDependencies`)
 - Updated dependencies []:
   - @graphql-tools/delegate@9.0.33
 
@@ -35,7 +61,8 @@
 
 ### Patch Changes
 
-- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41)
+  Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
 
 - Updated dependencies []:
   - @graphql-tools/delegate@9.0.31
@@ -51,28 +78,33 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`f26392a6`](https://github.com/ardatan/graphql-tools/commit/f26392a66299956da1e66253b181f85332c93db5)]:
+- Updated dependencies
+  [[`f26392a6`](https://github.com/ardatan/graphql-tools/commit/f26392a66299956da1e66253b181f85332c93db5)]:
   - @graphql-tools/delegate@9.0.29
 
 ## 8.3.32
 
 ### Patch Changes
 
-- Updated dependencies [[`492220cb`](https://github.com/ardatan/graphql-tools/commit/492220cbdf240e7abde23af0aabcb8cbc6fd3656)]:
+- Updated dependencies
+  [[`492220cb`](https://github.com/ardatan/graphql-tools/commit/492220cbdf240e7abde23af0aabcb8cbc6fd3656)]:
   - @graphql-tools/delegate@9.0.28
 
 ## 8.3.31
 
 ### Patch Changes
 
-- Updated dependencies [[`30bd4d0c`](https://github.com/ardatan/graphql-tools/commit/30bd4d0c10f59147faba925dc0941c731b0532a9)]:
+- Updated dependencies
+  [[`30bd4d0c`](https://github.com/ardatan/graphql-tools/commit/30bd4d0c10f59147faba925dc0941c731b0532a9)]:
   - @graphql-tools/delegate@9.0.27
 
 ## 8.3.30
 
 ### Patch Changes
 
-- Updated dependencies [[`b09ea282`](https://github.com/ardatan/graphql-tools/commit/b09ea282f0945fb19f354af57aabddcd23b2a155), [`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af)]:
+- Updated dependencies
+  [[`b09ea282`](https://github.com/ardatan/graphql-tools/commit/b09ea282f0945fb19f354af57aabddcd23b2a155),
+  [`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af)]:
   - @graphql-tools/delegate@9.0.26
   - @graphql-tools/utils@9.2.1
 
@@ -80,7 +112,9 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`a94217e9`](https://github.com/ardatan/graphql-tools/commit/a94217e920c5d6237471ab6ad4d96cf230984177), [`62d074be`](https://github.com/ardatan/graphql-tools/commit/62d074be48779b1e096e056ca1233822c421dc99)]:
+- Updated dependencies
+  [[`a94217e9`](https://github.com/ardatan/graphql-tools/commit/a94217e920c5d6237471ab6ad4d96cf230984177),
+  [`62d074be`](https://github.com/ardatan/graphql-tools/commit/62d074be48779b1e096e056ca1233822c421dc99)]:
   - @graphql-tools/utils@9.2.0
   - @graphql-tools/delegate@9.0.25
 
@@ -88,7 +122,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`772b948a`](https://github.com/ardatan/graphql-tools/commit/772b948ae536ac23520e704b33f450c94252f113)]:
+- Updated dependencies
+  [[`772b948a`](https://github.com/ardatan/graphql-tools/commit/772b948ae536ac23520e704b33f450c94252f113)]:
   - @graphql-tools/delegate@9.0.24
 
 ## 8.3.27
@@ -102,7 +137,9 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`a4d36fcc`](https://github.com/ardatan/graphql-tools/commit/a4d36fccce6113843a55b77c96328727f4c748bc), [`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591)]:
+- Updated dependencies
+  [[`a4d36fcc`](https://github.com/ardatan/graphql-tools/commit/a4d36fccce6113843a55b77c96328727f4c748bc),
+  [`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591)]:
   - @graphql-tools/delegate@9.0.22
   - @graphql-tools/utils@9.1.4
 
@@ -110,21 +147,26 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`13177794`](https://github.com/ardatan/graphql-tools/commit/131777947d111e6a952d9e0e581fd651664101a1)]:
+- Updated dependencies
+  [[`13177794`](https://github.com/ardatan/graphql-tools/commit/131777947d111e6a952d9e0e581fd651664101a1)]:
   - @graphql-tools/delegate@9.0.21
 
 ## 8.3.24
 
 ### Patch Changes
 
-- Updated dependencies [[`eb6cd8b6`](https://github.com/ardatan/graphql-tools/commit/eb6cd8b65dc72434348c259538b233e57a58eb1a), [`eb6cd8b6`](https://github.com/ardatan/graphql-tools/commit/eb6cd8b65dc72434348c259538b233e57a58eb1a)]:
+- Updated dependencies
+  [[`eb6cd8b6`](https://github.com/ardatan/graphql-tools/commit/eb6cd8b65dc72434348c259538b233e57a58eb1a),
+  [`eb6cd8b6`](https://github.com/ardatan/graphql-tools/commit/eb6cd8b65dc72434348c259538b233e57a58eb1a)]:
   - @graphql-tools/delegate@9.0.20
 
 ## 8.3.23
 
 ### Patch Changes
 
-- Updated dependencies [[`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759), [`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759)]:
+- Updated dependencies
+  [[`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759),
+  [`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759)]:
   - @graphql-tools/utils@9.1.3
   - @graphql-tools/delegate@9.0.19
 
@@ -132,7 +174,9 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`13c24883`](https://github.com/ardatan/graphql-tools/commit/13c24883004d5330f7402cb20566e37535c5729b), [`b5e6459f`](https://github.com/ardatan/graphql-tools/commit/b5e6459f87cd8720457ce9bff38f3dfa0cb3c150)]:
+- Updated dependencies
+  [[`13c24883`](https://github.com/ardatan/graphql-tools/commit/13c24883004d5330f7402cb20566e37535c5729b),
+  [`b5e6459f`](https://github.com/ardatan/graphql-tools/commit/b5e6459f87cd8720457ce9bff38f3dfa0cb3c150)]:
   - @graphql-tools/delegate@9.0.18
   - @graphql-tools/utils@9.1.2
 
@@ -140,7 +184,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`7411a5e7`](https://github.com/ardatan/graphql-tools/commit/7411a5e71a8138d9ccfe907b1fb01e62fcbb0cdb)]:
+- Updated dependencies
+  [[`7411a5e7`](https://github.com/ardatan/graphql-tools/commit/7411a5e71a8138d9ccfe907b1fb01e62fcbb0cdb)]:
   - @graphql-tools/utils@9.1.1
   - @graphql-tools/delegate@9.0.17
 
@@ -155,7 +200,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`c0639dd0`](https://github.com/ardatan/graphql-tools/commit/c0639dd0065db1b5bcedaabf58b11945714bab8d)]:
+- Updated dependencies
+  [[`c0639dd0`](https://github.com/ardatan/graphql-tools/commit/c0639dd0065db1b5bcedaabf58b11945714bab8d)]:
   - @graphql-tools/utils@9.1.0
   - @graphql-tools/delegate@9.0.15
 
@@ -163,7 +209,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`d83b1960`](https://github.com/ardatan/graphql-tools/commit/d83b19605be71481ccf8effd80d5254423ea811a)]:
+- Updated dependencies
+  [[`d83b1960`](https://github.com/ardatan/graphql-tools/commit/d83b19605be71481ccf8effd80d5254423ea811a)]:
   - @graphql-tools/utils@9.0.1
   - @graphql-tools/delegate@9.0.14
 
@@ -185,7 +232,12 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`8f6d3efc`](https://github.com/ardatan/graphql-tools/commit/8f6d3efc92b25236f5a3a761ea7ba2f0a7c7f550), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931)]:
+- Updated dependencies
+  [[`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`8f6d3efc`](https://github.com/ardatan/graphql-tools/commit/8f6d3efc92b25236f5a3a761ea7ba2f0a7c7f550),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931)]:
   - @graphql-tools/utils@9.0.0
   - @graphql-tools/delegate@9.0.11
 
@@ -193,7 +245,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`f7daf777`](https://github.com/ardatan/graphql-tools/commit/f7daf7777cc214801886e4a45c0389bc5837d175)]:
+- Updated dependencies
+  [[`f7daf777`](https://github.com/ardatan/graphql-tools/commit/f7daf7777cc214801886e4a45c0389bc5837d175)]:
   - @graphql-tools/utils@8.13.1
   - @graphql-tools/delegate@9.0.10
 
@@ -201,7 +254,11 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f)]:
+- Updated dependencies
+  [[`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f),
+  [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f),
+  [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f),
+  [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f)]:
   - @graphql-tools/delegate@9.0.9
   - @graphql-tools/utils@8.13.0
 
@@ -209,33 +266,44 @@
 
 ### Patch Changes
 
-- [#4701](https://github.com/ardatan/graphql-tools/pull/4701) [`4689bd6d`](https://github.com/ardatan/graphql-tools/commit/4689bd6d2f0530819aa14f8f40fe62a7a54c9da9) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+- [#4701](https://github.com/ardatan/graphql-tools/pull/4701)
+  [`4689bd6d`](https://github.com/ardatan/graphql-tools/commit/4689bd6d2f0530819aa14f8f40fe62a7a54c9da9)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
 
-  - Updated dependency [`@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0` ↗︎](https://www.npmjs.com/package/@apollo/client/v/3.2.5) (from `~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0`, in `peerDependencies`)
+  - Updated dependency
+    [`@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0` ↗︎](https://www.npmjs.com/package/@apollo/client/v/3.2.5)
+    (from `~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0`, in `peerDependencies`)
 
-- [#4736](https://github.com/ardatan/graphql-tools/pull/4736) [`f807a537`](https://github.com/ardatan/graphql-tools/commit/f807a537acdcd843fef082108a94b264a3662a61) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+- [#4736](https://github.com/ardatan/graphql-tools/pull/4736)
+  [`f807a537`](https://github.com/ardatan/graphql-tools/commit/f807a537acdcd843fef082108a94b264a3662a61)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
 
-  - Updated dependency [`@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0` ↗︎](https://www.npmjs.com/package/@apollo/client/v/3.2.5) (from `~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0`, in `peerDependencies`)
+  - Updated dependency
+    [`@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0` ↗︎](https://www.npmjs.com/package/@apollo/client/v/3.2.5)
+    (from `~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0`, in `peerDependencies`)
 
 ## 8.3.11
 
 ### Patch Changes
 
-- Updated dependencies [[`0402894d`](https://github.com/ardatan/graphql-tools/commit/0402894d0b2747ae5d98d28df9b39d6a06cc5f2a)]:
+- Updated dependencies
+  [[`0402894d`](https://github.com/ardatan/graphql-tools/commit/0402894d0b2747ae5d98d28df9b39d6a06cc5f2a)]:
   - @graphql-tools/delegate@9.0.8
 
 ## 8.3.10
 
 ### Patch Changes
 
-- Updated dependencies [[`00c4a1a4`](https://github.com/ardatan/graphql-tools/commit/00c4a1a44e14b9950f44d56f44967ab7a0121706)]:
+- Updated dependencies
+  [[`00c4a1a4`](https://github.com/ardatan/graphql-tools/commit/00c4a1a44e14b9950f44d56f44967ab7a0121706)]:
   - @graphql-tools/delegate@9.0.7
 
 ## 8.3.9
 
 ### Patch Changes
 
-- Updated dependencies [[`43c736bd`](https://github.com/ardatan/graphql-tools/commit/43c736bd1865c00898966a7ed14060496c9e6a0c)]:
+- Updated dependencies
+  [[`43c736bd`](https://github.com/ardatan/graphql-tools/commit/43c736bd1865c00898966a7ed14060496c9e6a0c)]:
   - @graphql-tools/utils@8.12.0
   - @graphql-tools/delegate@9.0.6
 
@@ -243,7 +311,9 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`71cb4fae`](https://github.com/ardatan/graphql-tools/commit/71cb4faeb0833a228520a7bc2beed8ac7274443f), [`403ed450`](https://github.com/ardatan/graphql-tools/commit/403ed4507eff7cd509f410f7542a702da72e1a9a)]:
+- Updated dependencies
+  [[`71cb4fae`](https://github.com/ardatan/graphql-tools/commit/71cb4faeb0833a228520a7bc2beed8ac7274443f),
+  [`403ed450`](https://github.com/ardatan/graphql-tools/commit/403ed4507eff7cd509f410f7542a702da72e1a9a)]:
   - @graphql-tools/utils@8.11.0
   - @graphql-tools/delegate@9.0.5
 
@@ -251,7 +321,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`4fe3d9c0`](https://github.com/ardatan/graphql-tools/commit/4fe3d9c037e9c138bd8a9b04b3977d74eba32c97)]:
+- Updated dependencies
+  [[`4fe3d9c0`](https://github.com/ardatan/graphql-tools/commit/4fe3d9c037e9c138bd8a9b04b3977d74eba32c97)]:
   - @graphql-tools/utils@8.10.1
   - @graphql-tools/delegate@9.0.4
 
@@ -259,31 +330,40 @@
 
 ### Patch Changes
 
-- [#4640](https://github.com/ardatan/graphql-tools/pull/4640) [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+- [#4640](https://github.com/ardatan/graphql-tools/pull/4640)
+  [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
 
-  - Updated dependency [`@graphql-tools/delegate@9.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/9.0.3) (was `9.0.2`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/delegate@9.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/9.0.3)
+    (was `9.0.2`, in `dependencies`)
 
-* [#4640](https://github.com/ardatan/graphql-tools/pull/4640) [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d) Thanks [@ardatan](https://github.com/ardatan)! - Bump fetch package
+* [#4640](https://github.com/ardatan/graphql-tools/pull/4640)
+  [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d)
+  Thanks [@ardatan](https://github.com/ardatan)! - Bump fetch package
 
 ## 8.3.5
 
 ### Patch Changes
 
-- Updated dependencies [[`0555a972`](https://github.com/ardatan/graphql-tools/commit/0555a972f010d2b3ca93b9164b26474a78d0b20b)]:
+- Updated dependencies
+  [[`0555a972`](https://github.com/ardatan/graphql-tools/commit/0555a972f010d2b3ca93b9164b26474a78d0b20b)]:
   - @graphql-tools/delegate@9.0.3
 
 ## 8.3.4
 
 ### Patch Changes
 
-- Updated dependencies [[`29ee7542`](https://github.com/ardatan/graphql-tools/commit/29ee7542649e9c938bdb9c751bd3a2f56d17cb55)]:
+- Updated dependencies
+  [[`29ee7542`](https://github.com/ardatan/graphql-tools/commit/29ee7542649e9c938bdb9c751bd3a2f56d17cb55)]:
   - @graphql-tools/delegate@9.0.2
 
 ## 8.3.3
 
 ### Patch Changes
 
-- Updated dependencies [[`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27)]:
+- Updated dependencies
+  [[`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27)]:
   - @graphql-tools/utils@8.10.0
   - @graphql-tools/delegate@9.0.1
 
@@ -291,9 +371,14 @@
 
 ### Patch Changes
 
-- [#4624](https://github.com/ardatan/graphql-tools/pull/4624) [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with `moduleResolution` `node16` or `nodenext`
+- [#4624](https://github.com/ardatan/graphql-tools/pull/4624)
+  [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with
+  `moduleResolution` `node16` or `nodenext`
 
-- Updated dependencies [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67), [`d8dc67aa`](https://github.com/ardatan/graphql-tools/commit/d8dc67aa6cb05bf10f5f16e90690e5ccc87b3426)]:
+- Updated dependencies
+  [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67),
+  [`d8dc67aa`](https://github.com/ardatan/graphql-tools/commit/d8dc67aa6cb05bf10f5f16e90690e5ccc87b3426)]:
   - @graphql-tools/delegate@9.0.0
   - @graphql-tools/utils@8.9.1
 
@@ -340,7 +425,8 @@
 
 ### Patch Changes
 
-- da7ad43b: Fix GraphQL v17 incompatibility issues and introduce `createGraphQLError` helper function for backwards compatibility.
+- da7ad43b: Fix GraphQL v17 incompatibility issues and introduce `createGraphQLError` helper
+  function for backwards compatibility.
 - Updated dependencies [da7ad43b]
   - @graphql-tools/utils@8.6.12
   - @graphql-tools/delegate@8.7.10
@@ -390,15 +476,12 @@
 
 - 0bbb1769: Refine generic typings using `extends X` when appropriate
 
-  Typescript 4.7 has stricter requirements around generics
-  which is explained well in the related PR:
-  https://github.com/microsoft/TypeScript/pull/48366
+  Typescript 4.7 has stricter requirements around generics which is explained well in the related
+  PR: https://github.com/microsoft/TypeScript/pull/48366
 
-  These changes resolve the errors that these packages will
-  face when attempting to upgrade to TS 4.7 (still in beta
-  at the time of writing this). Landing these changes now
-  will allow other TS libraries which depend on these
-  packages to experiment with TS 4.7 in the meantime.
+  These changes resolve the errors that these packages will face when attempting to upgrade to TS
+  4.7 (still in beta at the time of writing this). Landing these changes now will allow other TS
+  libraries which depend on these packages to experiment with TS 4.7 in the meantime.
 
 - Updated dependencies [0bbb1769]
   - @graphql-tools/delegate@8.7.4
@@ -608,13 +691,14 @@
 
   When delegating with delegateToSchema, rootValue can be set multiple ways:
 
-  - when using a custom executor, the custom executor can utilize a rootValue in whichever custom way it specifies.
-  - when using the default executor (execute/subscribe from graphql-js):
-    -- rootValue can be passed to delegateToSchema via a named option
-    -- rootValue can be included within a subschemaConfig
-    -- otherwise, rootValue is inferred from the originating schema
+  - when using a custom executor, the custom executor can utilize a rootValue in whichever custom
+    way it specifies.
+  - when using the default executor (execute/subscribe from graphql-js): -- rootValue can be passed
+    to delegateToSchema via a named option -- rootValue can be included within a subschemaConfig --
+    otherwise, rootValue is inferred from the originating schema
 
-  When using wrapSchema/stitchSchemas, a subschemaConfig can specify the createProxyingResolver function which can pass whatever rootValue it wants to delegateToSchema as above.
+  When using wrapSchema/stitchSchemas, a subschemaConfig can specify the createProxyingResolver
+  function which can pass whatever rootValue it wants to delegateToSchema as above.
 
 - c42e811d: BREAKING CHANGES;
 
@@ -622,21 +706,26 @@
   - Add required `operationType: OperationTypeNode` field in `ExecutionRequest`
   - Add `context` in `createRequest` and `createRequestInfo` instead of `delegateToSchema`
 
-  > It doesn't rely on info.operation.operationType to allow the user to call an operation from different root type.
-  > And it doesn't call getOperationAST again and again to get operation type from the document/operation because we have it in Request and ExecutionParams
+  > It doesn't rely on info.operation.operationType to allow the user to call an operation from
+  > different root type. And it doesn't call getOperationAST again and again to get operation type
+  > from the document/operation because we have it in Request and ExecutionParams
   > https://github.com/ardatan/graphql-tools/pull/3166/files#diff-d4824895ea613dcc1f710c3ac82e952fe0ca12391b671f70d9f2d90d5656fdceR38
 
   Improvements;
 
-  - Memoize `defaultExecutor` for a single `GraphQLSchema` so allow `getBatchingExecutor` to memoize `batchingExecutor` correctly.
-  - And there is no different `defaultExecutor` is created for `subscription` and other operation types. Only one executor is used.
+  - Memoize `defaultExecutor` for a single `GraphQLSchema` so allow `getBatchingExecutor` to memoize
+    `batchingExecutor` correctly.
+  - And there is no different `defaultExecutor` is created for `subscription` and other operation
+    types. Only one executor is used.
 
-  > Batch executor is memoized by `executor` reference but `createDefaultExecutor` didn't memoize the default executor so this memoization wasn't working correctly on `batch-execute` side.
+  > Batch executor is memoized by `executor` reference but `createDefaultExecutor` didn't memoize
+  > the default executor so this memoization wasn't working correctly on `batch-execute` side.
   > https://github.com/ardatan/graphql-tools/blob/remove-info-executor/packages/batch-execute/src/getBatchingExecutor.ts#L9
 
 - c0ca3190: BREAKING CHANGE
   - Remove Subscriber and use only Executor
-  - - Now `Executor` can receive `AsyncIterable` and subscriptions will also be handled by `Executor`. This is a future-proof change for defer, stream and live queries
+  - - Now `Executor` can receive `AsyncIterable` and subscriptions will also be handled by
+      `Executor`. This is a future-proof change for defer, stream and live queries
 
 ### Minor Changes
 
@@ -703,7 +792,8 @@
 
 ### Patch Changes
 
-- a74f885c: links should behave like other packages when releasing and not publish new versions with minor updates of internal dependencies
+- a74f885c: links should behave like other packages when releasing and not publish new versions with
+  minor updates of internal dependencies
 - Updated dependencies [856e23fa]
 - Updated dependencies [e3176633]
   - @graphql-tools/delegate@7.0.3
@@ -721,7 +811,8 @@
 
 ### Patch Changes
 
-- 38f6decf: use identical ExecutionParams across packages to facilitate TS compilation in strict mode
+- 38f6decf: use identical ExecutionParams across packages to facilitate TS compilation in strict
+  mode
 
 ## 7.0.0
 
@@ -730,7 +821,8 @@
 - 2b6c813e: feat(links): AC3 support
 
   `apollo-link` has been deprecated so this package now uses `@apollo/client` as peer dependency;
-  You can [see more on migration guide.](https://www.apollographql.com/docs/react/migrating/apollo-client-3-migration/#apollo-link-and-apollo-link-http)
+  You can
+  [see more on migration guide.](https://www.apollographql.com/docs/react/migrating/apollo-client-3-migration/#apollo-link-and-apollo-link-http)
 
 ### Patch Changes
 
@@ -746,59 +838,118 @@
 
   #### Schema Generation and Decoration API (`@graphql-tools/schema`)
 
-  - Resolver validation options should now be set to `error`, `warn` or `ignore` rather than `true` or `false`. In previous versions, some of the validators caused errors to be thrown, while some issued warnings. This changes brings consistency to validator behavior.
+  - Resolver validation options should now be set to `error`, `warn` or `ignore` rather than `true`
+    or `false`. In previous versions, some of the validators caused errors to be thrown, while some
+    issued warnings. This changes brings consistency to validator behavior.
 
-  - The `allowResolversNotInSchema` has been renamed to `requireResolversToMatchSchema`, to harmonize the naming convention of all the validators. The default setting of `requireResolversToMatchSchema` is `error`, matching the previous behavior.
+  - The `allowResolversNotInSchema` has been renamed to `requireResolversToMatchSchema`, to
+    harmonize the naming convention of all the validators. The default setting of
+    `requireResolversToMatchSchema` is `error`, matching the previous behavior.
 
   #### Schema Delegation (`delegateToSchema` & `@graphql-tools/delegate`)
 
-  - The `delegateToSchema` return value has matured and been formalized as an `ExternalObject`, in which all errors are integrated into the GraphQL response, preserving their initial path. Those advanced users accessing the result directly will note the change in error handling. This also allows for the deprecation of unnecessary helper functions including `slicedError`, `getErrors`, `getErrorsByPathSegment` functions. Only external errors with missing or invalid paths must still be preserved by annotating the remote object with special properties. The new `getUnpathedErrors` function is therefore necessary for retrieving only these errors. Note also the new `annotateExternalObject` and `mergeExternalObjects` functions, as well as the renaming of `handleResult` to `resolveExternalValue`.
+  - The `delegateToSchema` return value has matured and been formalized as an `ExternalObject`, in
+    which all errors are integrated into the GraphQL response, preserving their initial path. Those
+    advanced users accessing the result directly will note the change in error handling. This also
+    allows for the deprecation of unnecessary helper functions including `slicedError`, `getErrors`,
+    `getErrorsByPathSegment` functions. Only external errors with missing or invalid paths must
+    still be preserved by annotating the remote object with special properties. The new
+    `getUnpathedErrors` function is therefore necessary for retrieving only these errors. Note also
+    the new `annotateExternalObject` and `mergeExternalObjects` functions, as well as the renaming
+    of `handleResult` to `resolveExternalValue`.
 
-  - Transform types and the `applySchemaTransforms` are now relocated to the `delegate` package; `applyRequestTransforms`/`applyResultTransforms` functions have been deprecated, however, as this functionality has been replaced since v6 by the `Transformer` abstraction.
+  - Transform types and the `applySchemaTransforms` are now relocated to the `delegate` package;
+    `applyRequestTransforms`/`applyResultTransforms` functions have been deprecated, however, as
+    this functionality has been replaced since v6 by the `Transformer` abstraction.
 
-  - The `transformRequest`/`transformResult` methods are now provided additional `delegationContext` and `transformationContext` arguments -- these were introduced in v6, but previously optional.
+  - The `transformRequest`/`transformResult` methods are now provided additional `delegationContext`
+    and `transformationContext` arguments -- these were introduced in v6, but previously optional.
 
-  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executable) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
+  - The `transformSchema` method may wish to create additional delegating resolvers and so it is now
+    provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in
+    v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if
+    a wrapping schema is being generated, proxying resolvers are created with access to the
+    (non-executable) initial result. In v7, the individual `transformSchema` methods also get access
+    to the result of the first run, if necessary, they can create additional wrapping schema
+    proxying resolvers.
 
-  - `applySchemaTransforms` parameters have been updated to match and support the `transformSchema` parameters above.
+  - `applySchemaTransforms` parameters have been updated to match and support the `transformSchema`
+    parameters above.
 
   #### Remote Schemas & Wrapping (`wrapSchema`, `makeRemoteExecutableSchema`, and `@graphql-tools/wrap`)
 
-  - `wrapSchema` and `generateProxyingResolvers` now only take a single options argument with named properties of type `SubschemaConfig`. The previously possible shorthand version with first argument consisting of a `GraphQLSchema` and second argument representing the transforms should be reworked as a `SubschemaConfig` object.
+  - `wrapSchema` and `generateProxyingResolvers` now only take a single options argument with named
+    properties of type `SubschemaConfig`. The previously possible shorthand version with first
+    argument consisting of a `GraphQLSchema` and second argument representing the transforms should
+    be reworked as a `SubschemaConfig` object.
 
-  - Similarly, the `ICreateProxyingResolverOptions` interface that provides the options for the `createProxyingResolver` property of `SubschemaConfig` options has been adjusted. The `schema` property previously could be set to a `GraphQLSchema` or a `SubschemaConfig` object. This property has been removed in favor of a `subschemaConfig` property that will always be a `SubschemaConfig` object. The `transforms` property has been removed; transforms should be included within the `SubschemaConfig` object.`
+  - Similarly, the `ICreateProxyingResolverOptions` interface that provides the options for the
+    `createProxyingResolver` property of `SubschemaConfig` options has been adjusted. The `schema`
+    property previously could be set to a `GraphQLSchema` or a `SubschemaConfig` object. This
+    property has been removed in favor of a `subschemaConfig` property that will always be a
+    `SubschemaConfig` object. The `transforms` property has been removed; transforms should be
+    included within the `SubschemaConfig` object.`
 
-  - The format of the wrapping schema has solidified. All non-root fields are expected to use identical resolvers, either `defaultMergedResolver` or a custom equivalent, with root fields doing the hard work of proxying. Support for custom merged resolvers throught `createMergedResolver` has been deprecated, as custom merging resolvers conflicts when using stitching's type merging, where resolvers are expected to be identical across subschemas.
+  - The format of the wrapping schema has solidified. All non-root fields are expected to use
+    identical resolvers, either `defaultMergedResolver` or a custom equivalent, with root fields
+    doing the hard work of proxying. Support for custom merged resolvers throught
+    `createMergedResolver` has been deprecated, as custom merging resolvers conflicts when using
+    stitching's type merging, where resolvers are expected to be identical across subschemas.
 
-  - The `WrapFields` transform's `wrappingResolver` option has been removed, as this complicates multiple wrapping layers, as well as planned functionality to wrap subscription root fields in potentially multiple layers, as the wrapping resolvers may be different in different layers. Modifying resolvers can still be performed by use of an additional transform such as `TransformRootFields` or `TransformObjectFields`.
+  - The `WrapFields` transform's `wrappingResolver` option has been removed, as this complicates
+    multiple wrapping layers, as well as planned functionality to wrap subscription root fields in
+    potentially multiple layers, as the wrapping resolvers may be different in different layers.
+    Modifying resolvers can still be performed by use of an additional transform such as
+    `TransformRootFields` or `TransformObjectFields`.
 
-  - The `ExtendSchema` transform has been removed, as it is conceptually simpler just to use `stitchSchemas` with one subschema.
+  - The `ExtendSchema` transform has been removed, as it is conceptually simpler just to use
+    `stitchSchemas` with one subschema.
 
-  - The `ReplaceFieldsWithFragment`, `AddFragmentsByField`, `AddSelectionSetsByField`, and `AddMergedTypeSelectionSets` transforms has been removed, as they are superseded by the `AddSelectionSets` and `VisitSelectionSets` transforms. The `AddSelectionSets` purposely takes parsed SDL rather than strings, to nudge end users to parse these strings at build time (when possible), rather than at runtime. Parsing of selection set strings can be performed using the `parseSelectionSet` function from `@graphql-tools/utils`.
+  - The `ReplaceFieldsWithFragment`, `AddFragmentsByField`, `AddSelectionSetsByField`, and
+    `AddMergedTypeSelectionSets` transforms has been removed, as they are superseded by the
+    `AddSelectionSets` and `VisitSelectionSets` transforms. The `AddSelectionSets` purposely takes
+    parsed SDL rather than strings, to nudge end users to parse these strings at build time (when
+    possible), rather than at runtime. Parsing of selection set strings can be performed using the
+    `parseSelectionSet` function from `@graphql-tools/utils`.
 
   #### Schema Stitching (`stitchSchemas` & `@graphql-tools/stitch`)
 
-  - `stitchSchemas`'s `mergeTypes` option is now true by default! This causes the `onTypeConflict` option to be ignored by default. To use `onTypeConflict` to select a specific type instead of simply merging, simply set `mergeTypes` to false.
+  - `stitchSchemas`'s `mergeTypes` option is now true by default! This causes the `onTypeConflict`
+    option to be ignored by default. To use `onTypeConflict` to select a specific type instead of
+    simply merging, simply set `mergeTypes` to false.
 
-  - `schemas` argument has been deprecated, use `subschemas`, `typeDefs`, or `types`, depending on what you are stitching.
+  - `schemas` argument has been deprecated, use `subschemas`, `typeDefs`, or `types`, depending on
+    what you are stitching.
 
-  - When using batch delegation in type merging, the `argsFromKeys` function is now set only via the `argsFromKeys` property. Previously, if `argsFromKeys` was absent, it could be read from `args`.
+  - When using batch delegation in type merging, the `argsFromKeys` function is now set only via the
+    `argsFromKeys` property. Previously, if `argsFromKeys` was absent, it could be read from `args`.
 
   - Support for fragment hints has been removed in favor of selection set hints.
 
-  - `stitchSchemas` now processes all `GraphQLSchema` and `SubschemaConfig` subschema input into new `Subschema` objects, handling schema config directives such aso`@computed` as well as generating the final transformed schema, stored as the `transformedSchema` property, if transforms are used. Signatures of the `onTypeConflict`, `fieldConfigMerger`, and `inputFieldConfigMerger` have been updated to include metadata related to the original and transformed subschemas. Note the property name change for `onTypeConflict` from `schema` to `subschema`.
+  - `stitchSchemas` now processes all `GraphQLSchema` and `SubschemaConfig` subschema input into new
+    `Subschema` objects, handling schema config directives such aso`@computed` as well as generating
+    the final transformed schema, stored as the `transformedSchema` property, if transforms are
+    used. Signatures of the `onTypeConflict`, `fieldConfigMerger`, and `inputFieldConfigMerger` have
+    been updated to include metadata related to the original and transformed subschemas. Note the
+    property name change for `onTypeConflict` from `schema` to `subschema`.
 
   #### Mocking (`addMocksToSchema` and `@graphql-tools/mock`)
 
-  - Mocks returning objects with fields set as functions are now operating according to upstream graphql-js convention, i.e. these functions take three arguments, `args`, `context`, and `info` with `parent` available as `this` rather than as the first argument.
+  - Mocks returning objects with fields set as functions are now operating according to upstream
+    graphql-js convention, i.e. these functions take three arguments, `args`, `context`, and `info`
+    with `parent` available as `this` rather than as the first argument.
 
   #### Other Utilities (`@graphql-tools/utils`)
 
-  - `filterSchema`'s `fieldFilter` will now filter _all_ fields across Object, Interface, and Input types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.
+  - `filterSchema`'s `fieldFilter` will now filter _all_ fields across Object, Interface, and Input
+    types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.
   - Unused `fieldNodes` utility functions have been removed.
-  - Unused `typeContainsSelectionSet` function has been removed, and `typesContainSelectionSet` has been moved to the `stitch` package.
-  - Unnecessary `Operation` type has been removed in favor of `OperationTypeNode` from upstream graphql-js.
-  - As above, `applySchemaTransforms`/`applyRequestTransforms`/`applyResultTransforms` have been removed from the `utils` package, as they are implemented elsewhere or no longer necessary.
+  - Unused `typeContainsSelectionSet` function has been removed, and `typesContainSelectionSet` has
+    been moved to the `stitch` package.
+  - Unnecessary `Operation` type has been removed in favor of `OperationTypeNode` from upstream
+    graphql-js.
+  - As above, `applySchemaTransforms`/`applyRequestTransforms`/`applyResultTransforms` have been
+    removed from the `utils` package, as they are implemented elsewhere or no longer necessary.
 
   ## Related Issues
 
