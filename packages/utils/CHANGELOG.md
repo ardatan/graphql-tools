@@ -1,5 +1,14 @@
 # @graphql-tools/utils
 
+## 10.5.5
+
+### Patch Changes
+
+- [#6524](https://github.com/ardatan/graphql-tools/pull/6524)
+  [`cf2ce5e`](https://github.com/ardatan/graphql-tools/commit/cf2ce5ed4773087cc324599f2812f4fb91398b21)
+  Thanks [@kachkaev](https://github.com/kachkaev)! - Make two types compatible with strict tsc
+  config
+
 ## 10.5.4
 
 ### Patch Changes

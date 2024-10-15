@@ -1,18 +1,35 @@
 # @graphql-tools/prisma-loader
 
+## 8.0.5
+
+### Patch Changes
+
+- Updated dependencies
+  [[`cf2ce5e`](https://github.com/ardatan/graphql-tools/commit/cf2ce5ed4773087cc324599f2812f4fb91398b21)]:
+  - @graphql-tools/utils@10.5.5
+  - @graphql-tools/url-loader@8.0.3
+
 ## 8.0.4
 
 ### Patch Changes
 
-- [#6100](https://github.com/ardatan/graphql-tools/pull/6100) [`4e72868`](https://github.com/ardatan/graphql-tools/commit/4e728689b70a563b6fa1eb0d52289974231f4251) Thanks [@JohanBrorson](https://github.com/JohanBrorson)! - Remove unused dependencies `json-stable-stringify` and `@types/json-stable-stringify`.
+- [#6100](https://github.com/ardatan/graphql-tools/pull/6100)
+  [`4e72868`](https://github.com/ardatan/graphql-tools/commit/4e728689b70a563b6fa1eb0d52289974231f4251)
+  Thanks [@JohanBrorson](https://github.com/JohanBrorson)! - Remove unused dependencies
+  `json-stable-stringify` and `@types/json-stable-stringify`.
 
 ## 8.0.3
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.8`, in `dependencies`)
-- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.8`, in `dependencies`)
+- Updated dependencies
+  [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
   - @graphql-tools/url-loader@8.0.2
 
 ## 8.0.2

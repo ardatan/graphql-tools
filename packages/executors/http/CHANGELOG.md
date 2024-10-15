@@ -1,5 +1,13 @@
 # @graphql-tools/executor-http
 
+## 1.1.7
+
+### Patch Changes
+
+- Updated dependencies
+  [[`cf2ce5e`](https://github.com/ardatan/graphql-tools/commit/cf2ce5ed4773087cc324599f2812f4fb91398b21)]:
+  - @graphql-tools/utils@10.5.5
+
 ## 1.1.6
 
 ### Patch Changes
