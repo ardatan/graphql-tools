@@ -50,7 +50,7 @@ import {
   ValidationLevel,
 } from '@graphql-tools/stitch';
 import {
-  createGraphQLError,
+  // createGraphQLError,
   isPromise,
   memoize1,
   mergeDeep,
