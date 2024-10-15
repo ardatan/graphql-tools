@@ -1,7 +1,7 @@
 import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 import { checkResultAndHandleErrors } from './checkResultAndHandleErrors.js';
 import { finalizeGatewayRequest } from './finalizeGatewayRequest.js';
-// import { OverlappingAliasesTransform } from './OverlappingAliasesTransform.js';
+import { OverlappingAliasesTransform } from './OverlappingAliasesTransform.js';
 import { prepareGatewayDocument } from './prepareGatewayDocument.js';
 import { DelegationContext, Transform } from './types.js';
 
@@ -22,7 +22,7 @@ export class Transformer<TContext extends Record<string, any> = Record<string, a
       this.addTransform(transform);
     }
     // TODO: Move this to the core, later
-    // this.addTransform(new OverlappingAliasesTransform());
+    this.addTransform(new OverlappingAliasesTransform());
   }
 
   private addTransform(transform: Transform<any, TContext>, context = {}) {
