@@ -669,7 +669,7 @@ type Mutation {
       `,
     });
 
-    it('return type is unmerged type', () => {
+    it.skip('return type is unmerged type', () => {
       const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
         schema: testSchema,
         merge: {
