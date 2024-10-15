@@ -1,17 +1,32 @@
 # @graphql-tools/batch-execute
 
+## 9.0.5
+
+### Patch Changes
+
+- Updated dependencies
+  [[`cf2ce5e`](https://github.com/ardatan/graphql-tools/commit/cf2ce5ed4773087cc324599f2812f4fb91398b21)]:
+  - @graphql-tools/utils@10.5.5
+
 ## 9.0.4
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.5`, in `dependencies`)
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.5`, in `dependencies`)
 
 ## 9.0.3
 
 ### Patch Changes
 
-- [#5906](https://github.com/ardatan/graphql-tools/pull/5906) [`f3809d4`](https://github.com/ardatan/graphql-tools/commit/f3809d4defa60678fd013017a60320be7a793870) Thanks [@ikenox](https://github.com/ikenox)! - Avoid for.in loop for arrays to avoid unwanted property access
+- [#5906](https://github.com/ardatan/graphql-tools/pull/5906)
+  [`f3809d4`](https://github.com/ardatan/graphql-tools/commit/f3809d4defa60678fd013017a60320be7a793870)
+  Thanks [@ikenox](https://github.com/ikenox)! - Avoid for.in loop for arrays to avoid unwanted
+  property access
 
 ## 9.0.2
 
