@@ -171,47 +171,47 @@ export function finalizeGatewayRequest<TContext>(
     }
   }
 
-  let cleanedUpDocument = newDocument;
+  const cleanedUpDocument = newDocument;
 
   // TODO: Optimize this internally later
-  cleanedUpDocument = visit(newDocument, {
-    // Cleanup extra __typename fields
-    SelectionSet: {
-      leave(node) {
-        const { hasTypeNameField, selections } = filterTypenameFields(node.selections);
-        if (hasTypeNameField) {
-          selections.unshift({
-            kind: Kind.FIELD,
-            name: {
-              kind: Kind.NAME,
-              value: '__typename',
-            },
-          });
-        }
-        return {
-          ...node,
-          selections,
-        };
-      },
-    },
-    // Cleanup empty inline fragments
-    InlineFragment: {
-      leave(node) {
-        // No need __typename in inline fragment
-        const { selections } = filterTypenameFields(node.selectionSet.selections);
-        if (selections.length === 0) {
-          return null;
-        }
-        return {
-          ...node,
-          selectionSet: {
-            ...node.selectionSet,
-            selections,
-          },
-        };
-      },
-    },
-  });
+  // cleanedUpDocument = visit(newDocument, {
+  //   // Cleanup extra __typename fields
+  //   SelectionSet: {
+  //     leave(node) {
+  //       const { hasTypeNameField, selections } = filterTypenameFields(node.selections);
+  //       if (hasTypeNameField) {
+  //         selections.unshift({
+  //           kind: Kind.FIELD,
+  //           name: {
+  //             kind: Kind.NAME,
+  //             value: '__typename',
+  //           },
+  //         });
+  //       }
+  //       return {
+  //         ...node,
+  //         selections,
+  //       };
+  //     },
+  //   },
+  //   // Cleanup empty inline fragments
+  //   InlineFragment: {
+  //     leave(node) {
+  //       // No need __typename in inline fragment
+  //       const { selections } = filterTypenameFields(node.selectionSet.selections);
+  //       if (selections.length === 0) {
+  //         return null;
+  //       }
+  //       return {
+  //         ...node,
+  //         selectionSet: {
+  //           ...node.selectionSet,
+  //           selections,
+  //         },
+  //       };
+  //     },
+  //   },
+  // });
 
   return {
     ...originalRequest,
@@ -220,27 +220,27 @@ export function finalizeGatewayRequest<TContext>(
   };
 }
 
-function isTypeNameField(selection: SelectionNode): boolean {
-  return selection.kind === Kind.FIELD && !selection.alias && selection.name.value === '__typename';
-}
+// function isTypeNameField(selection: SelectionNode): boolean {
+//   return selection.kind === Kind.FIELD && !selection.alias && selection.name.value === '__typename';
+// }
 
-function filterTypenameFields(selections: readonly SelectionNode[]): {
-  hasTypeNameField: boolean;
-  selections: SelectionNode[];
-} {
-  let hasTypeNameField = false;
-  const filteredSelections = selections.filter(selection => {
-    if (isTypeNameField(selection)) {
-      hasTypeNameField = true;
-      return false;
-    }
-    return true;
-  });
-  return {
-    hasTypeNameField,
-    selections: filteredSelections,
-  };
-}
+// function filterTypenameFields(selections: readonly SelectionNode[]): {
+//   hasTypeNameField: boolean;
+//   selections: SelectionNode[];
+// } {
+//   let hasTypeNameField = false;
+//   const filteredSelections = selections.filter(selection => {
+//     if (isTypeNameField(selection)) {
+//       hasTypeNameField = true;
+//       return false;
+//     }
+//     return true;
+//   });
+//   return {
+//     hasTypeNameField,
+//     selections: filteredSelections,
+//   };
+// }
 
 function addVariablesToRootFields(
   targetSchema: GraphQLSchema,
