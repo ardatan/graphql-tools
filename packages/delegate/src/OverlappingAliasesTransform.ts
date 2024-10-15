@@ -12,7 +12,7 @@ const visitorKeys: ASTVisitorKeyMap = {
   Document: ['definitions'],
   OperationDefinition: ['selectionSet'],
   SelectionSet: ['selections'],
-
+  Field: ['selectionSet'],
   InlineFragment: ['selectionSet'],
   FragmentDefinition: ['selectionSet'],
 };
