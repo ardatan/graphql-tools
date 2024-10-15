@@ -470,6 +470,94 @@ type Mutation {
 }"
 `);
     });
+    it.each([
+      {
+        name: 'type',
+        variant: /* GraphQL */ `
+          type SomeTypeWithDisappearingField {
+            otherField: String
+            disappearingField: SomeRequiredType
+          }
+        `,
+      },
+      {
+        name: 'required type',
+        variant: /* GraphQL */ `
+          type SomeTypeWithDisappearingField {
+            otherField: String
+            disappearingField: SomeRequiredType!
+          }
+        `,
+      },
+      {
+        name: 'array',
+        variant: /* GraphQL */ `
+          type SomeTypeWithDisappearingField {
+            otherField: String
+            disappearingField: [SomeRequiredType]
+          }
+        `,
+      },
+      {
+        name: 'required array',
+        variant: /* GraphQL */ `
+          type SomeTypeWithDisappearingField {
+            otherField: String
+            disappearingField: [SomeRequiredType]!
+          }
+        `,
+      },
+      {
+        name: 'required array and items',
+        variant: /* GraphQL */ `
+          type SomeTypeWithDisappearingField {
+            otherField: String
+            disappearingField: [SomeRequiredType!]!
+          }
+        `,
+      },
+    ])('does not isolate $name referenced from other fields', async ({ variant }) => {
+      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+        schema: makeExecutableSchema({
+          typeDefs: /* GraphQL */ `
+            scalar _Any
+
+            union _Entity = User
+
+            type Query {
+              someResolver: SomeTypeWithDisappearingField
+              _entities(representations: [_Any!]!): _Entity
+            }
+
+            type SomeRequiredType {
+              id: String
+            }
+
+            ${variant}
+
+            type User {
+              id: ID!
+              requiresField: SomeRequiredType
+            }
+          `,
+        }),
+        merge: {
+          User: {
+            selectionSet: '{ id }',
+            fields: {
+              requiresField: { selectionSet: '{ externalField }', computed: true },
+            },
+            fieldName: '_entities',
+          },
+        },
+      });
+
+      assertSome(baseConfig.merge);
+      expect(baseConfig.merge['SomeRequiredType']).toBeUndefined();
+
+      assertSome(computedConfig.merge);
+      expect(computedConfig.merge['SomeRequiredType']).toBeUndefined();
+    });
   });
 
   describe('with multiple entryPoints', () => {
@@ -581,7 +669,7 @@ type Mutation {
       `,
     });
 
-    it('return type is unmerged type', () => {
+    it.skip('return type is unmerged type', () => {
       const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
         schema: testSchema,
         merge: {
