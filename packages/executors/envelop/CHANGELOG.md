@@ -1,5 +1,12 @@
 # @graphql-tools/executor-envelop
 
+## 3.0.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/wrap@10.0.8
+
 ## 3.0.2
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @graphql-tools/delegate
 
+## 10.0.24
+
+### Patch Changes
+
+- [#6576](https://github.com/ardatan/graphql-tools/pull/6576)
+  [`4cdb462`](https://github.com/ardatan/graphql-tools/commit/4cdb46248774f2d5ae2757d40e1d55e83d7413b3)
+  Thanks [@ardatan](https://github.com/ardatan)! - Performance improvements on upstream request
+  execution
+
 ## 10.0.23
 
 ### Patch Changes
