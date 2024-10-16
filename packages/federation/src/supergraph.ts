@@ -914,7 +914,7 @@ export function getStitchingOptionsFromSupergraphSdl(
     const typeNameProvidedMap = subgraphTypeNameProvidedMap.get(subgraphName);
     const externalFieldMap = subgraphExternalFieldMap.get(subgraphName);
     const transforms: Transform<any>[] = [];
-    if (externalFieldMap?.size && extendedSubgraphTypes.some(isInterfaceType)) {
+    if (externalFieldMap?.size) {
       const typeInfo = new TypeInfo(schema);
       const visitorKeys: ASTVisitorKeyMap = {
         Document: ['definitions'],
