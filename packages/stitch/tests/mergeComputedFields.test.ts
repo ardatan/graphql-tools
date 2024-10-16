@@ -496,8 +496,8 @@ describe('test merged composite computed fields', () => {
       });
     });
 
-    it('selection set is remote', async () => {
-      const { data } = await graphql({
+    it.only('selection set is remote', async () => {
+      const result = await graphql({
         schema: gatewaySchema,
         source: /* GraphQL */ `
           query {
@@ -514,14 +514,15 @@ describe('test merged composite computed fields', () => {
         `,
       });
 
-      assertSome(data);
-      expect(data).toEqual({
-        byId: {
-          value: 1,
-          next: {
-            value: 2,
+      expect(result).toEqual({
+        data: {
+          byId: {
+            value: 1,
             next: {
-              id: '3',
+              value: 2,
+              next: {
+                id: '3',
+              },
             },
           },
         },

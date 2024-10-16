@@ -151,6 +151,7 @@ describe('[url-loader] webpack bundle compat', () => {
       });
       browser = await puppeteer.launch({
         // headless: false,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
       });
       page = await browser.newPage();
       await page.goto(httpAddress);

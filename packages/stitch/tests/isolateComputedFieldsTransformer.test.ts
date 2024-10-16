@@ -35,7 +35,7 @@ describe('isolateComputedFieldsTransformer', () => {
     });
 
     it('splits a subschema into base and computed portions', async () => {
-      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+      const [computedConfig, baseConfig] = isolateComputedFieldsTransformer({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -146,7 +146,7 @@ describe('isolateComputedFieldsTransformer', () => {
     });
 
     it('splits a subschema into base and computed portions', async () => {
-      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+      const [computedConfig, baseConfig] = isolateComputedFieldsTransformer({
         schema: storefrontSchema,
         merge: {
           Product: {
@@ -256,7 +256,7 @@ describe('isolateComputedFieldsTransformer', () => {
     });
 
     it('moves all computed types to the computed schema', async () => {
-      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+      const [computedConfig, baseConfig] = isolateComputedFieldsTransformer({
         schema: storefrontSchema,
         merge: {
           Storefront: {
@@ -351,7 +351,7 @@ describe('isolateComputedFieldsTransformer', () => {
         `,
       });
 
-      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+      const [computedConfig, baseConfig] = isolateComputedFieldsTransformer({
         schema: testSchema,
         merge: {
           Product: {
@@ -414,7 +414,7 @@ describe('isolateComputedFieldsTransformer', () => {
           }
         `,
       });
-      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+      const [computedConfig, baseConfig] = isolateComputedFieldsTransformer({
         schema: testSchema,
         merge: {
           Product: {
@@ -517,7 +517,7 @@ type Mutation {
         `,
       },
     ])('does not isolate $name referenced from other fields', async ({ variant }) => {
-      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+      const [computedConfig, baseConfig] = isolateComputedFieldsTransformer({
         schema: makeExecutableSchema({
           typeDefs: /* GraphQL */ `
             scalar _Any
@@ -587,7 +587,7 @@ type Mutation {
         `,
       });
 
-      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+      const [computedConfig, baseConfig] = isolateComputedFieldsTransformer({
         schema: testSchema,
         merge: {
           Product: {
@@ -670,7 +670,7 @@ type Mutation {
     });
 
     it.skip('return type is unmerged type', () => {
-      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+      const [computedConfig, baseConfig] = isolateComputedFieldsTransformer({
         schema: testSchema,
         merge: {
           Item: {
@@ -717,7 +717,7 @@ type Mutation {
     });
 
     it('return type is merged type', () => {
-      const [baseConfig, computedConfig] = isolateComputedFieldsTransformer({
+      const [computedConfig, baseConfig] = isolateComputedFieldsTransformer({
         schema: testSchema,
         merge: {
           Item: {

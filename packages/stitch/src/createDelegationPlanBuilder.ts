@@ -251,6 +251,7 @@ export function createDelegationPlanBuilder(mergedTypeInfo: MergedTypeInfo): Del
       fieldNodes,
       fragments,
       variableValues,
+      sourceSubschema,
     );
 
     if (!fieldsNotInSubschema.length) {

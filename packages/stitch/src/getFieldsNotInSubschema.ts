@@ -2,13 +2,12 @@ import {
   FieldNode,
   FragmentDefinitionNode,
   GraphQLField,
-  GraphQLNamedOutputType,
   GraphQLObjectType,
   GraphQLSchema,
   isAbstractType,
   Kind,
 } from 'graphql';
-import { extractUnavailableFields, StitchingInfo } from '@graphql-tools/delegate';
+import { extractUnavailableFields, StitchingInfo, Subschema } from '@graphql-tools/delegate';
 import { collectSubFields } from '@graphql-tools/utils';
 
 export function getFieldsNotInSubschema(
@@ -19,6 +18,7 @@ export function getFieldsNotInSubschema(
   fieldNodes: FieldNode[],
   fragments: Record<string, FragmentDefinitionNode>,
   variableValues: Record<string, any>,
+  subschema: Subschema,
 ): Array<FieldNode> {
   let { fields: subFieldNodesByResponseKey, patches } = collectSubFields(
     schema,
@@ -99,23 +99,25 @@ export function getFieldsNotInSubschema(
 
   // TODO: Verify whether it is safe that extensions always exists.
   const fieldNodesByField = stitchingInfo?.fieldNodesByField;
-  const shouldAdd = (fieldType: GraphQLNamedOutputType, selection: FieldNode) =>
-    !fieldNodesByField?.[fieldType.name]?.[selection.name.value];
 
   const fields = subschemaType.getFields();
 
-  for (const [, subFieldNodes] of subFieldNodesByResponseKey) {
-    const fieldName = subFieldNodes[0].name.value;
+  const fieldNodesByFieldForType = fieldNodesByField?.[gatewayType.name];
 
+  for (const [, subFieldNodes] of subFieldNodesByResponseKey) {
+    let fieldNotInSchema = false;
+    const fieldName = subFieldNodes[0].name.value;
     if (!fields[fieldName]) {
+      fieldNotInSchema = true;
       for (const subFieldNode of subFieldNodes) {
         fieldsNotInSchema.add(subFieldNode);
       }
     } else {
       const field = fields[fieldName];
       for (const subFieldNode of subFieldNodes) {
-        const unavailableFields = extractUnavailableFields(schema, field, subFieldNode, shouldAdd);
+        const unavailableFields = extractUnavailableFields(schema, field, subFieldNode, () => true);
         if (unavailableFields.length) {
+          fieldNotInSchema = true;
           fieldsNotInSchema.add({
             ...subFieldNode,
             selectionSet: {
@@ -126,10 +128,10 @@ export function getFieldsNotInSubschema(
         }
       }
     }
+    const isComputedField = subschema.merge?.[gatewayType.name]?.fields?.[fieldName]?.computed;
     let addedSubFieldNodes = false;
-    const fieldNodesByFieldForType = fieldNodesByField?.[gatewayType.name];
-    const visitedFieldNames = new Set<string>();
-    if (fieldNodesByFieldForType) {
+    if ((isComputedField || fieldNotInSchema) && fieldNodesByFieldForType) {
+      const visitedFieldNames = new Set<string>();
       addMissingRequiredFields({
         fieldName,
         fields,
