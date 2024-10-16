@@ -1,5 +1,13 @@
 # federation-benchmark
 
+## 0.0.163
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/federation@2.2.15
+  - @graphql-tools/stitch@9.2.14
+
 ## 0.0.162
 
 ### Patch Changes
