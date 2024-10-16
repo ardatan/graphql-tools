@@ -112,6 +112,12 @@ export const extractUnavailableFieldsFromSelectionSet = memoize4(
               },
             });
           }
+        } else if (isObjectType(subFieldType) || isInterfaceType(subFieldType)) {
+          for (const subSelection of selection.selectionSet.selections) {
+            if (shouldAdd(subFieldType, subSelection as FieldNode)) {
+              unavailableSelections.push(subSelection);
+            }
+          }
         }
       }
     }

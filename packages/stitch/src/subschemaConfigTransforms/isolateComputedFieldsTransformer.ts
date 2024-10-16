@@ -180,8 +180,8 @@ export function isolateComputedFieldsTransformer(
 
   if (Object.keys(isolatedSchemaTypes).length) {
     return [
-      filterBaseSubschema({ ...subschemaConfig, merge: baseSchemaTypes }, isolatedSchemaTypes),
       filterIsolatedSubschema({ ...subschemaConfig, merge: isolatedSchemaTypes }),
+      filterBaseSubschema({ ...subschemaConfig, merge: baseSchemaTypes }, isolatedSchemaTypes),
     ];
   }
   return [subschemaConfig];
@@ -234,14 +234,14 @@ function filterBaseSubschema(
         if (!typesForInterface[typeName]) {
           typesForInterface[typeName] = getImplementingTypes(typeName, schema);
         }
-        const isIsolatedFieldName = [typeName, ...typesForInterface[typeName]].some(
-          implementingTypeName =>
-            isIsolatedField(implementingTypeName, fieldName, isolatedSchemaTypes),
+        const allTypes = [typeName, ...typesForInterface[typeName]];
+        const isIsolatedFieldName = allTypes.some(implementingTypeName =>
+          isIsolatedField(implementingTypeName, fieldName, isolatedSchemaTypes),
         );
-        return (
-          !isIsolatedFieldName ||
-          (isolatedSchemaTypes[typeName]?.keyFieldNames ?? []).includes(fieldName)
+        const isKeyFieldName = allTypes.some(implementingTypeName =>
+          (isolatedSchemaTypes[implementingTypeName]?.keyFieldNames ?? []).includes(fieldName),
         );
+        return !isIsolatedFieldName || isKeyFieldName;
       },
     }),
   );
