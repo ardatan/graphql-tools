@@ -1,7 +1,6 @@
 import { ExecutionRequest, ExecutionResult } from '@graphql-tools/utils';
 import { checkResultAndHandleErrors } from './checkResultAndHandleErrors.js';
 import { finalizeGatewayRequest } from './finalizeGatewayRequest.js';
-import { OverlappingAliasesTransform } from './OverlappingAliasesTransform.js';
 import { prepareGatewayDocument } from './prepareGatewayDocument.js';
 import { DelegationContext, Transform } from './types.js';
 
@@ -13,6 +12,7 @@ interface Transformation<TContext> {
 export class Transformer<TContext extends Record<string, any> = Record<string, any>> {
   private transformations: Array<Transformation<TContext>> = [];
   private delegationContext: DelegationContext<TContext>;
+  private hasOverlappingAliases = false;
 
   constructor(context: DelegationContext<TContext>) {
     this.delegationContext = context;
@@ -21,8 +21,6 @@ export class Transformer<TContext extends Record<string, any> = Record<string, a
     for (const transform of delegationTransforms) {
       this.addTransform(transform);
     }
-    // TODO: Move this to the core, later
-    this.addTransform(new OverlappingAliasesTransform());
   }
 
   private addTransform(transform: Transform<any, TContext>, context = {}) {
@@ -50,7 +48,9 @@ export class Transformer<TContext extends Record<string, any> = Record<string, a
       }
     }
 
-    return finalizeGatewayRequest(request, this.delegationContext);
+    return finalizeGatewayRequest(request, this.delegationContext, () => {
+      this.hasOverlappingAliases = true;
+    });
   }
 
   public transformResult(originalResult: ExecutionResult) {
@@ -66,6 +66,29 @@ export class Transformer<TContext extends Record<string, any> = Record<string, a
         );
       }
     }
+    if (this.hasOverlappingAliases) {
+      result = removeOverlappingAliases(result);
+    }
     return checkResultAndHandleErrors(result, this.delegationContext);
   }
+}
+
+function removeOverlappingAliases(result: any): any {
+  if (result != null) {
+    if (Array.isArray(result)) {
+      return result.map(removeOverlappingAliases);
+    } else if (typeof result === 'object') {
+      const newResult: Record<string, any> = {};
+      for (const key in result) {
+        if (key.startsWith('_nullable_') || key.startsWith('_nonNullable_')) {
+          const newKey = key.replace(/^_nullable_/, '').replace(/^_nonNullable_/, '');
+          newResult[newKey] = removeOverlappingAliases(result[key]);
+        } else {
+          newResult[key] = removeOverlappingAliases(result[key]);
+        }
+      }
+      return newResult;
+    }
+  }
+  return result;
 }

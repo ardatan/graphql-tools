@@ -517,10 +517,10 @@ describe('prepareGatewayDocument', () => {
         __typename
         products {
           __typename
-          ... on Oven {
+          ... on Node {
             id
           }
-          ... on Node {
+          ... on Oven {
             id
           }
         }
