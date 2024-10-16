@@ -2801,10 +2801,10 @@
   resolved "https://registry.yarnpkg.com/@tanstack/virtual-core/-/virtual-core-3.10.8.tgz#975446a667755222f62884c19e5c3c66d959b8b4"
   integrity sha512-PBu00mtt95jbKFi6Llk9aik8bnR3tR/oQP1o3TSi+iG//+Q2RTIzCEgKkHG8BB86kxMNW6O8wku+Lmi+QFR6jA==
 
-"@theguild/components@7.0.0":
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-7.0.0.tgz#e60bc44367124d0a4dab971a0fb6d8ee954d932d"
-  integrity sha512-1yr2oieoKpOYXK7UMNP77weFNv6QzgxQZI8nk/GcXohYFO25SKoajE+hFRx+j3WKsgZp36a3pitGnOZbtqgx/w==
+"@theguild/components@7.0.1":
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-7.0.1.tgz#5df861bcdb1ff18bdba1379f38c9bc9fdfd1bba0"
+  integrity sha512-zpFrXXBGs6RwdXTmoJD9bpEfEloeUVXD3+DB6hki0pZ1X8kE7+x9SUg47vEK9GcQh+dcrGKywMSfiIotxxs38A==
   dependencies:
     "@giscus/react" "3.0.0"
     "@next/bundle-analyzer" "14.2.15"
@@ -2813,8 +2813,8 @@
     clsx "2.1.1"
     fuzzy "0.1.3"
     next-videos "1.5.0"
-    nextra "3.0.11"
-    nextra-theme-docs "3.0.11"
+    nextra "3.0.12"
+    nextra-theme-docs "3.0.12"
     react-paginate "8.2.0"
     react-player "2.16.0"
     remark-mdx-disable-explicit-jsx "0.1.0"
@@ -9639,10 +9639,10 @@ next@14.2.15:
     "@next/swc-win32-ia32-msvc" "14.2.15"
     "@next/swc-win32-x64-msvc" "14.2.15"
 
-nextra-theme-docs@3.0.11:
-  version "3.0.11"
-  resolved "https://registry.yarnpkg.com/nextra-theme-docs/-/nextra-theme-docs-3.0.11.tgz#b51cc0a61ee9ca79537e7bfd0a34bbccde3ba404"
-  integrity sha512-yRWVw5d9MDn0olgaZ1mEcMUOIkxtHce4lJLpkYo6YgPnrXvwO3wRLEry5zU4aWUUJGTfxkGOWcOgFqVFcOq7XA==
+nextra-theme-docs@3.0.12:
+  version "3.0.12"
+  resolved "https://registry.yarnpkg.com/nextra-theme-docs/-/nextra-theme-docs-3.0.12.tgz#fb621171fe8ba60e84f2b92fec20972d328eaa6c"
+  integrity sha512-AORG9lvZxvFWwPjPXVlGnQioVCEb0a5cb4ONvXMYDFENLP1iAlKY4eVpfvDUECYCbYTUaQq3EPfA6KhYNCag6A==
   dependencies:
     "@headlessui/react" "^2.1.2"
     clsx "^2.0.0"
@@ -9652,10 +9652,10 @@ nextra-theme-docs@3.0.11:
     scroll-into-view-if-needed "^3.1.0"
     zod "^3.22.3"
 
-nextra@3.0.11:
-  version "3.0.11"
-  resolved "https://registry.yarnpkg.com/nextra/-/nextra-3.0.11.tgz#bd38e8ce8978a7823c46729570a9ddd3f3e6c796"
-  integrity sha512-P/YidS1aQHrMAHrEbX1skSrOv0T/SFwCaffVt5nSpV+mDgPTUmJXP992GZAarUIAYGKR07mYrfDiEegp6PNQvg==
+nextra@3.0.12:
+  version "3.0.12"
+  resolved "https://registry.yarnpkg.com/nextra/-/nextra-3.0.12.tgz#dddeacfd3a0a60882f9a0c268ed6b2769e377da7"
+  integrity sha512-0s3LPbbt/lfra8GoXivFC3Mt1UomJhTagwAxAJsSVeriwW7d/U4XH3Wu49ckCCSkrOxdah5E8A7LshcYQi6Y9w==
   dependencies:
     "@formatjs/intl-localematcher" "^0.5.4"
     "@headlessui/react" "^2.1.2"
