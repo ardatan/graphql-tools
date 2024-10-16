@@ -218,11 +218,13 @@ export function finalizeGatewayRequest<TContext>(
               ...node.selectionSet,
               selections,
             },
+            // @defer is not available for the communication between the gw and subgraph
+            directives: node.directives?.filter?.(directive => directive.name.value !== 'defer'),
           };
         },
       },
     },
-    visitorKeys,
+    visitorKeys as any,
   );
 
   return {

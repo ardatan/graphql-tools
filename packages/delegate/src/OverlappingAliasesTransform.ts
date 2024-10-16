@@ -87,65 +87,8 @@ export class OverlappingAliasesTransform<TContext>
             }
           }
         },
-        [Kind.SELECTION_SET]: node => {
-          const seenNonNullable = new Set<string>();
-          const seenNullable = new Set<string>();
-          return {
-            ...node,
-            selections: node.selections.map(selection => {
-              if (selection.kind === Kind.INLINE_FRAGMENT) {
-                const selectionTypeName = selection.typeCondition?.name.value;
-                if (selectionTypeName) {
-                  const selectionType =
-                    delegationContext.transformedSchema.getType(selectionTypeName);
-                  if (selectionType && 'getFields' in selectionType) {
-                    const selectionTypeFields = selectionType.getFields();
-                    return {
-                      ...selection,
-                      selectionSet: {
-                        ...selection.selectionSet,
-                        selections: selection.selectionSet.selections.map(subSelection => {
-                          if (subSelection.kind === Kind.FIELD) {
-                            const fieldName = subSelection.name.value;
-                            if (!subSelection.alias) {
-                              const field = selectionTypeFields[fieldName];
-                              if (field) {
-                                let currentNullable: boolean;
-                                if (isNullableType(field.type)) {
-                                  seenNullable.add(fieldName);
-                                  currentNullable = true;
-                                } else {
-                                  seenNonNullable.add(fieldName);
-                                  currentNullable = false;
-                                }
-                                if (seenNullable.has(fieldName) && seenNonNullable.has(fieldName)) {
-                                  transformationContext[OverlappingAliases] = true;
-                                  return {
-                                    ...subSelection,
-                                    alias: {
-                                      kind: Kind.NAME,
-                                      value: currentNullable
-                                        ? `_nullable_${fieldName}`
-                                        : `_nonNullable_${fieldName}`,
-                                    },
-                                  };
-                                }
-                              }
-                            }
-                          }
-                          return subSelection;
-                        }),
-                      },
-                    };
-                  }
-                }
-              }
-              return selection;
-            }),
-          };
-        },
       },
-      visitorKeys,
+      visitorKeys as any,
     );
     return {
       ...request,
