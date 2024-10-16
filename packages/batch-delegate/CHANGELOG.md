@@ -1,5 +1,13 @@
 # @graphql-tools/batch-delegate
 
+## 9.0.7
+
+### Patch Changes
+
+- Updated dependencies
+  [[`8a16b01`](https://github.com/ardatan/graphql-tools/commit/8a16b01296457bdcfbb111e02b6f6569ef8b04aa)]:
+  - @graphql-tools/delegate@10.0.25
+
 ## 9.0.6
 
 ### Patch Changes
