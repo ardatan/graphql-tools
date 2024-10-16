@@ -1,5 +1,78 @@
 # @graphql-tools/delegate
 
+## 10.0.23
+
+### Patch Changes
+
+- [#6573](https://github.com/ardatan/graphql-tools/pull/6573)
+  [`7e2938d`](https://github.com/ardatan/graphql-tools/commit/7e2938d45c6d0a6eb6b18b89f9f80e9b5b5c08db)
+  Thanks [@ardatan](https://github.com/ardatan)! - When there are two services like below then the
+  following query senty, the gateway tries to fetch `id` as an extra field because it considers `id`
+  might be needed while this is not correct. This patch avoids any extra calls, and forwards the
+  query as is to the 2nd service.
+
+  ```graphql
+  query {
+    viewer {
+      booksContainer(input: $input) {
+        edges {
+          cursor
+          node {
+            source {
+              # Book(upc=)
+              upc
+            }
+          }
+        }
+        pageInfo {
+          endCursor
+        }
+      }
+    }
+  }
+  ```
+
+  ```graphql
+  type Book @key(fields: "id") @key(fields: "upc") {
+    id: ID!
+    upc: ID!
+  }
+  ```
+
+  ```graphql
+  type BookContainer { # the type that is used in a collection
+    id: ID!
+    # ... other stuff here
+    source: Book!
+  }
+
+  type Book @key(fields: "upc") {
+    upc: ID!
+  }
+
+  type Query {
+    viewer: Viewer
+  }
+
+  type Viewer {
+    booksContainer: BooksContainerResult
+  }
+
+  type BooksContainerResult {
+    edges: [BooksContainerEdge!]!
+    pageInfo: PageInfo!
+  }
+
+  type BooksContainerEdge {
+    node: BookContainer!
+    cursor: String!
+  }
+
+  type PageInfo {
+    endCursor: String
+  }
+  ```
+
 ## 10.0.22
 
 ### Patch Changes
