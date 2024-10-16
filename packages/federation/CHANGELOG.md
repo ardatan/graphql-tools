@@ -1,5 +1,12 @@
 # @graphql-tools/federation
 
+## 2.2.14
+
+### Patch Changes
+
+- [`e0070c2`](https://github.com/ardatan/graphql-tools/commit/e0070c2327ca49bc2a87b88d6ff1066ac2078d2b)
+  Thanks [@ardatan](https://github.com/ardatan)! - Fix unavailable field error throwing
+
 ## 2.2.13
 
 ### Patch Changes
