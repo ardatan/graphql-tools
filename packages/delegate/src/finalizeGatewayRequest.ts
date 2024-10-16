@@ -174,44 +174,58 @@ export function finalizeGatewayRequest<TContext>(
   let cleanedUpDocument = newDocument;
 
   // TODO: Optimize this internally later
-  cleanedUpDocument = visit(newDocument, {
-    // Cleanup extra __typename fields
-    SelectionSet: {
-      leave(node) {
-        const { hasTypeNameField, selections } = filterTypenameFields(node.selections);
-        if (hasTypeNameField) {
-          selections.unshift({
-            kind: Kind.FIELD,
-            name: {
-              kind: Kind.NAME,
-              value: '__typename',
-            },
-          });
-        }
-        return {
-          ...node,
-          selections,
-        };
-      },
-    },
-    // Cleanup empty inline fragments
-    InlineFragment: {
-      leave(node) {
-        // No need __typename in inline fragment
-        const { selections } = filterTypenameFields(node.selectionSet.selections);
-        if (selections.length === 0) {
-          return null;
-        }
-        return {
-          ...node,
-          selectionSet: {
-            ...node.selectionSet,
+  const visitorKeys: ASTVisitorKeyMap = {
+    Document: ['definitions'],
+    OperationDefinition: ['selectionSet'],
+    SelectionSet: ['selections'],
+    Field: ['selectionSet'],
+    InlineFragment: ['selectionSet'],
+    FragmentDefinition: ['selectionSet'],
+  };
+  cleanedUpDocument = visit(
+    newDocument,
+    {
+      // Cleanup extra __typename fields
+      [Kind.SELECTION_SET]: {
+        leave(node) {
+          const { hasTypeNameField, selections } = filterTypenameFields(node.selections);
+          if (hasTypeNameField) {
+            selections.unshift({
+              kind: Kind.FIELD,
+              name: {
+                kind: Kind.NAME,
+                value: '__typename',
+              },
+            });
+          }
+          return {
+            ...node,
             selections,
-          },
-        };
+          };
+        },
+      },
+      // Cleanup empty inline fragments
+      [Kind.INLINE_FRAGMENT]: {
+        leave(node) {
+          // No need __typename in inline fragment
+          const { selections } = filterTypenameFields(node.selectionSet.selections);
+          if (selections.length === 0) {
+            return null;
+          }
+          return {
+            ...node,
+            selectionSet: {
+              ...node.selectionSet,
+              selections,
+            },
+            // @defer is not available for the communication between the gw and subgraph
+            directives: node.directives?.filter?.(directive => directive.name.value !== 'defer'),
+          };
+        },
       },
     },
-  });
+    visitorKeys as any,
+  );
 
   return {
     ...originalRequest,

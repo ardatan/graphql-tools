@@ -46,22 +46,31 @@ export function prepareGatewayDocument(
   }
 
   const visitedSelections = new WeakSet<SelectionNode>();
-  wrappedConcreteTypesDocument = visit(wrappedConcreteTypesDocument, {
-    [Kind.SELECTION_SET](node) {
-      const newSelections: Array<SelectionNode> = [];
-      for (const selectionNode of node.selections) {
-        if (
-          selectionNode.kind === Kind.INLINE_FRAGMENT &&
-          selectionNode.typeCondition != null &&
-          !visitedSelections.has(selectionNode)
-        ) {
-          visitedSelections.add(selectionNode);
-          const typeName = selectionNode.typeCondition.name.value;
-          const gatewayType = infoSchema.getType(typeName);
-          const subschemaType = transformedSchema.getType(typeName);
-          if (isAbstractType(gatewayType)) {
-            const possibleTypes = infoSchema.getPossibleTypes(gatewayType);
-            if (isAbstractType(subschemaType)) {
+  const visitorKeys: ASTVisitorKeyMap = {
+    Document: ['definitions'],
+    OperationDefinition: ['selectionSet'],
+    SelectionSet: ['selections'],
+    Field: ['selectionSet'],
+    InlineFragment: ['selectionSet'],
+    FragmentDefinition: ['selectionSet'],
+  };
+  wrappedConcreteTypesDocument = visit(
+    wrappedConcreteTypesDocument,
+    {
+      [Kind.SELECTION_SET](node) {
+        const newSelections: Array<SelectionNode> = [];
+        for (const selectionNode of node.selections) {
+          if (
+            selectionNode.kind === Kind.INLINE_FRAGMENT &&
+            selectionNode.typeCondition != null &&
+            !visitedSelections.has(selectionNode)
+          ) {
+            visitedSelections.add(selectionNode);
+            const typeName = selectionNode.typeCondition.name.value;
+            const gatewayType = infoSchema.getType(typeName);
+            const subschemaType = transformedSchema.getType(typeName);
+            if (isAbstractType(gatewayType) && isAbstractType(subschemaType)) {
+              const possibleTypes = infoSchema.getPossibleTypes(gatewayType);
               const possibleTypesInSubschema = transformedSchema.getPossibleTypes(subschemaType);
               const extraTypesForSubschema = new Set<string>();
               for (const possibleType of possibleTypes) {
@@ -93,34 +102,35 @@ export function prepareGatewayDocument(
                 });
               }
             }
-          }
-          const typeInSubschema = transformedSchema.getType(typeName);
-          if (!typeInSubschema) {
-            for (const selection of selectionNode.selectionSet.selections) {
-              newSelections.push(selection);
+            const typeInSubschema = transformedSchema.getType(typeName);
+            if (!typeInSubschema) {
+              for (const selection of selectionNode.selectionSet.selections) {
+                newSelections.push(selection);
+              }
             }
-          }
-          if (typeInSubschema && 'getFields' in typeInSubschema) {
-            const fieldMap = typeInSubschema.getFields();
-            for (const selection of selectionNode.selectionSet.selections) {
-              if (selection.kind === Kind.FIELD) {
-                const fieldName = selection.name.value;
-                const field = fieldMap[fieldName];
-                if (!field) {
-                  newSelections.push(selection);
+            if (typeInSubschema && 'getFields' in typeInSubschema) {
+              const fieldMap = typeInSubschema.getFields();
+              for (const selection of selectionNode.selectionSet.selections) {
+                if (selection.kind === Kind.FIELD) {
+                  const fieldName = selection.name.value;
+                  const field = fieldMap[fieldName];
+                  if (!field) {
+                    newSelections.push(selection);
+                  }
                 }
               }
             }
           }
+          newSelections.push(selectionNode);
         }
-        newSelections.push(selectionNode);
-      }
-      return {
-        ...node,
-        selections: newSelections,
-      };
+        return {
+          ...node,
+          selections: newSelections,
+        };
+      },
     },
-  });
+    visitorKeys as any,
+  );
 
   const {
     possibleTypesMap,
