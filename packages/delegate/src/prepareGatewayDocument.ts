@@ -58,15 +58,17 @@ export function prepareGatewayDocument(
     wrappedConcreteTypesDocument,
     {
       [Kind.SELECTION_SET](node) {
-        const newSelections: Array<SelectionNode> = [];
-        for (const selectionNode of node.selections) {
-          if (
+        const inlineFragments = node.selections.filter(
+          selectionNode =>
             selectionNode.kind === Kind.INLINE_FRAGMENT &&
             selectionNode.typeCondition != null &&
-            !visitedSelections.has(selectionNode)
-          ) {
+            !visitedSelections.has(selectionNode),
+        ) as InlineFragmentNode[];
+        if (inlineFragments.length) {
+          const newSelections = [];
+          for (const selectionNode of inlineFragments) {
             visitedSelections.add(selectionNode);
-            const typeName = selectionNode.typeCondition.name.value;
+            const typeName = selectionNode.typeCondition!.name.value;
             const gatewayType = infoSchema.getType(typeName);
             const subschemaType = transformedSchema.getType(typeName);
             if (isAbstractType(gatewayType) && isAbstractType(subschemaType)) {
@@ -121,12 +123,13 @@ export function prepareGatewayDocument(
               }
             }
           }
-          newSelections.push(selectionNode);
+          if (newSelections.length) {
+            return {
+              ...node,
+              selections: [...node.selections, ...newSelections],
+            };
+          }
         }
-        return {
-          ...node,
-          selections: newSelections,
-        };
       },
     },
     visitorKeys as any,

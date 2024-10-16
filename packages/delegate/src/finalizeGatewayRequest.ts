@@ -1,5 +1,6 @@
 import {
   ArgumentNode,
+  ASTNode,
   DocumentNode,
   FragmentDefinitionNode,
   getNamedType,
@@ -10,6 +11,7 @@ import {
   versionInfo as graphqlVersionInfo,
   isAbstractType,
   isInterfaceType,
+  isNullableType,
   isObjectType,
   isUnionType,
   Kind,
@@ -40,6 +42,7 @@ function finalizeGatewayDocument(
   targetSchema: GraphQLSchema,
   fragments: FragmentDefinitionNode[],
   operations: OperationDefinitionNode[],
+  onOverlappingAliases: () => void,
 ) {
   let usedVariables: Array<string> = [];
   let usedFragments: Array<string> = [];
@@ -66,7 +69,13 @@ function finalizeGatewayDocument(
       selectionSet,
       usedFragments: operationUsedFragments,
       usedVariables: operationUsedVariables,
-    } = finalizeSelectionSet(targetSchema, type, validFragmentsWithType, operation.selectionSet);
+    } = finalizeSelectionSet(
+      targetSchema,
+      type,
+      validFragmentsWithType,
+      operation.selectionSet,
+      onOverlappingAliases,
+    );
 
     usedFragments = union(usedFragments, operationUsedFragments);
 
@@ -80,6 +89,7 @@ function finalizeGatewayDocument(
       validFragments,
       validFragmentsWithType,
       usedFragments,
+      onOverlappingAliases,
     );
     const operationOrFragmentVariables = union(operationUsedVariables, collectedUsedVariables);
     usedVariables = union(usedVariables, operationOrFragmentVariables);
@@ -143,6 +153,7 @@ function finalizeGatewayDocument(
 export function finalizeGatewayRequest<TContext>(
   originalRequest: ExecutionRequest,
   delegationContext: DelegationContext<TContext>,
+  onOverlappingAliases: () => void,
 ): ExecutionRequest {
   let { document, variables } = originalRequest;
 
@@ -159,6 +170,7 @@ export function finalizeGatewayRequest<TContext>(
     targetSchema,
     fragments,
     operations,
+    onOverlappingAliases,
   );
 
   const newVariables: Record<string, any> = {};
@@ -171,65 +183,9 @@ export function finalizeGatewayRequest<TContext>(
     }
   }
 
-  let cleanedUpDocument = newDocument;
-
-  // TODO: Optimize this internally later
-  const visitorKeys: ASTVisitorKeyMap = {
-    Document: ['definitions'],
-    OperationDefinition: ['selectionSet'],
-    SelectionSet: ['selections'],
-    Field: ['selectionSet'],
-    InlineFragment: ['selectionSet'],
-    FragmentDefinition: ['selectionSet'],
-  };
-  cleanedUpDocument = visit(
-    newDocument,
-    {
-      // Cleanup extra __typename fields
-      [Kind.SELECTION_SET]: {
-        leave(node) {
-          const { hasTypeNameField, selections } = filterTypenameFields(node.selections);
-          if (hasTypeNameField) {
-            selections.unshift({
-              kind: Kind.FIELD,
-              name: {
-                kind: Kind.NAME,
-                value: '__typename',
-              },
-            });
-          }
-          return {
-            ...node,
-            selections,
-          };
-        },
-      },
-      // Cleanup empty inline fragments
-      [Kind.INLINE_FRAGMENT]: {
-        leave(node) {
-          // No need __typename in inline fragment
-          const { selections } = filterTypenameFields(node.selectionSet.selections);
-          if (selections.length === 0) {
-            return null;
-          }
-          return {
-            ...node,
-            selectionSet: {
-              ...node.selectionSet,
-              selections,
-            },
-            // @defer is not available for the communication between the gw and subgraph
-            directives: node.directives?.filter?.(directive => directive.name.value !== 'defer'),
-          };
-        },
-      },
-    },
-    visitorKeys as any,
-  );
-
   return {
     ...originalRequest,
-    document: cleanedUpDocument,
+    document: newDocument,
     variables: newVariables,
   };
 }
@@ -359,6 +315,7 @@ function collectFragmentVariables(
   validFragments: Array<FragmentDefinitionNode>,
   validFragmentsWithType: { [name: string]: GraphQLType },
   usedFragments: Array<string>,
+  onOverlappingAliases: () => void,
 ) {
   let remainingFragments = usedFragments.slice();
 
@@ -381,7 +338,13 @@ function collectFragmentVariables(
         selectionSet,
         usedFragments: fragmentUsedFragments,
         usedVariables: fragmentUsedVariables,
-      } = finalizeSelectionSet(targetSchema, type, validFragmentsWithType, fragment.selectionSet);
+      } = finalizeSelectionSet(
+        targetSchema,
+        type,
+        validFragmentsWithType,
+        fragment.selectionSet,
+        onOverlappingAliases,
+      );
       remainingFragments = union(remainingFragments, fragmentUsedFragments);
       usedVariables = union(usedVariables, fragmentUsedVariables);
 
@@ -434,6 +397,7 @@ function finalizeSelectionSet(
   type: GraphQLType,
   validFragments: { [name: string]: GraphQLType },
   selectionSet: SelectionSetNode,
+  onOverlappingAliases: () => void,
 ) {
   const usedFragments: Array<string> = [];
   const usedVariables: Array<string> = [];
@@ -442,6 +406,9 @@ function finalizeSelectionSet(
     graphqlVersionInfo.major < 16
       ? new TypeInfo(schema, undefined, type as any)
       : new TypeInfo(schema, type as any);
+  const seenNonNullableMap = new WeakMap<readonly ASTNode[], Set<string>>();
+  const seenNullableMap = new WeakMap<readonly ASTNode[], Set<string>>();
+
   const filteredSelectionSet = visit(
     selectionSet,
     visitWithTypeInfo(typeInfo, {
@@ -538,6 +505,25 @@ function finalizeSelectionSet(
           usedFragments.push(node.name.value);
         },
       },
+      [Kind.SELECTION_SET]: {
+        enter: (node, _key, _parent, _path) => {
+          const parentType = typeInfo.getParentType();
+          const { hasTypeNameField, selections } = filterTypenameFields(node.selections);
+          if (hasTypeNameField || (parentType != null && isAbstractType(parentType))) {
+            selections.unshift({
+              kind: Kind.FIELD,
+              name: {
+                kind: Kind.NAME,
+                value: '__typename',
+              },
+            });
+          }
+          return {
+            ...node,
+            selections,
+          };
+        },
+      },
       [Kind.INLINE_FRAGMENT]: {
         enter: node => {
           if (node.typeCondition != null) {
@@ -554,30 +540,82 @@ function finalizeSelectionSet(
             }
           }
         },
-        leave: node => {
-          if (!node.selectionSet?.selections?.length) {
+        leave: (selection, _key, parent) => {
+          if (!selection.selectionSet?.selections?.length) {
             return null;
           }
-        },
-      },
-      [Kind.SELECTION_SET]: {
-        leave: node => {
-          const parentType = typeInfo.getParentType();
-          if (parentType != null && isAbstractType(parentType)) {
-            const selections = node.selections.concat([
-              {
-                kind: Kind.FIELD,
-                name: {
-                  kind: Kind.NAME,
-                  value: '__typename',
-                },
-              },
-            ]);
-            return {
-              ...node,
-              selections,
-            };
+          if (Array.isArray(parent)) {
+            const selectionTypeName = selection.typeCondition?.name.value;
+            if (selectionTypeName) {
+              const selectionType = schema.getType(selectionTypeName);
+              if (selectionType && 'getFields' in selectionType) {
+                const selectionTypeFields = selectionType.getFields();
+                let seenNonNullable = seenNonNullableMap.get(parent);
+                if (!seenNonNullable) {
+                  seenNonNullable = new Set();
+                  seenNonNullableMap.set(parent, seenNonNullable);
+                }
+                let seenNullable = seenNullableMap.get(parent);
+                if (!seenNullable) {
+                  seenNullable = new Set();
+                  seenNullableMap.set(parent, seenNullable);
+                }
+                selection = {
+                  ...selection,
+                  selectionSet: {
+                    ...selection.selectionSet,
+                    selections: selection.selectionSet.selections.map(subSelection => {
+                      if (subSelection.kind === Kind.FIELD) {
+                        const fieldName = subSelection.name.value;
+                        if (!subSelection.alias) {
+                          const field = selectionTypeFields[fieldName];
+                          if (field) {
+                            let currentNullable: boolean;
+                            if (isNullableType(field.type)) {
+                              seenNullable.add(fieldName);
+                              currentNullable = true;
+                            } else {
+                              seenNonNullable.add(fieldName);
+                              currentNullable = false;
+                            }
+                            if (seenNullable.has(fieldName) && seenNonNullable.has(fieldName)) {
+                              onOverlappingAliases();
+                              return {
+                                ...subSelection,
+                                alias: {
+                                  kind: Kind.NAME,
+                                  value: currentNullable
+                                    ? `_nullable_${fieldName}`
+                                    : `_nonNullable_${fieldName}`,
+                                },
+                              };
+                            }
+                          }
+                        }
+                      }
+                      return subSelection;
+                    }),
+                  },
+                };
+              }
+            }
           }
+          // No need __typename in inline fragment
+          const { selections } = filterTypenameFields(selection.selectionSet.selections);
+          if (selections.length === 0) {
+            return null;
+          }
+          return {
+            ...selection,
+            selectionSet: {
+              ...selection.selectionSet,
+              selections,
+            },
+            // @defer is not available for the communication between the gw and subgraph
+            directives: selection.directives?.filter?.(
+              directive => directive.name.value !== 'defer',
+            ),
+          };
         },
       },
     }),

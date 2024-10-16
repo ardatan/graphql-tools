@@ -26,6 +26,7 @@ describe('finalizeGatewayRequest', () => {
       {
         targetSchema: bookingSchema,
       } as DelegationContext,
+      () => {},
     );
 
     const expected = parse(/* GraphQL */ `
@@ -62,6 +63,7 @@ describe('finalizeGatewayRequest', () => {
       {
         targetSchema: bookingSchema,
       } as DelegationContext,
+      () => {},
     );
 
     const expected = parse(/* GraphQL */ `
@@ -91,6 +93,7 @@ describe('finalizeGatewayRequest', () => {
       {
         targetSchema: propertySchema,
       } as DelegationContext,
+      () => {},
     );
 
     const expected = parse(/* GraphQL */ `
@@ -124,6 +127,7 @@ describe('finalizeGatewayRequest', () => {
       {
         targetSchema: bookingSchema,
       } as DelegationContext,
+      () => {},
     );
 
     const expected = parse(/* GraphQL */ `

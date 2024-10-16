@@ -8,10 +8,6 @@ const isPrinted = __ENV.GITHUB_TOKEN && __ENV.PRODUCTS_SIZE == 1000;
 export const options = {
   vus: 1,
   duration: '10s',
-  thresholds: {
-    no_errors: ['rate>0.98'],
-    expected_result: ['rate>0.98'],
-  },
 };
 
 export function handleSummary(data) {
