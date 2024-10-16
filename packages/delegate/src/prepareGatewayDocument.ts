@@ -129,7 +129,7 @@ export function prepareGatewayDocument(
         };
       },
     },
-    visitorKeys,
+    visitorKeys as any,
   );
 
   const {
