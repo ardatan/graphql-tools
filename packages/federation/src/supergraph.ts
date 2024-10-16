@@ -50,6 +50,7 @@ import {
   ValidationLevel,
 } from '@graphql-tools/stitch';
 import {
+  ASTVisitorKeyMap,
   createGraphQLError,
   isPromise,
   memoize1,
@@ -911,6 +912,14 @@ export function getStitchingOptionsFromSupergraphSdl(
     }
     const typeNameProvidedMap = subgraphTypeNameProvidedMap.get(subgraphName);
     const externalFieldMap = subgraphExternalFieldMap.get(subgraphName);
+    const visitorKeys: ASTVisitorKeyMap = {
+      Document: ['definitions'],
+      OperationDefinition: ['selectionSet'],
+      SelectionSet: ['selections'],
+      Field: ['selectionSet'],
+      InlineFragment: ['selectionSet'],
+      FragmentDefinition: ['selectionSet'],
+    };
     const subschemaConfig: FederationSubschemaConfig = {
       name: subgraphName,
       endpoint,
@@ -926,11 +935,23 @@ export function getStitchingOptionsFromSupergraphSdl(
               document: visit(
                 request.document,
                 visitWithTypeInfo(typeInfo, {
-                  [Kind.DIRECTIVE](node) {
-                    if (node.name.value === 'defer') {
-                      // @defer is not available for the communication between the gw and subgraph
-                      return null;
-                    }
+                  [Kind.INLINE_FRAGMENT](node) {
+                    // @defer is not available for the communication between the gw and subgraph
+                    return {
+                      ...node,
+                      directives: node.directives?.filter(
+                        directiveNode => directiveNode.name.value !== 'defer',
+                      ),
+                    };
+                  },
+                  [Kind.FRAGMENT_SPREAD](node) {
+                    // @defer is not available for the communication between the gw and subgraph
+                    return {
+                      ...node,
+                      directives: node.directives?.filter(
+                        directiveNode => directiveNode.name.value !== 'defer',
+                      ),
+                    };
                   },
                   // To avoid resolving unresolvable interface fields
                   [Kind.FIELD](node) {
@@ -961,6 +982,7 @@ export function getStitchingOptionsFromSupergraphSdl(
                     }
                   },
                 }),
+                visitorKeys,
               ),
             };
           },

@@ -46,81 +46,95 @@ export function prepareGatewayDocument(
   }
 
   const visitedSelections = new WeakSet<SelectionNode>();
-  wrappedConcreteTypesDocument = visit(wrappedConcreteTypesDocument, {
-    [Kind.SELECTION_SET](node) {
-      const newSelections: Array<SelectionNode> = [];
-      for (const selectionNode of node.selections) {
-        if (
-          selectionNode.kind === Kind.INLINE_FRAGMENT &&
-          selectionNode.typeCondition != null &&
-          !visitedSelections.has(selectionNode)
-        ) {
-          visitedSelections.add(selectionNode);
-          const typeName = selectionNode.typeCondition.name.value;
-          const gatewayType = infoSchema.getType(typeName);
-          const subschemaType = transformedSchema.getType(typeName);
-          if (isAbstractType(gatewayType)) {
-            const possibleTypes = infoSchema.getPossibleTypes(gatewayType);
-            if (isAbstractType(subschemaType)) {
-              const possibleTypesInSubschema = transformedSchema.getPossibleTypes(subschemaType);
-              const extraTypesForSubschema = new Set<string>();
-              for (const possibleType of possibleTypes) {
-                const possibleTypeInSubschema = transformedSchema.getType(possibleType.name);
-                // If it is a possible type in the gateway schema, it should be a possible type in the subschema
-                if (
-                  possibleTypeInSubschema &&
-                  possibleTypesInSubschema.some(t => t.name === possibleType.name)
-                ) {
-                  continue;
+
+  const visitorKeyMap: ASTVisitorKeyMap = {
+    Document: ['definitions'],
+    OperationDefinition: ['selectionSet'],
+    SelectionSet: ['selections'],
+    Field: ['selectionSet'],
+    InlineFragment: ['selectionSet'],
+    FragmentDefinition: ['selectionSet'],
+  };
+
+  wrappedConcreteTypesDocument = visit(
+    wrappedConcreteTypesDocument,
+    {
+      [Kind.SELECTION_SET](node) {
+        const newSelections: Array<SelectionNode> = [];
+        for (const selectionNode of node.selections) {
+          if (
+            selectionNode.kind === Kind.INLINE_FRAGMENT &&
+            selectionNode.typeCondition != null &&
+            !visitedSelections.has(selectionNode)
+          ) {
+            visitedSelections.add(selectionNode);
+            const typeName = selectionNode.typeCondition.name.value;
+            const gatewayType = infoSchema.getType(typeName);
+            const subschemaType = transformedSchema.getType(typeName);
+            if (isAbstractType(gatewayType)) {
+              const possibleTypes = infoSchema.getPossibleTypes(gatewayType);
+              if (isAbstractType(subschemaType)) {
+                const possibleTypesInSubschema = transformedSchema.getPossibleTypes(subschemaType);
+                const extraTypesForSubschema = new Set<string>();
+                for (const possibleType of possibleTypes) {
+                  const possibleTypeInSubschema = transformedSchema.getType(possibleType.name);
+                  // If it is a possible type in the gateway schema, it should be a possible type in the subschema
+                  if (
+                    possibleTypeInSubschema &&
+                    possibleTypesInSubschema.some(t => t.name === possibleType.name)
+                  ) {
+                    continue;
+                  }
+                  // If it doesn't exist in the subschema
+                  if (!possibleTypeInSubschema) {
+                    continue;
+                  }
+                  // If it exists in the subschema but it is not a possible type
+                  extraTypesForSubschema.add(possibleType.name);
                 }
-                // If it doesn't exist in the subschema
-                if (!possibleTypeInSubschema) {
-                  continue;
-                }
-                // If it exists in the subschema but it is not a possible type
-                extraTypesForSubschema.add(possibleType.name);
-              }
-              for (const extraType of extraTypesForSubschema) {
-                newSelections.push({
-                  ...selectionNode,
-                  typeCondition: {
-                    kind: Kind.NAMED_TYPE,
-                    name: {
-                      kind: Kind.NAME,
-                      value: extraType,
+                for (const extraType of extraTypesForSubschema) {
+                  newSelections.push({
+                    ...selectionNode,
+                    typeCondition: {
+                      kind: Kind.NAMED_TYPE,
+                      name: {
+                        kind: Kind.NAME,
+                        value: extraType,
+                      },
                     },
-                  },
-                });
+                  });
+                }
               }
             }
-          }
-          const typeInSubschema = transformedSchema.getType(typeName);
-          if (!typeInSubschema) {
-            for (const selection of selectionNode.selectionSet.selections) {
-              newSelections.push(selection);
+            const typeInSubschema = transformedSchema.getType(typeName);
+            if (!typeInSubschema) {
+              for (const selection of selectionNode.selectionSet.selections) {
+                newSelections.push(selection);
+              }
             }
-          }
-          if (typeInSubschema && 'getFields' in typeInSubschema) {
-            const fieldMap = typeInSubschema.getFields();
-            for (const selection of selectionNode.selectionSet.selections) {
-              if (selection.kind === Kind.FIELD) {
-                const fieldName = selection.name.value;
-                const field = fieldMap[fieldName];
-                if (!field) {
-                  newSelections.push(selection);
+            if (typeInSubschema && 'getFields' in typeInSubschema) {
+              const fieldMap = typeInSubschema.getFields();
+              for (const selection of selectionNode.selectionSet.selections) {
+                if (selection.kind === Kind.FIELD) {
+                  const fieldName = selection.name.value;
+                  const field = fieldMap[fieldName];
+                  if (!field) {
+                    newSelections.push(selection);
+                  }
                 }
               }
             }
           }
+          newSelections.push(selectionNode);
         }
-        newSelections.push(selectionNode);
-      }
-      return {
-        ...node,
-        selections: newSelections,
-      };
+        return {
+          ...node,
+          selections: newSelections,
+        };
+      },
     },
-  });
+    visitorKeyMap,
+  );
 
   const {
     possibleTypesMap,
@@ -146,15 +160,6 @@ export function prepareGatewayDocument(
   const expandedDocument: DocumentNode = {
     kind: Kind.DOCUMENT,
     definitions: [...operations, ...fragments, ...expandedFragments],
-  };
-
-  const visitorKeyMap: ASTVisitorKeyMap = {
-    Document: ['definitions'],
-    OperationDefinition: ['selectionSet'],
-    SelectionSet: ['selections'],
-    Field: ['selectionSet'],
-    InlineFragment: ['selectionSet'],
-    FragmentDefinition: ['selectionSet'],
   };
 
   return visit(
