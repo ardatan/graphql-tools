@@ -148,7 +148,9 @@ jobs:
       - name: Setup env
         uses: the-guild-org/shared-config/setup@main
         with:
-          nodeVersion: 18
+          nodeVersion: 22
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
       - name: Build Packages
         run: yarn build
       - name: Test
