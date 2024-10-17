@@ -89,8 +89,16 @@ async function main() {
     }
   });
 
-  app.listen(3000, () => {
+  const server = app.listen(3000, () => {
     console.log('listening on 0.0.0.0:3000');
+  });
+
+  process.once('SIGINT', () => {
+    console.log('Closing server');
+    server.closeAllConnections();
+    server.close(() => {
+      console.log('Closed server');
+    });
   });
 }
 

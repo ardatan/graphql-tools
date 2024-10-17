@@ -35,7 +35,7 @@ export function prepareGatewayDocument(
   returnType: GraphQLOutputType,
   infoSchema?: GraphQLSchema,
 ): DocumentNode {
-  let wrappedConcreteTypesDocument = wrapConcreteTypes(
+  const wrappedConcreteTypesDocument = wrapConcreteTypes(
     returnType,
     transformedSchema,
     originalDocument,
@@ -46,94 +46,6 @@ export function prepareGatewayDocument(
   }
 
   const visitedSelections = new WeakSet<SelectionNode>();
-  const visitorKeys: ASTVisitorKeyMap = {
-    Document: ['definitions'],
-    OperationDefinition: ['selectionSet'],
-    SelectionSet: ['selections'],
-    Field: ['selectionSet'],
-    InlineFragment: ['selectionSet'],
-    FragmentDefinition: ['selectionSet'],
-  };
-  wrappedConcreteTypesDocument = visit(
-    wrappedConcreteTypesDocument,
-    {
-      [Kind.SELECTION_SET](node) {
-        const inlineFragments = node.selections.filter(
-          selectionNode =>
-            selectionNode.kind === Kind.INLINE_FRAGMENT &&
-            selectionNode.typeCondition != null &&
-            !visitedSelections.has(selectionNode),
-        ) as InlineFragmentNode[];
-        if (inlineFragments.length) {
-          const newSelections = [];
-          for (const selectionNode of inlineFragments) {
-            visitedSelections.add(selectionNode);
-            const typeName = selectionNode.typeCondition!.name.value;
-            const gatewayType = infoSchema.getType(typeName);
-            const subschemaType = transformedSchema.getType(typeName);
-            if (isAbstractType(gatewayType) && isAbstractType(subschemaType)) {
-              const possibleTypes = infoSchema.getPossibleTypes(gatewayType);
-              const possibleTypesInSubschema = transformedSchema.getPossibleTypes(subschemaType);
-              const extraTypesForSubschema = new Set<string>();
-              for (const possibleType of possibleTypes) {
-                const possibleTypeInSubschema = transformedSchema.getType(possibleType.name);
-                // If it is a possible type in the gateway schema, it should be a possible type in the subschema
-                if (
-                  possibleTypeInSubschema &&
-                  possibleTypesInSubschema.some(t => t.name === possibleType.name)
-                ) {
-                  continue;
-                }
-                // If it doesn't exist in the subschema
-                if (!possibleTypeInSubschema) {
-                  continue;
-                }
-                // If it exists in the subschema but it is not a possible type
-                extraTypesForSubschema.add(possibleType.name);
-              }
-              for (const extraType of extraTypesForSubschema) {
-                newSelections.push({
-                  ...selectionNode,
-                  typeCondition: {
-                    kind: Kind.NAMED_TYPE,
-                    name: {
-                      kind: Kind.NAME,
-                      value: extraType,
-                    },
-                  },
-                });
-              }
-            }
-            const typeInSubschema = transformedSchema.getType(typeName);
-            if (!typeInSubschema) {
-              for (const selection of selectionNode.selectionSet.selections) {
-                newSelections.push(selection);
-              }
-            }
-            if (typeInSubschema && 'getFields' in typeInSubschema) {
-              const fieldMap = typeInSubschema.getFields();
-              for (const selection of selectionNode.selectionSet.selections) {
-                if (selection.kind === Kind.FIELD) {
-                  const fieldName = selection.name.value;
-                  const field = fieldMap[fieldName];
-                  if (!field) {
-                    newSelections.push(selection);
-                  }
-                }
-              }
-            }
-          }
-          if (newSelections.length) {
-            return {
-              ...node,
-              selections: [...node.selections, ...newSelections],
-            };
-          }
-        }
-      },
-    },
-    visitorKeys as any,
-  );
 
   const {
     possibleTypesMap,
@@ -185,6 +97,8 @@ export function prepareGatewayDocument(
           fieldNodesByType,
           fieldNodesByField,
           dynamicSelectionSetsByField,
+          infoSchema,
+          visitedSelections,
         ),
     }),
     // visitorKeys argument usage a la https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-graphql/src/batching/merge-queries.js
@@ -196,10 +110,46 @@ export function prepareGatewayDocument(
 
 const shouldAdd = () => true;
 
+const getExtraPossibleTypesFn = memoize2(function getExtraPossibleTypes(
+  transformedSchema: GraphQLSchema,
+  infoSchema: GraphQLSchema,
+) {
+  const extraPossiblesTypesMap = new Map<string, Set<string>>();
+  return function getExtraPossibleTypes(typeName: string) {
+    let extraTypesForSubschema = extraPossiblesTypesMap.get(typeName);
+    if (!extraTypesForSubschema) {
+      extraTypesForSubschema = new Set<string>();
+      const gatewayType = infoSchema.getType(typeName);
+      const subschemaType = transformedSchema.getType(typeName);
+      if (isAbstractType(gatewayType) && isAbstractType(subschemaType)) {
+        const possibleTypes = infoSchema.getPossibleTypes(gatewayType);
+        const possibleTypesInSubschema = transformedSchema.getPossibleTypes(subschemaType);
+        for (const possibleType of possibleTypes) {
+          const possibleTypeInSubschema = transformedSchema.getType(possibleType.name);
+          // If it doesn't exist in the subschema
+          if (!possibleTypeInSubschema) {
+            continue;
+          }
+          // If it is a possible type in the gateway schema, it should be a possible type in the subschema
+          if (
+            possibleTypeInSubschema &&
+            possibleTypesInSubschema.some(t => t.name === possibleType.name)
+          ) {
+            continue;
+          }
+          extraTypesForSubschema.add(possibleType.name);
+        }
+      }
+      extraPossiblesTypesMap.set(typeName, extraTypesForSubschema);
+    }
+    return extraTypesForSubschema;
+  };
+});
+
 function visitSelectionSet(
   node: SelectionSetNode,
   fragmentReplacements: Record<string, Array<{ fragmentName: string; typeName: string }>>,
-  schema: GraphQLSchema,
+  transformedSchema: GraphQLSchema,
   typeInfo: TypeInfo,
   possibleTypesMap: Record<string, Array<string>>,
   reversePossibleTypesMap: Record<string, Array<string>>,
@@ -210,6 +160,9 @@ function visitSelectionSet(
     string,
     Record<string, Array<(node: FieldNode) => SelectionSetNode>>
   >,
+  // TODO: Refactor here later for Federation compat
+  infoSchema: GraphQLSchema,
+  visitedSelections: WeakSet<SelectionNode>,
 ): SelectionSetNode {
   const newSelections = new Set<SelectionNode>();
   const maybeType = typeInfo.getParentType();
@@ -230,6 +183,43 @@ function visitSelectionSet(
     for (const selection of node.selections) {
       if (selection.kind === Kind.INLINE_FRAGMENT) {
         if (selection.typeCondition != null) {
+          // TODO: Refactor here later for Federation compat
+          if (!visitedSelections.has(selection)) {
+            visitedSelections.add(selection);
+            const typeName = selection.typeCondition.name.value;
+            const getExtraPossibleTypes = getExtraPossibleTypesFn(transformedSchema, infoSchema);
+            const extraPossibleTypes = getExtraPossibleTypes(typeName);
+            for (const extraPossibleTypeName of extraPossibleTypes) {
+              newSelections.add({
+                ...selection,
+                typeCondition: {
+                  kind: Kind.NAMED_TYPE,
+                  name: {
+                    kind: Kind.NAME,
+                    value: extraPossibleTypeName,
+                  },
+                },
+              });
+            }
+            const typeInSubschema = transformedSchema.getType(typeName);
+            if (isObjectType(typeInSubschema) || isInterfaceType(typeInSubschema)) {
+              const fieldMap = typeInSubschema.getFields();
+              for (const subSelection of selection.selectionSet.selections) {
+                if (subSelection.kind === Kind.FIELD) {
+                  const fieldName = subSelection.name.value;
+                  const field = fieldMap[fieldName];
+                  if (!field) {
+                    newSelections.add(subSelection);
+                  }
+                }
+              }
+            } else if (!typeInSubschema) {
+              for (const subSelection of selection.selectionSet.selections) {
+                newSelections.add(subSelection);
+              }
+            }
+          }
+
           const possibleTypes = possibleTypesMap[selection.typeCondition.name.value];
 
           if (possibleTypes == null) {
@@ -244,10 +234,10 @@ function visitSelectionSet(
           }
 
           for (const possibleTypeName of possibleTypes) {
-            const maybePossibleType = schema.getType(possibleTypeName);
+            const maybePossibleType = transformedSchema.getType(possibleTypeName);
             if (
               maybePossibleType != null &&
-              implementsAbstractType(schema, parentType, maybePossibleType)
+              implementsAbstractType(transformedSchema, parentType, maybePossibleType)
             ) {
               newSelections.add(generateInlineFragment(possibleTypeName, selection.selectionSet));
             }
@@ -269,11 +259,11 @@ function visitSelectionSet(
 
         for (const replacement of fragmentReplacements[fragmentName]) {
           const typeName = replacement.typeName;
-          const maybeReplacementType = schema.getType(typeName);
+          const maybeReplacementType = transformedSchema.getType(typeName);
 
           if (
             maybeReplacementType != null &&
-            implementsAbstractType(schema, parentType, maybeType)
+            implementsAbstractType(transformedSchema, parentType, maybeType)
           ) {
             newSelections.add({
               kind: Kind.FRAGMENT_SPREAD,
@@ -301,7 +291,12 @@ function visitSelectionSet(
           const fieldMap = parentType.getFields();
           const field = fieldMap[fieldName];
           if (field) {
-            const unavailableFields = extractUnavailableFields(schema, field, selection, shouldAdd);
+            const unavailableFields = extractUnavailableFields(
+              transformedSchema,
+              field,
+              selection,
+              shouldAdd,
+            );
             skipAddingDependencyNodes = unavailableFields.length === 0;
           }
         }
