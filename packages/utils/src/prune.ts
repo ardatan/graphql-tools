@@ -170,6 +170,11 @@ function visitQueue(
         }
 
         for (const [, field] of entries) {
+          // Skip hidden fields
+          if (field?.extensions?.directives?.hasOwnProperty('hidden')) {
+            continue;
+          }
+          
           if (isObjectType(type)) {
             // Visit arg types and arg directives arguments types
             queue.push(
