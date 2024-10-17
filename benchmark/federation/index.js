@@ -97,9 +97,9 @@ async function main() {
     console.log('Closing server');
     server.closeAllConnections();
     server.close(() => {
-      console.log('Closed server')
-    })
-  })
+      console.log('Closed server');
+    });
+  });
 }
 
 main();
