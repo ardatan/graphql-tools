@@ -171,7 +171,7 @@ function visitQueue(
 
         for (const [, field] of entries) {
           // Skip hidden fields
-          if (field?.extensions?.directives?.hasOwnProperty('hidden')) {
+          if (field?.extensions?.['directives']?.hasOwnProperty('hidden')) {
             continue;
           }
           
