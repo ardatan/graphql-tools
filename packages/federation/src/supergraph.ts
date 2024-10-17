@@ -6,6 +6,7 @@ import {
   EnumValueDefinitionNode,
   FieldDefinitionNode,
   FieldNode,
+  GraphQLInterfaceType,
   GraphQLOutputType,
   GraphQLSchema,
   InputValueDefinitionNode,
@@ -914,7 +915,10 @@ export function getStitchingOptionsFromSupergraphSdl(
     const typeNameProvidedMap = subgraphTypeNameProvidedMap.get(subgraphName);
     const externalFieldMap = subgraphExternalFieldMap.get(subgraphName);
     const transforms: Transform<any>[] = [];
-    if (externalFieldMap?.size) {
+    if (
+      externalFieldMap?.size &&
+      extendedSubgraphTypes.some(t => t.kind === Kind.INTERFACE_TYPE_DEFINITION)
+    ) {
       const typeInfo = new TypeInfo(schema);
       const visitorKeys: ASTVisitorKeyMap = {
         Document: ['definitions'],
@@ -924,6 +928,43 @@ export function getStitchingOptionsFromSupergraphSdl(
         InlineFragment: ['selectionSet'],
         FragmentDefinition: ['selectionSet'],
       };
+      function createUnresolvableError(fieldName: string, fieldNode: FieldNode) {
+        return createGraphQLError(
+          `Was not able to find any options for ${fieldName}: This shouldn't have happened.`,
+          {
+            extensions: {
+              CRITICAL_ERROR: true,
+            },
+            nodes: [fieldNode],
+          },
+        );
+      }
+      const unresolvableIfaceFieldCheckerMap = new Map<string, (fieldName: string) => boolean>();
+      function createIfaceFieldChecker(parentType: GraphQLInterfaceType) {
+        const providedInterfaceFields = typeNameProvidedMap?.get(parentType.name);
+        const implementations = schema.getPossibleTypes(parentType);
+        const ifaceFieldCheckResult = new Map<string, boolean>();
+        return function ifaceFieldChecker(fieldName: string) {
+          let result = ifaceFieldCheckResult.get(fieldName);
+          if (result == null) {
+            result = true;
+            for (const implementation of implementations) {
+              const externalFields = externalFieldMap?.get(implementation.name);
+              const providedFields = typeNameProvidedMap?.get(implementation.name);
+              if (
+                !providedInterfaceFields?.has(fieldName) &&
+                !providedFields?.has(fieldName) &&
+                externalFields?.has(fieldName)
+              ) {
+                result = false;
+                break;
+              }
+            }
+            ifaceFieldCheckResult.set(fieldName, result);
+          }
+          return result;
+        };
+      }
       transforms.push({
         transformRequest(request) {
           return {
@@ -932,29 +973,23 @@ export function getStitchingOptionsFromSupergraphSdl(
               request.document,
               visitWithTypeInfo(typeInfo, {
                 // To avoid resolving unresolvable interface fields
-                [Kind.FIELD](node) {
-                  if (node.name.value !== '__typename') {
+                [Kind.FIELD](fieldNode) {
+                  const fieldName = fieldNode.name.value;
+                  if (fieldName !== '__typename') {
                     const parentType = typeInfo.getParentType();
                     if (isInterfaceType(parentType)) {
-                      const providedInterfaceFields = typeNameProvidedMap?.get(parentType.name);
-                      const implementations = schema.getPossibleTypes(parentType);
-                      for (const implementation of implementations) {
-                        const externalFields = externalFieldMap?.get(implementation.name);
-                        const providedFields = typeNameProvidedMap?.get(implementation.name);
-                        if (
-                          !providedInterfaceFields?.has(node.name.value) &&
-                          !providedFields?.has(node.name.value) &&
-                          externalFields?.has(node.name.value)
-                        ) {
-                          throw createGraphQLError(
-                            `Was not able to find any options for ${node.name.value}: This shouldn't have happened.`,
-                            {
-                              extensions: {
-                                CRITICAL_ERROR: true,
-                              },
-                            },
-                          );
-                        }
+                      let unresolvableIfaceFieldChecker = unresolvableIfaceFieldCheckerMap.get(
+                        parentType.name,
+                      );
+                      if (unresolvableIfaceFieldChecker == null) {
+                        unresolvableIfaceFieldChecker = createIfaceFieldChecker(parentType);
+                        unresolvableIfaceFieldCheckerMap.set(
+                          parentType.name,
+                          unresolvableIfaceFieldChecker,
+                        );
+                      }
+                      if (!unresolvableIfaceFieldChecker(fieldName)) {
+                        throw createUnresolvableError(fieldName, fieldNode);
                       }
                     }
                   }
