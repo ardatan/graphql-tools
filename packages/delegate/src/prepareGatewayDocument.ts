@@ -110,6 +110,42 @@ export function prepareGatewayDocument(
 
 const shouldAdd = () => true;
 
+const getExtraPossibleTypesFn = memoize2(function getExtraPossibleTypes(
+  transformedSchema: GraphQLSchema,
+  infoSchema: GraphQLSchema,
+) {
+  const extraPossiblesTypesMap = new Map<string, Set<string>>();
+  return function getExtraPossibleTypes(typeName: string) {
+    let extraTypesForSubschema = extraPossiblesTypesMap.get(typeName);
+    if (!extraTypesForSubschema) {
+      extraTypesForSubschema = new Set<string>();
+      const gatewayType = infoSchema.getType(typeName);
+      const subschemaType = transformedSchema.getType(typeName);
+      if (isAbstractType(gatewayType) && isAbstractType(subschemaType)) {
+        const possibleTypes = infoSchema.getPossibleTypes(gatewayType);
+        const possibleTypesInSubschema = transformedSchema.getPossibleTypes(subschemaType);
+        for (const possibleType of possibleTypes) {
+          const possibleTypeInSubschema = transformedSchema.getType(possibleType.name);
+          // If it doesn't exist in the subschema
+          if (!possibleTypeInSubschema) {
+            continue;
+          }
+          // If it is a possible type in the gateway schema, it should be a possible type in the subschema
+          if (
+            possibleTypeInSubschema &&
+            possibleTypesInSubschema.some(t => t.name === possibleType.name)
+          ) {
+            continue;
+          }
+          extraTypesForSubschema.add(possibleType.name);
+        }
+      }
+      extraPossiblesTypesMap.set(typeName, extraTypesForSubschema);
+    }
+    return extraTypesForSubschema;
+  };
+});
+
 function visitSelectionSet(
   node: SelectionSetNode,
   fragmentReplacements: Record<string, Array<{ fragmentName: string; typeName: string }>>,
@@ -150,41 +186,20 @@ function visitSelectionSet(
           // TODO: Refactor here later for Federation compat
           if (!visitedSelections.has(selection)) {
             visitedSelections.add(selection);
-            const typeName = selection.typeCondition!.name.value;
-            const gatewayType = infoSchema.getType(typeName);
-            const subschemaType = transformedSchema.getType(typeName);
-            if (isAbstractType(gatewayType) && isAbstractType(subschemaType)) {
-              const possibleTypes = infoSchema.getPossibleTypes(gatewayType);
-              const possibleTypesInSubschema = transformedSchema.getPossibleTypes(subschemaType);
-              const extraTypesForSubschema = new Set<string>();
-              for (const possibleType of possibleTypes) {
-                const possibleTypeInSubschema = transformedSchema.getType(possibleType.name);
-                // If it doesn't exist in the subschema
-                if (!possibleTypeInSubschema) {
-                  continue;
-                }
-                // If it is a possible type in the gateway schema, it should be a possible type in the subschema
-                if (
-                  possibleTypeInSubschema &&
-                  possibleTypesInSubschema.some(t => t.name === possibleType.name)
-                ) {
-                  continue;
-                }
-                // If it exists in the subschema but it is not a possible type
-                if (!extraTypesForSubschema.has(possibleType.name)) {
-                  extraTypesForSubschema.add(possibleType.name);
-                  newSelections.add({
-                    ...selection,
-                    typeCondition: {
-                      kind: Kind.NAMED_TYPE,
-                      name: {
-                        kind: Kind.NAME,
-                        value: possibleType.name,
-                      },
-                    },
-                  });
-                }
-              }
+            const typeName = selection.typeCondition.name.value;
+            const getExtraPossibleTypes = getExtraPossibleTypesFn(transformedSchema, infoSchema);
+            const extraPossibleTypes = getExtraPossibleTypes(typeName);
+            for (const extraPossibleTypeName of extraPossibleTypes) {
+              newSelections.add({
+                ...selection,
+                typeCondition: {
+                  kind: Kind.NAMED_TYPE,
+                  name: {
+                    kind: Kind.NAME,
+                    value: extraPossibleTypeName,
+                  },
+                },
+              });
             }
             const typeInSubschema = transformedSchema.getType(typeName);
             if (isObjectType(typeInSubschema) || isInterfaceType(typeInSubschema)) {
