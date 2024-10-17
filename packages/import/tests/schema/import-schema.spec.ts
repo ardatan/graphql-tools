@@ -953,6 +953,38 @@ describe('importSchema', () => {
     expect(importSchema('fixtures/multiple-levels/level1.graphql')).toBeSimilarGqlDoc(expectedSDL);
   });
 
+  test('imports with union dependencies', () => {
+    const expectedSDL = /* GraphQL */ `
+      type A {
+        b: B
+      }
+      union B = C1 | C2
+
+      interface I {
+        c4: ID
+      }
+
+      type C1 {
+        c1: ID
+      }
+
+      type C2 {
+        c2: C3
+      }
+
+      union C3 = C4 | C5
+
+      type C4 implements I {
+        c4: ID
+      }
+
+      type C5 {
+        C5: ID
+      }
+    `;
+    expect(importSchema('fixtures/unions/a.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  });
+
   test('imports dependencies at least 3 levels deep with transitive dependencies while using master schemata', () => {
     const expectedSDL = /* GraphQL */ `
       type Account {
