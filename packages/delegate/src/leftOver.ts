@@ -2,6 +2,15 @@ import { FieldNode } from 'graphql';
 import { Subschema } from './Subschema.js';
 import { DelegationPlanBuilder, ExternalObject } from './types.js';
 
+/**
+ * Declare PromiseWithResolvers in case ESNext is not added to the tsconfig lib causing
+ * PromiseWithResolvers interface is not defined. For developers with ESNext added,
+ * the PromiseWithResolvers interface will be merged correctly.
+ */
+declare global {
+  interface PromiseWithResolvers<T> {}
+}
+
 export type Deferred<T = unknown> = PromiseWithResolvers<T>;
 
 // TODO: Remove this after Node 22
