@@ -3163,10 +3163,10 @@
     "@types/node" "*"
     form-data "^4.0.0"
 
-"@types/node@*", "@types/node@20.16.13":
-  version "20.16.13"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.16.13.tgz#148c152d757dc73f8d65f0f6f078f39050b85b0c"
-  integrity sha512-GjQ7im10B0labo8ZGXDGROUl9k0BNyDgzfGpb4g/cl+4yYDWVKcozANF4FGr4/p0O/rAkQClM6Wiwkije++1Tg==
+"@types/node@*", "@types/node@20.16.14":
+  version "20.16.14"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.16.14.tgz#67eeca19cd821f516ee7da2f2e72d319f47e6a4d"
+  integrity sha512-vtgGzjxLF7QT88qRHtXMzCWpAAmwonE7fwgVjFtXosUva2oSpnIEc3gNO9P7uIfOxKnii2f79/xtOnfreYtDaA==
   dependencies:
     undici-types "~6.19.2"
 
@@ -3391,10 +3391,10 @@
   resolved "https://registry.yarnpkg.com/@ungap/structured-clone/-/structured-clone-1.2.0.tgz#756641adb587851b5ccb3e095daf27ae581c8406"
   integrity sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==
 
-"@urql/core@5.0.7":
-  version "5.0.7"
-  resolved "https://registry.yarnpkg.com/@urql/core/-/core-5.0.7.tgz#eddfd63a4990488ef2a6bd6be746974774266624"
-  integrity sha512-1uBj2PmHoen3LugD+UHQ4cr/ls8/0e2/sD8YL0u17sXm02cVnV6VY3bC9wi6fl/DCWEO9AUnwv7qZCz6ME3BfA==
+"@urql/core@5.0.8":
+  version "5.0.8"
+  resolved "https://registry.yarnpkg.com/@urql/core/-/core-5.0.8.tgz#eba39eaa2bf9a0a963383e87a65cba7a9ca794bd"
+  integrity sha512-1GOnUw7/a9bzkcM0+U8U5MmxW2A7FE5YquuEmcJzTtW5tIs2EoS4F2ITpuKBjRBbyRjZgO860nWFPo1m4JImGA==
   dependencies:
     "@0no-co/graphql.web" "^1.0.5"
     wonka "^6.3.2"
@@ -3962,9 +3962,9 @@ astring@^1.8.0:
   integrity sha512-LElXdjswlqjWrPpJFg1Fx4wpkOCxj1TDHlSV4PlaRxHGWko024xICaa97ZkMfs6DRKlCguiAI+rbXv5GWwXIkg==
 
 astrojs-compiler-sync@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/astrojs-compiler-sync/-/astrojs-compiler-sync-1.0.0.tgz#9991bd4cd09b60f41687e86b137171012722dbf3"
-  integrity sha512-IM6FxpMoBxkGGdKppkFHNQIC9Wge7jspG2MIJff8DOhG41USNJLxJfxRm7wnkTKWlYK5Y1YFFNYr2vUUKkI8sw==
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/astrojs-compiler-sync/-/astrojs-compiler-sync-1.0.1.tgz#c9c8abbeb21312123ca861e6eff3e030ea858af2"
+  integrity sha512-EdJILVkc/Iiw9sLMyb2uppp/vG7YL9TgkwaEumNDflI8s0AhR5XuCFkdbA/AcCGvcBfsRH9ngy/iIP8Uybl82g==
   dependencies:
     synckit "^0.9.0"
 
