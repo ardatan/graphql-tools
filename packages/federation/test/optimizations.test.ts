@@ -247,16 +247,42 @@ describe('awareness-of-other-fields', () => {
 });
 
 it('prevents recursively depending fields in case of multiple keys', async () => {
+  const authors = [
+    {
+      __typename: 'Author',
+      id: '1',
+      name: 'John Doe',
+    },
+    {
+      __typename: 'Author',
+      id: '2',
+      name: 'Jane Doe',
+    },
+    {
+      __typename: 'Author',
+      id: '3',
+      name: 'Max Mustermann',
+    },
+  ];
   const books = [
     {
       __typename: 'Book',
       id: '1',
       upc: '1_upc',
+      author: authors[0],
     },
     {
       __typename: 'Book',
       id: '2',
       upc: '2_upc',
+      authorId: '2',
+      author: authors[1],
+    },
+    {
+      __typename: 'Book',
+      id: '3',
+      upc: '3_upc',
+      author: authors[2],
     },
   ];
   const booksSchema = buildSubgraphSchema({
@@ -272,7 +298,7 @@ it('prevents recursively depending fields in case of multiple keys', async () =>
           if (reference.id) {
             return books.find(book => book.id === reference.id);
           }
-          if (reference.upc) {
+          if (reference.upc && reference.upc !== '3_upc') {
             return books.find(book => book.upc === reference.upc);
           }
           return null;
@@ -324,7 +350,7 @@ it('prevents recursively depending fields in case of multiple keys', async () =>
                   node: {
                     id: '1',
                     source: {
-                      upc: '2_upc',
+                      upc: '1_upc',
                     },
                   },
                   cursor: '1',
@@ -338,12 +364,46 @@ it('prevents recursively depending fields in case of multiple keys', async () =>
                   },
                   cursor: '2',
                 },
+                {
+                  node: {
+                    id: '3',
+                    source: {
+                      upc: '3_upc',
+                    },
+                  },
+                  cursor: '3',
+                },
               ],
               pageInfo: {
-                endCursor: '2',
+                endCursor: '3',
               },
             },
           };
+        },
+      },
+    },
+  });
+  const authorsSchema = buildSubgraphSchema({
+    typeDefs: parse(/* GraphQL */ `
+      type Author @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+      type Book @key(fields: "id") {
+        id: ID!
+        author: Author
+      }
+    `),
+    resolvers: {
+      Book: {
+        __resolveReference(reference: { id?: string }) {
+          if (!reference) {
+            throw new Error('No reference');
+          }
+          if (!reference.id) {
+            throw new Error('No id');
+          }
+          return books.find(book => book.id === reference.id);
         },
       },
     },
@@ -354,6 +414,7 @@ it('prevents recursively depending fields in case of multiple keys', async () =>
     subgraphs: [
       { name: 'books', url: 'books' },
       { name: 'other-service', url: 'other-service' },
+      { name: 'authors', url: 'authors' },
     ],
   }).initialize({
     healthCheck() {
@@ -366,13 +427,15 @@ it('prevents recursively depending fields in case of multiple keys', async () =>
           return new LocalGraphQLDataSource(booksSchema);
         case 'other-service':
           return new LocalGraphQLDataSource(multiLocationMgmt);
+        case 'authors':
+          return new LocalGraphQLDataSource(authorsSchema);
       }
       throw new Error(`Unknown subgraph ${name}`);
     },
   });
   const supergraphSdl = introspectAndCompose.supergraphSdl;
   await introspectAndCompose.cleanup();
-  const subgraphCallsMap = {};
+  let subgraphCallsMap = {};
   function createTracedExecutor(subgraphName: string, schema: GraphQLSchema): Executor {
     const executor = createDefaultExecutor(schema);
     return function tracedExecutor(execReq) {
@@ -394,6 +457,9 @@ it('prevents recursively depending fields in case of multiple keys', async () =>
           break;
         case 'other-service':
           subschemaConfig.executor = createTracedExecutor(subgraphName, multiLocationMgmt);
+          break;
+        case 'authors':
+          subschemaConfig.executor = createTracedExecutor(subgraphName, authorsSchema);
           break;
         default:
           throw new Error(`Unknown subgraph ${subgraphName}`);
@@ -428,14 +494,56 @@ it('prevents recursively depending fields in case of multiple keys', async () =>
       viewer: {
         booksContainer: {
           edges: [
-            { cursor: '1', node: { source: { upc: '2_upc' } } },
+            { cursor: '1', node: { source: { upc: '1_upc' } } },
             { cursor: '2', node: { source: { upc: '2_upc' } } },
+            { cursor: '3', node: { source: { upc: '3_upc' } } },
           ],
-          pageInfo: { endCursor: '2' },
+          pageInfo: { endCursor: '3' },
         },
       },
     },
   });
   expect(Object.keys(subgraphCallsMap)).toEqual(['other-service']);
   expect(subgraphCallsMap['other-service'].length).toBe(1);
+  subgraphCallsMap = {};
+  const result2 = await normalizedExecutor({
+    schema: gwSchema,
+    document: parse(/* GraphQL */ `
+      query {
+        viewer {
+          booksContainer(input: $input) {
+            edges {
+              cursor
+              node {
+                source {
+                  # Book(upc=)
+                  upc
+                  author {
+                    name
+                  }
+                }
+              }
+            }
+            pageInfo {
+              endCursor
+            }
+          }
+        }
+      }
+    `),
+  });
+  expect(result2).toEqual({
+    data: {
+      viewer: {
+        booksContainer: {
+          edges: [
+            { cursor: '1', node: { source: { upc: '1_upc', author: { name: 'John Doe' } } } },
+            { cursor: '2', node: { source: { upc: '2_upc', author: { name: 'Jane Doe' } } } },
+            { cursor: '3', node: { source: { upc: '3_upc', author: null } } },
+          ],
+          pageInfo: { endCursor: '3' },
+        },
+      },
+    },
+  });
 });

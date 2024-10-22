@@ -67,6 +67,9 @@ export function getKeyFnForFederation(typeName: string, keys: string[]) {
   if (keys.some(key => key.includes('{') || key.includes('('))) {
     const parsedSelectionSet = parseSelectionSet(`{${keys.join(' ')}}`, { noLocation: true });
     return function keyFn(root: any) {
+      if (root == null) {
+        return root;
+      }
       return projectDataSelectionSet(
         {
           __typename: typeName,
@@ -79,6 +82,9 @@ export function getKeyFnForFederation(typeName: string, keys: string[]) {
   const allKeyProps = keys.flatMap(key => key.split(' ')).map(key => key.trim());
   if (allKeyProps.length > 1) {
     return function keyFn(root: any) {
+      if (root == null) {
+        return null;
+      }
       return allKeyProps.reduce(
         (prev, key) => {
           if (key !== '__typename') {
@@ -92,9 +98,16 @@ export function getKeyFnForFederation(typeName: string, keys: string[]) {
   }
   const keyProp = allKeyProps[0];
   return function keyFn(root: any) {
+    if (root == null) {
+      return null;
+    }
+    const keyPropVal = root[keyProp];
+    if (keyPropVal == null) {
+      return null;
+    }
     return {
       __typename: typeName,
-      [keyProp]: root[keyProp],
+      [keyProp]: keyPropVal,
     };
   };
 }
