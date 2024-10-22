@@ -1,5 +1,15 @@
 # @graphql-tools/federation
 
+## 2.2.17
+
+### Patch Changes
+
+- [`b1e002f`](https://github.com/ardatan/graphql-tools/commit/b1e002f16fe01f7d5d42f9a6b6c8d3ec67fe93ba)
+  Thanks [@ardatan](https://github.com/ardatan)! - If required non-nullable key is null, do not send
+  it to the subgraph;
+
+  See optimizations.test.ts for more details.
+
 ## 2.2.16
 
 ### Patch Changes
