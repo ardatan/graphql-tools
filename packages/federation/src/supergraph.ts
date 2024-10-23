@@ -1078,7 +1078,11 @@ export function getStitchingOptionsFromSupergraphSdl(
                 // that can resolve the remaining fields for this selection directly from the root field
                 // instead of applying a type merging in advance
                 for (const friendCandidate of realCandidates) {
-                  if (friendCandidate === candidate || !friendCandidate.transformedSubschema) {
+                  if (
+                    friendCandidate === candidate ||
+                    !friendCandidate.transformedSubschema ||
+                    !currentUnavailableSelectionSet.selections.length
+                  ) {
                     continue;
                   }
                   const unavailableFieldsInFriend = extractUnavailableFieldsFromSelectionSet(
