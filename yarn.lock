@@ -2320,10 +2320,10 @@
     "@napi-rs/simple-git-win32-arm64-msvc" "0.1.19"
     "@napi-rs/simple-git-win32-x64-msvc" "0.1.19"
 
-"@next/bundle-analyzer@14.2.15":
-  version "14.2.15"
-  resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-14.2.15.tgz#4c418f65d4f4c47af6a838576f209fc5b8b34c16"
-  integrity sha512-W6iyrp/3G7WbIztDcNt+owYX1iv37m9f4RJs0fa/Ayw4EDdjNPX6qKQrC7gBrESHV3FuchED+8R+CNiw1i78eQ==
+"@next/bundle-analyzer@15.0.1":
+  version "15.0.1"
+  resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-15.0.1.tgz#99d66cc4b09a59ac0c0b1ad0544ba57fb895ba25"
+  integrity sha512-i/nCRBGBEkESPDpXJc+6SPLFDItnvTTJSaxiOvuNqHmQjQognRl3BANkKb3nWYy0V5rgzygxu++X349Z4dhs4Q==
   dependencies:
     webpack-bundle-analyzer "4.10.1"
 
@@ -2801,20 +2801,20 @@
   resolved "https://registry.yarnpkg.com/@tanstack/virtual-core/-/virtual-core-3.10.8.tgz#975446a667755222f62884c19e5c3c66d959b8b4"
   integrity sha512-PBu00mtt95jbKFi6Llk9aik8bnR3tR/oQP1o3TSi+iG//+Q2RTIzCEgKkHG8BB86kxMNW6O8wku+Lmi+QFR6jA==
 
-"@theguild/components@7.0.2":
-  version "7.0.2"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-7.0.2.tgz#8ea9e30f32f4428c30e82db3043ba01a226bd30d"
-  integrity sha512-yE4h9WSe9/nyA/hrS3IlkY/fTTPYyToLtKCTWSxnfnUa+h+X8LyJSWEibiBX3hZTcydBl/GxybpIcn1lI2VGLA==
+"@theguild/components@7.1.0":
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-7.1.0.tgz#fc9fafa302099d1ec3e656751f84062e0ff36527"
+  integrity sha512-jrCVgsEU9RUoDz5kosJPEfNyXeZC8muDuBJCRi8YM7+acB55NfHU+geI8H49sTU9T3ZthNNh5uHrpaPJVcnvbw==
   dependencies:
     "@giscus/react" "3.0.0"
-    "@next/bundle-analyzer" "14.2.15"
+    "@next/bundle-analyzer" "15.0.1"
     "@radix-ui/react-navigation-menu" "^1.2.0"
     "@theguild/tailwind-config" "0.5.0"
     clsx "2.1.1"
     fuzzy "0.1.3"
     next-videos "1.5.0"
-    nextra "3.0.12"
-    nextra-theme-docs "3.0.12"
+    nextra "3.1.0"
+    nextra-theme-docs "3.1.0"
     react-paginate "8.2.0"
     react-player "2.16.0"
     remark-mdx-disable-explicit-jsx "0.1.0"
@@ -2830,7 +2830,7 @@
     prettier-plugin-pkg "^0.18.0"
     prettier-plugin-sh "^0.14.0"
 
-"@theguild/remark-mermaid@^0.1.2":
+"@theguild/remark-mermaid@^0.1.3":
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/@theguild/remark-mermaid/-/remark-mermaid-0.1.3.tgz#55bd0ff5cd890c49f8137e76b5158abd787c3642"
   integrity sha512-2FjVlaaKXK7Zj7UJAgOVTyaahn/3/EAfqYhyXg0BfDBVUl+lXcoIWRaxzqfnDr2rv8ax6GsC5mNh6hAaT86PDw==
@@ -9618,6 +9618,11 @@ negotiator@0.6.3, negotiator@^0.6.3:
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.3.tgz#58e323a72fedc0d6f9cd4d31fe49f51479590ccd"
   integrity sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==
 
+negotiator@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-1.0.0.tgz#b6c91bb47172d69f93cfd7c357bbb529019b5f6a"
+  integrity sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg==
+
 neo-async@^2.6.2:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
@@ -9673,10 +9678,10 @@ next@14.2.16:
     "@next/swc-win32-ia32-msvc" "14.2.16"
     "@next/swc-win32-x64-msvc" "14.2.16"
 
-nextra-theme-docs@3.0.12:
-  version "3.0.12"
-  resolved "https://registry.yarnpkg.com/nextra-theme-docs/-/nextra-theme-docs-3.0.12.tgz#fb621171fe8ba60e84f2b92fec20972d328eaa6c"
-  integrity sha512-AORG9lvZxvFWwPjPXVlGnQioVCEb0a5cb4ONvXMYDFENLP1iAlKY4eVpfvDUECYCbYTUaQq3EPfA6KhYNCag6A==
+nextra-theme-docs@3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/nextra-theme-docs/-/nextra-theme-docs-3.1.0.tgz#4b797465553dec9f4d40c9eb68290919343bfe9b"
+  integrity sha512-2zAC+xnqLzl/kLYCaoVfdupyA6pD5OgF+4iR3zQiPOzfnwJikPQePnr3SCT+tPPgYVuoqSDA5GNc9DvvAHtefQ==
   dependencies:
     "@headlessui/react" "^2.1.2"
     clsx "^2.0.0"
@@ -9686,10 +9691,10 @@ nextra-theme-docs@3.0.12:
     scroll-into-view-if-needed "^3.1.0"
     zod "^3.22.3"
 
-nextra@3.0.12:
-  version "3.0.12"
-  resolved "https://registry.yarnpkg.com/nextra/-/nextra-3.0.12.tgz#dddeacfd3a0a60882f9a0c268ed6b2769e377da7"
-  integrity sha512-0s3LPbbt/lfra8GoXivFC3Mt1UomJhTagwAxAJsSVeriwW7d/U4XH3Wu49ckCCSkrOxdah5E8A7LshcYQi6Y9w==
+nextra@3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/nextra/-/nextra-3.1.0.tgz#ad7fa917955ead82afa0a0fde6414fb81c873434"
+  integrity sha512-IvG8Q/yLAqSju1zwRPUqC/6WpzAgfmNo6gDw6CIBZJ+3RKdJDsirM/v3BNeN6vx3tSjLFybytOt3spNXHFy/WQ==
   dependencies:
     "@formatjs/intl-localematcher" "^0.5.4"
     "@headlessui/react" "^2.1.2"
@@ -9697,7 +9702,7 @@ nextra@3.0.12:
     "@mdx-js/react" "^3.0.0"
     "@napi-rs/simple-git" "^0.1.9"
     "@shikijs/twoslash" "^1.0.0"
-    "@theguild/remark-mermaid" "^0.1.2"
+    "@theguild/remark-mermaid" "^0.1.3"
     "@theguild/remark-npm2yarn" "^0.3.2"
     better-react-mathjax "^2.0.3"
     clsx "^2.0.0"
@@ -9708,7 +9713,7 @@ nextra@3.0.12:
     gray-matter "^4.0.3"
     hast-util-to-estree "^3.1.0"
     katex "^0.16.9"
-    negotiator "^0.6.3"
+    negotiator "^1.0.0"
     p-limit "^6.0.0"
     rehype-katex "^7.0.0"
     rehype-pretty-code "0.14.0"
