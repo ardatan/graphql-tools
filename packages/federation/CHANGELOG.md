@@ -1,5 +1,14 @@
 # @graphql-tools/federation
 
+## 2.2.18
+
+### Patch Changes
+
+- [#6598](https://github.com/ardatan/graphql-tools/pull/6598)
+  [`4deac7f`](https://github.com/ardatan/graphql-tools/commit/4deac7f3ac468334874f1d9e4ab41943fdf2818c)
+  Thanks [@kroupacz](https://github.com/kroupacz)! - If `currentUnavailableSelectionSet.selections`
+  is empty array then "query planning" will fail.
+
 ## 2.2.17
 
 ### Patch Changes
