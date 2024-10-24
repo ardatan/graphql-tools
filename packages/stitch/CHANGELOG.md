@@ -1,5 +1,19 @@
 # @graphql-tools/stitch
 
+## 9.2.16
+
+### Patch Changes
+
+- [`180f3f0`](https://github.com/ardatan/graphql-tools/commit/180f3f0c8362613eb3013ff12f2d5405cd987903)
+  Thanks [@ardatan](https://github.com/ardatan)! - Avoid extra calls if the keys are already
+  resolved
+
+- Updated dependencies
+  [[`180f3f0`](https://github.com/ardatan/graphql-tools/commit/180f3f0c8362613eb3013ff12f2d5405cd987903)]:
+  - @graphql-tools/delegate@10.0.27
+  - @graphql-tools/batch-delegate@9.0.9
+  - @graphql-tools/wrap@10.0.11
+
 ## 9.2.15
 
 ### Patch Changes

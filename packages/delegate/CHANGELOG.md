@@ -1,5 +1,13 @@
 # @graphql-tools/delegate
 
+## 10.0.27
+
+### Patch Changes
+
+- [`180f3f0`](https://github.com/ardatan/graphql-tools/commit/180f3f0c8362613eb3013ff12f2d5405cd987903)
+  Thanks [@ardatan](https://github.com/ardatan)! - Avoid extra calls if the keys are already
+  resolved
+
 ## 10.0.26
 
 ### Patch Changes
