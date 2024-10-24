@@ -115,7 +115,17 @@ export function getFieldsNotInSubschema(
     } else {
       const field = fields[fieldName];
       for (const subFieldNode of subFieldNodes) {
-        const unavailableFields = extractUnavailableFields(schema, field, subFieldNode, () => true);
+        const unavailableFields = extractUnavailableFields(
+          schema,
+          field,
+          subFieldNode,
+          fieldType => {
+            if (stitchingInfo.mergedTypes[fieldType.name].resolvers.get(subschema)) {
+              return false;
+            }
+            return true;
+          },
+        );
         if (unavailableFields.length) {
           fieldNotInSchema = true;
           fieldsNotInSchema.add({

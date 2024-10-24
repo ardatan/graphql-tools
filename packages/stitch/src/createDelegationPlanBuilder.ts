@@ -101,7 +101,7 @@ function calculateDelegationStage(
 
     // 2a. use uniqueFields map to assign fields to subschema if one of possible subschemas
 
-    const uniqueSubschema: Subschema = uniqueFields[fieldNode.name.value];
+    const uniqueSubschema: Subschema = uniqueFields[fieldName];
     if (uniqueSubschema != null) {
       if (!proxiableSubschemas.includes(uniqueSubschema)) {
         unproxiableFieldNodes.push(fieldNode);

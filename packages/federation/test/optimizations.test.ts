@@ -13,6 +13,7 @@ import {
   Dschema,
   Eschema,
 } from './fixtures/optimizations/awareness-of-other-fields';
+import { getStitchedSchemaFromLocalSchemas } from './getStitchedSchemaFromLocalSchemas';
 
 describe('Optimizations', () => {
   let serviceCallCnt: Record<string, number>;
@@ -545,5 +546,144 @@ it('prevents recursively depending fields in case of multiple keys', async () =>
         },
       },
     },
+  });
+});
+
+it('nested recursive requirements', async () => {
+  const inventory = buildSubgraphSchema({
+    typeDefs: parse(/* GraphQL */ `
+      type Query {
+        colos: [Colo]
+      }
+
+      type Colo @key(fields: "id") {
+        id: ID!
+        cages: Cages
+      }
+
+      type Cages @key(fields: "id") @key(fields: "spatialId") {
+        id: ID!
+        spatialId: String
+        number: Int!
+        cabinets: [Cabinet]
+      }
+
+      type Cabinet @key(fields: "id") @key(fields: "spatialId") {
+        id: ID!
+        spatialId: String
+        number: Int!
+      }
+    `),
+    resolvers: {
+      Query: {
+        colos() {
+          return [
+            {
+              id: '1',
+            },
+          ];
+        },
+      },
+      Colo: {
+        cages() {
+          return {
+            id: '1',
+            number: 1,
+            cabinets: [
+              {
+                id: '1',
+                spatialId: '1',
+                number: 1,
+              },
+            ],
+          };
+        },
+      },
+    },
+  });
+
+  const spatial = buildSubgraphSchema({
+    typeDefs: parse(/* GraphQL */ `
+      type Cabinet @key(fields: "spatialId") {
+        id: ID!
+        spatialId: String
+        spatialCabinet: SpatialCabinet
+      }
+
+      type SpatialCabinet {
+        spatialId: String
+      }
+    `),
+    resolvers: {
+      Cabinet: {
+        spatialCabinet() {
+          return {
+            spatialId: '1',
+          };
+        },
+      },
+    },
+  });
+
+  const subgraphCalls: Record<string, number> = {};
+
+  const schema = await getStitchedSchemaFromLocalSchemas(
+    {
+      inventory,
+      spatial,
+    },
+    subgraph => {
+      subgraphCalls[subgraph] = (subgraphCalls[subgraph] || 0) + 1;
+    },
+  );
+
+  expect(
+    await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          colos {
+            cages {
+              id
+              number
+              cabinets {
+                id
+                number
+                spatialCabinet {
+                  spatialId
+                }
+              }
+            }
+          }
+        }
+      `),
+    }),
+  ).toMatchInlineSnapshot(`
+{
+  "data": {
+    "colos": [
+      {
+        "cages": {
+          "cabinets": [
+            {
+              "id": "1",
+              "number": 1,
+              "spatialCabinet": {
+                "spatialId": "1",
+              },
+            },
+          ],
+          "id": "1",
+          "number": 1,
+        },
+      },
+    ],
+  },
+}
+`);
+
+  expect(subgraphCalls).toEqual({
+    inventory: 1,
+    spatial: 1,
   });
 });

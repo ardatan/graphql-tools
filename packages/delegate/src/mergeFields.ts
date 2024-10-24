@@ -175,10 +175,15 @@ export function handleResolverResult(
           object[responseKey] = existingPropValue.map((existingElement, index) =>
             sourcePropValue instanceof Error
               ? existingElement
-              : mergeDeep([existingElement, sourcePropValue[index]]),
+              : mergeDeep([existingElement, sourcePropValue[index]], undefined, true, true),
           );
         } else if (!(sourcePropValue instanceof Error)) {
-          object[responseKey] = mergeDeep([existingPropValue, sourcePropValue]);
+          object[responseKey] = mergeDeep(
+            [existingPropValue, sourcePropValue],
+            undefined,
+            true,
+            true,
+          );
         }
       } else {
         object[responseKey] = sourcePropValue;
