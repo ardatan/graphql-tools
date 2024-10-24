@@ -129,7 +129,7 @@ const LoadFilesDefaultOptions: LoadFilesOptions = {
  * @param pattern Glob pattern or patterns to use when loading files
  * @param options Additional options
  */
-export function loadFilesSync<T = any>(
+export function loadFilesSync<T = DocumentNode>(
   pattern: string | string[],
   options: LoadFilesOptions = LoadFilesDefaultOptions,
 ): T[] {
@@ -227,10 +227,10 @@ const checkExtension = (
  * @param pattern Glob pattern or patterns to use when loading files
  * @param options Additional options
  */
-export async function loadFiles(
+export async function loadFiles<T = DocumentNode>(
   pattern: string | string[],
   options: LoadFilesOptions = LoadFilesDefaultOptions,
-): Promise<any[]> {
+): Promise<T[]> {
   const execOptions = { ...LoadFilesDefaultOptions, ...options };
   const relevantPaths = await scanForFiles(
     await Promise.all(
