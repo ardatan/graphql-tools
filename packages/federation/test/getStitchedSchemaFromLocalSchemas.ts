@@ -1,7 +1,7 @@
-import { ExecutionResult, GraphQLSchema } from 'graphql';
+import { GraphQLSchema } from 'graphql';
 import { kebabCase } from 'lodash';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
-import { ExecutionRequest, isPromise } from '@graphql-tools/utils';
+import { ExecutionRequest, ExecutionResult, isPromise } from '@graphql-tools/utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 
 export interface LocalSchemaItem {
