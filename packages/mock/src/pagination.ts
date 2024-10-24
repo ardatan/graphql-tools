@@ -158,7 +158,7 @@ export const relayStylePaginationMock = <
     const pageInfo: RelayPageInfo = {
       startCursor: edges.length > 0 ? edges[0].cursor : '',
       endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : '',
-      hasNextPage: end < allEdges.length - 1,
+      hasNextPage: end < allEdges.length,
       hasPreviousPage: start > 0,
     };
 
