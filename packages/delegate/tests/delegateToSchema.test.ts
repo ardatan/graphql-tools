@@ -1,6 +1,9 @@
-import { graphql, OperationTypeNode } from 'graphql';
+import { graphql, OperationTypeNode, parse } from 'graphql';
+import _ from 'lodash';
+import { normalizedExecutor } from '@graphql-tools/executor';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
+import { asArray, ExecutionResult, isAsyncIterable, mergeDeep } from '@graphql-tools/utils';
 import { wrapSchema } from '@graphql-tools/wrap';
 import { delegateToSchema } from '../src/delegateToSchema.js';
 
@@ -244,4 +247,176 @@ describe('delegateToSchema', () => {
 
     expect(result).toEqual({ data: { users: [{ name: 'ABC' }, { name: 'DEF' }] } });
   });
+  test('should work with @stream', async () => {
+    const innerSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        directive @stream on FIELD
+        type Query {
+          test: [String]
+        }
+      `,
+      resolvers: {
+        Query: {
+          test: async function* () {
+            yield 'foo';
+            yield 'bar';
+            yield 'baz';
+          },
+        },
+      },
+    });
+    const outerSchema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          test: [String]
+        }
+      `,
+      resolvers: {
+        Query: {
+          test: (_root, _args, context, info) =>
+            delegateToSchema({
+              schema: innerSchema,
+              operation: 'query' as OperationTypeNode,
+              fieldName: 'test',
+              args: {},
+              context,
+              info,
+            }),
+        },
+      },
+    });
+    const res = await normalizedExecutor({
+      schema: outerSchema,
+      document: parse(/* GraphQL */ `
+        query {
+          test @stream
+        }
+      `),
+    });
+    if (!isAsyncIterable(res)) {
+      throw new Error('Expected result to be an AsyncIterable');
+    }
+    const values = [];
+    for await (const value of res) {
+      values.push(value);
+    }
+    expect(values).toMatchInlineSnapshot(`
+[
+  {
+    "data": {
+      "test": [],
+    },
+    "hasNext": true,
+  },
+  {
+    "hasNext": true,
+    "incremental": [
+      {
+        "items": [
+          "foo",
+        ],
+        "path": [
+          "test",
+          0,
+        ],
+      },
+    ],
+  },
+  {
+    "hasNext": true,
+    "incremental": [
+      {
+        "items": [
+          "bar",
+        ],
+        "path": [
+          "test",
+          1,
+        ],
+      },
+    ],
+  },
+  {
+    "hasNext": true,
+    "incremental": [
+      {
+        "items": [
+          "baz",
+        ],
+        "path": [
+          "test",
+          2,
+        ],
+      },
+    ],
+  },
+  {
+    "hasNext": true,
+    "incremental": [
+      {
+        "items": [
+          null,
+        ],
+        "path": [
+          "test",
+          3,
+        ],
+      },
+    ],
+  },
+  {
+    "hasNext": false,
+  },
+]
+`);
+    const result = mergeIncrementalResults(values);
+    expect(result).toEqual({ data: { test: ['foo', 'bar', 'baz'] } });
+  });
 });
+
+function mergeIncrementalResults(values: ExecutionResult[]) {
+  const result: ExecutionResult = {};
+  for (const value of values) {
+    if (value.data) {
+      if (!result.data) {
+        result.data = value.data;
+      } else {
+        result.data = mergeDeep([result.data, value.data]);
+      }
+    }
+    if (value.errors) {
+      result.errors = result.errors || [];
+      result.errors = [...result.errors, ...value.errors];
+    }
+    if (value.incremental) {
+      for (const incremental of value.incremental) {
+        if (incremental.path) {
+          result.data = result.data || {};
+          const incrementalItems = incremental.items
+            ? asArray(incremental.items).filter(item => item != null)
+            : [];
+          if (incremental.data != null) {
+            incrementalItems.unshift(incremental.data);
+          }
+          for (const incrementalItem of incrementalItems) {
+            if (!incremental.path.length) {
+              result.data = mergeDeep([result.data, incrementalItem]);
+            } else {
+              const existingData = _.get(result.data, incremental.path);
+              if (!existingData) {
+                _.set(result.data, incremental.path, incrementalItem);
+              } else {
+                _.set(result.data, incremental.path, mergeDeep([existingData, incrementalItem]));
+              }
+            }
+          }
+        }
+        if (incremental.errors) {
+          result.errors = result.errors || [];
+          result.errors = [...result.errors, ...incremental.errors];
+        }
+      }
+    }
+  }
+  return result;
+}

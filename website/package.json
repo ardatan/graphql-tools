@@ -10,14 +10,14 @@
   },
   "dependencies": {
     "@theguild/components": "7.1.0",
-    "next": "15.0.1",
+    "next": "15.0.2",
     "next-sitemap": "4.2.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@theguild/tailwind-config": "0.5.0",
-    "@types/node": "20.17.2",
+    "@types/node": "20.17.3",
     "@types/react": "18.3.12",
     "typescript": "5.4.5"
   }
