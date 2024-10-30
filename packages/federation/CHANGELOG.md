@@ -1,5 +1,12 @@
 # @graphql-tools/federation
 
+## 2.2.21
+
+### Patch Changes
+
+- [`5145fc4`](https://github.com/ardatan/graphql-tools/commit/5145fc4f4eed543219dbab5c0bd54e4636e1b952)
+  Thanks [@ardatan](https://github.com/ardatan)! - Run \`onSubschemaConfig\` in the right place
+
 ## 2.2.20
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @graphql-tools/url-loader
 
+## 8.0.10
+
+### Patch Changes
+
+- [#6625](https://github.com/ardatan/graphql-tools/pull/6625)
+  [`218422e`](https://github.com/ardatan/graphql-tools/commit/218422e9b93e9ea461043686907b18076bfaccc2)
+  Thanks [@hainenber](https://github.com/hainenber)! - remove unused @graphql-tools/delegate from
+  @graphql-tools/url-loader
+
 ## 8.0.9
 
 ### Patch Changes
