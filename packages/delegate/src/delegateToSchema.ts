@@ -1,3 +1,4 @@
+import { dset } from 'dset/merge';
 import {
   DocumentNode,
   FieldDefinitionNode,
@@ -119,6 +120,22 @@ export function delegateRequest<
             for await (const result of executorResult) {
               if (stopped) {
                 break;
+              }
+              if (result.incremental) {
+                const data = {};
+                for (const incrementalRes of result.incremental) {
+                  if (incrementalRes.items?.length) {
+                    for (const item of incrementalRes.items) {
+                      dset(data, (incrementalRes.path || []).slice(0, -1), item);
+                    }
+                    await push(await transformer.transformResult({ data }));
+                  }
+                }
+                if (result.hasNext === false) {
+                  break;
+                } else {
+                  continue;
+                }
               }
               const transformedResult = await transformer.transformResult(result);
               // @stream needs to get the results one by one

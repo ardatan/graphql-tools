@@ -1,5 +1,12 @@
 # @graphql-tools/delegate
 
+## 10.0.28
+
+### Patch Changes
+
+- [`f470f49`](https://github.com/ardatan/graphql-tools/commit/f470f49f7d8445801a2983f14532124588f9f59e)
+  Thanks [@ardatan](https://github.com/ardatan)! - Support original format of "@stream"
+
 ## 10.0.27
 
 ### Patch Changes
