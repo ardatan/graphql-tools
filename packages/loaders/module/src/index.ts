@@ -141,6 +141,7 @@ export class ModuleLoader implements Loader {
   private importModuleSync(pointer: string) {
     const { modulePath, exportName } = extractData(pointer);
 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const imported = require(modulePath);
 
     return this.extractFromModule(imported, modulePath, exportName);

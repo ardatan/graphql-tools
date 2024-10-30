@@ -32,6 +32,7 @@ export type AsyncImportFn = (moduleName: string) => PromiseLike<any>;
 export type SyncImportFn = (moduleName: string) => any;
 
 const asyncImport: AsyncImportFn = (moduleName: string) => import(`${moduleName}`);
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const syncImport: SyncImportFn = (moduleName: string) => require(`${moduleName}`);
 
 type HeadersConfig = Record<string, string>;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { Source } from 'graphql';
 import { parse } from '@babel/parser';
 import traversePkg from '@babel/traverse';
