@@ -60,14 +60,14 @@
   },
   "devDependencies": {
     "@astrojs/compiler": "^2.3.4",
-    "@babel/parser": "7.26.1",
+    "@babel/parser": "7.26.2",
     "@babel/traverse": "7.25.9",
     "@babel/types": "7.26.0",
     "@types/babel__traverse": "7.20.6",
     "@vue/compiler-sfc": "3.5.12",
     "astrojs-compiler-sync": "^1.0.0",
     "content-tag": "^2.0.1",
-    "svelte": "5.1.4",
+    "svelte": "5.1.5",
     "svelte2tsx": "0.7.22"
   },
   "publishConfig": {
