@@ -1,5 +1,13 @@
 # @graphql-tools/stitch
 
+## 9.3.0
+
+### Minor Changes
+
+- [#6629](https://github.com/ardatan/graphql-tools/pull/6629)
+  [`2bb2adb`](https://github.com/ardatan/graphql-tools/commit/2bb2adbe81ab940e582ea2c779a766817c099c9c)
+  Thanks [@aarne](https://github.com/aarne)! - Performance improvement in stitchSchemas
+
 ## 9.2.17
 
 ### Patch Changes

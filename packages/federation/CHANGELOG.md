@@ -1,5 +1,13 @@
 # @graphql-tools/federation
 
+## 2.2.22
+
+### Patch Changes
+
+- Updated dependencies
+  [[`2bb2adb`](https://github.com/ardatan/graphql-tools/commit/2bb2adbe81ab940e582ea2c779a766817c099c9c)]:
+  - @graphql-tools/stitch@9.3.0
+
 ## 2.2.21
 
 ### Patch Changes
