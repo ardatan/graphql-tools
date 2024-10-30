@@ -1011,7 +1011,6 @@ export function getStitchingOptionsFromSupergraphSdl(
       batch: opts.batch,
       batchingOptions: opts.batchingOptions,
     };
-    opts.onSubschemaConfig?.(subschemaConfig);
     subschemas.push(subschemaConfig);
   }
 
@@ -1238,6 +1237,11 @@ export function getStitchingOptionsFromSupergraphSdl(
     kind: Kind.DOCUMENT,
     definitions: extraDefinitions,
   };
+  if (opts.onSubschemaConfig) {
+    for (const subschema of subschemas) {
+      opts.onSubschemaConfig(subschema as FederationSubschemaConfig);
+    }
+  }
   return {
     subschemas,
     typeDefs: additionalTypeDefs,
