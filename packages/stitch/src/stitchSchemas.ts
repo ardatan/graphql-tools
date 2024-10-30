@@ -101,6 +101,7 @@ export function stitchSchemas<TContext extends Record<string, any> = Record<stri
     astNode: schemaDefs.schemaDef,
     extensionASTNodes: schemaDefs.schemaExtensions,
     extensions: null,
+    assumeValid: rest.assumeValid,
   });
 
   for (const extension of extensions) {
