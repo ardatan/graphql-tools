@@ -36,11 +36,13 @@ import {
   BatchingOptions,
   delegateToSchema,
   extractUnavailableFieldsFromSelectionSet,
+  isExternalObject,
   MergedFieldConfig,
   MergedTypeConfig,
   SubschemaConfig,
   subtractSelectionSets,
   Transform,
+  UNPATHED_ERRORS_SYMBOL,
 } from '@graphql-tools/delegate';
 import { buildHTTPExecutor, HTTPExecutorOptions } from '@graphql-tools/executor-http';
 import {
@@ -1320,6 +1322,13 @@ const entitiesFieldDefinitionNode: FieldDefinitionNode = {
 
 const specifiedTypeNames = ['ID', 'String', 'Float', 'Int', 'Boolean', '_Any', '_Entity'];
 
+function makeExternalObject(data: unknown, errors: Error[]) {
+  if (!isExternalObject(data) && typeof data === 'object' && data != null) {
+    data[UNPATHED_ERRORS_SYMBOL] = [];
+  }
+  return data;
+}
+
 function mergeResults(results: unknown[]) {
   const errors: Error[] = [];
   const datas: unknown[] = [];
@@ -1328,14 +1337,20 @@ function mergeResults(results: unknown[]) {
       errors.push(...result.errors);
     } else if (result instanceof Error) {
       errors.push(result);
-    } else {
+    } else if (result != null) {
       datas.push(result);
     }
   }
   if (datas.length) {
-    return mergeDeep(datas, false, true, true);
+    if (datas.length === 1) {
+      return makeExternalObject(datas[0], errors);
+    }
+    return makeExternalObject(mergeDeep(datas), errors);
   }
   if (errors.length) {
+    if (errors.length === 1) {
+      throw errors[0];
+    }
     return new AggregateError(errors, errors.map(error => error.message).join(', \n'));
   }
   return null;
