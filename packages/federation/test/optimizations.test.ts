@@ -687,3 +687,179 @@ it('nested recursive requirements', async () => {
     spatial: 1,
   });
 });
+
+it('https://github.com/graphql-hive/gateway/discussions/53', async () => {
+  const products = [
+    {
+      __typename: 'Product',
+      id: 'feed7ce6-80cf-4303-8689-d264e8059b43',
+      country_id: '12345',
+      store_id: '123456',
+      sku: 'skucode1',
+      name: 'Product 1',
+      description: 'Product 1 Description',
+    },
+    {
+      __typename: 'Product',
+      id: 'fef61418-fe6a-4c2e-8e9f-00bdd1f60796',
+      country_id: '12345',
+      store_id: '123456',
+      sku: 'skucode2',
+      name: 'Product 2',
+      description: 'Product 2 Description',
+    },
+    {
+      __typename: 'Product',
+      id: 'ff806a7d-5e78-4ce8-ba4e-ee342e3b146e',
+      country_id: '12345',
+      store_id: '123456',
+      sku: 'skucode3',
+      name: 'Product 3',
+      description: 'Product 3 Description',
+    },
+    {
+      __typename: 'Product',
+      id: 'ce1a19c3-8adb-4b93-877d-e579e13cd6e5',
+      country_id: '12345',
+      store_id: '123456',
+      sku: 'skucode4',
+      name: 'Product 4',
+      description: 'Product 4 Description',
+    },
+  ];
+  const order = buildSubgraphSchema({
+    typeDefs: parse(/* GraphQL */ `
+      type Product @key(fields: "id", resolvable: false) {
+        id: String!
+      }
+
+      type Query {
+        getOrderData(input: GetOrderDataRequest!): OrderData
+      }
+
+      input GetOrderDataRequest {
+        order_id: String!
+      }
+
+      type OrderData {
+        items: [Product!]!
+      }
+    `),
+    resolvers: {
+      Query: {
+        getOrderData() {
+          return {
+            items: products.map(product => ({ id: product.id })),
+          };
+        },
+      },
+    },
+  });
+  const product = buildSubgraphSchema({
+    typeDefs: parse(/* GraphQL */ `
+      type Product @key(fields: "id") @key(fields: "country_id store_id sku") {
+        id: String!
+        country_id: String!
+        store_id: String!
+        sku: String!
+        name: String!
+        description: String!
+      }
+    `),
+    resolvers: {
+      Product: {
+        __resolveReference(reference) {
+          const foundProduct = products.find(product => product.id === reference.id);
+          if (!foundProduct) {
+            throw 'resolving Entity "Product": rpc error: code = NotFound desc = Product not found';
+          }
+          return {
+            id: foundProduct.id,
+            country_id: foundProduct.country_id,
+            store_id: foundProduct.store_id,
+            sku: foundProduct.sku,
+            name: foundProduct.name,
+            description: foundProduct.description,
+          };
+        },
+      },
+    },
+  });
+
+  const document = parse(/* GraphQL */ `
+    query GetOrderData($input: GetOrderDataRequest!) {
+      getOrderData(input: $input) {
+        __typename
+        items {
+          __typename
+          id
+          sku
+          name
+        }
+      }
+    }
+  `);
+
+  const subgraphCalls: Record<string, { query: string; variables?: any }[]> = {};
+
+  const schema = await getStitchedSchemaFromLocalSchemas(
+    {
+      order,
+      product,
+    },
+    (subgraph, executionRequest) => {
+      subgraphCalls[subgraph] ||= [];
+      subgraphCalls[subgraph].push({
+        query: print(executionRequest.document),
+        variables: executionRequest.variables,
+      });
+    },
+  );
+
+  const result = await normalizedExecutor({
+    schema,
+    document,
+    variableValues: {
+      input: {
+        order_id: '123',
+      },
+    },
+  });
+
+  expect(result).toEqual({
+    data: {
+      getOrderData: {
+        __typename: 'OrderData',
+        items: [
+          {
+            __typename: 'Product',
+            id: 'feed7ce6-80cf-4303-8689-d264e8059b43',
+            sku: 'skucode1',
+            name: 'Product 1',
+          },
+          {
+            __typename: 'Product',
+            id: 'fef61418-fe6a-4c2e-8e9f-00bdd1f60796',
+            sku: 'skucode2',
+            name: 'Product 2',
+          },
+          {
+            __typename: 'Product',
+            id: 'ff806a7d-5e78-4ce8-ba4e-ee342e3b146e',
+            sku: 'skucode3',
+            name: 'Product 3',
+          },
+          {
+            __typename: 'Product',
+            id: 'ce1a19c3-8adb-4b93-877d-e579e13cd6e5',
+            sku: 'skucode4',
+            name: 'Product 4',
+          },
+        ],
+      },
+    },
+  });
+
+  expect(subgraphCalls['order']).toHaveLength(1);
+  expect(subgraphCalls['product']).toHaveLength(1);
+});
