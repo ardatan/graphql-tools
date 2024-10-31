@@ -1,5 +1,14 @@
 # federation-benchmark
 
+## 0.0.172
+
+### Patch Changes
+
+- Updated dependencies
+  [[`e9906eb`](https://github.com/ardatan/graphql-tools/commit/e9906eb311132ab902720e75bc787228d67c0e34)]:
+  - @graphql-tools/federation@2.2.24
+  - @graphql-tools/stitch@9.3.2
+
 ## 0.0.171
 
 ### Patch Changes
