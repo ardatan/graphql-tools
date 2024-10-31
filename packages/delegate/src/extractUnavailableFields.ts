@@ -143,15 +143,54 @@ export const extractUnavailableFields = memoize4(function extractUnavailableFiel
   return [];
 });
 
-function getByPath<T>(object: unknown, path: readonly (string | number)[]) {
-  let current = object;
-  for (const pathSegment of path) {
-    if (current == null) {
-      return;
+function fieldExistsInSelectionSet(
+  node: SelectionSetNode,
+  path: readonly [segment: string | number, fieldName?: string][],
+): boolean {
+  let currentNode:
+    | ((SelectionSetNode | SelectionNode) & Record<string | number, any>)
+    | SelectionNode[]
+    | undefined = node;
+  const isArrayOfSelectionNodes = (node: unknown): node is SelectionNode[] => Array.isArray(node);
+
+  for (const [segment, fieldName] of path) {
+    if (!currentNode) {
+      return false;
     }
-    current = current[pathSegment];
+
+    if (isArrayOfSelectionNodes(currentNode) && fieldName) {
+      currentNode = currentNode.find(selectionNode => {
+        return (<Partial<FieldNode>>selectionNode).name?.value === fieldName;
+      });
+    } else {
+      currentNode = currentNode[segment as any];
+    }
   }
-  return current as T | undefined;
+
+  return !!currentNode;
+}
+
+function getPathWithFieldNames(
+  node: SelectionSetNode,
+  path: readonly (string | number)[],
+): readonly [segment: string | number, fieldName?: string][] {
+  const pathWithFieldNames: [segment: string | number, fieldName?: string][] = [];
+  let currentNode:
+    | ((SelectionSetNode | SelectionNode) & Record<string | number, any>)
+    | SelectionNode[] = node;
+  const isArrayOfSelectionNodes = (node: unknown): node is SelectionNode[] => Array.isArray(node);
+
+  for (const segment of path) {
+    currentNode = currentNode[segment as any];
+
+    if (!isArrayOfSelectionNodes(currentNode) && currentNode.kind === Kind.FIELD) {
+      pathWithFieldNames.push([segment, currentNode.name.value]);
+    } else {
+      pathWithFieldNames.push([segment]);
+    }
+  }
+
+  return pathWithFieldNames;
 }
 
 export function subtractSelectionSets(
@@ -161,13 +200,13 @@ export function subtractSelectionSets(
   return visit(selectionSetA, {
     [Kind.FIELD]: {
       enter(node, _key, _parent, path) {
-        if (
-          !node.selectionSet &&
-          getByPath<SelectionNode[]>(selectionSetB, path.slice(0, -1))?.some(
-            selection => selection.kind === Kind.FIELD && selection.name.value === node.name.value,
-          )
-        ) {
-          return null;
+        if (!node.selectionSet) {
+          const pathWithFieldNames = getPathWithFieldNames(selectionSetA, path);
+          const fieldExists = fieldExistsInSelectionSet(selectionSetB, pathWithFieldNames);
+
+          if (fieldExists) {
+            return null;
+          }
         }
       },
     },

@@ -1,7 +1,8 @@
 import { getOperationAST, isObjectType, Kind, parse, print, SelectionSetNode } from 'graphql';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { parseSelectionSet } from '@graphql-tools/utils';
 import { stripWhitespaces } from '../../merge/tests/utils';
-import { extractUnavailableFields } from '../src/extractUnavailableFields';
+import { extractUnavailableFields, subtractSelectionSets } from '../src/extractUnavailableFields';
 
 describe('extractUnavailableFields', () => {
   it('should extract correct fields', () => {
@@ -182,5 +183,65 @@ describe('extractUnavailableFields', () => {
       selections: unavailableFields,
     };
     expect(stripWhitespaces(print(extractedSelectionSet))).toBe('{ category { id details } }');
+  });
+  it('issue #6614', () => {
+    const selectionSet1 = parseSelectionSet(
+      /* GraphQL */ `
+        {
+          example {
+            securitySystem {
+              components {
+                __typename
+                id
+                name
+              }
+            }
+            notifications {
+              settings {
+                __typename
+                id
+                languageCode
+              }
+            }
+          }
+        }
+      `,
+      { noLocation: true },
+    );
+    const selectionSet2 = parseSelectionSet(
+      /* GraphQL */ `
+        {
+          example {
+            notifications {
+              settings {
+                __typename
+                id
+                languageCode
+              }
+            }
+          }
+        }
+      `,
+      { noLocation: true },
+    );
+    const result = subtractSelectionSets(selectionSet1, selectionSet2);
+    expect(print(result)).toBe(
+      /* GraphQL */ `
+{
+  example {
+    securitySystem {
+      components {
+        __typename
+        id
+        name
+      }
+    }
+    notifications {
+      settings
+    }
+  }
+}
+    `.trim(),
+    );
   });
 });
