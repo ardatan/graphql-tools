@@ -3,7 +3,7 @@ import { kebabCase } from 'lodash';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import { createDefaultExecutor } from '@graphql-tools/delegate';
 import { normalizedExecutor } from '@graphql-tools/executor';
-import { ExecutionRequest, Executor } from '@graphql-tools/utils';
+import { createGraphQLError, ExecutionRequest, Executor } from '@graphql-tools/utils';
 import { getStitchedSchemaFromSupergraphSdl } from '../src/supergraph';
 import { getServiceInputs, getSupergraph } from './fixtures/gateway/supergraph';
 import {
@@ -771,7 +771,9 @@ it('https://github.com/graphql-hive/gateway/discussions/53', async () => {
         __resolveReference(reference) {
           const foundProduct = products.find(product => product.id === reference.id);
           if (!foundProduct) {
-            throw 'resolving Entity "Product": rpc error: code = NotFound desc = Product not found';
+            return createGraphQLError(
+              'resolving Entity "Product": rpc error: code = NotFound desc = Product not found',
+            );
           }
           return {
             id: foundProduct.id,
