@@ -1,5 +1,19 @@
 # @graphql-tools/federation
 
+## 2.2.24
+
+### Patch Changes
+
+- [#6619](https://github.com/ardatan/graphql-tools/pull/6619)
+  [`e9906eb`](https://github.com/ardatan/graphql-tools/commit/e9906eb311132ab902720e75bc787228d67c0e34)
+  Thanks [@kroupacz](https://github.com/kroupacz)! - Handle shared root field queries with aliases
+
+- Updated dependencies
+  [[`e9906eb`](https://github.com/ardatan/graphql-tools/commit/e9906eb311132ab902720e75bc787228d67c0e34)]:
+  - @graphql-tools/delegate@10.1.0
+  - @graphql-tools/stitch@9.3.2
+  - @graphql-tools/wrap@10.0.14
+
 ## 2.2.23
 
 ### Patch Changes

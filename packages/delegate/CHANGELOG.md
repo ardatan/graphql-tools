@@ -1,5 +1,13 @@
 # @graphql-tools/delegate
 
+## 10.1.0
+
+### Minor Changes
+
+- [#6619](https://github.com/ardatan/graphql-tools/pull/6619)
+  [`e9906eb`](https://github.com/ardatan/graphql-tools/commit/e9906eb311132ab902720e75bc787228d67c0e34)
+  Thanks [@kroupacz](https://github.com/kroupacz)! - Handle shared root field queries with aliases
+
 ## 10.0.29
 
 ### Patch Changes
