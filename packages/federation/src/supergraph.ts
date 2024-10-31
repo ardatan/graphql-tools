@@ -1324,7 +1324,7 @@ const specifiedTypeNames = ['ID', 'String', 'Float', 'Int', 'Boolean', '_Any', '
 
 function makeExternalObject(data: unknown, errors: Error[]) {
   if (!isExternalObject(data) && typeof data === 'object' && data != null) {
-    data[UNPATHED_ERRORS_SYMBOL] = [];
+    data[UNPATHED_ERRORS_SYMBOL] = errors;
   }
   return data;
 }
