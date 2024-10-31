@@ -13,7 +13,6 @@ import {
   isObjectType,
   isUnionType,
   Kind,
-  print,
   SelectionNode,
   SelectionSetNode,
   visit,
