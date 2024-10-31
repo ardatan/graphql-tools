@@ -1,5 +1,14 @@
 # @graphql-tools/delegate
 
+## 10.0.29
+
+### Patch Changes
+
+- [#6620](https://github.com/ardatan/graphql-tools/pull/6620)
+  [`da1de08`](https://github.com/ardatan/graphql-tools/commit/da1de08c269a4cb3ed8240bf191833f7e75a6b01)
+  Thanks [@kroupacz](https://github.com/kroupacz)! - - fix `subtractSelectionSets()` method - find
+  field by its path correctly
+
 ## 10.0.28
 
 ### Patch Changes
