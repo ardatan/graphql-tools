@@ -1,5 +1,12 @@
 # @graphql-tools/url-loader
 
+## 8.0.11
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/wrap@10.0.13
+
 ## 8.0.10
 
 ### Patch Changes
