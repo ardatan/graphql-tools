@@ -4,7 +4,6 @@ import {
   GraphQLField,
   GraphQLInterfaceType,
   GraphQLNamedOutputType,
-  GraphQLNamedType,
   GraphQLObjectType,
   GraphQLSchema,
   isAbstractType,
@@ -17,7 +16,7 @@ import {
   SelectionSetNode,
   visit,
 } from 'graphql';
-import { Maybe, memoize4 } from '@graphql-tools/utils';
+import { memoize4 } from '@graphql-tools/utils';
 
 export const extractUnavailableFieldsFromSelectionSet = memoize4(
   function extractUnavailableFieldsFromSelectionSet(
@@ -88,11 +87,12 @@ export const extractUnavailableFieldsFromSelectionSet = memoize4(
           }
         }
       } else if (selection.kind === Kind.INLINE_FRAGMENT) {
-        const subFieldType: Maybe<GraphQLNamedType> = selection.typeCondition
-          ? schema.getType(selection.typeCondition.name.value)
-          : fieldType;
+        const subFieldName = selection.typeCondition?.name.value || fieldType.name;
+        const subFieldType =
+          (selection.typeCondition && (schema.getType(subFieldName) as GraphQLObjectType)) ||
+          fieldType;
         if (
-          subFieldType === fieldType ||
+          subFieldName === fieldType.name ||
           ((isObjectType(subFieldType) || isInterfaceType(subFieldType)) &&
             isAbstractType(fieldType) &&
             schema.isSubType(fieldType, subFieldType))
@@ -114,6 +114,9 @@ export const extractUnavailableFieldsFromSelectionSet = memoize4(
           }
         } else if (isObjectType(subFieldType) || isInterfaceType(subFieldType)) {
           for (const subSelection of selection.selectionSet.selections) {
+            if (subSelection.kind === Kind.FIELD && subSelection.name.value === '__typename') {
+              continue;
+            }
             if (shouldAdd(subFieldType, subSelection as FieldNode)) {
               unavailableSelections.push(subSelection);
             }

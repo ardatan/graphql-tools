@@ -1345,7 +1345,7 @@ function mergeResults(results: unknown[]) {
     if (datas.length === 1) {
       return makeExternalObject(datas[0], errors);
     }
-    return makeExternalObject(mergeDeep(datas), errors);
+    return makeExternalObject(mergeDeep(datas, undefined, true, true), errors);
   }
   if (errors.length) {
     if (errors.length === 1) {
