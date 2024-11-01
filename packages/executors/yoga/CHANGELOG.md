@@ -1,5 +1,12 @@
 # @graphql-tools/executor-yoga
 
+## 3.0.10
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/executor-envelop@3.0.10
+
 ## 3.0.9
 
 ### Patch Changes
