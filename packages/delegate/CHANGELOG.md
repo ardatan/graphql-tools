@@ -1,5 +1,13 @@
 # @graphql-tools/delegate
 
+## 10.1.1
+
+### Patch Changes
+
+- [`342e044`](https://github.com/ardatan/graphql-tools/commit/342e044c7da74aaf5df6a90ce68973c525c9aa10)
+  Thanks [@ardatan](https://github.com/ardatan)! - Prevent extra queries to the same subgraph
+  multiple times on the same plan, and merge iterables correctly
+
 ## 10.1.0
 
 ### Minor Changes
