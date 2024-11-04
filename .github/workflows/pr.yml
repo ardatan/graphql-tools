@@ -24,18 +24,3 @@ jobs:
     secrets:
       githubToken: ${{ secrets.GUILD_BOT_TOKEN }}
       npmToken: ${{ secrets.NODE_AUTH_TOKEN }}
-
-  release-candidate:
-    permissions:
-      contents: read
-      id-token: write
-    uses: the-guild-org/shared-config/.github/workflows/release-snapshot.yml@main
-    if: ${{ github.event.pull_request.title == 'Upcoming Release Changes' }}
-    with:
-      npmTag: rc
-      buildScript: build
-      restoreDeletedChangesets: true
-      nodeVersion: 18
-    secrets:
-      githubToken: ${{ secrets.GUILD_BOT_TOKEN }}
-      npmToken: ${{ secrets.NODE_AUTH_TOKEN }}
