@@ -43,6 +43,7 @@
     "test": "jest --no-watchman",
     "test-fed-compat": "ts-node --transpileOnly --compiler-options='{\"module\":\"commonjs\"}' scripts/fetch-federation-tests && yarn test federation-compat",
     "test:leaks": "cross-env \"LEAK_TEST=1\" jest --no-watchman --detectOpenHandles --detectLeaks --logHeapUsage",
+    "test:node": "node --experimental-strip-types --test **/tests/**/*.node.ts",
     "ts:check": "tsc --noEmit"
   },
   "devDependencies": {
