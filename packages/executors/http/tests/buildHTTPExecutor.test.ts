@@ -1,6 +1,8 @@
 import { createServer, Server } from 'http';
 import { GraphQLError, parse } from 'graphql';
+import { createSchema, createYoga } from 'graphql-yoga';
 import { createGraphQLError, ExecutionResult, isAsyncIterable } from '@graphql-tools/utils';
+import { Repeater } from '@repeaterjs/repeater';
 import { ReadableStream, Request, Response } from '@whatwg-node/fetch';
 import { assertAsyncIterable } from '../../../loaders/url/tests/test-utils.js';
 import { buildHTTPExecutor } from '../src/index.js';
@@ -282,5 +284,68 @@ describe('buildHTTPExecutor', () => {
     expect(result.errors?.[0]?.extensions).toMatchObject({
       code: 'DOWNSTREAM_SERVICE_ERROR',
     });
+  });
+
+  it('should abort stream when SSE gets cancelled while waiting for next event', async () => {
+    // we use yoga intentionally here because simulating the proper response object locally is tricky
+    const yoga = createYoga({
+      schema: createSchema({
+        typeDefs: /* GraphQL */ `
+          scalar Upload # intentionally not "File" to test scalar name independence
+          type Query {
+            hello: String!
+          }
+          type Subscription {
+            emitsOnceAndStalls: String
+          }
+        `,
+        resolvers: {
+          Query: {
+            hello: () => 'world',
+          },
+          Subscription: {
+            emitsOnceAndStalls: {
+              subscribe: () =>
+                new Repeater(async (push, stop) => {
+                  push({ emitsOnceAndStalls: '👋' });
+                  await stop;
+                }),
+            },
+          },
+        },
+      }),
+    });
+
+    const executor = buildHTTPExecutor({
+      fetch: yoga.fetch,
+    });
+
+    const result = await executor({
+      document: parse(/* GraphQL */ `
+        subscription {
+          emitsOnceAndStalls
+        }
+      `),
+    });
+
+    assertAsyncIterable(result);
+    const iter = result[Symbol.asyncIterator]();
+
+    await expect(iter.next()).resolves.toMatchInlineSnapshot(`
+{
+  "done": false,
+  "value": {
+    "data": {
+      "emitsOnceAndStalls": "👋",
+    },
+  },
+}
+`);
+
+    // request another one ☝️ (we dont await because there wont be another event)
+    iter.next();
+
+    // then cancel
+    await iter.return!();
   });
 });

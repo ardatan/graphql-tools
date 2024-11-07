@@ -7322,7 +7322,7 @@ graphql-ws@^5.14.0:
   resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.16.0.tgz#849efe02f384b4332109329be01d74c345842729"
   integrity sha512-Ju2RCU2dQMgSKtArPbEtsK5gNLnsQyTNIo/T7cZNp96niC1x0KdJNZV0TIoilceBPQwfb5itrGl8pkFeOUMl4A==
 
-graphql-yoga@5.8.0, graphql-yoga@^5.0.0:
+graphql-yoga@5.8.0, graphql-yoga@^5.0.0, graphql-yoga@^5.8.0:
   version "5.8.0"
   resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.8.0.tgz#990cd35a5f92e1e58b5321569bdc465ddfe58351"
   integrity sha512-pGoeTv7Om9aNGkDIFecz3tv0rZKWV2T2K8522/tymS+qixPIq5upSaMY5nLXzpWD40R10mcw0nBwBZg6j0F7Iw==

@@ -66,5 +66,8 @@
   "sideEffects": false,
   "typescript": {
     "definition": "dist/typings/index.d.ts"
+  },
+  "devDependencies": {
+    "graphql-yoga": "^5.8.0"
   }
 }
