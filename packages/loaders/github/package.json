@@ -55,7 +55,7 @@
     "@graphql-tools/executor-http": "^1.1.7",
     "@graphql-tools/graphql-tag-pluck": "^8.3.3",
     "@graphql-tools/utils": "^10.5.5",
-    "@whatwg-node/fetch": "^0.9.0",
+    "@whatwg-node/fetch": "^0.10.0",
     "tslib": "^2.4.0",
     "value-or-promise": "^1.0.12"
   },
