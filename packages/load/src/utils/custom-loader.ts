@@ -1,5 +1,5 @@
 import { createRequire } from 'module';
-import { join as joinPaths } from 'path';
+import { isAbsolute, join as joinPaths } from 'path';
 
 function extractLoaderFromModule(loaderModule: any) {
   if (loaderModule) {
@@ -14,7 +14,8 @@ function extractLoaderFromModule(loaderModule: any) {
 
 export async function getCustomLoaderByPath(path: string, cwd: string) {
   try {
-    const importedModule = await import(joinPaths(cwd, path));
+    const absolutePath = isAbsolute(path) ? path : joinPaths(cwd, path);
+    const importedModule = await import(absolutePath);
     return extractLoaderFromModule(importedModule);
   } catch (e: any) {}
 
