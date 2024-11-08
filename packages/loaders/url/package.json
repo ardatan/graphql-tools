@@ -58,7 +58,7 @@
     "@graphql-tools/utils": "^10.5.5",
     "@graphql-tools/wrap": "^10.0.15",
     "@types/ws": "^8.0.0",
-    "@whatwg-node/fetch": "^0.9.0",
+    "@whatwg-node/fetch": "^0.10.0",
     "isomorphic-ws": "^5.0.0",
     "tslib": "^2.4.0",
     "value-or-promise": "^1.0.11",
