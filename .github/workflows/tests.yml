@@ -158,7 +158,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: TEST_BROWSER=true yarn jest --no-watchman --ci browser  
+          command: TEST_BROWSER=true yarn jest --no-watchman --ci browser
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
