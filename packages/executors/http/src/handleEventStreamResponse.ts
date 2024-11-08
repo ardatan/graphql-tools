@@ -19,6 +19,7 @@ export function handleEventStreamResponse(response: Response) {
     const decoder = new TextDecoder();
 
     const reader = body.getReader();
+    reader.closed.then(stop).catch(stop); // we dont use `finally` because we want to catch errors
     stop.finally(() => reader.cancel());
 
     let currChunk = '';

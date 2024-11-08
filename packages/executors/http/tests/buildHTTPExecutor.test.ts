@@ -1,4 +1,5 @@
 import { createServer, Server } from 'http';
+import { AddressInfo } from 'net';
 import { GraphQLError, parse } from 'graphql';
 import { createSchema, createYoga } from 'graphql-yoga';
 import { createGraphQLError, ExecutionResult, isAsyncIterable } from '@graphql-tools/utils';
@@ -316,8 +317,12 @@ describe('buildHTTPExecutor', () => {
       }),
     });
 
+    // we start a server to simulate a real-world request
+    const server = createServer(yoga);
+    server.listen();
+
     const executor = buildHTTPExecutor({
-      fetch: yoga.fetch,
+      endpoint: `http://localhost:${(server.address() as AddressInfo).port}/graphql`,
     });
 
     const result = await executor({
@@ -347,5 +352,7 @@ describe('buildHTTPExecutor', () => {
 
     // then cancel
     await iter.return!();
+
+    server.close();
   });
 });
