@@ -59,6 +59,9 @@
     "tslib": "^2.4.0",
     "value-or-promise": "^1.0.12"
   },
+  "devDependencies": {
+    "graphql-yoga": "^5.8.0"
+  },
   "publishConfig": {
     "directory": "dist",
     "access": "public"
@@ -66,8 +69,5 @@
   "sideEffects": false,
   "typescript": {
     "definition": "dist/typings/index.d.ts"
-  },
-  "devDependencies": {
-    "graphql-yoga": "^5.8.0"
   }
 }
