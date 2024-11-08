@@ -110,6 +110,9 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           command: yarn test:leaks --ci
+      - name: Tests using Node.js runner
+        if: ${{ matrix.node-version >= 22 }}
+        run: yarn test:node
 
   trackback:
     name: trackback rc dependencies
@@ -158,7 +161,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: TEST_BROWSER=true yarn jest --no-watchman --ci browser  
+          command: TEST_BROWSER=true yarn jest --no-watchman --ci browser
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
