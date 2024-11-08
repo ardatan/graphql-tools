@@ -1,5 +1,16 @@
 # @graphql-tools/apollo-engine-loader
 
+## 8.0.3
+
+### Patch Changes
+
+- [#6663](https://github.com/ardatan/graphql-tools/pull/6663)
+  [`d06afe3`](https://github.com/ardatan/graphql-tools/commit/d06afe3065edb15f4c58c1c155a230d8d542669f)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.10.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.10.0)
+    (from `^0.9.0`, in `dependencies`)
+
 ## 8.0.2
 
 ### Patch Changes

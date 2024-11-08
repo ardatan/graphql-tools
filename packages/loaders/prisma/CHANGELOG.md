@@ -1,5 +1,19 @@
 # @graphql-tools/prisma-loader
 
+## 8.0.16
+
+### Patch Changes
+
+- [#6663](https://github.com/ardatan/graphql-tools/pull/6663)
+  [`d06afe3`](https://github.com/ardatan/graphql-tools/commit/d06afe3065edb15f4c58c1c155a230d8d542669f)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.10.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.10.0)
+    (from `^0.9.0`, in `dependencies`)
+- Updated dependencies
+  [[`d06afe3`](https://github.com/ardatan/graphql-tools/commit/d06afe3065edb15f4c58c1c155a230d8d542669f)]:
+  - @graphql-tools/url-loader@8.0.14
+
 ## 8.0.15
 
 ### Patch Changes
