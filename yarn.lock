@@ -1760,10 +1760,10 @@
   dependencies:
     tslib "^2.5.2"
 
-"@graphql-yoga/plugin-defer-stream@3.9.0":
-  version "3.9.0"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.9.0.tgz#31d51ecfc709a4f80f22624a839f7a3073d8ba80"
-  integrity sha512-bu3JSROkVYwXACrT6Hg+K2PFptii37Do/rILCZmMOz+e5FrRK4M4bnF+Y+LLTn2hX6WWb/Jnv1rHZI4OVh9FEQ==
+"@graphql-yoga/plugin-defer-stream@3.10.0":
+  version "3.10.0"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.10.0.tgz#4c133835ec37625f289e994bbccfee1017bfb030"
+  integrity sha512-FkD8szACJkDv3i4X2+mxgE5lDc7FC73+ATG/wRm133nyRYd/Qw0BHu4rn6oAgRe2qaChB43vNhGA2qeqenzxmw==
   dependencies:
     "@graphql-tools/utils" "^10.0.0"
 
@@ -7340,10 +7340,10 @@ graphql-ws@^5.14.0:
   resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.16.0.tgz#849efe02f384b4332109329be01d74c345842729"
   integrity sha512-Ju2RCU2dQMgSKtArPbEtsK5gNLnsQyTNIo/T7cZNp96niC1x0KdJNZV0TIoilceBPQwfb5itrGl8pkFeOUMl4A==
 
-graphql-yoga@5.9.0, graphql-yoga@^5.0.0, graphql-yoga@^5.8.0:
-  version "5.9.0"
-  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.9.0.tgz#eacd9b05f1e40c25c5ff690ac76209b6e82640d8"
-  integrity sha512-zeSu77bnl+id+MaKpS8dQPA9Dix0DgdibWM5GFrQxKBwrdpW9XOH33ofrZvs+BXVici+pJvuxo+LeUpHopiBrg==
+graphql-yoga@5.10.0, graphql-yoga@^5.0.0, graphql-yoga@^5.8.0:
+  version "5.10.0"
+  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.10.0.tgz#68fe585e715b2d54ef74543ca3ed8e89b1bda9ad"
+  integrity sha512-OIVwZQQCKg2SeX9lWWycUdCeQOSxPp+1xii2bI4LeLvEsAod2DxZZdWYdigcG/zYJdSFZlYoRhKahdbEEbjoAA==
   dependencies:
     "@envelop/core" "^5.0.1"
     "@graphql-tools/executor" "^1.3.0"
@@ -12415,10 +12415,10 @@ svelte2tsx@0.7.23:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.1.13:
-  version "5.1.13"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.1.13.tgz#34b5e511d0e2eb36a0f0da77d8d21f3fc143ffe6"
-  integrity sha512-xVNk8yLsZNfkyqWzVg8+nfU9ewiSjVW0S4qyTxfKa6Y7P5ZBhA+LDsh2cHWIXJQMltikQAk6W3sqGdQZSH58PA==
+svelte@5.1.14:
+  version "5.1.14"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.1.14.tgz#eee92f590cde5c0c804311cd3d4afa306d0a561f"
+  integrity sha512-1ZURTV4OBeWS6qKFzKjTIa9K4RWCR3CtpgOen/hsamCIS/dwBpvglwPNMjvNJR/yMlUWxtq+KC4mmvCo7G7m6Q==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
