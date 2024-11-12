@@ -38,10 +38,10 @@
   resolved "https://registry.yarnpkg.com/@apollo/cache-control-types/-/cache-control-types-1.0.3.tgz#5da62cf64c3b4419dabfef4536b57a40c8ff0b47"
   integrity sha512-F17/vCp7QVwom9eG7ToauIKdAxpSoadsJnqIfyryLFSkLSOEqu+eC5Z3N8OXcUVStuOMcNHlyraRsA6rRICu4g==
 
-"@apollo/client@3.11.9", "@apollo/client@^3.7.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0 || ~3.8.0 || ~3.9.0 || ~3.10.0 || ~3.11.0":
-  version "3.11.9"
-  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.11.9.tgz#d7f998a6e8496667f157823d50a746c4e5a20b46"
-  integrity sha512-aQ6VL+CPO1G4DLS/3FelfA+nl+ZQCP5qeN1NS6J8xh9wumUM/2W1ccneqCYmbTMDtoSunxE1BV2W6u0FF4axwQ==
+"@apollo/client@3.11.10", "@apollo/client@^3.7.0", "@apollo/client@~3.2.5 || ~3.3.0 || ~3.4.0 || ~3.5.0 || ~3.6.0 || ~3.7.0 || ~3.8.0 || ~3.9.0 || ~3.10.0 || ~3.11.0":
+  version "3.11.10"
+  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.11.10.tgz#e16ae82ea9b16536ffd109847d24f9293fab5c4d"
+  integrity sha512-IfGc+X4il0rDqVQBBWdxIKM+ciDCiDzBq9+Bg9z4tJMi87uF6po4v+ddiac1wP0ARgVPsFwEIGxK7jhN4pW8jg==
   dependencies:
     "@graphql-typed-document-node/core" "^3.1.1"
     "@wry/caches" "^1.0.0"
