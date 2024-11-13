@@ -19,7 +19,7 @@ export function mapAsyncIterator<T, U>(
   let onEndWithValue: <R>(value: R) => MaybePromise<R>;
 
   if (onEnd) {
-    let onEndWithValueResult: any /** R in onEndWithValue */ = undefined;
+    let onEndWithValueResult: any /** R in onEndWithValue */;
     onEndWithValue = value => {
       if (onEndWithValueResult) {
         return onEndWithValueResult;
@@ -46,7 +46,7 @@ export function mapAsyncIterator<T, U>(
 
   let mapReject: any;
   if (onError) {
-    let onErrorResult: unknown = undefined;
+    let onErrorResult: unknown;
     // Capture rejectCallback to ensure it cannot be null.
     const reject = onError;
     mapReject = (error: any) => {
