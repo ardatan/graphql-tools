@@ -46,9 +46,15 @@ export function mapAsyncIterator<T, U>(
 
   let mapReject: any;
   if (onError) {
+    let onErrorResult: unknown = undefined;
     // Capture rejectCallback to ensure it cannot be null.
     const reject = onError;
-    mapReject = (error: any) => asyncMapValue(error, reject).then(iteratorResult, abruptClose);
+    mapReject = (error: any) => {
+      if (onErrorResult) {
+        return onErrorResult;
+      }
+      return (onErrorResult = asyncMapValue(error, reject).then(iteratorResult, abruptClose));
+    };
   }
 
   return {
