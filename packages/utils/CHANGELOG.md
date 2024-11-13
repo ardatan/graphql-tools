@@ -1,5 +1,15 @@
 # @graphql-tools/utils
 
+## 10.5.6
+
+### Patch Changes
+
+- [#6677](https://github.com/ardatan/graphql-tools/pull/6677)
+  [`dc5043b`](https://github.com/ardatan/graphql-tools/commit/dc5043bb7c9afaca907c242eb6bf65e8019d79c4)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - `onError` and `onEnd` callbacks from
+  `mapAsyncIterator` are invoked only once regardless of how many times `throw`/`return` was called
+  on the iterator
+
 ## 10.5.5
 
 ### Patch Changes
