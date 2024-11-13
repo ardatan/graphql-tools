@@ -19,9 +19,13 @@ export function mapAsyncIterator<T, U>(
   let onEndWithValue: <R>(value: R) => MaybePromise<R>;
 
   if (onEnd) {
+    let onEndWithValueResult: any /** R in onEndWithValue */ = undefined;
     onEndWithValue = value => {
+      if (onEndWithValueResult) {
+        return onEndWithValueResult;
+      }
       const onEnd$ = onEnd();
-      return isPromise(onEnd$) ? onEnd$.then(() => value) : value;
+      return (onEndWithValueResult = isPromise(onEnd$) ? onEnd$.then(() => value) : value);
     };
   }
 

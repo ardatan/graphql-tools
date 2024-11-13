@@ -1,7 +1,7 @@
 import { mapAsyncIterator } from '../src/mapAsyncIterator.js';
 
 describe('mapAsyncIterator', () => {
-  it('should invoke onNext callback, for each value, replace results and invoke onEnd only once', async () => {
+  it('should invoke onNext callback, for each value, replace results and invoke onEnd only once regardless of how many times return was called', async () => {
     const onNext = jest.fn(() => 'replacer');
     const onEnd = jest.fn();
     const iter = mapAsyncIterator(
@@ -20,6 +20,7 @@ describe('mapAsyncIterator', () => {
     for await (const result of iter) {
       onNextResults.push(result);
     }
+    await Promise.all([iter.return?.(), iter.return?.(), iter.return?.()]);
     expect(onNext).toHaveBeenCalledTimes(3);
     expect(onNextResults).toEqual(['replacer', 'replacer', 'replacer']);
     expect(onEnd).toHaveBeenCalledTimes(1);
