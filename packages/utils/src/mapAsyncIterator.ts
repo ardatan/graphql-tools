@@ -19,9 +19,13 @@ export function mapAsyncIterator<T, U>(
   let onEndWithValue: <R>(value: R) => MaybePromise<R>;
 
   if (onEnd) {
+    let onEndWithValueResult: any /** R in onEndWithValue */;
     onEndWithValue = value => {
+      if (onEndWithValueResult) {
+        return onEndWithValueResult;
+      }
       const onEnd$ = onEnd();
-      return isPromise(onEnd$) ? onEnd$.then(() => value) : value;
+      return (onEndWithValueResult = isPromise(onEnd$) ? onEnd$.then(() => value) : value);
     };
   }
 
@@ -42,9 +46,15 @@ export function mapAsyncIterator<T, U>(
 
   let mapReject: any;
   if (onError) {
+    let onErrorResult: unknown;
     // Capture rejectCallback to ensure it cannot be null.
     const reject = onError;
-    mapReject = (error: any) => asyncMapValue(error, reject).then(iteratorResult, abruptClose);
+    mapReject = (error: any) => {
+      if (onErrorResult) {
+        return onErrorResult;
+      }
+      return (onErrorResult = asyncMapValue(error, reject).then(iteratorResult, abruptClose));
+    };
   }
 
   return {
