@@ -19,7 +19,7 @@ try {
   }
 } catch (e) {}
 
-const externalModules = [
+const externalToolsPackages = [
   '@graphql-tools/batch-delegate',
   '@graphql-tools/batch-execute',
   '@graphql-tools/delegate',
@@ -30,9 +30,9 @@ const externalModules = [
   '@graphql-tools/executor-graphql-ws',
 ];
 
-const externalModulesMapper ={};
+const externalModulesMapper = {};
 
-externalModules.forEach(mod => {
+externalToolsPackages.forEach(mod => {
   externalModulesMapper[`^${mod}$`] = require.resolve(mod);
 });
 
