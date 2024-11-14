@@ -69,7 +69,6 @@
     "@envelop/live-query": "7.0.0",
     "@graphql-yoga/plugin-defer-stream": "3.10.2",
     "@types/express": "5.0.0",
-    "@types/extract-files": "8.1.3",
     "@types/valid-url": "1.0.7",
     "babel-loader": "9.2.1",
     "express": "4.21.1",
