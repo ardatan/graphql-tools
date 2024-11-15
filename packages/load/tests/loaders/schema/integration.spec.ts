@@ -150,7 +150,7 @@ describe('loadSchema', () => {
         loaderType: 'schema',
       };
       const pointerOptions = {
-        loader: join(__dirname, '../../custom-loader.js'),
+        loader: join(__dirname, '../../custom-loader.cjs'),
         fooFieldName: 'myFooField',
       };
       const result = await load(

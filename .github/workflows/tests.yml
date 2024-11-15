@@ -110,6 +110,9 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           command: yarn test:leaks --ci
+      - name: Tests using Node.js runner
+        if: ${{ matrix.node-version >= 22 }}
+        run: yarn test:node
 
   trackback:
     name: trackback rc dependencies
