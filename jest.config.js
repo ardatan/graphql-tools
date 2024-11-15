@@ -23,7 +23,6 @@ const externalToolsPackages = [
   '@graphql-tools/batch-delegate',
   '@graphql-tools/batch-execute',
   '@graphql-tools/delegate',
-  '@graphql-tools/federation',
   '@graphql-tools/stitch',
   '@graphql-tools/wrap',
   '@graphql-tools/executor-http',
