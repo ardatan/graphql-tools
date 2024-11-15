@@ -7,20 +7,20 @@
   },
   "packageRules": [
     {
-      "excludePackagePatterns": [
-        "@changesets/*",
-        "@whatwg-node/*",
-        "typescript",
-        "typedoc*",
-        "^@theguild/",
-        "@graphql-inspector/core",
-        "next",
-        "husky"
-      ],
-      "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "all non-major dependencies",
-      "groupSlug": "all-minor-patch"
+      "groupSlug": "all-minor-patch",
+      "matchPackageNames": [
+        "!/@changesets/*/",
+        "!/@whatwg-node/*/",
+        "!/typescript/",
+        "!/typedoc*/",
+        "!/^@theguild//",
+        "!/@graphql-inspector/core/",
+        "!/next/",
+        "!/husky/",
+        "*"
+      ]
     }
   ]
 }
