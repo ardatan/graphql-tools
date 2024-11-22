@@ -1,5 +1,5 @@
-import { isPromise } from '../src/jsutils.js';
 import { MaybePromise } from './executor.js';
+import { isPromise } from './jsutils.js';
 
 export function mapMaybePromise<T, R>(
   value: MaybePromise<T>,
