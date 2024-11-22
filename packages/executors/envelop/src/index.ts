@@ -1,4 +1,4 @@
-import { ExecutionArgs, Plugin } from '@envelop/core';
+import { ExecutionArgs, mapMaybePromise, Plugin } from '@envelop/core';
 import { Executor, isPromise, MaybePromise } from '@graphql-tools/utils';
 import { schemaFromExecutor } from '@graphql-tools/wrap';
 
@@ -97,12 +97,10 @@ export function useExecutor<TPluginContext extends Record<string, any>>(
         pluginCtx.schema$ = pluginCtx.schema;
       }
       ensureSchema(args.contextValue);
-      if (isPromise(pluginCtx.schemaSetPromise$)) {
-        return pluginCtx.schemaSetPromise$.then(() => {
-          setExecuteFn(executorToExecuteFn);
-        }) as Promise<void>;
-      }
-      setExecuteFn(executorToExecuteFn);
+      // @ts-expect-error - Typings are wrong
+      return mapMaybePromise(pluginCtx.schemaSetPromise$, () => {
+        setExecuteFn(executorToExecuteFn);
+      });
     },
     onSubscribe({ args, setSubscribeFn }) {
       if (args.schema) {
@@ -110,12 +108,10 @@ export function useExecutor<TPluginContext extends Record<string, any>>(
         pluginCtx.schema$ = pluginCtx.schema;
       }
       ensureSchema(args.contextValue);
-      if (isPromise(pluginCtx.schemaSetPromise$)) {
-        return pluginCtx.schemaSetPromise$.then(() => {
-          setSubscribeFn(executorToExecuteFn);
-        }) as Promise<void>;
-      }
-      setSubscribeFn(executorToExecuteFn);
+      // @ts-expect-error - Typings are wrong
+      return mapMaybePromise(pluginCtx.schemaSetPromise$, () => {
+        setSubscribeFn(executorToExecuteFn);
+      });
     },
     onValidate({ params, context, setResult }) {
       if (params.schema) {

@@ -55,3 +55,6 @@ export * from './directives.js';
 export * from './mergeIncrementalResult.js';
 export * from './debugTimer.js';
 export * from './getDirectiveExtensions.js';
+export * from './map-maybe-promise.js';
+export * from './fakePromise.js';
+export * from './createDeferred.js';

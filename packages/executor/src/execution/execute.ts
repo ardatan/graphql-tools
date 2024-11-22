@@ -35,6 +35,7 @@ import {
   addPath,
   collectFields,
   createGraphQLError,
+  fakePromise,
   getArgumentValues,
   getDefinedRootType,
   GraphQLStreamDirective,
@@ -1575,16 +1576,13 @@ export function flattenIncrementalResults<TData>(
     },
     next() {
       if (done) {
-        return Promise.resolve({
-          value: undefined,
-          done,
-        });
+        return fakePromise({ value: undefined, done });
       }
       if (initialResultSent) {
         return subsequentIterator.next();
       }
       initialResultSent = true;
-      return Promise.resolve({
+      return fakePromise({
         value: incrementalResults.initialResult,
         done,
       });

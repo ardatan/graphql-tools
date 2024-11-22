@@ -1,4 +1,5 @@
 import { MaybePromise } from './executor.js';
+import { mapMaybePromise } from './map-maybe-promise.js';
 
 export function isIterableObject(value: unknown): value is Iterable<unknown> {
   return value != null && typeof value === 'object' && Symbol.iterator in value;
@@ -20,9 +21,7 @@ export function promiseReduce<T, U>(
   let accumulator = initialValue;
 
   for (const value of values) {
-    accumulator = isPromise(accumulator)
-      ? accumulator.then(resolved => callbackFn(resolved, value))
-      : callbackFn(accumulator, value);
+    accumulator = mapMaybePromise(accumulator, resolved => callbackFn(resolved, value));
   }
 
   return accumulator;
