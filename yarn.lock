@@ -1659,9 +1659,9 @@
     value-or-promise "^1.0.12"
 
 "@graphql-tools/stitch@^9.3.4":
-  version "9.4.0"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/stitch/-/stitch-9.4.0.tgz#4c42c425c08d077d32527dc084724b6f9ccb4e9a"
-  integrity sha512-84poHK/wxJ8LcB91cHBpTEzIgnEERPehGvQZFCwj/B8a2t2OUo/P+KlB368jzDkL+j6q5akYmF9ZCMSf9+xgmw==
+  version "9.4.1"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/stitch/-/stitch-9.4.1.tgz#6ac2835f540e4de86b9791ae3b98a94c8a700832"
+  integrity sha512-DwOgmtApr5siu5FNWbkFcFiA6oe3zfgNw6/S83+hF1xev7sHj6+fRcgw68DyrnIUhr9ThIUb0eD+Pt4mzaCDFg==
   dependencies:
     "@graphql-tools/batch-delegate" "^9.0.16"
     "@graphql-tools/delegate" "^10.2.0"
