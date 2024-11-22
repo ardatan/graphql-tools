@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 10.6.0
+
+### Minor Changes
+
+- [`414e404`](https://github.com/ardatan/graphql-tools/commit/414e404a06478ea8ddd1065bd765de14af0f6c43)
+  Thanks [@ardatan](https://github.com/ardatan)! - new `fakePromise`, `mapMaybePromise` and
+  `fakeRejectPromise` helper functions
+
 ## 10.5.6
 
 ### Patch Changes
