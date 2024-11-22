@@ -1,5 +1,13 @@
 # @graphql-tools/json-file-loader
 
+## 8.0.4
+
+### Patch Changes
+
+- Updated dependencies
+  [[`414e404`](https://github.com/ardatan/graphql-tools/commit/414e404a06478ea8ddd1065bd765de14af0f6c43)]:
+  - @graphql-tools/utils@10.6.0
+
 ## 8.0.3
 
 ### Patch Changes
