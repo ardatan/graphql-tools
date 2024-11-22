@@ -1,3 +1,5 @@
+import { fakePromise } from './fakePromise.js';
+
 export interface Observer<T> {
   next: (value: T) => void;
   error: (error: Error) => void;
@@ -58,13 +60,13 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
 
   const subscription = observable.subscribe({
     next(value: any) {
-      pushValue(value);
+      return pushValue(value);
     },
     error(err: Error) {
-      pushError(err);
+      return pushError(err);
     },
     complete() {
-      pushDone();
+      return pushDone();
     },
   });
 
@@ -87,7 +89,7 @@ export function observableToAsyncIterable<T>(observable: Observable<T>): AsyncIt
     },
     return() {
       emptyQueue();
-      return Promise.resolve({ value: undefined, done: true });
+      return fakePromise({ value: undefined, done: true });
     },
     throw(error) {
       emptyQueue();

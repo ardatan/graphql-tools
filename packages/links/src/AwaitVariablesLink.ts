@@ -1,9 +1,10 @@
 import * as apolloImport from '@apollo/client';
+import { mapMaybePromise } from '@graphql-tools/utils';
 
 const apollo: typeof apolloImport = (apolloImport as any)?.default ?? apolloImport;
 
 function getFinalPromise(object: any): Promise<any> {
-  return Promise.resolve(object).then(resolvedObject => {
+  return mapMaybePromise(object, resolvedObject => {
     if (resolvedObject == null) {
       return resolvedObject;
     }
