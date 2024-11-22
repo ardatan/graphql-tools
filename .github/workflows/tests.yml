@@ -22,12 +22,11 @@ jobs:
       - name: Setup env
         uses: the-guild-org/shared-config/setup@main
         with:
-          nodeVersion: 18
+          nodeVersion: 22
 
       - name: Prettier Check
         run: yarn prettier:check
   lint:
-    needs: [prettier-check]
     name: Lint
     uses: the-guild-org/shared-config/.github/workflows/lint.yml@main
     with:
@@ -36,7 +35,6 @@ jobs:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
 
   build:
-    needs: [lint]
     name: Type Check on GraphQL v${{matrix.graphql_version}}
     runs-on: ubuntu-latest
     strategy:
@@ -52,7 +50,7 @@ jobs:
       - name: Setup env
         uses: the-guild-org/shared-config/setup@main
         with:
-          nodeVersion: 18
+          nodeVersion: 22
 
       - name: Use GraphQL v${{matrix.graphql_version}}
         run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
@@ -61,7 +59,6 @@ jobs:
       - name: Type Check
         run: yarn ts:check
   test_esm:
-    needs: [build]
     name: ESM Test
     runs-on: ubuntu-latest
     steps:
@@ -71,14 +68,13 @@ jobs:
       - name: Setup env
         uses: the-guild-org/shared-config/setup@main
         with:
-          nodeVersion: 18
+          nodeVersion: 22
 
       - name: Build Packages
         run: yarn build
       - name: Test ESM and CJS integrity
         run: yarn bob check
   test:
-    needs: [test_esm]
     name:
       Unit Test on Node ${{matrix.node-version}} (${{matrix.os}}) and GraphQL
       v${{matrix.graphql_version}}
@@ -129,7 +125,6 @@ jobs:
           command: yarn test:leaks --ci
 
   test_browser:
-    needs: [test]
     name: Browser Test
     runs-on: ubuntu-latest
     steps:
