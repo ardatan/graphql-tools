@@ -1,5 +1,13 @@
 # @graphql-tools/executor-envelop
 
+## 3.0.13
+
+### Patch Changes
+
+- Updated dependencies
+  [[`1e02935`](https://github.com/ardatan/graphql-tools/commit/1e0293562961fb12b267235e5aa6d0e83d0e7d0f)]:
+  - @graphql-tools/utils@10.6.1
+
 ## 3.0.12
 
 ### Patch Changes

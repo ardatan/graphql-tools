@@ -1,5 +1,13 @@
 # @graphql-tools/utils
 
+## 10.6.1
+
+### Patch Changes
+
+- [`1e02935`](https://github.com/ardatan/graphql-tools/commit/1e0293562961fb12b267235e5aa6d0e83d0e7d0f)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle parse errors correctly when loader gets a
+  string directly
+
 ## 10.6.0
 
 ### Minor Changes
