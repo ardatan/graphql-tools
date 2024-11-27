@@ -6034,10 +6034,10 @@ eslint-plugin-n@17.14.0:
     minimatch "^9.0.5"
     semver "^7.6.3"
 
-eslint-plugin-promise@7.2.0:
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-promise/-/eslint-plugin-promise-7.2.0.tgz#ef4194982c3a00867a4def866e0b5abf0caf6a87"
-  integrity sha512-O2QBfKGRP0AHxXhZ3Lk2sFGGGw8TlMW84c+QfPX0gMnDrKJEN5SGJOICt/nR6spLvzuYO3d3nV4R3AIzdbaW7Q==
+eslint-plugin-promise@7.2.1:
+  version "7.2.1"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-promise/-/eslint-plugin-promise-7.2.1.tgz#a0652195700aea40b926dc3c74b38e373377bfb0"
+  integrity sha512-SWKjd+EuvWkYaS+uN2csvj0KoP43YTu7+phKQ5v+xw6+A0gutVX2yqCeCkC3uLCJFiPfR2dD8Es5L7yUsmvEaA==
   dependencies:
     "@eslint-community/eslint-utils" "^4.4.0"
 
