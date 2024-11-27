@@ -7,6 +7,19 @@ describe('helpers', () => {
       mutation: Mutation
       subscription: Subscription
     }`,
+    /* GraphQL*/ `
+     extend type Query {
+      test(id: String!): Test
+        @resolveTo(
+          sourceName: "Test"
+          sourceTypeName: "Test"
+          sourceFieldName: "test"
+          requiredSelectionSet: "{ ...on Test { id name } }",
+          sourceArgs: { testId: {root.id} }
+          returnType: Test
+        )
+    }
+    `,
   ])('should detect "%s" as NOT a valid path', str => {
     expect(isValidPath(str)).toBeFalsy();
   });
