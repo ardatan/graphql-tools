@@ -7,7 +7,7 @@ describe('helpers', () => {
       mutation: Mutation
       subscription: Subscription
     }`,
-    /* GraphQL*/ `
+    `
      extend type Query {
       test(id: String!): Test
         @resolveTo(
