@@ -1,5 +1,14 @@
 # @graphql-tools/github-loader
 
+## 8.0.6
+
+### Patch Changes
+
+- Updated dependencies
+  [[`1e02935`](https://github.com/ardatan/graphql-tools/commit/1e0293562961fb12b267235e5aa6d0e83d0e7d0f)]:
+  - @graphql-tools/utils@10.6.1
+  - @graphql-tools/graphql-tag-pluck@8.3.6
+
 ## 8.0.5
 
 ### Patch Changes
@@ -370,9 +379,9 @@
 - c50d8568: Fix Github loader responding with 401 with invalid credentials
 
   Running the GitHub loader on a private repository with a missing or invalid GitHub token masks the
-  real error as [object Object]. This happens because the GitHub GraphQL api returns 401 unauthorized
-  if the token is not valid. After some debugging the only http status code i could find that triggers
-  this is 401. With the returned payload being:
+  real error as [object Object]. This happens because the GitHub GraphQL api returns 401
+  unauthorized if the token is not valid. After some debugging the only http status code i could
+  find that triggers this is 401. With the returned payload being:
 
   This update fixes the problem for 401 by passing status to `handleResponse` and checking if that
   is 401 and reporting the correct message returned from Github. The response from github being:
