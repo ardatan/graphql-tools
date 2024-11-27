@@ -1,6 +1,7 @@
 import '../../../../testing/to-be-similar-string';
 import '../../../../testing/to-be-similar-gql-doc';
 import { printSchema } from 'graphql';
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { printSchemaWithDirectives } from '@graphql-tools/utils';
 import { runTests, useMonorepo } from '../../../../testing/utils.js';
@@ -75,6 +76,26 @@ describe('schema from string', () => {
           book: String
         }
       `);
+    });
+    it('should throw parse error', async () => {
+      const schemaString = `
+     extend type Query {
+      test(id: String!): Test
+        @resolveTo(
+          sourceName: "Test"
+          sourceTypeName: "Test"
+          sourceFieldName: "test"
+          requiredSelectionSet: "{ ...on Test { id name } }",
+          sourceArgs: { testId: {root.id} }
+          returnType: Test
+        )
+    }
+      `;
+      await expect(
+        load(schemaString, {
+          loaders: [new GraphQLFileLoader()],
+        }),
+      ).rejects.toThrowError('Syntax Error');
     });
   });
 });
