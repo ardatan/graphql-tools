@@ -6106,10 +6106,10 @@ eslint@9.15.0:
     natural-compare "^1.4.0"
     optionator "^0.9.3"
 
-esm-env@^1.0.0:
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/esm-env/-/esm-env-1.1.4.tgz#340c78b03ee2298d31c5b9fab9793468ede828b0"
-  integrity sha512-oO82nKPHKkzIj/hbtuDYy/JHqBHFlMIW36SDiPCVsj87ntDLcWN+sJ1erdVryd4NxODacFTsdrIE3b7IamqbOg==
+esm-env@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/esm-env/-/esm-env-1.2.0.tgz#637c0586244c0eb14bfd7f5e96a6b43b9e8f5c2b"
+  integrity sha512-OhSQuHL3mUcaQHjGe8UMG8GsJIJHYYz0flR0h9fiTPNMupLMkb7TvcRD0EeJXW5a8GHBgfz08b6FDLNK7kkPQA==
 
 esm@^3.2.25:
   version "3.2.25"
@@ -11840,10 +11840,10 @@ svelte2tsx@0.7.28:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.2.9:
-  version "5.2.9"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.2.9.tgz#1cf7872a8651d4e29437373fc79f89f16b59702d"
-  integrity sha512-LjO7R6K8FI8dA3l+4CcsbJ3djIe2TtokHGzfpDTro5g8nworMbTz9alCR95EQXGsqlzIAvqJtZ7Yy0o33lL09Q==
+svelte@5.2.10:
+  version "5.2.10"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.2.10.tgz#d35399550de09e86f5344fe8e221c667bbbac68e"
+  integrity sha512-ON0OyO7vOmSjTc9mLjusu3vf1I7BvjovbiRB7j84F1WZMXV6dR+Tj4btIzxQxMHfzbGskaFmRa7qjgmBSVBnhQ==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
@@ -11852,7 +11852,7 @@ svelte@5.2.9:
     acorn-typescript "^1.4.13"
     aria-query "^5.3.1"
     axobject-query "^4.1.0"
-    esm-env "^1.0.0"
+    esm-env "^1.2.0"
     esrap "^1.2.2"
     is-reference "^3.0.3"
     locate-character "^3.0.0"
