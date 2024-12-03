@@ -2461,10 +2461,10 @@
   resolved "https://registry.yarnpkg.com/@polka/url/-/url-1.0.0-next.28.tgz#d45e01c4a56f143ee69c54dd6b12eade9e270a73"
   integrity sha512-8LduaNlMZGwdZ6qWrKlfa+2M4gahzFkprZiAt2TF8uS0qQgBizKXpXURqvTJ4WtmupWxaLqjRb2UCTe72mu+Aw==
 
-"@puppeteer/browsers@2.4.1":
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.4.1.tgz#7afd271199cc920ece2ff25109278be0a3e8a225"
-  integrity sha512-0kdAbmic3J09I6dT8e9vE2JOCSt13wHCW5x/ly8TSt2bDtuIWe2TgLZZDHdcziw9AVCzflMAXCrVyRIhIs44Ng==
+"@puppeteer/browsers@2.5.0":
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.5.0.tgz#7e4f7ba8f04e54f11501b78dc7bcc4033de935d4"
+  integrity sha512-6TQAc/5uRILE6deixJ1CR8rXyTbzXIXNgO1D0Woi9Bqicz2FV5iKP3BHYEg6o4UATCMcbQQ0jbmeaOkn/HQk2w==
   dependencies:
     debug "^4.3.7"
     extract-zip "^2.0.1"
@@ -10572,28 +10572,28 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
-puppeteer-core@23.9.0:
-  version "23.9.0"
-  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-23.9.0.tgz#24add69fb58dde4ac49d165872b44a30d2bf5b32"
-  integrity sha512-hLVrav2HYMVdK0YILtfJwtnkBAwNOztUdR4aJ5YKDvgsbtagNr6urUJk9HyjRA9e+PaLI3jzJ0wM7A4jSZ7Qxw==
+puppeteer-core@23.10.0:
+  version "23.10.0"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-23.10.0.tgz#d7d6007927a717863930d62b20f00bbf337219a2"
+  integrity sha512-7pv6kFget4Iki0RLBDowi35vaccz73XpC6/FAnfCrYa2IXVUlBHfZw+HGWzlvvTGwM9HHd32rgCrIDzil3kj+w==
   dependencies:
-    "@puppeteer/browsers" "2.4.1"
+    "@puppeteer/browsers" "2.5.0"
     chromium-bidi "0.8.0"
     debug "^4.3.7"
     devtools-protocol "0.0.1367902"
     typed-query-selector "^2.12.0"
     ws "^8.18.0"
 
-puppeteer@23.9.0:
-  version "23.9.0"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-23.9.0.tgz#69a5f3f4a9589865e0f96214f815112e9e206beb"
-  integrity sha512-WfB8jGwFV+qrD9dcJJVvWPFJBU6kxeu2wxJz9WooDGfM3vIiKLgzImEDBxUQnCBK/2cXB3d4dV6gs/LLpgfLDg==
+puppeteer@23.10.0:
+  version "23.10.0"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-23.10.0.tgz#115192743452fa0408979868bc1597b59c0da3d2"
+  integrity sha512-vLpEvUM8POKBX4j6y/yyD4oGRhS1oBAbMn3lYpz1yeakhRsA8IhF5QmjXwAIQYGdR/INxyFiY6kQDoUtLGDP3g==
   dependencies:
-    "@puppeteer/browsers" "2.4.1"
+    "@puppeteer/browsers" "2.5.0"
     chromium-bidi "0.8.0"
     cosmiconfig "^9.0.0"
     devtools-protocol "0.0.1367902"
-    puppeteer-core "23.9.0"
+    puppeteer-core "23.10.0"
     typed-query-selector "^2.12.0"
 
 pure-rand@^6.0.0:
@@ -11838,18 +11838,18 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-svelte2tsx@0.7.29:
-  version "0.7.29"
-  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.7.29.tgz#0ac4396714ef14d74c90bf1cf98b4020fc8263dd"
-  integrity sha512-mVFjwi8bgsUEoGK0ORUQElCA8QtbXuK+53U1rHnlPW3YstAxN500/xXbP+w94ZzmN/pqMGNTQYkXFa/+1AOGGw==
+svelte2tsx@0.7.30:
+  version "0.7.30"
+  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.7.30.tgz#5dbd9e38c2fe54170b441409ebb2ee46c807be9e"
+  integrity sha512-sHXK/vw/sVJmFuPSq6zeKrtuZKvo0jJyEi8ybN0dfrqSYVvHu8zFbO0zQKAL8y/fYackYojH41EJGe6v8rd5fw==
   dependencies:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.4.0:
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.4.0.tgz#e14a0cf5901ff7680504535ce89a1be3118e9e4d"
-  integrity sha512-2I/mjD8cXDpKfdfUK+T6yo/OzugMXIm8lhyJUFM5F/gICMYnkl3C/+4cOSpia8TqpDsi6Qfm5+fdmBNMNmaf2g==
+svelte@5.5.2:
+  version "5.5.2"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.5.2.tgz#9ca0d8b7907243af646098c1e2a61294bf606c6d"
+  integrity sha512-ZBVFfZuN5HOIWmpp1Hi0x2PL2CS4cw880quk479mSdQ9avpAEFcKvbYWZuKt/j01YQz5i0tfIUDCY2hMDB+KKg==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
