@@ -1,5 +1,25 @@
 # @graphql-tools/code-file-loader
 
+## 8.1.8
+
+### Patch Changes
+
+- [#6662](https://github.com/ardatan/graphql-tools/pull/6662)
+  [`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/graphql-tag-pluck@8.3.6` ↗︎](https://www.npmjs.com/package/@graphql-tools/graphql-tag-pluck/v/8.3.6)
+    (from `8.3.5`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/utils@^10.6.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.6.1)
+    (from `^10.6.0`, in `dependencies`)
+- Updated dependencies
+  [[`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679),
+  [`4fd0d3a`](https://github.com/ardatan/graphql-tools/commit/4fd0d3a335b39dc0c44e78a0416bb7dfe900c2ea),
+  [`1b24656`](https://github.com/ardatan/graphql-tools/commit/1b24656d3d13274820e52bede56991b0c54e8060)]:
+  - @graphql-tools/graphql-tag-pluck@8.3.7
+  - @graphql-tools/utils@10.6.2
+
 ## 8.1.7
 
 ### Patch Changes

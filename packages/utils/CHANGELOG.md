@@ -1,5 +1,21 @@
 # @graphql-tools/utils
 
+## 10.6.2
+
+### Patch Changes
+
+- [#6737](https://github.com/ardatan/graphql-tools/pull/6737)
+  [`1b24656`](https://github.com/ardatan/graphql-tools/commit/1b24656d3d13274820e52bede56991b0c54e8060)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle array of primitives correctly
+
+  The bug was following;
+
+  ```ts
+  mergeDeep([{ options: ['$a', '$b'] }, { options: ['$c'] }, { options: ['$d', '$e'] }])
+
+  // results in { options: [{}, {}] }
+  ```
+
 ## 10.6.1
 
 ### Patch Changes

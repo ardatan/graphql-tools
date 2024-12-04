@@ -1,5 +1,24 @@
 # @graphql-tools/executor-yoga
 
+## 3.0.14
+
+### Patch Changes
+
+- [#6662](https://github.com/ardatan/graphql-tools/pull/6662)
+  [`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/executor-envelop@^3.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-envelop/v/3.0.13)
+    (from `^3.0.12`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/utils@^10.6.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.6.1)
+    (from `^10.6.0`, in `dependencies`)
+- Updated dependencies
+  [[`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679),
+  [`1b24656`](https://github.com/ardatan/graphql-tools/commit/1b24656d3d13274820e52bede56991b0c54e8060)]:
+  - @graphql-tools/executor-envelop@3.0.14
+  - @graphql-tools/utils@10.6.2
+
 ## 3.0.13
 
 ### Patch Changes
