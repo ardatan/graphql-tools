@@ -201,7 +201,12 @@ function parseWithAstroSync(
 
 function transformGlimmerFile(glimmerSyntax: typeof import('content-tag'), fileData: string) {
   const processor = new glimmerSyntax.Preprocessor();
-  return processor.process(fileData);
+  // backwards compatibility with older versions of content-tag
+  const result = processor.process(fileData);
+  if (typeof result === 'string') {
+    return result;
+  }
+  return result.code;
 }
 
 /**
