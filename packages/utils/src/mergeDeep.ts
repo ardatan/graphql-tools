@@ -12,39 +12,50 @@ export function mergeDeep<S extends any[]>(
   respectArrays = false,
   respectArrayLength = false,
 ): UnboxIntersection<UnionToIntersection<BoxedTupleTypes<S>>> & any {
-  if (respectArrays && respectArrayLength) {
-    let expectedLength: number | undefined;
-    const areArraysInTheSameLength = sources.every(source => {
-      if (Array.isArray(source)) {
-        if (expectedLength === undefined) {
-          expectedLength = source.length;
-          return true;
-        } else if (expectedLength === source.length) {
-          return true;
-        }
+  let expectedLength: number | undefined;
+  let allArrays = true;
+  const areArraysInTheSameLength = sources.every(source => {
+    if (Array.isArray(source)) {
+      if (expectedLength === undefined) {
+        expectedLength = source.length;
+        return true;
+      } else if (expectedLength === source.length) {
+        return true;
       }
-      return false;
-    });
-
-    if (areArraysInTheSameLength) {
-      return new Array(expectedLength).fill(null).map((_, index) =>
-        mergeDeep(
-          sources.map(source => source[index]),
-          respectPrototype,
-          respectArrays,
-          respectArrayLength,
-        ),
-      );
+    } else {
+      allArrays = false;
     }
+    return false;
+  });
+
+  if (respectArrayLength && areArraysInTheSameLength) {
+    return new Array(expectedLength).fill(null).map((_, index) =>
+      mergeDeep(
+        sources.map(source => source[index]),
+        respectPrototype,
+        respectArrays,
+        respectArrayLength,
+      ),
+    );
+  }
+  if (allArrays) {
+    return sources.flat(1);
   }
 
-  const output = {};
+  let output: any;
+  let firstObjectSource: any;
   if (respectPrototype) {
-    Object.setPrototypeOf(output, Object.create(Object.getPrototypeOf(sources[0])));
+    firstObjectSource = sources.find(source => isObject(source));
+    if (output == null) {
+      output = {};
+    }
+    if (firstObjectSource) {
+      Object.setPrototypeOf(output, Object.create(Object.getPrototypeOf(firstObjectSource)));
+    }
   }
   for (const source of sources) {
     if (isObject(source)) {
-      if (respectPrototype) {
+      if (firstObjectSource) {
         const outputPrototype = Object.getPrototypeOf(output);
         const sourcePrototype = Object.getPrototypeOf(source);
         if (sourcePrototype) {
@@ -58,36 +69,28 @@ export function mergeDeep<S extends any[]>(
       }
 
       for (const key in source) {
-        if (isObject(source[key])) {
-          if (!(key in output)) {
-            Object.assign(output, { [key]: source[key] });
-          } else {
-            output[key] = mergeDeep(
-              [output[key], source[key]] as S,
-              respectPrototype,
-              respectArrays,
-              respectArrayLength,
-            );
-          }
-        } else if (respectArrays && Array.isArray(output[key])) {
-          if (Array.isArray(source[key])) {
-            if (respectArrayLength && output[key].length === source[key].length) {
-              output[key] = mergeDeep(
-                [output[key], source[key]] as S,
-                respectPrototype,
-                respectArrays,
-                respectArrayLength,
-              );
-            } else {
-              output[key].push(...source[key]);
-            }
-          } else {
-            output[key].push(source[key]);
-          }
+        if (output == null) {
+          output = {};
+        }
+        if (key in output) {
+          output[key] = mergeDeep(
+            [output[key], source[key]],
+            respectPrototype,
+            respectArrays,
+            respectArrayLength,
+          );
         } else {
-          Object.assign(output, { [key]: source[key] });
+          output[key] = source[key];
         }
       }
+    } else if (Array.isArray(source)) {
+      if (!Array.isArray(output)) {
+        output = source;
+      } else {
+        output = mergeDeep([output, source], respectPrototype, respectArrays, respectArrayLength);
+      }
+    } else {
+      output = source;
     }
   }
   return output;

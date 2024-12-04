@@ -66,4 +66,10 @@ describe('mergeDeep', () => {
       { b: 2, d: 4 },
     ]);
   });
+
+  it('merges string arrays', () => {
+    const a = { options: ['$A', '$B'] };
+    const b = { options: ['$A', '$B'] };
+    expect(mergeDeep([a, b], undefined, true, true)).toEqual({ options: ['$A', '$B'] });
+  });
 });
