@@ -1,6 +1,6 @@
-const prettierConfig = require('@theguild/prettier-config');
+import prettierConfig from '@theguild/prettier-config';
 
-module.exports = {
+export default {
   ...prettierConfig,
   plugins: [...prettierConfig.plugins, 'prettier-plugin-tailwindcss'],
 };
