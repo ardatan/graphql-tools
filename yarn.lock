@@ -1644,9 +1644,9 @@
     ws "^8.17.1"
 
 "@graphql-tools/executor-http@^1.1.9":
-  version "1.1.12"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-http/-/executor-http-1.1.12.tgz#9e067829d8220fdaf11f1ff52eefc173331df187"
-  integrity sha512-8cI26qkuP4nRsDB4Cc63vlcP/DDA2Tjwp/yabXiPHachRI28OGKhS2HP9KaPNVC7ATwCkqrgTva7XtIgtA0KAQ==
+  version "1.1.13"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-http/-/executor-http-1.1.13.tgz#4523721e526fbc6362e4a6f36c7c67d7209de009"
+  integrity sha512-At9AQCgEmf55myf71am8XoIBpvVcYFl6ndM72fSaxp77pPgqfZhElPbszAARSdeb4ftSa8h2aAI02q1+oRCcmA==
   dependencies:
     "@graphql-tools/utils" "^10.6.2"
     "@repeaterjs/repeater" "^3.0.4"
