@@ -1,25 +1,10 @@
+import './fix-shiki-packagejson';
 import fs, { promises as fsPromises } from 'node:fs';
-import path, { join } from 'node:path';
+import path from 'node:path';
 import chalk from 'chalk';
 import globby from 'globby';
 import { Application, TSConfigReader } from 'typedoc';
 import workspacePackageJson from '../package.json';
-
-const shikiJsVsCodeTextMatePackageJsonPath = join(
-  __dirname,
-  '../node_modules/@shikijs/vscode-textmate/package.json',
-);
-const shikiJsVsCodeTextMatePackageJson = JSON.parse(
-  fs.readFileSync(shikiJsVsCodeTextMatePackageJsonPath, 'utf-8'),
-);
-shikiJsVsCodeTextMatePackageJson.exports['.'] = {
-  default: './dist/index.mjs',
-  types: './dist/index.d.mts',
-};
-fs.writeFileSync(
-  shikiJsVsCodeTextMatePackageJsonPath,
-  JSON.stringify(shikiJsVsCodeTextMatePackageJson, null, 2),
-);
 
 const MONOREPO = workspacePackageJson.name.replace('-monorepo', '');
 const CWD = process.cwd();
