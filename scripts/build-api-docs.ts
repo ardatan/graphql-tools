@@ -1,6 +1,6 @@
 import './fix-shiki-packagejson';
 import fs, { promises as fsPromises } from 'node:fs';
-import path from 'node:path';
+import path, { join } from 'node:path';
 import chalk from 'chalk';
 import globby from 'globby';
 import { Application, TSConfigReader } from 'typedoc';
@@ -177,6 +177,10 @@ ${necessaryPart}`;
     const { dir, name } = path.parse(filePath);
     return `_${dir.replace(/[-/]/g, '_')}_${name}_.md`.replace(/_index_|_packages_/g, '');
   }
+
+  await Promise.all(
+    (await globby(join(OUTPUT_PATH, 'assets/**/*.js'))).map(filePath => fsPromises.rm(filePath)),
+  );
 }
 
 buildApiDocs().catch(e => {
