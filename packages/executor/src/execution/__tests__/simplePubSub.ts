@@ -1,3 +1,6 @@
+import { fakePromise } from '@graphql-tools/utils';
+import { DisposableSymbols } from '@whatwg-node/disposablestack';
+
 /**
  * Create an AsyncIterator from an EventEmitter. Useful for mocking a
  * PubSub system for tests.
@@ -55,6 +58,10 @@ export class SimplePubSub<T> {
       },
       [Symbol.asyncIterator]() {
         return this;
+      },
+      [DisposableSymbols.asyncDispose]() {
+        emptyQueue();
+        return fakePromise(undefined);
       },
     };
 

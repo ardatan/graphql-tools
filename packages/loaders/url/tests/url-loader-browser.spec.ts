@@ -220,7 +220,7 @@ describe('[url-loader] webpack bundle compat', () => {
           const result = await executor({
             document,
           });
-          const results = [];
+          const results: any[] = [];
           for await (const currentResult of result as any[]) {
             if (currentResult) {
               results.push(JSON.parse(JSON.stringify(currentResult)));
@@ -249,7 +249,7 @@ describe('[url-loader] webpack bundle compat', () => {
           const result = await executor({
             document,
           });
-          const results = [];
+          const results: any[] = [];
           for await (const currentResult of result as any[]) {
             if (currentResult) {
               results.push(JSON.parse(JSON.stringify(currentResult)));
@@ -287,7 +287,7 @@ describe('[url-loader] webpack bundle compat', () => {
           const result = await executor({
             document,
           });
-          const results = [];
+          const results: any[] = [];
           for await (const currentResult of result as AsyncIterable<ExecutionResult>) {
             results.push(currentResult);
           }
@@ -324,7 +324,7 @@ describe('[url-loader] webpack bundle compat', () => {
           const result = (await executor({
             document,
           })) as AsyncIterableIterator<ExecutionResult>;
-          const results = [];
+          const results: any[] = [];
           for await (const currentResult of result) {
             results.push(currentResult);
             if (results.length === 2) {

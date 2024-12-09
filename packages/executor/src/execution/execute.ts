@@ -54,6 +54,7 @@ import {
   promiseReduce,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import { DisposableSymbols } from '@whatwg-node/disposablestack';
 import { coerceError } from './coerceError.js';
 import { flattenAsyncIterable } from './flattenAsyncIterable.js';
 import { invariant } from './invariant.js';
@@ -1433,7 +1434,7 @@ export const defaultTypeResolver: GraphQLTypeResolver<unknown, unknown> = functi
 
   // Otherwise, test each possible type.
   const possibleTypes = info.schema.getPossibleTypes(abstractType);
-  const promisedIsTypeOfResults = [];
+  const promisedIsTypeOfResults: any[] = [];
 
   for (let i = 0; i < possibleTypes.length; i++) {
     const type = possibleTypes[i];
@@ -1594,6 +1595,10 @@ export function flattenIncrementalResults<TData>(
     throw(error: any) {
       done = true;
       return subsequentIterator.throw(error);
+    },
+    [DisposableSymbols.asyncDispose]() {
+      done = true;
+      return subsequentIterator?.[DisposableSymbols.asyncDispose]?.();
     },
   };
 }
@@ -2137,6 +2142,10 @@ function yieldSubsequentPayloads(
       await returnStreamIterators();
       isDone = true;
       return Promise.reject(error);
+    },
+    async [DisposableSymbols.asyncDispose]() {
+      await returnStreamIterators();
+      isDone = true;
     },
   };
 }
