@@ -39,7 +39,7 @@ async function buildApiDocs(): Promise<void> {
 
   // Delete existing docs directory
   await fsPromises.rm(OUTPUT_PATH, { recursive: true }).catch(() => null);
-
+  console.log('🧹 ', chalk.green('Deleted existing docs directory'), OUTPUT_PATH);
   // Initialize TypeDoc
   const typeDoc = await Application.bootstrapWithPlugins(
     {
@@ -52,6 +52,7 @@ async function buildApiDocs(): Promise<void> {
       tsconfig: path.join(CWD, 'tsconfig.json'),
       entryPoints: modules.map(([_name, filePath]) => filePath),
       plugin: ['typedoc-plugin-markdown'],
+      logLevel: 'Verbose',
     },
     [new TSConfigReader()],
   );
@@ -177,10 +178,6 @@ ${necessaryPart}`;
     const { dir, name } = path.parse(filePath);
     return `_${dir.replace(/[-/]/g, '_')}_${name}_.md`.replace(/_index_|_packages_/g, '');
   }
-
-  await Promise.all(
-    (await globby(join(OUTPUT_PATH, 'assets/**/*.js'))).map(filePath => fsPromises.rm(filePath)),
-  );
 }
 
 buildApiDocs().catch(e => {
