@@ -59,7 +59,7 @@ describe('Envelop', () => {
       document,
     });
     expect(result[Symbol.asyncIterator]).toBeDefined();
-    const collectedResults = [];
+    const collectedResults: any[] = [];
     for await (const chunk of result as AsyncIterableIterator<any>) {
       collectedResults.push(chunk);
     }

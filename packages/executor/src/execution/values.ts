@@ -31,7 +31,7 @@ export function getVariableValues(
   inputs: { readonly [variable: string]: unknown },
   options?: { maxErrors?: number },
 ): CoercedVariableValues {
-  const errors = [];
+  const errors: any[] = [];
   const maxErrors = options?.maxErrors;
   try {
     const coerced = coerceVariableValues(schema, varDefNodes, inputs, error => {
@@ -50,7 +50,6 @@ export function getVariableValues(
     errors.push(error);
   }
 
-  // @ts-expect-error - We know that errors is an array of GraphQLError.
   return { errors };
 }
 

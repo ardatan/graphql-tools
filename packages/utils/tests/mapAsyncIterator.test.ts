@@ -16,7 +16,7 @@ describe('mapAsyncIterator', () => {
       },
       onEnd,
     );
-    const onNextResults = [];
+    const onNextResults: string[] = [];
     for await (const result of iter) {
       onNextResults.push(result);
     }
