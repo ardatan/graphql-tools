@@ -1,25 +1,10 @@
+import './fix-shiki-packagejson';
 import fs, { promises as fsPromises } from 'node:fs';
 import path, { join } from 'node:path';
 import chalk from 'chalk';
 import globby from 'globby';
 import { Application, TSConfigReader } from 'typedoc';
 import workspacePackageJson from '../package.json';
-
-const shikiJsVsCodeTextMatePackageJsonPath = join(
-  __dirname,
-  '../node_modules/@shikijs/vscode-textmate/package.json',
-);
-const shikiJsVsCodeTextMatePackageJson = JSON.parse(
-  fs.readFileSync(shikiJsVsCodeTextMatePackageJsonPath, 'utf-8'),
-);
-shikiJsVsCodeTextMatePackageJson.exports['.'] = {
-  default: './dist/index.mjs',
-  types: './dist/index.d.mts',
-};
-fs.writeFileSync(
-  shikiJsVsCodeTextMatePackageJsonPath,
-  JSON.stringify(shikiJsVsCodeTextMatePackageJson, null, 2),
-);
 
 const MONOREPO = workspacePackageJson.name.replace('-monorepo', '');
 const CWD = process.cwd();
@@ -54,7 +39,7 @@ async function buildApiDocs(): Promise<void> {
 
   // Delete existing docs directory
   await fsPromises.rm(OUTPUT_PATH, { recursive: true }).catch(() => null);
-
+  console.log('🧹 ', chalk.green('Deleted existing docs directory'), OUTPUT_PATH);
   // Initialize TypeDoc
   const typeDoc = await Application.bootstrapWithPlugins(
     {
@@ -67,6 +52,7 @@ async function buildApiDocs(): Promise<void> {
       tsconfig: path.join(CWD, 'tsconfig.json'),
       entryPoints: modules.map(([_name, filePath]) => filePath),
       plugin: ['typedoc-plugin-markdown'],
+      logLevel: 'Verbose',
     },
     [new TSConfigReader()],
   );

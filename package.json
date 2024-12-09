@@ -57,7 +57,7 @@
     "@typescript-eslint/parser": "8.17.0",
     "babel-jest": "29.7.0",
     "bob-the-bundler": "7.0.1",
-    "chalk": "4.1.2",
+    "chalk": "5.3.0",
     "concurrently": "9.1.0",
     "cross-env": "7.0.3",
     "eslint": "9.16.0",
@@ -77,9 +77,9 @@
     "prettier-plugin-tailwindcss": "0.6.9",
     "ts-jest": "29.2.5",
     "tsx": "^4.19.2",
-    "typedoc": "0.27.4",
-    "typedoc-plugin-markdown": "4.3.2",
-    "typedoc-plugin-rename-defaults": "0.7.2",
+    "typedoc": "0.25.13",
+    "typedoc-plugin-markdown": "3.16.0",
+    "typedoc-plugin-rename-defaults": "0.7.0",
     "typescript": "5.7.2"
   },
   "resolutions": {
