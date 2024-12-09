@@ -1,9 +1,25 @@
 import fs, { promises as fsPromises } from 'node:fs';
-import path from 'node:path';
+import path, { join } from 'node:path';
 import chalk from 'chalk';
 import globby from 'globby';
-import * as TypeDoc from 'typedoc';
+import { Application, TSConfigReader } from 'typedoc';
 import workspacePackageJson from '../package.json';
+
+const shikiJsVsCodeTextMatePackageJsonPath = join(
+  __dirname,
+  '../node_modules/@shikijs/vscode-textmate/package.json',
+);
+const shikiJsVsCodeTextMatePackageJson = JSON.parse(
+  fs.readFileSync(shikiJsVsCodeTextMatePackageJsonPath, 'utf-8'),
+);
+shikiJsVsCodeTextMatePackageJson.exports['.'] = {
+  default: './dist/index.mjs',
+  types: './dist/index.d.mts',
+};
+fs.writeFileSync(
+  shikiJsVsCodeTextMatePackageJsonPath,
+  JSON.stringify(shikiJsVsCodeTextMatePackageJson, null, 2),
+);
 
 const MONOREPO = workspacePackageJson.name.replace('-monorepo', '');
 const CWD = process.cwd();
@@ -40,7 +56,7 @@ async function buildApiDocs(): Promise<void> {
   await fsPromises.rm(OUTPUT_PATH, { recursive: true }).catch(() => null);
 
   // Initialize TypeDoc
-  const typeDoc = await TypeDoc.Application.bootstrapWithPlugins(
+  const typeDoc = await Application.bootstrapWithPlugins(
     {
       excludePrivate: true,
       excludeProtected: true,
@@ -52,7 +68,7 @@ async function buildApiDocs(): Promise<void> {
       entryPoints: modules.map(([_name, filePath]) => filePath),
       plugin: ['typedoc-plugin-markdown'],
     },
-    [new TypeDoc.TSConfigReader()],
+    [new TSConfigReader()],
   );
 
   // Generate the API docs
