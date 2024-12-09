@@ -1,3 +1,5 @@
+import { DisposableSymbols } from '@whatwg-node/disposablestack';
+
 type AsyncIterableOrGenerator<T> = AsyncGenerator<T, void, void> | AsyncIterable<T>;
 
 /**
@@ -88,6 +90,13 @@ export function flattenAsyncIterable<T>(
     },
     [Symbol.asyncIterator]() {
       return this;
+    },
+    async [DisposableSymbols.asyncDispose]() {
+      done = true;
+      await Promise.all([
+        currentNestedIterator?.[DisposableSymbols.asyncDispose]?.(),
+        topIterator?.[DisposableSymbols.asyncDispose]?.(),
+      ]);
     },
   };
 }

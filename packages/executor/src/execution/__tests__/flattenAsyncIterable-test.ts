@@ -19,7 +19,7 @@ describe('flattenAsyncIterable', () => {
 
     const doubles = flattenAsyncIterable(source());
 
-    const result = [];
+    const result: any[] = [];
     for await (const x of doubles) {
       result.push(x);
     }

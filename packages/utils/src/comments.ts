@@ -472,7 +472,7 @@ export function getLeadingCommentBlock(node: { loc?: Location }): void | string 
   if (!loc) {
     return;
   }
-  const comments = [];
+  const comments: string[] = [];
   let token = loc.startToken.prev;
   while (
     token != null &&
@@ -517,7 +517,7 @@ export function dedentBlockStringValue(rawString: string): string {
  * @internal
  */
 export function getBlockStringIndentation(lines: ReadonlyArray<string>): number {
-  let commonIndent = null;
+  let commonIndent: number | null = null;
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i];

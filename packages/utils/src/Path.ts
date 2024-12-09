@@ -21,7 +21,7 @@ export function addPath(
  * Given a Path, return an Array of the path keys.
  */
 export function pathToArray(path: Maybe<Readonly<Path>>): Array<string | number> {
-  const flattened = [];
+  const flattened: Array<string | number> = [];
   let curr = path;
   while (curr) {
     flattened.push(curr.key);

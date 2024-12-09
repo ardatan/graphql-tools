@@ -97,7 +97,7 @@ function formatArray(array: ReadonlyArray<unknown>, seenValues: ReadonlyArray<un
   }
 
   const len = array.length;
-  const items = [];
+  const items: any[] = [];
 
   for (let i = 0; i < len; ++i) {
     items.push(formatValue(array[i], seenValues));

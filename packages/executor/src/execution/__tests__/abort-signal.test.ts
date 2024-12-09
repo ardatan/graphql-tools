@@ -53,7 +53,7 @@ describe('Abort Signal', () => {
       signal: controller.signal,
     });
     assertAsyncIterable(result);
-    const results = [];
+    const results: any[] = [];
     for await (const value of result) {
       results.push(value.data?.counter);
       if (value.data?.counter === 4) {

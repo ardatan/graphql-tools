@@ -56,8 +56,9 @@
   },
   "dependencies": {
     "@graphql-tools/utils": "^10.6.2",
-    "@graphql-typed-document-node/core": "3.2.0",
+    "@graphql-typed-document-node/core": "^3.2.0",
     "@repeaterjs/repeater": "^3.0.4",
+    "@whatwg-node/disposablestack": "^0.0.5",
     "tslib": "^2.4.0",
     "value-or-promise": "^1.0.12"
   },
