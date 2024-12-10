@@ -216,7 +216,7 @@ describe('schema from typedefs', () => {
     });
 
     it('should parse nested import types', async () => {
-      const glob = './tests/loaders/schema/test-files/nested-imports/query.graphql';
+      const glob = './tests/loaders/schema/test-files/nested-imports/query-types.graphql';
       const schema = await load(glob, {
         loaders: [new GraphQLFileLoader()],
       });
@@ -225,6 +225,19 @@ describe('schema from typedefs', () => {
       expect(schema.getTypeMap()['Foo']).toBeDefined();
       expect(schema.getTypeMap()['Bar']).toBeDefined();
       expect(schema.getTypeMap()['Ham']).toBeDefined();
+    });
+
+    it('should parse nested import types with interfaces', async () => {
+      const glob = './tests/loaders/schema/test-files/nested-imports/query-interfaces.graphql';
+      const schema = await load(glob, {
+        loaders: [new GraphQLFileLoader()]
+      });
+
+      expect(schema.getTypeMap()['Query']).toBeDefined();
+      expect(schema.getTypeMap()['Foo']).toBeDefined();
+      expect(schema.getTypeMap()['Cat']).toBeDefined();
+      expect(schema.getTypeMap()['Dog']).toBeDefined();
+      expect(schema.getTypeMap()['Pet']).toBeDefined();
     });
   });
 });
