@@ -206,6 +206,7 @@ describe('Execute: Handles basic execution tasks', () => {
       'rootValue',
       'operation',
       'variableValues',
+      'signal',
     ]);
 
     const operation = document.definitions[0];
