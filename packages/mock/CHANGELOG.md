@@ -1,5 +1,18 @@
 # @graphql-tools/mock
 
+## 9.0.10
+
+### Patch Changes
+
+- [`020b9e4`](https://github.com/ardatan/graphql-tools/commit/020b9e47b51f9847bf915de5faefe09dc04d9612)
+  Thanks [@ardatan](https://github.com/ardatan)! - \`AbortSignal\` in \`GraphQLResolveInfo\`, and
+  \`AbortSignal\` in \`ExecutionRequest\`
+
+- Updated dependencies
+  [[`020b9e4`](https://github.com/ardatan/graphql-tools/commit/020b9e47b51f9847bf915de5faefe09dc04d9612)]:
+  - @graphql-tools/schema@10.0.12
+  - @graphql-tools/utils@10.6.3
+
 ## 9.0.9
 
 ### Patch Changes
