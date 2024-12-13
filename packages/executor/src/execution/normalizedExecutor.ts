@@ -1,6 +1,13 @@
-import { getOperationAST } from 'graphql';
+import { getOperationAST, GraphQLSchema } from 'graphql';
 import { ValueOrPromise } from 'value-or-promise';
-import { ExecutionResult, MaybeAsyncIterable, MaybePromise } from '@graphql-tools/utils';
+import {
+  ExecutionRequest,
+  ExecutionResult,
+  Executor,
+  MaybeAsyncIterable,
+  MaybePromise,
+  memoize1,
+} from '@graphql-tools/utils';
 import { execute, ExecutionArgs, flattenIncrementalResults, subscribe } from './execute.js';
 
 export function normalizedExecutor<TData = any, TVariables = any, TContext = any>(
@@ -22,3 +29,19 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
     })
     .resolve()!;
 }
+
+export const executorFromSchema = memoize1(function executorFromSchema(
+  schema: GraphQLSchema,
+): Executor {
+  return function schemaExecutor(request: ExecutionRequest) {
+    return normalizedExecutor({
+      schema,
+      document: request.document,
+      variableValues: request.variables,
+      operationName: request.operationName,
+      rootValue: request.rootValue,
+      contextValue: request.context,
+      signal: request.signal || request.info?.signal,
+    });
+  };
+});

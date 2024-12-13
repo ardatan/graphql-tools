@@ -13,7 +13,6 @@ import {
   GraphQLList,
   GraphQLObjectType,
   GraphQLOutputType,
-  GraphQLResolveInfo,
   GraphQLSchema,
   GraphQLTypeResolver,
   isAbstractType,
@@ -38,6 +37,7 @@ import {
   fakePromise,
   getArgumentValues,
   getDefinedRootType,
+  GraphQLResolveInfo,
   GraphQLStreamDirective,
   inspect,
   isAsyncIterable,
@@ -758,6 +758,7 @@ export function buildResolveInfo(
     rootValue: exeContext.rootValue,
     operation: exeContext.operation,
     variableValues: exeContext.variableValues,
+    signal: exeContext.signal,
   };
 }
 
@@ -957,9 +958,13 @@ async function completeAsyncIteratorValue(
   iterator: AsyncIterator<unknown>,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): Promise<ReadonlyArray<unknown>> {
-  exeContext.signal?.addEventListener('abort', () => {
-    iterator.return?.();
-  });
+  exeContext.signal?.addEventListener(
+    'abort',
+    () => {
+      iterator.return?.();
+    },
+    { once: true },
+  );
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
   const stream = getStreamValues(exeContext, fieldNodes, path);
   let containsPromise = false;
@@ -2080,10 +2085,14 @@ function yieldSubsequentPayloads(
   let isDone = false;
 
   const abortPromise = new Promise<void>((_, reject) => {
-    exeContext.signal?.addEventListener('abort', () => {
-      isDone = true;
-      reject(exeContext.signal?.reason);
-    });
+    exeContext.signal?.addEventListener(
+      'abort',
+      () => {
+        isDone = true;
+        reject(exeContext.signal?.reason);
+      },
+      { once: true },
+    );
   });
 
   async function next(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
@@ -2141,7 +2150,7 @@ function yieldSubsequentPayloads(
     async throw(error?: unknown): Promise<IteratorResult<never, void>> {
       await returnStreamIterators();
       isDone = true;
-      return Promise.reject(error);
+      throw error;
     },
     async [DisposableSymbols.asyncDispose]() {
       await returnStreamIterators();
