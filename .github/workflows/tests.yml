@@ -35,7 +35,7 @@ jobs:
       - name: Type Check
         run: yarn ts:check
   check:
-    name: Check on GraphQL v16
+    name: Full Check on GraphQL v16
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Master
