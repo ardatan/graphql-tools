@@ -5,9 +5,9 @@ import { ApolloClient, FetchResult, InMemoryCache } from '@apollo/client/core';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { ExecutorLink } from '../src/index.js';
 
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip);
+const ifIt = (condition: boolean) => (condition ? it : it.skip);
 
-describeIf(!process.env['LEAK_TEST'])('Apollo Link', () => {
+describe('Apollo Link', () => {
   const yoga = createYoga({
     logging: false,
     maskedErrors: false,
@@ -78,7 +78,7 @@ describeIf(!process.env['LEAK_TEST'])('Apollo Link', () => {
       hello: 'Hello Apollo Client!',
     });
   });
-  it('should handle subscriptions correctly', async () => {
+  ifIt(!process.env['LEAK_TEST'])('should handle subscriptions correctly', async () => {
     expect.assertions(5);
     const observable = client.subscribe({
       query: parse(/* GraphQL */ `

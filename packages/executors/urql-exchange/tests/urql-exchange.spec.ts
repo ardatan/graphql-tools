@@ -6,9 +6,9 @@ import { ExecutionResult } from '@graphql-tools/utils';
 import { createClient } from '@urql/core';
 import { executorExchange } from '../src/index.js';
 
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip);
+const ifIt = (condition: boolean) => (condition ? it : it.skip);
 
-describeIf(!process.env['LEAK_TEST'])('URQL Yoga Exchange', () => {
+describe('URQL Yoga Exchange', () => {
   const yoga = createYoga({
     logging: false,
     maskedErrors: false,
@@ -79,7 +79,7 @@ describeIf(!process.env['LEAK_TEST'])('URQL Yoga Exchange', () => {
       hello: 'Hello Urql Client!',
     });
   });
-  it('should handle subscriptions correctly', async () => {
+  ifIt(!process.env['LEAK_TEST'])('should handle subscriptions correctly', async () => {
     const observable = pipe(
       client.subscription(
         /* GraphQL */ `

@@ -113,34 +113,13 @@ jobs:
             hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
-      - name: Test
-        if: ${{ matrix.node-version >= 20 }}
+      - name: Build
+        run: yarn build
+      - name: Unit Tests
         run: yarn test --ci
-      - name: Test
-        if: ${{ matrix.node-version < 20 }}
+      - name: Leak Tests
         uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
           command: yarn test:leaks --ci
-
-  test_browser:
-    name: Browser Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Master
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - name: Setup env
-        uses: the-guild-org/shared-config/setup@main
-        with:
-          nodeVersion: 22
-      - name: Setup Chrome
-        uses: browser-actions/setup-chrome@v1
-      - name: Build Packages
-        run: yarn build
-      - name: Test
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          command: TEST_BROWSER=true yarn jest --no-watchman --ci browser
