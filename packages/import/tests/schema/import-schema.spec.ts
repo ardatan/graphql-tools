@@ -422,21 +422,21 @@ describe('importSchema', () => {
     expect(importSchema('./fixtures/directive/c.graphql')).toBeSimilarGqlDoc(expectedSDL);
   });
 
-  // TODO: later
-  test.skip('importSchema: multiple key directive', () => {
-    const expectedSDL = /* GraphQL */ `
-      scalar UPC
+  // // TODO: later
+  // test.skip('importSchema: multiple key directive', () => {
+  //   const expectedSDL = /* GraphQL */ `
+  //     scalar UPC
 
-      scalar SKU
+  //     scalar SKU
 
-      type Product @key(fields: "upc") @key(fields: "sku") {
-        upc: UPC!
-        sku: SKU!
-        name: String
-      }
-    `;
-    expect(importSchema('./fixtures/directive/e.graphql')).toBeSimilarGqlDoc(expectedSDL);
-  });
+  //     type Product @key(fields: "upc") @key(fields: "sku") {
+  //       upc: UPC!
+  //       sku: SKU!
+  //       name: String
+  //     }
+  //   `;
+  //   expect(importSchema('./fixtures/directive/e.graphql')).toBeSimilarGqlDoc(expectedSDL);
+  // });
 
   test('importSchema: external directive', () => {
     const expectedSDL = /* GraphQL */ `

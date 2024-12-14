@@ -69,8 +69,9 @@ export class SimplePubSub<T> {
       const value: R = transform(event);
       if (pullQueue.length > 0) {
         const receiver = pullQueue.shift();
-        expect(receiver != null).toBeTruthy();
-        // @ts-expect-error
+        if (!receiver) {
+          throw new Error('Invalid state');
+        }
         receiver({ value, done: false });
       } else {
         pushQueue.push(value);
@@ -78,7 +79,3 @@ export class SimplePubSub<T> {
     }
   }
 }
-
-describe.skip('no simplePubSub tests', () => {
-  it.todo('nothing to test');
-});

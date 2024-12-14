@@ -83,3 +83,11 @@ function findProjectDir(dirname: string): string | never {
 
   throw new Error(`Couldn't find project's root from: ${originalDirname}`);
 }
+
+export function describeIf(condition: boolean) {
+  return condition ? describe : describe.skip;
+}
+
+export function testIf(condition: boolean) {
+  return condition ? test : test.skip;
+}
