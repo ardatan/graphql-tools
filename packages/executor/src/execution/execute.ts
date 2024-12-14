@@ -274,7 +274,7 @@ export function execute<TData = any, TVariables = any, TContext = any>(
           value: {
             ...e.extensions,
             http: {
-              ...e.extensions?.['http'],
+              ...(e.extensions?.['http'] || {}),
               status: 400,
             },
           },
@@ -1545,7 +1545,7 @@ export function subscribe<TData = any, TVariables = any, TContext = any>(
           value: {
             ...e.extensions,
             http: {
-              ...e.extensions?.['http'],
+              ...(e.extensions?.['http'] || {}),
               status: 400,
             },
           },
