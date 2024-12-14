@@ -13,15 +13,7 @@ on:
 
 jobs:
   check:
-    name: Check
-    uses: the-guild-org/shared-config/.github/workflows/lint.yml@main
-    with:
-      script: yarn prettier:check && yarn ci:lint && yarn lint && yarn ts:check
-    secrets:
-      githubToken: ${{ secrets.GITHUB_TOKEN }}
-
-  build:
-    name: Type Check on GraphQL v${{matrix.graphql_version}}
+    name: Check on GraphQL v${{matrix.graphql_version}}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -42,21 +34,13 @@ jobs:
         run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
+      - name: Prettier
+        run: yarn prettier:check
+      - name: Lint
+        run: yarn lint
       - name: Type Check
         run: yarn ts:check
-  test_esm:
-    name: ESM Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Master
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
-      - name: Setup env
-        uses: the-guild-org/shared-config/setup@main
-        with:
-          nodeVersion: 22
-
-      - name: Build Packages
+      - name: Build
         run: yarn build
       - name: Test ESM and CJS integrity
         run: yarn bob check
@@ -69,7 +53,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest] # remove windows to speed up the tests
-        node-version: [18, 20, 22]
+        node-version: [18, 20, 22, 23]
         graphql_version:
           - 15
           - 16
