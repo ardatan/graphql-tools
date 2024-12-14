@@ -11365,10 +11365,10 @@ svelte2tsx@0.7.30:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.12.0:
-  version "5.12.0"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.12.0.tgz#1758d66794076ec540da54ab9fe5d643d4b9e17f"
-  integrity sha512-nOd7uj0D/4A3IrHnltaFYndVPGViYSs0s+Zi3N4uQg3owJt9RoiUdwxYx8qjorj5CtaGsx8dNYsFVbH6czrGNg==
+svelte@5.13.0:
+  version "5.13.0"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.13.0.tgz#15ecf6522b27e6c95041ca8a63684d5c903c54e4"
+  integrity sha512-ZG4VmBNze/j2KxT2GEeUm8Jr3RLYQ3P5Y9/flUDCgaAxgzx4ZRTdiyh+PCr7qRlOr5M8uidIqr+3DwUFVrdL+A==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
