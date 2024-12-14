@@ -186,8 +186,9 @@ describeIf(platform() !== 'win32')('[url-loader] webpack bundle compat', () => {
 
   afterAll(async () => {
     if (page) {
-      page.removeAllListeners();
-      await page.close();
+      await page.close().catch(e => {
+        console.warn('Error closing page', e, 'ignoring');
+      });
     }
     if (browser) {
       await browser.close();
