@@ -3,9 +3,8 @@ import { parse } from 'graphql';
 import { createSchema, createYoga } from 'graphql-yoga';
 import { ApolloClient, FetchResult, InMemoryCache } from '@apollo/client/core';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
+import { testIf } from '../../../testing/utils.js';
 import { ExecutorLink } from '../src/index.js';
-
-const ifIt = (condition: boolean) => (condition ? it : it.skip);
 
 describe('Apollo Link', () => {
   const yoga = createYoga({
@@ -78,7 +77,7 @@ describe('Apollo Link', () => {
       hello: 'Hello Apollo Client!',
     });
   });
-  ifIt(!process.env['LEAK_TEST'])('should handle subscriptions correctly', async () => {
+  testIf(!process.env['LEAK_TEST'])('should handle subscriptions correctly', async () => {
     expect.assertions(5);
     const observable = client.subscribe({
       query: parse(/* GraphQL */ `

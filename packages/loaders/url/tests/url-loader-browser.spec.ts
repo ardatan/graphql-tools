@@ -124,18 +124,18 @@ describe('[url-loader] webpack bundle compat', () => {
     });
 
     if (stats?.hasErrors()) {
-      console.error(stats.toString({ colors: true }));
-      throw new Error('Failed to bundle webpack');
+      throw stats.toString({ colors: true });
     }
 
-    httpServer = http.createServer((req, res) => {
-      if (req.method === 'GET' && req.url === '/') {
-        res.statusCode = 200;
-        res.writeHead(200, {
-          'Content-Type': 'text/html; charset=UTF-8',
-        });
+    httpServer = http
+      .createServer((req, res) => {
+        if (req.method === 'GET' && req.url === '/') {
+          res.statusCode = 200;
+          res.writeHead(200, {
+            'Content-Type': 'text/html; charset=UTF-8',
+          });
 
-        res.write(/** HTML */ `
+          res.write(/** HTML */ `
           <html>
             <title>Url Loader Test</title>
             <body>
@@ -143,32 +143,31 @@ describe('[url-loader] webpack bundle compat', () => {
             </body>
           </html>
         `);
-        res.end();
-        return;
-      }
+          res.end();
+          return;
+        }
 
-      if (req.method === 'GET' && req.url === '/' + webpackBundleFileName) {
-        const stat = fs.statSync(webpackBundleFullPath);
-        res.writeHead(200, {
-          'Content-Type': 'application/javascript',
-          'Content-Length': stat.size,
+        if (req.method === 'GET' && req.url === '/' + webpackBundleFileName) {
+          const stat = fs.statSync(webpackBundleFullPath);
+          res.writeHead(200, {
+            'Content-Type': 'application/javascript',
+            'Content-Length': stat.size,
+          });
+
+          const readStream = fs.createReadStream(webpackBundleFullPath);
+          readStream.pipe(res);
+
+          return;
+        }
+
+        yoga(req, res);
+      })
+      .on('connection', socket => {
+        sockets.add(socket);
+        socket.once('close', () => {
+          sockets.delete(socket);
         });
-
-        const readStream = fs.createReadStream(webpackBundleFullPath);
-        readStream.pipe(res);
-
-        return;
-      }
-
-      yoga(req, res);
-    });
-
-    httpServer.on('connection', socket => {
-      sockets.add(socket);
-      socket.once('close', () => {
-        sockets.delete(socket);
       });
-    });
 
     const { port } = await new Promise<AddressInfo>(resolve => {
       httpServer.listen(0, () => {
@@ -185,19 +184,30 @@ describe('[url-loader] webpack bundle compat', () => {
   });
 
   afterAll(async () => {
-    await page.close();
-    await browser.close();
+    if (page) {
+      page.removeAllListeners();
+      await page.close();
+    }
+    if (browser) {
+      await browser.close();
+    }
     await new Promise<void>((resolve, reject) => {
       for (const socket of sockets) {
         socket.destroy();
       }
-      httpServer.closeAllConnections();
-      httpServer.close(err => {
-        if (err) return reject(err);
+      if (httpServer) {
+        httpServer.closeAllConnections();
+        httpServer.close(err => {
+          if (err) return reject(err);
+          resolve();
+        });
+      } else {
         resolve();
-      });
+      }
     });
-    await fs.promises.unlink(webpackBundleFullPath);
+    if (fs.existsSync(webpackBundleFullPath)) {
+      await fs.promises.unlink(webpackBundleFullPath);
+    }
   });
 
   it('can be exposed as a global', async () => {

@@ -4,9 +4,8 @@ import { pipe, toObservable } from 'wonka';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { ExecutionResult } from '@graphql-tools/utils';
 import { createClient } from '@urql/core';
+import { testIf } from '../../../testing/utils.js';
 import { executorExchange } from '../src/index.js';
-
-const ifIt = (condition: boolean) => (condition ? it : it.skip);
 
 describe('URQL Yoga Exchange', () => {
   const yoga = createYoga({
@@ -79,7 +78,7 @@ describe('URQL Yoga Exchange', () => {
       hello: 'Hello Urql Client!',
     });
   });
-  ifIt(!process.env['LEAK_TEST'])('should handle subscriptions correctly', async () => {
+  testIf(!process.env['LEAK_TEST'])('should handle subscriptions correctly', async () => {
     const observable = pipe(
       client.subscription(
         /* GraphQL */ `
