@@ -1,6 +1,6 @@
 import { OperationTypeNode } from 'graphql';
 import { filter, make, merge, mergeMap, pipe, share, Source, takeUntil } from 'wonka';
-import { ExecutionRequest, Executor, isAsyncIterable } from '@graphql-tools/utils';
+import { ExecutionRequest, Executor, fakePromise, isAsyncIterable } from '@graphql-tools/utils';
 import {
   AnyVariables,
   Exchange,
@@ -37,31 +37,35 @@ export function executorExchange(executor: Executor): Exchange {
     };
     return make<OperationResult<TData>>(observer => {
       let ended = false;
-      Promise.resolve(executor(executionRequest))
-        .then(async result => {
+      fakePromise()
+        .then(() => executor(executionRequest))
+        .then(result => {
           if (ended || !result) {
             return;
           }
           if (!isAsyncIterable(result)) {
             observer.next(makeResult(operation, result as ExecutionResult));
+            observer.complete();
           } else {
             let prevResult: OperationResult<TData, AnyVariables> | null = null;
 
-            for await (const value of result) {
-              if (value) {
-                if (prevResult && value.incremental) {
-                  prevResult = mergeResultPatch(prevResult, value as ExecutionResult);
-                } else {
-                  prevResult = makeResult(operation, value as ExecutionResult);
+            return fakePromise().then(async () => {
+              for await (const value of result) {
+                if (value) {
+                  if (prevResult && value.incremental) {
+                    prevResult = mergeResultPatch(prevResult, value as ExecutionResult);
+                  } else {
+                    prevResult = makeResult(operation, value as ExecutionResult);
+                  }
+                  observer.next(prevResult);
                 }
-                observer.next(prevResult);
+                if (ended) {
+                  break;
+                }
               }
-              if (ended) {
-                break;
-              }
-            }
+              observer.complete();
+            });
           }
-          observer.complete();
         })
         .catch(error => {
           observer.next(makeErrorResult(operation, error));

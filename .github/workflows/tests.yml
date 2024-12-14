@@ -5,6 +5,10 @@ env:
   NODE_OPTIONS: '--max-old-space-size=8192'
   CI: true
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches:
@@ -12,8 +16,8 @@ on:
   pull_request:
 
 jobs:
-  prettier-check:
-    name: 🧹 Prettier Check
+  typecheck-15:
+    name: Type Check on GraphQL v15
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Master
@@ -24,53 +28,27 @@ jobs:
         with:
           nodeVersion: 22
 
-      - name: Prettier Check
-        run: yarn prettier:check
-  lint:
-    name: Lint
-    uses: the-guild-org/shared-config/.github/workflows/lint.yml@main
-    with:
-      script: yarn ci:lint
-    secrets:
-      githubToken: ${{ secrets.GITHUB_TOKEN }}
-
-  build:
-    name: Type Check on GraphQL v${{matrix.graphql_version}}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        graphql_version:
-          - 15
-          - 16
-    steps:
-      - name: Checkout Master
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
-      - name: Setup env
-        uses: the-guild-org/shared-config/setup@main
-        with:
-          nodeVersion: 22
-
-      - name: Use GraphQL v${{matrix.graphql_version}}
-        run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
+      - name: Use GraphQL v15
+        run: node ./scripts/match-graphql.js 15
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Type Check
         run: yarn ts:check
-  test_esm:
-    name: ESM Test
+  check:
+    name: Full Check on GraphQL v16
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Master
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
       - name: Setup env
         uses: the-guild-org/shared-config/setup@main
         with:
           nodeVersion: 22
-
-      - name: Build Packages
+      - name: Prettier
+        run: yarn prettier:check
+      - name: Lint
+        run: yarn lint
+      - name: Build
         run: yarn build
       - name: Test ESM and CJS integrity
         run: yarn bob check
@@ -83,7 +61,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest] # remove windows to speed up the tests
-        node-version: [18, 20, 22]
+        node-version: [18, 20, 22, 23]
         graphql_version:
           - 15
           - 16
@@ -113,34 +91,13 @@ jobs:
             hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{matrix.node-version}}-${{matrix.graphql_version}}-jest-
-      - name: Test
-        if: ${{ matrix.node-version >= 20 }}
+      - name: Build
+        run: yarn build
+      - name: Unit Tests
         run: yarn test --ci
-      - name: Test
-        if: ${{ matrix.node-version < 20 }}
+      - name: Leak Tests
         uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
           command: yarn test:leaks --ci
-
-  test_browser:
-    name: Browser Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Master
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - name: Setup env
-        uses: the-guild-org/shared-config/setup@main
-        with:
-          nodeVersion: 22
-      - name: Setup Chrome
-        uses: browser-actions/setup-chrome@v1
-      - name: Build Packages
-        run: yarn build
-      - name: Test
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          command: TEST_BROWSER=true yarn jest --no-watchman --ci browser

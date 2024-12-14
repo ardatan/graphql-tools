@@ -36,6 +36,7 @@ externalToolsPackages.forEach(mod => {
 });
 
 module.exports = {
+  displayName: process.env.LEAK_TEST ? 'Leak Test' : 'Unit Test',
   testEnvironment: 'node',
   rootDir: ROOT_DIR,
   prettierPath: null, // disable prettier for inline snapshots
