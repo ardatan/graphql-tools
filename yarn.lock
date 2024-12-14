@@ -1685,10 +1685,10 @@
   dependencies:
     tslib "^2.5.2"
 
-"@graphql-yoga/plugin-defer-stream@3.10.5":
-  version "3.10.5"
-  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.10.5.tgz#c648f613b6a363c6c0516d891b3b8ddce5e206ed"
-  integrity sha512-hdywCAeVUvONn2c1gHoyuCUesobgnk0fXVGKvxINxRAN5cXwL5sHKU8yXPiPI5JgH1q790cyGXUnqA1pZpp53w==
+"@graphql-yoga/plugin-defer-stream@3.10.6":
+  version "3.10.6"
+  resolved "https://registry.yarnpkg.com/@graphql-yoga/plugin-defer-stream/-/plugin-defer-stream-3.10.6.tgz#8534bf769e6abd7083070370a5908d2d38030207"
+  integrity sha512-i7R2rsBLWm+vjtqJ9CGA84EtRAgVXICKbQmEamT69TzVyej0FGhJx9K9kDyyA13mYfg+qEgXnIvfnf6gUjvryA==
   dependencies:
     "@graphql-tools/utils" "^10.6.1"
 
@@ -6690,10 +6690,10 @@ graphql-ws@^5.14.0:
   resolved "https://registry.yarnpkg.com/graphql-ws/-/graphql-ws-5.16.0.tgz#849efe02f384b4332109329be01d74c345842729"
   integrity sha512-Ju2RCU2dQMgSKtArPbEtsK5gNLnsQyTNIo/T7cZNp96niC1x0KdJNZV0TIoilceBPQwfb5itrGl8pkFeOUMl4A==
 
-graphql-yoga@5.10.5, graphql-yoga@^5.0.0:
-  version "5.10.5"
-  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.10.5.tgz#a98fbf1488670a5c3094ef29e79942d0933e9aa8"
-  integrity sha512-W5bpXHRb6S3H3Th8poDm6b+ZMRjke8hsy9WVFgRriDTGh0AenIkpJzZT5VgXUD+j1yLCMrvhUNc6MNmgaRExsw==
+graphql-yoga@5.10.6, graphql-yoga@^5.0.0:
+  version "5.10.6"
+  resolved "https://registry.yarnpkg.com/graphql-yoga/-/graphql-yoga-5.10.6.tgz#cb2c83adaba7b0451c617993da313a6d3fdea318"
+  integrity sha512-RqKTNN4ii/pnUhGBuFF3WyNy52AMs5ArTY/lGQUYH/1FQk5t2RgAZE5OxWRgobhmr+cuN066bvgVIlt4mnnRNA==
   dependencies:
     "@envelop/core" "^5.0.2"
     "@graphql-tools/executor" "^1.3.7"
