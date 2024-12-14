@@ -4,6 +4,9 @@ on:
     branches:
       - master
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   dependencies:
     uses: the-guild-org/shared-config/.github/workflows/changesets-dependencies.yaml@main
