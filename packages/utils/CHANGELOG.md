@@ -1,5 +1,14 @@
 # @graphql-tools/utils
 
+## 10.6.4
+
+### Patch Changes
+
+- [#6769](https://github.com/ardatan/graphql-tools/pull/6769)
+  [`6a8123b`](https://github.com/ardatan/graphql-tools/commit/6a8123be34d3270e4e6a628c7b4ef35fa66f52a1)
+  Thanks [@ardatan](https://github.com/ardatan)! - Improvements for `fakePromise` so it can be used
+  without params to create a `void` Promise
+
 ## 10.6.3
 
 ### Patch Changes
