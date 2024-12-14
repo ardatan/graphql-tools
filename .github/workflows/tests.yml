@@ -12,25 +12,11 @@ on:
   pull_request:
 
 jobs:
-  prettier-check:
-    name: 🧹 Prettier Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Master
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
-      - name: Setup env
-        uses: the-guild-org/shared-config/setup@main
-        with:
-          nodeVersion: 22
-
-      - name: Prettier Check
-        run: yarn prettier:check
-  lint:
-    name: Lint
+  check:
+    name: Check
     uses: the-guild-org/shared-config/.github/workflows/lint.yml@main
     with:
-      script: yarn ci:lint
+      script: yarn prettier:check && yarn ci:lint && yarn lint && yarn ts:check
     secrets:
       githubToken: ${{ secrets.GITHUB_TOKEN }}
 

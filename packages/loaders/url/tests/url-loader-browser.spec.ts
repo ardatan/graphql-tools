@@ -1,11 +1,12 @@
 import fs from 'fs';
 import http from 'http';
 import { AddressInfo, Socket } from 'net';
-import { tmpdir } from 'os';
+import { platform, tmpdir } from 'os';
 import path, { join } from 'path';
 import { setTimeout } from 'timers/promises';
 import { parse } from 'graphql';
 import { createSchema, createYoga, Repeater } from 'graphql-yoga';
+import { describeIf } from 'packages/testing/utils.js';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import webpack, { Stats } from 'webpack';
 import { useEngine } from '@envelop/core';
@@ -20,7 +21,7 @@ declare global {
   }
 }
 
-describe('[url-loader] webpack bundle compat', () => {
+describeIf(platform() !== 'win32')('[url-loader] webpack bundle compat', () => {
   let httpServer: http.Server;
   let browser: Browser;
   let page: Page;
