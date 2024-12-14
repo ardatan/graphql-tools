@@ -1,3 +1,4 @@
+import { setTimeout } from 'timers/promises';
 import { createSchema, createYoga } from 'graphql-yoga';
 import { pipe, toObservable } from 'wonka';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
@@ -5,12 +6,9 @@ import { ExecutionResult } from '@graphql-tools/utils';
 import { createClient } from '@urql/core';
 import { executorExchange } from '../src/index.js';
 
-describe('URQL Yoga Exchange', () => {
-  if (!process.env['TEST_BROWSER']) {
-    it('skips', () => {});
-    return;
-  }
-  const aCharCode = 'a'.charCodeAt(0);
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip);
+
+describeIf(!process.env['LEAK_TEST'])('URQL Yoga Exchange', () => {
   const yoga = createYoga({
     logging: false,
     maskedErrors: false,
@@ -39,8 +37,9 @@ describe('URQL Yoga Exchange', () => {
             async *subscribe() {
               let i = 0;
               while (true) {
+                const aCharCode = 'a'.charCodeAt(0);
                 yield String.fromCharCode(aCharCode + i);
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await setTimeout(300);
                 i++;
               }
             },

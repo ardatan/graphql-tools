@@ -1,14 +1,13 @@
+import { setTimeout } from 'timers/promises';
 import { parse } from 'graphql';
 import { createSchema, createYoga } from 'graphql-yoga';
 import { ApolloClient, FetchResult, InMemoryCache } from '@apollo/client/core';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
 import { ExecutorLink } from '../src/index.js';
 
-describe('Apollo Link', () => {
-  if (!process.env['TEST_BROWSER']) {
-    it('skips', () => {});
-    return;
-  }
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip);
+
+describeIf(!process.env['LEAK_TEST'])('Apollo Link', () => {
   const yoga = createYoga({
     logging: false,
     maskedErrors: false,
@@ -36,7 +35,7 @@ describe('Apollo Link', () => {
           time: {
             async *subscribe() {
               while (true) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await setTimeout(300);
                 yield new Date().toISOString();
               }
             },
@@ -56,6 +55,13 @@ describe('Apollo Link', () => {
       }),
     ),
     cache: new InMemoryCache(),
+  });
+
+  beforeEach(() => {});
+
+  afterAll(() => {
+    client.stop();
+    return client.clearStore();
   });
 
   it('should handle queries correctly', async () => {
@@ -83,7 +89,7 @@ describe('Apollo Link', () => {
     });
     const collectedValues: string[] = [];
     let i = 0;
-    await new Promise<void>(resolve => {
+    await new Promise<void>((resolve, reject) => {
       const subscription = observable.subscribe((result: FetchResult) => {
         collectedValues.push(result.data?.['time']);
         i++;
@@ -91,7 +97,7 @@ describe('Apollo Link', () => {
           subscription.unsubscribe();
           resolve();
         }
-      });
+      }, reject);
     });
     expect(collectedValues.length).toBe(3);
     expect(i).toBe(3);

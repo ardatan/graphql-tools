@@ -26,7 +26,10 @@ export function fakeRejectPromise(error: unknown): Promise<never> {
   };
 }
 
-export function fakePromise<T>(value: T): Promise<T> {
+export function fakePromise<const T>(value: T): Promise<T>;
+export function fakePromise<T>(value: T): Promise<T>;
+export function fakePromise(value: void): Promise<void>;
+export function fakePromise<T = void>(value: T): Promise<T> {
   if (isPromise(value)) {
     return value;
   }
