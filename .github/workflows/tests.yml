@@ -33,21 +33,17 @@ jobs:
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Type Check
-        run: yarn type-check
+        run: yarn ts:check
   check:
     name: Check on GraphQL v16
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Master
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
       - name: Setup env
         uses: the-guild-org/shared-config/setup@main
         with:
           nodeVersion: 22
-
-      - name: Install Dependencies using Yarn
-        run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Prettier
         run: yarn prettier:check
       - name: Lint
