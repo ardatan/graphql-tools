@@ -25,4 +25,6 @@ ${content}`.trimStart(),
   console.timeEnd('done');
 }
 
-main();
+main().catch(e => {
+  console.warn(`Failed to modify ${filePath}`);
+});
