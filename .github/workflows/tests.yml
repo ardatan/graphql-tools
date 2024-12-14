@@ -12,15 +12,9 @@ on:
   pull_request:
 
 jobs:
-  check:
-    name: Check on GraphQL v${{matrix.graphql_version}}
+  typecheck-15:
+    name: Type Check on GraphQL v15
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        graphql_version:
-          - 15
-          - 16
     steps:
       - name: Checkout Master
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -30,16 +24,30 @@ jobs:
         with:
           nodeVersion: 22
 
-      - name: Use GraphQL v${{matrix.graphql_version}}
-        run: node ./scripts/match-graphql.js ${{matrix.graphql_version}}
+      - name: Use GraphQL v15
+        run: node ./scripts/match-graphql.js 15
+      - name: Install Dependencies using Yarn
+        run: yarn install --ignore-engines && git checkout yarn.lock
+      - name: Type Check
+        run: yarn type-check
+  check:
+    name: Check on GraphQL v16
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Setup env
+        uses: the-guild-org/shared-config/setup@main
+        with:
+          nodeVersion: 22
+
       - name: Install Dependencies using Yarn
         run: yarn install --ignore-engines && git checkout yarn.lock
       - name: Prettier
         run: yarn prettier:check
       - name: Lint
         run: yarn lint
-      - name: Type Check
-        run: yarn ts:check
       - name: Build
         run: yarn build
       - name: Test ESM and CJS integrity
