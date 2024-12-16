@@ -16,7 +16,7 @@
     "react-dom": "19.0.0"
   },
   "devDependencies": {
-    "@theguild/tailwind-config": "0.6.1",
+    "@theguild/tailwind-config": "0.6.2",
     "@types/node": "22.10.2",
     "@types/react": "19.0.1",
     "postcss-import": "16.1.0",
