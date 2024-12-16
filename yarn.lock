@@ -6707,10 +6707,10 @@ graphql-yoga@5.10.6, graphql-yoga@^5.0.0:
     lru-cache "^10.0.0"
     tslib "^2.8.1"
 
-"graphql@14 - 16", graphql@16.9.0, graphql@^14.5.3, graphql@^16.6.0:
-  version "16.9.0"
-  resolved "https://registry.yarnpkg.com/graphql/-/graphql-16.9.0.tgz#1c310e63f16a49ce1fbb230bd0a000e99f6f115f"
-  integrity sha512-GGTKBX4SD7Wdb8mqeDLni2oaRGYQWjWHGKPQ24ZMnUtKfcsVoiv4uX8+LJr1K6U5VW2Lu1BwJnj7uiori0YtRw==
+"graphql@14 - 16", graphql@16.10.0, graphql@^14.5.3, graphql@^16.6.0:
+  version "16.10.0"
+  resolved "https://registry.yarnpkg.com/graphql/-/graphql-16.10.0.tgz#24c01ae0af6b11ea87bf55694429198aaa8e220c"
+  integrity sha512-AjqGKbDGUFRKIRCP9tCKiIGHyriz2oHEbPIbEtcSLSs4YjReZOIPQQWek4+6hjw62H9QShXHyaGivGiYVLeYFQ==
 
 gray-matter@^4.0.3:
   version "4.0.3"
@@ -11365,10 +11365,10 @@ svelte2tsx@0.7.30:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.13.0:
-  version "5.13.0"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.13.0.tgz#15ecf6522b27e6c95041ca8a63684d5c903c54e4"
-  integrity sha512-ZG4VmBNze/j2KxT2GEeUm8Jr3RLYQ3P5Y9/flUDCgaAxgzx4ZRTdiyh+PCr7qRlOr5M8uidIqr+3DwUFVrdL+A==
+svelte@5.14.0:
+  version "5.14.0"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.14.0.tgz#5871f95104d799902681422535bd9e18c88f8516"
+  integrity sha512-xHrS9dd2Ci9GJd2sReNFqJztoe515wB4OzsPw4A8L2M6lddLFkREkWDJnM5DAND30Zyvjwc1icQVzH0F+Sdx5A==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
