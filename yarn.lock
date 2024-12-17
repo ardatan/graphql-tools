@@ -4744,9 +4744,9 @@ content-disposition@0.5.4:
     safe-buffer "5.2.1"
 
 content-tag@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/content-tag/-/content-tag-3.0.0.tgz#b25382edf6c46abf79e6bffb83c2118713af546e"
-  integrity sha512-HxWPmF9hzehv5PV7TSK7QSzlVBhmwQA8NgBrXmL+fqXfM3L1r3ResAPzeiGbxra3Zw6U3gdhw3cIDJADQnuCVQ==
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/content-tag/-/content-tag-3.1.0.tgz#1a7ca7e36d85422808b8d426e2bdca95a98bcd75"
+  integrity sha512-gSESx+fia81/vKjorui0V6wY7IBpuitd84LcQnaPVF9Xe9ctLAf4saHwbUi3SAhYfi9kxs5ODfAVnm5MmjojCQ==
 
 content-type@~1.0.4, content-type@~1.0.5:
   version "1.0.5"
@@ -11404,18 +11404,18 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-svelte2tsx@0.7.30:
-  version "0.7.30"
-  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.7.30.tgz#5dbd9e38c2fe54170b441409ebb2ee46c807be9e"
-  integrity sha512-sHXK/vw/sVJmFuPSq6zeKrtuZKvo0jJyEi8ybN0dfrqSYVvHu8zFbO0zQKAL8y/fYackYojH41EJGe6v8rd5fw==
+svelte2tsx@0.7.31:
+  version "0.7.31"
+  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.7.31.tgz#28c76b15f97c3c48da8d4cc1ab979372b9d25100"
+  integrity sha512-exrN1o9mdCLAA7hTCudz731FIxomH/0SN9ZIX+WrY/XnlLuno/NNC1PF6JXPZVqp/4sMMDKteqyKoG44hliljQ==
   dependencies:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.14.1:
-  version "5.14.1"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.14.1.tgz#8c9def9b4fa9f7b190ff2d1118759dad08a3ba2b"
-  integrity sha512-DET9IJw6LUStRnu5rTXnlBs1fsJt417C9QXE8J+gIEWc4IsqxcJsa3OYUsf7ZJmDQbaBudcp4pxI7Za0NR1QYg==
+svelte@5.14.2:
+  version "5.14.2"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.14.2.tgz#0b7dfa162a496be82357bf3702c874df76f2cf54"
+  integrity sha512-OxNh82bYjbutXNSZSPQspZzzmVzlRyNbiz0a6KrpOWvQ9LBUUZifXyeKhfl73LgyQC9UbsnVS9M55nQzqekMTA==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
@@ -11464,10 +11464,10 @@ tailwind-merge@^2.5.2:
   resolved "https://registry.yarnpkg.com/tailwind-merge/-/tailwind-merge-2.5.5.tgz#98167859b856a2a6b8d2baf038ee171b9d814e39"
   integrity sha512-0LXunzzAZzo0tEPxV3I297ffKZPlKDrjj7NXphC8V5ak9yHC5zRmxnOe2m/Rd/7ivsOMJe3JZ2JVocoDdQTRBA==
 
-tailwindcss@3.4.16:
-  version "3.4.16"
-  resolved "https://registry.yarnpkg.com/tailwindcss/-/tailwindcss-3.4.16.tgz#35a7c3030844d6000fc271878db4096b6a8d2ec9"
-  integrity sha512-TI4Cyx7gDiZ6r44ewaJmt0o6BrMCT5aK5e0rmJ/G9Xq3w7CX/5VXl/zIPEJZFUK5VEqwByyhqNPycPlvcK4ZNw==
+tailwindcss@3.4.17:
+  version "3.4.17"
+  resolved "https://registry.yarnpkg.com/tailwindcss/-/tailwindcss-3.4.17.tgz#ae8406c0f96696a631c790768ff319d46d5e5a63"
+  integrity sha512-w33E2aCvSDP0tW9RZuNXadXlkHXqFzSkQew/aIa2i/Sj8fThxwovwlXHSPXTbAHwEIhBFXAedUhP2tueAKP8Og==
   dependencies:
     "@alloc/quick-lru" "^5.2.0"
     arg "^5.0.2"

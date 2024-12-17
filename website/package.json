@@ -21,7 +21,7 @@
     "@types/react": "19.0.1",
     "postcss-import": "16.1.0",
     "postcss-lightningcss": "1.0.1",
-    "tailwindcss": "3.4.16",
+    "tailwindcss": "3.4.17",
     "typescript": "5.7.2"
   }
 }
