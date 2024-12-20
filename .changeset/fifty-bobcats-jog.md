@@ -1,6 +1,5 @@
 ---
 '@graphql-tools/executor': major
-'@graphql-tools/utils': minor
 ---
 
 Support the new non-duplicating Incremental Delivery format.
