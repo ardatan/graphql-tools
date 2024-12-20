@@ -1,115 +1,135 @@
 import fs from 'fs';
 import http from 'http';
-import path from 'path';
+import { AddressInfo, Socket } from 'net';
+import { platform, tmpdir } from 'os';
+import path, { join } from 'path';
+import { setTimeout } from 'timers/promises';
 import { parse } from 'graphql';
-import { createSchema, createYoga } from 'graphql-yoga';
+import { createSchema, createYoga, Repeater } from 'graphql-yoga';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import webpack, { Stats } from 'webpack';
 import { useEngine } from '@envelop/core';
 import { normalizedExecutor } from '@graphql-tools/executor';
-import { ExecutionResult } from '@graphql-tools/utils';
+import { createDeferred, ExecutionResult } from '@graphql-tools/utils';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
+import { describeIf } from '../../../testing/utils.js';
 import type * as UrlLoaderModule from '../src/index.js';
-import { sleep } from './test-utils.js';
 
-describe('[url-loader] webpack bundle compat', () => {
-  if (process.env['TEST_BROWSER']) {
-    let httpServer: http.Server;
-    let browser: Browser;
-    let page: Page;
-    let resolveOnReturn: VoidFunction;
-    const timeouts = new Set<NodeJS.Timeout>();
-    const fakeAsyncIterable = {
-      [Symbol.asyncIterator]() {
-        return this;
-      },
-      next: () =>
-        sleep(300, timeout => timeouts.add(timeout)).then(() => ({ value: true, done: false })),
-      return: () => {
-        resolveOnReturn();
-        timeouts.forEach(clearTimeout);
-        return Promise.resolve({ done: true });
-      },
-    };
-    const port = 8712;
-    const httpAddress = 'http://localhost:8712';
-    const webpackBundlePath = path.resolve(__dirname, 'webpack.js');
-    const yoga = createYoga({
-      schema: createSchema({
-        typeDefs: /* GraphQL */ `
-          type Query {
-            foo: Boolean
-            countdown(from: Int): [Int]
-            fakeStream: [Boolean]
-          }
-          type Subscription {
-            foo: Boolean
-          }
-        `,
-        resolvers: {
-          Query: {
-            foo: () => new Promise(resolve => setTimeout(() => resolve(true), 300)),
-            countdown: async function* (_, { from }) {
-              for (let i = from; i >= 0; i--) {
-                yield i;
-                await new Promise(resolve => setTimeout(resolve, 100));
-              }
-            },
-            fakeStream: () => fakeAsyncIterable,
+declare global {
+  interface Window {
+    GraphQLToolsUrlLoader: typeof UrlLoaderModule;
+  }
+}
+
+describeIf(platform() !== 'win32')('[url-loader] webpack bundle compat', () => {
+  let httpServer: http.Server;
+  let browser: Browser;
+  let page: Page;
+  const fakeAsyncIterableReturnDeferred = createDeferred<void>();
+  const yoga = createYoga({
+    schema: createSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          foo: Boolean
+          countdown(from: Int): [Int]
+          fakeStream: [Boolean]
+        }
+        type Subscription {
+          foo: Boolean
+        }
+      `,
+      resolvers: {
+        Query: {
+          foo: () => setTimeout(300).then(() => true),
+          countdown: async function* (_, { from }) {
+            for (let i = from; i >= 0; i--) {
+              yield i;
+              await setTimeout(100);
+            }
           },
-          Subscription: {
-            foo: {
-              async *subscribe() {
-                await new Promise(resolve => setTimeout(resolve, 300));
-                yield { foo: true };
-                await new Promise(resolve => setTimeout(resolve, 300));
-                yield { foo: false };
-              },
+          fakeStream: () =>
+            new Repeater<true>(function (push, stop) {
+              let timeout: ReturnType<typeof globalThis.setTimeout>;
+              function tick() {
+                push(true).finally(() => {
+                  timeout = globalThis.setTimeout(tick, 300);
+                });
+              }
+              tick();
+              stop.finally(() => {
+                if (timeout) {
+                  clearTimeout(timeout);
+                }
+                fakeAsyncIterableReturnDeferred.resolve();
+              });
+            }),
+        },
+        Subscription: {
+          foo: {
+            async *subscribe() {
+              await setTimeout(300);
+              yield { foo: true };
+              await setTimeout(300);
+              yield { foo: false };
             },
           },
         },
+      },
+    }),
+    plugins: [
+      useEngine({
+        execute: normalizedExecutor,
+        subscribe: normalizedExecutor,
       }),
-      plugins: [
-        useEngine({
-          execute: normalizedExecutor,
-          subscribe: normalizedExecutor,
-        }),
-        useDeferStream(),
-      ],
+      useDeferStream(),
+    ],
+  });
+
+  let httpAddress: string;
+
+  const sockets = new Set<Socket>();
+
+  const webpackBundleFileName = 'webpack.js';
+  const webpackBundleDir = join(tmpdir(), 'graphql-tools-url-loader');
+  const webpackBundleFullPath = path.resolve(webpackBundleDir, webpackBundleFileName);
+
+  beforeAll(async () => {
+    // bundle webpack js
+    const stats = await new Promise<Stats | undefined>((resolve, reject) => {
+      const compiler = webpack(
+        {
+          mode: 'development',
+          entry: path.resolve(__dirname, '..', 'dist', 'esm', 'index.js'),
+          output: {
+            path: webpackBundleDir,
+            filename: webpackBundleFileName,
+            libraryTarget: 'umd',
+            library: 'GraphQLToolsUrlLoader',
+            umdNamedDefine: true,
+          },
+        },
+        (err, stats) => {
+          if (err) {
+            reject(err);
+          } else {
+            compiler.close(err => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve(stats);
+              }
+            });
+          }
+        },
+      );
     });
 
-    beforeAll(async () => {
-      // bundle webpack js
-      const stats = await new Promise<Stats | undefined>((resolve, reject) => {
-        webpack(
-          {
-            mode: 'development',
-            entry: path.resolve(__dirname, '..', 'dist', 'esm', 'index.js'),
-            output: {
-              path: path.resolve(__dirname),
-              filename: 'webpack.js',
-              libraryTarget: 'umd',
-              library: 'GraphQLToolsUrlLoader',
-              umdNamedDefine: true,
-            },
-            plugins: [
-              new webpack.DefinePlugin({
-                setImmediate: 'setTimeout',
-              }),
-            ],
-          },
-          (err, stats) => {
-            if (err) return reject(err);
-            resolve(stats);
-          },
-        );
-      });
+    if (stats?.hasErrors()) {
+      throw stats.toString({ colors: true });
+    }
 
-      if (stats?.hasErrors()) {
-        console.error(stats.toString({ colors: true }));
-      }
-
-      httpServer = http.createServer((req, res) => {
+    httpServer = http
+      .createServer((req, res) => {
         if (req.method === 'GET' && req.url === '/') {
           res.statusCode = 200;
           res.writeHead(200, {
@@ -120,7 +140,7 @@ describe('[url-loader] webpack bundle compat', () => {
           <html>
             <title>Url Loader Test</title>
             <body>
-              <script src="/webpack.js"></script>
+              <script src="/${webpackBundleFileName}"></script>
             </body>
           </html>
         `);
@@ -128,257 +148,293 @@ describe('[url-loader] webpack bundle compat', () => {
           return;
         }
 
-        if (req.method === 'GET' && req.url === '/webpack.js') {
-          const stat = fs.statSync(webpackBundlePath);
+        if (req.method === 'GET' && req.url === '/' + webpackBundleFileName) {
+          const stat = fs.statSync(webpackBundleFullPath);
           res.writeHead(200, {
             'Content-Type': 'application/javascript',
             'Content-Length': stat.size,
           });
 
-          const readStream = fs.createReadStream(webpackBundlePath);
+          const readStream = fs.createReadStream(webpackBundleFullPath);
           readStream.pipe(res);
 
           return;
         }
 
         yoga(req, res);
-      });
-
-      await new Promise<void>(resolve => {
-        httpServer.listen(port, () => {
-          resolve();
+      })
+      .on('connection', socket => {
+        sockets.add(socket);
+        socket.once('close', () => {
+          sockets.delete(socket);
         });
       });
-      browser = await puppeteer.launch({
-        // headless: false,
-      });
-      page = await browser.newPage();
-      await page.goto(httpAddress);
-    }, 90_000);
 
-    afterAll(async () => {
+    const { port } = await new Promise<AddressInfo>(resolve => {
+      httpServer.listen(0, () => {
+        resolve(httpServer.address() as AddressInfo);
+      });
+    });
+    httpAddress = `http://localhost:${port}`;
+    browser = await puppeteer.launch({
+      // headless: false,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--incognito'],
+    });
+    page = await browser.newPage();
+    await page.goto(httpAddress);
+  });
+
+  afterAll(async () => {
+    if (page) {
+      await page.close().catch(e => {
+        console.warn('Error closing page', e, 'ignoring');
+      });
+    }
+    if (browser) {
       await browser.close();
-      await new Promise<void>((resolve, reject) => {
+    }
+    await new Promise<void>((resolve, reject) => {
+      for (const socket of sockets) {
+        socket.destroy();
+      }
+      if (httpServer) {
+        httpServer.closeAllConnections();
         httpServer.close(err => {
           if (err) return reject(err);
           resolve();
         });
-      });
-      await fs.promises.unlink(webpackBundlePath);
+      } else {
+        resolve();
+      }
     });
+    if (fs.existsSync(webpackBundleFullPath)) {
+      await fs.promises.unlink(webpackBundleFullPath);
+    }
+  });
 
-    it('can be exposed as a global', async () => {
-      const result = await page.evaluate(async () => {
-        return typeof (window as any)['GraphQLToolsUrlLoader'];
-      });
-      expect(result).toEqual('object');
+  it('can be exposed as a global', async () => {
+    const result = await page.evaluate(() => {
+      return typeof window.GraphQLToolsUrlLoader;
     });
+    expect(result).toEqual('object');
+  });
 
-    it('can be used for executing a basic http query operation', async () => {
-      const expectedData = {
-        data: {
-          foo: true,
-        },
-      };
-      const document = parse(/* GraphQL */ `
-        query {
+  it('can be used for executing a basic http query operation', async () => {
+    const expectedData = {
+      data: {
+        foo: true,
+      },
+    };
+    const document = parse(/* GraphQL */ `
+      query {
+        foo
+      }
+    `);
+
+    const result = await page.evaluate(
+      (httpAddress, document) => {
+        const module = window.GraphQLToolsUrlLoader;
+        const loader = new module.UrlLoader();
+        const executor = loader.getExecutorAsync(httpAddress + '/graphql');
+        return executor({
+          document,
+        });
+      },
+      httpAddress,
+      document,
+    );
+    expect(result).toStrictEqual(expectedData);
+  });
+
+  it('handles executing a @defer operation using multipart responses', async () => {
+    const document = parse(/* GraphQL */ `
+      query {
+        ... on Query @defer {
           foo
         }
-      `);
+      }
+    `);
 
-      const result = await page.evaluate(
-        async (httpAddress, document) => {
-          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
-          const loader = new module.UrlLoader();
-          const executor = loader.getExecutorAsync(httpAddress + '/graphql');
-          const result = await executor({
-            document,
-          });
-          return result;
-        },
-        httpAddress,
-        document as any,
-      );
-      expect(result).toStrictEqual(expectedData);
-    });
-
-    it('handles executing a @defer operation using multipart responses', async () => {
-      const document = parse(/* GraphQL */ `
-        query {
-          ... on Query @defer {
-            foo
+    const results = await page.evaluate(
+      async (httpAddress, document) => {
+        const module = window.GraphQLToolsUrlLoader;
+        const loader = new module.UrlLoader();
+        const executor = loader.getExecutorAsync(httpAddress + '/graphql');
+        const result = await executor({
+          document,
+        });
+        if (!(Symbol.asyncIterator in result)) {
+          throw new Error('Expected an async iterator');
+        }
+        const results: ExecutionResult[] = [];
+        for await (const currentResult of result) {
+          if (currentResult) {
+            results.push(JSON.parse(JSON.stringify(currentResult)));
           }
         }
-      `);
+        return results;
+      },
+      httpAddress,
+      document,
+    );
+    expect(results).toEqual([{ data: {} }, { data: { foo: true } }]);
+  });
 
-      const results = await page.evaluate(
-        async (httpAddress, document) => {
-          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
-          const loader = new module.UrlLoader();
-          const executor = loader.getExecutorAsync(httpAddress + '/graphql');
-          const result = await executor({
-            document,
-          });
-          const results = [];
-          for await (const currentResult of result as any[]) {
-            if (currentResult) {
-              results.push(JSON.parse(JSON.stringify(currentResult)));
-            }
-          }
-          return results;
-        },
-        httpAddress,
-        document as any,
-      );
-      expect(results).toEqual([{ data: {} }, { data: { foo: true } }]);
-    });
+  it('handles executing a @stream operation using multipart responses', async () => {
+    const document = parse(/* GraphQL */ `
+      query {
+        countdown(from: 3) @stream
+      }
+    `);
 
-    it('handles executing a @stream operation using multipart responses', async () => {
-      const document = parse(/* GraphQL */ `
-        query {
-          countdown(from: 3) @stream
+    const results = await page.evaluate(
+      async (httpAddress, document) => {
+        const module = window.GraphQLToolsUrlLoader;
+        const loader = new module.UrlLoader();
+        const executor = loader.getExecutorAsync(httpAddress + '/graphql');
+        const result = await executor({
+          document,
+        });
+        if (!(Symbol.asyncIterator in result)) {
+          throw new Error('Expected an async iterator');
         }
-      `);
-
-      const results = await page.evaluate(
-        async (httpAddress, document) => {
-          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
-          const loader = new module.UrlLoader();
-          const executor = loader.getExecutorAsync(httpAddress + '/graphql');
-          const result = await executor({
-            document,
-          });
-          const results = [];
-          for await (const currentResult of result as any[]) {
-            if (currentResult) {
-              results.push(JSON.parse(JSON.stringify(currentResult)));
-            }
+        const results: ExecutionResult[] = [];
+        for await (const currentResult of result) {
+          if (currentResult) {
+            results.push(JSON.parse(JSON.stringify(currentResult)));
           }
-          return results;
-        },
-        httpAddress,
-        document as any,
-      );
-
-      expect(results[0]).toEqual({ data: { countdown: [] } });
-      expect(results[1]).toEqual({ data: { countdown: [3] } });
-      expect(results[2]).toEqual({ data: { countdown: [3, 2] } });
-      expect(results[3]).toEqual({ data: { countdown: [3, 2, 1] } });
-      expect(results[4]).toEqual({ data: { countdown: [3, 2, 1, 0] } });
-    });
-
-    it('handles SSE subscription operations', async () => {
-      const expectedDatas = [{ data: { foo: true } }, { data: { foo: false } }];
-
-      const document = parse(/* GraphQL */ `
-        subscription {
-          foo
         }
-      `);
+        return results;
+      },
+      httpAddress,
+      document,
+    );
 
-      const result = await page.evaluate(
-        async (httpAddress, document) => {
-          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
-          const loader = new module.UrlLoader();
-          const executor = loader.getExecutorAsync(httpAddress + '/graphql', {
-            subscriptionsProtocol: module.SubscriptionProtocol.SSE,
-          });
-          const result = await executor({
-            document,
-          });
-          const results = [];
-          for await (const currentResult of result as AsyncIterable<ExecutionResult>) {
-            results.push(currentResult);
-          }
-          return results;
-        },
-        httpAddress,
-        document as any,
-      );
-      expect(result).toStrictEqual(expectedDatas);
-    });
-    it('terminates SSE subscriptions when calling return on the AsyncIterator', async () => {
-      const sentDatas = [
-        { data: { foo: true } },
-        { data: { foo: false } },
-        { data: { foo: true } },
-      ];
+    expect(results[0]).toEqual({ data: { countdown: [] } });
+    expect(results[1]).toEqual({ data: { countdown: [3] } });
+    expect(results[2]).toEqual({ data: { countdown: [3, 2] } });
+    expect(results[3]).toEqual({ data: { countdown: [3, 2, 1] } });
+    expect(results[4]).toEqual({ data: { countdown: [3, 2, 1, 0] } });
+  });
 
-      const document = parse(/* GraphQL */ `
-        subscription {
-          foo
+  it('handles SSE subscription operations', async () => {
+    const expectedDatas = [{ data: { foo: true } }, { data: { foo: false } }];
+
+    const document = parse(/* GraphQL */ `
+      subscription {
+        foo
+      }
+    `);
+
+    const result = await page.evaluate(
+      async (httpAddress, document) => {
+        const module = window.GraphQLToolsUrlLoader;
+        const loader = new module.UrlLoader();
+        const executor = loader.getExecutorAsync(httpAddress + '/graphql', {
+          subscriptionsProtocol: module.SubscriptionProtocol.SSE,
+        });
+        const result = await executor({
+          document,
+        });
+        if (!(Symbol.asyncIterator in result)) {
+          throw new Error('Expected an async iterator');
         }
-      `);
-
-      const pageerrorFn = jest.fn();
-      page.on('pageerror', pageerrorFn);
-
-      const result = await page.evaluate(
-        async (httpAddress, document) => {
-          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
-          const loader = new module.UrlLoader();
-          const executor = loader.getExecutorAsync(httpAddress + '/graphql', {
-            subscriptionsProtocol: module.SubscriptionProtocol.SSE,
-          });
-          const result = (await executor({
-            document,
-          })) as AsyncIterableIterator<ExecutionResult>;
-          const results = [];
-          for await (const currentResult of result) {
-            results.push(currentResult);
-            if (results.length === 2) {
-              break;
-            }
-          }
-          return results;
-        },
-        httpAddress,
-        document as any,
-      );
-
-      expect(result).toStrictEqual(sentDatas.slice(0, 2));
-
-      // no uncaught errors should be reported (browsers raise errors when canceling requests)
-      expect(pageerrorFn).not.toBeCalled();
-    });
-    it('terminates stream correctly', async () => {
-      const document = parse(/* GraphQL */ `
-        query {
-          fakeStream @stream
+        const results: ExecutionResult[] = [];
+        for await (const currentResult of result) {
+          results.push(currentResult);
         }
-      `);
+        return results;
+      },
+      httpAddress,
+      document,
+    );
+    expect(result).toStrictEqual(expectedDatas);
+  });
+  it('terminates SSE subscriptions when calling return on the AsyncIterator', async () => {
+    const sentDatas = [{ data: { foo: true } }, { data: { foo: false } }, { data: { foo: true } }];
 
-      const pageerrorFn = jest.fn();
-      page.on('pageerror', pageerrorFn);
+    const document = parse(/* GraphQL */ `
+      subscription {
+        foo
+      }
+    `);
 
-      const returnPromise$ = new Promise<void>(resolve => {
-        resolveOnReturn = resolve;
-      });
+    const pageerrorFn = jest.fn();
+    page.on('pageerror', pageerrorFn);
 
-      await page.evaluate(
-        async (httpAddress, document) => {
-          const module = (window as any)['GraphQLToolsUrlLoader'] as typeof UrlLoaderModule;
-          const loader = new module.UrlLoader();
-          const executor = loader.getExecutorAsync(httpAddress + '/graphql');
-          const result = (await executor({
-            document,
-          })) as AsyncIterableIterator<ExecutionResult>;
-          for await (const currentResult of result) {
-            if (currentResult?.data?.fakeStream?.length > 1) {
-              break;
-            }
+    const result = await page.evaluate(
+      async (httpAddress, document) => {
+        const module = window.GraphQLToolsUrlLoader;
+        const loader = new module.UrlLoader();
+        const executor = loader.getExecutorAsync(httpAddress + '/graphql', {
+          subscriptionsProtocol: module.SubscriptionProtocol.SSE,
+        });
+        const result = await executor({
+          document,
+        });
+        if (!(Symbol.asyncIterator in result)) {
+          throw new Error('Expected an async iterator');
+        }
+        const results: ExecutionResult[] = [];
+        for await (const currentResult of result) {
+          results.push(currentResult);
+          if (results.length === 2) {
+            break;
           }
-        },
-        httpAddress,
-        document as any,
-      );
+        }
+        return results;
+      },
+      httpAddress,
+      document,
+    );
 
-      await returnPromise$;
+    expect(result).toStrictEqual(sentDatas.slice(0, 2));
 
-      // no uncaught errors should be reported (browsers raise errors when canceling requests)
-      expect(pageerrorFn).not.toBeCalled();
+    // no uncaught errors should be reported (browsers raise errors when canceling requests)
+    expect(pageerrorFn).not.toBeCalled();
+  });
+  it('terminates stream correctly', async () => {
+    const document = parse(/* GraphQL */ `
+      query {
+        fakeStream @stream
+      }
+    `);
+
+    const pageerrorFn = jest.fn();
+    page.once('pageerror', pageerrorFn);
+
+    const currentResult: ExecutionResult = await page.evaluate(
+      async (httpAddress, document) => {
+        const module = window.GraphQLToolsUrlLoader;
+        const loader = new module.UrlLoader();
+        const executor = loader.getExecutorAsync(httpAddress + '/graphql');
+        const result = await executor({
+          document,
+        });
+        if (!(Symbol.asyncIterator in result)) {
+          throw new Error('Expected an async iterator');
+        }
+        for await (const currentResult of result) {
+          if (currentResult?.data?.fakeStream?.length > 1) {
+            return JSON.parse(JSON.stringify(currentResult));
+          }
+        }
+      },
+      httpAddress,
+      document,
+    );
+
+    await fakeAsyncIterableReturnDeferred.promise;
+
+    page.off('pageerror', pageerrorFn);
+
+    // no uncaught errors should be reported (browsers raise errors when canceling requests)
+    expect(pageerrorFn).not.toHaveBeenCalled();
+
+    expect(currentResult).toEqual({
+      data: {
+        fakeStream: [true, true],
+      },
     });
-  } else {
-    it('dummy', () => {});
-  }
+  });
 });

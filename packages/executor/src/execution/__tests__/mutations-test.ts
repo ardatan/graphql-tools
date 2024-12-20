@@ -211,7 +211,7 @@ describe('Execute: Handles mutation execution ordering', () => {
       document,
       rootValue,
     });
-    const patches = [];
+    const patches: any[] = [];
 
     expect('initialResult' in mutationResult).toBeTruthy();
     // @ts-expect-error once we assert that initialResult is in mutationResult then it should work fine
@@ -292,7 +292,7 @@ describe('Execute: Handles mutation execution ordering', () => {
       document,
       rootValue,
     });
-    const patches = [];
+    const patches: any[] = [];
 
     expect('initialResult' in mutationResult).toBeTruthy();
     // @ts-expect-error once we assert that initialResult is in mutationResult then it should work fine

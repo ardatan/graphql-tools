@@ -24,7 +24,6 @@ import {
   GraphQLNamedType,
   GraphQLObjectType,
   GraphQLOutputType,
-  GraphQLResolveInfo,
   GraphQLScalarLiteralParser,
   GraphQLScalarSerializer,
   GraphQLScalarType,
@@ -40,6 +39,7 @@ import {
   ObjectTypeDefinitionNode,
   ObjectTypeExtensionNode,
   OperationTypeNode,
+  GraphQLResolveInfo as OrigGraphQLResolveInfo,
   ScalarTypeDefinitionNode,
   ScalarTypeExtensionNode,
   SelectionNode,
@@ -72,6 +72,10 @@ export interface ExecutionResult<TData = any, TExtensions = any> {
   completed?: ReadonlyArray<{ id: string; errors?: ReadonlyArray<GraphQLError> }>;
 }
 
+export interface GraphQLResolveInfo extends OrigGraphQLResolveInfo {
+  signal?: AbortSignal;
+}
+
 export interface ExecutionRequest<
   TVariables extends Record<string, any> = any,
   TContext = any,
@@ -90,6 +94,7 @@ export interface ExecutionRequest<
   // If the request originates within execution of a parent request, it may contain the parent context and info
   context?: TContext;
   info?: GraphQLResolveInfo;
+  signal?: AbortSignal;
 }
 
 // graphql-js non-exported typings

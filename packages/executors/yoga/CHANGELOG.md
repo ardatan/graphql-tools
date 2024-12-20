@@ -1,5 +1,141 @@
 # @graphql-tools/executor-yoga
 
+## 3.0.16
+
+### Patch Changes
+
+- Updated dependencies
+  [[`6a8123b`](https://github.com/ardatan/graphql-tools/commit/6a8123be34d3270e4e6a628c7b4ef35fa66f52a1)]:
+  - @graphql-tools/utils@10.6.4
+  - @graphql-tools/executor-envelop@3.0.16
+
+## 3.0.15
+
+### Patch Changes
+
+- Updated dependencies
+  [[`020b9e4`](https://github.com/ardatan/graphql-tools/commit/020b9e47b51f9847bf915de5faefe09dc04d9612)]:
+  - @graphql-tools/utils@10.6.3
+  - @graphql-tools/executor-envelop@3.0.15
+
+## 3.0.14
+
+### Patch Changes
+
+- [#6662](https://github.com/ardatan/graphql-tools/pull/6662)
+  [`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/executor-envelop@^3.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-envelop/v/3.0.13)
+    (from `^3.0.12`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/utils@^10.6.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.6.1)
+    (from `^10.6.0`, in `dependencies`)
+- Updated dependencies
+  [[`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679),
+  [`1b24656`](https://github.com/ardatan/graphql-tools/commit/1b24656d3d13274820e52bede56991b0c54e8060)]:
+  - @graphql-tools/executor-envelop@3.0.14
+  - @graphql-tools/utils@10.6.2
+
+## 3.0.13
+
+### Patch Changes
+
+- Updated dependencies
+  [[`1e02935`](https://github.com/ardatan/graphql-tools/commit/1e0293562961fb12b267235e5aa6d0e83d0e7d0f)]:
+  - @graphql-tools/utils@10.6.1
+  - @graphql-tools/executor-envelop@3.0.13
+
+## 3.0.12
+
+### Patch Changes
+
+- Updated dependencies
+  [[`414e404`](https://github.com/ardatan/graphql-tools/commit/414e404a06478ea8ddd1065bd765de14af0f6c43)]:
+  - @graphql-tools/utils@10.6.0
+  - @graphql-tools/executor-envelop@3.0.12
+
+## 3.0.11
+
+### Patch Changes
+
+- Updated dependencies
+  [[`dc5043b`](https://github.com/ardatan/graphql-tools/commit/dc5043bb7c9afaca907c242eb6bf65e8019d79c4)]:
+  - @graphql-tools/utils@10.5.6
+  - @graphql-tools/executor-envelop@3.0.11
+
+## 3.0.10
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/executor-envelop@3.0.10
+
+## 3.0.9
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/executor-envelop@3.0.9
+
+## 3.0.8
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/executor-envelop@3.0.8
+
+## 3.0.7
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/executor-envelop@3.0.7
+
+## 3.0.6
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/executor-envelop@3.0.6
+
+## 3.0.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/executor-envelop@3.0.5
+
+## 3.0.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/executor-envelop@3.0.4
+
+## 3.0.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/executor-envelop@3.0.3
+
+## 3.0.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/executor-envelop@3.0.2
+
+## 3.0.1
+
+### Patch Changes
+
+- Updated dependencies
+  [[`cf2ce5e`](https://github.com/ardatan/graphql-tools/commit/cf2ce5ed4773087cc324599f2812f4fb91398b21)]:
+  - @graphql-tools/utils@10.5.5
+  - @graphql-tools/executor-envelop@3.0.1
+
 ## 3.0.0
 
 ### Major Changes

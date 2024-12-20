@@ -472,8 +472,7 @@ export class MockStore implements IMockStore {
         for (const otherFieldName in values) {
           if (otherFieldName === fieldName) continue;
           if (typeof (values as any)[otherFieldName] === 'function') continue;
-          onOtherFieldsGenerated &&
-            onOtherFieldsGenerated(otherFieldName, (values as any)[otherFieldName]);
+          onOtherFieldsGenerated?.(otherFieldName, (values as any)[otherFieldName]);
         }
 
         value = (values as any)[fieldName];

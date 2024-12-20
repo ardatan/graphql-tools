@@ -13,6 +13,7 @@ import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { expectPromise } from '../../__testUtils__/expectPromise.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
 import { assertAsyncIterable } from '../../../../loaders/url/tests/test-utils.js';
+import { SimplePubSub } from '../../../../testing/simplePubSub.js';
 import {
   ExecutionArgs,
   IncrementalDeliveryPreset2023_06_22,
@@ -21,7 +22,6 @@ import {
   subscribe,
 } from '../execute.js';
 import { normalizedExecutor } from '../normalizedExecutor.js';
-import { SimplePubSub } from './simplePubSub.js';
 
 interface Email {
   from: string;

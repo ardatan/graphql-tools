@@ -1,12 +1,16 @@
 import type { ASTNode, DirectiveNode, GraphQLSchema } from 'graphql';
 import { valueFromAST, valueFromASTUntyped } from 'graphql';
 import { getArgumentValues } from './getArgumentValues.js';
+import { memoize1 } from './memoize.js';
 
-export type DirectableASTNode = ASTNode & { directives?: readonly DirectiveNode[] };
+export type DirectableASTNode = ASTNode & {
+  directives?: readonly DirectiveNode[] | undefined;
+};
+
 export type DirectableObject = {
-  astNode?: DirectableASTNode | null;
-  extensionASTNodes?: readonly DirectableASTNode[] | null;
-  extensions?: { directives?: Record<string, any> } | null;
+  astNode?: DirectableASTNode | null | undefined;
+  extensionASTNodes?: readonly DirectableASTNode[] | null | undefined;
+  extensions?: { directives?: Record<string, any> | undefined } | null | undefined;
 };
 
 export function getDirectiveExtensions<
@@ -25,6 +29,39 @@ export function getDirectiveExtensions<
       TDirectiveAnnotationsMap[directiveName]
     >;
   } = {};
+
+  if (directableObj.extensions) {
+    let directivesInExtensions = directableObj.extensions;
+    for (const pathSegment of pathToDirectivesInExtensions) {
+      directivesInExtensions = directivesInExtensions?.[pathSegment];
+    }
+    if (directivesInExtensions != null) {
+      for (const directiveNameProp in directivesInExtensions) {
+        const directiveObjs = directivesInExtensions[directiveNameProp];
+        const directiveName = directiveNameProp as keyof TDirectiveAnnotationsMap;
+        if (Array.isArray(directiveObjs)) {
+          for (const directiveObj of directiveObjs) {
+            let existingDirectiveExtensions = directiveExtensions[directiveName];
+            if (!existingDirectiveExtensions) {
+              existingDirectiveExtensions = [];
+              directiveExtensions[directiveName] = existingDirectiveExtensions;
+            }
+            existingDirectiveExtensions.push(directiveObj);
+          }
+        } else {
+          let existingDirectiveExtensions = directiveExtensions[directiveName];
+          if (!existingDirectiveExtensions) {
+            existingDirectiveExtensions = [];
+            directiveExtensions[directiveName] = existingDirectiveExtensions;
+          }
+          existingDirectiveExtensions.push(directiveObjs);
+        }
+      }
+    }
+  }
+
+  const memoizedStringify = memoize1(obj => JSON.stringify(obj));
+
   const astNodes: DirectableASTNode[] = [];
   if (directableObj.astNode) {
     astNodes.push(directableObj.astNode);
@@ -60,39 +97,16 @@ export function getDirectiveExtensions<
             }
           }
         }
+        if (astNodes.length > 0 && existingDirectiveExtensions.length > 0) {
+          const valStr = memoizedStringify(value);
+          if (existingDirectiveExtensions.some(val => memoizedStringify(val) === valStr)) {
+            continue;
+          }
+        }
         existingDirectiveExtensions.push(value);
       }
     }
   }
 
-  if (directableObj.extensions) {
-    let directivesInExtensions = directableObj.extensions;
-    for (const pathSegment of pathToDirectivesInExtensions) {
-      directivesInExtensions = directivesInExtensions[pathSegment];
-    }
-    if (directivesInExtensions != null) {
-      for (const directiveNameProp in directivesInExtensions) {
-        const directiveObjs = directivesInExtensions[directiveNameProp];
-        const directiveName = directiveNameProp as keyof TDirectiveAnnotationsMap;
-        if (Array.isArray(directiveObjs)) {
-          for (const directiveObj of directiveObjs) {
-            let existingDirectiveExtensions = directiveExtensions[directiveName];
-            if (!existingDirectiveExtensions) {
-              existingDirectiveExtensions = [];
-              directiveExtensions[directiveName] = existingDirectiveExtensions;
-            }
-            existingDirectiveExtensions.push(directiveObj);
-          }
-        } else {
-          let existingDirectiveExtensions = directiveExtensions[directiveName];
-          if (!existingDirectiveExtensions) {
-            existingDirectiveExtensions = [];
-            directiveExtensions[directiveName] = existingDirectiveExtensions;
-          }
-          existingDirectiveExtensions.push(directiveObjs);
-        }
-      }
-    }
-  }
   return directiveExtensions;
 }

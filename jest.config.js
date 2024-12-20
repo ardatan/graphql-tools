@@ -19,16 +19,37 @@ try {
   }
 } catch (e) {}
 
+const externalToolsPackages = [
+  '@graphql-tools/batch-delegate',
+  '@graphql-tools/batch-execute',
+  '@graphql-tools/delegate',
+  '@graphql-tools/stitch',
+  '@graphql-tools/wrap',
+  '@graphql-tools/executor-http',
+  '@graphql-tools/executor-graphql-ws',
+];
+
+const externalModulesMapper = {};
+
+externalToolsPackages.forEach(mod => {
+  externalModulesMapper[`^${mod}$`] = require.resolve(mod);
+});
+
 module.exports = {
+  displayName: process.env.LEAK_TEST ? 'Leak Test' : 'Unit Test',
   testEnvironment: 'node',
   rootDir: ROOT_DIR,
   prettierPath: null, // disable prettier for inline snapshots
   restoreMocks: true,
   reporters: ['default'],
   modulePathIgnorePatterns,
-  moduleNameMapper: pathsToModuleNameMapper(tsconfig.compilerOptions.paths, {
-    prefix: `${ROOT_DIR}/`,
-  }),
+  moduleNameMapper: {
+    ...externalModulesMapper,
+    ...pathsToModuleNameMapper(tsconfig.compilerOptions.paths, {
+      prefix: `${ROOT_DIR}/`,
+    }),
+    ...externalModulesMapper,
+  },
   collectCoverage: false,
   cacheDirectory: resolve(ROOT_DIR, `${CI ? '' : 'node_modules/'}.cache/jest`),
   transform: {

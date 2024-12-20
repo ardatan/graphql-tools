@@ -1,4 +1,4 @@
-import { SimplePubSub } from './simplePubSub.js';
+import { SimplePubSub } from '../../../../testing/simplePubSub.js';
 
 describe('SimplePubSub', () => {
   it('subscribe async-iterator mock', async () => {

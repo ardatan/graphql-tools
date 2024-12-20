@@ -41,7 +41,7 @@ export function pruneSchema(
 
     // Custom pruning  was defined, so we need to pre-emptively revisit the schema accounting for this
     if (skipPruning) {
-      const revisit = [];
+      const revisit: string[] = [];
 
       for (const typeName in prunedSchema.getTypeMap()) {
         if (typeName.startsWith('__')) {

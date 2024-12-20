@@ -60,7 +60,7 @@ export function astFromValue(value: unknown, type: GraphQLInputType): Maybe<Valu
   if (isListType(type)) {
     const itemType = type.ofType;
     if (isIterableObject(value)) {
-      const valuesNodes = [];
+      const valuesNodes: ValueNode[] = [];
       for (const item of value) {
         const itemNode = astFromValue(item, itemType);
         if (itemNode != null) {

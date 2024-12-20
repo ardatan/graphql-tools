@@ -1,11 +1,11 @@
 import {
+  ASTNode,
   DefinitionNode,
   DirectiveDefinitionNode,
   Kind,
   SchemaDefinitionNode,
   SchemaExtensionNode,
 } from 'graphql';
-import { isNode } from 'graphql/language/ast.js';
 import { collectComment, NamedDefinitionNode } from '@graphql-tools/utils';
 import { mergeDirective } from './directives.js';
 import { mergeEnum } from './enum.js';
@@ -108,7 +108,7 @@ export function mergeGraphQLNodes(
             if (mergedResultMap[name]) {
               const isInheritedFromPrototype = name in {}; // i.e. toString
               if (isInheritedFromPrototype) {
-                if (!isNode(mergedResultMap[name])) {
+                if (!isASTNode(mergedResultMap[name])) {
                   mergedResultMap[name] = undefined as any;
                 }
               }
@@ -132,4 +132,10 @@ export function mergeGraphQLNodes(
     }
   }
   return mergedResultMap;
+}
+
+function isASTNode(node: any): node is ASTNode {
+  return (
+    node != null && typeof node === 'object' && 'kind' in node && typeof node.kind === 'string'
+  );
 }

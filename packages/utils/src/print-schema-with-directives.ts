@@ -16,7 +16,6 @@ import {
   GraphQLInputField,
   GraphQLInputObjectType,
   GraphQLInterfaceType,
-  GraphQLNamedType,
   GraphQLObjectType,
   GraphQLScalarType,
   GraphQLSchema,
@@ -42,8 +41,6 @@ import {
   ScalarTypeDefinitionNode,
   SchemaDefinitionNode,
   SchemaExtensionNode,
-  TypeDefinitionNode,
-  TypeExtensionNode,
   UnionTypeDefinitionNode,
   ValueNode,
 } from 'graphql';
@@ -51,7 +48,11 @@ import { astFromType } from './astFromType.js';
 import { astFromValue } from './astFromValue.js';
 import { astFromValueUntyped } from './astFromValueUntyped.js';
 import { getDescriptionNode } from './descriptionFromObject.js';
-import { DirectiveAnnotation, getDirectivesInExtensions } from './get-directives.js';
+import {
+  DirectableGraphQLObject,
+  DirectiveAnnotation,
+  getDirectivesInExtensions,
+} from './get-directives.js';
 import { isSome } from './helpers.js';
 import { getRootTypeMap } from './rootTypes.js';
 import {
@@ -213,81 +214,64 @@ export function astFromDirective(
   };
 }
 
-export function getDirectiveNodes(
-  entity: GraphQLSchema | GraphQLNamedType | GraphQLEnumValue,
-  schema: GraphQLSchema,
-  pathToDirectivesInExtensions?: Array<string>,
-): Array<DirectiveNode> {
-  const directivesInExtensions = getDirectivesInExtensions(entity, pathToDirectivesInExtensions);
-  let nodes: Array<
-    | SchemaDefinitionNode
-    | SchemaExtensionNode
-    | TypeDefinitionNode
-    | TypeExtensionNode
-    | EnumValueDefinitionNode
-  > = [];
-  if (entity.astNode != null) {
-    nodes.push(entity.astNode);
-  }
-  if ('extensionASTNodes' in entity && entity.extensionASTNodes != null) {
-    nodes = nodes.concat(entity.extensionASTNodes);
-  }
-
-  let directives: Array<DirectiveNode>;
-  if (directivesInExtensions != null) {
-    directives = makeDirectiveNodes(schema, directivesInExtensions);
-  } else {
-    directives = [];
-    for (const node of nodes) {
-      if (node.directives) {
-        directives.push(...node.directives);
-      }
-    }
-  }
-
-  return directives;
-}
-
-export function getDeprecatableDirectiveNodes(
-  entity: GraphQLArgument | GraphQLField<any, any> | GraphQLInputField | GraphQLEnumValue,
+export function getDirectiveNodes<TDirectiveNode extends DirectiveNode>(
+  entity: DirectableGraphQLObject & {
+    deprecationReason?: string | null;
+    specifiedByUrl?: string | null;
+    specifiedByURL?: string | null;
+  },
   schema?: GraphQLSchema,
   pathToDirectivesInExtensions?: Array<string>,
-): Array<DirectiveNode> {
-  let directiveNodesBesidesDeprecated: Array<DirectiveNode> = [];
-  let deprecatedDirectiveNode: Maybe<DirectiveNode> = null;
+): Array<TDirectiveNode> {
+  let directiveNodesBesidesDeprecatedAndSpecifiedBy: Array<TDirectiveNode> = [];
 
   const directivesInExtensions = getDirectivesInExtensions(entity, pathToDirectivesInExtensions);
 
-  let directives: Maybe<ReadonlyArray<DirectiveNode>>;
+  let directives: Maybe<ReadonlyArray<TDirectiveNode>>;
   if (directivesInExtensions != null) {
     directives = makeDirectiveNodes(schema, directivesInExtensions);
-  } else {
-    directives = entity.astNode?.directives;
   }
 
+  let deprecatedDirectiveNode: Maybe<TDirectiveNode> = null;
+  let specifiedByDirectiveNode: Maybe<TDirectiveNode> = null;
   if (directives != null) {
-    directiveNodesBesidesDeprecated = directives.filter(
-      directive => directive.name.value !== 'deprecated',
+    directiveNodesBesidesDeprecatedAndSpecifiedBy = directives.filter(
+      directive => directive.name.value !== 'deprecated' && directive.name.value !== 'specifiedBy',
     );
-    if ((entity as unknown as { deprecationReason: string }).deprecationReason != null) {
+    if (entity.deprecationReason != null) {
       deprecatedDirectiveNode = directives.filter(
         directive => directive.name.value === 'deprecated',
       )?.[0];
     }
+    if (entity.specifiedByUrl != null || entity.specifiedByURL != null) {
+      specifiedByDirectiveNode = directives.filter(
+        directive => directive.name.value === 'specifiedBy',
+      )?.[0];
+    }
+  }
+
+  if (entity.deprecationReason != null && deprecatedDirectiveNode == null) {
+    deprecatedDirectiveNode = makeDeprecatedDirective<TDirectiveNode>(entity.deprecationReason);
   }
 
   if (
-    (entity as unknown as { deprecationReason: string }).deprecationReason != null &&
-    deprecatedDirectiveNode == null
+    entity.specifiedByUrl != null ||
+    (entity.specifiedByURL != null && specifiedByDirectiveNode == null)
   ) {
-    deprecatedDirectiveNode = makeDeprecatedDirective(
-      (entity as unknown as { deprecationReason: string }).deprecationReason,
-    );
+    const specifiedByValue = entity.specifiedByUrl || entity.specifiedByURL;
+    const specifiedByArgs = {
+      url: specifiedByValue,
+    };
+    specifiedByDirectiveNode = makeDirectiveNode<TDirectiveNode>('specifiedBy', specifiedByArgs);
   }
 
-  return deprecatedDirectiveNode == null
-    ? directiveNodesBesidesDeprecated
-    : [deprecatedDirectiveNode].concat(directiveNodesBesidesDeprecated);
+  if (deprecatedDirectiveNode != null) {
+    directiveNodesBesidesDeprecatedAndSpecifiedBy.push(deprecatedDirectiveNode);
+  }
+  if (specifiedByDirectiveNode != null) {
+    directiveNodesBesidesDeprecatedAndSpecifiedBy.push(specifiedByDirectiveNode);
+  }
+  return directiveNodesBesidesDeprecatedAndSpecifiedBy;
 }
 
 export function astFromArg(
@@ -308,7 +292,7 @@ export function astFromArg(
       arg.defaultValue !== undefined
         ? (astFromValue(arg.defaultValue, arg.type) ?? undefined)
         : (undefined as any),
-    directives: getDeprecatableDirectiveNodes(arg, schema, pathToDirectivesInExtensions) as any,
+    directives: getDirectiveNodes(arg, schema, pathToDirectivesInExtensions) as any,
   };
 }
 
@@ -426,9 +410,7 @@ export function astFromScalarType(
 ): ScalarTypeDefinitionNode {
   const directivesInExtensions = getDirectivesInExtensions(type, pathToDirectivesInExtensions);
 
-  const directives: DirectiveNode[] = directivesInExtensions
-    ? makeDirectiveNodes(schema, directivesInExtensions)
-    : (type.astNode?.directives as DirectiveNode[]) || [];
+  const directives = makeDirectiveNodes(schema, directivesInExtensions);
 
   const specifiedByValue = ((type as any)['specifiedByUrl'] ||
     (type as any)['specifiedByURL']) as string;
@@ -469,7 +451,7 @@ export function astFromField(
     arguments: field.args.map(arg => astFromArg(arg, schema, pathToDirectivesInExtensions)),
     type: astFromType(field.type),
     // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
-    directives: getDeprecatableDirectiveNodes(field, schema, pathToDirectivesInExtensions) as any,
+    directives: getDirectiveNodes(field, schema, pathToDirectivesInExtensions) as any,
   };
 }
 
@@ -487,7 +469,7 @@ export function astFromInputField(
     },
     type: astFromType(field.type),
     // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
-    directives: getDeprecatableDirectiveNodes(field, schema, pathToDirectivesInExtensions) as any,
+    directives: getDirectiveNodes(field, schema, pathToDirectivesInExtensions) as any,
     defaultValue: astFromValue(field.defaultValue, field.type) ?? (undefined as any),
   };
 }
@@ -504,20 +486,21 @@ export function astFromEnumValue(
       kind: Kind.NAME,
       value: value.name,
     },
-    // ConstXNode has been introduced in v16 but it is not compatible with XNode so we do `as any` for backwards compatibility
-    directives: getDeprecatableDirectiveNodes(value, schema, pathToDirectivesInExtensions) as any,
+    directives: getDirectiveNodes(value, schema, pathToDirectivesInExtensions),
   };
 }
 
-export function makeDeprecatedDirective(deprecationReason: string): DirectiveNode {
+export function makeDeprecatedDirective<TDirectiveNode extends DirectiveNode>(
+  deprecationReason: string,
+): TDirectiveNode {
   return makeDirectiveNode('deprecated', { reason: deprecationReason }, GraphQLDeprecatedDirective);
 }
 
-export function makeDirectiveNode(
+export function makeDirectiveNode<TDirectiveNode extends DirectiveNode>(
   name: string,
   args?: Record<string, any>,
   directive?: Maybe<GraphQLDirective>,
-): DirectiveNode {
+): TDirectiveNode {
   const directiveArguments: Array<ArgumentNode> = [];
 
   for (const argName in args) {
@@ -551,14 +534,14 @@ export function makeDirectiveNode(
       value: name,
     },
     arguments: directiveArguments,
-  };
+  } as unknown as TDirectiveNode;
 }
 
-export function makeDirectiveNodes(
+export function makeDirectiveNodes<TDirectiveNode extends DirectiveNode>(
   schema: Maybe<GraphQLSchema>,
   directiveValues: DirectiveAnnotation[],
-): Array<DirectiveNode> {
-  const directiveNodes: Array<DirectiveNode> = [];
+): Array<TDirectiveNode> {
+  const directiveNodes: Array<TDirectiveNode> = [];
   for (const { name, args } of directiveValues) {
     const directive = schema?.getDirective(name);
     directiveNodes.push(makeDirectiveNode(name, args, directive));

@@ -12,7 +12,6 @@ import {
   GraphQLList,
   GraphQLObjectType,
   GraphQLOutputType,
-  GraphQLResolveInfo,
   GraphQLSchema,
   GraphQLTypeResolver,
   isAbstractType,
@@ -32,8 +31,10 @@ import {
 import {
   addPath,
   createGraphQLError,
+  fakePromise,
   getArgumentValues,
   getDefinedRootType,
+  GraphQLResolveInfo,
   GraphQLStreamDirective,
   inspect,
   isAsyncIterable,
@@ -50,6 +51,7 @@ import {
   promiseReduce,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import { DisposableSymbols } from '@whatwg-node/disposablestack';
 import { AccumulatorMap } from './AccumulatorMap.js';
 import { BoxedPromiseOrValue } from './BoxedPromiseOrValue.js';
 import type { DeferUsageSet, ExecutionPlan } from './buildExecutionPlan.js';
@@ -250,7 +252,7 @@ export function execute<TData = any, TVariables = any, TContext = any>(
           value: {
             ...e.extensions,
             http: {
-              ...e.extensions?.['http'],
+              ...(e.extensions?.['http'] || {}),
               status: 400,
             },
           },
@@ -869,6 +871,7 @@ export function buildResolveInfo(
     rootValue: exeContext.rootValue,
     operation: exeContext.operation,
     variableValues: exeContext.variableValues,
+    signal: exeContext.signal,
   };
 }
 
@@ -1745,7 +1748,7 @@ export const defaultTypeResolver: GraphQLTypeResolver<unknown, unknown> = functi
 
   // Otherwise, test each possible type.
   const possibleTypes = info.schema.getPossibleTypes(abstractType);
-  const promisedIsTypeOfResults = [];
+  const promisedIsTypeOfResults: any[] = [];
 
   for (let i = 0; i < possibleTypes.length; i++) {
     const type = possibleTypes[i];
@@ -1870,7 +1873,7 @@ export function subscribe<TData = any, TVariables = any, TContext = any>(
           value: {
             ...e.extensions,
             http: {
-              ...e.extensions?.['http'],
+              ...(e.extensions?.['http'] || {}),
               status: 400,
             },
           },
@@ -1907,16 +1910,13 @@ export function flattenIncrementalResults<TData>(
     },
     next() {
       if (done) {
-        return Promise.resolve({
-          value: undefined,
-          done,
-        });
+        return fakePromise({ value: undefined, done });
       }
       if (initialResultSent) {
         return subsequentIterator.next();
       }
       initialResultSent = true;
-      return Promise.resolve({
+      return fakePromise({
         value: incrementalResults.initialResult,
         done,
       });
@@ -1928,6 +1928,10 @@ export function flattenIncrementalResults<TData>(
     throw(error: any) {
       done = true;
       return subsequentIterator.throw(error);
+    },
+    [DisposableSymbols.asyncDispose]() {
+      done = true;
+      return subsequentIterator?.[DisposableSymbols.asyncDispose]?.();
     },
   };
 }

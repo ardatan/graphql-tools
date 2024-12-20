@@ -25,6 +25,7 @@ export function tryToLoadFromExportSync(rawFilePath: string): GraphQLSchema | Do
   try {
     const filepath = ensureFilepath(rawFilePath);
 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require(filepath);
 
     return pickExportFromModuleSync({ module: mod, filepath });

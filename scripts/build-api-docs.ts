@@ -1,8 +1,9 @@
+import './fix-shiki-packagejson';
 import fs, { promises as fsPromises } from 'node:fs';
-import path from 'node:path';
+import path, { join } from 'node:path';
 import chalk from 'chalk';
 import globby from 'globby';
-import * as TypeDoc from 'typedoc';
+import { Application, TSConfigReader } from 'typedoc';
 import workspacePackageJson from '../package.json';
 
 const MONOREPO = workspacePackageJson.name.replace('-monorepo', '');
@@ -38,9 +39,9 @@ async function buildApiDocs(): Promise<void> {
 
   // Delete existing docs directory
   await fsPromises.rm(OUTPUT_PATH, { recursive: true }).catch(() => null);
-
+  console.log('🧹 ', chalk.green('Deleted existing docs directory'), OUTPUT_PATH);
   // Initialize TypeDoc
-  const typeDoc = await TypeDoc.Application.bootstrapWithPlugins(
+  const typeDoc = await Application.bootstrapWithPlugins(
     {
       excludePrivate: true,
       excludeProtected: true,
@@ -51,8 +52,9 @@ async function buildApiDocs(): Promise<void> {
       tsconfig: path.join(CWD, 'tsconfig.json'),
       entryPoints: modules.map(([_name, filePath]) => filePath),
       plugin: ['typedoc-plugin-markdown'],
+      logLevel: 'Verbose',
     },
-    [new TypeDoc.TSConfigReader()],
+    [new TSConfigReader()],
   );
 
   // Generate the API docs

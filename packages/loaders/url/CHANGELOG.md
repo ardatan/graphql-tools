@@ -1,15 +1,210 @@
 # @graphql-tools/url-loader
 
+## 8.0.20
+
+### Patch Changes
+
+- Updated dependencies
+  [[`6a8123b`](https://github.com/ardatan/graphql-tools/commit/6a8123be34d3270e4e6a628c7b4ef35fa66f52a1)]:
+  - @graphql-tools/utils@10.6.4
+  - @graphql-tools/executor-legacy-ws@1.1.7
+
+## 8.0.19
+
+### Patch Changes
+
+- Updated dependencies
+  [[`020b9e4`](https://github.com/ardatan/graphql-tools/commit/020b9e47b51f9847bf915de5faefe09dc04d9612)]:
+  - @graphql-tools/utils@10.6.3
+  - @graphql-tools/executor-legacy-ws@1.1.6
+
+## 8.0.18
+
+### Patch Changes
+
+- [#6662](https://github.com/ardatan/graphql-tools/pull/6662)
+  [`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/executor-legacy-ws@^1.1.4` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-legacy-ws/v/1.1.4)
+    (from `^1.1.3`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/utils@^10.6.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.6.1)
+    (from `^10.6.0`, in `dependencies`)
+- Updated dependencies
+  [[`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679),
+  [`1b24656`](https://github.com/ardatan/graphql-tools/commit/1b24656d3d13274820e52bede56991b0c54e8060)]:
+  - @graphql-tools/executor-legacy-ws@1.1.5
+  - @graphql-tools/utils@10.6.2
+
+## 8.0.17
+
+### Patch Changes
+
+- Updated dependencies
+  [[`1e02935`](https://github.com/ardatan/graphql-tools/commit/1e0293562961fb12b267235e5aa6d0e83d0e7d0f)]:
+  - @graphql-tools/utils@10.6.1
+  - @graphql-tools/executor-legacy-ws@1.1.4
+
+## 8.0.16
+
+### Patch Changes
+
+- Updated dependencies
+  [[`414e404`](https://github.com/ardatan/graphql-tools/commit/414e404a06478ea8ddd1065bd765de14af0f6c43)]:
+  - @graphql-tools/utils@10.6.0
+  - @graphql-tools/executor-legacy-ws@1.1.3
+
+## 8.0.15
+
+### Patch Changes
+
+- Updated dependencies
+  [[`dc5043b`](https://github.com/ardatan/graphql-tools/commit/dc5043bb7c9afaca907c242eb6bf65e8019d79c4)]:
+  - @graphql-tools/utils@10.5.6
+  - @graphql-tools/executor-graphql-ws@1.3.2
+  - @graphql-tools/executor-http@1.1.9
+  - @graphql-tools/executor-legacy-ws@1.1.2
+  - @graphql-tools/wrap@10.0.16
+
+## 8.0.14
+
+### Patch Changes
+
+- [#6663](https://github.com/ardatan/graphql-tools/pull/6663)
+  [`d06afe3`](https://github.com/ardatan/graphql-tools/commit/d06afe3065edb15f4c58c1c155a230d8d542669f)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.10.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.10.0)
+    (from `^0.9.0`, in `dependencies`)
+- Updated dependencies
+  [[`d06afe3`](https://github.com/ardatan/graphql-tools/commit/d06afe3065edb15f4c58c1c155a230d8d542669f),
+  [`04d5cd7`](https://github.com/ardatan/graphql-tools/commit/04d5cd785be759f0327586a75b9a6ef70cbacf95)]:
+  - @graphql-tools/executor-http@1.1.8
+
+## 8.0.13
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/wrap@10.0.15
+
+## 8.0.12
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/wrap@10.0.14
+
+## 8.0.11
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/wrap@10.0.13
+
+## 8.0.10
+
+### Patch Changes
+
+- [#6625](https://github.com/ardatan/graphql-tools/pull/6625)
+  [`218422e`](https://github.com/ardatan/graphql-tools/commit/218422e9b93e9ea461043686907b18076bfaccc2)
+  Thanks [@hainenber](https://github.com/hainenber)! - remove unused @graphql-tools/delegate from
+  @graphql-tools/url-loader
+
+## 8.0.9
+
+### Patch Changes
+
+- Updated dependencies
+  [[`f470f49`](https://github.com/ardatan/graphql-tools/commit/f470f49f7d8445801a2983f14532124588f9f59e)]:
+  - @graphql-tools/delegate@10.0.28
+  - @graphql-tools/wrap@10.0.12
+
+## 8.0.8
+
+### Patch Changes
+
+- Updated dependencies
+  [[`180f3f0`](https://github.com/ardatan/graphql-tools/commit/180f3f0c8362613eb3013ff12f2d5405cd987903)]:
+  - @graphql-tools/delegate@10.0.27
+  - @graphql-tools/wrap@10.0.11
+
+## 8.0.7
+
+### Patch Changes
+
+- Updated dependencies
+  [[`8effad4`](https://github.com/ardatan/graphql-tools/commit/8effad4ffb9be1bca098b8cb6ce41b84ac7d9b6b)]:
+  - @graphql-tools/delegate@10.0.26
+  - @graphql-tools/wrap@10.0.10
+
+## 8.0.6
+
+### Patch Changes
+
+- Updated dependencies
+  [[`8a16b01`](https://github.com/ardatan/graphql-tools/commit/8a16b01296457bdcfbb111e02b6f6569ef8b04aa)]:
+  - @graphql-tools/delegate@10.0.25
+  - @graphql-tools/wrap@10.0.9
+
+## 8.0.5
+
+### Patch Changes
+
+- Updated dependencies
+  [[`4cdb462`](https://github.com/ardatan/graphql-tools/commit/4cdb46248774f2d5ae2757d40e1d55e83d7413b3)]:
+  - @graphql-tools/delegate@10.0.24
+  - @graphql-tools/wrap@10.0.8
+
+## 8.0.4
+
+### Patch Changes
+
+- Updated dependencies
+  [[`7e2938d`](https://github.com/ardatan/graphql-tools/commit/7e2938d45c6d0a6eb6b18b89f9f80e9b5b5c08db)]:
+  - @graphql-tools/delegate@10.0.23
+  - @graphql-tools/wrap@10.0.7
+
+## 8.0.3
+
+### Patch Changes
+
+- Updated dependencies
+  [[`cf2ce5e`](https://github.com/ardatan/graphql-tools/commit/cf2ce5ed4773087cc324599f2812f4fb91398b21)]:
+  - @graphql-tools/utils@10.5.5
+  - @graphql-tools/delegate@10.0.22
+  - @graphql-tools/executor-graphql-ws@1.3.1
+  - @graphql-tools/executor-http@1.1.7
+  - @graphql-tools/executor-legacy-ws@1.1.1
+  - @graphql-tools/wrap@10.0.6
+
 ## 8.0.2
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/delegate@^10.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/10.0.3) (from `^10.0.0`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/executor-http@^1.0.8` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/1.0.8) (from `^1.0.5`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.0`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/wrap@^10.0.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/wrap/v/10.0.1) (from `^10.0.0`, in `dependencies`)
-- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/delegate@^10.0.3` ↗︎](https://www.npmjs.com/package/@graphql-tools/delegate/v/10.0.3)
+    (from `^10.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/executor-http@^1.0.8` ↗︎](https://www.npmjs.com/package/@graphql-tools/executor-http/v/1.0.8)
+    (from `^1.0.5`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.0`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/wrap@^10.0.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/wrap/v/10.0.1)
+    (from `^10.0.0`, in `dependencies`)
+- Updated dependencies
+  [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
   - @graphql-tools/delegate@10.0.4
   - @graphql-tools/executor-graphql-ws@1.1.2
   - @graphql-tools/executor-http@1.0.9
@@ -887,7 +1082,7 @@
   'disable' to remove `credentials` property from RequestInit object completely.
 
   ```ts
-  new UrlLoader().load(url, { credentials: "disable" });
+  new UrlLoader().load(url, { credentials: 'disable' })
   ```
 
 ## 7.11.0

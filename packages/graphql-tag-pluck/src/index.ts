@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { Source } from 'graphql';
 import { parse } from '@babel/parser';
 import traversePkg from '@babel/traverse';
@@ -147,6 +148,8 @@ const supportedExtensions = [
   '.vue',
   '.svelte',
   '.astro',
+  '.gts',
+  '.gjs',
 ];
 
 // tslint:disable-next-line: no-implicit-dependencies
@@ -196,6 +199,16 @@ function parseWithAstroSync(
   return fileInTsx.code;
 }
 
+function transformGlimmerFile(glimmerSyntax: typeof import('content-tag'), fileData: string) {
+  const processor = new glimmerSyntax.Preprocessor();
+  // backwards compatibility with older versions of content-tag
+  const result = processor.process(fileData);
+  if (typeof result === 'string') {
+    return result;
+  }
+  return result.code;
+}
+
 /**
  * Asynchronously plucks GraphQL template literals from a single file.
  *
@@ -224,6 +237,8 @@ export const gqlPluckFromCodeString = async (
     code = await pluckSvelteFileScript(code);
   } else if (fileExt === '.astro') {
     code = await pluckAstroFileScript(code);
+  } else if (fileExt === '.gts' || fileExt === '.gjs') {
+    code = await pluckGlimmerFileScript(code);
   }
 
   const sources = parseCode({ code, filePath, options }).map(
@@ -238,7 +253,7 @@ export const gqlPluckFromCodeString = async (
 /**
  * Synchronously plucks GraphQL template literals from a single file
  *
- * Supported file extensions include: `.js`, `.mjs`, `.cjs`, `.jsx`, `.ts`, `.mjs`, `.cjs`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`, `.svelte`, `.astro`
+ * Supported file extensions include: `.js`, `.mjs`, `.cjs`, `.jsx`, `.ts`, `.mjs`, `.cjs`, `.tsx`, `.flow`, `.flow.js`, `.flow.jsx`, `.vue`, `.svelte`, `.astro`, `.gts`, `.gjs`
  *
  * @param filePath Path to the file containing the code. Required to detect the file type
  * @param code The contents of the file being parsed.
@@ -263,6 +278,8 @@ export const gqlPluckFromCodeStringSync = (
     code = pluckSvelteFileScriptSync(code);
   } else if (fileExt === '.astro') {
     code = pluckAstroFileScriptSync(code);
+  } else if (fileExt === '.gts' || fileExt === '.gjs') {
+    code = pluckGlimmerFileScriptSync(code);
   }
 
   const sources = parseCode({ code, filePath, options }).map(
@@ -359,6 +376,21 @@ const MissingAstroCompilerError = new Error(
   `),
 );
 
+const MissingGlimmerCompilerError = new Error(
+  freeText(`
+        GraphQL template literals cannot be plucked from a Glimmer template code without having the "content-tag" package installed.
+        Please install it and try again.
+
+        Via NPM:
+
+            $ npm install content-tag
+
+        Via Yarn:
+
+            $ yarn add content-tag
+      `),
+);
+
 async function loadVueCompilerAsync() {
   try {
     // eslint-disable-next-line import/no-extraneous-dependencies
@@ -444,4 +476,26 @@ function pluckAstroFileScriptSync(fileData: string) {
   }
 
   return parseWithAstroSync(astroCompiler, fileData);
+}
+
+async function pluckGlimmerFileScript(fileData: string) {
+  let contentTag: typeof import('content-tag');
+  try {
+    contentTag = await import('content-tag');
+  } catch {
+    throw MissingGlimmerCompilerError;
+  }
+
+  return transformGlimmerFile(contentTag, fileData);
+}
+
+function pluckGlimmerFileScriptSync(fileData: string) {
+  let contentTag: typeof import('content-tag');
+  try {
+    contentTag = require('content-tag');
+  } catch {
+    throw MissingGlimmerCompilerError;
+  }
+
+  return transformGlimmerFile(contentTag, fileData);
 }

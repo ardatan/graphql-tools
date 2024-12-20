@@ -1,32 +1,99 @@
 # graphql-tools
 
+## 9.0.8
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.13
+
+## 9.0.7
+
+### Patch Changes
+
+- Updated dependencies
+  [[`020b9e4`](https://github.com/ardatan/graphql-tools/commit/020b9e47b51f9847bf915de5faefe09dc04d9612)]:
+  - @graphql-tools/schema@10.0.12
+
+## 9.0.6
+
+### Patch Changes
+
+- [#6662](https://github.com/ardatan/graphql-tools/pull/6662)
+  [`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/schema@^10.0.10` ↗︎](https://www.npmjs.com/package/@graphql-tools/schema/v/10.0.10)
+    (from `^10.0.9`, in `dependencies`)
+- Updated dependencies
+  [[`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679)]:
+  - @graphql-tools/schema@10.0.11
+
+## 9.0.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.10
+
+## 9.0.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.9
+
+## 9.0.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.8
+
+## 9.0.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @graphql-tools/schema@10.0.7
+
 ## 9.0.1
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/schema@^10.0.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/schema/v/10.0.2) (from `^10.0.0`, in `dependencies`)
-- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/schema@^10.0.2` ↗︎](https://www.npmjs.com/package/@graphql-tools/schema/v/10.0.2)
+    (from `^10.0.0`, in `dependencies`)
+- Updated dependencies
+  [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
   - @graphql-tools/schema@10.0.3
 
 ## 9.0.0
 
 ### Major Changes
 
-- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274)
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)
+  Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
 
 ### Patch Changes
 
-- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+- Updated dependencies
+  [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
   - @graphql-tools/schema@10.0.0
 
 ## 8.3.20
 
 ### Patch Changes
 
-- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41) Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
+- [`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41)
+  Thanks [@ardatan](https://github.com/ardatan)! - Use ranged versions for dependencies
 
-- Updated dependencies [[`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41)]:
+- Updated dependencies
+  [[`1c95368a`](https://github.com/ardatan/graphql-tools/commit/1c95368aea868be537d956ba5e994cde58dfee41)]:
   - @graphql-tools/schema@9.0.18
 
 ## 8.3.19
@@ -61,7 +128,8 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`a4d36fcc`](https://github.com/ardatan/graphql-tools/commit/a4d36fccce6113843a55b77c96328727f4c748bc)]:
+- Updated dependencies
+  [[`a4d36fcc`](https://github.com/ardatan/graphql-tools/commit/a4d36fccce6113843a55b77c96328727f4c748bc)]:
   - @graphql-tools/schema@9.0.13
 
 ## 8.3.14
@@ -145,16 +213,22 @@
 
 ### Patch Changes
 
-- Updated dependencies [[`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27)]:
+- Updated dependencies
+  [[`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27)]:
   - @graphql-tools/schema@9.0.1
 
 ## 8.3.2
 
 ### Patch Changes
 
-- [#4624](https://github.com/ardatan/graphql-tools/pull/4624) [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with `moduleResolution` `node16` or `nodenext`
+- [#4624](https://github.com/ardatan/graphql-tools/pull/4624)
+  [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with
+  `moduleResolution` `node16` or `nodenext`
 
-- Updated dependencies [[`8cc8721f`](https://github.com/ardatan/graphql-tools/commit/8cc8721fbbff3c978fd67d162df833d6973c1860), [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)]:
+- Updated dependencies
+  [[`8cc8721f`](https://github.com/ardatan/graphql-tools/commit/8cc8721fbbff3c978fd67d162df833d6973c1860),
+  [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)]:
   - @graphql-tools/schema@9.0.0
 
 ## 8.3.1
@@ -275,10 +349,10 @@
 
 - b39588ce: Deprecate `graphql-tools` with a more clear message;
 
-  This package has been deprecated and now it only exports makeExecutableSchema.
-  It will no longer receive updates.
-  We strongly recommend you to migrate to scoped packages such as @graphql-tools/schema, @graphql-tools/utils and etc.
-  Check out https://www.graphql-tools.com to learn which packages you should use instead!
+  This package has been deprecated and now it only exports makeExecutableSchema. It will no longer
+  receive updates. We strongly recommend you to migrate to scoped packages such as
+  @graphql-tools/schema, @graphql-tools/utils and etc. Check out https://www.graphql-tools.com to
+  learn which packages you should use instead!
 
 ## 8.0.0
 
@@ -286,7 +360,8 @@
 
 - 7d3e3006: BREAKING CHANGE
   - Now it only exports `makeExecutableSchema` from `@graphql-tools/schema`
-  - Please migrate to scoped packages(`@graphql-tools/*`) because this npm package will no longer get updated
+  - Please migrate to scoped packages(`@graphql-tools/*`) because this npm package will no longer
+    get updated
 
 ### Patch Changes
 
@@ -349,49 +424,108 @@
 
 ### Major Changes
 
-- a9254491: - Resolver validation options should now be set to `error`, `warn` or `ignore` rather than `true` or `false`. In previous versions, some of the validators caused errors to be thrown, while some issued warnings. This changes brings consistency to validator behavior.
+- a9254491: - Resolver validation options should now be set to `error`, `warn` or `ignore` rather
+  than `true` or `false`. In previous versions, some of the validators caused errors to be thrown,
+  while some issued warnings. This changes brings consistency to validator behavior.
 
-  - The `allowResolversNotInSchema` has been renamed to `requireResolversToMatchSchema`, to harmonize the naming convention of all the validators. The default setting of `requireResolversToMatchSchema` is `error`, matching the previous behavior.
+  - The `allowResolversNotInSchema` has been renamed to `requireResolversToMatchSchema`, to
+    harmonize the naming convention of all the validators. The default setting of
+    `requireResolversToMatchSchema` is `error`, matching the previous behavior.
 
-  * The `delegateToSchema` return value has matured and been formalized as an `ExternalObject`, in which all errors are integrated into the GraphQL response, preserving their initial path. Those advanced users accessing the result directly will note the change in error handling. This also allows for the deprecation of unnecessary helper functions including `slicedError`, `getErrors`, `getErrorsByPathSegment` functions. Only external errors with missing or invalid paths must still be preserved by annotating the remote object with special properties. The new `getUnpathedErrors` function is therefore necessary for retrieving only these errors. Note also the new `annotateExternalObject` and `mergeExternalObjects` functions, as well as the renaming of `handleResult` to `resolveExternalValue`.
+  * The `delegateToSchema` return value has matured and been formalized as an `ExternalObject`, in
+    which all errors are integrated into the GraphQL response, preserving their initial path. Those
+    advanced users accessing the result directly will note the change in error handling. This also
+    allows for the deprecation of unnecessary helper functions including `slicedError`, `getErrors`,
+    `getErrorsByPathSegment` functions. Only external errors with missing or invalid paths must
+    still be preserved by annotating the remote object with special properties. The new
+    `getUnpathedErrors` function is therefore necessary for retrieving only these errors. Note also
+    the new `annotateExternalObject` and `mergeExternalObjects` functions, as well as the renaming
+    of `handleResult` to `resolveExternalValue`.
 
-  * Transform types and the `applySchemaTransforms` are now relocated to the `delegate` package; `applyRequestTransforms`/`applyResultTransforms` functions have been deprecated, however, as this functionality has been replaced since v6 by the `Transformer` abstraction.
+  * Transform types and the `applySchemaTransforms` are now relocated to the `delegate` package;
+    `applyRequestTransforms`/`applyResultTransforms` functions have been deprecated, however, as
+    this functionality has been replaced since v6 by the `Transformer` abstraction.
 
-  * The `transformRequest`/`transformResult` methods are now provided additional `delegationContext` and `transformationContext` arguments -- these were introduced in v6, but previously optional.
+  * The `transformRequest`/`transformResult` methods are now provided additional `delegationContext`
+    and `transformationContext` arguments -- these were introduced in v6, but previously optional.
 
-  * The `transformSchema` method may wish to create additional delegating resolvers and so it is now provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if a wrapping schema is being generated, proxying resolvers are created with access to the (non-executable) initial result. In v7, the individual `transformSchema` methods also get access to the result of the first run, if necessary, they can create additional wrapping schema proxying resolvers.
+  * The `transformSchema` method may wish to create additional delegating resolvers and so it is now
+    provided the `subschemaConfig` and final (non-executable) `transformedSchema` parameters. As in
+    v6, the `transformSchema` is kicked off once to produce the non-executable version, and then, if
+    a wrapping schema is being generated, proxying resolvers are created with access to the
+    (non-executable) initial result. In v7, the individual `transformSchema` methods also get access
+    to the result of the first run, if necessary, they can create additional wrapping schema
+    proxying resolvers.
 
-  * `applySchemaTransforms` parameters have been updated to match and support the `transformSchema` parameters above.
+  * `applySchemaTransforms` parameters have been updated to match and support the `transformSchema`
+    parameters above.
 
-  - `wrapSchema` and `generateProxyingResolvers` now only take a single options argument with named properties of type `SubschemaConfig`. The previously possible shorthand version with first argument consisting of a `GraphQLSchema` and second argument representing the transforms should be reworked as a `SubschemaConfig` object.
+  - `wrapSchema` and `generateProxyingResolvers` now only take a single options argument with named
+    properties of type `SubschemaConfig`. The previously possible shorthand version with first
+    argument consisting of a `GraphQLSchema` and second argument representing the transforms should
+    be reworked as a `SubschemaConfig` object.
 
-  - Similarly, the `ICreateProxyingResolverOptions` interface that provides the options for the `createProxyingResolver` property of `SubschemaConfig` options has been adjusted. The `schema` property previously could be set to a `GraphQLSchema` or a `SubschemaConfig` object. This property has been removed in favor of a `subschemaConfig` property that will always be a `SubschemaConfig` object. The `transforms` property has been removed; transforms should be included within the `SubschemaConfig` object.`
+  - Similarly, the `ICreateProxyingResolverOptions` interface that provides the options for the
+    `createProxyingResolver` property of `SubschemaConfig` options has been adjusted. The `schema`
+    property previously could be set to a `GraphQLSchema` or a `SubschemaConfig` object. This
+    property has been removed in favor of a `subschemaConfig` property that will always be a
+    `SubschemaConfig` object. The `transforms` property has been removed; transforms should be
+    included within the `SubschemaConfig` object.`
 
-  - The format of the wrapping schema has solidified. All non-root fields are expected to use identical resolvers, either `defaultMergedResolver` or a custom equivalent, with root fields doing the hard work of proxying. Support for custom merged resolvers throught `createMergedResolver` has been deprecated, as custom merging resolvers conflicts when using stitching's type merging, where resolvers are expected to be identical across subschemas.
+  - The format of the wrapping schema has solidified. All non-root fields are expected to use
+    identical resolvers, either `defaultMergedResolver` or a custom equivalent, with root fields
+    doing the hard work of proxying. Support for custom merged resolvers throught
+    `createMergedResolver` has been deprecated, as custom merging resolvers conflicts when using
+    stitching's type merging, where resolvers are expected to be identical across subschemas.
 
-  - The `WrapFields` transform's `wrappingResolver` option has been removed, as this complicates multiple wrapping layers, as well as planned functionality to wrap subscription root fields in potentially multiple layers, as the wrapping resolvers may be different in different layers. Modifying resolvers can still be performed by use of an additional transform such as `TransformRootFields` or `TransformObjectFields`.
+  - The `WrapFields` transform's `wrappingResolver` option has been removed, as this complicates
+    multiple wrapping layers, as well as planned functionality to wrap subscription root fields in
+    potentially multiple layers, as the wrapping resolvers may be different in different layers.
+    Modifying resolvers can still be performed by use of an additional transform such as
+    `TransformRootFields` or `TransformObjectFields`.
 
-  - The `ExtendSchema` transform has been removed, as it is conceptually simpler just to use `stitchSchemas` with one subschema.
+  - The `ExtendSchema` transform has been removed, as it is conceptually simpler just to use
+    `stitchSchemas` with one subschema.
 
-  - The `ReplaceFieldsWithFragment`, `AddFragmentsByField`, `AddSelectionSetsByField`, and `AddMergedTypeSelectionSets` transforms has been removed, as they are superseded by the `AddSelectionSets` and `VisitSelectionSets` transforms. The `AddSelectionSets` purposely takes parsed SDL rather than strings, to nudge end users to parse these strings at build time (when possible), rather than at runtime. Parsing of selection set strings can be performed using the `parseSelectionSet` function from `@graphql-tools/utils`.
+  - The `ReplaceFieldsWithFragment`, `AddFragmentsByField`, `AddSelectionSetsByField`, and
+    `AddMergedTypeSelectionSets` transforms has been removed, as they are superseded by the
+    `AddSelectionSets` and `VisitSelectionSets` transforms. The `AddSelectionSets` purposely takes
+    parsed SDL rather than strings, to nudge end users to parse these strings at build time (when
+    possible), rather than at runtime. Parsing of selection set strings can be performed using the
+    `parseSelectionSet` function from `@graphql-tools/utils`.
 
-  * `stitchSchemas`'s `mergeTypes` option is now true by default! This causes the `onTypeConflict` option to be ignored by default. To use `onTypeConflict` to select a specific type instead of simply merging, simply set `mergeTypes` to false.
+  * `stitchSchemas`'s `mergeTypes` option is now true by default! This causes the `onTypeConflict`
+    option to be ignored by default. To use `onTypeConflict` to select a specific type instead of
+    simply merging, simply set `mergeTypes` to false.
 
-  * `schemas` argument has been deprecated, use `subschemas`, `typeDefs`, or `types`, depending on what you are stitching.
+  * `schemas` argument has been deprecated, use `subschemas`, `typeDefs`, or `types`, depending on
+    what you are stitching.
 
-  * When using batch delegation in type merging, the `argsFromKeys` function is now set only via the `argsFromKeys` property. Previously, if `argsFromKeys` was absent, it could be read from `args`.
+  * When using batch delegation in type merging, the `argsFromKeys` function is now set only via the
+    `argsFromKeys` property. Previously, if `argsFromKeys` was absent, it could be read from `args`.
 
   * Support for fragment hints has been removed in favor of selection set hints.
 
-  * `stitchSchemas` now processes all `GraphQLSchema` and `SubschemaConfig` subschema input into new `Subschema` objects, handling schema config directives such aso`@computed` as well as generating the final transformed schema, stored as the `transformedSchema` property, if transforms are used. Signatures of the `onTypeConflict`, `fieldConfigMerger`, and `inputFieldConfigMerger` have been updated to include metadata related to the original and transformed subschemas. Note the property name change for `onTypeConflict` from `schema` to `subschema`.
+  * `stitchSchemas` now processes all `GraphQLSchema` and `SubschemaConfig` subschema input into new
+    `Subschema` objects, handling schema config directives such aso`@computed` as well as generating
+    the final transformed schema, stored as the `transformedSchema` property, if transforms are
+    used. Signatures of the `onTypeConflict`, `fieldConfigMerger`, and `inputFieldConfigMerger` have
+    been updated to include metadata related to the original and transformed subschemas. Note the
+    property name change for `onTypeConflict` from `schema` to `subschema`.
 
-  - Mocks returning objects with fields set as functions are now operating according to upstream graphql-js convention, i.e. these functions take three arguments, `args`, `context`, and `info` with `parent` available as `this` rather than as the first argument.
+  - Mocks returning objects with fields set as functions are now operating according to upstream
+    graphql-js convention, i.e. these functions take three arguments, `args`, `context`, and `info`
+    with `parent` available as `this` rather than as the first argument.
 
-  * `filterSchema`'s `fieldFilter` will now filter _all_ fields across Object, Interface, and Input types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.
+  * `filterSchema`'s `fieldFilter` will now filter _all_ fields across Object, Interface, and Input
+    types. For the previous Object-only behavior, switch to the `objectFieldFilter` option.
   * Unused `fieldNodes` utility functions have been removed.
-  * Unused `typeContainsSelectionSet` function has been removed, and `typesContainSelectionSet` has been moved to the `stitch` package.
-  * Unnecessary `Operation` type has been removed in favor of `OperationTypeNode` from upstream graphql-js.
-  * As above, `applySchemaTransforms`/`applyRequestTransforms`/`applyResultTransforms` have been removed from the `utils` package, as they are implemented elsewhere or no longer necessary.
+  * Unused `typeContainsSelectionSet` function has been removed, and `typesContainSelectionSet` has
+    been moved to the `stitch` package.
+  * Unnecessary `Operation` type has been removed in favor of `OperationTypeNode` from upstream
+    graphql-js.
+  * As above, `applySchemaTransforms`/`applyRequestTransforms`/`applyResultTransforms` have been
+    removed from the `utils` package, as they are implemented elsewhere or no longer necessary.
 
 ### Patch Changes
 
@@ -405,7 +539,8 @@
 
 - 96a7555d: Fix release
 
-  Last PATCH release actually transitively updated graphql-tools and @graphql-tools/delegate to use latest MAJOR version of dependencies.
+  Last PATCH release actually transitively updated graphql-tools and @graphql-tools/delegate to use
+  latest MAJOR version of dependencies.
 
 - Updated dependencies [96a7555d]
   - @graphql-tools/batch-delegate@6.2.6

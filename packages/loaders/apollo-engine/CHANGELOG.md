@@ -1,183 +1,333 @@
 # @graphql-tools/apollo-engine-loader
 
+## 8.0.9
+
+### Patch Changes
+
+- Updated dependencies
+  [[`6a8123b`](https://github.com/ardatan/graphql-tools/commit/6a8123be34d3270e4e6a628c7b4ef35fa66f52a1)]:
+  - @graphql-tools/utils@10.6.4
+
+## 8.0.8
+
+### Patch Changes
+
+- Updated dependencies
+  [[`020b9e4`](https://github.com/ardatan/graphql-tools/commit/020b9e47b51f9847bf915de5faefe09dc04d9612)]:
+  - @graphql-tools/utils@10.6.3
+
+## 8.0.7
+
+### Patch Changes
+
+- [#6662](https://github.com/ardatan/graphql-tools/pull/6662)
+  [`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/utils@^10.6.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.6.1)
+    (from `^10.6.0`, in `dependencies`)
+- Updated dependencies
+  [[`1b24656`](https://github.com/ardatan/graphql-tools/commit/1b24656d3d13274820e52bede56991b0c54e8060)]:
+  - @graphql-tools/utils@10.6.2
+
+## 8.0.6
+
+### Patch Changes
+
+- Updated dependencies
+  [[`1e02935`](https://github.com/ardatan/graphql-tools/commit/1e0293562961fb12b267235e5aa6d0e83d0e7d0f)]:
+  - @graphql-tools/utils@10.6.1
+
+## 8.0.5
+
+### Patch Changes
+
+- Updated dependencies
+  [[`414e404`](https://github.com/ardatan/graphql-tools/commit/414e404a06478ea8ddd1065bd765de14af0f6c43)]:
+  - @graphql-tools/utils@10.6.0
+
+## 8.0.4
+
+### Patch Changes
+
+- Updated dependencies
+  [[`dc5043b`](https://github.com/ardatan/graphql-tools/commit/dc5043bb7c9afaca907c242eb6bf65e8019d79c4)]:
+  - @graphql-tools/utils@10.5.6
+
+## 8.0.3
+
+### Patch Changes
+
+- [#6663](https://github.com/ardatan/graphql-tools/pull/6663)
+  [`d06afe3`](https://github.com/ardatan/graphql-tools/commit/d06afe3065edb15f4c58c1c155a230d8d542669f)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.10.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.10.0)
+    (from `^0.9.0`, in `dependencies`)
+
+## 8.0.2
+
+### Patch Changes
+
+- Updated dependencies
+  [[`cf2ce5e`](https://github.com/ardatan/graphql-tools/commit/cf2ce5ed4773087cc324599f2812f4fb91398b21)]:
+  - @graphql-tools/utils@10.5.5
+
 ## 8.0.1
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.0`, in `dependencies`)
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.0`, in `dependencies`)
 
 ## 8.0.0
 
 ### Major Changes
 
-- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274)
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)
+  Thanks [@ardatan](https://github.com/ardatan)! - Drop Node 14 support. Require Node.js `>= 16`
 
 ### Patch Changes
 
-- [#5274](https://github.com/ardatan/graphql-tools/pull/5274) [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
-  - Updated dependency [`@whatwg-node/fetch@^0.9.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.9.0) (from `^0.8.0`, in `dependencies`)
-- Updated dependencies [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955), [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
+- [#5274](https://github.com/ardatan/graphql-tools/pull/5274)
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.9.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.9.0)
+    (from `^0.8.0`, in `dependencies`)
+- Updated dependencies
+  [[`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955),
+  [`944a68e8`](https://github.com/ardatan/graphql-tools/commit/944a68e8becf9c86b4c97fd17c372d98a285b955)]:
   - @graphql-tools/utils@10.0.0
 
 ## 7.3.26
 
 ### Patch Changes
 
-- [#5041](https://github.com/ardatan/graphql-tools/pull/5041) [`1b948acc`](https://github.com/ardatan/graphql-tools/commit/1b948accf76366f45f69fe212e0d600a85eb6a89) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`@whatwg-node/fetch@^0.8.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.8.0) (from `^0.7.0`, in `dependencies`)
+- [#5041](https://github.com/ardatan/graphql-tools/pull/5041)
+  [`1b948acc`](https://github.com/ardatan/graphql-tools/commit/1b948accf76366f45f69fe212e0d600a85eb6a89)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.8.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.8.0)
+    (from `^0.7.0`, in `dependencies`)
 
 ## 7.3.25
 
 ### Patch Changes
 
-- [#5031](https://github.com/ardatan/graphql-tools/pull/5031) [`ab4cf86b`](https://github.com/ardatan/graphql-tools/commit/ab4cf86bf1330deacd95ecea2fcca54dd6590da1) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`@whatwg-node/fetch@^0.7.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.7.0) (from `^0.6.9`, in `dependencies`)
+- [#5031](https://github.com/ardatan/graphql-tools/pull/5031)
+  [`ab4cf86b`](https://github.com/ardatan/graphql-tools/commit/ab4cf86bf1330deacd95ecea2fcca54dd6590da1)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.7.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.7.0)
+    (from `^0.6.9`, in `dependencies`)
 
 ## 7.3.24
 
 ### Patch Changes
 
-- [#5025](https://github.com/ardatan/graphql-tools/pull/5025) [`b09ea282`](https://github.com/ardatan/graphql-tools/commit/b09ea282f0945fb19f354af57aabddcd23b2a155) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`@ardatan/sync-fetch@^0.0.1` ↗︎](https://www.npmjs.com/package/@ardatan/sync-fetch/v/0.0.1) (from `0.0.1`, in `dependencies`)
-  - Updated dependency [`@graphql-tools/utils@^9.2.0` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/9.2.0) (from `9.2.0`, in `dependencies`)
-  - Updated dependency [`@whatwg-node/fetch@^0.6.9` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.6.9) (from `^0.6.0`, in `dependencies`)
-- Updated dependencies [[`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af)]:
+- [#5025](https://github.com/ardatan/graphql-tools/pull/5025)
+  [`b09ea282`](https://github.com/ardatan/graphql-tools/commit/b09ea282f0945fb19f354af57aabddcd23b2a155)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@ardatan/sync-fetch@^0.0.1` ↗︎](https://www.npmjs.com/package/@ardatan/sync-fetch/v/0.0.1)
+    (from `0.0.1`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/utils@^9.2.0` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/9.2.0)
+    (from `9.2.0`, in `dependencies`)
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.6.9` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.6.9)
+    (from `^0.6.0`, in `dependencies`)
+- Updated dependencies
+  [[`b5c8f640`](https://github.com/ardatan/graphql-tools/commit/b5c8f6407b74466ed0d2989000458cb59239e9af)]:
   - @graphql-tools/utils@9.2.1
 
 ## 7.3.23
 
 ### Patch Changes
 
-- Updated dependencies [[`a94217e9`](https://github.com/ardatan/graphql-tools/commit/a94217e920c5d6237471ab6ad4d96cf230984177), [`62d074be`](https://github.com/ardatan/graphql-tools/commit/62d074be48779b1e096e056ca1233822c421dc99)]:
+- Updated dependencies
+  [[`a94217e9`](https://github.com/ardatan/graphql-tools/commit/a94217e920c5d6237471ab6ad4d96cf230984177),
+  [`62d074be`](https://github.com/ardatan/graphql-tools/commit/62d074be48779b1e096e056ca1233822c421dc99)]:
   - @graphql-tools/utils@9.2.0
 
 ## 7.3.22
 
 ### Patch Changes
 
-- [#4941](https://github.com/ardatan/graphql-tools/pull/4941) [`0e5d250c`](https://github.com/ardatan/graphql-tools/commit/0e5d250cbac7ab003c45020b5ea464a8924eed01) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
-  - Updated dependency [`@whatwg-node/fetch@^0.6.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.6.0) (from `^0.5.0`, in `dependencies`)
-- Updated dependencies [[`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591)]:
+- [#4941](https://github.com/ardatan/graphql-tools/pull/4941)
+  [`0e5d250c`](https://github.com/ardatan/graphql-tools/commit/0e5d250cbac7ab003c45020b5ea464a8924eed01)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.6.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.6.0)
+    (from `^0.5.0`, in `dependencies`)
+- Updated dependencies
+  [[`e3ec35ed`](https://github.com/ardatan/graphql-tools/commit/e3ec35ed27d4a329739c8da6be06ce74c8f25591)]:
   - @graphql-tools/utils@9.1.4
 
 ## 7.3.21
 
 ### Patch Changes
 
-- Updated dependencies [[`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759)]:
+- Updated dependencies
+  [[`904fe770`](https://github.com/ardatan/graphql-tools/commit/904fe770a355ee3d79464c3bbf0375d2dcd64759)]:
   - @graphql-tools/utils@9.1.3
 
 ## 7.3.20
 
 ### Patch Changes
 
-- Updated dependencies [[`13c24883`](https://github.com/ardatan/graphql-tools/commit/13c24883004d5330f7402cb20566e37535c5729b)]:
+- Updated dependencies
+  [[`13c24883`](https://github.com/ardatan/graphql-tools/commit/13c24883004d5330f7402cb20566e37535c5729b)]:
   - @graphql-tools/utils@9.1.2
 
 ## 7.3.19
 
 ### Patch Changes
 
-- Updated dependencies [[`7411a5e7`](https://github.com/ardatan/graphql-tools/commit/7411a5e71a8138d9ccfe907b1fb01e62fcbb0cdb)]:
+- Updated dependencies
+  [[`7411a5e7`](https://github.com/ardatan/graphql-tools/commit/7411a5e71a8138d9ccfe907b1fb01e62fcbb0cdb)]:
   - @graphql-tools/utils@9.1.1
 
 ## 7.3.18
 
 ### Patch Changes
 
-- Updated dependencies [[`c0639dd0`](https://github.com/ardatan/graphql-tools/commit/c0639dd0065db1b5bcedaabf58b11945714bab8d)]:
+- Updated dependencies
+  [[`c0639dd0`](https://github.com/ardatan/graphql-tools/commit/c0639dd0065db1b5bcedaabf58b11945714bab8d)]:
   - @graphql-tools/utils@9.1.0
 
 ## 7.3.17
 
 ### Patch Changes
 
-- Updated dependencies [[`d83b1960`](https://github.com/ardatan/graphql-tools/commit/d83b19605be71481ccf8effd80d5254423ea811a)]:
+- Updated dependencies
+  [[`d83b1960`](https://github.com/ardatan/graphql-tools/commit/d83b19605be71481ccf8effd80d5254423ea811a)]:
   - @graphql-tools/utils@9.0.1
 
 ## 7.3.16
 
 ### Patch Changes
 
-- Updated dependencies [[`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`8f6d3efc`](https://github.com/ardatan/graphql-tools/commit/8f6d3efc92b25236f5a3a761ea7ba2f0a7c7f550), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931), [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931)]:
+- Updated dependencies
+  [[`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`8f6d3efc`](https://github.com/ardatan/graphql-tools/commit/8f6d3efc92b25236f5a3a761ea7ba2f0a7c7f550),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931),
+  [`80836fa7`](https://github.com/ardatan/graphql-tools/commit/80836fa78af3c6e61c61fe4d3bc52831b2c58931)]:
   - @graphql-tools/utils@9.0.0
 
 ## 7.3.15
 
 ### Patch Changes
 
-- Updated dependencies [[`f7daf777`](https://github.com/ardatan/graphql-tools/commit/f7daf7777cc214801886e4a45c0389bc5837d175)]:
+- Updated dependencies
+  [[`f7daf777`](https://github.com/ardatan/graphql-tools/commit/f7daf7777cc214801886e4a45c0389bc5837d175)]:
   - @graphql-tools/utils@8.13.1
 
 ## 7.3.14
 
 ### Patch Changes
 
-- [#4772](https://github.com/ardatan/graphql-tools/pull/4772) [`884c7ef7`](https://github.com/ardatan/graphql-tools/commit/884c7ef7bc549421fad6cbf38616d4a9eb9f8738) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+- [#4772](https://github.com/ardatan/graphql-tools/pull/4772)
+  [`884c7ef7`](https://github.com/ardatan/graphql-tools/commit/884c7ef7bc549421fad6cbf38616d4a9eb9f8738)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
 
-  - Updated dependency [`@whatwg-node/fetch@^0.5.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.5.0) (from `^0.4.0`, in `dependencies`)
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.5.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/0.5.0)
+    (from `^0.4.0`, in `dependencies`)
 
-- Updated dependencies [[`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f), [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f)]:
+- Updated dependencies
+  [[`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f),
+  [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f),
+  [`df5848b8`](https://github.com/ardatan/graphql-tools/commit/df5848b85102827f004f23aded7cf802cdcde00f)]:
   - @graphql-tools/utils@8.13.0
 
 ## 7.3.13
 
 ### Patch Changes
 
-- Updated dependencies [[`43c736bd`](https://github.com/ardatan/graphql-tools/commit/43c736bd1865c00898966a7ed14060496c9e6a0c)]:
+- Updated dependencies
+  [[`43c736bd`](https://github.com/ardatan/graphql-tools/commit/43c736bd1865c00898966a7ed14060496c9e6a0c)]:
   - @graphql-tools/utils@8.12.0
 
 ## 7.3.12
 
 ### Patch Changes
 
-- [#4700](https://github.com/ardatan/graphql-tools/pull/4700) [`939e07ca`](https://github.com/ardatan/graphql-tools/commit/939e07cae38ff179e00c2ff2a23b70f6259971ef) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+- [#4700](https://github.com/ardatan/graphql-tools/pull/4700)
+  [`939e07ca`](https://github.com/ardatan/graphql-tools/commit/939e07cae38ff179e00c2ff2a23b70f6259971ef)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
 
-  - Updated dependency [`@whatwg-node/fetch@^0.4.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/null) (from `^0.3.0`, in `dependencies`)
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.4.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/null) (from
+    `^0.3.0`, in `dependencies`)
 
 ## 7.3.11
 
 ### Patch Changes
 
-- Updated dependencies [[`71cb4fae`](https://github.com/ardatan/graphql-tools/commit/71cb4faeb0833a228520a7bc2beed8ac7274443f), [`403ed450`](https://github.com/ardatan/graphql-tools/commit/403ed4507eff7cd509f410f7542a702da72e1a9a)]:
+- Updated dependencies
+  [[`71cb4fae`](https://github.com/ardatan/graphql-tools/commit/71cb4faeb0833a228520a7bc2beed8ac7274443f),
+  [`403ed450`](https://github.com/ardatan/graphql-tools/commit/403ed4507eff7cd509f410f7542a702da72e1a9a)]:
   - @graphql-tools/utils@8.11.0
 
 ## 7.3.10
 
 ### Patch Changes
 
-- [#4665](https://github.com/ardatan/graphql-tools/pull/4665) [`5e9b1c06`](https://github.com/ardatan/graphql-tools/commit/5e9b1c066ed02fcac54cd79080c89e327d8d2f53) Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+- [#4665](https://github.com/ardatan/graphql-tools/pull/4665)
+  [`5e9b1c06`](https://github.com/ardatan/graphql-tools/commit/5e9b1c066ed02fcac54cd79080c89e327d8d2f53)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
 
-  - Updated dependency [`@whatwg-node/fetch@^0.3.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/null) (from `^0.2.9`, in `dependencies`)
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.3.0` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/null) (from
+    `^0.2.9`, in `dependencies`)
 
-- Updated dependencies [[`4fe3d9c0`](https://github.com/ardatan/graphql-tools/commit/4fe3d9c037e9c138bd8a9b04b3977d74eba32c97)]:
+- Updated dependencies
+  [[`4fe3d9c0`](https://github.com/ardatan/graphql-tools/commit/4fe3d9c037e9c138bd8a9b04b3977d74eba32c97)]:
   - @graphql-tools/utils@8.10.1
 
 ## 7.3.9
 
 ### Patch Changes
 
-- [#4640](https://github.com/ardatan/graphql-tools/pull/4640) [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d) Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+- [#4640](https://github.com/ardatan/graphql-tools/pull/4640)
+  [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
 
-  - Updated dependency [`@whatwg-node/fetch@^0.2.9` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/^0.2.9) (was `^0.2.4`, in `dependencies`)
+  - Updated dependency
+    [`@whatwg-node/fetch@^0.2.9` ↗︎](https://www.npmjs.com/package/@whatwg-node/fetch/v/^0.2.9)
+    (was `^0.2.4`, in `dependencies`)
 
-* [#4640](https://github.com/ardatan/graphql-tools/pull/4640) [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d) Thanks [@ardatan](https://github.com/ardatan)! - Bump fetch package
+* [#4640](https://github.com/ardatan/graphql-tools/pull/4640)
+  [`27bdc237`](https://github.com/ardatan/graphql-tools/commit/27bdc23713a5176485ac940fc5431256b4f2de8d)
+  Thanks [@ardatan](https://github.com/ardatan)! - Bump fetch package
 
 ## 7.3.8
 
 ### Patch Changes
 
-- Updated dependencies [[`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27)]:
+- Updated dependencies
+  [[`2609d71f`](https://github.com/ardatan/graphql-tools/commit/2609d71f7c3a0ef2b381c51d9ce60b0de49f9b27)]:
   - @graphql-tools/utils@8.10.0
 
 ## 7.3.7
 
 ### Patch Changes
 
-- [#4624](https://github.com/ardatan/graphql-tools/pull/4624) [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67) Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with `moduleResolution` `node16` or `nodenext`
+- [#4624](https://github.com/ardatan/graphql-tools/pull/4624)
+  [`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - Fix CommonJS TypeScript resolution with
+  `moduleResolution` `node16` or `nodenext`
 
-- Updated dependencies [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)]:
+- Updated dependencies
+  [[`e3167edc`](https://github.com/ardatan/graphql-tools/commit/e3167edc98172fda88ce2306c10c7d4a23d91d67)]:
   - @graphql-tools/utils@8.9.1
 
 ## 7.3.6
@@ -197,13 +347,15 @@
 
 ### Patch Changes
 
-- eda0da95: Replace 'cross-undici-fetch' with '@whatwg-node/fetch' since the previous one is deprecated
+- eda0da95: Replace 'cross-undici-fetch' with '@whatwg-node/fetch' since the previous one is
+  deprecated
 
 ## 7.3.1
 
 ### Patch Changes
 
-- ead60ca3: Upgrade cross-undici-fetch to the latest that uses undici@5.5.1 as pinned dependency until the issues with 5.6.0 fixed
+- ead60ca3: Upgrade cross-undici-fetch to the latest that uses undici@5.5.1 as pinned dependency
+  until the issues with 5.6.0 fixed
 
 ## 7.3.0
 
@@ -430,14 +582,20 @@
 
 - af9a78de: BREAKING CHANGE
 
-  - Now each loader handles glob patterns internally and returns an array of `Source` object instead of single `Source`
+  - Now each loader handles glob patterns internally and returns an array of `Source` object instead
+    of single `Source`
 
-  - GraphQL Tag Pluck now respects code locations and returns graphql-js `Source` objects for each found code block
+  - GraphQL Tag Pluck now respects code locations and returns graphql-js `Source` objects for each
+    found code block
 
-  - Thanks to the one above, `CodeFileLoader` now returns different `Source` objects for each found SDL code block.
+  - Thanks to the one above, `CodeFileLoader` now returns different `Source` objects for each found
+    SDL code block.
 
 - 7d3e3006: BREAKING CHANGE
-  - Now it uses the native [`AggregateError`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AggregateError) implementation. The major difference is the individual errors are kept under `errors` property instead of the object itself with `Symbol.iterator`.
+  - Now it uses the native
+    [`AggregateError`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AggregateError)
+    implementation. The major difference is the individual errors are kept under `errors` property
+    instead of the object itself with `Symbol.iterator`.
   ```js
   // From;
   for (const error of aggregateError)

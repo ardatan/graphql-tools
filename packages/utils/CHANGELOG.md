@@ -1,5 +1,87 @@
 # @graphql-tools/utils
 
+## 10.6.4
+
+### Patch Changes
+
+- [#6769](https://github.com/ardatan/graphql-tools/pull/6769)
+  [`6a8123b`](https://github.com/ardatan/graphql-tools/commit/6a8123be34d3270e4e6a628c7b4ef35fa66f52a1)
+  Thanks [@ardatan](https://github.com/ardatan)! - Improvements for `fakePromise` so it can be used
+  without params to create a `void` Promise
+
+## 10.6.3
+
+### Patch Changes
+
+- [`020b9e4`](https://github.com/ardatan/graphql-tools/commit/020b9e47b51f9847bf915de5faefe09dc04d9612)
+  Thanks [@ardatan](https://github.com/ardatan)! - \`AbortSignal\` in \`GraphQLResolveInfo\`, and
+  \`AbortSignal\` in \`ExecutionRequest\`
+
+## 10.6.2
+
+### Patch Changes
+
+- [#6737](https://github.com/ardatan/graphql-tools/pull/6737)
+  [`1b24656`](https://github.com/ardatan/graphql-tools/commit/1b24656d3d13274820e52bede56991b0c54e8060)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle array of primitives correctly
+
+  The bug was following;
+
+  ```ts
+  mergeDeep([{ options: ['$a', '$b'] }, { options: ['$c'] }, { options: ['$d', '$e'] }])
+
+  // results in { options: [{}, {}] }
+  ```
+
+## 10.6.1
+
+### Patch Changes
+
+- [`1e02935`](https://github.com/ardatan/graphql-tools/commit/1e0293562961fb12b267235e5aa6d0e83d0e7d0f)
+  Thanks [@ardatan](https://github.com/ardatan)! - Handle parse errors correctly when loader gets a
+  string directly
+
+## 10.6.0
+
+### Minor Changes
+
+- [`414e404`](https://github.com/ardatan/graphql-tools/commit/414e404a06478ea8ddd1065bd765de14af0f6c43)
+  Thanks [@ardatan](https://github.com/ardatan)! - new `fakePromise`, `mapMaybePromise` and
+  `fakeRejectPromise` helper functions
+
+## 10.5.6
+
+### Patch Changes
+
+- [#6677](https://github.com/ardatan/graphql-tools/pull/6677)
+  [`dc5043b`](https://github.com/ardatan/graphql-tools/commit/dc5043bb7c9afaca907c242eb6bf65e8019d79c4)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - `onError` and `onEnd` callbacks from
+  `mapAsyncIterator` are invoked only once regardless of how many times `throw`/`return` was called
+  on the iterator
+
+## 10.5.5
+
+### Patch Changes
+
+- [#6524](https://github.com/ardatan/graphql-tools/pull/6524)
+  [`cf2ce5e`](https://github.com/ardatan/graphql-tools/commit/cf2ce5ed4773087cc324599f2812f4fb91398b21)
+  Thanks [@kachkaev](https://github.com/kachkaev)! - Make two types compatible with strict tsc
+  config
+
+## 10.5.4
+
+### Patch Changes
+
+- [`0286437`](https://github.com/ardatan/graphql-tools/commit/02864374aa25c4b326673347d4f683ce30af3703)
+  Thanks [@ardatan](https://github.com/ardatan)! - Improve directive extraction
+
+## 10.5.3
+
+### Patch Changes
+
+- [`2124d7d`](https://github.com/ardatan/graphql-tools/commit/2124d7de749b722e051fb591bcf9d514bc73fa50)
+  Thanks [@ardatan](https://github.com/ardatan)! - Allow invalid path in \`getDirectiveExtensions\`
+
 ## 10.5.2
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 import { ASTNode, parse } from 'graphql';
 
+function isURL(str: string): boolean {
+  try {
+    const url = new URL(str);
+    return !!url;
+  } catch (e) {
+    return false;
+  }
+}
+
 export const asArray = <T>(fns: T | T[]) => (Array.isArray(fns) ? fns : fns ? [fns] : []);
 
 const invalidDocRegex = /\.[a-z0-9]+$/i;
@@ -13,14 +22,22 @@ export function isDocumentString(str: any): boolean {
   // this why checking the extension is fast enough
   // and prevent from parsing the string in order to find out
   // if the string is a SDL
-  if (invalidDocRegex.test(str)) {
+  if (invalidDocRegex.test(str) || isURL(str)) {
     return false;
   }
 
   try {
     parse(str);
     return true;
-  } catch (e: any) {}
+  } catch (e: any) {
+    if (
+      !e.message.includes('EOF') &&
+      str.replace(/(\#[^*]*)/g, '').trim() !== '' &&
+      str.includes(' ')
+    ) {
+      throw new Error(`Failed to parse the GraphQL document. ${e.message}\n${str}`);
+    }
+  }
 
   return false;
 }

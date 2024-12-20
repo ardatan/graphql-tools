@@ -1,12 +1,102 @@
 # @graphql-tools/node-require
 
+## 7.0.9
+
+### Patch Changes
+
+- Updated dependencies
+  [[`6a8123b`](https://github.com/ardatan/graphql-tools/commit/6a8123be34d3270e4e6a628c7b4ef35fa66f52a1)]:
+  - @graphql-tools/utils@10.6.4
+  - @graphql-tools/load@8.0.9
+  - @graphql-tools/graphql-file-loader@8.0.8
+
+## 7.0.8
+
+### Patch Changes
+
+- Updated dependencies
+  [[`020b9e4`](https://github.com/ardatan/graphql-tools/commit/020b9e47b51f9847bf915de5faefe09dc04d9612)]:
+  - @graphql-tools/utils@10.6.3
+  - @graphql-tools/load@8.0.8
+  - @graphql-tools/graphql-file-loader@8.0.7
+
+## 7.0.7
+
+### Patch Changes
+
+- [#6662](https://github.com/ardatan/graphql-tools/pull/6662)
+  [`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679)
+  Thanks [@renovate](https://github.com/apps/renovate)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/graphql-file-loader@8.0.5` ↗︎](https://www.npmjs.com/package/@graphql-tools/graphql-file-loader/v/8.0.5)
+    (from `8.0.4`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/load@8.0.6` ↗︎](https://www.npmjs.com/package/@graphql-tools/load/v/8.0.6)
+    (from `8.0.5`, in `dependencies`)
+  - Updated dependency
+    [`@graphql-tools/utils@^10.6.1` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.6.1)
+    (from `^10.6.0`, in `dependencies`)
+- Updated dependencies
+  [[`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679),
+  [`696a0d5`](https://github.com/ardatan/graphql-tools/commit/696a0d5ac9232baebe730226fe9ea9d6e3b98679),
+  [`1b24656`](https://github.com/ardatan/graphql-tools/commit/1b24656d3d13274820e52bede56991b0c54e8060)]:
+  - @graphql-tools/graphql-file-loader@8.0.6
+  - @graphql-tools/load@8.0.7
+  - @graphql-tools/utils@10.6.2
+
+## 7.0.6
+
+### Patch Changes
+
+- Updated dependencies
+  [[`1e02935`](https://github.com/ardatan/graphql-tools/commit/1e0293562961fb12b267235e5aa6d0e83d0e7d0f)]:
+  - @graphql-tools/utils@10.6.1
+  - @graphql-tools/load@8.0.6
+  - @graphql-tools/graphql-file-loader@8.0.5
+
+## 7.0.5
+
+### Patch Changes
+
+- Updated dependencies
+  [[`414e404`](https://github.com/ardatan/graphql-tools/commit/414e404a06478ea8ddd1065bd765de14af0f6c43)]:
+  - @graphql-tools/utils@10.6.0
+  - @graphql-tools/load@8.0.5
+  - @graphql-tools/graphql-file-loader@8.0.4
+
+## 7.0.4
+
+### Patch Changes
+
+- Updated dependencies
+  [[`dc5043b`](https://github.com/ardatan/graphql-tools/commit/dc5043bb7c9afaca907c242eb6bf65e8019d79c4)]:
+  - @graphql-tools/utils@10.5.6
+  - @graphql-tools/load@8.0.4
+  - @graphql-tools/graphql-file-loader@8.0.3
+
+## 7.0.3
+
+### Patch Changes
+
+- Updated dependencies
+  [[`cf2ce5e`](https://github.com/ardatan/graphql-tools/commit/cf2ce5ed4773087cc324599f2812f4fb91398b21)]:
+  - @graphql-tools/utils@10.5.5
+  - @graphql-tools/load@8.0.3
+  - @graphql-tools/graphql-file-loader@8.0.2
+
 ## 7.0.2
 
 ### Patch Changes
 
-- [#5913](https://github.com/ardatan/graphql-tools/pull/5913) [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703) Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
-  - Updated dependency [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13) (from `^10.0.11`, in `dependencies`)
-- Updated dependencies [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703), [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
+- [#5913](https://github.com/ardatan/graphql-tools/pull/5913)
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+  - Updated dependency
+    [`@graphql-tools/utils@^10.0.13` ↗︎](https://www.npmjs.com/package/@graphql-tools/utils/v/10.0.13)
+    (from `^10.0.11`, in `dependencies`)
+- Updated dependencies
+  [[`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703),
+  [`83c0af0`](https://github.com/ardatan/graphql-tools/commit/83c0af0713ff2ce55ccfb97a1810ecfecfeab703)]:
   - @graphql-tools/graphql-file-loader@8.0.1
   - @graphql-tools/load@8.0.2
 
