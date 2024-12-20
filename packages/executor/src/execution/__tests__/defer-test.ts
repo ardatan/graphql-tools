@@ -11,7 +11,11 @@ import {
 import { createDeferred } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
-import { execute } from '../execute.js';
+import {
+  execute,
+  IncrementalDeliveryPreset2023_06_22,
+  IncrementalDeliveryPresetLegacy,
+} from '../execute.js';
 import type { IncrementalPreset } from '../execute.js';
 import type {
   InitialIncrementalExecutionResult,
@@ -135,7 +139,7 @@ async function complete(
   document: DocumentNode,
   rootValue: unknown = { hero },
   enableEarlyExecution = false,
-  incrementalPreset: IncrementalPreset = 'v17.0.0-alpha.3',
+  incrementalPreset: IncrementalPreset = IncrementalDeliveryPreset2023_06_22,
 ) {
   const result = await execute({
     schema,
@@ -1255,7 +1259,7 @@ describe('Execute: defer directive', () => {
         },
       },
       undefined,
-      'v17.0.0-alpha.2',
+      IncrementalDeliveryPresetLegacy,
     );
     expectJSON(result).toDeepEqual([
       {
@@ -1375,7 +1379,7 @@ describe('Execute: defer directive', () => {
         hero: { nestedObject: { deeperObject: { foo: 'foo', bar: 'bar' } } },
       },
       undefined,
-      'v17.0.0-alpha.2',
+      IncrementalDeliveryPresetLegacy,
     );
     expectJSON(result).toDeepEqual([
       {
@@ -1776,7 +1780,7 @@ describe('Execute: defer directive', () => {
         a: { b: { c: { d: 'd' } }, someField: 'someField' },
       },
       undefined,
-      'v17.0.0-alpha.2',
+      IncrementalDeliveryPresetLegacy,
     );
     expectJSON(result).toDeepEqual([
       {

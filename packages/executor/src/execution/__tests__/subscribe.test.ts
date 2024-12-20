@@ -13,7 +13,13 @@ import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { expectPromise } from '../../__testUtils__/expectPromise.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
 import { assertAsyncIterable } from '../../../../loaders/url/tests/test-utils.js';
-import { ExecutionArgs, IncrementalPreset, subscribe } from '../execute.js';
+import {
+  ExecutionArgs,
+  IncrementalDeliveryPreset2023_06_22,
+  IncrementalDeliveryPresetLegacy,
+  IncrementalPreset,
+  subscribe,
+} from '../execute.js';
 import { normalizedExecutor } from '../normalizedExecutor.js';
 import { SimplePubSub } from './simplePubSub.js';
 
@@ -86,7 +92,7 @@ const emailSchema = new GraphQLSchema({
 function createSubscription(
   pubsub: SimplePubSub<Email>,
   variableValues?: { readonly [variable: string]: unknown },
-  incrementalPreset: IncrementalPreset = 'v17.0.0-alpha.3',
+  incrementalPreset: IncrementalPreset = IncrementalDeliveryPreset2023_06_22,
 ) {
   const document = parse(`
     subscription (
@@ -780,7 +786,7 @@ describe('Subscription Publish Phase', () => {
       {
         shouldDefer: true,
       },
-      'v17.0.0-alpha.2',
+      IncrementalDeliveryPresetLegacy,
     );
     expect(isAsyncIterable(subscription)).toBeTruthy();
     // Wait for the next subscription payload.

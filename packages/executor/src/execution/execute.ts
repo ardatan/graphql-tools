@@ -93,7 +93,7 @@ const collectSubfields = memoize3of4(
       exeContext.schema,
       exeContext.fragments,
       exeContext.variableValues,
-      exeContext.errorOnSubscriptionWithIncrementalDelivery,
+      exeContext.errorOnIncrementalDeliveryDirective,
       returnType,
       fieldGroup,
       path,
@@ -142,7 +142,7 @@ export interface ExecutionContext<TVariables = any, TContext = any> {
   enableEarlyExecution: boolean;
   deferWithoutDuplication: boolean;
   useIncrementalNotifications: boolean;
-  errorOnSubscriptionWithIncrementalDelivery: boolean;
+  errorOnIncrementalDeliveryDirective: boolean;
   signal: AbortSignal | undefined;
   errors: AccumulatorMap<Path | undefined, GraphQLError> | undefined;
   encounteredDefer: boolean;
@@ -157,7 +157,47 @@ interface IncrementalContext {
   incrementalDataRecords: Array<IncrementalDataRecord> | undefined;
 }
 
-export type IncrementalPreset = 'v17.0.0-alpha.2' | 'v17.0.0-alpha.3';
+/**
+ * Configuration for the incremental delivery protocol.
+ */
+export type IncrementalDeliveryPreset = {
+  /**
+   * Whether results should be deduplicated.
+   */
+  deferWithoutDuplication: boolean;
+  /**
+   * Setting `useIncrementalNotifications` to `false` will
+   * - omit the `pending` entries
+   * - send `path` and `label` on every `incremental` entry
+   * - omit `completed` entries, and (4) send incremental errors within `incremental` entries along with a `data` or `items` field set to `null`.
+   */
+  useIncrementalNotifications: boolean;
+  /**
+   * Whether incremental delivery is enabled for subscription operations.
+   */
+  allowSubscription: boolean;
+};
+
+/**
+ * Configuration for the incremental delivery response format as specified by
+ * https://github.com/graphql/defer-stream-wg/discussions/69
+ */
+export const IncrementalDeliveryPreset2023_06_22: IncrementalDeliveryPreset = {
+  deferWithoutDuplication: true,
+  useIncrementalNotifications: true,
+  allowSubscription: false,
+};
+
+/**
+ * The initial candidate for the incremental delivery specification. Now legacy.
+ */
+export const IncrementalDeliveryPresetLegacy = {
+  deferWithoutDuplication: false,
+  useIncrementalNotifications: false,
+  allowSubscription: true,
+};
+
+export type IncrementalPreset = Partial<IncrementalDeliveryPreset>;
 
 export interface ExecutionArgs<TData = any, TVariables = any, TContext = any> {
   schema: GraphQLSchema;
@@ -381,10 +421,7 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     typeResolver,
     subscribeFieldResolver,
     enableEarlyExecution,
-    incrementalPreset,
-    deferWithoutDuplication,
-    useIncrementalNotifications,
-    errorOnSubscriptionWithIncrementalDelivery,
+    incrementalPreset = IncrementalDeliveryPreset2023_06_22,
     signal,
   } = args;
 
@@ -439,7 +476,10 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     return coercedVariableValues.errors;
   }
 
-  const latestPreset = incrementalPreset !== 'v17.0.0-alpha.2';
+  let errorOnIncrementalDeliveryDirective = false;
+  if (operation.operation === 'subscription' && !incrementalPreset?.allowSubscription) {
+    errorOnIncrementalDeliveryDirective = true;
+  }
 
   return {
     schema,
@@ -452,15 +492,9 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
     typeResolver: typeResolver ?? defaultTypeResolver,
     subscribeFieldResolver: subscribeFieldResolver ?? defaultFieldResolver,
     enableEarlyExecution: enableEarlyExecution !== false,
-    deferWithoutDuplication:
-      deferWithoutDuplication != null ? deferWithoutDuplication : latestPreset,
-    useIncrementalNotifications:
-      useIncrementalNotifications != null ? useIncrementalNotifications : latestPreset,
-    errorOnSubscriptionWithIncrementalDelivery:
-      operation.operation === 'subscription' &&
-      (errorOnSubscriptionWithIncrementalDelivery != null
-        ? errorOnSubscriptionWithIncrementalDelivery
-        : latestPreset),
+    deferWithoutDuplication: incrementalPreset?.deferWithoutDuplication ?? true,
+    useIncrementalNotifications: incrementalPreset?.deferWithoutDuplication ?? true,
+    errorOnIncrementalDeliveryDirective,
     signal,
     errors: undefined,
     encounteredDefer: false,
@@ -503,7 +537,7 @@ function executeOperation<TData = any, TVariables = any, TContext = any>(
       variableValues,
       rootValue,
       deferWithoutDuplication,
-      errorOnSubscriptionWithIncrementalDelivery,
+      errorOnIncrementalDeliveryDirective: errorOnSubscriptionWithIncrementalDelivery,
     } = exeContext;
     const rootType = getDefinedRootType(schema, operation.operation, [operation]);
     if (rootType == null) {
@@ -1065,7 +1099,7 @@ function getStreamUsage(
   invariant(stream['initialCount'] >= 0, 'initialCount must be a positive integer');
 
   invariant(
-    !exeContext.errorOnSubscriptionWithIncrementalDelivery,
+    !exeContext.errorOnIncrementalDeliveryDirective,
     '`@stream` directive not supported on subscription operations. Disable `@stream` by setting the `if` argument to `false`.',
   );
 
@@ -1986,7 +2020,7 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
     operation,
     variableValues,
     rootValue,
-    errorOnSubscriptionWithIncrementalDelivery,
+    errorOnIncrementalDeliveryDirective,
   } = exeContext;
 
   const rootType = schema.getSubscriptionType();
@@ -2002,7 +2036,7 @@ function executeSubscription(exeContext: ExecutionContext): MaybePromise<AsyncIt
     variableValues,
     rootType,
     operation.selectionSet,
-    errorOnSubscriptionWithIncrementalDelivery,
+    errorOnIncrementalDeliveryDirective,
   );
   const firstRootField = [...groupedFieldSet.entries()][0] as [string, FieldGroup];
   const [responseName, fieldGroup] = firstRootField;

@@ -40,7 +40,7 @@ interface CollectFieldsContext<TVariables = any> {
   schema: GraphQLSchema;
   fragments: Record<string, FragmentDefinitionNode>;
   variableValues: TVariables;
-  errorOnSubscriptionWithIncrementalDelivery: boolean;
+  errorOnIncrementalDeliveryDirective: boolean;
   runtimeType: GraphQLObjectType;
   visitedFragmentNames: Set<string>;
   encounteredDefer: boolean;
@@ -61,7 +61,7 @@ export function collectFields<TVariables = any>(
   variableValues: TVariables,
   runtimeType: GraphQLObjectType,
   selectionSet: SelectionSetNode,
-  errorOnSubscriptionWithIncrementalDelivery: boolean,
+  errorOnIncrementalDeliveryDirective: boolean,
 ): GroupedFieldSet {
   const groupedFieldSet = new AccumulatorMap<string, FieldDetails>();
   const context: CollectFieldsContext = {
@@ -69,7 +69,7 @@ export function collectFields<TVariables = any>(
     fragments,
     variableValues,
     runtimeType,
-    errorOnSubscriptionWithIncrementalDelivery,
+    errorOnIncrementalDeliveryDirective,
     visitedFragmentNames: new Set(),
     encounteredDefer: false,
   };
@@ -95,7 +95,7 @@ export function collectSubfields(
   schema: GraphQLSchema,
   fragments: Record<string, FragmentDefinitionNode>,
   variableValues: { [variable: string]: unknown },
-  errorOnSubscriptionWithIncrementalDelivery: boolean,
+  errorOnIncrementalDeliveryDirective: boolean,
   returnType: GraphQLObjectType,
   fieldGroup: FieldGroup,
   path: Path,
@@ -105,7 +105,7 @@ export function collectSubfields(
     fragments,
     variableValues,
     runtimeType: returnType,
-    errorOnSubscriptionWithIncrementalDelivery,
+    errorOnIncrementalDeliveryDirective,
     visitedFragmentNames: new Set(),
     encounteredDefer: false,
   };
@@ -136,7 +136,7 @@ function collectFieldsImpl(
     fragments,
     variableValues,
     runtimeType,
-    errorOnSubscriptionWithIncrementalDelivery,
+    errorOnIncrementalDeliveryDirective,
     visitedFragmentNames,
   } = context;
 
@@ -161,7 +161,7 @@ function collectFieldsImpl(
         }
 
         const newDeferUsage = getDeferUsage(
-          errorOnSubscriptionWithIncrementalDelivery,
+          errorOnIncrementalDeliveryDirective,
           variableValues,
           selection,
           path,
@@ -181,7 +181,7 @@ function collectFieldsImpl(
         const fragName = selection.name.value;
 
         const newDeferUsage = getDeferUsage(
-          errorOnSubscriptionWithIncrementalDelivery,
+          errorOnIncrementalDeliveryDirective,
           variableValues,
           selection,
           path,
@@ -218,7 +218,7 @@ function collectFieldsImpl(
  * not disabled by the "if" argument.
  */
 function getDeferUsage(
-  errorOnSubscriptionWithIncrementalDelivery: boolean,
+  errorOnIncrementalDeliveryDirective: boolean,
   variableValues: { [variable: string]: unknown },
   node: FragmentSpreadNode | InlineFragmentNode,
   path: Path | undefined,
@@ -235,7 +235,7 @@ function getDeferUsage(
   }
 
   invariant(
-    !errorOnSubscriptionWithIncrementalDelivery,
+    !errorOnIncrementalDeliveryDirective,
     '`@defer` directive not supported on subscription operations. Disable `@defer` by setting the `if` argument to `false`.',
   );
 

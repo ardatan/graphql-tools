@@ -12,7 +12,12 @@ import { createDeferred, MaybePromise } from '@graphql-tools/utils';
 import { expectJSON } from '../../__testUtils__/expectJSON.js';
 import { expectPromise } from '../../__testUtils__/expectPromise.js';
 import { resolveOnNextTick } from '../../__testUtils__/resolveOnNextTick.js';
-import { execute, IncrementalPreset } from '../execute.js';
+import {
+  execute,
+  IncrementalDeliveryPreset2023_06_22,
+  IncrementalDeliveryPresetLegacy,
+  IncrementalPreset,
+} from '../execute.js';
 import type {
   InitialIncrementalExecutionResult,
   SubsequentIncrementalExecutionResult,
@@ -82,7 +87,7 @@ async function complete(
   document: DocumentNode,
   rootValue: unknown = {},
   enableEarlyExecution = false,
-  incrementalPreset: IncrementalPreset = 'v17.0.0-alpha.3',
+  incrementalPreset: IncrementalPreset = IncrementalDeliveryPreset2023_06_22,
 ) {
   const result = await execute({
     schema,
@@ -155,7 +160,7 @@ describe('Execute: stream directive', () => {
         scalarList: () => ['apple', 'banana', 'coconut'],
       },
       undefined,
-      'v17.0.0-alpha.2',
+      IncrementalDeliveryPresetLegacy,
     );
     expectJSON(result).toDeepEqual([
       {
@@ -1060,7 +1065,7 @@ describe('Execute: stream directive', () => {
         nonNullFriendList: () => [friends[0], null, friends[1]],
       },
       undefined,
-      'v17.0.0-alpha.2',
+      IncrementalDeliveryPresetLegacy,
     );
 
     expectJSON(result).toDeepEqual([
