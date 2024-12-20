@@ -287,6 +287,35 @@ export function execute<TData = any, TVariables = any, TContext = any>(
   return executeImpl(exeContext);
 }
 
+// AbortSignal handler cache to avoid the "possible EventEmitter memory leak detected"
+// on Node.js
+const abortSignalHandlers = new WeakMap<AbortSignal, Set<VoidFunction>>();
+
+/**
+ * Register an AbortSignal handler for a signal.
+ * This helper function mainly exists to work around the
+ * "possible EventEmitter memory leak detected. 11 listeners added. Use emitter.setMaxListeners() to increase limit."
+ * warning occuring on Node.js
+ */
+function registerAbortSignalHandler(signal: AbortSignal, handler: VoidFunction): void {
+  let handlers = abortSignalHandlers.get(signal);
+
+  if (!Array.isArray(handlers)) {
+    handlers = new Set();
+    abortSignalHandlers.set(signal, handlers);
+
+    function abortSignalHandler() {
+      for (const handler of handlers!) {
+        handler();
+      }
+    }
+
+    signal.addEventListener('abort', abortSignalHandler, { once: true });
+  }
+
+  handlers.add(handler);
+}
+
 function executeImpl<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>,
 ): MaybePromise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>> {
@@ -958,13 +987,12 @@ async function completeAsyncIteratorValue(
   iterator: AsyncIterator<unknown>,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): Promise<ReadonlyArray<unknown>> {
-  exeContext.signal?.addEventListener(
-    'abort',
-    () => {
+  if (exeContext.signal) {
+    registerAbortSignalHandler(exeContext.signal, () => {
       iterator.return?.();
-    },
-    { once: true },
-  );
+    });
+  }
+
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
   const stream = getStreamValues(exeContext, fieldNodes, path);
   let containsPromise = false;
@@ -1761,9 +1789,12 @@ function assertEventStream(result: unknown, signal?: AbortSignal): AsyncIterable
   return {
     [Symbol.asyncIterator]() {
       const asyncIterator = result[Symbol.asyncIterator]();
-      signal?.addEventListener('abort', () => {
-        asyncIterator.return?.();
-      });
+      if (signal) {
+        registerAbortSignalHandler(signal, () => {
+          asyncIterator.return?.();
+        });
+      }
+
       return asyncIterator;
     },
   };
@@ -2085,14 +2116,12 @@ function yieldSubsequentPayloads(
   let isDone = false;
 
   const abortPromise = new Promise<void>((_, reject) => {
-    exeContext.signal?.addEventListener(
-      'abort',
-      () => {
+    if (exeContext.signal) {
+      registerAbortSignalHandler(exeContext.signal, () => {
         isDone = true;
         reject(exeContext.signal?.reason);
-      },
-      { once: true },
-    );
+      });
+    }
   });
 
   async function next(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
