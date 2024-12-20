@@ -78,6 +78,43 @@ export function memoize3<F extends (a1: any, a2: any, a3: any) => any>(fn: F): F
   } as F;
 }
 
+export function memoize3of4<F extends (a1: any, a2: any, a3: any, a4: any) => any>(fn: F): F {
+  const memoize3Cache: WeakMap<
+    Record<string, any>,
+    WeakMap<Record<string, any>, any>
+  > = new WeakMap();
+  return function memoized(a1: any, a2: any, a3: any, a4: any) {
+    let cache2 = memoize3Cache.get(a1);
+    if (!cache2) {
+      cache2 = new WeakMap();
+      memoize3Cache.set(a1, cache2);
+      const cache3 = new WeakMap();
+      cache2.set(a2, cache3);
+      const newValue = fn(a1, a2, a3, a4);
+      cache3.set(a3, newValue);
+      return newValue;
+    }
+
+    let cache3 = cache2.get(a2);
+    if (!cache3) {
+      cache3 = new WeakMap();
+      cache2.set(a2, cache3);
+      const newValue = fn(a1, a2, a3, a4);
+      cache3.set(a3, newValue);
+      return newValue;
+    }
+
+    const cachedValue = cache3.get(a3);
+    if (cachedValue === undefined) {
+      const newValue = fn(a1, a2, a3, a4);
+      cache3.set(a3, newValue);
+      return newValue;
+    }
+
+    return cachedValue;
+  } as F;
+}
+
 export function memoize4<F extends (a1: any, a2: any, a3: any, a4: any) => any>(fn: F): F {
   const memoize4Cache: WeakMap<
     Record<string, any>,

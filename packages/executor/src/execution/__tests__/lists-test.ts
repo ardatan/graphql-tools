@@ -2,6 +2,7 @@ import {
   buildSchema,
   GraphQLFieldResolver,
   GraphQLList,
+  GraphQLNonNull,
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLString,
@@ -27,7 +28,7 @@ describe('Execute: Accepts any iterable as list value', () => {
     });
   });
 
-  it('Accepts an Generator function as a List value', () => {
+  it('Accepts a Generator function as a List value', () => {
     function* listField() {
       yield 'one';
       yield 2;
@@ -91,7 +92,7 @@ describe('Execute: Accepts async iterables as list value', () => {
                 name: 'ObjectWrapper',
                 fields: {
                   index: {
-                    type: GraphQLString,
+                    type: new GraphQLNonNull(GraphQLString),
                     resolve,
                   },
                 },
@@ -127,12 +128,12 @@ describe('Execute: Accepts async iterables as list value', () => {
     }
 
     expectJSON(await complete({ listField })).toDeepEqual({
-      data: { listField: ['two', '4', null] },
+      data: { listField: null },
       errors: [
         {
           message: 'bad',
           locations: [{ line: 1, column: 3 }],
-          path: ['listField', 2],
+          path: ['listField'],
         },
       ],
     });
@@ -190,7 +191,7 @@ describe('Execute: Accepts async iterables as list value', () => {
         return Promise.resolve(index);
       }),
     ).toDeepEqual({
-      data: { listField: [{ index: '0' }, { index: '1' }, { index: null }] },
+      data: { listField: [{ index: '0' }, { index: '1' }, null] },
       errors: [
         {
           message: 'bad',
@@ -228,6 +229,34 @@ describe('Execute: Accepts async iterables as list value', () => {
       data: null,
       errors,
     });
+  });
+
+  it('Returns async iterable when list nulls', async () => {
+    const values = [1, null, 2];
+    let i = 0;
+    let returned = false;
+    const listField = {
+      [Symbol.asyncIterator]: () => ({
+        next: () => Promise.resolve({ value: values[i++], done: false }),
+        return: () => {
+          returned = true;
+          return Promise.resolve({ value: undefined, done: true });
+        },
+      }),
+    };
+    const errors = [
+      {
+        message: 'Cannot return null for non-nullable field Query.listField.',
+        locations: [{ line: 1, column: 3 }],
+        path: ['listField', 1],
+      },
+    ];
+
+    expectJSON(await complete({ listField }, '[Int!]')).toDeepEqual({
+      data: { listField: null },
+      errors,
+    });
+    expect(returned).toBe(true);
   });
 });
 

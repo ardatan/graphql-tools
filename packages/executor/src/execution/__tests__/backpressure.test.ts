@@ -69,6 +69,7 @@ describe('Defer Stream cancellation', () => {
         data: {
           countdownStream: [],
         },
+        pending: [{ id: '0', path: ['countdownStream'] }],
         hasNext: true,
       });
       break;
@@ -93,6 +94,7 @@ describe('Defer Stream cancellation', () => {
         data: {
           countdownStream: [],
         },
+        pending: [{ id: '0', path: ['countdownStream'] }],
         hasNext: true,
       });
       break;
@@ -120,6 +122,7 @@ describe('Defer Stream cancellation', () => {
             data: {
               countdownStream: [],
             },
+            pending: [{ id: '0', path: ['countdownStream'] }],
             hasNext: true,
           });
           break;
@@ -128,7 +131,7 @@ describe('Defer Stream cancellation', () => {
             incremental: [
               {
                 items: [3],
-                path: ['countdownStream', 0],
+                id: '0',
               },
             ],
             hasNext: true,
@@ -158,6 +161,7 @@ describe('Defer Stream cancellation', () => {
         data: {
           countdownStream: [3],
         },
+        pending: [{ id: '0', path: ['countdownStream'] }],
         hasNext: true,
       });
       break;

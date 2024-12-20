@@ -20,6 +20,15 @@ describe('mergeIncrementalResult', () => {
     expect(executionResult).toEqual({ data: { user: { age: 42, name: 'John' } } });
   });
 
+  it('should deep merge data with basic path with new format', () => {
+    const executionResult = { data: { user: { name: 'John' } }, pending: [{ id: '0', path: [] }] };
+    const incrementalResult = { incremental: [{ id: '0', data: { user: { age: 42 } } }] };
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(executionResult.data).toEqual({ user: { age: 42, name: 'John' } });
+  });
+
   it('should merge data at path', () => {
     const executionResult = { data: { user: { name: 'John' } } };
     const incrementalResult = { path: ['user'], data: { age: 42 } };
@@ -27,6 +36,18 @@ describe('mergeIncrementalResult', () => {
     mergeIncrementalResult({ incrementalResult, executionResult });
 
     expect(executionResult).toEqual({ data: { user: { age: 42, name: 'John' } } });
+  });
+
+  it('should merge data at path with new format', () => {
+    const executionResult = {
+      data: { user: { name: 'John' } },
+      pending: [{ id: '0', path: ['user'] }],
+    };
+    const incrementalResult = { incremental: [{ id: '0', data: { age: 42 } }] };
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(executionResult.data).toEqual({ user: { age: 42, name: 'John' } });
   });
 
   it('should push items', () => {
@@ -65,6 +86,27 @@ describe('mergeIncrementalResult', () => {
           name: 'John',
           comments: ['comment 1', 'comment 2', 'comment 3', 'comment 4'],
         },
+      },
+    });
+  });
+
+  it('should push items at path with new format', () => {
+    const executionResult = {
+      data: {
+        user: { name: 'John', comments: ['comment 1', 'comment 2'] },
+      },
+      pending: [{ id: '0', path: ['user', 'comments'] }],
+    };
+    const incrementalResult = {
+      incremental: [{ id: '0', items: ['comment 3', 'comment 4'] }],
+    };
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(executionResult.data).toEqual({
+      user: {
+        name: 'John',
+        comments: ['comment 1', 'comment 2', 'comment 3', 'comment 4'],
       },
     });
   });
@@ -113,6 +155,38 @@ describe('mergeIncrementalResult', () => {
     });
   });
 
+  it('should add errors with new format', () => {
+    const executionResult = { data: { user: { name: 'John' } }, pending: [{ id: '0', path: [] }] };
+    const incrementalResult = {
+      incremental: [
+        { id: '0', errors: [new GraphQLError('error 1'), new GraphQLError('error 2')] },
+      ],
+    };
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(executionResult).toEqual({
+      data: { user: { name: 'John' } },
+      errors: [new GraphQLError('error 1'), new GraphQLError('error 2')],
+      pending: [{ id: '0', path: [] }],
+    });
+  });
+
+  it('should add completion errors with new format', () => {
+    const executionResult = { data: { user: { name: 'John' } }, pending: [{ id: '0', path: [] }] };
+    const incrementalResult = {
+      completed: [{ id: '0', errors: [new GraphQLError('error 1'), new GraphQLError('error 2')] }],
+    };
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(executionResult).toEqual({
+      data: { user: { name: 'John' } },
+      errors: [new GraphQLError('error 1'), new GraphQLError('error 2')],
+      pending: [{ id: '0', path: [] }],
+    });
+  });
+
   it('should keep errors', () => {
     const executionResult = { errors: [new GraphQLError('error 1')] };
     const incrementalResult = { data: { user: { name: 'John' } }, path: [] };
@@ -122,6 +196,24 @@ describe('mergeIncrementalResult', () => {
     expect(executionResult).toEqual({
       data: { user: { name: 'John' } },
       errors: [new GraphQLError('error 1')],
+    });
+  });
+
+  it('should keep errors with new format', () => {
+    const executionResult = {
+      errors: [new GraphQLError('error 1')],
+      pending: [{ id: '0', path: [] }],
+    };
+    const incrementalResult = {
+      incremental: [{ id: '0', data: { user: { name: 'John' } }, path: [] }],
+    };
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(executionResult).toEqual({
+      data: { user: { name: 'John' } },
+      errors: [new GraphQLError('error 1')],
+      pending: [{ id: '0', path: [] }],
     });
   });
 
@@ -140,6 +232,52 @@ describe('mergeIncrementalResult', () => {
         new GraphQLError('error 2'),
         new GraphQLError('error 3'),
       ],
+    });
+  });
+
+  it('should merge errors with new format', () => {
+    const executionResult = {
+      errors: [new GraphQLError('error 1')],
+      pending: [{ id: '0', path: [] }],
+    };
+
+    const incrementalResult = {
+      incremental: [
+        { id: '0', errors: [new GraphQLError('error 2'), new GraphQLError('error 3')] },
+      ],
+    };
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(executionResult).toEqual({
+      errors: [
+        new GraphQLError('error 1'),
+        new GraphQLError('error 2'),
+        new GraphQLError('error 3'),
+      ],
+      pending: [{ id: '0', path: [] }],
+    });
+  });
+
+  it('should merge completion errors with new format', () => {
+    const executionResult = {
+      errors: [new GraphQLError('error 1')],
+      pending: [{ id: '0', path: [] }],
+    };
+
+    const incrementalResult = {
+      completed: [{ id: '0', errors: [new GraphQLError('error 2'), new GraphQLError('error 3')] }],
+    };
+
+    mergeIncrementalResult({ incrementalResult, executionResult });
+
+    expect(executionResult).toEqual({
+      errors: [
+        new GraphQLError('error 1'),
+        new GraphQLError('error 2'),
+        new GraphQLError('error 3'),
+      ],
+      pending: [{ id: '0', path: [] }],
     });
   });
 

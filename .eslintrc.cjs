@@ -102,6 +102,7 @@ module.exports = {
         'prefer-rest-params': 'off',
         'no-throw-literal': 'off',
         'promise/param-names': 'off',
+        camelcase: ['error', { allow: ['IncrementalDeliveryPreset2023_06_22'] }],
       },
     },
     {
