@@ -952,7 +952,7 @@ async function completeAsyncIteratorValue(
   iterator: AsyncIterator<unknown>,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): Promise<ReadonlyArray<unknown>> {
-  if (exeContext.signal) {
+  if (exeContext.signal && iterator.return) {
     registerAbortSignalListener(exeContext.signal, () => {
       iterator.return?.();
     });
@@ -1755,9 +1755,12 @@ function assertEventStream(result: unknown, signal?: AbortSignal): AsyncIterable
     return {
       [Symbol.asyncIterator]() {
         const asyncIterator = result[Symbol.asyncIterator]();
-        registerAbortSignalListener(signal, () => {
-          asyncIterator.return?.();
-        });
+
+        if (asyncIterator.return) {
+          registerAbortSignalListener(signal, () => {
+            asyncIterator.return?.();
+          });
+        }
 
         return asyncIterator;
       },
