@@ -1,3 +1,4 @@
+import { fakeRejectPromise } from './fakePromise.js';
 import { memoize1 } from './memoize.js';
 
 // AbortSignal handler cache to avoid the "possible EventEmitter memory leak detected"
@@ -23,6 +24,7 @@ const getListenersOfAbortSignal = memoize1(function getListenersOfAbortSignal(si
  * warning occuring on Node.js
  */
 export function registerAbortSignalListener(signal: AbortSignal, listener: VoidFunction) {
+  // If the signal is already aborted, call the listener immediately
   if (signal.aborted) {
     listener();
     return;
@@ -31,13 +33,13 @@ export function registerAbortSignalListener(signal: AbortSignal, listener: VoidF
 }
 
 export const getAbortPromise = memoize1(function getAbortPromise(signal: AbortSignal) {
+  // If the signal is already aborted, return a rejected promise
+  if (signal.aborted) {
+    return fakeRejectPromise(signal.reason);
+  }
   return new Promise<void>((_resolve, reject) => {
-    if (signal.aborted) {
+    registerAbortSignalListener(signal, () => {
       reject(signal.reason);
-    } else {
-      registerAbortSignalListener(signal, () => {
-        reject(signal.reason);
-      });
-    }
+    });
   });
 });
