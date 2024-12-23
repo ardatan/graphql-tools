@@ -1751,18 +1751,19 @@ function assertEventStream(result: unknown, signal?: AbortSignal): AsyncIterable
       'Subscription field must return Async Iterable. ' + `Received: ${inspect(result)}.`,
     );
   }
-  return {
-    [Symbol.asyncIterator]() {
-      const asyncIterator = result[Symbol.asyncIterator]();
-      if (signal) {
+  if (signal) {
+    return {
+      [Symbol.asyncIterator]() {
+        const asyncIterator = result[Symbol.asyncIterator]();
         registerAbortSignalListener(signal, () => {
           asyncIterator.return?.();
         });
-      }
 
-      return asyncIterator;
-    },
-  };
+        return asyncIterator;
+      },
+    };
+  }
+  return result;
 }
 
 function executeDeferredFragment(
@@ -2080,17 +2081,22 @@ function yieldSubsequentPayloads(
 ): AsyncGenerator<SubsequentIncrementalExecutionResult, void, void> {
   let isDone = false;
 
+  const abortPromise = exeContext.signal ? getAbortPromise(exeContext.signal) : undefined;
+
   async function next(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
     if (isDone) {
       return { value: undefined, done: true };
     }
 
-    const abortPromise = exeContext.signal ? getAbortPromise(exeContext.signal) : undefined;
+    const subSequentPayloadPromises = Array.from(exeContext.subsequentPayloads).map(
+      record => record.promise,
+    );
 
-    await Promise.race([
-      abortPromise,
-      ...Array.from(exeContext.subsequentPayloads).map(p => p.promise),
-    ]);
+    if (abortPromise) {
+      await Promise.race([abortPromise, ...subSequentPayloadPromises]);
+    } else {
+      await Promise.race(subSequentPayloadPromises);
+    }
 
     if (isDone) {
       // a different call to next has exhausted all payloads
