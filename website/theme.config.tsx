@@ -29,5 +29,6 @@ export default defineConfig({
   },
   websiteName: 'GraphQL-Tools',
   description: PRODUCTS.TOOLS.title,
+  // @ts-expect-error - Typings are not updated
   logo: PRODUCTS.TOOLS.logo({ className: 'w-9' }),
 });
