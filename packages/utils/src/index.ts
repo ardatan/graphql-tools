@@ -58,3 +58,4 @@ export * from './getDirectiveExtensions.js';
 export * from './map-maybe-promise.js';
 export * from './fakePromise.js';
 export * from './createDeferred.js';
+export * from './registerAbortSignalListener.js';
