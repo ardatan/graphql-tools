@@ -4613,7 +4613,7 @@ cliui@^8.0.1:
     strip-ansi "^6.0.1"
     wrap-ansi "^7.0.0"
 
-clsx@2.1.1, clsx@^2.0.0:
+clsx@2.1.1, clsx@^2.0.0, clsx@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/clsx/-/clsx-2.1.1.tgz#eed397c9fd8bd882bfb18deab7102049a2f32999"
   integrity sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==
@@ -11424,10 +11424,10 @@ svelte2tsx@0.7.31:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.15.0:
-  version "5.15.0"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.15.0.tgz#ff30995a1a5f3478db6f3550b2d9b9ca9463ce01"
-  integrity sha512-YWl8rAd4hSjERLtLvP6h2pflGtmrJwv+L12BgrOtHYJCpvLS9WKp/YNAdyolw3FymXtcYZqhSWvWlu5O1X7tgQ==
+svelte@5.16.0:
+  version "5.16.0"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.16.0.tgz#43ef960ee20ccf3fe8a52882a5253acaeb52ec2b"
+  integrity sha512-Ygqsiac6UogVED2ruKclU+pOeMThxWtp9LG+li7BXeDKC2paVIsRTMkNmcON4Zejerd1s5sZHWx6ZtU85xklVg==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
@@ -11436,6 +11436,7 @@ svelte@5.15.0:
     acorn-typescript "^1.4.13"
     aria-query "^5.3.1"
     axobject-query "^4.1.0"
+    clsx "^2.1.1"
     esm-env "^1.2.1"
     esrap "^1.3.2"
     is-reference "^3.0.3"
