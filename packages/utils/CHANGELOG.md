@@ -1,5 +1,21 @@
 # @graphql-tools/utils
 
+## 10.7.0
+
+### Minor Changes
+
+- [#6789](https://github.com/ardatan/graphql-tools/pull/6789)
+  [`2c70d27`](https://github.com/ardatan/graphql-tools/commit/2c70d276c510be18f7ce9e966c4653ff3c9b2641)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - - New helper function `getAbortPromise` to get a
+  promise rejected when `AbortSignal` is aborted
+
+  - New helper function `registerAbortSignalListener` to register a listener to abort a promise when
+    `AbortSignal` is aborted
+
+  Instead of using `.addEventListener('abort', () => {/* ... */})`, we register a single listener to
+  avoid warnings on Node.js like
+  `MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 abort listeners added. Use emitter.setMaxListeners() to increase limit`.
+
 ## 10.6.4
 
 ### Patch Changes

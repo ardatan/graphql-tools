@@ -1,5 +1,17 @@
 # @graphql-tools/import
 
+## 7.0.9
+
+### Patch Changes
+
+- [#6796](https://github.com/ardatan/graphql-tools/pull/6796)
+  [`ddfef2c`](https://github.com/ardatan/graphql-tools/commit/ddfef2c322ba66a8dd06f28a5c8006348f1dc0a9)
+  Thanks [@ardatan](https://github.com/ardatan)! - Avoid importing `process` and use it from
+  `globalThis`. In some cases, `cwd` is not exported with this name in the environment in ESM scope.
+- Updated dependencies
+  [[`2c70d27`](https://github.com/ardatan/graphql-tools/commit/2c70d276c510be18f7ce9e966c4653ff3c9b2641)]:
+  - @graphql-tools/utils@10.7.0
+
 ## 7.0.8
 
 ### Patch Changes
