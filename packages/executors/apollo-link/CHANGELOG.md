@@ -1,5 +1,14 @@
 # @graphql-tools/executor-apollo-link
 
+## 1.0.10
+
+### Patch Changes
+
+- [#6794](https://github.com/ardatan/graphql-tools/pull/6794)
+  [`0ce1bd2`](https://github.com/ardatan/graphql-tools/commit/0ce1bd22168b45a1b695c5f89fdec748d5abc52a)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - Dispose of subscription on cleanup even while
+  waiting for next event
+
 ## 1.0.9
 
 ### Patch Changes
