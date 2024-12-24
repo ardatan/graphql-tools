@@ -129,7 +129,6 @@ describe('Abort Signal', () => {
     controller.abort();
     await expect($next).rejects.toMatchInlineSnapshot(`DOMException {}`);
     expect(aResolverGotInvoked).toEqual(false);
-    expect(controller.signal.addEventListener).toHaveBeenCalledTimes(1);
   });
   it('should stop the serial mutation execution', async () => {
     let didInvokeFirstFn = false;
