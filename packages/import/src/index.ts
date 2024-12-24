@@ -1,6 +1,5 @@
 import { readFileSync, realpathSync } from 'fs';
 import { dirname, isAbsolute, join } from 'path';
-import { cwd as cwdFactory } from 'process';
 import {
   DefinitionNode,
   DirectiveDefinitionNode,
@@ -68,7 +67,7 @@ export type VisitedFilesMap = Map<string, Map<string, Set<DefinitionNode>>>;
  */
 export function processImport(
   filePath: string,
-  cwd = cwdFactory(),
+  cwd = globalThis.process?.cwd(),
   predefinedImports: Record<string, string> = {},
   visitedFiles: VisitedFilesMap = new Map(),
 ): DocumentNode {
