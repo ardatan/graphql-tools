@@ -35,6 +35,7 @@ import {
   collectFields,
   createGraphQLError,
   fakePromise,
+  getAbortPromise,
   getArgumentValues,
   getDefinedRootType,
   GraphQLResolveInfo,
@@ -52,6 +53,7 @@ import {
   Path,
   pathToArray,
   promiseReduce,
+  registerAbortSignalListener,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
@@ -287,41 +289,10 @@ export function execute<TData = any, TVariables = any, TContext = any>(
   return executeImpl(exeContext);
 }
 
-// AbortSignal handler cache to avoid the "possible EventEmitter memory leak detected"
-// on Node.js
-const abortSignalHandlers = new WeakMap<AbortSignal, Set<VoidFunction>>();
-
-/**
- * Register an AbortSignal handler for a signal.
- * This helper function mainly exists to work around the
- * "possible EventEmitter memory leak detected. 11 listeners added. Use emitter.setMaxListeners() to increase limit."
- * warning occuring on Node.js
- */
-function registerAbortSignalHandler(signal: AbortSignal, handler: VoidFunction): void {
-  let handlers = abortSignalHandlers.get(signal);
-
-  if (!Array.isArray(handlers)) {
-    handlers = new Set();
-    abortSignalHandlers.set(signal, handlers);
-
-    function abortSignalHandler() {
-      for (const handler of handlers!) {
-        handler();
-      }
-    }
-
-    signal.addEventListener('abort', abortSignalHandler, { once: true });
-  }
-
-  handlers.add(handler);
-}
-
 function executeImpl<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>,
 ): MaybePromise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>> {
-  if (exeContext.signal?.aborted) {
-    throw exeContext.signal.reason;
-  }
+  exeContext.signal?.throwIfAborted();
 
   // Return a Promise that will eventually resolve to the data described by
   // The "Response" section of the GraphQL specification.
@@ -351,9 +322,7 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
         return initialResult;
       },
       (error: any) => {
-        if (exeContext.signal?.aborted) {
-          throw exeContext.signal.reason;
-        }
+        exeContext.signal?.throwIfAborted();
 
         if (error.errors) {
           exeContext.errors.push(...error.errors);
@@ -587,9 +556,7 @@ function executeFieldsSerially<TData>(
     fields,
     (results, [responseName, fieldNodes]) => {
       const fieldPath = addPath(path, responseName, parentType.name);
-      if (exeContext.signal?.aborted) {
-        throw exeContext.signal.reason;
-      }
+      exeContext.signal?.throwIfAborted();
 
       return new ValueOrPromise(() =>
         executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath),
@@ -624,9 +591,7 @@ function executeFields(
 
   try {
     for (const [responseName, fieldNodes] of fields) {
-      if (exeContext.signal?.aborted) {
-        throw exeContext.signal.reason;
-      }
+      exeContext.signal?.throwIfAborted();
 
       const fieldPath = addPath(path, responseName, parentType.name);
       const result = executeField(
@@ -987,8 +952,8 @@ async function completeAsyncIteratorValue(
   iterator: AsyncIterator<unknown>,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): Promise<ReadonlyArray<unknown>> {
-  if (exeContext.signal) {
-    registerAbortSignalHandler(exeContext.signal, () => {
+  if (exeContext.signal && iterator.return) {
+    registerAbortSignalListener(exeContext.signal, () => {
       iterator.return?.();
     });
   }
@@ -1786,18 +1751,22 @@ function assertEventStream(result: unknown, signal?: AbortSignal): AsyncIterable
       'Subscription field must return Async Iterable. ' + `Received: ${inspect(result)}.`,
     );
   }
-  return {
-    [Symbol.asyncIterator]() {
-      const asyncIterator = result[Symbol.asyncIterator]();
-      if (signal) {
-        registerAbortSignalHandler(signal, () => {
-          asyncIterator.return?.();
-        });
-      }
+  if (signal) {
+    return {
+      [Symbol.asyncIterator]() {
+        const asyncIterator = result[Symbol.asyncIterator]();
 
-      return asyncIterator;
-    },
-  };
+        if (asyncIterator.return) {
+          registerAbortSignalListener(signal, () => {
+            asyncIterator.return?.();
+          });
+        }
+
+        return asyncIterator;
+      },
+    };
+  }
+  return result;
 }
 
 function executeDeferredFragment(
@@ -2115,24 +2084,22 @@ function yieldSubsequentPayloads(
 ): AsyncGenerator<SubsequentIncrementalExecutionResult, void, void> {
   let isDone = false;
 
-  const abortPromise = new Promise<void>((_, reject) => {
-    if (exeContext.signal) {
-      registerAbortSignalHandler(exeContext.signal, () => {
-        isDone = true;
-        reject(exeContext.signal?.reason);
-      });
-    }
-  });
+  const abortPromise = exeContext.signal ? getAbortPromise(exeContext.signal) : undefined;
 
   async function next(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
     if (isDone) {
       return { value: undefined, done: true };
     }
 
-    await Promise.race([
-      abortPromise,
-      ...Array.from(exeContext.subsequentPayloads).map(p => p.promise),
-    ]);
+    const subSequentPayloadPromises = Array.from(exeContext.subsequentPayloads).map(
+      record => record.promise,
+    );
+
+    if (abortPromise) {
+      await Promise.race([abortPromise, ...subSequentPayloadPromises]);
+    } else {
+      await Promise.race(subSequentPayloadPromises);
+    }
 
     if (isDone) {
       // a different call to next has exhausted all payloads
