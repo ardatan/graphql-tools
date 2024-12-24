@@ -1,7 +1,6 @@
 import { parse } from 'graphql';
-import { createDeferred } from '@graphql-tools/delegate';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { isAsyncIterable } from '@graphql-tools/utils';
+import { createDeferred, isAsyncIterable } from '@graphql-tools/utils';
 import { Repeater } from '@repeaterjs/repeater';
 import { assertAsyncIterable } from '../../../../loaders/url/tests/test-utils';
 import { normalizedExecutor } from '../normalizedExecutor';
@@ -143,7 +142,7 @@ describe('Abort Signal', () => {
         Mutation: {
           first() {
             didInvokeFirstFn = true;
-            return true;
+            return Promise.resolve(true);
           },
           second() {
             didInvokeSecondFn = true;
@@ -168,7 +167,7 @@ describe('Abort Signal', () => {
       `),
       signal: controller.signal,
     });
-    expect(result$).rejects.toMatchInlineSnapshot(`DOMException {}`);
+    await expect(result$).rejects.toMatchInlineSnapshot(`DOMException {}`);
     expect(didInvokeFirstFn).toBe(true);
     expect(didInvokeSecondFn).toBe(true);
     expect(didInvokeThirdFn).toBe(false);
@@ -275,6 +274,7 @@ describe('Abort Signal', () => {
         data: {
           counter: [],
         },
+        pending: [{ id: '0', path: ['counter'] }],
         hasNext: true,
       },
     });
@@ -356,6 +356,10 @@ describe('Abort Signal', () => {
           counter1: [],
           counter2: [],
         },
+        pending: [
+          { id: '0', path: ['counter1'] },
+          { id: '1', path: ['counter2'] },
+        ],
         hasNext: true,
       },
     });
@@ -433,12 +437,103 @@ describe('Abort Signal', () => {
     "root": {},
   },
   "hasNext": true,
+  "pending": [
+    {
+      "id": "0",
+      "path": [
+        "root",
+      ],
+    },
+  ],
 }
 `);
     const next$ = iterator.next();
     await aResolverGotInvokedD.promise;
     controller.abort();
     requestGotCancelledD.resolve();
+    await expect(next$).rejects.toThrow('This operation was aborted');
+    expect(bResolverGotInvoked).toBe(false);
+  });
+  it('stops pending stream execution for never-returning incremental delivery (@defer)', async () => {
+    const aResolverGotInvokedD = createDeferred<void>();
+    const requestGotCancelledD = createDeferred<void>();
+    let bResolverGotInvoked = false;
+
+    const schema = makeExecutableSchema({
+      typeDefs: /* GraphQL */ `
+        type Query {
+          root: A!
+        }
+        type A {
+          a: B!
+        }
+        type B {
+          b: String
+        }
+      `,
+      resolvers: {
+        Query: {
+          async root() {
+            return {};
+          },
+        },
+        A: {
+          async a() {
+            aResolverGotInvokedD.resolve();
+            await requestGotCancelledD.promise;
+            return {};
+          },
+        },
+        B: {
+          b() {
+            bResolverGotInvoked = true;
+            return new Promise(() => {});
+          },
+        },
+      },
+    });
+    const controller = new AbortController();
+    const result = await normalizedExecutor({
+      schema,
+      document: parse(/* GraphQL */ `
+        query {
+          root {
+            ... @defer {
+              a {
+                b
+              }
+            }
+          }
+        }
+      `),
+      signal: controller.signal,
+    });
+
+    if (!isAsyncIterable(result)) {
+      throw new Error('Result is not an async iterable');
+    }
+
+    const iterator = result[Symbol.asyncIterator]();
+    const next = await iterator.next();
+    expect(next.value).toMatchInlineSnapshot(`
+{
+  "data": {
+    "root": {},
+  },
+  "hasNext": true,
+  "pending": [
+    {
+      "id": "0",
+      "path": [
+        "root",
+      ],
+    },
+  ],
+}
+`);
+    const next$ = iterator.next();
+    await aResolverGotInvokedD.promise;
+    controller.abort();
     await expect(next$).rejects.toThrow('This operation was aborted');
     expect(bResolverGotInvoked).toBe(false);
   });
