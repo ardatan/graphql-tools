@@ -7,9 +7,18 @@ import { assertAsyncIterable } from '../../../../loaders/url/tests/test-utils';
 import { normalizedExecutor } from '../normalizedExecutor';
 
 describe('Abort Signal', () => {
+  // Always make sure that listener is registered once or never
+  let controller: AbortController;
+  let spy: jest.SpyInstance;
+  beforeEach(() => {
+    controller = new AbortController();
+    spy = jest.spyOn(controller.signal, 'addEventListener');
+  });
+  afterEach(() => {
+    expect(spy.mock.calls.length).toBeLessThanOrEqual(1);
+  });
   it('should stop the subscription', async () => {
-    expect.assertions(2);
-    const controller = new AbortController();
+    expect.assertions(3);
     let stopped = false;
     const schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
@@ -64,7 +73,6 @@ describe('Abort Signal', () => {
     expect(results).toEqual([0, 1, 2, 3, 4]);
   });
   it('pending subscription execution is canceled', async () => {
-    const controller = new AbortController();
     const rootResolverGotInvokedD = createDeferred<void>();
     const requestGotCancelledD = createDeferred<void>();
     let aResolverGotInvoked = false;
@@ -123,8 +131,6 @@ describe('Abort Signal', () => {
     expect(aResolverGotInvoked).toEqual(false);
   });
   it('should stop the serial mutation execution', async () => {
-    const controller = new AbortController();
-
     let didInvokeFirstFn = false;
     let didInvokeSecondFn = false;
     let didInvokeThirdFn = false;
@@ -174,7 +180,6 @@ describe('Abort Signal', () => {
     expect(didInvokeThirdFn).toBe(false);
   });
   it('should stop stream execution', async () => {
-    const controller = new AbortController();
     let isAborted = false;
 
     const schema = makeExecutableSchema({
@@ -223,7 +228,6 @@ describe('Abort Signal', () => {
     expect(isAborted).toEqual(true);
   });
   it('stops pending stream execution for incremental delivery (@stream)', async () => {
-    const controller = new AbortController();
     const d = createDeferred<void>();
     let isReturnInvoked = false;
 
@@ -285,7 +289,6 @@ describe('Abort Signal', () => {
     expect(isReturnInvoked).toEqual(true);
   });
   it('stops pending stream execution for parallel sources incremental delivery (@stream)', async () => {
-    const controller = new AbortController();
     const d1 = createDeferred<void>();
     const d2 = createDeferred<void>();
 
@@ -404,7 +407,6 @@ describe('Abort Signal', () => {
         },
       },
     });
-    const controller = new AbortController();
     const result = await normalizedExecutor({
       schema,
       document: parse(/* GraphQL */ `
@@ -443,7 +445,6 @@ describe('Abort Signal', () => {
     expect(bResolverGotInvoked).toBe(false);
   });
   it('stops promise execution', async () => {
-    const controller = new AbortController();
     const d = createDeferred<void>();
 
     const schema = makeExecutableSchema({
@@ -474,7 +475,6 @@ describe('Abort Signal', () => {
     await expect(result$).rejects.toMatchInlineSnapshot(`DOMException {}`);
   });
   it('does not even try to execute if the signal is already aborted', async () => {
-    const controller = new AbortController();
     let resolverGotInvoked = false;
     const schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `

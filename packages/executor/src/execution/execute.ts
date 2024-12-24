@@ -35,6 +35,7 @@ import {
   collectFields,
   createGraphQLError,
   fakePromise,
+  getAbortPromise,
   getArgumentValues,
   getDefinedRootType,
   GraphQLResolveInfo,
@@ -52,6 +53,7 @@ import {
   Path,
   pathToArray,
   promiseReduce,
+  registerAbortSignalListener,
 } from '@graphql-tools/utils';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { DisposableSymbols } from '@whatwg-node/disposablestack';
@@ -290,9 +292,7 @@ export function execute<TData = any, TVariables = any, TContext = any>(
 function executeImpl<TData = any, TVariables = any, TContext = any>(
   exeContext: ExecutionContext<TVariables, TContext>,
 ): MaybePromise<SingularExecutionResult<TData> | IncrementalExecutionResults<TData>> {
-  if (exeContext.signal?.aborted) {
-    throw exeContext.signal.reason;
-  }
+  exeContext.signal?.throwIfAborted();
 
   // Return a Promise that will eventually resolve to the data described by
   // The "Response" section of the GraphQL specification.
@@ -322,9 +322,7 @@ function executeImpl<TData = any, TVariables = any, TContext = any>(
         return initialResult;
       },
       (error: any) => {
-        if (exeContext.signal?.aborted) {
-          throw exeContext.signal.reason;
-        }
+        exeContext.signal?.throwIfAborted();
 
         if (error.errors) {
           exeContext.errors.push(...error.errors);
@@ -558,9 +556,7 @@ function executeFieldsSerially<TData>(
     fields,
     (results, [responseName, fieldNodes]) => {
       const fieldPath = addPath(path, responseName, parentType.name);
-      if (exeContext.signal?.aborted) {
-        throw exeContext.signal.reason;
-      }
+      exeContext.signal?.throwIfAborted();
 
       return new ValueOrPromise(() =>
         executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath),
@@ -595,9 +591,7 @@ function executeFields(
 
   try {
     for (const [responseName, fieldNodes] of fields) {
-      if (exeContext.signal?.aborted) {
-        throw exeContext.signal.reason;
-      }
+      exeContext.signal?.throwIfAborted();
 
       const fieldPath = addPath(path, responseName, parentType.name);
       const result = executeField(
@@ -958,13 +952,12 @@ async function completeAsyncIteratorValue(
   iterator: AsyncIterator<unknown>,
   asyncPayloadRecord?: AsyncPayloadRecord,
 ): Promise<ReadonlyArray<unknown>> {
-  exeContext.signal?.addEventListener(
-    'abort',
-    () => {
+  if (exeContext.signal && iterator.return) {
+    registerAbortSignalListener(exeContext.signal, () => {
       iterator.return?.();
-    },
-    { once: true },
-  );
+    });
+  }
+
   const errors = asyncPayloadRecord?.errors ?? exeContext.errors;
   const stream = getStreamValues(exeContext, fieldNodes, path);
   let containsPromise = false;
@@ -1758,15 +1751,22 @@ function assertEventStream(result: unknown, signal?: AbortSignal): AsyncIterable
       'Subscription field must return Async Iterable. ' + `Received: ${inspect(result)}.`,
     );
   }
-  return {
-    [Symbol.asyncIterator]() {
-      const asyncIterator = result[Symbol.asyncIterator]();
-      signal?.addEventListener('abort', () => {
-        asyncIterator.return?.();
-      });
-      return asyncIterator;
-    },
-  };
+  if (signal) {
+    return {
+      [Symbol.asyncIterator]() {
+        const asyncIterator = result[Symbol.asyncIterator]();
+
+        if (asyncIterator.return) {
+          registerAbortSignalListener(signal, () => {
+            asyncIterator.return?.();
+          });
+        }
+
+        return asyncIterator;
+      },
+    };
+  }
+  return result;
 }
 
 function executeDeferredFragment(
@@ -2084,26 +2084,22 @@ function yieldSubsequentPayloads(
 ): AsyncGenerator<SubsequentIncrementalExecutionResult, void, void> {
   let isDone = false;
 
-  const abortPromise = new Promise<void>((_, reject) => {
-    exeContext.signal?.addEventListener(
-      'abort',
-      () => {
-        isDone = true;
-        reject(exeContext.signal?.reason);
-      },
-      { once: true },
-    );
-  });
+  const abortPromise = exeContext.signal ? getAbortPromise(exeContext.signal) : undefined;
 
   async function next(): Promise<IteratorResult<SubsequentIncrementalExecutionResult, void>> {
     if (isDone) {
       return { value: undefined, done: true };
     }
 
-    await Promise.race([
-      abortPromise,
-      ...Array.from(exeContext.subsequentPayloads).map(p => p.promise),
-    ]);
+    const subSequentPayloadPromises = Array.from(exeContext.subsequentPayloads).map(
+      record => record.promise,
+    );
+
+    if (abortPromise) {
+      await Promise.race([abortPromise, ...subSequentPayloadPromises]);
+    } else {
+      await Promise.race(subSequentPayloadPromises);
+    }
 
     if (isDone) {
       // a different call to next has exhausted all payloads
