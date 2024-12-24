@@ -1,5 +1,21 @@
 # @graphql-tools/executor
 
+## 1.3.10
+
+### Patch Changes
+
+- [#6789](https://github.com/ardatan/graphql-tools/pull/6789)
+  [`2c70d27`](https://github.com/ardatan/graphql-tools/commit/2c70d276c510be18f7ce9e966c4653ff3c9b2641)
+  Thanks [@n1ru4l](https://github.com/n1ru4l)! - Surpress the "possible EventEmitter memory leak
+  detected." warning occuring on Node.js when passing a `AbortSignal` to `execute`.
+
+  Each execution will now only set up a single listener on the supplied `AbortSignal`. While the
+  warning is harmless it can be misleading, which is the main motivation of this change.
+
+- Updated dependencies
+  [[`2c70d27`](https://github.com/ardatan/graphql-tools/commit/2c70d276c510be18f7ce9e966c4653ff3c9b2641)]:
+  - @graphql-tools/utils@10.7.0
+
 ## 1.3.9
 
 ### Patch Changes
