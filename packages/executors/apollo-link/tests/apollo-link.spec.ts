@@ -1,12 +1,14 @@
 import { setTimeout } from 'timers/promises';
 import { parse } from 'graphql';
-import { createSchema, createYoga } from 'graphql-yoga';
+import { createSchema, createYoga, Repeater } from 'graphql-yoga';
 import { ApolloClient, FetchResult, InMemoryCache } from '@apollo/client/core';
 import { buildHTTPExecutor } from '@graphql-tools/executor-http';
+import { createDeferred } from '@graphql-tools/utils';
 import { testIf } from '../../../testing/utils.js';
 import { ExecutorLink } from '../src/index.js';
 
 describe('Apollo Link', () => {
+  const { promise: waitForPingStop, resolve: pingStop } = createDeferred<void>();
   const yoga = createYoga({
     logging: false,
     maskedErrors: false,
@@ -21,6 +23,7 @@ describe('Apollo Link', () => {
         }
         type Subscription {
           time: String
+          ping: String
         }
       `,
       resolvers: {
@@ -39,6 +42,13 @@ describe('Apollo Link', () => {
               }
             },
             resolve: str => str,
+          },
+          ping: {
+            subscribe: () =>
+              new Repeater(async (_pull, stop) => {
+                await stop;
+                pingStop();
+              }),
           },
         },
       },
@@ -120,5 +130,21 @@ describe('Apollo Link', () => {
     expect(result.data).toEqual({
       readFile: 'Hello World',
     });
+  });
+  it('should complete subscription even while waiting for events', async () => {
+    const observable = client.subscribe({
+      query: parse(/* GraphQL */ `
+        subscription Ping {
+          ping
+        }
+      `),
+    });
+    const sub = observable.subscribe({
+      next: () => {
+        // noop
+      },
+    });
+    globalThis.setTimeout(() => sub.unsubscribe(), 0);
+    await waitForPingStop;
   });
 });

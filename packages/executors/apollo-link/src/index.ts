@@ -1,44 +1,44 @@
 import * as apolloImport from '@apollo/client';
-import { Executor, fakePromise, isAsyncIterable } from '@graphql-tools/utils';
+import { ExecutionRequest, Executor, isAsyncIterable } from '@graphql-tools/utils';
 
 const apollo: typeof apolloImport = (apolloImport as any)?.default ?? apolloImport;
 
 function createApolloRequestHandler(executor: Executor): apolloImport.RequestHandler {
-  return function ApolloRequestHandler(
-    operation: apolloImport.Operation,
-  ): apolloImport.Observable<apolloImport.FetchResult> {
+  return function ApolloRequestHandler(operation) {
     return new apollo.Observable(observer => {
-      fakePromise()
-        .then(() =>
-          executor({
-            document: operation.query,
-            variables: operation.variables,
-            operationName: operation.operationName,
-            extensions: operation.extensions,
-            context: operation.getContext(),
-          }),
-        )
-        .then(results => {
-          if (isAsyncIterable(results)) {
-            return fakePromise().then(async () => {
-              for await (const result of results) {
-                if (observer.closed) {
-                  return;
-                }
-                observer.next(result);
-              }
-              observer.complete();
-            });
-          } else if (!observer.closed) {
-            observer.next(results);
-            observer.complete();
+      const executionRequest: ExecutionRequest = {
+        document: operation.query,
+        variables: operation.variables,
+        operationName: operation.operationName,
+        extensions: operation.extensions,
+        context: operation.getContext(),
+      };
+
+      let disposed = false;
+      let dispose = () => {
+        disposed = true;
+      };
+      (async function execution() {
+        const results = await executor(executionRequest);
+
+        // request couldve been disposed before getting results
+        if (disposed) return;
+
+        if (isAsyncIterable(results)) {
+          dispose = () => {
+            results[Symbol.asyncIterator]().return?.();
+          };
+          for await (const result of results) {
+            observer.next(result);
           }
-        })
-        .catch(e => {
-          if (!observer.closed) {
-            observer.error(e);
-          }
-        });
+        } else {
+          observer.next(results);
+        }
+      })()
+        .then(() => observer.complete())
+        .catch(e => observer.error(e));
+
+      return () => dispose();
     });
   };
 }
