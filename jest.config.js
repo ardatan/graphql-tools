@@ -25,6 +25,7 @@ const externalToolsPackages = [
   '@graphql-tools/delegate',
   '@graphql-tools/stitch',
   '@graphql-tools/wrap',
+  '@graphql-tools/executor-common',
   '@graphql-tools/executor-http',
   '@graphql-tools/executor-graphql-ws',
 ];
