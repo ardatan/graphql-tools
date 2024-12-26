@@ -1621,11 +1621,20 @@
     dset "^3.1.2"
     tslib "^2.8.1"
 
-"@graphql-tools/executor-graphql-ws@^1.3.2":
-  version "1.3.6"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-graphql-ws/-/executor-graphql-ws-1.3.6.tgz#d7292b4a7c734dd95de52f91b618bca8e10c3e35"
-  integrity sha512-pCW+a1iRtLP0DYi7zPxKGY7yOlE4aquKIgLVQbGT92C4VlxBIpinhjkEIY7eqZW6mvofCXpazE6pfVGJRBDm9g==
+"@graphql-tools/executor-common@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-common/-/executor-common-0.0.1.tgz#dcddb119dd3767717dc946ba5ced61d6682ed328"
+  integrity sha512-Gan7uiQhKvAAl0UM20Oy/n5NGBBDNm+ASHvnYuD8mP+dAH0qY+2QMCHyi5py28WAlhAwr0+CAemEyzY/ZzOjdQ==
   dependencies:
+    "@envelop/core" "^5.0.2"
+    "@graphql-tools/utils" "^10.7.0"
+
+"@graphql-tools/executor-graphql-ws@^1.3.2":
+  version "1.3.7"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-graphql-ws/-/executor-graphql-ws-1.3.7.tgz#ecdf9e0a3ea6e12a5bc9df8fb8bb477a17711678"
+  integrity sha512-9KUrlpil5nBgcb+XRUIxNQGI+c237LAfDBqYCdLGuYT+/oZz1b4rRIe6HuRk09vuxrbaMTzm7xHhn/iuwWW4eg==
+  dependencies:
+    "@graphql-tools/executor-common" "^0.0.1"
     "@graphql-tools/utils" "^10.7.0"
     "@whatwg-node/disposablestack" "^0.0.5"
     graphql-ws "^5.14.0"
@@ -1634,11 +1643,12 @@
     ws "^8.17.1"
 
 "@graphql-tools/executor-http@^1.1.9":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-http/-/executor-http-1.2.2.tgz#777bb11a60d6df515b14b6dcb468b86c096cbc5b"
-  integrity sha512-q1eo0B5fLyhPQz3PLc2fe4c41bZjbD4AkkHTqr7ysXxLzyCZC7uTsAsyWgJndHQpRJ3uspV0NZISsRfqPxSyCA==
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@graphql-tools/executor-http/-/executor-http-1.2.3.tgz#cbbc6aa57b67e169abf73bca71204ae9145c072e"
+  integrity sha512-Y/jogDe2uYl8LiIA6wUrbpuIvmJm0o+wvV8FOzbqePJ8/GeO/sGsiMSWRqdH5qVgttig0Zs2IqnG63DlQx1v9A==
   dependencies:
     "@graphql-hive/gateway-abort-signal-any" "^0.0.2"
+    "@graphql-tools/executor-common" "^0.0.1"
     "@graphql-tools/utils" "^10.7.0"
     "@repeaterjs/repeater" "^3.0.4"
     "@whatwg-node/disposablestack" "^0.0.5"
