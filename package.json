@@ -58,7 +58,7 @@
     "babel-jest": "29.7.0",
     "bob-the-bundler": "7.0.1",
     "chalk": "5.4.1",
-    "concurrently": "9.1.0",
+    "concurrently": "9.1.1",
     "cross-env": "7.0.3",
     "eslint": "9.17.0",
     "eslint-config-prettier": "9.1.0",
