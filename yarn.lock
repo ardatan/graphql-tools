@@ -3295,10 +3295,10 @@
     "@types/node" "*"
     form-data "^4.0.0"
 
-"@types/node@*", "@types/node@22.10.3":
-  version "22.10.3"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.10.3.tgz#cdc2a89bf6e5d5e593fad08e83f74d7348d5dd10"
-  integrity sha512-DifAyw4BkrufCILvD3ucnuN8eydUfc/C1GlyrnI+LK6543w5/L3VeVgf05o3B4fqSXP1dKYLOZsKfutpxPzZrw==
+"@types/node@*", "@types/node@22.10.4":
+  version "22.10.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.10.4.tgz#da36bebcc4b124f3d62bfde1cd1dafd7763949c1"
+  integrity sha512-99l6wv4HEzBQhvaU/UGoeBoCK61SCROQaCCGyQSgX2tEQ3rKkNZ2S7CEWnS/4s1LV+8ODdK21UeyR1fHP2mXug==
   dependencies:
     undici-types "~6.20.0"
 
@@ -11449,10 +11449,10 @@ svelte2tsx@0.7.31:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"
 
-svelte@5.16.0:
-  version "5.16.0"
-  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.16.0.tgz#43ef960ee20ccf3fe8a52882a5253acaeb52ec2b"
-  integrity sha512-Ygqsiac6UogVED2ruKclU+pOeMThxWtp9LG+li7BXeDKC2paVIsRTMkNmcON4Zejerd1s5sZHWx6ZtU85xklVg==
+svelte@5.16.1:
+  version "5.16.1"
+  resolved "https://registry.yarnpkg.com/svelte/-/svelte-5.16.1.tgz#c3030a4b3f477801c669008e5ab12104df3ab05a"
+  integrity sha512-FsA1OjAKMAFSDob6j/Tv2ZV9rY4SeqPd1WXQlQkFkePAozSHLp6tbkU9qa1xJ+uTRzMSM2Vx3USdsYZBXd3H3g==
   dependencies:
     "@ampproject/remapping" "^2.3.0"
     "@jridgewell/sourcemap-codec" "^1.5.0"
