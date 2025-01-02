@@ -22,7 +22,7 @@ const getListenersOfAbortSignal = memoize1(function getListenersOfAbortSignal(si
  * "possible EventEmitter memory leak detected. 11 listeners added. Use emitter.setMaxListeners() to increase limit."
  * warning occuring on Node.js
  */
-export function registerAbortSignalListener(signal: AbortSignal, listener: VoidFunction) {
+export function registerAbortSignalListener(signal: AbortSignal, listener: () => void) {
   // If the signal is already aborted, call the listener immediately
   if (signal.aborted) {
     listener();
