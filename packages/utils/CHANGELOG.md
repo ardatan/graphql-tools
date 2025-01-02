@@ -1,5 +1,14 @@
 # @graphql-tools/utils
 
+## 10.7.1
+
+### Patch Changes
+
+- [#6809](https://github.com/ardatan/graphql-tools/pull/6809)
+  [`4912f19`](https://github.com/ardatan/graphql-tools/commit/4912f19b290a06c603b00e268d49abebddc3fd6d)
+  Thanks [@AaronMoat](https://github.com/AaronMoat)! - Remove use of `VoidFunction` type, which
+  requires DOM types
+
 ## 10.7.0
 
 ### Minor Changes
