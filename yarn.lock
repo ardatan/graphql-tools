@@ -2361,10 +2361,10 @@
     "@napi-rs/simple-git-win32-arm64-msvc" "0.1.19"
     "@napi-rs/simple-git-win32-x64-msvc" "0.1.19"
 
-"@next/bundle-analyzer@15.0.4":
-  version "15.0.4"
-  resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-15.0.4.tgz#0bd2690f41679dbe3d85e0380539de3900514bad"
-  integrity sha512-0If3/mxqUWYC0lAdV5cChGA1Xs1BENjaLyJkdqpI2df86HqprcDZagiB2IU1xc5ph7xZHRdi5mT2cY7VkyibTQ==
+"@next/bundle-analyzer@15.1.0":
+  version "15.1.0"
+  resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-15.1.0.tgz#444549cac0d1fb41172dd4b2f4a65e81ebe5af4b"
+  integrity sha512-uEyuNZZgAbSWgiUbtihTA8y6QgEzc4b8Fpslmc4SXAjj67Ax5mlcv1HLlez+5dIGwO+vJ9PgCoI8ngWtBh/g1Q==
   dependencies:
     webpack-bundle-analyzer "4.10.1"
 
@@ -2754,13 +2754,13 @@
   resolved "https://registry.yarnpkg.com/@tanstack/virtual-core/-/virtual-core-3.11.2.tgz#00409e743ac4eea9afe5b7708594d5fcebb00212"
   integrity sha512-vTtpNt7mKCiZ1pwU9hfKPhpdVO2sVzFQsxoVBGtOSHxlrRRzYr8iQ2TlwbAcRYCcEiZ9ECAM8kBzH0v2+VzfKw==
 
-"@theguild/components@7.4.0":
-  version "7.4.0"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-7.4.0.tgz#67ecc8851e50c5cc9a65f015f54ec46d7ffef786"
-  integrity sha512-tOh+Otfod9+oyrzUUCwAFVC6Gr1qZyTnGdzfb1us2tTPqCU8BH1w0ak9BCWk9nNnN9VkavZmRKsU1uJhvb7JLA==
+"@theguild/components@7.5.0":
+  version "7.5.0"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-7.5.0.tgz#316877c0114a49e2b86c83c52243993f47abbd40"
+  integrity sha512-2lgg+kWQBGyAgl0948p65l9Qb7jy1RXPSdY9fUL9hQR53g0ea84+d1MffwlC5pWh7y0o6dcznSAXJZcFhJfJ0g==
   dependencies:
     "@giscus/react" "3.0.0"
-    "@next/bundle-analyzer" "15.0.4"
+    "@next/bundle-analyzer" "15.1.0"
     "@radix-ui/react-navigation-menu" "^1.2.0"
     clsx "2.1.1"
     fuzzy "0.1.3"
