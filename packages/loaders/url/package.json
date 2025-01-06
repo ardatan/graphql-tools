@@ -67,7 +67,7 @@
   "devDependencies": {
     "@envelop/core": "5.0.2",
     "@envelop/live-query": "7.0.0",
-    "@graphql-yoga/plugin-defer-stream": "3.10.8",
+    "@graphql-yoga/plugin-defer-stream": "3.10.9",
     "@types/express": "5.0.0",
     "@types/valid-url": "1.0.7",
     "babel-loader": "9.2.1",
