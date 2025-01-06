@@ -1,5 +1,23 @@
 # @graphql-tools/utils
 
+## 10.7.2
+
+### Patch Changes
+
+- [#6822](https://github.com/ardatan/graphql-tools/pull/6822)
+  [`53bb601`](https://github.com/ardatan/graphql-tools/commit/53bb60104782738f51a2c2de42d6da7aba191537)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - dependencies updates:
+
+  - Updated dependency [`dset@^3.1.4` ↗︎](https://www.npmjs.com/package/dset/v/3.1.4) (from
+    `^3.1.2`, in `dependencies`)
+
+- [#6822](https://github.com/ardatan/graphql-tools/pull/6822)
+  [`53bb601`](https://github.com/ardatan/graphql-tools/commit/53bb60104782738f51a2c2de42d6da7aba191537)
+  Thanks [@enisdenjo](https://github.com/enisdenjo)! - Bump dset dependency handling the
+  CVE-2024-21529
+
+  https://security.snyk.io/vuln/SNYK-JS-DSET-7116691
+
 ## 10.7.1
 
 ### Patch Changes
