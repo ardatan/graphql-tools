@@ -1,6 +1,5 @@
-import './fix-shiki-packagejson';
 import fs, { promises as fsPromises } from 'node:fs';
-import path, { join } from 'node:path';
+import path from 'node:path';
 import chalk from 'chalk';
 import globby from 'globby';
 import { Application, TSConfigReader } from 'typedoc';
