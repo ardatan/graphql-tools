@@ -1,4 +1,4 @@
-import syncFetch from '@ardatan/sync-fetch';
+import syncFetch from 'sync-fetch';
 import { BaseLoaderOptions, Loader, parseGraphQLSDL, Source } from '@graphql-tools/utils';
 import { fetch } from '@whatwg-node/fetch';
 

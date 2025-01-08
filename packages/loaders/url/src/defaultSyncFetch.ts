@@ -1,4 +1,4 @@
-import syncFetchImported from '@ardatan/sync-fetch';
+import syncFetchImported from 'sync-fetch';
 import { SyncFetchFn, SyncResponse } from '@graphql-tools/executor-http';
 
 export const defaultSyncFetch: SyncFetchFn = (
