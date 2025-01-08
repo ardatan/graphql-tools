@@ -1,6 +1,6 @@
 import { parse } from 'graphql';
+import syncFetch from 'sync-fetch';
 import { ValueOrPromise } from 'value-or-promise';
-import syncFetch from '@ardatan/sync-fetch';
 import { AsyncFetchFn, FetchFn, SyncFetchFn } from '@graphql-tools/executor-http';
 import {
   gqlPluckFromCodeStringSync,
