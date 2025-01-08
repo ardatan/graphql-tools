@@ -1,20 +1,33 @@
-import { memoize1 } from './memoize.js';
+import { createDeferred } from './createDeferred.js';
+import { fakeRejectPromise } from './fakePromise.js';
 
-// AbortSignal handler cache to avoid the "possible EventEmitter memory leak detected"
-// on Node.js
-const getListenersOfAbortSignal = memoize1(function getListenersOfAbortSignal(signal: AbortSignal) {
-  const listeners = new Set<EventListener>();
-  signal.addEventListener(
-    'abort',
-    e => {
+const listenersByAbortSignal = new WeakMap<AbortSignal, Set<EventListener>>();
+const mainListenerByAbortSignal = new WeakMap<AbortSignal, EventListener>();
+const deferredByAbortSignal = new WeakMap<AbortSignal, PromiseWithResolvers<void>>();
+
+function ensureMainListener(signal: AbortSignal) {
+  if (mainListenerByAbortSignal.has(signal)) {
+    return;
+  }
+  function mainListener(e: Event) {
+    const deferred = deferredByAbortSignal.get(signal);
+    deferred?.reject(signal.reason);
+    if (deferred) {
+      deferredByAbortSignal.delete(signal);
+    }
+    const listeners = listenersByAbortSignal.get(signal);
+    if (listeners != null) {
       for (const listener of listeners) {
         listener(e);
       }
-    },
-    { once: true },
-  );
-  return listeners;
-});
+      listenersByAbortSignal.delete(signal);
+    }
+    mainListenerByAbortSignal.delete(signal);
+    signal.removeEventListener('abort', mainListener);
+  }
+  mainListenerByAbortSignal.set(signal, mainListener);
+  signal.addEventListener('abort', mainListener, { once: true });
+}
 
 /**
  * Register an AbortSignal handler for a signal.
@@ -22,24 +35,42 @@ const getListenersOfAbortSignal = memoize1(function getListenersOfAbortSignal(si
  * "possible EventEmitter memory leak detected. 11 listeners added. Use emitter.setMaxListeners() to increase limit."
  * warning occuring on Node.js
  */
-export function registerAbortSignalListener(signal: AbortSignal, listener: () => void) {
+export function registerAbortSignalListener(signal: AbortSignal, listener: (e?: Event) => void) {
   // If the signal is already aborted, call the listener immediately
   if (signal.aborted) {
-    listener();
-    return;
+    return listener();
   }
-  getListenersOfAbortSignal(signal).add(listener);
+  let listeners = listenersByAbortSignal.get(signal);
+  if (listeners == null) {
+    listeners = new Set<EventListener>();
+    listenersByAbortSignal.set(signal, listeners);
+  }
+  listeners.add(listener);
 }
 
-export const getAbortPromise = memoize1(function getAbortPromise(signal: AbortSignal) {
-  return new Promise<void>((_resolve, reject) => {
-    // If the signal is already aborted, return a rejected promise
-    if (signal.aborted) {
-      reject(signal.reason);
-      return;
+export function unregisterAbortSignalListener(signal: AbortSignal, listener: (e?: Event) => void) {
+  const listeners = listenersByAbortSignal.get(signal);
+  if (listeners != null) {
+    listeners.delete(listener);
+    if (listeners.size === 0) {
+      const mainListener = mainListenerByAbortSignal.get(signal);
+      if (mainListener != null) {
+        signal.removeEventListener('abort', mainListener);
+        mainListenerByAbortSignal.delete(signal);
+      }
     }
-    registerAbortSignalListener(signal, () => {
-      reject(signal.reason);
-    });
-  });
-});
+  }
+}
+
+export function getAbortPromise(signal: AbortSignal): Promise<void> {
+  if (signal.aborted) {
+    return fakeRejectPromise(signal.reason);
+  }
+  ensureMainListener(signal);
+  let deferred = deferredByAbortSignal.get(signal);
+  if (deferred == null) {
+    deferred = createDeferred<void>();
+    deferredByAbortSignal.set(signal, deferred);
+  }
+  return deferred.promise;
+}

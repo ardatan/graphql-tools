@@ -46,6 +46,7 @@ import {
   isObjectLike,
   isPromise,
   mapAsyncIterator,
+  mapMaybePromise,
   Maybe,
   MaybePromise,
   memoize1,
@@ -558,20 +559,18 @@ function executeFieldsSerially<TData>(
       const fieldPath = addPath(path, responseName, parentType.name);
       exeContext.signal?.throwIfAborted();
 
-      return new ValueOrPromise(() =>
+      return mapMaybePromise(
         executeField(exeContext, parentType, sourceValue, fieldNodes, fieldPath),
-      ).then(result => {
-        if (result === undefined) {
+        result => {
+          if (result !== undefined) {
+            results[responseName] = result;
+          }
           return results;
-        }
-
-        results[responseName] = result;
-
-        return results;
-      });
+        },
+      );
     },
     Object.create(null),
-  ).resolve();
+  );
 }
 
 /**
@@ -613,9 +612,17 @@ function executeFields(
   } catch (error) {
     if (containsPromise) {
       // Ensure that any promises returned by other fields are handled, as they may also reject.
-      return promiseForObject(results, exeContext.signal).finally(() => {
-        throw error;
-      });
+      const pForObject$ = promiseForObject(results, exeContext.signal);
+      if (isPromise(pForObject$)) {
+        return pForObject$.then(
+          () => {
+            throw error;
+          },
+          () => {
+            throw error;
+          },
+        );
+      }
     }
     throw error;
   }

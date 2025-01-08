@@ -576,6 +576,9 @@ describe('Execute: stream directive', () => {
             path: ['friendList', 2],
           },
         ],
+        hasNext: true,
+      },
+      {
         hasNext: false,
       },
     ]);
@@ -645,10 +648,15 @@ describe('Execute: stream directive', () => {
               path: ['friendList', 2],
             },
           ],
+          hasNext: true,
+        },
+      },
+      {
+        done: false,
+        value: {
           hasNext: false,
         },
       },
-      { done: true, value: undefined },
       { done: true, value: undefined },
     ]);
   });
