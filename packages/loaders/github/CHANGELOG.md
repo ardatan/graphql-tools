@@ -1,5 +1,18 @@
 # @graphql-tools/github-loader
 
+## 8.0.13
+
+### Patch Changes
+
+- [#6831](https://github.com/ardatan/graphql-tools/pull/6831)
+  [`c59403d`](https://github.com/ardatan/graphql-tools/commit/c59403dedc2a5435452c9a3556f4846df6dee392)
+  Thanks [@ardatan](https://github.com/ardatan)! - dependencies updates:
+  - Added dependency [`sync-fetch@0.6.0-2` ↗︎](https://www.npmjs.com/package/sync-fetch/v/0.6.0)
+    (to `dependencies`)
+  - Removed dependency
+    [`@ardatan/sync-fetch@^0.0.1` ↗︎](https://www.npmjs.com/package/@ardatan/sync-fetch/v/0.0.1)
+    (from `dependencies`)
+
 ## 8.0.12
 
 ### Patch Changes
