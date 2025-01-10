@@ -2447,10 +2447,10 @@
   resolved "https://registry.yarnpkg.com/@polka/url/-/url-1.0.0-next.28.tgz#d45e01c4a56f143ee69c54dd6b12eade9e270a73"
   integrity sha512-8LduaNlMZGwdZ6qWrKlfa+2M4gahzFkprZiAt2TF8uS0qQgBizKXpXURqvTJ4WtmupWxaLqjRb2UCTe72mu+Aw==
 
-"@puppeteer/browsers@2.6.1":
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.6.1.tgz#d75aec5010cae377c5e4742bf5e4f62a79c21315"
-  integrity sha512-aBSREisdsGH890S2rQqK82qmQYU3uFpSH8wcZWHgHzl3LfzsxAKbLNiAG9mO8v1Y0UICBeClICxPJvyr0rcuxg==
+"@puppeteer/browsers@2.7.0":
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/@puppeteer/browsers/-/browsers-2.7.0.tgz#dad70b30458f4e0855b2f402055f408823cc67c5"
+  integrity sha512-bO61XnTuopsz9kvtfqhVbH6LTM1koxK0IlBR+yuVrM2LB7mk8+5o1w18l5zqd5cs8xlf+ntgambqRqGifMDjog==
   dependencies:
     debug "^4.4.0"
     extract-zip "^2.0.1"
@@ -4567,6 +4567,14 @@ chromium-bidi@0.11.0:
   dependencies:
     mitt "3.0.1"
     zod "3.23.8"
+
+chromium-bidi@0.12.0:
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/chromium-bidi/-/chromium-bidi-0.12.0.tgz#f4a34a821151086a7fe97f6d537819cefcf66820"
+  integrity sha512-xzXveJmX826GGq1MeE5okD8XxaDT8172CXByhFJ687eY65rbjOIebdbUuQh+jXKaNyGKI14Veb3KjLLmSueaxA==
+  dependencies:
+    mitt "3.0.1"
+    zod "3.24.1"
 
 ci-info@^3.2.0, ci-info@^3.7.0:
   version "3.9.0"
@@ -10220,28 +10228,28 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
-puppeteer-core@23.11.1:
-  version "23.11.1"
-  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-23.11.1.tgz#3e064de11b3cb3a2df1a8060ff2d05b41be583db"
-  integrity sha512-3HZ2/7hdDKZvZQ7dhhITOUg4/wOrDRjyK2ZBllRB0ZCOi9u0cwq1ACHDjBB+nX+7+kltHjQvBRdeY7+W0T+7Gg==
+puppeteer-core@24.0.0:
+  version "24.0.0"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-24.0.0.tgz#a9671518ac4ed0998db153e72c5dbe09170bba40"
+  integrity sha512-bHVXmnkYnMVSbsD+pJGt8fmGZLaVYOAieVnJcDxtLIVTMq0s5RfYdzN4xVlFoBQ3T06/sPkXxca3VLVfaqLxzg==
   dependencies:
-    "@puppeteer/browsers" "2.6.1"
+    "@puppeteer/browsers" "2.7.0"
     chromium-bidi "0.11.0"
     debug "^4.4.0"
     devtools-protocol "0.0.1367902"
     typed-query-selector "^2.12.0"
     ws "^8.18.0"
 
-puppeteer@23.11.1:
-  version "23.11.1"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-23.11.1.tgz#98fd9040786b1219b1a4f639c270377586e8899c"
-  integrity sha512-53uIX3KR5en8l7Vd8n5DUv90Ae9QDQsyIthaUFVzwV6yU750RjqRznEtNMBT20VthqAdemnJN+hxVdmMHKt7Zw==
+puppeteer@24.0.0:
+  version "24.0.0"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-24.0.0.tgz#d95d0765d5ff29dc50865e591e8676a9d4d9c5db"
+  integrity sha512-KRF2iWdHGSZkQ8pqftR5XR1jqnTqKRVZghMGJfJ665zS8++0cErRG2tXWfp98YqvMzsVLHfzBtTQlk0MMhCxzg==
   dependencies:
-    "@puppeteer/browsers" "2.6.1"
-    chromium-bidi "0.11.0"
+    "@puppeteer/browsers" "2.7.0"
+    chromium-bidi "0.12.0"
     cosmiconfig "^9.0.0"
     devtools-protocol "0.0.1367902"
-    puppeteer-core "23.11.1"
+    puppeteer-core "24.0.0"
     typed-query-selector "^2.12.0"
 
 pure-rand@^6.0.0:
@@ -12670,10 +12678,15 @@ zod-validation-error@^3.0.0:
   resolved "https://registry.yarnpkg.com/zod-validation-error/-/zod-validation-error-3.4.0.tgz#3a8a1f55c65579822d7faa190b51336c61bee2a6"
   integrity sha512-ZOPR9SVY6Pb2qqO5XHt+MkkTRxGXb4EVtnjc9JpXUOtUB1T9Ru7mZOT361AN3MsetVe7R0a1KZshJDZdgp9miQ==
 
-zod@3.23.8, zod@^3.20.2, zod@^3.22.3:
+zod@3.23.8:
   version "3.23.8"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.23.8.tgz#e37b957b5d52079769fb8097099b592f0ef4067d"
   integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
+
+zod@3.24.1, zod@^3.20.2, zod@^3.22.3:
+  version "3.24.1"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.24.1.tgz#27445c912738c8ad1e9de1bea0359fa44d9d35ee"
+  integrity sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==
 
 zwitch@^2.0.0, zwitch@^2.0.4:
   version "2.0.4"
