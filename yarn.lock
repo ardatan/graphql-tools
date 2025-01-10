@@ -6706,10 +6706,10 @@ graphql-scalars@1.24.0:
   dependencies:
     tslib "^2.5.0"
 
-graphql-sse@2.5.3:
-  version "2.5.3"
-  resolved "https://registry.yarnpkg.com/graphql-sse/-/graphql-sse-2.5.3.tgz#c3557803f2db306d8ac87fd3bc089b6d4bac8353"
-  integrity sha512-5IcFW3e7fPOG7oFkK1v3X1wWtCJArQKB/H1UJeNotjy7a/9EYA5K+EiHJF1BiDSVNx7y64bd0FlDETrNBSvIHQ==
+graphql-sse@2.5.4:
+  version "2.5.4"
+  resolved "https://registry.yarnpkg.com/graphql-sse/-/graphql-sse-2.5.4.tgz#29e93d8ccda58b9263b18f176b7be631638ec658"
+  integrity sha512-8PIGHQPv1vokYboL8KsoBomvyJCUMJCAwSp5f+bR2qVoYtPo7CYowrYV7LFiXuiirX0cxVzgUBFNa5BaI4rZ2A==
 
 graphql-tag@2.12.6, graphql-tag@^2.12.6:
   version "2.12.6"
