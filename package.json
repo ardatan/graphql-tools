@@ -61,7 +61,7 @@
     "concurrently": "9.1.2",
     "cross-env": "7.0.3",
     "eslint": "9.18.0",
-    "eslint-config-prettier": "9.1.0",
+    "eslint-config-prettier": "10.0.1",
     "eslint-config-standard": "17.1.0",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-n": "17.15.1",
