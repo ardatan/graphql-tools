@@ -2794,10 +2794,10 @@
   resolved "https://registry.yarnpkg.com/@tanstack/virtual-core/-/virtual-core-3.11.2.tgz#00409e743ac4eea9afe5b7708594d5fcebb00212"
   integrity sha512-vTtpNt7mKCiZ1pwU9hfKPhpdVO2sVzFQsxoVBGtOSHxlrRRzYr8iQ2TlwbAcRYCcEiZ9ECAM8kBzH0v2+VzfKw==
 
-"@theguild/components@7.5.0":
-  version "7.5.0"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-7.5.0.tgz#316877c0114a49e2b86c83c52243993f47abbd40"
-  integrity sha512-2lgg+kWQBGyAgl0948p65l9Qb7jy1RXPSdY9fUL9hQR53g0ea84+d1MffwlC5pWh7y0o6dcznSAXJZcFhJfJ0g==
+"@theguild/components@7.5.2":
+  version "7.5.2"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-7.5.2.tgz#c1cfd4a82b7dfda28816d4b79088170314f11d55"
+  integrity sha512-JS3KK4jvNSK+sXw0jHymYip3Vk/+/kdyoHV/g1ClQJtK4i8TKKT5jRlsYeLj7C6+lUhIidFMCoAt8Hqr4winIA==
   dependencies:
     "@giscus/react" "3.0.0"
     "@next/bundle-analyzer" "15.1.0"
