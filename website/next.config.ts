@@ -6,7 +6,7 @@ export default withGuildDocs({
     SITE_URL: 'https://the-guild.dev/graphql/tools',
   },
   nextraConfig: {
-    contentDirBasePath: '/docs'
+    contentDirBasePath: '/docs',
   },
   redirects: async () =>
     Object.entries({

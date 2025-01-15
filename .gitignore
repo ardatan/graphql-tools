@@ -74,6 +74,6 @@ junit.xml
 package-lock.json
 website/public/_redirects
 website/public/sitemap.xml
-website/src/pages/docs/api/
+website/src/content/api/
 
 .mise.toml

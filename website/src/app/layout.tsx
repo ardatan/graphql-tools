@@ -31,7 +31,7 @@ const RootLayout: FC<{
     <GuildLayout
       websiteName={websiteName}
       description={description}
-      logo={<PRODUCTS.TOOLS.logo className='text-md' />}
+      logo={<PRODUCTS.TOOLS.logo className="text-md" />}
       layoutProps={{
         docsRepositoryBase: 'https://github.com/ardatan/graphql-tools/tree/master/website',
       }}

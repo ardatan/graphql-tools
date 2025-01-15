@@ -53,8 +53,8 @@ const FEATURE_LIST: IFeatureListProps['items'] = [
 ];
 
 export const metadata = {
-  title: 'Home'
-}
+  title: 'Home',
+};
 
 const IndexPage: FC = () => {
   return (
@@ -72,6 +72,6 @@ const IndexPage: FC = () => {
       <FeatureList items={FEATURE_LIST} className="[&_h3]:mt-6" />
     </>
   );
-}
+};
 
-export default IndexPage
+export default IndexPage;
