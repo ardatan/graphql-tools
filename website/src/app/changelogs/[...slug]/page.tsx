@@ -40,8 +40,7 @@ const { pageMap: _pageMap } = convertToPageMap({
 const changelogsPages = _pageMap[0].children;
 
 const changelogsPageMap = mergeMetaWithPageMap(changelogsPages, {
-  // Put Yoga at top
-  'graphql-yoga': '',
+  // Change order or sidebar title here
 });
 
 export const pageMap = normalizePageMap(changelogsPageMap);
