@@ -4,13 +4,13 @@ import { getDefaultMetadata, getPageMap, GuildLayout } from '@theguild/component
 import '@theguild/components/style.css';
 import { pageMap as changelogsPageMap } from './changelogs/[...slug]/page';
 
-const description = PRODUCTS.YOGA.title;
-const websiteName = 'Yoga';
+const description = PRODUCTS.TOOLS.title;
+const websiteName = 'GraphQL-Tools';
 
 export const metadata = getDefaultMetadata({
   description,
   websiteName,
-  productName: 'YOGA',
+  productName: 'TOOLS',
 });
 
 const RootLayout: FC<{
@@ -31,13 +31,12 @@ const RootLayout: FC<{
     <GuildLayout
       websiteName={websiteName}
       description={description}
-      logo={<PRODUCTS.YOGA.logo className="w-8 h-auto" />}
+      logo={<PRODUCTS.TOOLS.logo className='text-md' />}
       layoutProps={{
-        docsRepositoryBase: 'https://github.com/dotansimha/graphql-yoga/tree/main/website',
+        docsRepositoryBase: 'https://github.com/ardatan/graphql-tools/tree/master/website',
       }}
       pageMap={pageMap}
       navbarProps={{
-        navLinks: [{ href: '/#', children: '#' }],
         developerMenu: [
           {
             href: '/docs',
@@ -46,12 +45,12 @@ const RootLayout: FC<{
           },
           { href: 'https://the-guild.dev/blog', icon: <PencilIcon />, children: 'Blog' },
           {
-            href: 'https://github.com/dotansimha/graphql-yoga',
+            href: 'https://github.com/ardatan/graphql-tools',
             icon: <GitHubIcon />,
             children: 'GitHub',
           },
           {
-            href: '/changelog',
+            href: '/changelogs',
             icon: null,
             children: 'Changelog',
           },

@@ -2,7 +2,13 @@ import { withGuildDocs } from '@theguild/components/next.config';
 
 export default withGuildDocs({
   output: 'export',
-  redirects: () =>
+  env: {
+    SITE_URL: 'https://the-guild.dev/graphql/tools',
+  },
+  nextraConfig: {
+    contentDirBasePath: '/docs'
+  },
+  redirects: async () =>
     Object.entries({
       '/docs/directive-resolvers': '/docs/schema-directives',
       '/docs/schema-directives-legacy': '/docs/schema-directives',
