@@ -53,7 +53,7 @@ const FEATURE_LIST: IFeatureListProps['items'] = [
 ];
 
 export const metadata = {
-  title: 'Home',
+  title: 'GraphQL Tools',
 };
 
 const IndexPage: FC = () => {
