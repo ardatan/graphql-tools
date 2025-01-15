@@ -20,6 +20,7 @@ const RootLayout: FC<{
   pageMap = [
     {
       data: {
+        // @ts-expect-error -- always MetaItem
         ...meta.data,
         changelogs: { type: 'page', title: 'Changelogs', theme: { layout: 'full' } },
       },

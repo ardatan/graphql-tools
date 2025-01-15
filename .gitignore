@@ -75,5 +75,6 @@ package-lock.json
 website/public/_redirects
 website/public/sitemap.xml
 website/src/content/api/
+website/out/
 
 .mise.toml

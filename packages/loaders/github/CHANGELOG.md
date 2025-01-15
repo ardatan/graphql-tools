@@ -677,7 +677,7 @@
 
 ### Patch Changes
 
-- ef9c3853: fix: bump Node <v16.5 compatible version
+- ef9c3853: fix: bump Node \<v16.5 compatible version
 
 ## 7.2.0
 
