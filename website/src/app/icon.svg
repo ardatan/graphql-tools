@@ -2,7 +2,7 @@
   <text x="50" y="1.2em" font-size="60" text-anchor="middle">TLS</text>
   <style>
     svg {
-      font-family: var(--default-font-family,ui-sans-serif,system-ui,sans-serif);
+      font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif);
     }
     @media (prefers-color-scheme: dark) {
       svg {

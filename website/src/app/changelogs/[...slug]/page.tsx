@@ -41,6 +41,7 @@ const changelogsPages = _pageMap[0].children;
 
 const changelogsPageMap = mergeMetaWithPageMap(changelogsPages, {
   // Change order or sidebar title here
+  'graphql-tools': 'graphql-tools',
 });
 
 export const pageMap = normalizePageMap(changelogsPageMap);

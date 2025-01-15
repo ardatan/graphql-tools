@@ -56,6 +56,7 @@ export default withGuildDocs({
       '/install': '/docs/introduction',
       '/docs/api/modules': '/docs/api/modules/batch_delegate_src',
       '/docs/api/modules/merge#mergetypedefs': '/docs/api/modules/merge_src#mergetypedefs',
+      '/changelogs': '/changelogs/graphql-tools',
     }).map(([from, to]) => ({
       source: from,
       destination: to,
