@@ -18,5 +18,4 @@ export default {
   'graphql-tag-pluck': 'GraphQL Tag Pluck',
   'relay-operation-optimizer': 'Relay Operation Optimizer',
   migration: 'Migration',
-  api: 'API Reference',
 };
