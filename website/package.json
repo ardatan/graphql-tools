@@ -16,7 +16,7 @@
     "react-dom": "19.0.0"
   },
   "devDependencies": {
-    "@shikijs/core": "1.27.0",
+    "@shikijs/core": "1.27.2",
     "@shikijs/vscode-textmate": "10.0.1",
     "@theguild/tailwind-config": "0.6.2",
     "@types/node": "22.10.6",
