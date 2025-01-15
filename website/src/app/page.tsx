@@ -1,4 +1,4 @@
-import { ReactElement } from 'react';
+import { FC } from 'react';
 import { FeatureList, HeroGradient, IFeatureListProps } from '@theguild/components';
 import flask from '../../public/assets/flask.svg';
 import graphql from '../../public/assets/graphql.svg';
@@ -52,7 +52,11 @@ const FEATURE_LIST: IFeatureListProps['items'] = [
   },
 ];
 
-export function IndexPage(): ReactElement {
+export const metadata = {
+  title: 'Home'
+}
+
+const IndexPage: FC = () => {
   return (
     <>
       <HeroGradient
@@ -69,3 +73,5 @@ export function IndexPage(): ReactElement {
     </>
   );
 }
+
+export default IndexPage
