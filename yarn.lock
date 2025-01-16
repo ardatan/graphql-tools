@@ -2804,10 +2804,10 @@
   resolved "https://registry.yarnpkg.com/@tanstack/virtual-core/-/virtual-core-3.11.2.tgz#00409e743ac4eea9afe5b7708594d5fcebb00212"
   integrity sha512-vTtpNt7mKCiZ1pwU9hfKPhpdVO2sVzFQsxoVBGtOSHxlrRRzYr8iQ2TlwbAcRYCcEiZ9ECAM8kBzH0v2+VzfKw==
 
-"@theguild/components@9.0.0":
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-9.0.0.tgz#6e55f1cca669fcb8d4f9454c160fcd5edf5e024d"
-  integrity sha512-vUcHcO8Nri0qkvZgEPRDSMEdi2Qtd+lJV0I5YqlkNA1DLvUHRLLeKMSgjhyTpZyapDhyszNBbxNjn215fCrpLQ==
+"@theguild/components@9.1.0":
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-9.1.0.tgz#2120a606677162408dbd8fb8e9ea761fa0a61628"
+  integrity sha512-dfH89hu6qLoFjcT6jkHYJk11qNimHmEd9CidP4t/YXkELWVbjdcKKrAfIfX9lMCT48VglKNct+SCYu8bsVrivw==
   dependencies:
     "@giscus/react" "3.1.0"
     "@next/bundle-analyzer" "15.1.4"
@@ -3413,15 +3413,15 @@
   resolved "https://registry.yarnpkg.com/@types/trusted-types/-/trusted-types-2.0.7.tgz#baccb07a970b91707df3a3e8ba6896c57ead2d11"
   integrity sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==
 
-"@types/unist@*", "@types/unist@^2.0.0":
-  version "2.0.11"
-  resolved "https://registry.yarnpkg.com/@types/unist/-/unist-2.0.11.tgz#11af57b127e32487774841f7a4e54eab166d03c4"
-  integrity sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA==
-
-"@types/unist@^3.0.0":
+"@types/unist@*", "@types/unist@^3.0.0":
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@types/unist/-/unist-3.0.3.tgz#acaab0f919ce69cce629c2d4ed2eb4adc1b6c20c"
   integrity sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==
+
+"@types/unist@^2.0.0":
+  version "2.0.11"
+  resolved "https://registry.yarnpkg.com/@types/unist/-/unist-2.0.11.tgz#11af57b127e32487774841f7a4e54eab166d03c4"
+  integrity sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA==
 
 "@types/valid-url@1.0.7":
   version "1.0.7"
