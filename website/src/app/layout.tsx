@@ -1,11 +1,18 @@
 import { FC, ReactNode } from 'react';
-import { GitHubIcon, PaperIcon, PencilIcon, PRODUCTS } from '@theguild/components';
+import {
+  GitHubIcon,
+  HiveFooter,
+  PaperIcon,
+  PencilIcon,
+  PRODUCTS,
+  ToolsLogo,
+} from '@theguild/components';
 import { getDefaultMetadata, getPageMap, GuildLayout } from '@theguild/components/server';
 import '@theguild/components/style.css';
 import { pageMap as changelogsPageMap } from './changelogs/[...slug]/page';
 
 const description = PRODUCTS.TOOLS.title;
-const websiteName = 'GraphQL-Tools';
+const websiteName = 'GraphQL Tools';
 
 export const metadata = getDefaultMetadata({
   description,
@@ -32,12 +39,26 @@ const RootLayout: FC<{
     <GuildLayout
       websiteName={websiteName}
       description={description}
-      logo={<PRODUCTS.TOOLS.logo className="text-md" />}
+      logo={<ToolsLogo fill="currentColor" className="h-auto w-8" />}
       layoutProps={{
         docsRepositoryBase: 'https://github.com/ardatan/graphql-tools/tree/master/website',
+        footer: (
+          <HiveFooter
+            items={{
+              resources: [
+                {
+                  children: 'Changelog',
+                  href: '/changelogs',
+                  title: 'Changelog',
+                },
+              ],
+            }}
+          />
+        ),
       }}
       pageMap={pageMap}
       navbarProps={{
+        navLinks: [{ href: '/changelogs', children: 'Changelog' }],
         developerMenu: [
           {
             href: '/docs',
@@ -49,11 +70,6 @@ const RootLayout: FC<{
             href: 'https://github.com/ardatan/graphql-tools',
             icon: <GitHubIcon />,
             children: 'GitHub',
-          },
-          {
-            href: '/changelogs',
-            icon: null,
-            children: 'Changelog',
           },
         ],
       }}

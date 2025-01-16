@@ -18,7 +18,14 @@ export default async function Page(props: NextPageProps<'...mdxPath'>) {
   const result = await importPage(params.mdxPath);
   const { default: MDXContent, toc, metadata } = result;
   return (
-    <Wrapper toc={toc} metadata={metadata} bottomContent={<Giscus />}>
+    <Wrapper
+      toc={toc}
+      metadata={metadata}
+      bottomContent={<Giscus />}
+      // Set lower weight for API pages, when 0.3 is set results for `mocking` will be in down
+      // https://pagefind.app/docs/weighting/
+      data-pagefind-weight={params.mdxPath[0] === 'api' ? '0.3' : undefined}
+    >
       <MDXContent {...props} params={params} />
     </Wrapper>
   );

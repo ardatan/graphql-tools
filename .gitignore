@@ -76,5 +76,6 @@ website/public/_redirects
 website/public/sitemap.xml
 website/src/content/api/
 website/out/
+website/public/_pagefind/
 
 .mise.toml

@@ -6,8 +6,6 @@ import {
   CheckIcon,
   cn,
   DecorationIsolation,
-  ExploreMainProductCards,
-  GetYourAPIGameRightSection,
   GitHubIcon,
   Heading,
   InfoCard,
@@ -18,7 +16,7 @@ import {
 import { metadata as rootMetadata } from './layout';
 import arrowUpBade from './icons/arrow-up-badge.svg';
 import graphqlBadge from './icons/graphql-badge.svg';
-import puzzleBadge from './icons/puzzle-badge.svg';
+import plugZapBadge from './icons/plug-zap-badge.svg';
 
 export const metadata = {
   title: 'GraphQL Tools',
@@ -84,13 +82,15 @@ export default function MyPage() {
     <div className="mx-auto flex h-full max-w-[90rem] flex-col">
       <Hero className="mx-4 max-sm:mt-2 md:mx-6">
         <Heading as="h1" size="xl" className="mx-auto max-w-3xl text-balance text-center">
-          GraphQL Tools
-          <br />A set of utilities for faster GraphQL development
+          A set of utilities for faster GraphQL development
         </Heading>
         <p className="mx-auto w-[512px] max-w-[80%] text-center leading-6 text-green-800">
-          GraphQL Tools is a set of NPM packages and an opinionated structure for how to build a
-          GraphQL schema and resolvers in JavaScript, following the GraphQL-first development
-          workflow.
+          A collection of NPM packages that provides a structured approach to building GraphQL
+          schemas and resolvers in JavaScript, following{' '}
+          <TextLink href="/docs/introduction#the-graphql-first-philosophy">
+            the GraphQL-first development workflow
+          </TextLink>
+          .
         </p>
         <HeroFeatures>
           <li>
@@ -106,10 +106,10 @@ export default function MyPage() {
           <CallToAction variant="primary-inverted" href="/docs">
             Get started
           </CallToAction>
-          <CallToAction variant="secondary-inverted" href="/changelogs">
-            Changelog
-          </CallToAction>
-          <CallToAction variant="tertiary" href="https://github.com/dotansimha/graphql-yoga">
+          <CallToAction
+            variant="secondary-inverted"
+            href="https://github.com/dotansimha/graphql-yoga"
+          >
             <GitHubIcon className="size-6" />
             GitHub
           </CallToAction>
@@ -117,9 +117,7 @@ export default function MyPage() {
       </Hero>
 
       <FeaturesSection />
-      <ExploreMainProductCards />
       <ToolsAndLibrariesCards className="mx-4 mt-6 md:mx-6" />
-      <GetYourAPIGameRightSection className="mx-4 sm:mb-6 md:mx-6" />
     </div>
   );
 }
@@ -139,9 +137,10 @@ function FeaturesSection({ className }: { className?: string }) {
         >
           Use the GraphQL schema definition language to generate a schema with full support for
           resolvers, interfaces, unions, and custom scalars.
+          <br />
           <TextLink
             href="/docs/introduction#the-graphql-first-philosophy"
-            className="mt-4 text-green-800 lg:mt-6"
+            className="mt-4 text-green-800"
           >
             Learn more
             <ArrowIcon />
@@ -155,7 +154,8 @@ function FeaturesSection({ className }: { className?: string }) {
         >
           With GraphQL Tools, you can mock your GraphQL API with fine-grained per-type mocking for
           fast prototyping without any datasources.
-          <TextLink href="/docs/mocking" className="mt-4 text-green-800 lg:mt-6">
+          <br />
+          <TextLink href="/docs/mocking" className="mt-4 text-green-800">
             Learn more
             <ArrowIcon />
           </TextLink>
@@ -163,15 +163,13 @@ function FeaturesSection({ className }: { className?: string }) {
         <InfoCard
           as="li"
           heading="Stitch Multiple Schemas"
-          icon={<Image src={puzzleBadge} alt="" height="40" />}
+          icon={<Image src={plugZapBadge} alt="" height="26" className="m-2" />}
           className="flex-1 basis-full rounded-2xl md:rounded-3xl lg:basis-0"
         >
           Automatically stitch multiple schemas together into one larger API in a simple, fast and
-          powerful way. <br />
-          <TextLink
-            href="https://the-guild.dev/graphql/stitching"
-            className="mt-4 text-green-800 lg:mt-6"
-          >
+          powerful way.
+          <br />
+          <TextLink href="https://the-guild.dev/graphql/stitching" className="mt-4 text-green-800">
             Learn more
             <ArrowIcon />
           </TextLink>
