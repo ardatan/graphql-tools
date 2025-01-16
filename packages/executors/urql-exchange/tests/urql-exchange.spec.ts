@@ -54,6 +54,7 @@ describe('URQL Yoga Exchange', () => {
     exchanges: [
       executorExchange(
         buildHTTPExecutor({
+          endpoint: 'http://localhost:4000/graphql',
           fetch: yoga.fetch,
           File: yoga.fetchAPI.File,
           FormData: yoga.fetchAPI.FormData,
@@ -78,44 +79,46 @@ describe('URQL Yoga Exchange', () => {
       hello: 'Hello Urql Client!',
     });
   });
-  testIf(!process.env['LEAK_TEST'])('should handle subscriptions correctly', async () => {
-    const observable = pipe(
-      client.subscription(
-        /* GraphQL */ `
-          subscription Alphabet {
-            alphabet
-          }
-        `,
-        {},
-      ),
-      toObservable,
-    );
+  testIf(!process.env['LEAK_TEST'] && !globalThis.Bun)(
+    'should handle subscriptions correctly',
+    async () => {
+      const observable = pipe(
+        client.subscription(
+          /* GraphQL */ `
+            subscription Alphabet {
+              alphabet
+            }
+          `,
+          {},
+        ),
+        toObservable,
+      );
 
-    const collectedValues: string[] = [];
-    let i = 0;
-    await new Promise<void>((resolve, reject) => {
-      const subscription = observable.subscribe({
-        next: (result: ExecutionResult) => {
-          collectedValues.push(result.data?.alphabet as string);
-          i++;
-          if (i > 2) {
-            subscription.unsubscribe();
+      const collectedValues: string[] = [];
+      let i = 0;
+      await new Promise<void>((resolve, reject) => {
+        const subscription = observable.subscribe({
+          next: (result: ExecutionResult) => {
+            collectedValues.push(result.data?.alphabet as string);
+            i++;
+            if (i > 2) {
+              subscription.unsubscribe();
+              resolve();
+            }
+          },
+          complete: () => {
             resolve();
-          }
-        },
-        complete: () => {
-          console.log('bitti');
-          resolve();
-        },
-        error: (error: Error) => {
-          reject(error);
-        },
+          },
+          error: (error: Error) => {
+            reject(error);
+          },
+        });
       });
-    });
-    expect(collectedValues).toEqual(['a', 'b', 'c']);
-    expect(i).toBe(3);
-  });
-  it('should handle file uploads correctly', async () => {
+      expect(collectedValues).toEqual(['a', 'b', 'c']);
+      expect(i).toBe(3);
+    },
+  );
+  testIf(!globalThis.Bun)('should handle file uploads correctly', async () => {
     const query = /* GraphQL */ `
       mutation readFile($file: File!) {
         readFile(file: $file)

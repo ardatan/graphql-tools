@@ -35,3 +35,39 @@ exports[`graphql-tag-pluck sync should allow to pluck without indentation change
   
 "
 `;
+
+exports[`graphql-tag-pluck sync should allow to pluck without indentation changes 2`] = `
+"
+  fragment Foo on FooType {
+    id
+  }
+
+
+
+  query foo {
+    foo {
+      ...Foo
+    }
+  }
+
+  
+"
+`;
+
+exports[`graphql-tag-pluck async should allow to pluck without indentation changes 2`] = `
+"
+  fragment Foo on FooType {
+    id
+  }
+
+
+
+  query foo {
+    foo {
+      ...Foo
+    }
+  }
+
+  
+"
+`;
