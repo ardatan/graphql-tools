@@ -18,6 +18,14 @@ const { readFile, access } = fsPromises;
 
 const FILE_EXTENSIONS = ['.gql', '.gqls', '.graphql', '.graphqls'];
 
+function unixifyWithDriverLetter(path: string): string {
+  if (path.match(/^[A-Z]:\\/)) {
+    const driveLetter = path[0].toLowerCase();
+    return `${driveLetter}:${unixify(path)}`;
+  }
+  return unixify(path);
+}
+
 /**
  * Additional options for loading from a GraphQL file
  */
@@ -95,7 +103,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
 
   private _buildGlobs(glob: string, options: GraphQLFileLoaderOptions) {
     const ignores = asArray(options.ignore || []);
-    const globs = [unixify(glob), ...ignores.map(v => buildIgnoreGlob(unixify(v)))];
+    const globs = [unixifyWithDriverLetter(glob), ...ignores.map(v => buildIgnoreGlob(unixifyWithDriverLetter(v)))];
     return globs;
   }
 
