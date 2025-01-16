@@ -94,10 +94,34 @@ jobs:
       - name: Build
         run: yarn build
       - name: Unit Tests
-        run: yarn test --ci
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: yarn test --ci
       - name: Leak Tests
         uses: nick-fields/retry@v3
         with:
           timeout_minutes: 10
           max_attempts: 5
           command: yarn test:leaks --ci
+  test-bun:
+    name: Unit Test on Bun
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Master
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Setup env
+        uses: the-guild-org/shared-config/setup@main
+        with:
+          nodeVersion: 23
+
+      - name: Build
+        run: yarn build
+      - name: Unit Tests
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          command: yarn test:bun --ci

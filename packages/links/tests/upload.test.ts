@@ -11,6 +11,7 @@ import { SubschemaConfig } from '@graphql-tools/delegate';
 import { execute } from '@graphql-tools/executor';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { stitchSchemas } from '@graphql-tools/stitch';
+import { describeIf } from '../../../packages/testing/utils.js';
 import {
   createServerHttpLink,
   linkToExecutor,
@@ -74,7 +75,7 @@ function getBasicGraphQLMiddleware(schema: GraphQLSchema) {
   };
 }
 
-describe('graphql upload', () => {
+describeIf(!globalThis.Bun)('graphql upload', () => {
   let remoteServer: Server;
   let remotePort: number;
   let gatewayServer: Server;

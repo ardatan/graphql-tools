@@ -251,14 +251,16 @@ export async function loadFiles(
   const extractExports =
     execOptions.extractExports || DEFAULT_EXTRACT_EXPORTS_FACTORY(execOptions.exportNames ?? []);
   const defaultRequireMethod = (path: string) =>
-    import(path).catch(importError => {
-      const cwdRequire = createRequire(join(options?.globOptions?.cwd || cwd(), 'noop.js'));
-      try {
-        return cwdRequire(path);
-      } catch (e) {
-        throw importError;
-      }
-    });
+    import(path)
+      .catch(importError => {
+        const cwdRequire = createRequire(join(options?.globOptions?.cwd || cwd(), 'noop.js'));
+        try {
+          return cwdRequire(path);
+        } catch (e) {
+          throw importError;
+        }
+      })
+      .then(m => m.default || m);
   const requireMethod = execOptions.requireMethod || defaultRequireMethod;
 
   return Promise.all(

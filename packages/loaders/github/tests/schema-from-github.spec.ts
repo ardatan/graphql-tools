@@ -112,7 +112,7 @@ test('expect loadSync to handle 401 request errors gracefully', async () => {
       token: 'BAD_TOKEN',
     });
   };
-  expect(result).toThrowError('Unable to download schema from github: Bad credentials');
+  expect(result).toThrow('Unable to download schema from github: Bad credentials');
 });
 
 describe('expect handleResponse to handle error messages gracefully', () => {

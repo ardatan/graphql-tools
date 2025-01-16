@@ -11,7 +11,7 @@ describe('printExecutableGraphQLDocument', () => {
       }
     `);
     const outputStr = printExecutableGraphQLDocument(inputDocument);
-    expect(outputStr).toMatchInlineSnapshot(`"query A { a b c }"`);
+    expect(outputStr).toBe(`query A { a b c }`);
   });
 
   test('fragments are always before query operations', () => {
@@ -37,8 +37,8 @@ describe('printExecutableGraphQLDocument', () => {
       }
     `);
     const outputStr = printExecutableGraphQLDocument(inputDocument);
-    expect(outputStr).toMatchInlineSnapshot(
-      `"fragment A on Query { a b c } fragment B on Query { a b c } query A { a b c ...A ...B }"`,
+    expect(outputStr).toBe(
+      `fragment A on Query { a b c } fragment B on Query { a b c } query A { a b c ...A ...B }`,
     );
   });
 
@@ -54,7 +54,7 @@ describe('printExecutableGraphQLDocument', () => {
       }
     `);
     const outputStr = printExecutableGraphQLDocument(inputDocument);
-    expect(outputStr).toMatchInlineSnapshot(`"query A { ... on Query { a } ... on Query { b } }"`);
+    expect(outputStr).toBe(`query A { ... on Query { a } ... on Query { b } }`);
   });
 
   test('inline fragments are sorted alphabetically based on the deep selection set', () => {
@@ -79,8 +79,8 @@ describe('printExecutableGraphQLDocument', () => {
       }
     `);
     const outputStr = printExecutableGraphQLDocument(inputDocument);
-    expect(outputStr).toMatchInlineSnapshot(
-      `"fragment B on Query { c } query A { ... on Query { a { a ...B } } ... on Query { a { b ...B } } }"`,
+    expect(outputStr).toBe(
+      `fragment B on Query { c } query A { ... on Query { a { a ...B } } ... on Query { a { b ...B } } }`,
     );
   });
 
@@ -105,8 +105,6 @@ describe('printExecutableGraphQLDocument', () => {
       }
     `);
     const outputStr = printExecutableGraphQLDocument(inputDocument);
-    expect(outputStr).toMatchInlineSnapshot(
-      `"mutation A { ... on Mutation { c b d } c { d e { a b } f } b a }"`,
-    );
+    expect(outputStr).toBe(`mutation A { ... on Mutation { c b d } c { d e { a b } f } b a }`);
   });
 });

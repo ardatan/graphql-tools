@@ -1,13 +1,14 @@
 import '../../testing/to-be-similar-string';
 import { parse, print } from 'graphql';
 import { uniqueCode } from '@graphql-tools/webpack-loader-runtime';
+import { testIf } from '../../testing/utils';
 import loader from '../src/index.js';
 
 function useLoader(source: string, options: any): string {
   return loader.call({ cacheable() {}, query: options } as any, source);
 }
 
-test('basic query', () => {
+testIf(!globalThis.Bun)('basic query', () => {
   const docStr = /* GraphQL */ `
     query Foo {
       foo

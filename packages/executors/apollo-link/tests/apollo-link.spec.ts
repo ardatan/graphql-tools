@@ -58,6 +58,7 @@ describe('Apollo Link', () => {
   const client = new ApolloClient({
     link: new ExecutorLink(
       buildHTTPExecutor({
+        endpoint: `http://localhost${yoga.graphqlEndpoint}`,
         fetch: yoga.fetch,
         File: yoga.fetchAPI.File,
         FormData: yoga.fetchAPI.FormData,
@@ -131,20 +132,23 @@ describe('Apollo Link', () => {
       readFile: 'Hello World',
     });
   });
-  it('should complete subscription even while waiting for events', async () => {
-    const observable = client.subscribe({
-      query: parse(/* GraphQL */ `
-        subscription Ping {
-          ping
-        }
-      `),
-    });
-    const sub = observable.subscribe({
-      next: () => {
-        // noop
-      },
-    });
-    globalThis.setTimeout(() => sub.unsubscribe(), 0);
-    await waitForPingStop;
-  });
+  testIf(!globalThis.Bun)(
+    'should complete subscription even while waiting for events',
+    async () => {
+      const observable = client.subscribe({
+        query: parse(/* GraphQL */ `
+          subscription Ping {
+            ping
+          }
+        `),
+      });
+      const sub = observable.subscribe({
+        next: () => {
+          // noop
+        },
+      });
+      globalThis.setTimeout(() => sub.unsubscribe(), 0);
+      await waitForPingStop;
+    },
+  );
 });

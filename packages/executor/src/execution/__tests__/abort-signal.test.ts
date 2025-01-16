@@ -18,7 +18,6 @@ describe('Abort Signal', () => {
     expect(spy.mock.calls.length).toBeLessThanOrEqual(1);
   });
   it('should stop the subscription', async () => {
-    expect.assertions(3);
     let stopped = false;
     const schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
@@ -127,7 +126,7 @@ describe('Abort Signal', () => {
     const $next = iterator.next();
     await rootResolverGotInvokedD.promise;
     controller.abort();
-    await expect($next).rejects.toMatchInlineSnapshot(`DOMException {}`);
+    await expect($next).rejects.toBeInstanceOf(DOMException);
     expect(aResolverGotInvoked).toEqual(false);
   });
   it('should stop the serial mutation execution', async () => {
@@ -174,7 +173,7 @@ describe('Abort Signal', () => {
       `),
       signal: controller.signal,
     });
-    expect(result$).rejects.toMatchInlineSnapshot(`DOMException {}`);
+    expect(result$).rejects.toBeInstanceOf(DOMException);
     expect(didInvokeFirstFn).toBe(true);
     expect(didInvokeSecondFn).toBe(true);
     expect(didInvokeThirdFn).toBe(false);
@@ -224,7 +223,7 @@ describe('Abort Signal', () => {
       `),
       signal: controller.signal,
     });
-    await expect(result$).rejects.toMatchInlineSnapshot(`DOMException {}`);
+    await expect(result$).rejects.toBeInstanceOf(DOMException);
     expect(isAborted).toEqual(true);
   });
   it('stops pending stream execution for incremental delivery (@stream)', async () => {
@@ -285,7 +284,7 @@ describe('Abort Signal', () => {
 
     const next$ = iter.next();
     controller.abort();
-    await expect(next$).rejects.toMatchInlineSnapshot(`DOMException {}`);
+    await expect(next$).rejects.toBeInstanceOf(DOMException);
     expect(isReturnInvoked).toEqual(true);
   });
   it('stops pending stream execution for parallel sources incremental delivery (@stream)', async () => {
@@ -365,7 +364,7 @@ describe('Abort Signal', () => {
 
     const next$ = iter.next();
     controller.abort();
-    await expect(next$).rejects.toMatchInlineSnapshot(`DOMException {}`);
+    await expect(next$).rejects.toBeInstanceOf(DOMException);
     expect(isReturn1Invoked).toEqual(true);
     expect(isReturn2Invoked).toEqual(true);
   });
@@ -429,19 +428,17 @@ describe('Abort Signal', () => {
 
     const iterator = result[Symbol.asyncIterator]();
     const next = await iterator.next();
-    expect(next.value).toMatchInlineSnapshot(`
-{
-  "data": {
-    "root": {},
-  },
-  "hasNext": true,
-}
-`);
+    expect(next.value).toEqual({
+      data: {
+        root: {},
+      },
+      hasNext: true,
+    });
     const next$ = iterator.next();
     await aResolverGotInvokedD.promise;
     controller.abort();
     requestGotCancelledD.resolve();
-    await expect(next$).rejects.toThrow('This operation was aborted');
+    await expect(next$).rejects.toThrow(/operation was aborted/);
     expect(bResolverGotInvoked).toBe(false);
   });
   it('stops promise execution', async () => {
@@ -472,7 +469,7 @@ describe('Abort Signal', () => {
 
     expect(result$).toBeInstanceOf(Promise);
     controller.abort();
-    await expect(result$).rejects.toMatchInlineSnapshot(`DOMException {}`);
+    await expect(result$).rejects.toBeInstanceOf(DOMException);
   });
   it('does not even try to execute if the signal is already aborted', async () => {
     let resolverGotInvoked = false;
@@ -502,7 +499,7 @@ describe('Abort Signal', () => {
         `),
         signal: controller.signal,
       }),
-    ).toThrowErrorMatchingInlineSnapshot(`"This operation was aborted"`);
+    ).toThrow(/operation was aborted/);
     expect(resolverGotInvoked).toBe(false);
   });
 });

@@ -20,7 +20,7 @@ describe('Schema From Export', () => {
     async: loadSchema,
     sync: loadSchemaSync,
   })((load, mode) => {
-    test('should load the schema correctly from module.exports', async () => {
+    it('should load the schema correctly from module.exports', async () => {
       const result = await load(
         '../../../../loaders/code-file/tests/test-files/loaders/module-exports.js',
         {
@@ -31,7 +31,7 @@ describe('Schema From Export', () => {
       expect(isSchema(result)).toBeTruthy();
     });
 
-    test('should load the schema (with extend) correctly from module.exports', async () => {
+    it('should load the schema (with extend) correctly from module.exports', async () => {
       const result = await load(
         '../../../../loaders/code-file/tests/test-files/loaders/with-extend.js',
         {
@@ -45,7 +45,7 @@ describe('Schema From Export', () => {
       expect(QueryType.getFields()['hello']).toBeDefined();
     });
 
-    test('should load the schema correctly from variable export', async () => {
+    it('should load the schema correctly from variable export', async () => {
       const result = await load(
         '../../../../loaders/code-file/tests/test-files/loaders/schema-export.js',
         {
@@ -56,7 +56,7 @@ describe('Schema From Export', () => {
       expect(isSchema(result)).toBeTruthy();
     });
 
-    test('should load the schema correctly from default export', async () => {
+    it('should load the schema correctly from default export', async () => {
       const result = await load(
         '../../../../loaders/code-file/tests/test-files/loaders/default-export.js',
         {
@@ -68,7 +68,7 @@ describe('Schema From Export', () => {
     });
 
     if (mode === 'async') {
-      test('should load the schema correctly from promise export', async () => {
+      it('should load the schema correctly from promise export', async () => {
         const result = await load(
           '../../../../loaders/code-file/tests/test-files/loaders/promise-export.js',
           {
@@ -79,7 +79,7 @@ describe('Schema From Export', () => {
         expect(isSchema(result)).toBeTruthy();
       });
 
-      test('should load the schema correctly from promise export', async () => {
+      it('should load the schema correctly from promise export', async () => {
         const result = await load(
           '../../../../loaders/code-file/tests/test-files/loaders/promise-export.js',
           {
@@ -91,10 +91,11 @@ describe('Schema From Export', () => {
       });
     }
 
-    test('should work with extensions (without schema definition)', async () => {
-      const schemaPath = './tests/loaders/schema/test-files/schema-dir/extensions/export-schema.js';
+    it('should work with extensions (without schema definition)', async () => {
+      const schemaPath = './test-files/schema-dir/extensions/export-schema.js';
       const schema = await load(schemaPath, {
         loaders: [new CodeFileLoader()],
+        cwd: __dirname,
       });
       const QueryType = schema.getQueryType();
       assertNonMaybe(QueryType);
@@ -104,11 +105,11 @@ describe('Schema From Export', () => {
       expect(queryFields).toContain('bar');
     });
 
-    test('should work with extensions (with schema definition)', async () => {
-      const schemaPath =
-        './tests/loaders/schema/test-files/schema-dir/extensions/export-schema-with-def.js';
+    it('should work with extensions (with schema definition)', async () => {
+      const schemaPath = './test-files/schema-dir/extensions/export-schema-with-def.js';
       const schema = await load(schemaPath, {
         loaders: [new CodeFileLoader()],
+        cwd: __dirname,
       });
       const QueryType = schema.getQueryType();
       assertNonMaybe(QueryType);

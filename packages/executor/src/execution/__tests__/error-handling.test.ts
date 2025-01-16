@@ -36,13 +36,16 @@ describe('Error Handling', () => {
   });
   if (globalThis.fetch != null) {
     let server: Server;
-    afterEach(done => {
+    afterEach(async () => {
       if (!server) {
-        done();
         return;
       }
-      server.closeAllConnections();
-      server.close(done);
+      if (!globalThis.Bun) {
+        server.closeAllConnections();
+      }
+      await new Promise<void>((resolve, reject) => {
+        server.close(err => (err ? reject(err) : resolve()));
+      });
     });
     it('handles undici fetch JSON parsing errors', async () => {
       server = createServer((_, res) => {
@@ -80,7 +83,9 @@ describe('Error Handling', () => {
         throw new Error('Expected a result, but got an async iterable');
       }
       const errorMessage = result.errors?.[0]?.message;
-      if (process.versions['node'].startsWith('18.')) {
+      if (globalThis.Bun) {
+        expect(errorMessage).toBeTruthy();
+      } else if (process.versions['node'].startsWith('18.')) {
         expect(errorMessage).toBe('Unexpected end of JSON input');
       } else {
         expect(errorMessage).toContain(

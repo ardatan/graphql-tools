@@ -1,6 +1,7 @@
 import { ASTNode, DefinitionNode, DocumentNode, parse, print } from 'graphql';
 import { diff } from 'jest-diff';
 import { compareNodes } from '@graphql-tools/utils';
+import { expect } from '@jest/globals';
 
 declare global {
   namespace jest {
