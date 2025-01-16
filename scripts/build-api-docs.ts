@@ -8,7 +8,7 @@ import workspacePackageJson from '../package.json';
 const MONOREPO = workspacePackageJson.name.replace('-monorepo', '');
 const CWD = process.cwd();
 // Where to generate the API docs
-const OUTPUT_PATH = path.join(CWD, 'website/src/pages/docs/api');
+const OUTPUT_PATH = path.join(CWD, 'website/src/content/api');
 
 async function buildApiDocs(): Promise<void> {
   // An array of tuples where the first element is the package's name and

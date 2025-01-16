@@ -9,7 +9,7 @@ export default {
   'schema-directives': 'Schema Directives',
   'schema-merging': 'Schema Merging',
   'schema-stitching': {
-    title: 'Schema Stitching ↗',
+    title: 'Schema Stitching',
     href: 'https://the-guild.dev/graphql/stitching',
   },
   'server-setup': 'Setup an HTTP Server',
@@ -18,5 +18,4 @@ export default {
   'graphql-tag-pluck': 'GraphQL Tag Pluck',
   'relay-operation-optimizer': 'Relay Operation Optimizer',
   migration: 'Migration',
-  api: 'API Reference',
 };
