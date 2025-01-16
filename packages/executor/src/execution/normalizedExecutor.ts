@@ -1,9 +1,9 @@
 import { getOperationAST, GraphQLSchema } from 'graphql';
-import { ValueOrPromise } from 'value-or-promise';
 import {
   ExecutionRequest,
   ExecutionResult,
   Executor,
+  mapMaybePromise,
   MaybeAsyncIterable,
   MaybePromise,
   memoize1,
@@ -20,14 +20,12 @@ export function normalizedExecutor<TData = any, TVariables = any, TContext = any
   if (operationAST.operation === 'subscription') {
     return subscribe(args);
   }
-  return new ValueOrPromise(() => execute(args))
-    .then((result): MaybeAsyncIterable<ExecutionResult<TData>> => {
-      if ('initialResult' in result) {
-        return flattenIncrementalResults(result);
-      }
-      return result;
-    })
-    .resolve()!;
+  return mapMaybePromise(execute(args), (result): MaybeAsyncIterable<ExecutionResult<TData>> => {
+    if ('initialResult' in result) {
+      return flattenIncrementalResults(result);
+    }
+    return result;
+  });
 }
 
 export const executorFromSchema = memoize1(function executorFromSchema(

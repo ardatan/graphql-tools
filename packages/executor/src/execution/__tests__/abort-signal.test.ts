@@ -18,7 +18,7 @@ describe('Abort Signal', () => {
     expect(spy.mock.calls.length).toBeLessThanOrEqual(1);
   });
   it('should stop the subscription', async () => {
-    expect.assertions(3);
+    expect.assertions(4);
     let stopped = false;
     const schema = makeExecutableSchema({
       typeDefs: /* GraphQL */ `
@@ -63,11 +63,15 @@ describe('Abort Signal', () => {
     });
     assertAsyncIterable(result);
     const results: any[] = [];
-    for await (const value of result) {
-      results.push(value.data?.counter);
-      if (value.data?.counter === 4) {
-        controller.abort();
+    try {
+      for await (const value of result) {
+        results.push(value.data?.counter);
+        if (value.data?.counter === 4) {
+          controller.abort();
+        }
       }
+    } catch (e: any) {
+      expect(e.name).toBe('AbortError');
     }
     expect(stopped).toBe(true);
     expect(results).toEqual([0, 1, 2, 3, 4]);
@@ -163,18 +167,22 @@ describe('Abort Signal', () => {
         },
       },
     });
-    const result$ = normalizedExecutor({
-      schema,
-      document: parse(/* GraphQL */ `
-        mutation {
-          first
-          second
-          third
-        }
-      `),
-      signal: controller.signal,
-    });
-    expect(result$).rejects.toMatchInlineSnapshot(`DOMException {}`);
+    try {
+      await normalizedExecutor({
+        schema,
+        document: parse(/* GraphQL */ `
+          mutation {
+            first
+            second
+            third
+          }
+        `),
+        signal: controller.signal,
+      });
+      expect(false).toBe(true);
+    } catch (e: any) {
+      expect(e.name).toBe('AbortError');
+    }
     expect(didInvokeFirstFn).toBe(true);
     expect(didInvokeSecondFn).toBe(true);
     expect(didInvokeThirdFn).toBe(false);
