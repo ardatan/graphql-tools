@@ -1,5 +1,14 @@
 # @graphql-tools/graphql-file-loader
 
+## 8.0.12
+
+### Patch Changes
+
+- [#6846](https://github.com/ardatan/graphql-tools/pull/6846)
+  [`72dc6a5`](https://github.com/ardatan/graphql-tools/commit/72dc6a527a14dc04f4590e88c6af7dfb63fa6663)
+  Thanks [@renovate](https://github.com/apps/renovate)! - Fix on Windows and new version of
+  `fast-glob`
+
 ## 8.0.11
 
 ### Patch Changes
