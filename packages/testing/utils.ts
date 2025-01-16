@@ -2,7 +2,7 @@
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { cwd } from 'process';
-import { jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, jest, test } from '@jest/globals';
 
 export function normalizeString(str: string) {
   return str.replace(/[\s,]+/g, ' ').trim();
@@ -84,10 +84,10 @@ function findProjectDir(dirname: string): string | never {
   throw new Error(`Couldn't find project's root from: ${originalDirname}`);
 }
 
-export function describeIf(condition: boolean) {
+export function describeIf(condition: boolean): typeof describe.skip {
   return condition ? describe : describe.skip;
 }
 
-export function testIf(condition: boolean) {
+export function testIf(condition: boolean): typeof test.skip {
   return condition ? test : test.skip;
 }

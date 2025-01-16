@@ -172,34 +172,34 @@ describe('loadFromCodeFileSync', () => {
     });
     expect(loadedSources?.length).toEqual(3);
     expect(loadedSources![0].rawSDL).toBeDefined();
-    expect(loadedSources![0].rawSDL).toMatchInlineSnapshot(`
-"
+    expect(loadedSources![0].rawSDL).toBe(
+      `
   query Foo {
     Tweets {
       id
     }
   }
-"
-`);
+`,
+    );
     expect(loadedSources![1].rawSDL).toBeDefined();
-    expect(loadedSources![1].rawSDL).toMatchInlineSnapshot(`
-"
+    expect(loadedSources![1].rawSDL).toBe(
+      `
   fragment Lel on Tweet {
     id
     body
   }
-"
-`);
+`,
+    );
     expect(loadedSources![2].rawSDL).toBeDefined();
-    expect(loadedSources![2].rawSDL).toMatchInlineSnapshot(`
-"
+    expect(loadedSources![2].rawSDL).toBe(
+      `
   query Bar {
     Tweets {
       ...Lel
     }
   }
-"
-`);
+`,
+    );
   });
 
   it('can inherit config options from constructor', () => {
@@ -213,34 +213,34 @@ describe('loadFromCodeFileSync', () => {
     });
     expect(loadedSources?.length).toEqual(3);
     expect(loadedSources![0].rawSDL).toBeDefined();
-    expect(loadedSources![0].rawSDL).toMatchInlineSnapshot(`
-      "
-        query Foo {
-          Tweets {
-            id
-          }
-        }
-      "
-    `);
+    expect(loadedSources![0].rawSDL).toBe(
+      `
+  query Foo {
+    Tweets {
+      id
+    }
+  }
+`,
+    );
     expect(loadedSources![1].rawSDL).toBeDefined();
-    expect(loadedSources![1].rawSDL).toMatchInlineSnapshot(`
-      "
-        fragment Lel on Tweet {
-          id
-          body
-        }
-      "
-    `);
+    expect(loadedSources![1].rawSDL).toBe(
+      `
+  fragment Lel on Tweet {
+    id
+    body
+  }
+`,
+    );
     expect(loadedSources![2].rawSDL).toBeDefined();
-    expect(loadedSources![2].rawSDL).toMatchInlineSnapshot(`
-      "
-        query Bar {
-          Tweets {
-            ...Lel
-          }
-        }
-      "
-    `);
+    expect(loadedSources![2].rawSDL).toBe(
+      `
+  query Bar {
+    Tweets {
+      ...Lel
+    }
+  }
+`,
+    );
   });
 
   it('can merge config.pluckConfig options correctly', () => {
@@ -255,34 +255,34 @@ describe('loadFromCodeFileSync', () => {
     });
     expect(loadedSources?.length).toEqual(3);
     expect(loadedSources![0].rawSDL).toBeDefined();
-    expect(loadedSources![0].rawSDL).toMatchInlineSnapshot(`
-      "
-        query Foo {
-          Tweets {
-            id
-          }
-        }
-      "
-    `);
+    expect(loadedSources![0].rawSDL).toBe(
+      `
+  query Foo {
+    Tweets {
+      id
+    }
+  }
+`,
+    );
     expect(loadedSources![1].rawSDL).toBeDefined();
-    expect(loadedSources![1].rawSDL).toMatchInlineSnapshot(`
-      "
-        fragment Lel on Tweet {
-          id
-          body
-        }
-      "
-    `);
+    expect(loadedSources![1].rawSDL).toBe(
+      `
+  fragment Lel on Tweet {
+    id
+    body
+  }
+`,
+    );
     expect(loadedSources![2].rawSDL).toBeDefined();
-    expect(loadedSources![2].rawSDL).toMatchInlineSnapshot(`
-      "
-        query Bar {
-          Tweets {
-            ...Lel
-          }
-        }
-      "
-    `);
+    expect(loadedSources![2].rawSDL).toBe(
+      `
+  query Bar {
+    Tweets {
+      ...Lel
+    }
+  }
+`,
+    );
   });
 
   it('does not try to load single file it cannot load', async () => {

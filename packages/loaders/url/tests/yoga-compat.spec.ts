@@ -1,4 +1,5 @@
 import http, { createServer } from 'http';
+import { Socket } from 'net';
 import { parse } from 'graphql';
 import { createSchema, createYoga } from 'graphql-yoga';
 import { useEngine } from '@envelop/core';
@@ -8,6 +9,7 @@ import { ExecutionResult } from '@graphql-tools/utils';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
 import { LiveExecutionResult } from '@n1ru4l/graphql-live-query';
 import { InMemoryLiveQueryStore } from '@n1ru4l/in-memory-live-query-store';
+import { testIf } from '../../../../packages/testing/utils';
 import { SubscriptionProtocol, UrlLoader } from '../src';
 import { assertAsyncIterable, sleep } from './test-utils';
 
@@ -63,6 +65,7 @@ describe('Yoga Compatibility', () => {
       return Promise.resolve({ done: true });
     },
   };
+  const sockets = new Set<Socket>();
   beforeAll(async () => {
     const yoga = createYoga({
       schema: createSchema({
@@ -145,12 +148,22 @@ describe('Yoga Compatibility', () => {
       }
     }
     active = true;
+    httpServer.on('connection', socket => {
+      sockets.add(socket);
+      socket.on('close', () => {
+        sockets.delete(socket);
+      });
+    });
     pump();
   });
 
   afterAll(async () => {
     active = false;
+    for (const socket of sockets) {
+      socket.destroy();
+    }
     if (httpServer !== undefined) {
+      httpServer.closeAllConnections();
       await new Promise<void>(resolve => httpServer.close(() => resolve()));
     }
     await sleep(1000);
@@ -304,7 +317,7 @@ describe('Yoga Compatibility', () => {
       }
     }
   });
-  it('terminates stream queries correctly', async () => {
+  testIf(!globalThis.Bun)('terminates stream queries correctly', async () => {
     const executor = loader.getExecutorAsync(serverPath);
     const result = await executor({
       document: parse(/* GraphQL */ `

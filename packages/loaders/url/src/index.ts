@@ -3,12 +3,12 @@ import WebSocket from 'isomorphic-ws';
 import { ValueOrPromise } from 'value-or-promise';
 import { buildGraphQLWSExecutor } from '@graphql-tools/executor-graphql-ws';
 import {
-  AsyncFetchFn,
   buildHTTPExecutor,
-  FetchFn,
   HTTPExecutorOptions,
   isLiveQueryOperationDefinitionNode,
-  SyncFetchFn,
+  type AsyncFetchFn,
+  type FetchFn,
+  type SyncFetchFn,
 } from '@graphql-tools/executor-http';
 import { buildWSLegacyExecutor } from '@graphql-tools/executor-legacy-ws';
 import {

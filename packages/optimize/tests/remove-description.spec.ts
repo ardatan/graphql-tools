@@ -76,32 +76,34 @@ describe('removeDescription', () => {
     `);
 
     const out = removeDescriptions(doc);
-    expect(print(out).trim()).toMatchInlineSnapshot(`
-      "type Query {
-        f: String
-      }
+    expect(print(out).trim()).toBe(
+      /* GraphQL */ `
+type Query {
+  f: String
+}
 
-      type Mutation {
-        f(input: InputType): String
-      }
+type Mutation {
+  f(input: InputType): String
+}
 
-      input InputType {
-        f: String
-      }
+input InputType {
+  f: String
+}
 
-      directive @test on FIELD_DEFINITION
+directive @test on FIELD_DEFINITION
 
-      enum Test {
-        A
-      }
+enum Test {
+  A
+}
 
-      interface TestInterface {
-        f: String
-      }
+interface TestInterface {
+  f: String
+}
 
-      union TestUnion = Test | TestInterface
+union TestUnion = Test | TestInterface
 
-      scalar TestScalar"
-    `);
+scalar TestScalar
+    `.trim(),
+    );
   });
 });
