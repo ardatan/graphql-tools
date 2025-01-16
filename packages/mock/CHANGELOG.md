@@ -1,5 +1,13 @@
 # @graphql-tools/mock
 
+## 9.0.15
+
+### Patch Changes
+
+- [#6865](https://github.com/ardatan/graphql-tools/pull/6865)
+  [`309748d`](https://github.com/ardatan/graphql-tools/commit/309748d599c352076e2ead3b428d99118e267c32)
+  Thanks [@mkrl](https://github.com/mkrl)! - Fixed typos in the documentation
+
 ## 9.0.14
 
 ### Patch Changes
