@@ -103,7 +103,10 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
 
   private _buildGlobs(glob: string, options: GraphQLFileLoaderOptions) {
     const ignores = asArray(options.ignore || []);
-    const globs = [unixifyWithDriverLetter(glob), ...ignores.map(v => buildIgnoreGlob(unixifyWithDriverLetter(v)))];
+    const globs = [
+      unixifyWithDriverLetter(glob),
+      ...ignores.map(v => buildIgnoreGlob(unixifyWithDriverLetter(v))),
+    ];
     return globs;
   }
 
