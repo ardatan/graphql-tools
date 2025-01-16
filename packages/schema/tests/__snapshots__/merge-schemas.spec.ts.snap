@@ -9,13 +9,3 @@ type Query @onType(name: "a") @onType(name: "b") {
   a: String @onField(name: "a") @onField(name: "b")
 }"
 `;
-
-exports[`Merge Schemas should merge schemas with directives in extensions 2`] = `
-"schema @onSchema(name: "a") @onSchema(name: "b") {
-  query: Query
-}
-
-type Query @onType(name: "a") @onType(name: "b") {
-  a: String @onField(name: "a") @onField(name: "b")
-}"
-`;
