@@ -183,7 +183,7 @@ describe('schema from typedefs', () => {
       expect(sourcesFromExtensions).toHaveLength(1);
       expect(sourcesFromExtensions[0]).toMatchObject(
         expect.objectContaining({
-          name: path.resolve(process.cwd(), glob).replace(/\\/g, '/'),
+          name: path.resolve(__dirname, glob).replace(/\\/g, '/'),
         }),
       );
 
