@@ -5,7 +5,7 @@ import { addMocksToSchema } from './addMocksToSchema.js';
 import { IMocks, IMockServer } from './types.js';
 
 /**
- * A convenience wrapper on top of addMocksToSchema. It adds your mock resolvers
+ * A convenience wrapper on top of `addMocksToSchema`. It adds your mock resolvers
  * to your schema and returns a client that will correctly execute your query with
  * variables. Note: when executing queries from the returned server, context and
  * root will both equal `{}`.

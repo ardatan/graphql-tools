@@ -676,9 +676,9 @@ function assertIsDefined<T>(value: T, message?: string): asserts value is NonNul
 /**
  * Will create `MockStore` for the given `schema`.
  *
- * A `MockStore` will generate mock values for the given schem when queried.
+ * A `MockStore` will generate mock values for the given schema when queried.
  *
- * It will stores generated mocks, so that, provided with same arguments
+ * It will store generated mocks, so that, provided with same arguments
  * the returned values will be the same.
  *
  * Its API also allows to modify the stored values.
