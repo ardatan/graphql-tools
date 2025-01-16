@@ -106,7 +106,7 @@ jobs:
           max_attempts: 5
           command: yarn test:leaks --ci
   test-bun:
-    name: Unit Test on Bun
+    name: Unit Test on Bun (${{matrix.os}}) and GraphQL v${{matrix.graphql_version}}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -115,9 +115,6 @@ jobs:
         graphql_version:
           - 15
           - 16
-        include:
-          - os: windows-latest
-            graphql_version: 16
     steps:
       - name: Checkout Master
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
