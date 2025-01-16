@@ -19,7 +19,7 @@
     "@shikijs/core": "1.27.2",
     "@shikijs/vscode-textmate": "10.0.1",
     "@theguild/tailwind-config": "0.6.2",
-    "@types/node": "22.10.6",
+    "@types/node": "22.10.7",
     "@types/react": "19.0.7",
     "postcss-import": "16.1.0",
     "postcss-lightningcss": "1.0.1",
