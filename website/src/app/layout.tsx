@@ -35,15 +35,18 @@ const RootLayout: FC<{
     ...pageMap,
     { route: '/changelogs', name: 'changelogs', children: changelogsPageMap },
   ];
+  const logo = <ToolsLogo fill="currentColor" className="h-auto w-8" />
   return (
     <GuildLayout
       websiteName={websiteName}
       description={description}
-      logo={<ToolsLogo fill="currentColor" className="h-auto w-8" />}
+      logo={logo}
       layoutProps={{
         docsRepositoryBase: 'https://github.com/ardatan/graphql-tools/tree/master/website',
         footer: (
           <HiveFooter
+            logo={logo}
+            description={description}
             items={{
               resources: [
                 {
