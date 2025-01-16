@@ -1,4 +1,6 @@
-import { isSchema } from 'graphql';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { isSchema, isSpecifiedScalarType } from 'graphql';
 import { JsonFileLoader } from '@graphql-tools/json-file-loader';
 import { loadSchema, loadSchemaSync } from '@graphql-tools/load';
 import { runTests, useMonorepo } from '../../../../testing/utils.js';
@@ -21,20 +23,26 @@ describe('Schema From Export', () => {
     sync: loadSchemaSync,
   })(load => {
     it('should load the schema correctly from an introspection file', async () => {
-      const schema = await load('./tests/loaders/schema/test-files/githunt.json', {
+      const schema = await load('./test-files/githunt.json', {
         loaders: [new JsonFileLoader()],
+        cwd: __dirname,
       });
       expect(isSchema(schema)).toBeTruthy();
     });
     it('should load the schema with correct descriptions', async () => {
-      const schema = await load('./tests/loaders/schema/test-files/githunt.json', {
+      const schema = await load('./test-files/githunt.json', {
         loaders: [new JsonFileLoader()],
+        cwd: __dirname,
       });
       expect(isSchema(schema)).toBeTruthy();
-      const introspectionSchema = require('./test-files/githunt.json').__schema;
       for (const typeName in schema.getTypeMap()) {
+        const githuntJsonFile = readFileSync(join(__dirname, './test-files/githunt.json'), 'utf-8');
+        const introspectionSchema = JSON.parse(githuntJsonFile).__schema;
         if (!typeName.startsWith('__')) {
           const type = schema.getType(typeName);
+          if (type != null && isSpecifiedScalarType(type)) {
+            continue;
+          }
           assertNonMaybe(type);
           const introspectionType = introspectionSchema.types.find(
             (t: { name: string }) => t.name === typeName,

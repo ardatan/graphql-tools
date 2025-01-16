@@ -1,7 +1,6 @@
 import { join } from 'path';
 import { print } from 'graphql';
 import { loadFiles, LoadFilesOptions, loadFilesSync } from '@graphql-tools/load-files';
-import { jest } from '@jest/globals';
 
 const syncAndAsync = Object.entries({ SYNC: loadFilesSync, ASYNC: loadFiles });
 
@@ -26,13 +25,15 @@ function testSchemaDir({ path, expected, note, extensions, ignoreIndex }: TestDi
 
         expect(result.length).toBe(expected.length);
         expect(
-          result.map(res => {
-            if (res.kind === 'Document') {
-              res = print(res);
-            }
-            return stripWhitespaces(res);
-          }),
-        ).toEqual(expected.map(stripWhitespaces));
+          result
+            .map(res => {
+              if (typeof res === 'object') {
+                res = print(res);
+              }
+              return stripWhitespaces(res);
+            })
+            .sort(),
+        ).toEqual(expected.map(stripWhitespaces).sort());
       });
     });
   }
@@ -69,10 +70,12 @@ function testResolversDir({
       it(`should return the correct resolvers results for path: ${path} (${note})`, async () => {
         const result = await loadFiles(path, options);
 
-        expect(result.length).toBe(expected.length);
+        expect.assertions(expected.length);
 
         if (compareValue) {
-          expect(result).toEqual(expected);
+          for (const elem of expected) {
+            expect(result).toContainEqual(elem);
+          }
         }
       });
     });

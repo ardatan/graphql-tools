@@ -19,6 +19,7 @@ describe('Yoga Plugin', () => {
     }),
   });
   const executor = buildHTTPExecutor({
+    endpoint: 'http://yoga/graphql',
     fetch: actual.fetch,
   });
   const proxy = createYoga({

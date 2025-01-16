@@ -63,25 +63,23 @@ describe('Envelop', () => {
     for await (const chunk of result as AsyncIterableIterator<any>) {
       collectedResults.push(chunk);
     }
-    expect(collectedResults).toMatchInlineSnapshot(`
-      [
-        {
-          "data": {
-            "count": 0,
-          },
+    expect(collectedResults).toEqual([
+      {
+        data: {
+          count: 0,
         },
-        {
-          "data": {
-            "count": 1,
-          },
+      },
+      {
+        data: {
+          count: 1,
         },
-        {
-          "data": {
-            "count": 2,
-          },
+      },
+      {
+        data: {
+          count: 2,
         },
-      ]
-    `);
+      },
+    ]);
 
     expect(executor).toBeCalledWith({
       document,

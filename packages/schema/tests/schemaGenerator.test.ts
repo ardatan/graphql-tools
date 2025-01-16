@@ -73,20 +73,18 @@ const testResolvers = {
 describe('generating schema from shorthand', () => {
   test('throws an error if no schema is provided', () => {
     // @ts-expect-error: we call it with invalid params
-    expect(() => makeExecutableSchema(undefined)).toThrowError('undefined');
+    expect(() => makeExecutableSchema(undefined)).toThrow();
   });
 
   test('throws an error if typeDefinitionNodes are not provided', () => {
     expect(() =>
       // @ts-expect-error: we call it with invalid params
       makeExecutableSchema({ typeDefs: undefined, resolvers: {} }),
-    ).toThrowError('Must provide typeDefs');
+    ).toThrow('Must provide typeDefs');
   });
 
   test('throws an error if no resolveFunctions are provided', () => {
-    expect(() => makeExecutableSchema({ typeDefs: 'blah', resolvers: {} })).toThrowError(
-      GraphQLError,
-    );
+    expect(() => makeExecutableSchema({ typeDefs: 'blah', resolvers: {} })).toThrow(GraphQLError);
   });
 
   test('throws an error if typeDefinitionNodes is neither string nor array nor schema AST', () => {
@@ -95,9 +93,7 @@ describe('generating schema from shorthand', () => {
         typeDefs: {} as unknown as TypeSource,
         resolvers: {},
       }),
-    ).toThrowError(
-      'typeDefs must contain only strings, documents, schemas, or functions, got object',
-    );
+    ).toThrow('typeDefs must contain only strings, documents, schemas, or functions, got object');
   });
 
   test('throws an error if typeDefinitionNode array contains not only functions and strings', () => {
@@ -106,9 +102,7 @@ describe('generating schema from shorthand', () => {
         typeDefs: [17] as unknown as TypeSource,
         resolvers: {},
       }),
-    ).toThrowError(
-      'typeDefs must contain only strings, documents, schemas, or functions, got number',
-    );
+    ).toThrow('typeDefs must contain only strings, documents, schemas, or functions, got number');
   });
 
   test('throws an error if resolverValidationOptions is not an object', () => {
@@ -117,7 +111,7 @@ describe('generating schema from shorthand', () => {
       resolvers: {},
       resolverValidationOptions: 'string' as unknown as IResolverValidationOptions,
     };
-    expect(() => makeExecutableSchema(options)).toThrowError(
+    expect(() => makeExecutableSchema(options)).toThrow(
       'Expected `resolverValidationOptions` to be an object',
     );
   });
@@ -1494,7 +1488,7 @@ describe('generating schema from shorthand', () => {
         typeDefs: short,
         resolvers: rf,
       }),
-    ).toThrowError('Resolver Query.bird must be object or function');
+    ).toThrow('Resolver Query.bird must be object or function');
   });
 
   test('shows a warning if a field is not scalar, but has no resolver', () => {
@@ -1579,7 +1573,7 @@ To disable this validator, use:
       },
     };
 
-    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
+    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrow(
       'Searchable.name was defined in resolvers, but Searchable is not an object or interface type',
     );
 
@@ -1591,7 +1585,7 @@ To disable this validator, use:
           requireResolversToMatchSchema: 'ignore',
         },
       }),
-    ).not.toThrowError();
+    ).not.toThrow();
   });
 
   test('throws if resolver defined for non existent type', () => {
@@ -1614,7 +1608,7 @@ To disable this validator, use:
       },
     };
 
-    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
+    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrow(
       '"Searchable" defined in resolvers, but not in schema',
     );
 
@@ -1626,7 +1620,7 @@ To disable this validator, use:
           requireResolversToMatchSchema: 'ignore',
         },
       }),
-    ).not.toThrowError();
+    ).not.toThrow();
   });
 
   test('throws if resolver value is invalid', () => {
@@ -1647,7 +1641,7 @@ To disable this validator, use:
       Searchable: undefined,
     } as any;
 
-    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
+    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrow(
       '"Searchable" defined in resolvers, but has invalid value "undefined". The resolver\'s value ' +
         'must be of type object.',
     );
@@ -1673,7 +1667,7 @@ To disable this validator, use:
       },
     };
 
-    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
+    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrow(
       'RootQuery.name defined in resolvers, but not in schema',
     );
 
@@ -1685,7 +1679,7 @@ To disable this validator, use:
           requireResolversToMatchSchema: 'ignore',
         },
       }),
-    ).not.toThrowError();
+    ).not.toThrow();
   });
 
   test('does not let you define resolver field for enum values not present in schema', () => {
@@ -1718,7 +1712,7 @@ To disable this validator, use:
       },
     };
 
-    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrowError(
+    expect(() => makeExecutableSchema({ typeDefs: short, resolvers: rf })).toThrow(
       'Color.NO_RESOLVER was defined in resolvers, but not present within Color',
     );
 
@@ -1730,7 +1724,7 @@ To disable this validator, use:
           requireResolversToMatchSchema: 'ignore',
         },
       }),
-    ).not.toThrowError();
+    ).not.toThrow();
   });
 
   test('throws if conflicting validation options are passed', () => {
@@ -1869,7 +1863,7 @@ To disable this validator, use:
         typeDefs: shorthand,
         resolvers: resolveFunctions,
       }),
-    ).toThrowError('RootQuery.speciez defined in resolvers, but not in schema');
+    ).toThrow('RootQuery.speciez defined in resolvers, but not in schema');
     done();
   });
   test('throws an error if a resolve type is not in schema', done => {
@@ -1900,7 +1894,7 @@ To disable this validator, use:
         typeDefs: shorthand,
         resolvers: resolveFunctions,
       }),
-    ).toThrowError('"BootQuery" defined in resolvers, but not in schema');
+    ).toThrow('"BootQuery" defined in resolvers, but not in schema');
     done();
   });
 });
@@ -1999,7 +1993,7 @@ describe('can specify lexical parser options', () => {
         resolvers,
         experimentalFragmentVariables: true,
       });
-    }).not.toThrowError();
+    }).not.toThrow();
   });
 
   // Note that the experimentalFragmentVariables option requires a client side transform

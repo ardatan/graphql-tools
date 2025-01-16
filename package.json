@@ -40,6 +40,7 @@
     "prettier:check": "prettier --cache --ignore-path .gitignore --ignore-path .prettierignore --check .",
     "release": "changeset publish",
     "test": "jest --no-watchman",
+    "test:bun": "bun test",
     "test:leaks": "cross-env \"LEAK_TEST=1\" jest --no-watchman --detectOpenHandles --detectLeaks --forceExit",
     "ts:check": "tsc --noEmit"
   },
@@ -57,6 +58,7 @@
     "@typescript-eslint/parser": "8.20.0",
     "babel-jest": "29.7.0",
     "bob-the-bundler": "7.0.1",
+    "bun": "^1.1.43",
     "chalk": "5.4.1",
     "concurrently": "9.1.2",
     "cross-env": "7.0.3",

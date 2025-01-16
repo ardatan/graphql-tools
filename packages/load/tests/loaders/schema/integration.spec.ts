@@ -18,10 +18,11 @@ describe('loadSchema', () => {
     sync: loadSchemaSync,
   })(load => {
     test('should throw when all files are invalid and unable to load it', async () => {
-      const schemaPath = './tests/loaders/schema/test-files/error.ts';
+      const schemaPath = './test-files/error.ts';
       try {
         await load(schemaPath, {
           loaders: [new CodeFileLoader()],
+          cwd: __dirname,
         });
         expect(true).toBeFalsy(); // should throw
       } catch (e: any) {
@@ -30,8 +31,9 @@ describe('loadSchema', () => {
     });
 
     test('should work with ts files and without globs correctly', async () => {
-      const schemaPath = './tests/loaders/schema/test-files/schema-dir/type-defs/graphql-tag.ts';
+      const schemaPath = './test-files/schema-dir/type-defs/graphql-tag.ts';
       const schema = await load(schemaPath, {
+        cwd: __dirname,
         loaders: [new CodeFileLoader()],
       });
       expect(schema.getTypeMap()['User']).toBeDefined();
@@ -39,8 +41,9 @@ describe('loadSchema', () => {
     });
 
     test('should work with graphql single file', async () => {
-      const schemaPath = './tests/loaders/schema/test-files/schema-dir/user.graphql';
+      const schemaPath = './test-files/schema-dir/user.graphql';
       const schema = await load(schemaPath, {
+        cwd: __dirname,
         loaders: [new GraphQLFileLoader()],
       });
 
@@ -48,9 +51,13 @@ describe('loadSchema', () => {
     });
 
     test('import and merge Query types from few different files', async () => {
-      const schema = await load('../import/tests/schema/fixtures/multiple-root/*/schema.graphql', {
-        loaders: [new GraphQLFileLoader()],
-      });
+      const schema = await load(
+        '../../../../import/tests/schema/fixtures/multiple-root/*/schema.graphql',
+        {
+          loaders: [new GraphQLFileLoader()],
+          cwd: __dirname,
+        },
+      );
       const schemaStr = printSchema(schema);
 
       expect(schemaStr).toBeSimilarGqlDoc(/* GraphQL */ `
@@ -75,8 +82,9 @@ describe('loadSchema', () => {
     });
 
     test('should sort the final schema if "sort" option provided', async () => {
-      const schemaPath = './tests/loaders/schema/test-files/schema-dir/non-sorted.graphql';
+      const schemaPath = './test-files/schema-dir/non-sorted.graphql';
       const schema = await load(schemaPath, {
+        cwd: __dirname,
         loaders: [new GraphQLFileLoader()],
         sort: true,
       });
@@ -100,8 +108,9 @@ describe('loadSchema', () => {
     });
 
     test('should add schemas from options.schemas to generated schema', async () => {
-      const schemaPath = './tests/loaders/schema/test-files/schema-dir/non-sorted.graphql';
+      const schemaPath = './test-files/schema-dir/non-sorted.graphql';
       const schema = await load(schemaPath, {
+        cwd: __dirname,
         loaders: [new GraphQLFileLoader()],
         sort: true,
         schemas: [

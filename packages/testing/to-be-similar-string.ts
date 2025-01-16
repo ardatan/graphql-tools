@@ -1,4 +1,5 @@
 import { diff } from 'jest-diff';
+import { expect } from '@jest/globals';
 import { normalizeString } from './utils.js';
 
 declare global {

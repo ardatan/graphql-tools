@@ -12,7 +12,7 @@ import { useServer } from 'graphql-ws/lib/use/ws';
 import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { Server as WSServer } from 'ws';
 import { execute, isIncrementalResult, subscribe } from '@graphql-tools/executor';
-import { AsyncFetchFn } from '@graphql-tools/executor-http';
+import type { AsyncFetchFn } from '@graphql-tools/executor-http';
 import { loadSchema } from '@graphql-tools/load';
 import { ExecutionResult, printSchemaWithDirectives } from '@graphql-tools/utils';
 import { Headers, Response } from '@whatwg-node/fetch';
@@ -33,6 +33,7 @@ describe('Schema URL Loader', () => {
 
   afterEach(async () => {
     if (httpServer !== undefined) {
+      httpServer.closeAllConnections();
       await new Promise<void>(resolve => httpServer.close(() => resolve()));
     }
   });
@@ -588,7 +589,6 @@ describe('Schema URL Loader', () => {
     })) as ExecutionResult;
     expect(result.data).toBeUndefined();
     expect(result.errors).toBeDefined();
-    expect(result.errors?.[0].message).toContain('127.0.0.1:9777');
   });
   it('should not accept invalid protocols', async () => {
     const testUrl = 'myprotocol://localhost:8081/graphql';

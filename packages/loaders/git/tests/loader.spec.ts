@@ -51,7 +51,68 @@ describe('GitLoader', () => {
 
       it('should load type definitions from a pluckable file', async () => {
         const [result] = await load(getPointer('pluckable.ts'), {});
-        expect(result.document).toMatchSnapshot();
+        expect(result.document).toMatchObject({
+          definitions: [
+            {
+              description: undefined,
+              directives: [],
+              fields: [
+                {
+                  arguments: [],
+                  description: undefined,
+                  directives: [],
+                  kind: 'FieldDefinition',
+                  loc: {
+                    end: 28,
+                    start: 15,
+                  },
+                  name: {
+                    kind: 'Name',
+                    loc: {
+                      end: 20,
+                      start: 15,
+                    },
+                    value: 'hello',
+                  },
+                  type: {
+                    kind: 'NamedType',
+                    loc: {
+                      end: 28,
+                      start: 22,
+                    },
+                    name: {
+                      kind: 'Name',
+                      loc: {
+                        end: 28,
+                        start: 22,
+                      },
+                      value: 'String',
+                    },
+                  },
+                },
+              ],
+              interfaces: [],
+              kind: 'ObjectTypeDefinition',
+              loc: {
+                end: 30,
+                start: 0,
+              },
+              name: {
+                kind: 'Name',
+                loc: {
+                  end: 10,
+                  start: 5,
+                },
+                value: 'Query',
+              },
+            },
+          ],
+          kind: 'Document',
+          loc: {
+            end: 30,
+            start: 0,
+          },
+        });
       });
 
       it('should throw when the file does not exist', async () => {
@@ -70,7 +131,68 @@ describe('GitLoader', () => {
         process.chdir(path.resolve(__dirname, 'test-files', 'a'));
 
         const [result] = await load(`git:${lastCommit}:./**/*.graphql`, {});
-        expect(result.document).toMatchSnapshot();
+        expect(result.document).toMatchObject({
+          definitions: [
+            {
+              description: undefined,
+              directives: [],
+              fields: [
+                {
+                  arguments: [],
+                  description: undefined,
+                  directives: [],
+                  kind: 'FieldDefinition',
+                  loc: {
+                    end: 28,
+                    start: 15,
+                  },
+                  name: {
+                    kind: 'Name',
+                    loc: {
+                      end: 20,
+                      start: 15,
+                    },
+                    value: 'hello',
+                  },
+                  type: {
+                    kind: 'NamedType',
+                    loc: {
+                      end: 28,
+                      start: 22,
+                    },
+                    name: {
+                      kind: 'Name',
+                      loc: {
+                        end: 28,
+                        start: 22,
+                      },
+                      value: 'String',
+                    },
+                  },
+                },
+              ],
+              interfaces: [],
+              kind: 'ObjectTypeDefinition',
+              loc: {
+                end: 30,
+                start: 0,
+              },
+              name: {
+                kind: 'Name',
+                loc: {
+                  end: 10,
+                  start: 5,
+                },
+                value: 'Query',
+              },
+            },
+          ],
+          kind: 'Document',
+          loc: {
+            end: 31,
+            start: 0,
+          },
+        });
 
         process.chdir(saveCwd);
       });

@@ -12,7 +12,7 @@ import { useEngine } from '@envelop/core';
 import { normalizedExecutor } from '@graphql-tools/executor';
 import { createDeferred, ExecutionResult } from '@graphql-tools/utils';
 import { useDeferStream } from '@graphql-yoga/plugin-defer-stream';
-import { describeIf } from '../../../testing/utils.js';
+import { describeIf, testIf } from '../../../testing/utils.js';
 import type * as UrlLoaderModule from '../src/index.js';
 
 declare global {
@@ -198,7 +198,9 @@ describeIf(platform() !== 'win32')('[url-loader] webpack bundle compat', () => {
         socket.destroy();
       }
       if (httpServer) {
-        httpServer.closeAllConnections();
+        if (!globalThis.Bun) {
+          httpServer.closeAllConnections();
+        }
         httpServer.close(err => {
           if (err) return reject(err);
           resolve();
@@ -393,7 +395,7 @@ describeIf(platform() !== 'win32')('[url-loader] webpack bundle compat', () => {
     // no uncaught errors should be reported (browsers raise errors when canceling requests)
     expect(pageerrorFn).not.toBeCalled();
   });
-  it('terminates stream correctly', async () => {
+  testIf(!globalThis.Bun)('terminates stream correctly', async () => {
     const document = parse(/* GraphQL */ `
       query {
         fakeStream @stream
