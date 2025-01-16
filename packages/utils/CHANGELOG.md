@@ -1094,7 +1094,7 @@
 
 ### Patch Changes
 
-- e53f97b3: fix(utils): provide { done: true } from iterator when complete is called on observer in
+- e53f97b3: fix(utils): provide `{ done: true }` from iterator when complete is called on observer in
   observableToAsyncIterable
 
 ## 7.2.5
@@ -1123,7 +1123,7 @@
 - 6e50d9fc: enhance(stitching-directives): use keyField
 
   When using simple keys, i.e. when using the keyField argument to `@merge`, the keyField can be
-  added implicitly to the types's key. In most cases, therefore, `@key` should not be required at
+  added implicitly to the types' key. In most cases, therefore, `@key` should not be required at
   all.
 
 ## 7.2.3
