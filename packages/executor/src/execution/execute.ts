@@ -438,6 +438,11 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
             return [
               createGraphQLError(
                 'Must provide operation name if query contains multiple operations.',
+                {
+                  extensions: {
+                    code: 'OPERATION_RESOLUTION_FAILURE',
+                  },
+                },
               ),
             ];
           }
@@ -453,9 +458,21 @@ export function buildExecutionContext<TData = any, TVariables = any, TContext = 
 
   if (operation == null) {
     if (operationName != null) {
-      return [createGraphQLError(`Unknown operation named "${operationName}".`)];
+      return [
+        createGraphQLError(`Unknown operation named "${operationName}".`, {
+          extensions: {
+            code: 'OPERATION_RESOLUTION_FAILURE',
+          },
+        }),
+      ];
     }
-    return [createGraphQLError('Must provide an operation.')];
+    return [
+      createGraphQLError('Must provide an operation.', {
+        extensions: {
+          code: 'OPERATION_RESOLUTION_FAILURE',
+        },
+      }),
+    ];
   }
 
   // FIXME: https://github.com/graphql/graphql-js/issues/2203
@@ -1532,19 +1549,15 @@ export function subscribe<TData = any, TVariables = any, TContext = any>(
 
   // Return early errors if execution context failed.
   if (!('schema' in exeContext)) {
+    for (const error of exeContext) {
+      // @ts-expect-error - We are intentionally modifying the errors
+      const extensions = (error.extensions ||= {});
+      const httpExtensions = (extensions['http'] ||= {});
+      httpExtensions.status = 400;
+      error.extensions['code'] = 'BAD_USER_INPUT';
+    }
     return {
-      errors: exeContext.map(e => {
-        Object.defineProperty(e, 'extensions', {
-          value: {
-            ...e.extensions,
-            http: {
-              ...(e.extensions?.['http'] || {}),
-              status: 400,
-            },
-          },
-        });
-        return e;
-      }),
+      errors: exeContext,
     };
   }
 
