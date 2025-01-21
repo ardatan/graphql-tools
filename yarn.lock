@@ -2338,10 +2338,10 @@
     "@napi-rs/simple-git-win32-arm64-msvc" "0.1.19"
     "@napi-rs/simple-git-win32-x64-msvc" "0.1.19"
 
-"@next/bundle-analyzer@15.1.4":
-  version "15.1.4"
-  resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-15.1.4.tgz#17f000db3a16492180270b4d23a77ca78facacfa"
-  integrity sha512-W8X96jOW0U5VjLVAkFr1P37kH2f/Ma9zzwgX2o3Omft92pI0XHpFG8Xa9YUT3NlhRJCe4ZKznr1VxhSrFNA+BA==
+"@next/bundle-analyzer@15.1.5":
+  version "15.1.5"
+  resolved "https://registry.yarnpkg.com/@next/bundle-analyzer/-/bundle-analyzer-15.1.5.tgz#a0b99f665e9e672588c4880f608506df3189c6f0"
+  integrity sha512-pCYMPgGRwf+FjEwUXFo3QF14VzBSPPsBHSFuXUpq5ifKcY8LbcmoF2xMVVMa2HoYgA1XuqPSAIfLJr4YXNa9xQ==
   dependencies:
     webpack-bundle-analyzer "4.10.1"
 
@@ -2859,13 +2859,13 @@
   resolved "https://registry.yarnpkg.com/@tanstack/virtual-core/-/virtual-core-3.11.2.tgz#00409e743ac4eea9afe5b7708594d5fcebb00212"
   integrity sha512-vTtpNt7mKCiZ1pwU9hfKPhpdVO2sVzFQsxoVBGtOSHxlrRRzYr8iQ2TlwbAcRYCcEiZ9ECAM8kBzH0v2+VzfKw==
 
-"@theguild/components@9.1.3":
-  version "9.1.3"
-  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-9.1.3.tgz#eb412a10a89efbc05e636f4469eb0288ddf61f0b"
-  integrity sha512-0tHpsyPW7P5nrDgh8O3DCDmGE5C6lid7xUKXfqva5O0nmwxNFkJkwxC56D8snI/FO2ZiRt4U98DC1dMqt797kg==
+"@theguild/components@9.2.0":
+  version "9.2.0"
+  resolved "https://registry.yarnpkg.com/@theguild/components/-/components-9.2.0.tgz#989c4f0e0ebae1472887c5f3cd4461e005561230"
+  integrity sha512-YOk4VpKiRwosjZMfXf4Y+jOGajlrNL8ZWhwVxWrhcWWOk7IZNfP94K5JbMNN9opENQ1y/nRoD0kUg7wjl6yW2g==
   dependencies:
     "@giscus/react" "3.1.0"
-    "@next/bundle-analyzer" "15.1.4"
+    "@next/bundle-analyzer" "15.1.5"
     "@radix-ui/react-accordion" "^1.2.2"
     "@radix-ui/react-icons" "^1.3.2"
     "@radix-ui/react-navigation-menu" "^1.2.0"
