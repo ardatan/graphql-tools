@@ -1045,10 +1045,10 @@
   resolved "https://registry.yarnpkg.com/@braintree/sanitize-url/-/sanitize-url-7.1.1.tgz#15e19737d946559289b915e5dad3b4c28407735e"
   integrity sha512-i1L7noDNxtFyL5DmZafWy1wRVhGehQmzZaz1HiN5e7iylJMSZR7ekOV7NsIqa5qBldlLrsKv4HbgFUVlQrz8Mw==
 
-"@changesets/apply-release-plan@^7.0.7":
-  version "7.0.7"
-  resolved "https://registry.yarnpkg.com/@changesets/apply-release-plan/-/apply-release-plan-7.0.7.tgz#cabeaed77de07c6bd9878a9bc5ffd3ea7db7f7ff"
-  integrity sha512-qnPOcmmmnD0MfMg9DjU1/onORFyRpDXkMMl2IJg9mECY6RnxL3wN0TCCc92b2sXt1jt8DgjAUUsZYGUGTdYIXA==
+"@changesets/apply-release-plan@^7.0.8":
+  version "7.0.8"
+  resolved "https://registry.yarnpkg.com/@changesets/apply-release-plan/-/apply-release-plan-7.0.8.tgz#9cfd46036789ad433fd855f34d41cd9ca1658aa0"
+  integrity sha512-qjMUj4DYQ1Z6qHawsn7S71SujrExJ+nceyKKyI9iB+M5p9lCL55afuEd6uLBPRpLGWQwkwvWegDHtwHJb1UjpA==
   dependencies:
     "@changesets/config" "^3.0.5"
     "@changesets/get-version-range-type" "^0.4.0"
@@ -1092,12 +1092,12 @@
     "@changesets/types" "^6.0.0"
     dotenv "^8.1.0"
 
-"@changesets/cli@2.27.11":
-  version "2.27.11"
-  resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.27.11.tgz#1d510044b350a7c78a8b55a0591637d7ad224469"
-  integrity sha512-1QislpE+nvJgSZZo9+Lj3Lno5pKBgN46dAV8IVxKJy9wX8AOrs9nn5pYVZuDpoxWJJCALmbfOsHkyxujgetQSg==
+"@changesets/cli@2.27.12":
+  version "2.27.12"
+  resolved "https://registry.yarnpkg.com/@changesets/cli/-/cli-2.27.12.tgz#1df106605ce243c21b180254dd658adbfba4e5b6"
+  integrity sha512-9o3fOfHYOvBnyEn0mcahB7wzaA3P4bGJf8PNqGit5PKaMEFdsRixik+txkrJWd2VX+O6wRFXpxQL8j/1ANKE9g==
   dependencies:
-    "@changesets/apply-release-plan" "^7.0.7"
+    "@changesets/apply-release-plan" "^7.0.8"
     "@changesets/assemble-release-plan" "^6.0.5"
     "@changesets/changelog-git" "^0.2.0"
     "@changesets/config" "^3.0.5"
