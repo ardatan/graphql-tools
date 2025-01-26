@@ -1,7 +1,7 @@
 import fs, { promises as fsPromises } from 'node:fs';
 import path from 'node:path';
 import chalk from 'chalk';
-import globby from 'globby';
+import { globSync } from 'tinyglobby';
 import { Application, TSConfigReader } from 'typedoc';
 import workspacePackageJson from '../package.json';
 
@@ -13,7 +13,7 @@ const OUTPUT_PATH = path.join(CWD, 'website/src/content/api');
 async function buildApiDocs(): Promise<void> {
   // An array of tuples where the first element is the package's name and
   // the second element is the relative path to the package's entry point
-  const packageJsonFiles = globby.sync(
+  const packageJsonFiles = globSync(
     workspacePackageJson.workspaces.map(f => `${f}/package.json`),
   );
   const modules: Array<[string, string]> = [];

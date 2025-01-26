@@ -1,8 +1,7 @@
 import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { isAbsolute, resolve } from 'path';
 import { env, cwd as processCwd } from 'process';
-import type { GlobbyOptions } from 'globby';
-import globby from 'globby';
+import { glob, globSync, GlobOptions } from 'tinyglobby';
 import unixify from 'unixify';
 import { processImport } from '@graphql-tools/import';
 import {
@@ -41,7 +40,7 @@ function isGraphQLImportFile(rawSDL: string) {
   return trimmedRawSDL.startsWith('# import') || trimmedRawSDL.startsWith('#import');
 }
 
-function createGlobbyOptions(options: GraphQLFileLoaderOptions): GlobbyOptions {
+function createGlobbyOptions(options: GraphQLFileLoaderOptions): GlobOptions {
   return { absolute: true, ...options, ignore: [] };
 }
 
@@ -110,16 +109,16 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
     return globs;
   }
 
-  async resolveGlobs(glob: string, options: GraphQLFileLoaderOptions) {
+  async resolveGlobs(path: string, options: GraphQLFileLoaderOptions) {
     if (
-      !glob.includes('*') &&
-      (await this.canLoad(glob, options)) &&
+      !path.includes('*') &&
+      (await this.canLoad(path, options)) &&
       !asArray(options.ignore || []).length &&
       !options['includeSources']
     )
       return [glob]; // bypass globby when no glob character, can be loaded, no ignores and source not requested. Fixes problem with pkg and passes ci tests
-    const globs = this._buildGlobs(glob, options);
-    const result = await globby(globs, createGlobbyOptions(options));
+    const globs = this._buildGlobs(path, options);
+    const result = await glob(globs, createGlobbyOptions(options));
     return result;
   }
 
@@ -132,7 +131,7 @@ export class GraphQLFileLoader implements Loader<GraphQLFileLoaderOptions> {
     )
       return [glob]; // bypass globby when no glob character, can be loaded, no ignores and source not requested. Fixes problem with pkg and passes ci tests
     const globs = this._buildGlobs(glob, options);
-    const result = globby.sync(globs, createGlobbyOptions(options));
+    const result = globSync(globs, createGlobbyOptions(options));
     return result;
   }
 

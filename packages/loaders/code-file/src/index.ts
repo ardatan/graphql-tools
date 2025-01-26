@@ -2,8 +2,7 @@ import { existsSync, promises as fsPromises, readFileSync } from 'fs';
 import { createRequire } from 'module';
 import { isAbsolute, resolve } from 'path';
 import { cwd, env } from 'process';
-import type { GlobbyOptions } from 'globby';
-import globby from 'globby';
+import { glob, globSync, type GlobOptions } from 'tinyglobby';
 import { DocumentNode, GraphQLSchema, isSchema, parse } from 'graphql';
 import unixify from 'unixify';
 import {
@@ -59,7 +58,7 @@ const FILE_EXTENSIONS = [
   '.gjs',
 ];
 
-function createGlobbyOptions(options: CodeFileLoaderOptions): GlobbyOptions {
+function createGlobbyOptions(options: CodeFileLoaderOptions): GlobOptions {
   return { absolute: true, ...options, ignore: [] };
 }
 
@@ -135,16 +134,16 @@ export class CodeFileLoader implements Loader<CodeFileLoaderOptions> {
     return globs;
   }
 
-  async resolveGlobs(glob: string, options: CodeFileLoaderOptions) {
+  async resolveGlobs(path: string, options: CodeFileLoaderOptions) {
     options = this.getMergedOptions(options);
-    const globs = this._buildGlobs(glob, options);
-    return globby(globs, createGlobbyOptions(options));
+    const globs = this._buildGlobs(path, options);
+    return glob(globs, createGlobbyOptions(options));
   }
 
   resolveGlobsSync(glob: string, options: CodeFileLoaderOptions) {
     options = this.getMergedOptions(options);
     const globs = this._buildGlobs(glob, options);
-    return globby.sync(globs, createGlobbyOptions(options));
+    return globSync(globs, createGlobbyOptions(options));
   }
 
   async load(pointer: string, options: CodeFileLoaderOptions): Promise<Source[]> {

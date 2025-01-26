@@ -6,7 +6,7 @@ import { loadDocuments, loadDocumentsSync } from '@graphql-tools/load';
 import { runTests } from '../../../../testing/utils.js';
 import '../../../../testing/to-be-similar-string';
 import { readFileSync } from 'fs';
-import globby from 'globby';
+import { globSync } from 'tinyglobby';
 import { removeLoc } from '@graphql-tools/optimize';
 
 describe('documentsFromGlob', () => {
@@ -20,7 +20,7 @@ describe('documentsFromGlob', () => {
         loaders: [new GraphQLFileLoader()],
       });
       expect(result).toHaveLength(1);
-      const expectedFiles = globby.sync(glob);
+      const expectedFiles = globSync(glob);
       for (const expectedFileName of expectedFiles) {
         const fileNameResult = result?.find(({ location }) => location === expectedFileName);
         if (fileNameResult) {
@@ -38,7 +38,7 @@ describe('documentsFromGlob', () => {
         loaders: [new GraphQLFileLoader()],
       });
       expect(result).toHaveLength(2);
-      const expectedFiles = globby.sync(glob);
+      const expectedFiles = globSync(glob);
       for (const expectedFileName of expectedFiles) {
         const fileNameResult = result?.find(({ location }) => location === expectedFileName);
         if (fileNameResult) {
